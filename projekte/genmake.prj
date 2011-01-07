@@ -1,0 +1,7 @@
+# Project description of Genmake
+# Genmake is used to generate Makefiles from project descriptions
+include        projekte/binary.gcc
+Src            = C-kern/tools/hash.c C-kern/main/tools/genmake.c
+Includes       = .
+Defines        =
+Objectdir      = $(Objectdir)/$(projectname)

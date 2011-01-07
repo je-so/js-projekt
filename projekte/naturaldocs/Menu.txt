@@ -1,0 +1,138 @@
+Format: 1.5
+
+
+# You can add a title and sub-title to your menu like this:
+# Title: [project name]
+# SubTitle: [subtitle]
+
+# You can add a footer to your documentation like this:
+# Footer: [text]
+# If you want to add a copyright notice, this would be the place to do it.
+
+# You can add a timestamp to your documentation like one of these:
+# Timestamp: Generated on month day, year
+# Timestamp: Updated mm/dd/yyyy
+# Timestamp: Last updated mon day
+#
+#   m     - One or two digit month.  January is "1"
+#   mm    - Always two digit month.  January is "01"
+#   mon   - Short month word.  January is "Jan"
+#   month - Long month word.  January is "January"
+#   d     - One or two digit day.  1 is "1"
+#   dd    - Always two digit day.  1 is "01"
+#   day   - Day with letter extension.  1 is "1st"
+#   yy    - Two digit year.  2006 is "06"
+#   yyyy  - Four digit year.  2006 is "2006"
+#   year  - Four digit year.  2006 is "2006"
+
+
+# --------------------------------------------------------------------------
+# 
+# Cut and paste the lines below to change the order in which your files
+# appear on the menu.  Don't worry about adding or removing files, Natural
+# Docs will take care of that.
+# 
+# You can further organize the menu by grouping the entries.  Add a
+# "Group: [name] {" line to start a group, and add a "}" to end it.
+# 
+# You can add text and web links to the menu by adding "Text: [text]" and
+# "Link: [name] ([URL])" lines, respectively.
+# 
+# The formatting and comments are auto-generated, so don't worry about
+# neatness when editing the file.  Natural Docs will clean it up the next
+# time it is run.  When working with groups, just deal with the braces and
+# forget about the indentation and comments.
+# 
+# --------------------------------------------------------------------------
+
+
+Group: Api  {
+
+   Group: Adapter  {
+
+      File: Parse Tree Adapter  (api/adapter/parse_tree.h)
+      File: Stream Adapter  (api/adapter/stream.h)
+      }  # Group: Adapter
+
+   Group: OS  {
+
+      File: Directory Functions  (api/os/filesystem/directory.h)
+      File: Find Files  (api/os/filesystem/findfile.h)
+      File: Internet Sockets  (api/os/inetsocket.h)
+      File: RootBuffer  (api/os/root/buffer.h)
+      File: Thread  (api/os/thread.h)
+      File: Timing  (api/os/timing.h)
+      File: VirtualMemory  (api/os/virtmemory.h)
+      }  # Group: OS
+
+   Group: String  {
+
+      File: Strings  (api/string/string.h)
+      File: Suffix Tree  (api/string/suffix_tree.h)
+      }  # Group: String
+
+   Group: Test  {
+
+      File: Speed Test  (api/test/speedtest.h)
+      File: Unittest  (api/test/unittest.h)
+      }  # Group: Test
+
+   Group: Umgebung  {
+
+      File: Callback Context  (api/umgebung/callback.h)
+      File: Log API  (api/umgebung/log.h)
+      }  # Group: Umgebung
+
+   File: errlog.h  (api/errlog.h)
+   File: generic/integer_misc.h  (api/generic/integer_misc.h)
+   }  # Group: Api
+
+Group: Generic Data Structures  {
+
+   File: ArrayList Iterator  (generic/iterator/arraylist-it.h)
+   File: Generic Node Adapter  (generic/GenericNodeAdapter.txt)
+   File: Patricia Tree  (generic/trie/patricia.h)
+   File: Single Linked List  (generic/slist.h)
+   }  # Group: Generic Data Structures
+
+Group: Compiler  {
+
+   File: IDL Parser  (compiler/idl_parser.h)
+   File: IDL Scanner  (compiler/idl_scanner.h)
+   }  # Group: Compiler
+
+Group: Implementierung  {
+
+   Group: Linux  {
+
+      File: Locale  (Linux/locale.c)
+      File: VirtualMemory Implementation  (Linux/virtmemory.c)
+      }  # Group: Linux
+
+   Group: Shared OS  {
+
+      File: findfile implementation  (shared-OS/findfile.c)
+      }  # Group: Shared OS
+
+   Group: Test  {
+
+      File: CompiletimeTest Defines  (test/compiletime/defines.h)
+      File: CompiletimeTest StdTypes  (test/compiletime/stdtypes.h)
+      }  # Group: Test
+
+   }  # Group: Implementierung
+
+File: Konfiguration  (konfig.h)
+
+Group: Index  {
+
+   Index: Everything
+   File Index: Files
+   Macro Index: Macros
+   Function Index: Functions
+   Type Index: Types
+   Variable Index: Variables
+   Class Index: Classes
+   Constant Index: Constants
+   }  # Group: Index
+

@@ -1,0 +1,22 @@
+# Include this to use GCC to build a binary executable
+Modes         = Debug Release
+Compiler      = gcc $(defines) $(includes) $(cflags) -c -o $(out) $(in)
+Linker        = gcc $(lflags) -o $(out) $(in) $(libs)
+CFlagInclude  = -I
+CFlagDefine   = -D
+LFlagLib      = -l
+LFlagLibpath  = -L
+warnings_on   = -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes
+warnings_on  += -Wformat-nonliteral -Wformat-y2k
+shobj_flags   = -fPIC 
+CFlags        = -MMD -std=gnu99 $(warnings_on) $(shobj_flags)
+LFlags        = -shared $(shobj_flags)
+CFlags_Debug  = -g $(cflags)
+LFlags_Debug  = -g $(lflags)
+CFlags_Release= -O2 $(cflags)
+LFlags_Release= -O2 $(lflags)
+Libs          =
+Libpath       =
+Objectdir     = bin/$(mode)
+Target        = bin/lib$(projectname)_$(mode).so
+Target_Release= bin/lib$(projectname).so

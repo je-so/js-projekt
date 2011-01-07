@@ -1,0 +1,31 @@
+/* title: TODO $(CurrentFileFullPath)
+   TODO
+
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   Author:
+   (C) 2010 Jörg Seebohn
+
+   file: $(CurrentFileFullPath)
+    Header file of <title TODO>.
+
+   file: TODO
+    Implementation file of <title TODO>.
+*/
+#ifndef CKERN_TODO_HEADER
+#define CKERN_TODO_HEADER
+
+
+
+#endif
+

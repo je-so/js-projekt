@@ -1,0 +1,62 @@
+(c) 2010 Jörg Seebohn
+
+Goal:
+  To develop a database with its own transactional programming language.
+  Implementation language is C99. Currently different sub-projects
+  integrated as one C-kern(el) are used to build up the
+  whole system step by step.
+ 
+Subprojects (codenamed):
+  [ !! only Genmake is currently published !! ]
+  ------------
+  : C-Skript :
+  ------------
+  (Goal: to automate writing recurring code patterns)
+  Simple macro language which allows to generate C-Code.
+  -----------
+  : Genmake :
+  -----------
+  (Goal: to automate builds)
+  Simple project description which generates makefile for project.
+  --------
+  : Thor :
+  --------
+  (Goal: to simplify handling of complex data structures)
+  To develop a transactional hierarchical object database
+  suitable to store context information gathered during parsing.
+  --------
+  : ???? :
+  --------
+  (Goal: to allow flexible syntax of language)
+  To develop a parser generator language which allows for 
+  "change of syntax at runtime".
+
+License:
+  Licensed under GNU General Public License v2 (see COPYING),
+  or (at your option) any later version.
+
+State:
+  Architecture - design phase.
+  Linux-only support during development.
+  Some documentation is only in German during development.
+
+Build:
+  Run 'make' in the top level directory.
+  This should build all subprojects.
+
+  The main makefile ('Makefile') calls for every subproject the corresponding 
+  makefile in 'projekte/makefiles/'.
+
+Documentation:
+  The documentation is extracted from the source files by naturaldoc.
+  Type 'make html' to run it. Make sure you have installed v1.5 on your system.
+  Type 'firefox html/index.html' to view it (replace firefox with your favourite browser).
+
+Dependencies: 
+  libpthread / librt
+  Git (http://git-scm.com).
+  Codelite (http://codelite.org).
+  'Natural Docs v1.5' (www.naturaldocs.org).
+
+
+
