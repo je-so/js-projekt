@@ -7,7 +7,7 @@ Goal:
   whole system step by step.
  
 Subprojects (codenamed):
-  [ !! only Genmake is currently published !! ]
+  [ !! only Genmake/rtextcompiler are currently published !! ]
   ------------
   : C-Skript :
   ------------
@@ -18,6 +18,11 @@ Subprojects (codenamed):
   -----------
   (Goal: to automate builds)
   Simple project description which generates makefile for project.
+  -----------------
+  : rtextcompiler :
+  -----------------
+  Simple resource text compiler which generates .h - files
+  from text resources (C-kern/resource/errorlog.text).
   --------
   : Thor :
   --------

@@ -5,7 +5,8 @@
 # list of targets
 .PHONY: all clean distclean makefiles html
 .PHONY: Debug Release
-.PHONY: genmake
+.PHONY: genmake rtextcompiler
+.PHONY: rtextcompiler_Release genmake_Release
 
 
 # options
@@ -43,12 +44,15 @@ html:
 
 
 makefiles: \
-           $(MAKEFILES_PREFIX)genmake
+           $(MAKEFILES_PREFIX)genmake \
+           $(MAKEFILES_PREFIX)rtextcompiler 
 
 $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.gcc | genmake_Release
 	@bin/genmake $< > "$(@)"
 
-genmake:
+resources: | rtextcompiler_Release
+
+genmake rtextcompiler resources:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(@) ; then make -f $(MAKEFILES_PREFIX)$(@) ; fi
 
 rtextcompiler_Release:
@@ -57,6 +61,8 @@ rtextcompiler_Release:
 genmake_Release:
 	@if ! make -qf $(MAKEFILES_PREFIX)genmake Release ; then make -f $(MAKEFILES_PREFIX)genmake Release ; fi
 
-Release Debug:  $(MAKEFILES_PREFIX)genmake
+Release Debug: $(MAKEFILES_PREFIX)rtextcompiler \
+               $(MAKEFILES_PREFIX)resources \
+               $(MAKEFILES_PREFIX)genmake
 	@for mf in $^ ; do if ! make -qf $${mf} $(@) ; then make -f $${mf} $(@) ; fi ; done
 

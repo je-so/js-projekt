@@ -1,0 +1,14 @@
+# (c) 2010 Jörg Seebohn
+
+.PHONY: all Debug Release
+
+RTC=rm -f $(@); rtc=bin/rtextcompiler; if [ ! -f $${rtc} ]; then rtc=$${rtc}_Debug ; fi ; $${rtc} -c $(@) --switch KONFIG_LANG $(<)
+
+all: C-kern/api/resource/errorlog.h
+Debug: all
+Release: all
+
+C-kern/api/resource/errorlog.h: C-kern/resource/errorlog.text
+	@$(RTC)
+
+

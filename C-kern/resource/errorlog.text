@@ -1,0 +1,75 @@
+#
+# printf based error strings for logging
+#
+CONDITION_EXPECTED:de: __FILE__,__LINE__,__FUNCTION__,sCondition
+"In %s:%d: %s"
+"Die Bedingung (%s) ist nicht wahr (interner Programmfehler)"
+CONDITION_EXPECTED:en: __FILE__,__LINE__,__FUNCTION__,sCondition
+"In %s:%d: %s"
+"Expected condition (%s) to be true (internal program error)"
+
+CONTEXT_INFO:de: sContext
+"Bezogen auf den Kontext '%s'"
+CONTEXT_INFO:en: sContext
+"In relation to following context '%s'"
+
+DIRECTORY_ERROR_TOO_MANY_LEADING_DOTS:de: checked_path, basedir
+"Pfad '%s' enthält zuviel führende '../'"
+"relativ zum Pfad '%s'"
+DIRECTORY_ERROR_TOO_MANY_LEADING_DOTS:en: checked_path, basedir
+"path '%s' contains to many leading '../'"
+"relative to path '%s'"
+
+DIRECTORY_ERROR_CONTAINS_BAD_DOTS:de: checked_path
+"Pfad '%s' enthält '.', '//' bzw. '..'"
+DIRECTORY_ERROR_CONTAINS_BAD_DOTS:en: checked_path
+"path '%s' contains '.', '//' or '..'"
+
+FORMAT_MISSING_ENDOFLINE:de: name
+"'%s' enthält kein Zeilenendezeichen ('\n')"
+FORMAT_MISSING_ENDOFLINE:en: name
+"'%s' contains no newline ('\n')"
+
+FORMAT_WRONG:de: name
+"'%s' besitzt unbekanntes Format"
+FORMAT_WRONG:en: name
+"'%s' has unknown format"
+
+FUNCTION_ABORT:de: file, function, err
+"%s: Funktions-Abbruch '%s' (err=%d)"
+FUNCTION_ABORT:en: file, function, err
+"%s: Function '%s' aborted (err=%d)"
+
+FUNCTION_SYSERROR:de: function_name, function_errno, function_strerrno
+"Funktion '%s' erzeugte Fehler(%d): '%s'"
+FUNCTION_SYSERROR:en: function_name, function_errno, function_strerrno
+"Function '%s' returned error(%d): '%s'"
+
+MEMORY_ERROR_OUT_OF:de: size
+"Kein Speicher (%"PRIuSIZE" bytes)!"
+MEMORY_ERROR_OUT_OF:en: size
+"Out of memory (%"PRIuSIZE" bytes)!"
+
+PARAMETER_INT_TOO_BIG:de: parameter_name, parameter_max
+"Parameter '%s' > %d"
+PARAMETER_INT_TOO_BIG:en: parameter_name, parameter_max
+"Parameter '%s' > %d"
+
+PROCESS_TERMINATED_ABNORMAL:de: process_name, exit_code
+"Prozess '%s' abnormal beendet (exit wert=%d)"
+PROCESS_TERMINATED_ABNORMAL:en: process_name, exit_code
+"Process '%s' terminated abnormal (exit value=%d)"
+
+PROCESS_TERMINATED_WITH_ERROR:de: process_name, exit_code
+"Prozess '%s' beendet mit Fehlercode '%d'"
+PROCESS_TERMINATED_WITH_ERROR:en: process_name, exit_code
+"Process '%s' terminated with error code '%d'"
+
+QUEUE_BUSY:de: module_name
+"Anfrage-Zwischenspeicher voll (in Modul='%s')"
+QUEUE_BUSY:en: module_name
+"Request-Queue is busy (in module='%s')"
+QUEUE_NOT_ALL_CANCELED:de: module_name
+"Nicht alle Anfragen konnten erfolgreich aus dem System entfernt werden (in Modul='%s')"
+QUEUE_NOT_ALL_CANCELED:en: module_name
+"Not all requests could be canceled from queue (in module='%s')"

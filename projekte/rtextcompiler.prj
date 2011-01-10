@@ -1,0 +1,8 @@
+# Project description of Resource Text Compiler
+# it is used to generate C-headers from language dependent text resources
+include        projekte/binary.gcc
+Src            = C-kern/main/tools/resource_textcompiler.c
+Src           += C-kern/tools/hash.c
+Includes       = .
+Defines        =
+Objectdir      = $(Objectdir)/$(projectname)

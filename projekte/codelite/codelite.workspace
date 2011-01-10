@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <CodeLite_Workspace Name="codelite" Database="./codelite.tags">
-  <Project Name="genmake" Path="genmake.project" Active="Yes"/>
+  <Project Name="genmake" Path="genmake.project" Active="No"/>
+  <Project Name="rtextcompiler" Path="rtextcompiler.project" Active="Yes"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Project Name="rtextcompiler" ConfigName="Debug"/>
       <Project Name="genmake" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
+      <Project Name="rtextcompiler" ConfigName="Release"/>
       <Project Name="genmake" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>

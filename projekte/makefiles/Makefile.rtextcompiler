@@ -1,0 +1,107 @@
+##
+## ! Genmake generated Makefile !
+##
+ProjectName     := rtextcompiler
+ProjectModes    := Debug Release
+PathOffset      := 
+ProjectFile     := $(PathOffset)projekte/rtextcompiler.prj
+ProjectLinks    := 
+
+GenerationDate  := 2011.Jan.07  19:36:48
+GeneratedBy     := Jörg Seebohn
+
+## Debug
+DefineFlag_Debug    := -D
+IncludeFlag_Debug   := -I
+LibraryFlag_Debug   := -l
+LibPathFlag_Debug   := -L
+CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+LFlags_Debug        := -g 
+Defines_Debug       :=
+Includes_Debug      := $(IncludeFlag_Debug)$(PathOffset).
+Libraries_Debug     :=
+Libpath_Debug       :=
+ObjectDir_Debug     := $(PathOffset)bin/Debug/rtextcompiler
+TargetDir_Debug     := $(PathOffset)bin
+Target_Debug        := $(PathOffset)bin/rtextcompiler_Debug
+Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
+CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
+LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
+
+## Release
+DefineFlag_Release    := -D
+IncludeFlag_Release   := -I
+LibraryFlag_Release   := -l
+LibPathFlag_Release   := -L
+CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+LFlags_Release        := -O2 
+Defines_Release       :=
+Includes_Release      := $(IncludeFlag_Release)$(PathOffset).
+Libraries_Release     :=
+Libpath_Release       :=
+ObjectDir_Release     := $(PathOffset)bin/Release/rtextcompiler
+TargetDir_Release     := $(PathOffset)bin
+Target_Release        := $(PathOffset)bin/rtextcompiler
+Libs_Release          := $(Libpath_Release) $(Libraries_Release)
+CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
+LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
+
+##
+## Targets
+##
+all:   Debug Release
+clean: clean_Debug clean_Release
+init:  init_Debug init_Release
+init_Debug: $(ObjectDir_Debug) $(TargetDir_Debug)
+init_Release: $(ObjectDir_Release) $(TargetDir_Release)
+
+Debug: $(Target_Debug)
+
+Release: $(Target_Release)
+
+clean_Debug:
+	@rm -f "$(ObjectDir_Debug)/"*.[od]
+	@rm -f "$(Target_Debug)"
+	@if [ -d "$(ObjectDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Debug)"; fi
+	@if [ -d "$(TargetDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Debug)"; fi
+
+clean_Release:
+	@rm -f "$(ObjectDir_Release)/"*.[od]
+	@rm -f "$(Target_Release)"
+	@if [ -d "$(ObjectDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Release)"; fi
+	@if [ -d "$(TargetDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Release)"; fi
+
+$(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Release)):
+	@mkdir -p "$@"
+
+Objects_Debug := \
+ $(ObjectDir_Debug)/C-kern!main!tools!resource_textcompiler.c.o \
+ $(ObjectDir_Debug)/C-kern!tools!hash.c.o
+
+Objects_Release := \
+ $(ObjectDir_Release)/C-kern!main!tools!resource_textcompiler.c.o \
+ $(ObjectDir_Release)/C-kern!tools!hash.c.o
+
+$(Target_Debug): $(Objects_Debug)
+$(Target_Debug): | $(ObjectDir_Debug) $(TargetDir_Debug)
+	@$(LD_Debug)
+
+$(Target_Release): $(Objects_Release)
+$(Target_Release): | $(ObjectDir_Release) $(TargetDir_Release)
+	@$(LD_Release)
+
+$(ObjectDir_Debug)/C-kern!main!tools!resource_textcompiler.c.o: $(PathOffset)C-kern/main/tools/resource_textcompiler.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!tools!hash.c.o: $(PathOffset)C-kern/tools/hash.c
+	@$(CC_Debug)
+
+$(ObjectDir_Release)/C-kern!main!tools!resource_textcompiler.c.o: $(PathOffset)C-kern/main/tools/resource_textcompiler.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!tools!hash.c.o: $(PathOffset)C-kern/tools/hash.c
+	@$(CC_Release)
+
+-include $(Objects_Debug:.o=.d)
+
+-include $(Objects_Release:.o=.d)
