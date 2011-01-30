@@ -1,13 +1,13 @@
 ##
 ## ! Genmake generated Makefile !
 ##
-ProjectName     := genmake
+ProjectName     := dummy
 ProjectModes    := Debug Release
 PathOffset      := 
-ProjectFile     := $(PathOffset)projekte/genmake.prj
+ProjectFile     := $(PathOffset)projekte/dummy.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jan.30  14:02:46
+GenerationDate  := 2011.Jan.30  14:05:17
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -17,13 +17,13 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
-Defines_Debug       :=
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST
 Includes_Debug      := $(IncludeFlag_Debug)$(PathOffset).
 Libraries_Debug     :=
 Libpath_Debug       :=
-ObjectDir_Debug     := $(PathOffset)bin/Debug/genmake
+ObjectDir_Debug     := $(PathOffset)bin/Debug/dummy
 TargetDir_Debug     := $(PathOffset)bin
-Target_Debug        := $(PathOffset)bin/genmake_Debug
+Target_Debug        := $(PathOffset)bin/dummy_Debug
 Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
 CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
 LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
@@ -35,13 +35,13 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
-Defines_Release       :=
+Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST
 Includes_Release      := $(IncludeFlag_Release)$(PathOffset).
 Libraries_Release     :=
 Libpath_Release       :=
-ObjectDir_Release     := $(PathOffset)bin/Release/genmake
+ObjectDir_Release     := $(PathOffset)bin/Release/dummy
 TargetDir_Release     := $(PathOffset)bin
-Target_Release        := $(PathOffset)bin/genmake
+Target_Release        := $(PathOffset)bin/dummy
 Libs_Release          := $(Libpath_Release) $(Libraries_Release)
 CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
 LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
@@ -75,12 +75,10 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!tools!hash.c.o \
- $(ObjectDir_Debug)/C-kern!main!tools!genmake.c.o
+ $(ObjectDir_Debug)/C-kern!main!dummy.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!tools!hash.c.o \
- $(ObjectDir_Release)/C-kern!main!tools!genmake.c.o
+ $(ObjectDir_Release)/C-kern!main!dummy.c.o
 
 $(Target_Debug): $(Objects_Debug)
 $(Target_Debug): | $(ObjectDir_Debug) $(TargetDir_Debug)
@@ -90,16 +88,10 @@ $(Target_Release): $(Objects_Release)
 $(Target_Release): | $(ObjectDir_Release) $(TargetDir_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Debug)/C-kern!tools!hash.c.o: $(PathOffset)C-kern/tools/hash.c
+$(ObjectDir_Debug)/C-kern!main!dummy.c.o: $(PathOffset)C-kern/main/dummy.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!main!tools!genmake.c.o: $(PathOffset)C-kern/main/tools/genmake.c
-	@$(CC_Debug)
-
-$(ObjectDir_Release)/C-kern!tools!hash.c.o: $(PathOffset)C-kern/tools/hash.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!main!tools!genmake.c.o: $(PathOffset)C-kern/main/tools/genmake.c
+$(ObjectDir_Release)/C-kern!main!dummy.c.o: $(PathOffset)C-kern/main/dummy.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

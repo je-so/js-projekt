@@ -5,7 +5,7 @@
 # list of targets
 .PHONY: all clean distclean makefiles html
 .PHONY: Debug Release
-.PHONY: genmake rtextcompiler
+.PHONY: dummy genmake rtextcompiler
 .PHONY: rtextcompiler_Release genmake_Release
 
 
@@ -44,6 +44,7 @@ html:
 
 
 makefiles: \
+           $(MAKEFILES_PREFIX)dummy \
            $(MAKEFILES_PREFIX)genmake \
            $(MAKEFILES_PREFIX)rtextcompiler 
 
@@ -52,7 +53,7 @@ $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.g
 
 resources: | rtextcompiler_Release
 
-genmake rtextcompiler resources:
+dummy genmake rtextcompiler resources:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(@) ; then make -f $(MAKEFILES_PREFIX)$(@) ; fi
 
 rtextcompiler_Release:
@@ -63,6 +64,7 @@ genmake_Release:
 
 Release Debug: $(MAKEFILES_PREFIX)rtextcompiler \
                $(MAKEFILES_PREFIX)resources \
+               $(MAKEFILES_PREFIX)dummy \
                $(MAKEFILES_PREFIX)genmake
 	@for mf in $^ ; do if ! make -qf $${mf} $(@) ; then make -f $${mf} $(@) ; fi ; done
 
