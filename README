@@ -1,28 +1,41 @@
-(c) 2010 Jörg Seebohn
+Author:
+  (c) 2010-2011 Jörg Seebohn
+
+Web location:
+  Free software project hosted at sourceforge.net:  http://js-projekt.sourceforge.net/
 
 Goal:
   To develop a database with its own transactional programming language.
   Implementation language is C99. Currently different sub-projects
   integrated as one C-kern(el) are used to build up the
   whole system step by step.
+
+State:
+  Architecture - design phase.
+  Linux-only support during development.
+  Some documentation is only in German during development.
  
-Subprojects (codenamed):
-  [ !! only Genmake/rtextcompiler are currently published !! ]
+Subprojects:
+(codenamed)
   ------------
   : C-Skript :
   ------------
-  (Goal: to automate writing recurring code patterns)
-  Simple macro language which allows to generate C-Code.
+  DISCARDED: Automate writing recurring code patterns
+  Instead: Use Preprocessor for generic types and copy paste for code patterns in interfaces
+           (+ static checks if necessary)
   -----------
   : Genmake :
   -----------
-  (Goal: to automate builds)
-  Simple project description which generates makefile for project.
+  DONE: Automate builds
+  Uses simple project description and generates a makefile.
   -----------------
   : rtextcompiler :
   -----------------
+  DONE: Handle multilingual text resources
   Simple resource text compiler which generates .h - files
   from text resources (C-kern/resource/errorlog.text).
+  NEEDS IMPROVEMENT: Simple text replacement is not enough for more complex langs.
+                     => Introduce algorithmic (C-Syntax ?) syntax
   --------
   : Thor :
   --------
@@ -37,13 +50,8 @@ Subprojects (codenamed):
   "change of syntax at runtime".
 
 License:
-  Licensed under GNU General Public License v2 (see COPYING),
+  Licensed under GNU General Public License v2 (see LICENSE),
   or (at your option) any later version.
-
-State:
-  Architecture - design phase.
-  Linux-only support during development.
-  Some documentation is only in German during development.
 
 Build:
   Run 'make' in the top level directory.
@@ -58,10 +66,19 @@ Documentation:
   Type 'firefox html/index.html' to view it (replace firefox with your favourite browser).
 
 Dependencies: 
-  libpthread / librt
-  Git (http://git-scm.com).
-  Codelite (http://codelite.org).
-  'Natural Docs v1.5' (www.naturaldocs.org).
+  Libraries:
+     * libpthread
+     * librt
+  Tools:
+     * Git      (http://git-scm.com).
+     * Codelite (http://codelite.org).
+     * 'Natural Docs v1.5' (www.naturaldocs.org).
 
-
-
+Project-structure:
+  LICENSE     # GPL v2 license
+  Makefile    # Top level makefile which calls project makefiles
+  README      # This readme file
+  C-kern/     # Contains all C99 source code and other resources, e.g. localized text
+  C-kern/konfig.h # Global configuration file (must be included by every source module)
+  projekte/   # Contains project descriptions suitable for Genmake
+  projekte/makefiles/ # Contains generated makefiles
