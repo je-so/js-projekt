@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/rtextcompiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jan.07  19:36:48
+GenerationDate  := 2011.Feb.12  09:32:28
 GeneratedBy     := Jörg Seebohn
 
 ## Debug

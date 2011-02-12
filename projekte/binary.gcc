@@ -16,6 +16,6 @@ CFlags_Release= -O2 $(cflags)
 LFlags_Release= -O2 $(lflags)
 Libs          =
 Libpath       =
-Objectdir     = bin/$(mode)
+Objectdir     = bin/$(mode)/$(projectname)
 Target        = bin/$(projectname)_$(mode)
 Target_Release= bin/$(projectname)

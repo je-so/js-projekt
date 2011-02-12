@@ -1,4 +1,4 @@
-# Include this to use GCC to build a binary executable
+# Include this to use GCC to build a shared library
 Modes         = Debug Release
 Compiler      = gcc $(defines) $(includes) $(cflags) -c -o $(out) $(in)
 Linker        = gcc $(lflags) -o $(out) $(in) $(libs)
@@ -17,6 +17,6 @@ CFlags_Release= -O2 $(cflags)
 LFlags_Release= -O2 $(lflags)
 Libs          =
 Libpath       =
-Objectdir     = bin/$(mode)
+Objectdir     = bin/$(mode)/$(projectname)
 Target        = bin/lib$(projectname)_$(mode).so
 Target_Release= bin/lib$(projectname).so

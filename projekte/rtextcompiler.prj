@@ -5,4 +5,3 @@ Src            = C-kern/main/tools/resource_textcompiler.c
 Src           += C-kern/tools/hash.c
 Includes       = .
 Defines        =
-Objectdir      = $(Objectdir)/$(projectname)

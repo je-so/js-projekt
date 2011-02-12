@@ -1,11 +1,14 @@
-# (c) 2009-2010 Jörg Seebohn
+# (c) 2009-2011 Jörg Seebohn
 
 # global Makefile building all subprojects
 
 # list of targets
 .PHONY: all clean distclean makefiles html
+# build modes
 .PHONY: Debug Release
-.PHONY: dummy genmake rtextcompiler
+# sub projects
+.PHONY: dummy genmake resources rtextcompiler
+# release versions of some sub projects
 .PHONY: rtextcompiler_Release genmake_Release
 
 
@@ -56,11 +59,8 @@ resources: | rtextcompiler_Release
 dummy genmake rtextcompiler resources:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(@) ; then make -f $(MAKEFILES_PREFIX)$(@) ; fi
 
-rtextcompiler_Release:
-	@if ! make -qf $(MAKEFILES_PREFIX)rtextcompiler Release ; then make -f $(MAKEFILES_PREFIX)rtextcompiler Release ; fi
-
-genmake_Release:
-	@if ! make -qf $(MAKEFILES_PREFIX)genmake Release ; then make -f $(MAKEFILES_PREFIX)genmake Release ; fi
+genmake_Release rtextcompiler_Release:
+	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then make -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
 
 Release Debug: $(MAKEFILES_PREFIX)rtextcompiler \
                $(MAKEFILES_PREFIX)resources \

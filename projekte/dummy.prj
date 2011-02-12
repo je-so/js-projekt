@@ -4,4 +4,3 @@ include        projekte/binary.gcc
 Src            = C-kern/main/dummy.c
 Includes       = .
 Defines        = KONFIG_UNITTEST
-Objectdir      = $(Objectdir)/$(projectname)

@@ -9,9 +9,9 @@
   <Dependencies/>
   <VirtualDirectory Name="src">
     <File Name="../../C-kern/main/tools/resource_textcompiler.c"/>
+    <File Name="../../C-kern/tools/hash.c"/>
+    <File Name="../../C-kern/tools/hash.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="">
@@ -81,4 +81,6 @@
       </AdditionalRules>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>
