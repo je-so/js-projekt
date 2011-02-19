@@ -1,0 +1,78 @@
+title: free objects
+
+Double free:
+
+To make managing of resource more easy, the following rule is stated.
+Every created resource has a free or delete function which must be callable
+more than once. The first call frees the resource and marks it as freed.
+The calls afterwards should do nothing.
+
+Object on stack - The corresponding function are named *free_objecttype*( &object ).
+                  The internal fields of the object structure are set to an invalid value
+                  before return. If free_objecttype is called with a object whose fields
+                  are marked invalid, the function returns success and does nothing.
+
+Object on heap  - For some objects the size is not known in advance and must allocated during initialization.
+                  For such objects a *delete_objecttype*( &pointer_to_object )
+                  exists whose purpose is to free system resources and allocated memory.
+                  Cause it is invalid to access freed memory a second time delete_objecttype sets
+                  *pointer_to_object* to NULL before it returns.
+                  If it is called with a NULL pointer this function does nothing and returns success.
+
+Memory callbacks:
+
+Objects which need to free memory must do so through use of a callback function.
+This function is explicitly given as parameter or implicitly set through use of a global
+context object called *umgebung*.
+
+If the free memory callback is set to NULL objects should free all resources except the memory.
+This is useful for complex data structures which can be build during initialization. A caller
+can therefore save the current memory level and after freeing the complex structure reset
+the memory to the previously stored level with a single call. Freeing 1000 small memory blocks
+therefore whill be very fast.
+
+Error handling:
+
+It is possible that an error occurs during execution of the free operation.
+In such a case the function should not be aborted but continue to free any
+pending resources. The error should be remembered and remembered in some
+log file if possible. The return value should be the last remembered error.
+
+If an error occurs while memory is freed then it is ok to ignore all
+other allocated memory blocks related to a certain memory manager.
+A memory error strongly indicates memory corruption and this kind
+of error should be handled by aborting the whole process in most cases.
+
+Example Implementations:
+
+> free_objectype( objecttype_t * obj )
+> {
+>    int err, last_err = 0 ;
+>    if ( isValid_resource(obj->resource) ) {  // check for double free
+>       err = free_resource(obj->resource) ;
+>       if (err) {
+>          last_err = err ;
+>          LOG_ERROR( "...", obj->resource ) ;
+>       }
+>       // mark field as freed
+>       makeInvalid_resource(&obj->resource) ;
+>    }
+>    return last_err ;
+> }
+>
+> delete_objectype( objecttype_t ** obj )
+> {
+>    int err, last_err = 0 ;
+>    if (*obj) {  // check for double free
+>       // ... free system resources
+>       err = free_memory( *obj ) ;
+>       if (err) {
+>          last_err = err ;
+>          LOG_ERROR( "corrupted memory" ) ;
+>          // ... call exit process / or ignore ? ...
+>       }
+>       // mark object as freed
+>       *obj = 0 ;
+>    }
+>    return last_err ;
+> }
