@@ -45,6 +45,13 @@ FUNCTION_SYSERROR:de: function_name, function_errno, function_strerrno
 FUNCTION_SYSERROR:en: function_name, function_errno, function_strerrno
 "Function '%s' returned error(%d): '%s'"
 
+LOCALE_SETLOCALE:de:
+"Kann die Lokalisierung mit setlocale nicht setzen"
+"Abhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen"
+LOCALE_SETLOCALE:en:
+"Cannot change the current locale with setlocale"
+"Remedy: Please set environment variable LC_ALL to a supported value by the system"
+
 MEMORY_ERROR_OUT_OF:de: size
 "Kein Speicher (%"PRIuSIZE" bytes)!"
 MEMORY_ERROR_OUT_OF:en: size

@@ -203,10 +203,7 @@
 // Includes all C-kern(el) headers which define the standard runtime environment.
 
 //{
-/* about: Callbacks
- * Include definition of <callback_context_t>.
- * > #include "C-kern/api/umgebung/callback.h" */
-#include "C-kern/api/umgebung/callback.h"
+// TODO
 //}
 
 

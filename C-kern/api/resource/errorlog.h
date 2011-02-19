@@ -23,6 +23,8 @@
         "%s: Funktions-Abbruch '%s' (err=%d)\n", file, function, err
 #define FUNCTION_SYSERROR(function_name, function_errno, function_strerrno) \
         "Funktion '%s' erzeugte Fehler(%d): '%s'\n", function_name, function_errno, function_strerrno
+#define LOCALE_SETLOCALE \
+        "Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n"
 #define MEMORY_ERROR_OUT_OF(size) \
         "Kein Speicher (%"PRIuSIZE" bytes)!\n", size
 #define PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
@@ -53,6 +55,8 @@
         "%s: Function '%s' aborted (err=%d)\n", file, function, err
 #define FUNCTION_SYSERROR(function_name, function_errno, function_strerrno) \
         "Function '%s' returned error(%d): '%s'\n", function_name, function_errno, function_strerrno
+#define LOCALE_SETLOCALE \
+        "Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n"
 #define MEMORY_ERROR_OUT_OF(size) \
         "Out of memory (%"PRIuSIZE" bytes)!\n", size
 #define PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \

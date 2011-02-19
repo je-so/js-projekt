@@ -2,5 +2,7 @@
 # Used to test a new module
 include        projekte/binary.gcc
 Src            = C-kern/main/dummy.c
+Src           += C-kern/os/Linux/*.c
+Src           += C-kern/umgebung/*.c
 Includes       = .
 Defines        = KONFIG_UNITTEST
