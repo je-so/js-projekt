@@ -7,7 +7,7 @@
 # build modes
 .PHONY: Debug Release
 # sub projects
-.PHONY: dummy genmake resources rtextcompiler
+.PHONY: test genmake resources rtextcompiler
 # release versions of some sub projects
 .PHONY: rtextcompiler_Release genmake_Release
 
@@ -47,7 +47,7 @@ html:
 
 
 makefiles: \
-           $(MAKEFILES_PREFIX)dummy \
+           $(MAKEFILES_PREFIX)test \
            $(MAKEFILES_PREFIX)genmake \
            $(MAKEFILES_PREFIX)rtextcompiler 
 
@@ -56,7 +56,7 @@ $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.g
 
 resources: | rtextcompiler_Release
 
-dummy genmake rtextcompiler resources:
+test genmake rtextcompiler resources:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(@) ; then make -f $(MAKEFILES_PREFIX)$(@) ; fi
 
 genmake_Release rtextcompiler_Release:
@@ -64,7 +64,7 @@ genmake_Release rtextcompiler_Release:
 
 Release Debug: $(MAKEFILES_PREFIX)rtextcompiler \
                $(MAKEFILES_PREFIX)resources \
-               $(MAKEFILES_PREFIX)dummy \
+               $(MAKEFILES_PREFIX)test \
                $(MAKEFILES_PREFIX)genmake
 	@for mf in $^ ; do if ! make -qf $${mf} $(@) ; then make -f $${mf} $(@) ; fi ; done
 
