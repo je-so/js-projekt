@@ -49,10 +49,36 @@ Format: 1.5
 File: Konfiguration  (konfig.h)
 File: Readme  (README.txt)
 
+Group: Api  {
+
+   File: errlog.h  (api/errlog.h)
+   File: generic/integer.h  (api/generic/integer.h)
+   File: Log API  (api/umgebung/log.h)
+   File: Umgebung Interface  (api/umgebung.h)
+   File: VirtualMemory  (api/os/virtmemory.h)
+   }  # Group: Api
+
+Group: Coding-Conventions  {
+
+   File: free objects  (resource/coding-conventions/free_objects.txt)
+   File: function parameter types  (resource/coding-conventions/function_parameter_type.txt)
+   }  # Group: Coding-Conventions
+
+Group: Implementation  {
+
+   File: Umgebung Implementation  (umgebung/init_process.c)
+   File: VirtualMemory Implementation  (os/Linux/virtmemory.c)
+   }  # Group: Implementation
+
 Group: Index  {
 
    Index: Everything
+   Class Index: Classes
+   Constant Index: Constants
    File Index: Files
+   Function Index: Functions
    Macro Index: Macros
+   Type Index: Types
+   Variable Index: Variables
    }  # Group: Index
 
