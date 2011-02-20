@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CodeLite_Workspace Name="codelite" Database="./codelite.tags">
+<CodeLite_Workspace Name="js-projekt" Database="./js-projekt.tags">
   <Project Name="genmake" Path="genmake.project" Active="No"/>
   <Project Name="rtextcompiler" Path="rtextcompiler.project" Active="No"/>
   <Project Name="test" Path="test.project" Active="Yes"/>
