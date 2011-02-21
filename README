@@ -1,31 +1,43 @@
 Title: Readme
+Content of Readme file.
 
 Author:
   (c) 2010-2011 Jörg Seebohn
 
 Web location:
-  Free software project hosted at sourceforge.net:  http://js-projekt.sourceforge.net/
+  Free software project hosted at github:  https://github.com/je-so/js-projekt
 
-Goal:
+about: Goal
   To develop a database with its own transactional programming language.
   Implementation language is C99. Currently different sub-projects
   integrated as one C-kern(el) are used to build up the
   whole system step by step.
 
-State:
-  Architecture - design phase.
-  Linux-only support during development.
-  Some documentation is only in German during development.
+about: State
+  In planning.
+
+  Phase           - Architecture and -design phase
+  Simplifications - Linux-only support during development.
+                    Some documentation is only in German during development.
  
-Codenamed Subprojects:
-  ------------
-  : genXkode :
-  ------------
-  Goal: - Generate x86 code from generic Machinecode-Mnemonics
-  Idea: - Compare interpreted generic Mnemonics vs. execution of
-          generated code for unittests.
-  This subproject allows a later stage to translate database-language
-  (Idea: extended + simplified C-code) into executeable code.
+about: Current task
+  Design Simple C-like language for declaring persistent content.
+
+
+about: Subprojects
+List of codenamed subprojects.
+  --------
+  : Thor :
+  --------
+  Being planned: - Handling of complex data structures.
+                   To develop a transactional hierarchical object database
+                   suitable to store context information gathered during parsing.
+  --------
+  : ???? :
+  --------
+  Being planned: - Allow flexible syntax of language.
+                   To develop a parser generator language which allows for
+                   "change of syntax at runtime".
   -----------
   : Genmake :
   -----------
@@ -39,45 +51,57 @@ Codenamed Subprojects:
           from text resources (C-kern/resource/errorlog.text).
   NEEDS IMPROVEMENT: - Simple text replacement is not enough for more complex langs.
                        Introduce algorithmic syntax (C-like syntax :-) => simple code generation)
-  --------
-  : Thor :
-  --------
-  Being planned: Handling of complex data structures.
-  To develop a transactional hierarchical object database
-  suitable to store context information gathered during parsing.
-  --------
-  : ???? :
-  --------
-  Being planned: Allow flexible syntax of language.
-  To develop a parser generator language which allows for 
-  "change of syntax at runtime".
+  ----------
+  : genX86 :
+  ----------
+  Future idea: - Generate x86 code from generic Machinecode-Mnemonics
+                 For testing: Compare result interpreted code vs. execution of
+                 generated machine code.
+  This subproject allows a later stage to translate database-language
+  (Idea: extended + simplified C-code) into executeable code.
 
-License:
+about: License
+  Free software license.
   Licensed under GNU General Public License v2 (see LICENSE),
   or (at your option) any later version.
 
-Build:
+about: Build
   Run 'make' in the top level directory.
   This should build all subprojects.
 
   The main makefile ('Makefile') calls for every subproject the corresponding 
   makefile in 'projekte/makefiles/'.
 
-Documentation:
+Make targets:
+  all      - Builds »Debug« and »Release« version of every subproject except »html«.
+  html     - Generate documentation from source code with naturaldoc.
+             You can view it by opening html/index.html in a browser.
+  genmake  - Build genmake binaries: »bin/genmake« and »bin/genmake_Debug«.
+  rtextcompiler - Build resource compiler binaries: »bin/rtextcompiler« and »bin/rtextcompiler_Debug«.
+  Debug    - Builds debug binaries of every subproject. The generated binaries are stored under directory 'bin/'.
+             A binary is named after its corresponding project name plus an additional '_Debug' suffix.
+  Release  - Builds release binaries of every subproject. The generated binaries are stored under directory 'bin/'.
+             A binary is named after its corresponding project name without any additional suffix or prefix.
+
+about: Documentation
   The documentation is extracted from the source files by naturaldoc.
   Type 'make html' to run it. Make sure you have installed v1.5 on your system.
   Type 'firefox html/index.html' to view it (replace firefox with your favourite browser).
 
-Dependencies: 
+about: Dependencies
+  To build the whole project or any subproject the following dependencies should be considered.
   Libraries:
      * libpthread
      * librt
   Tools:
+     * 'Natural Docs v1.5' (www.naturaldocs.org).
+  Development only:
      * Git      (http://git-scm.com).
      * Codelite (http://codelite.org).
-     * 'Natural Docs v1.5' (www.naturaldocs.org).
 
-Project-structure:
+about: Project-structure
+  Explanation of directory structure.
+
   LICENSE     -  GPL v2 license
   Makefile    -  Top level makefile which calls project makefiles
   README      - This readme file
