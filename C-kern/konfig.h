@@ -22,13 +22,15 @@
 #ifndef CKERN_KONFIG_HEADER
 #define CKERN_KONFIG_HEADER
 
-/** Global visible (k)configuration
- * 1. Generic defines
- * 2. Configuration switches
- * 3. System and compiler specific settings
- * 4. Include os specific settings
- * 5. Standard environment
- * */
+/*
+ * List of sections:
+ *
+ * 1. Generic defines: some useful preprocessor macros.
+ * 2. Configuration switches: list of all configuration options to switch language and os.
+ * 3. Declare system specific types.
+ * 4. Include os specific settings which define system specific types.
+ * 5. Include standard runtime environment
+ */
 
 // section: Definitions
 
@@ -112,8 +114,8 @@
 
 //}
 
-// group: 3 System specific settings
-// List of system specific settings which must be defined in some architecture dependent way.
+// group: 3 Declare system specific types
+// Declares a bunch of system specific types which must be defined in some architecture dependent way.
 
 //{
 /* about: integer format specifiers
@@ -164,28 +166,35 @@
  * If it does not exist you must define it in the makefile. */
 #define PRIuSIZE             __PRIPTR_PREFIX "u"
 
-/** define: sys_processid_t
- * integer type holding system specific id of a running process. Overwritten in system specific include file. */
+/* define: sys_processid_t
+ * Integer type holding system specific id of a running process. Overwritten in system specific include file. */
 #define sys_processid_t      void
-/** define: sys_thread_t
- * structure holding system specific description of a thread. Overwritten in system specific include file. */
+/* define: sys_thread_t
+ * Structure holding system specific description of a thread. Overwritten in system specific include file. */
 #define sys_thread_t         void
-/** define: sys_timerid_t
+/* define: sys_thread_mutex_t
+ * Structure holding system specific description of a mutex. Overwritten in system specific include file. */
+#define sys_thread_mutex_t   void
+/* define: sys_thread_mutex_INIT_DEFAULT
+ * Static initializer for a mutex useable by threads of the same process. */
+#define sys_thread_mutex_INIT_DEFAULT   void
+/* define: sys_timerid_t
  * Handle for system specific timer. */
 #define sys_timerid_t        void
-/** define: sys_timerid_INIT_FREEABLE
+/* define: sys_timerid_INIT_FREEABLE
  * Init value to declare an invalid timer handle. */
 #define sys_timerid_INIT_FREEABLE   void
-/** define: sys_directory_t
- * (pointer) type holding system specific description of an opened directory stream. Overwritten in system specific include file. */
+/* define: sys_directory_t
+ * Pointer type holding system specific description of an opened directory stream.
+ * NULL is considered an unitialized value. Overwritten in system specific include file. */
 #define sys_directory_t      void
-/** define: sys_directory_entry_t
- * structure holding system specific description of read directory entry. Overwritten in system specific include file. */
+/* define: sys_directory_entry_t
+ * Structure holding system specific description of read directory entry. Overwritten in system specific include file. */
 #define sys_directory_entry_t      void
 //}
 
 // group: 4. Include
-// Include os specific settings.
+// Include os specific settings which define system specific types.
 
 //{
 /* about: Include
@@ -203,7 +212,10 @@
 // Includes all C-kern(el) headers which define the standard runtime environment.
 
 //{
-// TODO
+/* about: Callbacks
+ * Include definition of <callback_context_t>.
+ * > #include "C-kern/api/umgebung/callback.h" */
+#include "C-kern/api/umgebung.h"
 //}
 
 

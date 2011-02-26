@@ -77,9 +77,8 @@ extern int maporextend_virtmemory( /*out*/virtmemory_block_t * new_mapped_block,
  * Invalidates virtual memory address range
  * > mapped_block->start[0 .. mapped_block->size_in_bytes - 1 ]
  * After successull return every access to this memory range will generate a memory exception and
- * mapped_block is set to <virtmemory_block_t.virtmemoryblock_INIT_NULL>.
- * Therefore EINVAL is returned if you try to unmap the same mapped_block twice.
- * Unmapping an already unmapped memory region does nothing and returns success. */
+ * mapped_block is set to <virtmemory_block_t.virtmemory_block_INIT_FREEABLE>.
+ * Therefore unmapping an already unmapped memory region does nothing and returns success. */
 extern int unmap_virtmemory( virtmemory_block_t * mapped_block ) ;
 
 
@@ -107,10 +106,10 @@ struct virtmemory_block_t
 
 // group: lifetime
 
-/* define: virtmemoryblock_INIT_FREEABLE
+/* define: virtmemory_block_INIT_FREEABLE
  * Static initializer to set an object of type <virtmemory_block_t> to NULL.
  * You can unmap (<unmap_virtmemory>) such an initialized <virtmemory_block_t> object with success. */
-#define virtmemoryblock_INIT_FREEABLE  { NULL, 0 }
+#define virtmemory_block_INIT_FREEABLE  { NULL, 0 }
 
 
 /* struct: virtmemory_region_t

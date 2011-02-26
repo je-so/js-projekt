@@ -1,5 +1,5 @@
-/* Umgebung Testproxy
-   Implementiert <init_umgebung_testproxy>.
+/* title: Umgebung Testproxy
+   Implements <init_testproxy_umgebung>, <free_testproxy_umgebung>.
 
    about: Copyright
    This program is free software.
@@ -31,18 +31,20 @@
 #endif
 
 
-int free_umgebung_testproxy(umgebung_t * umg)
+int free_testproxy_umgebung(umgebung_t * umg)
 {
-   MEMSET0(umg) ;
+   *umg = (umgebung_t) umgebung_INIT_MAINSERVICES ;
    return 0 ;
 }
 
-int init_umgebung_testproxy(umgebung_t * umg)
+int init_testproxy_umgebung(umgebung_t * umg)
 {
-   MEMSET0(umg) ;
+   *umg               = (umgebung_t) umgebung_INIT_MAINSERVICES ;
 
-   umg->type          = umgebung_TEST_IMPL ;
-   umg->free_umgebung = &free_umgebung_testproxy ;
+   umg->type                  = umgebung_TEST_IMPL ;
+   umg->resource_thread_count = 0 ;
+   umg->free_umgebung         = &free_testproxy_umgebung ;
+
    return 0 ;
 }
 
@@ -52,16 +54,17 @@ int init_umgebung_testproxy(umgebung_t * umg)
 
 static int test_init(void)
 {
-   umgebung_t umg = umgebung_INIT_FREEABLE ;
+   umgebung_t umg ;
 
    // TEST init, double free
-   TEST(0 == init_umgebung_testproxy(&umg)) ;
+   TEST(0 == init_testproxy_umgebung(&umg)) ;
    TEST(umgebung_TEST_IMPL       == umg.type) ;
-   TEST(&free_umgebung_testproxy == umg.free_umgebung) ;
-   TEST(0 == free_umgebung_testproxy(&umg)) ;
+   TEST(0                        == umg.resource_thread_count) ;
+   TEST(&free_testproxy_umgebung == umg.free_umgebung) ;
+   TEST(0 == free_testproxy_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.free_umgebung) ;
-   TEST(0 == free_umgebung_testproxy(&umg)) ;
+   TEST(0 == free_testproxy_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.free_umgebung) ;
 
@@ -70,7 +73,7 @@ ABBRUCH:
    return 1 ;
 }
 
-int unittest_umgebung_testproxy(void)
+int unittest_umgebung_testproxy()
 {
    if (test_init()) goto ABBRUCH ;
 

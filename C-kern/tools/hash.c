@@ -184,7 +184,7 @@ struct unittest_entry
    int              isFreeMemoryCalled ;
 } ;
 
-void unittest_hashtable_freememory(hash_entry_t* entry)
+void test_hashtable_freememory(hash_entry_t* entry)
 {
    unittest_entry_t*  test_entry = (unittest_entry_t*) entry ;
    test_entry->isFreeMemoryCalled += 1 ;
@@ -217,10 +217,10 @@ int unittest_hashtable()
    hash_table_t*    table ;
    unittest_entry_t entries[10][3] = { { { {0,0,0,0}, 0} } } ;
 
-   TEST(new_hashtable(&table, 0, &unittest_hashtable_freememory)==HASH_NOMEMORY) ;
-   TEST(new_hashtable(&table, 1023, &unittest_hashtable_freememory)==HASH_OK) ;
+   TEST(new_hashtable(&table, 0, &test_hashtable_freememory)==HASH_NOMEMORY) ;
+   TEST(new_hashtable(&table, 1023, &test_hashtable_freememory)==HASH_OK) ;
    TEST(table->size == 1023) ;
-   TEST(table->free_memory == &unittest_hashtable_freememory) ;
+   TEST(table->free_memory == &test_hashtable_freememory) ;
 
    hash_entry_t notnull_entry = { .name = (char*) (intptr_t) "123", .next = (hash_entry_t*) 8, .hash = 0 } ;
    TEST(insert_hashtable(table, &notnull_entry)==HASH_NEXTPTR_NOTNULL) ;

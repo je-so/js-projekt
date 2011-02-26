@@ -22,60 +22,108 @@
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/os/virtmemory.h"
 
-typedef void (* const constprintf_log_f) (const char * format, ...) ;
-typedef void (* printf_log_f) (const char * format, ...) ;
+// forward
 
-typedef struct log_buffered_t log_buffered_t ;
-struct log_buffered_t
+static void write_logbuffer(log_buffer_t * log) ;
+static void printf_logstderr( log_config_t * log, const char * format, ... ) ;
+
+/* variable: g_safe_logservice
+ * Is used to support a safe standard log configuration.
+ * If the global log service is set to <g_main_logservice> then it is switched
+ * to <g_safe_logservice> before a thread safe lock is aquired.
+ * This ensures that os specific implementations of <osthread_mutex_t> can use
+ * the log module without producing a dead lock. */
+log_config_t  g_safe_logservice = {
+         .printf          = &printf_logstderr,
+         .isOn            = true,
+         .isBuffered      = false,
+         .isConstConfig   = true,
+         .log_buffer      = 0
+} ;
+
+static_assert( ((typeof(umgebung()))0) == (const umgebung_t *)0, "Ensure LOCK_SERVICE cast is OK") ;
+
+
+/* struct: log_buffer_t
+ * Stores the memory address and size of cached output.
+ * If the buffer is nearly full it is written to the
+ * configured log channel. Currently only stderr is supported. */
+struct log_buffer_t
 {
    virtmemory_block_t   buffer ;
    size_t     buffered_logsize ;
-   bool                 isInit ;
 } ;
 
-static log_buffered_t s_logbuffered = { .buffer = virtmemoryblock_INIT_FREEABLE, .buffered_logsize = 0, .isInit = false } ;
+// group: lifetime
+/* define: log_buffer_INIT_FREEABLE
+ * */
+#define log_buffer_INIT_FREEABLE    { .buffer = virtmemory_block_INIT_FREEABLE, .buffered_logsize = 0 }
 
-/* Never free s_logbuffered !
- *
- * static int free_logbuffered( log_buffered_t * log )
- * {
- *
- * }
- */
-
-static int init_logbuffered( /*out*/log_buffered_t * log )
+/* function: free_logbuffer
+ * Frees allocates memory. If the buffer is filled
+ * its content is written out before any resource is freed. */
+static int free_logbuffer( log_buffer_t * log )
 {
    int err ;
 
-   assert(!log->isInit) ;
-   err = map_virtmemory(&log->buffer, 1) ;
-   if (err) goto ABBRUCH ;
-   assert(log->buffer.size_in_bytes >= 1024) ;
+   if (log->buffered_logsize) {
+      (void) write_logbuffer(log) ;
+   }
 
-   log->buffered_logsize = 0 ;
-   log->isInit = true ;
+   err = unmap_virtmemory(&log->buffer) ;
+   if (err) goto ABBRUCH ;
+
    return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
 
-static void printf_logstderr( const char * format, ... )
+/* function: init_logbuffer
+ * Reserves (virtual) memory for logbuffer. */
+static int init_logbuffer( /*out*/log_buffer_t * log )
 {
-   va_list args ;
-   va_start(args, format) ;
-   vdprintf(STDERR_FILENO, format, args) ;
-   va_end(args) ;
+   int err ;
+   size_t  pgsize = pagesize_virtmemory() ;
+   size_t nrpages = (pgsize < 1024) ? (1023 + pgsize) / pgsize : 1 ;
+
+   err = map_virtmemory(&log->buffer, nrpages) ;
+   if (err) goto ABBRUCH ;
+   log->buffered_logsize = 0 ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
 }
 
-static void write_logbuffered(void)
+/* function: clear_logbuffer
+ * Clears content of buffer. */
+static inline void clear_logbuffer(log_buffer_t * log)
+{
+   log->buffered_logsize = 0 ;
+   log->buffer.start[0]  = 0 ;   // NULL terminated string
+}
+
+/* function: getlogbuffer_log
+ * Returns start and length of buffered log string. */
+static inline void getlogbuffer_logbuffer(log_buffer_t * log, /*out*/char ** buffer, /*out*/size_t * size)
+{
+   *buffer = (char*) log->buffer.start ;
+   *size   = log->buffered_logsize ;
+}
+
+/* function: write_logbuffer
+ * Writes content of buffer to log channel.
+ * Currently only stderr is supported. */
+static void write_logbuffer(log_buffer_t * log)
 {
    size_t bytes_written = 0 ;
 
    do {
       ssize_t bytes ;
       do {
-         bytes = write( STDERR_FILENO, s_logbuffered.buffer.start + bytes_written, s_logbuffered.buffered_logsize - bytes_written) ;
+         bytes = write( STDERR_FILENO, log->buffer.start + bytes_written, log->buffered_logsize - bytes_written) ;
       } while( bytes < 0 && errno == EINTR ) ;
       if (bytes <= 0) {
          // TODO: add some special log code that always works and which indicates error state in logging
@@ -83,95 +131,158 @@ static void write_logbuffered(void)
          break ;
       }
       bytes_written += (size_t) bytes ;
-   } while (bytes_written < s_logbuffered.buffered_logsize) ;
+   } while (bytes_written < log->buffered_logsize) ;
 
-   s_logbuffered.buffered_logsize = 0 ;
-   s_logbuffered.buffer.start[0]  = 0 ;   // NULL terminated string
+   clear_logbuffer(log) ;
 }
 
-static void printf_logbuffered( const char * format, ... )
+static void printf_logbuffer( log_config_t * logconfig, const char * format, ... )
 {
-   size_t buffer_size = s_logbuffered.buffer.size_in_bytes - s_logbuffered.buffered_logsize ;
+   log_buffer_t * log = logconfig->log_buffer ;
+   size_t buffer_size = log->buffer.size_in_bytes - log->buffered_logsize ;
 
    for(;;) {
 
       if (buffer_size < 512 ) {
-         write_logbuffered() ;
-         buffer_size = s_logbuffered.buffer.size_in_bytes ;
+         write_logbuffer(log) ;
+         buffer_size = log->buffer.size_in_bytes ;
       }
 
       va_list args ;
       va_start(args, format) ;
-      int append_size = vsnprintf( s_logbuffered.buffered_logsize + (char*)s_logbuffered.buffer.start, buffer_size, format, args) ;
+      int append_size = vsnprintf( log->buffered_logsize + (char*)log->buffer.start, buffer_size, format, args) ;
       va_end(args) ;
 
       if ( (unsigned)append_size < buffer_size ) {
          // no truncate
-         s_logbuffered.buffered_logsize += (unsigned)append_size ;
+         log->buffered_logsize += (unsigned)append_size ;
          break ;
       }
 
-      if ( buffer_size == s_logbuffered.buffer.size_in_bytes ) {
+      if ( buffer_size == log->buffer.size_in_bytes ) {
          // => s_logbuffered.buffered_logsize == 0
          // ignore truncate
-         s_logbuffered.buffered_logsize = buffer_size - 1/*ignore 0 byte at end*/ ;
-         write_logbuffered() ;
+         log->buffered_logsize = buffer_size - 1/*ignore 0 byte at end*/ ;
+         write_logbuffer(log) ;
          break ;
       }
 
       // force flush && ignore append_size bytes
       buffer_size = 0 ;
    }
-
 }
 
-static void printf_logignore( const char * format, ... )
-{  // generate no output
+// section: logstderr
+
+/* function: printf_logstderr
+ * */
+static void printf_logstderr( log_config_t * log, const char * format, ... )
+{
+   (void) log ;
+   va_list args ;
+   va_start(args, format) ;
+   vdprintf(STDERR_FILENO, format, args) ;
+   va_end(args) ;
+}
+
+// section: logignore
+
+/* function: printf_logignore
+ * */
+static void printf_logignore( log_config_t * log, const char * format, ... )
+{
+   // generate no output
+   (void) log ;
    (void) format ;
    return ;
 }
 
-static void switch_printf_log(void)
-{
-   static_assert_void( &g_service_log.printf == (constprintf_log_f*) &g_service_log.printf ) ;
 
-   if (g_service_log.isOn) {
-      if (g_service_log.isBuffered) {
-         * (printf_log_f*) (intptr_t) &g_service_log.printf = &printf_logbuffered ;
-      } else {
-         * (printf_log_f*) (intptr_t) &g_service_log.printf = &printf_logstderr ;
-      }
-   } else {
-      * (printf_log_f*) (intptr_t) &g_service_log.printf = &printf_logignore ;
-   }
-}
+// section: logconfig
 
-static void config_onoff_log(bool onoff)
-{
-   if (g_service_log.isOn != onoff) {
-
-      static_assert_void( &g_service_log.isOn == (const bool *) &g_service_log.isOn ) ;
-      * (bool*) (intptr_t) &g_service_log.isOn = onoff ;
-
-      switch_printf_log() ;
-   }
-}
-
-static void config_buffered_log(bool bufferedstate)
+int new_logconfig(/*out*/log_config_t ** log)
 {
    int err ;
-   if (g_service_log.isBuffered != bufferedstate) {
+   log_config_t * logobj ;
+   size_t        objsize = sizeof(log_config_t) + sizeof(*logobj->log_buffer) ;
 
-      // init s_logbuffered
-      if (  bufferedstate
-            && !s_logbuffered.isInit) {
-         if ((err = init_logbuffered(&s_logbuffered))) goto ABBRUCH ;
+   if (*log) {
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
+
+   logobj = (log_config_t*) malloc(objsize) ;
+   if (!logobj) {
+      err = ENOMEM ;
+      goto ABBRUCH ;
+   }
+
+   logobj->printf      = &printf_logstderr ;
+   logobj->isOn        = true ;
+   logobj->isBuffered  = false ;
+   logobj->log_buffer  = (log_buffer_t*) &logobj[1] ;
+   *logobj->log_buffer = (log_buffer_t) log_buffer_INIT_FREEABLE ;
+
+   *log = logobj ;
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int delete_logconfig(log_config_t ** log)
+{
+   int err ;
+   log_config_t * logobj = *log ;
+
+   if (     logobj
+         && logobj != &g_main_logservice) {
+      err = free_logbuffer(logobj->log_buffer) ;
+      free(logobj) ;
+      *log = 0 ;
+      if (err) goto ABBRUCH ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+/* function: switch_printf_logconfig
+ * Used to switch between different implementation.
+ * Only the variable <log_config_t.printf> is switched between
+ *
+ * 1. <printf_logbuffer>
+ * 2. <printf_logstderr>
+ * 3. <printf_logignore> */
+static void switch_printf_logconfig(log_config_t * log)
+{
+   if (log->isOn) {
+      if (log->isBuffered) {
+         log->printf = &printf_logbuffer ;
+      } else {
+         log->printf = &printf_logstderr ;
       }
+   } else {
+      log->printf = &printf_logignore ;
+   }
+}
 
-      static_assert_void( &g_service_log.isBuffered == (const bool *) &g_service_log.isBuffered ) ;
-      * (bool*) (intptr_t) &g_service_log.isBuffered = bufferedstate ;
+void set_onoff_logconfig(log_config_t * log, bool onoff)
+{
+   int err ;
 
-      switch_printf_log() ;
+   if (log->isConstConfig) {
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
+
+   if (log->isOn != onoff) {
+
+      log->isOn = onoff ;
+
+      switch_printf_logconfig(log) ;
    }
 
    return ;
@@ -180,31 +291,72 @@ ABBRUCH:
    return ;
 }
 
-void clearlogbuffer_log(void)
+/* function: set_buffermode_logconfig implementation
+ * See <set_buffermode_logconfig> for a description of its interface.
+ * The internal variable <log_config_t.log_buffer> is initialized
+ * or freed depending on whether buffermode is switched on or off.
+ * If the initialization (or free) returns an error nothing is
+ * changed. */
+void set_buffermode_logconfig(log_config_t * log, bool mode)
 {
-   if (g_service_log.isBuffered) {
-      s_logbuffered.buffered_logsize = 0 ;
-      s_logbuffered.buffer.start[0]  = 0 ;   // \0 byte at end of string
+   int err ;
+
+   if (log->isConstConfig) {
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
+
+   if (log->isBuffered != mode) {
+
+      if ( mode ) {
+         err = init_logbuffer(log->log_buffer) ;
+         if (err) goto ABBRUCH ;
+      } else {
+         err = free_logbuffer(log->log_buffer) ;
+         if (err) goto ABBRUCH ;
+      }
+
+      log->isBuffered = mode ;
+      switch_printf_logconfig(log) ;
+   }
+
+   return ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return ;
+}
+
+void clearbuffer_logconfig(log_config_t * log)
+{
+   if (log->isBuffered) {
+      clear_logbuffer(log->log_buffer) ;
    }
 }
 
-void getlogbuffer_log(/*out*/char ** buffer, /*out*/size_t * size)
+void getlogbuffer_logconfig(log_config_t * log, /*out*/char ** buffer, /*out*/size_t * size)
 {
-   if (g_service_log.isBuffered) {
-      *buffer = (char*) s_logbuffered.buffer.start ;
-      *size   = s_logbuffered.buffered_logsize ;
+   if (log->isBuffered) {
+      getlogbuffer_logbuffer( log->log_buffer, buffer, size ) ;
    } else {
       *buffer = 0 ;
       *size   = 0 ;
    }
 }
 
-log_interface_t  g_service_log = {
+// section: main_logservice
+
+/* variable: s_buffer_main_logservice
+ * Reserves space for <log_buffer_t> used in <g_main_logservice>. */
+static log_buffer_t  s_buffer_main_logservice = log_buffer_INIT_FREEABLE ;
+
+/* variable: g_main_logservice
+ * Is used to support a standard log configuration.
+ * Useful to log during initialization before any other init function was called.
+ * Assigns space to <log_config_t.log_buffer> and sets all function pointers. */
+log_config_t  g_main_logservice = {
          .printf          = &printf_logstderr,
-         .config_onoff    = &config_onoff_log,
-         .config_buffered = &config_buffered_log,
-         .clearlogbuffer  = &clearlogbuffer_log,
-         .getlogbuffer    = &getlogbuffer_log,
-         .isOn       = true,
-         .isBuffered = false,
+         .isOn            = true,
+         .isBuffered      = false,
+         .isConstConfig   = false,
+         .log_buffer      = &s_buffer_main_logservice
 } ;

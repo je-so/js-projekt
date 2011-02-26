@@ -5,4 +5,5 @@ Src            = C-kern/main/test.c
 Src           += C-kern/os/Linux/*.c
 Src           += C-kern/umgebung/*.c
 Includes       = .
+Libs           = pthread rt
 Defines        = KONFIG_UNITTEST

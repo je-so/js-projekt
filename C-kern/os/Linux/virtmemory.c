@@ -47,7 +47,7 @@ struct virtmemory_regionsarray_t
    virtmemory_region_t        elements[16] ;
 } ;
 
-static __thread  virtmemory_block_t st_rootbuffer = virtmemoryblock_INIT_FREEABLE ;
+static __thread  virtmemory_block_t st_rootbuffer = virtmemory_block_INIT_FREEABLE ;
 
 int compare_virtmemory_region( const virtmemory_region_t * left, const virtmemory_region_t * right )
 {
@@ -516,7 +516,7 @@ ABBRUCH:
    return err ;
 }
 
-int unittest_os_virtualmemory(void)
+int unittest_os_virtualmemory()
 {
    int err = 1 ;
    virtmemory_block_t   mapped_block ;

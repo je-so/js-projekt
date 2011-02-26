@@ -37,40 +37,27 @@ typedef struct umgebung_t          umgebung_t ;
 /* enums: umgebung_type_e
  * Used to switch between different implementations.
  *
+ * umgebung_STATIC_IMPL  - An implementation which is configured by a static initializer.
+ *                         Currently only the log service is supported by this type of implementation.
  * umgebung_DEFAULT_IMPL - Default production ready implementation.
  * umgebung_TEST_IMPL    - Implements functionality without use of internal components but only with help of
  *                         C library calls. This ensures that software components which depends on <umgebung_t>
  *                         can be tested without mutual dependencies.
  * */
 enum umgebung_type_e {
-    umgebung_DEFAULT_IMPL = 1
-   ,umgebung_TEST_IMPL
+    umgebung_STATIC_IMPL  = 0
+   ,umgebung_DEFAULT_IMPL = 1
+   ,umgebung_TEST_IMPL    = 2
 } ;
 typedef enum umgebung_type_e umgebung_type_e ;
 
-extern __thread umgebung_t * gt_current_umgebung ;
+/* forward reference to all offered services */
+struct log_config_t ;
+
+extern __thread struct umgebung_t gt_umgebung ;
+
 
 // section: Functions
-
-// group: lifetime
-
-/* function: init_process_umgebung
- * Initializes global context. Must be called as first function in the whole system.
- * The caller must ensure that it is called only once ! */
-extern int init_process_umgebung(umgebung_type_e implementation_type) ;
-
-/* function: init_thread_umgebung
- * Not implemented. */
-extern int init_thread_umgebung(void) ;
-
-/* function: free_process_umgebung
- * Initializes global context. Must be called as first function in the whole system.
- * The caller must ensure that it is called only once ! */
-extern int free_process_umgebung(void) ;
-
-/* function: free_thread_umgebung
- * Not implemented. */
-extern int free_thread_umgebung(void) ;
 
 // group: query
 
@@ -78,21 +65,21 @@ extern int free_thread_umgebung(void) ;
  * Returns the <umgebung_t> for the current thread. */
 extern umgebung_t * umgebung(void) ;
 
+/* function: log_umgebung
+ * Returns log configuration object <log_config_t> for the current thread. */
+extern struct log_config_t * log_umgebung(void) ;
+
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_umgebung_initprocess
+/* function: unittest_umgebung
  * Test initialization process succeeds and global variables are set correctly. */
-extern int unittest_umgebung_initprocess(void) ;
-/* function: unittest_umgebung_initthread
- * Not implemented. */
-extern int unittest_umgebung_initthread(void) ;
+extern int unittest_umgebung(void) ;
 /* function: unittest_umgebung_default
- * Not implemented.
- * Tests that default-umgebung implements <umgebung_t> correct. */
+ * Test initialization thread with default impl. succeeds. */
 extern int unittest_umgebung_default(void) ;
 /* function: unittest_umgebung_testproxy
- * Tests that testproxy implements <umgebung_t> correct. */
+ * Test initialization thread with test impl. succeeds. */
 extern int unittest_umgebung_testproxy(void) ;
 #endif
 
@@ -103,54 +90,72 @@ struct umgebung_tempmman_t {
    void * (*alloc)  (umgebung_tempmman_t * tempmman, size_t size_in_bytes ) ;
    int    (*resize) (umgebung_tempmman_t * tempmman, size_t size_in_bytes, void * memory_block ) ;
    int    (*free)   (umgebung_tempmman_t * tempmman, void ** memory_block ) ;
+   //{ memory context
+   int (*new_tempmem)    (umgebung_t * umg, /*out*/umgebung_tempmman_t ** tempmman ) ;
+   int (*delete_tempmem) (umgebung_t * umg, umgebung_tempmman_t ** tempmman ) ;
+   //}
 } ;
 
 /* struct: umgebung_t
  * Defines top level context for all software modules. */
 struct umgebung_t {
-   //{ memory context
-   int (*new_tempmem)    (umgebung_t * umg, /*out*/umgebung_tempmman_t ** tempmman ) ;
-   int (*delete_tempmem) (umgebung_t * umg, umgebung_tempmman_t ** tempmman ) ;
+   //{ object management
+   umgebung_type_e         type ;
+   uint16_t                resource_thread_count ;
+   /* Virtual destructor. Allows different implementations to store a different desctructor. */
+   int                  (* free_umgebung)  (umgebung_t * umg) ;
    //}
 
-   //{ umgebung_t lifetime + type management
-   umgebung_type_e type ;
-   /* Virtual destructor. Allows different implementations to store a different desctructor. */
-   int (*free_umgebung)  (umgebung_t * umg) ;
-   //}
+   struct log_config_t   * log ;
 } ;
 
 // group: lifetime
 
-#define umgebung_INIT_FREEABLE   { 0, 0, 0, 0 }
+/* define: umgebung_INIT_MAINSERVICES
+ * Static initializer for <umgebung_t>.
+ * This ensures that in the main even without calling <init_process_umgebung> first
+ * the global log service is available. */
+#define umgebung_INIT_MAINSERVICES { umgebung_STATIC_IMPL, 0, 0, &g_main_logservice }
 
-/* function: init_umgebung
- * Initializes umgebung's interface. All other used components must be initialized before this call.
- * Do not call this constructor directly instead use <init_process_umgebung> or <init_thread_umgebung>.
- *
- * Not implemented. */
-extern int init_umgebung(umgebung_t * umg) ;
+/* function: init_process_umgebung
+ * Initializes global context. Must be called as first function from the main thread.
+ * The caller must ensure that it is called only once ! */
+extern int init_process_umgebung(umgebung_type_e implementation_type) ;
 
-/* function: init_umgebung_testproxy
- * Not implemented. */
-extern int init_umgebung_testproxy(umgebung_t * umg) ;
+/* function: init_thread_umgebung
+ * */
+extern int init_thread_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation_type) ;
 
-/* function: free_umgebung
- * Not implemented. */
-extern int free_umgebung(umgebung_t * umg) ;
+/* function: free_process_umgebung
+ * Initializes global context. Must be called as first function in the whole system.
+ * The caller must ensure that it is called only once ! */
+extern int free_process_umgebung(void) ;
 
-/* function: free_umgebung_testproxy
- * Not implemented. */
-extern int free_umgebung_testproxy(umgebung_t * umg) ;
+/* function: free_thread_umgebung
+ * */
+extern int free_thread_umgebung(umgebung_t * umg) ;
+
+// group: internal
+
+/* function: init_default_umgebung
+ * */
+extern int init_default_umgebung(/*out*/umgebung_t * umg) ;
+
+/* function: init_testproxy_umgebung
+ * */
+extern int init_testproxy_umgebung(/*out*/umgebung_t * umg) ;
+
 
 // section: inline implementations
 
 /* define: inline umgebung
  * Inline implementation of <umgebung>.
- * Uses a global thread-local storage variable ti implement the functionality.
- * > #define umgebung() (gt_current_umgebung) */
+ * Uses a global thread-local storage variable to implement the functionality.
+ * > #define umgebung() (&gt_umgebung) */
 #define umgebung() \
-   (gt_current_umgebung)
+   ((const umgebung_t*)(&gt_umgebung))
 
+#define log_umgebung() \
+   (gt_umgebung.log)
 
 #endif

@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Feb.20  18:31:52
+GenerationDate  := 2011.Feb.26  13:15:30
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -19,7 +19,7 @@ CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST
 Includes_Debug      := $(IncludeFlag_Debug)$(PathOffset).
-Libraries_Debug     :=
+Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
 Libpath_Debug       :=
 ObjectDir_Debug     := $(PathOffset)bin/Debug/test
 TargetDir_Debug     := $(PathOffset)bin
@@ -37,7 +37,7 @@ CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversio
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST
 Includes_Release      := $(IncludeFlag_Release)$(PathOffset).
-Libraries_Release     :=
+Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
 Libpath_Release       :=
 ObjectDir_Release     := $(PathOffset)bin/Release/test
 TargetDir_Release     := $(PathOffset)bin
@@ -76,16 +76,20 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!test.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!init_process.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!test.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!init_process.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_testproxy.c.o
 
 $(Target_Debug): $(Objects_Debug)
@@ -99,13 +103,19 @@ $(Target_Release): | $(ObjectDir_Release) $(TargetDir_Release)
 $(ObjectDir_Debug)/C-kern!main!test.c.o: $(PathOffset)C-kern/main/test.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: $(PathOffset)C-kern/os/Linux/thread.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!init_process.c.o: $(PathOffset)C-kern/umgebung/init_process.c
+$(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o: $(PathOffset)C-kern/umgebung/umgebung_default.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_testproxy.c
@@ -114,13 +124,19 @@ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o: $(PathOffset)C-kern/u
 $(ObjectDir_Release)/C-kern!main!test.c.o: $(PathOffset)C-kern/main/test.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: $(PathOffset)C-kern/os/Linux/thread.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!init_process.c.o: $(PathOffset)C-kern/umgebung/init_process.c
+$(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o: $(PathOffset)C-kern/umgebung/umgebung_default.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung_testproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_testproxy.c
