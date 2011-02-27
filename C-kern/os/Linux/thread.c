@@ -181,7 +181,6 @@ static void * osthread_startpoint(void * start_arg)
    return (void*)0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
-   assert(0) ;
    return (void*)err ;
 }
 
@@ -920,11 +919,11 @@ ABBRUCH:
 
 int unittest_os_thread()
 {
-   virtmemory_mappedregions_t mappedregions  = virtmemory_mappedregions_INIT_FREEABLE ;
-   virtmemory_mappedregions_t mappedregions2 = virtmemory_mappedregions_INIT_FREEABLE ;
+   vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
+   vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
 
    // store current mapping
-   TEST(0 == init_virtmemory_mappedregions(&mappedregions)) ;
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
 
    if (test_thread_init())          goto ABBRUCH ;
    if (test_thread_sigaltstack())   goto ABBRUCH ;
@@ -934,15 +933,15 @@ int unittest_os_thread()
    if (test_thread_localstorage())   goto ABBRUCH ;
 
    // TEST mapping has not changed
-   TEST(0 == init_virtmemory_mappedregions(&mappedregions2)) ;
-   TEST(0 == compare_virtmemory_mappedregions(&mappedregions, &mappedregions2)) ;
-   TEST(0 == free_virtmemory_mappedregions(&mappedregions)) ;
-   TEST(0 == free_virtmemory_mappedregions(&mappedregions2)) ;
+   TEST(0 == init_vmmappedregions(&mappedregions2)) ;
+   TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions2)) ;
 
    return 0 ;
 ABBRUCH:
-   free_virtmemory_mappedregions(&mappedregions) ;
-   free_virtmemory_mappedregions(&mappedregions2) ;
+   free_vmmappedregions(&mappedregions) ;
+   free_vmmappedregions(&mappedregions2) ;
    return 1 ;
 }
 #endif

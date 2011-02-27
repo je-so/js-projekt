@@ -102,7 +102,7 @@ struct umgebung_t {
    //{ object management
    umgebung_type_e         type ;
    uint16_t                resource_thread_count ;
-   /* Virtual destructor. Allows different implementations to store a different desctructor. */
+   /* Virtual destructor: Allows different implementations to store a different desctructor. */
    int                  (* free_umgebung)  (umgebung_t * umg) ;
    //}
 

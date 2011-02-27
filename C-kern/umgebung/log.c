@@ -50,14 +50,14 @@ static_assert( ((typeof(umgebung()))0) == (const umgebung_t *)0, "Ensure LOCK_SE
  * configured log channel. Currently only stderr is supported. */
 struct log_buffer_t
 {
-   virtmemory_block_t   buffer ;
-   size_t     buffered_logsize ;
+   vm_block_t  buffer ;
+   size_t      buffered_logsize ;
 } ;
 
 // group: lifetime
 /* define: log_buffer_INIT_FREEABLE
  * */
-#define log_buffer_INIT_FREEABLE    { .buffer = virtmemory_block_INIT_FREEABLE, .buffered_logsize = 0 }
+#define log_buffer_INIT_FREEABLE    { .buffer = vm_block_INIT_FREEABLE, .buffered_logsize = 0 }
 
 /* function: free_logbuffer
  * Frees allocates memory. If the buffer is filled
@@ -70,7 +70,7 @@ static int free_logbuffer( log_buffer_t * log )
       (void) write_logbuffer(log) ;
    }
 
-   err = unmap_virtmemory(&log->buffer) ;
+   err = free_vmblock(&log->buffer) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -84,10 +84,10 @@ ABBRUCH:
 static int init_logbuffer( /*out*/log_buffer_t * log )
 {
    int err ;
-   size_t  pgsize = pagesize_virtmemory() ;
+   size_t  pgsize = pagesize_vm() ;
    size_t nrpages = (pgsize < 1024) ? (1023 + pgsize) / pgsize : 1 ;
 
-   err = map_virtmemory(&log->buffer, nrpages) ;
+   err = init_vmblock(&log->buffer, nrpages) ;
    if (err) goto ABBRUCH ;
    log->buffered_logsize = 0 ;
 
