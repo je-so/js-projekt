@@ -88,6 +88,7 @@
         <File Name="../../C-kern/api/os/Linux/syskonfig.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/os/virtmemory.h"/>
+      <File Name="../../C-kern/api/os/thread.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="resource">
       <File Name="../../C-kern/api/resource/errorlog.h"/>
@@ -98,18 +99,25 @@
     <File Name="../../C-kern/konfig.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="umgebung">
-    <File Name="../../C-kern/umgebung/init_process.c"/>
     <File Name="../../C-kern/umgebung/log.c"/>
     <File Name="../../C-kern/umgebung/umgebung_testproxy.c"/>
+    <File Name="../../C-kern/umgebung/umgebung.c"/>
+    <File Name="../../C-kern/umgebung/umgebung_default.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
     <File Name="../../C-kern/main/test.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <VirtualDirectory Name="coding-conventions">
-      <File Name="../../C-kern/resource/coding-conventions/free_objects.txt"/>
-      <File Name="../../C-kern/resource/coding-conventions/function_parameter_type.txt"/>
+      <File Name="../../coding-conventions/free_objects.txt"/>
+      <File Name="../../coding-conventions/function_parameter_type.txt"/>
     </VirtualDirectory>
     <File Name="../../C-kern/resource/errorlog.text"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="os">
+    <VirtualDirectory Name="Linux">
+      <File Name="../../C-kern/os/Linux/thread.c"/>
+      <File Name="../../C-kern/os/Linux/virtmemory.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
 </CodeLite_Project>
