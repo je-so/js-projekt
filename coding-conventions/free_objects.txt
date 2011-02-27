@@ -27,14 +27,14 @@ context object called *umgebung*.
 
 If the free memory callback is set to NULL objects should free all resources except the memory.
 This is useful for complex data structures which can be build during initialization. A caller
-can therefore save the current memory level and after freeing the complex structure reset
-the memory to the previously stored level with a single call. Freeing 1000 small memory blocks
+can therefore save the current memory state and after freeing the complex structure reset
+the memory to the previously stored state with a single call. Freeing 1000 small memory blocks
 therefore whill be very fast.
 
 Error handling:
 
 It is possible that an error occurs during execution of the free operation.
-In such a case the function should not be aborted but continue to free any
+In such a case the function should not abort but continue to free any
 pending resources. The error should be remembered and remembered in some
 log file if possible. The return value should be the last remembered error.
 
