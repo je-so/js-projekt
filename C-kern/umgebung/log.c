@@ -43,6 +43,41 @@ log_config_t  g_safe_logservice = {
 
 static_assert( ((typeof(umgebung()))0) == (const umgebung_t *)0, "Ensure LOCK_SERVICE cast is OK") ;
 
+// section: Init
+
+int init_once_per_thread_log(umgebung_t * umg)
+{
+   int err ;
+
+   err = new_logconfig( &umg->log ) ;
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int free_once_per_thread_log(umgebung_t * umg)
+{
+   int err ;
+   log_config_t * log = umg->log ;
+   umg->log = &g_safe_logservice ;
+
+   assert(log != &g_main_logservice) ;
+   assert(log != &g_safe_logservice) ;
+
+   if (     log != &g_safe_logservice
+         && log != &g_main_logservice) {
+      err = delete_logconfig( &log ) ;
+      if (err) goto ABBRUCH ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
 
 /* struct: log_buffer_t
  * Stores the memory address and size of cached output.

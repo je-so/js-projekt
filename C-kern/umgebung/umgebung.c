@@ -1,5 +1,5 @@
-/* title: Umgebung impl
-   TODO
+/* title: Umgebung Generic
+   Implementation file of generic init anf free functions.
 
    about: Copyright
    This program is free software.
@@ -20,21 +20,18 @@
     Header file of <Umgebung Interface>.
 
    file: C-kern/umgebung/umgebung.c
-    Header file of <title TODO>.
-
-   file: C-kern/umgebung/umgebung.c
-    Implementation file of generic init anf free functions.
+    Implementation file of <Umgebung Generic>.
 */
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
+// TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/init_once_per_process)
+#include "C-kern/api/locale.h"
+// TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
-
-static int init_locale_process_resource(void) ;
-static int free_locale_process_resource(void) ;
 
 /* typedef: typedef resource_registry_t
  * Shortcut for <resource_registry_t>. */
@@ -43,13 +40,6 @@ typedef struct resource_registry_t resource_registry_t ;
 /* typedef: typedef umgebung_private_t
  * Shortcut for <umgebung_private_t>. */
 typedef struct umgebung_private_t  umgebung_private_t ;
-
-/* define: REG_ENTRY
- * Generates the correct definition values for one <resource_registry_t> object.
- * The only parameter is the name of the module for which <resource_registry_t.init_resource> and <resource_registry_t.free_resource>
- * functions should be registered. */
-#define REG_ENTRY(module_name)   \
-      { .init_resource = &init_##module_name##_process_resource, .free_resource = &free_##module_name##_process_resource}
 
 /* struct: resource_registry_t
  * Registers init&free functions for one resource.
@@ -74,53 +64,16 @@ __thread umgebung_t   gt_umgebung = umgebung_INIT_MAINSERVICES ;
 /* variable: s_registry
  * The static array of all registered resources. */
 static resource_registry_t    s_registry[] = {
-    REG_ENTRY(locale)
-   ,{ 0, 0 }
+// TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/init_once_per_process")
+   { &init_once_per_process_locale, &free_once_per_process_locale },
+// TEXTDB:END
+   { 0, 0 }
 } ;
 
 /* variable: s_registry_init_count
  * Counts how many resources has been inituialized successfully. */
 static uint16_t               s_registry_init_count = 0 ;
 
-#undef REG_ENTRY
-
-
-/* function: locale_initumgebung
- * Sets the locale to the value of the first existing environment variable
- * from the list *LC_ALL* or *LANG*. */
-static int init_locale_process_resource()
-{
-   int err ;
-
-   if (!setlocale(LC_ALL, "")) {
-      LOG_TEXT(LOCALE_SETLOCALE) ;
-      LOG_STRING(getenv("LC_ALL")) ;
-      err = EINVAL ;
-      goto ABBRUCH ;
-   }
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-static int free_locale_process_resource(void)
-{
-   int err ;
-
-   if (!setlocale(LC_ALL, "C")) {
-      LOG_TEXT(LOCALE_SETLOCALE) ;
-      LOG_STRING("LC_ALL=C") ;
-      err = EINVAL ;
-      goto ABBRUCH ;
-   }
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
 
 static int freeall_process_resources(void)
 {

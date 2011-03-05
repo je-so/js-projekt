@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <langinfo.h>
 #include <limits.h>
 #include <locale.h>
 #include <netdb.h>

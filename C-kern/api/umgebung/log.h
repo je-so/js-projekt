@@ -42,7 +42,13 @@ extern log_config_t  g_main_logservice ;
  * its configuration can not be changed. */
 extern log_config_t  g_safe_logservice ;
 
-// section: functions
+// section: Functions
+
+// group: init
+
+extern int init_once_per_thread_log(umgebung_t * umg) ;
+
+extern int free_once_per_thread_log(umgebung_t * umg) ;
 
 // group: query
 
@@ -92,7 +98,6 @@ extern log_config_t  g_safe_logservice ;
 #define  LOG_CLEARBUFFER()          clearbuffer_logconfig(log_umgebung())
 
 // group: write
-
 
 /* define: LOG_TEXT
  * Logs text resource.

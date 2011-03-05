@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Mar.05  17:39:27
+GenerationDate  := 2011.Mar.05  17:50:27
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -78,6 +78,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o \
@@ -87,6 +88,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_testproxy.c.o \
@@ -109,6 +111,9 @@ $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfi
 $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o: $(PathOffset)C-kern/umgebung/umgebung_default.c
 	@$(CC_Debug)
 
@@ -128,6 +133,9 @@ $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mm
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o: $(PathOffset)C-kern/umgebung/umgebung_default.c

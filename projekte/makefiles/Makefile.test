@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Feb.26  13:15:30
+GenerationDate  := 2011.Mar.05  17:53:37
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -76,8 +76,11 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!test.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
@@ -85,8 +88,11 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!test.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
@@ -103,10 +109,19 @@ $(Target_Release): | $(ObjectDir_Release) $(TargetDir_Release)
 $(ObjectDir_Debug)/C-kern!main!test.c.o: $(PathOffset)C-kern/main/test.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o: $(PathOffset)C-kern/os/Linux/directory.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: $(PathOffset)C-kern/os/Linux/thread.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
@@ -124,10 +139,19 @@ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o: $(PathOffset)C-kern/u
 $(ObjectDir_Release)/C-kern!main!test.c.o: $(PathOffset)C-kern/main/test.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!os!Linux!directory.c.o: $(PathOffset)C-kern/os/Linux/directory.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: $(PathOffset)C-kern/os/Linux/thread.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c

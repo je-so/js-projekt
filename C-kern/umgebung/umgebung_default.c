@@ -26,12 +26,12 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
+// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/init_once_per_thread")
+#include "C-kern/api/umgebung/log.h"
+// TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
-
-static int init_log_thread_resource(/*inout*/umgebung_t * umg) ;
-static int free_log_thread_resource(/*inout*/umgebung_t * umg) ;
 
 /* typedef: typedef resource_registry_t
  * Shortcut for <resource_registry_t>. */
@@ -41,12 +41,6 @@ typedef struct resource_registry_t resource_registry_t ;
  * Shortcut for <umgebung_private_t>. */
 typedef struct umgebung_private_t  umgebung_private_t ;
 
-/* define: REG_ENTRY
- * Generates the correct definition values for one <resource_registry_t> object.
- * The only parameter is the name of the module for which <resource_registry_t.init_resource> and <resource_registry_t.free_resource>
- * functions should be registered. */
-#define REG_ENTRY(module_name)   \
-      { .init_resource = &init_##module_name##_thread_resource, .free_resource = &free_##module_name##_thread_resource }
 
 /* struct: resource_registry_t
  * Registers init&free functions for one resource.
@@ -67,43 +61,12 @@ struct resource_registry_t {
 /* variable: s_registry
  * The static array of all registered resources. */
 static resource_registry_t    s_registry[] = {
-    REG_ENTRY(log)
-   ,{ 0, 0 }
+// TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM(C-kern/resource/text.db/init_once_per_thread)
+   { &init_once_per_thread_log, &free_once_per_thread_log },
+// TEXTDB:END
+   { 0, 0 }
 } ;
 
-#undef REG_ENTRY
-
-
-static int init_log_thread_resource(/*inout*/umgebung_t * umg)
-{
-   int err ;
-
-   err = new_logconfig( &umg->log ) ;
-   if (err) goto ABBRUCH ;
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-static int free_log_thread_resource(/*inout*/umgebung_t * umg)
-{
-   int err ;
-   log_config_t * log = umg->log ;
-
-   assert(log != &g_main_logservice) ;
-   assert(log != &g_safe_logservice) ;
-   umg->log = &g_safe_logservice ;
-
-   err = delete_logconfig( &log ) ;
-   if (err) goto ABBRUCH ;
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
 
 static int freeall_thread_resources(umgebung_t * umg)
 {
