@@ -174,17 +174,17 @@ int init_thread_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
 {
    int err ;
 
-   if (     implementation_type <= umgebung_STATIC_IMPL
-         || implementation_type >  umgebung_TEST_IMPL) {
+   if (     implementation_type <= umgebung_type_STATIC
+         || implementation_type >  umgebung_type_TEST) {
       err = EINVAL ;
       LOG_INT(implementation_type) ;
       goto ABBRUCH ;
    }
 
    switch(implementation_type) {
-   case umgebung_STATIC_IMPL:    assert(0) ; break ;
-   case umgebung_DEFAULT_IMPL:   err = init_default_umgebung(umg) ; break ;
-   case umgebung_TEST_IMPL:      err = init_testproxy_umgebung(umg) ; break ;
+   case umgebung_type_STATIC:    assert(0) ; break ;
+   case umgebung_type_DEFAULT:   err = init_default_umgebung(umg) ; break ;
+   case umgebung_type_TEST:      err = init_testproxy_umgebung(umg) ; break ;
    }
 
    if (err) goto ABBRUCH ;
@@ -270,7 +270,7 @@ static int test_resource_setlocale(void)
 
    // TEST setlocale error
    TEST(0 == setenv("LC_ALL", "XXX@unknown", 1)) ;
-   TEST(EINVAL == init_process_umgebung(umgebung_DEFAULT_IMPL)) ;
+   TEST(EINVAL == init_process_umgebung(umgebung_type_DEFAULT)) ;
    TEST(0 == umgebung()->type) ;
    if (old_lcall) {
       TEST(0 == setenv("LC_ALL", old_lcall, 0)) ;
@@ -290,14 +290,14 @@ ABBRUCH:
 static int test_process_init(void)
 {
    // TEST EINVAL: wrong type
-   TEST(0      == umgebung_STATIC_IMPL) ;
-   TEST(EINVAL == init_process_umgebung(umgebung_STATIC_IMPL)) ;
+   TEST(0      == umgebung_type_STATIC) ;
+   TEST(EINVAL == init_process_umgebung(umgebung_type_STATIC)) ;
    TEST(EINVAL == init_process_umgebung(3)) ;
 
    // TEST init, double free
    TEST(0 == umgebung()->type) ;
-   TEST(0 == init_process_umgebung(umgebung_DEFAULT_IMPL)) ;
-   TEST(umgebung_DEFAULT_IMPL == umgebung()->type) ;
+   TEST(0 == init_process_umgebung(umgebung_type_DEFAULT)) ;
+   TEST(umgebung_type_DEFAULT == umgebung()->type) ;
    TEST(0 == free_process_umgebung()) ;
    TEST(0 == umgebung()->type ) ;
    TEST(0 == free_process_umgebung()) ;
@@ -305,8 +305,8 @@ static int test_process_init(void)
 
    // TEST init, double free
    TEST(0 == umgebung()->type) ;
-   TEST(0 == init_process_umgebung(umgebung_TEST_IMPL)) ;
-   TEST(umgebung_TEST_IMPL == umgebung()->type) ;
+   TEST(0 == init_process_umgebung(umgebung_type_TEST)) ;
+   TEST(umgebung_type_TEST == umgebung()->type) ;
    TEST(0 == free_process_umgebung()) ;
    TEST(0 == umgebung()->type ) ;
 

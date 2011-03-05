@@ -211,7 +211,7 @@ int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void
    thread_private->osthread.thread_argument = thread_argument ;
 
    startparam->osthread = thread_private ;
-   err = init_thread_umgebung(&startparam->thread_umgebung, umgebung()->type ? umgebung()->type : umgebung_DEFAULT_IMPL) ;
+   err = init_thread_umgebung(&startparam->thread_umgebung, umgebung()->type ? umgebung()->type : umgebung_type_DEFAULT) ;
    if (err) goto ABBRUCH ;
 
    err = mapstacks_osthread(thread_private) ;

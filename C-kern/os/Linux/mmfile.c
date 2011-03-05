@@ -1,0 +1,570 @@
+/*
+   Implements memory mapped files.
+
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   Author:
+   (C) 2010 Jörg Seebohn
+
+   file: C-kern/os/Linux/mmfile.c
+    Implementation file of <Memory-Mapped File>.
+*/
+
+#include "C-kern/konfig.h"
+#include "C-kern/api/os/filesystem/mmfile.h"
+#include "C-kern/api/os/filesystem/directory.h"
+#include "C-kern/api/os/virtmemory.h"
+#include "C-kern/api/errlog.h"
+#ifdef KONFIG_UNITTEST
+#include "C-kern/api/test.h"
+#endif
+
+
+#define calc_alignedsize(aligned_size, size_in_bytes, pagesize) \
+   size_t aligned_size  = (size_in_bytes + pagesize - 1) ; \
+   aligned_size        -= (aligned_size % pagesize)
+
+size_t pagesize_mmfile()
+{
+   return pagesize_vm() ;
+}
+
+int initcreat_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, size_t file_size_in_bytes, const directory_stream_t * path_relative_to /*0 => current working directory*/)
+{
+   int err ;
+   int                   fd = -1 ;
+   const size_t    pagesize = pagesize_vm() ;
+   void         * mem_start = MAP_FAILED ;
+
+   if (     (path_relative_to && !path_relative_to->sys_dir)
+            || !file_size_in_bytes ) {
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
+
+   const mode_t permission = S_IRUSR|S_IWUSR ;
+
+   if (path_relative_to) {
+      fd = openat(dirfd(path_relative_to->sys_dir), file_path, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, permission ) ;
+      if (fd < 0) {
+         err = errno ;
+         LOG_SYSERRNO("openat") ;
+         LOG_STRING(file_path) ;
+         goto ABBRUCH ;
+      }
+   } else {
+      fd = open( file_path, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, permission) ;
+      if (fd < 0) {
+         err = errno ;
+         LOG_SYSERRNO("open") ;
+         LOG_STRING(file_path) ;
+         goto ABBRUCH ;
+      }
+   }
+
+   err = ftruncate(fd, file_size_in_bytes) ;
+   if (err) {
+      err = errno ;
+      LOG_SYSERRNO("ftruncate") ;
+      LOG_SIZE(file_size_in_bytes) ;
+      goto ABBRUCH ;
+   }
+
+   mem_start = mmap(0, file_size_in_bytes, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0) ;
+   if (MAP_FAILED == mem_start) {
+      err = errno ;
+      LOG_SYSERRNO("mmap") ;
+      goto ABBRUCH ;
+   }
+
+   calc_alignedsize(aligned_size, file_size_in_bytes, pagesize) ;
+
+   err = madvise(mem_start, aligned_size, MADV_SEQUENTIAL) ;
+   if (err) {
+      err = errno ;
+      LOG_SYSERRNO("madvise") ;
+      goto ABBRUCH ;
+   }
+
+   mfile->sys_file                  = fd ;
+   mfile->memory_start              = mem_start ;
+   mfile->size_in_bytes_pagealigned = aligned_size ;
+   mfile->file_offset               = 0 ;
+   mfile->size_in_bytes             = file_size_in_bytes ;
+   return 0 ;
+ABBRUCH:
+   if (fd >= 0) {
+      if (path_relative_to) {
+         (void) unlinkat(dirfd(path_relative_to->sys_dir), file_path, 0) ;
+      } else {
+         (void) unlink(file_path) ;
+      }
+      close(fd) ;
+   }
+   if (MAP_FAILED != mem_start) {
+      (void) munmap(mem_start, file_size_in_bytes) ;
+   }
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path,  off_t file_offset, size_t size_in_bytes, const struct directory_stream_t * path_relative_to /*0 => current working directory*/, mmfile_openmode_e mode)
+{
+   int err ;
+   int                   fd = -1 ;
+   const size_t    pagesize = pagesize_vm() ;
+   void         * mem_start = MAP_FAILED ;
+
+   if (     (path_relative_to && !path_relative_to->sys_dir)
+            || (unsigned)mode > mmfile_openmode_RDWR_PRIVATE
+            || file_offset < 0
+            || (file_offset % pagesize) ) {
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
+
+#define open_flags  ((mode == mmfile_openmode_RDONLY) ? O_RDONLY : O_RDWR)
+   if (path_relative_to) {
+      fd = openat(dirfd(path_relative_to->sys_dir), file_path, open_flags|O_CLOEXEC ) ;
+      if (fd < 0) {
+         err = errno ;
+         LOG_SYSERRNO("openat") ;
+         LOG_STRING(file_path) ;
+         goto ABBRUCH ;
+      }
+   } else {
+      fd = open( file_path, open_flags|O_CLOEXEC ) ;
+      if (fd < 0) {
+         err = errno ;
+         LOG_SYSERRNO("open") ;
+         LOG_STRING(file_path) ;
+         goto ABBRUCH ;
+      }
+   }
+#undef open_flags
+
+   struct stat file_info ;
+   err = fstat(fd, &file_info) ;
+   if (err) {
+      err = errno ;
+      goto ABBRUCH ;
+   }
+
+   if (file_info.st_size <= file_offset) {
+      err = ENODATA ;
+      goto ABBRUCH ;
+   }
+
+   off_t size_minus_offset = file_info.st_size - file_offset ;
+   if ( !size_in_bytes ) {
+      if ( size_minus_offset >= (size_t)-1 ) {
+         err = ENOMEM ;
+         goto ABBRUCH ;
+      }
+      size_in_bytes = (size_t) size_minus_offset ;
+   } else if (size_in_bytes > size_minus_offset) {
+      size_in_bytes = (size_t) size_minus_offset ;
+   }
+
+#define protection_flags   ((mode == mmfile_openmode_RDONLY) ? PROT_READ : PROT_READ|PROT_WRITE)
+#define shared_flags       ((mode == mmfile_openmode_RDWR_PRIVATE) ? MAP_PRIVATE : MAP_SHARED)
+   mem_start = mmap(0, size_in_bytes, protection_flags, shared_flags, fd, 0) ;
+#undef  shared_flags
+#undef  protection_flags
+   if (MAP_FAILED == mem_start) {
+      err = errno ;
+      LOG_SYSERRNO("mmap") ;
+      goto ABBRUCH ;
+   }
+
+   calc_alignedsize(aligned_size, size_in_bytes, pagesize) ;
+
+   err = madvise(mem_start, aligned_size, MADV_SEQUENTIAL) ;
+   if (err) {
+      err = errno ;
+      LOG_SYSERRNO("madvise") ;
+      goto ABBRUCH ;
+   }
+
+   mfile->sys_file                  = fd ;
+   mfile->memory_start              = mem_start ;
+   mfile->size_in_bytes_pagealigned = aligned_size ;
+   mfile->file_offset               = file_offset ;
+   mfile->size_in_bytes             = size_in_bytes ;
+   return 0 ;
+ABBRUCH:
+   if (fd >= 0) {
+      close(fd) ;
+   }
+   if (MAP_FAILED != mem_start) {
+      (void) munmap(mem_start, size_in_bytes) ;
+   }
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int free_mmfile(mmfile_t * mfile)
+{
+   int err ;
+   if (mfile->sys_file >= 0) {
+      err = close(mfile->sys_file) ;
+      if (err) {
+         err = errno ;
+         LOG_SYSERRNO("close") ;
+         goto ABBRUCH ;
+      }
+      mfile->sys_file = -1 ;
+
+      err = munmap( mfile->memory_start, mfile->size_in_bytes_pagealigned ) ;
+      if (err) {
+         err = errno ;
+         LOG_SYSERRNO("munmap") ;
+         LOG_PTR(mfile->memory_start) ;
+         LOG_SIZE(mfile->size_in_bytes_pagealigned) ;
+         goto ABBRUCH ;
+      }
+      mfile->memory_start              = 0 ;
+      mfile->size_in_bytes_pagealigned = 0 ;
+      mfile->size_in_bytes             = 0 ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+
+#ifdef KONFIG_UNITTEST
+
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_memorymappedfile,ABBRUCH)
+
+static int test_creat_mmfile(directory_stream_t * tempdir)
+{
+   int err = 1 ;
+   size_t   pagesize = pagesize_vm() ;
+   mmfile_t    mfile = mmfile_INIT_FREEABLE ;
+   int            fd = -1 ;
+
+   // TEST init, double free
+   TEST(0 == initcreat_mmfile(&mfile, "mmfile", 1, tempdir)) ;
+   TEST(mfile.sys_file                   >  0) ;
+   TEST(mfile.memory_start              != 0) ;
+   TEST(mfile.size_in_bytes_pagealigned == pagesize) ;
+   TEST(mfile.file_offset               == 0) ;
+   TEST(mfile.size_in_bytes             == 1) ;
+   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(mfile.sys_file                  == -1) ;
+   TEST(mfile.memory_start              ==  0) ;
+   TEST(mfile.size_in_bytes_pagealigned ==  0) ;
+   TEST(mfile.file_offset               ==  0) ;
+   TEST(mfile.size_in_bytes             ==  0) ;
+   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(0 == removefile_directorystream(tempdir, "mmfile")) ;
+
+   // TEST write
+   TEST(0 == initcreat_mmfile(&mfile, "mmfile", 111, tempdir)) ;
+   TEST(mfile.sys_file                  >  0) ;
+   TEST(mfile.memory_start              != 0) ;
+   TEST(mfile.memory_start              == memstart_mmfile(&mfile)) ;
+   TEST(mfile.size_in_bytes_pagealigned == pagesize) ;
+   TEST(mfile.file_offset               == 0) ;
+   TEST(mfile.file_offset               == fileoffset_mmfile(&mfile)) ;
+   TEST(mfile.size_in_bytes             == 111) ;
+   TEST(mfile.size_in_bytes             == sizeinbytes_mmfile(&mfile)) ;
+   uint8_t * memory = memstart_mmfile(&mfile) ;
+   for(uint8_t i = 0; i < 111; ++i) {
+      memory[i] = i ;
+   }
+   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(mfile.sys_file                  == -1) ;
+   TEST(mfile.memory_start              ==  0) ;
+   TEST(mfile.size_in_bytes_pagealigned ==  0) ;
+   TEST(mfile.file_offset               ==  0) ;
+   TEST(mfile.size_in_bytes             ==  0) ;
+   // read written content
+   {
+      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY) ;
+      TEST(fd > 0) ;
+      uint8_t buffer[111] = {0} ;
+      TEST(111 == read(fd, buffer, 111)) ;
+      for(uint8_t i = 0; i < 111; ++i) {
+         TEST(i == buffer[i]) ;
+      }
+      TEST(0 == close(fd)) ;
+      fd = -1 ;
+   }
+   TEST(0 == removefile_directorystream(tempdir, "mmfile")) ;
+
+   // TEST mapping is shared
+   TEST(0 == initcreat_mmfile(&mfile, "mmfile", 111, tempdir)) ;
+   TEST(mfile.sys_file                  >  0) ;
+   TEST(mfile.memory_start              != 0) ;
+   TEST(mfile.memory_start              == memstart_mmfile(&mfile)) ;
+   TEST(mfile.size_in_bytes_pagealigned == pagesize) ;
+   TEST(mfile.file_offset               == 0) ;
+   TEST(mfile.file_offset               == fileoffset_mmfile(&mfile)) ;
+   TEST(mfile.size_in_bytes             == 111) ;
+   TEST(mfile.size_in_bytes             == sizeinbytes_mmfile(&mfile)) ;
+   memory = memstart_mmfile(&mfile) ;
+   for(uint8_t i = 0; i < 111; ++i) {
+      memory[i] = '2' ;
+   }
+   for(uint8_t i = 0; i < 111; ++i) {
+      TEST('2' == memory[i]) ;
+   }
+   // write different content
+   {
+      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY) ;
+      TEST(fd > 0) ;
+      uint8_t buffer[111] ;
+      memset( buffer, '3', 111 ) ;
+      TEST(111 == write(fd, buffer, 111)) ;
+      TEST(0 == close(fd)) ;
+      fd = -1 ;
+   }
+   for(uint8_t i = 0; i < 111; ++i) {
+      TEST('3' == memory[i]) ;
+   }
+   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(0 == removefile_directorystream(tempdir, "mmfile")) ;
+
+
+   // TEST EINVAL
+   {
+      directory_stream_t dummy  = directory_stream_INIT_FREEABLE ;
+      TEST(EINVAL == initcreat_mmfile(&mfile, "mmfile", 1, &dummy)) ;
+      TEST(EINVAL == initcreat_mmfile(&mfile, "mmfile", 0, tempdir)) ;
+   }
+
+   err = 0 ;
+ABBRUCH:
+   if (err && fd > 0) close(fd) ;
+   if (err) {
+      (void) free_mmfile(&mfile) ;
+   }
+   if (err) {
+      (void) removefile_directorystream(tempdir, "mmfile") ;
+   }
+   return err ;
+}
+
+static ucontext_t s_usercontext ;
+
+static void sigsegfault(int _signr)
+{
+   (void) _signr ;
+   setcontext(&s_usercontext) ;
+}
+
+static int test_open_mmfile(directory_stream_t * tempdir)
+{
+   int err = 1 ;
+   size_t        pagesize = pagesize_vm() ;
+   mmfile_t         mfile = mmfile_INIT_FREEABLE ;
+   uint8_t    buffer[256] = { 0 } ;
+   int                 fd = -1 ;
+   bool                isOldact = false ;
+   struct sigaction    newact ;
+   struct sigaction    oldact ;
+
+   // creat content
+   TEST(0 == initcreat_mmfile(&mfile, "mmfile", 256, tempdir)) ;
+   for(unsigned i = 0; i < 256; ++i) {
+      memstart_mmfile(&mfile)[i] = (uint8_t)i ;
+   }
+   TEST(0 == free_mmfile(&mfile)) ;
+
+   // TEST init, double free
+   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 0, tempdir, mmfile_openmode_RDONLY)) ;
+   TEST(mfile.sys_file                   >  0) ;
+   TEST(mfile.memory_start              != 0) ;
+   TEST(mfile.size_in_bytes_pagealigned == pagesize) ;
+   TEST(mfile.file_offset               == 0) ;
+   TEST(mfile.size_in_bytes             == 256) ;
+   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(mfile.sys_file                  == -1) ;
+   TEST(mfile.memory_start              ==  0) ;
+   TEST(mfile.size_in_bytes_pagealigned ==  0) ;
+   TEST(mfile.file_offset               ==  0) ;
+   TEST(mfile.size_in_bytes             ==  0) ;
+   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(mfile.sys_file                  == -1) ;
+   TEST(mfile.memory_start              ==  0) ;
+   TEST(mfile.size_in_bytes_pagealigned ==  0) ;
+   TEST(mfile.file_offset               ==  0) ;
+   TEST(mfile.size_in_bytes             ==  0) ;
+
+   // TEST read only / shared
+   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 0, tempdir, mmfile_openmode_RDONLY)) ;
+   TEST(fileoffset_mmfile(&mfile)       == 0 ) ;
+   TEST(sizeinbytes_mmfile(&mfile)      == 256 ) ;
+   TEST(mfile.size_in_bytes_pagealigned == pagesize) ;
+   for(unsigned i = 0; i < 256; ++i) {
+      TEST(memstart_mmfile(&mfile)[i] == (uint8_t)i) ;
+   }
+   // writing generates exception
+   sigemptyset(&newact.sa_mask) ;
+   newact.sa_flags   = 0 ;
+   newact.sa_handler = &sigsegfault ;
+   TEST(0 == sigaction(SIGSEGV, &newact, &oldact)) ;
+   isOldact = true ;
+   volatile int is_exception = 0 ;
+   TEST(0 == getcontext(&s_usercontext)) ;
+   if (!is_exception) {
+      is_exception = 1 ;
+      memstart_mmfile(&mfile)[0] = 1 ;
+      is_exception = 2 ;
+   }
+   TEST(1 == is_exception) ;
+   // write different content
+   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY) ;
+   TEST(fd > 0) ;
+   memset( buffer, '3', 256 ) ;
+   TEST(256 == write(fd, buffer, 256)) ;
+   TEST(0   == close(fd)) ;
+   fd = -1 ;
+   // test change is shared
+   for(unsigned i = 0; i < 256; ++i) {
+      TEST(memstart_mmfile(&mfile)[i] == '3') ;
+   }
+   TEST(0 == free_mmfile(&mfile)) ;
+
+   // TEST RDWR / shared
+   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 512, tempdir, mmfile_openmode_RDWR_SHARED)) ;
+   TEST(fileoffset_mmfile(&mfile)       == 0 ) ;
+   TEST(sizeinbytes_mmfile(&mfile)      == 256 ) ;
+   TEST(mfile.size_in_bytes_pagealigned == pagesize) ;
+   for(unsigned i = 0; i < 256; ++i) {
+      TEST(memstart_mmfile(&mfile)[i] == '3') ;
+   }
+   // write different content
+   for(unsigned i = 0; i < 256; ++i) {
+      memstart_mmfile(&mfile)[i] = (uint8_t)i ;
+   }
+   // test change is shared
+   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY) ;
+   TEST(fd > 0) ;
+   TEST(256 == read(fd, buffer, 256)) ;
+   TEST(0   == close(fd)) ;
+   fd = -1 ;
+   for(unsigned i = 0; i < 256; ++i) {
+      TEST(buffer[i] == (uint8_t)i) ;
+   }
+   TEST(0 == free_mmfile(&mfile)) ;
+
+   // TEST RDWR / private
+   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 1024, tempdir, mmfile_openmode_RDWR_PRIVATE)) ;
+   TEST(fileoffset_mmfile(&mfile)       == 0 ) ;
+   TEST(sizeinbytes_mmfile(&mfile)      == 256 ) ;
+   TEST(mfile.size_in_bytes_pagealigned == pagesize) ;
+   for(unsigned i = 0; i < 256; ++i) {
+      TEST(buffer[i] == (uint8_t)i) ;
+   }
+   // write different content
+   for(unsigned i = 0; i < 256; ++i) {
+      memstart_mmfile(&mfile)[i] = '1' ;
+   }
+   for(unsigned i = 0; i < 256; ++i) {
+      TEST(memstart_mmfile(&mfile)[i] == '1') ;
+   }
+   // test change is *not* shared
+   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY) ;
+   TEST(fd > 0) ;
+   TEST(256 == read(fd, buffer, 256)) ;
+   TEST(0   == close(fd)) ;
+   fd = -1 ;
+   for(unsigned i = 0; i < 256; ++i) {
+      TEST(buffer[i] == (uint8_t)i) ; // old content
+   }
+   TEST(0 == free_mmfile(&mfile)) ;
+
+   // TEST EINVAL
+   // mmfile_openmode_e
+   TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, tempdir, 3)) ;
+   // offset not page aligned
+   TEST(EINVAL == init_mmfile(&mfile, "mmfile", pagesize-1, 0, tempdir, mmfile_openmode_RDWR_PRIVATE)) ;
+
+   // TEST ENODATA
+   // offset > filesize
+   TEST(ENODATA== init_mmfile(&mfile, "mmfile", pagesize, 0, tempdir, mmfile_openmode_RDWR_PRIVATE)) ;
+   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY) ;
+   TEST(fd > 0) ;
+   TEST(0 == ftruncate(fd, 0)) ; // empty file
+   TEST(0 == close(fd)) ;
+   fd = -1 ;
+   TEST(ENODATA == init_mmfile(&mfile, "mmfile", 0, 0, tempdir, mmfile_openmode_RDWR_SHARED)) ;
+
+   // TEST ENOMEM
+   if (sizeof(size_t) == sizeof(uint32_t)) {
+      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY) ;
+      TEST(fd > 0) ;
+      TEST(0 == ftruncate(fd, (size_t)-1)) ; // 4 GB
+      TEST(0 == close(fd)) ;
+      fd = -1 ;
+      // mmap is never called
+      TEST(ENOMEM == init_mmfile(&mfile, "mmfile", 0, 0, tempdir, mmfile_openmode_RDWR_PRIVATE)) ;
+      // mmap returns ENOMEM
+      TEST(ENOMEM == init_mmfile(&mfile, "mmfile", pagesize, 0, tempdir, mmfile_openmode_RDWR_PRIVATE)) ;
+   }
+   TEST(0 == removefile_directorystream(tempdir, "mmfile")) ;
+
+   err = 0 ;
+ABBRUCH:
+   if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
+   if (fd > 0) close(fd) ;
+   (void) free_mmfile(&mfile) ;
+   if (err) {
+      (void) removefile_directorystream(tempdir, "mmfile") ;
+   }
+   return err ;
+}
+
+int unittest_os_memorymappedfile()
+{
+   int err ;
+   directory_stream_t        tempdir = directory_stream_INIT_FREEABLE ;
+   vm_mappedregions_t  mappedregions = vm_mappedregions_INIT_FREEABLE ;
+   vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
+
+   // store current mapping
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+
+   TEST(0 == inittemp_directorystream(&tempdir, "mmfile" )) ;
+
+   err = test_creat_mmfile(&tempdir) ;
+   if (err) goto ABBRUCH ;
+
+   err = test_open_mmfile(&tempdir) ;
+   if (err) goto ABBRUCH ;
+
+   TEST(0 == remove_directorystream(&tempdir)) ;
+   TEST(0 == free_directorystream(&tempdir)) ;
+
+   // TEST mapping has not changed
+   TEST(0 == init_vmmappedregions(&mappedregions2)) ;
+   TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions2)) ;
+
+   return 0 ;
+ABBRUCH:
+   if (tempdir.sys_dir) {
+      remove_directorystream(&tempdir) ;
+   }
+   free_directorystream(&tempdir) ;
+   free_vmmappedregions(&mappedregions) ;
+   free_vmmappedregions(&mappedregions2) ;
+   return 1 ;
+}
+#endif

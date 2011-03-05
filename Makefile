@@ -7,9 +7,9 @@
 # build modes
 .PHONY: Debug Release
 # sub projects
-.PHONY: genmake resources rtextcompiler test
+.PHONY: genmake resources rtextcompiler textdb test
 # release versions of some sub projects
-.PHONY: rtextcompiler_Release genmake_Release
+.PHONY: genmake_Release rtextcompiler_Release textdb_Release
 
 
 # options
@@ -48,6 +48,7 @@ html:
 
 makefiles: \
            $(MAKEFILES_PREFIX)genmake \
+           $(MAKEFILES_PREFIX)textdb \
            $(MAKEFILES_PREFIX)rtextcompiler \
            $(MAKEFILES_PREFIX)test
 
@@ -58,14 +59,15 @@ resources: | rtextcompiler_Release
 
 test: | resources
 
-genmake rtextcompiler resources test:
+genmake rtextcompiler resources textdb test:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(@) ; then make -f $(MAKEFILES_PREFIX)$(@) ; fi
 
-genmake_Release rtextcompiler_Release:
+genmake_Release rtextcompiler_Release textdb_Release:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then make -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
 
 Release Debug: $(MAKEFILES_PREFIX)rtextcompiler \
                $(MAKEFILES_PREFIX)resources \
+               $(MAKEFILES_PREFIX)textdb \
                $(MAKEFILES_PREFIX)test \
                $(MAKEFILES_PREFIX)genmake
 	@for mf in $^ ; do if ! make -qf $${mf} $(@) ; then make -f $${mf} $(@) ; fi ; done

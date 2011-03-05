@@ -1,0 +1,9 @@
+# Project description of TextDB
+# TextDB is used to enhance C-source with content from CSV text files
+include        projekte/binary.gcc
+Src            = C-kern/main/tools/textdb.c
+Src           += C-kern/os/Linux/mmfile.c C-kern/os/Linux/virtmemory.c
+# Src           += C-kern/os/shared/locale.c
+Src           += C-kern/umgebung/umgebung*.c C-kern/umgebung/log.c
+Includes       = .
+Defines        =

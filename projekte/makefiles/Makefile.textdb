@@ -1,0 +1,147 @@
+##
+## ! Genmake generated Makefile !
+##
+ProjectName     := textdb
+ProjectModes    := Debug Release
+PathOffset      := 
+ProjectFile     := $(PathOffset)projekte/textdb.prj
+ProjectLinks    := 
+
+GenerationDate  := 2011.Mar.05  17:39:27
+GeneratedBy     := Jörg Seebohn
+
+## Debug
+DefineFlag_Debug    := -D
+IncludeFlag_Debug   := -I
+LibraryFlag_Debug   := -l
+LibPathFlag_Debug   := -L
+CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+LFlags_Debug        := -g 
+Defines_Debug       :=
+Includes_Debug      := $(IncludeFlag_Debug)$(PathOffset).
+Libraries_Debug     :=
+Libpath_Debug       :=
+ObjectDir_Debug     := $(PathOffset)bin/Debug/textdb
+TargetDir_Debug     := $(PathOffset)bin
+Target_Debug        := $(PathOffset)bin/textdb_Debug
+Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
+CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
+LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
+
+## Release
+DefineFlag_Release    := -D
+IncludeFlag_Release   := -I
+LibraryFlag_Release   := -l
+LibPathFlag_Release   := -L
+CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+LFlags_Release        := -O2 
+Defines_Release       :=
+Includes_Release      := $(IncludeFlag_Release)$(PathOffset).
+Libraries_Release     :=
+Libpath_Release       :=
+ObjectDir_Release     := $(PathOffset)bin/Release/textdb
+TargetDir_Release     := $(PathOffset)bin
+Target_Release        := $(PathOffset)bin/textdb
+Libs_Release          := $(Libpath_Release) $(Libraries_Release)
+CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
+LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
+
+##
+## Targets
+##
+all:   Debug Release
+clean: clean_Debug clean_Release
+init:  init_Debug init_Release
+init_Debug: $(ObjectDir_Debug) $(TargetDir_Debug)
+init_Release: $(ObjectDir_Release) $(TargetDir_Release)
+
+Debug: $(Target_Debug)
+
+Release: $(Target_Release)
+
+clean_Debug:
+	@rm -f "$(ObjectDir_Debug)/"*.[od]
+	@rm -f "$(Target_Debug)"
+	@if [ -d "$(ObjectDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Debug)"; fi
+	@if [ -d "$(TargetDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Debug)"; fi
+
+clean_Release:
+	@rm -f "$(ObjectDir_Release)/"*.[od]
+	@rm -f "$(Target_Release)"
+	@if [ -d "$(ObjectDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Release)"; fi
+	@if [ -d "$(TargetDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Release)"; fi
+
+$(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Release)):
+	@mkdir -p "$@"
+
+Objects_Debug := \
+ $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!log.c.o
+
+Objects_Release := \
+ $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_testproxy.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!log.c.o
+
+$(Target_Debug): $(Objects_Debug)
+$(Target_Debug): | $(ObjectDir_Debug) $(TargetDir_Debug)
+	@$(LD_Debug)
+
+$(Target_Release): $(Objects_Release)
+$(Target_Release): | $(ObjectDir_Release) $(TargetDir_Release)
+	@$(LD_Release)
+
+$(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o: $(PathOffset)C-kern/main/tools/textdb.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o: $(PathOffset)C-kern/umgebung/umgebung_default.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_testproxy.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
+	@$(CC_Debug)
+
+$(ObjectDir_Release)/C-kern!main!tools!textdb.c.o: $(PathOffset)C-kern/main/tools/textdb.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o: $(PathOffset)C-kern/umgebung/umgebung_default.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_testproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_testproxy.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
+	@$(CC_Release)
+
+-include $(Objects_Debug:.o=.d)
+
+-include $(Objects_Release:.o=.d)

@@ -45,9 +45,9 @@ typedef struct umgebung_t          umgebung_t ;
  *                         can be tested without mutual dependencies.
  * */
 enum umgebung_type_e {
-    umgebung_STATIC_IMPL  = 0
-   ,umgebung_DEFAULT_IMPL = 1
-   ,umgebung_TEST_IMPL    = 2
+    umgebung_type_STATIC  = 0
+   ,umgebung_type_DEFAULT = 1
+   ,umgebung_type_TEST    = 2
 } ;
 typedef enum umgebung_type_e umgebung_type_e ;
 
@@ -115,7 +115,7 @@ struct umgebung_t {
  * Static initializer for <umgebung_t>.
  * This ensures that in the main even without calling <init_process_umgebung> first
  * the global log service is available. */
-#define umgebung_INIT_MAINSERVICES { umgebung_STATIC_IMPL, 0, 0, &g_main_logservice }
+#define umgebung_INIT_MAINSERVICES { umgebung_type_STATIC, 0, 0, &g_main_logservice }
 
 /* function: init_process_umgebung
  * Initializes global context. Must be called as first function from the main thread.

@@ -161,7 +161,7 @@ int init_default_umgebung(umgebung_t * umg)
 {
    int err ;
 
-   umg->type                  = umgebung_DEFAULT_IMPL ;
+   umg->type                  = umgebung_type_DEFAULT ;
    umg->resource_thread_count = 0 ;
    umg->free_umgebung         = &free_default_umgebung ;
    umg->log                   = 0 ;
@@ -188,7 +188,7 @@ static int test_init(void)
    umg.type                  = 0 ;
    umg.resource_thread_count = 1000 ;
    TEST(0 == init_default_umgebung(&umg)) ;
-   TEST(umgebung_DEFAULT_IMPL == umg.type) ;
+   TEST(umgebung_type_DEFAULT == umg.type) ;
    TEST(1                     == umg.resource_thread_count) ;
    TEST(free_default_umgebung == umg.free_umgebung) ;
    TEST(0 == free_default_umgebung(&umg)) ;

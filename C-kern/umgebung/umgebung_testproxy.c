@@ -41,7 +41,7 @@ int init_testproxy_umgebung(umgebung_t * umg)
 {
    *umg               = (umgebung_t) umgebung_INIT_MAINSERVICES ;
 
-   umg->type                  = umgebung_TEST_IMPL ;
+   umg->type                  = umgebung_type_TEST ;
    umg->resource_thread_count = 0 ;
    umg->free_umgebung         = &free_testproxy_umgebung ;
 
@@ -58,7 +58,7 @@ static int test_init(void)
 
    // TEST init, double free
    TEST(0 == init_testproxy_umgebung(&umg)) ;
-   TEST(umgebung_TEST_IMPL       == umg.type) ;
+   TEST(umgebung_type_TEST       == umg.type) ;
    TEST(0                        == umg.resource_thread_count) ;
    TEST(&free_testproxy_umgebung == umg.free_umgebung) ;
    TEST(0 == free_testproxy_umgebung(&umg)) ;
