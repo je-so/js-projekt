@@ -99,6 +99,7 @@
  *                     See <KONFIG_OS>.
  * KONFIG_UNITTEST   - Define this in your Makefile to include additional code for testing single components. */
 
+
 /* define: KONFIG_LANG
  * Choose default language for compiletime/runtime text output.
  * > #define KONFIG_LANG   en */

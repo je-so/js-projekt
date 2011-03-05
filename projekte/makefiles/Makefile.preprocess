@@ -1,0 +1,16 @@
+# (c) 2011 Jörg Seebohn
+
+.PHONY: all Debug Release
+
+TXTDB=tmpfile=`mktemp`; rm $${tmpfile}; txtdb=bin/textdb; if [ ! -f $${txtdb} ]; then txtdb=$${txtdb}_Debug ; fi ; if $${txtdb} -o $${tmpfile} $(@); then mv $${tmpfile} $(@); else rm $${tmpfile}; exit 1; fi
+
+all: C-kern/umgebung/umgebung.c \
+     C-kern/umgebung/umgebung_default.c
+Debug: all
+Release: all
+
+C-kern/umgebung/umgebung.c: C-kern/resource/text.db/init_once_per_process
+	@$(TXTDB)
+
+C-kern/umgebung/umgebung_default.c: C-kern/resource/text.db/init_once_per_thread
+	@$(TXTDB)

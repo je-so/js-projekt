@@ -68,6 +68,7 @@ genmake_Release rtextcompiler_Release textdb_Release:
 Release Debug: $(MAKEFILES_PREFIX)rtextcompiler \
                $(MAKEFILES_PREFIX)resources \
                $(MAKEFILES_PREFIX)textdb \
+               $(MAKEFILES_PREFIX)preprocess \
                $(MAKEFILES_PREFIX)test \
                $(MAKEFILES_PREFIX)genmake
 	@for mf in $^ ; do if ! make -qf $${mf} $(@) ; then make -f $${mf} $(@) ; fi ; done
