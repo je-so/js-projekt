@@ -7,9 +7,9 @@
 # build modes
 .PHONY: Debug Release
 # sub projects
-.PHONY: genmake resources rtextcompiler textdb test
+.PHONY: genmake resources textrescompiler textdb test
 # release versions of some sub projects
-.PHONY: genmake_Release rtextcompiler_Release textdb_Release
+.PHONY: genmake_Release textrescompiler_Release textdb_Release
 
 
 # options
@@ -49,23 +49,23 @@ html:
 makefiles: \
            $(MAKEFILES_PREFIX)genmake \
            $(MAKEFILES_PREFIX)textdb \
-           $(MAKEFILES_PREFIX)rtextcompiler \
+           $(MAKEFILES_PREFIX)textrescompiler \
            $(MAKEFILES_PREFIX)test
 
 $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.gcc | genmake_Release
 	@bin/genmake $< > "$(@)"
 
-resources: | rtextcompiler_Release
+resources: | textrescompiler_Release
 
 test: | resources
 
-genmake rtextcompiler resources textdb test:
+genmake textrescompiler resources textdb test:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(@) ; then make -f $(MAKEFILES_PREFIX)$(@) ; fi
 
-genmake_Release rtextcompiler_Release textdb_Release:
+genmake_Release textrescompiler_Release textdb_Release:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then make -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
 
-Release Debug: $(MAKEFILES_PREFIX)rtextcompiler \
+Release Debug: $(MAKEFILES_PREFIX)textrescompiler \
                $(MAKEFILES_PREFIX)resources \
                $(MAKEFILES_PREFIX)textdb \
                $(MAKEFILES_PREFIX)preprocess \

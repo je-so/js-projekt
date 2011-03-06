@@ -89,6 +89,10 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/os/virtmemory.h"/>
       <File Name="../../C-kern/api/os/thread.h"/>
+      <VirtualDirectory Name="filesystem">
+        <File Name="../../C-kern/api/os/filesystem/directory.h"/>
+        <File Name="../../C-kern/api/os/filesystem/mmfile.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="resource">
       <File Name="../../C-kern/api/resource/errorlog.h"/>
@@ -118,6 +122,8 @@
     <VirtualDirectory Name="Linux">
       <File Name="../../C-kern/os/Linux/thread.c"/>
       <File Name="../../C-kern/os/Linux/virtmemory.c"/>
+      <File Name="../../C-kern/os/Linux/directory.c"/>
+      <File Name="../../C-kern/os/Linux/mmfile.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
 </CodeLite_Project>

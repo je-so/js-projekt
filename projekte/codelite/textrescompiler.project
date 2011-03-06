@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CodeLite_Project Name="rtextcompiler" InternalType="Console">
+<CodeLite_Project Name="textrescompiler" InternalType="Console">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
@@ -8,9 +8,9 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
-    <File Name="../../C-kern/main/tools/resource_textcompiler.c"/>
     <File Name="../../C-kern/tools/hash.c"/>
     <File Name="../../C-kern/tools/hash.h"/>
+    <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
@@ -28,7 +28,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/rtextcompiler_Debug" CommandArguments="-c xx C-kern/resource/errorlog.text" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/textrescompiler_Debug" CommandArguments="-c xx C-kern/resource/errorlog.text" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
         <PostConnectCommands/>
@@ -37,9 +37,9 @@
       <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="yes">
-        <RebuildCommand>make -f projekte/makefiles/Makefile.rtextcompiler clean Debug</RebuildCommand>
-        <CleanCommand>make -f projekte/makefiles/Makefile.rtextcompiler clean</CleanCommand>
-        <BuildCommand>make -f projekte/makefiles/Makefile.rtextcompiler Debug</BuildCommand>
+        <RebuildCommand>make -f projekte/makefiles/Makefile.textrescompiler clean Debug</RebuildCommand>
+        <CleanCommand>make -f projekte/makefiles/Makefile.textrescompiler clean</CleanCommand>
+        <BuildCommand>make -f projekte/makefiles/Makefile.textrescompiler Debug</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
@@ -57,7 +57,7 @@
       </Compiler>
       <Linker Options="-O2" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/rtextcompiler" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/textrescompiler" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
         <PostConnectCommands/>
@@ -66,9 +66,9 @@
       <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="yes">
-        <RebuildCommand>make -f projekte/makefiles/Makefile.rtextcompiler clean Release</RebuildCommand>
-        <CleanCommand>make -f projekte/makefiles/Makefile.rtextcompiler clean</CleanCommand>
-        <BuildCommand>make -f projekte/makefiles/Makefile.rtextcompiler Release</BuildCommand>
+        <RebuildCommand>make -f projekte/makefiles/Makefile.textrescompiler clean Release</RebuildCommand>
+        <CleanCommand>make -f projekte/makefiles/Makefile.textrescompiler clean</CleanCommand>
+        <BuildCommand>make -f projekte/makefiles/Makefile.textrescompiler Release</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
