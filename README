@@ -26,26 +26,43 @@ about: Current task
 
 about: Subprojects
 List of codenamed subprojects.
-  --------
-  : Thor :
-  --------
+
+Thor:
+-----
   Being planned: - Handling of complex data structures.
                    To develop a transactional hierarchical object database
                    suitable to store context information gathered during parsing.
-  --------
-  : ???? :
-  --------
+????:
+-----
   Being planned: - Allow flexible syntax of language.
                    To develop a parser generator language which allows for
                    "change of syntax at runtime".
-  -----------
-  : Genmake :
-  -----------
-  DONE: - Automate builds
-  Uses simple project description and generates a makefile.
-  -----------------
-  : rtextcompiler :
-  -----------------
+
+TextDB:
+-------
+  DONE: - Reads text database in CSV format and patches query result into C-source code.
+          Used to manage initialization lists and to manage a list of unit-tests.
+          Later it may be used to select a subset of platform functionality and for software configuration.
+  Example: - The following code shows how the init and free functions (which should be called once at
+             the start of the process) are patched into code. The list of functions is stored in the text database
+             file 'C-kern/resource/text.db/init_once_per_process'.
+  > // TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/init_once_per_process")
+  >    { &init_once_per_process_locale, &free_once_per_process_locale },
+  > // TEXTDB:END
+
+Genmake:
+--------
+  DONE: - Automate builds. Uses simple project description and generates a makefile.
+  Example: - The following example shows the project description of the text resource compiler.
+  > include        projekte/binary.gcc
+  > Src            = C-kern/main/tools/resource_textcompiler.c
+  > Src           += C-kern/tools/hash.c
+  > Includes       = .
+  > Defines        =
+
+
+textrescompiler:
+----------------
   DONE: - Handle multilingual text resources
           Simple resource text compiler which generates ".h files"
           from text resources (C-kern/resource/errorlog.text).
@@ -77,7 +94,7 @@ Make targets:
   html     - Generate documentation from source code with naturaldoc.
              You can view it by opening html/index.html in a browser.
   genmake  - Build genmake binaries: »bin/genmake« and »bin/genmake_Debug«.
-  rtextcompiler - Build resource compiler binaries: »bin/rtextcompiler« and »bin/rtextcompiler_Debug«.
+  textrescompiler - Build resource compiler binaries: »bin/textrescompiler« and »bin/textrescompiler_Debug«.
   Debug    - Builds debug binaries of every subproject. The generated binaries are stored under directory 'bin/'.
              A binary is named after its corresponding project name plus an additional '_Debug' suffix.
   Release  - Builds release binaries of every subproject. The generated binaries are stored under directory 'bin/'.
