@@ -68,9 +68,9 @@ textrescompiler:
           from text resources (C-kern/resource/errorlog.text).
   NEEDS IMPROVEMENT: - Simple text replacement is not enough for more complex langs.
                        Introduce algorithmic syntax (C-like syntax :-) => simple code generation)
-  ----------
-  : genX86 :
-  ----------
+
+genX86:
+-------
   Future idea: - Generate x86 code from generic Machinecode-Mnemonics
                  For testing: Compare result interpreted code vs. execution of
                  generated machine code.

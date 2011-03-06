@@ -1,12 +1,18 @@
 /* title: TextDB
-   Implements main function and core logicof TextDB.
-   TextDB is used to read from simple CSV files
+   Implements main function and core logic of TextDB.
+   TextDB is used to read from simple CSV files and
+   patch the content into C source code files.
 
    Textfile syntax:
+   The values must be enclosed in quotes. Use either " or '.
+   It is possible to list more than one value for one column.
+   They are concatenated and this is useful if a " or ' is in the value.
    > # TEXT.DB (1.0)
    > # Comment
    > "column1-name", "column2-name", ...
-   > "row1-col1-value", "row1-col2-value", ...
+   > # The following line shows how to add a "
+   > # to the value in the second column
+   > "row1-col1-value", "row1-col2-value" '"', ...
    > "row2-col1-value", "row2-col2-value", ...
    > ...
 
