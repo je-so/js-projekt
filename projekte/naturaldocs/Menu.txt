@@ -53,21 +53,41 @@ Group: Api  {
 
    File: errlog.h  (api/errlog.h)
    File: generic/integer.h  (api/generic/integer.h)
+   File: Locale support  (api/locale.h)
    File: Log API  (api/umgebung/log.h)
+
+   Group: Os  {
+
+      File: Directory Functions  (api/os/filesystem/directory.h)
+      File: Memory-Mapped File  (api/os/filesystem/mmfile.h)
+      File: Thread  (api/os/thread.h)
+      File: VirtualMemory  (api/os/virtmemory.h)
+      }  # Group: Os
+
    File: Umgebung Interface  (api/umgebung.h)
-   File: VirtualMemory  (api/os/virtmemory.h)
    }  # Group: Api
-
-Group: Coding-Conventions  {
-
-   File: free objects  (resource/coding-conventions/free_objects.txt)
-   File: function parameter types  (resource/coding-conventions/function_parameter_type.txt)
-   }  # Group: Coding-Conventions
 
 Group: Implementation  {
 
-   File: Umgebung Implementation  (umgebung/init_process.c)
-   File: VirtualMemory Implementation  (os/Linux/virtmemory.c)
+   Group: Os  {
+
+      File: Locale implementation  (os/shared/locale.c)
+      }  # Group: Os
+
+   Group: Tools  {
+
+      File: TextDB  (main/tools/textdb.c)
+      }  # Group: Tools
+
+   Group: Umgebung  {
+
+      File: Umgebung Default  (umgebung/umgebung_default.c)
+      File: Umgebung Generic  (umgebung/umgebung.c)
+      File: Umgebung Testproxy  (umgebung/umgebung_testproxy.c)
+      File: umgebung/log.c  (umgebung/log.c)
+      File: VirtualMemory Implementation  (os/Linux/virtmemory.c)
+      }  # Group: Umgebung
+
    }  # Group: Implementation
 
 Group: Index  {
