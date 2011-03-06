@@ -124,6 +124,6 @@ about: Project-structure
   README      - This readme file
   C-kern/     - Contains all C99 source code and other resources, e.g. localized text
   C-kern/konfig.h -  Global configuration file (must be included by every source module)
-  C-kern/resource/coding-conventions/ -  A collection of design decisions
+  coding-conventions/ -  A collection of design decisions
   projekte/   - Contains project descriptions suitable for Genmake
   projekte/makefiles/ - Contains generated makefiles

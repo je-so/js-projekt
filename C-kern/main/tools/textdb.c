@@ -154,115 +154,48 @@ struct textdb_t
 
 #define textdb_INIT_FREEABLE  { mmfile_INIT_FREEABLE, 0, 0, 0, 0, 0, 0 }
 
-static int alloccolumns_textdb(textdb_t * txtdb)
-{
-   char * next_char = (char*) memstart_mmfile( &txtdb->input_file ) ;
-   size_t input_len = sizeinbytes_mmfile( &txtdb->input_file ) ;
-
-   while( input_len ) {
-      if ('#' == *next_char) {
-         // ignore comments
-         while( input_len ) {
-            if ('\n' == *next_char) {
-               break ;
-            }
-            -- input_len ;
-            ++ next_char ;
-         }
-      } else if (' ' != *next_char && '\t' != *next_char && '\n' != *next_char ) {
-         // found non white space
-         break ;
-      }
-      -- input_len ;
-      ++ next_char ;
-   }
-
-   if (!input_len) {
-      print_err( "Expected text line with header names in textdb file '%s'", txtdb->filename ) ;
-      goto ABBRUCH ;
-   }
-
-   size_t column_count = 1 ;
-   bool   isExpectData = true ;
-   while( input_len ) {
-      const char quotesign = *next_char ;
-      -- input_len ;
-      ++ next_char ;
-      if ('\n' == quotesign && !isExpectData) {
-         break ;
-      }
-      if (' ' == quotesign || '\t' == quotesign) {
-         continue ;
-      }
-      if (',' == quotesign) {
-         isExpectData = true ;
-         ++ column_count ;
-         continue ;
-      }
-      if ('\'' != quotesign && '\"' != quotesign) {
-         print_err( "Expected ' or \" as first data character in textdb file '%s'", txtdb->filename ) ;
-         goto ABBRUCH ;
-      }
-      isExpectData = false ;
-
-      while( input_len ) {
-         if (quotesign == *next_char) {
-            break ;
-         }
-         if ('\n' == *next_char) {
-            break ;
-         }
-         -- input_len ;
-         ++ next_char ;
-      }
-      if (!input_len || quotesign != *next_char) {
-         print_err( "Expected closing %c in first data line in textdb file '%s'", quotesign, txtdb->filename ) ;
-         goto ABBRUCH ;
-      }
-      -- input_len ;
-      ++ next_char ;
-   }
-
-   assert(!txtdb->header) ;
-   assert(!txtdb->data) ;
-   size_t memsize = sizeof(textdb_column_t) * column_count ;
-   txtdb->header  = (textdb_column_t*) malloc( memsize ) ;
-   txtdb->data    = (textdb_column_t*) malloc( memsize ) ;
-   if (!txtdb->header || !txtdb->data) {
-      print_err("Out of memory") ;
-      goto ABBRUCH ;
-   }
-   memset( txtdb->header, 0, memsize ) ;
-   memset( txtdb->data, 0, memsize ) ;
-   txtdb->column_count = column_count ;
-
-   return 0 ;
-ABBRUCH:
-   return 1 ;
-}
-
-static int readrow_textdb( textdb_t * txtdb, textdb_column_t * columns )
+static int readrow_textdb( textdb_t * txtdb )
 {
    int err ;
+   bool    isData   = (txtdb->column_count > 0) ;
    char * next_char = (char*) memstart_mmfile( &txtdb->input_file ) ;
    size_t input_len = sizeinbytes_mmfile( &txtdb->input_file ) ;
 
    input_len -= txtdb->scanned_offset ;
    next_char += txtdb->scanned_offset ;
 
-   for(size_t i = 0; i < txtdb->column_count; ++i) {
-      err = clearvalue_textdbcolumn( &columns[i] ) ;
-      if (err) goto ABBRUCH ;
+   if (isData)
+   {
+      assert((0 != txtdb->header) && (0 != txtdb->data)) ;
+      for(size_t i = 0; i < txtdb->column_count; ++i) {
+         err = clearvalue_textdbcolumn( &txtdb->data[i] ) ;
+         if (err) goto ABBRUCH ;
+      }
+   } else {
+      assert((0 == txtdb->header) && (0 == txtdb->data)) ;
+      txtdb->header  = MALLOC(textdb_column_t,malloc,) ;
+      txtdb->data    = MALLOC(textdb_column_t,malloc,) ;
+      if (!txtdb->header || !txtdb->data) {
+         free(txtdb->header) ;
+         free(txtdb->data) ;
+         txtdb->header = 0 ;
+         txtdb->data   = 0 ;
+         print_err("Out of memory") ;
+         goto ABBRUCH ;
+      }
+      memset( txtdb->header, 0, sizeof(textdb_column_t) ) ;
+      memset( txtdb->data, 0, sizeof(textdb_column_t) ) ;
+      txtdb->column_count = 1 ;
    }
 
    while( input_len ) {
       if (' ' == *next_char || '\t' == *next_char || '\n' == *next_char ) {
          // ignore white space
-         -- input_len ;
-         ++ next_char ;
          if ('\n' == *next_char) {
             ++ txtdb->line_number ;
          }
+         -- input_len ;
+         ++ next_char ;
       } else if ('#' == *next_char) {
          // ignore comment
          while( input_len ) {
@@ -290,9 +223,10 @@ static int readrow_textdb( textdb_t * txtdb, textdb_column_t * columns )
       -- input_len ;
       ++ next_char ;
       if ('\n' == quotesign) {
-         if ( isExpectData || (column_index + 1) != txtdb->column_count) {
-            print_err( "Read only %d columns but expected %d in textdb file '%s' in line: %d", column_index, txtdb->column_count, txtdb->filename, txtdb->line_number) ;
-            goto ABBRUCH ;
+         if (     isExpectData
+               || (column_index + 1) != txtdb->column_count) {
+            // ERROR
+            break ;
          }
          ++ txtdb->line_number ;
          break ;
@@ -303,14 +237,33 @@ static int readrow_textdb( textdb_t * txtdb, textdb_column_t * columns )
       if (',' == quotesign) {
          isExpectData = true ;
          ++ column_index ;
+         if (!isData) {
+            ++ txtdb->column_count ;
+            size_t memsize = sizeof(textdb_column_t) * txtdb->column_count ;
+            void *    temp = realloc( txtdb->header, memsize ) ;
+            if (temp) {
+               txtdb->header = (textdb_column_t*) temp ;
+               memset( &txtdb->header[column_index], 0, sizeof(textdb_column_t) ) ;
+               temp = realloc( txtdb->data, memsize ) ;
+               if (temp) {
+                  txtdb->data = (textdb_column_t*) temp ;
+                  memset( &txtdb->data[column_index], 0, sizeof(textdb_column_t) ) ;
+               }
+            }
+            if (!temp) {
+               -- txtdb->column_count ;
+               print_err("Out of memory") ;
+               goto ABBRUCH ;
+            }
+         }
          if (column_index >= txtdb->column_count) {
-            print_err( "Read more than %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
+            print_err( "Expected only %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
             goto ABBRUCH ;
          }
          continue ;
       }
       if ('\'' != quotesign && '\"' != quotesign) {
-         print_err( "Expected ' or \" as quote sign in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+         print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
          goto ABBRUCH ;
       }
       isExpectData = false ;
@@ -332,12 +285,21 @@ static int readrow_textdb( textdb_t * txtdb, textdb_column_t * columns )
       size_t str_len = (size_t) (next_char - str) ;
       -- input_len ;
       ++ next_char ;
-      err = appendvalue_textdbcolumn( &columns[column_index], str, str_len) ;
+      if (isData) {
+         err = appendvalue_textdbcolumn( &txtdb->data[column_index], str, str_len) ;
+      } else {
+         err = appendvalue_textdbcolumn( &txtdb->header[column_index], str, str_len) ;
+      }
       if (err) goto ABBRUCH ;
    }
 
-   if ( isExpectData || (column_index + 1) != txtdb->column_count) {
-      print_err( "Read only %d columns but expected %d in textdb file '%s' in line: %d", column_index, txtdb->column_count, txtdb->filename, txtdb->line_number) ;
+   if (     isExpectData
+         || (column_index + 1) != txtdb->column_count) {
+      if ( isExpectData ) {
+         print_err( "Expected a value after ',' in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+      } else {
+         print_err( "Expected %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
+      }
       goto ABBRUCH ;
    }
 
@@ -392,10 +354,7 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
       goto ABBRUCH ;
    }
 
-   err = alloccolumns_textdb( &txtdb ) ;
-   if (err) goto ABBRUCH ;
-
-   err = readrow_textdb( &txtdb, txtdb.header ) ;
+   err = readrow_textdb( &txtdb ) ;
    if (err) {
       if (ENODATA == err) {
          print_err( "Expected text line with header names in textdb file '%s'", txtdb.filename ) ;
@@ -641,7 +600,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
 
    // write for every read row the values of the concatenated select parameters as one line of output
    for(;;) {
-      err = readrow_textdb( &dbfile, dbfile.data ) ;
+      err = readrow_textdb( &dbfile ) ;
       if (err == ENODATA) break ;
       if (err) goto ABBRUCH ;
       for( const select_parameter_t * p = select_param; p; p = p->next) {
