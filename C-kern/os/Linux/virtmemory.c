@@ -20,6 +20,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/errlog.h"
+#include "C-kern/api/umgebung/object_cache.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/generic/integer.h"
 #include "C-kern/api/test.h"
@@ -47,8 +48,6 @@ struct vm_regionsarray_t
    vm_region_t      elements[16] ;
 } ;
 
-// TODO: replace st_rootbuffer with some virt memory caching scheme
-static __thread  vm_block_t st_rootbuffer = vm_block_INIT_FREEABLE ;
 
 int compare_vmregion( const vm_region_t * left, const vm_region_t * right )
 {
@@ -123,14 +122,15 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    size_t      total_regions_count = 0 ;
    size_t        free_region_count = 0 ;
    vm_region_t       * next_region = 0 ;
+   vm_block_t         * rootbuffer = cache_umgebung()->vm_rootbuffer ;
 
-   if (!st_rootbuffer.start) {
-      err = init_vmblock(&st_rootbuffer, 1) ;
+   if (! rootbuffer->start) {
+      err = init_vmblock(rootbuffer, 1) ;
       if (err) goto ABBRUCH ;
    }
 
-   const size_t  buffer_maxsize = st_rootbuffer.size_in_bytes ;
-   uint8_t       * const buffer = st_rootbuffer.start ;
+   const size_t  buffer_maxsize = rootbuffer->size_in_bytes ;
+   uint8_t       * const buffer = rootbuffer->start ;
    fd = open( PROC_SELF_MAPS, O_RDONLY|O_CLOEXEC ) ;
    if (fd < 0) {
       LOG_SYSERRNO("open") ;
