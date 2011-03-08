@@ -3,6 +3,7 @@
 include        projekte/binary.gcc
 Src            = C-kern/main/test.c
 Src           += C-kern/os/Linux/*.c C-kern/os/shared/*.c
+Src           += C-kern/generic/*.c
 Src           += C-kern/umgebung/*.c
 Includes       = .
 Libs           = pthread rt
