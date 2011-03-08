@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
+#include "C-kern/api/umgebung/object_cache.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/init_once_per_process)
 #include "C-kern/api/locale.h"
 // TEXTDB:END
@@ -72,7 +73,7 @@ static resource_registry_t    s_registry[] = {
 
 /* variable: s_registry_init_count
  * Counts how many resources has been inituialized successfully. */
-static uint16_t               s_registry_init_count = 0 ;
+static uint16_t  s_registry_init_count = 0 ;
 
 
 static int freeall_process_resources(void)
@@ -188,6 +189,8 @@ int init_process_umgebung(umgebung_type_e implementation_type)
    err = init_thread_umgebung(&temp_umg, implementation_type) ;
    if (err) goto ABBRUCH ;
    memcpy( umg, (const umgebung_t*)&temp_umg, sizeof(umgebung_t)) ;
+   err = move_objectcache( umg->cache, &g_main_objectcache ) ;
+   if (err) goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:

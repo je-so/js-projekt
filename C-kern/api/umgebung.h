@@ -19,7 +19,10 @@
    file: C-kern/api/umgebung.h
     Header file of <Umgebung Interface>.
 
-   file: C-kern/umgebung/umgebung_init.c
+   file: C-kern/umgebung/umgebung_default.c
+    Implementation file of <Umgebung Interface>.
+
+   file: C-kern/umgebung/umgebung_testproxy.c
     Implementation file of <Umgebung Interface>.
 */
 #ifndef CKERN_API_UMGEBUNG_HEADER
@@ -53,6 +56,7 @@ typedef enum umgebung_type_e umgebung_type_e ;
 
 /* forward reference to all offered services */
 struct log_config_t ;
+struct object_cache_t ;
 
 extern __thread struct umgebung_t gt_umgebung ;
 
@@ -68,6 +72,10 @@ extern umgebung_t * umgebung(void) ;
 /* function: log_umgebung
  * Returns log configuration object <log_config_t> for the current thread. */
 extern struct log_config_t * log_umgebung(void) ;
+
+/* function: cache_umgebung
+ * Returns cache for singelton objects of type <cache_object_t> for the current thread. */
+extern struct object_cache_t * cache_umgebung(void) ;
 
 // group: test
 
@@ -107,6 +115,7 @@ struct umgebung_t {
    //}
 
    struct log_config_t   * log ;
+   struct object_cache_t * cache ;
 } ;
 
 // group: lifetime
@@ -115,7 +124,7 @@ struct umgebung_t {
  * Static initializer for <umgebung_t>.
  * This ensures that in the main even without calling <init_process_umgebung> first
  * the global log service is available. */
-#define umgebung_INIT_MAINSERVICES { umgebung_type_STATIC, 0, 0, &g_main_logservice }
+#define umgebung_INIT_MAINSERVICES { umgebung_type_STATIC, 0, 0, &g_main_logservice, &g_main_objectcache }
 
 /* function: init_process_umgebung
  * Initializes global context. Must be called as first function from the main thread.
@@ -157,5 +166,8 @@ extern int init_testproxy_umgebung(/*out*/umgebung_t * umg) ;
 
 #define log_umgebung() \
    (gt_umgebung.log)
+
+#define cache_umgebung() \
+   (gt_umgebung.cache)
 
 #endif

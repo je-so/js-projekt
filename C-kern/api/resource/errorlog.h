@@ -21,6 +21,8 @@
         "'%s' besitzt unbekanntes Format\n", name
 #define FUNCTION_ABORT(file, function, err) \
         "%s: Funktions-Abbruch '%s' (err=%d)\n", file, function, err
+#define FUNCTION_ABORT_FREE(err) \
+        "%s:%d: %s\nResource Freigabefehler (err=%d)\n", __FILE__, __LINE__, __FUNCTION__, err
 #define FUNCTION_SYSERROR(function_name, function_errno, function_strerrno) \
         "Funktion '%s' erzeugte Fehler(%d): '%s'\n", function_name, function_errno, function_strerrno
 #define LOCALE_SETLOCALE \
@@ -53,6 +55,8 @@
         "'%s' has unknown format\n", name
 #define FUNCTION_ABORT(file, function, err) \
         "%s: Function '%s' aborted (err=%d)\n", file, function, err
+#define FUNCTION_ABORT_FREE(err) \
+        "%s:%d: %s\nResource can not be freed (err=%d)\n", __FILE__, __LINE__, __FUNCTION__, err
 #define FUNCTION_SYSERROR(function_name, function_errno, function_strerrno) \
         "Function '%s' returned error(%d): '%s'\n", function_name, function_errno, function_strerrno
 #define LOCALE_SETLOCALE \

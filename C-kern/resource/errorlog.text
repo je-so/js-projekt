@@ -40,6 +40,13 @@ FUNCTION_ABORT:de: file, function, err
 FUNCTION_ABORT:en: file, function, err
 "%s: Function '%s' aborted (err=%d)"
 
+FUNCTION_ABORT_FREE:de: __FILE__, __LINE__, __FUNCTION__, err
+"%s:%d: %s"
+"Resource Freigabefehler (err=%d)"
+FUNCTION_ABORT_FREE:en: __FILE__, __LINE__, __FUNCTION__, err
+"%s:%d: %s"
+"Resource can not be freed (err=%d)"
+
 FUNCTION_SYSERROR:de: function_name, function_errno, function_strerrno
 "Funktion '%s' erzeugte Fehler(%d): '%s'"
 FUNCTION_SYSERROR:en: function_name, function_errno, function_strerrno

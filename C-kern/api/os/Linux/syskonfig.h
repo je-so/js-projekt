@@ -1,5 +1,5 @@
 /*
-   C-System-Layer: C-kern/api/os/sys/Linux/syskonfig.h
+   C-System-Layer: C-kern/api/os/Linux/syskonfig.h
    Copyright (C) 2010 Jörg Seebohn
 
    This program is free software; you can redistribute it and/or modify

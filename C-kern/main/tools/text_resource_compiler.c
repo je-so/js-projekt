@@ -1,5 +1,5 @@
 /*
-   Makefile Generator: C-kern/main/tools/resource_textcompiler.c
+   Makefile Generator: C-kern/main/tools/text_resource_compiler.c
    Copyright (C) 2010 Jörg Seebohn
 
    This program is free software; you can redistribute it and/or modify

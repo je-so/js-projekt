@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
+#include "C-kern/api/umgebung/object_cache.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -39,7 +40,7 @@ int free_testproxy_umgebung(umgebung_t * umg)
 
 int init_testproxy_umgebung(umgebung_t * umg)
 {
-   *umg               = (umgebung_t) umgebung_INIT_MAINSERVICES ;
+   *umg = (umgebung_t) umgebung_INIT_MAINSERVICES ;
 
    umg->type                  = umgebung_type_TEST ;
    umg->resource_thread_count = 0 ;

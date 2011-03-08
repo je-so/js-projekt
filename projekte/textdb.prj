@@ -4,6 +4,6 @@ include        projekte/binary.gcc
 Src            = C-kern/main/tools/textdb.c
 Src           += C-kern/os/Linux/mmfile.c C-kern/os/Linux/virtmemory.c
 Src           += C-kern/os/shared/locale.c
-Src           += C-kern/umgebung/umgebung*.c C-kern/umgebung/log.c
+Src           += C-kern/umgebung/umgebung*.c C-kern/umgebung/log.c C-kern/umgebung/object_cache.c
 Includes       = .
 Defines        =
