@@ -24,6 +24,77 @@
 #include "C-kern/api/test.h"
 #endif
 
+
+// directory
+
+int isvalid_directory( const char * const checked_path, const char * const basedir )
+{
+   assert( checked_path && basedir ) ;
+   assert( !basedir[0] || (!isvalid_directory(basedir, "") && basedir[0]=='/') ) ;
+
+   size_t bdi  = strlen(basedir) ;
+   // is basedir of form ".../" ? => adapt
+   if (bdi && basedir[bdi-1] == '/') --bdi ;
+
+   const char * cp = checked_path ;
+
+   while (!strncmp(cp,"../",3)) {
+      if (!bdi) goto ERROR_TOO_MANY_LEADING_DOTS ;
+      while( bdi && basedir[--bdi] != '/') { } // go basedir up
+      cp += 3 ;
+   }
+
+   if (!strcmp(cp,"..")) {
+      if (!bdi) goto ERROR_TOO_MANY_LEADING_DOTS ;
+      while( bdi && basedir[--bdi] != '/') { } // go basedir up
+      cp += 2 ;
+   }
+
+   size_t clen = strlen(cp) ;
+
+   if (  !strcmp(cp, "." )
+         || !strncmp(cp, "./", 2)
+         || (clen >= 2 && !strcmp(cp+clen-2, "/."))
+         || strstr(cp, "/./")
+         || strstr((cp>checked_path)?cp-1:cp, "//")
+         || strstr(cp, "/../")
+         || (clen >= 3 && !strcmp(cp+clen-3, "/.."))
+      ) {
+      goto ERROR_CONTAINS_BAD_DOTS ;
+   }
+
+   return 0 ;
+
+ERROR_TOO_MANY_LEADING_DOTS:
+   LOG_TEXT(DIRECTORY_ERROR_TOO_MANY_LEADING_DOTS(checked_path, basedir)) ;
+   return 1 ;
+
+ERROR_CONTAINS_BAD_DOTS:
+   LOG_TEXT(DIRECTORY_ERROR_CONTAINS_BAD_DOTS(checked_path)) ;
+   return 2 ;
+}
+
+int filesize_directory( const char * file_path, off_t * file_size )
+{
+   int err ;
+   struct stat stat_result ;
+
+   err = stat( file_path, &stat_result ) ;
+   if (err) {
+      err = errno ;
+      LOG_SYSERRNO("stat") ;
+      goto ABBRUCH ;
+   }
+
+   *file_size = stat_result.st_size ;
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+// directorystream
+
 int init_directorystream(/*out*/directory_stream_t * dir, const char * dir_path, const directory_stream_t * working_dir)
 {
    int err ;
@@ -363,54 +434,6 @@ int removefile_directorystream(directory_stream_t * dir, const char * file_name)
 ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
-}
-
-
-int isvalid_directory( const char * const checked_path, const char * const basedir )
-{
-   assert( checked_path && basedir ) ;
-   assert( !basedir[0] || (!isvalid_directory(basedir, "") && basedir[0]=='/') ) ;
-
-   size_t bdi  = strlen(basedir) ;
-   // is basedir of form ".../" ? => adapt
-   if (bdi && basedir[bdi-1] == '/') --bdi ;
-
-   const char * cp = checked_path ;
-
-   while (!strncmp(cp,"../",3)) {
-      if (!bdi) goto ERROR_TOO_MANY_LEADING_DOTS ;
-      while( bdi && basedir[--bdi] != '/') { } // go basedir up
-      cp += 3 ;
-   }
-
-   if (!strcmp(cp,"..")) {
-      if (!bdi) goto ERROR_TOO_MANY_LEADING_DOTS ;
-      while( bdi && basedir[--bdi] != '/') { } // go basedir up
-      cp += 2 ;
-   }
-
-   size_t clen = strlen(cp) ;
-
-   if (  !strcmp(cp, "." )
-         || !strncmp(cp, "./", 2)
-         || (clen >= 2 && !strcmp(cp+clen-2, "/."))
-         || strstr(cp, "/./")
-         || strstr((cp>checked_path)?cp-1:cp, "//")
-         || strstr(cp, "/../")
-         || (clen >= 3 && !strcmp(cp+clen-3, "/.."))
-      ) {
-      goto ERROR_CONTAINS_BAD_DOTS ;
-   }
-
-   return 0 ;
-
-ERROR_TOO_MANY_LEADING_DOTS:
-   LOG_TEXT(DIRECTORY_ERROR_TOO_MANY_LEADING_DOTS(checked_path, basedir)) ;
-   return 1 ;
-
-ERROR_CONTAINS_BAD_DOTS:
-   LOG_TEXT(DIRECTORY_ERROR_CONTAINS_BAD_DOTS(checked_path)) ;
-   return 2 ;
 }
 
 

@@ -294,7 +294,7 @@ static int test_creat_mmfile(directory_stream_t * tempdir)
    TEST(mfile.size_in_bytes             ==  0) ;
    // read written content
    {
-      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY) ;
+      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       uint8_t buffer[111] = {0} ;
       TEST(111 == read(fd, buffer, 111)) ;
@@ -325,7 +325,7 @@ static int test_creat_mmfile(directory_stream_t * tempdir)
    }
    // write different content
    {
-      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY) ;
+      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       uint8_t buffer[111] ;
       memset( buffer, '3', 111 ) ;
@@ -428,7 +428,7 @@ static int test_open_mmfile(directory_stream_t * tempdir)
    }
    TEST(1 == is_exception) ;
    // write different content
-   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY) ;
+   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    memset( buffer, '3', 256 ) ;
    TEST(256 == write(fd, buffer, 256)) ;
@@ -453,7 +453,7 @@ static int test_open_mmfile(directory_stream_t * tempdir)
       memstart_mmfile(&mfile)[i] = (uint8_t)i ;
    }
    // test change is shared
-   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY) ;
+   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
    TEST(0   == close(fd)) ;
@@ -479,7 +479,7 @@ static int test_open_mmfile(directory_stream_t * tempdir)
       TEST(memstart_mmfile(&mfile)[i] == '1') ;
    }
    // test change is *not* shared
-   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY) ;
+   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
    TEST(0   == close(fd)) ;
@@ -498,7 +498,7 @@ static int test_open_mmfile(directory_stream_t * tempdir)
    // TEST ENODATA
    // offset > filesize
    TEST(ENODATA== init_mmfile(&mfile, "mmfile", pagesize, 0, tempdir, mmfile_openmode_RDWR_PRIVATE)) ;
-   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY) ;
+   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(0 == ftruncate(fd, 0)) ; // empty file
    TEST(0 == close(fd)) ;
@@ -507,7 +507,7 @@ static int test_open_mmfile(directory_stream_t * tempdir)
 
    // TEST ENOMEM
    if (sizeof(size_t) == sizeof(uint32_t)) {
-      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY) ;
+      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       TEST(0 == ftruncate(fd, (size_t)-1)) ; // 4 GB
       TEST(0 == close(fd)) ;

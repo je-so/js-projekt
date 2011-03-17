@@ -38,6 +38,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/filesystem/mmfile.h"
 
+typedef struct expression_t         expression_t ;
 typedef struct select_parameter_t   select_parameter_t ;
 typedef struct textdb_t             textdb_t ;
 typedef struct textdb_column_t      textdb_column_t ;
@@ -98,6 +99,16 @@ static int write_file( int outfd, const char * write_start, size_t write_size )
       return 1 ;
    }
    return 0 ;
+}
+
+static void skip_space( char ** current_pos, char * end_pos )
+{
+   char * next = *current_pos ;
+   while(   next < end_pos
+         && ' ' == next[0]) {
+      ++ next ;
+   }
+   *current_pos = next ;
 }
 
 struct textdb_column_t
@@ -369,6 +380,284 @@ ABBRUCH:
    return 1 ;
 }
 
+enum expression_type_e {
+    exprtypeNAME
+   ,exprtypeSTRING
+   ,exprtypeCOMPARE_EQUAL
+   ,exprtypeCOMPARE_NOTEQUAL
+   ,exprtypeAND
+   ,exprtypeOR
+} ;
+typedef enum expression_type_e expression_type_e ;
+
+struct expression_t
+{
+   expression_t      * parent ;
+   expression_t      * left ;
+   expression_t      * right ;
+   expression_type_e type ;
+   const char *      value ;
+   size_t            length ;
+   size_t            col_index ;
+} ;
+
+static int delete_expression(expression_t ** expr)
+{
+   int err = 0 ;
+   int err2 ;
+
+   expression_t * delobj = *expr ;
+
+   if (delobj) {
+      *expr = 0 ;
+      err2 = delete_expression(&delobj->left) ;
+      if (err2) err = err2 ;
+      err2 = delete_expression(&delobj->right) ;
+      if (err2) err = err2 ;
+      free(delobj) ;
+   }
+
+   return err ;
+}
+
+static int new_expression(expression_t ** expr, expression_type_e type)
+{
+   expression_t * new_expr ;
+
+   new_expr = MALLOC(expression_t,malloc,) ;
+   if (!new_expr) {
+      print_err("Out of memory") ;
+      goto ABBRUCH ;
+   }
+
+   MEMSET0(new_expr) ;
+   new_expr->type = type ;
+
+   *expr = new_expr ;
+   return 0 ;
+ABBRUCH:
+   return ENOMEM ;
+}
+
+
+// parse name=='value' or name!='value'
+static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_param, char * start_expr, char * end_macro, size_t start_linenr )
+{
+   int err ;
+   expression_t    * name_node = 0 ;
+   expression_t    * value_node = 0 ;
+   expression_t    * compare_node = 0 ;
+
+   skip_space( &start_expr, end_macro ) ;
+   char * start_name = start_expr ;
+   while(   start_expr < end_macro
+         && start_expr[0] != ' '
+         && start_expr[0] != '\''
+         && start_expr[0] != '"'
+         && start_expr[0] != '!'
+         && start_expr[0] != '=' ) {
+      ++ start_expr ;
+   }
+
+   if (start_expr == start_name) {
+      print_err( "Expected column-name in WHERE() in line: %d", start_linenr ) ;
+      goto ABBRUCH ;
+   }
+
+   err = new_expression( &name_node, exprtypeNAME ) ;
+   if (err) goto ABBRUCH ;
+   name_node->value  = start_name ;
+   name_node->length = (size_t) (start_expr - start_name) ;
+
+   skip_space(&start_expr, end_macro) ;
+   if (     start_expr + 1 >= end_macro
+         || (     (     start_expr[0] != '!'
+                     || start_expr[1] != '=' )
+               && (     start_expr[0] != '='
+                     || start_expr[1] != '=' ))) {
+      print_err( "Expected '==' or '!=' after column-name in WHERE() in line: %d", start_linenr ) ;
+      goto ABBRUCH ;
+   }
+
+   err = new_expression( &compare_node, start_expr[0] == '=' ? exprtypeCOMPARE_EQUAL : exprtypeCOMPARE_NOTEQUAL ) ;
+   if (err) goto ABBRUCH ;
+
+   start_expr += 2 ;
+   skip_space(&start_expr, end_macro) ;
+   char * start_value = start_expr ;
+   if (     start_value >= end_macro
+         || (     start_value[0] != '\''
+               && start_value[0] != '"')) {
+      print_err( "Expected 'value' after compare in WHERE() in line: %d", start_linenr ) ;
+      goto ABBRUCH ;
+   }
+
+   ++ start_expr ;
+   while(   start_expr < end_macro
+         && start_expr[0] != start_value[0] ) {
+      ++ start_expr ;
+   }
+
+   if (start_expr >= end_macro) {
+      print_err( "Expected closing %c in line: %d", start_value[0], start_linenr ) ;
+      goto ABBRUCH ;
+   }
+
+   err = new_expression( &value_node, exprtypeSTRING ) ;
+   if (err) goto ABBRUCH ;
+   value_node->value  =  ( ++ start_value ) ;
+   value_node->length =  (size_t) (start_expr - start_value) ;
+
+   compare_node->left  = name_node ;
+   compare_node->right = value_node ;
+   name_node->parent   = compare_node ;
+   value_node->parent  = compare_node ;
+
+   *result    = compare_node ;
+   *end_param = start_expr ;
+   return 0 ;
+ABBRUCH:
+   delete_expression(&name_node) ;
+   delete_expression(&value_node) ;
+   delete_expression(&compare_node) ;
+   return 1 ;
+}
+
+// parse '(' ... ')'
+static int parse_expression(/*out*/expression_t ** result, /*out*/char ** end_param, char * start_expr, char * end_macro, size_t start_linenr )
+{
+   int err ;
+   expression_t  * andor_node = 0 ;
+   expression_t   * expr_node = 0 ;
+
+   skip_space( &start_expr, end_macro ) ;
+
+   if (  start_expr >= end_macro
+         || '(' != start_expr[0] ) {
+      print_err( "Expected '(' after WHERE in line: %d", start_linenr ) ;
+      goto ABBRUCH ;
+   }
+
+   for(;;) {
+      ++ start_expr ;
+      skip_space( &start_expr, end_macro ) ;
+
+      if (     start_expr < end_macro
+            && '(' == start_expr[0] ) {
+         err = parse_expression(&expr_node, &start_expr, start_expr, end_macro, start_linenr ) ;
+         if (err) goto ABBRUCH ;
+      } else {
+         err = parse_exprcompare(&expr_node, &start_expr, start_expr, end_macro, start_linenr ) ;
+         if (err) goto ABBRUCH ;
+      }
+
+      ++ start_expr ;
+      skip_space( &start_expr, end_macro ) ;
+
+      if ( start_expr >= end_macro ) {
+         print_err( "Expected ')' after WHERE(... in line: %d", start_linenr ) ;
+         goto ABBRUCH ;
+      }
+
+      if (andor_node) {
+         expr_node->parent = andor_node ;
+         andor_node->right = expr_node ;
+         expr_node  = andor_node ;
+         andor_node = 0 ;
+      }
+
+      if (     start_expr < end_macro
+            && ')' == start_expr[0]) {
+         break ;
+      } else if (    start_expr + 1 >= end_macro
+                  || (     (     '&' != start_expr[0]
+                              || '&' != start_expr[1] )
+                        && (     '|' != start_expr[0]
+                              || '|' != start_expr[1] ))) {
+         print_err( "Expected ')' after WHERE(... in line: %d", start_linenr ) ;
+         goto ABBRUCH ;
+      }
+
+      err = new_expression( &andor_node, (start_expr[0] == '&') ? exprtypeAND : exprtypeOR ) ;
+      if (err) goto ABBRUCH ;
+      andor_node->left  = expr_node ;
+      expr_node->parent = andor_node ;
+      expr_node = 0 ;
+      ++ start_expr ;
+
+   }
+
+   *end_param = start_expr ;
+   *result    = expr_node ;
+   return 0 ;
+ABBRUCH:
+   delete_expression(&andor_node) ;
+   delete_expression(&expr_node) ;
+   return 1 ;
+}
+
+int matchnames_expression( expression_t * where_expr, const textdb_t * dbfile, const size_t start_linenr )
+{
+   int err ;
+
+   if (!where_expr) {
+      return 0 ;
+   }
+
+   err = matchnames_expression(where_expr->left, dbfile, start_linenr ) ;
+   if (err) goto ABBRUCH ;
+
+   err = matchnames_expression(where_expr->right, dbfile, start_linenr ) ;
+   if (err) goto ABBRUCH ;
+
+   if (where_expr->type == exprtypeNAME) {
+      // search matching header
+      bool isMatch = false ;
+      for(size_t i = 0; i < dbfile->column_count ; ++i) {
+         if (     dbfile->header[i].length == where_expr->length
+               && 0 == strncmp(dbfile->header[i].value, where_expr->value, where_expr->length) ) {
+            where_expr->col_index = i ;
+            isMatch = true ;
+            break ;
+         }
+      }
+      if (!isMatch) {
+         print_err( "Unknown column name '%.*s' in WHERE() in line: %d", where_expr->length, where_expr->value, start_linenr ) ;
+         goto ABBRUCH ;
+      }
+   }
+
+   return 0 ;
+ABBRUCH:
+   return 1 ;
+}
+
+bool ismatch_expression( expression_t * where_expr, const textdb_t * dbfile, const size_t start_linenr)
+{
+   if (!where_expr) {
+      // empty where always matches
+      return true ;
+   }
+
+   switch(where_expr->type) {
+   case exprtypeAND:
+      return ismatch_expression(where_expr->left, dbfile, start_linenr ) && ismatch_expression(where_expr->right, dbfile, start_linenr ) ;
+   case exprtypeOR:
+      return ismatch_expression(where_expr->left, dbfile, start_linenr ) || ismatch_expression(where_expr->right, dbfile, start_linenr ) ;
+   case exprtypeCOMPARE_EQUAL:
+      return      dbfile->data[where_expr->left->col_index].length == where_expr->right->length
+               && 0 == strncmp(dbfile->data[where_expr->left->col_index].value, where_expr->right->value, where_expr->right->length) ;
+   case exprtypeCOMPARE_NOTEQUAL:
+      return      dbfile->data[where_expr->left->col_index].length != where_expr->right->length
+               || 0 != strncmp(dbfile->data[where_expr->left->col_index].value, where_expr->right->value, where_expr->right->length) ;
+   default:
+      print_err( "Internal error in WHERE() in line: %d", start_linenr ) ;
+      assert(0) ;
+   }
+
+   return false ;
+}
+
 struct select_parameter_t
 {
    select_parameter_t * next ;
@@ -378,7 +667,7 @@ struct select_parameter_t
    bool           isString ;
 } ;
 
-static int free_select_parameter(select_parameter_t ** param)
+static int delete_select_parameter(select_parameter_t ** param)
 {
    select_parameter_t * next = *param ;
    *param = NULL ;
@@ -478,6 +767,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
                goto ABBRUCH ;
             }
          } else {
+            assert(')' == next[0]) ;
             *end_param = next ;
             break ;
          }
@@ -501,7 +791,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
    *param = first_param.next ;
    return 0 ;
 ABBRUCH:
-   free_select_parameter(&first_param.next) ;
+   delete_select_parameter(&first_param.next) ;
    return 1 ;
 }
 
@@ -537,8 +827,9 @@ ABBRUCH:
 static int process_selectcmd( char * start_macro, char * end_macro, int outfd, size_t start_linenr )
 {
    int err ;
-   select_parameter_t  * select_param = 0 ;
-   select_parameter_t    * from_param = 0 ;
+   select_parameter_t   * select_param = 0 ;
+   select_parameter_t     * from_param = 0 ;
+   expression_t           * where_expr = 0 ;
    textdb_t                    dbfile = textdb_INIT_FREEABLE ;
    char    * filename = 0 ;
    char * start_param = start_macro + sizeof("// TEXTDB:SELECT")-1 ;
@@ -562,12 +853,20 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
    if (err) goto ABBRUCH ;
 
    ++ end_param ;
-   while( end_param < end_macro && ' ' == end_param[0] ) {
+   skip_space( &end_param, end_macro ) ;
+
+   char * start_where = end_param ;
+
+   if (     (end_macro - start_where) > 5
+         && 0 == strncmp( start_where, "WHERE", 5) ) {
+      err = parse_expression( &where_expr, &end_param, start_where+5, end_macro, start_linenr ) ;
+      if (err) goto ABBRUCH ;
       ++ end_param ;
+      skip_space( &end_param, end_macro ) ;
    }
 
    if (end_param < end_macro) {
-      print_err( "Expected nothing after SELECT()FROM() in line: %d", start_linenr ) ;
+      print_err( "Expected nothing after SELECT()FROM()WHERE() in line: %d", start_linenr ) ;
       goto ABBRUCH ;
    }
 
@@ -598,35 +897,45 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
       }
    }
 
+   err = matchnames_expression( where_expr, &dbfile, start_linenr ) ;
+   if (err) goto ABBRUCH ;
+
    // write for every read row the values of the concatenated select parameters as one line of output
    for(;;) {
       err = readrow_textdb( &dbfile ) ;
       if (err == ENODATA) break ;
       if (err) goto ABBRUCH ;
-      for( const select_parameter_t * p = select_param; p; p = p->next) {
-         if (p->isString) {
-            err = write_file( outfd, p->value, p->length ) ;
-            if (err) goto ABBRUCH ;
-         } else {
-            err = write_file( outfd, dbfile.data[p->col_index].value, dbfile.data[p->col_index].length ) ;
-            if (err) goto ABBRUCH ;
+
+      if (  ismatch_expression( where_expr, &dbfile, start_linenr ) ) {
+
+         for( const select_parameter_t * p = select_param; p; p = p->next) {
+            if (p->isString) {
+               err = write_file( outfd, p->value, p->length ) ;
+               if (err) goto ABBRUCH ;
+            } else {
+               err = write_file( outfd, dbfile.data[p->col_index].value, dbfile.data[p->col_index].length ) ;
+               if (err) goto ABBRUCH ;
+            }
          }
+         err = write_file( outfd, "\n", 1 ) ;
+         if (err) goto ABBRUCH ;
+
       }
-      err = write_file( outfd, "\n", 1 ) ;
-      if (err) goto ABBRUCH ;
    }
 
 
    free_textdb( &dbfile ) ;
    free(filename) ;
-   free_select_parameter(&select_param) ;
-   free_select_parameter(&from_param) ;
+   delete_select_parameter(&select_param) ;
+   delete_select_parameter(&from_param) ;
+   delete_expression(&where_expr) ;
    return 0 ;
 ABBRUCH:
    free_textdb( &dbfile ) ;
    free(filename) ;
-   free_select_parameter(&select_param) ;
-   free_select_parameter(&from_param) ;
+   delete_select_parameter(&select_param) ;
+   delete_select_parameter(&from_param) ;
+   delete_expression(&where_expr) ;
    return 1 ;
 }
 
@@ -662,7 +971,7 @@ static int process_macro(const mmfile_t * input_file, int outfd)
    size_t   line_number = 1 ;
 
    while(input_size) {
-      // find start "// TEXTDB:SELECT..."
+      // find start "// TEXTDB:..."
       size_t  start_linenr ;
       char   * start_macro ;
       char     * end_macro ;
@@ -679,7 +988,7 @@ static int process_macro(const mmfile_t * input_file, int outfd)
 
       if (     13 == end_macro - start_macro
             && strncmp(start_macro, "// TEXTDB:END", 13)) {
-         print_err( "Found end of macro '// TEXTDB:END' with a beginning macro" ) ;
+         print_err( "Found end of macro '// TEXTDB:END' without beginning of macro in line: %d", line_number ) ;
          goto ABBRUCH ;
       }
 
@@ -689,7 +998,7 @@ static int process_macro(const mmfile_t * input_file, int outfd)
       err = find_macro(&start_macro2, &end_macro2, &line_number, next_input, input_size) ;
       if (     err
             || strncmp( start_macro2, "// TEXTDB:END", (size_t) (end_macro2 - start_macro2)) ) {
-         print_err( "Can not find end of macro '// TEXTDB:END'" ) ;
+         print_err( "Can not find end of macro '// TEXTDB:END' which starts at line: %d", start_linenr ) ;
          goto ABBRUCH ;
       }
       input_size -= (size_t) (end_macro2 - next_input) ;
@@ -734,7 +1043,7 @@ int main(int argc, const char * argv[])
 
    // create out file if -o <filename> is specified
    if (g_outfilename) {
-      outfd = open(g_outfilename, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR) ;
+      outfd = open(g_outfilename, O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
       if (outfd == -1) {
          print_err( "Can not create file '%s' for writing: %s", g_outfilename, strerror(errno) ) ;
          goto ABBRUCH ;

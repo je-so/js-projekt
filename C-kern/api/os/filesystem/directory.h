@@ -92,6 +92,10 @@ extern int free_directorystream(directory_stream_t * dir) ;
 /* function: isvalid_directory */
 extern int isvalid_directory( const char * const checked_path, const char * const basedir ) ;
 
+/* function: filesize_directory
+ * Returns the filesize of a file with path »file_path«. */
+extern int filesize_directory( const char * file_path, /*out*/ off_t * file_size ) ;
+
 // group: read
 /* function: readnext_directorystream
  * Reads the next directory entry and returns its name and type (ftype could be NULL).
