@@ -119,6 +119,16 @@ extern int free_once_per_thread_log(umgebung_t * umg) ;
  * Example:
  * > const size_t maxsize = 100 ; LOG_SIZE(maxsize) ; */
 #define LOG_SIZE(varname)           LOG_VAR(PRIuSIZE, varname)
+/* define: LOG_UINT8
+ * Log "name=value" of uint8_t variable.
+ * Example:
+ * > const uint8_t limit = 255 ; LOG_UINT8(limit) ; */
+#define LOG_UINT8(varname)         LOG_VAR(PRIu8, varname)
+/* define: LOG_UINT16
+ * Log "name=value" of uint16_t variable.
+ * Example:
+ * > const uint16_t limit = 65535 ; LOG_UINT16(limit) ; */
+#define LOG_UINT16(varname)         LOG_VAR(PRIu16, varname)
 /* define: LOG_UINT32
  * Log "name=value" of uint32_t variable.
  * Example:

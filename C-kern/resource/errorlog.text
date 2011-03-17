@@ -79,11 +79,3 @@ PROCESS_TERMINATED_WITH_ERROR:de: process_name, exit_code
 PROCESS_TERMINATED_WITH_ERROR:en: process_name, exit_code
 "Process '%s' terminated with error code '%d'"
 
-QUEUE_BUSY:de: module_name
-"Anfrage-Zwischenspeicher voll (in Modul='%s')"
-QUEUE_BUSY:en: module_name
-"Request-Queue is busy (in module='%s')"
-QUEUE_NOT_ALL_CANCELED:de: module_name
-"Nicht alle Anfragen konnten erfolgreich aus dem System entfernt werden (in Modul='%s')"
-QUEUE_NOT_ALL_CANCELED:en: module_name
-"Not all requests could be canceled from queue (in module='%s')"

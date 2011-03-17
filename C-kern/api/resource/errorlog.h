@@ -35,10 +35,6 @@
         "Prozess '%s' abnormal beendet (exit wert=%d)\n", process_name, exit_code
 #define PROCESS_TERMINATED_WITH_ERROR(process_name, exit_code) \
         "Prozess '%s' beendet mit Fehlercode '%d'\n", process_name, exit_code
-#define QUEUE_BUSY(module_name) \
-        "Anfrage-Zwischenspeicher voll (in Modul='%s')\n", module_name
-#define QUEUE_NOT_ALL_CANCELED(module_name) \
-        "Nicht alle Anfragen konnten erfolgreich aus dem System entfernt werden (in Modul='%s')\n", module_name
 
 #elif (KONFIG_LANG == en)
 #define CONDITION_EXPECTED(sCondition) \
@@ -69,10 +65,6 @@
         "Process '%s' terminated abnormal (exit value=%d)\n", process_name, exit_code
 #define PROCESS_TERMINATED_WITH_ERROR(process_name, exit_code) \
         "Process '%s' terminated with error code '%d'\n", process_name, exit_code
-#define QUEUE_BUSY(module_name) \
-        "Request-Queue is busy (in module='%s')\n", module_name
-#define QUEUE_NOT_ALL_CANCELED(module_name) \
-        "Not all requests could be canceled from queue (in module='%s')\n", module_name
 
 #else
 #error unsupported language

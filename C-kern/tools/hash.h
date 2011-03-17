@@ -13,8 +13,8 @@
    GNU General Public License for more details.
 */
 
-#ifndef CKERN_GENMAKE_HASH_H
-#define CKERN_GENMAKE_HASH_H
+#ifndef CKERN_TOOLS_HASH_HEADER
+#define CKERN_TOOLS_HASH_HEADER
 
 /** Memory management is done by user.
  * Insert does not make a copy of new_entry, therefore ownership
@@ -65,4 +65,3 @@ extern int unittest_hashtable(void) ;
 #endif
 
 #endif
-
