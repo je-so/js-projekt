@@ -96,8 +96,11 @@
  * KONFIG_MEMALIGN   - Every allocated memory address must be aligned with this value.
  *                     See <KONFIG_MEMALIGN>.
  * KONFIG_OS         - Name of operating system (used as include path for system specific settings).
- *                     See <KONFIG_OS>.
- * KONFIG_UNITTEST   - Define this in your Makefile to include additional code for testing single components. */
+ *                     The only supported value is *Linux*.
+ * KONFIG_SUBSYS_GRAPHIK - Defines if a graphik subsystem should be included.
+ *                         Supported values are *X11* for X11/OpenGL graphic and *none* for no graphics support.
+ * KONFIG_UNITTEST   - Define this in your Makefile to include additional code for testing single components.
+ * */
 
 
 /* define: KONFIG_LANG
@@ -112,6 +115,14 @@
  * Choose name of operating system this project is compiled for.
  * > #define KONFIG_OS     Linux */
 #define KONFIG_OS          Linux
+#if !defined(KONFIG_SUBSYS_GRAPHIK)
+/* define: KONFIG_SUBSYS_GRAPHIK
+ * Sets the graphic subsystem you want to include in your project.
+ * If you do not provide a value in your project description (Makefile)
+ * the default *none* is set.
+ * > #define KONFIG_SUBSYS_GRAPHIK  none */
+#define KONFIG_SUBSYS_GRAPHIK    none
+#endif
 
 //}
 

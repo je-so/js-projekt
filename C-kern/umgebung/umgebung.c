@@ -27,9 +27,18 @@
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/umgebung/object_cache.h"
-// TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/init_once_per_process)
+#define X11 1
+#if (KONFIG_SUBSYS_GRAPHIK==X11)
+// TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/init_once_per_process)WHERE(subsystem==''||subsystem=='X11')
+#include "C-kern/api/locale.h"
+#include "C-kern/api/graphik/X11/x11.h"
+// TEXTDB:END
+#else
+// TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/init_once_per_process)WHERE(subsystem=='')
 #include "C-kern/api/locale.h"
 // TEXTDB:END
+#endif
+#undef X11
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -65,9 +74,18 @@ __thread umgebung_t   gt_umgebung = umgebung_INIT_MAINSERVICES ;
 /* variable: s_registry
  * The static array of all registered resources. */
 static resource_registry_t    s_registry[] = {
-// TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/init_once_per_process")
+#define X11 1
+#if (KONFIG_SUBSYS_GRAPHIK==X11)
+// TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/init_once_per_process")WHERE(subsystem==''||subsystem=='X11')
+   { &init_once_per_process_locale, &free_once_per_process_locale },
+   { &init_once_per_process_X11, &free_once_per_process_X11 },
+// TEXTDB:END
+#else
+// TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/init_once_per_process")WHERE(subsystem=='')
    { &init_once_per_process_locale, &free_once_per_process_locale },
 // TEXTDB:END
+#endif
+#undef X11
    { 0, 0 }
 } ;
 

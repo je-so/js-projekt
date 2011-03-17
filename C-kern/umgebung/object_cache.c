@@ -144,8 +144,6 @@ ABBRUCH:
 
 #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_objectcache,ABBRUCH)
 
-/* function: unittest_umgebung_objectcache
- * Test allocation and free works. */
 int unittest_umgebung_objectcache()
 {
    object_cache_t            * cache = 0 ;

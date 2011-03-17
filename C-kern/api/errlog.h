@@ -18,35 +18,38 @@
 #include "C-kern/api/umgebung/log.h"
 #include "C-kern/api/resource/errorlog.h"
 
-#define LOG_ABORT(err)           LOG_TEXT(FUNCTION_ABORT(__FILE__, __FUNCTION__, err))
-#define LOG_ABORT_FREE(err)      LOG_TEXT(FUNCTION_ABORT_FREE(err))
-#define LOG_OUTOFMEMORY(size)    LOG_TEXT(MEMORY_ERROR_OUT_OF(size))
-#define LOG_SYSERRNO(fct_name)         LOG_TEXT(FUNCTION_SYSERROR(fct_name, errno, strerror(errno)))
-#define LOG_SYSERROR(fct_name,_error)  LOG_TEXT(FUNCTION_SYSERROR(fct_name, _error, strerror(_error)))
+
+// Default Subsystem
 
 /* define: LOG_ABORT
- * Logs the name of an aborted of a function as well as the returned error code.
+ * Logs the abortion of a function and the its corresponding error code. */
+#define LOG_ABORT(err)                       LOG_TEXT(FUNCTION_ABORT(__FILE__, __FUNCTION__, err))
+/* define: LOG_ABORT_FREE
+ * Logs that an error occurred during free_XXX or delete_XXX.
+ * This means that not all resources could not have been freed but
+ * as many as possible. */
+#define LOG_ABORT_FREE(err)                  LOG_TEXT(FUNCTION_ABORT_FREE(err))
+#define LOG_OUTOFMEMORY(size)                LOG_TEXT(MEMORY_ERROR_OUT_OF(size))
+#define LOG_SYSERRNO(fct_name)               LOG_TEXT(FUNCTION_SYSERROR(fct_name, errno, strerror(errno)))
+#define LOG_SYSERROR(fct_name,err)           LOG_TEXT(FUNCTION_SYSERROR(fct_name, err, strerror(err)))
+
+
+
+/* about: Usage
  *
- * Parameters:
- *    err - The error number.
- *
- * Context:
+ * LOG_ABORT:
  * If a function encounters an error from which it cannot recover
  * it should roll back the system to its previous state before it was
- * called and use LOG_ABORT(returned_error_code) to signal this fact.
- */
-
-/* define: LOG_OUTOFMEMORY
- * Logs the reason why a function has to abort.
+ * called and use
+ * > LOG_ABORT(returned_error_code)
+ * to signal this fact.
  *
- * Parameters:
- *    size - The number of bytes for which the allocation of memory failed.
- *
- * Context:
+ * LOG_OUTOFMEMORY:
  * If a function could not allocate memory of size bytes and therefore aborts
- * whith an error code
- * > LOG_OUTOFMEMORY(size)
+ * with an error code
+ * > LOG_OUTOFMEMORY(size_of_memory_in_bytes)
  * should be called before <LOG_ABORT> to document the event leading to an abort.
+ *
  */
 
 #endif
