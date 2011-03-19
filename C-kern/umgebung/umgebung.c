@@ -28,7 +28,7 @@
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/umgebung/object_cache.h"
 #define X11 1
-#if (KONFIG_SUBSYS_GRAPHIK==X11)
+#if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/init_once_per_process)WHERE(subsystem==''||subsystem=='X11')
 #include "C-kern/api/locale.h"
 #include "C-kern/api/graphik/X11/x11.h"
@@ -75,7 +75,7 @@ __thread umgebung_t   gt_umgebung = umgebung_INIT_MAINSERVICES ;
  * The static array of all registered resources. */
 static resource_registry_t    s_registry[] = {
 #define X11 1
-#if (KONFIG_SUBSYS_GRAPHIK==X11)
+#if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/init_once_per_process")WHERE(subsystem==''||subsystem=='X11')
    { &init_once_per_process_locale, &free_once_per_process_locale },
    { &init_once_per_process_X11, &free_once_per_process_X11 },

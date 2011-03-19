@@ -110,6 +110,7 @@ about: Dependencies
   Libraries:
      * libpthread
      * librt
+     * libX11 + libGL (X11 window subsystem branch)
   Tools:
      * 'Natural Docs v1.5' (www.naturaldocs.org).
   Development only:

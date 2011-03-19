@@ -91,18 +91,24 @@
 /* about: Options
  * List of all options.
  *
+ * KONFIG_GRAPHIK    - Defines which graphik subsystem should be included if any at all.
+ *                     Supported values are *X11* for X11/OpenGL graphic and *none* for no graphics support.
  * KONFIG_LANG       - Language code: values 'de' or 'en' are supported to select static language of text strings for compiled code.
  *                     See <KONFIG_LANG>.
  * KONFIG_MEMALIGN   - Every allocated memory address must be aligned with this value.
  *                     See <KONFIG_MEMALIGN>.
  * KONFIG_OS         - Name of operating system (used as include path for system specific settings).
  *                     The only supported value is *Linux*.
- * KONFIG_SUBSYS_GRAPHIK - Defines if a graphik subsystem should be included.
- *                         Supported values are *X11* for X11/OpenGL graphic and *none* for no graphics support.
  * KONFIG_UNITTEST   - Define this in your Makefile to include additional code for testing single components.
  * */
 
 
+#if !defined(KONFIG_GRAPHIK)
+/* define: KONFIG_GRAPHIK
+ * Sets the graphic subsystem.
+ * If you do not provide a value the default is *none*. */
+#define KONFIG_GRAPHIK     none
+#endif
 /* define: KONFIG_LANG
  * Choose default language for compiletime/runtime text output.
  * > #define KONFIG_LANG   en */
@@ -115,14 +121,6 @@
  * Choose name of operating system this project is compiled for.
  * > #define KONFIG_OS     Linux */
 #define KONFIG_OS          Linux
-#if !defined(KONFIG_SUBSYS_GRAPHIK)
-/* define: KONFIG_SUBSYS_GRAPHIK
- * Sets the graphic subsystem you want to include in your project.
- * If you do not provide a value in your project description (Makefile)
- * the default *none* is set.
- * > #define KONFIG_SUBSYS_GRAPHIK  none */
-#define KONFIG_SUBSYS_GRAPHIK    none
-#endif
 
 //}
 
