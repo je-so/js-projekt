@@ -76,26 +76,33 @@ extern int free_once_per_thread_log(umgebung_t * umg) ;
 #define LOG_PUSH_ONOFFSTATE()       bool pushed_onoff_log = log_umgebung()->isOn
 /* define: LOG_POP_ONOFFSTATE
  * Restores <log_config_t.isOn> from state previously saved in local variable.
- * > #define LOG_POP_ONOFFSTATE()   set_onoff_logconfig(log_umgebung(), pushed_onoff_log) */
-#define LOG_POP_ONOFFSTATE()        set_onoff_logconfig(log_umgebung(), pushed_onoff_log)
+ * > #define LOG_POP_ONOFFSTATE()   setonoff_logconfig(log_umgebung(), pushed_onoff_log) */
+#define LOG_POP_ONOFFSTATE()        setonoff_logconfig(log_umgebung(), pushed_onoff_log)
 /* define: LOG_TURNOFF
  * Turns logging off.
- * > #define LOG_TURNOFF()          set_onoff_logconfig(log_umgebung(), false) */
-#define LOG_TURNOFF()               set_onoff_logconfig(log_umgebung(), false)
+ * > #define LOG_TURNOFF()          setonoff_logconfig(log_umgebung(), false) */
+#define LOG_TURNOFF()               setonoff_logconfig(log_umgebung(), false)
 /* define: LOG_TURNON
  * Turns logging on (default state).
- * > #define LOG_TURNON()           set_onoff_logconfig(log_umgebung(), true) */
-#define LOG_TURNON()                set_onoff_logconfig(log_umgebung(), true)
+ * > #define LOG_TURNON()           setonoff_logconfig(log_umgebung(), true) */
+#define LOG_TURNON()                setonoff_logconfig(log_umgebung(), true)
 /* define: LOG_CONFIG_BUFFERED
- * Turns buffering on (true) or off (false). See also <set_buffermode_logconfig>.
+ * Turns buffering on (true) or off (false). See also <setbuffermode_logconfig>.
  * Buffering turned *off* is default state.
- * > #define LOG_CONFIG_BUFFERED(on) set_buffermode_logconfig(log_umgebung(), on) */
-#define LOG_CONFIG_BUFFERED(on)     set_buffermode_logconfig(log_umgebung(), on)
+ * > #define LOG_CONFIG_BUFFERED(on) setbuffermode_logconfig(log_umgebung(), on) */
+#define LOG_CONFIG_BUFFERED(on)     setbuffermode_logconfig(log_umgebung(), on)
+
+// group: buffered log
 
 /* define: LOG_CLEARBUFFER
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logconfig>.
  * > #define  LOG_CLEARBUFFER()     clearbuffer_logconfig(log_umgebung()) */
 #define  LOG_CLEARBUFFER()          clearbuffer_logconfig(log_umgebung())
+/* define: LOG_WRITEBUFFER
+ * Writes content of log buffer and then clears it. See also <writebuffer_logconfig>.
+ * > #define  LOG_WRITEBUFFER()     writebuffer_logconfig(log_umgebung()) */
+#define  LOG_WRITEBUFFER()          writebuffer_logconfig(log_umgebung())
+
 
 // group: write
 
@@ -172,6 +179,14 @@ extern int free_once_per_thread_log(umgebung_t * umg) ;
  * > for(int i = 0; i < 2; ++i) { LOG_INDEX(s,names,i) ; } */
 #define LOG_INDEX(printf_typespec_str,arrname,index)  log_umgebung()->printf( log_umgebung(), #arrname "[%d]=%" printf_typespec_str "\n", i, (arrname)[i])
 
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_umgebung_log
+ * Test initialization process succeeds and functionality of service types. */
+extern int unittest_umgebung_log(void) ;
+#endif
+
 
 /* struct: log_config_t
  * A certain log configuration stores log information about one thread.
@@ -216,13 +231,13 @@ extern int delete_logconfig(log_config_t ** log) ;
 
 // group: configuration
 
-/* function: set_onoff_logconfig
+/* function: setonoff_logconfig
  * Switches logging on (onoff==true) or off (onoff==false). */
-extern void set_onoff_logconfig(log_config_t * log, bool onoff) ;
+extern int setonoff_logconfig(log_config_t * log, bool onoff) ;
 
-/* function: set_buffermode_logconfig
+/* function: setbuffermode_logconfig
  * Switches buffered mode on (mode == true) or off (mode == false). */
-extern void set_buffermode_logconfig(log_config_t * log, bool mode) ;
+extern int setbuffermode_logconfig(log_config_t * log, bool mode) ;
 
 // group: buffered log
 
@@ -230,6 +245,11 @@ extern void set_buffermode_logconfig(log_config_t * log, bool mode) ;
  * Clears log buffer (sets length of logbuffer to 0).
  * This call is ignored if the log is not configured to be in buffered mode. */
 extern void clearbuffer_logconfig(log_config_t * log) ;
+
+/* function: writebuffer_logconfig
+ * Writes content of buffer to stderr and clears log buffer (sets length of logbuffer to 0).
+ * This call is ignored if the log is not configured to be in buffered mode. */
+extern void writebuffer_logconfig(log_config_t * log) ;
 
 /* function: getlogbuffer_logconfig
  * Returns content of log buffer as C-string and its length.

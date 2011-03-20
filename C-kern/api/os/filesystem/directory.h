@@ -93,8 +93,10 @@ extern int free_directorystream(directory_stream_t * dir) ;
 extern int isvalid_directory( const char * const checked_path, const char * const basedir ) ;
 
 /* function: filesize_directory
- * Returns the filesize of a file with path »file_path«. */
-extern int filesize_directory( const char * file_path, /*out*/ off_t * file_size ) ;
+ * Returns the filesize of a file with path »file_path«.
+ * If *working_dir* is NULL then the *dir_path* is relative to the current working directory else it is considered
+ * relative to *working_dir*. If *dir_path* is absolute it does not matter what value *working_dir* has. */
+extern int filesize_directory( const char * file_path, const directory_stream_t * working_dir, /*out*/ off_t * file_size ) ;
 
 // group: read
 /* function: readnext_directorystream

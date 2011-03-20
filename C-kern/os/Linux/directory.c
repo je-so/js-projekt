@@ -74,15 +74,25 @@ ERROR_CONTAINS_BAD_DOTS:
    return 2 ;
 }
 
-int filesize_directory( const char * file_path, off_t * file_size )
+int filesize_directory( const char * file_path, const directory_stream_t * working_dir, /*out*/ off_t * file_size )
 {
    int err ;
+   int statatfd = AT_FDCWD;
    struct stat stat_result ;
 
-   err = stat( file_path, &stat_result ) ;
+   if (working_dir)
+   {
+      if (!working_dir->sys_dir) {
+         err = EINVAL ;
+         goto ABBRUCH ;
+      }
+      statatfd = dirfd(working_dir->sys_dir) ;
+   }
+
+   err = fstatat( statatfd, file_path, &stat_result, 0 ) ;
    if (err) {
       err = errno ;
-      LOG_SYSERRNO("stat") ;
+      LOG_SYSERRNO("fstatat") ;
       goto ABBRUCH ;
    }
 
@@ -98,17 +108,18 @@ ABBRUCH:
 int init_directorystream(/*out*/directory_stream_t * dir, const char * dir_path, const directory_stream_t * working_dir)
 {
    int err ;
-   DIR * sysdir = 0 ;
-   int openatfd ;
-   size_t workdir_pathlen ;
+   DIR           * sysdir = 0 ;
+   int           openatfd = AT_FDCWD ;
+   size_t workdir_pathlen = 0 ;
 
    if (working_dir)
    {
+      if (!working_dir->sys_dir) {
+         err = EINVAL ;
+         goto ABBRUCH ;
+      }
       openatfd        = dirfd(working_dir->sys_dir) ;
       workdir_pathlen = working_dir->path_len ;
-   } else {
-      openatfd        = AT_FDCWD ;
-      workdir_pathlen = 0 ;
    }
 
    int fdd = openat( openatfd, dir_path[0] ? dir_path : "." , O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
@@ -332,6 +343,7 @@ int makedirectory_directorystream(directory_stream_t * dir, const char * directo
       goto ABBRUCH ;
    }
    strcpy( dir->path + dir->path_len, directory_name) ;
+   // TODO: replace with mkdirat
    err = mkdir(dir->path, 0700) ;
    if (err) {
       err = errno ;
@@ -356,6 +368,7 @@ int makefile_directorystream(directory_stream_t * dir, const char * file_name)
       goto ABBRUCH ;
    }
    strcpy( dir->path + dir->path_len, file_name) ;
+   // TODO: replace with openat
    int fd = open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
    if (-1 == fd) {
       err = errno ;
@@ -397,6 +410,7 @@ int removedirectory_directorystream(directory_stream_t * dir, const char * direc
       goto ABBRUCH ;
    }
    strcpy( dir->path + dir->path_len, directory_name) ;
+   // TODO: replace with rmdirat
    err = rmdir(dir->path) ;
    if (err) {
       err = errno ;
@@ -421,6 +435,7 @@ int removefile_directorystream(directory_stream_t * dir, const char * file_name)
       goto ABBRUCH ;
    }
    strcpy( dir->path + dir->path_len, file_name) ;
+   // TODO: replace with unlinkat
    err = unlink(dir->path) ;
    if (err) {
       err = errno ;
@@ -579,7 +594,6 @@ ABBRUCH:
 
 static int test_directory_stream(void)
 {
-   int err = 1 ;
    directory_stream_t temp_dir = directory_stream_INIT_FREEABLE ;
    directory_stream_t      dir = directory_stream_INIT_FREEABLE ;
 
@@ -683,17 +697,17 @@ static int test_directory_stream(void)
       }
    }
 
+   TEST(0 == free_directorystream(&temp_dir)) ;
 
-   err = 0 ;
+   return 0 ;
 ABBRUCH:
    (void) free_directorystream(&temp_dir) ;
    (void) free_directorystream(&dir) ;
-   return err ;
+   return 1 ;
 }
 
 static int test_directory_local(void)
 {
-   int err = 1 ;
    directory_stream_t local1 = directory_stream_INIT_FREEABLE ;
    directory_stream_t local2 = directory_stream_INIT_FREEABLE ;
 
@@ -715,26 +729,80 @@ static int test_directory_local(void)
    TEST(0 == free_directorystream(&local1)) ;
    TEST(0 == free_directorystream(&local2)) ;
 
-   err = 0 ;
+   return 0 ;
 ABBRUCH:
    free_directorystream(&local1) ;
    free_directorystream(&local2) ;
-   return err ;
+   return 1 ;
+}
+
+static int test_directory_filesize(void)
+{
+   directory_stream_t workdir = directory_stream_INIT_FREEABLE ;
+   directory_stream_t tempdir = directory_stream_INIT_FREEABLE ;
+
+   TEST(0 == init_directorystream(&workdir, "", 0)) ;
+   TEST(0 == inittemp_directorystream(&tempdir, "tempdir")) ;
+
+   // prepare
+   for(int i = 0; i < 100; ++i) {
+      char filename[100] ;
+      sprintf( filename, "file_%06d", i) ;
+      TEST(0 == makefile_directorystream(&tempdir, filename)) ;
+      int fd = openat(dirfd(tempdir.sys_dir), filename, O_RDWR|O_CLOEXEC) ;
+      TEST(fd > 0) ;
+      int written = (int) write(fd, filename, (size_t) i) ;
+      close(fd) ;
+      TEST(i == written) ;
+   }
+
+   // TEST filesize workdir != 0
+   for(int i = 0; i < 100; ++i) {
+      char filename[100] ;
+      sprintf( filename, "file_%06d", i) ;
+      off_t file_size = -1 ;
+      filesize_directory( filename, &tempdir, &file_size) ;
+      TEST(i == file_size) ;
+   }
+
+   // TEST filesize workdir == 0
+   TEST(0 == fchdir(dirfd(tempdir.sys_dir))) ;
+   for(int i = 0; i < 100; ++i) {
+      char filename[100] ;
+      sprintf( filename, "file_%06d", i) ;
+      off_t file_size = -1 ;
+      filesize_directory( filename, 0, &file_size) ;
+      TEST(i == file_size) ;
+   }
+   TEST(0 == fchdir(dirfd(workdir.sys_dir))) ;
+
+   // unprepare
+   for(int i = 0; i < 100; ++i) {
+      char filename[100] ;
+      sprintf( filename, "file_%06d", i) ;
+      TEST(0 == removefile_directorystream(&tempdir, filename)) ;
+   }
+   TEST(0 == remove_directorystream(&tempdir)) ;
+   TEST(0 == free_directorystream(&tempdir)) ;
+
+   return 0 ;
+ABBRUCH:
+   assert(0 == fchdir(dirfd(workdir.sys_dir))) ;
+   free_directorystream(&workdir) ;
+   free_directorystream(&tempdir) ;
+   return 1 ;
 }
 
 int unittest_directory()
 {
-   int err = 1 ;
 
-   err = test_isvalid() ;
-   if (err) goto ABBRUCH ;
-   err = test_directory_stream() ;
-   if (err) goto ABBRUCH ;
-   err = test_directory_local() ;
-   if (err) goto ABBRUCH ;
+   if (test_isvalid())              goto ABBRUCH ;
+   if (test_directory_stream())     goto ABBRUCH ;
+   if (test_directory_local())      goto ABBRUCH ;
+   if (test_directory_filesize())   goto ABBRUCH ;
 
-   err = 0 ;
+   return 0 ;
 ABBRUCH:
-   return err ;
+   return 1 ;
 }
 #endif

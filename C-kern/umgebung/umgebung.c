@@ -222,22 +222,6 @@ ABBRUCH:
 
 #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung,ABBRUCH)
 
-static int test_query_service(void)
-{
-   const umgebung_t           * umg = umgebung() ;
-   const log_config_t * log_service = log_umgebung() ;
-
-   TEST( umg ) ;
-   TEST( log_service ) ;
-
-   TEST( umg         == &gt_umgebung ) ;
-   TEST( log_service == gt_umgebung.log ) ;
-
-   return 0 ;
-ABBRUCH:
-   return 1 ;
-}
-
 static int test_resource_setlocale(void)
 {
    const char    * old_lcall = getenv("LC_ALL") ;
@@ -291,14 +275,46 @@ ABBRUCH:
 
 int unittest_umgebung()
 {
-   const umgebung_type_e old_type = umgebung()->type ;
-   const int              is_init = (0 != old_type) ;
+   const umgebung_t    * umg = umgebung() ;
 
-   TEST(!is_init) ;
+   // TEST static init
+   TEST( umg->type          == umgebung_type_STATIC ) ;
+   TEST( umg->cache         == &g_main_objectcache );
+   TEST( umg->log           == &g_main_logservice );
+   TEST( umg->free_umgebung == 0 ) ;
+   TEST( umg->resource_thread_count == 0 ) ;
 
-   if (test_query_service())        goto ABBRUCH ;
+   // TEST query umgebung
+   TEST( 0 != umgebung() ) ;
+   TEST( 0 != log_umgebung() ) ;
+   TEST( 0 != cache_umgebung() ) ;
+   {
+      TEST( umgebung() == &gt_umgebung ) ;
+   }
+   {
+      log_config_t * oldlog = gt_umgebung.log ;
+      gt_umgebung.log = (log_config_t *) 0 ;
+      TEST( ! log_umgebung() ) ;
+      gt_umgebung.log = oldlog ;
+      TEST( log_umgebung() == oldlog ) ;
+   }
+   {
+      object_cache_t * oldcache = gt_umgebung.cache ;
+      gt_umgebung.cache = (object_cache_t *) 0 ;
+      TEST( ! cache_umgebung() ) ;
+      gt_umgebung.cache = oldcache ;
+      TEST( cache_umgebung() == oldcache ) ;
+   }
+
    if (test_resource_setlocale())   goto ABBRUCH ;
    if (test_process_init())         goto ABBRUCH ;
+
+   // TEST static init has not changed
+   TEST( umg->type          == umgebung_type_STATIC ) ;
+   TEST( umg->cache         == &g_main_objectcache );
+   TEST( umg->log           == &g_main_logservice );
+   TEST( umg->free_umgebung == 0 ) ;
+   TEST( umg->resource_thread_count == 0 ) ;
 
    return 0 ;
 ABBRUCH:

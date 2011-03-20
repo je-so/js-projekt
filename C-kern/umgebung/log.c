@@ -21,11 +21,18 @@
 #include "C-kern/api/umgebung/log.h"
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/os/virtmemory.h"
+#include "C-kern/api/os/filesystem/directory.h"
+#include "C-kern/api/os/filesystem/mmfile.h"
+#ifdef KONFIG_UNITTEST
+#include "C-kern/api/test.h"
+#endif
 
 // forward
 
 static void write_logbuffer(log_buffer_t * log) ;
-static void printf_logstderr( log_config_t * log, const char * format, ... ) ;
+static void printf_logbuffer( log_config_t * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
+static void printf_logstderr( log_config_t * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
+static void printf_logignore( log_config_t * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
 
 /* variable: g_safe_logservice
  * Is used to support a safe standard log configuration.
@@ -67,11 +74,8 @@ int free_once_per_thread_log(umgebung_t * umg)
    assert(log != &g_main_logservice) ;
    assert(log != &g_safe_logservice) ;
 
-   if (     log != &g_safe_logservice
-         && log != &g_main_logservice) {
-      err = delete_logconfig( &log ) ;
-      if (err) goto ABBRUCH ;
-   }
+   err = delete_logconfig( &log ) ;
+   if (err) goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:
@@ -252,11 +256,12 @@ int new_logconfig(/*out*/log_config_t ** log)
       goto ABBRUCH ;
    }
 
-   logobj->printf      = &printf_logstderr ;
-   logobj->isOn        = true ;
-   logobj->isBuffered  = false ;
-   logobj->log_buffer  = (log_buffer_t*) &logobj[1] ;
-   *logobj->log_buffer = (log_buffer_t) log_buffer_INIT_FREEABLE ;
+   logobj->printf        = &printf_logstderr ;
+   logobj->isOn          = true ;
+   logobj->isBuffered    = false ;
+   logobj->isConstConfig = false ;
+   logobj->log_buffer    = (log_buffer_t*) &logobj[1] ;
+   *logobj->log_buffer   = (log_buffer_t) log_buffer_INIT_FREEABLE ;
 
    *log = logobj ;
    return 0 ;
@@ -271,10 +276,11 @@ int delete_logconfig(log_config_t ** log)
    log_config_t * logobj = *log ;
 
    if (     logobj
-         && logobj != &g_main_logservice) {
-      err = free_logbuffer(logobj->log_buffer) ;
-      free(logobj) ;
+         && logobj != &g_main_logservice
+         && logobj != &g_safe_logservice) {
       *log = 0 ;
+      err  = free_logbuffer(logobj->log_buffer) ;
+      free(logobj) ;
       if (err) goto ABBRUCH ;
    }
 
@@ -304,7 +310,7 @@ static void switch_printf_logconfig(log_config_t * log)
    }
 }
 
-void set_onoff_logconfig(log_config_t * log, bool onoff)
+int setonoff_logconfig(log_config_t * log, bool onoff)
 {
    int err ;
 
@@ -320,19 +326,19 @@ void set_onoff_logconfig(log_config_t * log, bool onoff)
       switch_printf_logconfig(log) ;
    }
 
-   return ;
+   return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
-   return ;
+   return err ;
 }
 
-/* function: set_buffermode_logconfig implementation
- * See <set_buffermode_logconfig> for a description of its interface.
+/* function: setbuffermode_logconfig implementation
+ * See <setbuffermode_logconfig> for a description of its interface.
  * The internal variable <log_config_t.log_buffer> is initialized
  * or freed depending on whether buffermode is switched on or off.
  * If the initialization (or free) returns an error nothing is
  * changed. */
-void set_buffermode_logconfig(log_config_t * log, bool mode)
+int setbuffermode_logconfig(log_config_t * log, bool mode)
 {
    int err ;
 
@@ -355,16 +361,23 @@ void set_buffermode_logconfig(log_config_t * log, bool mode)
       switch_printf_logconfig(log) ;
    }
 
-   return ;
+   return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
-   return ;
+   return err ;
 }
 
 void clearbuffer_logconfig(log_config_t * log)
 {
    if (log->isBuffered) {
       clear_logbuffer(log->log_buffer) ;
+   }
+}
+
+void writebuffer_logconfig(log_config_t * log)
+{
+   if (log->isBuffered) {
+      write_logbuffer(log->log_buffer) ;
    }
 }
 
@@ -395,3 +408,356 @@ log_config_t  g_main_logservice = {
          .isConstConfig   = false,
          .log_buffer      = &s_buffer_main_logservice
 } ;
+
+#ifdef KONFIG_UNITTEST
+
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_log,ABBRUCH)
+
+static int test_defaultvalues(log_config_t * logconf, bool isOn, typeof(((log_config_t*)0)->printf) printf_callback )
+{
+   TEST( logconf ) ;
+   TEST( ! logconf->isBuffered ) ;
+   TEST( ! logconf->isConstConfig ) ;
+   TEST( logconf->isOn       == isOn ) ;
+   TEST( logconf->log_buffer ) ;
+   TEST( logconf->log_buffer == (log_buffer_t*)(&logconf[1])) ;
+   TEST( logconf->printf     == printf_callback) ;
+   return 0 ;
+ABBRUCH:
+   return 1 ;
+}
+
+static int test_log_default(void)
+{
+   log_config_t     * logconf = 0 ;
+   int                 tempfd = - 1;
+   int              oldstderr = -1 ;
+   mmfile_t        logcontent = mmfile_INIT_FREEABLE ;
+   directory_stream_t tempdir = directory_stream_INIT_FREEABLE ;
+
+   // TEST init, double free
+   TEST(0 == new_logconfig(&logconf)) ;
+   TEST(0 == test_defaultvalues(logconf, true, &printf_logstderr)) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+   TEST( ! logconf ) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+   TEST( ! logconf ) ;
+
+   // TEST set_onoff
+   TEST(0 == new_logconfig(&logconf)) ;
+   TEST(0 == setonoff_logconfig(logconf, false)) ;
+   TEST(0 == test_defaultvalues(logconf, false, &printf_logignore)) ;
+   TEST(0 == setonoff_logconfig(logconf, true)) ;
+   TEST(0 == test_defaultvalues(logconf, true, &printf_logstderr)) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+
+   // init (TEST write)
+   TEST(0 == inittemp_directorystream(&tempdir, "tempdir")) ;
+   TEST(0 == makefile_directorystream(&tempdir, "testlog")) ;
+   tempfd = openat(dirfd(tempdir.sys_dir), "testlog", O_RDWR|O_CLOEXEC, 0600) ;
+   TEST(0 <  tempfd) ;
+   oldstderr = dup(STDERR_FILENO) ;
+   TEST(0 <  oldstderr) ;
+   TEST(STDERR_FILENO == dup2(tempfd, STDERR_FILENO)) ;
+
+   // TEST write printf_logstderr
+   TEST(0 == new_logconfig(&logconf)) ;
+   TEST(0 == test_defaultvalues(logconf, true, &printf_logstderr)) ;
+   logconf->printf( logconf, "TEST1: %d: %s: END-TEST\n", -123, "123test" ) ;
+   logconf->printf( logconf, "TEST2: %g: %c: END-TEST\n", 1.1, 'X' ) ;
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+#define LOG_CONTENT "TEST1: -123: 123test: END-TEST\nTEST2: 1.1: X: END-TEST\n"
+   size_t logsize = sizeof(LOG_CONTENT) - 1 ;
+   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
+   TEST(0 == free_mmfile(&logcontent)) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+
+   // TEST write printf_logignore
+   TEST(0 == new_logconfig(&logconf)) ;
+   TEST(0 == test_defaultvalues(logconf, true, &printf_logstderr)) ;
+   TEST(0 == setonoff_logconfig(logconf, false)) ;
+   TEST(0 == test_defaultvalues(logconf, false, &printf_logignore)) ;
+   logconf->printf( logconf, "NOTHING IS WRITTEN: %d: %s: END-NOTHING\n", 4, "5" ) ;
+   // test logcontent has not changed
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
+#undef LOG_CONTENT
+   TEST(0 == free_mmfile(&logcontent)) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+
+   // free (TEST write)
+   TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
+   TEST(0 == close(oldstderr)) ;
+   oldstderr = -1 ;
+   TEST(0 == close(tempfd)) ;
+   tempfd = -1 ;
+   TEST(0 == removefile_directorystream(&tempdir, "testlog")) ;
+   TEST(0 == remove_directorystream(&tempdir)) ;
+   TEST(0 == free_directorystream(&tempdir)) ;
+
+
+   return 0 ;
+ABBRUCH:
+   if (tempfd >= 0) {
+      close(tempfd) ;
+      removefile_directorystream(&tempdir, "testlog") ;
+      remove_directorystream(&tempdir) ;
+   }
+   if (oldstderr >= 0) {
+      dup2(oldstderr, STDERR_FILENO) ;
+      close(oldstderr) ;
+   }
+   free_mmfile(&logcontent) ;
+   free_directorystream(&tempdir) ;
+   delete_logconfig(&logconf) ;
+   return 1 ;
+}
+
+static int test_log_safe(void)
+{
+   log_config_t * logconf = &g_safe_logservice ;
+
+   // TEST g_safe_logservice static definition
+   TEST( logconf ) ;
+   TEST( ! logconf->isBuffered ) ;
+   TEST( logconf->isConstConfig ) ;
+   TEST( logconf->isOn ) ;
+   TEST( ! logconf->log_buffer ) ;
+   TEST( logconf->printf == &printf_logstderr ) ;
+
+   // TEST config
+   TEST(EINVAL == setonoff_logconfig(logconf, false)) ;
+   TEST(EINVAL == setbuffermode_logconfig(logconf, true)) ;
+
+   // TEST write
+   // ! already DONE in test_log_default for printf_logstderr !
+   TEST( logconf->printf == &printf_logstderr ) ;
+
+   // TEST g_safe_logservice static definition has not changed
+   TEST( logconf ) ;
+   TEST( ! logconf->isBuffered ) ;
+   TEST( logconf->isConstConfig ) ;
+   TEST( logconf->isOn ) ;
+   TEST( ! logconf->log_buffer ) ;
+   TEST( logconf->printf == &printf_logstderr ) ;
+
+   return 0 ;
+ABBRUCH:
+   return 1 ;
+}
+
+static int test_bufferedvalues(log_config_t * logconf, bool isOn, typeof(((log_config_t*)0)->printf) printf_callback )
+{
+   TEST( logconf ) ;
+   TEST( logconf->isBuffered ) ;
+   TEST( ! logconf->isConstConfig ) ;
+   TEST( logconf->isOn       == isOn ) ;
+   TEST( logconf->log_buffer ) ;
+   TEST( logconf->log_buffer == (log_buffer_t*)(&logconf[1])) ;
+   TEST( logconf->printf     == printf_callback) ;
+   return 0 ;
+ABBRUCH:
+   return 1 ;
+}
+
+static int test_log_buffered(void)
+{
+   log_config_t     * logconf = 0 ;
+   int                 tempfd = - 1;
+   int              oldstderr = -1 ;
+   mmfile_t        logcontent = mmfile_INIT_FREEABLE ;
+   directory_stream_t tempdir = directory_stream_INIT_FREEABLE ;
+   size_t         buffer_size = 0 ;
+   off_t            file_size ;
+
+   while( buffer_size < 1024 ) {
+      buffer_size += pagesize_vm() ;
+   }
+
+   // TEST init, double free
+   TEST(0 == new_logconfig(&logconf)) ;
+   TEST(0 == test_defaultvalues(logconf, true, &printf_logstderr)) ;
+   TEST(0 == setbuffermode_logconfig(logconf, true)) ;
+   TEST(0 == test_bufferedvalues(logconf, true, &printf_logbuffer)) ;
+   TEST(0 != logconf->log_buffer->buffer.start) ;
+   TEST(buffer_size == logconf->log_buffer->buffer.size_in_bytes) ;
+   TEST(0 == logconf->log_buffer->buffered_logsize) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+   TEST( ! logconf ) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+   TEST( ! logconf ) ;
+
+   // TEST set_onoff
+   TEST(0 == new_logconfig(&logconf)) ;
+   TEST(0 == setbuffermode_logconfig(logconf, true)) ;
+   TEST(0 == setonoff_logconfig(logconf, false)) ;
+   TEST(0 == test_bufferedvalues(logconf, false, &printf_logignore)) ;
+   TEST(0 == setonoff_logconfig(logconf, true)) ;
+   TEST(0 == test_bufferedvalues(logconf, true, &printf_logbuffer)) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+
+   // init (TEST write)
+   TEST(0 == inittemp_directorystream(&tempdir, "tempdir")) ;
+   TEST(0 == makefile_directorystream(&tempdir, "testlog")) ;
+   tempfd = openat(dirfd(tempdir.sys_dir), "testlog", O_RDWR|O_CLOEXEC, 0600) ;
+   TEST(0 <  tempfd) ;
+   oldstderr = dup(STDERR_FILENO) ;
+   TEST(0 <  oldstderr) ;
+   TEST(STDERR_FILENO == dup2(tempfd, STDERR_FILENO)) ;
+
+   // TEST write printf_logbuffer
+   TEST(0 == new_logconfig(&logconf)) ;
+   TEST(0 == setbuffermode_logconfig(logconf, true)) ;
+   TEST(0 == test_bufferedvalues(logconf, true, &printf_logbuffer)) ;
+   logconf->printf( logconf, "%s", "TESTSTRT\n" ) ;
+   logconf->printf( logconf, "%s", "TESTENDE\n" ) ;
+   TEST(18 == logconf->log_buffer->buffered_logsize) ;
+   LOG_TURNOFF() ;
+   TEST(ENODATA == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+   LOG_TURNON() ;
+   writebuffer_logconfig(logconf) ;
+   TEST(0 == logconf->log_buffer->buffered_logsize) ;
+#define LOG_CONTENT "TESTSTRT\nTESTENDE\n"
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+   size_t logsize = sizeof(LOG_CONTENT) - 1 ;
+   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
+   TEST(0 == free_mmfile(&logcontent)) ;
+   for(size_t i = 0; i < buffer_size-510; ++i) {
+      TEST(i   == logconf->log_buffer->buffered_logsize) ;
+      logconf->printf( logconf, "%c", 'F' ) ;
+   }
+   TEST(1 == logconf->log_buffer->buffered_logsize) ;
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+   logsize = sizeof(LOG_CONTENT) - 1 + buffer_size - 511 ;
+   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, sizeof(LOG_CONTENT)-1)) ;
+   for(size_t i = 0; i < buffer_size-511; ++i) {
+      TEST('F' == (memstart_mmfile(&logcontent)[sizeof(LOG_CONTENT)-1+i]) ) ;
+   }
+   TEST(0 == free_mmfile(&logcontent)) ;
+   TEST(0 == delete_logconfig(&logconf)) ;   // writes content of buffer !
+   TEST(0 == filesize_directory("testlog", &tempdir, &file_size)) ;
+   ++ logsize ;
+   TEST(logsize == file_size) ;
+
+   // TEST write printf_logignore
+   TEST(0 == new_logconfig(&logconf)) ;
+   TEST(0 == setbuffermode_logconfig(logconf, true)) ;
+   TEST(0 == setonoff_logconfig(logconf, false)) ;
+   TEST(0 == test_bufferedvalues(logconf, false, &printf_logignore)) ;
+   logconf->printf( logconf, "NOTHING IS WRITTEN\n" ) ;
+   TEST(0 == logconf->log_buffer->buffered_logsize) ;
+   writebuffer_logconfig(logconf) ;
+   // test logcontent has not changed
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, sizeof(LOG_CONTENT)-1)) ;
+   for(size_t i = 0; i < buffer_size-510; ++i) {
+      TEST('F' == (memstart_mmfile(&logcontent)[sizeof(LOG_CONTENT)-1+i]) ) ;
+   }
+#undef LOG_CONTENT
+   TEST(0 == free_mmfile(&logcontent)) ;
+   TEST(0 == delete_logconfig(&logconf)) ;
+
+   // free (TEST write)
+   TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
+   TEST(0 == close(oldstderr)) ;
+   oldstderr = -1 ;
+   TEST(0 == close(tempfd)) ;
+   tempfd = -1 ;
+   TEST(0 == removefile_directorystream(&tempdir, "testlog")) ;
+   TEST(0 == remove_directorystream(&tempdir)) ;
+   TEST(0 == free_directorystream(&tempdir)) ;
+
+
+   return 0 ;
+ABBRUCH:
+   if (tempfd >= 0) {
+      close(tempfd) ;
+      removefile_directorystream(&tempdir, "testlog") ;
+      remove_directorystream(&tempdir) ;
+   }
+   if (oldstderr >= 0) {
+      dup2(oldstderr, STDERR_FILENO) ;
+      close(oldstderr) ;
+   }
+   free_mmfile(&logcontent) ;
+   free_directorystream(&tempdir) ;
+   delete_logconfig(&logconf) ;
+   return 1 ;
+}
+
+static int test_initonce(void)
+{
+   umgebung_t     umg ;
+
+   // TEST EINVAL init_once
+   MEMSET0(&umg) ;
+   umg.log = (log_config_t*) 1 ;
+   TEST(EINVAL == init_once_per_thread_log(&umg)) ;
+
+   // TEST init_once, double free_once
+   memset(&umg, 0xff, sizeof(umg)) ;
+   umg.log = 0 ;
+   TEST(0 == init_once_per_thread_log(&umg)) ;
+   TEST(umg.log) ;
+   {
+      // only umg->log has changed !
+      umgebung_t  umg2 ;
+      memset(&umg2, 0xff, sizeof(umg2)) ;
+      umg2.log = umg.log ;
+      TEST(0 == memcmp(&umg2, &umg, sizeof(umg))) ;
+   }
+   TEST(0 == free_once_per_thread_log(&umg)) ;
+   TEST(&g_safe_logservice == umg.log) ;
+   {
+      // only umg->log has changed !
+      umgebung_t  umg2 ;
+      memset(&umg2, 0xff, sizeof(umg2)) ;
+      umg2.log = &g_safe_logservice ;
+      TEST(0 == memcmp(&umg2, &umg, sizeof(umg))) ;
+   }
+   umg.log = 0 ;
+   TEST(0 == free_once_per_thread_log(&umg)) ;
+   TEST(&g_safe_logservice == umg.log) ;
+   {
+      // only umg->log has changed !
+      umgebung_t  umg2 ;
+      memset(&umg2, 0xff, sizeof(umg2)) ;
+      umg2.log = &g_safe_logservice ;
+      TEST(0 == memcmp(&umg2, &umg, sizeof(umg))) ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   return 1 ;
+}
+
+int unittest_umgebung_log()
+{
+   vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
+   vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
+
+   // store current mapping
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+
+   if (test_log_default())    goto ABBRUCH ;
+   if (test_log_safe())       goto ABBRUCH ;
+   if (test_log_buffered())   goto ABBRUCH ;
+   if (test_initonce())       goto ABBRUCH ;
+
+   // TEST mapping has not changed
+   TEST(0 == init_vmmappedregions(&mappedregions2)) ;
+   TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions2)) ;
+
+   return 0 ;
+ABBRUCH:
+   return 1 ;
+}
+
+#endif

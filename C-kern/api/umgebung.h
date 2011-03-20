@@ -41,7 +41,9 @@ typedef struct umgebung_t          umgebung_t ;
  * Used to switch between different implementations.
  *
  * umgebung_STATIC_IMPL  - An implementation which is configured by a static initializer.
- *                         Currently only the log service is supported by this type of implementation.
+ *                         Only the log service is supported.
+ *                         This configuration is default at program startup and can not be
+ *                         set with a call to <init_process_umgebung>.
  * umgebung_DEFAULT_IMPL - Default production ready implementation.
  * umgebung_TEST_IMPL    - Implements functionality without use of internal components but only with help of
  *                         C library calls. This ensures that software components which depends on <umgebung_t>
