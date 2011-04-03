@@ -28,10 +28,9 @@
 #ifndef CKERN_API_UMGEBUNG_HEADER
 #define CKERN_API_UMGEBUNG_HEADER
 
-
-/* typedef: typedef umgebung_tempmman_t
- * Shortcut for <umgebung_tempmman_t >. */
-typedef struct umgebung_tempmman_t umgebung_tempmman_t ;
+// forward reference to all offered services
+struct log_config_t ;
+struct object_cache_t ;
 
 /* typedef: typedef umgebung_t
  * Shortcut for <umgebung_t>. */
@@ -54,12 +53,14 @@ enum umgebung_type_e {
    ,umgebung_type_DEFAULT = 1
    ,umgebung_type_TEST    = 2
 } ;
+
 typedef enum umgebung_type_e umgebung_type_e ;
 
-/* forward reference to all offered services */
-struct log_config_t ;
-struct object_cache_t ;
 
+/* variable: gt_umgebung extern
+ * Global variable which describes the context for the current thread.
+ * The variables is located in thread local storage.
+ * So every thread has its own copy the content. */
 extern __thread struct umgebung_t gt_umgebung ;
 
 
@@ -93,28 +94,13 @@ extern int unittest_umgebung_default(void) ;
 extern int unittest_umgebung_testproxy(void) ;
 #endif
 
-
-/* struct: umgebung_tempmman_t
- * Defines interface for managing temporary memory. */
-struct umgebung_tempmman_t {
-   void * (*alloc)  (umgebung_tempmman_t * tempmman, size_t size_in_bytes ) ;
-   int    (*resize) (umgebung_tempmman_t * tempmman, size_t size_in_bytes, void * memory_block ) ;
-   int    (*free)   (umgebung_tempmman_t * tempmman, void ** memory_block ) ;
-   //{ memory context
-   int (*new_tempmem)    (umgebung_t * umg, /*out*/umgebung_tempmman_t ** tempmman ) ;
-   int (*delete_tempmem) (umgebung_t * umg, umgebung_tempmman_t ** tempmman ) ;
-   //}
-} ;
-
 /* struct: umgebung_t
  * Defines top level context for all software modules. */
 struct umgebung_t {
-   //{ object management
    umgebung_type_e         type ;
    uint16_t                resource_thread_count ;
    /* Virtual destructor: Allows different implementations to store a different desctructor. */
    int                  (* free_umgebung)  (umgebung_t * umg) ;
-   //}
 
    struct log_config_t   * log ;
    struct object_cache_t * cache ;
@@ -149,11 +135,11 @@ extern int free_thread_umgebung(umgebung_t * umg) ;
 // group: internal
 
 /* function: init_default_umgebung
- * */
+ * Is called from <init_thread_umgebung> if type is set to umgebung_type_DEFAULT. */
 extern int init_default_umgebung(/*out*/umgebung_t * umg) ;
 
 /* function: init_testproxy_umgebung
- * */
+ * Is called from <init_thread_umgebung> if type is set to umgebung_type_TEST. */
 extern int init_testproxy_umgebung(/*out*/umgebung_t * umg) ;
 
 

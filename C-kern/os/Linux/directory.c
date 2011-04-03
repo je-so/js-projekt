@@ -112,8 +112,8 @@ int init_directorystream(/*out*/directory_stream_t * dir, const char * dir_path,
    int           openatfd = AT_FDCWD ;
    size_t workdir_pathlen = 0 ;
 
-   if (working_dir)
-   {
+   if (     working_dir
+         && '/' != dir_path[0]) {
       if (!working_dir->sys_dir) {
          err = EINVAL ;
          goto ABBRUCH ;
@@ -678,8 +678,20 @@ static int test_directory_stream(void)
    TEST(0 == returntobegin_directorystream(&temp_dir)) ;
    TEST(0 == test_directory_stream__nextdir(&temp_dir, 0)) ;
 
+   // TEST pathname + working_dir
+   TEST(0 == init_directorystream(&dir, "", &temp_dir)) ;
+   TEST(dir.path_len == temp_dir.path_len) ;
+   TEST(0 == strcmp(dir.path, temp_dir.path)) ;
+   TEST(0 == free_directorystream(&dir)) ;
+
+   // TEST absolute pathname + working_dir
+   TEST(0 == init_directorystream(&dir, "/", &temp_dir)) ;
+   TEST(dir.path_len == 1) ;
+   TEST(0 == strcmp(dir.path, "/")) ;
+   TEST(0 == free_directorystream(&dir)) ;
+
    // TEST remove temp directory (now empty)
-   TEST(0 == init_directorystream(&dir, temp_dir.path, NULL)) ;
+   TEST(0 == init_directorystream(&dir, "", &temp_dir)) ;
    TEST(0 == remove_directorystream(&dir)) ;
    TEST(0 == free_directorystream(&dir)) ;
    TEST(ENOENT == init_directorystream(&dir, temp_dir.path, NULL)) ; // check it does no more exist

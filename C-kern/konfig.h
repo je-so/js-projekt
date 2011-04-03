@@ -38,6 +38,9 @@
 // Useful preprocessor macros.
 
 //{
+/* define: ARRAY_SIZE
+ * Calculates the size (number of elements) of a static array. */
+#define ARRAY_SIZE(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
 /* define: CONCAT_
  * Used by <CONCAT>. Combines two language tokens into one. */
 #define CONCAT_(S1,S2)  S1 ## S2
@@ -80,7 +83,7 @@
 #define static_assert(C,S)     extern int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1]
 /* define: static_assert_void
  * Same as <static_assert> but this time the implementaion suppresses an unused variable warning.
- * Can only be used in function context. It expects only the condition to test for as paramter. */
+ * Can only be used in function context. It expects only the condition to test for as parameter. */
 #define static_assert_void(C)  extern int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1] ; (void)CONCAT(_extern_static_assert,__LINE__)
 //}
 
@@ -178,29 +181,29 @@
 
 /* define: sys_processid_t
  * Integer type holding system specific id of a running process. Overwritten in system specific include file. */
-#define sys_processid_t      void
+#define sys_processid_t             void
 /* define: sys_thread_t
  * Structure holding system specific description of a thread. Overwritten in system specific include file. */
-#define sys_thread_t         void
+#define sys_thread_t                void
 /* define: sys_thread_mutex_t
  * Structure holding system specific description of a mutex. Overwritten in system specific include file. */
-#define sys_thread_mutex_t   void
+#define sys_thread_mutex_t          void
 /* define: sys_thread_mutex_INIT_DEFAULT
  * Static initializer for a mutex useable by threads of the same process. */
 #define sys_thread_mutex_INIT_DEFAULT   void
 /* define: sys_timerid_t
  * Handle for system specific timer. */
-#define sys_timerid_t        void
+#define sys_timerid_t               void
 /* define: sys_timerid_INIT_FREEABLE
  * Init value to declare an invalid timer handle. */
 #define sys_timerid_INIT_FREEABLE   void
 /* define: sys_directory_t
  * Pointer type holding system specific description of an opened directory stream.
  * NULL is considered an unitialized value. Overwritten in system specific include file. */
-#define sys_directory_t      void
+#define sys_directory_t             void
 /* define: sys_directory_entry_t
  * Structure holding system specific description of read directory entry. Overwritten in system specific include file. */
-#define sys_directory_entry_t      void
+#define sys_directory_entry_t       void
 //}
 
 // group: 4. Include

@@ -2,7 +2,8 @@
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/umgebung/log.h"
 #include "C-kern/api/umgebung/object_cache.h"
-#include "C-kern/api/generic/integer.h"
+#include "C-kern/api/math/int/power2.h"
+#include "C-kern/api/math/int/signum.h"
 #include "C-kern/api/os/filesystem/directory.h"
 #include "C-kern/api/os/filesystem/mmfile.h"
 #include "C-kern/api/os/thread.h"
@@ -32,7 +33,8 @@ int main(int argc, char * argv[])
    RUN(unittest_os_memorymappedfile) ;
    RUN(unittest_os_virtualmemory) ;
    RUN(unittest_directory) ;
-   RUN(unittest_generic_integer) ;
+   RUN(unittest_math_int_power2) ;
+   RUN(unittest_math_int_signum) ;
 
    if (err) {
       printf("----------\n") ;

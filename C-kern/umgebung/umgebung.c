@@ -31,7 +31,7 @@
 #if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/init_once_per_process)WHERE(subsystem==''||subsystem=='X11')
 #include "C-kern/api/locale.h"
-#include "C-kern/api/graphik/X11/x11.h"
+#include "C-kern/api/os/X11/x11.h"
 // TEXTDB:END
 #else
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/init_once_per_process)WHERE(subsystem=='')
@@ -68,12 +68,17 @@ struct resource_registry_t {
 // section: Implementation
 
 /* variable: gt_umgebung
- * Defines thread-local storage for global context <umgebung_t> which every modul can access. */
-__thread umgebung_t   gt_umgebung = umgebung_INIT_MAINSERVICES ;
+ * Defines thread-local storage for global context <umgebung_t> which every modul can access.
+ * */
+__thread umgebung_t          gt_umgebung = umgebung_INIT_MAINSERVICES ;
+
+/* variable: s_registry_initcount
+ * Counts how many resources has been inituialized successfully. */
+static uint16_t     s_registry_initcount = 0 ;
 
 /* variable: s_registry
  * The static array of all registered resources. */
-static resource_registry_t    s_registry[] = {
+static resource_registry_t  s_registry[] = {
 #define X11 1
 #if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/init_once_per_process")WHERE(subsystem==''||subsystem=='X11')
@@ -89,17 +94,13 @@ static resource_registry_t    s_registry[] = {
    { 0, 0 }
 } ;
 
-/* variable: s_registry_init_count
- * Counts how many resources has been inituialized successfully. */
-static uint16_t  s_registry_init_count = 0 ;
-
 
 static int freeall_process_resources(void)
 {
    int err = 0 ;
 
-   while( s_registry_init_count ) {
-      int err2 = s_registry[--s_registry_init_count].free_resource() ;
+   while( s_registry_initcount ) {
+      int err2 = s_registry[--s_registry_initcount].free_resource() ;
       if (err2) err = err2 ;
    }
 
@@ -115,8 +116,8 @@ static int initall_process_resources(void)
 {
    int err ;
 
-   for(; s_registry[s_registry_init_count].init_resource ; ++s_registry_init_count) {
-      err = s_registry[s_registry_init_count].init_resource() ;
+   for(; s_registry[s_registry_initcount].init_resource ; ++s_registry_initcount) {
+      err = s_registry[s_registry_initcount].init_resource() ;
       if (err) goto ABBRUCH ;
    }
 
@@ -177,7 +178,8 @@ int free_process_umgebung(void)
    if (is_initialized) {
       err = free_thread_umgebung(umg) ;
       assert(&g_safe_logservice == umg->log || &g_main_logservice == umg->log) ;
-      umg->log = &g_main_logservice ;
+      assert(!umg->cache || umg->cache == &g_main_objectcache) ;
+      *umg = (umgebung_t) umgebung_INIT_MAINSERVICES ;
       int err2 = freeall_process_resources() ;
       if (err2) err = err2 ;
       if (err) goto ABBRUCH ;
@@ -203,12 +205,17 @@ int init_process_umgebung(umgebung_type_e implementation_type)
 
    err = initall_process_resources() ;
    if (err) goto ABBRUCH ;
+
    umgebung_t temp_umg ;
    err = init_thread_umgebung(&temp_umg, implementation_type) ;
    if (err) goto ABBRUCH ;
+
    memcpy( umg, (const umgebung_t*)&temp_umg, sizeof(umgebung_t)) ;
    err = move_objectcache( umg->cache, &g_main_objectcache ) ;
-   if (err) goto ABBRUCH ;
+   if (err) {
+      free_thread_umgebung(umg) ;
+      goto ABBRUCH ;
+   }
 
    return 0 ;
 ABBRUCH:
@@ -256,17 +263,39 @@ static int test_process_init(void)
    TEST(0 == umgebung()->type) ;
    TEST(0 == init_process_umgebung(umgebung_type_DEFAULT)) ;
    TEST(umgebung_type_DEFAULT == umgebung()->type) ;
+   TEST(0 != umgebung()->resource_thread_count) ;
+   TEST(0 != umgebung()->free_umgebung) ;
+   TEST(0 != umgebung()->log) ;
+   TEST(0 != umgebung()->cache) ;
+   TEST(&g_main_logservice  != umgebung()->log) ;
+   TEST(&g_main_objectcache != umgebung()->cache) ;
    TEST(0 == free_process_umgebung()) ;
    TEST(0 == umgebung()->type ) ;
+   TEST(0 == umgebung()->resource_thread_count) ;
+   TEST(0 == umgebung()->free_umgebung) ;
+   TEST(&g_main_logservice  == umgebung()->log) ;
+   TEST(&g_main_objectcache == umgebung()->cache) ;
    TEST(0 == free_process_umgebung()) ;
    TEST(0 == umgebung()->type ) ;
+   TEST(0 == umgebung()->resource_thread_count) ;
+   TEST(0 == umgebung()->free_umgebung) ;
+   TEST(&g_main_logservice  == umgebung()->log) ;
+   TEST(&g_main_objectcache == umgebung()->cache) ;
 
    // TEST init, double free
    TEST(0 == umgebung()->type) ;
    TEST(0 == init_process_umgebung(umgebung_type_TEST)) ;
-   TEST(umgebung_type_TEST == umgebung()->type) ;
+   TEST(umgebung_type_TEST  == umgebung()->type) ;
+   TEST(&g_main_logservice  == umgebung()->log) ;
+   TEST(&g_main_objectcache == umgebung()->cache) ;
+   TEST(0 == umgebung()->resource_thread_count) ;
+   TEST(0 != umgebung()->free_umgebung) ;
    TEST(0 == free_process_umgebung()) ;
    TEST(0 == umgebung()->type ) ;
+   TEST(0 == umgebung()->resource_thread_count) ;
+   TEST(0 == umgebung()->free_umgebung) ;
+   TEST(&g_main_logservice  == umgebung()->log) ;
+   TEST(&g_main_objectcache == umgebung()->cache) ;
 
    return 0 ;
 ABBRUCH:

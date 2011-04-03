@@ -22,7 +22,7 @@
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/umgebung/object_cache.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/generic/integer.h"
+#include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/test.h"
 #endif
 
