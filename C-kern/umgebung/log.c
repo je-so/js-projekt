@@ -86,7 +86,7 @@ ABBRUCH:
 /* struct: log_buffer_t
  * Stores the memory address and size of cached output.
  * If the buffer is nearly full it is written to the
- * configured log channel. Currently only stderr is supported. */
+ * configured log channel. Currently only standard error is supported. */
 struct log_buffer_t
 {
    vm_block_t  buffer ;
@@ -154,7 +154,7 @@ static inline void getlogbuffer_logbuffer(log_buffer_t * log, /*out*/char ** buf
 
 /* function: write_logbuffer
  * Writes content of buffer to log channel.
- * Currently only stderr is supported. */
+ * Currently only standard error is supported. */
 static void write_logbuffer(log_buffer_t * log)
 {
    size_t bytes_written = 0 ;

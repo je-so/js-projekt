@@ -128,7 +128,7 @@ ABBRUCH:
    return err ;
 }
 
-int free_thread_umgebung(umgebung_t * umg)
+int free_umgebung(umgebung_t * umg)
 {
    int err ;
 
@@ -143,7 +143,7 @@ ABBRUCH:
    return err ;
 }
 
-int init_thread_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
+int init_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
 {
    int err ;
 
@@ -176,7 +176,7 @@ int free_process_umgebung(void)
    int     is_initialized = (0 != umg->type) ;
 
    if (is_initialized) {
-      err = free_thread_umgebung(umg) ;
+      err = free_umgebung(umg) ;
       assert(&g_safe_logservice == umg->log || &g_main_logservice == umg->log) ;
       assert(!umg->cache || umg->cache == &g_main_objectcache) ;
       *umg = (umgebung_t) umgebung_INIT_MAINSERVICES ;
@@ -196,6 +196,7 @@ int init_process_umgebung(umgebung_type_e implementation_type)
    int err ;
    static_assert_void( ((typeof(umgebung()))0) == (const umgebung_t *)0 ) ;
    umgebung_t           * umg = (umgebung_t*) (intptr_t) umgebung() ;
+   umgebung_t        temp_umg = umgebung_INIT_FREEABLE ;
    int is_already_initialized = (0 != umg->type) ;
 
    if (is_already_initialized) {
@@ -206,19 +207,18 @@ int init_process_umgebung(umgebung_type_e implementation_type)
    err = initall_process_resources() ;
    if (err) goto ABBRUCH ;
 
-   umgebung_t temp_umg ;
-   err = init_thread_umgebung(&temp_umg, implementation_type) ;
+   err = init_umgebung(&temp_umg, implementation_type) ;
    if (err) goto ABBRUCH ;
 
+   err = move_objectcache( temp_umg.cache, &g_main_objectcache ) ;
+   if (err) goto ABBRUCH ;
+
+   // move is simple memcpy !
    memcpy( umg, (const umgebung_t*)&temp_umg, sizeof(umgebung_t)) ;
-   err = move_objectcache( umg->cache, &g_main_objectcache ) ;
-   if (err) {
-      free_thread_umgebung(umg) ;
-      goto ABBRUCH ;
-   }
 
    return 0 ;
 ABBRUCH:
+   (void) free_umgebung(&temp_umg) ;
    (void) freeall_process_resources() ;
    LOG_ABORT(err) ;
    return err ;

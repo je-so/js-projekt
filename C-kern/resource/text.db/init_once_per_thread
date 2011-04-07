@@ -1,8 +1,8 @@
 # TEXT.DB (1.0)
 # documentation:
 # List of init / free functions called once per thread.
-# The list of init-function is called from first to last entry in init_thread_umgebung.
-# The list of free-function is called from last entry to first entry in free_thread_umgebung.
+# The list of init-function is called from first to last entry in init_umgebung.
+# The list of free-function is called from last entry to first entry in free_umgebung.
 # The header-name field references the C99 header file which exports the function prototypes.
 "init-function",                    "free-function",                    "header-name"
 "init_once_per_thread_log",         "free_once_per_thread_log",         "C-kern/api/umgebung/log.h"

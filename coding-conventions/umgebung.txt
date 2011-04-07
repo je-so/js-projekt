@@ -1,0 +1,22 @@
+title: Umgebung (oriented programming)
+
+»Umgebung« is the German word for environment.
+
+The Umgebung is an object of type <umgebung_t>.
+It defines a reference to every offered service
+a running thread wants to use.
+
+Every thread has its own <umgebung_t> object
+so most services can be implemented without
+locking mechanisms or other means to make them
+thread safe.
+
+Only basic services which more than one thread
+is relying upon must be programmed in a thread
+safe way.
+
+
+
+
+
+

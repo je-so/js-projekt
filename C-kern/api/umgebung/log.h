@@ -219,7 +219,7 @@ struct log_config_t
 
 /* function: new_logconfig
  * Allocates memory for the structure and initializes all variables to default values.
- * The default configuration is to write the log to stderr.
+ * The default configuration is to write the log to standard error.
  * This log service is *not* thread safe. So use it only within a single thread. */
 extern int new_logconfig(/*out*/log_config_t ** log) ;
 
@@ -247,7 +247,7 @@ extern int setbuffermode_logconfig(log_config_t * log, bool mode) ;
 extern void clearbuffer_logconfig(log_config_t * log) ;
 
 /* function: writebuffer_logconfig
- * Writes content of buffer to stderr and clears log buffer (sets length of logbuffer to 0).
+ * Writes content of buffer to standard error and clears log buffer (sets length of logbuffer to 0).
  * This call is ignored if the log is not configured to be in buffered mode. */
 extern void writebuffer_logconfig(log_config_t * log) ;
 

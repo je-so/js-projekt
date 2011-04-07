@@ -66,10 +66,10 @@ struct object_cache_t {
    struct vm_block_t  * vm_rootbuffer ;
 } ;
 
-// group: lifetime
+// group: change
 
 /* Moves content of cached objects from source to destination.
- * Both objects must have initialized. After successfull return
+ * Both objects must have been initialized. After successfull return
  * all cached objects of source are in a freed state and the previous
  * content was transfered to destination. Before the transfer
  * all cached objects in destination are freed. */

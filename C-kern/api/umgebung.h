@@ -111,35 +111,58 @@ struct umgebung_t {
 /* define: umgebung_INIT_MAINSERVICES
  * Static initializer for <umgebung_t>.
  * This ensures that in the main even without calling <init_process_umgebung> first
- * the global log service is available. */
+ * the global log service is available.
+ *
+ * This initializer is used internally. It is reserved to be used
+ * only as initializer for the main thread.
+ * The reason is that services in <umgebung_t> are not thread safe
+ * so every thread keeps its own initialized <umgebung_t>. */
 #define umgebung_INIT_MAINSERVICES { umgebung_type_STATIC, 0, 0, &g_main_logservice, &g_main_objectcache }
+
+/* define: umgebung_INIT_FREEABLE
+ * Static initializer for <umgebung_t>.
+ * This ensures that you can call <free_umgebung> without harm. */
+#define umgebung_INIT_FREEABLE    { umgebung_type_STATIC, 0, 0, 0, 0 }
 
 /* function: init_process_umgebung
  * Initializes global context. Must be called as first function from the main thread.
- * The caller must ensure that it is called only once ! */
+ * EALREADY is returned if it is called more than once.
+ *
+ * Basic services like logging always work even if this function is not called. */
 extern int init_process_umgebung(umgebung_type_e implementation_type) ;
 
-/* function: init_thread_umgebung
- * */
-extern int init_thread_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation_type) ;
+/* function: init_umgebung
+ * Initializes context useful in a thread.
+ * Must be called before a new thread is started. */
+extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation_type) ;
 
 /* function: free_process_umgebung
- * Initializes global context. Must be called as first function in the whole system.
- * The caller must ensure that it is called only once ! */
+ * Frees global context. Must be called as last function from the main
+ * thread of the whole system.
+ *
+ * Uses <free_umgebung> internally but ensures that after return
+ * the global <umgebung_t> is set to umgebung_INIT_MAINSERVICES.
+ * This ensures that basic services like logging always work
+ * even in case of an unitialized system. */
 extern int free_process_umgebung(void) ;
 
-/* function: free_thread_umgebung
- * */
-extern int free_thread_umgebung(umgebung_t * umg) ;
+/* function: free_umgebung
+ * Frees all resources bound to *umg*.
+ * After return not all services of <umgebung_t> atre unoperational.
+ * At least the log service is set to a static allocated service
+ * which allows to write into the log if an error occurs afterwards.
+ *
+ * This function should be called as last before a thread exits. */
+extern int free_umgebung(umgebung_t * umg) ;
 
 // group: internal
 
 /* function: init_default_umgebung
- * Is called from <init_thread_umgebung> if type is set to umgebung_type_DEFAULT. */
+ * Is called from <init_umgebung> if type is set to umgebung_type_DEFAULT. */
 extern int init_default_umgebung(/*out*/umgebung_t * umg) ;
 
 /* function: init_testproxy_umgebung
- * Is called from <init_thread_umgebung> if type is set to umgebung_type_TEST. */
+ * Is called from <init_umgebung> if type is set to umgebung_type_TEST. */
 extern int init_testproxy_umgebung(/*out*/umgebung_t * umg) ;
 
 
