@@ -128,11 +128,14 @@ int move_objectcache( object_cache_t * destination, object_cache_t * source )
    int err ;
 
    // move vm_rootbuffer
-   err = free_vmblock(destination->vm_rootbuffer) ;
-   MEMCOPY( destination->vm_rootbuffer, (const vm_block_t*)source->vm_rootbuffer ) ;
-   *source->vm_rootbuffer = (vm_block_t) vm_block_INIT_FREEABLE ;
+   if (source != destination) {
+      err = free_vmblock(destination->vm_rootbuffer) ;
+      if (err) goto ABBRUCH ;
 
-   if (err) goto ABBRUCH ;
+      MEMCOPY( destination->vm_rootbuffer, (const typeof(*source->vm_rootbuffer)*)source->vm_rootbuffer ) ;
+      *source->vm_rootbuffer = (vm_block_t) vm_block_INIT_FREEABLE ;
+   }
+
    return 0 ;
 ABBRUCH:
    LOG_ABORT_FREE(err) ;
@@ -150,6 +153,8 @@ int unittest_umgebung_objectcache()
    object_cache_t           * cache2 = 0 ;
    vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
    vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
+
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
 
    // TEST init, double free
    TEST(0 == new_objectcache(&cache)) ;
@@ -172,9 +177,7 @@ int unittest_umgebung_objectcache()
    TEST(0 == free_once_per_thread_objectcache( &tempumg )) ;
    TEST( ! tempumg.cache ) ;
 
-
-   TEST(0 == init_vmmappedregions(&mappedregions)) ;
-   // TEST move
+   // TEST move cache -> cache2
    TEST(0 == new_objectcache(&cache)) ;
    TEST(0 == new_objectcache(&cache2)) ;
    TEST(cache) ;
@@ -190,6 +193,14 @@ int unittest_umgebung_objectcache()
    TEST(cache2->vm_rootbuffer->size_in_bytes == pagesize_vm()) ;
    TEST(! cache->vm_rootbuffer->start ) ;
    TEST(! cache->vm_rootbuffer->size_in_bytes ) ;
+
+   // Test move cache2 -> cach2 does nothing !
+   TEST(cache2->vm_rootbuffer->start         == start) ;
+   TEST(cache2->vm_rootbuffer->size_in_bytes == pagesize_vm()) ;
+   TEST(0 == move_objectcache(cache2, cache2)) ;
+   TEST(cache2->vm_rootbuffer->start         == start) ;
+   TEST(cache2->vm_rootbuffer->size_in_bytes == pagesize_vm()) ;
+
 
    // TEST free of vm_rootbuffer
    TEST(0 == delete_objectcache(&cache)) ;

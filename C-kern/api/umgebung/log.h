@@ -151,6 +151,12 @@ extern int free_once_per_thread_log(umgebung_t * umg) ;
  * Example:
  * > const void * ptr = &g_variable ; LOG_PTR(ptr) ; */
 #define LOG_PTR(varname)            LOG_VAR("p", varname)
+/* define: LOG_DOUBLE
+ * Log "name=value" of double or float variable.
+ * Example:
+ * > const double d = 1.234 ; LOG_DOUBLE(d) ; */
+#define LOG_DOUBLE(varname)         LOG_VAR("g", varname)
+
 /* define: LOG_VAR
  * Logs "<varname>=varvalue" of a variable with name varname.
  *

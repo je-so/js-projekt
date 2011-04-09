@@ -153,7 +153,7 @@ extern int compare_vmregion( const vm_region_t * left, const vm_region_t * right
 /* struct: vm_mappedregions_t
  * Buffer which stores a snapshot of all mapped memory regions.
  * Use <init_vmmappedregions> to store a snapshot of the current mapping.
- * Do not forget to free (<free_vmmappedregions>) after using.
+ * Do not forget to call <free_vmmappedregions> after using.
  * To access individual mapping descriptions of type <vm_region_t> use
  * <next_vmmappedregions>. With <gofirst_vmmappedregions> you can reset
  * the internal iterator and scan from the beginning again. */
