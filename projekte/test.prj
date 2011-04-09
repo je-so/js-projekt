@@ -1,7 +1,7 @@
 # Dummy project 
 # Used to test a new module
 include        projekte/binary.gcc
-Src            = C-kern/main/test.c
+Src            = C-kern/main/test.c C-kern/test/run_unittest.c
 Src           += C-kern/os/Linux/*.c C-kern/os/shared/*.c
 Src           += C-kern/math/int/*.c
 Src           += C-kern/umgebung/*.c

@@ -1,0 +1,90 @@
+title: Unittest conventions
+
+Every module has its own unit test.
+This test is contained in the same file as module main implementation file.
+It is enclosed in between a conditional preprocessor directive so that for
+a release version of the software it could be removed by undefining
+a simple preprocessor value.
+
+What to test:
+The unit test should at least test for correct initialization and freeing of
+resources. Then it should have a sub test for every exported
+(external visible) function.
+If a set of states is tested so that every code path
+is executed at least once then is considered enough.
+
+about: Structure
+
+Header file:
+
+The header of a module contains a single test section
+which contains one or more unittest declarations of the
+form »extern int unittest_NAME_OF_TEST(void) ;«.
+See the following example
+
+(start code)
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_os_X11_glxwindow
+ * Tests opening a window on local display. */
+extern int unittest_os_X11_glxwindow(void) ;
+#endif
+(end code)
+
+Source file:
+
+The implementation file must include the
+test macro TEST_ONERROR_GOTO defined in
+file »C-kern/api/test.h«.
+
+It awaits three parameters
+1. The condition to test for
+2. The name of the unit test it will print if an error occurs
+3. The name of the abort label it should jump in case if error
+
+For the abort label the German word »ABBRUCH« is used in most tests.
+The unit test returns 0 in case of success or an error code (> 0).
+
+(start code)
+// section with #include "*.h"
+
+#ifdef KONFIG_UNITTEST
+#include "C-kern/api/test.h"
+#endif
+
+// ... module implementation ...
+
+#ifdef KONFIG_UNITTEST
+
+// Makes handling of TEST_ONERROR_GOTO easier
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_NAME_OF_TEST,ABBRUCH)
+
+int unittest_NAME_OF_TEST()
+{
+   // testtype_INIT_FREEABLE makes it possible to call free_testtype without an error
+   testtype_t t = testtype_INIT_FREEABLE ;
+
+   // TEST init, double free
+   TEST(0 == init_testtype(&t)) ;
+   TEST(t.field_name == VALUE_AFTER_INIT)
+   TEST(0 == free_testtype(&t)) ;
+   TEST(t.field_name == VALUE_AFTER_FREE)
+   TEST(0 == free_testtype(&t)) ;
+   TEST(t.field_name == VALUE_AFTER_FREE)
+
+   // TEST other functionality
+   ...
+
+   // unit test success
+   return 0 ;
+// If a test fails the macro TEST jumps to this label
+ABBRUCH:
+   // free resource in case of abort
+   (void) free_testtype(&t) ;
+   // error occurred
+   // (return either 1 or a more specific error value like EINVAL or ENOSYS)
+   return 1 ;
+}
+#endif
+(end code)

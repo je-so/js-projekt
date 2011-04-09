@@ -1,0 +1,5 @@
+C-kern/umgebung/log.c: Function 'setonoff_logconfig' aborted (err=22)
+C-kern/umgebung/log.c: Function 'setbuffermode_logconfig' aborted (err=22)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=61)
+C-kern/umgebung/log.c: Function 'new_logconfig' aborted (err=22)
+C-kern/umgebung/log.c: Function 'init_once_per_thread_log' aborted (err=22)

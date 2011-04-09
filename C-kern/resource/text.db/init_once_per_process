@@ -6,4 +6,4 @@
 # The header-name field references the C99 header file which exports the function prototypes.
 "init-function",                    "free-function",                    "header-name",                      "subsystem"
 "init_once_per_process_locale",     "free_once_per_process_locale",     "C-kern/api/locale.h",              ""
-"init_once_per_process_X11",        "free_once_per_process_X11",        "C-kern/api/os/X11/x11.h",     "X11"
+"init_once_per_process_X11",        "free_once_per_process_X11",        "C-kern/api/os/X11/x11.h",          "X11"

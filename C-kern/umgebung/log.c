@@ -614,9 +614,7 @@ static int test_log_buffered(void)
    logconf->printf( logconf, "%s", "TESTSTRT\n" ) ;
    logconf->printf( logconf, "%s", "TESTENDE\n" ) ;
    TEST(18 == logconf->log_buffer->buffered_logsize) ;
-   LOG_TURNOFF() ;
    TEST(ENODATA == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
-   LOG_TURNON() ;
    writebuffer_logconfig(logconf) ;
    TEST(0 == logconf->log_buffer->buffered_logsize) ;
 #define LOG_CONTENT "TESTSTRT\nTESTENDE\n"

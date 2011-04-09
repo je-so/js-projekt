@@ -129,8 +129,8 @@ extern int removefile_directorystream(directory_stream_t * dir, const char * fil
 
 // group: test
 #ifdef KONFIG_UNITTEST
-/* function: unittest_directory */
-extern int unittest_directory(void) ;
+/* function: unittest_os_directory */
+extern int unittest_os_directory(void) ;
 #endif
 
 // section: Objects

@@ -454,7 +454,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_directory,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_directory,ABBRUCH)
 
 static int test_isvalid(void)
 {
@@ -805,7 +805,7 @@ ABBRUCH:
    return 1 ;
 }
 
-int unittest_directory()
+int unittest_os_directory()
 {
 
    if (test_isvalid())              goto ABBRUCH ;

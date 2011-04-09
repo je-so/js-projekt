@@ -1,0 +1,9 @@
+C-kern/os/Linux/mmfile.c: Function 'initcreat_mmfile' aborted (err=22)
+C-kern/os/Linux/mmfile.c: Function 'initcreat_mmfile' aborted (err=22)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=61)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=61)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=12)
+Function 'mmap' returned error(12): 'Nicht genügend Hauptspeicher verfügbar'
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=12)
