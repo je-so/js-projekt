@@ -31,8 +31,8 @@ struct osthread_startparam_t {
 } ;
 
 struct osthread_stack_t {
-   void    * start ; // start[0 .. size-1]
-   size_t  size_in_bytes ;
+   void    * addr ; // addr[0 .. size-1]
+   size_t  size ;
 } ;
 
 struct osthread_private_t {
@@ -48,8 +48,8 @@ static_assert( &((osthread_private_t*)0)->osthread == ((osthread_t*)0), "convert
 static int unmap_stackmemory_osthread(osthread_private_t * osthread_private)
 {
    int err ;
-   void *  addr = osthread_private->mapped_frame.start ;
-   size_t  size = osthread_private->mapped_frame.size_in_bytes ;
+   void *  addr = osthread_private->mapped_frame.addr ;
+   size_t  size = osthread_private->mapped_frame.size ;
    if (size) {
       if (munmap(addr, size)) {
          err = errno ;
@@ -120,12 +120,12 @@ static int mapstacks_osthread(osthread_private_t * thread_private)
       goto ABBRUCH ;
    }
 
-   thread_private->mapped_frame.start         = stack_addr ;
-   thread_private->mapped_frame.size_in_bytes = stack_size ;
-   thread_private->signal_stack.start         = stack_addr + page_size ;
-   thread_private->signal_stack.size_in_bytes = signalstack_size ;
-   thread_private->thread_stack.start         = stack_addr + 2 * page_size + signalstack_size ;
-   thread_private->thread_stack.size_in_bytes = threadstack_size ;
+   thread_private->mapped_frame.addr = stack_addr ;
+   thread_private->mapped_frame.size = stack_size ;
+   thread_private->signal_stack.addr = stack_addr + page_size ;
+   thread_private->signal_stack.size = signalstack_size ;
+   thread_private->thread_stack.addr = stack_addr + 2 * page_size + signalstack_size ;
+   thread_private->thread_stack.size = threadstack_size ;
    return 0 ;
 ABBRUCH:
    if (MAP_FAILED != stack_addr) {
@@ -159,8 +159,8 @@ static void * osthread_startpoint(void * start_arg)
    }
 
    stack_t new_signal_stack = {
-      .ss_sp    = thread_private->signal_stack.start ,
-      .ss_size  = thread_private->signal_stack.size_in_bytes,
+      .ss_sp    = thread_private->signal_stack.addr,
+      .ss_size  = thread_private->signal_stack.size,
       .ss_flags = 0
    } ;
 
@@ -224,11 +224,11 @@ int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void
    }
    isThreadAttrValid = true ;
 
-   err = pthread_attr_setstack(&thread_attr, thread_private->thread_stack.start, thread_private->thread_stack.size_in_bytes) ;
+   err = pthread_attr_setstack(&thread_attr, thread_private->thread_stack.addr, thread_private->thread_stack.size) ;
    if (err) {
       LOG_SYSERROR("pthread_attr_setstack",err) ;
-      LOG_PTR(thread_private->thread_stack.start) ;
-      LOG_SIZE(thread_private->thread_stack.size_in_bytes) ;
+      LOG_PTR(thread_private->thread_stack.addr) ;
+      LOG_SIZE(thread_private->thread_stack.size) ;
       goto ABBRUCH ;
    }
    err = pthread_create( &thread_private->osthread.sys_thread, &thread_attr, osthread_startpoint, startparam) ;
@@ -363,8 +363,8 @@ static int thread_sigaltstack(osthread_t * context)
    osthread_private_t * thread_private = (osthread_private_t *) context ;
    memset(&s_threadid, 0, sizeof(s_threadid)) ;
    s_sigaddr = 0 ;
-   uint8_t * stack   = thread_private->signal_stack.start ;
-   size_t stack_size = thread_private->signal_stack.size_in_bytes ;
+   uint8_t * stack   = thread_private->signal_stack.addr ;
+   size_t stack_size = thread_private->signal_stack.size ;
    TEST( ! pthread_equal(s_threadid, pthread_self()) ) ;
    TEST( ! (stack < s_sigaddr && s_sigaddr < stack+stack_size) ) ;
    TEST(0 == pthread_kill(pthread_self(), SIGUSR1)) ;

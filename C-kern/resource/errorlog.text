@@ -79,3 +79,13 @@ PROCESS_TERMINATED_WITH_ERROR:de: process_name, exit_code
 PROCESS_TERMINATED_WITH_ERROR:en: process_name, exit_code
 "Process '%s' terminated with error code '%d'"
 
+X11_DISPLAY_NOT_SET:de:
+"Name des X11 Display-Servers nicht bekannt"
+"Bitte die Umgebungsvariable »DISPLAY« setzen"
+X11_DISPLAY_NOT_SET:en:
+"Default name of X11 display servers unknown"
+"Please set environment variable »DISPLAY« setzen"
+X11_NO_CONNECTION:de: display_server_name
+"Verbindung zu X11 Display-Server '%s' fehlgeschlagen"
+X11_NO_CONNECTION:en: display_server_name
+"Can not connect with X11 display server '%s'"

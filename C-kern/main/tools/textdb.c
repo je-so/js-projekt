@@ -169,8 +169,8 @@ static int readrow_textdb( textdb_t * txtdb )
 {
    int err ;
    bool    isData   = (txtdb->column_count > 0) ;
-   char * next_char = (char*) memstart_mmfile( &txtdb->input_file ) ;
-   size_t input_len = sizeinbytes_mmfile( &txtdb->input_file ) ;
+   char * next_char = (char*) addr_mmfile( &txtdb->input_file ) ;
+   size_t input_len = size_mmfile( &txtdb->input_file ) ;
 
    input_len -= txtdb->scanned_offset ;
    next_char += txtdb->scanned_offset ;
@@ -222,7 +222,7 @@ static int readrow_textdb( textdb_t * txtdb )
    }
 
    if (!input_len) {
-      txtdb->scanned_offset = sizeinbytes_mmfile( &txtdb->input_file ) ;
+      txtdb->scanned_offset = size_mmfile( &txtdb->input_file ) ;
       return ENODATA ;
    }
 
@@ -314,7 +314,7 @@ static int readrow_textdb( textdb_t * txtdb )
       goto ABBRUCH ;
    }
 
-   txtdb->scanned_offset = sizeinbytes_mmfile( &txtdb->input_file ) - input_len ;
+   txtdb->scanned_offset = size_mmfile( &txtdb->input_file ) - input_len ;
    return 0 ;
 ABBRUCH:
    return 1 ;
@@ -966,8 +966,8 @@ static int find_macro(/*out*/char ** start_pos, /*out*/char ** end_pos, /*inout*
 static int process_macro(const mmfile_t * input_file, int outfd)
 {
    int err ;
-   char    * next_input = (char*) memstart_mmfile(input_file) ;
-   size_t    input_size = sizeinbytes_mmfile(input_file) ;
+   char    * next_input = (char*) addr_mmfile(input_file) ;
+   size_t    input_size = size_mmfile(input_file) ;
    size_t   line_number = 1 ;
 
    while(input_size) {

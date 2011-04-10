@@ -160,8 +160,8 @@ int unittest_umgebung_objectcache()
    TEST(0 == new_objectcache(&cache)) ;
    TEST(cache) ;
    TEST(cache->vm_rootbuffer) ;
-   TEST(! cache->vm_rootbuffer->start ) ;
-   TEST(! cache->vm_rootbuffer->size_in_bytes ) ;
+   TEST(! cache->vm_rootbuffer->addr ) ;
+   TEST(! cache->vm_rootbuffer->size ) ;
    TEST(0 == delete_objectcache(&cache)) ;
    TEST(! cache)
    TEST(0 == delete_objectcache(&cache)) ;
@@ -182,24 +182,24 @@ int unittest_umgebung_objectcache()
    TEST(0 == new_objectcache(&cache2)) ;
    TEST(cache) ;
    TEST(cache2) ;
-   TEST(! cache2->vm_rootbuffer->start ) ;
-   TEST(! cache2->vm_rootbuffer->size_in_bytes ) ;
+   TEST(! cache2->vm_rootbuffer->addr ) ;
+   TEST(! cache2->vm_rootbuffer->size ) ;
    TEST(0 == init_vmblock( cache->vm_rootbuffer, 1 )) ;
-   TEST(cache->vm_rootbuffer->start         != 0 ) ;
-   TEST(cache->vm_rootbuffer->size_in_bytes == pagesize_vm()) ;
-   void * start = cache->vm_rootbuffer->start ;
+   TEST(cache->vm_rootbuffer->addr != 0 ) ;
+   TEST(cache->vm_rootbuffer->size == pagesize_vm()) ;
+   void * start = cache->vm_rootbuffer->addr ;
    TEST(0 == move_objectcache(cache2, cache)) ;
-   TEST(cache2->vm_rootbuffer->start         == start) ;
-   TEST(cache2->vm_rootbuffer->size_in_bytes == pagesize_vm()) ;
-   TEST(! cache->vm_rootbuffer->start ) ;
-   TEST(! cache->vm_rootbuffer->size_in_bytes ) ;
+   TEST(cache2->vm_rootbuffer->addr == start) ;
+   TEST(cache2->vm_rootbuffer->size == pagesize_vm()) ;
+   TEST(! cache->vm_rootbuffer->addr ) ;
+   TEST(! cache->vm_rootbuffer->size ) ;
 
    // Test move cache2 -> cach2 does nothing !
-   TEST(cache2->vm_rootbuffer->start         == start) ;
-   TEST(cache2->vm_rootbuffer->size_in_bytes == pagesize_vm()) ;
+   TEST(cache2->vm_rootbuffer->addr == start) ;
+   TEST(cache2->vm_rootbuffer->size == pagesize_vm()) ;
    TEST(0 == move_objectcache(cache2, cache2)) ;
-   TEST(cache2->vm_rootbuffer->start         == start) ;
-   TEST(cache2->vm_rootbuffer->size_in_bytes == pagesize_vm()) ;
+   TEST(cache2->vm_rootbuffer->addr == start) ;
+   TEST(cache2->vm_rootbuffer->size == pagesize_vm()) ;
 
 
    // TEST free of vm_rootbuffer

@@ -141,14 +141,14 @@ ABBRUCH:
 static inline void clear_logbuffer(log_buffer_t * log)
 {
    log->buffered_logsize = 0 ;
-   log->buffer.start[0]  = 0 ;   // NULL terminated string
+   log->buffer.addr[0]   = 0 ;   // NULL terminated string
 }
 
 /* function: getlogbuffer_log
  * Returns start and length of buffered log string. */
 static inline void getlogbuffer_logbuffer(log_buffer_t * log, /*out*/char ** buffer, /*out*/size_t * size)
 {
-   *buffer = (char*) log->buffer.start ;
+   *buffer = (char*) log->buffer.addr ;
    *size   = log->buffered_logsize ;
 }
 
@@ -162,7 +162,7 @@ static void write_logbuffer(log_buffer_t * log)
    do {
       ssize_t bytes ;
       do {
-         bytes = write( STDERR_FILENO, log->buffer.start + bytes_written, log->buffered_logsize - bytes_written) ;
+         bytes = write( STDERR_FILENO, log->buffer.addr + bytes_written, log->buffered_logsize - bytes_written) ;
       } while( bytes < 0 && errno == EINTR ) ;
       if (bytes <= 0) {
          // TODO: add some special log code that always works and which indicates error state in logging
@@ -178,18 +178,18 @@ static void write_logbuffer(log_buffer_t * log)
 static void printf_logbuffer( log_config_t * logconfig, const char * format, ... )
 {
    log_buffer_t * log = logconfig->log_buffer ;
-   size_t buffer_size = log->buffer.size_in_bytes - log->buffered_logsize ;
+   size_t buffer_size = log->buffer.size - log->buffered_logsize ;
 
    for(;;) {
 
       if (buffer_size < 512 ) {
          write_logbuffer(log) ;
-         buffer_size = log->buffer.size_in_bytes ;
+         buffer_size = log->buffer.size ;
       }
 
       va_list args ;
       va_start(args, format) ;
-      int append_size = vsnprintf( log->buffered_logsize + (char*)log->buffer.start, buffer_size, format, args) ;
+      int append_size = vsnprintf( log->buffered_logsize + (char*)log->buffer.addr, buffer_size, format, args) ;
       va_end(args) ;
 
       if ( (unsigned)append_size < buffer_size ) {
@@ -198,7 +198,7 @@ static void printf_logbuffer( log_config_t * logconfig, const char * format, ...
          break ;
       }
 
-      if ( buffer_size == log->buffer.size_in_bytes ) {
+      if ( buffer_size == log->buffer.size ) {
          // => s_logbuffered.buffered_logsize == 0
          // ignore truncate
          log->buffered_logsize = buffer_size - 1/*ignore 0 byte at end*/ ;
@@ -468,8 +468,8 @@ static int test_log_default(void)
    TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
 #define LOG_CONTENT "TEST1: -123: 123test: END-TEST\nTEST2: 1.1: X: END-TEST\n"
    size_t logsize = sizeof(LOG_CONTENT) - 1 ;
-   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
-   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
+   TEST(logsize == size_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(addr_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
    TEST(0 == free_mmfile(&logcontent)) ;
    TEST(0 == delete_logconfig(&logconf)) ;
 
@@ -481,8 +481,8 @@ static int test_log_default(void)
    logconf->printf( logconf, "NOTHING IS WRITTEN: %d: %s: END-NOTHING\n", 4, "5" ) ;
    // test logcontent has not changed
    TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
-   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
-   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
+   TEST(logsize == size_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(addr_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
 #undef LOG_CONTENT
    TEST(0 == free_mmfile(&logcontent)) ;
    TEST(0 == delete_logconfig(&logconf)) ;
@@ -581,8 +581,8 @@ static int test_log_buffered(void)
    TEST(0 == test_defaultvalues(logconf, true, &printf_logstderr)) ;
    TEST(0 == setbuffermode_logconfig(logconf, true)) ;
    TEST(0 == test_bufferedvalues(logconf, true, &printf_logbuffer)) ;
-   TEST(0 != logconf->log_buffer->buffer.start) ;
-   TEST(buffer_size == logconf->log_buffer->buffer.size_in_bytes) ;
+   TEST(0 != logconf->log_buffer->buffer.addr) ;
+   TEST(buffer_size == logconf->log_buffer->buffer.size) ;
    TEST(0 == logconf->log_buffer->buffered_logsize) ;
    TEST(0 == delete_logconfig(&logconf)) ;
    TEST( ! logconf ) ;
@@ -620,8 +620,8 @@ static int test_log_buffered(void)
 #define LOG_CONTENT "TESTSTRT\nTESTENDE\n"
    TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
    size_t logsize = sizeof(LOG_CONTENT) - 1 ;
-   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
-   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
+   TEST(logsize == size_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(addr_mmfile(&logcontent), LOG_CONTENT, logsize)) ;
    TEST(0 == free_mmfile(&logcontent)) ;
    for(size_t i = 0; i < buffer_size-510; ++i) {
       TEST(i   == logconf->log_buffer->buffered_logsize) ;
@@ -630,10 +630,10 @@ static int test_log_buffered(void)
    TEST(1 == logconf->log_buffer->buffered_logsize) ;
    TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
    logsize = sizeof(LOG_CONTENT) - 1 + buffer_size - 511 ;
-   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
-   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, sizeof(LOG_CONTENT)-1)) ;
+   TEST(logsize == size_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(addr_mmfile(&logcontent), LOG_CONTENT, sizeof(LOG_CONTENT)-1)) ;
    for(size_t i = 0; i < buffer_size-511; ++i) {
-      TEST('F' == (memstart_mmfile(&logcontent)[sizeof(LOG_CONTENT)-1+i]) ) ;
+      TEST('F' == (addr_mmfile(&logcontent)[sizeof(LOG_CONTENT)-1+i]) ) ;
    }
    TEST(0 == free_mmfile(&logcontent)) ;
    TEST(0 == delete_logconfig(&logconf)) ;   // writes content of buffer !
@@ -651,10 +651,10 @@ static int test_log_buffered(void)
    writebuffer_logconfig(logconf) ;
    // test logcontent has not changed
    TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
-   TEST(logsize == sizeinbytes_mmfile(&logcontent)) ;
-   TEST(0 == memcmp(memstart_mmfile(&logcontent), LOG_CONTENT, sizeof(LOG_CONTENT)-1)) ;
+   TEST(logsize == size_mmfile(&logcontent)) ;
+   TEST(0 == memcmp(addr_mmfile(&logcontent), LOG_CONTENT, sizeof(LOG_CONTENT)-1)) ;
    for(size_t i = 0; i < buffer_size-510; ++i) {
-      TEST('F' == (memstart_mmfile(&logcontent)[sizeof(LOG_CONTENT)-1+i]) ) ;
+      TEST('F' == (addr_mmfile(&logcontent)[sizeof(LOG_CONTENT)-1+i]) ) ;
    }
 #undef LOG_CONTENT
    TEST(0 == free_mmfile(&logcontent)) ;

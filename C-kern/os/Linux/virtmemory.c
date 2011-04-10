@@ -56,8 +56,8 @@ int compare_vmregion( const vm_region_t * left, const vm_region_t * right )
       return left->name > right->name ? 1 : -1 ; \
    }
 
-   RETURN_ON_UNEQUAL(start) ;
-   RETURN_ON_UNEQUAL(end) ;
+   RETURN_ON_UNEQUAL(addr) ;
+   RETURN_ON_UNEQUAL(endaddr) ;
    RETURN_ON_UNEQUAL(isReadable) ;
    RETURN_ON_UNEQUAL(isWriteable) ;
    RETURN_ON_UNEQUAL(isExecutable) ;
@@ -124,13 +124,13 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    vm_region_t       * next_region = 0 ;
    vm_block_t         * rootbuffer = cache_umgebung()->vm_rootbuffer ;
 
-   if (! rootbuffer->start) {
+   if (! rootbuffer->addr) {
       err = init_vmblock(rootbuffer, 1) ;
       if (err) goto ABBRUCH ;
    }
 
-   const size_t  buffer_maxsize = rootbuffer->size_in_bytes ;
-   uint8_t       * const buffer = rootbuffer->start ;
+   const size_t  buffer_maxsize = rootbuffer->size ;
+   uint8_t       * const buffer = rootbuffer->addr ;
    fd = open( PROC_SELF_MAPS, O_RDONLY|O_CLOEXEC ) ;
    if (fd < 0) {
       LOG_SYSERRNO("open") ;
@@ -187,8 +187,8 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
             }
          }
 
-         next_region->start = (void *) start ;
-         next_region->end   = (void *) end ;
+         next_region->addr         = (void *) start ;
+         next_region->endaddr      = (void *) end ;
          next_region->isReadable   = (isReadable == 'r') ;
          next_region->isWriteable  = (isWriteable == 'w') ;
          next_region->isExecutable = (isExecutable == 'x') ;
@@ -299,8 +299,8 @@ int init_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_pages )
       goto ABBRUCH ;
    }
 
-   new_mapped_block->start         = mapped_pages ;
-   new_mapped_block->size_in_bytes = length_in_bytes ;
+   new_mapped_block->addr = mapped_pages ;
+   new_mapped_block->size = length_in_bytes ;
    return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
@@ -312,10 +312,10 @@ int initorextend_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_p
    int     err ;
    size_t  pagesize         = pagesize_vm() ;
    size_t  length_in_bytes  = pagesize * size_in_pages ;
-   uint8_t *  extended_addr = ext_block->start + ext_block->size_in_bytes ;
+   uint8_t *  extended_addr = ext_block->addr + ext_block->size ;
 
    if (  length_in_bytes / pagesize != size_in_pages
-         || extended_addr < ext_block->start ) {
+         || extended_addr < ext_block->addr ) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -329,12 +329,12 @@ int initorextend_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_p
    }
 
    if (mapped_pages != extended_addr) {
-      new_mapped_block->start         = mapped_pages ;
-      new_mapped_block->size_in_bytes = length_in_bytes ;
+      new_mapped_block->addr  = mapped_pages ;
+      new_mapped_block->size  = length_in_bytes ;
    } else {
-      new_mapped_block->start         = 0 ;
-      new_mapped_block->size_in_bytes = 0 ;
-      ext_block->size_in_bytes       += length_in_bytes ;
+      new_mapped_block->addr  = 0 ;
+      new_mapped_block->size  = 0 ;
+      ext_block->size        += length_in_bytes ;
    }
    return 0 ;
 ABBRUCH:
@@ -350,7 +350,7 @@ int extend_vmblock( vm_block_t * ext_block, size_t increment_in_pages )
    err = initorextend_vmblock( &new_mapped_block, increment_in_pages, ext_block) ;
    if (err) goto ABBRUCH ;
 
-   if (new_mapped_block.size_in_bytes) {
+   if (new_mapped_block.size) {
       (void) free_vmblock(&new_mapped_block) ;
       err = ENOMEM ;
       goto ABBRUCH ;
@@ -366,17 +366,17 @@ int free_vmblock( vm_block_t * mapped_block )
 {
    int err ;
 
-   if (     mapped_block->size_in_bytes
-         && munmap( mapped_block->start, mapped_block->size_in_bytes )) {
+   if (     mapped_block->size
+         && munmap( mapped_block->addr, mapped_block->size )) {
       err = errno ;
       LOG_SYSERRNO("munmap") ;
-      LOG_PTR(mapped_block->start) ;
-      LOG_SIZE(mapped_block->size_in_bytes) ;
+      LOG_PTR(mapped_block->addr) ;
+      LOG_SIZE(mapped_block->size) ;
       goto ABBRUCH ;
    }
 
-   mapped_block->start         = (uint8_t*)0 ;
-   mapped_block->size_in_bytes = 0 ;
+   mapped_block->addr = (uint8_t*)0 ;
+   mapped_block->size = 0 ;
    return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
@@ -400,16 +400,16 @@ static int iscontained_in_mapping(const vm_block_t * mapped_block)
 {
    int result = 0 ;
    vm_mappedregions_t mappedregions = vm_mappedregions_INIT_FREEABLE ;
-   void              * mapped_start = mapped_block->start ;
-   void              * mapped_end   = (void*) (mapped_block->size_in_bytes + mapped_block->start) ;
+   void              * mapped_start = mapped_block->addr ;
+   void              * mapped_end   = (void*) (mapped_block->size + mapped_block->addr) ;
 
    if (init_vmmappedregions(&mappedregions)) {
       result = 4 ;
    }
 
    for(const vm_region_t * next; (next = next_vmmappedregions(&mappedregions)); ) {
-      if (  mapped_start < next->end
-            && mapped_end > next->start ) {
+      if (     mapped_start < next->endaddr
+            && mapped_end   > next->addr ) {
          // overlapping
          if (  next->isExecutable
                || next->isShared
@@ -419,15 +419,15 @@ static int iscontained_in_mapping(const vm_block_t * mapped_block)
             result = 2 ;
             break ;
          }
-         if ( mapped_start < next->start ) {
+         if ( mapped_start < next->addr ) {
             result = 3 ;
             break ;
-         } else if ( mapped_end <= next->end ) {
+         } else if ( mapped_end <= next->endaddr ) {
             result = 1 ;
             break ;
          } else {
             result = 3 ;
-            mapped_start = next->end ;
+            mapped_start = next->endaddr ;
          }
       }
    }
@@ -530,41 +530,41 @@ int unittest_os_virtualmemory()
    // TEST map, unmap
    size_in_pages = 1 ;
    TEST(0 == init_vmblock(&mapped_block, size_in_pages)) ;
-   TEST(mapped_block.start && mapped_block.size_in_bytes == size_in_pages * pagesize_vm()) ;
+   TEST(mapped_block.addr && mapped_block.size == size_in_pages * pagesize_vm()) ;
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
    unmapped_block = mapped_block ;
    TEST(0 == free_vmblock(&unmapped_block)) ;
-   TEST(unmapped_block.start == 0 && unmapped_block.size_in_bytes == 0) ;
+   TEST(! unmapped_block.addr && ! unmapped_block.size ) ;
    TEST(0 == iscontained_in_mapping(&mapped_block)) ;
 
    // TEST map, extend, unmap
    size_in_pages = 10 ;
    TEST(0 == init_vmblock(&mapped_block, size_in_pages)) ;
-   TEST(mapped_block.start && mapped_block.size_in_bytes == size_in_pages * pagesize_vm()) ;
+   TEST(mapped_block.addr && mapped_block.size == size_in_pages * pagesize_vm()) ;
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   {  vm_block_t upperhalf = { mapped_block.start + mapped_block.size_in_bytes/2, mapped_block.size_in_bytes/2 } ;
-      vm_block_t lowerhalf = { mapped_block.start, mapped_block.size_in_bytes/2 } ;
+   {  vm_block_t upperhalf = { mapped_block.addr + mapped_block.size/2, mapped_block.size/2 } ;
+      vm_block_t lowerhalf = { mapped_block.addr, mapped_block.size/2 } ;
       unmapped_block = upperhalf ;
       TEST(0 == free_vmblock(&unmapped_block)) ;
-      TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+      TEST(0 == unmapped_block.addr && 0 == unmapped_block.size) ;
       TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
       TEST(0 == iscontained_in_mapping(&upperhalf)) ;
       TEST(0 == extend_vmblock( &lowerhalf, size_in_pages/2)) ;
-      TEST(lowerhalf.start         == mapped_block.start) ;
-      TEST(lowerhalf.size_in_bytes == mapped_block.size_in_bytes) ;
+      TEST(lowerhalf.addr == mapped_block.addr) ;
+      TEST(lowerhalf.size == mapped_block.size) ;
    }
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
    unmapped_block = mapped_block ;
    TEST(0 == free_vmblock(&unmapped_block)) ;
-   TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
    TEST(0 == iscontained_in_mapping(&mapped_block)) ;
-   unmapped_block.start = mapped_block.start ;
+   unmapped_block.addr = mapped_block.addr ;
    TEST(0 == extend_vmblock( &unmapped_block, size_in_pages)) ;
-   TEST(unmapped_block.start         == mapped_block.start) ;
-   TEST(unmapped_block.size_in_bytes == mapped_block.size_in_bytes) ;
+   TEST(unmapped_block.addr == mapped_block.addr) ;
+   TEST(unmapped_block.size == mapped_block.size) ;
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
    TEST(0 == free_vmblock(&unmapped_block)) ;
-   TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
    TEST(0 == iscontained_in_mapping(&mapped_block)) ;
 
    // TEST map, extend, unmap in (50 pages) loop
@@ -573,27 +573,27 @@ int unittest_os_virtualmemory()
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
    for(size_t i = 0; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
-      vm_block_t upperhalf = { mapped_block.start + unmapoffset, mapped_block.size_in_bytes - unmapoffset } ;
-      vm_block_t lowerhalf = { mapped_block.start, unmapoffset } ;
+      vm_block_t upperhalf = { mapped_block.addr + unmapoffset, mapped_block.size - unmapoffset } ;
+      vm_block_t lowerhalf = { mapped_block.addr, unmapoffset } ;
       unmapped_block = upperhalf ;
       TEST(0 == free_vmblock(&unmapped_block)) ;
-      TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+      TEST(! unmapped_block.addr && ! unmapped_block.size) ;
       TEST(0 == iscontained_in_mapping(&upperhalf)) ;
       if (unmapoffset) {
          TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
       }
       TEST(0 == extend_vmblock(&lowerhalf, size_in_pages-i)) ;
-      TEST(mapped_block.start         == lowerhalf.start) ;
-      TEST(mapped_block.size_in_bytes == lowerhalf.size_in_bytes) ;
+      TEST(mapped_block.addr == lowerhalf.addr) ;
+      TEST(mapped_block.size == lowerhalf.size) ;
    }
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
    for(size_t i = size_in_pages-1; i < size_in_pages; --i) {
       const size_t   unmapoffset = i * pagesize_vm() ;
-      const vm_block_t upperhalf = { mapped_block.start + unmapoffset, pagesize_vm() } ;
-      const vm_block_t lowerhalf = { mapped_block.start, unmapoffset } ;
+      const vm_block_t upperhalf = { mapped_block.addr + unmapoffset, pagesize_vm() } ;
+      const vm_block_t lowerhalf = { mapped_block.addr, unmapoffset } ;
       unmapped_block = upperhalf ;
       TEST(0 == free_vmblock(&unmapped_block)) ;
-      TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+      TEST(! unmapped_block.addr && ! unmapped_block.size) ;
       TEST(0 == iscontained_in_mapping(&upperhalf)) ;
       if (i) {
          TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
@@ -607,38 +607,38 @@ int unittest_os_virtualmemory()
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
    {
       size_t   unmapoffset = 7 * pagesize_vm() ;
-      vm_block_t upperhalf = { mapped_block.start + unmapoffset,  mapped_block.size_in_bytes - unmapoffset } ;
-      vm_block_t lowerhalf = { mapped_block.start, unmapoffset } ;
+      vm_block_t upperhalf = { mapped_block.addr + unmapoffset,  mapped_block.size - unmapoffset } ;
+      vm_block_t lowerhalf = { mapped_block.addr, unmapoffset } ;
       unmapped_block = upperhalf ;
       TEST(0 == free_vmblock(&unmapped_block)) ;
-      TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+      TEST(0 == unmapped_block.addr && 0 == unmapped_block.size) ;
       TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
       TEST(0 == iscontained_in_mapping(&upperhalf)) ;
       for(size_t i = 0; i <= 7; ++i) {
-         vm_block_t ext_block = { mapped_block.start, i * pagesize_vm() } ;
+         vm_block_t ext_block = { mapped_block.addr, i * pagesize_vm() } ;
          upperhalf = lowerhalf ;
          TEST(0 == initorextend_vmblock(&upperhalf, 3, &ext_block)) ;
-         TEST(ext_block.start == mapped_block.start) ;
+         TEST(ext_block.addr == mapped_block.addr) ;
          if (i < 7) {
-            TEST(ext_block.size_in_bytes == i * pagesize_vm() ) ;
-            TEST(upperhalf.start < lowerhalf.start || upperhalf.start >= lowerhalf.start + lowerhalf.size_in_bytes) ;
+            TEST(ext_block.size == i * pagesize_vm() ) ;
+            TEST(upperhalf.addr <= (lowerhalf.addr - 3 * pagesize_vm()) || upperhalf.addr >= lowerhalf.addr + lowerhalf.size) ;
             TEST(1 == iscontained_in_mapping(&upperhalf)) ;
             unmapped_block = upperhalf ;
             TEST(0 == free_vmblock(&unmapped_block)) ;
-            TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+            TEST(! unmapped_block.addr && ! unmapped_block.size) ;
             TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
             TEST(0 == iscontained_in_mapping(&upperhalf)) ;
          } else {
-            TEST(ext_block.size_in_bytes == mapped_block.size_in_bytes) ;
-            TEST(0 == upperhalf.start ) ;
-            TEST(0 == upperhalf.size_in_bytes ) ;
+            TEST(ext_block.size == mapped_block.size ) ;
+            TEST(0 == upperhalf.addr ) ;
+            TEST(0 == upperhalf.size ) ;
          }
       }
    }
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
    unmapped_block = mapped_block ;
    TEST(0 == free_vmblock(&unmapped_block)) ;
-   TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
    TEST(0 == iscontained_in_mapping(&mapped_block)) ;
 
    // TEST map of already mapped
@@ -647,23 +647,23 @@ int unittest_os_virtualmemory()
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
    for(size_t i = 0; i < size_in_pages; ++i) {
       size_t     lowersize = i * pagesize_vm() ;
-      vm_block_t lowerhalf = { mapped_block.start, lowersize } ;
+      vm_block_t lowerhalf = { mapped_block.addr, lowersize } ;
       TEST(ENOMEM == extend_vmblock(&lowerhalf, 1)) ;
    }
 
    // TEST unmap of already unmapped (no error)
    unmapped_block = mapped_block ;
    TEST(0 == free_vmblock(&unmapped_block)) ;
-   TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
    TEST(0 == iscontained_in_mapping(&mapped_block)) ;
    unmapped_block = mapped_block ;
    TEST(0 == free_vmblock(&unmapped_block)) ;
    TEST(0 == iscontained_in_mapping(&mapped_block)) ;
 
    // TEST unmap empty block
-   TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
    TEST(0 == free_vmblock(&unmapped_block)) ;
-   TEST(0 == unmapped_block.start && 0 == unmapped_block.size_in_bytes) ;
+   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
 
    // TEST mapping has not changed
    TEST(0 == init_vmmappedregions(&mappedregions2)) ;

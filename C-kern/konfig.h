@@ -38,9 +38,9 @@
 // Useful preprocessor macros.
 
 //{
-/* define: ARRAY_SIZE
- * Calculates the size (number of elements) of a static array. */
-#define ARRAY_SIZE(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
+/* define: nrelementsof
+ * Calculates the number of elements of a static array. */
+#define nrelementsof(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
 /* define: CONCAT_
  * Used by <CONCAT>. Combines two language tokens into one. */
 #define CONCAT_(S1,S2)  S1 ## S2

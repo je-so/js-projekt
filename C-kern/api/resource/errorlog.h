@@ -35,6 +35,10 @@
         "Prozess '%s' abnormal beendet (exit wert=%d)\n", process_name, exit_code
 #define PROCESS_TERMINATED_WITH_ERROR(process_name, exit_code) \
         "Prozess '%s' beendet mit Fehlercode '%d'\n", process_name, exit_code
+#define X11_DISPLAY_NOT_SET \
+        "Name des X11 Display-Servers nicht bekannt\nBitte die Umgebungsvariable »DISPLAY« setzen\n"
+#define X11_NO_CONNECTION(display_server_name) \
+        "Verbindung zu X11 Display-Server '%s' fehlgeschlagen\n", display_server_name
 
 #elif (KONFIG_LANG == en)
 #define CONDITION_EXPECTED(sCondition) \
@@ -65,6 +69,10 @@
         "Process '%s' terminated abnormal (exit value=%d)\n", process_name, exit_code
 #define PROCESS_TERMINATED_WITH_ERROR(process_name, exit_code) \
         "Process '%s' terminated with error code '%d'\n", process_name, exit_code
+#define X11_DISPLAY_NOT_SET \
+        "Default name of X11 display servers unknown\nPlease set environment variable »DISPLAY« setzen\n"
+#define X11_NO_CONNECTION(display_server_name) \
+        "Can not connect with X11 display server '%s'\n", display_server_name
 
 #else
 #error unsupported language

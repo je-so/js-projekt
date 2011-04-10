@@ -53,6 +53,7 @@ typedef char RESULT_STRING[20] ;
 
 #define GENERATED_LOGRESOURCE_DIR   "C-kern/resource/unittest.log/"
 
+// TODO: make generate_logresource / check_logresource language neutral
 
 /* */
 static void generate_logresource(const char * test_name)
@@ -110,7 +111,7 @@ static int check_logresource(const char * test_name)
    if (logfile_size != 0) {
       err = init_mmfile( &logfile, resource_path, 0, 0, 0, mmfile_openmode_RDONLY ) ;
       if (err) goto ABBRUCH ;
-      logfile_size = sizeinbytes_mmfile(&logfile) ;
+      logfile_size = size_mmfile(&logfile) ;
    }
 
    char * logbuffer ;
@@ -123,7 +124,7 @@ static int check_logresource(const char * test_name)
       goto ABBRUCH ;
    }
 
-   if (logbuffer_size && memcmp( memstart_mmfile(&logfile), logbuffer, logbuffer_size )) {
+   if (logbuffer_size && memcmp( addr_mmfile(&logfile), logbuffer, logbuffer_size )) {
       dprintf( STDERR_FILENO, "Content of read logbuffer:\n%*s\n", logbuffer_size, logbuffer) ;
       err = EINVAL ;
       goto ABBRUCH ;
@@ -232,15 +233,16 @@ for(int type_nr = 0; type_nr < test_umgebung_type_SIZE ; ++type_nr) {
    // other
    RUN(unittest_os_thread) ;
    RUN(unittest_os_virtualmemory) ;
+   // graphik subsystem
 #define X11 1
 #if (KONFIG_GRAPHIK==X11)
-   // graphik subsystem
    RUN(unittest_os_X11) ;
    RUN(unittest_os_X11_display) ;
    RUN(unittest_os_X11_glxwindow) ;
 #endif
 #undef X11
 //}
+
 
    LOG_CLEARBUFFER() ;
 
@@ -250,7 +252,7 @@ for(int type_nr = 0; type_nr < test_umgebung_type_SIZE ; ++type_nr) {
       goto ABBRUCH ;
    }
 
-   break ; // TODO remove line (execute tests only once)
+   break ; // TODO remove: (test only once)
 }
 
 ABBRUCH:

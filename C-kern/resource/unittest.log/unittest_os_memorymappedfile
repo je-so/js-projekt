@@ -1,5 +1,9 @@
-C-kern/os/Linux/mmfile.c: Function 'initcreat_mmfile' aborted (err=22)
-C-kern/os/Linux/mmfile.c: Function 'initcreat_mmfile' aborted (err=22)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
+Function 'openat' returned error(17): 'Die Datei existiert bereits'
+file_path=mmfile
+C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=17)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=61)

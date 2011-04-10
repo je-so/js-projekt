@@ -62,14 +62,14 @@ extern int unittest_os_virtualmemory(void) ;
 struct vm_block_t
 {
    // group: variables
-   /* variable: start
+   /* variable: addr
     * Points to lowest address of mapped memory. */
-   uint8_t   * start ;
-   /* variable: size_in_bytes
-    * Size of mapped memory. The size is a multiple of <pagesize_vm>.
+   uint8_t  * addr ;
+   /* variable: size
+    * Size of mapped memory in bytes. The size is a multiple of <pagesize_vm>.
     * The valid memory region is
-    * > start[ 0 .. size_in_bytes - 1 ] */
-   size_t      size_in_bytes ;
+    * > addr[ 0 .. size - 1 ] */
+   size_t   size ;
 } ;
 
 // group: lifetime
@@ -81,27 +81,27 @@ struct vm_block_t
 
 /* function: init_vmblock
  * New memory is mapped into the virtual address space of the calling process.
- * The new memory has size_in_bytes == size_in_pages * <pagesize_vm>. */
+ * The new memory has size == size_in_pages * <pagesize_vm>. */
 extern int init_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_pages ) ;
 
 /* function: initorextend_vmblock
  * Tries to grow the upper bound of an already mapped address range or to choose a new location.
  * Returns 0 on success else ENOMEM or another system specific error code.
  *
- * In case of success and new_mapped_block->start is != 0:
+ * In case of success and new_mapped_block->addr is != 0:
  * The new mapped address range is
- * > new_mapped_block->start[0 .. size_in_pages * pagesize_vm() -1 ]
+ * > new_mapped_block->addr[0 .. size_in_pages * pagesize_vm() -1 ]
  *
- * In case of success and new_mapped_block->start is == 0:
+ * In case of success and new_mapped_block->addr is == 0:
  * The ext_block is extended into
- * > ext_block->start[0 .. ext_block->size_in_bytes -1 ]
+ * > ext_block->addr[0 .. ext_block->size -1 ]
  * Where
- * > ext_block->size_in_bytes == old (ext_block->size_in_bytes) + size_in_pages * pagesize_vm() */
+ * > ext_block->size == old (ext_block->size) + size_in_pages * pagesize_vm() */
 extern int initorextend_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_pages, vm_block_t * ext_block) ;
 
 /* function: free_vmblock
  * Invalidates virtual memory address range
- * > mapped_block->start[0 .. mapped_block->size_in_bytes - 1 ]
+ * > mapped_block->addr[0 .. mapped_block->size - 1 ]
  * After successull return every access to this memory range will generate a memory exception and
  * mapped_block is set to <vm_block_t.vm_block_INIT_FREEABLE>.
  * Therefore unmapping an already unmapped memory region does nothing and returns success. */
@@ -112,7 +112,7 @@ extern int free_vmblock( vm_block_t * mapped_block ) ;
 /* function: extend_vmblock
  * Tries to grow the upper bound of an already mapped address range.
  * Returns 0 on success else ENOMEM or another system specific error code.
- * In case of success the new address range is [ext_block->start .. ext_block->start + ext_block->size_in_byte + increment_in_pages * <pagesize_vm>).
+ * In case of success the new address range is [ext_block->addr .. ext_block->addr + ext_block->size + increment_in_pages * <pagesize_vm>).
  * In case of error nothing is changed. You can use this function to test if an address range after ext_block is already mapped. */
 extern int extend_vmblock( vm_block_t * ext_block, size_t increment_in_pages) ;
 
@@ -121,14 +121,14 @@ extern int extend_vmblock( vm_block_t * ext_block, size_t increment_in_pages) ;
  * Returns information about a mapped memory region and its access permissions. */
 struct vm_region_t
 {
-   /* variable: start
-    * Start address of mapping. */
-   void * start ;
-   /* variable: end
+   /* variable: addr
+    * Start address or lowest address of mapping. */
+   void * addr ;
+   /* variable: endaddr
     * End address of mapping. It points to the address after the last mapped byte.
     * Therefore the length in pages can be calculated as:
-    * > (end - start) / pagesize_vm() */
-   void * end ;
+    * > (endaddr - addr) / pagesize_vm() */
+   void * endaddr ;
    /* variable: isReadable
     * True if memory can be read. */
    bool isReadable ;
