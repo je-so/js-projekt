@@ -504,10 +504,12 @@ int unittest_os_memorymappedfile()
    vm_mappedregions_t  mappedregions = vm_mappedregions_INIT_FREEABLE ;
    vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
 
-   TEST(0 == inittemp_directorystream(&tempdir, "mmfile" )) ;
-
    // store current mapping
+   prepare_malloctest() ;
+   const size_t malloced_bytes = usedbytes_malloctest() ;
    TEST(0 == init_vmmappedregions(&mappedregions)) ;
+
+   TEST(0 == inittemp_directorystream(&tempdir, "mmfile" )) ;
 
    err = test_creat_mmfile(&tempdir) ;
    if (err) goto ABBRUCH ;
@@ -515,14 +517,16 @@ int unittest_os_memorymappedfile()
    err = test_open_mmfile(&tempdir) ;
    if (err) goto ABBRUCH ;
 
+   TEST(0 == remove_directorystream(&tempdir)) ;
+   TEST(0 == free_directorystream(&tempdir)) ;
+
    // TEST mapping has not changed
+   trimmemory_malloctest() ;
    TEST(0 == init_vmmappedregions(&mappedregions2)) ;
    TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
    TEST(0 == free_vmmappedregions(&mappedregions)) ;
    TEST(0 == free_vmmappedregions(&mappedregions2)) ;
-
-   TEST(0 == remove_directorystream(&tempdir)) ;
-   TEST(0 == free_directorystream(&tempdir)) ;
+   TEST(malloced_bytes == usedbytes_malloctest()) ;
 
    return 0 ;
 ABBRUCH:

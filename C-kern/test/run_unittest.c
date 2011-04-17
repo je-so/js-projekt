@@ -173,16 +173,6 @@ int run_unittest(void)
       ,umgebung_type_DEFAULT
    } ;
 
-   // prepare
-   {
-      vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
-      vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
-      init_vmmappedregions(&mappedregions) ;
-      init_vmmappedregions(&mappedregions2) ;
-      free_vmmappedregions(&mappedregions) ;
-      free_vmmappedregions(&mappedregions2) ;
-   }
-
    LOG_TURNON() ;
    if (  isGenerateLogResource
          || isCheckLogResource) {
@@ -205,8 +195,6 @@ for(int type_nr = 0; type_nr < test_umgebung_type_SIZE ; ++type_nr) {
       goto ABBRUCH ;
    }
 
-   // prepare
-   (void) strerror(ENOMEM) ;
 
    // current development
    // assert(0) ;

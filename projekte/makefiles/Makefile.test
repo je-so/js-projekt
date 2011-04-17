@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Apr.09  15:12:37
+GenerationDate  := 2011.Apr.17  16:29:42
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -82,6 +82,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!os!shared!malloctest.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
@@ -98,6 +99,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
+ $(ObjectDir_Release)/C-kern!os!shared!malloctest.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
@@ -133,6 +135,9 @@ $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfi
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!shared!malloctest.c.o: $(PathOffset)C-kern/os/shared/malloctest.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/signum.c
@@ -175,6 +180,9 @@ $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mm
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!shared!malloctest.c.o: $(PathOffset)C-kern/os/shared/malloctest.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/signum.c
