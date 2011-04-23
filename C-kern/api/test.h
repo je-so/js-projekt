@@ -1,8 +1,9 @@
-/*
-   C-System-Layer: C-kern/api/test.h
-   Copyright (C) 2010 Jörg Seebohn
+/* title: Test
+   Defines a macro for use in unit- and other types of tests.
 
-   This program is free software; you can redistribute it and/or modify
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
@@ -11,13 +12,19 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
+   Author:
+   (C) 2011 Jörg Seebohn
+
+   file: C-kern/api/test.h
+    Header file of <Test>.
 */
 #ifndef CKERN_API_TEST_HEADER
 #define CKERN_API_TEST_HEADER
 
 // section: Test
 
-// group: Macro
+// group: macros
 
 /* define: TEST_ONERROR_GOTO
  * Tests CONDITION and exits on error.
@@ -30,33 +37,26 @@
  * ERROR_LABEL        - Name of label the test macro jumps in case of error.
  *
  * Usage:
- * TODO describe usage
+ * The following demonstrates how this macro is used:
+ *
+ * > #ifdef KONFIG_UNITTEST
+ * > #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_demonstration,ABBRUCH)
+ * > int unittest_demonstration()
+ * > {
+ * >    testtype_t testtype = type_INIT_FREEABLE ;
+ * >    TEST(0 == init_testtype(&testtype)) ;
+ * >    TEST(0 == free_testtype(&testtype)) ;
+ * >    return 0 ; // success
+ * > ABBRUCH:
+ * >    free_testtype(&testtype) ;
+ * >    return 1 ; // any error code
+ * > }
+ * > #endif
  * */
 #define TEST_ONERROR_GOTO(CONDITION,TEST_FUNCTION_NAME,ERROR_LABEL) \
    if ( !(CONDITION) ) {\
       dprintf( STDERR_FILENO, "%s:%d: %s():\n FAILED TEST (%s)\n", __FILE__, __LINE__, #TEST_FUNCTION_NAME, #CONDITION) ;\
       goto ERROR_LABEL ;\
    }
-
-// group: malloc
-
-/* function: prepare_malloctest
- * Inits test of system-malloc.
- * The GNU C library offers some
- * a query function for malloc so
- * this function does 2 steps:
- * 1. Call system functions which
- *    allocate system memory (strerror).
- * 2. Free all allocated but unused memory. */
-extern void prepare_malloctest(void) ;
-
-/* function: trimmemory_malloctest
- * Frees preallocated memory which is not in use. */
-extern void trimmemory_malloctest(void) ;
-
-/* function: usedbytes_malloctest
- * Returns alloctaed number of bytes which are not freed. */
-extern size_t usedbytes_malloctest(void) ;
-
 
 #endif

@@ -27,6 +27,7 @@
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/test/malloctest.h"
 #endif
 
 
@@ -503,10 +504,9 @@ int unittest_os_memorymappedfile()
    directory_stream_t        tempdir = directory_stream_INIT_FREEABLE ;
    vm_mappedregions_t  mappedregions = vm_mappedregions_INIT_FREEABLE ;
    vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
+   const size_t       malloced_bytes = allocatedsize_malloctest() ;
 
    // store current mapping
-   prepare_malloctest() ;
-   const size_t malloced_bytes = usedbytes_malloctest() ;
    TEST(0 == init_vmmappedregions(&mappedregions)) ;
 
    TEST(0 == inittemp_directorystream(&tempdir, "mmfile" )) ;
@@ -526,7 +526,7 @@ int unittest_os_memorymappedfile()
    TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
    TEST(0 == free_vmmappedregions(&mappedregions)) ;
    TEST(0 == free_vmmappedregions(&mappedregions2)) ;
-   TEST(malloced_bytes == usedbytes_malloctest()) ;
+   TEST(malloced_bytes == allocatedsize_malloctest()) ;
 
    return 0 ;
 ABBRUCH:
