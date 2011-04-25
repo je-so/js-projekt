@@ -51,21 +51,21 @@ path '../../x//y/z' contains '.', '//' or '..'
 path '../../x/y/z//' contains '.', '//' or '..'
 path '../x/../y/z' contains '.', '//' or '..'
 path '../x/y/z/..' contains '.', '//' or '..'
-Function 'openat' returned error(2): 'Datei oder Verzeichnis nicht gefunden'
+Function 'openat' returned error(2): 'No such file or directory'
 dir_path=.....
 C-kern/os/Linux/directory.c: Function 'init_directorystream' aborted (err=2)
-Function 'openat' returned error(20): 'Ist kein Verzeichnis'
+Function 'openat' returned error(20): 'Not a directory'
 dir_path=/tmp/test1.123456/file_000000
 C-kern/os/Linux/directory.c: Function 'init_directorystream' aborted (err=20)
-Function 'mkdir(dir->path, 0700)' returned error(13): 'Keine Berechtigung'
+Function 'mkdir(dir->path, 0700)' returned error(13): 'Permission denied'
 dir->path=/XXXXXXXX.test
 C-kern/os/Linux/directory.c: Function 'makedirectory_directorystream' aborted (err=13)
-Function 'open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC)' returned error(13): 'Keine Berechtigung'
+Function 'open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC)' returned error(13): 'Permission denied'
 dir->path=/XXXXXXXX.test
 C-kern/os/Linux/directory.c: Function 'makefile_directorystream' aborted (err=13)
-Function 'rmdir' returned error(39): 'Das Verzeichnis ist nicht leer'
+Function 'rmdir' returned error(39): 'Directory not empty'
 dir->path=/tmp/test1.123456/..
 C-kern/os/Linux/directory.c: Function 'removedirectory_directorystream' aborted (err=39)
-Function 'openat' returned error(2): 'Datei oder Verzeichnis nicht gefunden'
+Function 'openat' returned error(2): 'No such file or directory'
 dir_path=/tmp/test1.123456/
 C-kern/os/Linux/directory.c: Function 'init_directorystream' aborted (err=2)

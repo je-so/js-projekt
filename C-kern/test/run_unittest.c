@@ -53,9 +53,9 @@ typedef char RESULT_STRING[20] ;
 
 #define GENERATED_LOGRESOURCE_DIR   "C-kern/resource/unittest.log/"
 
-// TODO: make generate_logresource / check_logresource language neutral
 
-/* */
+/* function: generate_logresource
+ * Writes log buffer to "C-kern/resource/unittest.log/" + test_name. */
 static void generate_logresource(const char * test_name)
 {
    int     err = EINVAL ;
@@ -141,6 +141,13 @@ ABBRUCH:
    return err ;
 }
 
+/* function: print_result
+ * Stores result of current test and prints progress.
+ * If err is 0 (No error) then a '.' is printed else an '!'.
+ * The result of previous executed are also printed until
+ * the number all executed tests reaches sizeof(RESULT_STRING)==20.
+ * Then the number of the previously executed tests (parameter progress_count)
+ * is reset to 0 and the whol process starts from the beginning. */
 static void print_result(int err, RESULT_STRING * progress, unsigned * progress_count)
 {
    assert(*progress_count < sizeof(*progress)) ;
@@ -164,11 +171,10 @@ int run_unittest(void)
    unsigned progress_count = 0 ;
    const bool        oldlog_onstate = LOG_ISON() ;
    const bool  oldlog_bufferedstate = LOG_ISBUFFERED() ;
-   const bool isGenerateLogResource = true ;   // SET !true! if unittests has changed !!
+   const bool isGenerateLogResource = true ; // only written of no old version exists
    const bool    isCheckLogResource = true ;
    RESULT_STRING           progress ;
-#define     test_umgebung_type_SIZE /*=*/ 2 /*;*/
-   const umgebung_type_e test_umgebung_type[test_umgebung_type_SIZE] = {
+   const umgebung_type_e test_umgebung_type[2] = {
        umgebung_type_TEST
       ,umgebung_type_DEFAULT
    } ;
@@ -186,7 +192,7 @@ int run_unittest(void)
    RUN(unittest_umgebung_log) ;
    RUN(unittest_umgebung_objectcache) ;
 
-for(int type_nr = 0; type_nr < test_umgebung_type_SIZE ; ++type_nr) {
+for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr) {
 
    // init
    if (init_process_umgebung(test_umgebung_type[type_nr])) {
@@ -195,6 +201,8 @@ for(int type_nr = 0; type_nr < test_umgebung_type_SIZE ; ++type_nr) {
       goto ABBRUCH ;
    }
 
+   // make printed system error messages language (English) neutral
+   setlocale(LC_MESSAGES, "C") ;
 
    // current development
    // assert(0) ;

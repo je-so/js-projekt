@@ -61,6 +61,9 @@ void trimmemory_malloctest()
 
 /* function: allocatedsize_malloctest impl
  * Uses GNU malloc_stats extension.
+ * This functions returns internal collected statistics
+ * about memory usage so implementing a thin wrapper
+ * for malloc is not necessary.
  * This function may be missing on some platforms.
  * Currently it is only working on Linux platforms.
  *

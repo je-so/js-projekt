@@ -1,7 +1,7 @@
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
-Function 'openat' returned error(17): 'Die Datei existiert bereits'
+Function 'openat' returned error(17): 'File exists'
 file_path=mmfile
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=17)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
@@ -9,5 +9,5 @@ C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=22)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=61)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=61)
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=12)
-Function 'mmap' returned error(12): 'Nicht genügend Hauptspeicher verfügbar'
+Function 'mmap' returned error(12): 'Cannot allocate memory'
 C-kern/os/Linux/mmfile.c: Function 'init_mmfile' aborted (err=12)
