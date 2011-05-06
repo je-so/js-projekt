@@ -592,7 +592,7 @@ ABBRUCH:
 static volatile int s_shared_count = 0 ;
 static volatile int s_shared_wrong = 0 ;
 
-static int thread_lockmutex(osthread_t * context)
+static int thread_loop(osthread_t * context)
 {
    int err = 0 ;
    osthread_mutex_t * mutex = (osthread_mutex_t *) context->thread_argument ;
@@ -607,6 +607,23 @@ static int thread_lockmutex(osthread_t * context)
       s_shared_wrong = v ;
    }
 
+   return err ;
+}
+
+static volatile int s_lockmutex_signal = 0 ;
+
+static int thread_lockunlockmutex(osthread_t * context)
+{
+   int err ;
+   osthread_mutex_t * mutex = (osthread_mutex_t *) context->thread_argument ;
+   err = lock_osthreadmutex(mutex) ;
+   if (!err) {
+      s_lockmutex_signal = 1 ;
+      while( s_lockmutex_signal ) {
+         pthread_yield() ;
+      }
+      err = unlock_osthreadmutex(mutex) ;
+   }
    return err ;
 }
 
@@ -646,8 +663,8 @@ static int test_thread_mutex_staticinit(void)
    // TEST 2 threads parallel counting: lock, unlock
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_osthread(&thread1, thread_lockmutex, &mutex)) ;
-   TEST(0 == new_osthread(&thread2, thread_lockmutex, &mutex)) ;
+   TEST(0 == new_osthread(&thread1, &thread_loop, &mutex)) ;
+   TEST(0 == new_osthread(&thread2, &thread_loop, &mutex)) ;
    TEST(0 == join_osthread(thread1)) ;
    TEST(0 == join_osthread(thread2)) ;
    TEST(0 == thread1->thread_returncode ) ;
@@ -660,9 +677,9 @@ static int test_thread_mutex_staticinit(void)
    // TEST sequential threads do not need lock
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_osthread(&thread1, thread_lockmutex, &mutex)) ;
+   TEST(0 == new_osthread(&thread1, &thread_loop, &mutex)) ;
    TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == new_osthread(&thread2, thread_lockmutex, &mutex)) ;
+   TEST(0 == new_osthread(&thread2, &thread_loop, &mutex)) ;
    TEST(0 == join_osthread(thread2)) ;
    TEST(0 == thread1->thread_returncode ) ;
    TEST(0 == thread2->thread_returncode ) ;
@@ -704,12 +721,16 @@ static int test_thread_mutex_staticinit(void)
    }
 
    // TEST EBUSY: calling free on a locked mutex
-   TEST(0 == lock_osthreadmutex(&mutex)) ;
-   TEST(0 == new_osthread(&thread1, thread_freemutex, &mutex)) ;
+   s_lockmutex_signal = 0 ;
+   TEST(0 == new_osthread(&thread1, &thread_lockunlockmutex, &mutex)) ;
+   while( ! s_lockmutex_signal ) {
+      pthread_yield() ;
+   }
+   TEST(EBUSY == free_osthreadmutex(&mutex)) ;
+   s_lockmutex_signal = 0 ;
    TEST(0 == join_osthread(thread1)) ;
-   TEST(EBUSY == thread1->thread_returncode ) ;
+   TEST(0 == thread1->thread_returncode ) ;
    TEST(0 == delete_osthread(&thread1)) ;
-   TEST(0 == unlock_osthreadmutex(&mutex)) ;
 
    // TEST calling unlock from another thread is executed
    TEST(0 == lock_osthreadmutex(&mutex)) ;
@@ -757,8 +778,8 @@ static int test_thread_mutex_errorcheck(void)
    // TEST 2 threads parallel counting: lock, unlock
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_osthread(&thread1, thread_lockmutex, &mutex)) ;
-   TEST(0 == new_osthread(&thread2, thread_lockmutex, &mutex)) ;
+   TEST(0 == new_osthread(&thread1, &thread_loop, &mutex)) ;
+   TEST(0 == new_osthread(&thread2, &thread_loop, &mutex)) ;
    TEST(0 == join_osthread(thread1)) ;
    TEST(0 == join_osthread(thread2)) ;
    TEST(0 == thread1->thread_returncode ) ;
@@ -771,9 +792,9 @@ static int test_thread_mutex_errorcheck(void)
    // TEST sequential threads do not need lock
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_osthread(&thread1, thread_lockmutex, &mutex)) ;
+   TEST(0 == new_osthread(&thread1, &thread_loop, &mutex)) ;
    TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == new_osthread(&thread2, thread_lockmutex, &mutex)) ;
+   TEST(0 == new_osthread(&thread2, &thread_loop, &mutex)) ;
    TEST(0 == join_osthread(thread2)) ;
    TEST(0 == thread1->thread_returncode ) ;
    TEST(0 == thread2->thread_returncode ) ;
@@ -788,25 +809,30 @@ static int test_thread_mutex_errorcheck(void)
    TEST(0 == unlock_osthreadmutex(&mutex)) ;
 
    // TEST EBUSY: calling free on a locked mutex
-   TEST(0 == lock_osthreadmutex(&mutex)) ;
-   TEST(0 == new_osthread(&thread1, thread_freemutex, &mutex)) ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(EBUSY == thread1->thread_returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   TEST(0 == unlock_osthreadmutex(&mutex)) ;
-
-   // TEST EPERM: calling unlock from another thread is prevented
-   TEST(0 == lock_osthreadmutex(&mutex)) ;
-   TEST(0 == new_osthread(&thread1, thread_unlockmutex, &mutex)) ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(EPERM == thread1->thread_returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   TEST(0 == unlock_osthreadmutex(&mutex)) ;
-   // now check that free generates no error
-   TEST(0 == new_osthread(&thread1, thread_freemutex, &mutex)) ;
+   s_lockmutex_signal = 0 ;
+   TEST(0 == new_osthread(&thread1, &thread_lockunlockmutex, &mutex)) ;
+   while( ! s_lockmutex_signal ) {
+      pthread_yield() ;
+   }
+   TEST(EBUSY == free_osthreadmutex(&mutex)) ;
+   s_lockmutex_signal = 0 ;
    TEST(0 == join_osthread(thread1)) ;
    TEST(0 == thread1->thread_returncode ) ;
    TEST(0 == delete_osthread(&thread1)) ;
+
+   // TEST EPERM: calling unlock from another thread is prevented
+   s_lockmutex_signal = 0 ;
+   TEST(0 == new_osthread(&thread1, &thread_lockunlockmutex, &mutex)) ;
+   while( ! s_lockmutex_signal ) {
+      pthread_yield() ;
+   }
+   TEST(EPERM == unlock_osthreadmutex(&mutex)) ;
+   s_lockmutex_signal = 0 ;
+   TEST(0 == join_osthread(thread1)) ;
+   TEST(0 == thread1->thread_returncode ) ;
+   TEST(0 == delete_osthread(&thread1)) ;
+   // now check that free generates no error
+   TEST(0 == free_osthreadmutex(&mutex)) ;
    TEST(0 == init_osthreadmutex(&mutex)) ;
 
    // TEST EPERM: calling unlock twice is prevented

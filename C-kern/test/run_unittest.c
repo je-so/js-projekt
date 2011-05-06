@@ -46,8 +46,8 @@ typedef char RESULT_STRING[20] ;
 #define RUN(FCT) \
    LOG_CLEARBUFFER() ; \
    err = FCT() ; \
-   if (!err && isGenerateLogResource) generate_logresource(#FCT) ; \
-   if (!err && isCheckLogResource) err = check_logresource(#FCT) ; \
+   if (!err) generate_logresource(#FCT) ; \
+   if (!err) err = check_logresource(#FCT) ; \
    ++total_count ; if (err) ++err_count ; \
    print_result( err, &progress, &progress_count) ;
 
@@ -94,7 +94,11 @@ ABBRUCH:
    return ;
 }
 
-
+/* function: check_logresource
+ * Compares saved log with content of log buffer.
+ * The log *test_name* is read from directory "C-kern/resource/unittest.log/"
+ * and compared with the content of the log buffer.
+ * The content of the log buffer is queried with <LOG_GETBUFFER>. */
 static int check_logresource(const char * test_name)
 {
    int              err ;
@@ -171,8 +175,6 @@ int run_unittest(void)
    unsigned progress_count = 0 ;
    const bool        oldlog_onstate = LOG_ISON() ;
    const bool  oldlog_bufferedstate = LOG_ISBUFFERED() ;
-   const bool isGenerateLogResource = true ; // only written of no old version exists
-   const bool    isCheckLogResource = true ;
    RESULT_STRING           progress ;
    const umgebung_type_e test_umgebung_type[2] = {
        umgebung_type_TEST
@@ -180,10 +182,7 @@ int run_unittest(void)
    } ;
 
    LOG_TURNON() ;
-   if (  isGenerateLogResource
-         || isCheckLogResource) {
-      LOG_CONFIG_BUFFERED(true) ;
-   }
+   LOG_CONFIG_BUFFERED(true) ;
 
    // before init
    RUN(unittest_umgebung) ;
@@ -200,6 +199,9 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
       dprintf( STDERR_FILENO, "%s\n", "Abort reason: init_process_umgebung failed" ) ;
       goto ABBRUCH ;
    }
+
+   LOG_TURNON() ;
+   LOG_CONFIG_BUFFERED(true) ;
 
    // make printed system error messages language (English) neutral
    setlocale(LC_MESSAGES, "C") ;
@@ -239,7 +241,6 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 #undef X11
 //}
 
-
    LOG_CLEARBUFFER() ;
 
    if (free_process_umgebung()) {
@@ -248,7 +249,6 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
       goto ABBRUCH ;
    }
 
-   break ; // TODO remove: (test only once)
 }
 
 ABBRUCH:
@@ -263,8 +263,6 @@ ABBRUCH:
    } else {
       printf( "\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
    }
-
-   free_process_umgebung() ;
 
    return err_count > 0 ;
 }

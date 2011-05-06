@@ -32,7 +32,7 @@
 /* function: openfd_filetest
  * Returns number of opened file descriptors.
  * Use this function at the beginning and the end
- * of your test to check is a file or network socket
+ * of your test to check if a file or network socket
  * is not closed properly. */
 extern size_t openfd_filetest(void) ;
 

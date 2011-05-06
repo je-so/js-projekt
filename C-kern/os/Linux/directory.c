@@ -22,6 +22,7 @@
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/test/filetest.h"
 #endif
 
 
@@ -795,7 +796,9 @@ static int test_directory_filesize(void)
       TEST(0 == removefile_directorystream(&tempdir, filename)) ;
    }
    TEST(0 == remove_directorystream(&tempdir)) ;
+
    TEST(0 == free_directorystream(&tempdir)) ;
+   TEST(0 == free_directorystream(&workdir)) ;
 
    return 0 ;
 ABBRUCH:
@@ -807,11 +810,16 @@ ABBRUCH:
 
 int unittest_os_directory()
 {
+   size_t opened_files = openfd_filetest() ;
 
    if (test_isvalid())              goto ABBRUCH ;
+   TEST(opened_files == openfd_filetest()) ;
    if (test_directory_stream())     goto ABBRUCH ;
+   TEST(opened_files == openfd_filetest()) ;
    if (test_directory_local())      goto ABBRUCH ;
+   TEST(opened_files == openfd_filetest()) ;
    if (test_directory_filesize())   goto ABBRUCH ;
+   TEST(opened_files == openfd_filetest()) ;
 
    return 0 ;
 ABBRUCH:
