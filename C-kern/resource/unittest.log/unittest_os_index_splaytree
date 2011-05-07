@@ -1,0 +1,13 @@
+Function 'splaytree_update_key_t callback' returned error(12): 'Cannot allocate memory'
+C-kern/os/shared/index/splaytree.c: Function 'updatekey_splaytree' aborted (err=12)
+Function 'splaytree_update_key_t callback' returned error(12): 'Cannot allocate memory'
+C-kern/os/shared/index/splaytree.c: Function 'updatekey_splaytree' aborted (err=12)
+Function 'splaytree_update_key_t callback' returned error(12): 'Cannot allocate memory'
+C-kern/os/shared/index/splaytree.c: Function 'updatekey_splaytree' aborted (err=12)
+Function 'splaytree_update_key_t callback' returned error(12): 'Cannot allocate memory'
+C-kern/os/shared/index/splaytree.c: Function 'updatekey_splaytree' aborted (err=12)
+Function 'splaytree_update_key_t callback' returned error(12): 'Cannot allocate memory'
+C-kern/os/shared/index/splaytree.c: Function 'updatekey_splaytree' aborted (err=12)
+C-kern/os/shared/index/splaytree.c: Function 'updatekey_splaytree' aborted (err=17)
+C-kern/os/shared/index/splaytree.c: Function 'updatekey_splaytree' aborted (err=17)
+C-kern/os/shared/index/splaytree.c: Function 'updatekey_splaytree' aborted (err=17)

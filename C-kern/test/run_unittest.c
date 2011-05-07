@@ -34,6 +34,7 @@
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/os/filesystem/directory.h"
 #include "C-kern/api/os/filesystem/mmfile.h"
+#include "C-kern/api/os/index/splaytree.h"
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/virtmemory.h"
 
@@ -239,6 +240,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_os_X11_glxwindow) ;
 #endif
 #undef X11
+   // database subsystem
+   RUN(unittest_os_index_splaytree) ;
 //}
 
    LOG_CLEARBUFFER() ;
