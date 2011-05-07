@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.May.07  05:06:48
+GenerationDate  := 2011.May.07  05:16:07
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -85,6 +85,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!malloctest.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
+ $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
@@ -104,6 +105,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!malloctest.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
+ $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
@@ -148,6 +150,9 @@ $(ObjectDir_Debug)/C-kern!os!shared!malloctest.c.o: $(PathOffset)C-kern/os/share
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o: $(PathOffset)C-kern/os/shared/index/splaytree.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o: $(PathOffset)C-kern/os/shared/index/redblacktree.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/signum.c
@@ -199,6 +204,9 @@ $(ObjectDir_Release)/C-kern!os!shared!malloctest.c.o: $(PathOffset)C-kern/os/sha
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o: $(PathOffset)C-kern/os/shared/index/splaytree.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o: $(PathOffset)C-kern/os/shared/index/redblacktree.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/signum.c
