@@ -393,7 +393,7 @@ static int test_thread_sigaltstack(void)
    bool   isAction = false ;
 
    if (!s_alt_stack1) {
-      LOG_TEXT(MEMORY_ERROR_OUT_OF(2*SIGSTKSZ)) ;
+      LOG_OUTOFMEMORY((2*SIGSTKSZ)) ;
       goto ABBRUCH ;
    }
 

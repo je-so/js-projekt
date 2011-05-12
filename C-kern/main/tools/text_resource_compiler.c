@@ -538,13 +538,13 @@ static int isPreprocessorToken(const char * string)
       return false ;
 }
 
-int write_cheaderfile(resourcefile_t * resfile, const char * C_HeaderFilename, const char * switchlabel)
+int write_cheaderfile(resourcefile_t * resfile, const char * C_HeaderFilename, const char * switchlabel, const char * labelprefix)
 {
-   assert(resfile && C_HeaderFilename && switchlabel) ;
-   struct stat filestat ;
-   int  err = 1 ;
-   FILE * outfile = 0 ;
-   char * header_define = strdup( C_HeaderFilename ) ;
+   assert(resfile && C_HeaderFilename && switchlabel && labelprefix) ;
+   int err = 1 ;
+   struct stat   filestat ;
+   FILE        * outfile       = 0 ;
+   char        * header_define = strdup( C_HeaderFilename ) ;
 
    if (!header_define) {
       print_err( "Out of memory!\n" ) ;
@@ -589,7 +589,7 @@ int write_cheaderfile(resourcefile_t * resfile, const char * C_HeaderFilename, c
          fprintf( outfile, "%sif (%s == %s)\n", (langStart == resfile->first)?"#":"\n#el", switchlabel, langStart->langCode) ;
          for( text = langStart; text; text = text->next) {
             if (strcmp(text->langCode, langStart->langCode)) continue ; // skip wrong language
-            fprintf( outfile, "#define %.*s", text->nameLen, text->name) ;
+            fprintf( outfile, "#define %s%.*s", labelprefix, text->nameLen, text->name) ;
             bool isParam = false ;
             for( size_t i = 0 ; i < text->paramCount; ++i) {
                if (isPreprocessorToken(text->parameter[i]))
@@ -658,22 +658,31 @@ int main(int argc, char* argv[])
 
    if (argc < 2) goto PRINT_USAGE ;
 
-   int isPrintHelp = (0==strcmp(argv[1], "-h")) ;
+   int isPrintHelp = (     (0 == strcmp(argv[1], "-h"))
+                        || (0 == strcmp(argv[1], "--help")) ) ;
    if (isPrintHelp) goto PRINT_USAGE ;
 
    int currentArgIndex = 1 ;
    const char * C_HeaderFilename = 0 ;
    const char * switchlabel = "LANGUAGE" ;
-   if (0==strcmp(argv[currentArgIndex], "-c")) {
+   const char * labelprefix = "" ;
+   if (0 == strcmp(argv[currentArgIndex], "-c")) {
       if (argc < currentArgIndex+3) goto PRINT_USAGE ;
       C_HeaderFilename = argv[++ currentArgIndex] ;
       ++ currentArgIndex ;
    }
 
-   if (  0==strcmp(argv[currentArgIndex], "-s")
-         || 0==strcmp(argv[currentArgIndex], "--switch")) {
+   if (     0 == strcmp(argv[currentArgIndex], "-s")
+         || 0 == strcmp(argv[currentArgIndex], "--switch")) {
       if (argc < currentArgIndex+3) goto PRINT_USAGE ;
       switchlabel = argv[++ currentArgIndex] ;
+      ++ currentArgIndex ;
+   }
+
+   if (     0 == strcmp(argv[currentArgIndex], "-p")
+         || 0 == strcmp(argv[currentArgIndex], "--prefix")) {
+      if (argc < currentArgIndex+3) goto PRINT_USAGE ;
+      labelprefix = argv[++ currentArgIndex] ;
       ++ currentArgIndex ;
    }
 
@@ -688,7 +697,7 @@ int main(int argc, char* argv[])
          err = 1 ;
       } else if (read_textresourcefile(resfile)) {
          err = 1 ;
-      } else if (write_cheaderfile(resfile, C_HeaderFilename, switchlabel)) {
+      } else if (write_cheaderfile(resfile, C_HeaderFilename, switchlabel, labelprefix)) {
          err = 1 ;
       }
 
@@ -699,11 +708,13 @@ int main(int argc, char* argv[])
 
 PRINT_USAGE:
    fprintf(stderr, "ResourceTextCompiler version 0.1; Copyright (C) 2010 Joerg Seebohn\n" ) ;
-   fprintf(stderr, "\nUsage(1): %s -c <C-header.h> [-s <label>] <resource.text>\n\n", g_programname ) ;
-   fprintf(stderr, "%s", "Generates a C header file whereas a text entry in <resource.text> is represented as a define.\n") ;
-   fprintf(stderr, "%s", "-s is used to set the name of the define which is used to configure the language\n") ;
+   fprintf(stderr, "\nUsage(1): %s -c <C-header.h> [-s <label>] [-p <prefix>] <resource.text>\n\n", g_programname ) ;
+   fprintf(stderr, "%s", "Generates a C header file whereas a text entry in <resource.text> is represented as a defined string.\n") ;
+   fprintf(stderr, "%s", "-s is used to set the name of the defined switch which is used to configure the language\n") ;
    fprintf(stderr, "%s", "during compile time (#if (<label> == en) ... #elif (<label> == de) ...).\n") ;
    fprintf(stderr, "%s", "LANGUAGE is used as default value if no value is set.\n") ;
+   fprintf(stderr, "%s", "-p is used to set the prefix of the generated names.\n") ;
+   fprintf(stderr, "%s", "The prefix is left empty if no value is set.\n") ;
 
    if (isPrintHelp) {
       // fprintf(stderr, "%s", "\nSyntax of text resource file\n" ) ;

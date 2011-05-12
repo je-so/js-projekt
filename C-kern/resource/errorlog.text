@@ -13,18 +13,6 @@ CONTEXT_INFO:de: sContext
 CONTEXT_INFO:en: sContext
 "In relation to following context '%s'"
 
-DIRECTORY_ERROR_TOO_MANY_LEADING_DOTS:de: checked_path, basedir
-"Pfad '%s' enthält zuviel führende '../'"
-"relativ zum Pfad '%s'"
-DIRECTORY_ERROR_TOO_MANY_LEADING_DOTS:en: checked_path, basedir
-"path '%s' contains to many leading '../'"
-"relative to path '%s'"
-
-DIRECTORY_ERROR_CONTAINS_BAD_DOTS:de: checked_path
-"Pfad '%s' enthält '.', '//' bzw. '..'"
-DIRECTORY_ERROR_CONTAINS_BAD_DOTS:en: checked_path
-"path '%s' contains '.', '//' or '..'"
-
 FORMAT_MISSING_ENDOFLINE:de: name
 "'%s' enthält kein Zeilenendezeichen ('\n')"
 FORMAT_MISSING_ENDOFLINE:en: name
@@ -59,15 +47,32 @@ LOCALE_SETLOCALE:en:
 "Cannot change the current locale with setlocale"
 "Remedy: Please set environment variable LC_ALL to a supported value by the system"
 
-MEMORY_ERROR_OUT_OF:de: size
+MEMORY_OUT_OF:de: size
 "Kein Speicher (%"PRIuSIZE" bytes)!"
-MEMORY_ERROR_OUT_OF:en: size
+MEMORY_OUT_OF:en: size
 "Out of memory (%"PRIuSIZE" bytes)!"
 
 PARAMETER_INT_TOO_BIG:de: parameter_name, parameter_max
 "Parameter '%s' > %d"
 PARAMETER_INT_TOO_BIG:en: parameter_name, parameter_max
 "Parameter '%s' > %d"
+
+PATH_CONTAINS_UNSUPPORTED_CHAR:de: char_string
+"Pfad enthält ausgeschlossenes Zeichen ('%s')"
+PATH_CONTAINS_UNSUPPORTED_CHAR:en: char_string
+"Path contains unsupported character ('%s')"
+
+PATH_CONTAINS_TOO_MANY_LEADING_DOTS:de: checked_path, basedir
+"Pfad '%s' enthält zuviel führende '../'"
+"relativ zum Pfad '%s'"
+PATH_CONTAINS_TOO_MANY_LEADING_DOTS:en: checked_path, basedir
+"path '%s' contains to many leading '../'"
+"relative to path '%s'"
+
+PATH_NOT_WELL_FORMED:de: checked_path
+"Pfad '%s' enthält '/./' oder '//' bzw. '/../'"
+PATH_NOT_WELL_FORMED:en: checked_path
+"path '%s' contains '/./' or '//' or '/../'"
 
 PROCESS_TERMINATED_ABNORMAL:de: process_name, exit_code
 "Prozess '%s' abnormal beendet (exit wert=%d)"

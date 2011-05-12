@@ -61,17 +61,17 @@ int isvalid_directory( const char * const checked_path, const char * const based
          || strstr(cp, "/../")
          || (clen >= 3 && !strcmp(cp+clen-3, "/.."))
       ) {
-      goto ERROR_CONTAINS_BAD_DOTS ;
+      goto ERROR_NOT_WELL_FORMED ;
    }
 
    return 0 ;
 
 ERROR_TOO_MANY_LEADING_DOTS:
-   LOG_TEXT(DIRECTORY_ERROR_TOO_MANY_LEADING_DOTS(checked_path, basedir)) ;
+   LOG_ERROR(PATH_CONTAINS_TOO_MANY_LEADING_DOTS(checked_path, basedir)) ;
    return 1 ;
 
-ERROR_CONTAINS_BAD_DOTS:
-   LOG_TEXT(DIRECTORY_ERROR_CONTAINS_BAD_DOTS(checked_path)) ;
+ERROR_NOT_WELL_FORMED:
+   LOG_ERROR(PATH_NOT_WELL_FORMED(checked_path)) ;
    return 2 ;
 }
 

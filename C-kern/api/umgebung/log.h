@@ -106,11 +106,11 @@ extern int free_once_per_thread_log(umgebung_t * umg) ;
 
 // group: write
 
-/* define: LOG_TEXT
- * Logs text resource.
+/* define: LOG_TEXTRES
+ * Logs text resource produced by resource text compiler.
  * Example:
- * > LOG_TEXT(MEMORY_ERROR_OUT_OF(size)) */
-#define LOG_TEXT( TEXTID )          log_umgebung()->printf( log_umgebung(), TEXTID )
+ * > LOG_TEXTRES(TEXTRES_ERRORLOG_MEMORY_OUT_OF(size)) */
+#define LOG_TEXTRES( TEXTID )       log_umgebung()->printf( log_umgebung(), TEXTID )
 /* define: LOG_STRING
  * Log "name=value" of string variable.
  * Example:

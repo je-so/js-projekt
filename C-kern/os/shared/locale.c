@@ -47,7 +47,7 @@ int init_once_per_process_locale()
    int err ;
 
    if (!setlocale(LC_ALL, "")) {
-      LOG_TEXT(LOCALE_SETLOCALE) ;
+      LOG_ERROR(LOCALE_SETLOCALE) ;
       LOG_STRING(getenv("LC_ALL")) ;
       err = EINVAL ;
       goto ABBRUCH ;
@@ -68,7 +68,7 @@ int free_once_per_process_locale()
    int err ;
 
    if (!setlocale(LC_ALL, "C")) {
-      LOG_TEXT(LOCALE_SETLOCALE) ;
+      LOG_ERROR(LOCALE_SETLOCALE) ;
       LOG_STRING("LC_ALL=C") ;
       err = EINVAL ;
       goto ABBRUCH ;

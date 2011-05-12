@@ -75,7 +75,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
       const ssize_t read_size = read( fd, buffer + buffer_offset, buffer_maxsize - buffer_offset) ;
       if (!read_size) {
          if (buffer_offset) {
-            LOG_TEXT(FORMAT_MISSING_ENDOFLINE(PROC_SELF_MAPS)) ;
+            LOG_ERROR(FORMAT_MISSING_ENDOFLINE(PROC_SELF_MAPS)) ;
             err = EINVAL ;
             goto ABBRUCH ;
          }
@@ -161,7 +161,7 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
                   &isReadable, &isWriteable, &isExecutable, &isShared,
                   &file_offset, &major, &minor, &inode ) ;
          if (scanned_items != 10) {
-            LOG_TEXT(FORMAT_WRONG(PROC_SELF_MAPS)) ;
+            LOG_ERROR(FORMAT_WRONG(PROC_SELF_MAPS)) ;
             err = EINVAL ;
             goto ABBRUCH ;
          }

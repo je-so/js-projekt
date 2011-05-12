@@ -23,15 +23,20 @@
 
 /* define: LOG_ABORT
  * Logs the abortion of a function and the its corresponding error code. */
-#define LOG_ABORT(err)                       LOG_TEXT(FUNCTION_ABORT(__FILE__, __FUNCTION__, err))
+#define LOG_ABORT(err)                       LOG_ERROR(FUNCTION_ABORT(__FILE__, __FUNCTION__, err))
 /* define: LOG_ABORT_FREE
  * Logs that an error occurred during free_XXX or delete_XXX.
  * This means that not all resources could not have been freed but
  * as many as possible. */
-#define LOG_ABORT_FREE(err)                  LOG_TEXT(FUNCTION_ABORT_FREE(err))
-#define LOG_OUTOFMEMORY(size)                LOG_TEXT(MEMORY_ERROR_OUT_OF(size))
-#define LOG_SYSERRNO(fct_name)               LOG_TEXT(FUNCTION_SYSERROR(fct_name, errno, strerror(errno)))
-#define LOG_SYSERROR(fct_name,err)           LOG_TEXT(FUNCTION_SYSERROR(fct_name, err, strerror(err)))
+#define LOG_ABORT_FREE(err)                  LOG_ERROR(FUNCTION_ABORT_FREE(err))
+/* define: LOG_ERROR
+ * Logs an errorlog text resource.
+ * Use <LOG_ERROR> instead of <LOG_TEXTRES> so you
+ * do not have to prefix every resource name with "TEXTRES_ERRORLOG_". */
+#define LOG_ERROR( TEXTID )                  LOG_TEXTRES( TEXTRES_ERRORLOG_ ## TEXTID )
+#define LOG_OUTOFMEMORY(size)                LOG_ERROR(MEMORY_OUT_OF(size))
+#define LOG_SYSERRNO(fct_name)               LOG_ERROR(FUNCTION_SYSERROR(fct_name, errno, strerror(errno)))
+#define LOG_SYSERROR(fct_name,err)           LOG_ERROR(FUNCTION_SYSERROR(fct_name, err, strerror(err)))
 
 
 
