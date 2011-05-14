@@ -124,7 +124,7 @@ static int init_logbuffer( /*out*/log_buffer_t * log )
 {
    int err ;
    size_t  pgsize = pagesize_vm() ;
-   size_t nrpages = (pgsize < 1024) ? (1023 + pgsize) / pgsize : 1 ;
+   size_t nrpages = (pgsize < 8192) ? (8191 + pgsize) / pgsize : 1 ;
 
    err = init_vmblock(&log->buffer, nrpages) ;
    if (err) goto ABBRUCH ;
@@ -572,7 +572,7 @@ static int test_log_buffered(void)
    size_t         buffer_size = 0 ;
    off_t            file_size ;
 
-   while( buffer_size < 1024 ) {
+   while( buffer_size < 8192 ) {
       buffer_size += pagesize_vm() ;
    }
 

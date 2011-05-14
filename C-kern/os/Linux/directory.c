@@ -280,7 +280,7 @@ int readnext_directorystream(directory_stream_t * dir, /*out*/const char ** name
    int             fstatat_flags = followSymbolicLink ? 0 : AT_SYMLINK_NOFOLLOW ;
    err = readdir_r( dir->sys_dir, dir->sysentry, &result ) ;
    if (err) {
-      LOG_SYSERROR("readdir_r",err) ;
+      LOG_SYSERRNO2("readdir_r",err) ;
       goto ABBRUCH ;
    }
 
@@ -348,7 +348,7 @@ int makedirectory_directorystream(directory_stream_t * dir, const char * directo
    err = mkdir(dir->path, 0700) ;
    if (err) {
       err = errno ;
-      LOG_SYSERROR("mkdir(dir->path, 0700)",err) ;
+      LOG_SYSERRNO2("mkdir(dir->path, 0700)",err) ;
       LOG_STRING(dir->path) ;
       dir->path[dir->path_len] = 0 ;
       goto ABBRUCH ;
@@ -373,7 +373,7 @@ int makefile_directorystream(directory_stream_t * dir, const char * file_name)
    int fd = open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
    if (-1 == fd) {
       err = errno ;
-      LOG_SYSERROR("open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC)",err) ;
+      LOG_SYSERRNO2("open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC)",err) ;
       LOG_STRING(dir->path) ;
       dir->path[dir->path_len] = 0 ;
       goto ABBRUCH ;
@@ -392,7 +392,7 @@ int remove_directorystream(directory_stream_t * dir)
    err = rmdir(dir->path) ;
    if (err) {
       err = errno ;
-      LOG_SYSERROR("rmdir",err) ;
+      LOG_SYSERRNO2("rmdir",err) ;
       LOG_STRING(dir->path) ;
       goto ABBRUCH ;
    }
@@ -415,7 +415,7 @@ int removedirectory_directorystream(directory_stream_t * dir, const char * direc
    err = rmdir(dir->path) ;
    if (err) {
       err = errno ;
-      LOG_SYSERROR("rmdir",err) ;
+      LOG_SYSERRNO2("rmdir",err) ;
       LOG_STRING(dir->path) ;
       dir->path[dir->path_len] = 0 ;
       goto ABBRUCH ;
@@ -440,7 +440,7 @@ int removefile_directorystream(directory_stream_t * dir, const char * file_name)
    err = unlink(dir->path) ;
    if (err) {
       err = errno ;
-      LOG_SYSERROR("unlink(dir->path)",err) ;
+      LOG_SYSERRNO2("unlink(dir->path)",err) ;
       LOG_STRING(dir->path) ;
       dir->path[dir->path_len] = 0 ;
       goto ABBRUCH ;

@@ -1,71 +1,123 @@
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '.' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path './' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '/.' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '/./' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path './x/y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '/./x/y' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path 'x/y/./z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '/x/y/.' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path 'x/y/z/./' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '//' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '//x/y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path 'x//y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path 'x/y//z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path 'x/y/z//' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '/../x/y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path 'x/../y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path 'x/y/z/..' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '..' contains to many leading '../'
 relative to path '/'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '..' contains to many leading '../'
 relative to path ''
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../' contains to many leading '../'
 relative to path '/'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../' contains to many leading '../'
 relative to path ''
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../x' contains to many leading '../'
 relative to path '/'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../x/' contains to many leading '../'
 relative to path ''
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../..' contains to many leading '../'
 relative to path '/d1'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../../' contains to many leading '../'
 relative to path '/d1/'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../../x' contains to many leading '../'
 relative to path '/d1/'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../../..' contains to many leading '../'
 relative to path '/d1/d2'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../../../x/y/z' contains to many leading '../'
 relative to path '/d1/d2'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../../../../../../x' contains to many leading '../'
 relative to path '/1/2/3/4ddd/5ddd'
+C-kern/os/Linux/directory.c:70: error in isvalid_directory()
 path '../../../../../../' contains to many leading '../'
 relative to path '/1/2/3/4xx/5dxd'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../.' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../.././x/y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../../x/./y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../x/y/./z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../../../x/.' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '..//' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../../x//y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../../x/y/z//' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../x/../y/z' contains '/./' or '//' or '/../'
+C-kern/os/Linux/directory.c:74: error in isvalid_directory()
 path '../x/y/z/..' contains '/./' or '//' or '/../'
-Function 'openat' returned error(2): 'No such file or directory'
+C-kern/os/Linux/directory.c:129: error in init_directorystream()
+System function 'openat' returned error (err=2): 'No such file or directory'
 dir_path=.....
-C-kern/os/Linux/directory.c: Function 'init_directorystream' aborted (err=2)
-Function 'openat' returned error(20): 'Not a directory'
+C-kern/os/Linux/directory.c:186: error in init_directorystream()
+Function aborted (err=2)
+C-kern/os/Linux/directory.c:129: error in init_directorystream()
+System function 'openat' returned error (err=20): 'Not a directory'
 dir_path=/tmp/test1.123456/file_000000
-C-kern/os/Linux/directory.c: Function 'init_directorystream' aborted (err=20)
-Function 'mkdir(dir->path, 0700)' returned error(13): 'Permission denied'
+C-kern/os/Linux/directory.c:186: error in init_directorystream()
+Function aborted (err=20)
+C-kern/os/Linux/directory.c:351: error in makedirectory_directorystream()
+System function 'mkdir(dir->path, 0700)' returned error (err=13): 'Permission denied'
 dir->path=/XXXXXXXX.test
-C-kern/os/Linux/directory.c: Function 'makedirectory_directorystream' aborted (err=13)
-Function 'open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC)' returned error(13): 'Permission denied'
+C-kern/os/Linux/directory.c:359: error in makedirectory_directorystream()
+Function aborted (err=13)
+C-kern/os/Linux/directory.c:376: error in makefile_directorystream()
+System function 'open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC)' returned error (err=13): 'Permission denied'
 dir->path=/XXXXXXXX.test
-C-kern/os/Linux/directory.c: Function 'makefile_directorystream' aborted (err=13)
-Function 'rmdir' returned error(39): 'Directory not empty'
+C-kern/os/Linux/directory.c:385: error in makefile_directorystream()
+Function aborted (err=13)
+C-kern/os/Linux/directory.c:418: error in removedirectory_directorystream()
+System function 'rmdir' returned error (err=39): 'Directory not empty'
 dir->path=/tmp/test1.123456/..
-C-kern/os/Linux/directory.c: Function 'removedirectory_directorystream' aborted (err=39)
-Function 'openat' returned error(2): 'No such file or directory'
+C-kern/os/Linux/directory.c:426: error in removedirectory_directorystream()
+Function aborted (err=39)
+C-kern/os/Linux/directory.c:129: error in init_directorystream()
+System function 'openat' returned error (err=2): 'No such file or directory'
 dir_path=/tmp/test1.123456/
-C-kern/os/Linux/directory.c: Function 'init_directorystream' aborted (err=2)
+C-kern/os/Linux/directory.c:186: error in init_directorystream()
+Function aborted (err=2)

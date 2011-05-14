@@ -11,20 +11,24 @@
         "In %s:%d: %s\nDie Bedingung (%s) ist nicht wahr (interner Programmfehler)\n", __FILE__, __LINE__, __FUNCTION__, sCondition
 #define TEXTRES_ERRORLOG_CONTEXT_INFO(sContext) \
         "Bezogen auf den Kontext '%s'\n", sContext
+#define TEXTRES_ERRORLOG_ERROR_LOCATION \
+        "%s:%d: Fehler in %s()\n", __FILE__, __LINE__, __FUNCTION__
 #define TEXTRES_ERRORLOG_FORMAT_MISSING_ENDOFLINE(name) \
         "'%s' enthält kein Zeilenendezeichen ('\n')\n", name
 #define TEXTRES_ERRORLOG_FORMAT_WRONG(name) \
         "'%s' besitzt unbekanntes Format\n", name
-#define TEXTRES_ERRORLOG_FUNCTION_ABORT(file, function, err) \
-        "%s: Funktions-Abbruch '%s' (err=%d)\n", file, function, err
+#define TEXTRES_ERRORLOG_FUNCTION_ABORT(err) \
+        "Funktions-Abbruch (err=%d)\n", err
 #define TEXTRES_ERRORLOG_FUNCTION_ABORT_FREE(err) \
-        "%s:%d: %s\nResource Freigabefehler (err=%d)\n", __FILE__, __LINE__, __FUNCTION__, err
-#define TEXTRES_ERRORLOG_FUNCTION_SYSERROR(function_name, function_errno, function_strerrno) \
-        "Funktion '%s' erzeugte Fehler(%d): '%s'\n", function_name, function_errno, function_strerrno
+        "Resource Freigabefehler (err=%d)\n", err
+#define TEXTRES_ERRORLOG_FUNCTION_SYSERROR(function_name, function_error, function_strerror) \
+        "Funktion '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_error, function_strerror
+#define TEXTRES_ERRORLOG_FUNCTION_SYSERRNO(function_name, function_errno, function_strerrno) \
+        "Systemfunktion '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_errno, function_strerrno
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n"
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \
-        "Kein Speicher (%"PRIuSIZE" bytes)!\n", size
+        "Kein Speicher (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
         "Parameter '%s' > %d\n", parameter_name, parameter_max
 #define TEXTRES_ERRORLOG_PATH_CONTAINS_UNSUPPORTED_CHAR(char_string) \
@@ -47,20 +51,24 @@
         "In %s:%d: %s\nExpected condition (%s) to be true (internal program error)\n", __FILE__, __LINE__, __FUNCTION__, sCondition
 #define TEXTRES_ERRORLOG_CONTEXT_INFO(sContext) \
         "In relation to following context '%s'\n", sContext
+#define TEXTRES_ERRORLOG_ERROR_LOCATION \
+        "%s:%d: error in %s()\n", __FILE__, __LINE__, __FUNCTION__
 #define TEXTRES_ERRORLOG_FORMAT_MISSING_ENDOFLINE(name) \
         "'%s' contains no newline ('\n')\n", name
 #define TEXTRES_ERRORLOG_FORMAT_WRONG(name) \
         "'%s' has unknown format\n", name
-#define TEXTRES_ERRORLOG_FUNCTION_ABORT(file, function, err) \
-        "%s: Function '%s' aborted (err=%d)\n", file, function, err
+#define TEXTRES_ERRORLOG_FUNCTION_ABORT(err) \
+        "Function aborted (err=%d)\n", err
 #define TEXTRES_ERRORLOG_FUNCTION_ABORT_FREE(err) \
-        "%s:%d: %s\nResource can not be freed (err=%d)\n", __FILE__, __LINE__, __FUNCTION__, err
-#define TEXTRES_ERRORLOG_FUNCTION_SYSERROR(function_name, function_errno, function_strerrno) \
-        "Function '%s' returned error(%d): '%s'\n", function_name, function_errno, function_strerrno
+        "All resources can not be freed (err=%d)\n", err
+#define TEXTRES_ERRORLOG_FUNCTION_SYSERROR(function_name, function_error, function_strerror) \
+        "Function '%s' returned error (err=%d): '%s'\n", function_name, function_error, function_strerror
+#define TEXTRES_ERRORLOG_FUNCTION_SYSERRNO(function_name, function_errno, function_strerrno) \
+        "System function '%s' returned error (err=%d): '%s'\n", function_name, function_errno, function_strerrno
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n"
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \
-        "Out of memory (%"PRIuSIZE" bytes)!\n", size
+        "Out of memory (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
         "Parameter '%s' > %d\n", parameter_name, parameter_max
 #define TEXTRES_ERRORLOG_PATH_CONTAINS_UNSUPPORTED_CHAR(char_string) \

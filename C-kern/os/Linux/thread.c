@@ -219,26 +219,26 @@ int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void
 
    err = pthread_attr_init(&thread_attr) ;
    if (err) {
-      LOG_SYSERROR("pthread_attr_init",err) ;
+      LOG_SYSERRNO2("pthread_attr_init",err) ;
       goto ABBRUCH ;
    }
    isThreadAttrValid = true ;
 
    err = pthread_attr_setstack(&thread_attr, thread_private->thread_stack.addr, thread_private->thread_stack.size) ;
    if (err) {
-      LOG_SYSERROR("pthread_attr_setstack",err) ;
+      LOG_SYSERRNO2("pthread_attr_setstack",err) ;
       LOG_PTR(thread_private->thread_stack.addr) ;
       LOG_SIZE(thread_private->thread_stack.size) ;
       goto ABBRUCH ;
    }
    err = pthread_create( &thread_private->osthread.sys_thread, &thread_attr, osthread_startpoint, startparam) ;
    if (err) {
-      LOG_SYSERROR("pthread_create",err) ;
+      LOG_SYSERRNO2("pthread_create",err) ;
       goto ABBRUCH ;
    }
    err = pthread_attr_destroy(&thread_attr) ;
    if (err) {
-      LOG_SYSERROR("pthread_attr_destroy",err) ;
+      LOG_SYSERRNO2("pthread_attr_destroy",err) ;
       // ignore error
    }
 
@@ -248,7 +248,7 @@ ABBRUCH:
    if (isThreadAttrValid) {
       int err2 = pthread_attr_destroy(&thread_attr) ;
       if (err2) {
-         LOG_SYSERROR("pthread_attr_destroy", err2) ;
+         LOG_SYSERRNO2("pthread_attr_destroy", err2) ;
          // ignore error
       }
    }
