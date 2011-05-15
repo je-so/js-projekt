@@ -99,20 +99,20 @@ size_t allocatedsize_malloctest()
 
    if (pipe2(pfd, O_CLOEXEC)) {
       err = errno ;
-      LOG_SYSERRNO("pipe2") ;
+      LOG_SYSERR("pipe2", err) ;
       goto ABBRUCH ;
    }
 
    fd = dup(STDERR_FILENO) ;
    if (fd == -1) {
       err = errno ;
-      LOG_SYSERRNO("dup") ;
+      LOG_SYSERR("dup", err) ;
       goto ABBRUCH ;
    }
 
    if (-1 == dup2(pfd[1], STDERR_FILENO)) {
       err = errno ;
-      LOG_SYSERRNO("dup2") ;
+      LOG_SYSERR("dup2", err) ;
       goto ABBRUCH ;
    }
 
@@ -131,7 +131,7 @@ size_t allocatedsize_malloctest()
 
    if (len < 0) {
       err = errno ;
-      LOG_SYSERRNO("read") ;
+      LOG_SYSERR("read", err) ;
       goto ABBRUCH ;
    }
 

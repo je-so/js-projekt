@@ -38,15 +38,15 @@ FUNCTION_ABORT_FREE:de: err
 FUNCTION_ABORT_FREE:en: err
 "All resources can not be freed (err=%d)"
 
-FUNCTION_SYSERROR:de: function_name, function_error, function_strerror
-"Funktion '%s' meldet Fehler (err=%d): '%s'"
-FUNCTION_SYSERROR:en: function_name, function_error, function_strerror
-"Function '%s' returned error (err=%d): '%s'"
+FUNCTION_ERROR:de: function_name, function_error, function_strerror
+"Aufruf '%s' meldet Fehler (err=%d): '%s'"
+FUNCTION_ERROR:en: function_name, function_error, function_strerror
+"Call to '%s' returned error (err=%d): '%s'"
 
-FUNCTION_SYSERRNO:de: function_name, function_errno, function_strerrno
-"Systemfunktion '%s' meldet Fehler (err=%d): '%s'"
-FUNCTION_SYSERRNO:en: function_name, function_errno, function_strerrno
-"System function '%s' returned error (err=%d): '%s'"
+FUNCTION_SYSERR:de: function_name, function_errno, function_strerrno
+"Systemaufruf '%s' meldet Fehler (err=%d): '%s'"
+FUNCTION_SYSERR:en: function_name, function_errno, function_strerrno
+"System call '%s' returned error (err=%d): '%s'"
 
 LOCALE_SETLOCALE:de:
 "Kann die Lokalisierung mit setlocale nicht setzen"

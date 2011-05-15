@@ -392,7 +392,7 @@ int updatekey_splaytree( splaytree_t * tree, const void * old_key, const void * 
 
    err = update_key->fct(update_key->cb_param, new_key, root) ;
    if (err) {
-      LOG_SYSERROR("splaytree_update_key_t callback", err) ;
+      LOG_CALLERR("splaytree_update_key_t callback", err) ;
       goto ABBRUCH ;    // update failed => nothing done => return
    }
 

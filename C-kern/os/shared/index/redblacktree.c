@@ -668,7 +668,7 @@ int updatekey_redblacktree( redblacktree_t * tree, const void * old_key, const v
    if (err) {
       int err2 = insert_redblacktree( tree, old_key, updated_node, compare_callback ) ;
       assert(!err2) ;
-      LOG_SYSERROR("redblacktree_update_key_t callback", err) ;
+      LOG_CALLERR("redblacktree_update_key_t callback", err) ;
       goto ABBRUCH ;
    }
 

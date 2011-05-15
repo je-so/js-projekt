@@ -53,7 +53,7 @@ static int unmap_stackmemory_osthread(osthread_private_t * osthread_private)
    if (size) {
       if (munmap(addr, size)) {
          err = errno ;
-         LOG_SYSERRNO("munmap") ;
+         LOG_SYSERR("munmap", err) ;
          LOG_PTR(addr) ;
          LOG_SIZE(size) ;
          goto ABBRUCH ;
@@ -103,7 +103,7 @@ static int mapstacks_osthread(osthread_private_t * thread_private)
    uint8_t * stack_addr = (uint8_t*) mmap( 0, stack_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0 ) ;
    if (MAP_FAILED == stack_addr) {
       err = errno ;
-      LOG_SYSERRNO("mmap") ;
+      LOG_SYSERR("mmap", err) ;
       LOG_SIZE(stack_size) ;
       goto ABBRUCH ;
    }
@@ -116,7 +116,7 @@ static int mapstacks_osthread(osthread_private_t * thread_private)
    if (  mprotect(stack_addr + page_size, signalstack_size, PROT_READ|PROT_WRITE)
       || mprotect(stack_addr + 2 * page_size + signalstack_size, threadstack_size, PROT_READ|PROT_WRITE) ) {
       err = errno ;
-      LOG_SYSERRNO("mprotect") ;
+      LOG_SYSERR("mprotect", err) ;
       goto ABBRUCH ;
    }
 
@@ -126,11 +126,12 @@ static int mapstacks_osthread(osthread_private_t * thread_private)
    thread_private->signal_stack.size = signalstack_size ;
    thread_private->thread_stack.addr = stack_addr + 2 * page_size + signalstack_size ;
    thread_private->thread_stack.size = threadstack_size ;
+
    return 0 ;
 ABBRUCH:
    if (MAP_FAILED != stack_addr) {
       if (munmap(stack_addr, stack_size)) {
-         LOG_SYSERRNO("munmap") ;
+         LOG_SYSERR("munmap", errno) ;
          LOG_PTR(stack_addr) ;
          LOG_SIZE(stack_size) ;
       }
@@ -167,7 +168,7 @@ static void * osthread_startpoint(void * start_arg)
    err = sigaltstack( &new_signal_stack, (stack_t*)0) ;
    if (err) {
       err = errno ;
-      LOG_SYSERRNO("sigaltstack") ;
+      LOG_SYSERR("sigaltstack", err) ;
       goto ABBRUCH ;
    }
 
@@ -219,26 +220,26 @@ int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void
 
    err = pthread_attr_init(&thread_attr) ;
    if (err) {
-      LOG_SYSERRNO2("pthread_attr_init",err) ;
+      LOG_SYSERR("pthread_attr_init",err) ;
       goto ABBRUCH ;
    }
    isThreadAttrValid = true ;
 
    err = pthread_attr_setstack(&thread_attr, thread_private->thread_stack.addr, thread_private->thread_stack.size) ;
    if (err) {
-      LOG_SYSERRNO2("pthread_attr_setstack",err) ;
+      LOG_SYSERR("pthread_attr_setstack",err) ;
       LOG_PTR(thread_private->thread_stack.addr) ;
       LOG_SIZE(thread_private->thread_stack.size) ;
       goto ABBRUCH ;
    }
    err = pthread_create( &thread_private->osthread.sys_thread, &thread_attr, osthread_startpoint, startparam) ;
    if (err) {
-      LOG_SYSERRNO2("pthread_create",err) ;
+      LOG_SYSERR("pthread_create",err) ;
       goto ABBRUCH ;
    }
    err = pthread_attr_destroy(&thread_attr) ;
    if (err) {
-      LOG_SYSERRNO2("pthread_attr_destroy",err) ;
+      LOG_SYSERR("pthread_attr_destroy",err) ;
       // ignore error
    }
 
@@ -248,7 +249,7 @@ ABBRUCH:
    if (isThreadAttrValid) {
       int err2 = pthread_attr_destroy(&thread_attr) ;
       if (err2) {
-         LOG_SYSERRNO2("pthread_attr_destroy", err2) ;
+         LOG_SYSERR("pthread_attr_destroy", err2) ;
          // ignore error
       }
    }

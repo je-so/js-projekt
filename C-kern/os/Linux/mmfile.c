@@ -72,7 +72,7 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
    fd = openat(pathfd, file_path, open_flags|O_CLOEXEC, permission ) ;
    if (fd < 0) {
       err = errno ;
-      LOG_SYSERRNO("openat") ;
+      LOG_SYSERR("openat", err) ;
       LOG_STRING(file_path) ;
       goto ABBRUCH ;
    }
@@ -81,7 +81,7 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
       err = ftruncate(fd, size) ;
       if (err) {
          err = errno ;
-         LOG_SYSERRNO("ftruncate") ;
+         LOG_SYSERR("ftruncate", err) ;
          LOG_SIZE(size) ;
          goto ABBRUCH ;
       }
@@ -90,7 +90,7 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
       err = fstat(fd, &file_info) ;
       if (err) {
          err = errno ;
-         LOG_SYSERRNO("fstat") ;
+         LOG_SYSERR("fstat", err) ;
          goto ABBRUCH ;
       }
 
@@ -126,14 +126,14 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
 #undef  protection_flags
    if (MAP_FAILED == mem_start) {
       err = errno ;
-      LOG_SYSERRNO("mmap") ;
+      LOG_SYSERR("mmap", err) ;
       goto ABBRUCH ;
    }
 
    err = madvise(mem_start, aligned_size, MADV_SEQUENTIAL) ;
    if (err) {
       err = errno ;
-      LOG_SYSERRNO("madvise") ;
+      LOG_SYSERR("madvise", err) ;
       goto ABBRUCH ;
    }
 
@@ -164,7 +164,7 @@ int free_mmfile(mmfile_t * mfile)
       err = close(mfile->sys_file) ;
       if (err) {
          err = errno ;
-         LOG_SYSERRNO("close") ;
+         LOG_SYSERR("close", err) ;
          goto ABBRUCH ;
       }
       mfile->sys_file = -1 ;
@@ -172,7 +172,7 @@ int free_mmfile(mmfile_t * mfile)
       err = munmap( mfile->addr, mfile->size_pagealigned ) ;
       if (err) {
          err = errno ;
-         LOG_SYSERRNO("munmap") ;
+         LOG_SYSERR("munmap", err) ;
          LOG_PTR(mfile->addr) ;
          LOG_SIZE(mfile->size_pagealigned) ;
          goto ABBRUCH ;

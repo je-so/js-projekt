@@ -67,11 +67,11 @@ int isvalid_directory( const char * const checked_path, const char * const based
    return 0 ;
 
 ERROR_TOO_MANY_LEADING_DOTS:
-   LOG_ERROR(PATH_CONTAINS_TOO_MANY_LEADING_DOTS(checked_path, basedir)) ;
+   LOG_ERRTEXT(PATH_CONTAINS_TOO_MANY_LEADING_DOTS(checked_path, basedir)) ;
    return 1 ;
 
 ERROR_NOT_WELL_FORMED:
-   LOG_ERROR(PATH_NOT_WELL_FORMED(checked_path)) ;
+   LOG_ERRTEXT(PATH_NOT_WELL_FORMED(checked_path)) ;
    return 2 ;
 }
 
@@ -93,7 +93,7 @@ int filesize_directory( const char * file_path, const directory_stream_t * worki
    err = fstatat( statatfd, file_path, &stat_result, 0 ) ;
    if (err) {
       err = errno ;
-      LOG_SYSERRNO("fstatat") ;
+      LOG_SYSERR("fstatat", err) ;
       goto ABBRUCH ;
    }
 
@@ -126,14 +126,14 @@ int init_directorystream(/*out*/directory_stream_t * dir, const char * dir_path,
    int fdd = openat( openatfd, dir_path[0] ? dir_path : "." , O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
    if (-1 == fdd) {
       err = errno ;
-      LOG_SYSERRNO("openat") ;
+      LOG_SYSERR("openat", err) ;
       LOG_STRING(dir_path) ;
       goto ABBRUCH ;
    }
    sysdir = fdopendir(fdd) ;
    if (!sysdir) {
       err = errno ;
-      LOG_SYSERRNO("fdopendir") ;
+      LOG_SYSERR("fdopendir", err) ;
       LOG_STRING(dir_path) ;
       goto ABBRUCH ;
    }
@@ -233,7 +233,7 @@ int inittemp_directorystream( /*out*/directory_stream_t * dir, const char * name
       if (0 == mkdir( dir_path, 0700 )) break ;
       err = errno ;
       if (err != EEXIST || 0 == i) {
-         LOG_SYSERRNO("mkdir") ;
+         LOG_SYSERR("mkdir", err) ;
          LOG_STRING(dir_path) ;
          goto ABBRUCH ;
       }
@@ -261,7 +261,7 @@ int free_directorystream(directory_stream_t * dir)
       dir->path_size = 0 ;
       if (closedir(dir->sys_dir)) {
          err = errno ;
-         LOG_SYSERRNO("closedir") ;
+         LOG_SYSERR("closedir", err) ;
          goto ABBRUCH ;
       }
       dir->sys_dir = 0 ;
@@ -280,7 +280,7 @@ int readnext_directorystream(directory_stream_t * dir, /*out*/const char ** name
    int             fstatat_flags = followSymbolicLink ? 0 : AT_SYMLINK_NOFOLLOW ;
    err = readdir_r( dir->sys_dir, dir->sysentry, &result ) ;
    if (err) {
-      LOG_SYSERRNO2("readdir_r",err) ;
+      LOG_SYSERR("readdir_r",err) ;
       goto ABBRUCH ;
    }
 
@@ -348,7 +348,7 @@ int makedirectory_directorystream(directory_stream_t * dir, const char * directo
    err = mkdir(dir->path, 0700) ;
    if (err) {
       err = errno ;
-      LOG_SYSERRNO2("mkdir(dir->path, 0700)",err) ;
+      LOG_SYSERR("mkdir(dir->path, 0700)",err) ;
       LOG_STRING(dir->path) ;
       dir->path[dir->path_len] = 0 ;
       goto ABBRUCH ;
@@ -373,7 +373,7 @@ int makefile_directorystream(directory_stream_t * dir, const char * file_name)
    int fd = open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
    if (-1 == fd) {
       err = errno ;
-      LOG_SYSERRNO2("open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC)",err) ;
+      LOG_SYSERR("open(dir->path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC)",err) ;
       LOG_STRING(dir->path) ;
       dir->path[dir->path_len] = 0 ;
       goto ABBRUCH ;
@@ -392,7 +392,7 @@ int remove_directorystream(directory_stream_t * dir)
    err = rmdir(dir->path) ;
    if (err) {
       err = errno ;
-      LOG_SYSERRNO2("rmdir",err) ;
+      LOG_SYSERR("rmdir",err) ;
       LOG_STRING(dir->path) ;
       goto ABBRUCH ;
    }
@@ -415,7 +415,7 @@ int removedirectory_directorystream(directory_stream_t * dir, const char * direc
    err = rmdir(dir->path) ;
    if (err) {
       err = errno ;
-      LOG_SYSERRNO2("rmdir",err) ;
+      LOG_SYSERR("rmdir",err) ;
       LOG_STRING(dir->path) ;
       dir->path[dir->path_len] = 0 ;
       goto ABBRUCH ;
@@ -440,7 +440,7 @@ int removefile_directorystream(directory_stream_t * dir, const char * file_name)
    err = unlink(dir->path) ;
    if (err) {
       err = errno ;
-      LOG_SYSERRNO2("unlink(dir->path)",err) ;
+      LOG_SYSERR("unlink(dir->path)",err) ;
       LOG_STRING(dir->path) ;
       dir->path[dir->path_len] = 0 ;
       goto ABBRUCH ;

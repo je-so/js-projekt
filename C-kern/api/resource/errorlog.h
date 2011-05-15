@@ -21,10 +21,10 @@
         "Funktions-Abbruch (err=%d)\n", err
 #define TEXTRES_ERRORLOG_FUNCTION_ABORT_FREE(err) \
         "Resource Freigabefehler (err=%d)\n", err
-#define TEXTRES_ERRORLOG_FUNCTION_SYSERROR(function_name, function_error, function_strerror) \
-        "Funktion '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_error, function_strerror
-#define TEXTRES_ERRORLOG_FUNCTION_SYSERRNO(function_name, function_errno, function_strerrno) \
-        "Systemfunktion '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_errno, function_strerrno
+#define TEXTRES_ERRORLOG_FUNCTION_ERROR(function_name, function_error, function_strerror) \
+        "Aufruf '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_error, function_strerror
+#define TEXTRES_ERRORLOG_FUNCTION_SYSERR(function_name, function_errno, function_strerrno) \
+        "Systemaufruf '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_errno, function_strerrno
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n"
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \
@@ -61,10 +61,10 @@
         "Function aborted (err=%d)\n", err
 #define TEXTRES_ERRORLOG_FUNCTION_ABORT_FREE(err) \
         "All resources can not be freed (err=%d)\n", err
-#define TEXTRES_ERRORLOG_FUNCTION_SYSERROR(function_name, function_error, function_strerror) \
-        "Function '%s' returned error (err=%d): '%s'\n", function_name, function_error, function_strerror
-#define TEXTRES_ERRORLOG_FUNCTION_SYSERRNO(function_name, function_errno, function_strerrno) \
-        "System function '%s' returned error (err=%d): '%s'\n", function_name, function_errno, function_strerrno
+#define TEXTRES_ERRORLOG_FUNCTION_ERROR(function_name, function_error, function_strerror) \
+        "Call to '%s' returned error (err=%d): '%s'\n", function_name, function_error, function_strerror
+#define TEXTRES_ERRORLOG_FUNCTION_SYSERR(function_name, function_errno, function_strerrno) \
+        "System call '%s' returned error (err=%d): '%s'\n", function_name, function_errno, function_strerrno
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n"
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \

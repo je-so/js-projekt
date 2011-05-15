@@ -75,7 +75,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
       const ssize_t read_size = read( fd, buffer + buffer_offset, buffer_maxsize - buffer_offset) ;
       if (!read_size) {
          if (buffer_offset) {
-            LOG_ERROR(FORMAT_MISSING_ENDOFLINE(PROC_SELF_MAPS)) ;
+            LOG_ERRTEXT(FORMAT_MISSING_ENDOFLINE(PROC_SELF_MAPS)) ;
             err = EINVAL ;
             goto ABBRUCH ;
          }
@@ -84,7 +84,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
       if (read_size < 0) {
          err = errno ;
          if (err == EINTR) continue ;
-         LOG_SYSERRNO("read") ;
+         LOG_SYSERR("read", err) ;
          goto ABBRUCH ;
       }
       buffer_offset += (size_t)read_size ;
@@ -133,9 +133,8 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    uint8_t       * const buffer = rootbuffer->addr ;
    fd = open( PROC_SELF_MAPS, O_RDONLY|O_CLOEXEC ) ;
    if (fd < 0) {
-      LOG_SYSERRNO("open") ;
-      LOG_STRING(PROC_SELF_MAPS) ;
       err = ENOSYS ;
+      LOG_SYSERR("open(" PROC_SELF_MAPS ")", errno) ;
       goto ABBRUCH ;
    }
 
@@ -161,7 +160,7 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
                   &isReadable, &isWriteable, &isExecutable, &isShared,
                   &file_offset, &major, &minor, &inode ) ;
          if (scanned_items != 10) {
-            LOG_ERROR(FORMAT_WRONG(PROC_SELF_MAPS)) ;
+            LOG_ERRTEXT(FORMAT_WRONG(PROC_SELF_MAPS)) ;
             err = EINVAL ;
             goto ABBRUCH ;
          }
@@ -294,7 +293,7 @@ int init_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_pages )
    void * mapped_pages = mmap( 0, length_in_bytes, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) ;
    if (mapped_pages == MAP_FAILED) {
       err = errno ;
-      LOG_SYSERRNO("mmap") ;
+      LOG_SYSERR("mmap", err) ;
       LOG_SIZE(length_in_bytes) ;
       goto ABBRUCH ;
    }
@@ -322,7 +321,7 @@ int initorextend_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_p
    void * mapped_pages = mmap( extended_addr, length_in_bytes, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) ;
    if (mapped_pages == MAP_FAILED) {
       err = errno ;
-      LOG_SYSERRNO("mmap") ;
+      LOG_SYSERR("mmap", err) ;
       LOG_PTR(extended_addr) ;
       LOG_SIZE(length_in_bytes) ;
       goto ABBRUCH ;
@@ -336,6 +335,7 @@ int initorextend_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_p
       new_mapped_block->size  = 0 ;
       ext_block->size        += length_in_bytes ;
    }
+
    return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
@@ -369,7 +369,7 @@ int free_vmblock( vm_block_t * mapped_block )
    if (     mapped_block->size
          && munmap( mapped_block->addr, mapped_block->size )) {
       err = errno ;
-      LOG_SYSERRNO("munmap") ;
+      LOG_SYSERR("munmap", err) ;
       LOG_PTR(mapped_block->addr) ;
       LOG_SIZE(mapped_block->size) ;
       goto ABBRUCH ;
