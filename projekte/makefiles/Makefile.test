@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.May.07  05:16:07
+GenerationDate  := 2011.May.16  22:17:47
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -88,6 +88,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
+ $(ObjectDir_Debug)/C-kern!string!converter.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o \
@@ -108,6 +109,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
+ $(ObjectDir_Release)/C-kern!string!converter.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o \
@@ -159,6 +161,9 @@ $(ObjectDir_Debug)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/sign
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: $(PathOffset)C-kern/math/int/power2.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!converter.c.o: $(PathOffset)C-kern/string/converter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
@@ -213,6 +218,9 @@ $(ObjectDir_Release)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/si
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!power2.c.o: $(PathOffset)C-kern/math/int/power2.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!converter.c.o: $(PathOffset)C-kern/string/converter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c

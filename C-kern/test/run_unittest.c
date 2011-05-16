@@ -38,6 +38,7 @@
 #include "C-kern/api/os/index/splaytree.h"
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/virtmemory.h"
+#include "C-kern/api/string/converter.h"
 
 
 
@@ -212,6 +213,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    // assert(0) ;
 
 //{ string unittest
+   RUN(unittest_string_converter) ;
 //}
 
 //{ generic unittest
