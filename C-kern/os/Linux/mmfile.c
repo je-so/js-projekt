@@ -1,5 +1,5 @@
-/*
-   Implements memory mapped files.
+/* title: Memory-Mapped-File Linux
+   Implements <Memory-Mapped-File>.
 
    about: Copyright
    This program is free software.
@@ -14,10 +14,13 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2010 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
+
+   file: C-kern/api/os/filesystem/mmfile.h
+    Header file of <Memory-Mapped-File>.
 
    file: C-kern/os/Linux/mmfile.c
-    Implementation file of <Memory-Mapped File>.
+    Linux specific implementation <Memory-Mapped-File Linux>.
 */
 
 #include "C-kern/konfig.h"
@@ -36,7 +39,7 @@ size_t pagesize_mmfile()
    return pagesize_vm() ;
 }
 
-int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_offset, size_t size, const struct directory_stream_t * path_relative_to /*0 => current working directory*/, mmfile_openmode_e mode)
+int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, const struct directory_stream_t * path_relative_to /*0 => current working directory*/, mmfile_openmode_e mode)
 {
    int err ;
    int                    fd = -1 ;
@@ -44,16 +47,20 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
    void          * mem_start = MAP_FAILED ;
 
    if (     (path_relative_to && !path_relative_to->sys_dir)
-            || (unsigned)mode > mmfile_openmode_RDWR_PRIVATE
-            || file_offset < 0
-            || (file_offset % pagesize) ) {
+         || !(mode & access_mode_READ)
+         || (mode & (typeof(mode))(~(access_mode_READ|access_mode_WRITE|access_mode_SHARED|access_mode_PRIVATE|access_mode_NEXTFREE_BITPOS)))
+         || (mode & (access_mode_SHARED|access_mode_PRIVATE)) == (access_mode_SHARED|access_mode_PRIVATE)
+         || (   (mode & access_mode_WRITE)
+            && !(mode & (access_mode_SHARED|access_mode_PRIVATE)) )
+         || file_offset < 0
+         || (file_offset % pagesize) ) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
 
-   if (     mode == mmfile_openmode_CREATE
-         && (     file_offset
-               || ! size )) {
+   if (     (mode & mmfile_openmode_CREATE_FLAG)
+         && (  file_offset
+            || ! size )) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -62,12 +69,12 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
    const int        pathfd = path_relative_to ? dirfd(path_relative_to->sys_dir) : AT_FDCWD ;
 
    int open_flags ;
-   if (mode == mmfile_openmode_RDONLY) {
-      open_flags = O_RDONLY ;
-   } else if (mode == mmfile_openmode_CREATE) {
+   if ((mode & mmfile_openmode_CREATE_FLAG)) {
       open_flags = O_RDWR|O_EXCL|O_CREAT ;
-   } else {
+   } else if ((mode & access_mode_WRITE)) {
       open_flags = O_RDWR ;
+   } else {
+      open_flags = O_RDONLY ;
    }
    fd = openat(pathfd, file_path, open_flags|O_CLOEXEC, permission ) ;
    if (fd < 0) {
@@ -77,7 +84,7 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
       goto ABBRUCH ;
    }
 
-   if (mode == mmfile_openmode_CREATE) {
+   if ((mode & mmfile_openmode_CREATE_FLAG)) {
       err = ftruncate(fd, size) ;
       if (err) {
          err = errno ;
@@ -119,8 +126,8 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
       goto ABBRUCH ;
    }
 
-#define protection_flags   ((mode == mmfile_openmode_RDONLY) ? PROT_READ : PROT_READ|PROT_WRITE)
-#define shared_flags       ((mode == mmfile_openmode_RDWR_PRIVATE) ? MAP_PRIVATE : MAP_SHARED)
+#define protection_flags   ((mode & access_mode_WRITE)   ? (PROT_READ|PROT_WRITE) : PROT_READ)
+#define shared_flags       ((mode & access_mode_PRIVATE) ? MAP_PRIVATE : MAP_SHARED)
    mem_start = mmap(0, size, protection_flags, shared_flags, fd, 0) ;
 #undef  shared_flags
 #undef  protection_flags
@@ -145,7 +152,7 @@ int init_mmfile( /*out*/mmfile_t * mfile,  const char * file_path, off_t file_of
    return 0 ;
 ABBRUCH:
    if (fd >= 0) {
-      if (mode == mmfile_openmode_CREATE) {
+      if ((mode & mmfile_openmode_CREATE_FLAG)) {
          (void) unlinkat(pathfd, file_path, 0) ;
       }
       close(fd) ;
@@ -200,7 +207,7 @@ static int test_creat_mmfile(directory_stream_t * tempdir)
    int            fd = -1 ;
 
    // TEST init, double free
-   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 1, tempdir, mmfile_openmode_CREATE)) ;
+   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 1, tempdir)) ;
    TEST(mfile.sys_file         >  0) ;
    TEST(mfile.addr             != 0) ;
    TEST(mfile.size_pagealigned == pagesize) ;
@@ -216,7 +223,7 @@ static int test_creat_mmfile(directory_stream_t * tempdir)
    TEST(0 == removefile_directorystream(tempdir, "mmfile")) ;
 
    // TEST write
-   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 111, tempdir, mmfile_openmode_CREATE)) ;
+   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 111, tempdir)) ;
    TEST(mfile.sys_file         >  0) ;
    TEST(mfile.addr             != 0) ;
    TEST(mfile.addr             == addr_mmfile(&mfile)) ;
@@ -254,7 +261,7 @@ static int test_creat_mmfile(directory_stream_t * tempdir)
       char pathname[ strlen("mmfile") + tempdir->path_len + 1 ] ;
       strncpy( pathname, tempdir->path, tempdir->path_len ) ;
       strcpy( pathname + tempdir->path_len, "mmfile" ) ;
-      TEST(0 == init_mmfile(&mfile, pathname, 0, 111, 0, mmfile_openmode_CREATE)) ;
+      TEST(0 == initcreate_mmfile(&mfile, pathname, 111, 0)) ;
    }
    TEST(mfile.sys_file         >  0) ;
    TEST(mfile.addr             != 0) ;
@@ -291,17 +298,17 @@ static int test_creat_mmfile(directory_stream_t * tempdir)
    {
       directory_stream_t dummy  = directory_stream_INIT_FREEABLE ;
       // path (dummy) invalid
-      TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 1, &dummy, mmfile_openmode_CREATE)) ;
+      TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 1, &dummy, mmfile_openmode_CREATE_FLAG|mmfile_openmode_RDWR_SHARED)) ;
       // offset != 0
-      TEST(EINVAL == init_mmfile(&mfile, "mmfile", 1, 1, tempdir, mmfile_openmode_CREATE)) ;
+      TEST(EINVAL == init_mmfile(&mfile, "mmfile", 1, 1, tempdir, mmfile_openmode_CREATE_FLAG|mmfile_openmode_RDWR_SHARED)) ;
       // size == 0
-      TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, tempdir, mmfile_openmode_CREATE)) ;
+      TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, tempdir, mmfile_openmode_CREATE_FLAG|mmfile_openmode_RDWR_SHARED)) ;
    }
 
    // TEST EEXIST
-   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 1, tempdir, mmfile_openmode_CREATE)) ;
+   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 1, tempdir)) ;
    TEST(0 == free_mmfile(&mfile)) ;
-   TEST(EEXIST == init_mmfile(&mfile, "mmfile", 0, 1, tempdir, mmfile_openmode_CREATE)) ;
+   TEST(EEXIST == initcreate_mmfile(&mfile, "mmfile", 1, tempdir)) ;
    TEST(0 == removefile_directorystream(tempdir, "mmfile")) ;
 
    return 0 ;
@@ -332,7 +339,7 @@ static int test_open_mmfile(directory_stream_t * tempdir)
    struct sigaction    oldact ;
 
    // creat content
-   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 256, tempdir, mmfile_openmode_CREATE)) ;
+   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 256, tempdir)) ;
    for(unsigned i = 0; i < 256; ++i) {
       addr_mmfile(&mfile)[i] = (uint8_t)i ;
    }

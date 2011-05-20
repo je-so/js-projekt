@@ -14,26 +14,31 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2010 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
 
    file: C-kern/api/os/virtmemory.h
     Header file of <VirtualMemory>.
 
    file: C-kern/os/Linux/virtmemory.c
-    Linux specific implementation of <VirtualMemory>.
+    Linux specific implementation <VirtualMemory Linux>.
 */
 #ifndef CKERN_OS_VIRTUALMEMORY_HEADER
 #define CKERN_OS_VIRTUALMEMORY_HEADER
 
+#include "C-kern/api/aspect/constant/access_mode.h"
+
 /* typedef: typedef vm_block_t
  * Shortcut for <vm_block_t>. */
 typedef struct vm_block_t           vm_block_t ;
+
 /* typedef: typedef vm_region_t
  * Shortcut for <vm_region_t>. */
 typedef struct vm_region_t          vm_region_t ;
+
 /* typedef: typedef vm_mappedregions_t
  * Shortcut for <vm_mappedregions_t>. */
 typedef struct vm_mappedregions_t   vm_mappedregions_t ;
+
 /* typedef: typedef vm_regionsarray_t
  * Internal type used to implement <vm_regionsarray_t>. */
 typedef struct vm_regionsarray_t    vm_regionsarray_t ;
@@ -41,21 +46,20 @@ typedef struct vm_regionsarray_t    vm_regionsarray_t ;
 
 // section: Functions
 
-
 // group: query
 
 /* function: pagesize_vm
  * Returns the virtual memory page size supported by the underlying system. */
 extern size_t pagesize_vm(void) ;
 
-
-
 // group: test
+
 #ifdef KONFIG_UNITTEST
 /* function: unittest_os_virtualmemory
  * Unittest for virtual memory module. */
 extern int unittest_os_virtualmemory(void) ;
 #endif
+
 
 /* struct: vm_block_t
  * Describes a virtual memory block mapped in the address space of the running process. */
@@ -81,40 +85,50 @@ struct vm_block_t
 
 /* function: init_vmblock
  * New memory is mapped into the virtual address space of the calling process.
- * The new memory has size == size_in_pages * <pagesize_vm>. */
-extern int init_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_pages ) ;
-
-/* function: initorextend_vmblock
- * Tries to grow the upper bound of an already mapped address range or to choose a new location.
- * Returns 0 on success else ENOMEM or another system specific error code.
- *
- * In case of success and new_mapped_block->addr is != 0:
- * The new mapped address range is
- * > new_mapped_block->addr[0 .. size_in_pages * pagesize_vm() -1 ]
- *
- * In case of success and new_mapped_block->addr is == 0:
- * The ext_block is extended into
- * > ext_block->addr[0 .. ext_block->size -1 ]
- * Where
- * > ext_block->size == old (ext_block->size) + size_in_pages * pagesize_vm() */
-extern int initorextend_vmblock( /*out*/vm_block_t * new_mapped_block, size_t size_in_pages, vm_block_t * ext_block) ;
+ * The new memory has size == size_in_pages * <pagesize_vm>.
+ * It is read and writeable and not shared between processes.
+ * But a child process can access its content after a fork (COPY_ON_WRITE semantics). */
+extern int init_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages ) ;
 
 /* function: free_vmblock
  * Invalidates virtual memory address range
- * > mapped_block->addr[0 .. mapped_block->size - 1 ]
+ * > vmblock->addr[0 .. vmblock->size - 1 ]
  * After successull return every access to this memory range will generate a memory exception and
- * mapped_block is set to <vm_block_t.vm_block_INIT_FREEABLE>.
+ * vmblock is set to <vm_block_t.vm_block_INIT_FREEABLE>.
  * Therefore unmapping an already unmapped memory region does nothing and returns success. */
-extern int free_vmblock( vm_block_t * mapped_block ) ;
+extern int free_vmblock( vm_block_t * vmblock ) ;
 
 // group: change
 
-/* function: extend_vmblock
+/* function: protect_vmblock
+ * TODO: doku */
+extern int protect_vmblock( vm_block_t * vmblock, access_moderw_aspect_e access_mode ) ;
+
+/* function: tryexpand_vmblock
  * Tries to grow the upper bound of an already mapped address range.
+ * The start address of virtual memory block is not changed.
  * Returns 0 on success else ENOMEM or another system specific error code.
- * In case of success the new address range is [ext_block->addr .. ext_block->addr + ext_block->size + increment_in_pages * <pagesize_vm>).
- * In case of error nothing is changed. You can use this function to test if an address range after ext_block is already mapped. */
-extern int extend_vmblock( vm_block_t * ext_block, size_t increment_in_pages) ;
+ * In case of success the new address range is
+ * > [vmblock->addr .. vmblock->addr + vmblock->size + increment_in_pages * <pagesize_vm>).
+ * If the memory could not be expanded no error logging is done. */
+extern int tryexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages) ;
+
+/* function: resize_vmblock
+ * Grows an already mapped virtual memory block.
+ * If the block can not be expanded (see <tryexpand_vmblock>) it is relocated
+ * to a new virtual address with sufficient space.
+ * In case of success the new address range is
+ * >    [ vmblock->addr .. vmblock->addr + vmblock->size + increment_in_pages * <pagesize_vm>)
+ * > or [ NEW_ADDR .. NEW_ADDR + vmblock->size + increment_in_pages * <pagesize_vm>). */
+extern int resize_vmblock( vm_block_t * vmblock, size_t increment_in_pages) ;
+
+/* function: shrink_vmblock
+ * Shrinks an already mapped virtual memory block (start addr keeps same).
+ * If decrement_in_pages * pagesize_vm() if greater or equal to vmblock->size
+ * EINVAL is returned and nothing is changed.
+ * In case of success the new address range is
+ * > [vmblock->addr .. vmblock->addr + vmblock->size - decrement_in_pages * <pagesize_vm>). */
+extern int shrink_vmblock( vm_block_t * vmblock, size_t decrement_in_pages ) ;
 
 
 /* struct: vm_region_t
@@ -123,24 +137,24 @@ struct vm_region_t
 {
    /* variable: addr
     * Start address or lowest address of mapping. */
-   void * addr ;
+   void *   addr ;
    /* variable: endaddr
     * End address of mapping. It points to the address after the last mapped byte.
     * Therefore the length in pages can be calculated as:
     * > (endaddr - addr) / pagesize_vm() */
-   void * endaddr ;
+   void *   endaddr ;
    /* variable: isReadable
     * True if memory can be read. */
-   bool isReadable ;
+   bool     isReadable ;
    /* variable: isWriteable
     * True if memory can be written to. */
-   bool isWriteable ;
+   bool     isWriteable ;
    /* variable: isExecutable
     * True if memory contains executable machine code. */
-   bool isExecutable ;
+   bool     isExecutable ;
    /* variable: isShared
     * True if memory is shared with another process. */
-   bool isShared ;
+   bool     isShared ;
 } ;
 
 // group: query
@@ -209,6 +223,7 @@ extern size_t size_vmmappedregions( const vm_mappedregions_t * mappedregions ) ;
 extern int compare_vmmappedregions( const vm_mappedregions_t * left, const vm_mappedregions_t * right ) ;
 
 // group: iterate
+
 /* function: gofirst_vmmappedregions
  * Resets iterator to the first element.
  * The next call to <next_vmmappedregions> will return the first contained element.
@@ -223,7 +238,6 @@ extern const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 
 
 // section: inline implementation
-
 
 /* define: inline pagesize_vm
  * Uses sysconf(_SC_PAGESIZE) which conforms to POSIX.1-2001. */
