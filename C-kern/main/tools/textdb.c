@@ -118,12 +118,6 @@ struct textdb_column_t
    size_t   allocated_memory_size ;
 } ;
 
-static int clearvalue_textdbcolumn(textdb_column_t * column)
-{
-   column->length = 0 ;
-   return 0 ;
-}
-
 static int appendvalue_textdbcolumn(textdb_column_t * column, const char * str, size_t str_len)
 {
    if (column->allocated_memory_size - column->length <= str_len) {
@@ -135,12 +129,14 @@ static int appendvalue_textdbcolumn(textdb_column_t * column, const char * str, 
       }
       column->value = (char*) temp ;
    }
+
    memcpy( column->value + column->length, str, str_len) ;
    column->length += str_len ;
    column->value[column->length] = 0 ;
+
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   return ENOMEM ;
 }
 
 static int free_textdbcolumn(textdb_column_t * column)
@@ -155,49 +151,97 @@ static int free_textdbcolumn(textdb_column_t * column)
 struct textdb_t
 {
    mmfile_t        input_file ;
+   size_t          row_count ;
    size_t          column_count ;
-   textdb_column_t * header/*[column_count]*/ ;
-   textdb_column_t * data/*[column_count]*/ ;
+   textdb_column_t * rows  /*[row_count][column_count]*/ ;
    char            * filename ;
-   size_t          scanned_offset ;
    size_t          line_number ;
 } ;
 
-#define textdb_INIT_FREEABLE  { mmfile_INIT_FREEABLE, 0, 0, 0, 0, 0, 0 }
+#define textdb_INIT_FREEABLE  { mmfile_INIT_FREEABLE, 0, 0, 0, 0, 0 }
 
-static int readrow_textdb( textdb_t * txtdb )
+static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_len, /*out*/size_t * number_of_cols)
+{
+   int err = EINVAL ;
+
+   size_t nr_cols = 1 ;
+
+   while( input_len ) {
+      if ('\'' != *next_char && '"' != *next_char ) {
+         print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+         goto ABBRUCH ;
+      }
+
+      char end_of_string = *next_char ;
+
+      for( --input_len, ++next_char; input_len ; --input_len, ++next_char ) {
+         if (end_of_string == *next_char) {
+            break ;
+         }
+         if (  ! (   ('a' <= *next_char && *next_char <= 'z')
+                  || ('A' <= *next_char && *next_char <= 'Z')
+                  || ('0' <= *next_char && *next_char <= '9')
+                  ||  '_' == *next_char
+                  ||  '-' == *next_char)) {
+            print_err( "Header name contains wrong character '%c' in textdb file '%s' in line: %d", *next_char, txtdb->filename, txtdb->line_number) ;
+            goto ABBRUCH ;
+         }
+      }
+
+      if (!input_len) {
+         print_err( "Expected closing '%c' in textdb file '%s' in line: %d", end_of_string, txtdb->filename, txtdb->line_number) ;
+         goto ABBRUCH ;
+      }
+
+      for( --input_len, ++next_char; input_len ; --input_len, ++next_char ) {
+         if (' ' != *next_char && '\t' != *next_char) {
+            break ;
+         }
+      }
+
+      if (     ! input_len
+          ||   '\n' == *next_char ) {
+         // read end of line
+         break ;
+      }
+
+      if (',' != *next_char) {
+         print_err( "Expected ',' not '%c' in textdb file '%s' in line: %d", *next_char, txtdb->filename, txtdb->line_number) ;
+         goto ABBRUCH ;
+      }
+
+      ++ nr_cols ;
+
+      for( --input_len, ++next_char; input_len ; --input_len, ++next_char ) {
+         if (' ' != *next_char && '\t' != *next_char) {
+            break ;
+         }
+      }
+
+      if (     !input_len
+          ||   '\n' == *next_char ) {
+         print_err( "No data after ',' in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+         goto ABBRUCH ;
+      }
+   }
+
+   *number_of_cols = nr_cols ;
+
+   return 0 ;
+ABBRUCH:
+   return err ;
+}
+
+static int tablesize_textdb( textdb_t * txtdb, /*out*/size_t * number_of_rows, /*out*/size_t * number_of_cols)
 {
    int err ;
-   bool    isData   = (txtdb->column_count > 0) ;
    char * next_char = (char*) addr_mmfile( &txtdb->input_file ) ;
    size_t input_len = size_mmfile( &txtdb->input_file ) ;
 
-   input_len -= txtdb->scanned_offset ;
-   next_char += txtdb->scanned_offset ;
+   size_t nr_rows = 0 ;
+   size_t nr_cols = 0 ;
 
-   if (isData)
-   {
-      assert((0 != txtdb->header) && (0 != txtdb->data)) ;
-      for(size_t i = 0; i < txtdb->column_count; ++i) {
-         err = clearvalue_textdbcolumn( &txtdb->data[i] ) ;
-         if (err) goto ABBRUCH ;
-      }
-   } else {
-      assert((0 == txtdb->header) && (0 == txtdb->data)) ;
-      txtdb->header  = MALLOC(textdb_column_t,malloc,) ;
-      txtdb->data    = MALLOC(textdb_column_t,malloc,) ;
-      if (!txtdb->header || !txtdb->data) {
-         free(txtdb->header) ;
-         free(txtdb->data) ;
-         txtdb->header = 0 ;
-         txtdb->data   = 0 ;
-         print_err("Out of memory") ;
-         goto ABBRUCH ;
-      }
-      memset( txtdb->header, 0, sizeof(textdb_column_t) ) ;
-      memset( txtdb->data, 0, sizeof(textdb_column_t) ) ;
-      txtdb->column_count = 1 ;
-   }
+   txtdb->line_number = 1 ;
 
    while( input_len ) {
       if (' ' == *next_char || '\t' == *next_char || '\n' == *next_char ) {
@@ -207,114 +251,141 @@ static int readrow_textdb( textdb_t * txtdb )
          }
          -- input_len ;
          ++ next_char ;
-      } else if ('#' == *next_char) {
-         // ignore comment
-         while( input_len ) {
-            if ('\n' == *next_char) {
-               break ;
-            }
-            -- input_len ;
-            ++ next_char ;
-         }
-      } else {
-         break ;
-      }
-   }
-
-   if (!input_len) {
-      txtdb->scanned_offset = size_mmfile( &txtdb->input_file ) ;
-      return ENODATA ;
-   }
-
-   size_t column_index = 0 ;
-   bool   isExpectData = true ;
-
-   while( input_len ) {
-      const char quotesign = *next_char ;
-      -- input_len ;
-      ++ next_char ;
-      if ('\n' == quotesign) {
-         if (     isExpectData
-               || (column_index + 1) != txtdb->column_count) {
-            // ERROR
-            break ;
-         }
-         ++ txtdb->line_number ;
-         break ;
-      }
-      if (' ' == quotesign || '\t' == quotesign) {
          continue ;
       }
-      if (',' == quotesign) {
-         isExpectData = true ;
-         ++ column_index ;
-         if (!isData) {
-            ++ txtdb->column_count ;
-            size_t memsize = sizeof(textdb_column_t) * txtdb->column_count ;
-            void *    temp = realloc( txtdb->header, memsize ) ;
-            if (temp) {
-               txtdb->header = (textdb_column_t*) temp ;
-               memset( &txtdb->header[column_index], 0, sizeof(textdb_column_t) ) ;
-               temp = realloc( txtdb->data, memsize ) ;
-               if (temp) {
-                  txtdb->data = (textdb_column_t*) temp ;
-                  memset( &txtdb->data[column_index], 0, sizeof(textdb_column_t) ) ;
-               }
-            }
-            if (!temp) {
-               -- txtdb->column_count ;
-               print_err("Out of memory") ;
-               goto ABBRUCH ;
-            }
+      if ('#' != *next_char) {
+         // data line
+         if (!nr_rows) {
+            // found header
+            err = scanheader_textdb(txtdb, next_char, input_len, &nr_cols) ;
+            if (err) goto ABBRUCH ;
          }
-         if (column_index >= txtdb->column_count) {
-            print_err( "Expected only %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
-            goto ABBRUCH ;
-         }
-         continue ;
+         ++ nr_rows ;
       }
-      if ('\'' != quotesign && '\"' != quotesign) {
-         print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
-         goto ABBRUCH ;
-      }
-      isExpectData = false ;
-      char * str = next_char ;
+      // find end of line
       while( input_len ) {
-         if (quotesign == *next_char) {
-            break ;
-         }
          if ('\n' == *next_char) {
             break ;
          }
          -- input_len ;
          ++ next_char ;
       }
-      if (!input_len || quotesign != *next_char) {
-         print_err( "Expected closing %c in in textdb file '%s' in line: %d", quotesign, txtdb->filename, txtdb->line_number) ;
+   }
+
+   *number_of_rows = nr_rows ;
+   *number_of_cols = nr_cols ;
+
+   return 0 ;
+ABBRUCH:
+   return err ;
+}
+
+static int readrows_textdb( textdb_t * txtdb, size_t start_column_index )
+{
+   int err ;
+   char * next_char = (char*) addr_mmfile( &txtdb->input_file ) ;
+   size_t input_len = size_mmfile( &txtdb->input_file ) ;
+   size_t row_index = 0 ;
+
+   txtdb->line_number = 1 ;
+
+   while( input_len ) {
+      // find line containing data
+      for(;;) {
+         if (' ' == *next_char || '\t' == *next_char || '\n' == *next_char ) {
+            // ignore white space
+            if ('\n' == *next_char) {
+               ++ txtdb->line_number ;
+            }
+            -- input_len ;
+            ++ next_char ;
+         } else if ('#' == *next_char) {
+            // ignore comment
+            while( input_len ) {
+               if ('\n' == *next_char) {
+                  break ;
+               }
+               -- input_len ;
+               ++ next_char ;
+            }
+         } else {
+            break ;
+         }
+         if (!input_len) {
+            // no more data
+            return 0 ;
+         }
+      }
+
+      // read line content
+      size_t column_index = start_column_index ;
+      bool   isExpectData = true ;
+
+      while( input_len ) {
+         if ('\n' == *next_char) {
+            break ;
+         } else if (' ' == *next_char || '\t' == *next_char) {
+            -- input_len ;
+            ++ next_char ;
+            continue ;
+         } else if (',' == *next_char) {
+            isExpectData = true ;
+            ++ column_index ;
+            if (column_index >= txtdb->column_count) {
+               err = E2BIG ;
+               print_err( "Expected only %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
+               goto ABBRUCH ;
+            }
+            -- input_len ;
+            ++ next_char ;
+            continue ;
+         }
+         if ('\'' != *next_char && '\"' != *next_char) {
+            err = EINVAL ;
+            print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+            goto ABBRUCH ;
+         }
+         char end_of_string = *next_char ;
+         isExpectData = false ;
+         -- input_len ;
+         ++ next_char ;
+         char * str = next_char ;
+         while( input_len ) {
+            if (end_of_string == *next_char) {
+               break ;
+            }
+            if ('\n' == *next_char) {
+               break ;
+            }
+            -- input_len ;
+            ++ next_char ;
+         }
+         if (!input_len || end_of_string != *next_char) {
+            err = EINVAL ;
+            print_err( "Expected closing %c in in textdb file '%s' in line: %d", end_of_string, txtdb->filename, txtdb->line_number) ;
+            goto ABBRUCH ;
+         }
+         size_t str_len = (size_t) (next_char - str) ;
+         -- input_len ;
+         ++ next_char ;
+         err = appendvalue_textdbcolumn( &txtdb->rows[row_index * txtdb->column_count + column_index], str, str_len) ;
+         if (err) goto ABBRUCH ;
+      }
+
+      if (     isExpectData
+            || (column_index + 1) != txtdb->column_count) {
+         err = ENODATA ;
+         if ( isExpectData ) {
+            print_err( "Expected a value after ',' in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
+         } else {
+            print_err( "Expected %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
+         }
          goto ABBRUCH ;
       }
-      size_t str_len = (size_t) (next_char - str) ;
-      -- input_len ;
-      ++ next_char ;
-      if (isData) {
-         err = appendvalue_textdbcolumn( &txtdb->data[column_index], str, str_len) ;
-      } else {
-         err = appendvalue_textdbcolumn( &txtdb->header[column_index], str, str_len) ;
-      }
-      if (err) goto ABBRUCH ;
+
+      ++ row_index ;
    }
 
-   if (     isExpectData
-         || (column_index + 1) != txtdb->column_count) {
-      if ( isExpectData ) {
-         print_err( "Expected a value after ',' in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
-      } else {
-         print_err( "Expected %d columns in textdb file '%s' in line: %d", txtdb->column_count, txtdb->filename, txtdb->line_number) ;
-      }
-      goto ABBRUCH ;
-   }
-
-   txtdb->scanned_offset = size_mmfile( &txtdb->input_file ) - input_len ;
    return 0 ;
 ABBRUCH:
    return 1 ;
@@ -324,18 +395,16 @@ static int free_textdb(textdb_t * txtdb)
 {
    int err = 0 ;
    int err2 ;
+   size_t table_size = txtdb->row_count * txtdb->column_count ;
 
-   for(size_t i = 0 ; i < txtdb->column_count; ++i) {
-      err2 = free_textdbcolumn(&txtdb->header[i]) ;
-      if (err2) err = err2 ;
-      err2 = free_textdbcolumn(&txtdb->data[i]) ;
+   for(size_t i = 0; i < table_size; ++i) {
+      err2 = free_textdbcolumn(&txtdb->rows[i]) ;
       if (err2) err = err2 ;
    }
 
-   free(txtdb->header) ;
-   free(txtdb->data) ;
-   txtdb->header = 0 ;
-   txtdb->data   = 0 ;
+   free(txtdb->rows) ;
+   txtdb->rows         = 0 ;
+   txtdb->row_count    = 0 ;
    txtdb->column_count = 0 ;
 
    err2 = free_mmfile(&txtdb->input_file) ;
@@ -350,11 +419,11 @@ ABBRUCH:
 static int init_textdb(/*out*/textdb_t * result, const char * filename)
 {
    int err ;
-   textdb_t  txtdb = textdb_INIT_FREEABLE ;
+   textdb_t txtdb = textdb_INIT_FREEABLE ;
 
-   txtdb.line_number = 1 ;
-   txtdb.filename    = strdup(filename) ;
+   txtdb.filename = strdup(filename) ;
    if (!txtdb.filename) {
+      err = ENOMEM ;
       print_err( "Out of memory" ) ;
       goto ABBRUCH ;
    }
@@ -365,19 +434,37 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
       goto ABBRUCH ;
    }
 
-   err = readrow_textdb( &txtdb ) ;
-   if (err) {
-      if (ENODATA == err) {
-         print_err( "Expected text line with header names in textdb file '%s'", txtdb.filename ) ;
-      }
+   err = tablesize_textdb( &txtdb, &txtdb.row_count, &txtdb.column_count ) ;
+   if (err) goto ABBRUCH ;
+
+   if (! txtdb.row_count) {
+      err = ENODATA ;
+      print_err( "Expected text line with header names in textdb file '%s'", txtdb.filename ) ;
       goto ABBRUCH ;
    }
 
+   ++ txtdb.column_count /*special column row-id*/ ;
+   size_t rows_size = sizeof(textdb_column_t) * txtdb.row_count * txtdb.column_count ;
+   txtdb.rows       = (textdb_column_t*) malloc( rows_size ) ;
+   if (!txtdb.rows) {
+      err = ENOMEM ;
+      print_err( "Out of memory" ) ;
+      goto ABBRUCH ;
+   }
+   memset( txtdb.rows, 0, rows_size ) ;
+
+   err = appendvalue_textdbcolumn( &txtdb.rows[0], "row-id", 6) ;
+   if (err) goto ABBRUCH ;
+
+   err = readrows_textdb( &txtdb, 1/*start after special columns*/ ) ;
+   if (err) goto ABBRUCH ;
+
    memcpy( result, &txtdb, sizeof(txtdb) ) ;
+
    return 0 ;
 ABBRUCH:
    free_textdb( &txtdb ) ;
-   return 1 ;
+   return err ;
 }
 
 enum expression_type_e {
@@ -614,8 +701,8 @@ int matchnames_expression( expression_t * where_expr, const textdb_t * dbfile, c
       // search matching header
       bool isMatch = false ;
       for(size_t i = 0; i < dbfile->column_count ; ++i) {
-         if (     dbfile->header[i].length == where_expr->length
-               && 0 == strncmp(dbfile->header[i].value, where_expr->value, where_expr->length) ) {
+         if (     dbfile->rows[i].length == where_expr->length
+               && 0 == strncmp(dbfile->rows[i].value, where_expr->value, where_expr->length) ) {
             where_expr->col_index = i ;
             isMatch = true ;
             break ;
@@ -632,24 +719,26 @@ ABBRUCH:
    return 1 ;
 }
 
-bool ismatch_expression( expression_t * where_expr, const textdb_t * dbfile, const size_t start_linenr)
+bool ismatch_expression( expression_t * where_expr, size_t row, const textdb_t * dbfile, const size_t start_linenr)
 {
    if (!where_expr) {
       // empty where always matches
       return true ;
    }
 
+   textdb_column_t * data = &dbfile->rows[row * dbfile->column_count] ;
+
    switch(where_expr->type) {
    case exprtypeAND:
-      return ismatch_expression(where_expr->left, dbfile, start_linenr ) && ismatch_expression(where_expr->right, dbfile, start_linenr ) ;
+      return ismatch_expression(where_expr->left, row, dbfile, start_linenr ) && ismatch_expression(where_expr->right, row, dbfile, start_linenr ) ;
    case exprtypeOR:
-      return ismatch_expression(where_expr->left, dbfile, start_linenr ) || ismatch_expression(where_expr->right, dbfile, start_linenr ) ;
+      return ismatch_expression(where_expr->left, row, dbfile, start_linenr ) || ismatch_expression(where_expr->right, row, dbfile, start_linenr ) ;
    case exprtypeCOMPARE_EQUAL:
-      return      dbfile->data[where_expr->left->col_index].length == where_expr->right->length
-               && 0 == strncmp(dbfile->data[where_expr->left->col_index].value, where_expr->right->value, where_expr->right->length) ;
+      return      data[where_expr->left->col_index].length == where_expr->right->length
+               && 0 == strncmp(data[where_expr->left->col_index].value, where_expr->right->value, where_expr->right->length) ;
    case exprtypeCOMPARE_NOTEQUAL:
-      return      dbfile->data[where_expr->left->col_index].length != where_expr->right->length
-               || 0 != strncmp(dbfile->data[where_expr->left->col_index].value, where_expr->right->value, where_expr->right->length) ;
+      return      data[where_expr->left->col_index].length != where_expr->right->length
+               || 0 != strncmp(data[where_expr->left->col_index].value, where_expr->right->value, where_expr->right->length) ;
    default:
       print_err( "Internal error in WHERE() in line: %d", start_linenr ) ;
       assert(0) ;
@@ -738,6 +827,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
             && ')' != next[0]
             && '"' != next[0]
             && '\'' != next[0]
+            && '\\' != next[0]
             ) {
          ++ next ;
       }
@@ -750,29 +840,43 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
       }
       if (next < end_macro && ' ' != next[0]) {
          const char * start_string = next + 1 ;
+         size_t       string_len ;
          if ('"' == next[0]) {
             do {
                ++ next ;
             } while( next < end_macro && '"' != next[0]) ;
             if (next >= end_macro) {
-               print_err( "Expected '\"' after %s(...\" in line: %d", cmd, start_linenr ) ;
+               print_err( "Expected \" after %s(...\" in line: %d", cmd, start_linenr ) ;
                goto ABBRUCH ;
             }
+            string_len = (size_t) (next - start_string) ;
          } else if ('\'' == next[0]) {
             do {
                ++ next ;
             } while( next < end_macro && '\'' != next[0]) ;
             if (next >= end_macro) {
-               print_err( "Expected \"'\" after %s(...' in line: %d", cmd, start_linenr ) ;
+               print_err( "Expected ' after %s(...' in line: %d", cmd, start_linenr ) ;
                goto ABBRUCH ;
             }
+            string_len = (size_t) (next - start_string) ;
+         } else if ('\\' == next[0]) {
+            ++ next ;
+            if (next >= end_macro) {
+               print_err( "Expected no endofline after \\ in line: %d", start_linenr ) ;
+               goto ABBRUCH ;
+            }
+            switch(next[0]) {
+            case 'n':   start_string = "\n" ;
+                        break ;
+            default:    print_err( "Unsupported escaped character \\%c in line: %d", next[0], start_linenr ) ;
+                        goto ABBRUCH ;
+            }
+            string_len = strlen(start_string) ;
          } else {
             assert(')' == next[0]) ;
             *end_param = next ;
             break ;
          }
-
-         size_t string_len = (size_t) (next - start_string) ;
 
          err = extend_select_parameter(&next_param) ;
          if (err) goto ABBRUCH ;
@@ -831,6 +935,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
    select_parameter_t     * from_param = 0 ;
    expression_t           * where_expr = 0 ;
    textdb_t                    dbfile = textdb_INIT_FREEABLE ;
+   bool                     ascending = true ;  // default ascending order
    char    * filename = 0 ;
    char * start_param = start_macro + sizeof("// TEXTDB:SELECT")-1 ;
    char   * end_param = start_param ;
@@ -845,6 +950,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
 
    if (     (end_macro - start_from) < 4
          || strncmp( start_from, "FROM", 4) ) {
+      err = EINVAL ;
       print_err( "Expected 'FROM' after SELECT() in line: %d", start_linenr ) ;
       goto ABBRUCH ;
    }
@@ -865,8 +971,23 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
       skip_space( &end_param, end_macro ) ;
    }
 
+   char * sort_order = end_param ;
+
+   if (     (end_macro - sort_order) >= 9
+         && 0 == strncmp( sort_order, "ASCENDING", 9) ) {
+      end_param = 9 + sort_order ;
+      skip_space( &end_param, end_macro ) ;
+      ascending = true ;
+   } else if (    (end_macro - sort_order) >= 10
+               && 0 == strncmp( sort_order, "DESCENDING", 10) ) {
+      end_param = 10 + sort_order ;
+      skip_space( &end_param, end_macro ) ;
+      ascending = false ;
+   }
+
    if (end_param < end_macro) {
-      print_err( "Expected nothing after SELECT()FROM()WHERE() in line: %d", start_linenr ) ;
+      err = EINVAL ;
+      print_err( "Expected nothing after SELECT()FROM()WHERE()\\(ASCENDING\\|DESCENDING\\) in line: %d", start_linenr ) ;
       goto ABBRUCH ;
    }
 
@@ -883,14 +1004,15 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
          // search matching header
          bool isMatch = false ;
          for(size_t i = 0; i < dbfile.column_count ; ++i) {
-            if (     p->length == dbfile.header[i].length
-                  && 0 == strncmp(dbfile.header[i].value, p->value, p->length) ) {
+            if (     p->length == dbfile.rows[i].length
+                  && 0 == strncmp(dbfile.rows[i].value, p->value, p->length) ) {
                p->col_index = i ;
                isMatch = true ;
                break ;
             }
          }
          if (!isMatch) {
+            err = EINVAL ;
             print_err( "Unknown column name '%.*s' in SELECT()FROM() in line: %d", p->length, p->value, start_linenr ) ;
             goto ABBRUCH ;
          }
@@ -900,29 +1022,42 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
    err = matchnames_expression( where_expr, &dbfile, start_linenr ) ;
    if (err) goto ABBRUCH ;
 
+   // determine row-id
+   for(size_t row = 1/*skip header*/, rowid = 1; row < dbfile.row_count; ++row) {
+      if (  ismatch_expression( where_expr, row, &dbfile, start_linenr ) ) {
+         textdb_column_t * data  = &dbfile.rows[row * dbfile.column_count] ;
+         char              buffer[10] ;
+
+         snprintf(buffer, sizeof(buffer), "%u", (int)rowid) ;
+         err = appendvalue_textdbcolumn( &data[0], buffer, strlen(buffer)) ;
+         if (err) goto ABBRUCH ;
+
+         ++ rowid ;
+      }
+   }
+
    // write for every read row the values of the concatenated select parameters as one line of output
-   for(;;) {
-      err = readrow_textdb( &dbfile ) ;
-      if (err == ENODATA) break ;
-      if (err) goto ABBRUCH ;
+   for(size_t i = 1/*skip header*/; i < dbfile.row_count; ++i) {
 
-      if (  ismatch_expression( where_expr, &dbfile, start_linenr ) ) {
+      size_t row = (ascending ? i : (dbfile.row_count-i)) ;
 
+      if (  ismatch_expression( where_expr, row, &dbfile, start_linenr ) ) {
+
+         textdb_column_t * data = &dbfile.rows[row * dbfile.column_count] ;
          for( const select_parameter_t * p = select_param; p; p = p->next) {
             if (p->isString) {
                err = write_file( outfd, p->value, p->length ) ;
                if (err) goto ABBRUCH ;
             } else {
-               err = write_file( outfd, dbfile.data[p->col_index].value, dbfile.data[p->col_index].length ) ;
+               err = write_file( outfd, data[p->col_index].value, data[p->col_index].length ) ;
                if (err) goto ABBRUCH ;
             }
          }
+
          err = write_file( outfd, "\n", 1 ) ;
          if (err) goto ABBRUCH ;
-
       }
    }
-
 
    free_textdb( &dbfile ) ;
    free(filename) ;
@@ -936,7 +1071,7 @@ ABBRUCH:
    delete_select_parameter(&select_param) ;
    delete_select_parameter(&from_param) ;
    delete_expression(&where_expr) ;
-   return 1 ;
+   return err ;
 }
 
 static int find_macro(/*out*/char ** start_pos, /*out*/char ** end_pos, /*inout*/size_t * line_number, char * next_input, size_t input_size)
@@ -1079,7 +1214,7 @@ PRINT_USAGE:
    dprintf(STDERR_FILENO, "%s", "* TextDB is a textdb macro preprocessor.\n" ) ;
    dprintf(STDERR_FILENO, "%s", "* It reads a C source file and translates it into a C source file\n" ) ;
    dprintf(STDERR_FILENO, "%s", "* whereupon textdb macros are expanded.\n" ) ;
-   dprintf(STDERR_FILENO, "\nUsage: %s -o <out.c> [OPTIONS] <in.c>\n\n", g_programname ) ;
+   dprintf(STDERR_FILENO, "\nUsage: %s [-o <out.c>] <in.c>\n\n", g_programname ) ;
 ABBRUCH:
    if (g_outfilename && outfd != -1) {
       close(outfd) ;
