@@ -71,7 +71,7 @@ extern int init_wstringconverter(/*out*/wstring_converter_t * conv, size_t input
 /* function: copy_wstringconverter
  * Copies state from *source* to *dest*.
  * Make sure that dest and source points to different addresses. */
-extern int copy_wstringconverter(/*out*/wstring_converter_t * __restrict dest, const wstring_converter_t * __restrict source ) ;
+extern int copy_wstringconverter(/*out*/wstring_converter_t * restrict dest, const wstring_converter_t * restrict source ) ;
 
 /* function: free_wstringconverter
  * Frees resources associated with <wstring_converter_t>. */

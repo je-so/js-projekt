@@ -101,7 +101,8 @@ extern int free_vmblock( vm_block_t * vmblock ) ;
 // group: change
 
 /* function: protect_vmblock
- * TODO: doku */
+ * Sets protection of memory (e.g. if write is possible).
+ * See <access_moderw_aspect_e> for a list of all supported bits. */
 extern int protect_vmblock( vm_block_t * vmblock, access_moderw_aspect_e access_mode ) ;
 
 /* function: tryexpand_vmblock
@@ -113,14 +114,14 @@ extern int protect_vmblock( vm_block_t * vmblock, access_moderw_aspect_e access_
  * If the memory could not be expanded no error logging is done. */
 extern int tryexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages) ;
 
-/* function: resize_vmblock
+/* function: movexpand_vmblock
  * Grows an already mapped virtual memory block.
  * If the block can not be expanded (see <tryexpand_vmblock>) it is relocated
  * to a new virtual address with sufficient space.
  * In case of success the new address range is
  * >    [ vmblock->addr .. vmblock->addr + vmblock->size + increment_in_pages * <pagesize_vm>)
  * > or [ NEW_ADDR .. NEW_ADDR + vmblock->size + increment_in_pages * <pagesize_vm>). */
-extern int resize_vmblock( vm_block_t * vmblock, size_t increment_in_pages) ;
+extern int movexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages) ;
 
 /* function: shrink_vmblock
  * Shrinks an already mapped virtual memory block (start addr keeps same).
@@ -137,24 +138,16 @@ struct vm_region_t
 {
    /* variable: addr
     * Start address or lowest address of mapping. */
-   void *   addr ;
+   void                 *  addr ;
    /* variable: endaddr
     * End address of mapping. It points to the address after the last mapped byte.
     * Therefore the length in pages can be calculated as:
     * > (endaddr - addr) / pagesize_vm() */
-   void *   endaddr ;
-   /* variable: isReadable
-    * True if memory can be read. */
-   bool     isReadable ;
-   /* variable: isWriteable
-    * True if memory can be written to. */
-   bool     isWriteable ;
-   /* variable: isExecutable
-    * True if memory contains executable machine code. */
-   bool     isExecutable ;
-   /* variable: isShared
-    * True if memory is shared with another process. */
-   bool     isShared ;
+   void                 *  endaddr ;
+   /* variable: protection
+    * Gives protection (access rights) of the memory block.
+    * See <access_mode_aspect_e> for a list of supported bits. */
+   access_mode_aspect_e  protection ;
 } ;
 
 // group: query
@@ -239,12 +232,12 @@ extern const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 
 // section: inline implementation
 
-/* define: inline pagesize_vm
+/* define: pagesize_vm inline
  * Uses sysconf(_SC_PAGESIZE) which conforms to POSIX.1-2001. */
 #define /*size_t*/ pagesize_vm() \
    ((size_t)(sysconf(_SC_PAGESIZE)))
 
-/* define: size_vmmappedregions
+/* define: size_vmmappedregions inline
  * Returns <vm_mappedregions_t->total_count>.
  * Inline implementation of <vm_mappedregions_t.size_vmmappedregions>. */
 #define /*size_t*/ size_vmmappedregions( /*const vm_mappedregions_t * */mappedregions ) \

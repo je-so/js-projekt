@@ -64,10 +64,7 @@ int compare_vmregion( const vm_region_t * left, const vm_region_t * right )
 
    RETURN_ON_UNEQUAL(addr) ;
    RETURN_ON_UNEQUAL(endaddr) ;
-   RETURN_ON_UNEQUAL(isReadable) ;
-   RETURN_ON_UNEQUAL(isWriteable) ;
-   RETURN_ON_UNEQUAL(isExecutable) ;
-   RETURN_ON_UNEQUAL(isShared) ;
+   RETURN_ON_UNEQUAL(protection) ;
 
    return 0 ;
 }
@@ -194,10 +191,12 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
 
          next_region->addr         = (void *) start ;
          next_region->endaddr      = (void *) end ;
-         next_region->isReadable   = (isReadable == 'r') ;
-         next_region->isWriteable  = (isWriteable == 'w') ;
-         next_region->isExecutable = (isExecutable == 'x') ;
-         next_region->isShared     = (isShared == 's') ;
+         access_mode_aspect_e  prot ;
+         prot  = ((isReadable == 'r')   ? access_mode_READ   : 0) ;
+         prot |= ((isWriteable == 'w')  ? access_mode_WRITE  : 0) ;
+         prot |= ((isExecutable == 'x') ? access_mode_EXEC   : 0) ;
+         prot |= ((isShared == 's')     ? access_mode_SHARED : access_mode_PRIVATE) ;
+         next_region->protection   = prot ;
 
          ++ total_regions_count ;
          -- free_region_count ;
@@ -229,7 +228,7 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    gofirst_vmmappedregions(mappedregions) ;
    return 0 ;
 ABBRUCH:
-   while (first_array) {
+   while( first_array ) {
       vm_regionsarray_t * next = first_array->next ;
       free(first_array) ;
       first_array = next ;
@@ -405,7 +404,7 @@ ABBRUCH:
    return err ;
 }
 
-int resize_vmblock( vm_block_t * vmblock, size_t increment_in_pages )
+int movexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages )
 {
    int err ;
    size_t    pagesize         = pagesize_vm() ;
@@ -494,11 +493,7 @@ static int iscontained_in_mapping(const vm_block_t * mapped_block)
       if (     mapped_start < next->endaddr
             && mapped_end   > next->addr ) {
          // overlapping
-         if (  next->isExecutable
-               || next->isShared
-               || !next->isReadable
-               || !next->isWriteable
-               ) {
+         if (next->protection != (access_moderw_RDWR | access_mode_PRIVATE)) {
             result = 2 ;
             break ;
          }
@@ -554,11 +549,8 @@ static int compare_protection(const vm_block_t * vmblock, access_moderw_aspect_e
    err = query_region(&region, vmblock) ;
    if (err) goto ABBRUCH ;
 
-   err = EINVAL ;
-   if (     region.isShared
-         || region.isReadable  != !!(prot & access_moderw_READ)
-         || region.isWriteable != !!(prot & access_moderw_WRITE)
-         || region.isExecutable!= !!(prot & access_moderw_EXEC)) {
+   if ( region.protection  != (prot | access_mode_PRIVATE) ) {
+      err = EINVAL ;
       goto ABBRUCH ;
    }
 
@@ -669,7 +661,7 @@ static int test_mapping(void)
    TEST(0 == free_vmblock(&unmapped_block)) ;
    TEST(0 == iscontained_in_mapping(&mapped_block)) ;
 
-   // TEST map, resize, unmap in (50 pages) loop
+   // TEST map, movexpand, unmap in (50 pages) loop
    size_in_pages = 50 ;
    TEST(0 == init_vmblock(&mapped_block, size_in_pages)) ;
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
@@ -682,7 +674,7 @@ static int test_mapping(void)
       TEST(! unmapped_block.addr && ! unmapped_block.size) ;
       TEST(0 == iscontained_in_mapping(&upperhalf)) ;
       TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
-      TEST(0 == resize_vmblock(&lowerhalf, size_in_pages-i)) ;
+      TEST(0 == movexpand_vmblock(&lowerhalf, size_in_pages-i)) ;
       TEST(mapped_block.addr == lowerhalf.addr) ;
       TEST(mapped_block.size == lowerhalf.size) ;
    }
@@ -696,7 +688,7 @@ static int test_mapping(void)
       TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
       unmapped_block = (vm_block_t) { mapped_block.addr + unmapoffset - pagesize_vm(), pagesize_vm() } ;
       TEST(0 == iscontained_in_mapping(&unmapped_block)) ;
-      TEST(0 == resize_vmblock(&lowerhalf, 1)) ;
+      TEST(0 == movexpand_vmblock(&lowerhalf, 1)) ;
       TEST(lowerhalf.addr == mapped_block.addr) ;
       TEST(lowerhalf.size == unmapoffset) ;
    }
@@ -705,7 +697,7 @@ static int test_mapping(void)
    TEST(0 == free_vmblock(&unmapped_block)) ;
    TEST(0 == iscontained_in_mapping(&mapped_block)) ;
 
-   // TEST resize (move)
+   // TEST movexpand (move)
    size_in_pages = 50 ;
    for(size_t i = 2; i < size_in_pages; ++i) {
       TEST(0 == init_vmblock(&mapped_block, size_in_pages)) ;
@@ -720,7 +712,7 @@ static int test_mapping(void)
       TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
       unmapped_block = (vm_block_t) { mapped_block.addr + unmapoffset - pagesize_vm(), pagesize_vm() } ;
       TEST(0 == iscontained_in_mapping(&unmapped_block)) ;
-      TEST(0 == resize_vmblock(&lowerhalf, 2)) ;
+      TEST(0 == movexpand_vmblock(&lowerhalf, 2)) ;
       TEST(lowerhalf.addr != mapped_block.addr) ;
       TEST(lowerhalf.size == unmapoffset + pagesize_vm()) ;
       TEST(0 == free_vmblock(&lowerhalf)) ;
@@ -787,14 +779,14 @@ static int test_mapping(void)
    // TEST EINVAL
    TEST(0      == init_vmblock(&mapped_block, 1)) ;
    TEST(EINVAL == tryexpand_vmblock(&mapped_block, (size_t)-1)) ;
-   TEST(EINVAL == resize_vmblock(&mapped_block, (size_t)-1)) ;
+   TEST(EINVAL == movexpand_vmblock(&mapped_block, (size_t)-1)) ;
    TEST(EINVAL == shrink_vmblock(&mapped_block, 1)) ;
    TEST(0      == free_vmblock(&mapped_block)) ;
    TEST(EINVAL == init_vmblock(&mapped_block, (size_t)-1)) ;
 
-   // TEST ENOMEM resize
+   // TEST ENOMEM movexpand
    TEST(0      == init_vmblock(&mapped_block, 1)) ;
-   TEST(ENOMEM == resize_vmblock(&mapped_block, (((size_t)-1) / pagesize_vm()) - 10)) ;
+   TEST(ENOMEM == movexpand_vmblock(&mapped_block, (((size_t)-1) / pagesize_vm()) - 10)) ;
    TEST(0      == free_vmblock(&mapped_block)) ;
 
    return 0 ;
@@ -827,7 +819,7 @@ static int test_protection(void)
       isOldact = true ;
    }
 
-   // TEST protection after init, expand, resize, shrink
+   // TEST protection after init, expand, movexpand, shrink
    access_moderw_aspect_e prot[5] = { access_moderw_RDWR, access_moderw_WRITE, access_moderw_READ, access_moderw_RDEXEC, access_moderw_RDWREXEC } ;
    for(unsigned i = 0; i < nrelementsof(prot); ++i) {
       // TEST init generates RW protection
@@ -842,8 +834,8 @@ static int test_protection(void)
       // TEST expand does not change flags
       TEST(0 == tryexpand_vmblock(&vmblock, 1)) ;
       TEST(0 == compare_protection(&vmblock, prot[i])) ;
-      // TEST resize does not change flags
-      TEST(0 == resize_vmblock(&vmblock, 10)) ;
+      // TEST movexpand does not change flags
+      TEST(0 == movexpand_vmblock(&vmblock, 10)) ;
       TEST(0 == compare_protection(&vmblock, prot[i])) ;
       TEST(0 == free_vmblock(&vmblock)) ;
    }

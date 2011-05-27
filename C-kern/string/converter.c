@@ -40,7 +40,7 @@ int init_wstringconverter(/*out*/ wstring_converter_t * conv, size_t input_len, 
    return 0 ;
 }
 
-int copy_wstringconverter(/*out*/wstring_converter_t * __restrict dest, const wstring_converter_t * __restrict source )
+int copy_wstringconverter(/*out*/wstring_converter_t * restrict dest, const wstring_converter_t * restrict source )
 {
    memcpy( dest, source, sizeof(*dest)) ;
    return 0 ;
