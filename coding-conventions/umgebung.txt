@@ -11,9 +11,9 @@ so most services can be implemented without
 locking mechanisms or other means to make them
 thread safe.
 
-Only basic services which more than one thread
-is relying upon must be programmed in a thread
-safe way.
+Only basic services which are used for interthread
+or interprocess communications must be programmed
+in a thread safe way.
 
 
 

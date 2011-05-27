@@ -98,7 +98,7 @@ extern int unittest_umgebung_testproxy(void) ;
  * Defines top level context for all software modules. */
 struct umgebung_t {
    umgebung_type_e         type ;
-   uint16_t                resource_thread_count ;
+   uint16_t                resource_count ;
    /* Virtual destructor: Allows different implementations to store a different desctructor. */
    int                  (* free_umgebung)  (umgebung_t * umg) ;
 
@@ -124,19 +124,19 @@ struct umgebung_t {
  * This ensures that you can call <free_umgebung> without harm. */
 #define umgebung_INIT_FREEABLE    { umgebung_type_STATIC, 0, 0, 0, 0 }
 
-/* function: init_process_umgebung
+/* function: initprocess_umgebung
  * Initializes global context. Must be called as first function from the main thread.
  * EALREADY is returned if it is called more than once.
  *
  * Basic services like logging always work even if this function is not called. */
-extern int init_process_umgebung(umgebung_type_e implementation_type) ;
+extern int initprocess_umgebung(umgebung_type_e implementation_type) ;
 
 /* function: init_umgebung
  * Initializes context useful in a thread.
  * Must be called before a new thread is started. */
 extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation_type) ;
 
-/* function: free_process_umgebung
+/* function: freeprocess_umgebung
  * Frees global context. Must be called as last function from the main
  * thread of the whole system.
  *
@@ -144,7 +144,7 @@ extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation
  * the global <umgebung_t> is set to umgebung_INIT_MAINSERVICES.
  * This ensures that basic services like logging always work
  * even in case of an unitialized system. */
-extern int free_process_umgebung(void) ;
+extern int freeprocess_umgebung(void) ;
 
 /* function: free_umgebung
  * Frees all resources bound to *umg*.
@@ -157,13 +157,13 @@ extern int free_umgebung(umgebung_t * umg) ;
 
 // group: internal
 
-/* function: init_default_umgebung
+/* function: initdefault_umgebung
  * Is called from <init_umgebung> if type is set to umgebung_type_DEFAULT. */
-extern int init_default_umgebung(/*out*/umgebung_t * umg) ;
+extern int initdefault_umgebung(/*out*/umgebung_t * umg) ;
 
-/* function: init_testproxy_umgebung
+/* function: inittestproxy_umgebung
  * Is called from <init_umgebung> if type is set to umgebung_type_TEST. */
-extern int init_testproxy_umgebung(/*out*/umgebung_t * umg) ;
+extern int inittestproxy_umgebung(/*out*/umgebung_t * umg) ;
 
 
 // section: inline implementations

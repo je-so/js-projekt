@@ -1,5 +1,5 @@
 Title: Readme
-Content of Readme file.
+  Content of Readme file.
 
 Author:
   (c) 2010-2011 Jörg Seebohn
@@ -25,7 +25,7 @@ about: Current task
 
 
 about: Subprojects
-List of codenamed subprojects.
+  List of codenamed subprojects.
 
 Thor:
 -----
@@ -45,9 +45,9 @@ TextDB:
           Later it may be used to select a subset of platform functionality and for software configuration.
   Example: - The following code shows how the init and free functions (which should be called once at
              the start of the process) are patched into code. The list of functions is stored in the text database
-             file 'C-kern/resource/text.db/init_once_per_process'.
-  > // TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/init_once_per_process")
-  >    { &init_once_per_process_locale, &free_once_per_process_locale },
+             file 'C-kern/resource/text.db/initprocess'.
+  > // TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/initprocess")
+  >    { &initprocess_locale, &freeprocess_locale },
   > // TEXTDB:END
 
 Genmake:
@@ -120,11 +120,11 @@ about: Dependencies
 about: Project-structure
   Explanation of directory structure.
 
-  LICENSE     -  GPL v2 license
-  Makefile    -  Top level makefile which calls project makefiles
+  LICENSE     - GPL v2 license
+  Makefile    - Top level makefile which calls project makefiles
   README      - This readme file
   C-kern/     - Contains all C99 source code and other resources, e.g. localized text
-  C-kern/konfig.h -  Global configuration file (must be included by every source module)
-  coding-conventions/ -  A collection of design decisions
-  projekte/   - Contains project descriptions suitable for Genmake
+  C-kern/konfig.h     - Global configuration file (must be included by every source module)
+  coding-conventions/ - A collection of design decisions
+  projekte/           - Contains project descriptions suitable for Genmake
   projekte/makefiles/ - Contains generated makefiles

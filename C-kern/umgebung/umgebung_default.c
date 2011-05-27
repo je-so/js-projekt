@@ -1,5 +1,5 @@
 /* title: Umgebung Default
-   Implements <init_default_umgebung>, <free_default_umgebung>.
+   Implements <initdefault_umgebung>, <freedefault_umgebung>.
 
    about: Copyright
    This program is free software.
@@ -26,7 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
-// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/init_once_per_thread")
+// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")
 #include "C-kern/api/umgebung/log.h"
 #include "C-kern/api/umgebung/object_cache.h"
 // TEXTDB:END
@@ -36,48 +36,33 @@
 
 /* typedef: typedef resource_registry_t
  * Shortcut for <resource_registry_t>. */
-typedef struct resource_registry_t resource_registry_t ;
+typedef struct resource_registry_t  resource_registry_t ;
 
 /* typedef: typedef umgebung_private_t
  * Shortcut for <umgebung_private_t>. */
-typedef struct umgebung_private_t  umgebung_private_t ;
-
-
-/* struct: resource_registry_t
- * Registers init&free functions for one resource.
- * The registered functions are called during <init_process_umgebung> and <free_process_umgebung>. */
-struct resource_registry_t {
-   /* variable: init_resource
-    * Called during execution of <init_process_umgebung>. */
-   int (*init_resource) (/*inout*/umgebung_t * umg) ;
-   /* variable: free_resource
-    * Called during execution of <free_process_umgebung>.
-    * It is only called if <isInit> is true. */
-   int (*free_resource) (/*inout*/umgebung_t * umg) ;
-} ;
+typedef struct umgebung_private_t   umgebung_private_t ;
 
 
 // section: Implementation
 
-/* variable: s_registry
- * The static array of all registered resources. */
-static resource_registry_t    s_registry[] = {
-// TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM(C-kern/resource/text.db/init_once_per_thread)
-   { &init_once_per_thread_log, &free_once_per_thread_log },
-   { &init_once_per_thread_objectcache, &free_once_per_thread_objectcache },
-// TEXTDB:END
-   { 0, 0 }
-} ;
-
-
-static int freeall_thread_resources(umgebung_t * umg)
+static int free_thread_resources(umgebung_t * umg)
 {
    int err = 0 ;
+   int err2 ;
 
-   while( umg->resource_thread_count ) {
-      int err2 = s_registry[--umg->resource_thread_count].free_resource(umg) ;
-      if (err2) err = err2 ;
+   switch(umg->resource_count) {
+   default:    assert(0 == umg->resource_count && "out of bounds") ;
+               break ;
+// TEXTDB:SELECT("   case "row-id":     err2 = "free-function"(&umg->"parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initumgebung)DESCENDING
+   case 2:     err2 = freeumgebung_objectcache(&umg->cache) ;
+               if (err2) err = err2 ;
+   case 1:     err2 = freeumgebung_log(&umg->log) ;
+               if (err2) err = err2 ;
+// TEXTDB:END
+   case 0:     break ;
    }
+
+   umg->resource_count = 0 ;
 
    if (err) goto ABBRUCH ;
 
@@ -87,29 +72,35 @@ ABBRUCH:
    return err ;
 }
 
-static int initall_thread_resources(umgebung_t * umg)
+static int init_thread_resources(umgebung_t * umg)
 {
    int err ;
 
-   for(; s_registry[umg->resource_thread_count].init_resource ; ++umg->resource_thread_count) {
-      err = s_registry[umg->resource_thread_count].init_resource(umg) ;
-      if (err) goto ABBRUCH ;
-   }
+// TEXTDB:SELECT(\n"   err = "init-function"(&umg->"parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++umg->resource_count ;")FROM(C-kern/resource/text.db/initumgebung)
+
+   err = initumgebung_log(&umg->log) ;
+   if (err) goto ABBRUCH ;
+   ++umg->resource_count ;
+
+   err = initumgebung_objectcache(&umg->cache) ;
+   if (err) goto ABBRUCH ;
+   ++umg->resource_count ;
+// TEXTDB:END
 
    return 0 ;
 ABBRUCH:
-   (void) freeall_thread_resources(umg) ;
+   (void) free_thread_resources(umg) ;
    LOG_ABORT(err) ;
    return err ;
 }
 
 // section: Implementation
 
-static int free_default_umgebung(umgebung_t * umg)
+static int freedefault_umgebung(umgebung_t * umg)
 {
    int err ;
 
-   err = freeall_thread_resources(umg) ;
+   err = free_thread_resources(umg) ;
 
    umg->type           = 0 ;
    umg->free_umgebung  = 0 ;
@@ -122,17 +113,17 @@ ABBRUCH:
    return err ;
 }
 
-int init_default_umgebung(umgebung_t * umg)
+int initdefault_umgebung(umgebung_t * umg)
 {
    int err ;
 
-   umg->type                  = umgebung_type_DEFAULT ;
-   umg->resource_thread_count = 0 ;
-   umg->free_umgebung         = &free_default_umgebung ;
-   umg->log                   = 0 ;
-   umg->cache                 = 0 ;
+   umg->type            = umgebung_type_DEFAULT ;
+   umg->resource_count  = 0 ;
+   umg->free_umgebung   = &freedefault_umgebung ;
+   umg->log             = 0 ;
+   umg->cache           = 0 ;
 
-   err = initall_thread_resources(umg) ;
+   err = init_thread_resources(umg) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -151,17 +142,19 @@ static int test_init(void)
    umgebung_t umg ;
 
    // TEST init, double free
-   umg.type                  = 0 ;
-   umg.resource_thread_count = 1000 ;
-   TEST(0 == init_default_umgebung(&umg)) ;
+   umg.type           = 0 ;
+   umg.resource_count = 1000 ;
+   TEST(0 == initdefault_umgebung(&umg)) ;
    TEST(umgebung_type_DEFAULT == umg.type) ;
-   TEST(2                     == umg.resource_thread_count) ;
-   TEST(free_default_umgebung == umg.free_umgebung) ;
-   TEST(0 == free_default_umgebung(&umg)) ;
+   TEST(2                     == umg.resource_count) ;
+   TEST(freedefault_umgebung  == umg.free_umgebung) ;
+   TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
+   TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
-   TEST(0 == free_default_umgebung(&umg)) ;
+   TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
+   TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
 
    return 0 ;
@@ -171,11 +164,6 @@ ABBRUCH:
 
 int unittest_umgebung_default()
 {
-   const umgebung_type_e old_type = umgebung()->type ;
-   const int              is_init = (0 != old_type) ;
-
-   TEST(!is_init) ;
-
    if (test_init())   goto ABBRUCH ;
 
    return 0 ;

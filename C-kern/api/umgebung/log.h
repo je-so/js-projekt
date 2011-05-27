@@ -46,9 +46,9 @@ extern log_config_t  g_safe_logservice ;
 
 // group: init
 
-extern int init_once_per_thread_log(umgebung_t * umg) ;
+extern int initumgebung_log(/*out*/log_config_t ** log) ;
 
-extern int free_once_per_thread_log(umgebung_t * umg) ;
+extern int freeumgebung_log(log_config_t ** log) ;
 
 // group: query
 

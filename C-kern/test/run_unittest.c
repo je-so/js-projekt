@@ -188,18 +188,18 @@ int run_unittest(void)
    LOG_CONFIG_BUFFERED(true) ;
 
    // before init
-   RUN(unittest_umgebung) ;
-   RUN(unittest_umgebung_default) ;
-   RUN(unittest_umgebung_testproxy) ;
-   RUN(unittest_umgebung_log) ;
-   RUN(unittest_umgebung_objectcache) ;
+   RUN(unittest_umgebung) ;            //TODO: move into loop + test outside loop
+   RUN(unittest_umgebung_default) ;    //TODO: move into loop
+   RUN(unittest_umgebung_testproxy) ;  //TODO: move into loop
+   RUN(unittest_umgebung_log) ;        //TODO: move into loop
+   RUN(unittest_umgebung_objectcache) ;//TODO: move into loop
 
 for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr) {
 
    // init
-   if (init_process_umgebung(test_umgebung_type[type_nr])) {
+   if (initprocess_umgebung(test_umgebung_type[type_nr])) {
       dprintf( STDERR_FILENO, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      dprintf( STDERR_FILENO, "%s\n", "Abort reason: init_process_umgebung failed" ) ;
+      dprintf( STDERR_FILENO, "%s\n", "Abort reason: initprocess_umgebung failed" ) ;
       goto ABBRUCH ;
    }
 
@@ -250,9 +250,9 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
    LOG_CLEARBUFFER() ;
 
-   if (free_process_umgebung()) {
+   if (freeprocess_umgebung()) {
       dprintf( STDERR_FILENO, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      dprintf( STDERR_FILENO, "%s\n", "Abort reason: free_process_umgebung failed" ) ;
+      dprintf( STDERR_FILENO, "%s\n", "Abort reason: freeprocess_umgebung failed" ) ;
       goto ABBRUCH ;
    }
 

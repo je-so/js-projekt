@@ -9,8 +9,8 @@ all: C-kern/umgebung/umgebung.c \
 Debug: all
 Release: all
 
-C-kern/umgebung/umgebung.c: C-kern/resource/text.db/init_once_per_process
+C-kern/umgebung/umgebung.c: C-kern/resource/text.db/initprocess
 	@$(TXTDB)
 
-C-kern/umgebung/umgebung_default.c: C-kern/resource/text.db/init_once_per_thread
+C-kern/umgebung/umgebung_default.c: C-kern/resource/text.db/initumgebung
 	@$(TXTDB)

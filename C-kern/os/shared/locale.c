@@ -28,7 +28,7 @@
 #include "C-kern/api/locale.h"
 #include "C-kern/api/errlog.h"
 
-/* function: init_once_per_process_locale implementation
+/* function: initprocess_locale implementation
  * Calls C99 conforming function »setlocale«.
  * With category LC_ALL all different subsystems of the C runtime environment
  * are changed to the locale set by the user.
@@ -42,7 +42,7 @@
  * LC_TIME     - Changes time and date formatting.
  *
  * */
-int init_once_per_process_locale()
+int initprocess_locale()
 {
    int err ;
 
@@ -59,11 +59,11 @@ ABBRUCH:
    return err ;
 }
 
-/* function: free_once_per_process_locale implementation
+/* function: freeprocess_locale implementation
  * Calls C99 conforming function »setlocale«.
  * Set all subsystems of the C runtime environment to the standard locale "C"
  * which is active by default after process creation. */
-int free_once_per_process_locale()
+int freeprocess_locale()
 {
    int err ;
 

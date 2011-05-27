@@ -52,11 +52,11 @@ static_assert( ((typeof(umgebung()))0) == (const umgebung_t *)0, "Ensure LOCK_SE
 
 // section: Init
 
-int init_once_per_thread_log(umgebung_t * umg)
+int initumgebung_log(log_config_t ** log)
 {
    int err ;
 
-   err = new_logconfig( &umg->log ) ;
+   err = new_logconfig( log ) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -65,16 +65,14 @@ ABBRUCH:
    return err ;
 }
 
-int free_once_per_thread_log(umgebung_t * umg)
+int freeumgebung_log(log_config_t ** log)
 {
    int err ;
-   log_config_t * log = umg->log ;
-   umg->log = &g_safe_logservice ;
+   log_config_t * log2 = *log ;
 
-   assert(log != &g_main_logservice) ;
-   assert(log != &g_safe_logservice) ;
+   *log = &g_safe_logservice ;
 
-   err = delete_logconfig( &log ) ;
+   err = delete_logconfig( &log2 ) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -688,46 +686,22 @@ ABBRUCH:
    return 1 ;
 }
 
-static int test_initonce(void)
+static int test_initumgebung(void)
 {
-   umgebung_t     umg ;
+   log_config_t * log = 0 ;
 
-   // TEST EINVAL init_once
-   MEMSET0(&umg) ;
-   umg.log = (log_config_t*) 1 ;
-   TEST(EINVAL == init_once_per_thread_log(&umg)) ;
+   // TEST EINVAL initumgebung
+   log = (log_config_t*) 1 ;
+   TEST(EINVAL == initumgebung_log(&log)) ;
 
-   // TEST init_once, double free_once
-   memset(&umg, 0xff, sizeof(umg)) ;
-   umg.log = 0 ;
-   TEST(0 == init_once_per_thread_log(&umg)) ;
-   TEST(umg.log) ;
-   {
-      // only umg->log has changed !
-      umgebung_t  umg2 ;
-      memset(&umg2, 0xff, sizeof(umg2)) ;
-      umg2.log = umg.log ;
-      TEST(0 == memcmp(&umg2, &umg, sizeof(umg))) ;
-   }
-   TEST(0 == free_once_per_thread_log(&umg)) ;
-   TEST(&g_safe_logservice == umg.log) ;
-   {
-      // only umg->log has changed !
-      umgebung_t  umg2 ;
-      memset(&umg2, 0xff, sizeof(umg2)) ;
-      umg2.log = &g_safe_logservice ;
-      TEST(0 == memcmp(&umg2, &umg, sizeof(umg))) ;
-   }
-   umg.log = 0 ;
-   TEST(0 == free_once_per_thread_log(&umg)) ;
-   TEST(&g_safe_logservice == umg.log) ;
-   {
-      // only umg->log has changed !
-      umgebung_t  umg2 ;
-      memset(&umg2, 0xff, sizeof(umg2)) ;
-      umg2.log = &g_safe_logservice ;
-      TEST(0 == memcmp(&umg2, &umg, sizeof(umg))) ;
-   }
+   // TEST initumgebung, double freeumgebung
+   log = 0 ;
+   TEST(0 == initumgebung_log(&log)) ;
+   TEST(log) ;
+   TEST(0 == freeumgebung_log(&log)) ;
+   TEST(&g_safe_logservice == log) ;
+   TEST(0 == freeumgebung_log(&log)) ;
+   TEST(&g_safe_logservice == log) ;
 
    return 0 ;
 ABBRUCH:
@@ -745,7 +719,7 @@ int unittest_umgebung_log()
    if (test_log_default())    goto ABBRUCH ;
    if (test_log_safe())       goto ABBRUCH ;
    if (test_log_buffered())   goto ABBRUCH ;
-   if (test_initonce())       goto ABBRUCH ;
+   if (test_initumgebung())   goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == init_vmmappedregions(&mappedregions2)) ;

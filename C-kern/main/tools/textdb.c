@@ -1170,7 +1170,7 @@ int main(int argc, const char * argv[])
    int           outfd = -1 ;
    mmfile_t input_file = mmfile_INIT_FREEABLE ;
 
-   err = init_process_umgebung(umgebung_type_DEFAULT) ;
+   err = initprocess_umgebung(umgebung_type_DEFAULT) ;
    if (err) goto ABBRUCH ;
 
    err = process_arguments(argc, argv) ;
@@ -1207,7 +1207,7 @@ int main(int argc, const char * argv[])
       }
    }
 
-   free_process_umgebung() ;
+   freeprocess_umgebung() ;
    return 0 ;
 PRINT_USAGE:
    dprintf(STDERR_FILENO, "TextDB version 0.1 - Copyright (c) 2011 Joerg Seebohn\n" ) ;
@@ -1221,6 +1221,6 @@ ABBRUCH:
       unlink(g_outfilename) ;
    }
    free_mmfile(&input_file) ;
-   free_process_umgebung() ;
+   freeprocess_umgebung() ;
    return 1 ;
 }

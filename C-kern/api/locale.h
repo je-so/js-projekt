@@ -36,15 +36,15 @@ extern const char* charencoding_locale(void) ;
 
 // group: init
 
-/* function: init_once_per_process_locale
+/* function: initprocess_locale
  * Changes the current locale of the process to the value of the user
  * locale. The value is read from the environment variables LC_ALL or LANG.
  * The value of the first defined is used. */
-extern int init_once_per_process_locale(void) ;
+extern int initprocess_locale(void) ;
 
-/* function: free_once_per_process_locale
+/* function: freeprocess_locale
  * Resets the process locale to the standard "C" locale which
  * active per default if a new process enters its main function. */
-extern int free_once_per_process_locale(void) ;
+extern int freeprocess_locale(void) ;
 
 #endif

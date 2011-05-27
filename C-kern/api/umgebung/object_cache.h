@@ -27,28 +27,28 @@
 #ifndef CKERN_UMGEBUNG_OBJECTCACHE_HEADER
 #define CKERN_UMGEBUNG_OBJECTCACHE_HEADER
 
-/* typedef: typedef object_cache_t
- * Shortcut for <object_cache_t>. */
-typedef struct object_cache_t object_cache_t ;
-
-/* Used to support basic logging in main thread before anything is initialized. */
-extern object_cache_t g_main_objectcache ;
-
 // forward:
 struct vm_block_t ;
+
+/* typedef: typedef object_cache_t
+ * Shortcut for <object_cache_t>. */
+typedef struct object_cache_t    object_cache_t ;
+
+/* Used to support caching in main thread before anything is initialized. */
+extern object_cache_t            g_main_objectcache ;
 
 
 // section: Functions
 
 // group: init
 
-/* function: init_once_per_thread_objectcache
+/* function: initumgebung_objectcache
  * */
-extern int init_once_per_thread_objectcache(umgebung_t * umg) ;
+extern int initumgebung_objectcache(/*out*/object_cache_t ** cache) ;
 
-/* function: free_once_per_thread_objectcache
+/* function: freeumgebung_objectcache
  * */
-extern int free_once_per_thread_objectcache(umgebung_t * umg) ;
+extern int freeumgebung_objectcache(object_cache_t ** cache) ;
 
 
 #ifdef KONFIG_UNITTEST

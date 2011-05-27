@@ -4,6 +4,6 @@
 # The list of init-function is called from first to last entry in init_umgebung.
 # The list of free-function is called from last entry to first entry in free_umgebung.
 # The header-name field references the C99 header file which exports the function prototypes.
-"init-function",                    "free-function",                    "header-name"
-"init_once_per_thread_log",         "free_once_per_thread_log",         "C-kern/api/umgebung/log.h"
-"init_once_per_thread_objectcache", "free_once_per_thread_objectcache", "C-kern/api/umgebung/object_cache.h"
+"init-function",              "free-function",              "parameter",   "header-name"
+"initumgebung_log",           "freeumgebung_log",           "log",         "C-kern/api/umgebung/log.h"
+"initumgebung_objectcache",   "freeumgebung_objectcache",   "cache",       "C-kern/api/umgebung/object_cache.h"

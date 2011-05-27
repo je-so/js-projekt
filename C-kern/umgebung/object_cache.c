@@ -40,32 +40,33 @@ static int delete_objectcache( object_cache_t ** cache ) ;
 
 /* variable: s_rootbuffer
  * Serves as storage for main thread
- * as long as no <init_process_umgebung> was called. */
+ * as long as no <initprocess_umgebung> was called. */
 static vm_block_t    s_rootbuffer = vm_block_INIT_FREEABLE ;
 /* variable: g_main_objectcache
  * Serves as storage for main thread
- * as long as no <init_process_umgebung> was called. */
+ * as long as no <initprocess_umgebung> was called. */
 object_cache_t g_main_objectcache = {
    .vm_rootbuffer = &s_rootbuffer
 } ;
 
 
-int init_once_per_thread_objectcache(umgebung_t * umg)
+int initumgebung_objectcache(object_cache_t ** cache)
 {
    int err ;
-   assert(umg->cache == 0) ;
-   err = new_objectcache(&umg->cache) ;
+
+   err = new_objectcache(cache) ;
    if (err) goto ABBRUCH ;
+
    return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
 
-int free_once_per_thread_objectcache(umgebung_t * umg)
+int freeumgebung_objectcache(object_cache_t ** cache)
 {
    int err ;
-   err = delete_objectcache(&umg->cache) ;
+   err = delete_objectcache(cache) ;
    if (err) goto ABBRUCH ;
    return 0 ;
 ABBRUCH:
@@ -80,7 +81,12 @@ static int new_objectcache( /*out*/object_cache_t ** cache )
 {
    int err ;
    size_t memsize = sizeof(object_cache_t)
-                  + sizeof(*(*cache)->vm_rootbuffer) ;
+                  + sizeof(*((object_cache_t*)0)->vm_rootbuffer) ;
+
+   if (*cache) {
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
 
    object_cache_t * new_cache = (object_cache_t *) malloc(memsize) ;
    if (!new_cache) {
@@ -91,6 +97,7 @@ static int new_objectcache( /*out*/object_cache_t ** cache )
 
    new_cache->vm_rootbuffer  = (vm_block_t*) (((uint8_t*)(&new_cache[1])) + 0) ;
    *new_cache->vm_rootbuffer = (vm_block_t) vm_block_INIT_FREEABLE ;
+   // only one cached object
    static_assert_void( sizeof(new_cache->vm_rootbuffer) == sizeof(object_cache_t) ) ;
 
    *cache = new_cache ;
@@ -167,14 +174,14 @@ int unittest_umgebung_objectcache()
    TEST(0 == delete_objectcache(&cache)) ;
    TEST(! cache)
 
-   // TEST init_once_per_thread_objectcache and double free
+   // TEST initumgebung_objectcache and double free
    umgebung_t tempumg ;
    MEMSET0(&tempumg) ;
-   TEST(0 == init_once_per_thread_objectcache( &tempumg )) ;
+   TEST(0 == initumgebung_objectcache( &tempumg.cache )) ;
    TEST( tempumg.cache ) ;
-   TEST(0 == free_once_per_thread_objectcache( &tempumg )) ;
+   TEST(0 == freeumgebung_objectcache( &tempumg.cache )) ;
    TEST( ! tempumg.cache ) ;
-   TEST(0 == free_once_per_thread_objectcache( &tempumg )) ;
+   TEST(0 == freeumgebung_objectcache( &tempumg.cache )) ;
    TEST( ! tempumg.cache ) ;
 
    // TEST move cache -> cache2
