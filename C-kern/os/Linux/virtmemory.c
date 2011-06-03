@@ -191,11 +191,11 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
 
          next_region->addr         = (void *) start ;
          next_region->endaddr      = (void *) end ;
-         access_mode_aspect_e  prot ;
-         prot  = ((isReadable == 'r')   ? access_mode_READ   : 0) ;
-         prot |= ((isWriteable == 'w')  ? access_mode_WRITE  : 0) ;
-         prot |= ((isExecutable == 'x') ? access_mode_EXEC   : 0) ;
-         prot |= ((isShared == 's')     ? access_mode_SHARED : access_mode_PRIVATE) ;
+         accessmode_aspect_e   prot ;
+         prot  = ((isReadable == 'r')   ? accessmode_READ   : 0) ;
+         prot |= ((isWriteable == 'w')  ? accessmode_WRITE  : 0) ;
+         prot |= ((isExecutable == 'x') ? accessmode_EXEC   : 0) ;
+         prot |= ((isShared == 's')     ? accessmode_SHARED : accessmode_PRIVATE) ;
          next_region->protection   = prot ;
 
          ++ total_regions_count ;
@@ -334,27 +334,27 @@ ABBRUCH:
    return err ;
 }
 
-int protect_vmblock( vm_block_t * vmblock, access_moderw_aspect_e access_mode )
+int protect_vmblock( vm_block_t * vmblock, accessmoderw_aspect_e access_mode )
 {
    int err ;
    int prot ;
 
    static_assert_void(0 == PROT_NONE) ;
 
-   if (     access_mode_READ  == PROT_READ
-         && access_mode_WRITE == PROT_WRITE
-         && access_mode_EXEC  == PROT_EXEC ) {
+   if (     accessmode_READ  == PROT_READ
+         && accessmode_WRITE == PROT_WRITE
+         && accessmode_EXEC  == PROT_EXEC ) {
       prot = access_mode ;
    } else {
-      if (access_mode_READ & access_mode) {
+      if (accessmode_READ & access_mode) {
          prot = PROT_READ ;
       } else {
          prot = PROT_NONE ;
       }
-      if (access_mode_WRITE & access_mode) {
+      if (accessmode_WRITE & access_mode) {
          prot |= PROT_WRITE ;
       }
-      if (access_mode_EXEC & access_mode) {
+      if (accessmode_EXEC & access_mode) {
          prot |= PROT_EXEC ;
       }
    }
@@ -493,7 +493,7 @@ static int iscontained_in_mapping(const vm_block_t * mapped_block)
       if (     mapped_start < next->endaddr
             && mapped_end   > next->addr ) {
          // overlapping
-         if (next->protection != (access_moderw_RDWR | access_mode_PRIVATE)) {
+         if (next->protection != (accessmoderw_RDWR | accessmode_PRIVATE)) {
             result = 2 ;
             break ;
          }
@@ -541,7 +541,7 @@ ABBRUCH:
    return err ;
 }
 
-static int compare_protection(const vm_block_t * vmblock, access_moderw_aspect_e prot)
+static int compare_protection(const vm_block_t * vmblock, accessmoderw_aspect_e prot)
 {
    int err ;
    vm_region_t region ;
@@ -549,7 +549,7 @@ static int compare_protection(const vm_block_t * vmblock, access_moderw_aspect_e
    err = query_region(&region, vmblock) ;
    if (err) goto ABBRUCH ;
 
-   if ( region.protection  != (prot | access_mode_PRIVATE) ) {
+   if ( region.protection  != (prot | accessmode_PRIVATE) ) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -820,11 +820,11 @@ static int test_protection(void)
    }
 
    // TEST protection after init, expand, movexpand, shrink
-   access_moderw_aspect_e prot[5] = { access_moderw_RDWR, access_moderw_WRITE, access_moderw_READ, access_moderw_RDEXEC, access_moderw_RDWREXEC } ;
+   accessmoderw_aspect_e prot[5] = { accessmoderw_RDWR, accessmoderw_WRITE, accessmoderw_READ, accessmoderw_RDEXEC, accessmoderw_RDWREXEC } ;
    for(unsigned i = 0; i < nrelementsof(prot); ++i) {
       // TEST init generates RW protection
       TEST(0 == init_vmblock(&vmblock, 2)) ;
-      TEST(0 == compare_protection(&vmblock, access_moderw_RDWR)) ;
+      TEST(0 == compare_protection(&vmblock, accessmoderw_RDWR)) ;
       // TEST setting protection
       TEST(0 == protect_vmblock(&vmblock, prot[i])) ;
       TEST(0 == compare_protection(&vmblock, prot[i])) ;
@@ -842,7 +842,7 @@ static int test_protection(void)
 
    // TEST write of readonly page is not possible
    TEST(0 == init_vmblock(&vmblock, 1)) ;
-   TEST(0 == protect_vmblock(&vmblock, access_moderw_READ)) ;
+   TEST(0 == protect_vmblock(&vmblock, accessmoderw_READ)) ;
    is_exception = 0 ;
    TEST(0 == getcontext(&s_usercontext)) ;
    if (!is_exception) {

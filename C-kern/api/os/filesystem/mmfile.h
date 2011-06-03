@@ -26,7 +26,7 @@
 #ifndef CKERN_OS_FILESYSTEM_MEMORYMAPPEDFILE_HEADER
 #define CKERN_OS_FILESYSTEM_MEMORYMAPPEDFILE_HEADER
 
-#include "C-kern/api/aspect/constant/access_mode.h"
+#include "C-kern/api/aspect/constant/accessmode.h"
 
 // forward declaration / to use it you need to include "C-kern/api/os/filessystem/directory.h"
 struct directory_stream_t ;
@@ -41,12 +41,12 @@ struct directory_stream_t ;
  *                          Changes in memory are only visible to the calling process.
  *                          It is *unspecified* whether changes made to the underlying file by other processes are visible
  *                          after the file is mapped into memory. */
-typedef access_mode_aspect_e     mmfile_openmode_e ;
-#define mmfile_openmode_RDONLY         (access_mode_READ)
-#define mmfile_openmode_RDWR_SHARED    (access_mode_READ|access_mode_WRITE|access_mode_SHARED)
-#define mmfile_openmode_RDWR_PRIVATE   (access_mode_READ|access_mode_WRITE|access_mode_PRIVATE)
+typedef accessmode_aspect_e      mmfile_openmode_e ;
+#define mmfile_openmode_RDONLY         (accessmode_READ)
+#define mmfile_openmode_RDWR_SHARED    (accessmode_READ|accessmode_WRITE|accessmode_SHARED)
+#define mmfile_openmode_RDWR_PRIVATE   (accessmode_READ|accessmode_WRITE|accessmode_PRIVATE)
 // used internally in <initcreate_mmfile>
-#define mmfile_openmode_CREATE_FLAG    (access_mode_NEXTFREE_BITPOS)
+#define mmfile_openmode_CREATE_FLAG    (accessmode_NEXTFREE_BITPOS)
 
 /* typedef: mmfile_t typedef
  * Shortcut for <mmfile_t>. */

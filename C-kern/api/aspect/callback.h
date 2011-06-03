@@ -31,7 +31,7 @@
  * This makes it possible to parameterize callbacks for different usage patterns and contexts.
  *
  * Callbacks are used mostly to allow for asynchronous notifications or as a way
- * to let modules adapt to different imlpementation strategies or to other external dependencies.
+ * to let modules adapt to different implementation strategies or to other external dependencies.
  *
  * Code example:
  * > struct callback_aspect_t ;

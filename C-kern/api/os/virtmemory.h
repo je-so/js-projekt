@@ -25,7 +25,7 @@
 #ifndef CKERN_OS_VIRTUALMEMORY_HEADER
 #define CKERN_OS_VIRTUALMEMORY_HEADER
 
-#include "C-kern/api/aspect/constant/access_mode.h"
+#include "C-kern/api/aspect/constant/accessmode.h"
 
 /* typedef: typedef vm_block_t
  * Shortcut for <vm_block_t>. */
@@ -102,8 +102,8 @@ extern int free_vmblock( vm_block_t * vmblock ) ;
 
 /* function: protect_vmblock
  * Sets protection of memory (e.g. if write is possible).
- * See <access_moderw_aspect_e> for a list of all supported bits. */
-extern int protect_vmblock( vm_block_t * vmblock, access_moderw_aspect_e access_mode ) ;
+ * See <accessmoderw_aspect_e> for a list of all supported bits. */
+extern int protect_vmblock( vm_block_t * vmblock, accessmoderw_aspect_e access_mode ) ;
 
 /* function: tryexpand_vmblock
  * Tries to grow the upper bound of an already mapped address range.
@@ -146,8 +146,8 @@ struct vm_region_t
    void                 *  endaddr ;
    /* variable: protection
     * Gives protection (access rights) of the memory block.
-    * See <access_mode_aspect_e> for a list of supported bits. */
-   access_mode_aspect_e  protection ;
+    * See <accessmode_aspect_e> for a list of supported bits. */
+   accessmode_aspect_e   protection ;
 } ;
 
 // group: query

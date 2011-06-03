@@ -47,11 +47,11 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
    void          * mem_start = MAP_FAILED ;
 
    if (     (path_relative_to && !path_relative_to->sys_dir)
-         || !(mode & access_mode_READ)
-         || (mode & (typeof(mode))(~(access_mode_READ|access_mode_WRITE|access_mode_SHARED|access_mode_PRIVATE|access_mode_NEXTFREE_BITPOS)))
-         || (mode & (access_mode_SHARED|access_mode_PRIVATE)) == (access_mode_SHARED|access_mode_PRIVATE)
-         || (   (mode & access_mode_WRITE)
-            && !(mode & (access_mode_SHARED|access_mode_PRIVATE)) )
+         || !(mode & accessmode_READ)
+         || (mode & (typeof(mode))(~(accessmode_READ|accessmode_WRITE|accessmode_SHARED|accessmode_PRIVATE|accessmode_NEXTFREE_BITPOS)))
+         || (mode & (accessmode_SHARED|accessmode_PRIVATE)) == (accessmode_SHARED|accessmode_PRIVATE)
+         || (   (mode & accessmode_WRITE)
+            && !(mode & (accessmode_SHARED|accessmode_PRIVATE)) )
          || file_offset < 0
          || (file_offset % pagesize) ) {
       err = EINVAL ;
@@ -71,7 +71,7 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
    int open_flags ;
    if ((mode & mmfile_openmode_CREATE_FLAG)) {
       open_flags = O_RDWR|O_EXCL|O_CREAT ;
-   } else if ((mode & access_mode_WRITE)) {
+   } else if ((mode & accessmode_WRITE)) {
       open_flags = O_RDWR ;
    } else {
       open_flags = O_RDONLY ;
@@ -126,8 +126,8 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
       goto ABBRUCH ;
    }
 
-#define protection_flags   ((mode & access_mode_WRITE)   ? (PROT_READ|PROT_WRITE) : PROT_READ)
-#define shared_flags       ((mode & access_mode_PRIVATE) ? MAP_PRIVATE : MAP_SHARED)
+#define protection_flags   ((mode & accessmode_WRITE)   ? (PROT_READ|PROT_WRITE) : PROT_READ)
+#define shared_flags       ((mode & accessmode_PRIVATE) ? MAP_PRIVATE : MAP_SHARED)
    mem_start = mmap(0, size, protection_flags, shared_flags, fd, 0) ;
 #undef  shared_flags
 #undef  protection_flags
