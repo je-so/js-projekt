@@ -19,13 +19,13 @@
    file: C-kern/api/string/converter.h
     Header file of <String-Converter>.
 
-   file: C-kern/string/conversion.c
+   file: C-kern/string/converter.c
     Implementation file <String-Converter impl>.
 */
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/string/converter.h"
-#include "C-kern/api/locale.h"
+#include "C-kern/api/os/locale.h"
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

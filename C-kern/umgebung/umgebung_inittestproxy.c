@@ -19,8 +19,8 @@
    file: C-kern/api/umgebung.h
     Header file of <Umgebung Interface>.
 
-   file: C-kern/umgebung/umgebung_testproxy.c
-    Implementation file of <Umgebung Testproxy>.
+   file: C-kern/umgebung/umgebung_inittestproxy.c
+    Implementation file <Umgebung Testproxy>.
 */
 
 #include "C-kern/konfig.h"

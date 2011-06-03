@@ -19,11 +19,11 @@
    file: C-kern/api/umgebung.h
     Header file of <Umgebung Interface>.
 
-   file: C-kern/umgebung/umgebung_default.c
-    Implementation file of <Umgebung Interface>.
+   file: C-kern/umgebung/umgebung_initdefault.c
+    Implementation file <Umgebung Default>.
 
-   file: C-kern/umgebung/umgebung_testproxy.c
-    Implementation file of <Umgebung Interface>.
+   file: C-kern/umgebung/umgebung_inittestproxy.c
+    Implementation file of <Umgebung Testproxy>.
 */
 #ifndef CKERN_API_UMGEBUNG_HEADER
 #define CKERN_API_UMGEBUNG_HEADER
@@ -65,20 +65,6 @@ extern __thread struct umgebung_t gt_umgebung ;
 
 
 // section: Functions
-
-// group: query
-
-/* function: umgebung
- * Returns the <umgebung_t> for the current thread. */
-extern umgebung_t * umgebung(void) ;
-
-/* function: log_umgebung
- * Returns log configuration object <log_config_t> for the current thread. */
-extern struct log_config_t * log_umgebung(void) ;
-
-/* function: cache_umgebung
- * Returns cache for singelton objects of type <cache_object_t> for the current thread. */
-extern struct object_cache_t * cache_umgebung(void) ;
 
 // group: test
 
@@ -155,6 +141,20 @@ extern int freeprocess_umgebung(void) ;
  * This function should be called as last before a thread exits. */
 extern int free_umgebung(umgebung_t * umg) ;
 
+// group: query
+
+/* function: umgebung
+ * Returns the <umgebung_t> for the current thread. */
+extern umgebung_t * umgebung(void) ;
+
+/* function: log_umgebung
+ * Returns log configuration object <log_config_t> for the current thread. */
+extern struct log_config_t * log_umgebung(void) ;
+
+/* function: cache_umgebung
+ * Returns cache for singelton objects of type <cache_object_t> for the current thread. */
+extern struct object_cache_t * cache_umgebung(void) ;
+
 // group: internal
 
 /* function: initdefault_umgebung
@@ -168,16 +168,24 @@ extern int inittestproxy_umgebung(/*out*/umgebung_t * umg) ;
 
 // section: inline implementations
 
-/* define: inline umgebung
- * Inline implementation of <umgebung>.
+/* define: umgebung
+ * Inline implementation of <umgebung_t.umgebung>.
  * Uses a global thread-local storage variable to implement the functionality.
  * > #define umgebung() (&gt_umgebung) */
 #define umgebung() \
    ((const umgebung_t*)(&gt_umgebung))
 
+/* define: log_umgebung
+ * Inline implementation of <umgebung_t.log_umgebung>.
+ * Uses a global thread-local storage variable to implement the functionality.
+ * > #define log_umgebung() (gt_umgebung.log) */
 #define log_umgebung() \
    (gt_umgebung.log)
 
+/* define: cache_umgebung
+ * Inline implementation of <umgebung_t.cache_umgebung>.
+ * Uses a global thread-local storage variable to implement the functionality.
+ * > #define cache_umgebung() (gt_umgebung.cache) */
 #define cache_umgebung() \
    (gt_umgebung.cache)
 

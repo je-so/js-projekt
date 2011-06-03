@@ -1,6 +1,6 @@
-/* title: Log API
-   Write error messages to STDERR or log file for diagnostic purposes.
-   Output to log file is currently not possible / not implemented.
+/* title: UmgebungLog
+
+   Makes <LogWriter> accessible as a service.
 
    about: Copyright
    This program is free software.
@@ -15,32 +15,18 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2010 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
 
    file: C-kern/api/umgebung/log.h
-    Header file of <Log API>.
+    Header file of <UmgebungLog>.
 
    file: C-kern/umgebung/log.c
-    Implementation file of <Log API>.
+    Implementation file <UmgebungLog impl>.
 */
 #ifndef CKERN_UMGEBUNG_LOG_HEADER
 #define CKERN_UMGEBUNG_LOG_HEADER
 
-/* typedef: typedef log_config_t
- * Shortcut for <log_config_t>. */
-typedef struct log_config_t log_config_t ;
-
-/* typedef: typedef log_buffer_t
- * Shortcut for internal type <log_buffer_t>. */
-typedef struct log_buffer_t log_buffer_t ;
-
-/* Used to support basic logging in main thread before anything is initialized. */
-extern log_config_t  g_main_logservice ;
-
-/* Used to support safe logging after freeing the log resource in <umgebung_t>.
- * This logservice is thread safe but supports only rudimentary logging and
- * its configuration can not be changed. */
-extern log_config_t  g_safe_logservice ;
+#include "C-kern/api/writer/log.h"
 
 // section: Functions
 
@@ -74,18 +60,22 @@ extern int freeumgebung_log(log_config_t ** log) ;
  * Saves <log_config_t.isOn> in local variable.
  * > #define LOG_PUSH_ONOFFSTATE()  bool pushed_onoff_log = log_umgebung()->isOn */
 #define LOG_PUSH_ONOFFSTATE()       bool pushed_onoff_log = log_umgebung()->isOn
+
 /* define: LOG_POP_ONOFFSTATE
  * Restores <log_config_t.isOn> from state previously saved in local variable.
  * > #define LOG_POP_ONOFFSTATE()   setonoff_logconfig(log_umgebung(), pushed_onoff_log) */
 #define LOG_POP_ONOFFSTATE()        setonoff_logconfig(log_umgebung(), pushed_onoff_log)
+
 /* define: LOG_TURNOFF
  * Turns logging off.
  * > #define LOG_TURNOFF()          setonoff_logconfig(log_umgebung(), false) */
 #define LOG_TURNOFF()               setonoff_logconfig(log_umgebung(), false)
+
 /* define: LOG_TURNON
  * Turns logging on (default state).
  * > #define LOG_TURNON()           setonoff_logconfig(log_umgebung(), true) */
 #define LOG_TURNON()                setonoff_logconfig(log_umgebung(), true)
+
 /* define: LOG_CONFIG_BUFFERED
  * Turns buffering on (true) or off (false). See also <setbuffermode_logconfig>.
  * Buffering turned *off* is default state.
@@ -98,11 +88,11 @@ extern int freeumgebung_log(log_config_t ** log) ;
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logconfig>.
  * > #define  LOG_CLEARBUFFER()     clearbuffer_logconfig(log_umgebung()) */
 #define  LOG_CLEARBUFFER()          clearbuffer_logconfig(log_umgebung())
+
 /* define: LOG_WRITEBUFFER
  * Writes content of log buffer and then clears it. See also <writebuffer_logconfig>.
  * > #define  LOG_WRITEBUFFER()     writebuffer_logconfig(log_umgebung()) */
 #define  LOG_WRITEBUFFER()          writebuffer_logconfig(log_umgebung())
-
 
 // group: write
 
@@ -111,46 +101,55 @@ extern int freeumgebung_log(log_config_t ** log) ;
  * Example:
  * > LOG_TEXTRES(TEXTRES_ERRORLOG_MEMORY_OUT_OF(size)) */
 #define LOG_TEXTRES( TEXTID )       log_umgebung()->printf( log_umgebung(), TEXTID )
+
 /* define: LOG_STRING
  * Log "name=value" of string variable.
  * Example:
  * > const char * name = "Jo" ; LOG_STRING(name) ; */
 #define LOG_STRING(varname)         LOG_VAR("s", varname)
+
 /* define: LOG_INT
  * Log "name=value" of int variable.
  * Example:
  * > const int max = 100 ; LOG_INT(max) ; */
 #define LOG_INT(varname)            LOG_VAR("d", varname)
+
 /* define: LOG_SIZE
  * Log "name=value" of size_t variable.
  * Example:
  * > const size_t maxsize = 100 ; LOG_SIZE(maxsize) ; */
 #define LOG_SIZE(varname)           LOG_VAR(PRIuSIZE, varname)
+
 /* define: LOG_UINT8
  * Log "name=value" of uint8_t variable.
  * Example:
  * > const uint8_t limit = 255 ; LOG_UINT8(limit) ; */
 #define LOG_UINT8(varname)         LOG_VAR(PRIu8, varname)
+
 /* define: LOG_UINT16
  * Log "name=value" of uint16_t variable.
  * Example:
  * > const uint16_t limit = 65535 ; LOG_UINT16(limit) ; */
 #define LOG_UINT16(varname)         LOG_VAR(PRIu16, varname)
+
 /* define: LOG_UINT32
  * Log "name=value" of uint32_t variable.
  * Example:
  * > const uint32_t max = 100 ; LOG_UINT32(max) ; */
 #define LOG_UINT32(varname)         LOG_VAR(PRIu32, varname)
+
 /* define: LOG_UINT64
  * Log "name=value" of uint64_t variable.
  * Example:
  * > const uint64_t max = 100 ; LOG_UINT64(max) ; */
 #define LOG_UINT64(varname)         LOG_VAR(PRIu64, varname)
+
 /* define: LOG_PTR
  * Log "name=value" of pointer variable.
  * Example:
  * > const void * ptr = &g_variable ; LOG_PTR(ptr) ; */
 #define LOG_PTR(varname)            LOG_VAR("p", varname)
+
 /* define: LOG_DOUBLE
  * Log "name=value" of double or float variable.
  * Example:
@@ -170,6 +169,7 @@ extern int freeumgebung_log(log_config_t ** log) ;
  * > const size_t memsize = 1024 ;
  * > LOG_VAR(PRIuSIZE,memsize) ; */
 #define LOG_VAR(printf_typespec_str,varname)          log_umgebung()->printf( log_umgebung(), #varname "=%" printf_typespec_str "\n", (varname))
+
 /* define: LOG_INDEX
  * Log "array[i]=value" of variable stored in array at offset i.
  *
@@ -193,75 +193,5 @@ extern int freeumgebung_log(log_config_t ** log) ;
 extern int unittest_umgebung_log(void) ;
 #endif
 
-
-/* struct: log_config_t
- * A certain log configuration stores log information about one thread.
- * It is therefore *not* thread safe. Every thread must have its own configuration. */
-struct log_config_t
-{
-   // group: process
-   /* variable: printf
-    * Print formatted output to log stream.
-    * Used to switch between different implementations. */
-   void        (* printf) (log_config_t * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
-   // group: query
-   /* variable: isOn
-    * Allows fast query of state which was set with <config_onoff>.
-    * If logging is on isOn is set to *true* else *false*. */
-   bool           isOn ;
-   /* variable: isBuffered
-    * Allows fast query of state which was set with <config_buffered>.
-    * If buffering is on isBuffered is set to *true* else *false*. */
-   bool           isBuffered ;
-   /* variable: isConst
-    * Indicates if log configutation can not be changed (true).
-    * If this value is set to false *false* the log can be configured. */
-   bool           isConstConfig ;
-   // group: implementation
-   log_buffer_t   * log_buffer ;
-} ;
-
-// group: lifetime
-
-/* function: new_logconfig
- * Allocates memory for the structure and initializes all variables to default values.
- * The default configuration is to write the log to standard error.
- * This log service is *not* thread safe. So use it only within a single thread. */
-extern int new_logconfig(/*out*/log_config_t ** log) ;
-
-/* function: delete_logconfig
- * Frees resources and frees memory of log object.
- * After return log is set to NULL even in case of an error occured.
- * If it is called more than once log is already set to NULL and the function does nothing in this case. */
-extern int delete_logconfig(log_config_t ** log) ;
-
-// group: configuration
-
-/* function: setonoff_logconfig
- * Switches logging on (onoff==true) or off (onoff==false). */
-extern int setonoff_logconfig(log_config_t * log, bool onoff) ;
-
-/* function: setbuffermode_logconfig
- * Switches buffered mode on (mode == true) or off (mode == false). */
-extern int setbuffermode_logconfig(log_config_t * log, bool mode) ;
-
-// group: buffered log
-
-/* function: clearbuffer_logconfig
- * Clears log buffer (sets length of logbuffer to 0).
- * This call is ignored if the log is not configured to be in buffered mode. */
-extern void clearbuffer_logconfig(log_config_t * log) ;
-
-/* function: writebuffer_logconfig
- * Writes content of buffer to standard error and clears log buffer (sets length of logbuffer to 0).
- * This call is ignored if the log is not configured to be in buffered mode. */
-extern void writebuffer_logconfig(log_config_t * log) ;
-
-/* function: getlogbuffer_logconfig
- * Returns content of log buffer as C-string and its length.
- * The buffer is valid as long as buffermode is on.
- * The content and size changes if a new log sentence is written.
- * Do not free the buffer. It points to an internal buffer used by the implementation. */
-extern void getlogbuffer_logconfig(log_config_t * log, /*out*/char ** buffer, /*out*/size_t * size) ;
 
 #endif

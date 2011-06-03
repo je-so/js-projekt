@@ -19,7 +19,7 @@
    file: C-kern/api/string/converter.h
     Header file of <String-Converter>.
 
-   file: C-kern/string/conversion.c
+   file: C-kern/string/converter.c
     Implementation file <String-Converter impl>.
 */
 #ifndef CKERN_API_STRING_CONVERTER_HEADER
@@ -139,6 +139,6 @@ extern int peek_wstringconverter( const wstring_converter_t * conv, size_t char_
  * > #define nextwchar_wstringconverter( conv, next_wchar ) \
  * >    (__extension__ ({ size_t bytes = (size_t)((conv)->input_len ? mbrtowc( next_wchar, (conv)->next_input_char, (conv)->input_len, &(conv)->internal_state) : (unsigned)(*(next_wchar) = 0)) ; int result ; if (bytes > (conv)->input_len) { result = EILSEQ ; } else { (conv)->input_len -= bytes ; (conv)->next_input_char += bytes ; result = 0 ; } result ; })) */
 #define /*int*/ nextwchar_wstringconverter(conv, next_wchar) \
-   (__extension__ ({ size_t bytes = (size_t)((conv)->input_len ? mbrtowc( next_wchar, (conv)->next_input_char, (conv)->input_len, &(conv)->internal_state) : (unsigned)(*(next_wchar) = 0)) ; int result ; if (bytes > (conv)->input_len) { result = EILSEQ ; } else { (conv)->input_len -= bytes ; (conv)->next_input_char += bytes ; result = 0 ; } result ; }))
+   (__extension__ ({ size_t bytes = (size_t)((conv)->input_len ? mbrtowc( next_wchar, (conv)->next_input_char, (conv)->input_len, &(conv)->internal_state) : (unsigned)(*(next_wchar) = 0)) ; int _result_ ; if (bytes > (conv)->input_len) { _result_ = EILSEQ ; } else { (conv)->input_len -= bytes ; (conv)->next_input_char += bytes ; _result_ = 0 ; } _result_ ; }))
 
 #endif

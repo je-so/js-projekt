@@ -1,5 +1,7 @@
-/* title: Locale support
+/* title: UmgebungLocale
    Supports setting and getting of process locale (C runtime libraries).
+
+   Use it to adapt to different character encodings / environments setings.
 
    about: Copyright
    This program is free software.
@@ -16,23 +18,18 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/locale.h
-    Header file of <Locale support>.
+   file: C-kern/api/umgebung/locale.h
+    Header file of <UmgebungLocale>.
 
-   file: C-kern/os/shared/locale.c
-    Implementation file of <Locale support>.
+   file: C-kern/umgebung/locale.c
+    Implementation file <UmgebungLocale impl>.
 */
-#ifndef CKERN_API_LOCALE_HEADER
-#define CKERN_API_LOCALE_HEADER
+#ifndef CKERN_UMGEBUNG_LOCALE_HEADER
+#define CKERN_UMGEBUNG_LOCALE_HEADER
+
+#include "C-kern/api/os/locale.h"
 
 // section: Functions
-
-// group: query
-
-/* function: charencoding_locale
- * Returns the name of the character encoding of the current selected locale.
- * For example "UTF-8" for utf-8 multibyte character encoding. */
-extern const char* charencoding_locale(void) ;
 
 // group: init
 
@@ -46,5 +43,13 @@ extern int initprocess_locale(void) ;
  * Resets the process locale to the standard "C" locale which
  * active per default if a new process enters its main function. */
 extern int freeprocess_locale(void) ;
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_umgebung_locale
+ * Test init- and freeprocess_locale succeeds. */
+extern int unittest_umgebung_locale(void) ;
+#endif
 
 #endif

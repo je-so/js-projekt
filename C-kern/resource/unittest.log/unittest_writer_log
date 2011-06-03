@@ -1,0 +1,6 @@
+C-kern/writer/log.c:291: error in setonoff_logconfig()
+Function aborted (err=22)
+C-kern/writer/log.c:326: error in setbuffermode_logconfig()
+Function aborted (err=22)
+C-kern/os/Linux/mmfile.c:163: error in init_mmfile()
+Function aborted (err=61)

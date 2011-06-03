@@ -19,7 +19,7 @@
    file: C-kern/api/umgebung.h
     Header file of <Umgebung Interface>.
 
-   file: C-kern/umgebung/umgebung_default.c
+   file: C-kern/umgebung/umgebung_initdefault.c
     Implementation file of <Umgebung Default>.
 */
 

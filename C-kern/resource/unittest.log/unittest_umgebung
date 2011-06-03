@@ -1,13 +1,3 @@
-C-kern/os/shared/locale.c:50: error in initprocess_locale()
-Cannot change the current locale with setlocale
-Remedy: Please set environment variable LC_ALL to a supported value by the system
-getenv("LC_ALL")=XXX@unknown
-C-kern/os/shared/locale.c:58: error in initprocess_locale()
-Function aborted (err=22)
-C-kern/umgebung/umgebung.c:124: error in init_process_resources()
-Function aborted (err=22)
-C-kern/umgebung/umgebung.c:220: error in initprocess_umgebung()
-Function aborted (err=22)
 implementation_type=0
 C-kern/umgebung/umgebung.c:164: error in init_umgebung()
 Function aborted (err=22)
@@ -17,4 +7,10 @@ implementation_type=3
 C-kern/umgebung/umgebung.c:164: error in init_umgebung()
 Function aborted (err=22)
 C-kern/umgebung/umgebung.c:220: error in initprocess_umgebung()
+Function aborted (err=22)
+implementation_type=0
+C-kern/umgebung/umgebung.c:164: error in init_umgebung()
+Function aborted (err=22)
+implementation_type=3
+C-kern/umgebung/umgebung.c:164: error in init_umgebung()
 Function aborted (err=22)

@@ -1,4 +1,4 @@
-/* title: Umgebung Generic
+/* title: Umgebung impl
    Implementation file of generic init anf free functions.
 
    about: Copyright
@@ -20,7 +20,7 @@
     Header file of <Umgebung Interface>.
 
    file: C-kern/umgebung/umgebung.c
-    Implementation file of <Umgebung Generic>.
+    Implementation file of <Umgebung impl>.
 */
 
 #include "C-kern/konfig.h"
@@ -30,11 +30,11 @@
 #define X11 1
 #if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem==''||subsystem=='X11')
-#include "C-kern/api/locale.h"
+#include "C-kern/api/umgebung/locale.h"
 // TEXTDB:END
 #else
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem=='')
-#include "C-kern/api/locale.h"
+#include "C-kern/api/umgebung/locale.h"
 // TEXTDB:END
 #endif
 #undef X11
@@ -226,39 +226,23 @@ ABBRUCH:
 
 #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung,ABBRUCH)
 
-static int test_resource_setlocale(void)
-{
-   const char    * old_lcall = getenv("LC_ALL") ;
-
-   // TEST setlocale error
-   TEST(0 == setenv("LC_ALL", "XXX@unknown", 1)) ;
-   TEST(0 == s_initpos_presource) ;
-   TEST(EINVAL == initprocess_umgebung(umgebung_type_DEFAULT)) ;
-   TEST(0 == s_initpos_presource) ;
-   TEST(0 == umgebung()->type) ;
-   if (old_lcall) {
-      TEST(0 == setenv("LC_ALL", old_lcall, 0)) ;
-   } else {
-      TEST(0 == unsetenv("LC_ALL")) ;
-   }
-
-   return 0 ;
-ABBRUCH:
-   if (old_lcall)
-      setenv("LC_ALL", old_lcall, 1) ;
-   else
-      unsetenv("LC_ALL") ;
-   return 1 ;
-}
-
 static int test_process_init(void)
 {
+   const umgebung_t * umg = umgebung() ;
+
+   // TEST static type
+   TEST( umg->type           == umgebung_type_STATIC ) ;
+   TEST( umg->cache          == &g_main_objectcache );
+   TEST( umg->log            == &g_main_logservice );
+   TEST( umg->free_umgebung  == 0 ) ;
+   TEST( umg->resource_count == 0 ) ;
+
    // TEST EINVAL: wrong type
    TEST(0      == umgebung_type_STATIC) ;
    TEST(EINVAL == initprocess_umgebung(umgebung_type_STATIC)) ;
    TEST(EINVAL == initprocess_umgebung(3)) ;
 
-   // TEST init, double free
+   // TEST init, double free (umgebung_type_DEFAULT)
    TEST(0 == umgebung()->type) ;
    TEST(0 == initprocess_umgebung(umgebung_type_DEFAULT)) ;
    TEST(umgebung_type_DEFAULT == umgebung()->type) ;
@@ -266,22 +250,25 @@ static int test_process_init(void)
    TEST(0 != umgebung()->free_umgebung) ;
    TEST(0 != umgebung()->log) ;
    TEST(0 != umgebung()->cache) ;
+   TEST(0 != strcmp("C", current_locale())) ;
    TEST(&g_main_logservice  != umgebung()->log) ;
    TEST(&g_main_objectcache != umgebung()->cache) ;
    TEST(0 == freeprocess_umgebung()) ;
    TEST(0 == umgebung()->type ) ;
    TEST(0 == umgebung()->resource_count) ;
    TEST(0 == umgebung()->free_umgebung) ;
+   TEST(0 == strcmp("C", current_locale())) ;
    TEST(&g_main_logservice  == umgebung()->log) ;
    TEST(&g_main_objectcache == umgebung()->cache) ;
    TEST(0 == freeprocess_umgebung()) ;
    TEST(0 == umgebung()->type ) ;
    TEST(0 == umgebung()->resource_count) ;
    TEST(0 == umgebung()->free_umgebung) ;
+   TEST(0 == strcmp("C", current_locale())) ;
    TEST(&g_main_logservice  == umgebung()->log) ;
    TEST(&g_main_objectcache == umgebung()->cache) ;
 
-   // TEST init, double free
+   // TEST init, double free (umgebung_type_TEST)
    TEST(0 == umgebung()->type) ;
    TEST(0 == initprocess_umgebung(umgebung_type_TEST)) ;
    TEST(umgebung_type_TEST  == umgebung()->type) ;
@@ -296,19 +283,21 @@ static int test_process_init(void)
    TEST(&g_main_logservice  == umgebung()->log) ;
    TEST(&g_main_objectcache == umgebung()->cache) ;
 
+   // TEST static type has not changed
+   TEST( umg->type           == umgebung_type_STATIC ) ;
+   TEST( umg->cache          == &g_main_objectcache );
+   TEST( umg->log            == &g_main_logservice );
+   TEST( umg->free_umgebung  == 0 ) ;
+   TEST( umg->resource_count == 0 ) ;
+
    return 0 ;
 ABBRUCH:
    return 1 ;
 }
 
-int unittest_umgebung()
+static int test_umgebung_static(void)
 {
-   const umgebung_t    * umg      = umgebung() ;
-   umgebung_type_e       old_type = umg ? umg->type : 0 ;
-
-   if (umgebung_type_STATIC != old_type) {
-      TEST(0 == freeprocess_umgebung()) ;
-   }
+   const umgebung_t * umg = umgebung() ;
 
    // TEST static init
    TEST( umg->type           == umgebung_type_STATIC ) ;
@@ -339,19 +328,85 @@ int unittest_umgebung()
       TEST( cache_umgebung() == oldcache ) ;
    }
 
-   if (test_resource_setlocale())   goto ABBRUCH ;
-   if (test_process_init())         goto ABBRUCH ;
+   return 0 ;
+ABBRUCH:
+   return 1 ;
+}
 
-   // TEST static init has not changed
-   TEST( umg->type           == umgebung_type_STATIC ) ;
-   TEST( umg->cache          == &g_main_objectcache );
-   TEST( umg->log            == &g_main_logservice );
-   TEST( umg->free_umgebung  == 0 ) ;
-   TEST( umg->resource_count == 0 ) ;
+static int test_umgebung_init(void)
+{
+   umgebung_t umg = umgebung_INIT_FREEABLE ;
 
-   if (umgebung_type_STATIC != old_type) {
-      TEST(0 == initprocess_umgebung(old_type)) ;
+   // TEST EINVAL: wrong type
+   TEST(EINVAL == init_umgebung(&umg, umgebung_type_STATIC)) ;
+   TEST(EINVAL == init_umgebung(&umg, 3)) ;
+
+   // TEST init, double free (umgebung_type_DEFAULT)
+   TEST(0 == init_umgebung(&umg, umgebung_type_DEFAULT)) ;
+   TEST(umgebung_type_DEFAULT == umg.type) ;
+   TEST(0 != umg.resource_count) ;
+   TEST(0 != umg.free_umgebung) ;
+   TEST(0 != umg.log) ;
+   TEST(0 != umg.cache) ;
+   TEST(&g_main_logservice  != umg.log) ;
+   TEST(&g_main_objectcache != umg.cache) ;
+   TEST(0 == free_umgebung(&umg)) ;
+   TEST(0 == umg.type ) ;
+   TEST(0 == umg.resource_count) ;
+   TEST(0 == umg.free_umgebung) ;
+   TEST(&g_safe_logservice  == umg.log) ;
+   TEST(0 == umg.cache) ;
+   TEST(0 == free_umgebung(&umg)) ;
+   TEST(0 == umg.type ) ;
+   TEST(0 == umg.resource_count) ;
+   TEST(0 == umg.free_umgebung) ;
+   TEST(&g_safe_logservice  == umg.log) ;
+   TEST(0 == umg.cache) ;
+
+   // TEST init, double free (umgebung_type_TEST)
+   TEST(0 == init_umgebung(&umg, umgebung_type_TEST)) ;
+   TEST(umgebung_type_TEST  == umg.type) ;
+   TEST(&g_main_logservice  == umg.log) ;
+   TEST(&g_main_objectcache == umg.cache) ;
+   TEST(0 == umg.resource_count) ;
+   TEST(0 != umg.free_umgebung) ;
+   TEST(0 == free_umgebung(&umg)) ;
+   TEST(0 == umg.type ) ;
+   TEST(0 == umg.resource_count) ;
+   TEST(0 == umg.free_umgebung) ;
+   TEST(&g_main_logservice  == umg.log) ;
+   TEST(&g_main_objectcache == umg.cache) ;
+
+   return 0 ;
+ABBRUCH:
+   free_umgebung(&umg) ;
+   return 1 ;
+}
+
+int unittest_umgebung()
+{
+
+   if (umgebung_type_STATIC == umgebung()->type) {
+
+      if (test_umgebung_static())   goto ABBRUCH ;
+      if (test_process_init())      goto ABBRUCH ;
+
+   } else {
+      log_umgebung()->printf(log_umgebung(), "%s",
+                        "implementation_type=0\n"
+                        "C-kern/umgebung/umgebung.c:171: error in init_umgebung()\n"
+                        "Function aborted (err=22)\n"
+                        "C-kern/umgebung/umgebung.c:227: error in initprocess_umgebung()\n"
+                        "Function aborted (err=22)\n"
+                        "implementation_type=3\n"
+                        "C-kern/umgebung/umgebung.c:171: error in init_umgebung()\n"
+                        "Function aborted (err=22)\n"
+                        "C-kern/umgebung/umgebung.c:227: error in initprocess_umgebung()\n"
+                        "Function aborted (err=22)\n"
+                        ) ;
    }
+
+   if (test_umgebung_init())  goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:

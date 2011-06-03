@@ -1,7 +1,5 @@
-/* title: Locale implementation
-   Implement functions for localization support.
-
-   - adapt to different character encodings
+/* title: Locale-support impl
+   Implements <Locale-support>.
 
    about: Copyright
    This program is free software.
@@ -16,19 +14,66 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2010 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/locale.h
-    Header file of <Locale support>.
+   file: C-kern/api/os/locale.h
+    Header file of <Locale-support>.
 
    file: C-kern/os/shared/locale.c
-    Implementation file of <Locale support>.
+    Implementation file <Locale-support impl>.
 */
+
 #include "C-kern/konfig.h"
-#include "C-kern/api/locale.h"
+#include "C-kern/api/os/locale.h"
 #include "C-kern/api/errlog.h"
 
-/* function: initprocess_locale implementation
+// section: Implementation
+
+/* function: charencoding_locale implementation
+ * See <charencoding_locale> for interface description.
+ * Calls POSIX conforming nl_langinfo to query the information. */
+const char * charencoding_locale()
+{
+   return nl_langinfo(CODESET) ;
+}
+
+const char * current_locale()
+{
+   int err ;
+   const char * lname = setlocale(LC_ALL, 0) ;
+
+   if (!lname) {
+      err = EINVAL ;
+      LOG_SYSERR("setlocale",err) ;
+      LOG_STRING("LC_ALL=0") ;
+      goto ABBRUCH ;
+   }
+
+   return lname ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return 0 ;
+}
+
+const char * currentmsg_locale()
+{
+   int err ;
+   const char * lname = setlocale(LC_MESSAGES, 0) ;
+
+   if (!lname) {
+      err = EINVAL ;
+      LOG_SYSERR("setlocale",err) ;
+      LOG_STRING("LC_MESSAGES=0") ;
+      goto ABBRUCH ;
+   }
+
+   return lname ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return 0 ;
+}
+
+/* function: setdefault_locale implementation
  * Calls C99 conforming function »setlocale«.
  * With category LC_ALL all different subsystems of the C runtime environment
  * are changed to the locale set by the user.
@@ -42,14 +87,14 @@
  * LC_TIME     - Changes time and date formatting.
  *
  * */
-int initprocess_locale()
+int setdefault_locale()
 {
    int err ;
 
    if (!setlocale(LC_ALL, "")) {
+      err = EINVAL ;
       LOG_ERRTEXT(LOCALE_SETLOCALE) ;
       LOG_STRING(getenv("LC_ALL")) ;
-      err = EINVAL ;
       goto ABBRUCH ;
    }
 
@@ -59,11 +104,11 @@ ABBRUCH:
    return err ;
 }
 
-/* function: freeprocess_locale implementation
+/* function: reset_locale implementation
  * Calls C99 conforming function »setlocale«.
  * Set all subsystems of the C runtime environment to the standard locale "C"
  * which is active by default after process creation. */
-int freeprocess_locale()
+int reset_locale()
 {
    int err ;
 
@@ -80,11 +125,19 @@ ABBRUCH:
    return err ;
 }
 
-/* function: charencoding_locale implementation
- * See <charencoding_locale> for interface description.
- * Calls POSIX conforming nl_langinfo to query the information. */
-const char* charencoding_locale()
+int resetmsg_locale()
 {
-   return nl_langinfo(CODESET) ;
-}
+   int err ;
 
+   if (!setlocale(LC_MESSAGES, "C")) {
+      LOG_ERRTEXT(LOCALE_SETLOCALE) ;
+      LOG_STRING("LC_MESSAGES=C") ;
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}

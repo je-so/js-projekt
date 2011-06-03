@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Mar.08  08:56:19
+GenerationDate  := 2011.Jun.03  10:24:23
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -79,22 +79,26 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!locale.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o
+ $(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o \
+ $(ObjectDir_Debug)/C-kern!writer!log.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung_testproxy.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!locale.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o
+ $(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o \
+ $(ObjectDir_Release)/C-kern!writer!log.c.o
 
 $(Target_Debug): $(Objects_Debug)
 $(Target_Debug): | $(ObjectDir_Debug) $(TargetDir_Debug)
@@ -116,19 +120,25 @@ $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/
 $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung_default.c.o: $(PathOffset)C-kern/umgebung/umgebung_default.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o: $(PathOffset)C-kern/umgebung/umgebung_initdefault.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung_testproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_testproxy.c
+$(ObjectDir_Debug)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/locale.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o: $(PathOffset)C-kern/umgebung/object_cache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!writer!log.c.o: $(PathOffset)C-kern/writer/log.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o: $(PathOffset)C-kern/main/tools/textdb.c
@@ -143,19 +153,25 @@ $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linu
 $(ObjectDir_Release)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung_default.c.o: $(PathOffset)C-kern/umgebung/umgebung_default.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o: $(PathOffset)C-kern/umgebung/umgebung_initdefault.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung_testproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_testproxy.c
+$(ObjectDir_Release)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/locale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o: $(PathOffset)C-kern/umgebung/object_cache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!writer!log.c.o: $(PathOffset)C-kern/writer/log.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

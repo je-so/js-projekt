@@ -6,6 +6,7 @@ Src           += C-kern/os/Linux/*.c C-kern/os/shared/*.c C-kern/os/shared/index
 Src           += C-kern/math/int/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/umgebung/*.c
+Src           += C-kern/writer/*.c
 Includes       = .
 Libs           = pthread rt
 Defines        = KONFIG_UNITTEST
