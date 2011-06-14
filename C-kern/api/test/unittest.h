@@ -20,7 +20,7 @@
     Header file of <Unittest>.
 
    file: C-kern/test/run_unittest.c
-    Implements <run_unittest>.
+    Implementation file <Unittest impl>.
 */
 #ifndef CKERN_TEST_UNITTEST_HEADER
 #define CKERN_TEST_UNITTEST_HEADER

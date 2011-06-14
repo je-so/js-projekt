@@ -1,16 +1,16 @@
 implementation_type=0
-C-kern/umgebung/umgebung.c:164: error in init_umgebung()
+C-kern/umgebung/umgebung.c:171: error in init_umgebung()
 Function aborted (err=22)
-C-kern/umgebung/umgebung.c:220: error in initprocess_umgebung()
+C-kern/umgebung/umgebung.c:227: error in initprocess_umgebung()
 Function aborted (err=22)
 implementation_type=3
-C-kern/umgebung/umgebung.c:164: error in init_umgebung()
+C-kern/umgebung/umgebung.c:171: error in init_umgebung()
 Function aborted (err=22)
-C-kern/umgebung/umgebung.c:220: error in initprocess_umgebung()
+C-kern/umgebung/umgebung.c:227: error in initprocess_umgebung()
 Function aborted (err=22)
 implementation_type=0
-C-kern/umgebung/umgebung.c:164: error in init_umgebung()
+C-kern/umgebung/umgebung.c:171: error in init_umgebung()
 Function aborted (err=22)
 implementation_type=3
-C-kern/umgebung/umgebung.c:164: error in init_umgebung()
+C-kern/umgebung/umgebung.c:171: error in init_umgebung()
 Function aborted (err=22)

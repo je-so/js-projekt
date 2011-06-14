@@ -22,12 +22,13 @@
     Header file of <Unittest>.
 
    file: C-kern/test/run_unittest.c
-    Implements <run_unittest>.
+    Implementation file <Unittest impl>.
 */
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/umgebung.h"
+#include "C-kern/api/umgebung/locale.h"
 #include "C-kern/api/umgebung/log.h"
 #include "C-kern/api/umgebung/object_cache.h"
 #include "C-kern/api/math/int/signum.h"
@@ -36,6 +37,7 @@
 #include "C-kern/api/os/filesystem/mmfile.h"
 #include "C-kern/api/os/index/redblacktree.h"
 #include "C-kern/api/os/index/splaytree.h"
+#include "C-kern/api/os/process.h"
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/string/converter.h"
@@ -131,8 +133,14 @@ static int check_logresource(const char * test_name)
       goto ABBRUCH ;
    }
 
-   if (logbuffer_size && memcmp( addr_mmfile(&logfile), logbuffer, logbuffer_size )) {
-      dprintf( STDERR_FILENO, "Content of read logbuffer:\n%*s\n", logbuffer_size, logbuffer) ;
+   char * stored_content = (char*) addr_mmfile(&logfile) ;
+   if (logbuffer_size && memcmp(stored_content, logbuffer, logbuffer_size )) {
+      mmfile_t logfile2 = mmfile_INIT_FREEABLE ;
+      if (0 == initcreate_mmfile(&logfile2, "/tmp/logbuffer", logbuffer_size, 0)) {
+         memcpy( addr_mmfile(&logfile2), logbuffer, logbuffer_size ) ;
+      }
+      free_mmfile(&logfile2) ;
+      dprintf( STDERR_FILENO, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -170,6 +178,14 @@ static void print_result(int err, RESULT_STRING * progress, unsigned * progress_
    }
 }
 
+static void set_testconfig(void)
+{
+   LOG_TURNON() ;
+   LOG_CONFIG_BUFFERED(true) ;
+   // make printed system error messages language (English) neutral
+   resetmsg_locale() ;
+}
+
 int run_unittest(void)
 {
    int err ;
@@ -184,8 +200,7 @@ int run_unittest(void)
       ,umgebung_type_DEFAULT
    } ;
 
-   LOG_TURNON() ;
-   LOG_CONFIG_BUFFERED(true) ;
+   set_testconfig() ;
 
    // before init
    RUN(unittest_umgebung) ;            //TODO: move into loop + test outside loop
@@ -203,17 +218,17 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
       goto ABBRUCH ;
    }
 
-   LOG_TURNON() ;
-   LOG_CONFIG_BUFFERED(true) ;
-
-   // make printed system error messages language (English) neutral
-   setlocale(LC_MESSAGES, "C") ;
+   set_testconfig() ;
 
    // current development
    // assert(0) ;
 
 //{ string unittest
    RUN(unittest_string_converter) ;
+//}
+
+//{ writer unittest
+   RUN(unittest_writer_log) ;
 //}
 
 //{ generic unittest
@@ -233,6 +248,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_os_directory) ;
    RUN(unittest_os_memorymappedfile) ;
    // other
+   RUN(unittest_os_process) ;
    RUN(unittest_os_thread) ;
    RUN(unittest_os_virtualmemory) ;
    // graphik subsystem
@@ -260,6 +276,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 ABBRUCH:
 
+   LOG_CLEARBUFFER() ;
    if (!oldlog_onstate) LOG_TURNOFF() ;
    LOG_CONFIG_BUFFERED(oldlog_bufferedstate) ;
 

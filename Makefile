@@ -47,6 +47,7 @@ html:
 
 
 makefiles: \
+           $(MAKEFILES_PREFIX)testchildprocess \
            $(MAKEFILES_PREFIX)genmake \
            $(MAKEFILES_PREFIX)textdb \
            $(MAKEFILES_PREFIX)textrescompiler \
@@ -57,9 +58,9 @@ $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.g
 
 resources: | textrescompiler_Release
 
-test: | resources
+test: | resources testchildprocess
 
-genmake textrescompiler resources textdb test:
+genmake textrescompiler resources testchildprocess textdb test:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(@) ; then make -f $(MAKEFILES_PREFIX)$(@) ; fi
 
 genmake_Release textrescompiler_Release textdb_Release:
@@ -69,6 +70,7 @@ Release Debug: $(MAKEFILES_PREFIX)textrescompiler \
                $(MAKEFILES_PREFIX)resources \
                $(MAKEFILES_PREFIX)textdb \
                $(MAKEFILES_PREFIX)preprocess \
+               $(MAKEFILES_PREFIX)testchildprocess \
                $(MAKEFILES_PREFIX)test \
                $(MAKEFILES_PREFIX)genmake
 	@for mf in $^ ; do if ! make -qf $${mf} $(@) ; then make -f $${mf} $(@) ; fi ; done

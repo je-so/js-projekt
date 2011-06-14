@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.03  10:24:23
+GenerationDate  := 2011.Jun.14  14:00:16
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -75,8 +75,9 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!main!test.c.o \
+ $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
@@ -98,8 +99,9 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!writer!log.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!main!test.c.o \
+ $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
@@ -128,10 +130,13 @@ $(Target_Release): $(Objects_Release)
 $(Target_Release): | $(ObjectDir_Release) $(TargetDir_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Debug)/C-kern!main!test.c.o: $(PathOffset)C-kern/main/test.c
+$(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: $(PathOffset)C-kern/main/unittest_main.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: $(PathOffset)C-kern/test/run_unittest.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: $(PathOffset)C-kern/os/Linux/process.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o: $(PathOffset)C-kern/os/Linux/directory.c
@@ -191,10 +196,13 @@ $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/um
 $(ObjectDir_Debug)/C-kern!writer!log.c.o: $(PathOffset)C-kern/writer/log.c
 	@$(CC_Debug)
 
-$(ObjectDir_Release)/C-kern!main!test.c.o: $(PathOffset)C-kern/main/test.c
+$(ObjectDir_Release)/C-kern!main!unittest_main.c.o: $(PathOffset)C-kern/main/unittest_main.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!run_unittest.c.o: $(PathOffset)C-kern/test/run_unittest.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!process.c.o: $(PathOffset)C-kern/os/Linux/process.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o: $(PathOffset)C-kern/os/Linux/directory.c

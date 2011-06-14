@@ -31,6 +31,7 @@
 #if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem==''||subsystem=='X11')
 #include "C-kern/api/umgebung/locale.h"
+#include "C-kern/api/os/X11/x11.h"
 // TEXTDB:END
 #else
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem=='')
@@ -68,6 +69,8 @@ static int free_process_resources(void)
 #define X11 1
 #if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT("   case "row-id":  err2 = "free-function"() ;"\n"            if (err2) err=err2 ;")FROM("C-kern/resource/text.db/initprocess")WHERE(subsystem==''||subsystem=='X11')DESCENDING
+   case 2:  err2 = freeprocess_X11() ;
+            if (err2) err=err2 ;
    case 1:  err2 = freeprocess_locale() ;
             if (err2) err=err2 ;
 // TEXTDB:END
@@ -104,6 +107,10 @@ static int init_process_resources(void)
 // TEXTDB:SELECT(\n"   err = "init-function"() ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ s_initpos_presource ;")FROM("C-kern/resource/text.db/initprocess")WHERE(subsystem==''||subsystem=='X11')
 
    err = initprocess_locale() ;
+   if (err) goto ABBRUCH ;
+   ++ s_initpos_presource ;
+
+   err = initprocess_X11() ;
    if (err) goto ABBRUCH ;
    ++ s_initpos_presource ;
 // TEXTDB:END

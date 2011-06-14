@@ -1,5 +1,5 @@
-/* title: VirtualMemory Implementation
-   Implements <VirtualMemory>: mapping of virtual memory pages.
+/* title: VirtualMemory Linux
+   Implements <VirtualMemory>, mapping of virtual memory pages.
 
    about: Copyright
    This program is free software.
