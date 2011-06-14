@@ -1,7 +1,5 @@
-/* title: ObjectCache implementation
-   Implements init/free functions to allocate
-   storage for cached objects before a new thread
-   is created and frees it before the thread exits.
+/* title: ObjectCache impl
+   Implements <ObjectCache>.
 
    about: Copyright
    This program is free software.
@@ -22,7 +20,7 @@
     Header file of <ObjectCache>.
 
    file: C-kern/umgebung/object_cache.c
-    Implementation file of <ObjectCache>.
+    Implementation file <ObjectCache impl>.
 */
 
 #include "C-kern/konfig.h"

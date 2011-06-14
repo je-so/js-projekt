@@ -39,9 +39,8 @@
  * Usage:
  * The following demonstrates how this macro is used:
  *
- * > #ifdef KONFIG_UNITTEST
- * > #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_demonstration,ABBRUCH)
- * > int unittest_demonstration()
+ * > #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,test_demonstration,ABBRUCH)
+ * > int test_demonstration()
  * > {
  * >    testtype_t testtype = type_INIT_FREEABLE ;
  * >    TEST(0 == init_testtype(&testtype)) ;
@@ -49,9 +48,8 @@
  * >    return 0 ; // success
  * > ABBRUCH:
  * >    free_testtype(&testtype) ;
- * >    return 1 ; // any error code
+ * >    return EINVAL ; // any error code
  * > }
- * > #endif
  * */
 #define TEST_ONERROR_GOTO(CONDITION,TEST_FUNCTION_NAME,ERROR_LABEL) \
    if ( !(CONDITION) ) {\

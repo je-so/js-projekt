@@ -809,7 +809,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_os_process(void)
+int unittest_os_process()
 {
    const size_t   open_files = openfd_filetest() ;
    char         * oldpath    = getenv("PATH") ? strdup(getenv("PATH")) : 0 ;

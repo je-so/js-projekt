@@ -1,5 +1,5 @@
-/* title: UmgebungLog impl
-   Implements <UmgebungLog>.
+/* title: LogUmgebung impl
+   Implements <LogUmgebung>.
 
    about: Copyright
    This program is free software.
@@ -17,10 +17,10 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/umgebung/log.h
-    Header file of <UmgebungLog>.
+    Header file of <LogUmgebung>.
 
    file: C-kern/umgebung/log.c
-    Implementation file <UmgebungLog impl>.
+    Implementation file <LogUmgebung impl>.
 */
 
 #include "C-kern/konfig.h"

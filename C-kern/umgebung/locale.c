@@ -1,5 +1,5 @@
-/* title: UmgebungLocale impl
-   Implement <UmgebungLocale>
+/* title: LocaleUmgebung impl
+   Implements <LocaleUmgebung>.
 
    about: Copyright
    This program is free software.
@@ -17,10 +17,10 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/umgebung/locale.h
-    Header file of <UmgebungLocale>.
+    Header file of <LocaleUmgebung>.
 
    file: C-kern/umgebung/locale.c
-    Implementation file <UmgebungLocale impl>.
+    Implementation file <LocaleUmgebung impl>.
 */
 
 #include "C-kern/konfig.h"

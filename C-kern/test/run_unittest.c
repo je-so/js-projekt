@@ -223,6 +223,10 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    // current development
    // assert(0) ;
 
+//{ umgebung unittest
+   RUN(unittest_umgebung_locale) ;
+//}
+
 //{ string unittest
    RUN(unittest_string_converter) ;
 //}

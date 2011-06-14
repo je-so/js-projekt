@@ -5,11 +5,11 @@
 # * Tests that unittest have correct interface in *.[ch] *
 # * Tests that run_unittest.c calls every unittest_XXX() *
 # **********************************************************
-# env root_dir (ends with a '/')
-# env verbose (either == "" or != "")
+# environment variables:
+# verbose: if set to != "" => $info is printed
 error=0
 # test all *.h files
-files=`find ${root_dir}C-kern/ -name "*.[ch]" -exec grep -l "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" {} \;`
+files=`find C-kern/ -name "*.[ch]" -exec grep -l "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" {} \;`
 info=""
 # array of files which are tools and therfore not checked
 ok=( C-kern/main/tools/genmake.c
@@ -18,7 +18,7 @@ ok=( C-kern/main/tools/genmake.c
      C-kern/main/tools/text_resource_compiler.c
    )
 for((i=0;i<${#ok[*]};i=i+1)) do
-   files="${files/"${root_dir}${ok[$i]}"/}" # remove files which are ok from $files
+   files="${files/"${ok[$i]}"/}" # remove files which are ok from $files
 done
 files=`echo $files | sed -e '/^[ ]*$/d' -`
 for i in $files; do
@@ -30,7 +30,7 @@ for i in $files; do
       # .c file
       if [ "$result_size" != "1" ]; then
          error=1
-         info="$info  file: <${i##$root_dir}> implements more than one unittest\n"
+         info="$info  file: <${i}> implements more than one unittest\n"
       fi
       for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
          result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
@@ -39,7 +39,7 @@ for i in $files; do
          fi
          if [ "${result#int unittest_*()}" != "" ]; then
             error=1
-            info="$info  file: <${i##$root_dir}> has wrong unittest definition '$result'\n"
+            info="$info  file: <${i}> has wrong unittest definition '$result'\n"
          fi
       done
    else
@@ -48,7 +48,7 @@ for i in $files; do
          result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
          if [ "${result#extern int unittest_*(void) ;}" != "" ]; then
             error=1
-            info="$info  file: <${i##$root_dir}> has wrong unittest definition '$result'\n"
+            info="$info  file: <${i}> has wrong unittest definition '$result'\n"
          fi
       done
    fi
@@ -57,10 +57,10 @@ for i in $files; do
    for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
       result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
       name="`echo $result | sed 's/.*unittest_\(.*\)(.*/\\1/' -`"
-      result=`grep "RUN(unittest_${name})" ${root_dir}C-kern/test/run_unittest.c`
+      result=`grep "RUN(unittest_${name})" C-kern/test/run_unittest.c`
       if [ "$result" = "" ]; then
          error=1
-         info="$info  file: <${i##$root_dir}> unittest_${name} is not called from 'C-kern/test/run_unittest.c'\n"
+         info="$info  file: <${i}> unittest_${name} is not called from 'C-kern/test/run_unittest.c'\n"
       fi
    done
 

@@ -1,17 +1,25 @@
 #!/bin/bash
-# ********************
+# **************************
 # Test source code structure
-# **********************************************************
-# * Tests that every file header contains copyright notice *
-# **********************************************************
-# env root_dir (ends with a '/')
-# env verbose (either == "" or != "")
+# *************************************************************
+# * 1. Tests that every file header contains copyright notice *
+# * 2. Tests <filename> exists from "file: <filename>" refs   *
+# * 3. Tests that referenced titles exists                    *
+# *    "/* title: <titlename>"                                *
+# *    referenced from                                        *
+# *    file: <filename>                                       *
+# *     Docu line <titlename>.                                *
+# *************************************************************
+# environment variables:
+# verbose: if set to != "" => $info is printed
 info=""  # verbose output
 error=0  # error flag
 # test all *.h && *.c files
-files=`find ${root_dir}C-kern/ -name "*.c" -o -name "*.h"`
+files=`find C-kern/ -name "*.c" -o -name "*.h"`
 # remove exceptions
-files=" "`echo $files | sed -e "s:${root_dir}C-kern/api/resource/[A-Za-z_0-9-]*\\.[ch]::"`
+files=" "`echo $files | sed -e "s:C-kern/api/resource/[A-Za-z_0-9-]*\\.[ch]::"`
+# return value of read_title()
+title=""
 
 function set_error()
 {
@@ -19,12 +27,11 @@ function set_error()
       echo "$0: set_error(): wrong number of paramters"
       exit 1 ;
    fi
-      info="$info  file: <${1##$root_dir}> wrong header\n"
+      info="$info  file: <${1}> wrong header\n"
    if [ "$#" == "3" ]; then
       info="$info        expected '$2'\n"
       info="$info        read '$3'\n"
    fi
-   error=1
 }
 
 function check_line()
@@ -51,6 +58,21 @@ function read_and_check_line()
    return $?
 }
 
+function read_title()
+{
+   if [ "$#" != "1" ]; then
+      echo "$0: usage: read_title <filename>"
+      exit 1 ;
+   fi
+   title=`head -n 1 $1`
+   if [ "${title##/*title:}" != "${title}" ]; then
+      title=`head -n 1 $1 | sed -e 's/^\/[*][ ]*title:[ ]*//'`
+   else
+      title=""
+   fi
+   return 0
+}
+
 
 #
 # Header Version 0.2
@@ -59,15 +81,18 @@ for i in $files; do
    exec 4<"$i"
    read -u 4
    if [ "${REPLY##'/*'}" != "$REPLY" ]; then
-      is_title=0
-      if [ "${REPLY/title:/}" != "${REPLY}" ]; then is_title=1; fi
+      file_title=""
+      if [ "${REPLY/title:/}" != "${REPLY}" ]; then
+         read_title $i
+         file_title="${title}"
+      fi
       while true ; do
          if ! read -u 4 ; then
             set_error "$i"
             break
          fi
          if [ "${REPLY}" == '*/' ]; then
-            if [ $is_title == 1 ]; then
+            if [ "${file_title}" != "" ]; then
                set_error "$i"
             fi
             break
@@ -91,9 +116,21 @@ for i in $files; do
                if [ "${REPLY}" == "*/" ]; then break ; fi
                path="${REPLY#*file: }"
                if [ "$path" == "$REPLY" ]; then continue ; fi
-               if [ "$path" != "${i##$root_dir}" ] && [ ! -f "${root_dir}${path}" ]; then
-                  set_error "$i" "   file: ${i##$root_dir}" "${REPLY}"
+               if [ "$path" != "${i}" ] && [ ! -f "${path}" ]; then
+                  set_error "$i" "   file: ${i}" "${REPLY}"
                   break 2
+               fi
+               # check title reference
+               read -u 4
+               if [ "${REPLY/<*>/}" != "${REPLY}" ]; then
+                  ref_title="`echo "${REPLY}" | sed -e 's/.*<\(.*\)>.*/\1/'`"
+                  if [ "${ref_title}" != "${file_title}" ]; then
+                     read_title "${path}"
+                     if [ "${ref_title}" != "$title" ]; then
+                        set_error "$i" " <${ref_title}>" "$title"
+                        break 2
+                     fi
+                  fi
                fi
             done
             if [ "${i%%*.h}" == "" ]; then
@@ -106,11 +143,11 @@ for i in $files; do
                if [ "${REPLY}" == "" ] || [ "${REPLY:0:9}" == "#include " ]; then continue ; fi
                if [ "${REPLY:0:2}" != "/*" ] && [ "${REPLY:0:2}" != " *" ]; then break ; fi
                path="${REPLY##*file: }"
-               if [ "${REPLY:0:2}" == "/*" ] && [ "$path" != "$REPLY" ] && [ "$path" != "${i##$root_dir}" ]; then
-                  set_error "$i" "${i##$root_dir}" "$path"
+               if [ "${REPLY:0:2}" == "/*" ] && [ "$path" != "$REPLY" ] && [ "$path" != "${i}" ]; then
+                  set_error "$i" "${i}" "$path"
                   break
-               elif [ "${REPLY:0:2}" == " *" ] && [ "$path" != "$REPLY" ] && [ ! -f "${root_dir}${path}" ]; then
-                  set_error "$i" " * file: ${i##$root_dir}" "${REPLY}"
+               elif [ "${REPLY:0:2}" == " *" ] && [ "$path" != "$REPLY" ] && [ ! -f "${path}" ]; then
+                  set_error "$i" " * file: ${i}" "${REPLY}"
                   break
                fi
             done
@@ -127,18 +164,16 @@ done
 #
 for i in $files; do
    filename="`head -n 2 $i | tail -n 1 - | sed -e 's/.*:[ ]*//'`"
-   path=${i##$root_dir}
-   if [ "$filename" != "$path"  ]; then
-      error=1
-      info="$info  file: <${i##$root_dir}> has wrong header filename '$filename'\n"
+   if [ "$filename" != "$i"  ]; then
+      info="$info  file: <${i}> has wrong header filename '$filename'\n"
    fi
 done
 
-
-if [ "$error" != "0" ]; then
-   echo -e "\nError: Headers are incorrect" 1>&2
-   if [ "$verbose" != "" ]; then
-      echo -e "$info"
-   fi
+if [ "$info" == "" ]; then
+   exit 0
 fi
-exit $error
+echo -e "\nError: Headers are incorrect" 1>&2
+if [ "$verbose" != "" ]; then
+   echo -e "$info"
+fi
+exit 1
