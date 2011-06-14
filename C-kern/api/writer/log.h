@@ -34,13 +34,12 @@ typedef struct log_config_t   log_config_t ;
  * Shortcut for internal type <log_buffer_t>. */
 typedef struct log_buffer_t   log_buffer_t ;
 
-/* Used to support basic logging in main thread before anything is initialized. */
-extern log_config_t  g_main_logservice ;
-
-/* Used to support safe logging after freeing the log resource in <umgebung_t>.
+/* Used to support basic logging in main thread before anything is initialized.
+ * Supports also safe logging after freeing the log resource in <umgebung_t>.
  * This logservice is thread safe but supports only rudimentary logging and
  * its configuration can not be changed. */
-extern log_config_t  g_safe_logservice ;
+extern log_config_t           g_main_logservice ;
+
 
 // section: Functions
 

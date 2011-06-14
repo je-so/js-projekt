@@ -212,7 +212,7 @@ int inittemp_directorystream( /*out*/directory_stream_t * dir, const char * name
 
    // if (!mkdtemp( dir_path )) {
    //    err = errno ;
-   //    LOG_SYSERRNO("mkdtemp") ;
+   //    LOG_SYSERR("mkdtemp",err) ;
    //    LOG_STRING(dir_path) ;
    //    goto ABBRUCH ;
    // }

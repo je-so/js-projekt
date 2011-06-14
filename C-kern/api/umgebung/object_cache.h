@@ -26,20 +26,16 @@
     Header file of <ObjectCache>.
 
    file: C-kern/umgebung/object_cache.c
-    Implementation file of <ObjectCache>.
+    Implementation file <ObjectCache impl>.
 */
 #ifndef CKERN_UMGEBUNG_OBJECTCACHE_HEADER
 #define CKERN_UMGEBUNG_OBJECTCACHE_HEADER
 
-// forward:
-struct vm_block_t ;
+#include "C-kern/api/aspect/memoryblock.h"
 
-/* typedef: typedef object_cache_t
- * Shortcut for <object_cache_t>. */
+/* typedef: object_cache_t typedef
+ * Export <object_cache_t>. */
 typedef struct object_cache_t    object_cache_t ;
-
-/* Used to support caching in main thread before anything is initialized. */
-extern object_cache_t            g_main_objectcache ;
 
 
 // section: Functions
@@ -47,12 +43,12 @@ extern object_cache_t            g_main_objectcache ;
 // group: init
 
 /* function: initumgebung_objectcache
- * */
-extern int initumgebung_objectcache(/*out*/object_cache_t ** cache) ;
+ * Creates new <object_cache_t> and all referenced objects. */
+extern int initumgebung_objectcache(/*out*/object_cache_t ** objectcache) ;
 
 /* function: freeumgebung_objectcache
- * */
-extern int freeumgebung_objectcache(object_cache_t ** cache) ;
+ * Frees <object_cache_t> and all referenced objects. */
+extern int freeumgebung_objectcache(object_cache_t ** objectcache) ;
 
 
 #ifdef KONFIG_UNITTEST
@@ -63,11 +59,11 @@ extern int unittest_umgebung_objectcache(void) ;
 
 
 /* struct: object_cache_t
- * */
+ * Holds pointers to all cached objects. */
 struct object_cache_t {
    /* variable: vm_rootbuffer
     * Used in <init_vmmappedregions>. */
-   struct vm_block_t  * vm_rootbuffer ;
+   memoryblock_aspect_t    * vm_rootbuffer ;
 } ;
 
 // group: change

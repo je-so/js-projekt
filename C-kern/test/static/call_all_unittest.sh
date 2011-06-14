@@ -37,6 +37,9 @@ for i in $files; do
          if [ "${result#*assert( 0 == unittest_*()*)*;}" == "" ]; then
             continue
          fi
+         if [ "${result#   if (unittest_umgebung())}" != "${result}" ]; then
+            continue ;
+         fi
          if [ "${result#int unittest_*()}" != "" ]; then
             error=1
             info="$info  file: <${i}> has wrong unittest definition '$result'\n"

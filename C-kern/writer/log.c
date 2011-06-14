@@ -236,8 +236,7 @@ int delete_logconfig(log_config_t ** log)
    log_config_t * logobj = *log ;
 
    if (     logobj
-         && logobj != &g_main_logservice
-         && logobj != &g_safe_logservice) {
+         && logobj != &g_main_logservice) {
       *log = 0 ;
       err  = free_logbuffer(logobj->log_buffer) ;
       free(logobj) ;
@@ -353,13 +352,10 @@ void getlogbuffer_logconfig(log_config_t * log, /*out*/char ** buffer, /*out*/si
 
 // section: global variables
 
-/* variable: g_safe_logservice
+/* variable: g_main_logservice
  * Is used to support a safe standard log configuration.
- * If the global log service is set to <g_main_logservice> then it is switched
- * to <g_safe_logservice> before a thread safe lock is aquired.
- * This ensures that os specific implementations of <osthread_mutex_t> can use
- * the log module without producing a dead lock. */
-log_config_t  g_safe_logservice = {
+ * Used to write log output before any other init function was called. */
+log_config_t  g_main_logservice = {
          .printf          = &printf_logstderr,
          .isOn            = true,
          .isBuffered      = false,
@@ -367,21 +363,6 @@ log_config_t  g_safe_logservice = {
          .log_buffer      = 0
 } ;
 
-/* variable: s_buffer_main_logservice
- * Reserves space for <log_buffer_t> used in <g_main_logservice>. */
-static log_buffer_t  s_buffer_main_logservice = log_buffer_INIT_FREEABLE ;
-
-/* variable: g_main_logservice
- * Is used to support a standard log configuration.
- * Useful to log during initialization before any other init function was called.
- * Assigns space to <log_config_t.log_buffer> and sets all function pointers. */
-log_config_t  g_main_logservice = {
-         .printf          = &printf_logstderr,
-         .isOn            = true,
-         .isBuffered      = false,
-         .isConstConfig   = false,
-         .log_buffer      = &s_buffer_main_logservice
-} ;
 
 // section: test
 
@@ -493,7 +474,7 @@ ABBRUCH:
 
 static int test_log_safe(void)
 {
-   log_config_t * logconf = &g_safe_logservice ;
+   log_config_t * logconf = &g_main_logservice ;
 
    // TEST g_safe_logservice static definition
    TEST( logconf ) ;

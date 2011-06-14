@@ -31,10 +31,15 @@
 // forward reference to all offered services
 struct log_config_t ;
 struct object_cache_t ;
+struct valuecache_aspect_t ;
 
-/* typedef: typedef umgebung_t
- * Shortcut for <umgebung_t>. */
-typedef struct umgebung_t          umgebung_t ;
+/* typedef: umgebung_t typedef
+ * Export <umgebung_t>. */
+typedef struct umgebung_t           umgebung_t ;
+
+/* typedef: value_cache_t
+ * Export <valuecache_aspect_t>. */
+typedef struct valuecache_aspect_t  value_cache_t ;
 
 /* enums: umgebung_type_e
  * Used to switch between different implementations.
@@ -89,7 +94,9 @@ struct umgebung_t {
    int                  (* free_umgebung)  (umgebung_t * umg) ;
 
    struct log_config_t   * log ;
-   struct object_cache_t * cache ;
+   struct object_cache_t * objectcache ;
+   value_cache_t         * valuecache ;
+
 } ;
 
 // group: lifetime
@@ -103,12 +110,12 @@ struct umgebung_t {
  * only as initializer for the main thread.
  * The reason is that services in <umgebung_t> are not thread safe
  * so every thread keeps its own initialized <umgebung_t>. */
-#define umgebung_INIT_MAINSERVICES { umgebung_type_STATIC, 0, 0, &g_main_logservice, &g_main_objectcache }
+#define umgebung_INIT_MAINSERVICES { umgebung_type_STATIC, 0, 0, &g_main_logservice, 0, 0 }
 
 /* define: umgebung_INIT_FREEABLE
  * Static initializer for <umgebung_t>.
  * This ensures that you can call <free_umgebung> without harm. */
-#define umgebung_INIT_FREEABLE    { umgebung_type_STATIC, 0, 0, 0, 0 }
+#define umgebung_INIT_FREEABLE    { umgebung_type_STATIC, 0, 0, 0, 0, 0 }
 
 /* function: initprocess_umgebung
  * Initializes global context. Must be called as first function from the main thread.
@@ -149,11 +156,15 @@ extern umgebung_t * umgebung(void) ;
 
 /* function: log_umgebung
  * Returns log configuration object <log_config_t> for the current thread. */
-extern struct log_config_t * log_umgebung(void) ;
+extern struct log_config_t *     log_umgebung(void) ;
 
-/* function: cache_umgebung
- * Returns cache for singelton objects of type <cache_object_t> for the current thread. */
-extern struct object_cache_t * cache_umgebung(void) ;
+/* function: objectcache_umgebung
+ * Returns cache for singelton objects of type <object_cache_t> for the current thread. */
+extern struct object_cache_t *   objectcache_umgebung(void) ;
+
+/* function: valuecache_umgebung
+ * Returns cache for precomputed values of type <value_cache_t> for the current thread. */
+extern struct value_cache_t *    valuecache_umgebung(void) ;
 
 // group: internal
 
@@ -182,11 +193,18 @@ extern int inittestproxy_umgebung(/*out*/umgebung_t * umg) ;
 #define log_umgebung() \
    (gt_umgebung.log)
 
-/* define: cache_umgebung
- * Inline implementation of <umgebung_t.cache_umgebung>.
+/* define: objectcache_umgebung
+ * Inline implementation of <umgebung_t.objectcache_umgebung>.
  * Uses a global thread-local storage variable to implement the functionality.
- * > #define cache_umgebung() (gt_umgebung.cache) */
-#define cache_umgebung() \
-   (gt_umgebung.cache)
+ * > #define objectcache_umgebung() (gt_umgebung.objectcache) */
+#define objectcache_umgebung() \
+   (gt_umgebung.objectcache)
+
+/* define: valuecache_umgebung
+ * Inline implementation of <umgebung_t.valuecache_umgebung>.
+ * Uses a global thread-local storage variable to implement the functionality.
+ * > #define valuecache_umgebung() (gt_umgebung.valuecache) */
+#define valuecache_umgebung() \
+   (gt_umgebung.valuecache)
 
 #endif

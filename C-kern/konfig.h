@@ -185,9 +185,6 @@
  * If it does not exist you must define it in the makefile. */
 #define SCNuSIZE             __PRIPTR_PREFIX "u"
 
-/* define: sys_processid_t
- * Integer type holding system specific id of a running process. Overwritten in system specific include file. */
-#define sys_processid_t             void
 /* define: sys_thread_t
  * Structure holding system specific description of a thread. Overwritten in system specific include file. */
 #define sys_thread_t                void

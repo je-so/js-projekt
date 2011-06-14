@@ -27,8 +27,9 @@
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")
-#include "C-kern/api/umgebung/log.h"
+#include "C-kern/api/umgebung/value_cache.h"
 #include "C-kern/api/umgebung/object_cache.h"
+#include "C-kern/api/umgebung/log.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -54,9 +55,11 @@ static int free_thread_resources(umgebung_t * umg)
    default:    assert(0 == umg->resource_count && "out of bounds") ;
                break ;
 // TEXTDB:SELECT("   case "row-id":     err2 = "free-function"(&umg->"parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initumgebung)DESCENDING
-   case 2:     err2 = freeumgebung_objectcache(&umg->cache) ;
+   case 3:     err2 = freeumgebung_log(&umg->log) ;
                if (err2) err = err2 ;
-   case 1:     err2 = freeumgebung_log(&umg->log) ;
+   case 2:     err2 = freeumgebung_objectcache(&umg->objectcache) ;
+               if (err2) err = err2 ;
+   case 1:     err2 = freeumgebung_valuecache(&umg->valuecache) ;
                if (err2) err = err2 ;
 // TEXTDB:END
    case 0:     break ;
@@ -78,11 +81,15 @@ static int init_thread_resources(umgebung_t * umg)
 
 // TEXTDB:SELECT(\n"   err = "init-function"(&umg->"parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++umg->resource_count ;")FROM(C-kern/resource/text.db/initumgebung)
 
-   err = initumgebung_log(&umg->log) ;
+   err = initumgebung_valuecache(&umg->valuecache) ;
    if (err) goto ABBRUCH ;
    ++umg->resource_count ;
 
-   err = initumgebung_objectcache(&umg->cache) ;
+   err = initumgebung_objectcache(&umg->objectcache) ;
+   if (err) goto ABBRUCH ;
+   ++umg->resource_count ;
+
+   err = initumgebung_log(&umg->log) ;
    if (err) goto ABBRUCH ;
    ++umg->resource_count ;
 // TEXTDB:END
@@ -121,7 +128,8 @@ int initdefault_umgebung(umgebung_t * umg)
    umg->resource_count  = 0 ;
    umg->free_umgebung   = &freedefault_umgebung ;
    umg->log             = 0 ;
-   umg->cache           = 0 ;
+   umg->objectcache     = 0 ;
+   umg->valuecache      = 0 ;
 
    err = init_thread_resources(umg) ;
    if (err) goto ABBRUCH ;
@@ -146,7 +154,7 @@ static int test_init(void)
    umg.resource_count = 1000 ;
    TEST(0 == initdefault_umgebung(&umg)) ;
    TEST(umgebung_type_DEFAULT == umg.type) ;
-   TEST(2                     == umg.resource_count) ;
+   TEST(3                     == umg.resource_count) ;
    TEST(freedefault_umgebung  == umg.free_umgebung) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;

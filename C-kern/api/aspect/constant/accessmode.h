@@ -48,7 +48,8 @@
  *                        even if you do not request it explicitly.
  *                        Most devices do not support <accessmode_PRIVATE>. */
 enum accessmode_aspect_e {
-    accessmode_READ        = 1
+    accessmode_NONE        = 0
+   ,accessmode_READ        = 1
    ,accessmode_WRITE       = 2
    ,accessmode_EXEC        = 4
    ,accessmode_PRIVATE     = 8
@@ -66,7 +67,8 @@ enum accessmode_aspect_e {
  * accessmoderw_RDEXEC     - Allows for reading and executing.
  * accessmoderw_RDWREXEC   - Allows for reading, writing, and executing. */
 enum accessmoderw_aspect_e {
-    accessmoderw_READ      = accessmode_READ
+    accessmoderw_NONE      = accessmode_NONE
+   ,accessmoderw_READ      = accessmode_READ
    ,accessmoderw_WRITE     = accessmode_WRITE
    ,accessmoderw_RDWR      = (accessmode_READ|accessmode_WRITE) // 3
    ,accessmoderw_EXEC      = accessmode_EXEC

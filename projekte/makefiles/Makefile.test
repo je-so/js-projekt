@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.14  14:00:16
+GenerationDate  := 2011.Jun.14  17:26:37
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -92,6 +92,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!converter.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!value_cache.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
@@ -116,6 +117,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!converter.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!locale.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!value_cache.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
@@ -179,6 +181,9 @@ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-ke
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/locale.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!umgebung!value_cache.c.o: $(PathOffset)C-kern/umgebung/value_cache.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
@@ -245,6 +250,9 @@ $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/locale.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!value_cache.c.o: $(PathOffset)C-kern/umgebung/value_cache.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c

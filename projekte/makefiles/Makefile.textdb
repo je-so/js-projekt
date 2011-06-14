@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.03  10:24:23
+GenerationDate  := 2011.Jun.14  17:26:37
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -84,6 +84,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!locale.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!value_cache.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o \
  $(ObjectDir_Debug)/C-kern!writer!log.c.o
 
@@ -97,6 +98,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!locale.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!value_cache.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o \
  $(ObjectDir_Release)/C-kern!writer!log.c.o
 
@@ -135,6 +137,9 @@ $(ObjectDir_Debug)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/loca
 $(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!umgebung!value_cache.c.o: $(PathOffset)C-kern/umgebung/value_cache.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o: $(PathOffset)C-kern/umgebung/object_cache.c
 	@$(CC_Debug)
 
@@ -166,6 +171,9 @@ $(ObjectDir_Release)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/lo
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!value_cache.c.o: $(PathOffset)C-kern/umgebung/value_cache.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o: $(PathOffset)C-kern/umgebung/object_cache.c

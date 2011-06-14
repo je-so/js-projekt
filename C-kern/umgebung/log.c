@@ -54,7 +54,7 @@ int freeumgebung_log(log_config_t ** log)
    int err ;
    log_config_t * log2 = *log ;
 
-   *log = &g_safe_logservice ;
+   *log = &g_main_logservice ;
 
    err = delete_logconfig( &log2 ) ;
    if (err) goto ABBRUCH ;
@@ -84,9 +84,9 @@ static int test_initumgebung(void)
    TEST(0 == initumgebung_log(&log)) ;
    TEST(log) ;
    TEST(0 == freeumgebung_log(&log)) ;
-   TEST(&g_safe_logservice == log) ;
+   TEST(&g_main_logservice == log) ;
    TEST(0 == freeumgebung_log(&log)) ;
-   TEST(&g_safe_logservice == log) ;
+   TEST(&g_main_logservice == log) ;
 
    return 0 ;
 ABBRUCH:

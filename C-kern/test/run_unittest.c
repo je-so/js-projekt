@@ -31,6 +31,7 @@
 #include "C-kern/api/umgebung/locale.h"
 #include "C-kern/api/umgebung/log.h"
 #include "C-kern/api/umgebung/object_cache.h"
+#include "C-kern/api/umgebung/value_cache.h"
 #include "C-kern/api/math/int/signum.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/os/filesystem/directory.h"
@@ -192,22 +193,19 @@ int run_unittest(void)
    unsigned      err_count = 0 ;
    unsigned    total_count = 0 ;
    unsigned progress_count = 0 ;
-   const bool        oldlog_onstate = LOG_ISON() ;
-   const bool  oldlog_bufferedstate = LOG_ISBUFFERED() ;
    RESULT_STRING           progress ;
    const umgebung_type_e test_umgebung_type[2] = {
        umgebung_type_TEST
       ,umgebung_type_DEFAULT
    } ;
 
-   set_testconfig() ;
-
    // before init
-   RUN(unittest_umgebung) ;            //TODO: move into loop + test outside loop
-   RUN(unittest_umgebung_default) ;    //TODO: move into loop
-   RUN(unittest_umgebung_testproxy) ;  //TODO: move into loop
-   RUN(unittest_umgebung_log) ;        //TODO: move into loop
-   RUN(unittest_umgebung_objectcache) ;//TODO: move into loop
+   ++ total_count ;
+   if (unittest_umgebung()) {
+      ++ err_count ;
+      printf("unittest_umgebung FAILED\n") ;
+      goto ABBRUCH ;
+   }
 
 for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr) {
 
@@ -224,7 +222,13 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    // assert(0) ;
 
 //{ umgebung unittest
+   RUN(unittest_umgebung) ;
+   RUN(unittest_umgebung_default) ;
+   RUN(unittest_umgebung_testproxy) ;
+   RUN(unittest_umgebung_log) ;
    RUN(unittest_umgebung_locale) ;
+   RUN(unittest_umgebung_objectcache) ;
+   RUN(unittest_umgebung_valuecache) ;
 //}
 
 //{ string unittest
@@ -279,10 +283,6 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 }
 
 ABBRUCH:
-
-   LOG_CLEARBUFFER() ;
-   if (!oldlog_onstate) LOG_TURNOFF() ;
-   LOG_CONFIG_BUFFERED(oldlog_bufferedstate) ;
 
    if (!err_count) {
       printf( "\nALL UNITTEST(%d): OK\n", total_count) ;

@@ -31,28 +31,16 @@
 #include "C-kern/api/test.h"
 #endif
 
-
+// module internal declarations
 static int new_objectcache   ( /*out*/object_cache_t ** cache ) ;
 static int delete_objectcache( object_cache_t ** cache ) ;
 
 
-/* variable: s_rootbuffer
- * Serves as storage for main thread
- * as long as no <initprocess_umgebung> was called. */
-static vm_block_t    s_rootbuffer = vm_block_INIT_FREEABLE ;
-/* variable: g_main_objectcache
- * Serves as storage for main thread
- * as long as no <initprocess_umgebung> was called. */
-object_cache_t g_main_objectcache = {
-   .vm_rootbuffer = &s_rootbuffer
-} ;
-
-
-int initumgebung_objectcache(object_cache_t ** cache)
+int initumgebung_objectcache(object_cache_t ** objectcache)
 {
    int err ;
 
-   err = new_objectcache(cache) ;
+   err = new_objectcache(objectcache) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -61,11 +49,13 @@ ABBRUCH:
    return err ;
 }
 
-int freeumgebung_objectcache(object_cache_t ** cache)
+int freeumgebung_objectcache(object_cache_t ** objectcache)
 {
    int err ;
-   err = delete_objectcache(cache) ;
+
+   err = delete_objectcache(objectcache) ;
    if (err) goto ABBRUCH ;
+
    return 0 ;
 ABBRUCH:
    LOG_ABORT_FREE(err) ;
@@ -175,12 +165,12 @@ int unittest_umgebung_objectcache()
    // TEST initumgebung_objectcache and double free
    umgebung_t tempumg ;
    MEMSET0(&tempumg) ;
-   TEST(0 == initumgebung_objectcache( &tempumg.cache )) ;
-   TEST( tempumg.cache ) ;
-   TEST(0 == freeumgebung_objectcache( &tempumg.cache )) ;
-   TEST( ! tempumg.cache ) ;
-   TEST(0 == freeumgebung_objectcache( &tempumg.cache )) ;
-   TEST( ! tempumg.cache ) ;
+   TEST(0 == initumgebung_objectcache( &tempumg.objectcache )) ;
+   TEST( tempumg.objectcache ) ;
+   TEST(0 == freeumgebung_objectcache( &tempumg.objectcache )) ;
+   TEST( ! tempumg.objectcache ) ;
+   TEST(0 == freeumgebung_objectcache( &tempumg.objectcache )) ;
+   TEST( ! tempumg.objectcache ) ;
 
    // TEST move cache -> cache2
    TEST(0 == new_objectcache(&cache)) ;

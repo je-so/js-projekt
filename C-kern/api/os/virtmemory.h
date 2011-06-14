@@ -25,23 +25,25 @@
 #ifndef CKERN_OS_VIRTUALMEMORY_HEADER
 #define CKERN_OS_VIRTUALMEMORY_HEADER
 
+#include "C-kern/api/aspect/valuecache.h"
+#include "C-kern/api/aspect/memoryblock.h"
 #include "C-kern/api/aspect/constant/accessmode.h"
 
-/* typedef: typedef vm_block_t
- * Shortcut for <vm_block_t>. */
-typedef struct vm_block_t           vm_block_t ;
+/* typedef: vm_block_t typedef
+ * Exports <vm_block_t>. */
+typedef struct memoryblock_aspect_t    vm_block_t ;
 
-/* typedef: typedef vm_region_t
- * Shortcut for <vm_region_t>. */
-typedef struct vm_region_t          vm_region_t ;
+/* typedef: vm_region_t typedef
+ * Exports <vm_region_t>. */
+typedef struct vm_region_t             vm_region_t ;
 
-/* typedef: typedef vm_mappedregions_t
- * Shortcut for <vm_mappedregions_t>. */
-typedef struct vm_mappedregions_t   vm_mappedregions_t ;
+/* typedef: vm_mappedregions_t typedef
+ * Exports <vm_mappedregions_t>. */
+typedef struct vm_mappedregions_t      vm_mappedregions_t ;
 
-/* typedef: typedef vm_regionsarray_t
+/* typedef: vm_regionsarray_t typedef
  * Internal type used to implement <vm_regionsarray_t>. */
-typedef struct vm_regionsarray_t    vm_regionsarray_t ;
+typedef struct vm_regionsarray_t       vm_regionsarray_t ;
 
 
 // section: Functions
@@ -49,8 +51,14 @@ typedef struct vm_regionsarray_t    vm_regionsarray_t ;
 // group: query
 
 /* function: pagesize_vm
- * Returns the virtual memory page size supported by the underlying system. */
+ * Returns the virtual memory page size supported by the underlying system.
+ * This function returns a cached values. */
 extern size_t pagesize_vm(void) ;
+
+/* function: sys_pagesize_vm
+ * Returns the virtual memory page size supported by the underlying system.
+ * This functions always calls the underlying system function. */
+extern size_t sys_pagesize_vm(void) ;
 
 // group: test
 
@@ -62,26 +70,17 @@ extern int unittest_os_virtualmemory(void) ;
 
 
 /* struct: vm_block_t
- * Describes a virtual memory block mapped in the address space of the running process. */
-struct vm_block_t
-{
-   // group: variables
-   /* variable: addr
-    * Points to lowest address of mapped memory. */
-   uint8_t  * addr ;
-   /* variable: size
-    * Size of mapped memory in bytes. The size is a multiple of <pagesize_vm>.
-    * The valid memory region is
-    * > addr[ 0 .. size - 1 ] */
-   size_t   size ;
-} ;
+ * It is a synonym for <memoryblock_aspect_t>.
+ * The size of the mapped memory block is always
+ * a multiple of <pagesize_vm>. */
+struct vm_block_t ;
 
 // group: lifetime
 
 /* define: vm_block_INIT_FREEABLE
  * Static initializer to set an object of type <vm_block_t> to NULL.
  * You can unmap (<free_vmblock>) such an initialized <vm_block_t> object with success. */
-#define vm_block_INIT_FREEABLE  { NULL, 0 }
+#define vm_block_INIT_FREEABLE      memoryblock_aspect_INIT_FREEABLE
 
 /* function: init_vmblock
  * New memory is mapped into the virtual address space of the calling process.
@@ -89,6 +88,14 @@ struct vm_block_t
  * It is read and writeable and not shared between processes.
  * But a child process can access its content after a fork (COPY_ON_WRITE semantics). */
 extern int init_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages ) ;
+
+/* function: init_vmblock
+ * New memory is mapped into the virtual address space of the calling process.
+ * The new memory has size == size_in_pages * <pagesize_vm>.
+ * It has accessible as stated in paramter *access_mode*.
+ * A child process can access its content after a fork and a change is shared with the parent process
+ * if <accessmode_SHARED> was specified. */
+extern int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, const accessmode_aspect_e access_mode  ) ;
 
 /* function: free_vmblock
  * Invalidates virtual memory address range
@@ -103,7 +110,7 @@ extern int free_vmblock( vm_block_t * vmblock ) ;
 /* function: protect_vmblock
  * Sets protection of memory (e.g. if write is possible).
  * See <accessmoderw_aspect_e> for a list of all supported bits. */
-extern int protect_vmblock( vm_block_t * vmblock, accessmoderw_aspect_e access_mode ) ;
+extern int protect_vmblock( vm_block_t * vmblock, const accessmoderw_aspect_e access_mode ) ;
 
 /* function: tryexpand_vmblock
  * Tries to grow the upper bound of an already mapped address range.
@@ -232,10 +239,13 @@ extern const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 
 // section: inline implementation
 
+#define init_vmblock( vmblock, size_in_pages ) \
+   (init2_vmblock( vmblock, size_in_pages, accessmoderw_RDWR|accessmode_PRIVATE ))
+
 /* define: pagesize_vm inline
- * Uses sysconf(_SC_PAGESIZE) which conforms to POSIX.1-2001. */
+ * Uses cached value from <valuecache_umgebung>. */
 #define /*size_t*/ pagesize_vm() \
-   ((size_t)(sysconf(_SC_PAGESIZE)))
+   (valuecache_umgebung()->pagesize_vm)
 
 /* define: size_vmmappedregions inline
  * Returns <vm_mappedregions_t->total_count>.

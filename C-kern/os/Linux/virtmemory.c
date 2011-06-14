@@ -45,7 +45,7 @@
  * See:
  * > man 5 proc
  * for a more detailed description */
- #define  PROC_SELF_MAPS    "/proc/self/maps"
+#define  PROC_SELF_MAPS    "/proc/self/maps"
 
 struct vm_regionsarray_t
 {
@@ -53,6 +53,17 @@ struct vm_regionsarray_t
    size_t                  size ;
    vm_region_t      elements[16] ;
 } ;
+
+
+// section: Functions
+
+/* function: sys_pagesize_vm
+ * Uses sysconf(_SC_PAGESIZE) which conforms to POSIX.1-2001. */
+size_t sys_pagesize_vm()
+{
+   size_t ps = (size_t) sysconf(_SC_PAGESIZE) ;
+   return ps ;
+}
 
 
 int compare_vmregion( const vm_region_t * left, const vm_region_t * right )
@@ -125,7 +136,7 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    size_t      total_regions_count = 0 ;
    size_t        free_region_count = 0 ;
    vm_region_t       * next_region = 0 ;
-   vm_block_t         * rootbuffer = cache_umgebung()->vm_rootbuffer ;
+   vm_block_t         * rootbuffer = objectcache_umgebung()->vm_rootbuffer ;
 
    if (! rootbuffer->addr) {
       err = init_vmblock(rootbuffer, 1) ;
@@ -284,9 +295,32 @@ const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
    return iterator->element_iterator ++ ;
 }
 
-int init_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages )
+#define SET_PROT(prot, access_mode) \
+   static_assert_void(0 == accessmode_NONE) ;   \
+   static_assert_void(0 == PROT_NONE) ;         \
+   if (     accessmode_READ  == PROT_READ       \
+         && accessmode_WRITE == PROT_WRITE      \
+         && accessmode_EXEC  == PROT_EXEC ) {   \
+      prot  = access_mode ;                     \
+      prot &= (accessmoderw_RDWREXEC) ;         \
+   } else {                                     \
+      if (accessmode_READ & access_mode) {      \
+         prot = PROT_READ ;                     \
+      } else {                                  \
+         prot = PROT_NONE ;                     \
+      }                                         \
+      if (accessmode_WRITE & access_mode) {     \
+         prot |= PROT_WRITE ;                   \
+      }                                         \
+      if (accessmode_EXEC & access_mode) {      \
+         prot |= PROT_EXEC ;                    \
+      }                                         \
+   }
+
+int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_aspect_e access_mode )
 {
    int    err ;
+   int    prot ;
    size_t pagesize        = pagesize_vm() ;
    size_t length_in_bytes = pagesize * size_in_pages ;
 
@@ -295,7 +329,11 @@ int init_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages )
       goto ABBRUCH ;
    }
 
-   void * mapped_pages = mmap( 0, length_in_bytes, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) ;
+   SET_PROT(prot, access_mode)
+
+#define shared_flags       ((access_mode & accessmode_SHARED) ? MAP_SHARED|MAP_ANONYMOUS : MAP_PRIVATE|MAP_ANONYMOUS)
+   void * mapped_pages = mmap( 0, length_in_bytes, prot, shared_flags, -1, 0) ;
+#undef shared_flags
    if (mapped_pages == MAP_FAILED) {
       err = errno ;
       LOG_SYSERR("mmap", err) ;
@@ -334,30 +372,12 @@ ABBRUCH:
    return err ;
 }
 
-int protect_vmblock( vm_block_t * vmblock, accessmoderw_aspect_e access_mode )
+int protect_vmblock( vm_block_t * vmblock, const accessmoderw_aspect_e access_mode )
 {
    int err ;
    int prot ;
 
-   static_assert_void(0 == PROT_NONE) ;
-
-   if (     accessmode_READ  == PROT_READ
-         && accessmode_WRITE == PROT_WRITE
-         && accessmode_EXEC  == PROT_EXEC ) {
-      prot = access_mode ;
-   } else {
-      if (accessmode_READ & access_mode) {
-         prot = PROT_READ ;
-      } else {
-         prot = PROT_NONE ;
-      }
-      if (accessmode_WRITE & access_mode) {
-         prot |= PROT_WRITE ;
-      }
-      if (accessmode_EXEC & access_mode) {
-         prot |= PROT_EXEC ;
-      }
-   }
+   SET_PROT(prot, access_mode)
 
    if (     vmblock->size
          && mprotect( vmblock->addr, vmblock->size, prot)) {
@@ -494,6 +514,7 @@ static int iscontained_in_mapping(const vm_block_t * mapped_block)
             && mapped_end   > next->addr ) {
          // overlapping
          if (next->protection != (accessmoderw_RDWR | accessmode_PRIVATE)) {
+            printf("(%p)->protection=%d\n", (void*)(intptr_t)next, next->protection) ;
             result = 2 ;
             break ;
          }
@@ -820,8 +841,12 @@ static int test_protection(void)
    }
 
    // TEST protection after init, expand, movexpand, shrink
-   accessmoderw_aspect_e prot[5] = { accessmoderw_RDWR, accessmoderw_WRITE, accessmoderw_READ, accessmoderw_RDEXEC, accessmoderw_RDWREXEC } ;
+   accessmoderw_aspect_e prot[6] = { accessmoderw_RDWR, accessmoderw_WRITE, accessmoderw_READ, accessmoderw_RDEXEC, accessmoderw_RDWREXEC, accessmoderw_NONE } ;
    for(unsigned i = 0; i < nrelementsof(prot); ++i) {
+      // TEST init2 generates correct protection
+      TEST(0 == init2_vmblock(&vmblock, 2, prot[i])) ;
+      TEST(0 == compare_protection(&vmblock, prot[i])) ;
+      TEST(0 == free_vmblock(&vmblock)) ;
       // TEST init generates RW protection
       TEST(0 == init_vmblock(&vmblock, 2)) ;
       TEST(0 == compare_protection(&vmblock, accessmoderw_RDWR)) ;
@@ -848,6 +873,18 @@ static int test_protection(void)
    if (!is_exception) {
       is_exception = 1 ;
       vmblock.addr[0] = 0xff ;
+      is_exception = 2 ;
+   }
+   TEST(1 == is_exception) ;
+   TEST(0 == free_vmblock(&vmblock)) ;
+
+   // TEST read of not accessible page is not possible
+   TEST(0 == init2_vmblock(&vmblock, 1, accessmoderw_NONE)) ;
+   is_exception = 0 ;
+   TEST(0 == getcontext(&s_usercontext)) ;
+   if (!is_exception) {
+      is_exception = 1 ;
+      is_exception = vmblock.addr[0] ;
       is_exception = 2 ;
    }
    TEST(1 == is_exception) ;

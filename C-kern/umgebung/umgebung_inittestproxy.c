@@ -26,7 +26,9 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
+#include "C-kern/api/umgebung/log.h"
 #include "C-kern/api/umgebung/object_cache.h"
+#include "C-kern/api/umgebung/value_cache.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -34,19 +36,50 @@
 
 int freetestproxy_umgebung(umgebung_t * umg)
 {
+   int err = 0 ;
+   int err2 ;
+
+   err2 = freeumgebung_log(&umg->log) ;
+   if (err2) err = err2 ;
+   err2 = freeumgebung_objectcache(&umg->objectcache) ;
+   if (err2) err = err2 ;
+   err2 = freeumgebung_valuecache(&umg->valuecache) ;
+   if (err2) err = err2 ;
+
    *umg = (umgebung_t) umgebung_INIT_MAINSERVICES ;
+
+   if (err) goto ABBRUCH ;
+
    return 0 ;
+ABBRUCH:
+   LOG_ABORT_FREE(err) ;
+   return err ;
 }
 
 int inittestproxy_umgebung(umgebung_t * umg)
 {
-   *umg = (umgebung_t) umgebung_INIT_MAINSERVICES ;
+   int err ;
 
+   MEMSET0(umg) ;
    umg->type            = umgebung_type_TEST ;
-   umg->resource_count  = 0 ;
    umg->free_umgebung   = &freetestproxy_umgebung ;
 
+   err = initumgebung_valuecache(&umg->valuecache) ;
+   if (err) goto ABBRUCH ;
+
+   err = initumgebung_objectcache(&umg->objectcache) ;
+   if (err) goto ABBRUCH ;
+
+   err = initumgebung_log(&umg->log) ;
+   if (err) goto ABBRUCH ;
+
    return 0 ;
+ABBRUCH:
+   (void) freeumgebung_log(&umg->log) ;
+   (void) freeumgebung_objectcache(&umg->objectcache) ;
+   (void) freeumgebung_valuecache(&umg->valuecache) ;
+   LOG_ABORT(err) ;
+   return err ;
 }
 
 #ifdef KONFIG_UNITTEST
@@ -58,6 +91,7 @@ static int test_init(void)
    umgebung_t umg ;
 
    // TEST init, double free
+   MEMSET0(&umg) ;
    TEST(0 == inittestproxy_umgebung(&umg)) ;
    TEST(umgebung_type_TEST       == umg.type) ;
    TEST(0                        == umg.resource_count) ;
@@ -66,14 +100,20 @@ static int test_init(void)
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
+   TEST(0 != umg.log) ;
+   TEST(0 == umg.objectcache) ;
+   TEST(0 == umg.valuecache) ;
    TEST(0 == freetestproxy_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
+   TEST(&g_main_logservice == umg.log) ;
+   TEST(0 == umg.objectcache) ;
+   TEST(0 == umg.valuecache) ;
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   return EINVAL ;
 }
 
 int unittest_umgebung_testproxy()
@@ -82,7 +122,7 @@ int unittest_umgebung_testproxy()
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   return EINVAL ;
 }
 
 #endif
