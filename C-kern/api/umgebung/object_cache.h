@@ -3,6 +3,10 @@
    needed in submodules either often or which are costly
    to construct or deconstruct.
 
+   Implements init/free functions to allocate
+   storage for cached objects before a new thread
+   is created and frees it before the thread exits.
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify

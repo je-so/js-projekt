@@ -1,4 +1,4 @@
-/* title: UmgebungLocale
+/* title: LocaleUmgebung
    Supports setting and getting of process locale (C runtime libraries).
 
    Use it to adapt to different character encodings / environments setings.
@@ -19,10 +19,10 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/umgebung/locale.h
-    Header file of <UmgebungLocale>.
+    Header file of <LocaleUmgebung>.
 
    file: C-kern/umgebung/locale.c
-    Implementation file <UmgebungLocale impl>.
+    Implementation file <LocaleUmgebung impl>.
 */
 #ifndef CKERN_UMGEBUNG_LOCALE_HEADER
 #define CKERN_UMGEBUNG_LOCALE_HEADER

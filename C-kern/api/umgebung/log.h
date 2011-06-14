@@ -1,5 +1,4 @@
-/* title: UmgebungLog
-
+/* title: LogUmgebung
    Makes <LogWriter> accessible as a service.
 
    about: Copyright
@@ -18,10 +17,10 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/umgebung/log.h
-    Header file of <UmgebungLog>.
+    Header file of <LogUmgebung>.
 
    file: C-kern/umgebung/log.c
-    Implementation file <UmgebungLog impl>.
+    Implementation file <LogUmgebung impl>.
 */
 #ifndef CKERN_UMGEBUNG_LOG_HEADER
 #define CKERN_UMGEBUNG_LOG_HEADER
@@ -95,6 +94,12 @@ extern int freeumgebung_log(log_config_t ** log) ;
 #define  LOG_WRITEBUFFER()          writebuffer_logconfig(log_umgebung())
 
 // group: write
+
+/* define: LOG_PRINTF
+ * Logs a generic printf type format string.
+ * Example:
+ * > int i ; LOG_PRINTF( "%d", i) */
+#define LOG_PRINTF( FORMAT, ... )   log_umgebung()->printf( log_umgebung(), FORMAT, __VA_ARGS__ )
 
 /* define: LOG_TEXTRES
  * Logs text resource produced by resource text compiler.

@@ -1,4 +1,4 @@
-/* title: Bitoperations signum
+/* title: Intop-Signum
    Calculates sign of integer.
 
    about: Copyright
@@ -17,13 +17,13 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/math/int/signum.h
-    Header file of <Bitoperations signum>.
+    Header file of <Intop-Signum>.
 
    file: C-kern/math/int/signum.c
-    Implementation file of <Bitoperations signum>.
+    Implementation file <Intop-Signum impl>.
 */
-#ifndef CKERN_GENERIC_BITS_SIGNUM_HEADER
-#define CKERN_GENERIC_BITS_SIGNUM_HEADER
+#ifndef CKERN_MATH_INT_SIGNUM_HEADER
+#define CKERN_MATH_INT_SIGNUM_HEADER
 
 /* function: signum
  * Return the sign of an integer.

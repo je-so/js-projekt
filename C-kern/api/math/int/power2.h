@@ -1,4 +1,4 @@
-/* title: Bitoperations power2
+/* title: Intop-Power2
    Determines if integer i is: (i == 0) || (i == pow(2,x))
    or calculates 2^x such that (pow(2,x) >= i) && (pow(2,x-1) < i).
 
@@ -18,13 +18,13 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/math/int/power2.h
-    Header file of <Bitoperations power2>.
+    Header file of <Intop-Power2>.
 
    file: C-kern/math/int/power2.c
-    Implementation file of <Bitoperations power2>.
+    Implementation file <Intop-Power2 impl>.
 */
-#ifndef CKERN_GENERIC_BITS_LOG2_HEADER
-#define CKERN_GENERIC_BITS_LOG2_HEADER
+#ifndef CKERN_MATH_INT_POWER2_HEADER
+#define CKERN_MATH_INT_POWER2_HEADER
 
 
 /* function: ispowerof2

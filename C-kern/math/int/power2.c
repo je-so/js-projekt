@@ -1,4 +1,4 @@
-/* Bitoperations power2 impl
+/* title: Intop-Power2 impl
    Implement <unittest_generic_bits_power2>.
 
    about: Copyright
@@ -17,10 +17,10 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/math/int/power2.h
-    Header file of <Bitoperations power2>.
+    Header file of <Intop-Power2>.
 
    file: C-kern/math/int/power2.c
-    Implementation file of <Bitoperations power2>.
+    Implementation file <Intop-Power2 impl>.
 */
 
 #include "C-kern/konfig.h"

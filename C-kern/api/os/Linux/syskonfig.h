@@ -67,8 +67,6 @@
 #define sys_directory_t          DIR*
 #undef  sys_directory_entry_t
 #define sys_directory_entry_t    struct dirent
-#undef  sys_processid_t
-#define sys_processid_t          pid_t
 #undef  sys_thread_t
 #define sys_thread_t             pthread_t
 #undef  sys_thread_mutex_t

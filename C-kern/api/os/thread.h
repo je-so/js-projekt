@@ -41,12 +41,12 @@ extern int unittest_os_thread(void) ;
 #endif
 
 struct osthread_t {
-   sys_thread_t  sys_thread ;
-   thread_main_f thread_main ;
-   void          * thread_argument ;
-   int           thread_returncode ;
-   bool          isJoined ;
-   bool          isMainCalled ;
+   sys_thread_t   sys_thread ;
+   thread_main_f  thread_main ;
+   void         * thread_argument ;
+   int            thread_returncode ;
+   bool           isJoined ;
+   bool           isMainCalled ;
 } ;
 
 // group: lifetime

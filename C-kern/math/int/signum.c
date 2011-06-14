@@ -1,4 +1,4 @@
-/* title: Bitoperations signum impl
+/* title: Intop-Signum impl
    Implement <unittest_generic_bits_signum>.
 
    about: Copyright
@@ -17,10 +17,10 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/math/int/signum.h
-    Header file of <Bitoperations signum>.
+    Header file of <Intop-Signum>.
 
    file: C-kern/math/int/signum.c
-    Implementation file of <Bitoperations signum>.
+    Implementation file <Intop-Signum impl>.
 */
 
 #include "C-kern/konfig.h"

@@ -55,7 +55,7 @@
  * */
 #define TEST_ONERROR_GOTO(CONDITION,TEST_FUNCTION_NAME,ERROR_LABEL) \
    if ( !(CONDITION) ) {\
-      dprintf( STDERR_FILENO, "%s:%d: %s():\n FAILED TEST (%s)\n", __FILE__, __LINE__, #TEST_FUNCTION_NAME, #CONDITION) ;\
+      printf( "%s:%d: %s():\n FAILED TEST (%s)\n", __FILE__, __LINE__, #TEST_FUNCTION_NAME, #CONDITION) ;\
       goto ERROR_LABEL ;\
    }
 
