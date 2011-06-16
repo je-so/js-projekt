@@ -1,4 +1,4 @@
-/* title: Malloc-Test
+/* title: Malloc
    Offers an interface to check for system memory allocated
    with malloc and co.
 
@@ -17,20 +17,21 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/test/malloctest.h
-    Header file of <Malloc-Test>.
+   file: C-kern/api/os/malloc.h
+    Header file of <Malloc>.
 
-   file: C-kern/os/shared/malloctest.c
-    Implementation file of <Malloc-Test impl>.
+   file: C-kern/os/shared/malloc.c
+    Implementation file of <Malloc impl>.
 */
-#ifndef CKERN_TEST_MALLOCTEST_HEADER
-#define CKERN_TEST_MALLOCTEST_HEADER
+#ifndef CKERN_OS_MALLOC_HEADER
+#define CKERN_OS_MALLOC_HEADER
 
-// section: Test
 
-// group: malloc
+// section: Functions
 
-/* function: prepare_malloctest
+// group: init
+
+/* function: prepare_malloc
  * Inits test of system-malloc. The GNU C library offers
  * a query function for information about malloced memory
  * so it is not necessary to wrap the malloc function
@@ -40,34 +41,44 @@
  *    allocate internal memory (strerror)
  *    which is never freed.
  * 2. Free all allocated but unused memory.
- *    Same as <trimmemory_malloctest>. */
-extern void prepare_malloctest(void) ;
+ *    Same as <trimmemory_malloc>. */
+extern int prepare_malloc(void) ;
 
-/* function: trimmemory_malloctest
+// group: query
+
+/* function: allocatedsize_malloc
+ * Returns allocated number of bytes which are not freed.
+ * It is not necessary to call <trimmemory_malloc>
+ * before calling this function.
+ * If you do not call <prepare_malloc> before this function
+ * then it is called for you if this is necessary.
+ * At the start of your test save the number of allocated bytes
+ * of system memory returned from <allocatedsize_malloc>.
+ * At the end of your test call it a second time
+ * and compare the result with the value received from the first call
+ * to make sure no system memory is wasted. */
+extern int allocatedsize_malloc(size_t * number_of_allocated_bytes) ;
+
+/* function: trimmemory_malloc
  * Frees preallocated memory which is not in use.
  * Therefore unused heap memory pages are unmapped from virtual memory.
- * The function trimmemory_malloctest is useful if you want to compare
+ * This function is useful if you want to compare
  * the layout of all virtual mapped memory pages at the beginning of
  * the test with the layout at the end of the test.
  * If a lot of memory is allocated and freed during the execution
  * of your test it is possible that additional system pages
  * will be mapped into the heap address space.
- * The call to <trimmemory_malloctest> unmaps them and
+ * The call to <trimmemory_malloc> unmaps them and
  * makes therefore the layouts comparable. */
-extern void trimmemory_malloctest(void) ;
+extern int trimmemory_malloc(void) ;
 
-/* function: allocatedsize_malloctest
- * Returns allocated number of bytes which are not freed.
- * It is not necessary to call <trimmemory_malloctest>
- * before calling this function.
- * If you do not call <prepare_malloctest> before this function
- * then it is called for you if this is necessary.
- * At the start of your test save the number of allocated bytes
- * of system memory returned from <allocatedsize_malloctest>.
- * At the end of your test call <allocatedsize_malloctest> a second time
- * and compare the result with the value received from the first call
- * to make sure no system memory is wasted. */
-extern size_t allocatedsize_malloctest(void) ;
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_os_malloc
+ * Unittest for query usage of malloc resources. */
+extern int unittest_os_malloc(void) ;
+#endif
 
 
 #endif

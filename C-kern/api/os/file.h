@@ -1,4 +1,4 @@
-/* title: File-Test
+/* title: File
    Offers an interface to check for open file descriptors.
 
    about: Copyright
@@ -16,25 +16,33 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/test/filetest.h
-    Header file of <File-Test>.
+   file: C-kern/api/os/file.h
+    Header file of <File>.
 
-   file: C-kern/os/Linux/filetest.c
-    Implementation file of <File-Test impl>.
+   file: C-kern/os/Linux/file.c
+    Implementation file <File impl>.
 */
-#ifndef CKERN_TEST_FILETEST_HEADER
-#define CKERN_TEST_FILETEST_HEADER
+#ifndef CKERN_OS_FILE_HEADER
+#define CKERN_OS_FILE_HEADER
 
-// section: Test
+// section: Functions
 
-// group: filedescriptor
+// group: query
 
-/* function: openfd_filetest
+/* function: openfd_file
  * Returns number of opened file descriptors.
  * Use this function at the beginning and the end
  * of your test to check if a file or network socket
- * is not closed properly. */
-extern size_t openfd_filetest(void) ;
+ * is not closed properly.
+ * In case of error this functions returns 0. */
+extern int openfd_file(/*out*/size_t * number_open_fd) ;
 
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_os_file
+ * Unittest for file interface. */
+extern int unittest_os_file(void) ;
+#endif
 
 #endif

@@ -1,20 +1,18 @@
 #!/bin/bash
 declare -x verbose  # either "" or "1"
-test_subdir="${0%/*}/static"
-if [ "${test_subdir:0:1}" != "/" ]; then
-   test_subdir="`pwd`/${test_subdir}"
-fi
+test_subdir="${0%${0##*/}}static"
 if [ "$1" == "-v" ]; then verbose="1" ; else verbose="" ; fi
 test_ok=0
 test_false=0
 # execute all tests in top level project dir
 cd "${test_subdir}/../../.."
 for test in $test_subdir/*.sh ; do
+   echo "Exec '$test'"
    if $test ; then
-      echo -n "."
+      echo "."
       test_ok=$((test_ok+1))
    else
-      echo -n "!"
+      echo "!"
       test_false=$((test_false+1))
    fi
 done

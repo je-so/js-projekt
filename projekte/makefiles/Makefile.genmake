@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/genmake.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Feb.12  09:32:28
+GenerationDate  := 2011.Feb.05  15:18:46
 GeneratedBy     := Jörg Seebohn
 
 ## Debug

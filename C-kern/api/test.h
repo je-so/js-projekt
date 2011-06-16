@@ -22,9 +22,11 @@
 #ifndef CKERN_API_TEST_HEADER
 #define CKERN_API_TEST_HEADER
 
-// section: Test
+#include "C-kern/api/test/resourceusage.h"
 
-// group: macros
+// section: Functions
+
+// group: test
 
 /* define: TEST_ONERROR_GOTO
  * Tests CONDITION and exits on error.

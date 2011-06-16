@@ -4,7 +4,7 @@ Remedy: Please set environment variable LC_ALL to a supported value by the syste
 getenv("LC_ALL")=XXX@unknown
 C-kern/os/shared/locale.c:103: error in setdefault_locale()
 Function aborted (err=22)
-C-kern/umgebung/locale.c:45: error in initprocess_locale()
+C-kern/umgebung/locale.c:43: error in initprocess_locale()
 Function aborted (err=22)
 C-kern/os/shared/locale.c:96: error in setdefault_locale()
 Cannot change the current locale with setlocale
@@ -12,5 +12,5 @@ Remedy: Please set environment variable LC_ALL to a supported value by the syste
 getenv("LC_ALL")=XXX@unknown
 C-kern/os/shared/locale.c:103: error in setdefault_locale()
 Function aborted (err=22)
-C-kern/umgebung/locale.c:45: error in initprocess_locale()
+C-kern/umgebung/locale.c:43: error in initprocess_locale()
 Function aborted (err=22)

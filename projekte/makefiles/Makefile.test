@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.14  17:26:37
+GenerationDate  := 2011.Jun.16  07:27:40
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -77,14 +77,15 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
+ $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!file.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!filetest.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
- $(ObjectDir_Debug)/C-kern!os!shared!malloctest.c.o \
+ $(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
@@ -102,14 +103,15 @@ Objects_Debug := \
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
+ $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!file.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!filetest.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
- $(ObjectDir_Release)/C-kern!os!shared!malloctest.c.o \
+ $(ObjectDir_Release)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
@@ -138,6 +140,9 @@ $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: $(PathOffset)C-kern/main/unitt
 $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: $(PathOffset)C-kern/test/run_unittest.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: $(PathOffset)C-kern/test/resourceusage.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: $(PathOffset)C-kern/os/Linux/process.c
 	@$(CC_Debug)
 
@@ -150,16 +155,16 @@ $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: $(PathOffset)C-kern/os/Linux/thre
 $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
+$(ObjectDir_Debug)/C-kern!os!Linux!file.c.o: $(PathOffset)C-kern/os/Linux/file.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!filetest.c.o: $(PathOffset)C-kern/os/Linux/filetest.c
+$(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!malloctest.c.o: $(PathOffset)C-kern/os/shared/malloctest.c
+$(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o: $(PathOffset)C-kern/os/shared/malloc.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o: $(PathOffset)C-kern/os/shared/index/splaytree.c
@@ -207,6 +212,9 @@ $(ObjectDir_Release)/C-kern!main!unittest_main.c.o: $(PathOffset)C-kern/main/uni
 $(ObjectDir_Release)/C-kern!test!run_unittest.c.o: $(PathOffset)C-kern/test/run_unittest.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!test!resourceusage.c.o: $(PathOffset)C-kern/test/resourceusage.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!os!Linux!process.c.o: $(PathOffset)C-kern/os/Linux/process.c
 	@$(CC_Release)
 
@@ -219,16 +227,16 @@ $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: $(PathOffset)C-kern/os/Linux/th
 $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
+$(ObjectDir_Release)/C-kern!os!Linux!file.c.o: $(PathOffset)C-kern/os/Linux/file.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!filetest.c.o: $(PathOffset)C-kern/os/Linux/filetest.c
+$(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!malloctest.c.o: $(PathOffset)C-kern/os/shared/malloctest.c
+$(ObjectDir_Release)/C-kern!os!shared!malloc.c.o: $(PathOffset)C-kern/os/shared/malloc.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o: $(PathOffset)C-kern/os/shared/index/splaytree.c

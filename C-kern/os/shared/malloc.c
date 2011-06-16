@@ -1,5 +1,5 @@
-/* title: Malloc-Test impl
-   Implements <prepare_malloctest> and <allocatedsize_malloctest>.
+/* title: Malloc impl
+   Implements <Malloc>.
 
    about: Copyright
    This program is free software.
@@ -16,29 +16,34 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/test/malloctest.h
-    Header file of <Malloc-Test>.
+   file: C-kern/api/os/malloc.h
+    Header file of <Malloc>.
 
-   file: C-kern/os/shared/malloctest.c
-    Implementation file of <Malloc-Test impl>.
+   file: C-kern/os/shared/malloc.c
+    Implementation file of <Malloc impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/test/malloctest.h"
+#include "C-kern/api/os/malloc.h"
 #include "C-kern/api/errlog.h"
 #include <malloc.h>
+#ifdef KONFIG_UNITTEST
+#include "C-kern/api/test.h"
+#endif
 
-/* variable: s_isprepared_malloctest
- * Remembers if <prepare_malloctest> was called already. */
-static bool s_isprepared_malloctest = false ;
+/* variable: s_isprepared_malloc
+ * Remembers if <prepare_malloc> was called already. */
+static bool s_isprepared_malloc = false ;
 
-/* function: prepare_malloctest impl
+/* function: prepare_malloc
  * Calls functions to force allocating of system memory.
  * No own malloc version is initialized:
- * see <allocatedsize_malloctest> for a why. */
-void prepare_malloctest()
+ * see <allocatedsize_malloc> for a why. */
+int prepare_malloc()
 {
-   s_isprepared_malloctest = true ;
+   int err ;
+
+   s_isprepared_malloc = true ;
 
    // force load language module
    (void) strerror(ENOMEM) ;
@@ -47,19 +52,26 @@ void prepare_malloctest()
    void * dummy = malloc((size_t)-1) ;
    assert(! dummy) ;
 
-   trimmemory_malloctest() ;
+   err = trimmemory_malloc() ;
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
 }
 
-/* function: trimmemory_malloctest impl
+/* function: trimmemory_malloc
  * Uses GNU malloc_trim extension.
  * This function may be missing on some platforms.
  * Currently it is only working on Linux platforms. */
-void trimmemory_malloctest()
+int trimmemory_malloc()
 {
    malloc_trim(0) ;
+   return 0 ;
 }
 
-/* function: allocatedsize_malloctest impl
+/* function: allocatedsize_malloc impl
  * Uses GNU malloc_stats extension.
  * This functions returns internal collected statistics
  * about memory usage so implementing a thin wrapper
@@ -87,15 +99,16 @@ void trimmemory_malloctest()
  * reached ("in use bytes") and then returns the converted
  * the number at the end of the line as result.
  * */
-size_t allocatedsize_malloctest()
+int allocatedsize_malloc(size_t * number_of_allocated_bytes)
 {
-   if (!s_isprepared_malloctest) {
-      prepare_malloctest() ;
-   }
-
    int err ;
    int fd     = -1 ;
    int pfd[2] = { -1, -1 } ;
+
+   if (!s_isprepared_malloc) {
+      err = prepare_malloc() ;
+      if (err) goto ABBRUCH ;
+   }
 
    if (pipe2(pfd, O_CLOEXEC)) {
       err = errno ;
@@ -154,12 +167,22 @@ size_t allocatedsize_malloctest()
       sscanf( (char*)&buffer[len], "%" SCNuSIZE, &used_bytes ) ;
    }
 
-   dup2(fd, STDERR_FILENO) ;
-   close(fd) ;
-   close(pfd[0]) ;
-   close(pfd[1]) ;
+   if (-1 == dup2(fd, STDERR_FILENO)) {
+      err = errno ;
+      LOG_SYSERR("dup2",err) ;
+      goto ABBRUCH ;
+   }
+   if (     close(fd)
+         || close(pfd[0])
+         || close(pfd[1])) {
+      err = errno ;
+      LOG_SYSERR("close",err) ;
+      goto ABBRUCH ;
+   }
 
-   return used_bytes ;
+   *number_of_allocated_bytes = used_bytes ;
+
+   return 0;
 ABBRUCH:
    if (pfd[0] != -1) {
       close(pfd[0]) ;
@@ -172,3 +195,70 @@ ABBRUCH:
    LOG_ABORT(err) ;
    return 0 ;
 }
+
+
+#ifdef KONFIG_UNITTEST
+
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_malloc,ABBRUCH)
+
+static int test_allocatedsize(void)
+{
+   size_t   allocated ;
+   void   * memblocks[256] = { 0 } ;
+
+   // TEST  allocated > 0
+   allocated = 0 ;
+   TEST(0 == allocatedsize_malloc(&allocated)) ;
+   TEST(1 <= allocated) ;
+
+   // TEST increment
+   for(unsigned i = 0; i < nrelementsof(memblocks); ++i) {
+      memblocks[i] = malloc(16) ;
+      TEST(0 != memblocks[i]) ;
+      size_t   allocated2 ;
+      TEST(0 == allocatedsize_malloc(&allocated2)) ;
+      TEST(allocated + 16 <= allocated2) ;
+      TEST(allocated + 32 >= allocated2) ;
+      allocated = allocated2 ;
+   }
+
+
+   // TEST decrement
+   for(unsigned i = 0; i < nrelementsof(memblocks); ++i) {
+      free(memblocks[i]) ;
+      memblocks[i] = 0 ;
+      size_t   allocated2 ;
+      TEST(0 == allocatedsize_malloc(&allocated2)) ;
+      TEST(allocated2 + 16 <= allocated) ;
+      TEST(allocated2 + 32 >= allocated) ;
+      allocated = allocated2 ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   for(unsigned i = 0; i < nrelementsof(memblocks); ++i) {
+      if (memblocks[i]) {
+         free(memblocks[i]) ;
+      }
+   }
+   return EINVAL ;
+}
+
+int unittest_os_malloc()
+{
+   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+
+   TEST(0 == init_resourceusage(&usage)) ;
+
+   if (test_allocatedsize())  goto ABBRUCH ;
+
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   return 0 ;
+ABBRUCH:
+   (void) free_resourceusage(&usage) ;
+   return EINVAL ;
+}
+
+#endif

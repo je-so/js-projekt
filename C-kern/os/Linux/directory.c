@@ -22,7 +22,6 @@
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/test/filetest.h"
 #endif
 
 
@@ -459,7 +458,6 @@ ABBRUCH:
 
 static int test_isvalid(void)
 {
-   int err = 1 ;
    const int OK  = 0 ;
    const int LEADDOT = 1 ;
    const int BADDOT  = 2 ;
@@ -541,14 +539,13 @@ static int test_isvalid(void)
    TEST( OK == isvalid_directory( "../../../../../../../..", "/1/2/3/4/5/6/7ddd/8ddd/") ) ;
    TEST( OK == isvalid_directory( "../../../../../../../../x/y../.z./.x..", "/1/2/3/4/5/6/7ddd/8ddd/") ) ;
 
-   err = 0 ;
+   return 0 ;
 ABBRUCH:
-   return err ;
+   return EINVAL ;
 }
 
 static int test_directory_stream__nextdir(directory_stream_t * dir, int test_flags_value)
 {
-   int err = 1 ;
    const char * read_name ;
    filetype_e   read_type ;
    int read_flag[100] = { 0 } ;
@@ -588,9 +585,9 @@ static int test_directory_stream__nextdir(directory_stream_t * dir, int test_fla
       TEST(test_flags_value == read_flag[i]) ;
    }
 
-   err = 0 ;
+   return 0 ;
 ABBRUCH:
-   return err ;
+   return EINVAL ;
 }
 
 static int test_directory_stream(void)
@@ -716,7 +713,7 @@ static int test_directory_stream(void)
 ABBRUCH:
    (void) free_directorystream(&temp_dir) ;
    (void) free_directorystream(&dir) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 static int test_directory_local(void)
@@ -746,7 +743,7 @@ static int test_directory_local(void)
 ABBRUCH:
    free_directorystream(&local1) ;
    free_directorystream(&local2) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 static int test_directory_filesize(void)
@@ -805,24 +802,26 @@ ABBRUCH:
    assert(0 == fchdir(dirfd(workdir.sys_dir))) ;
    free_directorystream(&workdir) ;
    free_directorystream(&tempdir) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 int unittest_os_directory()
 {
-   size_t opened_files = openfd_filetest() ;
+   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+
+   TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_isvalid())              goto ABBRUCH ;
-   TEST(opened_files == openfd_filetest()) ;
    if (test_directory_stream())     goto ABBRUCH ;
-   TEST(opened_files == openfd_filetest()) ;
    if (test_directory_local())      goto ABBRUCH ;
-   TEST(opened_files == openfd_filetest()) ;
    if (test_directory_filesize())   goto ABBRUCH ;
-   TEST(opened_files == openfd_filetest()) ;
+
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   (void) free_resourceusage(&usage) ;
+   return EINVAL ;
 }
 #endif

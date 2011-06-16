@@ -28,8 +28,6 @@
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/test/malloctest.h"
-#include "C-kern/api/os/virtmemory.h"
 #endif
 
 // section: Implementation
@@ -95,26 +93,21 @@ ABBRUCH:
 
 int unittest_umgebung_log()
 {
-   vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
-   vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
-   const size_t       malloced_bytes = allocatedsize_malloctest() ;
+   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
    // store current mapping
-   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initumgebung())   goto ABBRUCH ;
 
    // TEST mapping has not changed
-   trimmemory_malloctest() ;
-   TEST(0 == init_vmmappedregions(&mappedregions2)) ;
-   TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
-   TEST(0 == free_vmmappedregions(&mappedregions)) ;
-   TEST(0 == free_vmmappedregions(&mappedregions2)) ;
-   TEST(malloced_bytes == allocatedsize_malloctest()) ;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   (void) free_resourceusage(&usage) ;
+   return EINVAL ;
 }
 
 #endif

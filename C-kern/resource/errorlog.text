@@ -92,6 +92,11 @@ PROCESS_TERMINATED_WITH_ERROR:de: process_name, exit_code
 PROCESS_TERMINATED_WITH_ERROR:en: process_name, exit_code
 "Process '%s' terminated with error code '%d'"
 
+RESOURCE_USAGE_DIFFERENT:de:
+"Ungleiche Anzahl benutzter Ressourcen"
+RESOURCE_USAGE_DIFFERENT:en:
+"The number of used resources is different"
+
 X11_DISPLAY_NOT_SET:de:
 "Name des X11 Display-Servers nicht bekannt"
 "Bitte die Umgebungsvariable »DISPLAY« setzen"

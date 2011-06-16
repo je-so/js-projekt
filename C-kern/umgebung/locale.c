@@ -28,8 +28,6 @@
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/test/malloctest.h"
-#include "C-kern/api/os/virtmemory.h"
 #endif
 
 
@@ -125,23 +123,20 @@ ABBRUCH:
 
 int unittest_umgebung_locale()
 {
-   vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
-   vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;
-   size_t             malloced_bytes = allocatedsize_malloctest() ;
-   char             * old_locale     = strdup(current_locale()) ;
-   char             * old_msglocale  = strdup(currentmsg_locale()) ;
+   resourceusage_t    usage         = resourceusage_INIT_FREEABLE ;
+   char             * old_locale    = 0 ;
+   char             * old_msglocale = 0 ;
 
    // store current mapping
-   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == init_resourceusage(&usage)) ;
+
+   old_locale    = strdup(current_locale()) ;
+   TEST(old_locale) ;
+   old_msglocale = strdup(currentmsg_locale()) ;
+   TEST(old_msglocale) ;
 
    if (test_initlocale())   goto ABBRUCH ;
 
-   // TEST mapping has not changed
-   trimmemory_malloctest() ;
-   TEST(0 == init_vmmappedregions(&mappedregions2)) ;
-   TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
-   TEST(0 == free_vmmappedregions(&mappedregions)) ;
-   TEST(0 == free_vmmappedregions(&mappedregions2)) ;
    if (0 != strcmp("C", old_locale)) {
       TEST(0 == setdefault_locale()) ;
    }
@@ -152,29 +147,30 @@ int unittest_umgebung_locale()
    free(old_msglocale) ;
    old_locale    = 0 ;
    old_msglocale = 0 ;
-   TEST(malloced_bytes == allocatedsize_malloctest()) ;
+
+   // TEST mapping has not changed
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
 
    // changes malloced memory
    if (test_initerror())   goto ABBRUCH ;
 
    // store current mapping
-   malloced_bytes = allocatedsize_malloctest() ;
-   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initerror())   goto ABBRUCH ;
 
    // TEST mapping has not changed
-   TEST(0 == init_vmmappedregions(&mappedregions2)) ;
-   TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
-   TEST(0 == free_vmmappedregions(&mappedregions)) ;
-   TEST(0 == free_vmmappedregions(&mappedregions2)) ;
-   TEST(malloced_bytes == allocatedsize_malloctest()) ;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ABBRUCH:
+   (void) free_resourceusage(&usage) ;
    free(old_locale) ;
    free(old_msglocale) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 #endif

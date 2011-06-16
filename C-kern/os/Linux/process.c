@@ -28,8 +28,6 @@
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/test/filetest.h"
-#include "C-kern/api/test/malloctest.h"
 #endif
 
 /* struct: process_t
@@ -811,13 +809,13 @@ ABBRUCH:
 
 int unittest_os_process()
 {
-   const size_t   open_files = openfd_filetest() ;
-   char         * oldpath    = getenv("PATH") ? strdup(getenv("PATH")) : 0 ;
+   char            * oldpath = getenv("PATH") ? strdup(getenv("PATH")) : 0 ;
+   resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
 
    TEST(0 == getenv("PATH") || oldpath) ;
    setenv("PATH","./bin/", 1) ;
 
-   const size_t   memsize    = allocatedsize_malloctest() ;
+   TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())       goto ABBRUCH ;
    if (test_abnormalexit())   goto ABBRUCH ;
@@ -825,14 +823,16 @@ int unittest_os_process()
    if (test_statequery())     goto ABBRUCH ;
    if (test_exec())           goto ABBRUCH ;
 
-   TEST(open_files == openfd_filetest()) ;
-   TEST(memsize    == allocatedsize_malloctest()) ;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
 
    setenv("PATH", oldpath, 1) ;
    free(oldpath) ;
 
    return 0 ;
 ABBRUCH:
+   (void) free_resourceusage(&usage) ;
+   free(oldpath) ;
    return EINVAL ;
 }
 

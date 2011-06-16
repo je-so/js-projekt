@@ -32,7 +32,6 @@
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/test/malloctest.h"
 #include "C-kern/api/math/int/signum.h"
 #endif
 
@@ -592,12 +591,14 @@ int unittest_os_index_splaytree()
    node_t                     nodes  [10000] ;
    node_t                     nodes2 [nrelementsof(nodes)] ;
    splaytree_t                tree             = splaytree_INIT(0) ;
-   const size_t               allocated        = allocatedsize_malloctest() ;
+   resourceusage_t            usage            = resourceusage_INIT_FREEABLE ;
    splaytree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_aspect_t*)9 } ;
    splaytree_update_key_t     update_key_cb    = { .fct = &adapter_updatekey, .cb_param = (callback_aspect_t*)13 } ;
    splaytree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_aspect_t*)14 } ;
    splaytree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_aspect_t*)17 } ;
    splaytree_node_t        *  treenode ;
+
+   TEST(0 == init_resourceusage(&usage)) ;
 
    MEMSET0(&nodes) ;
    MEMSET0(&nodes2) ;
@@ -874,11 +875,13 @@ int unittest_os_index_splaytree()
    TEST(ESRCH == updatekey_splaytree( &tree, (void*)6, (void*)7, &update_key_cb, &compare_cb )) ;
 
    // TEST all resources are freed
-   TEST(allocated == allocatedsize_malloctest()) ;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   (void) free_resourceusage(&usage) ;
+   return EINVAL ;
 }
 
 #endif

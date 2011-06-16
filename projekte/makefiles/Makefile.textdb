@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.14  17:26:37
+GenerationDate  := 2011.Jun.13  13:22:36
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -79,9 +79,9 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!locale.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!value_cache.c.o \
@@ -93,9 +93,9 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!locale.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!value_cache.c.o \
@@ -122,13 +122,13 @@ $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/
 $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o: $(PathOffset)C-kern/umgebung/umgebung_initdefault.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/locale.c
@@ -158,13 +158,13 @@ $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linu
 $(ObjectDir_Release)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o: $(PathOffset)C-kern/umgebung/umgebung_initdefault.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/locale.c
