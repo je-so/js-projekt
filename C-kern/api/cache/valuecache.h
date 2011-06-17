@@ -1,4 +1,4 @@
-/* title: ValueCache
+/* title: Valuecache
    Offers a simple cache mechanism for objects
    needed in submodules either often or which are costly
    to construct or deconstruct.
@@ -18,24 +18,45 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umgebung/value_cache.h
-    Header file of <ValueCache>.
+   file: C-kern/api/cache/valuecache.h
+    Header file of <Valuecache>.
 
-   file: C-kern/umgebung/value_cache.c
-    Implementation file <ValueCache impl>.
+   file: C-kern/cache/valuecache.c
+    Implementation file <Valuecache impl>.
 */
-#ifndef CKERN_UMGEBUNG_VALUECACHE_HEADER
-#define CKERN_UMGEBUNG_VALUECACHE_HEADER
+#ifndef CKERN_CACHE_VALUECACHE_HEADER
+#define CKERN_CACHE_VALUECACHE_HEADER
 
-#include "C-kern/api/aspect/valuecache.h"
 
-// value_cache_t already defined in umgebung.h;
+/* typedef: valuecache_t typedef
+ * Exports <valuecache_t>. */
+typedef struct valuecache_t      valuecache_t ;
 
-extern value_cache_t g_main_valuecache ;
+// umgebung_valuecache_t already defined in umgebung.h;
+
+extern valuecache_t              g_main_valuecache ;
 
 // section: Functions
 
-// group: init
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_cache_valuecache
+ * Test allocation and free works. */
+extern int unittest_cache_valuecache(void) ;
+#endif
+
+
+/* struct: valuecache_t
+ * Caches values which have to be computed only once. */
+struct valuecache_t {
+   /* variable: pagesize_vm
+    * The size of a virtual memory page in bytes.
+    * Same value as returned by <sys_pagesize_vm>.  */
+   size_t         pagesize_vm ;
+} ;
+
+// group: initprocess
 
 /* function: initprocess_valuecache
  * Creates an internal value cache singleton object. */
@@ -45,21 +66,15 @@ extern int initprocess_valuecache(void) ;
  * Frees internally created value cache singleton object. */
 extern int freeprocess_valuecache(void) ;
 
+// group: initumgebung
+
 /* function: initumgebung_valuecache
  * Sets valuecache pointer to a singleton object. */
-extern int initumgebung_valuecache(/*out*/value_cache_t ** valuecache) ;
+extern int initumgebung_valuecache(/*out*/valuecache_t ** valuecache) ;
 
 /* function: freeumgebung_valuecache
  * Resets the pointer to null. Singleton is never freed. */
-extern int freeumgebung_valuecache(value_cache_t ** valuecache) ;
-
-
-#ifdef KONFIG_UNITTEST
-/* function: unittest_umgebung_valuecache
- * Test allocation and free works. */
-extern int unittest_umgebung_valuecache(void) ;
-#endif
-
+extern int freeumgebung_valuecache(valuecache_t ** valuecache) ;
 
 
 #endif

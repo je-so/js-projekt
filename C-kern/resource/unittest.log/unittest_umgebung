@@ -1,6 +1,6 @@
 implementation_type=0
-C-kern/umgebung/umgebung.c:186: error in init_umgebung()
+C-kern/umgebung/umgebung.c:192: error in init_umgebung()
 Function aborted (err=22)
 implementation_type=3
-C-kern/umgebung/umgebung.c:186: error in init_umgebung()
+C-kern/umgebung/umgebung.c:192: error in init_umgebung()
 Function aborted (err=22)

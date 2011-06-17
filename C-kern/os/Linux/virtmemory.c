@@ -26,7 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/errlog.h"
-#include "C-kern/api/umgebung/object_cache.h"
+#include "C-kern/api/cache/objectcache.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/test.h"
@@ -136,15 +136,10 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    size_t      total_regions_count = 0 ;
    size_t        free_region_count = 0 ;
    vm_region_t       * next_region = 0 ;
-   vm_block_t         * rootbuffer = objectcache_umgebung()->vm_rootbuffer ;
+   vm_block_t         * iobuffer   = &objectcache_umgebung()->iobuffer ;
 
-   if (! rootbuffer->addr) {
-      err = init_vmblock(rootbuffer, 1) ;
-      if (err) goto ABBRUCH ;
-   }
-
-   const size_t  buffer_maxsize = rootbuffer->size ;
-   uint8_t       * const buffer = rootbuffer->addr ;
+   const size_t  buffer_maxsize = iobuffer->size ;
+   uint8_t       * const buffer = iobuffer->addr ;
    fd = open( PROC_SELF_MAPS, O_RDONLY|O_CLOEXEC ) ;
    if (fd < 0) {
       err = ENOSYS ;

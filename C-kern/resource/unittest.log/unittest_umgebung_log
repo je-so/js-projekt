@@ -1,4 +1,0 @@
-C-kern/writer/log.c:228: error in new_logconfig()
-Function aborted (err=22)
-C-kern/umgebung/log.c:46: error in initumgebung_log()
-Function aborted (err=22)

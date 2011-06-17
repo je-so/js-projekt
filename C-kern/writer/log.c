@@ -198,13 +198,47 @@ static void printf_logignore( log_config_t * log, const char * format, ... )
 
 // section: logconfig
 
+// group: initumgebung
+
+int initumgebung_log(log_config_t ** log)
+{
+   int err ;
+
+   err = new_logconfig( log ) ;
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int freeumgebung_log(log_config_t ** log)
+{
+   int err ;
+   log_config_t * log2 = *log ;
+
+   *log = &g_main_logservice ;
+
+   err = delete_logconfig( &log2 ) ;
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+// group: lifetime
+
 int new_logconfig(/*out*/log_config_t ** log)
 {
    int err ;
    log_config_t * logobj ;
    size_t        objsize = sizeof(log_config_t) + sizeof(log_buffer_t) ;
 
-   if (*log) {
+   if (  *log
+      && *log != &g_main_logservice) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -247,6 +281,8 @@ ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
+
+// group: other
 
 /* function: switch_printf_logconfig
  * Used to switch between different implementation.
@@ -641,7 +677,29 @@ ABBRUCH:
    free_mmfile(&logcontent) ;
    free_directorystream(&tempdir) ;
    delete_logconfig(&logconf) ;
-   return 1 ;
+   return EINVAL ;
+}
+
+static int test_initumgebung(void)
+{
+   log_config_t * log = 0 ;
+
+   // TEST EINVAL initumgebung
+   log = (log_config_t*) 1 ;
+   TEST(EINVAL == initumgebung_log(&log)) ;
+
+   // TEST initumgebung, double freeumgebung
+   log = 0 ;
+   TEST(0 == initumgebung_log(&log)) ;
+   TEST(log) ;
+   TEST(0 == freeumgebung_log(&log)) ;
+   TEST(&g_main_logservice == log) ;
+   TEST(0 == freeumgebung_log(&log)) ;
+   TEST(&g_main_logservice == log) ;
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
 }
 
 int unittest_writer_log()
@@ -654,8 +712,9 @@ int unittest_writer_log()
    if (test_log_default())    goto ABBRUCH ;
    if (test_log_safe())       goto ABBRUCH ;
    if (test_log_buffered())   goto ABBRUCH ;
+   if (test_initumgebung())   goto ABBRUCH ;
 
-   // TEST mapping has not changed
+   // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 

@@ -21,13 +21,7 @@
 #endif
 
 typedef struct osthread_stack_t        osthread_stack_t ;
-typedef struct osthread_startparam_t   osthread_startparam_t ;
 typedef struct osthread_private_t      osthread_private_t ;
-
-struct osthread_startparam_t {
-   osthread_private_t   * osthread ;
-   umgebung_t           thread_umgebung ;
-} ;
 
 struct osthread_stack_t {
    void    * addr ; // addr[0 .. size-1]
@@ -36,6 +30,7 @@ struct osthread_stack_t {
 
 struct osthread_private_t {
    osthread_t        osthread ;
+   umgebung_type_e   umgtype ;
    osthread_stack_t  mapped_frame ;
    osthread_stack_t  signal_stack ;
    osthread_stack_t  thread_stack ;
@@ -143,24 +138,14 @@ ABBRUCH:
 static void * osthread_startpoint(void * start_arg)
 {
    int err ;
-   osthread_private_t * thread_private ;
+   osthread_private_t * thread = (osthread_private_t *) start_arg;
 
-   {
-      osthread_startparam_t * startparam ;
-      startparam     = (osthread_startparam_t*) start_arg ;
-      thread_private = startparam->osthread ;
-
-      // move umgebung_t
-      static_assert_void( ((umgebung_t*)0) == (typeof(&startparam->thread_umgebung))0 ) ;
-      static_assert_void( ((umgebung_t*)0) == (typeof(&gt_umgebung))0 ) ;
-      memcpy( &gt_umgebung, (const umgebung_t*)&startparam->thread_umgebung, sizeof(umgebung_t)) ;
-
-      free(startparam) ;
-   }
+   err = init_umgebung(&gt_umgebung, thread->umgtype) ;
+   if (err) goto ABBRUCH ;
 
    stack_t new_signal_stack = {
-      .ss_sp    = thread_private->signal_stack.addr,
-      .ss_size  = thread_private->signal_stack.size,
+      .ss_sp    = thread->signal_stack.addr,
+      .ss_size  = thread->signal_stack.size,
       .ss_flags = 0
    } ;
 
@@ -171,9 +156,9 @@ static void * osthread_startpoint(void * start_arg)
       goto ABBRUCH ;
    }
 
-   thread_private->osthread.isMainCalled      = true ;
-   err = thread_private->osthread.thread_main(&thread_private->osthread) ;
-   thread_private->osthread.thread_returncode = err ;
+   thread->osthread.isMainCalled      = true ;
+   err = thread->osthread.thread_main(&thread->osthread) ;
+   thread->osthread.thread_returncode = err ;
 
    err = free_umgebung(&gt_umgebung) ;
    if (err) goto ABBRUCH ;
@@ -187,10 +172,9 @@ ABBRUCH:
 int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument)
 {
    int err ;
-   pthread_attr_t          thread_attr ;
-   osthread_startparam_t  * startparam = 0 ;
-   osthread_private_t * thread_private = 0 ;
-   bool              isThreadAttrValid = false ;
+   pthread_attr_t       thread_attr ;
+   osthread_private_t * thread_private    = 0 ;
+   bool                 isThreadAttrValid = false ;
 
    thread_private = MALLOC(osthread_private_t,malloc,) ;
    if (0 == thread_private) {
@@ -199,20 +183,10 @@ int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void
       goto ABBRUCH ;
    }
 
-   startparam = MALLOC(osthread_startparam_t,malloc,) ;
-   if (0 == startparam) {
-      LOG_OUTOFMEMORY(sizeof(osthread_startparam_t)) ;
-      err = ENOMEM ;
-      goto ABBRUCH ;
-   }
-
    MEMSET0( thread_private ) ;
    thread_private->osthread.thread_main     = thread_main ;
    thread_private->osthread.thread_argument = thread_argument ;
-
-   startparam->osthread = thread_private ;
-   err = init_umgebung(&startparam->thread_umgebung, umgebung()->type ? umgebung()->type : umgebung_type_DEFAULT) ;
-   if (err) goto ABBRUCH ;
+   thread_private->umgtype                  = (umgebung()->type ? umgebung()->type : umgebung_type_DEFAULT) ;
 
    err = mapstacks_osthread(thread_private) ;
    if (err) goto ABBRUCH ;
@@ -231,7 +205,7 @@ int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void
       LOG_SIZE(thread_private->thread_stack.size) ;
       goto ABBRUCH ;
    }
-   err = pthread_create( &thread_private->osthread.sys_thread, &thread_attr, osthread_startpoint, startparam) ;
+   err = pthread_create( &thread_private->osthread.sys_thread, &thread_attr, osthread_startpoint, thread_private) ;
    if (err) {
       LOG_SYSERR("pthread_create",err) ;
       goto ABBRUCH ;
@@ -252,7 +226,6 @@ ABBRUCH:
          // ignore error
       }
    }
-   free(startparam) ;
    (void) delete_osthread((osthread_t**)&thread_private) ;
 
    LOG_ABORT(err) ;

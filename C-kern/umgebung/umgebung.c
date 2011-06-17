@@ -17,7 +17,7 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/umgebung.h
-    Header file of <Umgebung Interface>.
+    Header file of <Umgebung>.
 
    file: C-kern/umgebung/umgebung.c
     Implementation file of <Umgebung impl>.
@@ -26,19 +26,19 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
-#include "C-kern/api/umgebung/object_cache.h"
-#include "C-kern/api/umgebung/value_cache.h"
+#include "C-kern/api/cache/objectcache.h"
+#include "C-kern/api/cache/valuecache.h"
 #define X11 1
 #if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem==''||subsystem=='X11')
-#include "C-kern/api/umgebung/locale.h"
-#include "C-kern/api/umgebung/value_cache.h"
+#include "C-kern/api/os/locale.h"
+#include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/os/X11/x11.h"
 // TEXTDB:END
 #else
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem=='')
-#include "C-kern/api/umgebung/locale.h"
-#include "C-kern/api/umgebung/value_cache.h"
+#include "C-kern/api/os/locale.h"
+#include "C-kern/api/cache/valuecache.h"
 // TEXTDB:END
 #endif
 #undef X11
@@ -52,13 +52,19 @@
 /* variable: gt_umgebung
  * Defines thread-local storage for global context <umgebung_t> which every modul can access.
  * */
-__thread umgebung_t          gt_umgebung = umgebung_INIT_MAINSERVICES ;
+__thread umgebung_t           gt_umgebung = umgebung_INIT_MAINSERVICES ;
+
+#ifdef KONFIG_UNITTEST
+/* variable: g_error_init_umgebung
+ * Set to error code (!= 0) to simulate error in init(default|test)_umgebung. */
+int                           g_error_init_umgebung = 0 ;
+#endif
 
 /* variable: s_initpos_presource
  * Rememberes how many resources has been initialized successfully.
  * Used in <init_process_resources> and <free_process_resources>
  * which are called from <initprocess_umgebung> and <freeprocess_umgebung>. */
-static uint16_t    s_initpos_presource = 0 ;
+static uint16_t               s_initpos_presource = 0 ;
 
 
 static int free_process_resources(void)
@@ -190,17 +196,15 @@ ABBRUCH:
 int freeprocess_umgebung(void)
 {
    int err ;
-   static_assert_void( ((typeof(umgebung()))0) == (const umgebung_t *)0 ) ;
-   umgebung_t       * umg = (umgebung_t*) (intptr_t) umgebung() ;
+   int err2 ;
+   umgebung_t       * umg = &gt_umgebung ;
    int     is_initialized = (0 != umg->type) ;
 
    if (is_initialized) {
       err = free_umgebung(umg) ;
-      assert(&g_main_logservice == umg->log) ;
-      assert(!umg->objectcache) ;
-      *umg = (umgebung_t) umgebung_INIT_MAINSERVICES ;
-      int err2 = free_process_resources() ;
+      err2 = free_process_resources() ;
       if (err2) err = err2 ;
+
       if (err) goto ABBRUCH ;
    }
 
@@ -213,9 +217,7 @@ ABBRUCH:
 int initprocess_umgebung(umgebung_type_e implementation_type)
 {
    int err ;
-   static_assert_void( ((typeof(umgebung()))0) == (const umgebung_t *)0 ) ;
-   umgebung_t           * umg = (umgebung_t*) (intptr_t) umgebung() ;
-   umgebung_t        temp_umg = umgebung_INIT_FREEABLE ;
+   umgebung_t           * umg = &gt_umgebung ;
    int is_already_initialized = (0 != umg->type) ;
 
    if (is_already_initialized) {
@@ -226,15 +228,12 @@ int initprocess_umgebung(umgebung_type_e implementation_type)
    err = init_process_resources() ;
    if (err) goto ABBRUCH ;
 
-   err = init_umgebung(&temp_umg, implementation_type) ;
+   err = init_umgebung(umg, implementation_type) ;
    if (err) goto ABBRUCH ;
-
-   // move is simple memcpy !
-   memcpy( umg, (const umgebung_t*)&temp_umg, sizeof(umgebung_t)) ;
 
    return 0 ;
 ABBRUCH:
-   (void) free_umgebung(&temp_umg) ;
+   (void) free_umgebung(umg) ;
    (void) free_process_resources() ;
    LOG_ABORT(err) ;
    return err ;
@@ -261,6 +260,11 @@ static int test_process_init(void)
    TEST(0      == umgebung_type_STATIC) ;
    TEST(EINVAL == initprocess_umgebung(umgebung_type_STATIC)) ;
    TEST(EINVAL == initprocess_umgebung(3)) ;
+
+   // TEST EACCES  simulated error
+   g_error_init_umgebung = EACCES ;
+   TEST(EACCES == initprocess_umgebung(umgebung_type_DEFAULT)) ;
+   g_error_init_umgebung = 0 ;
 
    // TEST init, double free (umgebung_type_DEFAULT)
    TEST(0 == umgebung()->type) ;
@@ -318,6 +322,7 @@ static int test_process_init(void)
 
    return 0 ;
 ABBRUCH:
+   g_error_init_umgebung = 0 ;
    return EINVAL ;
 }
 
@@ -335,15 +340,15 @@ static int test_umgebung_query(void)
    TEST( oldlog == log_umgebung() ) ;
 
    // TEST query log_umgebung()
-   object_cache_t * const oldcache1 = gt_umgebung.objectcache ;
-   gt_umgebung.objectcache = (object_cache_t *) 3 ;
-   TEST( (object_cache_t*)3 == objectcache_umgebung() ) ;
+   objectcache_t * const oldcache1 = gt_umgebung.objectcache ;
+   gt_umgebung.objectcache = (objectcache_t*)3 ;
+   TEST( (objectcache_t*)3 == objectcache_umgebung() ) ;
    gt_umgebung.objectcache = oldcache1 ;
    TEST( oldcache1 == objectcache_umgebung() ) ;
 
-   value_cache_t * const oldcache2 = gt_umgebung.valuecache ;
-   gt_umgebung.valuecache = (value_cache_t *) 3 ;
-   TEST( (value_cache_t*)3 == valuecache_umgebung() ) ;
+   valuecache_t * const oldcache2 = gt_umgebung.valuecache ;
+   gt_umgebung.valuecache = (valuecache_t*)3 ;
+   TEST( (valuecache_t*)3 == valuecache_umgebung() ) ;
    gt_umgebung.valuecache = oldcache2 ;
    TEST( oldcache2 == valuecache_umgebung() ) ;
 
@@ -354,7 +359,20 @@ ABBRUCH:
 
 static int test_umgebung_init(void)
 {
-   umgebung_t umg = umgebung_INIT_FREEABLE ;
+   umgebung_t umg    = umgebung_INIT_FREEABLE ;
+   const bool isINIT = (umgebung_type_STATIC != umgebung()->type) ;
+
+   if (!isINIT) {
+      TEST(0 == initprocess_umgebung(umgebung_type_DEFAULT)) ;
+   }
+
+   // TEST static init
+   TEST(0 == umg.type) ;
+   TEST(0 == umg.resource_count) ;
+   TEST(0 == umg.free_umgebung) ;
+   TEST(0 == umg.log) ;
+   TEST(0 == umg.objectcache) ;
+   TEST(0 == umg.valuecache) ;
 
    // TEST EINVAL: wrong type
    TEST(EINVAL == init_umgebung(&umg, umgebung_type_STATIC)) ;
@@ -401,8 +419,16 @@ static int test_umgebung_init(void)
    TEST(umg.objectcache == 0) ;
    TEST(umg.valuecache  == 0) ;
 
+   if (!isINIT) {
+      TEST(0 == freeprocess_umgebung()) ;
+   }
+
    return 0 ;
 ABBRUCH:
+   if (  !isINIT
+      && (umgebung_type_STATIC != umgebung()->type)) {
+      TEST(0 == freeprocess_umgebung()) ;
+   }
    free_umgebung(&umg) ;
    return EINVAL ;
 }
@@ -412,8 +438,6 @@ int unittest_umgebung()
    int fd_stderr = -1 ;
    int fdpipe[2] = { -1, -1 } ;
 
-   if (test_umgebung_query()) goto ABBRUCH ;
-
    if (umgebung_type_STATIC == umgebung()->type) {
 
       fd_stderr = dup(STDERR_FILENO) ;
@@ -422,19 +446,36 @@ int unittest_umgebung()
       TEST(-1!= dup2(fdpipe[1], STDERR_FILENO)) ;
 
       if (test_process_init())   goto ABBRUCH ;
+      if (test_umgebung_init())  goto ABBRUCH ;
 
-      char buffer[512] = { 0 };
+      char buffer[1024] = { 0 };
       TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
       if (strcmp( buffer, "implementation_type=0\n"
-                           "C-kern/umgebung/umgebung.c:186: error in init_umgebung()\n"
+                           // log from test_process_init
+                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
                            "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung.c:239: error in initprocess_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:238: error in initprocess_umgebung()\n"
                            "Function aborted (err=22)\n"
                            "implementation_type=3\n"
-                           "C-kern/umgebung/umgebung.c:186: error in init_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
                            "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung.c:239: error in initprocess_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:238: error in initprocess_umgebung()\n"
+                           "Function aborted (err=22)\n"
+                           "C-kern/umgebung/umgebung_initdefault.c:107: error in init_thread_resources()\n"
+                           "Function aborted (err=13)\n"
+                           "C-kern/umgebung/umgebung_initdefault.c:147: error in initdefault_umgebung()\n"
+                           "Function aborted (err=13)\n"
+                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
+                           "Function aborted (err=13)\n"
+                           "C-kern/umgebung/umgebung.c:238: error in initprocess_umgebung()\n"
+                           "Function aborted (err=13)\n"
+                           // log from test_umgebung_init
+                           "implementation_type=0\n"
+                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
+                           "Function aborted (err=22)\n"
+                           "implementation_type=3\n"
+                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
                            "Function aborted (err=22)\n"
                            )) {
          printf("buffer=-----\n%s-----\n",buffer) ;
@@ -449,8 +490,11 @@ int unittest_umgebung()
          fdpipe[i] = -1 ;
       }
 
-   } else if (test_umgebung_init())  {
-      goto ABBRUCH ;
+   }
+
+   if (test_umgebung_query()) goto ABBRUCH ;
+   if (umgebung_type_STATIC != umgebung()->type) {
+      if (test_umgebung_init())  goto ABBRUCH ;
    }
 
    return 0 ;

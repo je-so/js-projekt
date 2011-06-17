@@ -26,6 +26,9 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/locale.h"
 #include "C-kern/api/errlog.h"
+#ifdef KONFIG_UNITTEST
+#include "C-kern/api/test.h"
+#endif
 
 // section: Implementation
 
@@ -141,3 +144,140 @@ ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
+
+// group: initprocess
+
+int initprocess_locale()
+{
+   int err ;
+
+   err = setdefault_locale() ;
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int freeprocess_locale()
+{
+   int err ;
+
+   err = reset_locale() ;
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_os_locale,ABBRUCH)
+
+static int test_initerror(void)
+{
+   char * old_lcall = getenv("LC_ALL") ? strdup(getenv("LC_ALL")) : 0 ;
+
+   // TEST setlocale error (consumes memory !)
+   TEST(0 == setenv("LC_ALL", "XXX@unknown", 1)) ;
+   TEST(EINVAL == initprocess_locale()) ;
+   if (old_lcall) {
+      TEST(0 == setenv("LC_ALL", old_lcall, 0)) ;
+   } else {
+      TEST(0 == unsetenv("LC_ALL")) ;
+   }
+
+   free(old_lcall) ;
+   old_lcall = 0 ;
+
+   return 0 ;
+ABBRUCH:
+   if (old_lcall) {
+      TEST(0 == setenv("LC_ALL", old_lcall, 0)) ;
+   } else {
+      TEST(0 == unsetenv("LC_ALL")) ;
+   }
+   free(old_lcall) ;
+   return 1 ;
+}
+
+static int test_initlocale(void)
+{
+   char * lname     = 0 ;
+
+   // TEST init, double free
+   TEST(0 == initprocess_locale()) ;
+   TEST(current_locale()) ;
+   lname = strdup(current_locale() ? current_locale() : "") ;
+   TEST(lname) ;
+   TEST(0 != strcmp("C", lname)) ;
+   TEST(0 == freeprocess_locale()) ;
+   TEST(0 == strcmp("C", current_locale())) ;
+   TEST(0 == freeprocess_locale()) ;
+   TEST(0 == strcmp("C", current_locale())) ;
+
+   // TEST init sets the same name
+   TEST(0 == initprocess_locale()) ;
+   TEST(current_locale()) ;
+   TEST(0 == strcmp(lname, current_locale())) ;
+   TEST(0 == freeprocess_locale()) ;
+   TEST(0 == strcmp("C", current_locale())) ;
+   free(lname) ;
+   lname = 0 ;
+
+   return 0 ;
+ABBRUCH:
+   free(lname) ;
+   return 1 ;
+}
+
+int unittest_os_locale()
+{
+   resourceusage_t    usage         = resourceusage_INIT_FREEABLE ;
+   char             * old_locale    = 0 ;
+   char             * old_msglocale = 0 ;
+
+   // changes malloced memory
+   if (test_initerror())   goto ABBRUCH ;
+
+   // store current mapping
+   TEST(0 == init_resourceusage(&usage)) ;
+
+   old_locale    = strdup(current_locale()) ;
+   TEST(old_locale) ;
+   old_msglocale = strdup(currentmsg_locale()) ;
+   TEST(old_msglocale) ;
+
+   if (test_initerror())   goto ABBRUCH ;
+   if (test_initlocale())  goto ABBRUCH ;
+
+   if (0 != strcmp("C", old_locale)) {
+      TEST(0 == setdefault_locale()) ;
+   }
+   if (0 == strcmp("C", old_msglocale)) {
+      TEST(0 == resetmsg_locale()) ;
+   }
+   free(old_locale) ;
+   free(old_msglocale) ;
+   old_locale    = 0 ;
+   old_msglocale = 0 ;
+
+   // TEST resource usage has not changed
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   return 0 ;
+ABBRUCH:
+   (void) free_resourceusage(&usage) ;
+   free(old_locale) ;
+   free(old_msglocale) ;
+   return EINVAL ;
+}
+
+#endif

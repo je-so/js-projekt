@@ -17,7 +17,7 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/umgebung.h
-    Header file of <Umgebung Interface>.
+    Header file of <Umgebung>.
 
    file: C-kern/umgebung/umgebung_initdefault.c
     Implementation file of <Umgebung Default>.
@@ -27,9 +27,9 @@
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/errlog.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")
-#include "C-kern/api/umgebung/value_cache.h"
-#include "C-kern/api/umgebung/object_cache.h"
-#include "C-kern/api/umgebung/log.h"
+#include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/cache/objectcache.h"
+#include "C-kern/api/writer/log.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -94,6 +94,13 @@ static int init_thread_resources(umgebung_t * umg)
    ++umg->resource_count ;
 // TEXTDB:END
 
+#ifdef KONFIG_UNITTEST
+   if (g_error_init_umgebung) {
+      err = g_error_init_umgebung ;
+      goto ABBRUCH ;
+   }
+#endif
+
    return 0 ;
 ABBRUCH:
    (void) free_thread_resources(umg) ;
@@ -127,7 +134,7 @@ int initdefault_umgebung(umgebung_t * umg)
    umg->type            = umgebung_type_DEFAULT ;
    umg->resource_count  = 0 ;
    umg->free_umgebung   = &freedefault_umgebung ;
-   umg->log             = 0 ;
+   umg->log             = &g_main_logservice ;
    umg->objectcache     = 0 ;
    umg->valuecache      = 0 ;
 
@@ -136,6 +143,7 @@ int initdefault_umgebung(umgebung_t * umg)
 
    return 0 ;
 ABBRUCH:
+   (void) freedefault_umgebung(umg) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -147,27 +155,51 @@ ABBRUCH:
 
 static int test_init(void)
 {
-   umgebung_t umg ;
+   umgebung_t umg = umgebung_INIT_FREEABLE ;
 
    // TEST init, double free
-   umg.type           = 0 ;
-   umg.resource_count = 1000 ;
+   MEMSET0(&umg) ;
    TEST(0 == initdefault_umgebung(&umg)) ;
    TEST(umgebung_type_DEFAULT == umg.type) ;
    TEST(3                     == umg.resource_count) ;
    TEST(freedefault_umgebung  == umg.free_umgebung) ;
+   TEST(0 != umg.log) ;
+   TEST(&g_main_logservice != umg.log) ;
+   TEST(0 != umg.objectcache) ;
+   TEST(0 != umg.valuecache) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
+   TEST(&g_main_logservice == umg.log) ;
+   TEST(0 == umg.objectcache) ;
+   TEST(0 == umg.valuecache) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
+   TEST(&g_main_logservice == umg.log) ;
+   TEST(0 == umg.objectcache) ;
+   TEST(0 == umg.valuecache) ;
+
+   // TEST EINVAL init
+   for(int err = EINVAL; err < EINVAL+2; ++err) {
+      g_error_init_umgebung = err ;
+      umg = (umgebung_t) umgebung_INIT_FREEABLE ;
+      TEST(err == initdefault_umgebung(&umg)) ;
+      TEST(0 == umg.type) ;
+      TEST(0 == umg.resource_count) ;
+      TEST(0 == umg.free_umgebung) ;
+      TEST(&g_main_logservice == umg.log) ;
+      TEST(0 == umg.objectcache) ;
+      TEST(0 == umg.valuecache) ;
+   }
+   g_error_init_umgebung = 0 ;
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   g_error_init_umgebung = 0 ;
+   return EINVAL ;
 }
 
 int unittest_umgebung_default()

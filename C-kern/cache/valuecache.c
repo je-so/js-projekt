@@ -1,5 +1,5 @@
-/* title: ValueCache impl
-   Implements <ValueCache>.
+/* title: Valuecache impl
+   Implements <Valuecache>.
 
    about: Copyright
    This program is free software.
@@ -16,15 +16,15 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umgebung/value_cache.h
-    Header file of <ValueCache>.
+   file: C-kern/api/cache/valuecache.h
+    Header file of <Valuecache>.
 
-   file: C-kern/umgebung/value_cache.c
-    Implementation file <ValueCache impl>.
+   file: C-kern/cache/valuecache.c
+    Implementation file <Valuecache impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/umgebung/value_cache.h"
+#include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/os/virtmemory.h"
 #ifdef KONFIG_UNITTEST
@@ -32,7 +32,7 @@
 #endif
 
 
-value_cache_t    g_main_valuecache = { 0 } ;
+valuecache_t    g_main_valuecache = { 0 } ;
 
 
 int initprocess_valuecache(void)
@@ -47,7 +47,7 @@ int freeprocess_valuecache(void)
    return 0 ;
 }
 
-int initumgebung_valuecache(value_cache_t ** valuecache)
+int initumgebung_valuecache(valuecache_t ** valuecache)
 {
    int err ;
 
@@ -64,7 +64,7 @@ ABBRUCH:
    return err ;
 }
 
-int freeumgebung_valuecache(value_cache_t ** valuecache)
+int freeumgebung_valuecache(valuecache_t ** valuecache)
 {
    if (*valuecache) {
       *valuecache = 0 ;
@@ -77,7 +77,7 @@ int freeumgebung_valuecache(value_cache_t ** valuecache)
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_valuecache,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_cache_valuecache,ABBRUCH)
 
 static int test_processinit(void)
 {
@@ -100,8 +100,8 @@ ABBRUCH:
 
 static int test_umgebunginit(void)
 {
-   value_cache_t * cache          = 0 ;
-   value_cache_t * cache2         = 0 ;
+   valuecache_t * cache  = 0 ;
+   valuecache_t * cache2 = 0 ;
 
    // TEST init, double free
    MEMSET0(&g_main_valuecache) ;
@@ -150,10 +150,10 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_umgebung_valuecache()
+int unittest_cache_valuecache()
 {
-   value_cache_t * old_umgebung = umgebung()->valuecache ;
-   value_cache_t   old_value    = g_main_valuecache ;
+   valuecache_t * old_umgebung = umgebung()->valuecache ;
+   valuecache_t   old_value    = g_main_valuecache ;
 
    if (test_processinit())    goto ABBRUCH ;
    if (test_umgebunginit())   goto ABBRUCH ;

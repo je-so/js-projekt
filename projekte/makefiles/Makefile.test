@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.16  07:27:40
+GenerationDate  := 2011.Jun.17  17:27:44
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -77,7 +77,6 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
- $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
@@ -88,14 +87,13 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!string!converter.c.o \
+ $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!locale.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!value_cache.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!log.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!writer!log.c.o
@@ -103,7 +101,6 @@ Objects_Debug := \
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
- $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
@@ -114,14 +111,13 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
+ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!string!converter.c.o \
+ $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!locale.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!value_cache.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!log.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!writer!log.c.o
@@ -138,9 +134,6 @@ $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: $(PathOffset)C-kern/main/unitt
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: $(PathOffset)C-kern/test/run_unittest.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: $(PathOffset)C-kern/test/resourceusage.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: $(PathOffset)C-kern/os/Linux/process.c
@@ -173,6 +166,12 @@ $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o: $(PathOffset)C-kern/os/
 $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o: $(PathOffset)C-kern/os/shared/index/redblacktree.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: $(PathOffset)C-kern/cache/valuecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: $(PathOffset)C-kern/cache/objectcache.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/signum.c
 	@$(CC_Debug)
 
@@ -182,19 +181,10 @@ $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: $(PathOffset)C-kern/math/int/powe
 $(ObjectDir_Debug)/C-kern!string!converter.c.o: $(PathOffset)C-kern/string/converter.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: $(PathOffset)C-kern/test/resourceusage.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/locale.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!umgebung!value_cache.c.o: $(PathOffset)C-kern/umgebung/value_cache.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!umgebung!object_cache.c.o: $(PathOffset)C-kern/umgebung/object_cache.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o: $(PathOffset)C-kern/umgebung/umgebung_initdefault.c
@@ -210,9 +200,6 @@ $(ObjectDir_Release)/C-kern!main!unittest_main.c.o: $(PathOffset)C-kern/main/uni
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!run_unittest.c.o: $(PathOffset)C-kern/test/run_unittest.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!test!resourceusage.c.o: $(PathOffset)C-kern/test/resourceusage.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!process.c.o: $(PathOffset)C-kern/os/Linux/process.c
@@ -245,6 +232,12 @@ $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o: $(PathOffset)C-kern/o
 $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o: $(PathOffset)C-kern/os/shared/index/redblacktree.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: $(PathOffset)C-kern/cache/valuecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!objectcache.c.o: $(PathOffset)C-kern/cache/objectcache.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/signum.c
 	@$(CC_Release)
 
@@ -254,19 +247,10 @@ $(ObjectDir_Release)/C-kern!math!int!power2.c.o: $(PathOffset)C-kern/math/int/po
 $(ObjectDir_Release)/C-kern!string!converter.c.o: $(PathOffset)C-kern/string/converter.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!test!resourceusage.c.o: $(PathOffset)C-kern/test/resourceusage.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!umgebung!locale.c.o: $(PathOffset)C-kern/umgebung/locale.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!umgebung!value_cache.c.o: $(PathOffset)C-kern/umgebung/value_cache.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!umgebung!log.c.o: $(PathOffset)C-kern/umgebung/log.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!umgebung!object_cache.c.o: $(PathOffset)C-kern/umgebung/object_cache.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o: $(PathOffset)C-kern/umgebung/umgebung_initdefault.c

@@ -1,4 +1,4 @@
-/* title: Umgebung Interface
+/* title: Umgebung
    Defines runtime context used by every software component in C-kern(el).
 
    about: Copyright
@@ -17,7 +17,7 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/umgebung.h
-    Header file of <Umgebung Interface>.
+    Header file of <Umgebung>.
 
    file: C-kern/umgebung/umgebung_initdefault.c
     Implementation file <Umgebung Default>.
@@ -30,26 +30,24 @@
 
 // forward reference to all offered services
 struct log_config_t ;
-struct object_cache_t ;
-struct valuecache_aspect_t ;
+struct objectcache_t ;
+struct valuecache_t ;
 
 /* typedef: umgebung_t typedef
  * Export <umgebung_t>. */
 typedef struct umgebung_t           umgebung_t ;
 
-/* typedef: value_cache_t
- * Export <valuecache_aspect_t>. */
-typedef struct valuecache_aspect_t  value_cache_t ;
+
 
 /* enums: umgebung_type_e
  * Used to switch between different implementations.
  *
- * umgebung_STATIC_IMPL  - An implementation which is configured by a static initializer.
+ * umgebung_type_STATIC  - An implementation which is configured by a static initializer.
  *                         Only the log service is supported.
  *                         This configuration is default at program startup and can not be
  *                         set with a call to <init_process_umgebung>.
- * umgebung_DEFAULT_IMPL - Default production ready implementation.
- * umgebung_TEST_IMPL    - Implements functionality without use of internal components but only with help of
+ * umgebung_type_DEFAULT - Default production ready implementation.
+ * umgebung_type_TEST    - Implements functionality without use of internal components but only with help of
  *                         C library calls. This ensures that software components which depends on <umgebung_t>
  *                         can be tested without mutual dependencies.
  * */
@@ -59,14 +57,18 @@ enum umgebung_type_e {
    ,umgebung_type_TEST    = 2
 } ;
 
-typedef enum umgebung_type_e umgebung_type_e ;
+typedef enum umgebung_type_e        umgebung_type_e ;
 
 
 /* variable: gt_umgebung extern
  * Global variable which describes the context for the current thread.
  * The variables is located in thread local storage.
  * So every thread has its own copy the content. */
-extern __thread struct umgebung_t gt_umgebung ;
+extern __thread struct umgebung_t   gt_umgebung ;
+
+#ifdef KONFIG_UNITTEST
+extern int                          g_error_init_umgebung ;
+#endif
 
 
 // section: Functions
@@ -94,8 +96,8 @@ struct umgebung_t {
    int                  (* free_umgebung)  (umgebung_t * umg) ;
 
    struct log_config_t   * log ;
-   struct object_cache_t * objectcache ;
-   value_cache_t         * valuecache ;
+   struct objectcache_t  * objectcache ;
+   struct valuecache_t   * valuecache ;
 
 } ;
 
@@ -110,23 +112,34 @@ struct umgebung_t {
  * only as initializer for the main thread.
  * The reason is that services in <umgebung_t> are not thread safe
  * so every thread keeps its own initialized <umgebung_t>. */
-#define umgebung_INIT_MAINSERVICES { umgebung_type_STATIC, 0, 0, &g_main_logservice, 0, 0 }
+#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, &g_main_logservice, 0, 0 }
 
 /* define: umgebung_INIT_FREEABLE
  * Static initializer for <umgebung_t>.
  * This ensures that you can call <free_umgebung> without harm. */
-#define umgebung_INIT_FREEABLE    { umgebung_type_STATIC, 0, 0, 0, 0, 0 }
+#define umgebung_INIT_FREEABLE      { umgebung_type_STATIC, 0, 0, 0, 0, 0 }
 
 /* function: initprocess_umgebung
- * Initializes global context. Must be called as first function from the main thread.
+ * Initializes (global) process context. Must be called as first function from the main thread.
  * EALREADY is returned if it is called more than once.
+ * The only service which works without calling this function is logging.
  *
- * Basic services like logging always work even if this function is not called. */
+ * Background:
+ * This function calls call initprocess_NAME functions in the same order
+ * as defined in "C-kern/resource/text.db/initprocess".
+ * This init database is checked against the whole project with "C-kern/test/static/check_textdb.sh".
+ * So that no entry is forgotten. */
 extern int initprocess_umgebung(umgebung_type_e implementation_type) ;
 
 /* function: init_umgebung
- * Initializes context useful in a thread.
- * Must be called before a new thread is started. */
+ * Initializes (global) thread context.
+ * Must be called before a new thread is started.
+ *
+ * Background:
+ * This function calls call initumgebung_NAME functions in the same order
+ * as defined in "C-kern/resource/text.db/initumgebung".
+ * This init database is checked against the whole project with "C-kern/test/static/check_textdb.sh".
+ * So that no entry is forgotten. */
 extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation_type) ;
 
 /* function: freeprocess_umgebung
@@ -159,12 +172,12 @@ extern umgebung_t * umgebung(void) ;
 extern struct log_config_t *     log_umgebung(void) ;
 
 /* function: objectcache_umgebung
- * Returns cache for singelton objects of type <object_cache_t> for the current thread. */
-extern struct object_cache_t *   objectcache_umgebung(void) ;
+ * Returns cache for singelton objects of type <objectcache_t> for the current thread. */
+extern struct objectcache_t *    objectcache_umgebung(void) ;
 
 /* function: valuecache_umgebung
- * Returns cache for precomputed values of type <value_cache_t> for the current thread. */
-extern struct value_cache_t *    valuecache_umgebung(void) ;
+ * Returns cache for precomputed values of type <valuecache_t> for the current thread. */
+extern struct valuecache_t *    valuecache_umgebung(void) ;
 
 // group: internal
 

@@ -1,0 +1,12 @@
+C-kern/test/resourceusage.c:113: error in same_resourceusage()
+The number of used resources is different
+C-kern/test/resourceusage.c:135: error in same_resourceusage()
+Function aborted (err=11)
+C-kern/test/resourceusage.c:119: error in same_resourceusage()
+The number of used resources is different
+C-kern/test/resourceusage.c:135: error in same_resourceusage()
+Function aborted (err=11)
+C-kern/test/resourceusage.c:125: error in same_resourceusage()
+The number of used resources is different
+C-kern/test/resourceusage.c:135: error in same_resourceusage()
+Function aborted (err=11)

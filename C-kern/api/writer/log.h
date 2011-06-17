@@ -34,7 +34,9 @@ typedef struct log_config_t   log_config_t ;
  * Shortcut for internal type <log_buffer_t>. */
 typedef struct log_buffer_t   log_buffer_t ;
 
-/* Used to support basic logging in main thread before anything is initialized.
+/* variable: g_main_logservice
+ * Used to support basic logging in main thread.
+ * Before anything is initialized.
  * Supports also safe logging after freeing the log resource in <umgebung_t>.
  * This logservice is thread safe but supports only rudimentary logging and
  * its configuration can not be changed. */
@@ -78,6 +80,18 @@ struct log_config_t
    // group: implementation
    log_buffer_t   * log_buffer ;
 } ;
+
+// group: initumgebung
+
+/* function: initumgebung_log
+ * Called from <init_umgebung>: same as <new_logconfig>. */
+extern int initumgebung_log(/*out*/log_config_t ** log) ;
+
+/* function: freeumgebung_log
+ * Called from <free_umgebung>: same as <delete_logconfig>.
+ * The only difference is that log is not NULL after return
+ * but set to <g_main_logservice>. */
+extern int freeumgebung_log(log_config_t ** log) ;
 
 // group: lifetime
 

@@ -1,5 +1,5 @@
-/* title: LogUmgebung
-   Makes <LogWriter> accessible as a service.
+/* title: LogHelper
+   Makes <LogWriter> accessible with simple defined functions.
 
    about: Copyright
    This program is free software.
@@ -16,24 +16,15 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umgebung/log.h
-    Header file of <LogUmgebung>.
-
-   file: C-kern/umgebung/log.c
-    Implementation file <LogUmgebung impl>.
+   file: C-kern/api/writer/log_helper.h
+    Header file of <LogHelper>.
 */
-#ifndef CKERN_UMGEBUNG_LOG_HEADER
-#define CKERN_UMGEBUNG_LOG_HEADER
+#ifndef CKERN_WRITER_LOG_HELPER_HEADER
+#define CKERN_WRITER_LOG_HELPER_HEADER
 
 #include "C-kern/api/writer/log.h"
 
 // section: Functions
-
-// group: init
-
-extern int initumgebung_log(/*out*/log_config_t ** log) ;
-
-extern int freeumgebung_log(log_config_t ** log) ;
 
 // group: query
 
@@ -189,14 +180,5 @@ extern int freeumgebung_log(log_config_t ** log) ;
  * > const char * names[] = { "Jo", "Jane" } ;
  * > for(int i = 0; i < 2; ++i) { LOG_INDEX(s,names,i) ; } */
 #define LOG_INDEX(printf_typespec_str,arrname,index)  log_umgebung()->printf( log_umgebung(), #arrname "[%d]=%" printf_typespec_str "\n", i, (arrname)[i])
-
-// group: test
-
-#ifdef KONFIG_UNITTEST
-/* function: unittest_umgebung_log
- * Test initialization process succeeds and functionality of service types. */
-extern int unittest_umgebung_log(void) ;
-#endif
-
 
 #endif

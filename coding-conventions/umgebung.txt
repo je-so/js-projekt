@@ -1,22 +1,52 @@
 title: Umgebung (oriented programming)
 
-»Umgebung« is the German word for environment.
+»Umgebung« is the German word for context or environment.
 
-The Umgebung is an object of type <umgebung_t>.
-It defines a reference to every offered service
-a running thread wants to use.
+Every thread has its own object of <umgebung_t>.
+All global services must be accessed through this context.
 
-Every thread has its own <umgebung_t> object
-so most services can be implemented without
-locking mechanisms or other means to make them
-thread safe.
+This means for all service types except interthread or
+interprocess communication types could be programmed
+without making use of locking mechanisms or other
+means to make them thread safe.
 
-Only basic services which are used for interthread
-or interprocess communications must be programmed
-in a thread safe way.
+about: Accessing Umgebung
+The object of type <umgebung_t> is accessed with <umgebung>.
+For every thread another copy is returned.
 
+about: Main thread
+The main thread which calls the function "int main()"
+and which is created by the operating system must
+call the function <initprocess_umgebung>
+to initialize the context for the main thread.
 
+The difference between the main and other threads is
+that it calls all subsystem initialization functions
+which has to be called only once.
 
+Before the main thread exits (after all other threads
+have exit) it should call <freeprocess_umgebung> to make
+sure all resources are freed.
 
+about: Other threads
+Any additional created thread must call <init_umgebung>
+at its beginning and <free_umgebung> at its end.
+The thread module implementation does this automatically.
+Use <new_osthread> and <delete_osthread> for managing
+additional threads.
 
+about: Internal workings of initprocess
+The function <initprocess_umgebung> calls all functions
+of pattern "int initprocess_NAME(void)"  defined in any submodule
+in the same order as defined in "C-kern/resource/text.db/initprocess".
+This init database is checked against the whole source tree with
+"C-kern/test/static/check_textdb.sh".
+So that no entry is forgotten.
 
+about: Internal workings of initumgebung
+The function <init_umgebung> calls all functions
+of pattern "int initumgebung_NAME(type **)" defined in any submodule
+in the same order as defined in "C-kern/resource/text.db/initumgebung".
+This init database is checked against the whole source tree with
+"C-kern/test/static/check_textdb.sh".
+So that no entry is forgotten.

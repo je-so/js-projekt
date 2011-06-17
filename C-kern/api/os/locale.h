@@ -29,6 +29,16 @@
 
 // section: Functions
 
+// group: initprocess
+
+/* function: initprocess_locale
+ * Called from <initprocess_umgebung>. */
+extern int initprocess_locale(void) ;
+
+/* function: freeprocess_locale
+ * Called from <freeprocess_umgebung>. */
+extern int freeprocess_locale(void) ;
+
 // group: query
 
 /* function: charencoding_locale
@@ -63,5 +73,13 @@ extern int reset_locale(void) ;
 /* function: resetmsg_locale
  * Sets the system messages locale a C program uses after it has started. */
 extern int resetmsg_locale(void) ;
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_os_locale
+ * Tests XXX_locale functions. */
+extern int unittest_os_locale(void) ;
+#endif
 
 #endif

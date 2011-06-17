@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.12  22:01:35
+GenerationDate  := 2011.Jun.17  10:42:57
 GeneratedBy     := Jörg Seebohn
 
 ## Debug

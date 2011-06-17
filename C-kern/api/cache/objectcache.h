@@ -1,4 +1,4 @@
-/* title: ObjectCache
+/* title: Objectcache
    Offers a simple cache mechanism for objects
    needed in submodules either often or which are costly
    to construct or deconstruct.
@@ -22,49 +22,60 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umgebung/object_cache.h
-    Header file of <ObjectCache>.
+   file: C-kern/api/cache/objectcache.h
+    Header file of <Objectcache>.
 
-   file: C-kern/umgebung/object_cache.c
-    Implementation file <ObjectCache impl>.
+   file: C-kern/cache/objectcache.c
+    Implementation file <Objectcache impl>.
 */
-#ifndef CKERN_UMGEBUNG_OBJECTCACHE_HEADER
-#define CKERN_UMGEBUNG_OBJECTCACHE_HEADER
+#ifndef CKERN_CACHE_OBJECTCACHE_HEADER
+#define CKERN_CACHE_OBJECTCACHE_HEADER
 
 #include "C-kern/api/aspect/memoryblock.h"
 
-/* typedef: object_cache_t typedef
- * Export <object_cache_t>. */
-typedef struct object_cache_t    object_cache_t ;
+/* typedef: objectcache_t typedef
+ * Export <objectcache_t>. */
+typedef struct objectcache_t    objectcache_t ;
 
 
 // section: Functions
 
 // group: init
 
-/* function: initumgebung_objectcache
- * Creates new <object_cache_t> and all referenced objects. */
-extern int initumgebung_objectcache(/*out*/object_cache_t ** objectcache) ;
-
-/* function: freeumgebung_objectcache
- * Frees <object_cache_t> and all referenced objects. */
-extern int freeumgebung_objectcache(object_cache_t ** objectcache) ;
-
-
 #ifdef KONFIG_UNITTEST
-/* function: unittest_umgebung_objectcache
+/* function: unittest_cache_objectcache
  * Test allocation and free works. */
-extern int unittest_umgebung_objectcache(void) ;
+extern int unittest_cache_objectcache(void) ;
 #endif
 
 
-/* struct: object_cache_t
+/* struct: objectcache_t
  * Holds pointers to all cached objects. */
-struct object_cache_t {
-   /* variable: vm_rootbuffer
+struct objectcache_t {
+   /* variable: iobuffer
     * Used in <init_vmmappedregions>. */
-   memoryblock_aspect_t    * vm_rootbuffer ;
+   memoryblock_aspect_t    iobuffer ;
 } ;
+
+// group: initumgebung
+
+/* function: initumgebung_objectcache
+ * Creates new <objectcache_t> and all referenced objects. */
+extern int initumgebung_objectcache(/*out*/objectcache_t ** objectcache) ;
+
+/* function: freeumgebung_objectcache
+ * Frees <objectcache_t> and all referenced objects. */
+extern int freeumgebung_objectcache(objectcache_t ** objectcache) ;
+
+// group: lifetime
+
+/* function: new_objectcache
+ * Creates new <objectcache_t> and all referenced objects. */
+extern int new_objectcache(objectcache_t ** objectcache) ;
+
+/* function: delete_objectcache
+ * Frees <objectcache_t> and all referenced objects. */
+extern int delete_objectcache(objectcache_t ** objectcache) ;
 
 // group: change
 
@@ -73,6 +84,6 @@ struct object_cache_t {
  * all cached objects of source are in a freed state and the previous
  * content was transfered to destination. Before the transfer
  * all cached objects in destination are freed. */
-extern int move_objectcache( object_cache_t * destination, object_cache_t * source ) ;
+extern int move_objectcache( objectcache_t * destination, objectcache_t * source ) ;
 
 #endif

@@ -25,9 +25,9 @@
 #ifndef CKERN_OS_VIRTUALMEMORY_HEADER
 #define CKERN_OS_VIRTUALMEMORY_HEADER
 
-#include "C-kern/api/aspect/valuecache.h"
 #include "C-kern/api/aspect/memoryblock.h"
 #include "C-kern/api/aspect/constant/accessmode.h"
+#include "C-kern/api/cache/valuecache.h"
 
 /* typedef: vm_block_t typedef
  * Exports <vm_block_t>. */

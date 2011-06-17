@@ -27,21 +27,24 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/errlog.h"
 #include "C-kern/api/umgebung.h"
-#include "C-kern/api/umgebung/locale.h"
-#include "C-kern/api/umgebung/log.h"
-#include "C-kern/api/umgebung/object_cache.h"
-#include "C-kern/api/umgebung/value_cache.h"
+#include "C-kern/api/cache/objectcache.h"
+#include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/math/int/signum.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/os/filesystem/directory.h"
 #include "C-kern/api/os/filesystem/mmfile.h"
 #include "C-kern/api/os/index/redblacktree.h"
 #include "C-kern/api/os/index/splaytree.h"
+#include "C-kern/api/os/file.h"
+#include "C-kern/api/os/locale.h"
+#include "C-kern/api/os/malloc.h"
 #include "C-kern/api/os/process.h"
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/string/converter.h"
+#include "C-kern/api/test/resourceusage.h"
 
 
 
@@ -225,14 +228,24 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_umgebung) ;
    RUN(unittest_umgebung_default) ;
    RUN(unittest_umgebung_testproxy) ;
-   RUN(unittest_umgebung_log) ;
-   RUN(unittest_umgebung_locale) ;
-   RUN(unittest_umgebung_objectcache) ;
-   RUN(unittest_umgebung_valuecache) ;
+//}
+
+//{ cache unittest
+   RUN(unittest_cache_objectcache) ;
+   RUN(unittest_cache_valuecache) ;
+//}
+
+//{ math unittest
+   RUN(unittest_math_int_signum) ;
+   RUN(unittest_math_int_power2) ;
 //}
 
 //{ string unittest
    RUN(unittest_string_converter) ;
+//}
+
+//{ test unittest
+   RUN(unittest_test_resourceusage) ;
 //}
 
 //{ writer unittest
@@ -240,9 +253,6 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //}
 
 //{ generic unittest
-   // bitmanipulations
-   RUN(unittest_math_int_signum) ;
-   RUN(unittest_math_int_power2) ;
    // list
    // set / dictionary
    // trie (string dictionary)
@@ -256,6 +266,9 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_os_directory) ;
    RUN(unittest_os_memorymappedfile) ;
    // other
+   RUN(unittest_os_file) ;
+   RUN(unittest_os_locale) ;
+   RUN(unittest_os_malloc) ;
    RUN(unittest_os_process) ;
    RUN(unittest_os_thread) ;
    RUN(unittest_os_virtualmemory) ;
