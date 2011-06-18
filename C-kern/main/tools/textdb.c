@@ -38,16 +38,21 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/filesystem/mmfile.h"
 
-typedef struct expression_t         expression_t ;
-typedef struct select_parameter_t   select_parameter_t ;
-typedef struct textdb_t             textdb_t ;
-typedef struct textdb_column_t      textdb_column_t ;
+typedef struct expression_t            expression_t ;
+typedef struct select_parameter_t      select_parameter_t ;
+typedef struct textdb_t                textdb_t ;
+typedef struct textdb_column_t         textdb_column_t ;
+typedef struct depfilename_written_t   depfilename_written_t ;
 
 static void print_err(const char* printf_format, ...) __attribute__ ((__format__ (__printf__, 1, 2))) ;
 
 const char * g_programname = 0 ;
 const char *  g_infilename = 0 ;
 const char * g_outfilename = 0 ;
+char *       g_depfilename = 0 ;
+int          g_depencyfile = 0 ;
+int          g_outfd       = -1 ;
+int          g_depfd       = -1 ;
 
 static void print_err(const char* printf_format, ...)
 {
@@ -64,7 +69,7 @@ static int process_arguments(int argc, const char * argv[])
    g_programname = argv[0] ;
 
    if (argc < 2) {
-      return 1 ;
+      return EINVAL ;
    }
 
    g_infilename = argv[argc-1] ;
@@ -73,16 +78,24 @@ static int process_arguments(int argc, const char * argv[])
       if (     argv[i][0] != '-'
             || argv[i][1] == 0
             || argv[i][2] != 0 ) {
-         return 1 ;
+         return EINVAL ;
       }
       switch(argv[i][1]) {
+      case 'd':
+         g_depencyfile = 1 ;
+         break ;
       case 'o':
          if (i == (argc-2)) {
-            return 1 ;
+            return EINVAL ;
          }
          g_outfilename = argv[++i] ;
          break ;
       }
+   }
+
+   if (  g_depencyfile
+      && !g_outfilename) {
+      return EINVAL ;
    }
 
    return 0 ;
@@ -91,8 +104,10 @@ static int process_arguments(int argc, const char * argv[])
 static int write_file( int outfd, const char * write_start, size_t write_size )
 {
    if (write_size != (size_t) write( outfd, write_start, write_size )) {
-      if (g_outfilename) {
+      if (outfd == g_outfd && g_outfilename) {
          print_err( "Can not write file '%s': %s", g_outfilename, strerror(errno) ) ;
+      } else if (outfd == g_depfd && g_depfilename) {
+         print_err( "Can not write file '%s': %s", g_depfilename, strerror(errno) ) ;
       } else {
          print_err( "Can not write output: %s", strerror(errno) ) ;
       }
@@ -110,6 +125,57 @@ static void skip_space( char ** current_pos, char * end_pos )
    }
    *current_pos = next ;
 }
+
+struct depfilename_written_t
+{
+   depfilename_written_t * next ;
+   char                  * depfilename ;
+} ;
+
+depfilename_written_t  * s_depfilenamewritten_list = 0 ;
+
+static int free_depfilenamewritten(void)
+{
+   while( s_depfilenamewritten_list ) {
+      depfilename_written_t * entry = s_depfilenamewritten_list ;
+      s_depfilenamewritten_list = s_depfilenamewritten_list->next ;
+      free(entry->depfilename) ;
+      free(entry) ;
+   }
+   return 0 ;
+}
+
+static int find_depfilenamewritten(const char * filename)
+{
+   for( depfilename_written_t * next = s_depfilenamewritten_list; next; next = next->next) {
+      if (0 == strcmp( filename, next->depfilename)) {
+         return 0 ;
+      }
+   }
+
+   return ESRCH ;
+}
+
+static int insert_depfilenamewritten(const char * filename)
+{
+   depfilename_written_t * new_entry = malloc(sizeof(depfilename_written_t)) ;
+
+   if (new_entry) {
+      new_entry->depfilename = strdup(filename) ;
+   }
+
+   if (  !new_entry
+      || !new_entry->depfilename) {
+      print_err("Out of memory") ;
+      return ENOMEM ;
+   }
+
+   new_entry->next = s_depfilenamewritten_list ;
+   s_depfilenamewritten_list = new_entry ;
+
+   return 0 ;
+}
+
 
 struct textdb_column_t
 {
@@ -928,7 +994,7 @@ ABBRUCH:
    return 1 ;
 }
 
-static int process_selectcmd( char * start_macro, char * end_macro, int outfd, size_t start_linenr )
+static int process_selectcmd( char * start_macro, char * end_macro, size_t start_linenr )
 {
    int err ;
    select_parameter_t   * select_param = 0 ;
@@ -998,6 +1064,14 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
    err = init_textdb( &dbfile, filename ) ;
    if (err) goto ABBRUCH ;
 
+   if (0 != find_depfilenamewritten(filename)) {
+      err = insert_depfilenamewritten(filename) ;
+      if (err) goto ABBRUCH ;
+      err = write_file( g_depfd, " \\\n ", strlen(" \\\n ") ) ;
+      if (err) goto ABBRUCH ;
+      err = write_file( g_depfd, filename, strlen(filename) ) ;
+      if (err) goto ABBRUCH ;
+   }
    // match select parameter to header of textdb
    for( select_parameter_t * p = select_param; p; p = p->next) {
       if (!p->isString) {
@@ -1046,15 +1120,15 @@ static int process_selectcmd( char * start_macro, char * end_macro, int outfd, s
          textdb_column_t * data = &dbfile.rows[row * dbfile.column_count] ;
          for( const select_parameter_t * p = select_param; p; p = p->next) {
             if (p->isString) {
-               err = write_file( outfd, p->value, p->length ) ;
+               err = write_file( g_outfd, p->value, p->length ) ;
                if (err) goto ABBRUCH ;
             } else {
-               err = write_file( outfd, data[p->col_index].value, data[p->col_index].length ) ;
+               err = write_file( g_outfd, data[p->col_index].value, data[p->col_index].length ) ;
                if (err) goto ABBRUCH ;
             }
          }
 
-         err = write_file( outfd, "\n", 1 ) ;
+         err = write_file( g_outfd, "\n", 1 ) ;
          if (err) goto ABBRUCH ;
       }
    }
@@ -1098,7 +1172,7 @@ static int find_macro(/*out*/char ** start_pos, /*out*/char ** end_pos, /*inout*
    return 1 ;
 }
 
-static int process_macro(const mmfile_t * input_file, int outfd)
+static int process_macro(const mmfile_t * input_file)
 {
    int err ;
    char    * next_input = (char*) addr_mmfile(input_file) ;
@@ -1113,9 +1187,9 @@ static int process_macro(const mmfile_t * input_file, int outfd)
       err = find_macro(&start_macro, &end_macro, &line_number, next_input, input_size) ;
       if (err) break ;
       size_t write_size = (size_t) (end_macro - next_input) ;
-      err = write_file( outfd, next_input, write_size ) ;
+      err = write_file( g_outfd, next_input, write_size ) ;
       if (err) goto ABBRUCH ;
-      err = write_file( outfd, "\n", 1) ;
+      err = write_file( g_outfd, "\n", 1) ;
       if (err) goto ABBRUCH ;
       start_linenr = line_number ;
       input_size  -= write_size ;
@@ -1143,19 +1217,19 @@ static int process_macro(const mmfile_t * input_file, int outfd)
       size_t macro_size = (size_t) (end_macro - start_macro) ;
       if (  macro_size > sizeof("// TEXTDB:SELECT")
             && (0 == strncmp( start_macro, "// TEXTDB:SELECT", sizeof("// TEXTDB:SELECT")-1)) ) {
-         err = process_selectcmd( start_macro, end_macro, outfd, start_linenr) ;
+         err = process_selectcmd( start_macro, end_macro, start_linenr) ;
          if (err) goto ABBRUCH ;
       } else  {
          print_err( "Unknown macro '%.*s' in line: %"PRIuSIZE, macro_size > 16 ? 16 : macro_size, start_macro, start_linenr) ;
          goto ABBRUCH ;
       }
 
-      err = write_file( outfd, "// TEXTDB:END", sizeof("// TEXTDB:END")-1) ;
+      err = write_file( g_outfd, "// TEXTDB:END", sizeof("// TEXTDB:END")-1) ;
       if (err) goto ABBRUCH ;
    }
 
    if ( input_size ) {
-      err = write_file( outfd, next_input, input_size ) ;
+      err = write_file( g_outfd, next_input, input_size ) ;
       if (err) goto ABBRUCH ;
    }
 
@@ -1167,7 +1241,6 @@ ABBRUCH:
 int main(int argc, const char * argv[])
 {
    int err ;
-   int           outfd = -1 ;
    mmfile_t input_file = mmfile_INIT_FREEABLE ;
 
    err = initprocess_umgebung(umgebung_type_DEFAULT) ;
@@ -1178,13 +1251,43 @@ int main(int argc, const char * argv[])
 
    // create out file if -o <filename> is specified
    if (g_outfilename) {
-      outfd = open(g_outfilename, O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
-      if (outfd == -1) {
+      g_outfd = open(g_outfilename, O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
+      if (g_outfd == -1) {
          print_err( "Can not create file '%s' for writing: %s", g_outfilename, strerror(errno) ) ;
          goto ABBRUCH ;
       }
    } else {
-      outfd = STDOUT_FILENO ;
+      g_outfd = STDOUT_FILENO ;
+   }
+
+   if (  g_outfilename
+      && g_depencyfile) {
+      g_depfilename = malloc( strlen(g_outfilename) + 3 ) ;
+      if (!g_depfilename) {
+         print_err("Out of memory") ;
+         goto ABBRUCH ;
+      }
+      strcpy(g_depfilename, g_outfilename) ;
+      if (     strrchr(g_depfilename, '.')
+            && (     ! strrchr(g_depfilename, '/')
+                  ||   strrchr(g_depfilename, '/') < strrchr(g_depfilename, '.'))) {
+         strrchr(g_depfilename, '.')[1] = 'd' ;
+         strrchr(g_depfilename, '.')[2] = 0 ;
+      } else {
+         strcat(g_depfilename, ".d") ;
+      }
+
+      g_depfd = open(g_depfilename, O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
+      if (g_depfd == -1) {
+         print_err( "Can not create file '%s' for writing: %s", g_depfilename, strerror(errno) ) ;
+         goto ABBRUCH ;
+      }
+      err = write_file( g_depfd, g_outfilename, strlen(g_outfilename)) ;
+      if (err) goto ABBRUCH ;
+      err = write_file( g_depfd, ": ", strlen(": ")) ;
+      if (err) goto ABBRUCH ;
+      err = write_file( g_depfd, g_infilename, strlen(g_infilename)) ;
+      if (err) goto ABBRUCH ;
    }
 
    // open input file for reading
@@ -1195,32 +1298,56 @@ int main(int argc, const char * argv[])
    }
 
    // parse input => expand macros => write output
-   err = process_macro( &input_file, outfd ) ;
+   err = process_macro( &input_file ) ;
    if (err) goto ABBRUCH ;
 
    // flush output to disk
    if (g_outfilename) {
-      err = close(outfd) ;
+      err = close(g_outfd) ;
+      g_outfd = -1 ;
       if (err) {
          print_err( "Can not write file '%s': %s", g_outfilename, strerror(errno) ) ;
          goto ABBRUCH ;
       }
    }
 
+   if (-1 != g_depfd) {
+      err = write_file( g_depfd, "\n", strlen("\n") ) ;
+      if (err) goto ABBRUCH ;
+      err = close(g_depfd) ;
+      g_depfd = -1 ;
+      if (err) {
+         print_err( "Can not write file '%s': %s", g_depfilename, strerror(errno) ) ;
+         goto ABBRUCH ;
+      }
+   }
+
+   free(g_depfilename) ;
+   g_depfilename = 0 ;
+
+   free_mmfile(&input_file) ;
    freeprocess_umgebung() ;
+   free_depfilenamewritten() ;
    return 0 ;
 PRINT_USAGE:
    dprintf(STDERR_FILENO, "TextDB version 0.1 - Copyright (c) 2011 Joerg Seebohn\n" ) ;
    dprintf(STDERR_FILENO, "%s", "* TextDB is a textdb macro preprocessor.\n" ) ;
-   dprintf(STDERR_FILENO, "%s", "* It reads a C source file and translates it into a C source file\n" ) ;
-   dprintf(STDERR_FILENO, "%s", "* whereupon textdb macros are expanded.\n" ) ;
-   dprintf(STDERR_FILENO, "\nUsage: %s [-o <out.c>] <in.c>\n\n", g_programname ) ;
+   dprintf(STDERR_FILENO, "%s", "* It reads a C source file and expands the contained textdb macros.\n" ) ;
+   dprintf(STDERR_FILENO, "%s", "* The result is written to stdout or <out.c>.\n" ) ;
+   dprintf(STDERR_FILENO, "\nUsage:   %s [[-d] -o <out.c>] <in.c>\n", g_programname ) ;
+   dprintf(STDERR_FILENO, "\nOptions: -d: Write makefile dependency rule to <out.d>\n\n") ;
 ABBRUCH:
-   if (g_outfilename && outfd != -1) {
-      close(outfd) ;
+   if (g_outfilename && g_outfd != -1) {
+      close(g_outfd) ;
       unlink(g_outfilename) ;
+   }
+   if (g_depfd != -1) {
+      close(g_depfd) ;
+      unlink(g_depfilename) ;
+      free(g_depfilename) ;
    }
    free_mmfile(&input_file) ;
    freeprocess_umgebung() ;
+   free_depfilenamewritten() ;
    return 1 ;
 }
