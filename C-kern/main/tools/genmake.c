@@ -73,7 +73,6 @@ const char * const g_varModes    = "Modes" ;    // example: Modes = Debug Releas
 const char * const g_varObjectdir= "Objectdir" ;// example: Objectdir =  obj/$(mode)
 const char * const g_varSrc      = "Src" ;      // example: Src =  src/gui/*.c
 const char * const g_varTarget   = "Target" ;   // example: Target =  bin/$(projectname)_$(mode)
-const char * const g_prefixPathOffset = "$(PathOffset)" ;
 
 
 #ifdef __GNUC__
@@ -114,7 +113,7 @@ void free_stringarray( stringarray_t** array)
    }
 }
 
-int ccopy_stringarray( size_t size, char ** strings, const char * prefix, stringarray_t** result)
+int ccopy_stringarray( size_t size, char ** strings, stringarray_t** result)
 {
    assert( size == 0 || strings != 0 ) ;
 
@@ -123,8 +122,7 @@ int ccopy_stringarray( size_t size, char ** strings, const char * prefix, string
       return 1 ;
    }
 
-   size_t prefixlen = strlen(prefix?prefix:"") ;
-   size_t valuelen  = size * prefixlen ;
+   size_t valuelen  = 0 ;
    for(size_t i = 0; i < size; ++i) {
          valuelen += strlen(strings[i]) ;
    }
@@ -138,9 +136,8 @@ int ccopy_stringarray( size_t size, char ** strings, const char * prefix, string
    char * stringvalue = ((char*)(*result)) + sizeof(stringarray_t) + size * sizeof(char*) ;
    for(size_t i = 0; i < size; ++i) {
       (*result)->strings[i] = stringvalue ;
-      if (prefixlen) strcpy( stringvalue, prefix ) ;
-      strcpy( stringvalue+prefixlen, strings[i]) ;
-      stringvalue += strlen(strings[i]) + prefixlen + 1 ;
+      strcpy( stringvalue, strings[i]) ;
+      stringvalue += strlen(strings[i]) + 1 ;
    }
    assert( stringvalue == ((char*)(*result))+(sizeof(stringarray_t) + size * (1+sizeof(char*)) + valuelen) ) ;
    return 0 ;
@@ -486,12 +483,6 @@ ABBRUCH:
    free(genmake) ;
    free_hashtable(&hashindex) ;
    return 1 ;
-}
-
-static const char * ifGetprefix(const char * path)
-{
-   assert(path) ;
-   return ('/' == path[0]) ? "" : g_prefixPathOffset ;
 }
 
 static char * get_directory(const char * path)
@@ -965,16 +956,15 @@ int build_konfiguration(genmakeproject_t * genmake)
          stringarray_t * strarray = 0 ;
          if (new_stringarray( value2, " \t", &strarray)) goto ABBRUCH ;
          free(value2) ;
-         konfig->includes[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_includesprefix)+strlen(konfig->modes[m])+strlen(g_prefixPathOffset))) ;
+         konfig->includes[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_includesprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->includes[m]) { print_err("Out of memory!\n") ; goto ABBRUCH ; }
          int size = 0 ;
          for(uint16_t i = 0; i < strarray->size; ++i) {
             size += sprintf(konfig->includes[m]+size, g_includesprefix, konfig->modes[m]) ;
-            if ('/' != strarray->strings[i][0]) size += sprintf(konfig->includes[m]+size, "%s", g_prefixPathOffset) ;
             size += sprintf(konfig->includes[m]+size, "%s", strarray->strings[i]) ;
          }
          konfig->includes[m][size] = 0 ;
-         assert( size <= (int)(strarray->valueslen + strarray->size * (strlen(g_includesprefix)-2+strlen(konfig->modes[m])+strlen(g_prefixPathOffset)))) ;
+         assert( size <= (int)(strarray->valueslen + strarray->size * (strlen(g_includesprefix)-2+strlen(konfig->modes[m])))) ;
          free_stringarray(&strarray) ;
       }
 
@@ -1008,12 +998,11 @@ int build_konfiguration(genmakeproject_t * genmake)
          stringarray_t * strarray = 0 ;
          if (new_stringarray( value2, " \t", &strarray)) goto ABBRUCH ;
          free(value2) ;
-         konfig->libpath[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_libpathprefix)+strlen(konfig->modes[m])+strlen(g_prefixPathOffset))) ;
+         konfig->libpath[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_libpathprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->libpath[m]) { print_err("Out of memory!\n") ; goto ABBRUCH ; }
          konfig->libpath[m][0] = 0 ;
          for(uint16_t i = 0; i < strarray->size; ++i) {
             sprintf( konfig->libpath[m]+strlen(konfig->libpath[m]), g_libpathprefix, konfig->modes[m]) ;
-            if ('/' != strarray->strings[i][0]) strcat( konfig->libpath[m], g_prefixPathOffset) ;
             strcat( konfig->libpath[m], strarray->strings[i]) ;
          }
          free_stringarray(&strarray) ;
@@ -1068,8 +1057,8 @@ int build_konfiguration(genmakeproject_t * genmake)
             }
          }
          free_stringarray(&searchpatterns) ;
-         if (ccopy_stringarray( foundfiles.gl_pathc, foundfiles.gl_pathv, g_prefixPathOffset, &konfig->src_files[m])) errflag = 1 ;
-         if (ccopy_stringarray( foundfiles.gl_pathc, foundfiles.gl_pathv, 0, &konfig->obj_files[m])) errflag = 1 ;
+         if (ccopy_stringarray( foundfiles.gl_pathc, foundfiles.gl_pathv, &konfig->src_files[m])) errflag = 1 ;
+         if (ccopy_stringarray( foundfiles.gl_pathc, foundfiles.gl_pathv, &konfig->obj_files[m])) errflag = 1 ;
          if (foundfiles.gl_pathv) globfree(&foundfiles) ;
          if (errflag) goto ABBRUCH ;
       }
@@ -1128,8 +1117,8 @@ int build_konfiguration(genmakeproject_t * genmake)
                goto ABBRUCH ;
             }
          }
-         if (  ccopy_stringarray(genmake->links_count, linktargets, 0, &konfig->linktargets[m])
-            || ccopy_stringarray(genmake->links_count, linkmodefrom, 0, &konfig->linkmodefrom[m])) {
+         if (  ccopy_stringarray(genmake->links_count, linktargets, &konfig->linktargets[m])
+            || ccopy_stringarray(genmake->links_count, linkmodefrom, &konfig->linkmodefrom[m])) {
             free(linktargets) ;
             free(linkmodefrom) ;
             goto ABBRUCH ;
@@ -1394,84 +1383,14 @@ static int read_projectfile(genmakeproject_t * genmake)
 int write_makefile(
    genmakeproject_t * genmake,
    const char*  makefilename, /*NULL => use stdout*/
-   int          isDirectory,
-   const char*  makebasedir   /*future working directory of a running make process*/
-                              /*directories in *genmake are stored relative to current working directory*/
-                              /*if makebasedir != NULL paths are adapted*/
+   int          isDirectory
    )
 {
    int err = 1 ;
    konfigvalues_t * konfig = genmake->konfig ;
    char * constructed_filename = 0 ;
-   char * path_offset = 0 ;
    FILE * makefile = stdout ;
    struct stat makefilestat ;
-   char workingdir[PATH_MAX+2] = {0} ;
-
-   if (! getcwd(workingdir, PATH_MAX)) {
-      print_err( "current working directory too long\n") ;
-      goto ABBRUCH ;
-   }
-   if (0==strlen(workingdir) || workingdir[strlen(workingdir)-1] != '/') {
-      strcat(workingdir, "/") ;
-   }
-   assert( '/' == workingdir[0] ) ;
-
-   if (makebasedir) {
-      size_t mbdlen = strlen(makebasedir) ;
-      size_t mbdi = 0 ;
-      size_t wdi  = strlen(workingdir)-1 ;
-      while (0==strncmp(makebasedir+mbdi,"..",2) && ('/' == makebasedir[mbdi+2] || 0 == makebasedir[mbdi+2])) {
-         // adapt workingdir to leading ../
-         mbdi += 2 + ('/' == makebasedir[mbdi+2]) ;
-         while( wdi && workingdir[wdi-1] != '/') --wdi ;
-         if (!wdi) {
-            print_err( "path given in -md '%s' contains to many leading '../'\n", makebasedir) ;
-            goto ABBRUCH ;
-         }
-         --wdi ;
-      }
-      if (  !strcmp(makebasedir, "." )
-         || !strncmp(makebasedir, "./", 2)
-         || (mbdlen >= 2 && !strcmp(makebasedir+mbdlen-2, "/."))
-         || strstr(makebasedir, "/./")
-         || strstr(makebasedir, "//")
-         || strstr(makebasedir+mbdi, "/../")
-         || (mbdlen >= (mbdi+3) && !strcmp(makebasedir+mbdlen-3, "/.."))
-         ) {
-         print_err( "path given in -md '%s' contains '.', '//' or '..'\n", makebasedir) ;
-         goto ABBRUCH ;
-      }
-      size_t upcount ;
-      {  char * makebasedirABS ;
-         makebasedirABS = (char*) malloc((wdi + 1) + mbdlen - mbdi + 2) ;
-         if (!makebasedirABS) {
-            print_err( "Out of memory!\n" ) ;
-            goto ABBRUCH ;
-         }
-         if ('/' == makebasedir[0]) {
-            strcpy(makebasedirABS, makebasedir) ;
-         } else {
-            strncpy(makebasedirABS, workingdir, wdi+1 ) ;
-            strcpy(&makebasedirABS[wdi+1], &makebasedir[mbdi]) ;
-         }
-         if (makebasedirABS[strlen(makebasedirABS)-1] != '/') strcat(makebasedirABS, "/") ;
-         for(mbdi = 0 ; makebasedirABS[mbdi] && makebasedirABS[mbdi] == workingdir[mbdi]; ++mbdi) { }
-         while( makebasedirABS[mbdi-1] != '/' ) --mbdi ;
-         wdi = mbdi ;
-         for( upcount = 0 ; makebasedirABS[mbdi]; ++mbdi ) {
-            if (makebasedirABS[mbdi] == '/') ++upcount ;
-         }
-         free(makebasedirABS) ;
-      }
-      path_offset = (char*) malloc(3*upcount+strlen(&workingdir[wdi])+1) ;
-      if (!path_offset) {
-         print_err( "Out of memory!\n" ) ;
-         goto ABBRUCH ;
-      }
-      for( path_offset[0] = 0 ; upcount; --upcount) { strcat(path_offset, "../") ; }
-      strcat( path_offset, &workingdir[wdi]) ;
-   }
 
    if (makefilename) {
       size_t cfnamelen = strlen(makefilename) ;
@@ -1522,13 +1441,12 @@ int write_makefile(
    fprintf(makefile, "ProjectName     := %s\n", genmake->name) ;
    fprintf(makefile, "ProjectModes    :=") ;
    for(uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, " %s", konfig->modes[m]) ;
-   fprintf(makefile, "\nPathOffset      := %s", path_offset?path_offset:"") ;
-   fprintf(makefile, "\nProjectFile     := %s%s", ifGetprefix(genmake->filename), genmake->filename) ;
+   fprintf(makefile, "\nProjectFile     := %s", genmake->filename) ;
    fprintf(makefile, "\nProjectLinks    := ") ;
    uint16_t li = 0 ;
    for(linkcommand_t * l = genmake->links; li < genmake->links_count; ++li) {
       l = l->next ; if (li) fprintf(makefile, "\\\n                   ") ;
-      fprintf(makefile, "%s%s (", ifGetprefix(l->filename), l->filename) ;
+      fprintf(makefile, "%s (", l->filename) ;
       for(uint16_t m = 0; m < konfig->modecount; ++m) {
          fprintf(makefile, " %s", konfig->linkmodefrom[m]->strings[li]) ;
       }
@@ -1552,9 +1470,9 @@ int write_makefile(
       fprintf(makefile, "Includes_%s      :=%s\n", konfig->modes[m], konfig->includes[m]) ;
       fprintf(makefile, "Libraries_%s     :=%s\n", konfig->modes[m], konfig->libs[m]) ;
       fprintf(makefile, "Libpath_%s       :=%s\n", konfig->modes[m], konfig->libpath[m]) ;
-      fprintf(makefile, "ObjectDir_%s     := %s%s\n", konfig->modes[m], ifGetprefix(konfig->objectfiles_directory[m]), konfig->objectfiles_directory[m]) ;
-      fprintf(makefile, "TargetDir_%s     := %s%s\n", konfig->modes[m], ifGetprefix(konfig->target_directory[m]), konfig->target_directory[m]) ;
-      fprintf(makefile, "Target_%s        := %s%s\n", konfig->modes[m], ifGetprefix(konfig->target_filename[m]),konfig->target_filename[m]) ;
+      fprintf(makefile, "ObjectDir_%s     := %s\n", konfig->modes[m], konfig->objectfiles_directory[m]) ;
+      fprintf(makefile, "TargetDir_%s     := %s\n", konfig->modes[m], konfig->target_directory[m]) ;
+      fprintf(makefile, "Target_%s        := %s\n", konfig->modes[m], konfig->target_filename[m]) ;
       fprintf(makefile, "Libs_%s          := $(Libpath_%s) $(Libraries_%s)\n", konfig->modes[m], konfig->modes[m], konfig->modes[m]) ;
       fprintf(makefile, "CC_%s            = %s\n", konfig->modes[m], konfig->compiler[m]) ;
       fprintf(makefile, "LD_%s            = %s\n", konfig->modes[m], konfig->linker[m]) ;
@@ -1591,7 +1509,7 @@ int write_makefile(
          fprintf(makefile, " \\\n $(ObjectDir_%s)/%s.o", konfig->modes[m], konfig->obj_files[m]->strings[f]) ;
       }
       for(uint16_t l = 0; l < konfig->linktargets[m]->size; ++l) {
-         fprintf(makefile, " \\\n %s%s", ifGetprefix(konfig->linktargets[m]->strings[l]), konfig->linktargets[m]->strings[l]) ;
+         fprintf(makefile, " \\\n %s", konfig->linktargets[m]->strings[l]) ;
       }
       fprintf(makefile, "\n") ;
    }
@@ -1618,7 +1536,6 @@ int write_makefile(
 ABBRUCH:
    if (makefile && makefile != stdout) fclose(makefile) ;
    free(constructed_filename) ;
-   free(path_offset) ;
    return err ;
 }
 
@@ -1635,23 +1552,16 @@ int main(int argc, char* argv[])
       goto PRINT_USAGE ;
    }
 
-   if (0==strcmp(argv[1], "-h")) {
+   if (0 == strcmp(argv[1], "-h")) {
       isPrintHelp = 1 ;
       goto PRINT_USAGE ;
    }
 
    const char * makefilename  = 0 ;
-   const char * makebasedir   = 0 ;
    int currentArgIndex = 1 ;
-   if (0==strcmp(argv[currentArgIndex], "-o")) {
+   if (0 == strcmp(argv[currentArgIndex], "-o")) {
       if (argc < currentArgIndex+3) goto PRINT_USAGE ;
       makefilename = argv[currentArgIndex+1] ;
-      currentArgIndex += 2 ;
-   }
-
-   if (0==strcmp(argv[currentArgIndex], "-md")) {
-      if (argc < currentArgIndex+3) goto PRINT_USAGE ;
-      makebasedir  = argv[currentArgIndex+1] ;
       currentArgIndex += 2 ;
    }
 
@@ -1667,7 +1577,7 @@ int main(int argc, char* argv[])
          err = 1 ;
       } else if (build_konfiguration(genmake)) {
          err = 1 ;
-      } else if (write_makefile(genmake, makefilename, isDirectory, makebasedir )) {
+      } else if (write_makefile(genmake, makefilename, isDirectory )) {
          err = 1 ;
       }
 

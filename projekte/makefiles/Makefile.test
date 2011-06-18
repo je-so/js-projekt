@@ -3,11 +3,10 @@
 ##
 ProjectName     := test
 ProjectModes    := Debug Release
-PathOffset      := 
-ProjectFile     := $(PathOffset)projekte/test.prj
+ProjectFile     := projekte/test.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.18  09:13:29
+GenerationDate  := 2011.Jun.18  17:51:24
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -18,12 +17,12 @@ LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST
-Includes_Debug      := $(IncludeFlag_Debug)$(PathOffset).
+Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
 Libpath_Debug       :=
-ObjectDir_Debug     := $(PathOffset)bin/Debug/test
-TargetDir_Debug     := $(PathOffset)bin
-Target_Debug        := $(PathOffset)bin/test_Debug
+ObjectDir_Debug     := bin/Debug/test
+TargetDir_Debug     := bin
+Target_Debug        := bin/test_Debug
 Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
 CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
 LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
@@ -36,12 +35,12 @@ LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST
-Includes_Release      := $(IncludeFlag_Release)$(PathOffset).
+Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
 Libpath_Release       :=
-ObjectDir_Release     := $(PathOffset)bin/Release/test
-TargetDir_Release     := $(PathOffset)bin
-Target_Release        := $(PathOffset)bin/test
+ObjectDir_Release     := bin/Release/test
+TargetDir_Release     := bin
+Target_Release        := bin/test
 Libs_Release          := $(Libpath_Release) $(Libraries_Release)
 CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
 LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
@@ -128,136 +127,136 @@ $(Target_Debug): $(Objects_Debug)
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: $(PathOffset)C-kern/main/unittest_main.c
+$(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: $(PathOffset)C-kern/test/run_unittest.c
+$(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: $(PathOffset)C-kern/os/Linux/process.c
+$(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o: $(PathOffset)C-kern/os/Linux/directory.c
+$(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o: C-kern/os/Linux/directory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: $(PathOffset)C-kern/os/Linux/thread.c
+$(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
+$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!file.c.o: $(PathOffset)C-kern/os/Linux/file.c
+$(ObjectDir_Debug)/C-kern!os!Linux!file.c.o: C-kern/os/Linux/file.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
+$(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
+$(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o: $(PathOffset)C-kern/os/shared/malloc.c
+$(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o: C-kern/os/shared/malloc.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o: $(PathOffset)C-kern/os/shared/index/splaytree.c
+$(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o: C-kern/os/shared/index/splaytree.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o: $(PathOffset)C-kern/os/shared/index/redblacktree.c
+$(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o: C-kern/os/shared/index/redblacktree.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: $(PathOffset)C-kern/cache/valuecache.c
+$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: $(PathOffset)C-kern/cache/objectcache.c
+$(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/signum.c
+$(ObjectDir_Debug)/C-kern!math!int!signum.c.o: C-kern/math/int/signum.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!math!int!power2.c.o: $(PathOffset)C-kern/math/int/power2.c
+$(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!string!converter.c.o: $(PathOffset)C-kern/string/converter.c
+$(ObjectDir_Debug)/C-kern!string!converter.c.o: C-kern/string/converter.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: $(PathOffset)C-kern/test/resourceusage.c
+$(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o: C-kern/umgebung/umgebung_inittestproxy.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o: $(PathOffset)C-kern/umgebung/umgebung_initdefault.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o: C-kern/umgebung/umgebung_initdefault.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!writer!log.c.o: $(PathOffset)C-kern/writer/log.c
+$(ObjectDir_Debug)/C-kern!writer!log.c.o: C-kern/writer/log.c
 	@$(CC_Debug)
 
-$(ObjectDir_Release)/C-kern!main!unittest_main.c.o: $(PathOffset)C-kern/main/unittest_main.c
+$(ObjectDir_Release)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!test!run_unittest.c.o: $(PathOffset)C-kern/test/run_unittest.c
+$(ObjectDir_Release)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!process.c.o: $(PathOffset)C-kern/os/Linux/process.c
+$(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!directory.c.o: $(PathOffset)C-kern/os/Linux/directory.c
+$(ObjectDir_Release)/C-kern!os!Linux!directory.c.o: C-kern/os/Linux/directory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: $(PathOffset)C-kern/os/Linux/thread.c
+$(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: $(PathOffset)C-kern/os/Linux/virtmemory.c
+$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!file.c.o: $(PathOffset)C-kern/os/Linux/file.c
+$(ObjectDir_Release)/C-kern!os!Linux!file.c.o: C-kern/os/Linux/file.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: $(PathOffset)C-kern/os/Linux/mmfile.c
+$(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!locale.c.o: $(PathOffset)C-kern/os/shared/locale.c
+$(ObjectDir_Release)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!malloc.c.o: $(PathOffset)C-kern/os/shared/malloc.c
+$(ObjectDir_Release)/C-kern!os!shared!malloc.c.o: C-kern/os/shared/malloc.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o: $(PathOffset)C-kern/os/shared/index/splaytree.c
+$(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o: C-kern/os/shared/index/splaytree.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o: $(PathOffset)C-kern/os/shared/index/redblacktree.c
+$(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o: C-kern/os/shared/index/redblacktree.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: $(PathOffset)C-kern/cache/valuecache.c
+$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!cache!objectcache.c.o: $(PathOffset)C-kern/cache/objectcache.c
+$(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!math!int!signum.c.o: $(PathOffset)C-kern/math/int/signum.c
+$(ObjectDir_Release)/C-kern!math!int!signum.c.o: C-kern/math/int/signum.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!math!int!power2.c.o: $(PathOffset)C-kern/math/int/power2.c
+$(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!string!converter.c.o: $(PathOffset)C-kern/string/converter.c
+$(ObjectDir_Release)/C-kern!string!converter.c.o: C-kern/string/converter.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!test!resourceusage.c.o: $(PathOffset)C-kern/test/resourceusage.c
+$(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o: $(PathOffset)C-kern/umgebung/umgebung_inittestproxy.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o: C-kern/umgebung/umgebung_inittestproxy.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o: $(PathOffset)C-kern/umgebung/umgebung_initdefault.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o: C-kern/umgebung/umgebung_initdefault.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: $(PathOffset)C-kern/umgebung/umgebung.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!writer!log.c.o: $(PathOffset)C-kern/writer/log.c
+$(ObjectDir_Release)/C-kern!writer!log.c.o: C-kern/writer/log.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)
