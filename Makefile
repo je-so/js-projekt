@@ -7,9 +7,11 @@
 # build modes
 .PHONY: Debug Release
 # sub projects
-.PHONY: genmake resources textrescompiler textdb test
+.PHONY: genmake preprocess resources testchildprocess textrescompiler textdb test
 # release versions of some sub projects
-.PHONY: genmake_Release textrescompiler_Release textdb_Release
+.PHONY: genmake_Release testchildprocess_Release textrescompiler_Release textdb_Release test_Release
+# debug versions of some sub projects
+.PHONY: genmake_Debug testchildprocess_Debug textrescompiler_Debug textdb_Debug test_Debug
 
 
 # options
@@ -56,14 +58,17 @@ makefiles: \
 $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.gcc | genmake_Release
 	@bin/genmake $< > "$(@)"
 
+preprocess: | textdb_Release
+
 resources: | textrescompiler_Release
 
-test: | resources testchildprocess
+test test_Release test_Debug: | resources testchildprocess_Release
 
-genmake textrescompiler resources testchildprocess textdb test:
+genmake preprocess resources textrescompiler testchildprocess textdb test:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(@) ; then make -f $(MAKEFILES_PREFIX)$(@) ; fi
 
-genmake_Release textrescompiler_Release textdb_Release:
+genmake_Release textrescompiler_Release testchildprocess_Release textdb_Release test_Release\
+genmake_Debug   textrescompiler_Debug   testchildprocess_Debug   textdb_Debug   test_Debug:
 	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then make -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
 
 Release Debug: $(MAKEFILES_PREFIX)textrescompiler \

@@ -7,7 +7,7 @@ PathOffset      :=
 ProjectFile     := $(PathOffset)projekte/genmake.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.17  10:42:57
+GenerationDate  := 2011.Jun.18  09:13:29
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -55,9 +55,9 @@ init:  init_Debug init_Release
 init_Debug: $(ObjectDir_Debug) $(TargetDir_Debug)
 init_Release: $(ObjectDir_Release) $(TargetDir_Release)
 
-Debug: $(Target_Debug)
+Debug: init_Debug $(Target_Debug)
 
-Release: $(Target_Release)
+Release: init_Release $(Target_Release)
 
 clean_Debug:
 	@rm -f "$(ObjectDir_Debug)/"*.[od]
@@ -83,11 +83,9 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!tools!genmake.c.o
 
 $(Target_Debug): $(Objects_Debug)
-$(Target_Debug): | $(ObjectDir_Debug) $(TargetDir_Debug)
 	@$(LD_Debug)
 
 $(Target_Release): $(Objects_Release)
-$(Target_Release): | $(ObjectDir_Release) $(TargetDir_Release)
 	@$(LD_Release)
 
 $(ObjectDir_Debug)/C-kern!tools!hash.c.o: $(PathOffset)C-kern/tools/hash.c

@@ -1570,7 +1570,7 @@ int write_makefile(
    fprintf(makefile, "\n") ;
 
    for(uint16_t m = 0; m < konfig->modecount; ++m) {
-      fprintf(makefile, "\n%s: $(Target_%s)\n", konfig->modes[m], konfig->modes[m]) ;
+      fprintf(makefile, "\n%s: init_%s $(Target_%s)\n", konfig->modes[m], konfig->modes[m], konfig->modes[m]) ;
    }
    for(uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\nclean_%s:\n", konfig->modes[m]) ;
@@ -1598,7 +1598,6 @@ int write_makefile(
 
    for(uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\n$(Target_%s): $(Objects_%s)", konfig->modes[m], konfig->modes[m]) ;
-      fprintf(makefile, "\n$(Target_%s): | $(ObjectDir_%s) $(TargetDir_%s)", konfig->modes[m], konfig->modes[m], konfig->modes[m]) ;
       fprintf(makefile, "\n\t@$(LD_%s)\n", konfig->modes[m]) ;
    }
 
