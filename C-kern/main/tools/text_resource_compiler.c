@@ -538,18 +538,21 @@ static int isPreprocessorToken(const char * string)
       return false ;
 }
 
-int write_cheaderfile(resourcefile_t * resfile, const char * C_HeaderFilename, const char * switchlabel, const char * labelprefix)
+int write_cheaderfile(resourcefile_t * resfile, const char * C_HeaderFilename, const char * guardlabel, const char * switchlabel, const char * labelprefix)
 {
    assert(resfile && C_HeaderFilename && switchlabel && labelprefix) ;
    int err = 1 ;
    struct stat   filestat ;
    FILE        * outfile       = 0 ;
-   char        * header_define = strdup( C_HeaderFilename ) ;
+   char        * header_define = malloc( 1 + strlen("_HEADER") + strlen( guardlabel ? guardlabel : C_HeaderFilename )) ;
 
    if (!header_define) {
       print_err( "Out of memory!\n" ) ;
       goto ABBRUCH ;
    }
+
+   strcpy( header_define, guardlabel ? guardlabel : C_HeaderFilename) ;
+   if (!guardlabel) strcat( header_define, "_HEADER") ;
 
    if (0==stat( C_HeaderFilename, &filestat)) {
       print_err( "File '%s' already exists.\n", C_HeaderFilename ) ;
@@ -572,14 +575,14 @@ int write_cheaderfile(resourcefile_t * resfile, const char * C_HeaderFilename, c
          header_define[o++] = (char) ('A' + (header_define[i]-'a')) ;
       } else if ('A' <= header_define[i] && header_define[i] <= 'Z') {
          header_define[o++] = header_define[i] ;
-      } else if ('/' == header_define[i]) {
+      } else if ('/' == header_define[i] || '_' == header_define[i]) {
          header_define[o++] = '_' ;
       }
    }
    header_define[o] = 0 ;
 
    fprintf( outfile, "%s", "/*\n * Generated from R(esource)TextCompiler\n */\n" ) ;
-   fprintf( outfile, "#ifndef %s_HEADER\n#define %s_HEADER\n\n", header_define, header_define ) ;
+   fprintf( outfile, "#ifndef %s\n#define %s\n\n", header_define, header_define ) ;
    textresource_t * text = resfile->first ;
    if (text && text->nextLang) {
       for(size_t langindex = 1; text ; text = text->nextLang, ++langindex) {
@@ -665,10 +668,18 @@ int main(int argc, char* argv[])
    int currentArgIndex = 1 ;
    const char * C_HeaderFilename = 0 ;
    const char * switchlabel = "LANGUAGE" ;
+   const char * guardlabel  = 0 ;
    const char * labelprefix = "" ;
    if (0 == strcmp(argv[currentArgIndex], "-c")) {
       if (argc < currentArgIndex+3) goto PRINT_USAGE ;
       C_HeaderFilename = argv[++ currentArgIndex] ;
+      ++ currentArgIndex ;
+   }
+
+   if (     0 == strcmp(argv[currentArgIndex], "-g")
+         || 0 == strcmp(argv[currentArgIndex], "--guard")) {
+      if (argc < currentArgIndex+3) goto PRINT_USAGE ;
+      guardlabel = argv[++ currentArgIndex] ;
       ++ currentArgIndex ;
    }
 
@@ -689,15 +700,15 @@ int main(int argc, char* argv[])
    if (!C_HeaderFilename) goto PRINT_USAGE ;
    if (currentArgIndex+1 != argc) goto PRINT_USAGE ;
 
-   int err ;
-   for(err = 0; !err && currentArgIndex < argc; ++currentArgIndex) {
+   int err = 0 ;
+   {
       resourcefile_t * resfile = 0 ;
 
       if (new_resourcefile(&resfile, argv[currentArgIndex])) {
          err = 1 ;
       } else if (read_textresourcefile(resfile)) {
          err = 1 ;
-      } else if (write_cheaderfile(resfile, C_HeaderFilename, switchlabel, labelprefix)) {
+      } else if (write_cheaderfile(resfile, C_HeaderFilename, guardlabel, switchlabel, labelprefix)) {
          err = 1 ;
       }
 
@@ -708,13 +719,13 @@ int main(int argc, char* argv[])
 
 PRINT_USAGE:
    fprintf(stderr, "ResourceTextCompiler version 0.1; Copyright (C) 2010 Joerg Seebohn\n" ) ;
-   fprintf(stderr, "\nUsage(1): %s -c <C-header.h> [-s <label>] [-p <prefix>] <resource.text>\n\n", g_programname ) ;
-   fprintf(stderr, "%s", "Generates a C header file whereas a text entry in <resource.text> is represented as a defined string.\n") ;
-   fprintf(stderr, "%s", "-s is used to set the name of the defined switch which is used to configure the language\n") ;
-   fprintf(stderr, "%s", "during compile time (#if (<label> == en) ... #elif (<label> == de) ...).\n") ;
-   fprintf(stderr, "%s", "LANGUAGE is used as default value if no value is set.\n") ;
+   fprintf(stderr, "%s", "Generates a C header file which represents text resources as defined strings.\n") ;
+   fprintf(stderr, "\nUsage(1): %s -c <C-header.h> [-g <guard>] [-s <label>] [-p <prefix>] <resource.text>\n\n", g_programname ) ;
+   fprintf(stderr, "%s", "-g is used to set the name of the guard\n   '#ifdef <guard>' is written to the beginning of a generated C header file\n") ;
+   fprintf(stderr, "%s", "-s is used to set the name of define which switches between languages\n") ;
+   fprintf(stderr, "%s", "   LANGUAGE is used as default value if no value is set.\n") ;
    fprintf(stderr, "%s", "-p is used to set the prefix of the generated names.\n") ;
-   fprintf(stderr, "%s", "The prefix is left empty if no value is set.\n") ;
+   fprintf(stderr, "%s", "   The prefix is left empty if no value is set.\n") ;
 
    if (isPrintHelp) {
       // fprintf(stderr, "%s", "\nSyntax of text resource file\n" ) ;
