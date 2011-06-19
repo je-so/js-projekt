@@ -51,6 +51,7 @@ const char *  g_infilename = 0 ;
 const char * g_outfilename = 0 ;
 char *       g_depfilename = 0 ;
 int          g_depencyfile = 0 ;
+int          g_foverwrite  = 0 ;
 int          g_outfd       = -1 ;
 int          g_depfd       = -1 ;
 
@@ -83,6 +84,9 @@ static int process_arguments(int argc, const char * argv[])
       switch(argv[i][1]) {
       case 'd':
          g_depencyfile = 1 ;
+         break ;
+      case 'f':
+         g_foverwrite = 1 ;
          break ;
       case 'o':
          if (i == (argc-2)) {
@@ -1242,6 +1246,7 @@ int main(int argc, const char * argv[])
 {
    int err ;
    mmfile_t input_file = mmfile_INIT_FREEABLE ;
+   int      exclflag   = O_EXCL ;
 
    err = initprocess_umgebung(umgebung_type_DEFAULT) ;
    if (err) goto ABBRUCH ;
@@ -1249,9 +1254,11 @@ int main(int argc, const char * argv[])
    err = process_arguments(argc, argv) ;
    if (err) goto PRINT_USAGE ;
 
+   if (g_foverwrite) exclflag = 0 ;
+
    // create out file if -o <filename> is specified
    if (g_outfilename) {
-      g_outfd = open(g_outfilename, O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
+      g_outfd = open(g_outfilename, O_WRONLY|O_CREAT|exclflag|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
       if (g_outfd == -1) {
          print_err( "Can not create file '%s' for writing: %s", g_outfilename, strerror(errno) ) ;
          goto ABBRUCH ;
@@ -1277,7 +1284,7 @@ int main(int argc, const char * argv[])
          strcat(g_depfilename, ".d") ;
       }
 
-      g_depfd = open(g_depfilename, O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
+      g_depfd = open(g_depfilename, O_WRONLY|O_CREAT|exclflag|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
       if (g_depfd == -1) {
          print_err( "Can not create file '%s' for writing: %s", g_depfilename, strerror(errno) ) ;
          goto ABBRUCH ;
@@ -1333,9 +1340,10 @@ PRINT_USAGE:
    dprintf(STDERR_FILENO, "TextDB version 0.1 - Copyright (c) 2011 Joerg Seebohn\n" ) ;
    dprintf(STDERR_FILENO, "%s", "* TextDB is a textdb macro preprocessor.\n" ) ;
    dprintf(STDERR_FILENO, "%s", "* It reads a C source file and expands the contained textdb macros.\n" ) ;
-   dprintf(STDERR_FILENO, "%s", "* The result is written to stdout or <out.c>.\n" ) ;
-   dprintf(STDERR_FILENO, "\nUsage:   %s [[-d] -o <out.c>] <in.c>\n", g_programname ) ;
-   dprintf(STDERR_FILENO, "\nOptions: -d: Write makefile dependency rule to <out.d>\n\n") ;
+   dprintf(STDERR_FILENO, "%s", "* The result is written to stdout or <out.c>.\n\n" ) ;
+   dprintf(STDERR_FILENO, "Usage:   %s [[-f] [-d] -o <out.c>] <in.c>\n\n", g_programname ) ;
+   dprintf(STDERR_FILENO, "Options: -d: Write makefile dependency rule to <out.d>\n") ;
+   dprintf(STDERR_FILENO, "         -f: If output file exists force overwrite\n\n") ;
 ABBRUCH:
    if (g_outfilename && g_outfd != -1) {
       close(g_outfd) ;
