@@ -1,0 +1,18 @@
+# Project description of Preprocess (with) resource text compiler
+# Prepropecesses resource text files with textres compiler
+Modes         = Release
+Compiler      = projekte/makefiles/pp-textres.sh $(out) $(in)
+Linker        = touch $(out)
+CFlagInclude  = ?
+CFlagDefine   = ?
+LFlagLib      = ?
+LFlagLibpath  = ?
+CFlags        =
+LFlags        =
+Libs          =
+Libpath       =
+Includes      =
+Defines       =
+Objectdir     = bin/$(mode)/$(projectname)
+Target        = $(Objectdir)/__dummy_target__
+Src           = C-kern/resource/errorlog.text

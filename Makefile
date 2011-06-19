@@ -3,8 +3,8 @@
 # global Makefile building all subprojects
 
 # projects with suffix _ have to builds modes: Debug and Release
-PROJECTS= preprocess \
-          resources  \
+PROJECTS= pp-textdb  \
+          pp-textres \
           genmake_   \
           testchildprocess_ \
           textrescompiler_  \
@@ -28,6 +28,8 @@ PROJECTS= preprocess \
 MAKEFLAGS=--no-print-directory
 # location of project makefiles
 MAKEFILES_PREFIX=projekte/makefiles/Makefile.
+# Shell used for executing commands
+SHELL=/bin/bash
 
 #
 #
@@ -58,19 +60,22 @@ html:
 	done
 
 
-makefiles: $(patsubst %_,$(MAKEFILES_PREFIX)%,$(filter %_,$(PROJECTS)))
+makefiles: $(patsubst %,$(MAKEFILES_PREFIX)%,$(subst _,,$(PROJECTS)))
 
 $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.gcc | genmake_Release
 	@bin/genmake $< > "$(@)"
 
-preprocess: textdb_Release
+pp-textdb: textdb_Release
 
-resources: textrescompiler_Release
+pp-textres: textrescompiler_Release
 
-thor thor_Release thor_Debug: resources preprocess testchildprocess_Release
+textdb textdb_Release textdb_Debug: pp-textres
+
+thor thor_Release thor_Debug: pp-textres pp-textdb testchildprocess_Release
 
 $(subst _,,$(PROJECTS)) \
 $(subst _,_Debug,$(filter %_,$(PROJECTS))) \
 $(subst _,_Release,$(filter %_,$(PROJECTS))):
-	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then make -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
+	@echo make $(@)
+	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then make SHELL=$(SHELL) -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
 

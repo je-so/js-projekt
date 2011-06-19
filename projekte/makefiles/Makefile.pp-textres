@@ -1,0 +1,58 @@
+##
+## ! Genmake generated Makefile !
+##
+ProjectName     := pp-textres
+ProjectModes    := Release
+ProjectFile     := projekte/pp-textres.prj
+ProjectLinks    := 
+
+GenerationDate  := 2011.Jun.19  10:44:54
+GeneratedBy     := Jörg Seebohn
+
+## Release
+DefineFlag_Release    := ?
+IncludeFlag_Release   := ?
+LibraryFlag_Release   := ?
+LibPathFlag_Release   := ?
+CFlags_Release        := 
+LFlags_Release        := 
+Defines_Release       :=
+Includes_Release      :=
+Libraries_Release     :=
+Libpath_Release       :=
+ObjectDir_Release     := bin/Release/pp-textres
+TargetDir_Release     := bin/Release/pp-textres
+Target_Release        := bin/Release/pp-textres/__dummy_target__
+Libs_Release          := $(Libpath_Release) $(Libraries_Release)
+CC_Release            = projekte/makefiles/pp-textres.sh '$@' '$<'
+LD_Release            = touch '$@'
+
+##
+## Targets
+##
+all:   Release
+clean: clean_Release
+init:  init_Release
+init_Release: $(ObjectDir_Release) $(TargetDir_Release)
+
+Release: init_Release $(Target_Release)
+
+clean_Release:
+	@rm -f "$(ObjectDir_Release)/"*.[od]
+	@rm -f "$(Target_Release)"
+	@if [ -d "$(ObjectDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Release)"; fi
+	@if [ -d "$(TargetDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Release)"; fi
+
+$(sort $(ObjectDir_Release) $(TargetDir_Release)):
+	@mkdir -p "$@"
+
+Objects_Release := \
+ $(ObjectDir_Release)/C-kern!resource!errorlog.text.o
+
+$(Target_Release): $(Objects_Release)
+	@$(LD_Release)
+
+$(ObjectDir_Release)/C-kern!resource!errorlog.text.o: C-kern/resource/errorlog.text
+	@$(CC_Release)
+
+-include $(Objects_Release:.o=.d)
