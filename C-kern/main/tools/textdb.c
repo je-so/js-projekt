@@ -1254,7 +1254,7 @@ int main(int argc, const char * argv[])
    err = process_arguments(argc, argv) ;
    if (err) goto PRINT_USAGE ;
 
-   if (g_foverwrite) exclflag = 0 ;
+   if (g_foverwrite) exclflag = O_TRUNC ;
 
    // create out file if -o <filename> is specified
    if (g_outfilename) {
