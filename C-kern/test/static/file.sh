@@ -6,7 +6,8 @@
 # ****************************************************
 # environment variables:
 # verbose: if set to != "" => $info is printed
-files=`grep -rl '\(^\|[ ]\|[^A-Za-z0-9_]\)\(FILE[^_A-Za-z0-9]\|stderr\|stdout\|stdin\)' C-kern/ | sed -e '/^.*\.sh/d'`
+filter='\(^\|[ ]\|[^A-Za-z0-9_]\)\(FILE[^_A-Za-z0-9]\|stderr\|stdout\|stdin\)'
+files=`grep -rl "$filter" C-kern/ | sed -e '/^.*\.sh/d'`
 # array of files which are allowed to use FILE ...
 ok=( C-kern/main/tools/genmake.c
      C-kern/tools/hash.c
@@ -14,6 +15,15 @@ ok=( C-kern/main/tools/genmake.c
    )
 for((i=0;i<${#ok[*]};i=i+1)) do
    files="${files/"${ok[$i]}"/}" # remove files which are ok from $files
+done
+files=`echo $files | sed -e '/^[ ]*$/d' -`
+for i in $files; do
+   result=`grep "$filter" $i`
+   result=`sed -e 's/^\(\([^"]*"\([^"]\|\\\"\)*[^\"]"\)*[^"]*"[^"]*\)\(stderr\|stdout\|stdin\)/\1/'  <<< $result`
+   result=`grep "$filter" - <<< $result`
+   if [ "$result" == "" ]; then
+      files="${files/"$i"/}" # remove files which are ok from $files
+   fi
 done
 files=`echo $files | sed -e '/^[ ]*$/d' -`
 if [ "${files}" == "" ]; then
