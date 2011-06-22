@@ -31,6 +31,23 @@ for i in $files; do
    free_thread_calls=( `grep "freeumgebung_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_process_calls=( `grep "freeprocess_[a-zA-Z0-9_]*[ \t]*(" $i` )
    IFS=$IFS_old
+   # filter input
+   for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
+      result="${init_process_calls[$testnr]}"
+      if [ "${result/define initprocess_*()/}" != "$result" ]; then
+         init_process_calls[$testnr]="${init_process_calls[${#init_process_calls[*]}-1]}"
+         unset init_process_calls[${#init_process_calls[*]}-1]
+         let "testnr=testnr-1"
+      fi
+   done
+   for((testnr=0;testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
+      result="${free_process_calls[$testnr]}"
+      if [ "${result/define freeprocess_*()/}" != "$result" ]; then
+         free_process_calls[$testnr]="${free_process_calls[${#free_process_calls[*]}-1]}"
+         unset free_process_calls[${#free_process_calls[*]}-1]
+         let "testnr=testnr-1"
+      fi
+   done
 
    # test for correct interface
    for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
