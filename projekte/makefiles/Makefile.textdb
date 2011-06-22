@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.18  17:51:24
+GenerationDate  := 2011.Jun.22  06:21:08
 GeneratedBy     := Jörg Seebohn
 
 ## Debug

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Workspace Name="jsprojekt" Database="./jsprojekt.tags">
+  <Project Name="genmake" Path="genmake.project" Active="No"/>
+  <Project Name="htmldok" Path="htmldok.project" Active="No"/>
+  <Project Name="testunit" Path="testunit.project" Active="Yes"/>
+  <Project Name="textdb" Path="textdb.project" Active="No"/>
+  <Project Name="textrescompiler" Path="textrescompiler.project" Active="No"/>
+  <BuildMatrix>
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Project Name="genmake" ConfigName="Debug"/>
+      <Project Name="htmldok" ConfigName="Debug"/>
+      <Project Name="testunit" ConfigName="Debug"/>
+      <Project Name="textdb" ConfigName="Debug"/>
+      <Project Name="textrescompiler" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release" Selected="yes">
+      <Project Name="genmake" ConfigName="Release"/>
+      <Project Name="htmldok" ConfigName="Release"/>
+      <Project Name="testunit" ConfigName="Release"/>
+      <Project Name="testdb" ConfigName="Release"/>
+      <Project Name="textrescompiler" ConfigName="Release"/>
+    </WorkspaceConfiguration>
+  </BuildMatrix>
+</CodeLite_Workspace>

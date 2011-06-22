@@ -9,7 +9,7 @@ PROJECTS= pp-textdb  \
           testchildprocess_ \
           textrescompiler_  \
           textdb_           \
-          test_
+          testunit_
 
 # list of targets
 .PHONY: all clean distclean makefiles html
@@ -71,9 +71,10 @@ pp-textres: textrescompiler_Release
 
 textdb textdb_Release textdb_Debug: pp-textres
 
-thor thor_Release thor_Debug: pp-textres pp-textdb testchildprocess_Release
+testunit testunit_Release testunit_Debug: pp-textres pp-textdb testchildprocess_Release
 
 $(subst _,,$(PROJECTS)) \
+$(patsubst %,%_clean,$(subst _,,$(PROJECTS))) \
 $(subst _,_Debug,$(filter %_,$(PROJECTS))) \
 $(subst _,_Release,$(filter %_,$(PROJECTS))):
 	@echo make $(@)

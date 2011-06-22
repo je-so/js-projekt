@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Project Name="testunit" InternalType="Console">
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="generic">
+    <File Name="../../C-kern/generic/splaytree.c"/>
+    <File Name="../../C-kern/generic/depthtree.c"/>
+    <File Name="../../C-kern/generic/depthtree.h"/>
+    <File Name="../../C-kern/generic/hashtable.c"/>
+    <File Name="../../C-kern/generic/hashtable.h"/>
+    <File Name="../../C-kern/generic/objekt_collector.c"/>
+    <File Name="../../C-kern/generic/objekt_collector.h"/>
+    <File Name="../../C-kern/generic/set.h"/>
+    <File Name="../../C-kern/generic/rbtree.c"/>
+    <File Name="../../C-kern/generic/rbtree.h"/>
+    <VirtualDirectory Name="trie">
+      <File Name="../../C-kern/generic/trie/trie.c"/>
+      <File Name="../../C-kern/generic/trie/trie.h"/>
+      <File Name="../../C-kern/generic/trie/patricia.c"/>
+      <File Name="../../C-kern/generic/trie/patricia.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="iterator">
+      <File Name="../../C-kern/generic/iterator/arraylist-it.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="list">
+      <File Name="../../C-kern/generic/dlist.c"/>
+      <File Name="../../C-kern/generic/dlist.h"/>
+      <File Name="../../C-kern/generic/slist.c"/>
+      <File Name="../../C-kern/generic/slist_sorted.c"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="main">
+    <File Name="../../C-kern/main/unittest_main.c"/>
+    <File Name="../../C-kern/main/speedtest_main.c"/>
+    <VirtualDirectory Name="tools">
+      <File Name="../../C-kern/main/tools/genmake.c"/>
+      <File Name="../../C-kern/main/tools/textdb.c"/>
+      <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
+    </VirtualDirectory>
+    <File Name="../../C-kern/main/testchildprocess_main.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="testunit"/>
+  <VirtualDirectory Name="umgebung">
+    <File Name="../../C-kern/umgebung/cbthreads.c"/>
+    <File Name="../../C-kern/umgebung/README"/>
+    <File Name="../../C-kern/umgebung/umgebung.c"/>
+    <File Name="../../C-kern/umgebung/umgebung_initdefault.c"/>
+    <File Name="../../C-kern/umgebung/umgebung_inittestproxy.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="api">
+    <File Name="../../C-kern/api/execCcompiler.h"/>
+    <File Name="../../C-kern/api/errlog.h"/>
+    <File Name="../../C-kern/api/test.h"/>
+    <VirtualDirectory Name="test">
+      <File Name="../../C-kern/api/test/compiletime.h"/>
+      <File Name="../../C-kern/api/test/unittest.h"/>
+      <File Name="../../C-kern/api/test/speedtest.h"/>
+      <File Name="../../C-kern/api/test/hashquality.h"/>
+      <File Name="../../C-kern/api/test/resourceusage.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="resource">
+      <File Name="../../C-kern/api/resource/errorlog.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="umgebung">
+      <File Name="../../C-kern/api/umgebung/cbthreads.h"/>
+    </VirtualDirectory>
+    <File Name="../../C-kern/konfig.h"/>
+    <VirtualDirectory Name="adapter">
+      <File Name="../../C-kern/api/adapter/stream.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="generic">
+      <File Name="../../C-kern/api/generic/slist.h"/>
+      <File Name="../../C-kern/api/generic/slist_sorted.h"/>
+      <File Name="../../C-kern/api/generic/splaytree.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="string">
+      <File Name="../../C-kern/api/string/string.h"/>
+      <File Name="../../C-kern/api/string/suffix_tree.h"/>
+      <File Name="../../C-kern/api/string/converter.h"/>
+      <File Name="../../C-kern/api/string/cstring.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="os">
+      <File Name="../../C-kern/api/os/process.h"/>
+      <File Name="../../C-kern/api/os/thread.h"/>
+      <File Name="../../C-kern/api/os/virtmemory.h"/>
+      <VirtualDirectory Name="filesystem">
+        <File Name="../../C-kern/api/os/filesystem/directory.h"/>
+        <File Name="../../C-kern/api/os/filesystem/findfile.h"/>
+        <File Name="../../C-kern/api/os/filesystem/mmfile.h"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/api/os/inetsocket.h"/>
+      <File Name="../../C-kern/api/os/timing.h"/>
+      <VirtualDirectory Name="memory">
+        <File Name="../../C-kern/api/os/memory/memorystack.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Linux">
+        <File Name="../../C-kern/api/os/Linux/syskonfig.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="X11">
+        <File Name="../../C-kern/api/os/X11/display.h"/>
+        <File Name="../../C-kern/api/os/X11/x11.h"/>
+        <File Name="../../C-kern/api/os/X11/glxwindow.h"/>
+        <VirtualDirectory Name="internal">
+          <File Name="../../C-kern/api/os/X11/internal/display_oostore.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <VirtualDirectory Name="index">
+        <File Name="../../C-kern/api/os/index/splaytree.h"/>
+        <File Name="../../C-kern/api/os/index/redblacktree.h"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/api/os/locale.h"/>
+      <File Name="../../C-kern/api/os/file.h"/>
+      <File Name="../../C-kern/api/os/malloc.h"/>
+    </VirtualDirectory>
+    <File Name="../../C-kern/api/umgebung.h"/>
+    <VirtualDirectory Name="graphik"/>
+    <File Name="../../C-kern/api/oostore.h"/>
+    <VirtualDirectory Name="math">
+      <VirtualDirectory Name="int">
+        <File Name="../../C-kern/api/math/int/power2.h"/>
+        <File Name="../../C-kern/api/math/int/signum.h"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="aspect">
+      <VirtualDirectory Name="callback">
+        <File Name="../../C-kern/api/aspect/callback/update_key.h"/>
+        <File Name="../../C-kern/api/aspect/callback/free_resource.h"/>
+        <File Name="../../C-kern/api/aspect/callback/compare.h"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/api/aspect/callback.h"/>
+      <File Name="../../C-kern/api/aspect/treenode2.h"/>
+      <File Name="../../C-kern/api/aspect/treenode3.h"/>
+      <VirtualDirectory Name="constant">
+        <File Name="../../C-kern/api/aspect/constant/spacetime.h"/>
+        <File Name="../../C-kern/api/aspect/constant/accessmode.h"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/api/aspect/memoryblock.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="memory">
+      <File Name="../../C-kern/api/memory/memblock.h"/>
+      <File Name="../../C-kern/api/memory/pagecache.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="writer">
+      <File Name="../../C-kern/api/writer/log.h"/>
+      <File Name="../../C-kern/api/writer/log_helper.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="cache">
+      <File Name="../../C-kern/api/cache/objectcache.h"/>
+      <File Name="../../C-kern/api/cache/valuecache.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="test">
+    <File Name="../../C-kern/test/run_statictest.sh"/>
+    <File Name="../../C-kern/test/run_unittest.c"/>
+    <VirtualDirectory Name="static">
+      <File Name="../../C-kern/test/static/memory.sh"/>
+      <File Name="../../C-kern/test/static/call_all_unittest.sh"/>
+      <File Name="../../C-kern/test/static/header.sh"/>
+      <File Name="../../C-kern/test/static/close_on_exec.sh"/>
+      <File Name="../../C-kern/test/static/file.sh"/>
+      <File Name="../../C-kern/test/static/check_textdb.sh"/>
+      <File Name="../../C-kern/test/static/textresource_inuse.sh"/>
+      <File Name="../../C-kern/test/static/check_projects.sh"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="compiletime">
+      <File Name="../../C-kern/test/compiletime/nodeadapter.h"/>
+      <File Name="../../C-kern/test/compiletime/stdtypes.h"/>
+      <File Name="../../C-kern/test/compiletime/konfig_value.h"/>
+      <File Name="../../C-kern/test/compiletime/system.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="speed">
+      <File Name="../../C-kern/test/speed/run_speedcmp_set.c"/>
+      <File Name="../../C-kern/test/speed/run_speedcmp_linuxsplice.c"/>
+      <File Name="../../C-kern/test/speed/run_speedcmp_madvise.c"/>
+    </VirtualDirectory>
+    <File Name="../../C-kern/test/hashquality.c"/>
+    <File Name="../../C-kern/test/resourceusage.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="tools">
+    <File Name="../../C-kern/tools/hash.c"/>
+    <File Name="../../C-kern/tools/hash.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="compiler">
+    <File Name="../../C-kern/compiler/idl_parser.c"/>
+    <File Name="../../C-kern/compiler/idl_parser.h"/>
+    <File Name="../../C-kern/compiler/idl_scanner.c"/>
+    <File Name="../../C-kern/compiler/idl_scanner.h"/>
+    <File Name="../../C-kern/compiler/regular_expression.c"/>
+    <File Name="../../C-kern/compiler/regular_expression.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="string">
+    <File Name="../../C-kern/string/suffix_tree.c"/>
+    <File Name="../../C-kern/string/wstream_buffer.c"/>
+    <File Name="../../C-kern/string/cstringarray_buffer.c"/>
+    <File Name="../../C-kern/string/string.c"/>
+    <File Name="../../C-kern/string/converter.c"/>
+    <File Name="../../C-kern/string/cstring.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="resource">
+    <File Name="../../C-kern/resource/errorlog.text"/>
+    <VirtualDirectory Name="coding conventions">
+      <File Name="../../coding-conventions/free_objects.txt"/>
+      <File Name="../../coding-conventions/function_parameter_type.txt"/>
+      <File Name="../../coding-conventions/umgebung.txt"/>
+      <File Name="../../coding-conventions/unittest.txt"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="text.db">
+      <File Name="../../C-kern/resource/text.db/initprocess"/>
+      <File Name="../../C-kern/resource/text.db/initumgebung"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="os">
+    <VirtualDirectory Name="Linux">
+      <File Name="../../C-kern/os/Linux/directory.c"/>
+      <File Name="../../C-kern/os/Linux/inetaddr.c"/>
+      <File Name="../../C-kern/os/Linux/inetsocket.c"/>
+      <File Name="../../C-kern/os/Linux/mmfile.c"/>
+      <File Name="../../C-kern/os/Linux/process.c"/>
+      <File Name="../../C-kern/os/Linux/thread.c"/>
+      <File Name="../../C-kern/os/Linux/timing.c"/>
+      <File Name="../../C-kern/os/Linux/virtmemory.c"/>
+      <File Name="../../C-kern/os/Linux/file.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="shared">
+      <File Name="../../C-kern/os/shared/findfile.c"/>
+      <VirtualDirectory Name="memory">
+        <File Name="../../C-kern/os/shared/memory/memorystack.c"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/os/shared/execCcompiler.c"/>
+      <File Name="../../C-kern/os/shared/locale.c"/>
+      <File Name="../../C-kern/os/shared/oostore.c"/>
+      <VirtualDirectory Name="index">
+        <File Name="../../C-kern/os/shared/index/splaytree.c"/>
+        <File Name="../../C-kern/os/shared/index/redblacktree.c"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/os/shared/malloc.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="X11">
+      <File Name="../../C-kern/os/X11/x11.c"/>
+      <File Name="../../C-kern/os/X11/display.c"/>
+      <File Name="../../C-kern/os/X11/glxwindow.c"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
+  <VirtualDirectory Name="export">
+    <File Name="../../C-kern/export/pdf.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="graphik"/>
+  <VirtualDirectory Name="math">
+    <VirtualDirectory Name="int">
+      <File Name="../../C-kern/math/int/power2.c"/>
+      <File Name="../../C-kern/math/int/signum.c"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="memory">
+    <File Name="../../C-kern/memory/memblock.c"/>
+    <File Name="../../C-kern/memory/pagecache.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="writer">
+    <File Name="../../C-kern/writer/log.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="cache">
+    <File Name="../../C-kern/cache/objectcache.c"/>
+    <File Name="../../C-kern/cache/valuecache.c"/>
+  </VirtualDirectory>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g;$(shell wx-config --cxxflags --unicode=yes --debug=yes)" C_Options="-g;$(shell wx-config --cxxflags --unicode=yes --debug=yes)" Required="yes" PreCompiledHeader="">
+        <Preprocessor Value="__WX__"/>
+      </Compiler>
+      <Linker Options="$(shell wx-config --debug=yes --libs --unicode=yes)" Required="yes"/>
+      <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit_Debug" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="no"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand>make testunit_clean testunit_Debug</RebuildCommand>
+        <CleanCommand>make testunit_clean</CleanCommand>
+        <BuildCommand>make testunit_Debug</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)../..</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O2;$(shell wx-config --cxxflags --unicode=yes --debug=no)" C_Options="-O2;$(shell wx-config --cxxflags --unicode=yes --debug=no)" Required="yes" PreCompiledHeader="">
+        <Preprocessor Value="__WX__"/>
+      </Compiler>
+      <Linker Options="-s;$(shell wx-config --debug=no --libs --unicode=yes)" Required="yes"/>
+      <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand>make testunit_clean testunit_Release</RebuildCommand>
+        <CleanCommand>make testunit_clean</CleanCommand>
+        <BuildCommand>make testunit_Release</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)../..</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

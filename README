@@ -89,6 +89,9 @@ about: Build
   The main makefile ('Makefile') calls for every subproject the corresponding 
   makefile in 'projekte/makefiles/'.
 
+  To run all unit tests execute bin/testunit (release version)
+  or bin/testunit_Debug.
+
 Make targets:
   all      - Builds »Debug« and »Release« version of every subproject except »html«.
   html     - Generate documentation from source code with naturaldoc.

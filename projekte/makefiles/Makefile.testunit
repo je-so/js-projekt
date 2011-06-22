@@ -1,12 +1,12 @@
 ##
 ## ! Genmake generated Makefile !
 ##
-ProjectName     := test
+ProjectName     := testunit
 ProjectModes    := Debug Release
-ProjectFile     := projekte/test.prj
+ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.18  17:51:24
+GenerationDate  := 2011.Jun.22  06:21:08
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -16,13 +16,13 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
-Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_GRAPHIK=none
 Includes_Debug      := $(IncludeFlag_Debug).
-Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
+Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt $(LibraryFlag_Debug)X11 $(LibraryFlag_Debug)Xrandr $(LibraryFlag_Debug)Xrender $(LibraryFlag_Debug)GL
 Libpath_Debug       :=
-ObjectDir_Debug     := bin/Debug/test
+ObjectDir_Debug     := bin/Debug/testunit
 TargetDir_Debug     := bin
-Target_Debug        := bin/test_Debug
+Target_Debug        := bin/testunit_Debug
 Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
 CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
 LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
@@ -34,13 +34,13 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
-Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST
+Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_GRAPHIK=none
 Includes_Release      := $(IncludeFlag_Release).
-Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
+Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt $(LibraryFlag_Release)X11 $(LibraryFlag_Release)Xrandr $(LibraryFlag_Release)Xrender $(LibraryFlag_Release)GL
 Libpath_Release       :=
-ObjectDir_Release     := bin/Release/test
+ObjectDir_Release     := bin/Release/testunit
 TargetDir_Release     := bin
-Target_Release        := bin/test
+Target_Release        := bin/testunit
 Libs_Release          := $(Libpath_Release) $(Libraries_Release)
 CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
 LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
@@ -75,7 +75,6 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
- $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
@@ -91,6 +90,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!string!converter.c.o \
+ $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
@@ -99,7 +99,6 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
- $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
@@ -115,6 +114,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!string!converter.c.o \
+ $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
@@ -128,9 +128,6 @@ $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
 $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
@@ -178,6 +175,9 @@ $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 $(ObjectDir_Debug)/C-kern!string!converter.c.o: C-kern/string/converter.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 	@$(CC_Debug)
 
@@ -194,9 +194,6 @@ $(ObjectDir_Debug)/C-kern!writer!log.c.o: C-kern/writer/log.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
@@ -242,6 +239,9 @@ $(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!converter.c.o: C-kern/string/converter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c

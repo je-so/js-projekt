@@ -1,0 +1,21 @@
+# Project description of C-System-Layer development environment
+# C-kern includes all system layers written in C99
+include        projekte/binary.gcc
+Src           += C-kern/main/unittest_main.c
+# Src           += C-kern/main/speedtest_main.c
+Src           += C-kern/os/Linux/*.c
+# C-kern/os/X11/*.c
+Src           += C-kern/os/shared/*.c C-kern/os/shared/index/*.c
+Src           += C-kern/cache/*.c
+# Src           += C-kern/compiler/*.c
+# Src           += C-kern/generic/*.c C-kern/generic/trie/*.c
+Src           += C-kern/math/int/*.c
+# Src           += C-kern/memory/*.c
+Src           += C-kern/string/*.c
+Src           += C-kern/test/*.c
+# C-kern/test/speed/*.c
+Src           += C-kern/umgebung/*.c
+Src           += C-kern/writer/*.c
+Includes       = .
+Libs           = pthread rt X11 Xrandr Xrender GL
+Defines        = KONFIG_UNITTEST KONFIG_GRAPHIK=none
