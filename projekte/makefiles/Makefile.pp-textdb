@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.22  06:21:08
+GenerationDate  := 2011.Jun.22  14:45:27
 GeneratedBy     := Jörg Seebohn
 
 ## Release

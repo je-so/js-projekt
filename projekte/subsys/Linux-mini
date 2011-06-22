@@ -1,0 +1,3 @@
+# Minimal Linux
+Src += C-kern/os/Linux/virtmemory.c
+Src += C-kern/os/shared/locale.c

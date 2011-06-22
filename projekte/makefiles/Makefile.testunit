@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.22  06:21:08
+GenerationDate  := 2011.Jun.22  14:45:28
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
@@ -74,7 +74,6 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
@@ -85,6 +84,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
+ $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
@@ -98,7 +98,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!writer!log.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
@@ -109,6 +108,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
+ $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
@@ -126,9 +126,6 @@ $(Target_Debug): $(Objects_Debug)
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
-
-$(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
-	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Debug)
@@ -158,6 +155,9 @@ $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o: C-kern/os/shared/index/
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o: C-kern/os/shared/index/redblacktree.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
@@ -193,9 +193,6 @@ $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 $(ObjectDir_Debug)/C-kern!writer!log.c.o: C-kern/writer/log.c
 	@$(CC_Debug)
 
-$(ObjectDir_Release)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Release)
 
@@ -224,6 +221,9 @@ $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o: C-kern/os/shared/inde
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o: C-kern/os/shared/index/redblacktree.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c

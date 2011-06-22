@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.22  06:21:08
+GenerationDate  := 2011.Jun.22  14:45:27
 GeneratedBy     := Jörg Seebohn
 
 ## Debug
