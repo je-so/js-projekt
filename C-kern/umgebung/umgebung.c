@@ -28,20 +28,11 @@
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/cache/valuecache.h"
-#define X11 1
-#if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem==''||subsystem=='X11')
 #include "C-kern/api/os/locale.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/os/X11/x11.h"
 // TEXTDB:END
-#else
-// TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem=='')
-#include "C-kern/api/os/locale.h"
-#include "C-kern/api/cache/valuecache.h"
-// TEXTDB:END
-#endif
-#undef X11
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -75,8 +66,6 @@ static int free_process_resources(void)
    switch(s_initpos_presource) {
    default: assert(0 == s_initpos_presource && "out of bounds" )  ;
             break ;
-#define X11 1
-#if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT("   case "row-id":  err2 = "free-function"() ;"\n"            if (err2) err=err2 ;")FROM("C-kern/resource/text.db/initprocess")WHERE(subsystem==''||subsystem=='X11')DESCENDING
    case 3:  err2 = freeprocess_X11() ;
             if (err2) err=err2 ;
@@ -85,15 +74,6 @@ static int free_process_resources(void)
    case 1:  err2 = freeprocess_locale() ;
             if (err2) err=err2 ;
 // TEXTDB:END
-#else
-// TEXTDB:SELECT("   case "row-id":  err2 = "free-function"() ;"\n"            if (err2) err=err2 ;")FROM("C-kern/resource/text.db/initprocess")WHERE(subsystem=='')DESCENDING
-   case 2:  err2 = freeprocess_valuecache() ;
-            if (err2) err=err2 ;
-   case 1:  err2 = freeprocess_locale() ;
-            if (err2) err=err2 ;
-// TEXTDB:END
-#endif
-#undef X11
    case 0:  break ;
    }
 
@@ -115,8 +95,6 @@ static int init_process_resources(void)
       return 0 ;
    }
 
-#define X11 1
-#if (KONFIG_GRAPHIK==X11)
 // TEXTDB:SELECT(\n"   err = "init-function"() ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ s_initpos_presource ;")FROM("C-kern/resource/text.db/initprocess")WHERE(subsystem==''||subsystem=='X11')
 
    err = initprocess_locale() ;
@@ -131,20 +109,6 @@ static int init_process_resources(void)
    if (err) goto ABBRUCH ;
    ++ s_initpos_presource ;
 // TEXTDB:END
-
-#else
-// TEXTDB:SELECT(\n"   err = "init-function"() ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ s_initpos_presource ;")FROM("C-kern/resource/text.db/initprocess")WHERE(subsystem=='')
-
-   err = initprocess_locale() ;
-   if (err) goto ABBRUCH ;
-   ++ s_initpos_presource ;
-
-   err = initprocess_valuecache() ;
-   if (err) goto ABBRUCH ;
-   ++ s_initpos_presource ;
-// TEXTDB:END
-#endif
-#undef X11
 
    return 0 ;
 ABBRUCH:
@@ -453,29 +417,29 @@ int unittest_umgebung()
 
       if (strcmp( buffer, "implementation_type=0\n"
                            // log from test_process_init
-                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:156: error in init_umgebung()\n"
                            "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung.c:238: error in initprocess_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:202: error in initprocess_umgebung()\n"
                            "Function aborted (err=22)\n"
                            "implementation_type=3\n"
-                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:156: error in init_umgebung()\n"
                            "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung.c:238: error in initprocess_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:202: error in initprocess_umgebung()\n"
                            "Function aborted (err=22)\n"
                            "C-kern/umgebung/umgebung_initdefault.c:107: error in init_thread_resources()\n"
                            "Function aborted (err=13)\n"
                            "C-kern/umgebung/umgebung_initdefault.c:147: error in initdefault_umgebung()\n"
                            "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:156: error in init_umgebung()\n"
                            "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:238: error in initprocess_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:202: error in initprocess_umgebung()\n"
                            "Function aborted (err=13)\n"
                            // log from test_umgebung_init
                            "implementation_type=0\n"
-                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:156: error in init_umgebung()\n"
                            "Function aborted (err=22)\n"
                            "implementation_type=3\n"
-                           "C-kern/umgebung/umgebung.c:192: error in init_umgebung()\n"
+                           "C-kern/umgebung/umgebung.c:156: error in init_umgebung()\n"
                            "Function aborted (err=22)\n"
                            )) {
          printf("buffer=-----\n%s-----\n",buffer) ;
