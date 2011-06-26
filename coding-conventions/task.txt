@@ -1,0 +1,36 @@
+title: Taskmanagement
+
+   The current implementation supports
+
+   * exothreads
+   * ??? (higher level abstraction)
+   * system processes
+   * system threads
+
+about: Exothread
+   Synchronous, cooperative multi-threads running quasi-parallel.
+
+   Also called stackless threads, protothreads or coroutines.
+
+   *exo*       - A prefix meaning outside or external (Greek origin).
+   *exothread* - A thread which stores its execution context and state
+                 in an external object.
+
+   > #include "C-kern/api/task/exothread.h"
+
+   ... TODO ...
+
+
+about: System process
+
+   Do not use them. There will be a higher level abstraction
+   which maps either to a thread or a process.
+
+   > #include "C-kern/api/os/process.h"
+
+about: System thread
+
+   Do not use them. There will be a higher level abstraction
+   which maps either to a thread or a process.
+
+   > #include "C-kern/api/os/thread.h"
