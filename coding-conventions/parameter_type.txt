@@ -1,7 +1,11 @@
-title: function parameter types
+title: parameter types
 
-Parameters are distinguished according their direction of information flow.
+Desctribes the different parameter types of functions.
+
+group: Different Types
+
 There exist four kind of parameter types.
+Function parameters are distinguished according to their direction of information flow.
 
 /*in*/    - Input parameter. The value is read by the called function but not changed.
             If it accepts only a pointer to the value the parameter should be marked with
@@ -18,9 +22,9 @@ There exist four kind of parameter types.
             The returned value is only valid if the function returns an error.
             In case of success this value is never changed.
 
-Examples:
+group: Examples
 
-Function initializing an object.
+about: Function initializing an object
 
 > extern int init_slist( /*out*/slist_t * list ) ;
 > int err ;
@@ -28,11 +32,11 @@ Function initializing an object.
 > err = init_slist( &list ) ;
 > if (err) { printf("error\n") ; }
 
-Function returning an extended error description.
+about: Extended Error Description
 
 > extern int new_regexpression(
 >    /*out*/regexpression_t    ** regex,
->    /*err*/regexpression_err_t * extended_err,
+>    /*err*/regexpression_err_t * syntax_err,
 >           const char          * definition ) ;
 > int err ;
 > regexpression_err_t syntax_err ;

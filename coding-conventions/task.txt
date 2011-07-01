@@ -1,13 +1,15 @@
 title: Taskmanagement
 
-   The current implementation supports
+   All the different tasks C-kern(el) implementation supports.
 
+   The following modules exist which allow to run multiple threads of execution.
+
+   * ??? (TODO: implement higher level abstraction on top)
    * exothreads
-   * ??? (higher level abstraction)
    * system processes
    * system threads
 
-about: Exothread
+group: Exothread
    Synchronous, cooperative thread running quasi-parallel.
 
    Also called stackless threads, protothreads or coroutines.
@@ -29,17 +31,270 @@ about: Exothread
    a chance to run. Locks and other synchronisation mechanisms
    are not necessary.
 
-   ... TODO ...
+about: Internal Workings
+
+> struct exothread_t {
+>    exothread_main_f  main ;
+>    void            * instr_ptr ;
+>    ...
+> }
+
+   An <exothread_t> mainly is pointer to a function and a pointer to label in this function.
+   The instr_ptr constitutes the execution state of the exothread.
+
+   Right at the beginning of an exothread execution function
+   you do a simple call to <exothread_t.jumpstate_exothread>.
+   This call jumps to the last location within the function which must have been saved with a previous
+   call to <exothread_t.setstate_exothread>.
+
+   With gcc you can get the address of a label with
+> &&LABEL
+   To jump to such a label the implementation of jumpstate_exothread uses another gcc extension
+> goto *instr_ptr
+
+about: Generic Structure of Exothread
+
+> int test_exthread(exothread_t * xthread)
+> {
+>    jumpstate_exothread() ;
+>
+>    exothread_INIT: ;
+>
+>    do_some_stuff() ;
+>
+>    exothread_FREE: ;
+>
+>    finish_exothread() ;
+>    return 0 ;
+> }
+
+   Parameter xthread:
+
+   The main execution function of an exothread must have the above signature.
+   The parameter name must be *xthread*. If not some functions implemented as macros
+   like <exothread_t.finish_exothread> or <exothread_t.jumpstate_exothread> would not work. These functions assume that the
+   current exothread can be accessed with (xthread).
+
+   Initialization:
+
+   The function is executed sequentially until <exothread_t.jumpstate_exothread>.
+   From then on the execution continues at the label set with the last call to
+   <exothread_t.setstate_exothread>.
+
+   If test_exthread is entered the first time jumpstate_exothread() continues the
+   execution at label *exothread_INIT:*. The label *exothread_FREE:* is not necessary
+   in the above implementation but it must be defined to prevent compilation errors.
+
+   Finishing a Computation:
+
+   The function will be reexecuted until it is finished.
+   In the above example only a single computation do_some_stuff() is executed.
+   Before function exit the xthread is marked as finished with <exothread_t.finish_exothread>.
+   The result is that the state of the current xthread will be marked as "computation is finished"
+   and it will be never executed again.
+
+   A more complex example:
+
+> int test_exthread2(exothread_t * xthread)
+> {
+>    jumpstate_exothread() ;
+>
+>    exothread_INIT: ;
+>
+>    do_allocate_resources() ;
+>    setfreeresource_exothread() ;
+>
+>    setstate_exothread(__extension__ &&exothread_LOOP) ;
+>    exothread_LOOP: ;
+>
+>    while( need_some_more_computation ) {
+>       do_computation() ;
+>       return 0 ;
+>    }
+>
+>    exothread_FREE: ;
+>
+>    do_free_resource() ;
+>
+>    finish_exothread() ;
+>    return 0 ;
+> }
+
+   The next example allocates some resources which must be freed even in case of error.
+   To ensure this <exothread_t.setfreeresource_exothread> is called.
+
+   Next the new state *exothread_LOOP:* is set to be active and a computation step is done.
+   With *return 0* the xthread yields its execution time and ensures that other exothreads
+   can be executed.
+
+   The next time test_exthread2 is called the execution continues at label *exothread_LOOP:*.
+   Unless there is more computation to do all allocated resources are freed and a call to
+   finish_exothread() marks the exothread as finished.
+
+about: Error Handling
+
+> int test_exthread3(exothread_t * xthread)
+> {
+>    jumpstate_exothread() ;
+>
+>    exothread_INIT: ;
+>
+>    do_allocate_resources() ;
+>    setfreeresource_exothread() ;
+>
+>    setstate_exothread(__extension__ &&exothread_LOOP) ;
+>    exothread_LOOP: ;
+>
+>    while( need_some_more_computation ) {
+>       int err = do_computation() ;
+>       return err /* 0 == OK */ ;
+>    }
+>
+>    exothread_FREE: ;
+>
+>    do_free_resource() ;
+>
+>    finish_exothread() ;
+>    return 0 ;
+> }
+
+   The next sample implementation number 3 is the same as number 2 except for
+   returning an error if do_computation fails.
+
+   Effect of an Error:
+
+   Returning a value not 0 is considered an error. In such a case the computation
+   of the exothread is finished automatically unless <exothread_t.setfreeresource_exothread>
+   was called before. The error code is safed in the <exothread_t> object so a later
+   stage can react accordingly.
+
+   Freeing Resources:
+
+   If the xthread has set its own state to "resources must freed" and if is not in finished state
+   it is executed again but this time the execution start at label *exothread_FREE:*.
+   So freeing resource at after this label ensures that they are freed even in case of an error.
+   It is considered not a problem if all resources can not be freed in one step.
+   The function is rexecuted until a finish_exothread() is encountered. In the above example
+   a simple do_free_resource() frees all resources and a following finish_exothread() prevents
+   rexecution.
+
+   Second Error returned by exothread_FREE:
+
+   If another error is returned from the execution path starting at exothread_FREE: the xthread
+   is also marked as finished and it is assumed that some or all resources are lost.
+   The second error value is ignored, i.e. it does not overwrite the first already stored error code.
+
+about: Subtyping Exothreads
+
+> typedef struct extra_xthread1_t {
+>    exothread_t   xthread ;
+>    // extra state variables
+>    void        * extra_memory ;
+> } extra_xthread1_t ;
+>
+> int test_exthread4(extra_xthread1_t * xthread)
+> {
+>    jumpstate_exothread() ;
+>
+>    exothread_INIT: ;
+>
+>    xthread->extra_memory = malloc(1024) ;
+>    if (!xthread->extra_memory) return ENOMEM ;
+>    setfreeresource_exothread() ;
+>
+>    setstate_exothread(__extension__ &&exothread_LOOP) ;
+>    exothread_LOOP: ;
+>
+>    while( need_some_more_computation ) {
+>       return do_computation() ;
+>    }
+>
+>    exothread_FREE: ;
+>
+>    free(xthread->extra_memory) ;
+>    xthread->extra_memory = 0 ; // mark it as freed (so calling it twice is ok)
+>
+>    finish_exothread() ;
+>    return 0 ;
+> }
+
+   In the above example the exothread subtype extra_xthread1_t defines
+   an extra state variable to store a memory resource.
+
+   Creating a new Exothread:
+
+   To create an exothread you call <exothread_t.init_exothread>. But the above implementation
+   function has not the correct signature.
+   Use <exothread_t.initsubtpe_exothread> instead which casts the function pointer
+   to the correct signature and checks for a correct signature
+   and calls init_exothread for you.
+
+> #define initsubtype_exothread(_xthread, _main_fct) \
+>    ( __extension__ ({                                                                     \
+>          static_assert_void( ((int(*)(typeof(_xthread)))0) == (typeof(_main_fct)) 0 ) ;   \
+>          static_assert_void( ((exothread_t*)0) == &((typeof(_xthread))0)->xthread ) ;     \
+>          init_exothread(&(_xthread)->xthread, (exothread_main_f) (_main_fct)) ;           \
+>    }))
 
 
-about: System process
+about: Parameter Handling
+
+> typedef struct param_xthread1_t {
+>    exothread_t   xthread ;
+>    struct {
+>       int x, y, z ;
+>    } inarg ;
+>    struct {
+>       int sum ;
+>    } outarg ;
+> } param_xthread1_t ;
+>
+> int test_exthread5(param_xthread1_t * xthread)
+> {
+>    jumpstate_exothread() ;
+>
+>    exothread_INIT: ;
+>
+>    declare_inparam_exothread(input) ;
+>
+>    int sum ;
+>    sum  = input->x ;
+>    sum += input->y ;
+>    sum += input->z ;
+>
+>    declare_outparam_exothread(result) ;
+>
+>    result->sum = sum ;
+>
+>    exothread_FREE: ;
+>
+>    finish_exothread() ;
+>    return 0 ;
+> }
+
+   In the above example the exothread subtype param_xthread1_t defines
+   an three input and one output arguments.
+   The fields inarg and outarg contains the list of arguments.
+   Both are defined as anonymous structs.
+
+   Accessing Arguments:
+
+   There are two different ways to access the in and out arguments to the function.
+   First to declare a name of a parameter which points to the input arguments use
+   <exothread_t.declare_inparam_exothread> respectively <exothread_t.declare_inparam_exothread>.
+
+   To get a temporary pointer to the arguments use either <exothread_t.inarg_exothread> or <exothread_t.outarg_exothread>.
+
+   It is not recommended to access them directly via xthread->inarg or xthread->outarg.
+
+group: System Process
 
    Do not use them. There will be a higher level abstraction
    which maps either to a thread or a process.
 
    > #include "C-kern/api/os/process.h"
 
-about: System thread
+group: System Thread
 
    Do not use them. There will be a higher level abstraction
    which maps either to a thread or a process.

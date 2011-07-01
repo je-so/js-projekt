@@ -57,6 +57,7 @@
       <File Name="../../C-kern/api/test/speedtest.h"/>
       <File Name="../../C-kern/api/test/hashquality.h"/>
       <File Name="../../C-kern/api/test/resourceusage.h"/>
+      <File Name="../../C-kern/api/test/argument.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="resource">
       <File Name="../../C-kern/api/resource/errorlog.h"/>
@@ -138,7 +139,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
-      <File Name="../../C-kern/api/memory/pagecache.h"/>
+      <File Name="../../C-kern/api/memory/pagemanager.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <File Name="../../C-kern/api/writer/log.h"/>
@@ -147,6 +148,10 @@
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/objectcache.h"/>
       <File Name="../../C-kern/api/cache/valuecache.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="task">
+      <File Name="../../C-kern/api/task/exothread.h"/>
+      <File Name="../../C-kern/api/task/exothread_scheduler.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -203,6 +208,7 @@
       <File Name="../../coding-conventions/function_parameter_type.txt"/>
       <File Name="../../coding-conventions/umgebung.txt"/>
       <File Name="../../coding-conventions/unittest.txt"/>
+      <File Name="../../coding-conventions/task.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="text.db">
       <File Name="../../C-kern/resource/text.db/initprocess"/>
@@ -255,7 +261,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>
-    <File Name="../../C-kern/memory/pagecache.c"/>
+    <File Name="../../C-kern/memory/pagemanager.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="writer">
     <File Name="../../C-kern/writer/log.c"/>
@@ -333,4 +339,8 @@
       </AdditionalRules>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="task">
+    <File Name="../../C-kern/task/exothread.c"/>
+    <File Name="../../C-kern/task/exothread_scheduler.c"/>
+  </VirtualDirectory>
 </CodeLite_Project>
