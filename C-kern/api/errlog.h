@@ -1,8 +1,10 @@
-/*
-   C-System-Layer: C-kern/api/errlog.h
-   Copyright (C) 2010 Jörg Seebohn
+/* title: Errorlog
+   Includes text resource file which contains errorlog messages
+   and defines <LOG_ERRTEXT> to log them.
 
-   This program is free software; you can redistribute it and/or modify
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
@@ -11,6 +13,12 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
+   Author:
+   (C) 2011 Jörg Seebohn
+
+   file: C-kern/api/errlog.h
+    Header file of <Errorlog>.
 */
 #ifndef CKERN_API_ERRLOG_HEADER
 #define CKERN_API_ERRLOG_HEADER
@@ -21,7 +29,7 @@
 
 // section: Functions
 
-// group: default
+// group: log-error
 
 /* define: LOG_ABORT
  * Logs the abortion of a function and the its corresponding error code.
@@ -42,11 +50,11 @@
  * Logs an errorlog text resource.
  * Use <LOG_ERRTEXT> instead of <LOG_TEXTRES> so you
  * do not have to prefix every resource name with "TEXTRES_ERRORLOG_". */
-#define LOG_ERRTEXT( TEXTID )                do {  LOG_TEXTRES( TEXTRES_ERRORLOG_ERROR_LOCATION ) ; \
+#define LOG_ERRTEXT( TEXTID )                do {  LOG_TEXTRES( TEXTRES_ERRORLOG_ ## ERROR_LOCATION ) ; \
                                                    LOG_TEXTRES( TEXTRES_ERRORLOG_ ## TEXTID ) ; \
                                                 }  while(0)
 
-// TODO: replace strerror(err) with string_errlog(int sys_err) in umgebung/errlog.c
+// TODO: support own error IDs: replace strerror(err) with own string_error_function(int sys_err)
 #define LOG_CALLERR(fct_name,err)            LOG_ERRTEXT(FUNCTION_ERROR(fct_name, err, strerror(err)))
 
 /* define: LOG_OUTOFMEMORY

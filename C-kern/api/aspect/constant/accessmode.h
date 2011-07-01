@@ -56,6 +56,14 @@ enum accessmode_aspect_e {
    ,accessmode_SHARED      = 16
 } ;
 
+/* typedef: accessmode_aspect_e
+ * Shortcut for <accessmode_aspect_e>. */
+typedef enum accessmode_aspect_e       accessmode_aspect_e ;
+
+/* define: accessmode_NEXTFREE_BITPOS
+ * Next free bit position which can be used in a subtype. */
+#define accessmode_NEXTFREE_BITPOS    (2*accessmode_SHARED)
+
 /* enums: accessmoderw_aspect_e
  * Subtype of <accessmode_aspect_e>.
  * It excludes <accessmode_PRIVATE> and <accessmode_SHARED>.
@@ -76,16 +84,9 @@ enum accessmoderw_aspect_e {
    ,accessmoderw_RDWREXEC  = (accessmode_READ|accessmode_WRITE|accessmode_EXEC)  // 7
 } ;
 
-/* typedef: accessmode_aspect_e
- * Shortcut for <accessmode_aspect_e>. */
-typedef enum accessmode_aspect_e       accessmode_aspect_e ;
-
 /* typedef: accessmoderw_aspect_e
  * Shortcut for <accessmoderw_aspect_e>. */
 typedef enum accessmoderw_aspect_e     accessmoderw_aspect_e ;
 
-/* define: accessmode_NEXTFREE_BITPOS
- * Next free bit position which can be used in a subtype. */
-#define accessmode_NEXTFREE_BITPOS    (2*accessmode_SHARED)
 
 #endif

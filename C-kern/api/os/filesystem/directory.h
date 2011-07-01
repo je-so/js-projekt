@@ -1,5 +1,6 @@
-/* title: Directory Functions
+/* title: Directory
    Access directory content.
+   Read and write to a file system directory.
 
    about: Copyright
    This program is free software.
@@ -14,13 +15,13 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2010 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
 
    file: C-kern/api/os/filesystem/directory.h
-    Header file of <Directory Functions>.
+    Header file of <Directory>.
 
    file: C-kern/os/Linux/directory.c
-    Linux specific implementations of <Directory Functions>.
+    Linux specific implementations <Directory Linux>.
 */
 #ifndef CKERN_OS_FILESYSTEM_DIRECTORY_HEADER
 #define CKERN_OS_FILESYSTEM_DIRECTORY_HEADER

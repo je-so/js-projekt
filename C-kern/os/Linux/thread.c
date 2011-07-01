@@ -1,8 +1,9 @@
-/*
-   C-System-Layer: C-kern/os/Linux/thread.c
-   Copyright (C) 2010 Jörg Seebohn
+/* title: Thread Linux
+   Implements <Thread>.
 
-   This program is free software; you can redistribute it and/or modify
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
@@ -11,6 +12,15 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
+   Author:
+   (C) 2011 Jörg Seebohn
+
+   file: C-kern/api/os/thread.h
+    Header file of <Thread>.
+
+   file: C-kern/os/Linux/thread.c
+    Linux specific implementation <Thread Linux>.
 */
 
 #include "C-kern/konfig.h"

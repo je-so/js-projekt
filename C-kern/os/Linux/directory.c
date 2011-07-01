@@ -1,5 +1,5 @@
-/*
-   Directory read, write and file name handling
+/* title: Directory Linux
+   Implements <Directory>.
 
    about: Copyright
    This program is free software.
@@ -14,7 +14,13 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2010 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
+
+   file: C-kern/api/os/filesystem/directory.h
+    Header file of <Directory>.
+
+   file: C-kern/os/Linux/directory.c
+    Linux specific implementations <Directory Linux>.
 */
 
 #include "C-kern/konfig.h"

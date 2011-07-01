@@ -19,7 +19,7 @@ done
 files=`echo $files | sed -e '/^[ ]*$/d' -`
 for i in $files; do
    result=`grep "$filter" $i`
-   result=`sed -e 's/^\(\([^"]*"\([^"]\|\\\"\)*[^\"]"\)*[^"]*"[^"]*\)\(stderr\|stdout\|stdin\)/\1/'  <<< $result`
+   result=`sed -e 's/^\(\([^"]*"\([^"]\|\\"\)*[^\"]"\)*[^"]*"[^"]*\)\(stderr\|stdout\|stdin\)/\1/'  <<< $result`
    result=`grep "$filter" - <<< $result`
    if [ "$result" == "" ]; then
       files="${files/"$i"/}" # remove files which are ok from $files

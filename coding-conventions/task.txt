@@ -8,7 +8,7 @@ title: Taskmanagement
    * system threads
 
 about: Exothread
-   Synchronous, cooperative multi-threads running quasi-parallel.
+   Synchronous, cooperative thread running quasi-parallel.
 
    Also called stackless threads, protothreads or coroutines.
 
@@ -17,6 +17,17 @@ about: Exothread
                  in an external object.
 
    > #include "C-kern/api/task/exothread.h"
+
+   It is possible to call them exthreads or xthreads for short.
+
+   Exothreads are grouped together and every such group is
+   executed by exactly one thread.
+
+   At any time only one xthread is executed from one group.
+   The programming style is synchronous. Explicitly giving
+   up the processor gives other exothreads in the same group
+   a chance to run. Locks and other synchronisation mechanisms
+   are not necessary.
 
    ... TODO ...
 

@@ -77,6 +77,5 @@ $(subst _,,$(PROJECTS)) \
 $(patsubst %,%_clean,$(subst _,,$(PROJECTS))) \
 $(subst _,_Debug,$(filter %_,$(PROJECTS))) \
 $(subst _,_Release,$(filter %_,$(PROJECTS))):
-	@echo make $(@)
-	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then make SHELL=$(SHELL) -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
+	@if ! make -qf $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; then echo make $(@) ; make SHELL=$(SHELL) -f $(MAKEFILES_PREFIX)$(subst _, ,$(@)) ; fi
 

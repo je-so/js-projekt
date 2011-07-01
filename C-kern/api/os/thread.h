@@ -20,16 +20,23 @@
     Header file of <Thread>.
 
    file: C-kern/os/Linux/thread.c
-    Linux specific implementation of <Thread>.
+    Linux specific implementation <Thread Linux>.
 */
 #ifndef CKERN_OS_THREAD_HEADER
 #define CKERN_OS_THREAD_HEADER
 
 
-typedef struct osthread_t           osthread_t ;
-typedef struct osthread_mutex_t     osthread_mutex_t ;
+/* typedef: osthread_t typedef
+ * Export <osthread_t>. */
+typedef struct osthread_t              osthread_t ;
 
-typedef int /*err code (0 == OK)*/  (*thread_main_f) (osthread_t * thread) ;
+/* typedef: osthread_mutex_t typedef
+ * Export <osthread_mutex_t>. */
+typedef struct osthread_mutex_t        osthread_mutex_t ;
+
+/* typedef: thread_main_f
+ * Function pointer to thread implementation. */
+typedef int /*err code (0 == OK)*/  (* thread_main_f) (osthread_t * thread) ;
 
 
 // section: Functions
@@ -37,9 +44,13 @@ typedef int /*err code (0 == OK)*/  (*thread_main_f) (osthread_t * thread) ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
+/* function: unittest_os_thread
+ * Tests system thread functionality. */
 extern int unittest_os_thread(void) ;
 #endif
 
+/* struct: osthread_t
+ * */
 struct osthread_t {
    sys_thread_t   sys_thread ;
    thread_main_f  thread_main ;
@@ -71,6 +82,9 @@ extern int delete_osthread(osthread_t ** threadobj) ;
  * unless threadobj has already terminated. */
 extern int join_osthread(osthread_t * threadobj) ;
 
+
+/* struct: osthread_mutex_t
+ * */
 struct osthread_mutex_t {
    sys_thread_mutex_t   sys_mutex ;
 } ;
