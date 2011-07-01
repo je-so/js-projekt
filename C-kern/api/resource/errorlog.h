@@ -8,11 +8,11 @@
 #define en 2
 #if (KONFIG_LANG == de)
 #define TEXTRES_ERRORLOG_CONDITION_EXPECTED(sCondition) \
-        "In %s:%d: %s\nDie Bedingung (%s) ist nicht wahr (interner Programmfehler)\n", __FILE__, __LINE__, __FUNCTION__, sCondition
+        "Die Bedingung (%s) ist nicht wahr (interner Programmfehler)\n", sCondition
 #define TEXTRES_ERRORLOG_CONTEXT_INFO(sContext) \
         "Bezogen auf den Kontext '%s'\n", sContext
 #define TEXTRES_ERRORLOG_ERROR_LOCATION \
-        "%s:%d: Fehler in %s()\n", __FILE__, __LINE__, __FUNCTION__
+        "%s:%d: %s(): Fehler: ", __FILE__, __LINE__, __FUNCTION__
 #define TEXTRES_ERRORLOG_FORMAT_MISSING_ENDOFLINE(name) \
         "'%s' enthält kein Zeilenendezeichen ('\n')\n", name
 #define TEXTRES_ERRORLOG_FORMAT_WRONG(name) \
@@ -21,10 +21,10 @@
         "Funktions-Abbruch (err=%d)\n", err
 #define TEXTRES_ERRORLOG_FUNCTION_ABORT_FREE(err) \
         "Resource Freigabefehler (err=%d)\n", err
-#define TEXTRES_ERRORLOG_FUNCTION_ERROR(function_name, function_error, function_strerror) \
-        "Aufruf '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_error, function_strerror
-#define TEXTRES_ERRORLOG_FUNCTION_SYSERR(function_name, function_errno, function_strerrno) \
-        "Systemaufruf '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_errno, function_strerrno
+#define TEXTRES_ERRORLOG_FUNCTION_ERROR(sFunctionname, error, sError) \
+        "Aufruf '%s' meldet Fehler (err=%d): '%s'\n", sFunctionname, error, sError
+#define TEXTRES_ERRORLOG_FUNCTION_SYSERR(sFunctionname, sys_errno, sError) \
+        "Systemaufruf '%s' meldet Fehler (err=%d): '%s'\n", sFunctionname, sys_errno, sError
 #define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sCondition) \
         "Falsche Funktionseingabe (%s)\n", sCondition
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
@@ -52,11 +52,11 @@
 
 #elif (KONFIG_LANG == en)
 #define TEXTRES_ERRORLOG_CONDITION_EXPECTED(sCondition) \
-        "In %s:%d: %s\nExpected condition (%s) to be true (internal program error)\n", __FILE__, __LINE__, __FUNCTION__, sCondition
+        "Expected condition (%s) to be true (internal program error)\n", sCondition
 #define TEXTRES_ERRORLOG_CONTEXT_INFO(sContext) \
         "In relation to following context '%s'\n", sContext
 #define TEXTRES_ERRORLOG_ERROR_LOCATION \
-        "%s:%d: error in %s()\n", __FILE__, __LINE__, __FUNCTION__
+        "%s:%d: %s(): error: ", __FILE__, __LINE__, __FUNCTION__
 #define TEXTRES_ERRORLOG_FORMAT_MISSING_ENDOFLINE(name) \
         "'%s' contains no newline ('\n')\n", name
 #define TEXTRES_ERRORLOG_FORMAT_WRONG(name) \
@@ -65,10 +65,10 @@
         "Function aborted (err=%d)\n", err
 #define TEXTRES_ERRORLOG_FUNCTION_ABORT_FREE(err) \
         "All resources can not be freed (err=%d)\n", err
-#define TEXTRES_ERRORLOG_FUNCTION_ERROR(function_name, function_error, function_strerror) \
-        "Call to '%s' returned error (err=%d): '%s'\n", function_name, function_error, function_strerror
-#define TEXTRES_ERRORLOG_FUNCTION_SYSERR(function_name, function_errno, function_strerrno) \
-        "System call '%s' returned error (err=%d): '%s'\n", function_name, function_errno, function_strerrno
+#define TEXTRES_ERRORLOG_FUNCTION_ERROR(sFunctionname, error, sError) \
+        "Call to '%s' returned error (err=%d): '%s'\n", sFunctionname, error, sError
+#define TEXTRES_ERRORLOG_FUNCTION_SYSERR(sFunctionname, sys_errno, sError) \
+        "System call '%s' returned error (err=%d): '%s'\n", sFunctionname, sys_errno, sError
 #define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sCondition) \
         "Wrong input argument (%s)\n", sCondition
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \

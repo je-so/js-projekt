@@ -1,4 +1,2 @@
-C-kern/umgebung/umgebung_inittestproxy.c:88: error in inittestproxy_umgebung()
-Function aborted (err=22)
-C-kern/umgebung/umgebung_inittestproxy.c:88: error in inittestproxy_umgebung()
-Function aborted (err=23)
+C-kern/umgebung/umgebung_inittestproxy.c:88: inittestproxy_umgebung(): error: Function aborted (err=22)
+C-kern/umgebung/umgebung_inittestproxy.c:88: inittestproxy_umgebung(): error: Function aborted (err=23)

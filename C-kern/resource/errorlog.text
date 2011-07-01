@@ -1,11 +1,9 @@
 #
 # printf based error strings for logging
 #
-CONDITION_EXPECTED:de: __FILE__,__LINE__,__FUNCTION__,sCondition
-"In %s:%d: %s"
+CONDITION_EXPECTED:de: sCondition
 "Die Bedingung (%s) ist nicht wahr (interner Programmfehler)"
-CONDITION_EXPECTED:en: __FILE__,__LINE__,__FUNCTION__,sCondition
-"In %s:%d: %s"
+CONDITION_EXPECTED:en: sCondition
 "Expected condition (%s) to be true (internal program error)"
 
 CONTEXT_INFO:de: sContext
@@ -14,9 +12,9 @@ CONTEXT_INFO:en: sContext
 "In relation to following context '%s'"
 
 ERROR_LOCATION:de: __FILE__, __LINE__, __FUNCTION__
-"%s:%d: Fehler in %s()"
+"%s:%d: %s(): Fehler: " NONEWLINE
 ERROR_LOCATION:en: __FILE__, __LINE__, __FUNCTION__
-"%s:%d: error in %s()"
+"%s:%d: %s(): error: " NONEWLINE
 
 FORMAT_MISSING_ENDOFLINE:de: name
 "'%s' enthält kein Zeilenendezeichen ('\n')"
@@ -38,14 +36,14 @@ FUNCTION_ABORT_FREE:de: err
 FUNCTION_ABORT_FREE:en: err
 "All resources can not be freed (err=%d)"
 
-FUNCTION_ERROR:de: function_name, function_error, function_strerror
+FUNCTION_ERROR:de: sFunctionname, error, sError
 "Aufruf '%s' meldet Fehler (err=%d): '%s'"
-FUNCTION_ERROR:en: function_name, function_error, function_strerror
+FUNCTION_ERROR:en: sFunctionname, error, sError
 "Call to '%s' returned error (err=%d): '%s'"
 
-FUNCTION_SYSERR:de: function_name, function_errno, function_strerrno
+FUNCTION_SYSERR:de: sFunctionname, sys_errno, sError
 "Systemaufruf '%s' meldet Fehler (err=%d): '%s'"
-FUNCTION_SYSERR:en: function_name, function_errno, function_strerrno
+FUNCTION_SYSERR:en: sFunctionname, sys_errno, sError
 "System call '%s' returned error (err=%d): '%s'"
 
 FUNCTION_WRONG_INPUT:de: sCondition

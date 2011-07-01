@@ -50,6 +50,7 @@ typedef struct textline textline_t ;
 struct textline {
    textline_t * next ;
    size_t len ;
+   bool   noNewline ;
    char   text[] ;
 } ;
 
@@ -61,7 +62,7 @@ static void free_textline( textline_t ** result)
    }
 }
 
-static int new_textline( textline_t ** result, const char * text, size_t len)
+static int new_textline( textline_t ** result, const char * text, size_t len, bool noNewline)
 {
    textline_t * textline = (textline_t*) malloc( sizeof(textline_t) + len + 1 ) ;
    if (!textline) {
@@ -71,6 +72,7 @@ static int new_textline( textline_t ** result, const char * text, size_t len)
 
    textline->next = 0 ;
    textline->len  = len ;
+   textline->noNewline = noNewline ;
    strncpy( textline->text, text, len) ;
    textline->text[len] = 0 ;
 
@@ -445,13 +447,19 @@ static int parse_textstring(resourceparser_t * parser)
    assert( nextchar >= beginText ) ;
    size_t lenText = (size_t) (nextchar - beginText) ;
    ++nextchar ; while( ' ' == *nextchar || '\t' == *nextchar ) ++nextchar ;
+   bool noNewline = false ;
+   if (0 == strncmp( nextchar, "NONEWLINE", strlen("NONEWLINE"))) {
+      nextchar += strlen("NONEWLINE") ;
+      noNewline = true ;
+   }
+   ++nextchar ; while( ' ' == *nextchar || '\t' == *nextchar ) ++nextchar ;
    if ( '#' != *nextchar && *nextchar) {
       print_err( "%s:%d: read unexpected character '%c' after string\n", parser->resourcefile->filename, parser->lineNr, *nextchar ) ;
       return 1 ;
    }
 
    textline_t * textline ;
-   if (new_textline(&textline, beginText, lenText)) {
+   if (new_textline(&textline, beginText, lenText, noNewline)) {
       return 1 ;
    }
 
@@ -602,6 +610,9 @@ int write_cheaderfile(resourcefile_t * resfile, const char * C_HeaderFilename, c
             }
             fprintf( outfile, "%s \\\n        \"", (isParam?")":"")) ;
             for( textline_t * line = text->text ; line; line = line->next) {
+            if (line->noNewline)
+               fprintf( outfile, "%s", line->text) ;
+            else
                fprintf( outfile, "%s\\n", line->text ) ;
             }
             fprintf( outfile, "%s", "\"" ) ;
@@ -627,7 +638,10 @@ int write_cheaderfile(resourcefile_t * resfile, const char * C_HeaderFilename, c
          }
          fprintf( outfile, "%s \\\n        \"", (isParam?")":"")) ;
          for( textline_t * line = text->text ; line; line = line->next) {
-            fprintf( outfile, "%s\\n", line->text) ;
+            if (line->noNewline)
+               fprintf( outfile, "%s", line->text) ;
+            else
+               fprintf( outfile, "%s\\n", line->text ) ;
          }
          fprintf( outfile, "%s", "\"" ) ;
          for( size_t i = 0 ; i < text->paramCount; ++i) {
