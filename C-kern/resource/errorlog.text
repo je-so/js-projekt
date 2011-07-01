@@ -48,6 +48,11 @@ FUNCTION_SYSERR:de: function_name, function_errno, function_strerrno
 FUNCTION_SYSERR:en: function_name, function_errno, function_strerrno
 "System call '%s' returned error (err=%d): '%s'"
 
+FUNCTION_WRONG_INPUT:de: sCondition
+"Falsche Funktionseingabe (%s)"
+FUNCTION_WRONG_INPUT:en: sCondition
+"Wrong input argument (%s)"
+
 LOCALE_SETLOCALE:de:
 "Kann die Lokalisierung mit setlocale nicht setzen"
 "Abhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen"

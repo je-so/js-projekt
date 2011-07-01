@@ -25,6 +25,8 @@
         "Aufruf '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_error, function_strerror
 #define TEXTRES_ERRORLOG_FUNCTION_SYSERR(function_name, function_errno, function_strerrno) \
         "Systemaufruf '%s' meldet Fehler (err=%d): '%s'\n", function_name, function_errno, function_strerrno
+#define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sCondition) \
+        "Falsche Funktionseingabe (%s)\n", sCondition
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n"
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \
@@ -67,6 +69,8 @@
         "Call to '%s' returned error (err=%d): '%s'\n", function_name, function_error, function_strerror
 #define TEXTRES_ERRORLOG_FUNCTION_SYSERR(function_name, function_errno, function_strerrno) \
         "System call '%s' returned error (err=%d): '%s'\n", function_name, function_errno, function_strerrno
+#define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sCondition) \
+        "Wrong input argument (%s)\n", sCondition
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n"
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \

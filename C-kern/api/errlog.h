@@ -23,8 +23,9 @@
 #ifndef CKERN_API_ERRLOG_HEADER
 #define CKERN_API_ERRLOG_HEADER
 
-#include "C-kern/api/writer/log_helper.h"
 #include "C-kern/api/resource/errorlog.h"
+#include "C-kern/api/test/argument.h"
+#include "C-kern/api/writer/log_helper.h"
 
 
 // section: Functions
