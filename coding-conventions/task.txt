@@ -102,7 +102,7 @@ about: Generic Structure of Exothread
 >    exothread_INIT: ;
 >
 >    do_allocate_resources() ;
->    setfreeresource_exothread() ;
+>    setholdingresource_exothread() ;
 >
 >    setstate_exothread(__extension__ &&exothread_LOOP) ;
 >    exothread_LOOP: ;
@@ -121,7 +121,7 @@ about: Generic Structure of Exothread
 > }
 
    The next example allocates some resources which must be freed even in case of error.
-   To ensure this <exothread_t.setfreeresource_exothread> is called.
+   To ensure this <exothread_t.setholdingresource_exothread> is called.
 
    Next the new state *exothread_LOOP:* is set to be active and a computation step is done.
    With *return 0* the xthread yields its execution time and ensures that other exothreads
@@ -140,7 +140,7 @@ about: Error Handling
 >    exothread_INIT: ;
 >
 >    do_allocate_resources() ;
->    setfreeresource_exothread() ;
+>    setholdingresource_exothread() ;
 >
 >    setstate_exothread(__extension__ &&exothread_LOOP) ;
 >    exothread_LOOP: ;
@@ -164,7 +164,7 @@ about: Error Handling
    Effect of an Error:
 
    Returning a value not 0 is considered an error. In such a case the computation
-   of the exothread is finished automatically unless <exothread_t.setfreeresource_exothread>
+   of the exothread is finished automatically unless <exothread_t.setholdingresource_exothread>
    was called before. The error code is safed in the <exothread_t> object so a later
    stage can react accordingly.
 
@@ -200,7 +200,7 @@ about: Subtyping Exothreads
 >
 >    xthread->extra_memory = malloc(1024) ;
 >    if (!xthread->extra_memory) return ENOMEM ;
->    setfreeresource_exothread() ;
+>    setholdingresource_exothread() ;
 >
 >    setstate_exothread(__extension__ &&exothread_LOOP) ;
 >    exothread_LOOP: ;

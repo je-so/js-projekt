@@ -69,17 +69,19 @@ typedef int /*err code (0 == OK)*/  (* exothread_subtype_main_f) (exothread_subt
 /* enums: exothread_flag_e
  * Flags to describe internal state of <exothread_t>.
  *
- * exothread_flag_FREERESOURCE - If an xthread function returns an error the state of it is set to label *exothread_FREE:*.
- *                               This flag is set with a call to <setfreeresource_exothread>.
- * exothread_flag_FINISH       - The xthread routine signaled that it has finished its computation.
- *                               This flag is set automatically if the xthread returned an error and flag
- *                               <exothread_flag_FREERESOURCE> is not set.
- * exothread_flag_RUN          - Indicates that <exothread_t.main> has called at least once.
+ * exothread_flag_HOLDINGRESOURCE - Indicates that an <exothread_t> holds resources which must freed.
+ *                                  If its main function returns an error the state is to label *exothread_FREE:*
+ *                                  before it is executed again.
+ *                                  This flag is set with a call to <setholdingresource_exothread>.
+ * exothread_flag_FINISH          - The xthread routine signaled that it has finished its computation.
+ *                                  This flag is set automatically if the xthread returned an error and flag
+ *                                  <exothread_flag_HOLDINGRESOURCE> is not set.
+ * exothread_flag_RUN             - Indicates that <exothread_t.main> has called at least once.
  * */
 enum exothread_flag_e {
-    exothread_flag_FREERESOURCE = 1
-   ,exothread_flag_FINISH       = 2
-   ,exothread_flag_RUN          = 4
+    exothread_flag_HOLDINGRESOURCE = 1
+   ,exothread_flag_FINISH          = 2
+   ,exothread_flag_RUN             = 4
 } ;
 
 typedef enum exothread_flag_e          exothread_flag_e ;
@@ -167,24 +169,24 @@ extern void abort_exothread(exothread_t * xthread) ;
 
 // group: change
 
-/* function: clearfreeresource_exothread
+/* function: clearholdingresource_exothread
  * Marks current xthread that it holds no more resources.
  * This flag is cleared as default value.
- * See <setfreeresource_exothread> for a description. */
-extern void clearfreeresource_exothread(void) ;
+ * See <setholdingresource_exothread> for a description. */
+extern void clearholdingresource_exothread(void) ;
 
 /* function: finish_exothread
  * Marks current xthread that it has finished its computation.
- * After having set the flag the xthread function is never called back again.
- * Even in case of returning an error and <isfreeresource_exothread>
+ * After having set this flag the xthread function is never called back again.
+ * Even in case of returning an error and <isholdingresource_exothread>
  * returning true.
  *
  * Automatism:
- * This flag is set for you if <isfreeresource_exothread> returns false
+ * This flag is set for you if <isholdingresource_exothread> returns false
  * and the xthread function returns an error. */
 extern void finish_exothread(void) ;
 
-/* function: setfreeresource_exothread
+/* function: setholdingresource_exothread
  * Sets flag of current xthread indicating that it holds resources.
  * You should set this flag after initializing the resources
  * as _INIT_FREEABLE. If something goes wrong during set up of multiple resources
@@ -195,7 +197,7 @@ extern void finish_exothread(void) ;
  * Automatism:
  * This flag is cleared for you if xthread function returns an error
  * and before itis called with the state set to *exothread_FREE:*. */
-extern void setfreeresource_exothread(void) ;
+extern void setholdingresource_exothread(void) ;
 
 /* function: setstate_exothread
  * Sets the state label of the current exothread.
@@ -219,9 +221,9 @@ extern bool iserror_exothread(const exothread_t * xthread) ;
  * Returns true if xthread has finished its computation. */
 extern bool isfinish_exothread(const exothread_t * xthread) ;
 
-/* function: isfreeresource_exothread
+/* function: isholdingresource_exothread
  * Returns true if xthread holds resources which must be freed. */
-extern bool isfreeresource_exothread(const exothread_t * xthread) ;
+extern bool isholdingresource_exothread(const exothread_t * xthread) ;
 
 /* function: inarg_exothread
  * Returns pointer to in arguments of exothread.
@@ -267,20 +269,20 @@ extern void * outarg_exothread(void) ;
  * >     if (self_->instr_ptr) {
  * >        goto *self_->instr_ptr ;
  * >     }
- * >     if (isfreeresource_exothread(self_)) {
- * >        clearfreeresource_exothread() ;
+ * >     if (isholdingresource_exothread(self_)) {
+ * >        clearholdingresource_exothread() ;
  * >        goto exothread_FREE ;
  * >     }
  * >     goto exothread_INIT ;
  * >  } while(0) */
 #define jumpstate_exothread()                      \
    do {                                            \
-      exothread_t * self_ = (exothread_t*) xthread;\
+      exothread_t * self_ = (exothread_t*)xthread; \
       if (self_->instr_ptr) {                      \
          goto *self_->instr_ptr ;                  \
       }                                            \
-      if (isfreeresource_exothread(self_)) {       \
-         clearfreeresource_exothread() ;           \
+      if (isholdingresource_exothread(self_)) {    \
+         clearholdingresource_exothread() ;        \
          goto exothread_FREE ;                     \
       }                                            \
       goto exothread_INIT ;                        \
@@ -321,11 +323,11 @@ struct exothread_subtype_t {
 
 // section: inline implementations
 
-/* define: clearfreeresource_exothread
- * Implements <exothread_t.clearfreeresource_exothread>.
- * > xthread->flags &= ~exothread_flag_FREERESOURCE */
-#define clearfreeresource_exothread() \
-   ((exothread_t*)xthread)->flags = (typeof(((exothread_t*)0)->flags)) (((exothread_t*)xthread)->flags & ~exothread_flag_FREERESOURCE)
+/* define: clearholdingresource_exothread
+ * Implements <exothread_t.clearholdingresource_exothread>.
+ * > xthread->flags &= ~exothread_flag_HOLDINGRESOURCE */
+#define clearholdingresource_exothread() \
+   ((exothread_t*)xthread)->flags = (typeof(((exothread_t*)0)->flags)) (((exothread_t*)xthread)->flags & ~exothread_flag_HOLDINGRESOURCE)
 
 /* define: finish_exothread
  * Implements <exothread_t.finish_exothread>.
@@ -362,11 +364,11 @@ struct exothread_subtype_t {
 #define isfinish_exothread(_xthread) \
    (0 != ((_xthread)->flags & exothread_flag_FINISH))
 
-/* define: isfreeresource_exothread
- * Implements <exothread_t.isfreeresource_exothread>.
- * > (0 != (xthread->flags & exothread_flag_FREERESOURCE)) */
-#define isfreeresource_exothread(_xthread) \
-   (0 != ((_xthread)->flags & exothread_flag_FREERESOURCE))
+/* define: isholdingresource_exothread
+ * Implements <exothread_t.isholdingresource_exothread>.
+ * > (0 != (xthread->flags & exothread_flag_HOLDINGRESOURCE)) */
+#define isholdingresource_exothread(_xthread) \
+   (0 != ((_xthread)->flags & exothread_flag_HOLDINGRESOURCE))
 
 /* define: outarg_exothread
  * Implements <exothread_t.outarg_exothread>.
@@ -374,11 +376,11 @@ struct exothread_subtype_t {
 #define outarg_exothread() \
    (& xthread->outarg)
 
-/* define: setfreeresource_exothread
- * Implements <exothread_t.setfreeresource_exothread>.
- * > xthread->flags |= exothread_flag_FREERESOURCE */
-#define setfreeresource_exothread() \
-   ((exothread_t*)xthread)->flags = (typeof(((exothread_t*)0)->flags)) (((exothread_t*)xthread)->flags | exothread_flag_FREERESOURCE)
+/* define: setholdingresource_exothread
+ * Implements <exothread_t.setholdingresource_exothread>.
+ * > xthread->flags |= exothread_flag_HOLDINGRESOURCE */
+#define setholdingresource_exothread() \
+   ((exothread_t*)xthread)->flags = (typeof(((exothread_t*)0)->flags)) (((exothread_t*)xthread)->flags | exothread_flag_HOLDINGRESOURCE)
 
 /* define: setstate_exothread
  * Implements <exothread_t.setstate_exothread>.

@@ -44,7 +44,7 @@
  * The macro JUMPSTATE_exothread knows how to interpret this.
  *
  * Precondition:
- * Call <setfreestate_exothread> only if <isfreeresource_exothread> returns true. */
+ * Call <setfreestate_exothread> only if <isholdingresource_exothread> returns true. */
 #define setfreestate_exothread(_xthread) \
    (_xthread)->instr_ptr = 0
 
@@ -82,7 +82,7 @@ static void seterror_exothread(exothread_t * xthread, int err)
    }
 
    if (!isfinish_exothread(xthread)) {
-      if (isfreeresource_exothread(xthread)) {
+      if (isholdingresource_exothread(xthread)) {
          // free resources of exothread in next call
          setfreestate_exothread(xthread) ;
       } else {
@@ -156,7 +156,7 @@ static int testerror_xthread(exothread_t * xthread)
    jumpstate_exothread() ;
 
    exothread_INIT: ;
-   setfreeresource_exothread() ;
+   setholdingresource_exothread() ;
    return EINVAL ;
 
    exothread_FREE: ;
@@ -226,7 +226,7 @@ static int counter_xthread(counter_xthread_t * xthread)
       xthread->value = 0 ;
       xthread->limit = inparam->limit ;
       xthread->dummy = malloc(12) ;
-      setfreeresource_exothread() ;
+      setholdingresource_exothread() ;
       if (!xthread->dummy) {
          err = ENOMEM ;
          LOG_OUTOFMEMORY(12) ;
@@ -300,7 +300,7 @@ static int test_initfree(void)
    TEST(xthread.flags     == 0) ;
    TEST(0 == iserror_exothread(&xthread)) ;
    TEST(0 == isfinish_exothread(&xthread)) ;
-   TEST(0 == isfreeresource_exothread(&xthread)) ;
+   TEST(0 == isholdingresource_exothread(&xthread)) ;
    // iserror_exothread
    xthread.returncode = -200 ;
    TEST(0 != iserror_exothread(&xthread)) ;
@@ -317,15 +317,15 @@ static int test_initfree(void)
    TEST(0 == isfinish_exothread(&xthread)) ;
    xthread.flags = 0 ;
    TEST(0 == isfinish_exothread(&xthread)) ;
-   // isfreeresource_exothread
-   xthread.flags = exothread_flag_FREERESOURCE ;
-   TEST(0 != isfreeresource_exothread(&xthread)) ;
-   xthread.flags = (uint16_t) (255 | exothread_flag_FREERESOURCE) ;
-   TEST(0 != isfreeresource_exothread(&xthread)) ;
-   xthread.flags = (uint16_t) (255 & ~(exothread_flag_FREERESOURCE)) ;
-   TEST(0 == isfreeresource_exothread(&xthread)) ;
+   // isholdingresource_exothread
+   xthread.flags = exothread_flag_HOLDINGRESOURCE ;
+   TEST(0 != isholdingresource_exothread(&xthread)) ;
+   xthread.flags = (uint16_t) (255 | exothread_flag_HOLDINGRESOURCE) ;
+   TEST(0 != isholdingresource_exothread(&xthread)) ;
+   xthread.flags = (uint16_t) (255 & ~(exothread_flag_HOLDINGRESOURCE)) ;
+   TEST(0 == isholdingresource_exothread(&xthread)) ;
    xthread.flags = 0 ;
-   TEST(0 == isfreeresource_exothread(&xthread)) ;
+   TEST(0 == isholdingresource_exothread(&xthread)) ;
    TEST(0 == free_exothread(&xthread)) ;
    TEST(0 == xthread.main) ;
 
@@ -339,23 +339,23 @@ static int test_initfree(void)
    TEST(xthread.flags     == (exothread_flag_FINISH|exothread_flag_RUN)) ;
    TEST(0 == free_exothread(&xthread)) ;
 
-   // TEST run / first errorcode => exothread_flag_FREERESOURCE cleared + exothread_flag_FINISH is set after two steps
+   // TEST run / first errorcode => exothread_flag_HOLDINGRESOURCE cleared + exothread_flag_FINISH is set after two steps
    s_isfree_called = 0 ;
    TEST(0 == init_exothread(&xthread, &testerror_xthread)) ;
    TEST(0 == run_exothread(&xthread)) ;
    TEST(0 == s_isfree_called) ;
    TEST(xthread.returncode == EINVAL) ;
-   TEST(xthread.flags      == (exothread_flag_FREERESOURCE|exothread_flag_RUN)) ;
+   TEST(xthread.flags      == (exothread_flag_HOLDINGRESOURCE|exothread_flag_RUN)) ;
    TEST(0 == run_exothread(&xthread)) ;
    TEST(1 == s_isfree_called) ;
    TEST(xthread.returncode == EINVAL) ;
    TEST(xthread.flags      == (exothread_flag_FINISH|exothread_flag_RUN)) ;
    TEST(0 == free_exothread(&xthread)) ;
 
-   // TEST run / exothread_flag_FREERESOURCE is cleared => jumps directly to exothread_FREE
+   // TEST run / exothread_flag_HOLDINGRESOURCE is cleared => jumps directly to exothread_FREE
    s_isfree_called = 0 ;
    TEST(0 == init_exothread(&xthread, &testerror_xthread)) ;
-   xthread.flags = exothread_flag_FREERESOURCE ;
+   xthread.flags = exothread_flag_HOLDINGRESOURCE ;
    TEST(0 == run_exothread(&xthread)) ;
    TEST(1 == s_isfree_called) ;
    TEST(xthread.returncode == ETIMEDOUT ) ;
@@ -385,13 +385,13 @@ static int test_initfree(void)
    TEST(xthread.flags      == (exothread_flag_FINISH)) ;
    TEST(0 == free_exothread(&xthread)) ;
 
-   // TEST abort of exothread after init + isfreeresource_exothread()
+   // TEST abort of exothread after init + isholdingresource_exothread()
    // => no finish, next run would call exothread_FREE:
    TEST(0 == init_exothread(&xthread, &testinit_xthread)) ;
-   xthread.flags = exothread_flag_FREERESOURCE ;
+   xthread.flags = exothread_flag_HOLDINGRESOURCE ;
    abort_exothread(&xthread) ;
    TEST(xthread.returncode == ECANCELED) ;
-   TEST(xthread.flags      == exothread_flag_FREERESOURCE) ;
+   TEST(xthread.flags      == exothread_flag_HOLDINGRESOURCE) ;
    TEST(0 == free_exothread(&xthread)) ;
 
    // TEST abort of running xthread
@@ -414,10 +414,10 @@ static int test_initfree(void)
    TEST(0 == run_exothread(&xthread)) ;
    TEST(99 == s_loop_count) ;
    TEST(xthread.flags == (exothread_flag_RUN)) ;
-   xthread.flags = (uint16_t) (exothread_flag_FREERESOURCE|exothread_flag_RUN) ;
+   xthread.flags = (uint16_t) (exothread_flag_HOLDINGRESOURCE|exothread_flag_RUN) ;
    abort_exothread(&xthread) ;
    TEST(xthread.returncode == ECANCELED) ;
-   TEST(xthread.flags      == (exothread_flag_FREERESOURCE|exothread_flag_RUN)) ;
+   TEST(xthread.flags      == (exothread_flag_HOLDINGRESOURCE|exothread_flag_RUN)) ;
    TEST(0 == s_isfree_called) ;
    TEST(0 == run_exothread(&xthread)) ;
    TEST(1 == s_isfree_called) ;
@@ -471,7 +471,7 @@ static int test_subtype_counter(void)
    TEST(0 == run_exothread(&xthread.xthread)) ;
    TEST(0 != iserror_exothread(&xthread.xthread)) ;
    TEST(0 != isfinish_exothread(&xthread.xthread)) ;
-   TEST(0 == isfreeresource_exothread(&xthread.xthread)) ;
+   TEST(0 == isholdingresource_exothread(&xthread.xthread)) ;
    TEST(xthread.xthread.returncode == EINVAL) ;
    TEST(0 == s_isfree_called) ;
    TEST(0 == s_outparam_set) ;
@@ -492,7 +492,7 @@ static int test_subtype_counter(void)
    TEST(0 == run_exothread(&xthread.xthread)) ;
    TEST(0 == iserror_exothread(&xthread.xthread)) ;
    TEST(0 != isfinish_exothread(&xthread.xthread)) ;
-   TEST(0 != isfreeresource_exothread(&xthread.xthread)) ;
+   TEST(0 != isholdingresource_exothread(&xthread.xthread)) ;
    TEST(0 == xthread.xthread.returncode) ;
    TEST(1 == s_isfree_called) ;
    TEST(1 == s_outparam_set) ;
@@ -515,14 +515,14 @@ static int test_subtype_counter(void)
    TEST(0 == s_isfree_called) ;
    TEST(0 != iserror_exothread(&xthread.xthread)) ;
    TEST(0 == isfinish_exothread(&xthread.xthread)) ;
-   TEST(0 != isfreeresource_exothread(&xthread.xthread)) ;
+   TEST(0 != isholdingresource_exothread(&xthread.xthread)) ;
    TEST(ETIME == xthread.xthread.returncode) ;
    TEST(0 == run_exothread(&xthread.xthread)) ;
    TEST(1 == s_isfree_called) ;
    TEST(0 == s_outparam_set) ;
    TEST(0 != iserror_exothread(&xthread.xthread)) ;
    TEST(0 != isfinish_exothread(&xthread.xthread)) ;
-   TEST(0 == isfreeresource_exothread(&xthread.xthread)) ;
+   TEST(0 == isholdingresource_exothread(&xthread.xthread)) ;
    TEST(ETIME == xthread.xthread.returncode) ;
    TEST(0 == free_exothread(&xthread.xthread)) ;
    TEST(0 == xthread.xthread.main) ;
@@ -542,7 +542,7 @@ static int test_subtype_counter(void)
    TEST(1 == s_isfree_called) ;
    TEST(0 != iserror_exothread(&xthread.xthread)) ;
    TEST(0 == isfinish_exothread(&xthread.xthread)) ;
-   TEST(0 != isfreeresource_exothread(&xthread.xthread)) ;
+   TEST(0 != isholdingresource_exothread(&xthread.xthread)) ;
    TEST(2345 == xthread.xthread.returncode) ;
    xthread.inarg.errfreeresource = EINVAL ;
    TEST(0 == run_exothread(&xthread.xthread)) ;
@@ -550,7 +550,7 @@ static int test_subtype_counter(void)
    TEST(0 == s_outparam_set) ;
    TEST(0 != iserror_exothread(&xthread.xthread)) ;
    TEST(0 != isfinish_exothread(&xthread.xthread)) ;
-   TEST(0 == isfreeresource_exothread(&xthread.xthread)) ;
+   TEST(0 == isholdingresource_exothread(&xthread.xthread)) ;
    TEST(2345 == xthread.xthread.returncode) ;
    TEST(0 == free_exothread(&xthread.xthread)) ;
    TEST(0 == xthread.xthread.main) ;
@@ -570,7 +570,7 @@ static int test_subtype_counter(void)
    TEST(0 == s_isfree_called) ;
    TEST(0 != iserror_exothread(&xthread.xthread)) ;
    TEST(0 == isfinish_exothread(&xthread.xthread)) ;
-   TEST(0 != isfreeresource_exothread(&xthread.xthread)) ;
+   TEST(0 != isholdingresource_exothread(&xthread.xthread)) ;
    TEST(0 == s_isfree_called) ;
    abort_exothread(&xthread.xthread) ; // calling a second time should do nothing
    TEST(0 == run_exothread(&xthread.xthread)) ;
@@ -579,7 +579,7 @@ static int test_subtype_counter(void)
    TEST(0 == s_outparam_set) ;
    TEST(0 != iserror_exothread(&xthread.xthread)) ;
    TEST(0 != isfinish_exothread(&xthread.xthread)) ;
-   TEST(0 == isfreeresource_exothread(&xthread.xthread)) ;
+   TEST(0 == isholdingresource_exothread(&xthread.xthread)) ;
    TEST(ECANCELED == xthread.xthread.returncode) ;
    TEST(0 == free_exothread(&xthread.xthread)) ;
    TEST(0 == xthread.xthread.main) ;
