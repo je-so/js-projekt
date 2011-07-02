@@ -3,11 +3,11 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="html">
-    <File Name="../../C-kern/resource/html[lang=de]/doku.css"/>
-    <File Name="../../C-kern/resource/html[lang=de]/make_grundlagen.html"/>
-    <File Name="../../C-kern/resource/html[lang=de]/raster26.png"/>
-    <File Name="../../C-kern/resource/html[lang=de]/vorlage.html"/>
-    <File Name="../../C-kern/resource/html[lang=de]/zeichentabelle.html"/>
+    <File Name="../../C-kern/resource/html.de/doku.css"/>
+    <File Name="../../C-kern/resource/html.de/raster26.png"/>
+    <File Name="../../C-kern/resource/html.de/vorlage.html"/>
+    <File Name="../../C-kern/resource/html.de/zeichentabelle.html"/>
+    <File Name="../../C-kern/resource/html.de/make_grundlagen.html"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
@@ -80,4 +80,7 @@
       </AdditionalRules>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="je-so.github.com">
+    <File Name="../../C-kern/resource/html.de/je-so.github.com/index.html"/>
+  </VirtualDirectory>
 </CodeLite_Project>

@@ -124,7 +124,6 @@ void abort_exothread(exothread_t * xthread)
 
 #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_task_exothread,ABBRUCH)
 
-#pragma GCC diagnostic ignored "-pedantic"
 static int testinit_xthread(exothread_t * xthread)
 {
    int err = 0 ;
@@ -144,12 +143,9 @@ ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
-#pragma GCC diagnostic warning "-pedantic"
-
 
 static int s_isfree_called = 0 ;
 
-#pragma GCC diagnostic ignored "-pedantic"
 static int testerror_xthread(exothread_t * xthread)
 {
 
@@ -163,12 +159,9 @@ static int testerror_xthread(exothread_t * xthread)
    s_isfree_called = 1 ;
    return ETIMEDOUT ;
 }
-#pragma GCC diagnostic warning "-pedantic"
-
 
 static int s_loop_count    = 0 ;
 
-#pragma GCC diagnostic ignored "-pedantic"
 static int testloop_xthread(exothread_t * xthread)
 {
 
@@ -186,8 +179,6 @@ static int testloop_xthread(exothread_t * xthread)
    finish_exothread() ;
    return 0 ;
 }
-#pragma GCC diagnostic warning "-pedantic"
-
 
 typedef struct counter_xthread_t             counter_xthread_t ;
 
@@ -207,10 +198,8 @@ struct counter_xthread_t {
    void      * dummy ;
 } ;
 
-
 static int s_outparam_set  = 0 ;
 
-#pragma GCC diagnostic ignored "-pedantic"
 static int counter_xthread(counter_xthread_t * xthread)
 {
    int err ;
@@ -234,8 +223,7 @@ static int counter_xthread(counter_xthread_t * xthread)
       }
    }
 
-   setstate_exothread(__extension__ &&exothread_LOOP) ;
-   exothread_LOOP: ;
+   rememberstate_exothread() ;
 
    ++ xthread->value ;
 
@@ -272,7 +260,55 @@ ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
-#pragma GCC diagnostic warning "-pedantic"
+
+static int testloopyield_xthread(exothread_t * xthread)
+{
+   jumpstate_exothread() ;
+
+   exothread_INIT: ;
+   s_loop_count = 0 ;
+
+   while( s_loop_count < 10 ) {
+      ++ s_loop_count ;
+      yield_exothread() ;
+   }
+
+   exothread_FREE: ;
+   finish_exothread() ;
+   return 0 ;
+}
+
+static int testloopwhile_xthread(exothread_t * xthread)
+{
+   jumpstate_exothread() ;
+
+   exothread_INIT: ;
+   s_loop_count = 0 ;
+
+   while_exothread( s_loop_count < 10 ) {
+      ++ s_loop_count ;
+   }
+
+   exothread_FREE: ;
+   finish_exothread() ;
+   return 0 ;
+}
+
+static int testloopfor_xthread(exothread_t * xthread)
+{
+   jumpstate_exothread() ;
+
+   exothread_INIT: ;
+   s_loop_count = 100 ;
+
+   for_exothread( s_loop_count = 0, s_loop_count < 10, ++ s_loop_count ) {
+      ;
+   }
+
+   exothread_FREE: ;
+   finish_exothread() ;
+   return 0 ;
+}
 
 static int test_initfree(void)
 {
@@ -590,6 +626,55 @@ ABBRUCH:
    return EINVAL ;
 }
 
+int test_loops(void)
+{
+   exothread_t xthread = exothread_INIT_FREEABLE ;
+
+   // TEST yield_exothread loop
+   TEST(0 == init_exothread(&xthread, &testloopyield_xthread)) ;
+   s_loop_count = -1 ;
+   for(int i = 1; i <= 10; ++i) {
+      TEST(0 == run_exothread(&xthread)) ;
+      TEST(i == s_loop_count) ;
+      TEST(0 == isfinish_exothread(&xthread)) ;
+   }
+   TEST(0 == run_exothread(&xthread)) ;
+   TEST(10 == s_loop_count) ;
+   TEST(1 == isfinish_exothread(&xthread)) ;
+   TEST(0 == free_exothread(&xthread)) ;
+
+   // TEST while_exothread loop
+   TEST(0 == init_exothread(&xthread, &testloopwhile_xthread)) ;
+   s_loop_count = -1 ;
+   for(int i = 1; i <= 10; ++i) {
+      TEST(0 == run_exothread(&xthread)) ;
+      TEST(i == s_loop_count) ;
+      TEST(0 == isfinish_exothread(&xthread)) ;
+   }
+   TEST(0 == run_exothread(&xthread)) ;
+   TEST(10 == s_loop_count) ;
+   TEST(1 == isfinish_exothread(&xthread)) ;
+   TEST(0 == free_exothread(&xthread)) ;
+
+   // TEST for_exothread loop
+   TEST(0 == init_exothread(&xthread, &testloopfor_xthread)) ;
+   s_loop_count = -1 ;
+   for(int i = 1; i <= 10; ++i) {
+      TEST(0 == run_exothread(&xthread)) ;
+      TEST(i == s_loop_count) ;
+      TEST(0 == isfinish_exothread(&xthread)) ;
+   }
+   TEST(0 == run_exothread(&xthread)) ;
+   TEST(10 == s_loop_count) ;
+   TEST(1 == isfinish_exothread(&xthread)) ;
+   TEST(0 == free_exothread(&xthread)) ;
+
+   return 0 ;
+ABBRUCH:
+   free_exothread(&xthread) ;
+   return EINVAL ;
+}
+
 int unittest_task_exothread()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -598,6 +683,7 @@ int unittest_task_exothread()
 
    if (test_initfree())          goto ABBRUCH ;
    if (test_subtype_counter())   goto ABBRUCH ;
+   if (test_loops())             goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

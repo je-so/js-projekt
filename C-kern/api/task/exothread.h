@@ -154,18 +154,25 @@ extern int free_exothread(exothread_t * xthread) ;
 
 // group: execution
 
-/* function: run_exothread
- * Calls <exothread_t.main> function a single time.
- * The flags are changed if necessary and the state
- * could be set to *exothread_FREE:*. */
-extern int run_exothread(exothread_t * xthread) ;
-
 /* function: abort_exothread
  * Marks xthread eiter as *FINISH* or state set to *exothread_FREE:*.
  * If the xthread holds no resources then it is marked a as finished.
  * If it holds resources the state is changed to *exothread_FREE:*
  * and returncode is set to ECANCELED. */
 extern void abort_exothread(exothread_t * xthread) ;
+
+/* function: run_exothread
+ * Calls <exothread_t.main> function a single time.
+ * The flags are changed if necessary and the state
+ * could be set to *exothread_FREE:*. */
+extern int run_exothread(exothread_t * xthread) ;
+
+/* function: yield_exothread
+ * Gives up processing time to other exothreads.
+ * It returns from current exothread and sets the state
+ * so a generated anynoumous label after the return.
+ * Next time the xthread is executed it starts after the yield. */
+extern void yield_exothread(void) ;
 
 // group: change
 
@@ -186,6 +193,17 @@ extern void clearholdingresource_exothread(void) ;
  * and the xthread function returns an error. */
 extern void finish_exothread(void) ;
 
+/* function: rememberstate_exothread
+ * Sets the state label of the current exothread to current position.
+ * The next time the xthread is run it continues execution after
+ * this function call.
+ *
+ * Attention:
+ * Do not forget to set the state after *exothread_INIT:* initialized
+ * the current thread successfully and before you give up the processor
+ * (i.e. return 0). */
+extern void rememberstate_exothread(void) ;
+
 /* function: setholdingresource_exothread
  * Sets flag of current xthread indicating that it holds resources.
  * You should set this flag after initializing the resources
@@ -201,8 +219,7 @@ extern void setholdingresource_exothread(void) ;
 
 /* function: setstate_exothread
  * Sets the state label of the current exothread.
- * If the xthread is not finished the next call to its
- * function continues execution at this label.
+ * The next time the xthread is run it continues execution at this label.
  *
  * Attention:
  * Do not forget to set the state after *exothread_INIT:* initialized
@@ -253,6 +270,29 @@ extern void * outarg_exothread(void) ;
 #define declare_outparam_exothread(_param_name) \
    typeof(outarg_exothread()) _param_name = outarg_exothread()
 
+/* define: for_exothread
+ * Same as *C99 for()* except that after every cycle exothread is yielded.
+ *
+ * Parameter:
+ * _init        - Initialize xthread variable.
+ * _bCondition  - Condition which must be true to execute body of for loop.
+ * _next        - Computation which changes the loop condition and which is executed after the body has executed
+ *                and before the next check of the condition.
+ *
+ * Implemented as:
+ * >    _init ;
+ * >    rememberstate_exothread() ;
+ * >    for(; _bCondition ; ( __extension__ ({ _next ; return 0 ; 0 ; })))
+ *
+ * Example:
+ * > for_exothread( xthread->loopcount = 0, xthread->loopcount < 10, ++ xthread->loopcount ) {
+ * >    do_some_stuff(xthread) ;
+ * > } */
+#define for_exothread( _init , _bCondition , _next ) \
+   _init ;                                                              \
+   rememberstate_exothread() ;                                          \
+   for(; _bCondition ; ( __extension__ ({ _next ; return 0 ; 0 ; })))   \
+
 /* define: jumpstate_exothread
  * Jumps to state of current thread.
  * Can only be used within a running exothread.
@@ -275,18 +315,36 @@ extern void * outarg_exothread(void) ;
  * >     }
  * >     goto exothread_INIT ;
  * >  } while(0) */
-#define jumpstate_exothread()                      \
-   do {                                            \
-      exothread_t * self_ = (exothread_t*)xthread; \
-      if (self_->instr_ptr) {                      \
-         goto *self_->instr_ptr ;                  \
-      }                                            \
-      if (isholdingresource_exothread(self_)) {    \
-         clearholdingresource_exothread() ;        \
-         goto exothread_FREE ;                     \
-      }                                            \
-      goto exothread_INIT ;                        \
+#define jumpstate_exothread()                            \
+   do {                                                  \
+      exothread_t * self_ = (exothread_t*)xthread;       \
+      if (self_->instr_ptr) {                            \
+         __extension__ ({ goto *self_->instr_ptr; 0; }); \
+      }                                                  \
+      if (isholdingresource_exothread(self_)) {          \
+         clearholdingresource_exothread() ;              \
+         goto exothread_FREE ;                           \
+      }                                                  \
+      goto exothread_INIT ;                              \
    } while(0)
+
+/* define: while_exothread( _bCondition )
+ * Same as *C99 while()* except that after every cycle exothread is yielded.
+ *
+ * Parameter:
+ * _bCondition  - Condition which must be true to execute body of while loop.
+ *
+ * Implemented as:
+ * >    rememberstate_exothread() ;
+ * >    for(; _bCondition ; ( __extension__ ({ return 0 ; 0 ; })))
+ *
+ * Example:
+ * > while_exothread( xthread->command_queue_length > 0 ) {
+ * >    process_command_from_queue(xthread) ;
+ * > } */
+#define while_exothread( _bCondition ) \
+   rememberstate_exothread() ;         \
+   for(; _bCondition ; ( __extension__ ({ return 0 ; 0 ; })))
 
 
 /* struct: exothread_subtype_t
@@ -376,6 +434,13 @@ struct exothread_subtype_t {
 #define outarg_exothread() \
    (& xthread->outarg)
 
+/* define: rememberstate_exothread
+ * Implements <exothread_t.rememberstate_exothread>.
+ * > setstate_exothread(  && STATE_REMEMBER_??? ) ; STATE_REMEMBER_???: */
+#define rememberstate_exothread() \
+   setstate_exothread( __extension__ && CONCAT( exothread_STATE_REMEMBER_, __LINE__ ) ) ; \
+   CONCAT( exothread_STATE_REMEMBER_, __LINE__ ) :                                        \
+
 /* define: setholdingresource_exothread
  * Implements <exothread_t.setholdingresource_exothread>.
  * > xthread->flags |= exothread_flag_HOLDINGRESOURCE */
@@ -388,6 +453,12 @@ struct exothread_subtype_t {
 #define setstate_exothread(_instr_ptr) \
    ((exothread_t*)xthread)->instr_ptr = _instr_ptr
 
-
+/* define: yield_exothread
+ * Implements <exothread_t.yield_exothread>.
+ * > setstate_exothread(  && STATE_YIELD_??? ) ; return 0 ; STATE_YIELD_???: */
+#define yield_exothread() \
+   setstate_exothread( __extension__ && CONCAT( exothread_STATE_YIELD_, __LINE__ ) ) ; \
+   return 0 ;                                                                          \
+   CONCAT( exothread_STATE_YIELD_, __LINE__ ) :                                        \
 
 #endif
