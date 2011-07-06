@@ -38,12 +38,6 @@
 // Useful preprocessor macros.
 
 //{
-/* define: nrelementsof
- * Calculates the number of elements of a static array. */
-#define nrelementsof(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
-/* define: CONCAT_
- * Used by <CONCAT>. Combines two language tokens into one. */
-#define CONCAT_(S1,S2)  S1 ## S2
 /* define: CONCAT
  * Combines two language tokens into one. Calls <CONCAT_> to ensure expansion of arguments.
  *
@@ -51,6 +45,7 @@
  * > CONCAT(var,__LINE__)  // generates token var10 if current line number is 10
  * > CONCAT_(var,__LINE__) // generates token var__LINE__ */
 #define CONCAT(S1,S2)   CONCAT_(S1,S2)
+#define CONCAT_(S1,S2)  S1 ## S2
 #define MEMSET0(ptr)    memset(ptr, 0, sizeof(*(ptr)))
 /* define: MALLOC
  * Ruft spezifisches malloc auf, wobei der Rückgabewert in den entsprechenden Typ konvertiert wird.
@@ -64,9 +59,16 @@
  * ...       - Weitere, malloc spezifische Parameter, welche an erster Stelle noch vor der Grössenangabe stehen. */
 #define MALLOC(type_t,malloc_f,...)    ((type_t*) ((malloc_f)( __VA_ARGS__ sizeof(type_t))))
 #define MEMCOPY(destination, source)   do { static_assert_void(sizeof(*(destination)) == sizeof(*(source))) ; memcpy((destination), (source), sizeof(*(destination))) ; } while(0)
-/* define: STR_
- * Used by <STR>. Makes string token out of argument. */
-#define STR_(S1)        # S1
+/* define: nrelementsof
+ * Calculates the number of elements of a static array. */
+#define nrelementsof(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
+/* define: structof
+ * Converts pointer to field of struct to pointer to structure type.
+ * > structof(struct_t, field, ptrfield) */
+#define structof(struct_t, field, ptrfield) \
+   ( __extension__ ({                                     \
+      typeof(((struct_t*)0)->field) * _ptr = (ptrfield) ; \
+      (struct_t*)( (uint8_t *) _ptr - offsetof(struct_t, field) ) ; }))
 /* define: STR
  * Makes string token out of argument. Calls <STR_> to ensure expansion of argument.
  *
@@ -74,6 +76,7 @@
  * > STR(__LINE__)  // generates token "10" if current line number is 10
  * > STR_(__LINE__) // generates token "__LINE__" */
 #define STR(S1)         STR_(S1)
+#define STR_(S1)        # S1
 /* define: static_assert
  * Checks condition to be true during compilation. No runtime code is generated. Use it in global context.
  *
