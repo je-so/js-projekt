@@ -38,6 +38,8 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/filesystem/mmfile.h"
 
+typedef struct function_t              function_t ;
+typedef struct iffunction_t            iffunction_t ;
 typedef struct expression_t            expression_t ;
 typedef struct select_parameter_t      select_parameter_t ;
 typedef struct textdb_t                textdb_t ;
@@ -63,6 +65,9 @@ static void print_err(const char* printf_format, ...)
    vdprintf( STDERR_FILENO, printf_format, args) ;
    dprintf( STDERR_FILENO, "\n") ;
    va_end( args ) ;
+   if (g_infilename) {
+      dprintf( STDERR_FILENO, "%s: error: processing '%s'\n", g_programname, g_infilename) ;
+   }
 }
 
 static int process_arguments(int argc, const char * argv[])
@@ -817,25 +822,208 @@ bool ismatch_expression( expression_t * where_expr, size_t row, const textdb_t *
    return false ;
 }
 
+struct function_t {
+   int  (* free)     ( function_t ** funcobj ) ;
+   int  (* prepare)  ( function_t * funcobj, const textdb_t * dbfile, const size_t ) ;
+   int  (* process)  ( function_t * funcobj, const size_t row, const textdb_t * dbfile, const size_t start_linenr ) ;
+} ;
+
+struct iffunction_t {
+   function_t     funcobj ;
+   expression_t * condition ;
+   const char   * ifstring ;
+   size_t         ifstring_len ;
+   const char   * elsestring ;
+   size_t         elsestring_len ;
+} ;
+
+static int delete_iffunction(iffunction_t ** iffunc) ;
+static int process_iffunction(iffunction_t * iffunc, const size_t row, const textdb_t * dbfile, const size_t start_linenr) ;
+static int prepare_iffunction(iffunction_t * iffunc, const textdb_t * dbfile, const size_t) ;
+
+static int new_iffunction(/*out*/iffunction_t ** iffunc, expression_t * condition, const char * ifstring, size_t ifstring_len, const char * elsestring, size_t elsestring_len)
+{
+   iffunction_t * newiffunc = MALLOC(iffunction_t,malloc,) ;
+
+   if (!newiffunc) {
+      print_err("Out of memory") ;
+      return ENOMEM ;
+   }
+
+   newiffunc->funcobj.free    = (int (*)(function_t**)) &delete_iffunction ;
+   newiffunc->funcobj.prepare = (typeof(((function_t*)0)->prepare)) &prepare_iffunction ;
+   newiffunc->funcobj.process = (typeof(((function_t*)0)->process)) &process_iffunction ;
+   newiffunc->condition      = condition ;
+   newiffunc->ifstring       = ifstring ;
+   newiffunc->ifstring_len   = ifstring_len ;
+   newiffunc->elsestring     = elsestring;
+   newiffunc->elsestring_len = elsestring_len ;
+
+   *iffunc = newiffunc ;
+   return 0 ;
+}
+
+int delete_iffunction(iffunction_t ** iffunc)
+{
+   int err ;
+
+   if (*iffunc) {
+
+      err = delete_expression(&(*iffunc)->condition) ;
+      free(*iffunc) ;
+
+      *iffunc = 0 ;
+
+      if (err) goto ABBRUCH ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   return err ;
+}
+
+static int process_iffunction(iffunction_t * iffunc, const size_t row, const textdb_t * dbfile, const size_t start_linenr)
+{
+   int err ;
+
+   if (ismatch_expression( iffunc->condition, row, dbfile, start_linenr )) {
+      err = write_file( g_outfd, iffunc->ifstring, iffunc->ifstring_len) ;
+      if (err) return err ;
+   } else {
+      err = write_file( g_outfd, iffunc->elsestring, iffunc->elsestring_len) ;
+      if (err) return err ;
+   }
+
+   return 0 ;
+}
+
+static int prepare_iffunction(iffunction_t * iffunc, const textdb_t * dbfile, const size_t start_linenr)
+{
+   int err ;
+
+   err = matchnames_expression( iffunc->condition, dbfile, start_linenr ) ;
+
+   return err ;
+}
+
+static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct, char * start_fct, char * end_macro, size_t start_linenr)
+{
+   int err ;
+   char         * next   = 0;
+   expression_t * expr   = 0 ;
+   iffunction_t * iffunc = 0 ;
+   const char   * start_ifstr   = "" ;
+   const char   * start_elsestr = "" ;
+   size_t         len_ifstr     = 0 ;
+   size_t         len_elsestr   = 0 ;
+
+   // parse expression
+   err = parse_expression( &expr, &next, start_fct, end_macro, start_linenr) ;
+   if (err) goto ABBRUCH ;
+
+   ++ next ;
+   skip_space(&next, end_macro) ;
+
+   start_ifstr = next ;
+   if (     next >= end_macro
+         || (     next[0] != '\''
+               && next[0] != '"' )) {
+      print_err( "Expected string after <(if () > in line: %d", start_linenr ) ;
+      goto ABBRUCH ;
+   }
+
+   ++ next ;
+   while( next < end_macro && next[0] != *start_ifstr)
+      ++ next ;
+
+   if (next >= end_macro ) {
+      print_err( "Expected closing %c after <(if () %c> in line: %d", *start_ifstr, *start_ifstr, start_linenr ) ;
+      goto ABBRUCH ;
+   }
+   ++ start_ifstr ;
+   len_ifstr = (size_t) ( next - start_ifstr ) ;
+
+   ++ next ;
+   skip_space(&next, end_macro) ;
+
+   if (0 == strncmp(next, "else", 4)) {
+      next += 4 ;
+      skip_space(&next, end_macro) ;
+
+      start_elsestr = next ;
+      if (     next >= end_macro
+            || (     next[0] != '\''
+                  && next[0] != '"' )) {
+         print_err( "Expected string after <(if () > in line: %d", start_linenr ) ;
+         goto ABBRUCH ;
+      }
+
+      ++ next ;
+      while( next < end_macro && next[0] != *start_elsestr)
+         ++ next ;
+      if (next >= end_macro ) {
+         print_err( "Expected closing %c after <(if () '' else %c> in line: %d", *start_elsestr, *start_elsestr, start_linenr ) ;
+         goto ABBRUCH ;
+      }
+      ++ start_elsestr ;
+      len_elsestr = (size_t) ( next - start_elsestr ) ;
+
+      ++ next ;
+      skip_space(&next, end_macro) ;
+   }
+
+   if (next >= end_macro || ')' != next[0]) {
+      print_err( "Expected closing ) after <(if () '' else ''> in line: %d", start_linenr ) ;
+      goto ABBRUCH ;
+   }
+
+   err = new_iffunction( &iffunc, expr, start_ifstr, len_ifstr, start_elsestr, len_elsestr) ;
+   if (err) goto ABBRUCH ;
+
+   *funcobj = &iffunc->funcobj ;
+   *end_fct = next ;
+
+   return 0 ;
+ABBRUCH:
+   delete_expression(&expr) ;
+   delete_iffunction(&iffunc) ;
+   return EINVAL ;
+}
+
+enum select_parameter_type_e {
+    seltypeFIELD
+   ,seltypeSTRING
+   ,seltypeFUNCTION
+} ;
+typedef enum select_parameter_type_e select_parameter_type_e ;
+
 struct select_parameter_t
 {
    select_parameter_t * next ;
    const char *   value ;
    size_t         length ;
+   function_t   * funcobj ;
    size_t         col_index ;
-   bool           isString ;
+   select_parameter_type_e type ;
 } ;
 
 static int delete_select_parameter(select_parameter_t ** param)
 {
+   int err = 0 ;
    select_parameter_t * next = *param ;
-   *param = NULL ;
+
    while( next ) {
       select_parameter_t * prev = next ;
       next = next->next ;
+      if (prev->funcobj) {
+         int err2 = prev->funcobj->free( &prev->funcobj ) ;
+         if (err2) err = err2 ;
+      }
       free(prev) ;
    }
-   return 0 ;
+
+   *param = NULL ;
+   return err ;
 }
 
 static int extend_select_parameter(/*inout*/select_parameter_t ** next_param)
@@ -854,11 +1042,12 @@ static int extend_select_parameter(/*inout*/select_parameter_t ** next_param)
       *next_param = new_param ;
    }
 
-   new_param->next   = 0 ;
-   new_param->value  = "" ;
-   new_param->length = 0 ;
+   new_param->next      = 0 ;
+   new_param->value     = "" ;
+   new_param->length    = 0 ;
+   new_param->funcobj   = 0 ;
    new_param->col_index = 0 ;
-   new_param->isString  = false ;
+   new_param->type      = seltypeFIELD ;
 
    return 0 ;
 ABBRUCH:
@@ -894,6 +1083,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
       const char * start_field = next ;
       while(   next < end_macro
             && ' ' != next[0]
+            && '(' != next[0]
             && ')' != next[0]
             && '"' != next[0]
             && '\'' != next[0]
@@ -908,7 +1098,29 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
          next_param->value    = start_field ;
          next_param->length   = field_len ;
       }
-      if (next < end_macro && ' ' != next[0]) {
+      if (next < end_macro && '(' == next[0]) {
+         char       * start_func = next + 1 ;
+         function_t * funcobj    = 0 ;
+
+         if (0 == strncmp( next, "(if ", strlen("(if "))) {
+            err = parse_iffunction( &funcobj, &next, next+strlen("(if "), end_macro, start_linenr) ;
+         } else {
+            print_err( "Unknown function '%.4s' in line: %d", start_func, start_linenr ) ;
+            goto ABBRUCH ;
+         }
+
+         err = extend_select_parameter(&next_param) ;
+         if (err) {
+            funcobj->free( &funcobj ) ;
+            goto ABBRUCH ;
+         }
+
+         next_param->value    = start_func ;
+         next_param->length   = (size_t) (next - start_func) ;
+         next_param->funcobj  = funcobj ;
+         next_param->type     = seltypeFUNCTION ;
+
+      } else if (next < end_macro && ' ' != next[0]) {
          const char * start_string = next + 1 ;
          size_t       string_len ;
          if ('"' == next[0]) {
@@ -953,7 +1165,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
 
          next_param->value    = start_string ;
          next_param->length   = string_len ;
-         next_param->isString = true ;
+         next_param->type     = seltypeSTRING ;
       }
    }
 
@@ -966,7 +1178,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
    return 0 ;
 ABBRUCH:
    delete_select_parameter(&first_param.next) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 static int tostring_select_parameter(const select_parameter_t * param, /*out*/char ** string )
@@ -1078,7 +1290,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    }
    // match select parameter to header of textdb
    for( select_parameter_t * p = select_param; p; p = p->next) {
-      if (!p->isString) {
+      if (seltypeFIELD == p->type) {
          // search matching header
          bool isMatch = false ;
          for(size_t i = 0; i < dbfile.column_count ; ++i) {
@@ -1094,6 +1306,9 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
             print_err( "Unknown column name '%.*s' in SELECT()FROM() in line: %d", p->length, p->value, start_linenr ) ;
             goto ABBRUCH ;
          }
+      } else if (seltypeFUNCTION == p->type) {
+         err = p->funcobj->prepare( p->funcobj, &dbfile, start_linenr) ;
+         if (err) goto ABBRUCH ;
       }
    }
 
@@ -1123,12 +1338,14 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
 
          textdb_column_t * data = &dbfile.rows[row * dbfile.column_count] ;
          for( const select_parameter_t * p = select_param; p; p = p->next) {
-            if (p->isString) {
+            if (seltypeSTRING == p->type) {
                err = write_file( g_outfd, p->value, p->length ) ;
                if (err) goto ABBRUCH ;
-            } else {
+            } else if (seltypeFIELD == p->type) {
                err = write_file( g_outfd, data[p->col_index].value, data[p->col_index].length ) ;
                if (err) goto ABBRUCH ;
+            } else if (seltypeFUNCTION == p->type) {
+               p->funcobj->process(p->funcobj, row, &dbfile, start_linenr) ;
             }
          }
 
