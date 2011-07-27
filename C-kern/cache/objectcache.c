@@ -83,8 +83,7 @@ int new_objectcache( /*out*/objectcache_t ** cache )
       goto ABBRUCH ;
    }
 
-   // only one cached object
-   static_assert_void( sizeof(*new_cache) == sizeof(iobuffer) ) ;
+   static_assert( sizeof(*new_cache) == sizeof(iobuffer), "only one cached object" ) ;
    new_cache->iobuffer = iobuffer ;
 
    *cache = new_cache ;

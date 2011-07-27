@@ -46,7 +46,7 @@ extern int signum(int i) ;
 #define signum(i) \
          ( __extension__ ({ \
             typedef typeof(i) _int_t ; \
-            static_assert_void( ((_int_t)-1) < 0 ) ; \
+            static_assert( ((_int_t)-1) < 0, "works only with signed integers") ; \
             _int_t _temp = (i) ; \
             ( (_temp > 0) - (_temp < 0) ) ; \
          }))

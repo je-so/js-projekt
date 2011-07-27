@@ -65,8 +65,8 @@ extern int makepowerof2(unsigned i) ;
 #define makepowerof2(i)                         \
          ( __extension__ ({                        \
             typedef typeof(i) _int_t ;          \
-            static_assert_void( ((_int_t)-1) > 0 ) ; \
-            static_assert_void( sizeof(_int_t) <= 8 ) ; \
+            static_assert( ((_int_t)-1) > 0, "only unsigned integer supported" ) ; \
+            static_assert( sizeof(_int_t) <= 8, "64bit maximum support" ) ; \
             _int_t _result = i ;                \
             if (     !ispowerof2(_result)          \
                   && _result < (_int_t) (_result << 1) ) { \

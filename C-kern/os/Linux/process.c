@@ -371,7 +371,7 @@ ABBRUCH:
 
 static int childprocess_return(void * param)
 {
-   static_assert_void(sizeof(void*) >= sizeof(int)) ;
+   static_assert(sizeof(void*) >= sizeof(int), "") ;
    return (int) param ;
 }
 
@@ -386,7 +386,7 @@ static int childprocess_endlessloop(void * param)
 
 static int childprocess_signal(void * param)
 {
-   static_assert_void(sizeof(void*) >= sizeof(int)) ;
+   static_assert(sizeof(void*) >= sizeof(int), "") ;
    dprintf(10,"kill\n") ;
    kill( getpid(), (int)param) ;
    return 0 ;

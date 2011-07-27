@@ -181,7 +181,7 @@ int init_directorystream(/*out*/directory_stream_t * dir, const char * dir_path,
    }
    strcpy( dir->path + workdir_pathlen, dir_path ) ;
    if (path_len) dir->path[path_len-1] = '/' ;
-   static_assert_void(sizeof(direntry->d_name) >= 1) ;
+   static_assert(sizeof(direntry->d_name) >= 1, "") ;
    dir->path[path_len]   = 0 ; // 0 is stored in direntry->d_name
    return 0 ;
 ABBRUCH:
@@ -556,10 +556,6 @@ static int test_directory_stream__nextdir(directory_stream_t * dir, int test_fla
    filetype_e   read_type ;
    int read_flag[100] = { 0 } ;
 
-   if (!test_flags_value) {
-      TEST(0 == readnext_directorystream(dir, &read_name, &read_type)) ;  // skip .
-      TEST(0 == readnext_directorystream(dir, &read_name, &read_type)) ;  // skip ..
-   }
    for(int i = 0; i < 100 * ((0!=(test_flags_value&2)) + (0!=(test_flags_value&1))); ++i) {
       unsigned read_number = 0 ;
       do {
@@ -581,9 +577,11 @@ static int test_directory_stream__nextdir(directory_stream_t * dir, int test_fla
       }
    }
    // end of read returns 0 in read_name
-   read_name = (const char*) 1 ;
-   read_type = ftDirectory ;
-   TEST(0 == readnext_directorystream(dir, &read_name, &read_type)) ;
+   do {
+      read_name = (const char*) 1 ;
+      read_type = ftDirectory ;
+      TEST(0 == readnext_directorystream(dir, &read_name, &read_type)) ;
+   } while (read_name && (!strcmp(read_name, ".") || !strcmp(read_name, ".."))) ;
    TEST(read_name == 0) ;
    TEST(read_type == ftUnknown) ;
    // all files found

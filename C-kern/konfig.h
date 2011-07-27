@@ -58,7 +58,7 @@
  * malloc_f  - Der Name der aufzurufenden malloc Funktion.
  * ...       - Weitere, malloc spezifische Parameter, welche an erster Stelle noch vor der Grössenangabe stehen. */
 #define MALLOC(type_t,malloc_f,...)    ((type_t*) ((malloc_f)( __VA_ARGS__ sizeof(type_t))))
-#define MEMCOPY(destination, source)   do { static_assert_void(sizeof(*(destination)) == sizeof(*(source))) ; memcpy((destination), (source), sizeof(*(destination))) ; } while(0)
+#define MEMCOPY(destination, source)   do { static_assert(sizeof(*(destination)) == sizeof(*(source)),"same size") ; memcpy((destination), (source), sizeof(*(destination))) ; } while(0)
 /* define: nrelementsof
  * Calculates the number of elements of a static array. */
 #define nrelementsof(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
@@ -78,16 +78,13 @@
 #define STR(S1)         STR_(S1)
 #define STR_(S1)        # S1
 /* define: static_assert
- * Checks condition to be true during compilation. No runtime code is generated. Use it in global context.
+ * Checks condition to be true during compilation. No runtime code is generated.
+ * Can only be used in function context.
  *
  * Paramters:
  *  C - Condition which must hold true
  *  S - human readable explanation (ignored) */
-#define static_assert(C,S)     extern int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1]
-/* define: static_assert_void
- * Same as <static_assert> but this time the implementaion suppresses an unused variable warning.
- * Can only be used in function context. It expects only the condition to test for as parameter. */
-#define static_assert_void(C)  extern int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1] ; (void)CONCAT(_extern_static_assert,__LINE__)
+#define static_assert(C,S)     { int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1] ; (void)CONCAT(_extern_static_assert,__LINE__) ; }
 //}
 
 // group: 2. Configuration

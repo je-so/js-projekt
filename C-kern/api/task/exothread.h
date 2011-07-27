@@ -1,5 +1,4 @@
 /* title: Exothread
-
    See also <Taskmanagement>.
 
    *exo*       - A prefix meaning outside or external (Greek origin).
@@ -401,13 +400,13 @@ struct exothread_subtype_t {
 
 /* define: initsubtype_exothread
  * Implements <exothread_t.initsubtype_exothread>.
- * Checks with <static_assert_void> that main_fct expects xthread as single argument.
+ * Checks with <static_assert> that main_fct expects xthread as single argument.
  * > init_exothread(&xthread->xthread, (exothread_main_f) main_fct) */
 #define initsubtype_exothread(_xthread, _main_fct) \
-   ( __extension__ ({                                                                     \
-         static_assert_void( ((int(*)(typeof(_xthread)))0) == (typeof(_main_fct)) 0 ) ;   \
-         static_assert_void( ((exothread_t*)0) == &((typeof(_xthread))0)->xthread ) ;     \
-         init_exothread(&(_xthread)->xthread, (exothread_main_f) (_main_fct)) ;           \
+   ( __extension__ ({                                                                   \
+         static_assert( ((int(*)(typeof(_xthread)))0) == (typeof(_main_fct)) 0, "" ) ;  \
+         static_assert( ((exothread_t*)0) == &((typeof(_xthread))0)->xthread, "" ) ;    \
+         init_exothread(&(_xthread)->xthread, (exothread_main_f) (_main_fct)) ;         \
    }))
 
 /* define: iserror_exothread

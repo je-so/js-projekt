@@ -291,8 +291,8 @@ const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 }
 
 #define SET_PROT(prot, access_mode) \
-   static_assert_void(0 == accessmode_NONE) ;   \
-   static_assert_void(0 == PROT_NONE) ;         \
+   static_assert(0 == accessmode_NONE, "") ;    \
+   static_assert(0 == PROT_NONE, "") ;          \
    if (     accessmode_READ  == PROT_READ       \
          && accessmode_WRITE == PROT_WRITE      \
          && accessmode_EXEC  == PROT_EXEC ) {   \

@@ -46,8 +46,10 @@ struct osthread_private_t {
    osthread_stack_t  thread_stack ;
 } ;
 
-static_assert( &((osthread_private_t*)0)->osthread == ((osthread_t*)0), "convertible: (osthread_private_t*) <-> (osthread_t*)") ;
-
+static inline void compiletime_tests(void)
+{
+   static_assert( &((osthread_private_t*)0)->osthread == ((osthread_t*)0), "convertible: (osthread_private_t*) <-> (osthread_t*)") ;
+}
 
 static int unmap_stackmemory_osthread(osthread_private_t * osthread_private)
 {

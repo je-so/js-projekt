@@ -527,10 +527,9 @@ struct node_t {
    int   is_inserted ;
 } ;
 
-static_assert( sizeof(int) <= sizeof(void*), "integer key can be cast to void *" ) ;
-
 static int adapter_compare_key_node( callback_aspect_t * cb, const void * key_node1, const splaytree_node_t * node2)
 {
+   static_assert( sizeof(int) <= sizeof(void*), "integer key can be cast to void *" ) ;
    assert( (void*)17 == (void*)cb ) ;
    int key1 = (int) key_node1 ;
    int key2 = ((const node_t*)node2)->key ;

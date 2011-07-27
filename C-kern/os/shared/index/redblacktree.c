@@ -752,10 +752,10 @@ struct TreeNode {
    int      is_freed ;
    int      is_inserted ;
 } ;
-static_assert( sizeof(void*) >= sizeof(unsigned ), "void* is not big enough to carry search key" ) ;
 
 static int adapter_compare_nodes( callback_aspect_t * cb, const redblacktree_node_t * node1, const redblacktree_node_t * node2)
 {
+   static_assert( sizeof(void*) >= sizeof(unsigned ), "void* is not big enough to carry search key" ) ;
    assert(cb == (callback_aspect_t *)1) ;
    unsigned key1 = ((const struct TreeNode*)node1)->key ;
    unsigned key2 = ((const struct TreeNode*)node2)->key ;
