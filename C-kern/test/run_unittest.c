@@ -227,8 +227,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 //{ umgebung unittest
    RUN(unittest_umgebung) ;
-   RUN(unittest_umgebung_default) ;
-   RUN(unittest_umgebung_testproxy) ;
+   RUN(unittest_umgebung_initdefault) ;
+   RUN(unittest_umgebung_inittestproxy) ;
 //}
 
 //{ cache unittest

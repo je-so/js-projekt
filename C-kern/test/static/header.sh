@@ -28,7 +28,7 @@ function set_error()
       exit 1 ;
    fi
       info="$info  file: <${1}> wrong header\n"
-   if [ "$#" == "3" ]; then
+   if [ "$#" = "3" ]; then
       info="$info        expected '$2'\n"
       info="$info        read '$3'\n"
    fi
@@ -91,7 +91,7 @@ for i in $files; do
             set_error "$i"
             break
          fi
-         if [ "${REPLY}" == '*/' ]; then
+         if [ "${REPLY}" = '*/' ]; then
             if [ "${file_title}" != "" ]; then
                set_error "$i"
             fi
@@ -113,9 +113,9 @@ for i in $files; do
             if ! read_and_check_line "   Author:" "$i" ; then break ; fi
             if ! read_and_check_line "   (C) 2010 Jörg Seebohn" "$i" ; then break ; fi
             while read -u 4 ; do
-               if [ "${REPLY}" == "*/" ]; then break ; fi
+               if [ "${REPLY}" = "*/" ]; then break ; fi
                path="${REPLY#*file: }"
-               if [ "$path" == "$REPLY" ]; then continue ; fi
+               if [ "$path" = "$REPLY" ]; then continue ; fi
                if [ "$path" != "${i}" ] && [ ! -f "${path}" ]; then
                   set_error "$i" "   file: ${i}" "${REPLY}"
                   break 2
@@ -133,20 +133,20 @@ for i in $files; do
                   fi
                fi
             done
-            if [ "${i%%*.h}" == "" ]; then
+            if [ "${i%%*.h}" = "" ]; then
                read -u 4 ;
                if ! check_line "$i" "#ifndef " "${REPLY:0:8}" ; then break ; fi
                read -u 4 ;
                if ! check_line "$i" "#define " "${REPLY:0:8}" ; then break ; fi
             fi
             while read -u 4 ; do
-               if [ "${REPLY}" == "" ] || [ "${REPLY:0:9}" == "#include " ]; then continue ; fi
+               if [ "${REPLY}" = "" ] || [ "${REPLY:0:9}" = "#include " ]; then continue ; fi
                if [ "${REPLY:0:2}" != "/*" ] && [ "${REPLY:0:2}" != " *" ]; then break ; fi
                path="${REPLY##*file: }"
-               if [ "${REPLY:0:2}" == "/*" ] && [ "$path" != "$REPLY" ] && [ "$path" != "${i}" ]; then
+               if [ "${REPLY:0:2}" = "/*" ] && [ "$path" != "$REPLY" ] && [ "$path" != "${i}" ]; then
                   set_error "$i" "${i}" "$path"
                   break
-               elif [ "${REPLY:0:2}" == " *" ] && [ "$path" != "$REPLY" ] && [ ! -f "${path}" ]; then
+               elif [ "${REPLY:0:2}" = " *" ] && [ "$path" != "$REPLY" ] && [ ! -f "${path}" ]; then
                   set_error "$i" " * file: ${i}" "${REPLY}"
                   break
                fi
@@ -169,7 +169,7 @@ for i in $files; do
    fi
 done
 
-if [ "$info" == "" ]; then
+if [ "$info" = "" ]; then
    exit 0
 fi
 echo -e "\nError: Headers are incorrect" 1>&2

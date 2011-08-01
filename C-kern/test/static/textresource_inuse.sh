@@ -24,7 +24,7 @@ function check_textresource_inuse()
    files=( `find "C-kern/" -name "*.[ch]" -exec grep -l "$searchstr" {} \;` )
    IFS=$IFS_old
    for i in "${files[@]}"; do
-      if [ "$i" == "C-kern/api/resource/errorlog.h" ]; then
+      if [ "$i" = "C-kern/api/resource/errorlog.h" ]; then
          continue ;
       fi
       grep -o "$searchstr" $i >> $used_resources_file
@@ -33,7 +33,7 @@ function check_textresource_inuse()
    sort $used_resources_file > $used_resources_file2
    uniq $used_resources_file2 $used_resources_file
    for textid in "${textids[@]}"; do
-      if [ "`grep ${textid} $used_resources_file`" == "" ]; then
+      if [ "`grep ${textid} $used_resources_file`" = "" ]; then
          info="$info  $textid\n"
       fi
    done
@@ -42,7 +42,7 @@ function check_textresource_inuse()
 
 check_textresource_inuse "C-kern/resource/errorlog.text"
 
-if [ "$info" == "" ]; then
+if [ "$info" = "" ]; then
    exit 0
 fi
 echo -e "\nError: some text resources are not used" 1>&2

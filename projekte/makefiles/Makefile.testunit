@@ -6,8 +6,8 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jul.01  17:33:04
-GeneratedBy     := Jörg Seebohn
+GenerationDate  := 2011.Aug.01  18:05:28
+GeneratedBy     := JE-SO
 
 ## Debug
 DefineFlag_Debug    := -D
@@ -74,12 +74,12 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!file.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
@@ -94,17 +94,18 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!testerror.c.o \
  $(ObjectDir_Debug)/C-kern!writer!log.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!file.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
@@ -119,8 +120,9 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!testerror.c.o \
  $(ObjectDir_Release)/C-kern!writer!log.c.o
 
 $(Target_Debug): $(Objects_Debug)
@@ -129,22 +131,22 @@ $(Target_Debug): $(Objects_Debug)
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o: C-kern/os/Linux/directory.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!file.c.o: C-kern/os/Linux/file.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o: C-kern/os/Linux/directory.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
@@ -189,31 +191,34 @@ $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o: C-kern/umgebung/umgebung_inittestproxy.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o: C-kern/umgebung/umgebung_initdefault.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
+$(ObjectDir_Debug)/C-kern!umgebung!testerror.c.o: C-kern/umgebung/testerror.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!writer!log.c.o: C-kern/writer/log.c
 	@$(CC_Debug)
 
-$(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!os!Linux!directory.c.o: C-kern/os/Linux/directory.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!file.c.o: C-kern/os/Linux/file.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!directory.c.o: C-kern/os/Linux/directory.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
@@ -258,10 +263,13 @@ $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o: C-kern/umgebung/umgebung_inittestproxy.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o: C-kern/umgebung/umgebung_initdefault.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
+$(ObjectDir_Release)/C-kern!umgebung!testerror.c.o: C-kern/umgebung/testerror.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!writer!log.c.o: C-kern/writer/log.c

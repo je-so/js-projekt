@@ -66,10 +66,6 @@ typedef enum umgebung_type_e        umgebung_type_e ;
  * So every thread has its own copy the content. */
 extern __thread struct umgebung_t   gt_umgebung ;
 
-#ifdef KONFIG_UNITTEST
-extern int                          g_error_init_umgebung ;
-#endif
-
 
 // section: Functions
 
@@ -79,16 +75,21 @@ extern int                          g_error_init_umgebung ;
 /* function: unittest_umgebung
  * Test initialization process succeeds and global variables are set correctly. */
 extern int unittest_umgebung(void) ;
-/* function: unittest_umgebung_default
+/* function: unittest_umgebung_initdefault
  * Test initialization thread with default impl. succeeds. */
-extern int unittest_umgebung_default(void) ;
-/* function: unittest_umgebung_testproxy
+extern int unittest_umgebung_initdefault(void) ;
+/* function: unittest_umgebung_inittestproxy
  * Test initialization thread with test impl. succeeds. */
-extern int unittest_umgebung_testproxy(void) ;
+extern int unittest_umgebung_inittestproxy(void) ;
 #endif
 
 /* struct: umgebung_t
- * Defines top level context for all software modules. */
+ * Defines top level context for all software modules.
+ *
+ * TODO: implement SIGTERM support for shutting down the system in an ordered way
+ *       (=> abort handler ? => abort handler calls freeprocess_umgebung ?)
+ *
+ * */
 struct umgebung_t {
    umgebung_type_e         type ;
    uint16_t                resource_count ;

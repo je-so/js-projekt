@@ -1,8 +1,10 @@
 /bin
 /html
 /test
-/projekte/naturaldocs/Data/
-/projekte/codelite/cscope.out
-/projekte/codelite/cscope_file.list
-/projekte/codelite/js-projekt.tags
-/projekte/codelite/tags
+projekte/naturaldocs/Data/
+projekte/codelite/cscope.out
+projekte/codelite/cscope_file.list
+projekte/codelite/jsprojekt.tags
+projekte/codelite/jsprojekt.workspace.session
+projekte/codelite/jsprojekt.workspace.session.backup
+projekte/codelite/tags

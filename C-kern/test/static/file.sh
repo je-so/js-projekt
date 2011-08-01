@@ -21,12 +21,12 @@ for i in $files; do
    result=`grep "$filter" $i`
    result=`sed -e 's/^\(\([^"]*"\([^"]\|\\"\)*[^\"]"\)*[^"]*"[^"]*\)\(stderr\|stdout\|stdin\)/\1/'  <<< $result`
    result=`grep "$filter" - <<< $result`
-   if [ "$result" == "" ]; then
+   if [ "$result" = "" ]; then
       files="${files/"$i"/}" # remove files which are ok from $files
    fi
 done
 files=`echo $files | sed -e '/^[ ]*$/d' -`
-if [ "${files}" == "" ]; then
+if [ "${files}" = "" ]; then
    exit 0
 else
    echo -e "\nError: FILE used outside allowed files" 1>&2

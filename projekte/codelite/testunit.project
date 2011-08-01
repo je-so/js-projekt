@@ -41,11 +41,11 @@
   </VirtualDirectory>
   <VirtualDirectory Name="testunit"/>
   <VirtualDirectory Name="umgebung">
-    <File Name="../../C-kern/umgebung/cbthreads.c"/>
     <File Name="../../C-kern/umgebung/README"/>
     <File Name="../../C-kern/umgebung/umgebung.c"/>
     <File Name="../../C-kern/umgebung/umgebung_initdefault.c"/>
     <File Name="../../C-kern/umgebung/umgebung_inittestproxy.c"/>
+    <File Name="../../C-kern/umgebung/testerror.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/api/execCcompiler.h"/>
@@ -63,7 +63,7 @@
       <File Name="../../C-kern/api/resource/errorlog.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="umgebung">
-      <File Name="../../C-kern/api/umgebung/cbthreads.h"/>
+      <File Name="../../C-kern/api/umgebung/testerror.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/konfig.h"/>
     <VirtualDirectory Name="adapter">
@@ -124,9 +124,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="aspect">
       <VirtualDirectory Name="callback">
-        <File Name="../../C-kern/api/aspect/callback/update_key.h"/>
-        <File Name="../../C-kern/api/aspect/callback/free_resource.h"/>
         <File Name="../../C-kern/api/aspect/callback/compare.h"/>
+        <File Name="../../C-kern/api/aspect/callback/free.h"/>
+        <File Name="../../C-kern/api/aspect/callback/updatekey.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/callback.h"/>
       <File Name="../../C-kern/api/aspect/treenode2.h"/>
@@ -136,6 +136,7 @@
         <File Name="../../C-kern/api/aspect/constant/accessmode.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/memoryblock.h"/>
+      <File Name="../../C-kern/api/aspect/slist_aspect.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
@@ -151,7 +152,13 @@
     </VirtualDirectory>
     <VirtualDirectory Name="task">
       <File Name="../../C-kern/api/task/exothread.h"/>
-      <File Name="../../C-kern/api/task/exothread_scheduler.h"/>
+      <File Name="../../C-kern/api/task/exoscheduler.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="ds">
+      <VirtualDirectory Name="inmem">
+        <File Name="../../C-kern/api/ds/inmem/slist.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="ondisk"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -205,7 +212,7 @@
     <File Name="../../C-kern/resource/errorlog.text"/>
     <VirtualDirectory Name="coding conventions">
       <File Name="../../coding-conventions/free_objects.txt"/>
-      <File Name="../../coding-conventions/function_parameter_type.txt"/>
+      <File Name="../../coding-conventions/parameter_type.txt"/>
       <File Name="../../coding-conventions/umgebung.txt"/>
       <File Name="../../coding-conventions/unittest.txt"/>
       <File Name="../../coding-conventions/task.txt"/>
@@ -341,6 +348,12 @@
   </Settings>
   <VirtualDirectory Name="task">
     <File Name="../../C-kern/task/exothread.c"/>
-    <File Name="../../C-kern/task/exothread_scheduler.c"/>
+    <File Name="../../C-kern/task/exoscheduler.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="ds">
+    <VirtualDirectory Name="inmem">
+      <File Name="../../C-kern/ds/inmem/slist.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="ondisk"/>
   </VirtualDirectory>
 </CodeLite_Project>

@@ -39,7 +39,7 @@ for i in $files; do
       info="$info  file: <${i}> uses: \n$info2"
    fi
 done
-if [ "$info" == "" ]; then
+if [ "$info" = "" ]; then
    exit 0
 else
    echo -e "\nError: file descriptor created without O_CLOEXEC" 1>&2

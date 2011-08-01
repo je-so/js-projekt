@@ -18,8 +18,8 @@ space="                               "
 temp_thread_db=`mktemp`
 temp_process_db=`mktemp`
 
-echo -n '"init-function",              "free-function",              "parameter"' > $temp_thread_db
-echo ',   "header-name"' >> $temp_thread_db
+echo -n '"init-function",                  "free-function",                  "parameter"' > $temp_thread_db
+echo ',    "header-name"' >> $temp_thread_db
 echo -n '"init-function",              "free-function",              "subsystem"' > $temp_process_db
 echo ',   "header-name"' >> $temp_process_db
 
@@ -48,10 +48,30 @@ for i in $files; do
          let "testnr=testnr-1"
       fi
    done
+   # filter input
+   for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
+      result="${init_thread_calls[$testnr]}"
+      if [ "${result/define initumgebung_*()/}" != "$result" ]; then
+         init_thread_calls[$testnr]="${init_thread_calls[${#init_thread_calls[*]}-1]}"
+         unset init_thread_calls[${#init_thread_calls[*]}-1]
+         let "testnr=testnr-1"
+      fi
+   done
+   for((testnr=0;testnr < ${#free_thread_calls[*]}; testnr=testnr+1)) do
+      result="${free_thread_calls[$testnr]}"
+      if [ "${result/define freeumgebung_*()/}" != "$result" ]; then
+         free_thread_calls[$testnr]="${free_thread_calls[${#free_thread_calls[*]}-1]}"
+         unset free_thread_calls[${#free_thread_calls[*]}-1]
+         let "testnr=testnr-1"
+      fi
+   done
 
    # test for correct interface
    for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
       result=${init_thread_calls[$testnr]}
+      if [ "${result#extern int initumgebung_*(void) ;}" = "" ]; then
+         continue ;
+      fi
       if [ "${result#extern int initumgebung_*(*/\*out\*/*) ;}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
@@ -82,8 +102,13 @@ for i in $files; do
       name1=${result#extern int initumgebung_}
       parameter="$name1"
       name1=${name1%(*) ;}
-      parameter="${parameter#*(*\*\*}"
+      parameter="${parameter#*(}"
       parameter="${parameter%) ;}"
+      if [ "$parameter" = "void" ]; then
+         parameter=""
+      else
+         parameter="${parameter#*\*\*}"
+      fi
       parameter="${parameter# }"
       parameter="${parameter% }"
       result=${free_thread_calls[$testnr]}
@@ -93,12 +118,12 @@ for i in $files; do
          info="$info  file: <${i}> missing freeumgebung for '${init_thread_calls[$testnr]}'\n"
          continue
       fi
-      if [ ${#name1} -gt 13 ]; then
+      if [ ${#name1} -gt 17 ]; then
          continue
       fi
-      space2=${space:0:13-${#name1}}
+      space2=${space:0:17-${#name1}}
       echo -n "\"initumgebung_${name1}\",${space2} \"freeumgebung_${name1}\",${space2} " >> $temp_thread_db
-      space2=${space:0:11-${#parameter}}
+      space2=${space:0:12-${#parameter}}
       echo "\"${parameter}\",${space2} \"${i}\"" >> $temp_thread_db
    done
    for((testnr=${#init_thread_calls[*]};testnr < ${#free_thread_calls[*]}; testnr=testnr+1)) do
@@ -114,7 +139,7 @@ for i in $files; do
       if [ "$name1" != "$name2" ]; then
          info="$info  file: <${i}> missing freeprocess for '${init_process_calls[$testnr]}'\n"
       fi
-      if [ "$name1" == "umgebung" ]; then
+      if [ "$name1" = "umgebung" ]; then
          # skip initprocess_umgebung which is called by user to init process
          continue
       fi
@@ -154,7 +179,7 @@ fi
 
 rm $temp_compare1 $temp_compare2 $temp_thread_db $temp_process_db
 
-if [ "$info" == "" ]; then
+if [ "$info" = "" ]; then
    exit 0
 fi
 echo -e "\nError: (init|free)(umgebung_|process_) are either incorrect defined or not called" 1>&2

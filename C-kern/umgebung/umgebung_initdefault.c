@@ -30,6 +30,7 @@
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/writer/log.h"
+#include "C-kern/api/umgebung/testerror.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -54,7 +55,9 @@ static int free_thread_resources(umgebung_t * umg)
    switch(umg->resource_count) {
    default:    assert(0 == umg->resource_count && "out of bounds") ;
                break ;
-// TEXTDB:SELECT("   case "row-id":     err2 = "free-function"(&umg->"parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initumgebung)DESCENDING
+// TEXTDB:SELECT("   case "row-id":     err2 = "free-function"("(if (parameter!="") "&umg->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initumgebung)DESCENDING
+   case 4:     err2 = freeumgebung_umgebungtesterror() ;
+               if (err2) err = err2 ;
    case 3:     err2 = freeumgebung_log(&umg->log) ;
                if (err2) err = err2 ;
    case 2:     err2 = freeumgebung_objectcache(&umg->objectcache) ;
@@ -79,7 +82,7 @@ static int init_thread_resources(umgebung_t * umg)
 {
    int err ;
 
-// TEXTDB:SELECT(\n"   err = "init-function"(&umg->"parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++umg->resource_count ;")FROM(C-kern/resource/text.db/initumgebung)
+// TEXTDB:SELECT(\n"   err = "init-function"("(if (parameter!="") "&umg->")parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++umg->resource_count ;")FROM(C-kern/resource/text.db/initumgebung)
 
    err = initumgebung_valuecache(&umg->valuecache) ;
    if (err) goto ABBRUCH ;
@@ -92,14 +95,11 @@ static int init_thread_resources(umgebung_t * umg)
    err = initumgebung_log(&umg->log) ;
    if (err) goto ABBRUCH ;
    ++umg->resource_count ;
-// TEXTDB:END
 
-#ifdef KONFIG_UNITTEST
-   if (g_error_init_umgebung) {
-      err = g_error_init_umgebung ;
-      goto ABBRUCH ;
-   }
-#endif
+   err = initumgebung_umgebungtesterror() ;
+   if (err) goto ABBRUCH ;
+   ++umg->resource_count ;
+// TEXTDB:END
 
    return 0 ;
 ABBRUCH:
@@ -151,7 +151,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_default,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_initdefault,ABBRUCH)
 
 static int test_init(void)
 {
@@ -161,7 +161,7 @@ static int test_init(void)
    MEMSET0(&umg) ;
    TEST(0 == initdefault_umgebung(&umg)) ;
    TEST(umgebung_type_DEFAULT == umg.type) ;
-   TEST(3                     == umg.resource_count) ;
+   TEST(4                     == umg.resource_count) ;
    TEST(freedefault_umgebung  == umg.free_umgebung) ;
    TEST(0 != umg.log) ;
    TEST(&g_main_logservice != umg.log) ;
@@ -184,7 +184,7 @@ static int test_init(void)
 
    // TEST EINVAL init
    for(int err = EINVAL; err < EINVAL+2; ++err) {
-      g_error_init_umgebung = err ;
+      setiniterror_umgebungtesterror(err) ;
       umg = (umgebung_t) umgebung_INIT_FREEABLE ;
       TEST(err == initdefault_umgebung(&umg)) ;
       TEST(0 == umg.type) ;
@@ -194,15 +194,15 @@ static int test_init(void)
       TEST(0 == umg.objectcache) ;
       TEST(0 == umg.valuecache) ;
    }
-   g_error_init_umgebung = 0 ;
+   cleariniterror_umgebungtesterror() ;
 
    return 0 ;
 ABBRUCH:
-   g_error_init_umgebung = 0 ;
+   cleariniterror_umgebungtesterror() ;
    return EINVAL ;
 }
 
-int unittest_umgebung_default()
+int unittest_umgebung_initdefault()
 {
    if (test_init())   goto ABBRUCH ;
 

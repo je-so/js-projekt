@@ -29,7 +29,7 @@ for i in $files; do
    if [ "`grep 'realloc[ \t]*(' $i`" != "" ]; then uses="${uses} realloc"; fi
    if [ "$uses" != "" ]; then info="$info  file: <${i}> uses ($uses)\n"; fi
 done
-if [ "$info" == "" ]; then
+if [ "$info" = "" ]; then
    exit 0
 fi
 echo -e "\nError: malloc,free... used outside allowed files" 1>&2

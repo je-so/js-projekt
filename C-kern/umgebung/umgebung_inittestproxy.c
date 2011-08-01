@@ -28,6 +28,7 @@
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/umgebung/testerror.h"
 #include "C-kern/api/writer/log.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -39,10 +40,15 @@ int freetestproxy_umgebung(umgebung_t * umg)
    int err = 0 ;
    int err2 ;
 
+   err2 = freeumgebung_umgebungtesterror() ;
+   if (err2) err = err2 ;
+
    err2 = freeumgebung_log(&umg->log) ;
    if (err2) err = err2 ;
+
    err2 = freeumgebung_objectcache(&umg->objectcache) ;
    if (err2) err = err2 ;
+
    err2 = freeumgebung_valuecache(&umg->valuecache) ;
    if (err2) err = err2 ;
 
@@ -75,12 +81,8 @@ int inittestproxy_umgebung(umgebung_t * umg)
    err = initumgebung_log(&umg->log) ;
    if (err) goto ABBRUCH ;
 
-#ifdef KONFIG_UNITTEST
-   if (g_error_init_umgebung) {
-      err = g_error_init_umgebung ;
-      goto ABBRUCH ;
-   }
-#endif
+   err = initumgebung_umgebungtesterror() ;
+   if (err) goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:
@@ -91,7 +93,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_testproxy,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_inittestproxy,ABBRUCH)
 
 static int test_init(void)
 {
@@ -120,7 +122,7 @@ static int test_init(void)
 
    // TEST EINVAL init
    for(int err = EINVAL; err < EINVAL+2; ++err) {
-      g_error_init_umgebung = err ;
+      setiniterror_umgebungtesterror(err) ;
       umg = (umgebung_t) umgebung_INIT_FREEABLE ;
       TEST(err == inittestproxy_umgebung(&umg)) ;
       TEST(0 == umg.type) ;
@@ -130,15 +132,15 @@ static int test_init(void)
       TEST(0 == umg.objectcache) ;
       TEST(0 == umg.valuecache) ;
    }
-   g_error_init_umgebung = 0 ;
+   cleariniterror_umgebungtesterror() ;
 
    return 0 ;
 ABBRUCH:
-   g_error_init_umgebung = 0 ;
+   cleariniterror_umgebungtesterror() ;
    return EINVAL ;
 }
 
-int unittest_umgebung_testproxy()
+int unittest_umgebung_inittestproxy()
 {
    if (test_init()) goto ABBRUCH ;
 

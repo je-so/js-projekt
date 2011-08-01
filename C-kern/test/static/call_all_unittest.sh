@@ -26,7 +26,7 @@ for i in $files; do
    if [ "$result_size" = "0" ]; then continue ; fi
 
    # test for correct interface
-   if [ "${i##*.c}" == "" ]; then
+   if [ "${i##*.c}" = "" ]; then
       # .c file
       if [ "$result_size" != "1" ]; then
          error=1
@@ -34,7 +34,7 @@ for i in $files; do
       fi
       for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
          result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
-         if [ "${result#*assert( 0 == unittest_*()*)*;}" == "" ]; then
+         if [ "${result#*assert( 0 == unittest_*()*)*;}" = "" ]; then
             continue
          fi
          if [ "${result#   if (unittest_umgebung())}" != "${result}" ]; then
