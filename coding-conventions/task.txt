@@ -171,8 +171,8 @@ about: Error Handling
    Freeing Resources:
 
    If the xthread has set its own state to "resources must freed" and if is not in finished state
-   it is executed again but this time the execution start at label *exothread_FREE:*.
-   So freeing resource at after this label ensures that they are freed even in case of an error.
+   it is executed again but this time the execution starts at label *exothread_FREE:*.
+   So freeing resources directly after this label ensures that they are freed even in case of an error.
    It is considered not a problem if all resources can not be freed in one step.
    The function is rexecuted until a finish_exothread() is encountered. In the above example
    a simple do_free_resource() frees all resources and a following finish_exothread() prevents
@@ -182,7 +182,9 @@ about: Error Handling
 
    If another error is returned from the execution path starting at exothread_FREE: the xthread
    is also marked as finished and it is assumed that some or all resources are lost.
-   The second error value is ignored, i.e. it does not overwrite the first already stored error code.
+   The second error value is ignored, i.e. it does not overwrite the first one already stored.
+   If you do not want to end in case of a second error you have to set <exothread_t.setholdingresource_exothread>
+   a second time before returning another error.
 
 about: Subtyping Exothreads
 
@@ -230,10 +232,10 @@ about: Subtyping Exothreads
    and calls init_exothread for you.
 
 > #define initsubtype_exothread(_xthread, _main_fct) \
->    ( __extension__ ({                                                                     \
->          static_assert_void( ((int(*)(typeof(_xthread)))0) == (typeof(_main_fct)) 0 ) ;   \
->          static_assert_void( ((exothread_t*)0) == &((typeof(_xthread))0)->xthread ) ;     \
->          init_exothread(&(_xthread)->xthread, (exothread_main_f) (_main_fct)) ;           \
+>    ( __extension__ ({                                                                    \
+>          static_assert( ((int(*)(typeof(_xthread)))0) == (typeof(_main_fct)) 0, "" ) ;   \
+>          static_assert( ((exothread_t*)0) == &((typeof(_xthread))0)->xthread, "" ) ;     \
+>          init_exothread(&(_xthread)->xthread, (exothread_main_f) (_main_fct)) ;          \
 >    }))
 
 

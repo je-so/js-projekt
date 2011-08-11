@@ -7,6 +7,7 @@ Src           += C-kern/main/unittest_main.c
 # Src           += C-kern/main/speedtest_main.c
 Src           += C-kern/cache/*.c
 # Src           += C-kern/compiler/*.c
+Src           += C-kern/ds/inmem/*.c
 # Src           += C-kern/generic/*.c C-kern/generic/trie/*.c
 Src           += C-kern/math/int/*.c
 # Src           += C-kern/memory/*.c

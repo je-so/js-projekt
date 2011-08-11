@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Aug.01  18:05:28
+GenerationDate  := 2011.Aug.11  18:15:54
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -87,10 +87,12 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!string!converter.c.o \
  $(ObjectDir_Debug)/C-kern!task!exothread.c.o \
+ $(ObjectDir_Debug)/C-kern!task!exoscheduler.c.o \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
@@ -113,10 +115,12 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!string!converter.c.o \
  $(ObjectDir_Release)/C-kern!task!exothread.c.o \
+ $(ObjectDir_Release)/C-kern!task!exoscheduler.c.o \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
@@ -170,6 +174,9 @@ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!math!int!signum.c.o: C-kern/math/int/signum.c
 	@$(CC_Debug)
 
@@ -180,6 +187,9 @@ $(ObjectDir_Debug)/C-kern!string!converter.c.o: C-kern/string/converter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!task!exothread.c.o: C-kern/task/exothread.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!exoscheduler.c.o: C-kern/task/exoscheduler.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
@@ -242,6 +252,9 @@ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!math!int!signum.c.o: C-kern/math/int/signum.c
 	@$(CC_Release)
 
@@ -252,6 +265,9 @@ $(ObjectDir_Release)/C-kern!string!converter.c.o: C-kern/string/converter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!task!exothread.c.o: C-kern/task/exothread.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!exoscheduler.c.o: C-kern/task/exoscheduler.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c

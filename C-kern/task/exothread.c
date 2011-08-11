@@ -31,13 +31,6 @@
 #endif
 
 
-/* define: setinitstate_exothread
- * Sets the instruction pointer to label
- * > exothread_INIT:
- * The macro JUMPSTATE_exothread knows how to interpret this. */
-#define setinitstate_exothread(_xthread) \
-   (_xthread)->instr_ptr = 0
-
 /* define: setfreestate_exothread
  * Sets the instruction pointer to label
  * > exothread_FREE:
@@ -51,9 +44,9 @@
 int init_exothread(/*out*/exothread_t * xthread, exothread_main_f main_fct)
 {
    MEMSET0(xthread) ;
-   xthread->main     = main_fct ;
-   setinitstate_exothread(xthread) ;
-
+   xthread->main         = main_fct ;
+   // This defines the initstate in case isholdingresource_exothread() returns false
+   // xthread->instr_ptr = 0
    return 0 ;
 }
 
@@ -315,10 +308,12 @@ static int test_initfree(void)
    exothread_t xthread = exothread_INIT_FREEABLE ;
 
    // TEST init, double free
+   xthread.next       = (void*) 1 ;
    xthread.flags      = 1 ;
    xthread.instr_ptr  = (void*) 1 ;
    xthread.returncode = 1 ;
    TEST(0 == init_exothread(&xthread, (exothread_main_f)&test_initfree)) ;
+   TEST(xthread.next      == 0) ;
    TEST(xthread.main      == (exothread_main_f)&test_initfree) ;
    TEST(xthread.instr_ptr == 0) ;
    TEST(xthread.returncode== 0) ;
@@ -330,6 +325,7 @@ static int test_initfree(void)
 
    // TEST query flags
    TEST(0 == init_exothread(&xthread, &testinit_xthread)) ;
+   TEST(xthread.next      == 0) ;
    TEST(xthread.main      == &testinit_xthread) ;
    TEST(xthread.instr_ptr == 0) ;
    TEST(xthread.returncode== 0) ;
@@ -369,6 +365,7 @@ static int test_initfree(void)
    TEST(0 == init_exothread(&xthread, &testinit_xthread)) ;
    TEST(0 == xthread.flags) ;
    TEST(0 == run_exothread(&xthread)) ;
+   TEST(xthread.next      == 0) ;
    TEST(xthread.main      == &testinit_xthread) ;
    TEST(xthread.instr_ptr == 0) ;
    TEST(xthread.returncode== 0) ;
@@ -626,7 +623,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int test_loops(void)
+static int test_loops(void)
 {
    exothread_t xthread = exothread_INIT_FREEABLE ;
 
@@ -640,7 +637,7 @@ int test_loops(void)
    }
    TEST(0 == run_exothread(&xthread)) ;
    TEST(10 == s_loop_count) ;
-   TEST(1 == isfinish_exothread(&xthread)) ;
+   TEST(0 != isfinish_exothread(&xthread)) ;
    TEST(0 == free_exothread(&xthread)) ;
 
    // TEST while_exothread loop
@@ -653,7 +650,7 @@ int test_loops(void)
    }
    TEST(0 == run_exothread(&xthread)) ;
    TEST(10 == s_loop_count) ;
-   TEST(1 == isfinish_exothread(&xthread)) ;
+   TEST(0 != isfinish_exothread(&xthread)) ;
    TEST(0 == free_exothread(&xthread)) ;
 
    // TEST for_exothread loop
@@ -666,7 +663,7 @@ int test_loops(void)
    }
    TEST(0 == run_exothread(&xthread)) ;
    TEST(10 == s_loop_count) ;
-   TEST(1 == isfinish_exothread(&xthread)) ;
+   TEST(0 != isfinish_exothread(&xthread)) ;
    TEST(0 == free_exothread(&xthread)) ;
 
    return 0 ;

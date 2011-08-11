@@ -102,6 +102,9 @@ extern int unittest_task_exothread(void) ;
  * to have to subtype from this type. */
 struct exothread_t {
    // group: private variables
+   /* variable: next
+    * Pointer to next exothread. Used by <exoscheduler_t>. */
+   exothread_t     * next ;
    /* variable: main
     * Pointer to implementation of exothread function. */
    exothread_main_f  main ;
@@ -254,6 +257,12 @@ extern const void * inarg_exothread(void) ;
  * You need to subtype <exothread_t> and make parameter xthread
  * a pointer to the subtype before this works. */
 extern void * outarg_exothread(void) ;
+
+/* function: returncode_exothread
+ * This function returns the returned value of a finished exothread.
+ * This value is only if <isfinish_exothread> returns true.
+ * A value != 0 indicates an error. */
+extern int returncode_exothread(const exothread_t * xthread) ;
 
 // group: implementation macros
 
@@ -439,6 +448,12 @@ struct exothread_subtype_t {
 #define rememberstate_exothread() \
    setstate_exothread( __extension__ && CONCAT( exothread_STATE_REMEMBER_, __LINE__ ) ) ; \
    CONCAT( exothread_STATE_REMEMBER_, __LINE__ ) :                                        \
+
+/* define: returncode_exothread
+ * Implements <exothread_t.returncode_exothread>.
+ * > (xthread->returncode) */
+#define returncode_exothread(_xthread) \
+   ((_xthread)->returncode)
 
 /* define: setholdingresource_exothread
  * Implements <exothread_t.setholdingresource_exothread>.

@@ -31,6 +31,7 @@
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/ds/inmem/slist.h"
 #include "C-kern/api/math/int/signum.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/os/filesystem/directory.h"
@@ -44,6 +45,7 @@
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/string/converter.h"
+#include "C-kern/api/task/exoscheduler.h"
 #include "C-kern/api/task/exothread.h"
 #include "C-kern/api/test/resourceusage.h"
 
@@ -236,6 +238,10 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_cache_valuecache) ;
 //}
 
+//{ data structure unittest
+   RUN(unittest_ds_inmem_slist) ;
+//}
+
 //{ math unittest
    RUN(unittest_math_int_signum) ;
    RUN(unittest_math_int_power2) ;
@@ -247,6 +253,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 //{ task unittest
    RUN(unittest_task_exothread) ;
+   RUN(unittest_task_exoscheduler) ;
 //}
 
 //{ test unittest
