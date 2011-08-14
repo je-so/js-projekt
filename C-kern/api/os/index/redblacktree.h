@@ -29,8 +29,8 @@
 #include "C-kern/api/aspect/callback.h"
 #include "C-kern/api/aspect/treenode3.h"
 #include "C-kern/api/aspect/callback/compare.h"
-#include "C-kern/api/aspect/callback/free_resource.h"
-#include "C-kern/api/aspect/callback/update_key.h"
+#include "C-kern/api/aspect/callback/free.h"
+#include "C-kern/api/aspect/callback/updatekey.h"
 
 /* about:Red black tree
  *
@@ -81,21 +81,21 @@ typedef struct redblacktree_t       redblacktree_t ;
 
 /* typedef: redblacktree_compare_nodes_f
  * Callback to check the sorting order of the tree. */
-callback_compare_ADAPT(redblacktree_compare_nodes, redblacktree_node_t, redblacktree_node_t)
+compare_callback_ADAPT(redblacktree_compare_nodes, callback_aspect_t, redblacktree_node_t, redblacktree_node_t)
 
 /* typedef: redblacktree_compare_f
- * Same as <callback_compare_f> except for type of paramater.
+ * Same as <compare_callback_f> except for type of paramater.
  * The first parameter is of type search key and the seocnd of type node. */
-callback_compare_ADAPT(redblacktree_compare, void, redblacktree_node_t)
+compare_callback_ADAPT(redblacktree_compare, callback_aspect_t, void, redblacktree_node_t)
 
 /* typedef: redblacktree_update_key
- * Equivalent to function type <callback_update_key_f>.
+ * Equivalent to function type <updatekey_callback_f>.
  * But the object parameter is of type <redblacktree_node_t>. */
-callback_update_key_ADAPT(redblacktree_update_key, void, redblacktree_node_t)
+updatekey_callback_ADAPT(redblacktree_update_key, callback_aspect_t, void, redblacktree_node_t)
 
 /* typedef: redblacktree_free_f
- * Equivalent to function type <callback_free_resource_f>. */
-callback_free_resource_ADAPT(redblacktree_free, redblacktree_node_t)
+ * Equivalent to function type <free_callback_f>. */
+free_callback_ADAPT(redblacktree_free, callback_aspect_t, redblacktree_node_t)
 
 
 // group: test

@@ -1,6 +1,6 @@
 /* title: Treenode2-Aspect
    Storage overhead needed to manage
-   objects nodes in a memory tree structure
+   object nodes in a memory tree structure
    with 2 pointers.
 
    about: Copyright

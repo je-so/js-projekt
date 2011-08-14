@@ -30,8 +30,8 @@
 #include "C-kern/api/aspect/treenode2.h"
 #include "C-kern/api/aspect/callback.h"
 #include "C-kern/api/aspect/callback/compare.h"
-#include "C-kern/api/aspect/callback/free_resource.h"
-#include "C-kern/api/aspect/callback/update_key.h"
+#include "C-kern/api/aspect/callback/free.h"
+#include "C-kern/api/aspect/callback/updatekey.h"
 
 /* typedef: splaytree_node_t typedef
  * Rename <treenode2_aspect_t>. */
@@ -43,22 +43,22 @@ typedef struct splaytree_t             splaytree_t ;
 
 /* typedef: splaytree_compare_nodes_f
  * Callback to check the sorting order of the tree. */
-callback_compare_ADAPT(splaytree_compare_nodes, splaytree_node_t, splaytree_node_t)
+compare_callback_ADAPT(splaytree_compare_nodes, callback_aspect_t, splaytree_node_t, splaytree_node_t)
 
 /* typedef: splaytree_compare_f
  * Callback function used to determine the sorting order.
- * Same as <callback_compare_f> except for type of paramater.
+ * Same as <compare_callback_f> except for type of paramater.
  * The first parameter is of type search key and the seocnd of type node. */
- callback_compare_ADAPT(splaytree_compare, void, splaytree_node_t)
+compare_callback_ADAPT(splaytree_compare, callback_aspect_t, void, splaytree_node_t)
 
 /* typedef: splaytree_update_key_f
- * Equivalent to function type <callback_update_key_f>.
+ * Equivalent to function type <updatekey_callback_f>.
  * But the object parameter is of type <splaytree_node_t>. */
-callback_update_key_ADAPT(splaytree_update_key, void, splaytree_node_t)
+updatekey_callback_ADAPT(splaytree_update_key, callback_aspect_t, void, splaytree_node_t)
 
 /* typedef: splaytree_free_f
- * Equivalent to function type <callback_free_resource_f>. */
-callback_free_resource_ADAPT(splaytree_free, splaytree_node_t)
+ * Equivalent to function type <free_callback_f>. */
+free_callback_ADAPT(splaytree_free, callback_aspect_t, splaytree_node_t)
 
 
 // section: Functions
