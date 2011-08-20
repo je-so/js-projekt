@@ -38,14 +38,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/task/exothread.h
+   file: C-kern/api/os/task/exothread.h
     Header file <Exothread>.
 
-   file: C-kern/task/exothread.c
+   file: C-kern/os/shared/task/exothread.c
     Implementation file <Exothread impl>.
 */
-#ifndef CKERN_TASK_EXOTHREAD_HEADER
-#define CKERN_TASK_EXOTHREAD_HEADER
+#ifndef CKERN_OS_TASK_EXOTHREAD_HEADER
+#define CKERN_OS_TASK_EXOTHREAD_HEADER
 
 /* typedef: exothread_t typedef
  * Export <exothread_t>. */
@@ -90,9 +90,9 @@ typedef enum exothread_flag_e          exothread_flag_e ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_task_exothread
+/* function: unittest_os_task_exothread
  * Tests exothread functionality. */
-extern int unittest_task_exothread(void) ;
+extern int unittest_os_task_exothread(void) ;
 #endif
 
 

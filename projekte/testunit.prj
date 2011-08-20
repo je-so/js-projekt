@@ -12,7 +12,6 @@ Src           += C-kern/ds/inmem/*.c
 Src           += C-kern/math/int/*.c
 # Src           += C-kern/memory/*.c
 Src           += C-kern/string/*.c
-Src           += C-kern/task/*.c
 Src           += C-kern/test/*.c
 # C-kern/test/speed/*.c
 Src           += C-kern/umgebung/*.c

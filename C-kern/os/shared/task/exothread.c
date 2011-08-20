@@ -16,15 +16,15 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/task/exothread.h
+   file: C-kern/api/os/task/exothread.h
     Header file <Exothread>.
 
-   file: C-kern/task/exothread.c
+   file: C-kern/os/shared/task/exothread.c
     Implementation file <Exothread impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/task/exothread.h"
+#include "C-kern/api/os/task/exothread.h"
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -115,7 +115,7 @@ void abort_exothread(exothread_t * xthread)
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_task_exothread,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_os_task_exothread,ABBRUCH)
 
 static int testinit_xthread(exothread_t * xthread)
 {
@@ -672,7 +672,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_task_exothread()
+int unittest_os_task_exothread()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

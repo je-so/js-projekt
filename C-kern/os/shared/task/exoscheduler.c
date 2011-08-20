@@ -16,17 +16,17 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/task/exoscheduler.h
+   file: C-kern/api/os/task/exoscheduler.h
     Header file of <Exoscheduler>.
 
-   file: C-kern/task/exoscheduler.c
+   file: C-kern/os/shared/task/exoscheduler.c
     Implementation file <Exoscheduler impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/task/exoscheduler.h"
+#include "C-kern/api/os/task/exoscheduler.h"
 #include "C-kern/api/errlog.h"
-#include "C-kern/api/task/exothread.h"
+#include "C-kern/api/os/task/exothread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -129,7 +129,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_task_exoscheduler,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_os_task_exoscheduler,ABBRUCH)
 
 static int simplefinish_xthread(exothread_t * xthread)
 {
@@ -230,7 +230,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_task_exoscheduler()
+int unittest_os_task_exoscheduler()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

@@ -19,10 +19,10 @@ about: State
   Phase           - Architecture and -design phase
   Simplifications - Linux-only support during development.
                     Some documentation is only in German during development.
+                    Development system is Ubuntu 11.04 or later.
  
 about: Current task
   Design Simple C-like language for declaring persistent content.
-
 
 about: Subprojects
   List of codenamed subprojects.
@@ -37,6 +37,14 @@ Thor:
   Being planned: - Allow flexible syntax of language.
                    To develop a parser generator language which allows for
                    "change of syntax at runtime".
+
+genX86:
+-------
+  Future idea: - Generate x86 code from generic Machinecode-Mnemonics
+                 For testing: Compare result interpreted code vs. execution of
+                 generated machine code.
+  This subproject allows a later stage to translate database-language
+  (Idea: extended + simplified C-code) into executeable code.
 
 TextDB:
 -------
@@ -60,7 +68,6 @@ Genmake:
   > Includes       = .
   > Defines        =
 
-
 textrescompiler:
 ----------------
   DONE: - Handle multilingual text resources
@@ -68,14 +75,6 @@ textrescompiler:
           from text resources (C-kern/resource/errorlog.text).
   NEEDS IMPROVEMENT: - Simple text replacement is not enough for more complex langs.
                        Introduce algorithmic syntax (C-like syntax :-) => simple code generation)
-
-genX86:
--------
-  Future idea: - Generate x86 code from generic Machinecode-Mnemonics
-                 For testing: Compare result interpreted code vs. execution of
-                 generated machine code.
-  This subproject allows a later stage to translate database-language
-  (Idea: extended + simplified C-code) into executeable code.
 
 about: License
   Free software license.

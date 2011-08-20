@@ -20,14 +20,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/task/exoscheduler.h
+   file: C-kern/api/os/task/exoscheduler.h
     Header file of <Exoscheduler>.
 
-   file: C-kern/task/exoscheduler.c
+   file: C-kern/os/shared/task/exoscheduler.c
     Implementation file <Exoscheduler impl>.
 */
-#ifndef CKERN_TASK_EXOSCHEDULER_HEADER
-#define CKERN_TASK_EXOSCHEDULER_HEADER
+#ifndef CKERN_OS_TASK_EXOSCHEDULER_HEADER
+#define CKERN_OS_TASK_EXOSCHEDULER_HEADER
 
 #include "C-kern/api/ds/inmem/slist.h"
 
@@ -51,9 +51,9 @@ slist_DECLARE(exothread_list, struct exothread_t)
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_task_exoscheduler
+/* function: unittest_os_task_exoscheduler
  * Tests exothread scheduler functionality. */
-extern int unittest_task_exoscheduler(void) ;
+extern int unittest_os_task_exoscheduler(void) ;
 #endif
 
 

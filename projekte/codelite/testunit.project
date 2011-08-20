@@ -112,6 +112,11 @@
       <File Name="../../C-kern/api/os/locale.h"/>
       <File Name="../../C-kern/api/os/file.h"/>
       <File Name="../../C-kern/api/os/malloc.h"/>
+      <VirtualDirectory Name="task">
+        <File Name="../../C-kern/api/os/task/threadpool.h"/>
+        <File Name="../../C-kern/api/os/task/exoscheduler.h"/>
+        <File Name="../../C-kern/api/os/task/exothread.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <File Name="../../C-kern/api/umgebung.h"/>
     <VirtualDirectory Name="graphik"/>
@@ -149,10 +154,6 @@
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/objectcache.h"/>
       <File Name="../../C-kern/api/cache/valuecache.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="task">
-      <File Name="../../C-kern/api/task/exothread.h"/>
-      <File Name="../../C-kern/api/task/exoscheduler.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -247,6 +248,11 @@
         <File Name="../../C-kern/os/shared/index/redblacktree.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/os/shared/malloc.c"/>
+      <VirtualDirectory Name="task">
+        <File Name="../../C-kern/os/shared/task/exoscheduler.c"/>
+        <File Name="../../C-kern/os/shared/task/exothread.c"/>
+        <File Name="../../C-kern/os/shared/task/threadpool.c"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="X11">
       <File Name="../../C-kern/os/X11/x11.c"/>
@@ -346,10 +352,6 @@
       </AdditionalRules>
     </Configuration>
   </Settings>
-  <VirtualDirectory Name="task">
-    <File Name="../../C-kern/task/exothread.c"/>
-    <File Name="../../C-kern/task/exoscheduler.c"/>
-  </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">
       <File Name="../../C-kern/ds/inmem/slist.c"/>

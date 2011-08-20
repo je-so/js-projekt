@@ -38,6 +38,8 @@
 #include "C-kern/api/os/filesystem/mmfile.h"
 #include "C-kern/api/os/index/redblacktree.h"
 #include "C-kern/api/os/index/splaytree.h"
+#include "C-kern/api/os/task/exoscheduler.h"
+#include "C-kern/api/os/task/exothread.h"
 #include "C-kern/api/os/file.h"
 #include "C-kern/api/os/locale.h"
 #include "C-kern/api/os/malloc.h"
@@ -45,8 +47,6 @@
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/string/converter.h"
-#include "C-kern/api/task/exoscheduler.h"
-#include "C-kern/api/task/exothread.h"
 #include "C-kern/api/test/resourceusage.h"
 
 
@@ -251,11 +251,6 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_string_converter) ;
 //}
 
-//{ task unittest
-   RUN(unittest_task_exothread) ;
-   RUN(unittest_task_exoscheduler) ;
-//}
-
 //{ test unittest
    RUN(unittest_test_resourceusage) ;
 //}
@@ -277,6 +272,9 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    // filesystem
    RUN(unittest_os_directory) ;
    RUN(unittest_os_memorymappedfile) ;
+   // task unittest
+   RUN(unittest_os_task_exothread) ;
+   RUN(unittest_os_task_exoscheduler) ;
    // other
    RUN(unittest_os_file) ;
    RUN(unittest_os_locale) ;
