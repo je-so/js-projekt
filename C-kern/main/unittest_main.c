@@ -14,7 +14,7 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/test/unittest.h"
+#include "C-kern/api/test/run/unittest.h"
 
 int main(int argc, char* argv[])
 {

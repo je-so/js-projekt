@@ -26,7 +26,7 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/test/unittest.h"
+#include "C-kern/api/test/run/unittest.h"
 #include "C-kern/api/errlog.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/cache/objectcache.h"
