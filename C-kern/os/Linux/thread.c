@@ -51,6 +51,31 @@ static inline void compiletime_tests(void)
    static_assert( &((osthread_private_t*)0)->osthread == ((osthread_t*)0), "convertible: (osthread_private_t*) <-> (osthread_t*)") ;
 }
 
+// group: query
+
+/* function: signalstacksize_osthread
+ * Returns the minimum size of the signal stack.
+ * The signal stack is used in case of a signal or
+ * exceptions which throw a signal. If for example the
+ * the thread stack overflows SIGSEGV signal is thrown.
+ * To handle this case the system must have an extra signal stack
+ * cause signal handling needs stack space. */
+static inline int signalstacksize_osthread(void)
+{
+   return MINSIGSTKSZ ;
+}
+
+/* function: signalstacksize_osthread
+ * Returns the minimum size of the thread stack.
+ * The stack should be protected against overflow with helpf
+ * of protected virtual memory pages. */
+static inline int stacksize_osthread(void)
+{
+   return PTHREAD_STACK_MIN ;
+}
+
+// group: helper
+
 static int unmap_stackmemory_osthread(osthread_private_t * osthread_private)
 {
    int err ;
@@ -66,32 +91,6 @@ static int unmap_stackmemory_osthread(osthread_private_t * osthread_private)
       }
    }
 
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-int delete_osthread(osthread_t ** threadobj)
-{
-   int err ;
-
-   if (!threadobj || !*threadobj) {
-      return 0 ;
-   }
-
-   osthread_private_t * osthread_private = (osthread_private_t *) *threadobj ;
-
-   if (!osthread_private->osthread.isJoined) {
-      err = EAGAIN ;
-      goto ABBRUCH ;
-   }
-
-   err = unmap_stackmemory_osthread(osthread_private) ;
-   if (err) goto ABBRUCH ;
-   free(osthread_private) ;
-
-   *threadobj = 0 ;
    return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
@@ -115,9 +114,12 @@ static int mapstacks_osthread(osthread_private_t * thread_private)
    }
 
    /* Stack layout:
-    * | [page_size]: NONE |
-    * | [signalstack_size]: READ,WRITE | [page_size]: NONE |
-    * | [threadstack_size]: READ,WRITE | [page_size]: NONE |  */
+    *      size           : protection
+    * | [page_size]       : NONE       |
+    * | [signalstack_size]: READ,WRITE |
+    * | [page_size]       : NONE       |
+    * | [threadstack_size]: READ,WRITE |
+    * | [page_size]       : NONE       |  */
 
    if (  mprotect(stack_addr + page_size, signalstack_size, PROT_READ|PROT_WRITE)
       || mprotect(stack_addr + 2 * page_size + signalstack_size, threadstack_size, PROT_READ|PROT_WRITE) ) {
@@ -146,10 +148,9 @@ ABBRUCH:
    return err ;
 }
 
-
 static void * osthread_startpoint(void * start_arg)
 {
-   int err ;
+   int32_t err ;
    osthread_private_t * thread = (osthread_private_t *) start_arg;
 
    err = init_umgebung(&gt_umgebung, thread->umgtype) ;
@@ -173,12 +174,45 @@ static void * osthread_startpoint(void * start_arg)
    thread->osthread.thread_returncode = err ;
 
    err = free_umgebung(&gt_umgebung) ;
-   if (err) goto ABBRUCH ;
+   if (err) {
+      LOG_CALLERR("free_umgebung",err) ;
+      goto ABBRUCH ;
+   }
 
    return (void*)0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
+   // TODO: LOG_FATAL(err) ;
+   // TODO: ABORT_FATAL_ERROR(err) ;
    return (void*)err ;
+}
+
+// group: implementation
+
+int delete_osthread(osthread_t ** threadobj)
+{
+   int err ;
+
+   if (!threadobj || !*threadobj) {
+      return 0 ;
+   }
+
+   osthread_private_t * osthread_private = (osthread_private_t *) *threadobj ;
+
+   if (!osthread_private->osthread.isJoined) {
+      err = EAGAIN ;
+      goto ABBRUCH ;
+   }
+
+   err = unmap_stackmemory_osthread(osthread_private) ;
+   if (err) goto ABBRUCH ;
+   free(osthread_private) ;
+
+   *threadobj = 0 ;
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
 }
 
 int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument)
@@ -447,14 +481,13 @@ static int thread_stackoverflow(osthread_t * context)
    if (!s_isStackoverflow) (void) thread_stackoverflow(context) ;
    context->thread_argument = (void*)1 ;
    count = 0 ;
-   return 0 ; //OK
+   return 0 ; // OK
 ABBRUCH:
-   return 1 ; //ERR
+   return EINVAL ;
 }
 
 static int test_thread_stackoverflow(void)
 {
-   int err = 1 ;
    sigset_t oldprocmask ;
    struct sigaction newact, oldact ;
    osthread_t * osthread = 0 ;
@@ -463,40 +496,43 @@ static int test_thread_stackoverflow(void)
 
    // test that thread 'thread_stackoverflow' recovers from stack overflow
    // and that a stack overflow is detected with signal SIGSEGV
-   {
-      sigemptyset(&newact.sa_mask) ;
-      sigaddset(&newact.sa_mask,SIGSEGV) ;
-      TEST(0 == sigprocmask(SIG_UNBLOCK,&newact.sa_mask,&oldprocmask)) ;
-      isProcmask = true ;
-      sigemptyset(&newact.sa_mask) ;
-      newact.sa_flags = SA_ONSTACK ;
-      newact.sa_handler = &sigstackoverflow ;
-      TEST(0 == sigaction(SIGSEGV, &newact, &oldact)) ;
-      isAction = true ;
-      s_isStackoverflow = 0 ;
-      TEST(0 == new_osthread(&osthread, &thread_stackoverflow, (void*)1)) ;
-      TEST(0 == join_osthread(osthread)) ;
-      TEST(1 == s_isStackoverflow) ;
-      TEST(osthread->thread_main       == &thread_stackoverflow) ;
-      TEST(osthread->thread_argument   == (void*)1) ;
-      TEST(osthread->thread_returncode == 0) ;
-      TEST(osthread->isJoined) ;
-      TEST(osthread->isMainCalled) ;
-      // signal own thread
-      s_isStackoverflow = 0 ;
-      TEST(0 == getcontext(&s_thread_usercontext)) ;
-      if (!s_isStackoverflow) {
-         TEST(0 == pthread_kill(pthread_self(), SIGSEGV)) ;
-      }
-      TEST(s_isStackoverflow) ;
-   }
+   sigemptyset(&newact.sa_mask) ;
+   sigaddset(&newact.sa_mask,SIGSEGV) ;
+   TEST(0 == sigprocmask(SIG_UNBLOCK,&newact.sa_mask,&oldprocmask)) ;
+   isProcmask = true ;
+   sigemptyset(&newact.sa_mask) ;
+   newact.sa_flags = SA_ONSTACK ;
+   newact.sa_handler = &sigstackoverflow ;
+   TEST(0 == sigaction(SIGSEGV, &newact, &oldact)) ;
+   isAction = true ;
+   s_isStackoverflow = 0 ;
+   TEST(0 == new_osthread(&osthread, &thread_stackoverflow, (void*)1)) ;
+   TEST(0 == join_osthread(osthread)) ;
+   TEST(1 == s_isStackoverflow) ;
+   TEST(osthread->thread_main       == &thread_stackoverflow) ;
+   TEST(osthread->thread_argument   == (void*)1) ;
+   TEST(osthread->thread_returncode == 0) ;
+   TEST(osthread->isJoined) ;
+   TEST(osthread->isMainCalled) ;
+   TEST(0 == delete_osthread(&osthread)) ;
 
-   err = 0 ;
+   // signal own thread
+   s_isStackoverflow = 0 ;
+   TEST(0 == getcontext(&s_thread_usercontext)) ;
+   if (!s_isStackoverflow) {
+      TEST(0 == pthread_kill(pthread_self(), SIGSEGV)) ;
+   }
+   TEST(s_isStackoverflow) ;
+
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldprocmask, 0)) ;
+   TEST(0 == sigaction(SIGSEGV, &oldact, 0)) ;
+
+   return 0 ;
 ABBRUCH:
    delete_osthread(&osthread) ;
    if (isProcmask)   sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
    if (isAction)     sigaction(SIGSEGV, &oldact, 0) ;
-   return err ;
+   return EINVAL ;
 }
 
 static volatile int s_returncode_signal = 0 ;
@@ -511,7 +547,6 @@ static int thread_returncode(osthread_t * context)
 
 static int test_thread_init(void)
 {
-   int err = 1 ;
    osthread_t  * osthread = 0 ;
 
    // TEST init, double free
@@ -523,6 +558,24 @@ static int test_thread_init(void)
    TEST(!osthread) ;
    TEST(0 == delete_osthread(&osthread)) ;
    TEST(!osthread) ;
+
+   // TEST double join
+   s_returncode_signal = 1 ;
+   TEST(0 == new_osthread(&osthread, thread_returncode, (void*)11)) ;
+   TEST(osthread) ;
+   TEST(0 == join_osthread(osthread)) ;
+   TEST(osthread->isMainCalled) ;
+   TEST(osthread->isJoined) ;
+   TEST(11 == returncode_osthread(osthread)) ;
+   TEST(0 == join_osthread(osthread)) ;
+   TEST(osthread->isMainCalled) ;
+   TEST(osthread->isJoined) ;
+   TEST(11 == returncode_osthread(osthread)) ;
+   TEST(0 == delete_osthread(&osthread)) ;
+   TEST(!osthread) ;
+
+   // TEST returncode in case of unhandled signal
+   // could not be tested cause unhandled signals terminate whole process
 
    // TEST returncode
    for(int i = -5; i < 5; ++i) {
@@ -537,10 +590,12 @@ static int test_thread_init(void)
       }
       TEST(osthread->isMainCalled) ;
       TEST(!osthread->isJoined) ;
+      TEST(!osthread->thread_returncode) ;
       s_returncode_signal = 1 ;
       TEST(0 == join_osthread(osthread)) ;
       TEST(osthread->isMainCalled) ;
       TEST(osthread->isJoined) ;
+      TEST(arg == returncode_osthread(osthread)) ;
       TEST(0 == delete_osthread(&osthread)) ;
       TEST(!osthread) ;
    }
@@ -567,10 +622,10 @@ static int test_thread_init(void)
    osthread->isJoined = true ;
    TEST(0 == delete_osthread(&osthread)) ;
 
-   err = 0 ;
+   return 0 ;
 ABBRUCH:
    delete_osthread(&osthread) ;
-   return err ;
+   return EINVAL ;
 }
 
 
@@ -744,7 +799,7 @@ ABBRUCH:
    free_osthreadmutex(&mutex) ;
    delete_osthread(&thread1) ;
    delete_osthread(&thread2) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 static int test_thread_mutex_errorcheck(void)
@@ -835,7 +890,7 @@ ABBRUCH:
    free_osthreadmutex(&mutex) ;
    delete_osthread(&thread1) ;
    delete_osthread(&thread2) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 static __thread int st_int = 123 ;
@@ -925,7 +980,21 @@ ABBRUCH:
    delete_osthread(&thread1) ;
    delete_osthread(&thread2) ;
    delete_osthread(&thread3) ;
-   return 1 ;
+   return EINVAL ;
+}
+
+static int test_query(void)
+{
+
+   // TEST signalstacksize
+   TEST(MINSIGSTKSZ == signalstacksize_osthread()) ;
+
+   // TEST stacksize
+   TEST(PTHREAD_STACK_MIN == stacksize_osthread()) ;
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
 }
 
 int unittest_os_thread()
@@ -935,12 +1004,13 @@ int unittest_os_thread()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_thread_init())          goto ABBRUCH ;
-   if (test_thread_sigaltstack())   goto ABBRUCH ;
-   if (test_thread_stackoverflow()) goto ABBRUCH ;
-   if (test_thread_mutex_staticinit())   goto ABBRUCH ;
-   if (test_thread_mutex_errorcheck())   goto ABBRUCH ;
-   if (test_thread_localstorage())   goto ABBRUCH ;
+   if (test_thread_init())             goto ABBRUCH ;
+   if (test_thread_sigaltstack())      goto ABBRUCH ;
+   if (test_thread_stackoverflow())    goto ABBRUCH ;
+   if (test_thread_mutex_staticinit()) goto ABBRUCH ;
+   if (test_thread_mutex_errorcheck()) goto ABBRUCH ;
+   if (test_thread_localstorage())     goto ABBRUCH ;
+   if (test_query())                   goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

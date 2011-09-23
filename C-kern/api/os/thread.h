@@ -36,7 +36,7 @@ typedef struct osthread_mutex_t        osthread_mutex_t ;
 
 /* typedef: thread_main_f
  * Function pointer to thread implementation. */
-typedef int /*err code (0 == OK)*/  (* thread_main_f) (osthread_t * thread) ;
+typedef int32_t/*errcode(0 == OK)*/ (* thread_main_f) (osthread_t * thread) ;
 
 
 // section: Functions
@@ -49,18 +49,29 @@ typedef int /*err code (0 == OK)*/  (* thread_main_f) (osthread_t * thread) ;
 extern int unittest_os_thread(void) ;
 #endif
 
+
 /* struct: osthread_t
- * */
+ * Describes a system thread. */
 struct osthread_t {
+   /* variable: sys_thread
+    * Contains system specific ID of thread. It has type <sys_thread_t>. */
    sys_thread_t   sys_thread ;
+   /* variable: thread_main
+    * Contains pointer to function which is executed by this thread. */
    thread_main_f  thread_main ;
+   /* variable: thread_argument
+    * Contains value of the single user argument. */
    void         * thread_argument ;
-   int            thread_returncode ;
+   /* variable: thread_returncode
+    * Contains the value <thread_main> returns.
+    * This value is only valid after <thread_main> has returned. */
+   int32_t        thread_returncode ;
    bool           isJoined ;
    bool           isMainCalled ;
 } ;
 
 // group: lifetime
+
 /* function: new_osthread
  * Creates and starts a new system thread.
  * After successful return threadobj->isRunnning is not necessarily true.
@@ -76,7 +87,16 @@ extern int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_mai
  * EAGAIN is returned if you have not joined it before. */
 extern int delete_osthread(osthread_t ** threadobj) ;
 
+// group: query
+
+/* function: returncode_osthread
+ * Returns the returncode of the joined thread.
+ * The returncode is only valid if <join_osthread> was called before.
+ * 0 is returned in case the thread has not already been joined. */
+extern int32_t returncode_osthread(const osthread_t * threadobj) ;
+
 // group: wait
+
 /* function: join_osthread
  * The function suspends execution of the caller until threadobj terminates,
  * unless threadobj has already terminated. */
@@ -111,14 +131,14 @@ struct osthread_mutex_t {
  * 3. Unlocking a mutex locked by a different thread is prevented and returns error EPERM.
  * 4. Unlocking an already unlocked mutex is prevented and returns error EPERM.
  * */
-int init_osthreadmutex(osthread_mutex_t * mutex) ;
+extern int init_osthreadmutex(osthread_mutex_t * mutex) ;
 
 /* function: free_osthreadmutex
  * Frees resources of mutex which is not in use.
  * Returns EBUSY if a thread holds a lock and nothing is freed. */
-int free_osthreadmutex(osthread_mutex_t * mutex) ;
+extern int free_osthreadmutex(osthread_mutex_t * mutex) ;
 
-// group: mutator
+// group: change
 
 /* function: lock_osthreadmutex
  * Locks a mutex. If another thread holds the lock the calling thread waits until the lock is released.
@@ -132,6 +152,15 @@ extern int lock_osthreadmutex(osthread_mutex_t * mutex) ;
  * Unlocking a mutex which another thread has locked works as if the lock holder thread would call unlock.
  * If you try to lock a freed mutex EINVAL is returned. */
 extern int unlock_osthreadmutex(osthread_mutex_t * mutex) ;
+
+
+// section: inline implementations
+
+/* define: returncode_osthread
+ * Implements <exothread_t.returncode_osthread>.
+ * > (threadobj)->thread_returncode */
+#define /*int32_t*/ returncode_osthread(/*const osthread_t * */threadobj) \
+   ((threadobj)->thread_returncode)
 
 
 #endif
