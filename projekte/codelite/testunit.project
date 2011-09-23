@@ -53,11 +53,13 @@
     <File Name="../../C-kern/api/test.h"/>
     <VirtualDirectory Name="test">
       <File Name="../../C-kern/api/test/compiletime.h"/>
-      <File Name="../../C-kern/api/test/unittest.h"/>
-      <File Name="../../C-kern/api/test/speedtest.h"/>
-      <File Name="../../C-kern/api/test/hashquality.h"/>
       <File Name="../../C-kern/api/test/resourceusage.h"/>
       <File Name="../../C-kern/api/test/argument.h"/>
+      <File Name="../../C-kern/api/test/errortimer.h"/>
+      <VirtualDirectory Name="run">
+        <File Name="../../C-kern/api/test/run/speedtest.h"/>
+        <File Name="../../C-kern/api/test/run/unittest.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="resource">
       <File Name="../../C-kern/api/resource/errorlog.h"/>
@@ -186,7 +188,6 @@
       <File Name="../../C-kern/test/speed/run_speedcmp_linuxsplice.c"/>
       <File Name="../../C-kern/test/speed/run_speedcmp_madvise.c"/>
     </VirtualDirectory>
-    <File Name="../../C-kern/test/hashquality.c"/>
     <File Name="../../C-kern/test/resourceusage.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="tools">
@@ -283,6 +284,12 @@
     <File Name="../../C-kern/cache/objectcache.c"/>
     <File Name="../../C-kern/cache/valuecache.c"/>
   </VirtualDirectory>
+  <VirtualDirectory Name="ds">
+    <VirtualDirectory Name="inmem">
+      <File Name="../../C-kern/ds/inmem/slist.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="ondisk"/>
+  </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="">
@@ -294,13 +301,15 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g;$(shell wx-config --cxxflags --unicode=yes --debug=yes)" C_Options="-g;$(shell wx-config --cxxflags --unicode=yes --debug=yes)" Required="yes" PreCompiledHeader="">
+      <Compiler Options="-g;$(shell wx-config --cxxflags --unicode=yes --debug=yes)" C_Options="-g;$(shell wx-config --cxxflags --unicode=yes --debug=yes)" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
         <Preprocessor Value="__WX__"/>
       </Compiler>
       <Linker Options="$(shell wx-config --debug=yes --libs --unicode=yes)" Required="yes"/>
       <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit_Debug" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="no"/>
-      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
         <PostConnectCommands/>
         <StartupCommands/>
@@ -308,9 +317,9 @@
       <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="yes">
-        <RebuildCommand>make testunit_clean testunit_Debug</RebuildCommand>
-        <CleanCommand>make testunit_clean</CleanCommand>
-        <BuildCommand>make testunit_Debug</BuildCommand>
+        <RebuildCommand>make $(ProjectName)_clean $(ProjectName)_$(ConfigurationName)</RebuildCommand>
+        <CleanCommand>make $(ProjectName)_clean</CleanCommand>
+        <BuildCommand>make $(ProjectName)_$(ConfigurationName)</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
@@ -321,15 +330,22 @@
         <CustomPostBuild/>
         <CustomPreBuild/>
       </AdditionalRules>
+      <Completion>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O2;$(shell wx-config --cxxflags --unicode=yes --debug=no)" C_Options="-O2;$(shell wx-config --cxxflags --unicode=yes --debug=no)" Required="yes" PreCompiledHeader="">
+      <Compiler Options="-O2;$(shell wx-config --cxxflags --unicode=yes --debug=no)" C_Options="-O2;$(shell wx-config --cxxflags --unicode=yes --debug=no)" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
         <Preprocessor Value="__WX__"/>
       </Compiler>
       <Linker Options="-s;$(shell wx-config --debug=no --libs --unicode=yes)" Required="yes"/>
       <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
-      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
         <PostConnectCommands/>
         <StartupCommands/>
@@ -337,9 +353,9 @@
       <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="yes">
-        <RebuildCommand>make testunit_clean testunit_Release</RebuildCommand>
-        <CleanCommand>make testunit_clean</CleanCommand>
-        <BuildCommand>make testunit_Release</BuildCommand>
+        <RebuildCommand>make $(ProjectName)_clean $(ProjectName)_$(ConfigurationName)</RebuildCommand>
+        <CleanCommand>make $(ProjectName)_clean</CleanCommand>
+        <BuildCommand>make $(ProjectName)_$(ConfigurationName)</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
@@ -350,12 +366,11 @@
         <CustomPostBuild/>
         <CustomPreBuild/>
       </AdditionalRules>
+      <Completion>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
     </Configuration>
   </Settings>
-  <VirtualDirectory Name="ds">
-    <VirtualDirectory Name="inmem">
-      <File Name="../../C-kern/ds/inmem/slist.c"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="ondisk"/>
-  </VirtualDirectory>
 </CodeLite_Project>

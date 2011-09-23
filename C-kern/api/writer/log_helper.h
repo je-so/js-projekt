@@ -156,15 +156,15 @@
  * Logs "<varname>=varvalue" of a variable with name varname.
  *
  * Parameter:
- * printf_typespec_str  - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
- *                        Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
- * varname              - The name of the variable to log.
+ * printf_type  - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
+ *                Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
+ * varname      - The name of the variable to log.
  *
  * Example:
  * This code logs "memsize=1024\n"
  * > const size_t memsize = 1024 ;
  * > LOG_VAR(PRIuSIZE,memsize) ; */
-#define LOG_VAR(printf_typespec_str,varname)          log_umgebung()->printf( log_umgebung(), #varname "=%" printf_typespec_str "\n", (varname))
+#define LOG_VAR(printf_type,varname)                log_umgebung()->printf( log_umgebung(), #varname "=%" printf_type "\n", (varname))
 
 /* define: LOG_INDEX
  * Log "array[i]=value" of variable stored in array at offset i.

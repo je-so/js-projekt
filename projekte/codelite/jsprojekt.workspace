@@ -7,18 +7,18 @@
   <Project Name="textrescompiler" Path="textrescompiler.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
-      <Project Name="genmake" ConfigName="Debug"/>
-      <Project Name="htmldok" ConfigName="Debug"/>
-      <Project Name="testunit" ConfigName="Debug"/>
-      <Project Name="textdb" ConfigName="Debug"/>
       <Project Name="textrescompiler" ConfigName="Debug"/>
+      <Project Name="textdb" ConfigName="Debug"/>
+      <Project Name="testunit" ConfigName="Debug"/>
+      <Project Name="htmldok" ConfigName="Debug"/>
+      <Project Name="genmake" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
-      <Project Name="genmake" ConfigName="Release"/>
-      <Project Name="htmldok" ConfigName="Release"/>
-      <Project Name="testunit" ConfigName="Release"/>
-      <Project Name="testdb" ConfigName="Release"/>
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Project Name="textrescompiler" ConfigName="Release"/>
+      <Project Name="textdb" ConfigName="Release"/>
+      <Project Name="testunit" ConfigName="Release"/>
+      <Project Name="htmldok" ConfigName="Release"/>
+      <Project Name="genmake" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>
