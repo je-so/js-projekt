@@ -11,6 +11,11 @@ CONTEXT_INFO:de: sContext
 CONTEXT_INFO:en: sContext
 "In relation to following context '%s'"
 
+ERROR_FATAL:de: err
+"Fataler Fehler (err=%d)"
+ERROR_FATAL:en: err
+"Fatal error (err=%d)"
+
 ERROR_LOCATION:de: __FILE__, __LINE__, __FUNCTION__
 "%s:%d: %s(): Fehler: " NONEWLINE
 ERROR_LOCATION:en: __FILE__, __LINE__, __FUNCTION__

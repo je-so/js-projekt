@@ -67,7 +67,6 @@ struct osthread_t {
     * This value is only valid after <thread_main> has returned. */
    int32_t        thread_returncode ;
    bool           isJoined ;
-   bool           isMainCalled ;
 } ;
 
 // group: lifetime

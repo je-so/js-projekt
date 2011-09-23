@@ -162,6 +162,12 @@ extern int freeprocess_umgebung(void) ;
  * This function should be called as last before a thread exits. */
 extern int free_umgebung(umgebung_t * umg) ;
 
+/* function: abort_umgebung
+ * Exits the whole process in a controlled manner.
+ * Tries to free as many external resources as possible and
+ * aborts all transactions. */
+extern void abort_umgebung(void) ;
+
 // group: query
 
 /* function: umgebung

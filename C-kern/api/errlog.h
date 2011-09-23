@@ -58,6 +58,11 @@
 // TODO: support own error IDs: replace strerror(err) with own string_error_function(int sys_err)
 #define LOG_CALLERR(fct_name,err)            LOG_ERRTEXT(FUNCTION_ERROR(fct_name, err, strerror(err)))
 
+/* define: LOG_FATAL(err)
+ * Logs error code which caused a fatal error. */
+#define LOG_FATAL(err)                       LOG_ERRTEXT(ERROR_FATAL(err))
+
+
 /* define: LOG_OUTOFMEMORY
  * Logs "out of memory" reason for function abort.
  * If a function could not allocate memory of size bytes and therefore aborts

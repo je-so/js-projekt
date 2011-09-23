@@ -198,6 +198,13 @@ ABBRUCH:
    return err ;
 }
 
+void abort_umgebung(void)
+{
+   // TODO: add abort handler registration ...
+   abort() ;
+   // TODO: add unit test for checking that resources are freed
+}
+
 
 #ifdef KONFIG_UNITTEST
 

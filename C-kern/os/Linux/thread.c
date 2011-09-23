@@ -169,7 +169,6 @@ static void * osthread_startpoint(void * start_arg)
       goto ABBRUCH ;
    }
 
-   thread->osthread.isMainCalled      = true ;
    err = thread->osthread.thread_main(&thread->osthread) ;
    thread->osthread.thread_returncode = err ;
 
@@ -181,9 +180,8 @@ static void * osthread_startpoint(void * start_arg)
 
    return (void*)0 ;
 ABBRUCH:
-   LOG_ABORT(err) ;
-   // TODO: LOG_FATAL(err) ;
-   // TODO: ABORT_FATAL_ERROR(err) ;
+   LOG_FATAL(err) ;
+   abort_umgebung() ;
    return (void*)err ;
 }
 
@@ -282,10 +280,8 @@ int join_osthread(osthread_t * threadobj)
 {
    int err ;
    if (!threadobj->isJoined) {
-      void * result = 0 ;
-      err = pthread_join(threadobj->sys_thread, &result) ;
+      err = pthread_join(threadobj->sys_thread, 0) ;
       if (err) goto ABBRUCH ;
-      assert(result == 0) ;
       threadobj->isJoined  = true ;
    }
    return 0 ;
@@ -432,7 +428,6 @@ static int test_thread_sigaltstack(void)
       TEST(!osthread->isJoined) ;
       TEST(0 == join_osthread(osthread)) ;
       TEST(osthread->isJoined) ;
-      TEST(osthread->isMainCalled) ;
       TEST(0 == osthread->thread_returncode) ;
       // signal own thread
       memset(&s_threadid, 0, sizeof(s_threadid)) ;
@@ -513,7 +508,6 @@ static int test_thread_stackoverflow(void)
    TEST(osthread->thread_argument   == (void*)1) ;
    TEST(osthread->thread_returncode == 0) ;
    TEST(osthread->isJoined) ;
-   TEST(osthread->isMainCalled) ;
    TEST(0 == delete_osthread(&osthread)) ;
 
    // signal own thread
@@ -535,10 +529,12 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static volatile int s_returncode_signal = 0 ;
+static volatile int s_returncode_signal  = 0 ;
+static volatile int s_returncode_running = 0 ;
 
 static int thread_returncode(osthread_t * context)
 {
+   s_returncode_running = 1 ;
    while( !s_returncode_signal ) {
       pthread_yield() ;
    }
@@ -564,11 +560,9 @@ static int test_thread_init(void)
    TEST(0 == new_osthread(&osthread, thread_returncode, (void*)11)) ;
    TEST(osthread) ;
    TEST(0 == join_osthread(osthread)) ;
-   TEST(osthread->isMainCalled) ;
    TEST(osthread->isJoined) ;
    TEST(11 == returncode_osthread(osthread)) ;
    TEST(0 == join_osthread(osthread)) ;
-   TEST(osthread->isMainCalled) ;
    TEST(osthread->isJoined) ;
    TEST(11 == returncode_osthread(osthread)) ;
    TEST(0 == delete_osthread(&osthread)) ;
@@ -580,20 +574,20 @@ static int test_thread_init(void)
    // TEST returncode
    for(int i = -5; i < 5; ++i) {
       const int arg = 1111 * i ;
-      s_returncode_signal = 0 ;
+      s_returncode_signal  = 0 ;
+      s_returncode_running = 0 ;
       TEST(0 == new_osthread(&osthread, thread_returncode, (void*)arg)) ;
       TEST(osthread) ;
       TEST(arg                == (int)osthread->thread_argument) ;
       TEST(&thread_returncode == osthread->thread_main) ;
-      for(int yi = 0; yi < 100000 && !osthread->isMainCalled; ++yi) {
+      for(int yi = 0; yi < 100000 && !s_returncode_running; ++yi) {
          pthread_yield() ;
       }
-      TEST(osthread->isMainCalled) ;
+      TEST(s_returncode_running) ;
       TEST(!osthread->isJoined) ;
       TEST(!osthread->thread_returncode) ;
       s_returncode_signal = 1 ;
       TEST(0 == join_osthread(osthread)) ;
-      TEST(osthread->isMainCalled) ;
       TEST(osthread->isJoined) ;
       TEST(arg == returncode_osthread(osthread)) ;
       TEST(0 == delete_osthread(&osthread)) ;
