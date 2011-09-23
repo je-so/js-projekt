@@ -22,7 +22,7 @@
 #ifndef CKERN_TEST_ARGUMENT_HEADER
 #define CKERN_TEST_ARGUMENT_HEADER
 
-/* define: CHECK_INARG
+/* define: TEST_INARG
  * Tests condition on input parameter.
  * In case of condition is wrong the error variable *err* is set to
  * EINVAL and execution continues at the given label *_ONERROR_LABEL*.
@@ -32,7 +32,7 @@
  * _ONERROR_LABEL    - The label to jump to if condition is wrong.
  * _LOG_VALUE        - The log command to log the value of the wrong parameter.
  * */
-#define CHECK_INARG(_CONDITION,_ONERROR_LABEL,_LOG_VALUE)  \
+#define TEST_INARG(_CONDITION,_ONERROR_LABEL,_LOG_VALUE)  \
    if (!(_CONDITION)) {                                  \
       err = EINVAL ;                                     \
       LOG_ERRTEXT(FUNCTION_WRONG_INPUT(#_CONDITION)) ;   \
