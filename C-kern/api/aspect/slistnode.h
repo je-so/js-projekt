@@ -17,7 +17,7 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/aspect/slist_aspect.h
+   file: C-kern/api/aspect/slistnodex.h
     Header file of <SingleLinkedList-Aspect>.
 */
 #ifndef CKERN_ASPECT_SINGLELINKEDLIST_HEADER
@@ -77,6 +77,6 @@ typedef struct slist_aspect_t             slist_aspect_t ;
  * >    int             dummy2 ;
  * > } */
 #define slist_aspect_EMBED(object_type,nameprefix) \
-   struct_type * nameprefix ## next
+   object_type * nameprefix ## next
 
 #endif

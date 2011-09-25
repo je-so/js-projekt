@@ -31,7 +31,7 @@
 #define CKERN_DATASTRUCTURE_INMEMORY_SINGLELINKEDLIST_HEADER
 
 #include "C-kern/api/aspect/callback.h"
-#include "C-kern/api/aspect/slist_aspect.h"
+#include "C-kern/api/aspect/slistnode.h"
 #include "C-kern/api/aspect/callback/free.h"
 
 /* typedef: slist_t typedef
