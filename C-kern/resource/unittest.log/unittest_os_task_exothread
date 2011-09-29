@@ -1,7 +1,7 @@
-C-kern/os/shared/task/exothread.c:92: run_exothread(): error: Wrong input argument (0 == isfinish_exothread(xthread))
+C-kern/os/shared/task/exothread.c:92: run_exothread(): error: Function argument violates condition (0 == isfinish_exothread(xthread))
 C-kern/os/shared/task/exothread.c:103: run_exothread(): error: Function aborted (err=22)
 C-kern/os/shared/task/exothread.c:67: free_exothread(): error: All resources can not be freed (err=16)
-C-kern/os/shared/task/exothread.c:206: counter_xthread(): error: Wrong input argument (inparam->limit > 0)
+C-kern/os/shared/task/exothread.c:206: counter_xthread(): error: Function argument violates condition (inparam->limit > 0)
 inparam->limit=-1
 C-kern/os/shared/task/exothread.c:253: counter_xthread(): error: Function aborted (err=22)
 C-kern/os/shared/task/exothread.c:253: counter_xthread(): error: Function aborted (err=62)

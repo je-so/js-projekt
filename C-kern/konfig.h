@@ -186,14 +186,23 @@
 #define SCNuSIZE             __PRIPTR_PREFIX "u"
 
 /* define: sys_thread_t
- * Structure holding system specific description of a thread. Overwritten in system specific include file. */
+ * Type holding system specific description of a thread. Overwritten in system specific include file. */
 #define sys_thread_t                void
+/* define: sys_thread_t
+ * Value of invalid thread ID. Overwritten in system specific include file. */
+#define sys_thread_INIT_FREEABLE    void
 /* define: sys_thread_mutex_t
- * Structure holding system specific description of a mutex. Overwritten in system specific include file. */
+ * Type holding system specific description of a mutex. Overwritten in system specific include file. */
 #define sys_thread_mutex_t          void
 /* define: sys_thread_mutex_INIT_DEFAULT
  * Static initializer for a mutex useable by threads of the same process. */
 #define sys_thread_mutex_INIT_DEFAULT   void
+/* define: sys_semaphore_t
+ * Type holding system specific description of a semaphore. Overwritten in system specific include file. */
+#define sys_semaphore_t             void
+/* define: sys_semaphore_INIT_FREEABLE
+ * Init value to declare an invalid semaphore handle. */
+#define sys_semaphore_INIT_FREEABLE void
 /* define: sys_timerid_t
  * Handle for system specific timer. */
 #define sys_timerid_t               void

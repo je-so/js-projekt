@@ -118,6 +118,7 @@
         <File Name="../../C-kern/api/os/task/threadpool.h"/>
         <File Name="../../C-kern/api/os/task/exoscheduler.h"/>
         <File Name="../../C-kern/api/os/task/exothread.h"/>
+        <File Name="../../C-kern/api/os/task/semaphore.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <File Name="../../C-kern/api/umgebung.h"/>
@@ -143,7 +144,7 @@
         <File Name="../../C-kern/api/aspect/constant/accessmode.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/memoryblock.h"/>
-      <File Name="../../C-kern/api/aspect/slist_aspect.h"/>
+      <File Name="../../C-kern/api/aspect/slistnode.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
@@ -235,6 +236,7 @@
       <File Name="../../C-kern/os/Linux/timing.c"/>
       <File Name="../../C-kern/os/Linux/virtmemory.c"/>
       <File Name="../../C-kern/os/Linux/file.c"/>
+      <File Name="../../C-kern/os/Linux/semaphore.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <File Name="../../C-kern/os/shared/findfile.c"/>
@@ -308,7 +310,10 @@
       <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit_Debug" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="no"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
-        <![CDATA[]]>
+        <![CDATA[
+      
+      
+      ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
         <PostConnectCommands/>
@@ -344,7 +349,10 @@
       <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
-        <![CDATA[]]>
+        <![CDATA[
+      
+      
+      ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
         <PostConnectCommands/>

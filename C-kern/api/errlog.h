@@ -62,7 +62,6 @@
  * Logs error code which caused a fatal error. */
 #define LOG_FATAL(err)                       LOG_ERRTEXT(ERROR_FATAL(err))
 
-
 /* define: LOG_OUTOFMEMORY
  * Logs "out of memory" reason for function abort.
  * If a function could not allocate memory of size bytes and therefore aborts

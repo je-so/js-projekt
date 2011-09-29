@@ -27,8 +27,8 @@
         "Aufruf '%s' meldet Fehler (err=%d): '%s'\n", sFunctionname, error, sError
 #define TEXTRES_ERRORLOG_FUNCTION_SYSERR(sFunctionname, sys_errno, sError) \
         "Systemaufruf '%s' meldet Fehler (err=%d): '%s'\n", sFunctionname, sys_errno, sError
-#define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sCondition) \
-        "Falsche Funktionseingabe (%s)\n", sCondition
+#define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sViolatedCondition) \
+        "Funktionsargument erfüllt nicht Bedingung (%s)\n", sViolatedCondition
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n"
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \
@@ -73,8 +73,8 @@
         "Call to '%s' returned error (err=%d): '%s'\n", sFunctionname, error, sError
 #define TEXTRES_ERRORLOG_FUNCTION_SYSERR(sFunctionname, sys_errno, sError) \
         "System call '%s' returned error (err=%d): '%s'\n", sFunctionname, sys_errno, sError
-#define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sCondition) \
-        "Wrong input argument (%s)\n", sCondition
+#define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sViolatedCondition) \
+        "Function argument violates condition (%s)\n", sViolatedCondition
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n"
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \

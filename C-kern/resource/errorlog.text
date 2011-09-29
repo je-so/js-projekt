@@ -51,10 +51,10 @@ FUNCTION_SYSERR:de: sFunctionname, sys_errno, sError
 FUNCTION_SYSERR:en: sFunctionname, sys_errno, sError
 "System call '%s' returned error (err=%d): '%s'"
 
-FUNCTION_WRONG_INPUT:de: sCondition
-"Falsche Funktionseingabe (%s)"
-FUNCTION_WRONG_INPUT:en: sCondition
-"Wrong input argument (%s)"
+FUNCTION_WRONG_INPUT:de: sViolatedCondition
+"Funktionsargument erfüllt nicht Bedingung (%s)"
+FUNCTION_WRONG_INPUT:en: sViolatedCondition
+"Function argument violates condition (%s)"
 
 LOCALE_SETLOCALE:de:
 "Kann die Lokalisierung mit setlocale nicht setzen"
