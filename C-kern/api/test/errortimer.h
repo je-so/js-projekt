@@ -43,7 +43,7 @@ struct test_errortimer_t {
 } ;
 
 /* define: test_errortimer_INIT
- * Static initializer. */
+ * Static initializer. Initializes timer disarmed. */
 #define test_errortimer_INIT    { 0, 0 }
 
 /* function: init_testerrortimer
@@ -51,18 +51,16 @@ struct test_errortimer_t {
  *
  * Parameter:
  * errtimer    - Pointer to object of type <test_errortimer_t> which is initialized.
- * timercount  - The number of times <process_testerrortimer> returns success (0).
- * errcode     - The errorcode <process_testerrortimer> returns in case timercount
- *               has reached zero.
+ * timercount  - The number of times after <process_testerrortimer> returns an error.
+ * errcode     - The errorcode <process_testerrortimer> returns in timer has fired.
  * */
 extern int init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t timercount, int errcode) ;
 
 /* function: process_testerrortimer
- * Returns 0 if <test_errortimer_t.timercount> in has not reached zero.
- * And decrements timercount.
- * Returns <test_errortimer_t.errcode> if timercount has reached zero.
- * In this case timercount is not changed.
- * The timer is in the fired state as long as it not reinitalized. */
+ * Returns error if timer has elapsed else 0.
+ * If <test_errortimer_t.timercount> is 0 the timer is disarmed, nothing is done and 0 is returned.
+ * Else timercount is decremented.
+ * <test_errortimer_t.errcode> is returned if timercount has reached zero else 0. */
 extern int process_testerrortimer(test_errortimer_t * errtimer) ;
 
 
@@ -81,12 +79,10 @@ extern int process_testerrortimer(test_errortimer_t * errtimer) ;
  * Implements <test_errortimer_t.process_testerrortimer>. */
 #define process_testerrortimer(/*test_errortimer_t * */errtimer)  \
    ( __extension__ ({                        \
-      test_errortimer_t * _tm = (errtimer) ; \
-      int                 _err ;             \
-      if (_tm->timercount) {                 \
-      -- _tm->timercount;                    \
-         _err = 0 ;                          \
-      } else {                               \
+      test_errortimer_t * _tm  = (errtimer); \
+      int                 _err = 0 ;         \
+      if (    _tm->timercount                \
+         && ! (-- _tm->timercount)) {        \
          _err = _tm->errcode ;               \
       }                                      \
                                              \

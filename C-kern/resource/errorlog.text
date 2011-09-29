@@ -56,6 +56,11 @@ FUNCTION_WRONG_INPUT:de: sViolatedCondition
 FUNCTION_WRONG_INPUT:en: sViolatedCondition
 "Function argument violates condition (%s)"
 
+FUNCTION_WRONG_RETURNVALUE:de: sFunctionname, sWrongValue
+"Funktion '%s' liefert falschen Rückgabewert (%s)"
+FUNCTION_WRONG_RETURNVALUE:en: sFunctionname, sWrongValue
+"Function '%s' returned wrong value (%s)"
+
 LOCALE_SETLOCALE:de:
 "Kann die Lokalisierung mit setlocale nicht setzen"
 "Abhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen"
@@ -111,6 +116,7 @@ X11_DISPLAY_NOT_SET:de:
 X11_DISPLAY_NOT_SET:en:
 "Default name of X11 display servers unknown"
 "Please set environment variable »DISPLAY« setzen"
+
 X11_NO_CONNECTION:de: display_server_name
 "Verbindung zu X11 Display-Server '%s' fehlgeschlagen"
 X11_NO_CONNECTION:en: display_server_name
