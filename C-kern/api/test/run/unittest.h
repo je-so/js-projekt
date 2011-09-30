@@ -16,14 +16,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/test/unittest.h
+   file: C-kern/api/test/run/unittest.h
     Header file of <Unittest>.
 
    file: C-kern/test/run_unittest.c
     Implementation file <Unittest impl>.
 */
-#ifndef CKERN_TEST_UNITTEST_HEADER
-#define CKERN_TEST_UNITTEST_HEADER
+#ifndef CKERN_TEST_RUN_UNITTEST_HEADER
+#define CKERN_TEST_RUN_UNITTEST_HEADER
 
 /* function: run_unittest
  * Calls every registered unittest of the C-kern(el) system.
