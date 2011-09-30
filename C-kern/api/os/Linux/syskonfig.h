@@ -73,10 +73,10 @@
 #define sys_thread_t                   pthread_t
 #undef  sys_thread_INIT_FREEABLE
 #define sys_thread_INIT_FREEABLE       0
-#undef  sys_thread_mutex_t
-#define sys_thread_mutex_t             pthread_mutex_t
-#undef  sys_thread_mutex_INIT_DEFAULT
-#define sys_thread_mutex_INIT_DEFAULT  PTHREAD_MUTEX_INITIALIZER
+#undef  sys_mutex_t
+#define sys_mutex_t                    pthread_mutex_t
+#undef  sys_mutex_INIT_DEFAULT
+#define sys_mutex_INIT_DEFAULT         PTHREAD_MUTEX_INITIALIZER
 #undef  sys_semaphore_t
 #define sys_semaphore_t                int
 #undef  sys_semaphore_INIT_FREEABLE

@@ -188,15 +188,15 @@
 /* define: sys_thread_t
  * Type holding system specific description of a thread. Overwritten in system specific include file. */
 #define sys_thread_t                void
-/* define: sys_thread_t
+/* define: sys_thread_INIT_FREEABLE
  * Value of invalid thread ID. Overwritten in system specific include file. */
 #define sys_thread_INIT_FREEABLE    void
 /* define: sys_thread_mutex_t
  * Type holding system specific description of a mutex. Overwritten in system specific include file. */
-#define sys_thread_mutex_t          void
+#define sys_mutex_t                 void
 /* define: sys_thread_mutex_INIT_DEFAULT
  * Static initializer for a mutex useable by threads of the same process. */
-#define sys_thread_mutex_INIT_DEFAULT   void
+#define sys_mutex_INIT_DEFAULT      void
 /* define: sys_semaphore_t
  * Type holding system specific description of a semaphore. Overwritten in system specific include file. */
 #define sys_semaphore_t             void

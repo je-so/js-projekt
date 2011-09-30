@@ -17,7 +17,7 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/aspect/slistnodex.h
+   file: C-kern/api/aspect/slistnode.h
     Header file of <SingleLinkedList-Aspect>.
 */
 #ifndef CKERN_ASPECT_SINGLELINKEDLIST_HEADER

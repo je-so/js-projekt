@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Sep.29  10:19:35
+GenerationDate  := 2011.Sep.30  19:46:53
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -81,6 +81,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!semaphore.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
@@ -110,6 +111,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!semaphore.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
@@ -156,6 +158,9 @@ $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o: C-kern/os/Linux/mutex.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
@@ -237,6 +242,9 @@ $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o: C-kern/os/Linux/mutex.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c

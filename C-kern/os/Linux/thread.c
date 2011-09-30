@@ -26,7 +26,8 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/virtmemory.h"
-#include "C-kern/api/os/task/semaphore.h"
+#include "C-kern/api/os/sync/mutex.h"
+#include "C-kern/api/os/sync/semaphore.h"
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -58,11 +59,11 @@ struct osthread_startargument_t {
    osthread_stack_t  signalstack ;
 } ;
 
-static int join2_osthread(osthread_t * threadobj, uint32_t thread_index) ;
 
 #ifdef KONFIG_UNITTEST
 static test_errortimer_t   s_error_in_newmany_loop = test_errortimer_INIT ;
 #endif
+
 
 // section: osthread_stack_t
 
@@ -246,7 +247,6 @@ static void * startpoint_osthread(void * start_arg)
       .ss_flags = 0
    } ;
 
-// TODO: array umrüsten
    err = init_umgebung(&gt_umgebung, ((osthread_startargument_t*)startarg)->umgtype) ;
    if (err) {
       LOG_CALLERR("init_umgebung",err) ;
@@ -396,6 +396,9 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
    err = init_semaphore(&isvalid_abortflag, 0) ;
    if (err) goto ABBRUCH ;
 
+   // !! preallocates enough resources so that init_umgebung never fails !!
+   // TODO: prepare_umgebung(nr_of_threads) ;
+
    osthread_stack_t signalstack = getsignalstack_osthreadstack(&osthread->stackframe) ;
    osthread_stack_t threadstack = getthreadstack_osthreadstack(&osthread->stackframe) ;
    for(uint32_t i = 0; i < nr_of_threads; ++i) {
@@ -461,6 +464,8 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
       threadstack.addr += framesize ;
       continue ;
    UNDO_LOOP:
+      // !! frees preallocated resources which will never be used
+      // TODO: unprepare_umgebung(nr_of_threads -i -(sys_thread_INIT_FREEABLE != osthread->sys_thread[i])) ;
       for(; i < nr_of_threads; --i) {
          startarg = (osthread_startargument_t*) signalstack.addr ;
          startarg->isAbort = true ;
@@ -546,83 +551,14 @@ ABBRUCH:
 }
 
 
-// section: osthread_mutex_t
-
-int init_osthreadmutex(osthread_mutex_t * mutex)
-{
-   int err ;
-   bool                isAttr = false ;
-   pthread_mutexattr_t   attr ;
-
-   err = pthread_mutexattr_init(&attr) ;
-   if (err) goto ABBRUCH ;
-   isAttr = true ;
-
-   err = pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_ERRORCHECK ) ;
-   if (err) goto ABBRUCH ;
-
-   err = pthread_mutex_init(&mutex->sys_mutex, &attr) ;
-   if (err) goto ABBRUCH ;
-
-   isAttr = false ;
-   err    = pthread_mutexattr_destroy(&attr) ;
-   if (err) goto ABBRUCH ;
-
-   return 0 ;
-ABBRUCH:
-   if (isAttr) pthread_mutexattr_destroy(&attr) ;
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-int free_osthreadmutex(osthread_mutex_t * mutex)
-{
-   int err ;
-
-   err = pthread_mutex_destroy(&mutex->sys_mutex) ;
-   if (err) goto ABBRUCH ;
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-int lock_osthreadmutex(osthread_mutex_t * mutex)
-{
-   int err ;
-
-   err = pthread_mutex_lock(&mutex->sys_mutex) ;
-   if (err) goto ABBRUCH ;
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-int unlock_osthreadmutex(osthread_mutex_t * mutex)
-{
-   int err ;
-
-   err = pthread_mutex_unlock(&mutex->sys_mutex) ;
-   if (err) goto ABBRUCH ;
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-
 // section: test
 
 #ifdef KONFIG_UNITTEST
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_thread,ABBRUCH)
 
-static uint8_t   * s_sigaddr ;
-static pthread_t s_threadid ;
+static uint8_t  * s_sigaddr ;
+static pthread_t  s_threadid ;
 
 static void sigusr1handler(int sig)
 {
@@ -707,8 +643,8 @@ ABBRUCH:
    return err ;
 }
 
-static int s_isStackoverflow = 0 ;
-ucontext_t s_thread_usercontext ;
+static int        s_isStackoverflow = 0 ;
+static ucontext_t s_thread_usercontext ;
 
 static void sigstackoverflow(int sig)
 {
@@ -907,270 +843,6 @@ ABBRUCH:
 }
 
 
-static volatile int s_shared_count = 0 ;
-static volatile int s_shared_wrong = 0 ;
-
-static int thread_loop(osthread_t * context)
-{
-   int err = 0 ;
-   osthread_mutex_t * mutex = (osthread_mutex_t *) context->argument ;
-
-   for(int i = 0 ; i < 1000000; ++i) {
-      int v = s_shared_wrong + 1 ;
-      err = lock_osthreadmutex(mutex) ;
-      if (err) break ;
-      ++ s_shared_count ;
-      err = unlock_osthreadmutex(mutex) ;
-      if (err) break ;
-      s_shared_wrong = v ;
-   }
-
-   return err ;
-}
-
-static volatile int s_lockmutex_signal = 0 ;
-
-static int thread_lockunlockmutex(osthread_t * context)
-{
-   int err ;
-   osthread_mutex_t * mutex = (osthread_mutex_t *) context->argument ;
-   err = lock_osthreadmutex(mutex) ;
-   if (!err) {
-      s_lockmutex_signal = 1 ;
-      while( s_lockmutex_signal ) {
-         pthread_yield() ;
-      }
-      err = unlock_osthreadmutex(mutex) ;
-   }
-   return err ;
-}
-
-static int thread_freemutex(osthread_t * context)
-{
-   int err ;
-   osthread_mutex_t * mutex = (osthread_mutex_t *) context->argument ;
-   err = free_osthreadmutex(mutex) ;
-   return err ;
-}
-
-static int thread_unlockmutex(osthread_t * context)
-{
-   int err ;
-   osthread_mutex_t * mutex = (osthread_mutex_t *) context->argument ;
-   err = unlock_osthreadmutex(mutex) ;
-   return err ;
-}
-
-static void sigalarm(int sig)
-{
-   assert(sig == SIGALRM) ;
-   setcontext(&s_thread_usercontext) ;
-}
-
-static int test_thread_mutex_staticinit(void)
-{
-   osthread_mutex_t     mutex = osthread_mutex_INIT_DEFAULT ;
-   osthread_t       * thread1 = 0 ;
-   osthread_t       * thread2 = 0 ;
-
-   // TEST double free
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   mutex = (osthread_mutex_t) osthread_mutex_INIT_DEFAULT ;
-
-   // TEST 2 threads parallel counting: lock, unlock
-   s_shared_count = 0 ;
-   s_shared_wrong = 0 ;
-   TEST(0 == new_osthread(&thread1, &thread_loop, &mutex)) ;
-   TEST(0 == new_osthread(&thread2, &thread_loop, &mutex)) ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == join_osthread(thread2)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == thread2->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   TEST(0 == delete_osthread(&thread2)) ;
-   TEST(2000000 == s_shared_count) ;
-   TEST(2000000 != s_shared_wrong) ;
-
-   // TEST sequential threads do not need lock
-   s_shared_count = 0 ;
-   s_shared_wrong = 0 ;
-   TEST(0 == new_osthread(&thread1, &thread_loop, &mutex)) ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == new_osthread(&thread2, &thread_loop, &mutex)) ;
-   TEST(0 == join_osthread(thread2)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == thread2->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   TEST(0 == delete_osthread(&thread2)) ;
-   TEST(2000000 == s_shared_count) ;
-   TEST(2000000 == s_shared_wrong) ;
-
-   // TEST DEADLOCK not prevented
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   mutex = (osthread_mutex_t) osthread_mutex_INIT_DEFAULT ;
-   {
-      volatile int     isDeadlock = 0 ;
-      struct itimerval    timeout = { .it_interval = { 0, 0 }, .it_value = { .tv_sec = 0, .tv_usec = 1000000 / 10 } } ;
-      sigset_t         oldprocmask ;
-      struct sigaction newact, oldact ;
-      sigemptyset(&newact.sa_mask) ;
-      sigaddset(&newact.sa_mask,SIGALRM) ;
-      TEST(0 == sigprocmask(SIG_UNBLOCK,&newact.sa_mask,&oldprocmask)) ;
-      sigemptyset(&newact.sa_mask) ;
-      newact.sa_flags   = 0 ;
-      newact.sa_handler = &sigalarm ;
-      TEST(0 == sigaction(SIGALRM, &newact, &oldact)) ;
-      TEST(0 == lock_osthreadmutex(&mutex)) ;
-      TEST(0 == getcontext(&s_thread_usercontext)) ;
-      if (!isDeadlock) {
-         isDeadlock = 1 ;
-         TEST(0 == setitimer(ITIMER_REAL, &timeout, NULL)) ;
-         TEST(0 == lock_osthreadmutex(&mutex)) ;
-         timeout.it_value.tv_usec = 0 ;
-         TEST(0 == setitimer(ITIMER_REAL, &timeout, NULL)) ;
-         isDeadlock = 0 ;
-      }
-      TEST(isDeadlock) ;
-
-      TEST(0 == unlock_osthreadmutex(&mutex)) ;
-      TEST(0 == sigprocmask(SIG_SETMASK, &oldprocmask, 0)) ;
-      TEST(0 == sigaction(SIGALRM, &oldact, 0)) ;
-   }
-
-   // TEST EBUSY: calling free on a locked mutex
-   s_lockmutex_signal = 0 ;
-   TEST(0 == new_osthread(&thread1, &thread_lockunlockmutex, &mutex)) ;
-   while( ! s_lockmutex_signal ) {
-      pthread_yield() ;
-   }
-   TEST(EBUSY == free_osthreadmutex(&mutex)) ;
-   s_lockmutex_signal = 0 ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-
-   // TEST calling unlock from another thread is executed
-   TEST(0 == lock_osthreadmutex(&mutex)) ;
-   TEST(0 == new_osthread(&thread1, thread_unlockmutex, &mutex)) ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   // now check that free generates no error
-   TEST(0 == new_osthread(&thread1, thread_freemutex, &mutex)) ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   mutex = (osthread_mutex_t) osthread_mutex_INIT_DEFAULT ;
-
-   // TEST calling unlock twice is *UNSPECIFIED* and CANNOT be tested !!
-   TEST(0 == lock_osthreadmutex(&mutex)) ;
-   TEST(0 == unlock_osthreadmutex(&mutex)) ;
-
-   // TEST EINVAL: calling lock, unlock after free generates error
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   TEST(EINVAL == lock_osthreadmutex(&mutex)) ;
-   TEST(EINVAL == unlock_osthreadmutex(&mutex)) ;
-
-   return 0 ;
-ABBRUCH:
-   free_osthreadmutex(&mutex) ;
-   delete_osthread(&thread1) ;
-   delete_osthread(&thread2) ;
-   return EINVAL ;
-}
-
-static int test_thread_mutex_errorcheck(void)
-{
-   osthread_mutex_t     mutex = osthread_mutex_INIT_DEFAULT ;
-   osthread_t       * thread1 = 0 ;
-   osthread_t       * thread2 = 0 ;
-
-   // TEST double free
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   TEST(0 == init_osthreadmutex(&mutex)) ;
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   TEST(0 == init_osthreadmutex(&mutex)) ;
-
-   // TEST 2 threads parallel counting: lock, unlock
-   s_shared_count = 0 ;
-   s_shared_wrong = 0 ;
-   TEST(0 == new_osthread(&thread1, &thread_loop, &mutex)) ;
-   TEST(0 == new_osthread(&thread2, &thread_loop, &mutex)) ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == join_osthread(thread2)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == thread2->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   TEST(0 == delete_osthread(&thread2)) ;
-   TEST(2000000 == s_shared_count) ;
-   TEST(2000000 != s_shared_wrong) ;
-
-   // TEST sequential threads do not need lock
-   s_shared_count = 0 ;
-   s_shared_wrong = 0 ;
-   TEST(0 == new_osthread(&thread1, &thread_loop, &mutex)) ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == new_osthread(&thread2, &thread_loop, &mutex)) ;
-   TEST(0 == join_osthread(thread2)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == thread2->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   TEST(0 == delete_osthread(&thread2)) ;
-   TEST(2000000 == s_shared_count) ;
-   TEST(2000000 == s_shared_wrong) ;
-
-   // TEST EDEADLK: calling lock twice is prevented
-   TEST(0 == lock_osthreadmutex(&mutex)) ;
-   TEST(EDEADLK == lock_osthreadmutex(&mutex)) ;
-   TEST(0 == unlock_osthreadmutex(&mutex)) ;
-
-   // TEST EBUSY: calling free on a locked mutex
-   s_lockmutex_signal = 0 ;
-   TEST(0 == new_osthread(&thread1, &thread_lockunlockmutex, &mutex)) ;
-   while( ! s_lockmutex_signal ) {
-      pthread_yield() ;
-   }
-   TEST(EBUSY == free_osthreadmutex(&mutex)) ;
-   s_lockmutex_signal = 0 ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-
-   // TEST EPERM: calling unlock from another thread is prevented
-   s_lockmutex_signal = 0 ;
-   TEST(0 == new_osthread(&thread1, &thread_lockunlockmutex, &mutex)) ;
-   while( ! s_lockmutex_signal ) {
-      pthread_yield() ;
-   }
-   TEST(EPERM == unlock_osthreadmutex(&mutex)) ;
-   s_lockmutex_signal = 0 ;
-   TEST(0 == join_osthread(thread1)) ;
-   TEST(0 == thread1->returncode ) ;
-   TEST(0 == delete_osthread(&thread1)) ;
-   // now check that free generates no error
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   TEST(0 == init_osthreadmutex(&mutex)) ;
-
-   // TEST EPERM: calling unlock twice is prevented
-   TEST(0 == lock_osthreadmutex(&mutex)) ;
-   TEST(0 == unlock_osthreadmutex(&mutex)) ;
-   TEST(EPERM == unlock_osthreadmutex(&mutex)) ;
-
-   // TEST EINVAL: calling lock, unlock after free generates error
-   TEST(0 == free_osthreadmutex(&mutex)) ;
-   TEST(EINVAL == lock_osthreadmutex(&mutex)) ;
-   TEST(EINVAL == unlock_osthreadmutex(&mutex)) ;
-
-   return 0 ;
-ABBRUCH:
-   free_osthreadmutex(&mutex) ;
-   delete_osthread(&thread1) ;
-   delete_osthread(&thread2) ;
-   return EINVAL ;
-}
-
 static __thread int st_int = 123 ;
 static __thread int (*st_func)(void) = &test_thread_init ;
 static __thread struct test_123 {
@@ -1335,12 +1007,11 @@ ABBRUCH:
 typedef struct thread_isvalidstack_t   thread_isvalidstack_t ;
 struct thread_isvalidstack_t
 {
-
    bool  isSignalstackValid[30] ;
    bool  isThreadstackValid[30] ;
    osthread_stack_t  signalstack[30] ;
    osthread_stack_t  threadstack[30] ;
-   osthread_mutex_t  lock ;
+   mutex_t           lock ;
 } ;
 
 static int32_t thread_isvalidstack(osthread_t * osthread)
@@ -1354,9 +1025,9 @@ static int32_t thread_isvalidstack(osthread_t * osthread)
       goto ABBRUCH ;
    }
 
-   err = lock_osthreadmutex(&startarg->lock) ;
+   err = lock_mutex(&startarg->lock) ;
    if (err) goto ABBRUCH ;
-   err = unlock_osthreadmutex(&startarg->lock) ;
+   err = unlock_mutex(&startarg->lock) ;
    if (err) goto ABBRUCH ;
 
    for(unsigned i = 0; i < nrelementsof(startarg->isSignalstackValid); ++i) {
@@ -1383,7 +1054,7 @@ ABBRUCH:
 static int test_thread_array(void)
 {
    osthread_t            * osthread = 0 ;
-   thread_isvalidstack_t   startarg = { .lock = osthread_mutex_INIT_DEFAULT } ;
+   thread_isvalidstack_t   startarg = { .lock = mutex_INIT_DEFAULT } ;
 
    // TEST init, double free
    s_returncode_signal = 0 ;
@@ -1432,8 +1103,8 @@ static int test_thread_array(void)
    }
    TEST(0 == delete_osthread(&osthread)) ;
 
-   // Test correct stacks for every thread
-   TEST(0 == lock_osthreadmutex(&startarg.lock)) ;
+   // Test every thread has its own stackframe
+   TEST(0 == lock_mutex(&startarg.lock)) ;
    TEST(0 == newmany_osthread(&osthread, thread_isvalidstack, &startarg, nrelementsof(startarg.isSignalstackValid))) ;
 
    osthread_stack_t signalstack = getsignalstack_osthreadstack(&osthread->stackframe) ;
@@ -1448,9 +1119,8 @@ static int test_thread_array(void)
       threadstack.addr += framesize ;
    }
 
-   TEST(0 == unlock_osthreadmutex(&startarg.lock)) ;
+   TEST(0 == unlock_mutex(&startarg.lock)) ;
    TEST(0 == delete_osthread(&osthread)) ;
-   TEST(0 == free_osthreadmutex(&startarg.lock)) ;
 
    for(unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
       TEST(startarg.isSignalstackValid[i]) ;
@@ -1464,10 +1134,12 @@ static int test_thread_array(void)
       TEST((99 + i) == newmany_osthread(&osthread, thread_returncode, 0, 33)) ;
    }
 
+   TEST(0 == free_mutex(&startarg.lock)) ;
+
    return 0 ;
 ABBRUCH:
-   (void) unlock_osthreadmutex(&startarg.lock) ;
-   (void) free_osthreadmutex(&startarg.lock) ;
+   (void) unlock_mutex(&startarg.lock) ;
+   (void) free_mutex(&startarg.lock) ;
    delete_osthread(&osthread) ;
    return EINVAL ;
 }
@@ -1485,8 +1157,6 @@ int unittest_os_thread()
    if (test_thread_init())             goto ABBRUCH ;
    if (test_thread_sigaltstack())      goto ABBRUCH ;
    if (test_thread_stackoverflow())    goto ABBRUCH ;
-   if (test_thread_mutex_staticinit()) goto ABBRUCH ;
-   if (test_thread_mutex_errorcheck()) goto ABBRUCH ;
    if (test_thread_localstorage())     goto ABBRUCH ;
    if (test_thread_array())            goto ABBRUCH ;
 

@@ -16,7 +16,7 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/os/task/semaphore.h
+   file: C-kern/api/os/sync/semaphore.h
     Header file of <Semaphore>.
 
    file: C-kern/os/Linux/semaphore.c
@@ -24,7 +24,7 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/os/task/semaphore.h"
+#include "C-kern/api/os/sync/semaphore.h"
 #include "C-kern/api/errlog.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -62,12 +62,15 @@ int free_semaphore(semaphore_t * semaobj)
       int flags = fcntl(semaobj->sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;
       fcntl(semaobj->sys_sema, F_SETFL, (long)flags) ;
-      uint64_t increment = 0x0fffffffffffffff ;
-      err2 = write(semaobj->sys_sema, &increment, sizeof(increment)) ;
-      if (-1 == err2) {
-         err = errno ;
-         LOG_SYSERR("write", err) ;
-         LOG_INT(semaobj->sys_sema) ;
+      for(uint64_t increment = 0xffff; increment; increment <<= 16) {
+         err2 = write(semaobj->sys_sema, &increment, sizeof(increment)) ;
+         if (-1 == err2) {
+            if (EAGAIN != errno) {
+               err = errno ;
+               LOG_SYSERR("write", err) ;
+               LOG_INT(semaobj->sys_sema) ;
+            }
+         }
       }
       // free resource
       err2 = close(semaobj->sys_sema) ;
@@ -135,7 +138,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_task_semaphore,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_sync_semaphore,ABBRUCH)
 
 static int test_semaphore_init(void)
 {
@@ -241,6 +244,7 @@ static int test_semaphore_threads(void)
    TEST(0 == pthread_mutex_init(&startarg.mutex, 0)) ;
    isMutex = true ;
 
+   // start up threads
    for(unsigned i = 0; i < nrelementsof(threads); ++i) {
       TEST(0 == pthread_create(&threads[i], 0, semathread, &startarg)) ;
       valid_thread_index = 1 + i ;
@@ -277,7 +281,7 @@ static int test_semaphore_threads(void)
       TEST(0 == result) ;
    }
 
-
+   // start up threads
    for(unsigned i = 0; i < nrelementsof(threads); ++i) {
       TEST(0 == pthread_create(&threads[i], 0, semathread, &startarg)) ;
       valid_thread_index = 1 + i ;
@@ -321,7 +325,37 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_os_task_semaphore()
+static int test_overflow(void)
+{
+   sys_semaphore_t   sema = sys_semaphore_INIT_FREEABLE ;
+   int               size ;
+   uint64_t          value ;
+
+   // TEST value overflow => EAGAIN value has not changed
+   sema = eventfd(0,EFD_CLOEXEC|EFD_NONBLOCK) ;
+   TEST(-1 != sema) ;
+   value = 0x0fffffffffffffff ;
+   size = write(sema, &value, sizeof(value)) ;
+   TEST(sizeof(uint64_t) == size) ;
+   value = 0xf000000000000000 ;
+   size = write(sema, &value, sizeof(value)) ;
+   TEST(-1 == size) ;
+   TEST(EAGAIN == errno) ;
+   size = read(sema, &value, sizeof(value)) ;
+   TEST(sizeof(uint64_t) == size) ;
+   TEST(0x0fffffffffffffff == value) ;
+   TEST(0 == close(sema)) ;
+   sema = sys_semaphore_INIT_FREEABLE ;
+
+   return 0 ;
+ABBRUCH:
+   if (sys_semaphore_INIT_FREEABLE != sema) {
+      close(sema) ;
+   }
+   return EINVAL ;
+}
+
+int unittest_os_sync_semaphore()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
@@ -331,6 +365,7 @@ int unittest_os_task_semaphore()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
+   if (test_overflow())                goto ABBRUCH ;
    if (test_semaphore_init())          goto ABBRUCH ;
    if (test_semaphore_threads())       goto ABBRUCH ;
 

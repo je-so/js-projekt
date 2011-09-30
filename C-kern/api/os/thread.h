@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2010 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
 
    file: C-kern/api/os/thread.h
     Header file of <Thread>.
@@ -30,10 +30,6 @@
 /* typedef: osthread_t typedef
  * Export <osthread_t>. */
 typedef struct osthread_t              osthread_t ;
-
-/* typedef: osthread_mutex_t typedef
- * Export <osthread_mutex_t>. */
-typedef struct osthread_mutex_t        osthread_mutex_t ;
 
 /* typedef: thread_main_f
  * Function pointer to thread implementation. */
@@ -124,57 +120,6 @@ extern int32_t returncode_osthread(const osthread_t * threadobj) ;
  * The function suspends execution of the caller until threadobj terminates.
  * If the thread has already been joined this function returns immediately. */
 extern int join_osthread(osthread_t * threadobj) ;
-
-
-/* struct: osthread_mutex_t
- * */
-struct osthread_mutex_t {
-   sys_thread_mutex_t   sys_mutex ;
-} ;
-
-// group: lifetime
-
-/* define: osthread_mutex_INIT_DEFAULT
- * Static initializer for <osthread_mutex_t> which can be used by threads of the same process.
- *
- * Following behaviour is guaranteed:
- * 1. No deadlock detection.
- * 2. Locking it more than once without first unlocking it => DEADLOCK (waits indefinitely).
- * 3. Unlocking a mutex locked by a different thread works. It is the same as if the thread which holds the lock calls unlock.
- * 4. Unlocking an already unlocked mutex is unspecified. So never do it.
- * TODO: !!! Implement user threads and user threads compatible mutex which has *SPECIFIED* behaviour !!! */
-#define osthread_mutex_INIT_DEFAULT    { .sys_mutex = sys_thread_mutex_INIT_DEFAULT }
-
-/* function: init_osthreadmutex
- * Initializer for a mutex with error checking.
- *
- * Following behaviour is guaranteed:
- * 1. No deadlock detection.
- * 2. Locking it more than once without first unlocking it returns error EDEADLK.
- * 3. Unlocking a mutex locked by a different thread is prevented and returns error EPERM.
- * 4. Unlocking an already unlocked mutex is prevented and returns error EPERM.
- * */
-extern int init_osthreadmutex(osthread_mutex_t * mutex) ;
-
-/* function: free_osthreadmutex
- * Frees resources of mutex which is not in use.
- * Returns EBUSY if a thread holds a lock and nothing is freed. */
-extern int free_osthreadmutex(osthread_mutex_t * mutex) ;
-
-// group: change
-
-/* function: lock_osthreadmutex
- * Locks a mutex. If another thread holds the lock the calling thread waits until the lock is released.
- * If a lock is acquired more than once a DEADLOCK results.
- * If you try to lock a freed mutex EINVAL is returned. */
-extern int lock_osthreadmutex(osthread_mutex_t * mutex) ;
-
-/* function: unlock_osthreadmutex
- * Unlocks a previously locked mutex.
- * Unlocking a mutex more than once is unspecified and may return success but corrupts internal counters.
- * Unlocking a mutex which another thread has locked works as if the lock holder thread would call unlock.
- * If you try to lock a freed mutex EINVAL is returned. */
-extern int unlock_osthreadmutex(osthread_mutex_t * mutex) ;
 
 
 // section: inline implementations

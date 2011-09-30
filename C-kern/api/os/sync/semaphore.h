@@ -17,14 +17,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/os/task/semaphore.h
+   file: C-kern/api/os/sync/semaphore.h
     Header file of <Semaphore>.
 
    file: C-kern/os/Linux/semaphore.c
     Linux implementation file <Semaphore Linux>.
 */
-#ifndef CKERN_OS_TASK_SEMAPHORE_HEADER
-#define CKERN_OS_TASK_SEMAPHORE_HEADER
+#ifndef CKERN_OS_SYNCHRONIZATION_SEMAPHORE_HEADER
+#define CKERN_OS_SYNCHRONIZATION_SEMAPHORE_HEADER
 
 /* typedef: semaphore_t typedef
  * Export <semaphore_t>. */
@@ -36,14 +36,16 @@ typedef struct semaphore_t       semaphore_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_os_task_semaphore
+/* function: unittest_os_sync_semaphore
  * Tests system semaphore functionality. */
-extern int unittest_os_task_semaphore(void) ;
+extern int unittest_os_sync_semaphore(void) ;
 #endif
 
 
 /* struct: semaphore_t
- * Describes a system semaphore used between threads. */
+ * Describes a system semaphore used between threads.
+ * This thread safe object allows to wait for or to
+ * send a signal to one or more waiters. */
 struct semaphore_t {
    sys_semaphore_t   sys_sema ;
 } ;

@@ -78,11 +78,6 @@ PARAMETER_INT_TOO_BIG:de: parameter_name, parameter_max
 PARAMETER_INT_TOO_BIG:en: parameter_name, parameter_max
 "Parameter '%s' > %d"
 
-PATH_CONTAINS_UNSUPPORTED_CHAR:de: char_string
-"Pfad enthält ausgeschlossenes Zeichen ('%s')"
-PATH_CONTAINS_UNSUPPORTED_CHAR:en: char_string
-"Path contains unsupported character ('%s')"
-
 PATH_CONTAINS_TOO_MANY_LEADING_DOTS:de: checked_path, basedir
 "Pfad '%s' enthält zuviel führende '../'"
 "relativ zum Pfad '%s'"

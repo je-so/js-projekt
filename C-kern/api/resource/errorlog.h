@@ -37,8 +37,6 @@
         "Kein Speicher (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
         "Parameter '%s' > %d\n", parameter_name, parameter_max
-#define TEXTRES_ERRORLOG_PATH_CONTAINS_UNSUPPORTED_CHAR(char_string) \
-        "Pfad enthält ausgeschlossenes Zeichen ('%s')\n", char_string
 #define TEXTRES_ERRORLOG_PATH_CONTAINS_TOO_MANY_LEADING_DOTS(checked_path, basedir) \
         "Pfad '%s' enthält zuviel führende '../'\nrelativ zum Pfad '%s'\n", checked_path, basedir
 #define TEXTRES_ERRORLOG_PATH_NOT_WELL_FORMED(checked_path) \
@@ -85,8 +83,6 @@
         "Out of memory (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
         "Parameter '%s' > %d\n", parameter_name, parameter_max
-#define TEXTRES_ERRORLOG_PATH_CONTAINS_UNSUPPORTED_CHAR(char_string) \
-        "Path contains unsupported character ('%s')\n", char_string
 #define TEXTRES_ERRORLOG_PATH_CONTAINS_TOO_MANY_LEADING_DOTS(checked_path, basedir) \
         "path '%s' contains to many leading '../'\nrelative to path '%s'\n", checked_path, basedir
 #define TEXTRES_ERRORLOG_PATH_NOT_WELL_FORMED(checked_path) \
