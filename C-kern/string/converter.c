@@ -26,7 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/string/converter.h"
 #include "C-kern/api/os/locale.h"
-#include "C-kern/api/errlog.h"
+#include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif

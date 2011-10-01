@@ -26,7 +26,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/writer/log.h"
-#include "C-kern/api/errlog.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/os/filesystem/directory.h"
 #include "C-kern/api/os/filesystem/mmfile.h"

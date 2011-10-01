@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
-#include "C-kern/api/errlog.h"
+#include "C-kern/api/err.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/cache/objectcache.h"

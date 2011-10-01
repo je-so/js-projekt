@@ -28,7 +28,7 @@
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/os/sync/mutex.h"
 #include "C-kern/api/os/sync/semaphore.h"
-#include "C-kern/api/errlog.h"
+#include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/test/errortimer.h"
@@ -161,7 +161,7 @@ static int init_osthreadstack(osthread_stack_t * stackframe, uint32_t nr_threads
          .size = page_size/*last tail protection page*/ + nr_threads * framesize
    } ;
 
-   TEST_INARG(nr_threads != 0, ABBRUCH, ) ;
+   PRECONDITION_INPUT(nr_threads != 0, ABBRUCH, ) ;
 
    if (     stack.size  < (size_t)  (stack.size-page_size)
          || framesize  != (size_t) ((stack.size-page_size) / nr_threads) ) {
@@ -361,7 +361,7 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
    const size_t      objectsize        = sizeof(osthread_t) - sizeof(sys_thread_t) + arraysize ;
    const size_t      framesize         = framestacksize_osthreadstack() ;
 
-   TEST_INARG(nr_of_threads != 0, ABBRUCH,)
+   PRECONDITION_INPUT(nr_of_threads != 0, ABBRUCH,)
 
    if (  nr_of_threads != (arraysize / sizeof(sys_thread_t))
       || objectsize     <  arraysize ) {
@@ -513,7 +513,7 @@ static int join2_osthread(osthread_t * threadobj, uint32_t thread_index)
 {
    int err ;
 
-   TEST_INARG(thread_index < threadobj->nr_threads, ABBRUCH, LOG_UINT32(thread_index); LOG_UINT32(threadobj->nr_threads)) ;
+   PRECONDITION_INPUT(thread_index < threadobj->nr_threads, ABBRUCH, LOG_UINT32(thread_index); LOG_UINT32(threadobj->nr_threads)) ;
 
    if (sys_thread_INIT_FREEABLE != threadobj->sys_thread[thread_index]) {
 

@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
-#include "C-kern/api/errlog.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/umgebung/testerror.h"

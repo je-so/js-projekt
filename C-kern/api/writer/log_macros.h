@@ -1,5 +1,5 @@
-/* title: LogHelper
-   Makes <LogWriter> accessible with simple defined functions.
+/* title: LogMacros
+   Makes <LogWriter> more accessible with simple defined macros.
 
    about: Copyright
    This program is free software.
@@ -16,11 +16,11 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/log_helper.h
-    Header file of <LogHelper>.
+   file: C-kern/api/writer/log_macros.h
+    Header file of <LogMacros>.
 */
-#ifndef CKERN_WRITER_LOG_HELPER_HEADER
-#define CKERN_WRITER_LOG_HELPER_HEADER
+#ifndef CKERN_WRITER_LOG_MACROS_HEADER
+#define CKERN_WRITER_LOG_MACROS_HEADER
 
 #include "C-kern/api/writer/log.h"
 
@@ -52,7 +52,7 @@
  * > #define LOG_ISBUFFERED() (log_umgebung()->isBuffered) */
 #define LOG_ISBUFFERED()      (log_umgebung()->isBuffered)
 
-// group: configuration
+// group: config
 
 /* define: LOG_PUSH_ONOFFSTATE
  * Saves <log_config_t.isOn> in local variable.
@@ -80,7 +80,7 @@
  * > #define LOG_CONFIG_BUFFERED(on) setbuffermode_logconfig(log_umgebung(), on) */
 #define LOG_CONFIG_BUFFERED(on)     setbuffermode_logconfig(log_umgebung(), on)
 
-// group: buffered log
+// group: change
 
 /* define: LOG_CLEARBUFFER
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logconfig>.
@@ -92,9 +92,9 @@
  * > #define  LOG_WRITEBUFFER()     writebuffer_logconfig(log_umgebung()) */
 #define  LOG_WRITEBUFFER()          writebuffer_logconfig(log_umgebung())
 
-// group: write
+// group: write-text
 
-/* define: LOG_PRINTF
+/* define: LOGC_PRINTF
  * Logs a generic printf type format string.
  *
  * Parameter:
@@ -104,8 +104,8 @@
  *              parameter.
  *
  * Example:
- * > int i ; LOG_PRINTF(ERR, "%d", i) */
-#define LOG_PRINTF(LOGCHANNEL, ... )   \
+ * > int i ; LOGC_PRINTF(ERR, "%d", i) */
+#define LOGC_PRINTF(LOGCHANNEL, ... )   \
    do {                                \
       switch(CONCAT(log_channel_,LOGCHANNEL)) {                   \
       case log_channel_ERR:                                       \
@@ -117,7 +117,7 @@
       }                                                           \
    } while(0)
 
-/* define: LOG_TEXTRES
+/* define: LOGC_TEXTRES
  * Logs text resource produced by resource text compiler.
  *
  * Parameter:
@@ -127,67 +127,16 @@
  *              parameter.
  *
  * Example:
- * > LOG_TEXTRES(ERR,TEXTRES_ERRORLOG_MEMORY_OUT_OF(size)) */
-#define LOG_TEXTRES(LOGCHANNEL, TEXTID)      LOG_PRINTF(LOGCHANNEL, TEXTID)
+ * > LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_MEMORY_OUT_OF(size)) */
+#define LOGC_TEXTRES(LOGCHANNEL, TEXTID)      LOGC_PRINTF(LOGCHANNEL, TEXTID)
 
-/* define: LOG_STRING
- * Log "name=value" of string variable.
- * Example:
- * > const char * name = "Jo" ; LOG_STRING(name) ; */
-#define LOG_STRING(varname)                  LOG_VAR("s", varname)
+// group: write-variables
 
-/* define: LOG_INT
- * Log "name=value" of int variable.
- * Example:
- * > const int max = 100 ; LOG_INT(max) ; */
-#define LOG_INT(varname)                     LOG_VAR("d", varname)
-
-/* define: LOG_SIZE
- * Log "name=value" of size_t variable.
- * Example:
- * > const size_t maxsize = 100 ; LOG_SIZE(maxsize) ; */
-#define LOG_SIZE(varname)                    LOG_VAR(PRIuSIZE, varname)
-
-/* define: LOG_UINT8
- * Log "name=value" of uint8_t variable.
- * Example:
- * > const uint8_t limit = 255 ; LOG_UINT8(limit) ; */
-#define LOG_UINT8(varname)                   LOG_VAR(PRIu8, varname)
-
-/* define: LOG_UINT16
- * Log "name=value" of uint16_t variable.
- * Example:
- * > const uint16_t limit = 65535 ; LOG_UINT16(limit) ; */
-#define LOG_UINT16(varname)                  LOG_VAR(PRIu16, varname)
-
-/* define: LOG_UINT32
- * Log "name=value" of uint32_t variable.
- * Example:
- * > const uint32_t max = 100 ; LOG_UINT32(max) ; */
-#define LOG_UINT32(varname)                  LOG_VAR(PRIu32, varname)
-
-/* define: LOG_UINT64
- * Log "name=value" of uint64_t variable.
- * Example:
- * > const uint64_t max = 100 ; LOG_UINT64(max) ; */
-#define LOG_UINT64(varname)                  LOG_VAR(PRIu64, varname)
-
-/* define: LOG_PTR
- * Log "name=value" of pointer variable.
- * Example:
- * > const void * ptr = &g_variable ; LOG_PTR(ptr) ; */
-#define LOG_PTR(varname)                     LOG_VAR("p", varname)
-
-/* define: LOG_DOUBLE
- * Log "name=value" of double or float variable.
- * Example:
- * > const double d = 1.234 ; LOG_DOUBLE(d) ; */
-#define LOG_DOUBLE(varname)                  LOG_VAR("g", varname)
-
-/* define: LOG_VAR
+/* define: LOGC_VAR
  * Logs "<varname>=varvalue" of a variable with name varname.
  *
  * Parameter:
+ * LOGCHANNEL  - The name of the channel where the log is written to. See <LOGCHANNEL>.
  * printf_type - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
  *               Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
  * varname     - The name of the variable to log.
@@ -195,13 +144,14 @@
  * Example:
  * This code logs "memsize=1024\n"
  * > const size_t memsize = 1024 ;
- * > LOG_VAR(PRIuSIZE,memsize) ; */
-#define LOG_VAR(printf_type, varname)           LOG_PRINTF(ERR, #varname "=%" printf_type "\n", (varname))
+ * > LOGC_VAR(ERR, PRIuSIZE,memsize) ; */
+#define LOGC_VAR(LOGCHANNEL, printf_type, varname)     LOGC_PRINTF(LOGCHANNEL, #varname "=%" printf_type "\n", (varname))
 
-/* define: LOG_INDEX
+/* define: LOGC_INDEX
  * Log "array[i]=value" of variable stored in array at offset i.
  *
  * Parameter:
+ * LOGCHANNEL  - The name of the channel where the log is written to. See <LOGCHANNEL>.
  * printf_type - Type of the variable as string in printf format. Use "s" for C strings.
  *               Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
  * arrname     - The name of the array.
@@ -210,7 +160,61 @@
  * Example:
  * This code logs "names[0]=Jo\n" and "names[1]=Jane\n".
  * > const char * names[] = { "Jo", "Jane" } ;
- * > for(int i = 0; i < 2; ++i) { LOG_INDEX(s,names,i) ; } */
-#define LOG_INDEX(printf_type, arrname, index)  LOG_PRINTF(ERR, #arrname "[%d]=%" printf_type "\n", i, (arrname)[i])
+ * > for(int i = 0; i < 2; ++i) { LOGC_INDEX(ERR, s,names,i) ; } */
+#define LOGC_INDEX(LOGCHANNEL, printf_type, arrname, index)  LOGC_PRINTF(LOGCHANNEL, #arrname "[%d]=%" printf_type "\n", i, (arrname)[i])
+
+/* define: LOGC_STRING
+ * Log "name=value" of string variable.
+ * Example:
+ * > const char * name = "Jo" ; LOGC_STRING(ERR, name) ; */
+#define LOGC_STRING(LOGCHANNEL, varname)     LOGC_VAR(ERR, "s", varname)
+
+/* define: LOGC_INT
+ * Log "name=value" of int variable.
+ * Example:
+ * > const int max = 100 ; LOGC_INT(ERR, max) ; */
+#define LOGC_INT(LOGCHANNEL, varname)        LOGC_VAR(ERR, "d", varname)
+
+/* define: LOGC_SIZE
+ * Log "name=value" of size_t variable.
+ * Example:
+ * > const size_t maxsize = 100 ; LOGC_SIZE(ERR, maxsize) ; */
+#define LOGC_SIZE(LOGCHANNEL, varname)       LOGC_VAR(ERR, PRIuSIZE, varname)
+
+/* define: LOGC_UINT8
+ * Log "name=value" of uint8_t variable.
+ * Example:
+ * > const uint8_t limit = 255 ; LOGC_UINT8(ERR, limit) ; */
+#define LOGC_UINT8(LOGCHANNEL, varname)      LOGC_VAR(ERR, PRIu8, varname)
+
+/* define: LOGC_UINT16
+ * Log "name=value" of uint16_t variable.
+ * Example:
+ * > const uint16_t limit = 65535 ; LOGC_UINT16(ERR, limit) ; */
+#define LOGC_UINT16(LOGCHANNEL, varname)     LOGC_VAR(ERR, PRIu16, varname)
+
+/* define: LOGC_UINT32
+ * Log "name=value" of uint32_t variable.
+ * Example:
+ * > const uint32_t max = 100 ; LOGC_UINT32(ERR, max) ; */
+#define LOGC_UINT32(LOGCHANNEL, varname)     LOGC_VAR(ERR, PRIu32, varname)
+
+/* define: LOGC_UINT64
+ * Log "name=value" of uint64_t variable.
+ * Example:
+ * > const uint64_t max = 100 ; LOGC_UINT64(ERR, max) ; */
+#define LOGC_UINT64(LOGCHANNEL, varname)     LOGC_VAR(ERR, PRIu64, varname)
+
+/* define: LOGC_PTR
+ * Log "name=value" of pointer variable.
+ * Example:
+ * > const void * ptr = &g_variable ; LOGC_PTR(ERR, ptr) ; */
+#define LOGC_PTR(LOGCHANNEL, varname)        LOGC_VAR(ERR, "p", varname)
+
+/* define: LOGC_DOUBLE
+ * Log "name=value" of double or float variable.
+ * Example:
+ * > const double d = 1.234 ; LOGC_DOUBLE(ERR, d) ; */
+#define LOGC_DOUBLE(LOGCHANNEL, varname)     LOGC_VAR(ERR, "g", varname)
 
 #endif

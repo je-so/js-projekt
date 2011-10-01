@@ -28,7 +28,7 @@
 #include "C-kern/api/os/file.h"
 #include "C-kern/api/os/malloc.h"
 #include "C-kern/api/os/virtmemory.h"
-#include "C-kern/api/errlog.h"
+#include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif

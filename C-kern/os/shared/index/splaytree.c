@@ -29,7 +29,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/index/splaytree.h"
 #include "C-kern/api/aspect/callback.h"
-#include "C-kern/api/errlog.h"
+#include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/math/int/signum.h"

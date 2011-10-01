@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/task/exothread.h"
-#include "C-kern/api/errlog.h"
+#include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -89,7 +89,7 @@ int run_exothread(exothread_t * xthread)
 {
    int err ;
 
-   TEST_INARG(0 == isfinish_exothread(xthread),ABBRUCH,)
+   PRECONDITION_INPUT(0 == isfinish_exothread(xthread),ABBRUCH,)
 
    xthread->flags = (typeof(xthread->flags)) (xthread->flags | exothread_flag_RUN) ;
 
@@ -124,11 +124,11 @@ static int testinit_xthread(exothread_t * xthread)
    jumpstate_exothread() ;
 
    exothread_INIT: ;
-   TEST_INARG(0 == err,ABBRUCH,) ;
+   PRECONDITION_INPUT(0 == err,ABBRUCH,) ;
    err = 1 ;
 
    exothread_FREE: ;
-   TEST_INARG(1 == err,ABBRUCH,) ;
+   PRECONDITION_INPUT(1 == err,ABBRUCH,) ;
 
    finish_exothread() ;
    return 0 ;
@@ -203,7 +203,7 @@ static int counter_xthread(counter_xthread_t * xthread)
    {
       declare_inparam_exothread(inparam) ;
 
-      TEST_INARG(inparam->limit > 0,ABBRUCH,LOG_INT(inparam->limit)) ;
+      PRECONDITION_INPUT(inparam->limit > 0,ABBRUCH,LOG_INT(inparam->limit)) ;
 
       xthread->value = 0 ;
       xthread->limit = inparam->limit ;
