@@ -51,8 +51,8 @@
  * Logs an errorlog text resource.
  * Use <LOG_ERRTEXT> instead of <LOG_TEXTRES> so you
  * do not have to prefix every resource name with "TEXTRES_ERRORLOG_". */
-#define LOG_ERRTEXT( TEXTID )                do {  LOG_TEXTRES( TEXTRES_ERRORLOG_ ## ERROR_LOCATION ) ; \
-                                                   LOG_TEXTRES( TEXTRES_ERRORLOG_ ## TEXTID ) ; \
+#define LOG_ERRTEXT( TEXTID )                do {  LOG_TEXTRES(ERR, TEXTRES_ERRORLOG_ ## ERROR_LOCATION ) ; \
+                                                   LOG_TEXTRES(ERR, TEXTRES_ERRORLOG_ ## TEXTID ) ; \
                                                 }  while(0)
 
 // TODO: support own error IDs: replace strerror(err) with own string_error_function(int sys_err)

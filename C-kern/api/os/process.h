@@ -111,7 +111,7 @@ extern int delete_process(process_t ** process) ;
 // group: query
 
 /* function: state_process
- * Returns 0 if process current_state could be determined.
+ * Returns 0 if current_state of process could be determined.
  * Else ECHILD if process does no longer exist. */
 extern int state_process(process_t * process, process_state_e * current_state) ;
 

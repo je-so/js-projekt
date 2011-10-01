@@ -18,7 +18,7 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/test/unittest.h
+   file: C-kern/api/test/run/unittest.h
     Header file of <Unittest>.
 
    file: C-kern/test/run_unittest.c
@@ -92,7 +92,7 @@ static void generate_logresource(const char * test_name)
    if (logbuffer_size) {
       int logsize = write( fd, logbuffer, logbuffer_size ) ;
       if (logbuffer_size != (unsigned)logsize) {
-         dprintf( STDERR_FILENO, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
+         LOG_PRINTF(TEST, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
          goto ABBRUCH ;
       }
    }
@@ -101,8 +101,8 @@ static void generate_logresource(const char * test_name)
    return ;
 ABBRUCH:
    if (err != EEXIST) {
-      dprintf( STDERR_FILENO, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      dprintf( STDERR_FILENO, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
+      LOG_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+      LOG_PRINTF(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
    }
    if (fd >= 0) close(fd) ;
    return ;
@@ -137,7 +137,7 @@ static int check_logresource(const char * test_name)
    LOG_GETBUFFER( &logbuffer, &logbuffer_size ) ;
 
    if (logbuffer_size != logfile_size) {
-      dprintf( STDERR_FILENO, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
+      LOG_PRINTF(TEST, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -149,7 +149,7 @@ static int check_logresource(const char * test_name)
          memcpy( addr_mmfile(&logfile2), logbuffer, logbuffer_size ) ;
       }
       free_mmfile(&logfile2) ;
-      dprintf( STDERR_FILENO, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
+      LOG_PRINTF(TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -159,8 +159,8 @@ static int check_logresource(const char * test_name)
 
    return 0 ;
 ABBRUCH:
-   dprintf( STDERR_FILENO, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-   dprintf( STDERR_FILENO, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
+   LOG_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+   LOG_PRINTF(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
    free_mmfile(&logfile) ;
    return err ;
 }
@@ -181,7 +181,7 @@ static void print_result(int err, RESULT_STRING * progress, unsigned * progress_
       (*progress)[*progress_count] = '.' ;
    }
    ++ (*progress_count) ;
-   printf( "UNITTEST: %.*s\n", (*progress_count), (*progress)) ;
+   LOG_PRINTF(TEST, "UNITTEST: %.*s\n", (*progress_count), (*progress)) ;
    if (*progress_count == sizeof(*progress)) {
       (*progress_count) = 0 ;
    }
@@ -211,7 +211,7 @@ int run_unittest(void)
    ++ total_count ;
    if (unittest_umgebung()) {
       ++ err_count ;
-      printf("unittest_umgebung FAILED\n") ;
+      LOG_PRINTF(TEST, "unittest_umgebung FAILED\n") ;
       goto ABBRUCH ;
    }
 
@@ -219,8 +219,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
    // init
    if (initprocess_umgebung(test_umgebung_type[type_nr])) {
-      dprintf( STDERR_FILENO, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      dprintf( STDERR_FILENO, "%s\n", "Abort reason: initprocess_umgebung failed" ) ;
+      LOG_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+      LOG_PRINTF(TEST, "%s\n", "Abort reason: initprocess_umgebung failed" ) ;
       goto ABBRUCH ;
    }
 
@@ -300,11 +300,14 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_os_index_splaytree) ;
 //}
 
+//{ test subsystem
+//}
+
    LOG_CLEARBUFFER() ;
 
    if (freeprocess_umgebung()) {
-      dprintf( STDERR_FILENO, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      dprintf( STDERR_FILENO, "%s\n", "Abort reason: freeprocess_umgebung failed" ) ;
+      LOG_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+      LOG_PRINTF(TEST, "%s\n", "Abort reason: freeprocess_umgebung failed" ) ;
       goto ABBRUCH ;
    }
 
@@ -313,11 +316,11 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 ABBRUCH:
 
    if (!err_count) {
-      printf( "\nALL UNITTEST(%d): OK\n", total_count) ;
+      LOG_PRINTF(TEST, "\nALL UNITTEST(%d): OK\n", total_count) ;
    } else if (err_count == total_count) {
-      printf( "\nALL UNITTEST(%d): FAILED\n", total_count) ;
+      LOG_PRINTF(TEST, "\nALL UNITTEST(%d): FAILED\n", total_count) ;
    } else {
-      printf( "\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
+      LOG_PRINTF(TEST, "\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
    }
 
    return err_count > 0 ;

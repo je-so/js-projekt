@@ -34,6 +34,20 @@ typedef struct log_config_t   log_config_t ;
  * Shortcut for internal type <log_buffer_t>. */
 typedef struct log_buffer_t   log_buffer_t ;
 
+/* enums: log_channel_e
+ * Used to switch between log channels.
+ *
+ * log_channel_ERR  - Normal error log channel which is represented by <log_config_t>.
+ * log_channel_TEST - Test log output which is implemented as a call to standard
+ *                    printf library function which writes to STDOUT.
+ * */
+enum log_channel_e {
+    log_channel_ERR
+   ,log_channel_TEST
+} ;
+
+typedef enum log_channel_e    log_channel_e ;
+
 /* variable: g_main_logservice
  * Used to support basic logging in main thread.
  * Before anything is initialized.

@@ -454,7 +454,7 @@ static int test_initfree(void)
       // hasterminated_process
       TEST(0 == process) ;
       TEST(0 == new_process(&process, (void*)i, &childprocess_return)) ;
-      for(int i2 = 0; i2 < 100; ++i2) {
+      for(int i2 = 0; i2 < 10000; ++i2) {
          usleep(10) ;
          int err = hasterminated_process(process) ;
          if (0 == hasterminated_process(process)) break ;

@@ -23,6 +23,7 @@
 #define CKERN_API_TEST_HEADER
 
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/writer/log_helper.h"
 
 // section: Functions
 
@@ -53,10 +54,11 @@
  * >    return EINVAL ; // any error code
  * > }
  * */
-#define TEST_ONERROR_GOTO(CONDITION,TEST_FUNCTION_NAME,ERROR_LABEL) \
-   if ( !(CONDITION) ) {\
-      printf( "%s:%d: %s():\n FAILED TEST (%s)\n", __FILE__, __LINE__, #TEST_FUNCTION_NAME, #CONDITION) ;\
-      goto ERROR_LABEL ;\
+#define TEST_ONERROR_GOTO(CONDITION,TEST_FUNCTION_NAME,ERROR_LABEL)  \
+   if ( !(CONDITION) ) {                                             \
+      LOG_PRINTF(TEST, "%s:%d: %s():\n FAILED TEST (%s)\n",          \
+         __FILE__, __LINE__, #TEST_FUNCTION_NAME, #CONDITION) ;      \
+      goto ERROR_LABEL ;                                             \
    }
 
 #endif

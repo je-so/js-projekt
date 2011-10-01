@@ -24,6 +24,14 @@
 
 #include "C-kern/api/writer/log.h"
 
+/* about: LOGCHANNEL
+ * The parameter LOGCHANNEL is the first parameter of log writing macros.
+ *
+ * Supported values:
+ * ERR  - Writes error log to current <log_umgebung>.
+ * TEST - Writes to STDOUT channel used for test output when (unit-) tests are run.
+ * */
+
 // section: Functions
 
 // group: query
@@ -88,97 +96,121 @@
 
 /* define: LOG_PRINTF
  * Logs a generic printf type format string.
+ *
+ * Parameter:
+ * LOGCHANNEL - The name of the channel where the log is written to. See <LOGCHANNEL>.
+ * FORMAT     - The format string as in the standard library function printf.
+ * ...        - Additional value parameters of the correct type as determined by the <FORMAT>
+ *              parameter.
+ *
  * Example:
- * > int i ; LOG_PRINTF( "%d", i) */
-#define LOG_PRINTF( FORMAT, ... )   log_umgebung()->printf( log_umgebung(), FORMAT, __VA_ARGS__ )
+ * > int i ; LOG_PRINTF(ERR, "%d", i) */
+#define LOG_PRINTF(LOGCHANNEL, ... )   \
+   do {                                \
+      switch(CONCAT(log_channel_,LOGCHANNEL)) {                   \
+      case log_channel_ERR:                                       \
+         log_umgebung()->printf( log_umgebung(), __VA_ARGS__ ) ;  \
+         break ;                                                  \
+      case log_channel_TEST:                                      \
+         printf( __VA_ARGS__ ) ;                                  \
+         break ;                                                  \
+      }                                                           \
+   } while(0)
 
 /* define: LOG_TEXTRES
  * Logs text resource produced by resource text compiler.
+ *
+ * Parameter:
+ * LOGCHANNEL - The name of the channel where the log is written to. See <LOGCHANNEL>.
+ * TEXTID     - ID of a localized text string
+ * ...        - Additional value parameters of the correct type as determined by the <TEXTID>
+ *              parameter.
+ *
  * Example:
- * > LOG_TEXTRES(TEXTRES_ERRORLOG_MEMORY_OUT_OF(size)) */
-#define LOG_TEXTRES( TEXTID )       log_umgebung()->printf( log_umgebung(), TEXTID )
+ * > LOG_TEXTRES(ERR,TEXTRES_ERRORLOG_MEMORY_OUT_OF(size)) */
+#define LOG_TEXTRES(LOGCHANNEL, TEXTID)      LOG_PRINTF(LOGCHANNEL, TEXTID)
 
 /* define: LOG_STRING
  * Log "name=value" of string variable.
  * Example:
  * > const char * name = "Jo" ; LOG_STRING(name) ; */
-#define LOG_STRING(varname)         LOG_VAR("s", varname)
+#define LOG_STRING(varname)                  LOG_VAR("s", varname)
 
 /* define: LOG_INT
  * Log "name=value" of int variable.
  * Example:
  * > const int max = 100 ; LOG_INT(max) ; */
-#define LOG_INT(varname)            LOG_VAR("d", varname)
+#define LOG_INT(varname)                     LOG_VAR("d", varname)
 
 /* define: LOG_SIZE
  * Log "name=value" of size_t variable.
  * Example:
  * > const size_t maxsize = 100 ; LOG_SIZE(maxsize) ; */
-#define LOG_SIZE(varname)           LOG_VAR(PRIuSIZE, varname)
+#define LOG_SIZE(varname)                    LOG_VAR(PRIuSIZE, varname)
 
 /* define: LOG_UINT8
  * Log "name=value" of uint8_t variable.
  * Example:
  * > const uint8_t limit = 255 ; LOG_UINT8(limit) ; */
-#define LOG_UINT8(varname)         LOG_VAR(PRIu8, varname)
+#define LOG_UINT8(varname)                   LOG_VAR(PRIu8, varname)
 
 /* define: LOG_UINT16
  * Log "name=value" of uint16_t variable.
  * Example:
  * > const uint16_t limit = 65535 ; LOG_UINT16(limit) ; */
-#define LOG_UINT16(varname)         LOG_VAR(PRIu16, varname)
+#define LOG_UINT16(varname)                  LOG_VAR(PRIu16, varname)
 
 /* define: LOG_UINT32
  * Log "name=value" of uint32_t variable.
  * Example:
  * > const uint32_t max = 100 ; LOG_UINT32(max) ; */
-#define LOG_UINT32(varname)         LOG_VAR(PRIu32, varname)
+#define LOG_UINT32(varname)                  LOG_VAR(PRIu32, varname)
 
 /* define: LOG_UINT64
  * Log "name=value" of uint64_t variable.
  * Example:
  * > const uint64_t max = 100 ; LOG_UINT64(max) ; */
-#define LOG_UINT64(varname)         LOG_VAR(PRIu64, varname)
+#define LOG_UINT64(varname)                  LOG_VAR(PRIu64, varname)
 
 /* define: LOG_PTR
  * Log "name=value" of pointer variable.
  * Example:
  * > const void * ptr = &g_variable ; LOG_PTR(ptr) ; */
-#define LOG_PTR(varname)            LOG_VAR("p", varname)
+#define LOG_PTR(varname)                     LOG_VAR("p", varname)
 
 /* define: LOG_DOUBLE
  * Log "name=value" of double or float variable.
  * Example:
  * > const double d = 1.234 ; LOG_DOUBLE(d) ; */
-#define LOG_DOUBLE(varname)         LOG_VAR("g", varname)
+#define LOG_DOUBLE(varname)                  LOG_VAR("g", varname)
 
 /* define: LOG_VAR
  * Logs "<varname>=varvalue" of a variable with name varname.
  *
  * Parameter:
- * printf_type  - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
- *                Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
- * varname      - The name of the variable to log.
+ * printf_type - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
+ *               Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
+ * varname     - The name of the variable to log.
  *
  * Example:
  * This code logs "memsize=1024\n"
  * > const size_t memsize = 1024 ;
  * > LOG_VAR(PRIuSIZE,memsize) ; */
-#define LOG_VAR(printf_type,varname)                log_umgebung()->printf( log_umgebung(), #varname "=%" printf_type "\n", (varname))
+#define LOG_VAR(printf_type, varname)           LOG_PRINTF(ERR, #varname "=%" printf_type "\n", (varname))
 
 /* define: LOG_INDEX
  * Log "array[i]=value" of variable stored in array at offset i.
  *
  * Parameter:
- * printf_typespec_str  - Type of the variable as string in printf format. Use "s" for C strings.
- *                        Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
- * arrname              - The name of the array.
- * index                - The index of the array entry whose value is to be logged.
+ * printf_type - Type of the variable as string in printf format. Use "s" for C strings.
+ *               Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
+ * arrname     - The name of the array.
+ * index       - The index of the array entry whose value is to be logged.
  *
  * Example:
  * This code logs "names[0]=Jo\n" and "names[1]=Jane\n".
  * > const char * names[] = { "Jo", "Jane" } ;
  * > for(int i = 0; i < 2; ++i) { LOG_INDEX(s,names,i) ; } */
-#define LOG_INDEX(printf_typespec_str,arrname,index)  log_umgebung()->printf( log_umgebung(), #arrname "[%d]=%" printf_typespec_str "\n", i, (arrname)[i])
+#define LOG_INDEX(printf_type, arrname, index)  LOG_PRINTF(ERR, #arrname "[%d]=%" printf_type "\n", i, (arrname)[i])
 
 #endif
