@@ -38,8 +38,9 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    int err ;
    size_t               fds ;
    size_t               allocated ;
-   size_t               alloc_correction ;
+   size_t               allocated_endinit ;
    vm_mappedregions_t * mappedregions = 0 ;
+   sigset_t           * signalmask    = 0 ;
 
    err = openfd_file(&fds) ;
    if (err) goto ABBRUCH ;
@@ -55,16 +56,34 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    }
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
 
+   signalmask = MALLOC(sigset_t, malloc, ) ;
+   if (!signalmask ) {
+      err = ENOMEM ;
+      LOG_OUTOFMEMORY(sizeof(sigset_t)) ;
+      goto ABBRUCH ;
+   }
+   memset(signalmask, 0, sizeof(sigset_t)) ;
+
    err = init_vmmappedregions(mappedregions) ;
    if (err) goto ABBRUCH ;
 
-   err = allocatedsize_malloc(&alloc_correction) ;
+   //TODO: move signal mask handling to its own os signal handling modul
+   //TODO: move state of signal handlers to its own os signal handling modul
+   err = sigprocmask(SIG_SETMASK, (const sigset_t*)0, (sigset_t*)signalmask) ;
+   if (err) {
+      err = errno ;
+      LOG_SYSERR("sigprocmask", err) ;
+      goto ABBRUCH ;
+   }
+
+   err = allocatedsize_malloc(&allocated_endinit) ;
    if (err) goto ABBRUCH ;
 
    usage->filedescriptor_usage = fds ;
    usage->malloc_usage         = allocated ;
+   usage->malloc_correction    = allocated_endinit - allocated ;
    usage->virtualmemory_usage  = mappedregions ;
-   usage->malloc_correction    = alloc_correction - allocated ;
+   usage->signalmask           = signalmask ;
 
    return 0 ;
 ABBRUCH:
@@ -72,6 +91,7 @@ ABBRUCH:
       (void) free_vmmappedregions(mappedregions) ;
       free(mappedregions) ;
    }
+   free(signalmask) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -90,6 +110,9 @@ int free_resourceusage(resourceusage_t * usage)
 
       free(usage->virtualmemory_usage) ;
       usage->virtualmemory_usage = 0 ;
+
+      free(usage->signalmask) ;
+      usage->signalmask = 0 ;
 
       if (err) goto ABBRUCH ;
    }
@@ -126,6 +149,12 @@ int same_resourceusage(const resourceusage_t * usage)
       goto ABBRUCH ;
    }
 
+   if (memcmp(usage2.signalmask, usage->signalmask, sizeof(sigset_t))) {
+      err = EAGAIN ;
+      LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
+      goto ABBRUCH ;
+   }
+
    err = free_resourceusage(&usage2) ;
    if (err) goto ABBRUCH ;
 
@@ -150,6 +179,8 @@ static int test_initfree(void)
    vm_block_t      vmblock       = vm_block_INIT_FREEABLE ;
    resourceusage_t usage         = resourceusage_INIT_FREEABLE ;
    resourceusage_t usage2        = resourceusage_INIT_FREEABLE ;
+   bool            isoldsigmask  = false ;
+   sigset_t        oldsigmask ;
 
    TEST(0 == allocatedsize_malloc(&malloc_usage)) ;
 
@@ -163,19 +194,22 @@ static int test_initfree(void)
    TEST(0 == init_resourceusage(&usage)) ;
    TEST(0 != usage.filedescriptor_usage) ;
    TEST(0 != usage.malloc_usage) ;
-   TEST(0 != usage.virtualmemory_usage) ;
    TEST(0 != usage.malloc_correction) ;
+   TEST(0 != usage.signalmask) ;
+   TEST(0 != usage.virtualmemory_usage) ;
    TEST(10000 > usage.malloc_correction) ;
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == usage.filedescriptor_usage) ;
    TEST(0 == usage.malloc_usage) ;
-   TEST(0 == usage.virtualmemory_usage) ;
    TEST(0 == usage.malloc_correction) ;
+   TEST(0 == usage.signalmask) ;
+   TEST(0 == usage.virtualmemory_usage) ;
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == usage.filedescriptor_usage) ;
    TEST(0 == usage.malloc_usage) ;
-   TEST(0 == usage.virtualmemory_usage) ;
    TEST(0 == usage.malloc_correction) ;
+   TEST(0 == usage.signalmask) ;
+   TEST(0 == usage.virtualmemory_usage) ;
 
    // TEST compare the same
    TEST(0 == init_resourceusage(&usage)) ;
@@ -222,6 +256,18 @@ static int test_initfree(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
+   // TEST compare EAGAIN cause of virtual memory
+   TEST(0 == init_resourceusage(&usage)) ;
+   TEST(0 == sigprocmask(SIG_SETMASK, 0, &oldsigmask)) ;
+   isoldsigmask = true ;
+   sigset_t sigmask ;
+   sigemptyset(&sigmask) ;
+   sigaddset(&sigmask, SIGINT) ;
+   TEST(0 == sigprocmask(SIG_BLOCK, &sigmask, 0)) ;
+   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(0 == sigprocmask(SIG_UNBLOCK, &sigmask, 0)) ;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
 
    TEST(0 == allocatedsize_malloc(&malloc_usage2)) ;
    TEST(malloc_usage == malloc_usage2) ;
@@ -232,6 +278,7 @@ ABBRUCH:
    if (-1 != fd) close(fd) ;
    (void) free_vmblock(&vmblock) ;
    (void) free_resourceusage(&usage) ;
+   if (isoldsigmask) (void) sigprocmask(SIG_SETMASK, &oldsigmask, 0) ;
    return EINVAL ;
 }
 

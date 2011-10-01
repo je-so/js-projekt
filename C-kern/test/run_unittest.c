@@ -300,8 +300,6 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_os_index_splaytree) ;
 //}
 
-//{ test subsystem
-//}
 
    LOG_CLEARBUFFER() ;
 

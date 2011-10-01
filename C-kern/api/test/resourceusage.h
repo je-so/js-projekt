@@ -50,23 +50,26 @@ extern int unittest_test_resourceusage(void) ;
 struct resourceusage_t {
    /* variable: filedescriptor_usage
     * Number of open file descriptors. */
-   size_t   filedescriptor_usage ;
+   size_t                        filedescriptor_usage ;
    /* variable: malloc_usage
     * Number of memory bytes allocated by malloc. */
-   size_t   malloc_usage ;
-   /* variable: virtualmemory_usage
-    * Layout of virtual memory. */
-   struct vm_mappedregions_t  * virtualmemory_usage ;
+   size_t                        malloc_usage ;
    /* variable: malloc_correction
     * Number of bytes <resourceusage_t> uses itself. */
-   size_t   malloc_correction ;
+   size_t                        malloc_correction ;
+   /* variable: signalmask
+    * Stores the current signal mask. */
+   void                        * signalmask ;
+   /* variable: virtualmemory_usage
+    * Layout of virtual memory. */
+   struct vm_mappedregions_t   * virtualmemory_usage ;
 } ;
 
 // group: lifetime
 
 /* define: resourceusage_INIT_FREEABLE
  * Static initializer. */
-#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0 }
+#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0, 0 }
 
 /* function: init_resourceusage
  * Stores the number of resources currently in use. */
