@@ -40,6 +40,7 @@
 #include "C-kern/api/os/index/splaytree.h"
 #include "C-kern/api/os/sync/mutex.h"
 #include "C-kern/api/os/sync/semaphore.h"
+#include "C-kern/api/os/sync/signal.h"
 #include "C-kern/api/os/task/exoscheduler.h"
 #include "C-kern/api/os/task/exothread.h"
 #include "C-kern/api/os/file.h"
@@ -58,11 +59,12 @@ typedef char RESULT_STRING[20] ;
 
 /* Ruft einen Unittest auf und notiert das Ergebnis. */
 #define RUN(FCT) \
-   LOG_CLEARBUFFER() ; \
-   err = FCT() ; \
-   if (!err) generate_logresource(#FCT) ; \
+   preallocate() ;      \
+   LOG_CLEARBUFFER() ;  \
+   err = FCT() ;        \
+   if (!err) generate_logresource(#FCT) ;    \
    if (!err) err = check_logresource(#FCT) ; \
-   ++total_count ; if (err) ++err_count ; \
+   ++total_count ; if (err) ++err_count ;    \
    print_result( err, &progress, &progress_count) ;
 
 #define GENERATED_LOGRESOURCE_DIR   "C-kern/resource/unittest.log/"
@@ -195,6 +197,19 @@ static void set_testconfig(void)
    resetmsg_locale() ;
 }
 
+static void preallocate(void)
+{
+   // preallocate some memory
+   // TODO: remove line if iwn memory subsystem isntead of malloc
+   resourceusage_t   usage[10]  = { resourceusage_INIT_FREEABLE } ;
+   for(int i = 0; i < 10; ++i) {
+      (void) init_resourceusage(&usage[i]) ;
+   }
+   for(int i = 0; i < 10; ++i) {
+      (void) free_resourceusage(&usage[i]) ;
+   }
+}
+
 int run_unittest(void)
 {
    int err ;
@@ -277,6 +292,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    // sync unittest
    RUN(unittest_os_sync_mutex) ;
    RUN(unittest_os_sync_semaphore) ;
+   RUN(unittest_os_sync_signal) ;
    // task unittest
    RUN(unittest_os_task_exothread) ;
    RUN(unittest_os_task_exoscheduler) ;

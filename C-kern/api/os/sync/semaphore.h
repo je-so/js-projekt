@@ -57,24 +57,29 @@ struct semaphore_t {
 #define semaphore_INIT_FREEABLE  { sys_semaphore_INIT_FREEABLE }
 
 /* function: init_semaphore
- * */
+ * Initializes a semaphore. The internal signal counter is set to init_signal_count.
+ * The next init_signal_count calls to <wait_semaphore> therefore succeed without
+ * waiting. */
 extern int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count) ;
 
 /* function: free_semaphore
- * */
+ * Wakes up any waiting threads and frees the associated resources.
+ * Make sure that no other thread which is not already waiting on the semaphore
+ * accesses it after <free_semaphore> has been called. */
 extern int free_semaphore(semaphore_t * semaobj) ;
 
 // group: change
 
 /* function: signal_semaphore
- * Wakes up nr_waiters waiters.
- * Internally this function increments a signal counter with the number nr_waiters.
- * Calling this function nr_waiters times with a value of 1 has therefore the same effect.
+ * Wakes up signal_count waiters. Or the next signal_count calls to <wait_semaphore>
+ * succeed without waiting.
+ * Internally this function increments a signal counter with the number signal_count.
+ * Calling this function signal_count times with a value of 1 has therefore the same effect.
  * If the internal counter would overflow the signal function waits until at least
- * that many calls <wait_semaphore> has been done so that adding nr_waiters
- * to the counter does no more overflow.
+ * that many calls to <wait_semaphore> has been done so that adding signal_count
+ * to the counter does no more produce an overflow.
  * On Linux a 64bit counter is used internally. */
-extern int signal_semaphore(semaphore_t * semaobj, uint32_t nr_waiters) ;
+extern int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count) ;
 
 /* function: wait_semaphore
  * Waits until a signal is received.

@@ -8,3 +8,4 @@
 "initprocess_locale",         "freeprocess_locale",         "",            "C-kern/api/os/locale.h"
 "initprocess_valuecache",     "freeprocess_valuecache",     "",            "C-kern/api/cache/valuecache.h"
 "initprocess_X11",            "freeprocess_X11",            "X11",         "C-kern/api/os/X11/x11.h"
+"initprocess_signalconfig",   "freeprocess_signalconfig",   "",            "C-kern/api/os/sync/signal.h"

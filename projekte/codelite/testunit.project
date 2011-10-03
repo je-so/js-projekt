@@ -49,12 +49,10 @@
   </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/api/execCcompiler.h"/>
-    <File Name="../../C-kern/api/errlog.h"/>
     <File Name="../../C-kern/api/test.h"/>
     <VirtualDirectory Name="test">
       <File Name="../../C-kern/api/test/compiletime.h"/>
       <File Name="../../C-kern/api/test/resourceusage.h"/>
-      <File Name="../../C-kern/api/test/argument.h"/>
       <File Name="../../C-kern/api/test/errortimer.h"/>
       <VirtualDirectory Name="run">
         <File Name="../../C-kern/api/test/run/speedtest.h"/>
@@ -118,7 +116,11 @@
         <File Name="../../C-kern/api/os/task/threadpool.h"/>
         <File Name="../../C-kern/api/os/task/exoscheduler.h"/>
         <File Name="../../C-kern/api/os/task/exothread.h"/>
-        <File Name="../../C-kern/api/os/task/semaphore.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="sync">
+        <File Name="../../C-kern/api/os/sync/semaphore.h"/>
+        <File Name="../../C-kern/api/os/sync/mutex.h"/>
+        <File Name="../../C-kern/api/os/sync/signal.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <File Name="../../C-kern/api/umgebung.h"/>
@@ -152,7 +154,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <File Name="../../C-kern/api/writer/log.h"/>
-      <File Name="../../C-kern/api/writer/log_helper.h"/>
+      <File Name="../../C-kern/api/writer/log_macros.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/objectcache.h"/>
@@ -164,6 +166,11 @@
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="errhandling">
+      <File Name="../../C-kern/api/errhandling/precondition.h"/>
+      <File Name="../../C-kern/api/errhandling/errlog_macros.h"/>
+    </VirtualDirectory>
+    <File Name="../../C-kern/api/err.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="../../C-kern/test/run_statictest.sh"/>
@@ -237,6 +244,8 @@
       <File Name="../../C-kern/os/Linux/virtmemory.c"/>
       <File Name="../../C-kern/os/Linux/file.c"/>
       <File Name="../../C-kern/os/Linux/semaphore.c"/>
+      <File Name="../../C-kern/os/Linux/mutex.c"/>
+      <File Name="../../C-kern/os/Linux/signal.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <File Name="../../C-kern/os/shared/findfile.c"/>
@@ -263,8 +272,6 @@
       <File Name="../../C-kern/os/X11/glxwindow.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <VirtualDirectory Name="export">
     <File Name="../../C-kern/export/pdf.c"/>
   </VirtualDirectory>
@@ -313,6 +320,9 @@
         <![CDATA[
       
       
+      
+      
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -352,6 +362,9 @@
         <![CDATA[
       
       
+      
+      
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -381,4 +394,6 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

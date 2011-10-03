@@ -954,7 +954,7 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
       if (     next >= end_macro
             || (     next[0] != '\''
                   && next[0] != '"' )) {
-         print_err( "Expected string after <(if () > in line: %d", start_linenr ) ;
+         print_err( "Expected string after <(if () '' else> in line: %d", start_linenr ) ;
          goto ABBRUCH ;
       }
 

@@ -26,6 +26,7 @@
 #define CKERN_TEST_RESOURCEUSAGE_HEADER
 
 // forward references
+struct signalconfig_t ;
 struct vm_mappedregions_t ;
 
 
@@ -57,9 +58,9 @@ struct resourceusage_t {
    /* variable: malloc_correction
     * Number of bytes <resourceusage_t> uses itself. */
    size_t                        malloc_correction ;
-   /* variable: signalmask
-    * Stores the current signal mask. */
-   void                        * signalmask ;
+   /* variable: signalconfig
+    * Stores configuration of signal subsystem. */
+   struct signalconfig_t       * signalconfig ;
    /* variable: virtualmemory_usage
     * Layout of virtual memory. */
    struct vm_mappedregions_t   * virtualmemory_usage ;
@@ -82,7 +83,7 @@ extern int free_resourceusage(resourceusage_t * usage) ;
 // group: query
 
 /* function: same_resourceusage
- * Returns 0 the same number of resources are in use as stored in usage.
+ * Returns 0 if the numbers of resources equals the numbers stored in usage.
  * If more or less resources are in use the error EAGAIN is returned. */
 extern int same_resourceusage(const resourceusage_t * usage) ;
 

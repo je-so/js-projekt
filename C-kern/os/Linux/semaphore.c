@@ -69,6 +69,7 @@ int free_semaphore(semaphore_t * semaobj)
                err = errno ;
                LOG_SYSERR("write", err) ;
                LOG_INT(semaobj->sys_sema) ;
+               break ;
             }
          }
       }
@@ -90,17 +91,17 @@ ABBRUCH:
    return err ;
 }
 
-int signal_semaphore(semaphore_t * semaobj, uint32_t nr_waiters)
+int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count)
 {
    int err ;
-   uint64_t increment = nr_waiters ;
+   uint64_t increment = signal_count ;
 
    err = write(semaobj->sys_sema, &increment, sizeof(increment)) ;
    if (-1 == err) {
       err = errno ;
       LOG_SYSERR("write", err) ;
       LOG_INT(semaobj->sys_sema) ;
-      LOG_UINT32(nr_waiters) ;
+      LOG_UINT32(signal_count) ;
       goto ABBRUCH ;
    }
 
@@ -378,6 +379,5 @@ ABBRUCH:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
-
 
 #endif

@@ -18,8 +18,8 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/errlog.h
-    Header file of <Errorlog>.
+   file: C-kern/api/err.h
+    Header file of <ErrorHandling>.
 */
 #ifndef CKERN_API_ERRORHANDLING_HEADER
 #define CKERN_API_ERRORHANDLING_HEADER

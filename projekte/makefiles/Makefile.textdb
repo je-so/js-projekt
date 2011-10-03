@@ -6,8 +6,8 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Jun.22  14:45:28
-GeneratedBy     := Jörg Seebohn
+GenerationDate  := 2011.Oct.03  08:24:36
+GeneratedBy     := JE-SO
 
 ## Debug
 DefineFlag_Debug    := -D
@@ -16,7 +16,7 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
-Defines_Debug       :=
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=none
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     :=
 Libpath_Debug       :=
@@ -34,7 +34,7 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
-Defines_Release       :=
+Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=none
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     :=
 Libpath_Release       :=

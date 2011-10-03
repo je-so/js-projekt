@@ -27,6 +27,7 @@
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/os/file.h"
 #include "C-kern/api/os/malloc.h"
+#include "C-kern/api/os/sync/signal.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
@@ -40,7 +41,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    size_t               allocated ;
    size_t               allocated_endinit ;
    vm_mappedregions_t * mappedregions = 0 ;
-   sigset_t           * signalmask    = 0 ;
+   signalconfig_t     * signalconfig  = 0 ;
 
    err = openfd_file(&fds) ;
    if (err) goto ABBRUCH ;
@@ -56,25 +57,11 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    }
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
 
-   signalmask = MALLOC(sigset_t, malloc, ) ;
-   if (!signalmask ) {
-      err = ENOMEM ;
-      LOG_OUTOFMEMORY(sizeof(sigset_t)) ;
-      goto ABBRUCH ;
-   }
-   memset(signalmask, 0, sizeof(sigset_t)) ;
+   err = new_signalconfig(&signalconfig) ;
+   if (err) goto ABBRUCH ;
 
    err = init_vmmappedregions(mappedregions) ;
    if (err) goto ABBRUCH ;
-
-   //TODO: move signal mask handling to its own os signal handling modul
-   //TODO: move state of signal handlers to its own os signal handling modul
-   err = sigprocmask(SIG_SETMASK, (const sigset_t*)0, (sigset_t*)signalmask) ;
-   if (err) {
-      err = errno ;
-      LOG_SYSERR("sigprocmask", err) ;
-      goto ABBRUCH ;
-   }
 
    err = allocatedsize_malloc(&allocated_endinit) ;
    if (err) goto ABBRUCH ;
@@ -82,16 +69,16 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    usage->filedescriptor_usage = fds ;
    usage->malloc_usage         = allocated ;
    usage->malloc_correction    = allocated_endinit - allocated ;
+   usage->signalconfig         = signalconfig ;
    usage->virtualmemory_usage  = mappedregions ;
-   usage->signalmask           = signalmask ;
 
    return 0 ;
 ABBRUCH:
-   if(mappedregions) {
+   if (mappedregions) {
       (void) free_vmmappedregions(mappedregions) ;
       free(mappedregions) ;
    }
-   free(signalmask) ;
+   delete_signalconfig(&signalconfig) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -99,6 +86,7 @@ ABBRUCH:
 int free_resourceusage(resourceusage_t * usage)
 {
    int err ;
+   int err2 ;
 
    usage->filedescriptor_usage = 0 ;
    usage->malloc_usage         = 0 ;
@@ -106,13 +94,13 @@ int free_resourceusage(resourceusage_t * usage)
 
    if (usage->virtualmemory_usage) {
 
-      err = free_vmmappedregions(usage->virtualmemory_usage) ;
+      err = delete_signalconfig(&usage->signalconfig) ;
+
+      err2 = free_vmmappedregions(usage->virtualmemory_usage) ;
+      if (err2) err = err2 ;
 
       free(usage->virtualmemory_usage) ;
       usage->virtualmemory_usage = 0 ;
-
-      free(usage->signalmask) ;
-      usage->signalmask = 0 ;
 
       if (err) goto ABBRUCH ;
    }
@@ -149,7 +137,7 @@ int same_resourceusage(const resourceusage_t * usage)
       goto ABBRUCH ;
    }
 
-   if (memcmp(usage2.signalmask, usage->signalmask, sizeof(sigset_t))) {
+   if (compare_signalconfig(usage2.signalconfig, usage->signalconfig)) {
       err = EAGAIN ;
       LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
@@ -195,20 +183,20 @@ static int test_initfree(void)
    TEST(0 != usage.filedescriptor_usage) ;
    TEST(0 != usage.malloc_usage) ;
    TEST(0 != usage.malloc_correction) ;
-   TEST(0 != usage.signalmask) ;
+   TEST(0 != usage.signalconfig) ;
    TEST(0 != usage.virtualmemory_usage) ;
-   TEST(10000 > usage.malloc_correction) ;
+   TEST(20000 > usage.malloc_correction) ;
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == usage.filedescriptor_usage) ;
    TEST(0 == usage.malloc_usage) ;
    TEST(0 == usage.malloc_correction) ;
-   TEST(0 == usage.signalmask) ;
+   TEST(0 == usage.signalconfig) ;
    TEST(0 == usage.virtualmemory_usage) ;
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == usage.filedescriptor_usage) ;
    TEST(0 == usage.malloc_usage) ;
    TEST(0 == usage.malloc_correction) ;
-   TEST(0 == usage.signalmask) ;
+   TEST(0 == usage.signalconfig) ;
    TEST(0 == usage.virtualmemory_usage) ;
 
    // TEST compare the same
@@ -257,12 +245,13 @@ static int test_initfree(void)
    TEST(0 == free_resourceusage(&usage)) ;
 
    // TEST compare EAGAIN cause of virtual memory
-   TEST(0 == init_resourceusage(&usage)) ;
-   TEST(0 == sigprocmask(SIG_SETMASK, 0, &oldsigmask)) ;
-   isoldsigmask = true ;
    sigset_t sigmask ;
    sigemptyset(&sigmask) ;
-   sigaddset(&sigmask, SIGINT) ;
+   sigaddset(&sigmask, SIGABRT) ;
+   TEST(0 == sigprocmask(SIG_SETMASK, 0, &oldsigmask)) ;
+   isoldsigmask = true ;
+   TEST(0 == sigprocmask(SIG_UNBLOCK, &sigmask, 0)) ;
+   TEST(0 == init_resourceusage(&usage)) ;
    TEST(0 == sigprocmask(SIG_BLOCK, &sigmask, 0)) ;
    TEST(EAGAIN == same_resourceusage(&usage)) ;
    TEST(0 == sigprocmask(SIG_UNBLOCK, &sigmask, 0)) ;

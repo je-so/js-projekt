@@ -102,6 +102,8 @@
  *                     See <KONFIG_MEMALIGN>.
  * KONFIG_OS         - Name of operating system (used as include path for system specific settings).
  *                     The only supported value is *Linux*.
+ * KONFIG_SUBSYS     - Defines which subsystems should be included.
+                       Supported values are *THREAD* for thread support and *none* for a minimal system.
  * KONFIG_UNITTEST   - Define this in your Makefile to include additional code for testing single components.
  * */
 
@@ -124,6 +126,11 @@
  * Choose name of operating system this project is compiled for.
  * > #define KONFIG_OS     Linux */
 #define KONFIG_OS          Linux
+/* define: KONFIG_SUBSYS
+ * Choose names seperated by | of all subsystems. */
+#if !defined(KONFIG_SUBSYS)
+#define KONFIG_SUBSYS      (THREAD)
+#endif
 
 //}
 
