@@ -56,7 +56,7 @@ struct osthread_startargument_t {
     * After this event has occurred variable <isAbort> contains the correct value. */
    semaphore_t       isvalid_abortflag ;
    umgebung_type_e   umgtype ;
-   osthread_stack_t  signalstack ;
+   stack_t           signalstack ;
 } ;
 
 
@@ -241,11 +241,6 @@ static void * startpoint_osthread(void * start_arg)
    int            err ;
    osthread_startargument_t * startarg  = (osthread_startargument_t*)start_arg ;
    osthread_t   * osthread              = startarg->osthread ;
-   stack_t        new_signal_stack      = {
-      .ss_sp    = startarg->signalstack.addr,
-      .ss_size  = startarg->signalstack.size,
-      .ss_flags = 0
-   } ;
 
    err = init_umgebung(&gt_umgebung, ((osthread_startargument_t*)startarg)->umgtype) ;
    if (err) {
@@ -292,7 +287,7 @@ static void * startpoint_osthread(void * start_arg)
       }
 
       // do not access startarg after sigaltstack (startarg is stored on this stack)
-      err = sigaltstack( &new_signal_stack, (stack_t*)0) ;
+      err = sigaltstack( &startarg->signalstack, (stack_t*)0) ;
       if (err) {
          err = errno ;
          LOG_SYSERR("sigaltstack", err) ;
@@ -406,19 +401,16 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
       osthread_startargument_t * startarg = (osthread_startargument_t*) signalstack.addr ;
 
       *startarg = (osthread_startargument_t) {
-         osthread,
-         false/*isAbort*/,
-         (0 == i)/*isFreeEvents*/,
-         isfreeable_semaphore,
-         isvalid_abortflag,
-         (umgebung()->type ? umgebung()->type : umgebung_type_DEFAULT),
-         signalstack
+         .osthread = osthread,
+         .isAbort  = false,
+         .isFreeEvents = (0 == i),
+         .isfreeable_semaphore = isfreeable_semaphore,
+         .isvalid_abortflag    = isvalid_abortflag,
+         .umgtype = (umgebung()->type ? umgebung()->type : umgebung_type_DEFAULT),
+         .signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size }
       } ;
 
-#ifdef KONFIG_UNITTEST
-      err = process_testerrortimer(&s_error_in_newmany_loop) ;
-      if (err) goto UNDO_LOOP ;
-#endif
+      ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
       err = pthread_attr_init(&thread_attr) ;
       if (err) {
          LOG_SYSERR("pthread_attr_init",err) ;
@@ -426,10 +418,7 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
       }
       isThreadAttrValid = true ;
 
-#ifdef KONFIG_UNITTEST
-      err = process_testerrortimer(&s_error_in_newmany_loop) ;
-      if (err) goto UNDO_LOOP ;
-#endif
+      ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
       err = pthread_attr_setstack(&thread_attr, threadstack.addr, threadstack.size) ;
       if (err) {
          LOG_SYSERR("pthread_attr_setstack",err) ;
@@ -438,10 +427,7 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
          goto UNDO_LOOP ;
       }
 
-#ifdef KONFIG_UNITTEST
-      err = process_testerrortimer(&s_error_in_newmany_loop) ;
-      if (err) goto UNDO_LOOP ;
-#endif
+      ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
       err = pthread_create( &osthread->sys_thread[i], &thread_attr, startpoint_osthread, startarg) ;
       if (err) {
          osthread->sys_thread[i] = sys_thread_INIT_FREEABLE ;
@@ -449,10 +435,7 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
          goto UNDO_LOOP ;
       }
 
-#ifdef KONFIG_UNITTEST
-      err = process_testerrortimer(&s_error_in_newmany_loop) ;
-      if (err) goto UNDO_LOOP ;
-#endif
+      ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
       err = pthread_attr_destroy(&thread_attr) ;
       isThreadAttrValid = false ;
       if (err) {

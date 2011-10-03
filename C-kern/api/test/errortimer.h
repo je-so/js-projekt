@@ -63,6 +63,12 @@ extern int init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t tim
  * <test_errortimer_t.errcode> is returned if timercount has reached zero else 0. */
 extern int process_testerrortimer(test_errortimer_t * errtimer) ;
 
+/* function: ONERROR_testerrortimer
+ * No op if KONFIG_UNITTEST is not defined.
+ * In case KONFIG_UNITTEST is defined it is implemented as macro.
+ * This function calls <process_testerrortimer>(errtimer) sets the variable err
+ * as a result of this call and jumps to ONERROR_LABEL in case of an error. */
+extern void ONERROR_testerrortimer(test_errortimer_t * errtimer, void ** ONERROR_LABEL) ;
 
 // section: inline implementations
 
@@ -88,5 +94,18 @@ extern int process_testerrortimer(test_errortimer_t * errtimer) ;
                                              \
       _err ;                                 \
    }))
+
+/* define: ONERROR_testerrortimer
+ * Implements <test_errortimer_t.ONERROR_testerrortimer>.
+ * This function is a no op in case KONFIG_UNITTEST is not defined. */
+#ifdef KONFIG_UNITTEST
+#define ONERROR_testerrortimer(errtimer, ONERROR_LABEL)     \
+      do {                                                  \
+         err = process_testerrortimer(errtimer) ;           \
+         if (err) goto ONERROR_LABEL ;                      \
+      } while(0)
+#else
+#define ONERROR_testerrortimer(errtimer, ONERROR_LABEL)     /* no op */
+#endif
 
 #endif
