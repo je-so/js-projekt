@@ -5,8 +5,6 @@
   <VirtualDirectory Name="src">
     <File Name="../../C-kern/main/tools/textdb.c"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="">
@@ -76,4 +74,6 @@
       </AdditionalRules>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

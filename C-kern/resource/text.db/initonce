@@ -1,0 +1,7 @@
+# TEXT.DB (1.0)
+# documentation:
+# List of initonce functions which are called after process umgebung is initialized.
+# These functions can make use of the full system environment
+# Freeonce functions are not supported
+"initonce-function",       "header-name"
+"initonce_osthread",       "C-kern/api/os/thread.h"

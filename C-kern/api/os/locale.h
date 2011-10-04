@@ -21,8 +21,8 @@
    file: C-kern/api/os/locale.h
     Header file of <Locale-support>.
 
-   file: C-kern/os/shared/locale.c
-    Implementation file <Locale-support impl>.
+   file: C-kern/os/Linux/locale.c
+    Linux specific implementation file <Locale-support Linux>.
 */
 #ifndef CKERN_OS_LOCALE_HEADER
 #define CKERN_OS_LOCALE_HEADER

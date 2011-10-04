@@ -1,4 +1,4 @@
-/* title: Locale-support impl
+/* title: Locale-support Linux
    Implements <Locale-support>.
 
    about: Copyright
@@ -19,8 +19,8 @@
    file: C-kern/api/os/locale.h
     Header file of <Locale-support>.
 
-   file: C-kern/os/shared/locale.c
-    Implementation file <Locale-support impl>.
+   file: C-kern/os/Linux/locale.c
+    Linux specific implementation file <Locale-support Linux>.
 */
 
 #include "C-kern/konfig.h"

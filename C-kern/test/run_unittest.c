@@ -59,7 +59,6 @@ typedef char RESULT_STRING[20] ;
 
 /* Ruft einen Unittest auf und notiert das Ergebnis. */
 #define RUN(FCT) \
-   preallocate() ;      \
    LOG_CLEARBUFFER() ;  \
    err = FCT() ;        \
    if (!err) generate_logresource(#FCT) ;    \
@@ -200,12 +199,12 @@ static void set_testconfig(void)
 static void preallocate(void)
 {
    // preallocate some memory
-   // TODO: remove line if iwn memory subsystem isntead of malloc
-   resourceusage_t   usage[10]  = { resourceusage_INIT_FREEABLE } ;
-   for(int i = 0; i < 10; ++i) {
+   // TODO: remove line if own memory subsystem intead of malloc
+   resourceusage_t   usage[2000]  = { resourceusage_INIT_FREEABLE } ;
+   for(int i = 0; i < 2000; ++i) {
       (void) init_resourceusage(&usage[i]) ;
    }
-   for(int i = 0; i < 10; ++i) {
+   for(int i = 0; i < 2000; ++i) {
       (void) free_resourceusage(&usage[i]) ;
    }
 }
@@ -238,6 +237,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
       LOGC_PRINTF(TEST, "%s\n", "Abort reason: initprocess_umgebung failed" ) ;
       goto ABBRUCH ;
    }
+
+   preallocate() ;
 
    set_testconfig() ;
 
@@ -274,12 +275,6 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 //{ writer unittest
    RUN(unittest_writer_log) ;
-//}
-
-//{ generic unittest
-   // list
-   // set / dictionary
-   // trie (string dictionary)
 //}
 
 //{ compiler unittest

@@ -90,13 +90,13 @@ extern int compare_signalconfig(const signalconfig_t * sigconfig1, const signalc
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: initprocess_signalconfig
  * Implement init as a no op if !((KONFIG_SUBSYS)&THREAD)
- * > #define initprocess_X11()  (0) */
+ * > #define initprocess_signalconfig()  (0) */
 #define initprocess_signalconfig()  (0)
 /* define: freeprocess_signalconfig
  * Implement free as a no op if !((KONFIG_SUBSYS)&THREAD)
- * > #define freeprocess_X11()  (0) */
+ * > #define freeprocess_signalconfig()  (0) */
 #define freeprocess_signalconfig()  (0)
 #endif
-#undef X11
+#undef THREAD
 
 #endif

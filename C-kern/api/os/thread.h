@@ -39,6 +39,7 @@ typedef int32_t/*errcode(0 == OK)*/ (* thread_main_f) (osthread_t * thread) ;
  * Export <memoryblock_aspect_t> as osthread_stack_t. */
 typedef memoryblock_aspect_t           osthread_stack_t ;
 
+extern __thread  osthread_t            gt_self_osthread ;
 
 // section: Functions
 
@@ -54,6 +55,9 @@ extern int unittest_os_thread(void) ;
 /* struct: osthread_t
  * Describes a system thread. */
 struct osthread_t {
+   /* variable: next
+    * Points to next thread in group of throuds. */
+   osthread_t      * next ;
    /* variable: main
     * Contains pointer to function which is executed by this thread. */
    thread_main_f     main ;
@@ -70,13 +74,22 @@ struct osthread_t {
     * Contains the mapped memory used as stack. */
    osthread_stack_t  stackframe ;
    /* variable: nr_threads
-    * Contains the number of threads handled by this object.
-    * All threads share the same thread_main function and the same argument. */
+    * Contains the number of threads in this group.
+    * All threads share the same thread_main function and the same argument at the beginning.
+    * Use <next> to iterate over the whole group. */
    uint32_t          nr_threads ;
    /* variable: sys_thread
     * Contains system specific ID of thread. It has type <sys_thread_t>. */
-   sys_thread_t      sys_thread[1/*nr_threads*/] ;
+   sys_thread_t      sys_thread ;
 } ;
+
+// group: initonce
+
+/* function: initonce_osthread
+ * Calculates some internal offsets, called from <initprocess_umgebung>.
+ * The <umgebung_t> object is fully operational. */
+extern int initonce_osthread(void) ;
+
 
 // group: lifetime
 
@@ -89,13 +102,13 @@ struct osthread_t {
  * On Linux new_osthread returns before the newly created thread is scheduled. */
 extern int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument) ;
 
-/* function: newmany_osthread
+/* function: newgroup_osthread
  * Creates and starts nr_of_threads new system threads.
  * See also <new_osthread>.
  * If not that many threads could be created as specified in nr_of_threads
  * already created threads silently exit themselves without any error being logged.
  * This preserves transactional all or nothing semantics. */
-extern int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument, uint32_t nr_of_threads) ;
+extern int newgroup_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument, uint32_t nr_of_threads) ;
 
 /* function: delete_osthread
  * Calls <join_osthread> (if not already called) and deletes resources.
@@ -103,6 +116,10 @@ extern int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread
 extern int delete_osthread(osthread_t ** threadobj) ;
 
 // group: query
+
+/* function: self_osthread
+ * Returns a pointer to the own thread object. */
+extern osthread_t * self_osthread(void) ;
 
 /* function: argument_osthread
  * Returns the single user supplied argument argument of threadobj. */
@@ -124,6 +141,12 @@ extern int join_osthread(osthread_t * threadobj) ;
 
 // section: inline implementations
 
+/* define: self_osthread
+ * Implements <osthread_t.self_osthread>.
+ * > (&gt_self_osthread) */
+#define self_osthread() \
+   (&gt_self_osthread)
+
 /* define: argument_osthread
  * Implements <osthread_t.argument_osthread>.
  * > (threadobj)->argument */
@@ -138,9 +161,18 @@ extern int join_osthread(osthread_t * threadobj) ;
 
 /* define: new_osthread
  * Implements <osthread_t.new_osthread>.
- * > newmany_osthread(threadobj, thread_main, thread_argument, 1) */
+ * > newgroup_osthread(threadobj, thread_main, thread_argument, 1) */
 #define new_osthread(threadobj, thread_main, thread_argument) \
-   newmany_osthread(threadobj, thread_main, thread_argument, 1)
+   newgroup_osthread(threadobj, thread_main, thread_argument, 1)
 
+// group: KONFIG_SUBSYS
+
+#define THREAD 1
+#if (!((KONFIG_SUBSYS)&THREAD))
+/* define: initonce_osthread
+ * Implement <osthread_t.initonce_osthread> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define initonce_osthread()   (0)
+#endif
+#undef THREAD
 
 #endif

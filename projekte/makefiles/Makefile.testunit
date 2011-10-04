@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.03  08:24:36
+GenerationDate  := 2011.Oct.04  18:21:05
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -75,6 +75,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!file.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!directory.c.o \
@@ -83,7 +84,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!signal.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o \
- $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
@@ -106,6 +106,7 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!file.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!directory.c.o \
@@ -114,7 +115,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!signal.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o \
- $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!malloc.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
@@ -144,6 +144,9 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!os!Linux!file.c.o: C-kern/os/Linux/file.c
 	@$(CC_Debug)
 
@@ -166,9 +169,6 @@ $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o: C-kern/os/Linux/mutex.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!malloc.c.o: C-kern/os/shared/malloc.c
@@ -231,6 +231,9 @@ $(ObjectDir_Debug)/C-kern!writer!log.c.o: C-kern/writer/log.c
 $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!os!Linux!file.c.o: C-kern/os/Linux/file.c
 	@$(CC_Release)
 
@@ -253,9 +256,6 @@ $(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o: C-kern/os/Linux/mutex.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!malloc.c.o: C-kern/os/shared/malloc.c

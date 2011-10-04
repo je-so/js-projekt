@@ -246,6 +246,7 @@
       <File Name="../../C-kern/os/Linux/semaphore.c"/>
       <File Name="../../C-kern/os/Linux/mutex.c"/>
       <File Name="../../C-kern/os/Linux/signal.c"/>
+      <File Name="../../C-kern/os/Linux/locale.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <File Name="../../C-kern/os/shared/findfile.c"/>
@@ -253,7 +254,6 @@
         <File Name="../../C-kern/os/shared/memory/memorystack.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/os/shared/execCcompiler.c"/>
-      <File Name="../../C-kern/os/shared/locale.c"/>
       <File Name="../../C-kern/os/shared/oostore.c"/>
       <VirtualDirectory Name="index">
         <File Name="../../C-kern/os/shared/index/splaytree.c"/>
@@ -323,6 +323,8 @@
       
       
       
+      
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -360,6 +362,8 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
+      
+      
       
       
       

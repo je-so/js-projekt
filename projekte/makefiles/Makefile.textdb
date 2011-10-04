@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.03  08:24:36
+GenerationDate  := 2011.Oct.04  18:20:48
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -75,7 +75,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
- $(ObjectDir_Debug)/C-kern!os!shared!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_inittestproxy.c.o \
@@ -87,7 +87,7 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
- $(ObjectDir_Release)/C-kern!os!shared!locale.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_inittestproxy.c.o \
@@ -106,7 +106,7 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
+$(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
@@ -136,7 +136,7 @@ $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
 $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!locale.c.o: C-kern/os/shared/locale.c
+$(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c

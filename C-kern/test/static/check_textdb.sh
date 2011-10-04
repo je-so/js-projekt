@@ -12,12 +12,14 @@
 info=""
 
 # test all *.h files
-files=`find C-kern/ -name "*.[h]" -exec grep -l "\(init\|free\)\(process\|umgebung\)_[a-zA-Z0-9_]*[ \t]*(" {} \;`
+files=`find C-kern/ -name "*.[h]" -exec grep -l "\(init\|free\)\(once\|process\|umgebung\)_[a-zA-Z0-9_]*[ \t]*(" {} \;`
 space="                               "
 
+temp_once_db=`mktemp`
 temp_thread_db=`mktemp`
 temp_process_db=`mktemp`
 
+echo '"initonce-function",       "header-name"' > $temp_once_db
 echo -n '"init-function",                  "free-function",                  "parameter"' > $temp_thread_db
 echo ',    "header-name"' >> $temp_thread_db
 echo -n '"init-function",              "free-function",              "subsystem"' > $temp_process_db
@@ -26,12 +28,31 @@ echo ',   "header-name"' >> $temp_process_db
 for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
+   init_once_calls=( `grep "initonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    init_thread_calls=( `grep "initumgebung_[a-zA-Z0-9_]*[ \t]*(" $i` )
    init_process_calls=( `grep "initprocess_[a-zA-Z0-9_]*[ \t]*(" $i` )
+   free_once_calls=( `grep "freeonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_thread_calls=( `grep "freeumgebung_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_process_calls=( `grep "freeprocess_[a-zA-Z0-9_]*[ \t]*(" $i` )
    IFS=$IFS_old
-   # filter input
+   # filter input initonce_
+   for((testnr=0;testnr < ${#init_once_calls[*]}; testnr=testnr+1)) do
+      result="${init_once_calls[$testnr]}"
+      if [ "${result/define initonce_*()/}" != "$result" ]; then
+         init_once_calls[$testnr]="${init_once_calls[${#init_once_calls[*]}-1]}"
+         unset init_once_calls[${#init_once_calls[*]}-1]
+         let "testnr=testnr-1"
+      fi
+   done
+   for((testnr=0;testnr < ${#free_once_calls[*]}; testnr=testnr+1)) do
+      result="${free_once_calls[$testnr]}"
+      if [ "${result/define freeonce_*()/}" != "$result" ]; then
+         free_once_calls[$testnr]="${free_once_calls[${#free_once_calls[*]}-1]}"
+         unset free_once_calls[${#free_once_calls[*]}-1]
+         let "testnr=testnr-1"
+      fi
+   done
+   # filter input initprocess_
    for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
       result="${init_process_calls[$testnr]}"
       if [ "${result/define initprocess_*()/}" != "$result" ]; then
@@ -48,7 +69,7 @@ for i in $files; do
          let "testnr=testnr-1"
       fi
    done
-   # filter input
+   # filter input initumgebung_
    for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
       result="${init_thread_calls[$testnr]}"
       if [ "${result/define initumgebung_*()/}" != "$result" ]; then
@@ -67,6 +88,18 @@ for i in $files; do
    done
 
    # test for correct interface
+   for((testnr=0;testnr < ${#init_once_calls[*]}; testnr=testnr+1)) do
+      result=${init_once_calls[$testnr]}
+      if [ "${result#extern int initonce_*(void) ;}" != "" ]; then
+         info="$info  file: <${i}> wrong definition '$result'\n"
+      fi
+   done
+   for((testnr=0;testnr < ${#free_once_calls[*]}; testnr=testnr+1)) do
+      result=${free_once_calls[$testnr]}
+      if [ "${result#extern int freeonce_*(*) ;}" != "" ]; then
+         info="$info  file: <${i}> wrong definition '$result'\n"
+      fi
+   done
    for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
       result=${init_thread_calls[$testnr]}
       if [ "${result#extern int initumgebung_*(void) ;}" = "" ]; then
@@ -97,6 +130,26 @@ for i in $files; do
    done
 
    # test for matching init and free calls
+   for((testnr=0;testnr < ${#init_once_calls[*]}; testnr=testnr+1)) do
+      result=${init_once_calls[$testnr]}
+      name1=${result#extern int initonce_}
+      name1=${name1%(*) ;}
+      result=${free_once_calls[$testnr]}
+      name2=${result#extern int freeonce_}
+      name2=${name2%(*) ;}
+      if [ "$name2" ]; then
+         info="$info  file: <${i}> not supported '${free_once_calls[$testnr]}'\n"
+         continue
+      fi
+      if [ ${#name1} -gt 14 ]; then
+         continue
+      fi
+      space2=${space:0:14-${#name1}}
+      echo -n "\"initonce_${name1}\",${space2} \"${i}\"" >> $temp_once_db
+   done
+   for((testnr=${#init_once_calls[*]};testnr < ${#free_once_calls[*]}; testnr=testnr+1)) do
+      info="$info  file: <${i}> missing initonce for '${free_once_calls[$testnr]}'\n"
+   done
    for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
       result=${init_thread_calls[$testnr]}
       name1=${result#extern int initumgebung_}
@@ -161,6 +214,14 @@ done
 temp_compare1=`mktemp`
 temp_compare2=`mktemp`
 
+sort $temp_once_db > $temp_compare1
+sort C-kern/resource/text.db/initonce | sed -e "/^#/d;/^$/d" > $temp_compare2
+
+if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
+   info="$info  file: <C-kern/resource/text.db/initonce> is incomplete'\n"
+   info="$info  start-diff:\n"`diff $temp_compare1 $temp_compare2 `"\n  end-diff:\n"
+fi
+
 sort $temp_thread_db > $temp_compare1
 sort C-kern/resource/text.db/initumgebung | sed -e "/^#/d;/^$/d" > $temp_compare2
 
@@ -177,12 +238,12 @@ if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
    info="$info  start-diff:\n"`diff $temp_compare1 $temp_compare2 `"\n  end-diff:\n"
 fi
 
-rm $temp_compare1 $temp_compare2 $temp_thread_db $temp_process_db
+rm $temp_compare1 $temp_compare2 $temp_once_db $temp_thread_db $temp_process_db
 
 if [ "$info" = "" ]; then
    exit 0
 fi
-echo -e "\nError: (init|free)(umgebung_|process_) are either incorrect defined or not called" 1>&2
+echo -e "\nError: (init|free)(once_|process_|umgebung_) are either incorrect defined or not called" 1>&2
 if [ "$verbose" != "" ]; then
    echo -e "$info"
 fi

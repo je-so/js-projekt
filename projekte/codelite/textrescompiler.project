@@ -12,8 +12,6 @@
     <File Name="../../C-kern/tools/hash.h"/>
     <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="">
@@ -83,4 +81,6 @@
       </AdditionalRules>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

@@ -37,6 +37,10 @@
 typedef struct osthread_startargument_t   osthread_startargument_t ;
 
 struct osthread_startargument_t {
+   /* variable: nr_threads
+    * Contains the number of threads in this group.
+    * All threads share the same thread_main function and the same argumen at the beginning. */
+   uint32_t          nr_threads ;
    osthread_t      * osthread ;
    /* variable: isAbort
     * Indicates if not all threads could have been started successfully.
@@ -59,10 +63,19 @@ struct osthread_startargument_t {
    stack_t           signalstack ;
 } ;
 
+/* variable: gt_self_osthread
+ * Refers for every thread to the osthread_t variable.
+ * Is is located on the thread stack so no additional memory is needed. */
+__thread  osthread_t       gt_self_osthread        = { 0, 0, 0, 0, memoryblock_aspect_INIT_FREEABLE, 0, sys_thread_INIT_FREEABLE } ;
+
+/* variable: s_offset_osthread
+ * Contains the calculated offset from start of stack thread to &<gt_self_osthread>. */
+static size_t              s_offset_osthread       = 0 ;
 
 #ifdef KONFIG_UNITTEST
 static test_errortimer_t   s_error_in_newmany_loop = test_errortimer_INIT ;
 #endif
+
 
 
 // section: osthread_stack_t
@@ -242,6 +255,8 @@ static void * startpoint_osthread(void * start_arg)
    osthread_startargument_t * startarg  = (osthread_startargument_t*)start_arg ;
    osthread_t   * osthread              = startarg->osthread ;
 
+   assert(osthread          == &gt_self_osthread) ;
+
    err = init_umgebung(&gt_umgebung, ((osthread_startargument_t*)startarg)->umgtype) ;
    if (err) {
       LOG_CALLERR("init_umgebung",err) ;
@@ -271,7 +286,7 @@ static void * startpoint_osthread(void * start_arg)
       }
 
       if (startarg->isFreeEvents) {
-         for(uint32_t i = osthread->nr_threads; i ; --i) {
+         for(uint32_t i = startarg->nr_threads; i ; --i) {
             err = wait_semaphore(&startarg->isfreeable_semaphore) ;
             if (err) {
                LOG_CALLERR("wait_semaphore",err) ;
@@ -295,9 +310,7 @@ static void * startpoint_osthread(void * start_arg)
       }
 
       int32_t returncode = osthread->main(osthread) ;
-      if (returncode/*values != 0 indicate an error*/) {
-         osthread->returncode = returncode ;
-      }
+      osthread->returncode = returncode ;
    }
 
    err = free_umgebung(&gt_umgebung) ;
@@ -313,7 +326,89 @@ ABBRUCH:
    return (void*)err ;
 }
 
+void * calculateoffset_osthread(void * start_arg)
+{
+   osthread_stack_t * threadstack = (osthread_stack_t *) start_arg ;
+   uint8_t          * osthread    = (uint8_t*) &gt_self_osthread ;
+
+   return (void*) (osthread - threadstack->addr) ;
+}
+
 // group: implementation
+
+int initonce_osthread()
+{
+   /* calculate position of &gt_self_osthread
+    * relative to start threadstack. */
+   int err ;
+   pthread_attr_t    thread_attr ;
+   sys_thread_t      sys_thread        = sys_thread_INIT_FREEABLE ;
+   osthread_stack_t  stackframe        = memoryblock_aspect_INIT_FREEABLE ;
+   bool              isThreadAttrValid = false ;
+   void            * offset            = 0 ;
+
+   // init main osthread_t
+   if (!gt_self_osthread.next) {
+      gt_self_osthread.next       = &gt_self_osthread ;
+      gt_self_osthread.nr_threads = 1 ;
+      gt_self_osthread.sys_thread = pthread_self() ;
+   }
+
+   err = init_osthreadstack(&stackframe, 1) ;
+   if (err) goto ABBRUCH ;
+
+   osthread_stack_t threadstack = getthreadstack_osthreadstack(&stackframe) ;
+
+   err = pthread_attr_init(&thread_attr) ;
+   if (err) {
+      LOG_SYSERR("pthread_attr_init",err) ;
+      goto ABBRUCH ;
+   }
+   isThreadAttrValid = true ;
+
+   err = pthread_attr_setstack(&thread_attr, threadstack.addr, threadstack.size) ;
+   if (err) {
+      LOG_SYSERR("pthread_attr_setstack", err) ;
+      goto ABBRUCH ;
+   }
+
+   memset( threadstack.addr, 0, threadstack.size) ;
+   err = pthread_create( &sys_thread, &thread_attr, calculateoffset_osthread, &threadstack) ;
+   if (err) {
+      sys_thread = sys_thread_INIT_FREEABLE ;
+      LOG_SYSERR("pthread_create", err) ;
+      goto ABBRUCH ;
+   }
+
+   err = pthread_join(sys_thread, &offset) ;
+   if (err) {
+      LOG_SYSERR("pthread_join", err) ;
+      goto ABBRUCH ;
+   }
+
+   isThreadAttrValid = false ;
+   err = pthread_attr_destroy(&thread_attr) ;
+   if (err) {
+      LOG_SYSERR("pthread_attr_destroy", err) ;
+      goto ABBRUCH ;
+   }
+
+   err = free_osthreadstack(&stackframe) ;
+   if (err) goto ABBRUCH ;
+
+   s_offset_osthread = (size_t) offset ;
+   return 0 ;
+ABBRUCH:
+   if (sys_thread_INIT_FREEABLE != sys_thread) {
+      (void) pthread_join(sys_thread, 0) ;
+   }
+   if (isThreadAttrValid) {
+      (void) pthread_attr_destroy(&thread_attr) ;
+   }
+   (void) free_osthreadstack(&stackframe) ;
+   LOG_ABORT(err) ;
+   return err ;
+}
 
 int delete_osthread(osthread_t ** threadobj)
 {
@@ -324,16 +419,16 @@ int delete_osthread(osthread_t ** threadobj)
       return 0 ;
    }
 
-   osthread_t * osthread = *threadobj ;
+   osthread_t      * osthread   = *threadobj ;
+   osthread_stack_t  stackframe = osthread->stackframe ;
+
    *threadobj = 0 ;
 
    err2 = join_osthread(osthread) ;
    if (err2) err = err2 ;
 
-   err2 = free_osthreadstack(&osthread->stackframe) ;
+   err2 = free_osthreadstack(&stackframe) ;
    if (err2) err = err2 ;
-
-   free(osthread) ;
 
    if (err) goto ABBRUCH ;
 
@@ -343,46 +438,24 @@ ABBRUCH:
    return err ;
 }
 
-int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument, uint32_t nr_of_threads)
+int newgroup_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument, uint32_t nr_of_threads)
 {
    int err ;
    int err2 = 0 ;
    pthread_attr_t    thread_attr ;
+   osthread_t      * prev_osthread     = 0 ;
+   osthread_t      * next_osthread     = 0 ;
    osthread_t      * osthread          = 0 ;
+   osthread_stack_t  stackframe        = memoryblock_aspect_INIT_FREEABLE ;
    semaphore_t       isfreeable_semaphore = semaphore_INIT_FREEABLE ;
    semaphore_t       isvalid_abortflag = semaphore_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
-   const size_t      arraysize         = nr_of_threads * sizeof(sys_thread_t) ;
-   const size_t      objectsize        = sizeof(osthread_t) - sizeof(sys_thread_t) + arraysize ;
    const size_t      framesize         = framestacksize_osthreadstack() ;
 
    PRECONDITION_INPUT(nr_of_threads != 0, ABBRUCH,)
+   PRECONDITION_INPUT(nr_of_threads < 256, ABBRUCH,)
 
-   if (  nr_of_threads != (arraysize / sizeof(sys_thread_t))
-      || objectsize     <  arraysize ) {
-      err = ENOMEM ;
-      LOG_OUTOFMEMORY(0) ;
-      goto ABBRUCH ;
-   }
-
-   osthread = (osthread_t*) malloc(objectsize) ;
-   if (0 == osthread) {
-      err = ENOMEM ;
-      LOG_OUTOFMEMORY(objectsize) ;
-      goto ABBRUCH ;
-   }
-
-   // init osthread_t fields
-   osthread->main        = thread_main ;
-   osthread->argument    = thread_argument ;
-   osthread->returncode  = 0 ;
-   osthread->stackframe  = (memoryblock_aspect_t) memoryblock_aspect_INIT_FREEABLE ;
-   osthread->nr_threads  = nr_of_threads ;
-   for(uint32_t i = 0; i < nr_of_threads; ++i) {
-      osthread->sys_thread[i] = sys_thread_INIT_FREEABLE ;
-   }
-
-   err = init_osthreadstack(&osthread->stackframe, nr_of_threads) ;
+   err = init_osthreadstack(&stackframe, nr_of_threads) ;
    if (err) goto ABBRUCH ;
 
    err = init_semaphore(&isfreeable_semaphore, 0) ;
@@ -394,15 +467,21 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
    // !! preallocates enough resources so that init_umgebung never fails !!
    // TODO: prepare_umgebung(nr_of_threads) ;
 
-   osthread_stack_t signalstack = getsignalstack_osthreadstack(&osthread->stackframe) ;
-   osthread_stack_t threadstack = getthreadstack_osthreadstack(&osthread->stackframe) ;
+   osthread_stack_t signalstack = getsignalstack_osthreadstack(&stackframe) ;
+   osthread_stack_t threadstack = getthreadstack_osthreadstack(&stackframe) ;
+   prev_osthread = (osthread_t*) (threadstack.addr + s_offset_osthread) ;
+   next_osthread = prev_osthread  ;
+   osthread      = prev_osthread  ;
+
    for(uint32_t i = 0; i < nr_of_threads; ++i) {
 
-      osthread_startargument_t * startarg = (osthread_startargument_t*) signalstack.addr ;
+      sys_thread_t               sys_thread = sys_thread_INIT_FREEABLE ;
+      osthread_startargument_t * startarg   = (osthread_startargument_t*) signalstack.addr ;
 
       *startarg = (osthread_startargument_t) {
-         .osthread = osthread,
-         .isAbort  = false,
+         .nr_threads   = nr_of_threads,
+         .osthread     = next_osthread,
+         .isAbort      = false,
          .isFreeEvents = (0 == i),
          .isfreeable_semaphore = isfreeable_semaphore,
          .isvalid_abortflag    = isvalid_abortflag,
@@ -428,9 +507,9 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
       }
 
       ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
-      err = pthread_create( &osthread->sys_thread[i], &thread_attr, startpoint_osthread, startarg) ;
+      err = pthread_create( &sys_thread, &thread_attr, startpoint_osthread, startarg) ;
       if (err) {
-         osthread->sys_thread[i] = sys_thread_INIT_FREEABLE ;
+         sys_thread = sys_thread_INIT_FREEABLE ;
          LOG_SYSERR("pthread_create",err) ;
          goto UNDO_LOOP ;
       }
@@ -443,12 +522,28 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
          goto UNDO_LOOP ;
       }
 
+      // init osthread_t fields
+      next_osthread->next        = osthread ;
+      next_osthread->main        = thread_main ;
+      next_osthread->argument    = thread_argument ;
+      next_osthread->returncode  = 0 ;
+      next_osthread->stackframe  = stackframe ;
+      next_osthread->nr_threads  = nr_of_threads ;
+      next_osthread->sys_thread  = sys_thread ;
+      prev_osthread->next        = next_osthread ;
+
       signalstack.addr += framesize ;
       threadstack.addr += framesize ;
+      prev_osthread     = next_osthread ;
+      next_osthread     = (osthread_t*) (((uint8_t*)next_osthread) + framesize) ;
       continue ;
    UNDO_LOOP:
       // !! frees preallocated resources which will never be used
       // TODO: unprepare_umgebung(nr_of_threads -i -(sys_thread_INIT_FREEABLE != osthread->sys_thread[i])) ;
+      next_osthread->next        = osthread ;
+      next_osthread->stackframe  = stackframe ;
+      next_osthread->sys_thread  = sys_thread ;
+      prev_osthread->next        = next_osthread ;
       for(; i < nr_of_threads; --i) {
          startarg = (osthread_startargument_t*) signalstack.addr ;
          startarg->isAbort = true ;
@@ -472,7 +567,7 @@ int newmany_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, 
       goto ABBRUCH ;
    }
 
-   // startevent is freed in first created thread !
+   // semaphore are freed in first created thread !
 
    *threadobj = osthread ;
    return 0 ;
@@ -492,16 +587,14 @@ ABBRUCH:
    return err ;
 }
 
-static int join2_osthread(osthread_t * threadobj, uint32_t thread_index)
+static int joinsingle_osthread(osthread_t * threadobj)
 {
    int err ;
 
-   PRECONDITION_INPUT(thread_index < threadobj->nr_threads, ABBRUCH, LOG_UINT32(thread_index); LOG_UINT32(threadobj->nr_threads)) ;
+   if (sys_thread_INIT_FREEABLE != threadobj->sys_thread) {
 
-   if (sys_thread_INIT_FREEABLE != threadobj->sys_thread[thread_index]) {
-
-      err = pthread_join(threadobj->sys_thread[thread_index], 0) ;
-      threadobj->sys_thread[thread_index] = sys_thread_INIT_FREEABLE ;
+      err = pthread_join(threadobj->sys_thread, 0) ;
+      threadobj->sys_thread = sys_thread_INIT_FREEABLE ;
 
       if (err) goto ABBRUCH ;
    }
@@ -516,14 +609,13 @@ int join_osthread(osthread_t * threadobj)
 {
    int err = 0 ;
    int err2 ;
+   osthread_t * osthread = threadobj ;
 
-   for (uint32_t i = threadobj->nr_threads; i ; ) {
-      --i ;
-      if (sys_thread_INIT_FREEABLE != threadobj->sys_thread[i]) {
-         err2 = join2_osthread(threadobj, i) ;
-         if (err2) err = err2 ;
-      }
-   }
+   do {
+      err2 = joinsingle_osthread(osthread) ;
+      if (err2) err = err2 ;
+      osthread = osthread->next ;
+   } while( osthread != threadobj ) ;
 
    if (err) goto ABBRUCH ;
 
@@ -602,9 +694,9 @@ static int test_thread_sigaltstack(void)
       TEST(0 == new_osthread(&osthread, thread_sigaltstack, (void*)0)) ;
       TEST(osthread) ;
       TEST(0 == osthread->argument) ;
-      TEST(sys_thread_INIT_FREEABLE != osthread->sys_thread[0]) ;
+      TEST(sys_thread_INIT_FREEABLE != osthread->sys_thread) ;
       TEST(0 == join_osthread(osthread)) ;
-      TEST(sys_thread_INIT_FREEABLE == osthread->sys_thread[0]) ;
+      TEST(sys_thread_INIT_FREEABLE == osthread->sys_thread) ;
       TEST(0 == osthread->returncode) ;
       // signal own thread
       memset(&s_threadid, 0, sizeof(s_threadid)) ;
@@ -681,10 +773,10 @@ static int test_thread_stackoverflow(void)
    TEST(0 == new_osthread(&osthread, &thread_stackoverflow, (void*)1)) ;
    TEST(0 == join_osthread(osthread)) ;
    TEST(1 == s_isStackoverflow) ;
-   TEST(osthread->main          == &thread_stackoverflow) ;
-   TEST(osthread->argument      == (void*)1) ;
-   TEST(osthread->returncode    == 0) ;
-   TEST(osthread->sys_thread[0] == sys_thread_INIT_FREEABLE) ;
+   TEST(osthread->main       == &thread_stackoverflow) ;
+   TEST(osthread->argument   == (void*)1) ;
+   TEST(osthread->returncode == 0) ;
+   TEST(osthread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(0 == delete_osthread(&osthread)) ;
 
    // signal own thread
@@ -722,22 +814,33 @@ static int test_thread_init(void)
 {
    osthread_t  * osthread = 0 ;
 
+   // TEST initonce => self_osthread()
+   TEST(&gt_self_osthread == self_osthread()) ;
+   TEST(self_osthread()->sys_thread == pthread_self()) ;
+   TEST(self_osthread()->next       == self_osthread()) ;
+   TEST(self_osthread()->main       == 0) ;
+   TEST(self_osthread()->argument   == 0) ;
+   TEST(self_osthread()->returncode == 0) ;
+   TEST(self_osthread()->nr_threads == 1) ;
+   TEST(self_osthread()->stackframe.addr == 0) ;
+   TEST(self_osthread()->stackframe.size == 0) ;
+
    // TEST init, double free
    s_returncode_signal = 0 ;
    TEST(0 == new_osthread(&osthread, thread_returncode, 0)) ;
    TEST(osthread) ;
-   TEST(osthread->main          == &thread_returncode) ;
-   TEST(osthread->argument      == 0) ;
-   TEST(osthread->returncode    == 0) ;
-   TEST(osthread->nr_threads    == 1) ;
-   TEST(osthread->sys_thread[0] != sys_thread_INIT_FREEABLE) ;
+   TEST(osthread->main       == &thread_returncode) ;
+   TEST(osthread->argument   == 0) ;
+   TEST(osthread->returncode == 0) ;
+   TEST(osthread->nr_threads == 1) ;
+   TEST(osthread->sys_thread != sys_thread_INIT_FREEABLE) ;
    s_returncode_signal = 1 ;
    TEST(0 == join_osthread(osthread)) ;
-   TEST(osthread->main          == &thread_returncode) ;
-   TEST(osthread->argument      == 0) ;
-   TEST(osthread->returncode    == 0) ;
-   TEST(osthread->nr_threads    == 1) ;
-   TEST(osthread->sys_thread[0] == sys_thread_INIT_FREEABLE) ;
+   TEST(osthread->main       == &thread_returncode) ;
+   TEST(osthread->argument   == 0) ;
+   TEST(osthread->returncode == 0) ;
+   TEST(osthread->nr_threads == 1) ;
+   TEST(osthread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(0 == delete_osthread(&osthread)) ;
    TEST(!osthread) ;
    TEST(0 == delete_osthread(&osthread)) ;
@@ -747,17 +850,17 @@ static int test_thread_init(void)
    s_returncode_signal = 0 ;
    TEST(0 == new_osthread(&osthread, thread_returncode, (void*)11)) ;
    TEST(osthread) ;
-   TEST(osthread->main          == &thread_returncode) ;
-   TEST(osthread->argument      == (void*)11) ;
-   TEST(osthread->returncode    == 0) ;
-   TEST(osthread->nr_threads    == 1) ;
-   TEST(osthread->sys_thread[0] != sys_thread_INIT_FREEABLE) ;
+   TEST(osthread->main       == &thread_returncode) ;
+   TEST(osthread->argument   == (void*)11) ;
+   TEST(osthread->returncode == 0) ;
+   TEST(osthread->nr_threads == 1) ;
+   TEST(osthread->sys_thread != sys_thread_INIT_FREEABLE) ;
    s_returncode_signal = 1 ;
    TEST(0 == join_osthread(osthread)) ;
-   TEST(osthread->sys_thread[0]       == sys_thread_INIT_FREEABLE) ;
+   TEST(osthread->sys_thread          == sys_thread_INIT_FREEABLE) ;
    TEST(returncode_osthread(osthread) == 11) ;
    TEST(0 == join_osthread(osthread)) ;
-   TEST(osthread->sys_thread[0]       == sys_thread_INIT_FREEABLE) ;
+   TEST(osthread->sys_thread          == sys_thread_INIT_FREEABLE) ;
    TEST(returncode_osthread(osthread) == 11) ;
    TEST(0 == delete_osthread(&osthread)) ;
    TEST(!osthread) ;
@@ -779,18 +882,18 @@ static int test_thread_init(void)
       s_returncode_running = 0 ;
       TEST(0 == new_osthread(&osthread, thread_returncode, (void*)arg)) ;
       TEST(osthread) ;
-      TEST(osthread->argument      == (void*)arg) ;
-      TEST(osthread->main          == &thread_returncode ) ;
-      TEST(osthread->sys_thread[0] != sys_thread_INIT_FREEABLE) ;
+      TEST(osthread->argument   == (void*)arg) ;
+      TEST(osthread->main       == &thread_returncode ) ;
+      TEST(osthread->sys_thread != sys_thread_INIT_FREEABLE) ;
       for(int yi = 0; yi < 100000 && !s_returncode_running; ++yi) {
          pthread_yield() ;
       }
       TEST(s_returncode_running) ;
-      TEST(osthread->sys_thread[0] != sys_thread_INIT_FREEABLE) ;
+      TEST(osthread->sys_thread != sys_thread_INIT_FREEABLE) ;
       TEST(!osthread->returncode) ;
       s_returncode_signal = 1 ;
       TEST(0 == join_osthread(osthread)) ;
-      TEST(osthread->sys_thread[0]       == sys_thread_INIT_FREEABLE) ;
+      TEST(osthread->sys_thread          == sys_thread_INIT_FREEABLE) ;
       TEST(returncode_osthread(osthread) == arg) ;
       TEST(0 == delete_osthread(&osthread)) ;
       TEST(!osthread) ;
@@ -798,8 +901,8 @@ static int test_thread_init(void)
 
    // TEST EDEADLK
    {
-      osthread_t self_thread = { .nr_threads = 1, .sys_thread[0] = pthread_self() } ;
-      TEST(sys_thread_INIT_FREEABLE != self_thread.sys_thread[0]) ;
+      osthread_t self_thread = { .next = &self_thread, .nr_threads = 1, .sys_thread = pthread_self() } ;
+      TEST(sys_thread_INIT_FREEABLE != self_thread.sys_thread) ;
       TEST(EDEADLK == join_osthread(&self_thread)) ;
    }
 
@@ -811,10 +914,11 @@ static int test_thread_init(void)
       TEST(0 == new_osthread(&osthread, thread_returncode, 0)) ;
       TEST(osthread) ;
       copied_thread = *osthread ;
-      TEST(sys_thread_INIT_FREEABLE != osthread->sys_thread[0]) ;
+      copied_thread.next = &copied_thread ;
+      TEST(sys_thread_INIT_FREEABLE != osthread->sys_thread) ;
       s_returncode_signal = 1 ;
       TEST(0 == join_osthread(osthread)) ;
-      TEST(sys_thread_INIT_FREEABLE == osthread->sys_thread[0]) ;
+      TEST(sys_thread_INIT_FREEABLE == osthread->sys_thread) ;
       TEST(ESRCH == join_osthread(&copied_thread)) ;
       TEST(0 == delete_osthread(&osthread)) ;
    }
@@ -990,8 +1094,10 @@ ABBRUCH:
 typedef struct thread_isvalidstack_t   thread_isvalidstack_t ;
 struct thread_isvalidstack_t
 {
+   bool  isSelfValid[30] ;
    bool  isSignalstackValid[30] ;
    bool  isThreadstackValid[30] ;
+   osthread_t      * osthread[30] ;
    osthread_stack_t  signalstack[30] ;
    osthread_stack_t  threadstack[30] ;
    mutex_t           lock ;
@@ -1012,6 +1118,13 @@ static int32_t thread_isvalidstack(osthread_t * osthread)
    if (err) goto ABBRUCH ;
    err = unlock_mutex(&startarg->lock) ;
    if (err) goto ABBRUCH ;
+
+   for(unsigned i = 0; i < nrelementsof(startarg->isSelfValid); ++i) {
+      if (  (void*)startarg->osthread[i] == self_osthread()) {
+         startarg->isSelfValid[i] = true ;
+         break ;
+      }
+   }
 
    for(unsigned i = 0; i < nrelementsof(startarg->isSignalstackValid); ++i) {
       if (  (void*)startarg->signalstack[i].addr == current_sigaltstack.ss_sp
@@ -1037,28 +1150,42 @@ ABBRUCH:
 static int test_thread_array(void)
 {
    osthread_t            * osthread = 0 ;
+   osthread_t            * prev ;
+   osthread_t            * next ;
    thread_isvalidstack_t   startarg = { .lock = mutex_INIT_DEFAULT } ;
 
    // TEST init, double free
    s_returncode_signal = 0 ;
-   TEST(0 == newmany_osthread(&osthread, thread_returncode, 0, 23)) ;
+   TEST(0 == newgroup_osthread(&osthread, thread_returncode, 0, 23)) ;
    TEST(osthread) ;
-   TEST(osthread->main          == &thread_returncode) ;
-   TEST(osthread->argument      == 0) ;
-   TEST(osthread->returncode    == 0) ;
-   TEST(osthread->nr_threads    == 23) ;
+   prev = 0 ;
+   next = osthread ;
    for(unsigned i = 0; i < osthread->nr_threads; ++i) {
-      TEST(sys_thread_INIT_FREEABLE != osthread->sys_thread[i]) ;
+      TEST(prev < next) ;
+      TEST(next->main       == &thread_returncode) ;
+      TEST(next->argument   == 0) ;
+      TEST(next->returncode == 0) ;
+      TEST(next->nr_threads == 23) ;
+      TEST(next->sys_thread != sys_thread_INIT_FREEABLE) ;
+      prev = next ;
+      next = next->next ;
    }
+   TEST(next == osthread) ;
    s_returncode_signal = 1 ;
    TEST(0 == join_osthread(osthread)) ;
-   TEST(osthread->main          == &thread_returncode) ;
-   TEST(osthread->argument      == 0) ;
-   TEST(osthread->returncode    == 0) ;
-   TEST(osthread->nr_threads    == 23) ;
+   prev = 0 ;
+   next = osthread ;
    for(unsigned i = 0; i < osthread->nr_threads; ++i) {
-      TEST(sys_thread_INIT_FREEABLE == osthread->sys_thread[i]) ;
+      TEST(prev < next) ;
+      TEST(next->main       == &thread_returncode) ;
+      TEST(next->argument   == 0) ;
+      TEST(next->returncode == 0) ;
+      TEST(next->nr_threads == 23) ;
+      TEST(next->sys_thread == sys_thread_INIT_FREEABLE) ;
+      prev = next ;
+      next = next->next ;
    }
+   TEST(next == osthread) ;
    TEST(0 == delete_osthread(&osthread)) ;
    TEST(0 == osthread) ;
    TEST(0 == delete_osthread(&osthread)) ;
@@ -1066,55 +1193,76 @@ static int test_thread_array(void)
 
    // Test return values (== 0)
    s_returncode_signal = 1 ;
-   TEST(0 == newmany_osthread(&osthread, thread_returncode, 0, 53)) ;
+   TEST(0 == newgroup_osthread(&osthread, thread_returncode, 0, 53)) ;
    TEST(0 == join_osthread(osthread)) ;
-   TEST(osthread->returncode    == 0) ;
-   TEST(osthread->nr_threads    == 53) ;
+   prev = 0 ;
+   next = osthread ;
    for(unsigned i = 0; i < osthread->nr_threads; ++i) {
-      TEST(sys_thread_INIT_FREEABLE == osthread->sys_thread[i]) ;
+      TEST(prev < next) ;
+      TEST(next->returncode == 0) ;
+      TEST(next->nr_threads == 53) ;
+      TEST(next->sys_thread == sys_thread_INIT_FREEABLE) ;
+      prev = next ;
+      next = next->next ;
    }
+   TEST(next == osthread) ;
    TEST(0 == delete_osthread(&osthread)) ;
 
    // Test return values (!= 0)
    s_returncode_signal = 1 ;
-   TEST(0 == newmany_osthread(&osthread, thread_returncode, (void*)0x0FABC, 87)) ;
+   TEST(0 == newgroup_osthread(&osthread, thread_returncode, (void*)0x0FABC, 87)) ;
    TEST(0 == join_osthread(osthread)) ;
-   TEST(osthread->returncode    == 0x0FABC) ;
-   TEST(osthread->nr_threads    == 87) ;
+   prev = 0 ;
+   next = osthread ;
    for(unsigned i = 0; i < osthread->nr_threads; ++i) {
-      TEST(sys_thread_INIT_FREEABLE == osthread->sys_thread[i]) ;
+      TEST(prev < next) ;
+      TEST(next->returncode == 0x0FABC) ;
+      TEST(next->nr_threads == 87) ;
+      TEST(next->sys_thread == sys_thread_INIT_FREEABLE) ;
+      prev = next ;
+      next = next->next ;
    }
+   TEST(next == osthread) ;
    TEST(0 == delete_osthread(&osthread)) ;
 
-   // Test every thread has its own stackframe
+   // Test every thread has its own stackframe + self_osthread
    TEST(0 == lock_mutex(&startarg.lock)) ;
-   TEST(0 == newmany_osthread(&osthread, thread_isvalidstack, &startarg, nrelementsof(startarg.isSignalstackValid))) ;
+   TEST(0 == newgroup_osthread(&osthread, thread_isvalidstack, &startarg, nrelementsof(startarg.isSignalstackValid))) ;
 
    osthread_stack_t signalstack = getsignalstack_osthreadstack(&osthread->stackframe) ;
    osthread_stack_t threadstack = getthreadstack_osthreadstack(&osthread->stackframe) ;
    size_t           framesize   = framestacksize_osthreadstack() ;
+   prev = 0 ;
+   next = osthread ;
    for(unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
+      TEST(prev < next) ;
+      startarg.isSelfValid[i]        = false ;
       startarg.isSignalstackValid[i] = false ;
       startarg.isThreadstackValid[i] = false ;
+      startarg.osthread[i]    = next ;
       startarg.signalstack[i] = signalstack ;
       startarg.threadstack[i] = threadstack ;
       signalstack.addr += framesize ;
       threadstack.addr += framesize ;
+      prev = next ;
+      next = next->next ;
    }
+   TEST(next == osthread) ;
 
    TEST(0 == unlock_mutex(&startarg.lock)) ;
    TEST(0 == delete_osthread(&osthread)) ;
 
    for(unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
+      TEST(startarg.isSelfValid[i]) ;
       TEST(startarg.isSignalstackValid[i]) ;
       TEST(startarg.isThreadstackValid[i]) ;
    }
 
    // Test error in newmany => executing UNDO_LOOP
-   for(int i = 7; i < 27; i += 5) {
+   for(int i = 4; i < 27; i += 3) {
       TEST(0 == init_testerrortimer(&s_error_in_newmany_loop, (unsigned)i, 99 + i)) ;
       s_returncode_signal = 1 ;
-      TEST((99 + i) == newmany_osthread(&osthread, thread_returncode, 0, 33)) ;
+      TEST((99 + i) == newgroup_osthread(&osthread, thread_returncode, 0, 33)) ;
    }
 
    TEST(0 == free_mutex(&startarg.lock)) ;
