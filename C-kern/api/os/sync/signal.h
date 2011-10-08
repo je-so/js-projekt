@@ -60,7 +60,9 @@ extern int unittest_os_sync_signal(void) ;
 /* function: send_rtsignal
  * Sends realtime signal to any thread.
  * If more than one thread waits (<wait_rtsignal>) for the signal
- * the order of delivery is unspecified. */
+ * the order of delivery is unspecified.
+ *
+ * If the own process queue is full EAGAIN is returned and no signal is sent. */
 extern int send_rtsignal(rtsignal_t nr) ;
 
 /* function: wait_rtsignal

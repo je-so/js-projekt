@@ -353,11 +353,10 @@ int send_rtsignal(rtsignal_t nr)
 
    PRECONDITION_INPUT(nr < 16, ABBRUCH, LOG_INT(nr)) ;
 
-   err = kill(getpid(), SIGRTMIN+nr) ;
+   err = sigqueue(getpid(), SIGRTMIN+nr, (union sigval) { 0 } ) ;
    if (err) {
-      err = EINVAL ;
-      LOG_SYSERR("kill", err) ;
-      LOG_INT(getpid()) ;
+      err = errno ;
+      LOG_SYSERR("sigqueue", err) ;
       goto ABBRUCH ;
    }
 
@@ -735,6 +734,16 @@ static int test_rtsignal(void)
    // TEST EINVAL
    TEST(EINVAL == wait_rtsignal(16,1)) ;
    TEST(EINVAL == wait_rtsignal(255,1)) ;
+
+   // TEST EAGAIN
+   unsigned queue_size ;
+   for(queue_size = 0; queue_size < 1000000; ++queue_size) {
+      if (0 == send_rtsignal(0)) continue ;
+      TEST(EAGAIN == send_rtsignal(0)) ;
+      break ;
+   }
+   TEST(0 == wait_rtsignal(0, queue_size)) ;
+   TEST(EAGAIN == trywait_rtsignal(0)) ;
 
    while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
    isoldmask = false ;
