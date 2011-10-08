@@ -33,7 +33,7 @@ typedef struct osthread_t              osthread_t ;
 
 /* typedef: thread_main_f
  * Function pointer to thread implementation. */
-typedef int32_t/*errcode(0 == OK)*/ (* thread_main_f) (osthread_t * thread) ;
+typedef int/*errcode(0 == OK)*/     (* thread_main_f) (void * start_arg) ;
 
 /* typedef: osthread_stack_t typedef
  * Export <memoryblock_aspect_t> as osthread_stack_t. */
@@ -55,32 +55,35 @@ extern int unittest_os_thread(void) ;
 /* struct: osthread_t
  * Describes a system thread. */
 struct osthread_t {
-   /* variable: next
-    * Points to next thread in group of throuds. */
-   osthread_t      * next ;
+   /* variable: wlistnext
+    * Points to next thread which waits on the same condition in <waitlist_t>. */
+   osthread_t      * wlistnext ;
+   /* variable: command
+    * Contains value to signal thread what to do after wakeup. */
+   void            * command ;
+   /* variable: sys_thread
+    * Contains system specific ID of thread. It has type <sys_thread_t>. */
+   sys_thread_t      sys_thread ;
    /* variable: main
     * Contains pointer to function which is executed by this thread. */
    thread_main_f     main ;
-   /* variable: argument
-    * Contains value of the single user argument. */
-   void            * argument ;
    /* variable: returncode
     * Contains the value <thread_main> returns.
     * This value is only valid after <thread_main> has returned.
     * This value reflects the value of the first thread which did not return 0.
     * This value is 0 if all threads returned 0. */
-   int32_t           returncode ;
+   int               returncode ;
    /* variable: stackframe
     * Contains the mapped memory used as stack. */
    osthread_stack_t  stackframe ;
    /* variable: nr_threads
     * Contains the number of threads in this group.
     * All threads share the same thread_main function and the same argument at the beginning.
-    * Use <next> to iterate over the whole group. */
+    * Use <groupnext> to iterate over the whole group. */
    uint32_t          nr_threads ;
-   /* variable: sys_thread
-    * Contains system specific ID of thread. It has type <sys_thread_t>. */
-   sys_thread_t      sys_thread ;
+   /* variable: groupnext
+    * Points to next thread in group of throuds. */
+   osthread_t      * groupnext ;
 } ;
 
 // group: initonce
@@ -121,22 +124,43 @@ extern int delete_osthread(osthread_t ** threadobj) ;
  * Returns a pointer to the own thread object. */
 extern osthread_t * self_osthread(void) ;
 
-/* function: argument_osthread
- * Returns the single user supplied argument argument of threadobj. */
-extern void * argument_osthread(const osthread_t * threadobj) ;
-
 /* function: returncode_osthread
  * Returns the returncode of the joined thread.
  * The returncode is only valid if <join_osthread> was called before.
  * 0 is returned in case the thread has not already been joined. */
-extern int32_t returncode_osthread(const osthread_t * threadobj) ;
+extern int returncode_osthread(const osthread_t * threadobj) ;
 
-// group: wait
+// group: change
 
 /* function: join_osthread
  * The function suspends execution of the caller until threadobj terminates.
  * If the thread has already been joined this function returns immediately. */
 extern int join_osthread(osthread_t * threadobj) ;
+
+/* function: suspend_osthread
+ * The calling thread will sleep until <resume_osthread> is called.
+ * <resume_osthread> must be called from another thread.
+ *
+ * Linux specific:
+ * Internally sigwaitinfo wirh signal SIGINT is used to sleep.
+ *
+ * Attention !:
+ * It is possible that signals are received from outside this process therefore make sure
+ * with checking of <command> or <wlistnext> or with some other mechanism that returning
+ * from <suspend_osthread> emanates from a corresponding call to <resume_osthread>. */
+extern void suspend_osthread(void) ;
+
+/* function: resume_osthread
+ * The thread which is refered by threadobj is woken up.
+ * The status of resume is conserved if the other thread is currently not sleeping.
+ * So the next call to suspend will return immediately.
+ * This behaviour is needed cause a thread calling suspend could be preempted before
+ * it really enters a sleep state.
+ *
+ * Linux specific:
+ * Internally pthread_kill with signal SIGINT is used to wake up a another
+ * thread from sleeping. */
+extern int resume_osthread(osthread_t * threadobj) ;
 
 
 // section: inline implementations
@@ -147,23 +171,28 @@ extern int join_osthread(osthread_t * threadobj) ;
 #define self_osthread() \
    (&gt_self_osthread)
 
-/* define: argument_osthread
- * Implements <osthread_t.argument_osthread>.
- * > (threadobj)->argument */
-#define /*void **/ argument_osthread(/*const osthread_t * */threadobj) \
-   ((threadobj)->argument)
-
 /* define: returncode_osthread
  * Implements <osthread_t.returncode_osthread>.
  * > (threadobj)->returncode */
-#define /*int32_t*/ returncode_osthread(/*const osthread_t * */threadobj) \
+#define /*int*/ returncode_osthread(/*const osthread_t * */threadobj) \
    ((threadobj)->returncode)
 
 /* define: new_osthread
  * Implements <osthread_t.new_osthread>.
  * > newgroup_osthread(threadobj, thread_main, thread_argument, 1) */
 #define new_osthread(threadobj, thread_main, thread_argument) \
-   newgroup_osthread(threadobj, thread_main, thread_argument, 1)
+      newgroup_osthread(threadobj, thread_main, thread_argument, 1)
+
+/* define: newgroup_osthread
+ * Calls <osthread_t.newgroup_osthread> with adapted function pointer. */
+#define newgroup_osthread(threadobj, thread_main, thread_argument, nr_of_threads) \
+   /*do not forget to adapt definition in thead.c test section*/                 \
+   ( __extension__ ({ int _err ;                                                 \
+      int (*_thread_main) (typeof(thread_argument)) = (thread_main) ;            \
+      static_assert(sizeof(thread_argument) <= sizeof(void*), "cast 2 void*") ;  \
+      _err = newgroup_osthread(threadobj, (thread_main_f) _thread_main,          \
+                              (void*) thread_argument, nr_of_threads) ;          \
+      _err ; }))
 
 // group: KONFIG_SUBSYS
 
