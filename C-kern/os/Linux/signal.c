@@ -27,6 +27,7 @@
 #include "C-kern/api/os/sync/signal.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/signum.h"
+#include "C-kern/api/os/thread.h"
 // TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='set')
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
@@ -160,14 +161,31 @@ int initprocess_signalconfig()
    int      signr ;
    bool     isoldmask = false ;
 
-
-#define add(_SIGNR)  signr = _SIGNR ; if (sigaddset(&signalmask, _SIGNR)) goto ABBRUCH_add ;
    err = sigemptyset(&signalmask) ;
    if (err) goto ABBRUCH_emptyset ;
 
-// TEXTDB:SELECT("   // "description\n"   add("signal") ;")FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='block')
+#define add(_SIGNR)  signr = (_SIGNR) ; if (sigaddset(&signalmask, signr)) goto ABBRUCH_add ;
+
+// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal") ;")FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='block')
    // used to suspend and resume a single thread
    add(SIGINT) ;
+   // SIGRTMIN ... SIGRTMIN+15 used in send_rtsignal
+   add(SIGRTMIN) ;
+   add(SIGRTMIN+1) ;
+   add(SIGRTMIN+2) ;
+   add(SIGRTMIN+3) ;
+   add(SIGRTMIN+4) ;
+   add(SIGRTMIN+5) ;
+   add(SIGRTMIN+6) ;
+   add(SIGRTMIN+7) ;
+   add(SIGRTMIN+8) ;
+   add(SIGRTMIN+9) ;
+   add(SIGRTMIN+10) ;
+   add(SIGRTMIN+11) ;
+   add(SIGRTMIN+12) ;
+   add(SIGRTMIN+13) ;
+   add(SIGRTMIN+14) ;
+   add(SIGRTMIN+15) ;
 // TEXTDB:END
 
    err = pthread_sigmask(SIG_BLOCK, &signalmask, &s_old_signalmask) ;
@@ -319,7 +337,117 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
    return (sigconfig1) ? 1 : ((sigconfig2) ? -1 : 0) ;
 }
 
+// section: rtsignal_t
 
+// TODO send2_rtsignal
+/*
+int send2_rtsignal(rtsignal_t nr, osthread_t * thread)
+{
+
+}
+*/
+
+int send_rtsignal(rtsignal_t nr)
+{
+   int err ;
+
+   PRECONDITION_INPUT(nr < 16, ABBRUCH, LOG_INT(nr)) ;
+
+   err = kill(getpid(), SIGRTMIN+nr) ;
+   if (err) {
+      err = EINVAL ;
+      LOG_SYSERR("kill", err) ;
+      LOG_INT(getpid()) ;
+      goto ABBRUCH ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals)
+{
+   int err ;
+   sigset_t signalmask ;
+
+   PRECONDITION_INPUT(nr < 16, ABBRUCH, LOG_INT(nr)) ;
+
+   err = sigemptyset(&signalmask) ;
+   if (err) {
+      err = EINVAL ;
+      LOG_SYSERR("sigemptyset", err) ;
+      goto ABBRUCH ;
+   }
+
+   err = sigaddset(&signalmask, SIGRTMIN+nr) ;
+   if (err) {
+      err = EINVAL ;
+      LOG_SYSERR("sigaddset", err) ;
+      LOG_INT(SIGRTMIN+nr) ;
+      goto ABBRUCH ;
+   }
+
+   for(uint32_t i = nr_signals; i; --i) {
+      do {
+         err = sigwaitinfo(&signalmask, 0) ;
+      } while(-1 == err && EINTR == errno) ;
+
+      if (-1 == err) {
+         err = errno ;
+         LOG_SYSERR("sigwaitinfo", err) ;
+         goto ABBRUCH ;
+      }
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int trywait_rtsignal(rtsignal_t nr)
+{
+   int err ;
+   sigset_t          signalmask ;
+   struct timespec   ts = { 0, 0 } ;
+
+   PRECONDITION_INPUT(nr < 16, ABBRUCH, LOG_INT(nr)) ;
+
+   err = sigemptyset(&signalmask) ;
+   if (err) {
+      err = EINVAL ;
+      LOG_SYSERR("sigemptyset", err) ;
+      goto ABBRUCH ;
+   }
+
+   err = sigaddset(&signalmask, SIGRTMIN+nr) ;
+   if (err) {
+      err = EINVAL ;
+      LOG_SYSERR("sigaddset", err) ;
+      LOG_INT(SIGRTMIN+nr) ;
+      goto ABBRUCH ;
+   }
+
+   for(;;) {
+      err = sigtimedwait(&signalmask, 0, &ts) ;
+      if (-1 != err) break ;
+      err = errno ;
+      if (EAGAIN == err) {
+         return err ;
+      }
+      if (EINTR != err) {
+         LOG_SYSERR("sigtimedwait", err) ;
+         goto ABBRUCH ;
+      }
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
 
 // section: test
 
@@ -508,6 +636,119 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static int thread_receivesignal(int rtsignr)
+{
+   int err ;
+   assert(rtsignr) ;
+   assert(self_osthread()->command) ;
+   err = wait_rtsignal((rtsignal_t)rtsignr, 1) ;
+   self_osthread()->command = 0 ;
+   assert(0 == send_rtsignal(0)) ;
+   return err ;
+}
+
+static int test_rtsignal(void)
+{
+   sigset_t          oldmask ;
+   sigset_t          signalmask ;
+   osthread_t      * thread    = 0 ;
+   bool              isoldmask = false ;
+   struct timespec   ts        = { 0, 0 } ;
+
+   // TEST system supports at least 15 signals
+   TEST(15 <= (SIGRTMAX - SIGRTMIN)) ;
+
+   TEST(0 == sigprocmask(SIG_SETMASK, 0, &oldmask)) ;
+   isoldmask = true ;
+   TEST(0 == sigemptyset(&signalmask)) ;
+   for(int i = 0; i < 16; ++i) {
+      TEST(0 == sigaddset(&signalmask, SIGRTMIN + i)) ;
+   }
+   TEST(0 == sigprocmask(SIG_BLOCK, &signalmask, 0)) ;
+
+   // TEST wait (consume all queued signals)
+   while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
+   // generate signals in queue
+   for(int i = 0; i < 16; ++i) {
+      for(int nr = 0; nr < 1+i; ++nr) {
+         TEST(0 == kill(getpid(), SIGRTMIN+i)) ;
+      }
+   }
+   // consume signals
+   for(int i = 0; i < 15; ++i) {
+      TEST(0 == wait_rtsignal((rtsignal_t)i, (unsigned) (1+i))) ;
+   }
+   // all signals consumed
+   for(int i = 0; i < 15; ++i) {
+      TEST(EAGAIN == trywait_rtsignal((rtsignal_t)i)) ;
+   }
+
+   // TEST wait (consume not all signals)
+   while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
+   // generate signals in queue
+   for(int i = 0; i < 16; ++i) {
+      for(int nr = 0; nr < 6; ++nr) {
+         TEST(0 == kill(getpid(), SIGRTMIN+i)) ;
+      }
+   }
+   // consume signals
+   for(int i = 0; i < 15; ++i) {
+      TEST(0 == wait_rtsignal((rtsignal_t)i, 5)) ;
+   }
+   // all signals consumed except for one
+   for(int i = 0; i < 15; ++i) {
+      TEST(0 == trywait_rtsignal((rtsignal_t)i)) ;
+      TEST(EAGAIN == trywait_rtsignal((rtsignal_t)i)) ;
+   }
+
+   // TEST send_rtsignal (order unspecified)
+   for(int i = 1; i < 15; ++i) {
+      TEST(0 == newgroup_osthread(&thread, thread_receivesignal, i, 3)) ;
+      osthread_t * group[3] = { thread, thread->groupnext, thread->groupnext->groupnext } ;
+      for(int t = 0; t < 3; ++t) {
+         TEST((void*)i == group[t]->command) ;
+      }
+      for(int t = 0; t < 3; ++t) {
+         // wake up one thread
+         TEST(0 == send_rtsignal((rtsignal_t)i)) ;
+         // wait until woken up
+         TEST(0 == wait_rtsignal(0, 1)) ;
+         for(int t2 = 0; t2 < 3; ++t2) {
+            if (group[t2] && 0 == group[t2]->command) {
+               group[t2] = 0 ;
+               break ;
+            }
+         }
+         // only one woken up
+         int count = t ;
+         for(int t2 = 0; t2 < 3; ++t2) {
+            if (group[t2]) {
+               ++ count ;
+               TEST((void*)i == group[t2]->command) ;
+            }
+         }
+         TEST(2 == count) ;
+      }
+      TEST(0 == delete_osthread(&thread)) ;
+   }
+
+   // TEST EINVAL
+   TEST(EINVAL == wait_rtsignal(16,1)) ;
+   TEST(EINVAL == wait_rtsignal(255,1)) ;
+
+   while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
+   isoldmask = false ;
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldmask, 0)) ;
+
+   return 0 ;
+ABBRUCH:
+   (void) delete_osthread(&thread) ;
+   while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
+   if (isoldmask) (void) sigprocmask(SIG_SETMASK, &oldmask, 0) ;
+   return EINVAL ;
+}
+
+
 int unittest_os_sync_signal()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -518,6 +759,7 @@ int unittest_os_sync_signal()
    if (test_initfree())       goto ABBRUCH ;
    if (test_helper())         goto ABBRUCH ;
    if (test_initprocess())    goto ABBRUCH ;
+   if (test_rtsignal())       goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

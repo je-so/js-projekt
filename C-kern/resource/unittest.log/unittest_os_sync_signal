@@ -1,0 +1,6 @@
+C-kern/os/Linux/signal.c:375: wait_rtsignal(): error: Function argument violates condition (nr < 16)
+nr=16
+C-kern/os/Linux/signal.c:406: wait_rtsignal(): error: Function aborted (err=22)
+C-kern/os/Linux/signal.c:375: wait_rtsignal(): error: Function argument violates condition (nr < 16)
+nr=255
+C-kern/os/Linux/signal.c:406: wait_rtsignal(): error: Function aborted (err=22)

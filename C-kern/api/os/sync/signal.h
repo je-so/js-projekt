@@ -36,6 +36,12 @@ typedef struct signalconfig_t       signalconfig_t ;
  * Exports callback definition of a signal handler. */
 typedef void                     (* signalcallback_f) (unsigned signr) ;
 
+/* typedef: rtsignal_t
+ * Exports realtime signal type as simple number.
+ * The supported number range is 0..15 to be portable. */
+typedef uint8_t                     rtsignal_t ;
+
+
 // section: Functions
 
 // group: test
@@ -46,6 +52,28 @@ typedef void                     (* signalcallback_f) (unsigned signr) ;
 extern int unittest_os_sync_signal(void) ;
 #endif
 
+
+// section: rtsignal_t
+
+// group: change
+
+/* function: send_rtsignal
+ * Sends realtime signal to any thread.
+ * If more than one thread waits (<wait_rtsignal>) for the signal
+ * the order of delivery is unspecified. */
+extern int send_rtsignal(rtsignal_t nr) ;
+
+/* function: wait_rtsignal
+ * Waits for nr_signals realtime signals with number nr.
+ * They are removed from the queue. */
+extern int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals) ;
+
+/* function: trywait_rtsignal
+ * Polls the queu for one realtime signals.
+ * If the queue is empty EAGAIN ist returned.
+ * If the queue contained the rt signal with number nr
+ * it is consumed and 0 is returned. */
+extern int trywait_rtsignal(rtsignal_t nr) ;
 
 /* struct: signalconfig_t
  * Stores current state of all signal handlers and the signal mask.
