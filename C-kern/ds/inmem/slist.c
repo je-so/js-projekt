@@ -42,12 +42,13 @@ static inline slist_aspect_t* addoffset_helper(slist_aspect_t * object, uint32_t
 int free_generic_slist( slist_t * list, callback_aspect_t * cb, freecb_slist_f free_callback, uint32_t offset_next )
 {
    int err ;
-   slist_aspect_t * node ;
-   slist_aspect_t * next = list->first ;
+   slist_aspect_t * const last = list->last ;
 
-   if (next) {
-      list->first = 0 ;
-      list->last  = 0 ;
+   if (last) {
+      slist_aspect_t * node ;
+      slist_aspect_t * next = OFFSET(last)->next ;
+
+      list->last = 0 ;
 
       if (free_callback) {
 
@@ -59,7 +60,7 @@ int free_generic_slist( slist_t * list, callback_aspect_t * cb, freecb_slist_f f
             OFFSET(node)->next = 0 ;
             int err2 = free_callback( cb, node ) ;
             if (err2) err = err2 ;
-         } while( next ) ;
+         } while( last != node ) ;
 
          if (err) goto ABBRUCH ;
 
@@ -69,7 +70,7 @@ int free_generic_slist( slist_t * list, callback_aspect_t * cb, freecb_slist_f f
             node = next ;
             next = OFFSET(next)->next ;
             OFFSET(node)->next = 0 ;
-         } while( next ) ;
+         } while( last != node ) ;
 
       }
    }
@@ -89,12 +90,12 @@ int insertfirst_generic_slist( slist_t * list, slist_aspect_t * new_node, uint32
       goto ABBRUCH ;
    }
 
-   if (!list->first) {
-      list->first = new_node ;
-      list->last  = new_node ;
+   if (!list->last) {
+      list->last = new_node ;
+      OFFSET(new_node)->next = new_node ;
    } else {
-      OFFSET(new_node)->next = list->first ;
-      list->first            = new_node ;
+      OFFSET(new_node)->next   = OFFSET(list->last)->next ;
+      OFFSET(list->last)->next = new_node ;
    }
 
    return 0 ;
@@ -112,12 +113,13 @@ int insertlast_generic_slist( slist_t * list, slist_aspect_t * new_node, uint32_
       goto ABBRUCH ;
    }
 
-   if (!list->first) {
-      list->first = new_node ;
-      list->last  = new_node ;
+   if (!list->last) {
+      list->last = new_node ;
+      OFFSET(new_node)->next = new_node ;
    } else {
+      OFFSET(new_node)->next   = OFFSET(list->last)->next ;
       OFFSET(list->last)->next = new_node ;
-      list->last  = new_node ;
+      list->last               = new_node ;
    }
 
    return 0 ;
@@ -130,21 +132,21 @@ int insertafter_generic_slist( slist_t * list, slist_aspect_t * prev_node, slist
 {
    int err ;
 
-   if (!list->first) {
-      err = EINVAL ;
-      goto ABBRUCH ;
-   }
-
    if (OFFSET(new_node)->next) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
 
+   if (!list->last) {
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
+
    OFFSET(new_node)->next  = OFFSET(prev_node)->next ;
-   if (!OFFSET(new_node)->next) {
+   OFFSET(prev_node)->next = new_node ;
+   if (list->last == prev_node) {
       list->last = new_node ;
    }
-   OFFSET(prev_node)->next = new_node ;
 
    return 0 ;
 ABBRUCH:
@@ -156,17 +158,19 @@ int removefirst_generic_slist( slist_t * list, slist_aspect_t ** removed_node, u
 {
    int err ;
 
-   slist_aspect_t * first = list->first ;
+   slist_aspect_t * last = list->last ;
 
-   if (!first) {
+   if (!last) {
       err = ESRCH ;
       goto ABBRUCH ;
    }
 
-   list->first = OFFSET(first)->next ;
+   slist_aspect_t * const first = OFFSET(last)->next ;
 
-   if (!list->first) {
+   if (first == last) {
       list->last = 0 ;
+   } else {
+      OFFSET(last)->next = OFFSET(first)->next ;
    }
 
    OFFSET(first)->next = 0 ;
@@ -182,22 +186,26 @@ int removeafter_generic_slist( slist_t * list, slist_aspect_t * prev_node, slist
 {
    int err ;
 
-   if (!list->first) {
+   slist_aspect_t * const next = OFFSET(prev_node)->next ;
+
+   if (!next) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
 
-   if (!OFFSET(prev_node)->next) {
-      err = ESRCH ;
+   if (!list->last) {
+      err = EINVAL ;
       goto ABBRUCH ;
    }
-
-   slist_aspect_t * next = OFFSET(prev_node)->next ;
 
    OFFSET(prev_node)->next = OFFSET(next)->next ;
    OFFSET(next)->next      = 0 ;
    if (list->last == next) {
-      list->last   = prev_node ;
+      if (list->last == prev_node) {
+         list->last = 0 ;
+      } else {
+         list->last = prev_node ;
+      }
    }
 
    *removed_node = next ;
@@ -235,25 +243,20 @@ static int test_initfree(void)
    test_node_t    nodes[100] = { { 0, 0 } } ;
 
    // TEST static initializer
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
 
    // TEST init, double free
-   slist.first = (void*) 1 ;
    slist.last  = (void*) 1 ;
    TEST(0 == init_slist(&slist)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    TEST(0 == free_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    TEST(0 == free_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
 
    // TEST insert, double free
+   slist.last  = (void*) 1 ;
    TEST(0 == init_slist(&slist)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == insertlast_slist(&slist, (slist_aspect_t*)&nodes[i] )) ;
@@ -267,7 +270,6 @@ static int test_initfree(void)
       TEST(nrelementsof(nodes) == i) ;
    }
    TEST(0 == free_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next ) ;
@@ -275,7 +277,6 @@ static int test_initfree(void)
       nodes[i].is_freed = 0 ;
    }
    TEST(0 == free_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].is_freed ) ;
@@ -283,7 +284,6 @@ static int test_initfree(void)
 
    // TEST insert, removeall
    TEST(0 == init_slist(&slist)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == insertfirst_slist(&slist, (slist_aspect_t*)&nodes[i] )) ;
@@ -297,7 +297,6 @@ static int test_initfree(void)
       TEST(0 == i) ;
    }
    TEST(0 == removeall_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next ) ;
@@ -305,7 +304,6 @@ static int test_initfree(void)
       nodes[i].is_freed = 0 ;
    }
    TEST(0 == removeall_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].is_freed ) ;
@@ -323,16 +321,19 @@ static int test_query(void)
 
    // TEST isempty
    TEST(1 == isempty_slist(&slist)) ;
-   slist.first = (void*) 1 ;
+   slist.last = (void*) 1 ;
    TEST(0 == isempty_slist(&slist)) ;
-   slist.first = 0 ;
+   slist.last = 0 ;
    TEST(1 == isempty_slist(&slist)) ;
 
    // TEST getfirst
    TEST((void*)0 == first_slist(&slist)) ;
-   slist.first = (void*) 3 ;
-   TEST((void*)3 == first_slist(&slist)) ;
-   slist.first = 0 ;
+   {
+      slist_aspect_t lastnode = { .next = (void*) 3 } ;
+      slist.last = &lastnode ;
+      TEST((void*)3 == first_slist(&slist)) ;
+      slist.last = 0 ;
+   }
    TEST((void*)0 == first_slist(&slist)) ;
 
    // TEST getlast
@@ -353,15 +354,13 @@ static int test_iterate(void)
    slist_t        slist = slist_INIT ;
    test_node_t    nodes[100] = { { 0, 0 } } ;
 
-   for(unsigned i = 0, idx = 3; i < nrelementsof(nodes)-1; ++i, idx = (idx + 3) % nrelementsof(nodes)) {
+   for(unsigned i = 0, idx = 3; i < nrelementsof(nodes); ++i, idx = (idx + 3) % nrelementsof(nodes)) {
       nodes[idx].next = &nodes[(idx + 3) % nrelementsof(nodes)] ;
    }
-   TEST(0 == nodes[0].next) ;
 
    {
       unsigned idx   = 3 ;
       unsigned count = 0 ;
-      slist.first    = (slist_aspect_t*) &nodes[idx] ;
       slist.last     = (slist_aspect_t*) &nodes[0] ;
       foreach_slist( &slist, node ) {
          TEST(node == (slist_aspect_t*)&nodes[idx]) ;
@@ -394,49 +393,44 @@ static int test_insertremove(void)
 
    // TEST insertfirst, removefirst single element
    TEST(0 == insertfirst_slist(&slist, (slist_aspect_t*)&nodes[0])) ;
-   TEST(0 == nodes[0].next) ;
-   TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
+   TEST(&nodes[0] == nodes[0].next) ;
    TEST(slist.last  == (slist_aspect_t*)&nodes[0]) ;
    TEST(0 == removefirst_slist(&slist, (slist_aspect_t**)&node)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    TEST(node == &nodes[0]) ;
    TEST(0 == nodes[0].is_freed) ;
 
    // TEST insertlast, removefirst single element
    TEST(0 == insertlast_slist(&slist, (slist_aspect_t*)&nodes[0])) ;
-   TEST(0 == nodes[0].next) ;
-   TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
+   TEST(&nodes[0] == nodes[0].next) ;
    TEST(slist.last  == (slist_aspect_t*)&nodes[0]) ;
    TEST(0 == removefirst_slist(&slist, (slist_aspect_t**)&node)) ;
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    TEST(node == &nodes[0]) ;
    TEST(0 == nodes[0].is_freed) ;
 
    // TEST insertafter, removeafter three elements
    TEST(0 == insertlast_slist(&slist, (slist_aspect_t*)&nodes[0])) ;
-   TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
    TEST(slist.last  == (slist_aspect_t*)&nodes[0]) ;
    TEST(0 == insertafter_slist(&slist, (slist_aspect_t*)&nodes[0], (slist_aspect_t*)&nodes[1])) ;
-   TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-   TEST(slist.last  == (slist_aspect_t*)&nodes[1]) ;
+   TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[0]) ;
+   TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[1]) ;
    TEST(0 == insertafter_slist(&slist, (slist_aspect_t*)&nodes[0], (slist_aspect_t*)&nodes[2])) ;
-   TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-   TEST(slist.last  == (slist_aspect_t*)&nodes[1]) ;
-   TEST(nodes[2].next == &nodes[1]) ;
-   TEST(0 == removeafter_slist(&slist, (slist_aspect_t*)&nodes[0], (slist_aspect_t**)&node)) ;
-   TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-   TEST(slist.last  == (slist_aspect_t*)&nodes[1]) ;
-   TEST(node == &nodes[2]) ;
-   TEST(0 == removeafter_slist(&slist, (slist_aspect_t*)&nodes[0], (slist_aspect_t**)&node)) ;
-   TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-   TEST(slist.last  == (slist_aspect_t*)&nodes[0]) ;
-   TEST(node == &nodes[1]) ;
-   TEST(0 == removefirst_slist(&slist, (slist_aspect_t**)&node)) ;
-   TEST(0 == slist.first) ;
-   TEST(0 == slist.last) ;
+   TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[0]) ;
+   TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[1]) ;
+   TEST(next_slist(&nodes[0]) == &nodes[2]) ;
+   TEST(next_slist(&nodes[2]) == &nodes[1]) ;
+   TEST(0 == removeafter_slist(&slist, (slist_aspect_t*)&nodes[1], (slist_aspect_t**)&node)) ;
+   TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[2]) ;
+   TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[1]) ;
    TEST(node == &nodes[0]) ;
+   TEST(0 == removeafter_slist(&slist, (slist_aspect_t*)&nodes[2], (slist_aspect_t**)&node)) ;
+   TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[2]) ;
+   TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[2]) ;
+   TEST(node == &nodes[1]) ;
+   TEST(0 == removeafter_slist(&slist, (slist_aspect_t*)&nodes[2], (slist_aspect_t**)&node)) ;
+   TEST(last_slist(&slist)  == 0) ;
+   TEST(node == &nodes[2]) ;
    for(int i = 0; i < 3; ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -446,13 +440,12 @@ static int test_insertremove(void)
    TEST(0 == init_slist(&slist)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == insertfirst_slist(&slist, (slist_aspect_t*)&nodes[i])) ;
-      TEST(slist.first == (slist_aspect_t*)&nodes[i]) ;
-      TEST(slist.last  == (slist_aspect_t*)&nodes[0]) ;
+      TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[i]) ;
+      TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[0]) ;
    }
-   for(unsigned i = nrelementsof(nodes)-1; i > 0; --i) {
-      TEST(nodes[i].next == &nodes[i-1]) ;
+   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(nodes[(i+1)%nrelementsof(nodes)].next == &nodes[i]) ;
    }
-   TEST(0 == nodes[0].next) ;
    TEST(0 == free_slist(&slist, 0, &test_freecallback)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
@@ -464,13 +457,12 @@ static int test_insertremove(void)
    TEST(0 == init_slist(&slist)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == insertlast_slist(&slist, (slist_aspect_t*)&nodes[i])) ;
-      TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-      TEST(slist.last  == (slist_aspect_t*)&nodes[i]) ;
+      TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[0]) ;
+      TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[i]) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes)-1; ++i) {
-      TEST(nodes[i].next == &nodes[i+1]) ;
+   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(nodes[i].next == &nodes[(i+1)%nrelementsof(nodes)]) ;
    }
-   TEST(0 == nodes[nrelementsof(nodes)-1].next) ;
    TEST(0 == free_slist(&slist, 0, &test_freecallback)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
@@ -483,18 +475,17 @@ static int test_insertremove(void)
    TEST(0 == insertfirst_slist(&slist, (slist_aspect_t*)&nodes[0])) ;
    for(unsigned i = 2; i < nrelementsof(nodes); i += 2) {
       TEST(0 == insertafter_slist(&slist, (slist_aspect_t*)&nodes[i-2], (slist_aspect_t*)&nodes[i])) ;
-      TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-      TEST(slist.last  == (slist_aspect_t*)&nodes[i]) ;
+      TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[0]) ;
+      TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[i]) ;
    }
    for(unsigned i = 1; i < nrelementsof(nodes); i += 2) {
       TEST(0 == insertafter_slist(&slist, (slist_aspect_t*)&nodes[i-1], (slist_aspect_t*)&nodes[i])) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes)-1; ++i) {
-      TEST(nodes[i].next == &nodes[i+1]) ;
+   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(nodes[i].next == &nodes[(i+1)%nrelementsof(nodes)]) ;
    }
-   TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-   TEST(slist.last  == (slist_aspect_t*)&nodes[nrelementsof(nodes)-1]) ;
-   TEST(0 == nodes[nrelementsof(nodes)-1].next) ;
+   TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[0]) ;
+   TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[nrelementsof(nodes)-1]) ;
    TEST(0 == free_slist(&slist, 0, &test_freecallback)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
@@ -508,12 +499,11 @@ static int test_insertremove(void)
       TEST(0 == insertlast_slist(&slist, (slist_aspect_t*)&nodes[i])) ;
    }
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(slist.first == (slist_aspect_t*)&nodes[i]) ;
-      TEST(slist.last  == (slist_aspect_t*)&nodes[nrelementsof(nodes)-1]) ;
+      TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[i]) ;
+      TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[nrelementsof(nodes)-1]) ;
       TEST(0 == removefirst_slist(&slist, (slist_aspect_t**)&node)) ;
-      TEST(node        == &nodes[i])
+      TEST(node                == &nodes[i])
    }
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    TEST(0 == free_slist(&slist, 0, &test_freecallback)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
@@ -527,20 +517,19 @@ static int test_insertremove(void)
       TEST(0 == insertlast_slist(&slist, (slist_aspect_t*)&nodes[i])) ;
    }
    for(unsigned i = 0; i < nrelementsof(nodes)-1; i += 2) {
-      TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-      TEST(slist.last  == (slist_aspect_t*)&nodes[nrelementsof(nodes)-1]) ;
+      TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[0]) ;
+      TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[nrelementsof(nodes)-1]) ;
       TEST(0 == removeafter_slist(&slist, (slist_aspect_t*)&nodes[i], (slist_aspect_t**)&node)) ;
-      TEST(node        == &nodes[i+1])
+      TEST(node                == &nodes[i+1])
    }
    for(unsigned i = nrelementsof(nodes)-2; i > 1; i -= 2) {
-      TEST(slist.first == (slist_aspect_t*)&nodes[0]) ;
-      TEST(slist.last  == (slist_aspect_t*)&nodes[i]) ;
+      TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[0]) ;
+      TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[i]) ;
       TEST(0 == removeafter_slist(&slist, (slist_aspect_t*)&nodes[i-2], (slist_aspect_t**)&node)) ;
-      TEST(node        == &nodes[i])
+      TEST(node                == &nodes[i])
    }
-   TEST(0 == removefirst_slist(&slist, (slist_aspect_t**)&node)) ;
+   TEST(0 == removeafter_slist(&slist, (slist_aspect_t*)&nodes[0], (slist_aspect_t**)&node)) ;
    TEST(node == &nodes[0])
-   TEST(0 == slist.first) ;
    TEST(0 == slist.last) ;
    TEST(0 == free_slist(&slist, 0, &test_freecallback)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
@@ -556,8 +545,8 @@ static int test_insertremove(void)
    for(unsigned i = nrelementsof(nodes)/2; i < nrelementsof(nodes); ++i) {
       TEST(0 == insertfirst_slist(&slist, (slist_aspect_t*)&nodes[i])) ;
    }
-   TEST(slist.first == (slist_aspect_t*)&nodes[nrelementsof(nodes)-1]) ;
-   TEST(slist.last  == (slist_aspect_t*)&nodes[nrelementsof(nodes)/2-1]) ;
+   TEST(first_slist(&slist) == (slist_aspect_t*)&nodes[nrelementsof(nodes)-1]) ;
+   TEST(last_slist(&slist)  == (slist_aspect_t*)&nodes[nrelementsof(nodes)/2-1]) ;
    TEST(0 == removeall_slist(&slist, 0, &test_freecallback)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
@@ -568,11 +557,13 @@ static int test_insertremove(void)
    // TEST EINVAL
    TEST(0 == init_slist(&slist)) ;
    nodes[0].next = (void*) 1 ;
+   TEST(EINVAL == removeafter_slist(&slist, (slist_aspect_t*)&nodes[0], (slist_aspect_t**)&node)) ;
    TEST(EINVAL == insertfirst_slist(&slist, (slist_aspect_t*)&nodes[0])) ;
    TEST(EINVAL == insertlast_slist(&slist, (slist_aspect_t*)&nodes[0])) ;
    TEST(0 == insertfirst_slist(&slist, (slist_aspect_t*)&nodes[1])) ;
    TEST(EINVAL == insertafter_slist(&slist, (slist_aspect_t*)&nodes[1], (slist_aspect_t*)&nodes[0])) ;
    nodes[0].next = (void*) 0 ;
+   TEST(EINVAL == removeafter_slist(&slist, (slist_aspect_t*)&nodes[0], (slist_aspect_t**)&node)) ;
    TEST(0 == removefirst_slist(&slist, (slist_aspect_t**)&node)) ;
    TEST(EINVAL == insertafter_slist(&slist, (slist_aspect_t*)&nodes[1], (slist_aspect_t*)&nodes[0])) ;
    TEST(EINVAL == removeafter_slist(&slist, (slist_aspect_t*)&nodes[1], (slist_aspect_t**)&node)) ;
@@ -585,7 +576,6 @@ static int test_insertremove(void)
    TEST(0 == init_slist(&slist)) ;
    TEST(ESRCH == removefirst_slist(&slist, (slist_aspect_t**)&node)) ;
    TEST(0 == insertfirst_slist(&slist, (slist_aspect_t*)&nodes[0])) ;
-   TEST(ESRCH == removeafter_slist(&slist, (slist_aspect_t*)&nodes[0], (slist_aspect_t**)&node)) ;
    TEST(0 == removefirst_slist(&slist, (slist_aspect_t**)&node)) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;

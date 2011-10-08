@@ -79,12 +79,13 @@ ABBRUCH:
 int run_exoscheduler(exoscheduler_t * xsched)
 {
    int err = 0 ;
-   exothread_t * prev     = 0 ;
-   exothread_t * xthread  = 0 ;
+   exothread_t * prev     = last_exothread_list(&xsched->runlist) ;
+   exothread_t * xthread  = first_exothread_list(&xsched->runlist) ;
    bool          isfinish = false ;
 
-   xthread = first_exothread_list(&xsched->runlist) ;
-   while( xthread ) {
+   assert(xthread || 0 == xsched->runlist_size) ;
+
+   for(size_t i = xsched->runlist_size; i; --i) {
 
       isfinish = isfinish_exothread(xthread) ;
 
@@ -103,16 +104,13 @@ int run_exoscheduler(exoscheduler_t * xsched)
 
          int err2 ;
          exothread_t * removed ;
-         if (prev) {
-            err2 = removeafter_exothread_list(&xsched->runlist, prev, &removed) ;
-         } else {
-            err2 = removefirst_exothread_list(&xsched->runlist, &removed) ;
-         }
+         err2 = removeafter_exothread_list(&xsched->runlist, prev, &removed) ;
          if (err2) {
             err = err2 ;
          } else {
             -- xsched->runlist_size ;
          }
+         assert(0 == err2 && "removeafter_exothread_list should never return an error") ;
       } else {
          prev    = xthread ;
          xthread = next_exothread_list( xthread ) ;
@@ -145,19 +143,16 @@ static int test_initfree(void)
    // TEST static init
    memset(&xsched, 1, sizeof(xsched)) ;
    xsched = (exoscheduler_t)exoscheduler_INIT ;
-   TEST(0 == xsched.runlist.first) ;
    TEST(0 == xsched.runlist.last) ;
    TEST(0 == xsched.runlist_size) ;
 
    // TEST init, double free
    memset(&xsched, 1, sizeof(xsched)) ;
    TEST(0 == init_exoscheduler(&xsched)) ;
-   TEST(0 == xsched.runlist.first) ;
    TEST(0 == xsched.runlist.last) ;
    TEST(0 == xsched.runlist_size) ;
    TEST(0 == free_exoscheduler(&xsched)) ;
    TEST(0 == free_exoscheduler(&xsched)) ;
-   TEST(0 == xsched.runlist.first) ;
    TEST(0 == xsched.runlist.last) ;
    TEST(0 == xsched.runlist_size) ;
 
@@ -166,13 +161,12 @@ static int test_initfree(void)
    for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
       TEST(0 == init_exothread(&xthreads[i], &simplefinish_xthread)) ;
       TEST(0 == register_exoscheduler(&xsched, &xthreads[i])) ;
-      TEST(&xthreads[0] == xsched.runlist.first) ;
+      TEST(&xthreads[0] == next_exothread_list(xsched.runlist.last)) ;
       TEST(&xthreads[i] == xsched.runlist.last) ;
       TEST(i + 1 == xsched.runlist_size) ;
    }
    TEST(0 == free_exoscheduler(&xsched)) ;
    TEST(0 == xsched.runlist_size) ;
-   TEST(0 == xsched.runlist.first) ;
    TEST(0 == xsched.runlist.last) ;
    for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
       TEST(0 == isfinish_exothread(&xthreads[i])) ;
@@ -188,7 +182,6 @@ static int test_initfree(void)
    }
    TEST(0 == run_exoscheduler(&xsched)) ;
    TEST(0 == xsched.runlist_size) ;
-   TEST(0 == xsched.runlist.first) ;
    TEST(0 == xsched.runlist.last) ;
    for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
       TEST(0 != isfinish_exothread(&xthreads[i])) ;
@@ -212,7 +205,6 @@ static int test_initfree(void)
    }
    TEST(0 == run_exoscheduler(&xsched)) ;
    TEST(0 == xsched.runlist_size) ;
-   TEST(0 == xsched.runlist.first) ;
    TEST(0 == xsched.runlist.last) ;
    for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
       TEST(0 != isfinish_exothread(&xthreads[i])) ;
