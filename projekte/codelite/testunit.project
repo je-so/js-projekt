@@ -121,6 +121,7 @@
         <File Name="../../C-kern/api/os/sync/semaphore.h"/>
         <File Name="../../C-kern/api/os/sync/mutex.h"/>
         <File Name="../../C-kern/api/os/sync/signal.h"/>
+        <File Name="../../C-kern/api/os/sync/waitlist.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <File Name="../../C-kern/api/umgebung.h"/>
@@ -169,6 +170,7 @@
     <VirtualDirectory Name="errhandling">
       <File Name="../../C-kern/api/errhandling/precondition.h"/>
       <File Name="../../C-kern/api/errhandling/errlog_macros.h"/>
+      <File Name="../../C-kern/api/errhandling/assert.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
   </VirtualDirectory>
@@ -247,6 +249,7 @@
       <File Name="../../C-kern/os/Linux/mutex.c"/>
       <File Name="../../C-kern/os/Linux/signal.c"/>
       <File Name="../../C-kern/os/Linux/locale.c"/>
+      <File Name="../../C-kern/os/Linux/waitlist.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <File Name="../../C-kern/os/shared/findfile.c"/>
@@ -325,6 +328,8 @@
       
       
       
+      
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -362,6 +367,8 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
+      
+      
       
       
       
