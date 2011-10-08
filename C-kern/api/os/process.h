@@ -34,6 +34,10 @@ typedef struct process_t            process_t ;
  * Export <process_result_t>. */
 typedef struct process_result_t     process_result_t ;
 
+/* typedef: process_child_f
+ * Export type of function running in child process. */
+typedef int                     (*  process_child_f) (void * child_parameter) ;
+
 /* enums: process_state_e
  * Describes the state of a process.
  *
@@ -86,7 +90,7 @@ struct process_t ;
 
 /* function: new_process
  * Creates child process which executes a function. */
-extern int new_process(/*out*/process_t ** process, void * child_parameter, int (*child_function) (void * child_parameter)) ;
+extern int new_process(/*out*/process_t ** process, process_child_f child_function, void * child_parameter) ;
 
 /* function: newexec_process
  * Creates child porcess and executes another program.

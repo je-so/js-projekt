@@ -173,6 +173,13 @@ extern int free_umgebung(umgebung_t * umg) ;
  * */
 extern void abort_umgebung(void) ;
 
+/* function: assertfail_umgebung
+ * Exits the whole process in a controlled manner.
+ * writes »Assertion failed« to log and calls <abort_umgebung>.
+ *
+ * Do not call <assertfail_umgebung> directly instead use the <assert> macro. */
+extern void assertfail_umgebung(const char * condition, const char * file, unsigned line, const char * funcname) ;
+
 // group: query
 
 /* function: umgebung

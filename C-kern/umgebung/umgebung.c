@@ -233,6 +233,17 @@ void abort_umgebung(void)
    // TODO: add unit test for checking that resources are freed
 }
 
+void assertfail_umgebung(
+   const char * condition,
+   const char * file,
+   unsigned     line,
+   const char * funcname)
+{
+   LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ERROR_LOCATION(file, line, funcname)) ;
+   LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ERROR_ASSERT_FAILED(condition)) ;
+   abort_umgebung() ;
+}
+
 
 #ifdef KONFIG_UNITTEST
 

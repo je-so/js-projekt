@@ -32,7 +32,6 @@
 #endif
 
 #include <arpa/inet.h>
-#include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>

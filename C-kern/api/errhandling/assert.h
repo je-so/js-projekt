@@ -1,7 +1,5 @@
-/* title: ErrorHandling
-
-   - Includes macros for error logging. See <Errorlog>.
-   - Include macros to check for preconditions. See <Precondition>.
+/* title: Assert
+   Defines system specific assert macro.
 
    about: Copyright
    This program is free software.
@@ -18,15 +16,17 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/err.h
-    Header file of <ErrorHandling>.
+   file: C-kern/api/errhandling/assert.h
+    Header file of <Assert>.
 */
-#ifndef CKERN_API_ERRORHANDLING_HEADER
-#define CKERN_API_ERRORHANDLING_HEADER
+#ifndef CKERN_ERRORHANDLING_ASSERT_HEADER
+#define CKERN_ERRORHANDLING_ASSERT_HEADER
 
-#include "C-kern/api/errhandling/assert.h"
-#include "C-kern/api/errhandling/errlog_macros.h"
-#include "C-kern/api/errhandling/precondition.h"
+/* define: assert
+ * Prints »Assertion failed« and aborts process.
+ * Uses <assertfail_umgebung> to implement its functionality. */
+#define assert(expr) \
+   ((expr) ? (void) 0 : assertfail_umgebung(STR(expr), __FILE__, __LINE__, __FUNCTION__))
 
 
 #endif

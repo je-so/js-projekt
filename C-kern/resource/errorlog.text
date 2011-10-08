@@ -1,25 +1,33 @@
 #
 # printf based error strings for logging
 #
+
+# TODO rename CONDITION_EXPECTED into ERROR_CONDITION_WRONG
 CONDITION_EXPECTED:de: sCondition
 "Die Bedingung (%s) ist nicht wahr (interner Programmfehler)"
 CONDITION_EXPECTED:en: sCondition
 "Expected condition (%s) to be true (internal program error)"
 
+# TODO rename CONTEXT_INFO into ???
 CONTEXT_INFO:de: sContext
 "Bezogen auf den Kontext '%s'"
 CONTEXT_INFO:en: sContext
 "In relation to following context '%s'"
+
+ERROR_ASSERT_FAILED:de: sWrongCondition
+"Assertion '%s' fehlgeschlagen."
+ERROR_ASSERT_FAILED:en: sWrongCondition
+"Assertion '%s' failed."
 
 ERROR_FATAL:de: err
 "Fataler Fehler (err=%d)"
 ERROR_FATAL:en: err
 "Fatal error (err=%d)"
 
-ERROR_LOCATION:de: __FILE__, __LINE__, __FUNCTION__
-"%s:%d: %s(): Fehler: " NONEWLINE
-ERROR_LOCATION:en: __FILE__, __LINE__, __FUNCTION__
-"%s:%d: %s(): error: " NONEWLINE
+ERROR_LOCATION:de: sFile, uLine, sFunction
+"%s:%u: %s(): Fehler: " NONEWLINE
+ERROR_LOCATION:en: sFile, uLine, sFunction
+"%s:%u: %s(): error: " NONEWLINE
 
 FORMAT_MISSING_ENDOFLINE:de: name
 "'%s' enthält kein Zeilenendezeichen ('\n')"

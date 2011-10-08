@@ -36,6 +36,7 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/os/filesystem/mmfile.h"
 
 typedef struct function_t              function_t ;

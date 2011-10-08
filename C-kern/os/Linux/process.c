@@ -86,7 +86,7 @@ ABBRUCH:
    return 127 ;
 }
 
-int new_process(/*out*/process_t ** process, void * child_parameter, int (*child_function) (void * child_parameter))
+int new_process(/*out*/process_t ** process, process_child_f child_function, void * child_parameter)
 {
    int err ;
    pid_t pid ;
@@ -148,7 +148,7 @@ int newexec_process( process_t ** process, const char * filename, const char * c
 
    execparam.inparam.errpipe = pipefd[1] ;
 
-   err = new_process( &childprocess, &execparam, &childprocess_exec) ;
+   err = new_process( &childprocess, &childprocess_exec, &execparam) ;
    if (err) goto ABBRUCH ;
 
    // CHECK exec error
@@ -371,6 +371,7 @@ ABBRUCH:
 
 static int childprocess_return(void * param)
 {
+   kill(getppid(), SIGUSR1) ;
    static_assert(sizeof(void*) >= sizeof(int), "") ;
    return (int) param ;
 }
@@ -378,6 +379,7 @@ static int childprocess_return(void * param)
 static int childprocess_endlessloop(void * param)
 {
    (void) param ;
+   kill(getppid(), SIGUSR1) ;
    for(;;) {
       usleep(1000) ;
    }
@@ -413,10 +415,19 @@ static int test_initfree(void)
    process_t      *  process = 0 ;
    process_result_t  process_result ;
    process_state_e   process_state ;
+   struct timespec   ts              = { 0, 0 } ;
+   bool              isoldsignalmask = false ;
+   sigset_t          oldsignalmask ;
+   sigset_t          signalmask ;
+
+   TEST(0 == sigemptyset(&signalmask)) ;
+   TEST(0 == sigaddset(&signalmask, SIGUSR1)) ;
+   TEST(0 == sigprocmask(SIG_BLOCK, &signalmask, &oldsignalmask)) ;
+   isoldsignalmask = true ;
 
    // TEST init, double free
    TEST(0 == process) ;
-   TEST(0 == new_process(&process, (void*)0, &childprocess_return)) ;
+   TEST(0 == new_process(&process, &childprocess_return, (void*)0)) ;
    TEST(0 != process) ;
    TEST(0 < process->sysid) ;
    TEST(0 == process->status) ;
@@ -428,7 +439,7 @@ static int test_initfree(void)
    // TEST implementation detail
    // status = 0 => Running state => not stopped !
    TEST(0 == process) ;
-   TEST(0 == new_process(&process, (void*)0, &childprocess_return)) ;
+   TEST(0 == new_process(&process, &childprocess_return, (void*)0)) ;
    TEST(0 != process) ;
    TEST(0 == WIFSTOPPED(process->status)) ;
    TEST(EAGAIN == hasstopped_process(process)) ;
@@ -439,7 +450,7 @@ static int test_initfree(void)
    for(int i = 255; i >= 0; i -= 13) {
       // wait_process
       TEST(0 == process) ;
-      TEST(0 == new_process(&process, (void*)i, &childprocess_return)) ;
+      TEST(0 == new_process(&process, &childprocess_return, (void*)i)) ;
       TEST(0 != process) ;
       TEST(0 < process->sysid) ;
       TEST(0 == process->status) ;
@@ -452,13 +463,15 @@ static int test_initfree(void)
       TEST(0 == delete_process(&process)) ;
 
       // hasterminated_process
+      while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
       TEST(0 == process) ;
-      TEST(0 == new_process(&process, (void*)i, &childprocess_return)) ;
+      TEST(0 == new_process(&process, &childprocess_return, (void*)i)) ;
       for(int i2 = 0; i2 < 10000; ++i2) {
          usleep(10) ;
          int err = hasterminated_process(process) ;
          if (0 == hasterminated_process(process)) break ;
          TEST(err == EAGAIN) ;
+         if (2 == i2) TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
       }
       TEST(0 == hasterminated_process(process)) ;
       TEST(0 == process->sysid) ;
@@ -469,13 +482,14 @@ static int test_initfree(void)
       TEST(0 == delete_process(&process)) ;
 
       // hasstopped_process
+      while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
       TEST(0 == process) ;
-      TEST(0 == new_process(&process, (void*)i, &childprocess_return)) ;
+      TEST(0 == new_process(&process, &childprocess_return, (void*)i)) ;
       for(int i2 = 0; i2 < 100; ++i2) {
          usleep(10) ;
-         int err = hasstopped_process(process) ;
-         TEST(err == EAGAIN) ;
+         TEST(EAGAIN == hasstopped_process(process)) ;
          if (0 == process->sysid) break ;
+         if (2 == i2) TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
       }
       TEST(0 == process->sysid) ;
       process_result = (process_result_t) { .hasTerminatedAbnormal = true, .returncode = (i+1) } ;
@@ -490,7 +504,7 @@ static int test_initfree(void)
 
    // TEST double wait (already waited)
    TEST(0 == process) ;
-   TEST(0 == new_process(&process, (void*)11, &childprocess_return)) ;
+   TEST(0 == new_process(&process, &childprocess_return, (void*)11)) ;
    TEST(0 != process) ;
    TEST(0 == wait_process(process, &process_result)) ;
    TEST(0 == process_result.hasTerminatedAbnormal) ;
@@ -507,9 +521,11 @@ static int test_initfree(void)
 
    // TEST endless loop => delete ends process
    for(int i = 0; i < 32; ++i) {
+      while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
       TEST(0 == process) ;
-      TEST(0 == new_process(&process, (void*)0, &childprocess_endlessloop)) ;
+      TEST(0 == new_process(&process, &childprocess_endlessloop, (void*)0)) ;
       TEST(0 != process) ;
+      TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
       TEST(EAGAIN == hasterminated_process(process)) ;
       TEST(EAGAIN == hasstopped_process(process)) ;
       TEST(0 <  process->sysid) ;
@@ -520,7 +536,7 @@ static int test_initfree(void)
 
    // TEST ESRCH
    TEST(0 == process) ;
-   TEST(0 == new_process(&process, (void*)0, &childprocess_return)) ;
+   TEST(0 == new_process(&process, &childprocess_return, (void*)0)) ;
    TEST(0 != process) ;
    TEST(0 == wait_process(process, 0)) ;
    TEST(0 == process->sysid) ;
@@ -530,7 +546,7 @@ static int test_initfree(void)
 
    // TEST ECHILD
    TEST(0 == process) ;
-   TEST(0 == new_process(&process, (void*)0, &childprocess_return)) ;
+   TEST(0 == new_process(&process, &childprocess_return, (void*)0)) ;
    TEST(0 != process) ;
    TEST(0 == wait_process(process, 0)) ;
    process_state = process_state_RUNABLE ;
@@ -543,8 +559,14 @@ static int test_initfree(void)
    TEST(0 == delete_process(&process)) ;
    TEST(0 == process) ;
 
+   while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
+   isoldsignalmask = false ;
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
+
    return 0 ;
 ABBRUCH:
+   while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
+   if (isoldsignalmask) sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
    (void) delete_process(&process) ;
    return EINVAL ;
 }
@@ -572,7 +594,7 @@ static int test_abnormalexit(void)
    for(unsigned i = 0; i < nrelementsof(test_signals); ++i) {
       int snr = test_signals[i] ;
       char buffer[100] = { 0 } ;
-      TEST(0 == new_process(&process, (void*)snr, &childprocess_signal)) ;
+      TEST(0 == new_process(&process, &childprocess_signal, (void*)snr)) ;
       // wait until child has started
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "kill\n")) ;
@@ -595,7 +617,7 @@ static int test_abnormalexit(void)
    for(unsigned i = 0; i < 16; ++i) {
       char buffer[100] = { 0 } ;
       TEST(0 == process) ;
-      TEST(0 == new_process(&process, (void*)0/*no signal is send (special value to kill)*/, &childprocess_signal)) ;
+      TEST(0 == new_process(&process, &childprocess_signal, (void*)0/*no signal is send (special value to kill)*/)) ;
       // wait until child has started
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "kill\n")) ;
@@ -626,44 +648,17 @@ static int test_assert(void)
 {
    process_t      *  process = 0 ;
    process_result_t  process_result ;
-   int               fd_stderr = -1 ;
-   int               pipefd[2] = { -1, -1 } ;
 
-   fd_stderr = dup(STDERR_FILENO) ;
-   TEST(-1 != fd_stderr) ;
-   TEST(0 == pipe2(pipefd,O_CLOEXEC)) ;
-   TEST(-1 != dup2(pipefd[1], STDERR_FILENO)) ;
-
-   TEST(0 == new_process(&process, 0, &chilprocess_execassert)) ;
+   // TEST assert exits with singal SIGABRT
+   TEST(0 == new_process(&process, &chilprocess_execassert, 0)) ;
    TEST(0 == wait_process(process, &process_result)) ;
    TEST(0 != process_result.hasTerminatedAbnormal) ;
    TEST(SIGABRT == process_result.returncode) ;
    TEST(0 == delete_process(&process)) ;
 
-   char buffer[100] = { 0 } ;
-   TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
-   const char * testassert_log = strstr(buffer, __FILE__) ;
-   TEST(0 != testassert_log) ;
-   LOG_STRING(testassert_log) ;
-
-   TEST(-1 != dup2(fd_stderr, STDERR_FILENO)) ;
-   TEST(0 == close(fd_stderr)) ;
-   fd_stderr = -1 ;
-   TEST(0 == close(pipefd[0])) ;
-   pipefd[0] = -1 ;
-   TEST(0 == close(pipefd[1])) ;
-   pipefd[1] = -1 ;
-
    return 0 ;
 ABBRUCH:
    (void) delete_process(&process) ;
-   if (-1 != fd_stderr) {
-      close(fd_stderr) ;
-   }
-   if (-1 != pipefd[0]) {
-      close(pipefd[0]) ;
-      close(pipefd[1]) ;
-   }
    return EINVAL ;
 }
 
@@ -681,7 +676,7 @@ static int test_statequery(void)
       char buffer[100] = { 0 } ;
 
       // use wait_process (to end process)
-      TEST(0 == new_process(&process, (void*)SIGSTOP, &childprocess_signal)) ;
+      TEST(0 == new_process(&process, &childprocess_signal, (void*)SIGSTOP)) ;
       // wait until child has started
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "kill\n")) ;
@@ -702,7 +697,7 @@ static int test_statequery(void)
       TEST(0 == delete_process(&process)) ;
 
       // use delete_process (to end process)
-      TEST(0 == new_process(&process, (void*)SIGSTOP, &childprocess_signal)) ;
+      TEST(0 == new_process(&process, &childprocess_signal, (void*)SIGSTOP)) ;
       // wait until child has started
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "kill\n")) ;
@@ -719,7 +714,7 @@ static int test_statequery(void)
 
    // TEST childprocess_statechange sleeps
    TEST(0 == process) ;
-   TEST(0 == new_process(&process, (void*)0, &childprocess_statechange)) ;
+   TEST(0 == new_process(&process, &childprocess_statechange, (void*)0)) ;
    {
       // wait until child has started
       char buffer[100] = { 0 } ;
@@ -739,7 +734,7 @@ static int test_statequery(void)
 
    // TEST state query returns latest state
    TEST(0 == process) ;
-   TEST(0 == new_process(&process, (void*)0, &childprocess_statechange)) ;
+   TEST(0 == new_process(&process, &childprocess_statechange, (void*)0)) ;
    {
       // wait until child has started
       char buffer[100] = { 0 } ;

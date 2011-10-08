@@ -64,7 +64,7 @@
  * Logs an errorlog text resource.
  * Use <LOG_ERRTEXT> instead of <LOG_TEXTRES> so you
  * do not have to prefix every resource name with "TEXTRES_ERRORLOG_". */
-#define LOG_ERRTEXT( TEXTID )                do {  LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ ## ERROR_LOCATION ) ; \
+#define LOG_ERRTEXT( TEXTID )                do {  LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ERROR_LOCATION(__FILE__, __LINE__, __FUNCTION__)) ; \
                                                    LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ ## TEXTID ) ; \
                                                 }  while(0)
 

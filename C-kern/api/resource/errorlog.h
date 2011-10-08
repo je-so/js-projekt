@@ -11,10 +11,12 @@
         "Die Bedingung (%s) ist nicht wahr (interner Programmfehler)\n", sCondition
 #define TEXTRES_ERRORLOG_CONTEXT_INFO(sContext) \
         "Bezogen auf den Kontext '%s'\n", sContext
+#define TEXTRES_ERRORLOG_ERROR_ASSERT_FAILED(sWrongCondition) \
+        "Assertion '%s' fehlgeschlagen.\n", sWrongCondition
 #define TEXTRES_ERRORLOG_ERROR_FATAL(err) \
         "Fataler Fehler (err=%d)\n", err
-#define TEXTRES_ERRORLOG_ERROR_LOCATION \
-        "%s:%d: %s(): Fehler: ", __FILE__, __LINE__, __FUNCTION__
+#define TEXTRES_ERRORLOG_ERROR_LOCATION(sFile, uLine, sFunction) \
+        "%s:%u: %s(): Fehler: ", sFile, uLine, sFunction
 #define TEXTRES_ERRORLOG_FORMAT_MISSING_ENDOFLINE(name) \
         "'%s' enthält kein Zeilenendezeichen ('\n')\n", name
 #define TEXTRES_ERRORLOG_FORMAT_WRONG(name) \
@@ -57,10 +59,12 @@
         "Expected condition (%s) to be true (internal program error)\n", sCondition
 #define TEXTRES_ERRORLOG_CONTEXT_INFO(sContext) \
         "In relation to following context '%s'\n", sContext
+#define TEXTRES_ERRORLOG_ERROR_ASSERT_FAILED(sWrongCondition) \
+        "Assertion '%s' failed.\n", sWrongCondition
 #define TEXTRES_ERRORLOG_ERROR_FATAL(err) \
         "Fatal error (err=%d)\n", err
-#define TEXTRES_ERRORLOG_ERROR_LOCATION \
-        "%s:%d: %s(): error: ", __FILE__, __LINE__, __FUNCTION__
+#define TEXTRES_ERRORLOG_ERROR_LOCATION(sFile, uLine, sFunction) \
+        "%s:%u: %s(): error: ", sFile, uLine, sFunction
 #define TEXTRES_ERRORLOG_FORMAT_MISSING_ENDOFLINE(name) \
         "'%s' contains no newline ('\n')\n", name
 #define TEXTRES_ERRORLOG_FORMAT_WRONG(name) \
