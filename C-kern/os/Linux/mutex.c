@@ -142,10 +142,9 @@ static ucontext_t    s_thread_usercontext ;
 static volatile int  s_shared_count = 0 ;
 static volatile int  s_shared_wrong = 0 ;
 
-static int thread_loop(osthread_t * context)
+static int thread_loop(mutex_t * mutex)
 {
-   int       err   = 0 ;
-   mutex_t * mutex = (mutex_t *) context->argument ;
+   int err = 0 ;
 
    for(int i = 0 ; i < 1000000; ++i) {
       int v = s_shared_wrong + 1 ;
@@ -160,12 +159,27 @@ static int thread_loop(osthread_t * context)
    return err ;
 }
 
+static int thread_sloop(mutex_t * mutex)
+{
+   int err = 0 ;
+
+   for(int i = 0 ; i < 100000; ++i) {
+      int v = s_shared_wrong + 1 ;
+      slock_mutex(mutex) ;
+      ++ s_shared_count ;
+      sunlock_mutex(mutex) ;
+      if (err) break ;
+      s_shared_wrong = v ;
+   }
+
+   return err ;
+}
+
 static volatile int s_lockmutex_signal = 0 ;
 
-static int thread_lockunlockmutex(osthread_t * context)
+static int thread_lockunlockmutex(mutex_t * mutex)
 {
    int err ;
-   mutex_t * mutex = (mutex_t *) context->argument ;
    err = lock_mutex(mutex) ;
    if (!err) {
       s_lockmutex_signal = 1 ;
@@ -177,18 +191,16 @@ static int thread_lockunlockmutex(osthread_t * context)
    return err ;
 }
 
-static int thread_freemutex(osthread_t * context)
+static int thread_freemutex(mutex_t * mutex)
 {
    int err ;
-   mutex_t * mutex = (mutex_t *) context->argument ;
    err = free_mutex(mutex) ;
    return err ;
 }
 
-static int thread_unlockmutex(osthread_t * context)
+static int thread_unlockmutex(mutex_t * mutex)
 {
    int err ;
-   mutex_t * mutex = (mutex_t *) context->argument ;
    err = unlock_mutex(mutex) ;
    return err ;
 }
@@ -403,6 +415,127 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static void sigabort(int sig)
+{
+   assert(sig == SIGABRT) ;
+   setcontext(&s_thread_usercontext) ;
+}
+
+static int test_mutex_slock(void)
+{
+   mutex_t           mutex   = mutex_INIT_DEFAULT ;
+   osthread_t      * thread1 = 0 ;
+   osthread_t      * thread2 = 0 ;
+   bool              isoldprocmask = false ;
+   volatile bool     isAbort ;
+   sigset_t          oldprocmask ;
+   bool              isoldact = false ;
+   struct sigaction  newact ;
+   struct sigaction  oldact ;
+
+   TEST(0 == sigemptyset(&newact.sa_mask)) ;
+   TEST(0 == sigaddset(&newact.sa_mask,SIGABRT)) ;
+   TEST(0 == sigprocmask(SIG_UNBLOCK,&newact.sa_mask,&oldprocmask)) ;
+   isoldprocmask = true ;
+   sigemptyset(&newact.sa_mask) ;
+   newact.sa_flags   = 0 ;
+   newact.sa_handler = &sigabort ;
+   TEST(0 == sigaction(SIGABRT, &newact, &oldact)) ;
+   isoldact = true ;
+
+   // TEST 2 threads parallel counting: lock, unlock
+   TEST(0 == init_mutex(&mutex)) ;
+   s_shared_count = 0 ;
+   s_shared_wrong = 0 ;
+   TEST(0 == new_osthread(&thread1, &thread_sloop, &mutex)) ;
+   TEST(0 == new_osthread(&thread2, &thread_sloop, &mutex)) ;
+   TEST(0 == join_osthread(thread1)) ;
+   TEST(0 == join_osthread(thread2)) ;
+   TEST(0 == thread1->returncode ) ;
+   TEST(0 == thread2->returncode ) ;
+   TEST(0 == delete_osthread(&thread1)) ;
+   TEST(0 == delete_osthread(&thread2)) ;
+   TEST(200000 == s_shared_count) ;
+   TEST(200000 != s_shared_wrong) ;
+
+   // TEST EDEADLK: calling lock twice is prevented
+   slock_mutex(&mutex) ;
+   isAbort = false ;
+   TEST(0 == getcontext(&s_thread_usercontext)) ;
+   if (!isAbort) {
+      isAbort = 1 ;
+      slock_mutex(&mutex) ;
+      isAbort = 0 ;
+   }
+   TEST(isAbort) ;
+   sunlock_mutex(&mutex) ;
+
+   // TEST EPERM: calling unlock from another thread is prevented
+   s_lockmutex_signal = 0 ;
+   TEST(0 == new_osthread(&thread1, &thread_lockunlockmutex, &mutex)) ;
+   while( ! s_lockmutex_signal ) {
+      pthread_yield() ;
+   }
+   isAbort = false ;
+   TEST(0 == getcontext(&s_thread_usercontext)) ;
+   if (!isAbort) {
+      isAbort = 1 ;
+      sunlock_mutex(&mutex) ;
+      isAbort = 0 ;
+   }
+   TEST(isAbort) ;
+   s_lockmutex_signal = 0 ;
+   TEST(0 == join_osthread(thread1)) ;
+   TEST(0 == thread1->returncode ) ;
+   TEST(0 == delete_osthread(&thread1)) ;
+   // now check that free generates no error
+   TEST(0 == free_mutex(&mutex)) ;
+   TEST(0 == init_mutex(&mutex)) ;
+
+   // TEST EPERM: calling unlock twice is prevented
+   slock_mutex(&mutex) ;
+   sunlock_mutex(&mutex) ;
+   isAbort = false ;
+   TEST(0 == getcontext(&s_thread_usercontext)) ;
+   if (!isAbort) {
+      isAbort = 1 ;
+      sunlock_mutex(&mutex) ;
+      isAbort = 0 ;
+   }
+   TEST(isAbort) ;
+
+   // TEST EINVAL: calling lock, unlock after free generates error
+   TEST(0 == free_mutex(&mutex)) ;
+   isAbort = false ;
+   TEST(0 == getcontext(&s_thread_usercontext)) ;
+   if (!isAbort) {
+      isAbort = 1 ;
+      slock_mutex(&mutex) ;
+      isAbort = 0 ;
+   }
+   TEST(isAbort) ;
+   isAbort = false ;
+   TEST(0 == getcontext(&s_thread_usercontext)) ;
+   if (!isAbort) {
+      isAbort = 1 ;
+      sunlock_mutex(&mutex) ;
+      isAbort = 0 ;
+   }
+   TEST(isAbort) ;
+
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldprocmask, 0)) ;
+   TEST(0 == sigaction(SIGABRT, &oldact, 0)) ;
+
+   return 0 ;
+ABBRUCH:
+   if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
+   if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0) ;
+   free_mutex(&mutex) ;
+   delete_osthread(&thread1) ;
+   delete_osthread(&thread2) ;
+   return EINVAL ;
+}
+
 
 int unittest_os_sync_mutex()
 {
@@ -414,6 +547,7 @@ int unittest_os_sync_mutex()
    if (test_mutex_moveable())    goto ABBRUCH ;
    if (test_mutex_staticinit())  goto ABBRUCH ;
    if (test_mutex_errorcheck())  goto ABBRUCH ;
+   if (test_mutex_slock())       goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

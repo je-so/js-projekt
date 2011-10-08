@@ -96,5 +96,29 @@ extern int lock_mutex(mutex_t * mutex) ;
  * If you try to lock a freed mutex EINVAL is returned. */
 extern int unlock_mutex(mutex_t * mutex) ;
 
+/* function: slock_mutex
+ * Same as <lock_mutex>.
+ * Except that an error leads to a system abort. */
+extern void slock_mutex(mutex_t * mutex) ;
+
+/* function: sunlock_mutex
+ * Same as <unlock_mutex>.
+ * Except that an error leads to a system abort. */
+extern void sunlock_mutex(mutex_t * mutex) ;
+
+
+// section: inline implementations
+
+/* define: slock_mutex
+ * Implements <mutex_t.slock_mutex>.
+ * > do {  int _err = lock_mutex(mutex) ; assert(! _err) ; } while(0) */
+#define slock_mutex(/*mutex_t * */mutex) \
+   do {  int _err_slock_mutex = lock_mutex(mutex) ; assert(! _err_slock_mutex) ; } while(0)
+
+/* define: sunlock_mutex
+ * Implements <mutex_t.sunlock_mutex>.
+ * > do {  int _err = unlock_mutex(mutex) ; assert(! _err) ; } while(0) */
+#define sunlock_mutex(/*mutex_t * */mutex) \
+   do {  int _err_sunlock_mutex = unlock_mutex(mutex) ; assert(! _err_sunlock_mutex) ; } while(0)
 
 #endif
