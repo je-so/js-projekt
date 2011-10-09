@@ -160,7 +160,7 @@ extern void suspend_osthread(void) ;
  * Linux specific:
  * Internally pthread_kill with signal SIGINT is used to wake up a another
  * thread from sleeping. */
-extern int resume_osthread(osthread_t * threadobj) ;
+extern void resume_osthread(osthread_t * threadobj) ;
 
 
 // section: inline implementations

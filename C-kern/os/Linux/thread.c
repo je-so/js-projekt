@@ -644,22 +644,24 @@ void suspend_osthread()
       err = sigwaitinfo(&signalmask, 0) ;
    } while(-1 == err && EINTR == errno) ;
 
-   assert(-1 != err) ;
+   if (-1 == err) {
+      err = errno ;
+      LOG_SYSERR("sigwaitinfo", err) ;
+      LOG_FATAL(err) ;
+      abort_umgebung() ;
+   }
 }
 
-int resume_osthread(osthread_t * threadobj)
+void resume_osthread(osthread_t * threadobj)
 {
    int err ;
 
    err = pthread_kill(threadobj->sys_thread, SIGINT) ;
    if (err) {
       LOG_SYSERR("pthread_kill", err) ;
-      goto ABBRUCH ;
+      LOG_FATAL(err) ;
+      abort_umgebung() ;
    }
-
-   return 0 ;
-ABBRUCH:
-   return err ;
 }
 
 
@@ -1523,9 +1525,8 @@ static int thread_suspend(int signr)
 
 static int thread_resume(osthread_t * receiver)
 {
-   int err ;
-   err = resume_osthread(receiver) ;
-   return err ;
+   resume_osthread(receiver) ;
+   return 0 ;
 }
 
 static int thread_suspend2(int signr)
@@ -1548,7 +1549,7 @@ static int test_thread_suspendresume(void)
    TEST(0 == new_osthread(&thread1, thread_suspend, 0)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;
    TEST(EAGAIN == trywait_rtsignal(1)) ;
-   TEST(0 == resume_osthread(thread1)) ;
+   resume_osthread(thread1) ;
    TEST(0 == join_osthread(thread1)) ;
    TEST(0 == returncode_osthread(thread1)) ;
    TEST(0 == trywait_rtsignal(1)) ;
@@ -1575,8 +1576,8 @@ static int test_thread_suspendresume(void)
    TEST(EAGAIN == trywait_rtsignal(1)) ;
    TEST(0 == new_osthread(&thread1, thread_suspend2, 0)) ;
    TEST(0 == new_osthread(&thread2, thread_suspend2, 0)) ;
-   TEST(0 == resume_osthread(thread1)) ;
-   TEST(0 == resume_osthread(thread2)) ;
+   resume_osthread(thread1) ;
+   resume_osthread(thread2) ;
    TEST(0 == send_rtsignal(0)) ; // start threads
    TEST(0 == send_rtsignal(0)) ;
    TEST(0 == join_osthread(thread1)) ;
@@ -1588,9 +1589,9 @@ static int test_thread_suspendresume(void)
 
    // TEST: main resumes itself
    //       test that resume is preserved even for myself !
-   TEST(0 == resume_osthread(self_osthread())) ;
+   resume_osthread(self_osthread()) ;
    suspend_osthread() ;
-   TEST(0 == resume_osthread(self_osthread())) ;
+   resume_osthread(self_osthread()) ;
    suspend_osthread() ;
 
    return 0 ;
