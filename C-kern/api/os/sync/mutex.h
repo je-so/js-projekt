@@ -26,8 +26,13 @@
 #define CKERN_OS_SYNCHRONIZATION_MUTEX_HEADER
 
 /* typedef: mutex_t typedef
- * Export <mutex_t>. */
-typedef struct mutex_t           mutex_t ;
+ * Exports <mutex_t> which describes a mutual exclusion lock.
+ * This thread safe object is used to protect a critical section
+ * of code against simultaneous execution by several threads.
+ * Use <lock_mutex> before entering a critical section of code
+ * and use <unlock_mutex> just before you leave it.
+ * This mutex can only be used in the same process. */
+typedef sys_mutex_t                 mutex_t ;
 
 
 // section: Functions
@@ -41,16 +46,7 @@ extern int unittest_os_sync_mutex(void) ;
 #endif
 
 
-/* struct: mutex_t
- * Describes a mutual exclusion lock.
- * This thread safe object is used to protect a critical section
- * of code against simultaneous execution by several threads.
- * Use <lock_mutex> before entering a critical section of code
- * and use <unlock_mutex> just before you leave it.
- * This mutex can only be used in the same process. */
-struct mutex_t {
-   sys_mutex_t    sys_mutex ;
-} ;
+// section: mutex_t
 
 // group: lifetime
 
@@ -63,7 +59,7 @@ struct mutex_t {
  * 3. Unlocking a mutex locked by a different thread works. It is the same as if the thread which holds the lock calls unlock.
  * 4. Unlocking an already unlocked mutex is unspecified. So never do it.
  * TODO: !!! Implement user threads and user threads compatible mutex which has *SPECIFIED* behaviour !!! */
-#define mutex_INIT_DEFAULT       { .sys_mutex = sys_mutex_INIT_DEFAULT }
+#define mutex_INIT_DEFAULT          sys_mutex_INIT_DEFAULT
 
 /* function: init_mutex
  * Initializer for a mutex with error checking.

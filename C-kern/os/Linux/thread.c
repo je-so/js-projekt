@@ -67,7 +67,7 @@ struct osthread_startargument_t {
 /* variable: gt_self_osthread
  * Refers for every thread to the osthread_t variable.
  * Is is located on the thread stack so no additional memory is needed. */
-__thread  osthread_t       gt_self_osthread        = { 0, 0, sys_thread_INIT_FREEABLE, 0, 0, memoryblock_aspect_INIT_FREEABLE, 0, 0 } ;
+__thread  osthread_t       gt_self_osthread        = { sys_mutex_INIT_DEFAULT, 0, 0, sys_thread_INIT_FREEABLE, 0, 0, memoryblock_aspect_INIT_FREEABLE, 0, 0 } ;
 
 /* variable: s_offset_osthread
  * Contains the calculated offset from start of stack thread to &<gt_self_osthread>. */
@@ -349,7 +349,9 @@ int initonce_osthread()
    void            * offset            = 0 ;
 
    // init main osthread_t
-   if (!gt_self_osthread.groupnext ) {
+   if (!gt_self_osthread.groupnext) {
+      err = init_mutex(&gt_self_osthread.lock) ;
+      if (err) goto ABBRUCH ;
       gt_self_osthread.sys_thread = pthread_self() ;
       gt_self_osthread.nr_threads = 1 ;
       gt_self_osthread.groupnext  = &gt_self_osthread ;
@@ -427,6 +429,13 @@ int delete_osthread(osthread_t ** threadobj)
 
    err2 = join_osthread(osthread) ;
    if (err2) err = err2 ;
+
+   osthread_t * nextthread = osthread ;
+   do {
+      err2 = free_mutex(&nextthread->lock) ;
+      if (err2) err = err2 ;
+      nextthread = nextthread->groupnext ;
+   } while( osthread != nextthread ) ;
 
    err2 = free_osthreadstack(&stackframe) ;
    if (err2) err = err2 ;
@@ -525,6 +534,11 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main,
       }
 
       // init osthread_t fields
+      err = init_mutex(&next_osthread->lock) ;
+      if (err) {
+         LOG_CALLERR("init_mutex",err) ;
+         goto UNDO_LOOP ;
+      }
       next_osthread->wlistnext   = 0 ;
       next_osthread->command     = thread_argument ;
       next_osthread->sys_thread  = sys_thread ;
@@ -1601,6 +1615,104 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static int thread_lockunlock(osthread_t * mainthread)
+{
+   int err ;
+   err = send_rtsignal(0) ;
+   assert(!err) ;
+   lock_osthread(mainthread) ;
+   mainthread->command = (void*) (1 + (int) mainthread->command) ;
+   err = send_rtsignal(1) ;
+   assert(!err) ;
+   err = wait_rtsignal(2, 1) ;
+   assert(!err) ;
+   unlock_osthread(mainthread) ;
+   err = send_rtsignal(3) ;
+   assert(!err) ;
+   return 0 ;
+}
+
+static int thread_doublelock(int err)
+{
+   LOG_CONFIG_BUFFERED(true) ;
+   lock_osthread(self_osthread()) ;
+   err = lock_mutex(&self_osthread()->lock) ;
+   unlock_osthread(self_osthread()) ;
+   LOG_CLEARBUFFER() ;
+   return err ;
+}
+
+static int thread_doubleunlock(int err)
+{
+   LOG_CONFIG_BUFFERED(true) ;
+   lock_osthread(self_osthread()) ;
+   unlock_osthread(self_osthread()) ;
+   err = unlock_mutex(&self_osthread()->lock) ;
+   LOG_CLEARBUFFER() ;
+   return err ;
+}
+
+static int test_thread_lockunlock(void)
+{
+   osthread_t * thread = 0 ;
+
+   // TEST: lock on main thread protects access
+   TEST(EAGAIN == trywait_rtsignal(0)) ;
+   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(EAGAIN == trywait_rtsignal(2)) ;
+   lock_osthread(self_osthread()) ;
+   self_osthread()->command = 0 ;
+   TEST(0 == newgroup_osthread(&thread, thread_lockunlock, self_osthread(), 99)) ;
+   TEST(0 == wait_rtsignal(0, 99)) ;
+   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(EAGAIN == trywait_rtsignal(3)) ;
+   unlock_osthread(self_osthread()) ;
+   for(int i = 0; i < 99; ++i) {
+      TEST(0 == wait_rtsignal(1, 1)) ;
+      void * volatile * cmdaddr = & (self_osthread()->command) ;
+      TEST(1+i == (int)(*cmdaddr)) ;
+      TEST(EAGAIN == trywait_rtsignal(1)) ;
+      TEST(EAGAIN == trywait_rtsignal(3)) ;
+      TEST(0 == send_rtsignal(2)) ;
+      TEST(0 == wait_rtsignal(3, 1)) ;
+      TEST(EAGAIN == trywait_rtsignal(3)) ;
+   }
+   TEST(0 == join_osthread(thread)) ;
+   TEST(0 == delete_osthread(&thread)) ;
+   self_osthread()->command = 0 ;
+
+   // TEST EDEADLK: calling lock twice is prevented
+   lock_osthread(self_osthread()) ;
+   TEST(EDEADLK == lock_mutex(&self_osthread()->lock)) ;
+   unlock_osthread(self_osthread()) ;
+   TEST(0 == new_osthread(&thread, thread_doublelock, 0)) ;
+   TEST(0 == join_osthread(thread)) ;
+   TEST(EDEADLK == returncode_osthread(thread)) ;
+   TEST(0 == delete_osthread(&thread)) ;
+
+   // TEST EPERM: calling unlock twice is prevented
+   lock_osthread(self_osthread()) ;
+   unlock_osthread(self_osthread()) ;
+   TEST(EPERM == unlock_mutex(&self_osthread()->lock)) ;
+   TEST(0 == new_osthread(&thread, thread_doubleunlock, 0)) ;
+   TEST(0 == join_osthread(thread)) ;
+   TEST(EPERM == returncode_osthread(thread)) ;
+   TEST(0 == delete_osthread(&thread)) ;
+
+   return 0 ;
+ABBRUCH:
+   for(int i = 0; i < 99; ++i) {
+      send_rtsignal(2) ;
+   }
+   delete_osthread(&thread) ;
+   while( 0 == trywait_rtsignal(0) ) ;
+   while( 0 == trywait_rtsignal(1) ) ;
+   while( 0 == trywait_rtsignal(2) ) ;
+   while( 0 == trywait_rtsignal(3) ) ;
+   self_osthread()->command = 0 ;
+   return EINVAL ;
+}
+
 int unittest_os_thread()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -1618,6 +1730,7 @@ int unittest_os_thread()
    if (test_thread_array())            goto ABBRUCH ;
    if (test_thread_signal())           goto ABBRUCH ;
    if (test_thread_suspendresume())    goto ABBRUCH ;
+   if (test_thread_lockunlock())       goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

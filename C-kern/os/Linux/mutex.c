@@ -56,8 +56,9 @@ int init_mutex(mutex_t * mutex)
    err    = pthread_mutexattr_destroy(&attr) ;
    if (err) goto ABBRUCH ;
 
-   static_assert(sizeof(mutex->sys_mutex) == sizeof(sys_mutex), "copy is valid") ;
-   memcpy(&mutex->sys_mutex, (const void*)&sys_mutex, sizeof(mutex->sys_mutex)) ;
+   static_assert(sizeof(*mutex) == sizeof(sys_mutex), "copy is valid") ;
+   static_assert((typeof(mutex))0 == (typeof(sys_mutex)*)0, "copy is valid") ;
+   memcpy(mutex, (const void*)&sys_mutex, sizeof(sys_mutex)) ;
 
    return 0 ;
 ABBRUCH:
@@ -73,7 +74,7 @@ int free_mutex(mutex_t * mutex)
 {
    int err ;
 
-   err = pthread_mutex_destroy(&mutex->sys_mutex) ;
+   err = pthread_mutex_destroy(mutex) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -86,7 +87,7 @@ int lock_mutex(mutex_t * mutex)
 {
    int err ;
 
-   err = pthread_mutex_lock(&mutex->sys_mutex) ;
+   err = pthread_mutex_lock(mutex) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -99,7 +100,7 @@ int unlock_mutex(mutex_t * mutex)
 {
    int err ;
 
-   err = pthread_mutex_unlock(&mutex->sys_mutex) ;
+   err = pthread_mutex_unlock(mutex) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;

@@ -53,8 +53,20 @@ extern int unittest_os_thread(void) ;
 
 
 /* struct: osthread_t
- * Describes a system thread. */
+ * Describes a system thread.
+ *
+ * Attention:
+ * Never forget to lock / unlock a thread object before you access
+ * the fields which can be changed by other threads.
+ * This ensures that you read a consistent state and that on some
+ * architectures proper read and write barriers are executed.
+ *
+ * Use <lock_osthread> and <unlock_osthread> for that matter. */
 struct osthread_t {
+   /* variable: lock
+    * Protects access to fields of <osthread_t>.
+    * Use it before you read fields which are updated by another thread. */
+   sys_mutex_t       lock ;
    /* variable: wlistnext
     * Points to next thread which waits on the same condition in <waitlist_t>. */
    osthread_t      * wlistnext ;
@@ -130,6 +142,26 @@ extern osthread_t * self_osthread(void) ;
  * 0 is returned in case the thread has not already been joined. */
 extern int returncode_osthread(const osthread_t * threadobj) ;
 
+/* function: command_osthread
+ * Reads <command> field of <osthread_t> structure. */
+extern void * command_osthread(const osthread_t * threadobj) ;
+
+// group: change lock
+
+/* function: lock_osthread
+ * Locks thread object before fields can be accessed.
+ *
+ * Attention:
+ * Never forget to lock / unlock a thread object before you access
+ * the fields which can be changed by other threads. This ensures
+ * that you read a consistent state and that on some architectures
+ * proper read and write barriers are executed. */
+extern void lock_osthread(osthread_t * threadobj) ;
+
+/* function: unlock_osthread
+ * Unlocks thread object after access to fields is finished. */
+extern void unlock_osthread(osthread_t * threadobj) ;
+
 // group: change
 
 /* function: join_osthread
@@ -165,17 +197,17 @@ extern void resume_osthread(osthread_t * threadobj) ;
 
 // section: inline implementations
 
-/* define: self_osthread
- * Implements <osthread_t.self_osthread>.
- * > (&gt_self_osthread) */
-#define self_osthread() \
-   (&gt_self_osthread)
+/* define: command_osthread
+ * Implements <osthread_t.command_osthread>.
+ * > ((threadobj)->command) */
+#define command_osthread(threadobj) \
+   ((threadobj)->command)
 
-/* define: returncode_osthread
- * Implements <osthread_t.returncode_osthread>.
- * > (threadobj)->returncode */
-#define /*int*/ returncode_osthread(/*const osthread_t * */threadobj) \
-   ((threadobj)->returncode)
+/* define: lock_osthread
+ * Implements <osthread_t.lock_osthread>.
+ * Do not forget to include C-kern/api/os/sync/mutex.h before using <lock_osthread>. */
+#define lock_osthread(threadobj) \
+   slock_mutex(&(threadobj)->lock)
 
 /* define: new_osthread
  * Implements <osthread_t.new_osthread>.
@@ -193,6 +225,24 @@ extern void resume_osthread(osthread_t * threadobj) ;
       _err = newgroup_osthread(threadobj, (thread_main_f) _thread_main,          \
                               (void*) thread_argument, nr_of_threads) ;          \
       _err ; }))
+
+/* define: returncode_osthread
+ * Implements <osthread_t.returncode_osthread>.
+ * > (threadobj)->returncode */
+#define /*int*/ returncode_osthread(threadobj) \
+   ((threadobj)->returncode)
+
+/* define: self_osthread
+ * Implements <osthread_t.self_osthread>.
+ * > (&gt_self_osthread) */
+#define self_osthread() \
+   (&gt_self_osthread)
+
+/* define: unlock_osthread
+ * Implements <osthread_t.unlock_osthread>.
+ * Do not forget to include C-kern/api/os/sync/mutex.h before using <unlock_osthread>. */
+#define unlock_osthread(threadobj) \
+   sunlock_mutex(&(threadobj)->lock)
 
 // group: KONFIG_SUBSYS
 

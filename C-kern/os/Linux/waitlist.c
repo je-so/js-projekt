@@ -47,14 +47,19 @@ slist_IMPLEMENT(wlist, wlistnext, void)
 static int wakupfirst_nolock_waitlist(waitlist_t * wlist, void * command)
 {
    int err ;
+
    osthread_t * thread = first_wlist(wlist) ;
+
+   lock_osthread(thread) ;
 
    thread->command = command ;
 
    err = removefirst_wlist(wlist, &thread) ;
    assert(!err) ;
-
    assert(!thread->wlistnext /*indicates that command is valid*/) ;
+
+   unlock_osthread(thread) ;
+
    resume_osthread(thread) ;
 
    return 0 ;
@@ -72,7 +77,8 @@ int init_waitlist(/*out*/waitlist_t * wlist)
    err = init_mutex(&wlist->lock) ;
    if (err) goto ABBRUCH ;
 
-   *(slist_t*)wlist = (slist_t) slist_INIT ;
+   err = init_wlist(wlist) ;
+   assert(!err) ;
 
    return 0 ;
 ABBRUCH:
@@ -118,9 +124,13 @@ int wait_waitlist(waitlist_t * wlist)
    sunlock_mutex(&wlist->lock) ;
    if (err) goto ABBRUCH ;
 
+   bool isSpuriousWakeup ;
    do {
       suspend_osthread() ;
-   } while( ((volatile osthread_t*)self)->wlistnext ) ;
+      lock_osthread(self) ;
+      isSpuriousWakeup = (0 != self->wlistnext) ;
+      unlock_osthread(self) ;
+   } while( isSpuriousWakeup ) ;
 
    return 0 ;
 ABBRUCH:
@@ -228,6 +238,7 @@ static int test_initfree(void)
          if (next->wlistnext) break ;
          pthread_yield() ;
       }
+      TEST(next->wlistnext) ;
       next = next->groupnext ;
       TEST(next) ;
    }
@@ -296,7 +307,17 @@ static int test_initfree(void)
       next = next->groupnext ;
       TEST(next) ;
    }
-   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   next = thread ;
+   for(int i = 0; i < 20; ++i) {
+      for(int i2 = 0; i2 < 1000000; ++i2) {
+         TEST(EAGAIN == trywait_rtsignal(1)) ;
+         if (next->wlistnext) break ;
+         pthread_yield() ;
+      }
+      TEST(next->wlistnext) ;
+      next = next->groupnext ;
+      TEST(next) ;
+   }
    TEST(0 == free_waitlist(&wlist)) ;
    TEST(0 == wlist.last) ;
    TEST(0 == wait_rtsignal(1, 20)) ;
