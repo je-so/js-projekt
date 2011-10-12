@@ -43,9 +43,9 @@
   <VirtualDirectory Name="umgebung">
     <File Name="../../C-kern/umgebung/README"/>
     <File Name="../../C-kern/umgebung/umgebung.c"/>
-    <File Name="../../C-kern/umgebung/umgebung_initdefault.c"/>
-    <File Name="../../C-kern/umgebung/umgebung_inittestproxy.c"/>
     <File Name="../../C-kern/umgebung/testerror.c"/>
+    <File Name="../../C-kern/umgebung/umgtype_default.c"/>
+    <File Name="../../C-kern/umgebung/umgtype_test.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/api/execCcompiler.h"/>
@@ -61,9 +61,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="resource">
       <File Name="../../C-kern/api/resource/errorlog.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="umgebung">
-      <File Name="../../C-kern/api/umgebung/testerror.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/konfig.h"/>
     <VirtualDirectory Name="adapter">
@@ -173,6 +170,11 @@
       <File Name="../../C-kern/api/errhandling/assert.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
+    <VirtualDirectory Name="umg">
+      <File Name="../../C-kern/api/umg/testerror.h"/>
+      <File Name="../../C-kern/api/umg/umgtype_default.h"/>
+      <File Name="../../C-kern/api/umg/umgtype_test.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="../../C-kern/test/run_statictest.sh"/>
@@ -322,14 +324,6 @@
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
       
-      
-      
-      
-      
-      
-      
-      
-      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -367,14 +361,6 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
-      
-      
-      
-      
-      
-      
-      
-      
       
       ]]>
       </Environment>

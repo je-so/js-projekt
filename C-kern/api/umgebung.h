@@ -19,11 +19,8 @@
    file: C-kern/api/umgebung.h
     Header file of <Umgebung>.
 
-   file: C-kern/umgebung/umgebung_initdefault.c
-    Implementation file <Umgebung Default>.
-
-   file: C-kern/umgebung/umgebung_inittestproxy.c
-    Implementation file of <Umgebung Testproxy>.
+   file: C-kern/umgebung/umgebung.c
+    Implementation file <Umgebung impl>.
 */
 #ifndef CKERN_API_UMGEBUNG_HEADER
 #define CKERN_API_UMGEBUNG_HEADER
@@ -45,7 +42,7 @@ typedef struct umgebung_t           umgebung_t ;
  * umgebung_type_STATIC  - An implementation which is configured by a static initializer.
  *                         Only the log service is supported.
  *                         This configuration is default at program startup and can not be
- *                         set with a call to <init_process_umgebung>.
+ *                         set with a call to <initprocess_umgebung>.
  * umgebung_type_DEFAULT - Default production ready implementation.
  * umgebung_type_TEST    - Implements functionality without use of internal components but only with help of
  *                         C library calls. This ensures that software components which depends on <umgebung_t>
@@ -75,13 +72,8 @@ extern __thread struct umgebung_t   gt_umgebung ;
 /* function: unittest_umgebung
  * Test initialization process succeeds and global variables are set correctly. */
 extern int unittest_umgebung(void) ;
-/* function: unittest_umgebung_initdefault
- * Test initialization thread with default impl. succeeds. */
-extern int unittest_umgebung_initdefault(void) ;
-/* function: unittest_umgebung_inittestproxy
- * Test initialization thread with test impl. succeeds. */
-extern int unittest_umgebung_inittestproxy(void) ;
 #endif
+
 
 /* struct: umgebung_t
  * Defines top level context for all software modules.
@@ -106,7 +98,7 @@ struct umgebung_t {
 
 /* define: umgebung_INIT_MAINSERVICES
  * Static initializer for <umgebung_t>.
- * This ensures that in the main even without calling <init_process_umgebung> first
+ * This ensures that in the main even without calling <initprocess_umgebung> first
  * the global log service is available.
  *
  * This initializer is used internally. It is reserved to be used
@@ -126,7 +118,7 @@ struct umgebung_t {
  * The only service which works without calling this function is logging.
  *
  * Background:
- * This function calls call initprocess_NAME functions in the same order
+ * This function calls all initprocess_NAME functions in the same order
  * as defined in "C-kern/resource/text.db/initprocess".
  * This init database is checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
@@ -177,7 +169,7 @@ extern void abort_umgebung(void) ;
  * Exits the whole process in a controlled manner.
  * writes »Assertion failed« to log and calls <abort_umgebung>.
  *
- * Do not call <assertfail_umgebung> directly instead use the <assert> macro. */
+ * Do not call <assertfail_umgebung> directly use the <assert> macro instead. */
 extern void assertfail_umgebung(const char * condition, const char * file, unsigned line, const char * funcname) ;
 
 // group: query
@@ -197,16 +189,6 @@ extern struct objectcache_t *    objectcache_umgebung(void) ;
 /* function: valuecache_umgebung
  * Returns cache for precomputed values of type <valuecache_t> for the current thread. */
 extern struct valuecache_t *    valuecache_umgebung(void) ;
-
-// group: internal
-
-/* function: initdefault_umgebung
- * Is called from <init_umgebung> if type is set to umgebung_type_DEFAULT. */
-extern int initdefault_umgebung(/*out*/umgebung_t * umg) ;
-
-/* function: inittestproxy_umgebung
- * Is called from <init_umgebung> if type is set to umgebung_type_TEST. */
-extern int inittestproxy_umgebung(/*out*/umgebung_t * umg) ;
 
 
 // section: inline implementations

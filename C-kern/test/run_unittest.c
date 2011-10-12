@@ -52,6 +52,8 @@
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/string/converter.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/umg/umgtype_default.h"
+#include "C-kern/api/umg/umgtype_test.h"
 
 
 
@@ -248,8 +250,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 //{ umgebung unittest
    RUN(unittest_umgebung) ;
-   RUN(unittest_umgebung_initdefault) ;
-   RUN(unittest_umgebung_inittestproxy) ;
+   RUN(unittest_umgebung_typedefault) ;
+   RUN(unittest_umgebung_typetest) ;
 //}
 
 //{ cache unittest

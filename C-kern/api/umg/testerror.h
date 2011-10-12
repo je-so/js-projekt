@@ -16,7 +16,7 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umgebung/testerror.h
+   file: C-kern/api/umg/testerror.h
     Header file of <UmgebungTestError>.
 
    file: C-kern/umgebung/testerror.c

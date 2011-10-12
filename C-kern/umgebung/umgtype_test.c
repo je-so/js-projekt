@@ -1,5 +1,5 @@
-/* title: Umgebung Testproxy
-   Implements <inittestproxy_umgebung>, <freetestproxy_umgebung>.
+/* title: Test-Umgebung impl
+   Implements <inittest_umgebung>, <freetest_umgebung>.
 
    about: Copyright
    This program is free software.
@@ -16,26 +16,28 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umgebung.h
-    Header file of <Umgebung>.
+   file: C-kern/api/umg/umgtype_test.h
+    Header file of <Test-Umgebung>.
 
-   file: C-kern/umgebung/umgebung_inittestproxy.c
-    Implementation file <Umgebung Testproxy>.
+   file: C-kern/umgebung/umgtype_test.c
+    Implementation file <Test-Umgebung impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/umgebung.h"
+#include "C-kern/api/umg/umgtype_test.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/cache/valuecache.h"
-#include "C-kern/api/umgebung/testerror.h"
+#include "C-kern/api/umg/testerror.h"
 #include "C-kern/api/writer/log.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
+#undef freetest_umgebung
+#undef inittest_umgebung
 
-int freetestproxy_umgebung(umgebung_t * umg)
+int freetest_umgebung(umgebung_t * umg)
 {
    int err = 0 ;
    int err2 ;
@@ -63,13 +65,13 @@ ABBRUCH:
    return err ;
 }
 
-int inittestproxy_umgebung(umgebung_t * umg)
+int inittest_umgebung(umgebung_t * umg)
 {
    int err ;
 
    MEMSET0(umg) ;
    umg->type            = umgebung_type_TEST ;
-   umg->free_umgebung   = &freetestproxy_umgebung ;
+   umg->free_umgebung   = &freetest_umgebung ;
    umg->log             = &g_main_logservice ;
 
    err = initumgebung_valuecache(&umg->valuecache) ;
@@ -86,33 +88,34 @@ int inittestproxy_umgebung(umgebung_t * umg)
 
    return 0 ;
 ABBRUCH:
-   (void) freetestproxy_umgebung(umg) ;
+   (void) freetest_umgebung(umg) ;
    LOG_ABORT(err) ;
    return err ;
 }
 
+
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_inittestproxy,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_typetest,ABBRUCH)
 
-static int test_init(void)
+static int test_initfree(void)
 {
    umgebung_t umg ;
 
    // TEST init, double free
    MEMSET0(&umg) ;
-   TEST(0 == inittestproxy_umgebung(&umg)) ;
-   TEST(umgebung_type_TEST       == umg.type) ;
-   TEST(0                        == umg.resource_count) ;
-   TEST(&freetestproxy_umgebung  == umg.free_umgebung) ;
-   TEST(0 == freetestproxy_umgebung(&umg)) ;
+   TEST(0 == inittest_umgebung(&umg)) ;
+   TEST(umgebung_type_TEST  == umg.type) ;
+   TEST(0                   == umg.resource_count) ;
+   TEST(&freetest_umgebung  == umg.free_umgebung) ;
+   TEST(0 == freetest_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
    TEST(0 != umg.log) ;
    TEST(0 == umg.objectcache) ;
    TEST(0 == umg.valuecache) ;
-   TEST(0 == freetestproxy_umgebung(&umg)) ;
+   TEST(0 == freetest_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
@@ -124,7 +127,7 @@ static int test_init(void)
    for(int err = EINVAL; err < EINVAL+2; ++err) {
       setiniterror_umgebungtesterror(err) ;
       umg = (umgebung_t) umgebung_INIT_FREEABLE ;
-      TEST(err == inittestproxy_umgebung(&umg)) ;
+      TEST(err == inittest_umgebung(&umg)) ;
       TEST(0 == umg.type) ;
       TEST(0 == umg.resource_count) ;
       TEST(0 == umg.free_umgebung) ;
@@ -140,9 +143,9 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_umgebung_inittestproxy()
+int unittest_umgebung_typetest()
 {
-   if (test_init()) goto ABBRUCH ;
+   if (test_initfree()) goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:

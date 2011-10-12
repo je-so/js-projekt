@@ -1,4 +1,4 @@
-/* title: Umgebung Default
+/* title: Default-Umgebung impl
    Implements <initdefault_umgebung>, <freedefault_umgebung>.
 
    about: Copyright
@@ -16,36 +16,30 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umgebung.h
-    Header file of <Umgebung>.
+   file: C-kern/api/umg/umgtype_default.h
+    Header file of <Default-Umgebung>.
 
-   file: C-kern/umgebung/umgebung_initdefault.c
-    Implementation file of <Umgebung Default>.
+   file: C-kern/umgebung/umgtype_default.c
+    Implementation file of <Default-Umgebung impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/umgebung.h"
+#include "C-kern/api/umg/umgtype_default.h"
 #include "C-kern/api/err.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/writer/log.h"
-#include "C-kern/api/umgebung/testerror.h"
+#include "C-kern/api/umg/testerror.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
-/* typedef: typedef resource_registry_t
- * Shortcut for <resource_registry_t>. */
-typedef struct resource_registry_t  resource_registry_t ;
 
-/* typedef: typedef umgebung_private_t
- * Shortcut for <umgebung_private_t>. */
-typedef struct umgebung_private_t   umgebung_private_t ;
+// section: umgebung_type_default
 
-
-// section: Implementation
+// group: helper
 
 static int free_thread_resources(umgebung_t * umg)
 {
@@ -108,9 +102,9 @@ ABBRUCH:
    return err ;
 }
 
-// section: Implementation
+// group: implementation
 
-static int freedefault_umgebung(umgebung_t * umg)
+int freedefault_umgebung(umgebung_t * umg)
 {
    int err ;
 
@@ -151,9 +145,9 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_initdefault,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung_typedefault,ABBRUCH)
 
-static int test_init(void)
+static int test_initfree(void)
 {
    umgebung_t umg = umgebung_INIT_FREEABLE ;
 
@@ -202,13 +196,13 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_umgebung_initdefault()
+int unittest_umgebung_typedefault()
 {
-   if (test_init())   goto ABBRUCH ;
+   if (test_initfree())   goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   return EINVAL ;
 }
 
 #endif

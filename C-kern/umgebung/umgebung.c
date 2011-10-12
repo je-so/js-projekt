@@ -20,7 +20,7 @@
     Header file of <Umgebung>.
 
    file: C-kern/umgebung/umgebung.c
-    Implementation file of <Umgebung impl>.
+    Implementation file <Umgebung impl>.
 */
 
 #include "C-kern/konfig.h"
@@ -28,6 +28,8 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/umg/umgtype_default.h"
+#include "C-kern/api/umg/umgtype_test.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initprocess)WHERE(subsystem==''||subsystem=='X11')
 #include "C-kern/api/os/locale.h"
 #include "C-kern/api/cache/valuecache.h"
@@ -39,7 +41,7 @@
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/umgebung/testerror.h"
+#include "C-kern/api/umg/testerror.h"
 #endif
 
 
@@ -166,7 +168,7 @@ int init_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
    switch(implementation_type) {
    case umgebung_type_STATIC:    assert(0) ; break ;
    case umgebung_type_DEFAULT:   err = initdefault_umgebung(umg) ; break ;
-   case umgebung_type_TEST:      err = inittestproxy_umgebung(umg) ; break ;
+   case umgebung_type_TEST:      err = inittest_umgebung(umg) ; break ;
    }
 
    if (err) goto ABBRUCH ;
@@ -459,35 +461,35 @@ int unittest_umgebung()
 
       if (strcmp( buffer, "implementation_type=0\n"
                            // log from test_process_init
-                           "C-kern/umgebung/umgebung.c:176: init_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
                            "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung.c:225: initprocess_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
                            "Function aborted (err=22)\n"
                            "implementation_type=3\n"
-                           "C-kern/umgebung/umgebung.c:176: init_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
                            "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung.c:225: initprocess_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
                            "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung_initdefault.c:107: init_thread_resources(): error: "
+                           "C-kern/umgebung/umgtype_default.c:101: init_thread_resources(): error: "
                            "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung_initdefault.c:147: initdefault_umgebung(): error: "
+                           "C-kern/umgebung/umgtype_default.c:141: initdefault_umgebung(): error: "
                            "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:176: init_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
                            "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:225: initprocess_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
                            "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung_inittestproxy.c:90: inittestproxy_umgebung(): error: "
+                           "C-kern/umgebung/umgtype_test.c:92: inittest_umgebung(): error: "
                            "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:176: init_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
                            "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:225: initprocess_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
                            "Function aborted (err=13)\n"
                            // log from test_umgebung_init
                            "implementation_type=0\n"
-                           "C-kern/umgebung/umgebung.c:176: init_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
                            "Function aborted (err=22)\n"
                            "implementation_type=3\n"
-                           "C-kern/umgebung/umgebung.c:176: init_umgebung(): error: "
+                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
                            "Function aborted (err=22)\n"
                            )) {
          printf("buffer=-----\n%s-----\n",buffer) ;
@@ -523,4 +525,3 @@ ABBRUCH:
 }
 
 #endif
-

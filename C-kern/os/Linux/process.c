@@ -701,7 +701,7 @@ static int test_statequery(void)
       // wait until child has started
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "kill\n")) ;
-      for(int i2 = 0; i2 < 100; ++i2) {
+      for(int i2 = 0; i2 < 1000; ++i2) {
          int err = hasstopped_process(process) ;
          if (0 == err) break ;
          TEST(EAGAIN == err) ;

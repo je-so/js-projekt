@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.03  08:24:36
+GenerationDate  := 2011.Oct.12  06:58:04
 GeneratedBy     := JE-SO
 
 ## Release
@@ -48,7 +48,7 @@ $(sort $(ObjectDir_Release) $(TargetDir_Release)):
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!signal.c.o
 
 $(Target_Release): $(Objects_Release)
@@ -57,7 +57,7 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung_initdefault.c.o: C-kern/umgebung/umgebung_initdefault.c
+$(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!signal.c.o: C-kern/os/Linux/signal.c
