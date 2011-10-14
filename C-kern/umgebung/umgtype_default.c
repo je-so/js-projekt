@@ -29,7 +29,7 @@
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/cache/objectcache.h"
-#include "C-kern/api/writer/log.h"
+#include "C-kern/api/writer/logwriter_locked.h"
 #include "C-kern/api/umg/testerror.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
@@ -52,7 +52,7 @@ static int free_thread_resources(umgebung_t * umg)
 // TEXTDB:SELECT("   case "row-id":     err2 = "free-function"("(if (parameter!="") "&umg->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initumgebung)DESCENDING
    case 4:     err2 = freeumgebung_umgebungtesterror() ;
                if (err2) err = err2 ;
-   case 3:     err2 = freeumgebung_log(&umg->log) ;
+   case 3:     err2 = freeumgebung_logwriterlocked(&umg->log) ;
                if (err2) err = err2 ;
    case 2:     err2 = freeumgebung_objectcache(&umg->objectcache) ;
                if (err2) err = err2 ;
@@ -86,7 +86,7 @@ static int init_thread_resources(umgebung_t * umg)
    if (err) goto ABBRUCH ;
    ++umg->resource_count ;
 
-   err = initumgebung_log(&umg->log) ;
+   err = initumgebung_logwriterlocked(&umg->log) ;
    if (err) goto ABBRUCH ;
    ++umg->resource_count ;
 
@@ -128,7 +128,7 @@ int initdefault_umgebung(umgebung_t * umg)
    umg->type            = umgebung_type_DEFAULT ;
    umg->resource_count  = 0 ;
    umg->free_umgebung   = &freedefault_umgebung ;
-   umg->log             = &g_main_logservice ;
+   umg->log             = &g_main_logwriterlocked ;
    umg->objectcache     = 0 ;
    umg->valuecache      = 0 ;
 
@@ -158,21 +158,21 @@ static int test_initfree(void)
    TEST(4                     == umg.resource_count) ;
    TEST(freedefault_umgebung  == umg.free_umgebung) ;
    TEST(0 != umg.log) ;
-   TEST(&g_main_logservice != umg.log) ;
+   TEST(&g_main_logwriterlocked != umg.log) ;
    TEST(0 != umg.objectcache) ;
    TEST(0 != umg.valuecache) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
-   TEST(&g_main_logservice == umg.log) ;
+   TEST(&g_main_logwriterlocked == umg.log) ;
    TEST(0 == umg.objectcache) ;
    TEST(0 == umg.valuecache) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
-   TEST(&g_main_logservice == umg.log) ;
+   TEST(&g_main_logwriterlocked == umg.log) ;
    TEST(0 == umg.objectcache) ;
    TEST(0 == umg.valuecache) ;
 
@@ -184,7 +184,7 @@ static int test_initfree(void)
       TEST(0 == umg.type) ;
       TEST(0 == umg.resource_count) ;
       TEST(0 == umg.free_umgebung) ;
-      TEST(&g_main_logservice == umg.log) ;
+      TEST(&g_main_logwriterlocked == umg.log) ;
       TEST(0 == umg.objectcache) ;
       TEST(0 == umg.valuecache) ;
    }

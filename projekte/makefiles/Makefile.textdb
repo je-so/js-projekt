@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.12  06:58:16
+GenerationDate  := 2011.Oct.14  08:54:28
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -74,24 +74,26 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
- $(ObjectDir_Debug)/C-kern!writer!log.c.o \
+ $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!writer!logwriter_locked.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
- $(ObjectDir_Release)/C-kern!writer!log.c.o \
+ $(ObjectDir_Release)/C-kern!writer!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!writer!logwriter_locked.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o
 
@@ -101,10 +103,10 @@ $(Target_Debug): $(Objects_Debug)
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
+$(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
+$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
@@ -119,7 +121,10 @@ $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!writer!log.c.o: C-kern/writer/log.c
+$(ObjectDir_Debug)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!writer!logwriter_locked.c.o: C-kern/writer/logwriter_locked.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c
@@ -128,10 +133,10 @@ $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c
 $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
 	@$(CC_Debug)
 
-$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
+$(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
+$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
@@ -146,7 +151,10 @@ $(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!writer!log.c.o: C-kern/writer/log.c
+$(ObjectDir_Release)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!writer!logwriter_locked.c.o: C-kern/writer/logwriter_locked.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c

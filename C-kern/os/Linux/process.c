@@ -305,13 +305,9 @@ int wait_process(process_t * process, /*out*/process_result_t * result)
          result->returncode            = WTERMSIG(process->status) ;
       }
    } else {
-      LOG_ERRTEXT(CONDITION_EXPECTED("WIFEXITED || WIFSIGNALED")) ;
-      LOG_ERRTEXT(CONTEXT_INFO("waitpid(pid, &process->status, 0)")) ;
       LOG_INT(pid) ;
       LOG_INT(process->status) ;
-      // TODO: replace with ABORT handler
-      // TODO: implement abort handler as umgebung service which calls flush on LOG BUFFER
-      assert(0) ;
+      assert( WIFSIGNALED(process->status) || WIFEXITED(process->status) ) ;
    }
 
    return 0 ;
@@ -396,7 +392,13 @@ static int childprocess_signal(void * param)
 
 static int chilprocess_execassert(void * param)
 {
+   int pipefd[2] ;
    (void) param ;
+   // suppress flushing of log output
+   if (  pipe2(pipefd, O_CLOEXEC)
+      || STDERR_FILENO != dup2(pipefd[1], STDERR_FILENO)) {
+      return errno ;
+   }
    assert(0) ;
    return 0 ;
 }

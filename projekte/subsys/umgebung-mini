@@ -4,4 +4,4 @@ Src += C-kern/umgebung/umgtype_default.c
 # default services
 Src += C-kern/cache/objectcache.c
 Src += C-kern/cache/valuecache.c
-Src += C-kern/writer/log.c
+Src += C-kern/writer/logwriter.c C-kern/writer/logwriter_locked.c

@@ -322,8 +322,7 @@ static void * startpoint_osthread(void * start_arg)
 
    return (void*)0 ;
 ABBRUCH:
-   LOG_FATAL(err) ;
-   abort_umgebung() ;
+   abort_umgebung(err) ;
    return (void*)err ;
 }
 
@@ -591,8 +590,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main,
    return 0 ;
 ABBRUCH:
    if (err2) {
-      LOG_FATAL(err2) ;
-      abort_umgebung() ;
+      abort_umgebung(err2) ;
    }
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr) ;
@@ -661,8 +659,7 @@ void suspend_osthread()
    if (-1 == err) {
       err = errno ;
       LOG_SYSERR("sigwaitinfo", err) ;
-      LOG_FATAL(err) ;
-      abort_umgebung() ;
+      abort_umgebung(err) ;
    }
 }
 
@@ -673,8 +670,7 @@ void resume_osthread(osthread_t * threadobj)
    err = pthread_kill(threadobj->sys_thread, SIGINT) ;
    if (err) {
       LOG_SYSERR("pthread_kill", err) ;
-      LOG_FATAL(err) ;
-      abort_umgebung() ;
+      abort_umgebung(err) ;
    }
 }
 
@@ -1634,7 +1630,6 @@ static int thread_lockunlock(osthread_t * mainthread)
 
 static int thread_doublelock(int err)
 {
-   LOG_CONFIG_BUFFERED(true) ;
    lock_osthread(self_osthread()) ;
    err = lock_mutex(&self_osthread()->lock) ;
    unlock_osthread(self_osthread()) ;
@@ -1644,7 +1639,6 @@ static int thread_doublelock(int err)
 
 static int thread_doubleunlock(int err)
 {
-   LOG_CONFIG_BUFFERED(true) ;
    lock_osthread(self_osthread()) ;
    unlock_osthread(self_osthread()) ;
    err = unlock_mutex(&self_osthread()->lock) ;

@@ -7,14 +7,10 @@
 #define de 1
 #define en 2
 #if (KONFIG_LANG == de)
-#define TEXTRES_ERRORLOG_CONDITION_EXPECTED(sCondition) \
-        "Die Bedingung (%s) ist nicht wahr (interner Programmfehler)\n", sCondition
-#define TEXTRES_ERRORLOG_CONTEXT_INFO(sContext) \
-        "Bezogen auf den Kontext '%s'\n", sContext
-#define TEXTRES_ERRORLOG_ERROR_ASSERT_FAILED(sWrongCondition) \
+#define TEXTRES_ERRORLOG_ABORT_FATAL(err) \
+        "Programmabbruch Fehler (err=%d)\n", err
+#define TEXTRES_ERRORLOG_ABORT_ASSERT_FAILED(sWrongCondition) \
         "Assertion '%s' fehlgeschlagen.\n", sWrongCondition
-#define TEXTRES_ERRORLOG_ERROR_FATAL(err) \
-        "Fataler Fehler (err=%d)\n", err
 #define TEXTRES_ERRORLOG_ERROR_LOCATION(sFile, uLine, sFunction) \
         "%s:%u: %s(): Fehler: ", sFile, uLine, sFunction
 #define TEXTRES_ERRORLOG_FORMAT_MISSING_ENDOFLINE(name) \
@@ -35,6 +31,8 @@
         "Funktion '%s' liefert falschen Rückgabewert (%s)\n", sFunctionname, sWrongValue
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n"
+#define TEXTRES_ERRORLOG_LOG_ENTRY_TRUNCATED(entry_size, trunc_size) \
+        "Vorheriger Logeintrag wurde gekürzt von %d auf %d Bytes\n", entry_size, trunc_size
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \
         "Kein Speicher (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
@@ -55,14 +53,10 @@
         "Verbindung zu X11 Display-Server '%s' fehlgeschlagen\n", display_server_name
 
 #elif (KONFIG_LANG == en)
-#define TEXTRES_ERRORLOG_CONDITION_EXPECTED(sCondition) \
-        "Expected condition (%s) to be true (internal program error)\n", sCondition
-#define TEXTRES_ERRORLOG_CONTEXT_INFO(sContext) \
-        "In relation to following context '%s'\n", sContext
-#define TEXTRES_ERRORLOG_ERROR_ASSERT_FAILED(sWrongCondition) \
+#define TEXTRES_ERRORLOG_ABORT_FATAL(err) \
+        "Abort process with fatal error (err=%d)\n", err
+#define TEXTRES_ERRORLOG_ABORT_ASSERT_FAILED(sWrongCondition) \
         "Assertion '%s' failed.\n", sWrongCondition
-#define TEXTRES_ERRORLOG_ERROR_FATAL(err) \
-        "Fatal error (err=%d)\n", err
 #define TEXTRES_ERRORLOG_ERROR_LOCATION(sFile, uLine, sFunction) \
         "%s:%u: %s(): error: ", sFile, uLine, sFunction
 #define TEXTRES_ERRORLOG_FORMAT_MISSING_ENDOFLINE(name) \
@@ -83,6 +77,8 @@
         "Function '%s' returned wrong value (%s)\n", sFunctionname, sWrongValue
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
         "Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n"
+#define TEXTRES_ERRORLOG_LOG_ENTRY_TRUNCATED(entry_size, trunc_size) \
+        "Previous log entry truncated from %d to %d bytes\n", entry_size, trunc_size
 #define TEXTRES_ERRORLOG_MEMORY_OUT_OF(size) \
         "Out of memory (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \

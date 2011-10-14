@@ -117,4 +117,23 @@ extern void sunlock_mutex(mutex_t * mutex) ;
 #define sunlock_mutex(/*mutex_t * */mutex) \
    do {  int _err_sunlock_mutex = unlock_mutex(mutex) ; assert(! _err_sunlock_mutex) ; } while(0)
 
+// group: KONFIG_SUBSYS
+
+#define THREAD 1
+#if (!((KONFIG_SUBSYS)&THREAD))
+/* define: init_mutex
+ * Implement <mutex_t.init_mutex> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define init_mutex(mutex)     (0)
+/* define: free_mutex
+ * Implement <mutex_t.free_mutex> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define free_mutex(mutex)     (0)
+/* define: lock_mutex
+ * Implement <mutex_t.lock_mutex> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define lock_mutex(mutex)     (0)
+/* define: unlock_mutex
+ * Implement <mutex_t.unlock_mutex> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define unlock_mutex(mutex)   (0)
+#endif
+#undef THREAD
+
 #endif

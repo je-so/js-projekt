@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.12  06:58:04
+GenerationDate  := 2011.Oct.14  08:55:48
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -103,7 +103,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!umgebung!umgtype_test.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!testerror.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o \
- $(ObjectDir_Debug)/C-kern!writer!log.c.o
+ $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!writer!logwriter_locked.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
@@ -135,7 +136,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!umgebung!umgtype_test.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!testerror.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o \
- $(ObjectDir_Release)/C-kern!writer!log.c.o
+ $(ObjectDir_Release)/C-kern!writer!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!writer!logwriter_locked.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -230,7 +232,10 @@ $(ObjectDir_Debug)/C-kern!umgebung!testerror.c.o: C-kern/umgebung/testerror.c
 $(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!writer!log.c.o: C-kern/writer/log.c
+$(ObjectDir_Debug)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!writer!logwriter_locked.c.o: C-kern/writer/logwriter_locked.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
@@ -320,7 +325,10 @@ $(ObjectDir_Release)/C-kern!umgebung!testerror.c.o: C-kern/umgebung/testerror.c
 $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!writer!log.c.o: C-kern/writer/log.c
+$(ObjectDir_Release)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!writer!logwriter_locked.c.o: C-kern/writer/logwriter_locked.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

@@ -54,6 +54,8 @@
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/umg/umgtype_default.h"
 #include "C-kern/api/umg/umgtype_test.h"
+#include "C-kern/api/writer/logwriter.h"
+#include "C-kern/api/writer/logwriter_locked.h"
 
 
 
@@ -193,8 +195,6 @@ static void print_result(int err, RESULT_STRING * progress, unsigned * progress_
 
 static void set_testconfig(void)
 {
-   LOG_TURNON() ;
-   LOG_CONFIG_BUFFERED(true) ;
    // make printed system error messages language (English) neutral
    resetmsg_locale() ;
 }
@@ -277,7 +277,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //}
 
 //{ writer unittest
-   RUN(unittest_writer_log) ;
+   RUN(unittest_writer_logwriter) ;
+   RUN(unittest_writer_logwriterlocked) ;
 //}
 
 //{ compiler unittest

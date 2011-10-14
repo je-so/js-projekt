@@ -2,27 +2,15 @@
 # printf based error strings for logging
 #
 
-# TODO rename CONDITION_EXPECTED into ERROR_CONDITION_WRONG
-CONDITION_EXPECTED:de: sCondition
-"Die Bedingung (%s) ist nicht wahr (interner Programmfehler)"
-CONDITION_EXPECTED:en: sCondition
-"Expected condition (%s) to be true (internal program error)"
+ABORT_FATAL:de: err
+"Programmabbruch Fehler (err=%d)"
+ABORT_FATAL:en: err
+"Abort process with fatal error (err=%d)"
 
-# TODO rename CONTEXT_INFO into ???
-CONTEXT_INFO:de: sContext
-"Bezogen auf den Kontext '%s'"
-CONTEXT_INFO:en: sContext
-"In relation to following context '%s'"
-
-ERROR_ASSERT_FAILED:de: sWrongCondition
+ABORT_ASSERT_FAILED:de: sWrongCondition
 "Assertion '%s' fehlgeschlagen."
-ERROR_ASSERT_FAILED:en: sWrongCondition
+ABORT_ASSERT_FAILED:en: sWrongCondition
 "Assertion '%s' failed."
-
-ERROR_FATAL:de: err
-"Fataler Fehler (err=%d)"
-ERROR_FATAL:en: err
-"Fatal error (err=%d)"
 
 ERROR_LOCATION:de: sFile, uLine, sFunction
 "%s:%u: %s(): Fehler: " NONEWLINE
@@ -75,6 +63,11 @@ LOCALE_SETLOCALE:de:
 LOCALE_SETLOCALE:en:
 "Cannot change the current locale with setlocale"
 "Remedy: Please set environment variable LC_ALL to a supported value by the system"
+
+LOG_ENTRY_TRUNCATED:de: entry_size, trunc_size
+"Vorheriger Logeintrag wurde gekürzt von %d auf %d Bytes"
+LOG_ENTRY_TRUNCATED:en: entry_size, trunc_size
+"Previous log entry truncated from %d to %d bytes"
 
 MEMORY_OUT_OF:de: size
 "Kein Speicher (bytes=%"PRIuSIZE")"

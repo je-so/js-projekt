@@ -27,7 +27,7 @@
 #define CKERN_ERRORHANDLING_ERRLOG_MACROS_HEADER
 
 #include "C-kern/api/resource/errorlog.h"
-#include "C-kern/api/writer/log_macros.h"
+#include "C-kern/api/umg/log_macros.h"
 
 
 // section: Functions
@@ -67,10 +67,6 @@
 #define LOG_ERRTEXT( TEXTID )                do {  LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ERROR_LOCATION(__FILE__, __LINE__, __FUNCTION__)) ; \
                                                    LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ ## TEXTID ) ; \
                                                 }  while(0)
-
-/* define: LOG_FATAL(err)
- * Logs error code which caused a fatal error. */
-#define LOG_FATAL(err)                       LOG_ERRTEXT(ERROR_FATAL(err))
 
 /* define: LOG_OUTOFMEMORY
  * Logs "out of memory" reason for function abort.

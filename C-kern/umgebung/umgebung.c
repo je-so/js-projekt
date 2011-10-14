@@ -228,11 +228,13 @@ ABBRUCH:
    return err ;
 }
 
-void abort_umgebung(void)
+void abort_umgebung(int err)
 {
    // TODO: add abort handler registration ...
-   abort() ;
    // TODO: add unit test for checking that resources are freed
+   LOG_ERRTEXT(ABORT_FATAL(err)) ;
+   LOG_FLUSHBUFFER() ;
+   abort() ;
 }
 
 void assertfail_umgebung(
@@ -242,8 +244,8 @@ void assertfail_umgebung(
    const char * funcname)
 {
    LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ERROR_LOCATION(file, line, funcname)) ;
-   LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ERROR_ASSERT_FAILED(condition)) ;
-   abort_umgebung() ;
+   LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ABORT_ASSERT_FAILED(condition)) ;
+   abort_umgebung(EINVAL) ;
 }
 
 
@@ -257,7 +259,7 @@ static int test_process_init(void)
 
    // TEST static type
    TEST( umg->type           == umgebung_type_STATIC ) ;
-   TEST( umg->log            == &g_main_logservice );
+   TEST( umg->log            == &g_main_logwriterlocked );
    TEST( umg->objectcache    == 0 );
    TEST( umg->valuecache     == 0 );
    TEST( umg->free_umgebung  == 0 ) ;
@@ -284,14 +286,14 @@ static int test_process_init(void)
    TEST(0 != umgebung()->objectcache) ;
    TEST(0 != umgebung()->valuecache) ;
    TEST(0 != strcmp("C", current_locale())) ;
-   TEST(&g_main_logservice  != umgebung()->log) ;
-   TEST(&g_main_valuecache  == umgebung()->valuecache) ;
+   TEST(umgebung()->log        != &g_main_logwriterlocked) ;
+   TEST(umgebung()->valuecache == &g_main_valuecache) ;
    TEST(0 == freeprocess_umgebung()) ;
    TEST(0 == umgebung()->type ) ;
    TEST(0 == umgebung()->resource_count) ;
    TEST(0 == umgebung()->free_umgebung) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(&g_main_logservice  == umgebung()->log) ;
+   TEST(umgebung()->log == &g_main_logwriterlocked) ;
    TEST(0 == umgebung()->objectcache) ;
    TEST(0 == umgebung()->valuecache) ;
    TEST(0 == freeprocess_umgebung()) ;
@@ -299,7 +301,7 @@ static int test_process_init(void)
    TEST(0 == umgebung()->resource_count) ;
    TEST(0 == umgebung()->free_umgebung) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(&g_main_logservice  == umgebung()->log) ;
+   TEST(umgebung()->log == &g_main_logwriterlocked) ;
    TEST(0 == umgebung()->objectcache) ;
    TEST(0 == umgebung()->valuecache) ;
 
@@ -316,17 +318,18 @@ static int test_process_init(void)
    TEST(0 == umgebung()->type ) ;
    TEST(0 == umgebung()->resource_count) ;
    TEST(0 == umgebung()->free_umgebung) ;
-   TEST(&g_main_logservice  == umgebung()->log) ;
+   TEST(umgebung()->log == &g_main_logwriterlocked) ;
    TEST(0 == umgebung()->objectcache) ;
    TEST(0 == umgebung()->valuecache) ;
 
    // TEST static type has not changed
    TEST( umg->type           == umgebung_type_STATIC ) ;
-   TEST( umg->log            == &g_main_logservice );
+   TEST( umg->log            == &g_main_logwriterlocked );
    TEST( umg->objectcache    == 0 );
    TEST( umg->valuecache     == 0 );
    TEST( umg->free_umgebung  == 0 ) ;
    TEST( umg->resource_count == 0 ) ;
+   LOG_FLUSHBUFFER() ;
 
    return 0 ;
 ABBRUCH:
@@ -341,9 +344,9 @@ static int test_umgebung_query(void)
    TEST( umgebung() == &gt_umgebung ) ;
 
    // TEST query log_umgebung()
-   log_config_t * const oldlog = gt_umgebung.log ;
-   gt_umgebung.log = (log_config_t *) 3 ;
-   TEST( (log_config_t*)3 == log_umgebung() ) ;
+   logwriter_locked_t * const oldlog = gt_umgebung.log ;
+   gt_umgebung.log = (logwriter_locked_t*) 3 ;
+   TEST( (logwriter_locked_t*)3 == log_umgebung() ) ;
    gt_umgebung.log = oldlog ;
    TEST( oldlog == log_umgebung() ) ;
 
@@ -394,19 +397,19 @@ static int test_umgebung_init(void)
    TEST(0 != umg.log) ;
    TEST(0 != umg.objectcache) ;
    TEST(0 != umg.valuecache) ;
-   TEST(&g_main_logservice != umg.log) ;
+   TEST(&g_main_logwriterlocked != umg.log) ;
    TEST(0 == free_umgebung(&umg)) ;
    TEST(0 == umg.type ) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
-   TEST(&g_main_logservice == umg.log) ;
+   TEST(&g_main_logwriterlocked == umg.log) ;
    TEST(0 == umg.objectcache) ;
    TEST(0 == umg.valuecache) ;
    TEST(0 == free_umgebung(&umg)) ;
    TEST(0 == umg.type ) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
-   TEST(&g_main_logservice  == umg.log) ;
+   TEST(&g_main_logwriterlocked == umg.log) ;
    TEST(0 == umg.objectcache) ;
    TEST(0 == umg.valuecache) ;
 
@@ -414,7 +417,7 @@ static int test_umgebung_init(void)
    TEST(0 == init_umgebung(&umg, umgebung_type_TEST)) ;
    TEST(umg.type        == umgebung_type_TEST) ;
    TEST(umg.log         != 0) ;
-   TEST(umg.log         != &g_main_logservice) ;
+   TEST(umg.log         != &g_main_logwriterlocked) ;
    TEST(umg.objectcache != 0) ;
    TEST(umg.valuecache  == &g_main_valuecache) ;
    TEST(umg.resource_count == 0 ) ;
@@ -423,7 +426,7 @@ static int test_umgebung_init(void)
    TEST(umg.type        == umgebung_type_STATIC) ;
    TEST(umg.resource_count == 0 ) ;
    TEST(umg.free_umgebung  == 0 ) ;
-   TEST(umg.log         == &g_main_logservice) ;
+   TEST(umg.log         == &g_main_logwriterlocked) ;
    TEST(umg.objectcache == 0) ;
    TEST(umg.valuecache  == 0) ;
 
@@ -459,40 +462,48 @@ int unittest_umgebung()
       char buffer[2048] = { 0 };
       TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
-      if (strcmp( buffer, "implementation_type=0\n"
-                           // log from test_process_init
-                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
-                           "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
-                           "Function aborted (err=22)\n"
-                           "implementation_type=3\n"
-                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
-                           "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
-                           "Function aborted (err=22)\n"
-                           "C-kern/umgebung/umgtype_default.c:101: init_thread_resources(): error: "
-                           "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgtype_default.c:141: initdefault_umgebung(): error: "
-                           "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
-                           "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
-                           "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgtype_test.c:92: inittest_umgebung(): error: "
-                           "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
-                           "Function aborted (err=13)\n"
-                           "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
-                           "Function aborted (err=13)\n"
-                           // log from test_umgebung_init
-                           "implementation_type=0\n"
-                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
-                           "Function aborted (err=22)\n"
-                           "implementation_type=3\n"
-                           "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
-                           "Function aborted (err=22)\n"
-                           )) {
+      const char * expect =   "implementation_type=0\n"
+                        // log from test_process_init
+                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "Function aborted (err=22)\n"
+                        "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
+                        "Function aborted (err=22)\n"
+                        "implementation_type=3\n"
+                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "Function aborted (err=22)\n"
+                        "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
+                        "Function aborted (err=22)\n"
+                        "C-kern/umgebung/umgtype_default.c:101: init_thread_resources(): error: "
+                        "Function aborted (err=13)\n"
+                        "C-kern/umgebung/umgtype_default.c:141: initdefault_umgebung(): error: "
+                        "Function aborted (err=13)\n"
+                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "Function aborted (err=13)\n"
+                        "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
+                        "Function aborted (err=13)\n"
+                        "C-kern/umgebung/umgtype_test.c:92: inittest_umgebung(): error: "
+                        "Function aborted (err=13)\n"
+                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "Function aborted (err=13)\n"
+                        "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
+                        "Function aborted (err=13)\n"
+                        // log from test_umgebung_init
+                        "implementation_type=0\n"
+                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "Function aborted (err=22)\n"
+                        "implementation_type=3\n"
+                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "Function aborted (err=22)\n"
+                        ;
+
+      if (strcmp( buffer, expect)) {
          printf("buffer=-----\n%s-----\n",buffer) ;
+         for(unsigned i = 0; i < strlen(buffer); ++i) {
+            if (strncmp(buffer, expect, i)) {
+               printf("position = %d\n", i) ;
+               break ;
+            }
+         }
          TEST(0 == "wrong buffer content") ;
       }
 

@@ -26,7 +26,7 @@
 #define CKERN_API_UMGEBUNG_HEADER
 
 // forward reference to all offered services
-struct log_config_t ;
+struct logwriter_locked_t ;
 struct objectcache_t ;
 struct valuecache_t ;
 
@@ -88,9 +88,9 @@ struct umgebung_t {
    /* Virtual destructor: Allows different implementations to store a different desctructor. */
    int                  (* free_umgebung)  (umgebung_t * umg) ;
 
-   struct log_config_t   * log ;
-   struct objectcache_t  * objectcache ;
-   struct valuecache_t   * valuecache ;
+   struct logwriter_locked_t  * log ;
+   struct objectcache_t       * objectcache ;
+   struct valuecache_t        * valuecache ;
 
 } ;
 
@@ -105,7 +105,7 @@ struct umgebung_t {
  * only as initializer for the main thread.
  * The reason is that services in <umgebung_t> are not thread safe
  * so every thread keeps its own initialized <umgebung_t>. */
-#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, &g_main_logservice, 0, 0 }
+#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, &g_main_logwriterlocked, 0, 0 }
 
 /* define: umgebung_INIT_FREEABLE
  * Static initializer for <umgebung_t>.
@@ -157,13 +157,8 @@ extern int free_umgebung(umgebung_t * umg) ;
 /* function: abort_umgebung
  * Exits the whole process in a controlled manner.
  * Tries to free as many external resources as possible and
- * aborts all transactions.
- *
- * Usage pattern:
- * > LOG_FATAL(err) ;
- * > abort_umgebung() ;
- * */
-extern void abort_umgebung(void) ;
+ * aborts all transactions. Before exit a LOG_ERRTEXT(ABORT_FATAL(err)) is done. */
+extern void abort_umgebung(int err) ;
 
 /* function: assertfail_umgebung
  * Exits the whole process in a controlled manner.
@@ -179,16 +174,16 @@ extern void assertfail_umgebung(const char * condition, const char * file, unsig
 extern umgebung_t * umgebung(void) ;
 
 /* function: log_umgebung
- * Returns log configuration object <log_config_t> for the current thread. */
-extern struct log_config_t *     log_umgebung(void) ;
+ * Returns log configuration object <logwriter_locked_t> for the current thread. */
+extern struct logwriter_locked_t *  log_umgebung(void) ;
 
 /* function: objectcache_umgebung
  * Returns cache for singelton objects of type <objectcache_t> for the current thread. */
-extern struct objectcache_t *    objectcache_umgebung(void) ;
+extern struct objectcache_t *       objectcache_umgebung(void) ;
 
 /* function: valuecache_umgebung
  * Returns cache for precomputed values of type <valuecache_t> for the current thread. */
-extern struct valuecache_t *    valuecache_umgebung(void) ;
+extern struct valuecache_t *        valuecache_umgebung(void) ;
 
 
 // section: inline implementations

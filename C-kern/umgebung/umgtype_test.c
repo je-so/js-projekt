@@ -29,7 +29,7 @@
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/umg/testerror.h"
-#include "C-kern/api/writer/log.h"
+#include "C-kern/api/writer/logwriter_locked.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -45,7 +45,7 @@ int freetest_umgebung(umgebung_t * umg)
    err2 = freeumgebung_umgebungtesterror() ;
    if (err2) err = err2 ;
 
-   err2 = freeumgebung_log(&umg->log) ;
+   err2 = freeumgebung_logwriterlocked(&umg->log) ;
    if (err2) err = err2 ;
 
    err2 = freeumgebung_objectcache(&umg->objectcache) ;
@@ -72,7 +72,7 @@ int inittest_umgebung(umgebung_t * umg)
    MEMSET0(umg) ;
    umg->type            = umgebung_type_TEST ;
    umg->free_umgebung   = &freetest_umgebung ;
-   umg->log             = &g_main_logservice ;
+   umg->log             = &g_main_logwriterlocked ;
 
    err = initumgebung_valuecache(&umg->valuecache) ;
    if (err) goto ABBRUCH ;
@@ -80,7 +80,7 @@ int inittest_umgebung(umgebung_t * umg)
    err = initumgebung_objectcache(&umg->objectcache) ;
    if (err) goto ABBRUCH ;
 
-   err = initumgebung_log(&umg->log) ;
+   err = initumgebung_logwriterlocked(&umg->log) ;
    if (err) goto ABBRUCH ;
 
    err = initumgebung_umgebungtesterror() ;
@@ -119,7 +119,7 @@ static int test_initfree(void)
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
-   TEST(&g_main_logservice == umg.log) ;
+   TEST(&g_main_logwriterlocked == umg.log) ;
    TEST(0 == umg.objectcache) ;
    TEST(0 == umg.valuecache) ;
 
@@ -131,7 +131,7 @@ static int test_initfree(void)
       TEST(0 == umg.type) ;
       TEST(0 == umg.resource_count) ;
       TEST(0 == umg.free_umgebung) ;
-      TEST(&g_main_logservice == umg.log) ;
+      TEST(&g_main_logwriterlocked == umg.log) ;
       TEST(0 == umg.objectcache) ;
       TEST(0 == umg.valuecache) ;
    }

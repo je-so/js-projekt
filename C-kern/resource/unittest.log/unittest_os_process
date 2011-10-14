@@ -3,4 +3,4 @@ pid=65535
 C-kern/os/Linux/process.c:235: delete_process(): error: All resources can not be freed (err=3)
 C-kern/os/Linux/process.c:249: updatestatus_process(): error: System call 'waitpid' returned error (err=10): 'No child processes'
 pid=65535
-C-kern/os/Linux/process.c:336: state_process(): error: Function aborted (err=10)
+C-kern/os/Linux/process.c:332: state_process(): error: Function aborted (err=10)

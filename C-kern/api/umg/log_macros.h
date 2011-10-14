@@ -1,5 +1,5 @@
 /* title: LogMacros
-   Makes <LogWriter> more accessible with simple defined macros.
+   Makes <LogWriter> service more accessible with simple defined macros.
 
    about: Copyright
    This program is free software.
@@ -16,13 +16,13 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/log_macros.h
+   file: C-kern/api/umg/log_macros.h
     Header file of <LogMacros>.
 */
-#ifndef CKERN_WRITER_LOG_MACROS_HEADER
-#define CKERN_WRITER_LOG_MACROS_HEADER
+#ifndef CKERN_UMGEBUNG_LOG_MACROS_HEADER
+#define CKERN_UMGEBUNG_LOG_MACROS_HEADER
 
-#include "C-kern/api/writer/log.h"
+#include "C-kern/api/writer/logwriter_locked.h"
 
 /* about: LOGCHANNEL
  * The parameter LOGCHANNEL is the first parameter of log writing macros.
@@ -37,60 +37,24 @@
 // group: query
 
 /* define: LOG_GETBUFFER
- * Returns C-string of buffered log and its length. See also <getlogbuffer_logconfig>.
- * > #define LOG_GETBUFFER(buffer, size) getlogbuffer_logconfig(log_umgebung(), buffer, size) */
+ * Returns C-string of buffered log and its length. See also <getbuffer_logwriter>.
+ * > #define LOG_GETBUFFER(buffer, size) getbuffer_logwriterlocked(log_umgebung(), buffer, size) */
 #define LOG_GETBUFFER(/*out char ** */buffer, /*out size_t * */size) \
-   getlogbuffer_logconfig(log_umgebung(), buffer, size)
-
-/* define: LOG_ISON
- * Returns *true* if logging is on. See also <log_config_t.isOn>.
- * > #define LOG_ISON()  (log_umgebung()->isOn) */
-#define LOG_ISON()       (log_umgebung()->isOn)
-
-/* variable: LOG_ISBUFFERED
- * Returns *true* if buffering is on. See also <log_config_t.isBuffered>.
- * > #define LOG_ISBUFFERED() (log_umgebung()->isBuffered) */
-#define LOG_ISBUFFERED()      (log_umgebung()->isBuffered)
+   getbuffer_logwriterlocked(log_umgebung(), buffer, size)
 
 // group: config
-
-/* define: LOG_PUSH_ONOFFSTATE
- * Saves <log_config_t.isOn> in local variable.
- * > #define LOG_PUSH_ONOFFSTATE()  bool pushed_onoff_log = log_umgebung()->isOn */
-#define LOG_PUSH_ONOFFSTATE()       bool pushed_onoff_log = log_umgebung()->isOn
-
-/* define: LOG_POP_ONOFFSTATE
- * Restores <log_config_t.isOn> from state previously saved in local variable.
- * > #define LOG_POP_ONOFFSTATE()   setonoff_logconfig(log_umgebung(), pushed_onoff_log) */
-#define LOG_POP_ONOFFSTATE()        setonoff_logconfig(log_umgebung(), pushed_onoff_log)
-
-/* define: LOG_TURNOFF
- * Turns logging off.
- * > #define LOG_TURNOFF()          setonoff_logconfig(log_umgebung(), false) */
-#define LOG_TURNOFF()               setonoff_logconfig(log_umgebung(), false)
-
-/* define: LOG_TURNON
- * Turns logging on (default state).
- * > #define LOG_TURNON()           setonoff_logconfig(log_umgebung(), true) */
-#define LOG_TURNON()                setonoff_logconfig(log_umgebung(), true)
-
-/* define: LOG_CONFIG_BUFFERED
- * Turns buffering on (true) or off (false). See also <setbuffermode_logconfig>.
- * Buffering turned *off* is default state.
- * > #define LOG_CONFIG_BUFFERED(on) setbuffermode_logconfig(log_umgebung(), on) */
-#define LOG_CONFIG_BUFFERED(on)     setbuffermode_logconfig(log_umgebung(), on)
 
 // group: change
 
 /* define: LOG_CLEARBUFFER
- * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logconfig>.
- * > #define  LOG_CLEARBUFFER()     clearbuffer_logconfig(log_umgebung()) */
-#define  LOG_CLEARBUFFER()          clearbuffer_logconfig(log_umgebung())
+ * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>.
+ * > #define  LOG_CLEARBUFFER()     clearbuffer_logwriterlocked(log_umgebung()) */
+#define  LOG_CLEARBUFFER()          clearbuffer_logwriterlocked(log_umgebung())
 
-/* define: LOG_WRITEBUFFER
- * Writes content of log buffer and then clears it. See also <writebuffer_logconfig>.
- * > #define  LOG_WRITEBUFFER()     writebuffer_logconfig(log_umgebung()) */
-#define  LOG_WRITEBUFFER()          writebuffer_logconfig(log_umgebung())
+/* define: LOG_FLUSHBUFFER
+ * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>.
+ * > #define  LOG_FLUSHBUFFER()     flushbuffer_logwriterlocked(log_umgebung()) */
+#define  LOG_FLUSHBUFFER()          flushbuffer_logwriterlocked(log_umgebung())
 
 // group: write-text
 
@@ -109,7 +73,7 @@
    do {                                \
       switch(CONCAT(log_channel_,LOGCHANNEL)) {                   \
       case log_channel_ERR:                                       \
-         log_umgebung()->printf( log_umgebung(), __VA_ARGS__ ) ;  \
+         printf_logwriterlocked(log_umgebung(), __VA_ARGS__ ) ;   \
          break ;                                                  \
       case log_channel_TEST:                                      \
          printf( __VA_ARGS__ ) ;                                  \
@@ -128,7 +92,7 @@
  *
  * Example:
  * > LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_MEMORY_OUT_OF(size)) */
-#define LOGC_TEXTRES(LOGCHANNEL, TEXTID)      LOGC_PRINTF(LOGCHANNEL, TEXTID)
+#define LOGC_TEXTRES(LOGCHANNEL, TEXTID)                 LOGC_PRINTF(LOGCHANNEL, TEXTID)
 
 // group: write-variables
 
@@ -145,7 +109,7 @@
  * This code logs "memsize=1024\n"
  * > const size_t memsize = 1024 ;
  * > LOGC_VAR(ERR, PRIuSIZE,memsize) ; */
-#define LOGC_VAR(LOGCHANNEL, printf_type, varname)     LOGC_PRINTF(LOGCHANNEL, #varname "=%" printf_type "\n", (varname))
+#define LOGC_VAR(LOGCHANNEL, printf_type, varname)       LOGC_PRINTF(LOGCHANNEL, #varname "=%" printf_type "\n", (varname))
 
 /* define: LOGC_INDEX
  * Log "array[i]=value" of variable stored in array at offset i.

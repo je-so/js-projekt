@@ -433,6 +433,13 @@ static int test_mutex_slock(void)
    bool              isoldact = false ;
    struct sigaction  newact ;
    struct sigaction  oldact ;
+   int               pipefd[2] = { -1, -1 } ;
+   int               oldstderr = -1 ;
+
+   TEST(0 == pipe2(pipefd, O_CLOEXEC)) ;
+   oldstderr = dup(STDERR_FILENO) ;
+   TEST(0 < oldstderr) ;
+   TEST(STDERR_FILENO == dup2(pipefd[1], STDERR_FILENO)) ;
 
    TEST(0 == sigemptyset(&newact.sa_mask)) ;
    TEST(0 == sigaddset(&newact.sa_mask,SIGABRT)) ;
@@ -527,8 +534,29 @@ static int test_mutex_slock(void)
    TEST(0 == sigprocmask(SIG_SETMASK, &oldprocmask, 0)) ;
    TEST(0 == sigaction(SIGABRT, &oldact, 0)) ;
 
+   {
+      char buffer[4096] = {0} ;
+      LOG_FLUSHBUFFER() ;
+      ssize_t bytes = read(pipefd[0], buffer, sizeof(buffer)) ;
+      TEST(bytes > 0) ;
+      TEST(bytes < (int)sizeof(buffer)) ;
+      LOGC_PRINTF(ERR, "%s", buffer) ;
+   }
+
+   TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
+   TEST(0 == close(oldstderr)) ;
+   TEST(0 == close(pipefd[0])) ;
+   TEST(0 == close(pipefd[1])) ;
+   oldstderr = pipefd[0] = pipefd[1] = -1 ;
+
    return 0 ;
 ABBRUCH:
+   if (-1 != oldstderr) {
+      dup2(oldstderr, STDERR_FILENO) ;
+   }
+   close(oldstderr) ;
+   close(pipefd[0]) ;
+   close(pipefd[1]) ;
    if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
    if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0) ;
    free_mutex(&mutex) ;
