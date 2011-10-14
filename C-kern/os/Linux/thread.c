@@ -674,6 +674,27 @@ void resume_osthread(osthread_t * threadobj)
    }
 }
 
+void sleepms_osthread(uint32_t msec)
+{
+   struct timespec reqtime = { .tv_sec = (int32_t) (msec / 1000), .tv_nsec = (int32_t) ((msec%1000) * 1000000) } ;
+
+   int err ;
+   err = nanosleep(&reqtime, 0) ;
+
+   if (-1 == err) {
+      err = errno ;
+      if (err != EINTR) {
+         LOG_SYSERR("nanosleep", err) ;
+         goto ABBRUCH ;
+      }
+   }
+
+   return ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return ;
+}
+
 
 // section: test
 
@@ -1707,6 +1728,35 @@ ABBRUCH:
    return EINVAL ;
 }
 
+int test_thread_sleep(void)
+{
+   struct timeval tv ;
+   struct timeval tv2 ;
+   int32_t msec ;
+
+   // TEST 250 msec
+   TEST(0 == gettimeofday(&tv, 0)) ;
+   sleepms_osthread(250) ;
+   TEST(0 == gettimeofday(&tv2, 0)) ;
+
+   msec = 1000 * (tv2.tv_sec - tv.tv_sec) + (tv2.tv_usec - tv.tv_usec) / 1000 ;
+   TEST(msec > 200) ;
+   TEST(msec < 300) ;
+
+   // TEST 100 msec
+   TEST(0 == gettimeofday(&tv, 0)) ;
+   sleepms_osthread(100) ;
+   TEST(0 == gettimeofday(&tv2, 0)) ;
+
+   msec = 1000 * (tv2.tv_sec - tv.tv_sec) + (tv2.tv_usec - tv.tv_usec) / 1000 ;
+   TEST(msec > 80) ;
+   TEST(msec < 120) ;
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
+
 int unittest_os_thread()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -1725,6 +1775,7 @@ int unittest_os_thread()
    if (test_thread_signal())           goto ABBRUCH ;
    if (test_thread_suspendresume())    goto ABBRUCH ;
    if (test_thread_lockunlock())       goto ABBRUCH ;
+   if (test_thread_sleep())            goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

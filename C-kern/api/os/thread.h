@@ -194,6 +194,9 @@ extern void suspend_osthread(void) ;
  * thread from sleeping. */
 extern void resume_osthread(osthread_t * threadobj) ;
 
+/* function: sleepms_osthread
+ * Makes calling thread to sleep msec milli-seconds. */
+extern void sleepms_osthread(uint32_t msec) ;
 
 // section: inline implementations
 
