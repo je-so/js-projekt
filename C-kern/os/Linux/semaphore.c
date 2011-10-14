@@ -293,7 +293,7 @@ static int test_semaphore_threads(void)
       TEST(w < 100000) ;
    }
    TEST(valid_thread_index == startarg.count) ;
-   usleep(10) ;
+   pthread_yield() ;
 
    // TEST free *signals* all waiting threads
    TEST(0 == free_semaphore(&startarg.sema)) ;

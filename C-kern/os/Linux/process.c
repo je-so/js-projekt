@@ -28,6 +28,7 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/os/thread.h"
 #endif
 
 /* struct: process_t
@@ -361,6 +362,7 @@ ABBRUCH:
    return err ;
 }
 
+
 #ifdef KONFIG_UNITTEST
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_process,ABBRUCH)
@@ -377,7 +379,7 @@ static int childprocess_endlessloop(void * param)
    (void) param ;
    kill(getppid(), SIGUSR1) ;
    for(;;) {
-      usleep(1000) ;
+      sleepms_osthread(1) ;
    }
    return 0 ;
 }
@@ -469,7 +471,7 @@ static int test_initfree(void)
       TEST(0 == process) ;
       TEST(0 == new_process(&process, &childprocess_return, (void*)i)) ;
       for(int i2 = 0; i2 < 10000; ++i2) {
-         usleep(10) ;
+         sleepms_osthread(1) ;
          int err = hasterminated_process(process) ;
          if (0 == hasterminated_process(process)) break ;
          TEST(err == EAGAIN) ;
@@ -488,7 +490,7 @@ static int test_initfree(void)
       TEST(0 == process) ;
       TEST(0 == new_process(&process, &childprocess_return, (void*)i)) ;
       for(int i2 = 0; i2 < 100; ++i2) {
-         usleep(10) ;
+         sleepms_osthread(1) ;
          TEST(EAGAIN == hasstopped_process(process)) ;
          if (0 == process->sysid) break ;
          if (2 == i2) TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
@@ -623,7 +625,7 @@ static int test_abnormalexit(void)
       // wait until child has started
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "kill\n")) ;
-      usleep(10) ;
+      sleepms_osthread(1) ;
       TEST(0 == delete_process(&process)) ;
       TEST(0 == process) ;
    }
@@ -688,7 +690,7 @@ static int test_statequery(void)
             break ;
          }
          TEST(EAGAIN == err) ;
-         usleep(10) ;
+         sleepms_osthread(1) ;
       }
       TEST(0 == hasstopped_process(process)) ;
       TEST(EAGAIN == hasterminated_process(process)) ;
@@ -707,7 +709,7 @@ static int test_statequery(void)
          int err = hasstopped_process(process) ;
          if (0 == err) break ;
          TEST(EAGAIN == err) ;
-         usleep(10) ;
+         sleepms_osthread(1) ;
       }
       TEST(0 == hasstopped_process(process)) ;
       TEST(EAGAIN == hasterminated_process(process)) ;
@@ -729,7 +731,7 @@ static int test_statequery(void)
          break ;
       }
       TEST(EAGAIN == err) ;
-      usleep(10) ;
+      sleepms_osthread(1) ;
    }
    TEST(0 == hasstopped_process(process)) ;
    TEST(0 == delete_process(&process)) ;
@@ -743,7 +745,7 @@ static int test_statequery(void)
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "sleep\n")) ;
    }
-   usleep(10000) ;
+   sleepms_osthread(10) ;
    TEST(0 == kill(process->sysid, SIGCONT)) ;
    {
       // wait until child run again
@@ -751,7 +753,7 @@ static int test_statequery(void)
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "run\n")) ;
    }
-   usleep(10000) ;
+   sleepms_osthread(10) ;
    TEST(0 != process->sysid) ;
    TEST(0 == updatestatus_process(process, false)) ;
    TEST(0 == process->sysid) ; // process terminated state
