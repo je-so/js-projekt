@@ -59,14 +59,14 @@ typedef struct slist_aspect_t             slist_aspect_t ;
  * Allows to embed content of <slist_aspect_t> into another structure.
  *
  * Parameter:
- * object_type - The type of object the list aspect should point to.
- * nameprefix  - All embedded fields are prefix with this name.
+ * object_type      - The type of object the list aspect should point to.
+ * nextaspect_name  - The name of the embedded next pointer.
  *
  * Your object must inherit or embed <slist_aspect_t> to be manageable by a single linked list.
  * With the <slist_aspect_EMBED> macro you can do:
  * > struct object_t {
  * >    int          dummy ;
- * >    object_t   * nameprefix ## next ;
+ * >    object_t   * nextaspect_name ;
  * >    int          dummy2 ;
  * > }
  *
@@ -76,7 +76,7 @@ typedef struct slist_aspect_t             slist_aspect_t ;
  * >    slist_aspect_t  listaspect ;
  * >    int             dummy2 ;
  * > } */
-#define slist_aspect_EMBED(object_type,nameprefix) \
-   object_type * nameprefix ## next
+#define slist_aspect_EMBED(object_type, nextaspect_name) \
+   object_type * nextaspect_name
 
 #endif

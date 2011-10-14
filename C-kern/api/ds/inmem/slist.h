@@ -75,7 +75,7 @@ struct slist_t {
 /* constructor: init_slist
  * Initializes a single linked list object.
  * The caller has to provide an unitialized list object. This function never fails. */
-extern int init_slist(/*out*/slist_t * list ) ;
+extern void init_slist(/*out*/slist_t * list ) ;
 
 /* destructor: free_slist
  * Frees memory of all linked objects.
@@ -189,7 +189,7 @@ extern int removeall_slist( slist_t * list, callback_aspect_t * cb, freecb_slist
  * */
 #define slist_IMPLEMENT(listname, name_nextaspect, cb_t) \
    typedef free_callback_SIGNATURE( freecb ## _ ## listname ## _f, cb_t, typeof(*((listname ## _t*)0)->last) ) ; \
-   static inline int init ## _ ## listname(listname ## _t * list) __attribute__ ((always_inline)) ; \
+   static inline void init ## _ ## listname(listname ## _t * list) __attribute__ ((always_inline)) ; \
    static inline int free ## _ ## listname(listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback) __attribute__ ((always_inline)) ; \
    static inline int isempty ## _ ## listname( const listname ## _t * list ) __attribute__ ((always_inline)) ; \
    static inline uint32_t next_offset ## _ ## listname(void) __attribute__ ((always_inline)) ; \
@@ -207,8 +207,8 @@ extern int removeall_slist( slist_t * list, callback_aspect_t * cb, freecb_slist
       static_assert( offsetof( typeof(*((listname ## _t*)0)->last), name_nextaspect) < 65536, "Offset must fit in uint32_t (extend 65536 to pow(2,32) if needed)") ; \
       return (uint32_t) offsetof( typeof(*((listname ## _t*)0)->last), name_nextaspect ) ; \
    } \
-   static inline int init ## _ ## listname(listname ## _t * list) { \
-      return init_slist(list) ; \
+   static inline void init ## _ ## listname(listname ## _t * list) { \
+      init_slist(list) ; \
    } \
    static inline int free ## _ ## listname(listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback) { \
       return free_generic_slist( (slist_t*)list, cb, (freecb_slist_f) free_callback, next_offset ## _ ## listname() ) ; \
@@ -313,8 +313,8 @@ extern int removeall_generic_slist( slist_t * list, callback_aspect_t * cb, free
 /* define: init_slist
  * Implements <slist_t.init_slist>.
  * > ((list)->last = 0, 0) */
-#define /*int*/ init_slist(/*out slist_t * */list) \
-   ((list)->last = 0, 0)
+#define /*void*/ init_slist(/*out slist_t * */list) \
+   ((list)->last = 0)
 
 /* define: insertafter_slist
  * Implements <slist_t.insertafter_slist> with help of <slist_t.insertafter_generic_slist>. */

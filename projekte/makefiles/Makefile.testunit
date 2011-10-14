@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.14  08:55:48
+GenerationDate  := 2011.Oct.14  20:15:38
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -90,6 +90,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!task!exothread.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!task!exoscheduler.c.o \
+ $(ObjectDir_Debug)/C-kern!os!shared!task!threadpool.c.o \
  $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
@@ -123,6 +124,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!task!exothread.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!task!exoscheduler.c.o \
+ $(ObjectDir_Release)/C-kern!os!shared!task!threadpool.c.o \
  $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
@@ -191,6 +193,9 @@ $(ObjectDir_Debug)/C-kern!os!shared!task!exothread.c.o: C-kern/os/shared/task/ex
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!task!exoscheduler.c.o: C-kern/os/shared/task/exoscheduler.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!shared!task!threadpool.c.o: C-kern/os/shared/task/threadpool.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
@@ -284,6 +289,9 @@ $(ObjectDir_Release)/C-kern!os!shared!task!exothread.c.o: C-kern/os/shared/task/
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!task!exoscheduler.c.o: C-kern/os/shared/task/exoscheduler.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!shared!task!threadpool.c.o: C-kern/os/shared/task/threadpool.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c

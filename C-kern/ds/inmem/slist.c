@@ -636,8 +636,8 @@ static int test_generic(void)
    gnode_t  * node   = 0 ;
 
    // TEST query
-   TEST(0 == init_slist1(&slist1)) ;
-   TEST(0 == init_slist2(&slist2)) ;
+   init_slist1(&slist1) ;
+   init_slist2(&slist2) ;
    TEST(1 == isempty_slist1(&slist1)) ;
    TEST(1 == isempty_slist2(&slist2)) ;
    TEST(0 == first_slist1(&slist1)) ;

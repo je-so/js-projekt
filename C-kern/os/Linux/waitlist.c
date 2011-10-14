@@ -58,6 +58,8 @@ static int wakupfirst_nolock_waitlist(waitlist_t * wlist, void * command)
    assert(!err) ;
    assert(!thread->wlistnext /*indicates that command is valid*/) ;
 
+   -- wlist->nr_waiting ;
+
    unlock_osthread(thread) ;
 
    resume_osthread(thread) ;
@@ -72,13 +74,14 @@ int init_waitlist(/*out*/waitlist_t * wlist)
    int err ;
 
    static_assert(offsetof(waitlist_t,last) == offsetof(slist_t,last), "waitlist_t == slist_t") ;
-   static_assert(sizeof(waitlist_t) == sizeof(mutex_t) + sizeof(slist_t), "waitlist_t == slist_t") ;
+   static_assert(sizeof(waitlist_t) == sizeof(uint32_t) + sizeof(mutex_t) + sizeof(slist_t), "waitlist_t == slist_t") ;
 
    err = init_mutex(&wlist->lock) ;
    if (err) goto ABBRUCH ;
 
-   err = init_wlist(wlist) ;
-   assert(!err) ;
+   wlist->nr_waiting = 0 ;
+
+   init_wlist(wlist) ;
 
    return 0 ;
 ABBRUCH:
@@ -113,6 +116,14 @@ bool isempty_waitlist(waitlist_t * wlist)
    return isempty ;
 }
 
+size_t nrwaiting_waitlist(waitlist_t * wlist)
+{
+   slock_mutex(&wlist->lock) ;
+   size_t nr_waiting = wlist->nr_waiting ;
+   sunlock_mutex(&wlist->lock) ;
+   return nr_waiting ;
+}
+
 int wait_waitlist(waitlist_t * wlist)
 {
    int err ;
@@ -120,7 +131,9 @@ int wait_waitlist(waitlist_t * wlist)
 
    slock_mutex(&wlist->lock) ;
    err = insertlast_wlist(wlist, self) ;
-   assert(self->wlistnext || err) ;
+   if (!err) {
+      ++ wlist->nr_waiting ;
+   }
    sunlock_mutex(&wlist->lock) ;
    if (err) goto ABBRUCH ;
 
@@ -194,32 +207,38 @@ static int test_initfree(void)
    wlist.last = (osthread_t*)1 ;
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(0 == wlist.last) ;
+   TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(true == isempty_waitlist(&wlist)) ;
    TEST(0 == free_waitlist(&wlist)) ;
    TEST(0 == wlist.last) ;
+   TEST(0 == wlist.nr_waiting) ;
    TEST(0 == free_waitlist(&wlist)) ;
    TEST(0 == wlist.last) ;
+   TEST(0 == wlist.nr_waiting) ;
 
    // TEST waiting 1 thread
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(true == isempty_waitlist(&wlist)) ;
+   TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(EAGAIN == trywait_rtsignal(0)) ;
    TEST(0 == new_osthread(&thread, thread_waitonwlist, &wlist)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;
    for(int i = 0; i < 1000000; ++i) {
       pthread_yield() ;
-      TEST(EAGAIN == trywait_rtsignal(1)) ;
       if (thread == wlist.last) break ;
    }
    TEST(thread == wlist.last) ;
    TEST(thread == thread->wlistnext) ;
    thread->command = 0 ;
    TEST(0 == isempty_waitlist(&wlist)) ;
+   TEST(1 == nrwaiting_waitlist(&wlist)) ;
+   TEST(EAGAIN == trywait_rtsignal(1)) ;
    TEST(0 == trywakeup_waitlist(&wlist, (void*)1)) ;
    TEST(0 == wlist.last) ;
    TEST(0 == thread->wlistnext) ;
    TEST((void*)1 == thread->command) ;
    TEST(true == isempty_waitlist(&wlist)) ;
+   TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(0 == wait_rtsignal(1, 1)) ;
    TEST(0 == delete_osthread(&thread)) ;
    TEST(0 == free_waitlist(&wlist)) ;
@@ -227,6 +246,7 @@ static int test_initfree(void)
    // TEST waiting group of threads (FIFO)
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(true == isempty_waitlist(&wlist)) ;
+   TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(0 == newgroup_osthread(&thread, thread_waitonwlist, &wlist, 20)) ;
    TEST(0 == wait_rtsignal(0, 20)) ;
    TEST(0 != wlist.last) ;
@@ -242,6 +262,7 @@ static int test_initfree(void)
       next = next->groupnext ;
       TEST(next) ;
    }
+   TEST(20 == nrwaiting_waitlist(&wlist)) ;
       // list has 20 members !
    next = wlist.last ;
    for(int i = 0; i < 20; ++i) {
@@ -265,7 +286,9 @@ static int test_initfree(void)
       // test that first is woken up
       TEST(0 == first->command) ;
       TEST(EAGAIN == trywait_rtsignal(1)) ;
+      TEST(20-i == (int)nrwaiting_waitlist(&wlist)) ;
       TEST(0 == trywakeup_waitlist(&wlist, (void*)(i+1))) ;
+      TEST(19-i == (int)nrwaiting_waitlist(&wlist)) ;
       TEST(0 == first->wlistnext) ;
       TEST(i+1 == (int)first->command) ;
       TEST(0 == wait_rtsignal(1, 1)) ;
@@ -289,6 +312,7 @@ static int test_initfree(void)
    }
    TEST(0 == wlist.last) ;
    TEST(true == isempty_waitlist(&wlist)) ;
+   TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(0 == join_osthread(thread)) ;
    TEST(0 == delete_osthread(&thread)) ;
    TEST(0 == free_waitlist(&wlist)) ;
@@ -318,7 +342,9 @@ static int test_initfree(void)
       next = next->groupnext ;
       TEST(next) ;
    }
+   TEST(20 == nrwaiting_waitlist(&wlist)) ;
    TEST(0 == free_waitlist(&wlist)) ;
+   TEST(0 == wlist.nr_waiting) ;
    TEST(0 == wlist.last) ;
    TEST(0 == wait_rtsignal(1, 20)) ;
    next = thread ;

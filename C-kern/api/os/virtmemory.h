@@ -239,6 +239,8 @@ extern const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 
 // section: inline implementation
 
+/* define: init_vmblock
+ * Implements <vm_block_t.init_vmblock> with help of <vm_block_t.init2_vmblock>. */
 #define init_vmblock( vmblock, size_in_pages ) \
    (init2_vmblock( vmblock, size_in_pages, accessmoderw_RDWR|accessmode_PRIVATE ))
 
@@ -247,7 +249,7 @@ extern const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 #define /*size_t*/ pagesize_vm() \
    (valuecache_umgebung()->pagesize_vm)
 
-/* define: size_vmmappedregions inline
+/* define: size_vmmappedregions
  * Returns <vm_mappedregions_t->total_count>.
  * Inline implementation of <vm_mappedregions_t.size_vmmappedregions>. */
 #define /*size_t*/ size_vmmappedregions( /*const vm_mappedregions_t * */mappedregions ) \

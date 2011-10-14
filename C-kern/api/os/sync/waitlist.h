@@ -57,7 +57,14 @@ extern int unittest_os_sync_waitlist(void) ;
  *
  * This object is thread safe. */
 struct waitlist_t {
+   /* variable: last
+    * The root pointer of the list of waiting threads. */
    struct osthread_t  * last ;
+   /* variable: nr_waiting
+    * The number of threads waiting. */
+   size_t               nr_waiting ;
+   /* variable: lock
+    * Mutex to protect this object from concurrent access. */
    mutex_t              lock ;
 } ;
 
@@ -65,7 +72,7 @@ struct waitlist_t {
 
 /* define: waitlist_INIT_FREEABLE
  * Static initializer. After initialization it is safe to call <free_waitlist>. */
-#define waitlist_INIT_FREEABLE   { 0, mutex_INIT_DEFAULT }
+#define waitlist_INIT_FREEABLE   { 0, 0, mutex_INIT_DEFAULT }
 
 /* function: init_waitlist
  * Inits a waiting list. The waiting is protexted by a mutex. */
@@ -87,6 +94,15 @@ extern int free_waitlist(waitlist_t * wlist) ;
  * you can not be sure that <trywakeup_waitlist> does not return EAGAIN
  * even if <isempty_waitlist> returns false. */
 extern bool isempty_waitlist(waitlist_t * wlist) ;
+
+/* function: nrwaiting_waitlist
+ * Returns the number of threads waiting on this list.
+ * Before testing the lock on the list is acquired.
+ *
+ * But in case more than one thread calls <trywakeup_waitlist>
+ * you can not be sure that <trywakeup_waitlist> does not return EAGAIN
+ * even if <nrwaiting_waitlist> returns a value greater 0. */
+extern size_t nrwaiting_waitlist(waitlist_t * wlist) ;
 
 // group: change
 
