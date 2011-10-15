@@ -67,7 +67,7 @@ struct osthread_startargument_t {
 /* variable: gt_self_osthread
  * Refers for every thread to the osthread_t variable.
  * Is is located on the thread stack so no additional memory is needed. */
-__thread  osthread_t       gt_self_osthread        = { sys_mutex_INIT_DEFAULT, 0, 0, sys_thread_INIT_FREEABLE, 0, 0, memoryblock_aspect_INIT_FREEABLE, 0, 0 } ;
+__thread  osthread_t       gt_self_osthread        = { sys_mutex_INIT_DEFAULT, 0, task_callback_INIT_FREEABLE, sys_thread_INIT_FREEABLE, 0, memoryblock_aspect_INIT_FREEABLE, 0, 0 } ;
 
 /* variable: s_offset_osthread
  * Contains the calculated offset from start of stack thread to &<gt_self_osthread>. */
@@ -310,7 +310,7 @@ static void * startpoint_osthread(void * start_arg)
          goto ABBRUCH ;
       }
 
-      int returncode = osthread->main(osthread->command) ;
+      int returncode = osthread->task.fct(osthread->task.arg) ;
       osthread->returncode = returncode ;
    }
 
@@ -448,7 +448,7 @@ ABBRUCH:
 }
 
 #undef newgroup_osthread
-int newgroup_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument, uint32_t nr_of_threads)
+int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_main, struct callback_param_t * start_arg, uint32_t nr_of_threads)
 {
    int err ;
    int err2 = 0 ;
@@ -539,9 +539,9 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main,
          goto UNDO_LOOP ;
       }
       next_osthread->wlistnext   = 0 ;
-      next_osthread->command     = thread_argument ;
+      next_osthread->task.fct    = thread_main ;
+      next_osthread->task.arg    = start_arg ;
       next_osthread->sys_thread  = sys_thread ;
-      next_osthread->main        = thread_main ;
       next_osthread->returncode  = 0 ;
       next_osthread->stackframe  = stackframe ;
       next_osthread->nr_threads  = nr_of_threads ;
@@ -702,13 +702,13 @@ ABBRUCH:
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_thread,ABBRUCH)
 
-#define newgroup_osthread(threadobj, thread_main, thread_argument, nr_of_threads) \
-   /*do not forget to adapt definition in thead.c test section*/                 \
-   ( __extension__ ({ int _err ;                                                 \
-      int (*_thread_main) (typeof(thread_argument)) = (thread_main) ;            \
-      static_assert(sizeof(thread_argument) <= sizeof(void*), "cast 2 void*") ;  \
-      _err = newgroup_osthread(threadobj, (thread_main_f) _thread_main,          \
-                              (void*) thread_argument, nr_of_threads) ;          \
+#define newgroup_osthread(threadobj, thread_main, start_arg, nr_of_threads) \
+   /*do not forget to adapt definition in thead.c test section*/                    \
+   ( __extension__ ({ int _err ;                                                    \
+      int (*_thread_main) (typeof(start_arg)) = (thread_main) ;                     \
+      static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
+      _err = newgroup_osthread(threadobj, (task_callback_f) _thread_main,           \
+                              (struct callback_param_t*) start_arg, nr_of_threads) ;\
       _err ; }))
 
 static uint8_t  * s_sigaddr ;
@@ -773,7 +773,8 @@ static int test_thread_sigaltstack(void)
       TEST(0 == sigaltstack(&newst, &oldst)) ; isStack = true ;
       TEST(0 == new_osthread(&osthread, thread_sigaltstack, 0)) ;
       TEST(osthread) ;
-      TEST(0 == osthread->command) ;
+      TEST((task_callback_f)&thread_sigaltstack == osthread->task.fct) ;
+      TEST(0 == osthread->task.arg) ;
       TEST(sys_thread_INIT_FREEABLE != osthread->sys_thread) ;
       TEST(0 == join_osthread(osthread)) ;
       TEST(sys_thread_INIT_FREEABLE == osthread->sys_thread) ;
@@ -851,8 +852,8 @@ static int test_thread_stackoverflow(void)
    TEST(0 == new_osthread(&osthread, &thread_stackoverflow, (void*)1)) ;
    TEST(0 == join_osthread(osthread)) ;
    TEST(1 == s_isStackoverflow) ;
-   TEST(osthread->command    == (void*)1) ;
-   TEST(osthread->main       == &thread_stackoverflow) ;
+   TEST(osthread->task.arg   == (void*)1) ;
+   TEST(osthread->task.fct   == (task_callback_f)&thread_stackoverflow) ;
    TEST(osthread->returncode == 0) ;
    TEST(osthread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(0 == delete_osthread(&osthread)) ;
@@ -895,9 +896,9 @@ static int test_thread_init(void)
    // TEST initonce => self_osthread()
    TEST(&gt_self_osthread == self_osthread()) ;
    TEST(self_osthread()->wlistnext  == 0) ;
-   TEST(self_osthread()->command    == 0) ;
+   TEST(self_osthread()->task.fct   == 0) ;
+   TEST(self_osthread()->task.arg   == 0) ;
    TEST(self_osthread()->sys_thread == pthread_self()) ;
-   TEST(self_osthread()->main       == 0) ;
    TEST(self_osthread()->returncode == 0) ;
    TEST(self_osthread()->stackframe.addr == 0) ;
    TEST(self_osthread()->stackframe.size == 0) ;
@@ -909,9 +910,9 @@ static int test_thread_init(void)
    TEST(0 == new_osthread(&osthread, thread_returncode, 0)) ;
    TEST(osthread) ;
    TEST(osthread->wlistnext  == 0) ;
-   TEST(osthread->command    == 0) ;
+   TEST(osthread->task.fct   == (task_callback_f)&thread_returncode) ;
+   TEST(osthread->task.arg   == 0) ;
    TEST(osthread->sys_thread != sys_thread_INIT_FREEABLE) ;
-   TEST(osthread->main       == (thread_main_f)&thread_returncode) ;
    TEST(osthread->returncode == 0) ;
    TEST(osthread->stackframe.addr != 0) ;
    TEST(osthread->stackframe.size == pagesize_vm() + framestacksize_osthreadstack()) ;
@@ -920,9 +921,9 @@ static int test_thread_init(void)
    s_returncode_signal = 1 ;
    TEST(0 == join_osthread(osthread)) ;
    TEST(osthread->wlistnext  == 0) ;
-   TEST(osthread->command    == 0) ;
+   TEST(osthread->task.fct   == (task_callback_f)&thread_returncode) ;
+   TEST(osthread->task.arg   == 0) ;
    TEST(osthread->sys_thread == sys_thread_INIT_FREEABLE) ;
-   TEST(osthread->main       == (thread_main_f)&thread_returncode) ;
    TEST(osthread->returncode == 0) ;
    TEST(osthread->stackframe.addr != 0) ;
    TEST(osthread->stackframe.size == pagesize_vm() + framestacksize_osthreadstack()) ;
@@ -938,9 +939,9 @@ static int test_thread_init(void)
    TEST(0 == new_osthread(&osthread, thread_returncode, 11)) ;
    TEST(osthread) ;
    TEST(osthread->wlistnext  == 0) ;
-   TEST(osthread->command    == (void*)11) ;
+   TEST(osthread->task.fct   == (task_callback_f)&thread_returncode) ;
+   TEST(osthread->task.arg   == (void*)11) ;
    TEST(osthread->sys_thread != sys_thread_INIT_FREEABLE) ;
-   TEST(osthread->main       == (thread_main_f)&thread_returncode) ;
    TEST(osthread->returncode == 0) ;
    TEST(osthread->stackframe.addr != 0) ;
    TEST(osthread->stackframe.size == pagesize_vm() + framestacksize_osthreadstack()) ;
@@ -949,9 +950,9 @@ static int test_thread_init(void)
    s_returncode_signal = 1 ;
    TEST(0 == join_osthread(osthread)) ;
    TEST(osthread->wlistnext  == 0) ;
-   TEST(osthread->command    == (void*)11) ;
+   TEST(osthread->task.fct   == (task_callback_f)&thread_returncode) ;
+   TEST(osthread->task.arg   == (void*)11) ;
    TEST(osthread->sys_thread == sys_thread_INIT_FREEABLE) ;
-   TEST(osthread->main       == (thread_main_f)&thread_returncode) ;
    TEST(returncode_osthread(osthread) == 11) ;
    TEST(osthread->stackframe.addr != 0) ;
    TEST(osthread->stackframe.size == pagesize_vm() + framestacksize_osthreadstack()) ;
@@ -959,9 +960,9 @@ static int test_thread_init(void)
    TEST(osthread->groupnext  == osthread) ;
    TEST(0 == join_osthread(osthread)) ;
    TEST(osthread->wlistnext  == 0) ;
-   TEST(osthread->command    == (void*)11) ;
+   TEST(osthread->task.fct   == (task_callback_f)&thread_returncode) ;
+   TEST(osthread->task.arg   == (void*)11) ;
    TEST(osthread->sys_thread == sys_thread_INIT_FREEABLE) ;
-   TEST(osthread->main       == (thread_main_f)&thread_returncode) ;
    TEST(returncode_osthread(osthread) == 11) ;
    TEST(osthread->stackframe.addr != 0) ;
    TEST(osthread->stackframe.size == pagesize_vm() + framestacksize_osthreadstack()) ;
@@ -987,8 +988,8 @@ static int test_thread_init(void)
       s_returncode_running = 0 ;
       TEST(0 == new_osthread(&osthread, thread_returncode, arg)) ;
       TEST(osthread) ;
-      TEST(osthread->command    == (void*)arg) ;
-      TEST(osthread->main       == (thread_main_f)&thread_returncode ) ;
+      TEST(osthread->task.arg   == (void*)arg) ;
+      TEST(osthread->task.fct   == (task_callback_f)&thread_returncode ) ;
       TEST(osthread->sys_thread != sys_thread_INIT_FREEABLE) ;
       for(int yi = 0; yi < 100000 && !s_returncode_running; ++yi) {
          pthread_yield() ;
@@ -1268,8 +1269,8 @@ static int test_thread_array(void)
    for(unsigned i = 0; i < osthread->nr_threads; ++i) {
       TEST(prev < next) ;
       TEST(next->wlistnext  == 0) ;
-      TEST(next->command    == 0) ;
-      TEST(next->main       == (thread_main_f)&thread_returncode) ;
+      TEST(next->task.arg   == 0) ;
+      TEST(next->task.fct   == (task_callback_f)&thread_returncode) ;
       TEST(next->returncode == 0) ;
       TEST(next->nr_threads == 23) ;
       TEST(next->sys_thread != sys_thread_INIT_FREEABLE) ;
@@ -1284,8 +1285,8 @@ static int test_thread_array(void)
    for(unsigned i = 0; i < osthread->nr_threads; ++i) {
       TEST(prev < next) ;
       TEST(next->wlistnext  == 0) ;
-      TEST(next->command    == 0) ;
-      TEST(next->main       == (thread_main_f)&thread_returncode) ;
+      TEST(next->task.arg   == 0) ;
+      TEST(next->task.fct   == (task_callback_f)&thread_returncode) ;
       TEST(next->returncode == 0) ;
       TEST(next->nr_threads == 23) ;
       TEST(next->sys_thread == sys_thread_INIT_FREEABLE) ;
@@ -1638,7 +1639,7 @@ static int thread_lockunlock(osthread_t * mainthread)
    err = send_rtsignal(0) ;
    assert(!err) ;
    lock_osthread(mainthread) ;
-   mainthread->command = (void*) (1 + (int) mainthread->command) ;
+   mainthread->task.arg = (void*) (1 + (int) mainthread->task.arg) ;
    err = send_rtsignal(1) ;
    assert(!err) ;
    err = wait_rtsignal(2, 1) ;
@@ -1676,7 +1677,7 @@ static int test_thread_lockunlock(void)
    TEST(EAGAIN == trywait_rtsignal(1)) ;
    TEST(EAGAIN == trywait_rtsignal(2)) ;
    lock_osthread(self_osthread()) ;
-   self_osthread()->command = 0 ;
+   self_osthread()->task.arg = 0 ;
    TEST(0 == newgroup_osthread(&thread, thread_lockunlock, self_osthread(), 99)) ;
    TEST(0 == wait_rtsignal(0, 99)) ;
    TEST(EAGAIN == trywait_rtsignal(1)) ;
@@ -1684,7 +1685,7 @@ static int test_thread_lockunlock(void)
    unlock_osthread(self_osthread()) ;
    for(int i = 0; i < 99; ++i) {
       TEST(0 == wait_rtsignal(1, 1)) ;
-      void * volatile * cmdaddr = & (self_osthread()->command) ;
+      void * volatile * cmdaddr = (void**) & (self_osthread()->task.arg) ;
       TEST(1+i == (int)(*cmdaddr)) ;
       TEST(EAGAIN == trywait_rtsignal(1)) ;
       TEST(EAGAIN == trywait_rtsignal(3)) ;
@@ -1694,7 +1695,7 @@ static int test_thread_lockunlock(void)
    }
    TEST(0 == join_osthread(thread)) ;
    TEST(0 == delete_osthread(&thread)) ;
-   self_osthread()->command = 0 ;
+   self_osthread()->task.arg = 0 ;
 
    // TEST EDEADLK: calling lock twice is prevented
    lock_osthread(self_osthread()) ;
@@ -1724,7 +1725,7 @@ ABBRUCH:
    while( 0 == trywait_rtsignal(1) ) ;
    while( 0 == trywait_rtsignal(2) ) ;
    while( 0 == trywait_rtsignal(3) ) ;
-   self_osthread()->command = 0 ;
+   self_osthread()->task.arg = 0 ;
    return EINVAL ;
 }
 

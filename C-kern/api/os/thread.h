@@ -26,20 +26,19 @@
 #define CKERN_OS_THREAD_HEADER
 
 #include "C-kern/api/aspect/memoryblock.h"
+#include "C-kern/api/aspect/callback/task.h"
 
 /* typedef: osthread_t typedef
  * Export <osthread_t>. */
 typedef struct osthread_t              osthread_t ;
 
-/* typedef: thread_main_f
- * Function pointer to thread implementation. */
-typedef int/*errcode(0 == OK)*/     (* thread_main_f) (void * start_arg) ;
-
 /* typedef: osthread_stack_t typedef
  * Export <memoryblock_aspect_t> as osthread_stack_t. */
 typedef memoryblock_aspect_t           osthread_stack_t ;
 
+// globals
 extern __thread  osthread_t            gt_self_osthread ;
+
 
 // section: Functions
 
@@ -70,18 +69,15 @@ struct osthread_t {
    /* variable: wlistnext
     * Points to next thread which waits on the same condition in <waitlist_t>. */
    osthread_t      * wlistnext ;
-   /* variable: command
+   /* variable: task
     * Contains value to signal thread what to do after wakeup. */
-   void            * command ;
+   task_callback_t   task ;
    /* variable: sys_thread
     * Contains system specific ID of thread. It has type <sys_thread_t>. */
    sys_thread_t      sys_thread ;
-   /* variable: main
-    * Contains pointer to function which is executed by this thread. */
-   thread_main_f     main ;
    /* variable: returncode
-    * Contains the value <thread_main> returns.
-    * This value is only valid after <thread_main> has returned.
+    * Contains the value <task> returns.
+    * This value is only valid after <task> has returned.
     * This value reflects the value of the first thread which did not return 0.
     * This value is 0 if all threads returned 0. */
    int               returncode ;
@@ -90,7 +86,7 @@ struct osthread_t {
    osthread_stack_t  stackframe ;
    /* variable: nr_threads
     * Contains the number of threads in this group.
-    * All threads share the same thread_main function and the same argument at the beginning.
+    * All threads share the same task function and the same argument at the beginning.
     * Use <groupnext> to iterate over the whole group. */
    uint32_t          nr_threads ;
    /* variable: groupnext
@@ -115,7 +111,7 @@ extern int initonce_osthread(void) ;
  * If the internal preparation goes wrong <umgebung_t.abort_umgebung> is called.
  * It is unspecified if thread_main is called before new_osthread returns.
  * On Linux new_osthread returns before the newly created thread is scheduled. */
-extern int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument) ;
+extern int new_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_main, void * start_arg) ;
 
 /* function: newgroup_osthread
  * Creates and starts nr_of_threads new system threads.
@@ -123,7 +119,7 @@ extern int new_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_mai
  * If not that many threads could be created as specified in nr_of_threads
  * already created threads silently exit themselves without any error being logged.
  * This preserves transactional all or nothing semantics. */
-extern int newgroup_osthread(/*out*/osthread_t ** threadobj, thread_main_f thread_main, void * thread_argument, uint32_t nr_of_threads) ;
+extern int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_main, struct callback_param_t * start_arg, uint32_t nr_of_threads) ;
 
 /* function: delete_osthread
  * Calls <join_osthread> (if not already called) and deletes resources.
@@ -142,9 +138,9 @@ extern osthread_t * self_osthread(void) ;
  * 0 is returned in case the thread has not already been joined. */
 extern int returncode_osthread(const osthread_t * threadobj) ;
 
-/* function: command_osthread
- * Reads <command> field of <osthread_t> structure. */
-extern void * command_osthread(const osthread_t * threadobj) ;
+/* function: task_osthread
+ * Reads <task> field of <osthread_t> structure. */
+extern void * task_osthread(const osthread_t * threadobj) ;
 
 // group: change lock
 
@@ -178,7 +174,7 @@ extern int join_osthread(osthread_t * threadobj) ;
  *
  * Attention !:
  * It is possible that signals are received from outside this process therefore make sure
- * with checking of <command> or <wlistnext> or with some other mechanism that returning
+ * with checking of <task> or <wlistnext> or with some other mechanism that returning
  * from <suspend_osthread> emanates from a corresponding call to <resume_osthread>. */
 extern void suspend_osthread(void) ;
 
@@ -200,11 +196,11 @@ extern void sleepms_osthread(uint32_t msec) ;
 
 // section: inline implementations
 
-/* define: command_osthread
- * Implements <osthread_t.command_osthread>.
- * > ((threadobj)->command) */
-#define command_osthread(threadobj) \
-   ((threadobj)->command)
+/* define: task_osthread
+ * Implements <osthread_t.task_osthread>.
+ * > ((threadobj)->task) */
+#define task_osthread(threadobj) \
+   ((threadobj)->task)
 
 /* define: lock_osthread
  * Implements <osthread_t.lock_osthread>.
@@ -214,19 +210,19 @@ extern void sleepms_osthread(uint32_t msec) ;
 
 /* define: new_osthread
  * Implements <osthread_t.new_osthread>.
- * > newgroup_osthread(threadobj, thread_main, thread_argument, 1) */
-#define new_osthread(threadobj, thread_main, thread_argument) \
-      newgroup_osthread(threadobj, thread_main, thread_argument, 1)
+ * > newgroup_osthread(threadobj, thread_main, start_arg, 1) */
+#define new_osthread(threadobj, thread_main, start_arg) \
+      newgroup_osthread(threadobj, thread_main, start_arg, 1)
 
 /* define: newgroup_osthread
  * Calls <osthread_t.newgroup_osthread> with adapted function pointer. */
-#define newgroup_osthread(threadobj, thread_main, thread_argument, nr_of_threads) \
-   /*do not forget to adapt definition in thead.c test section*/                 \
-   ( __extension__ ({ int _err ;                                                 \
-      int (*_thread_main) (typeof(thread_argument)) = (thread_main) ;            \
-      static_assert(sizeof(thread_argument) <= sizeof(void*), "cast 2 void*") ;  \
-      _err = newgroup_osthread(threadobj, (thread_main_f) _thread_main,          \
-                              (void*) thread_argument, nr_of_threads) ;          \
+#define newgroup_osthread(threadobj, thread_main, start_arg, nr_of_threads) \
+   /*do not forget to adapt definition in thead.c test section*/                    \
+   ( __extension__ ({ int _err ;                                                    \
+      int (*_thread_main) (typeof(start_arg)) = (thread_main) ;                     \
+      static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
+      _err = newgroup_osthread(threadobj, (task_callback_f) _thread_main,           \
+                              (struct callback_param_t*) start_arg, nr_of_threads) ;\
       _err ; }))
 
 /* define: returncode_osthread

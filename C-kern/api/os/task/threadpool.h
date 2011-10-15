@@ -86,7 +86,12 @@ extern int nridle_threadpool(const threadpool_t * pool) ;
  * Returns the number of threads allocated and managed by this pool. */
 extern int poolsize_threadpool(const threadpool_t * pool) ;
 
-// group: execute
+// group: change
+
+/* function: tryruntask_threadpool
+ * Lets a thread from the pool execute a task.
+ * If no thread is currently idle EAGAIN is returned. */
+extern int tryruntask_threadpool(threadpool_t * pool, task_callback_f task_main, callback_param_t * start_arg) ;
 
 
 // section: inline implementation
@@ -103,5 +108,15 @@ extern int poolsize_threadpool(const threadpool_t * pool) ;
 #define poolsize_threadpool(/*const threadpool_t * */pool)  \
    ((pool)->poolsize)
 
+/* define: tryruntask_threadpool
+ * Calls <osthread_t.tryruntask_threadpool> with adapted function pointer. */
+#define tryruntask_threadpool(pool, task_main, start_arg)                     \
+   /*do not forget to adapt definition in threadpool.c test section*/         \
+   ( __extension__ ({ int _err ;                                              \
+      int (*_task_main) (typeof(start_arg)) = (task_main) ;                   \
+      static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;     \
+      _err = tryruntask_threadpool(pool, (task_callback_f) _task_main,        \
+                                       (callback_param_t*) start_arg) ;       \
+      _err ; }))
 
 #endif

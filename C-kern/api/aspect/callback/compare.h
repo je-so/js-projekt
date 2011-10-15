@@ -24,7 +24,7 @@
 #define CKERN_ASPECT_CALLBACK_COMPARE_HEADER
 
 // forward
-struct callback_aspect_t ;
+struct callback_param_t ;
 
 /* typedef: compare_callback_t typedef
  * Shortcut for <compare_callback_t>. */
@@ -35,12 +35,12 @@ typedef struct compare_callback_t      compare_callback_t ;
  *
  * Parameter:
  * functionname   - Name of function pointer whose signature is declared.
- * callback_type  - Generic type first parameter of callback points to.
+ * cbparam_type   - Generic type first parameter of callback points to.
  * left_type      - The second parameter of the callback points to left_type.
  * right_type     - The third parameter of the callback points to right_type.
- * > int (* functionname) (callback_type * cb, left_type * left_elemnt, right_type * right_elemnt) */
-#define compare_callback_SIGNATURE(functionname, callback_type, left_type, right_type) \
-   int (* functionname) (callback_type * cb, left_type * left_elemnt, right_type * right_elemnt)
+ * > int (* functionname) (cbparam_type * cb, left_type * left_elemnt, right_type * right_elemnt) */
+#define compare_callback_SIGNATURE(functionname, cbparam_type, left_type, right_type) \
+   int (* functionname) (cbparam_type * cb, left_type * left_elemnt, right_type * right_elemnt)
 
 /* typedef: compare_callback_f
  * Function pointer to any callback which compares two elements.
@@ -50,7 +50,7 @@ typedef struct compare_callback_t      compare_callback_t ;
  *  0 - The called function should return 0 in case left equals right element.
  * -1 - It should return -1 in case left is lesser then right element.
  * +1 - It should return +1 in case left is greater then right element. */
-typedef compare_callback_SIGNATURE(    compare_callback_f, struct callback_aspect_t, const void, const void ) ;
+typedef compare_callback_SIGNATURE(    compare_callback_f, struct callback_param_t, const void, const void ) ;
 
 /* define: compare_callback_ADAPT
  * Adapt types of callback parameter to more specific ones.
@@ -60,16 +60,16 @@ typedef compare_callback_SIGNATURE(    compare_callback_f, struct callback_aspec
  * Parameter:
  * type_name     - Name prefix of constructed types. The name prefix is suffixed with either "_t" or "_f" to construct
  *                 two types.
- * callback_type - Type of parameter the first parameter of every callback points to.
- *                 This type replaces <callback_aspect_t>.
+ * cbparam_type  - Type of parameter the first parameter of every callback points to.
+ *                 This type replaces <callback_param_t>.
  * left_type     - The second parameter of the callback is constructed with type: (left_type *).
  * right_type    - The third parameter of the callback is constructed with type: (right_type *). */
-#define compare_callback_ADAPT(type_name, callback_type, left_type, right_type)  \
-   typedef compare_callback_SIGNATURE( type_name ## _f, callback_type, const left_type, const right_type) ; \
+#define compare_callback_ADAPT(type_name, cbparam_type, left_type, right_type)  \
+   typedef compare_callback_SIGNATURE( type_name ## _f, cbparam_type, const left_type, const right_type) ; \
    typedef struct type_name ## _t      type_name ## _t ; \
    struct type_name ## _t { \
       type_name ## _f   fct ; \
-      callback_type   * cb_param ; \
+      cbparam_type    * cb_param ; \
    } ;
 
 /* struct: compare_callback_t
@@ -80,7 +80,7 @@ struct compare_callback_t {
    compare_callback_f         fct ;
    /* variable: cb_param
     * The pointer to the first parameter of the called back function. */
-   struct callback_aspect_t * cb_param ;
+   struct callback_param_t  * cb_param ;
 } ;
 
 #endif

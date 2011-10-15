@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/sync/waitlist.h"
 #include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/os/sync/mutex.h"
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
@@ -44,7 +45,7 @@ slist_IMPLEMENT(wlist, wlistnext, void)
 
 // group: helper
 
-static int wakupfirst_nolock_waitlist(waitlist_t * wlist, void * command)
+static int wakupfirst_nolock_waitlist(waitlist_t * wlist, task_callback_f task_main, callback_param_t * start_arg)
 {
    int err ;
 
@@ -52,7 +53,8 @@ static int wakupfirst_nolock_waitlist(waitlist_t * wlist, void * command)
 
    lock_osthread(thread) ;
 
-   thread->command = command ;
+   thread->task.fct = task_main ;
+   thread->task.arg = start_arg ;
 
    err = removefirst_wlist(wlist, &thread) ;
    assert(!err) ;
@@ -96,7 +98,7 @@ int free_waitlist(waitlist_t * wlist)
    err = free_mutex(&wlist->lock) ;
 
    while( !isempty_wlist(wlist) ) {
-      int err2 = wakupfirst_nolock_waitlist( wlist, 0 ) ;
+      int err2 = wakupfirst_nolock_waitlist( wlist, (task_callback_f)0, (callback_param_t*)0 ) ;
       if (err2) err = err2 ;
    }
 
@@ -151,7 +153,7 @@ ABBRUCH:
    return err ;
 }
 
-int trywakeup_waitlist(waitlist_t * wlist, void * command)
+int trywakeup_waitlist(waitlist_t * wlist, task_callback_f task_main, callback_param_t * start_arg)
 {
    int err ;
    bool isEmpty ;
@@ -162,7 +164,7 @@ int trywakeup_waitlist(waitlist_t * wlist, void * command)
    if (isEmpty) {
       err = EAGAIN ;
    } else {
-      err = wakupfirst_nolock_waitlist( wlist, command ) ;
+      err = wakupfirst_nolock_waitlist( wlist, task_main, start_arg ) ;
    }
 
    sunlock_mutex(&wlist->lock) ;
@@ -229,14 +231,15 @@ static int test_initfree(void)
    }
    TEST(thread == wlist.last) ;
    TEST(thread == thread->wlistnext) ;
-   thread->command = 0 ;
+   thread->task = (task_callback_t) task_callback_INIT_FREEABLE ;
    TEST(0 == isempty_waitlist(&wlist)) ;
    TEST(1 == nrwaiting_waitlist(&wlist)) ;
    TEST(EAGAIN == trywait_rtsignal(1)) ;
-   TEST(0 == trywakeup_waitlist(&wlist, (void*)1)) ;
+   TEST(0 == trywakeup_waitlist(&wlist, (task_callback_f)1, (callback_param_t*)2 )) ;
    TEST(0 == wlist.last) ;
    TEST(0 == thread->wlistnext) ;
-   TEST((void*)1 == thread->command) ;
+   TEST(thread->task.fct = (task_callback_f)1) ;
+   TEST(thread->task.arg = (void*)2) ;
    TEST(true == isempty_waitlist(&wlist)) ;
    TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(0 == wait_rtsignal(1, 1)) ;
@@ -270,7 +273,7 @@ static int test_initfree(void)
       next = next_wlist(next) ;
       TEST(next) ;
       TEST(prev->wlistnext == next) ;
-      next->command = 0 ;
+      next->task.arg = 0 ;
       if (i != 19) {
          TEST(next != wlist.last) ;
       } else {
@@ -284,13 +287,13 @@ static int test_initfree(void)
       next = next_wlist(next) ;
       TEST(first) ;
       // test that first is woken up
-      TEST(0 == first->command) ;
+      TEST(0 == first->task.arg) ;
       TEST(EAGAIN == trywait_rtsignal(1)) ;
       TEST(20-i == (int)nrwaiting_waitlist(&wlist)) ;
-      TEST(0 == trywakeup_waitlist(&wlist, (void*)(i+1))) ;
+      TEST(0 == trywakeup_waitlist(&wlist, (task_callback_f)0, (callback_param_t*)(i+1) )) ;
       TEST(19-i == (int)nrwaiting_waitlist(&wlist)) ;
       TEST(0 == first->wlistnext) ;
-      TEST(i+1 == (int)first->command) ;
+      TEST(i+1 == (int)first->task.arg) ;
       TEST(0 == wait_rtsignal(1, 1)) ;
       if (i != 19) {
          TEST(next != first) ;
@@ -300,7 +303,7 @@ static int test_initfree(void)
       // test that others are not changed
       osthread_t * next2 = next ;
       for(int i2 = i; i2 < 19; ++i2) {
-         TEST(0 == next2->command) ;
+         TEST(0 == next2->task.arg) ;
          TEST(0 != next2->wlistnext) ;
          next2 = next_wlist(next2) ;
          if (i2 != 18) {
@@ -327,7 +330,7 @@ static int test_initfree(void)
    TEST(0 == isempty_waitlist(&wlist)) ;
    next = thread ;
    for(int i = 0; i < 20; ++i) {
-      next->command = (void*)13 ;
+      next->task.arg = (callback_param_t*)13 ;
       next = next->groupnext ;
       TEST(next) ;
    }
@@ -350,7 +353,7 @@ static int test_initfree(void)
    next = thread ;
    for(int i = 0; i < 20; ++i) {
       // free_waitlist sets command to 0
-      TEST(0 == (int)next->command)
+      TEST(0 == (int)next->task.arg)
       TEST(0 == next->wlistnext) ;
       next = next->groupnext ;
       TEST(next) ;
@@ -361,7 +364,7 @@ static int test_initfree(void)
    // TEST EAGAIN
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(true == isempty_waitlist(&wlist)) ;
-   TEST(EAGAIN == trywakeup_waitlist(&wlist, 0)) ;
+   TEST(EAGAIN == trywakeup_waitlist(&wlist, 0, 0)) ;
    TEST(0 == free_waitlist(&wlist)) ;
 
    return 0 ;

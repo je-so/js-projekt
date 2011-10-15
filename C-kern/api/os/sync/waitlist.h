@@ -28,7 +28,8 @@
 #ifndef CKERN_OS_SYNCHRONIZATION_WAITLIST_HEADER
 #define CKERN_OS_SYNCHRONIZATION_WAITLIST_HEADER
 
-#include "C-kern/api/os/sync/mutex.h"
+#include "C-kern/api/aspect/callback.h"
+#include "C-kern/api/aspect/callback/task.h"
 
 // forward
 struct osthread_t ;
@@ -65,7 +66,7 @@ struct waitlist_t {
    size_t               nr_waiting ;
    /* variable: lock
     * Mutex to protect this object from concurrent access. */
-   mutex_t              lock ;
+   sys_mutex_t          lock ;
 } ;
 
 // group: lifetime
@@ -119,7 +120,7 @@ extern int wait_waitlist(waitlist_t * wlist) ;
  * If the list is not empty the first waiting threads <osthread_t.command> argument is set
  * to command and it is removed from the list. The removed thread is then resumed.
  * See also <resume_osthread>. */
-extern int trywakeup_waitlist(waitlist_t * wlist, void * command) ;
+extern int trywakeup_waitlist(waitlist_t * wlist, task_callback_f task_main, callback_param_t * start_arg) ;
 
 
 #endif

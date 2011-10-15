@@ -92,7 +92,7 @@ int invariant_redblacktree( redblacktree_t * tree, const redblacktree_compare_no
    redblacktree_node_t                  * prev = 0 ;
    redblacktree_node_t                  * node = tree->root ;
    const redblacktree_compare_nodes_f  compare = compare_callback->fct ;
-   callback_aspect_t                * const cb = compare_callback->cb_param ;
+   callback_param_t                 * const cb = compare_callback->cb_param ;
 
    if (!node) {
       return 0 ;
@@ -191,7 +191,7 @@ int find_redblacktree( redblacktree_t * tree, const void * key, /*out*/redblackt
 {
    redblacktree_node_t           * node = tree->root ;
    const redblacktree_compare_f compare = compare_callback->fct ;
-   callback_aspect_t         * const cb = compare_callback->cb_param ;
+   callback_param_t          * const cb = compare_callback->cb_param ;
 
    while (node) {
       int cmp = compare( cb, key, node) ;
@@ -527,7 +527,7 @@ int insert_redblacktree( redblacktree_t * tree, const void * new_key, redblacktr
 
       // search insert position in tree; result == (pInsertPos,isKeyLower)
       const redblacktree_compare_f compare = compare_callback->fct ;
-      callback_aspect_t        * const cb  = compare_callback->cb_param ;
+      callback_param_t         * const cb  = compare_callback->cb_param ;
 
       redblacktree_node_t * parent ;
       for(parent = tree->root ;;)
@@ -753,33 +753,33 @@ struct TreeNode {
    int      is_inserted ;
 } ;
 
-static int adapter_compare_nodes( callback_aspect_t * cb, const redblacktree_node_t * node1, const redblacktree_node_t * node2)
+static int adapter_compare_nodes( callback_param_t * cb, const redblacktree_node_t * node1, const redblacktree_node_t * node2)
 {
    static_assert( sizeof(void*) >= sizeof(unsigned ), "void* is not big enough to carry search key" ) ;
-   assert(cb == (callback_aspect_t *)1) ;
+   assert(cb == (callback_param_t *)1) ;
    unsigned key1 = ((const struct TreeNode*)node1)->key ;
    unsigned key2 = ((const struct TreeNode*)node2)->key ;
    return key1 < key2 ? -1 : (key1 > key2 ? +1 : 0) ;
 }
 
-static int adapter_compare_key_node( callback_aspect_t * cb, const void * key, const redblacktree_node_t * node)
+static int adapter_compare_key_node( callback_param_t * cb, const void * key, const redblacktree_node_t * node)
 {
-   assert(cb == (callback_aspect_t *)2) ;
+   assert(cb == (callback_param_t *)2) ;
    unsigned key1 = (unsigned )key ;
    unsigned key2 = ((const struct TreeNode*)node)->key ;
    return key1 < key2 ? -1 : (key1 > key2 ? +1 : 0) ;
 }
 
-static int adapter_updatekey( callback_aspect_t * cb, const void * new_key, redblacktree_node_t * node)
+static int adapter_updatekey( callback_param_t * cb, const void * new_key, redblacktree_node_t * node)
 {
-   assert(cb == (callback_aspect_t *)3) ;
+   assert(cb == (callback_param_t *)3) ;
    ((struct TreeNode*)node)->key = (unsigned) new_key ;
    return 0 ;
 }
 
-static int adapter_updatekey_enomem( callback_aspect_t * cb, const void * new_key, redblacktree_node_t * node)
+static int adapter_updatekey_enomem( callback_param_t * cb, const void * new_key, redblacktree_node_t * node)
 {
-   assert(cb == (callback_aspect_t *)3) ;
+   assert(cb == (callback_param_t *)3) ;
    (void) new_key ;
    (void) node ;
    return ENOMEM ;
@@ -787,9 +787,9 @@ static int adapter_updatekey_enomem( callback_aspect_t * cb, const void * new_ke
 
 static int freenode_count = 0 ;
 
-static int adapter_freenode( callback_aspect_t * cb, redblacktree_node_t * node )
+static int adapter_freenode( callback_param_t * cb, redblacktree_node_t * node )
 {
-   assert(cb == (callback_aspect_t*)4) ;
+   assert(cb == (callback_param_t*)4) ;
    ++ freenode_count ;
    ((struct TreeNode*)node)->is_freed = 1 ;
    return 0 ;
@@ -817,9 +817,9 @@ static redblacktree_node_t * build_perfect_tree( unsigned count, struct TreeNode
 static int test_insertconditions(void)
 {
    redblacktree_t                tree             = redblacktree_INIT_FREEABLE ;
-   redblacktree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_aspect_t*)1 } ;
-   redblacktree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_aspect_t*)2 } ;
-   redblacktree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_aspect_t*)4 } ;
+   redblacktree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_param_t*)1 } ;
+   redblacktree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_param_t*)2 } ;
+   redblacktree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_param_t*)4 } ;
    struct TreeNode               nodes[20] ;
 
    MEMSET0( &nodes ) ;
@@ -1065,9 +1065,9 @@ ABBRUCH:
 static int test_removeconditions(void)
 {
    redblacktree_t                tree             = redblacktree_INIT_FREEABLE ;
-   redblacktree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_aspect_t*)1 } ;
-   redblacktree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_aspect_t*)2 } ;
-   redblacktree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_aspect_t*)4 } ;
+   redblacktree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_param_t*)1 } ;
+   redblacktree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_param_t*)2 } ;
+   redblacktree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_param_t*)4 } ;
    struct TreeNode               nodes[20] ;
    redblacktree_node_t           * node = 0 ;
 
@@ -1204,11 +1204,11 @@ ABBRUCH:
 int unittest_os_index_redblacktree()
 {
    redblacktree_t                tree             = redblacktree_INIT_FREEABLE ;
-   redblacktree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_aspect_t*)1 } ;
-   redblacktree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_aspect_t*)2 } ;
-   redblacktree_update_key_t     update_key_cb    = { .fct = &adapter_updatekey, .cb_param = (callback_aspect_t*)3 } ;
-   redblacktree_update_key_t     update_key_err   = { .fct = &adapter_updatekey_enomem, .cb_param = (callback_aspect_t*)3 } ;
-   redblacktree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_aspect_t*)4 } ;
+   redblacktree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_param_t*)1 } ;
+   redblacktree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_param_t*)2 } ;
+   redblacktree_update_key_t     update_key_cb    = { .fct = &adapter_updatekey, .cb_param = (callback_param_t*)3 } ;
+   redblacktree_update_key_t     update_key_err   = { .fct = &adapter_updatekey_enomem, .cb_param = (callback_param_t*)3 } ;
+   redblacktree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_param_t*)4 } ;
    struct TreeNode               nodes[10000] ;
    redblacktree_node_t           * treenode ;
 

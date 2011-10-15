@@ -527,7 +527,7 @@ struct node_t {
    int   is_inserted ;
 } ;
 
-static int adapter_compare_key_node( callback_aspect_t * cb, const void * key_node1, const splaytree_node_t * node2)
+static int adapter_compare_key_node( callback_param_t * cb, const void * key_node1, const splaytree_node_t * node2)
 {
    static_assert( sizeof(int) <= sizeof(void*), "integer key can be cast to void *" ) ;
    assert( (void*)17 == (void*)cb ) ;
@@ -536,7 +536,7 @@ static int adapter_compare_key_node( callback_aspect_t * cb, const void * key_no
    return signum(key1 - key2) ;
 }
 
-static int adapter_compare_nodes( callback_aspect_t * cb, const splaytree_node_t * node1, const splaytree_node_t * node2)
+static int adapter_compare_nodes( callback_param_t * cb, const splaytree_node_t * node1, const splaytree_node_t * node2)
 {
    assert( (void*)14 == (void*)cb ) ;
    int key1 = ((const node_t*)node1)->key ;
@@ -544,14 +544,14 @@ static int adapter_compare_nodes( callback_aspect_t * cb, const splaytree_node_t
    return signum(key1 - key2) ;
 }
 
-static int adapter_updatekey( callback_aspect_t * cb, const void * new_key, splaytree_node_t * node )
+static int adapter_updatekey( callback_param_t * cb, const void * new_key, splaytree_node_t * node )
 {
    assert( (void*)13 == (void*)cb ) ;
    ((node_t*)node)->key = (int)new_key ;
    return 0 ;
 }
 
-static int adapter_updatekey_enomem( callback_aspect_t * cb, const void * new_key, splaytree_node_t * node )
+static int adapter_updatekey_enomem( callback_param_t * cb, const void * new_key, splaytree_node_t * node )
 {
    assert( (void*)11 == (void*)cb ) ;
    (void) new_key ;
@@ -561,7 +561,7 @@ static int adapter_updatekey_enomem( callback_aspect_t * cb, const void * new_ke
 
 static int freenode_count = 0 ;
 
-static int adapter_freenode( callback_aspect_t * cb, splaytree_node_t * node )
+static int adapter_freenode( callback_param_t * cb, splaytree_node_t * node )
 {
    assert( (void*)9 == (void*)cb ) ;
    ++ freenode_count ;
@@ -591,10 +591,10 @@ int unittest_os_index_splaytree()
    node_t                     nodes2 [nrelementsof(nodes)] ;
    splaytree_t                tree             = splaytree_INIT(0) ;
    resourceusage_t            usage            = resourceusage_INIT_FREEABLE ;
-   splaytree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_aspect_t*)9 } ;
-   splaytree_update_key_t     update_key_cb    = { .fct = &adapter_updatekey, .cb_param = (callback_aspect_t*)13 } ;
-   splaytree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_aspect_t*)14 } ;
-   splaytree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_aspect_t*)17 } ;
+   splaytree_free_t           free_cb          = { .fct = &adapter_freenode, .cb_param = (callback_param_t*)9 } ;
+   splaytree_update_key_t     update_key_cb    = { .fct = &adapter_updatekey, .cb_param = (callback_param_t*)13 } ;
+   splaytree_compare_nodes_t  compare_nodes_cb = { .fct = &adapter_compare_nodes, .cb_param = (callback_param_t*)14 } ;
+   splaytree_compare_t        compare_cb       = { .fct = &adapter_compare_key_node, .cb_param = (callback_param_t*)17 } ;
    splaytree_node_t        *  treenode ;
 
    TEST(0 == init_resourceusage(&usage)) ;
@@ -828,7 +828,7 @@ int unittest_os_index_splaytree()
 
    // TEST updatekey returns error ENOMEM
    for (unsigned i = nrelementsof(nodes)-1; i >= nrelementsof(nodes)-5; --i) {
-      splaytree_update_key_t enomem_cb = { .fct = &adapter_updatekey_enomem, .cb_param = (callback_aspect_t*)11 } ;
+      splaytree_update_key_t enomem_cb = { .fct = &adapter_updatekey_enomem, .cb_param = (callback_param_t*)11 } ;
       TEST(ENOMEM == updatekey_splaytree( &tree, (void*)i, (void*)(1+i), &enomem_cb, &compare_cb )) ;
       TEST(nodes[i].key == (int)i) ;
    }

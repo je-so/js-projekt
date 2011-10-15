@@ -43,22 +43,22 @@ typedef struct splaytree_t             splaytree_t ;
 
 /* typedef: splaytree_compare_nodes_f
  * Callback to check the sorting order of the tree. */
-compare_callback_ADAPT(splaytree_compare_nodes, callback_aspect_t, splaytree_node_t, splaytree_node_t)
+compare_callback_ADAPT(splaytree_compare_nodes, callback_param_t, splaytree_node_t, splaytree_node_t)
 
 /* typedef: splaytree_compare_f
  * Callback function used to determine the sorting order.
  * Same as <compare_callback_f> except for type of paramater.
  * The first parameter is of type search key and the seocnd of type node. */
-compare_callback_ADAPT(splaytree_compare, callback_aspect_t, void, splaytree_node_t)
+compare_callback_ADAPT(splaytree_compare, callback_param_t, void, splaytree_node_t)
 
 /* typedef: splaytree_update_key_f
  * Equivalent to function type <updatekey_callback_f>.
  * But the object parameter is of type <splaytree_node_t>. */
-updatekey_callback_ADAPT(splaytree_update_key, callback_aspect_t, void, splaytree_node_t)
+updatekey_callback_ADAPT(splaytree_update_key, callback_param_t, void, splaytree_node_t)
 
 /* typedef: splaytree_free_f
  * Equivalent to function type <free_callback_f>. */
-free_callback_ADAPT(splaytree_free, callback_aspect_t, splaytree_node_t)
+free_callback_ADAPT(splaytree_free, callback_param_t, splaytree_node_t)
 
 
 // section: Functions

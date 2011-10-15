@@ -42,8 +42,8 @@ typedef struct slist_t              slist_t ;
 /* typedef: freecb_slist_f
  * Free resource callback.
  * <freecb_slist_f> is defined as:
- * > int (*freecb_slist_f) ( callback_aspect_t *, slist_aspect * ) */
-free_callback_ADAPT(       freecb_slist, callback_aspect_t, slist_aspect_t )
+ * > int (*freecb_slist_f) ( callback_param_t *, slist_aspect * ) */
+free_callback_ADAPT(       freecb_slist, callback_param_t, slist_aspect_t )
 
 
 // section: functions
@@ -81,7 +81,7 @@ extern void init_slist(/*out*/slist_t * list ) ;
  * Frees memory of all linked objects.
  * Calling free_slist is only safe after calling <init_slist> or after initializing it with <slist_INIT>.
  * Calling it on an already freed object does nothing. <removeall_slist> is called internally to free memory. */
-extern int free_slist( slist_t * list, callback_aspect_t * cb, freecb_slist_f free_callback ) ;
+extern int free_slist( slist_t * list, callback_param_t * cb, freecb_slist_f free_callback ) ;
 
 // group: query
 
@@ -158,7 +158,7 @@ extern int removeafter_slist( slist_t * list, slist_aspect_t * prev_node, slist_
 /* function: removeall_slist
  * Removes all nodes from the list.
  * For every removed node *free_callback* is called. */
-extern int removeall_slist( slist_t * list, callback_aspect_t * cb, freecb_slist_f remove_callback ) ;
+extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_f remove_callback ) ;
 
 // group: interface adaption
 
@@ -241,7 +241,7 @@ extern int removeall_slist( slist_t * list, callback_aspect_t * cb, freecb_slist
       return removeafter_generic_slist( (slist_t*)list, (slist_aspect_t*)prev_node, (slist_aspect_t**)removed_node, next_offset ## _ ## listname()) ; \
    } \
    static inline int removeall   ## _ ## listname ( listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback ) { \
-      return removeall_generic_slist( (slist_t*)list, (callback_aspect_t*)cb, (freecb_slist_f)free_callback, next_offset ## _ ## listname()) ; \
+      return removeall_generic_slist( (slist_t*)list, (callback_param_t*)cb, (freecb_slist_f)free_callback, next_offset ## _ ## listname()) ; \
    }
 
 
@@ -264,7 +264,7 @@ extern int removeall_slist( slist_t * list, callback_aspect_t * cb, freecb_slist
 
 /* function: free_generic_slist
  * Generic implementation of <free_slist>. */
-extern int free_generic_slist( slist_t * list, callback_aspect_t * cb, freecb_slist_f free_callback, uint32_t offset_next ) ;
+extern int free_generic_slist( slist_t * list, callback_param_t * cb, freecb_slist_f free_callback, uint32_t offset_next ) ;
 
 /* function: insertfirst_generic_slist
  * Generic implementation of <insertfirst_slist>. */
@@ -288,7 +288,7 @@ extern int removeafter_generic_slist( slist_t * list, slist_aspect_t * prev_node
 
 /* function: removeall_generic_slist
  * Generic implementation of <removeall_slist>. */
-extern int removeall_generic_slist( slist_t * list, callback_aspect_t * cb, freecb_slist_f remove_callback, uint32_t offset_next ) ;
+extern int removeall_generic_slist( slist_t * list, callback_param_t * cb, freecb_slist_f remove_callback, uint32_t offset_next ) ;
 
 
 // section: inline implementations

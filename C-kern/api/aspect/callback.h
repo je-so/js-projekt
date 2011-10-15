@@ -1,4 +1,4 @@
-/* title: Callback-Aspect
+/* title: Callback-Parameter-Aspect
    Describes type of first callback parameter.
 
    about: Copyright
@@ -17,16 +17,16 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/aspect/callback.h
-    Header file of <Callback-Aspect>.
+    Header file of <Callback-Parameter-Aspect>.
 */
-#ifndef CKERN_ASPECT_CALLBACK_HEADER
-#define CKERN_ASPECT_CALLBACK_HEADER
+#ifndef CKERN_ASPECT_CALLBACK_PARAMETER_HEADER
+#define CKERN_ASPECT_CALLBACK_PARAMETER_HEADER
 
-/* typedef: callback_aspect_t
+/* typedef: callback_param_t
  * Opaque first callback parameter type used as a place holder.
  *
  * Every callback takes a pointer to any additional parameter as its first parameter
- * > int callback( callback_aspect_t * cb, ...)
+ * > int callback( callback_param_t * cb, ...)
  * With this pointer the callback is supplied with additional implementation specific information.
  * This makes it possible to parameterize callbacks for different usage patterns and contexts.
  *
@@ -34,14 +34,14 @@
  * to let modules adapt to different implementation strategies or to other external dependencies.
  *
  * Code example:
- * > struct callback_aspect_t ;
- * > typedef void * (*malloc_callback_f) (callback_aspect_t * cb, size_t memory_size) ;
- * > extern int module_init(callback_aspect_t * cb, malloc_callback_f malloc_callback) ;
+ * > struct callback_param_t ;
+ * > typedef void * (*malloc_callback_f) (callback_param_t * cb, size_t memory_size) ;
+ * > extern int module_init(callback_param_t * cb, malloc_callback_f malloc_callback) ;
  * >
  * > typedef struct static_malloc_t static_malloc_t ;
  * >
  * > struct static_malloc_t {
- * >    // inherits from callback_aspect_t which can not expressed in C
+ * >    // inherits from callback_param_t which can not expressed in C
  * >    uint8_t * next_free ;
  * >    size_t    free_size ;
  * > } ;
@@ -64,11 +64,11 @@
  * >       .next_free = s_module_memory, .free_size = sizeof(s_module_memory)
  * >    } ;
  * > ...
- * >    int err = module_init( (callback_aspect_t*) &malloc_context, (malloc_callback_f) &static_malloc ) ;
+ * >    int err = module_init( (callback_param_t*) &malloc_context, (malloc_callback_f) &static_malloc ) ;
  * > ...
  * > }
  * >
- * > int module_init( callback_aspect_t * cb, void* (*malloc_callback)(callback_aspect_t * cb, size_t memory_size) )
+ * > int module_init( callback_param_t * cb, void* (*malloc_callback)(callback_param_t * cb, size_t memory_size) )
  * > {
  * >    ...
  * >    // now somewhere in module
@@ -76,6 +76,6 @@
  * >    ...
  * > }
  * */
-typedef struct callback_aspect_t    callback_aspect_t ;
+typedef struct callback_param_t    callback_param_t ;
 
 #endif

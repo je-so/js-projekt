@@ -34,7 +34,7 @@
 /* functions: exothread_list
  * All <slist_t> functions are adapted to subtype <exothread_list_t>.
  * The macro <slist_IMPLEMENT> does this for us. */
-slist_IMPLEMENT(exothread_list, next, callback_aspect_t)
+slist_IMPLEMENT(exothread_list, next, callback_param_t)
 
 int init_exoscheduler(/*out*/exoscheduler_t * xsched)
 {

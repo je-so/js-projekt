@@ -39,7 +39,7 @@ static inline slist_aspect_t* addoffset_helper(slist_aspect_t * object, uint32_t
    return ((slist_aspect_t*)(offset_next + (uint8_t*)object)) ;
 }
 
-int free_generic_slist( slist_t * list, callback_aspect_t * cb, freecb_slist_f free_callback, uint32_t offset_next )
+int free_generic_slist( slist_t * list, callback_param_t * cb, freecb_slist_f free_callback, uint32_t offset_next )
 {
    int err ;
    slist_aspect_t * const last = list->last ;
@@ -230,7 +230,7 @@ struct test_node_t {
    int           is_freed ;
 } ;
 
-static int test_freecallback(callback_aspect_t * cb, slist_aspect_t * node)
+static int test_freecallback(callback_param_t * cb, slist_aspect_t * node)
 {
    (void) cb ;
    ++ ((test_node_t*)(node))->is_freed ;
@@ -249,9 +249,9 @@ static int test_initfree(void)
    slist.last  = (void*) 1 ;
    TEST(0 == init_slist(&slist)) ;
    TEST(0 == slist.last) ;
-   TEST(0 == free_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
+   TEST(0 == free_slist(&slist, (callback_param_t*)0, &test_freecallback)) ;
    TEST(0 == slist.last) ;
-   TEST(0 == free_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
+   TEST(0 == free_slist(&slist, (callback_param_t*)0, &test_freecallback)) ;
    TEST(0 == slist.last) ;
 
    // TEST insert, double free
@@ -269,14 +269,14 @@ static int test_initfree(void)
       }
       TEST(nrelementsof(nodes) == i) ;
    }
-   TEST(0 == free_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
+   TEST(0 == free_slist(&slist, (callback_param_t*)0, &test_freecallback)) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next ) ;
       TEST(1 == nodes[i].is_freed ) ;
       nodes[i].is_freed = 0 ;
    }
-   TEST(0 == free_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
+   TEST(0 == free_slist(&slist, (callback_param_t*)0, &test_freecallback)) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].is_freed ) ;
@@ -296,14 +296,14 @@ static int test_initfree(void)
       }
       TEST(0 == i) ;
    }
-   TEST(0 == removeall_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
+   TEST(0 == removeall_slist(&slist, (callback_param_t*)0, &test_freecallback)) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next ) ;
       TEST(1 == nodes[i].is_freed ) ;
       nodes[i].is_freed = 0 ;
    }
-   TEST(0 == removeall_slist(&slist, (callback_aspect_t*)0, &test_freecallback)) ;
+   TEST(0 == removeall_slist(&slist, (callback_param_t*)0, &test_freecallback)) ;
    TEST(0 == slist.last) ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].is_freed ) ;
@@ -601,10 +601,10 @@ struct gnode_t {
 
 slist_DECLARE(slist1, gnode_t)
 slist_DECLARE(slist2, gnode_t)
-slist_IMPLEMENT(slist1, next, callback_aspect_t)
-slist_IMPLEMENT(slist2, list2_next, callback_aspect_t)
+slist_IMPLEMENT(slist1, next, callback_param_t)
+slist_IMPLEMENT(slist2, list2_next, callback_param_t)
 
-static int gnode_freecallback(callback_aspect_t * cb, gnode_t * node)
+static int gnode_freecallback(callback_param_t * cb, gnode_t * node)
 {
    (void) cb ;
    ++ node->is_freed ;

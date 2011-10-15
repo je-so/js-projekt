@@ -81,21 +81,21 @@ typedef struct redblacktree_t       redblacktree_t ;
 
 /* typedef: redblacktree_compare_nodes_f
  * Callback to check the sorting order of the tree. */
-compare_callback_ADAPT(redblacktree_compare_nodes, callback_aspect_t, redblacktree_node_t, redblacktree_node_t)
+compare_callback_ADAPT(redblacktree_compare_nodes, callback_param_t, redblacktree_node_t, redblacktree_node_t)
 
 /* typedef: redblacktree_compare_f
  * Same as <compare_callback_f> except for type of paramater.
  * The first parameter is of type search key and the seocnd of type node. */
-compare_callback_ADAPT(redblacktree_compare, callback_aspect_t, void, redblacktree_node_t)
+compare_callback_ADAPT(redblacktree_compare, callback_param_t, void, redblacktree_node_t)
 
 /* typedef: redblacktree_update_key
  * Equivalent to function type <updatekey_callback_f>.
  * But the object parameter is of type <redblacktree_node_t>. */
-updatekey_callback_ADAPT(redblacktree_update_key, callback_aspect_t, void, redblacktree_node_t)
+updatekey_callback_ADAPT(redblacktree_update_key, callback_param_t, void, redblacktree_node_t)
 
 /* typedef: redblacktree_free_f
  * Equivalent to function type <free_callback_f>. */
-free_callback_ADAPT(redblacktree_free, callback_aspect_t, redblacktree_node_t)
+free_callback_ADAPT(redblacktree_free, callback_param_t, redblacktree_node_t)
 
 
 // group: test
