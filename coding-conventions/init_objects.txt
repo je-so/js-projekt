@@ -1,0 +1,64 @@
+title: init objects
+
+The init_object function takes as its first out parameter the pointer to the object which
+is to be initialized (object_t *). If the memory of an object is not known in advance
+the init function must be named new_object and the first parameter becomes of type (object_t **).
+
+Static initializer:
+
+For every object/resource must exist either a static initializer which contains default values
+or values, which indicates that the resource is in an unallocated or freed state.
+
+Example 1:
+
+> sinlge_linked_list_t list = sinlge_linked_list_INIT ;
+> element_t            el   = { ... } ;
+> // element can be inserted cause list is in an initialized state
+> insert_element(&list, &el) ;
+
+Example 2:
+
+> memoryblock_t block = memoryblock_INIT_FREEABLE ;
+> // can be called cause block is set to a state *free was already called*
+> free_memoryblock(&block) ;
+
+In case the object is of type pointer NULL is the static initializer.
+
+Example 3:
+
+> thread_t * thread = 0 /* or NULL */ ;
+> // can be called cause thread is set to a state *delete was already called*
+> delete_thread(&thread) ;
+
+All or nothing rule:
+
+If an error occurrs during initialization all resources initialized before the error
+must be freed and the first *out* parameter must not be changed. Or in case this is
+not possible must be set to a state that a possible call to free_object does nothing.
+
+Example 4:
+
+> int err ;
+> waitlist_t  waitlist = waitlist_INIT_FREEABLE ;
+> resource_t  resource = resource_INIT_FREEABLE ;
+>
+> // after return of init_waitlist
+> // waitlist keeps value waitlist_INIT_FREEABLE or is set to a freeable state
+> err = init_waitlist(&waitlist) ;
+> if (err) goto FREE_RESOURCES ;
+>
+> // after return of init_resource
+> // resource keeps value resource_INIT_FREEABLE or is set to a freeable state
+> err = init_resource(&resource)
+> if (err) goto FREE_RESOURCES
+>
+> ...
+> return 0/*OK*/ ;
+> FREE_RESOURCES:
+> // error occurrred
+> // all resources can be freed even if init returned an error
+> // cause they are in no uninitialized state
+> free_resource(&resource) ;
+> free_waitlist(&waitlist) ;
+> return err ;
+

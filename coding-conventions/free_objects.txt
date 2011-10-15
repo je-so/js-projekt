@@ -2,7 +2,7 @@ title: free objects
 
 Double free:
 
-To make managing of resource more easy, the following rule is stated.
+To make managing of resources more easy, the following rule is stated.
 Every created resource has a free or delete function which must be callable
 more than once. The first call frees the resource and marks it as freed.
 The calls afterwards should do nothing.
@@ -35,8 +35,8 @@ Error handling:
 
 It is possible that an error occurs during execution of the free operation.
 In such a case the function should not abort but continue to free any
-pending resources. The error should be remembered and remembered in some
-log file if possible. The return value should be the last remembered error.
+pending resources. The error should be remembered and written out to some
+log file if possible. The return value should be the last occurred error.
 
 If an error occurs while memory is freed then it is ok to ignore all
 other allocated memory blocks related to a certain memory manager.
