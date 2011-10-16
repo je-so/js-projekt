@@ -43,7 +43,6 @@
   <VirtualDirectory Name="umgebung">
     <File Name="../../C-kern/umgebung/README"/>
     <File Name="../../C-kern/umgebung/umgebung.c"/>
-    <File Name="../../C-kern/umgebung/testerror.c"/>
     <File Name="../../C-kern/umgebung/umgtype_default.c"/>
     <File Name="../../C-kern/umgebung/umgtype_test.c"/>
   </VirtualDirectory>
@@ -135,6 +134,7 @@
         <File Name="../../C-kern/api/aspect/callback/compare.h"/>
         <File Name="../../C-kern/api/aspect/callback/free.h"/>
         <File Name="../../C-kern/api/aspect/callback/updatekey.h"/>
+        <File Name="../../C-kern/api/aspect/callback/task.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/callback.h"/>
       <File Name="../../C-kern/api/aspect/treenode2.h"/>
@@ -171,7 +171,6 @@
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
     <VirtualDirectory Name="umg">
-      <File Name="../../C-kern/api/umg/testerror.h"/>
       <File Name="../../C-kern/api/umg/umgtype_default.h"/>
       <File Name="../../C-kern/api/umg/umgtype_test.h"/>
       <File Name="../../C-kern/api/umg/log_macros.h"/>
@@ -231,6 +230,7 @@
       <File Name="../../coding-conventions/umgebung.txt"/>
       <File Name="../../coding-conventions/unittest.txt"/>
       <File Name="../../coding-conventions/task.txt"/>
+      <File Name="../../coding-conventions/init_objects.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="text.db">
       <File Name="../../C-kern/resource/text.db/initprocess"/>
@@ -329,6 +329,9 @@
       
       
       
+      
+      
+      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -366,6 +369,9 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
+      
+      
+      
       
       
       

@@ -42,9 +42,9 @@ struct test_errortimer_t {
    int         errcode ;
 } ;
 
-/* define: test_errortimer_INIT
+/* define: test_errortimer_INIT_FREEABLE
  * Static initializer. Initializes timer disarmed. */
-#define test_errortimer_INIT    { 0, 0 }
+#define test_errortimer_INIT_FREEABLE    { 0, 0 }
 
 /* function: init_testerrortimer
  * Inits <test_errortimer_t> with timercount and errcode.

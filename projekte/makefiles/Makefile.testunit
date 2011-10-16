@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.14  20:15:38
+GenerationDate  := 2011.Oct.16  10:41:08
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -102,7 +102,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgtype_test.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!testerror.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o \
  $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!writer!logwriter_locked.c.o
@@ -136,7 +135,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgtype_test.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!testerror.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o \
  $(ObjectDir_Release)/C-kern!writer!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!writer!logwriter_locked.c.o
@@ -231,9 +229,6 @@ $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 $(ObjectDir_Debug)/C-kern!umgebung!umgtype_test.c.o: C-kern/umgebung/umgtype_test.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!testerror.c.o: C-kern/umgebung/testerror.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c
 	@$(CC_Debug)
 
@@ -325,9 +320,6 @@ $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgtype_test.c.o: C-kern/umgebung/umgtype_test.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!umgebung!testerror.c.o: C-kern/umgebung/testerror.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c

@@ -74,7 +74,9 @@ __thread  osthread_t       gt_self_osthread        = { sys_mutex_INIT_DEFAULT, 0
 static size_t              s_offset_osthread       = 0 ;
 
 #ifdef KONFIG_UNITTEST
-static test_errortimer_t   s_error_in_newmany_loop = test_errortimer_INIT ;
+/* variable: s_error_newgroup
+ * Simulates an error in <newgroup_osthreads>. */
+static test_errortimer_t   s_error_newgroup = test_errortimer_INIT_FREEABLE ;
 #endif
 
 
@@ -499,7 +501,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
          .signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size }
       } ;
 
-      ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
+      ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
       err = pthread_attr_init(&thread_attr) ;
       if (err) {
          LOG_SYSERR("pthread_attr_init",err) ;
@@ -507,7 +509,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
       }
       isThreadAttrValid = true ;
 
-      ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
+      ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
       err = pthread_attr_setstack(&thread_attr, threadstack.addr, threadstack.size) ;
       if (err) {
          LOG_SYSERR("pthread_attr_setstack",err) ;
@@ -516,7 +518,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
          goto UNDO_LOOP ;
       }
 
-      ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
+      ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
       err = pthread_create( &sys_thread, &thread_attr, startpoint_osthread, startarg) ;
       if (err) {
          sys_thread = sys_thread_INIT_FREEABLE ;
@@ -524,7 +526,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
          goto UNDO_LOOP ;
       }
 
-      ONERROR_testerrortimer(&s_error_in_newmany_loop, UNDO_LOOP) ;
+      ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
       err = pthread_attr_destroy(&thread_attr) ;
       isThreadAttrValid = false ;
       if (err) {
@@ -1368,7 +1370,7 @@ static int test_thread_array(void)
 
    // Test error in newmany => executing UNDO_LOOP
    for(int i = 1; i < 27; i += 1) {
-      TEST(0 == init_testerrortimer(&s_error_in_newmany_loop, (unsigned)i, 99 + i)) ;
+      TEST(0 == init_testerrortimer(&s_error_newgroup, (unsigned)i, 99 + i)) ;
       s_returncode_signal = 1 ;
       TEST((99 + i) == newgroup_osthread(&osthread, thread_returncode, 0, 33)) ;
    }

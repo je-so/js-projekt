@@ -8,4 +8,3 @@
 "initumgebung_valuecache",        "freeumgebung_valuecache",        "valuecache",   "C-kern/api/cache/valuecache.h"
 "initumgebung_objectcache",       "freeumgebung_objectcache",       "objectcache",  "C-kern/api/cache/objectcache.h"
 "initumgebung_logwriterlocked",   "freeumgebung_logwriterlocked",   "log",          "C-kern/api/writer/logwriter_locked.h"
-"initumgebung_umgebungtesterror", "freeumgebung_umgebungtesterror", "",             "C-kern/api/umg/testerror.h"

@@ -41,7 +41,6 @@
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/umg/testerror.h"
 #endif
 
 
@@ -270,12 +269,6 @@ static int test_process_init(void)
    TEST(EINVAL == initprocess_umgebung(umgebung_type_STATIC)) ;
    TEST(EINVAL == initprocess_umgebung(3)) ;
 
-   // TEST EACCES  simulated error
-   setiniterror_umgebungtesterror(EACCES) ;
-   TEST(EACCES == initprocess_umgebung(umgebung_type_DEFAULT)) ;
-   TEST(EACCES == initprocess_umgebung(umgebung_type_TEST)) ;
-   cleariniterror_umgebungtesterror() ;
-
    // TEST init, double free (umgebung_type_DEFAULT)
    TEST(0 == umgebung()->type) ;
    TEST(0 == initprocess_umgebung(umgebung_type_DEFAULT)) ;
@@ -333,7 +326,6 @@ static int test_process_init(void)
 
    return 0 ;
 ABBRUCH:
-   cleariniterror_umgebungtesterror() ;
    return EINVAL ;
 }
 
@@ -464,35 +456,21 @@ int unittest_umgebung()
 
       const char * expect =   "implementation_type=0\n"
                         // log from test_process_init
-                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "C-kern/umgebung/umgebung.c:177: init_umgebung(): error: "
                         "Function aborted (err=22)\n"
-                        "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
+                        "C-kern/umgebung/umgebung.c:226: initprocess_umgebung(): error: "
                         "Function aborted (err=22)\n"
                         "implementation_type=3\n"
-                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "C-kern/umgebung/umgebung.c:177: init_umgebung(): error: "
                         "Function aborted (err=22)\n"
-                        "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
+                        "C-kern/umgebung/umgebung.c:226: initprocess_umgebung(): error: "
                         "Function aborted (err=22)\n"
-                        "C-kern/umgebung/umgtype_default.c:101: init_thread_resources(): error: "
-                        "Function aborted (err=13)\n"
-                        "C-kern/umgebung/umgtype_default.c:141: initdefault_umgebung(): error: "
-                        "Function aborted (err=13)\n"
-                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
-                        "Function aborted (err=13)\n"
-                        "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
-                        "Function aborted (err=13)\n"
-                        "C-kern/umgebung/umgtype_test.c:92: inittest_umgebung(): error: "
-                        "Function aborted (err=13)\n"
-                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
-                        "Function aborted (err=13)\n"
-                        "C-kern/umgebung/umgebung.c:227: initprocess_umgebung(): error: "
-                        "Function aborted (err=13)\n"
                         // log from test_umgebung_init
                         "implementation_type=0\n"
-                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "C-kern/umgebung/umgebung.c:177: init_umgebung(): error: "
                         "Function aborted (err=22)\n"
                         "implementation_type=3\n"
-                        "C-kern/umgebung/umgebung.c:178: init_umgebung(): error: "
+                        "C-kern/umgebung/umgebung.c:177: init_umgebung(): error: "
                         "Function aborted (err=22)\n"
                         ;
 

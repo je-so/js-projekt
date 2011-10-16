@@ -1,4 +1,4 @@
 implementation_type=0
-C-kern/umgebung/umgebung.c:178: init_umgebung(): error: Function aborted (err=22)
+C-kern/umgebung/umgebung.c:177: init_umgebung(): error: Function aborted (err=22)
 implementation_type=3
-C-kern/umgebung/umgebung.c:178: init_umgebung(): error: Function aborted (err=22)
+C-kern/umgebung/umgebung.c:177: init_umgebung(): error: Function aborted (err=22)

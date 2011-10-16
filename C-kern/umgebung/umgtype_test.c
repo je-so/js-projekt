@@ -28,7 +28,6 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/cache/valuecache.h"
-#include "C-kern/api/umg/testerror.h"
 #include "C-kern/api/writer/logwriter_locked.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -41,9 +40,6 @@ int freetest_umgebung(umgebung_t * umg)
 {
    int err = 0 ;
    int err2 ;
-
-   err2 = freeumgebung_umgebungtesterror() ;
-   if (err2) err = err2 ;
 
    err2 = freeumgebung_logwriterlocked(&umg->log) ;
    if (err2) err = err2 ;
@@ -83,9 +79,6 @@ int inittest_umgebung(umgebung_t * umg)
    err = initumgebung_logwriterlocked(&umg->log) ;
    if (err) goto ABBRUCH ;
 
-   err = initumgebung_umgebungtesterror() ;
-   if (err) goto ABBRUCH ;
-
    return 0 ;
 ABBRUCH:
    (void) freetest_umgebung(umg) ;
@@ -123,23 +116,8 @@ static int test_initfree(void)
    TEST(0 == umg.objectcache) ;
    TEST(0 == umg.valuecache) ;
 
-   // TEST EINVAL init
-   for(int err = EINVAL; err < EINVAL+2; ++err) {
-      setiniterror_umgebungtesterror(err) ;
-      umg = (umgebung_t) umgebung_INIT_FREEABLE ;
-      TEST(err == inittest_umgebung(&umg)) ;
-      TEST(0 == umg.type) ;
-      TEST(0 == umg.resource_count) ;
-      TEST(0 == umg.free_umgebung) ;
-      TEST(&g_main_logwriterlocked == umg.log) ;
-      TEST(0 == umg.objectcache) ;
-      TEST(0 == umg.valuecache) ;
-   }
-   cleariniterror_umgebungtesterror() ;
-
    return 0 ;
 ABBRUCH:
-   cleariniterror_umgebungtesterror() ;
    return EINVAL ;
 }
 
