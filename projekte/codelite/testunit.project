@@ -45,6 +45,7 @@
     <File Name="../../C-kern/umgebung/umgebung.c"/>
     <File Name="../../C-kern/umgebung/umgtype_default.c"/>
     <File Name="../../C-kern/umgebung/umgtype_test.c"/>
+    <File Name="../../C-kern/umgebung/umg_shared.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/api/execCcompiler.h"/>
@@ -174,6 +175,7 @@
       <File Name="../../C-kern/api/umg/umgtype_default.h"/>
       <File Name="../../C-kern/api/umg/umgtype_test.h"/>
       <File Name="../../C-kern/api/umg/log_macros.h"/>
+      <File Name="../../C-kern/api/umg/umg_shared.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -233,8 +235,9 @@
       <File Name="../../coding-conventions/init_objects.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="text.db">
-      <File Name="../../C-kern/resource/text.db/initprocess"/>
       <File Name="../../C-kern/resource/text.db/initumgebung"/>
+      <File Name="../../C-kern/resource/text.db/initonce"/>
+      <File Name="../../C-kern/resource/text.db/signalconfig"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="os">
@@ -327,11 +330,6 @@
         <![CDATA[
       
       
-      
-      
-      
-      
-      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -369,11 +367,6 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
-      
-      
-      
-      
-      
       
       
       ]]>

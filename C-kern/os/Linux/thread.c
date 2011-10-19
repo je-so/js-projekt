@@ -338,7 +338,7 @@ void * calculateoffset_osthread(void * start_arg)
 
 // group: implementation
 
-int initonce_osthread()
+int initonce_osthread(umgebung_t * umg)
 {
    /* calculate position of &gt_self_osthread
     * relative to start threadstack. */
@@ -348,6 +348,8 @@ int initonce_osthread()
    osthread_stack_t  stackframe        = memoryblock_aspect_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
    void            * offset            = 0 ;
+
+   (void) umg ;
 
    // init main osthread_t
    if (!gt_self_osthread.groupnext) {
@@ -412,6 +414,12 @@ ABBRUCH:
    (void) free_osthreadstack(&stackframe) ;
    LOG_ABORT(err) ;
    return err ;
+}
+
+int freeonce_osthread(umgebung_t * umg)
+{
+   (void) umg ;
+   return 0 ;
 }
 
 int delete_osthread(osthread_t ** threadobj)

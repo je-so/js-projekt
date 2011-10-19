@@ -32,45 +32,67 @@
 #endif
 
 
-valuecache_t    g_main_valuecache = { 0 } ;
-
-
-int initprocess_valuecache(void)
+static int init_valuecache(/*out*/valuecache_t * valuecache)
 {
-   g_main_valuecache.pagesize_vm = sys_pagesize_vm() ;
+   valuecache->pagesize_vm = sys_pagesize_vm() ;
    return 0 ;
 }
 
-int freeprocess_valuecache(void)
+static int free_valuecache(valuecache_t * valuecache)
 {
-   // singleton object is allocated static => do not need to free it
+   valuecache->pagesize_vm = 0 ;
    return 0 ;
 }
 
-int initumgebung_valuecache(valuecache_t ** valuecache)
+int initumgebung_valuecache(/*out*/valuecache_t ** valuecache, umgebung_shared_t * shared)
 {
    int err ;
+   valuecache_t * new_valuecache = 0 ;
 
-   if (*valuecache) {
-      err = EINVAL ;
+   (void) shared ;
+
+   PRECONDITION_INPUT(0 == *valuecache, ABBRUCH,) ;
+
+   new_valuecache = malloc(sizeof(valuecache_t)) ;
+   if (!new_valuecache) {
+      err = ENOMEM ;
+      LOG_OUTOFMEMORY(sizeof(valuecache_t)) ;
       goto ABBRUCH ;
    }
 
-   *valuecache = &g_main_valuecache ;
+   err = init_valuecache(new_valuecache) ;
+   if (err) goto ABBRUCH ;
+
+   *valuecache = new_valuecache ;
 
    return 0 ;
 ABBRUCH:
+   free(new_valuecache) ;
    LOG_ABORT(err) ;
    return err ;
 }
 
-int freeumgebung_valuecache(valuecache_t ** valuecache)
+int freeumgebung_valuecache(valuecache_t ** valuecache, umgebung_shared_t * shared)
 {
-   if (*valuecache) {
+   int err ;
+   valuecache_t * freeobj = *valuecache ;
+
+   (void) shared ;
+
+   if (freeobj) {
       *valuecache = 0 ;
+
+      err = free_valuecache(freeobj) ;
+
+      free(freeobj) ;
+
+      if (err) goto ABBRUCH ;
    }
 
    return 0 ;
+ABBRUCH:
+   LOG_ABORT_FREE(err) ;
+   return err ;
 }
 
 
@@ -79,91 +101,108 @@ int freeumgebung_valuecache(valuecache_t ** valuecache)
 
 #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_cache_valuecache,ABBRUCH)
 
-static int test_processinit(void)
+static int test_initfree(void)
 {
+   valuecache_t   valuecache = valuecache_INIT_FREEABLE ;
 
-   // TEST init
-   MEMSET0(&g_main_valuecache) ;
-   TEST(0 == initprocess_valuecache()) ;
-   TEST(g_main_valuecache.pagesize_vm)
-   TEST(g_main_valuecache.pagesize_vm == sys_pagesize_vm()) ;
+   // TEST static init
+   TEST(0 == valuecache.pagesize_vm) ;
 
-   // TEST double free (does nothing)
-   TEST(0 == freeprocess_valuecache()) ;
-   TEST(0 == freeprocess_valuecache()) ;
-   TEST(g_main_valuecache.pagesize_vm == sys_pagesize_vm()) ;
+   // TEST init, double free
+   TEST(0 == init_valuecache(&valuecache)) ;
+   TEST(valuecache.pagesize_vm)
+   TEST(valuecache.pagesize_vm == sys_pagesize_vm()) ;
+   TEST(0 == free_valuecache(&valuecache)) ;
+   TEST(0 == valuecache.pagesize_vm) ;
+   TEST(0 == free_valuecache(&valuecache)) ;
+   TEST(0 == valuecache.pagesize_vm) ;
 
    return 0 ;
 ABBRUCH:
+   free_valuecache(&valuecache) ;
    return EINVAL ;
 }
 
 static int test_umgebunginit(void)
 {
-   valuecache_t * cache  = 0 ;
-   valuecache_t * cache2 = 0 ;
+   valuecache_t   valuecache = valuecache_INIT_FREEABLE ;
+   valuecache_t * cache      = 0 ;
+   valuecache_t * cache2     = 0 ;
+   valuecache_t * old        = valuecache_umgebung() ;
 
-   // TEST init, double free
-   MEMSET0(&g_main_valuecache) ;
-   TEST(0 == initumgebung_valuecache(&cache)) ;
-   TEST(0 == g_main_valuecache.pagesize_vm) ;
-   TEST(cache == &g_main_valuecache) ;
-   TEST(0 == freeumgebung_valuecache(&cache)) ;
+   // TEST initumgebung, double freeumgebung
+   TEST(0 == initumgebung_valuecache(&cache, 0)) ;
+   TEST(0 != cache) ;
+   TEST(sys_pagesize_vm() == cache->pagesize_vm) ;
+   TEST(0 == freeumgebung_valuecache(&cache, 0)) ;
    TEST(0 == cache) ;
-   TEST(0 == freeumgebung_valuecache(&cache)) ;
+   TEST(0 == freeumgebung_valuecache(&cache, 0)) ;
    TEST(0 == cache) ;
 
    // TEST EINVAL init
-   TEST(0 == initumgebung_valuecache(&cache)) ;
-   TEST(cache == &g_main_valuecache) ;
-   TEST(EINVAL == initumgebung_valuecache(&cache)) ;
-   TEST(0 == freeumgebung_valuecache(&cache)) ;
-   TEST(0 == cache) ;
+   cache = &valuecache ;
+   TEST(EINVAL == initumgebung_valuecache(&cache, 0)) ;
+   TEST(&valuecache == cache) ;
+   cache = 0 ;
 
-   // TEST always same value
-   TEST(0 == initumgebung_valuecache(&cache)) ;
-   TEST(0 == initumgebung_valuecache(&cache2)) ;
-   TEST(0 == g_main_valuecache.pagesize_vm) ;
-   TEST(cache  == &g_main_valuecache) ;
-   TEST(cache2 == &g_main_valuecache) ;
-   TEST(0 == freeumgebung_valuecache(&cache)) ;
+   // TEST always new object
+   TEST(0 == initumgebung_valuecache(&cache, 0)) ;
+   TEST(0 == initumgebung_valuecache(&cache2, 0)) ;
+   TEST(0 != cache) ;
+   TEST(0 != cache2) ;
+   TEST(cache != cache2) ;
+   TEST(0 == freeumgebung_valuecache(&cache, 0)) ;
+   TEST(0 == freeumgebung_valuecache(&cache2, 0)) ;
    TEST(0 == cache) ;
-   TEST(0 == freeumgebung_valuecache(&cache2)) ;
    TEST(0 == cache2) ;
 
    // TEST valuecache_umgebung()
-   ((umgebung_t*)(intptr_t)umgebung())->valuecache = 0 ;
+   TEST(old) ;
+   ((umgebung_t*)(intptr_t)umgebung())->shared->valuecache = 0 ;
    TEST(valuecache_umgebung() == 0) ;
-   ((umgebung_t*)(intptr_t)umgebung())->valuecache = &g_main_valuecache ;
-   TEST(valuecache_umgebung() == &g_main_valuecache) ;
+   ((umgebung_t*)(intptr_t)umgebung())->shared->valuecache = old ;
+   TEST(valuecache_umgebung() == old) ;
 
-   // TEST cached functions
-   g_main_valuecache.pagesize_vm = 0 ;
+   // TEST pagesize_vm
+   TEST(pagesize_vm() == sys_pagesize_vm()) ;
+   old->pagesize_vm = 0 ;
    TEST(pagesize_vm() == 0) ;
-   g_main_valuecache.pagesize_vm = 512 ;
+   old->pagesize_vm = 512 ;
    TEST(pagesize_vm() == 512) ;
-   g_main_valuecache.pagesize_vm = 12345 ;
+   old->pagesize_vm = 12345 ;
    TEST(pagesize_vm() == 12345) ;
+   old->pagesize_vm = sys_pagesize_vm() ;
+   TEST(pagesize_vm() == sys_pagesize_vm()) ;
 
    return 0 ;
 ABBRUCH:
+   ((umgebung_t*)(intptr_t)umgebung())->shared->valuecache = old ;
+   old->pagesize_vm = sys_pagesize_vm() ;
+   if (  cache
+      && cache != &valuecache) {
+      freeumgebung_valuecache(&cache, 0) ;
+   }
+   freeumgebung_valuecache(&cache2, 0) ;
+   free_valuecache(&valuecache) ;
    return EINVAL ;
 }
 
 int unittest_cache_valuecache()
 {
-   valuecache_t * old_umgebung = umgebung()->valuecache ;
-   valuecache_t   old_value    = g_main_valuecache ;
+   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_processinit())    goto ABBRUCH ;
+   // store current mapping
+   TEST(0 == init_resourceusage(&usage)) ;
+
+   if (test_initfree())       goto ABBRUCH ;
    if (test_umgebunginit())   goto ABBRUCH ;
 
-   ((umgebung_t*)(intptr_t)umgebung())->valuecache = old_umgebung ;
-   g_main_valuecache = old_value ;
+   // TEST mapping has not changed
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
    return 0 ;
 ABBRUCH:
-   ((umgebung_t*)(intptr_t)umgebung())->valuecache = old_umgebung ;
-   g_main_valuecache = old_value ;
    return EINVAL ;
 }
 

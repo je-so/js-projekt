@@ -1,10 +1,12 @@
 # TEXT.DB (1.0)
 # documentation:
-# List of init / free functions called once per thread.
-# The list of init-function is called from first to last entry in init_umgebung.
-# The list of free-function is called from last entry to first entry in free_umgebung.
+# List of modules with initumgebung_ / freeumgebung_ functions called once per thread.
+# Init functions are called from first to last entry in this database.
+# Free functions are called from last entry to first entry.
 # The header-name field references the C99 header file which exports the function prototypes.
-"init-function",                  "free-function",                  "parameter",    "header-name"
-"initumgebung_valuecache",        "freeumgebung_valuecache",        "valuecache",   "C-kern/api/cache/valuecache.h"
-"initumgebung_objectcache",       "freeumgebung_objectcache",       "objectcache",  "C-kern/api/cache/objectcache.h"
-"initumgebung_logwriterlocked",   "freeumgebung_logwriterlocked",   "log",          "C-kern/api/writer/logwriter_locked.h"
+# Value "shared" in column »shared« indicates that parameter is located in umgebung_shared_t instead
+# of umgebung_t. The values in umgebung_shared_t are shared by all objects of type umgebung_t.
+"module",            "parameter",    "shared", "header-name"
+"valuecache",        "valuecache",   "shared", "C-kern/api/cache/valuecache.h"
+"objectcache",       "objectcache",  "",       "C-kern/api/cache/objectcache.h"
+"logwriterlocked",   "log",          "",       "C-kern/api/writer/logwriter_locked.h"

@@ -83,17 +83,17 @@ extern int trywait_rtsignal(rtsignal_t nr) ;
  * with the setting stored in this object to be equal. */
 struct signalconfig_t ;
 
-// group: initprocess
+// group: init
 
-/* function: initprocess_signalconfig
+/* function: initonce_signalconfig
  * Sets up a process wide signal configuration at process startup.
  * The configuration is read from "C-kern/resource/text.db/signalhandler"
  * during compilation time. */
-extern int initprocess_signalconfig(void) ;
+extern int initonce_signalconfig(void) ;
 
-/* function: freeprocess_signalconfig
+/* function: freeonce_signalconfig
  * Restores default signal configuration. */
-extern int freeprocess_signalconfig(void) ;
+extern int freeonce_signalconfig(void) ;
 
 // group: lifetime
 
@@ -118,14 +118,14 @@ extern int compare_signalconfig(const signalconfig_t * sigconfig1, const signalc
 
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
-/* define: initprocess_signalconfig
+/* define: initonce_signalconfig
  * Implement init as a no op if !((KONFIG_SUBSYS)&THREAD)
- * > #define initprocess_signalconfig()  (0) */
-#define initprocess_signalconfig()  (0)
-/* define: freeprocess_signalconfig
+ * > #define initonce_signalconfig()  (0) */
+#define initonce_signalconfig()  (0)
+/* define: freeonce_signalconfig
  * Implement free as a no op if !((KONFIG_SUBSYS)&THREAD)
- * > #define freeprocess_signalconfig()  (0) */
-#define freeprocess_signalconfig()  (0)
+ * > #define freeonce_signalconfig()  (0) */
+#define freeonce_signalconfig()  (0)
 #endif
 #undef THREAD
 

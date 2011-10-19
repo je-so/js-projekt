@@ -145,9 +145,9 @@ ABBRUCH:
    return err ;
 }
 
-// group: initprocess
+// group: init
 
-int initprocess_locale()
+int initonce_locale()
 {
    int err ;
 
@@ -160,7 +160,7 @@ ABBRUCH:
    return err ;
 }
 
-int freeprocess_locale()
+int freeonce_locale()
 {
    int err ;
 
@@ -186,7 +186,7 @@ static int test_initerror(void)
 
    // TEST setlocale error (consumes memory !)
    TEST(0 == setenv("LC_ALL", "XXX@unknown", 1)) ;
-   TEST(EINVAL == initprocess_locale()) ;
+   TEST(EINVAL == initonce_locale()) ;
    if (old_lcall) {
       TEST(0 == setenv("LC_ALL", old_lcall, 0)) ;
    } else {
@@ -212,21 +212,21 @@ static int test_initlocale(void)
    char * lname     = 0 ;
 
    // TEST init, double free
-   TEST(0 == initprocess_locale()) ;
+   TEST(0 == initonce_locale()) ;
    TEST(current_locale()) ;
    lname = strdup(current_locale() ? current_locale() : "") ;
    TEST(lname) ;
    TEST(0 != strcmp("C", lname)) ;
-   TEST(0 == freeprocess_locale()) ;
+   TEST(0 == freeonce_locale()) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(0 == freeprocess_locale()) ;
+   TEST(0 == freeonce_locale()) ;
    TEST(0 == strcmp("C", current_locale())) ;
 
    // TEST init sets the same name
-   TEST(0 == initprocess_locale()) ;
+   TEST(0 == initonce_locale()) ;
    TEST(current_locale()) ;
    TEST(0 == strcmp(lname, current_locale())) ;
-   TEST(0 == freeprocess_locale()) ;
+   TEST(0 == freeonce_locale()) ;
    TEST(0 == strcmp("C", current_locale())) ;
    free(lname) ;
    lname = 0 ;

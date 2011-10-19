@@ -32,9 +32,6 @@
  * Exports <valuecache_t>. */
 typedef struct valuecache_t      valuecache_t ;
 
-// umgebung_valuecache_t already defined in umgebung.h;
-
-extern valuecache_t              g_main_valuecache ;
 
 // section: Functions
 
@@ -56,25 +53,20 @@ struct valuecache_t {
    size_t         pagesize_vm ;
 } ;
 
-// group: initprocess
-
-/* function: initprocess_valuecache
- * Creates an internal value cache singleton object. */
-extern int initprocess_valuecache(void) ;
-
-/* function: freeprocess_locale
- * Frees internally created value cache singleton object. */
-extern int freeprocess_valuecache(void) ;
-
-// group: initumgebung
+// group: init
 
 /* function: initumgebung_valuecache
  * Sets valuecache pointer to a singleton object. */
-extern int initumgebung_valuecache(/*out*/valuecache_t ** valuecache) ;
+extern int initumgebung_valuecache(/*out*/valuecache_t ** valuecache, umgebung_shared_t * shared) ;
 
 /* function: freeumgebung_valuecache
  * Resets the pointer to null. Singleton is never freed. */
-extern int freeumgebung_valuecache(valuecache_t ** valuecache) ;
+extern int freeumgebung_valuecache(valuecache_t ** valuecache, umgebung_shared_t * shared) ;
 
+// group: lifetime
+
+/* define: valuecache_INIT_FREEABLE
+ * Static initializer. */
+#define valuecache_INIT_FREEABLE       { 0 }
 
 #endif

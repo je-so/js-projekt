@@ -97,10 +97,14 @@ struct osthread_t {
 // group: initonce
 
 /* function: initonce_osthread
- * Calculates some internal offsets, called from <initprocess_umgebung>.
- * The <umgebung_t> object is fully operational. */
-extern int initonce_osthread(void) ;
+ * Calculates some internal offsets, called from <initmain_umgebung>.
+ * It is called after the <umgebung_t> object is fully operational. */
+extern int initonce_osthread(umgebung_t * umg) ;
 
+/* function: freeonce_osthread
+ * Does nothing. Called from <freemain_umgebung>.
+ * It is called before the <umgebung_t> object is freed. */
+extern int freeonce_osthread(umgebung_t * umg) ;
 
 // group: lifetime
 
@@ -249,7 +253,10 @@ extern void sleepms_osthread(uint32_t msec) ;
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: initonce_osthread
  * Implement <osthread_t.initonce_osthread> as a no op if !((KONFIG_SUBSYS)&THREAD) */
-#define initonce_osthread()   (0)
+#define initonce_osthread(umg)   (0)
+/* define: freeonce_osthread
+ * Implement <osthread_t.freeonce_osthread> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define freeonce_osthread(umg)   (0)
 #endif
 #undef THREAD
 

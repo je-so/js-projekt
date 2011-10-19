@@ -27,17 +27,18 @@
 #ifndef CKERN_OS_LOCALE_HEADER
 #define CKERN_OS_LOCALE_HEADER
 
+
 // section: Functions
 
-// group: initprocess
+// group: init
 
-/* function: initprocess_locale
- * Called from <initprocess_umgebung>. */
-extern int initprocess_locale(void) ;
+/* function: initonce_locale
+ * Called from <initmain_umgebung>. */
+extern int initonce_locale(void) ;
 
-/* function: freeprocess_locale
- * Called from <freeprocess_umgebung>. */
-extern int freeprocess_locale(void) ;
+/* function: freeonce_locale
+ * Called from <freemain_umgebung>. */
+extern int freeonce_locale(void) ;
 
 // group: query
 
@@ -56,7 +57,6 @@ extern const char * current_locale(void) ;
 /* function: currentmsg_locale
  * Returns the name of the current active locale for system messages. */
 extern const char * currentmsg_locale(void) ;
-
 
 // group: set
 

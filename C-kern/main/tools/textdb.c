@@ -1522,7 +1522,7 @@ int main(int argc, const char * argv[])
    mmfile_t input_file = mmfile_INIT_FREEABLE ;
    int      exclflag   = O_EXCL ;
 
-   err = initprocess_umgebung(umgebung_type_DEFAULT) ;
+   err = initmain_umgebung(umgebung_type_DEFAULT) ;
    if (err) goto ABBRUCH ;
 
    err = process_arguments(argc, argv) ;
@@ -1607,7 +1607,7 @@ int main(int argc, const char * argv[])
    g_depfilename = 0 ;
 
    free_mmfile(&input_file) ;
-   freeprocess_umgebung() ;
+   freemain_umgebung() ;
    free_depfilenamewritten() ;
    return 0 ;
 PRINT_USAGE:
@@ -1629,7 +1629,7 @@ ABBRUCH:
       free(g_depfilename) ;
    }
    free_mmfile(&input_file) ;
-   freeprocess_umgebung() ;
+   freemain_umgebung() ;
    free_depfilenamewritten() ;
    return 1 ;
 }

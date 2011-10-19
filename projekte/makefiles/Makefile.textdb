@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.14  08:54:28
+GenerationDate  := 2011.Oct.19  14:13:09
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -77,6 +77,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umg_shared.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
@@ -89,6 +90,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umg_shared.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
@@ -110,6 +112,9 @@ $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!umgebung!umg_shared.c.o: C-kern/umgebung/umg_shared.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c
@@ -140,6 +145,9 @@ $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!umg_shared.c.o: C-kern/umgebung/umg_shared.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c

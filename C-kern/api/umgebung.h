@@ -25,6 +25,8 @@
 #ifndef CKERN_API_UMGEBUNG_HEADER
 #define CKERN_API_UMGEBUNG_HEADER
 
+#include "C-kern/api/umg/umg_shared.h"
+
 // forward reference to all offered services
 struct logwriter_locked_t ;
 struct objectcache_t ;
@@ -35,14 +37,13 @@ struct valuecache_t ;
 typedef struct umgebung_t           umgebung_t ;
 
 
-
 /* enums: umgebung_type_e
  * Used to switch between different implementations.
  *
  * umgebung_type_STATIC  - An implementation which is configured by a static initializer.
  *                         Only the log service is supported.
  *                         This configuration is default at program startup and can not be
- *                         set with a call to <initprocess_umgebung>.
+ *                         set with a call to <initmain_umgebung>.
  * umgebung_type_DEFAULT - Default production ready implementation.
  * umgebung_type_TEST    - Implements functionality without use of internal components but only with help of
  *                         C library calls. This ensures that software components which depends on <umgebung_t>
@@ -76,10 +77,10 @@ extern int unittest_umgebung(void) ;
 
 
 /* struct: umgebung_t
- * Defines top level context for all software modules.
+ * Defines thread specific top level context for all software modules.
  *
  * TODO: implement SIGTERM support for shutting down the system in an ordered way
- *       (=> abort handler ? => abort handler calls freeprocess_umgebung ?)
+ *       (=> abort handler ? => abort handler calls freemain_umgebung ?)
  *
  * */
 struct umgebung_t {
@@ -88,41 +89,40 @@ struct umgebung_t {
    /* Virtual destructor: Allows different implementations to store a different desctructor. */
    int                  (* free_umgebung)  (umgebung_t * umg) ;
 
+   umgebung_shared_t          * shared ;
    struct logwriter_locked_t  * log ;
    struct objectcache_t       * objectcache ;
-   struct valuecache_t        * valuecache ;
-
 } ;
 
 // group: lifetime
 
 /* define: umgebung_INIT_MAINSERVICES
  * Static initializer for <umgebung_t>.
- * This ensures that in the main even without calling <initprocess_umgebung> first
- * the global log service is available.
+ * These initializer ensures that in function main the global log service is available
+ * even without calling <initmain_umgebung> first.
  *
  * This initializer is used internally. It is reserved to be used
  * only as initializer for the main thread.
  * The reason is that services in <umgebung_t> are not thread safe
  * so every thread keeps its own initialized <umgebung_t>. */
-#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, &g_main_logwriterlocked, 0, 0 }
+#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, 0, &g_main_logwriterlocked, 0 }
 
 /* define: umgebung_INIT_FREEABLE
  * Static initializer for <umgebung_t>.
  * This ensures that you can call <free_umgebung> without harm. */
 #define umgebung_INIT_FREEABLE      { umgebung_type_STATIC, 0, 0, 0, 0, 0 }
 
-/* function: initprocess_umgebung
+/* function: initmain_umgebung
  * Initializes (global) process context. Must be called as first function from the main thread.
  * EALREADY is returned if it is called more than once.
  * The only service which works without calling this function is logging.
  *
  * Background:
- * This function calls all initprocess_NAME functions in the same order
- * as defined in "C-kern/resource/text.db/initprocess".
+ * This function calls all initonce_NAME functions
+ * in the same order as defined in "C-kern/resource/text.db/initonce".
  * This init database is checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
-extern int initprocess_umgebung(umgebung_type_e implementation_type) ;
+extern int initmain_umgebung(umgebung_type_e implementation_type) ;
 
 /* function: init_umgebung
  * Initializes (global) thread context.
@@ -135,7 +135,7 @@ extern int initprocess_umgebung(umgebung_type_e implementation_type) ;
  * So that no entry is forgotten. */
 extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation_type) ;
 
-/* function: freeprocess_umgebung
+/* function: freemain_umgebung
  * Frees global context. Must be called as last function from the main
  * thread of the whole system.
  *
@@ -143,7 +143,7 @@ extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation
  * the global <umgebung_t> is set to umgebung_INIT_MAINSERVICES.
  * This ensures that basic services like logging always work
  * even in case of an unitialized system. */
-extern int freeprocess_umgebung(void) ;
+extern int freemain_umgebung(void) ;
 
 /* function: free_umgebung
  * Frees all resources bound to *umg*.
@@ -214,6 +214,6 @@ extern struct valuecache_t *        valuecache_umgebung(void) ;
  * Uses a global thread-local storage variable to implement the functionality.
  * > #define valuecache_umgebung() (gt_umgebung.valuecache) */
 #define valuecache_umgebung() \
-   (gt_umgebung.valuecache)
+   (gt_umgebung.shared->valuecache)
 
 #endif

@@ -27,8 +27,7 @@
 #include "C-kern/api/umg/umgtype_default.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test/errortimer.h"
-// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")
-#include "C-kern/api/cache/valuecache.h"
+// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")WHERE(shared=="")
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/writer/logwriter_locked.h"
 // TEXTDB:END
@@ -54,12 +53,10 @@ static int free_thread_resources(umgebung_t * umg)
    switch(umg->resource_count) {
    default:    assert(0 == umg->resource_count && "out of bounds") ;
                break ;
-// TEXTDB:SELECT("   case "row-id":     err2 = "free-function"("(if (parameter!="") "&umg->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initumgebung)DESCENDING
-   case 3:     err2 = freeumgebung_logwriterlocked(&umg->log) ;
+// TEXTDB:SELECT("   case "row-id":     err2 = freeumgebung_"module"("(if (parameter!="") "&umg->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initumgebung)WHERE(shared=="")DESCENDING
+   case 2:     err2 = freeumgebung_logwriterlocked(&umg->log) ;
                if (err2) err = err2 ;
-   case 2:     err2 = freeumgebung_objectcache(&umg->objectcache) ;
-               if (err2) err = err2 ;
-   case 1:     err2 = freeumgebung_valuecache(&umg->valuecache) ;
+   case 1:     err2 = freeumgebung_objectcache(&umg->objectcache) ;
                if (err2) err = err2 ;
 // TEXTDB:END
    case 0:     break ;
@@ -79,12 +76,7 @@ static int init_thread_resources(umgebung_t * umg)
 {
    int err ;
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_error_initres, ABBRUCH) ;"\n"   err = "init-function"("(if (parameter!="") "&umg->")parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++umg->resource_count ;")FROM(C-kern/resource/text.db/initumgebung)
-
-   ONERROR_testerrortimer(&s_error_initres, ABBRUCH) ;
-   err = initumgebung_valuecache(&umg->valuecache) ;
-   if (err) goto ABBRUCH ;
-   ++umg->resource_count ;
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_error_initres, ABBRUCH) ;"\n"   err = initumgebung_"module"("(if (parameter!="") "&umg->")parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++umg->resource_count ;")FROM(C-kern/resource/text.db/initumgebung)WHERE(shared=="")
 
    ONERROR_testerrortimer(&s_error_initres, ABBRUCH) ;
    err = initumgebung_objectcache(&umg->objectcache) ;
@@ -96,6 +88,8 @@ static int init_thread_resources(umgebung_t * umg)
    if (err) goto ABBRUCH ;
    ++umg->resource_count ;
 // TEXTDB:END
+
+   ONERROR_testerrortimer(&s_error_initres, ABBRUCH) ;
 
    return 0 ;
 ABBRUCH:
@@ -114,6 +108,7 @@ int freedefault_umgebung(umgebung_t * umg)
 
    umg->type           = 0 ;
    umg->free_umgebung  = 0 ;
+   umg->shared         = 0 ;
 
    if (err) goto ABBRUCH ;
 
@@ -123,16 +118,16 @@ ABBRUCH:
    return err ;
 }
 
-int initdefault_umgebung(umgebung_t * umg)
+int initdefault_umgebung(umgebung_t * umg, umgebung_shared_t * shared)
 {
    int err ;
 
    umg->type            = umgebung_type_DEFAULT ;
    umg->resource_count  = 0 ;
    umg->free_umgebung   = &freedefault_umgebung ;
+   umg->shared          = shared ;
    umg->log             = &g_main_logwriterlocked ;
    umg->objectcache     = 0 ;
-   umg->valuecache      = 0 ;
 
    err = init_thread_resources(umg) ;
    if (err) goto ABBRUCH ;
@@ -151,44 +146,45 @@ ABBRUCH:
 
 static int test_initfree(void)
 {
-   umgebung_t umg = umgebung_INIT_FREEABLE ;
+   umgebung_t           umg    = umgebung_INIT_FREEABLE ;
+   umgebung_shared_t    shared = umgebung_shared_INIT_FREEABLE ;
 
    // TEST init, double free
    MEMSET0(&umg) ;
-   TEST(0 == initdefault_umgebung(&umg)) ;
+   TEST(0 == initdefault_umgebung(&umg, &shared)) ;
    TEST(umgebung_type_DEFAULT == umg.type) ;
-   TEST(3                     == umg.resource_count) ;
+   TEST(2                     == umg.resource_count) ;
    TEST(freedefault_umgebung  == umg.free_umgebung) ;
+   TEST(&shared               == umg.shared) ;
    TEST(0 != umg.log) ;
    TEST(&g_main_logwriterlocked != umg.log) ;
    TEST(0 != umg.objectcache) ;
-   TEST(0 != umg.valuecache) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
+   TEST(0 == umg.shared) ;
    TEST(&g_main_logwriterlocked == umg.log) ;
    TEST(0 == umg.objectcache) ;
-   TEST(0 == umg.valuecache) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
+   TEST(0 == umg.shared) ;
    TEST(&g_main_logwriterlocked == umg.log) ;
    TEST(0 == umg.objectcache) ;
-   TEST(0 == umg.valuecache) ;
 
    // TEST EINVAL init
    for(int i = 0; i < 3; ++i) {
       TEST(0 == init_testerrortimer(&s_error_initres, 1u+(unsigned)i, EINVAL+i)) ;
-      umg = (umgebung_t) umgebung_INIT_FREEABLE ;
-      TEST(EINVAL+i == initdefault_umgebung(&umg)) ;
+      memset(&umg, 0xff, sizeof(umg)) ;
+      TEST(EINVAL+i == initdefault_umgebung(&umg, &shared)) ;
       TEST(0 == umg.type) ;
       TEST(0 == umg.resource_count) ;
       TEST(0 == umg.free_umgebung) ;
+      TEST(0 == umg.shared) ;
       TEST(&g_main_logwriterlocked == umg.log) ;
       TEST(0 == umg.objectcache) ;
-      TEST(0 == umg.valuecache) ;
    }
 
    return 0 ;

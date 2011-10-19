@@ -46,7 +46,7 @@ extern int unittest_umgebung_typedefault(void) ;
 
 /* function: initdefault_umgebung
  * Is called from <init_umgebung> if type is set to umgebung_type_DEFAULT. */
-extern int initdefault_umgebung(/*out*/umgebung_t * umg) ;
+extern int initdefault_umgebung(/*out*/umgebung_t * umg, umgebung_shared_t * shared) ;
 
 /* function: freedefault_umgebung
  * Frees all resources bound to this object.

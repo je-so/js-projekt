@@ -1,7 +1,14 @@
 # TEXT.DB (1.0)
 # documentation:
-# List of initonce functions which are called after process umgebung is initialized.
-# These functions can make use of the full system environment
-# Freeonce functions are not supported
-"initonce-function",       "header-name"
-"initonce_osthread",       "C-kern/api/os/thread.h"
+# List of initonce_MODULE(void) / freeonce_MODULE(void) functions called once per process
+# *before* the first object of type umgebung_t is initialized.
+# List of initonce_MODULE(umgebung_t*) / freeonce_MODULE(umgebung_t*) functions called once per process
+# *after* the first object of type umgebung_t is initialized.
+# Init functions are called from first to last entry in initmain_umgebung.
+# Free functions are called from last entry to first entry in freemain_umgebung.
+# The header-name field references the C99 header file which exports the function prototypes.
+"time",   "module",         "header-name"
+"before", "locale",         "C-kern/api/os/locale.h"
+"before", "X11",            "C-kern/api/os/X11/x11.h"
+"before", "signalconfig",   "C-kern/api/os/sync/signal.h"
+"after",  "osthread",       "C-kern/api/os/thread.h"

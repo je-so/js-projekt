@@ -46,7 +46,7 @@ extern int unittest_umgebung_typetest(void) ;
 
 /* function: inittest_umgebung
  * Is called from <init_umgebung> if type is set to umgebung_type_TEST. */
-extern int inittest_umgebung(/*out*/umgebung_t * umg) ;
+extern int inittest_umgebung(/*out*/umgebung_t * umg, umgebung_shared_t * shared) ;
 
 /* function: freetest_umgebung
  * Frees all resources bound to this object.
@@ -60,7 +60,7 @@ extern int freetest_umgebung(umgebung_t * umg) ;
 
 /* define: inittest_umgebung
  * Dummy for <umgebung_type_TEST.inittest_umgebung> in case KONFIG_UNITTEST not defined. */
-#define inittest_umgebung(umg) \
+#define inittest_umgebung(umg,shared) \
    (ENOSYS)
 
 /* define: freetest_umgebung

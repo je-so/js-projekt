@@ -47,7 +47,7 @@ struct signalcallback_t {
    signalcallback_f     callback ;
    /* variable: oldstate
     * Contains old signal handler configuration.
-    * This value is set in <initprocess_signalconfig>
+    * This value is set in <initonce_signalconfig>
     * before the signal handler is overwritten. */
    struct sigaction     oldstate ;
 } ;
@@ -70,12 +70,12 @@ struct signalconfig_t {
 /* variable: s_signalhandler
  * Stores global configuration information for signal handlers.
  * See <signalcallback_t>.
- * All values in the array are set in <initprocess_signalconfig>. */
+ * All values in the array are set in <initonce_signalconfig>. */
 static signalcallback_t    s_signalhandler[64] = { { .isvalid = false } } ;
 
 /* variable: s_old_signalmask
  * Stores old signal mask.
- * This value is set in <initprocess_signalconfig>
+ * This value is set in <initonce_signalconfig>
  * before the signal mask is changed. */
 static sigset_t            s_old_signalmask ;
 
@@ -154,7 +154,7 @@ ABBRUCH:
    return err ;
 }
 
-int initprocess_signalconfig()
+int initonce_signalconfig()
 {
    int err ;
    sigset_t signalmask ;
@@ -224,12 +224,12 @@ ABBRUCH_add:
    LOG_INT(signr) ;
    goto ABBRUCH ;
 ABBRUCH:
-   if (isoldmask) freeprocess_signalconfig() ;
+   if (isoldmask) freeonce_signalconfig() ;
    LOG_ABORT(err) ;
    return err ;
 }
 
-int freeprocess_signalconfig()
+int freeonce_signalconfig()
 {
    int err ;
    int signr ;
@@ -614,7 +614,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int test_initprocess(void)
+static int test_initonce(void)
 {
    sigset_t            old_signalmask ;
    signalcallback_t    signalhandler[nrelementsof(s_signalhandler)] ;
@@ -622,8 +622,8 @@ static int test_initprocess(void)
    memcpy(&old_signalmask, &s_old_signalmask, sizeof(old_signalmask)) ;
    memcpy(signalhandler, s_signalhandler, sizeof(s_signalhandler)) ;
 
-   TEST(0 == initprocess_signalconfig()) ;
-   TEST(0 == freeprocess_signalconfig()) ;
+   TEST(0 == initonce_signalconfig()) ;
+   TEST(0 == freeonce_signalconfig()) ;
 
    memcpy(&s_old_signalmask, &old_signalmask, sizeof(old_signalmask)) ;
    memcpy(s_signalhandler, signalhandler, sizeof(s_signalhandler)) ;
@@ -767,7 +767,7 @@ int unittest_os_sync_signal()
 
    if (test_initfree())       goto ABBRUCH ;
    if (test_helper())         goto ABBRUCH ;
-   if (test_initprocess())    goto ABBRUCH ;
+   if (test_initonce())       goto ABBRUCH ;
    if (test_rtsignal())       goto ABBRUCH ;
 
    // TEST mapping has not changed

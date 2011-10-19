@@ -236,9 +236,9 @@ int run_unittest(void)
 for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr) {
 
    // init
-   if (initprocess_umgebung(test_umgebung_type[type_nr])) {
+   if (initmain_umgebung(test_umgebung_type[type_nr])) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      LOGC_PRINTF(TEST, "%s\n", "Abort reason: initprocess_umgebung failed" ) ;
+      LOGC_PRINTF(TEST, "%s\n", "Abort reason: initmain_umgebung failed" ) ;
       goto ABBRUCH ;
    }
 
@@ -251,6 +251,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 //{ umgebung unittest
    RUN(unittest_umgebung) ;
+   RUN(unittest_umgebung_shared) ;
    RUN(unittest_umgebung_typedefault) ;
    RUN(unittest_umgebung_typetest) ;
 //}
@@ -321,9 +322,9 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
    LOG_CLEARBUFFER() ;
 
-   if (freeprocess_umgebung()) {
+   if (freemain_umgebung()) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      LOGC_PRINTF(TEST, "%s\n", "Abort reason: freeprocess_umgebung failed" ) ;
+      LOGC_PRINTF(TEST, "%s\n", "Abort reason: freemain_umgebung failed" ) ;
       goto ABBRUCH ;
    }
 

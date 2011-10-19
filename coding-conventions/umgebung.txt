@@ -17,7 +17,7 @@ For every thread another copy is returned.
 about: Main thread
 The main thread which calls the function "int main()"
 and which is created by the operating system must
-call the function <initprocess_umgebung>
+call the function <initmain_umgebung>
 to initialize the context for the main thread.
 
 The difference between the main and other threads is
@@ -25,7 +25,7 @@ that it calls all subsystem initialization functions
 which has to be called only once.
 
 Before the main thread exits (after all other threads
-have exit) it should call <freeprocess_umgebung> to make
+have exit) it should call <freemain_umgebung> to make
 sure all resources are freed.
 
 about: Other threads
@@ -35,13 +35,16 @@ The thread module implementation does this automatically.
 Use <new_osthread> and <delete_osthread> for managing
 additional threads.
 
-about: Internal workings of initprocess
-The function <initprocess_umgebung> calls all functions
-of pattern "int initprocess_NAME(void)"  defined in any submodule
-in the same order as defined in "C-kern/resource/text.db/initprocess".
+about: Internal workings of initmain
+The function <initmain_umgebung> calls all functions
+of pattern "int initonce_NAME(void)" / "int initonce_NAME(umgebung_t*)
+defined in any submodule in the same order as defined in
+"C-kern/resource/text.db/initonce".
+The initonce functions with no parameter are called before the main processing environment
+(umgebung_t) is operational. The functions with parameter of type "umgebung_t*" are
+called after the main umgebung is operational.
 This init database is checked against the whole source tree with
-"C-kern/test/static/check_textdb.sh".
-So that no entry is forgotten.
+"C-kern/test/static/check_textdb.sh" - so that no entry is forgotten.
 
 about: Internal workings of initumgebung
 The function <init_umgebung> calls all functions

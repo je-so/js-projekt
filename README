@@ -53,9 +53,9 @@ TextDB:
           Later it may be used to select a subset of platform functionality and for software configuration.
   Example: - The following code shows how the init and free functions (which should be called once at
              the start of the process) are patched into code. The list of functions is stored in the text database
-             file 'C-kern/resource/text.db/initprocess'.
-  > // TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/initprocess")
-  >    { &initprocess_locale, &freeprocess_locale },
+             file 'C-kern/resource/text.db/initonce'.
+  > // TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/initonce")
+  >    { &initonce_locale, &freeonce_locale },
   > // TEXTDB:END
 
 Genmake:

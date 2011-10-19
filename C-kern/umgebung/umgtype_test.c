@@ -47,11 +47,9 @@ int freetest_umgebung(umgebung_t * umg)
    err2 = freeumgebung_objectcache(&umg->objectcache) ;
    if (err2) err = err2 ;
 
-   err2 = freeumgebung_valuecache(&umg->valuecache) ;
-   if (err2) err = err2 ;
-
    umg->type            = umgebung_type_STATIC ;
    umg->free_umgebung   = 0 ;
+   umg->shared          = 0 ;
 
    if (err) goto ABBRUCH ;
 
@@ -61,17 +59,15 @@ ABBRUCH:
    return err ;
 }
 
-int inittest_umgebung(umgebung_t * umg)
+int inittest_umgebung(umgebung_t * umg, umgebung_shared_t * shared)
 {
    int err ;
 
    MEMSET0(umg) ;
    umg->type            = umgebung_type_TEST ;
    umg->free_umgebung   = &freetest_umgebung ;
+   umg->shared          = shared ;
    umg->log             = &g_main_logwriterlocked ;
-
-   err = initumgebung_valuecache(&umg->valuecache) ;
-   if (err) goto ABBRUCH ;
 
    err = initumgebung_objectcache(&umg->objectcache) ;
    if (err) goto ABBRUCH ;
@@ -93,31 +89,33 @@ ABBRUCH:
 
 static int test_initfree(void)
 {
-   umgebung_t umg ;
+   umgebung_t           umg    = umgebung_INIT_FREEABLE ;
+   umgebung_shared_t    shared = umgebung_shared_INIT_FREEABLE ;
 
    // TEST init, double free
-   MEMSET0(&umg) ;
-   TEST(0 == inittest_umgebung(&umg)) ;
+   TEST(0 == inittest_umgebung(&umg, &shared)) ;
    TEST(umgebung_type_TEST  == umg.type) ;
    TEST(0                   == umg.resource_count) ;
    TEST(&freetest_umgebung  == umg.free_umgebung) ;
+   TEST(&shared             == umg.shared) ;
    TEST(0 == freetest_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
+   TEST(0 == umg.shared) ;
    TEST(0 != umg.log) ;
    TEST(0 == umg.objectcache) ;
-   TEST(0 == umg.valuecache) ;
    TEST(0 == freetest_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
+   TEST(0 == umg.shared) ;
    TEST(&g_main_logwriterlocked == umg.log) ;
    TEST(0 == umg.objectcache) ;
-   TEST(0 == umg.valuecache) ;
 
    return 0 ;
 ABBRUCH:
+   freetest_umgebung(&umg) ;
    return EINVAL ;
 }
 
