@@ -76,6 +76,19 @@
  * should be called before <LOG_ABORT> to document the event leading to an abort. */
 #define LOG_OUTOFMEMORY(size)                LOG_ERRTEXT(MEMORY_OUT_OF(size))
 
+/* define: LOG_PRINTF
+ * Logs a generic printf type format string as error.
+ *
+ * Parameter:
+ * FORMAT     - The format string as in the standard library function printf.
+ * ...        - Additional value parameters of the correct type as determined by the <FORMAT>
+ *              parameter.
+ *
+ * Example:
+ * > int i ; LOG_PRINTF("%d", i) */
+#define LOG_PRINTF(...)   \
+   LOGC_PRINTF(ERR, __VA_ARGS__)
+
 /* define: LOG_SYSERR
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to

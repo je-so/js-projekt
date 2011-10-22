@@ -1,5 +1,5 @@
 /* title: Konfiguration
-   Global Configurations.
+   Global generic configurations.
 
    about: Copyright
    This program is free software.
@@ -14,10 +14,13 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2010 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
 
    file: C-kern/konfig.h
     Header file of <Konfiguration>.
+
+   file: C-kern/api/os/Linux/syskonfig.h
+    Linux specific configuration file <LinuxSystemKonfig>.
 */
 #ifndef CKERN_KONFIG_HEADER
 #define CKERN_KONFIG_HEADER
@@ -192,41 +195,53 @@
  * If it does not exist you must define it in the makefile. */
 #define SCNuSIZE             __PRIPTR_PREFIX "u"
 
-/* define: sys_thread_t
- * Type holding system specific description of a thread. Overwritten in system specific include file. */
-#define sys_thread_t                void
-/* define: sys_thread_INIT_FREEABLE
- * Value of invalid thread ID. Overwritten in system specific include file. */
-#define sys_thread_INIT_FREEABLE    void
-/* define: sys_thread_mutex_t
- * Type holding system specific description of a mutex. Overwritten in system specific include file. */
+/* define: sys_directory_t
+ * Pointer type holding system specific description of an opened directory stream.
+ * NULL is considered an unitialized value. Overwritten in system specific include file. */
+#define sys_directory_t             void
+/* define: sys_directory_entry_t
+ * Structure holding system specific description of read directory entry. */
+#define sys_directory_entry_t       void
+/* define: sys_file_t
+ * Type holding system specific description of a file. */
+#define sys_file_t                  void
+/* define: sys_file_INIT_FREEABLE
+ * Static initializer for a mutex useable by threads of the same process. */
+#define sys_file_INIT_FREEABLE      void
+/* define: sys_mutex_t
+ * Type holding system specific description of a mutex. */
 #define sys_mutex_t                 void
-/* define: sys_thread_mutex_INIT_DEFAULT
+/* define: sys_mutex_INIT_DEFAULT
  * Static initializer for a mutex useable by threads of the same process. */
 #define sys_mutex_INIT_DEFAULT      void
+/* define: sys_process_t
+ * Static initializer for a mutex useable by threads of the same process. */
+#define sys_process_t               void
+/* define: sys_process_INIT_FREEABLE
+ * Static initializer for a process which id invalid. */
+#define sys_process_INIT_FREEABLE   void
 /* define: sys_semaphore_t
  * Type holding system specific description of a semaphore. Overwritten in system specific include file. */
 #define sys_semaphore_t             void
 /* define: sys_semaphore_INIT_FREEABLE
  * Init value to declare an invalid semaphore handle. */
 #define sys_semaphore_INIT_FREEABLE void
+/* define: sys_thread_t
+ * Type holding system specific description of a thread. Overwritten in system specific include file. */
+#define sys_thread_t                void
+/* define: sys_thread_INIT_FREEABLE
+ * Value of invalid thread ID. Overwritten in system specific include file. */
+#define sys_thread_INIT_FREEABLE    void
 /* define: sys_timerid_t
  * Handle for system specific timer. */
 #define sys_timerid_t               void
 /* define: sys_timerid_INIT_FREEABLE
  * Init value to declare an invalid timer handle. */
 #define sys_timerid_INIT_FREEABLE   void
-/* define: sys_directory_t
- * Pointer type holding system specific description of an opened directory stream.
- * NULL is considered an unitialized value. Overwritten in system specific include file. */
-#define sys_directory_t             void
-/* define: sys_directory_entry_t
- * Structure holding system specific description of read directory entry. Overwritten in system specific include file. */
-#define sys_directory_entry_t       void
 //}
 
 // group: 4. Include
-// Include os specific settings which define system specific types.
+// Include system specific settings which redefine system specific types.
 
 //{
 /* about: Include
