@@ -22,10 +22,13 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/os/process.h"
+#include "C-kern/api/os/file.h"
 
 enum testcase_e {
-    testcase_RETURNEXITCODE = 1
-   ,testcase_NEXTFREE       = 2
+    testcase_RETURNEXITCODE    = 1
+   ,testcase_OPENFILES         = 2
+   ,testcase_WRITEPROCESSNAME  = 3
 } ;
 
 static void testcase_returnexitcode(int exitcode)
@@ -33,11 +36,40 @@ static void testcase_returnexitcode(int exitcode)
    exit(exitcode) ;
 }
 
+static void testcase_writeopenfd(void)
+{
+   int err ;
+   size_t nrfiles ;
+   err = openfd_file(&nrfiles) ;
+   if (!err) {
+      dprintf(STDERR_FILENO, "%d", (int)nrfiles) ;
+   }
+   exit(err) ;
+}
+
+static void testcase_writename(void)
+{
+   int err ;
+   char name[32] ;
+   err = name_process(sizeof(name), name, 0) ;
+   if (!err) {
+      dprintf(STDERR_FILENO, "%s", name) ;
+   }
+   exit(err) ;
+}
+
+static void check_argc(int argc, int should_be)
+{
+   if (argc != should_be) {
+      printf("argc(%d) != %d\n", argc, should_be) ;
+      abort() ;
+   }
+}
 
 int main(int argc, const char * argv[])
 {
-   if (argc != 3) {
-      printf("argc != 3\n") ;
+   if (argc < 2) {
+      printf("argc < 2\n") ;
       abort() ;
    }
 
@@ -45,12 +77,19 @@ int main(int argc, const char * argv[])
 
    switch( testcase ) {
    case testcase_RETURNEXITCODE:
+      check_argc(argc, 3) ;
       testcase_returnexitcode(atoi(argv[2])) ;
       break ;
-   default:
-      printf("unknown testcase (%d)\n", testcase) ;
-      abort() ;
+   case testcase_OPENFILES:
+      check_argc(argc, 2) ;
+      testcase_writeopenfd() ;
+      break ;
+   case testcase_WRITEPROCESSNAME:
+      check_argc(argc, 2) ;
+      testcase_writename() ;
+      break ;
    }
 
-   return 0 ;
+   abort() ;
+   return 127 ;
 }

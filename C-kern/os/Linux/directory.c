@@ -195,9 +195,9 @@ ABBRUCH:
 int inittemp_directorystream( /*out*/directory_stream_t * dir, const char * name_prefix )
 {
    int err ;
-   size_t tmp_path_len = strlen(P_tmpdir) + 1 ;
+   size_t tmp_path_len = strlen(P_tmpdir) ;
    size_t   prefix_len = strlen(name_prefix?name_prefix:"") ;
-   size_t    path_size = tmp_path_len + prefix_len + 7 + 1 ;
+   size_t    path_size = tmp_path_len + prefix_len + 8 + 1 ;
    char *     dir_path = malloc(path_size) ;
 
    if (!dir_path) {
@@ -206,42 +206,22 @@ int inittemp_directorystream( /*out*/directory_stream_t * dir, const char * name
       goto ABBRUCH ;
    }
 
-   strncpy( dir_path, P_tmpdir, tmp_path_len ) ;
-   dir_path[tmp_path_len - 1] = '/' ;
+   char * next_char = dir_path ;
+   strcpy(next_char, P_tmpdir) ;
+   next_char   += tmp_path_len  ;
+   next_char[0] = '/' ;
+   ++ next_char ;
    if (prefix_len) {
-      strncpy( dir_path + tmp_path_len, name_prefix, prefix_len ) ;
+      strncpy( next_char, name_prefix, prefix_len ) ;
+      next_char += prefix_len ;
    }
-   char * id_str = dir_path + tmp_path_len + prefix_len ;
-   strcpy( id_str, ".XXXXXX" ) ;
-   ++ id_str ;
+   strcpy( next_char, ".XXXXXX" ) ;
 
-   // if (!mkdtemp( dir_path )) {
-   //    err = errno ;
-   //    LOG_SYSERR("mkdtemp",err) ;
-   //    LOG_STRING(dir_path) ;
-   //    goto ABBRUCH ;
-   // }
-
-   // TODO: replace with mkdtemp
-   uint32_t id ;
-   {
-      struct timespec tspec ;
-      if (0 == clock_gettime( CLOCK_REALTIME, &tspec)) {
-         id = (uint32_t)tspec.tv_sec + (uint32_t)tspec.tv_nsec ;
-      } else {
-         id = (uint32_t) time(NULL) ;
-      }
-   }
-   for( uint32_t i = 1000; true ; --i, id += 333 ) {
-      id = (uint32_t) (id % 1000000) ;
-      sprintf( id_str, "%06" PRIu32, id) ;
-      if (0 == mkdir( dir_path, 0700 )) break ;
+   if (!mkdtemp( dir_path )) {
       err = errno ;
-      if (err != EEXIST || 0 == i) {
-         LOG_SYSERR("mkdir", err) ;
-         LOG_STRING(dir_path) ;
-         goto ABBRUCH ;
-      }
+      LOG_SYSERR("mkdtemp",err) ;
+      LOG_STRING(dir_path) ;
+      goto ABBRUCH ;
    }
 
    err = init_directorystream(dir, dir_path, NULL) ;

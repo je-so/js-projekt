@@ -26,7 +26,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/sync/mutex.h"
 #include "C-kern/api/os/thread.h"
-// #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

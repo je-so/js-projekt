@@ -672,13 +672,12 @@ int unittest_umgebung()
          TEST(0 == "wrong buffer content") ;
       }
 
-      TEST(-1!= dup2(fd_stderr, STDERR_FILENO)) ;
+      TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
       TEST(0 == close(fd_stderr)) ;
       fd_stderr = -1 ;
-      for(int i = 0; i < 2; ++i) {
-         TEST(0 == close(fdpipe[i]));
-         fdpipe[i] = -1 ;
-      }
+      TEST(0 == close(fdpipe[0]));
+      TEST(0 == close(fdpipe[1]));
+      fdpipe[0] = fdpipe[1] = -1 ;
 
    } else {
       assert(umgebung_type_STATIC != umgebung()->type) ;

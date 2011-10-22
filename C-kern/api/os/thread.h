@@ -115,7 +115,7 @@ extern int freeonce_osthread(umgebung_t * umg) ;
  * If the internal preparation goes wrong <umgebung_t.abort_umgebung> is called.
  * It is unspecified if thread_main is called before new_osthread returns.
  * On Linux new_osthread returns before the newly created thread is scheduled. */
-extern int new_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_main, void * start_arg) ;
+extern int new_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_main, struct callback_param_t * start_arg) ;
 
 /* function: newgroup_osthread
  * Creates and starts nr_of_threads new system threads.

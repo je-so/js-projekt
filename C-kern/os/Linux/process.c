@@ -31,13 +31,6 @@
 #include "C-kern/api/os/thread.h"
 #endif
 
-/* struct: process_t
- * Wraps system handle of os specific process.
- * */
-struct process_t {
-   pid_t  sysid ;
-   int    status ;
-} ;
 
 typedef struct childprocess_exec_t        childprocess_exec_t ;
 
@@ -45,8 +38,11 @@ struct childprocess_exec_t {
    __extension__ struct {
       const char *   filename ;
       char       **  arguments ;
-      int            devnull ;
-      int            errpipe ;
+      sys_file_t     infile ;
+      sys_file_t     outfile ;
+      sys_file_t     errfile ;
+      sys_file_t     devnull ;
+      sys_file_t     errpipe ;
    } inparam ;
    __extension__ struct {
       int err ;
@@ -54,28 +50,159 @@ struct childprocess_exec_t {
    } outparam ;
 } ;
 
+enum queryoption_e {
+    queryoption_NOWAIT
+   ,queryoption_WAIT
+   ,queryoption_WAIT_AND_FREE
+} ;
+
+typedef enum queryoption_e    queryoption_e ;
+
 
 // section: Functions
 
-
-static int childprocess_exec(void * param)
+int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size)
 {
-   childprocess_exec_t * execparam = (childprocess_exec_t *) param ;
+   int err ;
+   char buffer[16+1] ;
 
-   execparam->outparam.functionid = 0 ;
-   while( -1 == dup2(execparam->inparam.devnull, STDIN_FILENO) ) {
-      if (EINTR != errno) goto ABBRUCH ;
-   }
-   while( -1 == dup2(execparam->inparam.devnull, STDOUT_FILENO) ) {
-      if (EINTR != errno) goto ABBRUCH ;
-   }
-   while( -1 == dup2(execparam->inparam.devnull, STDERR_FILENO) ) {
-      if (EINTR != errno) goto ABBRUCH ;
+   buffer[16] = 0 ;
+
+   err = prctl(PR_GET_NAME, buffer, 0, 0, 0) ;
+   if (err) {
+      err = errno ;
+      LOG_SYSERR("prctl(PR_GET_NAME)", err) ;
+      goto ABBRUCH ;
    }
 
-   execparam->outparam.functionid = 1 ;
-   // TODO: use execvpe + implement setting environment variables !
-   //       access to environment must be protected with mutex
+   size_t size = 1 + strlen(buffer) ;
+
+   if (name_size) {
+      *name_size = size ;
+   }
+
+   if (namebuffer_size) {
+      if (namebuffer_size >= size) {
+         memcpy( name, buffer, size) ;
+      } else {
+         memcpy( name, buffer, namebuffer_size-1) ;
+         name[namebuffer_size-1] = 0 ;
+      }
+   }
+
+   return 0 ;
+ABBRUCH:
+   return err ;
+}
+
+
+// section: process_t
+
+// group: helper
+
+static int queryresult_process(sys_process_t pid, /*out*/process_result_t * result, queryoption_e option)
+{
+   int err ;
+   siginfo_t info ;
+   int       flags ;
+
+#define FLAGS (WEXITED|WSTOPPED)
+
+   switch(option) {
+   case queryoption_NOWAIT:
+      flags = FLAGS|WNOHANG|WNOWAIT ;
+      break ;
+   case queryoption_WAIT:
+      flags = FLAGS|WNOWAIT ;
+      break ;
+   case queryoption_WAIT_AND_FREE:
+      flags = FLAGS ;
+      break ;
+   default:
+      PRECONDITION_INPUT(option == queryoption_WAIT_AND_FREE, ABBRUCH, LOG_INT(option)) ;
+      flags = FLAGS ;
+      break ;
+   }
+
+#undef FLAGS
+
+   info.si_pid = 0 ;
+   while(-1 == waitid(P_PID, (id_t) pid, &info, flags)) {
+      if (EINTR != errno) {
+         err = errno ;
+         LOG_SYSERR("waitid",err) ;
+         LOG_INT(pid) ;
+         goto ABBRUCH ;
+      }
+   }
+
+
+   if (pid != info.si_pid) {
+      result->state = process_state_RUNNABLE ;
+      return 0 ;
+   }
+
+   if (CLD_EXITED == info.si_code) {
+      result->state = process_state_TERMINATED ;
+      result->returncode = info.si_status ;
+   } else if (    CLD_KILLED == info.si_code
+               || CLD_DUMPED == info.si_code) {
+      result->state = process_state_ABORTED ;
+      result->returncode = info.si_status ;
+   } else if (    CLD_STOPPED == info.si_code
+               || CLD_TRAPPED == info.si_code) {
+      result->state = process_state_STOPPED ;
+   } else {
+      result->state = process_state_RUNNABLE ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+static int childprocess_exec(childprocess_exec_t  * execparam)
+{
+   int fd ;
+
+   fd = execparam->inparam.infile ;
+   if (STDIN_FILENO != fd) {
+      if (sys_file_INIT_FREEABLE == fd) fd = execparam->inparam.devnull ;
+      execparam->outparam.functionid = 0 ;
+      while( -1 == dup2(fd, STDIN_FILENO) ) {
+         if (EINTR != errno) goto ABBRUCH ;
+      }
+   } else {
+      execparam->outparam.functionid = 1 ;
+      if (0 != fcntl(STDIN_FILENO, F_SETFD, (long)0)) goto ABBRUCH ; // clear FD_CLOEXEC
+   }
+
+   fd = execparam->inparam.outfile ;
+   if (STDOUT_FILENO != fd) {
+      if (sys_file_INIT_FREEABLE == fd) fd = execparam->inparam.devnull ;
+      execparam->outparam.functionid = 0 ;
+      while( -1 == dup2(fd, STDOUT_FILENO) ) {
+         if (EINTR != errno) goto ABBRUCH ;
+      }
+   } else {
+      execparam->outparam.functionid = 1 ;
+      if (0 != fcntl(STDOUT_FILENO, F_SETFD, (long)0)) goto ABBRUCH ; // clear FD_CLOEXEC
+   }
+
+   fd = execparam->inparam.errfile ;
+   if (STDERR_FILENO != fd) {
+      if (sys_file_INIT_FREEABLE == fd) fd = execparam->inparam.devnull ;
+      execparam->outparam.functionid = 0 ;
+      while( -1 == dup2(fd, STDERR_FILENO) ) {
+         if (EINTR != errno) goto ABBRUCH ;
+      }
+   } else {
+      execparam->outparam.functionid = 1 ;
+      if (0 != fcntl(STDERR_FILENO, F_SETFD, (long)0)) goto ABBRUCH ; // clear FD_CLOEXEC
+   }
+
+   execparam->outparam.functionid = 2 ;
    execvp( execparam->inparam.filename, execparam->inparam.arguments ) ;
 
 ABBRUCH:
@@ -87,58 +214,33 @@ ABBRUCH:
    return 127 ;
 }
 
-int new_process(/*out*/process_t ** process, process_child_f child_function, void * child_parameter)
+// group: implementation
+
+int initexec_process(process_t * process, const char * filename, const char * const * arguments, process_ioredirect_t * ioredirection /*0 => /dev/null*/)
 {
    int err ;
-   pid_t pid ;
-   process_t * newchild ;
-
-   newchild = (process_t*) malloc(sizeof(process_t)) ;
-   if (!newchild) {
-      err = ENOMEM ;
-      LOG_OUTOFMEMORY(sizeof(process_t)) ;
-      goto ABBRUCH ;
-   }
-
-   //TODO:MULTITHREAD: all filedescriptors opened with O_CLOEXEC
-   //TODO:MULTITHREAD: system handler for freeing thread resources ?!?
-   pid = fork() ;
-   if (-1 == pid) {
-      err = errno ;
-      LOG_SYSERR("fork", err) ;
-      goto ABBRUCH ;
-   }
-
-   if ( pid == 0 ) {
-      // NEW CHILD PROCESS
-      int returncode = (child_function ? child_function(child_parameter) : 0) ;
-      exit(returncode) ;
-   }
-
-   newchild->sysid  = pid ;
-   newchild->status = 0 ;
-
-   *process = newchild ;
-
-   return 0 ;
-ABBRUCH:
-   free(newchild) ;
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-int newexec_process( process_t ** process, const char * filename, const char * const * arguments )
-{
-   int err ;
-   process_t          * childprocess = 0 ;
+   process_t            childprocess = process_INIT_FREEABLE ;
    int                  pipefd[2]    = { -1, -1 } ;
-   childprocess_exec_t  execparam    = { .inparam = { filename, (char**) (intptr_t) arguments, -1, -1 }, .outparam = { 0, 0 } } ;
+   childprocess_exec_t  execparam    = { .inparam  = { filename, (char**) (intptr_t) arguments,
+                                                       -1, -1, -1, -1, -1 },
+                                         .outparam = { 0, 0 } } ;
 
-   execparam.inparam.devnull = open("/dev/null", O_RDWR|O_CLOEXEC) ;
-   if (-1 == execparam.inparam.devnull) {
-      err = errno ;
-      LOG_SYSERR("open(/dev/null,O_RDWR)", err) ;
-      goto ABBRUCH ;
+   if (  !ioredirection
+      || sys_file_INIT_FREEABLE == ioredirection->infile
+      || sys_file_INIT_FREEABLE == ioredirection->outfile
+      || sys_file_INIT_FREEABLE == ioredirection->errfile ) {
+      execparam.inparam.devnull = open("/dev/null", O_RDWR|O_CLOEXEC) ;
+      if (-1 == execparam.inparam.devnull) {
+         err = errno ;
+         LOG_SYSERR("open(/dev/null,O_RDWR)", err) ;
+         goto ABBRUCH ;
+      }
+   }
+
+   if (ioredirection) {
+      execparam.inparam.infile  = ioredirection->infile ;
+      execparam.inparam.outfile = ioredirection->outfile ;
+      execparam.inparam.errfile = ioredirection->errfile ;
    }
 
    if ( pipe2(pipefd,O_CLOEXEC) ) {
@@ -149,7 +251,7 @@ int newexec_process( process_t ** process, const char * filename, const char * c
 
    execparam.inparam.errpipe = pipefd[1] ;
 
-   err = new_process( &childprocess, &childprocess_exec, &execparam) ;
+   err = init_process( &childprocess, &childprocess_exec, &execparam) ;
    if (err) goto ABBRUCH ;
 
    // CHECK exec error
@@ -169,12 +271,14 @@ int newexec_process( process_t ** process, const char * filename, const char * c
    } else if (read_bytes) {
       // EXEC error
       err = execparam.outparam.err ? execparam.outparam.err : EINVAL ;
-      if (execparam.outparam.functionid) {
+      if (2 == execparam.outparam.functionid) {
          LOG_SYSERR("execvp(filename, arguments)", err) ;
          LOG_STRING(filename) ;
          for(size_t i = 0; arguments[i]; ++i) {
             LOG_INDEX("s",arguments,i) ;
          }
+      } else if (1 == execparam.outparam.functionid) {
+         LOG_SYSERR("fcntl", err) ;
       } else {
          LOG_SYSERR("dup2", err) ;
       }
@@ -182,7 +286,7 @@ int newexec_process( process_t ** process, const char * filename, const char * c
    }
 
    if (  close(pipefd[0])
-      || close(execparam.inparam.devnull)) {
+      || (-1 != execparam.inparam.devnull && close(execparam.inparam.devnull))) {
       err = errno ;
       LOG_SYSERR("close",err) ;
       goto ABBRUCH ;
@@ -195,38 +299,55 @@ ABBRUCH:
    if (-1 != execparam.inparam.devnull)   close(execparam.inparam.devnull) ;
    if (-1 != pipefd[1])                   close(pipefd[1]) ;
    if (-1 != pipefd[0])                   close(pipefd[0]) ;
-   (void) delete_process(&childprocess) ;
+   (void) free_process(&childprocess) ;
    LOG_ABORT(err) ;
    return err ;
 }
 
-int delete_process(process_t ** process)
+#undef init_process
+int init_process(/*out*/process_t * process, task_callback_f child_main, struct callback_param_t * start_arg)
 {
    int err ;
-   int err2 ;
-   process_t * delobject = *process ;
+   pid_t pid ;
 
-   if (delobject) {
-      *process = 0 ;
+   //TODO:MULTITHREAD: all filedescriptors opened with O_CLOEXEC
+   //TODO:MULTITHREAD: system handler for freeing thread resources ?!?
+   pid = fork() ;
+   if (-1 == pid) {
+      err = errno ;
+      LOG_SYSERR("fork", err) ;
+      goto ABBRUCH ;
+   }
 
-      err = 0 ;
+   if (0 == pid) {
+      // NEW CHILD PROCESS
+      int returncode = (child_main ? child_main(start_arg) : 0) ;
+      exit(returncode) ;
+   }
 
-      if (delobject->sysid) {
-         pid_t pid = delobject->sysid ;
+   *process = pid ;
 
-         if (kill(pid, SIGKILL)) {
-            err = errno ;
-            LOG_SYSERR("kill", err) ;
-            LOG_INT(pid) ;
-         }
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
 
-         if (ESRCH != err) {
-            err2 = wait_process(delobject, 0) ;
-            if (err2) err = err2 ;
-         }
-      }
+int free_process(process_t * process)
+{
+   int err ;
+   pid_t pid = *process ;
 
-      free(delobject) ;
+   static_assert(0 == sys_process_INIT_FREEABLE, "0 is no valid process id") ;
+
+   if (pid) {
+
+      *process = sys_process_INIT_FREEABLE ;
+
+      kill(pid, SIGKILL) ;
+
+      process_result_t result ;
+      err = queryresult_process(pid, &result, queryoption_WAIT_AND_FREE) ;
 
       if (err) goto ABBRUCH ;
    }
@@ -237,78 +358,48 @@ ABBRUCH:
    return err ;
 }
 
-static int updatestatus_process(process_t * process, bool doWait)
+int state_process(process_t * process, /*out*/process_state_e * current_state)
 {
    int err ;
-   int status ;
-   pid_t pid = process->sysid ;
-   pid_t wstat ;
+   process_result_t result ;
 
-   while(-1 == (wstat = waitpid(pid, &status, doWait ? (WUNTRACED|WCONTINUED) : (WUNTRACED|WCONTINUED|WNOHANG) ))) {
-      if (EINTR != errno) {
-         err = errno ;
-         LOG_SYSERR("waitpid",err) ;
-         LOG_INT(pid) ;
-         goto ABBRUCH ;
-      }
-   }
+   err = queryresult_process(*process, &result, queryoption_NOWAIT) ;
+   if (err) goto ABBRUCH ;
 
-   if (pid == wstat) {
-      // read update
-
-      if (  WIFEXITED(status)
-         || WIFSIGNALED(status)) {
-         process->sysid = 0 ;
-      }
-
-      process->status = status ;
-   }
+   *current_state = result.state ;
 
    return 0 ;
 ABBRUCH:
+   LOG_ABORT(err) ;
    return err ;
-}
-
-static inline process_state_e statefromstatus_process(process_t * process)
-{
-   if (!process->sysid) {
-      return process_state_TERMINATED ;
-   } else if (WIFSTOPPED(process->status)) {
-      return process_state_STOPPED ;
-   }
-
-   return process_state_RUNABLE ;
 }
 
 int wait_process(process_t * process, /*out*/process_result_t * result)
 {
    int err ;
-   pid_t pid = process->sysid ;
+   pid_t pid = *process ;
 
-   while(process->sysid) {
+   kill(pid, SIGCONT) ;
 
-      if (process_state_STOPPED == statefromstatus_process(process)) {
+   for(;;) {
+      process_result_t state ;
+
+      err = queryresult_process(pid, &state, queryoption_WAIT) ;
+      if (err) goto ABBRUCH ;
+
+      switch(state.state) {
+      case process_state_RUNNABLE:
+         break ;
+      case process_state_STOPPED:
          kill(pid, SIGCONT) ;
+         break ;
+      case process_state_TERMINATED:
+      case process_state_ABORTED:
+         if (result) {
+            *result = state ;
+         }
+         return 0 ;
       }
-
-      err = updatestatus_process(process, true) ;
-      if (err) goto ABBRUCH ;
-   }
-
-   if (WIFEXITED(process->status)) {
-      if (result) {
-         result->hasTerminatedAbnormal = false ;
-         result->returncode            = WEXITSTATUS(process->status) ;
-      }
-   } else if (WIFSIGNALED(process->status)) {
-      if (result) {
-         result->hasTerminatedAbnormal = true ;
-         result->returncode            = WTERMSIG(process->status) ;
-      }
-   } else {
-      LOG_INT(pid) ;
-      LOG_INT(process->status) ;
-      assert( WIFSIGNALED(process->status) || WIFEXITED(process->status) ) ;
    }
 
    return 0 ;
@@ -317,85 +408,49 @@ ABBRUCH:
    return err ;
 }
 
-int state_process(process_t * process, process_state_e * current_state)
-{
-   int err ;
 
-   if (process->sysid) {
-      err = updatestatus_process(process, false) ;
-      if (err) goto ABBRUCH ;
-   }
 
-   *current_state = statefromstatus_process(process) ;
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-int hasterminated_process(process_t * process)
-{
-   int err ;
-   process_state_e current_state ;
-
-   err = state_process(process, &current_state) ;
-   if (err) goto ABBRUCH ;
-
-   return process_state_TERMINATED == current_state ? 0 : EAGAIN ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-int hasstopped_process(process_t * process)
-{
-   int err ;
-   process_state_e current_state ;
-
-   err = state_process(process, &current_state) ;
-   if (err) goto ABBRUCH ;
-
-   return process_state_STOPPED == current_state ? 0 : EAGAIN ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
+// section: test
 
 #ifdef KONFIG_UNITTEST
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_process,ABBRUCH)
 
-static int childprocess_return(void * param)
+#define init_process(process, child_main, start_arg) \
+   /*do not forget to adapt definition in process.c test section*/                  \
+   ( __extension__ ({ int _err ;                                                    \
+      int (*_child_main) (typeof(start_arg)) = (child_main) ;                       \
+      static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
+      _err = init_process(process, (task_callback_f) _child_main,                   \
+                              (struct callback_param_t*) start_arg ) ;              \
+      _err ; }))
+
+static int childprocess_return(int returncode)
 {
    kill(getppid(), SIGUSR1) ;
-   static_assert(sizeof(void*) >= sizeof(int), "") ;
-   return (int) param ;
+   return returncode ;
 }
 
-static int childprocess_endlessloop(void * param)
+static int childprocess_endlessloop(int dummy)
 {
-   (void) param ;
+   (void) dummy ;
    kill(getppid(), SIGUSR1) ;
    for(;;) {
-      sleepms_osthread(1) ;
+      sleepms_osthread(1000) ;
    }
    return 0 ;
 }
 
-static int childprocess_signal(void * param)
+static int childprocess_signal(int signr)
 {
-   static_assert(sizeof(void*) >= sizeof(int), "") ;
-   dprintf(10,"kill\n") ;
-   kill( getpid(), (int)param) ;
+   kill(getpid(), signr) ;
    return 0 ;
 }
 
-static int chilprocess_execassert(void * param)
+static int chilprocess_execassert(int dummy)
 {
    int pipefd[2] ;
-   (void) param ;
+   (void) dummy ;
    // suppress flushing of log output
    if (  pipe2(pipefd, O_CLOEXEC)
       || STDERR_FILENO != dup2(pipefd[1], STDERR_FILENO)) {
@@ -405,18 +460,67 @@ static int chilprocess_execassert(void * param)
    return 0 ;
 }
 
-static int childprocess_statechange(void * param)
+static int childprocess_statechange(int fd)
 {
-   (void) param ;
-   dprintf(10,"sleep\n") ;
+   dprintf(fd,"sleep\n") ;
    kill( getpid(), SIGSTOP) ;
-   dprintf(10,"run\n") ;
+   dprintf(fd,"run\n") ;
+   for(;;) {
+      sleepms_osthread(1000) ;
+   }
    return 0 ;
+}
+
+static int test_redirect(void)
+{
+   process_ioredirect_t ioredirect = { 0, 0, 0 } ;
+
+   // TEST static init: process_ioredirect_INIT_DEVNULL
+   ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
+   TEST(-1 == ioredirect.infile) ;
+   TEST(-1 == ioredirect.outfile) ;
+   TEST(-1 == ioredirect.errfile) ;
+   TEST(sys_file_INIT_FREEABLE == ioredirect.infile) ;
+   TEST(sys_file_INIT_FREEABLE == ioredirect.outfile) ;
+   TEST(sys_file_INIT_FREEABLE == ioredirect.errfile) ;
+
+   // TEST static init: process_ioredirect_INIT_INHERIT
+   ioredirect = (process_ioredirect_t) process_ioredirect_INIT_INHERIT ;
+   TEST(0 == ioredirect.infile) ;
+   TEST(1 == ioredirect.outfile) ;
+   TEST(2 == ioredirect.errfile) ;
+   TEST(sys_file_STDIN  == ioredirect.infile) ;
+   TEST(sys_file_STDOUT == ioredirect.outfile) ;
+   TEST(sys_file_STDERR == ioredirect.errfile) ;
+
+   // TEST setXXX
+   for(int i = 0; i < 100; ++i) {
+      ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
+      TEST(sys_file_INIT_FREEABLE == ioredirect.infile) ;
+      TEST(sys_file_INIT_FREEABLE == ioredirect.outfile) ;
+      TEST(sys_file_INIT_FREEABLE == ioredirect.errfile) ;
+      setin_processioredirect(&ioredirect, i) ;
+      TEST(i == ioredirect.infile) ;
+      TEST(sys_file_INIT_FREEABLE == ioredirect.outfile) ;
+      TEST(sys_file_INIT_FREEABLE == ioredirect.errfile) ;
+      setout_processioredirect(&ioredirect, i+1) ;
+      TEST(i == ioredirect.infile) ;
+      TEST(i+1 == ioredirect.outfile) ;
+      TEST(sys_file_INIT_FREEABLE == ioredirect.errfile) ;
+      seterr_processioredirect(&ioredirect, i+2) ;
+      TEST(i == ioredirect.infile) ;
+      TEST(i+1 == ioredirect.outfile) ;
+      TEST(i+2 == ioredirect.errfile) ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
 }
 
 static int test_initfree(void)
 {
-   process_t      *  process = 0 ;
+   process_t         process = process_INIT_FREEABLE ;
    process_result_t  process_result ;
    process_state_e   process_state ;
    struct timespec   ts              = { 0, 0 } ;
@@ -429,138 +533,106 @@ static int test_initfree(void)
    TEST(0 == sigprocmask(SIG_BLOCK, &signalmask, &oldsignalmask)) ;
    isoldsignalmask = true ;
 
+   // TEST static init
+   TEST(sys_process_INIT_FREEABLE == process) ;
+   TEST(0 == sys_process_INIT_FREEABLE) ;
+
    // TEST init, double free
+   TEST(0 == init_process(&process, &childprocess_return, 0)) ;
+   TEST(0 <  process) ;
+   TEST(0 == free_process(&process)) ;
    TEST(0 == process) ;
-   TEST(0 == new_process(&process, &childprocess_return, (void*)0)) ;
-   TEST(0 != process) ;
-   TEST(0 < process->sysid) ;
-   TEST(0 == process->status) ;
-   TEST(0 == delete_process(&process)) ;
-   TEST(0 == process) ;
-   TEST(0 == delete_process(&process)) ;
+   TEST(0 == free_process(&process)) ;
    TEST(0 == process) ;
 
-   // TEST implementation detail
-   // status = 0 => Running state => not stopped !
-   TEST(0 == process) ;
-   TEST(0 == new_process(&process, &childprocess_return, (void*)0)) ;
-   TEST(0 != process) ;
-   TEST(0 == WIFSTOPPED(process->status)) ;
-   TEST(EAGAIN == hasstopped_process(process)) ;
-   TEST(0 == delete_process(&process)) ;
-   TEST(0 == process) ;
-
-   // TEST normal exit => result
    for(int i = 255; i >= 0; i -= 13) {
-      // wait_process
-      TEST(0 == process) ;
-      TEST(0 == new_process(&process, &childprocess_return, (void*)i)) ;
-      TEST(0 != process) ;
-      TEST(0 < process->sysid) ;
-      TEST(0 == process->status) ;
-      TEST(0 == wait_process(process, &process_result)) ;
-      TEST(0 == process_result.hasTerminatedAbnormal) ;
-      TEST(i == process_result.returncode) ;
-      TEST(0 == process->sysid) ;
-      TEST(0 == hasterminated_process(process)) ;
-      TEST(EAGAIN == hasstopped_process(process)) ;
-      TEST(0 == delete_process(&process)) ;
+      // TEST wait_process
+      TEST(0 == init_process(&process, &childprocess_return, i)) ;
+      TEST(0 <  process) ;
+      TEST(0 == wait_process(&process, &process_result)) ;
+      TEST(process_result.state      == process_state_TERMINATED) ;
+      TEST(process_result.returncode == i) ;
 
-      // hasterminated_process
-      while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
-      TEST(0 == process) ;
-      TEST(0 == new_process(&process, &childprocess_return, (void*)i)) ;
-      for(int i2 = 0; i2 < 10000; ++i2) {
-         sleepms_osthread(1) ;
-         int err = hasterminated_process(process) ;
-         if (0 == hasterminated_process(process)) break ;
-         TEST(err == EAGAIN) ;
-         if (2 == i2) TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
-      }
-      TEST(0 == hasterminated_process(process)) ;
-      TEST(0 == process->sysid) ;
-      process_result = (process_result_t) { .hasTerminatedAbnormal = true, .returncode = (i+1) } ;
-      TEST(0 == wait_process(process, &process_result)) ;
-      TEST(0 == process_result.hasTerminatedAbnormal) ;
-      TEST(i == process_result.returncode) ;
-      TEST(0 == delete_process(&process)) ;
+      // TEST state_process
+      process_state = process_state_RUNNABLE ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state == process_state_TERMINATED) ;
 
-      // hasstopped_process
-      while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
+      // TEST double wait_process => returns the same result
+      process_result.state = process_state_RUNNABLE ;
+      process_result.returncode = -1 ;
+      TEST(0 == wait_process(&process, &process_result)) ;
+      TEST(process_result.state      == process_state_TERMINATED) ;
+      TEST(process_result.returncode == i) ;
+      TEST(0 <  process) ;
+
+      // TEST state_process
+      process_state = process_state_RUNNABLE ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state == process_state_TERMINATED) ;
+
+      TEST(0 == free_process(&process)) ;
       TEST(0 == process) ;
-      TEST(0 == new_process(&process, &childprocess_return, (void*)i)) ;
-      for(int i2 = 0; i2 < 100; ++i2) {
-         sleepms_osthread(1) ;
-         TEST(EAGAIN == hasstopped_process(process)) ;
-         if (0 == process->sysid) break ;
-         if (2 == i2) TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
-      }
-      TEST(0 == process->sysid) ;
-      process_result = (process_result_t) { .hasTerminatedAbnormal = true, .returncode = (i+1) } ;
-      TEST(0 == wait_process(process, &process_result)) ;
-      TEST(0 == process_result.hasTerminatedAbnormal) ;
-      TEST(i == process_result.returncode) ;
-      TEST(0 == delete_process(&process)) ;
 
       // run last testcase with 0
       if (0 < i && i < 13) i = 13 ;
    }
 
-   // TEST double wait (already waited)
-   TEST(0 == process) ;
-   TEST(0 == new_process(&process, &childprocess_return, (void*)11)) ;
-   TEST(0 != process) ;
-   TEST(0 == wait_process(process, &process_result)) ;
-   TEST(0 == process_result.hasTerminatedAbnormal) ;
-   TEST(11== process_result.returncode) ;
-   TEST(0 == process->sysid) ;
-   TEST(0 == wait_process(process, &process_result)) ;
-   TEST(0 == process_result.hasTerminatedAbnormal) ;
-   TEST(11== process_result.returncode) ;
-   TEST(0 == process->sysid) ;
-   TEST(0 == hasterminated_process(process)) ;
-   TEST(EAGAIN == hasstopped_process(process)) ;
-   TEST(0 == delete_process(&process)) ;
-   TEST(0 == process) ;
-
    // TEST endless loop => delete ends process
    for(int i = 0; i < 32; ++i) {
       while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
-      TEST(0 == process) ;
-      TEST(0 == new_process(&process, &childprocess_endlessloop, (void*)0)) ;
-      TEST(0 != process) ;
+      TEST(0 == init_process(&process, &childprocess_endlessloop, 0)) ;
+      TEST(0 <  process) ;
       TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
-      TEST(EAGAIN == hasterminated_process(process)) ;
-      TEST(EAGAIN == hasstopped_process(process)) ;
-      TEST(0 <  process->sysid) ;
-      TEST(0 == process->status) ;
-      TEST(0 == delete_process(&process)) ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state_RUNNABLE == process_state) ;
+      TEST(0 == free_process(&process)) ;
       TEST(0 == process) ;
    }
 
-   // TEST ESRCH
-   TEST(0 == process) ;
-   TEST(0 == new_process(&process, &childprocess_return, (void*)0)) ;
-   TEST(0 != process) ;
-   TEST(0 == wait_process(process, 0)) ;
-   TEST(0 == process->sysid) ;
-   process->sysid = 65535 ;
-   TEST(ESRCH == delete_process(&process)) ;
-   TEST(0 == process) ;
+   // TEST state_process
+   for(int i = 0; i < 32; ++i) {
+      while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
+      TEST(0 == init_process(&process, &childprocess_endlessloop, 0)) ;
+      TEST(0 <  process) ;
+      TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state_RUNNABLE == process_state) ;
+      kill(process, SIGSTOP) ;
+      for(int i2 = 0; i2 < 10000; ++i2) {
+         TEST(0 == state_process(&process, &process_state)) ;
+         if (process_state_RUNNABLE != process_state) break ;
+         sleepms_osthread(1) ;
+      }
+      TEST(process_state_STOPPED == process_state) ;
+      kill(process, SIGCONT) ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state_RUNNABLE == process_state) ;
+      kill(process, SIGKILL) ;
+      for(int i2 = 0; i2 < 10000; ++i2) {
+         TEST(0 == state_process(&process, &process_state)) ;
+         if (process_state_RUNNABLE != process_state) break ;
+         sleepms_osthread(1) ;
+      }
+      TEST(process_state_ABORTED == process_state) ;
+      TEST(0 == free_process(&process)) ;
+      TEST(0 == process) ;
+   }
 
    // TEST ECHILD
-   TEST(0 == process) ;
-   TEST(0 == new_process(&process, &childprocess_return, (void*)0)) ;
-   TEST(0 != process) ;
-   TEST(0 == wait_process(process, 0)) ;
-   process_state = process_state_RUNABLE ;
-   TEST(0 == state_process(process, &process_state)) ;
-   TEST(process_state_TERMINATED == process_state) ;
-   TEST(0 == process->sysid) ;
-   process->sysid = 65535 ;
-   TEST(ECHILD == state_process(process, &process_state)) ;
-   process->sysid = 0 ;
-   TEST(0 == delete_process(&process)) ;
+   TEST(0 == init_process(&process, &childprocess_return, 0)) ;
+   TEST(0 <  process) ;
+   TEST(0 == wait_process(&process, 0)) ;
+   TEST(0 <  process) ;
+   {
+      process_t process2 = process ;
+      TEST(0 == free_process(&process2)) ;
+   }
+   TEST(ECHILD == state_process(&process, &process_state)) ;
+   TEST(0 <  process) ;
+   TEST(ECHILD == wait_process(&process, 0)) ;
+   TEST(0 <  process) ;
+   TEST(ECHILD == free_process(&process)) ;
    TEST(0 == process) ;
 
    while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
@@ -571,20 +643,17 @@ static int test_initfree(void)
 ABBRUCH:
    while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
    if (isoldsignalmask) sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
-   (void) delete_process(&process) ;
+   (void) free_process(&process) ;
    return EINVAL ;
 }
 
 static int test_abnormalexit(void)
 {
-   process_t      *  process = 0 ;
-   process_result_t  process_result ;
-   int               pipefd[2] = { -1, -1 } ;
+   process_t               process   = process_INIT_FREEABLE ;
+   process_state_e         process_state ;
+   process_result_t        process_result ;
 
-   TEST(0 == pipe2(pipefd,O_CLOEXEC)) ;
-   TEST(-1 != dup2(pipefd[1], 10)) ;
-
-   // TEST init, wait
+   // TEST init, wait process_state_ABORTED
    int test_signals[] = {
        SIGHUP,    SIGINT,   SIGQUIT,  SIGILL,  SIGTRAP
       ,SIGABRT,   SIGBUS,   SIGFPE,   SIGKILL, SIGUSR1
@@ -597,148 +666,127 @@ static int test_abnormalexit(void)
    unsigned signal_count = 0 ;
    for(unsigned i = 0; i < nrelementsof(test_signals); ++i) {
       int snr = test_signals[i] ;
-      char buffer[100] = { 0 } ;
-      TEST(0 == new_process(&process, &childprocess_signal, (void*)snr)) ;
-      // wait until child has started
-      TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
-      TEST(0 == strcmp(buffer, "kill\n")) ;
-      TEST(0 == wait_process(process, &process_result)) ;
-      TEST(0 == hasterminated_process(process)) ;
-      TEST(EAGAIN == hasstopped_process(process)) ;
-      if (process_result.hasTerminatedAbnormal) {
+      TEST(0 == init_process(&process, &childprocess_signal, snr)) ;
+      TEST(0 == wait_process(&process, &process_result)) ;
+      if (process_state_ABORTED == process_result.state) {
          TEST(snr == process_result.returncode) ;
          ++ signal_count ;
       } else {
+         TEST(process_state_TERMINATED == process_result.state) ;
          // signal ignored
          TEST(0   == process_result.returncode) ;
       }
-      TEST(0 == delete_process(&process)) ;
+      // TEST state_process returns always process_state_ABORTED or process_state_TERMINATED
+      process_state = (process_state_e) -1 ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state == process_result.state) ;
+      TEST(0 == free_process(&process)) ;
       TEST(0 == process) ;
    }
    TEST(signal_count > nrelementsof(test_signals)/2) ;
 
-   // TEST delete works if process has already ended
+   // TEST free works if process has already ended
    for(unsigned i = 0; i < 16; ++i) {
-      char buffer[100] = { 0 } ;
       TEST(0 == process) ;
-      TEST(0 == new_process(&process, &childprocess_signal, (void*)0/*no signal is send (special value to kill)*/)) ;
+      TEST(0 == init_process(&process, &childprocess_signal, SIGKILL)) ;
       // wait until child has started
-      TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
-      TEST(0 == strcmp(buffer, "kill\n")) ;
-      sleepms_osthread(1) ;
-      TEST(0 == delete_process(&process)) ;
+      for(int i2 = 0; i2 < 10000; ++i2) {
+         TEST(0 == state_process(&process, &process_state)) ;
+         if (process_state_ABORTED == process_state) break ;
+         sleepms_osthread(1) ;
+      }
+      // TEST process_state_ABORTED
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state_ABORTED == process_state) ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state_ABORTED == process_state) ;
+      TEST(0 == free_process(&process)) ;
+      TEST(0 == process) ;
+
+      TEST(0 == init_process(&process, &childprocess_signal, SIGKILL)) ;
+      sleepms_osthread(10) ;
+      // do not query state before
+      TEST(0 == free_process(&process)) ;
       TEST(0 == process) ;
    }
-
-
-   TEST(0 == close(10)) ;
-   TEST(0 == close(pipefd[0])) ;
-   pipefd[0] = -1 ;
-   TEST(0 == close(pipefd[1])) ;
-   pipefd[1] = -1 ;
 
    return 0 ;
 ABBRUCH:
-   (void) delete_process(&process) ;
-   close(10) ;
-   if (-1 != pipefd[0]) {
-      close(pipefd[0]) ;
-      close(pipefd[1]) ;
-   }
+   (void) free_process(&process) ;
    return EINVAL ;
 }
 
 static int test_assert(void)
 {
-   process_t      *  process = 0 ;
+   process_t         process = process_INIT_FREEABLE ;
    process_result_t  process_result ;
 
    // TEST assert exits with singal SIGABRT
-   TEST(0 == new_process(&process, &chilprocess_execassert, 0)) ;
-   TEST(0 == wait_process(process, &process_result)) ;
-   TEST(0 != process_result.hasTerminatedAbnormal) ;
-   TEST(SIGABRT == process_result.returncode) ;
-   TEST(0 == delete_process(&process)) ;
+   TEST(0 == init_process(&process, &chilprocess_execassert, 0)) ;
+   TEST(0 == wait_process(&process, &process_result)) ;
+   TEST(process_state_ABORTED == process_result.state) ;
+   TEST(SIGABRT               == process_result.returncode) ;
+   TEST(0 == free_process(&process)) ;
 
    return 0 ;
 ABBRUCH:
-   (void) delete_process(&process) ;
+   (void) free_process(&process) ;
    return EINVAL ;
 }
 
 static int test_statequery(void)
 {
-   process_t      *  process = 0 ;
-   process_result_t  process_result ;
-   int               pipefd[2] = { -1, -1 } ;
+   process_t               process = process_INIT_FREEABLE ;
+   int                     pipefd[2] = { -1, -1 } ;
+   process_state_e         process_state ;
+   process_result_t        process_result ;
 
    TEST(0 == pipe2(pipefd,O_CLOEXEC)) ;
-   TEST(-1 != dup2(pipefd[1], 10)) ;
 
-   // TEST state stopped
    for(unsigned i = 0; i < 4; ++i) {
-      char buffer[100] = { 0 } ;
 
       // use wait_process (to end process)
-      TEST(0 == new_process(&process, &childprocess_signal, (void*)SIGSTOP)) ;
+      TEST(0 == init_process(&process, &childprocess_signal, SIGSTOP)) ;
       // wait until child has started
-      TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
-      TEST(0 == strcmp(buffer, "kill\n")) ;
       for(int i2 = 0; i2 < 1000; ++i2) {
-         int err = hasstopped_process(process) ;
-         if (0 == err) {
-            break ;
-         }
-         TEST(EAGAIN == err) ;
+         TEST(0 == state_process(&process, &process_state)) ;
+         if (process_state_STOPPED == process_state) break ;
          sleepms_osthread(1) ;
       }
-      TEST(0 == hasstopped_process(process)) ;
-      TEST(EAGAIN == hasterminated_process(process)) ;
-      process_result = (process_result_t) { .hasTerminatedAbnormal = true, .returncode = 1 } ;
-      TEST(0 == wait_process(process, &process_result)) ;
-      TEST(0 == process_result.hasTerminatedAbnormal) ;
+      // TEST process_state_STOPPED
+      TEST(process_state_STOPPED == process_state) ;
+      process_state = process_state_TERMINATED ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state_STOPPED == process_state) ;
+      // TEST wait_process continues stopped child
+      memset(&process_result, 0xff, sizeof(process_result)) ;
+      TEST(0 == wait_process(&process, &process_result)) ;
+      TEST(process_result.state      == process_state_TERMINATED) ;
+      TEST(process_result.returncode == 0) ;
+      // TEST process_state_TERMINATED
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state_TERMINATED  == process_state) ;
       TEST(0 == process_result.returncode) ;
-      TEST(0 == delete_process(&process)) ;
+      TEST(0 == free_process(&process)) ;
 
-      // use delete_process (to end process)
-      TEST(0 == new_process(&process, &childprocess_signal, (void*)SIGSTOP)) ;
+      // use free_process (to end process)
+      TEST(0 == init_process(&process, &childprocess_signal, SIGSTOP)) ;
       // wait until child has started
-      TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
-      TEST(0 == strcmp(buffer, "kill\n")) ;
       for(int i2 = 0; i2 < 1000; ++i2) {
-         int err = hasstopped_process(process) ;
-         if (0 == err) break ;
-         TEST(EAGAIN == err) ;
+         TEST(0 == state_process(&process, &process_state)) ;
+         if (process_state_STOPPED == process_state) break ;
          sleepms_osthread(1) ;
       }
-      TEST(0 == hasstopped_process(process)) ;
-      TEST(EAGAIN == hasterminated_process(process)) ;
-      TEST(0 == delete_process(&process)) ;
+      TEST(process_state_STOPPED == process_state) ;
+      process_state = process_state_RUNNABLE ;
+      TEST(0 == state_process(&process, &process_state)) ;
+      TEST(process_state_STOPPED == process_state) ;
+      TEST(0 == free_process(&process)) ;
+      TEST(0 == process) ;
    }
-
-   // TEST childprocess_statechange sleeps
-   TEST(0 == process) ;
-   TEST(0 == new_process(&process, &childprocess_statechange, (void*)0)) ;
-   {
-      // wait until child has started
-      char buffer[100] = { 0 } ;
-      TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
-      TEST(0 == strcmp(buffer, "sleep\n")) ;
-   }
-   for(int i2 = 0; i2 < 1000; ++i2) {
-      int err = hasstopped_process(process) ;
-      if (0 == err) {
-         break ;
-      }
-      TEST(EAGAIN == err) ;
-      sleepms_osthread(1) ;
-   }
-   TEST(0 == hasstopped_process(process)) ;
-   TEST(0 == delete_process(&process)) ;
 
    // TEST state query returns latest state
-   TEST(0 == process) ;
-   TEST(0 == new_process(&process, &childprocess_statechange, (void*)0)) ;
+   TEST(0 == init_process(&process, &childprocess_statechange, pipefd[1])) ;
    {
       // wait until child has started
       char buffer[100] = { 0 } ;
@@ -746,76 +794,127 @@ static int test_statequery(void)
       TEST(0 == strcmp(buffer, "sleep\n")) ;
    }
    sleepms_osthread(10) ;
-   TEST(0 == kill(process->sysid, SIGCONT)) ;
+   // TEST process_state_STOPPED
+   TEST(0 == state_process(&process, &process_state)) ;
+   TEST(process_state_STOPPED == process_state) ;
+   process_state = process_state_RUNNABLE ;
+   TEST(0 == state_process(&process, &process_state)) ;
+   TEST(process_state_STOPPED == process_state) ;
+   TEST(0 == kill(process, SIGCONT)) ;
    {
       // wait until child run again
       char buffer[100] = { 0 } ;
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "run\n")) ;
    }
+   // TEST process_state_RUNNABLE
+   TEST(0 == state_process(&process, &process_state)) ;
+   TEST(process_state_RUNNABLE == process_state) ;
+   process_state = process_state_STOPPED ;
+   TEST(0 == state_process(&process, &process_state)) ;
+   TEST(process_state_RUNNABLE == process_state) ;
+   TEST(0 == kill(process, SIGKILL)) ;
    sleepms_osthread(10) ;
-   TEST(0 != process->sysid) ;
-   TEST(0 == updatestatus_process(process, false)) ;
-   TEST(0 == process->sysid) ; // process terminated state
-   TEST(0 == delete_process(&process)) ;
+   // TEST process_state_ABORTED
+   TEST(0 == state_process(&process, &process_state)) ;
+   TEST(process_state_ABORTED == process_state) ;
+   process_state = process_state_STOPPED ;
+   TEST(0 == state_process(&process, &process_state)) ;
+   TEST(process_state_ABORTED == process_state) ;
+   TEST(0 == free_process(&process)) ;
    TEST(0 == process) ;
 
-
-   TEST(0 == close(10)) ;
    TEST(0 == close(pipefd[0])) ;
-   pipefd[0] = -1 ;
    TEST(0 == close(pipefd[1])) ;
-   pipefd[1] = -1 ;
+   pipefd[0] = pipefd[1] = -1 ;
 
    return 0 ;
 ABBRUCH:
-   (void) delete_process(&process) ;
-   close(10) ;
-   if (-1 != pipefd[0]) {
-      close(pipefd[0]) ;
-      close(pipefd[1]) ;
-   }
+   (void) free_process(&process) ;
+   close(pipefd[0]) ;
+   close(pipefd[1]) ;
    return EINVAL ;
 }
 
 static int test_exec(void)
 {
-   process_t      *  process = 0 ;
-   process_result_t  process_result ;
-   struct stat       statbuf ;
-   char              numberstr[20] ;
-   const char      * testcase1_args[] = { "testchildprocess", "1", numberstr, 0 } ;
+   process_t            process = process_INIT_FREEABLE ;
+   process_result_t     process_result ;
+   process_ioredirect_t ioredirect = process_ioredirect_INIT_DEVNULL ;
+   int                  fd[2]      = { -1, -1 } ;
+   struct stat          statbuf ;
+   char                 numberstr[20] ;
+   const char         * testcase1_args[] = { "bin/testchildprocess", "1", numberstr, 0 } ;
+   const char         * testcase2_args[] = { "bin/testchildprocess", "2", 0 } ;
+   const char         * testcase3_args[] = { "bin/testchildprocess", "3", 0 } ;
+   char                 readbuffer[32]   = { 0 } ;
+
+   TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK)) ;
 
    if (0 != stat("bin/testchildprocess", &statbuf)) {
-      testcase1_args[0] = "testchildprocess_Debug" ;
+      testcase1_args[0] = "bin/testchildprocess_Debug" ;
+      testcase2_args[0] = "bin/testchildprocess_Debug" ;
+      testcase3_args[0] = "bin/testchildprocess_Debug" ;
    }
 
-   // TEST executing child process
+   // TEST executing child process return value (case1)
    for(int i = 0; i <= 35; i += 7) {
       snprintf(numberstr, sizeof(numberstr), "%d", i) ;
-      TEST(0 == newexec_process(&process, testcase1_args[0], testcase1_args )) ;
-      TEST(0 == wait_process(process, &process_result)) ;
-      TEST(0 == process_result.hasTerminatedAbnormal) ;
+      TEST(0 == initexec_process(&process, testcase1_args[0], testcase1_args, 0)) ;
+      TEST(0 == wait_process(&process, &process_result)) ;
+      TEST(process_state_TERMINATED == process_result.state) ;
       TEST(i == process_result.returncode) ;
-      TEST(0 == delete_process(&process)) ;
+      TEST(0 == free_process(&process)) ;
    }
+
+   // TEST open file descriptors (case2)
+   for(int i = 1; i <= 3; ++i) {
+      ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
+      seterr_processioredirect(&ioredirect, fd[1]) ;
+      if (i > 1) setin_processioredirect(&ioredirect, STDIN_FILENO) ;
+      if (i > 2) setout_processioredirect(&ioredirect, STDOUT_FILENO) ;
+      TEST(0 == initexec_process(&process, testcase2_args[0], testcase2_args, &ioredirect)) ;
+      TEST(0 == wait_process(&process, &process_result)) ;
+      TEST(process_result.state      == process_state_TERMINATED) ;
+      TEST(process_result.returncode == 0) ;
+      TEST(0 == free_process(&process)) ;
+      MEMSET0(readbuffer) ;
+      TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
+      TEST(0 == strcmp(readbuffer, "3")) ;
+   }
+
+   // TEST name_process (case 3)
+   ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
+   seterr_processioredirect(&ioredirect, fd[1]) ;
+   TEST(0 == initexec_process(&process, testcase3_args[0], &testcase3_args[0], &ioredirect)) ;
+   TEST(0 == wait_process(&process, &process_result)) ;
+   TEST(process_state_TERMINATED == process_result.state) ;
+   TEST(0 == process_result.returncode) ;
+   TEST(0 == free_process(&process)) ;
+   MEMSET0(readbuffer) ;
+   TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(0 == strncmp(readbuffer, testcase3_args[0]+4, 15)) ;
+
+
+   TEST(0 == close(fd[0])) ;
+   TEST(0 == close(fd[1])) ;
+   fd[0] = fd[1] = -1 ;
 
    return 0 ;
 ABBRUCH:
-   (void) delete_process(&process) ;
+   close(fd[0]) ;
+   close(fd[1]) ;
+   (void) free_process(&process) ;
    return EINVAL ;
 }
 
 int unittest_os_process()
 {
-   char            * oldpath = getenv("PATH") ? strdup(getenv("PATH")) : 0 ;
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == getenv("PATH") || oldpath) ;
-   setenv("PATH","./bin/", 1) ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
+   if (test_redirect())       goto ABBRUCH ;
    if (test_initfree())       goto ABBRUCH ;
    if (test_abnormalexit())   goto ABBRUCH ;
    if (test_assert())         goto ABBRUCH ;
@@ -825,13 +924,29 @@ int unittest_os_process()
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   setenv("PATH", oldpath, 1) ;
-   free(oldpath) ;
+   // adapt LOG buffer ("pid=1234" replaces with "pid=?")
+   char * buffer = 0 ;
+   size_t size   = 0 ;
+   LOG_GETBUFFER(&buffer, &size) ;
+   char buffer2[1000] = { 0 } ;
+   assert(size < sizeof(buffer2)) ;
+   size = 0 ;
+   while( strstr(buffer, "\npid=") ) {
+      memcpy( &buffer2[size], buffer, (size_t) (strstr(buffer, "\npid=") - buffer)) ;
+      size += (size_t) (strstr(buffer, "\npid=") - buffer) ;
+      strcpy( &buffer2[size], "\npid=?") ;
+      size += strlen("\npid=?") ;
+      buffer = 1 + strstr(buffer, "\npid=") ;
+      buffer = strstr(buffer, "\n") ;
+   }
+   strcpy( &buffer2[size], buffer) ;
+
+   LOG_CLEARBUFFER() ;
+   LOG_PRINTF("%s", buffer2) ;
 
    return 0 ;
 ABBRUCH:
    (void) free_resourceusage(&usage) ;
-   free(oldpath) ;
    return EINVAL ;
 }
 

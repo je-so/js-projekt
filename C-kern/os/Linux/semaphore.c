@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/sync/semaphore.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/os/thread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -267,7 +268,7 @@ static int test_semaphore_threads(void)
       TEST(valid_thread_index == (1 + i + startarg.count)) ;
    }
 
-   // TEST singalling many threads runs exactly that many threads
+   // TEST signalling many threads runs exactly that many threads
    TEST(0 == signal_semaphore(&startarg.sema, nrelementsof(threads) - nrelementsof(threads)/2)) ;
    for(int w = 0; 0 != startarg.count; ++w) {
       pthread_yield() ;
@@ -293,7 +294,7 @@ static int test_semaphore_threads(void)
       TEST(w < 100000) ;
    }
    TEST(valid_thread_index == startarg.count) ;
-   pthread_yield() ;
+   sleepms_osthread(10) ;
 
    // TEST free *signals* all waiting threads
    TEST(0 == free_semaphore(&startarg.sema)) ;
