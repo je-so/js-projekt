@@ -51,7 +51,7 @@ distclean:
 
 html:
 	@if [ ! -d html ]; then mkdir html; fi
-	@naturaldocs -r -hl all --charset UTF-8 -i C-kern/ -o HTML html -p projekte/naturaldocs/
+	@naturaldocs -r -hl all -i C-kern/ -o HTML html -p projekte/naturaldocs/
 	@link_dirs=`find html/files -type d` ; for i in $$link_dirs ; do \
 	   count="$${i}/" ; target="" ; \
 	   while [ "$${count#*/}" != "$${count}" ]; do target="../$${target}" ; count="$${count#*/}" ; done ; \

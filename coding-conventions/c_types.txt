@@ -1,0 +1,61 @@
+title: C-Types
+
+Describes naming of user defined Ansi C types.
+
+group: List of Types
+
+The following list shows the suffixes of a type name and on the right side what kind of type
+this suffix stands for.
+
+Name&suffix     -  *Description*
+typename_t      -  _struct_ or _primitive_ type
+typename_f      -  _function pointer_ type
+typename_e      -  _enum_ type
+typename_it     -  _interface_ type
+
+group: Enum Example
+
+(start code)
+enum process_state_e {
+    process_state_RUNNABLE
+   ,process_state_STOPPED
+   ,process_state_TERMINATED
+   ,process_state_ABORTED
+} ;
+
+typedef enum process_state_e        process_state_e ;
+(end code)
+
+group: Struct & Function Pointer Example
+
+(start code)
+
+struct callback_param_t ;
+
+typedef int                      (* task_callback_f) (struct callback_param_t * start_arg) ;
+
+typedef struct task_callback_t      task_callback_t  ;
+
+struct task_callback_t {
+   task_callback_f            fct ;
+   struct callback_param_t  * arg ;
+} ;
+
+(end code)
+
+group: (TODO) Interface Example
+
+(start code)
+struct interface_object_t {
+   void * object ;
+   void * interface ;
+} ;
+
+struct logging_it {
+
+} ;
+(end code)
+
+
+
+
