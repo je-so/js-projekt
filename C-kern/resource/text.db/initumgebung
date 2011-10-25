@@ -9,4 +9,4 @@
 "module",            "parameter",    "shared", "header-name"
 "valuecache",        "valuecache",   "shared", "C-kern/api/cache/valuecache.h"
 "objectcache",       "objectcache",  "",       "C-kern/api/cache/objectcache.h"
-"logwriterlocked",   "log",          "",       "C-kern/api/writer/logwriter_locked.h"
+"logwriterlocked",   "ilog",         "",       "C-kern/api/writer/logwriter_locked.h"

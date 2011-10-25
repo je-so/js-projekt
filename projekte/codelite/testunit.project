@@ -147,6 +147,10 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/memoryblock.h"/>
       <File Name="../../C-kern/api/aspect/slistnode.h"/>
+      <File Name="../../C-kern/api/aspect/interface.h"/>
+      <VirtualDirectory Name="interface">
+        <File Name="../../C-kern/api/aspect/interface/log_interface.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
@@ -332,9 +336,6 @@
         <![CDATA[
       
       
-      
-      
-      
       ]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
@@ -372,9 +373,6 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
-      
-      
-      
       
       
       ]]>

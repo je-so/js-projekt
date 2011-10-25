@@ -32,24 +32,6 @@
  * Exports <logwriter_t>. */
 typedef struct logwriter_t          logwriter_t ;
 
-/* enums: log_channel_e
- * Used to switch between log channels.
- *
- * log_channel_ERR  - Normal error log channel which is represented by <logwriter_t>.
- * log_channel_TEST - Test log output which is implemented as a call to standard
- *                    printf library function which writes to STDOUT.
- * */
-enum log_channel_e {
-    log_channel_ERR
-   ,log_channel_TEST
-} ;
-
-typedef enum log_channel_e          log_channel_e ;
-
-enum log_constants_e {
-   log_PRINTF_MAXSIZE = 511
-} ;
-
 
 // section: Functions
 

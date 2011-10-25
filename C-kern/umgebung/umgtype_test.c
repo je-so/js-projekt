@@ -41,7 +41,7 @@ int freetest_umgebung(umgebung_t * umg)
    int err = 0 ;
    int err2 ;
 
-   err2 = freeumgebung_logwriterlocked(&umg->log) ;
+   err2 = freeumgebung_logwriterlocked(&umg->ilog) ;
    if (err2) err = err2 ;
 
    err2 = freeumgebung_objectcache(&umg->objectcache) ;
@@ -67,12 +67,13 @@ int inittest_umgebung(umgebung_t * umg, umgebung_shared_t * shared)
    umg->type            = umgebung_type_TEST ;
    umg->free_umgebung   = &freetest_umgebung ;
    umg->shared          = shared ;
-   umg->log             = &g_main_logwriterlocked ;
+   umg->ilog.object     = &g_main_logwriterlocked ;
+   umg->ilog.functable  = (log_it*) &g_main_logwriterlocked_interface ;
 
    err = initumgebung_objectcache(&umg->objectcache) ;
    if (err) goto ABBRUCH ;
 
-   err = initumgebung_logwriterlocked(&umg->log) ;
+   err = initumgebung_logwriterlocked(&umg->ilog) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -98,19 +99,24 @@ static int test_initfree(void)
    TEST(0                   == umg.resource_count) ;
    TEST(&freetest_umgebung  == umg.free_umgebung) ;
    TEST(&shared             == umg.shared) ;
+   TEST(umg.ilog.object     != 0) ;
+   TEST(umg.ilog.object     != &g_main_logwriterlocked) ;
+   TEST(umg.ilog.functable  == (log_it*)&g_main_logwriterlocked_interface) ;
    TEST(0 == freetest_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
    TEST(0 == umg.shared) ;
-   TEST(0 != umg.log) ;
+   TEST(umg.ilog.object    == &g_main_logwriterlocked) ;
+   TEST(umg.ilog.functable == (log_it*)&g_main_logwriterlocked_interface) ;
    TEST(0 == umg.objectcache) ;
    TEST(0 == freetest_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
    TEST(0 == umg.shared) ;
-   TEST(&g_main_logwriterlocked == umg.log) ;
+   TEST(umg.ilog.object    == &g_main_logwriterlocked) ;
+   TEST(umg.ilog.functable == (log_it*)&g_main_logwriterlocked_interface) ;
    TEST(0 == umg.objectcache) ;
 
    return 0 ;

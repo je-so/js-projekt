@@ -148,7 +148,10 @@ for i in $files; do
       if [ "$parameter" = "void" ]; then
          parameter=""
       else
-         parameter="${parameter#*\*\*}"
+         # [string] means string is optional
+         # initumgebung_NAME(type *[*] xxx[, umgebung_shared_t * shared])
+         parameter="${parameter#*\*}"
+         parameter="${parameter#\*}"
          if [ "${parameter%,*}" != "$parameter" ]; then
             parameter="${parameter%,*}"
             name2='"shared",'

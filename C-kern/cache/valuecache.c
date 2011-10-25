@@ -158,9 +158,9 @@ static int test_umgebunginit(void)
 
    // TEST valuecache_umgebung()
    TEST(old) ;
-   ((umgebung_t*)(intptr_t)umgebung())->shared->valuecache = 0 ;
+   umgebung().shared->valuecache = 0 ;
    TEST(valuecache_umgebung() == 0) ;
-   ((umgebung_t*)(intptr_t)umgebung())->shared->valuecache = old ;
+   umgebung().shared->valuecache = old ;
    TEST(valuecache_umgebung() == old) ;
 
    // TEST pagesize_vm
@@ -176,7 +176,7 @@ static int test_umgebunginit(void)
 
    return 0 ;
 ABBRUCH:
-   ((umgebung_t*)(intptr_t)umgebung())->shared->valuecache = old ;
+   umgebung().shared->valuecache = old ;
    old->pagesize_vm = sys_pagesize_vm() ;
    if (  cache
       && cache != &valuecache) {

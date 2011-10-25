@@ -49,7 +49,38 @@
  * > CONCAT_(var,__LINE__) // generates token var__LINE__ */
 #define CONCAT(S1,S2)   CONCAT_(S1,S2)
 #define CONCAT_(S1,S2)  S1 ## S2
-#define MEMSET0(ptr)    memset(ptr, 0, sizeof(*(ptr)))
+/* define: EMITCODE_0
+ * The parameters to <EMITCODE_0> are discarded. */
+#define EMITCODE_0(...)          /*false*/
+/* define: EMITCODE_1
+ * The parameters to <EMITCODE_1> are written (as C code). */
+#define EMITCODE_1(...)          /*true*/ __VA_ARGS__
+/* define: nrelementsof
+ * Calculates the number of elements of a static array. */
+#define nrelementsof(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
+/* define: static_assert
+ * Checks condition to be true during compilation. No runtime code is generated.
+ * Can only be used in function context.
+ *
+ * Paramters:
+ *  C - Condition which must hold true
+ *  S - human readable explanation (ignored) */
+#define static_assert(C,S)     { int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1] ; (void)CONCAT(_extern_static_assert,__LINE__) ; }
+/* define: STR
+ * Makes string token out of argument. Calls <STR_> to ensure expansion of argument.
+ *
+ * Example:
+ * > STR(__LINE__)  // generates token "10" if current line number is 10
+ * > STR_(__LINE__) // generates token "__LINE__" */
+#define STR(S1)         STR_(S1)
+#define STR_(S1)        # S1
+/* define: structof
+ * Converts pointer to field of struct to pointer to structure type.
+ * > structof(struct_t, field, ptrfield) */
+#define structof(struct_t, field, ptrfield) \
+   ( __extension__ ({                                     \
+      typeof(((struct_t*)0)->field) * _ptr = (ptrfield) ; \
+      (struct_t*)( (uint8_t *) _ptr - offsetof(struct_t, field) ) ; }))
 /* define: MALLOC
  * Ruft spezifisches malloc auf, wobei der Rückgabewert in den entsprechenden Typ konvertiert wird.
  * Die Paramterliste muss immer mit einem Komma enden !
@@ -61,33 +92,18 @@
  * malloc_f  - Der Name der aufzurufenden malloc Funktion.
  * ...       - Weitere, malloc spezifische Parameter, welche an erster Stelle noch vor der Grössenangabe stehen. */
 #define MALLOC(type_t,malloc_f,...)    ((type_t*) ((malloc_f)( __VA_ARGS__ sizeof(type_t))))
+/* define: MEMCOPY
+ * Copies memory from source to destination.
+ * The values of sizeof(*(source)) and sizeof(*(destination)) must compare equal.
+ * This is checked by <static_assert>.
+ *
+ * Parameter:
+ * destination - Pointer to destination address
+ * source      - Pointer to source address
+ *
+ * > #define MEMCOPY(destination, source)   memcpy((destination), (source), sizeof(*(destination))) */
 #define MEMCOPY(destination, source)   do { static_assert(sizeof(*(destination)) == sizeof(*(source)),"same size") ; memcpy((destination), (source), sizeof(*(destination))) ; } while(0)
-/* define: nrelementsof
- * Calculates the number of elements of a static array. */
-#define nrelementsof(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
-/* define: structof
- * Converts pointer to field of struct to pointer to structure type.
- * > structof(struct_t, field, ptrfield) */
-#define structof(struct_t, field, ptrfield) \
-   ( __extension__ ({                                     \
-      typeof(((struct_t*)0)->field) * _ptr = (ptrfield) ; \
-      (struct_t*)( (uint8_t *) _ptr - offsetof(struct_t, field) ) ; }))
-/* define: STR
- * Makes string token out of argument. Calls <STR_> to ensure expansion of argument.
- *
- * Example:
- * > STR(__LINE__)  // generates token "10" if current line number is 10
- * > STR_(__LINE__) // generates token "__LINE__" */
-#define STR(S1)         STR_(S1)
-#define STR_(S1)        # S1
-/* define: static_assert
- * Checks condition to be true during compilation. No runtime code is generated.
- * Can only be used in function context.
- *
- * Paramters:
- *  C - Condition which must hold true
- *  S - human readable explanation (ignored) */
-#define static_assert(C,S)     { int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1] ; (void)CONCAT(_extern_static_assert,__LINE__) ; }
+#define MEMSET0(ptr)    memset(ptr, 0, sizeof(*(ptr)))
 //}
 
 // group: 2. Configuration

@@ -25,6 +25,7 @@
 #ifndef CKERN_API_UMGEBUNG_HEADER
 #define CKERN_API_UMGEBUNG_HEADER
 
+#include "C-kern/api/aspect/interface/log_interface.h"
 #include "C-kern/api/umg/umg_shared.h"
 
 // forward reference to all offered services
@@ -89,9 +90,10 @@ struct umgebung_t {
    /* Virtual destructor: Allows different implementations to store a different desctructor. */
    int                  (* free_umgebung)  (umgebung_t * umg) ;
 
-   umgebung_shared_t          * shared ;
-   struct logwriter_locked_t  * log ;
-   struct objectcache_t       * objectcache ;
+   umgebung_shared_t     * shared ;
+   log_object_it           ilog ;
+   struct objectcache_t  * objectcache ;
+
 } ;
 
 // group: lifetime
@@ -105,12 +107,12 @@ struct umgebung_t {
  * only as initializer for the main thread.
  * The reason is that services in <umgebung_t> are not thread safe
  * so every thread keeps its own initialized <umgebung_t>. */
-#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, 0, &g_main_logwriterlocked, 0 }
+#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, 0, { (struct callback_param_t*)&g_main_logwriterlocked, (log_it*)&g_main_logwriterlocked_interface }, 0 }
 
 /* define: umgebung_INIT_FREEABLE
  * Static initializer for <umgebung_t>.
  * This ensures that you can call <free_umgebung> without harm. */
-#define umgebung_INIT_FREEABLE      { umgebung_type_STATIC, 0, 0, 0, 0, 0 }
+#define umgebung_INIT_FREEABLE      { umgebung_type_STATIC, 0, 0, 0, log_object_INIT_FREEABLE, 0 }
 
 /* function: initmain_umgebung
  * Initializes (global) process context. Must be called as first function from the main thread.
@@ -118,7 +120,7 @@ struct umgebung_t {
  * The only service which works without calling this function is logging.
  *
  * Background:
- * This function calls all initonce_NAME functions
+ * This function calls every initonce_NAME functions
  * in the same order as defined in "C-kern/resource/text.db/initonce".
  * This init database is checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
@@ -170,12 +172,16 @@ extern void assertfail_umgebung(const char * condition, const char * file, unsig
 // group: query
 
 /* function: umgebung
- * Returns the <umgebung_t> for the current thread. */
-extern umgebung_t * umgebung(void) ;
+ * Returns a reference to <umgebung_t> for the current thread.
+ * This function can only be implemented as a macro. C99 does not support
+ * references. */
+extern /*ref*/ umgebung_t umgebung(void) ;
 
 /* function: log_umgebung
- * Returns log configuration object <logwriter_locked_t> for the current thread. */
-extern struct logwriter_locked_t *  log_umgebung(void) ;
+ * Returns log service <log_object_it> (see <logwriter_locked_t>).
+ * This function can only be implemented as a macro. C99 does not support
+ * references. */
+extern /*ref*/ log_object_it log_umgebung(void) ;
 
 /* function: objectcache_umgebung
  * Returns cache for singelton objects of type <objectcache_t> for the current thread. */
@@ -185,22 +191,26 @@ extern struct objectcache_t *       objectcache_umgebung(void) ;
  * Returns cache for precomputed values of type <valuecache_t> for the current thread. */
 extern struct valuecache_t *        valuecache_umgebung(void) ;
 
+/* function: type_umgebung
+ * Returns type <umgebung_type_e> of <umgebung_t>. */
+extern umgebung_type_e type_umgebung(void) ;
+
 
 // section: inline implementations
 
 /* define: umgebung
  * Inline implementation of <umgebung_t.umgebung>.
  * Uses a global thread-local storage variable to implement the functionality.
- * > #define umgebung() (&gt_umgebung) */
+ * > #define umgebung() (gt_umgebung) */
 #define umgebung() \
-   ((const umgebung_t*)(&gt_umgebung))
+   (gt_umgebung)
 
 /* define: log_umgebung
  * Inline implementation of <umgebung_t.log_umgebung>.
  * Uses a global thread-local storage variable to implement the functionality.
- * > #define log_umgebung() (gt_umgebung.log) */
+ * > #define log_umgebung() (gt_umgebung.ilog) */
 #define log_umgebung() \
-   (gt_umgebung.log)
+   (gt_umgebung.ilog)
 
 /* define: objectcache_umgebung
  * Inline implementation of <umgebung_t.objectcache_umgebung>.
@@ -215,5 +225,12 @@ extern struct valuecache_t *        valuecache_umgebung(void) ;
  * > #define valuecache_umgebung() (gt_umgebung.valuecache) */
 #define valuecache_umgebung() \
    (gt_umgebung.shared->valuecache)
+
+/* define: type_umgebung
+ * Inline implementation of <umgebung_t.type_umgebung>.
+ * Uses a global thread-local storage variable to implement the functionality.
+ * > #define type_umgebung() (gt_umgebung.type) */
+#define type_umgebung() \
+   (gt_umgebung.type)
 
 #endif

@@ -28,9 +28,13 @@
 
 #include "C-kern/api/writer/logwriter.h"
 
-/* typedef: typedef logwriter_locked_t
- * Shortcut for <logwriter_locked_t>. */
+/* typedef: logwriter_locked_t typedef
+ * Export <logwriter_locked_t>. */
 typedef struct logwriter_locked_t         logwriter_locked_t ;
+
+/* typedef: logwriter_locked_it
+ * Export interface <logwriter_locked_it>, see also <ilog_it>. */
+typedef struct logwriter_locked_it        logwriter_locked_it ;
 
 /* variable: g_main_logwriterlocked
  * Used to support basic logging in main thread.
@@ -39,6 +43,9 @@ typedef struct logwriter_locked_t         logwriter_locked_t ;
  * This logservice is thread safe. */
 extern logwriter_locked_t                 g_main_logwriterlocked ;
 
+/* variable: g_main_logwriterlocked_interface
+ * Adapted interface (see <log_it>) to access <g_main_logwriterlocked>. */
+extern logwriter_locked_it                g_main_logwriterlocked_interface ;
 
 // section: Functions
 
@@ -66,13 +73,13 @@ struct logwriter_locked_t
 
 /* function: initumgebung_logwriterlocked
  * Uses <init_logwriterlocked> - called from <init_umgebung>. */
-extern int initumgebung_logwriterlocked(/*out*/logwriter_locked_t ** log) ;
+extern int initumgebung_logwriterlocked(/*out*/log_object_it * ilog) ;
 
 /* function: freeumgebung_logwriter
  * Uses  <free_logwriterlocked> - called from <free_umgebung>.
  * After return log is not set to NULL instead it is set to <g_main_logwriterlocked>.
  * To support the most basic logging. */
-extern int freeumgebung_logwriterlocked(logwriter_locked_t ** log) ;
+extern int freeumgebung_logwriterlocked(log_object_it * ilog) ;
 
 // group: lifetime
 

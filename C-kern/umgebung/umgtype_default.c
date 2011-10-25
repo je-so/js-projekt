@@ -54,7 +54,7 @@ static int free_thread_resources(umgebung_t * umg)
    default:    assert(0 == umg->resource_count && "out of bounds") ;
                break ;
 // TEXTDB:SELECT("   case "row-id":     err2 = freeumgebung_"module"("(if (parameter!="") "&umg->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initumgebung)WHERE(shared=="")DESCENDING
-   case 2:     err2 = freeumgebung_logwriterlocked(&umg->log) ;
+   case 2:     err2 = freeumgebung_logwriterlocked(&umg->ilog) ;
                if (err2) err = err2 ;
    case 1:     err2 = freeumgebung_objectcache(&umg->objectcache) ;
                if (err2) err = err2 ;
@@ -84,7 +84,7 @@ static int init_thread_resources(umgebung_t * umg)
    ++umg->resource_count ;
 
    ONERROR_testerrortimer(&s_error_initres, ABBRUCH) ;
-   err = initumgebung_logwriterlocked(&umg->log) ;
+   err = initumgebung_logwriterlocked(&umg->ilog) ;
    if (err) goto ABBRUCH ;
    ++umg->resource_count ;
 // TEXTDB:END
@@ -126,7 +126,8 @@ int initdefault_umgebung(umgebung_t * umg, umgebung_shared_t * shared)
    umg->resource_count  = 0 ;
    umg->free_umgebung   = &freedefault_umgebung ;
    umg->shared          = shared ;
-   umg->log             = &g_main_logwriterlocked ;
+   umg->ilog.object     = &g_main_logwriterlocked ;
+   umg->ilog.functable  = (log_it*) &g_main_logwriterlocked_interface ;
    umg->objectcache     = 0 ;
 
    err = init_thread_resources(umg) ;
@@ -156,22 +157,25 @@ static int test_initfree(void)
    TEST(2                     == umg.resource_count) ;
    TEST(freedefault_umgebung  == umg.free_umgebung) ;
    TEST(&shared               == umg.shared) ;
-   TEST(0 != umg.log) ;
-   TEST(&g_main_logwriterlocked != umg.log) ;
+   TEST(umg.ilog.object    != 0 ) ;
+   TEST(umg.ilog.object    != &g_main_logwriterlocked) ;
+   TEST(umg.ilog.functable == (log_it*)&g_main_logwriterlocked_interface) ;
    TEST(0 != umg.objectcache) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
    TEST(0 == umg.shared) ;
-   TEST(&g_main_logwriterlocked == umg.log) ;
+   TEST(umg.ilog.object    == &g_main_logwriterlocked) ;
+   TEST(umg.ilog.functable == (log_it*)&g_main_logwriterlocked_interface) ;
    TEST(0 == umg.objectcache) ;
    TEST(0 == freedefault_umgebung(&umg)) ;
    TEST(0 == umg.type) ;
    TEST(0 == umg.resource_count) ;
    TEST(0 == umg.free_umgebung) ;
    TEST(0 == umg.shared) ;
-   TEST(&g_main_logwriterlocked == umg.log) ;
+   TEST(umg.ilog.object    == &g_main_logwriterlocked) ;
+   TEST(umg.ilog.functable == (log_it*)&g_main_logwriterlocked_interface) ;
    TEST(0 == umg.objectcache) ;
 
    // TEST EINVAL init
@@ -183,7 +187,8 @@ static int test_initfree(void)
       TEST(0 == umg.resource_count) ;
       TEST(0 == umg.free_umgebung) ;
       TEST(0 == umg.shared) ;
-      TEST(&g_main_logwriterlocked == umg.log) ;
+      TEST(umg.ilog.object    == &g_main_logwriterlocked) ;
+      TEST(umg.ilog.functable == (log_it*)&g_main_logwriterlocked_interface) ;
       TEST(0 == umg.objectcache) ;
    }
 

@@ -22,8 +22,6 @@
 #ifndef CKERN_UMGEBUNG_LOG_MACROS_HEADER
 #define CKERN_UMGEBUNG_LOG_MACROS_HEADER
 
-#include "C-kern/api/writer/logwriter_locked.h"
-
 /* about: LOGCHANNEL
  * The parameter LOGCHANNEL is the first parameter of log writing macros.
  *
@@ -40,7 +38,7 @@
  * Returns C-string of buffered log and its length. See also <getbuffer_logwriter>.
  * > #define LOG_GETBUFFER(buffer, size) getbuffer_logwriterlocked(log_umgebung(), buffer, size) */
 #define LOG_GETBUFFER(/*out char ** */buffer, /*out size_t * */size) \
-   getbuffer_logwriterlocked(log_umgebung(), buffer, size)
+   log_umgebung().functable->getbuffer(log_umgebung().object, buffer, size)
 
 // group: config
 
@@ -49,12 +47,12 @@
 /* define: LOG_CLEARBUFFER
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>.
  * > #define  LOG_CLEARBUFFER()     clearbuffer_logwriterlocked(log_umgebung()) */
-#define  LOG_CLEARBUFFER()          clearbuffer_logwriterlocked(log_umgebung())
+#define  LOG_CLEARBUFFER()          log_umgebung().functable->clearbuffer(log_umgebung().object)
 
 /* define: LOG_FLUSHBUFFER
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>.
  * > #define  LOG_FLUSHBUFFER()     flushbuffer_logwriterlocked(log_umgebung()) */
-#define  LOG_FLUSHBUFFER()          flushbuffer_logwriterlocked(log_umgebung())
+#define  LOG_FLUSHBUFFER()          log_umgebung().functable->flushbuffer(log_umgebung().object)
 
 // group: write-text
 
@@ -69,16 +67,17 @@
  *
  * Example:
  * > int i ; LOGC_PRINTF(ERR, "%d", i) */
-#define LOGC_PRINTF(LOGCHANNEL, ... )   \
-   do {                                \
-      switch(CONCAT(log_channel_,LOGCHANNEL)) {                   \
-      case log_channel_ERR:                                       \
-         printf_logwriterlocked(log_umgebung(), __VA_ARGS__ ) ;   \
-         break ;                                                  \
-      case log_channel_TEST:                                      \
-         printf( __VA_ARGS__ ) ;                                  \
-         break ;                                                  \
-      }                                                           \
+#define LOGC_PRINTF(LOGCHANNEL, ... )              \
+   do {                                            \
+      switch(CONCAT(log_channel_,LOGCHANNEL)) {    \
+      case log_channel_ERR:                        \
+         log_umgebung().functable->printf(         \
+            log_umgebung().object, __VA_ARGS__ ) ; \
+         break ;                                   \
+      case log_channel_TEST:                       \
+         printf( __VA_ARGS__ ) ;                   \
+         break ;                                   \
+      }                                            \
    } while(0)
 
 /* define: LOGC_TEXTRES

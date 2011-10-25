@@ -43,16 +43,24 @@ struct task_callback_t {
 
 (end code)
 
-group: (TODO) Interface Example
+group: Interface Example
+
+The structure *log_it* defines the function table, i.e. the interface.
+
+The structure *log_object_it* defines a pointer to an object, which can be manipulated by
+this kind of interface and a pointer to such an interface.
 
 (start code)
-struct interface_object_t {
-   void * object ;
-   void * interface ;
+struct log_it {
+   void  (*printf)      (void * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ; \
+   void  (*flushbuffer) (void * log) ;                                      \
+   void  (*clearbuffer) (void * log) ;                                      \
+   void  (*getbuffer)   (void * log, /*out*/char ** buffer, /*out*/size_t * size) ; \
 } ;
 
-struct logging_it {
-
+struct log_object_it {
+   void   * object ;
+   log_it * interface ;
 } ;
 (end code)
 

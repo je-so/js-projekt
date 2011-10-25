@@ -37,7 +37,10 @@
 #endif
 
 
-// section: global variables
+log_interface_DECLARE(0, logwriter_locked_it, logwriter_locked_t)
+
+
+// section: variables
 
 /* variable: s_logbuffer
  * Buffer <g_main_logwriterlocked> uses internally to store a new log entry. */
@@ -47,16 +50,23 @@ static uint8_t       s_logbuffer[1 + log_PRINTF_MAXSIZE] ;
  * Is used to support a safe standard log configuration.
  * Used to write log output before any other init function was called. */
 logwriter_locked_t   g_main_logwriterlocked = {
-         .logwriter = { .buffer = { .addr = s_logbuffer, .size = sizeof(s_logbuffer) }, .logsize = 0 },
-         .lock      = sys_mutex_INIT_DEFAULT
-} ;
+                        .logwriter = { .buffer = { .addr = s_logbuffer, .size = sizeof(s_logbuffer) }, .logsize = 0 },
+                        .lock      = sys_mutex_INIT_DEFAULT
+                     } ;
+
+logwriter_locked_it  g_main_logwriterlocked_interface = {
+                        &printf_logwriterlocked,
+                        &flushbuffer_logwriterlocked,
+                        &clearbuffer_logwriterlocked,
+                        &getbuffer_logwriterlocked,
+                     } ;
 
 
 // section: logwriter_locked_t
 
 // group: initumgebung
 
-int initumgebung_logwriterlocked(logwriter_locked_t ** log)
+int initumgebung_logwriterlocked(/*out*/log_object_it * ilog)
 {
    int err ;
    const size_t         objsize = sizeof(logwriter_locked_t) ;
@@ -68,8 +78,8 @@ int initumgebung_logwriterlocked(logwriter_locked_t ** log)
       goto ABBRUCH ;
    }
 
-   if (  *log
-      && *log != &g_main_logwriterlocked) {
+   if (  ilog->object
+      && ilog->object != &g_main_logwriterlocked) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -77,7 +87,8 @@ int initumgebung_logwriterlocked(logwriter_locked_t ** log)
    err = init_logwriterlocked( log2 ) ;
    if (err) goto ABBRUCH ;
 
-   *log = log2 ;
+   ilog->object    = log2 ;
+   ilog->functable = (log_it*) &g_main_logwriterlocked_interface ;
 
    return 0 ;
 ABBRUCH:
@@ -86,15 +97,17 @@ ABBRUCH:
    return err ;
 }
 
-int freeumgebung_logwriterlocked(logwriter_locked_t ** log)
+int freeumgebung_logwriterlocked(log_object_it * ilog)
 {
    int err ;
-   logwriter_locked_t * log2 = *log ;
+   logwriter_locked_t * log2 = (logwriter_locked_t*) ilog->object ;
 
    if (  log2
       && log2 != &g_main_logwriterlocked ) {
 
-      *log = &g_main_logwriterlocked ;
+      assert((log_it*)&g_main_logwriterlocked_interface == ilog->functable) ;
+
+      ilog->object = &g_main_logwriterlocked ;
 
       err = free_logwriterlocked( log2 ) ;
 
@@ -197,49 +210,63 @@ void printf_logwriterlocked(logwriter_locked_t * log, const char * format, ... )
 
 static int test_initumgebung(void)
 {
-   logwriter_locked_t * log = 0 ;
+   log_object_it        ilog = log_object_INIT_FREEABLE ;
+   logwriter_locked_t * log  = 0 ;
 
-   // TEST init, double free (log = 0)
-   log = 0 ;
-   TEST(0 == initumgebung_logwriterlocked(&log)) ;
-   TEST(log) ;
-   TEST(log != &g_main_logwriterlocked) ;
+   // TEST static init
+   TEST(0 == ilog.object) ;
+   TEST(0 == ilog.functable) ;
+
+   // TEST init, double free (ilog.object = 0)
+   TEST(0 == initumgebung_logwriterlocked(&ilog)) ;
+   TEST(ilog.object) ;
+   TEST(ilog.object    != &g_main_logwriterlocked) ;
+   TEST(ilog.functable == (log_it*) &g_main_logwriterlocked_interface) ;
+   log = (logwriter_locked_t*) ilog.object ;
    TEST(log->logwriter.buffer.addr) ;
    TEST(log->logwriter.buffer.size) ;
    TEST(0 == lock_mutex(&log->lock)) ;
    TEST(0 == unlock_mutex(&log->lock)) ;
-   TEST(0 == freeumgebung_logwriterlocked(&log)) ;
-   TEST(&g_main_logwriterlocked == log) ;
-   TEST(0 == freeumgebung_logwriterlocked(&log)) ;
-   TEST(&g_main_logwriterlocked == log) ;
+   TEST(0 == freeumgebung_logwriterlocked(&ilog)) ;
+   TEST(ilog.object    == &g_main_logwriterlocked) ;
+   TEST(ilog.functable == (log_it*) &g_main_logwriterlocked_interface) ;
+   TEST(0 == freeumgebung_logwriterlocked(&ilog)) ;
+   TEST(ilog.object    == &g_main_logwriterlocked) ;
+   TEST(ilog.functable == (log_it*) &g_main_logwriterlocked_interface) ;
+   log = 0 ;
 
-   // TEST init, double free (log = &g_main_logwriterlocked)
-   log = &g_main_logwriterlocked ;
-   TEST(0 == initumgebung_logwriterlocked(&log)) ;
-   TEST(log) ;
-   TEST(log != &g_main_logwriterlocked) ;
+   // TEST init, double free (ilog.object = &g_main_logwriterlocked)
+   ilog.object = &g_main_logwriterlocked ;
+   TEST(0 == initumgebung_logwriterlocked(&ilog)) ;
+   TEST(ilog.object) ;
+   TEST(ilog.object    != &g_main_logwriterlocked) ;
+   TEST(ilog.functable == (log_it*) &g_main_logwriterlocked_interface) ;
+   log = (logwriter_locked_t*) ilog.object ;
    TEST(log->logwriter.buffer.addr) ;
    TEST(log->logwriter.buffer.size) ;
    TEST(0 == lock_mutex(&log->lock)) ;
    TEST(0 == unlock_mutex(&log->lock)) ;
-   TEST(0 == freeumgebung_logwriterlocked(&log)) ;
-   TEST(&g_main_logwriterlocked == log) ;
-   TEST(0 == freeumgebung_logwriterlocked(&log)) ;
-   TEST(&g_main_logwriterlocked == log) ;
-
-   // TEST free (log = 0)
+   TEST(0 == freeumgebung_logwriterlocked(&ilog)) ;
+   TEST(ilog.object    == &g_main_logwriterlocked) ;
+   TEST(ilog.functable == (log_it*) &g_main_logwriterlocked_interface) ;
+   TEST(0 == freeumgebung_logwriterlocked(&ilog)) ;
+   TEST(ilog.object    == &g_main_logwriterlocked) ;
+   TEST(ilog.functable == (log_it*) &g_main_logwriterlocked_interface) ;
    log = 0 ;
-   TEST(0 == freeumgebung_logwriterlocked(&log)) ;
-   TEST(0 == log) ;
+
+   // TEST free (ilog.object = 0)
+   ilog.object = 0 ;
+   TEST(0 == freeumgebung_logwriterlocked(&ilog)) ;
+   TEST(0 == ilog.object) ;
 
    // TEST EINVAL
-   log = (logwriter_locked_t*) 1 ;
-   TEST(EINVAL == initumgebung_logwriterlocked(&log)) ;
-   TEST(log == (logwriter_locked_t*) 1) ;
+   ilog.object = (logwriter_locked_t*) 1 ;
+   TEST(EINVAL == initumgebung_logwriterlocked(&ilog)) ;
+   TEST(ilog.object == (logwriter_locked_t*) 1) ;
 
    return 0 ;
 ABBRUCH:
-   TEST(0 == freeumgebung_logwriterlocked(&log)) ;
+   freeumgebung_logwriterlocked(&ilog) ;
    return EINVAL ;
 }
 

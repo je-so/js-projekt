@@ -505,7 +505,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
          .isFreeEvents = (0 == i),
          .isfreeable_semaphore = isfreeable_semaphore,
          .isvalid_abortflag    = isvalid_abortflag,
-         .umgtype = (umgebung()->type ? umgebung()->type : umgebung_type_DEFAULT),
+         .umgtype = (umgebung().type ? umgebung().type : umgebung_type_DEFAULT),
          .signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size }
       } ;
 

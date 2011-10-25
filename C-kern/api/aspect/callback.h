@@ -1,5 +1,7 @@
-/* title: Callback-Parameter-Aspect
-   Describes type of first callback parameter.
+/* title: Callback-Aspect
+   Describes types used by every callback.
+
+   * Define type of first callback parameter.
 
    about: Copyright
    This program is free software.
@@ -17,10 +19,10 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/aspect/callback.h
-    Header file of <Callback-Parameter-Aspect>.
+    Header file of <Callback-Aspect>.
 */
-#ifndef CKERN_ASPECT_CALLBACK_PARAMETER_HEADER
-#define CKERN_ASPECT_CALLBACK_PARAMETER_HEADER
+#ifndef CKERN_ASPECT_CALLBACK_HEADER
+#define CKERN_ASPECT_CALLBACK_HEADER
 
 /* typedef: callback_param_t
  * Opaque first callback parameter type used as a place holder.
