@@ -103,7 +103,16 @@
  *
  * > #define MEMCOPY(destination, source)   memcpy((destination), (source), sizeof(*(destination))) */
 #define MEMCOPY(destination, source)   do { static_assert(sizeof(*(destination)) == sizeof(*(source)),"same size") ; memcpy((destination), (source), sizeof(*(destination))) ; } while(0)
-#define MEMSET0(ptr)    memset(ptr, 0, sizeof(*(ptr)))
+/* define: MEMSET0
+ * Sets memory of variable to 0.
+ *
+ * Parameter:
+ * pointer - Pointer to the variable which will be cleared.
+ *
+ * To clear a whole array use &array as parameter:
+ * >  int array[100] ;
+ * >  MEMSET0(&array) ; */
+#define MEMSET0(pointer)               memset((pointer), 0, sizeof(*(pointer)))
 //}
 
 // group: 2. Configuration

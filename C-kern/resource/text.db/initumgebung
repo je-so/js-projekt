@@ -4,9 +4,12 @@
 # Init functions are called from first to last entry in this database.
 # Free functions are called from last entry to first entry.
 # The header-name field references the C99 header file which exports the function prototypes.
-# Value "shared" in column »shared« indicates that parameter is located in umgebung_shared_t instead
-# of umgebung_t. The values in umgebung_shared_t are shared by all objects of type umgebung_t.
-"module",            "parameter",    "shared", "header-name"
+# Value "shared" in column »type« indicates that parameter is located in umgebung_shared_t instead
+# of umgebung_t. The services in umgebung_shared_t are shared by all threads. Every umgebung_t object
+# points to the same umgebung_shared_t object. Shared init/free calls are called therefore only once.
+"module",            "parameter",    "type",   "header-name"
 "valuecache",        "valuecache",   "shared", "C-kern/api/cache/valuecache.h"
-"objectcache",       "objectcache",  "",       "C-kern/api/cache/objectcache.h"
-"logwriterlocked",   "ilog",         "",       "C-kern/api/writer/logwriter_locked.h"
+"objectcache",       "objectcache",  "single", "C-kern/api/cache/objectcache.h"
+"objectcachemt",     "objectcache",  "multi",  "C-kern/api/cache/objectcachemt.h"
+"logwriter",         "ilog",         "single", "C-kern/api/writer/logwriter.h"
+"logwritermt",       "ilog",         "multi",  "C-kern/api/writer/logwritermt.h"

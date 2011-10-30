@@ -26,87 +26,63 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/aspect/interface/objectcache_it.h"
 #include "C-kern/api/os/virtmemory.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/os/process.h"
 #endif
 
+// group: variables
 
-int initumgebung_objectcache(objectcache_t ** objectcache)
+/* variable: s_objectcache_interface
+ * Contains single instance of interface <objectcache_it>. */
+objectcache_it    s_objectcache_interface = {
+                     &lockiobuffer_objectcache,
+                     &unlockiobuffer_objectcache,
+                  } ;
+
+// group: init
+
+int initumgebung_objectcache(/*out*/objectcache_oit * objectcache)
 {
    int err ;
+   const size_t    objsize   = sizeof(objectcache_t) ;
+   objectcache_t * newobject = (objectcache_t*) malloc(objsize) ;
 
-   err = new_objectcache(objectcache) ;
-   if (err) goto ABBRUCH ;
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-int freeumgebung_objectcache(objectcache_t ** objectcache)
-{
-   int err ;
-
-   err = delete_objectcache(objectcache) ;
-   if (err) goto ABBRUCH ;
-
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT_FREE(err) ;
-   return err ;
-}
-
-/* function: new_objectcache
- * Allocates storage and initialized cached objects
- * as INIT_FREEABLE. */
-int new_objectcache( /*out*/objectcache_t ** cache )
-{
-   int err ;
-   vm_block_t      iobuffer  = vm_block_INIT_FREEABLE ;
-   objectcache_t * new_cache = 0 ;
-   const size_t    memsize   = sizeof(objectcache_t) ;
-
-   if (*cache) {
-      err = EINVAL ;
-      goto ABBRUCH ;
-   }
-
-   err = init_vmblock( &iobuffer, (4096-1+sys_pagesize_vm()) / sys_pagesize_vm()) ;
-   if (err) goto ABBRUCH ;
-
-   new_cache = (objectcache_t *) malloc(memsize) ;
-   if (!new_cache) {
-      LOG_OUTOFMEMORY(memsize) ;
+   if (!newobject) {
       err = ENOMEM ;
+      LOG_OUTOFMEMORY(objsize) ;
       goto ABBRUCH ;
    }
 
-   static_assert( sizeof(*new_cache) == sizeof(iobuffer), "only one cached object" ) ;
-   new_cache->iobuffer = iobuffer ;
+   PRECONDITION_INPUT(0 == objectcache->object, ABBRUCH, ) ;
 
-   *cache = new_cache ;
+   err = init_objectcache(newobject) ;
+   if (err) goto ABBRUCH ;
+
+   objectcache->object    = newobject;
+   objectcache->functable = &s_objectcache_interface ;
 
    return 0 ;
 ABBRUCH:
-   free(new_cache) ;
-   (void) free_vmblock(&iobuffer) ;
+   free(newobject) ;
    LOG_ABORT(err) ;
    return err ;
 }
 
-/* function: delete_objectcache
- * Frees cached objects and allocated storage. */
-int delete_objectcache( objectcache_t ** cache )
+int freeumgebung_objectcache(objectcache_oit * objectcache)
 {
    int err ;
+   objectcache_t * delobject = objectcache->object ;
 
-   objectcache_t * delobject = *cache ;
    if (delobject) {
-      *cache = 0 ;
+      assert(&s_objectcache_interface == objectcache->functable) ;
 
-      err = free_vmblock(&delobject->iobuffer) ;
+      objectcache->object    = 0 ;
+      objectcache->functable = 0 ;
+
+      err = free_objectcache(delobject) ;
 
       free(delobject) ;
 
@@ -119,6 +95,37 @@ ABBRUCH:
    return err ;
 }
 
+int init_objectcache(/*out*/objectcache_t * cache )
+{
+   int err ;
+   vm_block_t      iobuffer  = vm_block_INIT_FREEABLE ;
+
+   err = init_vmblock( &iobuffer, (4096-1+sys_pagesize_vm()) / sys_pagesize_vm()) ;
+   if (err) goto ABBRUCH ;
+
+   static_assert( sizeof(*cache) == sizeof(iobuffer), "only one cached object" ) ;
+   cache->iobuffer = iobuffer ;
+
+   return 0 ;
+ABBRUCH:
+   (void) free_vmblock(&iobuffer) ;
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int free_objectcache(objectcache_t * cache)
+{
+   int err ;
+
+   err = free_vmblock(&cache->iobuffer) ;
+
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT_FREE(err) ;
+   return err ;
+}
 
 int move_objectcache( objectcache_t * destination, objectcache_t * source )
 {
@@ -139,6 +146,53 @@ ABBRUCH:
    return err ;
 }
 
+static int lockiobuffer2_objectcache(objectcache_t * objectcache, /*out*/memoryblock_aspect_t ** iobuffer)
+{
+   int err ;
+
+   PRECONDITION_INPUT(0 == *iobuffer, ABBRUCH, ) ;
+
+   *iobuffer = &objectcache->iobuffer ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+static int unlockiobuffer2_objectcache(objectcache_t * objectcache, memoryblock_aspect_t ** iobuffer)
+{
+   int err ;
+
+   if (*iobuffer) {
+      PRECONDITION_INPUT(&objectcache->iobuffer == *iobuffer, ABBRUCH, ) ;
+      *iobuffer = 0 ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memoryblock_aspect_t ** iobuffer)
+{
+   int err ;
+
+   err = lockiobuffer2_objectcache(objectcache, iobuffer) ;
+
+   assert(!err && "lockiobuffer2_objectcache") ;
+}
+
+void unlockiobuffer_objectcache(objectcache_t * objectcache, memoryblock_aspect_t ** iobuffer)
+{
+   int err ;
+
+   err = unlockiobuffer2_objectcache(objectcache, iobuffer) ;
+
+   assert(!err && "unlockiobuffer2_objectcache") ;
+}
+
 
 #ifdef KONFIG_UNITTEST
 
@@ -146,74 +200,204 @@ ABBRUCH:
 
 static int test_initfree(void)
 {
-   objectcache_t    * cache  = 0 ;
-   objectcache_t    * cache2 = 0 ;
+   objectcache_t   cache  = objectcache_INIT_FREEABLE ;
+   objectcache_t   cache2 = objectcache_INIT_FREEABLE ;
+
+   // TEST static init
+   TEST(0 == cache.iobuffer.addr ) ;
+   TEST(0 == cache.iobuffer.size ) ;
 
    // TEST init, double free
-   TEST(0 == new_objectcache(&cache)) ;
-   TEST(cache) ;
-   TEST(0 != cache->iobuffer.addr ) ;
-   TEST(0 != cache->iobuffer.size ) ;
-   TEST(0 == delete_objectcache(&cache)) ;
-   TEST(! cache)
-   TEST(0 == delete_objectcache(&cache)) ;
-   TEST(! cache)
+   TEST(0 == init_objectcache(&cache)) ;
+   TEST(0 != cache.iobuffer.addr ) ;
+   TEST(0 != cache.iobuffer.size ) ;
+   TEST(0 == free_objectcache(&cache)) ;
+   TEST(0 == cache.iobuffer.addr ) ;
+   TEST(0 == cache.iobuffer.size ) ;
+   TEST(0 == free_objectcache(&cache)) ;
+   TEST(0 == cache.iobuffer.addr ) ;
+   TEST(0 == cache.iobuffer.size ) ;
 
    // TEST move
-   TEST(0 == new_objectcache(&cache)) ;
-   TEST(0 == new_objectcache(&cache2)) ;
-   TEST(cache) ;
-   TEST(cache2) ;
-   void * start = cache->iobuffer.addr ;
-   TEST(cache->iobuffer.addr  != 0 ) ;
-   TEST(cache->iobuffer.size  == pagesize_vm()) ;
-   TEST(cache2->iobuffer.addr != 0 ) ;
-   TEST(cache2->iobuffer.size == pagesize_vm()) ;
-   TEST(cache2->iobuffer.addr != start ) ;
-   TEST(0 == move_objectcache(cache2, cache)) ;
-   TEST(cache->iobuffer.addr  == 0 ) ;
-   TEST(cache->iobuffer.size  == 0) ;
-   TEST(cache2->iobuffer.addr == start ) ;
-   TEST(cache2->iobuffer.size == pagesize_vm()) ;
-   TEST(0 == delete_objectcache(&cache)) ;
-   TEST(0 == delete_objectcache(&cache2)) ;
-   TEST(0 == cache)
-   TEST(0 == cache2)
+   TEST(0 == init_objectcache(&cache)) ;
+   TEST(0 == init_objectcache(&cache2)) ;
+   void * start = cache.iobuffer.addr ;
+   TEST(cache.iobuffer.addr  != 0) ;
+   TEST(cache.iobuffer.size  == pagesize_vm()) ;
+   TEST(cache2.iobuffer.addr != 0) ;
+   TEST(cache2.iobuffer.size == pagesize_vm()) ;
+   TEST(cache2.iobuffer.addr != start ) ;
+   TEST(0 == move_objectcache(&cache2, &cache)) ;
+   TEST(cache.iobuffer.addr  == 0) ;
+   TEST(cache.iobuffer.size  == 0) ;
+   TEST(cache2.iobuffer.addr == start ) ;
+   TEST(cache2.iobuffer.size == pagesize_vm()) ;
+   TEST(0 == free_objectcache(&cache)) ;
+   TEST(0 == free_objectcache(&cache2)) ;
+   TEST(cache.iobuffer.addr  == 0) ;
+   TEST(cache.iobuffer.size  == 0) ;
+   TEST(cache2.iobuffer.addr == 0) ;
+   TEST(cache2.iobuffer.size == 0) ;
 
    // Test move to same address dos nothing
-   TEST(0 == new_objectcache(&cache)) ;
-   start = cache->iobuffer.addr ;
-   TEST(cache->iobuffer.addr != 0) ;
-   TEST(cache->iobuffer.size == pagesize_vm()) ;
-   TEST(0 == move_objectcache(cache, cache)) ;
-   TEST(cache->iobuffer.addr == start) ;
-   TEST(cache->iobuffer.size == pagesize_vm()) ;
-   TEST(0 == delete_objectcache(&cache)) ;
-   TEST(0 == cache)
+   TEST(0 == init_objectcache(&cache)) ;
+   start = cache.iobuffer.addr ;
+   TEST(cache.iobuffer.addr != 0) ;
+   TEST(cache.iobuffer.size == pagesize_vm()) ;
+   TEST(0 == move_objectcache(&cache, &cache)) ;
+   TEST(cache.iobuffer.addr == start) ;
+   TEST(cache.iobuffer.size == pagesize_vm()) ;
+   TEST(0 == free_objectcache(&cache)) ;
+   TEST(cache.iobuffer.addr == 0) ;
+   TEST(cache.iobuffer.size == 0) ;
 
    return 0 ;
 ABBRUCH:
-   (void) delete_objectcache(&cache) ;
-   (void) delete_objectcache(&cache2) ;
+   (void) free_objectcache(&cache) ;
+   (void) free_objectcache(&cache2) ;
    return EINVAL ;
 }
 
 static int test_initumgebung(void)
 {
-   umgebung_t tempumg ;
+   objectcache_oit   cache = objectcache_oit_INIT_FREEABLE;
 
-   // TEST initumgebung_objectcache and double free
-   MEMSET0(&tempumg) ;
-   TEST(0 == initumgebung_objectcache( &tempumg.objectcache )) ;
-   TEST(0 != tempumg.objectcache ) ;
-   TEST(0 == freeumgebung_objectcache( &tempumg.objectcache )) ;
-   TEST(0 == tempumg.objectcache ) ;
-   TEST(0 == freeumgebung_objectcache( &tempumg.objectcache )) ;
-   TEST(0 == tempumg.objectcache ) ;
+   // TEST static init
+   TEST(0 == cache.object) ;
+   TEST(0 == cache.functable) ;
+
+   // TEST exported interface
+   TEST(s_objectcache_interface.lock_iobuffer   == &lockiobuffer_objectcache) ;
+   TEST(s_objectcache_interface.unlock_iobuffer == &unlockiobuffer_objectcache) ;
+
+   // TEST initumgebung and double free
+   TEST(0 == initumgebung_objectcache( &cache )) ;
+   TEST(cache.object    != 0) ;
+   TEST(cache.functable == &s_objectcache_interface) ;
+   TEST(0 == freeumgebung_objectcache( &cache )) ;
+   TEST(0 == cache.object) ;
+   TEST(0 == cache.functable) ;
+   TEST(0 == freeumgebung_objectcache( &cache )) ;
+   TEST(0 == cache.object) ;
+   TEST(0 == cache.functable) ;
+
+   // TEST EINVAL initumgebung
+   cache.object = (objectcache_t*) 1 ;
+   TEST(EINVAL == initumgebung_objectcache( &cache )) ;
 
    return 0 ;
 ABBRUCH:
-   (void) delete_objectcache(&tempumg.objectcache) ;
+   (void) freeumgebung_objectcache(&cache) ;
+   return EINVAL ;
+}
+
+static int child_lockassert(objectcache_t * cache)
+{
+   LOG_CLEARBUFFER() ;
+   if (cache) {
+      vm_block_t * iobuffer  = (vm_block_t *) 1 ;
+      lockiobuffer_objectcache(cache, &iobuffer) ;
+   }
+   return 0 ;
+}
+
+static int child_unlockassert(objectcache_t * cache)
+{
+   LOG_CLEARBUFFER() ;
+   if (cache) {
+      vm_block_t * iobuffer  = (vm_block_t *) 1 ;
+      unlockiobuffer_objectcache(cache, &iobuffer) ;
+   }
+   return 0 ;
+}
+
+static int test_iobuffer(void)
+{
+   objectcache_t    cache     = objectcache_INIT_FREEABLE ;
+   process_t        process   = process_INIT_FREEABLE ;
+   vm_block_t     * iobuffer  = 0 ;
+   int              pipefd[2] = { -1, -1 } ;
+   process_result_t result ;
+   char             buffer[512] ;
+
+   // TEST lock / unlock
+   TEST(0 == init_objectcache( &cache )) ;
+   TEST(0 == iobuffer) ;
+   TEST(0 == lockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(&cache.iobuffer == iobuffer) ;
+   TEST(0 == unlockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 == iobuffer) ;
+   TEST(0 == free_objectcache( &cache )) ;
+
+   // TEST unlock twice
+   TEST(0 == init_objectcache( &cache )) ;
+   TEST(0 == iobuffer) ;
+   TEST(0 == lockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 != iobuffer) ;
+   TEST(0 == unlockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 == iobuffer) ;
+   TEST(0 == unlockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 == iobuffer) ;
+   TEST(0 == free_objectcache( &cache )) ;
+
+   // TEST EINVAL lock
+   TEST(0 == init_objectcache( &cache )) ;
+   TEST(0 == iobuffer) ;
+   TEST(0 == lockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 != iobuffer) ;
+   TEST(EINVAL == lockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 == unlockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 == iobuffer) ;
+   TEST(0 == free_objectcache( &cache )) ;
+
+   // TEST EINVAL unlock
+   TEST(0 == init_objectcache( &cache )) ;
+   TEST(0 == iobuffer) ;
+   TEST(0 == lockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 != iobuffer) ;
+   TEST(0 == unlockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 == iobuffer) ;
+   iobuffer = (vm_block_t*) (intptr_t) &iobuffer ;
+   TEST(EINVAL == unlockiobuffer2_objectcache(&cache, &iobuffer)) ;
+   TEST(0 == free_objectcache( &cache )) ;
+
+   TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
+   process_ioredirect_t ioredirect = process_ioredirect_INIT_DEVNULL ;
+   seterr_processioredirect(&ioredirect, pipefd[1]) ;
+
+   // TEST assertion lockiobuffer_objectcache
+   TEST(0 == init_objectcache( &cache )) ;
+   TEST(0 == init_process(&process, child_lockassert, &cache, &ioredirect)) ;
+   TEST(0 == wait_process(&process, &result)) ;
+   TEST(process_state_ABORTED == result.state) ;
+   TEST(0 == free_process(&process)) ;
+   TEST(0 == free_objectcache( &cache )) ;
+   MEMSET0(&buffer) ;
+   ssize_t read_bytes = read(pipefd[0], buffer, sizeof(buffer)-1) ;
+   TEST(read_bytes > 50) ;
+   LOG_PRINTF("%s", buffer) ;
+
+   // TEST assertion unlockiobuffer_objectcache
+   TEST(0 == init_objectcache( &cache )) ;
+   TEST(0 == init_process(&process, child_unlockassert, &cache, &ioredirect)) ;
+   TEST(0 == wait_process(&process, &result)) ;
+   TEST(process_state_ABORTED == result.state) ;
+   TEST(0 == free_process(&process)) ;
+   TEST(0 == free_objectcache( &cache )) ;
+   MEMSET0(&buffer) ;
+   read_bytes = read(pipefd[0], buffer, sizeof(buffer)-1) ;
+   TEST(read_bytes > 50) ;
+   LOG_PRINTF("%s", buffer) ;
+
+   TEST(0 == close(pipefd[0])) ;
+   TEST(0 == close(pipefd[1])) ;
+   pipefd[0] = pipefd[1] = -1 ;
+
+   return 0 ;
+ABBRUCH:
+   if (-1 != pipefd[0]) close(pipefd[0]) ;
+   if (-1 != pipefd[1]) close(pipefd[1]) ;
+   (void) free_objectcache(&cache) ;
    return EINVAL ;
 }
 
@@ -226,6 +410,7 @@ int unittest_cache_objectcache()
 
    if (test_initfree())       goto ABBRUCH ;
    if (test_initumgebung())   goto ABBRUCH ;
+   if (test_iobuffer())       goto ABBRUCH ;
 
    // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;

@@ -127,22 +127,25 @@ struct process_ioredirect_t {
  * Static initializer lets new process write and read from null device.
  * All written output is therefore ignored and reading returns always
  * with 0 bytes read. */
-#define process_ioredirect_INIT_DEVNULL      { sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE } ;
+#define process_ioredirect_INIT_DEVNULL      { sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE }
 
 /* define: process_ioredirect_INIT_INHERIT
  * Static initializer lets new process inherit standard io channels. */
-#define process_ioredirect_INIT_INHERIT      { sys_file_STDIN, sys_file_STDOUT, sys_file_STDERR } ;
+#define process_ioredirect_INIT_INHERIT      { sys_file_STDIN, sys_file_STDOUT, sys_file_STDERR }
 
 /* function: setin_processioredirect
- * Redirects standard input to given file. */
+ * Redirects standard input to given file.
+ * Use value sys_file_INIT_FREEABLE to redirect standard input to device null. */
 void setin_processioredirect(process_ioredirect_t * ioredirect, sys_file_t input_file) ;
 
 /* function: setout_processioredirect
- * Redirects standard output to given file. */
+ * Redirects standard output to given file.
+ * Use value sys_file_INIT_FREEABLE to redirect standard output to device null. */
 void setout_processioredirect(process_ioredirect_t * ioredirect, sys_file_t output_file) ;
 
 /* function: seterr_processioredirect
- * Redirects standard error output to given file. */
+ * Redirects standard error output to given file.
+ * Use value sys_file_INIT_FREEABLE to redirect standard error to device null. */
 void seterr_processioredirect(process_ioredirect_t * ioredirect, sys_file_t error_file) ;
 
 
@@ -156,7 +159,7 @@ void seterr_processioredirect(process_ioredirect_t * ioredirect, sys_file_t erro
 
 /* function: init_process
  * Creates child process which executes a function. */
-extern int init_process(/*out*/process_t * process, task_callback_f child_main, struct callback_param_t * start_arg) ;
+extern int init_process(/*out*/process_t * process, task_callback_f child_main, struct callback_param_t * start_arg, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
 
 /* function: initexec_process
  * Executes another program with same environment.
@@ -199,13 +202,13 @@ extern int wait_process(process_t * process, /*out*/process_result_t * result) ;
 
 /* define: init_process
  * Calls <process_t.init_process> with adapted function pointer. */
-#define init_process(process, child_main, start_arg) \
+#define init_process(process, child_main, start_arg, ioredirection) \
    /*do not forget to adapt definition in process.c test section*/                  \
    ( __extension__ ({ int _err ;                                                    \
       int (*_child_main) (typeof(start_arg)) = (child_main) ;                       \
       static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
       _err = init_process(process, (task_callback_f) _child_main,                   \
-                              (struct callback_param_t*) start_arg ) ;              \
+                 (struct callback_param_t*) start_arg, ioredirection ) ;            \
       _err ; }))
 
 /* define: setin_processioredirect

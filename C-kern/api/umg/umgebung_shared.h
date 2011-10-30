@@ -1,7 +1,6 @@
-/* title: Shared-Umgebung
+/* title: Umgebung-Shared
    Defines top level context <umgebung_shared_t> which is shared
    between all threads.
-
 
    about: Copyright
    This program is free software.
@@ -18,14 +17,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umg/umg_shared.h
-    Header file of <Shared-Umgebung>.
+   file: C-kern/api/umg/umgebung_shared.h
+    Header file of <Umgebung-Shared>.
 
-   file: C-kern/umgebung/umg_shared.c
-    Implementation file <Shared-Umgebung impl>.
+   file: C-kern/umgebung/umgebung_shared.c
+    Implementation file <Umgebung-Shared impl>.
 */
-#ifndef CKERN_UMGEBUNG_UMGSHARED_HEADER
-#define CKERN_UMGEBUNG_UMGSHARED_HEADER
+#ifndef CKERN_UMGEBUNG_UMGEBUNG_SHARED_HEADER
+#define CKERN_UMGEBUNG_UMGEBUNG_SHARED_HEADER
 
 // forward
 struct valuecache_t ;

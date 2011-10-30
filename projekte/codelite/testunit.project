@@ -44,9 +44,9 @@
   <VirtualDirectory Name="umgebung">
     <File Name="../../C-kern/umgebung/README"/>
     <File Name="../../C-kern/umgebung/umgebung.c"/>
-    <File Name="../../C-kern/umgebung/umgtype_default.c"/>
-    <File Name="../../C-kern/umgebung/umgtype_test.c"/>
-    <File Name="../../C-kern/umgebung/umg_shared.c"/>
+    <File Name="../../C-kern/umgebung/umgebung_shared.c"/>
+    <File Name="../../C-kern/umgebung/umgtype_multithread.c"/>
+    <File Name="../../C-kern/umgebung/umgtype_singlethread.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/api/execCcompiler.h"/>
@@ -149,7 +149,10 @@
       <File Name="../../C-kern/api/aspect/slistnode.h"/>
       <File Name="../../C-kern/api/aspect/interface.h"/>
       <VirtualDirectory Name="interface">
-        <File Name="../../C-kern/api/aspect/interface/log_interface.h"/>
+        <File Name="../../C-kern/api/aspect/interface/log_it.h"/>
+        <File Name="../../C-kern/api/aspect/interface/objectcache_it.h"/>
+        <File Name="../../C-kern/api/aspect/interface/objectcache_oit.h"/>
+        <File Name="../../C-kern/api/aspect/interface/log_oit.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="memory">
@@ -158,11 +161,13 @@
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <File Name="../../C-kern/api/writer/logwriter.h"/>
-      <File Name="../../C-kern/api/writer/logwriter_locked.h"/>
+      <File Name="../../C-kern/api/writer/main_logwriter.h"/>
+      <File Name="../../C-kern/api/writer/logwritermt.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/objectcache.h"/>
       <File Name="../../C-kern/api/cache/valuecache.h"/>
+      <File Name="../../C-kern/api/cache/objectcachemt.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -177,10 +182,11 @@
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
     <VirtualDirectory Name="umg">
-      <File Name="../../C-kern/api/umg/umgtype_default.h"/>
-      <File Name="../../C-kern/api/umg/umgtype_test.h"/>
       <File Name="../../C-kern/api/umg/log_macros.h"/>
-      <File Name="../../C-kern/api/umg/umg_shared.h"/>
+      <File Name="../../C-kern/api/umg/umgebung_shared.h"/>
+      <File Name="../../C-kern/api/umg/umgtype_multithread.h"/>
+      <File Name="../../C-kern/api/umg/umgtype_singlethread.h"/>
+      <File Name="../../C-kern/api/umg/objectcache_macros.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -303,11 +309,13 @@
   </VirtualDirectory>
   <VirtualDirectory Name="writer">
     <File Name="../../C-kern/writer/logwriter.c"/>
-    <File Name="../../C-kern/writer/logwriter_locked.c"/>
+    <File Name="../../C-kern/writer/main_logwriter.c"/>
+    <File Name="../../C-kern/writer/logwritermt.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/objectcache.c"/>
     <File Name="../../C-kern/cache/valuecache.c"/>
+    <File Name="../../C-kern/cache/objectcachemt.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">
@@ -334,6 +342,7 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit_Debug" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="no"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
+      
       
       
       ]]>
@@ -373,6 +382,7 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="../.." Command="bin/testunit" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[
+      
       
       
       ]]>

@@ -1,6 +1,6 @@
 /* title: Task-Callback
-   The main execution function of a task which is executed by
-   an <exothread_t>, <osthread_t> or <process_t>.
+   Defines the signature of the main execution function of a
+   task which is executed by an <exothread_t>, <osthread_t> or <process_t>.
 
    about: Copyright
    This program is free software.
@@ -26,18 +26,20 @@
 // forward
 struct callback_param_t ;
 
-/* typedef: task_callback_t typedef
- * Shortcut for <task_callback_t>. */
+/* typedef: struct task_callback_t
+ * Export struct <task_callback_t>. */
 typedef struct task_callback_t         task_callback_t ;
 
 /* typedef: task_callback_f
- * Function signature of executable main function / task. */
+ * Function signature of task callback function.
+ * A return value of 0 means success else it is considered an error code. */
 typedef int                         (* task_callback_f) (struct callback_param_t * start_arg) ;
 
 
 /* struct: task_callback_t
  * Stores callback function and user param for execution of main task. */
 struct task_callback_t {
+   // group: Variables
    /* variable: fct
     * The pointer to the executed main function / task. */
    task_callback_f            fct ;
@@ -49,7 +51,7 @@ struct task_callback_t {
 // group: lifetime
 
 /* define: task_callback_INIT_FREEABLE
- * Static initializer. */
+ * Static initializer. Sets callback to invalid state. */
 #define task_callback_INIT_FREEABLE    { (task_callback_f)0, (struct callback_param_t*)0 }
 
 #endif

@@ -30,6 +30,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/cache/objectcache.h"
+#include "C-kern/api/cache/objectcachemt.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/ds/inmem/slist.h"
 #include "C-kern/api/math/int/signum.h"
@@ -53,10 +54,12 @@
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/string/converter.h"
 #include "C-kern/api/test/resourceusage.h"
-#include "C-kern/api/umg/umgtype_default.h"
-#include "C-kern/api/umg/umgtype_test.h"
+#include "C-kern/api/umg/umgebung_shared.h"
+#include "C-kern/api/umg/umgtype_multithread.h"
+#include "C-kern/api/umg/umgtype_singlethread.h"
 #include "C-kern/api/writer/logwriter.h"
-#include "C-kern/api/writer/logwriter_locked.h"
+#include "C-kern/api/writer/logwritermt.h"
+#include "C-kern/api/writer/main_logwriter.h"
 
 
 
@@ -221,8 +224,8 @@ int run_unittest(void)
    unsigned progress_count = 0 ;
    RESULT_STRING           progress ;
    const umgebung_type_e test_umgebung_type[2] = {
-       umgebung_type_TEST
-      ,umgebung_type_DEFAULT
+       umgebung_type_SINGLETHREAD
+      ,umgebung_type_MULTITHREAD
    } ;
 
    // before init
@@ -252,12 +255,13 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //{ umgebung unittest
    RUN(unittest_umgebung) ;
    RUN(unittest_umgebung_shared) ;
-   RUN(unittest_umgebung_typedefault) ;
-   RUN(unittest_umgebung_typetest) ;
+   RUN(unittest_umgebung_typemultithread) ;
+   RUN(unittest_umgebung_typesinglethread) ;
 //}
 
 //{ cache unittest
    RUN(unittest_cache_objectcache) ;
+   RUN(unittest_cache_objectcachemt) ;
    RUN(unittest_cache_valuecache) ;
 //}
 
@@ -280,7 +284,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 //{ writer unittest
    RUN(unittest_writer_logwriter) ;
-   RUN(unittest_writer_logwriterlocked) ;
+   RUN(unittest_writer_logwritermt) ;
+   RUN(unittest_writer_mainlogwriter) ;
 //}
 
 //{ compiler unittest

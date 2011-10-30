@@ -1,4 +1,4 @@
-/* title: Callback-Aspect
+/* title: Callback
    Describes types used by every callback.
 
    * Define type of first callback parameter.
@@ -19,7 +19,7 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/aspect/callback.h
-    Header file of <Callback-Aspect>.
+    Header file of <Callback>.
 */
 #ifndef CKERN_ASPECT_CALLBACK_HEADER
 #define CKERN_ASPECT_CALLBACK_HEADER

@@ -18,7 +18,7 @@ space="                               "
 temp_thread_db=`mktemp`
 temp_once_db=`mktemp`
 
-echo '"module",            "parameter",    "shared", "header-name"' > $temp_thread_db
+echo '"module",            "parameter",    "type",   "header-name"' > $temp_thread_db
 echo '"time",   "module",         "header-name"' > $temp_once_db
 
 for i in $files; do
@@ -177,7 +177,9 @@ temp_compare1=`mktemp`
 temp_compare2=`mktemp`
 
 sort $temp_thread_db > $temp_compare1
-sort C-kern/resource/text.db/initumgebung | sed -e "/^#/d;/^$/d" > $temp_compare2
+sort C-kern/resource/text.db/initumgebung \
+    | sed -e "/^#/d;/^$/d" -e 's/"multi",/"",     /' -e 's/"single",/"",      /' \
+    | uniq > $temp_compare2
 
 if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
    info="$info  file: <C-kern/resource/text.db/initumgebung> is incomplete'\n"

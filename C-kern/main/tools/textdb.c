@@ -1522,7 +1522,7 @@ int main(int argc, const char * argv[])
    mmfile_t input_file = mmfile_INIT_FREEABLE ;
    int      exclflag   = O_EXCL ;
 
-   err = initmain_umgebung(umgebung_type_DEFAULT) ;
+   err = initmain_umgebung(umgebung_type_SINGLETHREAD) ;
    if (err) goto ABBRUCH ;
 
    err = process_arguments(argc, argv) ;

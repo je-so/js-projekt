@@ -1,0 +1,14 @@
+C-kern/cache/objectcache.c:59: initumgebung_objectcache(): error: Function argument violates condition (0 == objectcache->object)
+C-kern/cache/objectcache.c:70: initumgebung_objectcache(): error: Function aborted (err=22)
+C-kern/cache/objectcache.c:153: lockiobuffer2_objectcache(): error: Function argument violates condition (0 == *iobuffer)
+C-kern/cache/objectcache.c:159: lockiobuffer2_objectcache(): error: Function aborted (err=22)
+C-kern/cache/objectcache.c:168: unlockiobuffer2_objectcache(): error: Function argument violates condition (&objectcache->iobuffer == *iobuffer)
+C-kern/cache/objectcache.c:174: unlockiobuffer2_objectcache(): error: Function aborted (err=22)
+C-kern/cache/objectcache.c:153: lockiobuffer2_objectcache(): error: Function argument violates condition (0 == *iobuffer)
+C-kern/cache/objectcache.c:159: lockiobuffer2_objectcache(): error: Function aborted (err=22)
+C-kern/cache/objectcache.c:184: lockiobuffer_objectcache(): error: Assertion '!err && "lockiobuffer2_objectcache"' failed.
+C-kern/umgebung/umgebung.c:328: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/cache/objectcache.c:168: unlockiobuffer2_objectcache(): error: Function argument violates condition (&objectcache->iobuffer == *iobuffer)
+C-kern/cache/objectcache.c:174: unlockiobuffer2_objectcache(): error: Function aborted (err=22)
+C-kern/cache/objectcache.c:193: unlockiobuffer_objectcache(): error: Assertion '!err && "unlockiobuffer2_objectcache"' failed.
+C-kern/umgebung/umgebung.c:328: abort_umgebung(): error: Abort process with fatal error (err=22)

@@ -22,13 +22,21 @@
 #ifndef CKERN_UMGEBUNG_LOG_MACROS_HEADER
 #define CKERN_UMGEBUNG_LOG_MACROS_HEADER
 
-/* about: LOGCHANNEL
- * The parameter LOGCHANNEL is the first parameter of log writing macros.
+#include "C-kern/api/aspect/interface/log_it.h"
+
+/* enums: log_channel_e
+ * Used to switch between log channels.
  *
- * Supported values:
- * ERR  - Writes error log to current <log_umgebung>.
- * TEST - Writes to STDOUT channel used for test output when (unit-) tests are run.
+ * log_channel_ERR  - Normal error log channel which is represented by interface <log_it>.
+ * log_channel_TEST - Test log output which is implemented as a call to standard
+ *                    printf library function which writes to STDOUT.
  * */
+enum log_channel_e {
+    log_channel_ERR
+   ,log_channel_TEST
+} ;
+
+typedef enum log_channel_e       log_channel_e ;
 
 // section: Functions
 
@@ -36,25 +44,33 @@
 
 /* define: LOG_GETBUFFER
  * Returns C-string of buffered log and its length. See also <getbuffer_logwriter>.
- * > #define LOG_GETBUFFER(buffer, size) getbuffer_logwriterlocked(log_umgebung(), buffer, size) */
+ * > #define LOG_GETBUFFER(buffer, size) getbuffer_logwritermt(log_umgebung(), buffer, size) */
 #define LOG_GETBUFFER(/*out char ** */buffer, /*out size_t * */size) \
    log_umgebung().functable->getbuffer(log_umgebung().object, buffer, size)
-
-// group: config
 
 // group: change
 
 /* define: LOG_CLEARBUFFER
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>.
- * > #define  LOG_CLEARBUFFER()     clearbuffer_logwriterlocked(log_umgebung()) */
+ * > #define  LOG_CLEARBUFFER()     clearbuffer_logwritermt(log_umgebung()) */
 #define  LOG_CLEARBUFFER()          log_umgebung().functable->clearbuffer(log_umgebung().object)
 
 /* define: LOG_FLUSHBUFFER
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>.
- * > #define  LOG_FLUSHBUFFER()     flushbuffer_logwriterlocked(log_umgebung()) */
+ * > #define  LOG_FLUSHBUFFER()     flushbuffer_logwritermt(log_umgebung()) */
 #define  LOG_FLUSHBUFFER()          log_umgebung().functable->flushbuffer(log_umgebung().object)
 
 // group: write-text
+
+/* about: LOGCHANNEL
+ * The parameter LOGCHANNEL is the first parameter of all log macros writing text.
+ *
+ * See also <log_channel_e>.
+ *
+ * Supported values:
+ * ERR  - Writes error log to current <log_umgebung>.
+ * TEST - Writes to STDOUT channel used for test output when (unit-) tests are run.
+ * */
 
 /* define: LOGC_PRINTF
  * Logs a generic printf type format string.

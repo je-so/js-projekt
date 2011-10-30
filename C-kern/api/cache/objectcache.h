@@ -1,11 +1,10 @@
 /* title: Objectcache
-   Offers a simple cache mechanism for objects
-   needed in submodules either often or which are costly
-   to construct or deconstruct.
+   Offers a simple cache mechanism for objects needed in submodules
+   which are costly to construct or deconstruct.
 
-   Implements init/free functions to allocate
-   storage for cached objects before a new thread
-   is created and frees it before the thread exits.
+   Implements <initumgebung_objectcache>/<freeumgebung_objectcache> to allocate
+   storage for cached objects before a new thread is created and frees all storage
+   before the thread exits.
 
    about: Copyright
    This program is free software.
@@ -33,9 +32,9 @@
 
 #include "C-kern/api/aspect/memoryblock.h"
 
-/* typedef: objectcache_t typedef
+/* typedef: struct objectcache_t
  * Export <objectcache_t>. */
-typedef struct objectcache_t    objectcache_t ;
+typedef struct objectcache_t     objectcache_t ;
 
 
 // section: Functions
@@ -57,33 +56,50 @@ struct objectcache_t {
    memoryblock_aspect_t    iobuffer ;
 } ;
 
-// group: initumgebung
+// group: init
 
 /* function: initumgebung_objectcache
- * Creates new <objectcache_t> and all referenced objects. */
-extern int initumgebung_objectcache(/*out*/objectcache_t ** objectcache) ;
+ * Calls <init_objectcache> and wraps object into interface object <objectcache_oit>. */
+extern int initumgebung_objectcache(/*out*/objectcache_oit * objectcache) ;
 
 /* function: freeumgebung_objectcache
- * Frees <objectcache_t> and all referenced objects. */
-extern int freeumgebung_objectcache(objectcache_t ** objectcache) ;
+ * Calls <free_objectcache> with object pointer from <objectcache_oit>. */
+extern int freeumgebung_objectcache(objectcache_oit * objectcache) ;
 
 // group: lifetime
 
-/* function: new_objectcache
- * Creates new <objectcache_t> and all referenced objects. */
-extern int new_objectcache(objectcache_t ** objectcache) ;
+/* define: objectcache_INIT_FREEABLE
+ * Static initializer. */
+#define objectcache_INIT_FREEABLE      { memoryblock_aspect_INIT_FREEABLE }
 
-/* function: delete_objectcache
- * Frees <objectcache_t> and all referenced objects. */
-extern int delete_objectcache(objectcache_t ** objectcache) ;
+/* function: init_objectcache
+ * Inits <objectcache_t> and all contained objects. */
+extern int init_objectcache(objectcache_t * objectcache) ;
+
+/* function: free_objectcache
+ * Frees <objectcache_t> and all contained objects. */
+extern int free_objectcache(objectcache_t * objectcache) ;
+
+// group: query
+
+/* function: lockiobuffer_objectcache
+ * Locks the io buffer and returns a pointer to it in iobuffer.
+ * The buffer is of type <memoryblock_aspect_t> (equal to <vm_block_t>). */
+extern void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memoryblock_aspect_t ** iobuffer) ;
+
+/* function: unlockiobuffer_objectcache
+ * Unlocks the locked io buffer and sets the pointer to NULL.
+ * The pointer to the buffer must be acquired by a previous call to <lockiobuffer_objectcache>.
+ * Calling unlock with a NULL pointer is a no op. */
+extern void unlockiobuffer_objectcache(objectcache_t * objectcache, memoryblock_aspect_t ** iobuffer) ;
 
 // group: change
 
 /* Moves content of cached objects from source to destination.
- * Both objects must have been initialized. After successfull return
- * all cached objects of source are in a freed state and the previous
- * content was transfered to destination. Before the transfer
- * all cached objects in destination are freed. */
+ * Both objects must have been initialized.
+ * After successfull return all cached objects of source are in a freed state
+ * and the previous content is transfered to destination.
+ * Before anything is copied to destiniation all cached objects in destination are freed. */
 extern int move_objectcache( objectcache_t * destination, objectcache_t * source ) ;
 
 #endif

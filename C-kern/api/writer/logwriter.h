@@ -64,6 +64,18 @@ struct logwriter_t
    size_t                  logsize ;
 } ;
 
+// group: init
+
+/* function: initumgebung_logwriter
+ * Uses <init_logwriter> - called from <init_umgebung>. */
+extern int initumgebung_logwriter(/*out*/log_oit * ilog) ;
+
+/* function: freeumgebung_logwriter
+ * Uses  <free_logwriter> - called from <free_umgebung>.
+ * After return log is not set to NULL instead it is set to <g_main_logwriter>.
+ * To support the most basic logging. */
+extern int freeumgebung_logwriter(log_oit * ilog) ;
+
 // group: lifetime
 
 /* define: logwriter_INIT_FREEABLE

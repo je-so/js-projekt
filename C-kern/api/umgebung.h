@@ -25,13 +25,9 @@
 #ifndef CKERN_API_UMGEBUNG_HEADER
 #define CKERN_API_UMGEBUNG_HEADER
 
-#include "C-kern/api/aspect/interface/log_interface.h"
-#include "C-kern/api/umg/umg_shared.h"
-
-// forward reference to all offered services
-struct logwriter_locked_t ;
-struct objectcache_t ;
-struct valuecache_t ;
+#include "C-kern/api/aspect/interface/log_oit.h"
+#include "C-kern/api/aspect/interface/objectcache_oit.h"
+#include "C-kern/api/umg/umgebung_shared.h"
 
 /* typedef: umgebung_t typedef
  * Export <umgebung_t>. */
@@ -45,15 +41,15 @@ typedef struct umgebung_t           umgebung_t ;
  *                         Only the log service is supported.
  *                         This configuration is default at program startup and can not be
  *                         set with a call to <initmain_umgebung>.
- * umgebung_type_DEFAULT - Default production ready implementation.
- * umgebung_type_TEST    - Implements functionality without use of internal components but only with help of
- *                         C library calls. This ensures that software components which depends on <umgebung_t>
- *                         can be tested without mutual dependencies.
+ * umgebung_type_SINGLETHREAD - Default single threading implementation.
+ *                              Services in <umgebung_t> can not be shared between threads.
+ * umgebung_type_MULTITHREAD  - Default multi threading safe implementation.
+ *                              Services in <umgebung_t> can be shared between threads.
  * */
 enum umgebung_type_e {
     umgebung_type_STATIC  = 0
-   ,umgebung_type_DEFAULT = 1
-   ,umgebung_type_TEST    = 2
+   ,umgebung_type_SINGLETHREAD = 1
+   ,umgebung_type_MULTITHREAD  = 2
 } ;
 
 typedef enum umgebung_type_e        umgebung_type_e ;
@@ -91,8 +87,8 @@ struct umgebung_t {
    int                  (* free_umgebung)  (umgebung_t * umg) ;
 
    umgebung_shared_t     * shared ;
-   log_object_it           ilog ;
-   struct objectcache_t  * objectcache ;
+   log_oit                 ilog ;
+   objectcache_oit         objectcache ;
 
 } ;
 
@@ -107,12 +103,12 @@ struct umgebung_t {
  * only as initializer for the main thread.
  * The reason is that services in <umgebung_t> are not thread safe
  * so every thread keeps its own initialized <umgebung_t>. */
-#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, 0, { (struct callback_param_t*)&g_main_logwriterlocked, (log_it*)&g_main_logwriterlocked_interface }, 0 }
+#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, 0, { (struct callback_param_t*)&g_main_logwriter, (log_it*)&g_main_logwriter_interface }, objectcache_oit_INIT_FREEABLE }
 
 /* define: umgebung_INIT_FREEABLE
  * Static initializer for <umgebung_t>.
  * This ensures that you can call <free_umgebung> without harm. */
-#define umgebung_INIT_FREEABLE      { umgebung_type_STATIC, 0, 0, 0, log_object_INIT_FREEABLE, 0 }
+#define umgebung_INIT_FREEABLE      { umgebung_type_STATIC, 0, 0, 0, log_oit_INIT_FREEABLE, objectcache_oit_INIT_FREEABLE }
 
 /* function: initmain_umgebung
  * Initializes (global) process context. Must be called as first function from the main thread.
@@ -136,6 +132,12 @@ extern int initmain_umgebung(umgebung_type_e implementation_type) ;
  * This init database is checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
 extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation_type) ;
+
+/* function: initshare_umgebung
+ * Allows another thread to share all services.
+ * EINVAL is returned if shared_with is not MULTITHREAD safe.
+ * TODO implement initshare_umgebung */
+extern int initshare_umgebung(/*out*/umgebung_t * umg, umgebung_t * shared_with) ;
 
 /* function: freemain_umgebung
  * Frees global context. Must be called as last function from the main
@@ -175,25 +177,25 @@ extern void assertfail_umgebung(const char * condition, const char * file, unsig
  * Returns a reference to <umgebung_t> for the current thread.
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-extern /*ref*/ umgebung_t umgebung(void) ;
+extern /*ref*/ umgebung_t     umgebung(void) ;
 
 /* function: log_umgebung
- * Returns log service <log_object_it> (see <logwriter_locked_t>).
+ * Returns log service <log_oit> (see <logwritermt_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-extern /*ref*/ log_object_it log_umgebung(void) ;
+extern /*ref*/ log_oit        log_umgebung(void) ;
 
 /* function: objectcache_umgebung
- * Returns cache for singelton objects of type <objectcache_t> for the current thread. */
-extern struct objectcache_t *       objectcache_umgebung(void) ;
+ * Returns object interface <objectcache_oit> for access of cached singelton objects. */
+extern /*ref*/objectcache_oit objectcache_umgebung(void) ;
 
 /* function: valuecache_umgebung
  * Returns cache for precomputed values of type <valuecache_t> for the current thread. */
-extern struct valuecache_t *        valuecache_umgebung(void) ;
+extern struct valuecache_t *  valuecache_umgebung(void) ;
 
 /* function: type_umgebung
  * Returns type <umgebung_type_e> of <umgebung_t>. */
-extern umgebung_type_e type_umgebung(void) ;
+extern umgebung_type_e        type_umgebung(void) ;
 
 
 // section: inline implementations

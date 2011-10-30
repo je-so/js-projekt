@@ -1,4 +1,4 @@
-/* title: Interface-Aspect
+/* title: Interface
    Describes types used by every interface.
 
    * Define type of object accessed by means of an interface.
@@ -18,40 +18,40 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: /jsprojekt/JS/C-kern/api/aspect/interface.h
-    Header file of <Interface-Aspect>.
+   file: C-kern/api/aspect/interface.h
+    Header file of <Interface>.
 */
 #ifndef CKERN_ASPECT_INTERFACE_HEADER
 #define CKERN_ASPECT_INTERFACE_HEADER
 
-/* typedef: interface_it typedef
- * Export <interface_it>. */
+/* typedef: struct interface_it
+ * Export struct <interface_it>. */
 typedef struct interface_it               interface_it ;
 
-/* typedef: interface_object_it typedef
- * Export <interface_object_it>. */
-typedef struct interface_object_it        interface_object_it ;
+/* typedef: struct interface_oit
+ * Export struct <interface_oit>. */
+typedef struct interface_oit              interface_oit ;
 
-/* define: interface_object_DECLARE
+/* define: interface_oit_DECLARE
  *
  * Parameter:
  * is_typedef        - Set it to 1 if you want to also emit this code:
  *                     "typedef struct declared_type_it declared_type_it ;"
  * declared_type_t   - The name of the structure which is declared as the interfaceable object.
- * interface_type_it - The type of the service interface the stored object offers.
- *                     A pointer to this service interface is stored in the declared structure.
  * object_type_t     - The type of the object which is the first parameter of the service interface functions.
  *                     A pointer to this object is stored in the declared structure.
+ * interface_type_it - The type of the service interface the stored object offers.
+ *                     A pointer to this service interface is stored in the declared structure.
  *
  * (start code)
- * #define interface_object_DECLARE(is_typedef, declared_type_t, interface_type_it, object_type_t) \
+ * #define interface_oit_DECLARE(is_typedef, declared_type_t, interface_type_it, object_type_t) \
  *    CONCAT(EMITCODE_, is_typedef)(typedef struct declared_type_t declared_type_t ;)  \
  *    struct declared_type_t {            \
  *       object_type_t      * object ;    \
  *       interface_type_it  * functable ; \
  *    } ;
  * (end code) */
-#define interface_object_DECLARE(is_typedef, declared_type_t, interface_type_it, object_type_t) \
+#define interface_oit_DECLARE(is_typedef, declared_type_t, object_type_t, interface_type_it) \
    CONCAT(EMITCODE_, is_typedef)(typedef struct declared_type_t declared_type_t ;)  \
    struct declared_type_t {            \
       object_type_t      * object ;    \
@@ -59,8 +59,8 @@ typedef struct interface_object_it        interface_object_it ;
    } ;
 
 
-/* struct: interface_object_it
- * A generic interfaceable object.
+/* struct: interface_oit
+ * A template for a generic object and its exported interface.
  *
  * The structure contains a pointer to the object
  * and a pointer to a table of pointers to functions.
@@ -68,7 +68,7 @@ typedef struct interface_object_it        interface_object_it ;
  * With help of the function table the exported interface of the object can be accessed.
  *
  * This structure serves as an example of the structure of interfaceable objects. */
-struct interface_object_it {
+struct interface_oit {
    /* variable: object
     * A pointer to the object which is operated on by interface <interface_it>. */
    void         * object ;

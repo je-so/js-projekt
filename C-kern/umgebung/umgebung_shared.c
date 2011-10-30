@@ -1,5 +1,5 @@
-/* title: Shared-Umgebung impl
-   Implements <Shared-Umgebung>.
+/* title: Umgebung-Shared impl
+   Implements <Umgebung-Shared>.
 
    about: Copyright
    This program is free software.
@@ -16,17 +16,17 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/umg/umg_shared.h
-    Header file of <Shared-Umgebung>.
+   file: C-kern/api/umg/umgebung_shared.h
+    Header file of <Umgebung-Shared>.
 
-   file: C-kern/umgebung/umg_shared.c
-    Implementation file <Shared-Umgebung impl>.
+   file: C-kern/umgebung/umgebung_shared.c
+    Implementation file <Umgebung-Shared impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/umg/umg_shared.h"
+#include "C-kern/api/umg/umgebung_shared.h"
 #include "C-kern/api/err.h"
-// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")WHERE(shared=='shared')
+// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initumgebung")WHERE(type=='shared')
 #include "C-kern/api/cache/valuecache.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
@@ -44,7 +44,7 @@ static int free2_umgebungshared(umgebung_shared_t * shared, int16_t init_count)
    default: assert(0 == init_count && "out of bounds" )  ;
             break ;
    case -1: // free all !
-// TEXTDB:SELECT(\n"   case "row-id":  err2 = freeumgebung_"module"("(if (parameter!="") "&shared->" else "")parameter(if (parameter!="") ", ")"shared) ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/text.db/initumgebung")WHERE(shared=='shared')
+// TEXTDB:SELECT(\n"   case "row-id":  err2 = freeumgebung_"module"("(if (parameter!="") "&shared->" else "")parameter(if (parameter!="") ", ")"shared) ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/text.db/initumgebung")WHERE(type=='shared')
 
    case 1:  err2 = freeumgebung_valuecache(&shared->valuecache, shared) ;
             if (err2) err = err2 ;
@@ -72,7 +72,7 @@ int init_umgebungshared(umgebung_shared_t * shared)
    int16_t init_count = 0 ;
    (void) shared ;
 
-// TEXTDB:SELECT(\n"   err = initumgebung_"module"("(if (parameter!="") "&shared->" else "")parameter(if (parameter!="") ", ")"shared) ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ init_count ;")FROM("C-kern/resource/text.db/initumgebung")WHERE(shared=='shared')
+// TEXTDB:SELECT(\n"   err = initumgebung_"module"("(if (parameter!="") "&shared->" else "")parameter(if (parameter!="") ", ")"shared) ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ init_count ;")FROM("C-kern/resource/text.db/initumgebung")WHERE(type=='shared')
 
    err = initumgebung_valuecache(&shared->valuecache, shared) ;
    if (err) goto ABBRUCH ;

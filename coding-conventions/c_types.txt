@@ -12,6 +12,7 @@ typename_t      -  _struct_ or _primitive_ type
 typename_f      -  _function pointer_ type
 typename_e      -  _enum_ type
 typename_it     -  _interface_ type
+typename_oit    -  _object_ pointer & _interface_ pointer type
 
 group: Enum Example
 
@@ -47,7 +48,7 @@ group: Interface Example
 
 The structure *log_it* defines the function table, i.e. the interface.
 
-The structure *log_object_it* defines a pointer to an object, which can be manipulated by
+The structure *log_oit* defines a pointer to an object, which can be manipulated by
 this kind of interface and a pointer to such an interface.
 
 (start code)
@@ -58,7 +59,7 @@ struct log_it {
    void  (*getbuffer)   (void * log, /*out*/char ** buffer, /*out*/size_t * size) ; \
 } ;
 
-struct log_object_it {
+struct log_oit {
    void   * object ;
    log_it * interface ;
 } ;

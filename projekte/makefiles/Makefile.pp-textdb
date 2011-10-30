@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.19  14:15:52
+GenerationDate  := 2011.Oct.30  19:21:50
 GeneratedBy     := JE-SO
 
 ## Release
@@ -47,17 +47,21 @@ $(sort $(ObjectDir_Release) $(TargetDir_Release)):
 	@mkdir -p "$@"
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!umgebung!umg_shared.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgtype_multithread.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgtype_singlethread.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!signal.c.o
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umg_shared.c.o: C-kern/umgebung/umg_shared.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c
+$(ObjectDir_Release)/C-kern!umgebung!umgtype_multithread.c.o: C-kern/umgebung/umgtype_multithread.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!umgebung!umgtype_singlethread.c.o: C-kern/umgebung/umgtype_singlethread.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!signal.c.o: C-kern/os/Linux/signal.c

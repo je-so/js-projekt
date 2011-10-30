@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.22  14:06:11
+GenerationDate  := 2011.Oct.30  19:22:10
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -77,12 +77,12 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umg_shared.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!umgtype_singlethread.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o \
- $(ObjectDir_Debug)/C-kern!writer!logwriter_locked.c.o \
+ $(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!main!testchildprocess_main.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!file.c.o \
@@ -92,12 +92,12 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umg_shared.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!umgtype_singlethread.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!writer!logwriter.c.o \
- $(ObjectDir_Release)/C-kern!writer!logwriter_locked.c.o \
+ $(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o \
  $(ObjectDir_Release)/C-kern!main!testchildprocess_main.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!file.c.o \
@@ -118,10 +118,10 @@ $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umg_shared.c.o: C-kern/umgebung/umg_shared.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c
+$(ObjectDir_Debug)/C-kern!umgebung!umgtype_singlethread.c.o: C-kern/umgebung/umgtype_singlethread.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
@@ -133,7 +133,7 @@ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!writer!logwriter_locked.c.o: C-kern/writer/logwriter_locked.c
+$(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwriter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!testchildprocess_main.c.o: C-kern/main/testchildprocess_main.c
@@ -157,10 +157,10 @@ $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.
 $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umg_shared.c.o: C-kern/umgebung/umg_shared.c
+$(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgtype_default.c.o: C-kern/umgebung/umgtype_default.c
+$(ObjectDir_Release)/C-kern!umgebung!umgtype_singlethread.c.o: C-kern/umgebung/umgtype_singlethread.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
@@ -172,7 +172,7 @@ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Release)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!writer!logwriter_locked.c.o: C-kern/writer/logwriter_locked.c
+$(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwriter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!testchildprocess_main.c.o: C-kern/main/testchildprocess_main.c

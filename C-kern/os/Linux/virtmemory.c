@@ -26,7 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/cache/objectcache.h"
+#include "C-kern/api/umg/objectcache_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/test.h"
@@ -136,7 +136,10 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    size_t      total_regions_count = 0 ;
    size_t        free_region_count = 0 ;
    vm_region_t       * next_region = 0 ;
-   vm_block_t         * iobuffer   = &objectcache_umgebung()->iobuffer ;
+   vm_block_t         * iobuffer   = 0 ;
+
+
+   OBJC_LOCKIOBUFFER(&iobuffer) ;
 
    const size_t  buffer_maxsize = iobuffer->size ;
    uint8_t       * const buffer = iobuffer->addr ;
@@ -223,6 +226,8 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
 
    close(fd) ;
 
+   OBJC_UNLOCKIOBUFFER(&iobuffer) ;
+
    mappedregions->total_count      = total_regions_count ;
    mappedregions->element_count    = 0 ;
    mappedregions->element_iterator = 0 ;
@@ -239,6 +244,8 @@ ABBRUCH:
       free(first_array) ;
       first_array = next ;
    }
+
+   OBJC_UNLOCKIOBUFFER(&iobuffer) ;
 
    close(fd) ;
    LOG_ABORT(err) ;
