@@ -25,12 +25,6 @@
 #ifndef CKERN_WRITER_MAIN_LOGWRITER_HEADER
 #define CKERN_WRITER_MAIN_LOGWRITER_HEADER
 
-// forward
-struct logwriter_t ;
-struct logwriter_it ;
-struct logwritermt_t ;
-struct logwritermt_it ;
-
 #define THREAD 1
 #if ((KONFIG_SUBSYS)&THREAD)
 #define  logwritermt_t              logwritermt_t
@@ -40,6 +34,10 @@ struct logwritermt_it ;
 #define  logwritermt_it             logwriter_it
 #endif
 #undef THREAD
+
+// forward
+struct logwritermt_t ;
+struct logwritermt_it ;
 
 /* variable: g_main_logwriter
  * Used to support basic logging in main thread.
@@ -54,6 +52,7 @@ extern struct logwritermt_it        g_main_logwriter_interface ;
 
 #undef logwritermt_t
 #undef logwritermt_it
+
 
 // section: Functions
 

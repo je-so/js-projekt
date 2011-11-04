@@ -36,7 +36,6 @@
 #include "C-kern/api/os/sync/signal.h"
 #endif
 
-
 // group: types
 
 /* typedef: logwritermt_it
@@ -49,12 +48,7 @@ log_it_DECLARE(1, logwritermt_it, logwritermt_t)
  * The interface is generated with the macro <log_it_DECLARE>. */
 log_it_DECLARE(1, logwriter_it, logwriter_t)
 
-// group: variables
-
-/* variable: s_logbuffer
- * Buffer <g_main_logwriter> uses internally to store one log entry. */
-static uint8_t  s_logbuffer[1 + log_PRINTF_MAXSIZE] ;
-
+// adapt to different thread model
 #define THREAD 1
 #if ((KONFIG_SUBSYS)&THREAD)
 #define EMITTHREADCODE  EMITCODE_1
@@ -70,6 +64,11 @@ static uint8_t  s_logbuffer[1 + log_PRINTF_MAXSIZE] ;
 #endif
 #undef THREAD
 
+// group: variables
+
+/* variable: s_logbuffer
+ * Buffer <g_main_logwriter> uses internally to store one log entry. */
+static uint8_t  s_logbuffer[1 + log_PRINTF_MAXSIZE] ;
 
 /* variable: g_main_logwriter
  * Is used to support a safe standard log configuration.

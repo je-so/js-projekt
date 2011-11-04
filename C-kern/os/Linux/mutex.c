@@ -564,6 +564,79 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static void sigusr1(int sig)
+{
+   assert(sig == SIGUSR1) ;
+   ++ s_lockmutex_signal ;
+}
+
+static int thread_lockmutex(mutex_t * mutex)
+{
+   int err ;
+   s_lockmutex_signal = 1 ;
+   err = lock_mutex(mutex) ;
+   if (!err) {
+      err = unlock_mutex(mutex) ;
+   }
+   return err ;
+}
+
+static int test_mutex_interrupt(void)
+{
+   mutex_t           mutex   = mutex_INIT_DEFAULT ;
+   osthread_t      * thread1 = 0 ;
+   bool              isoldprocmask = false ;
+   sigset_t          oldprocmask ;
+   bool              isoldact = false ;
+   struct sigaction  newact ;
+   struct sigaction  oldact ;
+
+
+   TEST(0 == sigemptyset(&newact.sa_mask)) ;
+   TEST(0 == sigaddset(&newact.sa_mask,SIGUSR1)) ;
+   TEST(0 == sigprocmask(SIG_UNBLOCK,&newact.sa_mask,&oldprocmask)) ;
+   isoldprocmask = true ;
+   sigemptyset(&newact.sa_mask) ;
+   newact.sa_flags   = 0 ;
+   newact.sa_handler = &sigusr1 ;
+   TEST(0 == sigaction(SIGUSR1, &newact, &oldact)) ;
+   isoldact = true ;
+
+   // TEST interrupt is ignored during wait on lock
+   TEST(0 == init_mutex(&mutex)) ;
+   TEST(0 == lock_mutex(&mutex)) ;
+   s_lockmutex_signal = 0 ;
+   TEST(0 == new_osthread(&thread1, &thread_lockmutex, &mutex)) ;
+   for(int i = 0; i < 1000; ++i) {
+      if (s_lockmutex_signal) break ;
+      sleepms_osthread(1) ;
+   }
+   TEST(s_lockmutex_signal /*thread started*/) ;
+   sleepms_osthread(10) ;
+   s_lockmutex_signal = 0 ;
+   TEST(0 == pthread_kill(thread1->sys_thread, SIGUSR1)) ;
+   for(int i = 0; i < 1000; ++i) {
+      if (s_lockmutex_signal) break ;
+      sleepms_osthread(1) ;
+   }
+   TEST(s_lockmutex_signal /*SIGUSR1 was received by thread*/) ;
+   TEST(0 == unlock_mutex(&mutex)) ;
+   TEST(0 == join_osthread(thread1)) ;
+   // no error => lock_mutex has restarted itself
+   TEST(0 == thread1->returncode) ;
+   TEST(0 == delete_osthread(&thread1)) ;
+
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldprocmask, 0)) ;
+   TEST(0 == sigaction(SIGUSR1, &oldact, 0)) ;
+
+   return 0 ;
+ABBRUCH:
+   if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
+   if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0) ;
+   free_mutex(&mutex) ;
+   delete_osthread(&thread1) ;
+   return EINVAL ;
+}
 
 int unittest_os_sync_mutex()
 {
@@ -576,6 +649,7 @@ int unittest_os_sync_mutex()
    if (test_mutex_staticinit())  goto ABBRUCH ;
    if (test_mutex_errorcheck())  goto ABBRUCH ;
    if (test_mutex_slock())       goto ABBRUCH ;
+   if (test_mutex_interrupt())   goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;
