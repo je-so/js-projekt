@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Oct.30  19:22:10
+GenerationDate  := 2011.Nov.05  16:13:27
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -78,7 +78,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgtype_singlethread.c.o \
+ $(ObjectDir_Debug)/C-kern!umgebung!services_singlethread.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o \
@@ -91,7 +91,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgtype_singlethread.c.o \
+ $(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!writer!logwriter.c.o \
@@ -117,7 +117,7 @@ $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgtype_singlethread.c.o: C-kern/umgebung/umgtype_singlethread.c
+$(ObjectDir_Debug)/C-kern!umgebung!services_singlethread.c.o: C-kern/umgebung/services_singlethread.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
@@ -150,7 +150,7 @@ $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
 $(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgtype_singlethread.c.o: C-kern/umgebung/umgtype_singlethread.c
+$(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o: C-kern/umgebung/services_singlethread.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c

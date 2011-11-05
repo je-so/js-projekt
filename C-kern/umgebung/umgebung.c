@@ -26,8 +26,8 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/umg/umgtype_singlethread.h"
-#include "C-kern/api/umg/umgtype_multithread.h"
+#include "C-kern/api/umg/services_singlethread.h"
+#include "C-kern/api/umg/services_multithread.h"
 #include "C-kern/api/os/sync/mutex.h"
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/writer/main_logwriter.h"
@@ -73,23 +73,23 @@ static mutex_t                s_initlock        = mutex_INIT_DEFAULT ;
  * Used in <init_umgebung>*/
 static size_t                 s_umgebungcount   = 0 ;
 
-/* variable: s_initcount_no_umgebung
+/* variable: s_initoncecount_no_umgebung
  * Rememberes how many resources has been initialized successfully.
  * Used in <initonce_no_umgebung> and <freeonce_no_umgebung>
  * which are called from <initmain_umgebung> and <freemain_umgebung>. */
-static uint16_t               s_initcount_no_umgebung = 0 ;
+static uint16_t               s_initoncecount_no_umgebung    = 0 ;
 
-/* variable: s_initcount_valid_umgebung
+/* variable: s_initoncecount_valid_umgebung
  * Rememberes how many times <initonce_valid_umgebung> has been called. */
-static uint16_t               s_initcount_valid_umgebung  = 0 ;
+static uint16_t               s_initoncecount_valid_umgebung = 0 ;
 
 static int freeonce_no_umgebung(void)
 {
    int err = 0 ;
    int err2 ;
 
-   switch(s_initcount_no_umgebung) {
-   default: assert(0 == s_initcount_no_umgebung && "out of bounds" )  ;
+   switch(s_initoncecount_no_umgebung) {
+   default: assert(0 == s_initoncecount_no_umgebung && "out of bounds" )  ;
             break ;
 // TEXTDB:SELECT("   case "row-id":  err2 = freeonce_"module"() ;"\n"            if (err2) err=err2 ;")FROM("C-kern/resource/text.db/initonce")WHERE(time=='before')DESCENDING
    case 3:  err2 = freeonce_signalconfig() ;
@@ -102,7 +102,7 @@ static int freeonce_no_umgebung(void)
    case 0:  break ;
    }
 
-   s_initcount_no_umgebung = 0 ;
+   s_initoncecount_no_umgebung = 0 ;
 
    if (err) goto ABBRUCH ;
 
@@ -116,23 +116,23 @@ static int initonce_no_umgebung(void)
 {
    int err ;
 
-   if (s_initcount_no_umgebung) {
+   if (s_initoncecount_no_umgebung) {
       return 0 ;
    }
 
-// TEXTDB:SELECT(\n"   err = initonce_"module"() ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ s_initcount_no_umgebung ;")FROM("C-kern/resource/text.db/initonce")WHERE(time=='before')
+// TEXTDB:SELECT(\n"   err = initonce_"module"() ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ s_initoncecount_no_umgebung ;")FROM("C-kern/resource/text.db/initonce")WHERE(time=='before')
 
    err = initonce_locale() ;
    if (err) goto ABBRUCH ;
-   ++ s_initcount_no_umgebung ;
+   ++ s_initoncecount_no_umgebung ;
 
    err = initonce_X11() ;
    if (err) goto ABBRUCH ;
-   ++ s_initcount_no_umgebung ;
+   ++ s_initoncecount_no_umgebung ;
 
    err = initonce_signalconfig() ;
    if (err) goto ABBRUCH ;
-   ++ s_initcount_no_umgebung ;
+   ++ s_initoncecount_no_umgebung ;
 // TEXTDB:END
 
    return 0 ;
@@ -148,8 +148,8 @@ static int freeonce_valid_umgebung(umgebung_t * umg)
    int err2 ;
    (void) umg ;
 
-   switch(s_initcount_valid_umgebung) {
-   default: assert(0 == s_initcount_valid_umgebung && "out of bounds" )  ;
+   switch(s_initoncecount_valid_umgebung) {
+   default: assert(0 == s_initoncecount_valid_umgebung && "out of bounds" )  ;
             break ;
 // TEXTDB:SELECT("   case "row-id":  err2 = freeonce_"module"(umg) ;"\n"            if (err2) err=err2 ;")FROM("C-kern/resource/text.db/initonce")WHERE(time=='after')DESCENDING
    case 1:  err2 = freeonce_osthread(umg) ;
@@ -158,7 +158,7 @@ static int freeonce_valid_umgebung(umgebung_t * umg)
    case 0:  break ;
    }
 
-   s_initcount_valid_umgebung = 0 ;
+   s_initoncecount_valid_umgebung = 0 ;
 
    if (err) goto ABBRUCH ;
 
@@ -173,11 +173,11 @@ static int initonce_valid_umgebung(umgebung_t * umg)
    int err ;
    (void) umg ;
 
-// TEXTDB:SELECT(\n"   err = initonce_"module"(umg) ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ s_initcount_valid_umgebung ;")FROM("C-kern/resource/text.db/initonce")WHERE(time=='after')
+// TEXTDB:SELECT(\n"   err = initonce_"module"(umg) ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ s_initoncecount_valid_umgebung ;")FROM("C-kern/resource/text.db/initonce")WHERE(time=='after')
 
    err = initonce_osthread(umg) ;
    if (err) goto ABBRUCH ;
-   ++ s_initcount_valid_umgebung ;
+   ++ s_initoncecount_valid_umgebung ;
 // TEXTDB:END
 
    return 0 ;
@@ -192,9 +192,12 @@ int free_umgebung(umgebung_t * umg)
    int err = 0 ;
    int err2 ;
 
-   if (umg->free_umgebung) {
+   if (umg->type) {
 
-      bool is_freeonce ;
+      bool              is_freeonce ;
+      bool              is_freeservices ;
+      umgebung_type_e   umg_type   = umg->type  ;
+      size_t          * copy_count = umg->copy_count ;
 
       slock_mutex(&s_initlock) ;
 
@@ -207,8 +210,37 @@ int free_umgebung(umgebung_t * umg)
          if (err2) err = err2 ;
       }
 
-      err2 = umg->free_umgebung(umg) ;
-      if (err2) err = err2 ;
+      umg->type       = umgebung_type_STATIC ;
+      umg->copy_count = 0 ;
+      umg->shared     = 0 ;
+
+      is_freeservices = (0 == copy_count) ;
+
+      if (!is_freeservices) {
+         -- (*copy_count) ;
+         if (0 == *copy_count) {
+            free(copy_count) ;
+            is_freeservices = true ;
+         }
+      }
+
+      if (is_freeservices) {
+         switch(umg_type) {
+         default:
+            assert(0 && "implementation_type has wrong value") ;
+            break ;
+         case umgebung_type_SINGLETHREAD:
+            err2 = freesinglethread_umgebungservices(&umg->svc) ;
+            if (err2) err = err2 ;
+            break ;
+         case umgebung_type_MULTITHREAD:
+            err2 = freemultithread_umgebungservices(&umg->svc) ;
+            if (err2) err = err2 ;
+            break ;
+         }
+      } else {
+         umg->svc = (umgebung_services_t) umgebung_services_INIT_MAINSERVICES ;
+      }
 
       if (is_freeonce) {
          err2 = free_umgebungshared(&s_umgebung_shared) ;
@@ -229,18 +261,18 @@ ABBRUCH:
    return err ;
 }
 
-int init_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
+static int init2_umgebung(umgebung_t * umg, umgebung_type_e implementation_type, umgebung_t * copy_from)
 {
    int err ;
    bool isinitonce_no    = false ;
    bool isinitshared     = false ;
-   bool isinitumgebung   = false ;
+   size_t  * copy_count  = 0 ;
+   int    (* free_svc) (umgebung_services_t*) = 0 ;
 
    slock_mutex(&s_initlock) ;
 
-   PRECONDITION_INPUT(     umgebung_type_SINGLETHREAD <= implementation_type
-                        && implementation_type <=  umgebung_type_MULTITHREAD,
-                        ABBRUCH, LOG_INT(implementation_type)) ;
+   assert(!copy_from || s_umgebungcount) ;
+
    ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
 
    if (0 == s_umgebungcount) {
@@ -255,14 +287,47 @@ int init_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
       ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
    }
 
-   switch(implementation_type) {
-   case umgebung_type_STATIC:    assert(0) ; break ;
-   case umgebung_type_SINGLETHREAD:   err = initsinglethread_umgebung(umg, &s_umgebung_shared) ; break ;
-   case umgebung_type_MULTITHREAD:    err = initmultithread_umgebung(umg, &s_umgebung_shared) ; break ;
-   }
+   umg->type            = implementation_type ;
+   umg->copy_count      = 0 ;
+   umg->shared          = &s_umgebung_shared ;
 
+   if (copy_from) {
+      static_assert(sizeof(umg->svc) == sizeof(copy_from->svc), "memcpy invariant") ;
+      umg->copy_count   = copy_from->copy_count ;
+      memcpy( &umg->svc, &copy_from->svc, sizeof(umg->svc)) ;
+      if (copy_from->copy_count) {
+         ++ (*copy_from->copy_count) ;
+      } else {
+         *copy_from = (umgebung_t) umgebung_INIT_MAINSERVICES ;
+      }
+   } else {
+      switch(implementation_type) {
+      default:
+         assert(0 && "implementation_type has wrong value") ;
+         break ;
+      case umgebung_type_SINGLETHREAD:
+         err = initsinglethread_umgebungservices(&umg->svc) ;
+         if (err) goto ABBRUCH ;
+         free_svc = &freesinglethread_umgebungservices ;
+         break ;
+      case umgebung_type_MULTITHREAD:
+         copy_count = (size_t*) malloc(sizeof(size_t)) ;
+         if (!copy_count) {
+            err = ENOMEM ;
+            LOG_OUTOFMEMORY(sizeof(size_t)) ;
+            goto ABBRUCH ;
+         }
+         err = initmultithread_umgebungservices(&umg->svc) ;
+         if (err) goto ABBRUCH ;
+         #if !defined(freemultithread_umgebungservices)
+         free_svc = &freemultithread_umgebungservices ;
+         #endif
+         *copy_count     = 1 ;
+         umg->copy_count = copy_count ;
+         break ;
+      }
+   }
    if (err) goto ABBRUCH ;
-   isinitumgebung = true ;
    ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
 
    if (0 == s_umgebungcount) {
@@ -270,16 +335,54 @@ int init_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
       if (err) goto ABBRUCH ;
    }
 
-   ++ s_umgebungcount ;
+   if (!copy_from || copy_from->copy_count) {
+      ++ s_umgebungcount ;
+   }
 
    sunlock_mutex(&s_initlock) ;
 
    return 0 ;
 ABBRUCH:
-   if (isinitumgebung)  (void) umg->free_umgebung(umg) ;
+   if (free_svc)        (void) free_svc(&umg->svc) ;
    if (isinitshared)    (void) free_umgebungshared(&s_umgebung_shared) ;
    if (isinitonce_no)   (void) freeonce_no_umgebung() ;
+   free(copy_count) ;
+   *umg = (umgebung_t) umgebung_INIT_MAINSERVICES ;
    sunlock_mutex(&s_initlock) ;
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int init_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
+{
+   int err ;
+
+   PRECONDITION_INPUT(     umgebung_type_SINGLETHREAD <= implementation_type
+                        && implementation_type <=  umgebung_type_MULTITHREAD,
+                        ABBRUCH, LOG_INT(implementation_type)) ;
+
+   err = init2_umgebung(umg, implementation_type, 0) ;
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int initcopy_umgebung(/*out*/umgebung_t * umg, umgebung_t * copy_from)
+{
+   int err ;
+
+   PRECONDITION_INPUT(     umgebung_type_MULTITHREAD  == copy_from->type
+                        || umgebung_type_SINGLETHREAD == copy_from->type,
+                        ABBRUCH, LOG_INT(copy_from->type)) ;
+
+   err = init2_umgebung(umg, copy_from->type, copy_from) ;
+   if (err) goto ABBRUCH ;
+
+   return 0 ;
+ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -297,7 +400,7 @@ int freemain_umgebung(void)
 
    return 0 ;
 ABBRUCH:
-   LOG_ABORT(err) ;
+   LOG_ABORT_FREE(err) ;
    return err ;
 }
 
@@ -312,7 +415,11 @@ int initmain_umgebung(umgebung_type_e implementation_type)
       goto ABBRUCH ;
    }
 
-   err = init_umgebung(umg, implementation_type) ;
+   PRECONDITION_INPUT(     umgebung_type_SINGLETHREAD <= implementation_type
+                        && implementation_type <=  umgebung_type_MULTITHREAD,
+                        ABBRUCH, LOG_INT(implementation_type)) ;
+
+   err = init2_umgebung(umg, implementation_type, 0) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -346,19 +453,19 @@ void assertfail_umgebung(
 
 #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_umgebung,ABBRUCH)
 
-static int test_process_init(void)
+static int test_main_init(void)
 {
    const umgebung_t * umg = &umgebung() ;
 
    // TEST static type
    TEST( umg->type           == umgebung_type_STATIC ) ;
-   TEST( umg->resource_count == 0 ) ;
-   TEST( umg->free_umgebung  == 0 ) ;
+   TEST( umg->copy_count     == 0 ) ;
    TEST( umg->shared         == 0 );
-   TEST( umg->ilog.object    == &g_main_logwriter );
-   TEST( umg->ilog.functable == (log_it*)&g_main_logwriter_interface );
-   TEST( umg->objectcache.object    == 0 );
-   TEST( umg->objectcache.functable == 0 );
+   TEST( umg->svc.resource_count == 0 ) ;
+   TEST( umg->svc.ilog.object    == &g_main_logwriter );
+   TEST( umg->svc.ilog.functable == (log_it*)&g_main_logwriter_interface );
+   TEST( umg->svc.objectcache.object    == 0 );
+   TEST( umg->svc.objectcache.functable == 0 );
 
    // TEST EINVAL: wrong type
    TEST(0      == umgebung_type_STATIC) ;
@@ -368,70 +475,85 @@ static int test_process_init(void)
    // TEST init, double free (umgebung_type_SINGLETHREAD)
    TEST(0 == umgebung().type) ;
    TEST(0 == initmain_umgebung(umgebung_type_SINGLETHREAD)) ;
-   TEST(umgebung_type_SINGLETHREAD == umgebung().type) ;
-   TEST(0 != umgebung().resource_count) ;
-   TEST(0 != umgebung().free_umgebung) ;
+   TEST(1 == s_umgebungcount) ;
+   TEST(1 == umgebung().type) ;
+   TEST(0 == umgebung().copy_count) ;
    TEST(&s_umgebung_shared == umgebung().shared) ;
    TEST(0 != umgebung().shared->valuecache) ;
-   TEST(0 != umgebung().ilog.object) ;
-   TEST(0 != umgebung().objectcache.object) ;
-   TEST(0 != umgebung().objectcache.functable) ;
+   TEST(0 != umgebung().svc.resource_count) ;
+   TEST(0 != umgebung().svc.ilog.object) ;
+   TEST(0 != umgebung().svc.objectcache.object) ;
+   TEST(0 != umgebung().svc.objectcache.functable) ;
    TEST(0 != strcmp("C", current_locale())) ;
-   TEST(umgebung().ilog.object    != &g_main_logwriter) ;
-   TEST(umgebung().ilog.functable != (log_it*)&g_main_logwriter_interface) ;
+   TEST(umgebung().svc.ilog.object    != &g_main_logwriter) ;
+   TEST(umgebung().svc.ilog.functable != (log_it*)&g_main_logwriter_interface) ;
    TEST(0 == freemain_umgebung()) ;
-   TEST(0 == umgebung().type ) ;
-   TEST(0 == umgebung().resource_count) ;
-   TEST(0 == umgebung().free_umgebung) ;
+   TEST(0 == s_umgebungcount) ;
+   TEST(0 == umgebung().type) ;
+   TEST(0 == umgebung().copy_count) ;
    TEST(0 == umgebung().shared) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(umgebung().ilog.object    == &g_main_logwriter) ;
-   TEST(umgebung().ilog.functable == (log_it*)&g_main_logwriter_interface) ;
-   TEST(0 == umgebung().objectcache.object) ;
-   TEST(0 == umgebung().objectcache.functable) ;
+   TEST(umgebung().svc.resource_count == 0) ;
+   TEST(umgebung().svc.ilog.object    == &g_main_logwriter) ;
+   TEST(umgebung().svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+   TEST(umgebung().svc.objectcache.object    == 0) ;
+   TEST(umgebung().svc.objectcache.functable == 0) ;
    TEST(0 == freemain_umgebung()) ;
+   TEST(0 == s_umgebungcount) ;
    TEST(0 == umgebung().type ) ;
-   TEST(0 == umgebung().resource_count) ;
-   TEST(0 == umgebung().free_umgebung) ;
+   TEST(0 == umgebung().copy_count) ;
    TEST(0 == umgebung().shared) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(umgebung().ilog.object    == &g_main_logwriter) ;
-   TEST(umgebung().ilog.functable == (log_it*)&g_main_logwriter_interface) ;
-   TEST(0 == umgebung().objectcache.object) ;
-   TEST(0 == umgebung().objectcache.functable) ;
+   TEST(umgebung().svc.resource_count == 0) ;
+   TEST(umgebung().svc.ilog.object    == &g_main_logwriter) ;
+   TEST(umgebung().svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+   TEST(umgebung().svc.objectcache.object    == 0) ;
+   TEST(umgebung().svc.objectcache.functable == 0) ;
 
    // TEST init, double free (umgebung_type_MULTITHREAD)
    TEST(0 == umgebung().type) ;
    TEST(0 == initmain_umgebung(umgebung_type_MULTITHREAD)) ;
-   TEST(umgebung_type_MULTITHREAD  == umgebung().type) ;
-   TEST(0 != umgebung().resource_count) ;
-   TEST(0 != umgebung().free_umgebung) ;
+   TEST(1 == s_umgebungcount) ;
+   TEST(2 == umgebung().type) ;
+   TEST(0 != umgebung().copy_count) ;
    TEST(&s_umgebung_shared == umgebung().shared) ;
    TEST(0 != umgebung().shared->valuecache) ;
-   TEST(0 != umgebung().ilog.object) ;
-   TEST(0 != umgebung().objectcache.object) ;
-   TEST(0 != umgebung().objectcache.functable) ;
-   TEST(umgebung().ilog.object    != &g_main_logwriter) ;
-   TEST(umgebung().ilog.functable != (log_it*)&g_main_logwriter_interface) ;
+   TEST(0 != umgebung().svc.resource_count) ;
+   TEST(0 != umgebung().svc.ilog.object) ;
+   TEST(0 != umgebung().svc.objectcache.object) ;
+   TEST(0 != umgebung().svc.objectcache.functable) ;
+   TEST(umgebung().svc.ilog.object    != &g_main_logwriter) ;
+   TEST(umgebung().svc.ilog.functable != (log_it*)&g_main_logwriter_interface) ;
    TEST(0 == freemain_umgebung()) ;
+   TEST(0 == s_umgebungcount) ;
    TEST(0 == umgebung().type ) ;
-   TEST(0 == umgebung().resource_count) ;
-   TEST(0 == umgebung().free_umgebung) ;
+   TEST(0 == umgebung().copy_count) ;
    TEST(0 == umgebung().shared) ;
-   TEST(umgebung().ilog.object    == &g_main_logwriter) ;
-   TEST(umgebung().ilog.functable == (log_it*)&g_main_logwriter_interface) ;
-   TEST(0 == umgebung().objectcache.object) ;
-   TEST(0 == umgebung().objectcache.functable) ;
+   TEST(umgebung().svc.resource_count == 0) ;
+   TEST(umgebung().svc.ilog.object    == &g_main_logwriter) ;
+   TEST(umgebung().svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+   TEST(umgebung().svc.objectcache.object    == 0) ;
+   TEST(umgebung().svc.objectcache.functable == 0) ;
+   TEST(0 == freemain_umgebung()) ;
+   TEST(0 == s_umgebungcount) ;
+   TEST(0 == umgebung().type ) ;
+   TEST(0 == umgebung().copy_count) ;
+   TEST(0 == umgebung().shared) ;
+   TEST(umgebung().svc.resource_count == 0) ;
+   TEST(umgebung().svc.ilog.object    == &g_main_logwriter) ;
+   TEST(umgebung().svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+   TEST(umgebung().svc.objectcache.object    == 0) ;
+   TEST(umgebung().svc.objectcache.functable == 0) ;
 
    // TEST static type has not changed
    TEST( umg->type           == umgebung_type_STATIC ) ;
-   TEST( umg->resource_count == 0 ) ;
-   TEST( umg->free_umgebung  == 0 ) ;
+   TEST( umg->copy_count     == 0 ) ;
    TEST( umg->shared         == 0 );
-   TEST( umg->ilog.object    == &g_main_logwriter );
-   TEST( umg->ilog.functable == (log_it*)&g_main_logwriter_interface );
-   TEST( umg->objectcache.object    == 0 );
-   TEST( umg->objectcache.functable == 0 );
+   TEST( umg->svc.resource_count == 0 ) ;
+   TEST( umg->svc.ilog.object    == &g_main_logwriter );
+   TEST( umg->svc.ilog.functable == (log_it*)&g_main_logwriter_interface );
+   TEST( umg->svc.objectcache.object    == 0 );
+   TEST( umg->svc.objectcache.functable == 0 );
    LOG_FLUSHBUFFER() ;
 
    return 0 ;
@@ -439,17 +561,17 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int test_umgebung_query(void)
+static int test_querymacros(void)
 {
 
    // TEST query umgebung()
    TEST( &umgebung() == &gt_umgebung ) ;
 
    // TEST query log_umgebung()
-   TEST( &gt_umgebung.ilog == &log_umgebung() ) ;
+   TEST( &gt_umgebung.svc.ilog == &log_umgebung() ) ;
 
    // TEST query log_umgebung()
-   TEST( &gt_umgebung.objectcache == &objectcache_umgebung() ) ;
+   TEST( &gt_umgebung.svc.objectcache == &objectcache_umgebung() ) ;
 
    if (gt_umgebung.shared) {
       struct valuecache_t * const oldcache2 = gt_umgebung.shared->valuecache ;
@@ -461,18 +583,18 @@ static int test_umgebung_query(void)
       TEST( gt_umgebung.shared == &s_umgebung_shared ) ;
    }
 
-   // TEST s_initcount_no_umgebung
+   // TEST s_initoncecount_no_umgebung
    if (s_umgebungcount) {
-      TEST(3 == s_initcount_no_umgebung) ;
+      TEST(3 == s_initoncecount_no_umgebung) ;
    } else {
-      TEST(0 == s_initcount_no_umgebung) ;
+      TEST(0 == s_initoncecount_no_umgebung) ;
    }
 
-   // TEST s_initcount_valid_umgebung
+   // TEST s_initoncecount_valid_umgebung
    if (s_umgebungcount) {
-      TEST(1 == s_initcount_valid_umgebung) ;
+      TEST(1 == s_initoncecount_valid_umgebung) ;
    } else {
-      TEST(0 == s_initcount_valid_umgebung) ;
+      TEST(0 == s_initoncecount_valid_umgebung) ;
    }
 
    return 0 ;
@@ -480,10 +602,12 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int test_umgebung_init(void)
+static int test_initfree(void)
 {
-   umgebung_t umg    = umgebung_INIT_FREEABLE ;
-   const bool isINIT = (umgebung_type_STATIC != umgebung().type) ;
+   umgebung_t umg       = umgebung_INIT_FREEABLE ;
+   umgebung_t umg2[20]  = { umgebung_INIT_FREEABLE } ;
+   const bool isINIT    = (umgebung_type_STATIC != umgebung().type) ;
+   size_t     oldcount ;
 
    if (!isINIT) {
       TEST(0 == initmain_umgebung(umgebung_type_SINGLETHREAD)) ;
@@ -491,70 +615,135 @@ static int test_umgebung_init(void)
 
    // TEST static init
    TEST(0 == umg.type) ;
-   TEST(0 == umg.resource_count) ;
-   TEST(0 == umg.free_umgebung) ;
+   TEST(0 == umg.copy_count) ;
    TEST(0 == umg.shared) ;
-   TEST(0 == umg.ilog.object) ;
-   TEST(0 == umg.ilog.functable) ;
-   TEST(0 == umg.objectcache.object) ;
-   TEST(0 == umg.objectcache.functable) ;
+   TEST(0 == umg.svc.resource_count) ;
+   TEST(0 == umg.svc.ilog.object) ;
+   TEST(0 == umg.svc.ilog.functable) ;
+   TEST(0 == umg.svc.objectcache.object) ;
+   TEST(0 == umg.svc.objectcache.functable) ;
 
    // TEST EINVAL: wrong type
-   TEST(EINVAL == init_umgebung(&umg, umgebung_type_STATIC)) ;
+   TEST(EINVAL == init_umgebung(&umg, 0)) ;
    TEST(EINVAL == init_umgebung(&umg, 3)) ;
 
    // TEST init, double free (umgebung_type_SINGLETHREAD)
+   oldcount = s_umgebungcount ;
    TEST(0 == init_umgebung(&umg, umgebung_type_SINGLETHREAD)) ;
+   TEST(1+oldcount == s_umgebungcount) ;
    TEST(umg.type           == umgebung_type_SINGLETHREAD) ;
-   TEST(umg.resource_count != 0) ;
-   TEST(umg.free_umgebung  == &freesinglethread_umgebung) ;
+   TEST(umg.copy_count     == 0) ;
    TEST(umg.shared         == &s_umgebung_shared) ;
    TEST(umg.shared->valuecache != 0) ;
-   TEST(umg.ilog.object    != 0) ;
-   TEST(umg.ilog.object    != &g_main_logwriter) ;
-   TEST(umg.ilog.functable != (log_it*)&g_main_logwriter_interface) ;
-   TEST(umg.objectcache.object    != 0) ;
-   TEST(umg.objectcache.functable != 0) ;
+   TEST(umg.svc.resource_count != 0) ;
+   TEST(umg.svc.ilog.object    != 0) ;
+   TEST(umg.svc.ilog.object    != &g_main_logwriter) ;
+   TEST(umg.svc.ilog.functable != (log_it*)&g_main_logwriter_interface) ;
+   TEST(umg.svc.objectcache.object    != 0) ;
+   TEST(umg.svc.objectcache.functable != 0) ;
    TEST(0 == free_umgebung(&umg)) ;
+   TEST(oldcount == s_umgebungcount) ;
    TEST(0 == umg.type ) ;
-   TEST(0 == umg.resource_count) ;
-   TEST(0 == umg.free_umgebung) ;
+   TEST(0 == umg.copy_count) ;
    TEST(0 == umg.shared) ;
-   TEST(umg.ilog.object    == &g_main_logwriter) ;
-   TEST(umg.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
-   TEST(0 == umg.objectcache.object) ;
-   TEST(0 == umg.objectcache.functable) ;
+   TEST(0 == umg.svc.resource_count) ;
+   TEST(umg.svc.ilog.object    == &g_main_logwriter) ;
+   TEST(umg.svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+   TEST(0 == umg.svc.objectcache.object) ;
+   TEST(0 == umg.svc.objectcache.functable) ;
    TEST(0 == free_umgebung(&umg)) ;
+   TEST(oldcount == s_umgebungcount) ;
    TEST(0 == umg.type ) ;
-   TEST(0 == umg.resource_count) ;
-   TEST(0 == umg.free_umgebung) ;
+   TEST(0 == umg.copy_count) ;
    TEST(0 == umg.shared) ;
-   TEST(umg.ilog.object    == &g_main_logwriter) ;
-   TEST(umg.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
-   TEST(0 == umg.objectcache.object) ;
-   TEST(0 == umg.objectcache.functable) ;
+   TEST(0 == umg.svc.resource_count) ;
+   TEST(umg.svc.ilog.object    == &g_main_logwriter) ;
+   TEST(umg.svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+   TEST(0 == umg.svc.objectcache.object) ;
+   TEST(0 == umg.svc.objectcache.functable) ;
 
    // TEST init, double free (umgebung_type_MULTITHREAD)
    TEST(0 == init_umgebung(&umg, umgebung_type_MULTITHREAD)) ;
+   TEST(1+oldcount == s_umgebungcount) ;
    TEST(umg.type            == umgebung_type_MULTITHREAD) ;
-   TEST(umg.resource_count != 0 ) ;
-   TEST(umg.free_umgebung  == &freemultithread_umgebung ) ;
+   TEST(umg.copy_count     != 0) ;
+   TEST(*umg.copy_count    == 1) ;
    TEST(umg.shared         == &s_umgebung_shared) ;
    TEST(umg.shared->valuecache != 0) ;
-   TEST(umg.ilog.object    != 0) ;
-   TEST(umg.ilog.object    != &g_main_logwriter) ;
-   TEST(umg.ilog.functable != (log_it*)&g_main_logwriter_interface) ;
-   TEST(umg.objectcache.object    != 0) ;
-   TEST(umg.objectcache.functable != 0) ;
+   TEST(umg.svc.resource_count != 0 ) ;
+   TEST(umg.svc.ilog.object    != 0) ;
+   TEST(umg.svc.ilog.object    != &g_main_logwriter) ;
+   TEST(umg.svc.ilog.functable != (log_it*)&g_main_logwriter_interface) ;
+   TEST(umg.svc.objectcache.object    != 0) ;
+   TEST(umg.svc.objectcache.functable != 0) ;
    TEST(0 == free_umgebung(&umg)) ;
-   TEST(0 == umg.type) ;
-   TEST(0 == umg.resource_count) ;
-   TEST(0 == umg.free_umgebung) ;
+   TEST(oldcount == s_umgebungcount) ;
+   TEST(0 == umg.type ) ;
+   TEST(0 == umg.copy_count) ;
    TEST(0 == umg.shared) ;
-   TEST(umg.ilog.object    == &g_main_logwriter) ;
-   TEST(umg.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
-   TEST(0 == umg.objectcache.object) ;
-   TEST(0 == umg.objectcache.functable) ;
+   TEST(0 == umg.svc.resource_count) ;
+   TEST(umg.svc.ilog.object    == &g_main_logwriter) ;
+   TEST(umg.svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+   TEST(0 == umg.svc.objectcache.object) ;
+   TEST(0 == umg.svc.objectcache.functable) ;
+
+   // TEST initcopy umgebung_type_SINGLETHREAD
+   TEST(0 == init_umgebung(&umg, umgebung_type_SINGLETHREAD)) ;
+   TEST(1+oldcount == s_umgebungcount) ;
+   umgebung_t * oldumg = &umg ;
+   for(unsigned i = 0; i < nrelementsof(umg2); ++i) {
+      umgebung_t umgcmp = *oldumg ;
+      TEST(0 == initcopy_umgebung(&umg2[i], oldumg))
+      TEST(1+oldcount == s_umgebungcount) ;
+      TEST(0 == memcmp(&umg2[i], &umgcmp, sizeof(umgebung_t))) ;
+      // old umg was freed
+      TEST(0 == oldumg->type) ;
+      TEST(0 == oldumg->copy_count) ;
+      TEST(0 == oldumg->shared) ;
+      TEST(0 == oldumg->svc.resource_count) ;
+      TEST(oldumg->svc.ilog.object    == &g_main_logwriter) ;
+      TEST(oldumg->svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+      TEST(0 == oldumg->svc.objectcache.object) ;
+      TEST(0 == oldumg->svc.objectcache.functable) ;
+      oldumg = &umg2[i] ;
+   }
+   TEST(0 == free_umgebung(oldumg)) ;
+   TEST(oldcount == s_umgebungcount) ;
+
+   // TEST initcopy  umgebung_type_MULTITHREAD
+   TEST(0 == init_umgebung(&umg, umgebung_type_MULTITHREAD)) ;
+   TEST(1+oldcount == s_umgebungcount) ;
+   for(unsigned i = 0; i < nrelementsof(umg2); ++i) {
+      umgebung_t umgcompare = umg ;
+      TEST(0 == initcopy_umgebung(&umg2[i], &umg))
+      TEST(2+i+oldcount == s_umgebungcount) ;
+      // umg keeps the same
+      TEST(0 == memcmp(&umgcompare, &umg, sizeof(umg))) ;
+      // copy_count is one up
+      TEST(*umg.copy_count == 2+i) ;
+      // umg2[i] is a copy
+      TEST(0 == memcmp(&umg2[i], &umg, sizeof(umg))) ;
+   }
+   for(unsigned i = 0; i < nrelementsof(umg2); ++i) {
+      umgebung_t umgcompare = umg ;
+      TEST(0 == free_umgebung(&umg2[i]))
+      TEST(nrelementsof(umg2)-i+oldcount == s_umgebungcount) ;
+      // umg keeps the same
+      TEST(0 == memcmp(&umgcompare, &umg, sizeof(umg))) ;
+      // copy_count is one down
+      TEST(*umg.copy_count == nrelementsof(umg2)-i) ;
+      // umg2[i] is freed
+      TEST(0 == umg2[i].type) ;
+      TEST(0 == umg2[i].copy_count) ;
+      TEST(0 == umg2[i].shared) ;
+      TEST(0 == umg2[i].svc.resource_count) ;
+      TEST(umg2[i].svc.ilog.object    == &g_main_logwriter) ;
+      TEST(umg2[i].svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+      TEST(0 == umg2[i].svc.objectcache.object) ;
+      TEST(0 == umg2[i].svc.objectcache.functable) ;
+   }
+   TEST(0 == free_umgebung(&umg)) ;
+   TEST(oldcount == s_umgebungcount) ;
 
    if (!isINIT) {
       TEST(0 == freemain_umgebung()) ;
@@ -592,18 +781,18 @@ static int test_initmainerror(void)
    for(int i = 1; i <= 4; ++i) {
       TEST(0 == init_testerrortimer(&s_error_init, (unsigned)i, EINVAL+i)) ;
       TEST(EINVAL+i == initmain_umgebung(type)) ;
-      TEST(0 == s_initcount_no_umgebung) ;
-      TEST(0 == s_initcount_valid_umgebung) ;
+      TEST(0 == s_initoncecount_no_umgebung) ;
+      TEST(0 == s_initoncecount_valid_umgebung) ;
       TEST(0 == s_umgebungcount) ;
       TEST(0 == memcmp(&s_umgebung_shared, &shared2, sizeof(shared2))) ;
       TEST(umgebung_type_STATIC == umgebung().type) ;
-      TEST(0 == umgebung().resource_count) ;
-      TEST(0 == umgebung().free_umgebung) ;
+      TEST(0 == umgebung().copy_count) ;
       TEST(0 == umgebung().shared) ;
-      TEST(umgebung().ilog.object    == &g_main_logwriter) ;
-      TEST(umgebung().ilog.functable == (log_it*)&g_main_logwriter_interface) ;
-      TEST(0 == umgebung().objectcache.object) ;
-      TEST(0 == umgebung().objectcache.functable) ;
+      TEST(0 == umgebung().svc.resource_count) ;
+      TEST(umgebung().svc.ilog.object    == &g_main_logwriter) ;
+      TEST(umgebung().svc.ilog.functable == (log_it*)&g_main_logwriter_interface) ;
+      TEST(0 == umgebung().svc.objectcache.object) ;
+      TEST(0 == umgebung().svc.objectcache.functable) ;
    }
 
    LOG_FLUSHBUFFER() ;
@@ -615,8 +804,8 @@ static int test_initmainerror(void)
    // make printed system error messages language (English) neutral
    resetmsg_locale() ;
    TEST(1 == s_umgebungcount) ;
-   TEST(0 != s_initcount_no_umgebung) ;
-   TEST(0 != s_initcount_valid_umgebung) ;
+   TEST(0 != s_initoncecount_no_umgebung) ;
+   TEST(0 != s_initoncecount_valid_umgebung) ;
    TEST(0 != memcmp(&s_umgebung_shared, &shared2, sizeof(shared2))) ;
 
    TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
@@ -656,30 +845,28 @@ int unittest_umgebung()
       TEST(0 == pipe2(fdpipe,O_CLOEXEC)) ;
       TEST(-1!= dup2(fdpipe[1], STDERR_FILENO)) ;
 
-      if (test_umgebung_query()) goto ABBRUCH ;
-      if (test_process_init())   goto ABBRUCH ;
-      if (test_umgebung_init())  goto ABBRUCH ;
+      if (test_querymacros())    goto ABBRUCH ;
+      if (test_main_init())      goto ABBRUCH ;
+      if (test_initfree())       goto ABBRUCH ;
 
       char buffer[2048] = { 0 };
       TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
       const char * expect =
-         // log from test_process_init
-         "C-kern/umgebung/umgebung.c:243: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         // log from test_main_init
+         "C-kern/umgebung/umgebung.c:420: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=0"
-         "\nC-kern/umgebung/umgebung.c:283: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:320: initmain_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:243: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:427: initmain_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:420: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
-         "\nC-kern/umgebung/umgebung.c:283: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:320: initmain_umgebung(): error: Function aborted (err=22)"
-         // log from test_umgebung_init
-         "\nC-kern/umgebung/umgebung.c:243: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:427: initmain_umgebung(): error: Function aborted (err=22)"
+         // log from test_initfree
+         "\nC-kern/umgebung/umgebung.c:362: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=0"
-         "\nC-kern/umgebung/umgebung.c:283: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:243: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:369: init_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:362: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
-         "\nC-kern/umgebung/umgebung.c:283: init_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:369: init_umgebung(): error: Function aborted (err=22)"
          "\n"
          ;
 
@@ -708,8 +895,8 @@ int unittest_umgebung()
 
       TEST(0 == init_resourceusage(&usage)) ;
 
-      if (test_umgebung_query()) goto ABBRUCH ;
-      if (test_umgebung_init())  goto ABBRUCH ;
+      if (test_querymacros())    goto ABBRUCH ;
+      if (test_initfree())       goto ABBRUCH ;
       if (test_initmainerror())  goto ABBRUCH ;
 
       TEST(0 == same_resourceusage(&usage)) ;

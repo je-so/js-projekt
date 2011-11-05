@@ -1,5 +1,5 @@
 /* title: Umgebung
-   Defines runtime context used by every software component in C-kern(el).
+   Defines service context used by every software component in C-kern(el).
 
    about: Copyright
    This program is free software.
@@ -29,10 +29,13 @@
 #include "C-kern/api/aspect/interface/objectcache_oit.h"
 #include "C-kern/api/umg/umgebung_shared.h"
 
-/* typedef: umgebung_t typedef
+/* typedef: struct umgebung_t
  * Export <umgebung_t>. */
-typedef struct umgebung_t           umgebung_t ;
+typedef struct umgebung_t              umgebung_t ;
 
+/* typedef: struct umgebung_services_t
+ * Export <umgebung_services_t>. */
+typedef struct umgebung_services_t     umgebung_services_t ;
 
 /* enums: umgebung_type_e
  * Used to switch between different implementations.
@@ -47,7 +50,7 @@ typedef struct umgebung_t           umgebung_t ;
  *                              Services in <umgebung_t> can be shared between threads.
  * */
 enum umgebung_type_e {
-    umgebung_type_STATIC  = 0
+    umgebung_type_STATIC       = 0
    ,umgebung_type_SINGLETHREAD = 1
    ,umgebung_type_MULTITHREAD  = 2
 } ;
@@ -73,6 +76,29 @@ extern int unittest_umgebung(void) ;
 #endif
 
 
+/* struct: umgebung_services_t
+ * Defines top level services for all software modules.
+ *
+ * */
+struct umgebung_services_t {
+   size_t                  resource_count ;
+   log_oit                 ilog ;
+   objectcache_oit         objectcache ;
+} ;
+
+/* define: umgebung_INIT_MAINSERVICES
+ * Static initializer for <umgebung_services_t>.
+ * These initializer ensures that in function main the global log service is available
+ * even without calling <initmain_umgebung> first.
+ */
+#define umgebung_services_INIT_MAINSERVICES  { 0, { (struct callback_param_t*)&g_main_logwriter, (log_it*)&g_main_logwriter_interface }, objectcache_oit_INIT_FREEABLE }
+
+/* define: umgebung_services_INIT_FREEABLE
+ * Static initializer for <umgebung_services_t>.
+ * This ensures that you can call <free_umgebung> without harm. */
+#define umgebung_services_INIT_FREEABLE      { 0, log_oit_INIT_FREEABLE, objectcache_oit_INIT_FREEABLE }
+
+
 /* struct: umgebung_t
  * Defines thread specific top level context for all software modules.
  *
@@ -81,14 +107,20 @@ extern int unittest_umgebung(void) ;
  *
  * */
 struct umgebung_t {
+   // group: private
    umgebung_type_e         type ;
-   uint16_t                resource_count ;
-   /* Virtual destructor: Allows different implementations to store a different desctructor. */
-   int                  (* free_umgebung)  (umgebung_t * umg) ;
+   size_t                * copy_count ;
 
+   // group: public services
+
+   /* variable: shared
+    * Points to shared services. */
    umgebung_shared_t     * shared ;
-   log_oit                 ilog ;
-   objectcache_oit         objectcache ;
+
+   /* variable: svc
+    * Points to services for a single thread.
+    * They can also be shared (multithread) or exclusiv per thread (singlethread). */
+   umgebung_services_t     svc ;
 
 } ;
 
@@ -103,12 +135,12 @@ struct umgebung_t {
  * only as initializer for the main thread.
  * The reason is that services in <umgebung_t> are not thread safe
  * so every thread keeps its own initialized <umgebung_t>. */
-#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, 0, { (struct callback_param_t*)&g_main_logwriter, (log_it*)&g_main_logwriter_interface }, objectcache_oit_INIT_FREEABLE }
+#define umgebung_INIT_MAINSERVICES  { umgebung_type_STATIC, 0, 0, umgebung_services_INIT_MAINSERVICES }
 
 /* define: umgebung_INIT_FREEABLE
  * Static initializer for <umgebung_t>.
  * This ensures that you can call <free_umgebung> without harm. */
-#define umgebung_INIT_FREEABLE      { umgebung_type_STATIC, 0, 0, 0, log_oit_INIT_FREEABLE, objectcache_oit_INIT_FREEABLE }
+#define umgebung_INIT_FREEABLE      { umgebung_type_STATIC, 0, 0, umgebung_services_INIT_FREEABLE }
 
 /* function: initmain_umgebung
  * Initializes (global) process context. Must be called as first function from the main thread.
@@ -133,11 +165,12 @@ extern int initmain_umgebung(umgebung_type_e implementation_type) ;
  * So that no entry is forgotten. */
 extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation_type) ;
 
-/* function: initshare_umgebung
+/* function: initcopy_umgebung
  * Allows another thread to share all services.
- * EINVAL is returned if shared_with is not MULTITHREAD safe.
- * TODO implement initshare_umgebung */
-extern int initshare_umgebung(/*out*/umgebung_t * umg, umgebung_t * shared_with) ;
+ * In case shared_with is MULTITHREAD safe umg is a copy of copy_from after return.
+ * The same is true if copy_from is *not* MULTITHREAD safe except copy_from is
+ * freed before return. */
+extern int initcopy_umgebung(/*out*/umgebung_t * umg, umgebung_t * copy_from) ;
 
 /* function: freemain_umgebung
  * Frees global context. Must be called as last function from the main
@@ -212,14 +245,14 @@ extern umgebung_type_e        type_umgebung(void) ;
  * Uses a global thread-local storage variable to implement the functionality.
  * > #define log_umgebung() (gt_umgebung.ilog) */
 #define log_umgebung() \
-   (gt_umgebung.ilog)
+   (gt_umgebung.svc.ilog)
 
 /* define: objectcache_umgebung
  * Inline implementation of <umgebung_t.objectcache_umgebung>.
  * Uses a global thread-local storage variable to implement the functionality.
  * > #define objectcache_umgebung() (gt_umgebung.objectcache) */
 #define objectcache_umgebung() \
-   (gt_umgebung.objectcache)
+   (gt_umgebung.svc.objectcache)
 
 /* define: valuecache_umgebung
  * Inline implementation of <umgebung_t.valuecache_umgebung>.

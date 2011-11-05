@@ -1,0 +1,3 @@
+C-kern/umgebung/services_multithread.c:103: initmultithread_umgebungservices(): error: Function aborted (err=22)
+C-kern/umgebung/services_multithread.c:103: initmultithread_umgebungservices(): error: Function aborted (err=23)
+C-kern/umgebung/services_multithread.c:103: initmultithread_umgebungservices(): error: Function aborted (err=24)

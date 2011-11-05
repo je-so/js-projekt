@@ -55,8 +55,8 @@
 #include "C-kern/api/string/converter.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/umg/umgebung_shared.h"
-#include "C-kern/api/umg/umgtype_multithread.h"
-#include "C-kern/api/umg/umgtype_singlethread.h"
+#include "C-kern/api/umg/services_multithread.h"
+#include "C-kern/api/umg/services_singlethread.h"
 #include "C-kern/api/writer/logwriter.h"
 #include "C-kern/api/writer/logwritermt.h"
 #include "C-kern/api/writer/main_logwriter.h"
@@ -255,8 +255,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //{ umgebung unittest
    RUN(unittest_umgebung) ;
    RUN(unittest_umgebung_shared) ;
-   RUN(unittest_umgebung_typemultithread) ;
-   RUN(unittest_umgebung_typesinglethread) ;
+   RUN(unittest_umgebung_services_multithread) ;
+   RUN(unittest_umgebung_services_singlethread) ;
 //}
 
 //{ cache unittest

@@ -1,7 +1,7 @@
 # minimal system umgebung needed for every derived project
 Src += C-kern/umgebung/umgebung.c 
 Src += C-kern/umgebung/umgebung_shared.c
-Src += C-kern/umgebung/umgtype_singlethread.c
+Src += C-kern/umgebung/services_singlethread.c
 # default services
 Src += C-kern/cache/objectcache.c
 Src += C-kern/cache/valuecache.c
