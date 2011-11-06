@@ -178,12 +178,17 @@ extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_
 /* define: slist_IMPLEMENT
  * Generates the interface for a specific single linked list.
  * The type of the list object must be declared with help of <slist_DECLARE>
- * before this macro.
+ * before this macro. It is also possible to typedef "listname ## _t" before
+ * calling this macro. In the latter case "listname ## _t" must have a last pointer
+ * declared as its first field.
+ *
  * > #define slist_IMPLEMENT(listname, name_nextaspect, cb_t)
  *
  * Parameter:
- * listname        - The name of the newly declared list.
- *                   The type of the list object must structure is:  listname ## _t
+ * listname        - This (type) name has two meanings.
+ *                   First it is the suffix of the generated interface functions, e.g. "init_ ## listname".
+ *                   Second it is the prefix of the typename of declared list type, i.e. "listname ## _t".
+ *                   "listname ## _t" must have been a defined as a typedef representing the list object.
  * name_nextaspect - The name (access path) of the next pointer in object type managed by this list.
  * cb_t            - Type of the first callback parameter.
  * */

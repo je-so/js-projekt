@@ -172,6 +172,11 @@ extern int init_umgebung(/*out*/umgebung_t * umg, umgebung_type_e implementation
  * freed before return. */
 extern int initcopy_umgebung(/*out*/umgebung_t * umg, umgebung_t * copy_from) ;
 
+/* function: initmove_umgebung
+ * Allows you to move <umgebung_t> to another address.
+ * After successful return dest is a copy of source and source is cleared. */
+extern int initmove_umgebung(/*out*/umgebung_t * dest, umgebung_t * source) ;
+
 /* function: freemain_umgebung
  * Frees global context. Must be called as last function from the main
  * thread of the whole system.
@@ -233,12 +238,17 @@ extern umgebung_type_e        type_umgebung(void) ;
 
 // section: inline implementations
 
-/* define: umgebung
- * Inline implementation of <umgebung_t.umgebung>.
- * Uses a global thread-local storage variable to implement the functionality.
- * > #define umgebung() (gt_umgebung) */
-#define umgebung() \
-   (gt_umgebung)
+/* define: initmove_umgebung
+ * Inline implementation of <umgebung_t.initmove_umgebung>.
+ * > #define initmove_umgebung(dest, source)  memcpy( dest, source, sizeof(umgebung_t)) */
+#define initmove_umgebung(dest, source) \
+   ( __extension__ ({                                          \
+      umgebung_t * _temp_dest = (dest) ;                       \
+      umgebung_t * _temp_src  = (source) ;                     \
+      memcpy(_temp_dest, _temp_src, sizeof(umgebung_t)) ;      \
+      *_temp_src = (umgebung_t) umgebung_INIT_FREEABLE ;       \
+      0 /*always success*/ ;                                   \
+   }))
 
 /* define: log_umgebung
  * Inline implementation of <umgebung_t.log_umgebung>.
@@ -254,12 +264,12 @@ extern umgebung_type_e        type_umgebung(void) ;
 #define objectcache_umgebung() \
    (gt_umgebung.svc.objectcache)
 
-/* define: valuecache_umgebung
- * Inline implementation of <umgebung_t.valuecache_umgebung>.
+/* define: umgebung
+ * Inline implementation of <umgebung_t.umgebung>.
  * Uses a global thread-local storage variable to implement the functionality.
- * > #define valuecache_umgebung() (gt_umgebung.valuecache) */
-#define valuecache_umgebung() \
-   (gt_umgebung.shared->valuecache)
+ * > #define umgebung() (gt_umgebung) */
+#define umgebung() \
+   (gt_umgebung)
 
 /* define: type_umgebung
  * Inline implementation of <umgebung_t.type_umgebung>.
@@ -267,5 +277,12 @@ extern umgebung_type_e        type_umgebung(void) ;
  * > #define type_umgebung() (gt_umgebung.type) */
 #define type_umgebung() \
    (gt_umgebung.type)
+
+/* define: valuecache_umgebung
+ * Inline implementation of <umgebung_t.valuecache_umgebung>.
+ * Uses a global thread-local storage variable to implement the functionality.
+ * > #define valuecache_umgebung() (gt_umgebung.valuecache) */
+#define valuecache_umgebung() \
+   (gt_umgebung.shared->valuecache)
 
 #endif

@@ -745,6 +745,30 @@ static int test_initfree(void)
    TEST(0 == free_umgebung(&umg)) ;
    TEST(oldcount == s_umgebungcount) ;
 
+   // TEST initmove
+   TEST(0 == init_umgebung(&umg, umgebung_type_MULTITHREAD)) ;
+   TEST(1+oldcount == s_umgebungcount) ;
+   oldumg = &umg ;
+   for(unsigned i = 0; i < nrelementsof(umg2); ++i) {
+      umgebung_t umgcompare = *oldumg ;
+      TEST(0 == initmove_umgebung(&umg2[i], oldumg)) ;
+      TEST(1+oldcount == s_umgebungcount) ;
+      // umg2 is a copy
+      TEST(umg2[i].type == umgebung_type_MULTITHREAD) ;
+      TEST(0 == memcmp(&umg2[i], &umgcompare, sizeof(umgcompare))) ;
+      // oldumg is cleared
+      TEST(oldumg->type == umgebung_type_STATIC) ;
+      umgcompare = (umgebung_t) umgebung_INIT_FREEABLE ;
+      TEST(0 == memcmp(oldumg, &umgcompare, sizeof(umgcompare))) ;
+      oldumg = &umg2[i] ;
+   }
+   TEST(0 == free_umgebung(oldumg)) ;
+   TEST(oldcount == s_umgebungcount) ;
+
+   // TEST EINVAL initcopy
+   TEST(0 == umg.type) ;
+   TEST(EINVAL == initcopy_umgebung(&umg2[0], &umg)) ;
+
    if (!isINIT) {
       TEST(0 == freemain_umgebung()) ;
    }
@@ -796,7 +820,7 @@ static int test_initmainerror(void)
    }
 
    LOG_FLUSHBUFFER() ;
-   char buffer[2048] = { 0 };
+   char buffer[4096] = { 0 };
    TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
    TEST(0 == s_umgebungcount) ;
@@ -867,6 +891,9 @@ int unittest_umgebung()
          "\nC-kern/umgebung/umgebung.c:362: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
          "\nC-kern/umgebung/umgebung.c:369: init_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:379: initcopy_umgebung(): error: Function argument violates condition (umgebung_type_MULTITHREAD == copy_from->type || umgebung_type_SINGLETHREAD == copy_from->type)"
+         "\ncopy_from->type=0"
+         "\nC-kern/umgebung/umgebung.c:386: initcopy_umgebung(): error: Function aborted (err=22)"
          "\n"
          ;
 

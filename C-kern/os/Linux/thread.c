@@ -60,7 +60,7 @@ struct osthread_startargument_t {
     * Threads wait on startup for this event.
     * After this event has occurred variable <isAbort> contains the correct value. */
    semaphore_t       isvalid_abortflag ;
-   umgebung_type_e   umgtype ;
+   umgebung_t        umg ;
    stack_t           signalstack ;
 } ;
 
@@ -75,7 +75,7 @@ static size_t              s_offset_osthread       = 0 ;
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_error_newgroup
- * Simulates an error in <newgroup_osthreads>. */
+ * Simulates an error in <newgroup_osthread>. */
 static test_errortimer_t   s_error_newgroup = test_errortimer_INIT_FREEABLE ;
 #endif
 
@@ -252,17 +252,16 @@ ABBRUCH:
  * This is the same for all threads.
  * It initializes signalstack the thread global umgebung variable
  * and calls the user supplied main function. */
-static void * startpoint_osthread(void * start_arg)
+static void * startpoint_osthread(osthread_startargument_t * startarg)
 {
    int            err ;
-   osthread_startargument_t * startarg  = (osthread_startargument_t*)start_arg ;
-   osthread_t   * osthread              = startarg->osthread ;
+   osthread_t   * osthread = startarg->osthread ;
 
-   assert(osthread          == &gt_self_osthread) ;
+   assert(osthread         == &gt_self_osthread) ;
 
-   err = init_umgebung(&gt_umgebung, ((osthread_startargument_t*)startarg)->umgtype) ;
+   err = initmove_umgebung(&gt_umgebung, &startarg->umg) ;
    if (err) {
-      LOG_CALLERR("init_umgebung",err) ;
+      LOG_CALLERR("initmove_umgebung",err) ;
       goto ABBRUCH ;
    }
 
@@ -312,8 +311,7 @@ static void * startpoint_osthread(void * start_arg)
          goto ABBRUCH ;
       }
 
-      int returncode = osthread->task.fct(osthread->task.arg) ;
-      osthread->returncode = returncode ;
+      osthread->returncode = osthread->task.fct(osthread->task.arg) ;
    }
 
    err = free_umgebung(&gt_umgebung) ;
@@ -463,6 +461,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
    int err ;
    int err2 = 0 ;
    pthread_attr_t    thread_attr ;
+   umgebung_t        shared_umgebung   = umgebung_INIT_FREEABLE ;
    osthread_t      * prev_osthread     = 0 ;
    osthread_t      * next_osthread     = 0 ;
    osthread_t      * osthread          = 0 ;
@@ -484,14 +483,18 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
    err = init_semaphore(&isvalid_abortflag, 0) ;
    if (err) goto ABBRUCH ;
 
-   // !! preallocates enough resources so that init_umgebung never fails !!
-   // TODO: prepare_umgebung(nr_of_threads) ;
-
    osthread_stack_t signalstack = getsignalstack_osthreadstack(&stackframe) ;
    osthread_stack_t threadstack = getthreadstack_osthreadstack(&stackframe) ;
    prev_osthread = (osthread_t*) (threadstack.addr + s_offset_osthread) ;
    next_osthread = prev_osthread  ;
    osthread      = prev_osthread  ;
+
+   if (nr_of_threads > 1) {
+      err = init_umgebung(&shared_umgebung, umgebung_type_MULTITHREAD) ;
+   } else {
+      err = init_umgebung(&shared_umgebung, umgebung_type_SINGLETHREAD) ;
+   }
+   if (err) goto ABBRUCH ;
 
    for(uint32_t i = 0; i < nr_of_threads; ++i) {
 
@@ -505,9 +508,16 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
          .isFreeEvents = (0 == i),
          .isfreeable_semaphore = isfreeable_semaphore,
          .isvalid_abortflag    = isvalid_abortflag,
-         .umgtype = (umgebung().type ? umgebung().type : umgebung_type_SINGLETHREAD),
+         .umg         = umgebung_INIT_FREEABLE,
          .signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size }
       } ;
+
+      ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
+      err = initcopy_umgebung(&startarg->umg, &shared_umgebung) ;
+      if (err) {
+         LOG_CALLERR("initcopy_umgebung",err) ;
+         goto UNDO_LOOP ;
+      }
 
       ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
       err = pthread_attr_init(&thread_attr) ;
@@ -527,7 +537,8 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
       }
 
       ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
-      err = pthread_create( &sys_thread, &thread_attr, startpoint_osthread, startarg) ;
+      static_assert( (void* (*) (typeof(startarg)))0 == (typeof(&startpoint_osthread))0, "startpoint_osthread has argument of type startarg") ;
+      err = pthread_create( &sys_thread, &thread_attr, (void*(*)(void*))&startpoint_osthread, startarg) ;
       if (err) {
          sys_thread = sys_thread_INIT_FREEABLE ;
          LOG_SYSERR("pthread_create",err) ;
@@ -564,8 +575,9 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
       next_osthread     = (osthread_t*) (((uint8_t*)next_osthread) + framesize) ;
       continue ;
    UNDO_LOOP:
-      // !! frees preallocated resources which will never be used
-      // TODO: unprepare_umgebung(nr_of_threads -i -(sys_thread_INIT_FREEABLE != osthread->sys_thread[i])) ;
+      if (sys_thread_INIT_FREEABLE == sys_thread) {
+         assert(0 == free_umgebung(&startarg->umg)) ;
+      }
       next_osthread->wlistnext   = 0 ;
       next_osthread->sys_thread  = sys_thread ;
       next_osthread->stackframe  = stackframe ;
@@ -595,6 +607,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
    }
 
    // semaphore are freed in first created thread !
+   assert(0 == free_umgebung(&shared_umgebung)) ;
 
    *threadobj = osthread ;
    return 0 ;
@@ -608,6 +621,7 @@ ABBRUCH:
    (void) free_semaphore(&isvalid_abortflag) ;
    (void) free_semaphore(&isfreeable_semaphore) ;
    (void) delete_osthread(&osthread) ;
+   (void) free_umgebung(&shared_umgebung) ;
 
    LOG_ABORT(err) ;
    return err ;
