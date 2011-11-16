@@ -82,11 +82,6 @@
       <File Name="../../C-kern/api/os/process.h"/>
       <File Name="../../C-kern/api/os/thread.h"/>
       <File Name="../../C-kern/api/os/virtmemory.h"/>
-      <VirtualDirectory Name="filesystem">
-        <File Name="../../C-kern/api/os/filesystem/directory.h"/>
-        <File Name="../../C-kern/api/os/filesystem/findfile.h"/>
-        <File Name="../../C-kern/api/os/filesystem/mmfile.h"/>
-      </VirtualDirectory>
       <File Name="../../C-kern/api/os/inetsocket.h"/>
       <File Name="../../C-kern/api/os/timing.h"/>
       <VirtualDirectory Name="memory">
@@ -108,7 +103,6 @@
         <File Name="../../C-kern/api/os/index/redblacktree.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/os/locale.h"/>
-      <File Name="../../C-kern/api/os/file.h"/>
       <File Name="../../C-kern/api/os/malloc.h"/>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/api/os/task/threadpool.h"/>
@@ -143,7 +137,6 @@
       <File Name="../../C-kern/api/aspect/treenode3.h"/>
       <VirtualDirectory Name="constant">
         <File Name="../../C-kern/api/aspect/constant/spacetime.h"/>
-        <File Name="../../C-kern/api/aspect/constant/accessmode.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/memoryblock.h"/>
       <File Name="../../C-kern/api/aspect/slistnode.h"/>
@@ -187,6 +180,16 @@
       <File Name="../../C-kern/api/umg/objectcache_macros.h"/>
       <File Name="../../C-kern/api/umg/services_multithread.h"/>
       <File Name="../../C-kern/api/umg/services_singlethread.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="io">
+      <VirtualDirectory Name="filesystem">
+        <File Name="../../C-kern/api/io/filesystem/directory.h"/>
+        <File Name="../../C-kern/api/io/filesystem/findfile.h"/>
+        <File Name="../../C-kern/api/io/filesystem/mmfile.h"/>
+        <File Name="../../C-kern/api/io/filesystem/file.h"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/api/io/accessmode.h"/>
+      <File Name="../../C-kern/api/io/filedescr.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -254,20 +257,24 @@
   </VirtualDirectory>
   <VirtualDirectory Name="os">
     <VirtualDirectory Name="Linux">
-      <File Name="../../C-kern/os/Linux/directory.c"/>
       <File Name="../../C-kern/os/Linux/inetaddr.c"/>
       <File Name="../../C-kern/os/Linux/inetsocket.c"/>
-      <File Name="../../C-kern/os/Linux/mmfile.c"/>
       <File Name="../../C-kern/os/Linux/process.c"/>
       <File Name="../../C-kern/os/Linux/thread.c"/>
       <File Name="../../C-kern/os/Linux/timing.c"/>
       <File Name="../../C-kern/os/Linux/virtmemory.c"/>
-      <File Name="../../C-kern/os/Linux/file.c"/>
       <File Name="../../C-kern/os/Linux/semaphore.c"/>
       <File Name="../../C-kern/os/Linux/mutex.c"/>
       <File Name="../../C-kern/os/Linux/signal.c"/>
       <File Name="../../C-kern/os/Linux/locale.c"/>
       <File Name="../../C-kern/os/Linux/waitlist.c"/>
+      <File Name="../../C-kern/os/Linux/malloc.c"/>
+      <VirtualDirectory Name="io">
+        <File Name="../../C-kern/os/Linux/io/directory.c"/>
+        <File Name="../../C-kern/os/Linux/io/file.c"/>
+        <File Name="../../C-kern/os/Linux/io/mmfile.c"/>
+        <File Name="../../C-kern/os/Linux/io/filedescr.c"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <File Name="../../C-kern/os/shared/findfile.c"/>
@@ -280,7 +287,6 @@
         <File Name="../../C-kern/os/shared/index/splaytree.c"/>
         <File Name="../../C-kern/os/shared/index/redblacktree.c"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/os/shared/malloc.c"/>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/os/shared/task/exoscheduler.c"/>
         <File Name="../../C-kern/os/shared/task/exothread.c"/>
@@ -292,9 +298,6 @@
       <File Name="../../C-kern/os/X11/display.c"/>
       <File Name="../../C-kern/os/X11/glxwindow.c"/>
     </VirtualDirectory>
-  </VirtualDirectory>
-  <VirtualDirectory Name="export">
-    <File Name="../../C-kern/export/pdf.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="graphik"/>
   <VirtualDirectory Name="math">

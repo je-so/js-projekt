@@ -326,12 +326,14 @@ ABBRUCH:
    return (void*)err ;
 }
 
-void * calculateoffset_osthread(void * start_arg)
+void * calculateoffset_thread(osthread_stack_t * start_arg)
 {
-   osthread_stack_t * threadstack = (osthread_stack_t *) start_arg ;
    uint8_t          * osthread    = (uint8_t*) &gt_self_osthread ;
 
-   return (void*) (osthread - threadstack->addr) ;
+   s_offset_osthread = (size_t) (osthread - start_arg->addr) ;
+   assert(s_offset_osthread < start_arg->size) ;
+
+   return 0 ;
 }
 
 // group: implementation
@@ -345,7 +347,6 @@ int initonce_osthread(umgebung_t * umg)
    sys_thread_t      sys_thread        = sys_thread_INIT_FREEABLE ;
    osthread_stack_t  stackframe        = memoryblock_aspect_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
-   void            * offset            = 0 ;
 
    (void) umg ;
 
@@ -377,14 +378,15 @@ int initonce_osthread(umgebung_t * umg)
    }
 
    memset( threadstack.addr, 0, threadstack.size) ;
-   err = pthread_create( &sys_thread, &thread_attr, calculateoffset_osthread, &threadstack) ;
+   static_assert( (void* (*) (typeof(&threadstack)))0 == (typeof(&calculateoffset_thread))0, "calculateoffset_osthread expects &threadstack as argument" ) ;
+   err = pthread_create( &sys_thread, &thread_attr, (void*(*)(void*))&calculateoffset_thread, &threadstack) ;
    if (err) {
       sys_thread = sys_thread_INIT_FREEABLE ;
       LOG_SYSERR("pthread_create", err) ;
       goto ABBRUCH ;
    }
 
-   err = pthread_join(sys_thread, &offset) ;
+   err = pthread_join(sys_thread, 0) ;
    if (err) {
       LOG_SYSERR("pthread_join", err) ;
       goto ABBRUCH ;
@@ -400,7 +402,6 @@ int initonce_osthread(umgebung_t * umg)
    err = free_osthreadstack(&stackframe) ;
    if (err) goto ABBRUCH ;
 
-   s_offset_osthread = (size_t) offset ;
    return 0 ;
 ABBRUCH:
    if (sys_thread_INIT_FREEABLE != sys_thread) {
@@ -508,8 +509,8 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
          .isFreeEvents = (0 == i),
          .isfreeable_semaphore = isfreeable_semaphore,
          .isvalid_abortflag    = isvalid_abortflag,
-         .umg         = umgebung_INIT_FREEABLE,
-         .signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size }
+         .umg          = umgebung_INIT_FREEABLE,
+         .signalstack  = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size }
       } ;
 
       ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
@@ -578,6 +579,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
       if (sys_thread_INIT_FREEABLE == sys_thread) {
          assert(0 == free_umgebung(&startarg->umg)) ;
       }
+      next_osthread->lock        = (mutex_t) mutex_INIT_DEFAULT ;
       next_osthread->wlistnext   = 0 ;
       next_osthread->sys_thread  = sys_thread ;
       next_osthread->stackframe  = stackframe ;

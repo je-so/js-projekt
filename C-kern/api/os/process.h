@@ -27,6 +27,7 @@
 #define CKERN_OS_PROCESS_HEADER
 
 #include "C-kern/api/aspect/callback/task.h"
+#include "C-kern/api/io/filedescr.h"
 
 /* typedef: process_t
  * Represents op. system specific process. */
@@ -116,9 +117,9 @@ struct process_result_t
  * Make sure that redirected files are automatically closed in case
  * another process is executed (i.e. have set their O_CLOEXEC flag). */
 struct process_ioredirect_t {
-   sys_file_t  infile ;
-   sys_file_t  outfile ;
-   sys_file_t  errfile ;
+   filedescr_t  std_in ;
+   filedescr_t  std_out ;
+   filedescr_t  std_err ;
 } ;
 
 // group: lifetime
@@ -127,26 +128,26 @@ struct process_ioredirect_t {
  * Static initializer lets new process write and read from null device.
  * All written output is therefore ignored and reading returns always
  * with 0 bytes read. */
-#define process_ioredirect_INIT_DEVNULL      { sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE }
+#define process_ioredirect_INIT_DEVNULL      { filedescr_INIT_FREEABLE, filedescr_INIT_FREEABLE, filedescr_INIT_FREEABLE }
 
 /* define: process_ioredirect_INIT_INHERIT
  * Static initializer lets new process inherit standard io channels. */
-#define process_ioredirect_INIT_INHERIT      { sys_file_STDIN, sys_file_STDOUT, sys_file_STDERR }
+#define process_ioredirect_INIT_INHERIT      { filedescr_STDIN, filedescr_STDOUT, filedescr_STDERR }
 
-/* function: setin_processioredirect
+/* function: setstdin_processioredirect
  * Redirects standard input to given file.
- * Use value sys_file_INIT_FREEABLE to redirect standard input to device null. */
-void setin_processioredirect(process_ioredirect_t * ioredirect, sys_file_t input_file) ;
+ * Use value <filedescr_INIT_FREEABLE> to redirect standard input to device null. */
+void setstdin_processioredirect(process_ioredirect_t * ioredirect, filedescr_t input_file) ;
 
-/* function: setout_processioredirect
+/* function: setstdout_processioredirect
  * Redirects standard output to given file.
- * Use value sys_file_INIT_FREEABLE to redirect standard output to device null. */
-void setout_processioredirect(process_ioredirect_t * ioredirect, sys_file_t output_file) ;
+ * Use value <filedescr_INIT_FREEABLE> to redirect standard output to device null. */
+void setstdout_processioredirect(process_ioredirect_t * ioredirect, filedescr_t output_file) ;
 
-/* function: seterr_processioredirect
+/* function: setstderr_processioredirect
  * Redirects standard error output to given file.
- * Use value sys_file_INIT_FREEABLE to redirect standard error to device null. */
-void seterr_processioredirect(process_ioredirect_t * ioredirect, sys_file_t error_file) ;
+ * Use value <filedescr_INIT_FREEABLE> to redirect standard error to device null. */
+void setstderr_processioredirect(process_ioredirect_t * ioredirect, filedescr_t error_file) ;
 
 
 // section: process_t
@@ -211,20 +212,20 @@ extern int wait_process(process_t * process, /*out*/process_result_t * result) ;
                  (struct callback_param_t*) start_arg, ioredirection ) ;            \
       _err ; }))
 
-/* define: setin_processioredirect
- * Implements <process_ioredirect_t.setin_processioredirect>. */
-#define setin_processioredirect(ioredirect, input_file) \
-   ((void)((ioredirect)->infile = input_file))
+/* define: setstdin_processioredirect
+ * Implements <process_ioredirect_t.setstdin_processioredirect>. */
+#define setstdin_processioredirect(ioredirect, input_file) \
+   ((void)((ioredirect)->std_in = input_file))
 
-/* function: setout_processioredirect
- * Implements <process_ioredirect_t.setout_processioredirect>. */
-#define setout_processioredirect(ioredirect, output_file) \
-   ((void)((ioredirect)->outfile = output_file))
+/* function: setstdout_processioredirect
+ * Implements <process_ioredirect_t.setstdout_processioredirect>. */
+#define setstdout_processioredirect(ioredirect, output_file) \
+   ((void)((ioredirect)->std_out = output_file))
 
-/* function: seterr_processioredirect
- * Implements <process_ioredirect_t.seterr_processioredirect>. */
-#define seterr_processioredirect(ioredirect, error_file) \
-   ((void)((ioredirect)->errfile = error_file))
+/* function: setstderr_processioredirect
+ * Implements <process_ioredirect_t.setstderr_processioredirect>. */
+#define setstderr_processioredirect(ioredirect, error_file) \
+   ((void)((ioredirect)->std_err = error_file))
 
 #endif
 

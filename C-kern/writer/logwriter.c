@@ -31,8 +31,8 @@
 #include "C-kern/api/writer/main_logwriter.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/os/filesystem/directory.h"
-#include "C-kern/api/os/filesystem/mmfile.h"
+#include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filesystem/mmfile.h"
 #endif
 
 // section: logwriter_t
@@ -283,16 +283,16 @@ ABBRUCH:
 
 static int test_flushbuffer(void)
 {
-   logwriter_t          log        = logwriter_INIT_FREEABLE ;
-   int                  tempfd     = -1 ;
-   int                  oldstderr  = -1 ;
-   mmfile_t             logcontent = mmfile_INIT_FREEABLE ;
-   directory_stream_t   tempdir    = directory_stream_INIT_FREEABLE ;
+   logwriter_t    log        = logwriter_INIT_FREEABLE ;
+   int            tempfd     = -1 ;
+   int            oldstderr  = -1 ;
+   mmfile_t       logcontent = mmfile_INIT_FREEABLE ;
+   directory_t  * tempdir    = 0 ;
 
    // prepare logfile
-   TEST(0 == inittemp_directorystream(&tempdir, "tempdir")) ;
-   TEST(0 == makefile_directorystream(&tempdir, "testlog")) ;
-   tempfd = openat(dirfd(tempdir.sys_dir), "testlog", O_RDWR|O_CLOEXEC, 0600) ;
+   TEST(0 == newtemp_directory(&tempdir, "tempdir")) ;
+   TEST(0 == makefile_directory(tempdir, "testlog", 0)) ;
+   tempfd = openat(fd_directory(tempdir), "testlog", O_RDWR|O_CLOEXEC, 0600) ;
    TEST(0 < tempfd) ;
    oldstderr = dup(STDERR_FILENO) ;
    TEST(0 < oldstderr) ;
@@ -316,7 +316,7 @@ static int test_flushbuffer(void)
    TEST(0 == init_logwriter(&log)) ;
    TEST(log.logsize     == 0) ;
    TEST(log.buffer.size != 0) ;
-   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
    TEST(log.buffer.size == size_mmfile(&logcontent)) ;
    for(unsigned i = 0; i < log.buffer.size; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (1+i)) ;
@@ -347,7 +347,7 @@ static int test_flushbuffer(void)
    TEST(log.logsize == 1) ;
    TEST('Y' == (char) log.buffer.addr[0]) ;
    TEST(0 == log.buffer.addr[1]) ;
-   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
    TEST((log.buffer.size - log_PRINTF_MAXSIZE) == size_mmfile(&logcontent)) ;
    for(unsigned i = 0; i < log.buffer.size - log_PRINTF_MAXSIZE; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (2+i)) ;
@@ -365,7 +365,7 @@ static int test_flushbuffer(void)
    log.logsize = log.buffer.size ;
    TEST(0 == free_logwriter(&log)) ; // call flush
    TEST(0 == init_logwriter(&log)) ;
-   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, &tempdir, mmfile_openmode_RDONLY)) ;
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
    TEST(log.buffer.size == size_mmfile(&logcontent)) ;
    for(unsigned i = 0; i < log.buffer.size; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (3+i)) ;
@@ -379,23 +379,23 @@ static int test_flushbuffer(void)
    oldstderr = -1 ;
    TEST(0 == close(tempfd)) ;
    tempfd = -1 ;
-   TEST(0 == removefile_directorystream(&tempdir, "testlog")) ;
-   TEST(0 == remove_directorystream(&tempdir)) ;
-   TEST(0 == free_directorystream(&tempdir)) ;
+   TEST(0 == removefile_directory(tempdir, "testlog")) ;
+   TEST(0 == remove_directory(tempdir)) ;
+   TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
 ABBRUCH:
    if (tempfd >= 0) {
       close(tempfd) ;
-      removefile_directorystream(&tempdir, "testlog") ;
-      remove_directorystream(&tempdir) ;
+      removefile_directory(tempdir, "testlog") ;
+      remove_directory(tempdir) ;
    }
    if (oldstderr >= 0) {
       dup2(oldstderr, STDERR_FILENO) ;
       close(oldstderr) ;
    }
    free_mmfile(&logcontent) ;
-   free_directorystream(&tempdir) ;
+   delete_directory(&tempdir) ;
    free_logwriter(&log) ;
    return EINVAL ;
 }

@@ -4,6 +4,7 @@
 # The signal mask and handlers are initialized once during initmain_umgebung()
 "signal",      "action", "callback",                               "header",                           "description"
 "SIGINT",      "block",  "",                                       "",                                 "used to suspend and resume a single thread"
+"SIGPIPE",     "ignore", "", "", "ensures that calls to write return EPIPE"
 "SIGRTMIN",    "block", "", "", "SIGRTMIN ... SIGRTMIN+15 used in send_rtsignal"
 "SIGRTMIN+1",  "block", "", "", ""
 "SIGRTMIN+2",  "block", "", "", ""

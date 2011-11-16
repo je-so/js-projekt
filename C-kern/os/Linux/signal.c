@@ -125,6 +125,7 @@ static int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
    int err ;
    struct sigaction  sighandler ;
 
+   PRECONDITION_INPUT(signr > 0, ABBRUCH, ) ;
    PRECONDITION_INPUT(signr <= nrelementsof(s_signalhandler), ABBRUCH, LOG_INT(signr)) ;
 
    err = clearcallback_signalconfig(signr) ;
@@ -146,6 +147,41 @@ static int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
       goto ABBRUCH ;
    }
    s_signalhandler[signr-1].callback = callback ;
+   s_signalhandler[signr-1].isvalid  = true ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+static int setignore_signalconfig(unsigned signr)
+{
+   int err ;
+   struct sigaction  sighandler ;
+
+   PRECONDITION_INPUT(signr > 0, ABBRUCH, ) ;
+   PRECONDITION_INPUT(signr <= nrelementsof(s_signalhandler), ABBRUCH, LOG_INT(signr)) ;
+
+   err = clearcallback_signalconfig(signr) ;
+   if (err) goto ABBRUCH ;
+
+   sighandler.sa_flags     = SA_ONSTACK ;
+   sighandler.sa_handler   = SIG_IGN ;
+   err = sigemptyset(&sighandler.sa_mask) ;
+   if (err) {
+      err = EINVAL ;
+      LOG_SYSERR("sigemptyset", err) ;
+      goto ABBRUCH ;
+   }
+
+   err = sigaction((int)signr, &sighandler, &s_signalhandler[signr-1].oldstate) ;
+   if (err) {
+      LOG_SYSERR("sigaction", err) ;
+      LOG_INT(signr) ;
+      goto ABBRUCH ;
+   }
+   s_signalhandler[signr-1].callback = 0 /*ignore*/ ;
    s_signalhandler[signr-1].isvalid  = true ;
 
    return 0 ;
@@ -209,6 +245,19 @@ int initonce_signalconfig()
 
 // TEXTDB:SELECT("   // "description\n"   set("signal", "callback") ;")FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='set')
 // TEXTDB:END
+#undef set
+
+#define ignore(_SIGNR) \
+   static_assert(0 < _SIGNR && _SIGNR <= nrelementsof(s_signalhandler), \
+   "s_signalhandler must be big enough" ) ;                             \
+   err = setignore_signalconfig(_SIGNR) ;                               \
+   if (err) goto ABBRUCH ;
+
+// TEXTDB:SELECT("   // "description\n"   ignore("signal") ;")FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='ignore')
+   // ensures that calls to write return EPIPE
+   ignore(SIGPIPE) ;
+// TEXTDB:END
+#undef ignore
 
    return 0 ;
 ABBRUCH_sigmask:
@@ -320,15 +369,24 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
    if (sigconfig1 && sigconfig2) {
       int nr_diff = sigconfig1->nr_signal_handlers - sigconfig2->nr_signal_handlers ;
       nr_diff = signum(nr_diff) ;
-      if (nr_diff) return nr_diff ;
+      if (nr_diff) {
+         return nr_diff ;
+      }
 
       int cmp = memcmp(&sigconfig1->signalmask, &sigconfig2->signalmask, sizeof(sigconfig2->signalmask)) ;
-      if (cmp) return cmp ;
+      if (cmp) {
+         return cmp ;
+      }
 
       for(int i = sigconfig1->nr_signal_handlers; i > 0; ) {
          --i ;
+         if (sigconfig1->signal_handlers[i].sa_flags != sigconfig2->signal_handlers[i].sa_flags) {
+            return signum(sigconfig1->signal_handlers[i].sa_flags - sigconfig2->signal_handlers[i].sa_flags) ;
+         }
          cmp = memcmp(&sigconfig1->signal_handlers[i].sa_sigaction, &sigconfig2->signal_handlers[i].sa_sigaction, sizeof(sigconfig2->signal_handlers[i].sa_sigaction)) ;
-         if (cmp) return cmp ;
+         if (cmp) {
+            return cmp ;
+         }
       }
 
       return 0 ;
@@ -619,13 +677,17 @@ static int test_initonce(void)
    sigset_t            old_signalmask ;
    signalcallback_t    signalhandler[nrelementsof(s_signalhandler)] ;
 
+   static_assert(sizeof(old_signalmask) == sizeof(s_old_signalmask), "must be of same type") ;
+   static_assert(sizeof(signalhandler) == sizeof(s_signalhandler), "must be of same type") ;
+
    memcpy(&old_signalmask, &s_old_signalmask, sizeof(old_signalmask)) ;
-   memcpy(signalhandler, s_signalhandler, sizeof(s_signalhandler)) ;
+   memcpy(signalhandler, s_signalhandler, sizeof(signalhandler)) ;
+   memset( &s_signalhandler, 0, sizeof(s_signalhandler)) ;
 
    TEST(0 == initonce_signalconfig()) ;
    TEST(0 == freeonce_signalconfig()) ;
 
-   memcpy(&s_old_signalmask, &old_signalmask, sizeof(old_signalmask)) ;
+   memcpy(&s_old_signalmask, &old_signalmask, sizeof(s_old_signalmask)) ;
    memcpy(s_signalhandler, signalhandler, sizeof(s_signalhandler)) ;
 
    return 0 ;

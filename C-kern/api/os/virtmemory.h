@@ -26,8 +26,8 @@
 #define CKERN_OS_VIRTUALMEMORY_HEADER
 
 #include "C-kern/api/aspect/memoryblock.h"
-#include "C-kern/api/aspect/constant/accessmode.h"
 #include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/io/accessmode.h"
 
 /* typedef: vm_block_t typedef
  * Exports <vm_block_t>. */
@@ -95,7 +95,7 @@ extern int init_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages ) ;
  * It has accessible as stated in paramter *access_mode*.
  * A child process can access its content after a fork and a change is shared with the parent process
  * if <accessmode_SHARED> was specified. */
-extern int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, const accessmode_aspect_e access_mode  ) ;
+extern int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, const accessmode_e access_mode  ) ;
 
 /* function: free_vmblock
  * Invalidates virtual memory address range
@@ -109,8 +109,9 @@ extern int free_vmblock( vm_block_t * vmblock ) ;
 
 /* function: protect_vmblock
  * Sets protection of memory (e.g. if write is possible).
- * See <accessmoderw_aspect_e> for a list of all supported bits. */
-extern int protect_vmblock( vm_block_t * vmblock, const accessmoderw_aspect_e access_mode ) ;
+ * See <accessmode_e> for a list of all supported bits.
+ * <accessmode_PRIVATE> and <accessmode_SHARED> can not be changed after creation. */
+extern int protect_vmblock( vm_block_t * vmblock, const accessmode_e access_mode ) ;
 
 /* function: tryexpand_vmblock
  * Tries to grow the upper bound of an already mapped address range.
@@ -145,16 +146,16 @@ struct vm_region_t
 {
    /* variable: addr
     * Start address or lowest address of mapping. */
-   void                 *  addr ;
+   void           *  addr ;
    /* variable: endaddr
     * End address of mapping. It points to the address after the last mapped byte.
     * Therefore the length in pages can be calculated as:
     * > (endaddr - addr) / pagesize_vm() */
-   void                 *  endaddr ;
+   void           *  endaddr ;
    /* variable: protection
     * Gives protection (access rights) of the memory block.
-    * See <accessmode_aspect_e> for a list of supported bits. */
-   accessmode_aspect_e   protection ;
+    * See <accessmode_e> for a list of supported bits. */
+   accessmode_e      protection ;
 } ;
 
 // group: query
@@ -242,7 +243,7 @@ extern const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 /* define: init_vmblock
  * Implements <vm_block_t.init_vmblock> with help of <vm_block_t.init2_vmblock>. */
 #define init_vmblock( vmblock, size_in_pages ) \
-   (init2_vmblock( vmblock, size_in_pages, accessmoderw_RDWR|accessmode_PRIVATE ))
+   (init2_vmblock( vmblock, size_in_pages, accessmode_RDWR|accessmode_PRIVATE ))
 
 /* define: pagesize_vm inline
  * Uses cached value from <valuecache_umgebung>. */

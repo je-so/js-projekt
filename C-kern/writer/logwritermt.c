@@ -32,9 +32,9 @@
 #include "C-kern/api/writer/main_logwriter.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/os/thread.h"
-#include "C-kern/api/os/filesystem/directory.h"
-#include "C-kern/api/os/filesystem/mmfile.h"
 #include "C-kern/api/os/sync/signal.h"
 #endif
 

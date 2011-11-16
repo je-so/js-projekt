@@ -119,12 +119,14 @@ typedef enum log_channel_e       log_channel_e ;
  * printf_type - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
  *               Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
  * varname     - The name of the variable to log.
+ * cast        - A type cast expression like "(void*)" without enclosing "". Use this to adapt the type of the variable.
+ *               Leave it empty if you do not need a type cast.
  *
  * Example:
  * This code logs "memsize=1024\n"
  * > const size_t memsize = 1024 ;
- * > LOGC_VAR(ERR, PRIuSIZE,memsize) ; */
-#define LOGC_VAR(LOGCHANNEL, printf_type, varname)       LOGC_PRINTF(LOGCHANNEL, #varname "=%" printf_type "\n", (varname))
+ * > LOGC_VAR(ERR, PRIuSIZE, memsize, ) ; */
+#define LOGC_VAR(LOGCHANNEL, printf_type, varname, cast)       LOGC_PRINTF(LOGCHANNEL, #varname "=%" printf_type "\n", cast (varname))
 
 /* define: LOGC_INDEX
  * Log "array[i]=value" of variable stored in array at offset i.
@@ -146,54 +148,54 @@ typedef enum log_channel_e       log_channel_e ;
  * Log "name=value" of string variable.
  * Example:
  * > const char * name = "Jo" ; LOGC_STRING(ERR, name) ; */
-#define LOGC_STRING(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, "s", varname)
+#define LOGC_STRING(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, "s", varname, )
 
 /* define: LOGC_INT
  * Log "name=value" of int variable.
  * Example:
  * > const int max = 100 ; LOGC_INT(ERR, max) ; */
-#define LOGC_INT(LOGCHANNEL, varname)        LOGC_VAR(LOGCHANNEL, "d", varname)
+#define LOGC_INT(LOGCHANNEL, varname)        LOGC_VAR(LOGCHANNEL, "d", varname, )
 
 /* define: LOGC_SIZE
  * Log "name=value" of size_t variable.
  * Example:
  * > const size_t maxsize = 100 ; LOGC_SIZE(ERR, maxsize) ; */
-#define LOGC_SIZE(LOGCHANNEL, varname)       LOGC_VAR(LOGCHANNEL, PRIuSIZE, varname)
+#define LOGC_SIZE(LOGCHANNEL, varname)       LOGC_VAR(LOGCHANNEL, PRIuSIZE, varname, )
 
 /* define: LOGC_UINT8
  * Log "name=value" of uint8_t variable.
  * Example:
  * > const uint8_t limit = 255 ; LOGC_UINT8(ERR, limit) ; */
-#define LOGC_UINT8(LOGCHANNEL, varname)      LOGC_VAR(LOGCHANNEL, PRIu8, varname)
+#define LOGC_UINT8(LOGCHANNEL, varname)      LOGC_VAR(LOGCHANNEL, PRIu8, varname, )
 
 /* define: LOGC_UINT16
  * Log "name=value" of uint16_t variable.
  * Example:
  * > const uint16_t limit = 65535 ; LOGC_UINT16(ERR, limit) ; */
-#define LOGC_UINT16(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu16, varname)
+#define LOGC_UINT16(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu16, varname, )
 
 /* define: LOGC_UINT32
  * Log "name=value" of uint32_t variable.
  * Example:
  * > const uint32_t max = 100 ; LOGC_UINT32(ERR, max) ; */
-#define LOGC_UINT32(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu32, varname)
+#define LOGC_UINT32(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu32, varname, )
 
 /* define: LOGC_UINT64
  * Log "name=value" of uint64_t variable.
  * Example:
  * > const uint64_t max = 100 ; LOGC_UINT64(ERR, max) ; */
-#define LOGC_UINT64(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu64, varname)
+#define LOGC_UINT64(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu64, varname, )
 
 /* define: LOGC_PTR
  * Log "name=value" of pointer variable.
  * Example:
  * > const void * ptr = &g_variable ; LOGC_PTR(ERR, ptr) ; */
-#define LOGC_PTR(LOGCHANNEL, varname)        LOGC_VAR(LOGCHANNEL, "p", varname)
+#define LOGC_PTR(LOGCHANNEL, varname)        LOGC_VAR(LOGCHANNEL, "p", varname, (void*))
 
 /* define: LOGC_DOUBLE
  * Log "name=value" of double or float variable.
  * Example:
  * > const double d = 1.234 ; LOGC_DOUBLE(ERR, d) ; */
-#define LOGC_DOUBLE(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, "g", varname)
+#define LOGC_DOUBLE(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, "g", varname, )
 
 #endif

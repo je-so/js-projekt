@@ -37,7 +37,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/os/filesystem/mmfile.h"
+#include "C-kern/api/io/filesystem/mmfile.h"
 
 typedef struct function_t              function_t ;
 typedef struct iffunction_t            iffunction_t ;
@@ -508,7 +508,7 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
       goto ABBRUCH ;
    }
 
-   err = init_mmfile( &txtdb.input_file, filename, 0, 0, 0, mmfile_openmode_RDONLY) ;
+   err = init_mmfile( &txtdb.input_file, filename, 0, 0, mmfile_openmode_RDONLY, 0) ;
    if (err) {
       print_err( "Can not open textdb file '%s' for reading: %s", filename, strerror(err) ) ;
       goto ABBRUCH ;
@@ -1572,7 +1572,7 @@ int main(int argc, const char * argv[])
    }
 
    // open input file for reading
-   err = init_mmfile(&input_file, g_infilename, 0, 0, 0, mmfile_openmode_RDONLY) ;
+   err = init_mmfile(&input_file, g_infilename, 0, 0, mmfile_openmode_RDONLY, 0) ;
    if (err) {
       print_err( "Can not open file '%s' for reading: %s", g_infilename, strerror(err)) ;
       goto ABBRUCH ;

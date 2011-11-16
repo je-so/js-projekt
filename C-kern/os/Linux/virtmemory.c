@@ -200,7 +200,7 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
 
          next_region->addr         = (void *) start ;
          next_region->endaddr      = (void *) end ;
-         accessmode_aspect_e   prot ;
+         accessmode_e   prot ;
          prot  = ((isReadable == 'r')   ? accessmode_READ   : 0) ;
          prot |= ((isWriteable == 'w')  ? accessmode_WRITE  : 0) ;
          prot |= ((isExecutable == 'x') ? accessmode_EXEC   : 0) ;
@@ -304,7 +304,7 @@ const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
          && accessmode_WRITE == PROT_WRITE      \
          && accessmode_EXEC  == PROT_EXEC ) {   \
       prot  = access_mode ;                     \
-      prot &= (accessmoderw_RDWREXEC) ;         \
+      prot &= (accessmode_RDWR|accessmode_EXEC);\
    } else {                                     \
       if (accessmode_READ & access_mode) {      \
          prot = PROT_READ ;                     \
@@ -319,7 +319,7 @@ const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
       }                                         \
    }
 
-int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_aspect_e access_mode )
+int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_e access_mode )
 {
    int    err ;
    int    prot ;
@@ -374,7 +374,7 @@ ABBRUCH:
    return err ;
 }
 
-int protect_vmblock( vm_block_t * vmblock, const accessmoderw_aspect_e access_mode )
+int protect_vmblock( vm_block_t * vmblock, const accessmode_e access_mode )
 {
    int err ;
    int prot ;
@@ -515,7 +515,7 @@ static int iscontained_in_mapping(const vm_block_t * mapped_block)
       if (     mapped_start < next->endaddr
             && mapped_end   > next->addr ) {
          // overlapping
-         if (next->protection != (accessmoderw_RDWR | accessmode_PRIVATE)) {
+         if (next->protection != (accessmode_RDWR | accessmode_PRIVATE)) {
             printf("(%p)->protection=%d\n", (void*)(intptr_t)next, next->protection) ;
             result = 2 ;
             break ;
@@ -564,7 +564,7 @@ ABBRUCH:
    return err ;
 }
 
-static int compare_protection(const vm_block_t * vmblock, accessmoderw_aspect_e prot)
+static int compare_protection(const vm_block_t * vmblock, accessmode_e prot)
 {
    int err ;
    vm_region_t region ;
@@ -843,7 +843,7 @@ static int test_protection(void)
    }
 
    // TEST protection after init, expand, movexpand, shrink
-   accessmoderw_aspect_e prot[6] = { accessmoderw_RDWR, accessmoderw_WRITE, accessmoderw_READ, accessmoderw_RDEXEC, accessmoderw_RDWREXEC, accessmoderw_NONE } ;
+   accessmode_e prot[6] = { accessmode_RDWR, accessmode_WRITE, accessmode_READ, accessmode_READ|accessmode_EXEC, accessmode_RDWR|accessmode_EXEC, accessmode_NONE } ;
    for(unsigned i = 0; i < nrelementsof(prot); ++i) {
       // TEST init2 generates correct protection
       TEST(0 == init2_vmblock(&vmblock, 2, prot[i])) ;
@@ -851,7 +851,7 @@ static int test_protection(void)
       TEST(0 == free_vmblock(&vmblock)) ;
       // TEST init generates RW protection
       TEST(0 == init_vmblock(&vmblock, 2)) ;
-      TEST(0 == compare_protection(&vmblock, accessmoderw_RDWR)) ;
+      TEST(0 == compare_protection(&vmblock, accessmode_RDWR)) ;
       // TEST setting protection
       TEST(0 == protect_vmblock(&vmblock, prot[i])) ;
       TEST(0 == compare_protection(&vmblock, prot[i])) ;
@@ -869,7 +869,7 @@ static int test_protection(void)
 
    // TEST write of readonly page is not possible
    TEST(0 == init_vmblock(&vmblock, 1)) ;
-   TEST(0 == protect_vmblock(&vmblock, accessmoderw_READ)) ;
+   TEST(0 == protect_vmblock(&vmblock, accessmode_READ)) ;
    is_exception = 0 ;
    TEST(0 == getcontext(&s_usercontext)) ;
    if (!is_exception) {
@@ -881,7 +881,7 @@ static int test_protection(void)
    TEST(0 == free_vmblock(&vmblock)) ;
 
    // TEST read of not accessible page is not possible
-   TEST(0 == init2_vmblock(&vmblock, 1, accessmoderw_NONE)) ;
+   TEST(0 == init2_vmblock(&vmblock, 1, accessmode_NONE)) ;
    is_exception = 0 ;
    TEST(0 == getcontext(&s_usercontext)) ;
    if (!is_exception) {

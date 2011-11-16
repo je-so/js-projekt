@@ -37,10 +37,6 @@
         "Kein Speicher (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
         "Parameter '%s' > %d\n", parameter_name, parameter_max
-#define TEXTRES_ERRORLOG_PATH_CONTAINS_TOO_MANY_LEADING_DOTS(checked_path, basedir) \
-        "Pfad '%s' enthält zuviel führende '../'\nrelativ zum Pfad '%s'\n", checked_path, basedir
-#define TEXTRES_ERRORLOG_PATH_NOT_WELL_FORMED(checked_path) \
-        "Pfad '%s' enthält '/./' oder '//' bzw. '/../'\n", checked_path
 #define TEXTRES_ERRORLOG_PROCESS_TERMINATED_ABNORMAL(process_name, exit_code) \
         "Prozess '%s' abnormal beendet (exit wert=%d)\n", process_name, exit_code
 #define TEXTRES_ERRORLOG_PROCESS_TERMINATED_WITH_ERROR(process_name, exit_code) \
@@ -83,10 +79,6 @@
         "Out of memory (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
         "Parameter '%s' > %d\n", parameter_name, parameter_max
-#define TEXTRES_ERRORLOG_PATH_CONTAINS_TOO_MANY_LEADING_DOTS(checked_path, basedir) \
-        "path '%s' contains to many leading '../'\nrelative to path '%s'\n", checked_path, basedir
-#define TEXTRES_ERRORLOG_PATH_NOT_WELL_FORMED(checked_path) \
-        "path '%s' contains '/./' or '//' or '/../'\n", checked_path
 #define TEXTRES_ERRORLOG_PROCESS_TERMINATED_ABNORMAL(process_name, exit_code) \
         "Process '%s' terminated abnormal (exit value=%d)\n", process_name, exit_code
 #define TEXTRES_ERRORLOG_PROCESS_TERMINATED_WITH_ERROR(process_name, exit_code) \

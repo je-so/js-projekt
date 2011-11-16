@@ -98,6 +98,18 @@ void print_warn(const char* error_description_format, /*arguments*/ ...)
    va_end( error_description_args ) ;
 }
 
+int errmalloc( void ** memblock, size_t size)
+{
+   void * new_memblock = malloc( size ) ;
+   if (!new_memblock) {
+      print_err( "Out of memory!\n" ) ;
+      return ENOMEM ;
+   }
+
+   *memblock = new_memblock ;
+   return 0 ;
+}
+
 typedef struct stringarray stringarray_t ;
 struct stringarray {
    uint16_t size ;
@@ -119,17 +131,15 @@ int ccopy_stringarray( size_t size, char ** strings, stringarray_t** result)
 
    if (size > (uint16_t)-1) {
       print_err( "Out of memory!\n" ) ;
-      return 1 ;
+      return ENOMEM ;
    }
 
    size_t valuelen  = 0 ;
    for(size_t i = 0; i < size; ++i) {
          valuelen += strlen(strings[i]) ;
    }
-   *result = (stringarray_t*) malloc( sizeof(stringarray_t) + size * (1+sizeof(char*)) + valuelen ) ;
-   if (!(*result)) {
-      print_err( "Out of memory!\n" ) ;
-      return 1 ;
+   if (errmalloc((void**)result, sizeof(stringarray_t) + size * (1+sizeof(char*)) + valuelen)) {
+      return ENOMEM ;
    }
    (*result)->size = (uint16_t) size ;
    (*result)->valueslen = valuelen ;

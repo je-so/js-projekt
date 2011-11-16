@@ -25,9 +25,11 @@ for i in $files; do
    info2=""
    for((fi=0;fi<${#function_calls[*]};fi=fi+1)) do
       call=`echo "${function_calls[$fi]}" | sed -e 's/[ ]*LOG_SYSERR[ ]*(\([ ]*"[^"]*"\|[^")]*\)*)[ ]*;//' -`
+      call=`echo "$call" | sed -e "s/[ ]*TEST(\(.*\))/\1/" -`
+      call=`echo "$call" | sed -e "s/^[0-9<=>! ]*(\(.*\))/\1/" -`
       call=`echo "$call" | sed -e "s/[^(]*([^,]*,[^,)]*O_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
       call=`echo "$call" | sed -e "s/[^(]*eventfd[ ]*([^,]*,[^,)]*EFD_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
-      call=`echo "$call" | sed -e "s/[^(]*openat[ ]*(\([^,]*,\)\{2\}[^,)]*O_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
+      call=`echo "$call" | sed -e "s/[^(]*openat[ ]*(\([^,]*,\)\{2\}[^,]*O_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
       if [ "`echo "$call" | sed -e 's/[ ]*//g' -`" != "" ]; then info2="$info2       ${function_calls[$fi]}\n"; fi
    done
    for((fi=0;fi<${#function_calls2[*]};fi=fi+1)) do

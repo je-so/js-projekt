@@ -42,7 +42,26 @@
 #endif
 
 
-// section: Implementation
+// section: umgebung_t
+
+// group: variables
+
+/* variable: gt_umgebung
+ * Defines thread-local storage for global context <umgebung_t> which every modul can access.
+ * */
+__thread umgebung_t           gt_umgebung       = umgebung_INIT_MAINSERVICES ;
+
+/* variable: s_umgebung_shared
+ * Defines shared part of global context <umgebung_t> which is the same for every modul. */
+umgebung_shared_t             s_umgebung_shared = umgebung_shared_INIT_FREEABLE ;
+
+#define THREAD 1
+#if ((KONFIG_SUBSYS)&THREAD)
+/* variable: s_initlock
+ * Lock to protect access to <s_umgebungcount> in <init_umgebung> & <free_umgebung>. */
+static mutex_t                s_initlock        = mutex_INIT_DEFAULT ;
+#endif
+#undef THREAD
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_error_init
@@ -50,39 +69,28 @@
 static test_errortimer_t      s_error_init = test_errortimer_INIT_FREEABLE ;
 #endif
 
-/* variable: s_umgebung_shared
- * Defines thread-local storage for global context <umgebung_t> which every modul can access.
- * */
-umgebung_shared_t             s_umgebung_shared = umgebung_shared_INIT_FREEABLE ;
-
-/* variable: gt_umgebung
- * Defines thread-local storage for global context <umgebung_t> which every modul can access.
- * */
-__thread umgebung_t           gt_umgebung       = umgebung_INIT_MAINSERVICES ;
-
-#define THREAD 1
-#if ((KONFIG_SUBSYS)&THREAD)
-/* variable: s_initlock
- * Lock to protect access to <s_umgebungcount>. */
-static mutex_t                s_initlock        = mutex_INIT_DEFAULT ;
-#endif
-#undef THREAD
-
 /* variable: s_umgebungcount
  * The number of initialized <umgebung_t>.
- * Used in <init_umgebung>*/
+ * Used in <init_umgebung> & <free_umgebung> to check if initonce_Functions
+ * have to be called. */
 static size_t                 s_umgebungcount   = 0 ;
 
 /* variable: s_initoncecount_no_umgebung
  * Rememberes how many resources has been initialized successfully.
  * Used in <initonce_no_umgebung> and <freeonce_no_umgebung>
  * which are called from <initmain_umgebung> and <freemain_umgebung>. */
-static uint16_t               s_initoncecount_no_umgebung    = 0 ;
+static size_t                 s_initoncecount_no_umgebung    = 0 ;
 
 /* variable: s_initoncecount_valid_umgebung
  * Rememberes how many times <initonce_valid_umgebung> has been called. */
-static uint16_t               s_initoncecount_valid_umgebung = 0 ;
+static size_t                 s_initoncecount_valid_umgebung = 0 ;
 
+// group: helper
+
+/* function: freeonce_no_umgebung
+ * Frees resources after last <umgebung_t> object destroyed.
+ * Uses <s_initoncecount_no_umgebung> to decide how many have to be
+ * freed. Called functions has signature »freeonce_Function(void)«. */
 static int freeonce_no_umgebung(void)
 {
    int err = 0 ;
@@ -112,6 +120,10 @@ ABBRUCH:
    return err ;
 }
 
+/* function: initonce_no_umgebung
+ * Initializes resources before first <umgebung_t> object is initialized.
+ * Uses <s_initoncecount_no_umgebung> to count the number of successful calls
+ * to »initonce_Function(void)« . */
 static int initonce_no_umgebung(void)
 {
    int err ;
@@ -878,22 +890,22 @@ int unittest_umgebung()
 
       const char * expect =
          // log from test_main_init
-         "C-kern/umgebung/umgebung.c:420: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "C-kern/umgebung/umgebung.c:432: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=0"
-         "\nC-kern/umgebung/umgebung.c:427: initmain_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:420: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:439: initmain_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:432: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
-         "\nC-kern/umgebung/umgebung.c:427: initmain_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:439: initmain_umgebung(): error: Function aborted (err=22)"
          // log from test_initfree
-         "\nC-kern/umgebung/umgebung.c:362: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:374: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=0"
-         "\nC-kern/umgebung/umgebung.c:369: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:362: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:381: init_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:374: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
-         "\nC-kern/umgebung/umgebung.c:369: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:379: initcopy_umgebung(): error: Function argument violates condition (umgebung_type_MULTITHREAD == copy_from->type || umgebung_type_SINGLETHREAD == copy_from->type)"
+         "\nC-kern/umgebung/umgebung.c:381: init_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:391: initcopy_umgebung(): error: Function argument violates condition (umgebung_type_MULTITHREAD == copy_from->type || umgebung_type_SINGLETHREAD == copy_from->type)"
          "\ncopy_from->type=0"
-         "\nC-kern/umgebung/umgebung.c:386: initcopy_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:398: initcopy_umgebung(): error: Function aborted (err=22)"
          "\n"
          ;
 

@@ -5,14 +5,14 @@ C-kern/cache/objectcachemt.c:76: initumgebung_objectcachemt(): error: Function a
 C-kern/cache/objectcache.c:153: lockiobuffer2_objectcache(): error: Function argument violates condition (0 == *iobuffer)
 C-kern/cache/objectcache.c:159: lockiobuffer2_objectcache(): error: Function aborted (err=22)
 C-kern/cache/objectcache.c:184: lockiobuffer_objectcache(): error: Assertion '!err && "lockiobuffer2_objectcache"' failed.
-C-kern/umgebung/umgebung.c:435: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/umgebung/umgebung.c:447: abort_umgebung(): error: Abort process with fatal error (err=22)
 C-kern/os/Linux/mutex.c:94: lock_mutex(): error: Function aborted (err=35)
 C-kern/cache/objectcachemt.c:142: lockiobuffer_objectcachemt(): error: Assertion '! _err_slock_mutex' failed.
-C-kern/umgebung/umgebung.c:435: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/umgebung/umgebung.c:447: abort_umgebung(): error: Abort process with fatal error (err=22)
 C-kern/cache/objectcache.c:168: unlockiobuffer2_objectcache(): error: Function argument violates condition (&objectcache->iobuffer == *iobuffer)
 C-kern/cache/objectcache.c:174: unlockiobuffer2_objectcache(): error: Function aborted (err=22)
 C-kern/cache/objectcache.c:193: unlockiobuffer_objectcache(): error: Assertion '!err && "unlockiobuffer2_objectcache"' failed.
-C-kern/umgebung/umgebung.c:435: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/umgebung/umgebung.c:447: abort_umgebung(): error: Abort process with fatal error (err=22)
 C-kern/os/Linux/mutex.c:107: unlock_mutex(): error: Function aborted (err=1)
 C-kern/cache/objectcachemt.c:149: unlockiobuffer_objectcachemt(): error: Assertion '! _err_sunlock_mutex' failed.
-C-kern/umgebung/umgebung.c:435: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/umgebung/umgebung.c:447: abort_umgebung(): error: Abort process with fatal error (err=22)

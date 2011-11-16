@@ -96,37 +96,32 @@
 
 /* group: !OVERWRITE! system specific types */
 
+#undef  sys_directory_t
 /* define: sys_directory_t
  * Type represents an opened file system directory.
- * This type is Posix specific with pthread support. */
-#undef  sys_directory_t
+ * This type is Posix specific. */
 #define sys_directory_t                DIR*
-/* define: sys_directory_entry_t
- * Type represents one file name entry in a directory.
- * This type is Posix specific with pthread support. */
-#undef  sys_directory_entry_t
-#define sys_directory_entry_t          struct dirent
+#undef  sys_file_t
 /* define: sys_file_t
+ * Type represents a system file.
+ * This type is a Posix specific file descriptor. */
+#define sys_file_t                     sys_filedescr_t
+#undef  sys_file_INIT_FREEABLE
+/* define: sys_file_INIT_FREEABLE
+ * Static initializer for a file which is in a closed or invalid state. */
+#define sys_file_INIT_FREEABLE         sys_filedescr_INIT_FREEABLE
+#undef  sys_filedescr_t
+/* define: sys_filedescr_t
  * Type represents a system file descriptor.
  * This type is Posix specific. */
-#undef  sys_file_t
-#define sys_file_t                     int
-/* define: sys_file_INIT_FREEABLE
- * Static initializer for a file which is in a closed state. */
-#undef  sys_file_INIT_FREEABLE
-#define sys_file_INIT_FREEABLE         (-1)
-/* define: sys_file_STDIN
- * Static initializer for the standard input file of a process. */
-#define sys_file_STDIN                 (STDIN_FILENO)
-/* define: sys_file_STDOUT
- * Static initializer for the standard ouptut file of a process. */
-#define sys_file_STDOUT                (STDOUT_FILENO)
-/* define: sys_file_STDERR
- * Static initializer for the standard error output file of a process. */
-#define sys_file_STDERR                (STDERR_FILENO)
+#define sys_filedescr_t                int
+#undef  sys_filedescr_INIT_FREEABLE
+/* define: sys_filedescr_INIT_FREEABLE
+ * Static initializer for a file descriptor which is not valid. */
+#define sys_filedescr_INIT_FREEABLE    (-1)
 /* define: sys_mutex_t
  * Type represents a mutual exclusion lock.
- * This type is Posix specific with pthread support. */
+ * This type is Posix specific and needs pthread support. */
 #undef  sys_mutex_t
 #define sys_mutex_t                    pthread_mutex_t
 /* define: sys_mutex_INIT_DEFAULT
@@ -153,7 +148,7 @@
 #define sys_semaphore_INIT_FREEABLE    (-1)
 /* define: sys_thread_t
  * Types represents a system thread.
- * This type is Posix specific with pthread support. */
+ * This type is Posix specific and needs pthread support. */
 #undef  sys_thread_t
 #define sys_thread_t                   pthread_t
 /* define: sys_thread_INIT_FREEABLE

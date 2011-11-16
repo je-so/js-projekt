@@ -5,7 +5,7 @@ include        projekte/subsys/Linux-mini
 include        projekte/subsys/umgebung-mini
 Src           += C-kern/main/testchildprocess_main.c
 Src           += C-kern/os/Linux/process.c
-Src           += C-kern/os/Linux/file.c
-Src           += C-kern/os/Linux/directory.c
+Src           += C-kern/os/Linux/io/filedescr.c
+Src           += C-kern/os/Linux/io/directory.c
 Includes       = .
 Defines        = KONFIG_SUBSYS=none

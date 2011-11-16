@@ -224,15 +224,18 @@
  * Pointer type holding system specific description of an opened directory stream.
  * NULL is considered an unitialized value. Overwritten in system specific include file. */
 #define sys_directory_t             void
-/* define: sys_directory_entry_t
- * Structure holding system specific description of read directory entry. */
-#define sys_directory_entry_t       void
 /* define: sys_file_t
  * Type holding system specific description of a file. */
 #define sys_file_t                  void
 /* define: sys_file_INIT_FREEABLE
  * Static initializer for a mutex useable by threads of the same process. */
 #define sys_file_INIT_FREEABLE      void
+/* define: sys_filedescr_t
+ * Type holding system specific description of a file. */
+#define sys_filedescr_t             void
+/* define: sys_filedescr_INIT_FREEABLE
+ * Static initializer for a mutex useable by threads of the same process. */
+#define sys_filedescr_INIT_FREEABLE void
 /* define: sys_mutex_t
  * Type holding system specific description of a mutex. */
 #define sys_mutex_t                 void

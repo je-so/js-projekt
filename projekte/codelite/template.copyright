@@ -17,10 +17,10 @@
    (C) 2011 Jörg Seebohn
 
    file: $(CurrentFileFullPath)
-    Header file of <title TODO>.
+    Header file <TODO>.
 
    file: TODO
-    Implementation file of <title TODO>.
+    Implementation file <TODO>.
 */
 #ifndef CKERN_TODO_HEADER
 #define CKERN_TODO_HEADER

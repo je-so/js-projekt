@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/resourceusage.h"
-#include "C-kern/api/os/file.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/os/malloc.h"
 #include "C-kern/api/os/sync/signal.h"
 #include "C-kern/api/os/virtmemory.h"
@@ -43,7 +43,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    vm_mappedregions_t * mappedregions = 0 ;
    signalconfig_t     * signalconfig  = 0 ;
 
-   err = openfd_file(&fds) ;
+   err = nropen_filedescr(&fds) ;
    if (err) goto ABBRUCH ;
 
    err = allocatedsize_malloc(&allocated) ;

@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Nov.05  16:13:27
+GenerationDate  := 2011.Nov.16  17:57:04
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -84,7 +84,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o
+ $(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
@@ -97,7 +97,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!writer!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o
+ $(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -135,7 +135,7 @@ $(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwrite
 $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
+$(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o: C-kern/os/Linux/io/mmfile.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
@@ -168,7 +168,7 @@ $(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwri
 $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!mmfile.c.o: C-kern/os/Linux/mmfile.c
+$(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o: C-kern/os/Linux/io/mmfile.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

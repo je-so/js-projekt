@@ -20,7 +20,7 @@
    file: C-kern/api/os/malloc.h
     Header file of <Malloc>.
 
-   file: C-kern/os/shared/malloc.c
+   file: C-kern/os/Linux/malloc.c
     Implementation file of <Malloc impl>.
 */
 #ifndef CKERN_OS_MALLOC_HEADER

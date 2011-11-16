@@ -363,7 +363,7 @@ static int test_iobuffer(void)
 
    TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
    process_ioredirect_t ioredirect = process_ioredirect_INIT_DEVNULL ;
-   seterr_processioredirect(&ioredirect, pipefd[1]) ;
+   setstderr_processioredirect(&ioredirect, pipefd[1]) ;
 
    // TEST assertion lockiobuffer_objectcache
    TEST(0 == init_objectcache( &cache )) ;

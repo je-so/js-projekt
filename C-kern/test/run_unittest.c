@@ -33,10 +33,13 @@
 #include "C-kern/api/cache/objectcachemt.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/filesystem/findfile.h"
+#include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/math/int/signum.h"
 #include "C-kern/api/math/int/power2.h"
-#include "C-kern/api/os/filesystem/directory.h"
-#include "C-kern/api/os/filesystem/mmfile.h"
 #include "C-kern/api/os/index/redblacktree.h"
 #include "C-kern/api/os/index/splaytree.h"
 #include "C-kern/api/os/sync/mutex.h"
@@ -46,7 +49,6 @@
 #include "C-kern/api/os/task/exoscheduler.h"
 #include "C-kern/api/os/task/exothread.h"
 #include "C-kern/api/os/task/threadpool.h"
-#include "C-kern/api/os/file.h"
 #include "C-kern/api/os/locale.h"
 #include "C-kern/api/os/malloc.h"
 #include "C-kern/api/os/process.h"
@@ -133,11 +135,11 @@ static int check_logresource(const char * test_name)
    strcpy( resource_path, GENERATED_LOGRESOURCE_DIR ) ;
    strcpy( resource_path + sizeof(GENERATED_LOGRESOURCE_DIR)-1, test_name ) ;
 
-   err = filesize_directory(resource_path, 0, &logfile_size ) ;
+   err = filesize_directory(0, resource_path, &logfile_size ) ;
    if (err) goto ABBRUCH ;
 
    if (logfile_size != 0) {
-      err = init_mmfile( &logfile, resource_path, 0, 0, 0, mmfile_openmode_RDONLY ) ;
+      err = init_mmfile( &logfile, resource_path, 0, 0, mmfile_openmode_RDONLY, 0) ;
       if (err) goto ABBRUCH ;
       logfile_size = size_mmfile(&logfile) ;
    }
@@ -292,9 +294,12 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //}
 
 //{ os unittest
-   // filesystem
-   RUN(unittest_os_directory) ;
-   RUN(unittest_os_memorymappedfile) ;
+   // io
+   RUN(unittest_io_filedescr) ;
+   // io/filesystem
+   RUN(unittest_io_directory) ;
+   RUN(unittest_io_file) ;
+   RUN(unittest_io_memorymappedfile) ;
    // sync unittest
    RUN(unittest_os_sync_mutex) ;
    RUN(unittest_os_sync_semaphore) ;
@@ -305,7 +310,6 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_os_task_exoscheduler) ;
    RUN(unittest_os_task_threadpool) ;
    // other
-   RUN(unittest_os_file) ;
    RUN(unittest_os_locale) ;
    RUN(unittest_os_malloc) ;
    RUN(unittest_os_process) ;

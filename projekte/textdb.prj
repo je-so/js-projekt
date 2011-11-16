@@ -4,6 +4,6 @@ include        projekte/binary.gcc
 include        projekte/subsys/Linux-mini
 include        projekte/subsys/umgebung-mini
 Src           += C-kern/main/tools/textdb.c
-Src           += C-kern/os/Linux/mmfile.c
+Src           += C-kern/os/Linux/io/mmfile.c
 Includes       = .
 Defines        = KONFIG_SUBSYS=none

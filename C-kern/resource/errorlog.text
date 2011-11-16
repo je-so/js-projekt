@@ -79,18 +79,6 @@ PARAMETER_INT_TOO_BIG:de: parameter_name, parameter_max
 PARAMETER_INT_TOO_BIG:en: parameter_name, parameter_max
 "Parameter '%s' > %d"
 
-PATH_CONTAINS_TOO_MANY_LEADING_DOTS:de: checked_path, basedir
-"Pfad '%s' enthält zuviel führende '../'"
-"relativ zum Pfad '%s'"
-PATH_CONTAINS_TOO_MANY_LEADING_DOTS:en: checked_path, basedir
-"path '%s' contains to many leading '../'"
-"relative to path '%s'"
-
-PATH_NOT_WELL_FORMED:de: checked_path
-"Pfad '%s' enthält '/./' oder '//' bzw. '/../'"
-PATH_NOT_WELL_FORMED:en: checked_path
-"path '%s' contains '/./' or '//' or '/../'"
-
 PROCESS_TERMINATED_ABNORMAL:de: process_name, exit_code
 "Prozess '%s' abnormal beendet (exit wert=%d)"
 PROCESS_TERMINATED_ABNORMAL:en: process_name, exit_code

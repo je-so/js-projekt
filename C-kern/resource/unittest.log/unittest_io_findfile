@@ -1,0 +1,17 @@
+C-kern/os/shared/findfile.c:290: parse_shellpattern(): error: Function aborted (err=84)
+C-kern/os/shared/findfile.c:290: parse_shellpattern(): error: Function aborted (err=84)
+C-kern/os/shared/findfile.c:151: parse_charset(): error: Function aborted (err=22)
+C-kern/os/shared/findfile.c:290: parse_shellpattern(): error: Function aborted (err=22)
+C-kern/os/shared/findfile.c:151: parse_charset(): error: Function aborted (err=22)
+C-kern/os/shared/findfile.c:290: parse_shellpattern(): error: Function aborted (err=22)
+C-kern/os/shared/findfile.c:151: parse_charset(): error: Function aborted (err=22)
+C-kern/os/shared/findfile.c:290: parse_shellpattern(): error: Function aborted (err=22)
+C-kern/os/shared/findfile.c:151: parse_charset(): error: Function aborted (err=22)
+C-kern/os/shared/findfile.c:290: parse_shellpattern(): error: Function aborted (err=22)
+C-kern/os/shared/findfile.c:290: parse_shellpattern(): error: Function aborted (err=22)
+C-kern/os/Linux/io/directory.c:152: new_directory(): error: System call 'openat' returned error (err=2): 'No such file or directory'
+path=/tmp/xxx.123456/
+C-kern/os/Linux/io/directory.c:213: new_directory(): error: Function aborted (err=2)
+C-kern/os/shared/findfile.c:432: scan_directory(): error: Function aborted (err=2)
+C-kern/os/shared/findfile.c:463: search_directories(): error: Function aborted (err=2)
+C-kern/os/shared/findfile.c:502: init_filenameiterator(): error: Function aborted (err=2)

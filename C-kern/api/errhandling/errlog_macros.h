@@ -152,18 +152,18 @@
  * Log "name=value" of uint64_t variable.
  * Example:
  * > const uint64_t max = 100 ; LOG_UINT64(max) ; */
-#define LOG_UINT64(varname)                     LOGC_VAR(ERR, PRIu64, varname)
+#define LOG_UINT64(varname)                     LOGC_UINT64(ERR, varname)
 
 /* define: LOG_PTR
  * Log "name=value" of pointer variable.
  * Example:
  * > const void * ptr = &g_variable ; LOG_PTR(ptr) ; */
-#define LOG_PTR(varname)                        LOGC_VAR(ERR, "p", varname)
+#define LOG_PTR(varname)                        LOGC_PTR(ERR, varname)
 
 /* define: LOG_DOUBLE
  * Log "name=value" of double or float variable.
  * Example:
  * > const double d = 1.234 ; LOG_DOUBLE(d) ; */
-#define LOG_DOUBLE(varname)                     LOGC_VAR(ERR, "g", varname)
+#define LOG_DOUBLE(varname)                     LOGC_DOUBLE(ERR, varname)
 
 #endif

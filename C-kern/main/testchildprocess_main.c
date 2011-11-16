@@ -23,7 +23,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/process.h"
-#include "C-kern/api/os/file.h"
+#include "C-kern/api/io/filedescr.h"
 
 enum testcase_e {
     testcase_RETURNEXITCODE    = 1
@@ -40,7 +40,7 @@ static void testcase_writeopenfd(void)
 {
    int err ;
    size_t nrfiles ;
-   err = openfd_file(&nrfiles) ;
+   err = nropen_filedescr(&nrfiles) ;
    if (!err) {
       dprintf(STDERR_FILENO, "%d", (int)nrfiles) ;
    }
