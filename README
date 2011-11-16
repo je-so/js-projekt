@@ -7,6 +7,9 @@ Author:
 Web location:
   Free software project hosted at github:  https://github.com/je-so/js-projekt
 
+Download:
+  The newest source code (Linux version) can be downloaded from:  http://github.com/je-so/js-projekt/zipball/master
+
 about: Goal
   To develop a database with its own transactional programming language.
   Implementation language is C99. Currently different sub-projects
