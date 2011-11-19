@@ -119,46 +119,54 @@
 // List of all configuration options.
 
 //{
-/* about: Options
- * List of all options.
- *
- * KONFIG_GRAPHIK    - Defines which graphik subsystem should be included if any at all.
- *                     Supported values are *X11* for X11/OpenGL graphic and *none* for no graphics support.
- * KONFIG_LANG       - Language code: values 'de' or 'en' are supported to select static language of text strings for compiled code.
- *                     See <KONFIG_LANG>.
- * KONFIG_MEMALIGN   - Every allocated memory address must be aligned with this value.
- *                     See <KONFIG_MEMALIGN>.
- * KONFIG_OS         - Name of operating system (used as include path for system specific settings).
- *                     The only supported value is *Linux*.
- * KONFIG_SUBSYS     - Defines which subsystems should be included.
-                       Supported values are *THREAD* for thread support and *none* for a minimal system.
- * KONFIG_UNITTEST   - Define this in your Makefile to include additional code for testing single components.
- * */
-
-
-#if !defined(KONFIG_GRAPHIK)
-/* define: KONFIG_GRAPHIK
- * Sets the graphic subsystem.
- * If you do not provide a value the default is *none*. */
-#define KONFIG_GRAPHIK     none
-#endif
 /* define: KONFIG_LANG
  * Choose default language for compiletime/runtime text output.
- * > #define KONFIG_LANG   en */
-#define KONFIG_LANG        en
+ *
+ * Supported language codes:
+ * 'de' - German
+ * 'en' - English */
+#define KONFIG_LANG                    en
 /*define: KONFIG_MEMALIGN
- * Alignment of allocated memory. The value of 4 is suitable for architectures with a i386 processor.
- * > #define KONFIG_MEMALIGN    4 */
-#define KONFIG_MEMALIGN    4
+ * Alignment of allocated memory.
+ * Every allocated memory address must be aligned with this value.
+ * The value of 4 is suitable for architectures with a i386 processor. */
+#define KONFIG_MEMALIGN                4
 /* define: KONFIG_OS
  * Choose name of operating system this project is compiled for.
- * > #define KONFIG_OS     Linux */
-#define KONFIG_OS          Linux
+ * The value is used as include path for system specific settings.
+ *
+ * Supported values:
+ * Linux - The only supported operating system during design stage. */
+#define KONFIG_OS                      Linux
 /* define: KONFIG_SUBSYS
- * Choose names seperated by | of all subsystems. */
+ * Defines which subsystems should be included.
+ * You can choose more than one subsystem, seperate them by operator '|'.
+ *
+ * Supported values are:
+ * THREAD -  for thread support
+ * none   -  for a minimal system.
+ */
 #if !defined(KONFIG_SUBSYS)
-#define KONFIG_SUBSYS      (THREAD)
+#define KONFIG_SUBSYS                  (THREAD)
 #endif
+#if 0
+/* define: KONFIG_UNITTEST
+ * Define this in your Makefile to include additional code for testing single components. */
+#define KONFIG_UNITTEST
+#endif
+#if !defined(KONFIG_USERINTERFACE)
+/* define: KONFIG_USERINTERFACE
+ * Sets the graphic subsystem.
+ * Defines which user interface subsystem should be included if any at all.
+ *
+ * Supported values are:
+ * none  - no graphics support. This is the default value if you do not provide a value.
+ * HTML5 - Supports http connection to a browser and HTML views which communicate with help
+ *         of Javascript and XMLHttpRequest(.upload).
+ * X11   - X11 window system + OpenGL graphics (currently no development, not supported yet). */
+#define KONFIG_USERINTERFACE           none
+#endif
+
 
 //}
 

@@ -121,6 +121,7 @@ extern int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buf
  * a blocking write. */
 extern int write_filedescr(filedescr_t fd, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written) ;
 
+
 // section: inline implementation
 
 /* define: isinit_filedescr

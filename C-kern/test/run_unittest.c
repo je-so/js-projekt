@@ -315,17 +315,23 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_os_process) ;
    RUN(unittest_os_thread) ;
    RUN(unittest_os_virtualmemory) ;
-   // graphik subsystem
-#define X11 1
-#if (KONFIG_GRAPHIK==X11)
-   RUN(unittest_os_X11) ;
-   RUN(unittest_os_X11_display) ;
-   RUN(unittest_os_X11_glxwindow) ;
-#endif
-#undef X11
    // database subsystem
    RUN(unittest_os_index_redblacktree) ;
    RUN(unittest_os_index_splaytree) ;
+//}
+
+//{ user interface subsystem
+#define HTML5  1
+#define X11    2
+#if ((KONFIG_USERINTERFACE)&HTML5)
+#endif
+#if ((KONFIG_USERINTERFACE)&X11)
+   RUN(unittest_userinterface_X11) ;
+   RUN(unittest_userinterface_X11_display) ;
+   RUN(unittest_userinterface_X11_glxwindow) ;
+#endif
+#undef HTML5
+#undef X11
 //}
 
 

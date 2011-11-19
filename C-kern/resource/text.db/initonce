@@ -9,6 +9,6 @@
 # The header-name field references the C99 header file which exports the function prototypes.
 "time",   "module",         "header-name"
 "before", "locale",         "C-kern/api/os/locale.h"
-"before", "X11",            "C-kern/api/os/X11/x11.h"
+"before", "X11",            "C-kern/api/userinterface/X11/x11.h"
 "before", "signalconfig",   "C-kern/api/os/sync/signal.h"
 "after",  "osthread",       "C-kern/api/os/thread.h"

@@ -36,7 +36,6 @@
       <File Name="../../C-kern/main/tools/genmake.c"/>
       <File Name="../../C-kern/main/tools/textdb.c"/>
       <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
-      <File Name="../../C-kern/main/tools/Cforce.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/main/testchildprocess_main.c"/>
   </VirtualDirectory>
@@ -89,14 +88,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Linux">
         <File Name="../../C-kern/api/os/Linux/syskonfig.h"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="X11">
-        <File Name="../../C-kern/api/os/X11/display.h"/>
-        <File Name="../../C-kern/api/os/X11/x11.h"/>
-        <File Name="../../C-kern/api/os/X11/glxwindow.h"/>
-        <VirtualDirectory Name="internal">
-          <File Name="../../C-kern/api/os/X11/internal/display_oostore.h"/>
-        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="index">
         <File Name="../../C-kern/api/os/index/splaytree.h"/>
@@ -190,6 +181,17 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/accessmode.h"/>
       <File Name="../../C-kern/api/io/filedescr.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="userinterface">
+      <VirtualDirectory Name="X11">
+        <File Name="../../C-kern/api/userinterface/X11/display.h"/>
+        <File Name="../../C-kern/api/userinterface/X11/glxwindow.h"/>
+        <File Name="../../C-kern/api/userinterface/X11/x11.h"/>
+        <VirtualDirectory Name="internal">
+          <File Name="../../C-kern/api/userinterface/X11/internal/display_oostore.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <VirtualDirectory Name="html5"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">

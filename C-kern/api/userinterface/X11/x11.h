@@ -16,14 +16,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/os/X11/x11.h
+   file: C-kern/api/userinterface/X11/x11.h
     Header file of <X11-Subsystem>.
 
    file: C-kern/os/X11/x11.c
     Implementation file of <X11-Subsystem>.
 */
-#ifndef CKERN_OS_X11_HEADER
-#define CKERN_OS_X11_HEADER
+#ifndef CKERN_USERINTERFACE_X11_HEADER
+#define CKERN_USERINTERFACE_X11_HEADER
 
 // foward
 struct x11display_t ;
@@ -84,24 +84,22 @@ extern int iseventhandler_X11( int type, int * is_installed ) ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_os_X11
+/* function: unittest_userinterface_X11
  * Test initialization process succeeds. */
-extern int unittest_os_X11(void) ;
+extern int unittest_userinterface_X11(void) ;
 #endif
 
 // section: inline implementations
 
-// group: KONFIG_GRAPHIK
+// group: KONFIG_USERINTERFACE
 
 #define X11 1
-#if (KONFIG_GRAPHIK!=X11)
+#if !((KONFIG_USERINTERFACE)&X11)
 /* define: initonce_X11
- * Implement init as a no op if (KONFIG_GRAPHIK!=X11).
- * > #define initonce_X11()  (0) */
+ * Implement init as a no op if (KONFIG_USERINTERFACE!=X11). */
 #define initonce_X11()  (0)
 /* define: freeonce_X11
- * Implement free as a no op if (KONFIG_GRAPHIK!=X11).
- * > #define freeonce_X11()  (0) */
+ * Implement free as a no op if (KONFIG_USERINTERFACE!=X11). */
 #define freeonce_X11()  (0)
 #endif
 #undef X11

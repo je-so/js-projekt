@@ -33,7 +33,7 @@
 #include "C-kern/api/writer/main_logwriter.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initonce)
 #include "C-kern/api/os/locale.h"
-#include "C-kern/api/os/X11/x11.h"
+#include "C-kern/api/userinterface/X11/x11.h"
 #include "C-kern/api/os/sync/signal.h"
 #include "C-kern/api/os/thread.h"
 // TEXTDB:END
