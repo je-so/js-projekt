@@ -119,50 +119,64 @@
 /* define: sys_filedescr_INIT_FREEABLE
  * Static initializer for a file descriptor which is not valid. */
 #define sys_filedescr_INIT_FREEABLE    (-1)
+#undef  sys_mutex_t
 /* define: sys_mutex_t
  * Type represents a mutual exclusion lock.
  * This type is Posix specific and needs pthread support. */
-#undef  sys_mutex_t
 #define sys_mutex_t                    pthread_mutex_t
+#undef  sys_mutex_INIT_DEFAULT
 /* define: sys_mutex_INIT_DEFAULT
  * Static initializer for <sys_mutex_t>. */
-#undef  sys_mutex_INIT_DEFAULT
 #define sys_mutex_INIT_DEFAULT         PTHREAD_MUTEX_INITIALIZER
+#undef  sys_process_t
 /* define: sys_process_t
  * Type represents a system process.
  * This type is Posix specific. */
-#undef  sys_process_t
 #define sys_process_t                  pid_t
+#undef  sys_process_INIT_FREEABLE
 /* define: sys_process_INIT_FREEABLE
  * Static initializer for <sys_process_t>. */
-#undef  sys_process_INIT_FREEABLE
 #define sys_process_INIT_FREEABLE      (0)
+#undef  sys_semaphore_t
 /* define: sys_semaphore_t
  * Types represents a system semaphore.
  * This type is Posix specific. */
-#undef  sys_semaphore_t
 #define sys_semaphore_t                int
+#undef  sys_semaphore_INIT_FREEABLE
 /* define: sys_semaphore_INIT_FREEABLE
  * Static initializer for <sys_semaphore_t>. */
-#undef  sys_semaphore_INIT_FREEABLE
 #define sys_semaphore_INIT_FREEABLE    (-1)
+#undef  sys_socket_t
+/* define: sys_socket_t
+ * Type represents a (generic) network connection.
+ * This type is a Posix specific file descriptor. */
+#define sys_socket_t                   sys_filedescr_t
+#undef  sys_socket_INIT_FREEABLE
+/* define: sys_socket_INIT_FREEABLE
+ * Static initializer for a socket which is in a closed or invalid state. */
+#define sys_socket_INIT_FREEABLE       sys_filedescr_INIT_FREEABLE
+#undef  sys_socketaddr_t
+/* define: sys_socketaddr_t
+ * Type which holds a generic socket address.
+ * This type is defined as Posix specific *struct sockaddr*. */
+#define sys_socketaddr_t               struct sockaddr
+#undef  sys_thread_t
 /* define: sys_thread_t
  * Types represents a system thread.
  * This type is Posix specific and needs pthread support. */
-#undef  sys_thread_t
 #define sys_thread_t                   pthread_t
+#undef  sys_thread_INIT_FREEABLE
 /* define: sys_thread_INIT_FREEABLE
  * Static initializer for <sys_thread_t>. */
-#undef  sys_thread_INIT_FREEABLE
 #define sys_thread_INIT_FREEABLE       (0)
+#undef  sys_timerid_t
 /* define: sys_timerid_t
  * Types represents a system timer.
  * This type is Linux specific. */
-#undef  sys_timerid_t
 #define sys_timerid_t                  int
+#undef  sys_timerid_INIT_FREEABLE
 /* define: sys_timerid_INIT_FREEABLE
  * Static initializer for <sys_timerid_t>. */
-#undef  sys_timerid_INIT_FREEABLE
 #define sys_timerid_INIT_FREEABLE      (-1)
 
 #endif

@@ -44,13 +44,13 @@ extern int ispowerof2(unsigned i) ;
  * i - The argument which is transformed into a power of 2 value and returned.
  *
  * The returned value is the same as argument if
- * 1. *i* <= 0
- * 2. ispowerof2(*i*)
+ * 1. *i* == 0
+ * 2. <ispowerof2>(*i*) is true
  * 3. the next higher power of 2 value can not be represented by this type of integer
  *
  * Algorithm:
  * Set all bits right of highest to one (00011111111) and then add +1 (00100000000). */
-extern int makepowerof2(unsigned i) ;
+extern unsigned makepowerof2(unsigned i) ;
 
 
 // section: inline implementation
@@ -62,29 +62,31 @@ extern int makepowerof2(unsigned i) ;
 
 /* define: inline makepowerof2
  * Implements <makepowerof2> as a generic function. */
-#define makepowerof2(i)                         \
-         ( __extension__ ({                        \
-            typedef typeof(i) _int_t ;          \
-            static_assert( ((_int_t)-1) > 0, "only unsigned integer supported" ) ; \
-            static_assert( sizeof(_int_t) <= 8, "64bit maximum support" ) ; \
-            _int_t _result = i ;                \
-            if (     !ispowerof2(_result)          \
-                  && _result < (_int_t) (_result << 1) ) { \
-               _result |= (_int_t) (_result>>1) ;  \
-               _result |= (_int_t) (_result>>2) ;  \
-               _result |= (_int_t) (_result>>4) ;  \
-               if (2 <= sizeof(_int_t)) {          \
-                  _result |= (_int_t) (_result>>((2 <= sizeof(_int_t))*8)) ;  \
-               }                                   \
-               if (4 <= sizeof(_int_t)) {          \
-                  _result |= (_int_t) (_result>>((4 <= sizeof(_int_t))*16)) ; \
-               }                                   \
-               if (8 == sizeof(_int_t)) {          \
-                  _result |= (_int_t) (_result>>((8 == sizeof(_int_t))*32)) ; \
-               }                                   \
-               ++ _result ;                        \
-            }                                      \
-            _result ;                              \
+#define makepowerof2(i)                                   \
+         ( __extension__ ({                               \
+            typedef typeof(i) _int ;                      \
+            /* only unsigned integer supported */         \
+            static_assert( ((_int)-1) > 0, ) ;            \
+            /* 64bit maximum support */                   \
+            static_assert( sizeof(_int) <= 8, ) ;         \
+            _int _result = (i) ;                          \
+            if (     !ispowerof2(_result)                 \
+                  && _result < (_int) (_result << 1) ) {  \
+               _result |= (_int) (_result>>1) ;           \
+               _result |= (_int) (_result>>2) ;           \
+               _result |= (_int) (_result>>4) ;           \
+               if (2 <= sizeof(_int)) {                   \
+                  _result |= (_int) (_result>>(8*(2 <= sizeof(_int)))) ; \
+               }                                          \
+               if (4 <= sizeof(_int)) {                   \
+                  _result |= (_int) (_result>>(16*(4 <= sizeof(_int)))) ; \
+               }                                          \
+               if (8 == sizeof(_int)) {                   \
+                  _result |= (_int) (_result>>(32*(8 == sizeof(_int)))) ; \
+               }                                          \
+               ++ _result ;                               \
+            }                                             \
+            _result ;                                     \
          }))
 
 #ifdef KONFIG_UNITTEST
