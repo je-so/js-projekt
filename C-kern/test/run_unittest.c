@@ -36,7 +36,6 @@
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/io/filesystem/findfile.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/math/int/signum.h"
 #include "C-kern/api/math/int/power2.h"
@@ -55,6 +54,7 @@
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/string/converter.h"
+#include "C-kern/api/string/cstring.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/umg/umgebung_shared.h"
 #include "C-kern/api/umg/services_multithread.h"
@@ -278,6 +278,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 //{ string unittest
    RUN(unittest_string_converter) ;
+   RUN(unittest_string_cstring) ;
 //}
 
 //{ test unittest
