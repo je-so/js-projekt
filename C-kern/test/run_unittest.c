@@ -37,6 +37,8 @@
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/io/ip/ipaddr.h"
+#include "C-kern/api/io/ip/ipsocket.h"
 #include "C-kern/api/math/int/signum.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/os/index/redblacktree.h"
@@ -301,6 +303,9 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_io_directory) ;
    RUN(unittest_io_file) ;
    RUN(unittest_io_memorymappedfile) ;
+   // io/ip
+   RUN(unittest_io_ipaddr) ;
+   RUN(unittest_io_ipsocket) ;
    // sync unittest
    RUN(unittest_os_sync_mutex) ;
    RUN(unittest_os_sync_semaphore) ;

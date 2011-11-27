@@ -81,7 +81,6 @@
       <File Name="../../C-kern/api/os/process.h"/>
       <File Name="../../C-kern/api/os/thread.h"/>
       <File Name="../../C-kern/api/os/virtmemory.h"/>
-      <File Name="../../C-kern/api/os/inetsocket.h"/>
       <File Name="../../C-kern/api/os/timing.h"/>
       <VirtualDirectory Name="memory">
         <File Name="../../C-kern/api/os/memory/memorystack.h"/>
@@ -181,6 +180,13 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/accessmode.h"/>
       <File Name="../../C-kern/api/io/filedescr.h"/>
+      <VirtualDirectory Name="ip">
+        <File Name="../../C-kern/api/io/ip/ipaddr.h"/>
+        <File Name="../../C-kern/api/io/ip/ipsocket.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="protocol">
+        <File Name="../../C-kern/api/io/protocol/http.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="userinterface">
       <VirtualDirectory Name="X11">
@@ -259,8 +265,6 @@
   </VirtualDirectory>
   <VirtualDirectory Name="os">
     <VirtualDirectory Name="Linux">
-      <File Name="../../C-kern/os/Linux/inetaddr.c"/>
-      <File Name="../../C-kern/os/Linux/inetsocket.c"/>
       <File Name="../../C-kern/os/Linux/process.c"/>
       <File Name="../../C-kern/os/Linux/thread.c"/>
       <File Name="../../C-kern/os/Linux/timing.c"/>
@@ -276,6 +280,8 @@
         <File Name="../../C-kern/os/Linux/io/file.c"/>
         <File Name="../../C-kern/os/Linux/io/mmfile.c"/>
         <File Name="../../C-kern/os/Linux/io/filedescr.c"/>
+        <File Name="../../C-kern/os/Linux/io/ipaddr.c"/>
+        <File Name="../../C-kern/os/Linux/io/ipsocket.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
@@ -415,4 +421,9 @@
   </Settings>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
+  <VirtualDirectory Name="io">
+    <VirtualDirectory Name="protocol">
+      <File Name="../../C-kern/io/protocol/http.c"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
 </CodeLite_Project>

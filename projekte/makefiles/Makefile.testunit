@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Nov.23  18:30:24
+GenerationDate  := 2011.Nov.27  14:35:58
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -16,7 +16,7 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
-Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_GRAPHIK=none
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_GRAPHIK=HTML5
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt $(LibraryFlag_Debug)X11 $(LibraryFlag_Debug)Xrandr $(LibraryFlag_Debug)Xrender $(LibraryFlag_Debug)GL
 Libpath_Debug       :=
@@ -34,7 +34,7 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
-Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_GRAPHIK=none
+Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_GRAPHIK=HTML5
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt $(LibraryFlag_Release)X11 $(LibraryFlag_Release)Xrandr $(LibraryFlag_Release)Xrender $(LibraryFlag_Release)GL
 Libpath_Release       :=
@@ -85,8 +85,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!io!ipaddr.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!io!ipsocket.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!os!shared!task!exothread.c.o \
@@ -123,8 +125,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!io!ipaddr.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!io!ipsocket.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!os!shared!task!exothread.c.o \
@@ -188,10 +192,16 @@ $(ObjectDir_Debug)/C-kern!os!Linux!io!file.c.o: C-kern/os/Linux/io/file.c
 $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o: C-kern/os/Linux/io/directory.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!os!Linux!io!ipaddr.c.o: C-kern/os/Linux/io/ipaddr.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedescr.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o: C-kern/os/Linux/io/mmfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!io!ipsocket.c.o: C-kern/os/Linux/io/ipsocket.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o: C-kern/os/shared/index/splaytree.c
@@ -296,10 +306,16 @@ $(ObjectDir_Release)/C-kern!os!Linux!io!file.c.o: C-kern/os/Linux/io/file.c
 $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o: C-kern/os/Linux/io/directory.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!os!Linux!io!ipaddr.c.o: C-kern/os/Linux/io/ipaddr.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedescr.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o: C-kern/os/Linux/io/mmfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!io!ipsocket.c.o: C-kern/os/Linux/io/ipsocket.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o: C-kern/os/shared/index/splaytree.c
