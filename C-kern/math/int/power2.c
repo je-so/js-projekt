@@ -32,7 +32,7 @@
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_math_int_power2,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 int unittest_math_int_power2()
 {

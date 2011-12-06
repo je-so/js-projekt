@@ -499,7 +499,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_process,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 #define init_process(process, child_main, start_arg, ioredirection) \
    /*do not forget to adapt definition in process.c test section*/                  \

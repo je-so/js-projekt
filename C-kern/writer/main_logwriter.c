@@ -95,7 +95,7 @@ logwritermt_it    g_main_logwriter_interface = {
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_writer_mainlogwriter,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 static char * s_thrdarg_buffer = 0 ;
 static size_t s_thrdarg_size   = 0 ;

@@ -99,7 +99,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_cache_valuecache,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 static int test_initfree(void)
 {

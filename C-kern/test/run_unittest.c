@@ -28,59 +28,14 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/run/unittest.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/umgebung.h"
-#include "C-kern/api/cache/objectcache.h"
-#include "C-kern/api/cache/objectcachemt.h"
-#include "C-kern/api/cache/valuecache.h"
-#include "C-kern/api/ds/inmem/slist.h"
-#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
-#include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
-#include "C-kern/api/io/ip/ipaddr.h"
-#include "C-kern/api/io/ip/ipsocket.h"
-#include "C-kern/api/math/int/signum.h"
-#include "C-kern/api/math/int/power2.h"
-#include "C-kern/api/os/index/redblacktree.h"
-#include "C-kern/api/os/index/splaytree.h"
-#include "C-kern/api/os/sync/mutex.h"
-#include "C-kern/api/os/sync/semaphore.h"
-#include "C-kern/api/os/sync/signal.h"
-#include "C-kern/api/os/sync/waitlist.h"
-#include "C-kern/api/os/task/exoscheduler.h"
-#include "C-kern/api/os/task/exothread.h"
-#include "C-kern/api/os/task/threadpool.h"
 #include "C-kern/api/os/locale.h"
-#include "C-kern/api/os/malloc.h"
-#include "C-kern/api/os/process.h"
-#include "C-kern/api/os/thread.h"
-#include "C-kern/api/os/virtmemory.h"
-#include "C-kern/api/string/converter.h"
-#include "C-kern/api/string/cstring.h"
+#include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/test/resourceusage.h"
-#include "C-kern/api/umg/umgebung_shared.h"
-#include "C-kern/api/umg/services_multithread.h"
-#include "C-kern/api/umg/services_singlethread.h"
-#include "C-kern/api/writer/logwriter.h"
-#include "C-kern/api/writer/logwritermt.h"
-#include "C-kern/api/writer/main_logwriter.h"
 
 
-
-typedef char RESULT_STRING[20] ;
-
-
-/* Ruft einen Unittest auf und notiert das Ergebnis. */
-#define RUN(FCT) \
-   LOG_CLEARBUFFER() ;  \
-   err = FCT() ;        \
-   if (!err) generate_logresource(#FCT) ;    \
-   if (!err) err = check_logresource(#FCT) ; \
-   ++total_count ; if (err) ++err_count ;    \
-   print_result( err, &progress, &progress_count) ;
 
 #define GENERATED_LOGRESOURCE_DIR   "C-kern/resource/unittest.log/"
-
 
 /* function: generate_logresource
  * Writes log buffer to "C-kern/resource/unittest.log/" + test_name. */
@@ -179,28 +134,6 @@ ABBRUCH:
    return err ;
 }
 
-/* function: print_result
- * Stores result of current test and prints progress.
- * If err is 0 (No error) then a '.' is printed else an '!'.
- * The result of previous executed are also printed until
- * the number all executed tests reaches sizeof(RESULT_STRING)==20.
- * Then the number of the previously executed tests (parameter progress_count)
- * is reset to 0 and the whol process starts from the beginning. */
-static void print_result(int err, RESULT_STRING * progress, unsigned * progress_count)
-{
-   assert(*progress_count < sizeof(*progress)) ;
-   if (err) {
-      (*progress)[*progress_count] = '!' ;
-   } else {
-      (*progress)[*progress_count] = '.' ;
-   }
-   ++ (*progress_count) ;
-   LOGC_PRINTF(TEST, "UNITTEST: %.*s\n", (*progress_count), (*progress)) ;
-   if (*progress_count == sizeof(*progress)) {
-      (*progress_count) = 0 ;
-   }
-}
-
 static void set_testconfig(void)
 {
    // make printed system error messages language (English) neutral
@@ -220,13 +153,34 @@ static void preallocate(void)
    }
 }
 
-int run_unittest(void)
+static void run_singletest(const char * test_name, int (*test_fct) (void), unsigned * total_count, unsigned * err_count)
 {
    int err ;
-   unsigned      err_count = 0 ;
+
+   printf("RUN %s: ", test_name) ;
+   LOG_CLEARBUFFER() ;
+
+   err = test_fct() ;
+   if (!err) generate_logresource(test_name) ;
+   if (!err) err = check_logresource(test_name) ;
+
+   if (err)
+      ++ (*err_count) ;
+   else
+      printf("OK\n") ;
+
+   ++ (*total_count) ;
+}
+
+
+#define RUN(FCT)              \
+   extern int FCT (void) ;    \
+   run_singletest(#FCT, &FCT, &total_count, &err_count)
+
+int run_unittest(void)
+{
+   unsigned    err_count   = 0 ;
    unsigned    total_count = 0 ;
-   unsigned progress_count = 0 ;
-   RESULT_STRING           progress ;
    const umgebung_type_e test_umgebung_type[2] = {
        umgebung_type_SINGLETHREAD
       ,umgebung_type_MULTITHREAD

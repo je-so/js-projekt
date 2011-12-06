@@ -183,7 +183,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_io_filedescr,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 static int test_query(void)
 {

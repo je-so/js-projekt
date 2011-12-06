@@ -36,13 +36,12 @@
  *
  * Parameters:
  * CONDITION          - Condition which is tested to be true.
- * TEST_FUNCTION_NAME - Name of the unittest function which is printed in case of error.
  * ERROR_LABEL        - Name of label the test macro jumps in case of error.
  *
  * Usage:
  * The following demonstrates how this macro is used:
  *
- * > #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,test_demonstration,ABBRUCH)
+ * > #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
  * > int test_demonstration()
  * > {
  * >    testtype_t testtype = type_INIT_FREEABLE ;
@@ -54,11 +53,11 @@
  * >    return EINVAL ; // any error code
  * > }
  * */
-#define TEST_ONERROR_GOTO(CONDITION,TEST_FUNCTION_NAME,ERROR_LABEL)  \
-   if ( !(CONDITION) ) {                                             \
-      LOGC_PRINTF(TEST, "%s:%d: %s():\n FAILED TEST (%s)\n",          \
-         __FILE__, __LINE__, #TEST_FUNCTION_NAME, #CONDITION) ;      \
-      goto ERROR_LABEL ;                                             \
+#define TEST_ONERROR_GOTO(CONDITION, ERROR_LABEL)     \
+   if ( !(CONDITION) ) {                              \
+      LOGC_PRINTF(TEST, "%s:%d: FAILED TEST\n",       \
+         __FILE__, __LINE__) ;                        \
+      goto ERROR_LABEL ;                              \
    }
 
 #endif

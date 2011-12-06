@@ -127,7 +127,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_os_task_exoscheduler,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 static int simplefinish_xthread(exothread_t * xthread)
 {

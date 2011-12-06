@@ -130,7 +130,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_io_file,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 static int test_initfree(directory_t * tempdir)
 {

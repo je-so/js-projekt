@@ -186,7 +186,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_sync_waitlist,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 static int thread_waitonwlist(waitlist_t * wlist)
 {

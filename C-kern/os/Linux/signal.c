@@ -510,7 +510,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_sync_signal,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 void dummy_sighandler(int signr, siginfo_t * siginfo, void * ucontext)
 {

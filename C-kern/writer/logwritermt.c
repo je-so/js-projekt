@@ -201,7 +201,7 @@ void printf_logwritermt(logwritermt_t * log, const char * format, ... )
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_writer_logwritermt,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 static int test_initumgebung(void)
 {

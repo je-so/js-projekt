@@ -152,7 +152,7 @@ void unlockiobuffer_objectcachemt(objectcachemt_t * objectcache, memblock_t ** i
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_cache_objectcachemt,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 static int test_initfree(void)
 {

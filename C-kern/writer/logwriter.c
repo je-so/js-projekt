@@ -249,7 +249,7 @@ void printf_logwriter(logwriter_t * log, const char * format, ... )
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_writer_logwriter,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 static int test_initfree(void)
 {

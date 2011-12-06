@@ -109,7 +109,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_string_converter,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 /* Works only in utf8 - locale */
 static int test_wstringconverter_fromutf8(void)
@@ -142,16 +142,16 @@ static int test_wstringconverter_fromutf8(void)
       wstring_converter_t conv2 ;
       TEST(0 == copy_wstringconverter(&conv2, &conv)) ;
       // skip
-      for(int len = 0; testcases[i].wstring[len-1]; ++len) {
+      for(int len = 0; testcases[i].wstring[len]; ++len) {
          wstring_converter_t conv3 ;
          TEST(0 == copy_wstringconverter(&conv3, &conv2)) ;
          TEST(0 == skip_wstringconverter(&conv3, (size_t)len)) ;
          TEST(0 == nextwchar_wstringconverter( &conv3, &next_wchar )) ;
          TEST(next_wchar == testcases[i].wstring[len]) ;
          TEST(0 == free_wstringconverter(&conv3)) ;
-         if (!testcases[i].wstring[len]) {
+         if (!testcases[i].wstring[len+1]) {
             TEST(0 == copy_wstringconverter(&conv3, &conv2)) ;
-            TEST(ENODATA == skip_wstringconverter(&conv3, (size_t)len+1)) ;
+            TEST(ENODATA == skip_wstringconverter(&conv3, (size_t)len+2)) ;
             TEST(conv3.input_len       == 0) ;
             TEST(conv3.next_input_char == testcases[i].cstring + strlen(testcases[i].cstring)) ;
             TEST(0 == free_wstringconverter(&conv3)) ;

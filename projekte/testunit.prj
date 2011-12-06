@@ -18,4 +18,4 @@ Src           += C-kern/umgebung/*.c
 Src           += C-kern/writer/*.c
 Includes       = .
 Libs           = pthread rt X11 Xrandr Xrender GL
-Defines        = KONFIG_UNITTEST KONFIG_GRAPHIK=HTML5
+Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(HTML)"

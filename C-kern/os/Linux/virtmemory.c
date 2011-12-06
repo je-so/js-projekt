@@ -491,7 +491,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG,unittest_os_virtualmemory,ABBRUCH)
+#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 /* Returns:
  * 0 - All size_in_pages memory pages starting from address start are unmapped

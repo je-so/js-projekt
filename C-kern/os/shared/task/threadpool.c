@@ -140,7 +140,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_os_task_threadpool,ABBRUCH)
+#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 #define tryruntask_threadpool(pool, task_main, start_arg)                     \
    /*do not forget to adapt definition in threadpool.c test section*/         \
