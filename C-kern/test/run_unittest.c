@@ -260,6 +260,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //{ os unittest
    // io
    RUN(unittest_io_filedescr) ;
+   RUN(unittest_io_url) ;
    // io/filesystem
    RUN(unittest_io_directory) ;
    RUN(unittest_io_file) ;
