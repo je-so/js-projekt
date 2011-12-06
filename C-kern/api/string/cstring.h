@@ -96,6 +96,12 @@ extern int free_cstring(cstring_t * cstr) ;
  * The returned value is valid as long as *cstr* is not changed. */
 extern char * str_cstring(cstring_t * cstr) ;
 
+/* function: length_cstring
+ * Returns the length of the string in bytes.
+ * For mbs encoded strings the length in character is less
+ * than the length in bytes. */
+extern size_t length_cstring(const cstring_t * cstr) ;
+
 // group: change
 
 /* function: allocate_cstring
@@ -128,7 +134,7 @@ extern int printfappend_cstring(cstring_t * cstr, const char * format, ...) __at
  * This function throws an assertion if no null byte is found. */
 extern void adaptlength_cstring(cstring_t * cstr) ;
 
-/* function: shrink_cstring
+/* function: truncate_cstring
  * Adapts length of cstr to a smaller value.
  * Use this if you you want to make the string smaller in length.
  * A trailing 0 byte is added by this call.
@@ -136,7 +142,7 @@ extern void adaptlength_cstring(cstring_t * cstr) ;
  * byte offset. If a character uses more than one byte for its encoding
  * and if new_length points not to the end of a valid character sequence
  * the encoded character sequence becomes invalid. */
-extern int shrink_cstring(cstring_t * cstr, size_t new_length) ;
+extern int truncate_cstring(cstring_t * cstr, size_t new_length) ;
 
 
 // section: inline implementations
@@ -150,5 +156,9 @@ extern int shrink_cstring(cstring_t * cstr, size_t new_length) ;
  * Implements <cstring_t.adaptlength_cstring>. */
 #define adaptlength_cstring(cstr) \
    do {  if ((cstr)->allocated_size) { void * pos = memchr( (cstr)->chars, 0, (cstr)->allocated_size ) ; (cstr)->length = (size_t) ((char*)pos - (cstr)->chars) ; assert(pos && (cstr)->length < (cstr)->allocated_size) ; } } while (0)
+
+/* define: length_cstring
+ * Implements <cstring_t.length_cstring>. */
+#define length_cstring(cstr)           ((cstr)->length)
 
 #endif

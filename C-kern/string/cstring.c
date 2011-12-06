@@ -185,7 +185,7 @@ ABBRUCH:
    return err ;
 }
 
-int shrink_cstring(cstring_t * cstr, size_t new_length)
+int truncate_cstring(cstring_t * cstr, size_t new_length)
 {
    int err ;
 
@@ -317,13 +317,13 @@ static int test_initfree(void)
       TEST(0 == strcmp(buffer, "123")) ;
    }
 
-   // TEST shrink on empty string
-   TEST(0 == shrink_cstring(&cstr, 0)) ;
+   // TEST truncate on empty string
+   TEST(0 == truncate_cstring(&cstr, 0)) ;
    TEST(0 == cstr.allocated_size) ;
    TEST(0 == cstr.length) ;
    TEST(0 == cstr.chars) ;
 
-   // TEST shrink
+   // TEST truncate
    TEST(0 == init_cstring(&cstr, 256)) ;
    TEST(cstr.allocated_size == 256) ;
    TEST(cstr.length == 0) ;
@@ -331,7 +331,7 @@ static int test_initfree(void)
    TEST(strlen("->123456: ") == cstr.length) ;
    for(unsigned i = strlen("->123456: ") + 1; i > 0; ) {
       -- i ;
-      TEST(0 == shrink_cstring(&cstr, i)) ;
+      TEST(0 == truncate_cstring(&cstr, i)) ;
       TEST(i == cstr.length) ;
       TEST(0 == strncmp(cstr.chars, "->123456: ", i)) ;
       TEST(0 == cstr.chars[i]) ;

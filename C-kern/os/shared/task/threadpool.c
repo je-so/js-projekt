@@ -183,15 +183,19 @@ static int test_initfree(void)
    TEST(0 == pool.threads) ;
 
    // TEST free waits until all threads started (registered with pool)
-   TEST(0 == init_threadpool(&pool, 3)) ;
-   TEST(3 == pool.poolsize) ;
-   TEST(0 != pool.threads) ;
-   TEST(3 > pool.idle.nr_waiting) ;
-   TEST(0 == free_threadpool(&pool)) ;
-   TEST(0 == pool.idle.last) ;
-   TEST(0 == pool.idle.nr_waiting) ;
-   TEST(0 == pool.poolsize) ;
-   TEST(0 == pool.threads) ;
+   for(;;) {
+      TEST(0 == init_threadpool(&pool, 3)) ;
+      TEST(3 == pool.poolsize) ;
+      TEST(0 != pool.threads) ;
+      bool isbreak = (pool.idle.nr_waiting < 3) ;
+      TEST(3 >= pool.idle.nr_waiting) ;
+      TEST(0 == free_threadpool(&pool)) ;
+      TEST(0 == pool.idle.last) ;
+      TEST(0 == pool.idle.nr_waiting) ;
+      TEST(0 == pool.poolsize) ;
+      TEST(0 == pool.threads) ;
+      if (isbreak) break ;
+   }
 
    return 0 ;
 ABBRUCH:
