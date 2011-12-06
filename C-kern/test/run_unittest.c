@@ -238,8 +238,10 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //}
 
 //{ string unittest
+   RUN(unittest_string) ;
    RUN(unittest_string_convertwchar) ;
    RUN(unittest_string_cstring) ;
+   RUN(unittest_string_encode) ;
 //}
 
 //{ test unittest
