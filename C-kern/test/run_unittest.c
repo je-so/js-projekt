@@ -232,6 +232,11 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_math_int_power2) ;
 //}
 
+//{ memory unittest
+   RUN(unittest_memory_memblock) ;
+   RUN(unittest_memory_wbuffer) ;
+//}
+
 //{ string unittest
    RUN(unittest_string_convertwchar) ;
    RUN(unittest_string_cstring) ;
