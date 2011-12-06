@@ -25,16 +25,16 @@
 #ifndef CKERN_OS_THREAD_HEADER
 #define CKERN_OS_THREAD_HEADER
 
-#include "C-kern/api/aspect/memoryblock.h"
 #include "C-kern/api/aspect/callback/task.h"
+#include "C-kern/api/memory/memblock.h"
 
 /* typedef: osthread_t typedef
  * Export <osthread_t>. */
 typedef struct osthread_t              osthread_t ;
 
-/* typedef: osthread_stack_t typedef
- * Export <memoryblock_aspect_t> as osthread_stack_t. */
-typedef memoryblock_aspect_t           osthread_stack_t ;
+/* typedef: osthread_stack_t
+ * Make <osthread_stack_t> an alias for <memblock_t>. */
+typedef memblock_t                     osthread_stack_t ;
 
 // globals
 extern __thread  osthread_t            gt_self_osthread ;

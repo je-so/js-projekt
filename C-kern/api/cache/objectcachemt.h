@@ -82,11 +82,11 @@ extern int free_objectcachemt(objectcachemt_t * objectcache) ;
 
 /* function: lockiobuffer_objectcachemt
  * Thread safe version of <lockiobuffer_objectcache>. */
-extern void lockiobuffer_objectcachemt(objectcachemt_t * objectcache, /*out*/memoryblock_aspect_t ** iobuffer) ;
+extern void lockiobuffer_objectcachemt(objectcachemt_t * objectcache, /*out*/memblock_t ** iobuffer) ;
 
 /* function: unlockiobuffer_objectcachemt
  * Thread safe version of <unlockiobuffer_objectcache>. */
-extern void unlockiobuffer_objectcachemt(objectcachemt_t * objectcache, memoryblock_aspect_t ** iobuffer) ;
+extern void unlockiobuffer_objectcachemt(objectcachemt_t * objectcache, memblock_t ** iobuffer) ;
 
 
 #endif

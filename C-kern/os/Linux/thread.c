@@ -67,7 +67,7 @@ struct osthread_startargument_t {
 /* variable: gt_self_osthread
  * Refers for every thread to the osthread_t variable.
  * Is is located on the thread stack so no additional memory is needed. */
-__thread  osthread_t       gt_self_osthread        = { sys_mutex_INIT_DEFAULT, 0, task_callback_INIT_FREEABLE, sys_thread_INIT_FREEABLE, 0, memoryblock_aspect_INIT_FREEABLE, 0, 0 } ;
+__thread  osthread_t       gt_self_osthread        = { sys_mutex_INIT_DEFAULT, 0, task_callback_INIT_FREEABLE, sys_thread_INIT_FREEABLE, 0, memblock_INIT_FREEABLE, 0, 0 } ;
 
 /* variable: s_offset_osthread
  * Contains the calculated offset from start of stack thread to &<gt_self_osthread>. */
@@ -151,7 +151,7 @@ static int free_osthreadstack(osthread_stack_t * stackframe)
    size_t  size = stackframe->size ;
 
    if (size) {
-      *stackframe = (memoryblock_aspect_t) memoryblock_aspect_INIT_FREEABLE ;
+      *stackframe = (memblock_t) memblock_INIT_FREEABLE ;
       if (munmap(addr, size)) {
          err = errno ;
          LOG_SYSERR("munmap", err) ;
@@ -345,7 +345,7 @@ int initonce_osthread(umgebung_t * umg)
    int err ;
    pthread_attr_t    thread_attr ;
    sys_thread_t      sys_thread        = sys_thread_INIT_FREEABLE ;
-   osthread_stack_t  stackframe        = memoryblock_aspect_INIT_FREEABLE ;
+   osthread_stack_t  stackframe        = memblock_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
 
    (void) umg ;
@@ -466,7 +466,7 @@ int newgroup_osthread(/*out*/osthread_t ** threadobj, task_callback_f thread_mai
    osthread_t      * prev_osthread     = 0 ;
    osthread_t      * next_osthread     = 0 ;
    osthread_t      * osthread          = 0 ;
-   osthread_stack_t  stackframe        = memoryblock_aspect_INIT_FREEABLE ;
+   osthread_stack_t  stackframe        = memblock_INIT_FREEABLE ;
    semaphore_t       isfreeable_semaphore = semaphore_INIT_FREEABLE ;
    semaphore_t       isvalid_abortflag = semaphore_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
@@ -1155,7 +1155,7 @@ ABBRUCH:
 
 static int test_thread_stack(void)
 {
-   osthread_stack_t  stack = memoryblock_aspect_INIT_FREEABLE ;
+   osthread_stack_t  stack = memblock_INIT_FREEABLE ;
 
    // TEST query signalstacksize
    TEST(MINSIGSTKSZ == signalstacksize_osthreadstack()) ;

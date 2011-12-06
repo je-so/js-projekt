@@ -26,36 +26,28 @@
 
 /* typedef: struct interface_it
  * Export struct <interface_it>. */
-typedef struct interface_it               interface_it ;
+typedef struct interface_it            interface_it ;
 
 /* typedef: struct interface_oit
  * Export struct <interface_oit>. */
-typedef struct interface_oit              interface_oit ;
+typedef struct interface_oit           interface_oit ;
 
 /* define: interface_oit_DECLARE
  *
  * Parameter:
  * is_typedef        - Set it to 1 if you want to also emit this code:
  *                     "typedef struct declared_type_it declared_type_it ;"
- * declared_type_t   - The name of the structure which is declared as the interfaceable object.
+ * declared_type_oit - The name of the structure which is declared as the interfaceable object.
  * object_type_t     - The type of the object which is the first parameter of the service interface functions.
  *                     A pointer to this object is stored in the declared structure.
  * interface_type_it - The type of the service interface the stored object offers.
  *                     A pointer to this service interface is stored in the declared structure.
- *
- * (start code)
- * #define interface_oit_DECLARE(is_typedef, declared_type_t, interface_type_it, object_type_t) \
- *    CONCAT(EMITCODE_, is_typedef)(typedef struct declared_type_t declared_type_t ;)  \
- *    struct declared_type_t {            \
- *       object_type_t      * object ;    \
- *       interface_type_it  * functable ; \
- *    } ;
- * (end code) */
-#define interface_oit_DECLARE(is_typedef, declared_type_t, object_type_t, interface_type_it) \
-   CONCAT(EMITCODE_, is_typedef)(typedef struct declared_type_t declared_type_t ;)  \
-   struct declared_type_t {            \
-      object_type_t      * object ;    \
-      interface_type_it  * functable ; \
+ */
+#define interface_oit_DECLARE(is_typedef, declared_type_oit, object_type_t, interface_type_it) \
+   CONCAT(EMITCODE_, is_typedef)(typedef struct declared_type_oit declared_type_oit ;)  \
+   struct declared_type_oit {             \
+      object_type_t      * object ;       \
+      interface_type_it  * functable ;    \
    } ;
 
 

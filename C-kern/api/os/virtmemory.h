@@ -25,24 +25,24 @@
 #ifndef CKERN_OS_VIRTUALMEMORY_HEADER
 #define CKERN_OS_VIRTUALMEMORY_HEADER
 
-#include "C-kern/api/aspect/memoryblock.h"
 #include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/io/accessmode.h"
 
-/* typedef: vm_block_t typedef
+/* typedef: struct vm_block_t
  * Exports <vm_block_t>. */
-typedef struct memoryblock_aspect_t    vm_block_t ;
+typedef struct memblock_t              vm_block_t ;
 
-/* typedef: vm_region_t typedef
+/* typedef: struct vm_region_t
  * Exports <vm_region_t>. */
 typedef struct vm_region_t             vm_region_t ;
 
-/* typedef: vm_mappedregions_t typedef
+/* typedef: struct vm_mappedregions_t
  * Exports <vm_mappedregions_t>. */
 typedef struct vm_mappedregions_t      vm_mappedregions_t ;
 
-/* typedef: vm_regionsarray_t typedef
- * Internal type used to implement <vm_regionsarray_t>. */
+/* typedef: struct vm_regionsarray_t
+ * Internal type used by <vm_mappedregions_t>. */
 typedef struct vm_regionsarray_t       vm_regionsarray_t ;
 
 
@@ -78,9 +78,9 @@ struct vm_block_t ;
 // group: lifetime
 
 /* define: vm_block_INIT_FREEABLE
- * Static initializer to set an object of type <vm_block_t> to NULL.
- * You can unmap (<free_vmblock>) such an initialized <vm_block_t> object with success. */
-#define vm_block_INIT_FREEABLE      memoryblock_aspect_INIT_FREEABLE
+ * Static initializer. Sets object of type <vm_block_t> to NULL.
+ * Unmapping (<free_vmblock>) such a NULL <vm_block_t> is safe. */
+#define vm_block_INIT_FREEABLE         memblock_INIT_FREEABLE
 
 /* function: init_vmblock
  * New memory is mapped into the virtual address space of the calling process.

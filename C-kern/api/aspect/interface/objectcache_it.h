@@ -26,7 +26,7 @@
 #ifndef CKERN_ASPECT_INTERFACE_OBJECTCACHE_IT_HEADER
 #define CKERN_ASPECT_INTERFACE_OBJECTCACHE_IT_HEADER
 
-#include "C-kern/api/aspect/memoryblock.h"
+#include "C-kern/api/memory/memblock.h"
 
 // forward
 struct objectcache_t ;  // generic implementation
@@ -60,16 +60,16 @@ typedef struct objectcache_it    objectcache_it ;
  * #define objectcache_it_DECLARE(is_typedef, declared_type_it, object_type_t)            \
  *    CONCAT(EMITCODE_, is_typedef)(typedef struct declared_type_it  declared_type_it ;)  \
  *    struct declared_type_it {                                                           \
- *       int (*lock_iobuffer)   (object_type_t * cache, memoryblock_aspect_t ** iobuffer) ;  \
- *       int (*unlock_iobuffer) (object_type_t * cache, memoryblock_aspect_t ** iobuffer) ;  \
+ *       int (*lock_iobuffer)   (object_type_t * cache, memblock_t ** iobuffer) ;  \
+ *       int (*unlock_iobuffer) (object_type_t * cache, memblock_t ** iobuffer) ;  \
  *    } ;
  * (end code)
  * */
 #define objectcache_it_DECLARE(is_typedef, declared_type_it, object_type_t)                  \
    CONCAT(EMITCODE_, is_typedef)(typedef struct declared_type_it  declared_type_it ;)        \
    struct declared_type_it {                                                                 \
-      void (*lock_iobuffer)   (object_type_t * cache, /*out*/memoryblock_aspect_t ** iobuffer); \
-      void (*unlock_iobuffer) (object_type_t * cache, memoryblock_aspect_t ** iobuffer) ;       \
+      void (*lock_iobuffer)   (object_type_t * cache, /*out*/memblock_t ** iobuffer); \
+      void (*unlock_iobuffer) (object_type_t * cache, memblock_t ** iobuffer) ;       \
    } ;
 
 
@@ -79,10 +79,10 @@ typedef struct objectcache_it    objectcache_it ;
 struct objectcache_it {
    /* function: lock_iobuffer
     * See <objectcache_t.lockiobuffer_objectcache> for an implementation. */
-   void (*lock_iobuffer)   (struct objectcache_t * cache, /*out*/memoryblock_aspect_t ** iobuffer) ;
+   void (*lock_iobuffer)   (struct objectcache_t * cache, /*out*/memblock_t ** iobuffer) ;
    /* function: unlock_iobuffer
     * See <objectcache_t.unlockiobuffer_objectcache> for an implementation. */
-   void (*unlock_iobuffer) (struct objectcache_t * cache, memoryblock_aspect_t ** iobuffer) ;
+   void (*unlock_iobuffer) (struct objectcache_t * cache, memblock_t ** iobuffer) ;
 } ;
 #endif
 

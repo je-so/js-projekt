@@ -146,7 +146,7 @@ ABBRUCH:
    return err ;
 }
 
-static int lockiobuffer2_objectcache(objectcache_t * objectcache, /*out*/memoryblock_aspect_t ** iobuffer)
+static int lockiobuffer2_objectcache(objectcache_t * objectcache, /*out*/memblock_t ** iobuffer)
 {
    int err ;
 
@@ -160,7 +160,7 @@ ABBRUCH:
    return err ;
 }
 
-static int unlockiobuffer2_objectcache(objectcache_t * objectcache, memoryblock_aspect_t ** iobuffer)
+static int unlockiobuffer2_objectcache(objectcache_t * objectcache, memblock_t ** iobuffer)
 {
    int err ;
 
@@ -175,7 +175,7 @@ ABBRUCH:
    return err ;
 }
 
-void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memoryblock_aspect_t ** iobuffer)
+void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memblock_t ** iobuffer)
 {
    int err ;
 
@@ -184,7 +184,7 @@ void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memoryblock_as
    assert(!err && "lockiobuffer2_objectcache") ;
 }
 
-void unlockiobuffer_objectcache(objectcache_t * objectcache, memoryblock_aspect_t ** iobuffer)
+void unlockiobuffer_objectcache(objectcache_t * objectcache, memblock_t ** iobuffer)
 {
    int err ;
 

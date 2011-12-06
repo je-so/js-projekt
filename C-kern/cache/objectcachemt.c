@@ -44,8 +44,8 @@ objectcache_it_DECLARE(1, objectcachemt_it, objectcachemt_t)
 /* variable: s_objectcache_interface
  * Contains single instance of interface <objectcache_mit>. */
 objectcachemt_it  s_objectcachemt_interface = {
-                     &lockiobuffer_objectcachemt,
-                     &unlockiobuffer_objectcachemt,
+                      &lockiobuffer_objectcachemt
+                     ,&unlockiobuffer_objectcachemt
                   } ;
 
 // group: init
@@ -137,13 +137,13 @@ ABBRUCH:
    return err ;
 }
 
-void lockiobuffer_objectcachemt(objectcachemt_t * objectcache, /*out*/memoryblock_aspect_t ** iobuffer)
+void lockiobuffer_objectcachemt(objectcachemt_t * objectcache, /*out*/memblock_t ** iobuffer)
 {
    slock_mutex(&objectcache->lock) ;
    lockiobuffer_objectcache(&objectcache->objectcache, iobuffer) ;
 }
 
-void unlockiobuffer_objectcachemt(objectcachemt_t * objectcache, memoryblock_aspect_t ** iobuffer)
+void unlockiobuffer_objectcachemt(objectcachemt_t * objectcache, memblock_t ** iobuffer)
 {
    unlockiobuffer_objectcache(&objectcache->objectcache, iobuffer) ;
    sunlock_mutex(&objectcache->lock) ;
@@ -227,8 +227,8 @@ ABBRUCH:
 typedef struct childparam_t   childparam_t ;
 
 struct childparam_t {
-   objectcachemt_t      * cache ;
-   memoryblock_aspect_t * iobuffer ;
+   objectcachemt_t   * cache ;
+   memblock_t        * iobuffer ;
 } ;
 
 static int child_lockassert(childparam_t * start_arg)
@@ -271,7 +271,7 @@ static int test_iobuffer(void)
    // TEST assertion lockiobuffer 1
    TEST(0 == init_objectcachemt( &cache )) ;
    start_arg.cache    = &cache ;
-   start_arg.iobuffer = (memoryblock_aspect_t*) 1 ;
+   start_arg.iobuffer = (memblock_t*) 1 ;
    TEST(0 == init_process(&process, child_lockassert, &start_arg, &ioredirect)) ;
    TEST(0 == wait_process(&process, &result)) ;
    TEST(process_state_ABORTED == result.state) ;
@@ -285,7 +285,7 @@ static int test_iobuffer(void)
    // TEST assertion lockiobuffer 2
    TEST(0 == init_objectcachemt( &cache )) ;
    start_arg.cache    = &cache ;
-   start_arg.iobuffer = (memoryblock_aspect_t*) 0 ;
+   start_arg.iobuffer = (memblock_t*) 0 ;
    TEST(0 == init_process(&process, child_lockassert, &start_arg, &ioredirect)) ;
    TEST(0 == wait_process(&process, &result)) ;
    TEST(process_state_ABORTED == result.state) ;
@@ -299,7 +299,7 @@ static int test_iobuffer(void)
    // TEST assertion unlockiobuffer 1
    TEST(0 == init_objectcachemt( &cache )) ;
    start_arg.cache    = &cache ;
-   start_arg.iobuffer = (memoryblock_aspect_t*) 1 ;
+   start_arg.iobuffer = (memblock_t*) 1 ;
    TEST(0 == init_process(&process, child_unlockassert, &start_arg, &ioredirect)) ;
    TEST(0 == wait_process(&process, &result)) ;
    TEST(process_state_ABORTED == result.state) ;
@@ -313,7 +313,7 @@ static int test_iobuffer(void)
    // TEST assertion unlockiobuffer 2
    TEST(0 == init_objectcachemt( &cache )) ;
    start_arg.cache    = &cache ;
-   start_arg.iobuffer = (memoryblock_aspect_t*) 0 ;
+   start_arg.iobuffer = (memblock_t*) 0 ;
    TEST(0 == lock_mutex(&cache.lock)) ;
    TEST(0 == init_process(&process, child_unlockassert, &start_arg, &ioredirect)) ;
    TEST(0 == wait_process(&process, &result)) ;

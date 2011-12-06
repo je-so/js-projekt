@@ -30,7 +30,7 @@
 #ifndef CKERN_CACHE_OBJECTCACHE_HEADER
 #define CKERN_CACHE_OBJECTCACHE_HEADER
 
-#include "C-kern/api/aspect/memoryblock.h"
+#include "C-kern/api/memory/memblock.h"
 
 /* typedef: struct objectcache_t
  * Export <objectcache_t>. */
@@ -53,7 +53,7 @@ extern int unittest_cache_objectcache(void) ;
 struct objectcache_t {
    /* variable: iobuffer
     * Used in <init_vmmappedregions>. */
-   memoryblock_aspect_t    iobuffer ;
+   memblock_t    iobuffer ;
 } ;
 
 // group: init
@@ -70,7 +70,7 @@ extern int freeumgebung_objectcache(objectcache_oit * objectcache) ;
 
 /* define: objectcache_INIT_FREEABLE
  * Static initializer. */
-#define objectcache_INIT_FREEABLE      { memoryblock_aspect_INIT_FREEABLE }
+#define objectcache_INIT_FREEABLE      { memblock_INIT_FREEABLE }
 
 /* function: init_objectcache
  * Inits <objectcache_t> and all contained objects. */
@@ -84,14 +84,14 @@ extern int free_objectcache(objectcache_t * objectcache) ;
 
 /* function: lockiobuffer_objectcache
  * Locks the io buffer and returns a pointer to it in iobuffer.
- * The buffer is of type <memoryblock_aspect_t> (equal to <vm_block_t>). */
-extern void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memoryblock_aspect_t ** iobuffer) ;
+ * The buffer is of type <memblock_t> (equal to <vm_block_t>). */
+extern void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memblock_t ** iobuffer) ;
 
 /* function: unlockiobuffer_objectcache
  * Unlocks the locked io buffer and sets the pointer to NULL.
  * The pointer to the buffer must be acquired by a previous call to <lockiobuffer_objectcache>.
  * Calling unlock with a NULL pointer is a no op. */
-extern void unlockiobuffer_objectcache(objectcache_t * objectcache, memoryblock_aspect_t ** iobuffer) ;
+extern void unlockiobuffer_objectcache(objectcache_t * objectcache, memblock_t ** iobuffer) ;
 
 // group: change
 

@@ -26,7 +26,7 @@
 #ifndef CKERN_WRITER_LOGWRITER_HEADER
 #define CKERN_WRITER_LOGWRITER_HEADER
 
-#include "C-kern/api/aspect/memoryblock.h"
+#include "C-kern/api/memory/memblock.h"
 
 /* typedef: logwriter_t typedef
  * Exports <logwriter_t>. */
@@ -57,11 +57,11 @@ struct logwriter_t
     * Holds memory address and size of internal buffer.
     * If buffering mode is off this buffer can hold only one entry.
     * If buffering mode is one this buffer can hold several log entries. */
-   memoryblock_aspect_t    buffer ;
+   memblock_t     buffer ;
    /* variable: logsize
     * Stores the size in bytes of the buffered log entries.
     * If the buffer is empty this entry is 0. */
-   size_t                  logsize ;
+   size_t         logsize ;
 } ;
 
 // group: init
@@ -80,7 +80,7 @@ extern int freeumgebung_logwriter(log_oit * ilog) ;
 
 /* define: logwriter_INIT_FREEABLE
  * Static initializer. */
-#define logwriter_INIT_FREEABLE     {  memoryblock_aspect_INIT_FREEABLE, 0 }
+#define logwriter_INIT_FREEABLE        {  memblock_INIT_FREEABLE, 0 }
 
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.
