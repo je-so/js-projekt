@@ -31,8 +31,6 @@
 #include "C-kern/api/test.h"
 #endif
 
-#undef ntohs // use unoptimized ntohs to suppress warning in gcc in case of optimization on
-#undef htons // use unoptimized htons to suppress warning in gcc in case of optimization on
 
 #define ipaddr_MAXSIZE  (sizeof(ipaddr_t) + sizeof(struct sockaddr_in6))
 

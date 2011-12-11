@@ -41,7 +41,7 @@
 typedef sys_socket_t                   ipsocket_t ;
 
 /* typedef: struct ipsocket_async_t
- * Exports <ipsocket_async_t>. */
+ * Exports <ipsocket_async_t> to asynchronously establish a connection. */
 typedef struct ipsocket_async_t        ipsocket_async_t ;
 
 

@@ -158,7 +158,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
          if (decoded_size < (*parts)[i].size) {
             wbuffer_t decoded = wbuffer_INIT_STATIC(decoded_size, (uint8_t*) &newurl->buffer[buffidx]) ;
 
-            err = urldecode_string(&(*parts)[i], &decoded) ;
+            err = urldecode_string(&(*parts)[i], 0, 0, &decoded) ;
             if (err) goto ABBRUCH ;
 
          } else {
@@ -298,13 +298,12 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
 {
    int err ;
    size_t      sizeencoding[nrelementsof(url->parts)] = { 0 } ;
-   size_t      result_size = 0 ;
-   const char  * extrachar ;
    uint8_t     * start_result = 0 ;
+   size_t      result_size    = sizeof("http://")-1 ;
 
    // sizeof("http://") includes trailing \0 byte
    switch(url->scheme) {
-   case url_scheme_HTTP:   result_size = sizeof("http://")-1 ; break ;
+   case url_scheme_HTTP:   break ;
    default:                err = EINVAL ; goto ABBRUCH ;
    }
 
@@ -314,18 +313,14 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    for(unsigned i = 0; i < nrelementsof(url->parts); ++i) {
       size_t size = (size_t) (url->parts[i] - buffer_offset) ;
       if (size) {
-         -- size ; // not consider trailing '\0' byte
-         string_t part = string_INIT(size, &url->buffer[buffer_offset]) ;
-         if (url_part_HOSTNAME == i) -- result_size ; // no special marker for hostname
-         if (i < url_part_HOSTNAME) {
-            extrachar = "@/" ;
-         } else if (i < url_part_PATH) {
-            extrachar = "/" ;
+         -- size ; // include no trailing '\0' byte
+         string_t   part = string_INIT(size, &url->buffer[buffer_offset]) ;
+         sizeencoding[i] = sizeurlencode_string(&part, i == url_part_PATH? '/' : 0) ;
+         if (i == url_part_HOSTNAME) {
+            result_size += /* no special marker for hostname */ sizeencoding[i] ;
          } else {
-            extrachar = 0 ;
+            result_size += 1 + sizeencoding[i] ;
          }
-         sizeencoding[i]  = sizeurlencode_string(&part, extrachar) ;
-         result_size     += 1 + sizeencoding[i] ;
       }
       buffer_offset = url->parts[i] ;
    }
@@ -334,15 +329,14 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    if (err) goto ABBRUCH ;
 
    // encode & copy parts to result
+   memcpy( start_result, "http://", sizeof("http://")-1) ;
+   uint8_t  * result = start_result + sizeof("http://")-1 ;
    bool     isuser   = false ;
-   uint8_t  * result = start_result ;
-   memcpy( result, "http://", sizeof("http://")-1) ;
-   result += sizeof("http://")-1 ;
    buffer_offset = 0 ;
    for(unsigned i = 0; i < nrelementsof(url->parts); ++i) {
       size_t size = (size_t) (url->parts[i] - buffer_offset) ;
       if (size) {
-         -- size ; // copy not trailing '\0' byte
+         -- size ; // copy no trailing '\0' byte
          switch((url_part_e)i) {
          case url_part_USER:     isuser = true ;      break ;
          case url_part_PASSWD:   *(result++) = ':' ;  break ;
@@ -352,23 +346,16 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
          case url_part_QUERY:    *(result++) = '?' ;  break ;
          case url_part_FRAGMENT: *(result++) = '#' ;  break ;
          }
-         const char * next = &url->buffer[buffer_offset] ;
+         const char * urlbuffer = &url->buffer[buffer_offset] ;
          if (sizeencoding[i] > size) {
-            if (i < url_part_HOSTNAME) {
-               extrachar  = "@/" ;
-            } else if (i < url_part_PATH) {
-               extrachar  = "/" ;
-            } else {
-               extrachar = 0 ;
-            }
 
             wbuffer_t encoded = wbuffer_INIT_STATIC(sizeencoding[i], result) ;
 
-            err = urlencode_string(&(string_t)string_INIT(size, next), extrachar, &encoded) ;
+            err = urlencode_string(&(string_t)string_INIT(size, urlbuffer), i == url_part_PATH? '/' : 0, '/', &encoded) ;
             if (err) goto ABBRUCH ;
 
          } else {
-            memcpy(result, next, sizeencoding[i]) ;
+            memcpy(result, urlbuffer, sizeencoding[i]) ;
          }
          result += sizeencoding[i] ;
       } else if (isuser && url_part_HOSTNAME == i) {
@@ -426,6 +413,7 @@ static int test_url_initfree(void)
    TEST(0 == strcmp(query_url(url), "x=a")) ;
    TEST(0 == strcmp(fragment_url(url), "frag9")) ;
    TEST(0 == encode_url(url, &str)) ;
+   test = "http://user1:passwd2@server3.de:123/d1/d2?x%3Da#frag9" ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp(test, (char*)content_wbuffer(&str), sizecontent_wbuffer(&str))) ;
    reset_wbuffer(&str);
@@ -452,7 +440,7 @@ static int test_url_initfree(void)
    TEST(0 == url) ;
 
    // TEST '/' marks begin of path
-   test = "http://www.test.de:80/user1@/d1/?a=b#fragX" ;
+   test = "http://www.test.de:80/user1@/d1/?a_c#fragX" ;
    TEST(0 == new_url(&url, test)) ;
    TEST(0 != url) ;
    TEST(0 == user_url(url)) ;
@@ -465,9 +453,10 @@ static int test_url_initfree(void)
    TEST(0 == strcmp(hostname_url(url), "www.test.de")) ;
    TEST(0 == strcmp(port_url(url), "80")) ;
    TEST(0 == strcmp(path_url(url), "user1@/d1/")) ;
-   TEST(0 == strcmp(query_url(url), "a=b")) ;
+   TEST(0 == strcmp(query_url(url), "a_c")) ;
    TEST(0 == strcmp(fragment_url(url), "fragX")) ;
    TEST(0 == encode_url(url, &str)) ;
+   test = "http://www.test.de:80/user1%40/d1/?a_c#fragX" ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp(test, (char*)content_wbuffer(&str), sizecontent_wbuffer(&str))) ;
    reset_wbuffer(&str);
@@ -492,7 +481,7 @@ static int test_url_initfree(void)
    TEST(0 == strcmp(query_url(url), "Query/")) ;
    TEST(0 == strcmp(fragment_url(url), "/\xaa\xbb\xcc\xdd\xee\xffzZ")) ;
    TEST(0 == encode_url(url, &str)) ;
-   test = "http://%00%11%223DUfw%88%99xX:99/%AA%BB%CC%DD%EE%FFyY/?Query/#/%AA%BB%CC%DD%EE%FFzZ" ;
+   test = "http://%00%11%223DUfw%88%99xX:99/%AA%BB%CC%DD%EE%FFyY/?Query%2F#%2F%AA%BB%CC%DD%EE%FFzZ" ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp(test, (char*)content_wbuffer(&str), sizecontent_wbuffer(&str))) ;
    reset_wbuffer(&str);
@@ -500,7 +489,7 @@ static int test_url_initfree(void)
    TEST(0 == url) ;
 
    // TEST new2
-   test = "usr:pass@a%88%99b:44/%AA%BB%FF?@1/#@2" ;
+   test = "usr:pass@a%88%99b:44/%AA%BB%FF?_1#_2" ;
    TEST(0 == new2_url(&url, url_scheme_HTTP, test)) ;
    TEST(0 != url) ;
    TEST(0 != user_url(url)) ;
@@ -513,8 +502,8 @@ static int test_url_initfree(void)
    TEST(0 == strcmp(hostname_url(url), "a\x88\x99""b")) ;
    TEST(0 == strcmp(port_url(url), "44")) ;
    TEST(0 == strcmp(path_url(url), "\xaa\xbb\xff")) ;
-   TEST(0 == strcmp(query_url(url), "@1/")) ;
-   TEST(0 == strcmp(fragment_url(url), "@2")) ;
+   TEST(0 == strcmp(query_url(url), "_1")) ;
+   TEST(0 == strcmp(fragment_url(url), "_2")) ;
    TEST(0 == encode_url(url, &str)) ;
    TEST(strlen(test)+7 == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp("http://", (char*)content_wbuffer(&str), 7)) ;
@@ -612,7 +601,7 @@ static int test_url_initfree(void)
    TEST(0 == strcmp(query_url(url), "@/")) ;
    TEST(0 == strcmp(fragment_url(url), "?/#:")) ;
    TEST(0 == encode_url(url, &str)) ;
-   test = "http://us:pw@serv.xx@/@%3A/?@/#%3F/%23%3A" ;
+   test = "http://us:pw@serv.xx%40/%40%3A/?%40%2F#%3F%2F%23%3A" ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp(test, (char*)content_wbuffer(&str), strlen(test))) ;
    reset_wbuffer(&str);

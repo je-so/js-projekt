@@ -38,6 +38,8 @@ struct string_t ;
  *
  */
 
+
+
 // section: Functions
 
 // group: test
@@ -55,8 +57,11 @@ extern int unittest_string_encode(void) ;
 // group: query
 
 /* function: sizeurlencode_string
- * Determines url encoded length of parameter str. */
-extern size_t sizeurlencode_string(const struct string_t * str, const char * encode_additional_chars) ;
+ * Determines url encoded length of parameter str.
+ *
+ * Set *except_char* to '/' if the path of a URL is to be encoded.
+ * Set *except_char* to ' ' if a formdata field is to be encoded. */
+extern size_t sizeurlencode_string(const struct string_t * str, char except_char) ;
 
 /* function: sizeurldecode_string
  * Determines url decoded length of parameter str. */
@@ -69,17 +74,30 @@ extern size_t sizeurldecode_string(const struct string_t * str) ;
  * URL encoding assumes utf8 or ascii encoded strings. Every octet is encoded
  * individually. Alphanumeric characters ("A-Z", "a-z", "0-9") are not changed
  * and directly written to the output.
- * Character codes which are not alphanumeric or one of "&=$-_.+!*'(),/@"
+ * Character codes which are neither alphanumeric nor one of "-_.*"
  * are written as triplet of '%' plus two hexadecimal digits.
  *
- * Use parameter encode_additional_chars to determine if characters "/@" needs to be encoded.
- * This is useful for »username« and »password» field in a URL. */
-extern int urlencode_string(const struct string_t * str, const char * encode_additional_chars, struct wbuffer_t * result) ;
+ * If parameter except_char is set to 0 no exception is made during encoding.
+ * If it is set to a value != 0 the character is not encoded but changed into the character
+ * given in parameter *changeto_char*.
+ *
+ * Set *except_char* to '/' and changeto_char to '/' if the path of a URL is to be encoded cause '/'
+ * is considered a normal character for a path.
+ *
+ * Set *except_char* to ' ' and *changeto_char* to '+' if a formdata field is to be encoded.
+ *
+ * */
+extern int urlencode_string(const struct string_t * str, char except_char, char changeto_char, struct wbuffer_t * result) ;
 
 /* function: urldecode_string
  * Decodes a URL encoded string.
- * The decoded is equal or smaller in size. */
-extern int urldecode_string(const struct string_t * str, struct wbuffer_t * result) ;
+ * The decoded string is equal or smaller in size.
+ *
+ * Set parameter *changefrom_char* to value '+' and *changeinto_char* to value ' '
+ * in case a formdata field is decoded.
+ *
+ * Else set changefrom_char to 0 so no character is changed therefore changeinto_char is never used. */
+extern int urldecode_string(const struct string_t * str, char changefrom_char, char changeinto_char, struct wbuffer_t * result) ;
 
 // group: base64encoding
 

@@ -25,6 +25,12 @@
 #ifndef CKERN_MATH_INT_SIGNUM_HEADER
 #define CKERN_MATH_INT_SIGNUM_HEADER
 
+
+
+// section: Functions
+
+// group: query
+
 /* function: signum
  * Return the sign of an integer.
  *
@@ -36,6 +42,13 @@
  * 0   - i is zero
  * +1  - i is positive */
 extern int signum(int i) ;
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+extern int unittest_math_int_signum(void) ;
+#endif
+
 
 
 // section: inline implementation
@@ -50,10 +63,5 @@ extern int signum(int i) ;
             _int_t _temp = (i) ; \
             ( (_temp > 0) - (_temp < 0) ) ; \
          }))
-
-
-#ifdef KONFIG_UNITTEST
-extern int unittest_math_int_signum(void) ;
-#endif
 
 #endif

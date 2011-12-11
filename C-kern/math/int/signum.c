@@ -63,7 +63,7 @@ int unittest_math_int_signum()
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   return EINVAL ;
 }
 
 #endif

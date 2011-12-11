@@ -27,6 +27,11 @@
 #define CKERN_MATH_INT_POWER2_HEADER
 
 
+
+// section: Functions
+
+// group: query
+
 /* function: ispowerof2
  * Determines if argument is of power of 2 (<=> at most one bit is set all other zero) or 0.
  *
@@ -51,6 +56,13 @@ extern int ispowerof2(unsigned i) ;
  * Algorithm:
  * Set all bits right of highest to one (00011111111) and then add +1 (00100000000). */
 extern unsigned makepowerof2(unsigned i) ;
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+extern int unittest_math_int_power2(void) ;
+#endif
+
 
 
 // section: inline implementation
@@ -88,9 +100,5 @@ extern unsigned makepowerof2(unsigned i) ;
             }                                             \
             _result ;                                     \
          }))
-
-#ifdef KONFIG_UNITTEST
-extern int unittest_math_int_power2(void) ;
-#endif
 
 #endif

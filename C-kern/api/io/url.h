@@ -9,8 +9,9 @@
 
    Common Internet Scheme Syntax:
    URL schemes that involve the direct use of an IP-based protocol to a specified host
-   on the Internet use a common syntax for the scheme-specific data. The scheme specific
-   data start with a double slash "//".
+   on the Internet use a common syntax for the scheme-specific data. To indicate that
+   a URL uses the common Internet scheme syntax the scheme-specific data starts with
+   a double slash "//".
 
    Only URLs which use the common Internet scheme syntax are supported by this implementation:
    > <scheme>'://'<user>':'<passwd>'@'<hostname>:<port>'/'<path>'?'<query>'#'<fragment>
@@ -101,6 +102,7 @@ typedef enum url_part_e                url_part_e ;
  * */
 
 
+
 // section: Functions
 
 // group: test
@@ -110,6 +112,7 @@ typedef enum url_part_e                url_part_e ;
  * Unittest for parsing URLs from strings. */
 extern int unittest_io_url(void) ;
 #endif
+
 
 
 /* struct: url_t
@@ -200,6 +203,7 @@ extern const char * query_url(const url_t * url) ;
 /* function: user_url
  * Returns username or NULL if undefined. */
 extern const char * user_url(const url_t * url) ;
+
 
 
 // section: url_parts_t
