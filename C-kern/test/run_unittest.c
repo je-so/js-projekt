@@ -228,6 +228,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //}
 
 //{ math unittest
+   RUN(unittest_math_hash_sha1) ;
    RUN(unittest_math_int_signum) ;
    RUN(unittest_math_int_power2) ;
 //}
