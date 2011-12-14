@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Dec.11  07:01:05
+GenerationDate  := 2011.Dec.14  16:09:03
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -105,6 +105,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
  $(ObjectDir_Debug)/C-kern!string!encode.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
@@ -151,6 +152,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Release)/C-kern!string!utf8.c.o \
  $(ObjectDir_Release)/C-kern!string!encode.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
@@ -262,6 +264,9 @@ $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!encode.c.o: C-kern/string/encode.c
@@ -394,6 +399,9 @@ $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!encode.c.o: C-kern/string/encode.c
