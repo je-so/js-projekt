@@ -82,6 +82,29 @@ struct string_t {
  * straddr   - The start address of the string. */
 #define string_INIT(strsize, straddr)  { (straddr), (strsize) }
 
+/* function: init_string
+ * Assigns static string buffer to out param str.
+ * Expected parameter:
+ * str     - <string_t> object to initialize
+ * size    - Length of string in bytes
+ * string  - Address of first character. */
+extern void init_string(/*out*/string_t * str, size_t size, const char string[size]) ;
+
+/* function: initfl_string
+ * Assigns static string buffer to out param str.
+ * Expected parameter:
+ * str    - <string_t> object to initialize
+ * first  - Address of first character.
+ * last   - Address of last character. */
+extern int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * last) ;
+
+/* function: initse_string
+ * Assigns static string buffer to out param str.
+ * Expected parameter:
+ * str    - <string_t> object to initialize
+ * start  - Address of first character.
+ * end    - Address of memory after last character. */
+extern int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * end) ;
 
 // section: inline implementation
 
