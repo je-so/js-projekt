@@ -79,7 +79,6 @@
       <File Name="../../C-kern/api/string/utf8.h"/>
       <File Name="../../C-kern/api/string/cstringarray_buffer.h"/>
       <File Name="../../C-kern/api/string/wstream_buffer.h"/>
-      <File Name="../../C-kern/api/string/char.h"/>
       <File Name="../../C-kern/api/string/encode.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="os">
@@ -118,6 +117,9 @@
       <VirtualDirectory Name="int">
         <File Name="../../C-kern/api/math/int/power2.h"/>
         <File Name="../../C-kern/api/math/int/signum.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="hash">
+        <File Name="../../C-kern/api/math/hash/sha1.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="aspect">
@@ -188,9 +190,7 @@
       <VirtualDirectory Name="ip">
         <File Name="../../C-kern/api/io/ip/ipaddr.h"/>
         <File Name="../../C-kern/api/io/ip/ipsocket.h"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="protocol">
-        <File Name="../../C-kern/api/io/protocol/http.h"/>
+        <File Name="../../C-kern/api/io/ip/websocket.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/url.h"/>
     </VirtualDirectory>
@@ -251,8 +251,8 @@
     <File Name="../../C-kern/string/string.c"/>
     <File Name="../../C-kern/string/cstring.c"/>
     <File Name="../../C-kern/string/convertwchar.c"/>
-    <File Name="../../C-kern/string/char.c"/>
     <File Name="../../C-kern/string/encode.c"/>
+    <File Name="../../C-kern/string/utf8.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <File Name="../../C-kern/resource/errorlog.text"/>
@@ -321,6 +321,9 @@
       <File Name="../../C-kern/math/int/power2.c"/>
       <File Name="../../C-kern/math/int/signum.c"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="hash">
+      <File Name="../../C-kern/math/hash/sha1.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>
@@ -346,10 +349,8 @@
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
   <VirtualDirectory Name="io">
-    <VirtualDirectory Name="protocol">
-      <File Name="../../C-kern/io/protocol/http.c"/>
-    </VirtualDirectory>
     <File Name="../../C-kern/io/url.c"/>
+    <File Name="../../C-kern/io/websocket.c"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

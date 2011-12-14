@@ -30,9 +30,9 @@
  * Export <sha1_hash_t>. */
 typedef struct sha1_hash_t             sha1_hash_t ;
 
-/* typedef: sha1_hash_value_t
- * Defines <sha1_hash_value_t> as 160 bit value (uint8_t[20]). */
-typedef uint8_t                        sha1_hash_value_t[20] ;
+/* typedef: sha1_hashvalue_t
+ * Defines <sha1_hashvalue_t> as 160 bit value. */
+typedef uint8_t                        sha1_hashvalue_t[20] ;
 
 
 // section: Functions
@@ -46,20 +46,26 @@ extern int unittest_math_hash_sha1(void) ;
 #endif
 
 
-
 /* struct: sha1_hash_t
- * */
+ * Stores the data needed to calculate SHA1 hash from binary data.
+ * Call <init_sha1hash> and the <calculate_sha1hash> for your data.
+ * You can call it more than once if your data can not be processed
+ * as one single large data chunk. Use <value_sha1hash> to return
+ * the hash value. <value_sha1hash> does itself some processing
+ * before the value in <h> is returned. */
 struct sha1_hash_t {
+   /* variable: datalen
+    * Stores the number of bytes process so far. This value is needed
+    * to calculate the hash value in <value_sha1hash>.
+    *
+    * Special Value:
+    * The special value (uint64_t)-1 indicates
+    * that <value_sha1hash> was called and the hash value in <h> is valid.
+    * Calling <value_sha1hash> a second time only returns a pointer to <h>. */
    uint64_t    datalen ;
    /* variable: h
     * Current hash value. */
    uint32_t    h[5] ;
-   /* variable: isvalue
-    * Indicates if h[5] contains valid SHA1 hash value.
-    * This value is true if last call was <value_sha1hash>.
-    * If this value is true and <value_sha1hash> is called
-    * no more calculation is executed. */
-   bool        isvalue ;
    /* variable: block
     * Collects data until size is 64 bytes.
     * Hash calculation is only done in data blocks of 64 bytes. */
@@ -88,7 +94,7 @@ extern int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint
  * Calling this function more than once returns always returns the same value.
  * The returned pointer is valid as long as you do not call any other function
  * than <value_sha1hash>. */
-extern sha1_hash_value_t * value_sha1hash(sha1_hash_t * sha1) ;
+extern sha1_hashvalue_t * value_sha1hash(sha1_hash_t * sha1) ;
 
 
 #endif

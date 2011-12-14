@@ -47,6 +47,10 @@ typedef struct ipaddr_t                ipaddr_t ;
  * Export <ipaddr_list_t>. */
 typedef struct ipaddr_list_t           ipaddr_list_t ;
 
+/* typedef: struct ipaddr_storage_t
+ * Export <ipaddr_storage_t> to allow static allocation of an <ipaddr_t>. */
+typedef struct ipaddr_storage_t        ipaddr_storage_t ;
+
 /* enums: ipversion_e
  * Selects the version of the ip address.
  *
@@ -64,6 +68,7 @@ enum ipversion_e {
    ,ipversion_4   = AF_INET
    ,ipversion_6   = AF_INET6
 } ;
+
 typedef enum ipversion_e               ipversion_e ;
 
 /* enums: ipprotocol_e
@@ -82,6 +87,7 @@ enum ipprotocol_e {
    ,ipprotocol_TCP = IPPROTO_TCP
    ,ipprotocol_UDP = IPPROTO_UDP
 } ;
+
 typedef enum ipprotocol_e              ipprotocol_e ;
 
 
@@ -274,6 +280,36 @@ extern int setport_ipaddr(ipaddr_t * addr, ipport_t port) ;
  * Sets the ip number, protocol and port.
  * If version of sock_addr is not the same as of addr EAFNOSUPPORT is returned. */
 extern int setaddr_ipaddr(ipaddr_t * addr, ipprotocol_e protocol, uint16_t sock_addr_len, const sys_socketaddr_t * sock_addr) ;
+
+
+/* struct: ipaddr_storage_t
+ * Holds enough memory for every possible version of <ipaddr_t>.
+ * Use function <initconvert_ipaddrstorage> to cast this object into
+ * an <ipaddr_t> with the correct <ipversion_e>. */
+struct ipaddr_storage_t {
+   /* variable: protocol
+    * Same as <ipaddr_t.protocol>. */
+   uint16_t          protocol ;
+   /* variable: addrlen
+    * Same as <ipaddr_t.addrlen>. */
+   uint16_t          addrlen ;
+   /* variable: addr
+    * Same as <ipaddr_t.addr>. */
+   sys_socketaddr_t  addr[1] ;
+   /* variable: storage
+    * Additional space used by socket addr version with maximum size. */
+   uint8_t           storage[sys_socketaddr_MAXSIZE - sizeof(sys_socketaddr_t)] ;
+} ;
+
+// group: lifetime
+
+/* function: initconvert_ipaddrstorage
+ * Inits <ipaddr_storage_t> as to be of type <ipaddr_t> with given <ipversion_e>.
+ * In case value version is invalid the value NULL is returned.
+ *
+ * *Never* delete the returned <ipaddr_t> pointer. */
+extern ipaddr_t * initconvert_ipaddrstorage(ipaddr_storage_t * addr, ipversion_e version) ;
+
 
 
 // section: ipaddr_list_t

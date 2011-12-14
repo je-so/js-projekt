@@ -213,14 +213,13 @@ void init_sha1hash(/*out*/sha1_hash_t * sha1)
    sha1->h[2]    = 0x98BADCFE ;
    sha1->h[3]    = 0x10325476 ;
    sha1->h[4]    = 0xC3D2E1F0 ;
-   sha1->isvalue = false ;
 }
 
 int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buffer[buffer_size])
 {
    int err ;
 
-   if (sha1->isvalue) {
+   if ((uint64_t)-1 == sha1->datalen) {
       init_sha1hash(sha1) ;
    }
 
@@ -268,9 +267,9 @@ ABBRUCH:
    return err ;
 }
 
-sha1_hash_value_t * value_sha1hash(sha1_hash_t * sha1)
+sha1_hashvalue_t * value_sha1hash(sha1_hash_t * sha1)
 {
-   if (!sha1->isvalue) {
+   if ((uint64_t)-1 != sha1->datalen) {
 
       unsigned blocksize = sha1->datalen & 63 ;
 
@@ -294,10 +293,10 @@ sha1_hash_value_t * value_sha1hash(sha1_hash_t * sha1)
       sha1->h[3] = htonl(sha1->h[3]) ;
       sha1->h[4] = htonl(sha1->h[4]) ;
 
-      sha1->isvalue = true ;
+      sha1->datalen = (uint64_t)-1 ;
    }
 
-   return (sha1_hash_value_t*) sha1->h ;
+   return (sha1_hashvalue_t*) sha1->h ;
 }
 
 
@@ -306,10 +305,43 @@ sha1_hash_value_t * value_sha1hash(sha1_hash_t * sha1)
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
+static int test_unevenaddr(sha1_hashvalue_t * sha1sum, const char * string)
+{
+   char        buffer[1024] ;
+   sha1_hash_t sha1 ;
+   char        * even   = (char*) (((intptr_t)buffer + 4) & ~(intptr_t)0x03) ;
+   char        * uneven = (char*) ((intptr_t)buffer | (intptr_t)0x03) ;
+   size_t      len      = strlen(string) ;
+
+   // TEST as single byte
+   init_sha1hash(&sha1) ;
+   TEST(len >= 64) ;
+   TEST(len < sizeof(buffer)-4) ;
+   for(unsigned i = 0; i < len; ++i) {
+      TEST(0 == calculate_sha1hash(&sha1, 1, (const uint8_t*)&string[i])) ;
+   }
+   static_assert(20 == sizeof(*sha1sum), ) ;
+   TEST(0 == strncmp((char*)*sha1sum, (char*)value_sha1hash(&sha1), sizeof(*sha1sum))) ;
+
+   // TEST even addr
+   strcpy(even, string) ;
+   TEST(0 == calculate_sha1hash(&sha1, len, (uint8_t*)even)) ;
+   TEST(0 == strncmp((char*)*sha1sum, (char*)value_sha1hash(&sha1), sizeof(*sha1sum))) ;
+
+   // TEST uneven addr
+   strcpy(uneven, string) ;
+   TEST(0 == calculate_sha1hash(&sha1, len, (uint8_t*)uneven)) ;
+   TEST(0 == strncmp((char*)*sha1sum, (char*)value_sha1hash(&sha1), sizeof(*sha1sum))) ;
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
+
 static int test_sha1(void)
 {
    sha1_hash_t       sha1 ;
-   sha1_hash_value_t sha1sum ;
+   sha1_hashvalue_t  sha1sum ;
 
    // TEST init
    memset(&sha1, 0xff, sizeof(sha1)) ;
@@ -320,7 +352,6 @@ static int test_sha1(void)
    TEST(0x98BADCFE == sha1.h[2]) ;
    TEST(0x10325476 == sha1.h[3]) ;
    TEST(0xC3D2E1F0 == sha1.h[4]) ;
-   TEST(0 == sha1.isvalue) ;
    for(int i = 0; i < 64; ++i) {
       // TEST sha1.block is not changed !
       TEST(255 == sha1.block[i]) ;
@@ -339,22 +370,22 @@ static int test_sha1(void)
    }
 
    // TEST value_sha1hash
-   TEST(0 == sha1.isvalue) ;
+   TEST((uint64_t)-1 != sha1.datalen) ;
    TEST((uint8_t*)sha1.h == (uint8_t*)value_sha1hash(&sha1)) ;
-   TEST(1 == sha1.isvalue) ;
+   TEST((uint64_t)-1 == sha1.datalen) ;
 
    // TEST value_sha1hash does not change value
-   TEST(1 == sha1.isvalue) ;
+   TEST((uint64_t)-1 == sha1.datalen) ;
    memcpy(sha1sum, sha1.h, sizeof(sha1sum)) ;
    TEST((uint8_t*)sha1.h == (uint8_t*)value_sha1hash(&sha1)) ;
-   TEST(1 == sha1.isvalue) ;
+   TEST((uint64_t)-1 == sha1.datalen) ;
    TEST(0 == memcmp(sha1sum, sha1.h, sizeof(sha1sum))) ;
    TEST((uint8_t*)sha1.h == (uint8_t*)value_sha1hash(&sha1)) ;
-   TEST(1 == sha1.isvalue) ;
+   TEST((uint64_t)-1 == sha1.datalen) ;
    TEST(0 == memcmp(sha1sum, sha1.h, sizeof(sha1sum))) ;
 
    // TEST calculate_sha1hash calls init_sha1sum
-   TEST(1 == sha1.isvalue) ;
+   TEST((uint64_t)-1 == sha1.datalen) ;
    memset(sha1.block, 0xff, sizeof(sha1.block)) ;
    TEST(0 == calculate_sha1hash(&sha1, 1, (const uint8_t*)"")) ;
    TEST(1 == sha1.datalen) ;
@@ -363,7 +394,6 @@ static int test_sha1(void)
    TEST(0x98BADCFE == sha1.h[2]) ;
    TEST(0x10325476 == sha1.h[3]) ;
    TEST(0xC3D2E1F0 == sha1.h[4]) ;
-   TEST(0 == sha1.isvalue) ;
    TEST(0 == sha1.block[0]) ;
    TEST(0xff == sha1.block[1]) ;
    TEST(0xff == sha1.block[63]) ;
@@ -414,14 +444,14 @@ static int test_sha1(void)
             "   (void) free_resourceusage(&usage) ;\n"
             "   return EINVAL ;\n"
             "}\n" ;
-   TEST(0 == calculate_sha1hash(&sha1, strlen(string), (const uint8_t*)string)) ;
    strncpy( (char*)sha1sum, "\x98\x41\x30\x90\x06\xcf\xe3\x0f\x9d\x5b\xe4\x98\x70\x82\xeb\x51\x23\x72\x60\xdc", 20) ;
-   TEST(0 == memcmp(sha1sum, value_sha1hash(&sha1), 20)) ;
+   TEST(0 == test_unevenaddr(&sha1sum, string)) ;
 
    return 0 ;
 ABBRUCH:
    return EINVAL ;
 }
+
 
 int unittest_math_hash_sha1()
 {
@@ -429,7 +459,7 @@ int unittest_math_hash_sha1()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_sha1())     goto ABBRUCH ;
+   if (test_sha1())        goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

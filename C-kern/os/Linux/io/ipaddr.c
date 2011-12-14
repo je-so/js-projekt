@@ -32,7 +32,6 @@
 #endif
 
 
-#define ipaddr_MAXSIZE  (sizeof(ipaddr_t) + sizeof(struct sockaddr_in6))
 
 // section: ipaddr_t
 
@@ -65,8 +64,8 @@ static inline void compiletime_tests(void)
    static_assert( &((struct sockaddr_in*)0)->sin_addr != (void*)&((struct sockaddr_in6*)0)->sin6_addr, ) ;
    // addrlen fits in uint16_t
    static_assert( sizeof(struct sockaddr_in) <  sizeof(struct sockaddr_in6), ) ;
-   static_assert( ipaddr_MAXSIZE <= 256, ) ;
-   static_assert( sizeof(ipaddr_t) + sizeof(struct sockaddr_in6) == ipaddr_MAXSIZE, ) ;
+   static_assert( sys_socketaddr_MAXSIZE <= 256, ) ;
+   static_assert( sizeof(ipaddr_storage_t) == sizeof(ipaddr_t) + sys_socketaddr_MAXSIZE, ) ;
 
 }
 
@@ -559,20 +558,20 @@ ABBRUCH:
 }
 
 
+
 /* struct: ipaddr_list_t
  * Stores list of <ipaddr_t>. Allows to iterate ovr every entry. */
 struct ipaddr_list_t
 {
    /* variable: current_addr
     * Points to <ipaddr_t> storage used to return next address. */
-   struct ipaddr_t * current ;
+   ipaddr_storage_t  current ;
    /* variable: first
     * Points to start of list. This is the system specific type *struct addrinfo*. */
-   struct addrinfo * first ;
+   struct addrinfo   * first ;
    /* variable: next
     * Points in list. Indicates which address to return as next. */
-   struct addrinfo * next ;
-   uint8_t           storage[ipaddr_MAXSIZE] ;
+   struct addrinfo   * next ;
 } ;
 
 // group: implementation
@@ -594,7 +593,6 @@ int newdnsquery_ipaddrlist(/*out*/ipaddr_list_t ** addrlist, const char * hostna
    if (err) goto ABBRUCH ;
 
    memset(new_addrlist, 0, sizeof(*new_addrlist)) ;
-   new_addrlist->current = (ipaddr_t*) new_addrlist->storage ;
    new_addrlist->first   = addrinfo_list ;
    new_addrlist->next    = addrinfo_list ;
 
@@ -614,7 +612,6 @@ int delete_ipaddrlist(ipaddr_list_t ** addrlist)
       *addrlist = 0 ;
 
       delete_addrinfo(&delobj->first) ;
-      delobj->current = 0 ;
       delobj->next    = 0 ;
 
       free(delobj) ;
@@ -646,12 +643,13 @@ const ipaddr_t * next_ipaddrlist(ipaddr_list_t * addrlist)
                      && sizeof(struct sockaddr_in6) != next->ai_addrlen ) ) ;
 
    // prepare content of cached ipaddr_t
-   addrlist->current->protocol = (uint16_t) next->ai_protocol ;
-   addrlist->current->addrlen  = (uint16_t) next->ai_addrlen ;
-   memcpy(addrlist->current->addr, next->ai_addr, next->ai_addrlen) ;
+   addrlist->current.protocol = (uint16_t) next->ai_protocol ;
+   addrlist->current.addrlen  = (uint16_t) next->ai_addrlen ;
+   memcpy(addrlist->current.addr, next->ai_addr, next->ai_addrlen) ;
 
-   return addrlist->current ;
+   return (ipaddr_t*) &addrlist->current ;
 }
+
 
 
 // section: ipport_t
@@ -699,6 +697,36 @@ ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
+
+
+
+// section: ipaddr_storage_t
+
+ipaddr_t * initconvert_ipaddrstorage(ipaddr_storage_t * addr, ipversion_e version)
+{
+   int err ;
+   uint16_t size ;
+
+   switch(version) {
+   case ipversion_4: size = sizeof(struct sockaddr_in) ;
+                     break ;
+   case ipversion_6: size = sizeof(struct sockaddr_in6) ;
+                     break ;
+   default:          err = EAFNOSUPPORT ;
+                     goto ABBRUCH ;
+   }
+
+   memset(addr->addr, 0, size) ;
+   addr->protocol = ipprotocol_TCP ;
+   addr->addrlen  = size ;
+   addr->addr[0].sa_family = version ;
+
+   return (ipaddr_t*) addr ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return 0 ;
+}
+
 
 
 // section: Functions
@@ -1184,6 +1212,56 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static int test_ipaddrstorage(void)
+{
+   cstring_t         name      = cstring_INIT ;
+   ipaddr_t          * ipaddr  = 0 ;
+   ipaddr_t          * ipaddr2 = 0 ;
+   ipaddr_storage_t  ipaddr_st ;
+
+   // TEST initconvert ipversion_4
+   ipaddr2 = initconvert_ipaddrstorage(&ipaddr_st, ipversion_4 ) ;
+   TEST((void*)&ipaddr_st == (void*)ipaddr2) ;
+   TEST(ipversion_4 == version_ipaddr(ipaddr2)) ;
+   TEST(isvalid_ipaddr(ipaddr2)) ;
+   TEST(0 == new_ipaddr(&ipaddr, ipprotocol_TCP, "1.2.3.4", 1, ipversion_4 )) ;
+   TEST(ipaddr) ;
+   TEST(0 == copy_ipaddr(ipaddr2, ipaddr)) ;
+   TEST(0 == delete_ipaddr(&ipaddr)) ;
+   TEST(0 == ipaddr) ;
+   TEST(port_ipaddr(ipaddr2)    == 1) ;
+   TEST(protocol_ipaddr(ipaddr2)== ipprotocol_TCP) ;
+   TEST(version_ipaddr(ipaddr2) == ipversion_4) ;
+   TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in)) ;
+   TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
+   TEST(0 == strcmp( str_cstring(&name), "1.2.3.4")) ;
+
+   // TEST initconvert ipversion_6
+   ipaddr2 = initconvert_ipaddrstorage(&ipaddr_st, ipversion_6 ) ;
+   TEST((void*)&ipaddr_st == (void*)ipaddr2) ;
+   TEST(ipversion_6 == version_ipaddr(ipaddr2)) ;
+   TEST(isvalid_ipaddr(ipaddr2)) ;
+   TEST(0 == newdnsquery_ipaddr(&ipaddr, ipprotocol_UDP, "::23", 50, ipversion_6 )) ;
+   TEST(ipaddr) ;
+   TEST(0 == copy_ipaddr(ipaddr2, ipaddr)) ;
+   TEST(0 == delete_ipaddr(&ipaddr)) ;
+   TEST(0 == ipaddr) ;
+   TEST(port_ipaddr(ipaddr2)    == 50) ;
+   TEST(protocol_ipaddr(ipaddr2)== ipprotocol_UDP) ;
+   TEST(version_ipaddr(ipaddr2) == ipversion_6) ;
+   TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in6)) ;
+   TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
+   TEST(0 == strcmp( str_cstring(&name), "::23")) ;
+
+   TEST(0 == free_cstring(&name)) ;
+
+   return 0 ;
+ABBRUCH:
+   (void) free_cstring(&name) ;
+   (void) delete_ipaddr(&ipaddr) ;
+   return EINVAL ;
+}
+
 int unittest_io_ipaddr()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -1196,6 +1274,7 @@ int unittest_io_ipaddr()
    if (test_ipport())         goto ABBRUCH ;
    if (test_ipaddr())         goto ABBRUCH ;
    if (test_ipaddrlist())     goto ABBRUCH ;
+   if (test_ipaddrstorage())  goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

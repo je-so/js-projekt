@@ -56,7 +56,6 @@ extern int unittest_memory_wbuffer(void) ;
 #endif
 
 
-
 /* struct: wbuffer_t
  * Wraps pointer to dynamically growing memory.
  * Supports construction of return values of unknown size a priori.
@@ -184,7 +183,6 @@ extern int appendalloc2_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t **
 extern int appendchar2_wbuffer(wbuffer_t * wbuf, const char c) ;
 
 
-
 /* struct: wbuffer_it
  * Defines interface for <wbuffer_t>.
  * This allows subtyping - for example <cstring_t> uses this to offer a <wbuffer_t> view. */
@@ -205,7 +203,6 @@ struct wbuffer_it {
     * If addr is a pointer to a static buffer calling grow_buffer returns always ENOMEM. */
    int     (* grow_wbuffer) (wbuffer_t * wbuf, size_t free_size) ;
 } ;
-
 
 
 // section: inline implementation

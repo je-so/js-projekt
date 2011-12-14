@@ -190,7 +190,7 @@ typedef enum log_channel_e       log_channel_e ;
  * Log "name=value" of pointer variable.
  * Example:
  * > const void * ptr = &g_variable ; LOGC_PTR(ERR, ptr) ; */
-#define LOGC_PTR(LOGCHANNEL, varname)        LOGC_VAR(LOGCHANNEL, "p", varname, (void*))
+#define LOGC_PTR(LOGCHANNEL, varname)        LOGC_VAR(LOGCHANNEL, "p", varname, (const void*))
 
 /* define: LOGC_DOUBLE
  * Log "name=value" of double or float variable.

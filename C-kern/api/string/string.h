@@ -60,12 +60,14 @@ extern int unittest_string(void) ;
 struct string_t {
    /* variable: addr
     * Start address of the string memory. */
-   const char   * addr ;
+   const char  * addr ;
    /* variable: size
     * Size in bytes of string memory.
     * The string length (number of characters) is <= this value. */
-   size_t         size ;
+   size_t      size ;
 } ;
+
+// group: lifetime
 
 /* define: string_INIT_FREEABLE
  * Static initializer. Sets string_t null or undefined string. */

@@ -86,6 +86,8 @@ struct umgebung_services_t {
    objectcache_oit         objectcache ;
 } ;
 
+// group: lifetime
+
 /* define: umgebung_INIT_MAINSERVICES
  * Static initializer for <umgebung_services_t>.
  * These initializer ensures that in function main the global log service is available
@@ -108,20 +110,20 @@ struct umgebung_services_t {
  * */
 struct umgebung_t {
    // group: private
-   umgebung_type_e         type ;
-   size_t                * copy_count ;
+
+   umgebung_type_e      type ;
+   size_t               * copy_count ;
 
    // group: public services
 
    /* variable: shared
     * Points to shared services. */
-   umgebung_shared_t     * shared ;
+   umgebung_shared_t    * shared ;
 
    /* variable: svc
     * Points to services for a single thread.
     * They can also be shared (multithread) or exclusiv per thread (singlethread). */
-   umgebung_services_t     svc ;
-
+   umgebung_services_t  svc ;
 } ;
 
 // group: lifetime

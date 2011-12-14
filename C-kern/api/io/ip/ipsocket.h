@@ -28,8 +28,8 @@
 #ifndef CKERN_IO_INTERNETPROTOCOL_SOCKET_HEADER
 #define CKERN_IO_INTERNETPROTOCOL_SOCKET_HEADER
 
-#include "C-kern/api/io/filedescr.h"
-#include "C-kern/api/io/ip/ipaddr.h"
+// forward
+struct ipaddr_t ;
 
 /* typedef: ipsocket_t
  * Defines <ipsocket_t> as alias for <sys_socket_t>.
@@ -43,7 +43,6 @@ typedef sys_socket_t                   ipsocket_t ;
 /* typedef: struct ipsocket_async_t
  * Exports <ipsocket_async_t> to asynchronously establish a connection. */
 typedef struct ipsocket_async_t        ipsocket_async_t ;
-
 
 
 // section: Functions
@@ -116,8 +115,8 @@ extern int free_ipsocket(/*out*/ipsocket_t * ipsock) ;
 // group: query
 
 /* function: fd_ipsocket
- * Returns the file descriptor of the socket. */
-extern filedescr_t fd_ipsocket(ipsocket_t * ipsock) ;
+ * Returns the file descriptor <filedescr_t> of the socket. */
+extern sys_filedescr_t fd_ipsocket(ipsocket_t * ipsock) ;
 
 /* function: isconnected_ipsocket
  * Returns if the socket is connected to a peer.
@@ -132,14 +131,14 @@ extern bool isconnected_ipsocket(const ipsocket_t * ipsock) ;
 extern bool islisten_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: protocol_ipsocket
- * Returns protocol type <ipprotocol_e> of the socket uses.
+ * Returns protocol <ipprotocol_e> of the socket.
  * In case of error <ipprotocol_ANY> is returned. */
-extern ipprotocol_e protocol_ipsocket(const ipsocket_t * ipsock) ;
+extern uint16_t protocol_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: version_ipsocket
- * Returns the protocol version <ipversion_e>.
+ * Returns protocol version <ipversion_e>.
  * In case of an error <ipversion_ANY> is returned. */
-extern ipversion_e version_ipsocket(const ipsocket_t * ipsock) ;
+extern uint16_t version_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: localaddr_ipsocket
  * Returns local ip address in localaddr.

@@ -25,6 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/ip/ipsocket.h"
+#include "C-kern/api/io/ip/ipaddr.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -277,7 +278,7 @@ ABBRUCH:
    return false ;
 }
 
-ipprotocol_e protocol_ipsocket(const ipsocket_t * ipsock)
+uint16_t protocol_ipsocket(const ipsocket_t * ipsock)
 {
    int err ;
    int       value ;
@@ -292,13 +293,13 @@ ipprotocol_e protocol_ipsocket(const ipsocket_t * ipsock)
    }
    assert(len == sizeof(int)) ;
 
-   return (ipprotocol_e) value ;
+   return (uint16_t) value ;
 ABBRUCH:
    LOG_ABORT(err) ;
    return ipprotocol_ANY ;
 }
 
-ipversion_e version_ipsocket(const ipsocket_t * ipsock)
+uint16_t version_ipsocket(const ipsocket_t * ipsock)
 {
    int err ;
    int       value ;
@@ -313,7 +314,7 @@ ipversion_e version_ipsocket(const ipsocket_t * ipsock)
    }
    assert(len == sizeof(int)) ;
 
-   return (ipversion_e) value ;
+   return (uint16_t) value ;
 ABBRUCH:
    LOG_ABORT(err) ;
    return ipversion_ANY ;

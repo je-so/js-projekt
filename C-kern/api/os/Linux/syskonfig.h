@@ -160,6 +160,11 @@
  * Type which holds a generic socket address.
  * This type is defined as Posix specific *struct sockaddr*. */
 #define sys_socketaddr_t               struct sockaddr
+#undef  sys_socketaddr_MAXSIZE
+/* define: sys_socketaddr_MAXSIZE
+ * Value which describes the maximum size of all versions of ip socket addresses.
+ * This type is defined as Posix specific *sizeof(struct sockaddr_in6)*. */
+#define sys_socketaddr_MAXSIZE         sizeof(struct sockaddr_in6)
 #undef  sys_thread_t
 /* define: sys_thread_t
  * Types represents a system thread.

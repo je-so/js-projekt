@@ -271,6 +271,9 @@
 /* define: sys_socketaddr_t
  * Type which holds addresses received from sockets. Overwritten in system specific include file. */
 #define sys_socketaddr_t            void
+/* define: sys_socketaddr_MAXSIZE
+ * Value which holds max size of all versions of socket addresses. Overwritten in system specific include file. */
+#define sys_socketaddr_MAXSIZE      0
 /* define: sys_thread_t
  * Type holding system specific description of a thread. Overwritten in system specific include file. */
 #define sys_thread_t                void
