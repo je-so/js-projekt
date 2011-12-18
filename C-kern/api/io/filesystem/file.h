@@ -30,12 +30,12 @@
 // forward
 struct directory_t ;
 
-/* typedef: struct file_t
- * Export <file_t>, alias for <sys_file_t>.
+/* typedef: file_t
+ * Export <file_t>, alias for <sys_filedescr_t>.
  * Describes a persistent binary object with a name.
  * Describes an opened file for doing reading and/or writing.
  * The file is located in a system specific filesystem. */
-typedef sys_file_t                     file_t ;
+typedef sys_filedescr_t                file_t ;
 
 
 // section: Functions
@@ -55,7 +55,7 @@ extern int unittest_io_file(void) ;
 
 /* define: file_INIT_FREEABLE
  * Static initializer. */
-#define file_INIT_FREEABLE             sys_file_INIT_FREEABLE
+#define file_INIT_FREEABLE             sys_filedescr_INIT_FREEABLE
 
 /* function: init_file
  * Opens a file identified by its path and name.

@@ -101,19 +101,11 @@
  * Type represents an opened file system directory.
  * This type is Posix specific. */
 #define sys_directory_t                DIR*
-#undef  sys_file_t
-/* define: sys_file_t
- * Type represents a system file.
- * This type is a Posix specific file descriptor. */
-#define sys_file_t                     sys_filedescr_t
-#undef  sys_file_INIT_FREEABLE
-/* define: sys_file_INIT_FREEABLE
- * Static initializer for a file which is in a closed or invalid state. */
-#define sys_file_INIT_FREEABLE         sys_filedescr_INIT_FREEABLE
 #undef  sys_filedescr_t
 /* define: sys_filedescr_t
  * Type represents a system file descriptor.
- * This type is Posix specific. */
+ * This type is Posix specific.
+ * Type represents also a network connection. */
 #define sys_filedescr_t                int
 #undef  sys_filedescr_INIT_FREEABLE
 /* define: sys_filedescr_INIT_FREEABLE
@@ -146,15 +138,6 @@
 /* define: sys_semaphore_INIT_FREEABLE
  * Static initializer for <sys_semaphore_t>. */
 #define sys_semaphore_INIT_FREEABLE    (-1)
-#undef  sys_socket_t
-/* define: sys_socket_t
- * Type represents a (generic) network connection.
- * This type is a Posix specific file descriptor. */
-#define sys_socket_t                   sys_filedescr_t
-#undef  sys_socket_INIT_FREEABLE
-/* define: sys_socket_INIT_FREEABLE
- * Static initializer for a socket which is in a closed or invalid state. */
-#define sys_socket_INIT_FREEABLE       sys_filedescr_INIT_FREEABLE
 #undef  sys_socketaddr_t
 /* define: sys_socketaddr_t
  * Type which holds a generic socket address.

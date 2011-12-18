@@ -32,13 +32,13 @@
 struct ipaddr_t ;
 
 /* typedef: ipsocket_t
- * Defines <ipsocket_t> as alias for <sys_socket_t>.
+ * Defines <ipsocket_t> as alias for <sys_filedescr_t>.
  * A socket is the abstraction of a network connection.
  * It is considered as the communication end point of one side.
  * Connected sockets can be considered like files except that
  * written data is transported to another communication endpoint.
  * */
-typedef sys_socket_t                   ipsocket_t ;
+typedef sys_filedescr_t                ipsocket_t ;
 
 /* typedef: struct ipsocket_async_t
  * Exports <ipsocket_async_t> to asynchronously establish a connection. */
@@ -62,7 +62,7 @@ extern int unittest_io_ipsocket(void) ;
 
 /* define: ipsocket_INIT_FREEABLE
  * Static initializer for <ipsocket_t>. Makes calling of <free_ipsocket> safe. */
-#define ipsocket_INIT_FREEABLE         sys_socket_INIT_FREEABLE
+#define ipsocket_INIT_FREEABLE         sys_filedescr_INIT_FREEABLE
 
 /* function: init_ipsocket
  * Creates a new unconnected UDP network communication endpoint.

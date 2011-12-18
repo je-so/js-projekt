@@ -232,14 +232,10 @@
  * Pointer type holding system specific description of an opened directory stream.
  * NULL is considered an unitialized value. Overwritten in system specific include file. */
 #define sys_directory_t             void
-/* define: sys_file_t
- * Type holding system specific description of a file. */
-#define sys_file_t                  void
-/* define: sys_file_INIT_FREEABLE
- * Static initializer for a mutex useable by threads of the same process. */
-#define sys_file_INIT_FREEABLE      void
 /* define: sys_filedescr_t
- * Type holding system specific description of a file. */
+ * Type holding system specific description of a file.
+ * It is also used for network connections.
+ * Overwritten in system specific include file. */
 #define sys_filedescr_t             void
 /* define: sys_filedescr_INIT_FREEABLE
  * Static initializer for a mutex useable by threads of the same process. */
@@ -262,12 +258,6 @@
 /* define: sys_semaphore_INIT_FREEABLE
  * Init value to declare an invalid semaphore handle. Overwritten in system specific include file. */
 #define sys_semaphore_INIT_FREEABLE void
-/* define: sys_socket_t
- * System specific network connection type. Overwritten in system specific include file. */
-#define sys_socket_t                void
-/* define: sys_socket_INIT_FREEABLE
- * Init value to declare an invalid socket handle. Overwritten in system specific include file. */
-#define sys_socket_INIT_FREEABLE    void
 /* define: sys_socketaddr_t
  * Type which holds addresses received from sockets. Overwritten in system specific include file. */
 #define sys_socketaddr_t            void
