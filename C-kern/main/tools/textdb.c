@@ -38,6 +38,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/io/filedescr.h"
 
 typedef struct function_t              function_t ;
 typedef struct iffunction_t            iffunction_t ;
@@ -1584,8 +1585,7 @@ int main(int argc, const char * argv[])
 
    // flush output to disk
    if (g_outfilename) {
-      err = close(g_outfd) ;
-      g_outfd = -1 ;
+      err = free_filedescr(&g_outfd) ;
       if (err) {
          print_err( "Can not write file '%s': %s", g_outfilename, strerror(errno) ) ;
          goto ABBRUCH ;
@@ -1595,8 +1595,7 @@ int main(int argc, const char * argv[])
    if (-1 != g_depfd) {
       err = write_file( g_depfd, "\n", strlen("\n") ) ;
       if (err) goto ABBRUCH ;
-      err = close(g_depfd) ;
-      g_depfd = -1 ;
+      err = free_filedescr(&g_depfd) ;
       if (err) {
          print_err( "Can not write file '%s': %s", g_depfilename, strerror(errno) ) ;
          goto ABBRUCH ;
@@ -1620,11 +1619,11 @@ PRINT_USAGE:
    dprintf(STDERR_FILENO, "         -f: If output file exists force overwrite\n\n") ;
 ABBRUCH:
    if (g_outfilename && g_outfd != -1) {
-      close(g_outfd) ;
+      free_filedescr(&g_outfd) ;
       unlink(g_outfilename) ;
    }
    if (g_depfd != -1) {
-      close(g_depfd) ;
+      free_filedescr(&g_depfd) ;
       unlink(g_depfilename) ;
       free(g_depfilename) ;
    }
