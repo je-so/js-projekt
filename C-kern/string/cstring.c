@@ -221,6 +221,18 @@ static int test_initfree(void)
    TEST(0 == cstr2.length)
    TEST(0 == cstr2.chars)
 
+   // TEST allocatedsize_cstring
+   TEST(0 == allocatedsize_cstring(&cstr)) ;
+   TEST(0 == allocatedsize_cstring(&cstr2)) ;
+   cstr.allocated_size = 123 ;
+   cstr2.allocated_size = 125 ;
+   TEST(123 == allocatedsize_cstring(&cstr)) ;
+   TEST(125 == allocatedsize_cstring(&cstr2)) ;
+   cstr.allocated_size = 0 ;
+   cstr2.allocated_size = 0 ;
+   TEST(0 == allocatedsize_cstring(&cstr)) ;
+   TEST(0 == allocatedsize_cstring(&cstr2)) ;
+
    // TEST str_cstring
    TEST(0 == cstr.chars) ;
    TEST(0 != str_cstring(&cstr)) ;
@@ -239,7 +251,7 @@ static int test_initfree(void)
       TEST(testbuffer == str_cstring(&cstr3)) ;
    }
 
-   // TEST init,double free
+   // TEST init, double free
    cstr.length = 1 ;
    TEST(0 == init_cstring(&cstr, 256)) ;
    TEST(0 == cstr.length)
@@ -360,7 +372,7 @@ static int test_initfree(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    // TEST initmove on empty string
-   TEST(0 == initmove_cstring(&cstr, &cstr2)) ;
+   initmove_cstring(&cstr, &cstr2) ;
    TEST(0 == cstr.allocated_size) ;
    TEST(0 == cstr.length) ;
    TEST(0 == cstr.chars) ;
@@ -372,7 +384,7 @@ static int test_initfree(void)
    TEST(0 == init_cstring(&cstr2, 64)) ;
    TEST(0 == append_cstring(&cstr2, 6, "123456" )) ;
    cstring_t xxx = cstr2 ;
-   TEST(0 == initmove_cstring(&cstr, &cstr2)) ;
+   initmove_cstring(&cstr, &cstr2) ;
    TEST(0 == memcmp(&cstr, &xxx, sizeof(cstr))) ;
    TEST(0 == strcmp(cstr.chars, "123456")) ;
    TEST(64 == cstr.allocated_size) ;

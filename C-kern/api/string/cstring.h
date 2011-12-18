@@ -82,7 +82,7 @@ extern int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size) ;
 
 /* function: initmove_cstring
  * Inits dest with content of source and sets source to <cstring_INIT_FREEABLE>. */
-extern int initmove_cstring(/*out*/cstring_t * restrict dest, cstring_t * restrict source) ;
+extern void initmove_cstring(/*out*/cstring_t * restrict dest, cstring_t * restrict source) ;
 
 /* function: free_cstring
  * Frees any allocated memory associated with type <cstring_t>. */
@@ -101,6 +101,11 @@ extern char * str_cstring(cstring_t * cstr) ;
  * For mbs encoded strings the length in character is less
  * than the length in bytes. */
 extern size_t length_cstring(const cstring_t * cstr) ;
+
+/* function: allocatedsize_cstring
+ * Returns the allocated buffer size in bytes.
+ * To access the buffer the start address of the buffer use <str_cstring>. */
+extern size_t allocatedsize_cstring(const cstring_t * cstr) ;
 
 // group: change
 
@@ -150,12 +155,16 @@ extern int truncate_cstring(cstring_t * cstr, size_t new_length) ;
 /* define: initmove_cstring
  * Implements <cstring_t.initmove_cstring>. */
 #define initmove_cstring(dest, source) \
-   ( __extension__ ({  *(dest) = *(source) ; *(source) = (cstring_t) cstring_INIT_FREEABLE ; 0 ; }) )
+   do {  *(dest) = *(source) ; *(source) = (cstring_t) cstring_INIT_FREEABLE ; } while(0)
 
 /* define: adaptlength_cstring
  * Implements <cstring_t.adaptlength_cstring>. */
 #define adaptlength_cstring(cstr) \
    do {  if ((cstr)->allocated_size) { void * pos = memchr( (cstr)->chars, 0, (cstr)->allocated_size ) ; (cstr)->length = (size_t) ((char*)pos - (cstr)->chars) ; assert(pos && (cstr)->length < (cstr)->allocated_size) ; } } while (0)
+
+/* define: allocatedsize_cstring
+ * Implements <cstring_t.allocatedsize>. */
+#define allocatedsize_cstring(cstr)           ((cstr)->allocated_size)
 
 /* define: length_cstring
  * Implements <cstring_t.length_cstring>. */
