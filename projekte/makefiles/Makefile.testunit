@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Dec.14  16:09:03
+GenerationDate  := 2011.Dec.18  18:24:55
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -110,6 +110,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
+ $(ObjectDir_Debug)/C-kern!test!test.c.o \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
@@ -157,6 +158,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
+ $(ObjectDir_Release)/C-kern!test!test.c.o \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
@@ -279,6 +281,9 @@ $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!test!test.c.o: C-kern/test/test.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
@@ -414,6 +419,9 @@ $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!test.c.o: C-kern/test/test.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c

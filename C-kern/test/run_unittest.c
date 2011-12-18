@@ -248,6 +248,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //}
 
 //{ test unittest
+   RUN(unittest_test_functions) ;
    RUN(unittest_test_resourceusage) ;
 //}
 

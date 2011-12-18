@@ -18,6 +18,9 @@
 
    file: C-kern/api/test.h
     Header file of <Test>.
+
+   file: C-kern/test/test.c
+    Implementation file <Test impl>.
 */
 #ifndef CKERN_API_TEST_HEADER
 #define CKERN_API_TEST_HEADER
@@ -27,7 +30,13 @@
 
 // section: Functions
 
-// group: test
+// group: helper
+
+/* function: logfailed_test
+ * Prints "<filename>:<line_number>: FAILED TEST\n". */
+extern void logfailed_test(const char * filename, unsigned line_number) ;
+
+// group: macros
 
 /* define: TEST_ONERROR_GOTO
  * Tests CONDITION and exits on error.
@@ -53,11 +62,19 @@
  * >    return EINVAL ; // any error code
  * > }
  * */
-#define TEST_ONERROR_GOTO(CONDITION, ERROR_LABEL)     \
-   if ( !(CONDITION) ) {                              \
-      LOGC_PRINTF(TEST, "%s:%d: FAILED TEST\n",       \
-         __FILE__, __LINE__) ;                        \
-      goto ERROR_LABEL ;                              \
+#define TEST_ONERROR_GOTO(CONDITION, ERROR_LABEL)  \
+   if ( !(CONDITION) ) {                           \
+      logfailed_test(__FILE__, __LINE__) ;         \
+      goto ERROR_LABEL ;                           \
    }
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_test_functions
+ * Unittest for exported function in <Test>. */
+extern int unittest_test_functions(void) ;
+#endif
+
 
 #endif
