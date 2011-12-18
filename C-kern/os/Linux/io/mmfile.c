@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
@@ -142,14 +143,11 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
    err = init2_mmfile(mfile, fd, file_offset, size, mode) ;
    if (err) goto ABBRUCH ;
 
-   close(fd) ;
-   fd = -1 ;
+   (void) free_filedescr(&fd) ;
 
    return 0 ;
 ABBRUCH:
-   if (-1 != fd) {
-      close(fd) ;
-   }
+   free_filedescr(&fd) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -186,14 +184,13 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
    err = init2_mmfile(mfile, fd, 0, size, mmfile_openmode_RDWR_SHARED) ;
    if (err) goto ABBRUCH ;
 
-   close(fd) ;
-   fd = -1 ;
+   (void) free_filedescr(&fd) ;
 
    return 0 ;
 ABBRUCH:
    if (-1 != fd) {
       (void) unlinkat(openatfd, file_path, 0) ;
-      close(fd) ;
+      free_filedescr(&fd) ;
    }
    LOG_ABORT(err) ;
    return err ;
@@ -289,8 +286,7 @@ static int test_creat_mmfile(directory_t * tempdir)
       for(uint8_t i = 0; i < 111; ++i) {
          TEST(i == buffer[i]) ;
       }
-      TEST(0 == close(fd)) ;
-      fd = -1 ;
+      TEST(0 == free_filedescr(&fd)) ;
    }
    TEST(0 == removefile_directory(tempdir, "mmfile")) ;
 
@@ -320,8 +316,7 @@ static int test_creat_mmfile(directory_t * tempdir)
       uint8_t buffer[111] ;
       memset( buffer, '3', 111 ) ;
       TEST(111 == write(fd, buffer, 111)) ;
-      TEST(0 == close(fd)) ;
-      fd = -1 ;
+      TEST(0 == free_filedescr(&fd)) ;
    }
    for(uint8_t i = 0; i < 111; ++i) {
       TEST('3' == memory[i]) ;
@@ -351,7 +346,7 @@ static int test_creat_mmfile(directory_t * tempdir)
 
    return 0 ;
 ABBRUCH:
-   if (fd > 0) close(fd) ;
+   free_filedescr(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
    return 1 ;
@@ -440,8 +435,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(fd > 0) ;
    memset( buffer, '3', 256 ) ;
    TEST(256 == write(fd, buffer, 256)) ;
-   TEST(0   == close(fd)) ;
-   fd = -1 ;
+   TEST(0   == free_filedescr(&fd)) ;
    // test change is shared
    for(unsigned i = 0; i < 256; ++i) {
       TEST(addr_mmfile(&mfile)[i] == '3') ;
@@ -463,8 +457,7 @@ static int test_initfree(directory_t * tempdir)
    fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
-   TEST(0   == close(fd)) ;
-   fd = -1 ;
+   TEST(0   == free_filedescr(&fd)) ;
    for(unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ;
    }
@@ -488,8 +481,7 @@ static int test_initfree(directory_t * tempdir)
    fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
-   TEST(0   == close(fd)) ;
-   fd = -1 ;
+   TEST(0   == free_filedescr(&fd)) ;
    for(unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ; // old content
    }
@@ -507,8 +499,7 @@ static int test_initfree(directory_t * tempdir)
    fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(0 == ftruncate(fd, 0)) ; // empty file
-   TEST(0 == close(fd)) ;
-   fd = -1 ;
+   TEST(0 == free_filedescr(&fd)) ;
    TEST(ENODATA == init_mmfile(&mfile, "mmfile", 0, 0, mmfile_openmode_RDWR_SHARED, tempdir)) ;
 
    // TEST ENOMEM
@@ -516,8 +507,7 @@ static int test_initfree(directory_t * tempdir)
       fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       TEST(0 == ftruncate(fd, (size_t)-1)) ; // 4 GB
-      TEST(0 == close(fd)) ;
-      fd = -1 ;
+      TEST(0 == free_filedescr(&fd)) ;
       // mmap is never called
       TEST(ENOMEM == init_mmfile(&mfile, "mmfile", 0, 0, mmfile_openmode_RDWR_PRIVATE, tempdir)) ;
       // mmap returns ENOMEM (size == 0)
@@ -533,7 +523,7 @@ static int test_initfree(directory_t * tempdir)
    return 0 ;
 ABBRUCH:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
-   if (fd > 0) close(fd) ;
+   free_filedescr(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
    return EINVAL ;
@@ -577,7 +567,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_io_memorymappedfile()
+int unittest_io_mmfile()
 {
    directory_t     * tempdir = 0 ;
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;

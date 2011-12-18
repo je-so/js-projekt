@@ -39,7 +39,7 @@
 /* typedef: wlist_t
  * Another name for <waitlist_t>.
  * Used in <slist_IMPLEMENT> to offer an adapted interface to <slist_t>. */
-typedef waitlist_t   wlist_t ;
+typedef waitlist_t                     wlist_t ;
 
 slist_IMPLEMENT(wlist, wlistnext, void)
 
@@ -58,7 +58,7 @@ static int wakupfirst_nolock_waitlist(waitlist_t * wlist, task_callback_f task_m
 
    err = removefirst_wlist(wlist, &thread) ;
    assert(!err) ;
-   assert(!thread->wlistnext /*indicates that command is valid*/) ;
+   assert(!thread->wlistnext /*indicates that thread->task is valid*/) ;
 
    -- wlist->nr_waiting ;
 

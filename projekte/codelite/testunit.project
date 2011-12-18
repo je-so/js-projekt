@@ -181,7 +181,6 @@
     <VirtualDirectory Name="io">
       <VirtualDirectory Name="filesystem">
         <File Name="../../C-kern/api/io/filesystem/directory.h"/>
-        <File Name="../../C-kern/api/io/filesystem/findfile.h"/>
         <File Name="../../C-kern/api/io/filesystem/mmfile.h"/>
         <File Name="../../C-kern/api/io/filesystem/file.h"/>
       </VirtualDirectory>
@@ -293,7 +292,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
-      <File Name="../../C-kern/os/shared/findfile.c"/>
       <VirtualDirectory Name="memory">
         <File Name="../../C-kern/os/shared/memory/memorystack.c"/>
       </VirtualDirectory>

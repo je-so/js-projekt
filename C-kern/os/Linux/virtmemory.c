@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/umg/objectcache_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/math/int/power2.h"
@@ -224,7 +225,8 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
       }
    }
 
-   close(fd) ;
+   err = free_filedescr(&fd) ;
+   if (err) goto ABBRUCH ;
 
    OBJC_UNLOCKIOBUFFER(&iobuffer) ;
 
@@ -247,7 +249,7 @@ ABBRUCH:
 
    OBJC_UNLOCKIOBUFFER(&iobuffer) ;
 
-   close(fd) ;
+   free_filedescr(&fd) ;
    LOG_ABORT(err) ;
    return err ;
 }

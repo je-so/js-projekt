@@ -58,5 +58,5 @@ C-kern/os/Linux/thread.c:628: newgroup_osthread(): error: Function aborted (err=
 C-kern/os/Linux/thread.c:628: newgroup_osthread(): error: Function aborted (err=123)
 C-kern/os/Linux/thread.c:628: newgroup_osthread(): error: Function aborted (err=124)
 C-kern/os/Linux/thread.c:628: newgroup_osthread(): error: Function aborted (err=125)
-C-kern/os/Linux/mutex.c:94: lock_mutex(): error: Function aborted (err=35)
-C-kern/os/Linux/mutex.c:107: unlock_mutex(): error: Function aborted (err=1)
+C-kern/os/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=35)
+C-kern/os/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=1)

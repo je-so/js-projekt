@@ -26,10 +26,12 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/malloc.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/filedescr.h"
 #include <malloc.h>
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
+
 
 /* variable: s_isprepared_malloc
  * Remembers if <prepare_malloc> was called already. */
@@ -172,25 +174,23 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
       LOG_SYSERR("dup2",err) ;
       goto ABBRUCH ;
    }
-   if (     close(fd)
-         || close(pfd[0])
-         || close(pfd[1])) {
-      err = errno ;
-      LOG_SYSERR("close",err) ;
-      goto ABBRUCH ;
-   }
+
+   err = free_filedescr(&fd) ;
+   if (err) goto ABBRUCH ;
+   err = free_filedescr(&pfd[0]) ;
+   if (err) goto ABBRUCH ;
+   err = free_filedescr(&pfd[1]) ;
+   if (err) goto ABBRUCH ;
 
    *number_of_allocated_bytes = used_bytes ;
 
    return 0;
 ABBRUCH:
-   if (pfd[0] != -1) {
-      close(pfd[0]) ;
-      close(pfd[1]) ;
-   }
+   free_filedescr(&pfd[0]) ;
+   free_filedescr(&pfd[1]) ;
    if (fd != -1) {
       dup2(fd, STDERR_FILENO) ;
-      close(fd) ;
+      free_filedescr(&fd) ;
    }
    LOG_ABORT(err) ;
    return 0 ;

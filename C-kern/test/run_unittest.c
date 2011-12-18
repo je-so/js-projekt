@@ -28,9 +28,10 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/run/unittest.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
-#include "C-kern/api/os/locale.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/os/locale.h"
 #include "C-kern/api/test/resourceusage.h"
 
 
@@ -42,7 +43,7 @@
 static void generate_logresource(const char * test_name)
 {
    int     err = EINVAL ;
-   int     fd = -1 ;
+   int     fd  = sys_filedescr_INIT_FREEABLE ;
    char   resource_path[sizeof(GENERATED_LOGRESOURCE_DIR) + strlen(test_name)] ;
 
    strcpy( resource_path, GENERATED_LOGRESOURCE_DIR ) ;
@@ -66,14 +67,14 @@ static void generate_logresource(const char * test_name)
       }
    }
 
-   close(fd) ;
+   free_filedescr(&fd) ;
    return ;
 ABBRUCH:
    if (err != EEXIST) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
       LOGC_PRINTF(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
    }
-   if (fd >= 0) close(fd) ;
+   free_filedescr(&fd) ;
    return ;
 }
 
@@ -266,7 +267,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    // io/filesystem
    RUN(unittest_io_directory) ;
    RUN(unittest_io_file) ;
-   RUN(unittest_io_memorymappedfile) ;
+   RUN(unittest_io_mmfile) ;
    // io/ip
    RUN(unittest_io_ipaddr) ;
    RUN(unittest_io_ipsocket) ;

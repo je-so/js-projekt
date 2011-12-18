@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/sync/semaphore.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/os/thread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -58,7 +59,7 @@ int free_semaphore(semaphore_t * semaobj)
    int err = 0 ;
    int err2 ;
 
-   if (sys_semaphore_INIT_FREEABLE != semaobj->sys_sema) {
+   if (isinit_filedescr(semaobj->sys_sema)) {
       // wake up any waiters
       int flags = fcntl(semaobj->sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;
@@ -75,14 +76,9 @@ int free_semaphore(semaphore_t * semaobj)
          }
       }
       // free resource
-      err2 = close(semaobj->sys_sema) ;
-      if (err2) {
-         err = errno ;
-         LOG_SYSERR("close", err) ;
-         LOG_INT(semaobj->sys_sema) ;
-      }
+      err2 = free_filedescr(&semaobj->sys_sema) ;
+      if (err2) err = err2 ;
 
-      semaobj->sys_sema = sys_semaphore_INIT_FREEABLE ;
       if (err) goto ABBRUCH ;
    }
 
@@ -347,14 +343,12 @@ static int test_overflow(void)
    size = read(sema, &value, sizeof(value)) ;
    TEST(sizeof(uint64_t) == size) ;
    TEST(0x0fffffffffffffff == value) ;
-   TEST(0 == close(sema)) ;
+   TEST(0 == free_filedescr(&sema)) ;
    sema = sys_semaphore_INIT_FREEABLE ;
 
    return 0 ;
 ABBRUCH:
-   if (sys_semaphore_INIT_FREEABLE != sema) {
-      close(sema) ;
-   }
+   free_filedescr(&sema) ;
    return EINVAL ;
 }
 

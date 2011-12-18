@@ -31,6 +31,7 @@
 #include "C-kern/api/aspect/interface/log_it.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/os/thread.h"
 #include "C-kern/api/os/sync/mutex.h"
 #include "C-kern/api/os/sync/signal.h"
@@ -211,10 +212,9 @@ static int test_globalvar(void)
       TEST(0 == strcmp(buffer, "_1_2_3_4")) ;
    }
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
-   TEST(0 == close(oldstderr)) ;
-   TEST(0 == close(pipefd[0])) ;
-   TEST(0 == close(pipefd[1])) ;
-   oldstderr = pipefd[0] = pipefd[1] = -1 ;
+   TEST(0 == free_filedescr(&oldstderr)) ;
+   TEST(0 == free_filedescr(&pipefd[0])) ;
+   TEST(0 == free_filedescr(&pipefd[1])) ;
 
    // TEST mutex printf
    TEST(0 == lock_mutex(&log->lock)) ; // mutex is locked
@@ -239,9 +239,9 @@ ABBRUCH:
    if (-1 != oldstderr) {
       dup2(oldstderr, STDERR_FILENO) ;
    }
-   close(oldstderr) ;
-   close(pipefd[0]) ;
-   close(pipefd[1]) ;
+   free_filedescr(&oldstderr) ;
+   free_filedescr(&pipefd[0]) ;
+   free_filedescr(&pipefd[1]) ;
    delete_osthread(&thread) ;
    return EINVAL ;
 }

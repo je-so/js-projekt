@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/ip/ipsocket.h"
 #include "C-kern/api/io/ip/ipaddr.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -36,20 +37,9 @@
 int free_ipsocket(ipsocket_t * ipsock)
 {
    int err ;
-   int fd = *ipsock ;
 
-   if (sys_socket_INIT_FREEABLE != fd) {
-      *ipsock = sys_socket_INIT_FREEABLE ;
-
-      err = close(fd) ;
-      if (err) {
-         err = errno ;
-         LOG_SYSERR("close", err) ;
-         LOG_INT(fd) ;
-      }
-
-      if (err) goto ABBRUCH ;
-   }
+   err = free_filedescr(ipsock) ;
+   if (err) goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:
@@ -112,7 +102,7 @@ ABBRUCH_LOG:
    }
    (void) free_cstring(&name) ;
 ABBRUCH:
-   if (fd != -1) close(fd) ;
+   free_filedescr(&fd) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -229,7 +219,7 @@ int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock
    *ipsock = new_socket ;
    return 0 ;
 ABBRUCH:
-   if (-1 != new_socket) close(new_socket) ;
+   free_filedescr(&new_socket) ;
    LOG_ABORT(err) ;
    return err ;
 }

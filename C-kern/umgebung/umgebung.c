@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/umgebung.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/umg/services_singlethread.h"
 #include "C-kern/api/umg/services_multithread.h"
 #include "C-kern/api/os/sync/mutex.h"
@@ -66,7 +67,7 @@ static mutex_t                s_initlock        = mutex_INIT_DEFAULT ;
 #ifdef KONFIG_UNITTEST
 /* variable: s_error_init
  * Simulates an error in <init_umgebung>. */
-static test_errortimer_t      s_error_init = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t      s_error_init      = test_errortimer_INIT_FREEABLE ;
 #endif
 
 /* variable: s_umgebungcount
@@ -845,10 +846,9 @@ static int test_initmainerror(void)
    TEST(0 != memcmp(&s_umgebung_shared, &shared2, sizeof(shared2))) ;
 
    TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
-   TEST(0 == close(fd_stderr)) ;
-   fd_stderr = -1 ;
-   TEST(0 == close(fdpipe[0])) ;
-   TEST(0 == close(fdpipe[1])) ;
+   TEST(0 == free_filedescr(&fd_stderr)) ;
+   TEST(0 == free_filedescr(&fdpipe[0])) ;
+   TEST(0 == free_filedescr(&fdpipe[1])) ;
 
    LOGC_PRINTF(ERR, "%s", buffer) ;
 
@@ -862,9 +862,9 @@ ABBRUCH:
       initmain_umgebung(type) ;
    }
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
-   close(fd_stderr) ;
-   close(fdpipe[0]);
-   close(fdpipe[1]);
+   free_filedescr(&fd_stderr) ;
+   free_filedescr(&fdpipe[0]);
+   free_filedescr(&fdpipe[1]);
    return EINVAL ;
 }
 
@@ -890,22 +890,22 @@ int unittest_umgebung()
 
       const char * expect =
          // log from test_main_init
-         "C-kern/umgebung/umgebung.c:432: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "C-kern/umgebung/umgebung.c:433: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=0"
-         "\nC-kern/umgebung/umgebung.c:439: initmain_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:432: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:440: initmain_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:433: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
-         "\nC-kern/umgebung/umgebung.c:439: initmain_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:440: initmain_umgebung(): error: Function aborted (err=22)"
          // log from test_initfree
-         "\nC-kern/umgebung/umgebung.c:374: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:375: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=0"
-         "\nC-kern/umgebung/umgebung.c:381: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:374: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:382: init_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:375: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
-         "\nC-kern/umgebung/umgebung.c:381: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:391: initcopy_umgebung(): error: Function argument violates condition (umgebung_type_MULTITHREAD == copy_from->type || umgebung_type_SINGLETHREAD == copy_from->type)"
+         "\nC-kern/umgebung/umgebung.c:382: init_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:392: initcopy_umgebung(): error: Function argument violates condition (umgebung_type_MULTITHREAD == copy_from->type || umgebung_type_SINGLETHREAD == copy_from->type)"
          "\ncopy_from->type=0"
-         "\nC-kern/umgebung/umgebung.c:398: initcopy_umgebung(): error: Function aborted (err=22)"
+         "\nC-kern/umgebung/umgebung.c:399: initcopy_umgebung(): error: Function aborted (err=22)"
          "\n"
          ;
 
@@ -921,11 +921,9 @@ int unittest_umgebung()
       }
 
       TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
-      TEST(0 == close(fd_stderr)) ;
-      fd_stderr = -1 ;
-      TEST(0 == close(fdpipe[0]));
-      TEST(0 == close(fdpipe[1]));
-      fdpipe[0] = fdpipe[1] = -1 ;
+      TEST(0 == free_filedescr(&fd_stderr)) ;
+      TEST(0 == free_filedescr(&fdpipe[0]));
+      TEST(0 == free_filedescr(&fdpipe[1]));
 
    } else {
       assert(umgebung_type_STATIC != umgebung().type) ;
@@ -947,12 +945,10 @@ ABBRUCH:
    TEST(0 == free_resourceusage(&usage)) ;
    if (-1 != fd_stderr) {
       dup2(fd_stderr, STDERR_FILENO) ;
-      close(fd_stderr) ;
+      free_filedescr(&fd_stderr) ;
    }
-   if (-1 != fdpipe[0]) {
-      close(fdpipe[0]) ;
-      close(fdpipe[1]) ;
-   }
+   free_filedescr(&fdpipe[0]) ;
+   free_filedescr(&fdpipe[1]) ;
    return EINVAL ;
 }
 

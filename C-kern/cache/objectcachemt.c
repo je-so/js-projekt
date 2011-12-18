@@ -31,6 +31,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/os/process.h"
+#include "C-kern/api/io/filedescr.h"
 #endif
 
 // group: types
@@ -326,14 +327,13 @@ static int test_iobuffer(void)
    TEST(read_bytes > 50) ;
    LOG_PRINTF("%s", buffer) ;
 
-   TEST(0 == close(pipefd[0])) ;
-   TEST(0 == close(pipefd[1])) ;
-   pipefd[0] = pipefd[1] = -1 ;
+   TEST(0 == free_filedescr(&pipefd[0])) ;
+   TEST(0 == free_filedescr(&pipefd[1])) ;
 
    return 0 ;
 ABBRUCH:
-   if (-1 != pipefd[0]) close(pipefd[0]) ;
-   if (-1 != pipefd[1]) close(pipefd[1]) ;
+   free_filedescr(&pipefd[0]) ;
+   free_filedescr(&pipefd[1]) ;
    (void) free_objectcachemt(&cache) ;
    return EINVAL ;
 }

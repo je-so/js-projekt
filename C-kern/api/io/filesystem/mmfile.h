@@ -67,9 +67,9 @@ extern size_t pagesize_mmfile(void) ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_memorymappedfile
+/* function: unittest_io_mmfile
  * Test mapping of file into memory. */
-extern int unittest_io_memorymappedfile(void) ;
+extern int unittest_io_mmfile(void) ;
 #endif
 
 

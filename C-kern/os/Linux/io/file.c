@@ -61,9 +61,6 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
 
    return 0 ;
 ABBRUCH:
-   if (-1 != fd) {
-      close(fd) ;
-   }
    LOG_ABORT(err) ;
    return err ;
 }
@@ -84,9 +81,7 @@ int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct d
    if (-1 == fd) {
       err = errno ;
       LOG_SYSERR("openat", err) ;
-      if (relative_to) {
-         LOG_STRING(relative_to->path) ;
-      }
+      LOG_INT(openatfd) ;
       LOG_STRING(filepath) ;
       goto ABBRUCH ;
    }
@@ -95,10 +90,6 @@ int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct d
 
    return 0 ;
 ABBRUCH:
-   if (-1 != fd) {
-      (void) unlinkat(openatfd, filepath, 0) ;
-      close(fd) ;
-   }
    LOG_ABORT(err) ;
    return err ;
 }
@@ -106,24 +97,13 @@ ABBRUCH:
 int free_file(file_t * fileobj)
 {
    int err ;
-   int fd = *fileobj ;
 
-   if (isinit_filedescr(fd)) {
-      *fileobj = file_INIT_FREEABLE ;
-
-      err = close(fd) ;
-      if (err) {
-         err = errno ;
-         LOG_SYSERR("close", err) ;
-         LOG_INT(fd) ;
-         goto ABBRUCH ;
-      }
-
-   }
+   err = free_filedescr(fileobj) ;
+   if (err) goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:
-   LOG_ABORT(err) ;
+   LOG_ABORT_FREE(err) ;
    return err ;
 }
 

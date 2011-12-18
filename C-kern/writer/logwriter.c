@@ -31,6 +31,7 @@
 #include "C-kern/api/writer/main_logwriter.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 #endif
@@ -375,24 +376,18 @@ static int test_flushbuffer(void)
 
    // unprepare/free logfile
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
-   TEST(0 == close(oldstderr)) ;
-   oldstderr = -1 ;
-   TEST(0 == close(tempfd)) ;
-   tempfd = -1 ;
+   TEST(0 == free_filedescr(&oldstderr)) ;
+   TEST(0 == free_filedescr(&tempfd)) ;
    TEST(0 == removefile_directory(tempdir, "testlog")) ;
    TEST(0 == remove_directory(tempdir)) ;
    TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
 ABBRUCH:
-   if (tempfd >= 0) {
-      close(tempfd) ;
-      removefile_directory(tempdir, "testlog") ;
-      remove_directory(tempdir) ;
-   }
+   free_filedescr(&tempfd) ;
    if (oldstderr >= 0) {
       dup2(oldstderr, STDERR_FILENO) ;
-      close(oldstderr) ;
+      free_filedescr(&oldstderr) ;
    }
    free_mmfile(&logcontent) ;
    delete_directory(&tempdir) ;

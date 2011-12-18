@@ -25,6 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -203,9 +204,7 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
 
    return 0 ;
 ABBRUCH:
-   if (-1 != fdd) {
-      (void) close(fdd) ;
-   }
+   free_filedescr(&fdd) ;
    if (sysdir) {
       (void) closedir(sysdir) ;
    }
@@ -406,14 +405,12 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
       goto ABBRUCH ;
    }
 
-   close(fd) ;
-   fd = -1 ;
-
+   free_filedescr(&fd) ;
 
    return 0 ;
 ABBRUCH:
    if (-1 != fd) {
-      close(fd) ;
+      free_filedescr(&fd) ;
       unlinkat(openatfd, file_path, 0) ;
    }
    LOG_ABORT(err) ;
@@ -835,7 +832,7 @@ static int test_filesize(void)
       int fd = openat(dirfd(tempdir->sys_dir), filename, O_RDWR|O_CLOEXEC) ;
       TEST(fd > 0) ;
       int written = (int) write(fd, filename, (size_t) i) ;
-      close(fd) ;
+      free_filedescr(&fd) ;
       TEST(i == written) ;
    }
 

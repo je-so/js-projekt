@@ -29,6 +29,7 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/filedescr.h"
 #endif
 
 
@@ -543,19 +544,18 @@ static int test_mutex_slock(void)
    }
 
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
-   TEST(0 == close(oldstderr)) ;
-   TEST(0 == close(pipefd[0])) ;
-   TEST(0 == close(pipefd[1])) ;
-   oldstderr = pipefd[0] = pipefd[1] = -1 ;
+   TEST(0 == free_filedescr(&oldstderr)) ;
+   TEST(0 == free_filedescr(&pipefd[0])) ;
+   TEST(0 == free_filedescr(&pipefd[1])) ;
 
    return 0 ;
 ABBRUCH:
    if (-1 != oldstderr) {
       dup2(oldstderr, STDERR_FILENO) ;
    }
-   close(oldstderr) ;
-   close(pipefd[0]) ;
-   close(pipefd[1]) ;
+   free_filedescr(&oldstderr) ;
+   free_filedescr(&pipefd[0]) ;
+   free_filedescr(&pipefd[1]) ;
    if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
    if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0) ;
    free_mutex(&mutex) ;

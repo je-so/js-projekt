@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/os/process.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/filedescr.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/os/thread.h"
@@ -132,7 +133,7 @@ static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, p
 
    return 0 ;
 ABBRUCH:
-   if (-1 != devnull) close(devnull) ;
+   free_filedescr(&devnull) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -143,17 +144,8 @@ static int free_processioredirect2(process_ioredirect2_t * ioredirect2)
 {
    int err ;
 
-   if (filedescr_INIT_FREEABLE != ioredirect2->devnull) {
-
-      err = close(ioredirect2->devnull) ;
-      if (err) {
-         err = errno ;
-         LOG_SYSERR("close", err) ;
-      }
-      ioredirect2->devnull = filedescr_INIT_FREEABLE ;
-
-      if (err) goto ABBRUCH ;
-   }
+   err = free_filedescr(&ioredirect2->devnull) ;
+   if (err) goto ABBRUCH ;
 
    return 0 ;
 ABBRUCH:
@@ -334,8 +326,7 @@ int initexec_process(process_t * process, const char * filename, const char * co
    if (err) goto ABBRUCH ;
 
    // CHECK exec error
-   err = close( pipefd[1] ) ;
-   pipefd[1] = -1 ;
+   err = free_filedescr(&pipefd[1]) ;
    assert(!err) ;
 
    ssize_t read_bytes = 0 ;
@@ -361,18 +352,15 @@ int initexec_process(process_t * process, const char * filename, const char * co
       goto ABBRUCH ;
    }
 
-   if (close(pipefd[0])) {
-      err = errno ;
-      LOG_SYSERR("close",err) ;
-      goto ABBRUCH ;
-   }
+   err = free_filedescr(&pipefd[0]) ;
+   if (err) goto ABBRUCH ;
 
    *process = childprocess ;
 
    return 0 ;
 ABBRUCH:
-   if (-1 != pipefd[1]) close(pipefd[1]) ;
-   if (-1 != pipefd[0]) close(pipefd[0]) ;
+   free_filedescr(&pipefd[1]) ;
+   free_filedescr(&pipefd[0]) ;
    (void) free_process(&childprocess) ;
    LOG_ABORT(err) ;
    return err ;
@@ -718,7 +706,9 @@ static int test_redirect2(void)
    ioredirect = (process_ioredirect_t) process_ioredirect_INIT_INHERIT ;
    TEST(0 == init_processioredirect2(&ioredirect2, &ioredirect)) ;
    for(int stdfd = 0; stdfd < 3; ++stdfd) {
-      TEST(0 == close(stdfd)) ;
+      int fd = stdfd ;
+      TEST(0 == free_filedescr(&fd)) ;
+      TEST(-1 == fd) ;
    }
    TEST(0 == redirectstdio_processioredirect2(&ioredirect2)) ;
    TEST(0 == free_processioredirect2(&ioredirect2)) ;
@@ -726,18 +716,13 @@ static int test_redirect2(void)
    {
       // restore stdio
       for(int stdfd = 0; stdfd < 3; ++stdfd) {
-         if (-1 != oldstdfd[stdfd]) {
-            TEST(stdfd == dup2(oldstdfd[stdfd], stdfd)) ;
-            TEST(0 == close(oldstdfd[stdfd]));
-            oldstdfd[stdfd] = -1 ;
-         }
+         TEST(stdfd == dup2(oldstdfd[stdfd], stdfd)) ;
+         TEST(0 == free_filedescr(&oldstdfd[stdfd]));
       }
-      TEST(0 == close(pipefd1[0])) ;
-      TEST(0 == close(pipefd1[1])) ;
-      pipefd1[0] = pipefd1[1] = -1 ;
-      TEST(0 == close(pipefd2[0])) ;
-      TEST(0 == close(pipefd2[1])) ;
-      pipefd2[0] = pipefd2[1] = -1 ;
+      TEST(0 == free_filedescr(&pipefd1[0])) ;
+      TEST(0 == free_filedescr(&pipefd1[1])) ;
+      TEST(0 == free_filedescr(&pipefd2[0])) ;
+      TEST(0 == free_filedescr(&pipefd2[1])) ;
    }
 
    return 0 ;
@@ -746,13 +731,13 @@ ABBRUCH:
    for(int stdfd = 0; stdfd < 3; ++stdfd) {
       if (-1 != oldstdfd[stdfd]) {
          (void) dup2(oldstdfd[stdfd], stdfd) ;
-         (void) close(oldstdfd[stdfd]) ;
+         (void) free_filedescr(&oldstdfd[stdfd]) ;
       }
    }
-   close(pipefd1[0]) ;
-   close(pipefd1[1]) ;
-   close(pipefd2[0]) ;
-   close(pipefd2[1]) ;
+   free_filedescr(&pipefd1[0]) ;
+   free_filedescr(&pipefd1[1]) ;
+   free_filedescr(&pipefd2[0]) ;
+   free_filedescr(&pipefd2[1]) ;
    return EINVAL ;
 }
 
@@ -971,15 +956,15 @@ static int test_assert(void)
    // TEST ioredirection failure => assert !
    process_ioredirect_t ioredirect = process_ioredirect_INIT_DEVNULL ;
    {
-      int pipefd1[2] ;
+      int pipefd1[2] ;  // necessary so that pipefd2[0] is not same as devnull
       int pipefd2[2] ;
       TEST(0 == pipe2(pipefd1,O_CLOEXEC|O_NONBLOCK)) ;
       TEST(0 == pipe2(pipefd2,O_CLOEXEC|O_NONBLOCK)) ;
       setstdin_processioredirect(&ioredirect, pipefd2[0]) ;
-      TEST(0 == close(pipefd1[0])) ;
-      TEST(0 == close(pipefd1[1])) ;
-      TEST(0 == close(pipefd2[0])) ;
-      TEST(0 == close(pipefd2[1])) ;
+      TEST(0 == free_filedescr(&pipefd1[0])) ;
+      TEST(0 == free_filedescr(&pipefd1[1])) ;
+      TEST(0 == free_filedescr(&pipefd2[0])) ;
+      TEST(0 == free_filedescr(&pipefd2[1])) ;
    }
    TEST(0 == init_process(&process, &childprocess_donothing, 0, &ioredirect)) ;
    TEST(0 == wait_process(&process, &process_result)) ;
@@ -1083,15 +1068,14 @@ static int test_statequery(void)
    TEST(0 == free_process(&process)) ;
    TEST(0 == process) ;
 
-   TEST(0 == close(pipefd[0])) ;
-   TEST(0 == close(pipefd[1])) ;
-   pipefd[0] = pipefd[1] = -1 ;
+   TEST(0 == free_filedescr(&pipefd[0])) ;
+   TEST(0 == free_filedescr(&pipefd[1])) ;
 
    return 0 ;
 ABBRUCH:
    (void) free_process(&process) ;
-   close(pipefd[0]) ;
-   close(pipefd[1]) ;
+   free_filedescr(&pipefd[0]) ;
+   free_filedescr(&pipefd[1]) ;
    return EINVAL ;
 }
 
@@ -1155,14 +1139,13 @@ static int test_exec(void)
    TEST(0 == strncmp(readbuffer, testcase3_args[0]+4, 15)) ;
 
 
-   TEST(0 == close(fd[0])) ;
-   TEST(0 == close(fd[1])) ;
-   fd[0] = fd[1] = -1 ;
+   TEST(0 == free_filedescr(&fd[0])) ;
+   TEST(0 == free_filedescr(&fd[1])) ;
 
    return 0 ;
 ABBRUCH:
-   close(fd[0]) ;
-   close(fd[1]) ;
+   free_filedescr(&fd[0]) ;
+   free_filedescr(&fd[1]) ;
    (void) free_process(&process) ;
    return EINVAL ;
 }

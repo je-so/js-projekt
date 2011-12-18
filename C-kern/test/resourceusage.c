@@ -211,8 +211,7 @@ static int test_initfree(void)
    TEST(EAGAIN == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
    TEST(usage.filedescriptor_usage + 1 == usage2.filedescriptor_usage) ;
-   close(fd) ;
-   fd = -1 ;
+   TEST(0 == free_filedescr(&fd)) ;
    TEST(0 == free_resourceusage(&usage2)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -264,7 +263,7 @@ static int test_initfree(void)
    return 0 ;
 ABBRUCH:
    free(memblock) ;
-   if (-1 != fd) close(fd) ;
+   free_filedescr(&fd) ;
    (void) free_vmblock(&vmblock) ;
    (void) free_resourceusage(&usage) ;
    if (isoldsigmask) (void) sigprocmask(SIG_SETMASK, &oldsigmask, 0) ;
