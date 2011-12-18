@@ -25,7 +25,7 @@
 #ifndef CKERN_IO_FILESYSTEM_FILE_HEADER
 #define CKERN_IO_FILESYSTEM_FILE_HEADER
 
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/io/accessmode.h"
 
 // forward
 struct directory_t ;
@@ -64,6 +64,13 @@ extern int unittest_io_file(void) ;
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
 extern int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
+/* function: initappend_file
+ * Opens or creates a file to append only.
+ * See <init_file> for a description of parameters *filepath* and *relative_to*.
+ * The file can be only be written to. Every written content is appended to end of the file
+ * even if more than one process is writing to the same file. */
+extern int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+
 /* function: initcreat_file
  * Creates a file identified by its path and name.
  * If the file exists already EEXIST is returned.
@@ -81,7 +88,7 @@ extern int free_file(file_t * fileobj) ;
 /* function: convertfd_file
  * Returns the filedescriptor of an open file.
  * Returns filedescr_INIT_FREEABLE in case file is closed. */
-extern filedescr_t fd_file(const file_t * fileobj) ;
+extern sys_filedescr_t fd_file(const file_t * fileobj) ;
 
 /* function: isinit_file
  * Returns true if the file was opened with <init_file>.
