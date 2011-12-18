@@ -188,8 +188,9 @@ extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_
  * listname        - This (type) name has two meanings.
  *                   First it is the suffix of the generated interface functions, e.g. "init_ ## listname".
  *                   Second it is the prefix of the typename of declared list type, i.e. "listname ## _t".
- *                   "listname ## _t" must have been a defined as a typedef representing the list object.
+ *                   "listname ## _t" must have been defined as a typedef representing the list object.
  * name_nextaspect - The name (access path) of the next pointer in object type managed by this list.
+ *                   The object type is infered from "listname_t.last"
  * cb_t            - Type of the first callback parameter.
  * */
 #define slist_IMPLEMENT(listname, name_nextaspect, cb_t) \
@@ -197,7 +198,7 @@ extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_
    static inline void init ## _ ## listname(listname ## _t * list) __attribute__ ((always_inline)) ; \
    static inline int free ## _ ## listname(listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback) __attribute__ ((always_inline)) ; \
    static inline int isempty ## _ ## listname( const listname ## _t * list ) __attribute__ ((always_inline)) ; \
-   static inline uint32_t next_offset ## _ ## listname(void) __attribute__ ((always_inline)) ; \
+   static inline uint32_t offsetnext ## _ ## listname(void) __attribute__ ((always_inline)) ; \
    static inline typeof(*((listname ## _t*)0)->last) * first ## _ ## listname ( const listname ## _t * list ) __attribute__ ((always_inline)) ; \
    static inline typeof(*((listname ## _t*)0)->last) * last  ## _ ## listname ( const listname ## _t * list ) __attribute__ ((always_inline)) ; \
    static inline typeof(*((listname ## _t*)0)->last) * next  ## _ ## listname ( const typeof(*((listname ## _t*)0)->last) * node ) __attribute__ ((always_inline)) ; \
@@ -207,7 +208,7 @@ extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_
    static inline int removefirst ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) ** removed_node ) __attribute__ ((always_inline)) ; \
    static inline int removeafter ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * prev_node, typeof(*((listname ## _t*)0)->last)** removed_node ) __attribute__ ((always_inline)) ; \
    static inline int removeall   ## _ ## listname ( listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback ) __attribute__ ((always_inline)) ; \
-   static inline uint32_t next_offset ## _ ## listname(void) { \
+   static inline uint32_t offsetnext ## _ ## listname(void) { \
       static_assert( offsetof(listname ## _t, last)  == 0, #listname "_t must have same structure as slist_t" ) ; \
       static_assert( offsetof( typeof(*((listname ## _t*)0)->last), name_nextaspect) < 65536, "Offset must fit in uint32_t (extend 65536 to pow(2,32) if needed)") ; \
       return (uint32_t) offsetof( typeof(*((listname ## _t*)0)->last), name_nextaspect ) ; \
@@ -216,7 +217,7 @@ extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_
       init_slist(list) ; \
    } \
    static inline int free ## _ ## listname(listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback) { \
-      return free_generic_slist( (slist_t*)list, cb, (freecb_slist_f) free_callback, next_offset ## _ ## listname() ) ; \
+      return free_generic_slist( (slist_t*)list, cb, (freecb_slist_f) free_callback, offsetnext ## _ ## listname() ) ; \
    } \
    static inline int isempty ## _ ## listname( const listname ## _t * list ) { \
       return isempty_slist(list) ; \
@@ -228,25 +229,25 @@ extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_
       return last_slist(list) ; \
    } \
    static inline typeof(*((listname ## _t*)0)->last) * next  ## _ ## listname ( const typeof(*((listname ## _t*)0)->last) * node ) { \
-      return (typeof(*((listname ## _t*)0)->last)*) ((const slist_aspect_t*)(next_offset ## _ ## listname() + (const uint8_t*)node))-> next ; \
+      return (typeof(*((listname ## _t*)0)->last)*) ((const slist_aspect_t*)(offsetnext ## _ ## listname() + (const uint8_t*)node))-> next ; \
    } \
    static inline int insertfirst ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * new_node ) { \
-      return insertfirst_generic_slist( (slist_t*)list, (slist_aspect_t*)new_node, next_offset ## _ ## listname()) ; \
+      return insertfirst_generic_slist( (slist_t*)list, (slist_aspect_t*)new_node, offsetnext ## _ ## listname()) ; \
    } \
    static inline int insertlast  ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * new_node ) { \
-      return insertlast_generic_slist( (slist_t*)list, (slist_aspect_t*)new_node, next_offset ## _ ## listname()) ; \
+      return insertlast_generic_slist( (slist_t*)list, (slist_aspect_t*)new_node, offsetnext ## _ ## listname()) ; \
    } \
    static inline int insertafter ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * prev_node, typeof(*((listname ## _t*)0)->last) * new_node ) { \
-      return insertafter_generic_slist( (slist_t*)list, (slist_aspect_t*)prev_node, (slist_aspect_t*)new_node, next_offset ## _ ## listname()) ; \
+      return insertafter_generic_slist( (slist_t*)list, (slist_aspect_t*)prev_node, (slist_aspect_t*)new_node, offsetnext ## _ ## listname()) ; \
    } \
    static inline int removefirst ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) ** removed_node ) { \
-      return removefirst_generic_slist( (slist_t*)list, (slist_aspect_t**)removed_node, next_offset ## _ ## listname()) ; \
+      return removefirst_generic_slist( (slist_t*)list, (slist_aspect_t**)removed_node, offsetnext ## _ ## listname()) ; \
    } \
    static inline int removeafter ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * prev_node, typeof(*((listname ## _t*)0)->last)** removed_node ) { \
-      return removeafter_generic_slist( (slist_t*)list, (slist_aspect_t*)prev_node, (slist_aspect_t**)removed_node, next_offset ## _ ## listname()) ; \
+      return removeafter_generic_slist( (slist_t*)list, (slist_aspect_t*)prev_node, (slist_aspect_t**)removed_node, offsetnext ## _ ## listname()) ; \
    } \
    static inline int removeall   ## _ ## listname ( listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback ) { \
-      return removeall_generic_slist( (slist_t*)list, (callback_param_t*)cb, (freecb_slist_f)free_callback, next_offset ## _ ## listname()) ; \
+      return removeall_generic_slist( (slist_t*)list, (callback_param_t*)cb, (freecb_slist_f)free_callback, offsetnext ## _ ## listname()) ; \
    }
 
 
@@ -261,7 +262,7 @@ extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_
  *
  * Parameter:
  * listname - The name of the list interface. This name is used to access
- *            the generated function with name <next_offset_ ## slist>.
+ *            the generated function with name <offsetnext_ ## slist>.
  * listobj  - Pointer to <slist ## _t>.
  * node     - The name of the variable of type typeof(listobj->last) which iterates from first to last stored node. */
 #define foreach_generic_slist(listname, listobj, node) \
