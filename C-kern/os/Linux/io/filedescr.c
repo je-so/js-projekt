@@ -32,7 +32,34 @@
 #include "C-kern/api/os/thread.h"
 #endif
 
+
 // section: filedescr_t
+
+// group: lifetime
+
+int free_filedescr(filedescr_t * fd)
+{
+   int err ;
+   int del_fd = *fd ;
+
+   if (isinit_filedescr(del_fd)) {
+      *fd = sys_filedescr_INIT_FREEABLE ;
+
+      err = close(del_fd) ;
+      if (err) {
+         err = errno ;
+         LOG_SYSERR("close", err) ;
+         LOG_INT(del_fd) ;
+      }
+
+      if (err) goto ABBRUCH ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT_FREE(err) ;
+   return err ;
+}
 
 // group: query
 
@@ -79,21 +106,46 @@ bool isopen_filedescr(filedescr_t fd)
 int nropen_filedescr(/*out*/size_t * number_open_fd)
 {
    int err ;
-   directory_t * procself = 0 ;
+   int fd = -1 ;
+   DIR * procself = 0 ;
 
-   err = new_directory(&procself, "/proc/self/fd", 0) ;
-   if (err) goto ABBRUCH ;
+   fd = open( "/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
+   if (-1 == fd) {
+      err = errno ;
+      LOG_SYSERR("open(/proc/self/fd)", err) ;
+      goto ABBRUCH ;
+   }
 
-   size_t    open_fds = (size_t)0 ;
-   const char  * name ;
-   do {
+   procself = fdopendir(fd) ;
+   if (!procself) {
+      err = errno ;
+      LOG_SYSERR("fdopendir", err) ;
+      goto ABBRUCH ;
+   }
+   fd = -1 ;
+
+   size_t         open_fds = (size_t)0 ;
+   struct dirent  * name ;
+   for(;;) {
       ++ open_fds ;
-      err = next_directory(procself, &name, 0) ;
-      if (err) goto ABBRUCH ;
-   } while( name ) ;
+      errno = 0 ;
+      name  = readdir( procself ) ;
+      if (!name) {
+         if (errno) {
+            err = errno ;
+            goto ABBRUCH ;
+         }
+         break ;
+      }
+   }
 
-   err = delete_directory(&procself) ;
-   if (err) goto ABBRUCH ;
+   err = closedir(procself) ;
+   procself = 0 ;
+   if (err) {
+      err = errno ;
+      LOG_SYSERR("closedir", err) ;
+      goto ABBRUCH ;
+   }
 
    /* adapt open_fds for
       1. counts one too high
@@ -105,7 +157,10 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
 
    return 0 ;
 ABBRUCH:
-   (void) delete_directory(&procself) ;
+   (void) free_filedescr(&fd) ;
+   if (procself) {
+      closedir(procself) ;
+   }
    LOG_ABORT(err) ;
    return err ;
 }
@@ -207,8 +262,8 @@ static int test_query(void)
 
    // TEST decrement
    for(unsigned i = 0; i < nrelementsof(fds); ++i) {
-      TEST(0 == close(fds[i])) ;
-      fds[i] = -1 ;
+      TEST(0 == free_filedescr(&fds[i])) ;
+      TEST(-1 == fds[i]) ;
       size_t openfd2 = 0 ;
       TEST(0 == nropen_filedescr(&openfd2)) ;
       -- openfd ;
@@ -218,9 +273,7 @@ static int test_query(void)
    return 0 ;
 ABBRUCH:
    for(unsigned i = 0; i < nrelementsof(fds); ++i) {
-      if (-1 != fds[i]) {
-         close(fds[i]) ;
-      }
+      free_filedescr(&fds[i]) ;
    }
    return EINVAL ;
 }
@@ -228,6 +281,8 @@ ABBRUCH:
 static int test_initfree(directory_t * tempdir)
 {
    filedescr_t fd = filedescr_INIT_FREEABLE ;
+   size_t      openfd ;
+   size_t      openfd2 ;
 
    TEST(0 == makefile_directory(tempdir, "testfile", 1)) ;
 
@@ -236,6 +291,21 @@ static int test_initfree(directory_t * tempdir)
    TEST(0  == filedescr_STDIN) ;
    TEST(1  == filedescr_STDOUT) ;
    TEST(2  == filedescr_STDERR) ;
+
+   // TEST double free
+   TEST(0 == nropen_filedescr(&openfd)) ;
+   fd = openat(fd_directory(tempdir), "testfile", O_WRONLY|O_CLOEXEC) ;
+   TEST(0 < fd) ;
+   TEST(0 == nropen_filedescr(&openfd2)) ;
+   TEST(openfd2 == openfd + 1) ;
+   TEST(0 == free_filedescr(&fd)) ;
+   TEST(-1 == fd) ;
+   TEST(0 == nropen_filedescr(&openfd2)) ;
+   TEST(openfd2 == openfd) ;
+   TEST(0 == free_filedescr(&fd)) ;
+   TEST(-1 == fd) ;
+   TEST(0 == nropen_filedescr(&openfd2)) ;
+   TEST(openfd2 == openfd) ;
 
    // TEST isinit
    fd = filedescr_INIT_FREEABLE ;
@@ -260,7 +330,8 @@ static int test_initfree(directory_t * tempdir)
    TEST(accessmode_READ == accessmode_filedescr(fd)) ;
    TEST(accessmode_WRITE != accessmode_filedescr(fd)) ;
    TEST((accessmode_WRITE|accessmode_READ) != accessmode_filedescr(fd)) ;
-   close(fd) ;
+   TEST(0 == free_filedescr(&fd)) ;
+   TEST(-1 == fd) ;
 
    // TEST accessmode accessmode_WRITE
    fd = openat(fd_directory(tempdir), "testfile", O_WRONLY|O_CLOEXEC) ;
@@ -268,26 +339,28 @@ static int test_initfree(directory_t * tempdir)
    TEST(accessmode_WRITE == accessmode_filedescr(fd)) ;
    TEST(accessmode_READ != accessmode_filedescr(fd)) ;
    TEST((accessmode_WRITE|accessmode_READ) != accessmode_filedescr(fd)) ;
-   close(fd) ;
+   TEST(0 == free_filedescr(&fd)) ;
+   TEST(-1 == fd) ;
 
    // TEST accessmode accessmode_READ+accessmode_WRITE
    fd = openat(fd_directory(tempdir), "testfile", O_RDWR|O_CLOEXEC) ;
+   int fd2 = fd ;
    TEST(fd > 0) ;
    TEST((accessmode_WRITE|accessmode_READ) == accessmode_filedescr(fd)) ;
    TEST(accessmode_WRITE != accessmode_filedescr(fd)) ;
    TEST(accessmode_READ != accessmode_filedescr(fd)) ;
-   close(fd) ;
+   TEST(0 == free_filedescr(&fd)) ;
+   TEST(-1 == fd) ;
 
    // TEST accessmode_NONE
-   TEST(accessmode_NONE == accessmode_filedescr(fd)) ;
-   fd = -1 ;
+   TEST(accessmode_NONE == accessmode_filedescr(fd2)) ;
    TEST(accessmode_NONE == accessmode_filedescr(fd)) ;
 
 
    TEST(0 == removefile_directory(tempdir, "testfile")) ;
    return 0 ;
 ABBRUCH:
-   (void) close(fd) ;
+   (void) free_filedescr(&fd) ;
    (void) removefile_directory(tempdir, "testfile") ;
    return EINVAL ;
 }
@@ -369,8 +442,7 @@ static int test_readwrite(directory_t * tempdir)
       TEST(0 == write_filedescr(fd, 1, &byte, &bytes_written)) ;
       TEST(1 == bytes_written) ;
    }
-   TEST(0 == close(fd)) ;
-   fd = -1 ;
+   TEST(0 == free_filedescr(&fd)) ;
 
    // TEST blocking read
    TEST(0 < (fd = openat(fd_directory(tempdir), "readwrite1", O_RDONLY|O_CLOEXEC))) ;
@@ -385,8 +457,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(1 == bytes_read) ;
    TEST(0 == read_filedescr(fd, 1, &byte, &bytes_read)) ;
    TEST(0 == bytes_read /*end of file*/) ;
-   TEST(0 == close(fd)) ;
-   fd = -1 ;
+   TEST(0 == free_filedescr(&fd)) ;
 
    // TEST write non blocking mode
    TEST(0 == pipe2(pipefd, O_NONBLOCK|O_CLOEXEC)) ;
@@ -419,8 +490,8 @@ static int test_readwrite(directory_t * tempdir)
    buffer = 0 ;
 
    // TEST read with interrupts
-   TEST(0 == close(pipefd[0])) ;
-   TEST(0 == close(pipefd[1])) ;
+   TEST(0 == free_filedescr(&pipefd[0])) ;
+   TEST(0 == free_filedescr(&pipefd[1])) ;
    TEST(0 == pipe2(pipefd, O_CLOEXEC)) ;
    TEST(0 == sigemptyset(&newact.sa_mask)) ;
    TEST(0 == sigaddset(&newact.sa_mask, SIGUSR1)) ;
@@ -480,8 +551,8 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == delete_osthread(&thread)) ;
 
    // TEST EPIPE, write with receiving end closed during write
-   TEST(0 == close(pipefd[0])) ;
-   TEST(0 == close(pipefd[1])) ;
+   TEST(0 == free_filedescr(&pipefd[0])) ;
+   TEST(0 == free_filedescr(&pipefd[1])) ;
    TEST(0 == pipe2(pipefd, O_CLOEXEC)) ;
    for(size_t i = 0; i < pipe_buffersize-1; ++i) {
       byte = 0 ;
@@ -493,14 +564,14 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == new_osthread(&thread, thread_writer2, &startarg)) ;
    suspend_osthread() ;
    sleepms_osthread(100) ;
-   TEST(0 == close(pipefd[0])) ;
+   TEST(0 == free_filedescr(&pipefd[0])) ;
    TEST(0 == join_osthread(thread)) ;
    // check that thread_writer2 encountered EPIPE
    TEST(0 == returncode_osthread(thread)) ;
    TEST(0 == delete_osthread(&thread)) ;
    TEST(EPIPE == write_filedescr(pipefd[1], 1, &byte, &bytes_written)) ;
    TEST(EPIPE == write_filedescr(pipefd[1], 1, &byte, &bytes_written)) ;
-   TEST(0 == close(pipefd[1])) ;
+   TEST(0 == free_filedescr(&pipefd[1])) ;
 
    // unprepare
    TEST(0 == removefile_directory(tempdir, "readwrite1")) ;
@@ -517,9 +588,9 @@ ABBRUCH:
    delete_osthread(&thread) ;
    free(buffer) ;
    removefile_directory(tempdir, "readwrite1") ;
-   close(fd) ;
-   close(pipefd[0]) ;
-   close(pipefd[1]) ;
+   free_filedescr(&fd) ;
+   free_filedescr(&pipefd[0]) ;
+   free_filedescr(&pipefd[1]) ;
    return EINVAL ;
 }
 

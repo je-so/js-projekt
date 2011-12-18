@@ -70,6 +70,11 @@ extern int unittest_io_filedescr(void) ;
  * Static initializer. */
 #define filedescr_INIT_FREEABLE        sys_filedescr_INIT_FREEABLE
 
+/* function: free_filedescr
+ * Closes the file descriptor.
+ * This system call frees system resources. */
+extern int free_filedescr(filedescr_t * fd) ;
+
 // group: query
 
 /* function: accessmode_filedescr
