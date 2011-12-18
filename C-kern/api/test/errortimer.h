@@ -23,11 +23,20 @@
 #ifndef CKERN_TEST_ERRORTIMER_HEADER
 #define CKERN_TEST_ERRORTIMER_HEADER
 
-/* typedef: test_errortimer_t
+/* typedef: struct test_errortimer_t
  * Export <test_errortimer_t>. */
-typedef struct test_errortimer_t    test_errortimer_t ;
+typedef struct test_errortimer_t       test_errortimer_t ;
+
 
 // section: Functions
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_test_errortimer
+ * Unittest for <test_errortimer_t>. */
+extern int unittest_test_errortimer(void) ;
+#endif
 
 /* struct: test_errortimer_t
  * Holds a timer value and an error code.
@@ -69,6 +78,7 @@ extern int process_testerrortimer(test_errortimer_t * errtimer) ;
  * This function calls <process_testerrortimer>(errtimer) sets the variable err
  * as a result of this call and jumps to ONERROR_LABEL in case of an error. */
 extern void ONERROR_testerrortimer(test_errortimer_t * errtimer, void ** ONERROR_LABEL) ;
+
 
 // section: inline implementations
 
