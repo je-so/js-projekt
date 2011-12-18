@@ -34,6 +34,7 @@
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/string/cstring.h"
 #endif
 
 // section: logwriter_t
@@ -288,10 +289,11 @@ static int test_flushbuffer(void)
    int            tempfd     = -1 ;
    int            oldstderr  = -1 ;
    mmfile_t       logcontent = mmfile_INIT_FREEABLE ;
+   cstring_t      tmppath    = cstring_INIT ;
    directory_t  * tempdir    = 0 ;
 
    // prepare logfile
-   TEST(0 == newtemp_directory(&tempdir, "tempdir")) ;
+   TEST(0 == newtemp_directory(&tempdir, "tempdir", &tmppath)) ;
    TEST(0 == makefile_directory(tempdir, "testlog", 0)) ;
    tempfd = openat(fd_directory(tempdir), "testlog", O_RDWR|O_CLOEXEC, 0600) ;
    TEST(0 < tempfd) ;
@@ -379,7 +381,8 @@ static int test_flushbuffer(void)
    TEST(0 == free_filedescr(&oldstderr)) ;
    TEST(0 == free_filedescr(&tempfd)) ;
    TEST(0 == removefile_directory(tempdir, "testlog")) ;
-   TEST(0 == remove_directory(tempdir)) ;
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
+   TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
@@ -391,6 +394,7 @@ ABBRUCH:
    }
    free_mmfile(&logcontent) ;
    delete_directory(&tempdir) ;
+   free_cstring(&tmppath) ;
    free_logwriter(&log) ;
    return EINVAL ;
 }

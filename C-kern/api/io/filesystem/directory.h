@@ -26,10 +26,18 @@
 #ifndef CKERN_IO_FILESYSTEM_DIRECTORY_HEADER
 #define CKERN_IO_FILESYSTEM_DIRECTORY_HEADER
 
-#include "C-kern/api/io/filedescr.h"
+// forward
+struct cstring_t ;
 
 /* typedef: struct directory_t
- * Export <directory_t>. */
+ * Export opaque <directory_t> to read/write a directory in the file system.
+ *
+ * Can also be used to represent a position in the file system.
+ * Other file system operations can take an argument of type <directory_t>
+ * and resolve relative paths against it.
+ *
+ * In case the directory is set to 0 relative paths are resolved by using the
+ * current working directory as starting point. */
 typedef struct directory_t             directory_t ;
 
 /* enums: filetype_e
@@ -70,26 +78,7 @@ extern int unittest_io_directory(void) ;
 #endif
 
 
-/* struct: directory_t
- * Allows to read/write directory in the file system.
- * Can also be used to represent a position in the file system.
- * Other file system operations can take an argument of type <directory_t>
- * and resolve relative paths against it.
- * The default case is to resolve relative paths by using the
- * working directory as root (starting location). */
-struct directory_t
-{
-   /* variable: sys_dir
-    * System specific representation of an opened directory. */
-   sys_directory_t         sys_dir ;
-   /* variable: path_len
-    * Length of path name of opened directory. Length is measured in bytes (without trailing 0 byte) and is stored in <directory_t::path>.
-    * Initialized after call to <init_directory> or <maketemp_directorystream>. */
-   size_t                  path_len ;
-   /* variable: path
-    * The path name of the opened directory. It always ends in a '/'. */
-   char                    path[/*1+path_len*/] ;
-} ;
+// section: directory_t
 
 // group: lifetime
 
@@ -113,8 +102,10 @@ extern int new_directory(/*out*/directory_t ** dir, const char * dir_path, const
 
 /* function: newtemp_directory
  * Creates a temporary directory read / writeable by the user and opens it for reading.
- * The name of the directory is prefixed with *name_prefix* and it is created in the temporary system directory. */
-extern int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix ) ;
+ * The name of the directory is prefixed with *name_prefix* and it is created in the temporary system directory.
+ * The name of the created directory is returned in parameter *dir_path*.
+ * Set this parameter to 0 if you do not need the name. */
+extern int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, struct cstring_t * dir_path) ;
 
 /* function: delete_directory
  * Closes open directory stream. Frees allocated memory. Calling free twice is safe. Calling it without a preceding init results in undefined behaviour. */
@@ -135,7 +126,7 @@ extern int checkpath_directory(const directory_t * dir/*0 => current working dir
 
 /* function: fd_directory
  * Returns the file descriptor of the opened directory. */
-extern filedescr_t fd_directory(const directory_t * dir) ;
+extern sys_filedescr_t fd_directory(const directory_t * dir) ;
 
 /* function: filesize_directory
  * Returns the filesize of a file with path »file_path«.
@@ -143,13 +134,6 @@ extern filedescr_t fd_directory(const directory_t * dir) ;
  * relative to the current working directory.
  * If *file_path* is absolute the value of *dir* does not matter. */
 extern int filesize_directory(const directory_t * dir/*0 => current working directory*/, const char * file_path, /*out*/off_t * file_size) ;
-
-/* function: path_directory
- * Returns pointer to path name of this directory.
- * It is possible that the returned path name is no more valid.
- * If for example the directory was deleted or a part of tha path is a symbolic link
- * which has been changed after this directory was opened. */
-extern int path_directory(const directory_t * dir, /*out*/size_t * path_len, /*out*/const char ** path) ;
 
 // group: read
 
@@ -181,11 +165,6 @@ extern int makedirectory_directory(directory_t * dir/*0 => current working direc
  * If dir is 0 the file_path is relative to the current working directory.
  * If file_path is absolute then the parameter dir does not matter. */
 extern int makefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path, off_t file_length) ;
-
-/* function: remove_directory
- * Removes the opened directory from the file system.
- * This owkrs only if the directory is empty. */
-extern int remove_directory(directory_t * dir) ;
 
 /* function: removedirectory_directory
  * Removes the empty directory with directory_path relative to dir.

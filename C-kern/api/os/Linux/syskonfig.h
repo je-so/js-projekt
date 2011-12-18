@@ -96,11 +96,6 @@
 
 /* group: !OVERWRITE! system specific types */
 
-#undef  sys_directory_t
-/* define: sys_directory_t
- * Type represents an opened file system directory.
- * This type is Posix specific. */
-#define sys_directory_t                DIR*
 #undef  sys_filedescr_t
 /* define: sys_filedescr_t
  * Type represents a system file descriptor.

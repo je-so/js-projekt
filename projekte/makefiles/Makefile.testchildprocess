@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Nov.23  18:30:24
+GenerationDate  := 2011.Dec.18  14:08:15
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -86,7 +86,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!testchildprocess_main.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o
+ $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o \
+ $(ObjectDir_Debug)/C-kern!string!cstring.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
@@ -101,7 +102,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!testchildprocess_main.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o
+ $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o \
+ $(ObjectDir_Release)/C-kern!string!cstring.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -148,6 +150,9 @@ $(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedesc
 $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o: C-kern/os/Linux/io/directory.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
 $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
 	@$(CC_Release)
 
@@ -185,6 +190,9 @@ $(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filede
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o: C-kern/os/Linux/io/directory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

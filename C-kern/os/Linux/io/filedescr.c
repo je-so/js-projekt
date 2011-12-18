@@ -30,6 +30,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/os/thread.h"
+#include "C-kern/api/string/cstring.h"
 #endif
 
 
@@ -596,24 +597,27 @@ ABBRUCH:
 
 int unittest_io_filedescr()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
-   directory_t     * tempdir = 0 ;
+   resourceusage_t   usage     = resourceusage_INIT_FREEABLE ;
+   cstring_t         tmppath   = cstring_INIT ;
+   directory_t       * tempdir = 0 ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "iofdtest")) ;
+   TEST(0 == newtemp_directory(&tempdir, "iofdtest", &tmppath)) ;
 
    if (test_query())             goto ABBRUCH ;
    if (test_initfree(tempdir))   goto ABBRUCH ;
    if (test_readwrite(tempdir))  goto ABBRUCH ;
 
-   TEST(0 == remove_directory(tempdir)) ;
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
+   TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ABBRUCH:
+   (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;

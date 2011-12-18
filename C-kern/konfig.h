@@ -228,10 +228,6 @@
  * If it does not exist you must define it in the makefile. */
 #define SCNuSIZE             __PRIPTR_PREFIX "u"
 
-/* define: sys_directory_t
- * Pointer type holding system specific description of an opened directory stream.
- * NULL is considered an unitialized value. Overwritten in system specific include file. */
-#define sys_directory_t             void
 /* define: sys_filedescr_t
  * Type holding system specific description of a file.
  * It is also used for network connections.

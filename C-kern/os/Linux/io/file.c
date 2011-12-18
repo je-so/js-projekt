@@ -25,10 +25,11 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/string/cstring.h"
+#include "C-kern/api/io/filesystem/directory.h"
 #endif
 
 int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode, const struct directory_t * relative_to)
@@ -37,12 +38,11 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
    int fd       = -1 ;
    int openatfd = AT_FDCWD ;
 
-   PRECONDITION_INPUT(!relative_to || relative_to->sys_dir, ABBRUCH, ) ;
    PRECONDITION_INPUT(iomode, ABBRUCH, ) ;
    PRECONDITION_INPUT(0 == (iomode & ~((unsigned)accessmode_RDWR)), ABBRUCH, ) ;
 
    if (relative_to) {
-      openatfd = dirfd(relative_to->sys_dir) ;
+      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
    }
 
    static_assert( (O_RDONLY+1) == accessmode_READ, "simple conversion") ;
@@ -71,10 +71,8 @@ int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct d
    int fd       = -1 ;
    int openatfd = AT_FDCWD ;
 
-   PRECONDITION_INPUT(!relative_to || relative_to->sys_dir, ABBRUCH, ) ;
-
    if (relative_to) {
-      openatfd = dirfd(relative_to->sys_dir) ;
+      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
    }
 
    fd = openat(openatfd, filepath, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
@@ -266,11 +264,12 @@ ABBRUCH:
 int unittest_io_file()
 {
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
+   cstring_t         tmppath = cstring_INIT ;
    directory_t     * tempdir = 0 ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "iofiletest")) ;
+   TEST(0 == newtemp_directory(&tempdir, "iofiletest", &tmppath)) ;
 
    if (test_initfree(tempdir))   goto ABBRUCH ;
    if (test_readwrite(tempdir))  goto ABBRUCH ;
@@ -281,20 +280,22 @@ int unittest_io_file()
    LOG_GETBUFFER( &logbuffer, &logbuffer_size ) ;
    if (logbuffer_size) {
       char * found = logbuffer ;
-      while ( (found=strstr( found, tempdir->path )) ) {
+      while ( (found = strstr( found, str_cstring(&tmppath))) ) {
          if (!strchr(found, '.')) break ;
          memcpy( strchr(found, '.')+1, "123456", 6 ) ;
-         found += strlen(tempdir->path) ;
+         found += length_cstring(&tmppath) ;
       }
    }
 
-   TEST(0 == remove_directory(tempdir)) ;
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
+   TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ABBRUCH:
+   (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;

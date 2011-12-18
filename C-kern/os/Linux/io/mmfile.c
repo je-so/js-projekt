@@ -25,12 +25,13 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
-#include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/os/virtmemory.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/string/cstring.h"
+#include "C-kern/api/io/filesystem/directory.h"
 #endif
 
 // section: mmfile_t
@@ -117,7 +118,6 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
    const size_t    pagesize  = pagesize_vm() ;
    int             openatfd  = AT_FDCWD ;
 
-   PRECONDITION_INPUT(!relative_to || relative_to->sys_dir, ABBRUCH, ) ;
    PRECONDITION_INPUT(0 <= file_offset && 0 == (file_offset % pagesize), ABBRUCH, LOG_UINT64(file_offset)) ;
 
    PRECONDITION_INPUT(
@@ -129,7 +129,7 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
          ABBRUCH, LOG_INT(mode)) ;
 
    if (relative_to) {
-      openatfd = dirfd(relative_to->sys_dir) ;
+      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
    }
 
    fd = openat(openatfd, file_path, ((mode&accessmode_WRITE) ? O_RDWR : O_RDONLY) | O_CLOEXEC ) ;
@@ -158,11 +158,10 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
    int  fd       = -1 ;
    int  openatfd = AT_FDCWD ;
 
-   PRECONDITION_INPUT(!relative_to || relative_to->sys_dir, ABBRUCH, ) ;
    PRECONDITION_INPUT(0 != size, ABBRUCH, ) ;
 
    if (relative_to) {
-      openatfd = dirfd(relative_to->sys_dir) ;
+      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
    }
 
    fd = openat(openatfd, file_path, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
@@ -245,7 +244,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int test_creat_mmfile(directory_t * tempdir)
+static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
 {
    size_t   pagesize = pagesize_vm() ;
    mmfile_t    mfile = mmfile_INIT_FREEABLE ;
@@ -279,7 +278,7 @@ static int test_creat_mmfile(directory_t * tempdir)
    TEST(alignedsize_mmfile(&mfile) ==  0) ;
    // read written content
    {
-      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY|O_CLOEXEC) ;
+      fd = openat(dirfd((DIR*)(intptr_t)tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       uint8_t buffer[111] = {0} ;
       TEST(111 == read(fd, buffer, 111)) ;
@@ -292,9 +291,9 @@ static int test_creat_mmfile(directory_t * tempdir)
 
    // TEST mapping is shared
    {
-      char pathname[ strlen("mmfile") + tempdir->path_len + 1 ] ;
-      strncpy( pathname, tempdir->path, tempdir->path_len ) ;
-      strcpy( pathname + tempdir->path_len, "mmfile" ) ;
+      char pathname[ strlen("/mmfile") + strlen(tmppath) + 1 ] ;
+      strcpy( pathname, tmppath ) ;
+      strcat( pathname, "/mmfile" ) ;
       TEST(0 == initcreate_mmfile(&mfile, pathname, 111, 0)) ;
    }
    TEST(mfile.addr             != 0) ;
@@ -311,7 +310,7 @@ static int test_creat_mmfile(directory_t * tempdir)
    }
    // write different content
    {
-      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
+      fd = openat(dirfd((DIR*)(intptr_t)tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       uint8_t buffer[111] ;
       memset( buffer, '3', 111 ) ;
@@ -326,10 +325,6 @@ static int test_creat_mmfile(directory_t * tempdir)
 
    // TEST EINVAL
    {
-      directory_t dummy = { 0, 0 } ;
-      // path (dummy) invalid
-      TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 1, mmfile_openmode_RDWR_SHARED, &dummy)) ;
-      TEST(EINVAL == initcreate_mmfile(&mfile, "mmfile", 1, &dummy)) ;
       // size == 0
       TEST(EINVAL == initcreate_mmfile(&mfile, "mmfile", 0, tempdir)) ;
       // offset < 0
@@ -360,7 +355,7 @@ static void sigsegfault(int _signr)
    setcontext(&s_usercontext) ;
 }
 
-static int test_initfree(directory_t * tempdir)
+static int test_initfree(directory_t * tempdir, const char * tmppath)
 {
    size_t            pagesize = pagesize_vm() ;
    mmfile_t          mfile    = mmfile_INIT_FREEABLE ;
@@ -397,9 +392,9 @@ static int test_initfree(directory_t * tempdir)
 
    // TEST absolute pathname with no relative tempdir path
    {
-      char pathname[ strlen("mmfile") + tempdir->path_len + 1 ] ;
-      strncpy( pathname, tempdir->path, tempdir->path_len ) ;
-      strcpy( pathname + tempdir->path_len, "mmfile" ) ;
+      char pathname[ strlen("/mmfile") + strlen(tmppath) + 1 ] ;
+      strcpy( pathname, tmppath ) ;
+      strcat( pathname, "/mmfile" ) ;
       TEST(0 == init_mmfile(&mfile, pathname, 0, 0, mmfile_openmode_RDONLY, 0)) ;
       TEST(size_mmfile(&mfile)       == 256 ) ;
       TEST(alignedsize_mmfile(&mfile) == pagesize) ;
@@ -431,7 +426,7 @@ static int test_initfree(directory_t * tempdir)
    }
    TEST(1 == is_exception) ;
    // write different content
-   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
+   fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    memset( buffer, '3', 256 ) ;
    TEST(256 == write(fd, buffer, 256)) ;
@@ -454,7 +449,7 @@ static int test_initfree(directory_t * tempdir)
       addr_mmfile(&mfile)[i] = (uint8_t)i ;
    }
    // test change is shared
-   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY|O_CLOEXEC) ;
+   fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
    TEST(0   == free_filedescr(&fd)) ;
@@ -478,7 +473,7 @@ static int test_initfree(directory_t * tempdir)
       TEST(addr_mmfile(&mfile)[i] == '1') ;
    }
    // test change is *not* shared
-   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_RDONLY|O_CLOEXEC) ;
+   fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
    TEST(0   == free_filedescr(&fd)) ;
@@ -496,7 +491,7 @@ static int test_initfree(directory_t * tempdir)
    // TEST ENODATA
    // offset > filesize
    TEST(ENODATA== init_mmfile(&mfile, "mmfile", pagesize, 0, mmfile_openmode_RDWR_PRIVATE, tempdir)) ;
-   fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
+   fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(0 == ftruncate(fd, 0)) ; // empty file
    TEST(0 == free_filedescr(&fd)) ;
@@ -504,7 +499,7 @@ static int test_initfree(directory_t * tempdir)
 
    // TEST ENOMEM
    if (sizeof(size_t) == sizeof(uint32_t)) {
-      fd = openat(dirfd(tempdir->sys_dir), "mmfile", O_WRONLY|O_CLOEXEC) ;
+      fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       TEST(0 == ftruncate(fd, (size_t)-1)) ; // 4 GB
       TEST(0 == free_filedescr(&fd)) ;
@@ -570,18 +565,23 @@ ABBRUCH:
 int unittest_io_mmfile()
 {
    directory_t     * tempdir = 0 ;
+   const char      * tmpstr  = 0 ;
+   cstring_t         tmppath = cstring_INIT ;
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
 
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
-   TEST(0 == newtemp_directory(&tempdir, "mmfile" )) ;
+   TEST(0 == newtemp_directory(&tempdir, "mmfile", &tmppath )) ;
 
-   if (test_alignedsize())          goto ABBRUCH ;
-   if (test_creat_mmfile(tempdir))  goto ABBRUCH ;
-   if (test_initfree(tempdir))      goto ABBRUCH ;
-   if (test_writeoffset(tempdir))   goto ABBRUCH ;
+   tmpstr = str_cstring(&tmppath) ;
 
-   TEST(0 == remove_directory(tempdir)) ;
+   if (test_alignedsize())                   goto ABBRUCH ;
+   if (test_creat_mmfile(tempdir, tmpstr))   goto ABBRUCH ;
+   if (test_initfree(tempdir, tmpstr))       goto ABBRUCH ;
+   if (test_writeoffset(tempdir))            goto ABBRUCH ;
+
+   TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
+   TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;
 
    // TEST mapping has not changed
@@ -590,9 +590,7 @@ int unittest_io_mmfile()
 
    return 0 ;
 ABBRUCH:
-   if (tempdir) {
-      remove_directory(tempdir) ;
-   }
+   (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    (void) free_resourceusage(&usage) ;
    return 1 ;
