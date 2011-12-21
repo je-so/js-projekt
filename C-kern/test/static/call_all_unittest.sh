@@ -22,7 +22,7 @@ for((i=0;i<${#ok[*]};i=i+1)) do
 done
 files=`echo $files | sed -e '/^[ ]*$/d' -`
 for i in $files; do
-   result_size=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | wc -l`
+   result_size=`grep "^[a-z ]*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | wc -l`
    if [ "$result_size" = "0" ]; then continue ; fi
 
    # test for correct interface
@@ -33,7 +33,7 @@ for i in $files; do
          info="$info  file: <${i}> implements more than one unittest\n"
       fi
       for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
-         result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
+         result=`grep "^[a-z ]*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
          if [ "${result#*assert( 0 == unittest_*()*)*;}" = "" ]; then
             continue
          fi

@@ -37,10 +37,6 @@
         "Kein Speicher (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
         "Parameter '%s' > %d\n", parameter_name, parameter_max
-#define TEXTRES_ERRORLOG_PROCESS_TERMINATED_ABNORMAL(process_name, exit_code) \
-        "Prozess '%s' abnormal beendet (exit wert=%d)\n", process_name, exit_code
-#define TEXTRES_ERRORLOG_PROCESS_TERMINATED_WITH_ERROR(process_name, exit_code) \
-        "Prozess '%s' beendet mit Fehlercode '%d'\n", process_name, exit_code
 #define TEXTRES_ERRORLOG_RESOURCE_USAGE_DIFFERENT \
         "Ungleiche Anzahl benutzter Ressourcen\n"
 #define TEXTRES_ERRORLOG_X11_DISPLAY_NOT_SET \
@@ -79,10 +75,6 @@
         "Out of memory (bytes=%"PRIuSIZE")\n", size
 #define TEXTRES_ERRORLOG_PARAMETER_INT_TOO_BIG(parameter_name, parameter_max) \
         "Parameter '%s' > %d\n", parameter_name, parameter_max
-#define TEXTRES_ERRORLOG_PROCESS_TERMINATED_ABNORMAL(process_name, exit_code) \
-        "Process '%s' terminated abnormal (exit value=%d)\n", process_name, exit_code
-#define TEXTRES_ERRORLOG_PROCESS_TERMINATED_WITH_ERROR(process_name, exit_code) \
-        "Process '%s' terminated with error code '%d'\n", process_name, exit_code
 #define TEXTRES_ERRORLOG_RESOURCE_USAGE_DIFFERENT \
         "The number of used resources is different\n"
 #define TEXTRES_ERRORLOG_X11_DISPLAY_NOT_SET \

@@ -43,6 +43,23 @@ void logfailed_test(const char * filename, unsigned line_number)
    (void) written ;
 }
 
+void logworking_test()
+{
+   (void) write_filedescr(filedescr_STDOUT, 3, (const uint8_t*)"OK\n", 0) ;
+}
+
+void logrun_test(const char * testname)
+{
+   struct iovec   iov[3] = {
+       { (void*) (intptr_t) "RUN ", 4 }
+      ,{ (void*) (intptr_t) testname, strlen(testname) }
+      ,{ (void*) (intptr_t) ": ", 2 }
+   } ;
+
+   ssize_t written = writev(filedescr_STDOUT, iov, nrelementsof(iov)) ;
+   (void) written ;
+}
+
 
 
 #ifdef KONFIG_UNITTEST
@@ -67,6 +84,18 @@ static int test_helper(void)
    TEST(20 == bytes_read) ;
    TEST(0 == strncmp((const char*)buffer, "123:45: FAILED TEST\n", bytes_read)) ;
 
+   // TEST logworking_test
+   logworking_test() ;
+   TEST(0 == read_filedescr(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(3 == bytes_read) ;
+   TEST(0 == strncmp((const char*)buffer, "OK\n", bytes_read)) ;
+
+   // TEST logrun_test
+   logrun_test("test-name") ;
+   TEST(0 == read_filedescr(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(15 == bytes_read) ;
+   TEST(0 == strncmp((const char*)buffer, "RUN test-name: ", bytes_read)) ;
+
    // unprepare
    TEST(filedescr_STDOUT == dup2(oldstdout, filedescr_STDOUT)) ;
    TEST(0 == free_filedescr(&oldstdout)) ;
@@ -79,8 +108,8 @@ ABBRUCH:
       dup2(oldstdout, filedescr_STDOUT) ;
    }
    memset(buffer, 0, sizeof(buffer)) ;
-   read_filedescr(fd[0], sizeof(buffer), buffer, 0) ;
-   printf("%s", buffer) ;
+   read_filedescr(fd[0], sizeof(buffer)-1, buffer, 0) ;
+   write_filedescr(filedescr_STDOUT, strlen((char*)buffer), buffer, 0) ;
    free_filedescr(&oldstdout) ;
    free_filedescr(&fd[0]) ;
    free_filedescr(&fd[1]) ;

@@ -28,8 +28,10 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/run/unittest.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/test.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/os/locale.h"
 #include "C-kern/api/test/resourceusage.h"
@@ -135,14 +137,11 @@ ABBRUCH:
    return err ;
 }
 
-static void set_testconfig(void)
+static void prepare_test(void)
 {
    // make printed system error messages language (English) neutral
    resetmsg_locale() ;
-}
 
-static void preallocate(void)
-{
    // preallocate some memory
    // TODO: remove line if own memory subsystem intead of malloc
    resourceusage_t   usage[2000]  = { resourceusage_INIT_FREEABLE } ;
@@ -156,19 +155,30 @@ static void preallocate(void)
 
 static void run_singletest(const char * test_name, int (*test_fct) (void), unsigned * total_count, unsigned * err_count)
 {
-   int err ;
+   int      err ;
 
-   printf("RUN %s: ", test_name) ;
+   logrun_test(test_name) ;
    LOG_CLEARBUFFER() ;
 
    err = test_fct() ;
-   if (!err) generate_logresource(test_name) ;
-   if (!err) err = check_logresource(test_name) ;
+   if (err) {
+      file_t error_log ;
+      if (0 == initappend_file(&error_log, "error.log", 0)) {
+         char     * buffer ;
+         size_t   size ;
+         LOG_GETBUFFER(&buffer, &size) ;
+         write_filedescr(error_log, size, (uint8_t*)buffer, 0) ;
+         free_file(&error_log) ;
+      }
+   } else {
+      generate_logresource(test_name) ;
+      err = check_logresource(test_name) ;
+   }
 
    if (err)
       ++ (*err_count) ;
    else
-      printf("OK\n") ;
+      logworking_test() ;
 
    ++ (*total_count) ;
 }
@@ -187,6 +197,10 @@ int run_unittest(void)
       ,umgebung_type_MULTITHREAD
    } ;
 
+   if (0 == checkpath_directory(0, "error.log")) {
+      (void) removefile_directory(0, "error.log") ;
+   }
+
    // before init
    ++ total_count ;
    if (unittest_umgebung()) {
@@ -204,9 +218,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
       goto ABBRUCH ;
    }
 
-   preallocate() ;
-
-   set_testconfig() ;
+   prepare_test() ;
 
    // current development
    // assert(0) ;
@@ -248,6 +260,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //}
 
 //{ test unittest
+   RUN(unittest_test_errortimer) ;
    RUN(unittest_test_functions) ;
    RUN(unittest_test_resourceusage) ;
 //}

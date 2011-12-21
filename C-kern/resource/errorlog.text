@@ -79,16 +79,6 @@ PARAMETER_INT_TOO_BIG:de: parameter_name, parameter_max
 PARAMETER_INT_TOO_BIG:en: parameter_name, parameter_max
 "Parameter '%s' > %d"
 
-PROCESS_TERMINATED_ABNORMAL:de: process_name, exit_code
-"Prozess '%s' abnormal beendet (exit wert=%d)"
-PROCESS_TERMINATED_ABNORMAL:en: process_name, exit_code
-"Process '%s' terminated abnormal (exit value=%d)"
-
-PROCESS_TERMINATED_WITH_ERROR:de: process_name, exit_code
-"Prozess '%s' beendet mit Fehlercode '%d'"
-PROCESS_TERMINATED_WITH_ERROR:en: process_name, exit_code
-"Process '%s' terminated with error code '%d'"
-
 RESOURCE_USAGE_DIFFERENT:de:
 "Ungleiche Anzahl benutzter Ressourcen"
 RESOURCE_USAGE_DIFFERENT:en:

@@ -36,6 +36,14 @@
  * Prints "<filename>:<line_number>: FAILED TEST\n". */
 extern void logfailed_test(const char * filename, unsigned line_number) ;
 
+/* function: logworking_test
+ * Prints "OK\n". */
+extern void logworking_test(void) ;
+
+/* function: logrun_test
+ * Prints "RUN %s: ". */
+extern void logrun_test(const char * testname) ;
+
 // group: macros
 
 /* define: TEST_ONERROR_GOTO
