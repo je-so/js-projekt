@@ -153,14 +153,5 @@
 /* define: sys_thread_INIT_FREEABLE
  * Static initializer for <sys_thread_t>. */
 #define sys_thread_INIT_FREEABLE       (0)
-#undef  sys_timerid_t
-/* define: sys_timerid_t
- * Types represents a system timer.
- * This type is Linux specific. */
-#define sys_timerid_t                  int
-#undef  sys_timerid_INIT_FREEABLE
-/* define: sys_timerid_INIT_FREEABLE
- * Static initializer for <sys_timerid_t>. */
-#define sys_timerid_INIT_FREEABLE      (-1)
 
 #endif

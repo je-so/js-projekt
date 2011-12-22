@@ -266,12 +266,6 @@
 /* define: sys_thread_INIT_FREEABLE
  * Value of invalid thread ID. Overwritten in system specific include file. */
 #define sys_thread_INIT_FREEABLE    void
-/* define: sys_timerid_t
- * Handle for system specific timer. */
-#define sys_timerid_t               void
-/* define: sys_timerid_INIT_FREEABLE
- * Init value to declare an invalid timer handle. */
-#define sys_timerid_INIT_FREEABLE   void
 //}
 
 // group: 4. Include

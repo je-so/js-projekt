@@ -145,10 +145,10 @@ static void prepare_test(void)
    // preallocate some memory
    // TODO: remove line if own memory subsystem intead of malloc
    resourceusage_t   usage[2000]  = { resourceusage_INIT_FREEABLE } ;
-   for(int i = 0; i < 2000; ++i) {
+   for(unsigned i = 0; i < nrelementsof(usage); ++i) {
       (void) init_resourceusage(&usage[i]) ;
    }
-   for(int i = 0; i < 2000; ++i) {
+   for(unsigned i = 0; i < nrelementsof(usage); ++i) {
       (void) free_resourceusage(&usage[i]) ;
    }
 }
@@ -265,6 +265,10 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_test_resourceusage) ;
 //}
 
+//{ time unittest
+   RUN(unittest_time_clock) ;
+//}
+
 //{ writer unittest
    RUN(unittest_writer_logwriter) ;
    RUN(unittest_writer_logwritermt) ;
@@ -277,6 +281,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //{ os unittest
    // io
    RUN(unittest_io_filedescr) ;
+   RUN(unittest_io_iotimer) ;
    RUN(unittest_io_url) ;
    // io/filesystem
    RUN(unittest_io_directory) ;

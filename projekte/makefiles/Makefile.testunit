@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Dec.18  18:30:44
+GenerationDate  := 2011.Dec.22  18:21:43
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -76,6 +76,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!clock.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!semaphore.c.o \
@@ -86,6 +87,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!ipaddr.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!io!iotimer.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!ipsocket.c.o \
@@ -125,6 +127,7 @@ Objects_Debug := \
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!clock.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!malloc.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!semaphore.c.o \
@@ -135,6 +138,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!ipaddr.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!io!iotimer.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!ipsocket.c.o \
@@ -183,6 +187,9 @@ $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
 $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!os!Linux!clock.c.o: C-kern/os/Linux/clock.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Debug)
 
@@ -211,6 +218,9 @@ $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o: C-kern/os/Linux/io/director
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!io!ipaddr.c.o: C-kern/os/Linux/io/ipaddr.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!io!iotimer.c.o: C-kern/os/Linux/io/iotimer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedescr.c
@@ -324,6 +334,9 @@ $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
 $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!os!Linux!clock.c.o: C-kern/os/Linux/clock.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
 	@$(CC_Release)
 
@@ -352,6 +365,9 @@ $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o: C-kern/os/Linux/io/direct
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!io!ipaddr.c.o: C-kern/os/Linux/io/ipaddr.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!io!iotimer.c.o: C-kern/os/Linux/io/iotimer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedescr.c

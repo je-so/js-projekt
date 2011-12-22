@@ -85,7 +85,6 @@
       <File Name="../../C-kern/api/os/process.h"/>
       <File Name="../../C-kern/api/os/thread.h"/>
       <File Name="../../C-kern/api/os/virtmemory.h"/>
-      <File Name="../../C-kern/api/os/timing.h"/>
       <VirtualDirectory Name="memory">
         <File Name="../../C-kern/api/os/memory/memorystack.h"/>
       </VirtualDirectory>
@@ -192,6 +191,10 @@
         <File Name="../../C-kern/api/io/ip/websocket.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/url.h"/>
+      <VirtualDirectory Name="protocol">
+        <File Name="../../C-kern/api/io/protocol/protocontrol.h"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/api/io/iotimer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="userinterface">
       <VirtualDirectory Name="X11">
@@ -203,6 +206,10 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="html5"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="time">
+      <File Name="../../C-kern/api/time/clock.h"/>
+      <File Name="../../C-kern/api/time/timespec.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -230,6 +237,8 @@
       <File Name="../../C-kern/test/speed/run_speedcmp_madvise.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/test/resourceusage.c"/>
+    <File Name="../../C-kern/test/errortimer.c"/>
+    <File Name="../../C-kern/test/test.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="tools">
     <File Name="../../C-kern/tools/hash.c"/>
@@ -274,7 +283,6 @@
     <VirtualDirectory Name="Linux">
       <File Name="../../C-kern/os/Linux/process.c"/>
       <File Name="../../C-kern/os/Linux/thread.c"/>
-      <File Name="../../C-kern/os/Linux/timing.c"/>
       <File Name="../../C-kern/os/Linux/virtmemory.c"/>
       <File Name="../../C-kern/os/Linux/semaphore.c"/>
       <File Name="../../C-kern/os/Linux/mutex.c"/>
@@ -289,7 +297,9 @@
         <File Name="../../C-kern/os/Linux/io/filedescr.c"/>
         <File Name="../../C-kern/os/Linux/io/ipaddr.c"/>
         <File Name="../../C-kern/os/Linux/io/ipsocket.c"/>
+        <File Name="../../C-kern/os/Linux/io/iotimer.c"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/os/Linux/clock.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <VirtualDirectory Name="memory">
@@ -349,6 +359,7 @@
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>
     <File Name="../../C-kern/io/websocket.c"/>
+    <File Name="../../C-kern/io/protocontrol.c"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
