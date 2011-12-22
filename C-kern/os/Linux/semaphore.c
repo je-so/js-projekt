@@ -27,9 +27,9 @@
 #include "C-kern/api/os/sync/semaphore.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filedescr.h"
-#include "C-kern/api/os/thread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/os/thread.h"
 #endif
 
 int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count)
@@ -290,7 +290,7 @@ static int test_semaphore_threads(void)
       TEST(w < 100000) ;
    }
    TEST(valid_thread_index == startarg.count) ;
-   sleepms_osthread(10) ;
+   sleepms_thread(10) ;
 
    // TEST free *signals* all waiting threads
    TEST(0 == free_semaphore(&startarg.sema)) ;

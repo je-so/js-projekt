@@ -509,7 +509,7 @@ static int childprocess_endlessloop(int dummy)
    (void) dummy ;
    kill(getppid(), SIGUSR1) ;
    for(;;) {
-      sleepms_osthread(1000) ;
+      sleepms_thread(1000) ;
    }
    return 0 ;
 }
@@ -540,7 +540,7 @@ static int childprocess_statechange(int fd)
    kill( getpid(), SIGSTOP) ;
    dprintf(fd,"run\n") ;
    for(;;) {
-      sleepms_osthread(1000) ;
+      sleepms_thread(1000) ;
    }
    return 0 ;
 }
@@ -826,7 +826,7 @@ static int test_initfree(void)
       for(int i2 = 0; i2 < 10000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_RUNNABLE != process_state) break ;
-         sleepms_osthread(1) ;
+         sleepms_thread(1) ;
       }
       TEST(process_state_STOPPED == process_state) ;
       kill(process, SIGCONT) ;
@@ -836,7 +836,7 @@ static int test_initfree(void)
       for(int i2 = 0; i2 < 10000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_RUNNABLE != process_state) break ;
-         sleepms_osthread(1) ;
+         sleepms_thread(1) ;
       }
       TEST(process_state_ABORTED == process_state) ;
       TEST(0 == free_process(&process)) ;
@@ -918,7 +918,7 @@ static int test_abnormalexit(void)
       for(int i2 = 0; i2 < 10000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_ABORTED == process_state) break ;
-         sleepms_osthread(1) ;
+         sleepms_thread(1) ;
       }
       // TEST process_state_ABORTED
       TEST(0 == state_process(&process, &process_state)) ;
@@ -929,7 +929,7 @@ static int test_abnormalexit(void)
       TEST(0 == process) ;
 
       TEST(0 == init_process(&process, &childprocess_signal, SIGKILL, 0)) ;
-      sleepms_osthread(10) ;
+      sleepms_thread(10) ;
       // do not query state before
       TEST(0 == free_process(&process)) ;
       TEST(0 == process) ;
@@ -995,7 +995,7 @@ static int test_statequery(void)
       for(int i2 = 0; i2 < 1000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_STOPPED == process_state) break ;
-         sleepms_osthread(1) ;
+         sleepms_thread(1) ;
       }
       // TEST process_state_STOPPED
       TEST(process_state_STOPPED == process_state) ;
@@ -1019,7 +1019,7 @@ static int test_statequery(void)
       for(int i2 = 0; i2 < 1000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_STOPPED == process_state) break ;
-         sleepms_osthread(1) ;
+         sleepms_thread(1) ;
       }
       TEST(process_state_STOPPED == process_state) ;
       process_state = process_state_RUNNABLE ;
@@ -1037,7 +1037,7 @@ static int test_statequery(void)
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "sleep\n")) ;
    }
-   sleepms_osthread(10) ;
+   sleepms_thread(10) ;
    // TEST process_state_STOPPED
    TEST(0 == state_process(&process, &process_state)) ;
    TEST(process_state_STOPPED == process_state) ;
@@ -1058,7 +1058,7 @@ static int test_statequery(void)
    TEST(0 == state_process(&process, &process_state)) ;
    TEST(process_state_RUNNABLE == process_state) ;
    TEST(0 == kill(process, SIGKILL)) ;
-   sleepms_osthread(10) ;
+   sleepms_thread(10) ;
    // TEST process_state_ABORTED
    TEST(0 == state_process(&process, &process_state)) ;
    TEST(process_state_ABORTED == process_state) ;

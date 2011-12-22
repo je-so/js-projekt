@@ -32,7 +32,7 @@ about: Other threads
 Any additional created thread must call <init_umgebung>
 at its beginning and <free_umgebung> at its end.
 The thread module implementation does this automatically.
-Use <new_osthread> and <delete_osthread> for managing
+Use <new_thread> and <delete_thread> for managing
 additional threads.
 
 about: Internal workings of initmain

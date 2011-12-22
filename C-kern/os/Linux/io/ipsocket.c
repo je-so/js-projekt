@@ -1130,7 +1130,7 @@ static int test_buffersize(void)
          for(int si = 0; si < 100; ++si) {
             TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
             if (! unsend_bytes) break ;
-            sleepms_osthread(1) ;
+            sleepms_thread(1) ;
          }
          // second write transfers all (cause send queue is empty)
          TEST(0 == write_ipsocket(&ipsockSV, buffer_size-writecount, writecount + (uint8_t*)buffer, &size)) ;
@@ -1149,7 +1149,7 @@ static int test_buffersize(void)
          for(int si = 0; si < 100; ++si) {
             TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
             if(!unsend_bytes) break ;
-            sleepms_osthread(1) ;
+            sleepms_thread(1) ;
          }
          // check write queue is empty
          TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
@@ -1221,7 +1221,7 @@ static int test_buffersize(void)
          // third datagram will be discarded on receiver side
       TEST(0 == write_ipsocket(&ipsockSV, buffer_size/2, (uint8_t*)buffer, &size)) ;
       TEST(buffer_size/2 == size) ;
-      sleepms_osthread(1) ;
+      sleepms_thread(1) ;
       TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
       TEST(0 == unsend_bytes) ;
       // TEST bytestoread_ipsocket returns size of 1 datagram (not the sum of all)
@@ -1275,7 +1275,7 @@ static int test_helper_oob(ipsocket_t * ipsockSV, ipsocket_t * ipsockCL, const s
    TEST(0 == writeoob_ipsocket(ipsockSV, 'x')) ;
    TEST(0 == write_ipsocket(ipsockSV, buffer_size/2, (uint8_t*)buffer, &size)) ;
    TEST(buffer_size/2 == size) ;
-   sleepms_osthread(10) ;
+   sleepms_thread(10) ;
    TEST(0 == bytestowrite_ipsocket( ipsockSV, &unsend_bytes)) ;
    TEST(0 == bytestoread_ipsocket( ipsockCL, &unread_bytes)) ;
    TEST(0 == unsend_bytes && unread_bytes == buffer_size+1) ;
@@ -1296,7 +1296,7 @@ static int test_helper_oob(ipsocket_t * ipsockSV, ipsocket_t * ipsockCL, const s
    TEST(0 == writeoob_ipsocket(ipsockSV, 'x')) ;
    TEST(0 == write_ipsocket(ipsockSV, buffer_size-1, (uint8_t*)buffer, &size)) ;
    TEST(buffer_size-1 == size) ;
-   sleepms_osthread(10) ;
+   sleepms_thread(10) ;
    TEST(0 == bytestowrite_ipsocket(ipsockSV, &unsend_bytes)) ;
    TEST(0 == bytestoread_ipsocket(ipsockCL, &unread_bytes)) ;
    TEST(0 == unsend_bytes && unread_bytes == buffer_size) ;
@@ -1310,7 +1310,7 @@ static int test_helper_oob(ipsocket_t * ipsockSV, ipsocket_t * ipsockCL, const s
    TEST(0 == write_ipsocket(ipsockSV, buffer_size-2, (uint8_t*)buffer, &size)) ;
    TEST(0 == writeoob_ipsocket(ipsockSV, 'y')) ;
    TEST(buffer_size-2 == size) ;
-   sleepms_osthread(10) ;
+   sleepms_thread(10) ;
    TEST(0 == bytestowrite_ipsocket(ipsockSV, &unsend_bytes)) ;
    TEST(0 == bytestoread_ipsocket(ipsockCL, &unread_bytes)) ;
    TEST(0 == unsend_bytes && unread_bytes == buffer_size) ;

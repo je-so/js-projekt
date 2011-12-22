@@ -49,9 +49,9 @@ static int wakupfirst_nolock_waitlist(waitlist_t * wlist, task_callback_f task_m
 {
    int err ;
 
-   osthread_t * thread = first_wlist(wlist) ;
+   thread_t * thread = first_wlist(wlist) ;
 
-   lock_osthread(thread) ;
+   lock_thread(thread) ;
 
    thread->task.fct = task_main ;
    thread->task.arg = start_arg ;
@@ -62,9 +62,9 @@ static int wakupfirst_nolock_waitlist(waitlist_t * wlist, task_callback_f task_m
 
    -- wlist->nr_waiting ;
 
-   unlock_osthread(thread) ;
+   unlock_thread(thread) ;
 
-   resume_osthread(thread) ;
+   resume_thread(thread) ;
 
    return 0 ;
 }
@@ -129,7 +129,7 @@ size_t nrwaiting_waitlist(waitlist_t * wlist)
 int wait_waitlist(waitlist_t * wlist)
 {
    int err ;
-   osthread_t * self = self_osthread() ;
+   thread_t * self = self_thread() ;
 
    slock_mutex(&wlist->lock) ;
    err = insertlast_wlist(wlist, self) ;
@@ -141,10 +141,10 @@ int wait_waitlist(waitlist_t * wlist)
 
    bool isSpuriousWakeup ;
    do {
-      suspend_osthread() ;
-      lock_osthread(self) ;
+      suspend_thread() ;
+      lock_thread(self) ;
       isSpuriousWakeup = (0 != self->wlistnext) ;
-      unlock_osthread(self) ;
+      unlock_thread(self) ;
    } while( isSpuriousWakeup ) ;
 
    return 0 ;
@@ -198,15 +198,15 @@ static int thread_waitonwlist(waitlist_t * wlist)
 
 static int test_initfree(void)
 {
-   waitlist_t     wlist  = waitlist_INIT_FREEABLE ;
-   osthread_t   * thread = 0 ;
-   osthread_t   * next ;
+   waitlist_t  wlist    = waitlist_INIT_FREEABLE ;
+   thread_t    * thread = 0 ;
+   thread_t    * next ;
 
    // TEST static init
    TEST(0 == wlist.last) ;
 
    // TEST init, double free
-   wlist.last = (osthread_t*)1 ;
+   wlist.last = (thread_t*)1 ;
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(0 == wlist.last) ;
    TEST(0 == nrwaiting_waitlist(&wlist)) ;
@@ -223,7 +223,7 @@ static int test_initfree(void)
    TEST(true == isempty_waitlist(&wlist)) ;
    TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(EAGAIN == trywait_rtsignal(0)) ;
-   TEST(0 == new_osthread(&thread, thread_waitonwlist, &wlist)) ;
+   TEST(0 == new_thread(&thread, thread_waitonwlist, &wlist)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;
    for(int i = 0; i < 1000000; ++i) {
       pthread_yield() ;
@@ -243,14 +243,14 @@ static int test_initfree(void)
    TEST(true == isempty_waitlist(&wlist)) ;
    TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(0 == wait_rtsignal(1, 1)) ;
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
    TEST(0 == free_waitlist(&wlist)) ;
 
    // TEST waiting group of threads (FIFO)
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(true == isempty_waitlist(&wlist)) ;
    TEST(0 == nrwaiting_waitlist(&wlist)) ;
-   TEST(0 == newgroup_osthread(&thread, thread_waitonwlist, &wlist, 20)) ;
+   TEST(0 == newgroup_thread(&thread, thread_waitonwlist, &wlist, 20)) ;
    TEST(0 == wait_rtsignal(0, 20)) ;
    TEST(0 != wlist.last) ;
    TEST(0 == isempty_waitlist(&wlist)) ;
@@ -269,7 +269,7 @@ static int test_initfree(void)
       // list has 20 members !
    next = wlist.last ;
    for(int i = 0; i < 20; ++i) {
-      osthread_t * prev = next ;
+      thread_t * prev = next ;
       next = next_wlist(next) ;
       TEST(next) ;
       TEST(prev->wlistnext == next) ;
@@ -283,7 +283,7 @@ static int test_initfree(void)
       // wakeup all members
    next = first_wlist(&wlist) ;
    for(int i = 0; i < 20; ++i) {
-      osthread_t * first = next ;
+      thread_t * first = next ;
       next = next_wlist(next) ;
       TEST(first) ;
       // test that first is woken up
@@ -301,7 +301,7 @@ static int test_initfree(void)
          TEST(next == first) ;
       }
       // test that others are not changed
-      osthread_t * next2 = next ;
+      thread_t * next2 = next ;
       for(int i2 = i; i2 < 19; ++i2) {
          TEST(0 == next2->task.arg) ;
          TEST(0 != next2->wlistnext) ;
@@ -316,15 +316,15 @@ static int test_initfree(void)
    TEST(0 == wlist.last) ;
    TEST(true == isempty_waitlist(&wlist)) ;
    TEST(0 == nrwaiting_waitlist(&wlist)) ;
-   TEST(0 == join_osthread(thread)) ;
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == join_thread(thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
    TEST(0 == free_waitlist(&wlist)) ;
    TEST(0 == wlist.last) ;
 
    // TEST free wakes up all waiters
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(true == isempty_waitlist(&wlist)) ;
-   TEST(0 == newgroup_osthread(&thread, thread_waitonwlist, &wlist, 20)) ;
+   TEST(0 == newgroup_thread(&thread, thread_waitonwlist, &wlist, 20)) ;
    TEST(0 == wait_rtsignal(0, 20)) ;
    TEST(0 != wlist.last) ;
    TEST(0 == isempty_waitlist(&wlist)) ;
@@ -359,7 +359,7 @@ static int test_initfree(void)
       TEST(next) ;
    }
    TEST(next == thread) ;
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
 
    // TEST EAGAIN
    TEST(0 == init_waitlist(&wlist)) ;
@@ -370,7 +370,7 @@ static int test_initfree(void)
    return 0 ;
 ABBRUCH:
    (void) free_waitlist(&wlist) ;
-   (void) delete_osthread(&thread) ;
+   (void) delete_thread(&thread) ;
    while( 0 == trywait_rtsignal(0) ) ;
    while( 0 == trywait_rtsignal(1) ) ;
    return EINVAL ;

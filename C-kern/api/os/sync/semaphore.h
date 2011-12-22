@@ -1,6 +1,6 @@
 /* title: Semaphore
    Offers interface for accessing semaphores.
-   Semaphores are used to signal events between different <osthread_t>.
+   Semaphores are used to signal events between different <thread_t>.
 
    about: Copyright
    This program is free software.

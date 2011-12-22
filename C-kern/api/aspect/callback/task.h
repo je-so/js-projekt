@@ -1,6 +1,6 @@
 /* title: Task-Callback
    Defines the signature of the main execution function of a
-   task which is executed by an <exothread_t>, <osthread_t> or <process_t>.
+   task which is executed by an <exothread_t>, <thread_t> or <process_t>.
 
    about: Copyright
    This program is free software.

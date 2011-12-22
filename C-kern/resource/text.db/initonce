@@ -11,4 +11,4 @@
 "before", "locale",         "C-kern/api/os/locale.h"
 "before", "X11",            "C-kern/api/userinterface/X11/x11.h"
 "before", "signalconfig",   "C-kern/api/os/sync/signal.h"
-"after",  "osthread",       "C-kern/api/os/thread.h"
+"after",  "thread",         "C-kern/api/os/thread.h"

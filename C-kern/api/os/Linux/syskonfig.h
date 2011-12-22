@@ -97,58 +97,59 @@
 /* group: !OVERWRITE! system specific types */
 
 #undef  sys_filedescr_t
+#undef  sys_filedescr_INIT_FREEABLE
+#undef  sys_mutex_t
+#undef  sys_mutex_INIT_DEFAULT
+#undef  sys_process_t
+#undef  sys_process_INIT_FREEABLE
+#undef  sys_semaphore_t
+#undef  sys_semaphore_INIT_FREEABLE
+#undef  sys_socketaddr_t
+#undef  sys_socketaddr_MAXSIZE
+#undef  sys_thread_t
+#undef  sys_thread_INIT_FREEABLE
+
 /* define: sys_filedescr_t
  * Type represents a system file descriptor.
  * This type is Posix specific.
  * Type represents also a network connection. */
 #define sys_filedescr_t                int
-#undef  sys_filedescr_INIT_FREEABLE
 /* define: sys_filedescr_INIT_FREEABLE
  * Static initializer for a file descriptor which is not valid. */
 #define sys_filedescr_INIT_FREEABLE    (-1)
-#undef  sys_mutex_t
 /* define: sys_mutex_t
  * Type represents a mutual exclusion lock.
  * This type is Posix specific and needs pthread support. */
 #define sys_mutex_t                    pthread_mutex_t
-#undef  sys_mutex_INIT_DEFAULT
 /* define: sys_mutex_INIT_DEFAULT
  * Static initializer for <sys_mutex_t>. */
 #define sys_mutex_INIT_DEFAULT         PTHREAD_MUTEX_INITIALIZER
-#undef  sys_process_t
 /* define: sys_process_t
  * Type represents a system process.
  * This type is Posix specific. */
 #define sys_process_t                  pid_t
-#undef  sys_process_INIT_FREEABLE
 /* define: sys_process_INIT_FREEABLE
  * Static initializer for <sys_process_t>. */
 #define sys_process_INIT_FREEABLE      (0)
-#undef  sys_semaphore_t
 /* define: sys_semaphore_t
  * Types represents a system semaphore.
  * This type is Posix specific. */
 #define sys_semaphore_t                int
-#undef  sys_semaphore_INIT_FREEABLE
 /* define: sys_semaphore_INIT_FREEABLE
  * Static initializer for <sys_semaphore_t>. */
 #define sys_semaphore_INIT_FREEABLE    (-1)
-#undef  sys_socketaddr_t
 /* define: sys_socketaddr_t
  * Type which holds a generic socket address.
  * This type is defined as Posix specific *struct sockaddr*. */
 #define sys_socketaddr_t               struct sockaddr
-#undef  sys_socketaddr_MAXSIZE
 /* define: sys_socketaddr_MAXSIZE
  * Value which describes the maximum size of all versions of ip socket addresses.
  * This type is defined as Posix specific *sizeof(struct sockaddr_in6)*. */
 #define sys_socketaddr_MAXSIZE         sizeof(struct sockaddr_in6)
-#undef  sys_thread_t
 /* define: sys_thread_t
  * Types represents a system thread.
  * This type is Posix specific and needs pthread support. */
 #define sys_thread_t                   pthread_t
-#undef  sys_thread_INIT_FREEABLE
 /* define: sys_thread_INIT_FREEABLE
  * Static initializer for <sys_thread_t>. */
 #define sys_thread_INIT_FREEABLE       (0)

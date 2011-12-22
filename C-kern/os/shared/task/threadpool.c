@@ -46,7 +46,7 @@ static int threadmain_threadpool(threadpool_t * pool)
       err = wait_waitlist(&pool->idle) ;
       assert(!err) ;
 
-      task_callback_t task = task_osthread(self_osthread()) ;
+      task_callback_t task = task_thread(self_thread()) ;
 
       if (!task.fct) {
          slock_mutex(&pool->idle.lock) ;
@@ -75,7 +75,7 @@ int init_threadpool(/*out*/threadpool_t * pool, uint8_t nr_of_threads)
    err = init_waitlist(&pool->idle) ;
    if (err) goto ABBRUCH ;
 
-   err = newgroup_osthread(&pool->threads, &threadmain_threadpool, pool, nr_of_threads) ;
+   err = newgroup_thread(&pool->threads, &threadmain_threadpool, pool, nr_of_threads) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -99,14 +99,14 @@ int free_threadpool(threadpool_t * pool)
          err = trywakeup_waitlist(&pool->idle, 0, 0) ;
          assert(0 == err || EAGAIN == err) ;
          if (err == EAGAIN) {
-            sleepms_osthread(10) ;
+            sleepms_thread(10) ;
          }
          slock_mutex(&pool->idle.lock) ;
          poolsize = pool->poolsize ;
          sunlock_mutex(&pool->idle.lock) ;
       } while(poolsize) ;
 
-      err = delete_osthread(&pool->threads) ;
+      err = delete_thread(&pool->threads) ;
 
       err2 = free_waitlist(&pool->idle) ;
       if (err2) err = err2 ;
@@ -167,7 +167,7 @@ static int test_initfree(void)
    TEST(0 != pool.threads) ;
    for(int i = 0; i < 10000; ++i) {
       if (8 == pool.idle.nr_waiting) break ;
-      sleepms_osthread(1) ;
+      sleepms_thread(1) ;
    }
    TEST(0 != pool.idle.last) ;
    TEST(8 == pool.idle.nr_waiting) ;
@@ -209,7 +209,7 @@ static int task_sleep(unsigned nr)
 {
    assert(nr < 8) ;
    s_isrun[nr] = 1 ;
-   sleepms_osthread(10) ;
+   sleepms_thread(10) ;
    return 0 ;
 }
 
@@ -222,7 +222,7 @@ static int test_run(void)
    TEST(0 == init_threadpool(&pool, nrelementsof(s_isrun))) ;
    for(unsigned i = 0; i < 10000; ++i) {
       if (poolsize_threadpool(&pool) == nridle_threadpool(&pool)) break ;
-      sleepms_osthread(1) ;
+      sleepms_thread(1) ;
    }
    TEST(poolsize_threadpool(&pool) == nridle_threadpool(&pool)) ;
    for(unsigned i = 0; i < poolsize_threadpool(&pool); ++i) {
@@ -231,7 +231,7 @@ static int test_run(void)
    TEST(EAGAIN == tryruntask_threadpool(&pool, &task_sleep, 0u)) ;
    for(unsigned i = 0; i < 10000; ++i) {
       if (poolsize_threadpool(&pool) == nridle_threadpool(&pool)) break ;
-      sleepms_osthread(1) ;
+      sleepms_thread(1) ;
    }
    TEST(poolsize_threadpool(&pool) == nridle_threadpool(&pool)) ;
    for(unsigned i = 0; i < poolsize_threadpool(&pool); ++i) {

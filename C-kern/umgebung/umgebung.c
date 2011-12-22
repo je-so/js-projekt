@@ -165,7 +165,7 @@ static int freeonce_valid_umgebung(umgebung_t * umg)
    default: assert(0 == s_initoncecount_valid_umgebung && "out of bounds" )  ;
             break ;
 // TEXTDB:SELECT("   case "row-id":  err2 = freeonce_"module"(umg) ;"\n"            if (err2) err=err2 ;")FROM("C-kern/resource/text.db/initonce")WHERE(time=='after')DESCENDING
-   case 1:  err2 = freeonce_osthread(umg) ;
+   case 1:  err2 = freeonce_thread(umg) ;
             if (err2) err=err2 ;
 // TEXTDB:END
    case 0:  break ;
@@ -188,7 +188,7 @@ static int initonce_valid_umgebung(umgebung_t * umg)
 
 // TEXTDB:SELECT(\n"   err = initonce_"module"(umg) ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ s_initoncecount_valid_umgebung ;")FROM("C-kern/resource/text.db/initonce")WHERE(time=='after')
 
-   err = initonce_osthread(umg) ;
+   err = initonce_thread(umg) ;
    if (err) goto ABBRUCH ;
    ++ s_initoncecount_valid_umgebung ;
 // TEXTDB:END
@@ -931,6 +931,13 @@ int unittest_umgebung()
       if (test_initmainerror()) goto ABBRUCH ;
 
       TEST(0 == init_resourceusage(&usage)) ;
+      {  // TODO remove in case malloc is no more in use (init_resourceusage)
+         resourceusage_t   usage2 ;
+         TEST(0 == init_resourceusage(&usage2)) ;
+         TEST(0 == free_resourceusage(&usage2)) ;
+         TEST(0 == free_resourceusage(&usage)) ;
+         TEST(0 == init_resourceusage(&usage)) ;
+      }
 
       if (test_querymacros())    goto ABBRUCH ;
       if (test_initfree())       goto ABBRUCH ;

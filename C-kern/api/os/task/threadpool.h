@@ -28,7 +28,7 @@
 #include "C-kern/api/os/sync/waitlist.h"
 
 // forward
-struct osthread_t ;
+struct thread_t ;
 
 /* typedef: threadpool_t
  * Export <threadpool_t>. */
@@ -53,20 +53,20 @@ struct threadpool_t {
     * List of idle threads. They are waiting for her next assignment.
     * If the size of waiting threads <nr_idle> equals <poolsize> all threads are in
     * idle state. */
-   waitlist_t           idle ;
+   waitlist_t        idle ;
    /* variable: poolsize
     * The number of threads created at init time (See <init_threadpool>). */
-   uint32_t             poolsize ;
+   uint32_t          poolsize ;
    /* variable: threads
     * The group of threads which are contained in this pool. */
-   struct osthread_t  * threads ;
+   struct thread_t   * threads ;
 } ;
 
 // group: lifetime
 
 /* define: threadpool_INIT_FREEABLE
  * Static initializer. */
-#define threadpool_INIT_FREEABLE    { waitlist_INIT_FREEABLE, 0, (osthread_t*)0 }
+#define threadpool_INIT_FREEABLE    { waitlist_INIT_FREEABLE, 0, (thread_t*)0 }
 
 /* function: init_threadpool
  * Creates a group of threads which wait for executing tasks. */
@@ -109,7 +109,7 @@ extern int tryruntask_threadpool(threadpool_t * pool, task_callback_f task_main,
    ((pool)->poolsize)
 
 /* define: tryruntask_threadpool
- * Calls <osthread_t.tryruntask_threadpool> with adapted function pointer. */
+ * Calls <threadpool_t.tryruntask_threadpool> with adapted function pointer. */
 #define tryruntask_threadpool(pool, task_main, start_arg)                     \
    /*do not forget to adapt definition in threadpool.c test section*/         \
    ( __extension__ ({ int _err ;                                              \

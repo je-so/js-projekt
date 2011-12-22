@@ -399,7 +399,7 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
 
 // TODO send2_rtsignal
 /*
-int send2_rtsignal(rtsignal_t nr, osthread_t * thread)
+int send2_rtsignal(rtsignal_t nr, thread_t * thread)
 {
 
 }
@@ -701,9 +701,9 @@ static int thread_receivesignal(int rtsignr)
 {
    int err ;
    assert(rtsignr) ;
-   assert(self_osthread()->task.arg) ;
+   assert(self_thread()->task.arg) ;
    err = wait_rtsignal((rtsignal_t)rtsignr, 1) ;
-   self_osthread()->task.arg = 0 ;
+   self_thread()->task.arg = 0 ;
    assert(0 == send_rtsignal(0)) ;
    return err ;
 }
@@ -712,7 +712,7 @@ static int test_rtsignal(void)
 {
    sigset_t          oldmask ;
    sigset_t          signalmask ;
-   osthread_t      * thread    = 0 ;
+   thread_t          * thread  = 0 ;
    bool              isoldmask = false ;
    struct timespec   ts        = { 0, 0 } ;
 
@@ -764,8 +764,8 @@ static int test_rtsignal(void)
 
    // TEST send_rtsignal (order unspecified)
    for(int i = 1; i < 15; ++i) {
-      TEST(0 == newgroup_osthread(&thread, thread_receivesignal, i, 3)) ;
-      osthread_t * group[3] = { thread, thread->groupnext, thread->groupnext->groupnext } ;
+      TEST(0 == newgroup_thread(&thread, thread_receivesignal, i, 3)) ;
+      thread_t * group[3] = { thread, thread->groupnext, thread->groupnext->groupnext } ;
       for(int t = 0; t < 3; ++t) {
          TEST((void*)i == group[t]->task.arg) ;
       }
@@ -790,7 +790,7 @@ static int test_rtsignal(void)
          }
          TEST(2 == count) ;
       }
-      TEST(0 == delete_osthread(&thread)) ;
+      TEST(0 == delete_thread(&thread)) ;
    }
 
    // TEST EINVAL
@@ -813,7 +813,7 @@ static int test_rtsignal(void)
 
    return 0 ;
 ABBRUCH:
-   (void) delete_osthread(&thread) ;
+   (void) delete_thread(&thread) ;
    while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
    if (isoldmask) (void) sigprocmask(SIG_SETMASK, &oldmask, 0) ;
    return EINVAL ;

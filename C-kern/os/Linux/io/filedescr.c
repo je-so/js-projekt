@@ -369,8 +369,8 @@ ABBRUCH:
 typedef struct thread_arg_t   thread_arg_t ;
 
 struct thread_arg_t {
-   osthread_t * caller ;
-   int          fd ;
+   thread_t    * caller ;
+   int         fd ;
 } ;
 
 static int thread_reader(thread_arg_t * startarg)
@@ -378,7 +378,7 @@ static int thread_reader(thread_arg_t * startarg)
    int err ;
    size_t  bytes_read = 0 ;
    uint8_t byte = 0 ;
-   resume_osthread(startarg->caller) ;
+   resume_thread(startarg->caller) ;
    err = read_filedescr(startarg->fd, 1, &byte, &bytes_read) ;
    return (err != 0) || (bytes_read != 1) || (byte != 200) ;
 }
@@ -388,7 +388,7 @@ static int thread_writer(thread_arg_t * startarg)
    int err ;
    size_t  bytes_written = 0 ;
    uint8_t byte = 200 ;
-   resume_osthread(startarg->caller) ;
+   resume_thread(startarg->caller) ;
    err = write_filedescr(startarg->fd, 1, &byte, &bytes_written) ;
    return (err != 0) || (bytes_written != 1)  ;
 }
@@ -397,38 +397,38 @@ static int thread_writer2(thread_arg_t * startarg)
 {
    int err ;
    uint8_t buffer[2] = { 1, 2 } ;
-   resume_osthread(startarg->caller) ;
+   resume_thread(startarg->caller) ;
    err = write_filedescr(startarg->fd, sizeof(buffer), buffer, 0) ;
    LOG_CLEARBUFFER() ;
    return (err != EPIPE) ;
 }
 
-static int           s_siguser_count  = 0 ;
-static osthread_t  * s_siguser_thread = 0 ;
+static int        s_siguser_count  = 0 ;
+static thread_t * s_siguser_thread = 0 ;
 
 static void siguser(int signr)
 {
    assert(SIGUSR1 == signr) ;
    if (s_siguser_count) {
-      assert(s_siguser_thread == self_osthread()) ;
+      assert(s_siguser_thread == self_thread()) ;
    } else {
-      s_siguser_thread = self_osthread() ;
+      s_siguser_thread = self_thread() ;
    }
    ++ s_siguser_count ;
 }
 
 static int test_readwrite(directory_t * tempdir)
 {
-   int          fd        = -1 ;
-   int          pipefd[2] = { -1 } ;
-   uint8_t    * buffer    = 0 ;
-   osthread_t * thread    = 0 ;
-   uint8_t      byte ;
-   size_t       bytes_read ;
-   size_t       bytes_written ;
-   size_t       pipe_buffersize ;
-   sigset_t     oldset ;
-   bool         isOldact  = false ;
+   int               fd        = -1 ;
+   int               pipefd[2] = { -1 } ;
+   uint8_t           * buffer  = 0 ;
+   thread_t          * thread  = 0 ;
+   uint8_t           byte ;
+   size_t            bytes_read ;
+   size_t            bytes_written ;
+   size_t            pipe_buffersize ;
+   sigset_t          oldset ;
+   bool              isOldact  = false ;
    struct sigaction  newact ;
    struct sigaction  oldact ;
 
@@ -502,24 +502,24 @@ static int test_readwrite(directory_t * tempdir)
    newact.sa_handler = &siguser ;
    TEST(0 == sigaction(SIGUSR1, &newact, &oldact)) ;
    isOldact = true ;
-   thread_arg_t startarg = { .caller = self_osthread(), .fd = pipefd[0] } ;
-   TEST(0 == new_osthread(&thread, thread_reader, &startarg)) ;
-   suspend_osthread() ;
-   sleepms_osthread(100) ;
+   thread_arg_t startarg = { .caller = self_thread(), .fd = pipefd[0] } ;
+   TEST(0 == new_thread(&thread, thread_reader, &startarg)) ;
+   suspend_thread() ;
+   sleepms_thread(100) ;
    s_siguser_count  = 0 ;
    s_siguser_thread = 0 ;
    for(int i = 0; i < 50; ++i) {
       pthread_kill(thread->sys_thread, SIGUSR1) ;
-      sleepms_osthread(5) ;
+      sleepms_thread(5) ;
    }
    byte = 200 ;
    TEST(0 == write_filedescr(pipefd[1], 1, &byte, &bytes_written)) ;
    TEST(1 == bytes_written) ;
-   TEST(0 == join_osthread(thread)) ;
-   TEST(0 == returncode_osthread(thread)) ;
+   TEST(0 == join_thread(thread)) ;
+   TEST(0 == returncode_thread(thread)) ;
    TEST(50 == s_siguser_count) ;
    TEST(thread == s_siguser_thread) ;
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
 
    // TEST write with interrupts
    for(size_t i = 0; i < pipe_buffersize; ++i) {
@@ -527,14 +527,14 @@ static int test_readwrite(directory_t * tempdir)
       TEST(0 == write_filedescr(pipefd[1], 1, &byte, 0)) ;
    }
    startarg.fd = pipefd[1] ;
-   TEST(0 == new_osthread(&thread, thread_writer, &startarg)) ;
-   suspend_osthread() ;
-   sleepms_osthread(100) ;
+   TEST(0 == new_thread(&thread, thread_writer, &startarg)) ;
+   suspend_thread() ;
+   sleepms_thread(100) ;
    s_siguser_count  = 0 ;
    s_siguser_thread = 0 ;
    for(int i = 0; i < 50; ++i) {
       pthread_kill(thread->sys_thread, SIGUSR1) ;
-      sleepms_osthread(5) ;
+      sleepms_thread(5) ;
    }
    for(size_t i = 0; i < pipe_buffersize; ++i) {
       byte = 1 ;
@@ -545,11 +545,11 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == read_filedescr(pipefd[0], 1, &byte, &bytes_read)) ;
    TEST(1 == bytes_read) ;
    TEST(200 == byte) ;
-   TEST(0 == join_osthread(thread)) ;
-   TEST(0 == returncode_osthread(thread)) ;
+   TEST(0 == join_thread(thread)) ;
+   TEST(0 == returncode_thread(thread)) ;
    TEST(50 == s_siguser_count) ;
    TEST(thread == s_siguser_thread) ;
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
 
    // TEST EPIPE, write with receiving end closed during write
    TEST(0 == free_filedescr(&pipefd[0])) ;
@@ -559,17 +559,17 @@ static int test_readwrite(directory_t * tempdir)
       byte = 0 ;
       TEST(0 == write_filedescr(pipefd[1], 1, &byte, 0)) ;
    }
-   startarg = (thread_arg_t) { .caller = self_osthread(), .fd = pipefd[1] } ;
+   startarg = (thread_arg_t) { .caller = self_thread(), .fd = pipefd[1] } ;
    // thread_writer2 writes 2 bytes and therefore waits
    // (pipe buffer can only hold 1 more byte)
-   TEST(0 == new_osthread(&thread, thread_writer2, &startarg)) ;
-   suspend_osthread() ;
-   sleepms_osthread(100) ;
+   TEST(0 == new_thread(&thread, thread_writer2, &startarg)) ;
+   suspend_thread() ;
+   sleepms_thread(100) ;
    TEST(0 == free_filedescr(&pipefd[0])) ;
-   TEST(0 == join_osthread(thread)) ;
+   TEST(0 == join_thread(thread)) ;
    // check that thread_writer2 encountered EPIPE
-   TEST(0 == returncode_osthread(thread)) ;
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == returncode_thread(thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
    TEST(EPIPE == write_filedescr(pipefd[1], 1, &byte, &bytes_written)) ;
    TEST(EPIPE == write_filedescr(pipefd[1], 1, &byte, &bytes_written)) ;
    TEST(0 == free_filedescr(&pipefd[1])) ;
@@ -586,7 +586,7 @@ ABBRUCH:
       sigprocmask(SIG_SETMASK, &oldset, 0) ;
       sigaction(SIGUSR1, &oldact, 0) ;
    }
-   delete_osthread(&thread) ;
+   delete_thread(&thread) ;
    free(buffer) ;
    removefile_directory(tempdir, "readwrite1") ;
    free_filedescr(&fd) ;

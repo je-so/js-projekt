@@ -131,7 +131,7 @@ static int thread_printf(logwritermt_t * log)
 
 static int test_globalvar(void)
 {
-   osthread_t      * thread    = 0 ;
+   thread_t        * thread    = 0 ;
    logwritermt_t   * log       = &g_main_logwriter ;
    int               pipefd[2] = { -1, -1 } ;
    int               oldstderr = -1 ;
@@ -168,13 +168,13 @@ static int test_globalvar(void)
    s_thrdarg_buffer  = 0 ;
    s_thrdarg_size    = 0 ;
    log->logwriter.logsize = 16 ;
-   TEST(0 == new_osthread(&thread, &thread_getbuffer, log)) ;
+   TEST(0 == new_thread(&thread, &thread_getbuffer, log)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;       // thread started
-   sleepms_osthread(1) ;
+   sleepms_thread(1) ;
    TEST(0 == s_thrdarg_buffer) ;
    TEST(0 == s_thrdarg_size) ;
    TEST(0 == unlock_mutex(&log->lock)) ;  // mutex is unlocked
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
    TEST(s_thrdarg_buffer == (char*)log->logwriter.buffer.addr) ;
    TEST(s_thrdarg_size   == 16) ;
 
@@ -182,12 +182,12 @@ static int test_globalvar(void)
    TEST(0 == lock_mutex(&log->lock)) ; // mutex is locked
    TEST(EAGAIN == trywait_rtsignal(0)) ;
    log->logwriter.logsize = 1 ;
-   TEST(0 == new_osthread(&thread, &thread_clearbuffer, log)) ;
+   TEST(0 == new_thread(&thread, &thread_clearbuffer, log)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;       // thread s va_list aptarted
-   sleepms_osthread(1) ;
+   sleepms_thread(1) ;
    TEST(1 == log->logwriter.logsize) ;
    TEST(0 == unlock_mutex(&log->lock)) ;  // mutex is unlocked
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
    TEST(0 == log->logwriter.logsize) ;
 
    // TEST mutex flushbuffer
@@ -199,12 +199,12 @@ static int test_globalvar(void)
    TEST(EAGAIN == trywait_rtsignal(0)) ;
    strcpy((char*)log->logwriter.buffer.addr, "_1_2_3_4") ;
    log->logwriter.logsize = 8 ;
-   TEST(0 == new_osthread(&thread, &thread_flushbuffer, log)) ;
+   TEST(0 == new_thread(&thread, &thread_flushbuffer, log)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;       // thread started
-   sleepms_osthread(1) ;
+   sleepms_thread(1) ;
    TEST(8 == log->logwriter.logsize) ;
    TEST(0 == unlock_mutex(&log->lock)) ;  // mutex is unlocked
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
    TEST(0 == log->logwriter.logsize) ;
    {
       char buffer[9] = { 0 } ;
@@ -220,12 +220,12 @@ static int test_globalvar(void)
    TEST(0 == lock_mutex(&log->lock)) ; // mutex is locked
    TEST(EAGAIN == trywait_rtsignal(0)) ;
    log->logwriter.logsize = 0 ;
-   TEST(0 == new_osthread(&thread, &thread_printf, log)) ;
+   TEST(0 == new_thread(&thread, &thread_printf, log)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;       // thread started
-   sleepms_osthread(1) ;
+   sleepms_thread(1) ;
    TEST(0 == log->logwriter.logsize) ;
    TEST(0 == unlock_mutex(&log->lock)) ;  // mutex is unlocked
-   TEST(0 == delete_osthread(&thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
    TEST(4 == log->logwriter.logsize) ;
    TEST(0 == strcmp((char*)log->logwriter.buffer.addr, "1234")) ;
    clearbuffer_logwritermt(log) ;
@@ -242,7 +242,7 @@ ABBRUCH:
    free_filedescr(&oldstderr) ;
    free_filedescr(&pipefd[0]) ;
    free_filedescr(&pipefd[1]) ;
-   delete_osthread(&thread) ;
+   delete_thread(&thread) ;
    return EINVAL ;
 }
 

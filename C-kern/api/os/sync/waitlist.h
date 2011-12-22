@@ -32,11 +32,11 @@
 #include "C-kern/api/aspect/callback/task.h"
 
 // forward
-struct osthread_t ;
+struct thread_t ;
 
 /* typedef: waitlist_t typedef
  * Exports <waitlist_t>. */
-typedef struct waitlist_t        waitlist_t ;
+typedef struct waitlist_t              waitlist_t ;
 
 
 // section: Functions
@@ -60,13 +60,13 @@ extern int unittest_os_sync_waitlist(void) ;
 struct waitlist_t {
    /* variable: last
     * The root pointer of the list of waiting threads. */
-   struct osthread_t  * last ;
+   struct thread_t   * last ;
    /* variable: nr_waiting
     * The number of threads waiting. */
-   size_t               nr_waiting ;
+   size_t            nr_waiting ;
    /* variable: lock
     * Mutex to protect this object from concurrent access. */
-   sys_mutex_t          lock ;
+   sys_mutex_t       lock ;
 } ;
 
 // group: lifetime
@@ -111,15 +111,15 @@ extern size_t nrwaiting_waitlist(waitlist_t * wlist) ;
  * Suspends the calling thread until some other calls <trywakeup_waitlist>.
  * The waiting threads are woken up in FIFO order.
  * The calling thread enters itself as last in the waiting list and then it suspends
- * itself. See also <suspend_osthread>. */
+ * itself. See also <suspend_thread>. */
 extern int wait_waitlist(waitlist_t * wlist) ;
 
 /* function: trywakeup_waitlist
  * Tries to wake up the first waiting thread.
  * If the list is empty EAGAIN is returned and no error is logged.
- * If the list is not empty the first waiting threads <osthread_t.command> argument is set
- * to command and it is removed from the list. The removed thread is then resumed.
- * See also <resume_osthread>. */
+ * If the list is not empty the argument <thread_t.task> of the first waiting thread is set
+ * to *task_main* and *start_arg*. Th first thread is removed from the list.
+ * It is then resumed. See also <resume_thread>. */
 extern int trywakeup_waitlist(waitlist_t * wlist, task_callback_f task_main, callback_param_t * start_arg) ;
 
 
