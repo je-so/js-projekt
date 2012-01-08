@@ -2,6 +2,8 @@
    Type of callback which frees resources
    associated with an object like a tree node.
 
+   TODO: move this header to directory api/generic/ !
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify

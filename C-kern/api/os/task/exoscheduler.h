@@ -43,7 +43,7 @@ typedef struct exoscheduler_t      exoscheduler_t ;
  * Export <exothread_list_t>.
  * It is used in the implementation of <exothread_t>.
  * All waiting or running threads are stored in such a list. */
-slist_DECLARE(exothread_list, struct exothread_t)
+slist_DECLARE(exothread_list_t, struct exothread_t)
 
 
 // section: Functions

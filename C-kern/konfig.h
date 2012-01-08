@@ -55,6 +55,31 @@
 /* define: EMITCODE_1
  * The parameters to <EMITCODE_1> are written (as C code). */
 #define EMITCODE_1(...)          /*true*/ __VA_ARGS__
+/* define: foreach
+ *
+ * Parameter:
+ * _fctsuffix - The suffix of the container interface functions.
+ *              This name is used to access the foreach interface functions
+ *              foreachfirst##_fctsuffix, foreachisvalid##_fctsuffix, and foreachnext##_fctsuffix.
+ * container  - Pointer to container which contains all elements.
+ * elemntname - The name of the variable which holds iterates from the first to last contained element.
+ *
+ * Explanation:
+ * A container type which wants to offer <foreach> functionality must implement the following functions:
+ *
+ * > // returns the reference to the first contained element or a special invalid value
+ * > // which indicates to <foreachisvalid_containertype> that there is no more element
+ * > objectref_t foreachfirst_containertype(containertype_t * container) ;
+ * > // returns true if element is a valid reference to a contained element
+ * > bool foreachisvalid_containertype(containertype_t * container, objectref_t elemnt) ;
+ * > // returns the next element after elemnt or a special value which indicates to <foreachisvalid_containertype>
+ * > // that there is no more element
+ * > objectref_t foreachnext_containertype(containertype_t * container, objectref_t elemnt) ;
+ * */
+#define foreach(_fctsuffix, container, elemntname)  \
+   for ( typeof(foreachfirst##_fctsuffix(container)) elemntname = foreachfirst##_fctsuffix(container) ; \
+         foreachisvalid##_fctsuffix(container,elemntname) ; \
+         elemntname = foreachnext##_fctsuffix(container,elemntname))
 /* define: nrelementsof
  * Calculates the number of elements of a static array. */
 #define nrelementsof(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )

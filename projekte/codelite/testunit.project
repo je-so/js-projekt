@@ -25,8 +25,6 @@
     <VirtualDirectory Name="list">
       <File Name="../../C-kern/generic/dlist.c"/>
       <File Name="../../C-kern/generic/dlist.h"/>
-      <File Name="../../C-kern/generic/slist.c"/>
-      <File Name="../../C-kern/generic/slist_sorted.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
@@ -67,8 +65,6 @@
       <File Name="../../C-kern/api/adapter/stream.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="generic">
-      <File Name="../../C-kern/api/generic/slist.h"/>
-      <File Name="../../C-kern/api/generic/slist_sorted.h"/>
       <File Name="../../C-kern/api/generic/splaytree.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="string">
@@ -77,7 +73,6 @@
       <File Name="../../C-kern/api/string/cstring.h"/>
       <File Name="../../C-kern/api/string/convertwchar.h"/>
       <File Name="../../C-kern/api/string/utf8.h"/>
-      <File Name="../../C-kern/api/string/cstringarray_buffer.h"/>
       <File Name="../../C-kern/api/string/wstream_buffer.h"/>
       <File Name="../../C-kern/api/string/encode.h"/>
     </VirtualDirectory>
@@ -134,7 +129,6 @@
       <VirtualDirectory Name="constant">
         <File Name="../../C-kern/api/aspect/constant/spacetime.h"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/api/aspect/slistnode.h"/>
       <File Name="../../C-kern/api/aspect/interface.h"/>
       <VirtualDirectory Name="interface">
         <File Name="../../C-kern/api/aspect/interface/log_it.h"/>
@@ -145,7 +139,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
-      <File Name="../../C-kern/api/memory/pagemanager.h"/>
       <File Name="../../C-kern/api/memory/wbuffer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
@@ -163,6 +156,8 @@
         <File Name="../../C-kern/api/ds/inmem/slist.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
+      <File Name="../../C-kern/api/ds/freecallback.h"/>
+      <File Name="../../C-kern/api/ds/slist_node.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="errhandling">
       <File Name="../../C-kern/api/errhandling/precondition.h"/>
@@ -249,13 +244,10 @@
     <File Name="../../C-kern/compiler/idl_parser.h"/>
     <File Name="../../C-kern/compiler/idl_scanner.c"/>
     <File Name="../../C-kern/compiler/idl_scanner.h"/>
-    <File Name="../../C-kern/compiler/regular_expression.c"/>
-    <File Name="../../C-kern/compiler/regular_expression.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="string">
     <File Name="../../C-kern/string/suffix_tree.c"/>
     <File Name="../../C-kern/string/wstream_buffer.c"/>
-    <File Name="../../C-kern/string/cstringarray_buffer.c"/>
     <File Name="../../C-kern/string/string.c"/>
     <File Name="../../C-kern/string/cstring.c"/>
     <File Name="../../C-kern/string/convertwchar.c"/>
@@ -335,7 +327,6 @@
   </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>
-    <File Name="../../C-kern/memory/pagemanager.c"/>
     <File Name="../../C-kern/memory/wbuffer.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="writer">

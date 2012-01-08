@@ -28,41 +28,71 @@
    file: C-kern/ds/inmem/slist.c
     Implementation file of <SingleLinkedList impl>.
 */
-#ifndef CKERN_DATASTRUCTURE_INMEMORY_SINGLELINKEDLIST_HEADER
-#define CKERN_DATASTRUCTURE_INMEMORY_SINGLELINKEDLIST_HEADER
+#ifndef CKERN_DS_INMEM_SLIST_HEADER
+#define CKERN_DS_INMEM_SLIST_HEADER
 
-#include "C-kern/api/aspect/callback.h"
-#include "C-kern/api/aspect/slistnode.h"
-#include "C-kern/api/aspect/callback/free.h"
+#include "C-kern/api/ds/slist_node.h"
+#include "C-kern/api/ds/freecallback.h"
 
-/* typedef: slist_t typedef
+/* typedef: struct slist_t
  * Exports <slist_t>. */
-typedef struct slist_t              slist_t ;
+typedef struct slist_t                 slist_t ;
 
-/* typedef: freecb_slist_f
- * Free resource callback.
- * <freecb_slist_f> is defined as:
- * > int (*freecb_slist_f) ( callback_param_t *, slist_aspect * ) */
-free_callback_ADAPT(       freecb_slist, callback_param_t, slist_aspect_t )
+/* typedef: struct slist_freecb_t
+ * Exports <slist_freecb_t>. */
+typedef struct slist_freecb_t          slist_freecb_t ;
+
+/* typedef: slist_freecb_f
+ * Adaption of <freecallback_t> and <freecallback_f> to <slist_t>. */
+freecallback_ADAPT(                    slist_freecb_f, slist_freecb_t, slist_node_t )
 
 
-// section: functions
+// section: Functions
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_slist
- * Test single linked list functionality. */
+ * Test <slist_t> functionality. */
 extern int unittest_ds_inmem_slist(void) ;
 #endif
 
 
+/* struct: slist_freecb_t
+ * Adapted freecallback used in <free_slist> as parameter.
+ * See also <freecallback_t>. */
+struct slist_freecb_t {
+   slist_freecb_f    fct ;
+} ;
+
+
 /* struct: slist_t
- * Stores pointers to first/last element of single linked list. */
+ * Stores pointers to last element of single linked list.
+ * The list is organized as a ring so the next element
+ * of the last is the first or head of list.
+ *
+ * Generic Implementation:
+ * Almost all exported interface functions take an extra argument *offset_next*.
+ * This argument gives the offset of the next pointer in a node which is node of type <slist_node_t>.
+ * For example if you have an object which can be contained in two lists
+ * > struct gobject_t {
+ * > ... ; gobject_t * next ;
+ * > ... ; gobject_t * list2_next ;
+ * > ... } ;
+ * The first list uses gobject_t.next to link its nodes and the second list takes gobject_t.list2_next.
+ * The differentiate between the two links set the parameter *offset_next* to
+ * > offsetof(gobject,next)       // either
+ * > offsetof(gobject,list2_next) // or
+ *
+ * To make things simpler use the macros <slist_DECLARE> and <slist_IMPLEMENT>
+ * which makes it possible to generate a listobject (see <slist_DECLARE>) which manages
+ * objects other than <slist_node_t> and to generate an interface (see <slist_IMPLEMENT>)
+ * which eliminates the need to provide the parameter *offset_next*.
+ * */
 struct slist_t {
    /* variable: last
     * Points to last element (tail) of list. */
-   slist_aspect_t  * last ;
+   slist_node_t  * last ;
 } ;
 
 // group: lifetime
@@ -70,65 +100,68 @@ struct slist_t {
 /* define: slist_INIT
  * Static initializer: you can use it instead of <init_slist>.
  * After assigning you can call <free_slist> or any other function safely. */
-#define slist_INIT                  { (void*)0 }
+#define slist_INIT                     { (void*)0 }
 
 /* constructor: init_slist
  * Initializes a single linked list object.
  * The caller has to provide an unitialized list object. This function never fails. */
-extern void init_slist(/*out*/slist_t * list ) ;
+extern void init_slist(/*out*/slist_t * list) ;
 
 /* destructor: free_slist
- * Frees memory of all linked objects.
+ * Frees memory of all linked objects (generic).
  * Calling free_slist is only safe after calling <init_slist> or after initializing it with <slist_INIT>.
- * Calling it on an already freed object does nothing. <removeall_slist> is called internally to free memory. */
-extern int free_slist( slist_t * list, callback_param_t * cb, freecb_slist_f free_callback ) ;
+ * Calling it on an already freed object does nothing. */
+extern int free_slist(slist_t * list, slist_freecb_t * freehandler, uint32_t offset_next) ;
 
 // group: query
 
 /* function: isempty_slist
  * Returns true if list contains no nodes. */
-extern int isempty_slist( const slist_t * list ) ;
+extern int isempty_slist(const slist_t * list) ;
 
 /* function: first_slist
- * Returns the first node in the list else NULL. */
-extern slist_aspect_t * first_slist( const slist_t * list ) ;
+ * Returns the first node in the list else NULL (if <isempty_slist>). */
+extern slist_node_t * first_slist(const slist_t * list, uint32_t offset_next) ;
 
 /* function: last_slist
- * Returns the last node in the list else NULL. */
-extern slist_aspect_t * last_slist( const slist_t * list ) ;
+ * Returns the last node in the list else NULL (if <isempty_slist>). */
+extern slist_node_t * last_slist(const slist_t * list) ;
 
 /* function: next_slist
- * Returns the node coming after this node.
- * If this is the last node in the list NULL is returned instead. */
-extern slist_aspect_t * next_slist( const slist_aspect_t * node ) ;
+ * Returns the node coming after this node (generic).
+ * If this is the last node in the list the first is returned instead
+ * cause this list is implement as a ring list. */
+extern slist_node_t * next_slist(slist_node_t * node, uint32_t offset_next) ;
 
 // group: iterate
 
 /* define: foreach_slist
  * Macro to iterate all contained nodes.
- * > #define foreach_slist( list, node )
+ * For the generated generic case (see <slist_IMPLEMENT>) use the generic <foreach> macro.
  *
  * Parameter:
- * listobj - Pointer to <slist_t>.
- * node    - The name of the variable of type typeof(listobj->last) which iterates from first to last stored node in list.
+ * listobj     - Pointer to <slist_t>.
+ * node        - The name of the variable of type (slist_node_t*) which iterates from first to last stored node in list.
+ * offset_next - Should be 0, except if this <slist_t> is used to manage node types incompatible to <slist_node_t>.
  *
  * Do *not* remove the current node.
  * If you want to remove/delete the current node after visiting it use instead:
- * > while( (node=first_slist( &list )) ) {  .... ; removefirst_slist( &list ) ; } */
-#define foreach_slist( /*slist_t * */listobj, /*name of slist_aspect_t * */node ) \
-   foreach_generic_slist(slist, listobj, node)
+ * > while( (node=first_slist( &list, offsetof(nodetype_t,next) )) ) {  .... ; removefirst_slist( &list, offsetof(nodetype_t,next)) ; }
+ */
+#define foreach_slist(listobj, node, offset_next) \
+   for( slist_node_t * node = first_slist(listobj, offset_next); node ; node = (node == (listobj)->last) ? 0 : next_slist(node, offset_next))
 
 // group: change
 
 /* function: insertfirst_slist
- * Makes new_node the new first element of list.
+ * Makes new_node the new first element of list (generic).
  * Ownership is transfered from caller to <slist_t>. */
-extern int insertfirst_slist( slist_t * list, slist_aspect_t * new_node ) ;
+extern int insertfirst_slist(slist_t * list, slist_node_t * new_node, uint32_t offset_next) ;
 
 /* function: insertlast_slist
  * Makes new_node the new last element of list.
  * Ownership is transfered from caller to <slist_t>. */
-extern int insertlast_slist( slist_t * list, slist_aspect_t * new_node ) ;
+extern int insertlast_slist(slist_t * list, slist_node_t * new_node, uint32_t offset_next) ;
 
 /* function: insertafter_slist
  * Adds new_node after prev_node into list.
@@ -136,13 +169,13 @@ extern int insertlast_slist( slist_t * list, slist_aspect_t * new_node ) ;
  *
  * Note:
  * Make sure that prev_node is part of the list !*/
-extern int insertafter_slist( slist_t * list, slist_aspect_t * prev_node, slist_aspect_t * new_node ) ;
+extern int insertafter_slist(slist_t * list, slist_node_t * prev_node, slist_node_t * new_node, uint32_t offset_next) ;
 
 /* function: removefirst_slist
  * Removes the first element from list.
  * If the list contains no elements ESRCH is returned. In case of success removed_node points
  * to the removed first element. Ownership of removed_node is transfered back to caller. */
-extern int removefirst_slist( slist_t * list, slist_aspect_t ** removed_node ) ;
+extern int removefirst_slist(slist_t * list, slist_node_t ** removed_node, uint32_t offset_next) ;
 
 /* function: removeafter_slist
  * Removes the next node coming after prev_node from the list.
@@ -151,222 +184,142 @@ extern int removefirst_slist( slist_t * list, slist_aspect_t ** removed_node ) ;
  *
  * Note:
  * Make sure that prev_node is part of the list ! */
-extern int removeafter_slist( slist_t * list, slist_aspect_t * prev_node, slist_aspect_t ** removed_node ) ;
+extern int removeafter_slist(slist_t * list, slist_node_t * prev_node, slist_node_t ** removed_node, uint32_t offset_next) ;
 
 // group: change set
 
 /* function: removeall_slist
- * Removes all nodes from the list.
- * For every removed node *free_callback* is called. */
-extern int removeall_slist( slist_t * list, callback_param_t * cb, freecb_slist_f remove_callback ) ;
+ * Removes all nodes from the list (generic).
+ * For every removed node *freehandler* is called. */
+extern int removeall_slist(slist_t * list, slist_freecb_t * freehandler, uint32_t offset_next) ;
 
-// group: interface adaption
+// group: generic
 
 /* define: slist_DECLARE
  * Declares a list object managing objects of type object_t.
  *
  * Parameter:
- * listname  - The name of the newly declared list structure is:  listname ## _t
- * object_t  - Type of objects this list should handle.
+ * listtype_t - The type name of the newly declared list structure.
+ * object_t   - Type of objects this list should handle.
  * */
-#define slist_DECLARE(listname, object_t) \
-   typedef struct listname ## _t    listname ## _t ; \
-   struct listname ## _t {    \
+#define slist_DECLARE(listtype_t, object_t)           \
+   typedef struct listtype_t           listtype_t ;   \
+   struct listtype_t {     \
       object_t * last ;    \
    } ;
 
 /* define: slist_IMPLEMENT
  * Generates the interface for a specific single linked list.
  * The type of the list object must be declared with help of <slist_DECLARE>
- * before this macro. It is also possible to typedef "listname ## _t" before
- * calling this macro. In the latter case "listname ## _t" must have a last pointer
- * declared as its first field.
+ * before this macro. It is also possible to construct "listtype_t" in another way before
+ * calling this macro. In the latter case "listtype_t" must have a pointer to the object
+ * declared as its first field with the name *last*.
  *
- * > #define slist_IMPLEMENT(listname, name_nextaspect, cb_t)
  *
  * Parameter:
- * listname        - This (type) name has two meanings.
- *                   First it is the suffix of the generated interface functions, e.g. "init_ ## listname".
- *                   Second it is the prefix of the typename of declared list type, i.e. "listname ## _t".
- *                   "listname ## _t" must have been defined as a typedef representing the list object.
- * name_nextaspect - The name (access path) of the next pointer in object type managed by this list.
- *                   The object type is infered from "listname_t.last"
- * cb_t            - Type of the first callback parameter.
+ * listtype_t     - This is the type of a list type structurally equivalent to <slist_t>.
+ *                  See also <slist_DECLARE>. *listtype_t* must have been defined as a
+ *                  typedef representing the list object.
+ * _fctsuffix     - It is the suffix of the generated list interface functions, e.g. "init ## _fctsuffix".
+ * name_nextptr   - The name (access path) of the next pointer in objects managed by *listtype_t*.
+ *                  The object type is infered from "listtype_t.last"
+ * freecallback_t - Free callback structure type. See <freecallback_t> how the structure should look like.
  * */
-#define slist_IMPLEMENT(listname, name_nextaspect, cb_t) \
-   typedef free_callback_SIGNATURE( freecb ## _ ## listname ## _f, cb_t, typeof(*((listname ## _t*)0)->last) ) ; \
-   static inline void init ## _ ## listname(listname ## _t * list) __attribute__ ((always_inline)) ; \
-   static inline int free ## _ ## listname(listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback) __attribute__ ((always_inline)) ; \
-   static inline int isempty ## _ ## listname( const listname ## _t * list ) __attribute__ ((always_inline)) ; \
-   static inline uint32_t offsetnext ## _ ## listname(void) __attribute__ ((always_inline)) ; \
-   static inline typeof(*((listname ## _t*)0)->last) * first ## _ ## listname ( const listname ## _t * list ) __attribute__ ((always_inline)) ; \
-   static inline typeof(*((listname ## _t*)0)->last) * last  ## _ ## listname ( const listname ## _t * list ) __attribute__ ((always_inline)) ; \
-   static inline typeof(*((listname ## _t*)0)->last) * next  ## _ ## listname ( const typeof(*((listname ## _t*)0)->last) * node ) __attribute__ ((always_inline)) ; \
-   static inline int insertfirst ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * new_node ) __attribute__ ((always_inline)) ; \
-   static inline int insertlast  ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * new_node ) __attribute__ ((always_inline)) ; \
-   static inline int insertafter ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * prev_node, typeof(*((listname ## _t*)0)->last) * new_node ) __attribute__ ((always_inline)) ; \
-   static inline int removefirst ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) ** removed_node ) __attribute__ ((always_inline)) ; \
-   static inline int removeafter ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * prev_node, typeof(*((listname ## _t*)0)->last)** removed_node ) __attribute__ ((always_inline)) ; \
-   static inline int removeall   ## _ ## listname ( listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback ) __attribute__ ((always_inline)) ; \
-   static inline uint32_t offsetnext ## _ ## listname(void) { \
-      static_assert( offsetof(listname ## _t, last)  == 0, #listname "_t must have same structure as slist_t" ) ; \
-      static_assert( offsetof( typeof(*((listname ## _t*)0)->last), name_nextaspect) < 65536, "Offset must fit in uint32_t (extend 65536 to pow(2,32) if needed)") ; \
-      return (uint32_t) offsetof( typeof(*((listname ## _t*)0)->last), name_nextaspect ) ; \
+#define slist_IMPLEMENT(listtype_t, _fctsuffix, name_nextptr, freecallback_t) \
+   static inline void init    ## _fctsuffix(listtype_t * list) __attribute__ ((always_inline)) ; \
+   static inline int  free    ## _fctsuffix(listtype_t * list, freecallback_t * freehandler) __attribute__ ((always_inline)) ; \
+   static inline int  isempty ## _fctsuffix( const listtype_t * list ) __attribute__ ((always_inline)) ; \
+   static inline uint32_t offsetnext ## _fctsuffix(void) __attribute__ ((always_inline)) ; \
+   static inline typeof(*((listtype_t*)0)->last) * first ## _fctsuffix ( const listtype_t * list ) __attribute__ ((always_inline)) ; \
+   static inline typeof(*((listtype_t*)0)->last) * last  ## _fctsuffix ( const listtype_t * list ) __attribute__ ((always_inline)) ; \
+   static inline typeof(*((listtype_t*)0)->last) * next  ## _fctsuffix ( typeof(*((listtype_t*)0)->last) * node ) __attribute__ ((always_inline)) ; \
+   static inline typeof(*((listtype_t*)0)->last) * foreachfirst  ## _fctsuffix ( const listtype_t * list ) __attribute__ ((always_inline)) ; \
+   static inline bool foreachisvalid  ## _fctsuffix ( const listtype_t * list, typeof(*((listtype_t*)0)->last) * node ) __attribute__ ((always_inline)) ; \
+   static inline typeof(*((listtype_t*)0)->last) * foreachnext  ## _fctsuffix ( const listtype_t * list, typeof(*((listtype_t*)0)->last) * node ) __attribute__ ((always_inline)) ; \
+   static inline int insertfirst ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) * new_node ) __attribute__ ((always_inline)) ; \
+   static inline int insertlast  ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) * new_node ) __attribute__ ((always_inline)) ; \
+   static inline int insertafter ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) * prev_node, typeof(*((listtype_t*)0)->last) * new_node ) __attribute__ ((always_inline)) ; \
+   static inline int removefirst ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) ** removed_node ) __attribute__ ((always_inline)) ; \
+   static inline int removeafter ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) * prev_node, typeof(*((listtype_t*)0)->last)** removed_node ) __attribute__ ((always_inline)) ; \
+   static inline int removeall   ## _fctsuffix ( listtype_t * list, freecallback_t * freehandler) __attribute__ ((always_inline)) ; \
+   static inline uint32_t offsetnext ## _fctsuffix(void) { \
+      static_assert( offsetof(freecallback_t, fct)   == 0, "freecallback_t has correct type" ) ; \
+      static_assert( offsetof(listtype_t, last)  == 0, "listtype_t must have same structure as slist_t" ) ; \
+      static_assert( offsetof( typeof(*((listtype_t*)0)->last), name_nextptr) < 65536, "Offset must fit in uint32_t (extend 65536 to pow(2,32) if needed)") ; \
+      return (uint32_t) offsetof( typeof(*((listtype_t*)0)->last), name_nextptr ) ; \
    } \
-   static inline void init ## _ ## listname(listname ## _t * list) { \
+   static inline void init ## _fctsuffix(listtype_t * list) { \
       init_slist(list) ; \
    } \
-   static inline int free ## _ ## listname(listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback) { \
-      return free_generic_slist( (slist_t*)list, cb, (freecb_slist_f) free_callback, offsetnext ## _ ## listname() ) ; \
+   static inline int free ## _fctsuffix(listtype_t * list, freecallback_t * freehandler) { \
+      return free_slist( (slist_t*)list, (slist_freecb_t*) freehandler, offsetnext ## _fctsuffix() ) ; \
    } \
-   static inline int isempty ## _ ## listname( const listname ## _t * list ) { \
+   static inline int isempty ## _fctsuffix( const listtype_t * list ) { \
       return isempty_slist(list) ; \
    } \
-   static inline typeof(*((listname ## _t*)0)->last) * first ## _ ## listname ( const listname ## _t * list ) { \
-      return last_slist(list) ? next_ ## listname(last_slist(list)) : 0 ; \
+   static inline typeof(*((listtype_t*)0)->last) * first ## _fctsuffix ( const listtype_t * list ) { \
+      return (typeof(((listtype_t*)0)->last)) first_slist(list, offsetnext ## _fctsuffix()) ; \
    } \
-   static inline typeof(*((listname ## _t*)0)->last) * last  ## _ ## listname ( const listname ## _t * list ) { \
+   static inline typeof(*((listtype_t*)0)->last) * last  ## _fctsuffix ( const listtype_t * list ) { \
       return last_slist(list) ; \
    } \
-   static inline typeof(*((listname ## _t*)0)->last) * next  ## _ ## listname ( const typeof(*((listname ## _t*)0)->last) * node ) { \
-      return (typeof(*((listname ## _t*)0)->last)*) ((const slist_aspect_t*)(offsetnext ## _ ## listname() + (const uint8_t*)node))-> next ; \
+   static inline typeof(*((listtype_t*)0)->last) * next  ## _fctsuffix ( typeof(*((listtype_t*)0)->last) * node ) { \
+      return next_slist(node, offsetnext ## _fctsuffix ()) ; \
    } \
-   static inline int insertfirst ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * new_node ) { \
-      return insertfirst_generic_slist( (slist_t*)list, (slist_aspect_t*)new_node, offsetnext ## _ ## listname()) ; \
+   static inline typeof(*((listtype_t*)0)->last) * foreachfirst  ## _fctsuffix ( const listtype_t * list ) { \
+      return first ## _fctsuffix (list) ; \
    } \
-   static inline int insertlast  ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * new_node ) { \
-      return insertlast_generic_slist( (slist_t*)list, (slist_aspect_t*)new_node, offsetnext ## _ ## listname()) ; \
+   static inline bool foreachisvalid  ## _fctsuffix ( const listtype_t * list, typeof(*((listtype_t*)0)->last) * node ) { \
+      (void) list ; return 0 != node ; \
    } \
-   static inline int insertafter ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * prev_node, typeof(*((listname ## _t*)0)->last) * new_node ) { \
-      return insertafter_generic_slist( (slist_t*)list, (slist_aspect_t*)prev_node, (slist_aspect_t*)new_node, offsetnext ## _ ## listname()) ; \
+   static inline typeof(*((listtype_t*)0)->last) * foreachnext  ## _fctsuffix ( const listtype_t * list, typeof(*((listtype_t*)0)->last) * node ) { \
+      return (node == last_slist(list)) ? 0 : next ## _fctsuffix (node) ; \
    } \
-   static inline int removefirst ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) ** removed_node ) { \
-      return removefirst_generic_slist( (slist_t*)list, (slist_aspect_t**)removed_node, offsetnext ## _ ## listname()) ; \
+   static inline int insertfirst ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) * new_node ) { \
+      return insertfirst_slist( (slist_t*)list, (slist_node_t*)new_node, offsetnext ## _fctsuffix()) ; \
    } \
-   static inline int removeafter ## _ ## listname ( listname ## _t * list, typeof(*((listname ## _t*)0)->last) * prev_node, typeof(*((listname ## _t*)0)->last)** removed_node ) { \
-      return removeafter_generic_slist( (slist_t*)list, (slist_aspect_t*)prev_node, (slist_aspect_t**)removed_node, offsetnext ## _ ## listname()) ; \
+   static inline int insertlast  ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) * new_node ) { \
+      return insertlast_slist( (slist_t*)list, (slist_node_t*)new_node, offsetnext ## _fctsuffix()) ; \
    } \
-   static inline int removeall   ## _ ## listname ( listname ## _t * list, cb_t * cb, freecb ## _ ## listname ## _f free_callback ) { \
-      return removeall_generic_slist( (slist_t*)list, (callback_param_t*)cb, (freecb_slist_f)free_callback, offsetnext ## _ ## listname()) ; \
+   static inline int insertafter ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) * prev_node, typeof(*((listtype_t*)0)->last) * new_node ) { \
+      return insertafter_slist( (slist_t*)list, (slist_node_t*)prev_node, (slist_node_t*)new_node, offsetnext ## _fctsuffix()) ; \
+   } \
+   static inline int removefirst ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) ** removed_node ) { \
+      return removefirst_slist( (slist_t*)list, (slist_node_t**)removed_node, offsetnext ## _fctsuffix()) ; \
+   } \
+   static inline int removeafter ## _fctsuffix ( listtype_t * list, typeof(*((listtype_t*)0)->last) * prev_node, typeof(*((listtype_t*)0)->last)** removed_node ) { \
+      return removeafter_slist( (slist_t*)list, (slist_node_t*)prev_node, (slist_node_t**)removed_node, offsetnext ## _fctsuffix()) ; \
+   } \
+   static inline int removeall   ## _fctsuffix ( listtype_t * list, freecallback_t * freehandler) { \
+      return removeall_slist( (slist_t*)list, (slist_freecb_t*)freehandler, offsetnext ## _fctsuffix()) ; \
    }
-
-
-// group: generic implementation
-
-/* define: foreach_generic_slist
- * Macro to iterate all contained nodes (see <foreach_slist>).
- * > #define foreach_generic_slist( listname, listobj, node)
- * Do *not* remove the current node.
- * If you want to remove/delete the current node after visiting it use instead:
- * > while( (node=first_slist( &list )) ) {  .... ; removefirst_slist( &list ) ; }
- *
- * Parameter:
- * listname - The name of the list interface. This name is used to access
- *            the generated function with name <offsetnext_ ## slist>.
- * listobj  - Pointer to <slist ## _t>.
- * node     - The name of the variable of type typeof(listobj->last) which iterates from first to last stored node. */
-#define foreach_generic_slist(listname, listobj, node) \
-   for( typeof((listobj)->last) node = first_ ## listname(listobj); node ; node = (node == (listobj)->last) ? 0 : next_ ## listname(node))
-
-/* function: free_generic_slist
- * Generic implementation of <free_slist>. */
-extern int free_generic_slist( slist_t * list, callback_param_t * cb, freecb_slist_f free_callback, uint32_t offset_next ) ;
-
-/* function: insertfirst_generic_slist
- * Generic implementation of <insertfirst_slist>. */
-extern int insertfirst_generic_slist( slist_t * list, slist_aspect_t * new_node, uint32_t offset_next ) ;
-
-/* function: insertlast_generic_slist
- * Generic implementation of <insertlast_slist>. */
-extern int insertlast_generic_slist( slist_t * list, slist_aspect_t * new_node, uint32_t offset_next ) ;
-
-/* function: insertafter_generic_slist
- * Generic implementation of <insertafter_slist>. */
-extern int insertafter_generic_slist( slist_t * list, slist_aspect_t * prev_node, slist_aspect_t * new_node, uint32_t offset_next ) ;
-
-/* function: removefirst_generic_slist
- * Generic implementation of <removefirst_slist>. */
-extern int removefirst_generic_slist( slist_t * list, slist_aspect_t ** removed_node, uint32_t offset_next ) ;
-
-/* function: removeafter_generic_slist
- * Generic implementation of <removeafter_slist>. */
-extern int removeafter_generic_slist( slist_t * list, slist_aspect_t * prev_node, slist_aspect_t ** removed_node, uint32_t offset_next ) ;
-
-/* function: removeall_generic_slist
- * Generic implementation of <removeall_slist>. */
-extern int removeall_generic_slist( slist_t * list, callback_param_t * cb, freecb_slist_f remove_callback, uint32_t offset_next ) ;
 
 
 // section: inline implementations
 
-/* define: free_slist
- * Implements <slist_t.free_slist> with help of <slist_t.free_generic_slist>. */
-#define /*int*/ free_slist(list, cb, free_callback) \
-   free_generic_slist((list), (cb), (free_callback), 0)
-
 /* define: first_slist
- * Implements <slist_t.first_slist>.
- * > ((list)->last ? next_slist((list)->last) : 0) */
-#define /*slist_aspect_t* */ first_slist(/*const slist_t * */list) \
-   ((list)->last ? next_slist((list)->last) : 0)
+ * Implements <slist_t.first_slist>. */
+#define first_slist(list, offset_next) ((list)->last ? next_slist((list)->last, offset_next) : 0)
 
 /* define: last_slist
- * Implements <slist_t.last_slist>.
- * > ((list)->last) */
-#define /*slist_aspect_t* */ last_slist(/*const slist_t * */list) \
-   ((list)->last)
+ * Implements <slist_t.last_slist>. */
+#define last_slist(list)               ((list)->last)
 
 /* define: init_slist
- * Implements <slist_t.init_slist>.
- * > ((list)->last = 0, 0) */
-#define /*void*/ init_slist(/*out slist_t * */list) \
-   ((list)->last = 0)
-
-/* define: insertafter_slist
- * Implements <slist_t.insertafter_slist> with help of <slist_t.insertafter_generic_slist>. */
-#define /*int*/ insertafter_slist(list, prev_node, new_node) \
-   insertafter_generic_slist((list), (prev_node), (new_node), 0)
-
-/* define: insertfirst_slist
- * Implements <slist_t.insertfirst_slist> with help of <slist_t.insertfirst_generic_slist>. */
-#define /*int*/ insertfirst_slist(list, new_node) \
-   insertfirst_generic_slist((list), (new_node), 0)
-
-/* define: insertlast_slist
- * Implements <slist_t.insertlast_slist> with help of <slist_t.insertlast_generic_slist>. */
-#define /*int*/ insertlast_slist(list, new_node) \
-   insertlast_generic_slist((list), (new_node), 0)
+ * Implements <slist_t.init_slist>. */
+#define init_slist(list)               ((list)->last = 0)
 
 /* define: isempty_slist
- * Implements <slist_t.isempty_slist>.
- * > (0 != (list)->last) */
-#define /*int*/ isempty_slist(/*const slist_t * */list) \
-   (0 == (list)->last)
+ * Implements <slist_t.isempty_slist>. */
+#define isempty_slist(list)            (0 == (list)->last)
 
 /* define: next_slist
- * Implements <slist_t.next_slist>.
- * > (node->next) */
-#define next_slist(/*const slist_aspect_t * */node) \
-   ((node)->next)
-
-/* define: removeafter_slist
- * Implements <slist_t.removeafter_slist> with help of <slist_t.removeafter_generic_slist>. */
-#define /*int*/ removeafter_slist(list, prev_node, removed_node) \
-   removeafter_generic_slist((list), (prev_node), (removed_node), 0)
+ * Implements <slist_t.next_slist>. */
+#define next_slist(node, offset_next)  ((typeof(node))(((slist_node_t*)((uintptr_t)offset_next + (uintptr_t)(node)))->next))
 
 /* define: removeall_slist
- * Implements <slist_t.removeall_slist> with help of <slist_t.removeall_generic_slist>. */
-#define /*int*/ removeall_slist(list, cb, remove_callback) \
-   removeall_generic_slist((list), (cb), (remove_callback), 0)
-
-/* define: removeall_generic_slist
- * Implements <slist_t.removeall_generic_slist> with help of <slist_t.free_generic_slist>. */
-#define /*int*/ removeall_generic_slist(list, cb, remove_callback, offset_next) \
-   free_generic_slist((list), (cb), (remove_callback), (offset_next))
-
-/* define: removefirst_slist
- * Implements <slist_t.removefirst_slist> with help of <slist_t.removefirst_generic_slist>. */
-#define /*int*/ removefirst_slist(list, removed_node) \
-   removefirst_generic_slist((list), (removed_node), 0)
+ * Implements <slist_t.removeall_slist> with help of <slist_t.free_slist>. */
+#define removeall_slist(list, freehandler, offset_next) \
+   free_slist((list), (freehandler), (offset_next))
 
 #endif

@@ -34,14 +34,12 @@
 #include "C-kern/api/os/sync/signal.h"
 #endif
 
+
 // section: waitlist_t
 
-/* typedef: wlist_t
- * Another name for <waitlist_t>.
- * Used in <slist_IMPLEMENT> to offer an adapted interface to <slist_t>. */
-typedef waitlist_t                     wlist_t ;
-
-slist_IMPLEMENT(wlist, wlistnext, void)
+/* interface: GENERATED_wlist
+ * Uses macro <slist_IMPLEMENT> to generate an adapted interface to <slist_t>. */
+slist_IMPLEMENT(waitlist_t, _wlist, wlistnext, freecallback_t)
 
 // group: helper
 
