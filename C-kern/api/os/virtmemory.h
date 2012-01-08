@@ -34,11 +34,11 @@
 typedef struct memblock_t              vm_block_t ;
 
 /* typedef: struct vm_region_t
- * Exports <vm_region_t>. */
+ * Exports <vm_region_t>, describes a single virtual memory region. */
 typedef struct vm_region_t             vm_region_t ;
 
 /* typedef: struct vm_mappedregions_t
- * Exports <vm_mappedregions_t>. */
+ * Exports <vm_mappedregions_t>, description of all mapped memory. */
 typedef struct vm_mappedregions_t      vm_mappedregions_t ;
 
 /* typedef: struct vm_regionsarray_t
@@ -52,7 +52,7 @@ typedef struct vm_regionsarray_t       vm_regionsarray_t ;
 
 /* function: pagesize_vm
  * Returns the virtual memory page size supported by the underlying system.
- * This function returns a cached values. */
+ * This function returns a cached value. */
 extern size_t pagesize_vm(void) ;
 
 /* function: sys_pagesize_vm
@@ -95,7 +95,7 @@ extern int init_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages ) ;
  * It has accessible as stated in paramter *access_mode*.
  * A child process can access its content after a fork and a change is shared with the parent process
  * if <accessmode_SHARED> was specified. */
-extern int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, const accessmode_e access_mode  ) ;
+extern int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, const accessmode_e access_mode) ;
 
 /* function: free_vmblock
  * Invalidates virtual memory address range
@@ -118,7 +118,7 @@ extern int protect_vmblock( vm_block_t * vmblock, const accessmode_e access_mode
  * The start address of virtual memory block is not changed.
  * Returns 0 on success else ENOMEM or another system specific error code.
  * In case of success the new address range is
- * > [vmblock->addr .. vmblock->addr + vmblock->size + increment_in_pages * <pagesize_vm>).
+ * > [old:vmblock->addr .. old:vmblock->addr + old:vmblock->size + increment_in_pages * <pagesize_vm>).
  * If the memory could not be expanded no error logging is done. */
 extern int tryexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages) ;
 
@@ -127,8 +127,8 @@ extern int tryexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages) ;
  * If the block can not be expanded (see <tryexpand_vmblock>) it is relocated
  * to a new virtual address with sufficient space.
  * In case of success the new address range is
- * >    [ vmblock->addr .. vmblock->addr + vmblock->size + increment_in_pages * <pagesize_vm>)
- * > or [ NEW_ADDR .. NEW_ADDR + vmblock->size + increment_in_pages * <pagesize_vm>). */
+ * >    [ old:vmblock->addr .. old:vmblock->addr + old:vmblock->size + increment_in_pages * <pagesize_vm>)
+ * > or [ NEW_ADDR .. NEW_ADDR + old:vmblock->size + increment_in_pages * <pagesize_vm>). */
 extern int movexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages) ;
 
 /* function: shrink_vmblock
@@ -198,6 +198,7 @@ struct vm_mappedregions_t
 } ;
 
 // group: lifetime
+
 /* define: vm_mappedregions_INIT_FREEABLE
  * Static initializer: Makes calling <free_vmmappedregions> safe. */
 #define vm_mappedregions_INIT_FREEABLE  { 0, 0, 0, 0, 0 }

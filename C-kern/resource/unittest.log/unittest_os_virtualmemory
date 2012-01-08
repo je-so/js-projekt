@@ -1,6 +1,6 @@
 C-kern/os/Linux/virtmemory.c:427: tryexpand_vmblock(): error: Function aborted (err=22)
-C-kern/os/Linux/virtmemory.c:457: movexpand_vmblock(): error: Function aborted (err=22)
 C-kern/os/Linux/virtmemory.c:489: shrink_vmblock(): error: Function aborted (err=22)
 C-kern/os/Linux/virtmemory.c:353: init2_vmblock(): error: Function aborted (err=22)
+C-kern/os/Linux/virtmemory.c:457: movexpand_vmblock(): error: Function aborted (err=12)
 C-kern/os/Linux/virtmemory.c:448: movexpand_vmblock(): error: Out of memory (bytes=4294926336)
 C-kern/os/Linux/virtmemory.c:457: movexpand_vmblock(): error: Function aborted (err=12)

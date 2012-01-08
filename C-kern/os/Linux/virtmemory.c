@@ -438,7 +438,7 @@ int movexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages )
 
    if (     increment_in_pages != (expand_in_bytes / pagesize)
          || newsize_in_bytes   <   expand_in_bytes ) {
-      err = EINVAL ;
+      err = ENOMEM ;
       goto ABBRUCH ;
    }
 
@@ -651,8 +651,8 @@ static int test_mapping(void)
 
    // TEST query
    TEST(pagesize_vm() >= 1) ;
-   TEST(pagesize_vm() == makepowerof2(pagesize_vm())) ;
-   TEST(ispowerof2(pagesize_vm())) ;
+   TEST(pagesize_vm() == makepowerof2_int(pagesize_vm())) ;
+   TEST(ispowerof2_int(pagesize_vm())) ;
 
    // TEST map, unmap
    size_in_pages = 1 ;
@@ -804,13 +804,13 @@ static int test_mapping(void)
    // TEST EINVAL
    TEST(0      == init_vmblock(&mapped_block, 1)) ;
    TEST(EINVAL == tryexpand_vmblock(&mapped_block, (size_t)-1)) ;
-   TEST(EINVAL == movexpand_vmblock(&mapped_block, (size_t)-1)) ;
    TEST(EINVAL == shrink_vmblock(&mapped_block, 1)) ;
    TEST(0      == free_vmblock(&mapped_block)) ;
    TEST(EINVAL == init_vmblock(&mapped_block, (size_t)-1)) ;
 
    // TEST ENOMEM movexpand
    TEST(0      == init_vmblock(&mapped_block, 1)) ;
+   TEST(ENOMEM == movexpand_vmblock(&mapped_block, (size_t)-1)) ;
    TEST(ENOMEM == movexpand_vmblock(&mapped_block, (((size_t)-1) / pagesize_vm()) - 10)) ;
    TEST(0      == free_vmblock(&mapped_block)) ;
 

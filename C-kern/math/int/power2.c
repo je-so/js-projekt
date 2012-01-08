@@ -34,28 +34,33 @@
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
-int unittest_math_int_power2()
+static int test_powerof2(void)
 {
+   // TEST value 0
+   TEST(1 == ispowerof2_int(0)) ;
+   TEST(0 == makepowerof2_int((unsigned)0)) ;
 
+   // TEST uint8_t
    for(uint8_t i = 1; i; i = (uint8_t) (i << 1)) {
       uint8_t i2 = i ;
-      TEST(ispowerof2(i)) ;
-      i2 = makepowerof2(i2) ;
+      TEST(ispowerof2_int(i)) ;
+      i2 = makepowerof2_int(i2) ;
       TEST(i2 == i) ;
       i2 = (uint8_t) (i + 1) ;
-      i2 = makepowerof2(i2) ;
+      i2 = makepowerof2_int(i2) ;
       TEST(i2 == 2*i || (i2 == i+1 && ((int8_t)i) <= 0) ) ;
    }
 
+   // TEST uint16_t
    for(uint16_t i = 1; i; i = (uint16_t) (i << 1)) {
       uint16_t i2 = i ;
-      TEST(ispowerof2(i2)) ;
-      i2 = makepowerof2(i2) ;
+      TEST(ispowerof2_int(i2)) ;
+      i2 = makepowerof2_int(i2) ;
       TEST(i2 == i) ;
       if (i > 1) {
          i2 = (uint16_t) (i + 1) ;
-         TEST(!ispowerof2(i2)) ;
-         i2 = makepowerof2(i2) ;
+         TEST(!ispowerof2_int(i2)) ;
+         i2 = makepowerof2_int(i2) ;
          if ( ((int16_t)i) < 0 ) {
             TEST(i2 == (i+1)) ;
          } else {
@@ -64,12 +69,13 @@ int unittest_math_int_power2()
       }
    }
 
+   // TEST uint32_t
    for(uint32_t i = 2; i; i = (uint32_t) (i << 1)) {
       uint32_t i2 = 0x55555555 & (i | (i-1)) ;
       i2 = (uint32_t)(i | i2) ;
-      TEST(!ispowerof2(i2)) ;
-      i2 = makepowerof2(i2) ;
-      // makepowerof2(0x8xxxxxxx) unchanged
+      TEST(!ispowerof2_int(i2)) ;
+      i2 = makepowerof2_int(i2) ;
+      // makepowerof2_int(0x8xxxxxxx) unchanged
       if ((int)i < 0) {
          TEST(i2 == (unsigned)(i|0x55555555)) ;
       } else {
@@ -77,11 +83,12 @@ int unittest_math_int_power2()
       }
    }
 
+   // TEST uint32_t
    for(uint32_t i = 2; i; i<<=1) {
       uint32_t i2 = i + 1 ;
-      TEST(!ispowerof2(i2)) ;
-      i2 = makepowerof2(i2) ;
-      // makepowerof2(0x8xxxxxxx) unchanged
+      TEST(!ispowerof2_int(i2)) ;
+      i2 = makepowerof2_int(i2) ;
+      // makepowerof2_int(0x8xxxxxxx) unchanged
       if ((int32_t)i < 0) {
          TEST(i2 == (i+1)) ;
       } else {
@@ -89,16 +96,34 @@ int unittest_math_int_power2()
       }
    }
 
+   // TEST uint64_t
    for(uint64_t i = 4; i; i<<=1) {
       uint64_t i2 = i - 1 ;
-      TEST(!ispowerof2(i2)) ;
-      i2 = makepowerof2(i2) ;
+      TEST(!ispowerof2_int(i2)) ;
+      i2 = makepowerof2_int(i2) ;
       TEST(i2 == i) ;
    }
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   return EINVAL ;
+}
+
+int unittest_math_int_power2()
+{
+   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+
+   TEST(0 == init_resourceusage(&usage)) ;
+
+   if (test_powerof2())    goto ABBRUCH ;
+
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   return 0 ;
+ABBRUCH:
+   (void) free_resourceusage(&usage) ;
+   return EINVAL ;
 }
 
 #endif
