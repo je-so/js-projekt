@@ -164,14 +164,14 @@ static int test_query(void)
       TEST(0 == time_timeclock(clock_type, &timeval2)) ;
       uint64_t nanosec = (uint64_t) (timeval2.seconds - timeval.seconds) * 1000000000
                        + (uint64_t) timeval2.nanosec - (uint64_t) timeval.nanosec ;
-      TEST( llabs(10000000 /*10msec*/- (int64_t)nanosec) < 200000/*0.2msec*/) ;
+      TEST( llabs(10000000 /*10msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
       pthread_yield() ;
       TEST(0 == time_timeclock(clock_type, &timeval)) ;
       sleepms_thread(1) ;
       TEST(0 == time_timeclock(clock_type, &timeval2)) ;
       nanosec = (uint64_t) (timeval2.seconds - timeval.seconds) * 1000000000
               + (uint64_t) timeval2.nanosec - (uint64_t) timeval.nanosec ;
-      TEST( llabs(1000000 /*1msec*/- (int64_t)nanosec) < 200000/*0.2msec*/) ;
+      TEST( llabs(1000000 /*1msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
    }
 
    // TEST: sleep_timeclock (works only if scheduling is in bounds !)
@@ -185,7 +185,7 @@ static int test_query(void)
       TEST(0 == time_timeclock(clock_type, &timeval2)) ;
       uint64_t nanosec = (uint64_t) (timeval2.seconds - timeval.seconds) * 1000000000
                        + (uint64_t) timeval2.nanosec - (uint64_t) timeval.nanosec ;
-      TEST( llabs(10000000 /*10msec*/- (int64_t)nanosec) < 200000/*0.2msec*/) ;
+      TEST( llabs(10000000 /*10msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
       pthread_yield() ;
       TEST(0 == time_timeclock(clock_type, &timeval)) ;
       timeval2.seconds = 0 ; timeval2.nanosec = 1000000 /*1msec*/;
@@ -193,7 +193,7 @@ static int test_query(void)
       TEST(0 == time_timeclock(clock_type, &timeval2)) ;
       nanosec = (uint64_t) (timeval2.seconds - timeval.seconds) * 1000000000
               + (uint64_t) timeval2.nanosec - (uint64_t) timeval.nanosec ;
-      TEST( llabs(1000000 /*1msec*/- (int64_t)nanosec) < 200000/*0.2msec*/) ;
+      TEST( llabs(1000000 /*1msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
    }
 
    // TEST: sleepms_timeclock (works only if scheduling is in bounds !)
@@ -206,13 +206,13 @@ static int test_query(void)
       TEST(0 == time_timeclock(clock_type, &timeval2)) ;
       uint64_t nanosec = (uint64_t) (timeval2.seconds - timeval.seconds) * 1000000000
                        + (uint64_t) timeval2.nanosec - (uint64_t) timeval.nanosec ;
-      TEST( llabs(10000000 /*10msec*/- (int64_t)nanosec) < 200000/*0.2msec*/) ;
+      TEST( llabs(10000000 /*10msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
       TEST(0 == time_timeclock(clock_type, &timeval)) ;
       TEST(0 == sleepms_timeclock(clock_type, 1)) ;
       TEST(0 == time_timeclock(clock_type, &timeval2)) ;
       nanosec = (uint64_t) (timeval2.seconds - timeval.seconds) * 1000000000
               + (uint64_t) timeval2.nanosec - (uint64_t) timeval.nanosec ;
-      TEST( llabs(1000000 /*1msec*/- (int64_t)nanosec) < 200000/*0.2msec*/) ;
+      TEST( llabs(1000000 /*1msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
    }
 
    return 0 ;

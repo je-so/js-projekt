@@ -51,6 +51,18 @@ static int test_initfree(void)
       TEST( 5 + i == size_memblock(&mblock)) ;
    }
 
+   // TEST isfree_memblock
+   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   TEST(1 == isfree_memblock(&mblock)) ;
+   mblock.size = 100 ;
+   TEST(1 == isfree_memblock(&mblock)) ;
+   mblock.addr = (void*)1 ;
+   TEST(0 == isfree_memblock(&mblock)) ;
+   mblock.addr = (void*) (intptr_t)-1 ;
+   TEST(0 == isfree_memblock(&mblock)) ;
+   mblock.addr = 0 ;
+   TEST(1 == isfree_memblock(&mblock)) ;
+
    return 0 ;
 ABBRUCH:
    return EINVAL ;

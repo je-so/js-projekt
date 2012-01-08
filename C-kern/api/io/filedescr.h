@@ -124,7 +124,7 @@ extern int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buf
  * (due to no more system buffer space).
  * Returns EPIPE if the receiver has closed its connection or closes it during
  * a blocking write. */
-extern int write_filedescr(filedescr_t fd, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written) ;
+extern int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer/*[buffer_size]*/, size_t * bytes_written) ;
 
 
 // section: inline implementation
@@ -132,7 +132,7 @@ extern int write_filedescr(filedescr_t fd, size_t buffer_size, const uint8_t buf
 /* define: isinit_filedescr
  * Implements <filedescr_t.isinit_filedescr>.
  * This function assumes that file is primitive type. */
-#define isinit_filedescr(fd)           (filedescr_INIT_FREEABLE != (fd))
+#define isinit_filedescr(fd)           (0 <= (fd))
 
 
 #endif

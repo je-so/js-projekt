@@ -30,6 +30,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/os/thread.h"
+#include "C-kern/api/time/clock.h"
 #endif
 
 
@@ -255,7 +256,7 @@ static int test_initfree(void)
 
    // TEST free a started timer
    TEST(0 == nropen_filedescr(&openfds[0])) ;
-   TEST(0 == init_iotimer(&iotimer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&iotimer, timeclock_REAL)) ;
    TEST(0 < iotimer) ;
    TEST(0 == nropen_filedescr(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]+1) ;
@@ -285,13 +286,49 @@ static int test_initfree(void)
    TEST(0 == nropen_filedescr(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
 
-   // TEST start, stop timer
-   TEST(0 == init_iotimer(&iotimer, timeclock_REAL)) ;
+   // TEST start
+   TEST(0 == init_iotimer(&iotimer, timeclock_MONOTONIC)) ;
    TEST(0 < iotimer) ;
+   TEST(0 == start_iotimer(iotimer, &(timevalue_t){ .nanosec = 100000 })) ;
+   TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(0 <  timeval.nanosec) ;
+   TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
+   TEST(0 == expcount) ;
+   sleepms_thread(1) ;
+   TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(0 == timeval.nanosec) ;
+   TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
+   TEST(1 == expcount) ;
+
+   // TEST startinterval
+   TEST(0 == startinterval_iotimer(iotimer, &(timevalue_t){ .nanosec = 100000 })) ;
+   TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(0 <  timeval.nanosec) ;
+   TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
+   TEST(0 == expcount) ;
+   sleepms_thread(1) ;
+   TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(0 <  timeval.nanosec) ;
+   TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
+   TEST(9 <= expcount) ;
+   sleepms_thread(1) ;
+   TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(0 <  timeval.nanosec) ;
+   TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
+   TEST(9 <= expcount) ;
+
+   // TEST start, stop timer
    TEST(0 == start_iotimer(iotimer, &(timevalue_t){ .seconds = 10 })) ;
    TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
    TEST(9 == timeval.seconds) ;
    TEST(0 <  timeval.nanosec) ;
+   TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
+   TEST(0 == expcount) ;
    TEST(0 == stop_iotimer(iotimer)) ;
    TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
    TEST(0 == timeval.seconds) ;
@@ -349,7 +386,7 @@ static int test_initfree(void)
    TEST(-1 == iotimer) ;
 
    // TEST wait on interval timer
-   TEST(0 == init_iotimer(&iotimer, timeclock_REAL)) ;
+   TEST(0 == init_iotimer(&iotimer, timeclock_MONOTONIC)) ;
    TEST(0 < iotimer) ;
    TEST(0 == startinterval_iotimer(iotimer, &(timevalue_t){ .nanosec = 100000 })) ;
    sleepms_thread(1) ;
@@ -357,7 +394,7 @@ static int test_initfree(void)
    TEST(9 < expcount) ;
    TEST(0 == wait_iotimer(iotimer)) ;
    TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
-   TEST(1 == expcount) ;
+   TEST(1 <= expcount && expcount < 3) ;
    TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
    TEST(0 == timeval.seconds) ;
    TEST(10000 < timeval.nanosec) ;
@@ -378,13 +415,122 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static int test_timing(void)
+{
+   iotimer_t   iotimer[3] = { iotimer_INIT_FREEABLE, iotimer_INIT_FREEABLE, iotimer_INIT_FREEABLE } ;
+   timeclock_e clocks[2]  = { timeclock_REAL, timeclock_MONOTONIC } ;
+   unsigned    iclock     = 0 ;
+   timeclock_e clock_type ;
+   timevalue_t timeval ;
+   timevalue_t starttime ;
+   timevalue_t endtime ;
+   uint64_t    expcount ;
+
+RESTART_TEST:
+
+   // prepare
+   clock_type = clocks[iclock] ;
+
+   for(unsigned i = 0; i < nrelementsof(iotimer); ++i) {
+      TEST(0 == init_iotimer(iotimer + i, clock_type)) ;
+   }
+
+   // TEST 3 one shot timers running at different speed
+   sleepms_thread(1) ;
+   TEST(0 == time_timeclock(clock_type, &starttime)) ;
+   TEST(0 == start_iotimer(iotimer[0], &(timevalue_t){ .nanosec = 1000000 })) ;
+   TEST(0 == start_iotimer(iotimer[1], &(timevalue_t){ .nanosec = 5000000 })) ;
+   TEST(0 == start_iotimer(iotimer[2], &(timevalue_t){ .nanosec = 9000000 })) ;
+   for(unsigned i = 0; i < nrelementsof(iotimer); ++i) {
+      TEST(0 == remainingtime_iotimer(iotimer[i], &timeval)) ;
+      TEST(0 == timeval.seconds) ;
+      TEST( 900000 < timeval.nanosec) ;
+      TEST(9000000 > timeval.nanosec) ;
+   }
+   TEST(0 == wait_iotimer(iotimer[0])) ;
+   TEST(0 == expirationcount_iotimer(iotimer[0], &expcount)) ;
+   TEST(1 == expcount) ;
+   TEST(0 == remainingtime_iotimer(iotimer[1], &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(3900000 < timeval.nanosec) ;
+   TEST(4000000 > timeval.nanosec) ;
+   TEST(0 == remainingtime_iotimer(iotimer[2], &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(7900000 < timeval.nanosec) ;
+   TEST(8000000 > timeval.nanosec) ;
+   for(unsigned i = 0; i < nrelementsof(iotimer); ++i) {
+      TEST(0 == expirationcount_iotimer(iotimer[i], &expcount)) ;
+      TEST(0 == expcount) ;
+   }
+   TEST(0 == wait_iotimer(iotimer[1])) ;
+   TEST(0 == expirationcount_iotimer(iotimer[1], &expcount)) ;
+   TEST(1 == expcount) ;
+   TEST(0 == remainingtime_iotimer(iotimer[2], &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(3900000 < timeval.nanosec) ;
+   TEST(4000000 > timeval.nanosec) ;
+   for(unsigned i = 0; i < nrelementsof(iotimer); ++i) {
+      TEST(0 == expirationcount_iotimer(iotimer[i], &expcount)) ;
+      TEST(0 == expcount) ;
+   }
+   TEST(0 == wait_iotimer(iotimer[2])) ;
+   TEST(0 == expirationcount_iotimer(iotimer[2], &expcount)) ;
+   TEST(1 == expcount) ;
+   TEST(0 == time_timeclock(clock_type, &endtime)) ;
+   uint64_t elapsed_nanosec = 1000000000 * (uint64_t) (endtime.seconds - starttime.seconds)
+                            + (uint64_t) endtime.nanosec - (uint64_t) starttime.nanosec ;
+   TEST(9000000 < elapsed_nanosec) ;
+   TEST(9100000 > elapsed_nanosec) ;
+
+   // TEST 3 interval timers running at different speed
+   sleepms_thread(1) ;
+   TEST(0 == time_timeclock(clock_type, &starttime)) ;
+   TEST(0 == startinterval_iotimer(iotimer[0], &(timevalue_t){ .nanosec = 1000000 })) ;
+   TEST(0 == startinterval_iotimer(iotimer[1], &(timevalue_t){ .nanosec = 2000000 })) ;
+   TEST(0 == startinterval_iotimer(iotimer[2], &(timevalue_t){ .nanosec = 3000000 })) ;
+   for(int i = 1; i <= 10; ++i) {
+      TEST(0 == wait_iotimer(iotimer[0])) ;
+      TEST(0 == expirationcount_iotimer(iotimer[0], &expcount)) ;
+      TEST(1 == expcount) ;
+      if (0 == (i % 2)) {
+         TEST(0 == expirationcount_iotimer(iotimer[1], &expcount)) ;
+         TEST(1 == expcount) ;
+      }
+      if (0 == (i % 3)) {
+         TEST(0 == expirationcount_iotimer(iotimer[2], &expcount)) ;
+         TEST(1 == expcount) ;
+      }
+   }
+   TEST(0 == time_timeclock(clock_type, &endtime)) ;
+   elapsed_nanosec = 1000000000 * (uint64_t) (endtime.seconds - starttime.seconds)
+                   + (uint64_t) endtime.nanosec - (uint64_t) starttime.nanosec ;
+   TEST(10000000 < elapsed_nanosec) ;
+   TEST(10100000 > elapsed_nanosec) ;
+
+   // unprepare
+   for(unsigned i = 0; i < nrelementsof(iotimer); ++i) {
+      TEST(0 == free_iotimer(iotimer + i)) ;
+   }
+
+   ++ iclock ;
+   if (iclock < nrelementsof(clocks)) goto RESTART_TEST ;
+
+   return 0 ;
+ABBRUCH:
+   for(unsigned i = 0; i < nrelementsof(iotimer); ++i) {
+      (void) free_iotimer(iotimer + i) ;
+   }
+   return EINVAL ;
+}
+
 int unittest_io_iotimer()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())   goto ABBRUCH ;
+   if (test_initfree())    goto ABBRUCH ;
+   if (test_timing())      goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

@@ -69,6 +69,10 @@ struct memblock_t {
 
 // group: query
 
+/* function: isfree_memblock
+ * Returns true if *mblock* is set to <memblock_INIT_FREEABLE>. */
+extern bool isfree_memblock(const memblock_t * mblock) ;
+
 /* function: addr_memblock
  * Returns start (lowest) address of memory block. */
 extern uint8_t * addr_memblock(const memblock_t * mblock) ;
@@ -80,6 +84,8 @@ extern size_t size_memblock(const memblock_t * mblock) ;
 
 
 // section: inline implementation
+
+#define isfree_memblock(mblock)        (0 == (mblock)->addr)
 
 /* define: addr_memblock
  * Implements <memblock_t.addr_memblock>. */

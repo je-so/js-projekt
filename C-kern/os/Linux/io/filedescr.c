@@ -202,7 +202,7 @@ ABBRUCH:
    return err ;
 }
 
-int write_filedescr(filedescr_t fd, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written)
+int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer, size_t * bytes_written)
 {
    int err ;
    ssize_t bytes ;
@@ -210,7 +210,7 @@ int write_filedescr(filedescr_t fd, size_t buffer_size, const uint8_t buffer[buf
 
    do {
       do {
-         bytes = write( fd, buffer + total_written, buffer_size - total_written) ;
+         bytes = write( fd, (const uint8_t*)buffer + total_written, buffer_size - total_written) ;
       } while( -1 == bytes && EINTR == errno ) ;
       if (-1 == bytes) {
          if (total_written) break ;
