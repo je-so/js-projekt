@@ -1,0 +1,4 @@
+C-kern/ds/inmem/arraysf.c:683: insert_arraysf(): error: Function aborted (err=17)
+C-kern/ds/inmem/arraysf.c:665: remove_arraysf(): error: Function aborted (err=3)
+C-kern/ds/inmem/arraysf.c:362: delete_arraysf(): error: All resources can not be freed (err=12345)
+C-kern/ds/inmem/arraysf.c:447: iterate_arraysf(): error: Function aborted (err=333)
