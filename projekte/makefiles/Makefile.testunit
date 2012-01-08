@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Jan.08  18:37:28
+GenerationDate  := 2012.Jan.08  19:33:18
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -84,6 +84,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!os!Linux!signal.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o \
+ $(ObjectDir_Debug)/C-kern!os!Linux!io!iopoll.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!os!Linux!io!ipaddr.c.o \
@@ -138,6 +139,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!os!Linux!signal.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o \
+ $(ObjectDir_Release)/C-kern!os!Linux!io!iopoll.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!os!Linux!io!ipaddr.c.o \
@@ -215,6 +217,9 @@ $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o: C-kern/os/Linux/mutex.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!os!Linux!io!iopoll.c.o: C-kern/os/Linux/io/iopoll.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!os!Linux!io!file.c.o: C-kern/os/Linux/io/file.c
@@ -371,6 +376,9 @@ $(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o: C-kern/os/Linux/mutex.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!os!Linux!io!iopoll.c.o: C-kern/os/Linux/io/iopoll.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!os!Linux!io!file.c.o: C-kern/os/Linux/io/file.c

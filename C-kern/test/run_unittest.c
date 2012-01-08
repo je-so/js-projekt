@@ -284,6 +284,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //{ os unittest
    // io
    RUN(unittest_io_filedescr) ;
+   RUN(unittest_io_iopoll) ;
    RUN(unittest_io_iotimer) ;
    RUN(unittest_io_url) ;
    // io/filesystem

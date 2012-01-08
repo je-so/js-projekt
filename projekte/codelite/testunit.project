@@ -3,7 +3,6 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="generic">
-    <File Name="../../C-kern/generic/splaytree.c"/>
     <File Name="../../C-kern/generic/depthtree.c"/>
     <File Name="../../C-kern/generic/depthtree.h"/>
     <File Name="../../C-kern/generic/hashtable.c"/>
@@ -14,8 +13,6 @@
     <File Name="../../C-kern/generic/rbtree.c"/>
     <File Name="../../C-kern/generic/rbtree.h"/>
     <VirtualDirectory Name="trie">
-      <File Name="../../C-kern/generic/trie/trie.c"/>
-      <File Name="../../C-kern/generic/trie/trie.h"/>
       <File Name="../../C-kern/generic/trie/patricia.c"/>
       <File Name="../../C-kern/generic/trie/patricia.h"/>
     </VirtualDirectory>
@@ -63,9 +60,6 @@
     <File Name="../../C-kern/konfig.h"/>
     <VirtualDirectory Name="adapter">
       <File Name="../../C-kern/api/adapter/stream.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="generic">
-      <File Name="../../C-kern/api/generic/splaytree.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="string">
       <File Name="../../C-kern/api/string/string.h"/>
@@ -155,9 +149,12 @@
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
         <File Name="../../C-kern/api/ds/inmem/slist.h"/>
+        <File Name="../../C-kern/api/ds/inmem/arraysf.h"/>
+        <File Name="../../C-kern/api/ds/inmem/binarystack.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/freecallback.h"/>
+      <File Name="../../C-kern/api/ds/arraysf_node.h"/>
       <File Name="../../C-kern/api/ds/slist_node.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="errhandling">
@@ -191,6 +188,9 @@
         <File Name="../../C-kern/api/io/protocol/protocontrol.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/iotimer.h"/>
+      <File Name="../../C-kern/api/io/ioevent.h"/>
+      <File Name="../../C-kern/api/io/iopoll.h"/>
+      <File Name="../../C-kern/api/io/iocallback.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="userinterface">
       <VirtualDirectory Name="X11">
@@ -291,6 +291,7 @@
         <File Name="../../C-kern/os/Linux/io/ipaddr.c"/>
         <File Name="../../C-kern/os/Linux/io/ipsocket.c"/>
         <File Name="../../C-kern/os/Linux/io/iotimer.c"/>
+        <File Name="../../C-kern/os/Linux/io/iopoll.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/os/Linux/clock.c"/>
     </VirtualDirectory>
@@ -344,6 +345,8 @@
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">
       <File Name="../../C-kern/ds/inmem/slist.c"/>
+      <File Name="../../C-kern/ds/inmem/arraysf.c"/>
+      <File Name="../../C-kern/ds/inmem/binarystack.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
   </VirtualDirectory>
