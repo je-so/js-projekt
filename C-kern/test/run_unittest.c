@@ -237,6 +237,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 //}
 
 //{ data structure unittest
+   RUN(unittest_ds_inmem_binarystack) ;
    RUN(unittest_ds_inmem_slist) ;
 //}
 
