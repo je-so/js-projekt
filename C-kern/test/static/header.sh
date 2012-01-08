@@ -40,7 +40,8 @@ function check_line()
       echo "$0: check_line(): wrong number of paramters"
       exit 1 ;
    fi
-   if [ "$2" != "$3" ] && [ "${2/(C) 2010/(C) 2011}" != "$3" ]; then
+   if [ "$2" != "$3" ] && [ "${2/(C) 2010/(C) 2011}" != "$3" ] \
+      && [ "${2/(C) 2010/(C) 2012}" != "$3" ]; then
       set_error "$1" "$2" "$3"
       return 1
    fi
