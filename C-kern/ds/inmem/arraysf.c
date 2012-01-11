@@ -199,6 +199,7 @@ typedef struct arraysf_findresult_t    arraysf_findresult_t ;
 struct arraysf_findresult_t {
    unsigned             rootindex ;
    unsigned             childindex ;
+   unsigned             pchildindex ;
    arraysf_mwaybranch_t * parent ;
    arraysf_mwaybranch_t * pparent ;
    arraysf_node_t       * found_node ;
@@ -220,10 +221,11 @@ static int find_arraysf(const arraysf_t * array, size_t pos, /*err;out*/arraysf_
    default:                   return EINVAL ;
    }
 
-   arraysf_node_t       * node     = array->root[rootindex] ;
-   arraysf_mwaybranch_t * pparent  = 0 ;
-   arraysf_mwaybranch_t * parent   = 0 ;
-   unsigned             childindex = 0 ;
+   arraysf_node_t       * node      = array->root[rootindex] ;
+   arraysf_mwaybranch_t * pparent   = 0 ;
+   arraysf_mwaybranch_t * parent    = 0 ;
+   unsigned             childindex  = 0 ;
+   unsigned             pchildindex = 0 ;
 
    err = ESRCH ;
 
@@ -232,7 +234,8 @@ static int find_arraysf(const arraysf_t * array, size_t pos, /*err;out*/arraysf_
       if (isbranchtype_arraysf(node)) {
          pparent = parent ;
          parent  = asbranch_arraysf(node) ;
-         childindex = childindex_arraysfmwaybranch(parent, pos) ;
+         pchildindex = childindex   ;
+         childindex  = childindex_arraysfmwaybranch(parent, pos) ;
          node  = parent->child[childindex] ;
       } else {
          if (pos == node->pos) {
@@ -242,11 +245,12 @@ static int find_arraysf(const arraysf_t * array, size_t pos, /*err;out*/arraysf_
       }
    }
 
-   result->rootindex  = rootindex ;
-   result->childindex = childindex ;
-   result->parent     =  parent ;
-   result->pparent    =  pparent ;
-   result->found_node = node ;
+   result->rootindex   = rootindex ;
+   result->childindex  = childindex ;
+   result->pchildindex = pchildindex ;
+   result->parent      = parent ;
+   result->pparent     = pparent ;
+   result->found_node  = node ;
 
    return err ;
 }
@@ -626,7 +630,7 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_
                && found.parent->child[i]) {
                arraysf_node_t * other_child = found.parent->child[i] ;
                if (found.pparent) {
-                  setchild_arraysfmwaybranch(found.pparent, pos, other_child) ;
+                  setchild_arraysfmwaybranch(found.pparent, found.pchildindex, other_child) ;
                } else {
                   array->root[found.rootindex] = other_child ;
                }
@@ -1036,10 +1040,11 @@ static int test_initfree(void)
    TEST(0 == delete_arraysf(&array)) ;
 
    // TEST delete_arraysf frees memory
-   impit.copynode = 0 ;
-   impit.freenode = 0 ;
    for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
       TEST(0 == new_arraysf(&array, type, 0)) ;
+      TEST(0 != impolicy_arraysf(array)) ;
+      TEST(0 == impolicy_arraysf(array)->copynode) ;
+      TEST(0 == impolicy_arraysf(array)->freenode) ;
       for(size_t pos = nrnodes; (pos --); ) {
          nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
          TEST(0 == tryinsert_arraysf(array, &nodea[pos].node, 0))
@@ -1050,6 +1055,7 @@ static int test_initfree(void)
    }
 
    // TEST delete_arraysf frees also nodes
+   impit.copynode = 0;
    impit.freenode = &test_freenode ;
    for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
       memset(nodea, 0, sizeof(testnode_t) * nrnodes) ;

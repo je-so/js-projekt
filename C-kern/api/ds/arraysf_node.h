@@ -69,24 +69,16 @@ struct arraysf_mwaybranch_t {
 
 // group: lifetime
 
-/* define: arraysf_mwaybranch_INIT_FREEABLE
- * Static initializer.  */
-#define arraysf_mwaybranch_INIT_FREEABLE    { {0}, 0, 0 }
-
 extern void init_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned shift, size_t pos1, arraysf_node_t * childnode1, size_t pos2, arraysf_node_t * childnode2) ;
 
 extern unsigned childindex_arraysfmwaybranch(arraysf_mwaybranch_t * branch, size_t pos) ;
 
-extern arraysf_node_t * child_arraysfmwaybranch(arraysf_mwaybranch_t * branch, size_t pos) ;
-
-extern void setchild_arraysfmwaybranch(arraysf_mwaybranch_t * branch, size_t pos, arraysf_node_t * childnode) ;
+extern void setchild_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned childindex, arraysf_node_t * childnode) ;
 
 
 // section: inline implementation
 
 #define childindex_arraysfmwaybranch(branch, pos)     (0x03u & ((pos) >> (branch)->shift))
-
-#define child_arraysfmwaybranch(branch, pos)          ((branch)->child[childindex_arraysfmwaybranch(branch, pos)])
 
 #define init_arraysfmwaybranch(branch, _shift, pos1, childnode1, pos2, childnode2)  \
       do {  memset((branch)->child, 0, sizeof((branch)->child)) ;                   \
@@ -96,9 +88,9 @@ extern void setchild_arraysfmwaybranch(arraysf_mwaybranch_t * branch, size_t pos
             (branch)->used  = 2 ;                                                   \
          } while(0)
 
-#define setchild_arraysfmwaybranch(branch, pos, childnode)                             \
-      do {                                                                             \
-            (branch)->child[childindex_arraysfmwaybranch(branch, pos)] = (childnode) ; \
+#define setchild_arraysfmwaybranch(branch, childindex, childnode)    \
+      do {                                                           \
+            (branch)->child[childindex] = (childnode) ;              \
          } while(0)
 
 

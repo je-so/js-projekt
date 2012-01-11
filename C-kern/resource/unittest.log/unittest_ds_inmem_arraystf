@@ -1,0 +1,13 @@
+C-kern/ds/inmem/arraystf.c:76: initdiff_arraystfkeyval(): error: Function argument violates condition (size1 != size2)
+C-kern/ds/inmem/arraystf.c:86: initdiff_arraystfkeyval(): error: Function aborted (err=22)
+C-kern/ds/inmem/arraystf.c:280: find_arraystf(): error: Function argument violates condition (keynode->size < ~(size_t)0)
+C-kern/ds/inmem/arraystf.c:341: find_arraystf(): error: Function aborted (err=22)
+C-kern/ds/inmem/arraystf.c:352: new_arraystf(): error: Function argument violates condition (*array == 0)
+C-kern/ds/inmem/arraystf.c:376: new_arraystf(): error: Function aborted (err=22)
+C-kern/ds/inmem/arraystf.c:354: new_arraystf(): error: Function argument violates condition (type < nrelementsof(s_arraystf_nrelemroot))
+type=-1
+C-kern/ds/inmem/arraystf.c:376: new_arraystf(): error: Function aborted (err=22)
+C-kern/ds/inmem/arraystf.c:806: insert_arraystf(): error: Function aborted (err=17)
+C-kern/ds/inmem/arraystf.c:788: remove_arraystf(): error: Function aborted (err=3)
+C-kern/ds/inmem/arraystf.c:457: delete_arraystf(): error: All resources can not be freed (err=12345)
+C-kern/ds/inmem/arraystf.c:543: iterate_arraystf(): error: Function aborted (err=333)
