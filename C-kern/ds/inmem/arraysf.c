@@ -186,6 +186,8 @@ static uint16_t s_arraysf_nrelemroot[3] = {
 
 #define nrelemroot_arraysf(array)      (s_arraysf_nrelemroot[(array)->type])
 
+#define objectsize_arraysf(type)       (sizeof(arraysf_t) + sizeof(arraysf_node_t*) * s_arraysf_nrelemroot[type])
+
 #define isbranchtype_arraysf(node)     (0 != ((intptr_t)(node) & 0x01))
 
 #define asbranch_arraysf(node)         ((arraysf_mwaybranch_t*) (0x01 ^ (intptr_t)(node)))
@@ -256,6 +258,8 @@ int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type, arraysf_imp_it * impi
    int err ;
    arraysf_t   * new_obj ;
 
+   PRECONDITION_INPUT(*array == 0, ABBRUCH, ) ;
+
    PRECONDITION_INPUT(type < nrelementsof(s_arraysf_nrelemroot), ABBRUCH, LOG_INT(type)) ;
 
    if (! impit) {
@@ -265,7 +269,7 @@ int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type, arraysf_imp_it * impi
    PRECONDITION_INPUT(     impit->malloc
                         && impit->free, ABBRUCH, ) ;
 
-   const size_t objsize = sizeof(arraysf_t) + sizeof(arraysf_node_t*) * s_arraysf_nrelemroot[type] ;
+   const size_t objsize = objectsize_arraysf(type) ;
 
    err = impit->malloc(impit, objsize, (void**)&new_obj) ;
    if (err) goto ABBRUCH ;
@@ -350,7 +354,7 @@ int delete_arraysf(arraysf_t ** array)
 
       }
 
-      const size_t objsize = sizeof(arraysf_t) + sizeof(arraysf_node_t*) * s_arraysf_nrelemroot[del_obj->type] ;
+      const size_t objsize = objectsize_arraysf(del_obj->type) ;
 
       del_obj->impit->free(del_obj->impit, objsize, del_obj) ;
    }
@@ -450,11 +454,12 @@ ABBRUCH:
 
 // group: change
 
-int tryinsert_arraysf(arraysf_t * array, size_t pos, arraysf_node_t * node, /*err*/struct arraysf_node_t ** inserted_or_existing_node)
+int tryinsert_arraysf(arraysf_t * array, arraysf_node_t * node, /*err*/arraysf_node_t ** inserted_or_existing_node)
 {
    int err ;
    arraysf_findresult_t found ;
    arraysf_node_t       * copied_node = 0 ;
+   size_t               pos           = node->pos ;
 
    err = find_arraysf(array, pos, &found) ;
    if (ESRCH != err) {
@@ -572,7 +577,6 @@ int tryinsert_arraysf(arraysf_t * array, size_t pos, arraysf_node_t * node, /*er
 DONE:
 
    ++ array->nr_elements ;
-   node->pos   = pos ;
 
    if (inserted_or_existing_node) {
       *inserted_or_existing_node = node ;
@@ -588,7 +592,7 @@ ABBRUCH:
    return err ;
 }
 
-int tryremove_arraysf(arraysf_t * array, size_t pos)
+int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/)
 {
    int err ;
    int err2 ;
@@ -643,6 +647,11 @@ int tryremove_arraysf(arraysf_t * array, size_t pos)
    if (array->impit->freenode) {
       err2 = array->impit->freenode( array->impit, found.found_node) ;
       if (err2) err = err2 ;
+      found.found_node = 0 ;
+   }
+
+   if (removed_node) {
+      *removed_node = found.found_node ;
    }
 
    if (err) goto ABBRUCH ;
@@ -653,11 +662,11 @@ ABBRUCH:
    return err ;
 }
 
-int remove_arraysf(arraysf_t * array, size_t pos)
+int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/)
 {
    int err ;
 
-   err = tryremove_arraysf(array, pos) ;
+   err = tryremove_arraysf(array, pos, removed_node) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
@@ -666,12 +675,12 @@ ABBRUCH:
    return err ;
 }
 
-int insert_arraysf(arraysf_t * array, size_t pos, struct arraysf_node_t * node, /*out*/struct arraysf_node_t ** inserted_node/*0 => not returned*/)
+int insert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out*/struct arraysf_node_t ** inserted_node/*0 => not returned*/)
 {
    int err ;
    arraysf_node_t * inserted_or_existing_node ;
 
-   err = tryinsert_arraysf(array, pos, node, &inserted_or_existing_node) ;
+   err = tryinsert_arraysf(array, node, &inserted_or_existing_node) ;
    if (err) goto ABBRUCH ;
 
    if (inserted_node) {
@@ -767,21 +776,23 @@ static int test_initfree(void)
    TEST(0 == new_arraysf(&array, arraysf_MSBPOSROOT, 0)) ;
    for(size_t add = 1, pos = 0, ri = 0; add; pos -= add, add <<= 2, pos += add) {
       for(size_t count = pos?3:4; count; ++ri, pos += add, --count) {
-         testnode_t     node            = { .node.pos = 0 } ;
+         testnode_t     node            = { .node.pos = pos } ;
          arraysf_node_t * inserted_node = 0 ;
-         TEST(0 == tryinsert_arraysf(array, pos, &node.node, &inserted_node)) ;
+         TEST(0 == tryinsert_arraysf(array, &node.node, &inserted_node)) ;
          TEST(inserted_node == &node.node) ;
          TEST(1 == array->nr_elements) ;
-         TEST(pos == node.node.pos) ;
          TEST(ri < nrelemroot_arraysf(array)) ;
          TEST(&node.node == array->root[ri]) ;
          for(unsigned i = 0; i < nrelemroot_arraysf(array); ++i) {
             if (i == ri) continue ;
             TEST(0 == array->root[i]) ;
          }
-         TEST(0 == tryremove_arraysf(array, pos)) ;
+         TEST(inserted_node == at_arraysf(array, pos)) ;
+         arraysf_node_t * removed_node = 0 ;
+         TEST(0 == tryremove_arraysf(array, pos, &removed_node)) ;
          TEST(0 == array->nr_elements) ;
          TEST(0 == array->root[ri]) ;
+         TEST(inserted_node == removed_node) ;
       }
    }
    TEST(0 == delete_arraysf(&array)) ;
@@ -789,30 +800,31 @@ static int test_initfree(void)
    // TEST arraysf_8BITROOT0: root distribution
    TEST(0 == new_arraysf(&array, arraysf_8BITROOT0, 0)) ;
    for(size_t pos = 0, ri = 0; pos < 256; pos += 1, ++ri) {
-      testnode_t     node            = { .node.pos = 0 } ;
+      testnode_t     node            = { .node.pos = pos } ;
       arraysf_node_t * inserted_node = 0 ;
-      TEST(0 == tryinsert_arraysf(array, pos, &node.node, &inserted_node)) ;
+      TEST(0 == tryinsert_arraysf(array, &node.node, &inserted_node)) ;
       TEST(inserted_node == &node.node) ;
       TEST(1 == array->nr_elements) ;
-      TEST(pos == node.node.pos) ;
       TEST(ri < nrelemroot_arraysf(array)) ;
       TEST(&node.node == array->root[ri]) ;
       for(unsigned i = 0; i < nrelemroot_arraysf(array); ++i) {
          if (i == ri) continue ;
          TEST(0 == array->root[i]) ;
       }
-      TEST(0 == tryremove_arraysf(array, pos)) ;
+      arraysf_node_t * removed_node = 0 ;
+      TEST(0 == tryremove_arraysf(array, pos, &removed_node)) ;
       TEST(0 == array->nr_elements) ;
       TEST(0 == array->root[ri]) ;
+      TEST(inserted_node == removed_node) ;
    }
    TEST(0 == delete_arraysf(&array)) ;
 
    // TEST arraysf_8BITROOT24: root distribution
    TEST(0 == new_arraysf(&array, arraysf_8BITROOT24, 0)) ;
    for(size_t pos = 0, ri = 0; (ri == 0) || pos; pos += ((~((~(size_t)0) >> 1)) >> 7), ++ri) {
-      testnode_t     node            = { .node.pos = 0 } ;
+      testnode_t     node            = { .node = arraysf_node_INIT(pos+ri) } ;
       arraysf_node_t * inserted_node = 0 ;
-      TEST(0 == tryinsert_arraysf(array, pos+ri, &node.node, &inserted_node)) ;
+      TEST(0 == tryinsert_arraysf(array, &node.node, &inserted_node)) ;
       TEST(inserted_node == &node.node) ;
       TEST(1 == array->nr_elements) ;
       TEST(pos+ri == node.node.pos) ;
@@ -822,22 +834,24 @@ static int test_initfree(void)
          if (i == ri) continue ;
          TEST(0 == array->root[i]) ;
       }
-      TEST(0 == tryremove_arraysf(array, pos+ri)) ;
+      arraysf_node_t * removed_node = 0 ;
+      TEST(0 == tryremove_arraysf(array, pos+ri, &removed_node)) ;
       TEST(0 == array->nr_elements) ;
       TEST(0 == array->root[ri]) ;
+      TEST(inserted_node == removed_node) ;
    }
    TEST(0 == delete_arraysf(&array)) ;
 
    // TEST insert_arraysf (1 level)
    TEST(0 == new_arraysf(&array, arraysf_MSBPOSROOT, &impit)) ;
-   TEST(0 == tryinsert_arraysf(array, 4, &nodea[4].node, 0))
+   nodea[4].node = (arraysf_node_t) arraysf_node_INIT(4) ;
+   TEST(0 == tryinsert_arraysf(array, &nodea[4].node, 0))
    TEST(&nodea[4].node == array->root[4]) ;
    for(size_t pos = 5; pos <= 7; ++pos) {
       arraysf_node_t * inserted_node = 0 ;
-      memset(&nodea[pos], 0, sizeof(nodea[pos])) ;
-      TEST(0 == tryinsert_arraysf(array, pos, &nodea[pos].node, &inserted_node))
+      nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
+      TEST(0 == tryinsert_arraysf(array, &nodea[pos].node, &inserted_node))
       TEST(inserted_node == &nodea[pos].node) ;
-      TEST(pos == nodea[pos].node.pos) ;
       TEST(0 == nodea[pos].freecount) ;
       TEST(1 == nodea[pos].copycount) ;
       TEST(pos-3 == array->nr_elements) ;
@@ -853,9 +867,11 @@ static int test_initfree(void)
 
    // TEST remove_arraysf (1 level)
    for(size_t pos = 4; pos <= 7; ++pos) {
-      TEST(0 == tryremove_arraysf(array, pos))
+      arraysf_node_t * removed_node = (void*) 1 ;
+      TEST(0 == tryremove_arraysf(array, pos, &removed_node))
       TEST(1 == nodea[pos].copycount) ;
       TEST(1 == nodea[pos].freecount) ;
+      TEST(0 == removed_node) ; // freenode called => removed_node = 0
       TEST(0 == at_arraysf(array, pos)) ;
       if (pos < 6) {
          TEST(array->root[4]) ;
@@ -871,8 +887,8 @@ static int test_initfree(void)
    // TEST insert_arraysf (2 levels)
    arraysf_mwaybranch_t * branch1 = 0 ;
    for(size_t pos = 16; pos <= 31; ++pos) {
-      memset(&nodea[pos], 0, sizeof(nodea[pos])) ;
-      TEST(0 == tryinsert_arraysf(array, pos, &nodea[pos].node, 0))
+      nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
+      TEST(0 == tryinsert_arraysf(array, &nodea[pos].node, 0))
       TEST(pos == nodea[pos].node.pos) ;
       TEST(1 == nodea[pos].copycount) ;
       TEST(0 == nodea[pos].freecount) ;
@@ -910,9 +926,11 @@ static int test_initfree(void)
 
    // TEST remove_arraysf (2 levels)
    for(size_t pos = 16; pos <= 31; ++pos) {
-      TEST(0 == tryremove_arraysf(array, pos)) ;
+      arraysf_node_t * removed_node = (void*) 1 ;
+      TEST(0 == tryremove_arraysf(array, pos, &removed_node)) ;
       TEST(1 == nodea[pos].copycount) ;
       TEST(1 == nodea[pos].freecount) ;
+      TEST(0 == removed_node) ; // freenode called => removed_node = 0
       TEST(0 == at_arraysf(array, pos))
       TEST(31-pos == array->nr_elements) ;
       if (pos <= 17) {
@@ -943,12 +961,12 @@ static int test_initfree(void)
    // TEST insert_arraysf at_arraysf remove_arraysf forward
    for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
       TEST(0 == delete_arraysf(&array)) ;
-      TEST(0 == new_arraysf(&array, type, &impit)) ;
+      TEST(0 == new_arraysf(&array, type, 0)) ;
       for(size_t pos = 0; pos < nrnodes; ++pos) {
-         memset(&nodea[pos], 0, sizeof(nodea[pos])) ;
-         TEST(0 == tryinsert_arraysf(array, pos, &nodea[pos].node, 0))
-         TEST(1 == nodea[pos].copycount) ;
-         TEST(0 == nodea[pos].freecount) ;
+         arraysf_node_t * inserted_node = (void*) 0 ;
+         nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
+         TEST(0 == tryinsert_arraysf(array, &nodea[pos].node, &inserted_node))
+         TEST(inserted_node == &nodea[pos].node) ;
          TEST(1+pos == nrelements_arraysf(array)) ;
       }
       for(size_t pos = 0; pos < nrnodes; ++pos) {
@@ -956,9 +974,11 @@ static int test_initfree(void)
       }
       for(size_t pos = 0; pos < nrnodes; ++pos) {
          TEST(0 != at_arraysf(array, pos))
-         TEST(0 == tryremove_arraysf(array, pos))
-         TEST(1 == nodea[pos].copycount) ;
-         TEST(1 == nodea[pos].freecount) ;
+         arraysf_node_t * removed_node = (void*) 0 ;
+         TEST(0 == tryremove_arraysf(array, pos, &removed_node))
+         TEST(0 == nodea[pos].copycount) ;
+         TEST(0 == nodea[pos].freecount) ;
+         TEST(removed_node == &nodea[pos].node) ;
          TEST(0 == at_arraysf(array, pos))
          TEST(nrnodes-1-pos == nrelements_arraysf(array)) ;
       }
@@ -969,8 +989,8 @@ static int test_initfree(void)
       TEST(0 == delete_arraysf(&array)) ;
       TEST(0 == new_arraysf(&array, type, &impit)) ;
       for(size_t pos = nrnodes; (pos --); ) {
-         memset(&nodea[pos], 0, sizeof(nodea[pos])) ;
-         TEST(0 == tryinsert_arraysf(array, pos, &nodea[pos].node, 0))
+         nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
+         TEST(0 == tryinsert_arraysf(array, &nodea[pos].node, 0))
          TEST(1 == nodea[pos].copycount) ;
          TEST(0 == nodea[pos].freecount) ;
          TEST(nrnodes-pos == nrelements_arraysf(array)) ;
@@ -980,9 +1000,11 @@ static int test_initfree(void)
       }
       for(size_t pos = nrnodes; (pos --); ) {
          TEST(0 != at_arraysf(array, pos))
-         TEST(0 == tryremove_arraysf(array, pos))
+         arraysf_node_t * removed_node = (void*) 1 ;
+         TEST(0 == tryremove_arraysf(array, pos, &removed_node))
          TEST(1 == nodea[pos].copycount) ;
          TEST(1 == nodea[pos].freecount) ;
+         TEST(0 == removed_node) ;
          TEST(0 == at_arraysf(array, pos))
          TEST(pos == nrelements_arraysf(array)) ;
          nodea[pos].copycount = 0 ;
@@ -997,14 +1019,15 @@ static int test_initfree(void)
       for(size_t count = 0; count < nrnodes; ++count) {
          size_t pos = ((unsigned)rand() % nrnodes) ;
          if (nodea[pos].copycount) {
-            TEST(&nodea[pos].node == at_arraysf(array, pos+1)) ;
-            TEST(0 == tryremove_arraysf(array, pos+1)) ;
+            TEST(&nodea[pos].node == at_arraysf(array, pos)) ;
+            TEST(0 == tryremove_arraysf(array, pos, 0)) ;
             TEST(1 == nodea[pos].copycount) ;
             TEST(1 == nodea[pos].freecount) ;
             nodea[pos].copycount = 0 ;
             nodea[pos].freecount = 0 ;
          } else {
-            TEST(0 == tryinsert_arraysf(array, pos+1, &nodea[pos].node, 0)) ;
+            nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
+            TEST(0 == tryinsert_arraysf(array, &nodea[pos].node, 0)) ;
             TEST(1 == nodea[pos].copycount) ;
             TEST(0 == nodea[pos].freecount) ;
          }
@@ -1018,7 +1041,8 @@ static int test_initfree(void)
    for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
       TEST(0 == new_arraysf(&array, type, 0)) ;
       for(size_t pos = nrnodes; (pos --); ) {
-         TEST(0 == tryinsert_arraysf(array, pos, &nodea[pos].node, 0))
+         nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
+         TEST(0 == tryinsert_arraysf(array, &nodea[pos].node, 0))
          TEST(nrnodes-pos == nrelements_arraysf(array)) ;
       }
       TEST(0 == delete_arraysf(&array)) ;
@@ -1035,7 +1059,8 @@ static int test_initfree(void)
          for(size_t key2 = 0; key2 <= 11; ++key2) {
             size_t pos = key + key2 ;
             TEST(nr < nrnodes) ;
-            TEST(0 == tryinsert_arraysf(array, pos, &nodea[nr].node, 0))
+            nodea[nr] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
+            TEST(0 == tryinsert_arraysf(array, &nodea[nr].node, 0))
             TEST((++nr) == nrelements_arraysf(array)) ;
          }
       }
@@ -1075,29 +1100,39 @@ static int test_error(void)
    nodea = (testnode_t *) memblock.addr ;
    TEST(0 == new_arraysf(&array, arraysf_MSBPOSROOT, &impit)) ;
 
+   // TEST EINVAL
+      // (array != 0)
+   TEST(EINVAL == new_arraysf(&array, arraysf_MSBPOSROOT, &impit)) ;
+   arraysf_t * array2 = 0 ;
+      // type invalid
+   TEST(EINVAL == new_arraysf(&array2, -1, &impit)) ;
+
    // TEST EEXIST
-   TEST(0 == tryinsert_arraysf(array, 0, &nodea[0].node, 0)) ;
+   nodea[0] = (testnode_t) { .node = arraysf_node_INIT(0) } ;
+   nodea[1] = (testnode_t) { .node = arraysf_node_INIT(0) } ;
+   TEST(0 == tryinsert_arraysf(array, &nodea[0].node, 0)) ;
    arraysf_node_t * existing_node = 0 ;
-   TEST(EEXIST == tryinsert_arraysf(array, 0, &nodea[1].node, &existing_node)) ;  // no log
+   TEST(EEXIST == tryinsert_arraysf(array, &nodea[1].node, &existing_node)) ;  // no log
    TEST(&nodea[0].node == existing_node) ;
    existing_node = 0 ;
-   TEST(EEXIST == insert_arraysf(array, 0, &nodea[1].node, &existing_node)) ;     // log
+   TEST(EEXIST == insert_arraysf(array, &nodea[1].node, &existing_node)) ;     // log
    TEST(0 == existing_node) ;
 
    // TEST ESRCH
    arraysf_findresult_t found ;
    TEST(0 == at_arraysf(array, 1)) ;               // no log
    TEST(ESRCH == find_arraysf(array, 1, &found)) ; // no log
-   TEST(ESRCH == tryremove_arraysf(array, 1)) ;    // no log
-   TEST(ESRCH == remove_arraysf(array, 1)) ;       // log
+   TEST(ESRCH == tryremove_arraysf(array, 1, 0)) ; // no log
+   TEST(ESRCH == remove_arraysf(array, 1, 0)) ;    // log
    nodea[0].freecount = 0 ;
-   TEST(0 == tryremove_arraysf(array, 0)) ;
+   TEST(0 == tryremove_arraysf(array, 0, 0)) ;
    TEST(1 == nodea[0].freecount) ;
 
    // TEST free memory error
    impit.freenode = &test_freenodeerr ;
    for(size_t pos = 0; pos < nrnodes; ++pos) {
-      TEST(0 == tryinsert_arraysf(array, pos, &nodea[pos].node, 0))
+      nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
+      TEST(0 == tryinsert_arraysf(array, &nodea[pos].node, 0))
       nodea[pos].freecount = 0 ;
       TEST(pos == nodea[pos].node.pos) ;
       TEST(1+pos == nrelements_arraysf(array)) ;
@@ -1168,7 +1203,8 @@ static int test_arraysfimp(void)
    TEST(impit == array->impit) ;
    for(size_t i = 0; i < 1000; ++i) {
       arraysf_node_t * node = 0 ;
-      TEST(0 == insert_arraysf(array, i, (arraysf_node_t*)(4+memblock), &node)) ;
+      *(arraysf_node_t*)(4+memblock) = (arraysf_node_t) arraysf_node_INIT(i) ;
+      TEST(0 == insert_arraysf(array, (arraysf_node_t*)(4+memblock), &node)) ;
       TEST(0 != node) ;
       TEST((arraysf_node_t*)(4+memblock) != node) ;
    }
@@ -1180,7 +1216,7 @@ static int test_arraysfimp(void)
       TEST(0 == memcmp(sizeof(*node) + (uint8_t*)node, memblock+4+sizeof(*node), 12)) ;
    }
    for(size_t i = 0; i < 1000; ++i) {
-      TEST(0 == remove_arraysf(array, i)) ;
+      TEST(0 == remove_arraysf(array, i, 0)) ;
    }
    TEST(0 == delete_arraysf(&array)) ;
    TEST(0 == array) ;
@@ -1233,7 +1269,8 @@ static int test_iterate(void)
    for(size_t i = 0; i < nrnodes; ++i) {
       nodea[i].copycount = 0 ;
       arraysf_node_t * inserted_node = 0 ;
-      TEST(0 == insert_arraysf(array, i, &nodea[i].node, &inserted_node)) ;
+      nodea[i] = (testnode_t)  { .node = arraysf_node_INIT(i) } ;
+      TEST(0 == insert_arraysf(array, &nodea[i].node, &inserted_node)) ;
       TEST(inserted_node == &nodea[i].node) ;
    }
    s_nextpos = 0 ;
@@ -1253,7 +1290,7 @@ static int test_iterate(void)
       TEST(1 == nodea[i].copycount) ;
    }
    for(size_t i = 0; i < nrnodes/2; ++i) {
-      TEST(0 == remove_arraysf(array, i)) ;
+      TEST(0 == remove_arraysf(array, i, 0)) ;
    }
    s_nextpos = nrnodes/2 ;
    TEST(0 == iterate_arraysf(array, &(arraysf_itercb_t){ .fct = &test_processnode })) ;

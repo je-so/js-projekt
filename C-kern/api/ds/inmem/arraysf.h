@@ -33,10 +33,6 @@ struct arraysf_node_t ;
  * Exports <arraysf_t>. */
 typedef struct arraysf_t               arraysf_t ;
 
-/* typedef: struct arraysf_freecb_t
- * Exports <arraysf_freecb_t>. */
-typedef struct arraysf_freecb_t        arraysf_freecb_t ;
-
 /* typedef: struct arraysf_imp_it
  * Exports interface <arraysf_imp_it>, implementation memory policy. */
 typedef struct arraysf_imp_it          arraysf_imp_it ;
@@ -53,7 +49,7 @@ typedef int                         (* arraysf_itercb_f) (arraysf_itercb_t * ite
 /* enums: arraysf_e
  *
  * arraysf_MSBPOSROOT - This root is optimized for indizes *pos* which differ in MSBit position.
- *                      You can access the correct root entry with index: log2_int(pos)/2 .
+ *                      The size of the root array is 1 + 3*(bitsize(size_t)/2).
  * arraysf_8BITROOT0  - This root is optimized for values between 0 .. 255. The root is accessed with the
  *                      the lowest 8 bit of the number (pos % 256) or (pos & 0xff).
  * arraysf_8BITROOT24 - If MSBit positions are always >= 24 (and < 32) as is the case for IPv4 addresses
@@ -167,25 +163,27 @@ extern int iterate_arraysf(const arraysf_t * array, arraysf_itercb_t * itercb) ;
  * In out parameter *inserted_node* the inserted node is returned. If no cop< is made the
  * returned value is identical to parameter *node*. You can set this parameter to 0 if you
  * do not need the value. */
-extern int insert_arraysf(arraysf_t * array, size_t pos, struct arraysf_node_t * node, /*out*/struct arraysf_node_t ** inserted_node/*0 => not returned*/) ;
+extern int insert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out*/struct arraysf_node_t ** inserted_node/*0 => not returned*/) ;
 
 /* function: tryinsert_arraysf
  * Same as <insert_arraysf> but no error log in case of EEXIST.
  * If EEXIST is returned nothing was inserted but the existing node will be
  * returned in *inserted_or_existing_node* nevertheless. */
-extern int tryinsert_arraysf(arraysf_t * array, size_t pos, struct arraysf_node_t * node, /*out;err*/struct arraysf_node_t ** inserted_or_existing_node) ;
+extern int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err*/struct arraysf_node_t ** inserted_or_existing_node) ;
 
 /* function: remove_arraysf
  * Removes node at position *pos*.
  * If no node exists at position *pos* ESRCH is returned.
- * The policy interface <arraysf_imp_it> defines <arraysf_imp_it.freenode> function pointer
+ * The policy interface <arraysf_imp_it> defines function <arraysf_imp_it.freenode>
  * which is called to free the node after removing.
- * If you have set this callback to 0 no callback is made. */
-extern int remove_arraysf(arraysf_t * array, size_t pos) ;
+ * If you have set this callback to 0 the removed node is not freed.
+ * In case parameter removed_node is not 0 the removed node is returned or 0.
+ * If the removed node was freed with the callback 0 is returned. */
+extern int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/) ;
 
 /* function: tryremove_arraysf
  * Same as <remove_arraysf> but no error log in case of ESRCH. */
-extern int tryremove_arraysf(arraysf_t * array, size_t pos) ;
+extern int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/) ;
 
 
 /* struct: arraysf_imp_it

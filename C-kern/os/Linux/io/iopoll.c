@@ -119,7 +119,7 @@ static int wait_iopoll(iopoll_t * iopoll, uint16_t timeout)
          iopoll_fdinfo_t * first ;
          removefirst_fdinfolist(&iopoll->changed_list, &first) ;
          if (first->isdeleted) {
-            (void) remove_arraysf(iopoll->fdinfo, first->fd.pos) ;
+            (void) remove_arraysf(iopoll->fdinfo, first->fd.pos, 0) ;
          }
       }
 
@@ -229,8 +229,8 @@ int registerfd_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, iocallback_t * ioha
    PRECONDITION_INPUT(isinit_filedescr(fd), ABBRUCH, ) ;
    PRECONDITION_INPUT(! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevent) ) ;
 
-   iopoll_fdinfo_t dummy = { .iohandler = iohandler, .next = 0, .isdeleted = 1 } ;
-   err = tryinsert_arraysf(iopoll->fdinfo, (size_t)fd, &dummy.fd, (arraysf_node_t**)&iopfdinfo) ;
+   iopoll_fdinfo_t dummy = { .fd = arraysf_node_INIT((size_t)fd), .iohandler = iohandler, .next = 0, .isdeleted = 1 } ;
+   err = tryinsert_arraysf(iopoll->fdinfo, &dummy.fd, (arraysf_node_t**)&iopfdinfo) ;
    if (err && EEXIST != err) goto ABBRUCH ;
 
    struct epoll_event epevent ;

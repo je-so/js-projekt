@@ -1,4 +1,9 @@
-C-kern/ds/inmem/arraysf.c:683: insert_arraysf(): error: Function aborted (err=17)
-C-kern/ds/inmem/arraysf.c:665: remove_arraysf(): error: Function aborted (err=3)
-C-kern/ds/inmem/arraysf.c:362: delete_arraysf(): error: All resources can not be freed (err=12345)
-C-kern/ds/inmem/arraysf.c:447: iterate_arraysf(): error: Function aborted (err=333)
+C-kern/ds/inmem/arraysf.c:261: new_arraysf(): error: Function argument violates condition (*array == 0)
+C-kern/ds/inmem/arraysf.c:285: new_arraysf(): error: Function aborted (err=22)
+C-kern/ds/inmem/arraysf.c:263: new_arraysf(): error: Function argument violates condition (type < nrelementsof(s_arraysf_nrelemroot))
+type=-1
+C-kern/ds/inmem/arraysf.c:285: new_arraysf(): error: Function aborted (err=22)
+C-kern/ds/inmem/arraysf.c:692: insert_arraysf(): error: Function aborted (err=17)
+C-kern/ds/inmem/arraysf.c:674: remove_arraysf(): error: Function aborted (err=3)
+C-kern/ds/inmem/arraysf.c:366: delete_arraysf(): error: All resources can not be freed (err=12345)
+C-kern/ds/inmem/arraysf.c:451: iterate_arraysf(): error: Function aborted (err=333)

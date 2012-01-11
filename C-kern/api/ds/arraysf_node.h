@@ -1,5 +1,7 @@
 /* title: ArraySF-Node
-   TODO
+   Defines node type <arraysf_node_t> which can be stored in an
+   array of type <arraysf_t>. Defines also the internal node type
+   <arraysf_mwaybranch_t> which is used in the implementation of <arraysf_t>.
 
    about: Copyright
    This program is free software.
@@ -17,7 +19,7 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/ds/arraysf_node.h
-    Header file <ArraySF-Node
+    Header file <ArraySF-Node>.
 */
 #ifndef CKERN_DS_ARRAYSF_NODE_HEADER
 #define CKERN_DS_ARRAYSF_NODE_HEADER
@@ -39,9 +41,9 @@ struct arraysf_node_t {
 
 // group: lifetime
 
-/* define: arraysf_node_INIT_FREEABLE
- * Static initializer. */
-#define arraysf_node_INIT_FREEABLE     { 0 }
+/* define: arraysf_node_INIT
+ * Static initializer with paramater index of type size_t. */
+#define arraysf_node_INIT(index)       { (index) }
 
 
 /* struct: arraysf_mwaybranch_t
@@ -53,15 +55,15 @@ struct arraysf_mwaybranch_t {
     * A 4-way array of child nodes. */
    arraysf_node_t    * child[4] ;
    /* variable: shift
-    * Bitposition of first bit of array index used to branch.
+    * Position of bit in array index used to branch.
     * The two bits at position shift and shift+1 are used as index into array <child>.
-    * To get the correct child pointer use the following formula;
+    * To get the correct child pointer use the following formula
     * > size_t               pos ;        // array index
     * > arraysf_mwaybranch_t * branch ;   // current branch node
     * > branch->child[(pos >> branch->shift) & 0x03] */
    uint8_t           shift ;
    /* variable: used
-    * The number entries in <child> which are *not* 0. */
+    * The number of entries in <child> which are *not* 0. */
    uint8_t           used ;
 } ;
 
