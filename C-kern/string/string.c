@@ -44,7 +44,7 @@ int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * 
 {
    int err ;
 
-   PRECONDITION_INPUT(last >= first, ABBRUCH, LOG_PTR(first); LOG_PTR(last) ) ;
+   VALIDATE_INPARAM_TEST(last >= first, ABBRUCH, LOG_PTR(first); LOG_PTR(last) ) ;
 
    str->addr = (const char*) first ;
    str->size = (size_t) (1 + last - first) ;
@@ -58,7 +58,7 @@ int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * 
 {
    int err ;
 
-   PRECONDITION_INPUT(end >= start, ABBRUCH, LOG_PTR(end); LOG_PTR(start) ) ;
+   VALIDATE_INPARAM_TEST(end >= start, ABBRUCH, LOG_PTR(end); LOG_PTR(start) ) ;
 
    str->addr = (const char*) start ;
    str->size = (size_t) (end - start) ;

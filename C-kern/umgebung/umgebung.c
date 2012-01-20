@@ -370,9 +370,9 @@ int init_umgebung(umgebung_t * umg, umgebung_type_e implementation_type)
 {
    int err ;
 
-   PRECONDITION_INPUT(     umgebung_type_SINGLETHREAD <= implementation_type
-                        && implementation_type <=  umgebung_type_MULTITHREAD,
-                        ABBRUCH, LOG_INT(implementation_type)) ;
+   VALIDATE_INPARAM_TEST(     umgebung_type_SINGLETHREAD <= implementation_type
+                           && implementation_type <=  umgebung_type_MULTITHREAD,
+                           ABBRUCH, LOG_INT(implementation_type)) ;
 
    err = init2_umgebung(umg, implementation_type, 0) ;
    if (err) goto ABBRUCH ;
@@ -387,9 +387,9 @@ int initcopy_umgebung(/*out*/umgebung_t * umg, umgebung_t * copy_from)
 {
    int err ;
 
-   PRECONDITION_INPUT(     umgebung_type_MULTITHREAD  == copy_from->type
-                        || umgebung_type_SINGLETHREAD == copy_from->type,
-                        ABBRUCH, LOG_INT(copy_from->type)) ;
+   VALIDATE_INPARAM_TEST(     umgebung_type_MULTITHREAD  == copy_from->type
+                           || umgebung_type_SINGLETHREAD == copy_from->type,
+                           ABBRUCH, LOG_INT(copy_from->type)) ;
 
    err = init2_umgebung(umg, copy_from->type, copy_from) ;
    if (err) goto ABBRUCH ;
@@ -428,9 +428,9 @@ int initmain_umgebung(umgebung_type_e implementation_type)
       goto ABBRUCH ;
    }
 
-   PRECONDITION_INPUT(     umgebung_type_SINGLETHREAD <= implementation_type
-                        && implementation_type <=  umgebung_type_MULTITHREAD,
-                        ABBRUCH, LOG_INT(implementation_type)) ;
+   VALIDATE_INPARAM_TEST(     umgebung_type_SINGLETHREAD <= implementation_type
+                           && implementation_type <=  umgebung_type_MULTITHREAD,
+                           ABBRUCH, LOG_INT(implementation_type)) ;
 
    err = init2_umgebung(umg, implementation_type, 0) ;
    if (err) goto ABBRUCH ;
@@ -890,20 +890,20 @@ int unittest_umgebung()
 
       const char * expect =
          // log from test_main_init
-         "C-kern/umgebung/umgebung.c:433: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "C-kern/umgebung/umgebung.c:433: initmain_umgebung(): error: Function input violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=0"
          "\nC-kern/umgebung/umgebung.c:440: initmain_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:433: initmain_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:433: initmain_umgebung(): error: Function input violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
          "\nC-kern/umgebung/umgebung.c:440: initmain_umgebung(): error: Function aborted (err=22)"
          // log from test_initfree
-         "\nC-kern/umgebung/umgebung.c:375: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:375: init_umgebung(): error: Function input violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=0"
          "\nC-kern/umgebung/umgebung.c:382: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:375: init_umgebung(): error: Function argument violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
+         "\nC-kern/umgebung/umgebung.c:375: init_umgebung(): error: Function input violates condition (umgebung_type_SINGLETHREAD <= implementation_type && implementation_type <= umgebung_type_MULTITHREAD)"
          "\nimplementation_type=3"
          "\nC-kern/umgebung/umgebung.c:382: init_umgebung(): error: Function aborted (err=22)"
-         "\nC-kern/umgebung/umgebung.c:392: initcopy_umgebung(): error: Function argument violates condition (umgebung_type_MULTITHREAD == copy_from->type || umgebung_type_SINGLETHREAD == copy_from->type)"
+         "\nC-kern/umgebung/umgebung.c:392: initcopy_umgebung(): error: Function input violates condition (umgebung_type_MULTITHREAD == copy_from->type || umgebung_type_SINGLETHREAD == copy_from->type)"
          "\ncopy_from->type=0"
          "\nC-kern/umgebung/umgebung.c:399: initcopy_umgebung(): error: Function aborted (err=22)"
          "\n"

@@ -39,8 +39,8 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
    int fd       = -1 ;
    int openatfd = AT_FDCWD ;
 
-   PRECONDITION_INPUT(iomode, ABBRUCH, ) ;
-   PRECONDITION_INPUT(0 == (iomode & ~((unsigned)accessmode_RDWR)), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(iomode, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (iomode & ~((unsigned)accessmode_RDWR)), ABBRUCH, ) ;
 
    if (relative_to) {
       openatfd = dirfd((DIR*)(intptr_t)relative_to) ;

@@ -189,7 +189,7 @@ int truncate_cstring(cstring_t * cstr, size_t new_length)
 {
    int err ;
 
-   PRECONDITION_INPUT(new_length <= cstr->length, ABBRUCH, LOG_SIZE(cstr->length) ; LOG_SIZE(new_length)) ;
+   VALIDATE_INPARAM_TEST(new_length <= cstr->length, ABBRUCH, LOG_SIZE(cstr->length) ; LOG_SIZE(new_length)) ;
 
    if (new_length < cstr->length) {
       cstr->length            = new_length ;

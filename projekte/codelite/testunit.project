@@ -53,6 +53,8 @@
         <File Name="../../C-kern/api/test/run/speedtest.h"/>
         <File Name="../../C-kern/api/test/run/unittest.h"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/test/validate.h"/>
+      <File Name="../../C-kern/api/test/assert.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="resource">
       <File Name="../../C-kern/api/resource/errorlog.h"/>
@@ -151,16 +153,13 @@
         <File Name="../../C-kern/api/ds/inmem/slist.h"/>
         <File Name="../../C-kern/api/ds/inmem/arraysf.h"/>
         <File Name="../../C-kern/api/ds/inmem/binarystack.h"/>
+        <File Name="../../C-kern/api/ds/inmem/arraystf.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/freecallback.h"/>
       <File Name="../../C-kern/api/ds/arraysf_node.h"/>
       <File Name="../../C-kern/api/ds/slist_node.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="errhandling">
-      <File Name="../../C-kern/api/errhandling/precondition.h"/>
-      <File Name="../../C-kern/api/errhandling/errlog_macros.h"/>
-      <File Name="../../C-kern/api/errhandling/assert.h"/>
+      <File Name="../../C-kern/api/ds/arraystf_node.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
     <VirtualDirectory Name="umg">
@@ -169,6 +168,7 @@
       <File Name="../../C-kern/api/umg/objectcache_macros.h"/>
       <File Name="../../C-kern/api/umg/services_multithread.h"/>
       <File Name="../../C-kern/api/umg/services_singlethread.h"/>
+      <File Name="../../C-kern/api/umg/errlog_macros.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="io">
       <VirtualDirectory Name="filesystem">
@@ -184,13 +184,12 @@
         <File Name="../../C-kern/api/io/ip/websocket.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/url.h"/>
-      <VirtualDirectory Name="protocol">
-        <File Name="../../C-kern/api/io/protocol/protocontrol.h"/>
-      </VirtualDirectory>
+      <VirtualDirectory Name="protocol"/>
       <File Name="../../C-kern/api/io/iotimer.h"/>
       <File Name="../../C-kern/api/io/ioevent.h"/>
       <File Name="../../C-kern/api/io/iopoll.h"/>
       <File Name="../../C-kern/api/io/iocallback.h"/>
+      <File Name="../../C-kern/api/io/iocontroler.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="userinterface">
       <VirtualDirectory Name="X11">
@@ -240,12 +239,7 @@
     <File Name="../../C-kern/tools/hash.c"/>
     <File Name="../../C-kern/tools/hash.h"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="compiler">
-    <File Name="../../C-kern/compiler/idl_parser.c"/>
-    <File Name="../../C-kern/compiler/idl_parser.h"/>
-    <File Name="../../C-kern/compiler/idl_scanner.c"/>
-    <File Name="../../C-kern/compiler/idl_scanner.h"/>
-  </VirtualDirectory>
+  <VirtualDirectory Name="compiler"/>
   <VirtualDirectory Name="string">
     <File Name="../../C-kern/string/suffix_tree.c"/>
     <File Name="../../C-kern/string/wstream_buffer.c"/>
@@ -347,6 +341,7 @@
       <File Name="../../C-kern/ds/inmem/slist.c"/>
       <File Name="../../C-kern/ds/inmem/arraysf.c"/>
       <File Name="../../C-kern/ds/inmem/binarystack.c"/>
+      <File Name="../../C-kern/ds/inmem/arraystf.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
   </VirtualDirectory>
@@ -355,7 +350,7 @@
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>
     <File Name="../../C-kern/io/websocket.c"/>
-    <File Name="../../C-kern/io/protocontrol.c"/>
+    <File Name="../../C-kern/io/iocontroler.c"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

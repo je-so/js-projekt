@@ -89,7 +89,7 @@ int run_exothread(exothread_t * xthread)
 {
    int err ;
 
-   PRECONDITION_INPUT(0 == isfinish_exothread(xthread),ABBRUCH,)
+   VALIDATE_INPARAM_TEST(0 == isfinish_exothread(xthread),ABBRUCH,)
 
    xthread->flags = (typeof(xthread->flags)) (xthread->flags | exothread_flag_RUN) ;
 
@@ -124,11 +124,11 @@ static int testinit_xthread(exothread_t * xthread)
    jumpstate_exothread() ;
 
    exothread_INIT: ;
-   PRECONDITION_INPUT(0 == err,ABBRUCH,) ;
+   VALIDATE_INPARAM_TEST(0 == err,ABBRUCH,) ;
    err = 1 ;
 
    exothread_FREE: ;
-   PRECONDITION_INPUT(1 == err,ABBRUCH,) ;
+   VALIDATE_INPARAM_TEST(1 == err,ABBRUCH,) ;
 
    finish_exothread() ;
    return 0 ;
@@ -203,7 +203,7 @@ static int counter_xthread(counter_xthread_t * xthread)
    {
       declare_inparam_exothread(inparam) ;
 
-      PRECONDITION_INPUT(inparam->limit > 0,ABBRUCH,LOG_INT(inparam->limit)) ;
+      VALIDATE_INPARAM_TEST(inparam->limit > 0,ABBRUCH,LOG_INT(inparam->limit)) ;
 
       xthread->value = 0 ;
       xthread->limit = inparam->limit ;

@@ -63,7 +63,7 @@ int initumgebung_objectcachemt(/*out*/objectcache_oit * objectcache)
       goto ABBRUCH ;
    }
 
-   PRECONDITION_INPUT(0 == objectcache->object, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == objectcache->object, ABBRUCH, ) ;
 
    err = init_objectcachemt(newobject) ;
    if (err) goto ABBRUCH ;

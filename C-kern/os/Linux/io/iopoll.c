@@ -226,8 +226,8 @@ int registerfd_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, iocallback_t * ioha
    int err ;
    iopoll_fdinfo_t   * iopfdinfo = 0 ;
 
-   PRECONDITION_INPUT(isinit_filedescr(fd), ABBRUCH, ) ;
-   PRECONDITION_INPUT(! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevent) ) ;
+   VALIDATE_INPARAM_TEST(isinit_filedescr(fd), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevent) ) ;
 
    iopoll_fdinfo_t dummy = { .fd = arraysf_node_INIT((size_t)fd), .iohandler = iohandler, .next = 0, .isdeleted = 1 } ;
    err = tryinsert_arraysf(iopoll->fdinfo, &dummy.fd, (arraysf_node_t**)&iopfdinfo) ;
@@ -272,7 +272,7 @@ int changeioevent_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, ioevent_t ioeven
    struct epoll_event   epevent ;
    iopoll_fdinfo_t      * iopfdinfo ;
 
-   PRECONDITION_INPUT(! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevent)) ;
+   VALIDATE_INPARAM_TEST(! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevent)) ;
 
    iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll->fdinfo, (size_t)fd) ;
 

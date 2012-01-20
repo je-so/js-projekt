@@ -1,7 +1,7 @@
-C-kern/os/Linux/signal.c:432: wait_rtsignal(): error: Function argument violates condition (nr < 16)
+C-kern/os/Linux/signal.c:432: wait_rtsignal(): error: Function input violates condition (nr < 16)
 nr=16
 C-kern/os/Linux/signal.c:463: wait_rtsignal(): error: Function aborted (err=22)
-C-kern/os/Linux/signal.c:432: wait_rtsignal(): error: Function argument violates condition (nr < 16)
+C-kern/os/Linux/signal.c:432: wait_rtsignal(): error: Function input violates condition (nr < 16)
 nr=255
 C-kern/os/Linux/signal.c:463: wait_rtsignal(): error: Function aborted (err=22)
 C-kern/os/Linux/signal.c:417: send_rtsignal(): error: System call 'sigqueue' returned error (err=11): 'Resource temporarily unavailable'

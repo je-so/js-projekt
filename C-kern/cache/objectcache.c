@@ -57,7 +57,7 @@ int initumgebung_objectcache(/*out*/objectcache_oit * objectcache)
       goto ABBRUCH ;
    }
 
-   PRECONDITION_INPUT(0 == objectcache->object, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == objectcache->object, ABBRUCH, ) ;
 
    err = init_objectcache(newobject) ;
    if (err) goto ABBRUCH ;
@@ -151,7 +151,7 @@ static int lockiobuffer2_objectcache(objectcache_t * objectcache, /*out*/membloc
 {
    int err ;
 
-   PRECONDITION_INPUT(0 == *iobuffer, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == *iobuffer, ABBRUCH, ) ;
 
    *iobuffer = &objectcache->iobuffer ;
 
@@ -166,7 +166,7 @@ static int unlockiobuffer2_objectcache(objectcache_t * objectcache, memblock_t *
    int err ;
 
    if (*iobuffer) {
-      PRECONDITION_INPUT(&objectcache->iobuffer == *iobuffer, ABBRUCH, ) ;
+      VALIDATE_INPARAM_TEST(&objectcache->iobuffer == *iobuffer, ABBRUCH, ) ;
       *iobuffer = 0 ;
    }
 

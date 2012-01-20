@@ -133,8 +133,8 @@ int new_arraysfimp(arraysf_imp_it ** impit, size_t objectsize, size_t nodeoffset
    int err ;
    arraysf_imp2_it * new_obj ;
 
-   PRECONDITION_INPUT(  objectsize >= sizeof(arraysf_node_t)
-                     && nodeoffset <= objectsize-sizeof(arraysf_node_t) , ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(  objectsize >= sizeof(arraysf_node_t)
+                        && nodeoffset <= objectsize-sizeof(arraysf_node_t), ABBRUCH, ) ;
 
    err = defaultmalloc_arraysfimpit(0, sizeof(arraysf_imp2_it), (void**)&new_obj) ;
    if (err) goto ABBRUCH ;
@@ -265,16 +265,16 @@ int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type, arraysf_imp_it * impi
    int err ;
    arraysf_t   * new_obj ;
 
-   PRECONDITION_INPUT(*array == 0, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(*array == 0, ABBRUCH, ) ;
 
-   PRECONDITION_INPUT(type < nrelementsof(s_arraysf_nrelemroot), ABBRUCH, LOG_INT(type)) ;
+   VALIDATE_INPARAM_TEST(type < nrelementsof(s_arraysf_nrelemroot), ABBRUCH, LOG_INT(type)) ;
 
    if (! impit) {
       impit = default_arraysfimpit() ;
    }
 
-   PRECONDITION_INPUT(     impit->malloc
-                        && impit->free, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(     impit->malloc
+                           && impit->free, ABBRUCH, ) ;
 
    const size_t objsize = objectsize_arraysf(type) ;
 
@@ -397,7 +397,7 @@ int iterate_arraysf(const arraysf_t * array, arraysf_itercb_t * itercb)
       unsigned             ci ;
    }              pos ;
 
-   PRECONDITION_INPUT(itercb->fct, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(itercb->fct, ABBRUCH, ) ;
 
    err = init_binarystack(&stack, (/*depth*/4 * sizeof(size_t)) * /*objectsize*/sizeof(pos) ) ;
    if (err) goto ABBRUCH ;
@@ -482,7 +482,7 @@ int tryinsert_arraysf(arraysf_t * array, arraysf_node_t * node, /*err*/arraysf_n
       node = copied_node ;
    }
 
-   PRECONDITION_INPUT(0 == ((intptr_t)node&0x01), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == ((intptr_t)node&0x01), ABBRUCH, ) ;
 
    size_t   pos2    = 0 ;
    size_t   posdiff = 0 ;

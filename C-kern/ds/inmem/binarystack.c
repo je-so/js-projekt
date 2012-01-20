@@ -109,7 +109,7 @@ int pop_binarystack(binarystack_t * stack, size_t size, void * data/*[size]*/)
 {
    int err ;
 
-   PRECONDITION_INPUT(size <= stack->size, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(size <= stack->size, ABBRUCH, ) ;
 
    stack->size -= size ;
    if (data) {

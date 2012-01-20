@@ -101,7 +101,7 @@ static int clearcallback_signalconfig(unsigned signr)
 {
    int err ;
 
-   PRECONDITION_INPUT(signr <= nrelementsof(s_signalhandler), ABBRUCH, LOG_INT(signr)) ;
+   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ABBRUCH, LOG_INT(signr)) ;
 
    if (s_signalhandler[signr-1].isvalid) {
       s_signalhandler[signr-1].isvalid  = false ;
@@ -125,8 +125,8 @@ static int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
    int err ;
    struct sigaction  sighandler ;
 
-   PRECONDITION_INPUT(signr > 0, ABBRUCH, ) ;
-   PRECONDITION_INPUT(signr <= nrelementsof(s_signalhandler), ABBRUCH, LOG_INT(signr)) ;
+   VALIDATE_INPARAM_TEST(signr > 0, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ABBRUCH, LOG_INT(signr)) ;
 
    err = clearcallback_signalconfig(signr) ;
    if (err) goto ABBRUCH ;
@@ -160,8 +160,8 @@ static int setignore_signalconfig(unsigned signr)
    int err ;
    struct sigaction  sighandler ;
 
-   PRECONDITION_INPUT(signr > 0, ABBRUCH, ) ;
-   PRECONDITION_INPUT(signr <= nrelementsof(s_signalhandler), ABBRUCH, LOG_INT(signr)) ;
+   VALIDATE_INPARAM_TEST(signr > 0, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ABBRUCH, LOG_INT(signr)) ;
 
    err = clearcallback_signalconfig(signr) ;
    if (err) goto ABBRUCH ;
@@ -409,7 +409,7 @@ int send_rtsignal(rtsignal_t nr)
 {
    int err ;
 
-   PRECONDITION_INPUT(nr < 16, ABBRUCH, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr < 16, ABBRUCH, LOG_INT(nr)) ;
 
    err = sigqueue(getpid(), SIGRTMIN+nr, (union sigval) { 0 } ) ;
    if (err) {
@@ -429,7 +429,7 @@ int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals)
    int err ;
    sigset_t signalmask ;
 
-   PRECONDITION_INPUT(nr < 16, ABBRUCH, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr < 16, ABBRUCH, LOG_INT(nr)) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {
@@ -470,7 +470,7 @@ int trywait_rtsignal(rtsignal_t nr)
    sigset_t          signalmask ;
    struct timespec   ts = { 0, 0 } ;
 
-   PRECONDITION_INPUT(nr < 16, ABBRUCH, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr < 16, ABBRUCH, LOG_INT(nr)) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {

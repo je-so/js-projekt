@@ -245,7 +245,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
       flags = FLAGS ;
       break ;
    default:
-      PRECONDITION_INPUT(option == queryoption_WAIT_AND_FREE, ABBRUCH, LOG_INT(option)) ;
+      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ABBRUCH, LOG_INT(option)) ;
       flags = FLAGS ;
       break ;
    }

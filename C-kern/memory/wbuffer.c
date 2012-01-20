@@ -46,7 +46,7 @@ int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size)
    int err ;
    uint8_t * memblock = 0 ;
 
-   PRECONDITION_INPUT(0 == wbuf->addr, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == wbuf->addr, ABBRUCH, ) ;
 
    if (preallocate_size) {
       memblock = ((ssize_t)preallocate_size < 0) ? 0 : malloc(preallocate_size) ;

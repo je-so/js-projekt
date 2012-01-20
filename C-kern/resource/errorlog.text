@@ -47,11 +47,6 @@ FUNCTION_SYSERR:de: sFunctionname, sys_errno, sError
 FUNCTION_SYSERR:en: sFunctionname, sys_errno, sError
 "System call '%s' returned error (err=%d): '%s'"
 
-FUNCTION_WRONG_INPUT:de: sViolatedCondition
-"Funktionsargument erfüllt nicht Bedingung (%s)"
-FUNCTION_WRONG_INPUT:en: sViolatedCondition
-"Function argument violates condition (%s)"
-
 FUNCTION_WRONG_RETURNVALUE:de: sFunctionname, sWrongValue
 "Funktion '%s' liefert falschen Rückgabewert (%s)"
 FUNCTION_WRONG_RETURNVALUE:en: sFunctionname, sWrongValue
@@ -83,6 +78,26 @@ RESOURCE_USAGE_DIFFERENT:de:
 "Ungleiche Anzahl benutzter Ressourcen"
 RESOURCE_USAGE_DIFFERENT:en:
 "The number of used resources is different"
+
+TEST_INPARAM_FALSE:de: sViolatedCondition
+"Eingabewert verletzt Bedingung (%s)"
+TEST_INPARAM_FALSE:en: sViolatedCondition
+"Function input violates condition (%s)"
+
+TEST_INVARIANT_FALSE:de: sViolatedCondition
+"Interne Zustandsvariablen verletzen Bedingung (%s)"
+TEST_INVARIANT_FALSE:en: sViolatedCondition
+"Internal state variables violate condition (%s)"
+
+TEST_OUTPARAM_FALSE:de: sViolatedCondition
+"Ausgabewert verletzt Bedingung (%s)"
+TEST_OUTPARAM_FALSE:en: sViolatedCondition
+"Function output violates condition (%s)"
+
+TEST_STATE_FALSE:de: sViolatedCondition
+"Operation nur erlaubt im Zustand (%s)"
+TEST_STATE_FALSE:en: sViolatedCondition
+"Operation allowed only in state (%s)"
 
 X11_DISPLAY_NOT_SET:de:
 "Name des X11 Display-Servers nicht bekannt"

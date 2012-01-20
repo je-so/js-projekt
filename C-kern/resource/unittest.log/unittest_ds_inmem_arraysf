@@ -1,6 +1,6 @@
-C-kern/ds/inmem/arraysf.c:268: new_arraysf(): error: Function argument violates condition (*array == 0)
+C-kern/ds/inmem/arraysf.c:268: new_arraysf(): error: Function input violates condition (*array == 0)
 C-kern/ds/inmem/arraysf.c:292: new_arraysf(): error: Function aborted (err=22)
-C-kern/ds/inmem/arraysf.c:270: new_arraysf(): error: Function argument violates condition (type < nrelementsof(s_arraysf_nrelemroot))
+C-kern/ds/inmem/arraysf.c:270: new_arraysf(): error: Function input violates condition (type < nrelementsof(s_arraysf_nrelemroot))
 type=-1
 C-kern/ds/inmem/arraysf.c:292: new_arraysf(): error: Function aborted (err=22)
 C-kern/ds/inmem/arraysf.c:699: insert_arraysf(): error: Function aborted (err=17)

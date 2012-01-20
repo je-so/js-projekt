@@ -25,8 +25,6 @@
         "Aufruf '%s' meldet Fehler (err=%d): '%s'\n", sFunctionname, error, sError
 #define TEXTRES_ERRORLOG_FUNCTION_SYSERR(sFunctionname, sys_errno, sError) \
         "Systemaufruf '%s' meldet Fehler (err=%d): '%s'\n", sFunctionname, sys_errno, sError
-#define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sViolatedCondition) \
-        "Funktionsargument erfüllt nicht Bedingung (%s)\n", sViolatedCondition
 #define TEXTRES_ERRORLOG_FUNCTION_WRONG_RETURNVALUE(sFunctionname, sWrongValue) \
         "Funktion '%s' liefert falschen Rückgabewert (%s)\n", sFunctionname, sWrongValue
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
@@ -39,6 +37,14 @@
         "Parameter '%s' > %d\n", parameter_name, parameter_max
 #define TEXTRES_ERRORLOG_RESOURCE_USAGE_DIFFERENT \
         "Ungleiche Anzahl benutzter Ressourcen\n"
+#define TEXTRES_ERRORLOG_TEST_INPARAM_FALSE(sViolatedCondition) \
+        "Eingabewert verletzt Bedingung (%s)\n", sViolatedCondition
+#define TEXTRES_ERRORLOG_TEST_INVARIANT_FALSE(sViolatedCondition) \
+        "Interne Zustandsvariablen verletzen Bedingung (%s)\n", sViolatedCondition
+#define TEXTRES_ERRORLOG_TEST_OUTPARAM_FALSE(sViolatedCondition) \
+        "Ausgabewert verletzt Bedingung (%s)\n", sViolatedCondition
+#define TEXTRES_ERRORLOG_TEST_STATE_FALSE(sViolatedCondition) \
+        "Operation nur erlaubt im Zustand (%s)\n", sViolatedCondition
 #define TEXTRES_ERRORLOG_X11_DISPLAY_NOT_SET \
         "Name des X11 Display-Servers nicht bekannt\nBitte die Umgebungsvariable »DISPLAY« setzen\n"
 #define TEXTRES_ERRORLOG_X11_NO_CONNECTION(display_server_name) \
@@ -63,8 +69,6 @@
         "Call to '%s' returned error (err=%d): '%s'\n", sFunctionname, error, sError
 #define TEXTRES_ERRORLOG_FUNCTION_SYSERR(sFunctionname, sys_errno, sError) \
         "System call '%s' returned error (err=%d): '%s'\n", sFunctionname, sys_errno, sError
-#define TEXTRES_ERRORLOG_FUNCTION_WRONG_INPUT(sViolatedCondition) \
-        "Function argument violates condition (%s)\n", sViolatedCondition
 #define TEXTRES_ERRORLOG_FUNCTION_WRONG_RETURNVALUE(sFunctionname, sWrongValue) \
         "Function '%s' returned wrong value (%s)\n", sFunctionname, sWrongValue
 #define TEXTRES_ERRORLOG_LOCALE_SETLOCALE \
@@ -77,6 +81,14 @@
         "Parameter '%s' > %d\n", parameter_name, parameter_max
 #define TEXTRES_ERRORLOG_RESOURCE_USAGE_DIFFERENT \
         "The number of used resources is different\n"
+#define TEXTRES_ERRORLOG_TEST_INPARAM_FALSE(sViolatedCondition) \
+        "Function input violates condition (%s)\n", sViolatedCondition
+#define TEXTRES_ERRORLOG_TEST_INVARIANT_FALSE(sViolatedCondition) \
+        "Internal state variables violate condition (%s)\n", sViolatedCondition
+#define TEXTRES_ERRORLOG_TEST_OUTPARAM_FALSE(sViolatedCondition) \
+        "Function output violates condition (%s)\n", sViolatedCondition
+#define TEXTRES_ERRORLOG_TEST_STATE_FALSE(sViolatedCondition) \
+        "Operation allowed only in state (%s)\n", sViolatedCondition
 #define TEXTRES_ERRORLOG_X11_DISPLAY_NOT_SET \
         "Default name of X11 display servers unknown\nPlease set environment variable »DISPLAY« setzen\n"
 #define TEXTRES_ERRORLOG_X11_NO_CONNECTION(display_server_name) \

@@ -73,7 +73,7 @@ static int initdiff_arraystfkeyval(/*out*/arraystf_keyval_t * keyval, arraystf_n
       goto DONE ;
    }
 
-   PRECONDITION_INPUT(size1 != size2, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(size1 != size2, ABBRUCH, ) ;
 
    offset       = ~(size_t)0 ;
    keyval->data = (size1 ^ size2) ;
@@ -195,8 +195,8 @@ int new_arraystfimp(arraystf_imp_it ** impit, size_t objectsize, size_t nodeoffs
    int err ;
    arraystf_imp2_it * new_obj ;
 
-   PRECONDITION_INPUT(  objectsize >= sizeof(arraystf_node_t)
-                     && nodeoffset <= objectsize-sizeof(arraystf_node_t), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(  objectsize >= sizeof(arraystf_node_t)
+                        && nodeoffset <= objectsize-sizeof(arraystf_node_t), ABBRUCH, ) ;
 
    err = defaultmalloc_arraystfimpit(0, sizeof(arraystf_imp2_it), (void**)&new_obj) ;
    if (err) goto ABBRUCH ;
@@ -277,7 +277,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
    arraystf_keyval_t    keyval ;
    uint8_t              rootbyte ;
 
-   PRECONDITION_INPUT(keynode->size < ~(size_t)0, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(keynode->size < ~(size_t)0, ABBRUCH, ) ;
 
    rootbyte = (uint8_t) ((keynode->size) ? keynode->addr[0] : 0) ;
    keyval.offset = 0 ;
@@ -349,16 +349,16 @@ int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type, arraystf_imp_it * 
    int err ;
    arraystf_t  * new_obj ;
 
-   PRECONDITION_INPUT(*array == 0, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(*array == 0, ABBRUCH, ) ;
 
-   PRECONDITION_INPUT(type < nrelementsof(s_arraystf_nrelemroot), ABBRUCH, LOG_INT(type)) ;
+   VALIDATE_INPARAM_TEST(type < nrelementsof(s_arraystf_nrelemroot), ABBRUCH, LOG_INT(type)) ;
 
    if (! impit) {
       impit = default_arraystfimpit() ;
    }
 
-   PRECONDITION_INPUT(     impit->malloc
-                        && impit->free, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(     impit->malloc
+                           && impit->free, ABBRUCH, ) ;
 
    const size_t objsize = objectsize_arraystf(type) ;
 
@@ -482,7 +482,7 @@ int iterate_arraystf(const arraystf_t * array, arraystf_itercb_t * itercb)
       unsigned              ci ;
    }              pos ;
 
-   PRECONDITION_INPUT(itercb->fct, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(itercb->fct, ABBRUCH, ) ;
 
    err = init_binarystack(&stack, (/*depth*/4 * sizeof(size_t)) * /*objectsize*/sizeof(pos) ) ;
    if (err) goto ABBRUCH ;
@@ -568,7 +568,7 @@ int tryinsert_arraystf(arraystf_t * array, arraystf_node_t * node, /*err*/struct
       node = copied_node ;
    }
 
-   PRECONDITION_INPUT(0 == ((intptr_t)node&0x01), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == ((intptr_t)node&0x01), ABBRUCH, ) ;
 
    if (found.found_node) {
 

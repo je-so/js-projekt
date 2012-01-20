@@ -6,7 +6,6 @@ include        projekte/subsys/Linux
 Src           += C-kern/main/unittest_main.c
 # Src           += C-kern/main/speedtest_main.c
 Src           += C-kern/cache/*.c
-# Src           += C-kern/compiler/*.c
 Src           += C-kern/ds/inmem/*.c
 # Src           += C-kern/generic/*.c C-kern/generic/trie/*.c
 Src           += C-kern/io/*.c
@@ -19,4 +18,4 @@ Src           += C-kern/umgebung/*.c
 Src           += C-kern/writer/*.c
 Includes       = .
 Libs           = pthread rt X11 Xrandr Xrender GL
-Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(HTML)"
+Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(HTML5)"

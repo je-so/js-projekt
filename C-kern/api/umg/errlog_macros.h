@@ -20,11 +20,11 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/errhandling/errlog_macros.h
+   file: C-kern/api/umgebung/errlog_macros.h
     Header file of <Errorlog>.
 */
-#ifndef CKERN_ERRORHANDLING_ERRLOG_MACROS_HEADER
-#define CKERN_ERRORHANDLING_ERRLOG_MACROS_HEADER
+#ifndef CKERN_UMGEBUNG_ERRLOG_MACROS_HEADER
+#define CKERN_UMGEBUNG_ERRLOG_MACROS_HEADER
 
 #include "C-kern/api/resource/errorlog.h"
 #include "C-kern/api/umg/log_macros.h"

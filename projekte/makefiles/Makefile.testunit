@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Jan.11  16:12:55
+GenerationDate  := 2012.Jan.20  08:55:44
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -16,7 +16,7 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
-Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_USERINTERFACE="(HTML)"
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_USERINTERFACE="(HTML5)"
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt $(LibraryFlag_Debug)X11 $(LibraryFlag_Debug)Xrandr $(LibraryFlag_Debug)Xrender $(LibraryFlag_Debug)GL
 Libpath_Debug       :=
@@ -34,7 +34,7 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
-Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_USERINTERFACE="(HTML)"
+Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_USERINTERFACE="(HTML5)"
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt $(LibraryFlag_Release)X11 $(LibraryFlag_Release)Xrandr $(LibraryFlag_Release)Xrender $(LibraryFlag_Release)GL
 Libpath_Release       :=

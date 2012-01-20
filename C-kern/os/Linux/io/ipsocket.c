@@ -111,7 +111,7 @@ int init_ipsocket(/*out*/ipsocket_t * ipsock, const ipaddr_t * localaddr)
 {
    int err ;
 
-   PRECONDITION_INPUT(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
 
    if (ipprotocol_UDP != protocol_ipaddr(localaddr)) {
       err = EPROTONOSUPPORT ;
@@ -133,9 +133,9 @@ int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loc
    int fd ;
    ipsocket_t new_ipsock = ipsocket_INIT_FREEABLE ;
 
-   PRECONDITION_INPUT(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
-   PRECONDITION_INPUT(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
-   PRECONDITION_INPUT(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
 
    err = initsocket_helper(&new_ipsock, localaddr) ;
    if (err) goto ABBRUCH ;
@@ -164,7 +164,7 @@ int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loca
    int fd ;
    ipsocket_t new_ipsock = ipsocket_INIT_FREEABLE ;
 
-   PRECONDITION_INPUT(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
 
    err = initsocket_helper(&new_ipsock, localaddr) ;
    if (err) goto ABBRUCH ;
@@ -462,8 +462,8 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t que
    socklen_t  len    = sizeof(rvalue) ;
    int        fd     = *ipsock ;
 
-   PRECONDITION_INPUT(  queuesize_read  <= INT_MAX
-                     && queuesize_write <= INT_MAX, ABBRUCH, LOG_SIZE(queuesize_read); LOG_SIZE(queuesize_write) ) ;
+   VALIDATE_INPARAM_TEST(  queuesize_read  <= INT_MAX
+                        && queuesize_write <= INT_MAX, ABBRUCH, LOG_SIZE(queuesize_read); LOG_SIZE(queuesize_write) ) ;
 
    if (queuesize_read)  {
       if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rvalue, len)) {
@@ -635,7 +635,7 @@ int readfrom_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata
    ssize_t                 bytes ;
 
    if (remoteaddr) {
-      PRECONDITION_INPUT(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
+      VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
 
       if (version_ipaddr(remoteaddr) != version_ipsocket(ipsock)) {
          err = EAFNOSUPPORT ;
@@ -676,7 +676,7 @@ int writeto_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t ma
    int     fd    = *ipsock ;
    ssize_t bytes ;
 
-   PRECONDITION_INPUT(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
 
    if (ipprotocol_UDP != protocol_ipaddr(remoteaddr)) {
       err = EPROTONOSUPPORT ;
@@ -731,9 +731,9 @@ int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struc
    int fd ;
    ipsocket_t new_ipsock = ipsocket_INIT_FREEABLE ;
 
-   PRECONDITION_INPUT(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
-   PRECONDITION_INPUT(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
-   PRECONDITION_INPUT(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
 
    err = initsocket_helper(&new_ipsock, localaddr) ;
    if (err) goto ABBRUCH ;

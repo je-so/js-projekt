@@ -57,7 +57,7 @@ int checkpath_directory(const directory_t * dir, const char * const file_path)
    int err ;
    struct stat sbuf ;
 
-   PRECONDITION_INPUT(0 != file_path, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 != file_path, ABBRUCH, ) ;
 
    if (dir) {
       err = fstatat(fd_sysdir(dir), file_path, &sbuf, 0) ;
@@ -77,7 +77,7 @@ sys_filedescr_t fd_directory(const directory_t * dir)
 {
    int err ;
 
-   PRECONDITION_INPUT(0 != dir, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 != dir, ABBRUCH, ) ;
 
    return fd_sysdir(dir) ;
 ABBRUCH:
@@ -288,7 +288,7 @@ int gofirst_directory(directory_t * dir)
 {
    int err ;
 
-   PRECONDITION_INPUT(dir, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(dir, ABBRUCH, ) ;
 
    rewinddir(DIR_sysdir(dir)) ;
    return 0 ;

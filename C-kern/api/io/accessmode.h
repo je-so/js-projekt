@@ -49,7 +49,7 @@ enum accessmode_e {
     accessmode_NONE        = 0
    ,accessmode_READ        = 1
    ,accessmode_WRITE       = 2
-   ,accessmode_RDWR        = (accessmode_READ|accessmode_WRITE) // 3
+   ,accessmode_RDWR        = /*3*/ (accessmode_READ|accessmode_WRITE)
    ,accessmode_EXEC        = 4
    ,accessmode_PRIVATE     = 8
    ,accessmode_SHARED      = 16

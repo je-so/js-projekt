@@ -118,9 +118,9 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
    const size_t    pagesize  = pagesize_vm() ;
    int             openatfd  = AT_FDCWD ;
 
-   PRECONDITION_INPUT(0 <= file_offset && 0 == (file_offset % pagesize), ABBRUCH, LOG_UINT64(file_offset)) ;
+   VALIDATE_INPARAM_TEST(0 <= file_offset && 0 == (file_offset % pagesize), ABBRUCH, LOG_UINT64(file_offset)) ;
 
-   PRECONDITION_INPUT(
+   VALIDATE_INPARAM_TEST(
             (mode & accessmode_READ)
          && !(mode & (typeof(mode))(~(accessmode_READ|accessmode_WRITE|accessmode_SHARED|accessmode_PRIVATE)))
          &&  (mode & (accessmode_SHARED|accessmode_PRIVATE)) != (accessmode_SHARED|accessmode_PRIVATE)
@@ -158,7 +158,7 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
    int  fd       = -1 ;
    int  openatfd = AT_FDCWD ;
 
-   PRECONDITION_INPUT(0 != size, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 != size, ABBRUCH, ) ;
 
    if (relative_to) {
       openatfd = dirfd((DIR*)(intptr_t)relative_to) ;

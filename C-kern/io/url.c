@@ -190,7 +190,7 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
    const char     * slashpos = strchrnul(encodedstr, '/') ;
    url_parts_t    parts      = url_parts_INIT_FREEABLE ;
 
-   PRECONDITION_INPUT( (unsigned)scheme <= url_scheme_HTTP, ABBRUCH, LOG_INT(scheme)) ;
+   VALIDATE_INPARAM_TEST( (unsigned)scheme <= url_scheme_HTTP, ABBRUCH, LOG_INT(scheme)) ;
 
    if (     (pos = strchrnul(next, '@'))
          && pos < slashpos) {

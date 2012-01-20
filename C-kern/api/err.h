@@ -1,7 +1,7 @@
 /* title: ErrorHandling
 
    - Includes macros for error logging. See <Errorlog>.
-   - Include macros to check for preconditions. See <Precondition>.
+   - Include macros to test for valid conditions. See <AssertTest>, <ValidationTest>.
 
    about: Copyright
    This program is free software.
@@ -24,9 +24,9 @@
 #ifndef CKERN_API_ERRORHANDLING_HEADER
 #define CKERN_API_ERRORHANDLING_HEADER
 
-#include "C-kern/api/errhandling/assert.h"
-#include "C-kern/api/errhandling/errlog_macros.h"
-#include "C-kern/api/errhandling/precondition.h"
+#include "C-kern/api/test/assert.h"
+#include "C-kern/api/test/validate.h"
+#include "C-kern/api/umg/errlog_macros.h"
 
 
 #endif

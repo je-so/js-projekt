@@ -296,7 +296,7 @@ int base64decode_string(const string_t * str, wbuffer_t * result)
    int32_t        quadr ;
    uint8_t        * dest ;
 
-   PRECONDITION_INPUT(0 == (str->size % 4), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (str->size % 4), ABBRUCH, ) ;
 
    if (!count) {
       return 0 ;

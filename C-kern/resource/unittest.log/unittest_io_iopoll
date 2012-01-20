@@ -2,10 +2,10 @@ C-kern/os/Linux/io/iopoll.c:142: wait_iopoll(): error: Function aborted (err=11)
 C-kern/os/Linux/io/iopoll.c:142: wait_iopoll(): error: Function aborted (err=11)
 C-kern/os/Linux/io/iopoll.c:389: processevents_iopoll(): error: Function aborted (err=11)
 C-kern/os/Linux/io/iopoll.c:220: free_iopoll(): error: All resources can not be freed (err=11)
-C-kern/os/Linux/io/iopoll.c:230: registerfd_iopoll(): error: Function argument violates condition (! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)))
+C-kern/os/Linux/io/iopoll.c:230: registerfd_iopoll(): error: Function input violates condition (! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)))
 ioevent=128
 C-kern/os/Linux/io/iopoll.c:265: registerfd_iopoll(): error: Function aborted (err=22)
-C-kern/os/Linux/io/iopoll.c:275: changeioevent_iopoll(): error: Function argument violates condition (! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)))
+C-kern/os/Linux/io/iopoll.c:275: changeioevent_iopoll(): error: Function input violates condition (! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)))
 ioevent=128
 C-kern/os/Linux/io/iopoll.c:298: changeioevent_iopoll(): error: Function aborted (err=22)
 C-kern/os/Linux/io/iopoll.c:243: registerfd_iopoll(): error: System call 'epoll_ctl(EPOLL_CTL_ADD)' returned error (err=17): 'File exists'

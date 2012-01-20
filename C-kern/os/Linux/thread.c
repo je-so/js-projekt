@@ -181,7 +181,7 @@ static int init_threadstack(thread_stack_t * stackframe, uint32_t nr_threads)
          .size = page_size/*last tail protection page*/ + nr_threads * framesize
    } ;
 
-   PRECONDITION_INPUT(nr_threads != 0, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(nr_threads != 0, ABBRUCH, ) ;
 
    if (     stack.size  < (size_t)  (stack.size-page_size)
          || framesize  != (size_t) ((stack.size-page_size) / nr_threads) ) {
@@ -476,8 +476,8 @@ int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, s
    bool              isThreadAttrValid = false ;
    const size_t      framesize         = framestacksize_threadstack() ;
 
-   PRECONDITION_INPUT(nr_of_threads != 0, ABBRUCH,)
-   PRECONDITION_INPUT(nr_of_threads < 256, ABBRUCH,)
+   VALIDATE_INPARAM_TEST(nr_of_threads != 0, ABBRUCH,)
+   VALIDATE_INPARAM_TEST(nr_of_threads < 256, ABBRUCH,)
 
    err = init_threadstack(&stackframe, nr_of_threads) ;
    if (err) goto ABBRUCH ;

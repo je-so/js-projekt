@@ -22,11 +22,11 @@ C-kern/os/Linux/io/ipsocket.c:369: remoteaddr_ipsocket(): error: Function aborte
 C-kern/os/Linux/io/ipsocket.c:357: remoteaddr_ipsocket(): error: System call 'getpeername' returned error (err=107): 'Transport endpoint is not connected'
 fd=3
 C-kern/os/Linux/io/ipsocket.c:369: remoteaddr_ipsocket(): error: Function aborted (err=107)
-C-kern/os/Linux/io/ipsocket.c:114: init_ipsocket(): error: Function argument violates condition (isvalid_ipaddr(localaddr))
+C-kern/os/Linux/io/ipsocket.c:114: init_ipsocket(): error: Function input violates condition (isvalid_ipaddr(localaddr))
 C-kern/os/Linux/io/ipsocket.c:126: init_ipsocket(): error: Function aborted (err=22)
-C-kern/os/Linux/io/ipsocket.c:114: init_ipsocket(): error: Function argument violates condition (isvalid_ipaddr(localaddr))
+C-kern/os/Linux/io/ipsocket.c:114: init_ipsocket(): error: Function input violates condition (isvalid_ipaddr(localaddr))
 C-kern/os/Linux/io/ipsocket.c:126: init_ipsocket(): error: Function aborted (err=22)
-C-kern/os/Linux/io/ipsocket.c:138: initconnect_ipsocket(): error: Function argument violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
+C-kern/os/Linux/io/ipsocket.c:138: initconnect_ipsocket(): error: Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
 C-kern/os/Linux/io/ipsocket.c:157: initconnect_ipsocket(): error: Function aborted (err=22)
 C-kern/os/Linux/io/ipsocket.c:207: initwaitconnect_ipsocket(): error: System call 'accept4' returned error (err=22): 'Invalid argument'
 fd=4
@@ -73,7 +73,7 @@ C-kern/os/Linux/io/ipsocket.c:706: writeto_ipsocket(): error: Function aborted (
 C-kern/os/Linux/io/ipsocket.c:706: writeto_ipsocket(): error: Function aborted (err=97)
 C-kern/os/Linux/io/ipsocket.c:669: readfrom_ipsocket(): error: Function aborted (err=97)
 C-kern/os/Linux/io/ipsocket.c:706: writeto_ipsocket(): error: Function aborted (err=93)
-C-kern/os/Linux/io/ipsocket.c:736: initconnect_ipsocketasync(): error: Function argument violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
+C-kern/os/Linux/io/ipsocket.c:736: initconnect_ipsocketasync(): error: Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
 C-kern/os/Linux/io/ipsocket.c:769: initconnect_ipsocketasync(): error: Function aborted (err=22)
 C-kern/os/Linux/io/ipsocket.c:758: initconnect_ipsocketasync(): error: System call 'connect' returned error (err=97): 'Address family not supported by protocol'
 fd=4

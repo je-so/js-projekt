@@ -162,8 +162,8 @@ int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * nume
    int err ;
    ipaddr_t * new_addr = 0 ;
 
-   PRECONDITION_INPUT(0 == (*addr), ABBRUCH, ) ;
-   PRECONDITION_INPUT(numeric_addr, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (*addr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(numeric_addr, ABBRUCH, ) ;
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
@@ -214,8 +214,8 @@ int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const cha
    int err ;
    struct addrinfo * addrinfo_list = 0 ;
 
-   PRECONDITION_INPUT(0 == (*addr), ABBRUCH, ) ;
-   PRECONDITION_INPUT(hostname, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (*addr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(hostname, ABBRUCH, ) ;
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
@@ -252,8 +252,8 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
    int err ;
    ipaddr_t * new_addr = 0 ;
 
-   PRECONDITION_INPUT(0 == (*addr), ABBRUCH, ) ;
-   PRECONDITION_INPUT(sock_addr, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (*addr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(sock_addr, ABBRUCH, ) ;
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
@@ -303,8 +303,8 @@ int newcopy_ipaddr(/*out*/ipaddr_t ** dest, const ipaddr_t * source)
 {
    int err ;
 
-   PRECONDITION_INPUT(0 == *dest, ABBRUCH, ) ;
-   PRECONDITION_INPUT(isvalid_ipaddr(source), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == *dest, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(source), ABBRUCH, ) ;
 
    err = newaddr_ipaddr(dest, source->protocol, source->addrlen, source->addr) ;
    if (err) goto ABBRUCH ;
@@ -484,7 +484,7 @@ int copy_ipaddr(ipaddr_t * dest, const ipaddr_t * source)
 {
    int err ;
 
-   PRECONDITION_INPUT( isvalid_ipaddr(source), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST( isvalid_ipaddr(source), ABBRUCH, ) ;
 
    if (  source->addrlen        != dest->addrlen
       || version_ipaddr(source) != version_ipaddr(dest)) {
@@ -521,7 +521,7 @@ int setport_ipaddr(ipaddr_t * addr, ipport_t port)
 {
    int err ;
 
-   PRECONDITION_INPUT( isvalid_ipaddr(addr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST( isvalid_ipaddr(addr), ABBRUCH, ) ;
 
    ((struct sockaddr_in*)addr->addr)->sin_port = htons(port) ;
 
@@ -535,7 +535,7 @@ int setaddr_ipaddr(ipaddr_t * addr, ipprotocol_e protocol, uint16_t sock_addr_le
 {
    int err ;
 
-   PRECONDITION_INPUT( isvalid_ipaddr(addr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST( isvalid_ipaddr(addr), ABBRUCH, ) ;
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
@@ -662,7 +662,7 @@ int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotoco
    struct addrinfo   addrinfo_filter ;
    struct addrinfo * addrinfo_list ;
 
-   PRECONDITION_INPUT(ipprotocol_TCP == protocol || ipprotocol_UDP == protocol, ABBRUCH, LOG_INT(protocol)) ;
+   VALIDATE_INPARAM_TEST(ipprotocol_TCP == protocol || ipprotocol_UDP == protocol, ABBRUCH, LOG_INT(protocol)) ;
 
    memset( &addrinfo_filter, 0, sizeof(addrinfo_filter)) ;
    addrinfo_filter.ai_family   = AF_INET ;

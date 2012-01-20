@@ -51,7 +51,7 @@ int initumgebung_valuecache(/*out*/valuecache_t ** valuecache, umgebung_shared_t
 
    (void) shared ;
 
-   PRECONDITION_INPUT(0 == *valuecache, ABBRUCH,) ;
+   VALIDATE_INPARAM_TEST(0 == *valuecache, ABBRUCH,) ;
 
    new_valuecache = malloc(sizeof(valuecache_t)) ;
    if (!new_valuecache) {

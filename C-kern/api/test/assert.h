@@ -1,4 +1,4 @@
-/* title: Assert
+/* title: AssertTest
    Defines system specific assert macro.
 
    about: Copyright
@@ -16,11 +16,11 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/errhandling/assert.h
-    Header file of <Assert>.
+   file: C-kern/api/test/assert.h
+    Header file of <AssertTest>.
 */
-#ifndef CKERN_ERRORHANDLING_ASSERT_HEADER
-#define CKERN_ERRORHANDLING_ASSERT_HEADER
+#ifndef CKERN_TEST_ASSERT_HEADER
+#define CKERN_TEST_ASSERT_HEADER
 
 /* define: assert
  * Prints »Assertion failed« and aborts process.
