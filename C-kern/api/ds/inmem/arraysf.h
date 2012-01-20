@@ -48,17 +48,21 @@ typedef int                         (* arraysf_itercb_f) (arraysf_itercb_t * ite
 
 /* enums: arraysf_e
  *
+ * arraysf_6BITROOT_UNSORTED  - This root is optimized for values between 0 .. 63. The root is accessed with the
+ *                              the lowest 6 bit of the index (pos % 64) or (pos & 0x3f).
+ * arraysf_8BITROOT_UNSORTED  - This root is optimized for values between 0 .. 255. The root is accessed with the
+ *                      the lowest 8 bit of the index  (pos % 256) or (pos & 0xff).
  * arraysf_MSBPOSROOT - This root is optimized for indizes *pos* which differ in MSBit position.
  *                      The size of the root array is 1 + 3*(bitsize(size_t)/2).
- * arraysf_8BITROOT0  - This root is optimized for values between 0 .. 255. The root is accessed with the
- *                      the lowest 8 bit of the number (pos % 256) or (pos & 0xff).
  * arraysf_8BITROOT24 - If MSBit positions are always >= 24 (and < 32) as is the case for IPv4 addresses
  *                      this root distribution must be used. The root is accessed with the
  *                      the highest 8 bit of a 32 bit number. The number should be less or equal than UINT32_MAX.
+ *                      If numbers are hight than that stored numbers con not be iterated in ascending order.
  * */
 enum arraysf_e {
-    arraysf_MSBPOSROOT
-   ,arraysf_8BITROOT0
+    arraysf_6BITROOT_UNSORTED
+   ,arraysf_8BITROOT_UNSORTED
+   ,arraysf_MSBPOSROOT
    ,arraysf_8BITROOT24
 } ;
 

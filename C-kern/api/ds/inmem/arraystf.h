@@ -97,7 +97,7 @@ extern int unittest_ds_inmem_arraystf(void) ;
  *
  * From the root node to the leaf node only such offset/bit combinations are compared if there exist
  * at least two stored keys which have different values at this position.
- * Therefore leaf nodes (type <arraystf_node_t>) has a depth of less than (key length in bits)/2
+ * Therefore leaf nodes (type <arraystf_node_t>) have always a depth of less than (key length in bits)/2
  * The mean depth is log2(number of stored keys)/2.
  *
  * Special Encoding:

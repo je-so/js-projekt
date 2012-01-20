@@ -178,9 +178,10 @@ ABBRUCH:
 
 // group: helper
 
-static uint16_t s_arraysf_nrelemroot[3] = {
-    [arraysf_MSBPOSROOT] = 1/*0 value*/ + (8 * sizeof(size_t)/*in bits*/) / 2 * 3   // per 2 bit 3 entries (1 bit always set)
-   ,[arraysf_8BITROOT0]  = 256
+static uint16_t s_arraysf_nrelemroot[4] = {
+    [arraysf_6BITROOT_UNSORTED] = 64
+   ,[arraysf_8BITROOT_UNSORTED] = 256
+   ,[arraysf_MSBPOSROOT] = 1/*0 value*/ + (8 * sizeof(size_t)/*in bits*/) / 2 * 3   // per 2 bit 3 entries (1 bit always set)
    ,[arraysf_8BITROOT24] = 256
 } ;
 
@@ -211,14 +212,16 @@ static int find_arraysf(const arraysf_t * array, size_t pos, /*err;out*/arraysf_
    unsigned rootindex ;
 
    switch(array->type) {
-   case arraysf_MSBPOSROOT:   rootindex  = (log2_int(pos) & ~0x01u) ;
-                              rootindex += (0x03u & (pos >> rootindex)) + (rootindex >> 1) ;
-                              break ;
-   case arraysf_8BITROOT0:    rootindex = (0xFF & pos) ;
-                              break ;
-   case arraysf_8BITROOT24:   rootindex = (0xFF & (pos >> 24)) ;
-                              break ;
-   default:                   return EINVAL ;
+   case arraysf_6BITROOT_UNSORTED:  rootindex = (0x3F & pos) ;
+                                    break ;
+   case arraysf_8BITROOT_UNSORTED:  rootindex = (0xFF & pos) ;
+                                    break ;
+   case arraysf_MSBPOSROOT:         rootindex  = (log2_int(pos) & ~0x01u) ;
+                                    rootindex += (0x03u & (pos >> rootindex)) + (rootindex >> 1) ;
+                                    break ;
+   case arraysf_8BITROOT24:         rootindex = (0xFF & (pos >> 24)) ;
+                                    break ;
+   default:                         return EINVAL ;
    }
 
    arraysf_node_t       * node      = array->root[rootindex] ;
@@ -752,7 +755,7 @@ static int test_initfree(void)
    TEST(0 == array) ;
 
    // TEST init, double free
-   for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
+   for(arraysf_e type = arraysf_6BITROOT_UNSORTED; type <= arraysf_8BITROOT24; ++type) {
       TEST(0 == new_arraysf(&array, type, 0)) ;
       TEST(0 != array) ;
       TEST(type == array->type) ;
@@ -762,10 +765,14 @@ static int test_initfree(void)
       TEST(0 != array->impit->malloc) ;
       TEST(0 != array->impit->free) ;
       TEST(0 == nrelements_arraysf(array)) ;
-      if (type == arraysf_MSBPOSROOT) {
-         TEST(nrelemroot_arraysf(array) == 1+sizeof(size_t)*12) ;
-      } else {
-         TEST(nrelemroot_arraysf(array) == 256) ;
+      switch(type) {
+      case arraysf_6BITROOT_UNSORTED:  TEST(nrelemroot_arraysf(array) == 64) ;
+                                       break ;
+      case arraysf_8BITROOT_UNSORTED:
+      case arraysf_8BITROOT24:         TEST(nrelemroot_arraysf(array) == 256) ;
+                                       break ;
+      case arraysf_MSBPOSROOT:         TEST(nrelemroot_arraysf(array) == 1+sizeof(size_t)*12) ;
+                                       break ;
       }
       for(unsigned i = 0; i < nrelemroot_arraysf(array); ++i) {
          TEST(0 == array->root[i]) ;
@@ -776,52 +783,36 @@ static int test_initfree(void)
       TEST(0 == array) ;
    }
 
-   // TEST arraysf_MSBPOSROOT: root distribution
-   TEST(0 == new_arraysf(&array, arraysf_MSBPOSROOT, 0)) ;
-   for(size_t add = 1, pos = 0, ri = 0; add; pos -= add, add <<= 2, pos += add) {
-      for(size_t count = pos?3:4; count; ++ri, pos += add, --count) {
-         testnode_t     node            = { .node.pos = pos } ;
-         arraysf_node_t * inserted_node = 0 ;
+   // TEST root distributions
+   for(arraysf_e type = arraysf_6BITROOT_UNSORTED; type <= arraysf_8BITROOT24; ++type) {
+      TEST(0 == new_arraysf(&array, type, 0)) ;
+      for(size_t pos1 = 0, pos2 = 0; pos1 < 256; ++ pos1, pos2 = (pos2 + (pos2 == 0)) << 1) {
+         size_t          pos             = pos1 + pos2 ;
+         testnode_t      node            = { .node = arraysf_node_INIT(pos) } ;
+         arraysf_node_t  * inserted_node = 0 ;
          TEST(0 == tryinsert_arraysf(array, &node.node, &inserted_node)) ;
          TEST(inserted_node == &node.node) ;
          TEST(1 == array->nr_elements) ;
+         size_t ri ;
+         switch(type) {
+         case arraysf_6BITROOT_UNSORTED:     ri = (pos & 63) ; break ;
+         case arraysf_8BITROOT_UNSORTED:     ri = (pos & 255) ; break ;
+         case arraysf_MSBPOSROOT:   ri = ~0x01u & log2_int(pos) ;
+                                    ri = 3 * (ri/2) + ((pos >> ri) & 0x03u) ; break ;
+         case arraysf_8BITROOT24:   ri = (pos >> 24) ; break ;
+         }
          TEST(ri < nrelemroot_arraysf(array)) ;
          TEST(&node.node == array->root[ri]) ;
          for(unsigned i = 0; i < nrelemroot_arraysf(array); ++i) {
             if (i == ri) continue ;
             TEST(0 == array->root[i]) ;
          }
-         TEST(inserted_node == at_arraysf(array, pos)) ;
-         arraysf_node_t * removed_node = 0 ;
-         TEST(0 == tryremove_arraysf(array, pos, &removed_node)) ;
+         TEST(0 == tryremove_arraysf(array, pos, 0)) ;
          TEST(0 == array->nr_elements) ;
          TEST(0 == array->root[ri]) ;
-         TEST(inserted_node == removed_node) ;
       }
+      TEST(0 == delete_arraysf(&array)) ;
    }
-   TEST(0 == delete_arraysf(&array)) ;
-
-   // TEST arraysf_8BITROOT0: root distribution
-   TEST(0 == new_arraysf(&array, arraysf_8BITROOT0, 0)) ;
-   for(size_t pos = 0, ri = 0; pos < 256; pos += 1, ++ri) {
-      testnode_t     node            = { .node.pos = pos } ;
-      arraysf_node_t * inserted_node = 0 ;
-      TEST(0 == tryinsert_arraysf(array, &node.node, &inserted_node)) ;
-      TEST(inserted_node == &node.node) ;
-      TEST(1 == array->nr_elements) ;
-      TEST(ri < nrelemroot_arraysf(array)) ;
-      TEST(&node.node == array->root[ri]) ;
-      for(unsigned i = 0; i < nrelemroot_arraysf(array); ++i) {
-         if (i == ri) continue ;
-         TEST(0 == array->root[i]) ;
-      }
-      arraysf_node_t * removed_node = 0 ;
-      TEST(0 == tryremove_arraysf(array, pos, &removed_node)) ;
-      TEST(0 == array->nr_elements) ;
-      TEST(0 == array->root[ri]) ;
-      TEST(inserted_node == removed_node) ;
-   }
-   TEST(0 == delete_arraysf(&array)) ;
 
    // TEST arraysf_8BITROOT24: root distribution
    TEST(0 == new_arraysf(&array, arraysf_8BITROOT24, 0)) ;
@@ -963,7 +954,7 @@ static int test_initfree(void)
    }
 
    // TEST insert_arraysf at_arraysf remove_arraysf forward
-   for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
+   for(arraysf_e type = arraysf_6BITROOT_UNSORTED; type <= arraysf_8BITROOT24; ++type) {
       TEST(0 == delete_arraysf(&array)) ;
       TEST(0 == new_arraysf(&array, type, 0)) ;
       for(size_t pos = 0; pos < nrnodes; ++pos) {
@@ -989,7 +980,7 @@ static int test_initfree(void)
    }
 
    // TEST insert_arraysf at_arraysf remove_arraysf backward
-   for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
+   for(arraysf_e type = arraysf_6BITROOT_UNSORTED; type <= arraysf_8BITROOT24; ++type) {
       TEST(0 == delete_arraysf(&array)) ;
       TEST(0 == new_arraysf(&array, type, &impit)) ;
       for(size_t pos = nrnodes; (pos --); ) {
@@ -1040,7 +1031,7 @@ static int test_initfree(void)
    TEST(0 == delete_arraysf(&array)) ;
 
    // TEST delete_arraysf frees memory
-   for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
+   for(arraysf_e type = arraysf_6BITROOT_UNSORTED; type <= arraysf_8BITROOT24; ++type) {
       TEST(0 == new_arraysf(&array, type, 0)) ;
       TEST(0 != impolicy_arraysf(array)) ;
       TEST(0 == impolicy_arraysf(array)->copynode) ;
@@ -1057,7 +1048,7 @@ static int test_initfree(void)
    // TEST delete_arraysf frees also nodes
    impit.copynode = 0;
    impit.freenode = &test_freenode ;
-   for(arraysf_e type = arraysf_MSBPOSROOT; type <= arraysf_8BITROOT24; ++type) {
+   for(arraysf_e type = arraysf_6BITROOT_UNSORTED; type <= arraysf_8BITROOT24; ++type) {
       memset(nodea, 0, sizeof(testnode_t) * nrnodes) ;
       TEST(0 == new_arraysf(&array, type, &impit)) ;
       unsigned nr = 0 ;

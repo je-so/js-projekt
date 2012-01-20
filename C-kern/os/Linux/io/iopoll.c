@@ -164,7 +164,7 @@ int init_iopoll(/*out*/iopoll_t * iopoll)
    err = new_arraysfimp(&impit, sizeof(iopoll_fdinfo_t), offsetof(iopoll_fdinfo_t, fd)) ;
    if (err) goto ABBRUCH ;
 
-   err = new_arraysf(&fdinfo, arraysf_MSBPOSROOT, impit) ;
+   err = new_arraysf(&fdinfo, arraysf_6BITROOT_UNSORTED, impit) ;
    if (err) goto ABBRUCH ;
 
    iopoll->sys_poll     = efd ;
