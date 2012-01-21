@@ -19,7 +19,7 @@
    file: C-kern/api/io/ip/ipaddr.h
     Header file of <Internetprotocol-Address>.
 
-   file: C-kern/os/Linux/io/ipaddr.c
+   file: C-kern/platform/Linux/io/ipaddr.c
     Linux specific implementation <Internetprotocol-Address Linux>.
 */
 #ifndef CKERN_IO_INTERNETPROTOCOL_ADDRESS_HEADER

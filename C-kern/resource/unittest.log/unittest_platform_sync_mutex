@@ -1,0 +1,24 @@
+C-kern/platform/Linux/mutex.c:82: free_mutex(): error: Function aborted (err=16)
+C-kern/platform/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=22)
+C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=22)
+C-kern/platform/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=35)
+C-kern/platform/Linux/mutex.c:82: free_mutex(): error: Function aborted (err=16)
+C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=1)
+C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=1)
+C-kern/platform/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=22)
+C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=22)
+C-kern/platform/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=35)
+C-kern/platform/Linux/mutex.c:475: test_mutex_slock(): error: Assertion '! _err_slock_mutex' failed.
+C-kern/umgebung/umgebung.c:448: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=1)
+C-kern/platform/Linux/mutex.c:491: test_mutex_slock(): error: Assertion '! _err_sunlock_mutex' failed.
+C-kern/umgebung/umgebung.c:448: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=1)
+C-kern/platform/Linux/mutex.c:510: test_mutex_slock(): error: Assertion '! _err_sunlock_mutex' failed.
+C-kern/umgebung/umgebung.c:448: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/platform/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=22)
+C-kern/platform/Linux/mutex.c:521: test_mutex_slock(): error: Assertion '! _err_slock_mutex' failed.
+C-kern/umgebung/umgebung.c:448: abort_umgebung(): error: Abort process with fatal error (err=22)
+C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=22)
+C-kern/platform/Linux/mutex.c:529: test_mutex_slock(): error: Assertion '! _err_sunlock_mutex' failed.
+C-kern/umgebung/umgebung.c:448: abort_umgebung(): error: Abort process with fatal error (err=22)

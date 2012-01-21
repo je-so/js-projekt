@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/ds/inmem/binarystack.h"
-#include "C-kern/api/os/virtmemory.h"
+#include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

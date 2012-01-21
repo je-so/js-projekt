@@ -13,7 +13,6 @@ Src           += C-kern/math/hash/*.c C-kern/math/int/*.c
 Src           += C-kern/memory/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/test/*.c
-# C-kern/test/speed/*.c
 Src           += C-kern/umgebung/*.c
 Src           += C-kern/writer/*.c
 Includes       = .

@@ -33,7 +33,7 @@
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
-#include "C-kern/api/os/locale.h"
+#include "C-kern/api/platform/locale.h"
 #include "C-kern/api/test/resourceusage.h"
 
 
@@ -279,10 +279,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_writer_mainlogwriter) ;
 //}
 
-//{ compiler unittest
-//}
-
-//{ os unittest
+//{ platform unittest
    // io
    RUN(unittest_io_filedescr) ;
    RUN(unittest_io_iopoll) ;
@@ -296,34 +293,32 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    RUN(unittest_io_ipaddr) ;
    RUN(unittest_io_ipsocket) ;
    // sync unittest
-   RUN(unittest_os_sync_mutex) ;
-   RUN(unittest_os_sync_semaphore) ;
-   RUN(unittest_os_sync_signal) ;
-   RUN(unittest_os_sync_waitlist) ;
+   RUN(unittest_platform_sync_mutex) ;
+   RUN(unittest_platform_sync_semaphore) ;
+   RUN(unittest_platform_sync_signal) ;
+   RUN(unittest_platform_sync_waitlist) ;
    // task unittest
-   RUN(unittest_os_task_exothread) ;
-   RUN(unittest_os_task_exoscheduler) ;
-   RUN(unittest_os_task_threadpool) ;
+   RUN(unittest_platform_task_exothread) ;
+   RUN(unittest_platform_task_exoscheduler) ;
+   RUN(unittest_platform_task_threadpool) ;
    // other
-   RUN(unittest_os_locale) ;
-   RUN(unittest_os_malloc) ;
-   RUN(unittest_os_process) ;
-   RUN(unittest_os_thread) ;
-   RUN(unittest_os_virtualmemory) ;
+   RUN(unittest_platform_locale) ;
+   RUN(unittest_platform_malloc) ;
+   RUN(unittest_platform_process) ;
+   RUN(unittest_platform_thread) ;
+   RUN(unittest_platform_virtualmemory) ;
    // database subsystem
-   RUN(unittest_os_index_redblacktree) ;
-   RUN(unittest_os_index_splaytree) ;
-//}
-
-//{ user interface subsystem
+   RUN(unittest_platform_index_redblacktree) ;
+   RUN(unittest_platform_index_splaytree) ;
+   // user interface subsystem
 #define HTML5  1
 #define X11    2
 #if ((KONFIG_USERINTERFACE)&HTML5)
 #endif
 #if ((KONFIG_USERINTERFACE)&X11)
-   RUN(unittest_userinterface_X11) ;
-   RUN(unittest_userinterface_X11_display) ;
-   RUN(unittest_userinterface_X11_glxwindow) ;
+   RUN(unittest_platform_gui_X11) ;
+   RUN(unittest_platform_gui_X11_display) ;
+   RUN(unittest_platform_gui_X11_glxwindow) ;
 #endif
 #undef HTML5
 #undef X11

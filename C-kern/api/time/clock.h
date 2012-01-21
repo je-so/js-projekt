@@ -19,7 +19,7 @@
    file: C-kern/api/time/clock.h
     Header file <Timeclock>.
 
-   file: C-kern/os/Linux/clock.c
+   file: C-kern/platform/Linux/clock.c
     Implementation file <Timeclock Linux>.
 */
 #ifndef CKERN_TIME_CLOCK_HEADER

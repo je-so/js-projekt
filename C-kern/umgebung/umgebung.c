@@ -29,14 +29,14 @@
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/umg/services_singlethread.h"
 #include "C-kern/api/umg/services_multithread.h"
-#include "C-kern/api/os/sync/mutex.h"
+#include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/writer/main_logwriter.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM(C-kern/resource/text.db/initonce)
-#include "C-kern/api/os/locale.h"
-#include "C-kern/api/userinterface/X11/x11.h"
-#include "C-kern/api/os/sync/signal.h"
-#include "C-kern/api/os/thread.h"
+#include "C-kern/api/platform/locale.h"
+#include "C-kern/api/platform/gui/X11/x11.h"
+#include "C-kern/api/platform/sync/signal.h"
+#include "C-kern/api/platform/thread.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

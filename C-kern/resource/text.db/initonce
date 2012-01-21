@@ -8,7 +8,7 @@
 # Free functions are called from last entry to first entry in freemain_umgebung.
 # The header-name field references the C99 header file which exports the function prototypes.
 "time",   "module",         "header-name"
-"before", "locale",         "C-kern/api/os/locale.h"
-"before", "X11",            "C-kern/api/userinterface/X11/x11.h"
-"before", "signalconfig",   "C-kern/api/os/sync/signal.h"
-"after",  "thread",         "C-kern/api/os/thread.h"
+"before", "locale",         "C-kern/api/platform/locale.h"
+"before", "X11",            "C-kern/api/platform/gui/X11/x11.h"
+"before", "signalconfig",   "C-kern/api/platform/sync/signal.h"
+"after",  "thread",         "C-kern/api/platform/thread.h"

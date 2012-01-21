@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Nov.23  18:30:24
+GenerationDate  := 2012.Jan.21  07:23:58
 GeneratedBy     := JE-SO
 
 ## Release
@@ -50,7 +50,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!services_multithread.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!signal.c.o
+ $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
@@ -64,7 +64,7 @@ $(ObjectDir_Release)/C-kern!umgebung!services_multithread.c.o: C-kern/umgebung/s
 $(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o: C-kern/umgebung/services_singlethread.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!signal.c.o: C-kern/os/Linux/signal.c
+$(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signal.c
 	@$(CC_Release)
 
 -include $(Objects_Release:.o=.d)

@@ -28,14 +28,14 @@
 #include "C-kern/api/writer/logwritermt.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/aspect/interface/log_it.h"
-#include "C-kern/api/os/sync/mutex.h"
+#include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/writer/main_logwriter.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
-#include "C-kern/api/os/thread.h"
-#include "C-kern/api/os/sync/signal.h"
+#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/sync/signal.h"
 #endif
 
 // section: logwritermt_t

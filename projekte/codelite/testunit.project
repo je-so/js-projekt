@@ -34,7 +34,6 @@
     </VirtualDirectory>
     <File Name="../../C-kern/main/testchildprocess_main.c"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="testunit"/>
   <VirtualDirectory Name="umgebung">
     <File Name="../../C-kern/umgebung/README"/>
     <File Name="../../C-kern/umgebung/umgebung.c"/>
@@ -72,32 +71,44 @@
       <File Name="../../C-kern/api/string/wstream_buffer.h"/>
       <File Name="../../C-kern/api/string/encode.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="os">
-      <File Name="../../C-kern/api/os/process.h"/>
-      <File Name="../../C-kern/api/os/thread.h"/>
-      <File Name="../../C-kern/api/os/virtmemory.h"/>
+    <VirtualDirectory Name="platform">
+      <File Name="../../C-kern/api/platform/process.h"/>
+      <File Name="../../C-kern/api/platform/thread.h"/>
+      <File Name="../../C-kern/api/platform/virtmemory.h"/>
       <VirtualDirectory Name="memory">
-        <File Name="../../C-kern/api/os/memory/memorystack.h"/>
+        <File Name="../../C-kern/api/platform/memory/memorystack.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Linux">
-        <File Name="../../C-kern/api/os/Linux/syskonfig.h"/>
+        <File Name="../../C-kern/api/platform/Linux/syskonfig.h"/>
+        <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="index">
-        <File Name="../../C-kern/api/os/index/splaytree.h"/>
-        <File Name="../../C-kern/api/os/index/redblacktree.h"/>
+        <File Name="../../C-kern/api/platform/index/splaytree.h"/>
+        <File Name="../../C-kern/api/platform/index/redblacktree.h"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/api/os/locale.h"/>
-      <File Name="../../C-kern/api/os/malloc.h"/>
+      <File Name="../../C-kern/api/platform/locale.h"/>
+      <File Name="../../C-kern/api/platform/malloc.h"/>
       <VirtualDirectory Name="task">
-        <File Name="../../C-kern/api/os/task/threadpool.h"/>
-        <File Name="../../C-kern/api/os/task/exoscheduler.h"/>
-        <File Name="../../C-kern/api/os/task/exothread.h"/>
+        <File Name="../../C-kern/api/platform/task/threadpool.h"/>
+        <File Name="../../C-kern/api/platform/task/exoscheduler.h"/>
+        <File Name="../../C-kern/api/platform/task/exothread.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="sync">
-        <File Name="../../C-kern/api/os/sync/semaphore.h"/>
-        <File Name="../../C-kern/api/os/sync/mutex.h"/>
-        <File Name="../../C-kern/api/os/sync/signal.h"/>
-        <File Name="../../C-kern/api/os/sync/waitlist.h"/>
+        <File Name="../../C-kern/api/platform/sync/semaphore.h"/>
+        <File Name="../../C-kern/api/platform/sync/mutex.h"/>
+        <File Name="../../C-kern/api/platform/sync/signal.h"/>
+        <File Name="../../C-kern/api/platform/sync/waitlist.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="gui">
+        <VirtualDirectory Name="X11">
+          <File Name="../../C-kern/api/platform/gui/X11/display.h"/>
+          <File Name="../../C-kern/api/platform/gui/X11/glxwindow.h"/>
+          <File Name="../../C-kern/api/platform/gui/X11/x11.h"/>
+          <VirtualDirectory Name="internal">
+            <File Name="../../C-kern/api/platform/gui/X11/internal/display_oostore.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+        <VirtualDirectory Name="html5"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <File Name="../../C-kern/api/umgebung.h"/>
@@ -138,15 +149,14 @@
       <File Name="../../C-kern/api/memory/memblock.h"/>
       <File Name="../../C-kern/api/memory/wbuffer.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="writer">
-      <File Name="../../C-kern/api/writer/logwriter.h"/>
-      <File Name="../../C-kern/api/writer/main_logwriter.h"/>
-      <File Name="../../C-kern/api/writer/logwritermt.h"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/objectcache.h"/>
       <File Name="../../C-kern/api/cache/valuecache.h"/>
       <File Name="../../C-kern/api/cache/objectcachemt.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="context">
+      <File Name="../../C-kern/api/context/processcontext.h"/>
+      <File Name="../../C-kern/api/context/threadcontext.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -191,21 +201,24 @@
       <File Name="../../C-kern/api/io/iocallback.h"/>
       <File Name="../../C-kern/api/io/iocontroler.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="userinterface">
-      <VirtualDirectory Name="X11">
-        <File Name="../../C-kern/api/userinterface/X11/display.h"/>
-        <File Name="../../C-kern/api/userinterface/X11/glxwindow.h"/>
-        <File Name="../../C-kern/api/userinterface/X11/x11.h"/>
-        <VirtualDirectory Name="internal">
-          <File Name="../../C-kern/api/userinterface/X11/internal/display_oostore.h"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
-      <VirtualDirectory Name="html5"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/clock.h"/>
       <File Name="../../C-kern/api/time/timespec.h"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="writer">
+      <File Name="../../C-kern/api/writer/logwriter.h"/>
+      <File Name="../../C-kern/api/writer/main_logwriter.h"/>
+      <File Name="../../C-kern/api/writer/logwritermt.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="cache">
+    <File Name="../../C-kern/cache/objectcache.c"/>
+    <File Name="../../C-kern/cache/valuecache.c"/>
+    <File Name="../../C-kern/cache/objectcachemt.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="context">
+    <File Name="../../C-kern/context/processcontext.c"/>
+    <File Name="../../C-kern/context/threadcontext.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="../../C-kern/test/run_statictest.sh"/>
@@ -239,7 +252,6 @@
     <File Name="../../C-kern/tools/hash.c"/>
     <File Name="../../C-kern/tools/hash.h"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="compiler"/>
   <VirtualDirectory Name="string">
     <File Name="../../C-kern/string/suffix_tree.c"/>
     <File Name="../../C-kern/string/wstream_buffer.c"/>
@@ -266,52 +278,51 @@
       <File Name="../../C-kern/resource/text.db/signalconfig"/>
     </VirtualDirectory>
   </VirtualDirectory>
-  <VirtualDirectory Name="os">
+  <VirtualDirectory Name="platform">
     <VirtualDirectory Name="Linux">
-      <File Name="../../C-kern/os/Linux/process.c"/>
-      <File Name="../../C-kern/os/Linux/thread.c"/>
-      <File Name="../../C-kern/os/Linux/virtmemory.c"/>
-      <File Name="../../C-kern/os/Linux/semaphore.c"/>
-      <File Name="../../C-kern/os/Linux/mutex.c"/>
-      <File Name="../../C-kern/os/Linux/signal.c"/>
-      <File Name="../../C-kern/os/Linux/locale.c"/>
-      <File Name="../../C-kern/os/Linux/waitlist.c"/>
-      <File Name="../../C-kern/os/Linux/malloc.c"/>
+      <File Name="../../C-kern/platform/Linux/process.c"/>
+      <File Name="../../C-kern/platform/Linux/thread.c"/>
+      <File Name="../../C-kern/platform/Linux/virtmemory.c"/>
+      <File Name="../../C-kern/platform/Linux/semaphore.c"/>
+      <File Name="../../C-kern/platform/Linux/mutex.c"/>
+      <File Name="../../C-kern/platform/Linux/signal.c"/>
+      <File Name="../../C-kern/platform/Linux/locale.c"/>
+      <File Name="../../C-kern/platform/Linux/waitlist.c"/>
+      <File Name="../../C-kern/platform/Linux/malloc.c"/>
       <VirtualDirectory Name="io">
-        <File Name="../../C-kern/os/Linux/io/directory.c"/>
-        <File Name="../../C-kern/os/Linux/io/file.c"/>
-        <File Name="../../C-kern/os/Linux/io/mmfile.c"/>
-        <File Name="../../C-kern/os/Linux/io/filedescr.c"/>
-        <File Name="../../C-kern/os/Linux/io/ipaddr.c"/>
-        <File Name="../../C-kern/os/Linux/io/ipsocket.c"/>
-        <File Name="../../C-kern/os/Linux/io/iotimer.c"/>
-        <File Name="../../C-kern/os/Linux/io/iopoll.c"/>
+        <File Name="../../C-kern/platform/Linux/io/directory.c"/>
+        <File Name="../../C-kern/platform/Linux/io/file.c"/>
+        <File Name="../../C-kern/platform/Linux/io/mmfile.c"/>
+        <File Name="../../C-kern/platform/Linux/io/filedescr.c"/>
+        <File Name="../../C-kern/platform/Linux/io/ipaddr.c"/>
+        <File Name="../../C-kern/platform/Linux/io/ipsocket.c"/>
+        <File Name="../../C-kern/platform/Linux/io/iotimer.c"/>
+        <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/os/Linux/clock.c"/>
+      <File Name="../../C-kern/platform/Linux/clock.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <VirtualDirectory Name="memory">
-        <File Name="../../C-kern/os/shared/memory/memorystack.c"/>
+        <File Name="../../C-kern/platform/shared/memory/memorystack.c"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/os/shared/execCcompiler.c"/>
-      <File Name="../../C-kern/os/shared/oostore.c"/>
+      <File Name="../../C-kern/platform/shared/execCcompiler.c"/>
+      <File Name="../../C-kern/platform/shared/oostore.c"/>
       <VirtualDirectory Name="index">
-        <File Name="../../C-kern/os/shared/index/splaytree.c"/>
-        <File Name="../../C-kern/os/shared/index/redblacktree.c"/>
+        <File Name="../../C-kern/platform/shared/index/splaytree.c"/>
+        <File Name="../../C-kern/platform/shared/index/redblacktree.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
-        <File Name="../../C-kern/os/shared/task/exoscheduler.c"/>
-        <File Name="../../C-kern/os/shared/task/exothread.c"/>
-        <File Name="../../C-kern/os/shared/task/threadpool.c"/>
+        <File Name="../../C-kern/platform/shared/task/exoscheduler.c"/>
+        <File Name="../../C-kern/platform/shared/task/exothread.c"/>
+        <File Name="../../C-kern/platform/shared/task/threadpool.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="X11">
-      <File Name="../../C-kern/os/X11/x11.c"/>
-      <File Name="../../C-kern/os/X11/display.c"/>
-      <File Name="../../C-kern/os/X11/glxwindow.c"/>
+      <File Name="../../C-kern/platform/X11/x11.c"/>
+      <File Name="../../C-kern/platform/X11/display.c"/>
+      <File Name="../../C-kern/platform/X11/glxwindow.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
-  <VirtualDirectory Name="graphik"/>
   <VirtualDirectory Name="math">
     <VirtualDirectory Name="int">
       <File Name="../../C-kern/math/int/power2.c"/>
@@ -330,11 +341,6 @@
     <File Name="../../C-kern/writer/logwriter.c"/>
     <File Name="../../C-kern/writer/main_logwriter.c"/>
     <File Name="../../C-kern/writer/logwritermt.c"/>
-  </VirtualDirectory>
-  <VirtualDirectory Name="cache">
-    <File Name="../../C-kern/cache/objectcache.c"/>
-    <File Name="../../C-kern/cache/valuecache.c"/>
-    <File Name="../../C-kern/cache/objectcachemt.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">

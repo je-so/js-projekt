@@ -19,7 +19,7 @@
    file: C-kern/api/io/filesystem/file.h
     Header file <File>.
 
-   file: C-kern/os/Linux/io/file.c
+   file: C-kern/platform/Linux/io/file.c
     Linux specific implementation <File Linux>.
 */
 #ifndef CKERN_IO_FILESYSTEM_FILE_HEADER

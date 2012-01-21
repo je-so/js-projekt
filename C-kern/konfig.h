@@ -19,7 +19,7 @@
    file: C-kern/konfig.h
     Header file of <Konfiguration>.
 
-   file: C-kern/api/os/Linux/syskonfig.h
+   file: C-kern/api/platform/Linux/syskonfig.h
     Linux specific configuration file <LinuxSystemKonfig>.
 */
 #ifndef CKERN_KONFIG_HEADER
@@ -300,12 +300,12 @@
 /* about: Include
  * Includes an operating system dependent include file.
  * It redefines all system specific settings and includes all system headers relevant for implementation.
- * > #include STR(C-kern/api/os/KONFIG_OS/syskonfig.h)
+ * > #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
  *
  * Filename:
- * The location of this system specific header is "C-kern/api/os/KONFIG_OS/syskonfig.h".
+ * The location of this system specific header is "C-kern/api/platform/KONFIG_OS/syskonfig.h".
  * <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for. */
-#include STR(C-kern/api/os/KONFIG_OS/syskonfig.h)
+#include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
 //}
 
 // group: 5. Standard environment

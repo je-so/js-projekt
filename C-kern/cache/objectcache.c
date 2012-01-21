@@ -27,10 +27,10 @@
 #include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/aspect/interface/objectcache_it.h"
-#include "C-kern/api/os/virtmemory.h"
+#include "C-kern/api/platform/virtmemory.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/os/process.h"
+#include "C-kern/api/platform/process.h"
 #include "C-kern/api/io/filedescr.h"
 #endif
 

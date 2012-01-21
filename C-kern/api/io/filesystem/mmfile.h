@@ -20,7 +20,7 @@
    file: C-kern/api/io/filesystem/mmfile.h
     Header file of <Memory-Mapped-File>.
 
-   file: C-kern/os/Linux/io/mmfile.c
+   file: C-kern/platform/Linux/io/mmfile.c
     Linux specific implementation <Memory-Mapped-File Linux>.
 */
 #ifndef CKERN_IO_FILESYSTEM_MEMORYMAPPEDFILE_HEADER

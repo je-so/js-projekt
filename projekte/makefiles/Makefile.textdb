@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2011.Dec.18  09:35:23
+GenerationDate  := 2012.Jan.21  07:23:58
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -74,8 +74,8 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o \
  $(ObjectDir_Debug)/C-kern!umgebung!services_singlethread.c.o \
@@ -84,12 +84,12 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o \
  $(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o \
@@ -98,8 +98,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!writer!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -107,10 +107,10 @@ $(Target_Debug): $(Objects_Debug)
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
@@ -137,16 +137,16 @@ $(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwrite
 $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o: C-kern/os/Linux/io/mmfile.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedescr.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Debug)
 
-$(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
+$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
+$(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
@@ -173,10 +173,10 @@ $(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwri
 $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o: C-kern/os/Linux/io/mmfile.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedescr.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

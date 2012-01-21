@@ -22,7 +22,7 @@
    file: C-kern/api/io/ip/ipaddr.h
     Use <Internetprotocol-Address> to construct ip-addresses.
 
-   file: C-kern/os/Linux/io/ipsocket.c
+   file: C-kern/platform/Linux/io/ipsocket.c
     Linux specific implementation <Internetprotocol-Sockets Linux>.
 */
 #ifndef CKERN_IO_INTERNETPROTOCOL_SOCKET_HEADER

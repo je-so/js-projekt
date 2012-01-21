@@ -1,4 +1,4 @@
 C-kern/ds/inmem/binarystack.c:59: init_binarystack(): error: Function aborted (err=12)
-C-kern/os/Linux/virtmemory.c:457: movexpand_vmblock(): error: Function aborted (err=12)
+C-kern/platform/Linux/virtmemory.c:457: movexpand_vmblock(): error: Function aborted (err=12)
 C-kern/ds/inmem/binarystack.c:104: push_binarystack(): error: Function aborted (err=12)
 C-kern/ds/inmem/binarystack.c:104: push_binarystack(): error: Function aborted (err=12)

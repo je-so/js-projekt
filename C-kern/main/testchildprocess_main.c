@@ -22,7 +22,7 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/os/process.h"
+#include "C-kern/api/platform/process.h"
 #include "C-kern/api/io/filedescr.h"
 
 enum testcase_e {

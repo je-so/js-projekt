@@ -21,7 +21,7 @@
    file: C-kern/api/io/iotimer.h
     Header file <IOTimer>.
 
-   file: C-kern/os/Linux/io/iotimer.c
+   file: C-kern/platform/Linux/io/iotimer.c
     Linux implementation file <IOTimer Linux>.
 */
 #ifndef CKERN_IO_IOTIMER_HEADER

@@ -19,4 +19,4 @@ Src           = C-kern/umgebung/umgebung.c
 Src           = C-kern/umgebung/umgebung_shared.c
 Src          += C-kern/umgebung/services_multithread.c
 Src          += C-kern/umgebung/services_singlethread.c
-Src          += C-kern/os/Linux/signal.c
+Src          += C-kern/platform/Linux/signal.c

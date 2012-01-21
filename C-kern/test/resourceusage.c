@@ -26,9 +26,9 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/io/filedescr.h"
-#include "C-kern/api/os/malloc.h"
-#include "C-kern/api/os/sync/signal.h"
-#include "C-kern/api/os/virtmemory.h"
+#include "C-kern/api/platform/malloc.h"
+#include "C-kern/api/platform/sync/signal.h"
+#include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

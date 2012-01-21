@@ -1,29 +1,29 @@
-C-kern/os/Linux/io/mmfile.c:161: initcreate_mmfile(): error: Function input violates condition (0 != size)
-C-kern/os/Linux/io/mmfile.c:194: initcreate_mmfile(): error: Function aborted (err=22)
-C-kern/os/Linux/io/mmfile.c:121: init_mmfile(): error: Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
+C-kern/platform/Linux/io/mmfile.c:161: initcreate_mmfile(): error: Function input violates condition (0 != size)
+C-kern/platform/Linux/io/mmfile.c:194: initcreate_mmfile(): error: Function aborted (err=22)
+C-kern/platform/Linux/io/mmfile.c:121: init_mmfile(): error: Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=18446744073709551615
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=22)
-C-kern/os/Linux/io/mmfile.c:121: init_mmfile(): error: Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=22)
+C-kern/platform/Linux/io/mmfile.c:121: init_mmfile(): error: Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=4097
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=22)
-C-kern/os/Linux/io/mmfile.c:170: initcreate_mmfile(): error: System call 'openat' returned error (err=17): 'File exists'
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=22)
+C-kern/platform/Linux/io/mmfile.c:170: initcreate_mmfile(): error: System call 'openat' returned error (err=17): 'File exists'
 file_path=mmfile
-C-kern/os/Linux/io/mmfile.c:194: initcreate_mmfile(): error: Function aborted (err=17)
-C-kern/os/Linux/io/mmfile.c:129: init_mmfile(): error: Function input violates condition ((mode & accessmode_READ) && !(mode & (typeof(mode))(~(accessmode_READ|accessmode_WRITE|accessmode_SHARED|accessmode_PRIVATE))) && (mode & (accessmode_SHARED|accessmode_PRIVATE)) != (accessmode_SHARED|accessmode_PRIVATE) && ( !(mode & accessmode_WRITE) || (mode & (accessmode_SHARED|accessmode_PRIVATE)) ))
+C-kern/platform/Linux/io/mmfile.c:194: initcreate_mmfile(): error: Function aborted (err=17)
+C-kern/platform/Linux/io/mmfile.c:129: init_mmfile(): error: Function input violates condition ((mode & accessmode_READ) && !(mode & (typeof(mode))(~(accessmode_READ|accessmode_WRITE|accessmode_SHARED|accessmode_PRIVATE))) && (mode & (accessmode_SHARED|accessmode_PRIVATE)) != (accessmode_SHARED|accessmode_PRIVATE) && ( !(mode & accessmode_WRITE) || (mode & (accessmode_SHARED|accessmode_PRIVATE)) ))
 mode=12
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=22)
-C-kern/os/Linux/io/mmfile.c:121: init_mmfile(): error: Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=22)
+C-kern/platform/Linux/io/mmfile.c:121: init_mmfile(): error: Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=4095
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=22)
-C-kern/os/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=61)
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=61)
-C-kern/os/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=61)
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=61)
-C-kern/os/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=12)
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=12)
-C-kern/os/Linux/io/mmfile.c:84: init2_mmfile(): error: System call 'mmap' returned error (err=12): 'Cannot allocate memory'
-C-kern/os/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=12)
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=12)
-C-kern/os/Linux/io/mmfile.c:84: init2_mmfile(): error: System call 'mmap' returned error (err=12): 'Cannot allocate memory'
-C-kern/os/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=12)
-C-kern/os/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=12)
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=22)
+C-kern/platform/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=61)
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=61)
+C-kern/platform/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=61)
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=61)
+C-kern/platform/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=12)
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=12)
+C-kern/platform/Linux/io/mmfile.c:84: init2_mmfile(): error: System call 'mmap' returned error (err=12): 'Cannot allocate memory'
+C-kern/platform/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=12)
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=12)
+C-kern/platform/Linux/io/mmfile.c:84: init2_mmfile(): error: System call 'mmap' returned error (err=12): 'Cannot allocate memory'
+C-kern/platform/Linux/io/mmfile.c:103: init2_mmfile(): error: Function aborted (err=12)
+C-kern/platform/Linux/io/mmfile.c:151: init_mmfile(): error: Function aborted (err=12)

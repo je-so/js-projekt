@@ -20,7 +20,7 @@
    file: C-kern/api/io/iopoll.h
     Header file <IOPoll>.
 
-   file: C-kern/os/Linux/io/iopoll.c
+   file: C-kern/platform/Linux/io/iopoll.c
     Linux specific implementation file <IOPoll Linux>.
 */
 #ifndef CKERN_IO_IOPOLL_HEADER

@@ -27,10 +27,10 @@
 #include "C-kern/api/cache/objectcachemt.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/aspect/interface/objectcache_it.h"
-#include "C-kern/api/os/sync/mutex.h"
+#include "C-kern/api/platform/sync/mutex.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/os/process.h"
+#include "C-kern/api/platform/process.h"
 #include "C-kern/api/io/filedescr.h"
 #endif
 

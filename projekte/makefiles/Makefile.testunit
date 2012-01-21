@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Jan.20  08:55:44
+GenerationDate  := 2012.Jan.21  07:23:58
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -74,29 +74,29 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!clock.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!malloc.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!semaphore.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!waitlist.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!signal.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!process.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!iopoll.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!file.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!ipaddr.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!iotimer.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o \
- $(ObjectDir_Debug)/C-kern!os!Linux!io!ipsocket.c.o \
- $(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o \
- $(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o \
- $(ObjectDir_Debug)/C-kern!os!shared!task!exothread.c.o \
- $(ObjectDir_Debug)/C-kern!os!shared!task!exoscheduler.c.o \
- $(ObjectDir_Debug)/C-kern!os!shared!task!threadpool.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!thread.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!clock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!semaphore.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!waitlist.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iotimer.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!shared!index!splaytree.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!shared!index!redblacktree.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!shared!task!exothread.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!shared!task!exoscheduler.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o \
  $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcachemt.c.o \
@@ -130,29 +130,29 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!os!Linux!thread.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!locale.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!clock.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!malloc.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!semaphore.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!waitlist.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!signal.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!process.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!iopoll.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!file.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!ipaddr.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!iotimer.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o \
- $(ObjectDir_Release)/C-kern!os!Linux!io!ipsocket.c.o \
- $(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o \
- $(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o \
- $(ObjectDir_Release)/C-kern!os!shared!task!exothread.c.o \
- $(ObjectDir_Release)/C-kern!os!shared!task!exoscheduler.c.o \
- $(ObjectDir_Release)/C-kern!os!shared!task!threadpool.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!thread.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!clock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!waitlist.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iotimer.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
+ $(ObjectDir_Release)/C-kern!platform!shared!index!splaytree.c.o \
+ $(ObjectDir_Release)/C-kern!platform!shared!index!redblacktree.c.o \
+ $(ObjectDir_Release)/C-kern!platform!shared!task!exothread.c.o \
+ $(ObjectDir_Release)/C-kern!platform!shared!task!exoscheduler.c.o \
+ $(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o \
  $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcachemt.c.o \
@@ -191,73 +191,73 @@ $(Target_Debug): $(Objects_Debug)
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!thread.c.o: C-kern/platform/Linux/thread.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!clock.c.o: C-kern/os/Linux/clock.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!clock.c.o: C-kern/platform/Linux/clock.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!malloc.c.o: C-kern/os/Linux/malloc.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!semaphore.c.o: C-kern/os/Linux/semaphore.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!waitlist.c.o: C-kern/os/Linux/waitlist.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!waitlist.c.o: C-kern/platform/Linux/waitlist.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!signal.c.o: C-kern/os/Linux/signal.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signal.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o: C-kern/platform/Linux/process.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!mutex.c.o: C-kern/os/Linux/mutex.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!iopoll.c.o: C-kern/os/Linux/io/iopoll.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!file.c.o: C-kern/os/Linux/io/file.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!directory.c.o: C-kern/os/Linux/io/directory.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!ipaddr.c.o: C-kern/os/Linux/io/ipaddr.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!iotimer.c.o: C-kern/os/Linux/io/iotimer.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iotimer.c.o: C-kern/platform/Linux/io/iotimer.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedescr.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!mmfile.c.o: C-kern/os/Linux/io/mmfile.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!Linux!io!ipsocket.c.o: C-kern/os/Linux/io/ipsocket.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!index!splaytree.c.o: C-kern/os/shared/index/splaytree.c
+$(ObjectDir_Debug)/C-kern!platform!shared!index!splaytree.c.o: C-kern/platform/shared/index/splaytree.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!index!redblacktree.c.o: C-kern/os/shared/index/redblacktree.c
+$(ObjectDir_Debug)/C-kern!platform!shared!index!redblacktree.c.o: C-kern/platform/shared/index/redblacktree.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!task!exothread.c.o: C-kern/os/shared/task/exothread.c
+$(ObjectDir_Debug)/C-kern!platform!shared!task!exothread.c.o: C-kern/platform/shared/task/exothread.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!task!exoscheduler.c.o: C-kern/os/shared/task/exoscheduler.c
+$(ObjectDir_Debug)/C-kern!platform!shared!task!exoscheduler.c.o: C-kern/platform/shared/task/exoscheduler.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!os!shared!task!threadpool.c.o: C-kern/os/shared/task/threadpool.c
+$(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o: C-kern/platform/shared/task/threadpool.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
@@ -353,73 +353,73 @@ $(ObjectDir_Debug)/C-kern!writer!logwritermt.c.o: C-kern/writer/logwritermt.c
 $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
 	@$(CC_Debug)
 
-$(ObjectDir_Release)/C-kern!os!Linux!thread.c.o: C-kern/os/Linux/thread.c
+$(ObjectDir_Release)/C-kern!platform!Linux!thread.c.o: C-kern/platform/Linux/thread.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!locale.c.o: C-kern/os/Linux/locale.c
+$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!clock.c.o: C-kern/os/Linux/clock.c
+$(ObjectDir_Release)/C-kern!platform!Linux!clock.c.o: C-kern/platform/Linux/clock.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!virtmemory.c.o: C-kern/os/Linux/virtmemory.c
+$(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!malloc.c.o: C-kern/os/Linux/malloc.c
+$(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!semaphore.c.o: C-kern/os/Linux/semaphore.c
+$(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!waitlist.c.o: C-kern/os/Linux/waitlist.c
+$(ObjectDir_Release)/C-kern!platform!Linux!waitlist.c.o: C-kern/platform/Linux/waitlist.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!signal.c.o: C-kern/os/Linux/signal.c
+$(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signal.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!process.c.o: C-kern/os/Linux/process.c
+$(ObjectDir_Release)/C-kern!platform!Linux!process.c.o: C-kern/platform/Linux/process.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!mutex.c.o: C-kern/os/Linux/mutex.c
+$(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!iopoll.c.o: C-kern/os/Linux/io/iopoll.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!file.c.o: C-kern/os/Linux/io/file.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!directory.c.o: C-kern/os/Linux/io/directory.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!ipaddr.c.o: C-kern/os/Linux/io/ipaddr.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!iotimer.c.o: C-kern/os/Linux/io/iotimer.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iotimer.c.o: C-kern/platform/Linux/io/iotimer.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!filedescr.c.o: C-kern/os/Linux/io/filedescr.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!mmfile.c.o: C-kern/os/Linux/io/mmfile.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!Linux!io!ipsocket.c.o: C-kern/os/Linux/io/ipsocket.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!index!splaytree.c.o: C-kern/os/shared/index/splaytree.c
+$(ObjectDir_Release)/C-kern!platform!shared!index!splaytree.c.o: C-kern/platform/shared/index/splaytree.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!index!redblacktree.c.o: C-kern/os/shared/index/redblacktree.c
+$(ObjectDir_Release)/C-kern!platform!shared!index!redblacktree.c.o: C-kern/platform/shared/index/redblacktree.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!task!exothread.c.o: C-kern/os/shared/task/exothread.c
+$(ObjectDir_Release)/C-kern!platform!shared!task!exothread.c.o: C-kern/platform/shared/task/exothread.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!task!exoscheduler.c.o: C-kern/os/shared/task/exoscheduler.c
+$(ObjectDir_Release)/C-kern!platform!shared!task!exoscheduler.c.o: C-kern/platform/shared/task/exoscheduler.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!os!shared!task!threadpool.c.o: C-kern/os/shared/task/threadpool.c
+$(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o: C-kern/platform/shared/task/threadpool.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c

@@ -22,7 +22,7 @@
    file: C-kern/api/io/filedescr.h
     Header file <Filedescriptor>.
 
-   file: C-kern/os/Linux/io/filedescr.c
+   file: C-kern/platform/Linux/io/filedescr.c
     Linux specific implementation <Filedescriptor Linux>.
 */
 #ifndef CKERN_IO_FILEDESCRIPTOR_HEADER

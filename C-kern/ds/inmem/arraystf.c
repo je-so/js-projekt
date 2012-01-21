@@ -31,7 +31,7 @@
 #include "C-kern/api/math/int/log2.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/os/virtmemory.h"
+#include "C-kern/api/platform/virtmemory.h"
 #endif
 
 typedef struct arraystf_imp2_it        arraystf_imp2_it ;

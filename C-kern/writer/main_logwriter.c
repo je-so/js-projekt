@@ -32,9 +32,9 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filedescr.h"
-#include "C-kern/api/os/thread.h"
-#include "C-kern/api/os/sync/mutex.h"
-#include "C-kern/api/os/sync/signal.h"
+#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/sync/mutex.h"
+#include "C-kern/api/platform/sync/signal.h"
 #endif
 
 // group: types

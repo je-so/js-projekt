@@ -20,7 +20,7 @@
    file: C-kern/api/io/filesystem/directory.h
     Header file of <Directory>.
 
-   file: C-kern/os/Linux/io/directory.c
+   file: C-kern/platform/Linux/io/directory.c
     Linux specific implementation <Directory Linux>.
 */
 #ifndef CKERN_IO_FILESYSTEM_DIRECTORY_HEADER

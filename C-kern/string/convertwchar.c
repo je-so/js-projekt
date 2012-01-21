@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/string/convertwchar.h"
-#include "C-kern/api/os/locale.h"
+#include "C-kern/api/platform/locale.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

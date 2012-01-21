@@ -1,0 +1,13 @@
+C-kern/platform/shared/index/splaytree.c:394: updatekey_splaytree(): error: Call to 'splaytree_update_key_t callback' returned error (err=12): 'Cannot allocate memory'
+C-kern/platform/shared/index/splaytree.c:440: updatekey_splaytree(): error: Function aborted (err=12)
+C-kern/platform/shared/index/splaytree.c:394: updatekey_splaytree(): error: Call to 'splaytree_update_key_t callback' returned error (err=12): 'Cannot allocate memory'
+C-kern/platform/shared/index/splaytree.c:440: updatekey_splaytree(): error: Function aborted (err=12)
+C-kern/platform/shared/index/splaytree.c:394: updatekey_splaytree(): error: Call to 'splaytree_update_key_t callback' returned error (err=12): 'Cannot allocate memory'
+C-kern/platform/shared/index/splaytree.c:440: updatekey_splaytree(): error: Function aborted (err=12)
+C-kern/platform/shared/index/splaytree.c:394: updatekey_splaytree(): error: Call to 'splaytree_update_key_t callback' returned error (err=12): 'Cannot allocate memory'
+C-kern/platform/shared/index/splaytree.c:440: updatekey_splaytree(): error: Function aborted (err=12)
+C-kern/platform/shared/index/splaytree.c:394: updatekey_splaytree(): error: Call to 'splaytree_update_key_t callback' returned error (err=12): 'Cannot allocate memory'
+C-kern/platform/shared/index/splaytree.c:440: updatekey_splaytree(): error: Function aborted (err=12)
+C-kern/platform/shared/index/splaytree.c:440: updatekey_splaytree(): error: Function aborted (err=17)
+C-kern/platform/shared/index/splaytree.c:440: updatekey_splaytree(): error: Function aborted (err=17)
+C-kern/platform/shared/index/splaytree.c:440: updatekey_splaytree(): error: Function aborted (err=17)
