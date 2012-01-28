@@ -1,6 +1,10 @@
 Title: Readme
   Content of Readme file of js-projekt.
 
+License:
+  Licensed under GNU General Public License v2 (see LICENSE),
+  or (at your option) any later version.
+
 Author:
   (c) 2010-2012 Jörg Seebohn
 
@@ -10,117 +14,126 @@ Web location:
 Download:
   The newest source code (Linux version) can be downloaded from: http://github.com/je-so/js-projekt/zipball/master
 
+
+section: Description
+
 about: Goal
-  To develop a database with its own transactional programming language.
-  Implementation language is C99. Currently different sub-projects
-  integrated as one C-kern(el) are used to build up the
-  whole system step by step.
+
+  To develop a database server and also a transactional general purpose programming language.
+  The goal is to remove the impedance mismatch between computer languages and database backends.
+  Implementation language is C99 (switch to C11 will be made if gcc supports it).
+  During the design phase the development is done only on Linux.
+  Development system is Ubuntu 11.04 or later.
 
 about: State
-  In planning.
 
-  Phase           - Architecture and -design phase
-  Simplifications - Linux-only support during development.
-                    Some documentation is only in German during development.
-                    Development system is Ubuntu 11.04 or later.
- 
-about: Current task
-  Design Simple C-like language for declaring persistent content.
+  The current development is the architecture and design phase.
 
-about: Subprojects
-  List of codenamed subprojects.
+  28.01.2012:
+  * I'm thinking about the design of a C-like language for declaring persistent content
+    and defining interfaces for message passing. To support this goal I will learn the Python
+    language in the next 2 month cause of the simpler syntax structure; to get a feeling for
+    it and how it compares to C.
 
-Thor:
------
-  Being planned: - Handling of complex data structures.
-                   To develop a transactional hierarchical object database
-                   suitable to store context information gathered during parsing.
-????:
------
-  Being planned: - Allow flexible syntax of language.
-                   To develop a parser generator language which allows for
-                   "change of syntax at runtime".
+about: Developed Ideas
 
-genX86:
--------
-  Future idea: - Generate x86 code from generic Machinecode-Mnemonics
-                 For testing: Compare result interpreted code vs. execution of
-                 generated machine code.
-  This subproject allows a later stage to translate database-language
-  (Idea: extended + simplified C-code) into executeable code.
+Subproject TextDB:
 
-TextDB:
--------
-  DONE: - Reads text database in CSV format and patches query result into C-source code.
-          Used to manage initialization lists and to manage a list of unit-tests.
-          Later it may be used to select a subset of platform functionality and for software configuration.
-  Example: - The following code shows how the init and free functions (which should be called once at
-             the start of the process) are patched into code. The list of functions is stored in the text database
-             file 'C-kern/resource/text.db/initonce'.
-  > // TEXTDB:SELECT("   { &"init-function", &"free-function" },")FROM("C-kern/resource/text.db/initonce")
-  >    { &initonce_locale, &freeonce_locale },
+  Reads text database in CSV format and patches query result into C-source code.
+  Used to manage initialization lists and to configure unix signal handlers.
+  See directory "C-kern/resource/text.db/" for the textdb databases.
+
+  Example:
+  The following code shows how the init and free functions (which should be called once at the start of the process) are patched into code.
+  The list of functions is stored in the text database file 'C-kern/resource/text.db/initprocess'.
+  > // TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/text.db/initprocess")
+  > ...
+  > err = initonce_valuecache(&pcontext->valuecache) ;
+  > if (err) goto ABBRUCH ;
+  > ++ pcontext->initcount ;
+  >
+  > err = initonce_thread() ;
+  > if (err) goto ABBRUCH ;
+  > ++ pcontext->initcount ;
   > // TEXTDB:END
 
-Genmake:
---------
-  DONE: - Automate builds. Uses simple project description and generates a makefile.
-  Example: - The following example shows the project description of the text resource compiler.
+Subproject Genmake:
+
+  Automate generation of makefiles. Genmake offers a simple project description and generates the
+  corresponding makefile with all source code dependencies.
+
+  Example:
+  The following example shows the project description of the text resource compiler.
   > include        projekte/binary.gcc
   > Src            = C-kern/main/tools/resource_textcompiler.c
   > Src           += C-kern/tools/hash.c
   > Includes       = .
   > Defines        =
 
-textrescompiler:
-----------------
-  DONE: - Handle multilingual text resources
-          Simple resource text compiler which generates ".h files"
-          from text resources (C-kern/resource/errorlog.text).
-  NEEDS IMPROVEMENT: - Simple text replacement is not enough for more complex langs.
-                       Introduce algorithmic syntax (C-like syntax :-) => simple code generation)
+Subproject textrescompiler:
 
-about: License
-  Free software license.
-  Licensed under GNU General Public License v2 (see LICENSE),
-  or (at your option) any later version.
+  Handle text resources for different languages.
+  The textrescompiler generates generates C header from text resource files, e.g. "C-kern/resource/errorlog.text".  files which can be included in the project.
+  The generated header files can be used to get text strings for different language.
+  The type of language must be decided at compile time.
 
-about: Build
-  Run 'make' in the top level directory.
+  NEEDS IMPROVEMENT:
+  In a later this compiler will generate
+  database files which allow then to switch the language support at runtime per user.
+
+  Simple text replacement is not enough for more complex langs.
+  Introduce algorithmic syntax (C-like syntax :-) => simple code generation)
+
+
+section: Build
+
+about: Make Command
+
+  Run 'make' at the top level directory.
   This should build all subprojects.
 
-  The main makefile ('Makefile') calls for every subproject the corresponding 
+  The main makefile ('Makefile') calls for every subproject the corresponding
   makefile in 'projekte/makefiles/'.
 
   To run all unit tests execute bin/testunit (release version)
   or bin/testunit_Debug.
 
-Make targets:
+about: Make Targets
+
   all      - Builds »Debug« and »Release« version of every subproject except »html«.
-  html     - Generate documentation from source code with naturaldoc.
-             You can view it by opening html/index.html in a browser.
-  genmake  - Build genmake binaries: »bin/genmake« and »bin/genmake_Debug«.
-  textrescompiler - Build resource compiler binaries: »bin/textrescompiler« and »bin/textrescompiler_Debug«.
   Debug    - Builds debug binaries of every subproject. The generated binaries are stored under directory 'bin/'.
              A binary is named after its corresponding project name plus an additional '_Debug' suffix.
   Release  - Builds release binaries of every subproject. The generated binaries are stored under directory 'bin/'.
              A binary is named after its corresponding project name without any additional suffix or prefix.
+  html     - Generate documentation from source code with naturaldoc.
+             You can view it by opening html/index.html in a browser.
+  genmake  - Build genmake binaries: »bin/genmake« and »bin/genmake_Debug«.
+  testunit - Build test binaries »bin/testunit« and »bin/testunit_Debug« which run all unit tests of all
+             devloped modules.
+  textdb   - Build text database tool binaries: »bin/textdb[_Debug]«
+  textrescompiler  - Build resource compiler binaries: »bin/textrescompiler[_Debug]«
+  testchildprocess - Build test process »bin/testchildprocess[_Debug]« used in "unittest_platform_process".
+  pp-textdb  - Runs the textdb tool to preprocess all C source files to patch the m with the content of
+               the textdb database files.
+  pp-textres - Runs the textrescompiler tool to preprocess all text resourc files and to generate
+               the corresponding C header files.
 
 about: Documentation
   The documentation is extracted from the source files by naturaldoc.
   Type 'make html' to run it. Make sure you have installed v1.5 on your system.
-  Type 'firefox html/index.html' to view it (replace firefox with your favourite browser).
+  Type 'firetestchildprocessfox html/index.html' to view it (replace firefox with your favourite browser).
 
 about: Dependencies
   To build the whole project or any subproject the following dependencies should be considered.
+
   Libraries:
-     * libpthread
-     * librt
-     * libX11 + libGL (X11 window subsystem branch)
-  Tools:
-     * 'Natural Docs v1.5' (www.naturaldocs.org).
-  Development only:
+     Only the libraries *libpthread* for threading support and *librt* for realtime signal support are needed.
+     These libararies should be available on any Linux version.
+
+  For Development:
      * Git      (http://git-scm.com).
      * Codelite (http://codelite.org).
+     * Natural Docs v1.5 (http://www.naturaldocs.org).
 
 about: Project-structure
   Explanation of directory structure.
@@ -128,8 +141,10 @@ about: Project-structure
   LICENSE     - GPL v2 license
   Makefile    - Top level makefile which calls project makefiles
   README      - This readme file
-  C-kern/     - Contains all C99 source code and other resources, e.g. localized text
+  C-kern/     - Contains all C source code and other resources, e.g. localized text
+  C-kern/api  - Contains all C header files (interfaces) of the implementation modules
   C-kern/konfig.h     - Global configuration file (must be included by every source module)
-  coding-conventions/ - A collection of design decisions
+  coding-conventions/ - A textual description of the made design decisions
   projekte/           - Contains project descriptions suitable for Genmake
   projekte/makefiles/ - Contains generated makefiles
+  projekte/codelite/  - Contains workspace & projects for the CodeLite IDE.
