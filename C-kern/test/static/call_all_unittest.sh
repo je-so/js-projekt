@@ -37,7 +37,7 @@ for i in $files; do
          if [ "${result#*assert( 0 == unittest_*()*)*;}" = "" ]; then
             continue
          fi
-         if [ "${result#   if (unittest_umgebung())}" != "${result}" ]; then
+         if [ "${result#   if (unittest_context())}" != "${result}" ]; then
             continue ;
          fi
          if [ "${result#int unittest_*()}" != "" ]; then

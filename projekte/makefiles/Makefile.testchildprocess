@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Jan.21  07:23:58
+GenerationDate  := 2012.Jan.28  14:33:17
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -76,13 +76,12 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!services_singlethread.c.o \
+ $(ObjectDir_Debug)/C-kern!context!context.c.o \
+ $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
- $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o \
- $(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!writer!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!main!testchildprocess_main.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
@@ -92,13 +91,12 @@ Objects_Debug := \
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o \
+ $(ObjectDir_Release)/C-kern!context!context.c.o \
+ $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
- $(ObjectDir_Release)/C-kern!writer!logwriter.c.o \
- $(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!writer!logmain.c.o \
  $(ObjectDir_Release)/C-kern!main!testchildprocess_main.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
@@ -117,13 +115,13 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/local
 $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
+$(ObjectDir_Debug)/C-kern!context!context.c.o: C-kern/context/context.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
+$(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!services_singlethread.c.o: C-kern/umgebung/services_singlethread.c
+$(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
@@ -132,10 +130,7 @@ $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwriter.c
+$(ObjectDir_Debug)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!testchildprocess_main.c.o: C-kern/main/testchildprocess_main.c
@@ -159,13 +154,13 @@ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/loc
 $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
+$(ObjectDir_Release)/C-kern!context!context.c.o: C-kern/context/context.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
+$(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o: C-kern/umgebung/services_singlethread.c
+$(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
@@ -174,10 +169,7 @@ $(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwriter.c
+$(ObjectDir_Release)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!testchildprocess_main.c.o: C-kern/main/testchildprocess_main.c

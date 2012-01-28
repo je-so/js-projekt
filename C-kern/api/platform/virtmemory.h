@@ -246,15 +246,15 @@ extern const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 #define init_vmblock( vmblock, size_in_pages ) \
    (init2_vmblock( vmblock, size_in_pages, accessmode_RDWR|accessmode_PRIVATE ))
 
-/* define: pagesize_vm inline
- * Uses cached value from <valuecache_umgebung>. */
-#define /*size_t*/ pagesize_vm() \
-   (valuecache_umgebung()->pagesize_vm)
+/* define: pagesize_vm
+ * Uses cached value from <valuecache_context>. */
+#define pagesize_vm() \
+   (valuecache_context()->pagesize_vm)
 
 /* define: size_vmmappedregions
  * Returns <vm_mappedregions_t->total_count>.
  * Inline implementation of <vm_mappedregions_t.size_vmmappedregions>. */
-#define /*size_t*/ size_vmmappedregions( /*const vm_mappedregions_t * */mappedregions ) \
+#define size_vmmappedregions(mappedregions) \
    ((mappedregions)->total_count)
 
 #endif

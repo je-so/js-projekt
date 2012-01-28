@@ -54,13 +54,13 @@ struct valuecache_t {
 
 // group: init
 
-/* function: initumgebung_valuecache
+/* function: initonce_valuecache
  * Sets valuecache pointer to a singleton object. */
-extern int initumgebung_valuecache(/*out*/valuecache_t ** valuecache, umgebung_shared_t * shared) ;
+extern int initonce_valuecache(/*out*/valuecache_t ** valuecache) ;
 
-/* function: freeumgebung_valuecache
+/* function: freeonce_valuecache
  * Resets the pointer to null. Singleton is never freed. */
-extern int freeumgebung_valuecache(valuecache_t ** valuecache, umgebung_shared_t * shared) ;
+extern int freeonce_valuecache(valuecache_t ** valuecache) ;
 
 // group: lifetime
 

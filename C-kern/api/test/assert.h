@@ -24,9 +24,9 @@
 
 /* define: assert
  * Prints »Assertion failed« and aborts process.
- * Uses <assertfail_umgebung> to implement its functionality. */
+ * Uses <assertfail_context> to implement its functionality. */
 #define assert(expr) \
-   ((expr) ? (void) 0 : assertfail_umgebung(STR(expr), __FILE__, __LINE__, __FUNCTION__))
+   ((expr) ? (void) 0 : assertfail_context(STR(expr), __FILE__, __LINE__, __FUNCTION__))
 
 
 #endif

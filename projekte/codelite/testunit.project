@@ -5,8 +5,6 @@
   <VirtualDirectory Name="generic">
     <File Name="../../C-kern/generic/depthtree.c"/>
     <File Name="../../C-kern/generic/depthtree.h"/>
-    <File Name="../../C-kern/generic/hashtable.c"/>
-    <File Name="../../C-kern/generic/hashtable.h"/>
     <File Name="../../C-kern/generic/objekt_collector.c"/>
     <File Name="../../C-kern/generic/objekt_collector.h"/>
     <File Name="../../C-kern/generic/set.h"/>
@@ -33,13 +31,6 @@
       <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/main/testchildprocess_main.c"/>
-  </VirtualDirectory>
-  <VirtualDirectory Name="umgebung">
-    <File Name="../../C-kern/umgebung/README"/>
-    <File Name="../../C-kern/umgebung/umgebung.c"/>
-    <File Name="../../C-kern/umgebung/umgebung_shared.c"/>
-    <File Name="../../C-kern/umgebung/services_singlethread.c"/>
-    <File Name="../../C-kern/umgebung/services_multithread.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/api/execCcompiler.h"/>
@@ -111,7 +102,6 @@
         <VirtualDirectory Name="html5"/>
       </VirtualDirectory>
     </VirtualDirectory>
-    <File Name="../../C-kern/api/umgebung.h"/>
     <VirtualDirectory Name="graphik"/>
     <File Name="../../C-kern/api/oostore.h"/>
     <VirtualDirectory Name="math">
@@ -138,12 +128,6 @@
         <File Name="../../C-kern/api/aspect/constant/spacetime.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/interface.h"/>
-      <VirtualDirectory Name="interface">
-        <File Name="../../C-kern/api/aspect/interface/log_it.h"/>
-        <File Name="../../C-kern/api/aspect/interface/objectcache_it.h"/>
-        <File Name="../../C-kern/api/aspect/interface/objectcache_oit.h"/>
-        <File Name="../../C-kern/api/aspect/interface/log_oit.h"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
@@ -152,7 +136,9 @@
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/objectcache.h"/>
       <File Name="../../C-kern/api/cache/valuecache.h"/>
-      <File Name="../../C-kern/api/cache/objectcachemt.h"/>
+      <File Name="../../C-kern/api/cache/objectcache_it.h"/>
+      <File Name="../../C-kern/api/cache/objectcache_oit.h"/>
+      <File Name="../../C-kern/api/cache/objectcache_macros.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="context">
       <File Name="../../C-kern/api/context/processcontext.h"/>
@@ -172,14 +158,6 @@
       <File Name="../../C-kern/api/ds/arraystf_node.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
-    <VirtualDirectory Name="umg">
-      <File Name="../../C-kern/api/umg/log_macros.h"/>
-      <File Name="../../C-kern/api/umg/umgebung_shared.h"/>
-      <File Name="../../C-kern/api/umg/objectcache_macros.h"/>
-      <File Name="../../C-kern/api/umg/services_multithread.h"/>
-      <File Name="../../C-kern/api/umg/services_singlethread.h"/>
-      <File Name="../../C-kern/api/umg/errlog_macros.h"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="io">
       <VirtualDirectory Name="filesystem">
         <File Name="../../C-kern/api/io/filesystem/directory.h"/>
@@ -207,18 +185,24 @@
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <File Name="../../C-kern/api/writer/logwriter.h"/>
-      <File Name="../../C-kern/api/writer/main_logwriter.h"/>
-      <File Name="../../C-kern/api/writer/logwritermt.h"/>
+      <File Name="../../C-kern/api/writer/log_it.h"/>
+      <File Name="../../C-kern/api/writer/log_oit.h"/>
+      <File Name="../../C-kern/api/writer/log_macros.h"/>
+      <File Name="../../C-kern/api/writer/errlog_macros.h"/>
+      <File Name="../../C-kern/api/writer/logmain.h"/>
     </VirtualDirectory>
+    <File Name="../../C-kern/api/context.h"/>
+    <File Name="../../C-kern/README.txt"/>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/objectcache.c"/>
     <File Name="../../C-kern/cache/valuecache.c"/>
-    <File Name="../../C-kern/cache/objectcachemt.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="context">
     <File Name="../../C-kern/context/processcontext.c"/>
     <File Name="../../C-kern/context/threadcontext.c"/>
+    <File Name="../../C-kern/context/COP.txt"/>
+    <File Name="../../C-kern/context/context.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="../../C-kern/test/run_statictest.sh"/>
@@ -266,16 +250,16 @@
     <VirtualDirectory Name="coding conventions">
       <File Name="../../coding-conventions/free_objects.txt"/>
       <File Name="../../coding-conventions/parameter_type.txt"/>
-      <File Name="../../coding-conventions/umgebung.txt"/>
       <File Name="../../coding-conventions/unittest.txt"/>
       <File Name="../../coding-conventions/task.txt"/>
       <File Name="../../coding-conventions/init_objects.txt"/>
       <File Name="../../coding-conventions/c_types.txt"/>
+      <File Name="../../coding-conventions/context.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="text.db">
-      <File Name="../../C-kern/resource/text.db/initumgebung"/>
-      <File Name="../../C-kern/resource/text.db/initonce"/>
       <File Name="../../C-kern/resource/text.db/signalconfig"/>
+      <File Name="../../C-kern/resource/text.db/initprocess"/>
+      <File Name="../../C-kern/resource/text.db/initthread"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="platform">
@@ -339,8 +323,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="writer">
     <File Name="../../C-kern/writer/logwriter.c"/>
-    <File Name="../../C-kern/writer/main_logwriter.c"/>
-    <File Name="../../C-kern/writer/logwritermt.c"/>
+    <File Name="../../C-kern/writer/logmain.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">

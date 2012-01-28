@@ -44,12 +44,10 @@ static int free_valuecache(valuecache_t * valuecache)
    return 0 ;
 }
 
-int initumgebung_valuecache(/*out*/valuecache_t ** valuecache, umgebung_shared_t * shared)
+int initonce_valuecache(/*out*/valuecache_t ** valuecache)
 {
    int err ;
    valuecache_t * new_valuecache = 0 ;
-
-   (void) shared ;
 
    VALIDATE_INPARAM_TEST(0 == *valuecache, ABBRUCH,) ;
 
@@ -72,12 +70,10 @@ ABBRUCH:
    return err ;
 }
 
-int freeumgebung_valuecache(valuecache_t ** valuecache, umgebung_shared_t * shared)
+int freeonce_valuecache(valuecache_t ** valuecache)
 {
    int err ;
    valuecache_t * freeobj = *valuecache ;
-
-   (void) shared ;
 
    if (freeobj) {
       *valuecache = 0 ;
@@ -123,45 +119,45 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int test_umgebunginit(void)
+static int test_initonce(void)
 {
    valuecache_t   valuecache = valuecache_INIT_FREEABLE ;
    valuecache_t * cache      = 0 ;
    valuecache_t * cache2     = 0 ;
-   valuecache_t * old        = valuecache_umgebung() ;
+   valuecache_t * old        = valuecache_context() ;
 
-   // TEST initumgebung, double freeumgebung
-   TEST(0 == initumgebung_valuecache(&cache, 0)) ;
+   // TEST initonce, double freeonce
+   TEST(0 == initonce_valuecache(&cache)) ;
    TEST(0 != cache) ;
    TEST(sys_pagesize_vm() == cache->pagesize_vm) ;
-   TEST(0 == freeumgebung_valuecache(&cache, 0)) ;
+   TEST(0 == freeonce_valuecache(&cache)) ;
    TEST(0 == cache) ;
-   TEST(0 == freeumgebung_valuecache(&cache, 0)) ;
+   TEST(0 == freeonce_valuecache(&cache)) ;
    TEST(0 == cache) ;
 
    // TEST EINVAL init
    cache = &valuecache ;
-   TEST(EINVAL == initumgebung_valuecache(&cache, 0)) ;
+   TEST(EINVAL == initonce_valuecache(&cache)) ;
    TEST(&valuecache == cache) ;
    cache = 0 ;
 
    // TEST always new object
-   TEST(0 == initumgebung_valuecache(&cache, 0)) ;
-   TEST(0 == initumgebung_valuecache(&cache2, 0)) ;
+   TEST(0 == initonce_valuecache(&cache)) ;
+   TEST(0 == initonce_valuecache(&cache2)) ;
    TEST(0 != cache) ;
    TEST(0 != cache2) ;
    TEST(cache != cache2) ;
-   TEST(0 == freeumgebung_valuecache(&cache, 0)) ;
-   TEST(0 == freeumgebung_valuecache(&cache2, 0)) ;
+   TEST(0 == freeonce_valuecache(&cache)) ;
+   TEST(0 == freeonce_valuecache(&cache2)) ;
    TEST(0 == cache) ;
    TEST(0 == cache2) ;
 
-   // TEST valuecache_umgebung()
+   // TEST valuecache_context()
    TEST(old) ;
-   umgebung().shared->valuecache = 0 ;
-   TEST(valuecache_umgebung() == 0) ;
-   umgebung().shared->valuecache = old ;
-   TEST(valuecache_umgebung() == old) ;
+   process_context().valuecache = 0 ;
+   TEST(valuecache_context() == 0) ;
+   process_context().valuecache = old ;
+   TEST(valuecache_context() == old) ;
 
    // TEST pagesize_vm
    TEST(pagesize_vm() == sys_pagesize_vm()) ;
@@ -176,13 +172,13 @@ static int test_umgebunginit(void)
 
    return 0 ;
 ABBRUCH:
-   umgebung().shared->valuecache = old ;
+   process_context().valuecache = old ;
    old->pagesize_vm = sys_pagesize_vm() ;
-   if (  cache
-      && cache != &valuecache) {
-      freeumgebung_valuecache(&cache, 0) ;
+   if (     cache
+         && cache != &valuecache) {
+      freeonce_valuecache(&cache) ;
    }
-   freeumgebung_valuecache(&cache2, 0) ;
+   freeonce_valuecache(&cache2) ;
    free_valuecache(&valuecache) ;
    return EINVAL ;
 }
@@ -194,8 +190,8 @@ int unittest_cache_valuecache()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_umgebunginit())   goto ABBRUCH ;
+   if (test_initfree())    goto ABBRUCH ;
+   if (test_initonce())    goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

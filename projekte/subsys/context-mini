@@ -1,0 +1,8 @@
+# minimal runtime context needed for every derived project
+Src += C-kern/context/context.c
+Src += C-kern/context/processcontext.c
+Src += C-kern/context/threadcontext.c
+# default services
+Src += C-kern/cache/objectcache.c
+Src += C-kern/cache/valuecache.c
+Src += C-kern/writer/logmain.c

@@ -28,7 +28,7 @@
 #include "C-kern/api/writer/logwriter.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/platform/virtmemory.h"
-#include "C-kern/api/writer/main_logwriter.h"
+#include "C-kern/api/writer/logmain.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filedescr.h"
@@ -37,14 +37,18 @@
 #include "C-kern/api/string/cstring.h"
 #endif
 
+
 // section: logwriter_t
 
 // group: types
 
-/* typedef: logwriter_it
- * Define interface <logwriter_it>, see also <ilog_it>.
- * The interface is generated with the macro <log_it_DECLARE>. */
-log_it_DECLARE(1, logwriter_it, logwriter_t)
+/* typedef: struct logwriter_it
+ * Export <logwriter_it>, see also <log_it>. */
+typedef struct logwriter_it            logwriter_it ;
+
+/* struct: logwriter_it
+ * Generates interface with macro <log_it_DECLARE>. */
+log_it_DECLARE(logwriter_it, logwriter_t)
 
 // group: variables
 
@@ -59,7 +63,7 @@ logwriter_it      s_logwriter_interface = {
 
 // group: init
 
-int initumgebung_logwriter(/*out*/log_oit * ilog)
+int initthread_logwriter(/*out*/log_oit * ilog)
 {
    int err ;
    const size_t   objsize = sizeof(logwriter_t) ;
@@ -72,7 +76,7 @@ int initumgebung_logwriter(/*out*/log_oit * ilog)
    }
 
    if (  ilog->object
-      && ilog->object != &g_main_logwriter) {
+      && ilog->object != &g_logmain) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -90,19 +94,19 @@ ABBRUCH:
    return err ;
 }
 
-int freeumgebung_logwriter(log_oit * ilog)
+int freethread_logwriter(log_oit * ilog)
 {
    int err ;
    logwriter_t * log2 = (logwriter_t*) ilog->object ;
 
    if (  log2
-      && log2 != (logwriter_t*) &g_main_logwriter ) {
+      && log2 != (logwriter_t*) &g_logmain ) {
 
-      assert((void*)log2 != (void*)&g_main_logwriter) ;
+      assert((void*)log2 != (void*)&g_logmain) ;
       assert((log_it*)&s_logwriter_interface == ilog->functable) ;
 
-      ilog->object    = &g_main_logwriter ;
-      ilog->functable = (log_it*) &g_main_logwriter_interface ;
+      ilog->object    = &g_logmain ;
+      ilog->functable = &g_logmain_interface ;
 
       err = free_logwriter( log2 ) ;
 
@@ -433,7 +437,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int test_initumgebung(void)
+static int test_initthread(void)
 {
    log_oit         ilog = log_oit_INIT_FREEABLE ;
    logwriter_t   * log  = 0 ;
@@ -449,51 +453,51 @@ static int test_initumgebung(void)
    TEST(s_logwriter_interface.getbuffer   == &getbuffer_logwriter) ;
 
    // TEST init, double free (ilog.object = 0)
-   TEST(0 == initumgebung_logwriter(&ilog)) ;
+   TEST(0 == initthread_logwriter(&ilog)) ;
    TEST(ilog.object) ;
-   TEST(ilog.object    != &g_main_logwriter) ;
+   TEST(ilog.object    != &g_logmain) ;
    TEST(ilog.functable == (log_it*) &s_logwriter_interface) ;
    log = (logwriter_t*) ilog.object ;
    TEST(log->buffer.addr) ;
    TEST(log->buffer.size) ;
-   TEST(0 == freeumgebung_logwriter(&ilog)) ;
-   TEST(ilog.object    == &g_main_logwriter) ;
-   TEST(ilog.functable == (log_it*) &g_main_logwriter_interface) ;
-   TEST(0 == freeumgebung_logwriter(&ilog)) ;
-   TEST(ilog.object    == &g_main_logwriter) ;
-   TEST(ilog.functable == (log_it*) &g_main_logwriter_interface) ;
+   TEST(0 == freethread_logwriter(&ilog)) ;
+   TEST(ilog.object    == &g_logmain) ;
+   TEST(ilog.functable == &g_logmain_interface) ;
+   TEST(0 == freethread_logwriter(&ilog)) ;
+   TEST(ilog.object    == &g_logmain) ;
+   TEST(ilog.functable == &g_logmain_interface) ;
    log = 0 ;
 
-   // TEST init, double free (ilog.object = &g_main_logwriter)
-   ilog.object = &g_main_logwriter ;
-   TEST(0 == initumgebung_logwriter(&ilog)) ;
+   // TEST init, double free (ilog.object = &g_logmain)
+   ilog.object = &g_logmain ;
+   TEST(0 == initthread_logwriter(&ilog)) ;
    TEST(ilog.object) ;
-   TEST(ilog.object    != &g_main_logwriter) ;
+   TEST(ilog.object    != &g_logmain) ;
    TEST(ilog.functable == (log_it*) &s_logwriter_interface) ;
    log = (logwriter_t*) ilog.object ;
    TEST(log->buffer.addr) ;
    TEST(log->buffer.size) ;
-   TEST(0 == freeumgebung_logwriter(&ilog)) ;
-   TEST(ilog.object    == &g_main_logwriter) ;
-   TEST(ilog.functable == (log_it*) &g_main_logwriter_interface) ;
-   TEST(0 == freeumgebung_logwriter(&ilog)) ;
-   TEST(ilog.object    == &g_main_logwriter) ;
-   TEST(ilog.functable == (log_it*) &g_main_logwriter_interface) ;
+   TEST(0 == freethread_logwriter(&ilog)) ;
+   TEST(ilog.object    == &g_logmain) ;
+   TEST(ilog.functable == &g_logmain_interface) ;
+   TEST(0 == freethread_logwriter(&ilog)) ;
+   TEST(ilog.object    == &g_logmain) ;
+   TEST(ilog.functable == &g_logmain_interface) ;
    log = 0 ;
 
    // TEST free (ilog.object = 0)
    ilog.object = 0 ;
-   TEST(0 == freeumgebung_logwriter(&ilog)) ;
+   TEST(0 == freethread_logwriter(&ilog)) ;
    TEST(0 == ilog.object) ;
 
    // TEST EINVAL
    ilog.object = (logwriter_t*) 1 ;
-   TEST(EINVAL == initumgebung_logwriter(&ilog)) ;
+   TEST(EINVAL == initthread_logwriter(&ilog)) ;
    TEST(ilog.object == (logwriter_t*) 1) ;
 
    return 0 ;
 ABBRUCH:
-   freeumgebung_logwriter(&ilog) ;
+   freethread_logwriter(&ilog) ;
    return EINVAL ;
 }
 
@@ -507,7 +511,7 @@ int unittest_writer_logwriter()
    if (test_initfree())       goto ABBRUCH ;
    if (test_flushbuffer())    goto ABBRUCH ;
    if (test_printf())         goto ABBRUCH ;
-   if (test_initumgebung())   goto ABBRUCH ;
+   if (test_initthread())     goto ABBRUCH ;
 
    // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;

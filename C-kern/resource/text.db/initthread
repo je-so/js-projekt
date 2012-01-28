@@ -1,0 +1,10 @@
+# TEXT.DB (1.0)
+# documentation:
+# List of modules with initthread_ / freethread_ functions called once per thread.
+# They are called from init_threadcontext and free_threadcontext.
+# Init functions are called from first to last entry in this database.
+# Free functions are called from last entry to first entry.
+# The header-name field references the C99 header file which exports the function prototypes.
+"module",            "parameter",    "header-name"
+"objectcache",       "objectcache",  "C-kern/api/cache/objectcache.h"
+"logwriter",         "ilog",         "C-kern/api/writer/logwriter.h"

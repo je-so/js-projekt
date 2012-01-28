@@ -23,7 +23,7 @@ Memory callbacks:
 
 Objects which need to free memory must do so through use of a callback function.
 This function is explicitly given as parameter or implicitly set through use of a global
-context object called *umgebung*.
+context object called *context*.
 
 If the free memory callback is set to NULL objects should free all resources except the memory.
 This is useful for complex data structures which can be build during initialization. A caller

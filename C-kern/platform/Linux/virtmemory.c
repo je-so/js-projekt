@@ -27,7 +27,7 @@
 #include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filedescr.h"
-#include "C-kern/api/umg/objectcache_macros.h"
+#include "C-kern/api/cache/objectcache_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/test.h"

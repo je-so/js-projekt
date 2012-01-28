@@ -33,11 +33,11 @@
 // group: initonce
 
 /* function: initonce_locale
- * Called from <initmain_umgebung>. */
+ * Called from <initmain_context>. */
 extern int initonce_locale(void) ;
 
 /* function: freeonce_locale
- * Called from <freemain_umgebung>. */
+ * Called from <freemain_context>. */
 extern int freeonce_locale(void) ;
 
 // group: query

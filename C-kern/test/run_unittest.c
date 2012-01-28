@@ -192,9 +192,9 @@ int run_unittest(void)
 {
    unsigned    err_count   = 0 ;
    unsigned    total_count = 0 ;
-   const umgebung_type_e test_umgebung_type[2] = {
-       umgebung_type_SINGLETHREAD
-      ,umgebung_type_MULTITHREAD
+   const context_e test_context_type[2] = {
+       context_DEFAULT
+      ,context_DEFAULT
    } ;
 
    if (0 == checkpath_directory(0, "error.log")) {
@@ -203,18 +203,18 @@ int run_unittest(void)
 
    // before init
    ++ total_count ;
-   if (unittest_umgebung()) {
+   if (unittest_context()) {
       ++ err_count ;
-      LOGC_PRINTF(TEST, "unittest_umgebung FAILED\n") ;
+      LOGC_PRINTF(TEST, "unittest_context FAILED\n") ;
       goto ABBRUCH ;
    }
 
-for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr) {
+for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) {
 
    // init
-   if (initmain_umgebung(test_umgebung_type[type_nr])) {
+   if (initmain_context(test_context_type[type_nr])) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      LOGC_PRINTF(TEST, "%s\n", "Abort reason: initmain_umgebung failed" ) ;
+      LOGC_PRINTF(TEST, "%s\n", "Abort reason: initmain_context failed" ) ;
       goto ABBRUCH ;
    }
 
@@ -223,16 +223,14 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
    // current development
    // assert(0) ;
 
-//{ umgebung unittest
-   RUN(unittest_umgebung) ;
-   RUN(unittest_umgebung_shared) ;
-   RUN(unittest_umgebung_services_multithread) ;
-   RUN(unittest_umgebung_services_singlethread) ;
+//{ context unittest
+   RUN(unittest_context) ;
+   RUN(unittest_context_processcontext) ;
+   RUN(unittest_context_threadcontext) ;
 //}
 
 //{ cache unittest
    RUN(unittest_cache_objectcache) ;
-   RUN(unittest_cache_objectcachemt) ;
    RUN(unittest_cache_valuecache) ;
 //}
 
@@ -275,8 +273,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
 //{ writer unittest
    RUN(unittest_writer_logwriter) ;
-   RUN(unittest_writer_logwritermt) ;
-   RUN(unittest_writer_mainlogwriter) ;
+   RUN(unittest_writer_logmain) ;
 //}
 
 //{ platform unittest
@@ -327,9 +324,9 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_umgebung_type); ++type_nr)
 
    LOG_CLEARBUFFER() ;
 
-   if (freemain_umgebung()) {
+   if (freemain_context()) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      LOGC_PRINTF(TEST, "%s\n", "Abort reason: freemain_umgebung failed" ) ;
+      LOGC_PRINTF(TEST, "%s\n", "Abort reason: freemain_context failed" ) ;
       goto ABBRUCH ;
    }
 

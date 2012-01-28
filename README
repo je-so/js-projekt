@@ -1,14 +1,14 @@
 Title: Readme
-  Content of Readme file.
+  Content of Readme file of js-projekt.
 
 Author:
-  (c) 2010-2011 Jörg Seebohn
+  (c) 2010-2012 Jörg Seebohn
 
 Web location:
   Free software project hosted at github:  https://github.com/je-so/js-projekt
 
 Download:
-  The newest source code (Linux version) can be downloaded from:  http://github.com/je-so/js-projekt/zipball/master
+  The newest source code (Linux version) can be downloaded from: http://github.com/je-so/js-projekt/zipball/master
 
 about: Goal
   To develop a database with its own transactional programming language.

@@ -26,7 +26,7 @@
 #define CKERN_API_TEST_HEADER
 
 #include "C-kern/api/test/resourceusage.h"
-#include "C-kern/api/umg/log_macros.h"
+
 
 // section: Functions
 

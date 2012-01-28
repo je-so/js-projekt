@@ -26,7 +26,7 @@
 
 #include "C-kern/api/test/assert.h"
 #include "C-kern/api/test/validate.h"
-#include "C-kern/api/umg/errlog_macros.h"
+#include "C-kern/api/writer/errlog_macros.h"
 
 
 #endif

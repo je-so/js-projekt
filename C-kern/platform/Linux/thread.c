@@ -29,11 +29,13 @@
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/sync/semaphore.h"
 #include "C-kern/api/platform/sync/signal.h"
+#include "C-kern/api/writer/logmain.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/test/errortimer.h"
 #endif
+
 
 typedef struct thread_startargument_t  thread_startargument_t ;
 
@@ -64,9 +66,13 @@ struct thread_startargument_t {
     * Threads wait on startup for this event.
     * After this event has occurred variable <isAbort> contains the correct value. */
    semaphore_t    isvalid_abortflag ;
-   umgebung_t     umg ;
    stack_t        signalstack ;
 } ;
+
+/* variable: gt_thread_context
+ * Refers for every thread to corresponding <threadcontext_t> object.
+ * Is is located on the thread stack so no heap memory is allocated. */
+__thread  threadcontext_t  gt_thread_context = threadcontext_INIT_STATIC ;
 
 /* variable: gt_thread_self
  * Refers for every thread to corresponding <thread_t> object.
@@ -74,7 +80,7 @@ struct thread_startargument_t {
 __thread  thread_t         gt_thread_self    = { sys_mutex_INIT_DEFAULT, 0, task_callback_INIT_FREEABLE, sys_thread_INIT_FREEABLE, 0, memblock_INIT_FREEABLE, 0, 0 } ;
 
 /* variable: s_offset_thread
- * Contains the calculated offset from start of stack thread to &<gt_thread_self>. */
+ * Contains the calculated offset from start of stack thread to <gt_thread_self>. */
 static size_t              s_offset_thread   = 0 ;
 
 #ifdef KONFIG_UNITTEST
@@ -254,7 +260,7 @@ ABBRUCH:
 /* function: startpoint_thread
  * The start function of the thread.
  * This is the same for all threads.
- * It initializes signalstack the thread global umgebung variable
+ * It initializes signalstack the <threadcontext_t> variable
  * and calls the user supplied main function. */
 static void * startpoint_thread(thread_startargument_t * startarg)
 {
@@ -263,9 +269,9 @@ static void * startpoint_thread(thread_startargument_t * startarg)
 
    assert(thread == &gt_thread_self) ;
 
-   err = initmove_umgebung(&gt_umgebung, &startarg->umg) ;
+   err = init_threadcontext(&gt_thread_context) ;
    if (err) {
-      LOG_CALLERR("initmove_umgebung",err) ;
+      LOG_CALLERR("init_threadcontext",err) ;
       goto ABBRUCH ;
    }
 
@@ -318,15 +324,15 @@ static void * startpoint_thread(thread_startargument_t * startarg)
       thread->returncode = thread->task.fct(thread->task.arg) ;
    }
 
-   err = free_umgebung(&gt_umgebung) ;
+   err = free_threadcontext(&gt_thread_context) ;
    if (err) {
-      LOG_CALLERR("free_umgebung",err) ;
+      LOG_CALLERR("free_threadcontext",err) ;
       goto ABBRUCH ;
    }
 
    return (void*)0 ;
 ABBRUCH:
-   abort_umgebung(err) ;
+   abort_context(err) ;
    return (void*)err ;
 }
 
@@ -342,7 +348,7 @@ static void * calculateoffset_thread(thread_stack_t * start_arg)
 
 // group: implementation
 
-int initonce_thread(umgebung_t * umg)
+int initonce_thread()
 {
    /* calculate position of &gt_thread_self
     * relative to start threadstack. */
@@ -351,8 +357,6 @@ int initonce_thread(umgebung_t * umg)
    sys_thread_t      sys_thread        = sys_thread_INIT_FREEABLE ;
    thread_stack_t  stackframe        = memblock_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
-
-   (void) umg ;
 
    // init main thread_t
    if (!gt_thread_self.groupnext) {
@@ -419,9 +423,8 @@ ABBRUCH:
    return err ;
 }
 
-int freeonce_thread(umgebung_t * umg)
+int freeonce_thread()
 {
-   (void) umg ;
    return 0 ;
 }
 
@@ -466,18 +469,16 @@ int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, s
    int err ;
    int err2 = 0 ;
    pthread_attr_t    thread_attr ;
-   umgebung_t        shared_umgebung   = umgebung_INIT_FREEABLE ;
-   thread_t          * prev_thread     = 0 ;
-   thread_t          * next_thread     = 0 ;
-   thread_t          * thread          = 0 ;
-   thread_stack_t    stackframe        = memblock_INIT_FREEABLE ;
+   thread_t          * prev_thread        = 0 ;
+   thread_t          * next_thread        = 0 ;
+   thread_t          * thread             = 0 ;
+   thread_stack_t    stackframe           = memblock_INIT_FREEABLE ;
    semaphore_t       isfreeable_semaphore = semaphore_INIT_FREEABLE ;
-   semaphore_t       isvalid_abortflag = semaphore_INIT_FREEABLE ;
-   bool              isThreadAttrValid = false ;
-   const size_t      framesize         = framestacksize_threadstack() ;
+   semaphore_t       isvalid_abortflag    = semaphore_INIT_FREEABLE ;
+   bool              isThreadAttrValid    = false ;
+   const size_t      framesize            = framestacksize_threadstack() ;
 
-   VALIDATE_INPARAM_TEST(nr_of_threads != 0, ABBRUCH,)
-   VALIDATE_INPARAM_TEST(nr_of_threads < 256, ABBRUCH,)
+   VALIDATE_INPARAM_TEST(0 < nr_of_threads && nr_of_threads < 256, ABBRUCH, LOG_UINT32(nr_of_threads)) ;
 
    err = init_threadstack(&stackframe, nr_of_threads) ;
    if (err) goto ABBRUCH ;
@@ -494,13 +495,6 @@ int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, s
    next_thread = prev_thread  ;
    thread      = prev_thread  ;
 
-   if (nr_of_threads > 1) {
-      err = init_umgebung(&shared_umgebung, umgebung_type_MULTITHREAD) ;
-   } else {
-      err = init_umgebung(&shared_umgebung, umgebung_type_SINGLETHREAD) ;
-   }
-   if (err) goto ABBRUCH ;
-
    for(uint32_t i = 0; i < nr_of_threads; ++i) {
 
       sys_thread_t             sys_thread = sys_thread_INIT_FREEABLE ;
@@ -513,16 +507,8 @@ int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, s
          .isFreeEvents = (0 == i),
          .isfreeable_semaphore = isfreeable_semaphore,
          .isvalid_abortflag    = isvalid_abortflag,
-         .umg          = umgebung_INIT_FREEABLE,
          .signalstack  = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size }
       } ;
-
-      ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
-      err = initcopy_umgebung(&startarg->umg, &shared_umgebung) ;
-      if (err) {
-         LOG_CALLERR("initcopy_umgebung",err) ;
-         goto UNDO_LOOP ;
-      }
 
       ONERROR_testerrortimer(&s_error_newgroup, UNDO_LOOP) ;
       err = pthread_attr_init(&thread_attr) ;
@@ -580,9 +566,6 @@ int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, s
       next_thread       = (thread_t*) (((uint8_t*)next_thread) + framesize) ;
       continue ;
    UNDO_LOOP:
-      if (sys_thread_INIT_FREEABLE == sys_thread) {
-         assert(0 == free_umgebung(&startarg->umg)) ;
-      }
       next_thread->lock        = (mutex_t) mutex_INIT_DEFAULT ;
       next_thread->wlistnext   = 0 ;
       next_thread->sys_thread  = sys_thread ;
@@ -613,13 +596,12 @@ int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, s
    }
 
    // semaphore are freed in first created thread !
-   assert(0 == free_umgebung(&shared_umgebung)) ;
 
    *threadobj = thread ;
    return 0 ;
 ABBRUCH:
    if (err2) {
-      abort_umgebung(err2) ;
+      abort_context(err2) ;
    }
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr) ;
@@ -627,7 +609,6 @@ ABBRUCH:
    (void) free_semaphore(&isvalid_abortflag) ;
    (void) free_semaphore(&isfreeable_semaphore) ;
    (void) delete_thread(&thread) ;
-   (void) free_umgebung(&shared_umgebung) ;
 
    LOG_ABORT(err) ;
    return err ;
@@ -689,7 +670,7 @@ void suspend_thread()
    if (-1 == err) {
       err = errno ;
       LOG_SYSERR("sigwaitinfo", err) ;
-      abort_umgebung(err) ;
+      abort_context(err) ;
    }
 }
 
@@ -700,7 +681,7 @@ void resume_thread(thread_t * threadobj)
    err = pthread_kill(threadobj->sys_thread, SIGINT) ;
    if (err) {
       LOG_SYSERR("pthread_kill", err) ;
-      abort_umgebung(err) ;
+      abort_context(err) ;
    }
 }
 
@@ -922,6 +903,9 @@ static int thread_returncode(int retcode)
 static int test_thread_init(void)
 {
    thread_t * thread = 0 ;
+
+   // TEST sys_thread_context
+   TEST(&sys_thread_context() == &gt_thread_context) ;
 
    // TEST initonce => self_thread()
    TEST(&gt_thread_self == self_thread()) ;

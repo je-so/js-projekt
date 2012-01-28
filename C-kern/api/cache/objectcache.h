@@ -2,7 +2,7 @@
    Offers a simple cache mechanism for objects needed in submodules
    which are costly to construct or deconstruct.
 
-   Implements <initumgebung_objectcache>/<freeumgebung_objectcache> to allocate
+   Implements <initthread_objectcache>/<freethread_objectcache> to allocate
    storage for cached objects before a new thread is created and frees all storage
    before the thread exits.
 
@@ -58,13 +58,15 @@ struct objectcache_t {
 
 // group: init
 
-/* function: initumgebung_objectcache
- * Calls <init_objectcache> and wraps object into interface object <objectcache_oit>. */
-extern int initumgebung_objectcache(/*out*/objectcache_oit * objectcache) ;
+/* function: initthread_objectcache
+ * Calls <init_objectcache> and wraps object into interface object <objectcache_oit>.
+ * This function is called from <init_threadcontext>. */
+extern int initthread_objectcache(/*out*/objectcache_oit * objectcache) ;
 
-/* function: freeumgebung_objectcache
- * Calls <free_objectcache> with object pointer from <objectcache_oit>. */
-extern int freeumgebung_objectcache(objectcache_oit * objectcache) ;
+/* function: freethread_objectcache
+ * Calls <free_objectcache> with object pointer from <objectcache_oit>.
+ * This function is called from <free_threadcontext>. */
+extern int freethread_objectcache(objectcache_oit * objectcache) ;
 
 // group: lifetime
 

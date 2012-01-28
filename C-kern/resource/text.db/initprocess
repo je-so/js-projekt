@@ -1,0 +1,14 @@
+# TEXT.DB (1.0)
+# documentation:
+# List of modules with initonce_ / freeonce_ functions called once per process.
+# They are called from init_processcontext and free_processcontext.
+# Init functions are called from first to last entry in this database.
+# Free functions are called from last entry to first entry.
+# The header-name field references the C99 header file which exports the function prototypes.
+"module",            "parameter",    "header-name"
+"locale",            "",             "C-kern/api/platform/locale.h"
+"X11",               "",             "C-kern/api/platform/gui/X11/x11.h"
+"signalconfig",      "",             "C-kern/api/platform/sync/signal.h"
+"valuecache",        "valuecache",   "C-kern/api/cache/valuecache.h"
+# module thread needs valuecache cause of its use of virtual memory !
+"thread",            "",             "C-kern/api/platform/thread.h"

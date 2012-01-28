@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Jan.21  07:23:58
+GenerationDate  := 2012.Jan.28  14:34:01
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -18,7 +18,7 @@ CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_USERINTERFACE="(HTML5)"
 Includes_Debug      := $(IncludeFlag_Debug).
-Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt $(LibraryFlag_Debug)X11 $(LibraryFlag_Debug)Xrandr $(LibraryFlag_Debug)Xrender $(LibraryFlag_Debug)GL
+Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
 Libpath_Debug       :=
 ObjectDir_Debug     := bin/Debug/testunit
 TargetDir_Debug     := bin
@@ -36,7 +36,7 @@ CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversio
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_USERINTERFACE="(HTML5)"
 Includes_Release      := $(IncludeFlag_Release).
-Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt $(LibraryFlag_Release)X11 $(LibraryFlag_Release)Xrandr $(LibraryFlag_Release)Xrender $(LibraryFlag_Release)GL
+Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
 Libpath_Release       :=
 ObjectDir_Release     := bin/Release/testunit
 TargetDir_Release     := bin
@@ -99,8 +99,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o \
  $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
- $(ObjectDir_Debug)/C-kern!cache!objectcachemt.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
+ $(ObjectDir_Debug)/C-kern!context!context.c.o \
+ $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
@@ -121,12 +123,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!services_singlethread.c.o \
- $(ObjectDir_Debug)/C-kern!umgebung!services_multithread.c.o \
- $(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o \
- $(ObjectDir_Debug)/C-kern!writer!logwritermt.c.o \
+ $(ObjectDir_Debug)/C-kern!writer!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o
 
 Objects_Release := \
@@ -155,8 +152,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o \
  $(ObjectDir_Release)/C-kern!main!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
- $(ObjectDir_Release)/C-kern!cache!objectcachemt.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
+ $(ObjectDir_Release)/C-kern!context!context.c.o \
+ $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
@@ -177,12 +176,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o \
- $(ObjectDir_Release)/C-kern!umgebung!services_multithread.c.o \
- $(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o \
- $(ObjectDir_Release)/C-kern!writer!logwritermt.c.o \
+ $(ObjectDir_Release)/C-kern!writer!logmain.c.o \
  $(ObjectDir_Release)/C-kern!writer!logwriter.c.o
 
 $(Target_Debug): $(Objects_Debug)
@@ -266,10 +260,16 @@ $(ObjectDir_Debug)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
 $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!cache!objectcachemt.c.o: C-kern/cache/objectcachemt.c
+$(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
+$(ObjectDir_Debug)/C-kern!context!context.c.o: C-kern/context/context.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
@@ -332,22 +332,7 @@ $(ObjectDir_Debug)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!umgebung!services_singlethread.c.o: C-kern/umgebung/services_singlethread.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!umgebung!services_multithread.c.o: C-kern/umgebung/services_multithread.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwriter.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!writer!logwritermt.c.o: C-kern/writer/logwritermt.c
+$(ObjectDir_Debug)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
@@ -428,10 +413,16 @@ $(ObjectDir_Release)/C-kern!main!unittest_main.c.o: C-kern/main/unittest_main.c
 $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!cache!objectcachemt.c.o: C-kern/cache/objectcachemt.c
+$(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
+$(ObjectDir_Release)/C-kern!context!context.c.o: C-kern/context/context.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
@@ -494,22 +485,7 @@ $(ObjectDir_Release)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!umgebung!umgebung.c.o: C-kern/umgebung/umgebung.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!umgebung!umgebung_shared.c.o: C-kern/umgebung/umgebung_shared.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!umgebung!services_singlethread.c.o: C-kern/umgebung/services_singlethread.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!umgebung!services_multithread.c.o: C-kern/umgebung/services_multithread.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!writer!main_logwriter.c.o: C-kern/writer/main_logwriter.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!writer!logwritermt.c.o: C-kern/writer/logwritermt.c
+$(ObjectDir_Release)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c

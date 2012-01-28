@@ -25,8 +25,8 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/cache/objectcache.h"
+#include "C-kern/api/cache/objectcache_it.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/aspect/interface/objectcache_it.h"
 #include "C-kern/api/platform/virtmemory.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -45,7 +45,7 @@ objectcache_it    s_objectcache_interface = {
 
 // group: init
 
-int initumgebung_objectcache(/*out*/objectcache_oit * objectcache)
+int initthread_objectcache(/*out*/objectcache_oit * objectcache)
 {
    int err ;
    const size_t    objsize   = sizeof(objectcache_t) ;
@@ -72,7 +72,7 @@ ABBRUCH:
    return err ;
 }
 
-int freeumgebung_objectcache(objectcache_oit * objectcache)
+int freethread_objectcache(objectcache_oit * objectcache)
 {
    int err ;
    objectcache_t * delobject = objectcache->object ;
@@ -128,7 +128,7 @@ ABBRUCH:
    return err ;
 }
 
-int move_objectcache( objectcache_t * destination, objectcache_t * source )
+int move_objectcache(objectcache_t * destination, objectcache_t * source)
 {
    int err ;
 
@@ -259,7 +259,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int test_initumgebung(void)
+static int test_initthread(void)
 {
    objectcache_oit   cache = objectcache_oit_INIT_FREEABLE;
 
@@ -271,24 +271,24 @@ static int test_initumgebung(void)
    TEST(s_objectcache_interface.lock_iobuffer   == &lockiobuffer_objectcache) ;
    TEST(s_objectcache_interface.unlock_iobuffer == &unlockiobuffer_objectcache) ;
 
-   // TEST initumgebung and double free
-   TEST(0 == initumgebung_objectcache( &cache )) ;
+   // TEST initthread and double free
+   TEST(0 == initthread_objectcache( &cache )) ;
    TEST(cache.object    != 0) ;
    TEST(cache.functable == &s_objectcache_interface) ;
-   TEST(0 == freeumgebung_objectcache( &cache )) ;
+   TEST(0 == freethread_objectcache( &cache )) ;
    TEST(0 == cache.object) ;
    TEST(0 == cache.functable) ;
-   TEST(0 == freeumgebung_objectcache( &cache )) ;
+   TEST(0 == freethread_objectcache( &cache )) ;
    TEST(0 == cache.object) ;
    TEST(0 == cache.functable) ;
 
-   // TEST EINVAL initumgebung
+   // TEST EINVAL initthread
    cache.object = (objectcache_t*) 1 ;
-   TEST(EINVAL == initumgebung_objectcache( &cache )) ;
+   TEST(EINVAL == initthread_objectcache( &cache )) ;
 
    return 0 ;
 ABBRUCH:
-   (void) freeumgebung_objectcache(&cache) ;
+   (void) freethread_objectcache(&cache) ;
    return EINVAL ;
 }
 
@@ -409,7 +409,7 @@ int unittest_cache_objectcache()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())       goto ABBRUCH ;
-   if (test_initumgebung())   goto ABBRUCH ;
+   if (test_initthread())     goto ABBRUCH ;
    if (test_iobuffer())       goto ABBRUCH ;
 
    // TEST resource usage has not changed

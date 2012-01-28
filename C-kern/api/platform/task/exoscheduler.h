@@ -2,8 +2,8 @@
    Runs all registered exothreads in a round-robin fashion.
    A newly created exothread automatically registers itself
    at the corresponding scheduler.
-   The scheduler registers itself with <umgebung_t>.
-   Accessing it is a simple call to <TODO exothreadsched_umgebung>.
+   TODO: The scheduler registers itself with <context_t>.
+   TODO: Accessing is possible with a simple call to <exothreadsched_context>.
 
    about: Copyright
    This program is free software.

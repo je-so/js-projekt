@@ -39,7 +39,7 @@ typedef struct logwriter_t          logwriter_t ;
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_writer_logwriter
- * Tests <initumgebung_logwriter> and functionality of <logwriter_t>. */
+ * Tests <initthread_logwriter> and functionality of <logwriter_t>. */
 extern int unittest_writer_logwriter(void) ;
 #endif
 
@@ -66,15 +66,15 @@ struct logwriter_t
 
 // group: init
 
-/* function: initumgebung_logwriter
- * Uses <init_logwriter> - called from <init_umgebung>. */
-extern int initumgebung_logwriter(/*out*/log_oit * ilog) ;
+/* function: initthread_logwriter
+ * Uses <init_logwriter> - called from <init_threadcontext>. */
+extern int initthread_logwriter(/*out*/log_oit * ilog) ;
 
-/* function: freeumgebung_logwriter
- * Uses  <free_logwriter> - called from <free_umgebung>.
- * After return log is not set to NULL instead it is set to <g_main_logwriter>.
+/* function: freethread_logwriter
+ * Uses  <free_logwriter> - called from <free_threadcontext>.
+ * After return log is not set to NULL instead it is set to <g_logmain>.
  * To support the most basic logging. */
-extern int freeumgebung_logwriter(log_oit * ilog) ;
+extern int freethread_logwriter(log_oit * ilog) ;
 
 // group: lifetime
 
@@ -125,5 +125,27 @@ extern void printf_logwriter(logwriter_t * log, const char * format, ... ) __att
  * Function used internally to implement <printf_logwriter>.
  * Do not use this function directly except from within a subtype. */
 extern void vprintf_logwriter(logwriter_t * log, const char * format, va_list args) ;
+
+
+// section: inline implementation
+
+// group: KONFIG_SUBSYS
+
+/* about: Thread
+ * In case of only 1 thread use static <logmain_t> instead of <logwriter_t>.
+ * The following code tests for submodule THREAD and replaces
+ * <freethread_logwriter> and <initthread_logwriter> with (0) in
+ * case THREAD submodule is not configured. */
+
+#define THREAD 1
+#if (!((KONFIG_SUBSYS)&THREAD))
+/* define: initthread_logwriter
+ * Implement <logwriter_t.initthread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define initthread_logwriter(ilog)   (0)
+/* define: freethread_logwriter
+ * Implement <logwriter_t.freethread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define freethread_logwriter(ilog)   (0)
+#endif
+#undef THREAD
 
 #endif

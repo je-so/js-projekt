@@ -27,6 +27,7 @@
 
 #include "C-kern/api/aspect/callback/task.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/context/threadcontext.h"
 
 /* typedef: struct thread_t
  * Export <thread_t>. */
@@ -98,14 +99,14 @@ struct thread_t {
 // group: initonce
 
 /* function: initonce_thread
- * Calculates some internal offsets, called from <initmain_umgebung>.
- * It is called after the <umgebung_t> object is fully operational. */
-extern int initonce_thread(umgebung_t * umg) ;
+ * Calculates some internal offsets, called from <init_context>.
+ * It must be called after the <valuecache_t> is fully operational
+ * The reason is that function <pagesize_vm> needs <valuecache_t>. */
+extern int initonce_thread(void) ;
 
 /* function: freeonce_thread
- * Does nothing. Called from <freemain_umgebung>.
- * It is called before the <umgebung_t> object is freed. */
-extern int freeonce_thread(umgebung_t * umg) ;
+ * Does nothing. Called from <free_context>. */
+extern int freeonce_thread(void) ;
 
 // group: lifetime
 
@@ -113,7 +114,7 @@ extern int freeonce_thread(umgebung_t * umg) ;
  * Creates and starts a new system thread.
  * The thread has to do some internal initialization after running the first time
  * and before thread_main is called.
- * If the internal preparation goes wrong <umgebung_t.abort_umgebung> is called.
+ * If the internal preparation goes wrong <context_t.abort_context> is called.
  * It is unspecified if thread_main is called before new_thread returns.
  * On Linux new_thread returns before the newly created thread is scheduled. */
 extern int new_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, struct callback_param_t * start_arg) ;
@@ -236,8 +237,7 @@ extern void sleepms_thread(uint32_t msec) ;
    ((threadobj)->returncode)
 
 /* define: self_thread
- * Implements <thread_t.self_thread>.
- * > (&gt_thread_self) */
+ * Implements <thread_t.self_thread>. */
 #define self_thread()                  (&gt_thread_self)
 
 /* define: unlock_thread
@@ -251,10 +251,10 @@ extern void sleepms_thread(uint32_t msec) ;
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: initonce_thread
  * Implement <thread_t.initonce_thread> as a no op if !((KONFIG_SUBSYS)&THREAD) */
-#define initonce_thread(umg)   (0)
+#define initonce_thread()              (0)
 /* define: freeonce_thread
  * Implement <thread_t.freeonce_thread> as a no op if !((KONFIG_SUBSYS)&THREAD) */
-#define freeonce_thread(umg)   (0)
+#define freeonce_thread()              (0)
 #endif
 #undef THREAD
 

@@ -1,3 +1,0 @@
-C-kern/cache/valuecache.c:54: initumgebung_valuecache(): error: Function input violates condition (0 == *valuecache)
-C-kern/cache/valuecache.c:71: initumgebung_valuecache(): error: Function aborted (err=22)
-C-kern/umgebung/umgebung_shared.c:85: init_umgebungshared(): error: Function aborted (err=22)
