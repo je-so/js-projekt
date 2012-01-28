@@ -36,7 +36,8 @@ typedef struct thread_t                thread_t ;
  * Make <thread_stack_t> an alias for <memblock_t>. */
 typedef memblock_t                     thread_stack_t ;
 
-// globals
+/* variable: gt_thread_self
+ * Points to current <thread_t> object. */
 extern __thread  thread_t              gt_thread_self ;
 
 

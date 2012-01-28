@@ -81,10 +81,16 @@ extern int init_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loc
  * EINVAL is returned if localaddr or remoteaddr is invalid or if they have different protocols.
  * Error code EAFNOSUPPORT indicates that <ipversion_e> from localaddr differs from remoteaddr.
  *
+ * Special value:
+ * In case localaddr is 0 it is set to newany_ipaddr with the same version and protocol as remoteaddr
+ * and the port number set to 0 (choose next free number).
+ * After successfull connection the local address of the created <ipsocket_t> ipsock is assigned
+ * a free ip port and has an ip address of the network interface which connects to remoteaddr.
+ *
  * Performance:
  * For TCP it is possible that this call needs some time to complete especially with a slow network connection.
  * So calling this function in a dedicated system worker thread is a good idea. */
-extern int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr, const struct ipaddr_t * remoteaddr) ;
+extern int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr/*0=newany_ipaddr*/) ;
 
 /* function: initlisten_ipsocket
  * Creates a TCP server socket for accepting connections from peers (clients).
@@ -149,7 +155,7 @@ extern int localaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * local
 /* function: remoteaddr_ipsocket
  * Returns remote ip address of peer in remoteaddr.
  * The parameter remoteaddr must have been allocated with <new_ipaddr> before this function is called.
- * Returns *EAFNOSUPPORT* in case ipversion of localaddr is not the same as of ipsock. */
+ * Returns *EAFNOSUPPORT* in case ipversion of remoteaddr is not the same as of ipsock. */
  extern int remoteaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * remoteaddr) ;
 
 // group: buffer management
@@ -268,7 +274,7 @@ struct ipsocket_async_t {
 /* function: initconnect_ipsocketasync
  * Same as <initconnect_ipsocket> except for async operation.
  * Call <success_ipsocketasync> to check if connect request operation has completed. */
-extern int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struct ipaddr_t * localaddr, const struct ipaddr_t * remoteaddr) ;
+extern int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr) ;
 
 /* function: free_ipsocketasync
  * Closes socket and frees all resources.

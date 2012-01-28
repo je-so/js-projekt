@@ -2,7 +2,7 @@
 
 # global Makefile building all subprojects
 
-# projects with suffix _ have two builds modes: Debug and Release
+# projects with suffix _ support the two build modes: Debug and Release
 PROJECTS= pp-textdb  \
           pp-textres \
           genmake_   \

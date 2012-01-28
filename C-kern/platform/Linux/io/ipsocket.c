@@ -127,15 +127,20 @@ ABBRUCH:
    return err ;
 }
 
-int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr, const struct ipaddr_t * remoteaddr)
+int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr)
 {
    int err ;
    int fd ;
-   ipsocket_t new_ipsock = ipsocket_INIT_FREEABLE ;
+   ipsocket_t        new_ipsock = ipsocket_INIT_FREEABLE ;
+   ipaddr_storage_t  localaddr2 ;
 
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
    VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
-   VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
+   if (localaddr) {
+      VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
+      VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
+   } else {
+      localaddr = initany_ipaddrstorage(&localaddr2, protocol_ipaddr(remoteaddr), 0, version_ipaddr(remoteaddr)) ;
+   }
 
    err = initsocket_helper(&new_ipsock, localaddr) ;
    if (err) goto ABBRUCH ;
@@ -725,15 +730,20 @@ ABBRUCH:
    return err ;
 }
 
-int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struct ipaddr_t * localaddr, const struct ipaddr_t * remoteaddr)
+int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr)
 {
    int err ;
    int fd ;
-   ipsocket_t new_ipsock = ipsocket_INIT_FREEABLE ;
+   ipsocket_t        new_ipsock = ipsocket_INIT_FREEABLE ;
+   ipaddr_storage_t  localaddr2 ;
 
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
    VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
-   VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
+   if (localaddr) {
+      VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
+      VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
+   } else {
+      localaddr = initany_ipaddrstorage(&localaddr2, protocol_ipaddr(remoteaddr), 0, version_ipaddr(remoteaddr)) ;
+   }
 
    err = initsocket_helper(&new_ipsock, localaddr) ;
    if (err) goto ABBRUCH ;
@@ -969,51 +979,60 @@ static int test_connect(void)
 {
    ipaddr_t  * ipaddr   = 0 ;
    ipaddr_t  * ipaddr2  = 0 ;
+   cstring_t   name     = cstring_INIT ;
    ipsocket_t  ipsockCL = ipsocket_INIT_FREEABLE ;
    ipsocket_t  ipsockLT = ipsocket_INIT_FREEABLE ;
    ipsocket_t  ipsockSV = ipsocket_INIT_FREEABLE ;
 
    // TEST connect TCP
-   TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 0, ipversion_4 )) ;
-   TEST(0 == initlisten_ipsocket(&ipsockLT, ipaddr, 1)) ;
-   TEST(0 == isconnected_ipsocket(&ipsockLT)) ;
-   TEST(0 == newcopy_ipaddr(&ipaddr2, ipaddr)) ;
-   TEST(0 == localaddr_ipsocket(&ipsockLT, ipaddr2)) ;
-   TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
-   TEST(1 == isconnected_ipsocket(&ipsockCL)) ;
-   TEST(0 == initwaitconnect_ipsocket(&ipsockSV, &ipsockLT, ipaddr)) ;
-   TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr2)) ;
-   TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
-   TEST(0 == remoteaddr_ipsocket(&ipsockCL, ipaddr)) ;
-   TEST(0 == localaddr_ipsocket(&ipsockSV, ipaddr2)) ;
-   TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
-   TEST(0 == remoteaddr_ipsocket(&ipsockSV, ipaddr)) ;
-   TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr2)) ;
-   TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
-   TEST(0 == delete_ipaddr(&ipaddr)) ;
-   TEST(0 == delete_ipaddr(&ipaddr2)) ;
-   TEST(0 == free_ipsocket(&ipsockCL)) ;
-   TEST(0 == free_ipsocket(&ipsockLT)) ;
-   TEST(0 == free_ipsocket(&ipsockSV)) ;
+   for(unsigned islocal = 0; islocal < 2; ++islocal) {
+      TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 0, ipversion_4 )) ;
+      TEST(0 == initlisten_ipsocket(&ipsockLT, ipaddr, 1)) ;
+      TEST(0 == isconnected_ipsocket(&ipsockLT)) ;
+      TEST(0 == newcopy_ipaddr(&ipaddr2, ipaddr)) ;
+      TEST(0 == localaddr_ipsocket(&ipsockLT, ipaddr2)) ;
+      TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, islocal ? ipaddr : 0)) ;
+      TEST(1 == isconnected_ipsocket(&ipsockCL)) ;
+      TEST(0 == initwaitconnect_ipsocket(&ipsockSV, &ipsockLT, ipaddr)) ;
+      TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr2)) ;
+      TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
+      TEST(0 == strcmp(str_cstring(&name), "127.0.0.1")) ;
+      TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
+      TEST(0 == remoteaddr_ipsocket(&ipsockCL, ipaddr)) ;
+      TEST(0 == localaddr_ipsocket(&ipsockSV, ipaddr2)) ;
+      TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
+      TEST(0 == remoteaddr_ipsocket(&ipsockSV, ipaddr)) ;
+      TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr2)) ;
+      TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
+      TEST(0 == delete_ipaddr(&ipaddr)) ;
+      TEST(0 == delete_ipaddr(&ipaddr2)) ;
+      TEST(0 == free_ipsocket(&ipsockCL)) ;
+      TEST(0 == free_ipsocket(&ipsockLT)) ;
+      TEST(0 == free_ipsocket(&ipsockSV)) ;
+   }
 
    // TEST connect UDP
-   TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
-   TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_UDP, 12345, ipversion_4)) ;
-   TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
-   TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr)) ;
-   TEST(0 == initconnect_ipsocket(&ipsockSV, ipaddr2, ipaddr)) ;
-   TEST(1 == isconnected_ipsocket(&ipsockCL)) ;
-   TEST(1 == isconnected_ipsocket(&ipsockSV)) ;
-   TEST(0 == remoteaddr_ipsocket(&ipsockCL, ipaddr)) ;
-   TEST(0 == localaddr_ipsocket(&ipsockSV, ipaddr2)) ;
-   TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
-   TEST(0 == remoteaddr_ipsocket(&ipsockSV, ipaddr)) ;
-   TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr2)) ;
-   TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
-   TEST(0 == delete_ipaddr(&ipaddr)) ;
-   TEST(0 == delete_ipaddr(&ipaddr2)) ;
-   TEST(0 == free_ipsocket(&ipsockCL)) ;
-   TEST(0 == free_ipsocket(&ipsockSV)) ;
+   for(unsigned islocal = 0; islocal < 2; ++islocal) {
+      TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
+      TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_UDP, 12345, ipversion_4)) ;
+      TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, islocal ? ipaddr : 0)) ;
+      TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr)) ;
+      TEST(0 == initconnect_ipsocket(&ipsockSV, ipaddr, ipaddr2)) ;
+      TEST(1 == isconnected_ipsocket(&ipsockCL)) ;
+      TEST(1 == isconnected_ipsocket(&ipsockSV)) ;
+      TEST(0 == remoteaddr_ipsocket(&ipsockCL, ipaddr)) ;
+      TEST(0 == localaddr_ipsocket(&ipsockSV, ipaddr2)) ;
+      TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
+      TEST(0 == remoteaddr_ipsocket(&ipsockSV, ipaddr)) ;
+      TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr2)) ;
+      TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
+      TEST(0 == strcmp(str_cstring(&name), "127.0.0.1")) ;
+      TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
+      TEST(0 == delete_ipaddr(&ipaddr)) ;
+      TEST(0 == delete_ipaddr(&ipaddr2)) ;
+      TEST(0 == free_ipsocket(&ipsockCL)) ;
+      TEST(0 == free_ipsocket(&ipsockSV)) ;
+   }
 
    // TEST EINVAL (accept on TCP socket but not listener)
    TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 0, ipversion_4 )) ;
@@ -1021,9 +1040,9 @@ static int test_connect(void)
    TEST(0 == initlisten_ipsocket(&ipsockLT, ipaddr, 1)) ;
    TEST(0 == localaddr_ipsocket(&ipsockLT, ipaddr2)) ;
    TEST(0 == setprotocol_ipaddr(ipaddr2, ipprotocol_UDP)) ;
-   TEST(EINVAL == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
+   TEST(EINVAL == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
    TEST(0 == localaddr_ipsocket(&ipsockLT, ipaddr2)) ;
-   TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
+   TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
    TEST(EINVAL == initwaitconnect_ipsocket(&ipsockSV, &ipsockCL, ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
@@ -1033,7 +1052,7 @@ static int test_connect(void)
    // TEST EAFNOSUPPORT (different adddress versions)
    TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 0, ipversion_4 )) ;
    TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_TCP, 2000, ipversion_6 )) ;
-   TEST(EAFNOSUPPORT == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
+   TEST(EAFNOSUPPORT == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
 
@@ -1045,8 +1064,12 @@ static int test_connect(void)
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == free_ipsocket(&ipsockLT)) ;
 
+
+   TEST(0 == free_cstring(&name)) ;
+
    return 0 ;
 ABBRUCH:
+   (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
    (void) free_ipsocket(&ipsockCL) ;
    (void) free_ipsocket(&ipsockLT) ;
@@ -1077,7 +1100,7 @@ static int test_buffersize(void)
       TEST(0 == newcopy_ipaddr(&ipaddr2, ipaddr)) ;
       TEST(0 == initlisten_ipsocket(&ipsockLT, ipaddr, 1)) ;
       TEST(0 == localaddr_ipsocket(&ipsockLT, ipaddr2)) ;
-      TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
+      TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
       TEST(0 == initwaitconnect_ipsocket(&ipsockSV, &ipsockLT, 0)) ;
@@ -1185,9 +1208,9 @@ static int test_buffersize(void)
          // connect UDP
       TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
       TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_UDP, (uint16_t)(10000+i), ipversion_4)) ;
-      TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
+      TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
       TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr)) ;
-      TEST(0 == initconnect_ipsocket(&ipsockSV, ipaddr2, ipaddr)) ;
+      TEST(0 == initconnect_ipsocket(&ipsockSV, ipaddr, ipaddr2)) ;
       TEST(0 == delete_ipaddr(&ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
       // TEST setqueuesize_ipsocket(buffer_size,buffer_size)
@@ -1348,7 +1371,7 @@ static int test_outofbandData(void)
    TEST(0 == newcopy_ipaddr(&ipaddr2, ipaddr)) ;
    TEST(0 == initlisten_ipsocket(&ipsockLT, ipaddr, 1)) ;
    TEST(0 == localaddr_ipsocket(&ipsockLT, ipaddr2)) ;
-   TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
+   TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
    TEST(0 == initwaitconnect_ipsocket(&ipsockSV, &ipsockLT, 0)) ;
@@ -1363,9 +1386,9 @@ static int test_outofbandData(void)
    // TEST UDP oob
    TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
    TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_UDP, 20000, ipversion_4)) ;
-   TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr, ipaddr2)) ;
+   TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
    TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr)) ;
-   TEST(0 == initconnect_ipsocket(&ipsockSV, ipaddr2, ipaddr)) ;
+   TEST(0 == initconnect_ipsocket(&ipsockSV, ipaddr, ipaddr2)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
       // writing oob is an EOPNOTSUPP
@@ -1427,7 +1450,7 @@ int test_udpIO(void)
       for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
          unsigned ci = (i % nrelementsof(ipsockCL)) ;
          TEST(0 == setport_ipaddr(ipaddr2, portCL[ci])) ;
-         TEST(0 == initconnect_ipsocket(&ipsockSV[i], ipaddr, ipaddr2)) ;
+         TEST(0 == initconnect_ipsocket(&ipsockSV[i], ipaddr2, ipaddr)) ;
          TEST(0 == localaddr_ipsocket(&ipsockSV[i], ipaddr2)) ;
          portSV[i] = port_ipaddr(ipaddr2) ;
       }
@@ -1559,7 +1582,7 @@ static int test_async(void)
    TEST(0 == ipasync.err) ;
 
    // TEST TCP init, double free
-   TEST(0 == initconnect_ipsocketasync(&ipasync, ipaddr, ipaddr2)) ;
+   TEST(0 == initconnect_ipsocketasync(&ipasync, ipaddr2, ipaddr)) ;
    TEST(EINPROGRESS == ipasync.err) ;
    TEST(0 <  ipasync.ipsock) ;
    TEST(0 == free_ipsocketasync(&ipasync)) ;
@@ -1570,43 +1593,47 @@ static int test_async(void)
    TEST(0 == ipasync.err) ;
 
    // TEST TCP async connect
-   TEST(0 == localaddr_ipsocket(&iplisten, ipaddr2)) ;
-   TEST(0 == initconnect_ipsocketasync(&ipasync, ipaddr, ipaddr2)) ;
-   TEST(EINPROGRESS == ipasync.err) ;
-   TEST(0 <  ipasync.ipsock) ;
-   TEST(0 == waitms_ipsocketasync(&ipasync, 100)) ;
-   TEST(0 == success_ipsocketasync(&ipasync)) ;
-   TEST(0 == convert_ipsocketasync(&ipasync, &ipsock1)) ;
-   TEST(-1 == ipasync.ipsock) ;
-   TEST(0 == ipasync.err) ;
-   TEST(0 == initwaitconnect_ipsocket(&ipsock2, &iplisten, 0)) ;
-   TEST(0 == write_ipsocket(&ipsock1, sizeof(buffer), buffer, &size)) ;
-   TEST(sizeof(buffer) == size) ;
-   TEST(0 == read_ipsocket(&ipsock2, sizeof(buffer), buffer, &size)) ;
-   TEST(sizeof(buffer) == size) ;
-   TEST(0 == free_ipsocket(&ipsock1)) ;
-   TEST(0 == free_ipsocket(&ipsock2)) ;
+   for(unsigned islocal = 0; islocal < 2; ++islocal) {
+      TEST(0 == localaddr_ipsocket(&iplisten, ipaddr2)) ;
+      TEST(0 == initconnect_ipsocketasync(&ipasync, ipaddr2, islocal ? ipaddr : 0)) ;
+      TEST(EINPROGRESS == ipasync.err) ;
+      TEST(0 <  ipasync.ipsock) ;
+      TEST(0 == waitms_ipsocketasync(&ipasync, 100)) ;
+      TEST(0 == success_ipsocketasync(&ipasync)) ;
+      TEST(0 == convert_ipsocketasync(&ipasync, &ipsock1)) ;
+      TEST(-1 == ipasync.ipsock) ;
+      TEST(0 == ipasync.err) ;
+      TEST(0 == initwaitconnect_ipsocket(&ipsock2, &iplisten, 0)) ;
+      TEST(0 == write_ipsocket(&ipsock1, sizeof(buffer), buffer, &size)) ;
+      TEST(sizeof(buffer) == size) ;
+      TEST(0 == read_ipsocket(&ipsock2, sizeof(buffer), buffer, &size)) ;
+      TEST(sizeof(buffer) == size) ;
+      TEST(0 == free_ipsocket(&ipsock1)) ;
+      TEST(0 == free_ipsocket(&ipsock2)) ;
+   }
 
    // TEST UDP (completes immediately)
-   TEST(0 == localaddr_ipsocket(&iplisten, ipaddr2)) ;
-   TEST(0 == setprotocol_ipaddr(ipaddr, ipprotocol_UDP)) ;
-   TEST(0 == setprotocol_ipaddr(ipaddr2, ipprotocol_UDP)) ;
-   TEST(0 == initconnect_ipsocketasync(&ipasync, ipaddr, ipaddr2)) ;
-   TEST(0 == ipasync.err) ;
-   TEST(0 <  ipasync.ipsock) ;
-   TEST(0 == success_ipsocketasync(&ipasync)) ;
-   TEST(0 == waitms_ipsocketasync(&ipasync, 0)) ;
-   TEST(0 == convert_ipsocketasync(&ipasync, &ipsock1)) ;
-   TEST(-1 == ipasync.ipsock) ;
-   TEST(0 == ipasync.err) ;
-   TEST(0 == localaddr_ipsocket(&ipsock1, ipaddr)) ;
-   TEST(0 == initconnect_ipsocket(&ipsock2, ipaddr2, ipaddr)) ;
-   TEST(0 == write_ipsocket(&ipsock1, sizeof(buffer), buffer, &size)) ;
-   TEST(sizeof(buffer) == size) ;
-   TEST(0 == read_ipsocket(&ipsock2, sizeof(buffer), buffer, &size)) ;
-   TEST(sizeof(buffer) == size) ;
-   TEST(0 == free_ipsocket(&ipsock1)) ;
-   TEST(0 == free_ipsocket(&ipsock2)) ;
+   for(unsigned islocal = 0; islocal < 2; ++islocal) {
+      TEST(0 == localaddr_ipsocket(&iplisten, ipaddr2)) ;
+      TEST(0 == setprotocol_ipaddr(ipaddr, ipprotocol_UDP)) ;
+      TEST(0 == setprotocol_ipaddr(ipaddr2, ipprotocol_UDP)) ;
+      TEST(0 == initconnect_ipsocketasync(&ipasync, ipaddr2, islocal ? ipaddr : 0)) ;
+      TEST(0 == ipasync.err) ;
+      TEST(0 <  ipasync.ipsock) ;
+      TEST(0 == success_ipsocketasync(&ipasync)) ;
+      TEST(0 == waitms_ipsocketasync(&ipasync, 0)) ;
+      TEST(0 == convert_ipsocketasync(&ipasync, &ipsock1)) ;
+      TEST(-1 == ipasync.ipsock) ;
+      TEST(0 == ipasync.err) ;
+      TEST(0 == localaddr_ipsocket(&ipsock1, ipaddr)) ;
+      TEST(0 == initconnect_ipsocket(&ipsock2, ipaddr, ipaddr2)) ;
+      TEST(0 == write_ipsocket(&ipsock1, sizeof(buffer), buffer, &size)) ;
+      TEST(sizeof(buffer) == size) ;
+      TEST(0 == read_ipsocket(&ipsock2, sizeof(buffer), buffer, &size)) ;
+      TEST(sizeof(buffer) == size) ;
+      TEST(0 == free_ipsocket(&ipsock1)) ;
+      TEST(0 == free_ipsocket(&ipsock2)) ;
+   }
 
    // TEST TCP ECONNREFUSED
    TEST(0 == setprotocol_ipaddr(ipaddr, ipprotocol_TCP)) ;

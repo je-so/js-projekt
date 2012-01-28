@@ -27,10 +27,9 @@
 #ifndef CKERN_CACHE_VALUECACHE_HEADER
 #define CKERN_CACHE_VALUECACHE_HEADER
 
-
-/* typedef: valuecache_t typedef
+/* typedef: struct valuecache_t
  * Exports <valuecache_t>. */
-typedef struct valuecache_t      valuecache_t ;
+typedef struct valuecache_t            valuecache_t ;
 
 
 // section: Functions

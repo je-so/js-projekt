@@ -30,16 +30,16 @@
 
 /* typedef: signalconfig_t typedef
  * Export <signalconfig_t>. */
-typedef struct signalconfig_t       signalconfig_t ;
+typedef struct signalconfig_t          signalconfig_t ;
 
 /* typedef: signalcallback_f
  * Exports callback definition of a signal handler. */
-typedef void                     (* signalcallback_f) (unsigned signr) ;
+typedef void                        (* signalcallback_f) (unsigned signr) ;
 
 /* typedef: rtsignal_t
  * Exports realtime signal type as simple number.
  * The supported number range is 0..15 to be portable. */
-typedef uint8_t                     rtsignal_t ;
+typedef uint8_t                        rtsignal_t ;
 
 
 // section: Functions
@@ -119,13 +119,11 @@ extern int compare_signalconfig(const signalconfig_t * sigconfig1, const signalc
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: initonce_signalconfig
- * Implement init as a no op if !((KONFIG_SUBSYS)&THREAD)
- * > #define initonce_signalconfig()  (0) */
-#define initonce_signalconfig()  (0)
+ * Implement init as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define initonce_signalconfig()        (0)
 /* define: freeonce_signalconfig
- * Implement free as a no op if !((KONFIG_SUBSYS)&THREAD)
- * > #define freeonce_signalconfig()  (0) */
-#define freeonce_signalconfig()  (0)
+ * Implement free as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define freeonce_signalconfig()        (0)
 #endif
 #undef THREAD
 

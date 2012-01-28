@@ -702,10 +702,15 @@ ABBRUCH:
 
 // section: ipaddr_storage_t
 
-ipaddr_t * initconvert_ipaddrstorage(ipaddr_storage_t * addr, ipversion_e version)
+ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol, ipport_t port, ipversion_e version)
 {
    int err ;
    uint16_t size ;
+
+   if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
+      err = EPROTONOSUPPORT ;
+      goto ABBRUCH ;
+   }
 
    switch(version) {
    case ipversion_4: size = sizeof(struct sockaddr_in) ;
@@ -717,9 +722,10 @@ ipaddr_t * initconvert_ipaddrstorage(ipaddr_storage_t * addr, ipversion_e versio
    }
 
    memset(addr->addr, 0, size) ;
-   addr->protocol = ipprotocol_TCP ;
+   addr->protocol = protocol ;
    addr->addrlen  = size ;
    addr->addr[0].sa_family = version ;
+   ((struct sockaddr_in*)addr->addr)->sin_port = htons(port) ;
 
    return (ipaddr_t*) addr ;
 ABBRUCH:
@@ -1220,34 +1226,59 @@ static int test_ipaddrstorage(void)
    ipaddr_storage_t  ipaddr_st ;
 
    // TEST initconvert ipversion_4
-   ipaddr2 = initconvert_ipaddrstorage(&ipaddr_st, ipversion_4 ) ;
+   ipversion_e  vers[2]   = { ipversion_4, ipversion_6 } ;
+   ipprotocol_e protos[2] = { ipprotocol_TCP, ipprotocol_UDP } ;
+   for(unsigned versi = 0, port = 0; versi < nrelementsof(vers); ++versi) {
+      for(unsigned protoi = 0; protoi < nrelementsof(protos); ++protoi, port += 13) {
+         ipaddr2 = initany_ipaddrstorage(&ipaddr_st, protos[protoi], (ipport_t)port, vers[versi]) ;
+         TEST((void*)&ipaddr_st == (void*)ipaddr2) ;
+         TEST(port_ipaddr(ipaddr2)    == port) ;
+         TEST(protocol_ipaddr(ipaddr2)== protos[protoi]) ;
+         TEST(version_ipaddr(ipaddr2) == vers[versi]) ;
+         TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
+         if (ipversion_4 == vers[versi]) {
+            TEST(ipaddr2->addrlen     == sizeof(struct sockaddr_in)) ;
+            TEST(0 == strcmp( str_cstring(&name), "0.0.0.0")) ;
+         } else {
+            TEST(ipaddr2->addrlen     == sizeof(struct sockaddr_in6)) ;
+            TEST(0 == strcmp( str_cstring(&name), "::")) ;
+         }
+      }
+   }
+
+   // TEST initconvert ipversion_4
+   ipaddr2 = initany_ipaddrstorage(&ipaddr_st, ipprotocol_TCP, 1, ipversion_4) ;
    TEST((void*)&ipaddr_st == (void*)ipaddr2) ;
-   TEST(ipversion_4 == version_ipaddr(ipaddr2)) ;
+   TEST(port_ipaddr(ipaddr2)     == 1) ;
+   TEST(protocol_ipaddr(ipaddr2) == ipprotocol_TCP) ;
+   TEST(version_ipaddr(ipaddr2)  == ipversion_4) ;
    TEST(isvalid_ipaddr(ipaddr2)) ;
-   TEST(0 == new_ipaddr(&ipaddr, ipprotocol_TCP, "1.2.3.4", 1, ipversion_4 )) ;
+   TEST(0 == new_ipaddr(&ipaddr, ipprotocol_UDP, "1.2.3.4", 2, ipversion_4 )) ;
    TEST(ipaddr) ;
    TEST(0 == copy_ipaddr(ipaddr2, ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == ipaddr) ;
-   TEST(port_ipaddr(ipaddr2)    == 1) ;
-   TEST(protocol_ipaddr(ipaddr2)== ipprotocol_TCP) ;
+   TEST(port_ipaddr(ipaddr2)    == 2) ;
+   TEST(protocol_ipaddr(ipaddr2)== ipprotocol_UDP) ;
    TEST(version_ipaddr(ipaddr2) == ipversion_4) ;
    TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "1.2.3.4")) ;
 
    // TEST initconvert ipversion_6
-   ipaddr2 = initconvert_ipaddrstorage(&ipaddr_st, ipversion_6 ) ;
+   ipaddr2 = initany_ipaddrstorage(&ipaddr_st, ipprotocol_UDP, 50, ipversion_6) ;
    TEST((void*)&ipaddr_st == (void*)ipaddr2) ;
-   TEST(ipversion_6 == version_ipaddr(ipaddr2)) ;
+   TEST(port_ipaddr(ipaddr2)     == 50) ;
+   TEST(protocol_ipaddr(ipaddr2) == ipprotocol_UDP) ;
+   TEST(version_ipaddr(ipaddr2)  == ipversion_6) ;
    TEST(isvalid_ipaddr(ipaddr2)) ;
-   TEST(0 == newdnsquery_ipaddr(&ipaddr, ipprotocol_UDP, "::23", 50, ipversion_6 )) ;
+   TEST(0 == newdnsquery_ipaddr(&ipaddr, ipprotocol_TCP, "::23", 51, ipversion_6 )) ;
    TEST(ipaddr) ;
    TEST(0 == copy_ipaddr(ipaddr2, ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == ipaddr) ;
-   TEST(port_ipaddr(ipaddr2)    == 50) ;
-   TEST(protocol_ipaddr(ipaddr2)== ipprotocol_UDP) ;
+   TEST(port_ipaddr(ipaddr2)    == 51) ;
+   TEST(protocol_ipaddr(ipaddr2)== ipprotocol_TCP) ;
    TEST(version_ipaddr(ipaddr2) == ipversion_6) ;
    TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in6)) ;
    TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;

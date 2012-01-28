@@ -284,7 +284,7 @@ extern int setaddr_ipaddr(ipaddr_t * addr, ipprotocol_e protocol, uint16_t sock_
 
 /* struct: ipaddr_storage_t
  * Holds enough memory for every possible version of <ipaddr_t>.
- * Use function <initconvert_ipaddrstorage> to cast this object into
+ * Use function <initany_ipaddrstorage> to cast this object into
  * an <ipaddr_t> with the correct <ipversion_e>. */
 struct ipaddr_storage_t {
    /* variable: protocol
@@ -303,12 +303,14 @@ struct ipaddr_storage_t {
 
 // group: lifetime
 
-/* function: initconvert_ipaddrstorage
- * Inits <ipaddr_storage_t> as to be of type <ipaddr_t> with given <ipversion_e>.
- * In case value version is invalid the value NULL is returned.
+/* function: initany_ipaddrstorage
+ * Inits <ipaddr_storage_t> as an ip addr of type <ipaddr_t> with given <ipversion_e>.
+ * In case any parameter is invalid the value NULL is returned.
+ * The returned address is the same as a call to newany_ipaddr.
  *
- * *Never* delete the returned <ipaddr_t> pointer. */
-extern ipaddr_t * initconvert_ipaddrstorage(ipaddr_storage_t * addr, ipversion_e version) ;
+ * *Never* delete the returned <ipaddr_t> pointer. It points to the given addr (<ipaddr_storage_t>)
+ * and is only valid as long as addr is not changed or deleted. */
+extern ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
 
 
 

@@ -27,7 +27,8 @@
 struct callback_param_t ;
 
 /* typedef: struct task_callback_t
- * Export struct <task_callback_t>. */
+ * Export struct <task_callback_t>.
+ * TODO: move callback/task.h into api/task/taskcallback.h */
 typedef struct task_callback_t         task_callback_t ;
 
 /* typedef: task_callback_f

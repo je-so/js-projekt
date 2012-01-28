@@ -34,7 +34,7 @@
 
 /* typedef: struct objectcache_t
  * Export <objectcache_t>. */
-typedef struct objectcache_t     objectcache_t ;
+typedef struct objectcache_t           objectcache_t ;
 
 
 // section: Functions

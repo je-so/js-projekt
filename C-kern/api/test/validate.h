@@ -90,7 +90,7 @@
 /* define: VALIDATE_STATE_TEST
  * Validates that the object state is valid.
  * In case of condition is wrong the error variable *err* is set to
- * EINVAL and execution continues at the given label *_ONERROR_LABEL*.
+ * EPROTO and execution continues at the given label *_ONERROR_LABEL*.
  *
  * For any external visible state this test ensures that a component
  * is in a state in which an operation can by executed. For example reading
@@ -103,7 +103,7 @@
  * */
 #define VALIDATE_STATE_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
    if (!(_CONDITION)) {                               \
-      err = EINVAL ;                                  \
+      err = EPROTO ;                                  \
       LOG_ERRTEXT(TEST_STATE_FALSE(#_CONDITION)) ;    \
       _LOG_VALUE ;                                    \
       goto _ONERROR_LABEL ;                           \
