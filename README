@@ -28,12 +28,11 @@ about: Goal
 about: State
 
   The current development is the architecture and design phase.
+  The structure of the base system must support many users so the concurrency problem
+  has to be solved in one way or another. One of the older technolgies is as transaction
+  processing monitor which can handle things like client-server communication, transaction
+  context and the process management.
 
-  28.01.2012:
-  * I'm thinking about the design of a C-like language for declaring persistent content
-    and defining interfaces for message passing. To support this goal I will learn the Python
-    language in the next 2 month cause of the simpler syntax structure; to get a feeling for
-    it and how it compares to C.
 
 about: Developed Ideas
 

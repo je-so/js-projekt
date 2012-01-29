@@ -64,8 +64,6 @@ Group: Api  {
          }  # Group: Callback
 
       File: Interface  (api/aspect/interface.h)
-      File: Spacetime-Aspect  (api/aspect/constant/spacetime.h)
-      File: StreamCallback  (api/adapter/stream.h)
       File: Treenode2-Aspect  (api/aspect/treenode2.h)
       File: Treenode3-Aspect  (api/aspect/treenode3.h)
       }  # Group: Aspect
@@ -114,13 +112,11 @@ Group: Api  {
 
          File: Internetprotocol-Address  (api/io/ip/ipaddr.h)
          File: Internetprotocol-Sockets  (api/io/ip/ipsocket.h)
-         File: WebSocket  (api/io/ip/websocket.h)
          }  # Group: Ip
 
       File: Filedescriptor  (api/io/filedescr.h)
       File: IO-Accessmode  (api/io/accessmode.h)
       File: IOCallback  (api/io/iocallback.h)
-      File: IOControler  (api/io/iocontroler.h)
       File: IOEvent  (api/io/ioevent.h)
       File: IOPoll  (api/io/iopoll.h)
       File: IOTimer  (api/io/iotimer.h)
@@ -147,17 +143,13 @@ Group: Api  {
       File: CString  (api/string/cstring.h)
       File: String  (api/string/string.h)
       File: StringEncode  (api/string/encode.h)
-      File: Suffix Tree  (api/string/suffix_tree.h)
       File: UTF-8  (api/string/utf8.h)
-      File: WStreamBuffer  (api/string/wstream_buffer.h)
       }  # Group: String
 
    Group: Test  {
 
       File: AssertTest  (api/test/assert.h)
-      File: Compiletime-Tests  (api/test/compiletime.h)
       File: Resourceusage  (api/test/resourceusage.h)
-      File: Speed Test  (api/test/run/speedtest.h)
       File: Test-Errortimer  (api/test/errortimer.h)
       File: Unittest  (api/test/run/unittest.h)
       File: ValidationTest  (api/test/validate.h)
@@ -187,7 +179,6 @@ Group: Api  {
       File: LinuxSystemKonfig  (api/platform/Linux/syskonfig.h)
       File: Locale-support  (api/platform/locale.h)
       File: Malloc  (api/platform/malloc.h)
-      File: MemoryStack  (api/platform/memory/memorystack.h)
       File: ProcessManagement  (api/platform/process.h)
       File: RedBlacktree-Index  (api/platform/index/redblacktree.h)
       File: Splaytree-Index  (api/platform/index/splaytree.h)
@@ -213,7 +204,6 @@ Group: Api  {
 
    File: ErrorHandling  (api/err.h)
    File: MainContext  (api/context.h)
-   File: oobjectstore  (api/oostore.h)
    File: Test  (api/test.h)
    File: Time-Specifications  (api/time/timespec.h)
    File: Timeclock  (api/time/clock.h)
@@ -243,24 +233,15 @@ Group: Implementation  {
       File: SingleLinkedList impl  (ds/inmem/slist.c)
       }  # Group: DataStructures
 
-   Group: Generic Data Structures  {
-
-      File: ArrayList Iterator  (generic/iterator/arraylist-it.h)
-      File: Generic Node Adapter  (generic/GenericNodeAdapter.txt)
-      File: Patricia Tree  (generic/trie/patricia.h)
-      }  # Group: Generic Data Structures
-
    Group: Io  {
 
-      File: IOControler impl  (io/iocontroler.c)
       File: URL impl  (io/url.c)
-      File: WebSocket impl  (io/websocket.c)
       }  # Group: Io
 
    Group: Main  {
 
-      File: Speedtest  (main/speedtest_main.c)
       File: Testchildprocess  (main/testchildprocess_main.c)
+      File: TextDB  (main/tools/textdb.c)
       }  # Group: Main
 
    Group: Math  {
@@ -284,7 +265,6 @@ Group: Implementation  {
       File: String impl  (string/string.c)
       File: StringEncode impl  (string/encode.c)
       File: UTF-8 impl  (string/utf8.c)
-      File: WStreamBuffer impl  (string/wstream_buffer.c)
       }  # Group: String
 
    Group: Platform  {
@@ -319,38 +299,20 @@ Group: Implementation  {
 
          File: Exoscheduler impl  (platform/shared/task/exoscheduler.c)
          File: Exothread impl  (platform/shared/task/exothread.c)
-         File: oobjectstore impl  (platform/shared/oostore.c)
          File: RedBlacktree-Index impl  (platform/shared/index/redblacktree.c)
          File: Splaytree-Index impl  (platform/shared/index/splaytree.c)
          File: Threadpool impl  (platform/shared/task/threadpool.c)
          }  # Group: Shared
 
-      Group: X11  {
-
-         File: X11-Display impl  (platform/X11/display.c)
-         File: X11-OpenGL-Window impl  (platform/X11/glxwindow.c)
-         File: X11-Subsystem impl  (platform/X11/x11.c)
-         }  # Group: X11
-
       }  # Group: Platform
 
    Group: Test  {
-
-      Group: Compiletime  {
-
-         File: CompiletimeTest KONFIG_VALUE  (no auto-title, test/compiletime/konfig_value.h)
-         File: CompiletimeTest Nodeadapter  (test/compiletime/nodeadapter.h)
-         File: CompiletimeTest StdTypes  (test/compiletime/stdtypes.h)
-         File: CompiletimeTest System  (test/compiletime/system.h)
-         }  # Group: Compiletime
 
       File: Unittest impl  (test/run_unittest.c)
       File: Resourceusage impl  (test/resourceusage.c)
       File: Test impl  (test/test.c)
       File: Test-Errortimer impl  (test/errortimer.c)
       }  # Group: Test
-
-   File: TextDB  (main/tools/textdb.c)
 
    Group: Writer  {
 
