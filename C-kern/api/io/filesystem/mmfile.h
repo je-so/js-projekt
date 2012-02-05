@@ -76,7 +76,18 @@ extern int unittest_io_mmfile(void) ;
 /* struct: mmfile_t
  * Describes a memory mapped file.
  * Memory mapped files must always be readable cause the memory must be
- * initialized before it can be accessed. Even if you only want to write to it. */
+ * initialized before it can be accessed. Even if you only want to write to it.
+ *
+ * TODO: Recovery:
+ * In case a read error occurs a SIGBUS is thrown under Linux.
+ * Register special recovery handler for mmfiles => abort + read error !
+ *
+ * TODO: memory mapping fails:
+ * Add a check function to filedescriptor which checks if memory mapping is possible !
+ * If not then use some »read into buffer fallback operation« in some higher component !!
+ *
+ *
+ * */
 struct mmfile_t {
    /* variable: addr
     * The start address of the mapped memory.
@@ -86,8 +97,7 @@ struct mmfile_t {
     * Size of the mapped memory.
     * *size* will be a multiple of <pagesize_mmfile> except
     * if filesize - file_offset would be < size. In this case size is
-    * truncated to filesize - file_offset (see <init_mmfile>).
-    * . */
+    * truncated to filesize - file_offset (see <init_mmfile>). */
    size_t   size ;
 } ;
 
