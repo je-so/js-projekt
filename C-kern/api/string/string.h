@@ -25,6 +25,10 @@
 #ifndef CKERN_API_STRING_HEADER
 #define CKERN_API_STRING_HEADER
 
+/* typedef: struct conststring_t
+ * Export <conststring_t>. */
+typedef struct conststring_t           conststring_t ;
+
 /* typedef: struct string_t
  * Export <string_t>. */
 typedef struct string_t                string_t ;
@@ -37,8 +41,43 @@ typedef struct string_t                string_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_string
  * Test <escapechar_string>. */
-extern int unittest_string(void) ;
+int unittest_string(void) ;
 #endif
+
+
+/* struct: conststring_t
+ * Same as <string_t>, except memory space is constant. */
+struct conststring_t {
+   /* variable: addr
+    * Start address of const string memory. */
+   const uint8_t  * addr ;
+   /* variable: size
+    * Size in bytes of string memory.
+    * The number of characters is lower or equal to this value. */
+   size_t         size ;
+} ;
+
+// group: lifetime
+
+/* define: conststring_INIT_FREEABLE
+ * Static initializer. Sets <conststring_t> to null. */
+#define conststring_INIT_FREEABLE      { 0, 0 }
+
+/* define: conststring_INIT
+ * See <string_INIT>. */
+#define conststring_INIT(strsize, straddr)   { (straddr), (strsize) }
+
+/* function: init_conststring
+ * See <init_string>. */
+void init_conststring(/*out*/conststring_t * str, size_t size, const uint8_t string[size]) ;
+
+/* function: initfl_conststring
+ * See <initfl_string>. */
+int initfl_conststring(/*out*/conststring_t * str, const uint8_t * first, const uint8_t * last) ;
+
+/* function: initse_conststring
+ * See <initse_string>. */
+int initse_conststring(/*out*/conststring_t * str, const uint8_t * start, const uint8_t * end) ;
 
 
 /* struct: string_t
@@ -59,18 +98,18 @@ extern int unittest_string(void) ;
  * > { 0, 0 } */
 struct string_t {
    /* variable: addr
-    * Start address of the string memory. */
-   const char  * addr ;
+    * Start address of non-const string memory. */
+   uint8_t        * addr ;
    /* variable: size
-    * Size in bytes of string memory.
-    * The string length (number of characters) is <= this value. */
-   size_t      size ;
+    * Size in bytes of memory.
+    * The number of characters is lower or equal to this value. */
+   size_t         size ;
 } ;
 
 // group: lifetime
 
 /* define: string_INIT_FREEABLE
- * Static initializer. Sets string_t null or undefined string. */
+ * Static initializer. Sets string_t null. */
 #define string_INIT_FREEABLE           { 0, 0 }
 
 /* define: string_INIT
@@ -88,7 +127,7 @@ struct string_t {
  * str     - <string_t> object to initialize
  * size    - Length of string in bytes
  * string  - Address of first character. */
-extern void init_string(/*out*/string_t * str, size_t size, const char string[size]) ;
+void init_string(/*out*/string_t * str, size_t size, uint8_t string[size]) ;
 
 /* function: initfl_string
  * Assigns static string buffer to out param str.
@@ -96,7 +135,7 @@ extern void init_string(/*out*/string_t * str, size_t size, const char string[si
  * str    - <string_t> object to initialize
  * first  - Address of first character.
  * last   - Address of last character. */
-extern int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * last) ;
+int initfl_string(/*out*/string_t * str, uint8_t * first, uint8_t * last) ;
 
 /* function: initse_string
  * Assigns static string buffer to out param str.
@@ -104,9 +143,55 @@ extern int initfl_string(/*out*/string_t * str, const uint8_t * first, const uin
  * str    - <string_t> object to initialize
  * start  - Address of first character.
  * end    - Address of memory after last character. */
-extern int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * end) ;
+int initse_string(/*out*/string_t * str, uint8_t * start, uint8_t * end) ;
+
+// group: cast
+
+/* function: asconst_string
+ * Casts <string_t> to <constcast_t>. */
+conststring_t asconst_string(string_t * str) ;
+
 
 // section: inline implementation
+
+/* define: init_conststring
+ * Implements <conststring_t.init_conststring>. */
+#define init_conststring(str, size, string)     \
+   do {  conststring_t * _str = (str) ;         \
+         const uint8_t * _string = (string) ;   \
+         init_string((string_t*)_str, (size),   \
+                 (uint8_t*)(intptr_t)_string) ; \
+   } while(0)
+
+/* define: initfl_conststring
+ * Implements <conststring_t.initfl_conststring>. */
+#define initfl_conststring(str, first, last)    \
+   ( __extension__ ({                           \
+         conststring_t * _str   = (str) ;       \
+         const uint8_t * _first = (first) ;     \
+         const uint8_t * _last  = (last) ;      \
+         initfl_string((string_t*)_str,         \
+               (uint8_t*)(intptr_t)_first,      \
+               (uint8_t*)(intptr_t)_last) ;     \
+   }))
+
+/* define: initse_conststring
+ * Implements <conststring_t.initse_conststring>. */
+#define initse_conststring(str, start, end)     \
+   ( __extension__ ({                           \
+         conststring_t * _str   = (str) ;       \
+         const uint8_t * _start = (start) ;     \
+         const uint8_t * _end   = (end) ;       \
+         initse_string((string_t*)_str,         \
+               (uint8_t*)(intptr_t)_start,      \
+               (uint8_t*)(intptr_t)_end) ;      \
+   }))
+
+#define asconst_string(str)               \
+   ( __extension__ ({                     \
+         string_t * _str = (str) ;        \
+         (conststring_t*) _str ;          \
+   }))
 
 
 #endif

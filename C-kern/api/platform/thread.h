@@ -66,10 +66,17 @@ extern int unittest_platform_thread(void) ;
 struct thread_t {
    /* variable: lock
     * Protects access to fields of <thread_t>.
-    * Use it before you read fields which are updated by another thread. */
+    * Use it before you read fields which are updated by another thread.
+    * TODO: remove variable lock, and types waitlist_t and threadpool_t
+    * Replace these ideas with asnycio (event) and task management
+    * Maybe some monitor for transactions and security&user context is
+    * required to support stateless management of server components.
+    * If this monitor supports more than one thread than this monitor
+    * has to be thread safe but not a thread for itself. */
    sys_mutex_t       lock ;
    /* variable: wlistnext
-    * Points to next thread which waits on the same condition in <waitlist_t>. */
+    * Points to next thread which waits on the same condition in <waitlist_t>.
+    * TODO: remove variable wlistnext (see <lock> for explanation) */
    thread_t          * wlistnext ;
    /* variable: task
     * Contains value to signal thread what to do after wakeup. */

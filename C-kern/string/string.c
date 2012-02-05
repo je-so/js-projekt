@@ -34,34 +34,36 @@
 
 // group: implementation
 
-void init_string(/*out*/string_t * str, size_t size, const char string[size])
+void init_string(/*out*/string_t * str, size_t size, uint8_t string[size])
 {
    str->addr = string ;
    str->size = size ;
 }
 
-int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * last)
+int initfl_string(/*out*/string_t * str, uint8_t * first, uint8_t * last)
 {
    int err ;
 
    VALIDATE_INPARAM_TEST(last >= first, ABBRUCH, LOG_PTR(first); LOG_PTR(last) ) ;
 
-   str->addr = (const char*) first ;
+   str->addr = first ;
    str->size = (size_t) (1 + last - first) ;
+
    return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
 
-int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * end)
+int initse_string(/*out*/string_t * str, uint8_t * start, uint8_t * end)
 {
    int err ;
 
    VALIDATE_INPARAM_TEST(end >= start, ABBRUCH, LOG_PTR(end); LOG_PTR(start) ) ;
 
-   str->addr = (const char*) start ;
+   str->addr = start ;
    str->size = (size_t) (end - start) ;
+
    return 0 ;
 ABBRUCH:
    LOG_ABORT(err) ;
@@ -74,10 +76,10 @@ ABBRUCH:
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
-static int test_init(void)
+static int test_string(void)
 {
    string_t    str ;
-   const char  * test ;
+   uint8_t     test[256] ;
 
    // TEST string_INIT_FREEABLE
    str = (string_t) string_INIT_FREEABLE ;
@@ -85,43 +87,89 @@ static int test_init(void)
    TEST(0 == str.size) ;
 
    // TEST string_INIT
-   test = "12345" ;
-   str = (string_t) string_INIT(strlen(test), test) ;
-   TEST(str.addr == test) ;
+   str = (string_t) string_INIT(5, &test[10]) ;
+   TEST(str.addr == &test[10]) ;
    TEST(str.size == 5) ;
-   test = "xx5" ;
-   str = (string_t) string_INIT(strlen(test), test) ;
-   TEST(str.addr == test) ;
+   str = (string_t) string_INIT(3, &test[11]) ;
+   TEST(str.addr == &test[11]) ;
    TEST(str.size == 3) ;
 
    // TEST init_string
-   test = "xyc" ;
-   init_string(&str, strlen(test), test) ;
-   TEST(str.addr == test) ;
+   init_string(&str, 3, &test[12]) ;
+   TEST(str.addr == &test[12]) ;
    TEST(str.size == 3) ;
-   test = "xx5yy" ;
-   init_string(&str, strlen(test), test) ;
-   TEST(str.addr == test) ;
+   init_string(&str, 5, &test[13]) ;
+   TEST(str.addr == &test[13]) ;
    TEST(str.size == 5) ;
 
    // TEST initfl_string
-   test = "xyc" ;
-   initfl_string(&str, (const uint8_t*)test, (const uint8_t*)test+2) ;
-   TEST(str.addr == test) ;
+   initfl_string(&str, &test[21], &test[23]) ;
+   TEST(str.addr == &test[21]) ;
    TEST(str.size == 3) ;
-   test = "xx5yy" ;
-   initfl_string(&str, (const uint8_t*)test, (const uint8_t*)test+4) ;
-   TEST(str.addr == test) ;
+   initfl_string(&str, &test[24], &test[28]) ;
+   TEST(str.addr == &test[24]) ;
    TEST(str.size == 5) ;
 
    // TEST initse_string
-   test = "xyc" ;
-   initse_string(&str, (const uint8_t*)test, (const uint8_t*)test+3) ;
-   TEST(str.addr == test) ;
+   initse_string(&str,  &test[21], &test[24]) ;
+   TEST(str.addr == &test[21]) ;
    TEST(str.size == 3) ;
-   test = "xx5yy" ;
-   initse_string(&str, (const uint8_t*)test, (const uint8_t*)test+5) ;
-   TEST(str.addr == test) ;
+   initse_string(&str, &test[24], &test[29]) ;
+   TEST(str.addr == &test[24]) ;
+   TEST(str.size == 5) ;
+
+   // TEST asconst_string
+   for(int i = 0; i < 5; ++i) {
+      string_t       * str1 = (string_t *) i ;
+      conststring_t  * str2 = (conststring_t *) i ;
+      TEST(str2 == asconst_string(str1)) ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
+
+static int test_conststring(void)
+{
+   conststring_t  str ;
+   const uint8_t  test[256] ;
+
+   // TEST conststring_INIT_FREEABLE
+   str = (conststring_t) conststring_INIT_FREEABLE ;
+   TEST(0 == str.addr) ;
+   TEST(0 == str.size) ;
+
+   // TEST conststring_INIT
+   str = (conststring_t) conststring_INIT(5, &test[10]) ;
+   TEST(str.addr == &test[10]) ;
+   TEST(str.size == 5) ;
+   str = (conststring_t) conststring_INIT(3, &test[11]) ;
+   TEST(str.addr == &test[11]) ;
+   TEST(str.size == 3) ;
+
+   // TEST init_conststring
+   init_conststring(&str, 3, &test[12]) ;
+   TEST(str.addr == &test[12]) ;
+   TEST(str.size == 3) ;
+   init_conststring(&str, 5, &test[13]) ;
+   TEST(str.addr == &test[13]) ;
+   TEST(str.size == 5) ;
+
+   // TEST initfl_conststring
+   initfl_conststring(&str, &test[21], &test[23]) ;
+   TEST(str.addr == &test[21]) ;
+   TEST(str.size == 3) ;
+   initfl_conststring(&str, &test[24], &test[28]) ;
+   TEST(str.addr == &test[24]) ;
+   TEST(str.size == 5) ;
+
+   // TEST initse_conststring
+   initse_conststring(&str,  &test[21], &test[24]) ;
+   TEST(str.addr == &test[21]) ;
+   TEST(str.size == 3) ;
+   initse_conststring(&str, &test[24], &test[29]) ;
+   TEST(str.addr == &test[24]) ;
    TEST(str.size == 5) ;
 
    return 0 ;
@@ -135,7 +183,8 @@ int unittest_string()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_init())  goto ABBRUCH ;
+   if (test_string())         goto ABBRUCH ;
+   if (test_conststring())    goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

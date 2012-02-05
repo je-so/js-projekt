@@ -49,7 +49,7 @@
 #ifdef KONFIG_UNITTEST
 /* function: unittest_string_utf8
  * Test <escape_char>. */
-extern int unittest_string_utf8(void) ;
+int unittest_string_utf8(void) ;
 #endif
 
 
@@ -58,20 +58,20 @@ extern int unittest_string_utf8(void) ;
 /* function: cmpcaseascii_utf8cstring
  * Returns result of case insensitive string comparison.
  * This functions assumes only 'A'-'Z' and 'a'-'z' as case sensitive characters. */
-extern int cmpcaseascii_utf8cstring(const uint8_t * utf8cstr, const char * cstr, size_t size) ;
+int cmpcaseascii_utf8cstring(const uint8_t * utf8cstr, const char * cstr, size_t size) ;
 
 /* function: skipchar_utf8cstring
  * Returns pointer to next character after utf8cstr.
  * This function assumes characters are encoded correctly.
  * If utf8cstr points to the end of string utf8cstr is returned. */
-extern const uint8_t * skipchar_utf8cstring(const uint8_t * utf8cstr) ;
+const uint8_t * skipchar_utf8cstring(const uint8_t * utf8cstr) ;
 
 /* function: findwcharnul_utf8cstring
  * Finds character and returns position or end of string.
  * The returned value is position of the found character.
  * If the string does not contain character c the position of
  * the nul byte at the end of utf8cstr is returned. */
-extern const uint8_t * findwcharnul_utf8cstring(const uint8_t * utf8cstr, wchar_t wchar) ;
+const uint8_t * findwcharnul_utf8cstring(const uint8_t * utf8cstr, wchar_t wchar) ;
 
 
 #endif

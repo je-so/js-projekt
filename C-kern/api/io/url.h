@@ -53,8 +53,8 @@ typedef struct url_t                   url_t ;
 
 /* typedef: url_parts_t
  * Defines <url_parts_t> as an array of 7 strings.
- * See <string_t>. */
-typedef string_t                       url_parts_t[7] ;
+ * See <conststring_t>. */
+typedef conststring_t                  url_parts_t[7] ;
 
 /* enums: url_scheme_e
  *
@@ -133,7 +133,7 @@ struct url_t {
     * The url scheme. See <url_scheme_e> for a list of all supported values. */
    uint16_t          scheme ;
    uint16_t          parts[7] ;
-   char              buffer[] ;
+   uint8_t           buffer[] ;
 } ;
 
 // group: lifetime
@@ -221,7 +221,7 @@ extern const char * user_url(const url_t * url) ;
 /* define: getpart_url
  * Implements <url_t.getpart_url>. */
 #define getpart_url(url, part)                                    \
-   ( __extension__ ({  const char * _result = 0 ;                 \
+   ( __extension__ ({  const uint8_t * _result = 0 ;              \
       if ( (size_t)(part) < nrelementsof((url)->parts) ) {        \
          uint16_t _offset = ((part) ? (url)->parts[(size_t)(part)-1] : 0) ; \
          if ((url)->parts[(size_t)(part)] > _offset) {            \

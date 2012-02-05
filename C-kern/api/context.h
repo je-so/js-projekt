@@ -68,7 +68,7 @@ extern struct context_t                g_context ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_context
  * Test initialization process succeeds and global variables are set correctly. */
-extern int unittest_context(void) ;
+int unittest_context(void) ;
 #endif
 
 
@@ -105,9 +105,9 @@ struct context_t {
  * "C-kern/resource/text.db/initprocess" and "C-kern/resource/text.db/initthread".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
-extern int initmain_context(context_e context_type) ;
+int initmain_context(context_e context_type) ;
 
-// extern int initmain2_context(context_e context_type, int argc, const char ** argv) ;
+// int initmain2_context(context_e context_type, int argc, const char ** argv) ;
 
 /* function: freemain_context
  * Frees global context. Must be called as last function from the main
@@ -121,20 +121,20 @@ extern int initmain_context(context_e context_type) ;
  * "C-kern/resource/text.db/initthread" and "C-kern/resource/text.db/initprocess".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
-extern int freemain_context(void) ;
+int freemain_context(void) ;
 
 /* function: abort_context
  * Exits the whole process in a controlled manner.
  * Tries to free as many external resources as possible and
  * aborts all transactions. Before exit a LOG_ERRTEXT(ABORT_FATAL(err)) is done. */
-extern void abort_context(int err) ;
+void abort_context(int err) ;
 
 /* function: assertfail_context
  * Exits the whole process in a controlled manner.
  * writes »Assertion failed« to log and calls <abort_context>.
  *
  * Do not call <assertfail_context> directly use the <assert> macro instead. */
-extern void assertfail_context(const char * condition, const char * file, unsigned line, const char * funcname) ;
+void assertfail_context(const char * condition, const char * file, unsigned line, const char * funcname) ;
 
 // group: query
 
@@ -142,27 +142,27 @@ extern void assertfail_context(const char * condition, const char * file, unsign
  * Returns log service <log_oit> (see <logwritermt_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-extern /*ref*/log_oit            log_context(void) ;
+/*ref*/log_oit            log_context(void) ;
 
 /* function: objectcache_context
  * Returns object interface <objectcache_oit> for access of cached singelton objects. */
-extern /*ref*/objectcache_oit    objectcache_context(void) ;
+/*ref*/objectcache_oit    objectcache_context(void) ;
 
 /* function: process_context
  * Returns <processcontext_t> of the current process. */
-extern /*ref*/processcontext_t   process_context(void) ;
+/*ref*/processcontext_t   process_context(void) ;
 
 /* function: thread_context
  * Returns <threadcontext_t> of the current thread. */
-extern /*ref*/threadcontext_t    thread_context(void) ;
+/*ref*/threadcontext_t    thread_context(void) ;
 
 /* function: valuecache_context
  * Returns cache for precomputed values of type <valuecache_t> for the current thread. */
-extern struct valuecache_t *     valuecache_context(void) ;
+struct valuecache_t *     valuecache_context(void) ;
 
 /* function: type_context
  * Returns type <context_e> of current <context_t>. */
-extern context_e                 type_context(void) ;
+context_e                 type_context(void) ;
 
 
 // section: inline implementations

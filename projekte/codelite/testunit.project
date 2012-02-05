@@ -59,8 +59,9 @@
       <File Name="../../C-kern/api/string/cstring.h"/>
       <File Name="../../C-kern/api/string/convertwchar.h"/>
       <File Name="../../C-kern/api/string/utf8.h"/>
-      <File Name="../../C-kern/api/string/wstream_buffer.h"/>
-      <File Name="../../C-kern/api/string/encode.h"/>
+      <File Name="../../C-kern/api/string/urlencode_string.h"/>
+      <File Name="../../C-kern/api/string/base64encode_string.h"/>
+      <File Name="../../C-kern/api/string/stringformat.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <File Name="../../C-kern/api/platform/process.h"/>
@@ -239,12 +240,13 @@
   </VirtualDirectory>
   <VirtualDirectory Name="string">
     <File Name="../../C-kern/string/suffix_tree.c"/>
-    <File Name="../../C-kern/string/wstream_buffer.c"/>
     <File Name="../../C-kern/string/string.c"/>
     <File Name="../../C-kern/string/cstring.c"/>
     <File Name="../../C-kern/string/convertwchar.c"/>
-    <File Name="../../C-kern/string/encode.c"/>
     <File Name="../../C-kern/string/utf8.c"/>
+    <File Name="../../C-kern/string/urlencode_string.c"/>
+    <File Name="../../C-kern/string/base64encode_string.c"/>
+    <File Name="../../C-kern/string/stringformat.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <File Name="../../C-kern/resource/errorlog.text"/>

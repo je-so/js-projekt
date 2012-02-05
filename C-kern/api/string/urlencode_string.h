@@ -1,5 +1,5 @@
-/* title: StringEncode
-   Offers interface to encode/decode strings into different formats.
+/* title: URLEncodeString
+   Offers interface to encode/decode strings format suitable for URLs.
 
    about: Copyright
    This program is free software.
@@ -16,28 +16,24 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/string/encode.h
-    Header file <StringEncode>.
+   file: C-kern/api/string/urlencode_string.h
+    Header file <URLEncodeString>.
 
-   file: C-kern/string/encode.c
-    Implementation file <StringEncode impl>.
+   file: C-kern/string/urlencode_string.c
+    Implementation file <URLEncodeString impl>.
 */
-#ifndef CKERN_STRING_ENCODE_HEADER
-#define CKERN_STRING_ENCODE_HEADER
+#ifndef CKERN_STRING_URLENCODE_STRING_HEADER
+#define CKERN_STRING_URLENCODE_STRING_HEADER
 
 // forward
 struct wbuffer_t ;
-struct string_t ;
+struct conststring_t ;
 
-/* about: Encoding.
+/* about: URLEncoding.
  *
  * All functions assumes that strings are utf8 encoded.
  *
- * This rule is not applied to functions which expect as input parameter
- * the encoding of the string.
- *
  */
-
 
 
 // section: Functions
@@ -45,11 +41,10 @@ struct string_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_string_encode
- * Test encoding/decoding of strings. */
-extern int unittest_string_encode(void) ;
+/* function: unittest_string_urlencode
+ * Test url encoding/decoding of strings. */
+int unittest_string_urlencode(void) ;
 #endif
-
 
 
 // section: string_t
@@ -61,11 +56,11 @@ extern int unittest_string_encode(void) ;
  *
  * Set *except_char* to '/' if the path of a URL is to be encoded.
  * Set *except_char* to ' ' if a formdata field is to be encoded. */
-extern size_t sizeurlencode_string(const struct string_t * str, char except_char) ;
+size_t sizeurlencode_string(const struct conststring_t * str, uint8_t except_char) ;
 
 /* function: sizeurldecode_string
  * Determines url decoded length of parameter str. */
-extern size_t sizeurldecode_string(const struct string_t * str) ;
+size_t sizeurldecode_string(const struct conststring_t * str) ;
 
 // group: urlencoding
 
@@ -87,7 +82,7 @@ extern size_t sizeurldecode_string(const struct string_t * str) ;
  * Set *except_char* to ' ' and *changeto_char* to '+' if a formdata field is to be encoded.
  *
  * */
-extern int urlencode_string(const struct string_t * str, char except_char, char changeto_char, struct wbuffer_t * result) ;
+int urlencode_string(const struct conststring_t * str, uint8_t except_char, uint8_t changeto_char, struct wbuffer_t * result) ;
 
 /* function: urldecode_string
  * Decodes a URL encoded string.
@@ -97,25 +92,7 @@ extern int urlencode_string(const struct string_t * str, char except_char, char 
  * in case a formdata field is decoded.
  *
  * Else set changefrom_char to 0 so no character is changed therefore changeinto_char is never used. */
-extern int urldecode_string(const struct string_t * str, char changefrom_char, char changeinto_char, struct wbuffer_t * result) ;
+int urldecode_string(const struct conststring_t * str, uint8_t changefrom_char, uint8_t changeinto_char, struct wbuffer_t * result) ;
 
-// group: base64encoding
-
-/* function: base64encode_string
- * Encodes string str in Base64 format.
- * The encoded size is 4/3 rounded up of the orginal size. */
-extern int base64encode_string(const struct string_t * str, struct wbuffer_t * result) ;
-
-/* function: base64decode_string
- * Decodes string str from Base64 into a binary octet stream.
- * The decoded size is 3/4 of the orginal size.
- * EINVAL is returned if the encoded size is not a multiple of 4. */
-extern int base64decode_string(const struct string_t * str, struct wbuffer_t * result) ;
-
-
-
-// section :inline implementation
-
-#define sizebase64encode_string(str)   (4 * ((2 + (str)->size)/3))
 
 #endif

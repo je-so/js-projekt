@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Feb.05  15:11:48
+GenerationDate  := 2012.Feb.05  15:34:29
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -115,10 +115,11 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!int!log2.c.o \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
- $(ObjectDir_Debug)/C-kern!string!encode.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Debug)/C-kern!test!test.c.o \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
@@ -169,10 +170,11 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!int!log2.c.o \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Release)/C-kern!string!urlencode_string.c.o \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o \
- $(ObjectDir_Release)/C-kern!string!encode.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Release)/C-kern!string!base64encode_string.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Release)/C-kern!test!test.c.o \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
@@ -310,16 +312,19 @@ $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 $(ObjectDir_Debug)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
+$(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o: C-kern/string/urlencode_string.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!string!encode.c.o: C-kern/string/encode.c
+$(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!string.c.o: C-kern/string/string.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o: C-kern/string/base64encode_string.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
@@ -466,16 +471,19 @@ $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 $(ObjectDir_Release)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
+$(ObjectDir_Release)/C-kern!string!urlencode_string.c.o: C-kern/string/urlencode_string.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!string!encode.c.o: C-kern/string/encode.c
+$(ObjectDir_Release)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!string.c.o: C-kern/string/string.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!base64encode_string.c.o: C-kern/string/base64encode_string.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c

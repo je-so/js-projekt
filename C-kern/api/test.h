@@ -34,15 +34,15 @@
 
 /* function: logfailed_test
  * Prints "<filename>:<line_number>: FAILED TEST\n". */
-extern void logfailed_test(const char * filename, unsigned line_number) ;
+void logfailed_test(const char * filename, unsigned line_number) ;
 
 /* function: logworking_test
  * Prints "OK\n". */
-extern void logworking_test(void) ;
+void logworking_test(void) ;
 
 /* function: logrun_test
  * Prints "RUN %s: ". */
-extern void logrun_test(const char * testname) ;
+void logrun_test(const char * testname) ;
 
 // group: macros
 
@@ -81,7 +81,7 @@ extern void logrun_test(const char * testname) ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_test_functions
  * Unittest for exported function in <Test>. */
-extern int unittest_test_functions(void) ;
+int unittest_test_functions(void) ;
 #endif
 
 

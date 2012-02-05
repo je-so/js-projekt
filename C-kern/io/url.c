@@ -27,8 +27,8 @@
 #include "C-kern/api/io/url.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/wbuffer.h"
-#include "C-kern/api/string/encode.h"
 #include "C-kern/api/string/string.h"
+#include "C-kern/api/string/urlencode_string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -68,13 +68,13 @@ ABBRUCH:
    return err ;
 }
 
-static int parsepart_url(url_part_e part, url_parts_t * parts, const char ** encodedstr, char endmarker)
+static int parsepart_url(url_part_e part, url_parts_t * parts, const uint8_t ** encodedstr, uint8_t endmarker)
 {
-   const char * start = *encodedstr ;
-   const char * next  = start ;
-   char         c ;
+   const uint8_t * start = *encodedstr ;
+   const uint8_t * next  = start ;
+   uint8_t       c ;
 
-   assert((unsigned char)endmarker < 0x80) ;
+   assert(endmarker < 0x80) ;
 
    for(c = *next; endmarker != c; c = *next) {
       ++ next ;
@@ -87,14 +87,14 @@ static int parsepart_url(url_part_e part, url_parts_t * parts, const char ** enc
    return 0 ;
 }
 
-static int parsepart2_url(url_part_e part, url_parts_t * parts, const char ** encodedstr, char endmarker1, char endmarker2)
+static int parsepart2_url(url_part_e part, url_parts_t * parts, const uint8_t ** encodedstr, uint8_t endmarker1, uint8_t endmarker2)
 {
-   const char * start = *encodedstr ;
-   const char * next  = start ;
-   char         c ;
+   const uint8_t * start = *encodedstr ;
+   const uint8_t * next  = start ;
+   uint8_t       c ;
 
-   assert((unsigned char)endmarker1 < 0x80) ;
-   assert((unsigned char)endmarker2 < 0x80) ;
+   assert(endmarker1 < 0x80) ;
+   assert(endmarker2 < 0x80) ;
 
    for(c = *next; endmarker1 != c && endmarker2 != c; c = *next) {
       ++ next ;
@@ -185,14 +185,14 @@ ABBRUCH:
 int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
 {
    int err ;
-   const char     * pos ;
-   const char     * next     = encodedstr ;
-   const char     * slashpos = strchrnul(encodedstr, '/') ;
+   const uint8_t  * pos ;
+   const uint8_t  * next     = (const uint8_t*)encodedstr ;
+   const uint8_t  * slashpos = (const uint8_t*)strchrnul(encodedstr, '/') ;
    url_parts_t    parts      = url_parts_INIT_FREEABLE ;
 
    VALIDATE_INPARAM_TEST( (unsigned)scheme <= url_scheme_HTTP, ABBRUCH, LOG_INT(scheme)) ;
 
-   if (     (pos = strchrnul(next, '@'))
+   if (     (pos = (const uint8_t*)strchrnul((const char*)next, '@'))
          && pos < slashpos) {
       err = parsepart2_url(url_part_USER, &parts, &next, ':', '@') ;
       if (err) goto ABBRUCH ;
@@ -215,7 +215,7 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
       ++ next ;
       err = parsepart_url(url_part_PORT, &parts, &next, *slashpos) ;
       if (err) goto ABBRUCH ;
-      for(const char * nr = parts[url_part_PORT].addr; nr < next; ++nr) {
+      for(const uint8_t * nr = parts[url_part_PORT].addr; nr < next; ++nr) {
          if (!('0' <= *nr && *nr <= '9')) {
             err = EINVAL ;
             goto ABBRUCH ;
@@ -223,9 +223,9 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
       }
    }
 
-   pos = strchrnul(next, '?') ;
+   pos = (const uint8_t*)strchrnul((const char*)next, '?') ;
    if (0 == *pos) {
-      pos = strchrnul(next, '#') ;
+      pos = (const uint8_t*)strchrnul((const char*)next, '#') ;
    }
 
    if (*next) {
@@ -236,7 +236,7 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
 
    if ('?' == *next) {
       ++ next ;
-      pos = strchrnul(next, '#') ;
+      pos = (const uint8_t*)strchrnul((const char*)next, '#') ;
       err = parsepart_url(url_part_QUERY, &parts, &next, *pos) ;
       if (err) goto ABBRUCH ;
    }
@@ -314,7 +314,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
       size_t size = (size_t) (url->parts[i] - buffer_offset) ;
       if (size) {
          -- size ; // include no trailing '\0' byte
-         string_t   part = string_INIT(size, &url->buffer[buffer_offset]) ;
+         conststring_t part = conststring_INIT(size, &url->buffer[buffer_offset]) ;
          sizeencoding[i] = sizeurlencode_string(&part, i == url_part_PATH? '/' : 0) ;
          if (i == url_part_HOSTNAME) {
             result_size += /* no special marker for hostname */ sizeencoding[i] ;
@@ -346,12 +346,12 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
          case url_part_QUERY:    *(result++) = '?' ;  break ;
          case url_part_FRAGMENT: *(result++) = '#' ;  break ;
          }
-         const char * urlbuffer = &url->buffer[buffer_offset] ;
+         const uint8_t * urlbuffer = &url->buffer[buffer_offset] ;
          if (sizeencoding[i] > size) {
 
             wbuffer_t encoded = wbuffer_INIT_STATIC(sizeencoding[i], result) ;
 
-            err = urlencode_string(&(string_t)string_INIT(size, urlbuffer), i == url_part_PATH? '/' : 0, '/', &encoded) ;
+            err = urlencode_string(&(conststring_t)conststring_INIT(size, urlbuffer), i == url_part_PATH? '/' : 0, '/', &encoded) ;
             if (err) goto ABBRUCH ;
 
          } else {
@@ -405,13 +405,13 @@ static int test_url_initfree(void)
    TEST(0 != path_url(url)) ;
    TEST(0 != query_url(url)) ;
    TEST(0 != fragment_url(url)) ;
-   TEST(0 == strcmp(user_url(url), "user1")) ;
-   TEST(0 == strcmp(passwd_url(url), "passwd2")) ;
-   TEST(0 == strcmp(hostname_url(url), "server3.de")) ;
-   TEST(0 == strcmp(port_url(url), "123")) ;
-   TEST(0 == strcmp(path_url(url), "d1/d2")) ;
-   TEST(0 == strcmp(query_url(url), "x=a")) ;
-   TEST(0 == strcmp(fragment_url(url), "frag9")) ;
+   TEST(0 == strcmp((const char*)user_url(url), "user1")) ;
+   TEST(0 == strcmp((const char*)passwd_url(url), "passwd2")) ;
+   TEST(0 == strcmp((const char*)hostname_url(url), "server3.de")) ;
+   TEST(0 == strcmp((const char*)port_url(url), "123")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "d1/d2")) ;
+   TEST(0 == strcmp((const char*)query_url(url), "x=a")) ;
+   TEST(0 == strcmp((const char*)fragment_url(url), "frag9")) ;
    TEST(0 == encode_url(url, &str)) ;
    test = "http://user1:passwd2@server3.de:123/d1/d2?x%3Da#frag9" ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
@@ -427,7 +427,7 @@ static int test_url_initfree(void)
    TEST(0 == user_url(url)) ;
    TEST(0 == passwd_url(url)) ;
    TEST(0 != hostname_url(url)) ;
-   TEST(0 == strcmp(hostname_url(url), "")) ;
+   TEST(0 == strcmp((const char*)hostname_url(url), "")) ;
    TEST(0 == port_url(url)) ;
    TEST(0 == path_url(url)) ;
    TEST(0 == query_url(url)) ;
@@ -450,11 +450,11 @@ static int test_url_initfree(void)
    TEST(0 != path_url(url)) ;
    TEST(0 != query_url(url)) ;
    TEST(0 != fragment_url(url)) ;
-   TEST(0 == strcmp(hostname_url(url), "www.test.de")) ;
-   TEST(0 == strcmp(port_url(url), "80")) ;
-   TEST(0 == strcmp(path_url(url), "user1@/d1/")) ;
-   TEST(0 == strcmp(query_url(url), "a_c")) ;
-   TEST(0 == strcmp(fragment_url(url), "fragX")) ;
+   TEST(0 == strcmp((const char*)hostname_url(url), "www.test.de")) ;
+   TEST(0 == strcmp((const char*)port_url(url), "80")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "user1@/d1/")) ;
+   TEST(0 == strcmp((const char*)query_url(url), "a_c")) ;
+   TEST(0 == strcmp((const char*)fragment_url(url), "fragX")) ;
    TEST(0 == encode_url(url, &str)) ;
    test = "http://www.test.de:80/user1%40/d1/?a_c#fragX" ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
@@ -475,11 +475,11 @@ static int test_url_initfree(void)
    TEST(0 != query_url(url)) ;
    TEST(0 != fragment_url(url)) ;
    TEST(0 == hostname_url(url)[0]) ;
-   TEST(0 == strcmp(1+hostname_url(url), "\x11\x22\x33\x44\x55\x66\x77\x88\x99xX")) ;
-   TEST(0 == strcmp(port_url(url), "99")) ;
-   TEST(0 == strcmp(path_url(url), "\xaa\xbb\xcc\xdd\xee\xffyY/")) ;
-   TEST(0 == strcmp(query_url(url), "Query/")) ;
-   TEST(0 == strcmp(fragment_url(url), "/\xaa\xbb\xcc\xdd\xee\xffzZ")) ;
+   TEST(0 == strcmp(1+(const char*)hostname_url(url), "\x11\x22\x33\x44\x55\x66\x77\x88\x99xX")) ;
+   TEST(0 == strcmp((const char*)port_url(url), "99")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "\xaa\xbb\xcc\xdd\xee\xffyY/")) ;
+   TEST(0 == strcmp((const char*)query_url(url), "Query/")) ;
+   TEST(0 == strcmp((const char*)fragment_url(url), "/\xaa\xbb\xcc\xdd\xee\xffzZ")) ;
    TEST(0 == encode_url(url, &str)) ;
    test = "http://%00%11%223DUfw%88%99xX:99/%AA%BB%CC%DD%EE%FFyY/?Query%2F#%2F%AA%BB%CC%DD%EE%FFzZ" ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
@@ -499,11 +499,11 @@ static int test_url_initfree(void)
    TEST(0 != path_url(url)) ;
    TEST(0 != query_url(url)) ;
    TEST(0 != fragment_url(url)) ;
-   TEST(0 == strcmp(hostname_url(url), "a\x88\x99""b")) ;
-   TEST(0 == strcmp(port_url(url), "44")) ;
-   TEST(0 == strcmp(path_url(url), "\xaa\xbb\xff")) ;
-   TEST(0 == strcmp(query_url(url), "_1")) ;
-   TEST(0 == strcmp(fragment_url(url), "_2")) ;
+   TEST(0 == strcmp((const char*)hostname_url(url), "a\x88\x99""b")) ;
+   TEST(0 == strcmp((const char*)port_url(url), "44")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "\xaa\xbb\xff")) ;
+   TEST(0 == strcmp((const char*)query_url(url), "_1")) ;
+   TEST(0 == strcmp((const char*)fragment_url(url), "_2")) ;
    TEST(0 == encode_url(url, &str)) ;
    TEST(strlen(test)+7 == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp("http://", (char*)content_wbuffer(&str), 7)) ;
@@ -523,8 +523,8 @@ static int test_url_initfree(void)
    TEST(0 != path_url(url)) ;
    TEST(0 == query_url(url)) ;
    TEST(0 == fragment_url(url)) ;
-   TEST(0 == strcmp(hostname_url(url), "")) ;
-   TEST(0 == strcmp(path_url(url), "path\x88\x99x")) ;
+   TEST(0 == strcmp((const char*)hostname_url(url), "")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "path\x88\x99x")) ;
    TEST(0 == encode_url(url, &str)) ;
    TEST(strlen(test)+7 == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp("http://", (char*)content_wbuffer(&str), 7)) ;
@@ -544,9 +544,9 @@ static int test_url_initfree(void)
    TEST(0 != path_url(url)) ;
    TEST(0 == query_url(url)) ;
    TEST(0 == fragment_url(url)) ;
-   TEST(0 == strcmp(hostname_url(url), "")) ;
-   TEST(0 == strcmp(port_url(url), "33")) ;
-   TEST(0 == strcmp(path_url(url), "path\x88\x99%")) ;
+   TEST(0 == strcmp((const char*)hostname_url(url), "")) ;
+   TEST(0 == strcmp((const char*)port_url(url), "33")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "path\x88\x99%")) ;
    TEST(0 == encode_url(url, &str)) ;
    TEST(strlen(test)+9 == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp("http://", (char*)content_wbuffer(&str), 7)) ;
@@ -567,9 +567,9 @@ static int test_url_initfree(void)
    TEST(0 != path_url(url)) ;
    TEST(0 == query_url(url)) ;
    TEST(0 == fragment_url(url)) ;
-   TEST(0 == strcmp(user_url(url), "user\xff")) ;
-   TEST(0 == strcmp(hostname_url(url), "")) ;
-   TEST(0 == strcmp(path_url(url), "path\x88%9")) ;
+   TEST(0 == strcmp((const char*)user_url(url), "user\xff")) ;
+   TEST(0 == strcmp((const char*)hostname_url(url), "")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "path\x88%9")) ;
    TEST(0 == encode_url(url, &str)) ;
    TEST(strlen(test)+9 == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp("http://", (char*)content_wbuffer(&str), 7)) ;
@@ -582,8 +582,8 @@ static int test_url_initfree(void)
    // TEST newparts not encoded
    test = "us:pw@serv.xx@/@:/?@/#?/#:" ;
    url_parts_t parts = {
-      string_INIT(2, &test[0]), string_INIT(2, &test[3]), string_INIT(8, &test[6]), string_INIT_FREEABLE,
-      string_INIT(3, &test[15]), string_INIT(2, &test[19]), string_INIT(4, &test[22])
+      string_INIT(2, (const uint8_t*)&test[0]), string_INIT(2, (const uint8_t*)&test[3]), string_INIT(8, (const uint8_t*)&test[6]), string_INIT_FREEABLE,
+      string_INIT(3, (const uint8_t*)&test[15]), string_INIT(2, (const uint8_t*)&test[19]), string_INIT(4, (const uint8_t*)&test[22])
    } ;
    TEST(0 == newparts_url(&url, url_scheme_HTTP, &parts, false)) ;
    TEST(0 != url) ;
@@ -594,12 +594,12 @@ static int test_url_initfree(void)
    TEST(0 != path_url(url)) ;
    TEST(0 != query_url(url)) ;
    TEST(0 != fragment_url(url)) ;
-   TEST(0 == strcmp(user_url(url), "us")) ;
-   TEST(0 == strcmp(passwd_url(url), "pw")) ;
-   TEST(0 == strcmp(hostname_url(url), "serv.xx@")) ;
-   TEST(0 == strcmp(path_url(url), "@:/")) ;
-   TEST(0 == strcmp(query_url(url), "@/")) ;
-   TEST(0 == strcmp(fragment_url(url), "?/#:")) ;
+   TEST(0 == strcmp((const char*)user_url(url), "us")) ;
+   TEST(0 == strcmp((const char*)passwd_url(url), "pw")) ;
+   TEST(0 == strcmp((const char*)hostname_url(url), "serv.xx@")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "@:/")) ;
+   TEST(0 == strcmp((const char*)query_url(url), "@/")) ;
+   TEST(0 == strcmp((const char*)fragment_url(url), "?/#:")) ;
    TEST(0 == encode_url(url, &str)) ;
    test = "http://us:pw@serv.xx%40/%40%3A/?%40%2F#%3F%2F%23%3A" ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
@@ -611,8 +611,8 @@ static int test_url_initfree(void)
    // TEST newparts user + undefined hostname
    test = "http://12:3@/path?q#f" ;
    memcpy( parts, (url_parts_t) {
-      { &test[7], 2 },  { &test[10], 1 }, { 0, 0}, {0, 0},
-      { &test[13], 4 }, { &test[18], 1},  { &test[20], 1 }
+      { (const uint8_t*)&test[7], 2 },  { (const uint8_t*)&test[10], 1 }, { 0, 0}, {0, 0},
+      { (const uint8_t*)&test[13], 4 }, { (const uint8_t*)&test[18], 1},  { (const uint8_t*)&test[20], 1 }
    }, sizeof(parts)) ;
    TEST(0 == newparts_url(&url, url_scheme_HTTP, &parts, false)) ;
    TEST(0 != url) ;
@@ -623,11 +623,11 @@ static int test_url_initfree(void)
    TEST(0 != path_url(url)) ;
    TEST(0 != query_url(url)) ;
    TEST(0 != fragment_url(url)) ;
-   TEST(0 == strcmp(user_url(url), "12")) ;
-   TEST(0 == strcmp(passwd_url(url), "3")) ;
-   TEST(0 == strcmp(path_url(url), "path")) ;
-   TEST(0 == strcmp(query_url(url), "q")) ;
-   TEST(0 == strcmp(fragment_url(url), "f")) ;
+   TEST(0 == strcmp((const char*)user_url(url), "12")) ;
+   TEST(0 == strcmp((const char*)passwd_url(url), "3")) ;
+   TEST(0 == strcmp((const char*)path_url(url), "path")) ;
+   TEST(0 == strcmp((const char*)query_url(url), "q")) ;
+   TEST(0 == strcmp((const char*)fragment_url(url), "f")) ;
    TEST(0 == encode_url(url, &str)) ;
    TEST(strlen(test) == sizecontent_wbuffer(&str)) ;
    TEST(0 == strncmp(test, (char*)content_wbuffer(&str), strlen(test))) ;

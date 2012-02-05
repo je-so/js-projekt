@@ -37,7 +37,7 @@ typedef struct cstring_t               cstring_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_string_cstring
  * Tests <cstring_t>. */
-extern int unittest_string_cstring(void) ;
+int unittest_string_cstring(void) ;
 #endif
 
 
@@ -78,15 +78,15 @@ struct cstring_t
 /* function: init_cstring
  * Inits <cstring_t> and preallocates memory.
  * If you set *preallocate_size* to 0 no memory is preallocated. */
-extern int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size) ;
+int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size) ;
 
 /* function: initmove_cstring
  * Inits dest with content of source and sets source to <cstring_INIT_FREEABLE>. */
-extern void initmove_cstring(/*out*/cstring_t * restrict dest, cstring_t * restrict source) ;
+void initmove_cstring(/*out*/cstring_t * restrict dest, cstring_t * restrict source) ;
 
 /* function: free_cstring
  * Frees any allocated memory associated with type <cstring_t>. */
-extern int free_cstring(cstring_t * cstr) ;
+int free_cstring(cstring_t * cstr) ;
 
 // group: query
 
@@ -94,18 +94,18 @@ extern int free_cstring(cstring_t * cstr) ;
  * Returns "\0" terminated string. Returned value is always != NULL.
  * In case cstr->chars is NULL the empty string "" is returned.
  * The returned value is valid as long as *cstr* is not changed. */
-extern char * str_cstring(cstring_t * cstr) ;
+char * str_cstring(cstring_t * cstr) ;
 
 /* function: length_cstring
  * Returns the length of the string in bytes.
  * For mbs encoded strings the length in character is less
  * than the length in bytes. */
-extern size_t length_cstring(const cstring_t * cstr) ;
+size_t length_cstring(const cstring_t * cstr) ;
 
 /* function: allocatedsize_cstring
  * Returns the allocated buffer size in bytes.
  * To access the buffer the start address of the buffer use <str_cstring>. */
-extern size_t allocatedsize_cstring(const cstring_t * cstr) ;
+size_t allocatedsize_cstring(const cstring_t * cstr) ;
 
 // group: change
 
@@ -113,7 +113,7 @@ extern size_t allocatedsize_cstring(const cstring_t * cstr) ;
  * Allocates memory of at least allocate_size bytes.
  * If the already allocated string buffer size is equal or greater than allocated_size bytes
  * nothing is done. Use <str_cstring> to access a pointer to the preallocated buffer. */
-extern int allocate_cstring(cstring_t * cstr, size_t allocate_size) ;
+int allocate_cstring(cstring_t * cstr, size_t allocate_size) ;
 
 /* function: append_cstring
  * Appends *str* with len *str_len* to cstr.
@@ -121,7 +121,7 @@ extern int allocate_cstring(cstring_t * cstr, size_t allocate_size) ;
  * Attention:
  * It is not allowed to use parts of the buffer of cstr as arguments for this function.
  * Cause during a possible reallocation of the buffer these arguments become invalid. */
-extern int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len]) ;
+int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len]) ;
 
 /* function: printfappend_cstring
  * Appends printf formatted string to cstr. Like sprintf but the buffer is reallocated if it is too small
@@ -130,14 +130,14 @@ extern int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_l
  * Attention:
  * It is not allowed to use parts of the buffer of cstr as arguments for this function.
  * Cause during a possible reallocation of the buffer these arguments become invalid. */
-extern int printfappend_cstring(cstring_t * cstr, const char * format, ...) __attribute__ ((__format__ (__printf__, 2, 3))) ;
+int printfappend_cstring(cstring_t * cstr, const char * format, ...) __attribute__ ((__format__ (__printf__, 2, 3))) ;
 
 /* function: adaptlength_cstring
  * Adapts length of cstr. Use it if you have changed the content of the allocated buffer
  * and want to let length reflect the new position of the \0 byte.
  *
  * This function throws an assertion if no null byte is found. */
-extern void adaptlength_cstring(cstring_t * cstr) ;
+void adaptlength_cstring(cstring_t * cstr) ;
 
 /* function: truncate_cstring
  * Adapts length of cstr to a smaller value.
@@ -147,7 +147,7 @@ extern void adaptlength_cstring(cstring_t * cstr) ;
  * byte offset. If a character uses more than one byte for its encoding
  * and if new_length points not to the end of a valid character sequence
  * the encoded character sequence becomes invalid. */
-extern int truncate_cstring(cstring_t * cstr, size_t new_length) ;
+int truncate_cstring(cstring_t * cstr, size_t new_length) ;
 
 
 // section: inline implementations
