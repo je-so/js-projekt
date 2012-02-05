@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Jan.28  14:34:01
+GenerationDate  := 2012.Feb.05  15:11:48
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -111,6 +111,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log2.c.o \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
@@ -164,6 +165,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log2.c.o \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
@@ -294,6 +296,9 @@ $(ObjectDir_Debug)/C-kern!math!int!signum.c.o: C-kern/math/int/signum.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
@@ -447,6 +452,9 @@ $(ObjectDir_Release)/C-kern!math!int!signum.c.o: C-kern/math/int/signum.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c

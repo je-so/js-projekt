@@ -109,6 +109,7 @@
         <File Name="../../C-kern/api/math/int/power2.h"/>
         <File Name="../../C-kern/api/math/int/signum.h"/>
         <File Name="../../C-kern/api/math/int/log2.h"/>
+        <File Name="../../C-kern/api/math/int/abs.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="hash">
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
@@ -312,6 +313,7 @@
       <File Name="../../C-kern/math/int/power2.c"/>
       <File Name="../../C-kern/math/int/signum.c"/>
       <File Name="../../C-kern/math/int/log2.c"/>
+      <File Name="../../C-kern/math/int/abs.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="hash">
       <File Name="../../C-kern/math/hash/sha1.c"/>
