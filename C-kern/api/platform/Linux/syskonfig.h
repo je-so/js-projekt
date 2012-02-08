@@ -67,6 +67,7 @@
 #include <langinfo.h>
 #include <limits.h>
 #include <locale.h>
+#include <math.h>
 #include <netdb.h>
 #include <poll.h>
 #include <pthread.h>

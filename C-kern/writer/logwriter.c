@@ -66,10 +66,10 @@ logwriter_it      s_logwriter_interface = {
 int initthread_logwriter(/*out*/log_oit * ilog)
 {
    int err ;
-   const size_t   objsize = sizeof(logwriter_t) ;
-   logwriter_t  * log2    = (logwriter_t*) malloc(objsize) ;
+   const size_t   objsize  = sizeof(logwriter_t) ;
+   logwriter_t  * newlgwrt = (logwriter_t*) malloc(objsize) ;
 
-   if (!log2) {
+   if (!newlgwrt) {
       err = ENOMEM ;
       LOG_OUTOFMEMORY(objsize) ;
       goto ABBRUCH ;
@@ -81,15 +81,15 @@ int initthread_logwriter(/*out*/log_oit * ilog)
       goto ABBRUCH ;
    }
 
-   err = init_logwriter( log2 ) ;
+   err = init_logwriter( newlgwrt ) ;
    if (err) goto ABBRUCH ;
 
-   ilog->object    = log2 ;
+   ilog->object    = newlgwrt ;
    ilog->functable = (log_it*) &s_logwriter_interface ;
 
    return 0 ;
 ABBRUCH:
-   free(log2) ;
+   free(newlgwrt) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -97,20 +97,20 @@ ABBRUCH:
 int freethread_logwriter(log_oit * ilog)
 {
    int err ;
-   logwriter_t * log2 = (logwriter_t*) ilog->object ;
+   logwriter_t * newlgwrt = (logwriter_t*) ilog->object ;
 
-   if (  log2
-      && log2 != (logwriter_t*) &g_logmain ) {
+   if (  newlgwrt
+      && newlgwrt != (logwriter_t*) &g_logmain ) {
 
-      assert((void*)log2 != (void*)&g_logmain) ;
+      assert((void*)newlgwrt != (void*)&g_logmain) ;
       assert((log_it*)&s_logwriter_interface == ilog->functable) ;
 
       ilog->object    = &g_logmain ;
       ilog->functable = &g_logmain_interface ;
 
-      err = free_logwriter( log2 ) ;
+      err = free_logwriter( newlgwrt ) ;
 
-      free(log2) ;
+      free(newlgwrt) ;
 
       if (err) goto ABBRUCH ;
    }
@@ -149,7 +149,7 @@ static int freebuffer_logwriter(vm_block_t * buffer)
 
 // group: lifetime
 
-int init_logwriter(/*out*/logwriter_t * log)
+int init_logwriter(/*out*/logwriter_t * lgwrt)
 {
    int err ;
    vm_block_t  buffer = vm_block_INIT_FREEABLE ;
@@ -157,8 +157,8 @@ int init_logwriter(/*out*/logwriter_t * log)
    err = allocatebuffer_logwriter(&buffer) ;
    if (err) goto ABBRUCH ;
 
-   log->buffer        = buffer ;
-   log->logsize       = 0 ;
+   lgwrt->buffer        = buffer ;
+   lgwrt->logsize       = 0 ;
 
    return 0 ;
 ABBRUCH:
@@ -167,15 +167,15 @@ ABBRUCH:
    return err ;
 }
 
-int free_logwriter(logwriter_t * log)
+int free_logwriter(logwriter_t * lgwrt)
 {
    int err ;
 
-   if (log->logsize) {
-      flushbuffer_logwriter(log) ;
+   if (lgwrt->logsize) {
+      flushbuffer_logwriter(lgwrt) ;
    }
 
-   err = freebuffer_logwriter(&log->buffer) ;
+   err = freebuffer_logwriter(&lgwrt->buffer) ;
 
    if (err) goto ABBRUCH ;
 
@@ -187,29 +187,29 @@ ABBRUCH:
 
 // group: query
 
-void getbuffer_logwriter(logwriter_t * log, /*out*/char ** buffer, /*out*/size_t * size)
+void getbuffer_logwriter(logwriter_t * lgwrt, /*out*/char ** buffer, /*out*/size_t * size)
 {
-   *buffer = (char*) log->buffer.addr ;
-   *size   = log->logsize ;
+   *buffer = (char*) lgwrt->buffer.addr ;
+   *size   = lgwrt->logsize ;
 }
 
 // group: change
 
-void clearbuffer_logwriter(logwriter_t * log)
+void clearbuffer_logwriter(logwriter_t * lgwrt)
 {
-   log->logsize        = 0 ;
+   lgwrt->logsize        = 0 ;
    // NULL terminated string
-   log->buffer.addr[0] = 0 ;
+   lgwrt->buffer.addr[0] = 0 ;
 }
 
-void flushbuffer_logwriter(logwriter_t * log)
+void flushbuffer_logwriter(logwriter_t * lgwrt)
 {
    size_t bytes_written = 0 ;
 
    do {
       ssize_t bytes ;
       do {
-         bytes = write( STDERR_FILENO, log->buffer.addr + bytes_written, log->logsize - bytes_written) ;
+         bytes = write( STDERR_FILENO, lgwrt->buffer.addr + bytes_written, lgwrt->logsize - bytes_written) ;
       } while( bytes < 0 && errno == EINTR ) ;
       if (bytes <= 0) {
          // TODO: add some special log code that always works and which indicates error state in logging
@@ -217,36 +217,36 @@ void flushbuffer_logwriter(logwriter_t * log)
          break ;
       }
       bytes_written += (size_t) bytes ;
-   } while (bytes_written < log->logsize) ;
+   } while (bytes_written < lgwrt->logsize) ;
 
-   clearbuffer_logwriter(log) ;
+   clearbuffer_logwriter(lgwrt) ;
 }
 
-void vprintf_logwriter(logwriter_t * log, const char * format, va_list args)
+void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args)
 {
-   size_t buffer_size = log->buffer.size - log->logsize ;
+   size_t buffer_size = lgwrt->buffer.size - lgwrt->logsize ;
 
    if (buffer_size < 1 + log_PRINTF_MAXSIZE ) {
-      flushbuffer_logwriter(log) ;
-      buffer_size = log->buffer.size ;
+      flushbuffer_logwriter(lgwrt) ;
+      buffer_size = lgwrt->buffer.size ;
    }
 
-   int append_size = vsnprintf( (char*) (log->logsize + log->buffer.addr), buffer_size, format, args) ;
+   int append_size = vsnprintf( (char*) (lgwrt->logsize + lgwrt->buffer.addr), buffer_size, format, args) ;
 
    if ( (unsigned)append_size < buffer_size ) {
       // no truncate
-      log->logsize += (unsigned)append_size ;
+      lgwrt->logsize += (unsigned)append_size ;
    } else {
-      log->logsize += buffer_size ;
+      lgwrt->logsize += buffer_size ;
       LOG_ERRTEXT(LOG_ENTRY_TRUNCATED(append_size, buffer_size-1)) ;
    }
 }
 
-void printf_logwriter(logwriter_t * log, const char * format, ... )
+void printf_logwriter(logwriter_t * lgwrt, const char * format, ... )
 {
    va_list args ;
    va_start(args, format) ;
-   vprintf_logwriter(log, format, args) ;
+   vprintf_logwriter(lgwrt, format, args) ;
    va_end(args) ;
 }
 
@@ -259,37 +259,37 @@ void printf_logwriter(logwriter_t * log, const char * format, ... )
 
 static int test_initfree(void)
 {
-   logwriter_t log = logwriter_INIT_FREEABLE ;
+   logwriter_t lgwrt = logwriter_INIT_FREEABLE ;
 
    // TEST static init
-   TEST(! log.buffer.addr ) ;
-   TEST(! log.buffer.size ) ;
-   TEST(! log.logsize ) ;
+   TEST(! lgwrt.buffer.addr ) ;
+   TEST(! lgwrt.buffer.size ) ;
+   TEST(! lgwrt.logsize ) ;
 
    // TEST init, double free
-   log.logsize = 1 ;
-   TEST(0 == init_logwriter(&log)) ;
-   TEST(log.buffer.addr != 0 ) ;
-   TEST(log.buffer.size == 8192) ;
-   TEST(log.logsize     == 0 ) ;
-   TEST(0 == free_logwriter(&log)) ;
-   TEST(! log.buffer.addr ) ;
-   TEST(! log.buffer.size ) ;
-   TEST(! log.logsize ) ;
-   TEST(0 == free_logwriter(&log)) ;
-   TEST(! log.buffer.addr ) ;
-   TEST(! log.buffer.size ) ;
-   TEST(! log.logsize ) ;
+   lgwrt.logsize = 1 ;
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   TEST(lgwrt.buffer.addr != 0 ) ;
+   TEST(lgwrt.buffer.size == 8192) ;
+   TEST(lgwrt.logsize     == 0 ) ;
+   TEST(0 == free_logwriter(&lgwrt)) ;
+   TEST(! lgwrt.buffer.addr ) ;
+   TEST(! lgwrt.buffer.size ) ;
+   TEST(! lgwrt.logsize ) ;
+   TEST(0 == free_logwriter(&lgwrt)) ;
+   TEST(! lgwrt.buffer.addr ) ;
+   TEST(! lgwrt.buffer.size ) ;
+   TEST(! lgwrt.logsize ) ;
 
    return 0 ;
 ABBRUCH:
-   free_logwriter(&log) ;
+   free_logwriter(&lgwrt) ;
    return EINVAL ;
 }
 
 static int test_flushbuffer(void)
 {
-   logwriter_t    log        = logwriter_INIT_FREEABLE ;
+   logwriter_t    lgwrt      = logwriter_INIT_FREEABLE ;
    int            tempfd     = -1 ;
    int            oldstderr  = -1 ;
    mmfile_t       logcontent = mmfile_INIT_FREEABLE ;
@@ -306,79 +306,79 @@ static int test_flushbuffer(void)
    TEST(STDERR_FILENO == dup2(tempfd, STDERR_FILENO)) ;
 
    // TEST flush
-   TEST(0 == init_logwriter(&log)) ;
-   TEST(log.logsize     == 0) ;
-   TEST(log.buffer.size != 0) ;
-   for(unsigned i = 0; i < log.buffer.size; ++i) {
-      log.buffer.addr[i] = (uint8_t) (1+i) ;
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   TEST(lgwrt.logsize     == 0) ;
+   TEST(lgwrt.buffer.size != 0) ;
+   for(unsigned i = 0; i < lgwrt.buffer.size; ++i) {
+      lgwrt.buffer.addr[i] = (uint8_t) (1+i) ;
    }
-   log.logsize = log.buffer.size ;
-   TEST(log.buffer.addr[0] = 1) ;
-   flushbuffer_logwriter(&log) ;
-   TEST(log.logsize        == 0) ;
-   TEST(log.buffer.addr[0] == 0) ; // NULL byte
-   TEST(0 == free_logwriter(&log)) ;
+   lgwrt.logsize = lgwrt.buffer.size ;
+   TEST(lgwrt.buffer.addr[0] = 1) ;
+   flushbuffer_logwriter(&lgwrt) ;
+   TEST(lgwrt.logsize        == 0) ;
+   TEST(lgwrt.buffer.addr[0] == 0) ; // NULL byte
+   TEST(0 == free_logwriter(&lgwrt)) ;
 
    // Test flushed content
-   TEST(0 == init_logwriter(&log)) ;
-   TEST(log.logsize     == 0) ;
-   TEST(log.buffer.size != 0) ;
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   TEST(lgwrt.logsize     == 0) ;
+   TEST(lgwrt.buffer.size != 0) ;
    TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
-   TEST(log.buffer.size == size_mmfile(&logcontent)) ;
-   for(unsigned i = 0; i < log.buffer.size; ++i) {
+   TEST(lgwrt.buffer.size == size_mmfile(&logcontent)) ;
+   for(unsigned i = 0; i < lgwrt.buffer.size; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (1+i)) ;
    }
    TEST(0 == free_mmfile(&logcontent)) ;
-   TEST(0 == free_logwriter(&log)) ;
+   TEST(0 == free_logwriter(&lgwrt)) ;
 
    // TEST no automatic flush
-   TEST(0 == init_logwriter(&log)) ;
-   log.logsize = log.buffer.size - 1 - log_PRINTF_MAXSIZE ;
-   log.buffer.addr[log.buffer.size - 1 - log_PRINTF_MAXSIZE] = 0 ;
-   log.buffer.addr[log.buffer.size - log_PRINTF_MAXSIZE] = 1 ;
-   printf_logwriter(&log, "x") ;
-   TEST('x' == (char) (log.buffer.addr[log.buffer.size - 1 - log_PRINTF_MAXSIZE])) ;
-   TEST(0 == log.buffer.addr[log.buffer.size - log_PRINTF_MAXSIZE]) ;
-   TEST(log.logsize == log.buffer.size - log_PRINTF_MAXSIZE) ;
-   TEST(0 == free_logwriter(&log)) ;
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   lgwrt.logsize = lgwrt.buffer.size - 1 - log_PRINTF_MAXSIZE ;
+   lgwrt.buffer.addr[lgwrt.buffer.size - 1 - log_PRINTF_MAXSIZE] = 0 ;
+   lgwrt.buffer.addr[lgwrt.buffer.size - log_PRINTF_MAXSIZE] = 1 ;
+   printf_logwriter(&lgwrt, "x") ;
+   TEST('x' == (char) (lgwrt.buffer.addr[lgwrt.buffer.size - 1 - log_PRINTF_MAXSIZE])) ;
+   TEST(0 == lgwrt.buffer.addr[lgwrt.buffer.size - log_PRINTF_MAXSIZE]) ;
+   TEST(lgwrt.logsize == lgwrt.buffer.size - log_PRINTF_MAXSIZE) ;
+   TEST(0 == free_logwriter(&lgwrt)) ;
 
    // TEST automatic flush
    TEST(0 == ftruncate(tempfd, 0)) ;
    TEST(0 == lseek(STDERR_FILENO, 0, SEEK_SET)) ;
-   TEST(0 == init_logwriter(&log)) ;
-   for(unsigned i = 0; i < log.buffer.size; ++i) {
-      log.buffer.addr[i] = (uint8_t) (2+i) ;
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   for(unsigned i = 0; i < lgwrt.buffer.size; ++i) {
+      lgwrt.buffer.addr[i] = (uint8_t) (2+i) ;
    }
-   log.logsize = log.buffer.size - log_PRINTF_MAXSIZE ;
-   printf_logwriter(&log, "Y") ;
-   TEST(log.logsize == 1) ;
-   TEST('Y' == (char) log.buffer.addr[0]) ;
-   TEST(0 == log.buffer.addr[1]) ;
+   lgwrt.logsize = lgwrt.buffer.size - log_PRINTF_MAXSIZE ;
+   printf_logwriter(&lgwrt, "Y") ;
+   TEST(lgwrt.logsize == 1) ;
+   TEST('Y' == (char) lgwrt.buffer.addr[0]) ;
+   TEST(0 == lgwrt.buffer.addr[1]) ;
    TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
-   TEST((log.buffer.size - log_PRINTF_MAXSIZE) == size_mmfile(&logcontent)) ;
-   for(unsigned i = 0; i < log.buffer.size - log_PRINTF_MAXSIZE; ++i) {
+   TEST((lgwrt.buffer.size - log_PRINTF_MAXSIZE) == size_mmfile(&logcontent)) ;
+   for(unsigned i = 0; i < lgwrt.buffer.size - log_PRINTF_MAXSIZE; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (2+i)) ;
    }
    TEST(0 == free_mmfile(&logcontent)) ;
-   TEST(0 == free_logwriter(&log)) ;
+   TEST(0 == free_logwriter(&lgwrt)) ;
 
    // TEST free calls flush
    TEST(0 == ftruncate(tempfd, 0)) ;
    TEST(0 == lseek(STDERR_FILENO, 0, SEEK_SET)) ;
-   TEST(0 == init_logwriter(&log)) ;
-   for(unsigned i = 0; i < log.buffer.size; ++i) {
-      log.buffer.addr[i] = (uint8_t) (3+i) ;
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   for(unsigned i = 0; i < lgwrt.buffer.size; ++i) {
+      lgwrt.buffer.addr[i] = (uint8_t) (3+i) ;
    }
-   log.logsize = log.buffer.size ;
-   TEST(0 == free_logwriter(&log)) ; // call flush
-   TEST(0 == init_logwriter(&log)) ;
+   lgwrt.logsize = lgwrt.buffer.size ;
+   TEST(0 == free_logwriter(&lgwrt)) ; // call flush
+   TEST(0 == init_logwriter(&lgwrt)) ;
    TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
-   TEST(log.buffer.size == size_mmfile(&logcontent)) ;
-   for(unsigned i = 0; i < log.buffer.size; ++i) {
+   TEST(lgwrt.buffer.size == size_mmfile(&logcontent)) ;
+   for(unsigned i = 0; i < lgwrt.buffer.size; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (3+i)) ;
    }
    TEST(0 == free_mmfile(&logcontent)) ;
-   TEST(0 == free_logwriter(&log)) ;
+   TEST(0 == free_logwriter(&lgwrt)) ;
 
    // unprepare/free logfile
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
@@ -399,48 +399,48 @@ ABBRUCH:
    free_mmfile(&logcontent) ;
    delete_directory(&tempdir) ;
    free_cstring(&tmppath) ;
-   free_logwriter(&log) ;
+   free_logwriter(&lgwrt) ;
    return EINVAL ;
 }
 
 static int test_printf(void)
 {
-   logwriter_t    log = logwriter_INIT_FREEABLE ;
+   logwriter_t    lgwrt = logwriter_INIT_FREEABLE ;
 
    // TEST init
-   TEST(0 == init_logwriter(&log)) ;
-   TEST(log.buffer.addr != 0 ) ;
-   TEST(log.buffer.size == 8192) ;
-   TEST(log.logsize     == 0 ) ;
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   TEST(lgwrt.buffer.addr != 0 ) ;
+   TEST(lgwrt.buffer.size == 8192) ;
+   TEST(lgwrt.logsize     == 0 ) ;
 
    // TEST printf_logwriter
-   printf_logwriter(&log, "%s", "TESTSTRT\n" ) ;
-   printf_logwriter(&log, "%s", "TESTENDE\n" ) ;
-   TEST(18 == log.logsize) ;
-   TEST(0 == strcmp((char*)log.buffer.addr, "TESTSTRT\nTESTENDE\n")) ;
+   printf_logwriter(&lgwrt, "%s", "TESTSTRT\n" ) ;
+   printf_logwriter(&lgwrt, "%s", "TESTENDE\n" ) ;
+   TEST(18 == lgwrt.logsize) ;
+   TEST(0 == strcmp((char*)lgwrt.buffer.addr, "TESTSTRT\nTESTENDE\n")) ;
    for(size_t i = 0; i < 510; ++i) {
-      TEST(18 + i == log.logsize) ;
-      printf_logwriter(&log, "%c", 'F' ) ;
-      TEST(19 + i == log.logsize) ;
+      TEST(18 + i == lgwrt.logsize) ;
+      printf_logwriter(&lgwrt, "%c", 'F' ) ;
+      TEST(19 + i == lgwrt.logsize) ;
    }
-   TEST(0 == strncmp((char*)log.buffer.addr, "TESTSTRT\nTESTENDE\n", 18)) ;
+   TEST(0 == strncmp((char*)lgwrt.buffer.addr, "TESTSTRT\nTESTENDE\n", 18)) ;
    for(size_t i = 0; i < 510; ++i) {
-      TEST('F' == (char)log.buffer.addr[18+i]) ;
+      TEST('F' == (char)lgwrt.buffer.addr[18+i]) ;
    }
 
-   clearbuffer_logwriter(&log) ;
-   TEST(0 == free_logwriter(&log)) ;
+   clearbuffer_logwriter(&lgwrt) ;
+   TEST(0 == free_logwriter(&lgwrt)) ;
 
    return 0 ;
 ABBRUCH:
-   free_logwriter(&log) ;
+   free_logwriter(&lgwrt) ;
    return EINVAL ;
 }
 
 static int test_initthread(void)
 {
-   log_oit         ilog = log_oit_INIT_FREEABLE ;
-   logwriter_t   * log  = 0 ;
+   log_oit        ilog    = log_oit_INIT_FREEABLE ;
+   logwriter_t    * lgwrt = 0 ;
 
    // TEST static init
    TEST(0 == ilog.object) ;
@@ -457,16 +457,16 @@ static int test_initthread(void)
    TEST(ilog.object) ;
    TEST(ilog.object    != &g_logmain) ;
    TEST(ilog.functable == (log_it*) &s_logwriter_interface) ;
-   log = (logwriter_t*) ilog.object ;
-   TEST(log->buffer.addr) ;
-   TEST(log->buffer.size) ;
+   lgwrt = (logwriter_t*) ilog.object ;
+   TEST(lgwrt->buffer.addr) ;
+   TEST(lgwrt->buffer.size) ;
    TEST(0 == freethread_logwriter(&ilog)) ;
    TEST(ilog.object    == &g_logmain) ;
    TEST(ilog.functable == &g_logmain_interface) ;
    TEST(0 == freethread_logwriter(&ilog)) ;
    TEST(ilog.object    == &g_logmain) ;
    TEST(ilog.functable == &g_logmain_interface) ;
-   log = 0 ;
+   lgwrt = 0 ;
 
    // TEST init, double free (ilog.object = &g_logmain)
    ilog.object = &g_logmain ;
@@ -474,16 +474,16 @@ static int test_initthread(void)
    TEST(ilog.object) ;
    TEST(ilog.object    != &g_logmain) ;
    TEST(ilog.functable == (log_it*) &s_logwriter_interface) ;
-   log = (logwriter_t*) ilog.object ;
-   TEST(log->buffer.addr) ;
-   TEST(log->buffer.size) ;
+   lgwrt = (logwriter_t*) ilog.object ;
+   TEST(lgwrt->buffer.addr) ;
+   TEST(lgwrt->buffer.size) ;
    TEST(0 == freethread_logwriter(&ilog)) ;
    TEST(ilog.object    == &g_logmain) ;
    TEST(ilog.functable == &g_logmain_interface) ;
    TEST(0 == freethread_logwriter(&ilog)) ;
    TEST(ilog.object    == &g_logmain) ;
    TEST(ilog.functable == &g_logmain_interface) ;
-   log = 0 ;
+   lgwrt = 0 ;
 
    // TEST free (ilog.object = 0)
    ilog.object = 0 ;

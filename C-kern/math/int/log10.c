@@ -93,8 +93,8 @@ static int test_tablepow10(void)
    // lg10 == 0 => never decrement it
    TEST(0/*not 1*/ == s_pow10[0]) ;
 
-   for(uint64_t i = 1, pow10 = 10; i < 20; ++i, pow10 *= 10) {
-      TEST(pow10 == s_pow10[i]) ;
+   for(uint64_t i = 1, power10 = 10; i < 20; ++i, power10 *= 10) {
+      TEST(power10 == s_pow10[i]) ;
    }
 
    // TEST last element is last (overflow)

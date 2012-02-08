@@ -86,13 +86,12 @@ extern int freethread_logwriter(log_oit * ilog) ;
  * Allocates memory for the structure and initializes all variables to default values.
  * The default configuration is to write the log to standard error.
  * This log service is *not* thread safe. So use it only within a single thread. */
-extern int init_logwriter(/*out*/logwriter_t * log) ;
+extern int init_logwriter(/*out*/logwriter_t * lgwrt) ;
 
 /* function: free_logwriter
  * Frees resources and frees memory of log object.
- * After return log is set to NULL even in case of an error occured.
- * If it is called more than once log is already set to NULL and the function does nothing in this case. */
-extern int free_logwriter(logwriter_t * log) ;
+ * In case the function is called more than it does nothing. */
+extern int free_logwriter(logwriter_t * lgwrt) ;
 
 // group: query
 
@@ -102,29 +101,29 @@ extern int free_logwriter(logwriter_t * log) ;
  * The address of the buffer is valid as long as no call <free_logwriter> is made.
  * The content changes if the buffer is flushed or cleared and new log entries are written.
  * Do not free the returned buffer. It points to an internal buffer used by the implementation. */
-extern void getbuffer_logwriter(logwriter_t * log, /*out*/char ** buffer, /*out*/size_t * size) ;
+extern void getbuffer_logwriter(logwriter_t * lgwrt, /*out*/char ** buffer, /*out*/size_t * size) ;
 
 // group: change
 
 /* function: clearbuffer_logwriter
  * Clears log buffer (sets length of logbuffer to 0).
  * This call is ignored if the log is not configured to be in buffered mode. */
-extern void clearbuffer_logwriter(logwriter_t * log) ;
+extern void clearbuffer_logwriter(logwriter_t * lgwrt) ;
 
 /* function: flushbuffer_logwriter
  * Writes content of buffer to STDERR or configured file descriptor and clears log buffer.
  * This call is ignored if the log is not configured to be in buffered mode. */
-extern void flushbuffer_logwriter(logwriter_t * log) ;
+extern void flushbuffer_logwriter(logwriter_t * lgwrt) ;
 
 /* function: printf_logwriter
  * Writes new log entry to file descriptor (STDERR) or in internal buffer.
  * The output is only written in case logging is switched on (see <setonoff_logwriter>). */
-extern void printf_logwriter(logwriter_t * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
+extern void printf_logwriter(logwriter_t * lgwrt, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
 
 /* function: vprintf_logwriter
  * Function used internally to implement <printf_logwriter>.
  * Do not use this function directly except from within a subtype. */
-extern void vprintf_logwriter(logwriter_t * log, const char * format, va_list args) ;
+extern void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
 
 
 // section: inline implementation

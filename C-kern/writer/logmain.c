@@ -69,30 +69,30 @@ log_it         g_logmain_interface  = {
 
 // group: interface-implementation
 
-static void printf_logmain(void * log, const char * format, ... )
+static void printf_logmain(void * lgwrt, const char * format, ... )
 {
    char     buffer[log_PRINTF_MAXSIZE+1] = { 0 } ;
    va_list  args ;
-   (void) log ;
+   (void) lgwrt ;
    va_start(args, format) ;
    vsnprintf(buffer, sizeof(buffer), format, args) ;
    write_filedescr(filedescr_STDERR, strlen(buffer), buffer, 0) ;
    va_end(args) ;
 }
 
-static void flushbuffer_logmain(void * log)
+static void flushbuffer_logmain(void * lgwrt)
 {
-   (void) log ;
+   (void) lgwrt ;
 }
 
-static void clearbuffer_logmain(void * log)
+static void clearbuffer_logmain(void * lgwrt)
 {
-   (void) log ;
+   (void) lgwrt ;
 }
 
-static void getbuffer_logmain(void * log, /*out*/char ** buffer, /*out*/size_t * size)
+static void getbuffer_logmain(void * lgwrt, /*out*/char ** buffer, /*out*/size_t * size)
 {
-   (void) log ;
+   (void) lgwrt ;
    *buffer = 0 ;
    *size   = 0 ;
 }
@@ -106,7 +106,7 @@ static void getbuffer_logmain(void * log, /*out*/char ** buffer, /*out*/size_t *
 
 static int test_globalvar(void)
 {
-   logmain_t   * log     = &g_logmain ;
+   logmain_t   * lgwrt   = &g_logmain ;
    char        * buffer  = 0 ;
    size_t      size      = 0 ;
    int         pipefd[2] = { -1, -1 } ;
@@ -121,21 +121,21 @@ static int test_globalvar(void)
    // TEST getbuffer_logmain
    buffer = (char*) 1;
    size   = 1 ;
-   getbuffer_logmain(log, &buffer, &size) ;
+   getbuffer_logmain(lgwrt, &buffer, &size) ;
    TEST(0 == buffer) ;
    TEST(0 == size) ;
 
    // TEST clearbuffer_logmain does nothing
-   TEST(0 == log->dummy) ;
-   clearbuffer_logmain(log) ;
-   TEST(0 == log->dummy) ;
+   TEST(0 == lgwrt->dummy) ;
+   clearbuffer_logmain(lgwrt) ;
+   TEST(0 == lgwrt->dummy) ;
 
    // TEST flushbuffer_logmain does nothing
    oldstderr = dup(STDERR_FILENO) ;
    TEST(0 < oldstderr) ;
    TEST(0 == pipe2(pipefd,O_CLOEXEC|O_NONBLOCK)) ;
    TEST(STDERR_FILENO == dup2(pipefd[1], STDERR_FILENO)) ;
-   flushbuffer_logmain(log) ;
+   flushbuffer_logmain(lgwrt) ;
    {
       char buffer2[9] = { 0 } ;
       TEST(-1 == read(pipefd[0], buffer2, sizeof(buffer2))) ;
@@ -143,7 +143,7 @@ static int test_globalvar(void)
    }
 
    // TEST printf_logmain
-   printf_logmain(log, "1%c%s%d", '2', "3", 4) ;
+   printf_logmain(lgwrt, "1%c%s%d", '2', "3", 4) ;
    {
       char buffer2[5] = { 0 } ;
       TEST(4 == read(pipefd[0], buffer2, sizeof(buffer2))) ;
