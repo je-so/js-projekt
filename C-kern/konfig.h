@@ -242,16 +242,12 @@
  * */
 
 /* define: PRIuSIZE
- * printf unsigned int format specifier ( 'u' or 'lu') for *size_t*.
- * This macro uses __PRIPTR_PREFIX from C99 std header 'inttypes.h'.
- * If it does not exist you must define it in the makefile. */
-#define PRIuSIZE             __PRIPTR_PREFIX "u"
+ * printf unsigned int format specifier 'zu' for *size_t*. */
+#define PRIuSIZE             "zu"
 
-/* define: PRIuSIZE
- * scanf unsigned int format specifier ( 'u' or 'lu') for *size_t*.
- * This macro uses __PRIPTR_PREFIX from C99 std header 'inttypes.h'.
- * If it does not exist you must define it in the makefile. */
-#define SCNuSIZE             __PRIPTR_PREFIX "u"
+/* define: SCNuSIZE
+ * scanf unsigned int format specifier 'zu' for *size_t*. */
+#define SCNuSIZE             "zu"
 
 /* define: sys_filedescr_t
  * Type holding system specific description of a file.
