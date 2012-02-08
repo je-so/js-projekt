@@ -151,8 +151,29 @@ int initse_string(/*out*/string_t * str, uint8_t * start, uint8_t * end) ;
  * Casts <string_t> to <constcast_t>. */
 conststring_t asconst_string(string_t * str) ;
 
+// group: change
+
+/* function: trytrimleft_string
+ * Tries to remove the left size bytes of the string.
+ * Make sure that size is the size of a valid mulibyte character sequence.
+ * The content of the string is not changed. Instead only the
+ * <size_t.addr> is incremented with size and <string_t.size> is decremented with size.
+ *
+ * Errors:
+ * In case <stringt_t.size> is less then size ENOMEM is returned.
+ * No logging is done in case of an error. */
+int trytrimleft_string(string_t * str, size_t size) ;
+
 
 // section: inline implementation
+
+/* define: asconst_string
+ * Implements <string_t.asconst_string>. */
+#define asconst_string(str)               \
+   ( __extension__ ({                     \
+         string_t * _str = (str) ;        \
+         (conststring_t*) _str ;          \
+   }))
 
 /* define: init_conststring
  * Implements <conststring_t.init_conststring>. */
@@ -187,10 +208,19 @@ conststring_t asconst_string(string_t * str) ;
                (uint8_t*)(intptr_t)_end) ;      \
    }))
 
-#define asconst_string(str)               \
-   ( __extension__ ({                     \
-         string_t * _str = (str) ;        \
-         (conststring_t*) _str ;          \
+/* define: trytrimleft_string
+ * Implements <string_t.trytrimleft_string>. */
+#define trytrimleft_string(str, _size)          \
+   ( __extension__ ({                           \
+         int _err ;                             \
+         if ((str)->size < _size) {             \
+            _err = ENOMEM ;                     \
+         } else {                               \
+            (str)->addr += _size ;              \
+            (str)->size -= _size ;              \
+            _err = 0 ;                          \
+         }                                      \
+         _err ;                                 \
    }))
 
 

@@ -76,6 +76,53 @@ ABBRUCH:
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
+static int test_conststring(void)
+{
+   conststring_t  str ;
+   const uint8_t  test[256] ;
+
+   // TEST conststring_INIT_FREEABLE
+   str = (conststring_t) conststring_INIT_FREEABLE ;
+   TEST(0 == str.addr) ;
+   TEST(0 == str.size) ;
+
+   // TEST conststring_INIT
+   str = (conststring_t) conststring_INIT(5, &test[10]) ;
+   TEST(str.addr == &test[10]) ;
+   TEST(str.size == 5) ;
+   str = (conststring_t) conststring_INIT(3, &test[11]) ;
+   TEST(str.addr == &test[11]) ;
+   TEST(str.size == 3) ;
+
+   // TEST init_conststring
+   init_conststring(&str, 3, &test[12]) ;
+   TEST(str.addr == &test[12]) ;
+   TEST(str.size == 3) ;
+   init_conststring(&str, 5, &test[13]) ;
+   TEST(str.addr == &test[13]) ;
+   TEST(str.size == 5) ;
+
+   // TEST initfl_conststring
+   initfl_conststring(&str, &test[21], &test[23]) ;
+   TEST(str.addr == &test[21]) ;
+   TEST(str.size == 3) ;
+   initfl_conststring(&str, &test[24], &test[28]) ;
+   TEST(str.addr == &test[24]) ;
+   TEST(str.size == 5) ;
+
+   // TEST initse_conststring
+   initse_conststring(&str,  &test[21], &test[24]) ;
+   TEST(str.addr == &test[21]) ;
+   TEST(str.size == 3) ;
+   initse_conststring(&str, &test[24], &test[29]) ;
+   TEST(str.addr == &test[24]) ;
+   TEST(str.size == 5) ;
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
+
 static int test_string(void)
 {
    string_t    str ;
@@ -125,52 +172,21 @@ static int test_string(void)
       TEST(str2 == asconst_string(str1)) ;
    }
 
-   return 0 ;
-ABBRUCH:
-   return EINVAL ;
-}
+   // TEST trimleft_string
+   str = (string_t) string_INIT(1000, (uint8_t*)3) ;
+   TEST(0 == trytrimleft_string(&str, 1000)) ;
+   TEST(str.addr == (void*)1003) ;
+   TEST(str.size == 0) ;
+   for(unsigned i = 0; i < 5; ++i) {
+      str = (string_t) string_INIT(100+i, (void*)i) ;
+      TEST(0 == trytrimleft_string(&str, 10*i)) ;
+      TEST(str.addr == (void*)(i+10*i)) ;
+      TEST(str.size == 100+i-(10*i)) ;
+   }
 
-static int test_conststring(void)
-{
-   conststring_t  str ;
-   const uint8_t  test[256] ;
-
-   // TEST conststring_INIT_FREEABLE
-   str = (conststring_t) conststring_INIT_FREEABLE ;
-   TEST(0 == str.addr) ;
-   TEST(0 == str.size) ;
-
-   // TEST conststring_INIT
-   str = (conststring_t) conststring_INIT(5, &test[10]) ;
-   TEST(str.addr == &test[10]) ;
-   TEST(str.size == 5) ;
-   str = (conststring_t) conststring_INIT(3, &test[11]) ;
-   TEST(str.addr == &test[11]) ;
-   TEST(str.size == 3) ;
-
-   // TEST init_conststring
-   init_conststring(&str, 3, &test[12]) ;
-   TEST(str.addr == &test[12]) ;
-   TEST(str.size == 3) ;
-   init_conststring(&str, 5, &test[13]) ;
-   TEST(str.addr == &test[13]) ;
-   TEST(str.size == 5) ;
-
-   // TEST initfl_conststring
-   initfl_conststring(&str, &test[21], &test[23]) ;
-   TEST(str.addr == &test[21]) ;
-   TEST(str.size == 3) ;
-   initfl_conststring(&str, &test[24], &test[28]) ;
-   TEST(str.addr == &test[24]) ;
-   TEST(str.size == 5) ;
-
-   // TEST initse_conststring
-   initse_conststring(&str,  &test[21], &test[24]) ;
-   TEST(str.addr == &test[21]) ;
-   TEST(str.size == 3) ;
-   initse_conststring(&str, &test[24], &test[29]) ;
-   TEST(str.addr == &test[24]) ;
-   TEST(str.size == 5) ;
+   // TEST ENOMEM
+   str = (string_t) string_INIT(100, (void*)3) ;
+   TEST(ENOMEM == trytrimleft_string(&str, 101)) ;
 
    return 0 ;
 ABBRUCH:
@@ -183,8 +199,8 @@ int unittest_string()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_string())         goto ABBRUCH ;
    if (test_conststring())    goto ABBRUCH ;
+   if (test_string())         goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
