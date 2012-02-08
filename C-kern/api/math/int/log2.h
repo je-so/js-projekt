@@ -25,6 +25,7 @@
 #ifndef CKERN_MATH_INT_LOG2_HEADER
 #define CKERN_MATH_INT_LOG2_HEADER
 
+
 // section: Functions
 
 // group: query
@@ -41,14 +42,14 @@
  *
  * Parameter:
  * i - The argument whose logarithm to base 2 is caclulated and returned. */
-extern unsigned log2_int(unsigned i) ;
+unsigned log2_int(unsigned i) ;
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_math_int_power2
  * Tests <log2_int>. */
-extern int unittest_math_int_log2(void) ;
+int unittest_math_int_log2(void) ;
 #endif
 
 

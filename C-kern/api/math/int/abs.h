@@ -42,19 +42,19 @@
  *
  * Parameter:
  * i - The argument whose absolute value is returned. */
-extern unsigned abs_int(int i) ;
+uint32_t abs_int(int32_t i) ;
 
 /* function: abs_int64
  * Returns the absolute value as unsigned value from a signed.
  * This function operates on 64 bit integers. See also <abs_int>. */
-extern uint64_t abs_int64(int64_t i) ;
+uint64_t abs_int64(int64_t i) ;
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_math_int_abs
  * Tests <abs_int>. */
-extern int unittest_math_int_abs(void) ;
+int unittest_math_int_abs(void) ;
 #endif
 
 
@@ -66,9 +66,9 @@ extern int unittest_math_int_abs(void) ;
          ( __extension__ ({                                       \
             /* signed ! */                                        \
             static_assert( ((typeof(i))-1) < 0, ) ;               \
-            static_assert( sizeof(i) <= sizeof(int), ) ;          \
+            static_assert( sizeof(i) <= sizeof(int32_t), ) ;      \
             typeof(i) _i = (i) ;                                  \
-            (unsigned) ((_i < 0) ? -_i : _i) ;                    \
+            (uint32_t) ((_i < 0) ? -_i : _i) ;                    \
          }))
 
 /* define: inline abs_int64
