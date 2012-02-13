@@ -52,6 +52,9 @@ struct resourceusage_t {
    /* variable: filedescriptor_usage
     * Number of open file descriptors. */
    size_t                        filedescriptor_usage ;
+   /* variable: sizealloc_mmtrans
+    * Number of memory bytes allocated by <mm_transient_t>. */
+   size_t                        sizealloc_mmtrans ;
    /* variable: malloc_usage
     * Number of memory bytes allocated by malloc. */
    size_t                        malloc_usage ;
@@ -70,7 +73,7 @@ struct resourceusage_t {
 
 /* define: resourceusage_INIT_FREEABLE
  * Static initializer. */
-#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0, 0 }
+#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0, 0, 0 }
 
 /* function: init_resourceusage
  * Stores the number of resources currently in use. */

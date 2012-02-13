@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Jan.28  14:23:20
+GenerationDate  := 2012.Feb.13  17:54:06
 GeneratedBy     := JE-SO
 
 ## Release
@@ -47,10 +47,18 @@ $(sort $(ObjectDir_Release) $(TargetDir_Release)):
 	@mkdir -p "$@"
 
 Objects_Release := \
+ $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
+
+$(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signal.c
 	@$(CC_Release)

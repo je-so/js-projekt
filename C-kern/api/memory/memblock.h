@@ -33,15 +33,13 @@
 typedef struct memblock_t              memblock_t ;
 
 
-
 // section: Functions
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
-extern int unittest_memory_memblock(void) ;
+int unittest_memory_memblock(void) ;
 #endif
-
 
 
 /* struct: memblock_t
@@ -67,25 +65,42 @@ struct memblock_t {
  * Static initializer. */
 #define memblock_INIT_FREEABLE         { 0, 0 }
 
+/* define: memblock_INIT
+ * Static initializer.
+ *
+ * Parameters:
+ * size  - Size of memory block in bytes (size_t).
+ * addr  - Start address of memory block (uint8_t*). */
+#define memblock_INIT(size, addr)      { (addr), (size) }
+
 // group: query
 
 /* function: isfree_memblock
- * Returns true if *mblock* is set to <memblock_INIT_FREEABLE>. */
-extern bool isfree_memblock(const memblock_t * mblock) ;
+ * Returns true if <memblock_t->addr> is NULL. */
+bool isfree_memblock(const memblock_t * mblock) ;
+
+/* function: isfree_memblock
+ * Returns true if both fields of <memblock_t> are 0 or not zero. */
+bool isvalid_memblock(const memblock_t * mblock) ;
 
 /* function: addr_memblock
  * Returns start (lowest) address of memory block. */
-extern uint8_t * addr_memblock(const memblock_t * mblock) ;
+uint8_t * addr_memblock(const memblock_t * mblock) ;
 
 /* function: size_memblock
  * Returns size of memory block. */
-extern size_t size_memblock(const memblock_t * mblock) ;
-
+size_t size_memblock(const memblock_t * mblock) ;
 
 
 // section: inline implementation
 
+/* define: isfree_memblock
+ * Implements <memblock_t.isfree_memblock>. */
 #define isfree_memblock(mblock)        (0 == (mblock)->addr)
+
+/* define: isvalid_memblock
+ * Implements <memblock_t.isvalid_memblock>. */
+#define isvalid_memblock(mblock)       ((0 == (mblock)->addr && 0 == (mblock->size)) || (0 != (mblock)->addr && 0 != (mblock->size)))
 
 /* define: addr_memblock
  * Implements <memblock_t.addr_memblock>. */

@@ -38,6 +38,7 @@ enum log_channel_e {
 
 typedef enum log_channel_e       log_channel_e ;
 
+
 // section: Functions
 
 // group: query

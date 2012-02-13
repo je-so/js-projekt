@@ -34,12 +34,12 @@ struct objectcache_t ;
 /* typedef: struct objectcache_it
  * Export interface (function table) <objectcache_it>.
  * See <objectcache_it_DECLARE> for adaption of the interface to a
- * specific imlpementation. */
+ * specific implementation. */
 typedef struct objectcache_it          objectcache_it ;
 
 /* define: objectcache_it_DECLARE
  * Declares a function table for accessing an objectcache service.
- * Use this macro to define a interface which is structural compatible
+ * Use this macro to define an interface which is structural compatible
  * with the generic interface <objectcache_it>.
  * The difference between the newly declared interface and the generic interface
  * is the type of the object. Every interface function takes a pointer to this object type

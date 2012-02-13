@@ -138,31 +138,38 @@ void assertfail_context(const char * condition, const char * file, unsigned line
 
 // group: query
 
+/* function: process_context
+ * Returns <processcontext_t> of the current process. */
+/*ref*/processcontext_t    process_context(void) ;
+
+/* function: thread_context
+ * Returns <threadcontext_t> of the current thread. */
+/*ref*/threadcontext_t     thread_context(void) ;
+
+/* function: type_context
+ * Returns type <context_e> of current <context_t>. */
+context_e                  type_context(void) ;
+
+// group: query-service
+
 /* function: log_context
  * Returns log service <log_oit> (see <logwritermt_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-/*ref*/log_oit            log_context(void) ;
+/*ref*/log_oit             log_context(void) ;
+
+/* function: mmtransient_context
+ * Returns object interface <mm_oit> for access of memory manager. */
+/*ref*/mm_oit              mmtransient_context(void) ;
 
 /* function: objectcache_context
- * Returns object interface <objectcache_oit> for access of cached singelton objects. */
-/*ref*/objectcache_oit    objectcache_context(void) ;
-
-/* function: process_context
- * Returns <processcontext_t> of the current process. */
-/*ref*/processcontext_t   process_context(void) ;
-
-/* function: thread_context
- * Returns <threadcontext_t> of the current thread. */
-/*ref*/threadcontext_t    thread_context(void) ;
+ * Returns object interface <objectcache_oit> for access of cached singleton objects. */
+/*ref*/objectcache_oit     objectcache_context(void) ;
 
 /* function: valuecache_context
- * Returns cache for precomputed values of type <valuecache_t> for the current thread. */
-struct valuecache_t *     valuecache_context(void) ;
-
-/* function: type_context
- * Returns type <context_e> of current <context_t>. */
-context_e                 type_context(void) ;
+ * Returns <valuecache_t> holding precomputed values.
+ * Every value is cached as a single copy for the whole process. */
+struct valuecache_t *      valuecache_context(void) ;
 
 
 // section: inline implementations
@@ -171,6 +178,11 @@ context_e                 type_context(void) ;
  * Inline implementation of <context_t.log_context>.
  * Uses a global thread-local storage variable to implement the functionality. */
 #define log_context()                  (thread_context().ilog)
+
+/* define: mmtransient_context
+ * Inline implementation of <context_t.mmtransient_context>.
+ * Uses a global thread-local storage variable to implement the functionality. */
+#define mmtransient_context()          (thread_context().mm_transient)
 
 /* define: objectcache_context
  * Inline implementation of <context_t.objectcache_context>.

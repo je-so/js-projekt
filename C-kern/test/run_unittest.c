@@ -253,6 +253,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
 //{ memory unittest
    RUN(unittest_memory_memblock) ;
    RUN(unittest_memory_wbuffer) ;
+   RUN(unittest_memory_manager_transient) ;
 //}
 
 //{ string unittest

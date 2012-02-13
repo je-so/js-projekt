@@ -62,7 +62,7 @@ html:
 
 makefiles: $(patsubst %,$(MAKEFILES_PREFIX)%,$(subst _,,$(PROJECTS)))
 
-$(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.gcc | genmake_Release
+$(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.gcc projekte/subsys/context-mini | genmake_Release
 	@bin/genmake $< > "$(@)"
 
 pp-textdb: textdb_Release

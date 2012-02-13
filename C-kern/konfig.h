@@ -48,6 +48,9 @@
  * > CONCAT(var,__LINE__)  // generates token var10 if current line number is 10
  * > CONCAT_(var,__LINE__) // generates token var__LINE__ */
 #define CONCAT(S1,S2)   CONCAT_(S1,S2)
+/* define: CONCAT_
+ * Used by <CONCAT> to ensure expansion of arguments.
+ * This macro does the real work - combining two language tokens into one.*/
 #define CONCAT_(S1,S2)  S1 ## S2
 /* define: EMITCODE_0
  * The parameters to <EMITCODE_0> are discarded. */
@@ -98,6 +101,9 @@
  * > STR(__LINE__)  // generates token "10" if current line number is 10
  * > STR_(__LINE__) // generates token "__LINE__" */
 #define STR(S1)         STR_(S1)
+/* define: STR_
+ * Used by <STR> to ensure expansion of arguments.
+ * This macro does the real work - making a string out of its argument.*/
 #define STR_(S1)        # S1
 /* define: structof
  * Converts pointer to field of struct to pointer to structure type.

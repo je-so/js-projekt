@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/memory/mm/mm_it.h"
 #include "C-kern/api/platform/malloc.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/platform/virtmemory.h"
@@ -38,6 +39,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
 {
    int err ;
    size_t               fds ;
+   size_t               sizeallocated_mmtransient ;
    size_t               allocated ;
    size_t               allocated_endinit ;
    vm_mappedregions_t * mappedregions = 0 ;
@@ -45,6 +47,8 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
 
    err = nropen_filedescr(&fds) ;
    if (err) goto ABBRUCH ;
+
+   sizeallocated_mmtransient = mmtransient_context().functable->sizeallocated(mmtransient_context().object) ;
 
    err = allocatedsize_malloc(&allocated) ;
    if (err) goto ABBRUCH ;
@@ -67,6 +71,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    if (err) goto ABBRUCH ;
 
    usage->filedescriptor_usage = fds ;
+   usage->sizealloc_mmtrans    = sizeallocated_mmtransient ;
    usage->malloc_usage         = allocated ;
    usage->malloc_correction    = allocated_endinit - allocated ;
    usage->signalconfig         = signalconfig ;
@@ -119,26 +124,29 @@ int same_resourceusage(const resourceusage_t * usage)
    err = init_resourceusage(&usage2) ;
    if (err) goto ABBRUCH ;
 
+   err = EAGAIN ;
+
    if (usage2.filedescriptor_usage != usage->filedescriptor_usage) {
-      err = EAGAIN ;
+      LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
+      goto ABBRUCH ;
+   }
+
+   if (usage2.sizealloc_mmtrans != usage->sizealloc_mmtrans) {
       LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }
 
    if ((usage2.malloc_usage - usage->malloc_correction) != usage->malloc_usage) {
-      err = EAGAIN ;
       LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }
 
    if (compare_vmmappedregions(usage2.virtualmemory_usage, usage->virtualmemory_usage)) {
-      err = EAGAIN ;
       LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }
 
    if (compare_signalconfig(usage2.signalconfig, usage->signalconfig)) {
-      err = EAGAIN ;
       LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }

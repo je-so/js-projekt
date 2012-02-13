@@ -29,6 +29,7 @@
       <File Name="../../C-kern/main/tools/genmake.c"/>
       <File Name="../../C-kern/main/tools/textdb.c"/>
       <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
+      <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/main/testchildprocess_main.c"/>
   </VirtualDirectory>
@@ -61,7 +62,7 @@
       <File Name="../../C-kern/api/string/utf8.h"/>
       <File Name="../../C-kern/api/string/urlencode_string.h"/>
       <File Name="../../C-kern/api/string/base64encode_string.h"/>
-      <File Name="../../C-kern/api/string/stringformat.h"/>
+      <File Name="../../C-kern/api/string/format_string.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <File Name="../../C-kern/api/platform/process.h"/>
@@ -135,6 +136,12 @@
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
       <File Name="../../C-kern/api/memory/wbuffer.h"/>
+      <VirtualDirectory Name="mm">
+        <File Name="../../C-kern/api/memory/mm/mmtransient.h"/>
+        <File Name="../../C-kern/api/memory/mm/mm_it.h"/>
+        <File Name="../../C-kern/api/memory/mm/mm_macros.h"/>
+        <File Name="../../C-kern/api/memory/mm/mm_oit.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/objectcache.h"/>
@@ -153,12 +160,15 @@
         <File Name="../../C-kern/api/ds/inmem/arraysf.h"/>
         <File Name="../../C-kern/api/ds/inmem/binarystack.h"/>
         <File Name="../../C-kern/api/ds/inmem/arraystf.h"/>
+        <VirtualDirectory Name="node">
+          <File Name="../../C-kern/api/ds/inmem/node/arraysf_node.h"/>
+          <File Name="../../C-kern/api/ds/inmem/node/arraystf_node.h"/>
+          <File Name="../../C-kern/api/ds/inmem/node/slist_node.h"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/freecallback.h"/>
-      <File Name="../../C-kern/api/ds/arraysf_node.h"/>
-      <File Name="../../C-kern/api/ds/slist_node.h"/>
-      <File Name="../../C-kern/api/ds/arraystf_node.h"/>
+      <File Name="../../C-kern/api/ds/typeadapter.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
     <VirtualDirectory Name="io">
@@ -181,6 +191,9 @@
       <File Name="../../C-kern/api/io/iopoll.h"/>
       <File Name="../../C-kern/api/io/iocallback.h"/>
       <File Name="../../C-kern/api/io/iocontroler.h"/>
+      <VirtualDirectory Name="reader">
+        <File Name="../../C-kern/api/io/reader/textreader.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/clock.h"/>
@@ -247,7 +260,7 @@
     <File Name="../../C-kern/string/utf8.c"/>
     <File Name="../../C-kern/string/urlencode_string.c"/>
     <File Name="../../C-kern/string/base64encode_string.c"/>
-    <File Name="../../C-kern/string/stringformat.c"/>
+    <File Name="../../C-kern/string/format_string.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <File Name="../../C-kern/resource/errorlog.text"/>
@@ -265,6 +278,7 @@
       <File Name="../../C-kern/resource/text.db/initprocess"/>
       <File Name="../../C-kern/resource/text.db/initthread"/>
     </VirtualDirectory>
+    <File Name="../../C-kern/resource/errorlog2.text"/>
   </VirtualDirectory>
   <VirtualDirectory Name="platform">
     <VirtualDirectory Name="Linux">
@@ -290,9 +304,6 @@
       <File Name="../../C-kern/platform/Linux/clock.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
-      <VirtualDirectory Name="memory">
-        <File Name="../../C-kern/platform/shared/memory/memorystack.c"/>
-      </VirtualDirectory>
       <File Name="../../C-kern/platform/shared/execCcompiler.c"/>
       <File Name="../../C-kern/platform/shared/oostore.c"/>
       <VirtualDirectory Name="index">
@@ -326,6 +337,9 @@
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>
     <File Name="../../C-kern/memory/wbuffer.c"/>
+    <VirtualDirectory Name="mm">
+      <File Name="../../C-kern/memory/mm/mmtransient.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="writer">
     <File Name="../../C-kern/writer/logwriter.c"/>
@@ -339,6 +353,7 @@
       <File Name="../../C-kern/ds/inmem/arraystf.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
+    <File Name="../../C-kern/ds/typeadapter.c"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
@@ -346,6 +361,9 @@
     <File Name="../../C-kern/io/url.c"/>
     <File Name="../../C-kern/io/websocket.c"/>
     <File Name="../../C-kern/io/iocontroler.c"/>
+    <VirtualDirectory Name="reader">
+      <File Name="../../C-kern/io/reader/textreader.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

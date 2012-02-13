@@ -30,6 +30,7 @@
 #include "C-kern/api/test.h"
 #endif
 
+
 // section: string_t
 
 // group: implementation

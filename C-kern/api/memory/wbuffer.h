@@ -39,11 +39,6 @@ typedef struct wbuffer_t               wbuffer_t ;
  * Exports <wbuffer_it>.*/
 typedef struct wbuffer_it              wbuffer_it ;
 
-/* variable: g_wbuffer_interface
- * Pointer to interface of default <wbuffer_t> implementation.
- * Used in static initializer <wbuffer_INIT>. */
-extern const wbuffer_it                g_wbuffer_interface ;
-
 
 // section: Functions
 
@@ -52,7 +47,7 @@ extern const wbuffer_it                g_wbuffer_interface ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_memory_wbuffer
  * Test object <wbuffer_t>. */
-extern int unittest_memory_wbuffer(void) ;
+int unittest_memory_wbuffer(void) ;
 #endif
 
 
@@ -86,37 +81,51 @@ struct wbuffer_t {
 // group: lifetime
 
 /* define: wbuffer_INIT
- * Static initializer for dynamic growing buffer. */
-#define wbuffer_INIT                   { 0, 0, 0, &g_wbuffer_interface }
+ * Static initializer for dynamic growing buffer with default memory policy. */
+#define wbuffer_INIT                   { 0, 0, 0, (void*)1 }
 
 /* define: wbuffer_INIT
  * Static initializer for freed (invalid) buffer. */
 #define wbuffer_INIT_FREEABLE          { 0, 0, 0, 0 }
 
 /* define: wbuffer_INIT_STATIC
- * Static initializer to wrap static memory into a <wbuffer_t>. */
+ * Static initializer to wrap static memory into a <wbuffer_t>.
+ *
+ * Parameter:
+ * buffer_size   - Size in bytes of static memory.
+ * static_buffer - Memory address (uint8_t*) of static memory. */
 #define wbuffer_INIT_STATIC(buffer_size, static_buffer) \
-   { buffer_size, (static_buffer), (static_buffer), 0 }
+      { buffer_size, (static_buffer), (static_buffer), 0 }
+
+/* define: wbuffer_INIT_SUBTYPE
+ * Static initializer to subtype <wbuffer_t> with own memory management.
+ *
+ * Parameter:
+ * buffer_size     - Size in bytes of preallocated memory.
+ * prealloc_buffer - Memory address (uint8_t*) of preallocated memory.
+ * subtype_it      - Interface pointer (<wbuffer_it>*) which overwrites the memory management functions. */
+#define wbuffer_INIT_SUBTYPE(buffer_size, prealloc_buffer, subtype_it) \
+      { buffer_size, (prealloc_buffer), (prealloc_buffer), subtype_it }
 
 /* function: init_wbuffer
  * Inits <wbuffer_t> with a preallocated memory of preallocate_size bytes. */
-extern int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size) ;
+int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size) ;
 
 /* function: free_wbuffer
  * Frees all memory associated with wbuf object of type <wbuffer_t>.
  * In case of a static buffer*/
-extern int free_wbuffer(wbuffer_t * wbuf) ;
+int free_wbuffer(wbuffer_t * wbuf) ;
 
 // group: change
 
 /* function: appendalloc_wbuffer
  * Allocates and appends buffer of buffer_size.
  * The pointer to the buffer is returned in buffer. */
-extern int appendalloc_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer) ;
+int appendalloc_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer) ;
 
 /* function: appendchar_wbuffer
  * Appends 1 character to the buffer. */
-extern int appendchar_wbuffer(wbuffer_t * wbuf, const char c) ;
+int appendchar_wbuffer(wbuffer_t * wbuf, const char c) ;
 
 /* function: grow_wbuffer
  * Function grows buffer. In case of error ENOMEM is returned.
@@ -127,28 +136,28 @@ extern int appendchar_wbuffer(wbuffer_t * wbuf, const char c) ;
  * > (sizefree_wbuffer(wbuf) >= free_size)
  *
  * If addr is a pointer to a static buffer calling grow_buffer returns always ENOMEM. */
-extern int grow_wbuffer(wbuffer_t * wbuf, size_t free_size) ;
+int grow_wbuffer(wbuffer_t * wbuf, size_t free_size) ;
 
 /* function: popbytes_wbuffer
  * Removes the last size appended bytes from <wbuffer_t>.
  * If the buffer contains less bytes then only the contained bytes
  * are removed until the buffer is empty. */
-extern void popbytes_wbuffer(wbuffer_t * wbuf, size_t size) ;
+void popbytes_wbuffer(wbuffer_t * wbuf, size_t size) ;
 
 /* function: reset_wbuffer
  * Removes all appended content from wbuffer.
  * Only allocated memory is not freed. */
-extern void reset_wbuffer(wbuffer_t * wbuf) ;
+void reset_wbuffer(wbuffer_t * wbuf) ;
 
 // group: query
 
 /* function: sizefree_wbuffer
  * Returns the number of allocated bytes which are not in use. */
-extern size_t sizefree_wbuffer(const wbuffer_t * wbuf) ;
+size_t sizefree_wbuffer(const wbuffer_t * wbuf) ;
 
 /* function: sizecontent_wbuffer
  * Returns the number of bytes appended / written to the buffer. */
-extern size_t sizecontent_wbuffer(const wbuffer_t * wbuf) ;
+size_t sizecontent_wbuffer(const wbuffer_t * wbuf) ;
 
 /* function: content_wbuffer
  * Returns address of content.
@@ -160,7 +169,7 @@ extern size_t sizecontent_wbuffer(const wbuffer_t * wbuf) ;
  * you need to access the content with <contentiterator_wbuffer>.
  * The default implementation of supports only <content_wbuffer> but highly optimized
  * versions may be using an internal list of more than one preallocated memory block. */
-extern uint8_t * content_wbuffer(const wbuffer_t * wbuf) ;
+uint8_t * content_wbuffer(const wbuffer_t * wbuf) ;
 
 /* function: contentiterator_wbuffer
  * There is *no* need to implement this function.
@@ -170,17 +179,17 @@ extern uint8_t * content_wbuffer(const wbuffer_t * wbuf) ;
  * Returns:
  * 0       - Parameter *content* is set to valid memory block description which contains the index-th content block.
  * ENODATA - Parameter *index* is too high and no data is returned. */
-extern int contentiterator_wbuffer(const wbuffer_t * wbuf, size_t index, /*out*/struct memblock_t * content);
+int contentiterator_wbuffer(const wbuffer_t * wbuf, size_t index, /*out*/struct memblock_t * content);
 
 // group: helper
 
 /* function: appendalloc2_wbuffer
  * See <appendalloc_wbuffer> but implemented not inline. */
-extern int appendalloc2_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer) ;
+int appendalloc2_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer) ;
 
 /* function: appendchar2_wbuffer
  * See <appendchar_wbuffer> but implemented not inline. */
-extern int appendchar2_wbuffer(wbuffer_t * wbuf, const char c) ;
+int appendchar2_wbuffer(wbuffer_t * wbuf, const char c) ;
 
 
 /* struct: wbuffer_it

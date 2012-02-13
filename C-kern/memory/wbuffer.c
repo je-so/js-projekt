@@ -36,11 +36,6 @@
 
 // group: implementation
 
-const wbuffer_it  g_wbuffer_interface = {
-    &free_wbuffer
-   ,&grow_wbuffer
-} ;
-
 int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size)
 {
    int err ;
@@ -60,7 +55,7 @@ int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size)
    wbuf->free_size      = preallocate_size ;
    wbuf->free           = memblock ;
    wbuf->addr           = memblock ;
-   wbuf->interface      = &g_wbuffer_interface ;
+   wbuf->interface      = (void*)1 ;
 
    return 0 ;
 ABBRUCH:
@@ -70,15 +65,18 @@ ABBRUCH:
 
 int free_wbuffer(wbuffer_t * wbuf)
 {
-   if (&g_wbuffer_interface != wbuf->interface) {
-      if (wbuf->interface) {
+   if (wbuf->interface) {
+      if ((void*)1 == wbuf->interface) {
+         // default implementation
+         if (wbuf->addr) {
+            free(wbuf->addr) ;
+         }
+      } else {
+         // subtype implementation
          return wbuf->interface->free_wbuffer(wbuf) ;
       }
-      // ! wbuf->free_wbuffer => static case
    } else {
-      if (wbuf->addr) {
-         free(wbuf->addr) ;
-      }
+      // static memory, do not need to free
    }
 
    memset(wbuf, 0, sizeof(*wbuf)) ;
@@ -129,15 +127,18 @@ int grow_wbuffer(wbuffer_t * wbuf, size_t free_size)
 
    if (old_sizefree < free_size) {
 
-      if (&g_wbuffer_interface != wbuf->interface) {
-         if (wbuf->interface) {
-            return wbuf->interface->grow_wbuffer(wbuf, free_size) ;
-         }
-         // ! wbuf->grow_wbuffer => static case
+      if (!wbuf->interface) {
+         // static memory, no more memory
          err = ENOMEM ;
          goto ABBRUCH ;
       }
 
+      if ((void*)1 != wbuf->interface) {
+         // subtype implementation
+         return wbuf->interface->grow_wbuffer(wbuf, free_size) ;
+      }
+
+      // default implementation
       uint8_t  * memblock ;
       size_t   old_sizeused = (size_t) (wbuf->free - wbuf->addr) ;
       size_t   old_size     = wbuf->free_size + old_sizeused ;
@@ -289,7 +290,7 @@ static int test_dyn_initfree(void)
    uint8_t     * addr = 0 ;
    uint8_t     * mem  = 0 ;
 
-   // TEST wbuffer_INIT_FREEABLE, free
+   // TEST static init wbuffer_INIT_FREEABLE, free_wbuffer
    TEST(0 == wbuf.free_size) ;
    TEST(0 == wbuf.free) ;
    TEST(0 == wbuf.addr) ;
@@ -300,25 +301,25 @@ static int test_dyn_initfree(void)
    TEST(0 == wbuf.addr) ;
    TEST(0 == wbuf.interface) ;
 
-   // TEST wbuffer_INIT, free
+   // TEST static init wbuffer_INIT, free_wbuffer
    wbuf = (wbuffer_t) wbuffer_INIT ;
    TEST(0 == wbuf.free_size) ;
    TEST(0 == wbuf.free) ;
    TEST(0 == wbuf.addr) ;
-   TEST(&g_wbuffer_interface == wbuf.interface) ;
+   TEST((void*)1 == wbuf.interface) ;
    TEST(0 == free_wbuffer(&wbuf)) ;
    TEST(0 == wbuf.free_size) ;
    TEST(0 == wbuf.free) ;
    TEST(0 == wbuf.addr) ;
    TEST(0 == wbuf.interface) ;
 
-   // TEST init, double free
+   // TEST init_wbuffer, double free_wbuffer
    wbuf = (wbuffer_t) wbuffer_INIT_FREEABLE ;
    TEST(0 == init_wbuffer(&wbuf, 256)) ;
    TEST(0 != wbuf.addr) ;
    TEST(0 == wbuf.free - wbuf.addr) ;
    TEST(256 == sizefree_wbuffer(&wbuf)) ;
-   TEST(&g_wbuffer_interface == wbuf.interface) ;
+   TEST((void*)1 == wbuf.interface) ;
    TEST(0 == free_wbuffer(&wbuf)) ;
    TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
    TEST(0 == free_wbuffer(&wbuf)) ;
@@ -514,10 +515,8 @@ static int test_subtyping(void)
    uint8_t     buffer[64] = { 0 } ;
    uint8_t     * addr = 0 ;
 
-#define subtype_INIT  (wbuffer_t) { sizeof(buffer), buffer, buffer, &sub_it } ;
-
    // TEST init, double free
-   wbuf = subtype_INIT ;
+   wbuf = (wbuffer_t) wbuffer_INIT_SUBTYPE(sizeof(buffer), buffer, &sub_it) ;
    TEST(sizeof(buffer) == sizefree_wbuffer(&wbuf)) ;
    s_count_subtypefree = 0 ;
    free_wbuffer(&wbuf) ;
@@ -532,7 +531,7 @@ static int test_subtyping(void)
    TEST(0 == memcmp(&wbuf, &wfree, sizeof(wfree))) ;
 
    // TEST appendchar
-   wbuf = subtype_INIT ;
+   wbuf = (wbuffer_t) wbuffer_INIT_SUBTYPE(sizeof(buffer), buffer, &sub_it) ;
    s_count_subtypegrow = 0 ;
    for(unsigned b = 0; b < sizeof(buffer); ++b) {
       TEST(0 == appendchar_wbuffer(&wbuf, (char)b)) ;
@@ -546,7 +545,7 @@ static int test_subtyping(void)
    TEST('x' == buffer[0]) ;
 
    // TEST appendalloc
-   wbuf = subtype_INIT ;
+   wbuf = (wbuffer_t) wbuffer_INIT_SUBTYPE(sizeof(buffer), buffer, &sub_it) ;
    s_count_subtypegrow = 0 ;
    for(unsigned b = 0; b < sizeof(buffer); ++b) {
       addr = 0 ;
@@ -563,8 +562,6 @@ static int test_subtyping(void)
    TEST(addr == buffer) ;
    TEST(ENOMEM == appendalloc_wbuffer(&wbuf, sizeof(buffer)+1, &addr)) ;
    TEST(2 == s_count_subtypegrow) ;
-
-#undef subtype_INIT
 
    return 0 ;
 ABBRUCH:

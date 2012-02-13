@@ -5,4 +5,5 @@ Src += C-kern/context/threadcontext.c
 # default services
 Src += C-kern/cache/objectcache.c
 Src += C-kern/cache/valuecache.c
+Src += C-kern/memory/mm/mmtransient.c
 Src += C-kern/writer/logmain.c
