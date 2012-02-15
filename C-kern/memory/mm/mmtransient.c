@@ -62,26 +62,27 @@ mmtransient_it    s_mmtransient_interface = {
 int initthread_mmtransient(/*out*/mm_oit * mm_transient)
 {
    int err ;
-   const size_t      objsize     = sizeof(mm_transient_t) ;
-   mm_transient_t    * newobject = (mm_transient_t*) malloc(objsize) ;
+   const size_t      objsize    = sizeof(mm_transient_t) ;
+   mm_transient_t    tempobject = mm_transient_INIT_FREEABLE ;
+   memblock_t        newobject  = memblock_INIT_FREEABLE ;
 
-   if (!newobject) {
-      err = ENOMEM ;
-      LOG_OUTOFMEMORY(objsize) ;
-      goto ABBRUCH ;
-   }
 
    VALIDATE_INPARAM_TEST(0 == mm_transient->object, ABBRUCH, ) ;
 
-   err = init_mmtransient(newobject) ;
+   err = init_mmtransient(&tempobject) ;
    if (err) goto ABBRUCH ;
 
-   mm_transient->object    = (struct mm_t*) newobject;
+   err = mresize_mmtransient(&tempobject, objsize, &newobject) ;
+   if (err) goto ABBRUCH ;
+
+   memcpy(newobject.addr, &tempobject, objsize) ;
+
+   mm_transient->object    = (struct mm_t*) newobject.addr;
    mm_transient->functable = (mm_it*) &s_mmtransient_interface ;
 
    return 0 ;
 ABBRUCH:
-   free(newobject) ;
+   free_mmtransient(&tempobject) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -89,6 +90,7 @@ ABBRUCH:
 int freethread_mmtransient(mm_oit * mm_transient)
 {
    int err ;
+   int err2 ;
    mm_transient_t * delobject = (mm_transient_t*) mm_transient->object ;
 
    if (delobject) {
@@ -97,9 +99,13 @@ int freethread_mmtransient(mm_oit * mm_transient)
       mm_transient->object    = 0 ;
       mm_transient->functable = 0 ;
 
-      err = free_mmtransient(delobject) ;
+      mm_transient_t tempobject = *delobject ;
+      memblock_t     memobject  = memblock_INIT(sizeof(mm_transient_t), (uint8_t*)delobject) ;
 
-      free(delobject) ;
+      err = mfree_mmtransient(&tempobject, &memobject) ;
+
+      err2 = free_mmtransient(&tempobject) ;
+      if (err2) err = err2 ;
 
       if (err) goto ABBRUCH ;
    }

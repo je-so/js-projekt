@@ -1,2 +1,2 @@
-C-kern/memory/mm/mmtransient.c:74: initthread_mmtransient(): error: Function input violates condition (0 == mm_transient->object)
-C-kern/memory/mm/mmtransient.c:85: initthread_mmtransient(): error: Function aborted (err=22)
+C-kern/memory/mm/mmtransient.c:70: initthread_mmtransient(): error: Function input violates condition (0 == mm_transient->object)
+C-kern/memory/mm/mmtransient.c:86: initthread_mmtransient(): error: Function aborted (err=22)
