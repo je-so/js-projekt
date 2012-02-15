@@ -29,7 +29,7 @@
 #include "C-kern/api/err.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initprocess")
 #include "C-kern/api/platform/locale.h"
-#include "C-kern/api/platform/gui/X11/x11.h"
+#include "C-kern/api/presentation/X11/x11.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/platform/thread.h"

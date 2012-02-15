@@ -20,14 +20,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/gui/X11/display.h
+   file: C-kern/api/presentation/X11/display.h
     Header file of <X11-Display>.
 
-   file: C-kern/platform/X11/display.c
+   file: C-kern/presentation/display.c
     Implementation file of <X11-Display impl>.
 */
-#ifndef CKERN_PLATFORM_GUI_X11_DISPLAY_HEADER
-#define CKERN_PLATFORM_GUI_X11_DISPLAY_HEADER
+#ifndef CKERN_PRESENTATION_X11_DISPLAY_HEADER
+#define CKERN_PRESENTATION_X11_DISPLAY_HEADER
 
 // forward
 struct x11display_objectid_t ; // used internally to map an id to an object.
@@ -58,9 +58,9 @@ typedef struct x11display_videomode_t   x11display_videomode_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_platform_gui_X11_display
+/* function: unittest_presentation_X11_display
  * Tests connection to local display. */
-extern int unittest_platform_gui_X11_display(void) ;
+extern int unittest_presentation_X11_display(void) ;
 #endif
 
 /* struct: x11display_extension_t

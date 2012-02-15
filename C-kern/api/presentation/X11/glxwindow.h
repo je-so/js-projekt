@@ -17,14 +17,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/gui/X11/glxwindow.h
+   file: C-kern/api/presentation/X11/glxwindow.h
     Header file of <X11-OpenGL-Window>.
 
-   file: C-kern/platform/X11/glxwindow.c
+   file: C-kern/presentation/glxwindow.c
     Implementation file of <X11-OpenGL-Window>.
 */
-#ifndef CKERN_PLATFORM_GUI_X11_OPENGL_WINDOW_HEADER
-#define CKERN_PLATFORM_GUI_X11_OPENGL_WINDOW_HEADER
+#ifndef CKERN_PRESENTATION_X11_OPENGL_WINDOW_HEADER
+#define CKERN_PRESENTATION_X11_OPENGL_WINDOW_HEADER
 
 
 /* typedef: glxwindow_t typedef
@@ -99,9 +99,9 @@ struct x11display_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_platform_gui_X11_glxwindow
+/* function: unittest_presentation_X11_glxwindow
  * Tests opening a window on local display. */
-extern int unittest_platform_gui_X11_glxwindow(void) ;
+extern int unittest_presentation_X11_glxwindow(void) ;
 #endif
 
 

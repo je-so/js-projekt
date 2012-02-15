@@ -17,11 +17,11 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/gui/X11/internal/display_oostore.h
+   file: C-kern/api/presentation/X11/internal/display_oostore.h
     Header file of <X11-Display OOSTORE>.
 */
-#ifndef CKERN_PLATFORM_GUI_X11_DISPLAY_OOSTORE_HEADER
-#define CKERN_PLATFORM_GUI_X11_DISPLAY_OOSTORE_HEADER
+#ifndef CKERN_PRESENTATION_X11_DISPLAY_OOSTORE_HEADER
+#define CKERN_PRESENTATION_X11_DISPLAY_OOSTORE_HEADER
 
 #include "C-kern/api/oostore.h"
 #include "C-kern/api/platform/index/splaytree.h"

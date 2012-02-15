@@ -26,9 +26,9 @@ See the following example
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_platform_gui_X11_glxwindow
+/* function: unittest_presentation_X11_glxwindow
  * Tests opening a window on local display. */
-extern int unittest_platform_gui_X11_glxwindow(void) ;
+extern int unittest_presentation_X11_glxwindow(void) ;
 #endif
 (end code)
 

@@ -16,14 +16,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/gui/X11/x11.h
+   file: C-kern/api/presentation/X11/x11.h
     Header file of <X11-Subsystem>.
 
-   file: C-kern/platform/X11/x11.c
+   file: C-kern/presentation/x11.c
     Implementation file of <X11-Subsystem>.
 */
-#ifndef CKERN_PLATFORM_GUI_X11_HEADER
-#define CKERN_PLATFORM_GUI_X11_HEADER
+#ifndef CKERN_PRESENTATION_X11_HEADER
+#define CKERN_PRESENTATION_X11_HEADER
 
 // foward
 struct x11display_t ;
@@ -84,9 +84,9 @@ extern int iseventhandler_X11( int type, int * is_installed ) ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_platform_gui_X11
+/* function: unittest_presentation_X11
  * Test initialization process succeeds. */
-extern int unittest_platform_gui_X11(void) ;
+extern int unittest_presentation_X11(void) ;
 #endif
 
 // section: inline implementations
