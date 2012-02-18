@@ -25,6 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -270,7 +271,7 @@ static int test_initfree(void)
    }
    {
       unsigned i = 0 ;
-      foreach_slist(&slist, next, offsetof(test_node_t, next)) {
+      foreach (_slist, &slist, next) {
          TEST(next == (slist_node_t*)&nodes[i]) ;
          ++ i ;
       }
@@ -297,7 +298,7 @@ static int test_initfree(void)
    }
    {
       unsigned i = nrelementsof(nodes) ;
-      foreach_slist (&slist, next, offsetof(test_node_t, next)) {
+      foreach (_slist, &slist, next) {
          -- i ;
          TEST(next == (slist_node_t*)&nodes[i]) ;
       }
@@ -362,15 +363,17 @@ static int test_iterate(void)
    slist_freecb_t freehandler = { &test_freecallback } ;
    test_node_t    nodes[100]  = { { 0, 0 } } ;
 
+   // prepare
    for(unsigned i = 0, idx = 3; i < nrelementsof(nodes); ++i, idx = (idx + 3) % nrelementsof(nodes)) {
       nodes[idx].next = &nodes[(idx + 3) % nrelementsof(nodes)] ;
    }
 
+   // TEST iterate every third element
    {
       unsigned idx   = 3 ;
       unsigned count = 0 ;
       slist.last     = (slist_node_t*) &nodes[0] ;
-      foreach_slist (&slist, node, offsetof(test_node_t, next)) {
+      foreach (_slist, &slist, node) {
          TEST(node == (slist_node_t*)&nodes[idx]) ;
          idx = (idx + 3) % nrelementsof(nodes) ;
          ++ count ;
@@ -379,8 +382,8 @@ static int test_iterate(void)
       TEST(count == nrelementsof(nodes)) ;
    }
 
+   // unprepare
    TEST(0 == free_slist(&slist, &freehandler, 0)) ;
-
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -398,6 +401,7 @@ static int test_insertremove(void)
    test_node_t    nodes[100]  = { { 0, 0 } } ;
    test_node_t    * node      = 0 ;
 
+   // prepare
    TEST(0 == init_slist(&slist)) ;
 
    // TEST insertfirst, removefirst single element
@@ -699,7 +703,7 @@ static int test_generic(void)
    }
    {
       unsigned i = 0 ;
-      foreach(_slist1, &slist1, nodex) {
+      foreach (_slist1, &slist1, nodex) {
          TEST(nodex == &nodes[i]) ;
          ++ i ;
       }
@@ -717,7 +721,7 @@ static int test_generic(void)
    }
    {
       unsigned i = nrelementsof(nodes) ;
-      foreach(_slist2, &slist2, nodex) {
+      foreach (_slist2, &slist2, nodex) {
          -- i;
          TEST(nodex == &nodes[i]) ;
       }

@@ -47,45 +47,20 @@
  * Example:
  * > CONCAT(var,__LINE__)  // generates token var10 if current line number is 10
  * > CONCAT_(var,__LINE__) // generates token var__LINE__ */
-#define CONCAT(S1,S2)   CONCAT_(S1,S2)
+#define CONCAT(S1,S2)                  CONCAT_(S1,S2)
 /* define: CONCAT_
  * Used by <CONCAT> to ensure expansion of arguments.
  * This macro does the real work - combining two language tokens into one.*/
-#define CONCAT_(S1,S2)  S1 ## S2
+#define CONCAT_(S1,S2)                 S1 ## S2
 /* define: EMITCODE_0
  * The parameters to <EMITCODE_0> are discarded. */
-#define EMITCODE_0(...)          /*false*/
+#define EMITCODE_0(...)                /*false*/
 /* define: EMITCODE_1
  * The parameters to <EMITCODE_1> are written (as C code). */
-#define EMITCODE_1(...)          /*true*/ __VA_ARGS__
-/* define: foreach
- *
- * Parameter:
- * _fctsuffix - The suffix of the container interface functions.
- *              This name is used to access the foreach interface functions
- *              foreachfirst##_fctsuffix, foreachisvalid##_fctsuffix, and foreachnext##_fctsuffix.
- * container  - Pointer to container which contains all elements.
- * elemntname - The name of the variable which holds iterates from the first to last contained element.
- *
- * Explanation:
- * A container type which wants to offer <foreach> functionality must implement the following functions:
- *
- * > // returns the reference to the first contained element or a special invalid value
- * > // which indicates to <foreachisvalid_containertype> that there is no more element
- * > objectref_t foreachfirst_containertype(containertype_t * container) ;
- * > // returns true if element is a valid reference to a contained element
- * > bool foreachisvalid_containertype(containertype_t * container, objectref_t elemnt) ;
- * > // returns the next element after elemnt or a special value which indicates to <foreachisvalid_containertype>
- * > // that there is no more element
- * > objectref_t foreachnext_containertype(containertype_t * container, objectref_t elemnt) ;
- * */
-#define foreach(_fctsuffix, container, elemntname)  \
-   for ( typeof(foreachfirst##_fctsuffix(container)) elemntname = foreachfirst##_fctsuffix(container) ; \
-         foreachisvalid##_fctsuffix(container,elemntname) ; \
-         elemntname = foreachnext##_fctsuffix(container,elemntname))
+#define EMITCODE_1(...)                /*true*/ __VA_ARGS__
 /* define: nrelementsof
  * Calculates the number of elements of a static array. */
-#define nrelementsof(static_array)  ( sizeof(static_array) / sizeof(*(static_array)) )
+#define nrelementsof(static_array)     ( sizeof(static_array) / sizeof(*(static_array)) )
 /* define: static_assert
  * Checks condition to be true during compilation. No runtime code is generated.
  * Can only be used in function context.
@@ -93,25 +68,24 @@
  * Paramters:
  *  C - Condition which must hold true
  *  S - human readable explanation (ignored) */
-#define static_assert(C,S)     { int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1] ; (void)CONCAT(_extern_static_assert,__LINE__) ; }
+#define static_assert(C,S)             { int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1] ; (void)CONCAT(_extern_static_assert,__LINE__) ; }
 /* define: STR
  * Makes string token out of argument. Calls <STR_> to ensure expansion of argument.
  *
  * Example:
  * > STR(__LINE__)  // generates token "10" if current line number is 10
  * > STR_(__LINE__) // generates token "__LINE__" */
-#define STR(S1)         STR_(S1)
+#define STR(S1)                        STR_(S1)
 /* define: STR_
  * Used by <STR> to ensure expansion of arguments.
  * This macro does the real work - making a string out of its argument.*/
-#define STR_(S1)        # S1
+#define STR_(S1)                       # S1
 /* define: structof
- * Converts pointer to field of struct to pointer to structure type.
- * > structof(struct_t, field, ptrfield) */
-#define structof(struct_t, field, ptrfield) \
-   ( __extension__ ({                                     \
-      typeof(((struct_t*)0)->field) * _ptr = (ptrfield) ; \
-      (struct_t*)( (uint8_t *) _ptr - offsetof(struct_t, field) ) ; }))
+ * Converts pointer to member of structure to pointer of containing structure. */
+#define structof(struct_t, member, ptrmember)                              \
+   ( __extension__ ({                                                      \
+      typeof(((struct_t*)0)->member) * _ptr = (ptrmember) ;                \
+      (struct_t*)( (uint8_t *) _ptr - offsetof(struct_t, member) ) ; }))
 /* define: MALLOC
  * Ruft spezifisches malloc auf, wobei der Rückgabewert in den entsprechenden Typ konvertiert wird.
  * Die Paramterliste muss immer mit einem Komma enden !
