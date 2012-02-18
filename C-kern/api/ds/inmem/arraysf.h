@@ -28,6 +28,7 @@
 
 // forward
 struct arraysf_node_t ;
+struct binarystack_t ;
 
 /* typedef: struct arraysf_t
  * Exports <arraysf_t>. */
@@ -37,14 +38,9 @@ typedef struct arraysf_t               arraysf_t ;
  * Exports interface <arraysf_imp_it>, implementation memory policy. */
 typedef struct arraysf_imp_it          arraysf_imp_it ;
 
-/* typedef: struct arraysf_itercb_t
- * Exports <arraysf_itercb_t>, a callback processing iterated array nodes. */
-typedef struct arraysf_itercb_t        arraysf_itercb_t ;
-
-/* typedef: arraysf_itercb_f
- * Signature of iterator callback function used in <arraysf_itercb_t>.
- * A returned value not equal 0 is considered an error and aborts the iteration. */
-typedef int                         (* arraysf_itercb_f) (arraysf_itercb_t * itercb, struct arraysf_node_t * node) ;
+/* typedef: struct arraysf_iterator_t
+ * Export <arraysf_iterator_t>, iterator type to iterate of contained nodes. */
+typedef struct arraysf_iterator_t      arraysf_iterator_t ;
 
 /* enums: arraysf_e
  *
@@ -56,8 +52,8 @@ typedef int                         (* arraysf_itercb_f) (arraysf_itercb_t * ite
  *                      The size of the root array is 1 + 3*(bitsize(size_t)/2).
  * arraysf_8BITROOT24 - If MSBit positions are always >= 24 (and < 32) as is the case for IPv4 addresses
  *                      this root distribution must be used. The root is accessed with the
- *                      the highest 8 bit of a 32 bit number. The number should be less or equal than UINT32_MAX.
- *                      If numbers are hight than that stored numbers con not be iterated in ascending order.
+ *                      the highest 8 bit of a 32 bit number. The number should be less or equal to UINT32_MAX.
+ *                      If provided numbers are higher than UINT32_MAX an iteration in ascending order is not possible.
  * */
 enum arraysf_e {
     arraysf_6BITROOT_UNSORTED
@@ -76,7 +72,7 @@ typedef enum arraysf_e                 arraysf_e ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_arraysf
  * Unittest for <arraysf_t>. */
-extern int unittest_ds_inmem_arraysf(void) ;
+int unittest_ds_inmem_arraysf(void) ;
 #endif
 
 
@@ -98,9 +94,9 @@ extern int unittest_ds_inmem_arraysf(void) ;
  *
  */
 struct arraysf_t {
-   /* variable: nr_elements
+   /* variable: length
     * The number of elements stored in this array. */
-   size_t                  nr_elements ;
+   size_t                  length ;
    /* variable: type
     * The type of the array, see <arraysf_e>. */
    arraysf_e               type ;
@@ -126,35 +122,41 @@ struct arraysf_t {
  *
  * The content of parameter *impit* is not copied so make sure that impit is valid as long as
  * the *array* object is alive. */
-extern int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type, arraysf_imp_it * impit/*0 => uses default_arraysfimpit()*/) ;
+int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type, arraysf_imp_it * impit/*0 => uses default_arraysfimpit()*/) ;
 
 /* function: delete_arraysf
  * Frees allocated memory.
  * The policy interface <arraysf_imp_it> defines the <arraysf_imp_it.freenode> function pointer
  * which is called for every stored <arraysf_node_t>. If you have set this callback to 0 no
  * it is not called. */
-extern int delete_arraysf(arraysf_t ** array) ;
+int delete_arraysf(arraysf_t ** array) ;
+
+// group: iterate
+
+/* function: iteratortype_arraysf
+ * Function declaration associates <arraysf_iterator_t> with <arraysf_t>.
+ * The association is done with the type of the return value - there is no implementation. */
+arraysf_iterator_t * iteratortype_arraysf(void) ;
+
+/* function: iteratedtype_arraysf
+ * Function declaration associates (<arraysf_node_t>*) with <arraysf_t>.
+ * The association is done with the type of the return value - there is no implementation. */
+struct arraysf_node_t * iteratedtype_arraysf(void) ;
 
 // group: query
 
 /* function: impolicy_arraysf
  * Returns the interface of the memory policy. */
-extern arraysf_imp_it * impolicy_arraysf(arraysf_t * array) ;
+arraysf_imp_it * impolicy_arraysf(arraysf_t * array) ;
 
-/* function: nrelements_arraysf
+/* function: length_arraysf
  * Returns the number of elements stored in the array. */
-extern size_t nrelements_arraysf(arraysf_t * array) ;
+size_t length_arraysf(arraysf_t * array) ;
 
 /* function: at_arraysf
  * Returns element at position *pos*.
  * If no element exists at position *pos* value 0 is returned. */
-extern struct arraysf_node_t * at_arraysf(const arraysf_t * array, size_t pos) ;
-
-/* function: iterate_arraysf
- * Iterates over nodes and calls *itercb* for every contained node.
- * If the iterator callback <arraysf_itercb_t.fct> returns an error the iteration is aborted
- * with the same error code returned. */
-extern int iterate_arraysf(const arraysf_t * array, arraysf_itercb_t * itercb) ;
+struct arraysf_node_t * at_arraysf(const arraysf_t * array, size_t pos) ;
 
 // group: change
 
@@ -167,13 +169,13 @@ extern int iterate_arraysf(const arraysf_t * array, arraysf_itercb_t * itercb) ;
  * In out parameter *inserted_node* the inserted node is returned. If no cop< is made the
  * returned value is identical to parameter *node*. You can set this parameter to 0 if you
  * do not need the value. */
-extern int insert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out*/struct arraysf_node_t ** inserted_node/*0 => not returned*/) ;
+int insert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out*/struct arraysf_node_t ** inserted_node/*0 => not returned*/) ;
 
 /* function: tryinsert_arraysf
  * Same as <insert_arraysf> but no error log in case of EEXIST.
  * If EEXIST is returned nothing was inserted but the existing node will be
  * returned in *inserted_or_existing_node* nevertheless. */
-extern int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err*/struct arraysf_node_t ** inserted_or_existing_node) ;
+int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err*/struct arraysf_node_t ** inserted_or_existing_node) ;
 
 /* function: remove_arraysf
  * Removes node at position *pos*.
@@ -183,11 +185,49 @@ extern int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*
  * If you have set this callback to 0 the removed node is not freed.
  * In case parameter removed_node is not 0 the removed node is returned or 0.
  * If the removed node was freed with the callback 0 is returned. */
-extern int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/) ;
+int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/) ;
 
 /* function: tryremove_arraysf
  * Same as <remove_arraysf> but no error log in case of ESRCH. */
-extern int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/) ;
+int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/) ;
+
+
+/* struct: arraysf_iterator_t
+ * Iterates over elements contained in <arraysf_t>. */
+struct arraysf_iterator_t {
+   /* variable: stack
+    * Remembers last position in tree. */
+   struct binarystack_t * stack ;
+   /* variable: ri
+    * Index into <arraysf_t.root>. */
+   unsigned             ri ;
+} ;
+
+// group: lifetime
+
+/* define: arraysf_iterator_INIT_FREEABLE
+ * Static initializer. */
+#define arraysf_iterator_INIT_FREEABLE   { 0 }
+
+/* function: init_arraysfiterator
+ * Initializes an iterator for <arraysf_t>. */
+int init_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) ;
+
+/* function: free_arraysfiterator
+ * Frees an iterator for <arraysf_t>. */
+int free_arraysfiterator(arraysf_iterator_t * iter) ;
+
+// group: iterate
+
+/* function: next_arraysfiterator
+ * Returns next iterated node.
+ * The first call after <init_arraysfiterator> returns the first array element
+ * if it is not empty.
+ *
+ * Returns:
+ * true  - node contains a pointer to the next valid node in the list.
+ * false - There is no next node. The last element was already returned or the array is empty. */
+bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/struct arraysf_node_t ** node) ;
 
 
 /* struct: arraysf_imp_it
@@ -223,7 +263,7 @@ struct arraysf_imp_it {
 /* function: defaultimpit_arraysf
  * Returns the default memory policy of this object.
  * This is a static object. So do not free it nor change its content. */
-extern arraysf_imp_it * default_arraysfimp(void) ;
+arraysf_imp_it * default_arraysfimp(void) ;
 
 /* function: new_arraysfimp
  * Allocates implementaion object of interface <arraysf_imp_it>.
@@ -243,24 +283,18 @@ extern arraysf_imp_it * default_arraysfimp(void) ;
  * > int err ;
  * > arraysf_imp_it * impit = 0 ;
  * > err = new_arraysfimp(&impit, sizeof(struct usernode_t), offsetof(struct usernode_t, node)) ; */
-extern int new_arraysfimp(/*out*/arraysf_imp_it ** impit, size_t objectsize, size_t nodeoffset) ;
+int new_arraysfimp(/*out*/arraysf_imp_it ** impit, size_t objectsize, size_t nodeoffset) ;
 
 /* function: delete_arraysfimp
  * Frees implementation object returned from <new_arraysfimp>. */
-extern int delete_arraysfimp(arraysf_imp_it ** impit) ;
-
-/* struct: arraysf_itercb_t
- * Callback object to process iterated nodes. */
-struct arraysf_itercb_t {
-   arraysf_itercb_f  fct ;
-} ;
+int delete_arraysfimp(arraysf_imp_it ** impit) ;
 
 
 // section: inline implementation
 
-/* define: nrelements_arraysf
- * Implements <arraysf_t.nrelements_arraysf>. */
-#define nrelements_arraysf(array)      ((array)->nr_elements)
+/* define: length_arraysf
+ * Implements <arraysf_t.length_arraysf>. */
+#define length_arraysf(array)      ((array)->length)
 
 /* define: impolicy_arraysf
  * Implements <arraysf_t.impolicy_arraysf>. */

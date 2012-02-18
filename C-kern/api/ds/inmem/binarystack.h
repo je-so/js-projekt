@@ -39,7 +39,7 @@ typedef struct binarystack_t           binarystack_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_binarystack
  * Test <binarystack_t> functionality. */
-extern int unittest_ds_inmem_binarystack(void) ;
+int unittest_ds_inmem_binarystack(void) ;
 #endif
 
 
@@ -57,16 +57,22 @@ struct binarystack_t {
 #define binarystack_INIT_FREEABLE      { 0, memblock_INIT_FREEABLE }
 
 /* function: init_binarystack
- * */
-extern int init_binarystack(/*out*/binarystack_t * stack, size_t initial_size) ;
+ * Initializes stack object and preallocates at least initial_size bytes. */
+int init_binarystack(/*out*/binarystack_t * stack, size_t initial_size) ;
 
 /* function: free_binarystack
- * */
-extern int free_binarystack(binarystack_t * stack) ;
+ * Frees memory resources held by stack. */
+int free_binarystack(binarystack_t * stack) ;
 
 // group: query
 
-extern int isempty_binarystack(const binarystack_t * stack) ;
+/* function: isempty_binarystack
+ * Returns true if stack contains no bytes. */
+int isempty_binarystack(const binarystack_t * stack) ;
+
+/* function: size_binarystack
+ * Returns number of bytes pushed on stack. */
+size_t size_binarystack(const binarystack_t * stack) ;
 
 // group: access
 
@@ -75,19 +81,23 @@ extern int isempty_binarystack(const binarystack_t * stack) ;
  * The top of stack is moved *size* bytes to make room for the new data
  * and then the *data* is copied to the newly-created memory.
  * The pointer *data* must point to a memory location of at least *size* bytes size. */
-extern int push_binarystack(binarystack_t * stack, size_t size, const void * data/*[size]*/) ;
+int push_binarystack(binarystack_t * stack, size_t size, const void * data/*[size]*/) ;
 
 /* function: pop_binarystackř
  * Read size bytes of data from top of stack and shrinks it.
  * The top *size* bytes of the stack are copied to *data*. Then the stack is shrinked
- * by that size. If parameter *data* is 0 no data is copied but only skrining is done.  */
-extern int pop_binarystack(binarystack_t * stack, size_t size, void * data/*[size]*/) ;
+ * by that size. If parameter *data* is 0 no data is copied but only shrinking is done.  */
+int pop_binarystack(binarystack_t * stack, size_t size, void * data/*[size]*/) ;
 
 
 // section: inline implementation
 
 /* define: isempty_binarystack
  * Implements <binarystack_t.isempty_binarystack>. */
-#define isempty_binarystack(stack)     (0 == (stack)->size)
+#define isempty_binarystack(stack)     (0 == size_binarystack(stack))
+
+/* define: size_binarystack
+ * Implements <binarystack_t.size_binarystack>. */
+#define size_binarystack(stack)        ((stack)->size)
 
 #endif

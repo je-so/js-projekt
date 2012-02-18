@@ -28,23 +28,19 @@
 
 // forward
 struct arraystf_node_t ;
+struct binarystack_t ;
 
 /* typedef: struct arraystf_t
- * Exports <arraystf_t>. */
+ * Export <arraystf_t>. */
 typedef struct arraystf_t              arraystf_t ;
 
 /* typedef: struct arraystf_imp_it
  * Exports interface <arraystf_imp_it>, implementation memory policy. */
 typedef struct arraystf_imp_it         arraystf_imp_it ;
 
-/* typedef: struct arraystf_itercb_t
- * Exports <arraystf_itercb_t>, a callback processing iterated array nodes. */
-typedef struct arraystf_itercb_t       arraystf_itercb_t ;
-
-/* typedef: arraystf_itercb_f
- * Signature of iterator callback function used in <arraystf_itercb_t>.
- * A returned value not equal 0 is considered an error and aborts the iteration. */
-typedef int                         (* arraystf_itercb_f) (arraystf_itercb_t * itercb, struct arraystf_node_t * node) ;
+/* typedef: struct arraystf_iterator_t
+ * Export <arraystf_iterator_t>, iterator type to iterate of contained nodes. */
+typedef struct arraystf_iterator_t     arraystf_iterator_t ;
 
 /* enums: arraystf_e
  *
@@ -80,7 +76,7 @@ typedef enum arraystf_e                arraystf_e ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_ds_inmem_arraystf
  * Unittest for <arraystf_t>. */
-extern int unittest_ds_inmem_arraystf(void) ;
+int unittest_ds_inmem_arraystf(void) ;
 #endif
 
 
@@ -115,9 +111,9 @@ extern int unittest_ds_inmem_arraystf(void) ;
  *
  */
 struct arraystf_t {
-   /* variable: nr_elements
+   /* variable: length
     * The number of elements stored in this array. */
-   size_t                  nr_elements ;
+   size_t                  length ;
    /* variable: type
     * The type of the array, see <arraystf_e>. */
    arraystf_e              type ;
@@ -143,35 +139,41 @@ struct arraystf_t {
  *
  * The content of parameter *impit* is not copied so make sure that impit is valid as long as
  * the *array* object is alive. */
-extern int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type, arraystf_imp_it * impit/*0 => uses default_arraystfimpit()*/) ;
+int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type, arraystf_imp_it * impit/*0 => uses default_arraystfimpit()*/) ;
 
 /* function: delete_arraystf
  * Frees allocated memory.
  * The policy interface <arraystf_imp_it> defines the <arraystf_imp_it.freenode> function pointer
  * which is called for every stored <arraystf_node_t>. If you have set this callback to 0 no
  * it is not called. */
-extern int delete_arraystf(arraystf_t ** array) ;
+int delete_arraystf(arraystf_t ** array) ;
 
 // group: query
 
 /* function: impolicy_arraystf
  * Returns the interface of the memory policy. */
-extern arraystf_imp_it * impolicy_arraystf(arraystf_t * array) ;
+arraystf_imp_it * impolicy_arraystf(arraystf_t * array) ;
 
-/* function: nrelements_arraystf
+/* function: length_arraystf
  * Returns the number of elements stored in the array. */
-extern size_t nrelements_arraystf(arraystf_t * array) ;
+size_t length_arraystf(arraystf_t * array) ;
 
 /* function: at_arraystf
  * Returns element at position *pos*.
  * If no element exists at position *pos* value 0 is returned. */
-extern struct arraystf_node_t * at_arraystf(const arraystf_t * array, size_t size, const uint8_t keydata[size]) ;
+struct arraystf_node_t * at_arraystf(const arraystf_t * array, size_t size, const uint8_t keydata[size]) ;
 
-/* function: iterate_arraystf
- * Iterates over nodes and calls *itercb* for every contained node.
- * If the iterator callback <arraystf_itercb_t.fct> returns an error the iteration is aborted
- * with the same error code returned. */
-extern int iterate_arraystf(const arraystf_t * array, arraystf_itercb_t * itercb) ;
+// group: iterate
+
+/* function: iteratortype_arraystf
+ * Declaration associates <arraystf_iterator_t> with <arraystf_t>.
+ * The association is done with the type of the return value - there is no implementation. */
+arraystf_iterator_t * iteratortype_arraystf(void) ;
+
+/* function: iteratedtype_arraystf
+ * Declaration associates (<arraystf_node_t>*) with <arraystf_t>.
+ * The association is done with the type of the return value - there is no implementation. */
+struct arraystf_node_t * iteratedtype_arraystf(void) ;
 
 // group: change
 
@@ -184,25 +186,63 @@ extern int iterate_arraystf(const arraystf_t * array, arraystf_itercb_t * itercb
  * In out parameter *inserted_node* the inserted node is returned. If no cop< is made the
  * returned value is identical to parameter *node*. You can set this parameter to 0 if you
  * do not need the value. */
-extern int insert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out*/struct arraystf_node_t ** inserted_node/*0 => not returned*/) ;
+int insert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out*/struct arraystf_node_t ** inserted_node/*0 => not returned*/) ;
 
 /* function: tryinsert_arraystf
  * Same as <insert_arraystf> but no error log in case of EEXIST.
  * If EEXIST is returned nothing was inserted but the existing node will be
  * returned in *inserted_or_existing_node* nevertheless. */
-extern int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;err*/struct arraystf_node_t ** inserted_or_existing_node) ;
+int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;err*/struct arraystf_node_t ** inserted_or_existing_node) ;
 
 /* function: remove_arraystf
- * Removes node at position *pos*.
- * If no node exists at position *pos* ESRCH is returned.
+ * Removes node with key *keydata*.
+ * If no node exists with key keydata ESRCH is returned.
  * The policy interface <arraystf_imp_it> defines <arraystf_imp_it.freenode> function pointer
  * which is called to free the node after removing.
  * If you have set this callback to 0 no callback is made. */
-extern int remove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node/*could be 0*/) ;
+int remove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node/*could be 0*/) ;
 
 /* function: tryremove_arraystf
  * Same as <remove_arraystf> but no error log in case of ESRCH. */
-extern int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node/*could be 0*/) ;
+int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node/*could be 0*/) ;
+
+
+/* struct: arraystf_iterator_t
+ * Iterates over elements contained in <arraystf_t>. */
+struct arraystf_iterator_t {
+   /* variable: stack
+    * Remembers last position in tree. */
+   struct binarystack_t * stack ;
+   /* variable: ri
+    * Index into <arraystf_t.root>. */
+   unsigned             ri ;
+} ;
+
+// group: lifetime
+
+/* define: arraystf_iterator_INIT_FREEABLE
+ * Static initializer. */
+#define arraystf_iterator_INIT_FREEABLE   { 0 }
+
+/* function: init_arraystfiterator
+ * Initializes an iterator for an <arraystf_t>. */
+int init_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) ;
+
+/* function: free_arraystfiterator
+ * Frees an iterator for an <arraystf_t>. */
+int free_arraystfiterator(arraystf_iterator_t * iter) ;
+
+// group: iterate
+
+/* function: next_arraystfiterator
+ * Returns next iterated node.
+ * The first call after <init_arraystfiterator> returns the first array element
+ * if it is not empty.
+ *
+ * Returns:
+ * true  - node contains a pointer to the next valid node in the list.
+ * false - There is no next node. The last element was already returned or the array is empty. */
+bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out*/struct arraystf_node_t ** node) ;
 
 
 /* struct: arraystf_imp_it
@@ -238,7 +278,7 @@ struct arraystf_imp_it {
 /* function: defaultimpit_arraystf
  * Returns the default memory policy of this object.
  * This is a static object. So do not free it nor change its content. */
-extern arraystf_imp_it * default_arraystfimp(void) ;
+arraystf_imp_it * default_arraystfimp(void) ;
 
 /* function: new_arraystfimp
  * Allocates implementaion object of interface <arraystf_imp_it>.
@@ -258,24 +298,18 @@ extern arraystf_imp_it * default_arraystfimp(void) ;
  * > int err ;
  * > arraystf_imp_it * impit = 0 ;
  * > err = new_arraystfimp(&impit, sizeof(struct usernode_t), offsetof(struct usernode_t, node)) ; */
-extern int new_arraystfimp(/*out*/arraystf_imp_it ** impit, size_t objectsize, size_t nodeoffset) ;
+int new_arraystfimp(/*out*/arraystf_imp_it ** impit, size_t objectsize, size_t nodeoffset) ;
 
 /* function: delete_arraystfimp
  * Frees implementation object returned from <new_arraystfimp>. */
-extern int delete_arraystfimp(arraystf_imp_it ** impit) ;
-
-/* struct: arraystf_itercb_t
- * Callback object to process iterated nodes. */
-struct arraystf_itercb_t {
-   arraystf_itercb_f  fct ;
-} ;
+int delete_arraystfimp(arraystf_imp_it ** impit) ;
 
 
 // section: inline implementation
 
-/* define: nrelements_arraystf
- * Implements <arraystf_t.nrelements_arraystf>. */
-#define nrelements_arraystf(array)      ((array)->nr_elements)
+/* define: length_arraystf
+ * Implements <arraystf_t.length_arraystf>. */
+#define length_arraystf(array)      ((array)->length)
 
 /* define: impolicy_arraystf
  * Implements <arraystf_t.impolicy_arraystf>. */
