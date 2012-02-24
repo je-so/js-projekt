@@ -67,42 +67,46 @@ for i in $files; do
    # test for correct interface
    for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
       result=${init_process_calls[$testnr]}
-      if [ "${result#extern int initonce_*(/\*out\*/* \*\* *) ;}" = "" ]; then
+      result=${result#extern }
+      if [ "${result#int initonce_*(/\*out\*/* \*\* *) ;}" = "" ]; then
          continue
       fi
-      if [ "${result#extern int initonce_*(void) ;}" != "" ]; then
+      if [ "${result#int initonce_*(void) ;}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
    for((testnr=0;testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
       result=${free_process_calls[$testnr]}
-      if [ "${result#extern int freeonce_*(* \*\* *) ;}" = "" ]; then
+      result=${result#extern }
+      if [ "${result#int freeonce_*(* \*\* *) ;}" = "" ]; then
          continue
       fi
-      if [ "${result#extern int freeonce_*(void) ;}" != "" ]; then
+      if [ "${result#int freeonce_*(void) ;}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
    for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
       result=${init_thread_calls[$testnr]}
-      if [ "${result#extern int initthread_*(void) ;}" = "" ]; then
+      result=${result#extern }
+      if [ "${result#int initthread_*(void) ;}" = "" ]; then
          continue ;
       fi
-      if [ "${result#extern int initthread_*(/\*out\*/}" = "$result" ]; then
+      if [ "${result#int initthread_*(/\*out\*/}" = "$result" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
          continue ;
       fi
-      if [ "${result#extern int initthread_*(/\*out\*/*, threadcontext_t \* tcontext) ;}" = "" ]; then
+      if [ "${result#int initthread_*(/\*out\*/*, threadcontext_t \* tcontext) ;}" = "" ]; then
          continue
       fi
       if    [ "${result/,/}" != "$result" ] \
-         || [ "${result#extern int initthread_*(*/\*out\*/*) ;}" != "" ]; then
+         || [ "${result#int initthread_*(*/\*out\*/*) ;}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
    for((testnr=0;testnr < ${#free_thread_calls[*]}; testnr=testnr+1)) do
       result=${free_thread_calls[$testnr]}
-      if [ "${result#extern int freethread_*(*) ;}" != "" ]; then
+      result=${result#extern }
+      if [ "${result#int freethread_*(*) ;}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
@@ -110,12 +114,14 @@ for i in $files; do
    # test for matching init and free calls
    for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
       result=${init_process_calls[$testnr]}
-      name1=${result#extern int initonce_}
+      result=${result#extern }
+      name1=${result#int initonce_}
       name1=${name1%%(*}
       param1=${result#*(}
       param1=${param1#/\*out\*/}
       result=${free_process_calls[$testnr]}
-      name2=${result#extern int freeonce_}
+      result=${result#extern }
+      name2=${result#int freeonce_}
       name2=${name2%%(*}
       param2=${result#*(}
       if [ "$name1" != "$name2" ] || [ "$param1" != "$param2" ]; then
@@ -140,10 +146,12 @@ for i in $files; do
    done
    for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
       result=${init_thread_calls[$testnr]}
-      name1=${result#extern int initthread_}
+      result=${result#extern }
+      name1=${result#int initthread_}
       name1="${name1/\/*out*\//}"
       result=${free_thread_calls[$testnr]}
-      name2=${result#extern int freethread_}
+      result=${result#extern }
+      name2=${result#int freethread_}
       if [ "$name1" != "$name2" ]; then
          info="$info  file: <${i}> freethread not found for '${init_thread_calls[$testnr]}'\n"
          continue

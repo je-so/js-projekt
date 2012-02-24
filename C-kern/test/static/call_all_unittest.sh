@@ -49,7 +49,8 @@ for i in $files; do
       # .h file
       for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
          result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
-         if [ "${result#extern int unittest_*(void) ;}" != "" ]; then
+         result=${result#extern }
+         if [ "${result#int unittest_*(void) ;}" != "" ]; then
             error=1
             info="$info  file: <${i}> has wrong unittest definition '$result'\n"
          fi
