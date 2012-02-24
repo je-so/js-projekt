@@ -1,5 +1,11 @@
 /* title: Foreach-Iterator
-   TODO
+   Allows to iterate over content of container
+   with simple <foreach> macro.
+   Using the iterator interface directly is also possible
+
+   > int  init_containeriterator (container_iterator_t * iter, container_t * container) ;
+   > int  free_containeriterator (container_iterator_t * iter) ;
+   > bool next_containeriterator (container_iterator_t * iter, container_t * container, container_node_t ** node) ;
 
    about: Copyright
    This program is free software.
@@ -17,10 +23,7 @@
    (C) 2012 Jörg Seebohn
 
    file: /jsprojekt/JS/C-kern/api/ds/foreach.h
-    Header file <TODO>.
-
-   file: TODO
-    Implementation file <TODO>.
+    Header file <Foreach-Iterator>.
 */
 #ifndef CKERN_DS_FOREACH_HEADER
 #define CKERN_DS_FOREACH_HEADER

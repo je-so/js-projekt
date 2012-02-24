@@ -19,7 +19,7 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/ds/arraystf_node.h
+   file: C-kern/api/ds/inmem/node/arraystf_node.h
     Header file <ArraySTF-Node>
 */
 #ifndef CKERN_DS_ARRAYSTF_NODE_HEADER

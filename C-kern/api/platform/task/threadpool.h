@@ -91,7 +91,7 @@ extern int poolsize_threadpool(const threadpool_t * pool) ;
 /* function: tryruntask_threadpool
  * Lets a thread from the pool execute a task.
  * If no thread is currently idle EAGAIN is returned. */
-extern int tryruntask_threadpool(threadpool_t * pool, task_callback_f task_main, callback_param_t * start_arg) ;
+extern int tryruntask_threadpool(threadpool_t * pool, int (*task_main)(void* start_arg), void * start_arg) ;
 
 
 // section: inline implementation
@@ -115,8 +115,8 @@ extern int tryruntask_threadpool(threadpool_t * pool, task_callback_f task_main,
    ( __extension__ ({ int _err ;                                              \
       int (*_task_main) (typeof(start_arg)) = (task_main) ;                   \
       static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;     \
-      _err = tryruntask_threadpool(pool, (task_callback_f) _task_main,        \
-                                       (callback_param_t*) start_arg) ;       \
+      _err = tryruntask_threadpool(pool,  (int (*)(void*)) _task_main,        \
+                                          (void*) start_arg) ;                \
       _err ; }))
 
 #endif

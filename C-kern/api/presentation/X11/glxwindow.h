@@ -20,8 +20,8 @@
    file: C-kern/api/presentation/X11/glxwindow.h
     Header file of <X11-OpenGL-Window>.
 
-   file: C-kern/presentation/glxwindow.c
-    Implementation file of <X11-OpenGL-Window>.
+   file: C-kern/presentation/X11/glxwindow.c
+    Implementation file of <X11-OpenGL-Window impl>.
 */
 #ifndef CKERN_PRESENTATION_X11_OPENGL_WINDOW_HEADER
 #define CKERN_PRESENTATION_X11_OPENGL_WINDOW_HEADER

@@ -17,7 +17,7 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/ds/slist_node.h
+   file: C-kern/api/ds/inmem/node/slist_node.h
     Header file of <SingleLinkedList-Node>.
 */
 #ifndef CKERN_DS_SLIST_NODE_HEADER

@@ -25,13 +25,16 @@
 #ifndef CKERN_PLATFORM_THREAD_HEADER
 #define CKERN_PLATFORM_THREAD_HEADER
 
-#include "C-kern/api/aspect/callback/task.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/context/threadcontext.h"
 
 /* typedef: struct thread_t
  * Export <thread_t>. */
 typedef struct thread_t                thread_t ;
+
+/* typedef: thread_task_f
+ * Defines function type executed by <thread_t>. */
+typedef int                         (* thread_task_f) (void * task_arg) ;
 
 /* typedef: thread_stack_t
  * Make <thread_stack_t> an alias for <memblock_t>. */
@@ -49,7 +52,7 @@ extern __thread  thread_t              gt_thread_self ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_thread
  * Tests <thread_t> interface. */
-extern int unittest_platform_thread(void) ;
+int unittest_platform_thread(void) ;
 #endif
 
 
@@ -78,9 +81,12 @@ struct thread_t {
     * Points to next thread which waits on the same condition in <waitlist_t>.
     * TODO: remove variable wlistnext (see <lock> for explanation) */
    thread_t          * wlistnext ;
-   /* variable: task
-    * Contains value to signal thread what to do after wakeup. */
-   task_callback_t   task ;
+   /* variable: task_arg
+    * Contains parameter to executed <task_f> function. */
+   void              * task_arg ;
+   /* variable: task_f
+    * Contains function executed after thread has been created. */
+   thread_task_f     task_f ;
    /* variable: sys_thread
     * Contains system specific ID of thread. It has type <sys_thread_t>. */
    sys_thread_t      sys_thread ;
@@ -109,11 +115,11 @@ struct thread_t {
  * Calculates some internal offsets, called from <init_context>.
  * It must be called after the <valuecache_t> is fully operational
  * The reason is that function <pagesize_vm> needs <valuecache_t>. */
-extern int initonce_thread(void) ;
+int initonce_thread(void) ;
 
 /* function: freeonce_thread
  * Does nothing. Called from <free_context>. */
-extern int freeonce_thread(void) ;
+int freeonce_thread(void) ;
 
 // group: lifetime
 
@@ -124,7 +130,7 @@ extern int freeonce_thread(void) ;
  * If the internal preparation goes wrong <context_t.abort_context> is called.
  * It is unspecified if thread_main is called before new_thread returns.
  * On Linux new_thread returns before the newly created thread is scheduled. */
-extern int new_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, struct callback_param_t * start_arg) ;
+int new_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * start_arg) ;
 
 /* function: newgroup_thread
  * Creates and starts nr_of_threads new system threads.
@@ -132,28 +138,32 @@ extern int new_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main,
  * If not that many threads could be created as specified in nr_of_threads
  * already created threads silently exit themselves without any error being logged.
  * This preserves transactional all or nothing semantics. */
-extern int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, struct callback_param_t * start_arg, uint32_t nr_of_threads) ;
+int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * start_arg, uint32_t nr_of_threads) ;
 
 /* function: delete_thread
  * Calls <join_thread> (if not already called) and deletes resources.
  * This function waits until the thread has terminated. So be careful ! */
-extern int delete_thread(thread_t ** threadobj) ;
+int delete_thread(thread_t ** threadobj) ;
 
 // group: query
 
 /* function: self_thread
  * Returns a pointer to the own thread object. */
-extern thread_t * self_thread(void) ;
+thread_t * self_thread(void) ;
 
 /* function: returncode_thread
  * Returns the returncode of the joined thread.
  * The returncode is only valid if <join_thread> was called before.
  * 0 is returned in case the thread has not already been joined. */
-extern int returncode_thread(const thread_t * threadobj) ;
+int returncode_thread(const thread_t * threadobj) ;
 
 /* function: task_thread
- * Reads <thread_t.task> field of <thread_t> structure. */
-extern task_callback_t task_thread(const thread_t * threadobj) ;
+ * Reads <thread_t.task_f> field of <thread_t> object. */
+thread_task_f task_thread(const thread_t * threadobj) ;
+
+/* function: taskarg_thread
+ * Reads <thread_t.task_arg> field of <thread_t> object. */
+void * taskarg_thread(const thread_t * threadobj) ;
 
 // group: change lock
 
@@ -165,18 +175,18 @@ extern task_callback_t task_thread(const thread_t * threadobj) ;
  * the fields which can be changed by other threads. This ensures
  * that you read a consistent state and that on some architectures
  * proper read and write barriers are executed. */
-extern void lock_thread(thread_t * threadobj) ;
+void lock_thread(thread_t * threadobj) ;
 
 /* function: unlock_thread
  * Unlocks thread object after access to fields is finished. */
-extern void unlock_thread(thread_t * threadobj) ;
+void unlock_thread(thread_t * threadobj) ;
 
 // group: change
 
 /* function: join_thread
  * The function suspends execution of the caller until threadobj terminates.
  * If the thread has already been joined this function returns immediately. */
-extern int join_thread(thread_t * threadobj) ;
+int join_thread(thread_t * threadobj) ;
 
 /* function: suspend_thread
  * The calling thread will sleep until <resume_thread> is called.
@@ -189,7 +199,7 @@ extern int join_thread(thread_t * threadobj) ;
  * It is possible that signals are received from outside this process therefore make sure
  * with checking of <task> or <wlistnext> or with some other mechanism that returning
  * from <suspend_thread> emanates from a corresponding call to <resume_thread>. */
-extern void suspend_thread(void) ;
+void suspend_thread(void) ;
 
 /* function: resume_thread
  * The thread which is refered by threadobj is woken up.
@@ -201,19 +211,22 @@ extern void suspend_thread(void) ;
  * Linux specific:
  * Internally pthread_kill with signal SIGINT is used to wake up a another
  * thread from sleeping. */
-extern void resume_thread(thread_t * threadobj) ;
+void resume_thread(thread_t * threadobj) ;
 
 /* function: sleepms_thread
  * Makes calling thread to sleep msec milli-seconds. */
-extern void sleepms_thread(uint32_t msec) ;
+void sleepms_thread(uint32_t msec) ;
 
 
 // section: inline implementation
 
 /* define: task_thread
- * Implements <thread_t.task_thread>.
- * > ((threadobj)->task) */
-#define task_thread(threadobj)         ((threadobj)->task)
+ * Implements <thread_t.task_thread>. */
+#define task_thread(threadobj)         ((threadobj)->task_f)
+
+/* define: taskarg_thread
+ * Implements <thread_t.taskarg_thread>. */
+#define taskarg_thread(threadobj)      ((threadobj)->task_arg)
 
 /* define: lock_thread
  * Implements <thread_t.lock_thread>.
@@ -228,13 +241,13 @@ extern void sleepms_thread(uint32_t msec) ;
 
 /* define: newgroup_thread
  * Calls <thread_t.newgroup_thread> with adapted function pointer. */
-#define newgroup_thread(threadobj, thread_main, start_arg, nr_of_threads) \
+#define newgroup_thread(threadobj, thread_main, start_arg, nr_of_threads)           \
    /*do not forget to adapt definition in thead.c test section*/                    \
    ( __extension__ ({ int _err ;                                                    \
       int (*_thread_main) (typeof(start_arg)) = (thread_main) ;                     \
-      static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
-      _err = newgroup_thread(threadobj, (task_callback_f) _thread_main,             \
-                              (struct callback_param_t*) start_arg, nr_of_threads) ;\
+      static_assert(sizeof(start_arg) == sizeof(void*), "same as void*") ;          \
+      _err = newgroup_thread(threadobj, (thread_task_f) _thread_main,               \
+                                    (void*)start_arg, nr_of_threads) ;              \
       _err ; }))
 
 /* define: returncode_thread

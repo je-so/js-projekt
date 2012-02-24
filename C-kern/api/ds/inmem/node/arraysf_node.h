@@ -18,7 +18,7 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/ds/arraysf_node.h
+   file: C-kern/api/ds/inmem/node/arraysf_node.h
     Header file <ArraySF-Node>.
 */
 #ifndef CKERN_DS_ARRAYSF_NODE_HEADER

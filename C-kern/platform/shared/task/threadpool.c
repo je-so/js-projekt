@@ -46,16 +46,16 @@ static int threadmain_threadpool(threadpool_t * pool)
       err = wait_waitlist(&pool->idle) ;
       assert(!err) ;
 
-      task_callback_t task = task_thread(self_thread()) ;
+      thread_task_f task_f = task_thread(self_thread()) ;
 
-      if (!task.fct) {
+      if (!task_f) {
          slock_mutex(&pool->idle.lock) ;
          -- pool->poolsize ;
          sunlock_mutex(&pool->idle.lock) ;
          break ;
       }
 
-      err = task.fct(task.arg) ;
+      err = task_f(taskarg_thread(self_thread())) ;
       (void) err ;
    }
 
@@ -121,7 +121,7 @@ ABBRUCH:
 }
 
 #undef tryruntask_threadpool
-int tryruntask_threadpool(threadpool_t * pool, task_callback_f task_main, callback_param_t * start_arg)
+int tryruntask_threadpool(threadpool_t * pool, int (*task_main)(void* start_arg), void * start_arg)
 {
    int err ;
 
@@ -147,8 +147,8 @@ ABBRUCH:
    ( __extension__ ({ int _err ;                                              \
       int (*_task_main) (typeof(start_arg)) = (task_main) ;                   \
       static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;     \
-      _err = tryruntask_threadpool(pool, (task_callback_f) _task_main,        \
-                                       (callback_param_t*) start_arg) ;       \
+      _err = tryruntask_threadpool(pool,  (int (*)(void*)) _task_main,        \
+                                          (void*) start_arg) ;                \
       _err ; }))
 
 static int test_initfree(void)

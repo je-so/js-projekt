@@ -19,8 +19,8 @@
    file: C-kern/api/presentation/X11/x11.h
     Header file of <X11-Subsystem>.
 
-   file: C-kern/presentation/x11.c
-    Implementation file of <X11-Subsystem>.
+   file: C-kern/presentation/X11/x11.c
+    Implementation file <X11-Subsystem impl>.
 */
 #ifndef CKERN_PRESENTATION_X11_HEADER
 #define CKERN_PRESENTATION_X11_HEADER

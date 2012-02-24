@@ -77,7 +77,7 @@ __thread  threadcontext_t  gt_thread_context = threadcontext_INIT_STATIC ;
 /* variable: gt_thread_self
  * Refers for every thread to corresponding <thread_t> object.
  * Is is located on the thread stack so no heap memory is allocated. */
-__thread  thread_t         gt_thread_self    = { sys_mutex_INIT_DEFAULT, 0, task_callback_INIT_FREEABLE, sys_thread_INIT_FREEABLE, 0, memblock_INIT_FREEABLE, 0, 0 } ;
+__thread  thread_t         gt_thread_self    = { sys_mutex_INIT_DEFAULT, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, memblock_INIT_FREEABLE, 0, 0 } ;
 
 /* variable: s_offset_thread
  * Contains the calculated offset from start of stack thread to <gt_thread_self>. */
@@ -321,7 +321,7 @@ static void * startpoint_thread(thread_startargument_t * startarg)
          goto ABBRUCH ;
       }
 
-      thread->returncode = thread->task.fct(thread->task.arg) ;
+      thread->returncode = thread->task_f(thread->task_arg) ;
    }
 
    err = free_threadcontext(&gt_thread_context) ;
@@ -464,7 +464,7 @@ ABBRUCH:
 }
 
 #undef newgroup_thread
-int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, struct callback_param_t * start_arg, uint32_t nr_of_threads)
+int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * start_arg, uint32_t nr_of_threads)
 {
    int err ;
    int err2 = 0 ;
@@ -551,8 +551,8 @@ int newgroup_thread(/*out*/thread_t ** threadobj, task_callback_f thread_main, s
          goto UNDO_LOOP ;
       }
       next_thread->wlistnext   = 0 ;
-      next_thread->task.fct    = thread_main ;
-      next_thread->task.arg    = start_arg ;
+      next_thread->task_arg    = start_arg ;
+      next_thread->task_f      = thread_main ;
       next_thread->sys_thread  = sys_thread ;
       next_thread->returncode  = 0 ;
       next_thread->stackframe  = stackframe ;
@@ -713,13 +713,13 @@ ABBRUCH:
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
-#define newgroup_thread(threadobj, thread_main, start_arg, nr_of_threads) \
+#define newgroup_thread(threadobj, thread_main, start_arg, nr_of_threads)           \
    /*do not forget to adapt definition in thead.c test section*/                    \
    ( __extension__ ({ int _err ;                                                    \
       int (*_thread_main) (typeof(start_arg)) = (thread_main) ;                     \
-      static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
-      _err = newgroup_thread(threadobj, (task_callback_f) _thread_main,             \
-                              (struct callback_param_t*) start_arg, nr_of_threads) ;\
+      static_assert(sizeof(start_arg) == sizeof(void*), "same as void*") ;          \
+      _err = newgroup_thread(threadobj, (thread_task_f) _thread_main,               \
+                                    (void*)start_arg, nr_of_threads) ;              \
       _err ; }))
 
 static uint8_t  * s_sigaddr ;
@@ -734,7 +734,7 @@ static void sigusr1handler(int sig)
    errno = errno_backup ;
 }
 
-static int thread_sigaltstack(int dummy)
+static int thread_sigaltstack(intptr_t dummy)
 {
    (void) dummy ;
    memset(&s_threadid, 0, sizeof(s_threadid)) ;
@@ -784,8 +784,8 @@ static int test_thread_sigaltstack(void)
       TEST(0 == sigaltstack(&newst, &oldst)) ; isStack = true ;
       TEST(0 == new_thread(&thread, thread_sigaltstack, 0)) ;
       TEST(thread) ;
-      TEST((task_callback_f)&thread_sigaltstack == thread->task.fct) ;
-      TEST(0 == thread->task.arg) ;
+      TEST((thread_task_f)&thread_sigaltstack == thread->task_f) ;
+      TEST(0 == thread->task_arg) ;
       TEST(sys_thread_INIT_FREEABLE != thread->sys_thread) ;
       TEST(0 == join_thread(thread)) ;
       TEST(sys_thread_INIT_FREEABLE == thread->sys_thread) ;
@@ -863,8 +863,8 @@ static int test_thread_stackoverflow(void)
    TEST(0 == new_thread(&thread, &thread_stackoverflow, (void*)1)) ;
    TEST(0 == join_thread(thread)) ;
    TEST(1 == s_isStackoverflow) ;
-   TEST(thread->task.arg   == (void*)1) ;
-   TEST(thread->task.fct   == (task_callback_f)&thread_stackoverflow) ;
+   TEST(thread->task_arg   == (void*)1) ;
+   TEST(thread->task_f     == (thread_task_f)&thread_stackoverflow) ;
    TEST(thread->returncode == 0) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(0 == delete_thread(&thread)) ;
@@ -891,7 +891,7 @@ ABBRUCH:
 static volatile int s_returncode_signal  = 0 ;
 static volatile int s_returncode_running = 0 ;
 
-static int thread_returncode(int retcode)
+static int thread_returncode(intptr_t retcode)
 {
    s_returncode_running = 1 ;
    while( !s_returncode_signal ) {
@@ -910,8 +910,8 @@ static int test_thread_init(void)
    // TEST initonce => self_thread()
    TEST(&gt_thread_self == self_thread()) ;
    TEST(self_thread()->wlistnext  == 0) ;
-   TEST(self_thread()->task.fct   == 0) ;
-   TEST(self_thread()->task.arg   == 0) ;
+   TEST(self_thread()->task_f     == 0) ;
+   TEST(self_thread()->task_arg   == 0) ;
    TEST(self_thread()->sys_thread == pthread_self()) ;
    TEST(self_thread()->returncode == 0) ;
    TEST(self_thread()->stackframe.addr == 0) ;
@@ -924,8 +924,8 @@ static int test_thread_init(void)
    TEST(0 == new_thread(&thread, thread_returncode, 0)) ;
    TEST(thread) ;
    TEST(thread->wlistnext  == 0) ;
-   TEST(thread->task.fct   == (task_callback_f)&thread_returncode) ;
-   TEST(thread->task.arg   == 0) ;
+   TEST(thread->task_f     == (thread_task_f)&thread_returncode) ;
+   TEST(thread->task_arg   == 0) ;
    TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 0) ;
    TEST(thread->stackframe.addr != 0) ;
@@ -935,8 +935,8 @@ static int test_thread_init(void)
    s_returncode_signal = 1 ;
    TEST(0 == join_thread(thread)) ;
    TEST(thread->wlistnext  == 0) ;
-   TEST(thread->task.fct   == (task_callback_f)&thread_returncode) ;
-   TEST(thread->task.arg   == 0) ;
+   TEST(thread->task_f     == (thread_task_f)&thread_returncode) ;
+   TEST(thread->task_arg   == 0) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 0) ;
    TEST(thread->stackframe.addr != 0) ;
@@ -953,8 +953,8 @@ static int test_thread_init(void)
    TEST(0 == new_thread(&thread, thread_returncode, 11)) ;
    TEST(thread) ;
    TEST(thread->wlistnext  == 0) ;
-   TEST(thread->task.fct   == (task_callback_f)&thread_returncode) ;
-   TEST(thread->task.arg   == (void*)11) ;
+   TEST(thread->task_f     == (thread_task_f)&thread_returncode) ;
+   TEST(thread->task_arg   == (void*)11) ;
    TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 0) ;
    TEST(thread->stackframe.addr != 0) ;
@@ -964,8 +964,8 @@ static int test_thread_init(void)
    s_returncode_signal = 1 ;
    TEST(0 == join_thread(thread)) ;
    TEST(thread->wlistnext  == 0) ;
-   TEST(thread->task.fct   == (task_callback_f)&thread_returncode) ;
-   TEST(thread->task.arg   == (void*)11) ;
+   TEST(thread->task_f     == (thread_task_f)&thread_returncode) ;
+   TEST(thread->task_arg   == (void*)11) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(returncode_thread(thread) == 11) ;
    TEST(thread->stackframe.addr != 0) ;
@@ -974,8 +974,8 @@ static int test_thread_init(void)
    TEST(thread->groupnext  == thread) ;
    TEST(0 == join_thread(thread)) ;
    TEST(thread->wlistnext  == 0) ;
-   TEST(thread->task.fct   == (task_callback_f)&thread_returncode) ;
-   TEST(thread->task.arg   == (void*)11) ;
+   TEST(thread->task_f     == (thread_task_f)&thread_returncode) ;
+   TEST(thread->task_arg   == (void*)11) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(returncode_thread(thread) == 11) ;
    TEST(thread->stackframe.addr != 0) ;
@@ -997,13 +997,13 @@ static int test_thread_init(void)
 
    // TEST returncode
    for(int i = -5; i < 5; ++i) {
-      const int arg = 1111 * i ;
+      const intptr_t arg = 1111 * i ;
       s_returncode_signal  = 0 ;
       s_returncode_running = 0 ;
       TEST(0 == new_thread(&thread, thread_returncode, arg)) ;
       TEST(thread) ;
-      TEST(thread->task.arg   == (void*)arg) ;
-      TEST(thread->task.fct   == (task_callback_f)&thread_returncode ) ;
+      TEST(thread->task_arg   == (void*)arg) ;
+      TEST(thread->task_f     == (thread_task_f)&thread_returncode) ;
       TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
       for(int yi = 0; yi < 100000 && !s_returncode_running; ++yi) {
          pthread_yield() ;
@@ -1282,8 +1282,8 @@ static int test_thread_array(void)
    for(unsigned i = 0; i < thread->nr_threads; ++i) {
       TEST(prev < next) ;
       TEST(next->wlistnext  == 0) ;
-      TEST(next->task.arg   == 0) ;
-      TEST(next->task.fct   == (task_callback_f)&thread_returncode) ;
+      TEST(next->task_arg   == 0) ;
+      TEST(next->task_f     == (thread_task_f)&thread_returncode) ;
       TEST(next->returncode == 0) ;
       TEST(next->nr_threads == 23) ;
       TEST(next->sys_thread != sys_thread_INIT_FREEABLE) ;
@@ -1298,8 +1298,8 @@ static int test_thread_array(void)
    for(unsigned i = 0; i < thread->nr_threads; ++i) {
       TEST(prev < next) ;
       TEST(next->wlistnext  == 0) ;
-      TEST(next->task.arg   == 0) ;
-      TEST(next->task.fct   == (task_callback_f)&thread_returncode) ;
+      TEST(next->task_arg   == 0) ;
+      TEST(next->task_f     == (thread_task_f)&thread_returncode) ;
       TEST(next->returncode == 0) ;
       TEST(next->nr_threads == 23) ;
       TEST(next->sys_thread == sys_thread_INIT_FREEABLE) ;
@@ -1652,7 +1652,7 @@ static int thread_lockunlock(thread_t * mainthread)
    err = send_rtsignal(0) ;
    assert(!err) ;
    lock_thread(mainthread) ;
-   mainthread->task.arg = (void*) (1 + (int) mainthread->task.arg) ;
+   mainthread->task_arg = (void*) (1 + (int) mainthread->task_arg) ;
    err = send_rtsignal(1) ;
    assert(!err) ;
    err = wait_rtsignal(2, 1) ;
@@ -1690,7 +1690,7 @@ static int test_thread_lockunlock(void)
    TEST(EAGAIN == trywait_rtsignal(1)) ;
    TEST(EAGAIN == trywait_rtsignal(2)) ;
    lock_thread(self_thread()) ;
-   self_thread()->task.arg = 0 ;
+   self_thread()->task_arg = 0 ;
    TEST(0 == newgroup_thread(&thread, thread_lockunlock, self_thread(), 99)) ;
    TEST(0 == wait_rtsignal(0, 99)) ;
    TEST(EAGAIN == trywait_rtsignal(1)) ;
@@ -1698,7 +1698,7 @@ static int test_thread_lockunlock(void)
    unlock_thread(self_thread()) ;
    for(int i = 0; i < 99; ++i) {
       TEST(0 == wait_rtsignal(1, 1)) ;
-      void * volatile * cmdaddr = (void**) & (self_thread()->task.arg) ;
+      void * volatile * cmdaddr = (void**) & (self_thread()->task_arg) ;
       TEST(1+i == (int)(*cmdaddr)) ;
       TEST(EAGAIN == trywait_rtsignal(1)) ;
       TEST(EAGAIN == trywait_rtsignal(3)) ;
@@ -1708,7 +1708,7 @@ static int test_thread_lockunlock(void)
    }
    TEST(0 == join_thread(thread)) ;
    TEST(0 == delete_thread(&thread)) ;
-   self_thread()->task.arg = 0 ;
+   self_thread()->task_arg = 0 ;
 
    // TEST EDEADLK: calling lock twice is prevented
    lock_thread(self_thread()) ;
@@ -1738,7 +1738,7 @@ ABBRUCH:
    while( 0 == trywait_rtsignal(1) ) ;
    while( 0 == trywait_rtsignal(2) ) ;
    while( 0 == trywait_rtsignal(3) ) ;
-   self_thread()->task.arg = 0 ;
+   self_thread()->task_arg = 0 ;
    return EINVAL ;
 }
 

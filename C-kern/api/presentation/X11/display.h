@@ -23,7 +23,7 @@
    file: C-kern/api/presentation/X11/display.h
     Header file of <X11-Display>.
 
-   file: C-kern/presentation/display.c
+   file: C-kern/presentation/X11/display.c
     Implementation file of <X11-Display impl>.
 */
 #ifndef CKERN_PRESENTATION_X11_DISPLAY_HEADER

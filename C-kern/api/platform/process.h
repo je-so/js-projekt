@@ -26,12 +26,15 @@
 #ifndef CKERN_PLATFORM_PROCESS_HEADER
 #define CKERN_PLATFORM_PROCESS_HEADER
 
-#include "C-kern/api/aspect/callback/task.h"
 #include "C-kern/api/io/filedescr.h"
 
 /* typedef: process_t
  * Represents op. system specific process. */
 typedef sys_process_t                  process_t ;
+
+/* typedef: struct process_task_f
+ * Defines function type executed by <process_t>. */
+typedef int                         (* process_task_f) (void * task_arg) ;
 
 /* typedef: process_result_t typedef
  * Export <process_result_t>. */
@@ -160,7 +163,7 @@ void setstderr_processioredirect(process_ioredirect_t * ioredirect, filedescr_t 
 
 /* function: init_process
  * Creates child process which executes a function. */
-extern int init_process(/*out*/process_t * process, task_callback_f child_main, struct callback_param_t * start_arg, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
+extern int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
 
 /* function: initexec_process
  * Executes another program with same environment.
@@ -203,13 +206,13 @@ extern int wait_process(process_t * process, /*out*/process_result_t * result) ;
 
 /* define: init_process
  * Calls <process_t.init_process> with adapted function pointer. */
-#define init_process(process, child_main, start_arg, ioredirection) \
+#define init_process(process, child_main, start_arg, ioredirection)                 \
    /*do not forget to adapt definition in process.c test section*/                  \
    ( __extension__ ({ int _err ;                                                    \
       int (*_child_main) (typeof(start_arg)) = (child_main) ;                       \
       static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
-      _err = init_process(process, (task_callback_f) _child_main,                   \
-                 (struct callback_param_t*) start_arg, ioredirection ) ;            \
+      _err = init_process(process, (process_task_f) _child_main,                    \
+                                 (void*)start_arg, ioredirection ) ;                \
       _err ; }))
 
 /* define: setstdin_processioredirect

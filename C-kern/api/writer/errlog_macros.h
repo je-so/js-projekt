@@ -54,9 +54,8 @@
  * Use <LOG_ERRTEXT> instead of <LOG_TEXTRES> so you
  * do not have to prefix every resource name with "TEXTRES_ERRORLOG_".
  *
- * TODO:
- * - Support own error IDs
- * - Replace strerror(err) with own string_error_function(int sys_err)
+ * TODO: Support own error IDs
+ * TODO: Replace strerror(err) with own string_error_function(int sys_err)
  * */
 #define LOG_CALLERR(fct_name,err)            LOG_ERRTEXT(FUNCTION_ERROR(fct_name, err, strerror(err)))
 

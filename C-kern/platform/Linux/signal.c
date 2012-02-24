@@ -701,9 +701,9 @@ static int thread_receivesignal(int rtsignr)
 {
    int err ;
    assert(rtsignr) ;
-   assert(self_thread()->task.arg) ;
+   assert(self_thread()->task_arg) ;
    err = wait_rtsignal((rtsignal_t)rtsignr, 1) ;
-   self_thread()->task.arg = 0 ;
+   self_thread()->task_arg = 0 ;
    assert(0 == send_rtsignal(0)) ;
    return err ;
 }
@@ -767,7 +767,7 @@ static int test_rtsignal(void)
       TEST(0 == newgroup_thread(&thread, thread_receivesignal, i, 3)) ;
       thread_t * group[3] = { thread, thread->groupnext, thread->groupnext->groupnext } ;
       for(int t = 0; t < 3; ++t) {
-         TEST((void*)i == group[t]->task.arg) ;
+         TEST((void*)i == group[t]->task_arg) ;
       }
       for(int t = 0; t < 3; ++t) {
          // wake up one thread
@@ -775,7 +775,7 @@ static int test_rtsignal(void)
          // wait until woken up
          TEST(0 == wait_rtsignal(0, 1)) ;
          for(int t2 = 0; t2 < 3; ++t2) {
-            if (group[t2] && 0 == group[t2]->task.arg) {
+            if (group[t2] && 0 == group[t2]->task_arg) {
                group[t2] = 0 ;
                break ;
             }
@@ -785,7 +785,7 @@ static int test_rtsignal(void)
          for(int t2 = 0; t2 < 3; ++t2) {
             if (group[t2]) {
                ++ count ;
-               TEST((void*)i == group[t2]->task.arg) ;
+               TEST((void*)i == group[t2]->task_arg) ;
             }
          }
          TEST(2 == count) ;

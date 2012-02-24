@@ -28,12 +28,6 @@
 #ifndef CKERN_PLATFORM_SYNCHRONIZATION_WAITLIST_HEADER
 #define CKERN_PLATFORM_SYNCHRONIZATION_WAITLIST_HEADER
 
-#include "C-kern/api/aspect/callback.h"
-#include "C-kern/api/aspect/callback/task.h"
-
-// forward
-struct thread_t ;
-
 /* typedef: waitlist_t typedef
  * Exports <waitlist_t>. */
 typedef struct waitlist_t              waitlist_t ;
@@ -120,7 +114,7 @@ extern int wait_waitlist(waitlist_t * wlist) ;
  * If the list is not empty the argument <thread_t.task> of the first waiting thread is set
  * to *task_main* and *start_arg*. Th first thread is removed from the list.
  * It is then resumed. See also <resume_thread>. */
-extern int trywakeup_waitlist(waitlist_t * wlist, task_callback_f task_main, callback_param_t * start_arg) ;
+extern int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), void * start_arg) ;
 
 
 #endif

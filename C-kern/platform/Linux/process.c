@@ -368,9 +368,9 @@ ABBRUCH:
 
 #undef init_process
 int init_process(/*out*/process_t         *  process,
-                  task_callback_f            child_main,
-                  struct callback_param_t *  start_arg,
-                  process_ioredirect_t    *  ioredirection /*0 => /dev/null*/)
+                  process_task_f          child_main,
+                  void                    * start_arg,
+                  process_ioredirect_t    * ioredirection /*0 => /dev/null*/)
 {
    int err ;
    pid_t pid ;
@@ -489,13 +489,13 @@ ABBRUCH:
 
 #define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
-#define init_process(process, child_main, start_arg, ioredirection) \
+#define init_process(process, child_main, start_arg, ioredirection)                 \
    /*do not forget to adapt definition in process.c test section*/                  \
    ( __extension__ ({ int _err ;                                                    \
       int (*_child_main) (typeof(start_arg)) = (child_main) ;                       \
       static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
-      _err = init_process(process, (task_callback_f) _child_main,                   \
-                 (struct callback_param_t*) start_arg, ioredirection ) ;            \
+      _err = init_process(process, (process_task_f) _child_main,                    \
+                                 (void*)start_arg, ioredirection ) ;                \
       _err ; }))
 
 static int childprocess_return(int returncode)
