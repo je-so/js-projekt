@@ -877,7 +877,7 @@ static int test_protection(void)
    if (!is_exception) {
       is_exception = 1 ;
       vmblock.addr[0] = 0xff ;
-      is_exception = 2 ;
+      ++ is_exception ;
    }
    TEST(1 == is_exception) ;
    TEST(0 == free_vmblock(&vmblock)) ;

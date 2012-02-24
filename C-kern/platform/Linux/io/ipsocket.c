@@ -558,7 +558,7 @@ int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t dat
    err = ioctl(fd, SIOCATMARK, &isUrgent) ;
    if (-1 == err) {
       err = errno ;
-      if (err == EINVAL) err = EOPNOTSUPP ;
+      if (err == ENOTTY) err = EOPNOTSUPP ;
       LOG_SYSERR("ioctl(SIOCATMARK)", err) ;
       LOG_INT(fd) ;
       goto ABBRUCH ;
@@ -1678,14 +1678,20 @@ int unittest_io_ipsocket()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   TEST(0 == init_resourceusage(&usage)) ;
+   for(int i = 0; i < 2; ++i) {
+      TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_connect())        goto ABBRUCH ;
-   if (test_buffersize())     goto ABBRUCH ;
-   if (test_outofbandData())  goto ABBRUCH ;
-   if (test_udpIO())          goto ABBRUCH ;
-   if (test_async())          goto ABBRUCH ;
+      if (test_initfree())       goto ABBRUCH ;
+      if (test_connect())        goto ABBRUCH ;
+      if (test_buffersize())     goto ABBRUCH ;
+      if (test_outofbandData())  goto ABBRUCH ;
+      if (test_udpIO())          goto ABBRUCH ;
+      if (test_async())          goto ABBRUCH ;
+
+      if (0 == same_resourceusage(&usage)) break ;
+      TEST(0 == free_resourceusage(&usage)) ;
+      LOG_CLEARBUFFER() ;
+   }
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

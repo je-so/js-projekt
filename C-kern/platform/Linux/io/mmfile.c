@@ -422,7 +422,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    if (!is_exception) {
       is_exception = 1 ;
       addr_mmfile(&mfile)[0] = 1 ;
-      is_exception = 2 ;
+      ++ is_exception ;
    }
    TEST(1 == is_exception) ;
    // write different content
