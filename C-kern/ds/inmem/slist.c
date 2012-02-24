@@ -224,11 +224,9 @@ ABBRUCH:
 }
 
 
-
+// group: test
 
 #ifdef KONFIG_UNITTEST
-
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 typedef struct test_node_t    test_node_t ;
 

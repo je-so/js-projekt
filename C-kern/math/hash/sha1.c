@@ -300,10 +300,9 @@ sha1_hashvalue_t * value_sha1hash(sha1_hash_t * sha1)
 }
 
 
+// group: test
 
 #ifdef KONFIG_UNITTEST
-
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 static int test_unevenaddr(sha1_hashvalue_t * sha1sum, const char * string)
 {

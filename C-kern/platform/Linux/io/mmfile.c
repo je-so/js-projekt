@@ -223,8 +223,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 static int test_alignedsize(void)
 {
    size_t   pagesize = pagesize_vm() ;
@@ -595,4 +593,5 @@ ABBRUCH:
    (void) free_resourceusage(&usage) ;
    return 1 ;
 }
+
 #endif

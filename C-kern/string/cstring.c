@@ -203,9 +203,9 @@ ABBRUCH:
 }
 
 
-#ifdef KONFIG_UNITTEST
+// group: test
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
+#ifdef KONFIG_UNITTEST
 
 static int test_initfree(void)
 {

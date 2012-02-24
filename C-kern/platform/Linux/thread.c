@@ -711,8 +711,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 #define newgroup_thread(threadobj, thread_main, start_arg, nr_of_threads)           \
    /*do not forget to adapt definition in thead.c test section*/                    \
    ( __extension__ ({ int _err ;                                                    \

@@ -30,12 +30,11 @@
 #endif
 
 
+// group: test
+
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
-
-int unittest_math_int_signum()
+static int test_signum(void)
 {
    for(int i = -128; i <= +127 ; ++i) {
       int8_t in = (int8_t) i ;
@@ -63,6 +62,23 @@ int unittest_math_int_signum()
 
    return 0 ;
 ABBRUCH:
+   return EINVAL ;
+}
+
+int unittest_math_int_signum()
+{
+   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+
+   TEST(0 == init_resourceusage(&usage)) ;
+
+   if (test_signum())       goto ABBRUCH ;
+
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   return 0 ;
+ABBRUCH:
+   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

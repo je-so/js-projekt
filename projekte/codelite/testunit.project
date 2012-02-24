@@ -22,19 +22,12 @@
       <File Name="../../C-kern/generic/dlist.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
-  <VirtualDirectory Name="main">
-    <File Name="../../C-kern/main/unittest_main.c"/>
-    <File Name="../../C-kern/main/speedtest_main.c"/>
-    <VirtualDirectory Name="tools">
-      <File Name="../../C-kern/main/tools/genmake.c"/>
-      <File Name="../../C-kern/main/tools/textdb.c"/>
-      <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
-      <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
-    </VirtualDirectory>
-    <File Name="../../C-kern/main/testchildprocess_main.c"/>
-  </VirtualDirectory>
   <VirtualDirectory Name="api">
+    <File Name="../../C-kern/api/context.h"/>
     <File Name="../../C-kern/api/execCcompiler.h"/>
+    <File Name="../../C-kern/konfig.h"/>
+    <File Name="../../C-kern/api/oostore.h"/>
+    <File Name="../../C-kern/README.txt"/>
     <File Name="../../C-kern/api/test.h"/>
     <VirtualDirectory Name="test">
       <File Name="../../C-kern/api/test/compiletime.h"/>
@@ -50,7 +43,6 @@
     <VirtualDirectory Name="resource">
       <File Name="../../C-kern/api/resource/errorlog.h"/>
     </VirtualDirectory>
-    <File Name="../../C-kern/konfig.h"/>
     <VirtualDirectory Name="adapter">
       <File Name="../../C-kern/api/adapter/stream.h"/>
     </VirtualDirectory>
@@ -68,9 +60,6 @@
       <File Name="../../C-kern/api/platform/process.h"/>
       <File Name="../../C-kern/api/platform/thread.h"/>
       <File Name="../../C-kern/api/platform/virtmemory.h"/>
-      <VirtualDirectory Name="memory">
-        <File Name="../../C-kern/api/platform/memory/memorystack.h"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="Linux">
         <File Name="../../C-kern/api/platform/Linux/syskonfig.h"/>
         <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
@@ -92,20 +81,8 @@
         <File Name="../../C-kern/api/platform/sync/signal.h"/>
         <File Name="../../C-kern/api/platform/sync/waitlist.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="gui">
-        <VirtualDirectory Name="X11">
-          <File Name="../../C-kern/api/platform/gui/X11/display.h"/>
-          <File Name="../../C-kern/api/platform/gui/X11/glxwindow.h"/>
-          <File Name="../../C-kern/api/platform/gui/X11/x11.h"/>
-          <VirtualDirectory Name="internal">
-            <File Name="../../C-kern/api/platform/gui/X11/internal/display_oostore.h"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="html5"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="graphik"/>
-    <File Name="../../C-kern/api/oostore.h"/>
     <VirtualDirectory Name="math">
       <VirtualDirectory Name="int">
         <File Name="../../C-kern/api/math/int/power2.h"/>
@@ -123,7 +100,6 @@
         <File Name="../../C-kern/api/aspect/callback/compare.h"/>
         <File Name="../../C-kern/api/aspect/callback/free.h"/>
         <File Name="../../C-kern/api/aspect/callback/updatekey.h"/>
-        <File Name="../../C-kern/api/aspect/callback/task.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/callback.h"/>
       <File Name="../../C-kern/api/aspect/treenode2.h"/>
@@ -167,8 +143,8 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
-      <File Name="../../C-kern/api/ds/freecallback.h"/>
       <File Name="../../C-kern/api/ds/typeadapter.h"/>
+      <File Name="../../C-kern/api/ds/foreach.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
     <VirtualDirectory Name="io">
@@ -207,8 +183,16 @@
       <File Name="../../C-kern/api/writer/errlog_macros.h"/>
       <File Name="../../C-kern/api/writer/logmain.h"/>
     </VirtualDirectory>
-    <File Name="../../C-kern/api/context.h"/>
-    <File Name="../../C-kern/README.txt"/>
+    <VirtualDirectory Name="presentation">
+      <VirtualDirectory Name="X11">
+        <File Name="../../C-kern/api/presentation/X11/display.h"/>
+        <File Name="../../C-kern/api/presentation/X11/glxwindow.h"/>
+        <File Name="../../C-kern/api/presentation/X11/x11.h"/>
+        <VirtualDirectory Name="internal">
+          <File Name="../../C-kern/api/presentation/X11/internal/display_oostore.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/objectcache.c"/>
@@ -219,6 +203,25 @@
     <File Name="../../C-kern/context/threadcontext.c"/>
     <File Name="../../C-kern/context/COP.txt"/>
     <File Name="../../C-kern/context/context.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="io">
+    <File Name="../../C-kern/io/url.c"/>
+    <File Name="../../C-kern/io/websocket.c"/>
+    <File Name="../../C-kern/io/iocontroler.c"/>
+    <VirtualDirectory Name="reader">
+      <File Name="../../C-kern/io/reader/textreader.c"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="main">
+    <File Name="../../C-kern/main/unittest_main.c"/>
+    <File Name="../../C-kern/main/speedtest_main.c"/>
+    <VirtualDirectory Name="tools">
+      <File Name="../../C-kern/main/tools/genmake.c"/>
+      <File Name="../../C-kern/main/tools/textdb.c"/>
+      <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
+      <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
+    </VirtualDirectory>
+    <File Name="../../C-kern/main/testchildprocess_main.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="../../C-kern/test/run_statictest.sh"/>
@@ -316,11 +319,6 @@
         <File Name="../../C-kern/platform/shared/task/threadpool.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
-    <VirtualDirectory Name="X11">
-      <File Name="../../C-kern/platform/X11/x11.c"/>
-      <File Name="../../C-kern/platform/X11/display.c"/>
-      <File Name="../../C-kern/platform/X11/glxwindow.c"/>
-    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="math">
     <VirtualDirectory Name="int">
@@ -341,6 +339,13 @@
       <File Name="../../C-kern/memory/mm/mmtransient.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
+  <VirtualDirectory Name="presentation">
+    <VirtualDirectory Name="X11">
+      <File Name="../../C-kern/presentation/X11/display.c"/>
+      <File Name="../../C-kern/presentation/X11/glxwindow.c"/>
+      <File Name="../../C-kern/presentation/X11/x11.c"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
   <VirtualDirectory Name="writer">
     <File Name="../../C-kern/writer/logwriter.c"/>
     <File Name="../../C-kern/writer/logmain.c"/>
@@ -357,14 +362,6 @@
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
-  <VirtualDirectory Name="io">
-    <File Name="../../C-kern/io/url.c"/>
-    <File Name="../../C-kern/io/websocket.c"/>
-    <File Name="../../C-kern/io/iocontroler.c"/>
-    <VirtualDirectory Name="reader">
-      <File Name="../../C-kern/io/reader/textreader.c"/>
-    </VirtualDirectory>
-  </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="">

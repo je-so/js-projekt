@@ -30,13 +30,12 @@
 #endif
 
 
-#ifdef KONFIG_UNITTEST
+// group: test
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
+#ifdef KONFIG_UNITTEST
 
 static int test_abs(void)
 {
-
    // TEST value 0
    TEST(0 == abs_int(0)) ;
    TEST(0 == abs_int((int8_t)0)) ;

@@ -871,12 +871,9 @@ ABBRUCH:
 }
 
 
-
 // group: test
 
 #ifdef KONFIG_UNITTEST
-
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
 
 static int test_arraystfkeyval(void)
 {

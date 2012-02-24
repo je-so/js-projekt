@@ -744,8 +744,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 struct TreeNode {
    redblacktree_node_t  aspect ;
    unsigned key ;

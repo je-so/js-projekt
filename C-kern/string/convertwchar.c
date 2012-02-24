@@ -110,8 +110,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 /* function: test_fromutf8
  * Works only in utf8 - locale
  */

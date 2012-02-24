@@ -64,8 +64,6 @@ void logrun_test(const char * testname)
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 static int test_helper(void)
 {
    int      fd[2]     = { sys_filedescr_INIT_FREEABLE, sys_filedescr_INIT_FREEABLE } ;

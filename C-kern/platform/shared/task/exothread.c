@@ -115,8 +115,6 @@ void abort_exothread(exothread_t * xthread)
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
-
 static int testinit_xthread(exothread_t * xthread)
 {
    int err = 0 ;

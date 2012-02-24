@@ -140,8 +140,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
-
 #define tryruntask_threadpool(pool, task_main, start_arg)                     \
    /*do not forget to adapt definition in threadpool.c test section*/         \
    ( __extension__ ({ int _err ;                                              \

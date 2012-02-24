@@ -34,16 +34,13 @@ extern int unittest_presentation_X11_glxwindow(void) ;
 
 Source file:
 
-The implementation file must include the
-test macro TEST_ONERROR_GOTO defined in
+The implementation file must include the test macro TEST defined in
 file »C-kern/api/test.h«.
 
-It awaits three parameters
-1. The condition to test for
-2. The name of the unit test it will print if an error occurs
-3. The name of the abort label it should jump in case if error
+It awaits one parameter
+which simply is the condition to test for
 
-For the abort label the German word »ABBRUCH« is used in most tests.
+For the abort label the German word »ABBRUCH« is used.
 The unit test returns 0 in case of success or an error code (> 0).
 
 (start code)
@@ -56,9 +53,6 @@ The unit test returns 0 in case of success or an error code (> 0).
 // ... module implementation ...
 
 #ifdef KONFIG_UNITTEST
-
-// Makes handling of TEST_ONERROR_GOTO easier
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION,unittest_NAME_OF_TEST,ABBRUCH)
 
 int unittest_NAME_OF_TEST()
 {

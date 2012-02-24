@@ -125,9 +125,9 @@ int cmpcaseascii_utf8cstring(const uint8_t * utf8cstr, const char * cstr, size_t
 }
 
 
-#ifdef KONFIG_UNITTEST
+// group: test
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
+#ifdef KONFIG_UNITTEST
 
 static int test_utf8cstring(void)
 {

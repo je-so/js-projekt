@@ -255,8 +255,6 @@ void printf_logwriter(logwriter_t * lgwrt, const char * format, ... )
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
-
 static int test_initfree(void)
 {
    logwriter_t lgwrt = logwriter_INIT_FREEABLE ;

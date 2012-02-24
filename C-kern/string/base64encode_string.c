@@ -1,4 +1,4 @@
-/* title: Base64EncodeString
+/* title: Base64EncodeString impl
    Implements <Base64EncodeString>.
 
    about: Copyright
@@ -230,12 +230,9 @@ ABBRUCH:
 }
 
 
-
 // group: test
 
 #ifdef KONFIG_UNITTEST
-
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 static int test_base64(void)
 {

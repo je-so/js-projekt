@@ -102,8 +102,6 @@ static void getbuffer_logmain(void * lgwrt, /*out*/char ** buffer, /*out*/size_t
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
-
 static int test_globalvar(void)
 {
    logmain_t   * lgwrt   = &g_logmain ;

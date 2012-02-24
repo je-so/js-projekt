@@ -197,8 +197,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 static int test_initfree(void)
 {
    mm_transient_t   mman = mm_transient_INIT_FREEABLE ;

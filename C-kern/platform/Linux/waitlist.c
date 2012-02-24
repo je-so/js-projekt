@@ -184,8 +184,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 static int thread_waitonwlist(waitlist_t * wlist)
 {
    assert(0 == send_rtsignal(0)) ;

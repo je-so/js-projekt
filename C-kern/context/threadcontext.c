@@ -121,8 +121,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
-
 static int test_initfree(void)
 {
    threadcontext_t   tcontext = threadcontext_INIT_STATIC ;

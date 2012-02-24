@@ -46,20 +46,18 @@ void logrun_test(const char * testname) ;
 
 // group: macros
 
-/* define: TEST_ONERROR_GOTO
- * Tests CONDITION and exits on error.
- * If CONDITION fails an error is printed and further tests are skipped cause it jumps to
- * ERROR_LABEL with help of goto.
+/* define: TEST
+ * Tests CONDITION and exits on error with jump to ABBRUCH: label.
+ * If CONDITION fails an error is printed and further tests are skipped.
+ * The macro jump jumps to label ABBRUCH: with help of goto.
  *
  * Parameters:
  * CONDITION          - Condition which is tested to be true.
- * ERROR_LABEL        - Name of label the test macro jumps in case of error.
  *
  * Usage:
  * The following demonstrates how this macro is used:
  *
- * > #define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
- * > int test_demonstration()
+ * > int unittest_demonstration()
  * > {
  * >    testtype_t testtype = type_INIT_FREEABLE ;
  * >    TEST(0 == init_testtype(&testtype)) ;
@@ -70,10 +68,10 @@ void logrun_test(const char * testname) ;
  * >    return EINVAL ; // any error code
  * > }
  * */
-#define TEST_ONERROR_GOTO(CONDITION, ERROR_LABEL)  \
-   if ( !(CONDITION) ) {                           \
-      logfailed_test(__FILE__, __LINE__) ;         \
-      goto ERROR_LABEL ;                           \
+#define TEST(CONDITION)                      \
+   if ( !(CONDITION) ) {                     \
+      logfailed_test(__FILE__, __LINE__) ;   \
+      goto ABBRUCH ;                         \
    }
 
 // group: test

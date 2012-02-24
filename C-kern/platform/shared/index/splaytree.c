@@ -516,8 +516,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 typedef struct node_t node_t ;
 
 struct node_t {

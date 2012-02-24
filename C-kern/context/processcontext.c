@@ -118,9 +118,10 @@ ABBRUCH:
    return err ;
 }
 
-#ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
+// group: test
+
+#ifdef KONFIG_UNITTEST
 
 static int test_initfree(void)
 {

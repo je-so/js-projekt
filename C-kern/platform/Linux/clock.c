@@ -138,8 +138,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 static int test_query(void)
 {
    timevalue_t timeval ;

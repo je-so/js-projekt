@@ -178,8 +178,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(CONDITION) TEST_ONERROR_GOTO(CONDITION, ABBRUCH)
-
 static int test_initerror(void)
 {
    char * old_lcall = getenv("LC_ALL") ? strdup(getenv("LC_ALL")) : 0 ;

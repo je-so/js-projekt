@@ -741,8 +741,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 static int test_ipport(void)
 {
    ipport_t tcp_port = ipport_ANY ;

@@ -122,11 +122,10 @@ ABBRUCH:
    return err ;
 }
 
+
 // group: test
 
 #ifdef KONFIG_UNITTEST
-
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
 
 static int test_initfree(void)
 {

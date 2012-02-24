@@ -136,8 +136,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 static int test_semaphore_init(void)
 {
    semaphore_t    sema = semaphore_INIT_FREEABLE ;

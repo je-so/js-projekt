@@ -136,8 +136,6 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-#define TEST(ARG) TEST_ONERROR_GOTO(ARG, ABBRUCH)
-
 static int test_initfree(directory_t * tempdir)
 {
    file_t   file     = file_INIT_FREEABLE ;

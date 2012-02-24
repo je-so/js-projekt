@@ -317,9 +317,9 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
 #if ((KONFIG_USERINTERFACE)&HTML5)
 #endif
 #if ((KONFIG_USERINTERFACE)&X11)
-   RUN(unittest_platform_gui_X11) ;
-   RUN(unittest_platform_gui_X11_display) ;
-   RUN(unittest_platform_gui_X11_glxwindow) ;
+   RUN(unittest_presentation_X11) ;
+   RUN(unittest_presentation_X11_display) ;
+   RUN(unittest_presentation_X11_glxwindow) ;
 #endif
 #undef HTML5
 #undef X11
