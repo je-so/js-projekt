@@ -332,10 +332,10 @@ static int test_mm_macros(void)
    // TEST mresize allocated block
    for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       void * oldaddr = mblocks[i].addr ;
-      TEST(0 == MM_RESIZE(64 + 64 * i, &mblocks[i])) ;
+      TEST(0 == MM_RESIZE(256 + 256 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].addr != oldaddr) ;
-      TEST(mblocks[i].size >= 64 + 64 * i) ;
+      TEST(mblocks[i].size >= 256 + 256 * i) ;
    }
 
    // TEST mfree

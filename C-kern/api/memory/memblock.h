@@ -80,7 +80,7 @@ struct memblock_t {
 bool isfree_memblock(const memblock_t * mblock) ;
 
 /* function: isfree_memblock
- * Returns true if both fields of <memblock_t> are 0 or not zero. */
+ * Returns true if either <memblock_t> is free its size is not 0. */
 bool isvalid_memblock(const memblock_t * mblock) ;
 
 /* function: addr_memblock
@@ -100,7 +100,7 @@ size_t size_memblock(const memblock_t * mblock) ;
 
 /* define: isvalid_memblock
  * Implements <memblock_t.isvalid_memblock>. */
-#define isvalid_memblock(mblock)       ((0 == (mblock)->addr && 0 == (mblock->size)) || (0 != (mblock)->addr && 0 != (mblock->size)))
+#define isvalid_memblock(mblock)       (isfree_memblock(mblock) || (0 != (mblock)->size))
 
 /* define: addr_memblock
  * Implements <memblock_t.addr_memblock>. */

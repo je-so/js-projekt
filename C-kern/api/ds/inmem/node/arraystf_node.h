@@ -47,6 +47,9 @@ struct arraystf_node_t {
  * Static initializer with parameter length in bytes and address of key. */
 #define arraystf_node_INIT(length, key)   { .addr = key, .size = length }
 
+/* define: arraystf_node_INIT_CSTR
+ * Static initializer with parameter cstr referencing a "constant string". */
+#define arraystf_node_INIT_CSTR(cstr)     { .addr = (const uint8_t*)(cstr), .size = (sizeof(cstr)?sizeof(cstr)-1:0) }
 
 /* struct: arraystf_mwaybranch_t
  * Internal node to implement a *multiway* trie.

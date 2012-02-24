@@ -26,7 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/ds/inmem/arraysf.h"
 #include "C-kern/api/ds/inmem/binarystack.h"
-#include "C-kern/api/ds/arraysf_node.h"
+#include "C-kern/api/ds/inmem/node/arraysf_node.h"
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/log2.h"

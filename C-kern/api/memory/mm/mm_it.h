@@ -35,10 +35,34 @@ struct memblock_t ;
  * See <mm_it_DECLARE> for adaption to a specific implementation. */
 typedef struct mm_it                   mm_it ;
 
+
+/* struct: mm_it
+ * The function table describing the interface to a memory manager.
+ * If you change the interface of <mm_it> to do not forget to adapt
+ * <mm_it_DECLARE> to the same signature. */
+struct mm_it {
+   /* function: mresize
+    * See <mm_transient_t.mresize_mmtransient> for an implementation. */
+   int (* mresize) (struct mm_t * mman, size_t newsize, struct memblock_t * memblock) ;
+   /* function: mfree
+    * See <mm_transient_t.mfree_mmtransient> for an implementation. */
+   int (* mfree)   (struct mm_t * mman, struct memblock_t * memblock) ;
+   /* function: sizeallocated
+    * See <mm_transient_t.sizeallocated_mmtransient> for an implementation. */
+   size_t (* sizeallocated) (struct mm_t * mman) ;
+} ;
+
+// group: lifetime
+
+/* define: mm_it_INIT_FREEABLE
+ * Static initializer. Sets all fields to 0. */
+#define mm_it_INIT_FREEABLE            { 0, 0, 0 }
+
+// group: generic
+
 /* define: mm_it_DECLARE
- * Declares a function table for accessing a memory manager service.
- * Use this macro to define an interface which is structural compatible
- * with the generic interface <mm_it>.
+ * Declares an interface function table for accessing a memory manager service.
+ * The declared interface is structural compatible with the generic interface <mm_it>.
  * The difference between the newly declared interface and the generic interface
  * is the type of the object. Every interface function takes a pointer to this object type
  * as its first parameter.
@@ -56,24 +80,5 @@ typedef struct mm_it                   mm_it ;
       int (* mfree)   (mm_t * mman, struct memblock_t * memblock) ;                 \
       size_t (* sizeallocated) (mm_t * mman) ;                                      \
    } ;
-
-
-#if 0
-/* struct: mm_it
- * The function table describing the interface to a memory manager. */
-struct mm_it {
-   /* function: mresize
-    * See <mm_transient_t.mresize_mmtransient> for an implementation. */
-   int (* mresize) (struct mm_t * mman, size_t newsize, struct memblock_t * memblock) ;
-   /* function: mfree
-    * See <mm_transient_t.mfree_mmtransient> for an implementation. */
-   int (* mfree)   (struct mm_t * mman, struct memblock_t * memblock) ;
-   /* function: sizeallocated
-    * See <mm_transient_t.sizeallocated_mmtransient> for an implementation. */
-   size_t (* sizeallocated) (struct mm_t * mman) ;
-} ;
-#endif
-
-mm_it_DECLARE(mm_it, struct mm_t)
 
 #endif

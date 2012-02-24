@@ -40,10 +40,10 @@ typedef struct mm_oit                  mm_oit ;
 struct mm_oit {
    /* variable: object
     * A pointer to the object which is operated on by the interface <mm_it>. */
-   struct mm_t   * object ;
+   struct mm_t    * object ;
    /* variable: functable
     * A pointer to a function table interface <mm_it> which operates on <object>. */
-   struct mm_it      * functable ;
+   struct mm_it   * functable ;
 } ;
 
 // group: lifetime

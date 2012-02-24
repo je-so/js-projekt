@@ -27,9 +27,9 @@
 #include "C-kern/api/io/iopoll.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/iocallback.h"
-#include "C-kern/api/ds/arraysf_node.h"
 #include "C-kern/api/ds/inmem/arraysf.h"
 #include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/ds/inmem/node/arraysf_node.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

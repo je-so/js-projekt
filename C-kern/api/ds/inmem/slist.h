@@ -31,7 +31,7 @@
 #ifndef CKERN_DS_INMEM_SLIST_HEADER
 #define CKERN_DS_INMEM_SLIST_HEADER
 
-#include "C-kern/api/ds/slist_node.h"
+#include "C-kern/api/ds/inmem/node/slist_node.h"
 #include "C-kern/api/ds/freecallback.h"
 
 /* typedef: struct slist_t

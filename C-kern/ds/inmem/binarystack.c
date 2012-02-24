@@ -140,23 +140,23 @@ static int test_initfree(void)
 
    // TEST init, double free
    TEST(0 == init_binarystack(&stack, 1)) ;
-   TEST(0 == stack.size) ;
+   TEST(0 == size_binarystack(&stack)) ;
    TEST(0 != stack.stackmem.addr) ;
    TEST(pagesize_vm() == stack.stackmem.size) ;
    TEST(1 == isempty_binarystack(&stack)) ;
    TEST(0 == free_binarystack(&stack)) ;
-   TEST(0 == stack.size) ;
+   TEST(0 == size_binarystack(&stack)) ;
    TEST(0 == stack.stackmem.addr) ;
    TEST(0 == stack.stackmem.size) ;
    TEST(0 == free_binarystack(&stack)) ;
-   TEST(0 == stack.size) ;
+   TEST(0 == size_binarystack(&stack)) ;
    TEST(0 == stack.stackmem.addr) ;
    TEST(0 == stack.stackmem.size) ;
 
    // TEST initial size (size==0 => one page is preallocated)
    for(unsigned i = 0; i <= 20; ++i) {
       TEST(0 == init_binarystack(&stack, i + i * pagesize_vm() )) ;
-      TEST(0 == stack.size) ;
+      TEST(0 == size_binarystack(&stack)) ;
       TEST(0 != stack.stackmem.addr) ;
       TEST((i+1)*pagesize_vm() == stack.stackmem.size) ;
       TEST(1 == isempty_binarystack(&stack)) ;
@@ -169,11 +169,11 @@ static int test_initfree(void)
    TEST(0 == init_binarystack(&stack, 1)) ;
    TEST(1 == isempty_binarystack(&stack)) ;
    TEST(0 == push_binarystack(&stack, sizeof(data1), data1)) ;
-   TEST(3 == stack.size) ;
+   TEST(3 == size_binarystack(&stack)) ;
    TEST(0 == isempty_binarystack(&stack)) ;
    TEST(0 == pop_binarystack(&stack, sizeof(data2), data2)) ;
    TEST(1 == isempty_binarystack(&stack)) ;
-   TEST(0 == stack.size) ;
+   TEST(0 == size_binarystack(&stack)) ;
    for(unsigned i = 1; i <= 3; ++i) {
       TEST(i == data1[i-1]) ;
       TEST(i == data2[i-1]) ;
@@ -186,8 +186,8 @@ static int test_initfree(void)
          newsize += pagesize_vm() ;
       }
       TEST(0 == push_binarystack(&stack, sizeof(i), &i)) ;
-      TEST(i*sizeof(i) == stack.size) ;
-      TEST(newsize == stack.stackmem.size) ;
+      TEST(i*sizeof(i) == size_binarystack(&stack)) ;
+      TEST(newsize     == stack.stackmem.size) ;
       TEST(0 == isempty_binarystack(&stack)) ;
    }
 
@@ -195,11 +195,12 @@ static int test_initfree(void)
    size_t oldsize = stack.stackmem.size ;
    for(uint32_t i = 10000; i; --i) {
       uint32_t x ;
-      TEST(i*sizeof(i) == stack.size) ;
+      size_t   s = i*sizeof(i) ;
+      TEST(s == size_binarystack(&stack)) ;
       TEST(0 == pop_binarystack(&stack, sizeof(i), &x)) ;
       TEST(i == x) ;
       TEST(oldsize == stack.stackmem.size) ;
-      TEST((i==1) == isempty_binarystack(&stack)) ;
+      TEST((i==1)  == isempty_binarystack(&stack)) ;
    }
    TEST(0 == free_binarystack(&stack)) ;
 
