@@ -91,8 +91,8 @@ int free_cstring(cstring_t * cstr) ;
 // group: query
 
 /* function: str_cstring
- * Returns "\0" terminated string. Returned value is always != NULL.
- * In case cstr->chars is NULL the empty string "" is returned.
+ * Returns "\0" terminated string.
+ * The returned value can be NULL in case cstr->chars is NULL.
  * The returned value is valid as long as *cstr* is not changed. */
 char * str_cstring(cstring_t * cstr) ;
 
@@ -169,5 +169,9 @@ int truncate_cstring(cstring_t * cstr, size_t new_length) ;
 /* define: length_cstring
  * Implements <cstring_t.length_cstring>. */
 #define length_cstring(cstr)           ((cstr)->length)
+
+/* define: str_cstring
+ * Implements <cstring_t.str_cstring>. */
+#define str_cstring(cstr)              ((cstr)->chars)
 
 #endif

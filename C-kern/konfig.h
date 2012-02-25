@@ -55,6 +55,15 @@
 /* define: EMITCODE_0
  * The parameters to <EMITCODE_0> are discarded. */
 #define EMITCODE_0(...)                /*false*/
+/* define: CONST_CAST
+ * Removes the const from ptr.
+ * Use this macro to remove a const from a pointer. This macro is safe
+ * so if you cast the pointer to a wrong type a warning is issued by the compiler.
+ * Parameter *ptr* must be of type
+ * > const type_t * ptr ;
+ * The returned type is
+ * > (type *) ptr ; */
+#define CONST_CAST(type_t,ptr)         ( __extension__ ({ const type_t * _ptr = (ptr) ;  (type_t*)((intptr_t)_ptr) ; }))
 /* define: EMITCODE_1
  * The parameters to <EMITCODE_1> are written (as C code). */
 #define EMITCODE_1(...)                /*true*/ __VA_ARGS__

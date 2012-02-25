@@ -177,35 +177,30 @@ int trytrimleft_string(string_t * str, size_t size) ;
 
 /* define: init_conststring
  * Implements <conststring_t.init_conststring>. */
-#define init_conststring(str, size, string)     \
-   do {  conststring_t * _str = (str) ;         \
-         const uint8_t * _string = (string) ;   \
-         init_string((string_t*)_str, (size),   \
-                 (uint8_t*)(intptr_t)_string) ; \
+#define init_conststring(str, size, string)                 \
+   do {  conststring_t * _str = (str) ;                     \
+         uint8_t * _string = CONST_CAST(uint8_t, string) ;  \
+         init_string((string_t*)_str, (size), _string) ;    \
    } while(0)
 
 /* define: initfl_conststring
  * Implements <conststring_t.initfl_conststring>. */
-#define initfl_conststring(str, first, last)    \
-   ( __extension__ ({                           \
-         conststring_t * _str   = (str) ;       \
-         const uint8_t * _first = (first) ;     \
-         const uint8_t * _last  = (last) ;      \
-         initfl_string((string_t*)_str,         \
-               (uint8_t*)(intptr_t)_first,      \
-               (uint8_t*)(intptr_t)_last) ;     \
+#define initfl_conststring(str, first, last)             \
+   ( __extension__ ({                                    \
+         conststring_t * _str = (str) ;                  \
+         uint8_t * _first = CONST_CAST(uint8_t, first) ; \
+         uint8_t * _last  = CONST_CAST(uint8_t, last) ;  \
+         initfl_string((string_t*)_str, _first, _last) ; \
    }))
 
 /* define: initse_conststring
  * Implements <conststring_t.initse_conststring>. */
-#define initse_conststring(str, start, end)     \
-   ( __extension__ ({                           \
-         conststring_t * _str   = (str) ;       \
-         const uint8_t * _start = (start) ;     \
-         const uint8_t * _end   = (end) ;       \
-         initse_string((string_t*)_str,         \
-               (uint8_t*)(intptr_t)_start,      \
-               (uint8_t*)(intptr_t)_end) ;      \
+#define initse_conststring(str, start, end)              \
+   ( __extension__ ({                                    \
+         conststring_t * _str = (str) ;                  \
+         uint8_t * _start = CONST_CAST(uint8_t, start) ; \
+         uint8_t * _end   = CONST_CAST(uint8_t, end) ;   \
+         initse_string((string_t*)_str, _start, _end) ;  \
    }))
 
 /* define: trytrimleft_string

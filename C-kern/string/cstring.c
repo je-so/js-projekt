@@ -69,15 +69,6 @@ int free_cstring(cstring_t * cstr)
    return 0 ;
 }
 
-char * str_cstring(cstring_t * cstr)
-{
-   if (cstr->chars) {
-      return cstr->chars ;
-   }
-
-   return (char*) (intptr_t) "" ;
-}
-
 int allocate_cstring(cstring_t * cstr, size_t allocate_size)
 {
    int err ;
@@ -235,16 +226,13 @@ static int test_initfree(void)
 
    // TEST str_cstring
    TEST(0 == cstr.chars) ;
-   TEST(0 != str_cstring(&cstr)) ;
+   TEST(0 == str_cstring(&cstr)) ;
    TEST(0 == cstr2.chars) ;
-   TEST(0 != str_cstring(&cstr2)) ;
-   TEST(0 == strcmp("", str_cstring(&cstr))) ;
-   TEST(0 == strcmp("", str_cstring(&cstr2))) ;
+   TEST(0 == str_cstring(&cstr2)) ;
    {
       cstring_t   cstr3 = cstring_INIT ;
       char        testbuffer[100] ;
-      TEST(0 != str_cstring(&cstr3)) ;
-      TEST(0 == strcmp("", str_cstring(&cstr3))) ;
+      TEST(0 == str_cstring(&cstr3)) ;
       cstr3.chars = (char*)1 ;
       TEST((char*)1 == str_cstring(&cstr3)) ;
       cstr3.chars = testbuffer ;

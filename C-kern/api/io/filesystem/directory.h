@@ -74,7 +74,7 @@ typedef enum filetype_e    filetype_e ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_directory
  * Test reading and writing content from and to directories. */
-extern int unittest_io_directory(void) ;
+int unittest_io_directory(void) ;
 #endif
 
 
@@ -98,18 +98,18 @@ extern int unittest_io_directory(void) ;
  * ENOENT  - Directory does not exist, or name is an empty string.
  * ENOMEM  - Insufficient memory to complete the operation.
  * ENOTDIR - name is not a directory. */
-extern int new_directory(/*out*/directory_t ** dir, const char * dir_path, const directory_t * relative_to/*0 => current working directory*/) ;
+int new_directory(/*out*/directory_t ** dir, const char * dir_path, const directory_t * relative_to/*0 => current working directory*/) ;
 
 /* function: newtemp_directory
  * Creates a temporary directory read / writeable by the user and opens it for reading.
  * The name of the directory is prefixed with *name_prefix* and it is created in the temporary system directory.
  * The name of the created directory is returned in parameter *dir_path*.
  * Set this parameter to 0 if you do not need the name. */
-extern int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, struct cstring_t * dir_path) ;
+int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, struct cstring_t * dir_path) ;
 
 /* function: delete_directory
  * Closes open directory stream. Frees allocated memory. Calling free twice is safe. Calling it without a preceding init results in undefined behaviour. */
-extern int delete_directory(directory_t ** dir) ;
+int delete_directory(directory_t ** dir) ;
 
 // group: query
 
@@ -122,18 +122,18 @@ extern int delete_directory(directory_t ** dir) ;
  * Returns:
  * 0         - file_path refers to an existing file or directory.
  * ENOENT    - file_path does not refer to an existing file system entry. */
-extern int checkpath_directory(const directory_t * dir/*0 => current working directory*/, const char * const file_path) ;
+int checkpath_directory(const directory_t * dir/*0 => current working directory*/, const char * const file_path) ;
 
 /* function: fd_directory
  * Returns the file descriptor of the opened directory. */
-extern sys_filedescr_t fd_directory(const directory_t * dir) ;
+sys_filedescr_t fd_directory(const directory_t * dir) ;
 
 /* function: filesize_directory
  * Returns the filesize of a file with path »file_path«.
  * *file_path* is considered relative to dir. If dir is NULL then it is considered
  * relative to the current working directory.
  * If *file_path* is absolute the value of *dir* does not matter. */
-extern int filesize_directory(const directory_t * dir/*0 => current working directory*/, const char * file_path, /*out*/off_t * file_size) ;
+int filesize_directory(const directory_t * dir/*0 => current working directory*/, const char * file_path, /*out*/off_t * file_size) ;
 
 // group: read
 
@@ -145,12 +145,12 @@ extern int filesize_directory(const directory_t * dir/*0 => current working dire
  *         It is valid until any other function on dir is called.
  *         If there is no next entry *name* is set to NULL.
  * ftype - On success and if ftype != NULL it contains the type of file. */
-extern int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype_e * ftype) ;
+int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype_e * ftype) ;
 
 /* function: gofirst_directory
  * Sets the current read position to the begin of the directory stream. The next call to <next_directory>
  * returns the first entry again. */
-extern int gofirst_directory(directory_t * dir) ;
+int gofirst_directory(directory_t * dir) ;
 
 // group: write
 
@@ -158,25 +158,32 @@ extern int gofirst_directory(directory_t * dir) ;
  * Creates directory with directory_path relative to dir.
  * If dir is 0 the directory_path is relative to the current working directory.
  * If directory_path is absolute then the parameter dir does not matter. */
-extern int makedirectory_directory(directory_t * dir/*0 => current working directory*/, const char * directory_path) ;
+int makedirectory_directory(directory_t * dir/*0 => current working directory*/, const char * directory_path) ;
 
 /* function: makefile_directory
  * Creates a new file with file_path relative to dir.
  * If dir is 0 the file_path is relative to the current working directory.
  * If file_path is absolute then the parameter dir does not matter. */
-extern int makefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path, off_t file_length) ;
+int makefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path, off_t file_length) ;
 
 /* function: removedirectory_directory
  * Removes the empty directory with directory_path relative to dir.
  * If dir is 0 the directory_path is relative to the current working directory.
  * If directory_path is absolute then the parameter dir does not matter. */
-extern int removedirectory_directory(directory_t * dir/*0 => current working directory*/, const char * directory_path) ;
+int removedirectory_directory(directory_t * dir/*0 => current working directory*/, const char * directory_path) ;
 
 /* function: removefile_directory
  * Removes the file with file_path relative to dir.
  * If dir is 0 the file_path is relative to the current working directory.
  * If file_path is absolute then the parameter dir does not matter. */
-extern int removefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path) ;
+int removefile_directory(directory_t * dir/*0 => current working directory*/, const char * file_path) ;
+
+
+// section: inline implementation
+
+/* define: fd_directory
+ * Implements <directory_t.fd_directory>. */
+#define fd_directory(dir)              (dirfd((DIR*)CONST_CAST(directory_t, dir)))
 
 
 #endif

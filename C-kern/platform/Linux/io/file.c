@@ -25,13 +25,14 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/string/cstring.h"
-#include "C-kern/api/io/filesystem/directory.h"
 #endif
+
 
 int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode, const struct directory_t * relative_to)
 {
@@ -43,7 +44,7 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
    VALIDATE_INPARAM_TEST(0 == (iomode & ~((unsigned)accessmode_RDWR)), ABBRUCH, ) ;
 
    if (relative_to) {
-      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
+      openatfd = fd_directory(relative_to) ;
    }
 
    static_assert( (O_RDONLY+1) == accessmode_READ, "simple conversion") ;
@@ -73,7 +74,7 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
    int openatfd = AT_FDCWD ;
 
    if (relative_to) {
-      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
+      openatfd = fd_directory(relative_to) ;
    }
 
    fd = openat(openatfd, filepath, O_WRONLY|O_APPEND|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
@@ -100,7 +101,7 @@ int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct d
    int openatfd = AT_FDCWD ;
 
    if (relative_to) {
-      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
+      openatfd = fd_directory(relative_to) ;
    }
 
    fd = openat(openatfd, filepath, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;

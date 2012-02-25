@@ -62,14 +62,14 @@ typedef struct mmfile_t                mmfile_t ;
  * If the file size is not a multiple of <pagesize_mmfile> all memory
  * of the last mapped page which is beyond the size of the underlying file
  * is filled with 0, and writes to that region are not written to the file. */
-extern size_t pagesize_mmfile(void) ;
+size_t pagesize_mmfile(void) ;
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_mmfile
  * Test mapping of file into memory. */
-extern int unittest_io_mmfile(void) ;
+int unittest_io_mmfile(void) ;
 #endif
 
 
@@ -125,16 +125,16 @@ struct mmfile_t {
  * relative_to - If this paramter is != 0 and file_path is relative then file_path is relative to the path determined by this parameter.
  * mode        - Determines if the file is opened for reading or writing. See also <mmfile_openmode_e>.
  * */
-extern int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, mmfile_openmode_e mode, const struct directory_t * relative_to /*0=>current_working_directory*/) ;
+int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, mmfile_openmode_e mode, const struct directory_t * relative_to /*0=>current_working_directory*/) ;
 
 /* function: initcreate_mmfile
  * Creates a new file with the given size and opens it with <mmfile_openmode_RDWR_SHARED>.
  * If the file exists EEXIST is returned. The file is always mapped from the beginning. */
-extern int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t size, const struct directory_t * relative_to /*0=>current working directory*/) ;
+int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t size, const struct directory_t * relative_to /*0=>current working directory*/) ;
 
 /* function: free_mmfile
  * Frees all mapped memory and closes the file. */
-extern int free_mmfile(mmfile_t * mfile) ;
+int free_mmfile(mmfile_t * mfile) ;
 
 // group: query
 
@@ -142,20 +142,20 @@ extern int free_mmfile(mmfile_t * mfile) ;
  * Returns the lowest address of the mapped memory.
  * The memory is always mapped in chunks of <pagesize_mmfile> (same as <pagesize_vm>).
  * The memory which can be accessed is at least [<addr_mmfile> .. <addr_mmfile>+<size_mmfile>]. */
-extern uint8_t * addr_mmfile(const mmfile_t * mfile) ;
+uint8_t * addr_mmfile(const mmfile_t * mfile) ;
 
 /* function: size_mmfile
  * Returns the size of the mapped memory.
  * The memory which corresponds to the underlying file is exactly
  * [<addr_mmfile> .. <addr_mmfile>+<size_mmfile>]. */
-extern size_t  size_mmfile(const mmfile_t * mfile) ;
+size_t  size_mmfile(const mmfile_t * mfile) ;
 
 /* function: alignedsize_mmfile
  * Returns the size of the mapped memory.
  * This value is a multiple of <pagesize_mmfile> and it is >= <size_mmfile>.
  * The mapped memory region is [<addr_mmfile> .. <addr_mmfile>+<alignedsize_mmfile>]
  * but only [<addr_mmfile> .. <addr_mmfile>+<size_mmfile>] corresponds to the underlying file. */
-extern size_t  alignedsize_mmfile(const mmfile_t * mfile) ;
+size_t  alignedsize_mmfile(const mmfile_t * mfile) ;
 
 
 // section: inline implementation

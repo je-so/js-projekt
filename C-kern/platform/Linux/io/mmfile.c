@@ -25,13 +25,13 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/string/cstring.h"
-#include "C-kern/api/io/filesystem/directory.h"
 #endif
 
 // section: mmfile_t
@@ -129,7 +129,7 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
          ABBRUCH, LOG_INT(mode)) ;
 
    if (relative_to) {
-      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
+      openatfd = fd_directory(relative_to) ;
    }
 
    fd = openat(openatfd, file_path, ((mode&accessmode_WRITE) ? O_RDWR : O_RDONLY) | O_CLOEXEC ) ;
@@ -161,7 +161,7 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
    VALIDATE_INPARAM_TEST(0 != size, ABBRUCH, ) ;
 
    if (relative_to) {
-      openatfd = dirfd((DIR*)(intptr_t)relative_to) ;
+      openatfd = fd_directory(relative_to) ;
    }
 
    fd = openat(openatfd, file_path, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
@@ -276,7 +276,7 @@ static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
    TEST(alignedsize_mmfile(&mfile) ==  0) ;
    // read written content
    {
-      fd = openat(dirfd((DIR*)(intptr_t)tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
+      fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       uint8_t buffer[111] = {0} ;
       TEST(111 == read(fd, buffer, 111)) ;
@@ -308,7 +308,7 @@ static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
    }
    // write different content
    {
-      fd = openat(dirfd((DIR*)(intptr_t)tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
+      fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       uint8_t buffer[111] ;
       memset( buffer, '3', 111 ) ;
