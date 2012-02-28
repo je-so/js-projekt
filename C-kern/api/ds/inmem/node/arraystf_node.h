@@ -26,18 +26,27 @@
 #define CKERN_DS_ARRAYSTF_NODE_HEADER
 
 /* typedef: struct arraystf_node_t
- * Exports <arraystf_node_t>. */
+ * Export <arraystf_node_t> - user supplied (external) type. */
 typedef struct arraystf_node_t         arraystf_node_t ;
 
 /* typedef: struct arraystf_mwaybranch_t
- * Exports <arraystf_mwaybranch_t>. */
+ * Exports <arraystf_mwaybranch_t> - internal node type. */
 typedef struct arraystf_mwaybranch_t   arraystf_mwaybranch_t ;
+
+/* typedef: struct arraystf_unode_t
+ * Export <arraystf_unode_t> - either internal or external type. */
+typedef union arraystf_unode_t         arraystf_unode_t ;
 
 
 /* struct: arraystf_node_t
- * Generic user node type stored by <arraystf_t>. */
+ * Generic user node type stored by <arraystf_t>.
+ * See <conststring_t>. */
 struct arraystf_node_t {
+   /* variable: addr
+    * Memory start address of binary/string key. */
    const uint8_t  * addr ;
+   /* variable: size
+    * Length of key in memory in bytes. */
    size_t         size ;
 } ;
 
@@ -51,14 +60,40 @@ struct arraystf_node_t {
  * Static initializer with parameter cstr referencing a "constant string". */
 #define arraystf_node_INIT_CSTR(cstr)     { .addr = (const uint8_t*)(cstr), .size = (sizeof(cstr)?sizeof(cstr)-1:0) }
 
+// group: generic
+
+/* define: arraystf_node_EMBED
+ * Allows to embed members of <arraystf_node_t> into another structure.
+ *
+ * Parameter:
+ * name_addr  - The name of the embedded <arraystf_node_t.addr> member.
+ * name_size  - The name of the embedded <arraystf_node_t.size> member.
+ *
+ * Your object must inherit or embed <arraystf_node_t> to be manageable by <arraystf_t>.
+ * With macro <arraystf_node_EMBED> you can do
+ * > struct object_t {
+ * >    ... ;
+ * >    // declares: const uint8_t * keyaddr ; size_t keysize ;
+ * >    arraystf_node_EMBED(keyaddr, keysize)
+ * > }
+ * >
+ * > // instead of
+ * > struct object_t {
+ * >    ... ;
+ * >    arraystf_node_t arraystfnode ;
+ * > } */
+#define arraystf_node_EMBED(name_addr, name_size)  \
+      const uint8_t *   name_addr ;                \
+      size_t            name_size ;
+
+
 /* struct: arraystf_mwaybranch_t
  * Internal node to implement a *multiway* trie.
  * Currently this node type supports only a 4-way tree. */
 struct arraystf_mwaybranch_t {
-   // union { arraystf_mwaybranch_t * branch[4] ; arraystf_node_t * child[4] ; } ;
    /* variable: child
     * A 4-way array of child nodes. */
-   arraystf_node_t   * child[4] ;
+   arraystf_unode_t  * child[4] ;
    /* variable: offset
     * Memory offset of first data byte of key used to branch.
     * The key value at this offset is then shifted right according to
@@ -79,17 +114,115 @@ struct arraystf_mwaybranch_t {
 
 // group: lifetime
 
-extern void init_arraystfmwaybranch(arraystf_mwaybranch_t * branch, size_t offset, unsigned shift, size_t data1, arraystf_node_t * childnode1, size_t data2, arraystf_node_t * childnode2) ;
+/* function: init_arraystfmwaybranch
+ * Initializes a new branch node.
+ * A branch node must point to at least two child nodes. This is the reason
+ * two pointers and their corresponding index key has to be provided as parameter. */
+void init_arraystfmwaybranch(arraystf_mwaybranch_t * branch, size_t offset, unsigned shift, size_t data1, arraystf_unode_t * childnode1, size_t data2, arraystf_unode_t * childnode2) ;
 
-extern unsigned childindex_arraystfmwaybranch(arraystf_mwaybranch_t * branch, size_t data) ;
+// group: query
 
-extern void setchild_arraystfmwaybranch(arraystf_mwaybranch_t * branch, unsigned childindex, arraystf_node_t * childnode) ;
+/* function: asunode_arraystfmwaybranch
+ * Casts object pointer into pointer to <arraystf_unode_t>.
+ * You need to call this function to make <isbranchtype_arraystfunode> working properly. */
+arraystf_unode_t * asunode_arraystfmwaybranch(arraystf_mwaybranch_t * branch) ;
+
+/* function: childindex_arraystfmwaybranch
+ * Determines the index into the internal array <arraystf_mwaybranch_t.childs>.
+ * The index is calculated from parameter *data* which is the key value at the <arraystf_mwaybranch_t.offset>. */
+unsigned childindex_arraystfmwaybranch(arraystf_mwaybranch_t * branch, size_t data) ;
+
+// group: change
+
+/* function: setchild_arraystfmwaybranch
+ * Changes entries in arry <arraystf_mwaybranch_t.child>. */
+void setchild_arraystfmwaybranch(arraystf_mwaybranch_t * branch, unsigned childindex, arraystf_node_t * childnode) ;
+
+
+/* union: arraystf_unode_t
+ * Pointer to either */
+union arraystf_unode_t {
+   arraystf_node_t         node ;
+   arraystf_mwaybranch_t   branch ;
+} ;
+
+// group: query
+
+/* function: asbranch_arraystfunode
+ * Casts pointer to <arraystf_unode_t> into pointer to <arraystf_mwaybranch_t>. */
+arraystf_mwaybranch_t * asbranch_arraystfunode(arraystf_unode_t * node) ;
+
+/* function: asnode_arraystfunode
+ * Casts object pointer into pointer to <arraystf_node_t>. */
+arraystf_node_t * asnode_arraystfunode(arraystf_unode_t * node, size_t offset_node) ;
+
+/* function: asgeneric_arraystfunode
+ * Casts object pointer into pointer to *generic_object_t*. */
+struct generic_object_t * asgeneric_arraystfunode(arraystf_unode_t * node) ;
+
+/* function: isbranchtype_arraystfunode
+ * Returns true in case node is pointer to <arraystf_mwaybranch_t>. */
+int isbranchtype_arraystfunode(const arraystf_unode_t * node) ;
+
+
+// struct: generic_object_t
+
+// group: query
+
+/* function: asarraystfunode_genericobject
+ * Casts object pointer into pointer to <arraystf_unode_t>.
+ * You need to call this function to make <isbranchtype_arraystfunode> working properly. */
+arraystf_unode_t * asarraystfunode_genericobject(struct generic_object_t * object) ;
 
 
 // section: inline implementation
 
+/* define: asbranch_arraystfunode
+ * Implements <arraystf_unode_t.asbranch_arraystfunode>. */
+#define asbranch_arraystfunode(node)                                 \
+      (  __extension__ ({                                            \
+            arraystf_unode_t * _node1 = (node) ;                     \
+            (arraystf_mwaybranch_t*) (0x01 ^ (intptr_t)(_node1));    \
+         }))
+
+/* define: asgeneric_arraystfunode
+ * Implements <arraystf_unode_t.asgeneric_arraystfunode>. */
+#define asgeneric_arraystfunode(node)                                \
+      (  __extension__ ({                                            \
+            arraystf_unode_t * _node2 = (node) ;                     \
+            (struct generic_object_t*) (_node2) ;                    \
+         }))
+
+/* define: arraystf
+ * Implements <arraystf_unode_t.asnode_arraystfunode>. */
+#define asnode_arraystfunode(node, offset_node)                      \
+      (  __extension__ ({                                            \
+            arraystf_unode_t * _node3 = (node) ;                     \
+            (arraystf_node_t*) ((offset_node)+(uint8_t*)(_node3)) ;  \
+         }))
+
+/* define: asunode_arraystfmwaybranch
+ * Implements <arraystf_mwaybranch_t.asunode_arraystfmwaybranch>. */
+#define asunode_arraystfmwaybranch(branch)                           \
+      (  __extension__ ({                                            \
+            arraystf_mwaybranch_t * _branch = (branch) ;             \
+            (arraystf_unode_t*) (0x01 ^ (intptr_t)(_branch)) ;       \
+         }))
+
+/* define: asarraystfunode_genericobject
+ * Implements <generic_object_t.asarraystfunode_genericobject>. */
+#define asarraystfunode_genericobject(object)                        \
+      (  __extension__ ({                                            \
+            struct generic_object_t * _genobj1 = (object) ;          \
+            (arraystf_unode_t*) (_genobj1) ;                         \
+         }))
+
+/* define: childindex_arraystfmwaybranch
+ * Implements <arraystf_mwaybranch_t.childindex_arraystfmwaybranch>. */
 #define childindex_arraystfmwaybranch(branch, data)      (0x03u & ((data) >> (branch)->shift))
 
+/* define: init_arraystfmwaybranch
+ * Implements <arraystf_mwaybranch_t.init_arraystfmwaybranch>. */
 #define init_arraystfmwaybranch(branch, _offset, _shift, data1, childnode1, data2, childnode2) \
       do {  memset((branch)->child, 0, sizeof((branch)->child)) ;                   \
             (branch)->child[0x03u & ((data1) >> (shift))] = childnode1 ;            \
@@ -99,6 +232,16 @@ extern void setchild_arraystfmwaybranch(arraystf_mwaybranch_t * branch, unsigned
             (branch)->used   = 2 ;                                                  \
          } while(0)
 
+/* define: isbranchtype_arraystfunode
+ * Implements <arraystf_unode_t.isbranchtype_arraystfunode>. */
+#define isbranchtype_arraystfunode(node)                             \
+      (  __extension__ ({                                            \
+            const arraystf_unode_t * _node4 = (node) ;               \
+            ((intptr_t)(_node4) & 0x01) ;                            \
+         }))
+
+/* define: setchild_arraystfmwaybranch
+ * Implements <arraystf_mwaybranch_t.setchild_arraystfmwaybranch>. */
 #define setchild_arraystfmwaybranch(branch, childindex, childnode)   \
       do {                                                           \
             (branch)->child[childindex] = (childnode) ;              \

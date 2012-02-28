@@ -27,16 +27,14 @@
 #define CKERN_DS_INMEM_ARRAYSF_HEADER
 
 // forward
-struct arraysf_node_t ;
+struct generic_object_t ;
+union arraysf_unode_t ;
 struct binarystack_t ;
+struct typeadapter_oit ;
 
 /* typedef: struct arraysf_t
  * Exports <arraysf_t>. */
 typedef struct arraysf_t               arraysf_t ;
-
-/* typedef: struct arraysf_imp_it
- * Exports interface <arraysf_imp_it>, implementation memory policy. */
-typedef struct arraysf_imp_it          arraysf_imp_it ;
 
 /* typedef: struct arraysf_iterator_t
  * Export <arraysf_iterator_t>, iterator type to iterate of contained nodes. */
@@ -86,7 +84,7 @@ int unittest_ds_inmem_arraysf(void) ;
  *
  * From the root node to the leaf node only such bit positions are compared if there exist
  * at least two stored indizes which have different values at this position.
- * Therefore leaf nodes (type <arraysf_node_t>) has a depth of less than 16 (index_bitsize/2)
+ * Therefore leaf nodes (user type <generic_object_t>) has a depth of less than 16 (index_bitsize/2)
  * on a 32 bit machine or 32 on a 64 bit machine. The mean depth is log2(number of stored indizes)/2.
  *
  * If you choose arraysf_MSBPOSROOT as the type of array the maximum depth for
@@ -100,36 +98,24 @@ struct arraysf_t {
    /* variable: type
     * The type of the array, see <arraysf_e>. */
    arraysf_e               type ;
-   /* variable: impit
-    * Pointer to memory policy interface used in implementation. */
-   struct arraysf_imp_it   * impit ;
    /* variable: root
     * Points to top level nodes.
     * The size of the root array is determined by the <type> of the array. */
-   struct arraysf_node_t   * root[] ;
+   union arraysf_unode_t   * root[] ;
 } ;
 
 // group: lifetime
 
 /* function: new_arraysf
  * Allocates a new array object.
- * Parameter *type* determines the size of the <arraysf_t.root> array.
- * Set parameter *impit* to 0 if nodes should not be copied and freed in functions <insert_arraysf>, <remove_arraysf> and
- * <delete_arraysf>. All memory is allocated with calls to malloc and free from standard library.
- * You can obtain this standard implementation with a call to <defaultimpit_arraysf>.
- * Let this parameter point to an initialized interface if you want to use your own memory allocator.
- * At least the function pointers <arraysf_imp_it.malloc> and <arraysf_imp_it.free> must be set to a value != 0.
- *
- * The content of parameter *impit* is not copied so make sure that impit is valid as long as
- * the *array* object is alive. */
-int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type, arraysf_imp_it * impit/*0 => uses default_arraysfimpit()*/) ;
+ * Parameter *type* determines the size of the <arraystf_t.root> array
+ * and the chosen root distribution. */
+int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type) ;
 
 /* function: delete_arraysf
  * Frees allocated memory.
- * The policy interface <arraysf_imp_it> defines the <arraysf_imp_it.freenode> function pointer
- * which is called for every stored <arraysf_node_t>. If you have set this callback to 0 no
- * it is not called. */
-int delete_arraysf(arraysf_t ** array) ;
+ * If typeadt is set to 0 no free function is called for contained nodes. */
+int delete_arraysf(arraysf_t ** array, struct typeadapter_oit * typeadp) ;
 
 // group: iterate
 
@@ -139,57 +125,122 @@ int delete_arraysf(arraysf_t ** array) ;
 arraysf_iterator_t * iteratortype_arraysf(void) ;
 
 /* function: iteratedtype_arraysf
- * Function declaration associates (<arraysf_node_t>*) with <arraysf_t>.
+ * Function declaration associates (<generic_object_t>*) with <arraysf_t>.
  * The association is done with the type of the return value - there is no implementation. */
-struct arraysf_node_t * iteratedtype_arraysf(void) ;
+struct generic_object_t * iteratedtype_arraysf(void) ;
 
 // group: query
-
-/* function: impolicy_arraysf
- * Returns the interface of the memory policy. */
-arraysf_imp_it * impolicy_arraysf(arraysf_t * array) ;
 
 /* function: length_arraysf
  * Returns the number of elements stored in the array. */
 size_t length_arraysf(arraysf_t * array) ;
 
 /* function: at_arraysf
- * Returns element at position *pos*.
+ * Returns contained node at position *pos*.
  * If no element exists at position *pos* value 0 is returned. */
-struct arraysf_node_t * at_arraysf(const arraysf_t * array, size_t pos) ;
+struct generic_object_t * at_arraysf(const arraysf_t * array, size_t pos, size_t offset_node) ;
 
 // group: change
 
 /* function: insert_arraysf
  * Inserts new node at position *pos* into array.
  * If this position is already occupied by another node EEXIST is returned.
- * The policy interface <arraysf_imp_it> defines <arraysf_imp_it.copynode> function pointer
- * which is called to make a copy from parameter *node* before inserting.
- * If you have set this callback to 0 no copy is made.
- * In out parameter *inserted_node* the inserted node is returned. If no cop< is made the
- * returned value is identical to parameter *node*. You can set this parameter to 0 if you
- * do not need the value. */
-int insert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out*/struct arraysf_node_t ** inserted_node/*0 => not returned*/) ;
+ * If you have set typeadt to a value != 0 then a copy of node is made before it is inserted.
+ * The copied node is returned in *inserted_node*. If typeadt is 0 and no copy is made inserted_node
+ * is set to node. */
+int insert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out*/struct generic_object_t ** inserted_node/*0=>not returned*/, struct typeadapter_oit * typeadp/*0=>no copy is made*/, size_t offset_node) ;
 
 /* function: tryinsert_arraysf
  * Same as <insert_arraysf> but no error log in case of EEXIST.
  * If EEXIST is returned nothing was inserted but the existing node will be
  * returned in *inserted_or_existing_node* nevertheless. */
-int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err*/struct arraysf_node_t ** inserted_or_existing_node) ;
+int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;err*/struct generic_object_t ** inserted_or_existing_node, struct typeadapter_oit * typeadp/*0=>no copy is made*/, size_t offset_node) ;
 
 /* function: remove_arraysf
  * Removes node at position *pos*.
  * If no node exists at position *pos* ESRCH is returned.
- * The policy interface <arraysf_imp_it> defines function <arraysf_imp_it.freenode>
- * which is called to free the node after removing.
- * If you have set this callback to 0 the removed node is not freed.
- * In case parameter removed_node is not 0 the removed node is returned or 0.
- * If the removed node was freed with the callback 0 is returned. */
-int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/) ;
+ * In case of success the removed node is returned in *removed_node*. */
+int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_object_t ** removed_node/*could be 0*/, size_t offset_node) ;
 
 /* function: tryremove_arraysf
  * Same as <remove_arraysf> but no error log in case of ESRCH. */
-int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t ** removed_node/*could be 0*/) ;
+int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_object_t ** removed_node/*could be 0*/, size_t offset_node) ;
+
+// group: generic
+
+/* define: arraysf_IMPLEMENT
+ * Generates the interface for a specific single linked list.
+ * The type of the list object must be declared with help of <slist_DECLARE>
+ * before this macro. It is also possible to construct "listtype_t" in another way before
+ * calling this macro. In the latter case "listtype_t" must have a pointer to the object
+ * declared as its first field with the name *last*.
+ *
+ *
+ * Parameter:
+ * objecttype_t -
+ * _fctsuffix   - It is the suffix of the generated <arraysf_t> interface functions.
+ * name_pos     - The member name (access path) in objecttype_t corresponding to the
+ *                name of the first embedded member of <arraysf_node_t> - see <arraysf_node_EMBED>.
+ * */
+#define arraysf_IMPLEMENT(objecttype_t, _fctsuffix, name_pos)  \
+   /*declare helper functions as always inline*/               \
+   static inline size_t offsetnode##_fctsuffix(void) __attribute__ ((always_inline)) ; \
+   /*declare function signatures as always inline*/            \
+   static inline int new##_fctsuffix(/*out*/arraysf_t ** array, arraysf_e type) __attribute__ ((always_inline)) ; \
+   static inline int delete##_fctsuffix(arraysf_t ** array, struct typeadapter_oit * typeadp) __attribute__ ((always_inline)) ; \
+                 arraysf_iterator_t * iteratortype##_fctsuffix(void) ; \
+                 objecttype_t       * iteratedtype##_fctsuffix(void) ; \
+   static inline size_t length##_fctsuffix(arraysf_t * array) __attribute__ ((always_inline)) ; \
+   static inline objecttype_t * at##_fctsuffix(const arraysf_t * array, size_t pos) __attribute__ ((always_inline)) ; \
+   static inline int insert##_fctsuffix(arraysf_t * array, objecttype_t * node, /*out*/objecttype_t ** inserted_node/*0=>not returned*/, struct typeadapter_oit * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
+   static inline int tryinsert##_fctsuffix(arraysf_t * array, objecttype_t * node, /*out;err*/objecttype_t ** inserted_or_existing_node, struct typeadapter_oit * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
+   static inline int remove##_fctsuffix(arraysf_t * array, size_t pos, /*out*/objecttype_t ** removed_node/*could be 0*/) __attribute__ ((always_inline)) ; \
+   static inline int tryremove##_fctsuffix(arraysf_t * array, size_t pos, /*out*/objecttype_t ** removed_node/*could be 0*/) __attribute__ ((always_inline)) ; \
+   static inline int init##_fctsuffix##iterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) __attribute__ ((always_inline)) ; \
+   static inline int free##_fctsuffix##iterator(arraysf_iterator_t * iter) __attribute__ ((always_inline)) ; \
+   static inline bool next##_fctsuffix##iterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/objecttype_t ** node) __attribute__ ((always_inline)) ; \
+   /*implement helper functions */ \
+   static inline size_t offsetnode##_fctsuffix(void) { \
+      static_assert( ((size_t *) (offsetof(objecttype_t,name_pos))) == &((objecttype_t*)0)->name_pos, "member type is of type size_t") ; \
+      return offsetof(objecttype_t,name_pos) ; \
+   } \
+   /*implement lifetime functions*/ \
+   static inline int new##_fctsuffix(/*out*/arraysf_t ** array, arraysf_e type) { \
+      return new_arraysf(array, type) ; \
+   } \
+   static inline int delete##_fctsuffix(arraysf_t ** array, struct typeadapter_oit * typeadp) { \
+      return delete_arraysf(array, typeadp) ; \
+   } \
+   /*implement query functions*/ \
+   static inline size_t length##_fctsuffix(arraysf_t * array) { \
+      return length_arraysf(array) ; \
+   } \
+   static inline objecttype_t * at##_fctsuffix(const arraysf_t * array, size_t pos) { \
+      return (objecttype_t *) at_arraysf(array, pos, offsetnode##_fctsuffix()) ; \
+   } \
+   /*implement change functions*/ \
+   static inline int insert##_fctsuffix(arraysf_t * array, objecttype_t * node, /*out*/objecttype_t ** inserted_node/*0=>not returned*/, struct typeadapter_oit * typeadp/*0=>no copy is made*/) { \
+      return insert_arraysf(array, (struct generic_object_t*)node, (struct generic_object_t**)inserted_node, typeadp, offsetnode##_fctsuffix()) ; \
+   } \
+   static inline int tryinsert##_fctsuffix(arraysf_t * array, objecttype_t * node, /*out;err*/objecttype_t ** inserted_or_existing_node, struct typeadapter_oit * typeadp/*0=>no copy is made*/) { \
+      return tryinsert_arraysf(array, (struct generic_object_t*)node, (struct generic_object_t**)inserted_or_existing_node, typeadp, offsetnode##_fctsuffix()) ; \
+   } \
+   static inline int remove##_fctsuffix(arraysf_t * array, size_t pos, /*out*/objecttype_t ** removed_node/*could be 0*/) { \
+      return remove_arraysf(array, pos, (struct generic_object_t**)removed_node, offsetnode##_fctsuffix()) ; \
+   } \
+   static inline int tryremove##_fctsuffix(arraysf_t * array, size_t pos, /*out*/objecttype_t ** removed_node/*could be 0*/) { \
+      return tryremove_arraysf(array, pos, (struct generic_object_t**)removed_node, offsetnode##_fctsuffix()) ; \
+   } \
+   /*implement iterator functions*/ \
+   static inline int init##_fctsuffix##iterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) { \
+      return init_arraysfiterator(iter, array) ; \
+   } \
+   static inline int free##_fctsuffix##iterator(arraysf_iterator_t * iter) { \
+      return free_arraysfiterator(iter) ; \
+   } \
+   static inline bool next##_fctsuffix##iterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/objecttype_t ** node) { \
+      return next_arraysfiterator(iter, array, (struct generic_object_t**)node) ; \
+   }
 
 
 /* struct: arraysf_iterator_t
@@ -207,7 +258,7 @@ struct arraysf_iterator_t {
 
 /* define: arraysf_iterator_INIT_FREEABLE
  * Static initializer. */
-#define arraysf_iterator_INIT_FREEABLE   { 0 }
+#define arraysf_iterator_INIT_FREEABLE   { 0, 0 }
 
 /* function: init_arraysfiterator
  * Initializes an iterator for <arraysf_t>. */
@@ -227,77 +278,14 @@ int free_arraysfiterator(arraysf_iterator_t * iter) ;
  * Returns:
  * true  - node contains a pointer to the next valid node in the list.
  * false - There is no next node. The last element was already returned or the array is empty. */
-bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/struct arraysf_node_t ** node) ;
-
-
-/* struct: arraysf_imp_it
- * Interface to adapt <arraysf_t> to different memory policies.
- * There are two kinds of memory functions.
- * The functions <copynode> and <freenode> are called to handle the parameter
- * with <arraysf_node_t> given in the call <insert_arraysf> and <remove_arraysf>.
- * The functions <malloc> and <free> are called to handle allocation of objects of
- * type <arraysf_t> and <arraysf_mwaybranch_t>. */
-struct arraysf_imp_it {
-   /* function: copynode
-    * Creates new node and intializes it with values copies from *node*.
-    * The newly created node is returned *copied_node*. */
-   int   (* copynode) (const arraysf_imp_it * impit, const struct arraysf_node_t * node, /*out*/struct arraysf_node_t ** copied_node) ;
-   /* function: freenode
-    * Frees a node returned from a call to function <copynode>. */
-   int   (* freenode) (const arraysf_imp_it * impit, struct arraysf_node_t * node) ;
-   /* function: malloc
-    * Allocates memory for internal nodes and the array objects itself.
-    * Use the parameter *size* to discriminate between the two cases. */
-   int   (* malloc)   (const arraysf_imp_it * impit, size_t size, /*out*/void ** memblock/*[size]*/) ;
-   /* function: malloc
-    * Frees memory allocated with <malloc> for internal nodes.
-    *
-    * Parameter:
-    * size     - The same value as in the call to <malloc>
-    * memblock - The value returned by a previous call to <malloc>. */
-   int   (* free)     (const arraysf_imp_it * impit, size_t size, void * memblock/*[size]*/) ;
-} ;
-
-// group: lifetime
-
-/* function: defaultimpit_arraysf
- * Returns the default memory policy of this object.
- * This is a static object. So do not free it nor change its content. */
-arraysf_imp_it * default_arraysfimp(void) ;
-
-/* function: new_arraysfimp
- * Allocates implementaion object of interface <arraysf_imp_it>.
- * The implementation copies and frees nodes of type <arraysf_node_t> and handles also
- * <arraysf_imp_it.malloc> and <arraysf_imp_it.free> requests.
- *
- * Parameter:
- * impit      - Returns pointer to newly allocated <arraysf_imp_it>.
- * objectsize - Memory size in bytes of object which contains <arraysf_node_t>.
- * nodeoffset - Offset in bytes from startaddr of allocated object to contained <arraysf_node_t>.
- *
- * Example:
- * > struct usernode_t {
- * >    arraysf_node_t node ;
- * >    const char *   userdata ;
- * > } ;
- * > int err ;
- * > arraysf_imp_it * impit = 0 ;
- * > err = new_arraysfimp(&impit, sizeof(struct usernode_t), offsetof(struct usernode_t, node)) ; */
-int new_arraysfimp(/*out*/arraysf_imp_it ** impit, size_t objectsize, size_t nodeoffset) ;
-
-/* function: delete_arraysfimp
- * Frees implementation object returned from <new_arraysfimp>. */
-int delete_arraysfimp(arraysf_imp_it ** impit) ;
+bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/struct generic_object_t ** node) ;
 
 
 // section: inline implementation
 
 /* define: length_arraysf
  * Implements <arraysf_t.length_arraysf>. */
-#define length_arraysf(array)      ((array)->length)
+#define length_arraysf(array)          ((array)->length)
 
-/* define: impolicy_arraysf
- * Implements <arraysf_t.impolicy_arraysf>. */
-#define impolicy_arraysf(array)        ((array)->impit)
 
 #endif

@@ -235,6 +235,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
 //}
 
 //{ data structure unittest
+   RUN(unittest_ds_typeadapter) ;
    RUN(unittest_ds_inmem_arraysf) ;
    RUN(unittest_ds_inmem_arraystf) ;
    RUN(unittest_ds_inmem_binarystack) ;

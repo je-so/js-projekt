@@ -39,7 +39,7 @@
 
 /* interface: GENERATED_wlist
  * Uses macro <slist_IMPLEMENT> to generate an adapted interface to <slist_t>. */
-slist_IMPLEMENT(waitlist_t, _wlist, wlistnext, freecallback_t)
+slist_IMPLEMENT(waitlist_t, _wlist, wlistnext)
 
 // group: helper
 

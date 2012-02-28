@@ -30,7 +30,10 @@
 #include "C-kern/api/ds/inmem/arraysf.h"
 #include "C-kern/api/ds/inmem/slist.h"
 #include "C-kern/api/ds/inmem/node/arraysf_node.h"
+#include "C-kern/api/ds/typeadapter.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/memory/mm/mm_it.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/iotimer.h"
@@ -42,7 +45,7 @@
 struct iopoll_fdinfo_t {
    /* variable: fd
     * Filedescriptor is used as index into <arraysf_t>. */
-   arraysf_node_t    fd ;
+   size_t            fd ;
    /* variable: iohandler
     * I/O handler which is called if an event has been occurred. */
    iocallback_t      * iohandler ;
@@ -60,7 +63,41 @@ struct iopoll_fdinfo_t {
    uint8_t           isdeleted ;
 } ;
 
-slist_IMPLEMENT(iopoll_fdinfolist_t, _fdinfolist, next, slist_freecb_t)
+// group: declaration
+
+/* struct: iopoll_fdinfo_typeadapter_it
+ * Declares subtyped interface of <typeadapter_it> adapted to <iopoll_fdinfo_t> object types.
+ * See <typeadapter_it_DECLARE>. */
+typeadapter_it_DECLARE(iopoll_fdinfo_typeadapter_it, typeadapter_t, iopoll_fdinfo_t)
+
+/* struct: iopoll_fdinfo_typeadapter_it
+ * Declares subtyped object-interface of <typeadapter_oit> adapted to <iopoll_fdinfo_typeadapter_it>.
+ * See <typeadapter_oit_DECLARE>. */
+typeadapter_oit_DECLARE(iopoll_fdinfo_typeadapter_oit, typeadapter_t, struct iopoll_fdinfo_typeadapter_it)
+
+// group: variable
+
+/* variable: s_iopoll_fdinfo_adapter_default
+ * Default implementation object of <typeadapter_oit>. */
+static struct typeadapter_t                  s_iopoll_fdinfo_adapter_default = typeadapter_INIT(sizeof(iopoll_fdinfo_t)) ;
+
+/* variable: s_iopoll_fdinfo_adapter_oit
+ * Subtyped typeadapter object-interface of type <iopoll_fdinfo_typeadapter_it>.
+ * It is initialized with <s_iopoll_fdinfo_adapter_default> as its implementation object.
+ * See <typeadapter_oit_INIT_GENERIC>. */
+static struct iopoll_fdinfo_typeadapter_oit  s_iopoll_fdinfo_adapter_oit     = typeadapter_oit_INIT_GENERIC(&s_iopoll_fdinfo_adapter_default) ;
+
+// group: data structure
+
+/* function: IMPLEMENTATION_fdinfolist
+ * Implements <slist_t> for <iopoll_fdinfo_t> managed by <iopoll_fdinfolist_t>.
+ * See <slist_IMPLEMENT>. */
+slist_IMPLEMENT(iopoll_fdinfolist_t, _fdinfolist, next)
+
+/* function: IMPLEMENTATION_fdinfoarray
+ * Implements <arraysf_t> for <iopoll_fdinfo_t> managed by <arraysf_t>.
+ * See <arraysf_IMPLEMENT>. */
+arraysf_IMPLEMENT(iopoll_fdinfo_t, _fdinfoarray, fd)
 
 
 // section: iopoll_t
@@ -69,7 +106,6 @@ slist_IMPLEMENT(iopoll_fdinfolist_t, _fdinfolist, next, slist_freecb_t)
 
 static inline void compiletime_assert(void)
 {
-   static_assert( (typeof(&((iopoll_fdinfo_t*)0)->fd))0 == (arraysf_node_t*)0, "iopoll_fdinfo_t inherits from arraysf_node_t") ;
    static_assert( offsetof(iopoll_fdinfo_t, fd) == 0, "iopoll_fdinfo_t inherits from arraysf_node_t") ;
 }
 
@@ -119,7 +155,10 @@ static int wait_iopoll(iopoll_t * iopoll, uint16_t timeout)
          iopoll_fdinfo_t * first ;
          removefirst_fdinfolist(&iopoll->changed_list, &first) ;
          if (first->isdeleted) {
-            (void) remove_arraysf(iopoll->fdinfo, first->fd.pos, 0) ;
+            err = remove_fdinfoarray(iopoll->fdinfo, first->fd, 0) ;
+            if (err) goto ABBRUCH ;
+            err = execfree_typeadapteroit(&s_iopoll_fdinfo_adapter_oit, first) ;
+            if (err) goto ABBRUCH ;
          }
       }
 
@@ -152,7 +191,6 @@ int init_iopoll(/*out*/iopoll_t * iopoll)
    int err ;
    int            efd ;
    arraysf_t      * fdinfo = 0 ;
-   arraysf_imp_it * impit  = 0 ;
 
    efd = epoll_create1(EPOLL_CLOEXEC) ;
    if (-1 == efd) {
@@ -161,10 +199,7 @@ int init_iopoll(/*out*/iopoll_t * iopoll)
       goto ABBRUCH ;
    }
 
-   err = new_arraysfimp(&impit, sizeof(iopoll_fdinfo_t), offsetof(iopoll_fdinfo_t, fd)) ;
-   if (err) goto ABBRUCH ;
-
-   err = new_arraysf(&fdinfo, arraysf_6BITROOT_UNSORTED, impit) ;
+   err = new_fdinfoarray(&fdinfo, arraysf_6BITROOT_UNSORTED) ;
    if (err) goto ABBRUCH ;
 
    iopoll->sys_poll     = efd ;
@@ -176,7 +211,6 @@ int init_iopoll(/*out*/iopoll_t * iopoll)
 
    return 0 ;
 ABBRUCH:
-   delete_arraysfimp(&impit) ;
    free_filedescr(&efd) ;
    LOG_ABORT(err) ;
    return err ;
@@ -204,10 +238,7 @@ int free_iopoll(iopoll_t * iopoll)
    }
 
    if (iopoll->fdinfo) {
-      arraysf_imp_it * impit = impolicy_arraysf(iopoll->fdinfo) ;
-      err2 = delete_arraysf(&iopoll->fdinfo);
-      if (err2) err = err2 ;
-      err2 = delete_arraysfimp(&impit) ;
+      err2 = delete_fdinfoarray(&iopoll->fdinfo, &s_iopoll_fdinfo_adapter_oit.generic) ;
       if (err2) err = err2 ;
    }
 
@@ -229,8 +260,8 @@ int registerfd_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, iocallback_t * ioha
    VALIDATE_INPARAM_TEST(isinit_filedescr(fd), ABBRUCH, ) ;
    VALIDATE_INPARAM_TEST(! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevent) ) ;
 
-   iopoll_fdinfo_t dummy = { .fd = arraysf_node_INIT((size_t)fd), .iohandler = iohandler, .next = 0, .isdeleted = 1 } ;
-   err = tryinsert_arraysf(iopoll->fdinfo, &dummy.fd, (arraysf_node_t**)&iopfdinfo) ;
+   iopoll_fdinfo_t dummy = { .fd = (size_t)fd, .iohandler = iohandler, .next = 0, .isdeleted = 1 } ;
+   err = tryinsert_fdinfoarray(iopoll->fdinfo, &dummy, &iopfdinfo, &s_iopoll_fdinfo_adapter_oit.generic) ;
    if (err && EEXIST != err) goto ABBRUCH ;
 
    struct epoll_event epevent ;
@@ -247,7 +278,7 @@ int registerfd_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, iocallback_t * ioha
 
    ++ iopoll->nr_filedescr ;
 
-   assert(iopfdinfo->fd.pos == (size_t)fd) ;
+   assert(iopfdinfo->fd == (size_t)fd) ;
    assert(iopfdinfo->isdeleted) ;
    iopfdinfo->iohandler = iohandler ;
    iopfdinfo->isdeleted = 0 ;
@@ -274,7 +305,7 @@ int changeioevent_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, ioevent_t ioeven
 
    VALIDATE_INPARAM_TEST(! (ioevent & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevent)) ;
 
-   iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll->fdinfo, (size_t)fd) ;
+   iopfdinfo = at_fdinfoarray(iopoll->fdinfo, (size_t)fd) ;
 
    if (     ! iopfdinfo
          || iopfdinfo->isdeleted ) {
@@ -302,7 +333,7 @@ ABBRUCH:
 int changeiocallback_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, iocallback_t * iohandler)
 {
    int err ;
-   iopoll_fdinfo_t   * iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll->fdinfo, (size_t)fd) ;
+   iopoll_fdinfo_t   * iopfdinfo = at_fdinfoarray(iopoll->fdinfo, (size_t)fd) ;
 
    if (     ! iopfdinfo
          || iopfdinfo->isdeleted ) {
@@ -322,7 +353,7 @@ int unregisterfd_iopoll(iopoll_t * iopoll, sys_filedescr_t fd)
 {
    int err ;
    struct epoll_event   dummy ;
-   iopoll_fdinfo_t      * iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll->fdinfo, (size_t)fd) ;
+   iopoll_fdinfo_t      * iopfdinfo = at_fdinfoarray(iopoll->fdinfo, (size_t)fd) ;
 
    if (     ! iopfdinfo
          || iopfdinfo->isdeleted ) {
@@ -374,7 +405,7 @@ int processevents_iopoll(iopoll_t * iopoll, uint16_t timeout_millisec, /*out*/si
       if (     0 == iopfdinfo->next    // not deleted or deleted+registered from iohandler
             && iopfdinfo->iohandler
             && iopfdinfo->iohandler->fct ) {
-         iopfdinfo->iohandler->fct(iopfdinfo->iohandler, (int) iopfdinfo->fd.pos, ioevent) ;
+         iopfdinfo->iohandler->fct(iopfdinfo->iohandler, (sys_filedescr_t) iopfdinfo->fd, ioevent) ;
       }
    }
 
@@ -429,7 +460,7 @@ static int test_initfree(void)
    TEST(isfree_memblock(&iopoll.eventcache)) ;
    TEST(0 == iopoll.changed_list.last) ;
    TEST(0 != iopoll.fdinfo) ;
-   TEST(0 == length_arraysf(iopoll.fdinfo)) ;
+   TEST(0 == length_fdinfoarray(iopoll.fdinfo)) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[1], 0, ioevent_WRITE)) ;
    TEST(0 == processevents_iopoll(&iopoll, 0, &nr_events)) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[0], 0, ioevent_READ)) ;
@@ -437,7 +468,7 @@ static int test_initfree(void)
    TEST(1 == nr_events) ;
    TEST(! isfree_memblock(&iopoll.eventcache)) ;
    TEST(0 != iopoll.changed_list.last) ;
-   TEST(2 == length_arraysf(iopoll.fdinfo)) ;
+   TEST(2 == length_fdinfoarray(iopoll.fdinfo)) ;
    TEST(0 == free_iopoll(&iopoll)) ;
    TEST(0 == nropen_filedescr(nrfds+1)) ;
    TEST(nrfds[1] == nrfds[0]) ;
@@ -463,8 +494,8 @@ static int test_initfree(void)
    for(unsigned i = 0; i < nrelementsof(fd); ++i) {
       TEST(0 == registerfd_iopoll(&iopoll, fd[i], (iocallback_t*)i, (ioevent_t) (i&0xF))) ;
       TEST(i+1 == iopoll.nr_filedescr) ;
-      TEST(i+1 == length_arraysf(iopoll.fdinfo)) ;
-      iopoll_fdinfo_t * iopfdinfo = (iopoll_fdinfo_t *) at_arraysf(iopoll.fdinfo, (size_t)fd[i]) ;
+      TEST(i+1 == length_fdinfoarray(iopoll.fdinfo)) ;
+      iopoll_fdinfo_t * iopfdinfo = at_fdinfoarray(iopoll.fdinfo, (size_t)fd[i]) ;
       TEST(0 != iopfdinfo) ;
       TEST((void*)i == iopfdinfo->iohandler) ;
       TEST(0 == iopfdinfo->isdeleted) ;
@@ -497,11 +528,11 @@ static int test_initfree(void)
       TEST(0 == iopoll.nr_events) ;
       TEST(nrelementsof(fd) == iopoll.nr_filedescr) ;
       TEST(isfree_memblock(&iopoll.eventcache)) ;
-      TEST(nrelementsof(fd) == length_arraysf(iopoll.fdinfo)) ;
+      TEST(nrelementsof(fd) == length_fdinfoarray(iopoll.fdinfo)) ;
       for(unsigned i = nrelementsof(fd); i--; ) {
          TEST(0 == unregisterfd_iopoll(&iopoll, fd[i])) ;
          TEST(i == iopoll.nr_filedescr) ;
-         iopoll_fdinfo_t * iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll.fdinfo, (size_t)fd[i]) ;
+         iopoll_fdinfo_t * iopfdinfo = at_fdinfoarray(iopoll.fdinfo, (size_t)fd[i]) ;
          TEST(0 != iopfdinfo) ;
          TEST((void*)i == iopfdinfo->iohandler) ;
          TEST(1 == iopfdinfo->isdeleted) ;
@@ -510,7 +541,7 @@ static int test_initfree(void)
       TEST(0 == iopoll.nr_events) ;
       TEST(0 == iopoll.nr_filedescr) ;
       TEST(isfree_memblock(&iopoll.eventcache)) ;
-      TEST(nrelementsof(fd) == length_arraysf(iopoll.fdinfo)) ;
+      TEST(nrelementsof(fd) == length_fdinfoarray(iopoll.fdinfo)) ;
    }
    TEST(0 == free_iopoll(&iopoll)) ;
    TEST(0 == nropen_filedescr(nrfds+1)) ;
@@ -523,7 +554,7 @@ static int test_initfree(void)
    }
    for(unsigned i = 0; i < nrelementsof(fd); ++i) {
       TEST(0 == changeioevent_iopoll(&iopoll, fd[i], (ioevent_t)(i&0xF))) ;
-      iopoll_fdinfo_t * iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll.fdinfo, (size_t)fd[i]) ;
+      iopoll_fdinfo_t * iopfdinfo = at_fdinfoarray(iopoll.fdinfo, (size_t)fd[i]) ;
       TEST(0 != iopfdinfo) ;
       TEST(0 == iopfdinfo->iohandler) ;
       TEST(0 == changeiocallback_iopoll(&iopoll, fd[i], (iocallback_t*)i)) ;
@@ -547,7 +578,7 @@ static int test_initfree(void)
    TEST(iopoll.nr_events    == 0) ;
    TEST(isfree_memblock(&iopoll.eventcache)) ;
    TEST(iopoll.fdinfo       != 0) ;
-   TEST(0 == length_arraysf(iopoll.fdinfo)) ;
+   TEST(0 == length_fdinfoarray(iopoll.fdinfo)) ;
 
    TEST(1 >= millisec) ;
 
@@ -556,11 +587,11 @@ static int test_initfree(void)
       TEST(0 == registerfd_iopoll(&iopoll, fd[i], 0, ioevent_EMPTY)) ;
       TEST(0 == registerfd_iopoll(&iopoll, fd[i+1], 0, ioevent_EMPTY)) ;
       TEST(0 == write_filedescr(fd[i+1], 1, "-", 0)) ;
-      iopoll_fdinfo_t * iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll.fdinfo, (size_t)fd[i]) ;
+      iopoll_fdinfo_t * iopfdinfo = at_fdinfoarray(iopoll.fdinfo, (size_t)fd[i]) ;
       TEST(0 != iopfdinfo) ;
       TEST(0 == iopfdinfo->isdeleted) ;
       TEST(0 != iopfdinfo->next) ;
-      iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll.fdinfo, (size_t)fd[i+1]) ;
+      iopfdinfo = at_fdinfoarray(iopoll.fdinfo, (size_t)fd[i+1]) ;
       TEST(0 != iopfdinfo) ;
       TEST(0 != iopfdinfo->next) ;
    }
@@ -573,13 +604,13 @@ static int test_initfree(void)
    TEST(iopoll.nr_events    == 0) ;
    TEST(! isfree_memblock(&iopoll.eventcache)) ;
    TEST(iopoll.fdinfo       != 0) ;
-   TEST(length_arraysf(iopoll.fdinfo) == nrelementsof(fd)) ;
+   TEST(length_fdinfoarray(iopoll.fdinfo) == nrelementsof(fd)) ;
    TEST(40 <= millisec) ;
    TEST(50 >= millisec) ;
 
    // TEST wait_iopollds removed all entries from changed_list
    for(unsigned i = 0; i < nrelementsof(fd); ++i) {
-      iopoll_fdinfo_t * iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll.fdinfo, (size_t)fd[i]) ;
+      iopoll_fdinfo_t * iopfdinfo = at_fdinfoarray(iopoll.fdinfo, (size_t)fd[i]) ;
       TEST(0 != iopfdinfo) ;
       TEST(0 == iopfdinfo->isdeleted) ;
       TEST(0 == iopfdinfo->next) ;
@@ -605,7 +636,7 @@ static int test_initfree(void)
    TEST(EINVAL == registerfd_iopoll(&iopoll, fd[0], 0, (ioevent_t)128)) ;
    TEST(EINVAL == changeioevent_iopoll(&iopoll, fd[0], (ioevent_t)128)) ;
    TEST(0 != iopoll.fdinfo) ;
-   TEST(0 == length_arraysf(iopoll.fdinfo)) ;
+   TEST(0 == length_fdinfoarray(iopoll.fdinfo)) ;
    TEST(0 == free_iopoll(&iopoll)) ;
 
    // TEST EEXIST (fd already registered)
@@ -615,10 +646,10 @@ static int test_initfree(void)
    TEST(EEXIST == registerfd_iopoll(&iopoll, fd[0], 0, ioevent_READ)) ;
    TEST(0 == iopoll.nr_events) ;
    TEST(1 == iopoll.nr_filedescr) ;
-   TEST(1 == length_arraysf(iopoll.fdinfo)) ;
-   TEST(0 != at_arraysf(iopoll.fdinfo, (size_t)fd[0])) ;
-   iopoll_fdinfo_t * iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll.fdinfo, (size_t)fd[0]) ;
-   TEST(fd[0] == (int)iopfdinfo->fd.pos) ;
+   TEST(1 == length_fdinfoarray(iopoll.fdinfo)) ;
+   TEST(0 != at_fdinfoarray(iopoll.fdinfo, (size_t)fd[0])) ;
+   iopoll_fdinfo_t * iopfdinfo = at_fdinfoarray(iopoll.fdinfo, (size_t)fd[0]) ;
+   TEST(fd[0] == (sys_filedescr_t)iopfdinfo->fd) ;
    TEST((void*)1 == iopfdinfo->iohandler) ;
    TEST(0 == iopfdinfo->isdeleted) ;
    TEST(0 != iopfdinfo->next) ;
@@ -806,7 +837,7 @@ static int test_processevents(void)
 
    // TEST processevents_iopoll removed all fdinfo from changed_list
    for(unsigned i = 0; i < nrelementsof(fd); ++i) {
-      iopoll_fdinfo_t * iopfdinfo = (iopoll_fdinfo_t*) at_arraysf(iopoll.fdinfo, (size_t)fd[i]) ;
+      iopoll_fdinfo_t * iopfdinfo = at_fdinfoarray(iopoll.fdinfo, (size_t)fd[i]) ;
       TEST(0 != iopfdinfo) ;
       TEST(0 == iopfdinfo->next) ;
    }

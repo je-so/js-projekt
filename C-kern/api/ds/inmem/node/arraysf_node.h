@@ -25,17 +25,23 @@
 #define CKERN_DS_ARRAYSF_NODE_HEADER
 
 /* typedef: struct arraysf_node_t
- * Exports <arraysf_node_t>. */
+ * Export <arraysf_node_t> - user supplied (external) type. */
 typedef struct arraysf_node_t          arraysf_node_t ;
 
 /* typedef: struct arraysf_mwaybranch_t
- * Exports <arraysf_mwaybranch_t>. */
+ * Export <arraysf_mwaybranch_t> - internal node type. */
 typedef struct arraysf_mwaybranch_t    arraysf_mwaybranch_t ;
+
+/* typedef: struct arraysf_unode_t
+ * Export <arraysf_unode_t> - either internal or external type. */
+typedef union arraysf_unode_t          arraysf_unode_t ;
 
 
 /* struct: arraysf_node_t
- * Generic user node type stored by <arraysf_t>. */
+ * Generic node type stored by <arraysf_t>. */
 struct arraysf_node_t {
+   /* variable: pos
+    * Index of node stored in <arraysf_t>. */
    size_t   pos ;
 } ;
 
@@ -45,15 +51,37 @@ struct arraysf_node_t {
  * Static initializer with paramater index of type size_t. */
 #define arraysf_node_INIT(index)       { (index) }
 
+// group: generic
+
+/* define: arraysf_node_EMBED
+ * Allows to embed members of <arraysf_node_t> into another structure.
+ *
+ * Parameter:
+ * name_pos  - The name of the embedded <arraysf_node_t.pos> member.
+ *
+ * Your object must inherit or embed <arraysf_node_t> to be manageable by <arraysf_t>.
+ * With macro <arraysf_node_EMBED> you can do
+ * > struct object_t {
+ * >    ... ;
+ * >    // declares: size_t   arrayindex ;
+ * >    arraysf_node_EMBED(arrayindex)
+ * > }
+ * >
+ * > // instead of
+ * > struct object_t {
+ * >    ... ;
+ * >    arraysf_node_t arraysfnode ;
+ * > } */
+#define arraysf_node_EMBED(name_pos)   size_t name_pos ;
+
 
 /* struct: arraysf_mwaybranch_t
  * Internal node to implement a *multiway* trie.
  * Currently this node type supports only a 4-way tree. */
 struct arraysf_mwaybranch_t {
-   // union { arraysf_mwaybranch_t * branch[4] ; arraysf_node_t * child[4] ; } ;
    /* variable: child
     * A 4-way array of child nodes. */
-   arraysf_node_t    * child[4] ;
+   arraysf_unode_t   * child[4] ;
    /* variable: shift
     * Position of bit in array index used to branch.
     * The two bits at position shift and shift+1 are used as index into array <child>.
@@ -69,17 +97,115 @@ struct arraysf_mwaybranch_t {
 
 // group: lifetime
 
-extern void init_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned shift, size_t pos1, arraysf_node_t * childnode1, size_t pos2, arraysf_node_t * childnode2) ;
+/* function: init_arraysfmwaybranch
+ * Initializes a new branch node.
+ * A branch node must point to at least two child nodes. This is the reason
+ * two pointers and their corresponding index key has to be provided as parameter. */
+void init_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned shift, size_t pos1, arraysf_unode_t * childnode1, size_t pos2, arraysf_unode_t * childnode2) ;
 
-extern unsigned childindex_arraysfmwaybranch(arraysf_mwaybranch_t * branch, size_t pos) ;
+// group: query
 
-extern void setchild_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned childindex, arraysf_node_t * childnode) ;
+/* function: asunode_arraysfmwaybranch
+ * Casts object pointer into pointer to <arraysf_unode_t>.
+ * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
+arraysf_unode_t * asunode_arraysfmwaybranch(arraysf_mwaybranch_t * branch) ;
+
+/* function: childindex_arraysfmwaybranch
+ * Determines the index into the internal array <arraysf_mwaybranch_t.childs>.
+ * The index is calculated from parameter *pos* which is the index of the node. */
+unsigned childindex_arraysfmwaybranch(arraysf_mwaybranch_t * branch, size_t pos) ;
+
+// group: change
+
+/* function: setchild_arraysfmwaybranch
+ * Changes entries in arry <arraysf_mwaybranch_t.child>. */
+void setchild_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned childindex, arraysf_node_t * childnode) ;
+
+
+/* union: arraysf_unode_t
+ * Pointer to either */
+union arraysf_unode_t {
+   arraysf_node_t       node ;
+   arraysf_mwaybranch_t branch ;
+} ;
+
+// group: query
+
+/* function: asbranch_arraysfunode
+ * Casts pointer to <arraysf_unode_t> into pointer to <arraysf_mwaybranch_t>. */
+arraysf_mwaybranch_t * asbranch_arraysfunode(arraysf_unode_t * node) ;
+
+/* function: asnode_arraysfunode
+ * Casts object pointer into pointer to <arraysf_node_t>. */
+arraysf_node_t * asnode_arraysfunode(arraysf_unode_t * node, size_t offset_node) ;
+
+/* function: asgeneric_arraysfunode
+ * Casts object pointer into pointer to *generic_object_t*. */
+struct generic_object_t * asgeneric_arraysfunode(arraysf_unode_t * node) ;
+
+/* function: isbranchtype_arraysfunode
+ * Returns true in case node is pointer to <arraysf_mwaybranch_t>. */
+int isbranchtype_arraysfunode(const arraysf_unode_t * node) ;
+
+
+// struct: generic_object_t
+
+// group: query
+
+/* function: asarraysfunode_genericobject
+ * Casts object pointer into pointer to <arraysf_unode_t>.
+ * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
+arraysf_unode_t * asarraysfunode_genericobject(struct generic_object_t * object) ;
 
 
 // section: inline implementation
 
+/* define: asbranch_arraysfunode
+ * Implements <arraysf_unode_t.asbranch_arraysfunode>. */
+#define asbranch_arraysfunode(node)                               \
+      (  __extension__ ({                                         \
+            arraysf_unode_t * _node1 = (node) ;                   \
+            (arraysf_mwaybranch_t*) (0x01 ^ (intptr_t)(_node1)) ; \
+         }))
+
+/* define: asgeneric_arraysfunode
+ * Implements <arraysf_unode_t.asgeneric_arraysfunode>. */
+#define asgeneric_arraysfunode(node)                              \
+      (  __extension__ ({                                         \
+            arraysf_unode_t * _node2 = (node) ;                   \
+            (struct generic_object_t*) (_node2) ;                 \
+         }))
+
+/* define: asnode_arraysfunode
+ * Implements <arraysf_unode_t.asnode_arraysfunode>. */
+#define asnode_arraysfunode(node, offset_node)                    \
+      (  __extension__ ({                                         \
+            arraysf_unode_t * _node3 = (node) ;                   \
+            (arraysf_node_t*) ((offset_node)+(uint8_t*)(_node3)); \
+         }))
+
+/* define: asunode_arraysfmwaybranch
+ * Implements <arraysf_mwaybranch_t.asunode_arraysfmwaybranch>. */
+#define asunode_arraysfmwaybranch(branch)                         \
+      (  __extension__ ({                                         \
+            arraysf_mwaybranch_t * _branch = (branch) ;           \
+            (arraysf_unode_t*) (0x01 ^ (intptr_t)(_branch)) ;     \
+         }))
+
+/* define: asarraysfunode_genericobject
+ * Implements <generic_object_t.asarraysfunode_genericobject>. */
+#define asarraysfunode_genericobject(object)                      \
+      (  __extension__ ({                                         \
+            struct generic_object_t * _genobj1 = (object) ;       \
+            (arraysf_unode_t*) (_genobj1) ;                       \
+         }))
+
+/* define: childindex_arraysfmwaybranch
+ * Implements <arraysf_mwaybranch_t.childindex_arraysfmwaybranch>. */
 #define childindex_arraysfmwaybranch(branch, pos)     (0x03u & ((pos) >> (branch)->shift))
 
+/* define: init_arraysfmwaybranch
+ * Implements <arraysf_mwaybranch_t.init_arraysfmwaybranch>. */
 #define init_arraysfmwaybranch(branch, _shift, pos1, childnode1, pos2, childnode2)  \
       do {  memset((branch)->child, 0, sizeof((branch)->child)) ;                   \
             (branch)->child[0x03u & ((pos1) >> (shift))] = childnode1 ;             \
@@ -88,6 +214,16 @@ extern void setchild_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned c
             (branch)->used  = 2 ;                                                   \
          } while(0)
 
+/* define: isbranchtype_arraysfunode
+ * Implements <arraysf_unode_t.isbranchtype_arraysfunode>. */
+#define isbranchtype_arraysfunode(node)                     \
+      (  __extension__ ({                                   \
+            const arraysf_unode_t * _node4 = (node) ;       \
+            ((intptr_t)(_node4) & 0x01) ;                   \
+         }))
+
+/* define: setchild_arraysfmwaybranch
+ * Implements <arraysf_mwaybranch_t.setchild_arraysfmwaybranch>. */
 #define setchild_arraysfmwaybranch(branch, childindex, childnode)    \
       do {                                                           \
             (branch)->child[childindex] = (childnode) ;              \

@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Feb.13  17:54:06
+GenerationDate  := 2012.Feb.28  19:25:56
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -18,7 +18,7 @@ CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_USERINTERFACE="(HTML5)"
 Includes_Debug      := $(IncludeFlag_Debug).
-Libraries_Debug     := $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
+Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
 Libpath_Debug       :=
 ObjectDir_Debug     := bin/Debug/testunit
 TargetDir_Debug     := bin
@@ -36,7 +36,7 @@ CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversio
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_USERINTERFACE="(HTML5)"
 Includes_Release      := $(IncludeFlag_Release).
-Libraries_Release     := $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
+Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
 Libpath_Release       :=
 ObjectDir_Release     := bin/Release/testunit
 TargetDir_Release     := bin
@@ -103,6 +103,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!context!context.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
@@ -160,6 +161,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!context!context.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapter.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
@@ -278,6 +280,9 @@ $(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcont
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
@@ -443,6 +448,9 @@ $(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processco
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c

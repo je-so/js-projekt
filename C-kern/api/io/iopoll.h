@@ -75,24 +75,24 @@ struct iopoll_fdinfolist_t {
 struct iopoll_t {
    /* variable: sys_poll
     * Handle to the underlying system object. */
-   sys_filedescr_t   sys_poll ;
+   sys_filedescr_t      sys_poll ;
    /* variable: nr_events
     * Number of events stored in <eventcache>. */
-   size_t            nr_events ;
+   size_t               nr_events ;
    /* variable: nr_filedescr
     * Number of <filedescr_t> registered at this object. */
-   size_t            nr_filedescr ;
+   size_t               nr_filedescr ;
    /* variable: eventcache
     * Contains <nr_events> events read from <sys_poll>.
     * This buffer is filled by calling <processevents_iopoll>. */
-   memblock_t        eventcache ;
+   memblock_t           eventcache ;
    /* variable: changed_list
     * List of changed <iopoll_fdinfo_t>. This list cleared in <processevents_iopoll>. */
    iopoll_fdinfolist_t  changed_list ;
    /* variable: fdinfo
     * Contains for every registered filedescriptor the corresponding <iocallback_t>.
     * This info is set by calling <registerfd_iopoll> or cleared by calling <unregisterfd_iopoll>. */
-   struct arraysf_t  * fdinfo ;
+   struct arraysf_t     * fdinfo ;
 } ;
 
 // group: lifetime

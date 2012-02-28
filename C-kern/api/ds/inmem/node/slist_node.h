@@ -33,11 +33,11 @@ typedef struct slist_node_t            slist_node_t ;
  * This kind of object is managed by the single linked list object <slist_t>.
  * The list allows to access nodes in sequential order in O(n).
  * An object which wants to be member of a list must inherit from <slist_node_t>. */
- struct slist_node_t {
+struct slist_node_t {
    /* variable: next
     * Points to next node in the list.
     * If this node is currently not part of list this value is set to NULL. */
-   slist_node_t  * next ;
+   struct generic_object_t  * next ;
 } ;
 
 // group: lifetime
@@ -55,26 +55,47 @@ typedef struct slist_node_t            slist_node_t ;
 // group: generic
 
 /* define: slist_node_EMBED
- * Allows to embed next pointer of <slist_node_t> into another structure.
+ * Allows to embed members of <slist_node_t> into another structure.
  *
  * Parameter:
  * objecttype_t  - The type of object the list node should link.
- * name_nextptr  - The name of the embedded next pointer.
+ * name_nextptr  - The name of the embedded <slist_node_t.next> member.
  *
  * Your object must inherit or embed <slist_node_t> to be manageable by <slist_t>.
- * With macro <slist_node_EMBED> you can do instead of;
+ * With macro <slist_node_EMBED> you can do
  * > struct object_t {
- * >    int          dummy ;
- * >    slist_node_EMBED(struct object_t, next) // declares: struct object_t * next ;
- * >    int          dummy2 ;
+ * >    ... ;
+ * >    // declares: struct object_t * next ;
+ * >    slist_node_EMBED(struct object_t, next)
  * > }
+ * >
  * > // instead of
  * > struct object_t {
- * >    int          dummy ;
+ * >    ... ;
  * >    slist_node_t listnode ;
- * >    int          dummy2 ;
  * > } */
 #define slist_node_EMBED(objecttype_t, name_nextptr) \
    objecttype_t * name_nextptr ;
+
+
+// struct: generic_object_t
+
+// group: query
+
+/* function: asslistnode_genericobject
+ * Casts object pointer into pointer to <slist_node_t>. */
+slist_node_t * asslistnode_genericobject(struct generic_object_t * object, size_t offset_node) ;
+
+
+// section: inline implementation
+
+/* define: asslistnode_genericobject
+ * Implements <generic_object_t.asslistnode_genericobject>. */
+#define asslistnode_genericobject(node, offset_node)              \
+      (  __extension__ ({                                         \
+            struct generic_object_t * _node1 = (node) ;           \
+            (slist_node_t*) ((offset_node)+(uint8_t*)(_node1)) ;  \
+         }))
+
 
 #endif
