@@ -147,15 +147,10 @@ struct generic_object_t * asgeneric_arraysfunode(arraysf_unode_t * node) ;
  * Returns true in case node is pointer to <arraysf_mwaybranch_t>. */
 int isbranchtype_arraysfunode(const arraysf_unode_t * node) ;
 
-
-// struct: generic_object_t
-
-// group: query
-
-/* function: asarraysfunode_genericobject
+/* function: fromgeneric_arraysfunode
  * Casts object pointer into pointer to <arraysf_unode_t>.
  * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
-arraysf_unode_t * asarraysfunode_genericobject(struct generic_object_t * object) ;
+arraysf_unode_t * fromgeneric_arraysfunode(struct generic_object_t * object) ;
 
 
 // section: inline implementation
@@ -192,17 +187,17 @@ arraysf_unode_t * asarraysfunode_genericobject(struct generic_object_t * object)
             (arraysf_unode_t*) (0x01 ^ (intptr_t)(_branch)) ;     \
          }))
 
-/* define: asarraysfunode_genericobject
- * Implements <generic_object_t.asarraysfunode_genericobject>. */
-#define asarraysfunode_genericobject(object)                      \
+/* define: childindex_arraysfmwaybranch
+ * Implements <arraysf_mwaybranch_t.childindex_arraysfmwaybranch>. */
+#define childindex_arraysfmwaybranch(branch, pos)     (0x03u & ((pos) >> (branch)->shift))
+
+/* define: fromgeneric_arraysfunode
+ * Implements <arraysf_unode_t.fromgeneric_arraysfunode>. */
+#define fromgeneric_arraysfunode(object)                          \
       (  __extension__ ({                                         \
             struct generic_object_t * _genobj1 = (object) ;       \
             (arraysf_unode_t*) (_genobj1) ;                       \
          }))
-
-/* define: childindex_arraysfmwaybranch
- * Implements <arraysf_mwaybranch_t.childindex_arraysfmwaybranch>. */
-#define childindex_arraysfmwaybranch(branch, pos)     (0x03u & ((pos) >> (branch)->shift))
 
 /* define: init_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.init_arraysfmwaybranch>. */

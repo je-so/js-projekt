@@ -243,7 +243,7 @@ int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;e
    int err ;
    arraysf_findresult_t found ;
    typeof(node)         copied_node = 0 ;
-   size_t               pos         = asnode_arraysfunode(asarraysfunode_genericobject(node), offset_node)->pos ;
+   size_t               pos         = asnode_arraysfunode(fromgeneric_arraysfunode(node), offset_node)->pos ;
 
    err = find_arraysf(array, pos, &found, offset_node) ;
    if (ESRCH != err) {
@@ -282,7 +282,7 @@ int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;e
 
          arraysf_mwaybranch_t * new_branch = (arraysf_mwaybranch_t *) mblock.addr ;
 
-         init_arraysfmwaybranch(new_branch, shift, pos2, found.found_node, pos, asarraysfunode_genericobject(node)) ;
+         init_arraysfmwaybranch(new_branch, shift, pos2, found.found_node, pos, fromgeneric_arraysfunode(node)) ;
 
          if (found.parent) {
             found.parent->child[found.childindex] = asunode_arraysfmwaybranch(new_branch) ;
@@ -299,7 +299,7 @@ int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;e
    // simple case (parent is 0)
 
       if (! found.parent) {
-         array->root[found.rootindex] = asarraysfunode_genericobject(node) ;
+         array->root[found.rootindex] = fromgeneric_arraysfunode(node) ;
          goto DONE ;
       }
 
@@ -323,7 +323,7 @@ int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;e
 
       if (0 == prefix) {
          // prefix does match
-         found.parent->child[found.childindex] = asarraysfunode_genericobject(node) ;
+         found.parent->child[found.childindex] = fromgeneric_arraysfunode(node) ;
          ++ found.parent->used ;
          goto DONE ;
       }
@@ -354,7 +354,7 @@ int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;e
 
    arraysf_mwaybranch_t * new_branch = (arraysf_mwaybranch_t*) mblock.addr ;
 
-   init_arraysfmwaybranch(new_branch, shift, pos2, asunode_arraysfmwaybranch(branch), pos, asarraysfunode_genericobject(node)) ;
+   init_arraysfmwaybranch(new_branch, shift, pos2, asunode_arraysfmwaybranch(branch), pos, fromgeneric_arraysfunode(node)) ;
 
    if (parent) {
       parent->child[childindex] = asunode_arraysfmwaybranch(new_branch) ;

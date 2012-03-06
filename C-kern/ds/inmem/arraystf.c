@@ -32,6 +32,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/virtmemory.h"
@@ -39,6 +40,27 @@
 
 
 typedef struct arraystf_keyval_t       arraystf_keyval_t ;
+
+// section: arraystf_node_t
+
+// group: helper
+
+/* function: compiletime_assert
+ * Checks that <arraystf_node_t> can be castet into <conststring_t>. */
+static inline void compiletime_assert(void)
+{
+   conststring_t     cnststr ;
+   arraystf_node_t   node ;
+
+   // TEST conststring_t has only members: addr & size
+   static_assert(sizeof(node)   == sizeof(cnststr), "considered same number of members in conststring_t") ;
+
+   // TEST arraystf_node_t.addr & arraystf_node_t.size compatible with conststring_t.addr & conststring_t.size
+   static_assert(offsetof(arraystf_node_t, addr) == offsetof(conststring_t, addr), "arraystf_node_t compatible with conststring_t") ;
+   static_assert(sizeof(node.addr) == sizeof(cnststr.addr), "arraystf_node_t compatible with conststring_t") ;
+   static_assert(offsetof(arraystf_node_t, size) == offsetof(conststring_t, size), "arraystf_node_t compatible with conststring_t") ;
+   static_assert(sizeof(node.size) == sizeof(cnststr.size), "arraystf_node_t compatible with conststring_t") ;
+}
 
 /* struct: arraystf_keyval_t
  * Describes the value of a key string at a certain memory offset. */
@@ -346,7 +368,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
    int err ;
    arraystf_findresult_t   found ;
    arraystf_keyval_t       keydiff ;
-   arraystf_node_t         * nodekey   = asnode_arraystfunode(asarraystfunode_genericobject(node), offset_node) ;
+   arraystf_node_t         * nodekey   = asnode_arraystfunode(fromgeneric_arraystfunode(node), offset_node) ;
    typeof(node)            copied_node = 0 ;
    unsigned                shift ;
 
@@ -362,7 +384,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
       err = execcopy_typeadapteroit(typeadp, &copied_node, node) ;
       if (err) goto ABBRUCH ;
       node    = copied_node ;
-      nodekey = asnode_arraystfunode(asarraystfunode_genericobject(node), offset_node) ;
+      nodekey = asnode_arraystfunode(fromgeneric_arraystfunode(node), offset_node) ;
    }
 
    VALIDATE_INPARAM_TEST(0 == ((intptr_t)node&0x01), ABBRUCH, ) ;
@@ -391,7 +413,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
          init_arraystfkeyval(&keynode, keydiff.offset, nodekey) ;
          keydiff.data ^= keynode.data ;
 
-         init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, found.found_node, keynode.data, asarraystfunode_genericobject(node)) ;
+         init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, found.found_node, keynode.data, fromgeneric_arraystfunode(node)) ;
 
          if (found.parent) {
             found.parent->child[found.childindex] = asunode_arraystfmwaybranch(new_branch) ;
@@ -408,7 +430,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
    // simple case (parent is 0)
 
       if (! found.parent) {
-         array->root[found.rootindex] = asarraystfunode_genericobject(node) ;
+         array->root[found.rootindex] = fromgeneric_arraystfunode(node) ;
          goto DONE ;
       }
 
@@ -438,7 +460,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
       if (     found.parent->offset == keydiff.offset
             && found.parent->shift  == shift)  {
          // prefix does match
-         found.parent->child[found.childindex] = asarraystfunode_genericobject(node) ;
+         found.parent->child[found.childindex] = fromgeneric_arraystfunode(node) ;
          ++ found.parent->used ;
          goto DONE ;
       }
@@ -475,7 +497,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
    init_arraystfkeyval(&keynode, keydiff.offset, nodekey) ;
    keydiff.data ^= keynode.data ;
 
-   init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, asunode_arraystfmwaybranch(branch), keynode.data, asarraystfunode_genericobject(node)) ;
+   init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, asunode_arraystfmwaybranch(branch), keynode.data, fromgeneric_arraystfunode(node)) ;
 
    if (parent) {
       parent->child[childindex] = asunode_arraystfmwaybranch(new_branch) ;
@@ -734,6 +756,32 @@ ABBRUCH:
 // group: test
 
 #ifdef KONFIG_UNITTEST
+
+static int test_arraystfnode(void)
+{
+   arraystf_node_t node = arraystf_node_INIT(0,0) ;
+
+   // TEST arraystf_node_INIT(0,0)
+   TEST(0 == node.addr) ;
+   TEST(0 == node.size) ;
+
+   // TEST arraystf_node_INIT
+   for(unsigned i = 0; i < 1000; i += 100) {
+      node = (arraystf_node_t) arraystf_node_INIT(i+1,(const uint8_t*)i) ;
+      TEST(i   == (uintptr_t)node.addr) ;
+      TEST(i+1 == node.size) ;
+   }
+
+   // TEST asconststring_arraystfnode, fromconststring_arraystfnode
+   for(unsigned i = 0; i < 1000; i += 100) {
+      TEST((conststring_t*)i   == asconststring_arraystfnode((arraystf_node_t*)i)) ;
+      TEST((arraystf_node_t*)i == fromconststring_arraystfnode((conststring_t*)i)) ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
 
 static int test_arraystfkeyval(void)
 {
@@ -1520,6 +1568,7 @@ int unittest_ds_inmem_arraystf()
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage)) ;
 
+   if (test_arraystfnode())   goto ABBRUCH ;
    if (test_arraystfkeyval()) goto ABBRUCH ;
    if (test_initfree())       goto ABBRUCH ;
    if (test_error())          goto ABBRUCH ;
