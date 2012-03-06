@@ -26,25 +26,106 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/string/utf8.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
+// section: utf8
 
-const uint8_t * skipchar_utf8cstring(const uint8_t * utf8cstr)
+uint8_t g_utf8_bytesperchar[256] = {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,/*0 .. 127*/
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,/*128..191 not the first byte => error*/
+                                       2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                       2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,/*192..223*/
+                                       3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,/*224..239*/
+                                       4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 1, 1 /*240..247*/ /*248..251*/ /*252..253*/ /*254..255 error*/
+                                    } ;
+
+// section: conststring_t
+
+bool nextcharutf8_conststring(struct conststring_t * str, uint32_t * unicodechar)
 {
-   const uint8_t  * nextchar = utf8cstr ;
-   uint8_t        c          = *nextchar ;
+   uint8_t  firstbyte ;
+   uint8_t  size ;
+   uint32_t uchar ;
 
-   if (c) {
-      do {
-         ++ nextchar ;
-         c = *nextchar ;
-      } while(0x80 == (c&0xc0)) ;
+   if (!str->size) return false ;
+
+   firstbyte = *(str->addr++) ;
+   size      = g_utf8_bytesperchar[firstbyte] ;
+
+   if (size > str->size) {
+      size = (uint8_t)str->size ;
    }
 
-   return nextchar ;
+   str->size -= size ;
+
+   switch (size) {
+   default:
+   case 1:  *unicodechar = firstbyte ;
+            break ;
+   case 2:  uchar = (uint32_t) ((firstbyte & 0x1F) << 6) ;
+            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            break ;
+   case 3:  uchar = (uint32_t) ((firstbyte & 0xF) << 6) ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            break ;
+   case 4:  uchar = (uint32_t) ((firstbyte & 0x7) << 6) ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            break ;
+   case 5:  uchar = (uint32_t) ((firstbyte & 0x3) << 6) ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            break ;
+   case 6:  uchar = (uint32_t) ((firstbyte & 0x1) << 6) ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
+            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            break ;
+   }
+
+   return true ;
 }
+
+bool skipcharutf8_conststring(struct conststring_t * str)
+{
+   size_t   size ;
+   uint8_t  firstbyte ;
+
+   if (!str->size) return false ;
+
+   firstbyte = *str->addr ;
+   size      = g_utf8_bytesperchar[firstbyte] ;
+
+   if (size > str->size) {
+      size = (uint8_t)str->size ;
+   }
+
+   str->addr += size ;
+   str->size -= size ;
+
+   return true ;
+}
+
+
+// section: utf8cstring
 
 const uint8_t * findwcharnul_utf8cstring(const uint8_t * utf8cstr, wchar_t wchar)
 {
@@ -103,45 +184,148 @@ const uint8_t * findwcharnul_utf8cstring(const uint8_t * utf8cstr, wchar_t wchar
    return (const uint8_t*) pos ;
 }
 
-int cmpcaseascii_utf8cstring(const uint8_t * utf8cstr, const char * cstr, size_t size)
-{
-
-   for(size_t i = 0; i < size; ++ i) {
-      uint8_t c2 = ((const uint8_t*)cstr)[i] ;
-      uint8_t x  = (c2 ^ utf8cstr[i]) ;
-      if (x) {
-         static_assert(0x20 == ('a' - 'A'), ) ;
-         if (0x20 == x) {
-            x |= c2 ;
-            if ('a' <= x && x <= 'z') {
-               continue ;
-            }
-         }
-         return (int) utf8cstr[i] - c2 ;
-      }
-   }
-
-   return 0 ;
-}
-
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 
+static int test_utf8(void)
+{
+   const uint8_t  * const utf8str[4] = {  (const uint8_t *) "\U001fffff",
+                                          (const uint8_t *) "\U0000ffff",
+                                          (const uint8_t *) "\u07ff",
+                                          (const uint8_t *) "\x7f"   } ;
+
+   // TEST sizechar_utf8 of string
+   for(unsigned i = 0; i < nrelementsof(utf8str); ++i) {
+      TEST(4-i == sizechar_utf8(utf8str[i][0])) ;
+   }
+
+   // TEST sizechar_utf8 of all 256 first byte values
+   for(unsigned i = 0; i < 256; ++i) {
+      unsigned bpc = 1 ;
+      /* values between [128 .. 191] and [254..255] indicate an error (returned value is 1) */
+      if (  0xFD >= i
+         && 0xC0 <= i) {
+         unsigned i2 = i << 1 ;
+         while (i2 & 0x80) {
+            i2 <<= 1 ;
+            ++ bpc ;
+         }
+      }
+      TEST(bpc == sizechar_utf8(i)) ;
+      TEST(bpc == sizechar_utf8(256+i)) ;
+      TEST(bpc == sizechar_utf8(1024+i)) ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
+
+static int test_conststring(void)
+{
+   conststring_t  str ;
+   uint32_t       uchar ;
+   const uint8_t  * utf8str = (const uint8_t *) (
+                                 "\U001fffff"
+                                 "\U00010000"
+                                 "\U0000ffff"
+                                 "\U00000800"
+                                 "\u07ff"
+                                 "\xC2\x80"
+                                 "\x7f"
+                                 "\x00" ) ;
+
+   // TEST: nextcharutf8_conststring 4 byte
+   init_conststring(&str, 8+6+4+2, utf8str) ;
+   TEST(true == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(uchar    == 0x1fffff) ;
+   TEST(str.addr == utf8str + 4) ;
+   TEST(str.size == 20 - 4) ;
+   TEST(true == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(uchar    == 0x10000) ;
+   TEST(str.addr == utf8str + 8) ;
+   TEST(str.size == 20 - 8) ;
+
+   // TEST nextcharutf8_conststring 3 byte
+   TEST(true == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(uchar    == 0xffff) ;
+   TEST(str.addr == utf8str + 11) ;
+   TEST(str.size == 20 - 11) ;
+   TEST(true == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(uchar    == 0x800) ;
+   TEST(str.addr == utf8str + 14) ;
+   TEST(str.size == 20 - 14) ;
+
+   // TEST nextcharutf8_conststring two byte
+   TEST(true == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(uchar    == 0x7ff) ;
+   TEST(str.addr == utf8str + 16) ;
+   TEST(str.size == 20 - 16) ;
+   TEST(true == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(uchar    == 0x80) ;
+   TEST(str.addr == utf8str + 18) ;
+   TEST(str.size == 20 - 18) ;
+
+   // TEST nextcharutf8_conststring one byte
+   TEST(true == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(uchar    == 0x7F) ;
+   TEST(str.addr == utf8str + 19) ;
+   TEST(str.size == 20 - 19) ;
+   TEST(true == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(uchar    == 0x00) ;
+   TEST(str.addr == utf8str + 20) ;
+   TEST(str.size == 20 - 20) ;
+
+   // TEST nextcharutf8_conststring empty string
+   TEST(false == nextcharutf8_conststring(&str, &uchar)) ;
+
+   // TEST: skipcharutf8_conststring 4 byte
+   init_conststring(&str, 8+6+4+2, utf8str) ;
+   TEST(true == skipcharutf8_conststring(&str)) ;
+   TEST(str.addr == utf8str + 4) ;
+   TEST(str.size == 20 - 4) ;
+   TEST(true == skipcharutf8_conststring(&str)) ;
+   TEST(str.addr == utf8str + 8) ;
+   TEST(str.size == 20 - 8) ;
+
+   // TEST skipcharutf8_conststring 3 byte
+   TEST(true == skipcharutf8_conststring(&str)) ;
+   TEST(str.addr == utf8str + 11) ;
+   TEST(str.size == 20 - 11) ;
+   TEST(true == skipcharutf8_conststring(&str)) ;
+   TEST(str.addr == utf8str + 14) ;
+   TEST(str.size == 20 - 14) ;
+
+   // TEST skipcharutf8_conststring two byte
+   TEST(true == skipcharutf8_conststring(&str)) ;
+   TEST(str.addr == utf8str + 16) ;
+   TEST(str.size == 20 - 16) ;
+   TEST(true == skipcharutf8_conststring(&str)) ;
+   TEST(str.addr == utf8str + 18) ;
+   TEST(str.size == 20 - 18) ;
+
+   // TEST skipcharutf8_conststring one byte
+   TEST(true == skipcharutf8_conststring(&str)) ;
+   TEST(str.addr == utf8str + 19) ;
+   TEST(str.size == 20 - 19) ;
+   TEST(true == skipcharutf8_conststring(&str)) ;
+   TEST(str.addr == utf8str + 20) ;
+   TEST(str.size == 20 - 20) ;
+
+   // TEST skipcharutf8_conststring empty string
+   TEST(false == skipcharutf8_conststring(&str)) ;
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
+
 static int test_utf8cstring(void)
 {
    const uint8_t  * const utf8cstr = (const uint8_t *) "\U001fffff abcd\U0000ffff abcd\u07ff abcd\x7f abcd" ;
    const uint8_t  * cstr ;
-   size_t         i ;
-
-   // TEST skipchar_utf8cstring
-   for(i = 0, cstr = utf8cstr; *cstr; ++ i) {
-      cstr = skipchar_utf8cstring(cstr) ;
-      TEST(0 == strncmp( (const char*)cstr, " abcd", 5)) ;
-      cstr += 5 ;
-   }
-   TEST(4 == i);
 
    // TEST findwcharnul_utf8cstring (find char)
    cstr = findwcharnul_utf8cstring(utf8cstr, L'\U001fffff') ;
@@ -165,27 +349,6 @@ static int test_utf8cstring(void)
    cstr = utf8cstr + strlen((const char*)utf8cstr) ;
    TEST(cstr == findwcharnul_utf8cstring(utf8cstr, L'\U0fffffff')) ;
 
-   // TEST cmpcaseascii_utf8cstring (equal: all ascii alphabet. chars)
-   const char * utf8cstr2 = "\U001fffff ABCD\U0000ffff ABCD\u07ff abcd\x7f ABCD" ;
-   TEST(strlen((const char*)utf8cstr) == strlen(utf8cstr2)) ;
-   TEST(0 == cmpcaseascii_utf8cstring(utf8cstr, utf8cstr2, strlen(utf8cstr2))) ;
-   utf8cstr2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@^¬^°üöä" ;
-   TEST(0 == cmpcaseascii_utf8cstring((const uint8_t*)"ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@^¬^°üöä", utf8cstr2, strlen(utf8cstr2))) ;
-   TEST(0 == cmpcaseascii_utf8cstring((const uint8_t*)"abcdefghijklmnopqrstuvwxyz1234567890!@^¬^°üöä", utf8cstr2, strlen(utf8cstr2))) ;
-   TEST(0 == cmpcaseascii_utf8cstring((const uint8_t*)utf8cstr2, "abcdefghijklmnopqrstuvwxyz1234567890!@^¬^°üöä", strlen(utf8cstr2))) ;
-
-   // TEST cmpcaseascii_utf8cstring (öäü: German Umlaut not equal)
-   utf8cstr2 = "Aüöä" ;
-   TEST(0 != cmpcaseascii_utf8cstring((const uint8_t*)utf8cstr2, "AÜöä", strlen(utf8cstr2))) ;
-   TEST(0 != cmpcaseascii_utf8cstring((const uint8_t*)utf8cstr2, "AüÖä", strlen(utf8cstr2))) ;
-   TEST(0 != cmpcaseascii_utf8cstring((const uint8_t*)utf8cstr2, "AüöÄ", strlen(utf8cstr2))) ;
-
-   // TEST cmpcaseascii_utf8cstring (unequal)
-   TEST(-1 == cmpcaseascii_utf8cstring((const uint8_t*)"1", "2", 1)) ;
-   TEST(+1 == cmpcaseascii_utf8cstring((const uint8_t*)"2", "1", 1)) ;
-   TEST(-2 == cmpcaseascii_utf8cstring((const uint8_t*)"1", "3", 1)) ;
-   TEST(+2 == cmpcaseascii_utf8cstring((const uint8_t*)"3", "1", 1)) ;
-
    return 0 ;
 ABBRUCH:
    return EINVAL ;
@@ -197,7 +360,9 @@ int unittest_string_utf8()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_utf8cstring())  goto ABBRUCH ;
+   if (test_utf8())           goto ABBRUCH ;
+   if (test_conststring())    goto ABBRUCH ;
+   if (test_utf8cstring())    goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

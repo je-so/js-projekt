@@ -30,10 +30,35 @@
 #include "C-kern/api/test.h"
 #endif
 
+// section: conststring_t
+
+// group: compare
+
+bool isequalasciicase_conststring(const conststring_t * str, const conststring_t * str2)
+{
+   if (str->size != str2->size) return false ;
+
+   for(size_t i = str->size; (i --);) {
+      uint8_t c1 = str->addr[i] ;
+      uint8_t c2 = str2->addr[i] ;
+      uint8_t x  = c1 ^ c2 ;
+      if (x) {
+         static_assert(0x20 == ('a' - 'A'), ) ;
+         if (0x20 == x) {
+            x |= c2 ;
+            if ('a' <= x && x <= 'z') continue ;
+         }
+         return false ;
+      }
+   }
+
+   return true ;
+}
+
 
 // section: string_t
 
-// group: implementation
+// group: lifetime
 
 void init_string(/*out*/string_t * str, size_t size, uint8_t string[size])
 {
@@ -76,7 +101,7 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_conststring(void)
+static int test_initfreeconststr(void)
 {
    conststring_t  str ;
    const uint8_t  test[256] ;
@@ -123,7 +148,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int test_string(void)
+static int test_initfreestr(void)
 {
    string_t    str ;
    uint8_t     test[256] ;
@@ -193,14 +218,86 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static int test_compare(void)
+{
+   conststring_t  str1 ;
+   conststring_t  str2 ;
+   const char     * utf8str1 ;
+   const char     * utf8str2 ;
+
+   // TEST isequalasciicase_conststring simple utf8 string
+   utf8str1 = "\U001fffff abcd\U0000ffff abcd\u07ff abcd\x7f abcd" ;
+   utf8str2 = "\U001fffff ABCD\U0000ffff ABCD\u07ff abcd\x7f ABCD" ;
+   init_conststring(&str1, strlen(utf8str1), (const uint8_t*)utf8str1) ;
+   init_conststring(&str2, strlen(utf8str2), (const uint8_t*)utf8str2) ;
+   TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+
+   // TEST isequalasciicase_conststring with all characters from A-Z
+   utf8str1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@^¬^°üöä" ;
+   utf8str2 = "abcdefghijklmnopqrstuvwxyz1234567890!@^¬^°üöä" ;
+   init_conststring(&str1, strlen(utf8str1), (const uint8_t*)utf8str1) ;
+   init_conststring(&str2, strlen(utf8str2), (const uint8_t*)utf8str2) ;
+   TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+   TEST(true == isequalasciicase_conststring(&str1, &str1)) ;
+   TEST(true == isequalasciicase_conststring(&str2, &str2)) ;
+
+   // TEST isequalasciicase_conststring inequality for all other 256 characters
+   uint8_t buffer1[256] ;
+   uint8_t buffer2[256] ;
+   for(unsigned i = 0; i < sizeof(buffer1); ++i) {
+      buffer1[i] = (uint8_t)i ;
+      buffer2[i] = (uint8_t)i ;
+   }
+   init_conststring(&str1, sizeof(buffer1), buffer1) ;
+   init_conststring(&str2, sizeof(buffer2), buffer2) ;
+   TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+   for(unsigned i = 0; i < sizeof(buffer1); ++i) {
+      bool isEqual = (  ('a' <= i && i <= 'z')
+                     || ('A' <= i && i <= 'Z')) ;
+      buffer1[i] ^= 0x20 ; // change case (works only for a-z or A-Z)
+      TEST(isEqual == isequalasciicase_conststring(&str1, &str2)) ;
+      buffer1[i] = (uint8_t)i ;
+      buffer2[i] ^= 0x20 ; // change case (works only for a-z or A-Z)
+      TEST(isEqual == isequalasciicase_conststring(&str1, &str2)) ;
+      buffer2[i] = (uint8_t)i ;
+   }
+
+   // TEST isequalasciicase_conststring inequality for size
+   for(unsigned i = 0; i < sizeof(buffer1); ++i) {
+      TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+      str1.size = i ;
+      TEST(false == isequalasciicase_conststring(&str1, &str2)) ;
+      str1.size = sizeof(buffer1) ;
+      str2.size = i ;
+      TEST(false == isequalasciicase_conststring(&str1, &str2)) ;
+      str2.size = sizeof(buffer2) ;
+   }
+
+   // TEST isequalasciicase_conststring inequality for one differing char
+   for(unsigned i = 0; i < sizeof(buffer1); ++i) {
+      TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+      buffer1[i] = (uint8_t)(i+1) ;
+      TEST(false == isequalasciicase_conststring(&str1, &str2)) ;
+      buffer1[i] = (uint8_t)i ;
+      buffer2[i] = (uint8_t)(i+1) ;
+      TEST(false == isequalasciicase_conststring(&str1, &str2)) ;
+      buffer2[i] = (uint8_t)i ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
+
 int unittest_string()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_conststring())    goto ABBRUCH ;
-   if (test_string())         goto ABBRUCH ;
+   if (test_initfreeconststr())  goto ABBRUCH ;
+   if (test_initfreestr())       goto ABBRUCH ;
+   if (test_compare())           goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

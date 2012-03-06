@@ -294,6 +294,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
    // io/ip
    RUN(unittest_io_ipaddr) ;
    RUN(unittest_io_ipsocket) ;
+   // io/reader
+   RUN(unittest_io_reader_utf8reader) ;
    // sync unittest
    RUN(unittest_platform_sync_mutex) ;
    RUN(unittest_platform_sync_semaphore) ;

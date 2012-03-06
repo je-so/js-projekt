@@ -1,0 +1,48 @@
+title: Reader-Description
+
+What readers do:
+
+Readers in general de-linearize a linear text representation.
+
+They transform it into a more structured representation.
+
+
+group: One Step Reader
+
+This kind of reader transforms a text file into a more structured memory representation
+in a single loop. You can think about reading an image file where the read RGBA pixel buffer
+is represented as a photo to the user.
+
+>
+>  ───────────   data   ╭──────────────╮  ◂ context information ╭───────────────────────╮
+>   text file  ────────▸│ A_reader_t   ┼────────────────────────┼ memory representation │
+>  ───────────          ├──────────────┤   transformed data ▸   ╰───────────────────────╯
+>                       │ buffer       │
+>                       ╰──────────────╯
+>
+
+group: Streaming Reader
+
+This kind of reader transforms a text file step by step. It is possible that the reader
+loads the file in one step in an internal buffer to speed up the stream of reading requests.
+
+The reader can also remember actual context information which depends ine the current reading position.
+
+An example is a text reader which stores the line and column number of the last read text character.
+This kind of reader can also transform characters from one encoding into another.
+
+>
+>  ───────────   data   ╭──────────────╮     ◂ read next    ╭───────────────────╮
+>   text file  ────────▸│ A_reader_t   ┼────────────────────┼ another component │
+>  ───────────          ├──────────────┤ transformed data ▸ ╰───────────────────╯
+>                       │ buffer       │ & current context
+>                       ╰──────┬───────╯
+>                      change▾ │ ▴context
+>                     ╭────────┴─────────╮
+>                     │ currrent context │
+>                     ╰──────────────────╯
+>
+
+
+
+

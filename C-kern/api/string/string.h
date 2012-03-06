@@ -79,6 +79,13 @@ int initfl_conststring(/*out*/conststring_t * str, const uint8_t * first, const 
  * See <initse_string>. */
 int initse_conststring(/*out*/conststring_t * str, const uint8_t * start, const uint8_t * end) ;
 
+// group: compare
+
+/* function: isequalasciicase_conststring
+ * Returns true if two strings compare equal under in a case insensitive way.
+ * This functions assumes only 'A'-'Z' and 'a'-'z' as case sensitive characters. */
+bool isequalasciicase_conststring(const conststring_t * str, const conststring_t * str2) ;
+
 
 /* struct: string_t
  * Points to memory which contains a string.

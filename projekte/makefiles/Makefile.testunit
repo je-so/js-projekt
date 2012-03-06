@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Mar.06  15:35:35
+GenerationDate  := 2012.Mar.06  15:42:09
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -109,6 +109,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
@@ -167,6 +168,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
@@ -298,6 +300,9 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
@@ -466,6 +471,9 @@ $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c

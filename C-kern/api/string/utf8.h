@@ -41,6 +41,13 @@
 #ifndef CKERN_STRING_UTF8_HEADER
 #define CKERN_STRING_UTF8_HEADER
 
+// forward
+struct conststring_t ;
+
+/* variable: g_utf8_bytesperchar
+ * Returns the number of bytes from the first byte of an utf8 char. */
+extern uint8_t g_utf8_bytesperchar[256] ;
+
 
 // section: Functions
 
@@ -53,18 +60,40 @@ int unittest_string_utf8(void) ;
 #endif
 
 
-// section: utf8cstring
+// section: utf8
 
-/* function: cmpcaseascii_utf8cstring
- * Returns result of case insensitive string comparison.
- * This functions assumes only 'A'-'Z' and 'a'-'z' as case sensitive characters. */
-int cmpcaseascii_utf8cstring(const uint8_t * utf8cstr, const char * cstr, size_t size) ;
+/* function: sizechar_utf8
+ * Returns the number of bytes of the next utf8 encoded character.
+ * The number of bytes can be calculated from the first byte of the next character.
+ * A return value between 1 and 4 is OK bigger values (5 ... 7) are per definition wrong.
+ * in case of an illegal first byte a value of 1 returned so that it can be skipped. */
+unsigned sizechar_utf8(const uint8_t firstbyte) ;
 
-/* function: skipchar_utf8cstring
- * Returns pointer to next character after utf8cstr.
+
+// section: conststring_t
+
+/* function: nextcharutf8_conststring
+ * Reads next utf-8 encoded character from *str*.
+ * The character is returned as unicode character (codepoint)
+ * which is the same as wchar_t on Linux or Unix.
  * This function assumes characters are encoded correctly.
- * If utf8cstr points to the end of string utf8cstr is returned. */
-const uint8_t * skipchar_utf8cstring(const uint8_t * utf8cstr) ;
+ *
+ * Returns:
+ * true  - Memory pointer is moved to next character.
+ * false - String is empty and memory pointer is not changed. */
+bool nextcharutf8_conststring(struct conststring_t * str, uint32_t * unicodechar) ;
+
+/* function: skipcharutf8_conststring
+ * Moves internal *str* pointer to next character.
+ * This function assumes characters are encoded correctly.
+ *
+ * Returns:
+ * true  - Memory pointer is moved to next character.
+ * false - String is empty and memory pointer is not changed. */
+bool skipcharutf8_conststring(struct conststring_t * str) ;
+
+
+// section: utf8cstring
 
 /* function: findwcharnul_utf8cstring
  * Finds character and returns position or end of string.
@@ -74,5 +103,11 @@ const uint8_t * skipchar_utf8cstring(const uint8_t * utf8cstr) ;
 const uint8_t * findwcharnul_utf8cstring(const uint8_t * utf8cstr, wchar_t wchar) ;
 
 
-#endif
+// section: inline implementation
 
+/* function: sizechar_utf8
+ * Implements <utf8.sizechar_utf8>. */
+#define sizechar_utf8(firstbyte)       (g_utf8_bytesperchar[(uint8_t)(firstbyte)])
+
+
+#endif
