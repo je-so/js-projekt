@@ -123,7 +123,7 @@ static int test_initonce(void)
    valuecache_t   valuecache = valuecache_INIT_FREEABLE ;
    valuecache_t * cache      = 0 ;
    valuecache_t * cache2     = 0 ;
-   valuecache_t * old        = valuecache_context() ;
+   valuecache_t * old        = valuecache_maincontext() ;
 
    // TEST initonce, double freeonce
    TEST(0 == initonce_valuecache(&cache)) ;
@@ -151,12 +151,12 @@ static int test_initonce(void)
    TEST(0 == cache) ;
    TEST(0 == cache2) ;
 
-   // TEST valuecache_context()
+   // TEST valuecache_maincontext()
    TEST(old) ;
-   process_context().valuecache = 0 ;
-   TEST(valuecache_context() == 0) ;
-   process_context().valuecache = old ;
-   TEST(valuecache_context() == old) ;
+   process_maincontext().valuecache = 0 ;
+   TEST(valuecache_maincontext() == 0) ;
+   process_maincontext().valuecache = old ;
+   TEST(valuecache_maincontext() == old) ;
 
    // TEST pagesize_vm
    TEST(pagesize_vm() == sys_pagesize_vm()) ;
@@ -171,7 +171,7 @@ static int test_initonce(void)
 
    return 0 ;
 ABBRUCH:
-   process_context().valuecache = old ;
+   process_maincontext().valuecache = old ;
    old->pagesize_vm = sys_pagesize_vm() ;
    if (     cache
          && cache != &valuecache) {

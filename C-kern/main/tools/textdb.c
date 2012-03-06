@@ -1523,7 +1523,7 @@ int main(int argc, const char * argv[])
    mmfile_t input_file = mmfile_INIT_FREEABLE ;
    int      exclflag   = O_EXCL ;
 
-   err = initmain_context(context_DEFAULT) ;
+   err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
    if (err) goto ABBRUCH ;
 
    err = process_arguments(argc, argv) ;
@@ -1606,7 +1606,7 @@ int main(int argc, const char * argv[])
    g_depfilename = 0 ;
 
    free_mmfile(&input_file) ;
-   freemain_context() ;
+   free_maincontext() ;
    free_depfilenamewritten() ;
    return 0 ;
 PRINT_USAGE:
@@ -1628,7 +1628,7 @@ ABBRUCH:
       free(g_depfilename) ;
    }
    free_mmfile(&input_file) ;
-   freemain_context() ;
+   free_maincontext() ;
    free_depfilenamewritten() ;
    return 1 ;
 }

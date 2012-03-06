@@ -192,9 +192,9 @@ int run_unittest(void)
 {
    unsigned    err_count   = 0 ;
    unsigned    total_count = 0 ;
-   const context_e test_context_type[2] = {
-       context_DEFAULT
-      ,context_DEFAULT
+   const maincontext_e test_context_type[2] = {
+       maincontext_DEFAULT
+      ,maincontext_DEFAULT
    } ;
 
    if (0 == checkpath_directory(0, "error.log")) {
@@ -203,7 +203,7 @@ int run_unittest(void)
 
    // before init
    ++ total_count ;
-   if (unittest_context()) {
+   if (unittest_context_maincontext()) {
       ++ err_count ;
       LOGC_PRINTF(TEST, "unittest_context FAILED\n") ;
       goto ABBRUCH ;
@@ -212,7 +212,7 @@ int run_unittest(void)
 for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) {
 
    // init
-   if (initmain_context(test_context_type[type_nr])) {
+   if (init_maincontext(test_context_type[type_nr], 0, 0)) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
       LOGC_PRINTF(TEST, "%s\n", "Abort reason: initmain_context failed" ) ;
       goto ABBRUCH ;
@@ -224,7 +224,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
    // assert(0) ;
 
 //{ context unittest
-   RUN(unittest_context) ;
+   RUN(unittest_context_maincontext) ;
    RUN(unittest_context_processcontext) ;
    RUN(unittest_context_threadcontext) ;
 //}
@@ -329,7 +329,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
 
    LOG_CLEARBUFFER() ;
 
-   if (freemain_context()) {
+   if (free_maincontext()) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
       LOGC_PRINTF(TEST, "%s\n", "Abort reason: freemain_context failed" ) ;
       goto ABBRUCH ;

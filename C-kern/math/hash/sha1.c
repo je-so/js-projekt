@@ -64,7 +64,7 @@ static void update_sha1hash(sha1_hash_t * sha1, const uint8_t block[64])
    d = sha1->h[3] ;
    e = sha1->h[4] ;
 
-   if ((intptr_t)block & 0x3) {
+   if ((uintptr_t)block & 0x3) {
 
 #define read_value(i)                     \
       value  = *(next++) ; value <<= 8 ;  \
@@ -308,8 +308,8 @@ static int test_unevenaddr(sha1_hashvalue_t * sha1sum, const char * string)
 {
    char        buffer[1024] ;
    sha1_hash_t sha1 ;
-   char        * even   = (char*) (((intptr_t)buffer + 4) & ~(intptr_t)0x03) ;
-   char        * uneven = (char*) ((intptr_t)buffer | (intptr_t)0x03) ;
+   char        * even   = (char*) (((uintptr_t)buffer + 4) & ~(uintptr_t)0x03) ;
+   char        * uneven = (char*) ((uintptr_t)buffer | (uintptr_t)0x03) ;
    size_t      len      = strlen(string) ;
 
    // TEST as single byte

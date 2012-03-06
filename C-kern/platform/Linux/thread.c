@@ -332,7 +332,7 @@ static void * startpoint_thread(thread_startargument_t * startarg)
 
    return (void*)0 ;
 ABBRUCH:
-   abort_context(err) ;
+   abort_maincontext(err) ;
    return (void*)err ;
 }
 
@@ -601,7 +601,7 @@ int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, voi
    return 0 ;
 ABBRUCH:
    if (err2) {
-      abort_context(err2) ;
+      abort_maincontext(err2) ;
    }
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr) ;
@@ -670,7 +670,7 @@ void suspend_thread()
    if (-1 == err) {
       err = errno ;
       LOG_SYSERR("sigwaitinfo", err) ;
-      abort_context(err) ;
+      abort_maincontext(err) ;
    }
 }
 
@@ -681,7 +681,7 @@ void resume_thread(thread_t * threadobj)
    err = pthread_kill(threadobj->sys_thread, SIGINT) ;
    if (err) {
       LOG_SYSERR("pthread_kill", err) ;
-      abort_context(err) ;
+      abort_maincontext(err) ;
    }
 }
 
@@ -902,8 +902,8 @@ static int test_thread_init(void)
 {
    thread_t * thread = 0 ;
 
-   // TEST sys_thread_context
-   TEST(&sys_thread_context() == &gt_thread_context) ;
+   // TEST syscontext_thread
+   TEST(&syscontext_thread() == &gt_thread_context) ;
 
    // TEST initonce => self_thread()
    TEST(&gt_thread_self == self_thread()) ;

@@ -16,49 +16,49 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/context.h
+   file: C-kern/api/maincontext.h
     Header file of <MainContext>.
 
-   file: C-kern/context/context.c
+   file: C-kern/context/maincontext.c
     Implementation file <MainContext impl>.
 
    file: C-kern/api/platform/Linux/syscontext.h
     Linux specific configuration file <LinuxSystemContext>.
 */
-#ifndef CKERN_API_CONTEXT_HEADER
-#define CKERN_API_CONTEXT_HEADER
+#ifndef CKERN_API_MAINCONTEXT_HEADER
+#define CKERN_API_MAINCONTEXT_HEADER
 
 #include STR(C-kern/api/platform/KONFIG_OS/syscontext.h)
 #include "C-kern/api/context/threadcontext.h"
 #include "C-kern/api/context/processcontext.h"
 
-/* typedef: struct context_t
- * Export <context_t>. */
-typedef struct context_t               context_t ;
+/* typedef: struct maincontext_t
+ * Export <maincontext_t>. */
+typedef struct maincontext_t           maincontext_t ;
 
-/* enums: contextconfig_e
+/* enums: maincontext_e
  * Used to switch between different implementations.
  *
- * context_STATIC  - An implementation which is configured by a static initializer.
- *                   Only the log service is supported.
- *                   This configuration is default at program startup and can not be
- *                   set with a call to <initmain_context>.
- * context_DEFAULT - Default single threading implementation.
- *                   Services in <threadcontext_t> can not be shared between threads.
+ * maincontext_STATIC -  An implementation which is configured by a static initializer.
+ *                       Only the log service is supported.
+ *                       This configuration is default at program startup and can not be
+ *                       set with a call to <init_maincontext>.
+ * maincontext_DEFAULT - Default single threading implementation.
+ *                       Services in <threadcontext_t> can not be shared between threads.
  *
  * */
-enum context_e {
-    context_STATIC  = 0
-   ,context_DEFAULT = 1
+enum maincontext_e {
+    maincontext_STATIC  = 0
+   ,maincontext_DEFAULT = 1
 } ;
 
-typedef enum context_e                 context_e ;
+typedef enum maincontext_e             maincontext_e ;
 
-/* variable: g_context
+/* variable: g_maincontext
  * Global variable which describes the main context for the current process.
  * The variable is located in process global storage.
- * So every thread references the same <context_t>. */
-extern struct context_t                g_context ;
+ * So every thread references the same <maincontext_t>. */
+extern struct maincontext_t            g_maincontext ;
 
 
 // section: Functions
@@ -66,35 +66,37 @@ extern struct context_t                g_context ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_context
+/* function: unittest_context_maincontext
  * Test initialization process succeeds and global variables are set correctly. */
-int unittest_context(void) ;
+int unittest_context_maincontext(void) ;
 #endif
 
 
-/* struct: context_t
+/* struct: maincontext_t
  * Defines the main top level context of the whole process.
  * It contains a single copy of <processcontext_t> and in case
  * the thread subsystem is not needed also a copy of <threadcontext_t>.
  * Allows access to process & thread specific top level context.
  *
  * TODO: implement SIGTERM support for shutting down the system in an ordered way
- *       (=> abort handler ? => abort handler calls freemain_context ?)
+ *       (=> abort handler ? => abort handler calls free_maincontext ?)
  *
  * */
-struct context_t {
+struct maincontext_t {
    processcontext_t  pcontext ;
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
    threadcontext_t   tcontext ;
 #endif
 #undef THREAD
-   context_e         type ;
+   maincontext_e     type ;
+   int               argc ;
+   const char        ** argv ;
 } ;
 
 // group: lifetime
 
-/* function: initmain_context
+/* function: init_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
  * EALREADY is returned if it is called more than once.
  * The only service which works without calling this function is logging.
@@ -105,11 +107,9 @@ struct context_t {
  * "C-kern/resource/text.db/initprocess" and "C-kern/resource/text.db/initthread".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
-int initmain_context(context_e context_type) ;
+int init_maincontext(maincontext_e context_type, int argc, const char ** argv) ;
 
-// int initmain2_context(context_e context_type, int argc, const char ** argv) ;
-
-/* function: freemain_context
+/* function: free_maincontext
  * Frees global context. Must be called as last function from the main
  * thread of the whole system.
  *
@@ -121,93 +121,102 @@ int initmain_context(context_e context_type) ;
  * "C-kern/resource/text.db/initthread" and "C-kern/resource/text.db/initprocess".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
-int freemain_context(void) ;
+int free_maincontext(void) ;
 
-/* function: abort_context
+/* function: abort_maincontext
  * Exits the whole process in a controlled manner.
  * Tries to free as many external resources as possible and
  * aborts all transactions. Before exit a LOG_ERRTEXT(ABORT_FATAL(err)) is done. */
-void abort_context(int err) ;
+void abort_maincontext(int err) ;
 
-/* function: assertfail_context
+/* function: assertfail_maincontext
  * Exits the whole process in a controlled manner.
- * writes »Assertion failed« to log and calls <abort_context>.
+ * writes »Assertion failed« to log and calls <abort_maincontext>.
  *
- * Do not call <assertfail_context> directly use the <assert> macro instead. */
-void assertfail_context(const char * condition, const char * file, unsigned line, const char * funcname) ;
+ * Do not call <assertfail_maincontext> directly use the <assert> macro instead. */
+void assertfail_maincontext(const char * condition, const char * file, unsigned line, const char * funcname) ;
 
 // group: query
 
-/* function: process_context
+/* function: process_maincontext
  * Returns <processcontext_t> of the current process. */
-/*ref*/processcontext_t    process_context(void) ;
+/*ref*/processcontext_t    process_maincontext(void) ;
 
-/* function: thread_context
+/* function: thread_maincontext
  * Returns <threadcontext_t> of the current thread. */
-/*ref*/threadcontext_t     thread_context(void) ;
+/*ref*/threadcontext_t     thread_maincontext(void) ;
 
-/* function: type_context
- * Returns type <context_e> of current <context_t>. */
-context_e                  type_context(void) ;
+/* function: type_maincontext
+ * Returns type <context_e> of current <maincontext_t>. */
+maincontext_e              type_maincontext(void) ;
+
+/* function: progname_maincontext
+ * Returns the program name of the running process.
+ * The returned value is the argv[0] delivered as parameter in <initmain_maincontext>. */
+const char *               progname_maincontext(void) ;
 
 // group: query-service
 
-/* function: log_context
+/* function: log_maincontext
  * Returns log service <log_oit> (see <logwritermt_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-/*ref*/log_oit             log_context(void) ;
+/*ref*/log_oit             log_maincontext(void) ;
 
-/* function: mmtransient_context
+/* function: mmtransient_maincontext
  * Returns object interface <mm_oit> for access of memory manager. */
-/*ref*/mm_oit              mmtransient_context(void) ;
+/*ref*/mm_oit              mmtransient_maincontext(void) ;
 
-/* function: objectcache_context
+/* function: objectcache_maincontext
  * Returns object interface <objectcache_oit> for access of cached singleton objects. */
-/*ref*/objectcache_oit     objectcache_context(void) ;
+/*ref*/objectcache_oit     objectcache_maincontext(void) ;
 
-/* function: valuecache_context
+/* function: valuecache_maincontext
  * Returns <valuecache_t> holding precomputed values.
  * Every value is cached as a single copy for the whole process. */
-struct valuecache_t *      valuecache_context(void) ;
+struct valuecache_t *      valuecache_maincontext(void) ;
 
 
 // section: inline implementations
 
-/* define: log_context
- * Inline implementation of <context_t.log_context>.
+/* define: log_maincontext
+ * Inline implementation of <maincontext_t.log_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define log_context()                  (thread_context().ilog)
+#define log_maincontext()              (thread_maincontext().ilog)
 
-/* define: mmtransient_context
- * Inline implementation of <context_t.mmtransient_context>.
+/* define: mmtransient_maincontext
+ * Inline implementation of <maincontext_t.mmtransient_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define mmtransient_context()          (thread_context().mm_transient)
+#define mmtransient_maincontext()      (thread_maincontext().mm_transient)
 
-/* define: objectcache_context
- * Inline implementation of <context_t.objectcache_context>.
+/* define: objectcache_maincontext
+ * Inline implementation of <maincontext_t.objectcache_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define objectcache_context()          (thread_context().objectcache)
+#define objectcache_maincontext()      (thread_maincontext().objectcache)
 
-/* define: process_context
- * Inline implementation of <context_t.process_context>. */
-#define process_context()              (g_context.pcontext)
+/* define: process_maincontext
+ * Inline implementation of <maincontext_t.process_maincontext>. */
+#define process_maincontext()          (g_maincontext.pcontext)
+
+/* define: progname_maincontext
+ * Inline implementation of <maincontext_t.progname_maincontext>. */
+#define progname_maincontext()         (g_maincontext.argv[0])
 
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
-#define thread_context()               (g_context.tcontext)
+#define thread_maincontext()           (g_maincontext.tcontext)
 #else
-#define thread_context()               sys_thread_context()
+#define thread_maincontext()           syscontext_thread()
 #endif
 #undef THREAD
 
-/* define: type_context
- * Inline implementation of <context_t.type_context>. */
-#define type_context()                 (g_context.type)
+/* define: type_maincontext
+ * Inline implementation of <maincontext_t.type_maincontext>. */
+#define type_maincontext()             (g_maincontext.type)
 
-/* define: valuecache_context
- * Inline implementation of <context_t.valuecache_context>.
+/* define: valuecache_maincontext
+ * Inline implementation of <maincontext_t.valuecache_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define valuecache_context()           (g_context.pcontext.valuecache)
+#define valuecache_maincontext()       (g_maincontext.pcontext.valuecache)
 
 #endif

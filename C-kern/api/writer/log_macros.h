@@ -45,19 +45,19 @@ typedef enum log_channel_e       log_channel_e ;
 
 /* define: LOG_GETBUFFER
  * Returns C-string of buffered log and its length. See also <getbuffer_logwriter>.
- * > #define LOG_GETBUFFER(buffer, size) getbuffer_logwritermt(log_context(), buffer, size) */
+ * > #define LOG_GETBUFFER(buffer, size) getbuffer_logwritermt(log_maincontext(), buffer, size) */
 #define LOG_GETBUFFER(/*out char ** */buffer, /*out size_t * */size) \
-   log_context().functable->getbuffer(log_context().object, buffer, size)
+   log_maincontext().functable->getbuffer(log_maincontext().object, buffer, size)
 
 // group: change
 
 /* define: LOG_CLEARBUFFER
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>. */
-#define  LOG_CLEARBUFFER()          log_context().functable->clearbuffer(log_context().object)
+#define  LOG_CLEARBUFFER()          log_maincontext().functable->clearbuffer(log_maincontext().object)
 
 /* define: LOG_FLUSHBUFFER
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>. */
-#define  LOG_FLUSHBUFFER()          log_context().functable->flushbuffer(log_context().object)
+#define  LOG_FLUSHBUFFER()          log_maincontext().functable->flushbuffer(log_maincontext().object)
 
 // group: write-text
 
@@ -67,7 +67,7 @@ typedef enum log_channel_e       log_channel_e ;
  * See also <log_channel_e>.
  *
  * Supported values:
- * ERR  - Writes error log to current <log_context>.
+ * ERR  - Writes error log to current <log_maincontext>.
  * TEST - Writes to STDOUT channel used for test output when (unit-) tests are run.
  * */
 
@@ -82,17 +82,17 @@ typedef enum log_channel_e       log_channel_e ;
  *
  * Example:
  * > int i ; LOGC_PRINTF(ERR, "%d", i) */
-#define LOGC_PRINTF(LOGCHANNEL, ... )              \
-   do {                                            \
-      switch(CONCAT(log_channel_,LOGCHANNEL)) {    \
-      case log_channel_ERR:                        \
-         log_context().functable->printf(          \
-            log_context().object, __VA_ARGS__ ) ;  \
-         break ;                                   \
-      case log_channel_TEST:                       \
-         printf( __VA_ARGS__ ) ;                   \
-         break ;                                   \
-      }                                            \
+#define LOGC_PRINTF(LOGCHANNEL, ... )                 \
+   do {                                               \
+      switch(CONCAT(log_channel_,LOGCHANNEL)) {       \
+      case log_channel_ERR:                           \
+         log_maincontext().functable->printf(         \
+            log_maincontext().object, __VA_ARGS__ ) ; \
+         break ;                                      \
+      case log_channel_TEST:                          \
+         printf( __VA_ARGS__ ) ;                      \
+         break ;                                      \
+      }                                               \
    } while(0)
 
 /* define: LOGC_TEXTRES

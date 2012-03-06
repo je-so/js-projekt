@@ -48,7 +48,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    err = nropen_filedescr(&fds) ;
    if (err) goto ABBRUCH ;
 
-   sizeallocated_mmtransient = mmtransient_context().functable->sizeallocated(mmtransient_context().object) ;
+   sizeallocated_mmtransient = mmtransient_maincontext().functable->sizeallocated(mmtransient_maincontext().object) ;
 
    err = allocatedsize_malloc(&allocated) ;
    if (err) goto ABBRUCH ;

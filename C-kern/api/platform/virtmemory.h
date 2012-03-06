@@ -249,7 +249,7 @@ extern const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
 /* define: pagesize_vm
  * Uses cached value from <valuecache_context>. */
 #define pagesize_vm() \
-   (valuecache_context()->pagesize_vm)
+   (valuecache_maincontext()->pagesize_vm)
 
 /* define: size_vmmappedregions
  * Returns <vm_mappedregions_t->total_count>.

@@ -33,13 +33,13 @@
  * Locks the io buffer and returns a pointer to it in iobuffer.
  * See also <lockiobuffer_objectcache>. */
 #define OBJC_LOCKIOBUFFER(/*out*/iobuffer) \
-      (objectcache_context().functable->lock_iobuffer(objectcache_context().object, (iobuffer)))
+      (objectcache_maincontext().functable->lock_iobuffer(objectcache_maincontext().object, (iobuffer)))
 
 /* define: OBJC_UNLOCKIOBUFFER
  * Unlocks the locked io buffer and sets the pointer to NULL.
  * See also <unlockiobuffer_objectcache>. */
 #define OBJC_UNLOCKIOBUFFER(iobuffer) \
-   (objectcache_context().functable->unlock_iobuffer(objectcache_context().object, (iobuffer)))
+   (objectcache_maincontext().functable->unlock_iobuffer(objectcache_maincontext().object, (iobuffer)))
 
 
 #endif

@@ -28,8 +28,8 @@
 // forward
 struct threadcontext_t ;
 
-/* variable: gt_thread_self
- * Refers for every thread to corresponding <thread_t> object.
+/* variable: gt_thread_context
+ * Refers for every thread to corresponding <threadcontext_t> object.
  * Is is located on the thread stack so no heap memory is allocated.
  * This variable is defined in <Thread Linux>. */
 extern __thread struct threadcontext_t gt_thread_context ;
@@ -37,16 +37,16 @@ extern __thread struct threadcontext_t gt_thread_context ;
 
 // section: context_t
 
-/* function: sys_thread_context
+/* function: syscontext_thread
  * Returns the <threadcontext_t> of the current thread. */
-extern /*ref*/ struct threadcontext_t  sys_thread_context(void) ;
+extern /*ref*/ struct threadcontext_t  syscontext_thread(void) ;
 
 
 // section: inline implementation
 
-/* define: sys_thread_context
- * Implements <context_t.sys_thread_context>. */
-#define sys_thread_context()           (gt_thread_context)
+/* define: syscontext_thread
+ * Implements <context_t.sys_thread_maincontext>. */
+#define syscontext_thread()            (gt_thread_context)
 
 
 #endif

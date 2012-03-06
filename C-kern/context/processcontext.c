@@ -132,7 +132,7 @@ static int test_initfree(void)
    TEST(0 == pcontext.valuecache) ;
 
    // TEST double free
-   pcontext.initcount = process_context().initcount ;
+   pcontext.initcount = process_maincontext().initcount ;
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(0 == pcontext.initcount) ;
    TEST(0 == pcontext.valuecache) ;

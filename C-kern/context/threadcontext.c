@@ -87,7 +87,7 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext)
 
    *tcontext = (threadcontext_t) threadcontext_INIT_STATIC ;
 
-   VALIDATE_STATE_TEST(context_STATIC != type_context(), ABBRUCH, ) ;
+   VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ABBRUCH, ) ;
 
 // TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;"\n"   err = initthread_"module"("(if (parameter!="") "&tcontext->")parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/text.db/initthread)
 

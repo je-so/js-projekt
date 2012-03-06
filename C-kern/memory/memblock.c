@@ -58,7 +58,7 @@ static int test_initfree(void)
    TEST(1 == isfree_memblock(&mblock)) ;
    mblock.addr = (void*)1 ;
    TEST(0 == isfree_memblock(&mblock)) ;
-   mblock.addr = (void*) (intptr_t)-1 ;
+   mblock.addr = (void*) ~(uintptr_t)0 ;
    TEST(0 == isfree_memblock(&mblock)) ;
    mblock.addr = 0 ;
    TEST(1 == isfree_memblock(&mblock)) ;

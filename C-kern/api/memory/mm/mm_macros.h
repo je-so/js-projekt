@@ -31,11 +31,11 @@
 
 /* define: MM_RESIZE
  * Resizes memory block. See also <mresize_mmtransient>. */
-#define  MM_RESIZE(newsize, mblock)    mmtransient_context().functable->mresize(mmtransient_context().object, (newsize), (mblock))
+#define  MM_RESIZE(newsize, mblock)    mmtransient_maincontext().functable->mresize(mmtransient_maincontext().object, (newsize), (mblock))
 
 /* define: MM_FREE
  * Frees memory block. See also <mfree_mmtransient>. */
-#define  MM_FREE(mblock)               mmtransient_context().functable->mfree(mmtransient_context().object, (mblock))
+#define  MM_FREE(mblock)               mmtransient_maincontext().functable->mfree(mmtransient_maincontext().object, (mblock))
 
 
 #endif

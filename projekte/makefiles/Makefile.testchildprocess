@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Feb.13  17:54:06
+GenerationDate  := 2012.Mar.06  15:35:35
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -76,7 +76,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
- $(ObjectDir_Debug)/C-kern!context!context.c.o \
+ $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
@@ -92,7 +92,7 @@ Objects_Debug := \
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
- $(ObjectDir_Release)/C-kern!context!context.c.o \
+ $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
@@ -117,7 +117,7 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/local
 $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!context!context.c.o: C-kern/context/context.c
+$(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
@@ -159,7 +159,7 @@ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/loc
 $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!context!context.c.o: C-kern/context/context.c
+$(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c

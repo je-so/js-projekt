@@ -312,7 +312,7 @@ int initexec_process(process_t * process, const char * filename, const char * co
    int err ;
    process_t            childprocess = process_INIT_FREEABLE ;
    int                  pipefd[2]    = { -1, -1 } ;
-   childprocess_exec_t  execparam    = { filename, (char**)(intptr_t)arguments, -1 } ;
+   childprocess_exec_t  execparam    = { filename, (char**)(uintptr_t)arguments, -1 } ;
 
    if ( pipe2(pipefd,O_CLOEXEC) ) {
       err = errno ;
