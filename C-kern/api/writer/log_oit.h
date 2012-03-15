@@ -1,5 +1,5 @@
-/* title: Log-Object
-   Exports <log_oit>: pointer to an object and its interface <log_it>.
+/* title: Log-ObjectInterface
+   Exports <log_oit> -- pointer to object and to its implementation of interface <log_it>.
    To use this object you need to include <Log-Interface>.
 
    about: Copyright
@@ -21,19 +21,19 @@
     Header file of <Log-Interface>.
 
    file: C-kern/api/writer/log_oit.h
-    Contains interfaceable object <Log-Object>.
+    Contains implementing object <Log-ObjectInterface>.
 */
-#ifndef CKERN_WRITER_INTERFACE_LOG_OIT_HEADER
-#define CKERN_WRITER_INTERFACE_LOG_OIT_HEADER
+#ifndef CKERN_WRITER_LOG_OIT_HEADER
+#define CKERN_WRITER_LOG_OIT_HEADER
 
 /* typedef: struct log_oit
- * Export <log_oit> - object + interface pointer.
+ * Export <log_oit> - log service object interface implementation.
  * See also <interface_oit>. */
-typedef struct log_oit           log_oit ;
+typedef struct log_oit                 log_oit ;
 
 
 /* struct: log_oit
- * An object which exports interface <log_it>. */
+ * An interfaceable log service object implementing interface <log_it>. */
 struct log_oit {
    /* variable: object
     * A pointer to the object which is operated on by the interface <log_it>. */

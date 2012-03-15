@@ -1,12 +1,12 @@
-C-kern/platform/Linux/process.c:259: queryresult_process(): error: System call 'waitid' returned error (err=10): 'No child processes'
+C-kern/platform/Linux/process.c:259: queryresult_process(): error: 10: System call 'waitid' returned error 'No child processes'
 pid=?
-C-kern/platform/Linux/process.c:287: queryresult_process(): error: Function aborted (err=10)
-C-kern/platform/Linux/process.c:446: state_process(): error: Function aborted (err=10)
-C-kern/platform/Linux/process.c:259: queryresult_process(): error: System call 'waitid' returned error (err=10): 'No child processes'
+C-kern/platform/Linux/process.c:287: queryresult_process(): error: 10: Function aborted
+C-kern/platform/Linux/process.c:446: state_process(): error: 10: Function aborted
+C-kern/platform/Linux/process.c:259: queryresult_process(): error: 10: System call 'waitid' returned error 'No child processes'
 pid=?
-C-kern/platform/Linux/process.c:287: queryresult_process(): error: Function aborted (err=10)
-C-kern/platform/Linux/process.c:480: wait_process(): error: Function aborted (err=10)
-C-kern/platform/Linux/process.c:259: queryresult_process(): error: System call 'waitid' returned error (err=10): 'No child processes'
+C-kern/platform/Linux/process.c:287: queryresult_process(): error: 10: Function aborted
+C-kern/platform/Linux/process.c:480: wait_process(): error: 10: Function aborted
+C-kern/platform/Linux/process.c:259: queryresult_process(): error: 10: System call 'waitid' returned error 'No child processes'
 pid=?
-C-kern/platform/Linux/process.c:287: queryresult_process(): error: Function aborted (err=10)
-C-kern/platform/Linux/process.c:430: free_process(): error: All resources can not be freed (err=10)
+C-kern/platform/Linux/process.c:287: queryresult_process(): error: 10: Function aborted
+C-kern/platform/Linux/process.c:430: free_process(): error: 10: Freeing a resource returned an error

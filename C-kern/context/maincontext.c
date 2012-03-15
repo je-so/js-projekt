@@ -165,7 +165,7 @@ void abort_maincontext(int err)
 {
    // TODO: add abort handler registration ...
    // TODO: add unit test for checking that resources are freed
-   LOG_ERRTEXT(ABORT_FATAL(err)) ;
+   LOG_ERRTEXT(ABORT_FATAL,err) ;
    LOG_FLUSHBUFFER() ;
    abort() ;
 }
@@ -173,11 +173,11 @@ void abort_maincontext(int err)
 void assertfail_maincontext(
    const char * condition,
    const char * file,
-   unsigned     line,
+   int          line,
    const char * funcname)
 {
-   LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ERROR_LOCATION(file, line, funcname)) ;
-   LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ABORT_ASSERT_FAILED(condition)) ;
+   LOG_ERRTEXT_ERROR_LOCATION(log_channel_ERR, file, line, funcname) ;
+   LOG_ERRTEXT_ABORT_ASSERT_FAILED(log_channel_ERR, EINVAL, condition) ;
    abort_maincontext(EINVAL) ;
 }
 

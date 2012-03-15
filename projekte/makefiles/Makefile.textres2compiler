@@ -1,12 +1,12 @@
 ##
 ## ! Genmake generated Makefile !
 ##
-ProjectName     := textdb
+ProjectName     := textres2compiler
 ProjectModes    := Debug Release
-ProjectFile     := projekte/textdb.prj
+ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Mar.15  17:50:57
+GenerationDate  := 2012.Mar.15  17:57:17
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -20,9 +20,9 @@ Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=none
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     :=
 Libpath_Debug       :=
-ObjectDir_Debug     := bin/Debug/textdb
+ObjectDir_Debug     := bin/Debug/textres2compiler
 TargetDir_Debug     := bin
-Target_Debug        := bin/textdb_Debug
+Target_Debug        := bin/textres2compiler_Debug
 Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
 CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
 LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
@@ -38,9 +38,9 @@ Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=none
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     :=
 Libpath_Release       :=
-ObjectDir_Release     := bin/Release/textdb
+ObjectDir_Release     := bin/Release/textres2compiler
 TargetDir_Release     := bin
-Target_Release        := bin/textdb
+Target_Release        := bin/textres2compiler
 Libs_Release          := $(Libpath_Release) $(Libraries_Release)
 CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
 LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
@@ -84,9 +84,19 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Debug)/C-kern!writer!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
- $(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
+ $(ObjectDir_Debug)/C-kern!main!tools!textresourcev2_compiler.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
+ $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Debug)/C-kern!string!string.c.o \
+ $(ObjectDir_Debug)/C-kern!string!utf8.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
@@ -99,9 +109,19 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Release)/C-kern!writer!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
- $(ObjectDir_Release)/C-kern!main!tools!textdb.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapter.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
+ $(ObjectDir_Release)/C-kern!main!tools!textresourcev2_compiler.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
+ $(ObjectDir_Release)/C-kern!string!cstring.c.o \
+ $(ObjectDir_Release)/C-kern!string!string.c.o \
+ $(ObjectDir_Release)/C-kern!string!utf8.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -139,13 +159,43 @@ $(ObjectDir_Debug)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
 $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c
+$(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!main!tools!textresourcev2_compiler.c.o: C-kern/main/tools/textresourcev2_compiler.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!string.c.o: C-kern/string/string.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
@@ -178,13 +228,43 @@ $(ObjectDir_Release)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
 $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!main!tools!textdb.c.o: C-kern/main/tools/textdb.c
+$(ObjectDir_Release)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!main!tools!textresourcev2_compiler.c.o: C-kern/main/tools/textresourcev2_compiler.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!string.c.o: C-kern/string/string.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

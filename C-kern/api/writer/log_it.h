@@ -23,10 +23,10 @@
     Header file of <Log-Interface>.
 
    file: C-kern/api/writer/log_oit.h
-    Contains interfaceable object definition <Log-Object>.
+    Contains object interface definition <Log-ObjectInterface>.
 */
-#ifndef CKERN_WRITER_INTERFACE_LOG_IT_HEADER
-#define CKERN_WRITER_INTERFACE_LOG_IT_HEADER
+#ifndef CKERN_WRITER_LOG_IT_HEADER
+#define CKERN_WRITER_LOG_IT_HEADER
 
 /* typedef: struct log_it
  * Export interface (function table) <log_it>.
@@ -44,6 +44,40 @@ enum log_constants_e {
 } ;
 
 typedef enum log_constants_e           log_constants_e ;
+
+/* enums: log_channel_e
+ * Used to switch between log channels.
+ *
+ * log_channel_ERR  - Normal error log channel which is represented by interface <log_it>.
+ * log_channel_TEST - Test log output which is implemented as a call to standard
+ *                    printf library function which writes to STDOUT.
+ * */
+enum log_channel_e {
+    log_channel_ERR
+   ,log_channel_TEST
+} ;
+
+typedef enum log_channel_e       log_channel_e ;
+
+
+/* struct: log_it
+ * The function table which describes the log service. */
+struct log_it {
+   /* variable: printf
+    * See <logwriter_t.printf_logwriter> for an implementation. */
+   void  (*printf)      (void * log, log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
+   /* variable: flushbuffer
+    * See <logwriter_t.flushbuffer_logwriter> for an implementation. */
+   void  (*flushbuffer) (void * log) ;
+   /* variable: clearbuffer
+    * See <logwriter_t.clearbuffer_logwriter> for an implementation. */
+   void  (*clearbuffer) (void * log) ;
+   /* variable: getbuffer
+    * See <logwriter_t.getbuffer_logwriter> for an implementation. */
+   void  (*getbuffer)   (void * log, /*out*/char ** buffer, /*out*/size_t * size) ;
+} ;
+
+// group: generic
 
 /* define: log_it_DECLARE
  * Declares a function table for accessing a log service.
@@ -64,44 +98,13 @@ typedef enum log_constants_e           log_constants_e ;
  * clearbuffer  - See <logwriter_t.clearbuffer_logwriter>
  * getbuffer    - See <logwriter_t.getbuffer_logwriter>
  *
- * (start code)
- * #define log_it_DECLARE(declared_it, object_t)  \
- *   struct declared_it {   \
- *       void  (*printf)      (object_t * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ; \
- *       void  (*flushbuffer) (object_t * log) ; \
- *       void  (*clearbuffer) (object_t * log) ; \
- *       void  (*getbuffer)   (object_t * log, char ** buffer, size_t * size) ; \
- *    } ;
- * (end code)
  * */
 #define log_it_DECLARE(declared_it, object_t)                                                \
    struct declared_it {                                                                      \
-      void  (*printf)      (object_t * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ; \
+      void  (*printf)      (object_t * log, log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ; \
       void  (*flushbuffer) (object_t * log) ;                                                \
       void  (*clearbuffer) (object_t * log) ;                                                \
       void  (*getbuffer)   (object_t * log, /*out*/char ** buffer, /*out*/size_t * size) ;   \
    } ;
-
-
-#if 0
-/* struct: log_it
- * The function table which describes the log service. */
-struct log_it {
-   /* variable: printf
-    * See <logwriter_t.printf_logwriter> for an implementation. */
-   void  (*printf)      (void * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
-   /* variable: flushbuffer
-    * See <logwriter_t.flushbuffer_logwriter> for an implementation. */
-   void  (*flushbuffer) (void * log) ;
-   /* variable: clearbuffer
-    * See <logwriter_t.clearbuffer_logwriter> for an implementation. */
-   void  (*clearbuffer) (void * log) ;
-   /* variable: getbuffer
-    * See <logwriter_t.getbuffer_logwriter> for an implementation. */
-   void  (*getbuffer)   (void * log, /*out*/char ** buffer, /*out*/size_t * size) ;
-} ;
-#endif
-
-log_it_DECLARE(log_it, void)
 
 #endif

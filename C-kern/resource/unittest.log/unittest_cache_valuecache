@@ -1,2 +1,2 @@
-C-kern/cache/valuecache.c:52: initonce_valuecache(): error: Function input violates condition (0 == *valuecache)
-C-kern/cache/valuecache.c:69: initonce_valuecache(): error: Function aborted (err=22)
+C-kern/cache/valuecache.c:52: initonce_valuecache(): error: 22: Function input violates condition (0 == *valuecache)
+C-kern/cache/valuecache.c:69: initonce_valuecache(): error: 22: Function aborted

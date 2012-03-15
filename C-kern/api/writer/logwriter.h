@@ -27,6 +27,8 @@
 #define CKERN_WRITER_LOGWRITER_HEADER
 
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/writer/log_it.h"
+
 
 /* typedef: logwriter_t typedef
  * Exports <logwriter_t>. */
@@ -40,7 +42,7 @@ typedef struct logwriter_t          logwriter_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_writer_logwriter
  * Tests <initthread_logwriter> and functionality of <logwriter_t>. */
-extern int unittest_writer_logwriter(void) ;
+int unittest_writer_logwriter(void) ;
 #endif
 
 
@@ -68,13 +70,13 @@ struct logwriter_t
 
 /* function: initthread_logwriter
  * Uses <init_logwriter> - called from <init_threadcontext>. */
-extern int initthread_logwriter(/*out*/log_oit * ilog) ;
+int initthread_logwriter(/*out*/log_oit * ilog) ;
 
 /* function: freethread_logwriter
  * Uses  <free_logwriter> - called from <free_threadcontext>.
  * After return log is not set to NULL instead it is set to <g_logmain>.
  * To support the most basic logging. */
-extern int freethread_logwriter(log_oit * ilog) ;
+int freethread_logwriter(log_oit * ilog) ;
 
 // group: lifetime
 
@@ -86,12 +88,12 @@ extern int freethread_logwriter(log_oit * ilog) ;
  * Allocates memory for the structure and initializes all variables to default values.
  * The default configuration is to write the log to standard error.
  * This log service is *not* thread safe. So use it only within a single thread. */
-extern int init_logwriter(/*out*/logwriter_t * lgwrt) ;
+int init_logwriter(/*out*/logwriter_t * lgwrt) ;
 
 /* function: free_logwriter
  * Frees resources and frees memory of log object.
  * In case the function is called more than it does nothing. */
-extern int free_logwriter(logwriter_t * lgwrt) ;
+int free_logwriter(logwriter_t * lgwrt) ;
 
 // group: query
 
@@ -101,29 +103,29 @@ extern int free_logwriter(logwriter_t * lgwrt) ;
  * The address of the buffer is valid as long as no call <free_logwriter> is made.
  * The content changes if the buffer is flushed or cleared and new log entries are written.
  * Do not free the returned buffer. It points to an internal buffer used by the implementation. */
-extern void getbuffer_logwriter(logwriter_t * lgwrt, /*out*/char ** buffer, /*out*/size_t * size) ;
+void getbuffer_logwriter(logwriter_t * lgwrt, /*out*/char ** buffer, /*out*/size_t * size) ;
 
 // group: change
 
 /* function: clearbuffer_logwriter
  * Clears log buffer (sets length of logbuffer to 0).
  * This call is ignored if the log is not configured to be in buffered mode. */
-extern void clearbuffer_logwriter(logwriter_t * lgwrt) ;
+void clearbuffer_logwriter(logwriter_t * lgwrt) ;
 
 /* function: flushbuffer_logwriter
  * Writes content of buffer to STDERR or configured file descriptor and clears log buffer.
  * This call is ignored if the log is not configured to be in buffered mode. */
-extern void flushbuffer_logwriter(logwriter_t * lgwrt) ;
+void flushbuffer_logwriter(logwriter_t * lgwrt) ;
 
 /* function: printf_logwriter
  * Writes new log entry to file descriptor (STDERR) or in internal buffer.
  * The output is only written in case logging is switched on (see <setonoff_logwriter>). */
-extern void printf_logwriter(logwriter_t * lgwrt, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
+void printf_logwriter(logwriter_t * lgwrt, enum log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
 
 /* function: vprintf_logwriter
  * Function used internally to implement <printf_logwriter>.
  * Do not use this function directly except from within a subtype. */
-extern void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
+void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
 
 
 // section: inline implementation
@@ -139,7 +141,8 @@ extern void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list 
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: initthread_logwriter
- * Implement <logwriter_t.initthread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <logwriter_t.initthread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD)
+ * The default logging service is <logmain_t> which may not be thread safe. */
 #define initthread_logwriter(ilog)   (0)
 /* define: freethread_logwriter
  * Implement <logwriter_t.freethread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */

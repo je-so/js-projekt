@@ -3,11 +3,11 @@
 # global Makefile building all subprojects
 
 # projects with suffix _ support the two build modes: Debug and Release
-PROJECTS= pp-textdb  \
-          pp-textres \
-          genmake_   \
+PROJECTS= pp-textdb   \
+          pp-textres2 \
+          genmake_    \
           testchildprocess_ \
-          textrescompiler_  \
+          textres2compiler_ \
           textdb_           \
           testunit_
 
@@ -67,11 +67,11 @@ $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.g
 
 pp-textdb: textdb_Release
 
-pp-textres: textrescompiler_Release
+pp-textres2: textres2compiler_Release
 
-textdb textdb_Release textdb_Debug: pp-textres
+textdb textdb_Release textdb_Debug: pp-textres2
 
-testunit testunit_Release testunit_Debug: pp-textres pp-textdb testchildprocess_Release
+testunit testunit_Release testunit_Debug: pp-textres2 pp-textdb testchildprocess_Release
 
 $(subst _,,$(PROJECTS)) \
 $(patsubst %,%_clean,$(subst _,,$(PROJECTS))) \

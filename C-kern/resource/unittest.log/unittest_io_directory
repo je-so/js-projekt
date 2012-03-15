@@ -1,29 +1,29 @@
-C-kern/platform/Linux/io/directory.c:330: makefile_directory(): error: System call 'ftruncate(file_path, file_length)' returned error (err=22): 'Invalid argument'
+C-kern/platform/Linux/io/directory.c:330: makefile_directory(): error: 22: System call 'ftruncate(file_path, file_length)' returned error 'Invalid argument'
 file_path=123
 file_length=18446744073709551615
-C-kern/platform/Linux/io/directory.c:344: makefile_directory(): error: Function aborted (err=22)
-C-kern/platform/Linux/io/directory.c:330: makefile_directory(): error: System call 'ftruncate(file_path, file_length)' returned error (err=27): 'File too large'
+C-kern/platform/Linux/io/directory.c:344: makefile_directory(): error: 22: Function aborted
+C-kern/platform/Linux/io/directory.c:330: makefile_directory(): error: 27: System call 'ftruncate(file_path, file_length)' returned error 'File too large'
 file_path=123
 file_length=9223372036854775807
-C-kern/platform/Linux/io/directory.c:344: makefile_directory(): error: Function aborted (err=27)
-C-kern/platform/Linux/io/directory.c:114: new_directory(): error: System call 'openat' returned error (err=2): 'No such file or directory'
+C-kern/platform/Linux/io/directory.c:344: makefile_directory(): error: 27: Function aborted
+C-kern/platform/Linux/io/directory.c:114: new_directory(): error: 2: System call 'openat' returned error 'No such file or directory'
 path=.....
-C-kern/platform/Linux/io/directory.c:137: new_directory(): error: Function aborted (err=2)
-C-kern/platform/Linux/io/directory.c:114: new_directory(): error: System call 'openat' returned error (err=20): 'Not a directory'
+C-kern/platform/Linux/io/directory.c:137: new_directory(): error: 2: Function aborted
+C-kern/platform/Linux/io/directory.c:114: new_directory(): error: 20: System call 'openat' returned error 'Not a directory'
 path=/tmp/test1.123456/file_000000
-C-kern/platform/Linux/io/directory.c:137: new_directory(): error: Function aborted (err=20)
-C-kern/platform/Linux/io/directory.c:296: makedirectory_directory(): error: System call 'mkdirat(mkdiratfd, directory_path, 0700)' returned error (err=13): 'Permission denied'
+C-kern/platform/Linux/io/directory.c:137: new_directory(): error: 20: Function aborted
+C-kern/platform/Linux/io/directory.c:296: makedirectory_directory(): error: 13: System call 'mkdirat(mkdiratfd, directory_path, 0700)' returned error 'Permission denied'
 mkdiratfd=5
 directory_path=XXXXXXXX.test
-C-kern/platform/Linux/io/directory.c:304: makedirectory_directory(): error: Function aborted (err=13)
-C-kern/platform/Linux/io/directory.c:321: makefile_directory(): error: System call 'openat(openatfd, file_path)' returned error (err=13): 'Permission denied'
+C-kern/platform/Linux/io/directory.c:304: makedirectory_directory(): error: 13: Function aborted
+C-kern/platform/Linux/io/directory.c:321: makefile_directory(): error: 13: System call 'openat(openatfd, file_path)' returned error 'Permission denied'
 openatfd=5
 file_path=XXXXXXXX.test
-C-kern/platform/Linux/io/directory.c:344: makefile_directory(): error: Function aborted (err=13)
-C-kern/platform/Linux/io/directory.c:360: removedirectory_directory(): error: System call 'unlinkat(unlinkatfd, directory_path)' returned error (err=39): 'Directory not empty'
+C-kern/platform/Linux/io/directory.c:344: makefile_directory(): error: 13: Function aborted
+C-kern/platform/Linux/io/directory.c:360: removedirectory_directory(): error: 39: System call 'unlinkat(unlinkatfd, directory_path)' returned error 'Directory not empty'
 unlinkatfd=5
 directory_path=..
-C-kern/platform/Linux/io/directory.c:368: removedirectory_directory(): error: Function aborted (err=39)
-C-kern/platform/Linux/io/directory.c:114: new_directory(): error: System call 'openat' returned error (err=2): 'No such file or directory'
+C-kern/platform/Linux/io/directory.c:368: removedirectory_directory(): error: 39: Function aborted
+C-kern/platform/Linux/io/directory.c:114: new_directory(): error: 2: System call 'openat' returned error 'No such file or directory'
 path=/tmp/test1.123456
-C-kern/platform/Linux/io/directory.c:137: new_directory(): error: Function aborted (err=2)
+C-kern/platform/Linux/io/directory.c:137: new_directory(): error: 2: Function aborted

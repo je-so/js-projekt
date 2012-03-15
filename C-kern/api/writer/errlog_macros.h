@@ -26,7 +26,7 @@
 #ifndef CKERN_WRITER_ERRLOG_MACROS_HEADER
 #define CKERN_WRITER_ERRLOG_MACROS_HEADER
 
-#include "C-kern/api/resource/errorlog.h"
+#include "C-kern/api/resource/logerrtext.h"
 #include "C-kern/api/writer/log_macros.h"
 
 
@@ -41,13 +41,13 @@
  * called and use
  * > LOG_ABORT(returned_error_code)
  * to signal this fact. */
-#define LOG_ABORT(err)                       LOG_ERRTEXT(FUNCTION_ABORT(err))
+#define LOG_ABORT(err)                 LOG_ERRTEXT(FUNCTION_ABORT,err)
 
 /* define: LOG_ABORT_FREE
  * Logs that an error occurred during free_XXX or delete_XXX.
  * This means that not all resources could not have been freed but
  * as many as possible. */
-#define LOG_ABORT_FREE(err)                  LOG_ERRTEXT(FUNCTION_ABORT_FREE(err))
+#define LOG_ABORT_FREE(err)            LOG_ERRTEXT(FUNCTION_ABORT_FREE,err)
 
 /* define: LOG_ERRTEXT
  * Logs an errorlog text resource.
@@ -57,15 +57,17 @@
  * TODO: Support own error IDs
  * TODO: Replace strerror(err) with own string_error_function(int sys_err)
  * */
-#define LOG_CALLERR(fct_name,err)            LOG_ERRTEXT(FUNCTION_ERROR(fct_name, err, strerror(err)))
+#define LOG_CALLERR(fct_name,err)      LOG_ERRTEXT(FUNCTION_ERROR, fct_name, err, strerror(err))
 
 /* define: LOG_ERRTEXT
- * Logs an errorlog text resource.
- * Use <LOG_ERRTEXT> instead of <LOG_TEXTRES> so you
- * do not have to prefix every resource name with "TEXTRES_ERRORLOG_". */
-#define LOG_ERRTEXT( TEXTID )                do {  LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ERROR_LOCATION(__FILE__, __LINE__, __FUNCTION__)) ; \
-                                                   LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_ ## TEXTID ) ; \
-                                                }  while(0)
+ * Logs an log-error text-resource.
+ * Use <LOG_ERRTEXT> to log any language specific text with additional parameter values. */
+#define LOG_ERRTEXT(TEXTID,...)        do {  LOG_ERRTEXT_ERROR_LOCATION(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
+                                             LOG_ERRTEXT_ ## TEXTID(log_channel_ERR, __VA_ARGS__ ) ;                          \
+                                       }  while(0)
+#define LOG_ERRTEXTvoid(TEXTID)        do {  LOG_ERRTEXT_ERROR_LOCATION(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
+                                             LOG_ERRTEXT_ ## TEXTID(log_channel_ERR) ;                                        \
+                                       }  while(0)
 
 /* define: LOG_OUTOFMEMORY
  * Logs "out of memory" reason for function abort.
@@ -73,7 +75,7 @@
  * with an error code
  * > LOG_OUTOFMEMORY(size_of_memory_in_bytes)
  * should be called before <LOG_ABORT> to document the event leading to an abort. */
-#define LOG_OUTOFMEMORY(size)                LOG_ERRTEXT(MEMORY_OUT_OF(size))
+#define LOG_OUTOFMEMORY(size)          LOG_ERRTEXT(MEMORY_OUT_OF,size)
 
 /* define: LOG_PRINTF
  * Logs a generic printf type format string as error.
@@ -92,7 +94,7 @@
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
-#define LOG_SYSERR(sys_fctname,sys_errno)    LOG_ERRTEXT(FUNCTION_SYSERR(sys_fctname, sys_errno, strerror(sys_errno)))
+#define LOG_SYSERR(sys_fctname,sys_errno)       LOG_ERRTEXT(FUNCTION_SYSERR, sys_fctname, sys_errno, strerror(sys_errno))
 
 // group: write-variables
 

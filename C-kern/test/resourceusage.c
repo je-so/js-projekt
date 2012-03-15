@@ -127,27 +127,27 @@ int same_resourceusage(const resourceusage_t * usage)
    err = EAGAIN ;
 
    if (usage2.filedescriptor_usage != usage->filedescriptor_usage) {
-      LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
+      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }
 
    if (usage2.sizealloc_mmtrans != usage->sizealloc_mmtrans) {
-      LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
+      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }
 
    if ((usage2.malloc_usage - usage->malloc_correction) != usage->malloc_usage) {
-      LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
+      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }
 
    if (compare_vmmappedregions(usage2.virtualmemory_usage, usage->virtualmemory_usage)) {
-      LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
+      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }
 
    if (compare_signalconfig(usage2.signalconfig, usage->signalconfig)) {
-      LOG_ERRTEXT(RESOURCE_USAGE_DIFFERENT) ;
+      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
       goto ABBRUCH ;
    }
 

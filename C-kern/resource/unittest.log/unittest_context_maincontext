@@ -1,20 +1,20 @@
-C-kern/context/threadcontext.c:90: init_threadcontext(): error: Operation allowed only in state (maincontext_STATIC != type_maincontext())
-C-kern/context/threadcontext.c:115: init_threadcontext(): error: Function aborted (err=71)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=23)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=24)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=25)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=26)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=114)
-C-kern/context/maincontext.c:129: init_maincontext(): error: Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=22)
-C-kern/context/maincontext.c:129: init_maincontext(): error: Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=22)
-C-kern/context/maincontext.c:132: init_maincontext(): error: Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=22)
-C-kern/context/threadcontext.c:90: init_threadcontext(): error: Operation allowed only in state (maincontext_STATIC != type_maincontext())
-C-kern/context/threadcontext.c:115: init_threadcontext(): error: Function aborted (err=71)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=23)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=24)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=25)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=26)
-C-kern/context/maincontext.c:160: init_maincontext(): error: Function aborted (err=114)
+C-kern/context/threadcontext.c:90: init_threadcontext(): error: 71: Operation allowed only in state (maincontext_STATIC != type_maincontext())
+C-kern/context/threadcontext.c:115: init_threadcontext(): error: 71: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 23: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 24: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 25: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 26: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 114: Function aborted
+C-kern/context/maincontext.c:129: init_maincontext(): error: 22: Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
+C-kern/context/maincontext.c:160: init_maincontext(): error: 22: Function aborted
+C-kern/context/maincontext.c:129: init_maincontext(): error: 22: Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
+C-kern/context/maincontext.c:160: init_maincontext(): error: 22: Function aborted
+C-kern/context/maincontext.c:132: init_maincontext(): error: 22: Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
+C-kern/context/maincontext.c:160: init_maincontext(): error: 22: Function aborted
+C-kern/context/threadcontext.c:90: init_threadcontext(): error: 71: Operation allowed only in state (maincontext_STATIC != type_maincontext())
+C-kern/context/threadcontext.c:115: init_threadcontext(): error: 71: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 23: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 24: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 25: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 26: Function aborted
+C-kern/context/maincontext.c:160: init_maincontext(): error: 114: Function aborted

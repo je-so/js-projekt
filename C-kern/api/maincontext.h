@@ -135,7 +135,7 @@ void abort_maincontext(int err) ;
  * writes »Assertion failed« to log and calls <abort_maincontext>.
  *
  * Do not call <assertfail_maincontext> directly use the <assert> macro instead. */
-void assertfail_maincontext(const char * condition, const char * file, unsigned line, const char * funcname) ;
+void assertfail_maincontext(const char * condition, const char * file, int line, const char * funcname) ;
 
 // group: query
 

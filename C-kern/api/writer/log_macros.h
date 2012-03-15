@@ -24,20 +24,6 @@
 
 #include "C-kern/api/writer/log_it.h"
 
-/* enums: log_channel_e
- * Used to switch between log channels.
- *
- * log_channel_ERR  - Normal error log channel which is represented by interface <log_it>.
- * log_channel_TEST - Test log output which is implemented as a call to standard
- *                    printf library function which writes to STDOUT.
- * */
-enum log_channel_e {
-    log_channel_ERR
-   ,log_channel_TEST
-} ;
-
-typedef enum log_channel_e       log_channel_e ;
-
 
 // section: Functions
 
@@ -82,31 +68,13 @@ typedef enum log_channel_e       log_channel_e ;
  *
  * Example:
  * > int i ; LOGC_PRINTF(ERR, "%d", i) */
-#define LOGC_PRINTF(LOGCHANNEL, ... )                 \
-   do {                                               \
-      switch(CONCAT(log_channel_,LOGCHANNEL)) {       \
-      case log_channel_ERR:                           \
-         log_maincontext().functable->printf(         \
-            log_maincontext().object, __VA_ARGS__ ) ; \
-         break ;                                      \
-      case log_channel_TEST:                          \
-         printf( __VA_ARGS__ ) ;                      \
-         break ;                                      \
-      }                                               \
+#define LOGC_PRINTF(LOGCHANNEL, ... )              \
+   do {                                            \
+         log_maincontext().functable->printf(      \
+               log_maincontext().object,           \
+               CONCAT(log_channel_,LOGCHANNEL),    \
+               __VA_ARGS__ ) ; \
    } while(0)
-
-/* define: LOGC_TEXTRES
- * Logs text resource produced by resource text compiler.
- *
- * Parameter:
- * LOGCHANNEL - The name of the channel where the log is written to. See <LOGCHANNEL>.
- * TEXTID     - ID of a localized text string
- * ...        - Additional value parameters of the correct type as determined by the <TEXTID>
- *              parameter.
- *
- * Example:
- * > LOGC_TEXTRES(ERR, TEXTRES_ERRORLOG_MEMORY_OUT_OF(size)) */
-#define LOGC_TEXTRES(LOGCHANNEL, TEXTID)                 LOGC_PRINTF(LOGCHANNEL, TEXTID)
 
 // group: write-variables
 

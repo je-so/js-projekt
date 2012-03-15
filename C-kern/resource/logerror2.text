@@ -1,0 +1,165 @@
+#
+# printf based error strings for logging
+#
+# Format description:
+# 1. Comments
+#    Use '#' to mark the begin of comment until end of line
+# 2. Resource Header
+#    Every file must begin with the header
+#    <textresource version='2'>
+#    Every textresource section must end with
+#    </textresource>
+#    This ensures that later version upgrades can be mixed together with older versions
+#    in the same file. This makes integration of changes possible in a successive way.
+# 3. Declaration of a Textresource
+#    A textresource is declared as a name and a additional parameter list enclosed in '(' ')'
+#    If there are no parameters use an empty list '()'. Parameters in a list are separated with a ','.
+#    For example:
+#    ERROR(int errnr, const char * errstr)
+# 4. Textresource Parameters
+#    A parameter description must have a type and a name, e.g. "float wrong_value".
+#    4.1 Types of parameters
+#        There a number of supported parameter types:
+#        Signed integer types with different byte size:
+#        int8_t, int16_t, int32_t, int64_t, int, long
+#        Unsigned integer types with different byte size:
+#        uint8_t, uint16_t, uint32_t, uint64_t, unsigned, unsigned long
+#        Floating point types:
+#        float, double
+#        String types:
+#        const char *, const uint8_t *
+#    4.2 Referencing a parameter from a textresource
+#        To use a parameter value in a textresource write its name outside any "string".
+#    4.3 Formatting parameters
+#        To use only the first XX bytes of a string parameter use <paramname>[maxlen=XX] to reference the parameter
+#        where XX is a decimal number from (1 .. 99). The value 0 is ignored. No value means the whole string.
+#        For other parameter types than string no formatting options are supported.
+# 5. Textresource Content
+#    The content of a textresource is described in a language specific way.
+#    5.1 First comes the language designator, e.g "de:" or "en:".
+#    5.2 Then the language specific text strings enclosed in "" or parameters are expected.
+#        If one line is not enough you can use more than one line but always begin the line with a "string".
+#    5.3 If more than one language is needed repeat steps 5.1 & 5.2.
+#        For example:
+#        ERROR(int errnr)
+#        de: "Fehler nr: " errnr
+#        en: "Error nr: " errnr
+# 6. Conditional Content
+#    You can select between different depending on the values of the input parameter.
+#    Use "(" to mark the begin of a selection and ")" to mark its end.
+#    Use "(param1 == 1 && param2 > 5)" to define the condition under which the following string or parameter
+#    should be used. Use "else" to select a string for all other cases.
+#    The following example demonstrates the selection of either string "file\n" or "files\n"
+#    depending on the value of parameter »nr_of_deleted_files«.
+#    6.1 Example
+#    FILES_DELETED(unsigned nr_of_deleted_files)
+#    en: "I have deleted " ((nr_of_deleted_files==0) "no" (nr_of_deleted_files==1) "one" else nr_of_deleted_files)
+#        ((nr_of_deleted_files==1) " file\n" else " files\n")
+
+<textresource version='2'>
+
+<proglang value=C>
+   <nameprefix value=LOG_ERRTEXT_/>
+   <langswitch value=KONFIG_LANG/>
+   <guard      value=CKERN_RESOURCE_ERRORLOG_HEADER/>
+   <generate   header="C-kern/api/resource/logerrtext.h" source="C-kern/io/writer/logerrtext.c"/>
+   <printf     value=PRINTF/>
+   <firstparam value="log_channel_e channel" header="C-kern/api/writer/log_it.h"/>
+   <include>
+      #include "C-kern/konfig.h"
+      #include "C-kern/api/resource/logerrtext.h"
+      #include "C-kern/api/err.h"
+
+      #define PRINTF(...)  log_maincontext().functable->printf(log_maincontext().object, channel, __VA_ARGS__ )
+   </include>
+</proglang>
+
+ABORT_FATAL(int err)
+de: ""err": Programmabbruch wegen fatalem Fehler\n"
+en: ""err": Abort process with fatal error\n"
+
+ABORT_ASSERT_FAILED(int err, const char * wrong_condition)
+de: ""err": Assertion '"wrong_condition"' fehlgeschlagen.\n"
+en: ""err": Assertion '"wrong_condition"' failed.\n"
+
+ERROR_LOCATION(const char * filename, int linenr, const char * funcname)
+de: ""filename":"linenr": "funcname"(): Fehler: "
+en: ""filename":"linenr": "funcname"(): error: "
+
+FILE_FORMAT_MISSING_ENDOFLINE(const char * filename)
+de: "'"filename"' enthält kein Zeilenendezeichen\n"
+en: "'"filename"' contains no newline\n"
+
+FILE_FORMAT_WRONG(const char * filename)
+de: "Datei '"filename"' besitzt unbekanntes Format\n"
+en: "File '"filename"' has unknown format\n"
+
+FUNCTION_ABORT(int err)
+de: ""err": Funktion abgebrochen\n"
+en: ""err": Function aborted\n"
+
+FUNCTION_ABORT_FREE(int err)
+de: ""err": Freigabe einer Ressource schlug fehl\n"
+en: ""err": Freeing a resource returned an error\n"
+
+FUNCTION_ERROR(const char * funcname, int err, const char * errstr)
+de: ""err": Funktionsaufruf '"funcname"' meldet Fehler '"errstr"'\n"
+en: ""err": Function call '"funcname"' returned error '"errstr"'\n"
+
+FUNCTION_SYSERR(const char * funcname, int sys_errno, const char * sys_errstr)
+de: ""sys_errno": Systemaufruf '"funcname"' meldet Fehler '"sys_errstr"'\n"
+en: ""sys_errno": System call '"funcname"' returned error '"sys_errstr"'\n"
+
+FUNCTION_WRONG_RETURNVALUE(const char * funcname, const char * wrong_value)
+de: "Funktion '"funcname"' liefert falschen Rückgabewert ("wrong_value")\n"
+en: "Function '"funcname"' returned wrong value ("wrong_value")\n"
+
+LOCALE_SETLOCALE()
+de: "Kann die Lokalisierung mit setlocale nicht setzen\n"
+    "Abhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n"
+en: "Cannot change the current locale with setlocale\n"
+    "Remedy: Please set environment variable LC_ALL to a supported value by the system\n"
+
+LOG_ENTRY_TRUNCATED(int before_size, int after_size)
+de: "Logeintrag gekürzt von "before_size" auf "after_size" Bytes\n"
+en: "Log entry truncated from "before_size" to "after_size" bytes\n"
+
+MEMORY_OUT_OF(size_t size)
+de: "Keine "size" Bytes Speicher mehr frei\n"
+en: "Could not allocate "size" bytes of memory\n"
+
+PARAMETER_INT_TOO_BIG(const char * parameter_name, int parameter_max)
+de: "Parameter '"parameter_name"' > "parameter_max"\n"
+en: "Parameter '"parameter_name"' > "parameter_max"\n"
+
+RESOURCE_USAGE_DIFFERENT()
+de: "Ungleiche Anzahl benutzter Ressourcen\n"
+en: "The number of used resources is different\n"
+
+TEST_INPARAM_FALSE(int err, const char * violated_condition)
+de: ""err": Eingabewert verletzt Bedingung ("violated_condition")\n"
+en: ""err": Function input violates condition ("violated_condition")\n"
+
+TEST_INVARIANT_FALSE(int err, const char * violated_condition)
+de: ""err": Interne Zustandsvariablen verletzen Bedingung ("violated_condition")\n"
+en: ""err": Internal state variables violate condition ("violated_condition")\n"
+
+TEST_OUTPARAM_FALSE(int err, const char * violated_condition)
+de: ""err": Ausgabewert verletzt Bedingung ("violated_condition")\n"
+en: ""err": Function output violates condition ("violated_condition")\n"
+
+TEST_STATE_FALSE(int err, const char * violated_condition)
+de: ""err": Operation nur erlaubt im Zustand ("violated_condition")\n"
+en: ""err": Operation allowed only in state ("violated_condition")\n"
+
+X11_DISPLAY_NOT_SET()
+de: "Name des X11 Display-Servers nicht bekannt\n"
+    "Bitte die Umgebungsvariable »DISPLAY« setzen\n"
+en: "Default name of X11 display servers unknown\n"
+    "Please set environment variable »DISPLAY«\n"
+
+X11_NO_CONNECTION(const char * display_server_name)
+de: "Keine Verbindung zu X11 Display-Server '"display_server_name"'\n"
+en: "Can not connect to X11 display server '"display_server_name"'\n"
+
+</textresource>

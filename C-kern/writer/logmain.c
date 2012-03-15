@@ -45,7 +45,7 @@ struct logmain_t {
 
 // group: forward
 
-static void printf_logmain(void * log, const char * format, ... ) __attribute__ ((__format__ (__printf__, 2, 3))) ;
+static void printf_logmain(void * log, log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
 static void flushbuffer_logmain(void * log) ;
 static void clearbuffer_logmain(void * log) ;
 static void getbuffer_logmain(void * log, /*out*/char ** buffer, /*out*/size_t * size) ;
@@ -69,14 +69,21 @@ log_it         g_logmain_interface  = {
 
 // group: interface-implementation
 
-static void printf_logmain(void * lgwrt, const char * format, ... )
+static void printf_logmain(void * lgwrt, log_channel_e channel, const char * format, ... )
 {
    char     buffer[log_PRINTF_MAXSIZE+1] = { 0 } ;
    va_list  args ;
    (void) lgwrt ;
    va_start(args, format) ;
-   vsnprintf(buffer, sizeof(buffer), format, args) ;
-   write_filedescr(filedescr_STDERR, strlen(buffer), buffer, 0) ;
+   int bytes = vsnprintf(buffer, sizeof(buffer), format, args) ;
+   if (bytes > 0) {
+      unsigned ubytes = ((unsigned)bytes >= sizeof(buffer)) ? sizeof(buffer) -1 : (unsigned) bytes ;
+      if (log_channel_TEST == channel) {
+         write_filedescr(filedescr_STDOUT, ubytes, buffer, 0) ;
+      } else {
+         write_filedescr(filedescr_STDERR, ubytes, buffer, 0) ;
+      }
+   }
    va_end(args) ;
 }
 
@@ -109,6 +116,15 @@ static int test_globalvar(void)
    size_t      size      = 0 ;
    int         pipefd[2] = { -1, -1 } ;
    int         oldstderr = -1 ;
+   int         oldstdout = -1 ;
+   char        readbuffer[log_PRINTF_MAXSIZE+1] ;
+   char        maxstring[log_PRINTF_MAXSIZE] ;
+
+   // prepare
+   memset(maxstring, '$', sizeof(maxstring)) ;
+   TEST(0 == pipe2(pipefd,O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(0 < (oldstderr = dup(STDERR_FILENO))) ;
+   TEST(0 < (oldstdout = dup(STDOUT_FILENO))) ;
 
    // TEST interface
    TEST(g_logmain_interface.printf      == &printf_logmain) ;
@@ -129,9 +145,6 @@ static int test_globalvar(void)
    TEST(0 == lgwrt->dummy) ;
 
    // TEST flushbuffer_logmain does nothing
-   oldstderr = dup(STDERR_FILENO) ;
-   TEST(0 < oldstderr) ;
-   TEST(0 == pipe2(pipefd,O_CLOEXEC|O_NONBLOCK)) ;
    TEST(STDERR_FILENO == dup2(pipefd[1], STDERR_FILENO)) ;
    flushbuffer_logmain(lgwrt) ;
    {
@@ -140,24 +153,41 @@ static int test_globalvar(void)
       TEST(EAGAIN == errno) ;
    }
 
-   // TEST printf_logmain
-   printf_logmain(lgwrt, "1%c%s%d", '2', "3", 4) ;
-   {
-      char buffer2[5] = { 0 } ;
-      TEST(4 == read(pipefd[0], buffer2, sizeof(buffer2))) ;
-      TEST(0 == strncmp("1234", buffer2, 4)) ;
-   }
+   // TEST printf_logmain (log_channel_ERR)
+   printf_logmain(lgwrt, log_channel_ERR, "1%c%s%d", '2', "3", 4) ;
+   TEST(4 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(0 == strncmp("1234", readbuffer, 4)) ;
+   printf_logmain(lgwrt, log_channel_ERR, "%s;%d", maxstring, 1) ;
+   TEST(sizeof(maxstring) == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(0 == memcmp(readbuffer, maxstring, sizeof(maxstring))) ;
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
-   TEST(0 == free_filedescr(&oldstderr)) ;
+
+   // TEST printf_logmain (log_channel_TEST)
+   TEST(STDOUT_FILENO == dup2(pipefd[1], STDOUT_FILENO)) ;
+   printf_logmain(lgwrt, log_channel_TEST, "1%c%s%d", '2', "3", 4) ;
+   TEST(4 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(0 == strncmp("1234", readbuffer, 4)) ;
+   printf_logmain(lgwrt, log_channel_TEST, "%s;%d", maxstring, 1) ;
+   TEST(sizeof(maxstring) == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(0 == memcmp(readbuffer, maxstring, sizeof(maxstring))) ;
+   TEST(STDOUT_FILENO == dup2(oldstdout, STDOUT_FILENO)) ;
+
+   // unprepare
    TEST(0 == free_filedescr(&pipefd[0])) ;
    TEST(0 == free_filedescr(&pipefd[1])) ;
+   TEST(0 == free_filedescr(&oldstderr)) ;
+   TEST(0 == free_filedescr(&oldstdout)) ;
 
    return 0 ;
 ABBRUCH:
    if (-1 != oldstderr) {
       dup2(oldstderr, STDERR_FILENO) ;
    }
+   if (-1 != oldstdout) {
+      dup2(oldstdout, STDOUT_FILENO) ;
+   }
    free_filedescr(&oldstderr) ;
+   free_filedescr(&oldstdout) ;
    free_filedescr(&pipefd[0]) ;
    free_filedescr(&pipefd[1]) ;
    return EINVAL ;

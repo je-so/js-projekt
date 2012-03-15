@@ -1,10 +1,10 @@
-C-kern/platform/Linux/io/file.c:110: initcreat_file(): error: System call 'openat' returned error (err=17): 'File exists'
+C-kern/platform/Linux/io/file.c:110: initcreat_file(): error: 17: System call 'openat' returned error 'File exists'
 openatfd=3
 filepath=init1
-C-kern/platform/Linux/io/file.c:120: initcreat_file(): error: Function aborted (err=17)
-C-kern/platform/Linux/io/file.c:44: init_file(): error: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-C-kern/platform/Linux/io/file.c:66: init_file(): error: Function aborted (err=22)
-C-kern/platform/Linux/io/file.c:44: init_file(): error: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-C-kern/platform/Linux/io/file.c:66: init_file(): error: Function aborted (err=22)
-C-kern/platform/Linux/io/file.c:44: init_file(): error: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-C-kern/platform/Linux/io/file.c:66: init_file(): error: Function aborted (err=22)
+C-kern/platform/Linux/io/file.c:120: initcreat_file(): error: 17: Function aborted
+C-kern/platform/Linux/io/file.c:44: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
+C-kern/platform/Linux/io/file.c:66: init_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:44: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
+C-kern/platform/Linux/io/file.c:66: init_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:44: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
+C-kern/platform/Linux/io/file.c:66: init_file(): error: 22: Function aborted

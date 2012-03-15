@@ -238,15 +238,24 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args)
       lgwrt->logsize += (unsigned)append_size ;
    } else {
       lgwrt->logsize += buffer_size ;
-      LOG_ERRTEXT(LOG_ENTRY_TRUNCATED(append_size, buffer_size-1)) ;
+      LOG_ERRTEXT(LOG_ENTRY_TRUNCATED, append_size, (int)buffer_size-1) ;
    }
 }
 
-void printf_logwriter(logwriter_t * lgwrt, const char * format, ... )
+void printf_logwriter(logwriter_t * lgwrt, enum log_channel_e channel, const char * format, ... )
 {
    va_list args ;
    va_start(args, format) ;
-   vprintf_logwriter(lgwrt, format, args) ;
+   if (log_channel_TEST == channel) {
+      char buffer[log_PRINTF_MAXSIZE+1] ;
+      int bytes = vsnprintf(buffer, sizeof(buffer), format, args) ;
+      if (bytes > 0) {
+         unsigned ubytes = ((unsigned)bytes >= sizeof(buffer)) ? sizeof(buffer) -1 : (unsigned) bytes ;
+         write_filedescr(filedescr_STDOUT, ubytes, buffer, 0) ;
+      }
+   } else {
+      vprintf_logwriter(lgwrt, format, args) ;
+   }
    va_end(args) ;
 }
 
@@ -334,7 +343,7 @@ static int test_flushbuffer(void)
    lgwrt.logsize = lgwrt.buffer.size - 1 - log_PRINTF_MAXSIZE ;
    lgwrt.buffer.addr[lgwrt.buffer.size - 1 - log_PRINTF_MAXSIZE] = 0 ;
    lgwrt.buffer.addr[lgwrt.buffer.size - log_PRINTF_MAXSIZE] = 1 ;
-   printf_logwriter(&lgwrt, "x") ;
+   printf_logwriter(&lgwrt, log_channel_ERR, "x") ;
    TEST('x' == (char) (lgwrt.buffer.addr[lgwrt.buffer.size - 1 - log_PRINTF_MAXSIZE])) ;
    TEST(0 == lgwrt.buffer.addr[lgwrt.buffer.size - log_PRINTF_MAXSIZE]) ;
    TEST(lgwrt.logsize == lgwrt.buffer.size - log_PRINTF_MAXSIZE) ;
@@ -348,7 +357,7 @@ static int test_flushbuffer(void)
       lgwrt.buffer.addr[i] = (uint8_t) (2+i) ;
    }
    lgwrt.logsize = lgwrt.buffer.size - log_PRINTF_MAXSIZE ;
-   printf_logwriter(&lgwrt, "Y") ;
+   printf_logwriter(&lgwrt, log_channel_ERR, "Y") ;
    TEST(lgwrt.logsize == 1) ;
    TEST('Y' == (char) lgwrt.buffer.addr[0]) ;
    TEST(0 == lgwrt.buffer.addr[1]) ;
@@ -403,34 +412,82 @@ ABBRUCH:
 
 static int test_printf(void)
 {
-   logwriter_t    lgwrt = logwriter_INIT_FREEABLE ;
+   logwriter_t    lgwrt     = logwriter_INIT_FREEABLE ;
+   int            pipefd[2] = { -1, -1 } ;
+   int            oldstdout = -1 ;
 
-   // TEST init
+   // prepare pipe
+   TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(0 < (oldstdout = dup(STDOUT_FILENO))) ;
+   TEST(STDOUT_FILENO == dup2(pipefd[1], STDOUT_FILENO)) ;
+   // prepare logwriter
    TEST(0 == init_logwriter(&lgwrt)) ;
    TEST(lgwrt.buffer.addr != 0 ) ;
    TEST(lgwrt.buffer.size == 8192) ;
    TEST(lgwrt.logsize     == 0 ) ;
 
-   // TEST printf_logwriter
-   printf_logwriter(&lgwrt, "%s", "TESTSTRT\n" ) ;
-   printf_logwriter(&lgwrt, "%s", "TESTENDE\n" ) ;
+   // TEST printf_logwriter (log_channel_ERR)
+   printf_logwriter(&lgwrt, log_channel_ERR, "%s", "TESTSTRT\n" ) ;
+   printf_logwriter(&lgwrt, log_channel_ERR, "%s", "TESTENDE\n" ) ;
    TEST(18 == lgwrt.logsize) ;
    TEST(0 == strcmp((char*)lgwrt.buffer.addr, "TESTSTRT\nTESTENDE\n")) ;
    for(size_t i = 0; i < 510; ++i) {
       TEST(18 + i == lgwrt.logsize) ;
-      printf_logwriter(&lgwrt, "%c", 'F' ) ;
+      printf_logwriter(&lgwrt, log_channel_ERR, "%c", (char)(i&127) ) ;
       TEST(19 + i == lgwrt.logsize) ;
    }
    TEST(0 == strncmp((char*)lgwrt.buffer.addr, "TESTSTRT\nTESTENDE\n", 18)) ;
    for(size_t i = 0; i < 510; ++i) {
-      TEST('F' == (char)lgwrt.buffer.addr[18+i]) ;
+      TEST((i&127) == lgwrt.buffer.addr[18+i]) ;
+   }
+   clearbuffer_logwriter(&lgwrt) ;
+
+   // TEST printf_logwriter (log_channel_TEST)
+   char testbuffer[256] ;
+   printf_logwriter(&lgwrt, log_channel_TEST, "%s", "SIMPLESTRING1\n" ) ;
+   printf_logwriter(&lgwrt, log_channel_TEST, "%s", "SIMPLESTRING2\n" ) ;
+   TEST(28 == read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
+   TEST(0 == strncmp(testbuffer, "SIMPLESTRING1\nSIMPLESTRING2\n", 28)) ;
+   for(size_t i = 0; i < 510; ++i) {
+      printf_logwriter(&lgwrt, log_channel_TEST, "%c", (char)(i&127)) ;
+      TEST(1 == read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
+      TEST((i&127) == (uint8_t)testbuffer[0]) ;
    }
 
+   // TEST printf_logwriter types
+   for(log_channel_e channel = log_channel_ERR; channel <= log_channel_TEST; ++channel) {
+      printf_logwriter(&lgwrt, channel, "%%%s%%", "str" ) ;
+      printf_logwriter(&lgwrt, channel, "%"PRIi8";", (int8_t)-1) ;
+      printf_logwriter(&lgwrt, channel, "%"PRIu8";", (uint8_t)1) ;
+      printf_logwriter(&lgwrt, channel, "%"PRIi16";", (int16_t)-256) ;
+      printf_logwriter(&lgwrt, channel, "%"PRIu16";", (uint16_t)256) ;
+      printf_logwriter(&lgwrt, channel, "%"PRIi32";", (int32_t)-65536) ;
+      printf_logwriter(&lgwrt, channel, "%"PRIu32";", (uint32_t)65536) ;
+      printf_logwriter(&lgwrt, channel, "%zd;", (ssize_t)-65536) ;
+      printf_logwriter(&lgwrt, channel, "%zu;", (size_t)65536) ;
+      printf_logwriter(&lgwrt, channel, "%g;", 2e100) ;
+      printf_logwriter(&lgwrt, channel, "%.0f;", (double)1234567) ;
+   }
+   const char * result = "%str%-1;1;-256;256;-65536;65536;-65536;65536;2e+100;1234567;" ;
+   TEST(strlen(result) == lgwrt.logsize) ;
+   TEST(strlen(result) == (unsigned)read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
+   TEST(0 == strncmp((char*)lgwrt.buffer.addr, result, strlen(result))) ;
+   TEST(0 == strncmp(testbuffer, result, strlen(result))) ;
    clearbuffer_logwriter(&lgwrt) ;
+
+   // unprepare
    TEST(0 == free_logwriter(&lgwrt)) ;
+   dup2(oldstdout, STDOUT_FILENO) ;
+   free_filedescr(&oldstdout) ;
+   free_filedescr(&pipefd[0]) ;
+   free_filedescr(&pipefd[1]) ;
 
    return 0 ;
 ABBRUCH:
+   if (-1 != oldstdout) dup2(oldstdout, STDOUT_FILENO) ;
+   free_filedescr(&oldstdout) ;
+   free_filedescr(&pipefd[0]) ;
+   free_filedescr(&pipefd[1]) ;
    free_logwriter(&lgwrt) ;
    return EINVAL ;
 }

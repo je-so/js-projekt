@@ -1,0 +1,15 @@
+# Project description of Text Resource v2 Compiler
+# it is used to generate C-files from text strings for different languages
+include        projekte/binary.gcc
+include        projekte/subsys/Linux-mini
+include        projekte/subsys/context-mini
+Src           += C-kern/ds/typeadapter.c C-kern/ds/inmem/arraystf.c C-kern/ds/inmem/binarystack.c C-kern/ds/inmem/slist.c
+Src           += C-kern/io/reader/utf8reader.c
+Src           += C-kern/main/tools/textresourcev2_compiler.c
+Src           += C-kern/platform/Linux/io/mmfile.c
+Src           += C-kern/platform/Linux/io/directory.c
+Src           += C-kern/platform/Linux/io/file.c
+Src           += C-kern/platform/Linux/io/filedescr.c
+Src           += C-kern/string/cstring.c C-kern/string/string.c C-kern/string/utf8.c
+Includes       = .
+Defines        = KONFIG_SUBSYS=none

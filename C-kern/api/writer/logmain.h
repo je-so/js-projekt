@@ -28,8 +28,8 @@
 // forward
 struct log_it ;
 
-/* typedef: logmain_t
- * Export <logmain_t>. */
+/* typedef: struct logmain_t
+ * Export <logmain_t> - the main logging service which works after main is entered. */
 typedef struct logmain_t               logmain_t ;
 
 /* variable: g_logmain

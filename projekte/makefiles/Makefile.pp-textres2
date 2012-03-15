@@ -1,12 +1,12 @@
 ##
 ## ! Genmake generated Makefile !
 ##
-ProjectName     := pp-textres
+ProjectName     := pp-textres2
 ProjectModes    := Release
-ProjectFile     := projekte/pp-textres.prj
+ProjectFile     := projekte/pp-textres2.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Mar.06  15:35:35
+GenerationDate  := 2012.Mar.15  17:50:57
 GeneratedBy     := JE-SO
 
 ## Release
@@ -20,11 +20,11 @@ Defines_Release       :=
 Includes_Release      :=
 Libraries_Release     :=
 Libpath_Release       :=
-ObjectDir_Release     := bin/Release/pp-textres
-TargetDir_Release     := bin/Release/pp-textres
-Target_Release        := bin/Release/pp-textres/__dummy_target__
+ObjectDir_Release     := bin/Release/pp-textres2
+TargetDir_Release     := bin/Release/pp-textres2
+Target_Release        := bin/Release/pp-textres2/__dummy_target__
 Libs_Release          := $(Libpath_Release) $(Libraries_Release)
-CC_Release            = projekte/makefiles/pp-textres.sh '$@' '$<'
+CC_Release            = if [ -f '$<' ]; then cp '$<' '$@'; bin/textres2compiler '$<' ; fi
 LD_Release            = touch '$@'
 
 ##
@@ -46,13 +46,9 @@ clean_Release:
 $(sort $(ObjectDir_Release) $(TargetDir_Release)):
 	@mkdir -p "$@"
 
-Objects_Release := \
- $(ObjectDir_Release)/C-kern!resource!errorlog.text.o
+Objects_Release :=
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
-
-$(ObjectDir_Release)/C-kern!resource!errorlog.text.o: C-kern/resource/errorlog.text
-	@$(CC_Release)
 
 -include $(Objects_Release:.o=.d)

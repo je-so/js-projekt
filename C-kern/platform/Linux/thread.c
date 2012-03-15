@@ -271,13 +271,13 @@ static void * startpoint_thread(thread_startargument_t * startarg)
 
    err = init_threadcontext(&gt_thread_context) ;
    if (err) {
-      LOG_CALLERR("init_threadcontext",err) ;
+      LOG_CALLERR("init_threadcontext", err) ;
       goto ABBRUCH ;
    }
 
    if (sys_thread_INIT_FREEABLE == pthread_self()) {
       err = EINVAL ;
-      LOG_ERRTEXT(FUNCTION_WRONG_RETURNVALUE("pthread_self", STR(sys_thread_INIT_FREEABLE))) ;
+      LOG_ERRTEXT(FUNCTION_WRONG_RETURNVALUE, "pthread_self", STR(sys_thread_INIT_FREEABLE)) ;
       goto ABBRUCH ;
    }
 

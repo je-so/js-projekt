@@ -41,7 +41,7 @@
       <File Name="../../C-kern/api/test/assert.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="resource">
-      <File Name="../../C-kern/api/resource/errorlog.h"/>
+      <File Name="../../C-kern/api/resource/logerrtext.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="adapter">
       <File Name="../../C-kern/api/adapter/stream.h"/>
@@ -212,6 +212,9 @@
       <File Name="../../C-kern/io/reader/utf8reader.c"/>
       <File Name="../../C-kern/io/reader/reader.txt"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="writer">
+      <File Name="../../C-kern/io/writer/logerrtext.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
     <File Name="../../C-kern/main/unittest_main.c"/>
@@ -219,7 +222,6 @@
     <VirtualDirectory Name="tools">
       <File Name="../../C-kern/main/tools/genmake.c"/>
       <File Name="../../C-kern/main/tools/textdb.c"/>
-      <File Name="../../C-kern/main/tools/text_resource_compiler.c"/>
       <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/main/testchildprocess_main.c"/>
@@ -267,7 +269,6 @@
     <File Name="../../C-kern/string/format_string.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
-    <File Name="../../C-kern/resource/errorlog.text"/>
     <VirtualDirectory Name="coding conventions">
       <File Name="../../coding-conventions/free_objects.txt"/>
       <File Name="../../coding-conventions/parameter_type.txt"/>
@@ -282,7 +283,7 @@
       <File Name="../../C-kern/resource/text.db/initprocess"/>
       <File Name="../../C-kern/resource/text.db/initthread"/>
     </VirtualDirectory>
-    <File Name="../../C-kern/resource/errorlog2.text"/>
+    <File Name="../../C-kern/resource/logerror2.text"/>
   </VirtualDirectory>
   <VirtualDirectory Name="platform">
     <VirtualDirectory Name="Linux">

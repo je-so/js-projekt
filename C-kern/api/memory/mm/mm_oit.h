@@ -31,18 +31,18 @@ struct mm_t ;
 struct mm_it ;
 
 /* typedef: struct mm_oit
- * Export <mm_oit> (object + interface pointer). */
+ * Export <mm_oit> -- memory manager object implementation. */
 typedef struct mm_oit                  mm_oit ;
 
 
 /* struct: mm_oit
- * An object which exports interface <mm_it>. */
+ * An memory manager object interface implementing <mm_it>. */
 struct mm_oit {
    /* variable: object
-    * A pointer to the object which is operated on by the interface <mm_it>. */
+    * A pointer to the object which implements the interface <mm_it>. */
    struct mm_t    * object ;
    /* variable: functable
-    * A pointer to a function table interface <mm_it> which operates on <object>. */
+    * A pointer to the table of functions implementing the <mm_it> interface. */
    struct mm_it   * functable ;
 } ;
 

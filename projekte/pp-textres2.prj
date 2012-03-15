@@ -1,7 +1,7 @@
-# Project description of Preprocess (with) resource text compiler
-# Prepropecesses resource text files with textres compiler
+# Project description
+# Prepropecesses resource text files with text resource compiler
 Modes         = Release
-Compiler      = projekte/makefiles/pp-textres.sh $(out) $(in)
+Compiler      = if [ -f $(in) ]; then cp $(in) $(out); bin/textres2compiler $(in) ; fi
 Linker        = touch $(out)
 CFlagInclude  = ?
 CFlagDefine   = ?
@@ -15,4 +15,4 @@ Includes      =
 Defines       =
 Objectdir     = bin/$(mode)/$(projectname)
 Target        = $(Objectdir)/__dummy_target__
-Src           = C-kern/resource/errorlog.text
+Src           = C-kern/resource/logerror2.text
