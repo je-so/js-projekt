@@ -25,6 +25,9 @@
 #ifndef CKERN_STRING_CSTRING_HEADER
 #define CKERN_STRING_CSTRING_HEADER
 
+// forward
+struct conststring_t ;
+
 /* typedef: struct cstring_t
  * Export <cstring_t>. */
 typedef struct cstring_t               cstring_t ;
@@ -79,6 +82,11 @@ struct cstring_t
  * Inits <cstring_t> and preallocates memory.
  * If you set *preallocate_size* to 0 no memory is preallocated. */
 int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size) ;
+
+/* function: initfromstring_cstring
+ * Inits <cstring_t> and copies data from <conststring_t>.
+ * If parameter *copiedfrom* is empty no data is preallocated. */
+int initfromstring_cstring(/*out*/cstring_t * cstr, struct conststring_t * copiedfrom) ;
 
 /* function: initmove_cstring
  * Inits dest with content of source and sets source to <cstring_INIT_FREEABLE>. */

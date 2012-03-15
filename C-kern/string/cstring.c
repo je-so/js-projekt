@@ -26,6 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -52,6 +53,27 @@ int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
    cstr->length         = 0 ;
    cstr->allocated_size = preallocate_size ;
    cstr->chars          = preallocated_buffer ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err);
+   return err ;
+}
+
+int initfromstring_cstring(/*out*/cstring_t * cstr, struct conststring_t * copiedfrom)
+{
+   int err ;
+
+   if (copiedfrom->size) {
+      err = init_cstring(cstr, copiedfrom->size + 1) ;
+      if (err) goto ABBRUCH ;
+
+      err = append_cstring(cstr, copiedfrom->size, (const char*) copiedfrom->addr) ;
+      if (err) goto ABBRUCH ;
+   } else {
+      err = init_cstring(cstr, copiedfrom->size) ;
+      if (err) goto ABBRUCH ;
+   }
 
    return 0 ;
 ABBRUCH:
@@ -203,14 +225,85 @@ static int test_initfree(void)
    cstring_t   cstr  = cstring_INIT_FREEABLE ;
    cstring_t   cstr2 = cstring_INIT ;
 
-   // TEST static init
+   // TEST static init cstring_INIT_FREEABLE
    TEST(0 == cstr.allocated_size)
    TEST(0 == cstr.length)
    TEST(0 == cstr.chars)
-   static_assert( sizeof(cstr) == 2*sizeof(size_t)+sizeof(void*), "" );
-   TEST(0 == cstr2.allocated_size)
-   TEST(0 == cstr2.length)
-   TEST(0 == cstr2.chars)
+
+   // TEST static init cstring_INIT
+   cstr = (cstring_t) cstring_INIT ;
+   TEST(0 == cstr.allocated_size) ;
+   TEST(0 == cstr.length) ;
+   TEST(0 == cstr.chars) ;
+
+   // TEST init, double free
+   cstr.length = 1 ;
+   TEST(0 == init_cstring(&cstr, 256)) ;
+   TEST(0 == cstr.length) ;
+   TEST(256 == cstr.allocated_size) ;
+   TEST(0 != cstr.chars) ;
+   TEST(0 == free_cstring(&cstr)) ;
+   TEST(0 == cstr.allocated_size) ;
+   TEST(0 == cstr.length) ;
+   TEST(0 == cstr.chars) ;
+   TEST(0 == free_cstring(&cstr)) ;
+   TEST(0 == cstr.allocated_size) ;
+   TEST(0 == cstr.length) ;
+   TEST(0 == cstr.chars) ;
+
+   // TEST initfromstring_cstring on empty string
+   conststring_t stringfrom = conststring_INIT_FREEABLE ;
+   TEST(0 == initfromstring_cstring(&cstr, &stringfrom)) ;
+   TEST(0 == cstr.length) ;
+   TEST(0 == cstr.allocated_size) ;
+   TEST(0 == cstr.chars) ;
+
+   // TEST initfromstring_cstring
+   stringfrom = (conststring_t) conststring_INIT(7, (const uint8_t*)"x1y2z3!") ;
+   TEST(0 == initfromstring_cstring(&cstr, &stringfrom)) ;
+   TEST(7 == cstr.length) ;
+   TEST(8 == cstr.allocated_size) ;
+   TEST(0 != cstr.chars) ;
+   TEST(stringfrom.addr != (void*)cstr.chars) ;
+   TEST(0 == strcmp(cstr.chars, "x1y2z3!")) ;
+   TEST(0 == free_cstring(&cstr)) ;
+   TEST(0 == cstr.allocated_size) ;
+   TEST(0 == cstr.length) ;
+   TEST(0 == cstr.chars) ;
+
+   // TEST initmove on empty string
+   initmove_cstring(&cstr, &cstr2) ;
+   TEST(0 == cstr.allocated_size) ;
+   TEST(0 == cstr.length) ;
+   TEST(0 == cstr.chars) ;
+   TEST(0 == cstr2.allocated_size) ;
+   TEST(0 == cstr2.length) ;
+   TEST(0 == cstr2.chars) ;
+
+   // TEST initmove
+   TEST(0 == init_cstring(&cstr2, 64)) ;
+   TEST(0 == append_cstring(&cstr2, 6, "123456" )) ;
+   cstring_t xxx = cstr2 ;
+   initmove_cstring(&cstr, &cstr2) ;
+   TEST(0 == memcmp(&cstr, &xxx, sizeof(cstr))) ;
+   TEST(0 == strcmp(cstr.chars, "123456")) ;
+   TEST(64 == cstr.allocated_size) ;
+   TEST(0 == cstr2.allocated_size) ;
+   TEST(0 == cstr2.length) ;
+   TEST(0 == cstr2.chars) ;
+   TEST(0 == free_cstring(&cstr)) ;
+
+   return 0 ;
+ABBRUCH:
+   free_cstring(&cstr) ;
+   free_cstring(&cstr2) ;
+   return EINVAL ;
+}
+
+static int test_changeandquery(void)
+{
+   cstring_t   cstr  = cstring_INIT_FREEABLE ;
+   cstring_t   cstr2 = cstring_INIT ;
 
    // TEST allocatedsize_cstring
    TEST(0 == allocatedsize_cstring(&cstr)) ;
@@ -238,21 +331,6 @@ static int test_initfree(void)
       cstr3.chars = testbuffer ;
       TEST(testbuffer == str_cstring(&cstr3)) ;
    }
-
-   // TEST init, double free
-   cstr.length = 1 ;
-   TEST(0 == init_cstring(&cstr, 256)) ;
-   TEST(0 == cstr.length)
-   TEST(256 == cstr.allocated_size)
-   TEST(0 != cstr.chars)
-   TEST(0 == free_cstring(&cstr)) ;
-   TEST(0 == cstr.allocated_size)
-   TEST(0 == cstr.length)
-   TEST(0 == cstr.chars)
-   TEST(0 == free_cstring(&cstr)) ;
-   TEST(0 == cstr.allocated_size)
-   TEST(0 == cstr.length)
-   TEST(0 == cstr.chars)
 
    // TEST printfappend on empty string
    TEST(0 == printfappend_cstring(&cstr, "%d%s", 123, "456")) ;
@@ -359,28 +437,6 @@ static int test_initfree(void)
    }
    TEST(0 == free_cstring(&cstr)) ;
 
-   // TEST initmove on empty string
-   initmove_cstring(&cstr, &cstr2) ;
-   TEST(0 == cstr.allocated_size) ;
-   TEST(0 == cstr.length) ;
-   TEST(0 == cstr.chars) ;
-   TEST(0 == cstr2.allocated_size) ;
-   TEST(0 == cstr2.length) ;
-   TEST(0 == cstr2.chars) ;
-
-   // TEST initmove
-   TEST(0 == init_cstring(&cstr2, 64)) ;
-   TEST(0 == append_cstring(&cstr2, 6, "123456" )) ;
-   cstring_t xxx = cstr2 ;
-   initmove_cstring(&cstr, &cstr2) ;
-   TEST(0 == memcmp(&cstr, &xxx, sizeof(cstr))) ;
-   TEST(0 == strcmp(cstr.chars, "123456")) ;
-   TEST(64 == cstr.allocated_size) ;
-   TEST(0 == cstr2.allocated_size) ;
-   TEST(0 == cstr2.length) ;
-   TEST(0 == cstr2.chars) ;
-   TEST(0 == free_cstring(&cstr)) ;
-
    // TEST allocate_cstring
    cstr = (cstring_t) cstring_INIT ;
    TEST(0 == cstr.allocated_size) ;
@@ -409,7 +465,8 @@ int unittest_string_cstring()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree()) goto ABBRUCH ;
+   if (test_initfree())       goto ABBRUCH ;
+   if (test_changeandquery()) goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
