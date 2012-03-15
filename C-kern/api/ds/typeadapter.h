@@ -176,6 +176,13 @@ struct typeadapter_oit {
 #define typeadapter_oit_INIT(object, functable) \
       { { { (object), (functable) } } }
 
+/* define: typeadapter_oit_INIT_DEFAULT
+ * Static initializer. Sets <typeadapter_oit.object> to the pointer to <typeadapter_t> provided as argument
+ * and <typeadapter_oit.functable> is set to <functable_typeadapter>.
+ * Use this to initialize the default <typeadapter_oit> with its standard implementation <typeadapter_t>. */
+#define typeadapter_oit_INIT_DEFAULT(typeadapter) \
+      { { { (typeadapter), functable_typeadapter() } } }
+
 /* define: typeadapter_oit_INIT_GENERIC
  * Static initializer. Sets <typeadapter_oit.object> to the pointer to <typeadapter_t> provided as argument
  * and <typeadapter_oit.functable> is set to <functable_typeadapter>.
