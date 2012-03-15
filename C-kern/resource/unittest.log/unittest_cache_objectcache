@@ -7,8 +7,8 @@ C-kern/cache/objectcache.c:175: unlockiobuffer2_objectcache(): error: Function a
 C-kern/cache/objectcache.c:154: lockiobuffer2_objectcache(): error: Function input violates condition (0 == *iobuffer)
 C-kern/cache/objectcache.c:160: lockiobuffer2_objectcache(): error: Function aborted (err=22)
 C-kern/cache/objectcache.c:185: lockiobuffer_objectcache(): error: Assertion '!err && "lockiobuffer2_objectcache"' failed.
-C-kern/context/maincontext.c:134: abort_maincontext(): error: Abort process with fatal error (err=22)
+C-kern/context/maincontext.c:168: abort_maincontext(): error: Abort process with fatal error (err=22)
 C-kern/cache/objectcache.c:169: unlockiobuffer2_objectcache(): error: Function input violates condition (&objectcache->iobuffer == *iobuffer)
 C-kern/cache/objectcache.c:175: unlockiobuffer2_objectcache(): error: Function aborted (err=22)
 C-kern/cache/objectcache.c:194: unlockiobuffer_objectcache(): error: Assertion '!err && "unlockiobuffer2_objectcache"' failed.
-C-kern/context/maincontext.c:134: abort_maincontext(): error: Abort process with fatal error (err=22)
+C-kern/context/maincontext.c:168: abort_maincontext(): error: Abort process with fatal error (err=22)

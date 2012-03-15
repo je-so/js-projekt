@@ -9,16 +9,16 @@ C-kern/platform/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=22)
 C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=22)
 C-kern/platform/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=35)
 C-kern/platform/Linux/mutex.c:472: test_mutex_slock(): error: Assertion '! _err_slock_mutex' failed.
-C-kern/context/maincontext.c:134: abort_maincontext(): error: Abort process with fatal error (err=22)
+C-kern/context/maincontext.c:168: abort_maincontext(): error: Abort process with fatal error (err=22)
 C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=1)
 C-kern/platform/Linux/mutex.c:488: test_mutex_slock(): error: Assertion '! _err_sunlock_mutex' failed.
-C-kern/context/maincontext.c:134: abort_maincontext(): error: Abort process with fatal error (err=22)
+C-kern/context/maincontext.c:168: abort_maincontext(): error: Abort process with fatal error (err=22)
 C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=1)
 C-kern/platform/Linux/mutex.c:507: test_mutex_slock(): error: Assertion '! _err_sunlock_mutex' failed.
-C-kern/context/maincontext.c:134: abort_maincontext(): error: Abort process with fatal error (err=22)
+C-kern/context/maincontext.c:168: abort_maincontext(): error: Abort process with fatal error (err=22)
 C-kern/platform/Linux/mutex.c:95: lock_mutex(): error: Function aborted (err=22)
 C-kern/platform/Linux/mutex.c:518: test_mutex_slock(): error: Assertion '! _err_slock_mutex' failed.
-C-kern/context/maincontext.c:134: abort_maincontext(): error: Abort process with fatal error (err=22)
+C-kern/context/maincontext.c:168: abort_maincontext(): error: Abort process with fatal error (err=22)
 C-kern/platform/Linux/mutex.c:108: unlock_mutex(): error: Function aborted (err=22)
 C-kern/platform/Linux/mutex.c:526: test_mutex_slock(): error: Assertion '! _err_sunlock_mutex' failed.
-C-kern/context/maincontext.c:134: abort_maincontext(): error: Abort process with fatal error (err=22)
+C-kern/context/maincontext.c:168: abort_maincontext(): error: Abort process with fatal error (err=22)

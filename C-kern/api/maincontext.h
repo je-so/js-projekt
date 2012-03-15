@@ -90,6 +90,7 @@ struct maincontext_t {
 #endif
 #undef THREAD
    maincontext_e     type ;
+   const char        * progname ;
    int               argc ;
    const char        ** argv ;
 } ;
@@ -152,7 +153,8 @@ maincontext_e              type_maincontext(void) ;
 
 /* function: progname_maincontext
  * Returns the program name of the running process.
- * The returned value is the argv[0] delivered as parameter in <initmain_maincontext>. */
+ * The returned value is the argv[0] delivered as parameter in <initmain_maincontext>
+ * without any leading path. */
 const char *               progname_maincontext(void) ;
 
 // group: query-service
@@ -200,7 +202,7 @@ struct valuecache_t *      valuecache_maincontext(void) ;
 
 /* define: progname_maincontext
  * Inline implementation of <maincontext_t.progname_maincontext>. */
-#define progname_maincontext()         (g_maincontext.argv[0])
+#define progname_maincontext()         (g_maincontext.progname)
 
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))

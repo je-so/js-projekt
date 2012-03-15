@@ -44,13 +44,14 @@
 /* variable: g_maincontext
  * Reserve space for the global main context. */
 #define THREAD 1
-maincontext_t                 g_maincontext     = {   processcontext_INIT_FREEABLE,
+maincontext_t                 g_maincontext     = {   processcontext_INIT_FREEABLE
 #if (!((KONFIG_SUBSYS)&THREAD))
-                                                      threadcontext_INIT_STATIC,
+                                                      ,threadcontext_INIT_STATIC
 #endif
-                                                      maincontext_STATIC,
-                                                      0,
-                                                      0
+                                                      ,maincontext_STATIC
+                                                      ,0
+                                                      ,0
+                                                      ,0
                                                    } ;
 #undef THREAD
 
@@ -60,6 +61,31 @@ maincontext_t                 g_maincontext     = {   processcontext_INIT_FREEAB
 static test_errortimer_t      s_error_init      = test_errortimer_INIT_FREEABLE ;
 #endif
 
+
+// group: helper
+
+/* function: initprogname_maincontext
+ * Sets <maincontext_t.progname> to (strrchr(argv[0], "/")+1). */
+static void initprogname_maincontext(struct maincontext_t * maincontext)
+{
+   const char * progname = "???" ;
+
+   if (maincontext->argc) {
+      progname = maincontext->argv[0] ;
+
+      for(unsigned i = 0; progname[i];) {
+         if (  '/' == progname[i]
+            && progname[i+1]) {
+            progname = &progname[i+1] ;
+            i = 0 ;
+         } else {
+            ++ i;
+         }
+      }
+   }
+
+   maincontext->progname = progname ;
+}
 
 // group: lifetime
 
@@ -75,7 +101,10 @@ int free_maincontext(void)
       err2 = free_processcontext(&g_maincontext.pcontext) ;
       if (err2) err = err2 ;
 
-      g_maincontext.type = maincontext_STATIC ;
+      g_maincontext.type     = maincontext_STATIC ;
+      g_maincontext.progname = 0 ;
+      g_maincontext.argc     = 0 ;
+      g_maincontext.argv     = 0 ;
 
       if (err) goto ABBRUCH ;
    }
@@ -107,14 +136,19 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
    err = init_processcontext(&g_maincontext.pcontext) ;
    if (err) goto ABBRUCH ;
 
-   g_maincontext.type = context_type ;
-   g_maincontext.argc = argc ;
-   g_maincontext.argv = argv ;
+   g_maincontext.type     = context_type ;
+   g_maincontext.progname = 0 ;
+   g_maincontext.argc     = argc ;
+   g_maincontext.argv     = argv ;
 
    ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
 
    err = init_threadcontext(&thread_maincontext()) ;
    if (err) goto ABBRUCH ;
+
+   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+
+   initprogname_maincontext(&g_maincontext) ;
 
    ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
 
@@ -199,6 +233,9 @@ static int test_initmain(void)
    TEST(thread_maincontext().ilog.functable != &g_logmain_interface) ;
    TEST(0 == free_maincontext()) ;
    TEST(0 == type_maincontext()) ;
+   TEST(0 == g_maincontext.argc) ;
+   TEST(0 == g_maincontext.argv) ;
+   TEST(0 == progname_maincontext()) ;
    TEST(0 == process_maincontext().valuecache) ;
    TEST(0 == strcmp("C", current_locale())) ;
    TEST(thread_maincontext().initcount      == 0) ;
@@ -208,6 +245,9 @@ static int test_initmain(void)
    TEST(thread_maincontext().objectcache.functable == 0) ;
    TEST(0 == free_maincontext()) ;
    TEST(0 == type_maincontext()) ;
+   TEST(0 == g_maincontext.argc) ;
+   TEST(0 == g_maincontext.argv) ;
+   TEST(0 == progname_maincontext()) ;
    TEST(0 == process_maincontext().valuecache) ;
    TEST(0 == strcmp("C", current_locale())) ;
    TEST(thread_maincontext().initcount      == 0) ;
@@ -289,7 +329,7 @@ static int test_initerror(void)
    TEST(EPROTO == init_threadcontext(&tcontext)) ;
 
    // TEST error in init_maincontext in different places (called from initmain)
-   for(int i = 1; i <= 3; ++i) {
+   for(int i = 1; i <= 4; ++i) {
       TEST(0 == init_testerrortimer(&s_error_init, (unsigned)i, EINVAL+i)) ;
       TEST(EINVAL+i == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
       TEST(0 == process_maincontext().initcount) ;
@@ -336,6 +376,60 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static int test_progname(void)
+{
+   int               fd_stderr   = -1 ;
+   int               fdpipe[2]   = { -1, -1 } ;
+   maincontext_t     old_context = g_maincontext ;
+
+   // prepare
+   fd_stderr = dup(STDERR_FILENO) ;
+   TEST(0 < fd_stderr) ;
+   TEST(0 == pipe2(fdpipe,O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
+
+   TEST(0 == free_maincontext()) ;
+
+    // TEST progname_maincontext
+   const char * argv[3] = { "/p1/yxz1", "/p2/yxz2/", "p3/p4/yxz3" } ;
+
+   for(unsigned i = 0; i< nrelementsof(argv); ++i) {
+      TEST(0 == init_maincontext(maincontext_DEFAULT, 1, &argv[i])) ;
+      TEST(1 == g_maincontext.argc) ;
+      TEST(&argv[i] == g_maincontext.argv) ;
+      switch(i) {
+      case 0:  TEST(&argv[0][4] == progname_maincontext()) ; break ;
+      case 1:  TEST(&argv[1][4] == progname_maincontext()) ; break ;
+      case 2:  TEST(&argv[2][6] == progname_maincontext()) ; break ;
+      }
+      TEST(0 == free_maincontext()) ;
+   }
+
+   // unprepare
+   LOG_FLUSHBUFFER() ;
+   char buffer[4096] = { 0 };
+   ssize_t bytes = read(fdpipe[0], buffer, sizeof(buffer)) ;
+   TEST(0 < bytes || (errno = EAGAIN && -1 == bytes)) ;
+
+   TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
+   TEST(0 == free_filedescr(&fd_stderr)) ;
+   TEST(0 == free_filedescr(&fdpipe[0])) ;
+   TEST(0 == free_filedescr(&fdpipe[1])) ;
+
+   if (maincontext_STATIC != old_context.type) {
+      init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
+      LOGC_PRINTF(ERR, "%s", buffer) ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
+   free_filedescr(&fd_stderr) ;
+   free_filedescr(&fdpipe[0]);
+   free_filedescr(&fdpipe[1]);
+   return EINVAL ;
+}
+
 int unittest_context_maincontext()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -345,6 +439,7 @@ int unittest_context_maincontext()
       if (test_querymacros())    goto ABBRUCH ;
       if (test_initmain())       goto ABBRUCH ;
       if (test_initerror())      goto ABBRUCH ;
+      if (test_progname())       goto ABBRUCH ;
 
    } else {
       assert(maincontext_STATIC != type_maincontext()) ;
@@ -367,6 +462,7 @@ int unittest_context_maincontext()
       if (test_querymacros())    goto ABBRUCH ;
       if (test_initmain())       goto ABBRUCH ;
       if (test_initerror())      goto ABBRUCH ;
+      if (test_progname())       goto ABBRUCH ;
 
       TEST(0 == same_resourceusage(&usage)) ;
       TEST(0 == free_resourceusage(&usage)) ;
