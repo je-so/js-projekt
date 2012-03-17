@@ -70,7 +70,7 @@ int initfl_string(/*out*/string_t * str, uint8_t * first, uint8_t * last)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(last >= first, ABBRUCH, LOG_PTR(first); LOG_PTR(last) ) ;
+   VALIDATE_INPARAM_TEST((last >= first) && ((last+1) > last), ABBRUCH, LOG_PTR(first); LOG_PTR(last) ) ;
 
    str->addr = first ;
    str->size = (size_t) (1 + last - first) ;

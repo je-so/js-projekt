@@ -53,7 +53,7 @@ uint8_t g_utf8_bytesperchar[256] = {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 
 // section: conststring_t
 
-bool nextcharutf8_conststring(struct conststring_t * str, uint32_t * unicodechar)
+bool nextcharutf8_conststring(struct conststring_t * str, unicode_t * wchar)
 {
    uint8_t  firstbyte ;
    uint8_t  size ;
@@ -72,32 +72,32 @@ bool nextcharutf8_conststring(struct conststring_t * str, uint32_t * unicodechar
 
    switch (size) {
    default:
-   case 1:  *unicodechar = firstbyte ;
+   case 1:  *wchar = firstbyte ;
             break ;
    case 2:  uchar = (uint32_t) ((firstbyte & 0x1F) << 6) ;
-            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            *wchar = uchar | (*(str->addr++) & 0x3F) ;
             break ;
    case 3:  uchar = (uint32_t) ((firstbyte & 0xF) << 6) ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
-            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            *wchar = uchar | (*(str->addr++) & 0x3F) ;
             break ;
    case 4:  uchar = (uint32_t) ((firstbyte & 0x7) << 6) ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
-            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            *wchar = uchar | (*(str->addr++) & 0x3F) ;
             break ;
    case 5:  uchar = (uint32_t) ((firstbyte & 0x3) << 6) ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
-            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            *wchar = uchar | (*(str->addr++) & 0x3F) ;
             break ;
    case 6:  uchar = (uint32_t) ((firstbyte & 0x1) << 6) ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
             uchar = (uchar | (*(str->addr++) & 0x3F)) << 6 ;
-            *unicodechar = uchar | (*(str->addr++) & 0x3F) ;
+            *wchar = uchar | (*(str->addr++) & 0x3F) ;
             break ;
    }
 
@@ -127,13 +127,11 @@ bool skipcharutf8_conststring(struct conststring_t * str)
 
 // section: utf8cstring
 
-const uint8_t * findwcharnul_utf8cstring(const uint8_t * utf8cstr, wchar_t wchar)
+const uint8_t * findunicode_utf8cstring(const uint8_t * utf8cstr, unicode_t wchar)
 {
    const char  * pos = (const char*) utf8cstr ;
-   uint32_t    uc    = (uint32_t) wchar ;
+   uint32_t    uc    = wchar ;
    uint8_t     utf8c[3] ;
-
-   static_assert( sizeof(wchar_t) == sizeof(uint32_t), ) ;
 
    if (uc < 0x80) {
       pos = strchrnul(pos, (int)uc) ;
@@ -327,27 +325,27 @@ static int test_utf8cstring(void)
    const uint8_t  * const utf8cstr = (const uint8_t *) "\U001fffff abcd\U0000ffff abcd\u07ff abcd\x7f abcd" ;
    const uint8_t  * cstr ;
 
-   // TEST findwcharnul_utf8cstring (find char)
-   cstr = findwcharnul_utf8cstring(utf8cstr, L'\U001fffff') ;
+   // TEST findunicode_utf8cstring (find char)
+   cstr = findunicode_utf8cstring(utf8cstr, L'\U001fffff') ;
    TEST(cstr == utf8cstr) ;
-   cstr = findwcharnul_utf8cstring(utf8cstr, L'\U0000ffff') ;
+   cstr = findunicode_utf8cstring(utf8cstr, L'\U0000ffff') ;
    TEST(cstr == 9+utf8cstr) ;
-   cstr = findwcharnul_utf8cstring(utf8cstr, L'\u07ff') ;
+   cstr = findunicode_utf8cstring(utf8cstr, L'\u07ff') ;
    TEST(cstr == 17+utf8cstr) ;
-   cstr = findwcharnul_utf8cstring(utf8cstr, L'\x7f') ;
+   cstr = findunicode_utf8cstring(utf8cstr, L'\x7f') ;
    TEST(cstr == 24+utf8cstr) ;
-   cstr = findwcharnul_utf8cstring(utf8cstr, L'\x7e') ;
+   cstr = findunicode_utf8cstring(utf8cstr, L'\x7e') ;
 
-   // TEST findwcharnul_utf8cstring (end of string)
+   // TEST findunicode_utf8cstring (end of string)
    cstr = utf8cstr + strlen((const char*)utf8cstr) ;
-   TEST(cstr == findwcharnul_utf8cstring(utf8cstr, L'\U001ffffe')) ;
-   TEST(cstr == findwcharnul_utf8cstring(utf8cstr, L'\U0000fffe')) ;
-   TEST(cstr == findwcharnul_utf8cstring(utf8cstr, L'\u07fe')) ;
-   TEST(cstr == findwcharnul_utf8cstring(utf8cstr, L'\x7e')) ;
+   TEST(cstr == findunicode_utf8cstring(utf8cstr, L'\U001ffffe')) ;
+   TEST(cstr == findunicode_utf8cstring(utf8cstr, L'\U0000fffe')) ;
+   TEST(cstr == findunicode_utf8cstring(utf8cstr, L'\u07fe')) ;
+   TEST(cstr == findunicode_utf8cstring(utf8cstr, L'\x7e')) ;
 
-   // TEST findwcharnul_utf8cstring (error)
+   // TEST findunicode_utf8cstring (error)
    cstr = utf8cstr + strlen((const char*)utf8cstr) ;
-   TEST(cstr == findwcharnul_utf8cstring(utf8cstr, L'\U0fffffff')) ;
+   TEST(cstr == findunicode_utf8cstring(utf8cstr, L'\U0fffffff')) ;
 
    return 0 ;
 ABBRUCH:

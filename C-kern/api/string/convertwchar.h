@@ -1,6 +1,9 @@
 /* title: Convert-wchar
    Converts multi byte strings (mbs) into wide character strings.
 
+   TODO: remove module; either replace it with another implementation (see iconv(3))
+         or with an external process which converts local character sets into UTF-8.
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify

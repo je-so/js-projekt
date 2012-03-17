@@ -17,6 +17,10 @@
    The UTF-8 encoding is constricted to max. 4 bytes per character to be compatible with
    UTF-16 (0 .. 0x10FFFF).
 
+   TODO: What to do in case of illegal encodings !
+         Cause a security checker assumnng correct encodings can fail to discover
+         harmful sequences. Then later stages could be easily compromised !
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -40,6 +44,8 @@
 */
 #ifndef CKERN_STRING_UTF8_HEADER
 #define CKERN_STRING_UTF8_HEADER
+
+#include "C-kern/api/string/unicode.h"
 
 // forward
 struct conststring_t ;
@@ -81,7 +87,7 @@ unsigned sizechar_utf8(const uint8_t firstbyte) ;
  * Returns:
  * true  - Memory pointer is moved to next character.
  * false - String is empty and memory pointer is not changed. */
-bool nextcharutf8_conststring(struct conststring_t * str, uint32_t * unicodechar) ;
+bool nextcharutf8_conststring(struct conststring_t * str, unicode_t * wchar) ;
 
 /* function: skipcharutf8_conststring
  * Moves internal *str* pointer to next character.
@@ -95,12 +101,12 @@ bool skipcharutf8_conststring(struct conststring_t * str) ;
 
 // section: utf8cstring
 
-/* function: findwcharnul_utf8cstring
- * Finds character and returns position or end of string.
- * The returned value is position of the found character.
- * If the string does not contain character c the position of
- * the nul byte at the end of utf8cstr is returned. */
-const uint8_t * findwcharnul_utf8cstring(const uint8_t * utf8cstr, wchar_t wchar) ;
+/* function: findunicode_utf8cstring
+ * Finds character wchar and returns its position or end of string.
+ * The returned value is either the position of the found character.
+ * Or in case the string does not contain wchar the position of it is
+ * the position of the null byte at the end of utf8cstr. */
+const uint8_t * findunicode_utf8cstring(const uint8_t * utf8cstr, unicode_t wchar) ;
 
 
 // section: inline implementation

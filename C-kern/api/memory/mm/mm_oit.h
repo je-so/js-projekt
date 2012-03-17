@@ -36,7 +36,7 @@ typedef struct mm_oit                  mm_oit ;
 
 
 /* struct: mm_oit
- * An memory manager object interface implementing <mm_it>. */
+ * A memory manager object implementing interface <mm_it>. */
 struct mm_oit {
    /* variable: object
     * A pointer to the object which implements the interface <mm_it>. */
