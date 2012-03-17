@@ -69,19 +69,20 @@ Subproject Genmake:
   > Includes       = .
   > Defines        =
 
-Subproject textrescompiler:
+Subproject textres2compiler:
 
   Handle text resources for different languages.
-  The textrescompiler generates generates C header from text resource files, e.g. "C-kern/resource/errorlog.text".  files which can be included in the project.
-  The generated header files can be used to get text strings for different language.
-  The type of language must be decided at compile time.
+  The textres2compiler generates a C header and source file from a text resource file, see "C-kern/resource/loerror2.text".
+  The generated files can be used to produce text strings for any language described in the resource file.
+  The kind of language must be decided at compile time - runtime switching is not supported at the moment.
 
-  NEEDS IMPROVEMENT:
-  In a later this compiler will generate
-  database files which allow then to switch the language support at runtime per user.
+  The second version of the resource compiler supports conditional text which can depend on the supplied parameters.
 
-  Simple text replacement is not enough for more complex langs.
-  Introduce algorithmic syntax (C-like syntax :-) => simple code generation)
+  Example:
+  The following text resource has as single parameter the number of files and the returned text depends on it.
+  >  FILES_DELETED(unsigned nr_of_deleted_files)
+  >  en: "I have deleted " ((nr_of_deleted_files==0) "no" (nr_of_deleted_files==1) "one" else nr_of_deleted_files)
+  >      ((nr_of_deleted_files==1) " file\n" else " files\n")
 
 
 section: Build

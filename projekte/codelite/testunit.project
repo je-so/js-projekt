@@ -55,6 +55,7 @@
       <File Name="../../C-kern/api/string/urlencode_string.h"/>
       <File Name="../../C-kern/api/string/base64encode_string.h"/>
       <File Name="../../C-kern/api/string/format_string.h"/>
+      <File Name="../../C-kern/api/string/unicode.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <File Name="../../C-kern/api/platform/process.h"/>
@@ -277,6 +278,10 @@
       <File Name="../../coding-conventions/init_objects.txt"/>
       <File Name="../../coding-conventions/c_types.txt"/>
       <File Name="../../coding-conventions/context.txt"/>
+      <File Name="../../coding-conventions/textresource.txt"/>
+      <VirtualDirectory Name="io">
+        <File Name="../../coding-conventions/io/websockets.txt"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="text.db">
       <File Name="../../C-kern/resource/text.db/signalconfig"/>
@@ -287,15 +292,16 @@
   </VirtualDirectory>
   <VirtualDirectory Name="platform">
     <VirtualDirectory Name="Linux">
+      <File Name="../../C-kern/platform/Linux/clock.c"/>
+      <File Name="../../C-kern/platform/Linux/locale.c"/>
+      <File Name="../../C-kern/platform/Linux/malloc.c"/>
+      <File Name="../../C-kern/platform/Linux/mutex.c"/>
       <File Name="../../C-kern/platform/Linux/process.c"/>
+      <File Name="../../C-kern/platform/Linux/semaphore.c"/>
+      <File Name="../../C-kern/platform/Linux/signal.c"/>
       <File Name="../../C-kern/platform/Linux/thread.c"/>
       <File Name="../../C-kern/platform/Linux/virtmemory.c"/>
-      <File Name="../../C-kern/platform/Linux/semaphore.c"/>
-      <File Name="../../C-kern/platform/Linux/mutex.c"/>
-      <File Name="../../C-kern/platform/Linux/signal.c"/>
-      <File Name="../../C-kern/platform/Linux/locale.c"/>
       <File Name="../../C-kern/platform/Linux/waitlist.c"/>
-      <File Name="../../C-kern/platform/Linux/malloc.c"/>
       <VirtualDirectory Name="io">
         <File Name="../../C-kern/platform/Linux/io/directory.c"/>
         <File Name="../../C-kern/platform/Linux/io/file.c"/>
@@ -306,7 +312,6 @@
         <File Name="../../C-kern/platform/Linux/io/iotimer.c"/>
         <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/platform/Linux/clock.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <File Name="../../C-kern/platform/shared/execCcompiler.c"/>

@@ -12,7 +12,7 @@ typename_t      -  _struct_ or _primitive_ type
 typename_f      -  _function pointer_ type
 typename_e      -  _enum_ type
 typename_it     -  _interface_ type
-typename_oit    -  _object_ pointer & _interface_ pointer type
+typename_oit    -  pointer to _object_ implementing an _interface_ type
 
 group: Enum Example
 
