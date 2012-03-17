@@ -28,6 +28,7 @@
 #include "C-kern/api/io/reader/utf8reader.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/string/string.h"
+#include "C-kern/api/math/int/log2.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -61,10 +62,7 @@ bool skipline_utf8reader(utf8reader_t * utfread)
    uint32_t uchar ;
    size_t         size   = utfread->size ;
    const uint8_t  * next = utfread->next ;
-   union {
-      uint32_t word ;
-      uint8_t  bytes[4] ;
-   }              data ;
+   uint32_t       data ;
 
    if (size > 16) {
 
@@ -73,15 +71,16 @@ bool skipline_utf8reader(utf8reader_t * utfread)
       case 2:     --size ; if ('\n' == *next++) break ;
       case 3:     --size ; if ('\n' == *next++) break ;
       default:    for (; size >= 4; size -= 4, next += 4) {
-                     /* if data.bytes[X] is '\n' it is set to 0 else to a value != 0 */
-                     data.word = 0x0A0A0A0A ^ *(const uint32_t*)next ;
-                     /* if data.bytes[X] is 0 it will be set to 0x80 else to 0 */
-                     data.word = ((data.word - 0x01010101) & ~data.word) & 0x80808080 ;
-                     if (data.word) {
-                        --size ; ++ next ; if (data.bytes[0]) goto FOUND_NEWLINE ;
-                        --size ; ++ next ; if (data.bytes[1]) goto FOUND_NEWLINE ;
-                        --size ; ++ next ; if (data.bytes[2]) goto FOUND_NEWLINE ;
-                        --size ; ++ next ; goto FOUND_NEWLINE ;
+                     /* if data.bytes[0..3] is '\n' it is set to 0 else to a value != 0 */
+                     data = 0x0A0A0A0A ^ *(const uint32_t*)next ;
+                     /* if data.bytes[0..3] is 0 it will be set to 0x80 else to 0 */
+                     data = ((data - 0x01010101) & ~data) & 0x80808080 ;
+                     if (data) {
+                        data = ntohl(data) ;
+                        unsigned offset = 4 - (log2_int(data) / 8) ;
+                        size -= offset ;
+                        next += offset ;
+                        goto FOUND_NEWLINE ;
                      }
                   }
 
