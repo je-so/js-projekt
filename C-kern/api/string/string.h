@@ -67,6 +67,13 @@ struct conststring_t {
  * See <string_INIT>. */
 #define conststring_INIT(strsize, straddr)   { (straddr), (strsize) }
 
+/* define: conststring_INIT_CSTR
+ * Static initializer. Sets <conststring_t> to address C string *cstr* and size to strlen(cstr).
+ * Example:
+ * > const char    * buffer = "teststring" ;
+ * > conststring_t str      = conststring_t(buffer) ; */
+#define conststring_INIT_CSTR(cstr)          { (const uint8_t*)(cstr), strlen(cstr) }
+
 /* function: init_conststring
  * See <init_string>. */
 void init_conststring(/*out*/conststring_t * str, size_t size, const uint8_t string[size]) ;

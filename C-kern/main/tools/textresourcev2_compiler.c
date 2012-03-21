@@ -702,7 +702,13 @@ static void report_parseerror(textresource_reader_t * reader, const char * forma
 
 static void report_unexpectedendofinput(textresource_reader_t * reader)
 {
-   print_error("Unexpected end of input") ;
+   unicode_t ch ;
+   if (EILSEQ == nextchar_utf8reader(&reader->txtpos, &ch)) {
+      skipascii_utf8reader(&reader->txtpos) ;
+      print_error("Wrong UTF-8 character encoding") ;
+   } else {
+      print_error("Unexpected end of input") ;
+   }
    report_errorposition(reader) ;
 }
 
@@ -711,9 +717,11 @@ static void report_unexpectedendofinput(textresource_reader_t * reader)
  * The readoffset is moved forward until end of input. */
 static int skip_spaceandcomment(textresource_reader_t * reader)
 {
-   for (uint8_t ch; peekascii_utf8reader(&reader->txtpos, &ch); ) {
+   for (uint8_t ch; 0 == peekascii_utf8reader(&reader->txtpos, &ch); ) {
       if ('#' == ch) {
-         skipline_utf8reader(&reader->txtpos) ;
+         if (ENODATA == skipline_utf8reader(&reader->txtpos)) {
+            skipall_utf8reader(&reader->txtpos) ;
+         }
       } else {
          if (     ' '  != ch
                && '\t' != ch
@@ -736,7 +744,7 @@ static int match_unsigned(textresource_reader_t * reader, int * number)
    err = skip_spaceandcomment(reader) ;
    if (err) goto ABBRUCH ;
 
-   if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+   if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
       || !('0' <= ch && ch <= '9')) {
       report_parseerror(reader, "expected to read a number") ;
       err = EINVAL ;
@@ -747,7 +755,7 @@ static int match_unsigned(textresource_reader_t * reader, int * number)
 
    for (;;) {
       skipascii_utf8reader(&reader->txtpos) ;
-      if (  peekascii_utf8reader(&reader->txtpos, &ch)
+      if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
          && ('0' <= ch && ch <= '9')) {
          if (value >= (INT_MAX/10 - 1)) {
             report_parseerror(reader, "number too big") ;
@@ -800,13 +808,15 @@ static int match_stringandspace(textresource_reader_t * reader, const char * str
    err = match_string(reader, string) ;
    if (err) return err ;
 
-   if (     !nextbyte_utf8reader(&reader->txtpos, &ch)
+   if (     0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || (     ' '  != ch
                && '\t' != ch
                && '\n' != ch)) {
       expect = " " ;
       goto ABBRUCH ;
    }
+
+   skipascii_utf8reader(&reader->txtpos) ;
 
    return 0 ;
 ABBRUCH:
@@ -824,9 +834,9 @@ static int match_identifier(textresource_reader_t * reader, /*out*/conststring_t
 
    const uint8_t * idstart = unread_utf8reader(&reader->txtpos) ;
 
-   if (!nextchar_utf8reader(&reader->txtpos, &ch)) {
+   if (nextchar_utf8reader(&reader->txtpos, &ch)) {
+      err = nextchar_utf8reader(&reader->txtpos, &ch) ;
       report_unexpectedendofinput(reader) ;
-      err = EINVAL ;
       goto ABBRUCH ;
    }
 
@@ -838,7 +848,7 @@ static int match_identifier(textresource_reader_t * reader, /*out*/conststring_t
       goto ABBRUCH ;
    }
 
-   while (peekascii_utf8reader(&reader->txtpos, &ch)) {
+   while (0 == peekascii_utf8reader(&reader->txtpos, &ch)) {
 
       if (  '\t' == ch
          || ' ' == ch
@@ -887,7 +897,7 @@ static int match_quotedcstring(textresource_reader_t * reader, conststring_t * c
 
    for (uint8_t ch, isEscape = 0, isClosingQuote = 0; !isClosingQuote;) {
 
-      if (!peekascii_utf8reader(&reader->txtpos, &ch)) break ;
+      if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) break ;
       skipchar_utf8reader(&reader->txtpos) ;
 
       if (isEscape) {
@@ -930,7 +940,7 @@ static int match_ifcondition(textresource_reader_t * reader, conststring_t * ifc
 
    for (uint8_t ch, depth = 1; depth;) {
 
-      if (!peekascii_utf8reader(&reader->txtpos, &ch)) break ;
+      if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) break ;
       skipchar_utf8reader(&reader->txtpos) ;
 
       if ('(' == ch) {
@@ -968,7 +978,7 @@ static int match_formatdescription(textresource_reader_t * reader, textresource_
 
    for (uint8_t ch;;) {
 
-      if (  peekascii_utf8reader(&reader->txtpos, &ch)
+      if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
          && ']' == ch) {
          break ;
       }
@@ -1011,7 +1021,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
    err = skip_spaceandcomment(reader) ;
    if (err) goto ABBRUCH ;
 
-   if (  peekascii_utf8reader(&reader->txtpos, &ch)
+   if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
       && ')' != ch) {
 
       for (;;) {
@@ -1045,7 +1055,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
          err = skip_spaceandcomment(reader) ;
          if (err) goto ABBRUCH ;
 
-         if (  peekascii_utf8reader(&reader->txtpos, &ch)
+         if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
             && '*' == ch) {
             skipascii_utf8reader(&reader->txtpos) ;
             if (0 == (textparam.type->typemod & typemodifier_POINTER)) {
@@ -1081,7 +1091,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
          err = skip_spaceandcomment(reader) ;
          if (err) goto ABBRUCH ;
 
-         if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+         if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
             || ',' != ch)   break ;
 
          skipascii_utf8reader(&reader->txtpos) ;
@@ -1102,7 +1112,7 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
    bool isLineEnding = false ;
 
    for (uint8_t ch;;) {
-      if (!peekascii_utf8reader(&reader->txtpos, &ch)) break ;
+      if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) break ;
 
       if ('\n' == ch) {
          isLineEnding = true ;
@@ -1135,7 +1145,7 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
          bool isParam = false ;
 
          for(size_t i = 0, endi = unreadsize_utf8reader(&reader->txtpos); i < endi; ++i) {
-            if (!peekasciiatoffset_utf8reader(&reader->txtpos, i, &ch)) break ;
+            if (0 != peekasciiatoffset_utf8reader(&reader->txtpos, i, &ch)) break ;
             if (  ('a' <= ch && ch <= 'z')
                || ('A' <= ch && ch <= 'Z')
                || ('0' <= ch && ch <= '9')
@@ -1166,7 +1176,7 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
             goto ABBRUCH ;
          }
 
-         while (  peekascii_utf8reader(&reader->txtpos, &ch)
+         while (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
                && (' '  == ch || '\t' == ch)) {
                skipascii_utf8reader(&reader->txtpos) ;
          }
@@ -1202,7 +1212,7 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
       err = skip_spaceandcomment(reader) ;
       if (err) goto ABBRUCH ;
 
-      if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || '<' == ch) {
          break ;
       }
@@ -1282,7 +1292,7 @@ static int parse_unconditional_textatoms(textresource_reader_t * reader, textres
       err = skip_spaceandcomment(reader) ;
       if (err) goto ABBRUCH ;
 
-      if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || (  '"' != ch
             && '(' != ch)) {
          break ;
@@ -1385,7 +1395,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          err = parse_unconditional_textatoms(reader, textcopy, langrefcopy) ;
          if (err) return err ;
 
-         if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+         if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
             || '<' == ch) {
             break ;
          }
@@ -1393,7 +1403,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          err = match_identifier(reader, &name) ;
          if (err) return err ;
 
-         if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+         if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
             || ':' != ch) {
             break ;
          }
@@ -1403,7 +1413,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          parsedlang->lang->isdefined = false ;
       }
 
-      if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || '<' == ch) {
          break ;
       }
@@ -1423,7 +1433,7 @@ static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader,
    const uint8_t * name_start = unread_utf8reader(&reader->txtpos) ;
    const uint8_t * name_end   = name_start ;
 
-   while (nextchar_utf8reader(&reader->txtpos, &ch)) {
+   while (0 == nextchar_utf8reader(&reader->txtpos, &ch)) {
       if ('a' <= ch && ch <= 'z') continue ;
 
       name_end = unread_utf8reader(&reader->txtpos) - 1 ;
@@ -1435,7 +1445,7 @@ static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader,
       if ('\t' == ch || ' ' == ch) {
          err = skip_spaceandcomment(reader) ;
          if (err) return err ;
-         (void) nextbyte_utf8reader(&reader->txtpos, &ch) ;
+         (void) nextchar_utf8reader(&reader->txtpos, &ch) ;
       }
 
       if ('=' != ch) {
@@ -1450,7 +1460,7 @@ static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader,
    if (err) return err ;
 
    uint32_t closing_quote = 0 ;
-   if (     peekascii_utf8reader(&reader->txtpos, &ch)
+   if (     0 == peekascii_utf8reader(&reader->txtpos, &ch)
          && ('\'' == ch || '"' == ch)) {
       closing_quote = ch ;
       skipascii_utf8reader(&reader->txtpos) ;
@@ -1461,7 +1471,7 @@ static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader,
 
    if (closing_quote) {
       ch = 0 ;
-      while (peekascii_utf8reader(&reader->txtpos, &ch)) {
+      while (0 == peekascii_utf8reader(&reader->txtpos, &ch)) {
          if (closing_quote == ch) {
             skipascii_utf8reader(&reader->txtpos) ;
             break ;
@@ -1474,7 +1484,7 @@ static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader,
       }
       value_end = unread_utf8reader(&reader->txtpos) - 1 ;
    } else {
-      while (peekascii_utf8reader(&reader->txtpos, &ch)) {
+      while (0 == peekascii_utf8reader(&reader->txtpos, &ch)) {
          if (' ' == ch || '\t' == ch || '/' == ch || '>' == ch) break ;
          skipchar_utf8reader(&reader->txtpos) ;
       }
@@ -1510,14 +1520,14 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
       err = skip_spaceandcomment(reader) ;
       if (err) return err ;
 
-      if (     peekascii_utf8reader(&reader->txtpos, &ch)
+      if (     0 == peekascii_utf8reader(&reader->txtpos, &ch)
             && '/' == ch) {
          skipascii_utf8reader(&reader->txtpos) ;
          savetextpos_utf8reader(&reader->txtpos, &oldpos) ;
          isOpenElement = false ;
       }
 
-      if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || (!isOpenElement && ('>' != ch))) {
          skipchar_utf8reader(&reader->txtpos) ;
          report_parseerror(reader, "Expected closing '>'") ;
@@ -1593,7 +1603,7 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
       err = match_string(reader, "<") ;
       if (err) goto ABBRUCH ;
 
-      if (!peekascii_utf8reader(&reader->txtpos, &ch)) break ;
+      if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) break ;
 
       switch(ch) {
       case 'f':   err = match_stringandspace(reader, "firstparam") ;
@@ -1603,7 +1613,7 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
                   reader->txtres.progC.firstparam        = firstattr[0].value ;
                   reader->txtres.progC.firstparam_header = firstattr[1].value ;
                   break ;
-      case 'g':   if (  peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
+      case 'g':   if (  0 == peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
                      && 'e' == ch) {
                      err = match_stringandspace(reader, "generate") ;
                      if (err) goto ABBRUCH ;
@@ -1624,9 +1634,9 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
                   if (err) goto ABBRUCH ;
                   const uint8_t * incl_start = unread_utf8reader(&reader->txtpos) ;
                   const uint8_t * incl_end   = incl_start ;
-                  while (peekascii_utf8reader(&reader->txtpos, &ch)) {
+                  while (0 == peekascii_utf8reader(&reader->txtpos, &ch)) {
                      if (  '<' == ch
-                        && peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
+                        && 0 == peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
                         && '/' == ch) {
                         incl_end = unread_utf8reader(&reader->txtpos) ;
                         break ;
@@ -1682,7 +1692,7 @@ static int parse_header_textresourcereader(textresource_reader_t * reader)
       err = skip_spaceandcomment(reader) ;
       if (err) goto ABBRUCH ;
 
-      if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || '<' != ch) {
          break ;
       }
@@ -1722,7 +1732,7 @@ static int parse_contentversion2_textresourcereader(textresource_reader_t * read
    if (err) goto ABBRUCH ;
 
    for (uint8_t ch;;) {
-      if (  !peekascii_utf8reader(&reader->txtpos, &ch)
+      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || '<' == ch) {
          break ;
       }

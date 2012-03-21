@@ -68,29 +68,44 @@ struct utf8reader_t {
 void init_utf8reader(/*out*/utf8reader_t * utfread, size_t size, const uint8_t textaddr[size]) ;
 
 /* function: init_utf8reader
- * Sets all internal members to 0. No resources are freed. */
+ * Sets all internal members to 0. There is no need to free any resources. */
 void free_utf8reader(utf8reader_t * utfread) ;
 
 // group: query
 
 /* function: isnext_utf8reader
- * TODO */
+ * Returns true if there is at least one byte to read.
+ * It is possible that a character is encoded in up to 4 bytes
+ * and that the string no more contains that many bytes. In this
+ * case <nextchar_utf8reader> or <skipchar_utf8reader> return EILSEQ. */
 bool isnext_utf8reader(const utf8reader_t * utfread) ;
 
 /* function: nrcolumn_utf8reader
- * TODO */
+ * Returns the column nr of the current reading position.
+ * At the beginning of each line this value is 0. Reading a
+ * character increments this value is by one. Therefore this value
+ * represents the column nr of the last read character. */
 size_t nrcolumn_utf8reader(const utf8reader_t * utfread) ;
 
 /* function: nrline_utf8reader
- * TODO */
+ * Returns the line nr of the current readng position.
+ * During initialization of <utf8reader_t> this value is set to 1.
+ * Eve3ry time a new line character is read this value is incremented
+ * by one and the column nr is set to 0 (see <nrcolumn_utf8reader>). */
 size_t nrline_utf8reader(const utf8reader_t * utfread) ;
 
 /* function: unread_utf8reader
- * TODO */
+ * Returns a pointer to the buffer beginning with the next unread character.
+ * The size of the character buffer can be determined with the return value of
+ * <unreadsize_utf8reader>. */
 const uint8_t * unread_utf8reader(const utf8reader_t * utfread) ;
 
 /* function: unreadsize_utf8reader
- * TODO */
+ * Returns the size of the buffer containing all unread characters.
+ * The first character in this buffer can be decoded by a call to <nextchar_utf8reader>.
+ * Using this function and <unread_utf8reader> you can peek into the buffer to compare
+ * it to an UTF-8/ascii string without decoding it. With <skipNbytes_utf8reader> it is possible
+ * to skip all bytes of such a comparison. */
 size_t unreadsize_utf8reader(utf8reader_t * utfread) ;
 
 // group: memento
@@ -110,19 +125,30 @@ void restoretextpos_utf8reader(utf8reader_t * utfread, const utf8reader_t * meme
 
 /* function: nextchar_utf8reader
  * Decodes next unicode character from input.
+ * The character is returned as unicode character (codepoint).
+ * This function assumes characters are encoded correctly.
  *
  * Returns:
- * true  - There was another uchar read. *nxtchar* contains valid value.
- * false - No more bytes could be read. *nxtchar* is not changed. */
-bool nextchar_utf8reader(utf8reader_t * utfread, uint32_t * nxtchar) ;
+ * 0       - UTF8 character decoded and returned in nxtchar and reading position is moved to next character.
+ * ENODATA - No more bytes to read from. Reading position is not changed.
+ * EILSEQ  - The next character is encoded in a wrong way or there are not enough bytes left in the input.
+ *           Either way the reading position is not changed.
+ *           Use <skipchar_utf8reader> or <skipNbytes_utf8reader> to move the reading position to the next byte or character.
+ *           If you called <skipchar_utf8reader> and it returned EILSEQ you know also that there are not enough bytes left.
+ *           It may be necessary to repeat this step to skip a whole multibyte sequence. */
+int nextchar_utf8reader(utf8reader_t * utfread, unicode_t * nxtchar) ;
 
 /* function: skipchar_utf8reader
  * Skips next character.
+ * This function assumes characters are encoded correctly.
  *
  * Returns:
- * true  - There was another character skipped.
- * false - No more more bytes could be read. */
-bool skipchar_utf8reader(utf8reader_t * utfread) ;
+ * 0       - Reading position is moved to next character.
+ * ENODATA - String is empty and reading position is not changed.
+ * EILSEQ  - String contains not enough data. The last character
+ *           has more encoded bytes than are available in the string.
+ *           The reading position is not changed. */
+int skipchar_utf8reader(utf8reader_t * utfread) ;
 
 /* function: peekascii_utf8reader
  * Returns next ascii character.
@@ -131,19 +157,20 @@ bool skipchar_utf8reader(utf8reader_t * utfread) ;
  * In this case use <nextchar_utf8reader> to read the encoded multibyte sequence.
  *
  * Returns:
- * true  - There was another byte read. *nextascii* contains byte value.
- * false - No more bytes could be read. *nextascii* is not changed. */
-bool peekascii_utf8reader(const utf8reader_t * utfread, uint8_t * nextascii) ;
+ * 0       - There was another byte read and *nextascii* contains its value. Reading position is not moved.
+ * ENODATA - No more byte could be read. *nextascii* is not changed. */
+int peekascii_utf8reader(const utf8reader_t * utfread, uint8_t * nextascii) ;
 
 /* function: peekasciiatoffset_utf8reader
- * Returns ascii character at *offset* bytes from addr <unread_utf8reader>.
+ * Returns next ascii character with an offset if *offset* bytes.
+ * Calling this function with an offset parameter set to 0 is the same as calling <peekascii_utf8reader>.
  * The returned character is valid ascii if it is in the range [0 .. 127].
- * If it is not in this range the character at *offset* is not an ascii.
+ * If it is not in this range the next character at *offset* is not an encoded ascii value.
  *
  * Returns:
- * true  - There was another byte at *offset* read. *nextascii* contains byte value.
- * false - No more bytes could be read at *offset*. *nextascii* is not changed. */
-bool peekasciiatoffset_utf8reader(const utf8reader_t * utfread, size_t offset, uint8_t * nextascii) ;
+ * 0       - There was another byte read and *nextascii* contains its value. Reading position is not moved.
+ * ENODATA - No more byte could be read at *offset*. *nextascii* is not changed. */
+int peekasciiatoffset_utf8reader(const utf8reader_t * utfread, size_t offset, uint8_t * nextascii) ;
 
 /* function: skipascii_utf8reader
  * Skips next ascii character.
@@ -156,20 +183,33 @@ void skipascii_utf8reader(utf8reader_t * utfread) ;
 
 /* function: skipNbytes_utf8reader
  * Skips next *nrbytes* bytes.
- * The 3d parameter gives the number of contained characters to adapt the current column is accordingly.
+ * The third parameter gives the number of skipped characters to adapt the current column accordingly.
  * Make sure that there is no newline character in the input cause the current line number is not changed.
+ * If there are no more *nrbytes* bytes nothing is done. Make sure that there are enough bytes in the
+ * input stream and that you also know the number of characters before calling this function.
  *
  * Unsafe Function:
  * This function assumes that the next *nrbytes* bytes contains *nrchars* characters and *NO* newline character. */
 void skipNbytes_utf8reader(utf8reader_t * utfread, size_t nrbytes, size_t nrchars) ;
 
-/* function: skipchar_utf8reader
- * Skips characters until beginning of next line or end of input.
+/* function: skipline_utf8reader
+ * Skips characters until beginning of next line.
+ * If there is no next line character found nothing is changed.
  *
  * Returns:
- * true  - There was at least one character skipped.
- * false - Already reached »end of input«, no characters were skipped. */
-bool skipline_utf8reader(utf8reader_t * utfread) ;
+ * 0       - All characters are skipped until beginning of next line.
+ * ENODATA - Reading position is not changed cause text contains no new line character. */
+int skipline_utf8reader(utf8reader_t * utfread) ;
+
+/* function: skipall_utf8reader
+ * Skips all characters until end of input.
+ * Use this function in conjunction with <skipline_utf8reader>.
+ * If <skipline_utf8reader> returns ENODATA call <skipall_utf8reader> if
+ * you want to consume all characters and compute the column number correctly.
+ * Use <skipNbytes_utf8reader> if you do not want to compute the column number
+ * correctly but only want to signal the fact that there are no more bytes to read.
+ * If the function returns EILSEQ see <skipchar_utf8reader> for the meaning of it. */
+int skipall_utf8reader(utf8reader_t * utfread) ;
 
 
 // section: inline implementation
@@ -197,40 +237,21 @@ bool skipline_utf8reader(utf8reader_t * utfread) ;
 #define isnext_utf8reader(utfread)                       \
             (0 != (utfread)->size)
 
-/* define: nextbyte_utf8reader
- * Implements <utf8reader_t.nextbyte_utf8reader>. */
-#define nextbyte_utf8reader(utfread, nextbyte)           \
-   ( __extension__ ({                                    \
-            typeof(utfread) _urd1 = (utfread) ;          \
-            bool _isnext = isnext_utf8reader(_urd1) ;    \
-            if (_isnext) {                               \
-               -- _urd1->size ;                          \
-               ++ _urd1->colnr ;                         \
-               uint8_t _chr = *(_urd1->next ++) ;        \
-               *(nextbyte)  = _chr ;                     \
-               if ('\n' == _chr) {                       \
-                  ++ _urd1->linenr ;                     \
-                  _urd1->colnr = 0 ;                     \
-               }                                         \
-            }                                            \
-            _isnext ;                                    \
-   }))
-
 /* define: nextchar_utf8reader
  * Implements <utf8reader_t.nextchar_utf8reader>. */
 #define nextchar_utf8reader(utfread, nxtchar)            \
    ( __extension__ ({                                    \
-            typeof(utfread) _urd1 = (utfread) ;          \
-            bool _isnext = nextcharutf8_conststring(     \
-                     (conststring_t*)_urd1, (nxtchar)) ; \
-            if (_isnext) {                               \
-               ++ _urd1->colnr ;                         \
+            typeof(utfread) _rd1 = (utfread) ;           \
+            int _err = nextcharutf8_conststring(         \
+                     (conststring_t*)_rd1, (nxtchar)) ;  \
+            if (0 == _err) {                             \
+               ++ _rd1->colnr ;                          \
                if ('\n' == *(nxtchar)) {                 \
-                  ++ _urd1->linenr ;                     \
-                  _urd1->colnr = 0 ;                     \
+                  ++ _rd1->linenr ;                      \
+                  _rd1->colnr = 0 ;                      \
                }                                         \
             }                                            \
-            _isnext ;                                    \
+            _err ;                                       \
    }))
 
 /* define: nrcolumn_utf8reader
@@ -247,25 +268,31 @@ bool skipline_utf8reader(utf8reader_t * utfread) ;
  * Implements <utf8reader_t.peekascii_utf8reader>. */
 #define peekascii_utf8reader(utfread, nextascii)         \
    ( __extension__ ({                                    \
-            typeof(utfread) _urd1 = (utfread) ;          \
-            bool _isnext = isnext_utf8reader(_urd1) ;    \
-            if (_isnext) {                               \
-               *(nextascii) = *_urd1->next ;             \
+            int             _err2 ;                      \
+            typeof(utfread) _rd2  = (utfread) ;          \
+            if (isnext_utf8reader(_rd2)) {               \
+               *(nextascii) = *_rd2->next ;              \
+               _err2 = 0 ;                               \
+            } else {                                     \
+               _err2 = ENODATA ;                         \
             }                                            \
-            _isnext ;                                    \
+            _err2 ;                                      \
    }))
 
 /* define: peekasciiatoffset_utf8reader
  * Implements <utf8reader_t.peekasciiatoffset_utf8reader>. */
 #define peekasciiatoffset_utf8reader(utfread, offset, nextascii) \
    ( __extension__ ({                                    \
-            typeof(utfread) _urd1 = (utfread) ;          \
-            size_t          _off1 = (offset) ;           \
-            bool _isnext = (_urd1->size > _off1) ;       \
-            if (_isnext) {                               \
-               *(nextascii) = _urd1->next[_off1] ;       \
+            int             _err2 ;                      \
+            typeof(utfread) _rd2  = (utfread) ;          \
+            size_t          _off2 = (offset) ;           \
+            if (_rd2->size > _off2) {                    \
+               *(nextascii) = _rd2->next[_off2] ;        \
+               _err2 = 0 ;                               \
+            } else {                                     \
+               _err2 = ENODATA ;                         \
             }                                            \
-            _isnext ;                                    \
+            _err2 ;                                      \
    }))
 
 
@@ -299,10 +326,30 @@ bool skipline_utf8reader(utf8reader_t * utfread) ;
  * Implements <utf8reader_t.skipchar_utf8reader>. */
 #define skipchar_utf8reader(utfread)                     \
    ( __extension__ ({                                    \
-            uint32_t _chr2 ;                             \
-            bool _isnext2 =                              \
-               nextchar_utf8reader(utfread, &_chr2) ;    \
-            _isnext2 ;                                   \
+            int             _err = 0 ;                   \
+            typeof(utfread) _rd1 = (utfread) ;           \
+            if (isnext_utf8reader(_rd1)) {               \
+               uint8_t firstbyte = *(_rd1->next) ;       \
+               if ('\n' == firstbyte) {                  \
+                  ++ _rd1->linenr ;                      \
+                  _rd1->colnr = 0 ;                      \
+                  ++ _rd1->next ;                        \
+                  -- _rd1->size ;                        \
+               } else {                                  \
+                  uint8_t _sz ;                          \
+                  _sz = sizechar_utf8(firstbyte) ;       \
+                  if (_sz > _rd1->size) {                \
+                     _err = EILSEQ ;                     \
+                  } else {                               \
+                     _rd1->next += _sz ;                 \
+                     _rd1->size -= _sz ;                 \
+                     ++ _rd1->colnr ;                    \
+                  }                                      \
+               }                                         \
+            } else {                                     \
+               _err = ENODATA ;                          \
+            }                                            \
+            _err ;                                       \
    }))
 
 /* define: skipNbytes_utf8reader

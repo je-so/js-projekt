@@ -29,10 +29,9 @@ about: State
 
   The current development is the architecture and design phase.
   The structure of the base system must support many users so the concurrency problem
-  has to be solved in one way or another. One of the older technologies is a transaction
-  processing monitor which can handle things like client-server communication, transaction
-  context and the process management.
-
+  has to be solved in one way or another. Some kind of transaction
+  processing monitor which can handle things like client-server communication,
+  transaction contexts and process management is needed.
 
 about: Developed Ideas
 
