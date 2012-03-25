@@ -8,12 +8,11 @@ Src           += C-kern/main/unittest_main.c
 Src           += C-kern/cache/*.c
 Src           += C-kern/context/*.c
 Src           += C-kern/ds/*.c C-kern/ds/inmem/*.c
-Src           += C-kern/io/*.c C-kern/io/reader/*.c C-kern/io/writer/*.c
+Src           += C-kern/io/*.c C-kern/io/reader/*.c C-kern/io/writer/*.c C-kern/io/writer/log/*.c
 Src           += C-kern/math/hash/*.c C-kern/math/int/*.c
 Src           += C-kern/memory/*.c C-kern/memory/mm/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/test/*.c
-Src           += C-kern/writer/*.c
 Includes       = .
 Libs           = m pthread rt
 Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(HTML5)"

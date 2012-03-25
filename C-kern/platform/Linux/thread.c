@@ -29,7 +29,7 @@
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/sync/semaphore.h"
 #include "C-kern/api/platform/sync/signal.h"
-#include "C-kern/api/writer/logmain.h"
+#include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

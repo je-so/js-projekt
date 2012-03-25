@@ -171,18 +171,20 @@
       <VirtualDirectory Name="reader">
         <File Name="../../C-kern/api/io/reader/utf8reader.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="writer">
+        <VirtualDirectory Name="log">
+          <File Name="../../C-kern/api/io/writer/log/errlog_macros.h"/>
+          <File Name="../../C-kern/api/io/writer/log/log_it.h"/>
+          <File Name="../../C-kern/api/io/writer/log/log_macros.h"/>
+          <File Name="../../C-kern/api/io/writer/log/log_oit.h"/>
+          <File Name="../../C-kern/api/io/writer/log/logmain.h"/>
+          <File Name="../../C-kern/api/io/writer/log/logwriter.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/clock.h"/>
       <File Name="../../C-kern/api/time/timespec.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="writer">
-      <File Name="../../C-kern/api/writer/logwriter.h"/>
-      <File Name="../../C-kern/api/writer/log_it.h"/>
-      <File Name="../../C-kern/api/writer/log_oit.h"/>
-      <File Name="../../C-kern/api/writer/log_macros.h"/>
-      <File Name="../../C-kern/api/writer/errlog_macros.h"/>
-      <File Name="../../C-kern/api/writer/logmain.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="presentation">
       <VirtualDirectory Name="X11">
@@ -215,6 +217,10 @@
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <File Name="../../C-kern/io/writer/logerrtext.c"/>
+      <VirtualDirectory Name="log">
+        <File Name="../../C-kern/io/writer/log/logmain.c"/>
+        <File Name="../../C-kern/io/writer/log/logwriter.c"/>
+      </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
@@ -352,10 +358,6 @@
       <File Name="../../C-kern/presentation/X11/glxwindow.c"/>
       <File Name="../../C-kern/presentation/X11/x11.c"/>
     </VirtualDirectory>
-  </VirtualDirectory>
-  <VirtualDirectory Name="writer">
-    <File Name="../../C-kern/writer/logwriter.c"/>
-    <File Name="../../C-kern/writer/logmain.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">

@@ -64,7 +64,7 @@
    <guard      value=CKERN_RESOURCE_ERRORLOG_HEADER/>
    <generate   header="C-kern/api/resource/logerrtext.h" source="C-kern/io/writer/logerrtext.c"/>
    <printf     value=PRINTF/>
-   <firstparam value="log_channel_e channel" header="C-kern/api/writer/log_it.h"/>
+   <firstparam value="log_channel_e channel" header="C-kern/api/io/writer/log/log_it.h"/>
    <include>
       #include "C-kern/konfig.h"
       #include "C-kern/api/resource/logerrtext.h"

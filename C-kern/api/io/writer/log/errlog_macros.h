@@ -20,14 +20,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/errlog_macros.h
+   file: C-kern/api/io/writer/log/errlog_macros.h
     Header file of <ErrlogMacros>.
 */
-#ifndef CKERN_WRITER_ERRLOG_MACROS_HEADER
-#define CKERN_WRITER_ERRLOG_MACROS_HEADER
+#ifndef CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
+#define CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 
 #include "C-kern/api/resource/logerrtext.h"
-#include "C-kern/api/writer/log_macros.h"
+#include "C-kern/api/io/writer/log/log_macros.h"
 
 
 // section: Functions

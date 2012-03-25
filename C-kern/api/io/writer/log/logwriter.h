@@ -17,17 +17,17 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/logwriter.h
+   file: C-kern/api/io/writer/log/logwriter.h
     Header file of <LogWriter>.
 
-   file: C-kern/writer/logwriter.c
+   file: C-kern/io/writer/log/logwriter.c
     Implementation file <LogWriter impl>.
 */
-#ifndef CKERN_WRITER_LOGWRITER_HEADER
-#define CKERN_WRITER_LOGWRITER_HEADER
+#ifndef CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
+#define CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/writer/log_it.h"
+#include "C-kern/api/io/writer/log/log_it.h"
 
 
 /* typedef: logwriter_t typedef
@@ -40,9 +40,9 @@ typedef struct logwriter_t          logwriter_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_writer_logwriter
+/* function: unittest_io_writer_log_logwriter
  * Tests <initthread_logwriter> and functionality of <logwriter_t>. */
-int unittest_writer_logwriter(void) ;
+int unittest_io_writer_log_logwriter(void) ;
 #endif
 
 

@@ -16,16 +16,16 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/logmain.h
+   file: C-kern/api/io/writer/log/logmain.h
     Header file of <LogMain>.
 
-   file: C-kern/writer/logmain.c
+   file: C-kern/io/writer/log/logmain.c
     Implementation file of <LogMain impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/writer/logmain.h"
-#include "C-kern/api/writer/log_it.h"
+#include "C-kern/api/io/writer/log/logmain.h"
+#include "C-kern/api/io/writer/log/log_it.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filedescr.h"
 #ifdef KONFIG_UNITTEST
@@ -193,7 +193,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_writer_logmain()
+int unittest_io_writer_log_logmain()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 

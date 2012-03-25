@@ -7,7 +7,7 @@
 #ifndef CKERN_RESOURCE_ERRORLOG_HEADER
 #define CKERN_RESOURCE_ERRORLOG_HEADER
 
-#include "C-kern/api/writer/log_it.h"
+#include "C-kern/api/io/writer/log/log_it.h"
 
 int LOG_ERRTEXT_ABORT_ASSERT_FAILED(log_channel_e channel, int err, const char * wrong_condition) ;
 int LOG_ERRTEXT_ABORT_FATAL(log_channel_e channel, int err) ;

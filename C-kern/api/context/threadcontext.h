@@ -31,7 +31,7 @@
 
 #include "C-kern/api/cache/objectcache_oit.h"
 #include "C-kern/api/memory/mm/mm_oit.h"
-#include "C-kern/api/writer/log_oit.h"
+#include "C-kern/api/io/writer/log/log_oit.h"
 
 /* typedef: struct threadcontext_t
  * Export <threadcontext_t>. */

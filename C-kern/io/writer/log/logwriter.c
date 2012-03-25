@@ -17,18 +17,18 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/logwriter.h
+   file: C-kern/api/io/writer/log/logwriter.h
     Header file of <LogWriter>.
 
-   file: C-kern/writer/logwriter.c
+   file: C-kern/io/writer/log/logwriter.c
     Implementation file <LogWriter impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/writer/logwriter.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/platform/virtmemory.h"
-#include "C-kern/api/writer/logmain.h"
+#include "C-kern/api/io/writer/log/logmain.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filedescr.h"
@@ -556,7 +556,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-int unittest_writer_logwriter()
+int unittest_io_writer_log_logwriter()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 

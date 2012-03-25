@@ -28,11 +28,11 @@
 #include "C-kern/api/context/threadcontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/writer/logmain.h"
+#include "C-kern/api/io/writer/log/logmain.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initthread")
 #include "C-kern/api/memory/mm/mmtransient.h"
 #include "C-kern/api/cache/objectcache.h"
-#include "C-kern/api/writer/logwriter.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

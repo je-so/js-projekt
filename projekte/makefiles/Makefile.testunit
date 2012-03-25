@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Mar.15  17:50:57
+GenerationDate  := 2012.Mar.25  12:32:36
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -111,6 +111,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
@@ -129,9 +131,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!test.c.o \
  $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
- $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
- $(ObjectDir_Debug)/C-kern!writer!logmain.c.o \
- $(ObjectDir_Debug)/C-kern!writer!logwriter.c.o
+ $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!thread.c.o \
@@ -171,6 +171,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
@@ -189,9 +191,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!test!test.c.o \
  $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
- $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
- $(ObjectDir_Release)/C-kern!writer!logmain.c.o \
- $(ObjectDir_Release)/C-kern!writer!logwriter.c.o
+ $(ObjectDir_Release)/C-kern!test!resourceusage.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -310,6 +310,12 @@ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.
 $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
 	@$(CC_Debug)
 
@@ -365,12 +371,6 @@ $(ObjectDir_Debug)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!thread.c.o: C-kern/platform/Linux/thread.c
@@ -484,6 +484,12 @@ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reade
 $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
 	@$(CC_Release)
 
@@ -539,12 +545,6 @@ $(ObjectDir_Release)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!writer!logwriter.c.o: C-kern/writer/logwriter.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

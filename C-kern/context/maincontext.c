@@ -29,7 +29,7 @@
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/writer/logmain.h"
+#include "C-kern/api/io/writer/log/logmain.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/locale.h"

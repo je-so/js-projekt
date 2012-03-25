@@ -16,14 +16,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/logmain.h
+   file: C-kern/api/io/writer/log/logmain.h
     Header file of <LogMain>.
 
-   file: C-kern/writer/logmain.c
+   file: C-kern/io/writer/log/logmain.c
     Implementation file of <LogMain impl>.
 */
-#ifndef CKERN_WRITER_LOGMAIN_HEADER
-#define CKERN_WRITER_LOGMAIN_HEADER
+#ifndef CKERN_IO_WRITER_LOG_LOGMAIN_HEADER
+#define CKERN_IO_WRITER_LOG_LOGMAIN_HEADER
 
 // forward
 struct log_it ;
@@ -49,9 +49,9 @@ extern struct log_it                   g_logmain_interface ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_writer_logmain
+/* function: unittest_io_writer_log_logmain
  * Tests global variable <g_logmain> and interface <g_logmain_interface>. */
-extern int unittest_writer_logmain(void) ;
+extern int unittest_io_writer_log_logmain(void) ;
 #endif
 
 #endif

@@ -277,8 +277,8 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
 //}
 
 //{ writer unittest
-   RUN(unittest_writer_logwriter) ;
-   RUN(unittest_writer_logmain) ;
+   RUN(unittest_io_writer_log_logwriter) ;
+   RUN(unittest_io_writer_log_logmain) ;
 //}
 
 //{ platform unittest

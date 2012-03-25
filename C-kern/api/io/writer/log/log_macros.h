@@ -16,13 +16,13 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/log_macros.h
+   file: C-kern/api/io/writer/log/log_macros.h
     Header file of <LogMacros>.
 */
-#ifndef CKERN_WRITER_LOG_MACROS_HEADER
-#define CKERN_WRITER_LOG_MACROS_HEADER
+#ifndef CKERN_IO_WRITER_LOG_LOG_MACROS_HEADER
+#define CKERN_IO_WRITER_LOG_LOG_MACROS_HEADER
 
-#include "C-kern/api/writer/log_it.h"
+#include "C-kern/api/io/writer/log/log_it.h"
 
 
 // section: Functions

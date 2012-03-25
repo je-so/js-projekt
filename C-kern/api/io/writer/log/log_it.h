@@ -19,14 +19,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/log_it.h
+   file: C-kern/api/io/writer/log/log_it.h
     Header file of <Log-Interface>.
 
-   file: C-kern/api/writer/log_oit.h
+   file: C-kern/api/io/writer/log/log_oit.h
     Contains object interface definition <Log-ObjectInterface>.
 */
-#ifndef CKERN_WRITER_LOG_IT_HEADER
-#define CKERN_WRITER_LOG_IT_HEADER
+#ifndef CKERN_IO_WRITER_LOG_LOG_IT_HEADER
+#define CKERN_IO_WRITER_LOG_LOG_IT_HEADER
 
 /* typedef: struct log_it
  * Export interface (function table) <log_it>.

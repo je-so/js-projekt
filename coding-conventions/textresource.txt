@@ -10,5 +10,5 @@ and source file "C-kern/io/writer/logerrtext.c".
 
 section: Usage
 
-See "C-kern/api/writer/errlog_macros.h" which includes the generated
+See "C-kern/api/io/writer/log/errlog_macros.h" which includes the generated
 header file "C-kern/api/resource/logerrtext.h" how to use it.

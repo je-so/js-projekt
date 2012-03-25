@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Mar.15  17:57:17
+GenerationDate  := 2012.Mar.25  12:32:36
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -82,8 +82,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
- $(ObjectDir_Debug)/C-kern!writer!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
@@ -107,8 +107,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
- $(ObjectDir_Release)/C-kern!writer!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapter.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
@@ -153,10 +153,10 @@ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
+$(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
+$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
@@ -222,10 +222,10 @@ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!writer!logmain.c.o: C-kern/writer/logmain.c
+$(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
+$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c

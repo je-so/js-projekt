@@ -17,14 +17,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/writer/log_it.h
+   file: C-kern/api/io/writer/log/log_it.h
     Header file of <Log-Interface>.
 
-   file: C-kern/api/writer/log_oit.h
-    Contains implementing object <Log-ObjectInterface>.
+   file: C-kern/api/io/writer/log/log_oit.h
+    Contains object implementing interface <Log-ObjectInterface>.
 */
-#ifndef CKERN_WRITER_LOG_OIT_HEADER
-#define CKERN_WRITER_LOG_OIT_HEADER
+#ifndef CKERN_IO_WRITER_LOG_LOG_OIT_HEADER
+#define CKERN_IO_WRITER_LOG_LOG_OIT_HEADER
 
 /* typedef: struct log_oit
  * Export <log_oit> - log service object interface implementation.
