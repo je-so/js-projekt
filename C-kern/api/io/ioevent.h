@@ -1,5 +1,5 @@
 /* title: IOEvent
-   Describes type of an IO event.
+   Describes list of possible IO events.
 
    about: Copyright
    This program is free software.
@@ -22,17 +22,9 @@
 #ifndef CKERN_IO_IOEVENT_HEADER
 #define CKERN_IO_IOEVENT_HEADER
 
-/* typedef: ioevent_t
- * Exports <ioevent_t> which holds one or more events.
- * Every IO event is encoded as one bit value.
- * To test for any event use values from <ioevent_e>.
- * > function void handle_event(ioevent_t ioev) {
- * >    int is_read_event = (ioev & ioevent_READ) ;
- * > ... } */
-typedef uint8_t                        ioevent_t ;
-
 /* enums: ioevent_e
- * Event values stored in <ioevent_t>.
+ * Defines list of IO events. Every events is represented a single bit value
+ * and therefore a set of events can be stored as bit vector in an integer of at least 8 bit.
  *
  * ioevent_READ   - You can read from file descriptor.
  *                  It is possible that this bit is set but reading returns 0 bytes read.

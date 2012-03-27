@@ -153,8 +153,8 @@ void setfree_typeadapterit(typeadapter_it * typeit, int (*freeobj)(void*), int t
  * access to functions which implements this functionality in a type specifiy way.
  *
  * This adapter provides a generic interface <typeadapter_it> to let data structures
- * adapt to different object types. */ __extension__
-struct typeadapter_oit {
+ * adapt to different object types. */
+__extension__ struct typeadapter_oit {
    union { struct {  // only there to make it compatible with <typeadapter_oit_DECLARE>.
    /* variable: object
     * The pointer to typeadapter's default implementation object <typeadapter_t>. */

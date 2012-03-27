@@ -165,9 +165,6 @@
       <VirtualDirectory Name="protocol"/>
       <File Name="../../C-kern/api/io/iotimer.h"/>
       <File Name="../../C-kern/api/io/ioevent.h"/>
-      <File Name="../../C-kern/api/io/iopoll.h"/>
-      <File Name="../../C-kern/api/io/iocallback.h"/>
-      <File Name="../../C-kern/api/io/iocontroler.h"/>
       <VirtualDirectory Name="reader">
         <File Name="../../C-kern/api/io/reader/utf8reader.h"/>
       </VirtualDirectory>
@@ -181,6 +178,8 @@
           <File Name="../../C-kern/api/io/writer/log/logwriter.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/io/iocontroler.h"/>
+      <File Name="../../C-kern/api/io/iocallback_iot.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/clock.h"/>
@@ -210,7 +209,6 @@
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>
     <File Name="../../C-kern/io/websocket.c"/>
-    <File Name="../../C-kern/io/iocontroler.c"/>
     <VirtualDirectory Name="reader">
       <File Name="../../C-kern/io/reader/utf8reader.c"/>
       <File Name="../../C-kern/io/reader/reader.txt"/>
@@ -316,7 +314,7 @@
         <File Name="../../C-kern/platform/Linux/io/ipaddr.c"/>
         <File Name="../../C-kern/platform/Linux/io/ipsocket.c"/>
         <File Name="../../C-kern/platform/Linux/io/iotimer.c"/>
-        <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
+        <File Name="../../C-kern/platform/Linux/io/iocontroler.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">

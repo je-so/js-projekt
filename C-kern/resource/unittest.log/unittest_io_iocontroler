@@ -1,0 +1,16 @@
+C-kern/platform/Linux/io/iocontroler.c:181: wait_iocontroler(): error: 11: Function aborted
+C-kern/platform/Linux/io/iocontroler.c:181: wait_iocontroler(): error: 11: Function aborted
+C-kern/platform/Linux/io/iocontroler.c:419: processevents_iocontroler(): error: 11: Function aborted
+C-kern/platform/Linux/io/iocontroler.c:251: free_iocontroler(): error: 11: Freeing a resource returned an error
+C-kern/platform/Linux/io/iocontroler.c:261: registeriocb_iocontroler(): error: 22: Function input violates condition (! (ioevents & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)))
+ioevents=128
+C-kern/platform/Linux/io/iocontroler.c:296: registeriocb_iocontroler(): error: 22: Function aborted
+C-kern/platform/Linux/io/iocontroler.c:306: changemask_iocontroler(): error: 22: Function input violates condition (! (ioevents & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)))
+ioevents=128
+C-kern/platform/Linux/io/iocontroler.c:329: changemask_iocontroler(): error: 22: Function aborted
+C-kern/platform/Linux/io/iocontroler.c:274: registeriocb_iocontroler(): error: 17: System call 'epoll_ctl(EPOLL_CTL_ADD)' returned error 'File exists'
+fd=3
+C-kern/platform/Linux/io/iocontroler.c:296: registeriocb_iocontroler(): error: 17: Function aborted
+C-kern/platform/Linux/io/iocontroler.c:329: changemask_iocontroler(): error: 2: Function aborted
+C-kern/platform/Linux/io/iocontroler.c:348: changeiocb_iocontroler(): error: 2: Function aborted
+C-kern/platform/Linux/io/iocontroler.c:382: unregisteriocb_iocontroler(): error: 2: Function aborted
