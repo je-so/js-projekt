@@ -58,9 +58,12 @@ __extension__ struct iocallback_iot {
 // group: lifetime
 
 /* define: iocallback_iot_INIT_FREEABLE
- * Static initializer. Sets values pointer to object and pointer to callback function to 0. */
+ * Static initializer. Sets pointer to object and pointer to callback function to 0. */
 #define iocallback_iot_INIT_FREEABLE         { { { 0, 0 } } }
 
+/* define: iocallback_iot_INIT
+ * Static initializer.
+ * Sets pointer to object and pointer to callback function to the supplied parameter values. */
 #define iocallback_iot_INIT(object, iimpl)   { { { (object), (iimpl) } } }
 
 // group: query

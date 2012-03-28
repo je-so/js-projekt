@@ -70,13 +70,13 @@ struct logwriter_t
 
 /* function: initthread_logwriter
  * Uses <init_logwriter> - called from <init_threadcontext>. */
-int initthread_logwriter(/*out*/log_oit * ilog) ;
+int initthread_logwriter(/*out*/log_iot * ilog) ;
 
 /* function: freethread_logwriter
  * Uses  <free_logwriter> - called from <free_threadcontext>.
  * After return log is not set to NULL instead it is set to <g_logmain>.
  * To support the most basic logging. */
-int freethread_logwriter(log_oit * ilog) ;
+int freethread_logwriter(log_iot * ilog) ;
 
 // group: lifetime
 

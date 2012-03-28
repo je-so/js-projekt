@@ -41,7 +41,7 @@
 
 // group: lifetime
 
-int free_slist(slist_t * list, struct typeadapter_oit * typeadp, uint32_t offset_node)
+int free_slist(slist_t * list, struct typeadapter_iot * typeadp, uint32_t offset_node)
 {
    int err ;
    struct generic_object_t * const last = list->last ;
@@ -60,7 +60,7 @@ int free_slist(slist_t * list, struct typeadapter_oit * typeadp, uint32_t offset
             node = next ;
             next = ASNODE(node)->next ;
             ASNODE(node)->next = 0 ;
-            int err2 = execfree_typeadapteroit(typeadp, node) ;
+            int err2 = execfree_typeadapteriot(typeadp, node) ;
             if (err2) err = err2 ;
          } while( last != node ) ;
 
@@ -241,7 +241,7 @@ static int test_initfree(void)
 {
    slist_t         slist       = slist_INIT ;
    typeadapter_it  typeadt_ft  = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit typeadt     = typeadapter_oit_INIT(0, &typeadt_ft) ;
+   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft) ;
    test_node_t     nodes[100]  = { { 0, 0 } } ;
 
    // prepare
@@ -358,7 +358,7 @@ static int test_iterate(void)
 {
    slist_t         slist       = slist_INIT ;
    typeadapter_it  typeadt_ft  = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit typeadt     = typeadapter_oit_INIT(0, &typeadt_ft) ;
+   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft) ;
    test_node_t     nodes[100]  = { { 0, 0 } } ;
 
    // prepare
@@ -397,7 +397,7 @@ static int test_insertremove(void)
 {
    slist_t         slist       = slist_INIT ;
    typeadapter_it  typeadt_ft  = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit typeadt     = typeadapter_oit_INIT(0, &typeadt_ft) ;
+   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft) ;
    test_node_t     nodes[100]  = { { 0, 0 } } ;
    test_node_t     * node      = 0 ;
 
@@ -647,7 +647,7 @@ static int test_generic(void)
    slist1_t        slist1      = slist_INIT ;
    slist2_t        slist2      = slist_INIT ;
    typeadapter_it  typeadt_ft  = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit typeadt     = typeadapter_oit_INIT(0, &typeadt_ft) ;
+   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft) ;
    gnode_t         nodes[100]  = { { 0, 0, 0, 0, 0, 0 } } ;
    gnode_t         * node      = 0 ;
 

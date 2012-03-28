@@ -44,7 +44,7 @@ typedef struct objectcache_t           objectcache_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_cache_objectcache
  * Test allocation and free works. */
-extern int unittest_cache_objectcache(void) ;
+int unittest_cache_objectcache(void) ;
 #endif
 
 
@@ -59,14 +59,14 @@ struct objectcache_t {
 // group: init
 
 /* function: initthread_objectcache
- * Calls <init_objectcache> and wraps object into interface object <objectcache_oit>.
+ * Calls <init_objectcache> and wraps object into interface object <objectcache_iot>.
  * This function is called from <init_threadcontext>. */
-extern int initthread_objectcache(/*out*/objectcache_oit * objectcache) ;
+int initthread_objectcache(/*out*/objectcache_iot * objectcache) ;
 
 /* function: freethread_objectcache
- * Calls <free_objectcache> with object pointer from <objectcache_oit>.
+ * Calls <free_objectcache> with object pointer from <objectcache_iot>.
  * This function is called from <free_threadcontext>. */
-extern int freethread_objectcache(objectcache_oit * objectcache) ;
+int freethread_objectcache(objectcache_iot * objectcache) ;
 
 // group: lifetime
 
@@ -76,24 +76,24 @@ extern int freethread_objectcache(objectcache_oit * objectcache) ;
 
 /* function: init_objectcache
  * Inits <objectcache_t> and all contained objects. */
-extern int init_objectcache(objectcache_t * objectcache) ;
+int init_objectcache(objectcache_t * objectcache) ;
 
 /* function: free_objectcache
  * Frees <objectcache_t> and all contained objects. */
-extern int free_objectcache(objectcache_t * objectcache) ;
+int free_objectcache(objectcache_t * objectcache) ;
 
 // group: query
 
 /* function: lockiobuffer_objectcache
  * Locks the io buffer and returns a pointer to it in iobuffer.
  * The buffer is of type <memblock_t> (equal to <vm_block_t>). */
-extern void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memblock_t ** iobuffer) ;
+void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memblock_t ** iobuffer) ;
 
 /* function: unlockiobuffer_objectcache
  * Unlocks the locked io buffer and sets the pointer to NULL.
  * The pointer to the buffer must be acquired by a previous call to <lockiobuffer_objectcache>.
  * Calling unlock with a NULL pointer is a no op. */
-extern void unlockiobuffer_objectcache(objectcache_t * objectcache, memblock_t ** iobuffer) ;
+void unlockiobuffer_objectcache(objectcache_t * objectcache, memblock_t ** iobuffer) ;
 
 // group: change
 
@@ -102,6 +102,6 @@ extern void unlockiobuffer_objectcache(objectcache_t * objectcache, memblock_t *
  * After successfull return all cached objects of source are in a freed state
  * and the previous content is transfered to destination.
  * Before anything is copied to destiniation all cached objects in destination are freed. */
-extern int move_objectcache( objectcache_t * destination, objectcache_t * source ) ;
+int move_objectcache( objectcache_t * destination, objectcache_t * source ) ;
 
 #endif

@@ -12,7 +12,7 @@ typename_t      -  _struct_ or _primitive_ type
 typename_f      -  _function pointer_ type
 typename_e      -  _enum_ type
 typename_it     -  _interface_ type
-typename_oit    -  pointer to _object_ implementing an _interface_ type
+typename_iot    -  _implementation object_ type (implementing typename_it)
 
 group: Enum Example
 
@@ -48,8 +48,8 @@ group: Interface Example
 
 The structure *log_it* defines the function table, i.e. the interface.
 
-The structure *log_oit* defines a pointer to an object, which can be manipulated by
-this kind of interface and a pointer to such an interface.
+The structure *log_iot* defines a pointer to an imlementation object,
+which can be manipulated by this kind of interface and a pointer to an implementation of that interface.
 
 (start code)
 struct log_it {
@@ -59,7 +59,7 @@ struct log_it {
    void  (*getbuffer)   (void * log, /*out*/char ** buffer, /*out*/size_t * size) ; \
 } ;
 
-struct log_oit {
+struct log_iot {
    void   * object ;
    log_it * interface ;
 } ;

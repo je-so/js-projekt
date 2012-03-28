@@ -46,13 +46,13 @@ typedef struct typeadapter_t           typeadapter_t ;
  * Export <typeadapter_it> - typeadapter interface. */
 typedef struct typeadapter_it          typeadapter_it ;
 
-/* typedef: struct typeadapter_oit
- * Export <typeadapter_oit> - object interface. */
-typedef struct typeadapter_oit         typeadapter_oit ;
+/* typedef: struct typeadapter_iot
+ * Export <typeadapter_iot> - object and interface implementation. */
+typedef struct typeadapter_iot         typeadapter_iot ;
 
-/* variable: g_typeadapter_functable
+/* variable: g_typeadapter_iimpl
  * Interface <typeadapter_it> of default implementation <typeadapter_t>. */
-const typeadapter_it                   g_typeadapter_functable ;
+const typeadapter_it                   g_typeadapter_iimpl ;
 
 
 // section: Functions
@@ -146,7 +146,7 @@ void setfree_typeadapterit(typeadapter_it * typeit, int (*freeobj)(void*), int t
    } ;
 
 
-/* struct: typeadapter_oit
+/* struct: typeadapter_iot
  * Allows a data structure to adapt to different object types.
  * If a data structure needs to make a copy of an object provided as parameter
  * or needs to free all contained objects at the of its life cycle it needs
@@ -154,92 +154,92 @@ void setfree_typeadapterit(typeadapter_it * typeit, int (*freeobj)(void*), int t
  *
  * This adapter provides a generic interface <typeadapter_it> to let data structures
  * adapt to different object types. */
-__extension__ struct typeadapter_oit {
-   union { struct {  // only there to make it compatible with <typeadapter_oit_DECLARE>.
+__extension__ struct typeadapter_iot {
+   union { struct {  // only there to make it compatible with <typeadapter_iot_DECLARE>.
    /* variable: object
     * The pointer to typeadapter's default implementation object <typeadapter_t>. */
    typeadapter_t        * object ;
-   /* variable: functable
+   /* variable: iimpl
     * The pointer to typeadapter's interface <typeadapter_it>. */
-   const typeadapter_it * functable ;
+   const typeadapter_it * iimpl ;
    } ; } ;
 } ;
 
 // group: lifetime
 
-/* define: typeadapter_oit_INIT
- * Static initializer. Sets <typeadapter_oit.object> and <typeadapter_oit.functable>
+/* define: typeadapter_iot_INIT
+ * Static initializer. Sets <typeadapter_iot.object> and <typeadapter_iot.iimpl>
  * to the values provided as arguments.
- * To initialize a <typeadapter_oit> with the standard implementation use
+ * To initialize a <typeadapter_iot> with the standard implementation use
  * > static typeadapter_t   s_typeadapt     = typeadapter_INIT(sizeof(user_object_type_t)) ;
- * > static typeadapter_oit s_typeadapt_oit = typeadapter_oit_INIT(&s_typeadapt, functable_typeadapter()) ; */
-#define typeadapter_oit_INIT(object, functable) \
-      { { { (object), (functable) } } }
+ * > static typeadapter_iot s_typeadapt_iot = typeadapter_iot_INIT(&s_typeadapt, iimpl_typeadapter()) ; */
+#define typeadapter_iot_INIT(object, iimpl) \
+      { { { (object), (iimpl) } } }
 
-/* define: typeadapter_oit_INIT_DEFAULT
- * Static initializer. Sets <typeadapter_oit.object> to the pointer to <typeadapter_t> provided as argument
- * and <typeadapter_oit.functable> is set to <functable_typeadapter>.
- * Use this to initialize the default <typeadapter_oit> with its standard implementation <typeadapter_t>. */
-#define typeadapter_oit_INIT_DEFAULT(typeadapter) \
-      { { { (typeadapter), functable_typeadapter() } } }
+/* define: typeadapter_iot_INIT_DEFAULT
+ * Static initializer. Sets <typeadapter_iot.object> to the pointer to <typeadapter_t> provided as argument
+ * and <typeadapter_iot.iimpl> is set to <iimpl_typeadapter>.
+ * Use this to initialize the default <typeadapter_iot> with its standard implementation <typeadapter_t>. */
+#define typeadapter_iot_INIT_DEFAULT(typeadapter) \
+      { { { (typeadapter), iimpl_typeadapter() } } }
 
-/* define: typeadapter_oit_INIT_GENERIC
- * Static initializer. Sets <typeadapter_oit.object> to the pointer to <typeadapter_t> provided as argument
- * and <typeadapter_oit.functable> is set to <functable_typeadapter>.
- * Use this to initialize a subtyped <typeadapter_oit> declared with help of <typeadapter_oit_DECLARE>
+/* define: typeadapter_iot_INIT_GENERIC
+ * Static initializer. Sets <typeadapter_iot.object> to the pointer to <typeadapter_t> provided as argument
+ * and <typeadapter_iot.iimpl> is set to <iimpl_typeadapter>.
+ * Use this to initialize a subtyped <typeadapter_iot> declared with help of <typeadapter_iot_DECLARE>
  * for an interface declared with <typeadapter_it_DECLARE> to use the standard implementation <typeadapter_t>. */
-#define typeadapter_oit_INIT_GENERIC(typeadapter) \
-      { { .generic = { { { (typeadapter), functable_typeadapter() } } } } }
+#define typeadapter_iot_INIT_GENERIC(typeadapter) \
+      { { .generic = { { { (typeadapter), iimpl_typeadapter() } } } } }
 
-/* define: typeadapter_oit_INIT_FREEABLE
+/* define: typeadapter_iot_INIT_FREEABLE
  * Static initializer. Sets all fields to 0. */
-#define typeadapter_oit_INIT_FREEABLE  { { { 0, 0 } } }
+#define typeadapter_iot_INIT_FREEABLE  { { { 0, 0 } } }
 
 // group: execute
 
-/* function: execcopy_typeadapteroit
+/* function: execcopy_typeadapteriot
  * Calls function pointer <typeadapter_it.copyobj>.
  * The called function makes a copy of *object* and returns it in *copiedobject*.
  * ENOMEM is returned in case there is not enough memory for a copy of object. */
-int execcopy_typeadapteroit(typeadapter_oit * typeadp, /*out*/struct generic_object_t ** copiedobject, struct generic_object_t  * object) ;
+int execcopy_typeadapteriot(typeadapter_iot * typeadp, /*out*/struct generic_object_t ** copiedobject, struct generic_object_t  * object) ;
 
-/* function: execfree_typeadapteroit
+/* function: execfree_typeadapteriot
  * Calls <typeadapter_it.freeobj> function.
  * Frees memory and internal resources associated with object.
  * Even in case of an error it is tried to free all remaining resources
  * and the object is marked as freed after return nonetheless. */
-int execfree_typeadapteroit(typeadapter_oit * typeadp, struct generic_object_t * object) ;
+int execfree_typeadapteriot(typeadapter_iot * typeadp, struct generic_object_t * object) ;
 
 // group: generic
 
-/* define: typeadapter_oit_DECLARE
+/* define: typeadapter_iot_DECLARE
  * Declares an object interface for accessing a typeadapter implementation.
- * The declared object interface is structural compatible with the generic interface <typeadapter_oit>.
- * See <typeadapter_oit> for a list of declared fields.
+ * The declared object interface is structural compatible with the generic interface <typeadapter_iot>.
+ * See <typeadapter_iot> for a list of declared fields.
  *
  * Parameter:
- * declared_oit   - The name of the structure which is declared as the interface.
- *                  The name should have the suffix "_oit".
+ * declared_iot   - The name of the structure which is declared as the interface.
+ *                  The name should have the suffix "_iot".
  * typeadapter_t  - The adapter type which implements all interface functions.
  *                  This should be the same value as given in <typeadapter_it_DECLARE>.
  * typeadapter_it - The interface type declared with <typeadapter_it_DECLARE>.
  * */
-#define typeadapter_oit_DECLARE(declared_oit, typeadapter_t, typeadapter_it)  \
-      __extension__ struct declared_oit {                                     \
+#define typeadapter_iot_DECLARE(declared_iot, typeadapter_t, typeadapter_it)  \
+      __extension__ struct declared_iot {                                     \
          union {                                                              \
             struct {                                                          \
                typeadapter_t        * object ;                                \
-               const typeadapter_it * functable ;                             \
+               const typeadapter_it * iimpl ;                                 \
             } ;                                                               \
-            typeadapter_oit   generic ;                                       \
+            typeadapter_iot   generic ;                                       \
          } ;                                                                  \
       } ;
 
 
 /* struct: typeadapter_t
- * Simple default implementation of <typeadapter_it> and <typeadapter_oit>.
+ * Simple default implementation of <typeadapter_it> and <typeadapter_iot>.
  * <typeadapter_t> offers a default implementation accessible as <typeadapter_it>
- * which can be read by a call to <functable_typeadapter>.
+ * which can be read by a call to <iimpl_typeadapter>.
  *
  * Assumptions:
  * 1. This implementation assumes that objects can be copied with a simple
@@ -296,44 +296,44 @@ int free_typeadapter(typeadapter_t * tadapt) ;
 
 // group: query
 
-/* function: functable_typeadapter
+/* function: iimpl_typeadapter
  * Returns the typeadapter interface <typeadapter_it>.
  * The returned interface is initialized with the
  * pointers to the private implementation functions of <typeadapter_t>. */
-const typeadapter_it * functable_typeadapter(void) ;
+const typeadapter_it * iimpl_typeadapter(void) ;
 
-/* function: asoit_typeadapter
- * Converts <typeadapter_t> into <typeadapter_oit>.
- * The data members of *typeoit* are set to (tadapt, <functable_typeadapter>).
- * The <typeadapter_t> is not changed but could not be const cause <typeadapter_oit>
+/* function: asiot_typeadapter
+ * Converts <typeadapter_t> into <typeadapter_iot>.
+ * The data members of *typeiot* are set to (tadapt, <iimpl_typeadapter>).
+ * The <typeadapter_t> is not changed but could not be const cause <typeadapter_iot>
  * expects a pointer to a non const <typeadapter_t>. */
-void asoit_typeadapter(typeadapter_t * tadapt, /*out*/typeadapter_oit * typeoit) ;
+void asiot_typeadapter(typeadapter_t * tadapt, /*out*/typeadapter_iot * typeiot) ;
 
 
 // section: inline implementation
 
-/* define: asoit_typeadapter
- * Implements <typeadapter_t.asoit_typeadapter>. */
-#define asoit_typeadapter(tadapt, typeoit)                  \
-      do {                                                  \
-            typeadapter_oit * typeoit2 = (typeoit) ;        \
-            typeoit2->object    = (tadapt) ;                \
-            typeoit2->functable = functable_typeadapter() ; \
+/* define: asiot_typeadapter
+ * Implements <typeadapter_t.asiot_typeadapter>. */
+#define asiot_typeadapter(tadapt, typeiot)            \
+      do {                                            \
+            typeadapter_iot * typeiot2 = (typeiot) ;  \
+            typeiot2->object = (tadapt) ;             \
+            typeiot2->iimpl  = iimpl_typeadapter() ;  \
       } while(0)
 
-/* define: execcopy_typeadapteroit
- * Implements <typeadapter_oit.execcopy_typeadapteroit>. */
-#define execcopy_typeadapteroit(typeadp, copiedobject, _object) \
-      ((typeadp)->functable->copyobj((typeadp)->object, copiedobject, _object))
+/* define: execcopy_typeadapteriot
+ * Implements <typeadapter_iot.execcopy_typeadapteriot>. */
+#define execcopy_typeadapteriot(typeadp, copiedobject, _object) \
+      ((typeadp)->iimpl->copyobj((typeadp)->object, copiedobject, _object))
 
-/* define: execfree_typeadapteroit
- * Implements <typeadapter_oit.execfree_typeadapteroit>. */
-#define execfree_typeadapteroit(typeadp, _object) \
-      ((typeadp)->functable->freeobj((typeadp)->object, _object))
+/* define: execfree_typeadapteriot
+ * Implements <typeadapter_iot.execfree_typeadapteriot>. */
+#define execfree_typeadapteriot(typeadp, _object) \
+      ((typeadp)->iimpl->freeobj((typeadp)->object, _object))
 
-/* define: functable_typeadapter
- * Implements <typeadapter_t.functable_typeadapter>. */
-#define functable_typeadapter()        (&g_typeadapter_functable)
+/* define: iimpl_typeadapter
+ * Implements <typeadapter_t.iimpl_typeadapter>. */
+#define iimpl_typeadapter()            (&g_typeadapter_iimpl)
 
 /* define: setcopy_typeadapterit
  * Implements <typeadapter_it.setcopy_typeadapterit>. */

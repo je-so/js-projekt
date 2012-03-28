@@ -20,8 +20,8 @@
    file: C-kern/api/cache/objectcache_it.h
     Header file of <Objectcache-Interface>.
 
-   file: C-kern/api/cache/objectcache_oit.h
-    Contains interfaceable object <Objectcache-Object>.
+   file: C-kern/api/cache/objectcache_iot.h
+    Contains implementation object <Objectcache-ImplementationObject>.
 */
 #ifndef CKERN_CACHE_INTERFACE_OBJECTCACHE_IT_HEADER
 #define CKERN_CACHE_INTERFACE_OBJECTCACHE_IT_HEADER

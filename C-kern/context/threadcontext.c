@@ -128,39 +128,39 @@ static int test_initfree(void)
 
    // TEST threadcontext_INIT_STATIC
    TEST(0 == tcontext.initcount) ;
-   TEST(&g_logmain == tcontext.ilog.object) ;
-   TEST(&g_logmain_interface == tcontext.ilog.functable) ;
+   TEST(tcontext.ilog.object == &g_logmain) ;
+   TEST(tcontext.ilog.iimpl  == &g_logmain_interface) ;
    TEST(0 == tcontext.mm_transient.object) ;
-   TEST(0 == tcontext.mm_transient.functable) ;
+   TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
-   TEST(0 == tcontext.objectcache.functable) ;
+   TEST(0 == tcontext.objectcache.iimpl) ;
 
    // TEST init, double free
    TEST(0 == init_threadcontext(&tcontext)) ;
    TEST(nrsvc == tcontext.initcount) ;
-   TEST(0 != tcontext.ilog.object) ;
-   TEST(&g_logmain != tcontext.ilog.object) ;
-   TEST(&g_logmain_interface != tcontext.ilog.functable) ;
+   TEST(tcontext.ilog.object != 0) ;
+   TEST(tcontext.ilog.object != &g_logmain) ;
+   TEST(tcontext.ilog.iimpl  != &g_logmain_interface) ;
    TEST(0 != tcontext.mm_transient.object) ;
-   TEST(0 != tcontext.mm_transient.functable) ;
+   TEST(0 != tcontext.mm_transient.iimpl) ;
    TEST(0 != tcontext.objectcache.object) ;
-   TEST(0 != tcontext.objectcache.functable) ;
+   TEST(0 != tcontext.objectcache.iimpl) ;
    TEST(0 == free_threadcontext(&tcontext)) ;
    TEST(0 == tcontext.initcount) ;
-   TEST(&g_logmain == tcontext.ilog.object) ;
-   TEST(&g_logmain_interface == tcontext.ilog.functable) ;
+   TEST(tcontext.ilog.object == &g_logmain) ;
+   TEST(tcontext.ilog.iimpl  == &g_logmain_interface) ;
    TEST(0 == tcontext.mm_transient.object) ;
-   TEST(0 == tcontext.mm_transient.functable) ;
+   TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
-   TEST(0 == tcontext.objectcache.functable) ;
+   TEST(0 == tcontext.objectcache.iimpl) ;
    TEST(0 == free_threadcontext(&tcontext)) ;
    TEST(0 == tcontext.initcount) ;
-   TEST(&g_logmain == tcontext.ilog.object) ;
-   TEST(&g_logmain_interface == tcontext.ilog.functable) ;
+   TEST(tcontext.ilog.object == &g_logmain) ;
+   TEST(tcontext.ilog.iimpl  == &g_logmain_interface) ;
    TEST(0 == tcontext.mm_transient.object) ;
-   TEST(0 == tcontext.mm_transient.functable) ;
+   TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
-   TEST(0 == tcontext.objectcache.functable) ;
+   TEST(0 == tcontext.objectcache.iimpl) ;
 
    // TEST EINVAL init
    for(int i = 0; i <= nrsvc; ++i) {
@@ -168,12 +168,12 @@ static int test_initfree(void)
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
       TEST(EINVAL+i == init_threadcontext(&tcontext)) ;
       TEST(0 == tcontext.initcount) ;
-      TEST(&g_logmain == tcontext.ilog.object) ;
-      TEST(&g_logmain_interface == tcontext.ilog.functable) ;
+      TEST(tcontext.ilog.object == &g_logmain) ;
+      TEST(tcontext.ilog.iimpl  == &g_logmain_interface) ;
       TEST(0 == tcontext.mm_transient.object) ;
-      TEST(0 == tcontext.mm_transient.functable) ;
+      TEST(0 == tcontext.mm_transient.iimpl) ;
       TEST(0 == tcontext.objectcache.object) ;
-      TEST(0 == tcontext.objectcache.functable) ;
+      TEST(0 == tcontext.objectcache.iimpl) ;
    }
 
    return 0 ;

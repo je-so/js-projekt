@@ -30,7 +30,7 @@
 struct generic_object_t ;
 union arraystf_unode_t ;
 struct binarystack_t ;
-struct typeadapter_oit ;
+struct typeadapter_iot ;
 
 /* typedef: struct arraystf_t
  * Export <arraystf_t>. */
@@ -132,7 +132,7 @@ int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type) ;
 /* function: delete_arraystf
  * Frees allocated memory.
  * If typeadt is set to 0 no free function is called for contained nodes. */
-int delete_arraystf(arraystf_t ** array, struct typeadapter_oit * typeadp) ;
+int delete_arraystf(arraystf_t ** array, struct typeadapter_iot * typeadp) ;
 
 // group: iterate
 
@@ -165,13 +165,13 @@ struct generic_object_t * at_arraystf(const arraystf_t * array, size_t size, con
  * If you have set typeadt to a value != 0 then a copy of node is made before it is inserted.
  * The copied node is returned in *inserted_node*. If typeadt is 0 and no copy is made inserted_node
  * is set to node. */
-int insert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out*/struct generic_object_t ** inserted_node/*0=>copy not returned*/, struct typeadapter_oit * typeadp/*0=>no copy is made*/, size_t offset_node) ;
+int insert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out*/struct generic_object_t ** inserted_node/*0=>copy not returned*/, struct typeadapter_iot * typeadp/*0=>no copy is made*/, size_t offset_node) ;
 
 /* function: tryinsert_arraystf
  * Same as <insert_arraystf> but no error log in case of EEXIST.
  * If EEXIST is returned nothing was inserted but the existing node will be
  * returned in *inserted_or_existing_node* nevertheless. */
-int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out;err*/struct generic_object_t ** inserted_or_existing_node, struct typeadapter_oit * typeadp/*0=>no copy is made*/, size_t offset_node) ;
+int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out;err*/struct generic_object_t ** inserted_or_existing_node, struct typeadapter_iot * typeadp/*0=>no copy is made*/, size_t offset_node) ;
 
 /* function: remove_arraystf
  * Removes node with key *keydata*.
@@ -204,13 +204,13 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
    static inline size_t offsetnode##_fctsuffix(void) __attribute__ ((always_inline)) ; \
    /*declare function signatures as always inline*/            \
    static inline int new##_fctsuffix(/*out*/arraystf_t ** array, arraystf_e type) __attribute__ ((always_inline)) ; \
-   static inline int delete##_fctsuffix(arraystf_t ** array, struct typeadapter_oit * typeadp) __attribute__ ((always_inline)) ; \
+   static inline int delete##_fctsuffix(arraystf_t ** array, struct typeadapter_iot * typeadp) __attribute__ ((always_inline)) ; \
                  arraystf_iterator_t * iteratortype##_fctsuffix(void) ; \
                  objecttype_t        * iteratedtype##_fctsuffix(void) ; \
    static inline size_t length##_fctsuffix(arraystf_t * array) __attribute__ ((always_inline)) ; \
    static inline objecttype_t * at##_fctsuffix(const arraystf_t * array, size_t size, const uint8_t keydata[size]) __attribute__ ((always_inline)) ; \
-   static inline int insert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out*/objecttype_t ** inserted_node/*0=>copy not returned*/, struct typeadapter_oit * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
-   static inline int tryinsert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out;err*/objecttype_t ** inserted_or_existing_node, struct typeadapter_oit * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
+   static inline int insert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out*/objecttype_t ** inserted_node/*0=>copy not returned*/, struct typeadapter_iot * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
+   static inline int tryinsert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out;err*/objecttype_t ** inserted_or_existing_node, struct typeadapter_iot * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
    static inline int remove##_fctsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/objecttype_t ** removed_node/*could be 0*/) __attribute__ ((always_inline)) ; \
    static inline int tryremove##_fctsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/objecttype_t ** removed_node/*could be 0*/) __attribute__ ((always_inline)) ; \
    static inline int init##_fctsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) __attribute__ ((always_inline)) ; \
@@ -225,7 +225,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
    static inline int new##_fctsuffix(/*out*/arraystf_t ** array, arraystf_e type) { \
       return new_arraystf(array, type) ; \
    } \
-   static inline int delete##_fctsuffix(arraystf_t ** array, struct typeadapter_oit * typeadp) { \
+   static inline int delete##_fctsuffix(arraystf_t ** array, struct typeadapter_iot * typeadp) { \
       return delete_arraystf(array, typeadp) ; \
    } \
    /*implement query functions*/ \
@@ -236,10 +236,10 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
       return (objecttype_t *) at_arraystf(array, size, keydata, offsetnode##_fctsuffix()) ; \
    } \
    /*implement change functions*/ \
-   static inline int insert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out*/objecttype_t ** inserted_node/*0=>copy not returned*/, struct typeadapter_oit * typeadp/*0=>no copy is made*/) { \
+   static inline int insert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out*/objecttype_t ** inserted_node/*0=>copy not returned*/, struct typeadapter_iot * typeadp/*0=>no copy is made*/) { \
       return insert_arraystf(array, (struct generic_object_t*)node, (struct generic_object_t**)inserted_node, typeadp, offsetnode##_fctsuffix()) ; \
    } \
-   static inline int tryinsert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out;err*/objecttype_t ** inserted_or_existing_node, struct typeadapter_oit * typeadp/*0=>no copy is made*/) { \
+   static inline int tryinsert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out;err*/objecttype_t ** inserted_or_existing_node, struct typeadapter_iot * typeadp/*0=>no copy is made*/) { \
       return tryinsert_arraystf(array, (struct generic_object_t*)node, (struct generic_object_t**)inserted_or_existing_node, typeadp, offsetnode##_fctsuffix()) ; \
    } \
    static inline int remove##_fctsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/objecttype_t ** removed_node/*could be 0*/) { \

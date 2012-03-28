@@ -29,9 +29,9 @@
 #ifndef CKERN_CONTEXT_THREADCONTEXT_HEADER
 #define CKERN_CONTEXT_THREADCONTEXT_HEADER
 
-#include "C-kern/api/cache/objectcache_oit.h"
-#include "C-kern/api/memory/mm/mm_oit.h"
-#include "C-kern/api/io/writer/log/log_oit.h"
+#include "C-kern/api/cache/objectcache_iot.h"
+#include "C-kern/api/memory/mm/mm_iot.h"
+#include "C-kern/api/io/writer/log/log_iot.h"
 
 /* typedef: struct threadcontext_t
  * Export <threadcontext_t>. */
@@ -52,9 +52,9 @@ extern int unittest_context_threadcontext(void) ;
 /* struct: threadcontext_t
  * Offers path to services useable exclusively from one thread. */
 struct threadcontext_t {
-   log_oit                 ilog ;
-   mm_oit                  mm_transient ;
-   objectcache_oit         objectcache ;
+   log_iot                 ilog ;
+   mm_iot                  mm_transient ;
+   objectcache_iot         objectcache ;
    uint16_t                initcount ;
 } ;
 
@@ -65,7 +65,7 @@ struct threadcontext_t {
  * These initializer ensures that in function main the global log service is available
  * even without calling <init_context> first.
  */
-#define threadcontext_INIT_STATIC      { { &g_logmain, &g_logmain_interface }, mm_oit_INIT_FREEABLE, objectcache_oit_INIT_FREEABLE, 0 }
+#define threadcontext_INIT_STATIC      { { &g_logmain, &g_logmain_interface }, mm_iot_INIT_FREEABLE, objectcache_iot_INIT_FREEABLE, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.

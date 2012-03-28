@@ -71,21 +71,21 @@ struct iocontroler_iocb_t {
 typeadapter_it_DECLARE(iocontroler_iocb_typeadapter_it, typeadapter_t, iocontroler_iocb_t)
 
 /* struct: iocontroler_iocb_typeadapter_it
- * Declares subtyped object-interface of <typeadapter_oit> adapted to <iocontroler_iocb_typeadapter_it>.
- * See <typeadapter_oit_DECLARE>. */
-typeadapter_oit_DECLARE(iocontroler_iocb_typeadapter_oit, typeadapter_t, struct iocontroler_iocb_typeadapter_it)
+ * Declares subtyped object-interface of <typeadapter_iot> adapted to <iocontroler_iocb_typeadapter_it>.
+ * See <typeadapter_iot_DECLARE>. */
+typeadapter_iot_DECLARE(iocontroler_iocb_typeadapter_iot, typeadapter_t, struct iocontroler_iocb_typeadapter_it)
 
 // group: variable
 
 /* variable: s_iocontroler_iocb_adapter_default
- * Default implementation object of <typeadapter_oit>. */
+ * Default implementation object of <typeadapter_iot>. */
 static struct typeadapter_t                     s_iocontroler_iocb_adapter_default = typeadapter_INIT(sizeof(iocontroler_iocb_t)) ;
 
-/* variable: s_iocontroler_iocb_adapter_oit
+/* variable: s_iocontroler_iocb_adapter_iot
  * Subtyped typeadapter object-interface of type <iocontroler_iocb_typeadapter_it>.
  * It is initialized with <s_iocontroler_iocb_adapter_default> as its implementation object.
- * See <typeadapter_oit_INIT_GENERIC>. */
-static struct iocontroler_iocb_typeadapter_oit  s_iocontroler_iocb_adapter_oit     = typeadapter_oit_INIT_GENERIC(&s_iocontroler_iocb_adapter_default) ;
+ * See <typeadapter_iot_INIT_GENERIC>. */
+static struct iocontroler_iocb_typeadapter_iot  s_iocontroler_iocb_adapter_iot     = typeadapter_iot_INIT_GENERIC(&s_iocontroler_iocb_adapter_default) ;
 
 // group: data structure
 
@@ -157,7 +157,7 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
          if (first->isunregistered) {
             err = remove_iocbarray(iocntr->iocbs, first->fd, 0) ;
             if (err) goto ABBRUCH ;
-            err = execfree_typeadapteroit(&s_iocontroler_iocb_adapter_oit, first) ;
+            err = execfree_typeadapteriot(&s_iocontroler_iocb_adapter_iot, first) ;
             if (err) goto ABBRUCH ;
          }
       }
@@ -238,7 +238,7 @@ int free_iocontroler(iocontroler_t * iocntr)
    }
 
    if (iocntr->iocbs) {
-      err2 = delete_iocbarray(&iocntr->iocbs, &s_iocontroler_iocb_adapter_oit.generic) ;
+      err2 = delete_iocbarray(&iocntr->iocbs, &s_iocontroler_iocb_adapter_iot.generic) ;
       if (err2) err = err2 ;
    }
 
@@ -261,7 +261,7 @@ int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t
    VALIDATE_INPARAM_TEST(! (ioevents & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevents) ) ;
 
    iocontroler_iocb_t dummy = { .fd = (size_t)fd, .iocb = iocb, .next = 0, .isunregistered = 1 } ;
-   err = tryinsert_iocbarray(iocntr->iocbs, &dummy, &newiocb, &s_iocontroler_iocb_adapter_oit.generic) ;
+   err = tryinsert_iocbarray(iocntr->iocbs, &dummy, &newiocb, &s_iocontroler_iocb_adapter_iot.generic) ;
    if (err && EEXIST != err) goto ABBRUCH ;
 
    struct epoll_event epevent ;

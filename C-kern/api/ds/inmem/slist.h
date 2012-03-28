@@ -33,7 +33,7 @@
 
 // forward
 struct generic_object_t ;
-struct typeadapter_oit ;
+struct typeadapter_iot ;
 
 /* typedef: struct slist_t
  * Export <slist_t>. */
@@ -135,7 +135,7 @@ void init_slist(/*out*/slist_t * list) ;
  * Frees memory of all linked objects (generic).
  * Calling free_slist is only safe after calling <init_slist> or after initializing it with <slist_INIT>.
  * Calling it on an already freed object does nothing. */
-int free_slist(slist_t * list, struct typeadapter_oit * typeadp/*0=>no free called*/, uint32_t offset_node) ;
+int free_slist(slist_t * list, struct typeadapter_iot * typeadp/*0=>no free called*/, uint32_t offset_node) ;
 
 // group: query
 
@@ -211,7 +211,7 @@ int removeafter_slist(slist_t * list, struct generic_object_t * prev_node, struc
 /* function: removeall_slist
  * Removes all nodes from the list (generic).
  * For every removed node *freehandler* is called. */
-int removeall_slist(slist_t * list, struct typeadapter_oit * typeadp/*0=>no free called*/, uint32_t offset_node) ;
+int removeall_slist(slist_t * list, struct typeadapter_iot * typeadp/*0=>no free called*/, uint32_t offset_node) ;
 
 // group: generic
 
@@ -254,7 +254,7 @@ int removeall_slist(slist_t * list, struct typeadapter_oit * typeadp/*0=>no free
    static inline int  free##_fctsuffix##iterator(listtype_t##iterator_t * iter) __attribute__ ((always_inline)) ; \
    static inline bool next##_fctsuffix##iterator(listtype_t##iterator_t * iter, listtype_t * list, listtype_t##node_t ** node) __attribute__ ((always_inline)) ; \
    static inline void init##_fctsuffix(listtype_t * list) __attribute__ ((always_inline)) ; \
-   static inline int  free##_fctsuffix(listtype_t * list, struct typeadapter_oit * typeadp) __attribute__ ((always_inline)) ; \
+   static inline int  free##_fctsuffix(listtype_t * list, struct typeadapter_iot * typeadp) __attribute__ ((always_inline)) ; \
    static inline int  isempty##_fctsuffix(const listtype_t * list) __attribute__ ((always_inline)) ; \
    static inline uint32_t offsetnode##_fctsuffix(void) __attribute__ ((always_inline)) ; \
    static inline listtype_t##node_t * first##_fctsuffix(const listtype_t * list) __attribute__ ((always_inline)) ; \
@@ -265,7 +265,7 @@ int removeall_slist(slist_t * list, struct typeadapter_oit * typeadp/*0=>no free
    static inline int insertafter##_fctsuffix(listtype_t * list, listtype_t##node_t * prev_node, listtype_t##node_t * new_node) __attribute__ ((always_inline)) ; \
    static inline int removefirst##_fctsuffix(listtype_t * list, listtype_t##node_t ** removed_node) __attribute__ ((always_inline)) ; \
    static inline int removeafter##_fctsuffix(listtype_t * list, listtype_t##node_t * prev_node, listtype_t##node_t** removed_node) __attribute__ ((always_inline)) ; \
-   static inline int removeall##_fctsuffix(listtype_t * list, struct typeadapter_oit * typeadp) __attribute__ ((always_inline)) ; \
+   static inline int removeall##_fctsuffix(listtype_t * list, struct typeadapter_iot * typeadp) __attribute__ ((always_inline)) ; \
    static inline uint32_t offsetnode##_fctsuffix(void) { \
       static_assert(offsetof(listtype_t, last)  == 0, "listtype_t must have same structure as slist_t") ; \
       static_assert(offsetof(listtype_t##node_t, name_nextptr) < 65536, "Offset must fit in uint32_t (extend 65536 to pow(2,32) if needed)") ; \
@@ -274,7 +274,7 @@ int removeall_slist(slist_t * list, struct typeadapter_oit * typeadp/*0=>no free
    static inline void init##_fctsuffix(listtype_t * list) { \
       init_slist(list) ; \
    } \
-   static inline int free##_fctsuffix(listtype_t * list, struct typeadapter_oit * typeadp) { \
+   static inline int free##_fctsuffix(listtype_t * list, struct typeadapter_iot * typeadp) { \
       return free_slist((slist_t*)list, typeadp, offsetnode##_fctsuffix()) ; \
    } \
    static inline int isempty##_fctsuffix(const listtype_t * list) { \
@@ -304,7 +304,7 @@ int removeall_slist(slist_t * list, struct typeadapter_oit * typeadp/*0=>no free
    static inline int removeafter##_fctsuffix(listtype_t * list, listtype_t##node_t * prev_node, listtype_t##node_t** removed_node) { \
       return removeafter_slist((slist_t*)list, (struct generic_object_t*)prev_node, (struct generic_object_t**)removed_node, offsetnode##_fctsuffix()) ; \
    } \
-   static inline int removeall##_fctsuffix(listtype_t * list, struct typeadapter_oit * typeadp) { \
+   static inline int removeall##_fctsuffix(listtype_t * list, struct typeadapter_iot * typeadp) { \
       return removeall_slist((slist_t*)list, typeadp, offsetnode##_fctsuffix()) ; \
    } \
    static inline int  init##_fctsuffix##iterator(listtype_t##iterator_t * iter, listtype_t * list) { \

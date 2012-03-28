@@ -45,7 +45,7 @@ objectcache_it    s_objectcache_interface = {
 
 // group: init
 
-int initthread_objectcache(/*out*/objectcache_oit * objectcache)
+int initthread_objectcache(/*out*/objectcache_iot * objectcache)
 {
    int err ;
    const size_t    objsize   = sizeof(objectcache_t) ;
@@ -62,8 +62,8 @@ int initthread_objectcache(/*out*/objectcache_oit * objectcache)
    err = init_objectcache(newobject) ;
    if (err) goto ABBRUCH ;
 
-   objectcache->object    = newobject;
-   objectcache->functable = &s_objectcache_interface ;
+   objectcache->object = newobject;
+   objectcache->iimpl  = &s_objectcache_interface ;
 
    return 0 ;
 ABBRUCH:
@@ -72,16 +72,16 @@ ABBRUCH:
    return err ;
 }
 
-int freethread_objectcache(objectcache_oit * objectcache)
+int freethread_objectcache(objectcache_iot * objectcache)
 {
    int err ;
    objectcache_t * delobject = objectcache->object ;
 
    if (delobject) {
-      assert(&s_objectcache_interface == objectcache->functable) ;
+      assert(&s_objectcache_interface == objectcache->iimpl) ;
 
-      objectcache->object    = 0 ;
-      objectcache->functable = 0 ;
+      objectcache->object = 0 ;
+      objectcache->iimpl  = 0 ;
 
       err = free_objectcache(delobject) ;
 
@@ -261,11 +261,11 @@ ABBRUCH:
 
 static int test_initthread(void)
 {
-   objectcache_oit   cache = objectcache_oit_INIT_FREEABLE;
+   objectcache_iot   cache = objectcache_iot_INIT_FREEABLE;
 
    // TEST static init
    TEST(0 == cache.object) ;
-   TEST(0 == cache.functable) ;
+   TEST(0 == cache.iimpl) ;
 
    // TEST exported interface
    TEST(s_objectcache_interface.lock_iobuffer   == &lockiobuffer_objectcache) ;
@@ -273,14 +273,14 @@ static int test_initthread(void)
 
    // TEST initthread and double free
    TEST(0 == initthread_objectcache( &cache )) ;
-   TEST(cache.object    != 0) ;
-   TEST(cache.functable == &s_objectcache_interface) ;
+   TEST(cache.object != 0) ;
+   TEST(cache.iimpl  == &s_objectcache_interface) ;
    TEST(0 == freethread_objectcache( &cache )) ;
    TEST(0 == cache.object) ;
-   TEST(0 == cache.functable) ;
+   TEST(0 == cache.iimpl) ;
    TEST(0 == freethread_objectcache( &cache )) ;
    TEST(0 == cache.object) ;
-   TEST(0 == cache.functable) ;
+   TEST(0 == cache.iimpl) ;
 
    // TEST EINVAL initthread
    cache.object = (objectcache_t*) 1 ;

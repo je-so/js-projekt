@@ -33,17 +33,17 @@
  * Returns C-string of buffered log and its length. See also <getbuffer_logwriter>.
  * > #define LOG_GETBUFFER(buffer, size) getbuffer_logwritermt(log_maincontext(), buffer, size) */
 #define LOG_GETBUFFER(/*out char ** */buffer, /*out size_t * */size) \
-   log_maincontext().functable->getbuffer(log_maincontext().object, buffer, size)
+   log_maincontext().iimpl->getbuffer(log_maincontext().object, buffer, size)
 
 // group: change
 
 /* define: LOG_CLEARBUFFER
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>. */
-#define  LOG_CLEARBUFFER()          log_maincontext().functable->clearbuffer(log_maincontext().object)
+#define  LOG_CLEARBUFFER()          log_maincontext().iimpl->clearbuffer(log_maincontext().object)
 
 /* define: LOG_FLUSHBUFFER
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>. */
-#define  LOG_FLUSHBUFFER()          log_maincontext().functable->flushbuffer(log_maincontext().object)
+#define  LOG_FLUSHBUFFER()          log_maincontext().iimpl->flushbuffer(log_maincontext().object)
 
 // group: write-text
 
@@ -70,7 +70,7 @@
  * > int i ; LOGC_PRINTF(ERR, "%d", i) */
 #define LOGC_PRINTF(LOGCHANNEL, ... )              \
    do {                                            \
-         log_maincontext().functable->printf(      \
+         log_maincontext().iimpl->printf(          \
                log_maincontext().object,           \
                CONCAT(log_channel_,LOGCHANNEL),    \
                __VA_ARGS__ ) ; \

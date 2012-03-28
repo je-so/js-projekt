@@ -144,7 +144,7 @@ ABBRUCH:
    return err ;
 }
 
-int delete_arraysf(arraysf_t ** array, struct typeadapter_oit * typeadp)
+int delete_arraysf(arraysf_t ** array, struct typeadapter_iot * typeadp)
 {
    int err = 0 ;
    int err2 ;
@@ -161,7 +161,7 @@ int delete_arraysf(arraysf_t ** array, struct typeadapter_oit * typeadp)
 
          if (!isbranchtype_arraysfunode(node)) {
             if (typeadp) {
-               err2 = execfree_typeadapteroit(typeadp, asgeneric_arraysfunode(node)) ;
+               err2 = execfree_typeadapteriot(typeadp, asgeneric_arraysfunode(node)) ;
                if (err2) err = err2 ;
             }
             continue ;
@@ -184,7 +184,7 @@ int delete_arraysf(arraysf_t ** array, struct typeadapter_oit * typeadp)
                      branch->used     = nrelementsof(branch->child)-1 ;
                      continue ;
                   } else if (typeadp) {
-                     err2 = execfree_typeadapteroit(typeadp, asgeneric_arraysfunode(node)) ;
+                     err2 = execfree_typeadapteriot(typeadp, asgeneric_arraysfunode(node)) ;
                      if (err2) err = err2 ;
                   }
                }
@@ -238,7 +238,7 @@ struct generic_object_t * at_arraysf(const arraysf_t * array, size_t pos, size_t
 
 // group: change
 
-int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;err*/struct generic_object_t ** inserted_or_existing_node, struct typeadapter_oit * typeadp/*0=>no copy is made*/, size_t offset_node)
+int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;err*/struct generic_object_t ** inserted_or_existing_node, struct typeadapter_iot * typeadp/*0=>no copy is made*/, size_t offset_node)
 {
    int err ;
    arraysf_findresult_t found ;
@@ -254,7 +254,7 @@ int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;e
    }
 
    if (typeadp) {
-      err = execcopy_typeadapteroit(typeadp, &copied_node, node) ;
+      err = execcopy_typeadapteriot(typeadp, &copied_node, node) ;
       if (err) goto ABBRUCH ;
       node = copied_node ;
    }
@@ -373,7 +373,7 @@ DONE:
    return 0 ;
 ABBRUCH:
    if (copied_node) {
-      (void) execfree_typeadapteroit(typeadp, copied_node) ;
+      (void) execfree_typeadapteriot(typeadp, copied_node) ;
    }
    LOG_ABORT(err) ;
    return err ;
@@ -456,7 +456,7 @@ ABBRUCH:
    return err ;
 }
 
-int insert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out*/struct generic_object_t ** inserted_node/*0=>not returned*/, struct typeadapter_oit * typeadp/*0=>no copy is made*/, size_t offset_node)
+int insert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out*/struct generic_object_t ** inserted_node/*0=>not returned*/, struct typeadapter_iot * typeadp/*0=>no copy is made*/, size_t offset_node)
 {
    int err ;
    struct generic_object_t * inserted_or_existing_node ;
@@ -652,7 +652,7 @@ static int test_initfree(void)
    vm_block_t      memblock   = vm_block_INIT_FREEABLE ;
    arraysf_t       * array    = 0 ;
    typeadapter_it  typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit typeadt    = typeadapter_oit_INIT(0, &typeadt_ft) ;
+   typeadapter_iot typeadt    = typeadapter_iot_INIT(0, &typeadt_ft) ;
    testnode_t      * nodea ;
 
    // prepare
@@ -998,7 +998,7 @@ static int test_error(void)
    const size_t    nrnodes    = 100000 ;
    vm_block_t      memblock   = vm_block_INIT_FREEABLE ;
    typeadapter_it  typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit typeadt    = typeadapter_oit_INIT(0, &typeadt_ft) ;
+   typeadapter_iot typeadt    = typeadapter_iot_INIT(0, &typeadt_ft) ;
    arraysf_t       * array    = 0 ;
    testnode_t      * nodea ;
    char            * logbuffer ;
@@ -1181,7 +1181,7 @@ static int test_generic(void)
    arraysf_t      * array     = 0 ;
    arraysf_t      * array2    = 0 ;
    typeadapter_it  typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit typeadt    = typeadapter_oit_INIT(0, &typeadt_ft) ;
+   typeadapter_iot typeadt    = typeadapter_iot_INIT(0, &typeadt_ft) ;
    testnode_t     * nodea ;
    size_t         nextpos ;
 

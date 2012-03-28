@@ -268,7 +268,7 @@ ABBRUCH:
    return err ;
 }
 
-int delete_arraystf(arraystf_t ** array, typeadapter_oit * typeadp)
+int delete_arraystf(arraystf_t ** array, typeadapter_iot * typeadp)
 {
    int err = 0 ;
    int err2 ;
@@ -285,7 +285,7 @@ int delete_arraystf(arraystf_t ** array, typeadapter_oit * typeadp)
 
          if (!isbranchtype_arraystfunode(node)) {
             if (typeadp) {
-               err2 = execfree_typeadapteroit(typeadp, asgeneric_arraystfunode(node)) ;
+               err2 = execfree_typeadapteriot(typeadp, asgeneric_arraystfunode(node)) ;
                if (err2) err = err2 ;
             }
             continue ;
@@ -308,7 +308,7 @@ int delete_arraystf(arraystf_t ** array, typeadapter_oit * typeadp)
                      branch->used     = nrelementsof(branch->child)-1 ;
                      continue ;
                   } else if (typeadp) {
-                     err2 = execfree_typeadapteroit(typeadp, asgeneric_arraystfunode(node)) ;
+                     err2 = execfree_typeadapteriot(typeadp, asgeneric_arraystfunode(node)) ;
                      if (err2) err = err2 ;
                   }
                }
@@ -363,7 +363,7 @@ struct generic_object_t * at_arraystf(const arraystf_t * array, size_t size, con
 
 // group: change
 
-int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out,err*/struct generic_object_t ** inserted_or_existing_node, struct typeadapter_oit * typeadp, size_t offset_node)
+int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out,err*/struct generic_object_t ** inserted_or_existing_node, struct typeadapter_iot * typeadp, size_t offset_node)
 {
    int err ;
    arraystf_findresult_t   found ;
@@ -381,7 +381,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
    }
 
    if (typeadp) {
-      err = execcopy_typeadapteroit(typeadp, &copied_node, node) ;
+      err = execcopy_typeadapteriot(typeadp, &copied_node, node) ;
       if (err) goto ABBRUCH ;
       node    = copied_node ;
       nodekey = asnode_arraystfunode(fromgeneric_arraystfunode(node), offset_node) ;
@@ -516,7 +516,7 @@ DONE:
    return 0 ;
 ABBRUCH:
    if (copied_node) {
-      (void) execfree_typeadapteroit(typeadp, copied_node) ;
+      (void) execfree_typeadapteriot(typeadp, copied_node) ;
    }
    LOG_ABORT(err) ;
    return err ;
@@ -600,7 +600,7 @@ ABBRUCH:
    return err ;
 }
 
-int insert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out*/struct generic_object_t ** inserted_node, struct typeadapter_oit * typeadp, size_t offset_node)
+int insert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out*/struct generic_object_t ** inserted_node, struct typeadapter_iot * typeadp, size_t offset_node)
 {
    int err ;
    struct generic_object_t * inserted_or_existing_node ;
@@ -909,7 +909,7 @@ static int test_initfree(void)
    arraystf_t        * array    = 0 ;
    testnode_typeadapter_it
                      typeadt_ft = typeadapter_it_INIT(&test_copynode, &test_freenode) ;
-   typeadapter_oit   typeadt    = typeadapter_oit_INIT(0, (typeadapter_it*) &typeadt_ft) ;
+   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, (typeadapter_it*) &typeadt_ft) ;
    testnode_t        * nodea ;
 
    // prepare
@@ -1228,7 +1228,7 @@ static int test_error(void)
    const size_t      nrnodes    = 10000 ;
    vm_block_t        memblock   = vm_block_INIT_FREEABLE ;
    typeadapter_it    typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit   typeadt    = typeadapter_oit_INIT(0, &typeadt_ft) ;
+   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, &typeadt_ft) ;
    arraystf_t        * array    = 0 ;
    testnode_t        * nodea ;
    char              * logbuffer ;
@@ -1471,7 +1471,7 @@ static int test_generic(void)
    arraystf_t        * array2   = 0 ;
    testnode_typeadapter_it
                      typeadt_ft = typeadapter_it_INIT(&test_copynode, &test_freenode) ;
-   typeadapter_oit   typeadt    = typeadapter_oit_INIT(0, (typeadapter_it*) &typeadt_ft) ;
+   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, (typeadapter_it*) &typeadt_ft) ;
    testnode_t        * nodea ;
    size_t            nextpos ;
 

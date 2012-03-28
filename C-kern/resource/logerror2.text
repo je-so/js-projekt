@@ -70,7 +70,7 @@
       #include "C-kern/api/resource/logerrtext.h"
       #include "C-kern/api/err.h"
 
-      #define PRINTF(...)  log_maincontext().functable->printf(log_maincontext().object, channel, __VA_ARGS__ )
+      #define PRINTF(...)  log_maincontext().iimpl->printf(log_maincontext().object, channel, __VA_ARGS__ )
    </include>
 </proglang>
 

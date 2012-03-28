@@ -160,18 +160,18 @@ const char *               progname_maincontext(void) ;
 // group: query-service
 
 /* function: log_maincontext
- * Returns log service <log_oit> (see <logwritermt_t>).
+ * Returns log service <log_iot> (see <logwritermt_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-/*ref*/log_oit             log_maincontext(void) ;
+/*ref*/log_iot             log_maincontext(void) ;
 
 /* function: mmtransient_maincontext
- * Returns object interface <mm_oit> for access of memory manager. */
-/*ref*/mm_oit              mmtransient_maincontext(void) ;
+ * Returns object interface <mm_iot> for access of memory manager. */
+/*ref*/mm_iot              mmtransient_maincontext(void) ;
 
 /* function: objectcache_maincontext
- * Returns object interface <objectcache_oit> for access of cached singleton objects. */
-/*ref*/objectcache_oit     objectcache_maincontext(void) ;
+ * Returns object interface <objectcache_iot> for access of cached singleton objects. */
+/*ref*/objectcache_iot     objectcache_maincontext(void) ;
 
 /* function: valuecache_maincontext
  * Returns <valuecache_t> holding precomputed values.

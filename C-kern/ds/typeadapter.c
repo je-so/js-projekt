@@ -75,7 +75,7 @@ ABBRUCH:
 
 // group: variables
 
-const typeadapter_it    g_typeadapter_functable = typeadapter_it_INIT(
+const typeadapter_it    g_typeadapter_iimpl = typeadapter_it_INIT(
                             &copyobj_typeadapter
                            ,&freeobj_typeadapter
                         ) ;
@@ -101,24 +101,24 @@ int free_typeadapter(typeadapter_t * tadapt)
 
 #ifdef KONFIG_UNITTEST
 
-static int test_initfree_oit(void)
+static int test_initfree_iot(void)
 {
    typeadapter_it    typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_oit   typeadt    = typeadapter_oit_INIT_FREEABLE ;
+   typeadapter_iot   typeadt    = typeadapter_iot_INIT_FREEABLE ;
 
    // TEST static init INIT_FREEABLE
    TEST(0 == typeadt_ft.copyobj) ;
    TEST(0 == typeadt_ft.freeobj) ;
    TEST(0 == typeadt.object) ;
-   TEST(0 == typeadt.functable) ;
+   TEST(0 == typeadt.iimpl) ;
 
    // TEST static init INIT
    typeadt_ft = (typeadapter_it) typeadapter_it_INIT((typeof(typeadt_ft.copyobj))1, (typeof(typeadt_ft.freeobj))2) ;
    TEST(typeadt_ft.copyobj == (typeof(typeadt_ft.copyobj))1) ;
    TEST(typeadt_ft.freeobj == (typeof(typeadt_ft.freeobj))2) ;
-   typeadt = (typeadapter_oit) typeadapter_oit_INIT((typeadapter_t*)1, &typeadt_ft);
-   TEST(typeadt.object     == (void*)1) ;
-   TEST(typeadt.functable  == &typeadt_ft) ;
+   typeadt = (typeadapter_iot) typeadapter_iot_INIT((typeadapter_t*)1, &typeadt_ft);
+   TEST(typeadt.object == (void*)1) ;
+   TEST(typeadt.iimpl  == &typeadt_ft) ;
 
    // TEST setcopy_typeadapterit
    typeadt_ft.freeobj = 0 ;
@@ -147,11 +147,11 @@ typedef struct implobject_t            implobject_t ;
 
 typedef struct typeimplementor_it      typeimplementor_it ;
 
-typedef struct typeimplementor_oit     typeimplementor_oit ;
+typedef struct typeimplementor_iot     typeimplementor_iot ;
 
 typeadapter_it_DECLARE(typeimplementor_it, typeimplementor_t, implobject_t)
 
-typeadapter_oit_DECLARE(typeimplementor_oit, typeimplementor_t, typeimplementor_it)
+typeadapter_iot_DECLARE(typeimplementor_iot, typeimplementor_t, typeimplementor_it)
 
 struct typeimplementor_t  {
    implobject_t   ** copy ;
@@ -173,17 +173,17 @@ static int test_freefct(typeimplementor_t * typeimpl, implobject_t * object)
 }
 
 
-static int test_generic_oit(void)
+static int test_generic_iot(void)
 {
    typeimplementor_t    typeimpl     = { 0, 0, 0 } ;
    typeimplementor_it   typeimpl_ft  = typeadapter_it_INIT(&test_copyfct, &test_freefct) ;
-   typeimplementor_oit  typeimpl_oit = typeadapter_oit_INIT(&typeimpl, &typeimpl_ft) ;
+   typeimplementor_iot  typeimpl_iot = typeadapter_iot_INIT(&typeimpl, &typeimpl_ft) ;
 
    // TEST static init
    TEST(typeimpl_ft.copyobj == &test_copyfct) ;
    TEST(typeimpl_ft.freeobj == &test_freefct) ;
-   TEST(typeimpl_oit.object     == &typeimpl) ;
-   TEST(typeimpl_oit.functable  == &typeimpl_ft) ;
+   TEST(typeimpl_iot.object == &typeimpl) ;
+   TEST(typeimpl_iot.iimpl  == &typeimpl_ft) ;
 
    // TEST set functions
    setcopy_typeadapterit(&typeimpl_ft, 0, typeimplementor_t, implobject_t) ;
@@ -195,14 +195,14 @@ static int test_generic_oit(void)
    TEST(typeimpl_ft.copyobj == &test_copyfct) ;
    TEST(typeimpl_ft.freeobj == &test_freefct) ;
 
-   // TEST execcopy_typeadapteroit
-   execcopy_typeadapteroit(&typeimpl_oit, (implobject_t**)12, (implobject_t*)13) ;
+   // TEST execcopy_typeadapteriot
+   execcopy_typeadapteriot(&typeimpl_iot, (implobject_t**)12, (implobject_t*)13) ;
    TEST((void*)12 == typeimpl.copy) ;
    TEST((void*)13 == typeimpl.object) ;
    TEST((void*)0  == typeimpl.free) ;
 
-   // TEST execfree_typeadapteroit
-   execfree_typeadapteroit(&typeimpl_oit, (implobject_t*)14) ;
+   // TEST execfree_typeadapteriot
+   execfree_typeadapteriot(&typeimpl_iot, (implobject_t*)14) ;
    TEST((void*)12 == typeimpl.copy) ;
    TEST((void*)13 == typeimpl.object) ;
    TEST((void*)14 == typeimpl.free) ;
@@ -220,12 +220,12 @@ struct test_type_t {
 
 static int test_initfree_t(void)
 {
-   typeadapter_oit   toit   = typeadapter_oit_INIT_FREEABLE ;
+   typeadapter_iot   tiot   = typeadapter_iot_INIT_FREEABLE ;
    typeadapter_t     tadapt = typeadapter_INIT_FREEABLE ;
 
-   // TEST g_typeadapter_functable
-   TEST(g_typeadapter_functable.copyobj == &copyobj_typeadapter) ;
-   TEST(g_typeadapter_functable.freeobj == &freeobj_typeadapter) ;
+   // TEST g_typeadapter_iimpl
+   TEST(g_typeadapter_iimpl.copyobj == &copyobj_typeadapter) ;
+   TEST(g_typeadapter_iimpl.freeobj == &freeobj_typeadapter) ;
 
    // TEST static init typeadapter_INIT_FREEABLE
    TEST(0 == tadapt.objectsize) ;
@@ -238,19 +238,19 @@ static int test_initfree_t(void)
    TEST(0 == free_typeadapter(&tadapt)) ;
    TEST(0 == tadapt.objectsize) ;
 
-   // TEST functable_typeadapter
-   TEST(&g_typeadapter_functable == functable_typeadapter()) ;
+   // TEST iimpl_typeadapter
+   TEST(&g_typeadapter_iimpl == iimpl_typeadapter()) ;
 
-   // TEST asoit_typeadapter
-   TEST(toit.object     == 0) ;
-   TEST(toit.functable  == 0) ;
-   asoit_typeadapter(&tadapt, &toit) ;
-   TEST(toit.object     == &tadapt) ;
-   TEST(toit.functable  == &g_typeadapter_functable) ;
-   toit.functable = (void*)1 ;
-   asoit_typeadapter((&tadapt)+1, &toit) ;
-   TEST(toit.object     == (&tadapt)+1) ;
-   TEST(toit.functable  == &g_typeadapter_functable) ;
+   // TEST asiot_typeadapter
+   TEST(tiot.object == 0) ;
+   TEST(tiot.iimpl  == 0) ;
+   asiot_typeadapter(&tadapt, &tiot) ;
+   TEST(tiot.object == &tadapt) ;
+   TEST(tiot.iimpl  == &g_typeadapter_iimpl) ;
+   tiot.iimpl = (void*)1 ;
+   asiot_typeadapter((&tadapt)+1, &tiot) ;
+   TEST(tiot.object == (&tadapt)+1) ;
+   TEST(tiot.iimpl  == &g_typeadapter_iimpl) ;
 
    return 0 ;
 ABBRUCH:
@@ -259,20 +259,20 @@ ABBRUCH:
 
 static int test_helper_t(void)
 {
-   typeadapter_oit      toit   = typeadapter_oit_INIT_FREEABLE ;
+   typeadapter_iot      tiot   = typeadapter_iot_INIT_FREEABLE ;
    typeadapter_t        tadapt = typeadapter_INIT_FREEABLE ;
    struct test_type_t   value ;
    struct test_type_t   * valuecopy[100] ;
 
    // prepare
    TEST(0 == init_typeadapter(&tadapt, sizeof(struct test_type_t))) ;
-   asoit_typeadapter(&tadapt, &toit) ;
+   asiot_typeadapter(&tadapt, &tiot) ;
 
    // TEST copyobj_typeadapter
    for(unsigned i = 0; i < nrelementsof(valuecopy); ++i) {
       value        = (struct test_type_t) { .a = i+1, .b = i+2, .c = i+3 } ;
       valuecopy[i] = 0 ;
-      TEST(0 == execcopy_typeadapteroit(&toit, (struct generic_object_t**)&valuecopy[i], (struct generic_object_t*)&value)) ;
+      TEST(0 == execcopy_typeadapteriot(&tiot, (struct generic_object_t**)&valuecopy[i], (struct generic_object_t*)&value)) ;
       TEST(0 != valuecopy[i]) ;
       TEST(i+1 == valuecopy[i]->a) ;
       TEST(i+2 == valuecopy[i]->b) ;
@@ -284,7 +284,7 @@ static int test_helper_t(void)
       TEST(i+1 == valuecopy[i]->a) ;
       TEST(i+2 == valuecopy[i]->b) ;
       TEST(i+3 == valuecopy[i]->c) ;
-      TEST(0 == execfree_typeadapteroit(&toit, (struct generic_object_t*)valuecopy[i])) ;
+      TEST(0 == execfree_typeadapteriot(&tiot, (struct generic_object_t*)valuecopy[i])) ;
       valuecopy[i] = 0 ;
    }
 
@@ -302,8 +302,8 @@ int unittest_ds_typeadapter()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree_oit())   goto ABBRUCH ;
-   if (test_generic_oit())    goto ABBRUCH ;
+   if (test_initfree_iot())   goto ABBRUCH ;
+   if (test_generic_iot())    goto ABBRUCH ;
    if (test_initfree_t())     goto ABBRUCH ;
    if (test_helper_t())       goto ABBRUCH ;
 

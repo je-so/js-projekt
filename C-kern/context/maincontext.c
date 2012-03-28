@@ -205,9 +205,9 @@ static int test_initmain(void)
    TEST(0 == process_maincontext().valuecache) ;
    TEST(0 == thread_maincontext().initcount) ;
    TEST(&g_logmain == thread_maincontext().ilog.object) ;
-   TEST(&g_logmain_interface == thread_maincontext().ilog.functable) ;
+   TEST(&g_logmain_interface == thread_maincontext().ilog.iimpl) ;
    TEST(0 == thread_maincontext().objectcache.object) ;
-   TEST(0 == thread_maincontext().objectcache.functable) ;
+   TEST(0 == thread_maincontext().objectcache.iimpl) ;
 
    // TEST EINVAL
    TEST(0      == maincontext_STATIC) ;
@@ -225,12 +225,12 @@ static int test_initmain(void)
    TEST(0 != process_maincontext().valuecache) ;
    TEST(0 != thread_maincontext().initcount) ;
    TEST(0 != thread_maincontext().ilog.object) ;
-   TEST(0 != thread_maincontext().ilog.functable) ;
+   TEST(0 != thread_maincontext().ilog.iimpl) ;
    TEST(0 != thread_maincontext().objectcache.object) ;
-   TEST(0 != thread_maincontext().objectcache.functable) ;
+   TEST(0 != thread_maincontext().objectcache.iimpl) ;
    TEST(0 != strcmp("C", current_locale())) ;
-   TEST(thread_maincontext().ilog.object    != &g_logmain) ;
-   TEST(thread_maincontext().ilog.functable != &g_logmain_interface) ;
+   TEST(thread_maincontext().ilog.object != &g_logmain) ;
+   TEST(thread_maincontext().ilog.iimpl  != &g_logmain_interface) ;
    TEST(0 == free_maincontext()) ;
    TEST(0 == type_maincontext()) ;
    TEST(0 == g_maincontext.argc) ;
@@ -238,11 +238,11 @@ static int test_initmain(void)
    TEST(0 == progname_maincontext()) ;
    TEST(0 == process_maincontext().valuecache) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(thread_maincontext().initcount      == 0) ;
-   TEST(thread_maincontext().ilog.object    == &g_logmain) ;
-   TEST(thread_maincontext().ilog.functable == &g_logmain_interface) ;
-   TEST(thread_maincontext().objectcache.object    == 0) ;
-   TEST(thread_maincontext().objectcache.functable == 0) ;
+   TEST(thread_maincontext().initcount   == 0) ;
+   TEST(thread_maincontext().ilog.object == &g_logmain) ;
+   TEST(thread_maincontext().ilog.iimpl  == &g_logmain_interface) ;
+   TEST(thread_maincontext().objectcache.object == 0) ;
+   TEST(thread_maincontext().objectcache.iimpl  == 0) ;
    TEST(0 == free_maincontext()) ;
    TEST(0 == type_maincontext()) ;
    TEST(0 == g_maincontext.argc) ;
@@ -250,21 +250,21 @@ static int test_initmain(void)
    TEST(0 == progname_maincontext()) ;
    TEST(0 == process_maincontext().valuecache) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(thread_maincontext().initcount      == 0) ;
-   TEST(thread_maincontext().ilog.object    == &g_logmain) ;
-   TEST(thread_maincontext().ilog.functable == &g_logmain_interface) ;
-   TEST(thread_maincontext().objectcache.object    == 0) ;
-   TEST(thread_maincontext().objectcache.functable == 0) ;
+   TEST(thread_maincontext().initcount   == 0) ;
+   TEST(thread_maincontext().ilog.object == &g_logmain) ;
+   TEST(thread_maincontext().ilog.iimpl  == &g_logmain_interface) ;
+   TEST(thread_maincontext().objectcache.object == 0) ;
+   TEST(thread_maincontext().objectcache.iimpl  == 0) ;
 
    // TEST static type has not changed
    TEST(0 == type_maincontext()) ;
    TEST(0 == process_maincontext().initcount) ;
    TEST(0 == process_maincontext().valuecache) ;
    TEST(0 == thread_maincontext().initcount) ;
-   TEST(&g_logmain == thread_maincontext().ilog.object) ;
-   TEST(&g_logmain_interface == thread_maincontext().ilog.functable) ;
+   TEST(thread_maincontext().ilog.object == &g_logmain) ;
+   TEST(thread_maincontext().ilog.iimpl  == &g_logmain_interface) ;
    TEST(0 == thread_maincontext().objectcache.object) ;
-   TEST(0 == thread_maincontext().objectcache.functable) ;
+   TEST(0 == thread_maincontext().objectcache.iimpl) ;
 
    LOG_FLUSHBUFFER() ;
    char buffer[4096] = { 0 };
@@ -335,10 +335,10 @@ static int test_initerror(void)
       TEST(0 == process_maincontext().initcount) ;
       TEST(maincontext_STATIC == type_maincontext()) ;
       TEST(0 == thread_maincontext().initcount) ;
-      TEST(&g_logmain == thread_maincontext().ilog.object) ;
-      TEST(&g_logmain_interface == thread_maincontext().ilog.functable) ;
+      TEST(thread_maincontext().ilog.object == &g_logmain) ;
+      TEST(thread_maincontext().ilog.iimpl  == &g_logmain_interface) ;
       TEST(0 == thread_maincontext().objectcache.object) ;
-      TEST(0 == thread_maincontext().objectcache.functable) ;
+      TEST(0 == thread_maincontext().objectcache.iimpl) ;
    }
 
    LOG_FLUSHBUFFER() ;

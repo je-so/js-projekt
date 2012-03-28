@@ -20,8 +20,8 @@
    file: C-kern/api/memory/mm/mm_it.h
     Header file of <MemoryManager-Interface>.
 
-   file: C-kern/api/memory/mm/mm_oit.h
-    Contains interfaceable object <MemoryManager-Object>.
+   file: C-kern/api/memory/mm/mm_iot.h
+    Contains interfaceable object <MemoryManager-ImplementationObject>.
 */
 #ifndef CKERN_MEMORY_MM_MM_IT_HEADER
 #define CKERN_MEMORY_MM_MM_IT_HEADER

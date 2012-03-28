@@ -1,5 +1,5 @@
-/* title: MemoryManager-Object
-   Exports <mm_oit>: a pointer to object and its interface <mm_it>.
+/* title: MemoryManager-ImplementationObject
+   Exports <mm_iot>: a pointer to object and its implementation of interface <mm_it>.
    To use this object you need to include <MemoryManager-Interface>
 
    about: Copyright
@@ -20,36 +20,36 @@
    file: C-kern/api/memory/mm/mm_it.h
     Header file of <MemoryManager-Interface>.
 
-   file: C-kern/api/memory/mm/mm_oit.h
-    Contains interfaceable object <MemoryManager-Object>.
+   file: C-kern/api/memory/mm/mm_iot.h
+    Contains interfaceable object <MemoryManager-ImplementationObject>.
 */
-#ifndef CKERN_MEMORY_MM_MM_OIT_HEADER
-#define CKERN_MEMORY_MM_MM_OIT_HEADER
+#ifndef CKERN_MEMORY_MM_MM_IOT_HEADER
+#define CKERN_MEMORY_MM_MM_IOT_HEADER
 
 // forward
 struct mm_t ;
 struct mm_it ;
 
-/* typedef: struct mm_oit
- * Export <mm_oit> -- memory manager object implementation. */
-typedef struct mm_oit                  mm_oit ;
+/* typedef: struct mm_iot
+ * Export <mm_iot> -- memory manager interface implementing object. */
+typedef struct mm_iot                  mm_iot ;
 
 
-/* struct: mm_oit
+/* struct: mm_iot
  * A memory manager object implementing interface <mm_it>. */
-struct mm_oit {
+struct mm_iot {
    /* variable: object
     * A pointer to the object which implements the interface <mm_it>. */
    struct mm_t    * object ;
-   /* variable: functable
-    * A pointer to the table of functions implementing the <mm_it> interface. */
-   struct mm_it   * functable ;
+   /* variable: iimpl
+    * A pointer to the implementation of interface <mm_it>. */
+   struct mm_it   * iimpl ;
 } ;
 
 // group: lifetime
 
-/* define: mm_oit_INIT_FREEABLE
+/* define: mm_iot_INIT_FREEABLE
  * Static initializer. */
-#define mm_oit_INIT_FREEABLE    { (struct mm_t*)0, (struct mm_it*)0 }
+#define mm_iot_INIT_FREEABLE    { (struct mm_t*)0, (struct mm_it*)0 }
 
 #endif

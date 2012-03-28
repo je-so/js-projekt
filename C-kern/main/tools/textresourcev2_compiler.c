@@ -171,7 +171,7 @@ struct textresource_language_t {
 
 static typeadapter_t        g_textreslang_adapter     = typeadapter_INIT(sizeof(textresource_language_t)) ;
 
-static typeadapter_oit      g_textreslang_adapter_oit = typeadapter_oit_INIT_DEFAULT(&g_textreslang_adapter) ;
+static typeadapter_iot      g_textreslang_adapter_iot = typeadapter_iot_INIT_DEFAULT(&g_textreslang_adapter) ;
 
 /* define: textresource_language_INIT
  * Static initializer. */
@@ -190,7 +190,7 @@ struct textresource_parameter_t {
 
 static typeadapter_t        g_parameter_adapter     = typeadapter_INIT(sizeof(textresource_parameter_t)) ;
 
-static typeadapter_oit      g_parameter_adapter_oit = typeadapter_oit_INIT_DEFAULT(&g_parameter_adapter) ;
+static typeadapter_iot      g_parameter_adapter_iot = typeadapter_iot_INIT_DEFAULT(&g_parameter_adapter) ;
 
 /* define: textresource_parameter_INIT_FREEABLE
  * Static initializer. */
@@ -223,7 +223,7 @@ struct textresource_textatom_t {
 
 static typeadapter_t        g_textatom_adapter     = typeadapter_INIT(sizeof(textresource_textatom_t)) ;
 
-static typeadapter_oit      g_textatom_adapter_oit = typeadapter_oit_INIT_DEFAULT(&g_textatom_adapter) ;
+static typeadapter_iot      g_textatom_adapter_iot = typeadapter_iot_INIT_DEFAULT(&g_textatom_adapter) ;
 
 // group: lifetime
 
@@ -268,15 +268,15 @@ static int freeobj_textresourcecondition(typeadapter_t * typeadt, textresource_c
 
 typedef struct textresource_condition_it       textresource_condition_it ;
 
-typedef struct textresource_condition_oit      textresource_condition_oit ;
+typedef struct textresource_condition_iot      textresource_condition_iot ;
 
 typeadapter_it_DECLARE(textresource_condition_it, typeadapter_t, textresource_condition_t)
 
-typeadapter_oit_DECLARE(textresource_condition_oit, typeadapter_t, textresource_condition_it)
+typeadapter_iot_DECLARE(textresource_condition_iot, typeadapter_t, textresource_condition_it)
 
 static textresource_condition_it   g_condition_adapter_it   = typeadapter_it_INIT(&copyobj_textresourcecondition, &freeobj_textresourcecondition) ;
 
-static textresource_condition_oit  g_condition_adapter_oit  = typeadapter_oit_INIT(0, &g_condition_adapter_it) ;
+static textresource_condition_iot  g_condition_adapter_iot  = typeadapter_iot_INIT(0, &g_condition_adapter_it) ;
 
 // grozup: lifetime
 
@@ -308,7 +308,7 @@ static int freeobj_textresourcecondition(typeadapter_t * typeadt, textresource_c
 
    (void) typeadt ;
 
-   err = free_textatomlist(&cond->atomlist, &g_textatom_adapter_oit) ;
+   err = free_textatomlist(&cond->atomlist, &g_textatom_adapter_iot) ;
 
    err2 = MM_FREE(&mblock) ;
    if (err2) err = err2 ;
@@ -328,12 +328,12 @@ static int addtextatom_textresourcecondition(textresource_condition_t * cond, te
    int err ;
    textresource_textatom_t * textatomcopy ;
 
-   err = execcopy_typeadapteroit(&g_textatom_adapter_oit, (struct generic_object_t**)&textatomcopy, (struct generic_object_t*)textatom) ;
+   err = execcopy_typeadapteriot(&g_textatom_adapter_iot, (struct generic_object_t**)&textatomcopy, (struct generic_object_t*)textatom) ;
    if (err) goto ABBRUCH ;
 
    err = insertlast_textatomlist(&cond->atomlist, textatomcopy) ;
    if (err) {
-      (void) execfree_typeadapteroit(&g_textatom_adapter_oit, (struct generic_object_t*)textatomcopy) ;
+      (void) execfree_typeadapteriot(&g_textatom_adapter_iot, (struct generic_object_t*)textatomcopy) ;
       goto ABBRUCH ;
    }
 
@@ -365,15 +365,15 @@ static int freeobj_textresourcelangref(typeadapter_t * typeadt, textresource_lan
 
 typedef struct textresource_langref_it       textresource_langref_it ;
 
-typedef struct textresource_langref_oit      textresource_langref_oit ;
+typedef struct textresource_langref_iot      textresource_langref_iot ;
 
 typeadapter_it_DECLARE(textresource_langref_it, typeadapter_t, textresource_langref_t)
 
-typeadapter_oit_DECLARE(textresource_langref_oit, typeadapter_t, textresource_langref_it)
+typeadapter_iot_DECLARE(textresource_langref_iot, typeadapter_t, textresource_langref_it)
 
 static textresource_langref_it   g_langref_adapter_it   = typeadapter_it_INIT(&copyobj_textresourcelangref, &freeobj_textresourcelangref) ;
 
-static textresource_langref_oit  g_langref_adapter_oit  = typeadapter_oit_INIT(0, &g_langref_adapter_it) ;
+static textresource_langref_iot  g_langref_adapter_iot  = typeadapter_iot_INIT(0, &g_langref_adapter_it) ;
 
 // group: lifetime
 
@@ -407,7 +407,7 @@ static int freeobj_textresourcelangref(typeadapter_t * typeadt, textresource_lan
 
    (void) typeadt ;
 
-   err = free_conditionlist(&lang->condlist, &g_condition_adapter_oit.generic) ;
+   err = free_conditionlist(&lang->condlist, &g_condition_adapter_iot.generic) ;
 
    err2 = MM_FREE(&mblock) ;
    if (err2) err = err2 ;
@@ -427,12 +427,12 @@ static int addcondition_textresourcelangref(textresource_langref_t * lang, textr
    int err ;
    textresource_condition_t * conditioncopy ;
 
-   err = execcopy_typeadapteroit(&g_condition_adapter_oit, &conditioncopy, condition) ;
+   err = execcopy_typeadapteriot(&g_condition_adapter_iot, &conditioncopy, condition) ;
    if (err) goto ABBRUCH ;
 
    err = insertlast_conditionlist(&lang->condlist, conditioncopy) ;
    if (err) {
-      (void) execfree_typeadapteroit(&g_condition_adapter_oit, conditioncopy) ;
+      (void) execfree_typeadapteriot(&g_condition_adapter_iot, conditioncopy) ;
       goto ABBRUCH ;
    }
 
@@ -476,15 +476,15 @@ static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t
 
 typedef struct textresource_text_it    textresource_text_it ;
 
-typedef struct textresource_text_oit   textresource_text_oit ;
+typedef struct textresource_text_iot   textresource_text_iot ;
 
 typeadapter_it_DECLARE(textresource_text_it, typeadapter_t, textresource_text_t)
 
-typeadapter_oit_DECLARE(textresource_text_oit, typeadapter_t, textresource_text_it)
+typeadapter_iot_DECLARE(textresource_text_iot, typeadapter_t, textresource_text_it)
 
 static textresource_text_it   g_textrestext_adapter_it   = typeadapter_it_INIT(&copyobj_textresourcetext, &freeobj_textresourcetext) ;
 
-static textresource_text_oit  g_textrestext_adapter_oit  = typeadapter_oit_INIT(0, &g_textrestext_adapter_it) ;
+static textresource_text_iot  g_textrestext_adapter_iot  = typeadapter_iot_INIT(0, &g_textrestext_adapter_it) ;
 
 // group: lifetime
 
@@ -529,10 +529,10 @@ static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t
 
    err = free_paramlist(&text->paramlist, 0) ;                          // do not delete the nodes
 
-   err2 = delete_arrayparam(&text->params, &g_parameter_adapter_oit) ;  // delete nodes
+   err2 = delete_arrayparam(&text->params, &g_parameter_adapter_iot) ;  // delete nodes
    if (err2) err = err2 ;
 
-   err2 = free_langreflist(&text->langlist, &g_langref_adapter_oit.generic) ;
+   err2 = free_langreflist(&text->langlist, &g_langref_adapter_iot.generic) ;
    if (err2) err = err2 ;
 
    err2 = MM_FREE(&mblock) ;
@@ -601,10 +601,10 @@ static int free_textresource(textresource_t * textres)
 
    err = delete_arrayptype(&textres->paramtypes, 0) ;
 
-   err2 = delete_arraytname(&textres->textnames, &g_textrestext_adapter_oit.generic) ;
+   err2 = delete_arraytname(&textres->textnames, &g_textrestext_adapter_iot.generic) ;
    if (err) err = err2 ;
 
-   err2 = delete_arraylanguage(&textres->languages, &g_textreslang_adapter_oit) ;
+   err2 = delete_arraylanguage(&textres->languages, &g_textreslang_adapter_iot) ;
    if (err) err = err2 ;
 
    if (err) goto ABBRUCH ;
@@ -1078,7 +1078,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
 
          textresource_parameter_t * textparamcopy ;
 
-         err = insert_arrayparam(text->params, &textparam, &textparamcopy, &g_parameter_adapter_oit) ;
+         err = insert_arrayparam(text->params, &textparam, &textparamcopy, &g_parameter_adapter_iot) ;
          if (!err) err = insertlast_paramlist(&text->paramlist, textparamcopy) ;
          if (err) {
             if (EEXIST == err) {
@@ -1342,7 +1342,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
       err = init_textresourcetext(&text, &name) ;
       if (err) return err ;
 
-      err = insert_arraytname(reader->txtres.textnames, &text, &textcopy, &g_textrestext_adapter_oit.generic) ;
+      err = insert_arraytname(reader->txtres.textnames, &text, &textcopy, &g_textrestext_adapter_iot.generic) ;
       if (err) {
          if (EEXIST == err) {
             err = EINVAL ;
@@ -1363,7 +1363,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
       for(;;) {
          language = (textresource_language_t) textresource_language_INIT(name) ;
 
-         err = tryinsert_arraylanguage(reader->txtres.languages, &language, &langcopy, &g_textreslang_adapter_oit) ;
+         err = tryinsert_arraylanguage(reader->txtres.languages, &language, &langcopy, &g_textreslang_adapter_iot) ;
          if (  err
             && EEXIST != err) {
             return err ;
@@ -1383,12 +1383,12 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          textresource_langref_t langref       = textresource_langref_INIT(langcopy) ;
          textresource_langref_t * langrefcopy = 0 ;
 
-         err = execcopy_typeadapteroit(&g_langref_adapter_oit, &langrefcopy, &langref) ;
+         err = execcopy_typeadapteriot(&g_langref_adapter_iot, &langrefcopy, &langref) ;
          if (err) return err ;
 
          err = insertlast_langreflist(&textcopy->langlist, langrefcopy) ;
          if (err) {
-            (void) execfree_typeadapteroit(&g_langref_adapter_oit, langrefcopy) ;
+            (void) execfree_typeadapteriot(&g_langref_adapter_iot, langrefcopy) ;
             return err ;
          }
 

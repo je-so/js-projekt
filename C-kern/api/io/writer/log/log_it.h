@@ -22,8 +22,8 @@
    file: C-kern/api/io/writer/log/log_it.h
     Header file of <Log-Interface>.
 
-   file: C-kern/api/io/writer/log/log_oit.h
-    Contains object interface definition <Log-ObjectInterface>.
+   file: C-kern/api/io/writer/log/log_iot.h
+    Contains interface implementing object <Log-ImplementationObject>.
 */
 #ifndef CKERN_IO_WRITER_LOG_LOG_IT_HEADER
 #define CKERN_IO_WRITER_LOG_LOG_IT_HEADER

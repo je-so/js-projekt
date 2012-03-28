@@ -59,7 +59,7 @@ mmtransient_it    s_mmtransient_interface = {
 
 // group: init
 
-int initthread_mmtransient(/*out*/mm_oit * mm_transient)
+int initthread_mmtransient(/*out*/mm_iot * mm_transient)
 {
    int err ;
    const size_t      objsize    = sizeof(mm_transient_t) ;
@@ -77,8 +77,8 @@ int initthread_mmtransient(/*out*/mm_oit * mm_transient)
 
    memcpy(newobject.addr, &tempobject, objsize) ;
 
-   mm_transient->object    = (struct mm_t*) newobject.addr;
-   mm_transient->functable = (mm_it*) &s_mmtransient_interface ;
+   mm_transient->object = (struct mm_t*) newobject.addr;
+   mm_transient->iimpl  = (mm_it*) &s_mmtransient_interface ;
 
    return 0 ;
 ABBRUCH:
@@ -87,17 +87,17 @@ ABBRUCH:
    return err ;
 }
 
-int freethread_mmtransient(mm_oit * mm_transient)
+int freethread_mmtransient(mm_iot * mm_transient)
 {
    int err ;
    int err2 ;
    mm_transient_t * delobject = (mm_transient_t*) mm_transient->object ;
 
    if (delobject) {
-      assert(&s_mmtransient_interface == (mmtransient_it*) mm_transient->functable) ;
+      assert(&s_mmtransient_interface == (mmtransient_it*) mm_transient->iimpl) ;
 
-      mm_transient->object    = 0 ;
-      mm_transient->functable = 0 ;
+      mm_transient->object = 0 ;
+      mm_transient->iimpl  = 0 ;
 
       mm_transient_t tempobject = *delobject ;
       memblock_t     memobject  = memblock_INIT(sizeof(mm_transient_t), (uint8_t*)delobject) ;
@@ -221,11 +221,11 @@ ABBRUCH:
 
 static int test_initthread(void)
 {
-   mm_oit   mman = mm_oit_INIT_FREEABLE ;
+   mm_iot   mman = mm_iot_INIT_FREEABLE ;
 
    // TEST static init
    TEST(0 == mman.object) ;
-   TEST(0 == mman.functable) ;
+   TEST(0 == mman.iimpl) ;
 
    // TEST exported interface
    TEST(s_mmtransient_interface.mresize == &mresize_mmtransient) ;
@@ -233,14 +233,14 @@ static int test_initthread(void)
 
    // TEST initthread and double free
    TEST(0 == initthread_mmtransient(&mman)) ;
-   TEST(mman.object    != 0) ;
-   TEST(mman.functable == (mm_it*)&s_mmtransient_interface) ;
+   TEST(mman.object != 0) ;
+   TEST(mman.iimpl  == (mm_it*)&s_mmtransient_interface) ;
    TEST(0 == freethread_mmtransient(&mman)) ;
    TEST(0 == mman.object) ;
-   TEST(0 == mman.functable) ;
+   TEST(0 == mman.iimpl) ;
    TEST(0 == freethread_mmtransient(&mman)) ;
    TEST(0 == mman.object) ;
-   TEST(0 == mman.functable) ;
+   TEST(0 == mman.iimpl) ;
 
    // TEST EINVAL initthread
    mman.object = (struct mm_t*) 1 ;
