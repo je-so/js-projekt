@@ -52,7 +52,7 @@ typedef struct ipsocket_async_t        ipsocket_async_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_ipsocket
  * Unittest client/server tcp/udp communications. */
-extern int unittest_io_ipsocket(void) ;
+int unittest_io_ipsocket(void) ;
 #endif
 
 
@@ -68,7 +68,7 @@ extern int unittest_io_ipsocket(void) ;
  * Creates a new unconnected UDP network communication endpoint.
  * If localaddr does not describe an <ipprotocol_UDP> address EPROTONOSUPPORT is returned.
  * Unconnected sockets can be used to send and receive to/from a many network peers. */
-extern int init_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr) ;
+int init_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr) ;
 
 /* function: initconnect_ipsocket
  * Creates a connected network communication endpoint.
@@ -90,7 +90,7 @@ extern int init_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loc
  * Performance:
  * For TCP it is possible that this call needs some time to complete especially with a slow network connection.
  * So calling this function in a dedicated system worker thread is a good idea. */
-extern int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr/*0=newany_ipaddr*/) ;
+int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr/*0=newany_ipaddr*/) ;
 
 /* function: initlisten_ipsocket
  * Creates a TCP server socket for accepting connections from peers (clients).
@@ -99,7 +99,7 @@ extern int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_
  * To establish a new connections call <initwaitconnect_ipsocket>.
  *
  * Returns *EOPNOTSUPP* if localaddr uses a protocol other than TCP. */
-extern int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr, uint16_t max_outstanding_connections) ;
+int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr, uint16_t max_outstanding_connections) ;
 
 /* function: initwaitconnect_ipsocket
  * Waits for an incoming connection request from a a peer (client).
@@ -112,51 +112,51 @@ extern int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t
  * EINVAL       - Parameter listensock is of type <ipprotocol_TCP> but not a listen socket.
  * EOPNOTSUPP   - Parameter listensock is not of type <ipprotocol_TCP> and does not support this operation.
  * EAFNOSUPPORT - Parameter remoteaddr does not have same IP version than listensock. */
-extern int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, struct ipaddr_t * remoteaddr/*0 => ignored*/) ;
+int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, struct ipaddr_t * remoteaddr/*0 => ignored*/) ;
 
 /* function: free_ipsocket
  * Closes communication channel and frees system resources. */
-extern int free_ipsocket(/*out*/ipsocket_t * ipsock) ;
+int free_ipsocket(/*out*/ipsocket_t * ipsock) ;
 
 // group: query
 
 /* function: fd_ipsocket
  * Returns the file descriptor <filedescr_t> of the socket. */
-extern sys_filedescr_t fd_ipsocket(ipsocket_t * ipsock) ;
+sys_filedescr_t fd_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: isconnected_ipsocket
  * Returns if the socket is connected to a peer.
  * In case of an error *false* is returned. */
-extern bool isconnected_ipsocket(const ipsocket_t * ipsock) ;
+bool isconnected_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: islisten_ipsocket
  * Returns true if the socket listens for incoming connections.
  * With this socket type you can wait for incoming connection requests from peers.
  * Use <initwaitconnect_ipsocket> to query for neyl established connections.
  * In case of an error *false* is returned. */
-extern bool islisten_ipsocket(const ipsocket_t * ipsock) ;
+bool islisten_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: protocol_ipsocket
  * Returns protocol <ipprotocol_e> of the socket.
  * In case of error <ipprotocol_ANY> is returned. */
-extern uint16_t protocol_ipsocket(const ipsocket_t * ipsock) ;
+uint16_t protocol_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: version_ipsocket
  * Returns protocol version <ipversion_e>.
  * In case of an error <ipversion_ANY> is returned. */
-extern uint16_t version_ipsocket(const ipsocket_t * ipsock) ;
+uint16_t version_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: localaddr_ipsocket
  * Returns local ip address in localaddr.
  * The parameter localaddr must have been allocated with <new_ipaddr> before this function is called.
  * Returns *EAFNOSUPPORT* in case ipversion of localaddr is not the same as of ipsock. */
-extern int localaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * localaddr) ;
+int localaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * localaddr) ;
 
 /* function: remoteaddr_ipsocket
  * Returns remote ip address of peer in remoteaddr.
  * The parameter remoteaddr must have been allocated with <new_ipaddr> before this function is called.
  * Returns *EAFNOSUPPORT* in case ipversion of remoteaddr is not the same as of ipsock. */
- extern int remoteaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * remoteaddr) ;
+ int remoteaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * remoteaddr) ;
 
 // group: buffer management
 
@@ -166,27 +166,25 @@ extern int localaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * local
  * in unread_bytes the read operation will not block. But it could be return less than
  * unread_bytes bytes in case socket is of type TCP and a out-of-band (urgent) data byte
  * is stored in the receive queue. */
-extern int bytestoread_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unread_bytes) ;
+int bytestoread_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unread_bytes) ;
 
 /* function: bytestowrite_ipsocket
  * Returns the number of bytes in the send queue.
  * The number of bytes which can be written is the size of the send queue minus the
  * returned value in unsend_bytes. But the write operation is never blocking. It writes only that
  * much bytes as will fit into send queue. */
-extern int bytestowrite_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unsend_bytes) ;
+int bytestowrite_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unsend_bytes) ;
 
-/* function: queuesizeread_ipsocket
- * Returns the number of bytes which can be received without reading. */
-extern int queuesizeread_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * readbuffer_size) ;
-
-/* function: queuesizeread_ipsocket
- * Returns the number of bytes which can be written without sending. */
-extern int queuesizewrite_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * writebuffer_size) ;
+/* function: queuesize_ipsocket
+ * Returns the buffer size in bytes.
+ * *queuesize_read* gives the number of bytes which can be received without reading.
+ * *queuesize_write* gives the number of bytes which can be written without sending. */
+int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * queuesize_read, /*out*/size_t * queuesize_write) ;
 
 /* function: setqueuesize_ipsocket
  * Changes the size of the read and write queue.
  * To change only the read or write queue size set the other value to 0. */
-extern int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read/*0 => no change*/, size_t queuesize_write/*0 => no change*/) ;
+int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read/*0 => no change*/, size_t queuesize_write/*0 => no change*/) ;
 
 // group: connected io
 
@@ -194,13 +192,13 @@ extern int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read/*0 =
  * Reads bytes from read queue at max maxdata_len bytes.
  * This call returns EAGAIN if the read queue is empty. It returns less than maxdata_len bytes
  * if the queue contains less bytes. */
-extern int read_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read ) ;
+int read_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read ) ;
 
 /* function: write_ipsocket
  * Transfers maxdata_len bytes into internal write (send) queue.
  * This call returns EAGAIN if the write queue is full.
  * It writes less than maxdata_len bytes if the queue contains less free space. */
-extern int write_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written ) ;
+int write_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written ) ;
 
 /* function: readoob_ipsocket
  * Same as <read_ipsocket> excepts returns additional OOB index.
@@ -214,14 +212,14 @@ extern int write_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, const uint8_t
  * The difference is that <read_ipsocket> returns less data than possible (see <bytestoread_ipsocket>) if it encounters
  * an oob byte. And only the next call to <read_ipsocket> will return the oob byte and any following data.
  * <readoob_ipsocket> will handle this for you and returns an index which indicates if an oob was read. */
-extern int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read, /*out*/size_t * oob_offset) ;
+int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read, /*out*/size_t * oob_offset) ;
 
 /* function: writeoob_ipsocket
  * Writes a single byte of "out of band" data (urgent data).
  * This operation is only supported by TCP and on an UDP socket EOPNOTSUPP is returned.
  * If you call it more than once and if the previous oob-data byte was not read by the receiver
  * the previous written oob byte will loose its special oob state and is returned as normal data. */
-extern int writeoob_ipsocket(ipsocket_t * ipsock, uint8_t data ) ;
+int writeoob_ipsocket(ipsocket_t * ipsock, uint8_t data ) ;
 
 // group: unconnected io
 
@@ -229,7 +227,7 @@ extern int writeoob_ipsocket(ipsocket_t * ipsock, uint8_t data ) ;
  * Same as <read_ipsocket> but for unconnected (UDP) sockets.
  * In addition to the read bytes the address of the sender is also returned in remoteaddr.
  * Error code EAFNOSUPPORT is returned in case remoteaddr is not the same <ipversion_e> as <ipsocket_t>. */
-extern int readfrom_ipsocket(ipsocket_t * ipsock, struct ipaddr_t * remoteaddr, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read ) ;
+int readfrom_ipsocket(ipsocket_t * ipsock, struct ipaddr_t * remoteaddr, size_t maxdata_len, /*out*/uint8_t data[maxdata_len], /*out*/size_t * bytes_read ) ;
 
 /* function: writeto_ipsocket
  * Same as <write_ipsocket> but for unconnected (UDP) sockets.
@@ -239,7 +237,7 @@ extern int readfrom_ipsocket(ipsocket_t * ipsock, struct ipaddr_t * remoteaddr, 
  * 0               - Success.
  * EAFNOSUPPORT    - remoteaddr is not the same <ipversion_e> as <ipsocket_t>.
  * EPROTONOSUPPORT - remoteaddr describes no <ipprotocol_UDP> address.  */
-extern int writeto_ipsocket(ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written ) ;
+int writeto_ipsocket(ipsocket_t * ipsock, const struct ipaddr_t * remoteaddr, size_t maxdata_len, const uint8_t data[maxdata_len], /*out*/size_t * bytes_written ) ;
 
 
 // experimental async operation
@@ -274,12 +272,12 @@ struct ipsocket_async_t {
 /* function: initconnect_ipsocketasync
  * Same as <initconnect_ipsocket> except for async operation.
  * Call <success_ipsocketasync> to check if connect request operation has completed. */
-extern int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr) ;
+int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struct ipaddr_t * remoteaddr, const struct ipaddr_t * localaddr) ;
 
 /* function: free_ipsocketasync
  * Closes socket and frees all resources.
  * Any pending connection operations are aborted. */
-extern int free_ipsocketasync(ipsocket_async_t * ipsockasync) ;
+int free_ipsocketasync(ipsocket_async_t * ipsockasync) ;
 
 /* function: convert_ipsocketasync
  * Converts <ipsocket_async_t> into <ipsocket_t>.
@@ -289,7 +287,7 @@ extern int free_ipsocketasync(ipsocket_async_t * ipsockasync) ;
  *
  * In case <success_ipsocketasync> does not return 0 this same error code is returned
  * and nothing is done. */
-extern int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ipsock) ;
+int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ipsock) ;
 
 // group: query
 
@@ -297,18 +295,17 @@ extern int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket
  * Returns 0 if async connect completed.
  * Returns EINPROGRESS if the operation is not completed yet.
  * Another value != 0 indicates that the operation completed with an error. */
-extern int success_ipsocketasync(ipsocket_async_t * ipsockasync) ;
+int success_ipsocketasync(ipsocket_async_t * ipsockasync) ;
 
 /* function: waitms_ipsocketasync
  * Waits until operation completes.
  * Returns EINPROGRESS in case of timeout and 0 in case operation completed.
  * Call <success_ipsocketasync> to check if an error occurred. */
-extern int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec/*0 => no timeout*/) ;
+int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec/*0 => no timeout*/) ;
 
 
 // section: inline implementations
 
-#define fd_ipsocket(/*ipsocket_t * */ipsock) \
-   (*(ipsock))
+#define fd_ipsocket(ipsock)            (*(ipsock))
 
 #endif

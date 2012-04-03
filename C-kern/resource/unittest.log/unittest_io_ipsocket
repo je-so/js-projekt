@@ -41,40 +41,40 @@ C-kern/platform/Linux/io/ipsocket.c:191: initlisten_ipsocket(): error: 95: Funct
 C-kern/platform/Linux/io/ipsocket.c:212: initwaitconnect_ipsocket(): error: 95: System call 'accept4' returned error 'Operation not supported'
 fd=3
 C-kern/platform/Linux/io/ipsocket.c:228: initwaitconnect_ipsocket(): error: 95: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:510: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
+C-kern/platform/Linux/io/ipsocket.c:501: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
 fd=4
 maxdata_len=1
-C-kern/platform/Linux/io/ipsocket.c:521: read_ipsocket(): error: 11: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:510: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
+C-kern/platform/Linux/io/ipsocket.c:512: read_ipsocket(): error: 11: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:501: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
 fd=3
 maxdata_len=1
-C-kern/platform/Linux/io/ipsocket.c:521: read_ipsocket(): error: 11: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:571: readoob_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
+C-kern/platform/Linux/io/ipsocket.c:512: read_ipsocket(): error: 11: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:562: readoob_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
 fd=4
 maxdata_len=1
-C-kern/platform/Linux/io/ipsocket.c:603: readoob_ipsocket(): error: 11: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:571: readoob_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
+C-kern/platform/Linux/io/ipsocket.c:594: readoob_ipsocket(): error: 11: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:562: readoob_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
 fd=5
 maxdata_len=1
-C-kern/platform/Linux/io/ipsocket.c:603: readoob_ipsocket(): error: 11: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:620: writeoob_ipsocket(): error: 95: System call 'send' returned error 'Operation not supported'
+C-kern/platform/Linux/io/ipsocket.c:594: readoob_ipsocket(): error: 11: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:611: writeoob_ipsocket(): error: 95: System call 'send' returned error 'Operation not supported'
 fd=4
-C-kern/platform/Linux/io/ipsocket.c:627: writeoob_ipsocket(): error: 95: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:562: readoob_ipsocket(): error: 95: System call 'ioctl(SIOCATMARK)' returned error 'Operation not supported'
+C-kern/platform/Linux/io/ipsocket.c:618: writeoob_ipsocket(): error: 95: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:553: readoob_ipsocket(): error: 95: System call 'ioctl(SIOCATMARK)' returned error 'Operation not supported'
 fd=3
-C-kern/platform/Linux/io/ipsocket.c:603: readoob_ipsocket(): error: 95: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:510: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
+C-kern/platform/Linux/io/ipsocket.c:594: readoob_ipsocket(): error: 95: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:501: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
 fd=3
 maxdata_len=1
-C-kern/platform/Linux/io/ipsocket.c:521: read_ipsocket(): error: 11: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:711: writeto_ipsocket(): error: 97: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:674: readfrom_ipsocket(): error: 97: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:711: writeto_ipsocket(): error: 93: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:711: writeto_ipsocket(): error: 97: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:674: readfrom_ipsocket(): error: 97: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:711: writeto_ipsocket(): error: 93: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:743: initconnect_ipsocketasync(): error: 22: Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
-C-kern/platform/Linux/io/ipsocket.c:779: initconnect_ipsocketasync(): error: 22: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:768: initconnect_ipsocketasync(): error: 97: System call 'connect' returned error 'Address family not supported by protocol'
+C-kern/platform/Linux/io/ipsocket.c:512: read_ipsocket(): error: 11: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:702: writeto_ipsocket(): error: 97: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:665: readfrom_ipsocket(): error: 97: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:702: writeto_ipsocket(): error: 93: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:702: writeto_ipsocket(): error: 97: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:665: readfrom_ipsocket(): error: 97: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:702: writeto_ipsocket(): error: 93: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:734: initconnect_ipsocketasync(): error: 22: Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
+C-kern/platform/Linux/io/ipsocket.c:770: initconnect_ipsocketasync(): error: 22: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:759: initconnect_ipsocketasync(): error: 97: System call 'connect' returned error 'Address family not supported by protocol'
 fd=4
-C-kern/platform/Linux/io/ipsocket.c:779: initconnect_ipsocketasync(): error: 97: Function aborted
+C-kern/platform/Linux/io/ipsocket.c:770: initconnect_ipsocketasync(): error: 97: Function aborted
