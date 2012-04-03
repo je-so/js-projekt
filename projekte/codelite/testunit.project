@@ -221,14 +221,16 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
-    <File Name="../../C-kern/main/unittest_main.c"/>
-    <File Name="../../C-kern/main/speedtest_main.c"/>
+    <VirtualDirectory Name="test">
+      <File Name="../../C-kern/main/test/speedtest_main.c"/>
+      <File Name="../../C-kern/main/test/testchildprocess_main.c"/>
+      <File Name="../../C-kern/main/test/unittest_main.c"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="tools">
       <File Name="../../C-kern/main/tools/genmake.c"/>
       <File Name="../../C-kern/main/tools/textdb.c"/>
       <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
     </VirtualDirectory>
-    <File Name="../../C-kern/main/testchildprocess_main.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="../../C-kern/test/run_statictest.sh"/>
@@ -250,9 +252,9 @@
       <File Name="../../C-kern/test/compiletime/system.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="speed">
-      <File Name="../../C-kern/test/speed/run_speedcmp_set.c"/>
       <File Name="../../C-kern/test/speed/run_speedcmp_linuxsplice.c"/>
       <File Name="../../C-kern/test/speed/run_speedcmp_madvise.c"/>
+      <File Name="../../C-kern/test/speed/run_speedcmp_set.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/test/resourceusage.c"/>
     <File Name="../../C-kern/test/errortimer.c"/>

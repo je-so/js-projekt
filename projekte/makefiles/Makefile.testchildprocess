@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Mar.25  12:32:36
+GenerationDate  := 2012.Apr.03  19:18:05
 GeneratedBy     := JE-SO
 
 ## Debug
@@ -84,7 +84,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
- $(ObjectDir_Debug)/C-kern!main!testchildprocess_main.c.o \
+ $(ObjectDir_Debug)/C-kern!main!test!testchildprocess_main.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
@@ -101,7 +101,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
- $(ObjectDir_Release)/C-kern!main!testchildprocess_main.c.o \
+ $(ObjectDir_Release)/C-kern!main!test!testchildprocess_main.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
@@ -143,7 +143,7 @@ $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.
 $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!main!testchildprocess_main.c.o: C-kern/main/testchildprocess_main.c
+$(ObjectDir_Debug)/C-kern!main!test!testchildprocess_main.c.o: C-kern/main/test/testchildprocess_main.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o: C-kern/platform/Linux/process.c
@@ -188,7 +188,7 @@ $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtex
 $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!main!testchildprocess_main.c.o: C-kern/main/testchildprocess_main.c
+$(ObjectDir_Release)/C-kern!main!test!testchildprocess_main.c.o: C-kern/main/test/testchildprocess_main.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o: C-kern/platform/Linux/process.c
