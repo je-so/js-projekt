@@ -15,6 +15,8 @@
 #define en   2
 
 #if ((KONFIG_LANG) & de)
+#undef de
+#undef en
 
 int LOG_ERRTEXT_ABORT_ASSERT_FAILED(log_channel_e channel, int err, const char * wrong_condition)
 {
@@ -143,6 +145,8 @@ int LOG_ERRTEXT_X11_NO_CONNECTION(log_channel_e channel, const char * display_se
 }
 
 #elif ((KONFIG_LANG) & en)
+#undef de
+#undef en
 
 int LOG_ERRTEXT_ABORT_ASSERT_FAILED(log_channel_e channel, int err, const char * wrong_condition)
 {
@@ -271,6 +275,5 @@ int LOG_ERRTEXT_X11_NO_CONNECTION(log_channel_e channel, const char * display_se
 }
 
 #endif
-
 #undef de
 #undef en

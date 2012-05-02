@@ -1938,7 +1938,7 @@ ABBRUCH:
    return err ;
 }
 
-// group: write helper
+// group: write
 
 static int writeCfctdeclaration_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
 {
@@ -1975,7 +1975,7 @@ static int writeCfctdeclaration_textresourcewriter(textresource_writer_t * write
    return 0 ;
 }
 
-static int writeH_textresourcewriter(textresource_writer_t * writer)
+static int writeCheader_textresourcewriter(textresource_writer_t * writer)
 {
    int err ;
 
@@ -2032,12 +2032,6 @@ static int writeCintro_textresourcewriter(textresource_writer_t * writer)
          if (' ' != incl.addr[offstart]) break ;
       }
       offend = offstart ;
-   }
-
-   unsigned langid = 1 ;
-   foreach(_arraylanguage, writer->txtres->languages, lang) {
-      dprintf(writer->outfile, "\n#define %.*s   %u", (int)lang->name.size, lang->name.addr, langid) ;
-      langid <<= 1 ;
    }
 
    return 0 ;
@@ -2171,6 +2165,12 @@ static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
 
    proglangC_t * progC = &writer->txtres->progC ;
 
+   unsigned langid = 1 ;
+   foreach(_arraylanguage, writer->txtres->languages, lang) {
+      dprintf(writer->outfile, "\n#define %.*s   %u", (int)lang->name.size, lang->name.addr, langid) ;
+      langid <<= 1 ;
+   }
+
    bool first_param = true ;
 
    foreach(_arraylanguage, writer->txtres->languages, lang) {
@@ -2182,6 +2182,10 @@ static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
       } else {
          dprintf(writer->outfile, "\n\n#elif ((%.*s) & %.*s)", (int)progC->langswitch.size, progC->langswitch.addr,
                                                                (int)lang->name.size, lang->name.addr) ;
+      }
+
+      foreach(_arraylanguage, writer->txtres->languages, lang2) {
+         dprintf(writer->outfile, "\n#undef %.*s", (int)lang2->name.size, lang2->name.addr) ;
       }
 
       foreach(_arraytname, writer->txtres->textnames, text) {
@@ -2197,31 +2201,11 @@ static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
       dprintf(writer->outfile, "\n\n#endif") ;
    }
 
-   return 0 ;
-ABBRUCH:
-   LOG_ABORT(err) ;
-   return err ;
-}
-
-static int writeCoutro_textresourcewriter(textresource_writer_t * writer)
-{
-   dprintf(writer->outfile, "\n\n") ;
-
    foreach(_arraylanguage, writer->txtres->languages, lang) {
-      dprintf(writer->outfile, "#undef %.*s\n", (int)lang->name.size, lang->name.addr) ;
+      dprintf(writer->outfile, "\n#undef %.*s", (int)lang->name.size, lang->name.addr) ;
    }
 
-   return 0 ;
-}
-
-// group: write
-
-static int writeCheader_textresourcewriter(textresource_writer_t * writer)
-{
-   int err ;
-
-   err = writeH_textresourcewriter(writer) ;
-   if (err) goto ABBRUCH ;
+   dprintf(writer->outfile, "\n") ;
 
    return 0 ;
 ABBRUCH:
@@ -2237,9 +2221,6 @@ static int writeCsource_textresourcewriter(textresource_writer_t * writer)
    if (err) goto ABBRUCH ;
 
    err = writeCfunctions_textresourcewriter(writer) ;
-   if (err) goto ABBRUCH ;
-
-   err = writeCoutro_textresourcewriter(writer) ;
    if (err) goto ABBRUCH ;
 
    return 0 ;
