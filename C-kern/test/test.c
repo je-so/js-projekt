@@ -33,10 +33,10 @@ void logfailed_test(const char * filename, unsigned line_number)
 {
    char           number[10] ;
    struct iovec   iov[4] = {
-       { (void*) (intptr_t) filename, strlen(filename) }
-      ,{ (void*) (intptr_t) ":", 1 }
+       { (void*) (uintptr_t) filename, strlen(filename) }
+      ,{ (void*) (uintptr_t) ":", 1 }
       ,{ number, (unsigned) snprintf(number, sizeof(number), "%u", line_number) }
-      ,{ (void*) (intptr_t) ": FAILED TEST\n", 14 }
+      ,{ (void*) (uintptr_t) ": FAILED TEST\n", 14 }
    } ;
 
    ssize_t written = writev(filedescr_STDOUT, iov, nrelementsof(iov)) ;
@@ -51,9 +51,9 @@ void logworking_test()
 void logrun_test(const char * testname)
 {
    struct iovec   iov[3] = {
-       { (void*) (intptr_t) "RUN ", 4 }
-      ,{ (void*) (intptr_t) testname, strlen(testname) }
-      ,{ (void*) (intptr_t) ": ", 2 }
+       { (void*) (uintptr_t) "RUN ", 4 }
+      ,{ (void*) (uintptr_t) testname, strlen(testname) }
+      ,{ (void*) (uintptr_t) ": ", 2 }
    } ;
 
    ssize_t written = writev(filedescr_STDOUT, iov, nrelementsof(iov)) ;

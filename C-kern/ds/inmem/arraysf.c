@@ -259,7 +259,7 @@ int tryinsert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out;e
       node = copied_node ;
    }
 
-   VALIDATE_INPARAM_TEST(0 == ((intptr_t)node&0x01), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == ((uintptr_t)node&0x01), ABBRUCH, ) ;
 
    size_t   pos2    = 0 ;
    size_t   posdiff = 0 ;

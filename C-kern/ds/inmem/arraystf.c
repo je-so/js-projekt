@@ -387,7 +387,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
       nodekey = asnode_arraystfunode(fromgeneric_arraystfunode(node), offset_node) ;
    }
 
-   VALIDATE_INPARAM_TEST(0 == ((intptr_t)node&0x01), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == ((uintptr_t)node&0x01), ABBRUCH, ) ;
 
    if (found.found_node) {
 

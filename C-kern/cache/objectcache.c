@@ -358,7 +358,7 @@ static int test_iobuffer(void)
    TEST(0 != iobuffer) ;
    TEST(0 == unlockiobuffer2_objectcache(&cache, &iobuffer)) ;
    TEST(0 == iobuffer) ;
-   iobuffer = (vm_block_t*) (intptr_t) &iobuffer ;
+   iobuffer = (vm_block_t*) (uintptr_t) &iobuffer ;
    TEST(EINVAL == unlockiobuffer2_objectcache(&cache, &iobuffer)) ;
    TEST(0 == free_objectcache( &cache )) ;
 

@@ -63,7 +63,7 @@
  * > const type_t * ptr ;
  * The returned type is
  * > (type *) ptr ; */
-#define CONST_CAST(type_t,ptr)         ( __extension__ ({ const type_t * _ptr = (ptr) ;  (type_t*)((intptr_t)_ptr) ; }))
+#define CONST_CAST(type_t,ptr)         ( __extension__ ({ const type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
 /* define: EMITCODE_1
  * The parameters to <EMITCODE_1> are written (as C code). */
 #define EMITCODE_1(...)                /*true*/ __VA_ARGS__

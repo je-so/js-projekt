@@ -36,7 +36,7 @@
  * Access parent pointer from node.
  * The reason to use this this macro is that the color of a node
  * is encoded in the lowest bit of the parent pointer. */
-#define PARENT(node)       ((redblacktree_node_t*) ((~(intptr_t)1) & (intptr_t)((node)->parent)))
+#define PARENT(node)       ((redblacktree_node_t*) (((uintptr_t)-2) & (uintptr_t)((node)->parent)))
 
 /* define: COLOR
  * Returns the color bit of the node.
@@ -44,7 +44,7 @@
  * Returns:
  * 1 - color is black
  * 0 - color is red */
-#define COLOR(node)        (((intptr_t)1) & (intptr_t)((node)->parent))
+#define COLOR(node)        (((uintptr_t)1) & (uintptr_t)((node)->parent))
 
 /* define: ISBLACK
  * Returns true if color is black. */
@@ -56,7 +56,7 @@
 
 /* define: SETBLACK
  * Sets the color of node to black. */
-#define SETBLACK(node)     (node)->parent = (redblacktree_node_t*) (((intptr_t)1) | (intptr_t)((node)->parent))
+#define SETBLACK(node)     (node)->parent = (redblacktree_node_t*) (((uintptr_t)1) | (uintptr_t)((node)->parent))
 
 /* define: SETRED
  * Sets the color of node to red. */
@@ -66,7 +66,7 @@
  * Sets the new parent of node and keeps the encoded color.
  * The least bit of newparent must be cleared. */
 #define SETPARENT(node, newparent) \
-         (node)->parent = (redblacktree_node_t*) (COLOR(node) | (intptr_t)newparent)
+         (node)->parent = (redblacktree_node_t*) (COLOR(node) | (uintptr_t)newparent)
 
 /* define: SETPARENTRED
  * Sets a new parent for node and sets its color to red.
@@ -78,7 +78,7 @@
  * Sets a new parent for node and sets its color to black.
  * The least bit of newparent must be cleared. */
 #define SETPARENTBLACK(node, newparent) \
-         (node)->parent = (redblacktree_node_t*) (((intptr_t)1) | (intptr_t)newparent)
+         (node)->parent = (redblacktree_node_t*) (((uintptr_t)1) | (uintptr_t)newparent)
 
 
 
@@ -89,10 +89,10 @@ int invariant_redblacktree( redblacktree_t * tree, const redblacktree_compare_no
       goto ABBRUCH ;
    }
 
-   redblacktree_node_t                  * prev = 0 ;
-   redblacktree_node_t                  * node = tree->root ;
-   const redblacktree_compare_nodes_f  compare = compare_callback->fct ;
-   callback_param_t                 * const cb = compare_callback->cb_param ;
+   redblacktree_node_t                 * prev     = 0 ;
+   redblacktree_node_t                 * node     = tree->root ;
+   const redblacktree_compare_nodes_f  compare    = compare_callback->fct ;
+   callback_param_t                    * const cb = compare_callback->cb_param ;
 
    if (!node) {
       return 0 ;
@@ -509,7 +509,7 @@ int insert_redblacktree( redblacktree_t * tree, const void * new_key, redblacktr
 {
    int err ;
 
-   if ( (((intptr_t)1) & (intptr_t)(new_node)) /*uneven address*/ ) {
+   if ( (((uintptr_t)1) & (uintptr_t)(new_node)) /*uneven address*/ ) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -805,10 +805,10 @@ static redblacktree_node_t * build_perfect_tree( unsigned count, struct TreeNode
       redblacktree_node_t * right = build_perfect_tree( root - 1, nodes+root ) ;
       nodes[root].aspect.left  = left ;
       nodes[root].aspect.right = right ;
-      left->parent  = (redblacktree_node_t*)((intptr_t)1 | (intptr_t)&nodes[root].aspect) ;
-      right->parent = (redblacktree_node_t*)((intptr_t)1 | (intptr_t)&nodes[root].aspect) ;
+      left->parent  = (redblacktree_node_t*)((uintptr_t)1 | (uintptr_t)&nodes[root].aspect) ;
+      right->parent = (redblacktree_node_t*)((uintptr_t)1 | (uintptr_t)&nodes[root].aspect) ;
    }
-   nodes[root].aspect.parent = (redblacktree_node_t*) (intptr_t)1 ;
+   nodes[root].aspect.parent = (redblacktree_node_t*) (uintptr_t)1 ;
    return &nodes[root].aspect;
 }
 
@@ -1248,7 +1248,7 @@ int unittest_platform_index_redblacktree()
    if (test_removeconditions()) goto ABBRUCH ;
 
    // TEST insert uneven address
-   TEST(EINVAL == insert_redblacktree( &tree, (void*)0, (redblacktree_node_t*)(1+(intptr_t)&nodes[0].aspect), &compare_cb )) ;
+   TEST(EINVAL == insert_redblacktree( &tree, (void*)0, (redblacktree_node_t*)(1+(uintptr_t)&nodes[0].aspect), &compare_cb )) ;
 
    // TEST insert,remove cycle
    TEST(tree.root == 0) ;

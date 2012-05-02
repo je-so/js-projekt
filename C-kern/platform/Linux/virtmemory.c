@@ -516,7 +516,7 @@ static int iscontained_in_mapping(const vm_block_t * mapped_block)
             && mapped_end   > next->addr ) {
          // overlapping
          if (next->protection != (accessmode_RDWR | accessmode_PRIVATE)) {
-            printf("(%p)->protection=%d\n", (void*)(intptr_t)next, next->protection) ;
+            printf("(%p)->protection=%d\n", (void*)(uintptr_t)next, next->protection) ;
             result = 2 ;
             break ;
          }

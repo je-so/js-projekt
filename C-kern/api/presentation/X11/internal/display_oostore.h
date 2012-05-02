@@ -85,7 +85,7 @@ find_x11displayobjectid(x11display_objectid_root_t * rootobj, uint32_t key_id, /
 
 static inline x11display_objectid_t * fromindex1_x11displayobjectid(const splaytree_node_t * indexaspect)
 {
-   return (x11display_objectid_t *) ((intptr_t)(indexaspect) - (intptr_t)(&((x11display_objectid_t*)0)->index1)) ;
+   return (x11display_objectid_t *) ((uintptr_t)(indexaspect) - (uintptr_t)(&((x11display_objectid_t*)0)->index1)) ;
 }
 
 static inline splaytree_node_t * toindex1_x11displayobjectid(x11display_objectid_t * object)

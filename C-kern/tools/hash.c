@@ -234,7 +234,7 @@ int unittest_hashtable()
    TEST(table->size == 1023) ;
    TEST(table->free_memory == &test_hashtable_freememory) ;
 
-   hash_entry_t notnull_entry = { .name = (char*) (intptr_t) "123", .next = (hash_entry_t*) 8, .hash = 0 } ;
+   hash_entry_t notnull_entry = { .name = (char*) (uintptr_t) "123", .next = (hash_entry_t*) 8, .hash = 0 } ;
    TEST(insert_hashtable(table, &notnull_entry)==HASH_NEXTPTR_NOTNULL) ;
 
    for(int i=0; i < 10; ++i) {

@@ -160,7 +160,7 @@ arraysf_unode_t * fromgeneric_arraysfunode(struct generic_object_t * object) ;
 #define asbranch_arraysfunode(node)                               \
       (  __extension__ ({                                         \
             arraysf_unode_t * _node1 = (node) ;                   \
-            (arraysf_mwaybranch_t*) (0x01 ^ (intptr_t)(_node1)) ; \
+            (arraysf_mwaybranch_t*)(0x01 ^ (uintptr_t)(_node1)) ; \
          }))
 
 /* define: asgeneric_arraysfunode
@@ -184,7 +184,7 @@ arraysf_unode_t * fromgeneric_arraysfunode(struct generic_object_t * object) ;
 #define asunode_arraysfmwaybranch(branch)                         \
       (  __extension__ ({                                         \
             arraysf_mwaybranch_t * _branch = (branch) ;           \
-            (arraysf_unode_t*) (0x01 ^ (intptr_t)(_branch)) ;     \
+            (arraysf_unode_t*) (0x01 ^ (uintptr_t)(_branch)) ;    \
          }))
 
 /* define: childindex_arraysfmwaybranch
@@ -214,7 +214,7 @@ arraysf_unode_t * fromgeneric_arraysfunode(struct generic_object_t * object) ;
 #define isbranchtype_arraysfunode(node)                     \
       (  __extension__ ({                                   \
             const arraysf_unode_t * _node4 = (node) ;       \
-            ((intptr_t)(_node4) & 0x01) ;                   \
+            ((uintptr_t)(_node4) & 0x01) ;                  \
          }))
 
 /* define: setchild_arraysfmwaybranch
