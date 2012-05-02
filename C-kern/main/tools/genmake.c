@@ -1,8 +1,12 @@
-/*
-   Makefile Generator: C-kern/main/tools/genmake.c
-   Copyright (C) 2010 Jörg Seebohn
+/* title: genmake
 
-   This program is free software; you can redistribute it and/or modify
+   Makefile Generator <genmake>.
+
+   Uses <Tool-HashFunction> for its implementation.
+
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
@@ -11,6 +15,12 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
+   Author:
+   (C) 2012 Jörg Seebohn
+
+   file: C-kern/main/tools/genmake.c
+    Main implementation of tool <genmake>.
 */
 
 #include <assert.h>

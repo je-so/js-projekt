@@ -43,7 +43,7 @@ typedef union arraystf_unode_t         arraystf_unode_t ;
 
 /* struct: arraystf_node_t
  * Generic user node type stored by <arraystf_t>.
- * See <conststring_t>. */
+ * See also <conststring_t>. */
 struct arraystf_node_t {
    /* variable: addr
     * Memory start address of binary/string key. */
