@@ -721,7 +721,7 @@ static int test_initfree(void)
 
    // TEST arraysf_8BITROOT24: root distribution
    TEST(0 == new_arraysf(&array, arraysf_8BITROOT24)) ;
-   for(size_t pos = 0, ri = 0; (ri == 0) || pos; pos += ((~((~(size_t)0) >> 1)) >> 7), ++ri) {
+   for(size_t pos = 0, ri = 0; (ri == 0) || pos; pos += ((~(SIZE_MAX >> 1)) >> 7), ++ri) {
       testnode_t  node            = { .node = arraysf_node_INIT(pos+ri) } ;
       testnode_t  * inserted_node = 0 ;
       TEST(0 == tryinsert_tarraysf(array, &node, &inserted_node, 0)) ;

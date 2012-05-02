@@ -204,11 +204,11 @@ static int test_initfree(void)
    TEST(0 == free_binarystack(&stack)) ;
 
    // TEST ENOMEM
-   TEST(ENOMEM == init_binarystack(&stack, ~(size_t)0)) ;
+   TEST(ENOMEM == init_binarystack(&stack, SIZE_MAX)) ;
    TEST(0 == init_binarystack(&stack, 1)) ;
-   TEST(ENOMEM == push_binarystack(&stack, ~(size_t)0, data1)) ;
+   TEST(ENOMEM == push_binarystack(&stack, SIZE_MAX, data1)) ;
    TEST(0 == push_binarystack(&stack, sizeof(data1), data1)) ;
-   TEST(ENOMEM == push_binarystack(&stack, ~(size_t)0, data1)) ;
+   TEST(ENOMEM == push_binarystack(&stack, SIZE_MAX, data1)) ;
    TEST(0 == free_binarystack(&stack)) ;
 
    return 0 ;

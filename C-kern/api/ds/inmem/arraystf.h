@@ -102,7 +102,7 @@ int unittest_ds_inmem_arraystf(void) ;
  * To allows keys of any binary content an encoding of is chosen so that every key has the same length.
  * The encoding is as follows (keylength: key->size; keycontent: key->addr[0 .. key->size-1])
  *
- * - Every key is of length ~(size_t)0 (UINT32_MAX or UINT64_MAX)
+ * - Every key is of length SIZE_MAX (UINT32_MAX or UINT64_MAX)
  * - The byte values at offset 0 .. key->size-1 are taken from key->addr
  * - The byte values key->size .. UINT_MAX-1 are always 0
  * - The value at offset is key->size and has 8*sizeof(size_t) bits instead of only 8

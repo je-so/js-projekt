@@ -1,6 +1,6 @@
 C-kern/ds/inmem/arraystf.c:127: initdiff_arraystfkeyval(): error: 22: Function input violates condition (size1 != size2)
 C-kern/ds/inmem/arraystf.c:137: initdiff_arraystfkeyval(): error: 22: Function aborted
-C-kern/ds/inmem/arraystf.c:178: find_arraystf(): error: 22: Function input violates condition (keynode->size < ~(size_t)0)
+C-kern/ds/inmem/arraystf.c:178: find_arraystf(): error: 22: Function input violates condition (keynode->size < SIZE_MAX)
 C-kern/ds/inmem/arraystf.c:240: find_arraystf(): error: 22: Function aborted
 C-kern/ds/inmem/arraystf.c:251: new_arraystf(): error: 22: Function input violates condition (*array == 0)
 C-kern/ds/inmem/arraystf.c:267: new_arraystf(): error: 22: Function aborted

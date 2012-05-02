@@ -129,7 +129,7 @@ ABBRUCH:
    {                                                           \
       size_t allocate_size = cstr->length + 1 + append_size ;  \
       if (allocate_size < append_size) {                       \
-         LOG_OUTOFMEMORY(~(size_t)0) ;                         \
+         LOG_OUTOFMEMORY(SIZE_MAX) ;                           \
          err = ENOMEM ;                                        \
          goto ABBRUCH ;                                        \
       }                                                        \
@@ -175,7 +175,7 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
          va_end(args) ;
 
          if (append_size_ < 0) {
-            LOG_OUTOFMEMORY(~(size_t)0) ;
+            LOG_OUTOFMEMORY(SIZE_MAX) ;
             err = ENOMEM ;
             goto ABBRUCH ;
          }

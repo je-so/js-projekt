@@ -126,7 +126,7 @@ static int initdiff_arraystfkeyval(/*out*/arraystf_keyval_t * keyval, arraystf_n
 
    VALIDATE_INPARAM_TEST(size1 != size2, ABBRUCH, ) ;
 
-   offset       = ~(size_t)0 ;
+   offset       = SIZE_MAX ;
    keyval->data = (size1 ^ size2) ;
 
 DONE:
@@ -175,7 +175,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
    arraystf_keyval_t    keyval ;
    uint8_t              rootbyte ;
 
-   VALIDATE_INPARAM_TEST(keynode->size < ~(size_t)0, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(keynode->size < SIZE_MAX, ABBRUCH, ) ;
 
    rootbyte = (uint8_t) ((keynode->size) ? keynode->addr[0] : 0) ;
    keyval.offset = 0 ;
@@ -839,7 +839,7 @@ static int test_arraystfkeyval(void)
    // TEST init_arraystfkeyval (offset higher key size)
    key1 = (const uint8_t*) "0123456789ABCDEF" ;
    node1 = (arraystf_node_t) arraystf_node_INIT(17, key1) ;
-   for(unsigned i = 17; i < ~(size_t)0; i <<= 1, i++) {
+   for(unsigned i = 17; i < SIZE_MAX; i <<= 1, i++) {
       keyval.data   = 0 ;
       keyval.offset = i+1 ;
       init_arraystfkeyval(&keyval, i, &node1) ;
@@ -853,9 +853,9 @@ static int test_arraystfkeyval(void)
       node1 = (arraystf_node_t) arraystf_node_INIT(i, key1) ;
       keyval.data   = 0 ;
       keyval.offset = 0 ;
-      init_arraystfkeyval(&keyval, ~(size_t)0, &node1) ;
-      TEST(i          == keyval.data/*always key size*/) ;
-      TEST(~(size_t)0 == keyval.offset) ;
+      init_arraystfkeyval(&keyval, SIZE_MAX, &node1) ;
+      TEST(i        == keyval.data/*always key size*/) ;
+      TEST(SIZE_MAX == keyval.offset) ;
    }
 
    return 0 ;
@@ -1241,8 +1241,8 @@ static int test_error(void)
    TEST(0 == new_arraytest(&array, arraystf_4BITROOT_UNSORTED)) ;
 
    // TEST EINVAL
-   nodea[0] = (testnode_t) { .node = arraystf_node_INIT(~(size_t)0, nodea[0].key), .key = { 0 } } ;
-      // key has length ~(size_t)0
+   nodea[0] = (testnode_t) { .node = arraystf_node_INIT(SIZE_MAX, nodea[0].key), .key = { 0 } } ;
+      // key has length SIZE_MAX
    LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
    TEST(EINVAL == tryinsert_arraytest(array, &nodea[0], 0, 0)) ;
    LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
