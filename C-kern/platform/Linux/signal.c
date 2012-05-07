@@ -26,7 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/math/int/signum.h"
+#include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/platform/thread.h"
 // TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='set')
 // TEXTDB:END
@@ -368,7 +368,7 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
 {
    if (sigconfig1 && sigconfig2) {
       int nr_diff = sigconfig1->nr_signal_handlers - sigconfig2->nr_signal_handlers ;
-      nr_diff = signum(nr_diff) ;
+      nr_diff = sign_int(nr_diff) ;
       if (nr_diff) {
          return nr_diff ;
       }
@@ -381,7 +381,7 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
       for(int i = sigconfig1->nr_signal_handlers; i > 0; ) {
          --i ;
          if (sigconfig1->signal_handlers[i].sa_flags != sigconfig2->signal_handlers[i].sa_flags) {
-            return signum(sigconfig1->signal_handlers[i].sa_flags - sigconfig2->signal_handlers[i].sa_flags) ;
+            return sign_int(sigconfig1->signal_handlers[i].sa_flags - sigconfig2->signal_handlers[i].sa_flags) ;
          }
          cmp = memcmp(&sigconfig1->signal_handlers[i].sa_sigaction, &sigconfig2->signal_handlers[i].sa_sigaction, sizeof(sigconfig2->signal_handlers[i].sa_sigaction)) ;
          if (cmp) {

@@ -32,7 +32,7 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/math/int/signum.h"
+#include "C-kern/api/math/int/sign.h"
 #endif
 
 
@@ -531,7 +531,7 @@ static int adapter_compare_key_node( callback_param_t * cb, const void * key_nod
    assert( (void*)17 == (void*)cb ) ;
    int key1 = (int) key_node1 ;
    int key2 = ((const node_t*)node2)->key ;
-   return signum(key1 - key2) ;
+   return sign_int(key1 - key2) ;
 }
 
 static int adapter_compare_nodes( callback_param_t * cb, const splaytree_node_t * node1, const splaytree_node_t * node2)
@@ -539,7 +539,7 @@ static int adapter_compare_nodes( callback_param_t * cb, const splaytree_node_t 
    assert( (void*)14 == (void*)cb ) ;
    int key1 = ((const node_t*)node1)->key ;
    int key2 = ((const node_t*)node2)->key ;
-   return signum(key1 - key2) ;
+   return sign_int(key1 - key2) ;
 }
 
 static int adapter_updatekey( callback_param_t * cb, const void * new_key, splaytree_node_t * node )

@@ -26,7 +26,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/ip/ipaddr.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/math/int/signum.h"
+#include "C-kern/api/math/int/sign.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -334,22 +334,22 @@ int compare_ipaddr(const ipaddr_t * left, const ipaddr_t * right)
       {
          int proto1 = left->protocol ;
          int proto2 = right->protocol ;
-         if (proto1 != proto2) return signum(proto1 - proto2) ;
+         if (proto1 != proto2) return sign_int(proto1 - proto2) ;
       }
       {
          int alen1 = left->addrlen ;
          int alen2 = right->addrlen ;
-         if (alen1 != alen2) return signum(alen1 - alen2) ;
+         if (alen1 != alen2) return sign_int(alen1 - alen2) ;
       }
       {
          int family1 = ((const struct sockaddr_in*)(left->addr))->sin_family ;
          int family2 = ((const struct sockaddr_in*)(right->addr))->sin_family ;
-         if (family1 != family2) return signum(family1 - family2) ;
+         if (family1 != family2) return sign_int(family1 - family2) ;
       }
       {
          int port1 = ((const struct sockaddr_in*)(left->addr))->sin_port ;
          int port2 = ((const struct sockaddr_in*)(right->addr))->sin_port ;
-         if (port1 != port2) return signum(port1 - port2) ;
+         if (port1 != port2) return sign_int(port1 - port2) ;
       }
 
       size_t addrlen = left->addrlen ;

@@ -1,4 +1,4 @@
-/* title: Intop-Signum
+/* title: Intop-Sign
    Calculates sign of integer.
 
    about: Copyright
@@ -16,47 +16,47 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/math/int/signum.h
-    Header file of <Intop-Signum>.
+   file: C-kern/api/math/int/sign.h
+    Header file of <Intop-Sign>.
 
-   file: C-kern/math/int/signum.c
-    Implementation file <Intop-Signum impl>.
+   file: C-kern/math/int/sign.c
+    Implementation file <Intop-Sign impl>.
 */
-#ifndef CKERN_MATH_INT_SIGNUM_HEADER
-#define CKERN_MATH_INT_SIGNUM_HEADER
-
+#ifndef CKERN_MATH_INT_SIGN_HEADER
+#define CKERN_MATH_INT_SIGN_HEADER
 
 
 // section: Functions
 
+// group: test
+
+#ifdef KONFIG_UNITTEST
+int unittest_math_int_sign(void) ;
+#endif
+
+
+// section: int_t
+
 // group: query
 
-/* function: signum
- * Return the sign of an integer.
+/* function: sign_int
+ * Return the sign of an integer (signum function).
  *
  * Paramter:
- * i - The argument which sign is returned.
+ * i - The argument whose sign is returned.
  *
  * Returns:
  * -1  - i is megative
  * 0   - i is zero
  * +1  - i is positive */
-extern int signum(int i) ;
-
-// group: test
-
-#ifdef KONFIG_UNITTEST
-extern int unittest_math_int_signum(void) ;
-#endif
-
+int sign_int(int i) ;
 
 
 // section: inline implementation
 
-/* define: inline signum
- * Implements <signum> as a generic function.
- * > #define signum(i)  ( ((i) > 0) - ((i) < 0) )  */
-#define signum(i) \
+/* define: sign_int
+ * Implements <int_t.sign_int> as a generic function. */
+#define sign_int(i) \
          ( __extension__ ({ \
             typedef typeof(i) _int_t ; \
             static_assert( ((_int_t)-1) < 0, "works only with signed integers") ; \

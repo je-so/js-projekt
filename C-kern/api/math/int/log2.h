@@ -28,6 +28,17 @@
 
 // section: Functions
 
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_math_int_power2
+ * Tests <log2_int>. */
+int unittest_math_int_log2(void) ;
+#endif
+
+
+// section: int_t
+
 // group: query
 
 /* function: log2_int
@@ -43,14 +54,6 @@
  * Parameter:
  * i - The argument whose logarithm to base 2 is caclulated and returned. */
 unsigned log2_int(unsigned i) ;
-
-// group: test
-
-#ifdef KONFIG_UNITTEST
-/* function: unittest_math_int_power2
- * Tests <log2_int>. */
-int unittest_math_int_log2(void) ;
-#endif
 
 
 // section: inline implementation

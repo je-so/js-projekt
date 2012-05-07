@@ -254,7 +254,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
    RUN(unittest_math_int_log10) ;
    RUN(unittest_math_int_log2) ;
    RUN(unittest_math_int_power2) ;
-   RUN(unittest_math_int_signum) ;
+   RUN(unittest_math_int_sign) ;
 //}
 
 //{ memory unittest

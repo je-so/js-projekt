@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.May.07  09:05:55
+GenerationDate  := 2012.May.07  09:13:30
 GeneratedBy     := je-so
 
 ## Debug
@@ -114,10 +114,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log10.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log2.c.o \
  $(ObjectDir_Debug)/C-kern!math!fpu.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
@@ -175,10 +175,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log10.c.o \
  $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
- $(ObjectDir_Release)/C-kern!math!int!signum.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log2.c.o \
  $(ObjectDir_Release)/C-kern!math!fpu.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
@@ -321,6 +321,9 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logw
 $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 	@$(CC_Debug)
 
@@ -328,9 +331,6 @@ $(ObjectDir_Debug)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!math!int!signum.c.o: C-kern/math/int/signum.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
@@ -498,6 +498,9 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/lo
 $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 	@$(CC_Release)
 
@@ -505,9 +508,6 @@ $(ObjectDir_Release)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!math!int!signum.c.o: C-kern/math/int/signum.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
