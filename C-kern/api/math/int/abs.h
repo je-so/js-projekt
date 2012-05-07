@@ -1,6 +1,9 @@
 /* title: Intop-Abs
    Calculates the absolute value.
 
+   TODO: Reimplement abs_int with c11 functionality and remove abs_int64 !!!
+   > _Generic( (i), int8_t : uint8_t, int16_t : uint16_t, int32_t : uint32_t, int64_t : uint64_t )
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -67,7 +70,7 @@ int unittest_math_int_abs(void) ;
             /* signed ! */                                        \
             static_assert( ((typeof(i))-1) < 0, ) ;               \
             static_assert( sizeof(i) <= sizeof(int32_t), ) ;      \
-            typeof(i) _i = (i) ;                                  \
+            int32_t _i = (i) ;                                    \
             (uint32_t) ((_i < 0) ? -_i : _i) ;                    \
          }))
 
@@ -78,7 +81,7 @@ int unittest_math_int_abs(void) ;
             /* signed ! */                                        \
             static_assert( ((typeof(i))-1) < 0, ) ;               \
             static_assert( sizeof(i) <= sizeof(int64_t), ) ;      \
-            typeof(i) _i = (i) ;                                  \
+            int64_t _i = (i) ;                                    \
             (uint64_t) ((_i < 0) ? -_i : _i) ;                    \
          }))
 

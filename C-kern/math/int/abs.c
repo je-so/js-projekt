@@ -41,24 +41,30 @@ static int test_abs(void)
    TEST(0 == abs_int((int8_t)0)) ;
    TEST(0 == abs_int((int16_t)0)) ;
    TEST(0 == abs_int((int32_t)0)) ;
+   TEST(0 == abs_int64((int8_t)0)) ;
+   TEST(0 == abs_int64((int16_t)0)) ;
+   TEST(0 == abs_int64((int32_t)0)) ;
    TEST(0 == abs_int64((int64_t)0)) ;
 
    // TEST int8_t
    for(int8_t i = INT8_MIN; i; ++i) {
-      int r = -i ;
-      TEST((unsigned)r == abs_int(i)) ;
+      uint32_t r = (uint32_t) (- (int32_t)i) ;
+      TEST(r == abs_int(i)) ;
+      TEST((uint64_t)r == abs_int64(i)) ;
    }
 
    // TEST int16_t
    for(int16_t i = INT16_MIN; i; ++i) {
-      int r = -i ;
-      TEST((unsigned)r == abs_int(i)) ;
+      uint32_t r = (uint32_t) (- (int32_t)i) ;
+      TEST(r == abs_int(i)) ;
+      TEST((uint64_t)r == abs_int64(i)) ;
    }
 
    // TEST int32_t
    for(int32_t i = INT32_MIN; i < 0; i += 0x1001) {
-      int r = -i ;
-      TEST((unsigned)r == abs_int(i)) ;
+      uint32_t r = (uint32_t)-i ;
+      TEST(r == abs_int(i)) ;
+      TEST((uint64_t)r == abs_int64(i)) ;
    }
 
    // TEST int64_t
