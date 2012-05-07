@@ -720,29 +720,31 @@ ABBRUCH:
                                     (void*)start_arg, nr_of_threads) ;              \
       _err ; }))
 
-static uint8_t  * s_sigaddr ;
-static pthread_t  s_threadid ;
+static thread_stack_t   s_signalstack ;
+static pthread_t        s_threadid ;
+static volatile int     s_returncode ;
 
 static void sigusr1handler(int sig)
 {
    int errno_backup = errno ;
    assert(sig == SIGUSR1) ;
-   s_threadid = pthread_self() ;
-   s_sigaddr  = (uint8_t*) &sig ;
+   if (  0 != pthread_equal(s_threadid, pthread_self())
+      && (s_signalstack.addr < (uint8_t*)&sig && (uint8_t*)&sig < s_signalstack.addr+s_signalstack.size) ) {
+      s_returncode = 0 ;
+   } else {
+      s_returncode = EINVAL ;
+   }
    errno = errno_backup ;
 }
 
 static int thread_sigaltstack(intptr_t dummy)
 {
    (void) dummy ;
-   memset(&s_threadid, 0, sizeof(s_threadid)) ;
-   s_sigaddr = 0 ;
-   thread_stack_t signalstack = getsignalstack_threadstack(&self_thread()->stackframe) ;
-   TEST( ! pthread_equal(s_threadid, pthread_self()) ) ;
-   TEST( ! (signalstack.addr < s_sigaddr && s_sigaddr < signalstack.addr+signalstack.size) ) ;
+   s_signalstack = getsignalstack_threadstack(&self_thread()->stackframe) ;
+   s_threadid    = pthread_self() ;
+   s_returncode  = EINVAL ;
    TEST(0 == pthread_kill(pthread_self(), SIGUSR1)) ;
-   TEST( pthread_equal(s_threadid, pthread_self()) ) ;
-   TEST( (signalstack.addr < s_sigaddr && s_sigaddr < signalstack.addr+signalstack.size) ) ;
+   TEST(0 == s_returncode) ;
    return 0 ;
 ABBRUCH:
    return EINVAL ;
@@ -752,9 +754,9 @@ static int test_thread_sigaltstack(void)
 {
    int err = 1 ;
    thread_t          * thread       = 0 ;
-   uint8_t           * s_alt_stack1 = malloc(SIGSTKSZ) ;
+   uint8_t           * alt_stack1   = malloc(SIGSTKSZ) ;
    stack_t           newst          = {
-                                    .ss_sp    = s_alt_stack1,
+                                    .ss_sp    = alt_stack1,
                                     .ss_size  = SIGSTKSZ,
                                     .ss_flags = 0
                                     } ;
@@ -765,7 +767,7 @@ static int test_thread_sigaltstack(void)
    bool              isProcmask = false ;
    bool              isAction   = false ;
 
-   if (!s_alt_stack1) {
+   if (!alt_stack1) {
       LOG_OUTOFMEMORY((2*SIGSTKSZ)) ;
       goto ABBRUCH ;
    }
@@ -789,13 +791,11 @@ static int test_thread_sigaltstack(void)
       TEST(sys_thread_INIT_FREEABLE == thread->sys_thread) ;
       TEST(0 == thread->returncode) ;
       // signal own thread
-      memset(&s_threadid, 0, sizeof(s_threadid)) ;
-      s_sigaddr = 0 ;
-      TEST( ! pthread_equal(s_threadid, pthread_self())) ;
-      TEST( ! (s_alt_stack1 < s_sigaddr && s_sigaddr < s_alt_stack1+SIGSTKSZ) ) ;
+      s_threadid    = pthread_self() ;
+      s_signalstack = (thread_stack_t) memblock_INIT(SIGSTKSZ, alt_stack1) ;
+      s_returncode  = EINVAL ;
       TEST(0 == pthread_kill(pthread_self(), SIGUSR1)) ;
-      TEST( pthread_equal(s_threadid, pthread_self())) ;
-      TEST( (s_alt_stack1 < s_sigaddr && s_sigaddr < s_alt_stack1+SIGSTKSZ) ) ;
+      TEST(0 == s_returncode) ;
    }
 
    err = 0 ;
@@ -804,7 +804,7 @@ ABBRUCH:
    if (isStack)      sigaltstack(&oldst, 0) ;
    if (isProcmask)   sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
    if (isAction)     sigaction(SIGUSR1, &oldact, 0) ;
-   free(s_alt_stack1) ;
+   free(alt_stack1) ;
    return err ;
 }
 

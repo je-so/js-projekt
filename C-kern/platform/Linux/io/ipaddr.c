@@ -752,7 +752,7 @@ static int test_ipport(void)
    } test_service[8] =  {
          { "echo", 7, 7 },
          { "ftp", 21, 0 },
-         { "http", 80, 0 },
+         { "http", 80, 80 },
          { "https", 443, 443 },
          { "irc", 194, 194 },
          { "snmp", 161, 161 },

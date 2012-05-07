@@ -822,15 +822,19 @@ int unittest_platform_sync_signal()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   // store current mapping
-   TEST(0 == init_resourceusage(&usage)) ;
+   for(int i = 0; i < 2; ++i) {
+      TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_helper())         goto ABBRUCH ;
-   if (test_initonce())       goto ABBRUCH ;
-   if (test_rtsignal())       goto ABBRUCH ;
+      if (test_initfree())       goto ABBRUCH ;
+      if (test_helper())         goto ABBRUCH ;
+      if (test_initonce())       goto ABBRUCH ;
+      if (test_rtsignal())       goto ABBRUCH ;
 
-   // TEST mapping has not changed
+      if (0 == same_resourceusage(&usage)) break ;
+      TEST(0 == free_resourceusage(&usage)) ;
+      LOG_CLEARBUFFER() ;
+   }
+
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 

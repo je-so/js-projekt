@@ -1,6 +1,5 @@
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 93: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 93: Function aborted
-C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 93: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 2: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:139: new_addrinfo(): error: 93: System call 'getaddrinfo' returned error 'Protocol not supported'
 name_or_numeric=127.0.0.1
@@ -30,7 +29,6 @@ C-kern/platform/Linux/io/ipaddr.c:139: new_addrinfo(): error: 61: System call 'g
 name_or_numeric=www.ein-label-das-zu-lange-ist-und-einen-fehler-ausloesen-sollte-123456789.de
 C-kern/platform/Linux/io/ipaddr.c:146: new_addrinfo(): error: 61: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:603: newdnsquery_ipaddrlist(): error: 61: Function aborted
-C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 93: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 93: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 93: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 2: Function aborted

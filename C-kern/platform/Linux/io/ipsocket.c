@@ -1186,8 +1186,8 @@ static int test_buffersize(void)
       buffer = 0 ;
    }
 
-   for(unsigned i = 0; i < 3; ++i) {
-      const unsigned   buffer_size = 4*4096u + i * 4096u ;
+   for(unsigned i = 1; i < 3; ++i) {
+      const unsigned   buffer_size = i * 16384u ;
       buffer = malloc(buffer_size) ;
       TEST(buffer) ;
       memset( buffer, 0, buffer_size ) ;
@@ -1220,15 +1220,15 @@ static int test_buffersize(void)
       TEST(0 == bytestowrite_ipsocket( &ipsockCL, &rwsize[1])) ;
       TEST(0 == rwsize[1]) ;
 
-      // TEST datagram equal tp buffer_size will be discarded on receiver side (buffer stores also control info)
+      // TEST datagram equal t0 buffer_size will be discarded on receiver side (buffer stores also control info)
       size_t size ;
       TEST(0 == write_ipsocket(&ipsockSV, buffer_size/4, (uint8_t*)buffer, &size)) ;
       TEST(buffer_size/4 == size) ;
       TEST(0 == write_ipsocket(&ipsockSV, buffer_size/4, (uint8_t*)buffer, &size)) ;
       TEST(buffer_size/4 == size) ;
          // third datagram will be discarded on receiver side
-      TEST(0 == write_ipsocket(&ipsockSV, buffer_size/2, (uint8_t*)buffer, &size)) ;
-      TEST(buffer_size/2 == size) ;
+      TEST(0 == write_ipsocket(&ipsockSV, buffer_size, (uint8_t*)buffer, &size)) ;
+      TEST(buffer_size == size) ;
       sleepms_thread(1) ;
       TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
       TEST(0 == unsend_bytes) ;

@@ -639,16 +639,21 @@ int unittest_platform_sync_mutex()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   // store current mapping
-   TEST(0 == init_resourceusage(&usage)) ;
+   for(int i = 0; i < 2; ++i) {
+      // store current mapping
+      TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_mutex_moveable())    goto ABBRUCH ;
-   if (test_mutex_staticinit())  goto ABBRUCH ;
-   if (test_mutex_errorcheck())  goto ABBRUCH ;
-   if (test_mutex_slock())       goto ABBRUCH ;
-   if (test_mutex_interrupt())   goto ABBRUCH ;
+      if (test_mutex_moveable())    goto ABBRUCH ;
+      if (test_mutex_staticinit())  goto ABBRUCH ;
+      if (test_mutex_errorcheck())  goto ABBRUCH ;
+      if (test_mutex_slock())       goto ABBRUCH ;
+      if (test_mutex_interrupt())   goto ABBRUCH ;
 
-   // TEST mapping has not changed
+      if (0 == same_resourceusage(&usage)) break ;
+      TEST(0 == free_resourceusage(&usage)) ;
+      LOG_CLEARBUFFER() ;
+   }
+
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 

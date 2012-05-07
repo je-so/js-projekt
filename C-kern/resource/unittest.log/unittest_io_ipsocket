@@ -45,10 +45,6 @@ C-kern/platform/Linux/io/ipsocket.c:501: read_ipsocket(): error: 11: System call
 fd=4
 maxdata_len=1
 C-kern/platform/Linux/io/ipsocket.c:512: read_ipsocket(): error: 11: Function aborted
-C-kern/platform/Linux/io/ipsocket.c:501: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
-fd=3
-maxdata_len=1
-C-kern/platform/Linux/io/ipsocket.c:512: read_ipsocket(): error: 11: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:562: readoob_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
 fd=4
 maxdata_len=1

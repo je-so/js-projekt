@@ -62,8 +62,17 @@
  * Parameter *ptr* must be of type
  * > const type_t * ptr ;
  * The returned type is
- * > (type *) ptr ; */
+ * > (type_t *) ptr ; */
 #define CONST_CAST(type_t,ptr)         ( __extension__ ({ const type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
+/* define: VOLATILE_CAST
+ * Removes the volatile from ptr.
+ * Use this macro to remove a vvolatile from a pointer. This macro is safe
+ * so if you cast the pointer to a wrong type a warning is issued by the compiler.
+ * Parameter *ptr* must be of type
+ * > volatile type_t * ptr ;
+ * The returned type is
+ * > (type_t *) ptr ; */
+#define VOLATILE_CAST(type_t,ptr)         ( __extension__ ({ volatile type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
 /* define: EMITCODE_1
  * The parameters to <EMITCODE_1> are written (as C code). */
 #define EMITCODE_1(...)                /*true*/ __VA_ARGS__
