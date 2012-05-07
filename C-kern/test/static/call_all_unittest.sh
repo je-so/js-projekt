@@ -50,6 +50,7 @@ for i in $files; do
       for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
          result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
          result=${result#extern }
+         result=${result## \* >*}
          if [ "${result#int unittest_*(void) ;}" != "" ]; then
             error=1
             info="$info  file: <${i}> has wrong unittest definition '$result'\n"
@@ -60,6 +61,8 @@ for i in $files; do
    # test that unittest is called
    for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
       result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
+      result=${result## \* >*}
+      if [ "$result" = "" ]; then continue ; fi
       name="`echo $result | sed 's/.*unittest_\(.*\)(.*/\\1/' -`"
       result=`grep "RUN(unittest_${name})" C-kern/test/run_unittest.c`
       if [ "$result" = "" ]; then
