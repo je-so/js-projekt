@@ -6,15 +6,15 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Apr.03  19:18:05
-GeneratedBy     := JE-SO
+GenerationDate  := 2012.May.07  09:05:55
+GeneratedBy     := je-so
 
 ## Debug
 DefineFlag_Debug    := -D
 IncludeFlag_Debug   := -I
 LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
-CFlags_Debug        := -g -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+CFlags_Debug        := -g -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=none
 Includes_Debug      := $(IncludeFlag_Debug).
@@ -32,7 +32,7 @@ DefineFlag_Release    := -D
 IncludeFlag_Release   := -I
 LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
-CFlags_Release        := -O2 -MMD -std=gnu99 -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+CFlags_Release        := -O2 -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=none
 Includes_Release      := $(IncludeFlag_Release).

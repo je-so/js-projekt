@@ -6,8 +6,8 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Mar.25  12:32:36
-GeneratedBy     := JE-SO
+GenerationDate  := 2012.May.07  09:05:55
+GeneratedBy     := je-so
 
 ## Release
 DefineFlag_Release    := ?

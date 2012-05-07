@@ -8,7 +8,7 @@ LFlagLib      = -l
 LFlagLibpath  = -L
 warnings_on   = -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes
 warnings_on  += -Wformat-nonliteral -Wformat-y2k
-CFlags        = -MMD -std=gnu99 $(warnings_on)
+CFlags        = -MMD -std=gnu1x $(warnings_on)
 LFlags        = 
 CFlags_Debug  = -g $(cflags)
 LFlags_Debug  = -g $(lflags)

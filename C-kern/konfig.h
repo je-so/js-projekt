@@ -82,6 +82,7 @@
 /* define: static_assert
  * Checks condition to be true during compilation. No runtime code is generated.
  * Can only be used in function context.
+ * TODO: Remove declaration if GCC provides declaration in <assert.h>
  *
  * Paramters:
  *  C - Condition which must hold true
