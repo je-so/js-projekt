@@ -49,7 +49,7 @@ typedef uint8_t                        rtsignal_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_sync_signal
  * Tests posix signals functionality. */
-extern int unittest_platform_sync_signal(void) ;
+int unittest_platform_sync_signal(void) ;
 #endif
 
 
@@ -63,19 +63,19 @@ extern int unittest_platform_sync_signal(void) ;
  * the order of delivery is unspecified.
  *
  * If the own process queue is full EAGAIN is returned and no signal is sent. */
-extern int send_rtsignal(rtsignal_t nr) ;
+int send_rtsignal(rtsignal_t nr) ;
 
 /* function: wait_rtsignal
  * Waits for nr_signals realtime signals with number nr.
  * They are removed from the queue. */
-extern int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals) ;
+int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals) ;
 
 /* function: trywait_rtsignal
  * Polls the queu for one realtime signals.
  * If the queue is empty EAGAIN ist returned.
  * If the queue contained the rt signal with number nr
  * it is consumed and 0 is returned. */
-extern int trywait_rtsignal(rtsignal_t nr) ;
+int trywait_rtsignal(rtsignal_t nr) ;
 
 /* struct: signalconfig_t
  * Stores current state of all signal handlers and the signal mask.
@@ -89,27 +89,27 @@ struct signalconfig_t ;
  * Sets up a process wide signal configuration at process startup.
  * The configuration is read from "C-kern/resource/text.db/signalhandler"
  * during compilation time. */
-extern int initonce_signalconfig(void) ;
+int initonce_signalconfig(void) ;
 
 /* function: freeonce_signalconfig
  * Restores default signal configuration. */
-extern int freeonce_signalconfig(void) ;
+int freeonce_signalconfig(void) ;
 
 // group: lifetime
 
 /* function: new_signalconfig
  * Stores in <signalconfig_t> the current settings of all signal handlers. */
-extern int new_signalconfig(/*out*/signalconfig_t ** sigconfig) ;
+int new_signalconfig(/*out*/signalconfig_t ** sigconfig) ;
 
 /* function: delete_signalconfig
  * Frees any resources associated with sigconfig. */
-extern int delete_signalconfig(signalconfig_t ** sigconfig) ;
+int delete_signalconfig(signalconfig_t ** sigconfig) ;
 
 // group: query
 
 /* function: compare_signalconfig
  * Returns 0 if sigconfig1 and sigconfig2 contains equal settings. */
-extern int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t * sigconfig2) ;
+int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t * sigconfig2) ;
 
 
 // section: inline implementations

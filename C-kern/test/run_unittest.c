@@ -29,6 +29,7 @@
 #include "C-kern/api/test/run/unittest.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test.h"
+#include "C-kern/api/math/fpu.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
@@ -142,8 +143,11 @@ static void prepare_test(void)
    // make printed system error messages language (English) neutral
    resetmsg_locale() ;
 
+   // check for fpu errors
+   enable_fpuexcept(fpu_except_MASK_ERR) ;
+
    // preallocate some memory
-   // TODO: remove line if own memory subsystem intead of malloc
+   // TODO: remove line if own memory subsystem instead of malloc
    resourceusage_t   usage[2000]  = { resourceusage_INIT_FREEABLE } ;
    for(unsigned i = 0; i < nrelementsof(usage); ++i) {
       (void) init_resourceusage(&usage[i]) ;
@@ -151,6 +155,7 @@ static void prepare_test(void)
    for(unsigned i = 0; i < nrelementsof(usage); ++i) {
       (void) free_resourceusage(&usage[i]) ;
    }
+
 }
 
 static void run_singletest(const char * test_name, int (*test_fct) (void), unsigned * total_count, unsigned * err_count)
@@ -243,6 +248,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
 //}
 
 //{ math unittest
+   RUN(unittest_math_floatingpointunit) ;
    RUN(unittest_math_hash_sha1) ;
    RUN(unittest_math_int_abs) ;
    RUN(unittest_math_int_log10) ;

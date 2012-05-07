@@ -288,21 +288,21 @@ int freeonce_signalconfig()
          s_signalhandler[i].isvalid = false ;
          signr = (int)i + 1 ;
          err = sigaction(signr, &s_signalhandler[i].oldstate, 0) ;
-         if (err) goto ABBRUCH_sigaction ;
+         if (err) {
+            LOG_SYSERR("sigaction", err) ;
+            LOG_INT(signr) ;
+            goto ABBRUCH ;
+         }
       }
    }
 
    err = pthread_sigmask(SIG_SETMASK, &s_old_signalmask, 0) ;
-   if (err) goto ABBRUCH_sigmask ;
+   if (err) {
+      LOG_SYSERR("pthread_sigmask", err) ;
+      goto ABBRUCH ;
+   }
 
    return 0 ;
-ABBRUCH_sigaction:
-   LOG_SYSERR("sigaction", err) ;
-   LOG_INT(signr) ;
-   goto ABBRUCH ;
-ABBRUCH_sigmask:
-   LOG_SYSERR("pthread_sigmask", err) ;
-   goto ABBRUCH ;
 ABBRUCH:
    LOG_ABORT_FREE(err) ;
    return err ;
@@ -505,6 +505,7 @@ ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
+
 
 // section: test
 

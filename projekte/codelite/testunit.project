@@ -95,6 +95,7 @@
       <VirtualDirectory Name="hash">
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/math/fpu.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="aspect">
       <VirtualDirectory Name="callback">
@@ -343,6 +344,7 @@
     <VirtualDirectory Name="hash">
       <File Name="../../C-kern/math/hash/sha1.c"/>
     </VirtualDirectory>
+    <File Name="../../C-kern/math/fpu.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>
