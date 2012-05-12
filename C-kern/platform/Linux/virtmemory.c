@@ -67,7 +67,7 @@ size_t sys_pagesize_vm()
 }
 
 
-int compare_vmregion( const vm_region_t * left, const vm_region_t * right )
+int compare_vmregion(const vm_region_t * left, const vm_region_t * right)
 {
 #define RETURN_ON_UNEQUAL(name)  \
    if (left->name != right->name) { \
@@ -86,8 +86,8 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
 {
    int err = 0 ;
    size_t index_newline = buffer_offset ;
-   for(;;) {
-      const ssize_t read_size = read( fd, buffer + buffer_offset, buffer_maxsize - buffer_offset) ;
+   for (;;) {
+      const ssize_t read_size = read(fd, buffer + buffer_offset, buffer_maxsize - buffer_offset) ;
       if (!read_size) {
          if (buffer_offset) {
             LOG_ERRTEXT(FILE_FORMAT_MISSING_ENDOFLINE,PROC_SELF_MAPS) ;
@@ -106,7 +106,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
       do {
          if (buffer[index_newline] == '\n') break ;
          ++ index_newline ;
-      } while( index_newline < buffer_offset ) ;
+      } while (index_newline < buffer_offset) ;
       if (index_newline < buffer_offset) break ; // ! found '\n' !
    }
 
@@ -117,10 +117,10 @@ ABBRUCH:
    return err ;
 }
 
-int free_vmmappedregions( vm_mappedregions_t * mappedregions )
+int free_vmmappedregions(vm_mappedregions_t * mappedregions )
 {
    vm_regionsarray_t    * first = mappedregions->first_array ;
-   for(vm_regionsarray_t * next ; first ; first = next) {
+   for (vm_regionsarray_t * next ; first ; first = next) {
       next = first->next ;
       free(first) ;
    }
@@ -128,7 +128,7 @@ int free_vmmappedregions( vm_mappedregions_t * mappedregions )
    return 0 ;
 }
 
-int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
+int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
 {
    int err ;
    int fd = -1 ;
@@ -144,7 +144,7 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
 
    const size_t  buffer_maxsize = iobuffer->size ;
    uint8_t       * const buffer = iobuffer->addr ;
-   fd = open( PROC_SELF_MAPS, O_RDONLY|O_CLOEXEC ) ;
+   fd = open(PROC_SELF_MAPS, O_RDONLY|O_CLOEXEC ) ;
    if (fd < 0) {
       err = ENOSYS ;
       LOG_SYSERR("open(" PROC_SELF_MAPS ")", errno) ;
@@ -152,12 +152,12 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    }
 
 
-   for(size_t buffer_offset = 0;;) {
+   for (size_t buffer_offset = 0;;) {
       size_t line_start = 0 ;
       size_t buffer_size = 0 ;
       size_t line_end = 0 ;
 
-      err = read_buffer( fd, buffer_maxsize, buffer, buffer_offset, &buffer_size, &line_end) ;
+      err = read_buffer(fd, buffer_maxsize, buffer, buffer_offset, &buffer_size, &line_end) ;
       if (err) goto ABBRUCH ;
       if (0 == buffer_size) break ;
 
@@ -167,7 +167,7 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
          uint64_t file_offset ;
          unsigned major, minor ;
          unsigned long inode ;
-         int scanned_items = sscanf( (char*)(buffer+line_start),
+         int scanned_items = sscanf((char*)(buffer+line_start),
                   "%" SCNxPTR "-%" SCNxPTR " %c%c%c%c %llx %02x:%02x %lu ",
                   &start, &end,
                   &isReadable, &isWriteable, &isExecutable, &isShared,
@@ -212,14 +212,14 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
          -- free_region_count ;
          ++ next_region ;
 
-         for(line_start = ++ line_end; line_end < buffer_size; ++line_end) {
+         for (line_start = ++ line_end; line_end < buffer_size; ++line_end) {
             if (buffer[line_end] == '\n') break ;
          }
-      } while( line_end < buffer_size ) ;
+      } while (line_end < buffer_size) ;
 
       if (line_start < buffer_size) {
          buffer_offset = buffer_size - line_start ;
-         memmove( buffer, buffer + line_start, buffer_offset) ;
+         memmove(buffer, buffer + line_start, buffer_offset) ;
       } else {
          buffer_offset = 0 ;  // scanned whole buffer
       }
@@ -241,7 +241,7 @@ int init_vmmappedregions( /*out*/vm_mappedregions_t * mappedregions )
    gofirst_vmmappedregions(mappedregions) ;
    return 0 ;
 ABBRUCH:
-   while( first_array ) {
+   while (first_array) {
       vm_regionsarray_t * next = first_array->next ;
       free(first_array) ;
       first_array = next ;
@@ -254,10 +254,10 @@ ABBRUCH:
    return err ;
 }
 
-int compare_vmmappedregions( const vm_mappedregions_t * left, const vm_mappedregions_t * right )
+int compare_vmmappedregions(const vm_mappedregions_t * left, const vm_mappedregions_t * right)
 {
    if (left->total_count != right->total_count) {
-      return left->total_count  > right->total_count ? 1 : -1 ;
+      return left->total_count > right->total_count ? 1 : -1 ;
    }
 
    vm_mappedregions_t left2  = { .first_array = left->first_array } ;
@@ -265,7 +265,7 @@ int compare_vmmappedregions( const vm_mappedregions_t * left, const vm_mappedreg
    gofirst_vmmappedregions(&left2) ;
    gofirst_vmmappedregions(&right2) ;
 
-   for(size_t i = left->total_count; i != 0 ; --i) {
+   for (size_t i = left->total_count; i != 0 ; --i) {
       const vm_region_t  * lelem = next_vmmappedregions(&left2) ;
       const vm_region_t  * relem = next_vmmappedregions(&right2) ;
       int cmp = compare_vmregion(lelem, relem) ;
@@ -275,7 +275,33 @@ int compare_vmmappedregions( const vm_mappedregions_t * left, const vm_mappedreg
    return 0 ;
 }
 
-void gofirst_vmmappedregions( vm_mappedregions_t * iterator )
+bool iscontained_vmmappedregions(vm_mappedregions_t * mappedregions, const memblock_t * mblock, accessmode_e protection)
+{
+   vm_mappedregions_t   iterator    = *mappedregions ;
+   void                 * startaddr = (void*) mblock->addr ;
+   void                 * endaddr   = (void*) (mblock->addr + mblock->size) ;
+
+   gofirst_vmmappedregions(&iterator) ;
+
+   for (const vm_region_t * vmregion; (vmregion = next_vmmappedregions(&iterator)); ) {
+      if (  vmregion->protection == protection
+         && startaddr < vmregion->endaddr
+         && endaddr   > vmregion->addr) {
+         if (vmregion->addr <= startaddr) {
+            if (endaddr <= vmregion->endaddr) {
+               return true ;
+            }
+            startaddr = vmregion->endaddr ;
+         } else if (endaddr <= vmregion->endaddr) {
+            endaddr = vmregion->addr ;
+         }
+      }
+   }
+
+   return false ;
+}
+
+void gofirst_vmmappedregions(vm_mappedregions_t * iterator)
 {
    vm_regionsarray_t   * first = iterator->first_array ;
    if (first) {
@@ -285,7 +311,7 @@ void gofirst_vmmappedregions( vm_mappedregions_t * iterator )
    }
 }
 
-const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
+const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator)
 {
    if (!iterator->element_count) {
       vm_regionsarray_t    * next = iterator->array_iterator ;
@@ -321,7 +347,7 @@ const vm_region_t * next_vmmappedregions( vm_mappedregions_t * iterator )
       }                                         \
    }
 
-int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_e access_mode )
+int init2_vmblock(/*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_e access_mode )
 {
    int    err ;
    int    prot ;
@@ -336,7 +362,7 @@ int init2_vmblock( /*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode
    SET_PROT(prot, access_mode)
 
 #define shared_flags       ((access_mode & accessmode_SHARED) ? MAP_SHARED|MAP_ANONYMOUS : MAP_PRIVATE|MAP_ANONYMOUS)
-   void * mapped_pages = mmap( 0, length_in_bytes, prot, shared_flags, -1, 0) ;
+   void * mapped_pages = mmap(0, length_in_bytes, prot, shared_flags, -1, 0) ;
 #undef shared_flags
    if (mapped_pages == MAP_FAILED) {
       err = errno ;
@@ -354,12 +380,12 @@ ABBRUCH:
    return err ;
 }
 
-int free_vmblock( vm_block_t * vmblock )
+int free_vmblock(vm_block_t * vmblock )
 {
    int err ;
 
    if (     vmblock->size
-         && munmap( vmblock->addr, vmblock->size )) {
+         && munmap(vmblock->addr, vmblock->size )) {
       err = errno ;
       LOG_SYSERR("munmap", err) ;
       LOG_PTR(vmblock->addr) ;
@@ -376,7 +402,7 @@ ABBRUCH:
    return err ;
 }
 
-int protect_vmblock( vm_block_t * vmblock, const accessmode_e access_mode )
+int protect_vmblock(vm_block_t * vmblock, const accessmode_e access_mode )
 {
    int err ;
    int prot ;
@@ -384,7 +410,7 @@ int protect_vmblock( vm_block_t * vmblock, const accessmode_e access_mode )
    SET_PROT(prot, access_mode)
 
    if (     vmblock->size
-         && mprotect( vmblock->addr, vmblock->size, prot)) {
+         && mprotect(vmblock->addr, vmblock->size, prot)) {
       err = errno ;
       LOG_SYSERR("mprotect", err) ;
       LOG_PTR(vmblock->addr) ;
@@ -399,7 +425,7 @@ ABBRUCH:
    return err ;
 }
 
-int tryexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages )
+int tryexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages )
 {
    int err ;
    size_t    pagesize         = pagesize_vm() ;
@@ -413,7 +439,7 @@ int tryexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages )
       goto ABBRUCH ;
    }
 
-   new_addr = mremap( vmblock->addr, vmblock->size, newsize_in_bytes, 0) ;
+   new_addr = mremap(vmblock->addr, vmblock->size, newsize_in_bytes, 0) ;
    if (MAP_FAILED == new_addr) {
       err = errno ;
       return err ; // no LOGGING
@@ -428,7 +454,7 @@ ABBRUCH:
    return err ;
 }
 
-int movexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages )
+int movexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages )
 {
    int err ;
    size_t    pagesize         = pagesize_vm() ;
@@ -442,7 +468,7 @@ int movexpand_vmblock( vm_block_t * vmblock, size_t increment_in_pages )
       goto ABBRUCH ;
    }
 
-   new_addr = mremap( vmblock->addr, vmblock->size, newsize_in_bytes, MREMAP_MAYMOVE) ;
+   new_addr = mremap(vmblock->addr, vmblock->size, newsize_in_bytes, MREMAP_MAYMOVE) ;
    if (MAP_FAILED == new_addr) {
       err = errno ;
       LOG_OUTOFMEMORY(newsize_in_bytes) ;
@@ -458,7 +484,7 @@ ABBRUCH:
    return err ;
 }
 
-int shrink_vmblock( vm_block_t * vmblock, size_t decrement_in_pages )
+int shrink_vmblock(vm_block_t * vmblock, size_t decrement_in_pages )
 {
    int err ;
    size_t    pagesize         = pagesize_vm() ;
@@ -472,7 +498,7 @@ int shrink_vmblock( vm_block_t * vmblock, size_t decrement_in_pages )
    }
 
    if (shrink_in_bytes) {
-      err = munmap( vmblock->addr + newsize_in_bytes, shrink_in_bytes) ;
+      err = munmap(vmblock->addr + newsize_in_bytes, shrink_in_bytes) ;
       if (err) {
          err = errno ;
          LOG_SYSERR("munmap", err) ;
@@ -493,48 +519,26 @@ ABBRUCH:
 
 #ifdef KONFIG_UNITTEST
 
-/* Returns:
- * 0 - All size_in_pages memory pages starting from address start are unmapped
- * 1 - All size_in_pages memory pages starting from address start are mapped
- * 2 - Wrong page permission (not read/writeable)
- * 3 - A part is mapped another is not
- * 4 - mapping query error
+/* function: iscontained_in_mapping
+ * Returns:
+ * true  - mapped_block is contained in <vm_mappedregions_t> with protection (accessmode_RDWR|accessmode_PRIVATE).
+ * false - *mapped_block* is either not contained or has the wrong accessmode.
  * */
-static int iscontained_in_mapping(const vm_block_t * mapped_block)
+static bool iscontained_in_mapping(const vm_block_t * mapped_block)
 {
-   int result = 0 ;
    vm_mappedregions_t mappedregions = vm_mappedregions_INIT_FREEABLE ;
-   void              * mapped_start = mapped_block->addr ;
-   void              * mapped_end   = (void*) (mapped_block->size + mapped_block->addr) ;
 
    if (init_vmmappedregions(&mappedregions)) {
-      result = 4 ;
+      return false ;
    }
 
-   for(const vm_region_t * next; (next = next_vmmappedregions(&mappedregions)); ) {
-      if (     mapped_start < next->endaddr
-            && mapped_end   > next->addr ) {
-         // overlapping
-         if (next->protection != (accessmode_RDWR | accessmode_PRIVATE)) {
-            printf("(%p)->protection=%d\n", (void*)(uintptr_t)next, next->protection) ;
-            result = 2 ;
-            break ;
-         }
-         if ( mapped_start < next->addr ) {
-            result = 3 ;
-            break ;
-         } else if ( mapped_end <= next->endaddr ) {
-            result = 1 ;
-            break ;
-         } else {
-            result = 3 ;
-            mapped_start = next->endaddr ;
-         }
-      }
+   bool ismapped = iscontained_vmmappedregions(&mappedregions, mapped_block, (accessmode_RDWR | accessmode_PRIVATE)) ;
+
+   if (free_vmmappedregions(&mappedregions)) {
+      return false ;
    }
 
-   free_vmmappedregions(&mappedregions) ;
-   return result ;
+   return ismapped ;
 }
 
 static int query_region(/*out*/vm_region_t * region, const vm_block_t * vmblock)
@@ -549,7 +553,7 @@ static int query_region(/*out*/vm_region_t * region, const vm_block_t * vmblock)
 
    err = EINVAL ;
 
-   for(const vm_region_t * next; (next = next_vmmappedregions(&mappedregions)); ) {
+   for (const vm_region_t * next; (next = next_vmmappedregions(&mappedregions)); ) {
       if (     mapped_start >= next->addr
             && mapped_end   <= next->endaddr ) {
          // vmblock is contained in region
@@ -572,7 +576,7 @@ static int compare_protection(const vm_block_t * vmblock, accessmode_e prot)
    err = query_region(&region, vmblock) ;
    if (err) goto ABBRUCH ;
 
-   if ( region.protection  != (prot | accessmode_PRIVATE) ) {
+   if ( region.protection != (prot | accessmode_PRIVATE) ) {
       err = EINVAL ;
       goto ABBRUCH ;
    }
@@ -616,23 +620,23 @@ static int test_mappedregions(void)
       .total_count = 6,
       .first_array = &array[0]
    } ;
-   for(int do_twice = 0; do_twice < 2; ++do_twice) {
+   for (int do_twice = 0; do_twice < 2; ++do_twice) {
       gofirst_vmmappedregions(&mappedregions2) ;
-      for(int ai = 0; ai < 3; ++ai) {
-         TEST( 6         == mappedregions2.total_count ) ;
-         TEST( 6         == size_vmmappedregions(&mappedregions2)) ;
-         TEST( &array[0] == mappedregions2.first_array ) ;
-         TEST( array[ai].elements == next_vmmappedregions(&mappedregions2)) ;
-         TEST( (ai < 2 ? &array[ai+1] : 0) == mappedregions2.array_iterator ) ;
-         TEST( array[ai].size-1     == mappedregions2.element_count  ) ;
-         TEST( array[ai].elements+1 == mappedregions2.element_iterator ) ;
-         for(unsigned i = 1; i < array[ai].size; ++i) {
-            TEST( &array[ai].elements[i] == next_vmmappedregions(&mappedregions2)) ;
+      for (int ai = 0; ai < 3; ++ai) {
+         TEST(6         == mappedregions2.total_count ) ;
+         TEST(6         == size_vmmappedregions(&mappedregions2)) ;
+         TEST(&array[0] == mappedregions2.first_array ) ;
+         TEST(array[ai].elements == next_vmmappedregions(&mappedregions2)) ;
+         TEST((ai < 2 ? &array[ai+1] : 0) == mappedregions2.array_iterator ) ;
+         TEST(array[ai].size-1     == mappedregions2.element_count  ) ;
+         TEST(array[ai].elements+1 == mappedregions2.element_iterator ) ;
+         for (unsigned i = 1; i < array[ai].size; ++i) {
+            TEST(&array[ai].elements[i] == next_vmmappedregions(&mappedregions2)) ;
          }
-         TEST( 0 == mappedregions2.element_count  ) ;
-         TEST( array[ai].elements+array[ai].size == mappedregions2.element_iterator ) ;
+         TEST(0 == mappedregions2.element_count  ) ;
+         TEST(array[ai].elements+array[ai].size == mappedregions2.element_iterator ) ;
       }
-      TEST( 0 == next_vmmappedregions(&mappedregions2)) ;
+      TEST(0 == next_vmmappedregions(&mappedregions2)) ;
    }
 
    err = 0 ;
@@ -666,7 +670,7 @@ static int test_mapping(void)
    size_in_pages = 50 ;
    TEST(0 == init_vmblock(&mapped_block, size_in_pages)) ;
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   for(size_t i = 1; i < size_in_pages; ++i) {
+   for (size_t i = 1; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
       vm_block_t upperhalf = { mapped_block.addr + unmapoffset, mapped_block.size - unmapoffset } ;
       vm_block_t lowerhalf = mapped_block ;
@@ -688,7 +692,7 @@ static int test_mapping(void)
    size_in_pages = 50 ;
    TEST(0 == init_vmblock(&mapped_block, size_in_pages)) ;
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   for(size_t i = 1; i < size_in_pages; ++i) {
+   for (size_t i = 1; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
       vm_block_t upperhalf = { mapped_block.addr + unmapoffset, mapped_block.size - unmapoffset } ;
       vm_block_t lowerhalf = { mapped_block.addr, unmapoffset } ;
@@ -702,7 +706,7 @@ static int test_mapping(void)
       TEST(mapped_block.size == lowerhalf.size) ;
    }
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   for(size_t i = 2; i < size_in_pages; ++i) {
+   for (size_t i = 2; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
       vm_block_t upperhalf = { mapped_block.addr + unmapoffset, mapped_block.size - unmapoffset } ;
       vm_block_t lowerhalf = { mapped_block.addr, unmapoffset } ;
@@ -722,7 +726,7 @@ static int test_mapping(void)
 
    // TEST movexpand (move)
    size_in_pages = 50 ;
-   for(size_t i = 2; i < size_in_pages; ++i) {
+   for (size_t i = 2; i < size_in_pages; ++i) {
       TEST(0 == init_vmblock(&mapped_block, size_in_pages)) ;
       TEST(1 == iscontained_in_mapping(&mapped_block)) ;
       size_t   unmapoffset = i * pagesize_vm() ;
@@ -756,7 +760,7 @@ static int test_mapping(void)
       TEST(lowerhalf.addr == mapped_block.addr) ;
       TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
       TEST(0 == iscontained_in_mapping(&upperhalf)) ;
-      for(size_t i = 1; i < 7; ++i) {
+      for (size_t i = 1; i < 7; ++i) {
          vm_block_t ext_block = { mapped_block.addr, i * pagesize_vm() } ;
          TEST(ENOMEM == tryexpand_vmblock(&ext_block, 3)) ;
          TEST(ext_block.addr == mapped_block.addr) ;
@@ -779,7 +783,7 @@ static int test_mapping(void)
    size_in_pages = 3 ;
    TEST(0 == init_vmblock(&mapped_block, size_in_pages)) ;
    TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   for(size_t i = 0; i < size_in_pages; ++i) {
+   for (size_t i = 0; i < size_in_pages; ++i) {
       size_t     lowersize = i * pagesize_vm() ;
       vm_block_t lowerhalf = { mapped_block.addr, lowersize } ;
       TEST(ENOMEM == tryexpand_vmblock(&lowerhalf, 1)) ;
@@ -814,7 +818,7 @@ static int test_mapping(void)
 
    return 0 ;
 ABBRUCH:
-   return 1 ;
+   return EINVAL ;
 }
 
 static ucontext_t    s_usercontext ;
@@ -844,7 +848,7 @@ static int test_protection(void)
 
    // TEST protection after init, expand, movexpand, shrink
    accessmode_e prot[6] = { accessmode_RDWR, accessmode_WRITE, accessmode_READ, accessmode_READ|accessmode_EXEC, accessmode_RDWR|accessmode_EXEC, accessmode_NONE } ;
-   for(unsigned i = 0; i < nrelementsof(prot); ++i) {
+   for (unsigned i = 0; i < nrelementsof(prot); ++i) {
       // TEST init2 generates correct protection
       TEST(0 == init2_vmblock(&vmblock, 2, prot[i])) ;
       TEST(0 == compare_protection(&vmblock, prot[i])) ;
@@ -899,7 +903,7 @@ static int test_protection(void)
 ABBRUCH:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
    (void) free_vmblock(&vmblock) ;
-   return 1 ;
+   return EINVAL;
 }
 
 int unittest_platform_virtualmemory()
@@ -917,11 +921,11 @@ int unittest_platform_virtualmemory()
    // TEST mapping has not changed
    TEST(0 == init_vmmappedregions(&mappedregions2)) ;
    TEST(size_vmmappedregions(&mappedregions2) == size_vmmappedregions(&mappedregions)) ;
-   for(size_t i = 0; i < size_vmmappedregions(&mappedregions2); ++i) {
+   for (size_t i = 0; i < size_vmmappedregions(&mappedregions2); ++i) {
       const vm_region_t  * next = next_vmmappedregions(&mappedregions) ;
       const vm_region_t * next2 = next_vmmappedregions(&mappedregions2) ;
       TEST(next && next2) ;
-      TEST(0 == compare_vmregion( next, next2 )) ;
+      TEST(0 == compare_vmregion(next, next2)) ;
    }
    TEST(0 == next_vmmappedregions(&mappedregions)) ;
    TEST(0 == next_vmmappedregions(&mappedregions2)) ;
@@ -934,7 +938,7 @@ int unittest_platform_virtualmemory()
 ABBRUCH:
    free_vmmappedregions(&mappedregions) ;
    free_vmmappedregions(&mappedregions2) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 #endif

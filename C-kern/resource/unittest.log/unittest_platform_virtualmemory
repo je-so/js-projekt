@@ -1,6 +1,6 @@
-C-kern/platform/Linux/virtmemory.c:427: tryexpand_vmblock(): error: 22: Function aborted
-C-kern/platform/Linux/virtmemory.c:489: shrink_vmblock(): error: 22: Function aborted
-C-kern/platform/Linux/virtmemory.c:353: init2_vmblock(): error: 22: Function aborted
-C-kern/platform/Linux/virtmemory.c:457: movexpand_vmblock(): error: 12: Function aborted
-C-kern/platform/Linux/virtmemory.c:448: movexpand_vmblock(): error: Could not allocate 4294926336 bytes of memory
-C-kern/platform/Linux/virtmemory.c:457: movexpand_vmblock(): error: 12: Function aborted
+C-kern/platform/Linux/virtmemory.c:453: tryexpand_vmblock(): error: 22: Function aborted
+C-kern/platform/Linux/virtmemory.c:515: shrink_vmblock(): error: 22: Function aborted
+C-kern/platform/Linux/virtmemory.c:379: init2_vmblock(): error: 22: Function aborted
+C-kern/platform/Linux/virtmemory.c:483: movexpand_vmblock(): error: 12: Function aborted
+C-kern/platform/Linux/virtmemory.c:474: movexpand_vmblock(): error: Could not allocate 4294926336 bytes of memory
+C-kern/platform/Linux/virtmemory.c:483: movexpand_vmblock(): error: 12: Function aborted
