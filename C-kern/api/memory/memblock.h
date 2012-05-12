@@ -91,8 +91,25 @@ uint8_t * addr_memblock(const memblock_t * mblock) ;
  * Returns size of memory block. */
 size_t size_memblock(const memblock_t * mblock) ;
 
+// group: change
+
+/* function: shrink_memblock
+ * Shrinks the memory block.
+ * The start address <memblock_t.addr> is incremented by *addr_increment* and
+ * the size of the block <memblock_t.size> is decremented by the same amount.
+ * > ╭───────────────╮        ╭┈┈┈┈┬──────────╮
+ * > │<--- size ---->│    ==> │    │<- size'->│ addr' == addr + addr_increment
+ * > ├───────────────┤        ╰┈┈┈┈├──────────┤ size' == size - addr_increment
+ * > └- addr         └- addr+size  └- addr'   └- addr+size
+ * */
+int shrink_memblock(memblock_t * mblock, size_t addr_increment) ;
+
 
 // section: inline implementation
+
+/* define: addr_memblock
+ * Implements <memblock_t.addr_memblock>. */
+#define addr_memblock(mblock)          ((mblock)->addr)
 
 /* define: isfree_memblock
  * Implements <memblock_t.isfree_memblock>. */
@@ -102,12 +119,25 @@ size_t size_memblock(const memblock_t * mblock) ;
  * Implements <memblock_t.isvalid_memblock>. */
 #define isvalid_memblock(mblock)       (isfree_memblock(mblock) || (0 != (mblock)->size))
 
-/* define: addr_memblock
- * Implements <memblock_t.addr_memblock>. */
-#define addr_memblock(mblock)          ((mblock)->addr)
+/* define: shrink_memblock
+ * Implements <memblock_t.shrink_memblock>. */
+#define shrink_memblock(mblock, addr_increment)          \
+      ( __extension__ ({ int _err ;                      \
+            typeof(mblock) _mblock = (mblock) ;          \
+            size_t _incr = (addr_increment) ;            \
+            if (_mblock->size < _incr) {                 \
+               _err = ENOMEM ;                           \
+            } else {                                     \
+               _mblock->addr += _incr ;                  \
+               _mblock->size -= _incr ;                  \
+               _err = 0 ;                                \
+            }                                            \
+            _err ;                                       \
+      }))
 
 /* define: size_memblock
  * Implements <memblock_t.size_memblock>. */
 #define size_memblock(mblock)          ((mblock)->size)
+
 
 #endif

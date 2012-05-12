@@ -68,6 +68,41 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static int test_change(void)
+{
+   memblock_t  mblock = memblock_INIT_FREEABLE ;
+   uint8_t     * addr ;
+   size_t      size   ;
+
+   // TEST shrink_memblock with 0
+   TEST(0 == shrink_memblock(&mblock, 0)) ;
+   TEST(0 == mblock.addr) ;
+   TEST(0 == mblock.size) ;
+
+   // TEST shrink_memblock
+   mblock.addr = addr = 0 ;
+   mblock.size = size = 1000000 ;
+   for(unsigned i = 0; size > i; ++i) {
+      addr += i ;
+      size -= i ;
+      TEST(0 == shrink_memblock(&mblock, i)) ;
+      TEST(addr == addr_memblock(&mblock)) ;
+      TEST(size == size_memblock(&mblock)) ;
+   }
+   TEST(0 == shrink_memblock(&mblock, size)) ;
+   TEST((uint8_t*)1000000 == addr_memblock(&mblock)) ;
+   TEST(0 == size_memblock(&mblock)) ;
+
+   // TEST shrink_memblock ENOMEM
+   mblock.addr = 0 ;
+   mblock.size = 10000 ;
+   TEST(ENOMEM == shrink_memblock(&mblock, 10000 + 1)) ;
+
+   return 0 ;
+ABBRUCH:
+   return EINVAL ;
+}
+
 int unittest_memory_memblock()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -76,6 +111,7 @@ int unittest_memory_memblock()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())    goto ABBRUCH ;
+   if (test_change())      goto ABBRUCH ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

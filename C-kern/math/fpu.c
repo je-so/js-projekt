@@ -477,7 +477,3 @@ ABBRUCH:
 }
 
 #endif
-
-
-
-
