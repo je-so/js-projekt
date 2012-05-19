@@ -28,9 +28,9 @@
 // forward
 struct memblock_t ;
 
-/* typedef: struct mm_transient_t
- * Exports <mm_transient_t>. */
-typedef struct mm_transient_t          mm_transient_t ;
+/* typedef: struct mmtransient_t
+ * Exports <mmtransient_t>. */
+typedef struct mmtransient_t           mmtransient_t ;
 
 
 // section: Functions
@@ -39,14 +39,14 @@ typedef struct mm_transient_t          mm_transient_t ;
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_memory_manager_transient
- * Test transient memory manager <mm_transient_t>. */
+ * Test transient memory manager <mmtransient_t>. */
 int unittest_memory_manager_transient(void) ;
 #endif
 
 
-/* struct: mm_transient_t
+/* struct: mmtransient_t
  * Memory manager for allocating/freeing transient memory. */
-struct mm_transient_t {
+struct mmtransient_t {
    int todo__implement_without_malloc__ ;
 } ;
 
@@ -55,35 +55,35 @@ struct mm_transient_t {
 /* function: initthread_mmtransient
  * Calls <init_mmtransient> and wraps object into interface object <mm_iot>.
  * This function is called from <init_threadcontext>. */
-int initthread_mmtransient(/*out*/mm_iot * mm_transient) ;
+int initthread_mmtransient(/*out*/mm_iot * mmtransient) ;
 
 /* function: freethread_mmtransient
  * Calls <free_mmtransient> with object pointer from <mm_iot>.
  * This function is called from <free_threadcontext>. */
-int freethread_mmtransient(mm_iot * mm_transient) ;
+int freethread_mmtransient(mm_iot * mmtransient) ;
 
 // group: lifetime
 
-/* define: mm_transient_INIT_FREEABLE
+/* define: mmtransient_INIT_FREEABLE
  * Static initializer. */
-#define mm_transient_INIT_FREEABLE    { 0 }
+#define mmtransient_INIT_FREEABLE      { 0 }
 
 /* function: init_mmtransient
  * Initializes a new memory manager for transient memory. */
-int init_mmtransient(/*out*/mm_transient_t * mman) ;
+int init_mmtransient(/*out*/mmtransient_t * mman) ;
 
 /* function: free_mmtransient
  * Frees all memory managed by this manager.
  * Beofre freeing it make sure that every object allocated on
  * this memory heap is no more reachable or already freed. */
-int free_mmtransient(mm_transient_t * mman) ;
+int free_mmtransient(mmtransient_t * mman) ;
 
 // group: query
 
 /* function: sizeallocated_mmtransient
  * Returns the size in bytes of all allocated memory blocks.
  * If this value is 0 no memory is allocated on this heap. */
-size_t sizeallocated_mmtransient(mm_transient_t * mman) ;
+size_t sizeallocated_mmtransient(mmtransient_t * mman) ;
 
 // group: allocate
 
@@ -103,13 +103,13 @@ size_t sizeallocated_mmtransient(mm_transient_t * mman) ;
  * set to the same value as newsize has had in the last call to <mresize_mmtransient>
  * or to the value returned by this call. The address field in memblock is not allowed
  * to be set to any other value. */
-int mresize_mmtransient(mm_transient_t * mman, size_t newsize, struct memblock_t * memblock) ;
+int mresize_mmtransient(mmtransient_t * mman, size_t newsize, struct memblock_t * memblock) ;
 
 /* function: mfree_mmtransient
  * Frees the memory of an allocated memory block. After return
  * memblock is set to <memblock_INIT_FREEABLE>. This ensured that calling
  * this function twice with the same argument is a no op. */
-int mfree_mmtransient(mm_transient_t * mman, struct memblock_t * memblock) ;
+int mfree_mmtransient(mmtransient_t * mman, struct memblock_t * memblock) ;
 
 
 #endif

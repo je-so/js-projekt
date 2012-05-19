@@ -19,8 +19,8 @@
    file: C-kern/api/memory/mm/mm_macros.h
     Header file <MemoryManagerMacros>.
 */
-#ifndef CKERN_MEMORY_MM_MM_MACROS_HEADER
-#define CKERN_MEMORY_MM_MM_MACROS_HEADER
+#ifndef CKERN_MEMORY_MM_MMMACROS_HEADER
+#define CKERN_MEMORY_MM_MMMACROS_HEADER
 
 #include "C-kern/api/memory/mm/mm_it.h"
 

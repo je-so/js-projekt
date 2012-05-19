@@ -41,33 +41,33 @@ typedef struct mmtransient_it          mmtransient_it ;
 
 
 /* struct: mmtransient_it
- * Adapts <mm_it> to <mm_transient_t>. See <mm_it_DECLARE>. */
-mm_it_DECLARE(mmtransient_it, mm_transient_t)
+ * Adapts <mm_it> to <mmtransient_t>. See <mm_it_DECLARE>. */
+mm_it_DECLARE(mmtransient_it, mmtransient_t)
 
 // group: variables
 
 /* variable: s_mmtransient_interface
  * Contains single instance of interface <mmtransient_it>. */
-mmtransient_it    s_mmtransient_interface = {
-                         &mresize_mmtransient
-                        ,&mfree_mmtransient
-                        ,&sizeallocated_mmtransient
-                  } ;
+static mmtransient_it   s_mmtransient_interface = mm_it_INIT(
+                            &mresize_mmtransient
+                           ,&mfree_mmtransient
+                           ,&sizeallocated_mmtransient
+                         ) ;
 
 
-// section: mm_transient_t
+// section: mmtransient_t
 
 // group: init
 
-int initthread_mmtransient(/*out*/mm_iot * mm_transient)
+int initthread_mmtransient(/*out*/mm_iot * mmtransient)
 {
    int err ;
-   const size_t      objsize    = sizeof(mm_transient_t) ;
-   mm_transient_t    tempobject = mm_transient_INIT_FREEABLE ;
+   const size_t      objsize    = sizeof(mmtransient_t) ;
+   mmtransient_t     tempobject = mmtransient_INIT_FREEABLE ;
    memblock_t        newobject  = memblock_INIT_FREEABLE ;
 
 
-   VALIDATE_INPARAM_TEST(0 == mm_transient->object, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == mmtransient->object, ABBRUCH, ) ;
 
    err = init_mmtransient(&tempobject) ;
    if (err) goto ABBRUCH ;
@@ -77,8 +77,8 @@ int initthread_mmtransient(/*out*/mm_iot * mm_transient)
 
    memcpy(newobject.addr, &tempobject, objsize) ;
 
-   mm_transient->object = (struct mm_t*) newobject.addr;
-   mm_transient->iimpl  = (mm_it*) &s_mmtransient_interface ;
+   mmtransient->object = (struct mm_t*) newobject.addr;
+   mmtransient->iimpl  = (mm_it*) &s_mmtransient_interface ;
 
    return 0 ;
 ABBRUCH:
@@ -87,20 +87,20 @@ ABBRUCH:
    return err ;
 }
 
-int freethread_mmtransient(mm_iot * mm_transient)
+int freethread_mmtransient(mm_iot * mmtransient)
 {
    int err ;
    int err2 ;
-   mm_transient_t * delobject = (mm_transient_t*) mm_transient->object ;
+   mmtransient_t * delobject = (mmtransient_t*) mmtransient->object ;
 
    if (delobject) {
-      assert(&s_mmtransient_interface == (mmtransient_it*) mm_transient->iimpl) ;
+      assert(&s_mmtransient_interface == (mmtransient_it*) mmtransient->iimpl) ;
 
-      mm_transient->object = 0 ;
-      mm_transient->iimpl  = 0 ;
+      mmtransient->object = 0 ;
+      mmtransient->iimpl  = 0 ;
 
-      mm_transient_t tempobject = *delobject ;
-      memblock_t     memobject  = memblock_INIT(sizeof(mm_transient_t), (uint8_t*)delobject) ;
+      mmtransient_t  tempobject = *delobject ;
+      memblock_t     memobject  = memblock_INIT(sizeof(mmtransient_t), (uint8_t*)delobject) ;
 
       err = mfree_mmtransient(&tempobject, &memobject) ;
 
@@ -118,13 +118,13 @@ ABBRUCH:
 
 // group: lifetime
 
-int init_mmtransient(mm_transient_t * mman)
+int init_mmtransient(mmtransient_t * mman)
 {
    mman->todo__implement_without_malloc__ = 0 ;
    return 0 ;
 }
 
-int free_mmtransient(mm_transient_t * mman)
+int free_mmtransient(mmtransient_t * mman)
 {
    mman->todo__implement_without_malloc__ = 0 ;
    return 0 ;
@@ -132,7 +132,7 @@ int free_mmtransient(mm_transient_t * mman)
 
 // group: query
 
-size_t sizeallocated_mmtransient(mm_transient_t * mman)
+size_t sizeallocated_mmtransient(mmtransient_t * mman)
 {
    // TODO: implement sizeallocated_mmtransient
    (void) mman ;
@@ -141,7 +141,7 @@ size_t sizeallocated_mmtransient(mm_transient_t * mman)
 
 // group: allocate
 
-int mresize_mmtransient(mm_transient_t * mman, size_t newsize, struct memblock_t * memblock)
+int mresize_mmtransient(mmtransient_t * mman, size_t newsize, struct memblock_t * memblock)
 {
    int err ;
    void * newaddr ;
@@ -171,7 +171,7 @@ ABBRUCH:
    return err ;
 }
 
-int mfree_mmtransient(mm_transient_t * mman, struct memblock_t * memblock)
+int mfree_mmtransient(mmtransient_t * mman, struct memblock_t * memblock)
 {
    int err ;
    (void) mman ;
@@ -199,7 +199,7 @@ ABBRUCH:
 
 static int test_initfree(void)
 {
-   mm_transient_t   mman = mm_transient_INIT_FREEABLE ;
+   mmtransient_t   mman = mmtransient_INIT_FREEABLE ;
 
    // TEST static init memoryman_transient_INIT_FREEABLE
    TEST(0 == mman.todo__implement_without_malloc__) ;
@@ -254,10 +254,10 @@ ABBRUCH:
 
 static int test_allocate(void)
 {
-   mm_transient_t   mman = mm_transient_INIT_FREEABLE ;
-   size_t      number_of_allocated_bytes ;
-   size_t      number_of_allocated_bytes2 ;
-   memblock_t  mblocks[100] ;
+   mmtransient_t  mman = mmtransient_INIT_FREEABLE ;
+   size_t         number_of_allocated_bytes ;
+   size_t         number_of_allocated_bytes2 ;
+   memblock_t     mblocks[100] ;
 
    // prepare
    TEST(0 == init_mmtransient(&mman)) ;

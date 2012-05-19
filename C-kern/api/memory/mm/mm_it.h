@@ -1,6 +1,6 @@
 /* title: MemoryManager-Interface
    Interface functions to access memory manager.
-   Implemented by <mm_transient_t>.
+   Implemented by <mmtransient_t>.
 
    about: Copyright
    This program is free software.
@@ -23,8 +23,8 @@
    file: C-kern/api/memory/mm/mm_iot.h
     Contains interfaceable object <MemoryManager-ImplementationObject>.
 */
-#ifndef CKERN_MEMORY_MM_MM_IT_HEADER
-#define CKERN_MEMORY_MM_MM_IT_HEADER
+#ifndef CKERN_MEMORY_MM_MMIT_HEADER
+#define CKERN_MEMORY_MM_MMIT_HEADER
 
 // forward
 struct mm_t ;
@@ -39,24 +39,34 @@ typedef struct mm_it                   mm_it ;
 /* struct: mm_it
  * The function table describing the interface to a memory manager.
  * If you change the interface of <mm_it> to do not forget to adapt
- * <mm_it_DECLARE> to the same signature. */
-struct mm_it {
+ * <mm_it_DECLARE> to the same signature. */ __extension__
+struct mm_it { /*!*/ union { struct {  // this makes it compatible with <mm_it_DECLARE>.
    /* function: mresize
-    * See <mm_transient_t.mresize_mmtransient> for an implementation. */
+    * See <mmtransient_t.mresize_mmtransient> for an implementation. */
    int (* mresize) (struct mm_t * mman, size_t newsize, struct memblock_t * memblock) ;
    /* function: mfree
-    * See <mm_transient_t.mfree_mmtransient> for an implementation. */
+    * See <mmtransient_t.mfree_mmtransient> for an implementation. */
    int (* mfree)   (struct mm_t * mman, struct memblock_t * memblock) ;
    /* function: sizeallocated
-    * See <mm_transient_t.sizeallocated_mmtransient> for an implementation. */
+    * See <mmtransient_t.sizeallocated_mmtransient> for an implementation. */
    size_t (* sizeallocated) (struct mm_t * mman) ;
-} ;
+} ; } ; } ;
 
 // group: lifetime
 
 /* define: mm_it_INIT_FREEABLE
  * Static initializer. Sets all fields to 0. */
-#define mm_it_INIT_FREEABLE            { 0, 0, 0 }
+#define mm_it_INIT_FREEABLE            { { { 0, 0, 0 } } }
+
+/* define: mm_it_INIT_FREEABLE
+ * Static initializer. Sets all functions pointers to the provided values.
+ *
+ * Parameters:
+ * mresize_f       - Function pointer to allocate and resize memory. See <mm_it.mresize>.
+ * mfree_f         - Function pointer to free memory blocks. See <mm_it.mfree>.
+ * sizeallocated_f - Function pointer to query the size of all allocated memory nlocks. See <mm_it.sizeallocated>. */
+#define mm_it_INIT(mresize_f, mfree_f, sizeallocated_f) \
+            { { { (mresize_f), (mfree_f), (sizeallocated_f) } } }
 
 // group: generic
 
@@ -74,11 +84,16 @@ struct mm_it {
  *
  * See <mm_it> for a list of declared functions.
  * */
-#define mm_it_DECLARE(declared_it, mm_t)                                            \
-   struct declared_it {                                                             \
-      int (* mresize) (mm_t * mman, size_t newsize, struct memblock_t * memblock) ; \
-      int (* mfree)   (mm_t * mman, struct memblock_t * memblock) ;                 \
-      size_t (* sizeallocated) (mm_t * mman) ;                                      \
+#define mm_it_DECLARE(declared_it, mm_t)                                                     \
+   __extension__ struct declared_it {                                                        \
+      union {                                                                                \
+         struct {                                                                            \
+            int   (* mresize) (mm_t * mman, size_t newsize, struct memblock_t * memblock) ;  \
+            int   (* mfree)   (mm_t * mman, struct memblock_t * memblock) ;                  \
+            size_t(* sizeallocated) (mm_t * mman) ;                                          \
+         } ;                                                                                 \
+         mm_it    generic ;                                                                  \
+      } ;                                                                                    \
    } ;
 
 #endif

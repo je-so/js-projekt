@@ -23,8 +23,8 @@
    file: C-kern/api/memory/mm/mm_iot.h
     Contains interfaceable object <MemoryManager-ImplementationObject>.
 */
-#ifndef CKERN_MEMORY_MM_MM_IOT_HEADER
-#define CKERN_MEMORY_MM_MM_IOT_HEADER
+#ifndef CKERN_MEMORY_MM_MMIOT_HEADER
+#define CKERN_MEMORY_MM_MMIOT_HEADER
 
 // forward
 struct mm_t ;
@@ -50,6 +50,11 @@ struct mm_iot {
 
 /* define: mm_iot_INIT_FREEABLE
  * Static initializer. */
-#define mm_iot_INIT_FREEABLE    { (struct mm_t*)0, (struct mm_it*)0 }
+#define mm_iot_INIT_FREEABLE           { (struct mm_t*)0, (struct mm_it*)0 }
+
+/* define: mm_iot_INIT
+ * Static initializer. */
+#define mm_iot_INIT(object, iimpl)     { (object), (iimpl) }
+
 
 #endif

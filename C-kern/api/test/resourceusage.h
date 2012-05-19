@@ -53,7 +53,7 @@ struct resourceusage_t {
     * Number of open file descriptors. */
    size_t                        filedescriptor_usage ;
    /* variable: sizealloc_mmtrans
-    * Number of memory bytes allocated by <mm_transient_t>. */
+    * Number of memory bytes allocated by <mmtransient_t>. */
    size_t                        sizealloc_mmtrans ;
    /* variable: malloc_usage
     * Number of memory bytes allocated by malloc. */

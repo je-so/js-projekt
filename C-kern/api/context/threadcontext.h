@@ -45,7 +45,7 @@ typedef struct threadcontext_t         threadcontext_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_context_threadcontext
  * Test interface of <threadcontext_t>. */
-extern int unittest_context_threadcontext(void) ;
+int unittest_context_threadcontext(void) ;
 #endif
 
 
@@ -71,12 +71,12 @@ struct threadcontext_t {
  * Creates all top level services which are bound to a single thread.
  * Services do *not* need to be multi thread safe.
  * Is called from <init_context>. */
-extern int init_threadcontext(/*out*/threadcontext_t * tcontext) ;
+int init_threadcontext(/*out*/threadcontext_t * tcontext) ;
 
 /* function: free_threadcontext
  * Frees all resources bound to this object.
  * Is called from <free_context>. */
-extern int free_threadcontext(threadcontext_t * tcontext) ;
+int free_threadcontext(threadcontext_t * tcontext) ;
 
 
 #endif

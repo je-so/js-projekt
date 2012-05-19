@@ -5,50 +5,38 @@
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="FileName"/>
-      <int Value="204" Name="FirstVisibleLine"/>
-      <int Value="223" Name="CurrentLine"/>
+      <int Value="210" Name="FirstVisibleLine"/>
+      <int Value="224" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/memory/mm/mmtest.c" Name="FileName"/>
-      <int Value="171" Name="FirstVisibleLine"/>
-      <int Value="171" Name="CurrentLine"/>
+      <int Value="1092" Name="FirstVisibleLine"/>
+      <int Value="1106" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/memory/mm/mmtest.h" Name="FileName"/>
-      <int Value="70" Name="FirstVisibleLine"/>
-      <int Value="111" Name="CurrentLine"/>
+      <int Value="58" Name="FirstVisibleLine"/>
+      <int Value="72" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/memory/mm/mmtransient.h" Name="FileName"/>
-      <int Value="71" Name="FirstVisibleLine"/>
-      <int Value="79" Name="CurrentLine"/>
+      <int Value="74" Name="FirstVisibleLine"/>
+      <int Value="115" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/memory/mm/mmtransient.c" Name="FileName"/>
-      <int Value="50" Name="FirstVisibleLine"/>
-      <int Value="50" Name="CurrentLine"/>
+      <int Value="54" Name="FirstVisibleLine"/>
+      <int Value="54" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/memory/mm/mm_it.h" Name="FileName"/>
-      <int Value="40" Name="FirstVisibleLine"/>
-      <int Value="76" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/platform/virtmemory.h" Name="FileName"/>
-      <int Value="214" Name="FirstVisibleLine"/>
-      <int Value="230" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/virtmemory.c" Name="FileName"/>
-      <int Value="271" Name="FirstVisibleLine"/>
-      <int Value="281" Name="CurrentLine"/>
+      <int Value="58" Name="FirstVisibleLine"/>
+      <int Value="66" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>

@@ -118,6 +118,7 @@
         <File Name="../../C-kern/api/memory/mm/mm_it.h"/>
         <File Name="../../C-kern/api/memory/mm/mm_macros.h"/>
         <File Name="../../C-kern/api/memory/mm/mm_iot.h"/>
+        <File Name="../../C-kern/api/memory/mm/mmtest.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
@@ -351,6 +352,7 @@
     <File Name="../../C-kern/memory/wbuffer.c"/>
     <VirtualDirectory Name="mm">
       <File Name="../../C-kern/memory/mm/mmtransient.c"/>
+      <File Name="../../C-kern/memory/mm/mmtest.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="presentation">
