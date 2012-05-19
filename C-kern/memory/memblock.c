@@ -79,6 +79,11 @@ static int test_change(void)
    TEST(0 == mblock.addr) ;
    TEST(0 == mblock.size) ;
 
+   // TEST grow_memblock with 0
+   TEST(ENOMEM == grow_memblock(&mblock, 0)) ;
+   TEST(0 == mblock.addr) ;
+   TEST(0 == mblock.size) ;
+
    // TEST shrink_memblock
    mblock.addr = addr = 0 ;
    mblock.size = size = 1000000 ;
@@ -97,6 +102,25 @@ static int test_change(void)
    mblock.addr = 0 ;
    mblock.size = 10000 ;
    TEST(ENOMEM == shrink_memblock(&mblock, 10000 + 1)) ;
+
+   // TEST grow_memblock
+   mblock.addr = addr = (uint8_t*) 1000000 ;
+   mblock.size = size = 0 ;
+   for(unsigned i = 0; addr > (uint8_t*)i; ++i) {
+      addr -= i ;
+      size += i ;
+      TEST(0 == grow_memblock(&mblock, i)) ;
+      TEST(addr == addr_memblock(&mblock)) ;
+      TEST(size == size_memblock(&mblock)) ;
+   }
+   TEST(0 == grow_memblock(&mblock, (uintptr_t)(addr) - 1)) ;
+   TEST((uint8_t*)1 == addr_memblock(&mblock)) ;
+   TEST(999999 == size_memblock(&mblock)) ;
+
+   // TEST grow_memblock ENOMEM
+   mblock.addr = (uint8_t*)10000 ;
+   mblock.size = 0 ;
+   TEST(ENOMEM == grow_memblock(&mblock, 10000)) ;
 
    return 0 ;
 ABBRUCH:

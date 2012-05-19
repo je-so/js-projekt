@@ -80,7 +80,7 @@ struct memblock_t {
 bool isfree_memblock(const memblock_t * mblock) ;
 
 /* function: isfree_memblock
- * Returns true if either <memblock_t> is free its size is not 0. */
+ * Returns true if either <memblock_t> is free or if its size is not 0. */
 bool isvalid_memblock(const memblock_t * mblock) ;
 
 /* function: addr_memblock
@@ -100,16 +100,42 @@ size_t size_memblock(const memblock_t * mblock) ;
  * > ╭───────────────╮        ╭┈┈┈┈┬──────────╮
  * > │<--- size ---->│    ==> │    │<- size'->│ addr' == addr + addr_increment
  * > ├───────────────┤        ╰┈┈┈┈├──────────┤ size' == size - addr_increment
- * > └- addr         └- addr+size  └- addr'   └- addr+size
+ * > └- addr         └- addr+size  └- addr'   └- addr+size == addr'+size'
  * */
 int shrink_memblock(memblock_t * mblock, size_t addr_increment) ;
 
+/* function: grow_memblock
+ * Grows the memory block.
+ * The start address <memblock_t.addr> is decremented by *addr_decrement* and
+ * the size of the block <memblock_t.size> is incremented by the same amount.
+ * > ╭────────────╮            ╭┈┈┈┈┈──────────╮
+ * > │<-- size -->│        ==> │<--- size' --->│ addr' == addr - addr_decrement
+ * > ├────────────┤            ├┈┈┈┈┈──────────┤ size' == size + addr_decrement
+ * > └- addr      └- addr+size └- addr'        └- addr+size == addr'+size'
+ * */
+int grow_memblock(memblock_t * mblock, size_t addr_decrement) ;
 
 // section: inline implementation
 
 /* define: addr_memblock
  * Implements <memblock_t.addr_memblock>. */
 #define addr_memblock(mblock)          ((mblock)->addr)
+
+/* define: grow_memblock
+ * Implements <memblock_t.grow_memblock>. */
+#define grow_memblock(mblock, addr_decrement)            \
+      ( __extension__ ({ int _err ;                      \
+            typeof(mblock) _mblock = (mblock) ;          \
+            size_t _decr = (addr_decrement) ;            \
+            if ((uintptr_t)_mblock->addr <= _decr) {     \
+               _err = ENOMEM ;                           \
+            } else {                                     \
+               _mblock->addr -= _decr ;                  \
+               _mblock->size += _decr ;                  \
+               _err = 0 ;                                \
+            }                                            \
+            _err ;                                       \
+      }))
 
 /* define: isfree_memblock
  * Implements <memblock_t.isfree_memblock>. */
