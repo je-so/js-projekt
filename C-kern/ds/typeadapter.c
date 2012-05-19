@@ -120,22 +120,6 @@ static int test_initfree_iot(void)
    TEST(typeadt.object == (void*)1) ;
    TEST(typeadt.iimpl  == &typeadt_ft) ;
 
-   // TEST setcopy_typeadapterit
-   typeadt_ft.freeobj = 0 ;
-   for(uint32_t i = 0; i < 0xf0000000; i += 0x10000000) {
-      setcopy_typeadapterit(&typeadt_ft, (typeof(typeadt_ft.copyobj))(i+2), typeadapter_t, struct generic_object_t) ;
-      TEST(typeadt_ft.copyobj == (typeof(typeadt_ft.copyobj))(i+2)) ;
-      TEST(typeadt_ft.freeobj == 0) ;
-   }
-
-   // TEST setfree_typeadapterit
-   typeadt_ft.copyobj = 0 ;
-   for(uint32_t i = 0; i < 0xf0000000; i += 0x10000000) {
-    setfree_typeadapterit(&typeadt_ft, (typeof(typeadt_ft.freeobj))(i+2), typeadapter_t, struct generic_object_t) ;
-      TEST(typeadt_ft.freeobj == (typeof(typeadt_ft.freeobj))(i+2)) ;
-      TEST(typeadt_ft.copyobj == 0) ;
-   }
-
    return 0 ;
 ABBRUCH:
    return EINVAL ;
@@ -184,16 +168,6 @@ static int test_generic_iot(void)
    TEST(typeimpl_ft.freeobj == &test_freefct) ;
    TEST(typeimpl_iot.object == &typeimpl) ;
    TEST(typeimpl_iot.iimpl  == &typeimpl_ft) ;
-
-   // TEST set functions
-   setcopy_typeadapterit(&typeimpl_ft, 0, typeimplementor_t, implobject_t) ;
-   setfree_typeadapterit(&typeimpl_ft, 0, typeimplementor_t, implobject_t) ;
-   TEST(typeimpl_ft.copyobj == 0) ;
-   TEST(typeimpl_ft.freeobj == 0) ;
-   setcopy_typeadapterit(&typeimpl_ft, &test_copyfct, typeimplementor_t, implobject_t) ;
-   setfree_typeadapterit(&typeimpl_ft, &test_freefct, typeimplementor_t, implobject_t) ;
-   TEST(typeimpl_ft.copyobj == &test_copyfct) ;
-   TEST(typeimpl_ft.freeobj == &test_freefct) ;
 
    // TEST execcopy_typeadapteriot
    execcopy_typeadapteriot(&typeimpl_iot, (implobject_t**)12, (implobject_t*)13) ;

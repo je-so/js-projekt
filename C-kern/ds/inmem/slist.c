@@ -237,15 +237,17 @@ static int test_freecallback(typeadapter_t * typeimpl, test_node_t * node)
    return 0 ;
 }
 
+typedef struct testnode_typeadapt_it   testnode_typeadapt_it ;
+
+typeadapter_it_DECLARE(testnode_typeadapt_it, typeadapter_t, test_node_t)
+
 static int test_initfree(void)
 {
    slist_t         slist       = slist_INIT ;
-   typeadapter_it  typeadt_ft  = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft) ;
+   testnode_typeadapt_it
+                   typeadt_ft  = typeadapter_it_INIT(0, &test_freecallback) ;
+   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    test_node_t     nodes[100]  = { { 0, 0 } } ;
-
-   // prepare
-   setfree_typeadapterit(&typeadt_ft, &test_freecallback, typeadapter_t, test_node_t) ;
 
    // TEST static initializer
    TEST(0 == slist.last) ;
@@ -357,12 +359,12 @@ ABBRUCH:
 static int test_iterate(void)
 {
    slist_t         slist       = slist_INIT ;
-   typeadapter_it  typeadt_ft  = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft) ;
+   testnode_typeadapt_it
+                   typeadt_ft  = typeadapter_it_INIT(0, &test_freecallback) ;
+   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    test_node_t     nodes[100]  = { { 0, 0 } } ;
 
    // prepare
-   setfree_typeadapterit(&typeadt_ft, &test_freecallback, typeadapter_t, test_node_t) ;
    for(unsigned i = 0, idx = 3; i < nrelementsof(nodes); ++i, idx = (idx + 3) % nrelementsof(nodes)) {
       nodes[idx].next = &nodes[(idx + 3) % nrelementsof(nodes)] ;
    }
@@ -396,13 +398,13 @@ ABBRUCH:
 static int test_insertremove(void)
 {
    slist_t         slist       = slist_INIT ;
-   typeadapter_it  typeadt_ft  = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft) ;
+   testnode_typeadapt_it
+                   typeadt_ft  = typeadapter_it_INIT(0, &test_freecallback) ;
+   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    test_node_t     nodes[100]  = { { 0, 0 } } ;
    test_node_t     * node      = 0 ;
 
    // prepare
-   setfree_typeadapterit(&typeadt_ft, &test_freecallback, typeadapter_t, test_node_t) ;
    TEST(0 == init_slist(&slist)) ;
 
    // TEST insertfirst, removefirst single element
@@ -642,17 +644,19 @@ ABBRUCH:
    return EINVAL ;
 }
 
+typedef struct gnode_typeadapt_it      gnode_typeadapt_it ;
+
+typeadapter_it_DECLARE(gnode_typeadapt_it, typeadapter_t, gnode_t)
+
 static int test_generic(void)
 {
    slist1_t        slist1      = slist_INIT ;
    slist2_t        slist2      = slist_INIT ;
-   typeadapter_it  typeadt_ft  = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft) ;
+   gnode_typeadapt_it
+                   typeadt_ft  = typeadapter_it_INIT(0, &gnode_freecb) ;
+   typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    gnode_t         nodes[100]  = { { 0, 0, 0, 0, 0, 0 } } ;
    gnode_t         * node      = 0 ;
-
-   // prepare
-   setfree_typeadapterit(&typeadt_ft, &gnode_freecb, typeadapter_t, gnode_t) ;
 
    // TEST query
    init_slist1(&slist1) ;

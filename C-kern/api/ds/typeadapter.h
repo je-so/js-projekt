@@ -70,7 +70,7 @@ int unittest_ds_typeadapter(void) ;
  * The function table describing the interface to typeadapters.
  * If you change the interface of <typeadapter_it> to do not forget to adapt
  * <typeadapter_it_DECLARE> to the same signature. */
-struct typeadapter_it {
+struct typeadapter_it { /*!*/ union { struct {  // makes it compatible with <typeadapter_it_DECLARE>.
    /* variable: copyobj
     * Pointer function copying an object.
     * The called function makes a copy of *object* and returns it in *copiedobject*.
@@ -82,49 +82,22 @@ struct typeadapter_it {
     * Even in case of an error it is tried to free all remaining resources
     * and the object is marked as freed after return nonetheless. */
    int              (* freeobj) (typeadapter_t * typeimpl, struct generic_object_t * object) ;
-} ;
+} ; }; } ;
 
 // group: lifetime
 
 /* define: typeadapter_it_INIT_FREEABLE
  * Static initializer. Sets all functions pointers of <typeadapter_it> to 0. */
-#define typeadapter_it_INIT_FREEABLE   { 0, 0 }
+#define typeadapter_it_INIT_FREEABLE               { { { 0, 0 } } }
 
-/* define: typeadapter_it_INIT_FREEABLE
+/* define: typeadapter_it_INIT
  * Static initializer. Sets all functions pointers to the provided values.
  *
  * Parameters:
  * copyobj_f  - Function pointer to copy object function. See <typeadapter_it.copyobj>.
  * freeobj_f  - Function pointer to free object function. See <typeadapter_it.freeobj>.
  * */
-#define typeadapter_it_INIT(copyobj_f, freeobj_f) \
-      { (copyobj_f), (freeobj_f) }
-
-// group: set
-
-/* function: setcopy_typeadapterit
- * Set copy function in a generic way (implemented as macro).
- * The function member <typeadapter_it.copyobj> is set to parameter *copyobj*.
- * Before setting copyobj is checked to have signature
- * > int (* copyobj) (typeadapter_t *, object_t **, object_t *) ;
- * If it has the correct signature its signature its casted to that of <typeadapter_it.copyobj>.
- *
- * Typeparameter:
- * Parameter *typeadapter_t* and *object_t* are type names like *testnode_t*. Do
- * not any value just the type of the specialized typeadapter and the name of the object type. */
-void setcopy_typeadapterit(typeadapter_it * typeit, int (*copyobj)(void*), int typeadapter_t, int object_t) ;
-
-/* function: setfree_typeadapterit
- * Set free function in a generic way (implemented as macro).
- * The function member <typeadapter_it.freeobj> is set to parameter *freeobj*.
- * Before setting freeobj is checked to have signature
- * > int (* freeobj) (typeadapter_t *, object_t *) ;
- * If it has the correct signature its signature its casted to that of <typeadapter_it.freeobj>.
- *
- * Typeparameter:
- * Parameter *typeadapter_t* and *object_t* are type names like *testnode_t*. Do
- * not any value just the type of the specialized typeadapter and the name of the object type. */
-void setfree_typeadapterit(typeadapter_it * typeit, int (*freeobj)(void*), int typeadapter_t, int object_t) ;
+#define typeadapter_it_INIT(copyobj_f, freeobj_f)  { { { (copyobj_f), (freeobj_f) } } }
 
 // group: generic
 
@@ -139,10 +112,15 @@ void setfree_typeadapterit(typeadapter_it * typeit, int (*freeobj)(void*), int t
  * typeadapter_t - The adapter type which implements all interface functions.
  * object_t      - The object type for which typeadapter_t is implemented.
  * */
-#define typeadapter_it_DECLARE(declared_it, typeadapter_t, object_t)                                     \
-   struct declared_it {                                                                                  \
-      int (* copyobj) (typeadapter_t * typeimpl, /*out*/object_t ** copiedobject, object_t * object) ;   \
-      int (* freeobj) (typeadapter_t * typeimpl, object_t * object) ;                                    \
+#define typeadapter_it_DECLARE(declared_it, typeadapter_t, object_t)          \
+   __extension__ struct declared_it {                                         \
+      union {                                                                 \
+         struct {                                                             \
+            int (* copyobj) (typeadapter_t * typeimpl, /*out*/object_t ** copiedobject, object_t * object) ;   \
+            int (* freeobj) (typeadapter_t * typeimpl, object_t * object) ;   \
+         } ;                                                                  \
+         typeadapter_it generic ;                                             \
+      } ;                                                                     \
    } ;
 
 
@@ -154,16 +132,14 @@ void setfree_typeadapterit(typeadapter_it * typeit, int (*freeobj)(void*), int t
  *
  * This adapter provides a generic interface <typeadapter_it> to let data structures
  * adapt to different object types. */
-__extension__ struct typeadapter_iot {
-   union { struct {  // only there to make it compatible with <typeadapter_iot_DECLARE>.
+__extension__ struct typeadapter_iot { /*!*/ union { struct {  // makes it compatible with <typeadapter_iot_DECLARE>
    /* variable: object
     * The pointer to typeadapter's default implementation object <typeadapter_t>. */
    typeadapter_t        * object ;
    /* variable: iimpl
     * The pointer to typeadapter's interface <typeadapter_it>. */
    const typeadapter_it * iimpl ;
-   } ; } ;
-} ;
+} ; } ; } ;
 
 // group: lifetime
 
@@ -334,24 +310,6 @@ void asiot_typeadapter(typeadapter_t * tadapt, /*out*/typeadapter_iot * typeiot)
 /* define: iimpl_typeadapter
  * Implements <typeadapter_t.iimpl_typeadapter>. */
 #define iimpl_typeadapter()            (&g_typeadapter_iimpl)
-
-/* define: setcopy_typeadapterit
- * Implements <typeadapter_it.setcopy_typeadapterit>. */
-#define setcopy_typeadapterit(typeit, _copyobj, typeadapter_t, object_t)   \
-   do {                                                                    \
-      int (* _copyobj2) (typeadapter_t *, object_t **, object_t *) ;       \
-      _copyobj2 = _copyobj ;                                               \
-      (typeit)->copyobj = (typeof((typeit)->copyobj)) _copyobj2 ;          \
-   } while(0)
-
-/* define: setfree_typeadapterit
- * Implements <typeadapter_it.setfree_typeadapterit>. */
-#define setfree_typeadapterit(typeit, _freeobj,typeadapter_t, object_t)    \
-   do {                                                                    \
-      int (* _freeobj2) (typeadapter_t *, object_t *) ;                    \
-      _freeobj2 = _freeobj ;                                               \
-      (typeit)->freeobj = (typeof((typeit)->freeobj)) _freeobj2 ;          \
-   } while(0)
 
 
 #endif

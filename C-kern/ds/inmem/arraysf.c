@@ -646,18 +646,20 @@ static int test_freenodeerr(typeadapter_t * typeimpl, testnode_t * node)
 
 arraysf_IMPLEMENT(testnode_t, _tarraysf, node.pos)
 
+typedef struct testnode_typeadapt_it   testnode_typeadapt_it ;
+
+typeadapter_it_DECLARE(testnode_typeadapt_it, typeadapter_t, testnode_t)
+
 static int test_initfree(void)
 {
    const size_t    nrnodes    = 100000 ;
    vm_block_t      memblock   = vm_block_INIT_FREEABLE ;
    arraysf_t       * array    = 0 ;
-   typeadapter_it  typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot typeadt    = typeadapter_iot_INIT(0, &typeadt_ft) ;
+   testnode_typeadapt_it  typeadt_ft = typeadapter_it_INIT(&test_copynode, &test_freenode) ;
+   typeadapter_iot        typeadt    = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    testnode_t      * nodea ;
 
    // prepare
-   setfree_typeadapterit(&typeadt_ft, &test_freenode, typeadapter_t, testnode_t) ;
-   setcopy_typeadapterit(&typeadt_ft, &test_copynode, typeadapter_t, testnode_t) ;
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
    nodea = (testnode_t *) memblock.addr ;
 
@@ -997,8 +999,8 @@ static int test_error(void)
 {
    const size_t    nrnodes    = 100000 ;
    vm_block_t      memblock   = vm_block_INIT_FREEABLE ;
-   typeadapter_it  typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot typeadt    = typeadapter_iot_INIT(0, &typeadt_ft) ;
+   testnode_typeadapt_it  typeadt_ft = typeadapter_it_INIT_FREEABLE ;
+   typeadapter_iot        typeadt    = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    arraysf_t       * array    = 0 ;
    testnode_t      * nodea ;
    char            * logbuffer ;
@@ -1060,7 +1062,7 @@ static int test_error(void)
    TEST(0 == nodea[0].freecount) ;
 
    // TEST free memory error
-   setfree_typeadapterit(&typeadt_ft, &test_freenodeerr, typeadapter_t, testnode_t) ;
+   typeadt_ft.freeobj = &test_freenodeerr ;
    for(size_t pos = 0; pos < nrnodes; ++pos) {
       nodea[pos] = (testnode_t) { .node = arraysf_node_INIT(pos) } ;
       TEST(0 == tryinsert_tarraysf(array, &nodea[pos], 0, 0))
@@ -1180,15 +1182,13 @@ static int test_generic(void)
    vm_block_t     memblock    = vm_block_INIT_FREEABLE ;
    arraysf_t      * array     = 0 ;
    arraysf_t      * array2    = 0 ;
-   typeadapter_it  typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot typeadt    = typeadapter_iot_INIT(0, &typeadt_ft) ;
+   testnode_typeadapt_it   typeadt_ft = typeadapter_it_INIT(&test_copynode, &test_freenode) ;
+   typeadapter_iot         typeadt    = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    testnode_t     * nodea ;
    size_t         nextpos ;
 
 
    // prepare
-   setfree_typeadapterit(&typeadt_ft, &test_freenode, typeadapter_t, testnode_t) ;
-   setcopy_typeadapterit(&typeadt_ft, &test_copynode, typeadapter_t, testnode_t) ;
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
    nodea = (testnode_t *) memblock.addr ;
    TEST(0 == new_tarraysf(&array, arraysf_8BITROOT24)) ;

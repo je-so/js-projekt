@@ -909,7 +909,7 @@ static int test_initfree(void)
    arraystf_t        * array    = 0 ;
    testnode_typeadapter_it
                      typeadt_ft = typeadapter_it_INIT(&test_copynode, &test_freenode) ;
-   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, (typeadapter_it*) &typeadt_ft) ;
+   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    testnode_t        * nodea ;
 
    // prepare
@@ -1227,8 +1227,9 @@ static int test_error(void)
 {
    const size_t      nrnodes    = 10000 ;
    vm_block_t        memblock   = vm_block_INIT_FREEABLE ;
-   typeadapter_it    typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, &typeadt_ft) ;
+   testnode_typeadapter_it
+                     typeadt_ft = typeadapter_it_INIT_FREEABLE ;
+   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    arraystf_t        * array    = 0 ;
    testnode_t        * nodea ;
    char              * logbuffer ;
@@ -1293,7 +1294,7 @@ static int test_error(void)
    TEST(&nodea[0] == removed_node) ;
 
    // TEST free memory error
-   setfree_typeadapterit(&typeadt_ft, &test_freenodeerr, typeadapter_t, testnode_t) ;
+   typeadt_ft.freeobj = &test_freenodeerr ;
    for(size_t pos = 0; pos < nrnodes; ++pos) {
       nodea[pos] = (testnode_t) { .node = arraystf_node_INIT(2, nodea[pos].key), .key = { (uint8_t)(pos/256), (uint8_t)pos } } ;
       TEST(0 == tryinsert_arraytest(array, &nodea[pos], 0, 0))
