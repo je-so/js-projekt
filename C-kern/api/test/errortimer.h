@@ -35,7 +35,7 @@ typedef struct test_errortimer_t       test_errortimer_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_test_errortimer
  * Unittest for <test_errortimer_t>. */
-extern int unittest_test_errortimer(void) ;
+int unittest_test_errortimer(void) ;
 #endif
 
 /* struct: test_errortimer_t
@@ -63,21 +63,21 @@ struct test_errortimer_t {
  * timercount  - The number of times after <process_testerrortimer> returns an error.
  * errcode     - The errorcode <process_testerrortimer> returns in timer has fired.
  * */
-extern int init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t timercount, int errcode) ;
+int init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t timercount, int errcode) ;
 
 /* function: process_testerrortimer
  * Returns error if timer has elapsed else 0.
  * If <test_errortimer_t.timercount> is 0 the timer is disarmed, nothing is done and 0 is returned.
  * Else timercount is decremented.
  * <test_errortimer_t.errcode> is returned if timercount has reached zero else 0. */
-extern int process_testerrortimer(test_errortimer_t * errtimer) ;
+int process_testerrortimer(test_errortimer_t * errtimer) ;
 
 /* function: ONERROR_testerrortimer
  * No op if KONFIG_UNITTEST is not defined.
  * In case KONFIG_UNITTEST is defined it is implemented as macro.
  * This function calls <process_testerrortimer>(errtimer) sets the variable err
  * as a result of this call and jumps to ONERROR_LABEL in case of an error. */
-extern void ONERROR_testerrortimer(test_errortimer_t * errtimer, void ** ONERROR_LABEL) ;
+void ONERROR_testerrortimer(test_errortimer_t * errtimer, void ** ONERROR_LABEL) ;
 
 
 // section: inline implementations
@@ -93,7 +93,7 @@ extern void ONERROR_testerrortimer(test_errortimer_t * errtimer, void ** ONERROR
 
 /* define: process_testerrortimer
  * Implements <test_errortimer_t.process_testerrortimer>. */
-#define process_testerrortimer(/*test_errortimer_t * */errtimer)  \
+#define process_testerrortimer(errtimer)     \
    ( __extension__ ({                        \
       test_errortimer_t * _tm  = (errtimer); \
       int                 _err = 0 ;         \

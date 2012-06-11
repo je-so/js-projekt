@@ -1,1 +1,6 @@
-C-kern/memory/mm/mmtest.c:201: new_mmtestpage(): error: 12: Function aborted
+C-kern/memory/mm/mmtest.c:202: new_mmtestpage(): error: 12: Function aborted
+C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 71: Function aborted
+C-kern/memory/mm/mmtest.c:727: mfree_mmtest(): error: 1: Function aborted
+C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 80 bytes of memory
+C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/memory/mm/mmtest.c:727: mfree_mmtest(): error: 22: Function aborted

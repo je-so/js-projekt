@@ -29,6 +29,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/platform/virtmemory.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -433,7 +434,16 @@ static int mallocate_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t *
 
 // group: context
 
-int switchteston_mmtest()
+mmtest_t * mmcontext_mmtest(void)
+{
+   if (&s_mmtest_interface.generic != mmtransient_maincontext().iimpl) {
+      return 0 ;
+   }
+
+   return (mmtest_t*) mmtransient_maincontext().object ;
+}
+
+int switchon_mmtest()
 {
    int err ;
    mm_iot mmtest = mm_iot_INIT_FREEABLE ;
@@ -459,7 +469,7 @@ ABBRUCH:
    return err ;
 }
 
-int switchtestoff_mmtest()
+int switchoff_mmtest()
 {
    int err ;
 
@@ -505,6 +515,8 @@ int init_mmtest(/*out*/mmtest_t * mman)
 
    mman->mmpage        = mmpage ;
    mman->sizeallocated = 0 ;
+   mman->simulateResizeError = 0 ;
+   mman->simulateFreeError   = 0 ;
 
    return 0 ;
 ABBRUCH:
@@ -529,6 +541,8 @@ int free_mmtest(mmtest_t * mman)
       }
 
       mman->sizeallocated = 0 ;
+      mman->simulateResizeError = 0 ;
+      mman->simulateFreeError   = 0 ;
 
       if (err) goto ABBRUCH ;
    }
@@ -593,6 +607,18 @@ size_t sizeallocated_mmtest(mmtest_t * mman)
    return mman->sizeallocated ;
 }
 
+// group: simulation
+
+void setresizeerr_mmtest(mmtest_t * mman, struct test_errortimer_t * errtimer)
+{
+   mman->simulateResizeError = errtimer ;
+}
+
+void setfreeerr_mmtest(mmtest_t * mman, struct test_errortimer_t * errtimer)
+{
+   mman->simulateFreeError = errtimer ;
+}
+
 // group: allocate
 
 int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock)
@@ -601,7 +627,17 @@ int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock
 
    if (0 == newsize) {
       return mfree_mmtest(mman, memblock) ;
-   } else if (isfree_memblock(memblock)) {
+   }
+
+   if (mman->simulateResizeError) {
+      err = process_testerrortimer(mman->simulateResizeError) ;
+      if (err) {
+         mman->simulateResizeError = 0 ;
+         goto ABBRUCH ;
+      }
+   }
+
+   if (isfree_memblock(memblock)) {
       err = mallocate_mmtest(mman, newsize, memblock) ;
       if (err) goto ABBRUCH ;
    } else {
@@ -676,6 +712,14 @@ int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock)
          }
       }
 
+   }
+
+   if (mman->simulateFreeError) {
+      err = process_testerrortimer(mman->simulateFreeError) ;
+      if (err) {
+         mman->simulateFreeError = 0 ;
+         goto ABBRUCH ;
+      }
    }
 
    return 0 ;
@@ -859,17 +903,27 @@ static int test_initfree(void)
    // TEST static init
    TEST(0 == mmtest.mmpage) ;
    TEST(0 == mmtest.sizeallocated) ;
+   TEST(0 == mmtest.simulateResizeError) ;
+   TEST(0 == mmtest.simulateFreeError) ;
 
    // TEST init, double free
    mmtest.sizeallocated = 1 ;
+   mmtest.simulateResizeError = (void*) 1 ;
+   mmtest.simulateFreeError   = (void*) 1 ;
    TEST(0 == init_mmtest(&mmtest)) ;
    TEST(0 != mmtest.mmpage) ;
    TEST(0 == mmtest.sizeallocated) ;
+   TEST(0 == mmtest.simulateResizeError) ;
+   TEST(0 == mmtest.simulateFreeError) ;
    TEST(0 == mresize_mmtest(&mmtest, 1, &memblock)) ;
    TEST(1 == mmtest.sizeallocated) ;
+   mmtest.simulateResizeError = (void*) 1 ;
+   mmtest.simulateFreeError   = (void*) 1 ;
    TEST(0 == free_mmtest(&mmtest)) ;
    TEST(0 == mmtest.mmpage) ;
    TEST(0 == mmtest.sizeallocated) ;
+   TEST(0 == mmtest.simulateResizeError) ;
+   TEST(0 == mmtest.simulateFreeError) ;
    TEST(0 == free_mmtest(&mmtest)) ;
    TEST(0 == mmtest.mmpage) ;
    TEST(0 == mmtest.sizeallocated) ;
@@ -1057,6 +1111,54 @@ static int test_allocate(void)
    TEST(0 == mmtest.mmpage->next) ;
    TEST(1 == ispagefree_mmtestpage(mmtest.mmpage)) ;
 
+   // TEST setresizeerr_mmtest, setfreeeerr_mmtest
+   test_errortimer_t errtimer1 ;
+   test_errortimer_t errtimer2 ;
+   TEST(0 == init_testerrortimer(&errtimer1, 2, EPROTO)) ;
+   TEST(0 == init_testerrortimer(&errtimer2, 5, EPERM)) ;
+   TEST(0 == mmtest.simulateResizeError)
+   setresizeerr_mmtest(&mmtest, &errtimer1) ;
+   TEST(&errtimer1 == mmtest.simulateResizeError)
+   TEST(0 == mmtest.simulateFreeError)
+   setfreeerr_mmtest(&mmtest, &errtimer2) ;
+   TEST(&errtimer2 == mmtest.simulateFreeError)
+   static_assert(nrelementsof(memblocks) > 2, "") ;
+   memblocks[0] = (memblock_t) memblock_INIT_FREEABLE ;
+   TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[0])) ;
+   memblocks[1] = (memblock_t) memblock_INIT_FREEABLE ;
+   TEST(EPROTO == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[1])) ;
+   TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[1])) ;
+   for (unsigned i = 0; i < 2; ++i) {
+      TEST(0 == mfree_mmtest(&mmtest, &memblocks[0])) ;
+      TEST(0 == mfree_mmtest(&mmtest, &memblocks[1])) ;
+   }
+   TEST(EPERM == mfree_mmtest(&mmtest, &memblocks[0])) ;
+   TEST(0 == mfree_mmtest(&mmtest, &memblocks[1])) ;
+
+   // TEST setresizeerr_mmtest, setfreeeerr_mmtest: after firing pointer to timer are cleared
+   TEST(0 == init_testerrortimer(&errtimer1, 1, ENOMEM)) ;
+   TEST(0 == init_testerrortimer(&errtimer2, 1, EINVAL)) ;
+   TEST(0 == mmtest.simulateResizeError) ;
+   setresizeerr_mmtest(&mmtest, &errtimer1) ;
+   TEST(&errtimer1 == mmtest.simulateResizeError) ;
+   TEST(ENOMEM == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[0])) ;
+   TEST(0 == mmtest.simulateResizeError) ;
+   TEST(0 == mmtest.simulateFreeError)
+   setfreeerr_mmtest(&mmtest, &errtimer2) ;
+   TEST(&errtimer2 == mmtest.simulateFreeError)
+   TEST(EINVAL == mfree_mmtest(&mmtest, &memblocks[0])) ;
+   TEST(0 == mmtest.simulateFreeError)
+
+   // TEST setresizeerr_mmtest, setfreeeerr_mmtest: value 0 disarms error timer
+   TEST(0 == init_testerrortimer(&errtimer1, 1, ENOMEM)) ;
+   TEST(0 == init_testerrortimer(&errtimer2, 1, EINVAL)) ;
+   setresizeerr_mmtest(&mmtest, &errtimer1) ;
+   setfreeerr_mmtest(&mmtest, &errtimer2) ;
+   setresizeerr_mmtest(&mmtest, 0) ;
+   setfreeerr_mmtest(&mmtest, 0) ;
+   TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[0])) ;
+   TEST(0 == mfree_mmtest(&mmtest, &memblocks[0])) ;
+
    // unprepare
    TEST(0 == free_mmtest(&mmtest)) ;
 
@@ -1070,26 +1172,26 @@ static int test_context(void)
 {
    mm_iot oldmm = mmtransient_maincontext() ;
 
-   // TEST double call switchteston_mmtest
+   // TEST double call switchon_mmtest
    TEST(&s_mmtest_interface.generic != mmtransient_maincontext().iimpl) ;
-   TEST(0 == switchteston_mmtest()) ;
+   TEST(0 == switchon_mmtest()) ;
    TEST(&s_mmtest_interface.generic == mmtransient_maincontext().iimpl) ;
-   TEST(0 == switchteston_mmtest()) ;
+   TEST(0 == switchon_mmtest()) ;
    TEST(&s_mmtest_interface.generic == mmtransient_maincontext().iimpl) ;
 
-   // TEST double call switchtestoff_mmtest
+   // TEST double call switchoff_mmtest
    TEST(&s_mmtest_interface.generic == mmtransient_maincontext().iimpl) ;
-   TEST(0 == switchtestoff_mmtest()) ;
+   TEST(0 == switchoff_mmtest()) ;
    TEST(&s_mmtest_interface.generic != mmtransient_maincontext().iimpl) ;
    TEST(oldmm.object == mmtransient_maincontext().object) ;
    TEST(oldmm.iimpl  == mmtransient_maincontext().iimpl) ;
-   TEST(0 == switchtestoff_mmtest()) ;
+   TEST(0 == switchoff_mmtest()) ;
    TEST(oldmm.object == mmtransient_maincontext().object) ;
    TEST(oldmm.iimpl  == mmtransient_maincontext().iimpl) ;
 
    return 0 ;
 ABBRUCH:
-   switchtestoff_mmtest() ;
+   switchoff_mmtest() ;
    return EINVAL ;
 }
 

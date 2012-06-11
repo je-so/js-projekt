@@ -30,6 +30,7 @@
 // forward
 struct memblock_t ;
 struct mmtest_page_t ;
+struct test_errortimer_t ;
 
 /* typedef: struct mmtest_t
  * Exports <mmtest_t>. */
@@ -50,27 +51,35 @@ int unittest_memory_manager_test(void) ;
 /* struct: mmtest_t
  * Test memory manager for allocating/freeing transient memory. */
 struct mmtest_t {
-   struct mmtest_page_t * mmpage ;
-   size_t               sizeallocated ;
+   struct mmtest_page_t       * mmpage ;
+   size_t                     sizeallocated ;
+   struct test_errortimer_t   * simulateResizeError ;
+   struct test_errortimer_t   * simulateFreeError ;
 } ;
 
 // group: context
 
-/* function: switchteston_mmtest
- * Stores current memory manager of <threadcontext_t> and installs <mmtest_t>. */
-int switchteston_mmtest(void) ;
+/* function: mmcontext_mmtest
+ * Returns the installed <mmtest_t> memory manager or 0.
+ * If no memory amanger of type <mmtest_t> is installed by a call to <switchon_mmtest>
+ * the value 0 is returned. */
+mmtest_t * mmcontext_mmtest(void) ;
 
-/* function: switchtestoff_mmtest
+/* function: switchon_mmtest
+ * Stores current memory manager of <threadcontext_t> and installs <mmtest_t>. */
+int switchon_mmtest(void) ;
+
+/* function: switchoff_mmtest
  * Restores memory manager of <threadcontext_t>.
  * The test memory manager in use (<mmtest_t>) is freed and the memory manager in <threadcontext_t>
- * is restored to one which was in used before <switchteston_mmtest> was called. */
-int switchtestoff_mmtest(void) ;
+ * is restored to one which was in used before <switchon_mmtest> was called. */
+int switchoff_mmtest(void) ;
 
 // group: lifetime
 
 /* define: mmtest_INIT_FREEABLE
  * Static initializer. */
-#define mmtest_INIT_FREEABLE           { 0, 0 }
+#define mmtest_INIT_FREEABLE           { 0, 0, 0, 0 }
 
 /* function: init_mmtest
  * Initializes a new memory manager for transient memory. */
@@ -84,12 +93,12 @@ int free_mmtest(mmtest_t * mman) ;
 
 /* function: initiot_mmtest
  * Calls <init_mmtest> and wraps object into interface object <mm_iot>.
- * This function is called from <switchteston_mmtest>. */
+ * This function is called from <switchon_mmtest>. */
 int initiot_mmtest(/*out*/mm_iot * mmtest) ;
 
 /* function: freeiot_mmtest
  * Calls <free_mmtest> with object pointer from <mm_iot>.
- * This function is called from <switchtestoff_mmtest>. */
+ * This function is called from <switchoff_mmtest>. */
 int freeiot_mmtest(mm_iot * mmtest) ;
 
 // group: query
@@ -110,6 +119,24 @@ int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock
  * Frees the memory of an allocated memory block.
  * Test implementation replacement of <mfree_mmtransient>. */
 int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock) ;
+
+// group: simulation
+
+/* function: setresizeerr_mmtest
+ * Sets an error timer for <mresize_mmtest>.
+ * If *errtimer* is initialized with a timout of X > 0 the Xth call to
+ * <mresize_mmtest> returns the error value of <process_testerrortimer>.
+ * Only a reference is stored so do not delete *errtimer* until it has fired.
+ * After the timer has fired the reference is set to 0. */
+void setresizeerr_mmtest(mmtest_t * mman, struct test_errortimer_t * errtimer) ;
+
+/* function: setfreeerr_mmtest
+ * Sets an error timer for <mfree_mmtest>.
+ * If *errtimer* is initialized with a timout of X > 0 the Xth call to
+ * <mfree_mmtest> returns the error value of <process_testerrortimer>.
+ * Only a reference is stored so do not delete *errtimer* until it has fired.
+ * After the timer has fired the reference is set to 0. */
+void setfreeerr_mmtest(mmtest_t * mman, struct test_errortimer_t * errtimer) ;
 
 
 #endif
