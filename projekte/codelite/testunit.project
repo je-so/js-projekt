@@ -91,6 +91,7 @@
         <File Name="../../C-kern/api/math/int/abs.h"/>
         <File Name="../../C-kern/api/math/int/log10.h"/>
         <File Name="../../C-kern/api/math/int/sign.h"/>
+        <File Name="../../C-kern/api/math/int/bigint.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="hash">
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
@@ -286,9 +287,6 @@
       <File Name="../../coding-conventions/c_types.txt"/>
       <File Name="../../coding-conventions/context.txt"/>
       <File Name="../../coding-conventions/textresource.txt"/>
-      <VirtualDirectory Name="io">
-        <File Name="../../coding-conventions/io/websockets.txt"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="text.db">
       <File Name="../../C-kern/resource/text.db/signalconfig"/>
@@ -341,6 +339,7 @@
       <File Name="../../C-kern/math/int/abs.c"/>
       <File Name="../../C-kern/math/int/log10.c"/>
       <File Name="../../C-kern/math/int/sign.c"/>
+      <File Name="../../C-kern/math/int/bigint.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="hash">
       <File Name="../../C-kern/math/hash/sha1.c"/>

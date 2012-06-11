@@ -1,0 +1,43 @@
+C-kern/math/int/bigint.c:97: allocate_bigint(): error: 75: Function aborted
+C-kern/math/int/bigint.c:683: new_bigint(): error: 75: Function aborted
+C-kern/math/int/bigint.c:904: setfromdouble_bigint(): error: 22: Function input violates condition (isfinite(value))
+C-kern/math/int/bigint.c:961: setfromdouble_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:904: setfromdouble_bigint(): error: 22: Function input violates condition (isfinite(value))
+C-kern/math/int/bigint.c:961: setfromdouble_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:969: setbigfirst_bigint(): error: 22: Function input violates condition (sign != 0)
+C-kern/math/int/bigint.c:1014: setbigfirst_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1014: setbigfirst_bigint(): error: 75: Function aborted
+C-kern/math/int/bigint.c:1022: setlittlefirst_bigint(): error: 22: Function input violates condition (sign != 0)
+C-kern/math/int/bigint.c:1064: setlittlefirst_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1064: setlittlefirst_bigint(): error: 75: Function aborted
+C-kern/math/int/bigint.c:97: allocate_bigint(): error: 75: Function aborted
+C-kern/math/int/bigint.c:1168: multui32_bigint(): error: 75: Function aborted
+C-kern/math/int/bigint.c:97: allocate_bigint(): error: 75: Function aborted
+C-kern/math/int/bigint.c:1351: mult_bigint(): error: 75: Function aborted
+C-kern/math/int/bigint.c:1351: mult_bigint(): error: 75: Function aborted
+C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 608 bytes of memory
+C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/math/int/bigint.c:97: allocate_bigint(): error: 12: Function aborted
+C-kern/math/int/bigint.c:683: new_bigint(): error: 12: Function aborted
+C-kern/math/int/bigint.c:473: split_biginthelper(): error: 12: Function aborted
+C-kern/math/int/bigint.c:1351: mult_bigint(): error: 12: Function aborted
+C-kern/memory/mm/mmtest.c:727: mfree_mmtest(): error: 71: Function aborted
+C-kern/math/int/bigint.c:724: delete_bigint(): error: 71: Freeing a resource returned an error
+C-kern/math/int/bigint.c:1351: mult_bigint(): error: 71: Function aborted
+C-kern/math/int/bigint.c:1351: mult_bigint(): error: 71: Function aborted
+C-kern/math/int/bigint.c:1364: divmodui32_bigint(): error: 22: Function input violates condition (false == is_divisor_zero)
+C-kern/math/int/bigint.c:1444: divmodui32_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1364: divmodui32_bigint(): error: 22: Function input violates condition (false == is_divisor_zero)
+C-kern/math/int/bigint.c:1444: divmodui32_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1461: divmod_bigint(): error: 22: Function input violates condition (false == is_divisor_zero)
+C-kern/math/int/bigint.c:1594: divmod_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1461: divmod_bigint(): error: 22: Function input violates condition (false == is_divisor_zero)
+C-kern/math/int/bigint.c:1594: divmod_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1364: divmodui32_bigint(): error: 22: Function input violates condition (false == is_divisor_zero)
+C-kern/math/int/bigint.c:1444: divmodui32_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1364: divmodui32_bigint(): error: 22: Function input violates condition (false == is_divisor_zero)
+C-kern/math/int/bigint.c:1444: divmodui32_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1461: divmod_bigint(): error: 22: Function input violates condition (false == is_divisor_zero)
+C-kern/math/int/bigint.c:1594: divmod_bigint(): error: 22: Function aborted
+C-kern/math/int/bigint.c:1461: divmod_bigint(): error: 22: Function input violates condition (false == is_divisor_zero)
+C-kern/math/int/bigint.c:1594: divmod_bigint(): error: 22: Function aborted
