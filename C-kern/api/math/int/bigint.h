@@ -30,6 +30,10 @@
  * Export <bigint_t> - arbitrary precision integer. */
 typedef struct bigint_t                bigint_t ;
 
+/* typedef: struct bigint_fixed_t
+ * Export <bigint_fixed_t> - fixed precision integer. */
+typedef struct bigint_fixed_t          bigint_fixed_t ;
+
 
 // section: Functions
 
@@ -82,7 +86,7 @@ struct bigint_t {
  * Allocates a new big integer object.
  * The new big integer has at least 128 bits (4 digits) or nrdigits which one is higher.
  * The big integer value is initialized to zero.
- * The maximum supported value of nrdigits is 0x7FFF. */
+ * The maximum supported value of nrdigits can be obtained with a call to <nrdigitsmax_bigint>. */
 int new_bigint(/*out*/bigint_t ** big, uint16_t nrdigits) ;
 
 /* function: newcopy_bigint
@@ -128,11 +132,20 @@ unsigned bitsperdigit_bigint(void) ;
  * If the number is 0 then the exponent must also be 0. */
 uint16_t exponent_bigint(bigint_t * big) ;
 
+/* function: firstdigit_bigint
+ * Returns most significant digit of the number.
+ * If *big* is zero the returned value is 0 else it is always number greater zero. */
+uint32_t firstdigit_bigint(bigint_t * big) ;
+
 /* function: nrdigits_bigint
- * Returns the number of sotgred digits (32 bit words) of the big integer.
+ * Returns the number of stored digits (32 bit words) of the big integer.
  * The value of a single digit is determined by
  * > digit[digit_pos] << (32 * (digit_pos + exponent_bigint(big))) */
 uint16_t nrdigits_bigint(bigint_t * big) ;
+
+/* function: nrdigitsmax_bigint
+ * Returns the maximum number of supported digits stored in a big integer. */
+uint16_t nrdigitsmax_bigint(void) ;
 
 /* function: size_bigint
  * Returns the sum of <exponent_bigint> and <nrdigits_bigint>.
@@ -141,12 +154,7 @@ uint16_t nrdigits_bigint(bigint_t * big) ;
 uint32_t size_bigint(bigint_t * big) ;
 
 /* function: sign_bigint
- * Returns -1,0 or +1 if either big is negative, zero or positive.
- *
- * Returns:
- * -1 - big is a negative number
- * 0  - big is zero
- * +1 - big is a positive number bigger than 0 */
+ * Returns -1, 0 or +1 if big is negative, zero or positive. */
 int sign_bigint(bigint_t * big) ;
 
 /* function: todouble_bigint
@@ -166,11 +174,11 @@ double todouble_bigint(bigint_t * big) ;
 
 // group: assign
 
-/* function: setfromint32_bigint
+/* function: copy_bigint
  * Copies the value from *copyfrom* to *big*.
  * If *big* is not big enough it is reallocated. In case the reallocation
  * fails ENOMEM is returned. */
-int copy_bigint(/*inout*/bigint_t ** big, const bigint_t * copyfrom) ;
+int copy_bigint(bigint_t *restrict* big, const bigint_t * restrict copyfrom) ;
 
 /* function: setfromint32_bigint
  * Sets the value of big to the value of the provided parameter. */
@@ -196,7 +204,7 @@ int setfromdouble_bigint(bigint_t * big, double value) ;
  * If parameter exponent is set to a value > 0 it is considered the number of trailing zero digits
  * which are not explicitly stored in the *numbers* array.
  * The parameter sign should be set to either +1 or -1. */
-int setbigfirst_bigint(/*inout*/bigint_t ** big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent) ;
+int setbigfirst_bigint(bigint_t * restrict * big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent) ;
 
 /* function: setlittlefirst_bigint
  * Sets the value of big integer from an array of integers.
@@ -205,12 +213,12 @@ int setbigfirst_bigint(/*inout*/bigint_t ** big, int sign, uint16_t size, const 
  * If parameter exponent is set to a value > 0 it is considered the number of trailing zero digits
  * which are not explicitly stored in the *numbers* array.
  * The parameter sign should be set to either +1 or -1. */
-int setlittlefirst_bigint(/*inout*/bigint_t ** big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent) ;
+int setlittlefirst_bigint(bigint_t * restrict * big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent) ;
 
-// group: signops
+// group: unary operations
 
 /* function: negate_bigint
- * Inverts the sign of th number.
+ * Inverts the sign of the number.
  * A positive signed number becomes negative. A negative one positive and zero keeps zero. */
 void negate_bigint(bigint_t * big) ;
 
@@ -224,52 +232,107 @@ void setnegative_bigint(bigint_t * big) ;
  * If the sign is already positive nothing is changed. */
 void setpositive_bigint(bigint_t * big) ;
 
-// group: operations
+// group: binary operations
+
+/* function: shiftleft_bigint
+ * Multiplies the number by pow(2, *shift_count*).
+ * Shifting one position left is the same as multiplying by two.
+ * If *shift_count* is a multiple of <bitsperdigit_bigint> then only
+ * <bigint_t.exponent> is incremented.
+ * If the exponent overflows EOVERFLOW is returned. */
+int shiftleft_bigint(bigint_t *restrict* result, uint32_t shift_count) ;
+
+// group: ternary operations
 
 /* function: add_bigint
  * Adds the last two parameters and returns the sum in the first.
  * See <bigint_t> for a discussion of the *result* parameter. */
-int add_bigint(/*inout*/bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig) ;
+int add_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig) ;
 
 /* function: sub_bigint
  * Subtracts the third from the 2nd parameter and returns the difference in the first.
  * See <bigint_t> for a discussion of the *result* parameter. */
-int sub_bigint(/*inout*/bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig) ;
-
-/* function: multui32_bigint
- * Multiplies the big integer with a 32 bit unsigned int.
- * See <bigint_t> for a discussion of the *result* parameter. */
-int multui32_bigint(/*inout*/bigint_t ** result, const bigint_t * lbig, const uint32_t factor) ;
-
-/* function: mult_bigint
- * Multiplies two big integers and returns the result.
- * See <bigint_t> for a discussion of the *result* parameter. */
-int mult_bigint(/*inout*/bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig) ;
-
-/* function: div_bigint
- * Divides lbig by divisor of type uint32_t.
- * See <bigint_t> for a discussion of the *result* parameter. */
-int divui32_bigint(/*inout*/bigint_t ** result, const bigint_t * lbig, const uint32_t divisor) ;
-
-/* function: divmodui32_bigint
- * Divides lbig by divisor of type uint32_t and computes modulo.
- * See <bigint_t> for a discussion of the *result* parameter. */
-int divmodui32_bigint(/*inout*/bigint_t ** divresult, /*inout*/bigint_t ** modresult, const bigint_t * lbig, const uint32_t divisor) ;
+int sub_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig) ;
 
 /* function: div_bigint
  * Divides dividend lbig by divisor rbig.
  * See <bigint_t> for a discussion of the *result* parameter. */
-int div_bigint(/*inout*/bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig) ;
-
-/* function: mod_bigint
- * Computes lbig modulo rbig.
- * See <bigint_t> for a discussion of the *result* parameter. */
-int mod_bigint(/*inout*/bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig) ;
+int div_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig) ;
 
 /* function: divmod_bigint
  * Divides lbig by rbig and computes lbig modulo rbig.
  * See <bigint_t> for a discussion of the *result* parameter. */
-int divmod_bigint(/*inout*/bigint_t ** divresult, /*inout*/bigint_t ** modresult, const bigint_t * lbig, const bigint_t * rbig) ;
+int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, const bigint_t * lbig, const bigint_t * rbig) ;
+
+/* function: divmodui32_bigint
+ * Divides lbig by divisor of type uint32_t and computes modulo.
+ * See <bigint_t> for a discussion of the *result* parameter. */
+int divmodui32_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, const bigint_t * lbig, const uint32_t divisor) ;
+
+/* function: div_bigint
+ * Divides lbig by divisor of type uint32_t.
+ * See <bigint_t> for a discussion of the *result* parameter. */
+int divui32_bigint(bigint_t *restrict* result, const bigint_t * lbig, const uint32_t divisor) ;
+
+/* function: mod_bigint
+ * Computes lbig modulo rbig.
+ * See <bigint_t> for a discussion of the *result* parameter. */
+int mod_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig) ;
+
+/* function: mult_bigint
+ * Multiplies two big integers and returns the result.
+ * See <bigint_t> for a discussion of the *result* parameter. */
+int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig) ;
+
+/* function: multui32_bigint
+ * Multiplies the big integer with a 32 bit unsigned int.
+ * See <bigint_t> for a discussion of the *result* parameter. */
+int multui32_bigint(bigint_t *restrict* result, const bigint_t * lbig, const uint32_t factor) ;
+
+
+/* struct: bigint_fixed_t
+ * Same as <bigint_t> with a fixed size.
+ * Use this type for static storage and initialization.
+ * Use <bigint_fixed_DECLARE> to declare a <bigint_t> type of fixed size. */
+struct bigint_fixed_t ;
+
+// group: lifetime
+
+/* define: bigint_fixed_INIT
+ * Initializes a static object of type <bigint_fixed_t>.
+ *
+ * Parameters:
+ * nrdigits - The magnitude of nrdigits gives the number of 32 bit digits of the whole number.
+ *            The sign of nrdigits is the sign of of the big integer value.
+ * exponent - The exponent of type uint16_t whose value describes the number of trailing zero digits
+ *            which are not stored explicitly in the big integer.
+ * ...      - A list of 32-bit digits with nrdigits elements. The least significant digit comes first.
+ *            The last digit is the most significant one.
+ *
+ * Example:
+ * > static bigint_fixed_DECLARE(4) s_bigint4 =
+ * >        bigint_fixed_INIT(-4, 0, 1, 2, 3, 4 } ;
+ * This example defines a 128 bit integer with the value -0x00000004000000030000000200000001.
+ * */
+#define bigint_fixed_INIT(nrdigits, exponent, ...)   \
+   { 0, nrdigits, exponent, { __VA_ARGS__ } }
+
+// group: generic
+
+/* define: bigint_fixed_DECLARE
+ * Declares type <bigint_fixedNR_t>.
+ * Replace NR with the value of the parameter *nrdigits*.
+ * Use the declared type to reserve and initilize static storage
+ * for objects of type <bigint_t>. The parameter *nrdigits* gives the
+ * number of preallocated digits. */
+#define bigint_fixed_DECLARE(nrdigits)                \
+   struct CONCAT(CONCAT(bigint_fixed, nrdigits),_t){  \
+      uint16_t    allocated_digits ;                  \
+      int16_t     sign_and_used_digits ;              \
+      uint16_t    exponent ;                          \
+      uint32_t    digits[nrdigits>=4?nrdigits:-1] ;   \
+   }
+
 
 // section: inline implementation
 
@@ -289,17 +352,25 @@ int divmod_bigint(/*inout*/bigint_t ** divresult, /*inout*/bigint_t ** modresult
  * Implements <bigint_t.exponent_bigint>. */
 #define exponent_bigint(big)           ((big)->exponent)
 
+/* define: firstdigit_bigint
+ * Implements <bigint_t.firstdigit_bigint>. */
+#define firstdigit_bigint(big)         ((big)->sign_and_used_digits ? big->digits[nrdigits_bigint(big)-1] : 0)
+
 /* define: mod_bigint
  * Implements <bigint_t.mod_bigint>. */
 #define mod_bigint(result, lbig, rbig) (divmod_bigint(0, result, lbig, rbig))
+
+/* define: negate_bigint
+ * Implements <bigint_t.negate_bigint>. */
+#define negate_bigint(big)             do { (big)->sign_and_used_digits = (int16_t) ( - (big)->sign_and_used_digits) ; } while (0)
 
 /* define: nrdigits_bigint
  * Implements <bigint_t.nrdigits_bigint>. */
 #define nrdigits_bigint(big)           ((uint16_t)( (big)->sign_and_used_digits < 0 ? - (big)->sign_and_used_digits : (big)->sign_and_used_digits ))
 
-/* define: negate_bigint
- * Implements <bigint_t.negate_bigint>. */
-#define negate_bigint(big)             do { (big)->sign_and_used_digits = (int16_t) ( - (big)->sign_and_used_digits) ; } while (0)
+/* define: nrdigitsmax_bigint
+ * Implements <bigint_t.nrdigitsmax_bigint>. */
+#define nrdigitsmax_bigint()           (0x7fff)
 
 /* define: setnegative_bigint
  * Implements <bigint_t.setnegative_bigint>. */
@@ -315,7 +386,7 @@ int divmod_bigint(/*inout*/bigint_t ** divresult, /*inout*/bigint_t ** modresult
 
 /* define: size_bigint
  * Implements <bigint_t.size_bigint>. */
-#define size_bigint(big)               ((uint32_t)exponent_bigint(big) + nrdigits_bigint(big))
+#define size_bigint(big)               ((uint32_t)exponent_bigint(big) + (uint32_t)nrdigits_bigint(big))
 
 
 #endif

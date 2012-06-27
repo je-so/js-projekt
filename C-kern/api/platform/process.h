@@ -82,14 +82,14 @@ typedef enum process_state_e        process_state_e ;
  *                   Points to character buffer of size namebuffer_size.
  * name_size       - Is set to the size of the name including the trailing \0 byte.
  *                   If this pointer is not NULL nothing is returned. */
-extern int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size) ;
+int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size) ;
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_process
  * Unittest for pagecache module. */
-extern int unittest_platform_process(void) ;
+int unittest_platform_process(void) ;
 #endif
 
 
@@ -106,6 +106,7 @@ struct process_result_t
     * Either process_state_TERMINATED or process_state_ABORTED. */
    process_state_e   state ;
 } ;
+
 
 /* struct: process_ioredirect_t
  * The process standard file redirections.
@@ -163,7 +164,7 @@ void setstderr_processioredirect(process_ioredirect_t * ioredirect, filedescr_t 
 
 /* function: init_process
  * Creates child process which executes a function. */
-extern int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
+int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
 
 /* function: initexec_process
  * Executes another program with same environment.
@@ -174,14 +175,14 @@ extern int init_process(/*out*/process_t * process, process_task_f child_main, v
  * that represent the argument list available to the new program.
  * The first argument should point to the filename associated with the file being executed.
  * It must be terminated by a NULL pointer. */
-extern int initexec_process(/*out*/process_t * process, const char * filename, const char * const * arguments, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
+int initexec_process(/*out*/process_t * process, const char * filename, const char * const * arguments, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
 
 /* function: free_process
  * Frees resource associated with a process.
  * If a process is running it is killed.
  * So call <wait_process> before to ensure the process has finished properly.
  * ECHILD is returned if process does no longer exist. */
-extern int free_process(process_t * process) ;
+int free_process(process_t * process) ;
 
 // group: query
 
@@ -191,7 +192,7 @@ extern int free_process(process_t * process) ;
  * Returns:
  * 0      - Out parameter current_state is set to current state.
  * ECHILD - Process does no longer exist. */
-extern int state_process(process_t * process, /*out*/process_state_e * current_state) ;
+int state_process(process_t * process, /*out*/process_state_e * current_state) ;
 
 // group: change
 
@@ -199,7 +200,7 @@ extern int state_process(process_t * process, /*out*/process_state_e * current_s
  * Waits until process has terminated.
  * If the process changes into stopped state it will be continued until it terminates.
  * Calling the function more than once always returns the same result. */
-extern int wait_process(process_t * process, /*out*/process_result_t * result) ;
+int wait_process(process_t * process, /*out*/process_result_t * result) ;
 
 
 // section: inline implementation

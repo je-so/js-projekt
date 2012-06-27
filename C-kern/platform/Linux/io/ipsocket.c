@@ -1146,7 +1146,7 @@ static int test_buffersize(void)
          TEST(size == buffer_size - writecount) ;
       }
 
-      // TEST after read write queue is empty
+      // TEST after 2nd/3rd read write queue is empty
       {
          TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes)) ;
          TEST(0 <  unread_bytes) ;
@@ -1155,22 +1155,29 @@ static int test_buffersize(void)
          TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
          TEST(unread_bytes == size) ;
          size_t readcount = size ;
+         TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
+         TEST(0 <  unread_bytes) ;
+         TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
+         TEST(unread_bytes == size) ;
+         readcount += size ;  // 2nd
          for(int si = 0; si < 100; ++si) {
-            TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
-            if(!unsend_bytes) break ;
+            TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
+            if (! unsend_bytes) break ;
             sleepms_thread(1) ;
          }
          // check write queue is empty
          TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
          TEST(0 == unsend_bytes) ;
-         // check second read transfers all data
+         // check 3rd read transfers all data
          TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
-         TEST(0 <  unread_bytes) ;
-         TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
-         TEST(unread_bytes == size) ;
-         TEST(size == buffer_size - readcount) ;
+         if (unread_bytes) {
+            TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
+            TEST(unread_bytes == size) ;
+            readcount += size ;
+         }
+         TEST(buffer_size == readcount) ;
          // check read queue empty
-         TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
+         TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes)) ;
          TEST(0 == unread_bytes) ;
       }
 

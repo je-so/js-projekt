@@ -63,7 +63,7 @@ static inline uint32_t objectsize_bigint(uint16_t allocated_digits)
    return (uint32_t) (sizeof(bigint_t) + sizeof(((bigint_t*)0)->digits[0]) * allocated_digits) ;
 }
 
-static int allocate_bigint(bigint_t ** big, uint32_t allocate_digits)
+static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
 {
    int err ;
 
@@ -79,6 +79,14 @@ static int allocate_bigint(bigint_t ** big, uint32_t allocate_digits)
 
    bigint_t * oldbig   = *big ;
    uint32_t oldobjsize = oldbig ? objectsize_bigint(oldbig->allocated_digits) : 0 ;
+
+   if (  oldbig
+      && !oldbig->allocated_digits) {
+      // bigint_fixed_t can not be reallocated
+      err = EINVAL ;
+      goto ABBRUCH ;
+   }
+
    uint32_t newobjsize = objectsize_bigint((uint16_t)allocate_digits) ;
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)oldbig) ;
 
@@ -104,7 +112,7 @@ ABBRUCH:
  * Precondition:
  * lbig must have same sign as rbig and they both must be != 0.
  * Sign of lbig is used to determine the sign of the result. */
-static int add_biginthelper(bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig)
+static int add_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
 
@@ -179,7 +187,7 @@ ABBRUCH:
  * Precondition:
  * lbig must have different sign as rbig and they both must be != 0.
  * Sign of lbig is used to determine the sign of the result. */
-static int sub_biginthelper(bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig)
+static int sub_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
 
@@ -354,7 +362,7 @@ ABBRUCH:
  *
  * Preconditions:
  * 1. The sum of boths exponents <bigint_t.exponent> of minbig and maxbig must be lower
- *    or equal to 0xFFFF.
+ *    or equal to UINT16_MAX.
  * 2. The sum of <nrdigits_bigint> of minbig and maxbig must be lower
  *    or equal to 0x7FFF.
  * 3. The preallocated size of big must be equal or bigger than
@@ -474,7 +482,7 @@ ABBRUCH:
    return err ;
 }
 
-static int divisorisbigger_biginthelper(bigint_t ** divresult, bigint_t ** modresult, const bigint_t * lbig)
+static int divisorisbigger_biginthelper(bigint_t *restrict* divresult, bigint_t *restrict* modresult, const bigint_t * lbig)
 {
    int err ;
 
@@ -607,6 +615,12 @@ static uint32_t estimatedigit3_biginthelper(const uint64_t dividend, const uint3
  *
  * The corrected estimated_digit is returned as return value.
  *
+ * The parameter *diff_has_carry* is used to communicate the following:
+ * true  - The number *estimated_digit* is constructed from 3 digits from diff. The number *diff* has
+ *         one more digit to the left than *divisor* shifted left by *leftshift*.
+ * false - The number *estimated_digit* is constructed from 2 digits from diff. The number *diff* has
+ *         the same number of digits than *divisor* shifted left by *leftshift*.
+ *
  * Preconditions:
  * 1. The big integer diff must have an exponent value which is 0.
  * 2. The shifted divisor (multiplying it with pow(base, leftshift)) must be lower
@@ -615,11 +629,8 @@ static uint32_t estimatedigit3_biginthelper(const uint64_t dividend, const uint3
  * 4. (*estimated_digit - 1) * divisor * pow(base,leftshit) < diff
  * 5. diff must have an extra digit set to 0 for carry overflow
  * */
-static uint32_t submul_biginthelper(bigint_t * diff, uint32_t estimated_digit, const uint32_t leftshift, const uint16_t divnrdigits, const bigint_t * divisor)
+static uint32_t submul_biginthelper(bigint_t * diff, const bool diff_has_carry, uint32_t estimated_digit, const uint32_t leftshift, const uint16_t divnrdigits, const bigint_t * divisor)
 {
-   // TODO write test function and test of possible overflow !!
-   // (cause carry of product and difference is in the same word)
-
    uint16_t diffoffset   = (uint16_t) (leftshift + divisor->exponent) ;
 
    uint32_t factor = estimated_digit ;
@@ -641,8 +652,12 @@ static uint32_t submul_biginthelper(bigint_t * diff, uint32_t estimated_digit, c
 
    if (carry) {
 
-      bool needCorrection = (diff->digits[diffoffset + divnrdigits] < carry) ;
-      diff->digits[diffoffset + divnrdigits] -= carry ;
+      bool needCorrection = !diff_has_carry ;
+
+      if (!needCorrection) {
+         needCorrection = (diff->digits[diffoffset + divnrdigits] < carry) ;
+         diff->digits[diffoffset + divnrdigits] -= carry ;
+      }
 
       if (needCorrection) {
          -- factor ;
@@ -658,7 +673,9 @@ static uint32_t submul_biginthelper(bigint_t * diff, uint32_t estimated_digit, c
             carry  = (sum > UINT32_MAX) ;
          }
 
-         diff->digits[diffoffset + divnrdigits] += carry ;
+         if (diff_has_carry) {
+            diff->digits[diffoffset + divnrdigits] += carry ;
+         }
       }
    }
 
@@ -837,7 +854,7 @@ double todouble_bigint(bigint_t * big)
 
 // group: assign
 
-int copy_bigint(bigint_t ** big, const bigint_t * copyfrom)
+int copy_bigint(bigint_t *restrict* big, const bigint_t * restrict copyfrom)
 {
    int err ;
    bigint_t    * copy = *big ;
@@ -931,7 +948,7 @@ int setfromdouble_bigint(bigint_t * big, double value)
 
          iscale -= 64 ;
 
-         if (iscale > (0xffff*32)) {
+         if (iscale > (UINT16_MAX*32)) {
             err = EOVERFLOW ;
             goto ABBRUCH ;
          }
@@ -962,7 +979,7 @@ ABBRUCH:
    return err ;
 }
 
-int setbigfirst_bigint(bigint_t ** big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent)
+int setbigfirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent)
 {
    int err ;
 
@@ -982,7 +999,7 @@ int setbigfirst_bigint(bigint_t ** big, int sign, uint16_t size, const uint32_t 
       return 0 ;
    }
 
-   if (expo2 > 0xFFFF) {
+   if (expo2 > UINT16_MAX) {
       err = EOVERFLOW ;
       goto ABBRUCH ;
    }
@@ -1015,7 +1032,7 @@ ABBRUCH:
    return err ;
 }
 
-int setlittlefirst_bigint(bigint_t ** big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent)
+int setlittlefirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent)
 {
    int err ;
 
@@ -1042,7 +1059,7 @@ int setlittlefirst_bigint(bigint_t ** big, int sign, uint16_t size, const uint32
       -- size2 ;
    }
 
-   if (expo2 > 0xFFFF) {
+   if (expo2 > UINT16_MAX) {
       err = EOVERFLOW ;
       goto ABBRUCH ;
    }
@@ -1065,9 +1082,66 @@ ABBRUCH:
    return err ;
 }
 
-// group: operations
+// group: 1 or 2 address operations
 
-int add_bigint(bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig)
+int shiftleft_bigint(bigint_t *restrict* result, uint32_t shift_count)
+{
+   int err ;
+   const uint16_t nrdigits    = nrdigits_bigint(*result) ;
+   const uint32_t incr_expont = shift_count / 32 ;
+   const uint32_t digit_shift = shift_count % 32 ;
+
+   // Do not change 0 values
+   if (0 == nrdigits) return 0 ;
+
+   // calculate new exponent
+   uint32_t new_exponent = incr_expont + (*result)->exponent ;
+
+   if (new_exponent > UINT16_MAX) {
+      err = EOVERFLOW ;
+      goto ABBRUCH ;
+   }
+
+   // shift the whole number
+   if (digit_shift) {
+      const uint32_t maxdigit          = (*result)->digits[nrdigits-1] ;
+      const uint64_t shifted_maxdigit  = ((uint64_t)maxdigit) << digit_shift ;
+      const uint32_t overflow_maxdigit = (uint32_t) (shifted_maxdigit >> 32) ;
+
+      if (overflow_maxdigit) {
+         uint32_t size = 1 + (uint32_t)nrdigits ;
+         if ((*result)->allocated_digits < size) {
+            err = allocate_bigint(result, size) ;
+            if (err) goto ABBRUCH ;
+         }
+
+         (*result)->digits[nrdigits] = overflow_maxdigit ;
+         (*result)->sign_and_used_digits = (int16_t) ((*result)->sign_and_used_digits < 0 ? - size : size) ;
+      }
+
+      uint32_t digit          = (*result)->digits[0] ;
+      uint64_t shifted_digit  = ((uint64_t)digit << digit_shift) ;
+      (*result)->digits[0]    = (uint32_t) shifted_digit ;
+
+      for (uint16_t i = 1; i < nrdigits; ++i) {
+         uint32_t overflow_digit = (uint32_t) (shifted_digit >> 32) ;
+         digit         = (*result)->digits[i] ;
+         shifted_digit = ((uint64_t)digit << digit_shift) | overflow_digit ;
+         (*result)->digits[i] = (uint32_t) shifted_digit ;
+      }
+   }
+
+   (*result)->exponent = (uint16_t) new_exponent ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+// group: 3 address operations
+
+int add_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
    int ls = sign_bigint(lbig) ;
@@ -1095,7 +1169,7 @@ ABBRUCH:
    return err ;
 }
 
-int sub_bigint(bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig)
+int sub_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
    int ls = sign_bigint(lbig) ;
@@ -1124,7 +1198,7 @@ ABBRUCH:
    return err ;
 }
 
-int multui32_bigint(bigint_t ** result, const bigint_t * lbig, const uint32_t factor)
+int multui32_bigint(bigint_t *restrict* result, const bigint_t * lbig, const uint32_t factor)
 {
    int err ;
 
@@ -1169,7 +1243,7 @@ ABBRUCH:
    return err ;
 }
 
-int mult_bigint(bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig)
+int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
 
@@ -1188,7 +1262,7 @@ int mult_bigint(bigint_t ** result, const bigint_t * lbig, const bigint_t * rbig
    const bigint_t * minbig ;
    const bigint_t * maxbig ;
 
-   if (exponent > 0xFFFF) {
+   if (exponent > UINT16_MAX) {
       err = EOVERFLOW ;
       goto ABBRUCH ;
    }
@@ -1352,7 +1426,7 @@ ABBRUCH:
    return err ;
 }
 
-int divmodui32_bigint(bigint_t ** divresult, bigint_t ** modresult, const bigint_t * lbig, const uint32_t divisor)
+int divmodui32_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, const bigint_t * lbig, const uint32_t divisor)
 {
    int err ;
 
@@ -1369,13 +1443,13 @@ int divmodui32_bigint(bigint_t ** divresult, bigint_t ** modresult, const bigint
       -- lnrdigits ;
    }
 
-   if (0 == lnrdigits) {
+   uint32_t size  = (uint32_t) lnrdigits + exponent ;
+
+   if (0 == size) {
       err = divisorisbigger_biginthelper(divresult, modresult, lbig) ;
       if (err) goto ABBRUCH ;
       return 0 ;
    }
-
-   uint32_t size  = (uint32_t) lnrdigits + exponent ;
 
    if (divresult) {
 
@@ -1445,7 +1519,7 @@ ABBRUCH:
    return err ;
 }
 
-int divmod_bigint(bigint_t ** divresult, bigint_t ** modresult, const bigint_t * lbig, const bigint_t * rbig)
+int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
 
@@ -1480,13 +1554,12 @@ int divmod_bigint(bigint_t ** divresult, bigint_t ** modresult, const bigint_t *
 
    // (lsize >= rsize && rsize > 0 && rsize != 1)  =>  (lsize >= 2)
 
-   err = allocate_bigint(&diff, lsize + 1/*carry overflow*/) ;
+   err = allocate_bigint(&diff, lsize) ;
    if (err) goto ABBRUCH ;
    diff->sign_and_used_digits = (int16_t) lsize ;
    // copy lbig into diff with lbig's exponent digits set to 0
    memset(diff->digits, 0, sizeof(diff->digits[0]) * lexponent) ;
    memcpy(&diff->digits[lexponent], lbig->digits, sizeof(diff->digits[0]) * lnrdigits) ;
-   diff->digits[lsize] = 0 ; // carry
 
    const uint64_t divisor    = ((uint64_t)rbig->digits[rnrdigits-1] << 32) + (rnrdigits >= 2 ? rbig->digits[rnrdigits-2] : 0) ;
    uint16_t       diffoffset = (uint16_t) (lsize - 1) ;
@@ -1495,7 +1568,7 @@ int divmod_bigint(bigint_t ** divresult, bigint_t ** modresult, const bigint_t *
    uint32_t       nextdigit  = estimatedigit2_biginthelper(dividend, divisor) ;
 
    if (nextdigit) {
-      nextdigit = submul_biginthelper(diff, nextdigit, dvrlshift, rnrdigits, rbig) ;
+      nextdigit = submul_biginthelper(diff, false, nextdigit, dvrlshift, rnrdigits, rbig) ;
    }
 
    // (lbig > rbig) ==> (nextdigit > 0) || (dvrlshift > 0)
@@ -1509,7 +1582,7 @@ int divmod_bigint(bigint_t ** divresult, bigint_t ** modresult, const bigint_t *
       -- dvrlshift ;
       -- diffoffset ;
       nextdigit = estimatedigit3_biginthelper(dividend, diff->digits[diffoffset-1], divisor) ;
-      nextdigit = submul_biginthelper(diff, nextdigit, dvrlshift, rnrdigits, rbig) ;
+      nextdigit = submul_biginthelper(diff, true/*diff has carry*/, nextdigit, dvrlshift, rnrdigits, rbig) ;
    }
 
    if (  divresult
@@ -1543,7 +1616,7 @@ int divmod_bigint(bigint_t ** divresult, bigint_t ** modresult, const bigint_t *
          dividend  = ((uint64_t)diff->digits[diffoffset] << 32) + diff->digits[diffoffset-1] ;
          -- diffoffset ;
          nextdigit = estimatedigit3_biginthelper(dividend, diff->digits[diffoffset-1], divisor) ;
-         nextdigit = submul_biginthelper(diff, nextdigit, dvrlshift, rnrdigits, rbig) ;
+         nextdigit = submul_biginthelper(diff, true/*diff has carry*/, nextdigit, dvrlshift, rnrdigits, rbig) ;
       } else {
 
          -- diffoffset ;
@@ -1562,7 +1635,7 @@ int divmod_bigint(bigint_t ** divresult, bigint_t ** modresult, const bigint_t *
             nextdigit = estimatedigit2_biginthelper(dividend, divisor) ;
 
             if (nextdigit) {
-               nextdigit = submul_biginthelper(diff, nextdigit, dvrlshift, rnrdigits, rbig) ;
+               nextdigit = submul_biginthelper(diff, false, nextdigit, dvrlshift, rnrdigits, rbig) ;
             }
          }
       }
@@ -1607,39 +1680,52 @@ static int test_sign(void)
 
    // TEST 0 == sign_bigint
    TEST(0 == sign_bigint(big)) ;
+   TEST(0 == big->sign_and_used_digits) ;
    setnegative_bigint(big) ;
    TEST(0 == sign_bigint(big)) ;
+   TEST(0 == big->sign_and_used_digits) ;
    setpositive_bigint(big) ;
    TEST(0 == sign_bigint(big)) ;
+   TEST(0 == big->sign_and_used_digits) ;
    negate_bigint(big) ;
    TEST(0 == sign_bigint(big)) ;
+   TEST(0 == big->sign_and_used_digits) ;
 
    // TEST +1,0,-1 == sign_bigint
-   for (int32_t i = 1; i <= 0x7fff; ++ i) {
-      if ( i > 1000 && i < 0x7fff-1110) {
+   static_assert(sizeof(big->sign_and_used_digits) == sizeof(int16_t),  "INT16_MAX is valid") ;
+   for (int32_t i = 1; i <= INT16_MAX; ++ i) {
+      if ( i > 1000 && i < INT16_MAX-1110) {
          i += 110 ;
       }
       big->sign_and_used_digits = (int16_t) i ;
       TEST(+1 == sign_bigint(big)) ;
       setnegative_bigint(big) ;
       TEST(-1 == sign_bigint(big)) ;
+      TEST(-(int16_t)i == big->sign_and_used_digits) ;
       setpositive_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
+      TEST(+(int16_t)i == big->sign_and_used_digits) ;
       negate_bigint(big) ;
       TEST(-1 == sign_bigint(big)) ;
+      TEST(-(int16_t)i == big->sign_and_used_digits) ;
       negate_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
+      TEST(+(int16_t)i == big->sign_and_used_digits) ;
 
       big->sign_and_used_digits = (int16_t)  -i ;
       TEST(-1 == sign_bigint(big)) ;
       setpositive_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
+      TEST(+(int16_t)i == big->sign_and_used_digits) ;
       setnegative_bigint(big) ;
       TEST(-1 == sign_bigint(big)) ;
+      TEST(-(int16_t)i == big->sign_and_used_digits) ;
       negate_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
+      TEST(+(int16_t)i == big->sign_and_used_digits) ;
       negate_bigint(big) ;
       TEST(-1 == sign_bigint(big)) ;
+      TEST(-(int16_t)i == big->sign_and_used_digits) ;
    }
 
    return 0 ;
@@ -1647,15 +1733,10 @@ ABBRUCH:
    return EINVAL ;
 }
 
-/* function: test_digits
- * Tests <nrdigits_bigint> and <bitsperdigit_bigint>. */
-static int test_digits(void)
+static int test_nrdigits(void)
 {
    uint8_t  buffer[sizeof(bigint_t)] = { 0 } ;
    bigint_t * big = (bigint_t*) buffer ;
-
-   // TEST bitsperdigit_bigint
-   TEST(32 == bitsperdigit_bigint()) ;
 
    // TEST 0 == nrdigits_bigint
    TEST(0 == nrdigits_bigint(big)) ;
@@ -1664,7 +1745,10 @@ static int test_digits(void)
    setpositive_bigint(big) ;
    TEST(0 == nrdigits_bigint(big)) ;
 
-   // TEST  0 < digits_biginit
+   // TEST nrdigitsmax_bigint
+   TEST(INT16_MAX == nrdigitsmax_bigint()) ;
+
+   // TEST 0 < nrdigits_bigint
    for (int32_t i = 1; i <= INT16_MAX; ++ i) {
       if (abs(i) > 1000 && abs(i) < INT16_MAX-1110) {
          i += 110 ;
@@ -1858,6 +1942,9 @@ static int test_initfree(void)
    uint16_t    nrdigits[4]   = { 0, 1, 4, 0x7fff } ;
    int32_t     copyvalues[5] = { 0, -1, +1, INT32_MAX, INT32_MIN } ;
    int16_t     copylength[3] = { 2, 128, 0x7fff } ;
+
+   // TEST bitsperdigit_bigint
+   TEST(32 == bitsperdigit_bigint()) ;
 
    // TEST init, double free
    for (unsigned i = 0; i < nrelementsof(nrdigits); ++i) {
@@ -2161,10 +2248,10 @@ static int test_assign(void)
    TEST(0 == setbigfirst_bigint(&big, +1, 0, (uint32_t[2]){1, 2}, 10)) ;
    TEST(0 == big->sign_and_used_digits) ;
    TEST(0 == big->exponent) ;
-   TEST(0 == setbigfirst_bigint(&big, +1, 9, (uint32_t[9]){1, 2, 3, 4, 5, 6, 0, 0, 0}, 0xffff-3)) ;
+   TEST(0 == setbigfirst_bigint(&big, +1, 9, (uint32_t[9]){1, 2, 3, 4, 5, 6, 0, 0, 0}, UINT16_MAX-3)) ;
    TEST(6 == big->allocated_digits) ;
    TEST(6 == big->sign_and_used_digits) ;
-   TEST(0xffff == big->exponent) ;
+   TEST(UINT16_MAX == big->exponent) ;
    for (unsigned i = 0; i < 6; ++i) {
       TEST(6-i == big->digits[i]) ;
    }
@@ -2204,10 +2291,10 @@ static int test_assign(void)
    TEST(0 == setlittlefirst_bigint(&big, +1, 0, (uint32_t[2]){1, 2}, 10)) ;
    TEST(0 == big->sign_and_used_digits) ;
    TEST(0 == big->exponent) ;
-   TEST(0 == setlittlefirst_bigint(&big, +1, 9, (uint32_t[9]){1, 2, 3, 4, 5, 6, 0, 0, 0}, 0xffff)) ;
+   TEST(0 == setlittlefirst_bigint(&big, +1, 9, (uint32_t[9]){1, 2, 3, 4, 5, 6, 0, 0, 0}, UINT16_MAX)) ;
    TEST(6 == big->allocated_digits) ;
    TEST(6 == big->sign_and_used_digits) ;
-   TEST(0xffff == big->exponent) ;
+   TEST(UINT16_MAX == big->exponent) ;
    for (unsigned i = 0; i < 6; ++i) {
       TEST(i+1 == big->digits[i]) ;
    }
@@ -2753,6 +2840,8 @@ static int test_div(void)
                 /* { diff }, { divisor }, { result diff }, { factor, corrected factor },  */
                 { { M, M, M, M, M, 0, 1, 2 }, /*{ M-1, M, M, M, M, 1 },*/ { 0, M, M, M, M, M }, { 0, M, M, M, M, M, 1, 2 }, { M, M } }
                ,{ { 2, 2, 0, 0, 0, 1 }, /*{ 2, 2, 0, 0, 0, 2 },*/ { 1, 1, 0, 0, 0, 1 }, { 1, 1, 0, 0, 0, 0 }, { 2, 1 } }
+               ,{ { 1, 0, 0, 1 }, /*{ 0, 0x8, 0, 0 },*/ { 0, 0x80000000, 0, 0 }, { 0, 0x80000000, 0, 1 }, { 1, 1 } }
+               ,{ { 1, 0, 0, 1 }, /*{ 1, 0, 0, 0 },*/ { 0, 0x80000000, 0, 0 }, { 0, 0, 0, 1 }, { 2, 2 } }
                ,{ { 1, 0, 0, 1 }, /*{ 1, 0, 0, 2 },*/ { 0, 0x80000000, 0, 1 }, { 0, 0x80000000, 0, 0 }, { 2, 1 } }
             } ;
 #undef M
@@ -2765,8 +2854,8 @@ static int test_div(void)
       big[0]->exponent = 0 ;
       uint32_t factor  = testrows3[i][3][0] ;
       uint32_t factor2 = testrows3[i][3][1] ;
-      big[0]->digits[nrdigits_bigint(big[0])] = 0 ; // carry overflow
-      TEST(factor2 == submul_biginthelper(big[0], factor, 0, nrdigits_bigint(big[1]), big[1])) ;
+      const bool big0_has_carry = (size_bigint(big[0]) > size_bigint(big[1])) ;
+      TEST(factor2 == submul_biginthelper(big[0], big0_has_carry, factor, 0, nrdigits_bigint(big[1]), big[1])) ;
       while (big[0]->sign_and_used_digits > 0 && 0 == big[0]->digits[big[0]->sign_and_used_digits-1]) {
          -- big[0]->sign_and_used_digits ;
       }
@@ -2790,7 +2879,7 @@ static int test_div(void)
       for (unsigned nr = 0; nr < 2; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows4[i][nr], 0)) ;
       }
-      for (unsigned addi = 1/*TODO start with 0*/; addi < nrelementsof(testadd); ++addi) {
+      for (unsigned addi = 0; addi < nrelementsof(testadd); ++addi) {
          TEST(0 == setbigfirst_bigint(&big[4], +1, 5, testadd[addi], 0)) ; // modulo
          TEST(0 == mult_bigint(&big[3], big[0], big[1])) ;
          TEST(0 == add_bigint(&big[2], big[3], big[4])) ;
@@ -2822,8 +2911,21 @@ static int test_div(void)
       }
    }
 
-   // TODO implement
-
+   // TEST divmod_bigint (dividend one digit but with bigger exponent)
+#define M UINT32_MAX
+   uint32_t testrows5[][3][10] = {
+                /* { dividend }, { divisor }, { result } */
+                { { 5 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 10 }, { 0, 0x80000000 } }
+               ,{ { 5 }, { 0, 0, 0, 0, 0, 0, 0, M, M, M },  { 0, 0, 0, 5, 0, 0, 5, 0, 0, 5 } }
+            } ;
+#undef M
+   for (unsigned i = 0; i < nrelementsof(testrows5); ++i) {
+      for (unsigned nr = 0; nr < 3; ++nr) {
+         TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows5[i][nr], 0)) ;
+      }
+      TEST(0 == divmod_bigint(&big[3], 0, big[0], big[1])) ;
+      TEST(0 == cmp_bigint(big[3], big[2])) ;
+   }
 
    // unprepare
    for (unsigned i = 0; i < nrelementsof(big); ++i) {
@@ -2835,6 +2937,97 @@ ABBRUCH:
    for (unsigned i = 0; i < nrelementsof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
+   return EINVAL ;
+}
+
+static int test_shift(void)
+{
+   bigint_t * big = 0 ;
+
+   // TEST shiftleft_bigint with multiple of 32 does nothing
+   TEST(0 == new_bigint(&big, 100)) ;
+   for (unsigned i = 0; i < 100; ++i) {
+      big->digits[i] = 0x12345678 ;
+   }
+   big->sign_and_used_digits = 100 ;
+   for (unsigned i = 0; i <= 32 * 0x7fff; i += 32) {
+      big->exponent = 0 ;
+      TEST(0 == shiftleft_bigint(&big, i)) ;
+      TEST(100  == big->allocated_digits) ;
+      TEST(100  == nrdigits_bigint(big)) ;
+      TEST(i/32 == exponent_bigint(big)) ;
+      for (unsigned di = 0; di < 100; ++di) {
+         TEST(big->digits[di] == 0x12345678) ;
+      }
+      if (32 * 0xfff == i) {
+         i = 32 * 0x7000 - 32 ;
+      }
+   }
+
+   // TEST shiftleft_bigint values 1 .. 31
+   for (unsigned i = 1; i <= 31; ++i) {
+      TEST(0 == delete_bigint(&big)) ;
+      TEST(0 == new_bigint(&big, 100)) ;
+      big->sign_and_used_digits = 100 ;
+      for (unsigned di = 0; di < 100; ++di) {
+         big->digits[di] = 512*13*(di+1) ;
+      }
+      TEST(0 == shiftleft_bigint(&big, i + 32*i)) ;
+      for (unsigned di = 0; di < 100; ++di) {
+         uint32_t shiftedvalue = (512*13*(di+1)) << i  ;
+         shiftedvalue += (512*13*di) >> (32 - i) ;
+         TEST(shiftedvalue == big->digits[di]) ;
+      }
+      bool isOver = (((uint64_t)512*13*100 << i) > UINT32_MAX) ;
+      if (isOver) {
+         TEST(big->digits[100] == (uint32_t)512*13*100 >> (32-i)) ;
+      }
+      TEST(100+isOver == big->allocated_digits) ;
+      TEST(100+isOver == nrdigits_bigint(big)) ;
+      TEST(i == exponent_bigint(big)) ;
+   }
+
+   // TEST shiftleft_bigint EOVERFLOW
+   big->exponent = 0 ;
+   big->sign_and_used_digits = 0 ; /*value 0 is ignored no overflow*/
+   TEST(0 == shiftleft_bigint(&big, 32u*0xffff + 32)) ;
+   big->sign_and_used_digits = 1 ;
+   big->digits[1] = 1 ;
+   TEST(EOVERFLOW == shiftleft_bigint(&big, 32u*0xffff + 32 + 31)) ;
+   TEST(0 == big->exponent) ;
+   TEST(1 == big->sign_and_used_digits) ;
+   TEST(1 == big->digits[1]) ;
+   big->exponent = 1 ;
+   TEST(EOVERFLOW == shiftleft_bigint(&big, 32u*0xffff + 31)) ;
+   TEST(1 == big->exponent) ;
+   TEST(1 == big->sign_and_used_digits) ;
+   TEST(1 == big->digits[1]) ;
+
+   // TEST shiftleft_bigint ENOMEM
+   TEST(0 == delete_bigint(&big)) ;
+   TEST(0 == new_bigint(&big, 100)) ;
+   test_errortimer_t errtimer ;
+   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   for (unsigned i = 0; i < 100; ++i) {
+      big->digits[i] = 0x12345678 ;
+   }
+   big->sign_and_used_digits = 100 ;
+   big->exponent             = 0 ;
+   TEST(ENOMEM == shiftleft_bigint(&big, 32 + 8)) ;
+   TEST(100  == big->allocated_digits) ;
+   TEST(100  == nrdigits_bigint(big)) ;
+   TEST(0    == exponent_bigint(big)) ;
+   for (unsigned di = 0; di < 100; ++di) {
+      TEST(big->digits[di] == 0x12345678) ;
+   }
+
+   // unprepare
+   TEST(0 == delete_bigint(&big)) ;
+
+   return 0 ;
+ABBRUCH:
+   delete_bigint(&big) ;
    return EINVAL ;
 }
 
@@ -2894,6 +3087,76 @@ ABBRUCH:
    return EINVAL ;
 }
 
+static int test_fixedsize(void)
+{
+   bigint_t                * big[3] = { 0 } ;
+   bigint_fixed_DECLARE(5) ;
+   bigint_fixed_DECLARE(4) bigf[3]  = {    bigint_fixed_INIT(4, 0, 1,  2,  3,  4)
+                                          ,bigint_fixed_INIT(-4, 8, 9, 10, 11, 12)
+                                          ,bigint_fixed_INIT(4, 4, 5, 6, 7, 8)
+                                      } ;
+
+   // prepare
+   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+      TEST(0 == new_bigint(&big[i], 0x7FFF)) ;
+   }
+   setlittlefirst_bigint(&big[0], +1, 12, (uint32_t[12]){1,2,3,4,5,6,7,8,9,10,11,12}, 0) ;
+
+   // TEST bigint_fixed_DECLARE
+   static_assert(offsetof(struct bigint_fixed4_t, allocated_digits)     == offsetof(bigint_t, allocated_digits), "") ;
+   static_assert(offsetof(struct bigint_fixed4_t, sign_and_used_digits) == offsetof(bigint_t, sign_and_used_digits), "") ;
+   static_assert(offsetof(struct bigint_fixed4_t, exponent)             == offsetof(bigint_t, exponent), "") ;
+   static_assert(offsetof(struct bigint_fixed4_t, digits)               == offsetof(bigint_t, digits), "") ;
+   static_assert(sizeof(((struct bigint_fixed4_t*)0)->digits)           == 4 * sizeof(uint32_t), "") ;
+   static_assert(offsetof(struct bigint_fixed5_t, allocated_digits)     == offsetof(bigint_t, allocated_digits), "") ;
+   static_assert(offsetof(struct bigint_fixed5_t, sign_and_used_digits) == offsetof(bigint_t, sign_and_used_digits), "") ;
+   static_assert(offsetof(struct bigint_fixed5_t, exponent)             == offsetof(bigint_t, exponent), "") ;
+   static_assert(offsetof(struct bigint_fixed5_t, digits)               == offsetof(bigint_t, digits), "") ;
+   static_assert(sizeof(((struct bigint_fixed5_t*)0)->digits)           == 5 * sizeof(uint32_t), "") ;
+
+   // TEST bigint_fixed_INIT
+   TEST(0 == bigf[0].allocated_digits) ;
+   TEST(0 == bigf[1].allocated_digits) ;
+   TEST(0 == bigf[2].allocated_digits) ;
+   TEST(4 == nrdigits_bigint(&bigf[0])) ;
+   TEST(4 == nrdigits_bigint(&bigf[1])) ;
+   TEST(4 == nrdigits_bigint(&bigf[1])) ;
+   TEST(+1 == sign_bigint(&bigf[0])) ;
+   TEST(-1 == sign_bigint(&bigf[1])) ;
+   TEST(+1 == sign_bigint(&bigf[2])) ;
+   TEST(0 == exponent_bigint(&bigf[0])) ;
+   TEST(8 == exponent_bigint(&bigf[1])) ;
+   TEST(4 == exponent_bigint(&bigf[2])) ;
+   for (unsigned i = 0; i < 4; ++i) {
+      TEST(i+1 == bigf[0].digits[i]) ;
+      TEST(i+9 == bigf[1].digits[i]) ;
+      TEST(i+5 == bigf[2].digits[i]) ;
+   }
+
+   // TEST reallocation fails with EINVAL
+   bigint_t * tempf = (bigint_t*)&bigf[0] ;
+   TEST(EINVAL == multui32_bigint(&tempf, big[0], 0xffffff)) ;
+
+   // TEST simple calculation
+   negate_bigint(&bigf[1]) ;
+   TEST(0 == copy_bigint(&big[1], (bigint_t*)&bigf[1])) ;
+   TEST(0 == add_bigint(&big[2], big[1], (bigint_t*)&bigf[0])) ;
+   TEST(0 == add_bigint(&big[1], big[2], (bigint_t*)&bigf[2])) ;
+   TEST(0 == cmp_bigint(big[1], big[0])) ;
+
+   // unprepare
+   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+      TEST(0 == delete_bigint(&big[i])) ;
+   }
+
+   return 0 ;
+ABBRUCH:
+   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+      delete_bigint(&big[i]) ;
+   }
+   return EINVAL ;
+}
+
 int unittest_math_int_biginteger()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -2902,14 +3165,16 @@ int unittest_math_int_biginteger()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_sign())        goto ABBRUCH ;
-   if (test_digits())      goto ABBRUCH ;
+   if (test_nrdigits())    goto ABBRUCH ;
    if (test_compare())     goto ABBRUCH ;
    if (test_initfree())    goto ABBRUCH ;
    if (test_assign())      goto ABBRUCH ;
    if (test_addsub())      goto ABBRUCH ;
    if (test_mult())        goto ABBRUCH ;
    if (test_div())         goto ABBRUCH ;
+   if (test_shift())       goto ABBRUCH ;
    if (calc_example1())    goto ABBRUCH ;
+   if (test_fixedsize())   goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

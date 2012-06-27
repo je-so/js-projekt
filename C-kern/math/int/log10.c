@@ -40,6 +40,7 @@ static uint64_t s_pow10[20] = {
    Q, Q*10
 } ;
 
+#undef Q
 #undef B
 
 
@@ -51,7 +52,7 @@ unsigned log10_int(uint32_t i)
    lg10 /= 3 ;
    // 0 <= lg10 <= 10
 
-   static_assert(nrelementsof(s_pow10) >= 10, "array index in bounds") ;
+   static_assert(nrelementsof(s_pow10) > 10, "array index in bounds") ;
 
    if (s_pow10[lg10] > i) {
       -- lg10 ;
@@ -88,16 +89,17 @@ unsigned log10_int64(uint64_t i)
 
 static int test_tablepow10(void)
 {
-   TEST(20 == nrelementsof(s_pow10)) ;
-
-   // lg10 == 0 => never decrement it
+   // TEST s_pow10[0] == 0 instead of 1
+   // log10_int64(0) => lg10 = 0 => ! (s_pow10[0] > 0) => special value 0 is not decremented !
    TEST(0/*not 1*/ == s_pow10[0]) ;
 
-   for(uint64_t i = 1, power10 = 10; i < 20; ++i, power10 *= 10) {
+   // TEST all
+   for(uint64_t i = 1, power10 = 10; i < nrelementsof(s_pow10); ++i, power10 *= 10) {
       TEST(power10 == s_pow10[i]) ;
    }
 
    // TEST last element is last (overflow)
+   TEST(20 == nrelementsof(s_pow10)) ;
    uint64_t last = 10 * s_pow10[19] ;
    TEST((last/10) < s_pow10[19]) ;
 
@@ -108,24 +110,24 @@ ABBRUCH:
 
 static int test_log10(void)
 {
-   // TEST value 0 .. 9
+   // TEST values 0 .. 9
    for(unsigned i= 0; i < 10; ++i) {
       TEST(0 == log10_int(i)) ;
       TEST(0 == log10_int64(i)) ;
    }
 
-   // TEST UINT_MAX value
+   // TEST UINT_MAX 32,64 bit values
    TEST(9 == log10_int(UINT32_MAX)) ;
    TEST(19 == log10_int64(UINT64_MAX)) ;
 
-   // TEST 32 bit values
+   // TEST all 32 bit values multiples of 10 +/- 1
    for(unsigned lg10 = 1, i = 10, iprev = 1; (i/10) == iprev; iprev = i, i *= 10, ++lg10) {
       TEST(lg10 == log10_int(i)) ;
       TEST(lg10 == log10_int(i+1)) ;
       TEST(lg10 == 1+log10_int(i-1)) ;
    }
 
-   // TEST 64 bit values
+   // TEST all 64 bit values multiples of 10 +/- 1
    for(uint64_t lg10 = 1, i = 10, iprev = 1; (i/10) == iprev; iprev = i, i *= 10, ++lg10) {
       TEST(lg10 == log10_int64(i)) ;
       TEST(lg10 == log10_int64(i+1)) ;

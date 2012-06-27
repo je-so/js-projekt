@@ -84,6 +84,8 @@
 #include <unistd.h>
 #include <wchar.h>
 
+#include <netinet/tcp.h>
+
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <sys/ioctl.h>
