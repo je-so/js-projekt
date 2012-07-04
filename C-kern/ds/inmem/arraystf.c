@@ -41,6 +41,15 @@
 
 typedef struct arraystf_keyval_t       arraystf_keyval_t ;
 
+typedef struct arraystf_pos_t          arraystf_pos_t ;
+
+
+struct arraystf_pos_t {
+   arraystf_mwaybranch_t * branch ;
+   unsigned              ci ;
+} ;
+
+
 // section: arraystf_node_t
 
 // group: helper
@@ -635,12 +644,7 @@ int init_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array)
 
    stack  = (binarystack_t *) objectmem.addr ;
 
-   struct {
-      arraystf_mwaybranch_t * branch ;
-      unsigned              ci ;
-   } pos ;
-
-   err = init_binarystack(stack, (/*guessed depth*/16) * /*objectsize*/sizeof(pos) ) ;
+   err = init_binarystack(stack, (/*guessed depth*/16) * /*objectsize*/sizeof(arraystf_pos_t) ) ;
    if (err) goto ABBRUCH ;
 
    iter->stack = stack ;
@@ -681,14 +685,13 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
 {
    int err ;
    size_t         nrelemroot = nrelemroot_arraystf(array) ;
-   struct {
-      arraystf_mwaybranch_t * branch ;
-      unsigned              ci ;
-   }              pos ;
+   arraystf_pos_t * pos ;
 
    for (;;) {
 
-      if (isempty_binarystack(iter->stack)) {
+      pos = (arraystf_pos_t*) lastpushed_binarystack(iter->stack, sizeof(arraystf_pos_t)) ;
+
+      if (0 == pos/*isempty_binarystack(iter->stack)*/) {
 
          arraystf_unode_t * rootnode ;
 
@@ -706,38 +709,36 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
             }
          }
 
-         pos.branch = asbranch_arraystfunode(rootnode) ;
-         pos.ci     = 0 ;
-
-      } else {
-
-         err = pop_binarystack(iter->stack, sizeof(pos), &pos) ;
+         err = pushgeneric_binarystack(iter->stack, &pos) ;
          if (err) goto ABBRUCH ;
+
+         pos->branch = asbranch_arraystfunode(rootnode) ;
+         pos->ci     = 0 ;
 
       }
 
-      for(;;) {
-         arraystf_unode_t * childnode = pos.branch->child[pos.ci ++] ;
+      for (;;) {
+         arraystf_unode_t * childnode = pos->branch->child[pos->ci ++] ;
+
+         if (pos->ci >= nrelementsof(pos->branch->child)) {
+            // pos becomes invalid
+            err = pop_binarystack(iter->stack, sizeof(arraystf_pos_t)) ;
+            if (err) goto ABBRUCH ;
+
+            if (!childnode) break ;
+         }
 
          if (childnode) {
-
-            if (pos.ci < nrelementsof(pos.branch->child)) {
-               err = push_binarystack(iter->stack, sizeof(pos), &pos) ;
-               if (err) goto ABBRUCH ;
-            }
-
             if (isbranchtype_arraystfunode(childnode)) {
-               pos.branch = asbranch_arraystfunode(childnode) ;
-               pos.ci     = 0 ;
+               err = pushgeneric_binarystack(iter->stack, &pos) ;
+               if (err) goto ABBRUCH ;
+               pos->branch = asbranch_arraystfunode(childnode) ;
+               pos->ci     = 0 ;
                continue ;
             } else {
                *node = asgeneric_arraystfunode(childnode) ;
                return true ;
             }
-         }
-
-         if (pos.ci >= nrelementsof(pos.branch->child)) {
-            break ;
          }
       }
 
@@ -747,7 +748,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
 ABBRUCH:
    // move iterator to end of container
    iter->ri = nrelemroot ;
-   pop_binarystack(iter->stack, size_binarystack(iter->stack), 0) ;
+   pop_binarystack(iter->stack, size_binarystack(iter->stack)) ;
    LOG_ABORT(err) ;
    return false ;
 }

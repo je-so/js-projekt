@@ -64,10 +64,10 @@ int free_binarystack(binarystack_t * stack)
 {
    int err ;
 
+   stack->size = 0 ;
+
    err = free_vmblock(&stack->stackmem) ;
    if (err) goto ABBRUCH ;
-
-   stack->size = 0 ;
 
    return 0 ;
 ABBRUCH:
@@ -76,13 +76,23 @@ ABBRUCH:
 
 }
 
-// group: access
+// group: query
 
-int push_binarystack(binarystack_t * stack, size_t size, const void * data/*[size]*/)
+void * lastpushed_binarystack(binarystack_t * stack, size_t size_lastpushed)
+{
+   if (stack->size < size_lastpushed) {
+      return 0 ;
+   }
+
+   return &stack->stackmem.addr[stack->size - size_lastpushed] ;
+}
+
+// group: operations
+
+int push_binarystack(binarystack_t * stack, size_t size, /*out*/void ** lastpushed)
 {
    int err ;
-   size_t oldsize = stack->size ;
-   size_t newsize = oldsize + size ;
+   size_t newsize  = stack->size + size ;
 
    if (newsize < size) {
       err = ENOMEM ;
@@ -96,25 +106,22 @@ int push_binarystack(binarystack_t * stack, size_t size, const void * data/*[siz
       if (err) goto ABBRUCH ;
    }
 
+   *lastpushed = &stack->stackmem.addr[stack->size] ;
    stack->size = newsize ;
-   memcpy(stack->stackmem.addr + oldsize, data, size) ;
 
-   return 0 ;
+   return 0;
 ABBRUCH:
    LOG_ABORT(err) ;
    return err ;
 }
 
-int pop_binarystack(binarystack_t * stack, size_t size, void * data/*[size]*/)
+int pop_binarystack(binarystack_t * stack, size_t size)
 {
    int err ;
 
    VALIDATE_INPARAM_TEST(size <= stack->size, ABBRUCH, ) ;
 
    stack->size -= size ;
-   if (data) {
-      memcpy(data, (const uint8_t *)stack->stackmem.addr + stack->size, size) ;
-   }
 
    return 0 ;
 ABBRUCH:
@@ -129,22 +136,29 @@ ABBRUCH:
 
 static int test_initfree(void)
 {
-   binarystack_t     stack = binarystack_INIT_FREEABLE ;
+   binarystack_t  stack = binarystack_INIT_FREEABLE ;
+   void           * current ;
+   void           * current2 ;
 
    // TEST static init
    TEST(0 == stack.size) ;
    TEST(0 == stack.stackmem.addr) ;
    TEST(0 == stack.stackmem.size) ;
    TEST(1 == isempty_binarystack(&stack)) ;
+   TEST(0 == size_binarystack(&stack)) ;
+   TEST(0 == lastpushed_binarystack(&stack, 0)) ;
+   TEST(0 == lastpushed_binarystack(&stack, 1)) ;
 
    // TEST init, double free
    TEST(0 == init_binarystack(&stack, 1)) ;
+   TEST(1 == isempty_binarystack(&stack)) ;
    TEST(0 == size_binarystack(&stack)) ;
+   TEST(0 != lastpushed_binarystack(&stack, 0)) ;
    TEST(0 != stack.stackmem.addr) ;
    TEST(pagesize_vm() == stack.stackmem.size) ;
-   TEST(1 == isempty_binarystack(&stack)) ;
    TEST(0 == free_binarystack(&stack)) ;
    TEST(0 == size_binarystack(&stack)) ;
+   TEST(0 == lastpushed_binarystack(&stack, 0)) ;
    TEST(0 == stack.stackmem.addr) ;
    TEST(0 == stack.stackmem.size) ;
    TEST(0 == free_binarystack(&stack)) ;
@@ -156,59 +170,91 @@ static int test_initfree(void)
    for(unsigned i = 0; i <= 20; ++i) {
       TEST(0 == init_binarystack(&stack, i + i * pagesize_vm() )) ;
       TEST(0 == size_binarystack(&stack)) ;
-      TEST(0 != stack.stackmem.addr) ;
-      TEST((i+1)*pagesize_vm() == stack.stackmem.size) ;
       TEST(1 == isempty_binarystack(&stack)) ;
+      TEST(stack.stackmem.addr != 0) ;
+      TEST(stack.stackmem.size == (i+1)*pagesize_vm()) ;
+      TEST(stack.stackmem.addr == lastpushed_binarystack(&stack, 0)) ;
       TEST(0 == free_binarystack(&stack)) ;
    }
 
    // TEST push, pop
-   uint8_t data1[3]             = { 1, 2, 3 } ;
-   uint8_t data2[sizeof(data1)] = { 0, 0, 0 } ;
+   uint8_t data1[3] = { 1, 2, 3 } ;
    TEST(0 == init_binarystack(&stack, 1)) ;
-   TEST(1 == isempty_binarystack(&stack)) ;
-   TEST(0 == push_binarystack(&stack, sizeof(data1), data1)) ;
+   TEST(0 == push_binarystack(&stack, sizeof(data1), &current)) ;
    TEST(3 == size_binarystack(&stack)) ;
    TEST(0 == isempty_binarystack(&stack)) ;
-   TEST(0 == pop_binarystack(&stack, sizeof(data2), data2)) ;
+   TEST(current == stack.stackmem.addr) ;
+   TEST(current == lastpushed_binarystack(&stack, sizeof(data1))) ;
+   memcpy(current, data1, sizeof(data1)) ;
+   TEST(0 == push_binarystack(&stack, 0, &current2)) ;
+   TEST(current2 == (uint8_t*)current + 3) ;
+   TEST(current2 == lastpushed_binarystack(&stack, 0)) ;
+   TEST(3 == size_binarystack(&stack)) ;
+   TEST(0 == pop_binarystack(&stack, 0)) ;
+   TEST(current == lastpushed_binarystack(&stack, sizeof(data1))) ;
+   TEST(3 == size_binarystack(&stack)) ;
+   for(unsigned i = 1; i <= 3; ++i) {
+      TEST(i == ((uint8_t*)current)[i-1]) ;
+   }
+   TEST(0 == pop_binarystack(&stack, 3)) ;
    TEST(1 == isempty_binarystack(&stack)) ;
    TEST(0 == size_binarystack(&stack)) ;
-   for(unsigned i = 1; i <= 3; ++i) {
-      TEST(i == data1[i-1]) ;
-      TEST(i == data2[i-1]) ;
-   }
+   TEST(current == lastpushed_binarystack(&stack, 0)) ;
 
-   // TEST push 10000 words
+   // TEST push 10000 uint32_t
+   TEST(1 == isempty_binarystack(&stack)) ;
    for(uint32_t i = 1; i <= 10000; ++i) {
-      size_t newsize = stack.stackmem.size ;
+      uint32_t * ptri  = 0 ;
+      size_t   newsize = stack.stackmem.size ;
       if (i*sizeof(i) > stack.stackmem.size) {
          newsize += pagesize_vm() ;
       }
-      TEST(0 == push_binarystack(&stack, sizeof(i), &i)) ;
+      TEST(0 == pushgeneric_binarystack(&stack, &ptri)) ;
+      TEST(0 != ptri) ;
+      *ptri = i ;
       TEST(i*sizeof(i) == size_binarystack(&stack)) ;
       TEST(newsize     == stack.stackmem.size) ;
-      TEST(0 == isempty_binarystack(&stack)) ;
+      TEST(0           == isempty_binarystack(&stack)) ;
    }
 
-   // TEST pop 10000 words
-   size_t oldsize = stack.stackmem.size ;
+   // TEST pop 10000 uint32_t
+   uint8_t * oldaddr = stack.stackmem.addr ;
+   size_t  oldsize   = stack.stackmem.size ;
    for(uint32_t i = 10000; i; --i) {
-      uint32_t x ;
-      size_t   s = i*sizeof(i) ;
-      TEST(s == size_binarystack(&stack)) ;
-      TEST(0 == pop_binarystack(&stack, sizeof(i), &x)) ;
-      TEST(i == x) ;
+      uint32_t * ptri = lastpushed_binarystack(&stack, sizeof(i)) ;
+      TEST(i*sizeof(i) == size_binarystack(&stack)) ;
+      TEST(ptri    != 0) ;
+      TEST(*ptri   == i) ;
+      TEST(0 == pop_binarystack(&stack, sizeof(i))) ;
+      TEST(oldaddr == stack.stackmem.addr) ;
       TEST(oldsize == stack.stackmem.size) ;
       TEST((i==1)  == isempty_binarystack(&stack)) ;
    }
+   TEST(0 == lastpushed_binarystack(&stack, 1)) ;
+   TEST(0 == size_binarystack(&stack)) ;
    TEST(0 == free_binarystack(&stack)) ;
 
    // TEST ENOMEM
    TEST(ENOMEM == init_binarystack(&stack, SIZE_MAX)) ;
    TEST(0 == init_binarystack(&stack, 1)) ;
-   TEST(ENOMEM == push_binarystack(&stack, SIZE_MAX, data1)) ;
-   TEST(0 == push_binarystack(&stack, sizeof(data1), data1)) ;
-   TEST(ENOMEM == push_binarystack(&stack, SIZE_MAX, data1)) ;
+   TEST(ENOMEM == push_binarystack(&stack, SIZE_MAX, &current)) ;
+   TEST(0 == size_binarystack(&stack)) ;
+   TEST(0 == push_binarystack(&stack, 3, &current)) ;
+   TEST(3 == size_binarystack(&stack)) ;
+   TEST(ENOMEM == push_binarystack(&stack, SIZE_MAX-3, &current)) ;
+   TEST(3 == size_binarystack(&stack)) ;
+   TEST(0 == free_binarystack(&stack)) ;
+
+   // TEST EINVAL
+   TEST(0 == init_binarystack(&stack, 1)) ;
+   TEST(0 == pop_binarystack(&stack, 0)) ;
+   TEST(0 == push_binarystack(&stack, 0, &current)) ;
+   TEST(EINVAL == pop_binarystack(&stack, 1)) ;
+   TEST(0 == push_binarystack(&stack, 1, &current)) ;
+   TEST(1 == size_binarystack(&stack)) ;
+   TEST(0 == pop_binarystack(&stack, 1)) ;
+   TEST(0 == size_binarystack(&stack)) ;
+   TEST(EINVAL == pop_binarystack(&stack, 1)) ;
    TEST(0 == free_binarystack(&stack)) ;
 
    return 0 ;

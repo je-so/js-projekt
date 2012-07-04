@@ -1,4 +1,9 @@
 C-kern/ds/inmem/binarystack.c:59: init_binarystack(): error: 12: Function aborted
 C-kern/platform/Linux/virtmemory.c:483: movexpand_vmblock(): error: 12: Function aborted
-C-kern/ds/inmem/binarystack.c:104: push_binarystack(): error: 12: Function aborted
-C-kern/ds/inmem/binarystack.c:104: push_binarystack(): error: 12: Function aborted
+C-kern/ds/inmem/binarystack.c:114: push_binarystack(): error: 12: Function aborted
+C-kern/platform/Linux/virtmemory.c:483: movexpand_vmblock(): error: 12: Function aborted
+C-kern/ds/inmem/binarystack.c:114: push_binarystack(): error: 12: Function aborted
+C-kern/ds/inmem/binarystack.c:122: pop_binarystack(): error: 22: Function input violates condition (size <= stack->size)
+C-kern/ds/inmem/binarystack.c:128: pop_binarystack(): error: 22: Function aborted
+C-kern/ds/inmem/binarystack.c:122: pop_binarystack(): error: 22: Function input violates condition (size <= stack->size)
+C-kern/ds/inmem/binarystack.c:128: pop_binarystack(): error: 22: Function aborted
