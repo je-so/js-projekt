@@ -87,7 +87,7 @@ struct bigint_t {
  * The new big integer has at least 128 bits (4 digits) or nrdigits which one is higher.
  * The big integer value is initialized to zero.
  * The maximum supported value of nrdigits can be obtained with a call to <nrdigitsmax_bigint>. */
-int new_bigint(/*out*/bigint_t ** big, uint16_t nrdigits) ;
+int new_bigint(/*out*/bigint_t ** big, uint32_t nrdigits) ;
 
 /* function: newcopy_bigint
  * Makes a copy from a big integer object.
@@ -136,6 +136,10 @@ uint16_t exponent_bigint(bigint_t * big) ;
  * Returns most significant digit of the number.
  * If *big* is zero the returned value is 0 else it is always number greater zero. */
 uint32_t firstdigit_bigint(bigint_t * big) ;
+
+/* function: sign_bigint
+ * Returns true in case big has value 0 else false. */
+int iszero_bigint(bigint_t * big) ;
 
 /* function: nrdigits_bigint
  * Returns the number of stored digits (32 bit words) of the big integer.
@@ -190,11 +194,10 @@ void setfromuint32_bigint(bigint_t * big, uint32_t value) ;
 
 /* function: setfromdouble_bigint
  * Sets the value of big to the integer value of the provided parameter.
- * The fractional part is discarded. If the integer part is zero the value
- * is set to 0. If the number of preallocated bits of the big integer is less
- * than the exponent of the provided value the big integer is reallocated to be big enough
- * to encode the integer part of value. In case of not enough memory ENOMEM is returned.
- * Before calling this function make sure that *big* has at least 96 bits (3 digits). */
+ * The fractional part is discarded.
+ * If the integer part is zero the value is set to 0.
+ * In case parameter *value* is NAN or INFINITY the error EINVAL is returned.
+ * The assigned <bigint_t> must have at least 3 allocated integer digits. */
 int setfromdouble_bigint(bigint_t * big, double value) ;
 
 /* function: setbigfirst_bigint
@@ -222,6 +225,12 @@ int setlittlefirst_bigint(bigint_t * restrict * big, int sign, uint16_t size, co
  * A positive signed number becomes negative. A negative one positive and zero keeps zero. */
 void negate_bigint(bigint_t * big) ;
 
+/* function: removetrailingzero_bigint
+ * Removes all trailing digits which are 0.
+ * This optimization removes the least sign. digit and increments the exponent by one
+ * until the least significant digit is not 0 or the exponent reached its maximum value. */
+void removetrailingzero_bigint(bigint_t * big) ;
+
 /* function: setnegative_bigint
  * Changes the sign to be negative.
  * If the sign is zero or already negative nothing is changed. */
@@ -240,7 +249,16 @@ void setpositive_bigint(bigint_t * big) ;
  * If *shift_count* is a multiple of <bitsperdigit_bigint> then only
  * <bigint_t.exponent> is incremented.
  * If the exponent overflows EOVERFLOW is returned. */
-int shiftleft_bigint(bigint_t *restrict* result, uint32_t shift_count) ;
+int shiftleft_bigint(bigint_t ** result, uint32_t shift_count) ;
+
+/* function: shiftright_bigint
+ * Divides the number by pow(2, *shift_count*).
+ * Shifting one position right is the same as dividing by two.
+ * If *shift_count* is a multiple of <bitsperdigit_bigint> then
+ * only <bigint_t.exponent> is decremented until it becomes 0.
+ * The *shift_count* least significant bits get lost. If *result*
+ * is smaller than pow(2, *shift_count*) the value 0 is returned.  */
+int shiftright_bigint(bigint_t ** result, uint32_t shift_count) ;
 
 // group: ternary operations
 
@@ -330,7 +348,7 @@ struct bigint_fixed_t ;
       uint16_t    allocated_digits ;                  \
       int16_t     sign_and_used_digits ;              \
       uint16_t    exponent ;                          \
-      uint32_t    digits[nrdigits>=4?nrdigits:-1] ;   \
+      uint32_t    digits[nrdigits] ;                  \
    }
 
 
@@ -355,6 +373,10 @@ struct bigint_fixed_t ;
 /* define: firstdigit_bigint
  * Implements <bigint_t.firstdigit_bigint>. */
 #define firstdigit_bigint(big)         ((big)->sign_and_used_digits ? big->digits[nrdigits_bigint(big)-1] : 0)
+
+/* define: iszero_bigint
+ * Implements <bigint_t.iszero_bigint>. */
+#define iszero_bigint(big)             (0 == (big)->sign_and_used_digits)
 
 /* define: mod_bigint
  * Implements <bigint_t.mod_bigint>. */

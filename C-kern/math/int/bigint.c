@@ -106,6 +106,18 @@ ABBRUCH:
    return err ;
 }
 
+/* function: xorsign_biginthelper
+ * Returns the sign of combined <bigint_t.sign_and_used_digits> fields.
+ * The returned value is either < 0 if exactly one of the parameter is negative.
+ * The returned value is >= 0 if both parameter are either negative (<0) or positive (>=0).
+ *
+ * Compiler Implementation Dependent:
+ * This function uses bit operations on signed integers which is implementation-defined. */
+static inline int16_t xorsign_biginthelper(int16_t lsign, int16_t rsign)
+{
+   return lsign ^ rsign ;
+}
+
 /* function: add_biginthelper
  * Adds two integers.
  *
@@ -370,7 +382,7 @@ ABBRUCH:
  * 4. The number of digits of minbig must be equal or smaller than the one of maxbig.
  *
  * The preconditions are not checked ! */
-static void mult_biginthelper(bigint_t * big, const bigint_t * minbig, const bigint_t * maxbig, const bool isnegsign, const uint16_t exponent)
+static void mult_biginthelper(bigint_t * big, const bigint_t * minbig, const bigint_t * maxbig, const int16_t xorsign, const uint16_t exponent)
 {
    const uint16_t mindigits = nrdigits_bigint(minbig) ;
    const uint16_t maxdigits = nrdigits_bigint(maxbig) ;
@@ -423,14 +435,14 @@ static void mult_biginthelper(bigint_t * big, const bigint_t * minbig, const big
    }
 
    size -= (0 == carry) ; // if no carry occurred => make result one digit smaller
-   big->sign_and_used_digits = (int16_t) (isnegsign ? -size : size) ;
+   big->sign_and_used_digits = (int16_t) (xorsign < 0 ? -size : size) ;
    big->exponent             = exponent ;
 
    return ;
 }
 
 /* function: split_biginthelper
- * Splits wholebig into two numbers.
+ * Splits wholebig into two positive numbers.
  * The number splittedbig[0] contains all digits from highest to *split_at_digitoffset*.
  * The number splittedbig[1] contains all digits from *split_at_digitoffset*-1 until offset 0.
  * The returned pointer in splittedbig[1] could be 0 in case the last *split_at_digitoffset* digits
@@ -684,7 +696,7 @@ static uint32_t submul_biginthelper(bigint_t * diff, const bool diff_has_carry, 
 
 // group: lifetime
 
-int new_bigint(/*out*/bigint_t ** big, uint16_t nrdigits)
+int new_bigint(/*out*/bigint_t ** big, uint32_t nrdigits)
 {
    int err ;
 
@@ -883,8 +895,6 @@ ABBRUCH:
 
 void setfromint32_bigint(bigint_t * big, int32_t value)
 {
-   assert(big->allocated_digits) ;
-
    if (0 == value) {
       big->sign_and_used_digits = 0 ;
    } else if (value < 0) {
@@ -900,8 +910,6 @@ void setfromint32_bigint(bigint_t * big, int32_t value)
 
 void setfromuint32_bigint(bigint_t * big, uint32_t value)
 {
-   assert(big->allocated_digits) ;
-
    if (0 == value) {
       big->sign_and_used_digits = 0 ;
    } else {
@@ -916,7 +924,7 @@ int setfromdouble_bigint(bigint_t * big, double value)
 {
    int err ;
 
-   assert(big->allocated_digits > 2) ;
+   assert(big->allocated_digits > 2 || (0 == big->allocated_digits && big->sign_and_used_digits > 2)) ;
 
    VALIDATE_INPARAM_TEST(isfinite(value), ABBRUCH, ) ;
 
@@ -1082,11 +1090,34 @@ ABBRUCH:
    return err ;
 }
 
-// group: 1 or 2 address operations
+// group: unary operations
 
-int shiftleft_bigint(bigint_t *restrict* result, uint32_t shift_count)
+void removetrailingzero_bigint(bigint_t * big)
+{
+   uint16_t nrdigits = nrdigits_bigint(big) ;
+   uint16_t rshift   = 0 ;
+
+   while (  1 <  nrdigits
+         && 0 == big->digits[rshift]
+         && UINT16_MAX != big->exponent) {
+      ++ rshift ;
+      -- nrdigits ;
+      ++ big->exponent ;
+   }
+
+   if (rshift) {
+      big->sign_and_used_digits = (int16_t) (big->sign_and_used_digits < 0 ? - (int16_t) nrdigits : (int16_t) nrdigits) ;
+      memmove(&big->digits[0], &big->digits[rshift], nrdigits * sizeof(big->digits[0])) ;
+   }
+
+}
+
+// group: binary operations
+
+int shiftleft_bigint(bigint_t ** result, uint32_t shift_count)
 {
    int err ;
+   const int16_t  resultsign  = (*result)->sign_and_used_digits ;
    const uint16_t nrdigits    = nrdigits_bigint(*result) ;
    const uint32_t incr_expont = shift_count / 32 ;
    const uint32_t digit_shift = shift_count % 32 ;
@@ -1115,8 +1146,8 @@ int shiftleft_bigint(bigint_t *restrict* result, uint32_t shift_count)
             if (err) goto ABBRUCH ;
          }
 
-         (*result)->digits[nrdigits] = overflow_maxdigit ;
-         (*result)->sign_and_used_digits = (int16_t) ((*result)->sign_and_used_digits < 0 ? - size : size) ;
+         (*result)->digits[nrdigits]     = overflow_maxdigit ;
+         (*result)->sign_and_used_digits = (int16_t) (resultsign < 0 ? - size : size) ;
       }
 
       uint32_t digit          = (*result)->digits[0] ;
@@ -1132,6 +1163,79 @@ int shiftleft_bigint(bigint_t *restrict* result, uint32_t shift_count)
    }
 
    (*result)->exponent = (uint16_t) new_exponent ;
+
+   return 0 ;
+ABBRUCH:
+   LOG_ABORT(err) ;
+   return err ;
+}
+
+int shiftright_bigint(bigint_t ** result, uint32_t shift_count)
+{
+   int err ;
+   const int16_t  resultsign   = (*result)->sign_and_used_digits ;
+   const uint16_t nrdigits     = nrdigits_bigint(*result) ;
+   const uint16_t exponent     = exponent_bigint(*result) ;
+   const uint32_t decr_expont  = shift_count / 32 ;
+   const uint32_t digit_shift  = shift_count % 32 ;
+   uint32_t       new_nrdigits = nrdigits ;
+   uint32_t       new_exponent = exponent ;
+   uint32_t       skip_digits ;
+
+   if (decr_expont < new_exponent) {
+      skip_digits   = 0 ;
+      new_exponent -= decr_expont ;
+      // nrdigits > 0 && exponent > 0 && new_exponent > 0
+   } else {
+      skip_digits   = decr_expont - new_exponent ;
+      new_exponent  = 0 ;
+
+      if (new_nrdigits <= skip_digits) {
+         (*result)->sign_and_used_digits = 0 ;
+         (*result)->exponent             = 0 ;
+         return 0 ;
+      }
+
+      new_nrdigits -= skip_digits ;
+   }
+
+   if (digit_shift) {
+      uint32_t * destdigits = &(*result)->digits[0] ;
+      uint32_t digit        = (*result)->digits[skip_digits] >> digit_shift ;
+
+      if (new_exponent) {
+         // do we need to PRESERVE_RIGHT_BITS (assert(0 == skip_digits))
+         uint32_t rightbitsdigit = (*result)->digits[0] << (32 - digit_shift) ;
+         if (rightbitsdigit) {
+            // PRESERVE_RIGHT_BITS: shift them into empty digit
+            -- new_exponent ;
+            ++ new_nrdigits ;
+            if ((*result)->allocated_digits < new_nrdigits) {
+               err = allocate_bigint(result, new_nrdigits) ;
+               if (err) goto ABBRUCH ;
+            }
+
+            *(destdigits++) = rightbitsdigit ;
+         }
+      }
+
+      for (uint16_t i = (uint16_t)(skip_digits+1); i < nrdigits; ++i, ++destdigits) {
+         uint32_t leftdigit     = (*result)->digits[i] ;
+         uint64_t shifted_digit = ((uint64_t)leftdigit << (32 - digit_shift)) | digit ;
+         destdigits[0] = (uint32_t) shifted_digit ;
+         digit         = (uint32_t) (shifted_digit >> 32) ;
+      }
+
+      destdigits[0]  = digit ;
+      new_nrdigits  -= (0 == digit) ;
+
+   } else if (skip_digits) {
+
+      memmove((*result)->digits, &(*result)->digits[skip_digits], new_nrdigits * sizeof((*result)->digits[0])) ;
+   }
+
+   (*result)->sign_and_used_digits = (int16_t)  (resultsign < 0 ? - (int32_t)new_nrdigits : (int32_t)new_nrdigits) ;
+   (*result)->exponent             = (uint16_t) new_exponent ;
 
    return 0 ;
 ABBRUCH:
@@ -1253,8 +1357,7 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
 
    const uint16_t lnrdigits = nrdigits_bigint(lbig) ;
    const uint16_t rnrdigits = nrdigits_bigint(rbig) ;
-   const uint16_t xorsign   = (uint16_t) ((uint16_t) lbig->sign_and_used_digits ^ (uint16_t) rbig->sign_and_used_digits) ;
-   const uint16_t isnegsign = 0 != ((uint16_t)0x8000 & xorsign) ;
+   const int16_t  xorsign   = xorsign_biginthelper(lbig->sign_and_used_digits, rbig->sign_and_used_digits) ;
    const uint32_t exponent  = (uint32_t)lbig->exponent + rbig->exponent ;
    uint32_t       size      = (uint32_t)lnrdigits      + rnrdigits ;
    uint16_t       maxdigits ;
@@ -1285,7 +1388,7 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
    }
 
    if (mindigits <= 128) {
-      mult_biginthelper(*result, minbig, maxbig, isnegsign, (uint16_t) exponent) ;
+      mult_biginthelper(*result, minbig, maxbig, xorsign, (uint16_t) exponent) ;
       return 0 ;
    }
 
@@ -1410,7 +1513,7 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
       if (err) goto ABBRUCH ;
    }
 
-   (*result)->sign_and_used_digits = (int16_t) (isnegsign ? - (*result)->sign_and_used_digits : (*result)->sign_and_used_digits) ;
+   (*result)->sign_and_used_digits = (int16_t) (xorsign < 0 ? - (*result)->sign_and_used_digits : (*result)->sign_and_used_digits) ;
    (*result)->exponent             = (uint16_t) exponent ;
 
    return 0 ;
@@ -1601,10 +1704,9 @@ int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, 
    bigint_t * big  = divresult ? *divresult : (bigint_t*)buffer ;
 
    {
-      const uint16_t xorsign    = (uint16_t) ((uint16_t) lbig->sign_and_used_digits ^ (uint16_t) rbig->sign_and_used_digits) ;
-      const uint16_t isnegsign  = 0 != ((uint16_t)0x8000 & xorsign) ;
+      const int16_t xorsign     = xorsign_biginthelper(lbig->sign_and_used_digits, rbig->sign_and_used_digits) ;
       big->exponent             = 0 ;
-      big->sign_and_used_digits = (int16_t) (isnegsign ? - (int16_t) divsize : (int16_t) divsize) ;
+      big->sign_and_used_digits = (int16_t) (xorsign < 0 ? - (int16_t) divsize : (int16_t) divsize) ;
       big->digits[divresult ? dvrlshift : 0] = nextdigit ;
    }
 
@@ -1677,6 +1779,19 @@ static int test_sign(void)
 {
    uint8_t  buffer[sizeof(bigint_t)] = { 0 } ;
    bigint_t * big = (bigint_t*) buffer ;
+
+   // TEST xorsign_biginthelper
+   int16_t signtestvalues[] = { INT16_MAX, 1, 0, -1, INT16_MIN } ;
+   for (unsigned i1 = 0; i1 < nrelementsof(signtestvalues); ++i1) {
+      const int s1 = signtestvalues[i1] < 0 ? -1 : +1 ;
+      for (unsigned i2 = 0; i2 < nrelementsof(signtestvalues); ++i2) {
+         const int s2 = signtestvalues[i2] < 0 ? -1 : +1 ;
+         const int expected = s1 * s2 ;
+         int16_t xorsign = xorsign_biginthelper(signtestvalues[i1], signtestvalues[i2]) ;
+         xorsign = (xorsign < 0) ? -1 : + 1 ;
+         TEST(expected == xorsign) ;
+      }
+   }
 
    // TEST 0 == sign_bigint
    TEST(0 == sign_bigint(big)) ;
@@ -2002,6 +2117,67 @@ static int test_initfree(void)
 ABBRUCH:
    delete_bigint(&big) ;
    delete_bigint(&big2) ;
+   return EINVAL ;
+}
+
+static int test_unaryops(void)
+{
+   bigint_t * big = 0 ;
+
+   // prepare
+   TEST(0 == new_bigint(&big, nrdigitsmax_bigint())) ;
+
+   // TEST removetrailingzero_bigint 1 digit
+   const uint32_t values1digit[] = { 0, 1, UINT16_MAX-1, UINT16_MAX } ;
+   for (unsigned int i = 0 ; i < nrelementsof(values1digit); ++i) {
+      setfromuint32_bigint(big, values1digit[i]) ;
+      removetrailingzero_bigint(big) ;
+      TEST(firstdigit_bigint(big) == values1digit[i]) ;
+      TEST(sign_bigint(big) == (values1digit[i] != 0)) ;
+      negate_bigint(big) ;
+      removetrailingzero_bigint(big) ;
+      TEST(firstdigit_bigint(big) == values1digit[i]) ;
+      TEST(sign_bigint(big) == -(values1digit[i] != 0)) ;
+   }
+
+   // TEST removetrailingzero_bigint x digits
+   const uint32_t values10digits[][10] = {
+          { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+         ,{ UINT16_MAX, 0, 0, 2, 1, 0, 0, 4, 6, UINT16_MAX }
+         ,{ 1, 0, 0, 0, UINT16_MAX, UINT16_MAX, 0, UINT16_MAX, 1, 2 }
+         ,{ UINT16_MAX, 0, UINT16_MAX, 1, 100, 200, 1000, 0xff000000, 0xffff0000, 0xff00 }
+      } ;
+   for (unsigned int i = 0 ; i < nrelementsof(values10digits); ++i) {
+      for (int s =-1; s <= 1; s += 2) {
+         // normal shift
+         const unsigned offset   = 100 * (1+i) + i ;
+         const uint16_t nrdigits = (uint16_t) (10 + offset) ;
+         big->sign_and_used_digits = (int16_t) (s * (int16_t)nrdigits) ;
+         big->exponent             = (uint16_t) i ;
+         memset(big->digits, 0, sizeof(big->digits[0]) * nrdigits) ;
+         memmove(&big->digits[offset], &values10digits[i][0], 10 * sizeof(values10digits[0][0])) ;
+         removetrailingzero_bigint(big) ;
+         TEST(offset + i == big->exponent) ;
+         TEST(10         == s * big->sign_and_used_digits) ;
+         TEST(0          == memcmp(&big->digits[0], &values10digits[i][0], 10 * sizeof(values10digits[0][0]))) ;
+         // exponent overflows
+         big->sign_and_used_digits = (int16_t) (s * (int16_t)nrdigits) ;
+         big->exponent             = (uint16_t) (UINT16_MAX - i) ;
+         memset(big->digits, 0, sizeof(big->digits[0]) * nrdigits) ;
+         memmove(&big->digits[offset], &values10digits[i][0], 10 * sizeof(values10digits[0][0])) ;
+         removetrailingzero_bigint(big) ;
+         TEST(UINT16_MAX       == big->exponent) ;
+         TEST((int)(nrdigits-i)== s *big->sign_and_used_digits) ;
+         TEST(0                == memcmp(&big->digits[offset-i], &values10digits[i][0], 10 * sizeof(values10digits[0][0]))) ;
+      }
+   }
+
+   // unprepare
+   TEST(0 == delete_bigint(&big)) ;
+
+   return 0 ;
+ABBRUCH:
+   delete_bigint(&big) ;
    return EINVAL ;
 }
 
@@ -2944,7 +3120,7 @@ static int test_shift(void)
 {
    bigint_t * big = 0 ;
 
-   // TEST shiftleft_bigint with multiple of 32 does nothing
+   // TEST shiftleft_bigint with multiple of 32
    TEST(0 == new_bigint(&big, 100)) ;
    for (unsigned i = 0; i < 100; ++i) {
       big->digits[i] = 0x12345678 ;
@@ -2963,48 +3139,61 @@ static int test_shift(void)
          i = 32 * 0x7000 - 32 ;
       }
    }
+   TEST(0 == delete_bigint(&big)) ;
 
    // TEST shiftleft_bigint values 1 .. 31
+   TEST(0 == new_bigint(&big, 100)) ;
    for (unsigned i = 1; i <= 31; ++i) {
-      TEST(0 == delete_bigint(&big)) ;
-      TEST(0 == new_bigint(&big, 100)) ;
-      big->sign_and_used_digits = 100 ;
-      for (unsigned di = 0; di < 100; ++di) {
-         big->digits[di] = 512*13*(di+1) ;
+      for (int s = -1; s <= +1; s += 2) {
+         for (unsigned di = 0; di < 100; ++di) {
+            big->digits[di] = 512*13*(di+1) ;
+         }
+         big->sign_and_used_digits = (int16_t) (s * 100) ;
+         big->exponent             = 0 ;
+         TEST(0 == shiftleft_bigint(&big, i + 32*i)) ;
+         TEST(s == sign_bigint(big)) ;
+         TEST(i == exponent_bigint(big)) ;
+         bool isOver = (((uint64_t)512*13*100 << i) > UINT32_MAX) ;
+         TEST(100+isOver == big->allocated_digits) ;
+         TEST(100+isOver == nrdigits_bigint(big)) ;
+         for (unsigned di = 0; di < 100; ++di) {
+            uint32_t shiftedvalue = (512*13*(di+1)) << i  ;
+            shiftedvalue += (512*13*di) >> (32 - i) ;
+            TEST(shiftedvalue == big->digits[di]) ;
+         }
+         if (isOver) {
+            TEST(big->digits[100] == (uint32_t)512*13*100 >> (32-i)) ;
+         }
       }
-      TEST(0 == shiftleft_bigint(&big, i + 32*i)) ;
-      for (unsigned di = 0; di < 100; ++di) {
-         uint32_t shiftedvalue = (512*13*(di+1)) << i  ;
-         shiftedvalue += (512*13*di) >> (32 - i) ;
-         TEST(shiftedvalue == big->digits[di]) ;
-      }
-      bool isOver = (((uint64_t)512*13*100 << i) > UINT32_MAX) ;
-      if (isOver) {
-         TEST(big->digits[100] == (uint32_t)512*13*100 >> (32-i)) ;
-      }
-      TEST(100+isOver == big->allocated_digits) ;
-      TEST(100+isOver == nrdigits_bigint(big)) ;
-      TEST(i == exponent_bigint(big)) ;
    }
+   TEST(0 == delete_bigint(&big)) ;
 
    // TEST shiftleft_bigint EOVERFLOW
+   TEST(0 == new_bigint(&big, 100)) ;
    big->exponent = 0 ;
    big->sign_and_used_digits = 0 ; /*value 0 is ignored no overflow*/
    TEST(0 == shiftleft_bigint(&big, 32u*0xffff + 32)) ;
    big->sign_and_used_digits = 1 ;
-   big->digits[1] = 1 ;
+   big->digits[0] = 1 ;
+   TEST(0 == shiftleft_bigint(&big, 32u*0xffff + 31)) ;
+   TEST(0xffff == big->exponent) ;
+   TEST(1      == big->sign_and_used_digits) ;
+   TEST(1u<<31 == big->digits[0]) ;
+   big->exponent  = 0 ;
+   big->sign_and_used_digits = 1 ;
+   big->digits[0] = 1 ;
    TEST(EOVERFLOW == shiftleft_bigint(&big, 32u*0xffff + 32 + 31)) ;
    TEST(0 == big->exponent) ;
    TEST(1 == big->sign_and_used_digits) ;
-   TEST(1 == big->digits[1]) ;
+   TEST(1 == big->digits[0]) ;
    big->exponent = 1 ;
    TEST(EOVERFLOW == shiftleft_bigint(&big, 32u*0xffff + 31)) ;
    TEST(1 == big->exponent) ;
    TEST(1 == big->sign_and_used_digits) ;
-   TEST(1 == big->digits[1]) ;
+   TEST(1 == big->digits[0]) ;
+   TEST(0 == delete_bigint(&big)) ;
 
    // TEST shiftleft_bigint ENOMEM
-   TEST(0 == delete_bigint(&big)) ;
    TEST(0 == new_bigint(&big, 100)) ;
    test_errortimer_t errtimer ;
    TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
@@ -3021,8 +3210,117 @@ static int test_shift(void)
    for (unsigned di = 0; di < 100; ++di) {
       TEST(big->digits[di] == 0x12345678) ;
    }
+   TEST(0 == delete_bigint(&big)) ;
 
-   // unprepare
+   // TEST shiftright_bigint with multiple of 32 adjusts only exponent
+   TEST(0 == new_bigint(&big, 100)) ;
+   for (unsigned i = 0; i < 100; ++i) {
+      big->digits[i] = (i << 8) | 0x400000ff ;
+   }
+   for (uint32_t  shiftcount = 0; shiftcount <= 32 * 100; shiftcount += 32) {
+      for (int s = -1; s <= 1; s += 2) {
+         big->exponent             = (uint16_t) 100 ;
+         big->sign_and_used_digits = (int16_t) (s * 100) ;
+         TEST(0 == shiftright_bigint(&big, shiftcount)) ;
+         TEST(exponent_bigint(big) == 100-shiftcount/32) ;
+         TEST(nrdigits_bigint(big) == 100) ;
+         for (unsigned i = 0; i < 100; ++i) {
+            TEST(big->digits[i] == ((i << 8) | 0x400000ff)) ;
+         }
+      }
+   }
+   TEST(0 == delete_bigint(&big)) ;
+
+   // TEST shiftright_bigint with multiple of 32 adjusts exponent and moves digits
+   TEST(0 == new_bigint(&big, 100)) ;
+   for (uint32_t shiftcount = 1; shiftcount <= 0x8000u; ++ shiftcount) {
+      for (int s = -1; s <= 1; s += 2) {
+         for (unsigned i = 0; i < 100; ++i) {
+            big->digits[i] = (i << 8) | 0x400000ff ;
+         }
+         big->exponent             = (uint16_t) (s + 10) ;
+         big->sign_and_used_digits = (int16_t) (s * 100) ;
+         TEST(0 == shiftright_bigint(&big, 32 * (shiftcount + (uint32_t)s + 10))) ;
+         TEST(exponent_bigint(big) == 0) ;
+         TEST(nrdigits_bigint(big) == (shiftcount < 100 ? 100 - shiftcount : 0)) ;
+         TEST(sign_bigint(big)     == (nrdigits_bigint(big) ? s : 0)) ;
+         for (unsigned i = 0; i < nrdigits_bigint(big); ++i) {
+            TEST(big->digits[i] == (((i+shiftcount) << 8) | 0x400000ff)) ;
+         }
+      }
+      if (shiftcount == 100) {
+         shiftcount = 0x8000u - 1 ;
+      }
+   }
+   TEST(0 == delete_bigint(&big)) ;
+
+   // TEST shiftright_bigint with values 0..31
+   for (uint32_t shiftcount = 0; shiftcount <= 31; ++ shiftcount) {
+      TEST(0 == new_bigint(&big, 100)) ;
+      for (int s = -1; s <= 1; s += 2) {
+         for (unsigned i = 0; i < 100; ++i) {
+            big->digits[i] = (i << 8) | 0x080000f0 ;
+         }
+         big->exponent             = 2 ;
+         big->sign_and_used_digits = (int16_t) (s * 100) ;
+         TEST(0 == shiftright_bigint(&big, shiftcount)) ;
+         TEST(big->allocated_digits == 100 + (shiftcount > 4)) ;
+         TEST(exponent_bigint(big)  == 1   + (shiftcount <= 4)) ;
+         TEST(nrdigits_bigint(big)  == 100 + (shiftcount > 4) - (shiftcount >= 28)) ;
+         TEST(sign_bigint(big)      == s) ;
+         const unsigned offset = (shiftcount > 4) ;
+         TEST(!offset || big->digits[0] == (0x080000f0u << (32 - shiftcount))) ;
+         for (unsigned i = 0; i <= 99-(shiftcount >= 28); ++i) {
+            uint32_t ldigit = (i+1) < 100 ? ((i+1) << 8) | 0x080000f0 : 0 ;
+            uint32_t rdigit = (i << 8) | 0x080000f0 ;
+            uint64_t digit  = (((uint64_t)ldigit << 32) + rdigit) >> shiftcount ;
+            TEST(big->digits[i+offset] == (uint32_t)digit) ;
+         }
+      }
+      TEST(0 == delete_bigint(&big)) ;
+   }
+
+   // TEST shiftright_bigint with values 33..127
+   TEST(0 == new_bigint(&big, 100)) ;
+   for (uint32_t shiftcount = 33; shiftcount <= 127; ++ shiftcount) {
+      for (int s = -1; s <= 1; s += 2) {
+         for (unsigned i = 0; i < 100; ++i) {
+            big->digits[i] = (i << 8) | 0x080000f0 ;
+         }
+         big->exponent             = 1 ;
+         big->sign_and_used_digits = (int16_t) (s * 100) ;
+         TEST(0 == shiftright_bigint(&big, shiftcount)) ;
+         const uint32_t skip_digit = (shiftcount/32) - 1 ;
+         TEST(big->allocated_digits == 100) ;
+         TEST(exponent_bigint(big)  == 0) ;
+         TEST(nrdigits_bigint(big)  == 100 - skip_digit - ((shiftcount % 32) >= 28)) ;
+         TEST(sign_bigint(big)      == s) ;
+         for (unsigned i = skip_digit; i <= 99-((shiftcount%32) >= 28); ++i) {
+            uint32_t ldigit = (i+1) < 100 ? ((i+1) << 8) | 0x080000f0 : 0 ;
+            uint32_t rdigit = (i << 8) | 0x080000f0 ;
+            uint64_t digit  = (((uint64_t)ldigit << 32) + rdigit) >> (shiftcount%32) ;
+            TEST(big->digits[i-skip_digit] == (uint32_t)digit) ;
+         }
+      }
+   }
+   TEST(0 == delete_bigint(&big)) ;
+
+   // TEST shiftright_bigint ENOMEM
+   TEST(0 == new_bigint(&big, 100)) ;
+   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   for (unsigned i = 0; i < 100; ++i) {
+      big->digits[i] = 0x12345678 ;
+   }
+   big->sign_and_used_digits = 100 ;
+   big->exponent             = 1 ;
+   TEST(ENOMEM == shiftright_bigint(&big, 4)) ;
+   TEST(100  == big->allocated_digits) ;
+   TEST(100  == nrdigits_bigint(big)) ;
+   TEST(1    == exponent_bigint(big)) ;
+   for (unsigned di = 0; di < 100; ++di) {
+      TEST(big->digits[di] == 0x12345678) ;
+   }
    TEST(0 == delete_bigint(&big)) ;
 
    return 0 ;
@@ -3031,7 +3329,7 @@ ABBRUCH:
    return EINVAL ;
 }
 
-static int calc_example1(void)
+static int test_example1(void)
 {
    bigint_t    * big[5] = { 0 } ;
 
@@ -3090,7 +3388,7 @@ ABBRUCH:
 static int test_fixedsize(void)
 {
    bigint_t                * big[3] = { 0 } ;
-   bigint_fixed_DECLARE(5) ;
+   bigint_fixed_DECLARE(14) ;
    bigint_fixed_DECLARE(4) bigf[3]  = {    bigint_fixed_INIT(4, 0, 1,  2,  3,  4)
                                           ,bigint_fixed_INIT(-4, 8, 9, 10, 11, 12)
                                           ,bigint_fixed_INIT(4, 4, 5, 6, 7, 8)
@@ -3108,11 +3406,13 @@ static int test_fixedsize(void)
    static_assert(offsetof(struct bigint_fixed4_t, exponent)             == offsetof(bigint_t, exponent), "") ;
    static_assert(offsetof(struct bigint_fixed4_t, digits)               == offsetof(bigint_t, digits), "") ;
    static_assert(sizeof(((struct bigint_fixed4_t*)0)->digits)           == 4 * sizeof(uint32_t), "") ;
-   static_assert(offsetof(struct bigint_fixed5_t, allocated_digits)     == offsetof(bigint_t, allocated_digits), "") ;
-   static_assert(offsetof(struct bigint_fixed5_t, sign_and_used_digits) == offsetof(bigint_t, sign_and_used_digits), "") ;
-   static_assert(offsetof(struct bigint_fixed5_t, exponent)             == offsetof(bigint_t, exponent), "") ;
-   static_assert(offsetof(struct bigint_fixed5_t, digits)               == offsetof(bigint_t, digits), "") ;
-   static_assert(sizeof(((struct bigint_fixed5_t*)0)->digits)           == 5 * sizeof(uint32_t), "") ;
+   static_assert(offsetof(struct bigint_fixed14_t, allocated_digits)    == offsetof(bigint_t, allocated_digits), "") ;
+   static_assert(offsetof(struct bigint_fixed14_t, sign_and_used_digits)== offsetof(bigint_t, sign_and_used_digits), "") ;
+   static_assert(offsetof(struct bigint_fixed14_t, exponent)            == offsetof(bigint_t, exponent), "") ;
+   static_assert(offsetof(struct bigint_fixed14_t, digits)              == offsetof(bigint_t, digits), "") ;
+   static_assert(sizeof(((struct bigint_fixed14_t*)0)->digits)          == 14 * sizeof(uint32_t), "") ;
+   static_assert(sizeof(struct bigint_fixed14_t)                        <= 16 * sizeof(uint32_t), "") ;
+   static_assert(sizeof(struct bigint_fixed14_t)                        >  15 * sizeof(uint32_t), "") ;
 
    // TEST bigint_fixed_INIT
    TEST(0 == bigf[0].allocated_digits) ;
@@ -3168,12 +3468,13 @@ int unittest_math_int_biginteger()
    if (test_nrdigits())    goto ABBRUCH ;
    if (test_compare())     goto ABBRUCH ;
    if (test_initfree())    goto ABBRUCH ;
+   if (test_unaryops())    goto ABBRUCH ;
    if (test_assign())      goto ABBRUCH ;
    if (test_addsub())      goto ABBRUCH ;
    if (test_mult())        goto ABBRUCH ;
    if (test_div())         goto ABBRUCH ;
    if (test_shift())       goto ABBRUCH ;
-   if (calc_example1())    goto ABBRUCH ;
+   if (test_example1())    goto ABBRUCH ;
    if (test_fixedsize())   goto ABBRUCH ;
 
    TEST(0 == same_resourceusage(&usage)) ;
