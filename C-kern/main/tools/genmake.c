@@ -1661,7 +1661,7 @@ PRINT_USAGE:
       fprintf(stderr, "%s", "\nAppending a value to a previously defined variable is possible with:") ;
       fprintf(stderr, "%s", "\n variable += valueN\n # - or -\n variable = $(variable) valueN" ) ;
       fprintf(stderr, "%s", "\nText lines beginning with a '#' are ignored and have a commenting character." ) ;
-//TODO
+// TODO: add better documentation
       fprintf(stderr, "%s", "\n\nBuild Modes\n" ) ;
       fprintf(stderr, "%s", "\n\nCause most projects have at least two different building modes more than one" ) ;
       fprintf(stderr, "%s", "\nbuilding mode is supported by assigning a list of names to 'Modes'.") ;

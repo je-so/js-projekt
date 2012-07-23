@@ -447,7 +447,7 @@ int unittest_context_maincontext()
       if (test_initerror())  goto ONABORT ;
 
       TEST(0 == init_resourceusage(&usage)) ;
-      {  // TODO remove in case malloc is no more in use (init_resourceusage)
+      {  // TODO: remove in case malloc is no more in use (init_resourceusage)
          resourceusage_t   usage2[10] ;
          for(unsigned i = 0; i < nrelementsof(usage2); ++i) {
             TEST(0 == init_resourceusage(&usage2[i])) ;

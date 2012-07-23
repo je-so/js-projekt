@@ -397,7 +397,7 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
 
 // section: rtsignal_t
 
-// TODO send2_rtsignal
+// TODO: send2_rtsignal
 /*
 int send2_rtsignal(rtsignal_t nr, thread_t * thread)
 {
