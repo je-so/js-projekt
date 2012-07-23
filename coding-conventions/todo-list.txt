@@ -1,0 +1,12 @@
+If you need to remember several planning steps
+put a simple todo list in your current module 
+under development.
+
+/* TODO: LIST
+ * ☐ step 1
+ * ✓ completed step 2
+ * ✓ completed step 3
+ * ⟳ step 4 which is currently implemented
+ * ☐ step 5
+ * ☐ step 6
+ */
