@@ -67,13 +67,13 @@ int initthread_mmtransient(/*out*/mm_iot * mmtransient)
    memblock_t        newobject  = memblock_INIT_FREEABLE ;
 
 
-   VALIDATE_INPARAM_TEST(0 == mmtransient->object, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == mmtransient->object, ONABORT, ) ;
 
    err = init_mmtransient(&tempobject) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = mresize_mmtransient(&tempobject, objsize, &newobject) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    memcpy(newobject.addr, &tempobject, objsize) ;
 
@@ -81,7 +81,7 @@ int initthread_mmtransient(/*out*/mm_iot * mmtransient)
    mmtransient->iimpl  = (mm_it*) &s_mmtransient_interface ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_mmtransient(&tempobject) ;
    LOG_ABORT(err) ;
    return err ;
@@ -107,11 +107,11 @@ int freethread_mmtransient(mm_iot * mmtransient)
       err2 = free_mmtransient(&tempobject) ;
       if (err2) err = err2 ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -153,20 +153,20 @@ int mresize_mmtransient(mmtransient_t * mman, size_t newsize, struct memblock_t 
       return mfree_mmtransient(mman, memblock) ;
    }
 
-   VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONABORT, ) ;
 
    if (  (ssize_t)newsize < 0
       || !(newaddr = realloc(memblock->addr, newsize))) {
       LOG_OUTOFMEMORY(newsize) ;
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    memblock->addr = newaddr ;
    memblock->size = newsize ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -176,7 +176,7 @@ int mfree_mmtransient(mmtransient_t * mman, struct memblock_t * memblock)
    int err ;
    (void) mman ;
 
-   VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONABORT, ) ;
 
    // TODO: implement mfree_mmtransient without free
 
@@ -187,7 +187,7 @@ int mfree_mmtransient(mmtransient_t * mman, struct memblock_t * memblock)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -215,7 +215,7 @@ static int test_initfree(void)
    TEST(0 == mman.todo__implement_without_malloc__) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -247,7 +247,7 @@ static int test_initthread(void)
    TEST(EINVAL == initthread_mmtransient(&mman)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) freethread_mmtransient(&mman) ;
    return EINVAL ;
 }
@@ -310,7 +310,7 @@ static int test_allocate(void)
    TEST(0 == free_mmtransient(&mman)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_mmtransient(&mman) ;
    return EINVAL ;
 }
@@ -344,7 +344,7 @@ static int test_mm_macros(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -354,16 +354,16 @@ int unittest_memory_manager_transient()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ABBRUCH ;
-   if (test_initthread())  goto ABBRUCH ;
-   if (test_allocate())    goto ABBRUCH ;
-   if (test_mm_macros())   goto ABBRUCH ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_initthread())  goto ONABORT ;
+   if (test_allocate())    goto ONABORT ;
+   if (test_mm_macros())   goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

@@ -73,13 +73,13 @@ int init_threadpool(/*out*/threadpool_t * pool, uint8_t nr_of_threads)
    pool->threads  = 0 ;
 
    err = init_waitlist(&pool->idle) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = newgroup_thread(&pool->threads, &threadmain_threadpool, pool, nr_of_threads) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    pool->poolsize = 0 ;
    (void) free_waitlist(&pool->idle) ;
    LOG_ABORT(err) ;
@@ -111,11 +111,11 @@ int free_threadpool(threadpool_t * pool)
       err2 = free_waitlist(&pool->idle) ;
       if (err2) err = err2 ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -128,11 +128,11 @@ int tryruntask_threadpool(threadpool_t * pool, int (*task_main)(void* start_arg)
    err = trywakeup_waitlist(&pool->idle, task_main, start_arg) ;
    if (err) {
       if (EAGAIN == err) return err ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -196,7 +196,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_threadpool(&pool) ;
    return EINVAL ;
 }
@@ -238,7 +238,7 @@ static int test_run(void)
    TEST(0 == free_threadpool(&pool)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_threadpool(&pool) ;
    return EINVAL ;
 }
@@ -249,14 +249,14 @@ int unittest_platform_task_threadpool()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())          goto ABBRUCH ;
-   if (test_run())               goto ABBRUCH ;
+   if (test_initfree())          goto ONABORT ;
+   if (test_run())               goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

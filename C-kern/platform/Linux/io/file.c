@@ -40,8 +40,8 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
    int fd       = -1 ;
    int openatfd = AT_FDCWD ;
 
-   VALIDATE_INPARAM_TEST(iomode, ABBRUCH, ) ;
-   VALIDATE_INPARAM_TEST(0 == (iomode & ~((unsigned)accessmode_RDWR)), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(iomode, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 == (iomode & ~((unsigned)accessmode_RDWR)), ONABORT, ) ;
 
    if (relative_to) {
       openatfd = fd_directory(relative_to) ;
@@ -56,13 +56,13 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
       err = errno ;
       LOG_SYSERR("openat", err) ;
       LOG_STRING(filepath) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    *fileobj = fd ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -83,13 +83,13 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
       LOG_SYSERR("openat", err) ;
       LOG_INT(openatfd) ;
       LOG_STRING(filepath) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    *fileobj = fd ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -110,13 +110,13 @@ int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct d
       LOG_SYSERR("openat", err) ;
       LOG_INT(openatfd) ;
       LOG_STRING(filepath) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    *fileobj = fd ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -126,10 +126,10 @@ int free_file(file_t * fileobj)
    int err ;
 
    err = free_filedescr(fileobj) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -234,7 +234,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "init1")) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_file(&file) ;
    removefile_directory(tempdir, "init1") ;
    removefile_directory(tempdir, "init2") ;
@@ -300,7 +300,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "testwrite")) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_file(&file) ;
    removefile_directory(tempdir, "testwrite") ;
    return EINVAL ;
@@ -368,7 +368,7 @@ static int test_append(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "testwrite")) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_file(&file) ;
    free_file(&file2) ;
    removefile_directory(tempdir, "testwrite") ;
@@ -385,9 +385,9 @@ int unittest_io_file()
 
    TEST(0 == newtemp_directory(&tempdir, "iofiletest", &tmppath)) ;
 
-   if (test_initfree(tempdir))   goto ABBRUCH ;
-   if (test_readwrite(tempdir))  goto ABBRUCH ;
-   if (test_append(tempdir))     goto ABBRUCH ;
+   if (test_initfree(tempdir))   goto ONABORT ;
+   if (test_readwrite(tempdir))  goto ONABORT ;
+   if (test_append(tempdir))     goto ONABORT ;
 
    // adapt LOG
    char * logbuffer ;
@@ -409,7 +409,7 @@ int unittest_io_file()
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    (void) free_resourceusage(&usage) ;

@@ -49,19 +49,19 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, int fd, off_t file_offset, size
    if (err) {
       err = errno ;
       LOG_SYSERR("fstat", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (file_info.st_size <= file_offset) {
       err = ENODATA ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    off_t  filesize_remaining = file_info.st_size - file_offset ;
    if ( !size ) {
       if ( filesize_remaining >= (size_t)-1 ) {
          err = ENOMEM ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       size = (size_t) filesize_remaining ;
    } else {
@@ -82,21 +82,21 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, int fd, off_t file_offset, size
    if (MAP_FAILED == mem_start) {
       err = errno ;
       LOG_SYSERR("mmap", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = madvise(mem_start, size, MADV_SEQUENTIAL) ;
    if (err) {
       err = errno ;
       LOG_SYSERR("madvise", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    mfile->addr        = mem_start ;
    mfile->size        = size ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (MAP_FAILED != mem_start) {
       (void) munmap(mem_start, size) ;
    }
@@ -118,7 +118,7 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
    const size_t    pagesize  = pagesize_vm() ;
    int             openatfd  = AT_FDCWD ;
 
-   VALIDATE_INPARAM_TEST(0 <= file_offset && 0 == (file_offset % pagesize), ABBRUCH, LOG_UINT64(file_offset)) ;
+   VALIDATE_INPARAM_TEST(0 <= file_offset && 0 == (file_offset % pagesize), ONABORT, LOG_UINT64(file_offset)) ;
 
    VALIDATE_INPARAM_TEST(
             (mode & accessmode_READ)
@@ -126,7 +126,7 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
          &&  (mode & (accessmode_SHARED|accessmode_PRIVATE)) != (accessmode_SHARED|accessmode_PRIVATE)
          &&  (    !(mode & accessmode_WRITE)
                || (mode & (accessmode_SHARED|accessmode_PRIVATE)) ),
-         ABBRUCH, LOG_INT(mode)) ;
+         ONABORT, LOG_INT(mode)) ;
 
    if (relative_to) {
       openatfd = fd_directory(relative_to) ;
@@ -137,16 +137,16 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
       err = errno ;
       LOG_SYSERR("openat", err) ;
       LOG_STRING(file_path) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = init2_mmfile(mfile, fd, file_offset, size, mode) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    (void) free_filedescr(&fd) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&fd) ;
    LOG_ABORT(err) ;
    return err ;
@@ -158,7 +158,7 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
    int  fd       = -1 ;
    int  openatfd = AT_FDCWD ;
 
-   VALIDATE_INPARAM_TEST(0 != size, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 != size, ONABORT, ) ;
 
    if (relative_to) {
       openatfd = fd_directory(relative_to) ;
@@ -169,7 +169,7 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
       err = errno ;
       LOG_SYSERR("openat", err) ;
       LOG_STRING(file_path) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = ftruncate(fd, size) ;
@@ -177,16 +177,16 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
       err = errno ;
       LOG_SYSERR("ftruncate", err) ;
       LOG_SIZE(size) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = init2_mmfile(mfile, fd, 0, size, mmfile_openmode_RDWR_SHARED) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    (void) free_filedescr(&fd) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (-1 != fd) {
       (void) unlinkat(openatfd, file_path, 0) ;
       free_filedescr(&fd) ;
@@ -211,11 +211,11 @@ int free_mmfile(mmfile_t * mfile)
       mfile->addr = 0 ;
       mfile->size = 0 ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -238,7 +238,7 @@ static int test_alignedsize(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -338,7 +338,7 @@ static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
    TEST(0 == removefile_directory(tempdir, "mmfile")) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
@@ -514,7 +514,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(0 == sigaction(SIGSEGV, &oldact, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
    free_filedescr(&fd) ;
    (void) free_mmfile(&mfile) ;
@@ -554,7 +554,7 @@ static int test_writeoffset(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "mmfile")) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
    return EINVAL ;
@@ -573,10 +573,10 @@ int unittest_io_mmfile()
 
    tmpstr = str_cstring(&tmppath) ;
 
-   if (test_alignedsize())                   goto ABBRUCH ;
-   if (test_creat_mmfile(tempdir, tmpstr))   goto ABBRUCH ;
-   if (test_initfree(tempdir, tmpstr))       goto ABBRUCH ;
-   if (test_writeoffset(tempdir))            goto ABBRUCH ;
+   if (test_alignedsize())                   goto ONABORT ;
+   if (test_creat_mmfile(tempdir, tmpstr))   goto ONABORT ;
+   if (test_initfree(tempdir, tmpstr))       goto ONABORT ;
+   if (test_writeoffset(tempdir))            goto ONABORT ;
 
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
@@ -587,7 +587,7 @@ int unittest_io_mmfile()
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    (void) free_resourceusage(&usage) ;

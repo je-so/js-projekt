@@ -179,7 +179,7 @@ static int test_globalvar(void)
    TEST(0 == free_filedescr(&oldstdout)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (-1 != oldstderr) {
       dup2(oldstderr, STDERR_FILENO) ;
    }
@@ -200,14 +200,14 @@ int unittest_io_writer_log_logmain()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_globalvar())      goto ABBRUCH ;
+   if (test_globalvar())      goto ONABORT ;
 
    // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

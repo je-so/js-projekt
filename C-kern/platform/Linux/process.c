@@ -72,7 +72,7 @@ int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*ou
    if (err) {
       err = errno ;
       LOG_SYSERR("prctl(PR_GET_NAME)", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    size_t size = 1 + strlen(buffer) ;
@@ -91,7 +91,7 @@ int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*ou
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -119,7 +119,7 @@ static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, p
       if (-1 == devnull) {
          err = errno ;
          LOG_SYSERR("open(/dev/null,O_RDWR)", err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
@@ -132,7 +132,7 @@ static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, p
    ioredirect2->devnull = devnull ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&devnull) ;
    LOG_ABORT(err) ;
    return err ;
@@ -145,10 +145,10 @@ static int free_processioredirect2(process_ioredirect2_t * ioredirect2)
    int err ;
 
    err = free_filedescr(&ioredirect2->devnull) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -179,7 +179,7 @@ static int redirectstdfd_processioredirect2(const process_ioredirect2_t * ioredi
             LOG_SYSERR("dup2(fd, stdfd)", err) ;
             LOG_INT(fd) ;
             LOG_INT(stdfd) ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
       }
    } else {
@@ -189,7 +189,7 @@ static int redirectstdfd_processioredirect2(const process_ioredirect2_t * ioredi
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -214,10 +214,10 @@ static int redirectstdio_processioredirect2(const process_ioredirect2_t * ioredi
    err2 = redirectstdfd_processioredirect2(ioredirect2, STDERR_FILENO, ioredirect2->ioredirect.std_err) ;
    if (err2) err = err2 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -245,7 +245,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
       flags = FLAGS ;
       break ;
    default:
-      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ABBRUCH, LOG_INT(option)) ;
+      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ONABORT, LOG_INT(option)) ;
       flags = FLAGS ;
       break ;
    }
@@ -258,7 +258,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
          err = errno ;
          LOG_SYSERR("waitid",err) ;
          LOG_INT(pid) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
@@ -283,7 +283,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -296,7 +296,7 @@ static int childprocess_exec(childprocess_exec_t  * execparam)
    execvp( execparam->filename, execparam->arguments ) ;
    err = errno ;
 
-// ABBRUCH:
+// ONABORT:
 
    do {
       write_err = write( execparam->errpipe, &err, sizeof(&err)) ;
@@ -317,13 +317,13 @@ int initexec_process(process_t * process, const char * filename, const char * co
    if ( pipe2(pipefd,O_CLOEXEC) ) {
       err = errno ;
       LOG_SYSERR("pipe2", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    execparam.errpipe = pipefd[1] ;
 
    err = init_process( &childprocess, &childprocess_exec, &execparam, ioredirection) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    // CHECK exec error
    err = free_filedescr(&pipefd[1]) ;
@@ -340,7 +340,7 @@ int initexec_process(process_t * process, const char * filename, const char * co
    if (-1 == read_bytes) {
       err = errno ;
       LOG_SYSERR("read", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    } else if (read_bytes) {
       // EXEC error
       err = exec_err ? exec_err : ENOEXEC ;
@@ -349,16 +349,16 @@ int initexec_process(process_t * process, const char * filename, const char * co
       for(size_t i = 0; arguments[i]; ++i) {
          LOG_INDEX("s",arguments,i) ;
       }
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = free_filedescr(&pipefd[0]) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    *process = childprocess ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&pipefd[1]) ;
    free_filedescr(&pipefd[0]) ;
    (void) free_process(&childprocess) ;
@@ -382,7 +382,7 @@ int init_process(/*out*/process_t         *  process,
    if (-1 == pid) {
       err = errno ;
       LOG_SYSERR("fork", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (0 == pid) {
@@ -401,7 +401,7 @@ int init_process(/*out*/process_t         *  process,
    *process = pid ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -422,11 +422,11 @@ int free_process(process_t * process)
       process_result_t result ;
       err = queryresult_process(pid, &result, queryoption_WAIT_AND_FREE) ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -437,12 +437,12 @@ int state_process(process_t * process, /*out*/process_state_e * current_state)
    process_result_t result ;
 
    err = queryresult_process(*process, &result, queryoption_NOWAIT) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    *current_state = result.state ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -458,7 +458,7 @@ int wait_process(process_t * process, /*out*/process_result_t * result)
       process_result_t state ;
 
       err = queryresult_process(pid, &state, queryoption_WAIT) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       switch(state.state) {
       case process_state_RUNNABLE:
@@ -476,7 +476,7 @@ int wait_process(process_t * process, /*out*/process_result_t * result)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -589,7 +589,7 @@ static int test_redirect(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -724,7 +724,7 @@ static int test_redirect2(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_processioredirect2(&ioredirect2) ;
    for(int stdfd = 0; stdfd < 3; ++stdfd) {
       if (-1 != oldstdfd[stdfd]) {
@@ -863,7 +863,7 @@ static int test_initfree(void)
    TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
    if (isoldsignalmask) sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
    (void) free_process(&process) ;
@@ -934,7 +934,7 @@ static int test_abnormalexit(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_process(&process) ;
    return EINVAL ;
 }
@@ -971,7 +971,7 @@ static int test_assert(void)
    TEST(0 == free_process(&process)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_process(&process) ;
    return EINVAL ;
 }
@@ -1070,7 +1070,7 @@ static int test_statequery(void)
    TEST(0 == free_filedescr(&pipefd[1])) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_process(&process) ;
    free_filedescr(&pipefd[0]) ;
    free_filedescr(&pipefd[1]) ;
@@ -1141,7 +1141,7 @@ static int test_exec(void)
    TEST(0 == free_filedescr(&fd[1])) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&fd[0]) ;
    free_filedescr(&fd[1]) ;
    (void) free_process(&process) ;
@@ -1154,13 +1154,13 @@ int unittest_platform_process()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_redirect())       goto ABBRUCH ;
-   if (test_redirect2())      goto ABBRUCH ;
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_abnormalexit())   goto ABBRUCH ;
-   if (test_assert())         goto ABBRUCH ;
-   if (test_statequery())     goto ABBRUCH ;
-   if (test_exec())           goto ABBRUCH ;
+   if (test_redirect())       goto ONABORT ;
+   if (test_redirect2())      goto ONABORT ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_abnormalexit())   goto ONABORT ;
+   if (test_assert())         goto ONABORT ;
+   if (test_statequery())     goto ONABORT ;
+   if (test_exec())           goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -1186,7 +1186,7 @@ int unittest_platform_process()
    LOG_PRINTF("%s", buffer2) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

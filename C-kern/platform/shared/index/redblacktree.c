@@ -86,7 +86,7 @@ int invariant_redblacktree( redblacktree_t * tree, const redblacktree_compare_no
 {
    if (     !tree
          || !compare_callback ) {
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    redblacktree_node_t                 * prev     = 0 ;
@@ -100,14 +100,14 @@ int invariant_redblacktree( redblacktree_t * tree, const redblacktree_compare_no
 
    if (     !ISBLACK(node)
          || 0 != PARENT(node) ) {
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    // determine height of tree
 
    size_t height = 1 ;  // black height of root node
    while( node->left ) {
-      if (PARENT(node->left) != node) goto ABBRUCH ;
+      if (PARENT(node->left) != node) goto ONABORT ;
       node = node->left ;
       if (ISBLACK(node)) {
          ++ height ;
@@ -118,24 +118,24 @@ int invariant_redblacktree( redblacktree_t * tree, const redblacktree_compare_no
 
    do {
 
-      if (node->left  && compare( cb, node->left,  node) >= 0) goto ABBRUCH ;
-      if (node->right && compare( cb, node->right, node) <= 0) goto ABBRUCH ;
+      if (node->left  && compare( cb, node->left,  node) >= 0) goto ONABORT ;
+      if (node->right && compare( cb, node->right, node) <= 0) goto ONABORT ;
 
       if (ISRED(node)) {
-         if (node->left  && ISRED(node->left))  goto ABBRUCH ;
-         if (node->right && ISRED(node->right)) goto ABBRUCH ;
+         if (node->left  && ISRED(node->left))  goto ONABORT ;
+         if (node->right && ISRED(node->right)) goto ONABORT ;
       }
 
       if (prev) {
-         if (compare( cb, node, prev) <= 0) goto ABBRUCH ;
-         if (compare( cb, prev, node) >= 0) goto ABBRUCH ;
+         if (compare( cb, node, prev) <= 0) goto ONABORT ;
+         if (compare( cb, prev, node) >= 0) goto ONABORT ;
       }
 
       prev = node ;
 
       if (     (!node->left || !node->right) // is leaf
             && const_height != height) {
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       if (!node->right) {
@@ -151,12 +151,12 @@ int invariant_redblacktree( redblacktree_t * tree, const redblacktree_compare_no
          }
          node = parent ;
       } else {
-         if (PARENT(node->right) != node) goto ABBRUCH ;
+         if (PARENT(node->right) != node) goto ONABORT ;
          node = node->right ;
          if (ISBLACK(node)) ++ height ;
 
          while( node->left ) {
-            if (PARENT(node->left) != node) goto ABBRUCH ;
+            if (PARENT(node->left) != node) goto ONABORT ;
             node = node->left ;
             if (ISBLACK(node)) {
                ++ height ;
@@ -166,10 +166,10 @@ int invariant_redblacktree( redblacktree_t * tree, const redblacktree_compare_no
 
    } while( node ) ;
 
-   if (0 != height) goto ABBRUCH ;
+   if (0 != height) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(EINVAL) ;
    return EINVAL ;
 }
@@ -511,7 +511,7 @@ int insert_redblacktree( redblacktree_t * tree, const void * new_key, redblacktr
 
    if ( (((uintptr_t)1) & (uintptr_t)(new_node)) /*uneven address*/ ) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (!tree->root) {
@@ -564,7 +564,7 @@ int insert_redblacktree( redblacktree_t * tree, const void * new_key, redblacktr
    }
 
    return  0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -669,7 +669,7 @@ int updatekey_redblacktree( redblacktree_t * tree, const void * old_key, const v
       int err2 = insert_redblacktree( tree, old_key, updated_node, compare_callback ) ;
       assert(!err2) ;
       LOG_CALLERR("redblacktree_update_key_t callback", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = insert_redblacktree( tree, new_key, updated_node, compare_callback ) ;
@@ -679,11 +679,11 @@ int updatekey_redblacktree( redblacktree_t * tree, const void * old_key, const v
       assert(!err2) ;
       err2 = insert_redblacktree( tree, old_key, updated_node, compare_callback ) ;
       assert(!err2) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -732,11 +732,11 @@ int freenodes_redblacktree( redblacktree_t * tree, const redblacktree_free_t * f
          }
       }
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -1056,7 +1056,7 @@ static int test_insertconditions(void)
    TEST(0 == freenodes_redblacktree( &tree, &free_cb )) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return 1 ;
 }
 
@@ -1195,7 +1195,7 @@ static int test_removeconditions(void)
    TEST(0 == freenodes_redblacktree( &tree, &free_cb )) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return 1 ;
 }
 
@@ -1244,8 +1244,8 @@ int unittest_platform_index_redblacktree()
    }
    TEST(0 == init_redblacktree( &tree )) ;
 
-   if (test_insertconditions()) goto ABBRUCH ;
-   if (test_removeconditions()) goto ABBRUCH ;
+   if (test_insertconditions()) goto ONABORT ;
+   if (test_removeconditions()) goto ONABORT ;
 
    // TEST insert uneven address
    TEST(EINVAL == insert_redblacktree( &tree, (void*)0, (redblacktree_node_t*)(1+(uintptr_t)&nodes[0].aspect), &compare_cb )) ;
@@ -1477,7 +1477,7 @@ int unittest_platform_index_redblacktree()
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_redblacktree( &tree, &free_cb ) ;
    return 1 ;
 }

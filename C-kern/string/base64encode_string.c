@@ -102,11 +102,11 @@ int base64encode_string(const conststring_t * str, wbuffer_t * result)
 
    if (result_size <= quadruples) {
       err = EOVERFLOW ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = appendalloc_wbuffer(result, result_size, &dest) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for( ; count; -- count) {
       tripple = *(next ++) ;
@@ -148,7 +148,7 @@ int base64encode_string(const conststring_t * str, wbuffer_t * result)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -162,7 +162,7 @@ int base64decode_string(const conststring_t * str, wbuffer_t * result)
    int32_t        quadr ;
    uint8_t        * dest ;
 
-   VALIDATE_INPARAM_TEST(0 == (str->size % 4), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (str->size % 4), ONABORT, ) ;
 
    if (!count) {
       return 0 ;
@@ -173,7 +173,7 @@ int base64decode_string(const conststring_t * str, wbuffer_t * result)
    size_t result_size = 3 * count - mod3 ;
 
    err = appendalloc_wbuffer(result, result_size, &dest) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for(count = count - (mod3 != 0); count; -- count) {
       quadr = s_base64values[*(next ++)] ;
@@ -185,7 +185,7 @@ int base64decode_string(const conststring_t * str, wbuffer_t * result)
       quadr |= s_base64values[*(next ++)] ;
       if (quadr < 0) {
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       dest[2] = (uint8_t) quadr ;
       quadr >>= 8 ;
@@ -204,7 +204,7 @@ int base64decode_string(const conststring_t * str, wbuffer_t * result)
             quadr |= s_base64values[*(next ++)] ;
             if (quadr < 0) {
                err = EINVAL ;
-               goto ABBRUCH ;
+               goto ONABORT ;
             }
             quadr >>= 2 ;
             dest[1] = (uint8_t) quadr ;
@@ -216,7 +216,7 @@ int base64decode_string(const conststring_t * str, wbuffer_t * result)
             quadr |= s_base64values[*(next ++)] ;
             if (quadr < 0) {
                err = EINVAL ;
-               goto ABBRUCH ;
+               goto ONABORT ;
             }
             quadr >>= 4 ;
             dest[0] = (uint8_t) quadr ;
@@ -224,7 +224,7 @@ int base64decode_string(const conststring_t * str, wbuffer_t * result)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -325,7 +325,7 @@ static int test_base64(void)
    TEST(0 == free_wbuffer(&result)) ;
    TEST(0 == free_wbuffer(&result2)) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_wbuffer(&result) ;
    free_wbuffer(&result2) ;
    return EINVAL ;
@@ -365,7 +365,7 @@ static int test_sizebase64(void)
    TEST(0 == free_wbuffer(&result2)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_wbuffer(&result) ;
    free_wbuffer(&result2) ;
    return EINVAL ;
@@ -378,14 +378,14 @@ int unittest_string_base64encode()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_base64())      goto ABBRUCH ;
-   if (test_sizebase64())  goto ABBRUCH ;
+   if (test_base64())      goto ONABORT ;
+   if (test_sizebase64())  goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

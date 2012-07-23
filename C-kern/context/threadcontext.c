@@ -73,10 +73,10 @@ int free_threadcontext(threadcontext_t * tcontext)
    case 0:     break ;
    }
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -87,30 +87,30 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext)
 
    *tcontext = (threadcontext_t) threadcontext_INIT_STATIC ;
 
-   VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ABBRUCH, ) ;
+   VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONABORT, ) ;
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;"\n"   err = initthread_"module"("(if (parameter!="") "&tcontext->")parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/text.db/initthread)
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_error_init, ONABORT) ;"\n"   err = initthread_"module"("(if (parameter!="") "&tcontext->")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/text.db/initthread)
 
-   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
    err = initthread_mmtransient(&tcontext->mm_transient) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
    err = initthread_objectcache(&tcontext->objectcache) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
    err = initthread_logwriter(&tcontext->ilog) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++tcontext->initcount ;
 // TEXTDB:END
 
-   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_threadcontext(tcontext) ;
    LOG_ABORT(err) ;
    return err ;
@@ -177,7 +177,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    s_error_init = (test_errortimer_t) test_errortimer_INIT_FREEABLE ;
    return EINVAL ;
 }
@@ -189,13 +189,13 @@ int unittest_context_threadcontext()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ABBRUCH ;
+   if (test_initfree())    goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

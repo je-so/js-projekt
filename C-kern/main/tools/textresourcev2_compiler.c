@@ -313,10 +313,10 @@ static int freeobj_textresourcecondition(typeadapter_t * typeadt, textresource_c
    err2 = MM_FREE(&mblock) ;
    if (err2) err = err2 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -329,16 +329,16 @@ static int addtextatom_textresourcecondition(textresource_condition_t * cond, te
    textresource_textatom_t * textatomcopy ;
 
    err = execcopy_typeadapteriot(&g_textatom_adapter_iot, (struct generic_object_t**)&textatomcopy, (struct generic_object_t*)textatom) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = insertlast_textatomlist(&cond->atomlist, textatomcopy) ;
    if (err) {
       (void) execfree_typeadapteriot(&g_textatom_adapter_iot, (struct generic_object_t*)textatomcopy) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -412,10 +412,10 @@ static int freeobj_textresourcelangref(typeadapter_t * typeadt, textresource_lan
    err2 = MM_FREE(&mblock) ;
    if (err2) err = err2 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -428,18 +428,18 @@ static int addcondition_textresourcelangref(textresource_langref_t * lang, textr
    textresource_condition_t * conditioncopy ;
 
    err = execcopy_typeadapteriot(&g_condition_adapter_iot, &conditioncopy, condition) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = insertlast_conditionlist(&lang->condlist, conditioncopy) ;
    if (err) {
       (void) execfree_typeadapteriot(&g_condition_adapter_iot, conditioncopy) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (copy) *copy = conditioncopy ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -538,10 +538,10 @@ static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t
    err2 = MM_FREE(&mblock) ;
    if (err2) err = err2 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -607,10 +607,10 @@ static int free_textresource(textresource_t * textres)
    err2 = delete_arraylanguage(&textres->languages, &g_textreslang_adapter_iot) ;
    if (err) err = err2 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -647,21 +647,21 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
    textres->read_from_filename = read_from_filename ;
 
    err = new_arraytname(&textres->textnames, arraystf_8BITROOT) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = new_arrayptype(&textres->paramtypes, arraystf_4BITROOT_UNSORTED) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = new_arrayptype(&textres->languages, arraystf_8BITROOT) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for (unsigned i = 0; i < nrelementsof(knowntypes); ++i) {
       err = insert_arrayptype(textres->paramtypes, &knowntypes[i], 0, 0) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_textresource(textres) ;
    LOG_ABORT(err) ;
    return err ;
@@ -742,13 +742,13 @@ static int match_unsigned(textresource_reader_t * reader, int * number)
    int      value = 0 ;
 
    err = skip_spaceandcomment(reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
       || !('0' <= ch && ch <= '9')) {
       report_parseerror(reader, "expected to read a number") ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    value = (ch - '0') ;
@@ -760,7 +760,7 @@ static int match_unsigned(textresource_reader_t * reader, int * number)
          if (value >= (INT_MAX/10 - 1)) {
             report_parseerror(reader, "number too big") ;
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
          value *= 10 ;
          value += (ch - '0') ;
@@ -772,7 +772,7 @@ static int match_unsigned(textresource_reader_t * reader, int * number)
    *number = value ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -782,20 +782,20 @@ static int match_string(textresource_reader_t * reader, const char * string)
    size_t len = strlen(string) ;
 
    err = skip_spaceandcomment(reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (     unreadsize_utf8reader(&reader->txtpos) < len
          || 0 != strncmp((const char*)unread_utf8reader(&reader->txtpos), string, len)) {
       skipchar_utf8reader(&reader->txtpos) ;
       report_parseerror(reader, "expected to read »%s«", string) ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    skipNbytes_utf8reader(&reader->txtpos, len, len) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -813,13 +813,13 @@ static int match_stringandspace(textresource_reader_t * reader, const char * str
                && '\t' != ch
                && '\n' != ch)) {
       expect = " " ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    skipascii_utf8reader(&reader->txtpos) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    report_parseerror(reader, "expected to read »%s«", expect) ;
    return EINVAL ;
 }
@@ -830,14 +830,14 @@ static int match_identifier(textresource_reader_t * reader, /*out*/conststring_t
    uint32_t ch ;
 
    err = skip_spaceandcomment(reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    const uint8_t * idstart = unread_utf8reader(&reader->txtpos) ;
 
    if (nextchar_utf8reader(&reader->txtpos, &ch)) {
       err = nextchar_utf8reader(&reader->txtpos, &ch) ;
       report_unexpectedendofinput(reader) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (  !( ('a' <= ch && ch <= 'z')
@@ -845,7 +845,7 @@ static int match_identifier(textresource_reader_t * reader, /*out*/conststring_t
          || '_' == ch)) {
       report_parseerror(reader, "expected identifier but read unsupported character") ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    while (0 == peekascii_utf8reader(&reader->txtpos, &ch)) {
@@ -871,17 +871,17 @@ static int match_identifier(textresource_reader_t * reader, /*out*/conststring_t
          skipchar_utf8reader(&reader->txtpos) ;
          report_parseerror(reader, "expected identifier but read unsupported character") ;
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       skipascii_utf8reader(&reader->txtpos) ;
    }
 
    err = initse_conststring(idname, idstart, unread_utf8reader(&reader->txtpos)) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -890,7 +890,7 @@ static int match_quotedcstring(textresource_reader_t * reader, conststring_t * c
    int err ;
 
    err = match_string(reader, "\"") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    const uint8_t * startstr = unread_utf8reader(&reader->txtpos) ;
    const uint8_t * endstr   = startstr ;
@@ -909,7 +909,7 @@ static int match_quotedcstring(textresource_reader_t * reader, conststring_t * c
          case '"':      break ;
          default:       report_parseerror(reader, "unsupported escape sequence '\\%c'", (ch&0x7f)) ;
                         err = EINVAL ;
-                        goto ABBRUCH ;
+                        goto ONABORT ;
          }
       } else {
          switch (ch) {
@@ -924,7 +924,7 @@ static int match_quotedcstring(textresource_reader_t * reader, conststring_t * c
    initse_conststring(cstring, startstr, endstr) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -933,7 +933,7 @@ static int match_ifcondition(textresource_reader_t * reader, conststring_t * ifc
    int err ;
 
    err = match_string(reader, "(") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    const uint8_t * startstr = unread_utf8reader(&reader->txtpos) - 1 ;
    const uint8_t * endstr   = startstr ;
@@ -948,7 +948,7 @@ static int match_ifcondition(textresource_reader_t * reader, conststring_t * ifc
          if (10 <= depth) {
             report_parseerror(reader, "too deeply nested parentheses '('") ;
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
       } else if (')' == ch) {
          -- depth ;
@@ -959,13 +959,13 @@ static int match_ifcondition(textresource_reader_t * reader, conststring_t * ifc
    if (startstr + 2 == endstr) {
       report_parseerror(reader, "empty '()' not allowed") ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    initse_conststring(ifcondition, startstr, endstr) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -974,7 +974,7 @@ static int match_formatdescription(textresource_reader_t * reader, textresource_
    int err ;
 
    err = match_string(reader, "[") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for (uint8_t ch;;) {
 
@@ -989,22 +989,22 @@ static int match_formatdescription(textresource_reader_t * reader, textresource_
       if (  6 == formatid.size
          && 0 == strncmp((const char*)formatid.addr, "maxlen", 6)) {
          err = match_string(reader, "=") ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
          err = match_unsigned(reader, &param->param.maxlen) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
       } else {
          report_parseerror(reader, "unknown format specifier '%.*s'", (int)formatid.size, formatid.addr) ;
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
    }
 
    err = match_string(reader, "]") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -1019,7 +1019,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
    if (err) return err ;
 
    err = skip_spaceandcomment(reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
       && ')' != ch) {
@@ -1031,21 +1031,21 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
 
          do {
             err = match_identifier(reader, &name_type) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
 
             textparam.type = at_arrayptype(reader->txtres.paramtypes, name_type.size, name_type.addr) ;
             if (  !textparam.type
                || (textparam.type->typemod & typemodifier_RESERVED)) {
                report_parseerror(reader, "unknown parameter type '%.*s'", (int)name_type.size, (const char*)name_type.addr) ;
                err = EINVAL ;
-               goto ABBRUCH ;
+               goto ONABORT ;
             }
 
             if (0 != (textparam.type->typemod & typemodifier_CONST)) {
                if (0 != (textparam.typemod & typemodifier_CONST)) {
                   report_parseerror(reader, "more than one const not supported in parameter type") ;
                   err = EINVAL ;
-                  goto ABBRUCH ;
+                  goto ONABORT ;
                }
                textparam.typemod |= typemodifier_CONST ;
             }
@@ -1053,7 +1053,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
          } while (0 != (textparam.type->typemod & (typemodifier_CONST))) ;
 
          err = skip_spaceandcomment(reader) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
             && '*' == ch) {
@@ -1061,19 +1061,19 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
             if (0 == (textparam.type->typemod & typemodifier_POINTER)) {
                report_parseerror(reader, "parameter type '%.*s' does not support '*'", (int)name_type.size, name_type.addr) ;
                err = EINVAL ;
-               goto ABBRUCH ;
+               goto ONABORT ;
             }
 
             textparam.typemod |= typemodifier_POINTER ;
          }
 
          err = match_identifier(reader, asconststring_arraystfnode(&textparam.name)) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          if (at_arrayptype(reader->txtres.paramtypes, textparam.name.size, textparam.name.addr)) {
             report_parseerror(reader, "parameter name '%.*s' reserved", (int)textparam.name.size, textparam.name.addr) ;
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
 
          textresource_parameter_t * textparamcopy ;
@@ -1084,12 +1084,12 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
             if (EEXIST == err) {
                report_parseerror(reader, "parameter name '%.*s' is not unique", (int)textparam.name.size, (const char*)textparam.name.addr) ;
             }
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
 
 
          err = skip_spaceandcomment(reader) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
             || ',' != ch)   break ;
@@ -1102,7 +1102,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
    if (err) return err ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -1132,12 +1132,12 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
          conststring_t cstring ;
 
          err = match_quotedcstring(reader, &cstring) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          textresource_textatom_t  textstring = textresource_textatom_INIT(cstring) ;
 
          err = addtextatom_textresourcecondition(condition, &textstring) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
       } else if (isLineEnding) {
          break ;
@@ -1166,14 +1166,14 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
          conststring_t paramname ;
 
          err = match_identifier(reader, &paramname) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          textresource_parameter_t * param = at_arrayparam(text->params, paramname.size, paramname.addr) ;
 
          if (!param) {
             report_parseerror(reader, "Unknown parameter '%.*s'", (int)paramname.size, paramname.addr) ;
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
 
          while (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
@@ -1185,16 +1185,16 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
 
          if ('[' == ch) {
             err = match_formatdescription(reader, &textparam) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
          }
 
          err = addtextatom_textresourcecondition(condition, &textparam) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
       }
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -1203,14 +1203,14 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
    int err ;
 
    err = match_string(reader, "(") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    bool isElseAllowed = false ;
 
    for (uint8_t ch;;) {
 
       err = skip_spaceandcomment(reader) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || '<' == ch) {
@@ -1221,33 +1221,33 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
          if (!isElseAllowed) {
             report_parseerror(reader, "Need at least one (CONDITION) before ')'") ;
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
          textresource_condition_t elsecond = textresource_condition_INIT(conststring_INIT(4, (const uint8_t*)"else")) ;
          err = addcondition_textresourcelangref(lang, &elsecond, 0) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
          break ;
       }
 
       if ('e' == ch) {
          // match else: "<string>"
          err = match_string(reader, "else") ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          if (!isElseAllowed) {
             report_parseerror(reader, "Need at least one (CONDITION) before 'else:'") ;
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
 
          textresource_condition_t   elsecond   = textresource_condition_INIT(conststring_INIT(4, (const uint8_t*)"else")) ;
          textresource_condition_t   * elsecopy = 0 ;
 
          err = addcondition_textresourcelangref(lang, &elsecond, &elsecopy) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          err = parse_textatomline(reader, text, elsecopy) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
          break ;
       }
 
@@ -1255,16 +1255,16 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
          // match (x == y && ...) "<string>"
          conststring_t boolstring ;
          err = match_ifcondition(reader, &boolstring) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          textresource_condition_t   ifcond   = textresource_condition_INIT(boolstring) ;
          textresource_condition_t   * ifcopy = 0 ;
 
          err = addcondition_textresourcelangref(lang, &ifcond, &ifcopy) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          err = parse_textatomline(reader, text, ifcopy) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          isElseAllowed = true ;
 
@@ -1272,15 +1272,15 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
          skipchar_utf8reader(&reader->txtpos) ;
          report_parseerror(reader, "expected 'else' or '(' or ')'") ;
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    err = match_string(reader, ")") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -1290,7 +1290,7 @@ static int parse_unconditional_textatoms(textresource_reader_t * reader, textres
 
    for (uint8_t ch;;) {
       err = skip_spaceandcomment(reader) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || (  '"' != ch
@@ -1304,24 +1304,24 @@ static int parse_unconditional_textatoms(textresource_reader_t * reader, textres
          {
             textresource_condition_t  emptycond = textresource_condition_INIT(conststring_INIT_FREEABLE) ;
             err = addcondition_textresourcelangref(lang, &emptycond, &condition) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
          }
 
          err = parse_textatomline(reader, text, condition) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
       } else {
          err = parse_conditional_textatoms(reader, text, lang) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          err = skip_spaceandcomment(reader) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
       }
 
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -1598,40 +1598,40 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
 
    for (uint8_t ch;;) {
       err = skip_spaceandcomment(reader) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       err = match_string(reader, "<") ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) break ;
 
       switch(ch) {
       case 'f':   err = match_stringandspace(reader, "firstparam") ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   err = parse_xmlattributes_textresourcereader(reader, 2, firstattr, &closetag) ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   reader->txtres.progC.firstparam        = firstattr[0].value ;
                   reader->txtres.progC.firstparam_header = firstattr[1].value ;
                   break ;
       case 'g':   if (  0 == peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
                      && 'e' == ch) {
                      err = match_stringandspace(reader, "generate") ;
-                     if (err) goto ABBRUCH ;
+                     if (err) goto ONABORT ;
                      err = parse_xmlattributes_textresourcereader(reader, nrelementsof(genattr), genattr, &closetag) ;
-                     if (err) goto ABBRUCH ;
+                     if (err) goto ONABORT ;
                      reader->txtres.progC.hfilename = genattr[0].value ;
                      reader->txtres.progC.cfilename = genattr[1].value ;
                   } else {
                      err = match_stringandspace(reader, "guard") ;
-                     if (err) goto ABBRUCH ;
+                     if (err) goto ONABORT ;
                      err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
-                     if (err) goto ABBRUCH ;
+                     if (err) goto ONABORT ;
                      reader->txtres.progC.guard = value.value ;
                      break ;
                   }
                   break ;
       case 'i':   err = match_string(reader, "include>") ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   const uint8_t * incl_start = unread_utf8reader(&reader->txtpos) ;
                   const uint8_t * incl_end   = incl_start ;
                   while (0 == peekascii_utf8reader(&reader->txtpos, &ch)) {
@@ -1644,26 +1644,26 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
                      skipchar_utf8reader(&reader->txtpos) ;
                   }
                   err = initse_conststring(&reader->txtres.progC.include, incl_start, incl_end) ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   err = match_string(reader, "</include>") ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   break ;
       case 'l':   err = match_stringandspace(reader, "langswitch") ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   reader->txtres.progC.langswitch = value.value ;
                   break ;
       case 'n':   err = match_stringandspace(reader, "nameprefix") ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   reader->txtres.progC.nameprefix = value.value ;
                   break ;
       case 'p':   err = match_stringandspace(reader, "printf") ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
-                  if (err) goto ABBRUCH ;
+                  if (err) goto ONABORT ;
                   reader->txtres.progC.printf = value.value ;
                   break ;
       default:    return 0 ;
@@ -1671,7 +1671,7 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -1686,11 +1686,11 @@ static int parse_header_textresourcereader(textresource_reader_t * reader)
    xmlattribute_t       value   = xmlattribute_INIT("value") ;
 
    err = parse_version_textresourcereader(reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for (uint8_t ch;;) {
       err = skip_spaceandcomment(reader) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
          || '<' != ch) {
@@ -1698,27 +1698,27 @@ static int parse_header_textresourcereader(textresource_reader_t * reader)
       }
 
       err = match_stringandspace(reader, "<proglang") ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       err = parse_xmlattributes_textresourcereader(reader, 1, &value, &opclose) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       if (     1 != value.value.size
             || 0 != strncmp("C", (const char*)value.value.addr, value.value.size)) {
          report_parseerror(reader, "Only language 'C' is supported at the moment") ;
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       err = parse_proglangC_utf8reader(reader) ;
-      if (err) goto ABBRUCH;
+      if (err) goto ONABORT ;
 
       err = match_string(reader, "/proglang>") ;
-      if (err) goto ABBRUCH;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -1729,7 +1729,7 @@ static int parse_contentversion2_textresourcereader(textresource_reader_t * read
    int err ;
 
    err = skip_spaceandcomment(reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for (uint8_t ch;;) {
       if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
@@ -1738,23 +1738,23 @@ static int parse_contentversion2_textresourcereader(textresource_reader_t * read
       }
 
       err = parse_textdefinitions_textresourcereader(reader) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    err = match_string(reader, "</textresource>") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = skip_spaceandcomment(reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (isnext_utf8reader(&reader->txtpos)) {
       report_parseerror(reader, "expected to read nothing after '</textresource>'") ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -1779,10 +1779,10 @@ static int free_textresourcereader(textresource_reader_t * reader)
    err2 = free_mmfile(&reader->mfile) ;
    if (err2) err = err2 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -1797,26 +1797,26 @@ static int init_textresourcereader(/*out*/textresource_reader_t * reader, const 
    textresource_reader_t new_reader = textresource_reader_INIT_FREEABLE ;
 
    err = init_textresource(&new_reader.txtres, filename) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = init_mmfile(&new_reader.mfile, filename, 0, 0, mmfile_openmode_RDONLY, 0) ;
    if (err) {
       print_error("Can not open file »%s«", filename) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    init_utf8reader(&new_reader.txtpos, size_mmfile(&new_reader.mfile), addr_mmfile(&new_reader.mfile)) ;
    new_reader.version  = 2 ;
 
    err = parse_header_textresourcereader(&new_reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = parse_contentversion2_textresourcereader(&new_reader) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    *reader = new_reader ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_textresourcereader(&new_reader) ;
    return err ;
 }
@@ -1854,10 +1854,10 @@ static int free_textresourcewriter(textresource_writer_t * writer)
    err2 = free_filedescr(&writer->cfile) ;
    if (err2) err = err2 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -1873,7 +1873,7 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
    writer->txtres = txtres ;
 
    err = initfromstring_cstring(&filename, &progC->cfilename) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (0 == checkpath_directory(0, str_cstring(&filename))) {
       (void) removefile_directory(0, str_cstring(&filename)) ;
@@ -1882,14 +1882,14 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
    err = initcreat_file(&writer->cfile, str_cstring(&filename), 0) ;
    if (err) {
       print_error("Can not create file »%s«", str_cstring(&filename)) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = truncate_cstring(&filename, 0) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = append_cstring(&filename, progC->hfilename.size, (const char*)progC->hfilename.addr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (0 == checkpath_directory(0, str_cstring(&filename))) {
       (void) removefile_directory(0, str_cstring(&filename)) ;
@@ -1898,14 +1898,14 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
    err = initcreat_file(&writer->hfile, str_cstring(&filename), 0) ;
    if (err) {
       print_error("Can not create file »%s«", str_cstring(&filename)) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = free_cstring(&filename) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_cstring(&filename) ;
    free_textresourcewriter(writer) ;
    LOG_ABORT(err) ;
@@ -1918,21 +1918,21 @@ static int initfree_textresourcewriter(textresource_t * txtres)
    textresource_writer_t   writer = textresource_writer_INIT_FREEABLE ;
 
    err = init_textresourcewriter(&writer, txtres) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    writer.outfile = writer.hfile ;
    err = writeCheader_textresourcewriter(&writer) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    writer.outfile = writer.cfile ;
    err = writeCsource_textresourcewriter(&writer) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = free_textresourcewriter(&writer) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_textresourcewriter(&writer) ;
    LOG_ABORT(err) ;
    return err ;
@@ -1993,14 +1993,14 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
 
    foreach(_arraytname, writer->txtres->textnames, text) {
       err = writeCfctdeclaration_textresourcewriter(writer, text) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
       dprintf(writer->outfile, " ;\n") ;
    }
 
    dprintf(writer->outfile, "\n#endif\n") ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -2053,10 +2053,10 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, textr
          for (size_t i = 0; i < textatom->string.size; ++i) {
             if ('%' == textatom->string.addr[i]) {
                bytes = write(writer->outfile, "%%", 2) ;
-               if (2 != bytes) goto ABBRUCH ;
+               if (2 != bytes) goto ONABORT ;
             } else {
                bytes = write(writer->outfile, &textatom->string.addr[i], 1) ;
-               if (1 != bytes) goto ABBRUCH ;
+               if (1 != bytes) goto ONABORT ;
             }
          }
 
@@ -2064,10 +2064,10 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, textr
          textresource_parameter_t * param = textatom->param.ref ;
          if (!(param->typemod & typemodifier_POINTER)) {
             bytes = dprintf(writer->outfile, "%%%s", param->type->format) ;
-            if (bytes < 0) goto ABBRUCH ;
+            if (bytes < 0) goto ONABORT ;
          } else {
             bytes = dprintf(writer->outfile, "%%%s%s", (textatom->param.maxlen ? ".*" : ""), param->type->ptrformat) ;
-            if (bytes < 0) goto ABBRUCH ;
+            if (bytes < 0) goto ONABORT ;
          }
       } else {
          assert(0) ;
@@ -2075,7 +2075,7 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, textr
    }
 
    bytes = dprintf(writer->outfile, "%s", "\"") ;
-   if (bytes < 0) goto ABBRUCH ;
+   if (bytes < 0) goto ONABORT ;
 
    // write parameter string
 
@@ -2085,23 +2085,23 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, textr
          textresource_parameter_t * param = textatom->param.ref ;
          if (!(param->typemod & typemodifier_POINTER)) {
             bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr) ;
-            if (bytes < 0) goto ABBRUCH ;
+            if (bytes < 0) goto ONABORT ;
          } else {
             if (textatom->param.maxlen)
                bytes = dprintf(writer->outfile, ", %d, %.*s", textatom->param.maxlen, (int)param->name.size, param->name.addr) ;
             else
                bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr) ;
-            if (bytes < 0) goto ABBRUCH ;
+            if (bytes < 0) goto ONABORT ;
          }
       }
 
    }
 
    bytes = dprintf(writer->outfile, "%s", ") ;\n") ;
-   if (bytes < 0) goto ABBRUCH ;
+   if (bytes < 0) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -2112,7 +2112,7 @@ static int writeCfunction_textresourcewriter(textresource_writer_t * writer, tex
    dprintf(writer->outfile, "\n\n") ;
 
    err = writeCfctdeclaration_textresourcewriter(writer, text) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    dprintf(writer->outfile, "\n{\n") ;
 
@@ -2155,7 +2155,7 @@ static int writeCfunction_textresourcewriter(textresource_writer_t * writer, tex
    dprintf(writer->outfile, "   return 0;\n}") ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -2191,7 +2191,7 @@ static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
       foreach(_arraytname, writer->txtres->textnames, text) {
 
          err = writeCfunction_textresourcewriter(writer, text, lang) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
       }
 
@@ -2208,7 +2208,7 @@ static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
    dprintf(writer->outfile, "\n") ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -2218,13 +2218,13 @@ static int writeCsource_textresourcewriter(textresource_writer_t * writer)
    int err ;
 
    err = writeCintro_textresourcewriter(writer) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = writeCfunctions_textresourcewriter(writer) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -2236,7 +2236,7 @@ int main(int argc, const char * argv[])
    const char              * infile ;
 
    err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (argc != 2) {
       goto PRINT_USAGE ;
@@ -2244,12 +2244,12 @@ int main(int argc, const char * argv[])
    infile = argv[1] ;
 
    err = init_textresourcereader(&reader, infile) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = initfree_textresourcewriter(&reader.txtres) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
-ABBRUCH:
+ONABORT:
    free_textresourcereader(&reader) ;
    free_maincontext() ;
    return err ;
@@ -2257,5 +2257,5 @@ PRINT_USAGE:
    print_version() ;
    print_usage() ;
    err = EINVAL ;
-   goto ABBRUCH ;
+   goto ONABORT ;
 }

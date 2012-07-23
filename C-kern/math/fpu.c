@@ -43,11 +43,11 @@ int enable_fpuexcept(fpu_except_e exception_flags)
 
    if (-1 == feenableexcept(exception_flags)) {
       err = errno ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -58,11 +58,11 @@ int disable_fpuexcept(fpu_except_e exception_flags)
 
    if (-1 == fedisableexcept(exception_flags)) {
       err = errno ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -76,11 +76,11 @@ int signal_fpuexcept(fpu_except_e exception_flags)
 
    if (feraiseexcept(exception_flags)) {
       err = errno ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -91,11 +91,11 @@ int clear_fpuexcept(fpu_except_e exception_flags)
 
    if (feclearexcept(exception_flags)) {
       err = errno ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -221,7 +221,7 @@ static int test_fpuexcept_signalclear(void)
    TEST(0 == enable_fpuexcept(oldenabled)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    clear_fpuexcept(fpu_except_MASK_ALL) ;
    disable_fpuexcept(fpu_except_MASK_ALL) ;
    enable_fpuexcept(oldenabled) ;
@@ -368,7 +368,7 @@ static int test_fpuexcept_enabledisable(void)
    TEST(0 == sigaction(SIGFPE, &oldact1, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    clear_fpuexcept(fpu_except_MASK_ALL) ;
    disable_fpuexcept(fpu_except_MASK_ALL) ;
    enable_fpuexcept(oldenabled) ;
@@ -447,7 +447,7 @@ static int test_fpuexcept_thread(void)
    TEST(0 == enable_fpuexcept(oldenabled)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_thread(&thread1) ;
    clear_fpuexcept(fpu_except_MASK_ALL) ;
    disable_fpuexcept(fpu_except_MASK_ALL) ;
@@ -459,19 +459,19 @@ int unittest_math_floatingpointunit()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_fpuexcept_thread())           goto ABBRUCH ;
+   if (test_fpuexcept_thread())           goto ONABORT ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_fpuexcept_signalclear())      goto ABBRUCH ;
-   if (test_fpuexcept_enabledisable())    goto ABBRUCH ;
-   if (test_fpuexcept_thread())           goto ABBRUCH ;
+   if (test_fpuexcept_signalclear())      goto ONABORT ;
+   if (test_fpuexcept_enabledisable())    goto ONABORT ;
+   if (test_fpuexcept_thread())           goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

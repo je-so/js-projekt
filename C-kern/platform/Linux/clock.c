@@ -59,14 +59,14 @@ int resolution_timeclock(timeclock_e clock_type, /*out*/timevalue_t * resolution
       err = errno ;
       LOG_SYSERR("clock_getres", err) ;
       LOG_INT(clock_type) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    resolution->seconds = tspec.tv_sec ;
    resolution->nanosec = tspec.tv_nsec ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -81,14 +81,14 @@ int time_timeclock(timeclock_e clock_type, /*out*/timevalue_t * clock_time)
       err = errno ;
       LOG_SYSERR("clock_gettime", err) ;
       LOG_INT(clock_type) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    clock_time->seconds = tspec.tv_sec ;
    clock_time->nanosec = tspec.tv_nsec ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -104,11 +104,11 @@ int sleep_timeclock(timeclock_e clock_type, timevalue_t * relative_time)
       if (EINTR == err) continue ;
       LOG_SYSERR("clock_gettime", err) ;
       LOG_INT(clock_type) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -124,11 +124,11 @@ int sleepms_timeclock(timeclock_e clock_type, uint32_t millisec)
       if (EINTR == err) continue ;
       LOG_SYSERR("clock_gettime", err) ;
       LOG_INT(clock_type) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -214,7 +214,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -224,13 +224,13 @@ int unittest_time_clock()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_query())    goto ABBRUCH ;
+   if (test_query())    goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

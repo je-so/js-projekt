@@ -55,7 +55,7 @@ static void generate_logresource(const char * test_name)
    fd = open( resource_path, O_CREAT|O_EXCL|O_RDWR|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    if (fd < 0) {
       err = errno ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    char   * logbuffer ;
@@ -66,13 +66,13 @@ static void generate_logresource(const char * test_name)
       int logsize = write( fd, logbuffer, logbuffer_size ) ;
       if (logbuffer_size != (unsigned)logsize) {
          LOGC_PRINTF(TEST, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    free_filedescr(&fd) ;
    return ;
-ABBRUCH:
+ONABORT:
    if (err != EEXIST) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
       LOGC_PRINTF(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
@@ -97,11 +97,11 @@ static int check_logresource(const char * test_name)
    strcpy( resource_path + sizeof(GENERATED_LOGRESOURCE_DIR)-1, test_name ) ;
 
    err = filesize_directory(0, resource_path, &logfile_size ) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (logfile_size != 0) {
       err = init_mmfile( &logfile, resource_path, 0, 0, mmfile_openmode_RDONLY, 0) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
       logfile_size = size_mmfile(&logfile) ;
    }
 
@@ -112,7 +112,7 @@ static int check_logresource(const char * test_name)
    if (logbuffer_size != logfile_size) {
       LOGC_PRINTF(TEST, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    char * stored_content = (char*) addr_mmfile(&logfile) ;
@@ -124,14 +124,14 @@ static int check_logresource(const char * test_name)
       free_mmfile(&logfile2) ;
       LOGC_PRINTF(TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = free_mmfile(&logfile) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
    LOGC_PRINTF(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
    free_mmfile(&logfile) ;
@@ -211,7 +211,7 @@ int run_unittest(void)
    if (unittest_context_maincontext()) {
       ++ err_count ;
       LOGC_PRINTF(TEST, "unittest_context FAILED\n") ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
 for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) {
@@ -220,7 +220,7 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
    if (init_maincontext(test_context_type[type_nr], 0, 0)) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
       LOGC_PRINTF(TEST, "%s\n", "Abort reason: initmain_context failed" ) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    prepare_test() ;
@@ -342,12 +342,12 @@ for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) 
    if (free_maincontext()) {
       LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
       LOGC_PRINTF(TEST, "%s\n", "Abort reason: freemain_context failed" ) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
 }
 
-ABBRUCH:
+ONABORT:
 
    if (!err_count) {
       LOGC_PRINTF(TEST, "\nALL UNITTEST(%d): OK\n", total_count) ;

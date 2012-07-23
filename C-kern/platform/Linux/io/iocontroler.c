@@ -127,7 +127,7 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
 
    if (iocntr->nr_events) {
       err = EAGAIN ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (iocntr->nr_filedescr) {
@@ -136,7 +136,7 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
 
       if (iocntr->nr_filedescr > (((size_t)-1)/2) / sizeof(struct epoll_event)) {
          err = ENOMEM ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       if (cache_size > iocntr->eventcache.size) {
@@ -144,7 +144,7 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
          if (!newaddr) {
             err = ENOMEM ;
             LOG_OUTOFMEMORY(cache_size) ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
 
          iocntr->eventcache.addr = newaddr ;
@@ -156,9 +156,9 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
          removefirst_iocblist(&iocntr->changed_list, &first) ;
          if (first->isunregistered) {
             err = remove_iocbarray(iocntr->iocbs, first->fd, 0) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
             err = execfree_typeadapteriot(&s_iocontroler_iocb_adapter_iot, first) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
          }
       }
 
@@ -170,14 +170,14 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
          LOG_SYSERR("epoll_wait", err) ;
          LOG_SIZE(iocntr->nr_filedescr) ;
          LOG_INT(iocntr->sys_poll) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       iocntr->nr_events   = (size_t) err ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -196,11 +196,11 @@ int init_iocontroler(/*out*/iocontroler_t * iocntr)
    if (-1 == efd) {
       err = errno ;
       LOG_SYSERR("epoll_create1", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = new_iocbarray(&iocbs, arraysf_6BITROOT_UNSORTED) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    iocntr->sys_poll     = efd ;
    iocntr->nr_events    = 0 ;
@@ -210,7 +210,7 @@ int init_iocontroler(/*out*/iocontroler_t * iocntr)
    iocntr->iocbs        = iocbs ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&efd) ;
    LOG_ABORT(err) ;
    return err ;
@@ -225,7 +225,7 @@ int free_iocontroler(iocontroler_t * iocntr)
 
    if (iocntr->nr_events) {
       err = EAGAIN ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = free_filedescr(&iocntr->sys_poll) ;
@@ -244,10 +244,10 @@ int free_iocontroler(iocontroler_t * iocntr)
 
    iocntr->changed_list = (iocontoler_iocblist_t) slist_INIT ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -257,12 +257,12 @@ int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t
    int err ;
    iocontroler_iocb_t   * newiocb = 0 ;
 
-   VALIDATE_INPARAM_TEST(isinit_filedescr(fd), ABBRUCH, ) ;
-   VALIDATE_INPARAM_TEST(! (ioevents & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevents) ) ;
+   VALIDATE_INPARAM_TEST(isinit_filedescr(fd), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(! (ioevents & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ONABORT, LOG_INT(ioevents) ) ;
 
    iocontroler_iocb_t dummy = { .fd = (size_t)fd, .iocb = iocb, .next = 0, .isunregistered = 1 } ;
    err = tryinsert_iocbarray(iocntr->iocbs, &dummy, &newiocb, &s_iocontroler_iocb_adapter_iot.generic) ;
-   if (err && EEXIST != err) goto ABBRUCH ;
+   if (err && EEXIST != err) goto ONABORT ;
 
    struct epoll_event epevent ;
    epevent.events   = convertepollevent_iocontroler(ioevents) ;
@@ -273,7 +273,7 @@ int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t
       err = errno ;
       LOG_SYSERR("epoll_ctl(EPOLL_CTL_ADD)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    ++ iocntr->nr_filedescr ;
@@ -287,7 +287,7 @@ int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (     newiocb
          && newiocb->isunregistered
          && !newiocb->next ) {
@@ -303,14 +303,14 @@ int changemask_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t i
    struct epoll_event   epevent ;
    iocontroler_iocb_t   * foundiocb ;
 
-   VALIDATE_INPARAM_TEST(! (ioevents & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ABBRUCH, LOG_INT(ioevents)) ;
+   VALIDATE_INPARAM_TEST(! (ioevents & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ONABORT, LOG_INT(ioevents)) ;
 
    foundiocb = at_iocbarray(iocntr->iocbs, (size_t)fd) ;
 
    if (   ! foundiocb
          || foundiocb->isunregistered ) {
       err = ENOENT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    epevent.events   = convertepollevent_iocontroler(ioevents) ;
@@ -321,11 +321,11 @@ int changemask_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t i
       err = errno ;
       LOG_SYSERR("epoll_ctl(EPOLL_CTL_MOD)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -338,13 +338,13 @@ int changeiocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, iocallbac
    if (   ! foundiocb
          || foundiocb->isunregistered ) {
       err = ENOENT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    foundiocb->iocb = iocb ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -358,7 +358,7 @@ int unregisteriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd)
    if (   ! foundiocb
          || foundiocb->isunregistered ) {
       err = ENOENT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = epoll_ctl(iocntr->sys_poll, EPOLL_CTL_DEL, fd, &dummy) ;
@@ -366,7 +366,7 @@ int unregisteriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd)
       err = errno ;
       LOG_SYSERR("epoll_ctl(EPOLL_CTL_DEL)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    -- iocntr->nr_filedescr ;
@@ -378,7 +378,7 @@ int unregisteriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -388,7 +388,7 @@ int processevents_iocontroler(iocontroler_t * iocntr, uint16_t timeout_millisec,
    int err ;
 
    err = wait_iocontroler(iocntr, timeout_millisec) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    // call iohandler
 
@@ -415,7 +415,7 @@ int processevents_iocontroler(iocontroler_t * iocntr, uint16_t timeout_millisec,
    iocntr->nr_events = 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -674,7 +674,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    for(unsigned i = 0; i < nrelementsof(fd); ++i) {
       free_filedescr(fd+i) ;
    }
@@ -993,7 +993,7 @@ static int test_processevents(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    for(unsigned i = 0; i < nrelementsof(fd); ++i) {
       free_filedescr(fd+i) ;
    }
@@ -1008,14 +1008,14 @@ int unittest_io_iocontroler()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_processevents())  goto ABBRUCH ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_processevents())  goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

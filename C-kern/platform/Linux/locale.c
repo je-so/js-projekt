@@ -49,11 +49,11 @@ const char * current_locale()
       err = EINVAL ;
       LOG_SYSERR("setlocale",err) ;
       LOG_STRING("LC_ALL=0") ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return lname ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return 0 ;
 }
@@ -67,11 +67,11 @@ const char * currentmsg_locale()
       err = EINVAL ;
       LOG_SYSERR("setlocale",err) ;
       LOG_STRING("LC_MESSAGES=0") ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return lname ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return 0 ;
 }
@@ -98,11 +98,11 @@ int setdefault_locale()
       err = EINVAL ;
       LOG_ERRTEXTvoid(LOCALE_SETLOCALE) ;
       LOG_STRING(getenv("LC_ALL")) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -119,11 +119,11 @@ int reset_locale()
       LOG_ERRTEXTvoid(LOCALE_SETLOCALE) ;
       LOG_STRING("LC_ALL=C") ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -136,11 +136,11 @@ int resetmsg_locale()
       LOG_ERRTEXTvoid(LOCALE_SETLOCALE) ;
       LOG_STRING("LC_MESSAGES=C") ;
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -152,10 +152,10 @@ int initonce_locale()
    int err ;
 
    err = setdefault_locale() ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -165,10 +165,10 @@ int freeonce_locale()
    int err ;
 
    err = reset_locale() ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -195,7 +195,7 @@ static int test_initerror(void)
    old_lcall = 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (old_lcall) {
       TEST(0 == setenv("LC_ALL", old_lcall, 0)) ;
    } else {
@@ -230,7 +230,7 @@ static int test_initlocale(void)
    lname = 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(lname) ;
    return 1 ;
 }
@@ -242,7 +242,7 @@ int unittest_platform_locale()
    char             * old_msglocale = 0 ;
 
    // changes malloced memory
-   if (test_initerror())   goto ABBRUCH ;
+   if (test_initerror())   goto ONABORT ;
 
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
@@ -252,8 +252,8 @@ int unittest_platform_locale()
    old_msglocale = strdup(currentmsg_locale()) ;
    TEST(old_msglocale) ;
 
-   if (test_initerror())   goto ABBRUCH ;
-   if (test_initlocale())  goto ABBRUCH ;
+   if (test_initerror())   goto ONABORT ;
+   if (test_initlocale())  goto ONABORT ;
 
    if (0 != strcmp("C", old_locale)) {
       TEST(0 == setdefault_locale()) ;
@@ -271,7 +271,7 @@ int unittest_platform_locale()
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    free(old_locale) ;
    free(old_msglocale) ;

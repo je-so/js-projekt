@@ -92,7 +92,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
          if (buffer_offset) {
             LOG_ERRTEXT(FILE_FORMAT_MISSING_ENDOFLINE,PROC_SELF_MAPS) ;
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
          break ; // reached end of file
       }
@@ -100,7 +100,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
          err = errno ;
          if (err == EINTR) continue ;
          LOG_SYSERR("read", err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       buffer_offset += (size_t)read_size ;
       do {
@@ -113,7 +113,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
    *buffer_size = buffer_offset ;
    *line_end    = index_newline ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -148,7 +148,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    if (fd < 0) {
       err = ENOSYS ;
       LOG_SYSERR("open(" PROC_SELF_MAPS ")", errno) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
 
@@ -158,7 +158,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
       size_t line_end = 0 ;
 
       err = read_buffer(fd, buffer_maxsize, buffer, buffer_offset, &buffer_size, &line_end) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
       if (0 == buffer_size) break ;
 
       do {
@@ -175,7 +175,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
          if (scanned_items != 10) {
             LOG_ERRTEXT(FILE_FORMAT_WRONG,PROC_SELF_MAPS) ;
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
 
          if (!free_region_count) {
@@ -183,7 +183,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
             next_array = MALLOC(vm_regionsarray_t,malloc,) ;
             if (!next_array) {
                err = ENOMEM ;
-               goto ABBRUCH ;
+               goto ONABORT ;
             }
             free_region_count = sizeof(next_array->elements) / sizeof(next_array->elements[0]) ;
             next_region       = &next_array->elements[0] ;
@@ -226,7 +226,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    }
 
    err = free_filedescr(&fd) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    OBJC_UNLOCKIOBUFFER(&iobuffer) ;
 
@@ -240,7 +240,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    }
    gofirst_vmmappedregions(mappedregions) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    while (first_array) {
       vm_regionsarray_t * next = first_array->next ;
       free(first_array) ;
@@ -356,7 +356,7 @@ int init2_vmblock(/*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_
 
    if (length_in_bytes / pagesize != size_in_pages) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    SET_PROT(prot, access_mode)
@@ -368,14 +368,14 @@ int init2_vmblock(/*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_
       err = errno ;
       LOG_SYSERR("mmap", err) ;
       LOG_SIZE(length_in_bytes) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    vmblock->addr = mapped_pages ;
    vmblock->size = length_in_bytes ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -390,14 +390,14 @@ int free_vmblock(vm_block_t * vmblock )
       LOG_SYSERR("munmap", err) ;
       LOG_PTR(vmblock->addr) ;
       LOG_SIZE(vmblock->size) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    vmblock->addr = (uint8_t*)0 ;
    vmblock->size = 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -416,11 +416,11 @@ int protect_vmblock(vm_block_t * vmblock, const accessmode_e access_mode )
       LOG_PTR(vmblock->addr) ;
       LOG_SIZE(vmblock->size) ;
       LOG_INT(access_mode) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -436,7 +436,7 @@ int tryexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages )
    if (     increment_in_pages != (expand_in_bytes / pagesize)
          || newsize_in_bytes   <  expand_in_bytes ) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    new_addr = mremap(vmblock->addr, vmblock->size, newsize_in_bytes, 0) ;
@@ -449,7 +449,7 @@ int tryexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages )
    vmblock->size = newsize_in_bytes ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -465,21 +465,21 @@ int movexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages )
    if (     increment_in_pages != (expand_in_bytes / pagesize)
          || newsize_in_bytes   <   expand_in_bytes ) {
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    new_addr = mremap(vmblock->addr, vmblock->size, newsize_in_bytes, MREMAP_MAYMOVE) ;
    if (MAP_FAILED == new_addr) {
       err = errno ;
       LOG_OUTOFMEMORY(newsize_in_bytes) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    vmblock->addr = new_addr ;
    vmblock->size = newsize_in_bytes ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -494,7 +494,7 @@ int shrink_vmblock(vm_block_t * vmblock, size_t decrement_in_pages )
    if (     decrement_in_pages != (shrink_in_bytes / pagesize)
          || vmblock->size      <=  shrink_in_bytes ) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (shrink_in_bytes) {
@@ -504,14 +504,14 @@ int shrink_vmblock(vm_block_t * vmblock, size_t decrement_in_pages )
          LOG_SYSERR("munmap", err) ;
          LOG_PTR(vmblock->addr + newsize_in_bytes) ;
          LOG_SIZE(shrink_in_bytes) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    vmblock->size = newsize_in_bytes ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -549,7 +549,7 @@ static int query_region(/*out*/vm_region_t * region, const vm_block_t * vmblock)
    void              * mapped_end   = (void*) (vmblock->size + vmblock->addr) ;
 
    err = init_vmmappedregions(&mappedregions) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = EINVAL ;
 
@@ -563,7 +563,7 @@ static int query_region(/*out*/vm_region_t * region, const vm_block_t * vmblock)
       }
    }
 
-ABBRUCH:
+ONABORT:
    free_vmmappedregions(&mappedregions) ;
    return err ;
 }
@@ -574,15 +574,15 @@ static int compare_protection(const vm_block_t * vmblock, accessmode_e prot)
    vm_region_t region ;
 
    err = query_region(&region, vmblock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if ( region.protection != (prot | accessmode_PRIVATE) ) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return err ;
 }
 
@@ -640,7 +640,7 @@ static int test_mappedregions(void)
    }
 
    err = 0 ;
-ABBRUCH:
+ONABORT:
    free_vmmappedregions(&mappedregions) ;
    return err ;
 }
@@ -817,7 +817,7 @@ static int test_mapping(void)
    TEST(0      == free_vmblock(&mapped_block)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -900,7 +900,7 @@ static int test_protection(void)
    TEST(0 == sigaction(SIGSEGV, &oldact, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
    (void) free_vmblock(&vmblock) ;
    return EINVAL;
@@ -914,9 +914,9 @@ int unittest_platform_virtualmemory()
    // store current mapping
    TEST(0 == init_vmmappedregions(&mappedregions)) ;
 
-   if (test_mappedregions())  goto ABBRUCH ;
-   if (test_mapping())        goto ABBRUCH ;
-   if (test_protection())     goto ABBRUCH ;
+   if (test_mappedregions())  goto ONABORT ;
+   if (test_mapping())        goto ONABORT ;
+   if (test_protection())     goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == init_vmmappedregions(&mappedregions2)) ;
@@ -935,7 +935,7 @@ int unittest_platform_virtualmemory()
    TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_vmmappedregions(&mappedregions) ;
    free_vmmappedregions(&mappedregions2) ;
    return EINVAL ;

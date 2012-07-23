@@ -45,14 +45,14 @@ static int copyobj_typeadapter(typeadapter_t * typeimpl, /*out*/struct generic_o
    memblock_t toblock   = memblock_INIT_FREEABLE ;
 
    err = MM_RESIZE(typeimpl->objectsize, &toblock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    memcpy(toblock.addr, fromblock.addr, typeimpl->objectsize) ;
 
    *copiedobject = (struct generic_object_t*)toblock.addr ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -64,11 +64,11 @@ static int freeobj_typeadapter(typeadapter_t * typeimpl, struct generic_object_t
    if (object)  {
       memblock_t mblock = memblock_INIT(typeimpl->objectsize, (uint8_t*)object) ;
       err = MM_FREE(&mblock) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -121,7 +121,7 @@ static int test_initfree_iot(void)
    TEST(typeadt.iimpl  == &typeadt_ft) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -182,7 +182,7 @@ static int test_generic_iot(void)
    TEST((void*)14 == typeimpl.free) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -227,7 +227,7 @@ static int test_initfree_t(void)
    TEST(tiot.iimpl  == &g_typeadapter_iimpl) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -266,7 +266,7 @@ static int test_helper_t(void)
    TEST(0 == free_typeadapter(&tadapt)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -276,16 +276,16 @@ int unittest_ds_typeadapter()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree_iot())   goto ABBRUCH ;
-   if (test_generic_iot())    goto ABBRUCH ;
-   if (test_initfree_t())     goto ABBRUCH ;
-   if (test_helper_t())       goto ABBRUCH ;
+   if (test_initfree_iot())   goto ONABORT ;
+   if (test_generic_iot())    goto ONABORT ;
+   if (test_initfree_t())     goto ONABORT ;
+   if (test_helper_t())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

@@ -55,10 +55,10 @@ int prepare_malloc()
    assert(! dummy) ;
 
    err = trimmemory_malloc() ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -109,26 +109,26 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
 
    if (!s_isprepared_malloc) {
       err = prepare_malloc() ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    if (pipe2(pfd, O_CLOEXEC)) {
       err = errno ;
       LOG_SYSERR("pipe2", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    fd = dup(STDERR_FILENO) ;
    if (fd == -1) {
       err = errno ;
       LOG_SYSERR("dup", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (-1 == dup2(pfd[1], STDERR_FILENO)) {
       err = errno ;
       LOG_SYSERR("dup2", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    malloc_stats() ;
@@ -147,7 +147,7 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
    if (len < 0) {
       err = errno ;
       LOG_SYSERR("read", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    for(int i = 3; i && len > 0; -- len) {
@@ -172,20 +172,20 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
    if (-1 == dup2(fd, STDERR_FILENO)) {
       err = errno ;
       LOG_SYSERR("dup2",err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = free_filedescr(&fd) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    err = free_filedescr(&pfd[0]) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    err = free_filedescr(&pfd[1]) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    *number_of_allocated_bytes = used_bytes ;
 
    return 0;
-ABBRUCH:
+ONABORT:
    free_filedescr(&pfd[0]) ;
    free_filedescr(&pfd[1]) ;
    if (fd != -1) {
@@ -233,7 +233,7 @@ static int test_allocatedsize(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    for(unsigned i = 0; i < nrelementsof(memblocks); ++i) {
       if (memblocks[i]) {
          free(memblocks[i]) ;
@@ -248,13 +248,13 @@ int unittest_platform_malloc()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_allocatedsize())  goto ABBRUCH ;
+   if (test_allocatedsize())  goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

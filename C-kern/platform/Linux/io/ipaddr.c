@@ -138,11 +138,11 @@ static int new_addrinfo(struct addrinfo ** addrinfo_list, const char * name_or_n
       err = convert_eai_errorcodes(err) ;
       LOG_SYSERR("getaddrinfo", err) ;
       LOG_STRING(name_or_numeric) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -162,17 +162,17 @@ int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * nume
    int err ;
    ipaddr_t * new_addr = 0 ;
 
-   VALIDATE_INPARAM_TEST(0 == (*addr), ABBRUCH, ) ;
-   VALIDATE_INPARAM_TEST(numeric_addr, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (*addr), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(numeric_addr, ONABORT, ) ;
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (version != ipversion_4 && version != ipversion_6) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    size_t size = sizeof(ipaddr_t) + ((ipversion_4 == version) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6)) ;
@@ -181,7 +181,7 @@ int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * nume
    if (!new_addr) {
       LOG_OUTOFMEMORY(size) ;
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    memset(new_addr, 0, size) ;
@@ -192,18 +192,18 @@ int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * nume
    if (ipversion_4 == version) {
       if (1 != inet_pton(version, numeric_addr, &((struct sockaddr_in*)new_addr->addr)->sin_addr)) {
          err = EADDRNOTAVAIL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    } else {
       if (1 != inet_pton(version, numeric_addr, &((struct sockaddr_in6*)new_addr->addr)->sin6_addr)) {
          err = EADDRNOTAVAIL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    *addr = new_addr ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_ipaddr(&new_addr) ;
    LOG_ABORT(err) ;
    return err ;
@@ -214,34 +214,34 @@ int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const cha
    int err ;
    struct addrinfo * addrinfo_list = 0 ;
 
-   VALIDATE_INPARAM_TEST(0 == (*addr), ABBRUCH, ) ;
-   VALIDATE_INPARAM_TEST(hostname, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (*addr), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(hostname, ONABORT, ) ;
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (version != AF_INET && version != AF_INET6) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = new_addrinfo(&addrinfo_list, hostname, AI_IDN|AI_IDN_ALLOW_UNASSIGNED, protocol, port, version) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (addrinfo_list->ai_addrlen >= 256) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = newaddr_ipaddr(addr, (ipprotocol_e)addrinfo_list->ai_protocol, (uint16_t)addrinfo_list->ai_addrlen, addrinfo_list->ai_addr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    delete_addrinfo(&addrinfo_list) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_addrinfo(&addrinfo_list) ;
    LOG_ABORT(err) ;
    return err ;
@@ -252,12 +252,12 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
    int err ;
    ipaddr_t * new_addr = 0 ;
 
-   VALIDATE_INPARAM_TEST(0 == (*addr), ABBRUCH, ) ;
-   VALIDATE_INPARAM_TEST(sock_addr, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == (*addr), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(sock_addr, ONABORT, ) ;
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (  (     (sizeof(struct sockaddr_in) != sock_addr_len)
@@ -265,7 +265,7 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
          && (  (sizeof(struct sockaddr_in6) != sock_addr_len)
             || (AF_INET6 != sock_addr->sa_family))) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    size_t size = sizeof(ipaddr_t) + sock_addr_len ;
@@ -274,7 +274,7 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
    if (!new_addr) {
       LOG_OUTOFMEMORY(size) ;
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    new_addr->protocol = protocol ;
@@ -283,7 +283,7 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
 
    *addr = new_addr ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_ipaddr(&new_addr) ;
    LOG_ABORT(err) ;
    return err ;
@@ -303,14 +303,14 @@ int newcopy_ipaddr(/*out*/ipaddr_t ** dest, const ipaddr_t * source)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 == *dest, ABBRUCH, ) ;
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(source), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == *dest, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(source), ONABORT, ) ;
 
    err = newaddr_ipaddr(dest, source->protocol, source->addrlen, source->addr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -398,7 +398,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    int err ;
 
    err = allocate_cstring(dns_name, NI_MAXHOST) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for(;;) {
       err = getnameinfo( addr->addr, addr->addrlen, dns_name->chars, dns_name->allocated_size, 0, 0, NI_IDN|NI_IDN_ALLOW_UNASSIGNED|NI_NAMEREQD) ;
@@ -406,18 +406,18 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
          if (     EAI_OVERFLOW == err
                && dns_name->allocated_size < 4096) {
             err = allocate_cstring(dns_name, 2*dns_name->allocated_size) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
             continue ;
          }
          err = convert_eai_errorcodes(err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       break ;
    }
 
    adaptlength_cstring(dns_name) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -427,7 +427,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    int err ;
 
    err = allocate_cstring(dns_name, NI_MAXHOST) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for(;;) {
       err = getnameinfo( addr->addr, addr->addrlen, dns_name->chars, dns_name->allocated_size, 0, 0, NI_NAMEREQD) ;
@@ -435,18 +435,18 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
          if (     EAI_OVERFLOW == err
                && dns_name->allocated_size < 4096) {
             err = allocate_cstring(dns_name, 2*dns_name->allocated_size) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
             continue ;
          }
          err = convert_eai_errorcodes(err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       break ;
    }
 
    adaptlength_cstring( dns_name ) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -456,7 +456,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
    int err ;
 
    err = allocate_cstring(numeric_name, 32) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for(;;) {
       err = getnameinfo( addr->addr, addr->addrlen, numeric_name->chars, numeric_name->allocated_size, 0, 0, NI_NUMERICHOST) ;
@@ -464,18 +464,18 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
          if (     EAI_OVERFLOW == err
                && numeric_name->allocated_size < 4096) {
             err = allocate_cstring(numeric_name, 2*numeric_name->allocated_size) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
             continue ;
          }
          err = convert_eai_errorcodes(err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       break ;
    }
 
    adaptlength_cstring( numeric_name ) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -484,19 +484,19 @@ int copy_ipaddr(ipaddr_t * dest, const ipaddr_t * source)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST( isvalid_ipaddr(source), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST( isvalid_ipaddr(source), ONABORT, ) ;
 
    if (  source->addrlen        != dest->addrlen
       || version_ipaddr(source) != version_ipaddr(dest)) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    dest->protocol = source->protocol ;
    memcpy(dest->addr, source->addr, dest->addrlen) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -507,12 +507,12 @@ int setprotocol_ipaddr(ipaddr_t * addr, ipprotocol_e protocol)
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    addr->protocol = protocol ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -521,12 +521,12 @@ int setport_ipaddr(ipaddr_t * addr, ipport_t port)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST( isvalid_ipaddr(addr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST( isvalid_ipaddr(addr), ONABORT, ) ;
 
    ((struct sockaddr_in*)addr->addr)->sin_port = htons(port) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -535,24 +535,24 @@ int setaddr_ipaddr(ipaddr_t * addr, ipprotocol_e protocol, uint16_t sock_addr_le
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST( isvalid_ipaddr(addr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST( isvalid_ipaddr(addr), ONABORT, ) ;
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (  addr->addrlen != sock_addr_len
       || version_ipaddr(addr) != (sock_addr)->sa_family) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    addr->protocol = protocol ;
    memcpy(addr->addr, sock_addr, sock_addr_len) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -586,11 +586,11 @@ int newdnsquery_ipaddrlist(/*out*/ipaddr_list_t ** addrlist, const char * hostna
    if (!new_addrlist) {
       LOG_OUTOFMEMORY(sizeof(ipaddr_list_t)) ;
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = new_addrinfo(&addrinfo_list, hostname_or_numeric, AI_IDN|AI_IDN_ALLOW_UNASSIGNED, protocol, port, version) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    memset(new_addrlist, 0, sizeof(*new_addrlist)) ;
    new_addrlist->first   = addrinfo_list ;
@@ -598,7 +598,7 @@ int newdnsquery_ipaddrlist(/*out*/ipaddr_list_t ** addrlist, const char * hostna
 
    *addrlist = new_addrlist ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(new_addrlist) ;
    LOG_ABORT(err) ;
    return err ;
@@ -662,7 +662,7 @@ int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotoco
    struct addrinfo   addrinfo_filter ;
    struct addrinfo * addrinfo_list ;
 
-   VALIDATE_INPARAM_TEST(ipprotocol_TCP == protocol || ipprotocol_UDP == protocol, ABBRUCH, LOG_INT(protocol)) ;
+   VALIDATE_INPARAM_TEST(ipprotocol_TCP == protocol || ipprotocol_UDP == protocol, ONABORT, LOG_INT(protocol)) ;
 
    memset( &addrinfo_filter, 0, sizeof(addrinfo_filter)) ;
    addrinfo_filter.ai_family   = AF_INET ;
@@ -675,7 +675,7 @@ int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotoco
       } else {
          err = convert_eai_errorcodes(err) ;
       }
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = EPROTONOSUPPORT ;
@@ -690,10 +690,10 @@ int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotoco
 
    freeaddrinfo(addrinfo_list) ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -709,7 +709,7 @@ ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol,
 
    if (protocol != ipprotocol_TCP && protocol != ipprotocol_UDP) {
       err = EPROTONOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    switch(version) {
@@ -718,7 +718,7 @@ ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol,
    case ipversion_6: size = sizeof(struct sockaddr_in6) ;
                      break ;
    default:          err = EAFNOSUPPORT ;
-                     goto ABBRUCH ;
+                     goto ONABORT ;
    }
 
    memset(addr->addr, 0, size) ;
@@ -728,7 +728,7 @@ ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol,
    ((struct sockaddr_in*)addr->addr)->sin_port = htons(port) ;
 
    return (ipaddr_t*) addr ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return 0 ;
 }
@@ -786,7 +786,7 @@ static int test_ipport(void)
    TEST(ENOENT == initnamed_ipport(&tcp_port, "XXX-not_exist-XXX", ipprotocol_TCP)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -1000,7 +1000,7 @@ static int test_ipaddr(void)
    TEST(0 == free_cstring(&name)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
    (void) delete_ipaddr(&ipaddr2) ;
@@ -1209,7 +1209,7 @@ static int test_ipaddrlist(void)
    TEST(0 == free_cstring(&name)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&copiedaddr) ;
    (void) delete_ipaddrlist(&addrlist) ;
@@ -1285,7 +1285,7 @@ static int test_ipaddrstorage(void)
    TEST(0 == free_cstring(&name)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
    return EINVAL ;
@@ -1295,21 +1295,21 @@ int unittest_io_ipaddr()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_ipport())         goto ABBRUCH ;
-   if (test_ipaddrlist())     goto ABBRUCH ;
+   if (test_ipport())         goto ONABORT ;
+   if (test_ipaddrlist())     goto ONABORT ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_ipport())         goto ABBRUCH ;
-   if (test_ipaddr())         goto ABBRUCH ;
-   if (test_ipaddrlist())     goto ABBRUCH ;
-   if (test_ipaddrstorage())  goto ABBRUCH ;
+   if (test_ipport())         goto ONABORT ;
+   if (test_ipaddr())         goto ONABORT ;
+   if (test_ipaddrlist())     goto ONABORT ;
+   if (test_ipaddrstorage())  goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

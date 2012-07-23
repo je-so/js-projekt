@@ -49,31 +49,31 @@ int init_processcontext(processcontext_t * pcontext)
 
    pcontext->initcount = 0 ;
 
-// TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/text.db/initprocess")
+// TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/text.db/initprocess")
 
    err = initonce_locale() ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    err = initonce_X11() ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    err = initonce_signalconfig() ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    err = initonce_valuecache(&pcontext->valuecache) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    err = initonce_thread() ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 // TEXTDB:END
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_processcontext(pcontext) ;
    LOG_ABORT(err) ;
    return err ;
@@ -110,10 +110,10 @@ int free_processcontext(processcontext_t * pcontext)
    case 0:  break ;
    }
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -162,7 +162,7 @@ static int test_initfree(void)
    TEST(0 == pcontext.valuecache) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_processcontext(&pcontext) ;
    return EINVAL ;
 }
@@ -171,12 +171,12 @@ int unittest_context_processcontext()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_initfree())            goto ABBRUCH ;
+   if (test_initfree())            goto ONABORT ;
    LOG_CLEARBUFFER() ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())            goto ABBRUCH ;
+   if (test_initfree())            goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -185,7 +185,7 @@ int unittest_context_processcontext()
    resetmsg_locale() ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

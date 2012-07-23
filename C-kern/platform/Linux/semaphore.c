@@ -42,14 +42,14 @@ int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count)
       err = errno ;
       LOG_SYSERR("eventfd", err) ;
       LOG_UINT32(init_signal_count) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    static_assert(sizeof(fd) == sizeof(semaobj), "init all fields of struct") ;
    semaobj->sys_sema = fd ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -79,11 +79,11 @@ int free_semaphore(semaphore_t * semaobj)
       err2 = free_filedescr(&semaobj->sys_sema) ;
       if (err2) err = err2 ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -99,13 +99,13 @@ int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count)
       LOG_SYSERR("write", err) ;
       LOG_INT(semaobj->sys_sema) ;
       LOG_UINT32(signal_count) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    assert(sizeof(uint64_t) == err) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -120,13 +120,13 @@ int wait_semaphore(semaphore_t * semaobj)
       err = errno ;
       LOG_SYSERR("read", err) ;
       LOG_INT(semaobj->sys_sema) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    assert(1 == decrement) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -198,7 +198,7 @@ static int test_semaphore_init(void)
    TEST(0 == free_semaphore(&sema)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_semaphore(&sema) ;
    return EINVAL ;
 }
@@ -214,18 +214,18 @@ static void * semathread(void * start_arg)
 {
    semathread_arg_t * startarg = (semathread_arg_t*)start_arg ;
 
-   if (pthread_mutex_lock(&startarg->mutex))      goto ABBRUCH ;
+   if (pthread_mutex_lock(&startarg->mutex))      goto ONABORT ;
    ++ startarg->count ;
-   if (pthread_mutex_unlock(&startarg->mutex))    goto ABBRUCH ;
+   if (pthread_mutex_unlock(&startarg->mutex))    goto ONABORT ;
 
-   if (wait_semaphore(&startarg->sema)) goto ABBRUCH ;
+   if (wait_semaphore(&startarg->sema)) goto ONABORT ;
 
-   if (pthread_mutex_lock(&startarg->mutex))      goto ABBRUCH ;
+   if (pthread_mutex_lock(&startarg->mutex))      goto ONABORT ;
    -- startarg->count ;
-   if (pthread_mutex_unlock(&startarg->mutex))    goto ABBRUCH ;
+   if (pthread_mutex_unlock(&startarg->mutex))    goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return (void*) 1 ;
 }
 
@@ -310,7 +310,7 @@ static int test_semaphore_threads(void)
    TEST(0 == free_semaphore(&startarg.sema)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_semaphore(&startarg.sema) ; // also waking up waiting threads !
    while(valid_thread_index) {
       --valid_thread_index ;
@@ -345,7 +345,7 @@ static int test_overflow(void)
    sema = sys_semaphore_INIT_FREEABLE ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&sema) ;
    return EINVAL ;
 }
@@ -355,21 +355,21 @@ int unittest_platform_sync_semaphore()
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
    // allocate possible additional (internal) malloc memory !
-   if (test_semaphore_threads())       goto ABBRUCH ;
+   if (test_semaphore_threads())       goto ONABORT ;
 
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_overflow())                goto ABBRUCH ;
-   if (test_semaphore_init())          goto ABBRUCH ;
-   if (test_semaphore_threads())       goto ABBRUCH ;
+   if (test_overflow())                goto ONABORT ;
+   if (test_semaphore_init())          goto ONABORT ;
+   if (test_semaphore_threads())       goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

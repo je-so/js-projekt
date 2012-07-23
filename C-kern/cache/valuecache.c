@@ -49,22 +49,22 @@ int initonce_valuecache(/*out*/valuecache_t ** valuecache)
    int err ;
    valuecache_t * new_valuecache = 0 ;
 
-   VALIDATE_INPARAM_TEST(0 == *valuecache, ABBRUCH,) ;
+   VALIDATE_INPARAM_TEST(0 == *valuecache, ONABORT,) ;
 
    new_valuecache = malloc(sizeof(valuecache_t)) ;
    if (!new_valuecache) {
       err = ENOMEM ;
       LOG_OUTOFMEMORY(sizeof(valuecache_t)) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = init_valuecache(new_valuecache) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    *valuecache = new_valuecache ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(new_valuecache) ;
    LOG_ABORT(err) ;
    return err ;
@@ -82,11 +82,11 @@ int freeonce_valuecache(valuecache_t ** valuecache)
 
       free(freeobj) ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -113,7 +113,7 @@ static int test_initfree(void)
    TEST(0 == valuecache.pagesize_vm) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_valuecache(&valuecache) ;
    return EINVAL ;
 }
@@ -170,7 +170,7 @@ static int test_initonce(void)
    TEST(pagesize_vm() == sys_pagesize_vm()) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    process_maincontext().valuecache = old ;
    old->pagesize_vm = sys_pagesize_vm() ;
    if (     cache
@@ -189,15 +189,15 @@ int unittest_cache_valuecache()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ABBRUCH ;
-   if (test_initonce())    goto ABBRUCH ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_initonce())    goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 

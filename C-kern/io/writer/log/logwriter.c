@@ -72,23 +72,23 @@ int initthread_logwriter(/*out*/log_iot * ilog)
    if (!newlgwrt) {
       err = ENOMEM ;
       LOG_OUTOFMEMORY(objsize) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (  ilog->object
       && ilog->object != &g_logmain) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = init_logwriter( newlgwrt ) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    ilog->object = newlgwrt ;
    ilog->iimpl  = (log_it*) &s_logwriter_interface ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(newlgwrt) ;
    LOG_ABORT(err) ;
    return err ;
@@ -111,11 +111,11 @@ int freethread_logwriter(log_iot * ilog)
 
       free(newlgwrt) ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -154,13 +154,13 @@ int init_logwriter(/*out*/logwriter_t * lgwrt)
    vm_block_t  buffer = vm_block_INIT_FREEABLE ;
 
    err = allocatebuffer_logwriter(&buffer) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    lgwrt->buffer        = buffer ;
    lgwrt->logsize       = 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) freebuffer_logwriter(&buffer) ;
    LOG_ABORT(err) ;
    return err ;
@@ -176,10 +176,10 @@ int free_logwriter(logwriter_t * lgwrt)
 
    err = freebuffer_logwriter(&lgwrt->buffer) ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -288,7 +288,7 @@ static int test_initfree(void)
    TEST(! lgwrt.logsize ) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_logwriter(&lgwrt) ;
    return EINVAL ;
 }
@@ -396,7 +396,7 @@ static int test_flushbuffer(void)
    TEST(0 == delete_directory(&tempdir)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&tempfd) ;
    if (oldstderr >= 0) {
       dup2(oldstderr, STDERR_FILENO) ;
@@ -482,7 +482,7 @@ static int test_printf(void)
    free_filedescr(&pipefd[1]) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (-1 != oldstdout) dup2(oldstdout, STDOUT_FILENO) ;
    free_filedescr(&oldstdout) ;
    free_filedescr(&pipefd[0]) ;
@@ -550,7 +550,7 @@ static int test_initthread(void)
    TEST(ilog.object == (logwriter_t*) 1) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    freethread_logwriter(&ilog) ;
    return EINVAL ;
 }
@@ -562,17 +562,17 @@ int unittest_io_writer_log_logwriter()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_flushbuffer())    goto ABBRUCH ;
-   if (test_printf())         goto ABBRUCH ;
-   if (test_initthread())     goto ABBRUCH ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_flushbuffer())    goto ONABORT ;
+   if (test_printf())         goto ONABORT ;
+   if (test_initthread())     goto ONABORT ;
 
    // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;}
 

@@ -176,11 +176,11 @@ static int new_mmtestpage(mmtest_page_t ** mmpage, size_t minblocksize, mmtest_p
 
    if (blocksize < minblocksize + headersize + trailersize) {
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = init_vmblock(&vmblock, nrpages + nrpages2) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    new_mmpage = (mmtest_page_t*) vmblock.addr ;
    new_mmpage->vmblock   = vmblock ;
@@ -190,14 +190,14 @@ static int new_mmtestpage(mmtest_page_t ** mmpage, size_t minblocksize, mmtest_p
    new_mmpage->next      = next ;
 
    err = protect_vmblock(&(memblock_t)memblock_INIT(pagesize_vm(), new_mmpage->datablock.addr - pagesize_vm()), accessmode_NONE) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    err = protect_vmblock(&(memblock_t)memblock_INIT(pagesize_vm(), new_mmpage->datablock.addr + new_mmpage->datablock.size), accessmode_NONE) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    *mmpage = new_mmpage ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_vmblock(&vmblock) ;
    LOG_ABORT(err) ;
    return err ;
@@ -214,11 +214,11 @@ static int delete_mmtestpage(mmtest_page_t ** mmpage)
       vm_block_t  vmblock = del_mmpage->vmblock ;
       err = free_vmblock(&vmblock) ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -252,7 +252,7 @@ static int freeblock_mmtestpage(mmtest_page_t * mmpage, struct memblock_t * memb
    const size_t headersize  =  alignsize_mmtestblock(sizeof(block->header)) ;
    const size_t trailersize =  alignsize_mmtestblock(sizeof(block->trailer)) ;
 
-   VALIDATE_INPARAM_TEST(isblockvalid_mmtestpage(mmpage, memblock), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isblockvalid_mmtestpage(mmpage, memblock), ONABORT, ) ;
 
    block = (mmtestblock_t*) (memblock->addr - headersize) ;
    block->header.datasize = 0 ;
@@ -280,7 +280,7 @@ static int freeblock_mmtestpage(mmtest_page_t * mmpage, struct memblock_t * memb
    *memblock = (memblock_t) memblock_INIT_FREEABLE ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -315,7 +315,7 @@ static int resizeblock_mmtestpage(mmtest_page_t * mmpage, size_t newsize, struct
    const size_t trailersize =  alignsize_mmtestblock(sizeof(block->trailer)) ;
    const size_t alignsize   =  alignsize_mmtestblock(newsize) ;
 
-   VALIDATE_INPARAM_TEST(isblockvalid_mmtestpage(mmpage, memblock), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isblockvalid_mmtestpage(mmpage, memblock), ONABORT, ) ;
 
    block = (mmtestblock_t*) (memblock->addr - headersize) ;
 
@@ -338,7 +338,7 @@ static int resizeblock_mmtestpage(mmtest_page_t * mmpage, size_t newsize, struct
    memblock->size = newsize ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -357,7 +357,7 @@ static int getblock_mmtestpage(mmtest_page_t * mmpage, size_t blockindex, /*out*
          if (!isblockvalid_mmtestpage(mmpage, &temp)) {
             err = EINVAL ;
             LOG_SIZE(blockindex) ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
       }
 
@@ -367,7 +367,7 @@ static int getblock_mmtestpage(mmtest_page_t * mmpage, size_t blockindex, /*out*
    *memblock = (memblock_t) memblock_INIT(block->header.datasize, ((uint8_t*)block) + headersize) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -452,10 +452,10 @@ int switchon_mmtest()
       memblock_t  previous_mm = memblock_INIT_FREEABLE ;
 
       err = initiot_mmtest(&mmtest) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       err = mmtest.iimpl->mresize(mmtest.object, sizeof(mm_iot), &previous_mm) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       *((mm_iot*)previous_mm.addr) = mmtransient_maincontext() ;
 
@@ -463,7 +463,7 @@ int switchon_mmtest()
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    freeiot_mmtest(&mmtest) ;
    LOG_ABORT(err) ;
    return err ;
@@ -484,21 +484,21 @@ int switchoff_mmtest()
       }
 
       err = getblock_mmtestpage(mmpage, 1, &previous_mm) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       if (sizeof(mm_iot) != previous_mm.size) {
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       mmtransient_maincontext() = *((mm_iot*)previous_mm.addr) ;
 
       err = freeiot_mmtest(&mmiot) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -511,7 +511,7 @@ int init_mmtest(/*out*/mmtest_t * mman)
    mmtest_page_t  * mmpage = 0 ;
 
    err = new_mmtestpage(&mmpage, 0, 0) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    mman->mmpage        = mmpage ;
    mman->sizeallocated = 0 ;
@@ -519,7 +519,7 @@ int init_mmtest(/*out*/mmtest_t * mman)
    mman->simulateFreeError   = 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -544,11 +544,11 @@ int free_mmtest(mmtest_t * mman)
       mman->simulateResizeError = 0 ;
       mman->simulateFreeError   = 0 ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -561,17 +561,17 @@ int initiot_mmtest(/*out*/mm_iot * mmtest)
    const size_t   objsize   = sizeof(mmtest_t) ;
 
    err = init_mmtest(&mmtestobj) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = mresize_mmtest(&mmtestobj, objsize, &memblock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    memcpy(memblock.addr, &mmtestobj, objsize) ;
 
    *mmtest = (mm_iot) mm_iot_INIT((struct mm_t*) memblock.addr, &s_mmtest_interface.generic) ;
 
    return err ;
-ABBRUCH:
+ONABORT:
    free_mmtest(&mmtestobj) ;
    LOG_ABORT(err) ;
    return err ;
@@ -591,11 +591,11 @@ int freeiot_mmtest(mm_iot * mmtest)
 
       *mmtest = (mm_iot) mm_iot_INIT_FREEABLE ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -633,30 +633,30 @@ int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock
       err = process_testerrortimer(mman->simulateResizeError) ;
       if (err) {
          mman->simulateResizeError = 0 ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    if (isfree_memblock(memblock)) {
       err = mallocate_mmtest(mman, newsize, memblock) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    } else {
       mmtest_page_t * mmpage = findpage_mmtest(mman, memblock->addr) ;
       if (!mmpage) {
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       size_t freesize = memblock->size ;
 
       err = resizeblock_mmtestpage(mmpage, newsize, memblock) ;
       if (err) {
-         if (ENOMEM != err) goto ABBRUCH ;
+         if (ENOMEM != err) goto ONABORT ;
 
          memblock_t newmemblock ;
 
          err = mallocate_mmtest(mman, newsize, &newmemblock) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
          // copy content
          memcpy(newmemblock.addr, memblock->addr, memblock->size < newsize ? memblock->size : newsize) ;
@@ -664,7 +664,7 @@ int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock
          err = freeblock_mmtestpage(mmpage, memblock) ;
          if (err) {
             (void) freeblock_mmtestpage(mman->mmpage, &newmemblock) ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
          *memblock = newmemblock ;
       }
@@ -675,7 +675,7 @@ int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock
    mman->sizeallocated += newsize ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (ENOMEM == err) {
       LOG_OUTOFMEMORY(newsize) ;
    }
@@ -691,13 +691,13 @@ int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock)
       mmtest_page_t * mmpage = findpage_mmtest(mman, memblock->addr) ;
       if (!mmpage) {
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       size_t freesize = memblock->size ;
 
       err = freeblock_mmtestpage(mmpage, memblock) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       *memblock = (memblock_t) memblock_INIT_FREEABLE ;
       mman->sizeallocated -= freesize ;
@@ -708,7 +708,7 @@ int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock)
             mmpage = mman->mmpage;
             mman->mmpage = mman->mmpage->next ;
             err = delete_mmtestpage(&mmpage) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
          }
       }
 
@@ -718,12 +718,12 @@ int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock)
       err = process_testerrortimer(mman->simulateFreeError) ;
       if (err) {
          mman->simulateFreeError = 0 ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -887,7 +887,7 @@ static int test_mmtestpage(void)
    TEST(0 == delete_mmtestpage(&mmpage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_mmtestpage(&mmpage) ;
    free_vmmappedregions(&mapping) ;
    return EINVAL ;
@@ -953,7 +953,7 @@ static int test_initfree(void)
    TEST(0 == mmiot.iimpl) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_mmtest(&mmtest) ;
    freeiot_mmtest(&mmiot) ;
    return EINVAL ;
@@ -1163,7 +1163,7 @@ static int test_allocate(void)
    TEST(0 == free_mmtest(&mmtest)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_mmtest(&mmtest) ;
    return EINVAL ;
 }
@@ -1190,7 +1190,7 @@ static int test_context(void)
    TEST(oldmm.iimpl  == mmtransient_maincontext().iimpl) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    switchoff_mmtest() ;
    return EINVAL ;
 }
@@ -1201,16 +1201,16 @@ int unittest_memory_manager_test()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_mmtestpage())  goto ABBRUCH ;
-   if (test_initfree())    goto ABBRUCH ;
-   if (test_allocate())    goto ABBRUCH ;
-   if (test_context())     goto ABBRUCH ;
+   if (test_mmtestpage())  goto ONABORT ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_allocate())    goto ONABORT ;
+   if (test_context())     goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

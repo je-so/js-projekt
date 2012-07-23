@@ -44,7 +44,7 @@ int invariant_splaytree( splaytree_t * tree, const splaytree_compare_nodes_t * c
 
    if (!compare_callback) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (node) {
@@ -53,7 +53,7 @@ int invariant_splaytree( splaytree_t * tree, const splaytree_compare_nodes_t * c
       parents = (const splaytree_node_t**) malloc( depth * sizeof(splaytree_node_t*)) ;
       if (!parents) {
          err = ENOMEM ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       size_t parent_idx = 0 ;
@@ -63,11 +63,11 @@ int invariant_splaytree( splaytree_t * tree, const splaytree_compare_nodes_t * c
          const splaytree_node_t  * noderight = node->right ;
          if (nodeleft && compare_callback->fct(compare_callback->cb_param, node, nodeleft) <= 0) {
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
          if (noderight && compare_callback->fct(compare_callback->cb_param, noderight, node) <= 0) {
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
 
          if (nodeleft) {
@@ -80,7 +80,7 @@ int invariant_splaytree( splaytree_t * tree, const splaytree_compare_nodes_t * c
                }
                if (!parents2) {
                   err = ENOMEM ;
-                  goto ABBRUCH ;
+                  goto ONABORT ;
                }
                parents = parents2 ;
             }
@@ -99,7 +99,7 @@ int invariant_splaytree( splaytree_t * tree, const splaytree_compare_nodes_t * c
                }
                if (!parents2) {
                   err = ENOMEM ;
-                  goto ABBRUCH ;
+                  goto ONABORT ;
                }
                parents = parents2 ;
             }
@@ -128,7 +128,7 @@ int invariant_splaytree( splaytree_t * tree, const splaytree_compare_nodes_t * c
 
    free(parents) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    free(parents) ;
    return err ;
@@ -137,10 +137,10 @@ ABBRUCH:
 int free_splaytree( splaytree_t * tree, const splaytree_free_t * free_callback )
 {
    int err = freenodes_splaytree( tree, free_callback ) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -295,7 +295,7 @@ int insert_splaytree( splaytree_t * tree, const void * new_key, splaytree_node_t
    } else {
 
       err = splay_key( tree, new_key, compare_callback) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       splaytree_node_t * const root = tree->root ;
       const int                 cmp = compare_callback->fct(compare_callback->cb_param, new_key, root) ;
@@ -321,7 +321,7 @@ int insert_splaytree( splaytree_t * tree, const void * new_key, splaytree_node_t
 
    tree->root = new_node ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -333,7 +333,7 @@ int remove_splaytree( splaytree_t * tree, const void * key, /*out*/splaytree_nod
    }
 
    int err = splay_key( tree, key, compare_callback ) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    splaytree_node_t * const root  = tree->root ;
    if (0 != compare_callback->fct(compare_callback->cb_param, key, root)) {
@@ -370,7 +370,7 @@ int remove_splaytree( splaytree_t * tree, const void * key, /*out*/splaytree_nod
    root->right = 0 ;
    *removed_node = root ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -382,7 +382,7 @@ int updatekey_splaytree( splaytree_t * tree, const void * old_key, const void * 
    }
 
    int err = splay_key( tree, old_key, compare_callback) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    splaytree_node_t * const root  = tree->root ;
    if (0 != compare_callback->fct(compare_callback->cb_param, old_key, root)) {
@@ -392,7 +392,7 @@ int updatekey_splaytree( splaytree_t * tree, const void * old_key, const void * 
    err = update_key->fct(update_key->cb_param, new_key, root) ;
    if (err) {
       LOG_CALLERR("splaytree_update_key_t callback", err) ;
-      goto ABBRUCH ;    // update failed => nothing done => return
+      goto ONABORT ;    // update failed => nothing done => return
    }
 
    // remove node
@@ -432,11 +432,11 @@ int updatekey_splaytree( splaytree_t * tree, const void * old_key, const void * 
       assert(!err2) ;
       err2 = insert_splaytree(tree, old_key, root, compare_callback) ;
       assert(!err2) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -484,11 +484,11 @@ int freenodes_splaytree( splaytree_t * tree, const splaytree_free_t * removed_ca
          }
       }
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -500,7 +500,7 @@ int find_splaytree( splaytree_t * tree, const void * key, /*out*/splaytree_node_
    }
 
    int err = splay_key( tree, key, compare_callback) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (0 != compare_callback->fct(compare_callback->cb_param, key, tree->root)) {
       return ESRCH ;
@@ -508,7 +508,7 @@ int find_splaytree( splaytree_t * tree, const void * key, /*out*/splaytree_node_
 
    *found_node = tree->root ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -876,7 +876,7 @@ int unittest_platform_index_splaytree()
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

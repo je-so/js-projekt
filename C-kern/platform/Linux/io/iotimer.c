@@ -62,13 +62,13 @@ int init_iotimer(/*out*/iotimer_t* timer, timeclock_e clock_type)
       err = errno ;
       LOG_SYSERR("timerfd_create", err) ;
       LOG_INT(clock_type) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    } else {
       *timer = fd ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -78,10 +78,10 @@ int free_iotimer(iotimer_t * timer)
    int err ;
 
    err = free_filedescr(timer) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -98,11 +98,11 @@ int start_iotimer(iotimer_t timer, timevalue_t * relative_time)
       err = errno ;
       LOG_SYSERR("timer_settime", err) ;
       LOG_INT(timer) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -119,11 +119,11 @@ int startinterval_iotimer(iotimer_t timer, timevalue_t * interval_time)
       err = errno ;
       LOG_SYSERR("timer_settime", err) ;
       LOG_INT(timer) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -140,11 +140,11 @@ int stop_iotimer(iotimer_t timer)
       err = errno ;
       LOG_SYSERR("timer_settime", err) ;
       LOG_INT(timer) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -156,7 +156,7 @@ int wait_iotimer(iotimer_t timer)
    timevalue_t remaining_time ;
 
    err = remainingtime_iotimer(timer, &remaining_time ) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    do {
       err = poll( pfds, 1, (remaining_time.nanosec || remaining_time.seconds) ? -1/*wait indefinitely*/ : 0 ) ;
@@ -170,11 +170,11 @@ int wait_iotimer(iotimer_t timer)
       } else {
          err = EINVAL ;
       }
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -188,14 +188,14 @@ int remainingtime_iotimer(iotimer_t timer, timevalue_t * remaining_time)
       err = errno ;
       LOG_SYSERR("timer_gettime", err) ;
       LOG_INT(timer) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    } else {
       remaining_time->seconds = next_timeout.it_value.tv_sec ;
       remaining_time->nanosec = next_timeout.it_value.tv_nsec ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -211,13 +211,13 @@ int expirationcount_iotimer(iotimer_t timer, /*out*/uint64_t * expiration_count)
          err = errno ;
          LOG_SYSERR("read", err) ;
          LOG_INT(timer) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       *expiration_count = 0 ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -408,7 +408,7 @@ static int test_initfree(void)
    TEST(-1 == iotimer) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_iotimer(&iotimer) ;
    return EINVAL ;
 }
@@ -514,7 +514,7 @@ RESTART_TEST:
    if (iclock < nrelementsof(clocks)) goto RESTART_TEST ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    for(unsigned i = 0; i < nrelementsof(iotimer); ++i) {
       (void) free_iotimer(iotimer + i) ;
    }
@@ -527,14 +527,14 @@ int unittest_io_iotimer()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ABBRUCH ;
-   if (test_timing())      goto ABBRUCH ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_timing())      goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

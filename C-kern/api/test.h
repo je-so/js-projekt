@@ -47,9 +47,9 @@ void logrun_test(const char * testname) ;
 // group: macros
 
 /* define: TEST
- * Tests CONDITION and exits on error with jump to ABBRUCH: label.
+ * Tests CONDITION and exits on error with jump to ONABORT: label.
  * If CONDITION fails an error is printed and further tests are skipped.
- * The macro jump jumps to label ABBRUCH: with help of goto.
+ * The macro jump jumps to label ONABORT: with help of goto.
  *
  * Parameters:
  * CONDITION          - Condition which is tested to be true.
@@ -63,7 +63,7 @@ void logrun_test(const char * testname) ;
  * >    TEST(0 == init_testtype(&testtype)) ;
  * >    TEST(0 == free_testtype(&testtype)) ;
  * >    return 0 ; // success
- * > ABBRUCH:
+ * > ONABORT:
  * >    free_testtype(&testtype) ;
  * >    return EINVAL ; // any error code
  * > }
@@ -71,7 +71,7 @@ void logrun_test(const char * testname) ;
 #define TEST(CONDITION)                      \
    if ( !(CONDITION) ) {                     \
       logfailed_test(__FILE__, __LINE__) ;   \
-      goto ABBRUCH ;                         \
+      goto ONABORT ;                         \
    }
 
 // group: test

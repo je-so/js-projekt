@@ -176,11 +176,11 @@ const uint8_t * findcharutf8_conststring(const struct conststring_t * str, unico
          found += 4 ;
       }
    } else {
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return found ;
-ABBRUCH:
+ONABORT:
    // IGNORE ERROR uc > 0x10FFFF
    return 0 ;
 }
@@ -219,7 +219,7 @@ static int test_sizecharutf8(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -397,7 +397,7 @@ static int test_conststring(void)
    TEST(old.size == str.size && old.addr == str.addr) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -438,7 +438,7 @@ static int test_findchar(void)
    TEST(0 == findbyte_conststring(&cstr, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -448,15 +448,15 @@ int unittest_string_utf8()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_sizecharutf8())   goto ABBRUCH ;
-   if (test_conststring())    goto ABBRUCH ;
-   if (test_findchar())       goto ABBRUCH ;
+   if (test_sizecharutf8())   goto ONABORT ;
+   if (test_conststring())    goto ONABORT ;
+   if (test_findchar())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

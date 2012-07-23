@@ -64,7 +64,7 @@ static int test_initfree(void)
    TEST(1 == isfree_memblock(&mblock)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -123,7 +123,7 @@ static int test_change(void)
    TEST(ENOMEM == grow_memblock(&mblock, 10000)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -134,15 +134,15 @@ int unittest_memory_memblock()
    // store current memory mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ABBRUCH ;
-   if (test_change())      goto ABBRUCH ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_change())      goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

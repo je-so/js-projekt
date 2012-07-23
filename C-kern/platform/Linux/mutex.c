@@ -43,25 +43,25 @@ int init_mutex(mutex_t * mutex)
    sys_mutex_t          sys_mutex = sys_mutex_INIT_DEFAULT ;
 
    err = pthread_mutexattr_init(&attr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    isAttr = true ;
 
    err = pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_ERRORCHECK ) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = pthread_mutex_init(&sys_mutex, &attr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    isAttr = false ;
    err    = pthread_mutexattr_destroy(&attr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    static_assert(sizeof(*mutex) == sizeof(sys_mutex), "copy is valid") ;
    static_assert((typeof(mutex))0 == (typeof(sys_mutex)*)0, "copy is valid") ;
    memcpy(mutex, (const void*)&sys_mutex, sizeof(sys_mutex)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (isAttr) {
       pthread_mutexattr_destroy(&attr) ;
    }
@@ -75,10 +75,10 @@ int free_mutex(mutex_t * mutex)
    int err ;
 
    err = pthread_mutex_destroy(mutex) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -88,10 +88,10 @@ int lock_mutex(mutex_t * mutex)
    int err ;
 
    err = pthread_mutex_lock(mutex) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -101,10 +101,10 @@ int unlock_mutex(mutex_t * mutex)
    int err ;
 
    err = pthread_mutex_unlock(mutex) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -130,7 +130,7 @@ static int test_mutex_moveable(void)
    TEST(0 == free_mutex(&mutex2)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_mutex(&mutex1) ;
    free_mutex(&mutex2) ;
    return EINVAL ;
@@ -315,7 +315,7 @@ static int test_mutex_staticinit(void)
    TEST(EINVAL == unlock_mutex(&mutex)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_mutex(&mutex) ;
    delete_thread(&thread1) ;
    delete_thread(&thread2) ;
@@ -406,7 +406,7 @@ static int test_mutex_errorcheck(void)
    TEST(EINVAL == unlock_mutex(&mutex)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_mutex(&mutex) ;
    delete_thread(&thread1) ;
    delete_thread(&thread2) ;
@@ -546,7 +546,7 @@ static int test_mutex_slock(void)
    TEST(0 == free_filedescr(&pipefd[1])) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (-1 != oldstderr) {
       dup2(oldstderr, STDERR_FILENO) ;
    }
@@ -627,7 +627,7 @@ static int test_mutex_interrupt(void)
    TEST(0 == sigaction(SIGUSR1, &oldact, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
    if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0) ;
    free_mutex(&mutex) ;
@@ -643,11 +643,11 @@ int unittest_platform_sync_mutex()
       // store current mapping
       TEST(0 == init_resourceusage(&usage)) ;
 
-      if (test_mutex_moveable())    goto ABBRUCH ;
-      if (test_mutex_staticinit())  goto ABBRUCH ;
-      if (test_mutex_errorcheck())  goto ABBRUCH ;
-      if (test_mutex_slock())       goto ABBRUCH ;
-      if (test_mutex_interrupt())   goto ABBRUCH ;
+      if (test_mutex_moveable())    goto ONABORT ;
+      if (test_mutex_staticinit())  goto ONABORT ;
+      if (test_mutex_errorcheck())  goto ONABORT ;
+      if (test_mutex_slock())       goto ONABORT ;
+      if (test_mutex_interrupt())   goto ONABORT ;
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;
@@ -658,7 +658,7 @@ int unittest_platform_sync_mutex()
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

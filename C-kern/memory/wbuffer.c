@@ -41,14 +41,14 @@ int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size)
    int err ;
    uint8_t * memblock = 0 ;
 
-   VALIDATE_INPARAM_TEST(0 == wbuf->addr, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == wbuf->addr, ONABORT, ) ;
 
    if (preallocate_size) {
       memblock = ((ssize_t)preallocate_size < 0) ? 0 : malloc(preallocate_size) ;
       if (!memblock) {
          err = ENOMEM ;
          LOG_OUTOFMEMORY(preallocate_size) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
@@ -58,7 +58,7 @@ int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size)
    wbuf->interface      = (void*)1 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -88,14 +88,14 @@ int appendalloc2_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer
    int err ;
 
    err = grow_wbuffer(wbuf, buffer_size) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    wbuf->free_size -= buffer_size ;
    *buffer          = wbuf->free ;
    wbuf->free      += buffer_size ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -105,7 +105,7 @@ int appendchar2_wbuffer(wbuffer_t * wbuf, const char c)
    int err ;
 
    err = grow_wbuffer(wbuf, 1) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    static_assert(1 == sizeof(c), ) ;
 
@@ -114,7 +114,7 @@ int appendchar2_wbuffer(wbuffer_t * wbuf, const char c)
    wbuf->free      += sizeof(char) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -130,7 +130,7 @@ int grow_wbuffer(wbuffer_t * wbuf, size_t free_size)
       if (!wbuf->interface) {
          // static memory, no more memory
          err = ENOMEM ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       if ((void*)1 != wbuf->interface) {
@@ -155,7 +155,7 @@ int grow_wbuffer(wbuffer_t * wbuf, size_t free_size)
       if (!memblock) {
          err = ENOMEM ;
          LOG_OUTOFMEMORY(new_size) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       wbuf->free_size   = new_size - old_sizeused ;
@@ -164,7 +164,7 @@ int grow_wbuffer(wbuffer_t * wbuf, size_t free_size)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -276,7 +276,7 @@ static int test_stat_initfree(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -474,7 +474,7 @@ static int test_dyn_initfree(void)
    wbuf = (wbuffer_t) wbuffer_INIT_FREEABLE ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(mem) ;
    free_wbuffer(&wbuf) ;
    return EINVAL ;
@@ -561,7 +561,7 @@ static int test_subtyping(void)
    TEST(2 == s_count_subtypegrow) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -569,19 +569,19 @@ int unittest_memory_wbuffer()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_dyn_initfree())   goto ABBRUCH ;
+   if (test_dyn_initfree())   goto ONABORT ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_stat_initfree())  goto ABBRUCH ;
-   if (test_dyn_initfree())   goto ABBRUCH ;
-   if (test_subtyping())      goto ABBRUCH ;
+   if (test_stat_initfree())  goto ONABORT ;
+   if (test_dyn_initfree())   goto ONABORT ;
+   if (test_subtyping())      goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

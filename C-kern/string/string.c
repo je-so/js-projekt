@@ -70,13 +70,13 @@ int initfl_string(/*out*/string_t * str, uint8_t * first, uint8_t * last)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST((last >= first) && ((last+1) > last), ABBRUCH, LOG_PTR(first); LOG_PTR(last) ) ;
+   VALIDATE_INPARAM_TEST((last >= first) && ((last+1) > last), ONABORT, LOG_PTR(first); LOG_PTR(last) ) ;
 
    str->addr = first ;
    str->size = (size_t) (1 + last - first) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -85,13 +85,13 @@ int initse_string(/*out*/string_t * str, uint8_t * start, uint8_t * end)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(end >= start, ABBRUCH, LOG_PTR(end); LOG_PTR(start) ) ;
+   VALIDATE_INPARAM_TEST(end >= start, ONABORT, LOG_PTR(end); LOG_PTR(start) ) ;
 
    str->addr = start ;
    str->size = (size_t) (end - start) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -144,7 +144,7 @@ static int test_initfreeconststr(void)
    TEST(str.size == 5) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -214,7 +214,7 @@ static int test_initfreestr(void)
    TEST(ENOMEM == trytrimleft_string(&str, 101)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -285,7 +285,7 @@ static int test_compare(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -295,15 +295,15 @@ int unittest_string()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfreeconststr())  goto ABBRUCH ;
-   if (test_initfreestr())       goto ABBRUCH ;
-   if (test_compare())           goto ABBRUCH ;
+   if (test_initfreeconststr())  goto ONABORT ;
+   if (test_initfreestr())       goto ONABORT ;
+   if (test_compare())           goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

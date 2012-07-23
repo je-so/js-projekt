@@ -120,10 +120,10 @@ int urlencode_string(const conststring_t * str, uint8_t except_char, uint8_t cha
          if (  except_char
             && c == except_char ) {
             err = appendchar_wbuffer(result, (char)changeto_char) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
          } else {
             err = appendalloc_wbuffer(result, 3, &encodedchar) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
 
             encodedchar[0] = '%' ;
             int nibble = (c / 16) + '0' ;
@@ -135,13 +135,13 @@ int urlencode_string(const conststring_t * str, uint8_t except_char, uint8_t cha
          }
       } else {
          err = appendchar_wbuffer(result, (char)c) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
       }
 
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -170,19 +170,19 @@ int urldecode_string(const conststring_t * str, uint8_t changefrom_char, uint8_t
          if (nibb1 > 15) nibb1 -= ('a' - 'A') ;
          if (nibb2 > 15) nibb2 -= ('a' - 'A') ;
          err = appendchar_wbuffer(result, (char) (nibb1 * 16 + nibb2)) ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
       } else {
          if (changefrom_char == next[0]) {
             err = appendchar_wbuffer(result, (char)changeinto_char) ;
          } else {
             err = appendchar_wbuffer(result, (char)next[0]) ;
          }
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
       }
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -267,7 +267,7 @@ static int test_urlencode(void)
 
    TEST(0 == free_wbuffer(&result)) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_wbuffer(&result) ;
    return EINVAL ;
 }
@@ -339,7 +339,7 @@ static int test_urldecode(void)
 
    TEST(0 == free_wbuffer(&result)) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_wbuffer(&result) ;
    return EINVAL ;
 }
@@ -350,14 +350,14 @@ int unittest_string_urlencode()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_urlencode())   goto ABBRUCH ;
-   if (test_urldecode())   goto ABBRUCH ;
+   if (test_urlencode())   goto ONABORT ;
+   if (test_urldecode())   goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

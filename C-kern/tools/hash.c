@@ -208,7 +208,7 @@ void test_hashtable_freememory(hash_entry_t * entry)
 #define TEST(ARG) \
    if ( !(ARG) ) { \
       fprintf( stderr, "%s:%d: %s():\n FAILED TEST (%s)\n ", __FILE__, __LINE__, "unittest_hashtable", #ARG) ;\
-      goto ABBRUCH ; \
+      goto ONABORT ; \
    }
 
 int unittest_hashtable()
@@ -304,7 +304,7 @@ int unittest_hashtable()
    TEST(table==NULL) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return 1 ;
 }
 #endif //KONFIG_UNITTEST

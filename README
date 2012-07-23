@@ -44,14 +44,14 @@ Subproject TextDB:
   Example:
   The following code shows how the init and free functions (which should be called once at the start of the process) are patched into code.
   The list of functions is stored in the text database file 'C-kern/resource/text.db/initprocess'.
-  > // TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ABBRUCH ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/text.db/initprocess")
+  > // TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/text.db/initprocess")
   > ...
   > err = initonce_valuecache(&pcontext->valuecache) ;
-  > if (err) goto ABBRUCH ;
+  > if (err) goto ONABORT ;
   > ++ pcontext->initcount ;
   >
   > err = initonce_thread() ;
-  > if (err) goto ABBRUCH ;
+  > if (err) goto ONABORT ;
   > ++ pcontext->initcount ;
   > // TEXTDB:END
 

@@ -59,11 +59,11 @@ static int parse_urlscheme(url_scheme_e * scheme, const char ** encodedstr)
       }
    }
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    *encodedstr = next ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -139,7 +139,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
 
    if (0xffff <= len) {
       err = EOVERFLOW ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    size_t objsize = sizeof(url_t) + len ;
@@ -147,7 +147,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
    if (!newurl) {
       err = ENOMEM ;
       LOG_OUTOFMEMORY(objsize) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    // init newurl
@@ -159,7 +159,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
             wbuffer_t decoded = wbuffer_INIT_STATIC(decoded_size, (uint8_t*) &newurl->buffer[buffidx]) ;
 
             err = urldecode_string(&(*parts)[i], 0, 0, &decoded) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
 
          } else {
             memcpy( &newurl->buffer[buffidx], (*parts)[i].addr, decoded_size) ;
@@ -176,7 +176,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
 
    *url = newurl ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(newurl) ;
    LOG_ABORT(err) ;
    return 0 ;
@@ -190,35 +190,35 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
    const uint8_t  * slashpos = (const uint8_t*)strchrnul(encodedstr, '/') ;
    url_parts_t    parts      = url_parts_INIT_FREEABLE ;
 
-   VALIDATE_INPARAM_TEST( (unsigned)scheme <= url_scheme_HTTP, ABBRUCH, LOG_INT(scheme)) ;
+   VALIDATE_INPARAM_TEST( (unsigned)scheme <= url_scheme_HTTP, ONABORT, LOG_INT(scheme)) ;
 
    if (     (pos = (const uint8_t*)strchrnul((const char*)next, '@'))
          && pos < slashpos) {
       err = parsepart2_url(url_part_USER, &parts, &next, ':', '@') ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
       if (pos > next) {
          ++ next ;
          err = parsepart_url(url_part_PASSWD, &parts, &next, '@') ;
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
       }
       if (pos != next) {
          err = EINVAL ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       ++ next ;
    }
 
    err = parsepart2_url(url_part_HOSTNAME, &parts, &next, ':', *slashpos) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (':' == *next) {
       ++ next ;
       err = parsepart_url(url_part_PORT, &parts, &next, *slashpos) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
       for(const uint8_t * nr = parts[url_part_PORT].addr; nr < next; ++nr) {
          if (!('0' <= *nr && *nr <= '9')) {
             err = EINVAL ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
       }
    }
@@ -231,27 +231,27 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
    if (*next) {
       ++ next ;
       err = parsepart_url(url_part_PATH, &parts, &next, *pos) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    if ('?' == *next) {
       ++ next ;
       pos = (const uint8_t*)strchrnul((const char*)next, '#') ;
       err = parsepart_url(url_part_QUERY, &parts, &next, *pos) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    if ('#' == *next) {
       ++ next ;
       err = parsepart_url(url_part_FRAGMENT, &parts, &next, 0) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    err = newparts_url(url, scheme, &parts, true) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -263,20 +263,20 @@ int new_url(/*out*/url_t ** url, const char * encodedstr)
    const char     * next = encodedstr ;
 
    err = parse_urlscheme(&scheme, &next) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (  '/' != next[0]
       || '/' != next[1]) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
    next += 2 ;
 
    err = new2_url(url, scheme, next) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -304,7 +304,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    // sizeof("http://") includes trailing \0 byte
    switch(url->scheme) {
    case url_scheme_HTTP:   break ;
-   default:                err = EINVAL ; goto ABBRUCH ;
+   default:                err = EINVAL ; goto ONABORT ;
    }
 
    // calculate total length of result
@@ -326,7 +326,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    }
 
    err = appendalloc_wbuffer(encoded_url_string, result_size, &start_result) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    // encode & copy parts to result
    memcpy( start_result, "http://", sizeof("http://")-1) ;
@@ -352,7 +352,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
             wbuffer_t encoded = wbuffer_INIT_STATIC(sizeencoding[i], result) ;
 
             err = urlencode_string(&(conststring_t)conststring_INIT(size, urlbuffer), i == url_part_PATH? '/' : 0, '/', &encoded) ;
-            if (err) goto ABBRUCH ;
+            if (err) goto ONABORT ;
 
          } else {
             memcpy(result, urlbuffer, sizeencoding[i]) ;
@@ -368,7 +368,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    assert((size_t) (result - start_result) == result_size) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (start_result) popbytes_wbuffer(encoded_url_string, result_size) ;
    LOG_ABORT(err) ;
    return err ;
@@ -637,7 +637,7 @@ static int test_url_initfree(void)
    TEST(0 == free_wbuffer(&str)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_url(&url) ;
    free_wbuffer(&str) ;
    return EINVAL ;
@@ -649,13 +649,13 @@ int unittest_io_url()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_url_initfree())  goto ABBRUCH ;
+   if (test_url_initfree())  goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

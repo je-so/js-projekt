@@ -52,7 +52,7 @@ int checkpath_directory(const directory_t * dir, const char * const file_path)
    int err ;
    struct stat sbuf ;
 
-   VALIDATE_INPARAM_TEST(0 != file_path, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 != file_path, ONABORT, ) ;
 
    if (dir) {
       err = fstatat(fd_directory(dir), file_path, &sbuf, 0) ;
@@ -63,7 +63,7 @@ int checkpath_directory(const directory_t * dir, const char * const file_path)
    if (err) return errno ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -83,12 +83,12 @@ int filesize_directory(const directory_t * relative_to, const char * file_path, 
    if (err) {
       err = errno ;
       LOG_SYSERR("fstatat", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    *file_size = stat_result.st_size ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -113,7 +113,7 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
       err = errno ;
       LOG_SYSERR("openat", err) ;
       LOG_STRING(path) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    sysdir = fdopendir(fdd) ;
@@ -121,14 +121,14 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
       err = errno ;
       LOG_SYSERR("fdopendir", err) ;
       LOG_STRING(path) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
    fdd = -1 ; // is used internally
 
    *(DIR**)dir = sysdir ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&fdd) ;
    if (sysdir) {
       (void) closedir(sysdir) ;
@@ -152,39 +152,39 @@ int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, cstri
    if (dir_path) {
       tmppath = dir_path ;
       err = allocate_cstring(tmppath, tmpsize) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
       truncate_cstring(tmppath, 0) ;
    } else {
       err = init_cstring(tmppath, tmpsize) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    err = append_cstring(tmppath, dir_len, P_tmpdir) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    err = append_cstring(tmppath, 1, "/") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    err = append_cstring(tmppath, name_len, name_prefix) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    err = append_cstring(tmppath, 7, ".XXXXXX") ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    mkdpath = mkdtemp(str_cstring(tmppath)) ;
    if (!mkdpath) {
       err = errno ;
       LOG_SYSERR("mkdtemp",err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = new_directory(&newdir, mkdpath, NULL) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = free_cstring(&buffer) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    *dir = newdir ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (mkdpath) {
       rmdir(mkdpath) ;
    }
@@ -209,11 +209,11 @@ int delete_directory(directory_t ** dir)
          LOG_SYSERR("closedir", err) ;
       }
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -228,7 +228,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
    if (!result && errno) {
       err = errno ;
       LOG_SYSERR("readdir",err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (ftype) {
@@ -262,7 +262,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
    *name = (result ? result->d_name : 0) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -271,11 +271,11 @@ int gofirst_directory(directory_t * dir)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(dir, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(dir, ONABORT, ) ;
 
    rewinddir(DIR_sysdir(dir)) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -296,11 +296,11 @@ int makedirectory_directory(directory_t * dir, const char * directory_path)
       LOG_SYSERR("mkdirat(mkdiratfd, directory_path, 0700)",err) ;
       LOG_INT(mkdiratfd) ;
       LOG_STRING(directory_path) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -321,7 +321,7 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
       LOG_SYSERR("openat(openatfd, file_path)",err) ;
       LOG_INT(openatfd) ;
       LOG_STRING(file_path) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = ftruncate(fd, file_length) ;
@@ -330,13 +330,13 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
       LOG_SYSERR("ftruncate(file_path, file_length)",err) ;
       LOG_STRING(file_path) ;
       LOG_UINT64(file_length) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    free_filedescr(&fd) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (-1 != fd) {
       free_filedescr(&fd) ;
       unlinkat(openatfd, file_path, 0) ;
@@ -360,11 +360,11 @@ int removedirectory_directory(directory_t * dir, const char * directory_path)
       LOG_SYSERR("unlinkat(unlinkatfd, directory_path)",err) ;
       LOG_INT(unlinkatfd) ;
       LOG_STRING(directory_path) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -384,11 +384,11 @@ int removefile_directory(directory_t * dir, const char * file_path)
       LOG_SYSERR("unlinkat(unlinkatfd, file_path)",err) ;
       LOG_INT(unlinkatfd) ;
       LOG_STRING(file_path) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -448,7 +448,7 @@ static int test_checkpath(void)
    } while( basedir ) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -492,7 +492,7 @@ static int test_directory_stream__nextdir(directory_t * dir, int test_flags_valu
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -686,7 +686,7 @@ static int test_initfree(void)
    TEST(0 == free_filedescr(&fd_oldwd)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    assert(0 == fchdir(fd_oldwd)) ;
    (void) delete_directory(&temp_dir) ;
    (void) delete_directory(&dir) ;
@@ -720,7 +720,7 @@ static int test_workingdir(void)
    TEST(0 == delete_directory(&local2)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_directory(&local1) ;
    delete_directory(&local2) ;
    return EINVAL ;
@@ -780,7 +780,7 @@ static int test_filesize(void)
    TEST(0 == delete_directory(&workdir)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (workdir) {
       assert(0 == fchdir(fd_directory(workdir))) ;
    }
@@ -794,20 +794,20 @@ int unittest_io_directory()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_initfree())          goto ABBRUCH ;
+   if (test_initfree())          goto ONABORT ;
    LOG_CLEARBUFFER() ;
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_checkpath())         goto ABBRUCH ;
-   if (test_initfree())          goto ABBRUCH ;
-   if (test_workingdir())        goto ABBRUCH ;
-   if (test_filesize())          goto ABBRUCH ;
+   if (test_checkpath())         goto ONABORT ;
+   if (test_initfree())          goto ONABORT ;
+   if (test_workingdir())        goto ONABORT ;
+   if (test_filesize())          goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

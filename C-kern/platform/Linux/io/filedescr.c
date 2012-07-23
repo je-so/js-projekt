@@ -53,11 +53,11 @@ int free_filedescr(filedescr_t * fd)
          LOG_INT(del_fd) ;
       }
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -74,7 +74,7 @@ accessmode_e accessmode_filedescr(filedescr_t fd)
       err = errno ;
       LOG_SYSERR("fcntl", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    static_assert( (O_RDONLY+1) == accessmode_READ, "simple conversion") ;
@@ -83,7 +83,7 @@ accessmode_e accessmode_filedescr(filedescr_t fd)
    static_assert( O_ACCMODE    == (O_RDWR|O_WRONLY|O_RDONLY), "simple conversion") ;
 
    return (accessmode_e) (1 + (flags & O_ACCMODE)) ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return accessmode_NONE ;
 }
@@ -114,14 +114,14 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
    if (-1 == fd) {
       err = errno ;
       LOG_SYSERR("open(/proc/self/fd)", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    procself = fdopendir(fd) ;
    if (!procself) {
       err = errno ;
       LOG_SYSERR("fdopendir", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
    fd = -1 ;
 
@@ -134,7 +134,7 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
       if (!name) {
          if (errno) {
             err = errno ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
          break ;
       }
@@ -145,7 +145,7 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
    if (err) {
       err = errno ;
       LOG_SYSERR("closedir", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    /* adapt open_fds for
@@ -157,7 +157,7 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
    *number_open_fd = open_fds >= 4 ? open_fds-4 : 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_filedescr(&fd) ;
    if (procself) {
       closedir(procself) ;
@@ -186,7 +186,7 @@ int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buffer[buf
          LOG_SYSERR("read", err) ;
          LOG_INT(fd) ;
          LOG_SIZE(buffer_size) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       total_read += (size_t) bytes ;
       assert(total_read <= buffer_size) ;
@@ -197,7 +197,7 @@ int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buffer[buf
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -220,7 +220,7 @@ int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer, siz
          LOG_SYSERR("write", err) ;
          LOG_INT(fd) ;
          LOG_SIZE(buffer_size) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       total_written += (size_t) bytes ;
       assert(total_written <= buffer_size) ;
@@ -231,7 +231,7 @@ int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer, siz
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -270,7 +270,7 @@ static int test_query(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    for(unsigned i = 0; i < nrelementsof(fds); ++i) {
       free_filedescr(&fds[i]) ;
    }
@@ -358,7 +358,7 @@ static int test_initfree(directory_t * tempdir)
 
    TEST(0 == removefile_directory(tempdir, "testfile")) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_filedescr(&fd) ;
    (void) removefile_directory(tempdir, "testfile") ;
    return EINVAL ;
@@ -579,7 +579,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == sigaction(SIGUSR1, &oldact, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (isOldact) {
       sigprocmask(SIG_SETMASK, &oldset, 0) ;
       sigaction(SIGUSR1, &oldact, 0) ;
@@ -603,9 +603,9 @@ int unittest_io_filedescr()
 
    TEST(0 == newtemp_directory(&tempdir, "iofdtest", &tmppath)) ;
 
-   if (test_query())             goto ABBRUCH ;
-   if (test_initfree(tempdir))   goto ABBRUCH ;
-   if (test_readwrite(tempdir))  goto ABBRUCH ;
+   if (test_query())             goto ONABORT ;
+   if (test_initfree(tempdir))   goto ONABORT ;
+   if (test_readwrite(tempdir))  goto ONABORT ;
 
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
@@ -614,7 +614,7 @@ int unittest_io_filedescr()
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    (void) free_resourceusage(&usage) ;

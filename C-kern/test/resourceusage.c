@@ -46,29 +46,29 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    signalconfig_t     * signalconfig  = 0 ;
 
    err = nropen_filedescr(&fds) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    sizeallocated_mmtransient = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
 
    err = allocatedsize_malloc(&allocated) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    mappedregions = MALLOC(vm_mappedregions_t, malloc, ) ;
    if (!mappedregions) {
       err = ENOMEM ;
       LOG_OUTOFMEMORY(sizeof(vm_mappedregions_t)) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
 
    err = new_signalconfig(&signalconfig) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = init_vmmappedregions(mappedregions) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = allocatedsize_malloc(&allocated_endinit) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    usage->filedescriptor_usage = fds ;
    usage->sizealloc_mmtrans    = sizeallocated_mmtransient ;
@@ -78,7 +78,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    usage->virtualmemory_usage  = mappedregions ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (mappedregions) {
       (void) free_vmmappedregions(mappedregions) ;
       free(mappedregions) ;
@@ -107,11 +107,11 @@ int free_resourceusage(resourceusage_t * usage)
       free(usage->virtualmemory_usage) ;
       usage->virtualmemory_usage = 0 ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -122,40 +122,40 @@ int same_resourceusage(const resourceusage_t * usage)
    resourceusage_t usage2 = resourceusage_INIT_FREEABLE ;
 
    err = init_resourceusage(&usage2) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = EAGAIN ;
 
    if (usage2.filedescriptor_usage != usage->filedescriptor_usage) {
       LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (usage2.sizealloc_mmtrans != usage->sizealloc_mmtrans) {
       LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if ((usage2.malloc_usage - usage->malloc_correction) != usage->malloc_usage) {
       LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (compare_vmmappedregions(usage2.virtualmemory_usage, usage->virtualmemory_usage)) {
       LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (compare_signalconfig(usage2.signalconfig, usage->signalconfig)) {
       LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = free_resourceusage(&usage2) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage2) ;
    LOG_ABORT(err) ;
    return err ;
@@ -269,7 +269,7 @@ static int test_initfree(void)
    TEST(malloc_usage == malloc_usage2) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(memblock) ;
    free_filedescr(&fd) ;
    (void) free_vmblock(&vmblock) ;
@@ -284,13 +284,13 @@ int unittest_test_resourceusage()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ABBRUCH ;
+   if (test_initfree())    goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

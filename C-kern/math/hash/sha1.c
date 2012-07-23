@@ -230,7 +230,7 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
    if (  (ssize_t)buffer_size < 0
       || (sha1->datalen & 0xe000000000000000)) {
       err = EOVERFLOW ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    size_t datasize = blocksize + buffer_size ;
@@ -262,7 +262,7 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -333,7 +333,7 @@ static int test_unevenaddr(sha1_hashvalue_t * sha1sum, const char * string)
    TEST(0 == strncmp((char*)*sha1sum, (char*)value_sha1hash(&sha1), sizeof(*sha1sum))) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -433,21 +433,21 @@ static int test_sha1(void)
             "\n"
             "   TEST(0 == init_resourceusage(&usage)) ;\n"
             "\n"
-            "   if (test_sha1())     goto ABBRUCH ;\n"
+            "   if (test_sha1())     goto ONABORT ;\n"
             "\n"
             "   TEST(0 == same_resourceusage(&usage)) ;\n"
             "   TEST(0 == free_resourceusage(&usage)) ;\n"
             "\n"
             "   return 0 ;\n"
-            "ABBRUCH:\n"
+            "ONABORT:\n"
             "   (void) free_resourceusage(&usage) ;\n"
             "   return EINVAL ;\n"
             "}\n" ;
-   strncpy( (char*)sha1sum, "\x98\x41\x30\x90\x06\xcf\xe3\x0f\x9d\x5b\xe4\x98\x70\x82\xeb\x51\x23\x72\x60\xdc", 20) ;
+   strncpy( (char*)sha1sum, "\xea\xbf\xc3\xbc\xc1\x82\x9b\xa3\x37\x61\x0a\xb2\xf9\xb5\x4d\x73\x9a\x18\xae\xa8", 20) ;
    TEST(0 == test_unevenaddr(&sha1sum, string)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -458,13 +458,13 @@ int unittest_math_hash_sha1()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_sha1())        goto ABBRUCH ;
+   if (test_sha1())        goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

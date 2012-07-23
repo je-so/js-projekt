@@ -46,7 +46,7 @@ int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
       if (!preallocated_buffer) {
          LOG_OUTOFMEMORY(preallocate_size) ;
          err = ENOMEM ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
@@ -55,7 +55,7 @@ int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
    cstr->chars          = preallocated_buffer ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err);
    return err ;
 }
@@ -66,17 +66,17 @@ int initfromstring_cstring(/*out*/cstring_t * cstr, struct conststring_t * copie
 
    if (copiedfrom->size) {
       err = init_cstring(cstr, copiedfrom->size + 1) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       err = append_cstring(cstr, copiedfrom->size, (const char*) copiedfrom->addr) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    } else {
       err = init_cstring(cstr, copiedfrom->size) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err);
    return err ;
 }
@@ -110,7 +110,7 @@ int allocate_cstring(cstring_t * cstr, size_t allocate_size)
    if (!expanded_buffer) {
       LOG_OUTOFMEMORY(new_size) ;
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (!cstr->chars) {
@@ -120,7 +120,7 @@ int allocate_cstring(cstring_t * cstr, size_t allocate_size)
    cstr->allocated_size = new_size ;
    cstr->chars          = expanded_buffer ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err);
    return err ;
 }
@@ -131,11 +131,11 @@ ABBRUCH:
       if (allocate_size < append_size) {                       \
          LOG_OUTOFMEMORY(SIZE_MAX) ;                           \
          err = ENOMEM ;                                        \
-         goto ABBRUCH ;                                        \
+         goto ONABORT ;                                        \
       }                                                        \
                                                                \
       err = allocate_cstring(cstr, allocate_size) ;            \
-      if (err) goto ABBRUCH ;                                  \
+      if (err) goto ONABORT ;                                  \
    }
 
 int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len])
@@ -153,7 +153,7 @@ int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len])
    cstr->chars[cstr->length]  = 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err);
    return err ;
 }
@@ -177,7 +177,7 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
          if (append_size_ < 0) {
             LOG_OUTOFMEMORY(SIZE_MAX) ;
             err = ENOMEM ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
 
          append_size  = (size_t) append_size_ ;
@@ -192,7 +192,7 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (cstr->allocated_size) cstr->chars[cstr->length] = 0 ;
    LOG_ABORT(err);
    return err ;
@@ -202,7 +202,7 @@ int truncate_cstring(cstring_t * cstr, size_t new_length)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(new_length <= cstr->length, ABBRUCH, LOG_SIZE(cstr->length) ; LOG_SIZE(new_length)) ;
+   VALIDATE_INPARAM_TEST(new_length <= cstr->length, ONABORT, LOG_SIZE(cstr->length) ; LOG_SIZE(new_length)) ;
 
    if (new_length < cstr->length) {
       cstr->length            = new_length ;
@@ -210,7 +210,7 @@ int truncate_cstring(cstring_t * cstr, size_t new_length)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err);
    return err ;
 }
@@ -294,7 +294,7 @@ static int test_initfree(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_cstring(&cstr) ;
    free_cstring(&cstr2) ;
    return EINVAL ;
@@ -453,7 +453,7 @@ static int test_changeandquery(void)
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_cstring(&cstr) ;
    free_cstring(&cstr2) ;
    return EINVAL ;
@@ -465,14 +465,14 @@ int unittest_string_cstring()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_changeandquery()) goto ABBRUCH ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_changeandquery()) goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

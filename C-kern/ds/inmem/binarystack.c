@@ -44,18 +44,18 @@ int init_binarystack(/*out*/binarystack_t * stack, size_t initial_size)
 
    if (nrpages < pagesize) {
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    nrpages /= pagesize ;
 
    err = init_vmblock(&stack->stackmem, nrpages) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    stack->size = 0 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -67,10 +67,10 @@ int free_binarystack(binarystack_t * stack)
    stack->size = 0 ;
 
    err = free_vmblock(&stack->stackmem) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 
@@ -96,21 +96,21 @@ int push_binarystack(binarystack_t * stack, size_t size, /*out*/void ** lastpush
 
    if (newsize < size) {
       err = ENOMEM ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (newsize > stack->stackmem.size) {
       size_t expandsize   = newsize - stack->stackmem.size ;
       size_t nrpages_incr = 1 + (expandsize / pagesize_vm()) ;
       err = movexpand_vmblock(&stack->stackmem, nrpages_incr) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    *lastpushed = &stack->stackmem.addr[stack->size] ;
    stack->size = newsize ;
 
    return 0;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -119,12 +119,12 @@ int pop_binarystack(binarystack_t * stack, size_t size)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(size <= stack->size, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(size <= stack->size, ONABORT, ) ;
 
    stack->size -= size ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -258,7 +258,7 @@ static int test_initfree(void)
    TEST(0 == free_binarystack(&stack)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_binarystack(&stack) ;
    return EINVAL ;
 }
@@ -269,13 +269,13 @@ int unittest_ds_inmem_binarystack()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
+   if (test_initfree())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

@@ -106,11 +106,11 @@ int free_maincontext(void)
       g_maincontext.argc     = 0 ;
       g_maincontext.argv     = 0 ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -122,38 +122,38 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
 
    if (is_already_initialized) {
       err = EALREADY ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    VALIDATE_INPARAM_TEST(     maincontext_STATIC  <  context_type
-                           && maincontext_DEFAULT >= context_type, ABBRUCH, ) ;
+                           && maincontext_DEFAULT >= context_type, ONABORT, ) ;
 
    VALIDATE_INPARAM_TEST(      argc >= 0
-                           && (argc == 0 || argv != 0), ABBRUCH, ) ;
+                           && (argc == 0 || argv != 0), ONABORT, ) ;
 
-   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
 
    err = init_processcontext(&g_maincontext.pcontext) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    g_maincontext.type     = context_type ;
    g_maincontext.progname = 0 ;
    g_maincontext.argc     = argc ;
    g_maincontext.argv     = argv ;
 
-   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
 
    err = init_threadcontext(&thread_maincontext()) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
-   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
 
    initprogname_maincontext(&g_maincontext) ;
 
-   ONERROR_testerrortimer(&s_error_init, ABBRUCH) ;
+   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (!is_already_initialized) {
       free_maincontext() ;
    }
@@ -281,7 +281,7 @@ static int test_initmain(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
    free_filedescr(&fd_stderr) ;
    free_filedescr(&fdpipe[0]);
@@ -306,7 +306,7 @@ static int test_querymacros(void)
    TEST(oldcache2 == valuecache_maincontext()) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -364,7 +364,7 @@ static int test_initerror(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (maincontext_STATIC == old_context.type) {
       LOG_CLEARBUFFER() ;
       free_maincontext() ;
@@ -422,7 +422,7 @@ static int test_progname(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
    free_filedescr(&fd_stderr) ;
    free_filedescr(&fdpipe[0]);
@@ -436,15 +436,15 @@ int unittest_context_maincontext()
 
    if (maincontext_STATIC == type_maincontext()) {
 
-      if (test_querymacros())    goto ABBRUCH ;
-      if (test_initmain())       goto ABBRUCH ;
-      if (test_initerror())      goto ABBRUCH ;
-      if (test_progname())       goto ABBRUCH ;
+      if (test_querymacros())    goto ONABORT ;
+      if (test_initmain())       goto ONABORT ;
+      if (test_initerror())      goto ONABORT ;
+      if (test_progname())       goto ONABORT ;
 
    } else {
       assert(maincontext_STATIC != type_maincontext()) ;
 
-      if (test_initerror())  goto ABBRUCH ;
+      if (test_initerror())  goto ONABORT ;
 
       TEST(0 == init_resourceusage(&usage)) ;
       {  // TODO remove in case malloc is no more in use (init_resourceusage)
@@ -459,10 +459,10 @@ int unittest_context_maincontext()
          TEST(0 == init_resourceusage(&usage)) ;
       }
 
-      if (test_querymacros())    goto ABBRUCH ;
-      if (test_initmain())       goto ABBRUCH ;
-      if (test_initerror())      goto ABBRUCH ;
-      if (test_progname())       goto ABBRUCH ;
+      if (test_querymacros())    goto ONABORT ;
+      if (test_initmain())       goto ONABORT ;
+      if (test_initerror())      goto ONABORT ;
+      if (test_progname())       goto ONABORT ;
 
       TEST(0 == same_resourceusage(&usage)) ;
       TEST(0 == free_resourceusage(&usage)) ;
@@ -472,7 +472,7 @@ int unittest_context_maincontext()
    resetmsg_locale() ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    TEST(0 == free_resourceusage(&usage)) ;
    return EINVAL ;
 }

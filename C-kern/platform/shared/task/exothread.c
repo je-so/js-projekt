@@ -58,12 +58,12 @@ int free_exothread(exothread_t * xthread)
       xthread->main     = 0 ;
       if (exothread_flag_RUN == (xthread->flags & (exothread_flag_FINISH|exothread_flag_RUN))) {
          err = EBUSY ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -89,7 +89,7 @@ int run_exothread(exothread_t * xthread)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 == isfinish_exothread(xthread),ABBRUCH,)
+   VALIDATE_INPARAM_TEST(0 == isfinish_exothread(xthread),ONABORT,)
 
    xthread->flags = (typeof(xthread->flags)) (xthread->flags | exothread_flag_RUN) ;
 
@@ -99,7 +99,7 @@ int run_exothread(exothread_t * xthread)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -122,15 +122,15 @@ static int testinit_xthread(exothread_t * xthread)
    jumpstate_exothread() ;
 
    exothread_INIT: ;
-   VALIDATE_INPARAM_TEST(0 == err,ABBRUCH,) ;
+   VALIDATE_INPARAM_TEST(0 == err,ONABORT,) ;
    err = 1 ;
 
    exothread_FREE: ;
-   VALIDATE_INPARAM_TEST(1 == err,ABBRUCH,) ;
+   VALIDATE_INPARAM_TEST(1 == err,ONABORT,) ;
 
    finish_exothread() ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -201,7 +201,7 @@ static int counter_xthread(counter_xthread_t * xthread)
    {
       declare_inparam_exothread(inparam) ;
 
-      VALIDATE_INPARAM_TEST(inparam->limit > 0,ABBRUCH,LOG_INT(inparam->limit)) ;
+      VALIDATE_INPARAM_TEST(inparam->limit > 0,ONABORT,LOG_INT(inparam->limit)) ;
 
       xthread->value = 0 ;
       xthread->limit = inparam->limit ;
@@ -210,7 +210,7 @@ static int counter_xthread(counter_xthread_t * xthread)
       if (!xthread->dummy) {
          err = ENOMEM ;
          LOG_OUTOFMEMORY(12) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
@@ -220,7 +220,7 @@ static int counter_xthread(counter_xthread_t * xthread)
 
    if (xthread->value == inarg_exothread()->errval) {
       err = ETIME ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (xthread->value < xthread->limit) {
@@ -236,7 +236,7 @@ static int counter_xthread(counter_xthread_t * xthread)
       err = inarg_exothread()->errfreeresource ;
    }
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    if (!iserror_exothread(&xthread->xthread)) {
       ++ s_outparam_set ;
@@ -247,7 +247,7 @@ static int counter_xthread(counter_xthread_t * xthread)
 
    finish_exothread() ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -470,7 +470,7 @@ static int test_initfree(void)
    TEST(EBUSY == free_exothread(&xthread)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_exothread(&xthread) ;
    return EINVAL ;
 }
@@ -616,7 +616,7 @@ static int test_subtype_counter(void)
    TEST(0 == xthread.xthread.main) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_exothread(&xthread.xthread) ;
    return EINVAL ;
 }
@@ -665,7 +665,7 @@ static int test_loops(void)
    TEST(0 == free_exothread(&xthread)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_exothread(&xthread) ;
    return EINVAL ;
 }
@@ -676,15 +676,15 @@ int unittest_platform_task_exothread()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())          goto ABBRUCH ;
-   if (test_subtype_counter())   goto ABBRUCH ;
-   if (test_loops())             goto ABBRUCH ;
+   if (test_initfree())          goto ONABORT ;
+   if (test_subtype_counter())   goto ONABORT ;
+   if (test_loops())             goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

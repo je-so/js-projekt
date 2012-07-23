@@ -77,14 +77,14 @@ int init_waitlist(/*out*/waitlist_t * wlist)
    static_assert(sizeof(waitlist_t) == sizeof(uint32_t) + sizeof(mutex_t) + sizeof(slist_t), "waitlist_t == slist_t") ;
 
    err = init_mutex(&wlist->lock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    wlist->nr_waiting = 0 ;
 
    init_wlist(wlist) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -100,10 +100,10 @@ int free_waitlist(waitlist_t * wlist)
       if (err2) err = err2 ;
    }
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -135,7 +135,7 @@ int wait_waitlist(waitlist_t * wlist)
       ++ wlist->nr_waiting ;
    }
    sunlock_mutex(&wlist->lock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    bool isSpuriousWakeup ;
    do {
@@ -146,7 +146,7 @@ int wait_waitlist(waitlist_t * wlist)
    } while( isSpuriousWakeup ) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -171,10 +171,10 @@ int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), v
       return err ;
    }
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -365,7 +365,7 @@ static int test_initfree(void)
    TEST(0 == free_waitlist(&wlist)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_waitlist(&wlist) ;
    (void) delete_thread(&thread) ;
    while( 0 == trywait_rtsignal(0) ) ;
@@ -377,19 +377,19 @@ int unittest_platform_sync_waitlist()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_initfree())       goto ABBRUCH ;
+   if (test_initfree())       goto ONABORT ;
 
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
+   if (test_initfree())       goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

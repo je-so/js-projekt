@@ -101,7 +101,7 @@ static int test_helper(void)
    TEST(0 == free_filedescr(&fd[1])) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (isinit_filedescr(oldstdout)) {
       dup2(oldstdout, filedescr_STDOUT) ;
    }
@@ -120,13 +120,13 @@ int unittest_test_functions()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_helper())   goto ABBRUCH ;
+   if (test_helper())   goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

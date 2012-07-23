@@ -40,7 +40,7 @@ file »C-kern/api/test.h«.
 It awaits one parameter
 which simply is the condition to test for
 
-For the abort label the German word »ABBRUCH« is used.
+For the abort label the German word »ONABORT« is used.
 The unit test returns 0 in case of success or an error code (> 0).
 
 (start code)
@@ -73,7 +73,7 @@ int unittest_NAME_OF_TEST()
    // unit test success
    return 0 ;
 // If a test fails the macro TEST jumps to this label
-ABBRUCH:
+ONABORT:
    // free resource in case of abort
    (void) free_testtype(&t) ;
    // error occurred

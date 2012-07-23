@@ -54,10 +54,10 @@ int free_exoscheduler(exoscheduler_t * xsched)
    err = free_exothreadlist(&xsched->runlist, 0) ;
    xsched->runlist_size = 0 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -67,11 +67,11 @@ int register_exoscheduler(exoscheduler_t * xsched, exothread_t * xthread)
    int err ;
 
    err = insertlast_exothreadlist(&xsched->runlist, xthread) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    ++ xsched->runlist_size ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -117,9 +117,9 @@ int run_exoscheduler(exoscheduler_t * xsched)
       }
    }
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -212,7 +212,7 @@ static int test_initfree(void)
    TEST(0 == free_exoscheduler(&xsched)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_exoscheduler(&xsched) ;
    for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
       TEST(0 == free_exothread(&xthreads[i])) ;
@@ -226,13 +226,13 @@ int unittest_platform_task_exoscheduler()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())          goto ABBRUCH ;
+   if (test_initfree())          goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

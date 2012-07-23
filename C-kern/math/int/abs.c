@@ -74,7 +74,7 @@ static int test_abs(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -84,13 +84,13 @@ int unittest_math_int_abs()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_abs())    goto ABBRUCH ;
+   if (test_abs())    goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

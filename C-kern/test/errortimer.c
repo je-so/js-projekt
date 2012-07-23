@@ -67,7 +67,7 @@ static int test_initfree(void)
    // TEST ONERROR_testerrortimer
    int err = 0 ;
    TEST(0 == init_testerrortimer(&errtimer, 2, 3)) ;
-   ONERROR_testerrortimer(&errtimer, ABBRUCH) ;
+   ONERROR_testerrortimer(&errtimer, ONABORT) ;
    TEST(0 == err) ;
    TEST(1 == errtimer.timercount) ;
    TEST(3 == errtimer.errcode) ;
@@ -79,7 +79,7 @@ XXX:
    TEST(3 == errtimer.errcode) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -89,13 +89,13 @@ int unittest_test_errortimer()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())   goto ABBRUCH ;
+   if (test_initfree())   goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

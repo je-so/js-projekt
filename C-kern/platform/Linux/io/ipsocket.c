@@ -39,10 +39,10 @@ int free_ipsocket(ipsocket_t * ipsock)
    int err ;
 
    err = free_filedescr(ipsock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -57,40 +57,40 @@ int initsocket_helper(/*out*/ipsocket_t * ipsock, const ipaddr_t * localaddr)
    case ipprotocol_ANY: socktype = SOCK_RAW ;   break ;
    case ipprotocol_UDP: socktype = SOCK_DGRAM ; break ;
    case ipprotocol_TCP: socktype = SOCK_STREAM; break ;
-   default:  err = EPROTONOSUPPORT ; goto ABBRUCH ;
+   default:  err = EPROTONOSUPPORT ; goto ONABORT ;
    }
 
    fd = socket(version_ipaddr(localaddr), socktype|SOCK_CLOEXEC, protocol_ipaddr(localaddr)) ;
    if (-1 == fd) {
       err = errno ;
       LOG_SYSERR("socket", err) ;
-      goto ABBRUCH_LOG ;
+      goto ONABORT_LOG ;
    }
 
    const int on = 1 ;
    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) {
       err = errno ;
       LOG_SYSERR("setsockopt(SO_REUSEADDR)", err) ;
-      goto ABBRUCH_LOG ;
+      goto ONABORT_LOG ;
    }
 
    if (ipprotocol_TCP == protocol_ipaddr(localaddr)) {
       if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, &on, sizeof(on))) {
          err = errno ;
          LOG_SYSERR("setsockopt(SO_OOBINLINE)", err) ;
-         goto ABBRUCH_LOG ;
+         goto ONABORT_LOG ;
       }
    }
 
    if (bind(fd, localaddr->addr, localaddr->addrlen)) {
       err = errno ;
       LOG_SYSERR("bind", err) ;
-      goto ABBRUCH_LOG ;
+      goto ONABORT_LOG ;
    }
 
    *ipsock = fd ;
    return 0 ;
-ABBRUCH_LOG:
+ONABORT_LOG:
    LOG_INT(port_ipaddr(localaddr)) ;
    LOG_INT(protocol_ipaddr(localaddr)) ;
    LOG_INT(version_ipaddr(localaddr)) ;
@@ -101,7 +101,7 @@ ABBRUCH_LOG:
       LOG_STRING(str_cstring(&name)) ;
    }
    (void) free_cstring(&name) ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&fd) ;
    LOG_ABORT(err) ;
    return err ;
@@ -111,18 +111,18 @@ int init_ipsocket(/*out*/ipsocket_t * ipsock, const ipaddr_t * localaddr)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ONABORT, ) ;
 
    if (ipprotocol_UDP != protocol_ipaddr(localaddr)) {
       err = EPROTONOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = initsocket_helper(ipsock, localaddr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -134,16 +134,16 @@ int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * rem
    ipsocket_t        new_ipsock = ipsocket_INIT_FREEABLE ;
    ipaddr_storage_t  localaddr2 ;
 
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONABORT, ) ;
    if (localaddr) {
-      VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
-      VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
+      VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ONABORT, ) ;
+      VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ONABORT, ) ;
    } else {
       localaddr = initany_ipaddrstorage(&localaddr2, protocol_ipaddr(remoteaddr), 0, version_ipaddr(remoteaddr)) ;
    }
 
    err = initsocket_helper(&new_ipsock, localaddr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    fd = new_ipsock ;
 
@@ -152,12 +152,12 @@ int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * rem
       err = errno ;
       LOG_SYSERR("connect", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    *ipsock = new_ipsock ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_ipsocket(&new_ipsock) ;
    LOG_ABORT(err) ;
    return err ;
@@ -169,10 +169,10 @@ int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loca
    int fd ;
    ipsocket_t new_ipsock = ipsocket_INIT_FREEABLE ;
 
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ONABORT, ) ;
 
    err = initsocket_helper(&new_ipsock, localaddr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    fd = new_ipsock ;
 
@@ -181,12 +181,12 @@ int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loca
       LOG_SYSERR("listen", err) ;
       LOG_INT(fd) ;
       LOG_INT(max_outstanding_connections) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    *ipsock = new_ipsock ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_ipsocket(&new_ipsock) ;
    LOG_ABORT(err) ;
    return err ;
@@ -203,7 +203,7 @@ int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock
    if (  remoteaddr
       && version_ipaddr(remoteaddr) != version_ipsocket(listensock)) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    new_socket = accept4(fd, (struct sockaddr*) &saddr, &len, SOCK_CLOEXEC) ;
@@ -211,19 +211,19 @@ int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock
       err = errno ;
       LOG_SYSERR("accept4", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (remoteaddr) {
       ipprotocol_e protocol = protocol_ipsocket(listensock) ;
 
       err = setaddr_ipaddr( remoteaddr, protocol, (uint16_t)len, (struct sockaddr*) &saddr ) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    *ipsock = new_socket ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_filedescr(&new_socket) ;
    LOG_ABORT(err) ;
    return err ;
@@ -241,13 +241,13 @@ bool isconnected_ipsocket(const ipsocket_t * ipsock)
       if (err != ENOTCONN) {
          LOG_SYSERR("getpeername", err) ;
          LOG_INT(fd) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       return false ;
    }
 
    return true ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return false ;
 }
@@ -263,12 +263,12 @@ bool islisten_ipsocket(const ipsocket_t * ipsock)
       err = errno ;
       LOG_SYSERR("getsockopt(SO_ACCEPTCONN)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
    assert(len == sizeof(int)) ;
 
    return (bool) value ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return false ;
 }
@@ -284,12 +284,12 @@ uint16_t protocol_ipsocket(const ipsocket_t * ipsock)
       err = errno ;
       LOG_SYSERR("getsockopt(SO_PROTOCOL)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
    assert(len == sizeof(int)) ;
 
    return (uint16_t) value ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return ipprotocol_ANY ;
 }
@@ -305,12 +305,12 @@ uint16_t version_ipsocket(const ipsocket_t * ipsock)
       err = errno ;
       LOG_SYSERR("getsockopt(SO_DOMAIN)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
    assert(len == sizeof(int)) ;
 
    return (uint16_t) value ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return ipversion_ANY ;
 }
@@ -324,23 +324,23 @@ int localaddr_ipsocket(const ipsocket_t * ipsock, /*out*/ipaddr_t * localaddr)
 
    if (version_ipaddr(localaddr) != version_ipsocket(ipsock)) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (getsockname(fd, (struct sockaddr*) &saddr, &len)) {
       err = errno ;
       LOG_SYSERR("getsockname", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    ipprotocol_e protocol = protocol_ipsocket(ipsock) ;
 
    err = setaddr_ipaddr( localaddr, protocol, (uint16_t)len, (struct sockaddr*) &saddr ) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -354,23 +354,23 @@ int remoteaddr_ipsocket(const ipsocket_t * ipsock, ipaddr_t * remoteaddr)
 
    if (version_ipaddr(remoteaddr) != version_ipsocket(ipsock)) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (getpeername(fd, (struct sockaddr*) &saddr, &len)) {
       err = errno ;
       LOG_SYSERR("getpeername", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    ipprotocol_e protocol = protocol_ipsocket(ipsock) ;
 
    err = setaddr_ipaddr( remoteaddr, protocol, (uint16_t)len, (struct sockaddr*) &saddr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -385,12 +385,12 @@ int bytestoread_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unread_bytes
       err = errno ;
       LOG_SYSERR("ioctl(FIONREAD)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    *unread_bytes = (unsigned)bytes ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -405,12 +405,12 @@ int bytestowrite_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unsend_byte
       err = errno ;
       LOG_SYSERR("ioctl(TIOCOUTQ)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    *unsend_bytes = (unsigned)bytes ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -427,7 +427,7 @@ int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * queuesize_read
          err = errno ;
          LOG_SYSERR("getsockopt(SO_RCVBUF)", err) ;
          LOG_INT(fd) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       assert(len == sizeof(int)) ;
       *queuesize_read = (unsigned)value ;
@@ -438,14 +438,14 @@ int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * queuesize_read
          err = errno ;
          LOG_SYSERR("getsockopt(SO_SNDBUF)", err) ;
          LOG_INT(fd) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       assert(len == sizeof(int)) ;
       *queuesize_write = (unsigned)value ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -459,7 +459,7 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t que
    int        fd     = *ipsock ;
 
    VALIDATE_INPARAM_TEST(  queuesize_read  <= INT_MAX
-                        && queuesize_write <= INT_MAX, ABBRUCH, LOG_SIZE(queuesize_read); LOG_SIZE(queuesize_write) ) ;
+                        && queuesize_write <= INT_MAX, ONABORT, LOG_SIZE(queuesize_read); LOG_SIZE(queuesize_write) ) ;
 
    if (queuesize_read)  {
       if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rvalue, len)) {
@@ -467,7 +467,7 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t que
          LOG_SYSERR("setsockopt(SO_RCVBUF)", err) ;
          LOG_INT(fd) ;
          LOG_INT(queuesize_read) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
@@ -477,12 +477,12 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t que
          LOG_SYSERR("setsockopt(SO_SNDBUF)", err) ;
          LOG_INT(fd) ;
          LOG_INT(queuesize_write) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -501,14 +501,14 @@ int read_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[m
       LOG_SYSERR("recv", err) ;
       LOG_INT(fd) ;
       LOG_SIZE(maxdata_len) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (bytes_read) {
       *bytes_read = (size_t) bytes ;
    }
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -525,14 +525,14 @@ int write_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, const uint8_t data[m
       LOG_SYSERR("send", err) ;
       LOG_INT(fd) ;
       LOG_SIZE(maxdata_len) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (bytes_written) {
       *bytes_written = (size_t) bytes ;
    }
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -552,7 +552,7 @@ int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t dat
       if (err == ENOTTY) err = EOPNOTSUPP ;
       LOG_SYSERR("ioctl(SIOCATMARK)", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    bytes = recv(fd, data, maxdata_len, MSG_DONTWAIT) ;
@@ -562,7 +562,7 @@ int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t dat
       LOG_SYSERR("recv", err) ;
       LOG_INT(fd) ;
       LOG_SIZE(maxdata_len) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (isUrgent) {
@@ -590,7 +590,7 @@ int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t dat
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -610,11 +610,11 @@ int writeoob_ipsocket(ipsocket_t * ipsock, uint8_t data)
       }
       LOG_SYSERR("send", err) ;
       LOG_INT(fd) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -631,11 +631,11 @@ int readfrom_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata
    ssize_t                 bytes ;
 
    if (remoteaddr) {
-      VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
+      VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONABORT, ) ;
 
       if (version_ipaddr(remoteaddr) != version_ipsocket(ipsock)) {
          err = EAFNOSUPPORT ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
@@ -646,14 +646,14 @@ int readfrom_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata
       LOG_SYSERR("recv", err) ;
       LOG_INT(fd) ;
       LOG_SIZE(maxdata_len) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (remoteaddr) {
       ipprotocol_e protocol = protocol_ipsocket( ipsock ) ;
 
       err = setaddr_ipaddr(remoteaddr, protocol, (uint16_t)slen, (struct sockaddr*)&saddr) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    if (bytes_read) {
@@ -661,7 +661,7 @@ int readfrom_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -672,16 +672,16 @@ int writeto_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t ma
    int     fd    = *ipsock ;
    ssize_t bytes ;
 
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONABORT, ) ;
 
    if (ipprotocol_UDP != protocol_ipaddr(remoteaddr)) {
       err = EPROTONOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (version_ipaddr(remoteaddr) != version_ipsocket(ipsock)) {
       err = EAFNOSUPPORT ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    bytes = sendto(fd, data, maxdata_len, MSG_NOSIGNAL|MSG_DONTWAIT, remoteaddr->addr, remoteaddr->addrlen) ;
@@ -691,14 +691,14 @@ int writeto_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t ma
       LOG_SYSERR("sendto", err) ;
       LOG_INT(fd) ;
       LOG_SIZE(maxdata_len) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (bytes_written) {
       *bytes_written = (size_t) bytes ;
    }
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -713,10 +713,10 @@ int free_ipsocketasync(ipsocket_async_t * ipsockasync)
    ipsockasync->err = 0 ;
 
    err = free_ipsocket(&ipsockasync->ipsock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -728,16 +728,16 @@ int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struc
    ipsocket_t        new_ipsock = ipsocket_INIT_FREEABLE ;
    ipaddr_storage_t  localaddr2 ;
 
-   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(isvalid_ipaddr(remoteaddr), ONABORT, ) ;
    if (localaddr) {
-      VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ABBRUCH, ) ;
-      VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ABBRUCH, ) ;
+      VALIDATE_INPARAM_TEST(isvalid_ipaddr(localaddr), ONABORT, ) ;
+      VALIDATE_INPARAM_TEST(protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr), ONABORT, ) ;
    } else {
       localaddr = initany_ipaddrstorage(&localaddr2, protocol_ipaddr(remoteaddr), 0, version_ipaddr(remoteaddr)) ;
    }
 
    err = initsocket_helper(&new_ipsock, localaddr) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    fd = new_ipsock ;
 
@@ -749,7 +749,7 @@ int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struc
    if (-1 == err) {
       err = errno ;
       LOG_SYSERR("fcntl", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = connect(fd, remoteaddr->addr, remoteaddr->addrlen) ;
@@ -758,14 +758,14 @@ int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struc
       if (EINPROGRESS != err) {
          LOG_SYSERR("connect", err) ;
          LOG_INT(fd) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    ipsockasync->ipsock = new_ipsock ;
    ipsockasync->err    = err ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_ipsocket(&new_ipsock) ;
    LOG_ABORT(err) ;
    return err ;
@@ -790,7 +790,7 @@ int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ip
    if (-1 == err) {
       err = errno ;
       LOG_SYSERR("fcntl", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    // convert
@@ -798,7 +798,7 @@ int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ip
    ipsockasync->ipsock = ipsocket_INIT_FREEABLE ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -820,7 +820,7 @@ int success_ipsocketasync(ipsocket_async_t * ipsockasync)
    if (-1 == err) {
       err = errno ;
       LOG_SYSERR("getsockopt", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (1 == err) {
@@ -828,7 +828,7 @@ int success_ipsocketasync(ipsocket_async_t * ipsockasync)
       if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len)) {
          err = errno ;
          LOG_SYSERR("getsockopt", err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       assert(len == sizeof(int)) ;
 
@@ -841,7 +841,7 @@ int success_ipsocketasync(ipsocket_async_t * ipsockasync)
    }
 
    return ipsockasync->err ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -865,11 +865,11 @@ int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec)
    if (-1 == err) {
       err = errno ;
       LOG_SYSERR("poll", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return (1 == err) ? 0 : EINPROGRESS ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -957,7 +957,7 @@ static int test_initfree(void)
    TEST(0 == free_cstring(&name)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
    (void) free_ipsocket(&ipsock) ;
@@ -1057,7 +1057,7 @@ static int test_connect(void)
    TEST(0 == free_cstring(&name)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
    (void) free_ipsocket(&ipsockCL) ;
@@ -1268,7 +1268,7 @@ static int test_buffersize(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(buffer) ;
    (void) delete_ipaddr(&ipaddr) ;
    (void) free_ipsocket(&ipsockCL) ;
@@ -1337,7 +1337,7 @@ static int test_helper_oob(ipsocket_t * ipsockSV, ipsocket_t * ipsockCL, const s
    TEST('y' == buffer[oob_offset]) ;      // oob state of 'y' is the newest !
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -1403,7 +1403,7 @@ static int test_outofbandData(void)
    free(buffer) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(buffer) ;
    (void) delete_ipaddr(&ipaddr) ;
    (void) free_ipsocket(&ipsockCL) ;
@@ -1541,7 +1541,7 @@ int test_udpIO(void)
    TEST(0 == free_cstring(&name)) ;
    free(buffer) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(buffer) ;
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
@@ -1656,7 +1656,7 @@ static int test_async(void)
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_ipsocket(&iplisten) ;
    free_ipsocket(&ipsock1) ;
    free_ipsocket(&ipsock1) ;
@@ -1673,12 +1673,12 @@ int unittest_io_ipsocket()
    for(int i = 0; i < 2; ++i) {
       TEST(0 == init_resourceusage(&usage)) ;
 
-      if (test_initfree())       goto ABBRUCH ;
-      if (test_connect())        goto ABBRUCH ;
-      if (test_buffersize())     goto ABBRUCH ;
-      if (test_outofbandData())  goto ABBRUCH ;
-      if (test_udpIO())          goto ABBRUCH ;
-      if (test_async())          goto ABBRUCH ;
+      if (test_initfree())       goto ONABORT ;
+      if (test_connect())        goto ONABORT ;
+      if (test_buffersize())     goto ONABORT ;
+      if (test_outofbandData())  goto ONABORT ;
+      if (test_udpIO())          goto ONABORT ;
+      if (test_async())          goto ONABORT ;
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;
@@ -1689,7 +1689,7 @@ int unittest_io_ipsocket()
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

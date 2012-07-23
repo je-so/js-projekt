@@ -167,12 +167,12 @@ static int free_threadstack(thread_stack_t * stackframe)
          LOG_SYSERR("munmap", err) ;
          LOG_PTR(addr) ;
          LOG_SIZE(size) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -187,13 +187,13 @@ static int init_threadstack(thread_stack_t * stackframe, uint32_t nr_threads)
          .size = page_size/*last tail protection page*/ + nr_threads * framesize
    } ;
 
-   VALIDATE_INPARAM_TEST(nr_threads != 0, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(nr_threads != 0, ONABORT, ) ;
 
    if (     stack.size  < (size_t)  (stack.size-page_size)
          || framesize  != (size_t) ((stack.size-page_size) / nr_threads) ) {
       err = ENOMEM ;
       LOG_OUTOFMEMORY(0) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    stack.addr = (uint8_t*) mmap( 0, stack.size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0 ) ;
@@ -201,7 +201,7 @@ static int init_threadstack(thread_stack_t * stackframe, uint32_t nr_threads)
       err = errno ;
       LOG_SYSERR("mmap", err) ;
       LOG_SIZE(stack.size) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    /* Stack layout:
@@ -225,14 +225,14 @@ static int init_threadstack(thread_stack_t * stackframe, uint32_t nr_threads)
       if (mprotect(signalstack.addr, signalstack.size, PROT_READ|PROT_WRITE)) {
          err = errno ;
          LOG_SYSERR("mprotect", err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       signalstack.addr += framesize ;
 
       if (mprotect(threadstack.addr, threadstack.size, PROT_READ|PROT_WRITE)) {
          err = errno ;
          LOG_SYSERR("mprotect", err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
       threadstack.addr += framesize ;
    }
@@ -240,7 +240,7 @@ static int init_threadstack(thread_stack_t * stackframe, uint32_t nr_threads)
    *stackframe = stack ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (MAP_FAILED != stack.addr) {
       if (munmap(stack.addr, stack.size)) {
          LOG_SYSERR("munmap", errno) ;
@@ -272,19 +272,19 @@ static void * startpoint_thread(thread_startargument_t * startarg)
    err = init_threadcontext(&gt_thread_context) ;
    if (err) {
       LOG_CALLERR("init_threadcontext", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (sys_thread_INIT_FREEABLE == pthread_self()) {
       err = EINVAL ;
       LOG_ERRTEXT(FUNCTION_WRONG_RETURNVALUE, "pthread_self", STR(sys_thread_INIT_FREEABLE)) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = wait_semaphore(&startarg->isvalid_abortflag) ;
    if (err) {
       LOG_CALLERR("wait_semaphore",err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (startarg->isAbort) {
@@ -294,7 +294,7 @@ static void * startpoint_thread(thread_startargument_t * startarg)
       err = signal_semaphore(&startarg->isfreeable_semaphore, 1) ;
       if (err) {
          LOG_CALLERR("signal_semaphore",err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       if (startarg->isFreeEvents) {
@@ -302,14 +302,14 @@ static void * startpoint_thread(thread_startargument_t * startarg)
             err = wait_semaphore(&startarg->isfreeable_semaphore) ;
             if (err) {
                LOG_CALLERR("wait_semaphore",err) ;
-               goto ABBRUCH ;
+               goto ONABORT ;
             }
          }
          err = free_semaphore(&startarg->isfreeable_semaphore) ;
          if (!err) err = free_semaphore(&startarg->isvalid_abortflag) ;
          if (err) {
             LOG_CALLERR("free_semaphore",err) ;
-            goto ABBRUCH ;
+            goto ONABORT ;
          }
       }
 
@@ -318,7 +318,7 @@ static void * startpoint_thread(thread_startargument_t * startarg)
       if (err) {
          err = errno ;
          LOG_SYSERR("sigaltstack", err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
 
       thread->returncode = thread->task_f(thread->task_arg) ;
@@ -327,11 +327,11 @@ static void * startpoint_thread(thread_startargument_t * startarg)
    err = free_threadcontext(&gt_thread_context) ;
    if (err) {
       LOG_CALLERR("free_threadcontext",err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    return (void*)0 ;
-ABBRUCH:
+ONABORT:
    abort_maincontext(err) ;
    return (void*)err ;
 }
@@ -361,28 +361,28 @@ int initonce_thread()
    // init main thread_t
    if (!gt_thread_self.groupnext) {
       err = init_mutex(&gt_thread_self.lock) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
       gt_thread_self.sys_thread = pthread_self() ;
       gt_thread_self.nr_threads = 1 ;
       gt_thread_self.groupnext  = &gt_thread_self ;
    }
 
    err = init_threadstack(&stackframe, 1) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    thread_stack_t threadstack = getthreadstack_threadstack(&stackframe) ;
 
    err = pthread_attr_init(&thread_attr) ;
    if (err) {
       LOG_SYSERR("pthread_attr_init",err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
    isThreadAttrValid = true ;
 
    err = pthread_attr_setstack(&thread_attr, threadstack.addr, threadstack.size) ;
    if (err) {
       LOG_SYSERR("pthread_attr_setstack", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    memset( threadstack.addr, 0, threadstack.size) ;
@@ -391,27 +391,27 @@ int initonce_thread()
    if (err) {
       sys_thread = sys_thread_INIT_FREEABLE ;
       LOG_SYSERR("pthread_create", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = pthread_join(sys_thread, 0) ;
    if (err) {
       LOG_SYSERR("pthread_join", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    isThreadAttrValid = false ;
    err = pthread_attr_destroy(&thread_attr) ;
    if (err) {
       LOG_SYSERR("pthread_attr_destroy", err) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = free_threadstack(&stackframe) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (sys_thread_INIT_FREEABLE != sys_thread) {
       (void) pthread_join(sys_thread, 0) ;
    }
@@ -455,10 +455,10 @@ int delete_thread(thread_t ** threadobj)
    err2 = free_threadstack(&stackframe) ;
    if (err2) err = err2 ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -478,16 +478,16 @@ int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, voi
    bool              isThreadAttrValid    = false ;
    const size_t      framesize            = framestacksize_threadstack() ;
 
-   VALIDATE_INPARAM_TEST(0 < nr_of_threads && nr_of_threads < 256, ABBRUCH, LOG_UINT32(nr_of_threads)) ;
+   VALIDATE_INPARAM_TEST(0 < nr_of_threads && nr_of_threads < 256, ONABORT, LOG_UINT32(nr_of_threads)) ;
 
    err = init_threadstack(&stackframe, nr_of_threads) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = init_semaphore(&isfreeable_semaphore, 0) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    err = init_semaphore(&isvalid_abortflag, 0) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    thread_stack_t signalstack = getsignalstack_threadstack(&stackframe) ;
    thread_stack_t threadstack = getthreadstack_threadstack(&stackframe) ;
@@ -584,7 +584,7 @@ int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, voi
    err2 = signal_semaphore(&isvalid_abortflag, nr_of_threads) ;
    if (err2) {
       LOG_CALLERR("signal_semaphore", err2) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (err) {
@@ -592,14 +592,14 @@ int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, voi
       if (err2) {
          LOG_CALLERR("join_thread", err2) ;
       }
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    // semaphore are freed in first created thread !
 
    *threadobj = thread ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    if (err2) {
       abort_maincontext(err2) ;
    }
@@ -623,11 +623,11 @@ static int joinsingle_thread(thread_t * threadobj)
       err = pthread_join(threadobj->sys_thread, 0) ;
       threadobj->sys_thread = sys_thread_INIT_FREEABLE ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -644,10 +644,10 @@ int join_thread(thread_t * threadobj)
       thread = thread->groupnext ;
    } while( thread != threadobj ) ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -696,12 +696,12 @@ void sleepms_thread(uint32_t msec)
       err = errno ;
       if (err != EINTR) {
          LOG_SYSERR("nanosleep", err) ;
-         goto ABBRUCH ;
+         goto ONABORT ;
       }
    }
 
    return ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return ;
 }
@@ -746,7 +746,7 @@ static int thread_sigaltstack(intptr_t dummy)
    TEST(0 == pthread_kill(pthread_self(), SIGUSR1)) ;
    TEST(0 == s_returncode) ;
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -769,7 +769,7 @@ static int test_thread_sigaltstack(void)
 
    if (!alt_stack1) {
       LOG_OUTOFMEMORY((2*SIGSTKSZ)) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    // test that thread 'thread_sigaltstack' runs under its own sigaltstack
@@ -799,7 +799,7 @@ static int test_thread_sigaltstack(void)
    }
 
    err = 0 ;
-ABBRUCH:
+ONABORT:
    delete_thread(&thread) ;
    if (isStack)      sigaltstack(&oldst, 0) ;
    if (isProcmask)   sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
@@ -834,7 +834,7 @@ static int thread_stackoverflow(void * argument)
    if (!s_isStackoverflow) (void) thread_stackoverflow(0) ;
    count = 0 ;
    return 0 ; // OK
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -879,7 +879,7 @@ static int test_thread_stackoverflow(void)
    TEST(0 == sigaction(SIGSEGV, &oldact, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_thread(&thread) ;
    if (isProcmask)   sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
    if (isAction)     sigaction(SIGSEGV, &oldact, 0) ;
@@ -1041,7 +1041,7 @@ static int test_thread_init(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_thread(&thread) ;
    return EINVAL ;
 }
@@ -1131,7 +1131,7 @@ static int test_thread_localstorage(void)
    st_struct.d = 2 ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_thread(&thread1) ;
    delete_thread(&thread2) ;
    delete_thread(&thread3) ;
@@ -1204,7 +1204,7 @@ static int test_thread_stack(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_threadstack(&stack) ;
    return EINVAL ;
 }
@@ -1228,13 +1228,13 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
 
    if (  0 != sigaltstack(0, &current_sigaltstack)
       || 0 != current_sigaltstack.ss_flags) {
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    err = lock_mutex(&startarg->lock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
    err = unlock_mutex(&startarg->lock) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    for(unsigned i = 0; i < nrelementsof(startarg->isSelfValid); ++i) {
       if (  (void*)startarg->thread[i] == self_thread()) {
@@ -1260,7 +1260,7 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -1387,7 +1387,7 @@ static int test_thread_array(void)
    TEST(0 == free_mutex(&startarg.lock)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) unlock_mutex(&startarg.lock) ;
    (void) free_mutex(&startarg.lock) ;
    delete_thread(&thread) ;
@@ -1547,7 +1547,7 @@ static int test_thread_signal(void)
    TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_thread(&thread1) ;
    delete_thread(&thread2) ;
    while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
@@ -1638,7 +1638,7 @@ static int test_thread_suspendresume(void)
    suspend_thread() ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    delete_thread(&thread1) ;
    delete_thread(&thread2) ;
    return EINVAL ;
@@ -1727,7 +1727,7 @@ static int test_thread_lockunlock(void)
    TEST(0 == delete_thread(&thread)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    for(int i = 0; i < 99; ++i) {
       send_rtsignal(2) ;
    }
@@ -1765,7 +1765,7 @@ int test_thread_sleep(void)
    TEST(msec < 120) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -1773,28 +1773,28 @@ int unittest_platform_thread()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_thread_array())            goto ABBRUCH ;
+   if (test_thread_array())            goto ONABORT ;
 
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_thread_stack())            goto ABBRUCH ;
-   if (test_thread_init())             goto ABBRUCH ;
-   if (test_thread_sigaltstack())      goto ABBRUCH ;
-   if (test_thread_stackoverflow())    goto ABBRUCH ;
-   if (test_thread_localstorage())     goto ABBRUCH ;
-   if (test_thread_array())            goto ABBRUCH ;
-   if (test_thread_signal())           goto ABBRUCH ;
-   if (test_thread_suspendresume())    goto ABBRUCH ;
-   if (test_thread_lockunlock())       goto ABBRUCH ;
-   if (test_thread_sleep())            goto ABBRUCH ;
+   if (test_thread_stack())            goto ONABORT ;
+   if (test_thread_init())             goto ONABORT ;
+   if (test_thread_sigaltstack())      goto ONABORT ;
+   if (test_thread_stackoverflow())    goto ONABORT ;
+   if (test_thread_localstorage())     goto ONABORT ;
+   if (test_thread_array())            goto ONABORT ;
+   if (test_thread_signal())           goto ONABORT ;
+   if (test_thread_suspendresume())    goto ONABORT ;
+   if (test_thread_lockunlock())       goto ONABORT ;
+   if (test_thread_sleep())            goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

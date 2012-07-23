@@ -64,7 +64,7 @@ int free_slist(slist_t * list, struct typeadapter_iot * typeadp, uint32_t offset
             if (err2) err = err2 ;
          } while( last != node ) ;
 
-         if (err) goto ABBRUCH ;
+         if (err) goto ONABORT ;
 
       } else {
 
@@ -78,7 +78,7 @@ int free_slist(slist_t * list, struct typeadapter_iot * typeadp, uint32_t offset
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -89,7 +89,7 @@ int insertfirst_slist(slist_t * list, struct generic_object_t * new_node, uint32
 
    if (ASNODE(new_node)->next) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (!list->last) {
@@ -101,7 +101,7 @@ int insertfirst_slist(slist_t * list, struct generic_object_t * new_node, uint32
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -112,7 +112,7 @@ int insertlast_slist(slist_t * list, struct generic_object_t * new_node, uint32_
 
    if (ASNODE(new_node)->next) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (!list->last) {
@@ -125,7 +125,7 @@ int insertlast_slist(slist_t * list, struct generic_object_t * new_node, uint32_
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -136,12 +136,12 @@ int insertafter_slist(slist_t * list, struct generic_object_t * prev_node, struc
 
    if (ASNODE(new_node)->next) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (!list->last) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    ASNODE(new_node)->next  = ASNODE(prev_node)->next ;
@@ -151,7 +151,7 @@ int insertafter_slist(slist_t * list, struct generic_object_t * prev_node, struc
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -164,7 +164,7 @@ int removefirst_slist(slist_t * list, struct generic_object_t ** removed_node, u
 
    if (!last) {
       err = ESRCH ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    struct generic_object_t * const first = ASNODE(last)->next ;
@@ -179,7 +179,7 @@ int removefirst_slist(slist_t * list, struct generic_object_t ** removed_node, u
    *removed_node       = first ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -192,12 +192,12 @@ int removeafter_slist(slist_t * list, struct generic_object_t * prev_node, struc
 
    if (!next) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    if (!list->last) {
       err = EINVAL ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
    ASNODE(prev_node)->next = ASNODE(next)->next ;
@@ -213,7 +213,7 @@ int removeafter_slist(slist_t * list, struct generic_object_t * prev_node, struc
    *removed_node = next ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -317,7 +317,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_slist(&slist, 0, 0) ;
    return EINVAL ;
 }
@@ -351,7 +351,7 @@ static int test_query(void)
    TEST((void*)0 == last_slist(&slist)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_slist(&slist, 0, 0) ;
    return EINVAL ;
 }
@@ -391,7 +391,7 @@ static int test_iterate(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -599,7 +599,7 @@ static int test_insertremove(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_slist(&slist, 0, offsetof(test_node_t, next)) ;
    return EINVAL ;
 }
@@ -630,17 +630,17 @@ static int gnode_freecb(typeadapter_t * typeimpl, gnode_t * node)
 static int check_gnodes(unsigned size, gnode_t nodes[size], int is_freed)
 {
    for(unsigned i = 0; i < size; ++i) {
-      if (nodes[i].marker1) goto ABBRUCH ;
-      if (nodes[i].marker2) goto ABBRUCH ;
-      if (nodes[i].marker3) goto ABBRUCH ;
-      if (nodes[i].next)                  goto ABBRUCH ;
-      if (nodes[i].next2)                 goto ABBRUCH ;
-      if (is_freed != nodes[i].is_freed)  goto ABBRUCH ;
+      if (nodes[i].marker1) goto ONABORT ;
+      if (nodes[i].marker2) goto ONABORT ;
+      if (nodes[i].marker3) goto ONABORT ;
+      if (nodes[i].next)                  goto ONABORT ;
+      if (nodes[i].next2)                 goto ONABORT ;
+      if (is_freed != nodes[i].is_freed)  goto ONABORT ;
       nodes[i].is_freed = 0 ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -817,7 +817,7 @@ static int test_generic(void)
    TEST(0 == check_gnodes(nrelementsof(nodes), nodes, 2)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free_slist1(&slist1, 0) ;
    free_slist2(&slist2, 0) ;
    return EINVAL ;
@@ -829,17 +829,17 @@ int unittest_ds_inmem_slist()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_query())          goto ABBRUCH ;
-   if (test_iterate())        goto ABBRUCH ;
-   if (test_insertremove())   goto ABBRUCH ;
-   if (test_generic())        goto ABBRUCH ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_query())          goto ONABORT ;
+   if (test_iterate())        goto ONABORT ;
+   if (test_insertremove())   goto ONABORT ;
+   if (test_generic())        goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

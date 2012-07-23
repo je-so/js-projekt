@@ -54,19 +54,19 @@ int initthread_objectcache(/*out*/objectcache_iot * objectcache)
    if (!newobject) {
       err = ENOMEM ;
       LOG_OUTOFMEMORY(objsize) ;
-      goto ABBRUCH ;
+      goto ONABORT ;
    }
 
-   VALIDATE_INPARAM_TEST(0 == objectcache->object, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == objectcache->object, ONABORT, ) ;
 
    err = init_objectcache(newobject) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    objectcache->object = newobject;
    objectcache->iimpl  = &s_objectcache_interface ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    free(newobject) ;
    LOG_ABORT(err) ;
    return err ;
@@ -87,11 +87,11 @@ int freethread_objectcache(objectcache_iot * objectcache)
 
       free(delobject) ;
 
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -102,13 +102,13 @@ int init_objectcache(/*out*/objectcache_t * cache )
    vm_block_t      iobuffer  = vm_block_INIT_FREEABLE ;
 
    err = init_vmblock( &iobuffer, (4096-1+sys_pagesize_vm()) / sys_pagesize_vm()) ;
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    static_assert( sizeof(*cache) == sizeof(iobuffer), "only one cached object" ) ;
    cache->iobuffer = iobuffer ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_vmblock(&iobuffer) ;
    LOG_ABORT(err) ;
    return err ;
@@ -120,10 +120,10 @@ int free_objectcache(objectcache_t * cache)
 
    err = free_vmblock(&cache->iobuffer) ;
 
-   if (err) goto ABBRUCH ;
+   if (err) goto ONABORT ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT_FREE(err) ;
    return err ;
 }
@@ -135,14 +135,14 @@ int move_objectcache(objectcache_t * destination, objectcache_t * source)
    // move vm_rootbuffer
    if (source != destination) {
       err = free_vmblock(&destination->iobuffer) ;
-      if (err) goto ABBRUCH ;
+      if (err) goto ONABORT ;
 
       MEMCOPY( &destination->iobuffer, (const typeof(source->iobuffer) *)&source->iobuffer ) ;
       source->iobuffer = (vm_block_t) vm_block_INIT_FREEABLE ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -151,12 +151,12 @@ static int lockiobuffer2_objectcache(objectcache_t * objectcache, /*out*/membloc
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 == *iobuffer, ABBRUCH, ) ;
+   VALIDATE_INPARAM_TEST(0 == *iobuffer, ONABORT, ) ;
 
    *iobuffer = &objectcache->iobuffer ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -166,12 +166,12 @@ static int unlockiobuffer2_objectcache(objectcache_t * objectcache, memblock_t *
    int err ;
 
    if (*iobuffer) {
-      VALIDATE_INPARAM_TEST(&objectcache->iobuffer == *iobuffer, ABBRUCH, ) ;
+      VALIDATE_INPARAM_TEST(&objectcache->iobuffer == *iobuffer, ONABORT, ) ;
       *iobuffer = 0 ;
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    LOG_ABORT(err) ;
    return err ;
 }
@@ -253,7 +253,7 @@ static int test_initfree(void)
    TEST(cache.iobuffer.size == 0) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_objectcache(&cache) ;
    (void) free_objectcache(&cache2) ;
    return EINVAL ;
@@ -287,7 +287,7 @@ static int test_initthread(void)
    TEST(EINVAL == initthread_objectcache( &cache )) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) freethread_objectcache(&cache) ;
    return EINVAL ;
 }
@@ -394,7 +394,7 @@ static int test_iobuffer(void)
    TEST(0 == free_filedescr(&pipefd[1])) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_filedescr(&pipefd[0]) ;
    (void) free_filedescr(&pipefd[1]) ;
    (void) free_objectcache(&cache) ;
@@ -408,16 +408,16 @@ int unittest_cache_objectcache()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ABBRUCH ;
-   if (test_initthread())     goto ABBRUCH ;
-   if (test_iobuffer())       goto ABBRUCH ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_initthread())     goto ONABORT ;
+   if (test_iobuffer())       goto ONABORT ;
 
    // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

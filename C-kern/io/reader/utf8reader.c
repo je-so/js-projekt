@@ -131,7 +131,7 @@ static int test_initfree(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -156,7 +156,7 @@ static int test_memento(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -283,7 +283,7 @@ static int test_read(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -381,7 +381,7 @@ static int test_skiplineall(void)
    TEST(ENODATA == skipall_utf8reader(&utfread)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -391,16 +391,16 @@ int unittest_io_reader_utf8reader()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())    goto ABBRUCH ;
-   if (test_memento())     goto ABBRUCH ;
-   if (test_read())        goto ABBRUCH ;
-   if (test_skiplineall()) goto ABBRUCH ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_memento())     goto ONABORT ;
+   if (test_read())        goto ONABORT ;
+   if (test_skiplineall()) goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

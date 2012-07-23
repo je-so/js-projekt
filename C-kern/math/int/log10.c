@@ -104,7 +104,7 @@ static int test_tablepow10(void)
    TEST((last/10) < s_pow10[19]) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -135,7 +135,7 @@ static int test_log10(void)
    }
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    return EINVAL ;
 }
 
@@ -145,14 +145,14 @@ int unittest_math_int_log10()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_tablepow10())  goto ABBRUCH ;
-   if (test_log10())       goto ABBRUCH ;
+   if (test_tablepow10())  goto ONABORT ;
+   if (test_log10())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
-ABBRUCH:
+ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
