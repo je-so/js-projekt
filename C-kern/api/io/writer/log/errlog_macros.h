@@ -60,11 +60,14 @@
 #define LOG_CALLERR(fct_name,err)      LOG_ERRTEXT(FUNCTION_ERROR, fct_name, err, strerror(err))
 
 /* define: LOG_ERRTEXT
- * Logs an log-error text-resource.
+ * Logs an log-error text-resource with arguments.
  * Use <LOG_ERRTEXT> to log any language specific text with additional parameter values. */
 #define LOG_ERRTEXT(TEXTID,...)        do {  LOG_ERRTEXT_ERROR_LOCATION(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
                                              LOG_ERRTEXT_ ## TEXTID(log_channel_ERR, __VA_ARGS__ ) ;                          \
                                        }  while(0)
+/* define: LOG_ERRTEXTvoid
+ * Logs an log-error text-resource without any arguments.
+ * TODO: rename into LOG_ERRTEXT_NOARG*/
 #define LOG_ERRTEXTvoid(TEXTID)        do {  LOG_ERRTEXT_ERROR_LOCATION(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
                                              LOG_ERRTEXT_ ## TEXTID(log_channel_ERR) ;                                        \
                                        }  while(0)
