@@ -1092,6 +1092,23 @@ ABBRUCH:
 
 // group: unary operations
 
+void clearfirstdigit_bigint(bigint_t * big)
+{
+   if (big->sign_and_used_digits < 0) {
+      while (0 != (++ big->sign_and_used_digits)) {
+         if (big->digits[-big->sign_and_used_digits-1]) break ;
+      }
+   } else if (big->sign_and_used_digits > 0) {
+      while (0 != (-- big->sign_and_used_digits)) {
+         if (big->digits[big->sign_and_used_digits-1]) break ;
+      }
+   }
+
+   if (!big->sign_and_used_digits) {
+      big->exponent = 0 ;
+   }
+}
+
 void removetrailingzero_bigint(bigint_t * big)
 {
    uint16_t nrdigits = nrdigits_bigint(big) ;
@@ -2126,6 +2143,49 @@ static int test_unaryops(void)
 
    // prepare
    TEST(0 == new_bigint(&big, nrdigitsmax_bigint())) ;
+
+   // TEST clearfirstdigit_bigint: nrdigits == 0
+   setfromuint32_bigint(big, 0) ;
+   clearfirstdigit_bigint(big) ;
+   TEST(0 == nrdigits_bigint(big)) ;
+   TEST(0 == exponent_bigint(big)) ;
+
+   // TEST clearfirstdigit_bigint: nrdigits == 1
+   setfromuint32_bigint(big, 1) ;
+   TEST(0 == shiftleft_bigint(&big, bitsperdigit_bigint())) ;
+   TEST(1 == nrdigits_bigint(big)) ;
+   TEST(1 == exponent_bigint(big)) ;
+   clearfirstdigit_bigint(big) ;
+   TEST(0 == nrdigits_bigint(big)) ;
+   TEST(0 == exponent_bigint(big)) ;
+   setfromint32_bigint(big, -1) ;
+   TEST(0 == shiftleft_bigint(&big, bitsperdigit_bigint())) ;
+   TEST(1 == nrdigits_bigint(big)) ;
+   TEST(1 == exponent_bigint(big)) ;
+   clearfirstdigit_bigint(big) ;
+   TEST(0 == nrdigits_bigint(big)) ;
+   TEST(0 == exponent_bigint(big)) ;
+
+   // TEST clearfirstdigit_bigint: nrdigits == nrdigitsmax_bigint
+   memset(big->digits, 0, sizeof(big->digits[0]) * nrdigitsmax_bigint()) ;
+   for (int16_t i = nrdigitsmax_bigint(); i > 10; i = (int16_t) (i-1000)) {
+      big->digits[i-1] = 1 ;
+      big->digits[i-2] = 2 ;
+      for (int s = -1; s <= 1; s += 2) {
+         big->exponent             = (uint16_t) i ;
+         big->sign_and_used_digits = (int16_t) (s*i) ;
+         TEST(1   == firstdigit_bigint(big)) ;
+         clearfirstdigit_bigint(big) ;
+         TEST(i-1 == nrdigits_bigint(big)) ;
+         TEST(i   == exponent_bigint(big)) ;
+         TEST(2   == firstdigit_bigint(big)) ;
+         // skips remaining digits cause all are 0
+         clearfirstdigit_bigint(big) ;
+         TEST(0   == nrdigits_bigint(big)) ;
+         TEST(0   == exponent_bigint(big)) ;
+         TEST(0   == firstdigit_bigint(big)) ;
+      }
+   }
 
    // TEST removetrailingzero_bigint 1 digit
    const uint32_t values1digit[] = { 0, 1, UINT16_MAX-1, UINT16_MAX } ;

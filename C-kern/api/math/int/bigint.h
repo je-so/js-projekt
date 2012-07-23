@@ -51,11 +51,18 @@ int unittest_math_int_biginteger(void) ;
  * Supports arbitrary precision integer arithmetic.
  * Only basic arithmetic operations are supported.
  *
- * Automatic re-allocation of result of an operation:
- * The *result* parameter of the provided operations is of type
- * pointer to pointer to <bigint_t>. If the preallocated integer is not big
- * enough it is resized and the new memory location is returned in *result*.
+ * Result of an operation:
+ * If the *result* parameter of an operation is of type
+ * pointer to pointer to <bigint_t> it is reallocated in case
+ * the preallocated size is not big enough.
  *
+ * Returned Error Codes:
+ * EOVERFLOW - If an operation needs more digits than <nrdigitsmax_bigint> to represent the
+ *             result accurately or if the value of <bigint_t->exponent> does not fit into 16 bit
+ *             this error is returned.
+ * ENOMEM    - Every operation which produces more decimal digits than preallocted needs to reallocate
+ *             the resulting <bigint_t>. If this reallocation fails ENOMEM is returned and the result
+ *             is not changed.
  * */
 struct bigint_t {
    /* variable: allocated_digits
@@ -112,12 +119,12 @@ int cmp_bigint(const bigint_t * lbig, const bigint_t * rbig) ;
 
 /* function: cmpmagnitude_bigint
  * Compares magnitude of two big integers and returns -1,0 or +1.
- * This function is the same as <cmp_bigint> except that before comparing
- * both big integers their sign is changed to positive.
+ * This function is the same as <cmp_bigint> except that the sign
+ * of both numbers is considered to be positive.
  *
  * Returns:
  * -1  - Absolute value of lbig is lower than absolute value of rbig
- * 0   - both numbers are equal
+ * 0   - Both absolute values are equal
  * +1  - Absolute value of lbig is greater than absolute value of rbig */
 int cmpmagnitude_bigint(const bigint_t * lbig, const bigint_t * rbig) ;
 
@@ -219,6 +226,13 @@ int setbigfirst_bigint(bigint_t * restrict * big, int sign, uint16_t size, const
 int setlittlefirst_bigint(bigint_t * restrict * big, int sign, uint16_t size, const uint32_t numbers[size], uint16_t exponent) ;
 
 // group: unary operations
+
+/* function: clearfirstdigit_bigint
+ * Sets the first digit to 0 and decrements the number of digits.
+ * A zero number is not changed. If the next digit is also 0
+ * the number of digits is decremented again until a digit is found which is not null.
+ * If all remaining digits are 0 *big* is set to 0. */
+void clearfirstdigit_bigint(bigint_t * big) ;
 
 /* function: negate_bigint
  * Inverts the sign of the number.
