@@ -70,9 +70,9 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
    if (allocate_digits < 4) allocate_digits = 4 ;
 
    // check that allocate_digits can be cast to int16_t (so sign_and_used_digits does not overflow)
-   if (allocate_digits > 0x7FFF) {
+   if (allocate_digits > INT16_MAX) {
       static_assert(    0 > (typeof((*big)->sign_and_used_digits))-1
-                     && 2 == sizeof((*big)->sign_and_used_digits), "Test that 0x7fff is max value of sign_and_used_digits") ;
+                     && 2 == sizeof((*big)->sign_and_used_digits), "Test sign_and_used_digits is of type INT16") ;
       err = EOVERFLOW ;
       goto ONABORT ;
    }
@@ -120,72 +120,141 @@ static inline int16_t xorsign_biginthelper(int16_t lsign, int16_t rsign)
 
 /* function: add_biginthelper
  * Adds two integers.
- *
- * Precondition:
- * lbig must have same sign as rbig and they both must be != 0.
- * Sign of lbig is used to determine the sign of the result. */
+ * The result has the same sign as *lbig*. */
 static int add_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
+   uint16_t       lnrdigits = nrdigits_bigint(lbig) ;
+   uint16_t       rnrdigits = nrdigits_bigint(rbig) ;
+   bool           isNegSign = isnegative_bigint(lbig) ;
+   bool           carry ;
+   uint32_t       lexp      = exponent_bigint(lbig) ;
+   uint32_t       rexp      = exponent_bigint(rbig) ;
+   const uint32_t * ldigits = lbig->digits ;
+   const uint32_t * rdigits = rbig->digits ;
 
-   const uint16_t lnrdigits = nrdigits_bigint(lbig) ;
-   const uint16_t rnrdigits = nrdigits_bigint(rbig) ;
-   const uint32_t lmaxexp   = exponent_bigint(lbig) + (uint32_t)lnrdigits ;
-   const uint32_t rmaxexp   = exponent_bigint(rbig) + (uint32_t)rnrdigits ;
-   const bool     isLBig    = lmaxexp > rmaxexp ;
-   const uint32_t maxexp    = isLBig ? lmaxexp : rmaxexp ;
-   const bool     isLMin    = exponent_bigint(lbig) < exponent_bigint(rbig) ;
-   const uint16_t minexp    = (uint16_t) (isLMin ? exponent_bigint(lbig) : exponent_bigint(rbig)) ;
-   uint32_t       expdiff   = 1/*assume carry*/ + maxexp - minexp ;
+   // skip trailing zero in both operands
+   while (lnrdigits && 0 == ldigits[0]) {
+      -- lnrdigits  ;
+      ++ ldigits ;
+      ++ lexp ;
+   }
+   while (rnrdigits && 0 == rdigits[0]) {
+      -- rnrdigits ;
+      ++ rdigits ;
+      ++ rexp ;
+   }
 
-   // no check for sum overflow (always expect sum to overflow)
+   if (lexp > UINT16_MAX && rexp > UINT16_MAX) {
+      err = EOVERFLOW ;
+      goto ONABORT ;
+   }
 
-   if ((*result)->allocated_digits < expdiff) {
-      err = allocate_bigint(result, expdiff) ;
+   if (!rnrdigits) {
+      return copy_bigint(result, lbig) ;
+   }
+   if (!lnrdigits) {
+      err = copy_bigint(result, rbig) ;
+      if (err) return err ;
+      setpositive_bigint(*result) ;
+      return 0 ;
+   }
+
+   uint32_t lorder  = lexp + lnrdigits ;
+   uint32_t rorder  = rexp + rnrdigits ;
+
+   if (lorder < rorder) {
+      // swap rbig / lbig to make lbig the bigger number
+      SWAP(lbig,    rbig) ;
+      SWAP(lnrdigits, rnrdigits) ;
+      SWAP(lexp,    rexp) ;
+      SWAP(ldigits, rdigits) ;
+   }
+
+   /*
+    * bigger number:    lbig { lnrdigits, lexp, ldigits }
+    * smaller number:   rbig { rnrdigits, rexp, rdigits }
+    * Invariant: lexp + lnrdigits >= rexp + rnrdigits
+    *
+    * Calculate result = pow(-1,isNegSign) * (lbig + rbig)
+    */
+
+   int32_t expdiff = (int32_t)lexp - (int32_t)rexp ;
+
+   /*
+    *   ╭┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╭────────────┬─────┬──────────────────┬───┬──────────────────────╮
+    *   │  ... lexp ...                  │ ldigits[0] │ ... │ ldigits[X]       │...│ ldigits[lnrdigits-1] │
+    *   ╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╰────────────┴─────┴──────────────────┴───┴──────────────────────╯
+    *                   |-  expdiff>0   -|                                                    lorder -╯
+    *   ╭┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╭────────────┬───┬──────────────────┬──────────────────────╮
+    *   │  ... rexp ... │ rdigits[0] │...│      ...         │ rdigits[rnrdigits-1] │
+    *   ╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╰────────────┴───┴──────────────────┴──────────────────────╯
+    *                                    |-  expdiff<0     -|
+    *   ╭┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╭──────────────────╮
+    *   │  ... rexp ...                                     │        ...       │
+    *   ╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╰──────────────────╯
+    *                                                                  rorder -╯
+    */
+
+   uint32_t size = lnrdigits + (uint32_t)1/*carry*/ ;
+   if (expdiff > 0) size += (uint32_t)expdiff ;
+
+   if ((*result)->allocated_digits < size) {
+      err = allocate_bigint(result, size) ;
       if (err) goto ONABORT ;
    }
 
-   bigint_t * big = *result ;
+   uint32_t * destdigits = (*result)->digits ;
 
-   /*
-    * ╭┈╭────────────┬─╮┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╮
-    * │ │ ...digits... │ exponent zeros    │
-    * ╰┈├────────────┴─╯┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╯
-    *  └- maxexp
-    *      ╭┈╭────────────┬─╮┈┈┈┈┈┈┈┈┈┈┈┈┈┈╮
-    *      │ │ ...digits... │ minexp zeros │
-    *      ╰┈├────────────┴─╯┈┈┈┈┈┈┈┈┈┈┈┈┈┈╯
-    *       └- (l/r)maxexp
+   /* handle trail
     * */
-
-   bool carryflag = false ;
-   for (uint32_t i = minexp; i < maxexp; ++i) {
-      uint32_t d1, d2 ;
-
-      if (exponent_bigint(lbig) <= i && i < lmaxexp) {
-         d1 = lbig->digits[i - exponent_bigint(lbig)] ;
+   if (expdiff < 0) {
+      // simple copy
+      expdiff = -expdiff ;
+      memcpy(destdigits, ldigits, sizeof(destdigits[0]) * (uint32_t)expdiff) ;
+      lnrdigits = (uint16_t) (lnrdigits - expdiff) ; // result always >= 0 cause lbig has at least rsize(possibly 0) more digits
+      ldigits  += expdiff ;
+      destdigits += expdiff ;
+   } else if (expdiff > 0) {
+      // simple copy
+      if (rnrdigits < expdiff) {
+         memcpy(destdigits, rdigits, sizeof(destdigits[0]) * rnrdigits) ;
+         memset(destdigits + rnrdigits, 0, sizeof(destdigits[0]) * ((uint32_t)expdiff-rnrdigits)) ;
+         rnrdigits = 0 ;
       } else {
-         d1 = 0 ;
+         memcpy(destdigits, rdigits, sizeof(destdigits[0]) * (uint32_t)expdiff) ;
+         rnrdigits = (uint16_t) (rnrdigits - expdiff) ;
+         rdigits  += expdiff ;
       }
-      if (exponent_bigint(rbig) <= i && i < rmaxexp) {
-         d2 = rbig->digits[i - exponent_bigint(rbig)] ;
-      } else {
-         d2 = 0 ;
-      }
-
-      uint32_t sum        = d1 + d2 ;
-      bool     isOverflow = (sum < d1) ;
-      sum += carryflag ;
-      carryflag = isOverflow | (carryflag && 0 == sum) ;
-
-      big->digits[i - minexp] = sum ;
+      destdigits += expdiff ;
    }
 
-   big->digits[expdiff-1] = carryflag ;
+   /* handle overlapping part
+    * */
+   carry = false ;
+   lnrdigits = (uint16_t) (lnrdigits - rnrdigits) ;
+   for (; rnrdigits; --rnrdigits) {
+      uint32_t dl  = *(ldigits++) + carry ;
+      uint32_t sum = *(rdigits++) + dl ;
+      *(destdigits++) = sum ;
+      carry = (sum < dl) || (carry && (0 == dl)) ;
+   }
 
-   expdiff -= (0 == carryflag) ; // if no carry occurred => make result one digit smaller
-   big->sign_and_used_digits = (int16_t) (lbig->sign_and_used_digits < 0 ? -expdiff : expdiff) ;
-   big->exponent             = minexp ;
+   /* handle leading part
+    * */
+   for (; lnrdigits; --lnrdigits) {
+      uint32_t dl = *(ldigits++) + carry ;
+      *(destdigits++) = dl ;
+      carry = carry && (0 == dl) ;
+   }
+
+   /* handle carry part
+    * */
+   size -= (0 == carry) ;
+   destdigits[0] = carry ;
+
+   (*result)->sign_and_used_digits = (int16_t)  (isNegSign ? -(int32_t)size : (int32_t)size) ;
+   (*result)->exponent             = (uint16_t) (lexp < rexp ? lexp : rexp) ; ;
 
    return 0 ;
 ONABORT:
@@ -193,175 +262,184 @@ ONABORT:
    return err ;
 }
 
+
 /* function: sub_biginthelper
  * Subtracts two integers.
- *
- * Precondition:
- * lbig must have different sign as rbig and they both must be != 0.
- * Sign of lbig is used to determine the sign of the result. */
+ * The sign of lbig is used to determine the sign of the result.
+ * If the magnitude of lbig is bigger than rbig (<cmpmagnitude_bigint>)
+ * the result has the same sign as lbig else it is reverted. */
 static int sub_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
+   uint16_t       lnrdigits = nrdigits_bigint(lbig) ;
+   uint16_t       rnrdigits = nrdigits_bigint(rbig) ;
+   bool           isNegSign = isnegative_bigint(lbig) ;
+   bool           carry ;
+   bool           isSwap ;
+   uint32_t       lexp      = exponent_bigint(lbig) ;
+   uint32_t       rexp      = exponent_bigint(rbig) ;
+   const uint32_t * ldigits = lbig->digits ;
+   const uint32_t * rdigits = rbig->digits ;
 
-   const uint16_t lnrdigits = nrdigits_bigint(lbig) ;
-   const uint16_t rnrdigits = nrdigits_bigint(rbig) ;
-   const uint32_t lmaxexp   = exponent_bigint(lbig) + (uint32_t)lnrdigits ;
-   const uint32_t rmaxexp   = exponent_bigint(rbig) + (uint32_t)rnrdigits ;
-   const bool     isLMin    = exponent_bigint(lbig) < exponent_bigint(rbig) ;
-   const uint16_t minexp    = (uint16_t) (isLMin ? exponent_bigint(lbig) : exponent_bigint(rbig)) ;
-   bigint_t       * big     = *result ;
-   uint32_t       maxexp ;
-   const bigint_t * maxbig ;
-   const bigint_t * minbig ;
-   uint16_t       maxnrdigits ;
-   uint16_t       minnrdigits ;
+   // skip trailing zero in both operands
+   while (lnrdigits && 0 == ldigits[0]) {
+      -- lnrdigits  ;
+      ++ ldigits ;
+      ++ lexp ;
+   }
+   while (rnrdigits && 0 == rdigits[0]) {
+      -- rnrdigits ;
+      ++ rdigits ;
+      ++ rexp ;
+   }
+
+   if (lexp > UINT16_MAX && rexp > UINT16_MAX) {
+      err = EOVERFLOW ;
+      goto ONABORT ;
+   }
+
+   if (!rnrdigits) {
+      return copy_bigint(result, lbig) ;
+   }
+   if (!lnrdigits) {
+      err = copy_bigint(result, rbig) ;
+      if (err) return err ;
+      setnegative_bigint(*result) ;
+      return 0 ;
+   }
+
+   uint32_t lorder  = lexp + lnrdigits ;
+   uint32_t rorder  = rexp + rnrdigits ;
 
    // determine which number is bigger
 
-   if (lmaxexp != rmaxexp) {
-      // number are not equal
-      if (lmaxexp > rmaxexp) {
-         maxexp  = lmaxexp ;
-         maxbig  = lbig ;
-         minbig  = rbig ;
-         maxnrdigits = lnrdigits ;
-         minnrdigits = rnrdigits ;
-      } else {
-         maxexp  = rmaxexp ;
-         maxbig  = rbig ;
-         minbig  = lbig ;
-         maxnrdigits = rnrdigits ;
-         minnrdigits = lnrdigits ;
-      }
-   } else {
+   if (lorder == rorder) {
       // compare digits to check if numbers are equal
-      const uint16_t mindigits  = (uint16_t) (lnrdigits < rnrdigits ? lnrdigits : rnrdigits) ;
-      uint16_t       idigit     = mindigits ;
-      const uint32_t * ldigits  = &lbig->digits[lnrdigits] ;
-      const uint32_t * rdigits  = &rbig->digits[rnrdigits] ;
-      uint32_t dl ;
-      uint32_t dr ;
-      do {
-         dl = *(--ldigits) ;
-         dr = *(--rdigits) ;
-      } while (dl == dr && (--idigit)) ;
-
-      if (!idigit) {
-         // all digits are equal, maybe except trailing ones
-         if (lnrdigits != rnrdigits) {
-            // check trailing digits
-            const uint32_t * maxdigits ;
-            if (lbig->digits != ldigits) {
-               maxdigits = ldigits ;
-               maxbig    = lbig ;
-            } else {
-               maxdigits = rdigits ;
-               maxbig    = rbig ;
-            }
-            while (maxdigits != maxbig->digits && 0 == maxdigits[-1]) {
-               -- maxdigits ;
-            }
-
-            if (maxdigits != maxbig->digits) {
-
-               // trailing digits are not zero => copy digits
-               int16_t nrdigits = (int16_t) (maxdigits - maxbig->digits) ;
-
-               if (big->allocated_digits < nrdigits) {
-                  err = allocate_bigint(result, (uint16_t)nrdigits) ;
-                  if (err) goto ONABORT ;
-                  big = *result ;
-               }
-
-               memcpy(big->digits, maxbig->digits, sizeof(big->digits[0]) * (uint16_t)nrdigits) ;
-
-               if (lbig == maxbig) {
-                  big->sign_and_used_digits = (int16_t) (lbig->sign_and_used_digits < 0 ? -nrdigits : nrdigits) ;
-               } else {
-                  big->sign_and_used_digits = (int16_t) (lbig->sign_and_used_digits < 0 ?  nrdigits : -nrdigits) ;
-               }
-               big->exponent = maxbig->exponent ;
-
-               return 0 ;
-            } else {
-               // all trailing digits are zero => integers have same values
-            }
+      uint16_t minsize = (uint16_t) (lnrdigits < rnrdigits ? lnrdigits : rnrdigits) ;
+      lnrdigits = (uint16_t) (lnrdigits - minsize) ;
+      rnrdigits = (uint16_t) (rnrdigits - minsize) ;
+      for (;;) {
+         if (ldigits[lnrdigits+minsize-1] != rdigits[rnrdigits+minsize-1]) {
+            isSwap = (ldigits[lnrdigits+minsize-1] < rdigits[rnrdigits+minsize-1]) ;
+            lnrdigits = (uint16_t) (lnrdigits + minsize) ;
+            rnrdigits = (uint16_t) (rnrdigits + minsize) ;
+            break ;
          }
-         // integers have same values
-         setfromuint32_bigint(big, 0) ;
-         return 0 ;
+         --minsize ;
+         if (0 == minsize) {
+            isSwap = (0 != rnrdigits) ;
+            if (isSwap || lnrdigits) break ;
+            // both numbers are equal
+            setfromuint32_bigint(*result, 0) ;
+            return 0 ;
+         }
       }
 
-      // determine which number is bigger
-      if (dl > dr) {
-         // lbig is bigger
-         maxexp  = lmaxexp ;
-         maxbig  = lbig ;
-         minbig  = rbig ;
-         maxnrdigits = lnrdigits ;
-         minnrdigits = rnrdigits ;
-      } else {
-         // rbig is bigger
-         maxexp  = rmaxexp ;
-         maxbig  = rbig ;
-         minbig  = lbig ;
-         maxnrdigits = rnrdigits ;
-         minnrdigits = lnrdigits ;
-      }
-
-      maxexp = maxexp - (uint32_t) (mindigits - idigit) ;
+   } else {
+      // compare exponent of first digit
+      isSwap = (lorder < rorder) ;
    }
 
-   uint32_t expdiff = maxexp - minexp ;
-
-   if (big->allocated_digits < expdiff) {
-      err = allocate_bigint(result, expdiff) ;
-      if (err) goto ONABORT ;
-      big = *result ;
+   if (isSwap) {
+      // swap rbig / lbig to make lbig the bigger number
+      isNegSign = !isNegSign ;
+      SWAP(lbig,    rbig) ;
+      SWAP(lnrdigits, rnrdigits) ;
+      SWAP(lexp,    rexp) ;
+      SWAP(ldigits, rdigits) ;
    }
 
    /*
-    * ╭┈╭────────────┬─╮┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╮
-    * │ │ ...digits... │ exponent zeros    │
-    * ╰┈├────────────┴─╯┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╯
-    *  └- maxexp
-    *      ╭┈╭────────────┬─╮┈┈┈┈┈┈┈┈┈┈┈┈┈┈╮
-    *      │ │ ...digits... │ minexp zeros │
-    *      ╰┈├────────────┴─╯┈┈┈┈┈┈┈┈┈┈┈┈┈┈╯
-    *       └- (l/r)maxexp
+    * bigger number:    lbig { lnrdigits, lexp, ldigits }
+    * smaller number:   rbig { rnrdigits, rexp, rdigits }
+    * Invariant: cmpmagnitude_bigint(lbig,rbig) > 0 !
+    *
+    * Calculate result = pow(-1,isNegSign) * (lbig - rbig)
+    */
+
+   int32_t expdiff = (int32_t)lexp - (int32_t)rexp ;
+
+   /*
+    *   ╭┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╭────────────┬─────┬──────────────────┬───┬──────────────────────╮
+    *   │  ... lexp ...                  │ ldigits[0] │ ... │ ldigits[X]       │...│ ldigits[lnrdigits-1] │
+    *   ╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╰────────────┴─────┴──────────────────┴───┴──────────────────────╯
+    *                   |-  expdiff>0   -|                                                    lorder -╯
+    *   ╭┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╭────────────┬───┬──────────────────┬──────────────────────╮
+    *   │  ... rexp ... │ rdigits[0] │...│      ...         │ rdigits[rnrdigits-1] │
+    *   ╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╰────────────┴───┴──────────────────┴──────────────────────╯
+    *                                    |-  expdiff<0     -|
+    *   ╭┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╭──────────────────╮
+    *   │  ... rexp ...                                     │        ...       │
+    *   ╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╰──────────────────╯
+    *                                                                  rorder -╯
+    */
+
+   uint32_t size = lnrdigits ;
+   if (expdiff > 0) size += (uint32_t)expdiff ;
+
+   if ((*result)->allocated_digits < size) {
+      err = allocate_bigint(result, size) ;
+      if (err) goto ONABORT ;
+   }
+
+   uint32_t * destdigits = (*result)->digits ;
+
+   /* handle trail
     * */
-
-   bool carryflag = false ;
-   uint32_t  diff = 0 ;
-   for (uint32_t i = minexp; i < maxexp; ++i) {
-      uint32_t d1, d2 ;
-
-      if (exponent_bigint(maxbig) <= i && (i - exponent_bigint(maxbig)) < maxnrdigits) {
-         d1 = maxbig->digits[i - exponent_bigint(maxbig)] ;
+   carry = false ;
+   if (expdiff < 0) {
+      // simple copy
+      expdiff = -expdiff ;
+      memcpy(destdigits, ldigits, sizeof(destdigits[0]) * (uint32_t)expdiff) ;
+      lnrdigits = (uint16_t) (lnrdigits - expdiff) ; // result always >= 0 cause lbig has at least rsize(possibly 0) more digits
+      ldigits  += expdiff ;
+      destdigits += expdiff ;
+   } else if (expdiff > 0) {
+      // copy inverted digits (rdigits[0] != 0) => (UINT32_MAX+1 - *(rdigits++)) <= UINT32_MAX && carry_is_set
+      *(destdigits++) = UINT32_MAX - *(rdigits++) + 1 ;
+      if (rnrdigits < expdiff) {
+         expdiff -= rnrdigits ;
+         while (--rnrdigits) {
+            *(destdigits++) = UINT32_MAX - *(rdigits++) ;
+         }
+         do {
+            *(destdigits++) = UINT32_MAX ;
+         } while (--expdiff) ;
       } else {
-         d1 = 0 ;
+         rnrdigits = (uint16_t) (rnrdigits - expdiff) ;
+         while (--expdiff) {
+            *(destdigits++) = UINT32_MAX - *(rdigits++) ;
+         }
       }
-      if (exponent_bigint(minbig) <= i && (i - exponent_bigint(minbig)) < minnrdigits) {
-         d2 = minbig->digits[i - exponent_bigint(minbig)] ;
-      } else {
-         d2 = 0 ;
-      }
-
-      bool isUnderflow = (d1 < d2) || (d1 == d2 && carryflag) ;
-      diff = d1 - d2 - carryflag ;
-      carryflag = isUnderflow ;
-
-      big->digits[i - minexp] = diff ;
+      carry = true ;
    }
 
-   expdiff -= (0 == diff) ; // first digit position canceled
-
-   if (lbig == maxbig) {
-      big->sign_and_used_digits = (int16_t) (lbig->sign_and_used_digits < 0 ? -expdiff : expdiff) ;
-   } else {
-      big->sign_and_used_digits = (int16_t) (lbig->sign_and_used_digits < 0 ?  expdiff : -expdiff) ;
+   /* handle overlapping part
+    * */
+   lnrdigits = (uint16_t) (lnrdigits - rnrdigits) ;
+   for (; rnrdigits; --rnrdigits) {
+      uint32_t dl = *(ldigits++) ;
+      uint32_t dr = *(rdigits++) ;
+      bool isUnderflow = (dl < dr) || (dl == dr && carry) ;
+      *(destdigits++) = dl - dr - carry ;
+      carry = isUnderflow ;
    }
-   big->exponent = minexp ;
+
+   /* handle leading part
+    * */
+   for (; lnrdigits; --lnrdigits) {
+      uint32_t dl = *(ldigits++) ;
+      *(destdigits++) = dl - carry ;
+      carry = (dl < carry) ;
+   }
+
+   while (0 == destdigits[-1]) {
+      -- destdigits ;
+      -- size ;
+   }
+
+   (*result)->sign_and_used_digits = (int16_t)  (isNegSign ? -(int32_t)size : (int32_t)size) ;
+   (*result)->exponent             = (uint16_t) (lexp < rexp ? lexp : rexp) ; ;
 
    return 0 ;
 ONABORT:
@@ -823,7 +901,7 @@ int cmpmagnitude_bigint(const bigint_t * lbig, const bigint_t * rbig)
 }
 
 
-double todouble_bigint(bigint_t * big)
+double todouble_bigint(const bigint_t * big)
 {
    const uint16_t digits = nrdigits_bigint(big) ;
    long double value ;
@@ -1265,24 +1343,18 @@ ONABORT:
 int add_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
-   int ls = sign_bigint(lbig) ;
-   int rs = sign_bigint(rbig) ;
+   const bool lNegSign = isnegative_bigint(lbig) ;
+   const bool rNegSign = isnegative_bigint(rbig) ;
 
-   if (0 == ls) {
-      err = copy_bigint(result, rbig) ;
-      if (err) goto ONABORT ;
-   } else if (0 == rs) {
-      err = copy_bigint(result, lbig) ;
-      if (err) goto ONABORT ;
-   } else if (ls != rs) {
-      // different sign => subtract
-      err = sub_biginthelper(result, lbig, rbig) ;
-      if (err) goto ONABORT ;
-   } else {
+   if (lNegSign == rNegSign) {
       // same sign
       err = add_biginthelper(result, lbig, rbig) ;
-      if (err) goto ONABORT ;
+   } else {
+      // different sign => subtract
+      err = sub_biginthelper(result, lbig, rbig) ;
    }
+
+   if (err) goto ONABORT ;
 
    return 0 ;
 ONABORT:
@@ -1293,25 +1365,18 @@ ONABORT:
 int sub_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
-   int ls = sign_bigint(lbig) ;
-   int rs = sign_bigint(rbig) ;
+   const bool lNegSign = isnegative_bigint(lbig) ;
+   const bool rNegSign = isnegative_bigint(rbig) ;
 
-   if (0 == ls) {
-      err = copy_bigint(result, rbig) ;
-      if (err) goto ONABORT ;
-      negate_bigint(*result) ;
-   } else if (0 == rs) {
-      err = copy_bigint(result, lbig) ;
-      if (err) goto ONABORT ;
-   } else if (ls != rs) {
-      // different sign => add
-      err = add_biginthelper(result, lbig, rbig) ;
-      if (err) goto ONABORT ;
-   } else {
+   if (lNegSign == rNegSign) {
       // same sign
       err = sub_biginthelper(result, lbig, rbig) ;
-      if (err) goto ONABORT ;
+   } else {
+      // different sign => add
+      err = add_biginthelper(result, lbig, rbig) ;
    }
+
+   if (err) goto ONABORT ;
 
    return 0 ;
 ONABORT:
@@ -1376,13 +1441,14 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
    const uint16_t rnrdigits = nrdigits_bigint(rbig) ;
    const int16_t  xorsign   = xorsign_biginthelper(lbig->sign_and_used_digits, rbig->sign_and_used_digits) ;
    const uint32_t exponent  = (uint32_t)lbig->exponent + rbig->exponent ;
-   uint32_t       size      = (uint32_t)lnrdigits      + rnrdigits ;
+   uint32_t       size      = (uint32_t)lnrdigits + rnrdigits ;
    uint16_t       maxdigits ;
    uint16_t       mindigits ;
    const bigint_t * minbig ;
    const bigint_t * maxbig ;
 
-   if (exponent > UINT16_MAX) {
+   if (     size <= INT16_MAX
+         && exponent > (UINT16_MAX-size)/*reserve "size digits" range for result number*/) {
       err = EOVERFLOW ;
       goto ONABORT ;
    }
@@ -1395,16 +1461,16 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
    if (lnrdigits < rnrdigits) {
       mindigits = lnrdigits ;
       maxdigits = rnrdigits ;
-      minbig = lbig ;
-      maxbig = rbig ;
+      minbig    = lbig ;
+      maxbig    = rbig ;
    } else {
       mindigits = rnrdigits ;
       maxdigits = lnrdigits ;
-      minbig = rbig ;
-      maxbig = lbig ;
+      minbig    = rbig ;
+      maxbig    = lbig ;
    }
 
-   if (mindigits <= 128) {
+   if (mindigits <= 64) {
       mult_biginthelper(*result, minbig, maxbig, xorsign, (uint16_t) exponent) ;
       return 0 ;
    }
@@ -1421,7 +1487,6 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
     *
     * Special case: (mindigits == 0) => result = 0
     * */
-
    uint16_t splitoffset = maxdigits/2 ;
 
    err = split_biginthelper(l, lbig, splitoffset) ;
@@ -1437,6 +1502,8 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
    if (err) goto ONABORT ;
 
    if (0 == l[1] || 0 == r[1]) {
+
+      uint16_t splitoffset2 = (uint16_t) (mindigits > splitoffset ? (2 * splitoffset) : splitoffset) ;
 
       if (l[1] || r[1]) {
 
@@ -1454,22 +1521,16 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
             if (err) goto ONABORT ;
          }
 
-         t[0]->exponent = splitoffset ;
+         t[0]->exponent = (uint16_t) (t[0]->exponent + splitoffset2) ;
+         t[1]->exponent = (uint16_t) (t[1]->exponent + splitoffset2 - splitoffset) ;
          err = add_bigint(result, t[0], t[1]) ;
          if (err) goto ONABORT ;
 
-         if (mindigits > splitoffset) {
-            memmove(&(*result)->digits[splitoffset], (*result)->digits, sizeof((*result)->digits[0]) * (uint16_t)(*result)->sign_and_used_digits) ;
-            memset((*result)->digits, 0, sizeof((*result)->digits[0]) * splitoffset) ;
-            (*result)->sign_and_used_digits = (int16_t) (splitoffset + (uint16_t) (*result)->sign_and_used_digits) ;
-         }
-
       } else {
 
-         uint16_t splitoffset2 = (uint16_t) (mindigits > splitoffset ? (2 * splitoffset) : splitoffset) ;
-         memset((*result)->digits, 0, sizeof((*result)->digits[0]) * splitoffset2) ;
-         memcpy(&(*result)->digits[splitoffset2], t[0]->digits, sizeof((*result)->digits[0]) * (uint16_t)t[0]->sign_and_used_digits) ;
-         (*result)->sign_and_used_digits = (int16_t) (splitoffset2 + (uint16_t) t[0]->sign_and_used_digits) ;
+         memcpy((*result)->digits, t[0]->digits, sizeof((*result)->digits[0]) * (uint16_t)t[0]->sign_and_used_digits) ;
+         (*result)->sign_and_used_digits = t[0]->sign_and_used_digits ;
+         (*result)->exponent             = (uint16_t) (t[0]->exponent + splitoffset2) ;
       }
 
    } else {
@@ -1508,12 +1569,12 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
       if (err) goto ONABORT ;
 
       // compute t[3] == t1 *X*X + t2
-      t[0]->exponent = (uint16_t) (2 * splitoffset) ;
+      t[0]->exponent = (uint16_t) (t[0]->exponent + 2 * splitoffset) ;
       err = add_bigint(&t[3], t[0], t[1]) ;
       if (err) goto ONABORT ;
 
       // compute *result == t1 *X*X + t2 + ((l1+l2) * (r1+r2) - t1 - t2) * X
-      t[2]->exponent = splitoffset ;
+      t[2]->exponent = (uint16_t) (t[2]->exponent + splitoffset) ;
       err = add_bigint(result, t[3], t[2]) ;
       if (err) goto ONABORT ;
    }
@@ -1530,8 +1591,8 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
       if (err) goto ONABORT ;
    }
 
-   (*result)->sign_and_used_digits = (int16_t) (xorsign < 0 ? - (*result)->sign_and_used_digits : (*result)->sign_and_used_digits) ;
-   (*result)->exponent             = (uint16_t) exponent ;
+   (*result)->sign_and_used_digits = (int16_t)  (xorsign < 0 ? - (*result)->sign_and_used_digits : (*result)->sign_and_used_digits) ;
+   (*result)->exponent             = (uint16_t) ((*result)->exponent + exponent) ;
 
    return 0 ;
 ONABORT:
@@ -2606,6 +2667,12 @@ static int test_addsub(void)
                ,{ { 1, 1, M, 0, 0, 6 }, { 1, 2, 3, 4, 5, 6 }, { 0, 0, 4, 4, 5 } }
                ,{ { 1, M-1, M-2, M-3, M-3 }, { 2 }, { 0, 1, 2, 3, 4 } }
                ,{ { 1, M, M, 0, 1, 2, 4 }, { 2 }, { 0, 0, 0, M, M-1, M-2, M-3 } }
+               ,{ { 0,0,0,0,0,0,0,0,0,1 }, { 1,0,0,0,0,0,0,0,0,0 }, { 0,M,M,M,M,M,M,M,M,M } }
+               ,{ { 0,0,0,0,0,0,0,0,0,125 }, { 1,0,0,0,0,0,0,0,0,0 }, { 0,M,M,M,M,M,M,M,M,M-124 } }
+               ,{ { 0,0,0,0,0,0,0,0,0,1 }, { 1, 2, 3, 0, 0, 0, 0, 0, 0, 129/*special code*/ }, { 1, 2, 2, M,M,M,M,M,M,M } }
+               ,{ { 1,2,2,M,M,M,M,M,M,0 }, { 1, 2, 3, 0, 0, 0, 0, 0, 999, M }, { 0,0,0,0,0,0,0,0,1000,M } }
+               ,{ { 0,M,M,M,M,M,M,M,M,0 }, { 1, 0, 0, 0, 0, 0, 0, 0, 999, M }, { 0,0,0,0,0,0,0,0,1000,M } }
+               ,{ { 6,7,9,0,0,0,M-1,M,M-1,1 }, { 6,7,9, 0, 0, 0, M, M, 0, 129/*special code*/ }, { 0,0,0,0,0,0,0,M,1,M } }
             } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows); ++i) {
@@ -2614,30 +2681,20 @@ static int test_addsub(void)
       }
       const bool isSpecial = (nrdigits_bigint(big[1]) && 129 == big[1]->digits[0]) ;
       if (isSpecial) big[1]->digits[0] = 0 ; // special code produces trailing zeros with exponent == 0
-      TEST(0 == delete_bigint(&big[3])) ;
-      TEST(0 == new_bigint(&big[3], 1)) ;
-      TEST(0 == add_bigint(&big[3], big[0], big[2])) ;   // allocate
-      TEST(0 == cmp_bigint(big[3], big[1])) ;
-      if (!isSpecial && nrdigits_bigint(big[1]) >= 4) {
-         int32_t trailingzeros = 0 ;
-         while (0 == big[3]->digits[trailingzeros]) ++ trailingzeros ;
-         TEST(1 + nrdigits_bigint(big[1]) >= (big[3]->allocated_digits - trailingzeros)) ;
+      for (int s = -1; s <= +1; s += 2) {
+         TEST(0 == delete_bigint(&big[3])) ;
+         TEST(0 == new_bigint(&big[3], 1)) ;
+         TEST(0 == add_bigint(&big[3], big[0], big[2])) ;   // allocate
+         TEST(0 == cmp_bigint(big[3], big[1])) ;
+         negate_bigint(big[2]) ;
+         TEST(0 == delete_bigint(&big[3])) ;
+         TEST(0 == new_bigint(&big[3], 1)) ;
+         TEST(0 == sub_bigint(&big[3], big[0], big[2])) ;   // allocate
+         TEST(0 == cmp_bigint(big[3], big[1])) ;
+         memset(big[3]->digits, 0, sizeof(big[3]->digits[0] * nrdigits_bigint(big[3]))) ;
+         negate_bigint(big[0]) ;
+         negate_bigint(big[1]) ;
       }
-      setnegative_bigint(big[2]) ;
-      TEST(0 == delete_bigint(&big[3])) ;
-      TEST(0 == new_bigint(&big[3], 1)) ;
-      TEST(0 == sub_bigint(&big[3], big[0], big[2])) ;   // allocate
-      TEST(0 == cmp_bigint(big[3], big[1])) ;
-      memset(big[3]->digits, 0, sizeof(big[3]->digits[0] * nrdigits_bigint(big[3]))) ;
-      for (unsigned nr = 0; nr < 3; ++nr) {
-         setnegative_bigint(big[nr]) ;
-      }
-      TEST(0 == add_bigint(&big[3], big[2], big[0])) ;   // do not allocate
-      TEST(0 == cmp_bigint(big[1], big[3])) ;
-      memset(big[3]->digits, 0, sizeof(big[3]->digits[0] * nrdigits_bigint(big[3]))) ;
-      setpositive_bigint(big[0]) ;
-      TEST(0 == sub_bigint(&big[3], big[2], big[0])) ;   // do not allocate
-      TEST(0 == cmp_bigint(big[1], big[3])) ;
    }
 
    // TEST add, sub with operands of different sign
@@ -2647,37 +2704,30 @@ static int test_addsub(void)
       }
       const bool isSpecial = (nrdigits_bigint(big[1]) && 129 == big[1]->digits[0]) ;
       if (isSpecial) big[1]->digits[0] = 0 ; // special code produces trailing zeros with exponent == 0
-      TEST(0 == delete_bigint(&big[3])) ;
-      TEST(0 == new_bigint(&big[3], 1)) ;
-      TEST(0 == sub_bigint(&big[3], big[1], big[2])) ;   // allocate
-      TEST(0 == cmp_bigint(big[3], big[0])) ;
-      setnegative_bigint(big[0]) ;
-      TEST(0 == sub_bigint(&big[3], big[2], big[1])) ;   // do not allocate
-      TEST(0 == cmp_bigint(big[3], big[0])) ;
-      setpositive_bigint(big[0]) ;
-      setnegative_bigint(big[2]) ;
-      TEST(0 == delete_bigint(&big[3])) ;
-      TEST(0 == new_bigint(&big[3], 1)) ;
-      TEST(0 == add_bigint(&big[3], big[1], big[2])) ;   // allocate
-      TEST(0 == cmp_bigint(big[3], big[0])) ;
-      TEST(0 == add_bigint(&big[3], big[2], big[1])) ;   // do not allocate
-      TEST(0 == cmp_bigint(big[3], big[0])) ;
-      memset(big[3]->digits, 0, sizeof(big[3]->digits[0] * nrdigits_bigint(big[3]))) ;
-      for (unsigned nr = 0; nr < 3; ++nr) {
-         setnegative_bigint(big[nr]) ;
+      for (int s = -1; s <= +1; s += 2) {
+         TEST(0 == delete_bigint(&big[3])) ;
+         TEST(0 == new_bigint(&big[3], 1)) ;
+         TEST(0 == sub_bigint(&big[3], big[1], big[2])) ;   // allocate
+         TEST(0 == cmp_bigint(big[3], big[0])) ;
+         TEST(0 == sub_bigint(&big[3], big[1], big[0])) ;   // allocate
+         TEST(0 == cmp_bigint(big[3], big[2])) ;
+         negate_bigint(big[0]) ;
+         TEST(0 == sub_bigint(&big[3], big[2], big[1])) ;   // do not allocate
+         TEST(0 == cmp_bigint(big[3], big[0])) ;
+         negate_bigint(big[0]) ;
+         negate_bigint(big[2]) ;
+         TEST(0 == sub_bigint(&big[3], big[0], big[1])) ;   // do not allocate
+         TEST(0 == cmp_bigint(big[3], big[2])) ;
+         TEST(0 == delete_bigint(&big[3])) ;
+         TEST(0 == new_bigint(&big[3], 1)) ;
+         TEST(0 == add_bigint(&big[3], big[2], big[1])) ;   // allocate
+         TEST(0 == cmp_bigint(big[3], big[0])) ;
+         negate_bigint(big[1]) ;
+         TEST(0 == add_bigint(&big[3], big[1], big[0])) ;   // do not allocate
+         TEST(0 == cmp_bigint(big[3], big[2])) ;
+         memset(big[3]->digits, 0, sizeof(big[3]->digits[0] * nrdigits_bigint(big[3]))) ;
+         negate_bigint(big[0]) ;
       }
-      TEST(0 == sub_bigint(&big[3], big[1], big[2])) ;
-      TEST(0 == cmp_bigint(big[0], big[3])) ;
-      setpositive_bigint(big[0]) ;
-      TEST(0 == sub_bigint(&big[3], big[2], big[1])) ;
-      TEST(0 == cmp_bigint(big[0], big[3])) ;
-      setnegative_bigint(big[0]) ;
-      memset(big[3]->digits, 0, sizeof(big[3]->digits[0] * nrdigits_bigint(big[3]))) ;
-      setpositive_bigint(big[2]) ;
-      TEST(0 == add_bigint(&big[3], big[1], big[2])) ;
-      TEST(0 == cmp_bigint(big[0], big[3])) ;
-      TEST(0 == add_bigint(&big[3], big[2], big[1])) ;
-      TEST(0 == cmp_bigint(big[0], big[3])) ;
    }
 
    // unprepare
@@ -2879,28 +2929,28 @@ static int test_mult(void)
    TEST(0 == cmp_bigint(big[0], big[3])) ;
 
    // TEST mult_bigint: splitting with random number
-   setfromuint32_bigint(big[0], 0) ;
-   setfromuint32_bigint(big[1], 0) ;
-   setfromuint32_bigint(big[2], 0) ;
-   big[1]->sign_and_used_digits = 300 ;
-   big[2]->sign_and_used_digits = 300 ;
-   for (uint16_t i = 0; i < 300; ++i) {
-      big[0]->digits[i] = (uint32_t) random() ;
-      big[1]->digits[i] = UINT32_MAX -(uint32_t) random() ;
+   for (int ti = 0; ti < 100; ++ti) {
+      setfromuint32_bigint(big[0], 0) ;
+      setfromuint32_bigint(big[1], 0) ;
+      setfromuint32_bigint(big[2], 0) ;
+      big[1]->sign_and_used_digits = 300 ;
+      big[2]->sign_and_used_digits = 300 ;
+      for (uint16_t i = 0; i < 300; ++i) {
+         big[1]->digits[i] = (uint32_t) random() ;
+         big[2]->digits[i] = UINT32_MAX -(uint32_t) random() ;
+      }
+      mult_biginthelper(big[0], big[1], big[2], 0, 0) ;
+      for (int s =-1; s <= +1; s += 2) {
+         setpositive_bigint(big[0]) ;
+         TEST(0 == mult_bigint(&big[3], big[1], big[2])) ;
+         TEST(0 == cmp_bigint(big[0], big[3])) ;
+         negate_bigint(big[1]) ;
+         setnegative_bigint(big[0]) ;
+         TEST(0 == mult_bigint(&big[3], big[s < 0 ? 2 : 1], big[s < 0 ? 1 : 2])) ;
+         TEST(0 == cmp_bigint(big[0], big[3])) ;
+         negate_bigint(big[2]) ;
+      }
    }
-   mult_biginthelper(big[0], big[1], big[2], 0, 0) ;
-   TEST(0 == mult_bigint(&big[3], big[1], big[2])) ;
-   TEST(0 == cmp_bigint(big[0], big[3])) ;
-   setnegative_bigint(big[1]) ;
-   setnegative_bigint(big[2]) ;
-   TEST(0 == mult_bigint(&big[3], big[2], big[1])) ;
-   TEST(0 == cmp_bigint(big[0], big[3])) ;
-   setnegative_bigint(big[0]) ;
-   setpositive_bigint(big[1]) ;
-   TEST(0 == mult_bigint(&big[3], big[2], big[1])) ;
-   TEST(0 == cmp_bigint(big[0], big[3])) ;
-   TEST(0 == mult_bigint(&big[3], big[1], big[2])) ;
-   TEST(0 == cmp_bigint(big[0], big[3])) ;
 
    // TEST multui32_bigint EOVERFLOW
    setfromuint32_bigint(big[1], 0) ;

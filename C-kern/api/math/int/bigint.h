@@ -132,27 +132,31 @@ int cmpmagnitude_bigint(const bigint_t * lbig, const bigint_t * rbig) ;
  * Returns the number of bits used to represent one digit.
  * The value should be either 32 or 64 depending on the
  * type of architecture. */
-unsigned bitsperdigit_bigint(void) ;
+uint8_t bitsperdigit_bigint(void) ;
 
 /* function: exponent_bigint
  * The number of trailing zero digits which are not explicitly stored.
  * If the number is 0 then the exponent must also be 0. */
-uint16_t exponent_bigint(bigint_t * big) ;
+uint16_t exponent_bigint(const bigint_t * big) ;
 
 /* function: firstdigit_bigint
  * Returns most significant digit of the number.
  * If *big* is zero the returned value is 0 else it is always number greater zero. */
-uint32_t firstdigit_bigint(bigint_t * big) ;
+uint32_t firstdigit_bigint(const bigint_t * big) ;
 
-/* function: sign_bigint
+/* function: isnegative_bigint
+ * Returns true if *big* is negative else false. */
+bool isnegative_bigint(const bigint_t * big) ;
+
+/* function: iszero_bigint
  * Returns true in case big has value 0 else false. */
-int iszero_bigint(bigint_t * big) ;
+bool iszero_bigint(const bigint_t * big) ;
 
 /* function: nrdigits_bigint
  * Returns the number of stored digits (32 bit words) of the big integer.
  * The value of a single digit is determined by
  * > digit[digit_pos] << (32 * (digit_pos + exponent_bigint(big))) */
-uint16_t nrdigits_bigint(bigint_t * big) ;
+uint16_t nrdigits_bigint(const bigint_t * big) ;
 
 /* function: nrdigitsmax_bigint
  * Returns the maximum number of supported digits stored in a big integer. */
@@ -162,11 +166,11 @@ uint16_t nrdigitsmax_bigint(void) ;
  * Returns the sum of <exponent_bigint> and <nrdigits_bigint>.
  * This sum must be smaller or equal to 0x7FFF in case a number is divided
  * with a call to <divmodui32_bigint>. */
-uint32_t size_bigint(bigint_t * big) ;
+uint32_t size_bigint(const bigint_t * big) ;
 
 /* function: sign_bigint
  * Returns -1, 0 or +1 if big is negative, zero or positive. */
-int sign_bigint(bigint_t * big) ;
+int sign_bigint(const bigint_t * big) ;
 
 /* function: todouble_bigint
  * Converts a big integer value into a double.
@@ -181,7 +185,7 @@ int sign_bigint(bigint_t * big) ;
  * On x84 fpu the uint64_t is converted into long double without loss and then rounded according
  * to the current rounding mode of the fpu.
  * */
-double todouble_bigint(bigint_t * big) ;
+double todouble_bigint(const bigint_t * big) ;
 
 // group: assign
 
@@ -335,7 +339,7 @@ struct bigint_fixed_t ;
  *
  * Parameters:
  * nrdigits - The magnitude of nrdigits gives the number of 32 bit digits of the whole number.
- *            The sign of nrdigits is the sign of of the big integer value.
+ *            The sign of nrdigits is the sign of the big integer value.
  * exponent - The exponent of type uint16_t whose value describes the number of trailing zero digits
  *            which are not stored explicitly in the big integer.
  * ...      - A list of 32-bit digits with nrdigits elements. The least significant digit comes first.
@@ -370,7 +374,7 @@ struct bigint_fixed_t ;
 
 /* define: bitsperdigit_bigint
  * Implements <bigint_t.bitsperdigit_bigint>. */
-#define bitsperdigit_bigint()          ((unsigned)(8 * sizeof(((bigint_t*)0)->digits[0])))
+#define bitsperdigit_bigint()          ((uint8_t)(8 * sizeof(((bigint_t*)0)->digits[0])))
 
 /* define: div_bigint
  * Implements <bigint_t.div_bigint>. */
@@ -387,6 +391,10 @@ struct bigint_fixed_t ;
 /* define: firstdigit_bigint
  * Implements <bigint_t.firstdigit_bigint>. */
 #define firstdigit_bigint(big)         ((big)->sign_and_used_digits ? big->digits[nrdigits_bigint(big)-1] : 0)
+
+/* define: isnegative_bigint
+ * Implements <bigint_t.isnegative_bigint>. */
+#define isnegative_bigint(big)         ((big)->sign_and_used_digits < 0)
 
 /* define: iszero_bigint
  * Implements <bigint_t.iszero_bigint>. */
