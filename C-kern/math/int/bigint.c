@@ -2929,7 +2929,7 @@ static int test_mult(void)
    TEST(0 == cmp_bigint(big[0], big[3])) ;
 
    // TEST mult_bigint: splitting with random number
-   for (int ti = 0; ti < 100; ++ti) {
+   for (int ti = 0; ti < 50; ++ti) {
       setfromuint32_bigint(big[0], 0) ;
       setfromuint32_bigint(big[1], 0) ;
       setfromuint32_bigint(big[2], 0) ;

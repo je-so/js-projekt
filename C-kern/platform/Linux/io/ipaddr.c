@@ -401,7 +401,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    if (err) goto ONABORT ;
 
    for(;;) {
-      err = getnameinfo( addr->addr, addr->addrlen, dns_name->chars, dns_name->allocated_size, 0, 0, NI_IDN|NI_IDN_ALLOW_UNASSIGNED|NI_NAMEREQD) ;
+      err = getnameinfo( addr->addr, addr->addrlen, str_cstring(dns_name), dns_name->allocated_size, 0, 0, NI_IDN|NI_IDN_ALLOW_UNASSIGNED|NI_NAMEREQD) ;
       if (err) {
          if (     EAI_OVERFLOW == err
                && dns_name->allocated_size < 4096) {
@@ -430,7 +430,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    if (err) goto ONABORT ;
 
    for(;;) {
-      err = getnameinfo( addr->addr, addr->addrlen, dns_name->chars, dns_name->allocated_size, 0, 0, NI_NAMEREQD) ;
+      err = getnameinfo( addr->addr, addr->addrlen, str_cstring(dns_name), dns_name->allocated_size, 0, 0, NI_NAMEREQD) ;
       if (err) {
          if (     EAI_OVERFLOW == err
                && dns_name->allocated_size < 4096) {
@@ -459,7 +459,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
    if (err) goto ONABORT ;
 
    for(;;) {
-      err = getnameinfo( addr->addr, addr->addrlen, numeric_name->chars, numeric_name->allocated_size, 0, 0, NI_NUMERICHOST) ;
+      err = getnameinfo( addr->addr, addr->addrlen, str_cstring(numeric_name), numeric_name->allocated_size, 0, 0, NI_NUMERICHOST) ;
       if (err) {
          if (     EAI_OVERFLOW == err
                && numeric_name->allocated_size < 4096) {

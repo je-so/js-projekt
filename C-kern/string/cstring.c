@@ -26,9 +26,12 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/memory/mm/mmtest.h"
 #endif
 
 static inline void compiletime_tests(void)
@@ -39,20 +42,16 @@ static inline void compiletime_tests(void)
 int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
 {
    int err ;
-   char * preallocated_buffer = 0 ;
+   memblock_t strmem = memblock_INIT_FREEABLE ;
 
    if (preallocate_size) {
-      preallocated_buffer = (char*) malloc( preallocate_size ) ;
-      if (!preallocated_buffer) {
-         LOG_OUTOFMEMORY(preallocate_size) ;
-         err = ENOMEM ;
-         goto ONABORT ;
-      }
+      err = MM_RESIZE(preallocate_size, &strmem) ;
+      if (err) goto ONABORT ;
    }
 
    cstr->length         = 0 ;
-   cstr->allocated_size = preallocate_size ;
-   cstr->chars          = preallocated_buffer ;
+   cstr->allocated_size = strmem.size ;
+   cstr->chars          = strmem.addr ;
 
    return 0 ;
 ONABORT:
@@ -83,42 +82,50 @@ ONABORT:
 
 int free_cstring(cstring_t * cstr)
 {
+   int err ;
+
    if (cstr->allocated_size) {
-      free(cstr->chars) ;
+      memblock_t strmem = memblock_INIT(cstr->allocated_size, cstr->chars) ;
       MEMSET0(cstr) ;
+
+      err = MM_FREE(&strmem) ;
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
+ONABORT:
+   LOG_ABORT_FREE(err);
+   return err ;
 }
+
+// group: change
 
 int allocate_cstring(cstring_t * cstr, size_t allocate_size)
 {
    int err ;
 
-   if (allocate_size <= cstr->allocated_size) {
-      return 0 ;
+   if (allocate_size > cstr->allocated_size) {
+
+      memblock_t strmem = memblock_INIT(cstr->allocated_size, cstr->chars) ;
+
+      size_t new_size = 2 * cstr->allocated_size ;
+
+      if (new_size < allocate_size) {
+         new_size = allocate_size ;
+      }
+
+      err = MM_RESIZE(new_size, &strmem) ;
+      if (err) goto ONABORT ;
+
+      if (!cstr->chars) {
+         // allocation done for first time => add trailing '\0' byte
+         strmem.addr[0] = 0 ;
+      }
+
+      cstr->allocated_size = strmem.size ;
+      cstr->chars          = strmem.addr ;
    }
 
-   size_t new_size = 2 * cstr->allocated_size ;
-
-   if (new_size < allocate_size) {
-      new_size = allocate_size ;
-   }
-
-   char * expanded_buffer = ((ssize_t)new_size > 0) ? (char *) realloc( cstr->chars, new_size ) : 0 ;
-
-   if (!expanded_buffer) {
-      LOG_OUTOFMEMORY(new_size) ;
-      err = ENOMEM ;
-      goto ONABORT ;
-   }
-
-   if (!cstr->chars) {
-      expanded_buffer[0] = 0 ;
-   }
-
-   cstr->allocated_size = new_size ;
-   cstr->chars          = expanded_buffer ;
    return 0 ;
 ONABORT:
    LOG_ABORT(err);
@@ -148,7 +155,7 @@ int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len])
 
    EXPAND_cstring(cstr, str_len) ;
 
-   memcpy( &cstr->chars[cstr->length], str, str_len) ;
+   memcpy(&cstr->chars[cstr->length], str, str_len) ;
    cstr->length              += str_len ;
    cstr->chars[cstr->length]  = 0 ;
 
@@ -171,7 +178,7 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
       {
          va_list args ;
          va_start(args, format) ;
-         int append_size_ = vsnprintf(cstr->chars + cstr->length, preallocated_size, format, args) ;
+         int append_size_ = vsnprintf(str_cstring(cstr) + cstr->length, preallocated_size, format, args) ;
          va_end(args) ;
 
          if (append_size_ < 0) {
@@ -198,6 +205,26 @@ ONABORT:
    return err ;
 }
 
+int resize_cstring(cstring_t * cstr, size_t new_length)
+{
+   int err ;
+
+   if (new_length < cstr->length) {
+      err = truncate_cstring(cstr, new_length) ;
+      if (err) goto ONABORT ;
+   } else if (new_length > cstr->length) {
+      size_t append_size = new_length - cstr->length ;
+      EXPAND_cstring(cstr, append_size) ;
+      cstr->length = new_length ;
+      cstr->chars[new_length] = 0 ;
+   }
+
+   return 0 ;
+ONABORT:
+   LOG_ABORT(err);
+   return err ;
+}
+
 int truncate_cstring(cstring_t * cstr, size_t new_length)
 {
    int err ;
@@ -213,6 +240,14 @@ int truncate_cstring(cstring_t * cstr, size_t new_length)
 ONABORT:
    LOG_ABORT(err);
    return err ;
+}
+
+void clear_cstring(cstring_t * cstr)
+{
+   if (cstr->length) {
+      cstr->length   = 0 ;
+      cstr->chars[0] = 0 ;
+   }
 }
 
 
@@ -265,7 +300,7 @@ static int test_initfree(void)
    TEST(8 == cstr.allocated_size) ;
    TEST(0 != cstr.chars) ;
    TEST(stringfrom.addr != (void*)cstr.chars) ;
-   TEST(0 == strcmp(cstr.chars, "x1y2z3!")) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "x1y2z3!")) ;
    TEST(0 == free_cstring(&cstr)) ;
    TEST(0 == cstr.allocated_size) ;
    TEST(0 == cstr.length) ;
@@ -286,7 +321,7 @@ static int test_initfree(void)
    cstring_t xxx = cstr2 ;
    initmove_cstring(&cstr, &cstr2) ;
    TEST(0 == memcmp(&cstr, &xxx, sizeof(cstr))) ;
-   TEST(0 == strcmp(cstr.chars, "123456")) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "123456")) ;
    TEST(64 == cstr.allocated_size) ;
    TEST(0 == cstr2.allocated_size) ;
    TEST(0 == cstr2.length) ;
@@ -326,9 +361,9 @@ static int test_changeandquery(void)
       cstring_t   cstr3 = cstring_INIT ;
       char        testbuffer[100] ;
       TEST(0 == str_cstring(&cstr3)) ;
-      cstr3.chars = (char*)1 ;
+      cstr3.chars = (uint8_t*) 1 ;
       TEST((char*)1 == str_cstring(&cstr3)) ;
-      cstr3.chars = testbuffer ;
+      cstr3.chars = (uint8_t*) testbuffer ;
       TEST(testbuffer == str_cstring(&cstr3)) ;
    }
 
@@ -336,43 +371,43 @@ static int test_changeandquery(void)
    TEST(0 == printfappend_cstring(&cstr, "%d%s", 123, "456")) ;
    TEST(6 == cstr.length) ;
    TEST(7 == cstr.allocated_size) ;
-   TEST(0 == strcmp(cstr.chars, "123456")) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "123456")) ;
 
    // TEST printfappend (size doubled)
    TEST(0 == printfappend_cstring(&cstr, "7")) ;
    TEST(7 == cstr.length) ;
    TEST(14 == cstr.allocated_size) ; // size doubled
-   TEST(0 == strcmp(cstr.chars, "1234567")) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "1234567")) ;
 
    // TEST printfappend (exact size)
    const char * str = "1234567890" ;
    TEST(0 == printfappend_cstring(&cstr, "%s%s%s", str, str, str)) ;
    TEST(37 == cstr.length) ;
    TEST(38 == cstr.allocated_size) ; // exact size
-   TEST(0 == strcmp(cstr.chars, "1234567123456789012345678901234567890")) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "1234567123456789012345678901234567890")) ;
    TEST(0 == free_cstring(&cstr)) ;
 
    // TEST printfappend (does not change content in case of error)
-   {  char buffer[10] = "123" ;
-      cstring_t cstr3 = { .length = (size_t)-10, .allocated_size = 2 + (size_t)-10, .chars = (&buffer[3] - (size_t)-10) } ;
+   {  uint8_t buffer[4] = "123" ;
+      cstring_t cstr3 = { .length = (size_t)-2, .allocated_size = 1 + (size_t)-2, .chars = (&buffer[3] - (size_t)-2) } ;
       TEST(&buffer[3] == (cstr3.chars + cstr3.length) ) ;
       TEST(ENOMEM == printfappend_cstring(&cstr3, "XX")) ;
-      TEST(cstr3.length         == (size_t)-10) ;
-      TEST(cstr3.allocated_size == 2 + (size_t)-10) ;
-      TEST(0 == strcmp(buffer, "123")) ;
+      TEST(cstr3.length         == (size_t)-2) ;
+      TEST(cstr3.allocated_size == 1 + (size_t)-2) ;
+      TEST(0 == strcmp((char*)buffer, "123")) ;
    }
 
    // TEST append on empty string
    TEST(0 == append_cstring(&cstr, 6, "123456")) ;
    TEST(6 == cstr.length) ;
    TEST(7 == cstr.allocated_size) ;
-   TEST(0 == strcmp(cstr.chars, "123456")) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "123456")) ;
 
    // TEST append (size doubled)
    TEST(0 == append_cstring(&cstr, 1, "7")) ;
    TEST(7 == cstr.length) ;
    TEST(14 == cstr.allocated_size) ; // size doubled
-   TEST(0 == strcmp(cstr.chars, "1234567")) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "1234567")) ;
 
    // TEST append (exact size)
    TEST(0 == free_cstring(&cstr)) ;
@@ -382,26 +417,26 @@ static int test_changeandquery(void)
    TEST(0 == append_cstring(&cstr, 15, str)) ;
    TEST(15 == cstr.length) ;
    TEST(16 == cstr.allocated_size) ; // exact size
-   TEST(0 == strcmp(cstr.chars, str)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), str)) ;
    TEST(0 == free_cstring(&cstr)) ;
 
    // TEST append (does not change content in case of error)
-   {  char buffer[10] = "123" ;
-      cstring_t cstr3 = { .length = (size_t)-10, .allocated_size = 2 + (size_t)-10, .chars = (&buffer[3] - (size_t)-10) } ;
+   {  uint8_t buffer[10] = "123" ;
+      cstring_t cstr3 = { .length = (size_t)-2, .allocated_size = 1 + (size_t)-2, .chars = (&buffer[3] - (size_t)-2) } ;
       TEST(&buffer[3] == (cstr3.chars + cstr3.length) ) ;
       TEST(ENOMEM == append_cstring(&cstr3, 2, "XX")) ;
-      TEST(cstr3.length         == (size_t)-10) ;
-      TEST(cstr3.allocated_size == 2 + (size_t)-10) ;
-      TEST(0 == strcmp(buffer, "123")) ;
+      TEST(cstr3.length         == (size_t)-2) ;
+      TEST(cstr3.allocated_size == 1 + (size_t)-2) ;
+      TEST(0 == strcmp((char*)buffer, "123")) ;
    }
 
-   // TEST truncate on empty string
+   // TEST truncate_cstring on empty string
    TEST(0 == truncate_cstring(&cstr, 0)) ;
    TEST(0 == cstr.allocated_size) ;
    TEST(0 == cstr.length) ;
    TEST(0 == cstr.chars) ;
 
-   // TEST truncate
+   // TEST truncate_cstring
    TEST(0 == init_cstring(&cstr, 256)) ;
    TEST(cstr.allocated_size == 256) ;
    TEST(cstr.length == 0) ;
@@ -411,7 +446,7 @@ static int test_changeandquery(void)
       -- i ;
       TEST(0 == truncate_cstring(&cstr, i)) ;
       TEST(i == cstr.length) ;
-      TEST(0 == strncmp(cstr.chars, "->123456: ", i)) ;
+      TEST(0 == strncmp(str_cstring(&cstr), "->123456: ", i)) ;
       TEST(0 == cstr.chars[i]) ;
    }
    TEST(0 == free_cstring(&cstr)) ;
@@ -433,7 +468,7 @@ static int test_changeandquery(void)
       cstr.chars[i] = 0 ;
       adaptlength_cstring(&cstr) ;
       TEST(i == cstr.length) ;
-      TEST(0 == strncmp(cstr.chars, "->123456: ", i)) ;
+      TEST(0 == strncmp(str_cstring(&cstr), "->123456: ", i)) ;
    }
    TEST(0 == free_cstring(&cstr)) ;
 
@@ -459,17 +494,111 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_clear(void)
+{
+   cstring_t   cstr = cstring_INIT ;
+
+   // TEST clear_cstring on empty string
+   clear_cstring(&cstr) ;
+   TEST(0 == cstr.allocated_size) ;
+   TEST(0 == cstr.length) ;
+   TEST(0 == cstr.chars) ;
+
+   // TEST clear_cstring
+   TEST(0 == init_cstring(&cstr, 256)) ;
+   TEST(cstr.allocated_size == 256) ;
+   for(int i = 255; i > 0; --i) {
+      cstr.length = (size_t) i ;
+      memset(cstr.chars, i, 256) ;
+      clear_cstring(&cstr) ;
+      TEST(0 == cstr.length) ;
+      TEST(0 == cstr.chars[0]) ;
+      TEST(i == cstr.chars[1]) ;
+      TEST(i == cstr.chars[255]) ;
+   }
+   TEST(0 == free_cstring(&cstr)) ;
+
+   return 0 ;
+ONABORT:
+   free_cstring(&cstr) ;
+   return EINVAL ;
+}
+
+static int test_resize(void)
+{
+   cstring_t   cstr = cstring_INIT ;
+
+   // TEST resize_cstring on empty string (do nothing)
+   resize_cstring(&cstr, 0) ;
+   TEST(0 == cstr.allocated_size) ;
+   TEST(0 == cstr.length) ;
+   TEST(0 == cstr.chars) ;
+
+   // TEST resize_cstring on empty string (allocate)
+   resize_cstring(&cstr, 255) ;
+   TEST(256 == cstr.allocated_size) ;
+   TEST(255 == cstr.length) ;
+   TEST(0   != cstr.chars) ;
+   TEST(0   == cstr.chars[255]) ;
+   TEST(0   == free_cstring(&cstr)) ;
+
+   // TEST resize_cstring: shrink
+   TEST(0 == init_cstring(&cstr, 256)) ;
+   TEST(cstr.allocated_size == 256) ;
+   for(int i = 255; i >= 0; --i) {
+      cstr.length = 256 ;
+      memset(cstr.chars, i, 256) ;
+      TEST(0 == resize_cstring(&cstr, (size_t) i)) ;
+      TEST(i == (ssize_t)cstr.length) ;
+      TEST(0 == cstr.chars[i]) ;
+      TEST(i == cstr.chars[0]) ;
+      if (i != 255) {
+         TEST(i == cstr.chars[255]) ;
+      }
+   }
+   TEST(0 == free_cstring(&cstr)) ;
+
+   // TEST resize_cstring: growth
+   TEST(0 == init_cstring(&cstr, 16)) ;
+   TEST(cstr.allocated_size == 16) ;
+   for(unsigned i = 16, previ = 0; i <= 4096; previ = i, i *= 2) {
+      TEST(0 == resize_cstring(&cstr, i-1)) ;
+      TEST(i == cstr.allocated_size) ;
+      TEST(i-1 == cstr.length) ;
+      TEST(0 == cstr.chars[i-1]) ;
+      memset(&cstr.chars[previ], 1, i-1-previ) ;
+   }
+   for(unsigned i = 0, izero = 15; i < 4096; ++i) {
+      if (i == izero) {
+         TEST(0 == cstr.chars[i]) ;
+         izero = izero * 2 + 1 ;
+      } else {
+         TEST(1 == cstr.chars[i]) ;
+      }
+   }
+   TEST(0 == free_cstring(&cstr)) ;
+
+   return 0 ;
+ONABORT:
+   free_cstring(&cstr) ;
+   return EINVAL ;
+}
+
 int unittest_string_cstring()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
+   TEST(0 == switchon_mmtest()) ;
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())       goto ONABORT ;
    if (test_changeandquery()) goto ONABORT ;
+   if (test_clear())          goto ONABORT ;
+   if (test_resize())         goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
+   TEST(0 == switchoff_mmtest()) ;
 
    return 0 ;
 ONABORT:

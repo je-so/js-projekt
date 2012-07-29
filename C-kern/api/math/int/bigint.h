@@ -164,7 +164,7 @@ uint16_t nrdigitsmax_bigint(void) ;
 
 /* function: size_bigint
  * Returns the sum of <exponent_bigint> and <nrdigits_bigint>.
- * This sum must be smaller or equal to 0x7FFF in case a number is divided
+ * This sum must be smaller or equal to INT16_MAX in case a number is divided
  * with a call to <divmodui32_bigint>. */
 uint32_t size_bigint(const bigint_t * big) ;
 

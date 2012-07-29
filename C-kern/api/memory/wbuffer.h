@@ -57,11 +57,21 @@ int unittest_memory_wbuffer(void) ;
  *
  * It is also possible to wrap a static buffer into a <wbuffer_t> type.
  * In the static case ENOMEM is returned if there is no more buffer space
- * free.
+ * available.
  *
  * In the dynamic case the memory is grown automatically.
  * A pointer to internal memory acquired for example by a call to <appendalloc_wbuffer>
  * is therefore only valid as long as no other append operation is called.
+ *
+ * TODO: Implement block store, a simple chain of memory blocks.
+ *       Provide adaption interface to wbuffer_t.
+ * TODO: Use block store as default implementation.
+ *       No need for memory copy in case of resize only adding of new block !
+ *       Read must always use block iterator for reading !
+ * TODO: Allow implementation to provide a static allocated block as first
+ *       block in the list. Allocate additional buffer if necessary.
+ *       The first static allocated memory blocked is not freed.
+ * TODO: provide wbuffer_adapt2cstring for adaption to cstring_t
  *
  * */
 struct wbuffer_t {
@@ -167,7 +177,7 @@ size_t sizecontent_wbuffer(const wbuffer_t * wbuf) ;
  * Special case:
  * If <sizecontent_wbuffer> returns a value != 0 but <content_wbuffer> a value of 0
  * you need to access the content with <contentiterator_wbuffer>.
- * The default implementation of supports only <content_wbuffer> but highly optimized
+ * The default implementation supports only <content_wbuffer> but highly optimized
  * versions may be using an internal list of more than one preallocated memory block. */
 uint8_t * content_wbuffer(const wbuffer_t * wbuf) ;
 
@@ -184,11 +194,11 @@ int contentiterator_wbuffer(const wbuffer_t * wbuf, size_t index, /*out*/struct 
 // group: helper
 
 /* function: appendalloc2_wbuffer
- * See <appendalloc_wbuffer> but implemented not inline. */
+ * Same as <appendalloc_wbuffer> but implemented not inline. */
 int appendalloc2_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer) ;
 
 /* function: appendchar2_wbuffer
- * See <appendchar_wbuffer> but implemented not inline. */
+ * Same as <appendchar_wbuffer> but implemented not inline. */
 int appendchar2_wbuffer(wbuffer_t * wbuf, const char c) ;
 
 

@@ -65,7 +65,7 @@ struct cstring_t
     *
     * Invariant:
     * ((0 == <chars>) && (0 == allocated_size)) || ((0 != chars) && (0 != allocated_size)) */
-   char   * chars ;
+   uint8_t  * chars ;
 } ;
 
 // group: lifetime
@@ -117,6 +117,13 @@ size_t allocatedsize_cstring(const cstring_t * cstr) ;
 
 // group: change
 
+/* function: adaptlength_cstring
+ * Adapts length of cstr. Use it if you have changed the content of the allocated buffer
+ * and want to let length reflect the new position of the \0 byte.
+ *
+ * This function throws an assertion if no null byte is found. */
+void adaptlength_cstring(cstring_t * cstr) ;
+
 /* function: allocate_cstring
  * Allocates memory of at least allocate_size bytes.
  * If the already allocated string buffer size is equal or greater than allocated_size bytes
@@ -131,6 +138,12 @@ int allocate_cstring(cstring_t * cstr, size_t allocate_size) ;
  * Cause during a possible reallocation of the buffer these arguments become invalid. */
 int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len]) ;
 
+/* function: clear_cstring
+ * Sets length of string to 0.
+ * This function has the same result as calling <truncate_cstring> with parameter 0.
+ * No memory is deallocated. */
+void clear_cstring(cstring_t * cstr) ;
+
 /* function: printfappend_cstring
  * Appends printf formatted string to cstr. Like sprintf but the buffer is reallocated if it is too small
  * and the new content is appended to the end of the string.
@@ -140,12 +153,12 @@ int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len]) ;
  * Cause during a possible reallocation of the buffer these arguments become invalid. */
 int printfappend_cstring(cstring_t * cstr, const char * format, ...) __attribute__ ((__format__ (__printf__, 2, 3))) ;
 
-/* function: adaptlength_cstring
- * Adapts length of cstr. Use it if you have changed the content of the allocated buffer
- * and want to let length reflect the new position of the \0 byte.
- *
- * This function throws an assertion if no null byte is found. */
-void adaptlength_cstring(cstring_t * cstr) ;
+/* function: resize_cstring
+ * Allocates memory and sets length to *new_length*.
+ * Access the possibly reallocated buffer with a call to <str_cstring>.
+ * If the new length is bigger than the current length the buffer
+ * will contain "random" characters. */
+int resize_cstring(cstring_t * cstr, size_t new_length) ;
 
 /* function: truncate_cstring
  * Adapts length of cstr to a smaller value.
@@ -162,17 +175,24 @@ int truncate_cstring(cstring_t * cstr, size_t new_length) ;
 
 /* define: initmove_cstring
  * Implements <cstring_t.initmove_cstring>. */
-#define initmove_cstring(dest, source) \
-   do {  *(dest) = *(source) ; *(source) = (cstring_t) cstring_INIT_FREEABLE ; } while(0)
+#define initmove_cstring(dest, source)    \
+      do {  *(dest) = *(source) ; *(source) = (cstring_t) cstring_INIT_FREEABLE ; } while(0)
 
 /* define: adaptlength_cstring
  * Implements <cstring_t.adaptlength_cstring>. */
-#define adaptlength_cstring(cstr) \
-   do {  if ((cstr)->allocated_size) { void * pos = memchr( (cstr)->chars, 0, (cstr)->allocated_size ) ; (cstr)->length = (size_t) ((char*)pos - (cstr)->chars) ; assert(pos && (cstr)->length < (cstr)->allocated_size) ; } } while (0)
+#define adaptlength_cstring(cstr)         \
+      do {                                                                             \
+            cstring_t * _cstr2 = (cstr) ;                                              \
+            if (_cstr2->allocated_size) {                                              \
+               void * pos = memchr(str_cstring(_cstr2), 0, _cstr2->allocated_size) ;   \
+               _cstr2->length = (size_t) ((uint8_t*)pos - _cstr2->chars) ;             \
+               assert(pos && _cstr2->length < _cstr2->allocated_size) ;                \
+            }                                                                          \
+      } while (0)
 
 /* define: allocatedsize_cstring
  * Implements <cstring_t.allocatedsize>. */
-#define allocatedsize_cstring(cstr)           ((cstr)->allocated_size)
+#define allocatedsize_cstring(cstr)    ((cstr)->allocated_size)
 
 /* define: length_cstring
  * Implements <cstring_t.length_cstring>. */
@@ -180,6 +200,6 @@ int truncate_cstring(cstring_t * cstr, size_t new_length) ;
 
 /* define: str_cstring
  * Implements <cstring_t.str_cstring>. */
-#define str_cstring(cstr)              ((cstr)->chars)
+#define str_cstring(cstr)              ((char*)(cstr)->chars)
 
 #endif
