@@ -397,7 +397,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
 {
    int err ;
 
-   err = allocate_cstring(dns_name, NI_MAXHOST) ;
+   err = resize_cstring(dns_name, NI_MAXHOST) ;
    if (err) goto ONABORT ;
 
    for(;;) {
@@ -415,7 +415,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
       break ;
    }
 
-   adaptlength_cstring(dns_name) ;
+   truncate_cstring(dns_name, strlen(str_cstring(dns_name))) ;
    return 0 ;
 ONABORT:
    LOG_ABORT(err) ;
@@ -426,7 +426,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
 {
    int err ;
 
-   err = allocate_cstring(dns_name, NI_MAXHOST) ;
+   err = resize_cstring(dns_name, NI_MAXHOST) ;
    if (err) goto ONABORT ;
 
    for(;;) {
@@ -444,7 +444,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
       break ;
    }
 
-   adaptlength_cstring( dns_name ) ;
+   truncate_cstring(dns_name, strlen(str_cstring(dns_name))) ;
    return 0 ;
 ONABORT:
    LOG_ABORT(err) ;
@@ -455,7 +455,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
 {
    int err ;
 
-   err = allocate_cstring(numeric_name, 32) ;
+   err = resize_cstring(numeric_name, 32) ;
    if (err) goto ONABORT ;
 
    for(;;) {
@@ -473,7 +473,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
       break ;
    }
 
-   adaptlength_cstring( numeric_name ) ;
+   truncate_cstring(numeric_name, strlen(str_cstring(numeric_name))) ;
    return 0 ;
 ONABORT:
    LOG_ABORT(err) ;

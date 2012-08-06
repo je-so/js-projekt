@@ -451,27 +451,6 @@ static int test_changeandquery(void)
    }
    TEST(0 == free_cstring(&cstr)) ;
 
-   // TEST adaptlength_cstring on empty string
-   adaptlength_cstring(&cstr) ;
-   TEST(0 == cstr.allocated_size) ;
-   TEST(0 == cstr.length) ;
-   TEST(0 == cstr.chars) ;
-
-   // TEST adaptlength
-   TEST(0 == init_cstring(&cstr, 64)) ;
-   TEST(cstr.allocated_size == 64) ;
-   TEST(cstr.length == 0) ;
-   TEST(0 == printfappend_cstring(&cstr, "->%s: ", "123456")) ;
-   TEST(strlen("->123456: ") == cstr.length) ;
-   for(unsigned i = strlen("->123456: ") + 1; i > 0; ) {
-      -- i ;
-      cstr.chars[i] = 0 ;
-      adaptlength_cstring(&cstr) ;
-      TEST(i == cstr.length) ;
-      TEST(0 == strncmp(str_cstring(&cstr), "->123456: ", i)) ;
-   }
-   TEST(0 == free_cstring(&cstr)) ;
-
    // TEST allocate_cstring
    cstr = (cstring_t) cstring_INIT ;
    TEST(0 == cstr.allocated_size) ;

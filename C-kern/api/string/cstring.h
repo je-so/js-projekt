@@ -117,17 +117,11 @@ size_t allocatedsize_cstring(const cstring_t * cstr) ;
 
 // group: change
 
-/* function: adaptlength_cstring
- * Adapts length of cstr. Use it if you have changed the content of the allocated buffer
- * and want to let length reflect the new position of the \0 byte.
- *
- * This function throws an assertion if no null byte is found. */
-void adaptlength_cstring(cstring_t * cstr) ;
-
 /* function: allocate_cstring
- * Allocates memory of at least allocate_size bytes.
- * If the already allocated string buffer size is equal or greater than allocated_size bytes
- * nothing is done. Use <str_cstring> to access a pointer to the preallocated buffer. */
+ * Makes sure *cstr* has at least *allocate_size* preallocated bytes.
+ * The string buffer is reallocated if necessary. If it is big enough
+ * nothing is done. After successful return the buffer returned from
+ * <str_cstring> points to at least *allocate_size* bytes of memory. */
 int allocate_cstring(cstring_t * cstr, size_t allocate_size) ;
 
 /* function: append_cstring
@@ -177,18 +171,6 @@ int truncate_cstring(cstring_t * cstr, size_t new_length) ;
  * Implements <cstring_t.initmove_cstring>. */
 #define initmove_cstring(dest, source)    \
       do {  *(dest) = *(source) ; *(source) = (cstring_t) cstring_INIT_FREEABLE ; } while(0)
-
-/* define: adaptlength_cstring
- * Implements <cstring_t.adaptlength_cstring>. */
-#define adaptlength_cstring(cstr)         \
-      do {                                                                             \
-            cstring_t * _cstr2 = (cstr) ;                                              \
-            if (_cstr2->allocated_size) {                                              \
-               void * pos = memchr(str_cstring(_cstr2), 0, _cstr2->allocated_size) ;   \
-               _cstr2->length = (size_t) ((uint8_t*)pos - _cstr2->chars) ;             \
-               assert(pos && _cstr2->length < _cstr2->allocated_size) ;                \
-            }                                                                          \
-      } while (0)
 
 /* define: allocatedsize_cstring
  * Implements <cstring_t.allocatedsize>. */

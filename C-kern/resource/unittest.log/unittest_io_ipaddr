@@ -32,6 +32,26 @@ C-kern/platform/Linux/io/ipaddr.c:603: newdnsquery_ipaddrlist(): error: 61: Func
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 93: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 93: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:697: initnamed_ipport(): error: 2: Function aborted
+C-kern/string/cstring.c:232: truncate_cstring(): error: 22: Function input violates condition (new_length <= cstr->length)
+cstr->length=32
+new_length=39
+C-kern/string/cstring.c:241: truncate_cstring(): error: 22: Function aborted
+C-kern/string/cstring.c:232: truncate_cstring(): error: 22: Function input violates condition (new_length <= cstr->length)
+cstr->length=32
+new_length=39
+C-kern/string/cstring.c:241: truncate_cstring(): error: 22: Function aborted
+C-kern/string/cstring.c:232: truncate_cstring(): error: 22: Function input violates condition (new_length <= cstr->length)
+cstr->length=32
+new_length=39
+C-kern/string/cstring.c:241: truncate_cstring(): error: 22: Function aborted
+C-kern/string/cstring.c:232: truncate_cstring(): error: 22: Function input violates condition (new_length <= cstr->length)
+cstr->length=32
+new_length=39
+C-kern/string/cstring.c:241: truncate_cstring(): error: 22: Function aborted
+C-kern/string/cstring.c:232: truncate_cstring(): error: 22: Function input violates condition (new_length <= cstr->length)
+cstr->length=32
+new_length=39
+C-kern/string/cstring.c:241: truncate_cstring(): error: 22: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:208: new_ipaddr(): error: 97: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:208: new_ipaddr(): error: 93: Function aborted
 C-kern/platform/Linux/io/ipaddr.c:208: new_ipaddr(): error: 99: Function aborted
