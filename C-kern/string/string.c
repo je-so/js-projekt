@@ -197,21 +197,21 @@ static int test_initfreestr(void)
       TEST(str2 == asconst_string(str1)) ;
    }
 
-   // TEST trimleft_string
+   // TEST trytrimstart_string
    str = (string_t) string_INIT(1000, (uint8_t*)3) ;
-   TEST(0 == trytrimleft_string(&str, 1000)) ;
+   TEST(0 == trytrimstart_string(&str, 1000)) ;
    TEST(str.addr == (void*)1003) ;
    TEST(str.size == 0) ;
    for(unsigned i = 0; i < 5; ++i) {
       str = (string_t) string_INIT(100+i, (void*)i) ;
-      TEST(0 == trytrimleft_string(&str, 10*i)) ;
+      TEST(0 == trytrimstart_string(&str, 10*i)) ;
       TEST(str.addr == (void*)(i+10*i)) ;
       TEST(str.size == 100+i-(10*i)) ;
    }
 
    // TEST ENOMEM
    str = (string_t) string_INIT(100, (void*)3) ;
-   TEST(ENOMEM == trytrimleft_string(&str, 101)) ;
+   TEST(ENOMEM == trytrimstart_string(&str, 101)) ;
 
    return 0 ;
 ONABORT:

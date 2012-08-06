@@ -167,16 +167,16 @@ conststring_t asconst_string(string_t * str) ;
 
 // group: change
 
-/* function: trytrimleft_string
- * Tries to remove the left size bytes of the string.
+/* function: trytrimstart_string
+ * Tries to remove the first size bytes of the string.
  * Make sure that size is the size of a valid mulibyte character sequence.
  * The content of the string is not changed. Instead only the
  * <size_t.addr> is incremented with size and <string_t.size> is decremented with size.
  *
  * Errors:
- * In case <stringt_t.size> is less then size ENOMEM is returned.
+ * In case <stringt_t.size> is less then the value in *size* ENOMEM is returned.
  * No logging is done in case of an error. */
-int trytrimleft_string(string_t * str, size_t size) ;
+int trytrimstart_string(string_t * str, size_t size) ;
 
 
 // section: inline implementation
@@ -217,9 +217,9 @@ int trytrimleft_string(string_t * str, size_t size) ;
          initse_string((string_t*)_str, _start, _end) ;  \
    }))
 
-/* define: trytrimleft_string
- * Implements <string_t.trytrimleft_string>. */
-#define trytrimleft_string(str, _size)          \
+/* define: trytrimstart_string
+ * Implements <string_t.trytrimstart_string>. */
+#define trytrimstart_string(str, _size)         \
    ( __extension__ ({                           \
          int _err ;                             \
          if ((str)->size < _size) {             \
