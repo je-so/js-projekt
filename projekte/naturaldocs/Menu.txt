@@ -59,11 +59,11 @@ Group: Api  {
 
          File: Compare-Callback  (api/aspect/callback/compare.h)
          File: Free-Callback  (api/aspect/callback/free.h)
-         File: Task-Callback  (api/aspect/callback/task.h)
          File: Updatekey-Callback  (api/aspect/callback/updatekey.h)
          }  # Group: Callback
 
-      File: Interface  (api/aspect/interface.h)
+      File: Spacetime-Aspect  (api/aspect/constant/spacetime.h)
+      File: StreamCallback  (api/adapter/stream.h)
       File: Treenode2-Aspect  (api/aspect/treenode2.h)
       File: Treenode3-Aspect  (api/aspect/treenode3.h)
       }  # Group: Aspect
@@ -71,9 +71,9 @@ Group: Api  {
    Group: Cache  {
 
       File: Objectcache  (api/cache/objectcache.h)
+      File: Objectcache-ImplementationObject  (api/cache/objectcache_iot.h)
       File: Objectcache-Interface  (api/cache/objectcache_it.h)
       File: Objectcache-Macros  (api/cache/objectcache_macros.h)
-      File: Objectcache-Object  (api/cache/objectcache_oit.h)
       File: Valuecache  (api/cache/valuecache.h)
       }  # Group: Cache
 
@@ -87,16 +87,21 @@ Group: Api  {
 
       Group: InMemory  {
 
+         Group: Node  {
+
+            File: ArraySF-Node  (api/ds/inmem/node/arraysf_node.h)
+            File: ArraySTF-Node  (api/ds/inmem/node/arraystf_node.h)
+            File: SingleLinkedList-Node  (api/ds/inmem/node/slist_node.h)
+            }  # Group: Node
+
          File: ArraySF  (api/ds/inmem/arraysf.h)
          File: ArraySTF  (api/ds/inmem/arraystf.h)
          File: BinaryStack  (api/ds/inmem/binarystack.h)
          File: SingleLinkedList  (api/ds/inmem/slist.h)
          }  # Group: InMemory
 
-      File: ArraySF-Node  (api/ds/arraysf_node.h)
-      File: ArraySTF-Node  (api/ds/arraystf_node.h)
-      File: FreeCallback  (api/ds/freecallback.h)
-      File: SingleLinkedList-Node  (api/ds/slist_node.h)
+      File: DataStructure-TypeAdapter  (api/ds/typeadapter.h)
+      File: Foreach-Iterator  (api/ds/foreach.h)
       }  # Group: Ds
 
    Group: Io  {
@@ -116,64 +121,67 @@ Group: Api  {
 
       File: Filedescriptor  (api/io/filedescr.h)
       File: IO-Accessmode  (api/io/accessmode.h)
-      File: IOCallback  (api/io/iocallback.h)
+      File: IOCallback  (api/io/iocallback_iot.h)
+      File: IOControler  (api/io/iocontroler.h)
       File: IOEvent  (api/io/ioevent.h)
-      File: IOPoll  (api/io/iopoll.h)
       File: IOTimer  (api/io/iotimer.h)
       File: URL  (api/io/url.h)
+      File: UTF8TextReader  (api/io/reader/utf8reader.h)
+
+      Group: Writer  {
+
+         File: ErrlogMacros  (api/io/writer/log/errlog_macros.h)
+         File: Log-ImplementationObject  (api/io/writer/log/log_iot.h)
+         File: Log-Interface  (api/io/writer/log/log_it.h)
+         File: LogMacros  (api/io/writer/log/log_macros.h)
+         File: LogMain  (api/io/writer/log/logmain.h)
+         File: LogWriter  (api/io/writer/log/logwriter.h)
+         }  # Group: Writer
+
       }  # Group: Io
 
    Group: Math  {
 
-      File: Intop-Log2  (api/math/int/log2.h)
-      File: Intop-Power2  (api/math/int/power2.h)
-      File: Intop-Signum  (api/math/int/signum.h)
-      File: SHA-1-Hashcode  (api/math/hash/sha1.h)
+      Group: Float  {
+
+         File: Decimal  (api/math/float/decimal.h)
+         File: FloatingPointUnit  (api/math/fpu.h)
+         }  # Group: Float
+
+      Group: Hash  {
+
+         File: SHA-1-Hashcode  (api/math/hash/sha1.h)
+         }  # Group: Hash
+
+      Group: Int  {
+
+         File: BigInteger  (api/math/int/bigint.h)
+         File: Intop-Abs  (api/math/int/abs.h)
+         File: Intop-Log10  (api/math/int/log10.h)
+         File: Intop-Log2  (api/math/int/log2.h)
+         File: Intop-Power2  (api/math/int/power2.h)
+         File: Intop-Sign  (api/math/int/sign.h)
+         }  # Group: Int
+
       }  # Group: Math
 
    Group: Memory  {
 
       File: MemoryBlock  (api/memory/memblock.h)
+
+      Group: Mm  {
+
+         File: MemoryManager-ImplementationObject  (api/memory/mm/mm_iot.h)
+         File: MemoryManager-Interface  (api/memory/mm/mm_it.h)
+         File: MemoryManagerMacros  (api/memory/mm/mm_macros.h)
+         File: TestMemoryManager  (api/memory/mm/mmtest.h)
+         File: TransientMemoryManager  (api/memory/mm/mmtransient.h)
+         }  # Group: Mm
+
       File: WBuffer  (api/memory/wbuffer.h)
       }  # Group: Memory
 
-   Group: String  {
-
-      File: Convert-wchar  (api/string/convertwchar.h)
-      File: CString  (api/string/cstring.h)
-      File: String  (api/string/string.h)
-      File: StringEncode  (api/string/encode.h)
-      File: UTF-8  (api/string/utf8.h)
-      }  # Group: String
-
-   Group: Test  {
-
-      File: AssertTest  (api/test/assert.h)
-      File: Resourceusage  (api/test/resourceusage.h)
-      File: Test-Errortimer  (api/test/errortimer.h)
-      File: Unittest  (api/test/run/unittest.h)
-      File: ValidationTest  (api/test/validate.h)
-      }  # Group: Test
-
-   Group: Writer  {
-
-      File: ErrlogMacros  (api/writer/errlog_macros.h)
-      File: Log-Interface  (api/writer/log_it.h)
-      File: Log-Object  (api/writer/log_oit.h)
-      File: LogMacros  (api/writer/log_macros.h)
-      File: LogMain  (api/writer/logmain.h)
-      File: LogWriter  (api/writer/logwriter.h)
-      }  # Group: Writer
-
    Group: Platform  {
-
-      Group: Gui  {
-
-         File: X11-Display  (api/platform/gui/X11/display.h)
-         File: X11-Display OOSTORE  (api/platform/gui/X11/internal/display_oostore.h)
-         File: X11-OpenGL-Window  (api/platform/gui/X11/glxwindow.h)
-         File: X11-Subsystem  (api/platform/gui/X11/x11.h)
-         }  # Group: Gui
 
       File: LinuxSystemContext  (api/platform/Linux/syscontext.h)
       File: LinuxSystemKonfig  (api/platform/Linux/syskonfig.h)
@@ -202,11 +210,48 @@ Group: Api  {
       File: VirtualMemory  (api/platform/virtmemory.h)
       }  # Group: Platform
 
+   Group: Presentation  {
+
+      File: X11-Display  (api/presentation/X11/display.h)
+      File: X11-Display OOSTORE  (api/presentation/X11/internal/display_oostore.h)
+      File: X11-OpenGL-Window  (api/presentation/X11/glxwindow.h)
+      File: X11-Subsystem  (api/presentation/X11/x11.h)
+      }  # Group: Presentation
+
+   Group: String  {
+
+      File: Base64EncodeString  (api/string/base64encode_string.h)
+      File: Convert-wchar  (api/string/convertwchar.h)
+      File: CString  (api/string/cstring.h)
+      File: FormatString  (api/string/format_string.h)
+      File: String  (api/string/string.h)
+      File: Suffix Tree  (api/string/suffix_tree.h)
+      File: Unicode  (api/string/unicode.h)
+      File: URLEncodeString  (api/string/urlencode_string.h)
+      File: UTF-8  (api/string/utf8.h)
+      }  # Group: String
+
+   Group: Test  {
+
+      File: AssertTest  (api/test/assert.h)
+      File: Compiletime-Tests  (api/test/compiletime.h)
+      File: Resourceusage  (api/test/resourceusage.h)
+      File: Speed Test  (api/test/run/speedtest.h)
+      File: Test-Errortimer  (api/test/errortimer.h)
+      File: Unittest  (api/test/run/unittest.h)
+      File: ValidationTest  (api/test/validate.h)
+      }  # Group: Test
+
+   Group: Time  {
+
+      File: Time-Specifications  (api/time/timespec.h)
+      File: Timeclock  (api/time/clock.h)
+      }  # Group: Time
+
    File: ErrorHandling  (api/err.h)
-   File: MainContext  (api/context.h)
+   File: MainContext  (api/maincontext.h)
+   File: oobjectstore  (api/oostore.h)
    File: Test  (api/test.h)
-   File: Time-Specifications  (api/time/timespec.h)
-   File: Timeclock  (api/time/clock.h)
    }  # Group: Api
 
 Group: Implementation  {
@@ -220,50 +265,95 @@ Group: Implementation  {
    Group: Context  {
 
       File: Context-Oriented-Programming  (context/COP.txt)
-      File: MainContext impl  (context/context.c)
+      File: MainContext impl  (context/maincontext.c)
       File: ProcessContext impl  (context/processcontext.c)
       File: ThreadContext impl  (context/threadcontext.c)
       }  # Group: Context
 
    Group: DataStructures  {
 
-      File: ArraySF impl  (ds/inmem/arraysf.c)
-      File: ArraySTF impl  (ds/inmem/arraystf.c)
-      File: BinaryStack impl  (ds/inmem/binarystack.c)
-      File: SingleLinkedList impl  (ds/inmem/slist.c)
+      Group: InMemory  {
+
+         File: ArraySF impl  (ds/inmem/arraysf.c)
+         File: ArraySTF impl  (ds/inmem/arraystf.c)
+         File: BinaryStack impl  (ds/inmem/binarystack.c)
+         File: SingleLinkedList impl  (ds/inmem/slist.c)
+         }  # Group: InMemory
+
+      File: DataStructure-TypeAdapter impl  (ds/typeadapter.c)
       }  # Group: DataStructures
+
+   Group: Generic Data Structures  {
+
+      File: ArrayList Iterator  (generic/iterator/arraylist-it.h)
+      File: Generic Node Adapter  (generic/GenericNodeAdapter.txt)
+      File: Patricia Tree  (generic/trie/patricia.h)
+      File: test  (generic/rbtree.c)
+      File: test  (generic/dlist.c)
+      File: test  (generic/depthtree.c)
+      File: test  (generic/trie/patricia.c)
+      }  # Group: Generic Data Structures
 
    Group: Io  {
 
+      File: LogMain impl  (io/writer/log/logmain.c)
+      File: LogWriter impl  (io/writer/log/logwriter.c)
+      File: Reader-Description  (io/reader/reader.txt)
       File: URL impl  (io/url.c)
+      File: UTF8TextReader impl  (io/reader/utf8reader.c)
       }  # Group: Io
 
    Group: Main  {
 
-      File: Testchildprocess  (main/testchildprocess_main.c)
+      File: genmake  (main/tools/genmake.c)
+      File: Speedtest  (main/test/speedtest_main.c)
+      File: Testchildprocess  (main/test/testchildprocess_main.c)
       File: TextDB  (main/tools/textdb.c)
+      File: TextResource-v2-Compiler  (main/tools/textresourcev2_compiler.c)
       }  # Group: Main
 
    Group: Math  {
 
-      File: Intop-Signum impl  (math/int/signum.c)
-      File: Intop-Power2 impl  (math/int/power2.c)
-      File: Intop-Log2 impl  (math/int/log2.c)
-      File: SHA-1-Hashcode impl  (math/hash/sha1.c)
+      Group: Float  {
+
+         File: Decimal impl  (math/float/decimal.c)
+         File: FloatingPointUnit impl  (math/fpu.c)
+         }  # Group: Float
+
+      Group: Hash  {
+
+         File: SHA-1-Hashcode impl  (math/hash/sha1.c)
+         }  # Group: Hash
+
+      Group: Int  {
+
+         File: Intop-Power2 impl  (math/int/power2.c)
+         File: Intop-Log2 impl  (math/int/log2.c)
+         File: BigInteger impl  (math/int/bigint.c)
+         File: Intop-Abs impl  (math/int/abs.c)
+         File: Intop-Log10 impl  (math/int/log10.c)
+         File: Intop-Sign impl  (math/int/sign.c)
+         }  # Group: Int
+
       }  # Group: Math
 
    Group: Memory  {
 
       File: MemoryBlock impl  (memory/memblock.c)
+      File: TestMemoryManager impl  (memory/mm/mmtest.c)
+      File: TransientMemoryManager impl  (memory/mm/mmtransient.c)
       File: WBuffer impl  (memory/wbuffer.c)
       }  # Group: Memory
 
    Group: String  {
 
+      File: Base64EncodeString impl  (string/base64encode_string.c)
       File: Convert-wchar impl  (string/convertwchar.c)
       File: CString impl  (string/cstring.c)
+      File: FormatString impl  (string/format_string.c)
       File: String impl  (string/string.c)
-      File: StringEncode impl  (string/encode.c)
+      File: test  (string/suffix_tree.c)
+      File: URLEncodeString impl  (string/urlencode_string.c)
       File: UTF-8 impl  (string/utf8.c)
       }  # Group: String
 
@@ -278,7 +368,7 @@ Group: Implementation  {
             File: Filedescriptor Linux  (platform/Linux/io/filedescr.c)
             File: Internetprotocol-Address Linux  (platform/Linux/io/ipaddr.c)
             File: Internetprotocol-Sockets Linux  (platform/Linux/io/ipsocket.c)
-            File: IOPoll Linux  (platform/Linux/io/iopoll.c)
+            File: IOControler Linux  (platform/Linux/io/iocontroler.c)
             File: IOTimer Linux  (platform/Linux/io/iotimer.c)
             File: Memory-Mapped-File Linux  (platform/Linux/io/mmfile.c)
             }  # Group: Io
@@ -297,16 +387,38 @@ Group: Implementation  {
 
       Group: Shared  {
 
-         File: Exoscheduler impl  (platform/shared/task/exoscheduler.c)
-         File: Exothread impl  (platform/shared/task/exothread.c)
+         File: oobjectstore impl  (platform/shared/oostore.c)
          File: RedBlacktree-Index impl  (platform/shared/index/redblacktree.c)
          File: Splaytree-Index impl  (platform/shared/index/splaytree.c)
-         File: Threadpool impl  (platform/shared/task/threadpool.c)
+
+         Group: Task  {
+
+            File: Exoscheduler impl  (platform/shared/task/exoscheduler.c)
+            File: Exothread impl  (platform/shared/task/exothread.c)
+            File: Threadpool impl  (platform/shared/task/threadpool.c)
+            }  # Group: Task
+
+         File: test  (platform/shared/execCcompiler.c)
          }  # Group: Shared
 
       }  # Group: Platform
 
+   Group: Presentation  {
+
+      File: X11-Display impl  (presentation/X11/display.c)
+      File: X11-OpenGL-Window impl  (presentation/X11/glxwindow.c)
+      File: X11-Subsystem impl  (presentation/X11/x11.c)
+      }  # Group: Presentation
+
    Group: Test  {
+
+      Group: Compiletime  {
+
+         File: CompiletimeTest KONFIG_VALUE  (no auto-title, test/compiletime/konfig_value.h)
+         File: CompiletimeTest Nodeadapter  (test/compiletime/nodeadapter.h)
+         File: CompiletimeTest StdTypes  (test/compiletime/stdtypes.h)
+         File: CompiletimeTest System  (test/compiletime/system.h)
+         }  # Group: Compiletime
 
       File: Unittest impl  (test/run_unittest.c)
       File: Resourceusage impl  (test/resourceusage.c)
@@ -314,24 +426,23 @@ Group: Implementation  {
       File: Test-Errortimer impl  (test/errortimer.c)
       }  # Group: Test
 
-   Group: Writer  {
-
-      File: LogMain impl  (writer/logmain.c)
-      File: LogWriter impl  (writer/logwriter.c)
-      }  # Group: Writer
-
    }  # Group: Implementation
 
 Group: Coding-Conventions  {
 
    File: C-Types  (resource/coding-conventions/c_types.txt)
    File: Context Oriented Programming  (resource/coding-conventions/context.txt)
+   File: Error-Handling  (resource/coding-conventions/error-handling.txt)
    File: free objects  (resource/coding-conventions/free_objects.txt)
    File: init objects  (resource/coding-conventions/init_objects.txt)
    File: parameter types  (resource/coding-conventions/parameter_type.txt)
    File: Taskmanagement  (resource/coding-conventions/task.txt)
+   File: Textresource  (resource/coding-conventions/textresource.txt)
    File: Unittest conventions  (resource/coding-conventions/unittest.txt)
    }  # Group: Coding-Conventions
+
+File: Tool-HashFunction  (tools/hash.h)
+File: Tool-HashFunction impl  (tools/hash.c)
 
 Group: Index  {
 

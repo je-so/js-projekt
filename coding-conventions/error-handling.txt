@@ -1,0 +1,63 @@
+title: Error-Handling
+
+Describes what to do in case of a detected error.
+
+group: Error Handling in Functions
+
+about: Error-Detection
+
+Error detection is sometimes the hardest path but in this document it is considered as trivial.
+Detecting an "out-of-memory" error may be as simple as comapring a freespace counter against the
+memory to be allocated. In more complex cases where sophisticated algorithms are needed the error
+detection is considered as simple as as calling a function like detect_transmission_error().
+
+about: Returning Errors
+
+Every function should return an error as a simple integer value. System errors like
+
+- ENOMEM
+- EINVAL
+- ENOSYS
+
+can be returned directly. Own error codes should be defined with values outside the system error
+codes so they can be distinguished. In general it is not necessary to define one global error name
+space. But it reduces complexity to stick to shared error codes for the most common errors.
+
+about: Parameters
+
+A new policy introduced at 7 Aug 2012 states that in case of errors
+the returned values can be set to a cleared state and the out parameters to a FREEABLE state.
+This has two advantages. The first is that return values which must be constructed in several steps
+can use the return or out parameter as buffer and in case of error call free or reset.
+The second advantage is that in case no error checking is made the returned value is definitely set
+to a defined freed or reset state.
+
+But it is also allowed to let them untouched. And in a lot of cases this is useful.
+
+The caller of a function like
+> err = resize_memorymanager(&mman, &memblock) ;
+assumes that memblock is not changed in case of an error. So it can operate directly on object variables
+instead of temporary ones.
+
+about: All-or-Nothing Approach
+
+Functions which change something should do so in an all-or-nothing approach. Changes already done
+before the error must be undone in some way.
+Therefore it is considered good style to preallocate any resource necessary for the computation
+before the computation is done. So that during a complex computation no "out-of-resource" error can
+occur and therefore no complex undo operations must be performed.
+
+group: Archtitectural Support
+
+about: Why do we need it
+
+To handle errors in functions which call multiple other functions is tricky cause
+for any action already done before an error we need to undo these changes. We need therfore some
+bookkeeping mechanism which can store undo actions for successful done changes. To solve this
+problem in a general way it is necessary to introduce some architectural concept which is similar
+to the transactional concept in databases.
+
+Todo:
+
+Design architectural undo component or some other mechanism like multi version support where
+a newer version can be discarded in case of an error.

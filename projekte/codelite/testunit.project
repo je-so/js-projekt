@@ -287,6 +287,7 @@
       <File Name="../../coding-conventions/c_types.txt"/>
       <File Name="../../coding-conventions/context.txt"/>
       <File Name="../../coding-conventions/textresource.txt"/>
+      <File Name="../../coding-conventions/error-handling.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="text.db">
       <File Name="../../C-kern/resource/text.db/signalconfig"/>

@@ -11,16 +11,25 @@ Function parameters are distinguished according to their direction of informatio
             If it accepts only a pointer to the value the parameter should be marked with
             *const* (const type_t * value). To flag it with the label /*in*/ is redundant.
 /*inout*/ - This kind of parameter is read from as well as written to.
+            Preallocated return parameters like queried names fall in this category.
             Marking it with label /*inout*/ is redundant, cause every pointer to a non-const
             value is considered to be inout, provided that is not assigned a label indicating otherwise.
             The returned value is only valid, if the function returns success.
-            In case of an error the value should be left untouched.
+            *07 Aug 2012*new* In case of an error the value should be cleared.
+            This has two advantages. The first is that return values which must be constructed
+            in several steps can use the return parameter as buffer and in case of error clear
+            it. The second advantage is that in case no error checking is made the returned value
+            is definitely in a defined cleared or empty state.
 /*out*/   - The parameter is only written to. It carries the result value of a function and
-            is only valid if the function returns success. In case of an error the out parameter
-            is never changed. In case of a complex init function which can carry its operation
-            out only on the original out parameter it is allowed to operate on the out parameter directly.
-            In case the coomplex operation fails at some point in time the init function must ensure that
-            the out parameter is reset to a FREEABLE (free can called without error) state.
+            is only valid if the function returns success. In case of a complex init function which can
+            carry out its operation only on the original out parameter it is allowed to operate on the out
+            parameter directly. In case the complex operation fails at some point in time the init function
+            must ensure that the out parameter is reset to a FREEABLE (free be can called without error) state.
+            *07 Aug 2012*new* In case of an error the value should be set to a cleared / FREEABLE state.
+            This has two advantages. The first is that return values which must be constructed
+            in several steps can use the return parameter as buffer and in case of error call free.
+            The second advantage is that in case no error checking is made the returned value
+            is definitely in a defined freed state.
 /*err*/   - This parameter is only written to and conveys an extended error description.
             The returned value is only valid if the function returns an error.
             In case of success this value is never changed.
@@ -37,7 +46,7 @@ about: Function initializing an object
 
 about: Extended Error Description
 
-> extern int new_regexpression(
+> int new_regexpression(
 >    /*out*/regexpression_t    ** regex,
 >    /*err*/regexpression_err_t * syntax_err,
 >           const char          * definition ) ;
