@@ -149,7 +149,7 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...) __attribute
 
 /* function: resize_cstring
  * Allocates memory and sets length to *new_length*.
- * Access the possibly reallocated buffer with a call to <str_cstring>.
+ * The possibly reallocated buffer can be accessed with a call to <str_cstring>.
  * If the new length is bigger than the current length the buffer
  * will contain "random" characters. */
 int resize_cstring(cstring_t * cstr, size_t new_length) ;

@@ -146,18 +146,13 @@ int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, cstri
    size_t      dir_len  = strlen(P_tmpdir) ;
    size_t      name_len = name_prefix ? strlen(name_prefix) : 0 ;
    size_t      tmpsize  = dir_len + name_len + 1 + 7 + 1 ;
-   cstring_t   buffer   = cstring_INIT_FREEABLE ;
-   cstring_t * tmppath  = &buffer ;
+   cstring_t   buffer   = cstring_INIT ;
+   cstring_t * tmppath  = dir_path ? dir_path : &buffer ;
 
-   if (dir_path) {
-      tmppath = dir_path ;
-      err = allocate_cstring(tmppath, tmpsize) ;
-      if (err) goto ONABORT ;
-      truncate_cstring(tmppath, 0) ;
-   } else {
-      err = init_cstring(tmppath, tmpsize) ;
-      if (err) goto ONABORT ;
-   }
+   err = allocate_cstring(tmppath, tmpsize) ;
+   if (err) goto ONABORT ;
+
+   clear_cstring(tmppath) ;
 
    err = append_cstring(tmppath, dir_len, P_tmpdir) ;
    if (err) goto ONABORT ;
@@ -188,7 +183,7 @@ ONABORT:
    if (mkdpath) {
       rmdir(mkdpath) ;
    }
-   truncate_cstring(tmppath, 0) ;
+   clear_cstring(tmppath) ;
    free_cstring(&buffer) ;
    delete_directory(&newdir) ;
    LOG_ABORT(err) ;

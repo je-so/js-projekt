@@ -405,7 +405,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
       if (err) {
          if (     EAI_OVERFLOW == err
                && dns_name->allocated_size < 4096) {
-            err = allocate_cstring(dns_name, 2*dns_name->allocated_size) ;
+            err = resize_cstring(dns_name, 2*dns_name->allocated_size) ;
             if (err) goto ONABORT ;
             continue ;
          }
@@ -418,6 +418,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    truncate_cstring(dns_name, strlen(str_cstring(dns_name))) ;
    return 0 ;
 ONABORT:
+   clear_cstring(dns_name) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -434,7 +435,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
       if (err) {
          if (     EAI_OVERFLOW == err
                && dns_name->allocated_size < 4096) {
-            err = allocate_cstring(dns_name, 2*dns_name->allocated_size) ;
+            err = resize_cstring(dns_name, 2*dns_name->allocated_size) ;
             if (err) goto ONABORT ;
             continue ;
          }
@@ -447,6 +448,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    truncate_cstring(dns_name, strlen(str_cstring(dns_name))) ;
    return 0 ;
 ONABORT:
+   clear_cstring(dns_name) ;
    LOG_ABORT(err) ;
    return err ;
 }
@@ -463,7 +465,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
       if (err) {
          if (     EAI_OVERFLOW == err
                && numeric_name->allocated_size < 4096) {
-            err = allocate_cstring(numeric_name, 2*numeric_name->allocated_size) ;
+            err = resize_cstring(numeric_name, 2*numeric_name->allocated_size) ;
             if (err) goto ONABORT ;
             continue ;
          }
@@ -476,6 +478,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
    truncate_cstring(numeric_name, strlen(str_cstring(numeric_name))) ;
    return 0 ;
 ONABORT:
+   clear_cstring(numeric_name) ;
    LOG_ABORT(err) ;
    return err ;
 }
