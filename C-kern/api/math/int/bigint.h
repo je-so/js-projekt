@@ -52,9 +52,12 @@ int unittest_math_int_biginteger(void) ;
  * Only basic arithmetic operations are supported.
  *
  * Result of an operation:
- * If the *result* parameter of an operation is of type
- * pointer to pointer to <bigint_t> it is reallocated in case
- * the preallocated size is not big enough.
+ * The *result* parameter of an operation is reallocated in case
+ * the preallocated size is not big enough and if it is of type pointer to pointer to <bigint_t>.
+ * In case of an error the result parameter will be either left untouched, contains the correct
+ * result, or it will be cleared.
+ * Clearing the result is necessary if it is computed digit by digit and an error occurs
+ * before the last digit could be computed.
  *
  * Returned Error Codes:
  * EOVERFLOW - If an operation needs more digits than <nrdigitsmax_bigint> to represent the
@@ -188,6 +191,10 @@ int sign_bigint(const bigint_t * big) ;
 double todouble_bigint(const bigint_t * big) ;
 
 // group: assign
+
+/* function: clear_bigint
+ * Sets the value to 0. */
+void clear_bigint(bigint_t * big) ;
 
 /* function: copy_bigint
  * Copies the value from *copyfrom* to *big*.
