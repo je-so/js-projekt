@@ -4004,21 +4004,126 @@ ONABORT:
    return EINVAL ;
 }
 
+/* function: test_example1
+ * Evaluate f(a = 77617, b = 33096)
+ * > f = 333.75*pow(b,6) + pow(a,2)*(11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4) - 2) + 5.5*pow(b,8) + a
+ *
+ * Exact result:
+ * f(a = 77617, b = 33096) == 77615.00
+ * */
 static int test_example1(void)
 {
-   // evaluate f(a = 77617, b = 33096)
-   // f = 333.75*pow(b,6) + pow(a,2)*(11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4) - 2) + 5.5*pow(b,8) + a/(2*b)
-   // exact result: - (54767 / 66192)
+   decimal_t   * dec[5] = { 0, 0 } ;
+   cstring_t   cstr     = cstring_INIT ;
 
-   long double a = 77617 ;
-   long double b = 33096 ;
+   // prepare
+   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+      TEST(0 == new_decimal(&dec[i], nrdigitsmax_decimal())) ;
+   }
 
-   long double f = 2 * b * (333.75*powl(b,6) + powl(a,2)*(11*powl(a,2)*powl(b,2) - powl(b,6) - 121*powl(b,4) - 2) + 5.5*powl(b,8)) + a ;
+   const long double a = 77617 ;
+   const long double b = 33096 ;
 
-   TEST(f != -54767) ;
+   // calculation with long double
+   long double f = 333.75*powl(b,6) + powl(a,2)*(11*powl(a,2)*powl(b,2) - powl(b,6) - 121*powl(b,4) - 2) + 5.5*powl(b,8) + a ;
+   TEST(f != 77615) ;
+
+   // calculate: dec[0] == 11*pow(a,2)*pow(b,2)
+   TEST(0 == setfromint32_decimal(&dec[0], 11, 0)) ;
+   TEST(0 == setfromint32_decimal(&dec[1], (int32_t)a, 0)) ;
+   for (unsigned i = 0; i < 2; ++i) {
+      TEST(0 == mult_decimal(&dec[2], dec[1], dec[0])) ;
+      TEST(0 == copy_decimal(&dec[0], dec[2])) ;
+   }
+   TEST(0 == setfromint32_decimal(&dec[1], (int32_t)b, 0)) ;
+   for (unsigned i = 0; i < 2; ++i) {
+      TEST(0 == mult_decimal(&dec[2], dec[1], dec[0])) ;
+      TEST(0 == copy_decimal(&dec[0], dec[2])) ;
+   }
+   TEST(0 == tocstring_decimal(dec[0], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "72586759116001040064")) ;
+   // calculate: dec[1] == pow(b,6)
+   TEST(0 == setfromint32_decimal(&dec[1], 1, 0)) ;
+   TEST(0 == setfromint32_decimal(&dec[2], (int32_t)b, 0)) ;
+   for (unsigned i = 0; i < 6; ++i) {
+      TEST(0 == mult_decimal(&dec[3], dec[2], dec[1])) ;
+      TEST(0 == copy_decimal(&dec[1], dec[3])) ;
+   }
+   TEST(0 == tocstring_decimal(dec[1], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "1314174534371215466459037696")) ;
+   // calculate: dec[2] == 11*pow(a,2)*pow(b,2) - pow(b,6)
+   TEST(0 == sub_decimal(&dec[2], dec[0], dec[1])) ;
+   TEST(0 == tocstring_decimal(dec[2], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "-1314174461784456350457997632")) ;
+   // calculate: dec[0] == 121*pow(b,4)
+   TEST(0 == setfromint32_decimal(&dec[0], 121, 0)) ;
+   TEST(0 == setfromint32_decimal(&dec[1], (int32_t)b, 0)) ;
+   for (unsigned i = 0; i < 4; ++i) {
+      TEST(0 == mult_decimal(&dec[3], dec[1], dec[0])) ;
+      TEST(0 == copy_decimal(&dec[0], dec[3])) ;
+   }
+   TEST(0 == tocstring_decimal(dec[0], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "145173518207904485376")) ;
+   // calculate: dec[1] == 11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4)
+   TEST(0 == sub_decimal(&dec[1], dec[2], dec[0])) ;
+   TEST(0 == tocstring_decimal(dec[1], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "-1314174606957974558362483008")) ;
+   // calculate: dec[0] == 11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4) -2
+   TEST(0 == setfromint32_decimal(&dec[2], 2, 0)) ;
+   TEST(0 == sub_decimal(&dec[0], dec[1], dec[2])) ;
+   TEST(0 == tocstring_decimal(dec[0], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "-131417460695797455836248301e1")) ;
+   // calculate: dec[0] == (11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4) -2)*powl(a,2)
+   TEST(0 == setfromint32_decimal(&dec[2], (int32_t)a, 0)) ;
+   TEST(0 == mult_decimal(&dec[1], dec[2], dec[0])) ;
+   TEST(0 == mult_decimal(&dec[0], dec[2], dec[1])) ;
+   TEST(0 == tocstring_decimal(dec[0], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "-791711177927471220749429663222877389e1")) ;
+   // calculate: dec[1] == 333.75*powl(b,6)
+   TEST(0 == setfromint32_decimal(&dec[1], 33375, -2)) ;
+   TEST(0 == setfromint32_decimal(&dec[2], (int32_t)b, 0)) ;
+   for (unsigned i = 0; i < 6; ++i) {
+      TEST(0 == mult_decimal(&dec[3], dec[2], dec[1])) ;
+      TEST(0 == copy_decimal(&dec[1], dec[3])) ;
+   }
+   TEST(0 == tocstring_decimal(dec[1], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "43860575084639316193070383104e1")) ;
+   // calculate: dec[2] == 333.75*powl(b,6) + (11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4) -2)*powl(a,2)
+   TEST(0 == add_decimal(&dec[2], dec[0], dec[1])) ;
+   TEST(0 == tocstring_decimal(dec[2], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "-791711134066896136110113470152494285e1")) ;
+   // calculate: dec[0] == 5.5*powl(b,8)
+   TEST(0 == setfromint32_decimal(&dec[0], 55, -1)) ;
+   TEST(0 == setfromint32_decimal(&dec[1], (int32_t)b, 0)) ;
+   for (unsigned i = 0; i < 8; ++i) {
+      TEST(0 == mult_decimal(&dec[3], dec[0], dec[1])) ;
+      TEST(0 == copy_decimal(&dec[0], dec[3])) ;
+   }
+   TEST(0 == tocstring_decimal(dec[0], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "7917111340668961361101134701524942848")) ;
+   // calculate: dec[1] == 5.5*powl(b,8) + 333.75*powl(b,6) + (11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4) -2)*powl(a,2)
+   TEST(0 == add_decimal(&dec[1], dec[2], dec[0])) ;
+   TEST(0 == tocstring_decimal(dec[1], &cstr)) ;
+   TEST(0 == strcmp(str_cstring(&cstr), "-2")) ;
+   // calculate: dec[0] == a + 5.5*powl(b,8) + 333.75*powl(b,6) + (11*pow(a,2)*pow(b,2) - pow(b,6) - 121*pow(b,4) -2)*powl(a,2)
+   TEST(0 == setfromint32_decimal(&dec[2], (int32_t)a, 0)) ;
+   TEST(0 == add_decimal(&dec[0], dec[2], dec[1])) ;
+   TEST(0 == tocstring_decimal(dec[0], &cstr)) ;
+   // compare result
+   TEST(0 == strcmp(str_cstring(&cstr), "77615")) ;
+
+   // unprepare
+   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+      TEST(0 == delete_decimal(&dec[i])) ;
+   }
+   TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
 ONABORT:
+   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+      delete_decimal(&dec[i]) ;
+   }
+   free_cstring(&cstr) ;
    return EINVAL ;
 }
 
