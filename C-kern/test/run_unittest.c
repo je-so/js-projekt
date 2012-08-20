@@ -246,6 +246,7 @@ int run_unittest(void)
 
 //{ math unittest
       RUN(unittest_math_floatingpointunit) ;
+      RUN(unittest_math_float_decimal) ;
       RUN(unittest_math_hash_sha1) ;
       RUN(unittest_math_int_abs) ;
       RUN(unittest_math_int_biginteger) ;

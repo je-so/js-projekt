@@ -512,7 +512,7 @@ static void mult_biginthelper(bigint_t * big, uint16_t lnrdigits, const uint32_t
       digits[lnrdigits] = carry ;
    }
 
-   size -= (0 == carry) ; // if no carry occurred => make result one digit smaller
+   size -= (0 == carry) ; // if no carry occurred make result one digit smaller
    big->sign_and_used_digits = (int16_t) size ;
    big->exponent             = exponent ;
 

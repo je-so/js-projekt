@@ -97,6 +97,9 @@
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/math/fpu.h"/>
+      <VirtualDirectory Name="float">
+        <File Name="../../C-kern/api/math/float/decimal.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="aspect">
       <VirtualDirectory Name="callback">
@@ -346,6 +349,9 @@
       <File Name="../../C-kern/math/hash/sha1.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/math/fpu.c"/>
+    <VirtualDirectory Name="float">
+      <File Name="../../C-kern/math/float/decimal.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>
