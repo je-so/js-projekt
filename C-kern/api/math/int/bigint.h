@@ -210,6 +210,10 @@ void setfromint32_bigint(bigint_t * big, int32_t value) ;
  * Sets the value of big to the positive value of the provided parameter . */
 void setfromuint32_bigint(bigint_t * big, uint32_t value) ;
 
+/* function: setfromuint64_bigint
+ * Sets the value of big to the positive value of the provided parameter . */
+void setfromuint64_bigint(bigint_t * big, uint64_t value) ;
+
 /* function: setfromdouble_bigint
  * Sets the value of big to the integer value of the provided parameter.
  * The fractional part is discarded.

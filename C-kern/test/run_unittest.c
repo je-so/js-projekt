@@ -149,10 +149,10 @@ static void prepare_test(void)
    // preallocate some memory
    // TODO: remove line if own memory subsystem instead of malloc
    resourceusage_t   usage[2000]  = { resourceusage_INIT_FREEABLE } ;
-   for(unsigned i = 0; i < nrelementsof(usage); ++i) {
+   for (unsigned i = 0; i < nrelementsof(usage); ++i) {
       (void) init_resourceusage(&usage[i]) ;
    }
-   for(unsigned i = 0; i < nrelementsof(usage); ++i) {
+   for (unsigned i = 0; i < nrelementsof(usage); ++i) {
       (void) free_resourceusage(&usage[i]) ;
    }
 
@@ -198,7 +198,7 @@ int run_unittest(void)
    unsigned    err_count   = 0 ;
    unsigned    total_count = 0 ;
    const maincontext_e test_context_type[2] = {
-       maincontext_DEFAULT
+      maincontext_DEFAULT
       ,maincontext_DEFAULT
    } ;
 
@@ -214,138 +214,135 @@ int run_unittest(void)
       goto ONABORT ;
    }
 
-for(unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) {
+   for (unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) {
 
-   // init
-   if (init_maincontext(test_context_type[type_nr], 0, 0)) {
-      LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      LOGC_PRINTF(TEST, "%s\n", "Abort reason: initmain_context failed" ) ;
-      goto ONABORT ;
-   }
+      // init
+      if (init_maincontext(test_context_type[type_nr], 0, 0)) {
+         LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+         LOGC_PRINTF(TEST, "%s\n", "Abort reason: initmain_context failed" ) ;
+         goto ONABORT ;
+      }
 
-   prepare_test() ;
-
-   // current development
-   // assert(0) ;
+      prepare_test() ;
 
 //{ context unittest
-   RUN(unittest_context_maincontext) ;
-   RUN(unittest_context_processcontext) ;
-   RUN(unittest_context_threadcontext) ;
+      RUN(unittest_context_maincontext) ;
+      RUN(unittest_context_processcontext) ;
+      RUN(unittest_context_threadcontext) ;
 //}
 
 //{ cache unittest
-   RUN(unittest_cache_objectcache) ;
-   RUN(unittest_cache_valuecache) ;
+      RUN(unittest_cache_objectcache) ;
+      RUN(unittest_cache_valuecache) ;
 //}
 
 //{ data structure unittest
-   RUN(unittest_ds_typeadapter) ;
-   RUN(unittest_ds_inmem_arraysf) ;
-   RUN(unittest_ds_inmem_arraystf) ;
-   RUN(unittest_ds_inmem_binarystack) ;
-   RUN(unittest_ds_inmem_slist) ;
+      RUN(unittest_ds_typeadapter) ;
+      RUN(unittest_ds_inmem_arraysf) ;
+      RUN(unittest_ds_inmem_arraystf) ;
+      RUN(unittest_ds_inmem_binarystack) ;
+      RUN(unittest_ds_inmem_slist) ;
 //}
 
 //{ math unittest
-   RUN(unittest_math_floatingpointunit) ;
-   RUN(unittest_math_hash_sha1) ;
-   RUN(unittest_math_int_abs) ;
-   RUN(unittest_math_int_biginteger) ;
-   RUN(unittest_math_int_log10) ;
-   RUN(unittest_math_int_log2) ;
-   RUN(unittest_math_int_power2) ;
-   RUN(unittest_math_int_sign) ;
+      RUN(unittest_math_floatingpointunit) ;
+      RUN(unittest_math_hash_sha1) ;
+      RUN(unittest_math_int_abs) ;
+      RUN(unittest_math_int_biginteger) ;
+      RUN(unittest_math_int_log10) ;
+      RUN(unittest_math_int_log2) ;
+      RUN(unittest_math_int_power2) ;
+      RUN(unittest_math_int_sign) ;
 //}
 
 //{ memory unittest
-   RUN(unittest_memory_memblock) ;
-   RUN(unittest_memory_wbuffer) ;
-   RUN(unittest_memory_manager_test) ;
-   RUN(unittest_memory_manager_transient) ;
+      RUN(unittest_memory_memblock) ;
+      RUN(unittest_memory_wbuffer) ;
+      RUN(unittest_memory_manager_test) ;
+      RUN(unittest_memory_manager_transient) ;
 //}
 
 //{ string unittest
-   RUN(unittest_string) ;
-   RUN(unittest_string_convertwchar) ;
-   RUN(unittest_string_cstring) ;
-   RUN(unittest_string_base64encode) ;
-   RUN(unittest_string_urlencode) ;
-   RUN(unittest_string_utf8) ;
+      RUN(unittest_string) ;
+      RUN(unittest_string_convertwchar) ;
+      RUN(unittest_string_cstring) ;
+      RUN(unittest_string_base64encode) ;
+      RUN(unittest_string_urlencode) ;
+      RUN(unittest_string_utf8) ;
 //}
 
 //{ test unittest
-   RUN(unittest_test_errortimer) ;
-   RUN(unittest_test_functions) ;
-   RUN(unittest_test_resourceusage) ;
+      RUN(unittest_test_errortimer) ;
+      RUN(unittest_test_functions) ;
+      RUN(unittest_test_resourceusage) ;
 //}
 
 //{ time unittest
-   RUN(unittest_time_clock) ;
+      RUN(unittest_time_clock) ;
 //}
 
 //{ writer unittest
-   RUN(unittest_io_writer_log_logwriter) ;
-   RUN(unittest_io_writer_log_logmain) ;
+      RUN(unittest_io_writer_log_logwriter) ;
+      RUN(unittest_io_writer_log_logmain) ;
 //}
 
 //{ platform unittest
-   // io
-   RUN(unittest_io_filedescr) ;
-   RUN(unittest_io_iocontroler) ;
-   RUN(unittest_io_iotimer) ;
-   RUN(unittest_io_url) ;
-   // io/filesystem
-   RUN(unittest_io_directory) ;
-   RUN(unittest_io_file) ;
-   RUN(unittest_io_mmfile) ;
-   // io/ip
-   RUN(unittest_io_ipaddr) ;
-   RUN(unittest_io_ipsocket) ;
-   // io/reader
-   RUN(unittest_io_reader_utf8reader) ;
-   // sync unittest
-   RUN(unittest_platform_sync_mutex) ;
-   RUN(unittest_platform_sync_semaphore) ;
-   RUN(unittest_platform_sync_signal) ;
-   RUN(unittest_platform_sync_waitlist) ;
-   // task unittest
-   RUN(unittest_platform_task_exothread) ;
-   RUN(unittest_platform_task_exoscheduler) ;
-   RUN(unittest_platform_task_threadpool) ;
-   // other
-   RUN(unittest_platform_locale) ;
-   RUN(unittest_platform_malloc) ;
-   RUN(unittest_platform_process) ;
-   RUN(unittest_platform_thread) ;
-   RUN(unittest_platform_virtualmemory) ;
-   // database subsystem
-   RUN(unittest_platform_index_redblacktree) ;
-   RUN(unittest_platform_index_splaytree) ;
-   // user interface subsystem
+      // io
+      RUN(unittest_io_filedescr) ;
+      RUN(unittest_io_iocontroler) ;
+      RUN(unittest_io_iotimer) ;
+      RUN(unittest_io_url) ;
+      // io/filesystem
+      RUN(unittest_io_directory) ;
+      RUN(unittest_io_file) ;
+      RUN(unittest_io_mmfile) ;
+      // io/ip
+      RUN(unittest_io_ipaddr) ;
+      RUN(unittest_io_ipsocket) ;
+      // io/reader
+      RUN(unittest_io_reader_utf8reader) ;
+      // sync unittest
+      RUN(unittest_platform_sync_mutex) ;
+      RUN(unittest_platform_sync_semaphore) ;
+      RUN(unittest_platform_sync_signal) ;
+      RUN(unittest_platform_sync_waitlist) ;
+      // task unittest
+      RUN(unittest_platform_task_exothread) ;
+      RUN(unittest_platform_task_exoscheduler) ;
+      RUN(unittest_platform_task_threadpool) ;
+      // other
+      RUN(unittest_platform_locale) ;
+      RUN(unittest_platform_malloc) ;
+      RUN(unittest_platform_process) ;
+      RUN(unittest_platform_thread) ;
+      RUN(unittest_platform_virtualmemory) ;
+      // database subsystem
+      RUN(unittest_platform_index_redblacktree) ;
+      RUN(unittest_platform_index_splaytree) ;
+      // user interface subsystem
 #define HTML5  1
 #define X11    2
 #if ((KONFIG_USERINTERFACE)&HTML5)
 #endif
 #if ((KONFIG_USERINTERFACE)&X11)
-   RUN(unittest_presentation_X11) ;
-   RUN(unittest_presentation_X11_display) ;
-   RUN(unittest_presentation_X11_glxwindow) ;
+      RUN(unittest_presentation_X11) ;
+      RUN(unittest_presentation_X11_display) ;
+      RUN(unittest_presentation_X11_glxwindow) ;
 #endif
 #undef HTML5
 #undef X11
 //}
 
 
-   LOG_CLEARBUFFER() ;
+      LOG_CLEARBUFFER() ;
 
-   if (free_maincontext()) {
-      LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      LOGC_PRINTF(TEST, "%s\n", "Abort reason: freemain_context failed" ) ;
-      goto ONABORT ;
+      if (free_maincontext()) {
+         LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+         LOGC_PRINTF(TEST, "%s\n", "Abort reason: freemain_context failed" ) ;
+         goto ONABORT ;
+      }
+
    }
-
-}
 
 ONABORT:
 

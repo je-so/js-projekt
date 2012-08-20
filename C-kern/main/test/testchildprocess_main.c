@@ -75,7 +75,7 @@ int main(int argc, const char * argv[])
 
    int testcase = atoi(argv[1]) ;
 
-   switch( testcase ) {
+   switch (testcase) {
    case testcase_RETURNEXITCODE:
       check_argc(argc, 3) ;
       testcase_returnexitcode(atoi(argv[2])) ;

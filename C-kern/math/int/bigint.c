@@ -39,24 +39,43 @@
 #endif
 
 
+/* typedef: struct bigint_divstate_t
+ * Export <bigint_divstate_t> into global namespace. */
+typedef struct bigint_divstate_t       bigint_divstate_t ;
+
+
+/* struct: bigint_divstate_t
+ * Used in <divmod_biginthelper> to store current state of division computation. */
+struct bigint_divstate_t {
+   uint64_t       dividend ;
+   const uint64_t divisor ;
+   uint32_t       nextdigit ;
+   uint16_t       loffset ;
+   const uint16_t lnrdigits ;
+   const uint16_t rnrdigits ;
+   uint32_t       * const ldigits ;
+   const uint32_t * const rdigits ;
+} ;
+
+
 // section: bigint_t
 
 // group: helper
 
-#define print_biginthelper(big)                                \
-      {                                                        \
-            uint16_t _i = nrdigits_bigint(big) ;               \
-            while (_i > 0 && 0 == big->digits[_i-1]) --_i ;    \
-            if (_i) {                                          \
-               while (_i > 0) {                                \
-                  -- _i ;                                      \
-                  printf("%u: %x\n", _i, big->digits[_i]) ;    \
-               }                                               \
-            } else {                                           \
-               printf("0: 0\n") ;                              \
-            }                                                  \
-            printf("-----\n") ;                                \
-      }                                                        \
+#define print_biginthelper(big)                          \
+   {                                                     \
+      uint16_t _i = nrdigits_bigint(big) ;               \
+      while (_i > 0 && 0 == big->digits[_i-1]) --_i ;    \
+      if (_i) {                                          \
+         while (_i > 0) {                                \
+            -- _i ;                                      \
+            printf("%u: %x\n", _i, big->digits[_i]) ;    \
+         }                                               \
+      } else {                                           \
+         printf("0: 0\n") ;                              \
+      }                                                  \
+      printf("-----\n") ;                                \
+   }
 
 static inline uint32_t objectsize_bigint(uint16_t allocated_digits)
 {
@@ -71,7 +90,7 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
 
    // check that allocate_digits can be cast to int16_t (so sign_and_used_digits does not overflow)
    if (allocate_digits > INT16_MAX) {
-      static_assert(    0 > (typeof((*big)->sign_and_used_digits))-1
+      static_assert( 0 > (typeof((*big)->sign_and_used_digits))-1
                      && 2 == sizeof((*big)->sign_and_used_digits), "Test sign_and_used_digits is of type INT16") ;
       err = EOVERFLOW ;
       goto ONABORT ;
@@ -81,7 +100,7 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
    uint32_t oldobjsize = oldbig ? objectsize_bigint(oldbig->allocated_digits) : 0 ;
 
    if (  oldbig
-      && !oldbig->allocated_digits) {
+         && !oldbig->allocated_digits) {
       // bigint_fixed_t can not be reallocated
       err = EINVAL ;
       goto ONABORT ;
@@ -115,7 +134,7 @@ ONABORT:
  * This function uses bit operations on signed integers which is implementation-defined. */
 static inline int16_t xorsign_biginthelper(int16_t lsign, int16_t rsign)
 {
-   return lsign ^ rsign ;
+   return (int16_t) (lsign ^ rsign) ;
 }
 
 /* function: add_biginthelper
@@ -215,6 +234,7 @@ static int add_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
       lnrdigits = (uint16_t) (lnrdigits - expdiff) ; // result always >= 0 cause lbig has at least rsize(possibly 0) more digits
       ldigits  += expdiff ;
       destdigits += expdiff ;
+
    } else if (expdiff > 0) {
       // simple copy
       if (rnrdigits < expdiff) {
@@ -679,10 +699,10 @@ static int divisorisbigger_biginthelper(bigint_t *restrict* divresult, bigint_t 
       // (lbig == 0)
 
       if (divresult) {
-         setfromuint32_bigint(*divresult, 0) ;
+         clear_bigint(*divresult) ;
       }
       if (modresult) {
-         setfromuint32_bigint(*modresult, 0) ;
+         clear_bigint(*modresult) ;
       }
 
    } else {
@@ -690,7 +710,7 @@ static int divisorisbigger_biginthelper(bigint_t *restrict* divresult, bigint_t 
       // (lbig != 0)
 
       if (divresult) {
-         setfromuint32_bigint(*divresult, 0) ;
+         clear_bigint(*divresult) ;
       }
       if (modresult) {
          err = copy_bigint(modresult, lbig) ;
@@ -704,175 +724,405 @@ ONABORT:
    return err ;
 }
 
-/* function: estimatedigit2_biginthelper
- * Estimates the next digit of the quotient.
- * The returned number is (dividend / divisor).
+/* function: div3by2digits_biginthelper
+ * Divides 3 32 bit integer digits by 2 32 bit integer digits.
+ * The returned number in nextdigit is ((((uint128_t)dividend << 32) + nextdigit) / divisor).
+ * The returned value is used to estimate the next digit of the quotient.
+ * It is either correct or one too large.
  *
- * The estimated digit is either correct or one too large.
+ * After return the dividend contains the remainder of the division also.
  *
- * Proof:
- * 1. divisor[1..2] * estimated_digit <= dividend
- * 2. divisor[1..len] * estimated_digit - divisor[1..2] * estimated_digit < estimated_digit * pow(base, len - 2)
- * 3. divisor[1..len] * estimated_digit < dividend + estimated_digit * pow(base, divisor_length - 2)
- * 4. divisor[1..len] * estimated_digit - estimated_digit * pow(base, divisor_length - 2) < dividend
- * 5. divisor[1..len] > pow(base, len - 2) =>
- * 6. divisor[1..len] * estimated_digit - estimated_digit * divisor[1..len] < dividend
- * 7. divisor[1..len] * (estimated_digit - 1) < dividend
+ * (unchecked) Precondition:
+ * 1. dividend < divisor                            ==> nextdigit <= UINT32_MAX
+ * 2. dividend > UINT32_MAX && divisor > UINT32_MAX ==> "nextdigit either correct or one too large"
  * */
-static uint32_t estimatedigit2_biginthelper(const uint64_t dividend, const uint64_t divisor)
+static void div3by2digits_biginthelper(bigint_divstate_t * state)
 {
-   uint32_t estimated_digit ;
-
-   if (dividend == divisor) {
-
-      estimated_digit = 1 ;
-   } else if (dividend < divisor) {
-
-      estimated_digit = 0 ;
-   } else /*(dividend > divisor)*/ {
-
-      // calculate:  dividend / divisor
-      const unsigned shift_left = (63u ^ log2_int(divisor)) ;
-      uint64_t denominator = divisor << shift_left ;
-      uint64_t numerator   = dividend ;
-
-      estimated_digit = 0 ;
-      for (unsigned i = shift_left; i > 0; --i) {
-         if (numerator >= denominator) {
-            numerator -= denominator ;
-            ++ estimated_digit ;
-         }
-
-         denominator >>= 1 ;
-         estimated_digit <<= 1 ;
-      }
-
-      if (numerator >= denominator) {
-         ++ estimated_digit ;
-      }
-   }
-
-   return estimated_digit ;
-}
-
-/* function: estimatedigit3_biginthelper
- * Estimates the next digit of the quotient.
- * The returned number is ((((uint128_t)dividend << 32) + dividend2) / divisor).
- *
- * The estimated digit is either correct or one too large.
- *
- * Precondition:
- * 1. dividend <= divisor
- *
- * Special case (dividend == divisor):
- * In this case the returned value is UINT32_MAX and not the correct value (UINT32_MAX+1).
- * This special case can only occur if <estimatedigit2_biginthelper> estimated 1 (dividend == divisor)
- * but <submul_biginthelper> corrected this value to 0. (UINT32_MAX+1) is therefore too large for the
- * estimated digit and the returned value of UINT32_MAX is therefore the correct one.
- *
- * */
-static uint32_t estimatedigit3_biginthelper(const uint64_t dividend, const uint32_t dividend2, const uint64_t divisor)
-{
-   uint32_t estimated_digit = 0 ;
-
-   uint64_t numerator  = dividend ;
-   uint32_t numerator2 = dividend2 ;
+   uint32_t quot = 0 ;
 
    for (unsigned i = 32; i > 0; --i) {
-      estimated_digit <<= 1 ;
+      quot <<= 1 ;
 
-      bool isHighbit = (0 != (numerator & (uint64_t)0x8000000000000000)) ;
-      numerator <<= 1 ;
+      bool isHighbit = (0 != ((state->dividend) & (uint64_t)0x8000000000000000)) ;
+      state->dividend <<= 1 ;
 
-      if (0 != (numerator2 & 0x80000000)) {
-         ++ numerator ;
-      }
-      numerator2 <<= 1 ;
+      state->dividend  += (0 != (state->nextdigit & 0x80000000)) ;
+      state->nextdigit <<= 1 ;
 
       if (  isHighbit
-         || numerator >= divisor) {
-         ++ estimated_digit ;
-         numerator -= divisor ;
+            || state->dividend >= state->divisor) {
+         ++ quot ;
+         state->dividend -= state->divisor ;
       }
    }
 
-   return estimated_digit ;
+   state->nextdigit = quot ;
+   return ;
 }
 
 /* function: submul_biginthelper
- * Multiplied estimated_digit with divisor and subtract it from diff.
- * The calculated difference is
- * >> diff = diff - (estimated_digit * divisor * pow(base, leftshift)) ;
- * It is returned in diff. If this difference is negative
- * estimated_digit is decremented and diff is incremented by 1 * divisor.
+ * Computes ldigits[*]-=nextdigit*rdigits[*] and corrects nextdigits with -1 if necessary.
+ * The factor nextdigit is corrected in case it is too high (see first precondition).
  *
- * The corrected estimated_digit is returned as return value.
+ * Special case (nextdigit==0):
+ * Use nextdigit == UINT32_MAX and assume that correction is not needed.
+ * This is called after nextdigit is corrected from 1 to 0 ==> dividend == divisor.
+ * The next step is to compute  ((dividend * (UINT32_MAX+1)) + nextdigit) / divisor which would result in UINT32_MAX+1
+ * and can not be represented with nextdigit. But with the previous correction from 1 to 0 we already know that
+ * factor (UINT32_MAX+1) is too big and UINT32_MAX is the correct choice. But calculating (with dividend==divisor)
+ * > dividend = ((dividend * (UINT32_MAX+1)) + nextdigit) - UINT32_MAX * divisor
+ * results in
+ * > dividend = dividend + nextdigit
+ * which could overflow dividend. In the case of overflow the carry bit is ignored.
+ * In the implementation the computation subtracts a correction value from dividend
+ * but a possible underflow is ignored cause if the missing carry bit. But we already know UINT32_MAX is the correct
+ * next digit.
  *
- * The parameter *diff_has_carry* is used to communicate the following:
- * true  - The number *estimated_digit* is constructed from 3 digits from diff. The number *diff* has
- *         one more digit to the left than *divisor* shifted left by *leftshift*.
- * false - The number *estimated_digit* is constructed from 2 digits from diff. The number *diff* has
- *         the same number of digits than *divisor* shifted left by *leftshift*.
+ * Special case (nextdigit==1):
+ * No multiplication needed and returned corrected nextdigit could become 0.
  *
- * Preconditions:
- * 1. The big integer diff must have an exponent value which is 0.
- * 2. The shifted divisor (multiplying it with pow(base, leftshift)) must be lower
- *    or equal than diff.
- * 3. *estimated_digit > 0.
- * 4. (*estimated_digit - 1) * divisor * pow(base,leftshit) < diff
- * 5. diff must have an extra digit set to 0 for carry overflow
+ * (unchecked) Preconditions:
+ * 1. (nextdigit+1)*rdigits[*] > ldigits[*]
+ * 2. (nextdigit*rdigits[*])  <= ldigits[*] || (nextdigit-1)*rdigits[*] <= ldigits[*]
  * */
-static uint32_t submul_biginthelper(bigint_t * diff, const bool diff_has_carry, uint32_t estimated_digit, const uint32_t leftshift, const uint16_t divnrdigits, const bigint_t * divisor)
+static void submul_biginthelper(bigint_divstate_t * state)
 {
-   uint16_t diffoffset   = (uint16_t) (leftshift + divisor->exponent) ;
+   /*    ╭────────────┬───┬───┬──────────────────┬─────────────────╮
+    *    │ ldigits[F] │...│[L]│   0  [loffset]   │  0 [loffset+1]  │
+    *    ╰────────────┴───┴───┴──────────────────┴─────────────────╯
+    *  - ╭────────────┬───┬───┬──────────────────┬─────────────────╮
+    *    │ rdigits[0] │...│...│ rdigits[rsize-2] │ rdigits[rsize-1]│
+    *    ╰────────────┴───┴───┴──────────────────┴─────────────────╯
+    * ================================================================
+    *    ╭────────────┬───┬───┬──────────────────┬─────────────────╮
+    *    │ ldigits[F] │...│[L]│              dividend              │
+    *    ╰────────────┴───┴───┴──────────────────┴─────────────────╯
+    *         the result of the 2 topmost digits is already computed and stored in dividend
+    *         ldigits[loffset] and ldigits[loffset+1] are set to 0 (ringbuffer)
+    * where F(irst) = loffset - (rsize-2)
+    *       L(ast)  = loffset - 1
+    *
+    * (rsize == 2) ==> nothing must be computed, dividend contains the result
+    * */
 
-   uint32_t factor = estimated_digit ;
-   uint32_t carry = 0 ;
+   if (state->rnrdigits > 2) {
+      uint32_t       carry     = 0 ;
+      const uint32_t * rdigits = state->rdigits ;
+      int32_t        i ;
 
-   for (uint16_t i = 0; i < divnrdigits; ++i) {
-      uint64_t product ;
+      i = state->loffset + (int32_t)2 - state->rnrdigits ;
+      if (i < 0) i += state->lnrdigits ; /*(state->lnrdigits >= state->rnrdigits) ==> i > 0 && i < lnrdigits*/
 
-      product  = divisor->digits[i] ;
-      product *= factor ;
-      product += carry ;
+      if (  state->nextdigit > 1) {
+         for (; i != state->loffset; ++i, ++rdigits) {
+            if (i == state->lnrdigits) i = 0 ; // ringbuffer
 
-      uint64_t ddiff = diff->digits[diffoffset + i] ;
-      ddiff -= (uint32_t) product ;
-      diff->digits[diffoffset + i] = (uint32_t) ddiff ;
+            static_assert( (uint64_t)UINT32_MAX * UINT32_MAX + UINT32_MAX == 0xffffffff00000000, "product does not overflow") ;
+            uint64_t product = rdigits[0] * (uint64_t)state->nextdigit + carry ;
+            uint32_t diff    = state->ldigits[i] ;
 
-      carry  = (uint32_t) (product >> 32) + (ddiff > UINT32_MAX) ;
-   }
-
-   if (carry) {
-
-      bool needCorrection = !diff_has_carry ;
-
-      if (!needCorrection) {
-         needCorrection = (diff->digits[diffoffset + divnrdigits] < carry) ;
-         diff->digits[diffoffset + divnrdigits] -= carry ;
-      }
-
-      if (needCorrection) {
-         -- factor ;
-
-         carry = 0 ;
-         for (uint16_t i = 0; i < divnrdigits; ++i) {
-
-            uint64_t sum = divisor->digits[i] ;
-            sum += carry ;
-            sum += diff->digits[diffoffset + i] ;
-            diff->digits[diffoffset + i] = (uint32_t) sum ;
-
-            carry  = (sum > UINT32_MAX) ;
+            carry  = (diff < (uint32_t)product) + (uint32_t) (product >> 32) ;
+            diff  -= (uint32_t) product ;
+            state->ldigits[i] = diff ;
          }
 
-         if (diff_has_carry) {
-            diff->digits[diffoffset + divnrdigits] += carry ;
+      } else if (state->nextdigit/*==1*/) {   // no multiplication needed
+         for (; i != state->loffset; ++i, ++rdigits) {
+            if (i == state->lnrdigits) i = 0 ;
+
+            int64_t diff = (int64_t)state->ldigits[i] - rdigits[0] - carry ;
+            carry = (diff < 0) ;
+            state->ldigits[i] = (uint32_t)diff ;
+         }
+
+      } else { // state->nextdigit == 0 // multiply with UINT32_MAX and assume no correction cause dividend could have overflown
+         uint32_t lastdigit = 0 ;
+         // redefine carry to { 0 == "signed carry; value: -1", 1 == "no carry; value: 0", 2 == "carry; value: +1" }
+         ++ carry ; // set carry to 1 which means no carry
+         for (; i != state->loffset; ++i, ++rdigits) {
+            if (i == state->lnrdigits) i = 0 ;
+
+            uint64_t diff = (uint64_t)state->ldigits[i] + rdigits[0] - lastdigit + carry - 1/*signed carry*/ ;
+            lastdigit = rdigits[0] ;
+            carry = (uint32_t)(diff >> 32) + 1u ;  // (diff>>32) in { UINT32_MAX, 0, 1 }
+            state->ldigits[i] = (uint32_t)diff ;
+         }
+
+         state->dividend -= lastdigit ;
+         state->dividend -= 1/*signed carry*/ ;
+         state->dividend += carry ;
+         -- state->nextdigit ;   // set nextdigit to UINT32_MAX
+         carry = 0 ;             // no more correction needed
+      }
+
+
+      if (carry <= state->dividend) {
+         state->dividend -= carry ;
+
+      } else {    // needs correction
+         state->dividend -= carry ;
+         carry   = 0 ;
+         rdigits = state->rdigits ;
+
+         -- state->nextdigit ;   // correction
+
+         i = state->loffset + (int32_t)2 - state->rnrdigits ;
+         if (i < 0) i += state->lnrdigits ; /*(state->lnrdigits >= state->rnrdigits) ==> i > 0 && i < lnrdigits*/
+
+         for (; i != state->loffset; ++i, ++rdigits) {
+            if (i == state->lnrdigits) i = 0 ; // ringbuffer
+
+            uint64_t sum = (uint64_t)state->ldigits[i] + rdigits[0] + carry ;
+            carry = (uint32_t)(sum >> 32) ;
+            state->ldigits[i] = (uint32_t) sum ;
+         }
+         state->dividend += state->divisor ;
+         state->dividend += carry ;
+      }
+   }
+
+   return ;
+}
+
+/* function: divmod_biginthelper
+ * Computes  ldigits[0..lnrdigits-1] = divresult * rdigits[0..rnrdigits-1] + modresult.
+ * After return divresult contains the result of
+ * > ldigits[0..lnrdigits-1]/rdigits[0..rnrdigits-1]
+ * and modresult contains the result of
+ * > ldigits[0..lnrdigits-1] - divresult * rdigits[0..rnrdigits-1].
+ *
+ * (unchecked) Preconditions:
+ * 1. rnrdigits >= 2
+ * 2. lnrdigits >= rnrdigits
+ * 3. divnrdigits > 0 && modnrdigits >= 2 && modnrdigits <= lnrdigits
+ * 4. (divnrdigits != 1) || (modnrdigits == lnrdigits)
+ * 5. divresult == 0 || divresult->allocated_digits >= divnrdigits
+ * 6. divresult == 0 || is_valid(divresult->exponent)
+ * 7. modresult == 0 || modresult->allocated_digits >= modnrdigits
+ * 8. modresult == 0 || is_valid(modresult->exponent)
+ * */
+static void divmod_biginthelper(
+   bigint_t *restrict* divresult,
+   bigint_t *restrict* modresult,
+         uint16_t divnrdigits,      // number of digits which must be computed
+   const uint16_t modnrdigits,      // number of digits of the remainder
+   const int16_t  divsign,          // sign ([-1,+1]) of divresult
+   const int16_t  lsign,            // sign ([-1,+1]) of ldigits (which is the sign of modresult)
+   const uint16_t lnrdigits,        // the number of digits in array ldigits
+   uint32_t       * ldigits,        // the array of digits for the left operand
+   const uint16_t rnrdigits,        // the number of digits in array rdigits
+   const uint32_t * rdigits)        // the array of digits for the right operand
+{
+   bigint_divstate_t state = {
+      .dividend      = ((uint64_t)ldigits[lnrdigits-1] << 32) + ldigits[lnrdigits-2],
+      .divisor       = ((uint64_t)rdigits[rnrdigits-1] << 32) + rdigits[rnrdigits-2],
+      .nextdigit     = 0,
+      .loffset       = lnrdigits,
+      .lnrdigits     = lnrdigits,
+      .rnrdigits     = rnrdigits,
+      .ldigits       = ldigits,
+      .rdigits       = rdigits
+   } ;
+
+   uint32_t * divdigits = 0 ;
+
+   // ldigits is accessed as ringbuffer starting from loffset going to 0
+   // the last read digit is set to 0 to make it appear that ldigits has an inifinite extension of 0 digits
+   state.ldigits[--state.loffset] = 0 ;
+   state.ldigits[--state.loffset] = 0 ;
+   // (lbrdigits >= 2) ==> (loffset >= 0) !
+   if (!state.loffset) state.loffset = state.lnrdigits ;
+
+   if (state.divisor < state.dividend) {
+      state.nextdigit = (uint32_t) (state.dividend / state.divisor) ;
+      state.dividend  = (state.dividend % state.divisor) ;
+      submul_biginthelper(&state) ;
+   } else if (state.divisor == state.dividend) {
+      state.nextdigit = 1 ;
+      state.dividend  = 0 ;
+      submul_biginthelper(&state) ;
+      if (0 == state.nextdigit) {
+         -- divnrdigits ;
+      }
+   } else {
+      -- divnrdigits ;
+   }
+
+   if (divresult) {
+      if (  !divnrdigits) {
+         // divisor > dividend
+         clear_bigint(*divresult) ;
+      } else {
+         (*divresult)->sign_and_used_digits = (int16_t) (divsign < 0 ? - (int32_t) divnrdigits : (int32_t) divnrdigits) ;
+         divdigits = &(*divresult)->digits[divnrdigits] ;
+         if (  state.nextdigit) {
+            *(--divdigits) = state.nextdigit ;
          }
       }
    }
 
-   return factor ;
+   divnrdigits = (uint16_t) (divnrdigits - (0 != state.nextdigit)) ;
+
+   for (; divnrdigits; --divnrdigits) {
+      state.nextdigit = state.ldigits[--state.loffset] ;
+      state.ldigits[state.loffset] = 0 ;
+      if (!state.loffset) state.loffset = state.lnrdigits ;
+
+      if ((uint32_t)(state.dividend >> 32)) {
+         if (state.dividend == state.divisor) {
+            state.dividend += state.nextdigit ;
+            state.nextdigit = 0 ;
+            // dividend = ((dividend * (UINT32_MAX+1)) + nextdigit) - (UINT32_MAX)*divisor == dividend + nextdigit
+            // nextdigit = 0 triggers special case nextdigit == UINT32_MAX cause dividend could have been overflowed
+            // normal handling with correction would not work in case of overflow
+         } else {
+            div3by2digits_biginthelper(&state) ;
+         }
+         submul_biginthelper(&state) ;
+      } else if ((uint32_t)state.dividend) {
+         state.dividend = (state.dividend << 32) + state.nextdigit ;
+
+         if (state.divisor <= state.dividend) {
+            state.nextdigit = (uint32_t) (state.dividend / state.divisor) ;
+            state.dividend  = (state.dividend % state.divisor) ;
+            submul_biginthelper(&state) ;
+         } else {
+            state.nextdigit = 0 ;
+         }
+      } else {
+         state.dividend  = state.nextdigit ;
+         state.nextdigit = 0 ;
+      }
+
+      if (divdigits) *(--divdigits) = state.nextdigit ;
+   }
+
+   if (modresult) {
+      int32_t modnrdigits2 = modnrdigits ;
+      // remove leading zero in modulo result
+      if (!(uint32_t)(state.dividend >> 32)) {
+         -- modnrdigits2 ;
+         if (!(uint32_t)state.dividend) {
+            -- modnrdigits2 ;
+            while (modnrdigits2 > 0 && 0 == state.ldigits[state.loffset-1]) {
+               -- modnrdigits2 ;
+               -- state.loffset ;
+               if (!state.loffset) state.loffset = state.lnrdigits ;
+            }
+         }
+      }
+
+      if (modnrdigits2 <= 0) {
+         clear_bigint(*modresult) ;
+
+      } else {
+         (*modresult)->sign_and_used_digits = (int16_t) (lsign < 0 ? - modnrdigits2 : modnrdigits2) ;
+         if ((uint32_t)(state.dividend >> 32)) {
+            // modnrdigits2 >= 2
+            (*modresult)->digits[--modnrdigits2] = (uint32_t)(state.dividend >> 32) ;
+            (*modresult)->digits[--modnrdigits2] = (uint32_t)state.dividend ;
+         } else if ((uint32_t)state.dividend) {
+            (*modresult)->digits[--modnrdigits2] = (uint32_t)state.dividend ;
+         }
+
+         if (modnrdigits2 > state.loffset) {  // copy all ldigits[loffset-1 .. 0]
+            modnrdigits2 -= state.loffset ;
+            memcpy(&(*modresult)->digits[modnrdigits2], &state.ldigits[0], state.loffset * sizeof((*modresult)->digits[0])) ;
+            state.loffset = state.lnrdigits ;
+         }
+         if (modnrdigits2 > 0) {             // copy part with modnrdigits2 <= loffset
+            memcpy(&(*modresult)->digits[0], &state.ldigits[state.loffset-modnrdigits2], (uint32_t)modnrdigits2 * sizeof((*modresult)->digits[0])) ;
+         }
+      }
+   }
+
+   return ;
+}
+
+/* function: divmodui32_biginthelper
+ * Divides lbig by signed divisor.
+ * The result numbers must be preallocated with correct size.
+ * See »Preconditions« item 4. and 5. for the expected size.
+ * The sign of divresult is set to divsign and the sign of modresult is set to the same sign
+ * as lbig.
+ *
+ * (unchecked) Preconditions:
+ * 1. lnrdigits > 0
+ * 2. divisor > 0
+ * 3. divnrdigits > 0
+ * 4. divresult == 0 || divresult->allocated_digits >= divnrdigits
+ * 5. modresult == 0 || modresult->allocated_digits >= max(1, (lnrdigits - (divnrdigits-1)))
+ * 6. divresult == 0 || is_valid(divresult->exponent)
+ * 7. modresult == 0 || is_valid(modresult->exponent)
+ */
+static void divmodui32_biginthelper(
+   bigint_t *restrict* divresult,
+   bigint_t *restrict* modresult,
+   uint16_t       divnrdigits,
+   const int16_t  divsign,
+   const int16_t  lsign,
+   uint16_t       lnrdigits,
+   const uint32_t * const ldigits,
+   const uint32_t divisor)
+{
+   uint32_t       dhigh        = 0 ;
+   const uint32_t * ltopdigits = &ldigits[lnrdigits] ;
+
+   // handle case where dividend < divisor
+   if (  ltopdigits[-1] < divisor) {
+      dhigh = *(--ltopdigits) ;
+      -- lnrdigits ;
+      -- divnrdigits ;
+   }
+
+   uint32_t * divdigits  = divresult ? &(*divresult)->digits[divnrdigits] : 0 ;
+   uint32_t minnrdigits  = divnrdigits < lnrdigits ? divnrdigits : lnrdigits ;
+   uint32_t nrzerodigits = divnrdigits - minnrdigits ;
+   uint32_t modnrdigits  = 1u + lnrdigits - minnrdigits ;
+
+   while (minnrdigits--) {
+      const uint64_t d    = ((uint64_t)dhigh << 32) + *(--ltopdigits) ;
+      const uint32_t quot = (uint32_t) (d / divisor) ;
+      dhigh = (uint32_t) (d % divisor) ;
+
+      if (divdigits) *(--divdigits) = quot ;
+   }
+
+   for (; dhigh && nrzerodigits; --nrzerodigits) {
+      const uint64_t d    = ((uint64_t)dhigh << 32) ;
+      const uint32_t quot = (uint32_t) (d / divisor) ;
+      dhigh = (uint32_t) (d % divisor) ;
+
+      if (divdigits) *(--divdigits) = quot ;
+   }
+
+   if (divresult) {
+      if (  !divnrdigits) {
+         clear_bigint(*divresult) ;
+      } else {
+         if (nrzerodigits) {
+            memset(&(*divresult)->digits[0], 0, (uint32_t) nrzerodigits * sizeof((*divresult)->digits[0])) ;
+         }
+         (*divresult)->sign_and_used_digits = (int16_t) (divsign < 0 ? - (int32_t) divnrdigits : (int32_t) divnrdigits) ;
+      }
+   }
+
+   if (modresult) {
+      if (0 == dhigh) {
+         // skip leading zero
+         -- modnrdigits ;
+         while (modnrdigits && 0 == ldigits[modnrdigits-1]) --modnrdigits ;
+      }
+      if (!modnrdigits) {
+         clear_bigint(*modresult) ;
+      } else {
+         (*modresult)->sign_and_used_digits = (int16_t) (lsign < 0 ? - (int32_t) modnrdigits : (int32_t) modnrdigits) ;
+         if (dhigh) (*modresult)->digits[--modnrdigits] = dhigh ;
+         memcpy(&(*modresult)->digits[0], &ldigits[0], modnrdigits * sizeof((*modresult)->digits[0])) ;
+      }
+   }
+
+   return ;
 }
 
 // group: lifetime
@@ -963,7 +1213,7 @@ int cmpmagnitude_bigint(const bigint_t * lbig, const bigint_t * rbig)
    /* check for 0 values */
 
    if (  0 == lnrdigits
-      || 0 == rnrdigits) {
+         || 0 == rnrdigits) {
       return sign_int((int32_t)lnrdigits - (int32_t)rnrdigits) ;
    }
 
@@ -1015,28 +1265,28 @@ double todouble_bigint(const bigint_t * big)
 
    switch (digits) {
    case 0:
-            return 0 ;
+      return 0 ;
    case 1:
-            value  = (long double) big->digits[0] ;
-            expadd = 32*big->exponent ;
-            break ;
+      value  = (long double) big->digits[0] ;
+      expadd = 32*big->exponent ;
+      break ;
    case 2:
-            ivalue = ((uint64_t)big->digits[1] << 32) + big->digits[0] ;
-            value  = (long double) ivalue ;
-            expadd = 32*big->exponent ;
-            break ;
+      ivalue = ((uint64_t)big->digits[1] << 32) + big->digits[0] ;
+      value  = (long double) ivalue ;
+      expadd = 32*big->exponent ;
+      break ;
    default:
-            expadd  = 32 * (big->exponent + (int32_t)digits - 2) ;
-            first   = big->digits[digits-1] ;
-            bits    = 31 - log2_int(first) ;
-            expadd -= (int) bits ;
-            ivalue  = ((uint64_t)first << 32) + big->digits[digits-2] ;
-            if (bits) {
-               ivalue <<= bits ;
-               ivalue  |= big->digits[digits-3] >> (32 - bits) ;
-            }
-            value  = (long double) ivalue ;
-            break ;
+      expadd  = 32 * (big->exponent + (int32_t)digits - 2) ;
+      first   = big->digits[digits-1] ;
+      bits    = 31 - log2_int(first) ;
+      expadd -= (int) bits ;
+      ivalue  = ((uint64_t)first << 32) + big->digits[digits-2] ;
+      if (bits) {
+         ivalue <<= bits ;
+         ivalue  |= big->digits[digits-3] >> (32 - bits) ;
+      }
+      value  = (long double) ivalue ;
+      break ;
    }
 
    if (big->sign_and_used_digits < 0) value = -value ;
@@ -1102,6 +1352,22 @@ void setfromuint32_bigint(bigint_t * big, uint32_t value)
    } else {
       big->sign_and_used_digits = 1 ;
       big->digits[0] = value ;
+   }
+
+   big->exponent = 0 ;
+}
+
+void setfromuint64_bigint(bigint_t * big, uint64_t value)
+{
+   if ((uint32_t)(value >> 32)) {
+      big->sign_and_used_digits = 2 ;
+      big->digits[0] = (uint32_t)value ;
+      big->digits[1] = (uint32_t)(value >> 32) ;
+   } else if ((uint32_t)value) {
+      big->sign_and_used_digits = 1 ;
+      big->digits[0] = (uint32_t)value ;
+   } else {
+      big->sign_and_used_digits = 0 ;
    }
 
    big->exponent = 0 ;
@@ -1190,7 +1456,7 @@ int setbigfirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const u
 
    if (0 == size2) {
       // all values are 0
-      setfromuint32_bigint(*big, 0) ;
+      clear_bigint(*big) ;
       return 0 ;
    }
 
@@ -1242,7 +1508,7 @@ int setlittlefirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, cons
 
    if (0 == size2) {
       // all values are 0
-      setfromuint32_bigint(*big, 0) ;
+      clear_bigint(*big) ;
       return 0 ;
    }
 
@@ -1302,8 +1568,8 @@ void removetrailingzero_bigint(bigint_t * big)
    uint16_t rshift   = 0 ;
 
    while (  1 <  nrdigits
-         && 0 == big->digits[rshift]
-         && UINT16_MAX != big->exponent) {
+            && 0 == big->digits[rshift]
+            && UINT16_MAX != big->exponent) {
       ++ rshift ;
       -- nrdigits ;
       ++ big->exponent ;
@@ -1502,7 +1768,7 @@ int multui32_bigint(bigint_t *restrict* result, const bigint_t * lbig, const uin
 
    if (0 == lnrdigits || 0 == factor) {
       // check for multiplication with 0
-      setfromuint32_bigint(*result, 0) ;
+      clear_bigint(*result) ;
       return 0 ;
    }
 
@@ -1592,88 +1858,39 @@ int divmodui32_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresu
 {
    int err ;
 
-   uint16_t lnrdigits   = nrdigits_bigint(lbig) ;
-   uint16_t exponent    = lbig->exponent ;
-   bool     is_divisor_zero = (0 == divisor) ;
-   uint32_t dhigh       = 0 ;
+   uint16_t       lnrdigits = nrdigits_bigint(lbig) ;
+   uint32_t       divsize   = (uint32_t)lnrdigits + lbig->exponent ;
+   const uint32_t * ldigits = lbig->digits ;
 
-   VALIDATE_INPARAM_TEST(false == is_divisor_zero, ONABORT, ) ;
+   const bool is_divisor_not_zero = (0 != divisor) ;
+   VALIDATE_INPARAM_TEST(is_divisor_not_zero, ONABORT, ) ;
 
-   if (  lnrdigits
-      && lbig->digits[lnrdigits-1] < divisor) {
-      dhigh = lbig->digits[lnrdigits-1] ;
-      -- lnrdigits ;
-   }
-
-   uint32_t size  = (uint32_t) lnrdigits + exponent ;
-
-   if (0 == size) {
+   if (0 == divsize) {
       err = divisorisbigger_biginthelper(divresult, modresult, lbig) ;
       if (err) goto ONABORT ;
       return 0 ;
    }
 
-   if (divresult) {
+   // skip trailing zero in lbig
+   while (lnrdigits && 0 == ldigits[0]) {
+      -- lnrdigits  ;
+      ++ ldigits ;
+   }
 
-      if ((*divresult)->allocated_digits < size) {
-         err = allocate_bigint(divresult, size) ;
+   if (  divresult) {
+      if (  (*divresult)->allocated_digits < divsize) {
+         err = allocate_bigint(divresult, divsize) ;
          if (err) goto ONABORT ;
       }
-
-      bigint_t * big = (*divresult) ;
-
-      for (int32_t i = lnrdigits; --i >= 0; ) {
-
-         const uint32_t d1 = lbig->digits[i] ;
-         const uint64_t d2 = ((uint64_t)dhigh << 32) + d1 ;
-
-         const uint32_t quot = (uint32_t) (d2 / divisor) ;
-         dhigh = (uint32_t) (d2 % divisor) ;
-
-         big->digits[i + exponent] = quot ;
-      }
-
-      for (; dhigh && exponent > 0; ) {
-         --exponent ;
-
-         const uint64_t d2 = ((uint64_t)dhigh << 32) ;
-
-         const uint32_t quot = (uint32_t) (d2 / divisor) ;
-         dhigh = (uint32_t) (d2 % divisor) ;
-
-         big->digits[exponent] = quot ;
-      }
-
-      if (exponent) {
-         size -= exponent ;
-         memmove(&big->digits[0], &big->digits[exponent], size * sizeof(big->digits[0])) ;
-      }
-
-      big->sign_and_used_digits = (int16_t) (lbig->sign_and_used_digits < 0 ? - size : size) ;
-      big->exponent             = exponent ;
-   } else {
-
-      for (int32_t i = lnrdigits; --i >= 0; ) {
-
-         const uint32_t d1 = lbig->digits[i] ;
-         const uint64_t d2 = ((uint64_t)dhigh << 32) + d1 ;
-
-         dhigh = (uint32_t) (d2 % divisor) ;
-      }
-
-      for (; dhigh && exponent > 0; ) {
-         --exponent ;
-
-         const uint64_t d2 = ((uint64_t)dhigh << 32) ;
-
-         dhigh = (uint32_t) (d2 % divisor) ;
-      }
+      (*divresult)->exponent = 0 ;
    }
 
    if (modresult) {
-      setfromuint32_bigint(*modresult, dhigh) ;
-      if (lbig->sign_and_used_digits < 0) negate_bigint(*modresult) ;
+      (*modresult)->exponent = 0 ;
    }
+
+   const int16_t divsign = lbig->sign_and_used_digits ;
+   divmodui32_biginthelper(divresult, modresult, (uint16_t)divsize, divsign, lbig->sign_and_used_digits, lnrdigits, ldigits, divisor) ;
 
    return 0 ;
 ONABORT:
@@ -1684,139 +1901,88 @@ ONABORT:
 int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, const bigint_t * lbig, const bigint_t * rbig)
 {
    int err ;
-   const uint16_t lnrdigits   = nrdigits_bigint(lbig) ;
-   const uint16_t rnrdigits   = nrdigits_bigint(rbig) ;
-   const bool is_divisor_zero = (0 == rnrdigits) ;
-   const uint16_t lexponent   = lbig->exponent ;
-   const uint16_t rexponent   = rbig->exponent ;
-   uint32_t       lsize       = (uint32_t)lnrdigits + lexponent ;
-   uint32_t       rsize       = (uint32_t)rnrdigits + rexponent ;
-   bigint_t       * diff      = 0 ;
+   const int16_t  divsign   = xorsign_biginthelper(lbig->sign_and_used_digits, rbig->sign_and_used_digits) ;
+   uint16_t       lnrdigits = nrdigits_bigint(lbig) ;
+   uint16_t       rnrdigits = nrdigits_bigint(rbig) ;
+   uint16_t       maxnrdigits ;
+   uint32_t       lexponent = lbig->exponent ;
+   uint32_t       rexponent = rbig->exponent ;
+   uint32_t       lsize     = (uint32_t)lnrdigits + lexponent ;
+   uint32_t       rsize     = (uint32_t)rnrdigits + rexponent ;
+   bigint_t       * diff    = 0 ;
+   const uint32_t * ldigits = lbig->digits ;
+   const uint32_t * rdigits = rbig->digits ;
 
-   VALIDATE_INPARAM_TEST(false == is_divisor_zero, ONABORT, ) ;
+   bool const is_divisor_not_zero = (0 != rnrdigits) ;
+   VALIDATE_INPARAM_TEST(is_divisor_not_zero, ONABORT, ) ;
 
-   if (  lsize < rsize
-      || (  lsize == rsize
-         && cmpmagnitude_bigint(lbig, rbig) < 0)) {
+   if (  lsize < rsize) {
       err = divisorisbigger_biginthelper(divresult, modresult, lbig) ;
       if (err) goto ONABORT ;
       return 0 ;
    }
 
-   if (1 == rsize) {
-      err = divmodui32_bigint(divresult, modresult, lbig, rbig->digits[0]) ;
-      if (err) goto ONABORT ;
-      if (  rbig->sign_and_used_digits < 0
-         && divresult) {
-         negate_bigint(*divresult) ;
+   // skip trailing zero in both operands
+   while (lnrdigits && 0 == ldigits[0]) {
+      -- lnrdigits  ;
+      ++ ldigits ;
+      ++ lexponent ;
+   }
+
+   while (rnrdigits && 0 == rdigits[0]) {
+      -- rnrdigits ;
+      ++ rdigits ;
+      ++ rexponent ;
+   }
+
+   uint32_t       divnrdigits = 1u + lsize - rsize ;
+   const uint16_t modexpo     = (uint16_t) (rexponent < lexponent ? rexponent : lexponent) ;
+   const uint32_t modnrdigits = rsize - modexpo ;
+
+   if (  divresult) {
+      if (  (*divresult)->allocated_digits < divnrdigits) {
+         err = allocate_bigint(divresult, divnrdigits) ;
+         if (err) goto ONABORT ;
       }
+      (*divresult)->exponent = 0 ;
+   }
+
+   if (  modresult) {
+      if (  (*modresult)->allocated_digits < modnrdigits) {
+         err = allocate_bigint(modresult, modnrdigits) ;
+         if (err) goto ONABORT ;
+      }
+      (*modresult)->exponent = modexpo ;
+   }
+
+   if (1 == rnrdigits) {
+      /* 1. (modnrdigits == rsize - modexpo) && (divnrdigits <= lnrdigits)
+       *    ==> (modexpo == lexponent)
+       *    ==> (modnrdigits == rsize - lexponent) && (lexponent == divnrdigits-1+rsize-lnrdigits)
+       *    ==> modnrdigits == rsize - divnrdigits + 1 - rsize + lnrdigits)
+       *    ==> modnrdigits == lnrdigits - (divnrdigits - 1)
+       * 2. (modnrdigits == rsize - modexpo) && (divnrdigits > lnrdigits) && (rnrdigits == 1)
+       *    ==> (modexpo == rexponent) ==> (modnrdigits == 1)
+       * 1&2 combined: modnrdigits == max(1, lnrdigits - (divnrdigits - 1))
+       * */
+      divmodui32_biginthelper(divresult, modresult, (uint16_t)divnrdigits, divsign, lbig->sign_and_used_digits, lnrdigits, ldigits, rdigits[0]) ;
       return 0 ;
    }
 
-   // (lsize >= rsize && rsize > 0 && rsize != 1)  =>  (lsize >= 2)
-
-   err = allocate_bigint(&diff, lsize) ;
+   // copy lbig into diff with additional digits set to 0
+   maxnrdigits = (uint16_t) (lnrdigits > rnrdigits ? lnrdigits : rnrdigits) ;
+   err = allocate_bigint(&diff, maxnrdigits) ;
    if (err) goto ONABORT ;
-   diff->sign_and_used_digits = (int16_t) lsize ;
-   // copy lbig into diff with lbig's exponent digits set to 0
-   memset(diff->digits, 0, sizeof(diff->digits[0]) * lexponent) ;
-   memcpy(&diff->digits[lexponent], lbig->digits, sizeof(diff->digits[0]) * lnrdigits) ;
+   diff->sign_and_used_digits = (int16_t) maxnrdigits ;
 
-   const uint64_t divisor    = ((uint64_t)rbig->digits[rnrdigits-1] << 32) + (rnrdigits >= 2 ? rbig->digits[rnrdigits-2] : 0) ;
-   uint16_t       diffoffset = (uint16_t) (lsize - 1) ;
-   uint64_t       dividend   = ((uint64_t)diff->digits[diffoffset] << 32) + diff->digits[diffoffset-1] ;
-   uint32_t       dvrlshift  = (lsize - rsize) ;
-   uint32_t       nextdigit  = estimatedigit2_biginthelper(dividend, divisor) ;
-
-   if (nextdigit) {
-      nextdigit = submul_biginthelper(diff, false, nextdigit, dvrlshift, rnrdigits, rbig) ;
+   uint32_t offset = (uint32_t) (maxnrdigits - lnrdigits) ;
+   if (offset > 0) {
+      memset(&diff->digits[0], 0, offset * sizeof(diff->digits[0])) ;
    }
+   memcpy(&diff->digits[offset], ldigits, lnrdigits * sizeof(diff->digits[0])) ;
 
-   // (lbig > rbig) ==> (nextdigit > 0) || (dvrlshift > 0)
-
-   const uint32_t divsize = (nextdigit != 0) + dvrlshift ;
-   const uint16_t modexpo = (uint16_t) (rexponent < lexponent ? rexponent : lexponent) ;
-   const uint32_t modsize = rsize - modexpo ;
-
-   if (!nextdigit) {
-      // (lbig > rbig) ==> (dvrlshift > 0)
-      -- dvrlshift ;
-      -- diffoffset ;
-      nextdigit = estimatedigit3_biginthelper(dividend, diff->digits[diffoffset-1], divisor) ;
-      nextdigit = submul_biginthelper(diff, true/*diff has carry*/, nextdigit, dvrlshift, rnrdigits, rbig) ;
-   }
-
-   if (  divresult
-      && (*divresult)->allocated_digits < divsize) {
-      err = allocate_bigint(divresult, divsize) ;
-      if (err) goto ONABORT ;
-   }
-
-   if (  modresult
-      && (*modresult)->allocated_digits < modsize) {
-      err = allocate_bigint(modresult, modsize) ;
-      if (err) goto ONABORT ;
-   }
-
-   uint8_t  buffer[sizeof(bigint_t) + sizeof((*divresult)->digits[0])] ;
-   bigint_t * big  = (divresult != 0) ? *divresult : (bigint_t*)buffer ;
-
-   {
-      const int16_t xorsign     = xorsign_biginthelper(lbig->sign_and_used_digits, rbig->sign_and_used_digits) ;
-      big->exponent             = 0 ;
-      big->sign_and_used_digits = (int16_t) (xorsign < 0 ? - (int16_t) divsize : (int16_t) divsize) ;
-      big->digits[divresult ? dvrlshift : 0] = nextdigit ;
-   }
-
-   for (; dvrlshift > 0; big->digits[divresult ? dvrlshift : 0] = nextdigit) {
-      -- dvrlshift ;
-
-      if (diff->digits[diffoffset]) {
-
-         dividend  = ((uint64_t)diff->digits[diffoffset] << 32) + diff->digits[diffoffset-1] ;
-         -- diffoffset ;
-         nextdigit = estimatedigit3_biginthelper(dividend, diff->digits[diffoffset-1], divisor) ;
-         nextdigit = submul_biginthelper(diff, true/*diff has carry*/, nextdigit, dvrlshift, rnrdigits, rbig) ;
-      } else {
-
-         -- diffoffset ;
-         while (dvrlshift > 0 && 0 == diff->digits[diffoffset]) {
-            big->digits[divresult ? dvrlshift : 0] = 0 ;
-            -- dvrlshift ;
-            -- diffoffset ;
-         }
-
-         if (0 == diff->digits[diffoffset]) {
-
-            nextdigit = 0 ;
-         } else {
-
-            dividend  = ((uint64_t)diff->digits[diffoffset] << 32) + diff->digits[diffoffset-1] ;
-            nextdigit = estimatedigit2_biginthelper(dividend, divisor) ;
-
-            if (nextdigit) {
-               nextdigit = submul_biginthelper(diff, false, nextdigit, dvrlshift, rnrdigits, rbig) ;
-            }
-         }
-      }
-   }
-
-   if (modresult) {
-      while (diffoffset > modexpo && 0 == diff->digits[diffoffset]) {
-         -- diffoffset ;
-      }
-
-      if (0 == diff->digits[diffoffset]) {
-
-         setfromuint32_bigint(*modresult, 0) ;
-      } else {
-
-         memcpy((*modresult)->digits, &diff->digits[modexpo], sizeof(diff->digits[0]) * (1u + diffoffset - modexpo)) ;
-         (*modresult)->exponent             = modexpo ;
-         (*modresult)->sign_and_used_digits = (int16_t) (1u + diffoffset - modexpo) ;
-         if (lbig->sign_and_used_digits < 0) negate_bigint(*modresult) ;
-      }
-   }
+   divmod_biginthelper(divresult, modresult, (uint16_t)divnrdigits, (uint16_t)modnrdigits, divsign,
+                       lbig->sign_and_used_digits, maxnrdigits, diff->digits, rnrdigits, rdigits) ;
 
    err = delete_bigint(&diff) ;
    if (err) goto ONABORT ;
@@ -1991,9 +2157,9 @@ static int test_compare(void)
 
    // TEST cmp_bigint: compare equal
    uint32_t testvalues[][2][8] = {
-                   { { 3, 3, 1, 2, 3 }, { 0, 6, 0, 0, 0, 1, 2, 3 } }
-                  ,{ { 500, 5, 0, 10, 12, 13, 1 }, { 501, 4, 10, 12, 13, 1 } }
-            } ;
+      { { 3, 3, 1, 2, 3 }, { 0, 6, 0, 0, 0, 1, 2, 3 } }
+      ,{ { 500, 5, 0, 10, 12, 13, 1 }, { 501, 4, 10, 12, 13, 1 } }
+   } ;
    for (unsigned i = 0; i < nrelementsof(testvalues); ++i) {
       big1->exponent = (uint16_t) testvalues[i][0][0] ;
       big2->exponent = (uint16_t) testvalues[i][1][0] ;
@@ -2012,17 +2178,17 @@ static int test_compare(void)
    }
 
    // TEST cmp_bigint: compare not equal
-   #define M UINT32_MAX
+#define M UINT32_MAX
    uint32_t testvalues2[][2][8] = {
-                   { { 3, 3, 1, 2, 3 }, { 0, 6, 1, 0, 0, 1, 2, 3 } }
-                  ,{ { 0, 1, M }, { INT16_MAX, 1, M } }
-                  ,{ { 1500, 5, 0, M-3, M-2, M-1, M }, { 1500, 5, 1, M-3, M-2, M-1, M } }
-                  ,{ { 1, 1, 0 }, { 1, 1, M } }
-                  ,{ { 1, 1, M/2-1 }, { 1, 1, M/2 } }
-                  ,{ { 0, 5, 0, M-3, M-2, M-1, M }, { 0, 5, M, M-3, M-2, M-1, M } }
-                  ,{ { 0, 2, M, M-1 }, { 0, 2, M-1, M } }
-            } ;
-   #undef M
+      { { 3, 3, 1, 2, 3 }, { 0, 6, 1, 0, 0, 1, 2, 3 } }
+      ,{ { 0, 1, M }, { INT16_MAX, 1, M } }
+      ,{ { 1500, 5, 0, M-3, M-2, M-1, M }, { 1500, 5, 1, M-3, M-2, M-1, M } }
+      ,{ { 1, 1, 0 }, { 1, 1, M } }
+      ,{ { 1, 1, M/2-1 }, { 1, 1, M/2 } }
+      ,{ { 0, 5, 0, M-3, M-2, M-1, M }, { 0, 5, M, M-3, M-2, M-1, M } }
+      ,{ { 0, 2, M, M-1 }, { 0, 2, M-1, M } }
+   } ;
+#undef M
    for (unsigned i = 0; i < nrelementsof(testvalues2); ++i) {
       big1->exponent = (uint16_t) testvalues2[i][0][0] ;
       big2->exponent = (uint16_t) testvalues2[i][1][0] ;
@@ -2243,11 +2409,11 @@ static int test_unaryops(void)
 
    // TEST removetrailingzero_bigint x digits
    const uint32_t values10digits[][10] = {
-          { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
-         ,{ UINT16_MAX, 0, 0, 2, 1, 0, 0, 4, 6, UINT16_MAX }
-         ,{ 1, 0, 0, 0, UINT16_MAX, UINT16_MAX, 0, UINT16_MAX, 1, 2 }
-         ,{ UINT16_MAX, 0, UINT16_MAX, 1, 100, 200, 1000, 0xff000000, 0xffff0000, 0xff00 }
-      } ;
+      { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+      ,{ UINT16_MAX, 0, 0, 2, 1, 0, 0, 4, 6, UINT16_MAX }
+      ,{ 1, 0, 0, 0, UINT16_MAX, UINT16_MAX, 0, UINT16_MAX, 1, 2 }
+      ,{ UINT16_MAX, 0, UINT16_MAX, 1, 100, 200, 1000, 0xff000000, 0xffff0000, 0xff00 }
+   } ;
    for (unsigned int i = 0 ; i < nrelementsof(values10digits); ++i) {
       for (int s =-1; s <= 1; s += 2) {
          // normal shift
@@ -2371,6 +2537,27 @@ static int test_assign(void)
          TEST(testvaluesint[i] == big->digits[0]) ;
       }
    }
+
+   // TEST setfromuint64_bigint
+   uint64_t testvaluesint64[] = { 0, 1, 0xffffffff, 0x7fffffff, 0x80000000, 0x0f0f0f0f, 0xf0f0f0f0, 0xf0f0f0f0f0f0f0f0, 0x123456789abcdeff, 0x9999999900000000, UINT64_MAX, UINT64_MAX-1, INT64_MAX } ;
+   for (unsigned i = 0; i < nrelementsof(testvaluesint64); ++i) {
+      big->sign_and_used_digits = -10 ;
+      big->exponent  = 1 ;
+      big->digits[0] = ~ (uint32_t)testvaluesint64[i] ;
+      big->digits[1] = ~ (uint32_t)(testvaluesint64[i] >> 32) ;
+      setfromuint64_bigint(big, testvaluesint64[i]) ;
+      TEST(sign_bigint(big)     == (testvaluesint64[i] ? +1 : 0)) ;
+      TEST(exponent_bigint(big) == 0) ;
+      if (testvaluesint64[i] > UINT32_MAX) {
+         TEST(nrdigits_bigint(big) == 2) ;
+         TEST(big->digits[0] == (uint32_t)testvaluesint64[i]) ;
+         TEST(big->digits[1] == (uint32_t)(testvaluesint64[i] >> 32)) ;
+      } else if (testvaluesint64[i]) {
+         TEST(nrdigits_bigint(big) == 1) ;
+         TEST(big->digits[0] == (uint32_t)testvaluesint64[i]) ;
+      }
+   }
+
 
    // TEST setfromdouble_bigint: absolute value < 1 (big is set to 0)
    double normalvalues[6] = { 0, -0, 0.9, -0.1, 0x1p-1022, -0x1p-1022 } ;
@@ -2655,28 +2842,28 @@ static int test_addsub(void)
    // TEST add, sub with operands of same sign
 #define M UINT32_MAX
    uint32_t testrows[][3][10] = {
-                /* { difference }, { big number }, { small number } */
-                { { 0 }, { 0 }, { 0 } }
-               ,{ { 123, M }, { 123, M }, { 0 } }
-               ,{ { 0, M, M, 0, 0 }, { 1, 0, M-1, M, 0}, { 0, 0, M, M, 0 } }
-               ,{ { 5, 4, 3, 2, 1 }, { 6, 1, 5, 3, 1}, { 0, M-2, 2, 1, 0 } }
-               ,{ { M, 0, 0, 0, 0 }, { M, 0, 0, 0, M}, { 0, 0, 0, 0, M } }
-               ,{ { M, M-2, 0, 0, 0 }, { M, M-2, 0, M-1, M}, { 0, 0, 0, M-1, M } }
-               ,{ { M/2+1, M-2, 0, 0, 0 }, { M, M-2, 0, M-1, M}, { M/2, 0, 0, M-1, M } }
-               ,{ { 0 }, { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } }
-               ,{ { 0 }, { 1, 2, 3, 0, 0, 0, 0, 0, 0, 129/*special code*/ }, { 1, 2, 3 } }
-               ,{ { 0, 0, 3, 4, 5, 6 }, { 1, 2, 3, 4, 5, 6 }, { 1, 2 } }
-               ,{ { 1, 2, 0, 0, 0, 6 }, { 1, 2, 3, 4, 5, 6 }, { 0, 0, 3, 4, 5 } }
-               ,{ { 1, 1, M, 0, 0, 6 }, { 1, 2, 3, 4, 5, 6 }, { 0, 0, 4, 4, 5 } }
-               ,{ { 1, M-1, M-2, M-3, M-3 }, { 2 }, { 0, 1, 2, 3, 4 } }
-               ,{ { 1, M, M, 0, 1, 2, 4 }, { 2 }, { 0, 0, 0, M, M-1, M-2, M-3 } }
-               ,{ { 0,0,0,0,0,0,0,0,0,1 }, { 1,0,0,0,0,0,0,0,0,0 }, { 0,M,M,M,M,M,M,M,M,M } }
-               ,{ { 0,0,0,0,0,0,0,0,0,125 }, { 1,0,0,0,0,0,0,0,0,0 }, { 0,M,M,M,M,M,M,M,M,M-124 } }
-               ,{ { 0,0,0,0,0,0,0,0,0,1 }, { 1, 2, 3, 0, 0, 0, 0, 0, 0, 129/*special code*/ }, { 1, 2, 2, M,M,M,M,M,M,M } }
-               ,{ { 1,2,2,M,M,M,M,M,M,0 }, { 1, 2, 3, 0, 0, 0, 0, 0, 999, M }, { 0,0,0,0,0,0,0,0,1000,M } }
-               ,{ { 0,M,M,M,M,M,M,M,M,0 }, { 1, 0, 0, 0, 0, 0, 0, 0, 999, M }, { 0,0,0,0,0,0,0,0,1000,M } }
-               ,{ { 6,7,9,0,0,0,M-1,M,M-1,1 }, { 6,7,9, 0, 0, 0, M, M, 0, 129/*special code*/ }, { 0,0,0,0,0,0,0,M,1,M } }
-            } ;
+      /* { difference }, { big number }, { small number } */
+      { { 0 }, { 0 }, { 0 } }
+      ,{ { 123, M }, { 123, M }, { 0 } }
+      ,{ { 0, M, M, 0, 0 }, { 1, 0, M-1, M, 0}, { 0, 0, M, M, 0 } }
+      ,{ { 5, 4, 3, 2, 1 }, { 6, 1, 5, 3, 1}, { 0, M-2, 2, 1, 0 } }
+      ,{ { M, 0, 0, 0, 0 }, { M, 0, 0, 0, M}, { 0, 0, 0, 0, M } }
+      ,{ { M, M-2, 0, 0, 0 }, { M, M-2, 0, M-1, M}, { 0, 0, 0, M-1, M } }
+      ,{ { M/2+1, M-2, 0, 0, 0 }, { M, M-2, 0, M-1, M}, { M/2, 0, 0, M-1, M } }
+      ,{ { 0 }, { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } }
+      ,{ { 0 }, { 1, 2, 3, 0, 0, 0, 0, 0, 0, 129/*special code*/ }, { 1, 2, 3 } }
+      ,{ { 0, 0, 3, 4, 5, 6 }, { 1, 2, 3, 4, 5, 6 }, { 1, 2 } }
+      ,{ { 1, 2, 0, 0, 0, 6 }, { 1, 2, 3, 4, 5, 6 }, { 0, 0, 3, 4, 5 } }
+      ,{ { 1, 1, M, 0, 0, 6 }, { 1, 2, 3, 4, 5, 6 }, { 0, 0, 4, 4, 5 } }
+      ,{ { 1, M-1, M-2, M-3, M-3 }, { 2 }, { 0, 1, 2, 3, 4 } }
+      ,{ { 1, M, M, 0, 1, 2, 4 }, { 2 }, { 0, 0, 0, M, M-1, M-2, M-3 } }
+      ,{ { 0,0,0,0,0,0,0,0,0,1 }, { 1,0,0,0,0,0,0,0,0,0 }, { 0,M,M,M,M,M,M,M,M,M } }
+      ,{ { 0,0,0,0,0,0,0,0,0,125 }, { 1,0,0,0,0,0,0,0,0,0 }, { 0,M,M,M,M,M,M,M,M,M-124 } }
+      ,{ { 0,0,0,0,0,0,0,0,0,1 }, { 1, 2, 3, 0, 0, 0, 0, 0, 0, 129/*special code*/ }, { 1, 2, 2, M,M,M,M,M,M,M } }
+      ,{ { 1,2,2,M,M,M,M,M,M,0 }, { 1, 2, 3, 0, 0, 0, 0, 0, 999, M }, { 0,0,0,0,0,0,0,0,1000,M } }
+      ,{ { 0,M,M,M,M,M,M,M,M,0 }, { 1, 0, 0, 0, 0, 0, 0, 0, 999, M }, { 0,0,0,0,0,0,0,0,1000,M } }
+      ,{ { 6,7,9,0,0,0,M-1,M,M-1,1 }, { 6,7,9, 0, 0, 0, M, M, 0, 129/*special code*/ }, { 0,0,0,0,0,0,0,M,1,M } }
+   } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
@@ -2758,17 +2945,17 @@ static int test_mult(void)
    // TEST multui32_bigint, mult_bigint (one digit)
 #define M UINT32_MAX
    uint32_t testrows[][3][10] = {
-                /* { product }, { number }, { factor } */
-                { { 0 }, { 0 }, { 0 } }
-               ,{ { 0 }, { 10 }, { 0 } }
-               ,{ { 0 }, { 0 }, { 100 } }
-               ,{ { 100 }, { 1 }, { 0,0,0,0,0,0,0,0,0, 100 } }
-               ,{ { 100 }, { 100 }, { 0,0,0,0,0,0,0,0,0, 1 } }
-               ,{ { 5, 10, 15, 20, 25 }, { 1, 2, 3, 4, 5 }, { 0,0,0,0,0,0,0,0,0, 5 } }
-               ,{ { M-1, 1 }, { 0, M }, { 0,0,0,0,0,0,0,0,0, M } }
-               ,{ { M-1, M, M, M, M, 1 }, { 0, M, M, M, M, M }, { 0,0,0,0,0,0,0,0,0, M } }
-               ,{ { 1, 3, M-99 }, { 0, 42949672/*M/100*/, M }, { 0,0,0,0,0,0,0,0,0, 100 } }
-            } ;
+      /* { product }, { number }, { factor } */
+      { { 0 }, { 0 }, { 0 } }
+      ,{ { 0 }, { 10 }, { 0 } }
+      ,{ { 0 }, { 0 }, { 100 } }
+      ,{ { 100 }, { 1 }, { 0,0,0,0,0,0,0,0,0, 100 } }
+      ,{ { 100 }, { 100 }, { 0,0,0,0,0,0,0,0,0, 1 } }
+      ,{ { 5, 10, 15, 20, 25 }, { 1, 2, 3, 4, 5 }, { 0,0,0,0,0,0,0,0,0, 5 } }
+      ,{ { M-1, 1 }, { 0, M }, { 0,0,0,0,0,0,0,0,0, M } }
+      ,{ { M-1, M, M, M, M, 1 }, { 0, M, M, M, M, M }, { 0,0,0,0,0,0,0,0,0, M } }
+      ,{ { 1, 3, M-99 }, { 0, 42949672/*M/100*/, M }, { 0,0,0,0,0,0,0,0,0, 100 } }
+   } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
@@ -2796,13 +2983,13 @@ static int test_mult(void)
    // TEST mult_bigint: without splitting
 #define M UINT32_MAX
    uint32_t testrows2[][3][10] = {
-                /* { product }, { number }, { factor } */
-                { { 5, 10, 5+15, 10+20, 15+25, 20, 25 }, { 0,0, 1, 2, 3, 4, 5 }, { 0,0,0,0,0,0,0, 5, 0, 5 } }
-               ,{ { M-1, M, M, 1 }, { 0,0,0, M }, { 0,0,0,0,0,0,0, M, M, M } }
-               ,{ { M, M-1, M, M, M, 0, 1 }, { 0,0, M, M, M, M, M }, { 0,0,0,0,0,0,0,0, M, M } }
-               ,{ { 1, 3, M-99+1, 3+1, M-99+3, M-99 }, { 0,0,0,0, 42949672/*M/100*/, M }, { 0,0,0,0,0,0, 100, 0, 100, 100 } }
-               ,{ { 1,2,3,4,0,1,2,3,4,0 }, { 0,0,0,0,0,0, 1, 2, 3, 4 }, { 0,0,0,1,0,0,0,0,1,1/*set to 0*/ } }
-           } ;
+      /* { product }, { number }, { factor } */
+      { { 5, 10, 5+15, 10+20, 15+25, 20, 25 }, { 0,0, 1, 2, 3, 4, 5 }, { 0,0,0,0,0,0,0, 5, 0, 5 } }
+      ,{ { M-1, M, M, 1 }, { 0,0,0, M }, { 0,0,0,0,0,0,0, M, M, M } }
+      ,{ { M, M-1, M, M, M, 0, 1 }, { 0,0, M, M, M, M, M }, { 0,0,0,0,0,0,0,0, M, M } }
+      ,{ { 1, 3, M-99+1, 3+1, M-99+3, M-99 }, { 0,0,0,0, 42949672/*M/100*/, M }, { 0,0,0,0,0,0, 100, 0, 100, 100 } }
+      ,{ { 1,2,3,4,0,1,2,3,4,0 }, { 0,0,0,0,0,0, 1, 2, 3, 4 }, { 0,0,0,1,0,0,0,0,1,1/*set to 0*/ } }
+   } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows2); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
@@ -2836,18 +3023,18 @@ static int test_mult(void)
 #define Z8 0,0,0,0,0,0,0,0
 #define MSB 0x80000000
    uint32_t testrows3[][3][100] = {
-               /* { multiplicant1 }, { multiplicant2 }, { product } */
-               // test splitting with l0,r0 least significant digits == 0, l1,r1 most sign digits == 0
-               { {MSB,M,0,0,0,0,0,0,Z8,Z8,Z8,Z8,Z8,1}, {8,1,0,0,0,0,0,0,Z8,Z8,Z8,Z8,Z8,M}, {0,0x7ffffffc,7,1,Z8,Z8,Z8,Z8,Z8,0,0,0,0,MSB+8,MSB+1,M-1,Z8,Z8,Z8,Z8,Z8,0,0,0,0,0,M} }
-               // test splitting with (t[2]*t[3])->exponent != 0
-               ,{ {M8,M8,M8,1,M8,M8,M8}, {1,M7,M8,M8,M8,M8,M8,1}, {M,Z8,Z8,Z8+2,M-2,Z8,Z8,0,0,0,0,0,0,M-1,0,M8,M8,M,M,M,M,M,M,3,M-1,M8,M8,M7,1} }
-               // test splitting with result=t[0]*X*X+t[1] && result->exponent != 0
-               ,{ {MSB,M7,M8,M8,Z8,Z8,Z8,1}, {8,0,0,0,0,0,0,0,Z8,Z8,M8,M8,M8,M}, {0,M-3,M7,M8,M8-M/2+7,Z8,Z8,Z8+7,-(M/2)+M8,M8,M8-1,Z8,Z8,Z8,1} }
-               // test splitting with t[0]/t[1]/t[2]/t[3]->exponent != 0 => result->exponent != 0 && T4->exponent != 0
-               ,{ {MSB,M7,M8,M8,MSB,M7,Z8,Z8,1}, {MSB,M7,Z8,Z8,MSB,M7,M8,M8,M}, {0,MSB/2,0,0,0,0,0,0,MSB,M8,M7,MSB-1,MSB-1,0,0,0,0,0,0,1,M7,Z8,0,0xbfffffff,M7-M/2,M8,M8-MSB,MSB,M7,Z8,Z8,1} }
-               // test adding t[4] to t[0]*X*X + t[1] produces carry overflow (see multsplit_biginthelper)
-               ,{ {M8,M8,M8,Z8,Z8,Z8,1}, {1,0,0,0,0,0,0,0,Z8,Z8,M8,M8,M8,M}, {M8,M8,M8,1,0,0,0,0,0,0,0,Z8,Z8,0,M8,M8,M7,M-1,Z8,Z8,Z8,1} }
-           } ;
+      /* { multiplicant1 }, { multiplicant2 }, { product } */
+      // test splitting with l0,r0 least significant digits == 0, l1,r1 most sign digits == 0
+      { {MSB,M,0,0,0,0,0,0,Z8,Z8,Z8,Z8,Z8,1}, {8,1,0,0,0,0,0,0,Z8,Z8,Z8,Z8,Z8,M}, {0,0x7ffffffc,7,1,Z8,Z8,Z8,Z8,Z8,0,0,0,0,MSB+8,MSB+1,M-1,Z8,Z8,Z8,Z8,Z8,0,0,0,0,0,M} }
+      // test splitting with (t[2]*t[3])->exponent != 0
+      ,{ {M8,M8,M8,1,M8,M8,M8}, {1,M7,M8,M8,M8,M8,M8,1}, {M,Z8,Z8,Z8+2,M-2,Z8,Z8,0,0,0,0,0,0,M-1,0,M8,M8,M,M,M,M,M,M,3,M-1,M8,M8,M7,1} }
+      // test splitting with result=t[0]*X*X+t[1] && result->exponent != 0
+      ,{ {MSB,M7,M8,M8,Z8,Z8,Z8,1}, {8,0,0,0,0,0,0,0,Z8,Z8,M8,M8,M8,M}, {0,M-3,M7,M8,M8-M/2+7,Z8,Z8,Z8+7,-(M/2)+M8,M8,M8-1,Z8,Z8,Z8,1} }
+      // test splitting with t[0]/t[1]/t[2]/t[3]->exponent != 0 => result->exponent != 0 && T4->exponent != 0
+      ,{ {MSB,M7,M8,M8,MSB,M7,Z8,Z8,1}, {MSB,M7,Z8,Z8,MSB,M7,M8,M8,M}, {0,MSB/2,0,0,0,0,0,0,MSB,M8,M7,MSB-1,MSB-1,0,0,0,0,0,0,1,M7,Z8,0,0xbfffffff,M7-M/2,M8,M8-MSB,MSB,M7,Z8,Z8,1} }
+      // test adding t[4] to t[0]*X*X + t[1] produces carry overflow (see multsplit_biginthelper)
+      ,{ {M8,M8,M8,Z8,Z8,Z8,1}, {1,0,0,0,0,0,0,0,Z8,Z8,M8,M8,M8,M}, {M8,M8,M8,1,0,0,0,0,0,0,0,Z8,Z8,0,M8,M8,M7,M-1,Z8,Z8,Z8,1} }
+   } ;
 #undef MSB
 #undef Z8
 #undef M7
@@ -3040,6 +3227,175 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_divhelper(void)
+{
+   bigint_t * big[5] = { 0 } ;
+
+   // prepare
+   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+      TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
+   }
+
+   // TEST div3by2digits_biginthelper
+   uint32_t testdiv[][6] = {  // dividend: {0,1,2} divisor: {3,4} quotient: {5}
+      { UINT32_MAX,UINT32_MAX,UINT32_MAX, UINT32_MAX,UINT32_MAX, 0x80000000/*wrong value cause divisor == dividend*/ }
+      ,{ 1,1,0, 1,1, UINT32_MAX/*wrong value cause divisor == dividend*/ }
+      ,{ UINT32_MAX,UINT32_MAX-1,UINT32_MAX, UINT32_MAX,UINT32_MAX, UINT32_MAX }
+      ,{ 1,0,UINT32_MAX, 0x80000000,0, 2 }
+      ,{ 1,0,0,          0x80000000,1, 1 }
+      ,{ 0xff00ff,0xffff00,UINT32_MAX,  UINT32_MAX,1,  16711935 }
+      ,{ 0x80000001,0,UINT32_MAX,  0x80000002,0x40001,  4294967293}
+   } ;
+   for (unsigned tvi = 0; tvi < nrelementsof(testdiv); ++tvi) {
+      bigint_divstate_t divstate = {
+         .dividend  = ((uint64_t)testdiv[tvi][0] << 32) + testdiv[tvi][1],
+         .divisor   = ((uint64_t)testdiv[tvi][3] << 32) + testdiv[tvi][4],
+         .nextdigit = testdiv[tvi][2]
+      } ;
+      div3by2digits_biginthelper(&divstate) ;
+      TEST(testdiv[tvi][5] == divstate.nextdigit) ;
+      if (tvi != 1) {
+         TEST(divstate.divisor > divstate.dividend/*remainder*/) ;
+      }
+      if (tvi != 0) {
+         // check that  divisor*nextdigit+dividend == testdiv[tvi][0..2]
+         setfromuint64_bigint(big[0], divstate.divisor) ;
+         TEST(0 == multui32_bigint(&big[1], big[0], divstate.nextdigit)) ;
+         setfromuint64_bigint(big[0], divstate.dividend) ;
+         TEST(0 == add_bigint(&big[2], big[1], big[0])) ;
+         TEST(3 == nrdigits_bigint(big[2])) ;
+         for (int i = 0; i < 3; ++i) {
+            TEST(testdiv[tvi][i] == big[2]->digits[2-i]) ;
+         }
+      }
+   }
+
+   // TEST submul_biginthelper: dividend composed of first two digits
+#define M UINT32_MAX
+   uint32_t testsubmul[][4][10] = { // { dividend }, { corrected factor, factor }, { divisor }, { result }
+      // factor does not need to be corrected
+      {  {M,M,M,M,M,M,M,M,M,M},  {1,1}, {M,M,M,M,M,M,M,M,M,M},  {0} }
+      ,{ {M,1,0,0,0,0,20,5,0,M}, {1,1}, {1,1,M,M,M,M,30,2,3,M}, {M-2,M,0,0,0,0,M-9,2,M-2,0} }
+      ,{ {0,0,0,M,M,0x09846ABC,0xFED34209,0x87897627,0x9ADBCFFE,1}, {M,M}, {0,0,0,1,1,0,0,0x17835489,0x7DBE8974,0x8CDAB101}, {0,0,0,0,0,0x09846ABC,0xE74FED80,0x214E413C,0x8BBFA871,0x8CDAB102} }
+      ,{ {0,0,0,M,M,0x09846ABC,0xFED34209,0x87897627,0x9ADBCFFE,1}, {0}, {0,0,0,1,1,0,0,0x17835489,0x7DBE8974,0x8CDAB101}, {0,0,0,0,0,0x09846ABC,0xE74FED80,0x214E413C,0x8BBFA871,0x8CDAB102} }
+      ,{ {0,0,0,M,M,M,M,M,M,1}, {8,8}, {0,0,0,M/8,M/8,M,1,M}, {0,0,0,7,0,7,M-15,7,M,1} }
+      // factor needs to be corrected
+      ,{ {M,2,1,2,3,4,5,6,7,8}, {0,1}, {M,2,1,2,3,4,5,6,7,9}, {M,2,1,2,3,4,5,6,7,8} }
+      ,{ {M,2,1,2,3,4,5,6,7,8}, {0,1}, {M,2,M,2,3,4,5,6,7,8}, {M,2,1,2,3,4,5,6,7,8} }
+      ,{ {8,8,8,2,3,4,5,6,7,8}, {7,8}, {1,1,1,2,3,4,5,6,7,8}, {1,1,0,M-12,M-18,M-24,M-30,M-36,M-42,M-47} }
+      ,{ {M,M-1,8,8,8,8,8}, {M-1,M}, {1,0,M,M}, {1,0,9,6,8,8,8} }
+   } ;
+#undef M
+   for (unsigned tvi = 0; tvi < nrelementsof(testsubmul); ++tvi) {
+      big[1]->digits[0] = 0 ;
+      big[1]->digits[1] = 0 ;
+      for (int i = 0; i < 4; ++i) {
+         TEST(0 == setbigfirst_bigint(&big[i], +1, 10, testsubmul[tvi][i], 0)) ;
+      }
+      if (0 == big[1]->digits[0] && 0 == big[1]->digits[1]) big[1]->digits[1] = UINT32_MAX ;
+      uint16_t big0size = nrdigits_bigint(big[0]) ;
+      uint16_t big2size = nrdigits_bigint(big[2]) ;
+      TEST(2 <= big0size) ;
+      TEST(2 <= big2size) ;
+      bigint_divstate_t divstate = {
+         .dividend  = ((uint64_t)big[0]->digits[big0size-1] << 32) + big[0]->digits[big0size-2],
+         .divisor   = ((uint64_t)big[2]->digits[big2size-1] << 32) + big[2]->digits[big2size-2],
+         .nextdigit = big[1]->digits[0],
+         .loffset   = (uint16_t) (big0size-2)/*first 2 digits in dividend*/,
+         .lnrdigits = big0size,
+         .rnrdigits = big2size,
+         .ldigits   = big[0]->digits,
+         .rdigits   = big[2]->digits
+      } ;
+      // dividend -= factor * divisor
+      divstate.dividend -= (divstate.nextdigit ? divstate.nextdigit : UINT32_MAX) * divstate.divisor ;
+      submul_biginthelper(&divstate) ;
+      TEST(divstate.nextdigit == big[1]->digits[1]/*corrected ?*/) ;
+      // compare result
+      big[0]->digits[big0size-1] = (uint32_t) (divstate.dividend >> 32) ;
+      big[0]->digits[big0size-2] = (uint32_t) (divstate.dividend) ;
+      while (big0size && 0 == big[0]->digits[big0size-1]) --big0size ;
+      big[0]->sign_and_used_digits = (int16_t) big0size ;
+      TEST(0 == cmp_bigint(big[0], big[3])) ;
+   }
+
+   // TEST submul_biginthelper: dividend composed of first three digits, factor needs (sometimes) to be corrected
+#define M UINT32_MAX
+   uint32_t testsubmul2[][4][10] = { // { dividend }, { factor }, { divisor }, { result }
+      // no correction
+      {  {5,M,0xABCD,M,1,8,9,M-10,9,9},  {5}, {M,M,9,M,0x64,M-5},  {0,M,0xABD2,0xFFFFFFCD,5,0xFFFFFE0F,0x27,M-10,9,9} }
+      ,{ {0,M,0xABD2,0xFFFFFFCD,5,0xFFFFFE0F,0x27,M-10,9,9}, {M}, {M,M,9,M,0x64,M-5}, {0,0,0xABD3,0xFFFFFFC2,0x00000010,0xFFFFFDA9,0x92,0xFFFFFFEF,9,9} }
+      ,{ {M,M,M,0,0,0,0,0,0,1}, {0}, {0,M,M,M,0,0,0,0,0,1}, {0,M,M,M-1,M,M,M,M,M,2} }
+      ,{ {0x1A034567,0xE67CBA98,0x32800000,0xCDF044FF,0x0011BE03,0xFEFE2D3B,0xFFFFCFC0}, {M}, {0x1A034568,0x00800000,0x33000001,0x00F04500,0x01020304,0x00003040}, {0} }
+      // with correction
+      ,{ {0x00FFFFFE,0xFD55D9F5,0xEBAB97E1,0,M,M,0,0,M,M}, {0x0FFDFCEF}, {0,0x10020340,0xA0110022,M,0,0,M,0,0,M}, {0,0x10020340,0x90130334,0x0FFDFCEF,M,0xF0020310,0x0FFDFCEF,0,0xF0020311,0x0FFDFCEE} }
+      ,{ {0,0,0,0x1A034567,0xE67CBA98,0x32800000,0xCDF044FF,0x0011BE03,0xFEFE2D3B,0xFFFFCFC0}, {M-1}, {0x1A034568,0x00800000,0xF3000001,0x00F04500,0x01020304,0x00003040}, {0,0,0,0,0x1A034567,0x40800001,0xB3000001,0x00F04500,0x01020304,0x00003040} }
+   } ;
+#undef M
+   for (unsigned tvi = 0; tvi < nrelementsof(testsubmul2); ++tvi) {
+      big[1]->digits[0] = 0 ;
+      for (int i = 0; i < 4; ++i) {
+         TEST(0 == setbigfirst_bigint(&big[i], +1, 10, testsubmul2[tvi][i], 0)) ;
+      }
+      if (0 == big[1]->digits[0] && 0 == big[1]->digits[1]) big[1]->digits[1] = UINT32_MAX ;
+      uint16_t big0size = nrdigits_bigint(big[0]) ;
+      uint16_t big2size = nrdigits_bigint(big[2]) ;
+      TEST(3 <= big0size) ;
+      TEST(2 <= big2size) ;
+      bigint_divstate_t divstate = {
+         .dividend  = ((uint64_t)big[0]->digits[big0size-1] << 32) + big[0]->digits[big0size-2],
+         .divisor   = ((uint64_t)big[2]->digits[big2size-1] << 32) + big[2]->digits[big2size-2],
+         .nextdigit = big[0]->digits[big0size-3],
+         .loffset   = (uint16_t) (big0size-3)/*first 3 digits in dividend*/,
+         .lnrdigits = big0size,
+         .rnrdigits = big2size,
+         .ldigits   = big[0]->digits,
+         .rdigits   = big[2]->digits
+      } ;
+      // dividend -= factor * divisor
+      if (  0 == big[1]->digits[0]
+            && divstate.dividend == divstate.divisor) {
+         TEST(divstate.dividend == divstate.divisor) ;
+         divstate.dividend  = divstate.divisor + divstate.nextdigit ;
+         divstate.nextdigit = UINT32_MAX ;
+         TEST(divstate.dividend < divstate.divisor/*overflow*/) ;
+      } else {
+         TEST(divstate.dividend < divstate.divisor) ;
+         div3by2digits_biginthelper(&divstate) ;
+      }
+      if (0 == big[1]->digits[0]) {
+         TEST(divstate.nextdigit == UINT32_MAX) ;
+         divstate.nextdigit = 0 ;   // test value 0 which has same effect as UINT32_MAX but without correction
+         big[1]->digits[0] = UINT32_MAX ;
+      } else if (tvi < 4) {
+         TEST(divstate.nextdigit == big[1]->digits[0]) ;
+      } else {
+         TEST(divstate.nextdigit == big[1]->digits[0]+1/*correction needed*/) ;
+      }
+      submul_biginthelper(&divstate) ;
+      TEST(divstate.nextdigit == big[1]->digits[0]) ;
+      // compare result
+      -- big0size ;
+      big[0]->digits[big0size-1] = (uint32_t) (divstate.dividend >> 32) ;
+      big[0]->digits[big0size-2] = (uint32_t) (divstate.dividend) ;
+      while (big0size && 0 == big[0]->digits[big0size-1]) --big0size ;
+      big[0]->sign_and_used_digits = (int16_t) big0size ;
+      TEST(0 == cmp_bigint(big[0], big[3])) ;
+   }
+
+   // unprepare
+   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+      TEST(0 == delete_bigint(&big[i])) ;
+   }
+
+   return 0 ;
+ONABORT:
+   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+      delete_bigint(&big[i]) ;
+   }
+   return EINVAL ;
+}
+
 static int test_div(void)
 {
    bigint_t    * big[5] = { 0 } ;
@@ -3065,15 +3421,15 @@ static int test_div(void)
    // TEST divmodui32_bigint, divmod_bigint (dividend one digit, divisor bigger)
 #define M UINT32_MAX
    uint32_t testrows[][2][1] = {
-                /* { dividend }, { divisor } */
-                { { 0 }, { 100 } }
-               ,{ { 0 }, { M } }
-               ,{ { 1 }, { M } }
-               ,{ { M-1 }, { M } }
-               ,{ { 1 }, { 2 } }
-               ,{ { 1 }, { 1001 } }
-               ,{ { 1023 }, { 100000 } }
-            } ;
+      /* { dividend }, { divisor } */
+      { { 0 }, { 100 } }
+      ,{ { 0 }, { M } }
+      ,{ { 1 }, { M } }
+      ,{ { M-1 }, { M } }
+      ,{ { 1 }, { 2 } }
+      ,{ { 1 }, { 1001 } }
+      ,{ { 1023 }, { 100000 } }
+   } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows); ++i) {
       for (unsigned nr = 0; nr < 2; ++nr) {
@@ -3111,12 +3467,12 @@ static int test_div(void)
    // TEST divmodui32_bigint, divmod_bigint (divisor one digit)
 #define M UINT32_MAX
    uint32_t testrows2[][2][10] = {
-                /* { multiplicand }, { factor/divisor } */
-                { { 0 }, { 100 } }
-               ,{ { 1, 2, 3 }, { M/5 } }
-               ,{ { 100, 102, M, M/8, M/9, M/10, M-1, M-2 }, { M } }
-               ,{ { 1000, 1020, 20000, M, M-1000, M-10000 }, { 1222345 } }
-            } ;
+      /* { multiplicand }, { factor/divisor } */
+      { { 0 }, { 100 } }
+      ,{ { 1, 2, 3 }, { M/5 } }
+      ,{ { 100, 102, M, M/8, M/9, M/10, M-1, M-2 }, { M } }
+      ,{ { 1000, 1020, 20000, M, M-1000, M-10000 }, { 1222345 } }
+   } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows2); ++i) {
       for (unsigned nr = 0; nr < 2; ++nr) {
@@ -3164,47 +3520,19 @@ static int test_div(void)
       }
    }
 
-   // TEST submul_biginthelper called from divmod_bigint
-#define M UINT32_MAX
-   uint32_t testrows3[][4][10] = {
-                /* { diff }, { divisor }, { result diff }, { factor, corrected factor },  */
-                { { M, M, M, M, M, 0, 1, 2 }, /*{ M-1, M, M, M, M, 1 },*/ { 0, M, M, M, M, M }, { 0, M, M, M, M, M, 1, 2 }, { M, M } }
-               ,{ { 2, 2, 0, 0, 0, 1 }, /*{ 2, 2, 0, 0, 0, 2 },*/ { 1, 1, 0, 0, 0, 1 }, { 1, 1, 0, 0, 0, 0 }, { 2, 1 } }
-               ,{ { 1, 0, 0, 1 }, /*{ 0, 0x8, 0, 0 },*/ { 0, 0x80000000, 0, 0 }, { 0, 0x80000000, 0, 1 }, { 1, 1 } }
-               ,{ { 1, 0, 0, 1 }, /*{ 1, 0, 0, 0 },*/ { 0, 0x80000000, 0, 0 }, { 0, 0, 0, 1 }, { 2, 2 } }
-               ,{ { 1, 0, 0, 1 }, /*{ 1, 0, 0, 2 },*/ { 0, 0x80000000, 0, 1 }, { 0, 0x80000000, 0, 0 }, { 2, 1 } }
-            } ;
-#undef M
-   for (unsigned i = 0; i < nrelementsof(testrows3); ++i) {
-      for (unsigned nr = 0; nr < 3; ++nr) {
-         TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows3[i][nr], 0)) ;
-      }
-      big[1]->exponent = (uint16_t) (big[1]->exponent - big[0]->exponent) ;
-      big[2]->exponent = (uint16_t) (big[2]->exponent - big[0]->exponent) ;
-      big[0]->exponent = 0 ;
-      uint32_t factor  = testrows3[i][3][0] ;
-      uint32_t factor2 = testrows3[i][3][1] ;
-      const bool big0_has_carry = (size_bigint(big[0]) > size_bigint(big[1])) ;
-      TEST(factor2 == submul_biginthelper(big[0], big0_has_carry, factor, 0, nrdigits_bigint(big[1]), big[1])) ;
-      while (big[0]->sign_and_used_digits > 0 && 0 == big[0]->digits[big[0]->sign_and_used_digits-1]) {
-         -- big[0]->sign_and_used_digits ;
-      }
-      TEST(0 == cmp_bigint(big[0], big[2])) ;
-   }
-
    // TEST divmod_bigint (divisor multiple digit)
 #define M UINT32_MAX
    uint32_t testrows4[][2][10] = {
-                /* { multiplicand }, { factor/divisor } */
-                { { 1 }, { 88, 99, 0, 0, 0, 0, 0, 0, 0, 0 } }
-               ,{ { M, 0, 0, M, M, 0, 0, 0, 1, 2 }, { M, 1, M, 5, 0, 1 } }
-               ,{ { 1, 2, 3 }, { M/5, 5 } }
-               ,{ { 1, 2, 3 }, { M, M, M } }
-               ,{ { 1, 0, 2, 0, 3, 0, 0, 0, 2 }, { M, M, M, M, 0, 3 } }
-               ,{ { 100, 102, M, M/8, M/9, M/10, M-1, M-2 }, { M, 0, 0, 1} }
-               ,{ { 1000, 1020, 20000, M, M-1000, M-10000, 0, 0, 1 }, { 0, 0, 0, 0, 1222345, 0, 1, 0, 4 } }
-            } ;
-   uint32_t testadd[][5] = { { 0 }, { 0, 0, 0, 0, M}, { 1, 2, 3, 4, 5}, { M, M, M, M, M } } ;
+      /* { multiplicand }, { factor/divisor } */
+      {  {1}, {88,99,0,0,0,0,0,0,0,0} }
+      ,{ {M,0,0,M,M,0,0,0,1,2}, {M,1,M,5,0,1} }
+      ,{ {1,2,3}, {M/5,5} }
+      ,{ {1,2,3}, {M,M,M} }
+      ,{ {1,0,2,0,3,0,0,0,2}, {M,M,M,M,0,3} }
+      ,{ {100,102,M,M/8,M/9,M/10,M-1,M-2}, {M,0,0,1} }
+      ,{ {1000,1020,20000,M,M-1000,M-10000,0,0,1}, {0,0,0,0,1222345,0,1,0,4} }
+   } ;
+   uint32_t testadd[][5] = { {0}, {0,0,0,0,M}, {1,2,3,4,5}, {M,M,M,M,M}, {M-1,M-2}, {M-12345}, {0,0,12345} } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows4); ++i) {
       for (unsigned nr = 0; nr < 2; ++nr) {
@@ -3242,34 +3570,75 @@ static int test_div(void)
       }
    }
 
-   // TEST divmod_bigint (dividend (one digit but) with bigger exponent)
+   // TEST div_bigint
 #define M UINT32_MAX
    uint32_t testrows5[][3][10] = {
-                /* { dividend }, { divisor }, { result } */
-                { { 5 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 10 }, { 0, 0x80000000 } }
-               ,{ { 5 }, { 0, 0, 0, 0, 0, 0, 0, M, M, M },  { 0, 0, 0, 5, 0, 0, 5, 0, 0, 5 } }
-            } ;
+      /* { dividend }, { divisor }, { result } */
+      // testcases dividend (one digit but) with bigger exponent
+      {  { 5 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 10 }, {0,0x80000000} }
+      ,{ { 5 }, { 0, 0, 0, 0, 0, 0, 0, M, M, M },  {0,0,0,5,0,0,5,0,0,5} }
+      // testcases first two digits divisor == dividend
+      ,{ { M,M,M,M,M,M,M }, { 0,0,M,M,M,M,M,M,M,M }, {0,0,0,0,0,0,0,0,M,M} }
+      ,{ { 88, 99, }, { 0, 88, 99,0,0,0,0,0,0,1 }, {0,0,0,0,0,0,0,0,0,M} }
+      // triggers 6 times special case with nextdigit=0
+      ,{ {1,1,0,0,M,M,M,M,M,0}, { 0,0,0,0,0,0,1,1,0,1 }, {0,0,0,0,M,M,M,M,M,M} }
+   } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows5); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows5[i][nr], 0)) ;
       }
-      TEST(0 == divmod_bigint(&big[3], 0, big[0], big[1])) ;
+      TEST(0 == div_bigint(&big[3], big[0], big[1])) ;
+      TEST(0 == cmp_bigint(big[3], big[2])) ;
+      setnegative_bigint(big[0]) ;
+      setnegative_bigint(big[1]) ;
+      TEST(0 == div_bigint(&big[3], big[0], big[1])) ;
+      TEST(0 == cmp_bigint(big[3], big[2])) ;
+      setnegative_bigint(big[2]) ;
+      setpositive_bigint(big[0]) ;
+      TEST(0 == div_bigint(&big[3], big[0], big[1])) ;
+      TEST(0 == cmp_bigint(big[3], big[2])) ;
+      setpositive_bigint(big[1]) ;
+      setnegative_bigint(big[0]) ;
+      TEST(0 == div_bigint(&big[3], big[0], big[1])) ;
       TEST(0 == cmp_bigint(big[3], big[2])) ;
    }
 
-   // TEST divmod_bigint: estimatedigit3_biginthelper special case (divisor == dividend)
+   // TEST mod_bigint
 #define M UINT32_MAX
    uint32_t testrows6[][3][10] = {
-                /* { dividend }, { divisor }, { result } */
-                { { 88, 99, }, { 0, 88, 99,0,0,0,0,0,0,1 }, {0,0,0,0,0,0,0,0,0,M} }
-            } ;
+      /* { dividend }, { divisor }, { remainder } */
+      {  {5}, {0,0,0,0,0,0,0,0,0,10}, {0} }
+      ,{ {5}, {0,0,0,0,0,0,0,M,M,M},  {0,0,0,0,0,0,0,0,0,5} }
+      ,{ {5,5,5}, {4,1}, {1,4,5} }
+      ,{ {3,3,3,3,M }, {0,0,0,0,0,0,3,3,3,3}, {0,0,0,0,0,0,0,0,M,0} }
+      // skip leading zero in remainder
+      ,{ {5,0,0,0,0,0,0,0,0,M }, {1}, {0,0,0,0,0,0,0,0,0,M} }
+      ,{ {5,8}, {1,1}, {0,3} }
+      ,{ {5,5,5}, {1,1}, {0,0,5} }
+      ,{ {5,5,0,5}, {1,1}, {0,0,0,5} }
+      ,{ {0,0,M,M,M,0,1}, {0,0,0,0,1,0,0,0,0,1}, {0,0,0,0,0,0,0,0,0,1} }
+      // divisor > dividend
+      ,{ {5,0,0,0,0,0,0,0,0,M }, {6}, {5,0,0,0,0,0,0,0,0,M} }
+      ,{ {5,0,0,0,0,0,0,0,0,M }, {6,6}, {5,0,0,0,0,0,0,0,0,M} }
+      // modulo result splitted in ringbuffer
+      ,{ {3,3,3,M }, {0,3,3,3,1}, {0,0,0,0xFFFFFFFE,0,0,0,0,0,0} }
+      ,{ {5,5,5,10,11 }, {0,0,1,1,1,2,2,1}, {0,0,0,0,0,0xFFFFFFFB,0,0,0,0} }
+      ,{ {5,0,0,1,11 }, {0,0,1,0,0,0,0,1}, {0,0,0,1,0x0000000A,0xFFFFFFFB,0,0,0,0} }
+   } ;
 #undef M
    for (unsigned i = 0; i < nrelementsof(testrows6); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows6[i][nr], 0)) ;
       }
-      TEST(0 == divmod_bigint(&big[3], 0, big[0], big[1])) ;
+      TEST(0 == mod_bigint(&big[3], big[0], big[1])) ;
+      TEST(0 == cmp_bigint(big[3], big[2])) ;
+      setnegative_bigint(big[0]) ;
+      setnegative_bigint(big[2]) ;
+      TEST(0 == mod_bigint(&big[3], big[0], big[1])) ;
+      TEST(0 == cmp_bigint(big[3], big[2])) ;
+      setnegative_bigint(big[1]) ;
+      TEST(0 == mod_bigint(&big[3], big[0], big[1])) ;
       TEST(0 == cmp_bigint(big[3], big[2])) ;
    }
 
@@ -3559,7 +3928,7 @@ static int test_fixedsize(void)
 {
    bigint_t                * big[3] = { 0 } ;
    bigint_fixed_DECLARE(14) ;
-   bigint_fixed_DECLARE(4) bigf[3]  = {    bigint_fixed_INIT(4, 0, 1,  2,  3,  4)
+   bigint_fixed_DECLARE(4) bigf[3]  = {   bigint_fixed_INIT(4, 0, 1,  2,  3,  4)
                                           ,bigint_fixed_INIT(-4, 8, 9, 10, 11, 12)
                                           ,bigint_fixed_INIT(4, 4, 5, 6, 7, 8)
                                       } ;
@@ -3642,6 +4011,7 @@ int unittest_math_int_biginteger()
    if (test_assign())      goto ONABORT ;
    if (test_addsub())      goto ONABORT ;
    if (test_mult())        goto ONABORT ;
+   if (test_divhelper())   goto ONABORT ;
    if (test_div())         goto ONABORT ;
    if (test_shift())       goto ONABORT ;
    if (test_example1())    goto ONABORT ;

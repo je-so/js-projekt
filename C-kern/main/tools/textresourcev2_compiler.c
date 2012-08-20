@@ -1144,7 +1144,7 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
       } else {
          bool isParam = false ;
 
-         for(size_t i = 0, endi = unreadsize_utf8reader(&reader->txtpos); i < endi; ++i) {
+         for (size_t i = 0, endi = unreadsize_utf8reader(&reader->txtpos); i < endi; ++i) {
             if (0 != peekasciiatoffset_utf8reader(&reader->txtpos, i, &ch)) break ;
             if (  ('a' <= ch && ch <= 'z')
                || ('A' <= ch && ch <= 'Z')
@@ -1337,7 +1337,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
    err = match_identifier(reader, &name) ;
    if (err) return err ;
 
-   for(uint8_t ch;;) {
+   for (uint8_t ch;;) {
 
       err = init_textresourcetext(&text, &name) ;
       if (err) return err ;
@@ -1360,7 +1360,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
       err = match_identifier(reader, &name) ;
       if (err) return err ;
 
-      for(;;) {
+      for (;;) {
          language = (textresource_language_t) textresource_language_INIT(name) ;
 
          err = tryinsert_arraylanguage(reader->txtres.languages, &language, &langcopy, &g_textreslang_adapter_iot) ;
@@ -1509,7 +1509,7 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
       err = parse_xmlattribute_textresourcereader(reader, &name, &value) ;
       if (err) return err ;
 
-      for(unsigned i = 0 ; i < nr_of_attribs; ++i) {
+      for (unsigned i = 0 ; i < nr_of_attribs; ++i) {
          if (  0 == strncmp(attribs[i].name, (const char*)name.addr, name.size)
             && 0 == attribs[i].name[name.size]) {
             attribs[i].value = value ;
@@ -1605,7 +1605,7 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
 
       if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) break ;
 
-      switch(ch) {
+      switch (ch) {
       case 'f':   err = match_stringandspace(reader, "firstparam") ;
                   if (err) goto ONABORT ;
                   err = parse_xmlattributes_textresourcereader(reader, 2, firstattr, &closetag) ;

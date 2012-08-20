@@ -86,13 +86,13 @@ static int process_arguments(int argc, const char * argv[])
 
    g_infilename = argv[argc-1] ;
 
-   for(int i = 1; i < (argc-1); ++i) {
+   for (int i = 1; i < (argc-1); ++i) {
       if (     argv[i][0] != '-'
             || argv[i][1] == 0
             || argv[i][2] != 0 ) {
          return EINVAL ;
       }
-      switch(argv[i][1]) {
+      switch (argv[i][1]) {
       case 'd':
          g_depencyfile = 1 ;
          break ;
@@ -162,7 +162,7 @@ static int free_depfilenamewritten(void)
 
 static int find_depfilenamewritten(const char * filename)
 {
-   for( depfilename_written_t * next = s_depfilenamewritten_list; next; next = next->next) {
+   for (depfilename_written_t * next = s_depfilenamewritten_list; next; next = next->next) {
       if (0 == strcmp( filename, next->depfilename)) {
          return 0 ;
       }
@@ -255,7 +255,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
 
       char end_of_string = *next_char ;
 
-      for( --input_len, ++next_char; input_len ; --input_len, ++next_char ) {
+      for (--input_len, ++next_char; input_len ; --input_len, ++next_char ) {
          if (end_of_string == *next_char) {
             break ;
          }
@@ -274,7 +274,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
          goto ONABORT ;
       }
 
-      for( --input_len, ++next_char; input_len ; --input_len, ++next_char ) {
+      for (--input_len, ++next_char; input_len ; --input_len, ++next_char ) {
          if (' ' != *next_char && '\t' != *next_char) {
             break ;
          }
@@ -293,7 +293,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
 
       ++ nr_cols ;
 
-      for( --input_len, ++next_char; input_len ; --input_len, ++next_char ) {
+      for (--input_len, ++next_char; input_len ; --input_len, ++next_char ) {
          if (' ' != *next_char && '\t' != *next_char) {
             break ;
          }
@@ -372,7 +372,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index )
 
    while( input_len ) {
       // find line containing data
-      for(;;) {
+      for (;;) {
          if (' ' == *next_char || '\t' == *next_char || '\n' == *next_char ) {
             // ignore white space
             if ('\n' == *next_char) {
@@ -478,7 +478,7 @@ static int free_textdb(textdb_t * txtdb)
    int err2 ;
    size_t table_size = txtdb->row_count * txtdb->column_count ;
 
-   for(size_t i = 0; i < table_size; ++i) {
+   for (size_t i = 0; i < table_size; ++i) {
       err2 = free_textdbcolumn(&txtdb->rows[i]) ;
       if (err2) err = err2 ;
    }
@@ -706,7 +706,7 @@ static int parse_expression(/*out*/expression_t ** result, /*out*/char ** end_pa
       goto ONABORT ;
    }
 
-   for(;;) {
+   for (;;) {
       ++ start_expr ;
       skip_space( &start_expr, end_macro ) ;
 
@@ -781,7 +781,7 @@ int matchnames_expression( expression_t * where_expr, const textdb_t * dbfile, c
    if (where_expr->type == exprtypeNAME) {
       // search matching header
       bool isMatch = false ;
-      for(size_t i = 0; i < dbfile->column_count ; ++i) {
+      for (size_t i = 0; i < dbfile->column_count ; ++i) {
          if (     dbfile->rows[i].length == where_expr->length
                && 0 == strncmp(dbfile->rows[i].value, where_expr->value, where_expr->length) ) {
             where_expr->col_index = i ;
@@ -809,7 +809,7 @@ bool ismatch_expression( expression_t * where_expr, size_t row, const textdb_t *
 
    textdb_column_t * data = &dbfile->rows[row * dbfile->column_count] ;
 
-   switch(where_expr->type) {
+   switch (where_expr->type) {
    case exprtypeAND:
       return ismatch_expression(where_expr->left, row, dbfile, start_linenr ) && ismatch_expression(where_expr->right, row, dbfile, start_linenr ) ;
    case exprtypeOR:
@@ -1090,7 +1090,7 @@ static int process_select_parameter(select_parameter_t * select_param, const siz
 
    textdb_column_t * data = &dbfile->rows[row * dbfile->column_count] ;
 
-   for( const select_parameter_t * p = select_param; p; p = p->next) {
+   for (const select_parameter_t * p = select_param; p; p = p->next) {
       if (seltypeSTRING == p->type) {
          err = write_file( g_outfd, p->value, p->length ) ;
          if (err) goto ONABORT ;
@@ -1112,12 +1112,12 @@ static int prepare_select_parameter(select_parameter_t * select_param, const tex
    int err ;
 
    // match select parameter to header of textdb
-   for( select_parameter_t * p = select_param; p; p = p->next) {
+   for (select_parameter_t * p = select_param; p; p = p->next) {
       if (seltypeFIELD == p->type) {
          // search matching header
          bool isMatch = false ;
-         for(size_t i = 0; i < dbfile->column_count ; ++i) {
-            if (     p->length == dbfile->rows[i].length
+         for (size_t i = 0; i < dbfile->column_count ; ++i) {
+            if (  p->length == dbfile->rows[i].length
                   && 0 == strncmp(dbfile->rows[i].value, p->value, p->length) ) {
                p->col_index = i ;
                isMatch = true ;
@@ -1233,7 +1233,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
                print_err( "Expected no endofline after \\ in line: %d", start_linenr ) ;
                goto ONABORT ;
             }
-            switch(next[0]) {
+            switch (next[0]) {
             case 'n':   start_string = "\n" ;
                         break ;
             default:    print_err( "Unsupported escaped character \\%c in line: %d", next[0], start_linenr ) ;
@@ -1272,7 +1272,7 @@ static int tostring_select_parameter(const select_parameter_t * param, /*out*/ch
    char * buffer = 0 ;
    size_t length = 0 ;
 
-   for( const select_parameter_t * p = param; p; p = p->next) {
+   for (const select_parameter_t * p = param; p; p = p->next) {
       length += p->length ;
    }
 
@@ -1283,7 +1283,7 @@ static int tostring_select_parameter(const select_parameter_t * param, /*out*/ch
    }
 
    size_t offset = 0 ;
-   for( const select_parameter_t * p = param; p; p = p->next) {
+   for (const select_parameter_t * p = param; p; p = p->next) {
       memcpy( &buffer[offset], p->value, p->length ) ;
       offset += p->length ;
    }
@@ -1384,7 +1384,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    if (err) goto ONABORT ;
 
    // determine row-id
-   for(size_t row = 1/*skip header*/, rowid = 1; row < dbfile.row_count; ++row) {
+   for (size_t row = 1/*skip header*/, rowid = 1; row < dbfile.row_count; ++row) {
       if (  ismatch_expression( where_expr, row, &dbfile, start_linenr ) ) {
          textdb_column_t * data  = &dbfile.rows[row * dbfile.column_count] ;
          char              buffer[10] ;
@@ -1398,7 +1398,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    }
 
    // write for every read row the values of the concatenated select parameters as one line of output
-   for(size_t i = 1/*skip header*/; i < dbfile.row_count; ++i) {
+   for (size_t i = 1/*skip header*/; i < dbfile.row_count; ++i) {
 
       size_t row = (ascending ? i : (dbfile.row_count-i)) ;
 
@@ -1429,7 +1429,7 @@ ONABORT:
 
 static int find_macro(/*out*/char ** start_pos, /*out*/char ** end_pos, /*inout*/size_t * line_number, char * next_input, size_t input_size)
 {
-   for( ; input_size; --input_size, ++next_input) {
+   for (; input_size; --input_size, ++next_input) {
       if ('\n' == *next_input) {
          ++ (*line_number) ;
          if (     input_size > 10
@@ -1437,7 +1437,7 @@ static int find_macro(/*out*/char ** start_pos, /*out*/char ** end_pos, /*inout*
             *start_pos  = next_input + 1 ;
             input_size -= 11 ;
             next_input += 11 ;
-            for( ; input_size; --input_size, ++next_input) {
+            for (; input_size; --input_size, ++next_input) {
                if ('\n' == *next_input) {
                   break ;
                }

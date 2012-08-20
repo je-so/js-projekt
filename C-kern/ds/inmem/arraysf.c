@@ -79,7 +79,7 @@ static int find_arraysf(const arraysf_t * array, size_t pos, /*err;out*/arraysf_
    int err ;
    unsigned rootindex ;
 
-   switch(array->type) {
+   switch (array->type) {
    case arraysf_6BITROOT_UNSORTED:  rootindex = (0x3F & pos) ;
                                     break ;
    case arraysf_8BITROOT_UNSORTED:  rootindex = (0xFF & pos) ;
@@ -673,7 +673,7 @@ static int test_initfree(void)
       TEST(0 != array) ;
       TEST(type == array->type) ;
       TEST(0 == length_arraysf(array)) ;
-      switch(type) {
+      switch (type) {
       case arraysf_6BITROOT_UNSORTED:  TEST(nrelemroot_arraysf(array) == 64) ;
                                        break ;
       case arraysf_8BITROOT_UNSORTED:
@@ -702,7 +702,7 @@ static int test_initfree(void)
          TEST(inserted_node == &node) ;
          TEST(1 == array->length) ;
          size_t ri ;
-         switch(type) {
+         switch (type) {
          case arraysf_6BITROOT_UNSORTED:     ri = (pos & 63) ; break ;
          case arraysf_8BITROOT_UNSORTED:     ri = (pos & 255) ; break ;
          case arraysf_MSBPOSROOT:   ri = ~0x01u & log2_int(pos) ;
