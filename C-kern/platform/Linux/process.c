@@ -568,7 +568,7 @@ static int test_redirect(void)
    TEST(filedescr_STDOUT == ioredirect.std_out) ;
    TEST(filedescr_STDERR == ioredirect.std_err) ;
 
-   // TEST setXXX
+   // TEST setstdin_processioredirect, setstdout_processioredirect, setstderr_processioredirect
    for(int i = 0; i < 100; ++i) {
       ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
       TEST(filedescr_INIT_FREEABLE == ioredirect.std_in) ;
@@ -580,12 +580,12 @@ static int test_redirect(void)
       TEST(filedescr_INIT_FREEABLE == ioredirect.std_err) ;
       setstdout_processioredirect(&ioredirect, i+1) ;
       TEST(i == ioredirect.std_in) ;
-      TEST(i+1 == ioredirect.std_out) ;
+      TEST(i == ioredirect.std_out-1) ;
       TEST(filedescr_INIT_FREEABLE == ioredirect.std_err) ;
       setstderr_processioredirect(&ioredirect, i+2) ;
       TEST(i == ioredirect.std_in) ;
-      TEST(i+1 == ioredirect.std_out) ;
-      TEST(i+2 == ioredirect.std_err) ;
+      TEST(i == ioredirect.std_out-1) ;
+      TEST(i == ioredirect.std_err-2) ;
    }
 
    return 0 ;

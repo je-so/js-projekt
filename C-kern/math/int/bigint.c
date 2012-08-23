@@ -2030,16 +2030,16 @@ static int test_sign(void)
    TEST(0 == sign_bigint(big)) ;
    TEST(0 == big->sign_and_used_digits) ;
 
-   // TEST +1,0,-1 == sign_bigint
+   // TEST +1,-1 == sign_bigint
    static_assert(sizeof(big->sign_and_used_digits) == sizeof(int16_t),  "INT16_MAX is valid") ;
    for (int32_t i = 1; i <= INT16_MAX; ++ i) {
       if ( i > 1000 && i < INT16_MAX-1110) {
          i += 110 ;
       }
       big->sign_and_used_digits = (int16_t) i ;
-      TEST(+1 == sign_bigint(big)) ;
+      TEST(0 == isnegative_bigint(big)) ;
       setnegative_bigint(big) ;
-      TEST(-1 == sign_bigint(big)) ;
+      TEST(1 == isnegative_bigint(big)) ;
       TEST(-(int16_t)i == big->sign_and_used_digits) ;
       setpositive_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
@@ -2051,20 +2051,20 @@ static int test_sign(void)
       TEST(+1 == sign_bigint(big)) ;
       TEST(+(int16_t)i == big->sign_and_used_digits) ;
 
-      big->sign_and_used_digits = (int16_t)  -i ;
+      big->sign_and_used_digits = (int16_t)-i ;
       TEST(-1 == sign_bigint(big)) ;
       setpositive_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
       TEST(+(int16_t)i == big->sign_and_used_digits) ;
       setnegative_bigint(big) ;
-      TEST(-1 == sign_bigint(big)) ;
-      TEST(-(int16_t)i == big->sign_and_used_digits) ;
+      TEST(1 == isnegative_bigint(big)) ;
+      TEST((int16_t)-i == big->sign_and_used_digits) ;
       negate_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
       TEST(+(int16_t)i == big->sign_and_used_digits) ;
       negate_bigint(big) ;
       TEST(-1 == sign_bigint(big)) ;
-      TEST(-(int16_t)i == big->sign_and_used_digits) ;
+      TEST((int16_t)-i == big->sign_and_used_digits) ;
    }
 
    return 0 ;
@@ -2094,10 +2094,10 @@ static int test_nrdigits(void)
       }
       big->sign_and_used_digits = (int16_t) i ;
 
-      TEST(+1 == sign_bigint(big)) ;
+      TEST(0 == isnegative_bigint(big)) ;
       TEST(i == nrdigits_bigint(big)) ;
       setnegative_bigint(big) ;
-      TEST(-1 == sign_bigint(big)) ;
+      TEST(1 == isnegative_bigint(big)) ;
       TEST(i == nrdigits_bigint(big)) ;
       setpositive_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;

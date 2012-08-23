@@ -1580,8 +1580,8 @@ int main(int argc, char* argv[])
    const char * makefilename  = 0 ;
    int currentArgIndex = 1 ;
    if (0 == strcmp(argv[currentArgIndex], "-o")) {
-      if (argc < currentArgIndex+3) goto PRINT_USAGE ;
-      makefilename = argv[currentArgIndex+1] ;
+      if (argc < 3) goto PRINT_USAGE ;
+      makefilename     = argv[currentArgIndex+1] ;
       currentArgIndex += 2 ;
    }
 

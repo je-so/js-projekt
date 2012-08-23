@@ -135,38 +135,45 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
 
    uint8_t  buffer[256] ;
    ssize_t  len    = 0 ;
-   if (128 == (len = read(pfd[0], buffer, 128))) {
-      while( 128 == (len = read(pfd[0], &buffer[128], 128))) {
-         memcpy( buffer, &buffer[128], 128) ;
-      }
-      if (len >= 0) {
-         len += 128 ;
-      }
-   }
 
+   len = read(pfd[0], buffer, 128) ;
    if (len < 0) {
       err = errno ;
       LOG_SYSERR("read", err) ;
       goto ONABORT ;
    }
 
-   for(int i = 3; i && len > 0; -- len) {
-      if (buffer[len-1] == '\n') {
-         --i ;
+   while (128 == len) {
+      len = read(pfd[0], &buffer[128], 128) ;
+      if (len < 0) {
+         err = errno ;
+         LOG_SYSERR("read", err) ;
+         goto ONABORT ;
       }
+      if (len < 128) {  // read end of input
+         len += 128 ;
+         break ;
+      }
+      memcpy(buffer, &buffer[128], 128) ;
    }
 
-   while(   len > 0
-         && buffer[len-1] >= '0'
-         && buffer[len-1] <= '9'  ) {
+   // remove last two lines
+   for (unsigned i = 3; len > 0; --len) {
+      i -= (buffer[len] == '\n') ;
+      if (!i) break ;
+   }
+
+   while (len > 0
+          && buffer[len-1] >= '0'
+          && buffer[len-1] <= '9') {
       -- len ;
    }
 
    size_t used_bytes = 0 ;
-   if (     len > 0
+   if (  len > 0
          && buffer[len] >= '0'
          && buffer[len] <= '9'  ) {
-      sscanf( (char*)&buffer[len], "%" SCNuSIZE, &used_bytes ) ;
+      sscanf((char*)&buffer[len], "%" SCNuSIZE, &used_bytes ) ;
    }
 
    if (-1 == dup2(fd, STDERR_FILENO)) {
@@ -210,7 +217,7 @@ static int test_allocatedsize(void)
    TEST(1 <= allocated) ;
 
    // TEST increment
-   for(unsigned i = 0; i < nrelementsof(memblocks); ++i) {
+   for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
       memblocks[i] = malloc(16) ;
       TEST(0 != memblocks[i]) ;
       size_t   allocated2 ;
@@ -219,7 +226,6 @@ static int test_allocatedsize(void)
       TEST(allocated + 32 >= allocated2) ;
       allocated = allocated2 ;
    }
-
 
    // TEST decrement
    for(unsigned i = 0; i < nrelementsof(memblocks); ++i) {

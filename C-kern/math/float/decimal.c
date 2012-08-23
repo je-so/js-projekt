@@ -3796,9 +3796,9 @@ static int test_div(void)
    TEST(0 == exponent_decimal(dec[1])) ;
    TEST(1 == size_decimal(dec[1])) ;
    TEST(0 == setfromint32_decimal(&dec[0], 1, 0)) ;
-   TEST(0 == divi32_decimal(&dec[1], dec[0], 2, 2*sizemax_decimal())) ;
-   TEST(sizemax_decimal() == - exponent_decimal(dec[1]) / digitsperint_decimal()) ;
-   TEST(sizemax_decimal() == size_decimal(dec[1])/*silently truncated*/) ;
+   TEST(0 == divi32_decimal(&dec[1], dec[0], 2, 2*sizemax_decimal()/*result_size>sizemax_decimal()*/)) ;
+   TEST(size_decimal(dec[1])     == sizemax_decimal() /*silently truncated*/) ;
+   TEST(exponent_decimal(dec[1]) == -(int32_t)sizemax_decimal() * digitsperint_decimal()) ;
 
    // TEST divi32_decimal: EINVAL
    TEST(0 == setfromint32_decimal(&dec[1], 1, 0)) ;
