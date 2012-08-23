@@ -55,6 +55,13 @@ int unittest_platform_sync_signal(void) ;
 
 // section: rtsignal_t
 
+// group: query
+
+/* function: maxnr_rtsignal
+ * Returns the maximum supported signal number <rtsignal_t>.
+ * The supported range is [0..maxnr_rtsignal()]. */
+rtsignal_t maxnr_rtsignal(void) ;
+
 // group: change
 
 /* function: send_rtsignal
@@ -76,6 +83,7 @@ int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals) ;
  * If the queue contained the rt signal with number nr
  * it is consumed and 0 is returned. */
 int trywait_rtsignal(rtsignal_t nr) ;
+
 
 /* struct: signalconfig_t
  * Stores current state of all signal handlers and the signal mask.
@@ -112,7 +120,7 @@ int delete_signalconfig(signalconfig_t ** sigconfig) ;
 int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t * sigconfig2) ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 // group: KONFIG_SUBSYS
 
@@ -126,5 +134,7 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
 #define freeonce_signalconfig()        (0)
 #endif
 #undef THREAD
+
+#define maxnr_rtsignal()               ((rtsignal_t)15)
 
 #endif

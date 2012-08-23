@@ -409,7 +409,7 @@ int send_rtsignal(rtsignal_t nr)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nr < 16, ONABORT, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, LOG_INT(nr)) ;
 
    err = sigqueue(getpid(), SIGRTMIN+nr, (union sigval) { 0 } ) ;
    if (err) {
@@ -429,7 +429,7 @@ int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals)
    int err ;
    sigset_t signalmask ;
 
-   VALIDATE_INPARAM_TEST(nr < 16, ONABORT, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, LOG_INT(nr)) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {
@@ -470,7 +470,7 @@ int trywait_rtsignal(rtsignal_t nr)
    sigset_t          signalmask ;
    struct timespec   ts = { 0, 0 } ;
 
-   VALIDATE_INPARAM_TEST(nr < 16, ONABORT, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, LOG_INT(nr)) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {
@@ -696,7 +696,7 @@ ONABORT:
    return EINVAL ;
 }
 
-static int thread_receivesignal(int rtsignr)
+static int thread_receivesignal(unsigned rtsignr)
 {
    int err ;
    assert(rtsignr) ;
@@ -715,54 +715,55 @@ static int test_rtsignal(void)
    bool              isoldmask = false ;
    struct timespec   ts        = { 0, 0 } ;
 
-   // TEST system supports at least 15 signals
+   // TEST system supports at least 16 signals
    TEST(15 <= (SIGRTMAX - SIGRTMIN)) ;
+   TEST(15 == maxnr_rtsignal()) ;
 
    TEST(0 == sigprocmask(SIG_SETMASK, 0, &oldmask)) ;
    isoldmask = true ;
    TEST(0 == sigemptyset(&signalmask)) ;
-   for(int i = 0; i < 16; ++i) {
-      TEST(0 == sigaddset(&signalmask, SIGRTMIN + i)) ;
+   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
+      TEST(0 == sigaddset(&signalmask, SIGRTMIN + (int)i)) ;
    }
    TEST(0 == sigprocmask(SIG_BLOCK, &signalmask, 0)) ;
 
    // TEST wait (consume all queued signals)
    while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
    // generate signals in queue
-   for(int i = 0; i < 16; ++i) {
-      for(int nr = 0; nr < 1+i; ++nr) {
+   for(int i = 0; i <= maxnr_rtsignal(); ++i) {
+      for(int nr = 0; nr <= i; ++nr) {
          TEST(0 == kill(getpid(), SIGRTMIN+i)) ;
       }
    }
    // consume signals
-   for(int i = 0; i < 15; ++i) {
-      TEST(0 == wait_rtsignal((rtsignal_t)i, (unsigned) (1+i))) ;
+   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
+      TEST(0 == wait_rtsignal((rtsignal_t)i, (1+i))) ;
    }
    // all signals consumed
-   for(int i = 0; i < 15; ++i) {
+   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       TEST(EAGAIN == trywait_rtsignal((rtsignal_t)i)) ;
    }
 
    // TEST wait (consume not all signals)
    while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
    // generate signals in queue
-   for(int i = 0; i < 16; ++i) {
+   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       for(int nr = 0; nr < 6; ++nr) {
-         TEST(0 == kill(getpid(), SIGRTMIN+i)) ;
+         TEST(0 == kill(getpid(), SIGRTMIN+(int)i)) ;
       }
    }
    // consume signals
-   for(int i = 0; i < 15; ++i) {
+   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       TEST(0 == wait_rtsignal((rtsignal_t)i, 5)) ;
    }
    // all signals consumed except for one
-   for(int i = 0; i < 15; ++i) {
+   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       TEST(0 == trywait_rtsignal((rtsignal_t)i)) ;
       TEST(EAGAIN == trywait_rtsignal((rtsignal_t)i)) ;
    }
 
    // TEST send_rtsignal (order unspecified)
-   for(int i = 1; i < 15; ++i) {
+   for(unsigned i = 1; i <= maxnr_rtsignal(); ++i) {
       TEST(0 == newgroup_thread(&thread, thread_receivesignal, i, 3)) ;
       thread_t * group[3] = { thread, thread->groupnext, thread->groupnext->groupnext } ;
       for(int t = 0; t < 3; ++t) {
@@ -793,6 +794,8 @@ static int test_rtsignal(void)
    }
 
    // TEST EINVAL
+   TEST(EINVAL == send_rtsignal(16)) ;
+   TEST(EINVAL == trywait_rtsignal(16)) ;
    TEST(EINVAL == wait_rtsignal(16,1)) ;
    TEST(EINVAL == wait_rtsignal(255,1)) ;
 
