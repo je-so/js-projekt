@@ -26,7 +26,6 @@
 #define CKERN_PLATFORM_THREAD_HEADER
 
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/context/threadcontext.h"
 
 /* typedef: struct thread_t
  * Export <thread_t>. */
@@ -40,9 +39,9 @@ typedef int                         (* thread_task_f) (void * task_arg) ;
  * Make <thread_stack_t> an alias for <memblock_t>. */
 typedef memblock_t                     thread_stack_t ;
 
-/* variable: gt_thread_self
- * Points to current <thread_t> object. */
-extern __thread  thread_t              gt_thread_self ;
+/* variable: gt_thread
+ * Points to own <thread_t> object (current thread self). */
+extern __thread  thread_t              gt_thread ;
 
 
 // section: Functions
@@ -112,13 +111,13 @@ struct thread_t {
 // group: initonce
 
 /* function: initonce_thread
- * Calculates some internal offsets, called from <init_context>.
+ * Calculates some internal offsets, called from <init_maincontext>.
  * It must be called after the <valuecache_t> is fully operational
  * The reason is that function <pagesize_vm> needs <valuecache_t>. */
 int initonce_thread(void) ;
 
 /* function: freeonce_thread
- * Does nothing. Called from <free_context>. */
+ * Does nothing. Called from <free_maincontext>. */
 int freeonce_thread(void) ;
 
 // group: lifetime
@@ -127,7 +126,7 @@ int freeonce_thread(void) ;
  * Creates and starts a new system thread.
  * The thread has to do some internal initialization after running the first time
  * and before thread_main is called.
- * If the internal preparation goes wrong <context_t.abort_context> is called.
+ * If the internal preparation goes wrong <maincontext_t.abort_maincontext> is called.
  * It is unspecified if thread_main is called before new_thread returns.
  * On Linux new_thread returns before the newly created thread is scheduled. */
 int new_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * start_arg) ;
@@ -253,12 +252,11 @@ void sleepms_thread(uint32_t msec) ;
 /* define: returncode_thread
  * Implements <thread_t.returncode_thread>.
  * > (threadobj)->returncode */
-#define /*int*/ returncode_thread(threadobj) \
-   ((threadobj)->returncode)
+#define returncode_thread(threadobj)   ((threadobj)->returncode)
 
 /* define: self_thread
  * Implements <thread_t.self_thread>. */
-#define self_thread()                  (&gt_thread_self)
+#define self_thread()                  (&gt_thread)
 
 /* define: unlock_thread
  * Implements <thread_t.unlock_thread>.

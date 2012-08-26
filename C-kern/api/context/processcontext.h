@@ -43,7 +43,7 @@ typedef struct processcontext_t        processcontext_t ;
 /* function: unittest_context_processcontext
  * Test initialization context of whole process succeeds.
  * And global variables are set correctly. */
-extern int unittest_context_processcontext(void) ;
+int unittest_context_processcontext(void) ;
 #endif
 
 
@@ -68,13 +68,15 @@ struct processcontext_t {
 #define processcontext_INIT_FREEABLE   { 0, 0 }
 
 /* function: init_processcontext
- * Is called from <init_context> to init to current process context. */
-extern int init_processcontext(processcontext_t * pcontext) ;
+ * Initializes the current process context. There is exactly one process context
+ * for the whole process. It is shared by all threads.
+ * Function is called from <init_maincontext>. */
+int init_processcontext(processcontext_t * pcontext) ;
 
 /* function: free_processcontext
  * Frees resources associated with <processcontext_t>.
- * This function is called from <free_context> and you should never need to call it. */
-extern int free_processcontext(processcontext_t * pcontext) ;
+ * This function is called from <free_maincontext> and you should never need to call it. */
+int free_processcontext(processcontext_t * pcontext) ;
 
 
 #endif

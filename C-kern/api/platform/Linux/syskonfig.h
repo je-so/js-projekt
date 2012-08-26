@@ -28,7 +28,7 @@
 // section: sytem specific configurations
 
 // group: GNU C-Compiler
-#if defined __GNUC__          //  //
+#if defined(__GNUC__)
 /* define: _THREAD_SAFE
  * Makes calls to library functions thread safe. */
 #define _THREAD_SAFE
@@ -39,8 +39,8 @@
  * Makes file api support of files with size of 2GB * 4GB. */
 #define _GNU_SOURCE
 
-#else                         //  //
 // group: Unknown Compiler
+#else
 #define de 1
 #if (KONFIG_LANG==de)
 #error "nicht unterstützter Compiler unter Linux"
@@ -98,7 +98,7 @@
 #include <sys/wait.h>
 
 
-/* group: !OVERWRITE! system specific types */
+// group: OVERWRITE system specific types
 
 #undef  sys_filedescr_t
 #undef  sys_filedescr_INIT_FREEABLE
@@ -157,5 +157,30 @@
 /* define: sys_thread_INIT_FREEABLE
  * Static initializer for <sys_thread_t>. */
 #define sys_thread_INIT_FREEABLE       (0)
+
+
+// group: OVERWRITE system specific functions
+
+// sys_context_thread is defined in own module
+
+#if defined(__GNUC__)
+#if defined(__i386) || defined(__i686)
+/* define: sys_sqroot_int64
+ * Replaces <sqroot_int64> with faster sqrtl (long double version).
+ * The x86 fpu is faster than the standard integer algorithm for computing the square root. */
+#undef sys_sqroot_int64
+#define sys_sqroot_int64               sqrtl
+#endif
+
+// group: Unknown Compiler
+#else
+#define de 1
+#if (KONFIG_LANG==de)
+#error "nicht unterstützter Compiler unter Linux"
+#else
+#error "unsupported Compiler on Linux"
+#endif
+#undef de
+#endif
 
 #endif

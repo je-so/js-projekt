@@ -35,7 +35,7 @@ typedef struct logmain_t               logmain_t ;
 /* variable: g_logmain
  * Used to support basic logging in main thread.
  * Before anything is initialized.
- * Supports also safe logging after freeing the log resource in <freemain_context>.
+ * Supports also safe logging after freeing the log resource in <free_maincontext>.
  * This logservice is thread safe. */
 extern struct logmain_t                g_logmain ;
 

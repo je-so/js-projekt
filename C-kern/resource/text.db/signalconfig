@@ -1,7 +1,7 @@
 # TEXT.DB (1.0)
 # documentation:
 # List of signals which are used in the system by different modules.
-# The signal mask and handlers are initialized once during initmain_context()
+# The signal mask and handlers are initialized once during init_maincontext()
 "signal",      "action", "callback",                               "header",                           "description"
 "SIGINT",      "block",  "",                                       "",                                 "used to suspend and resume a single thread"
 "SIGPIPE",     "ignore", "", "", "ensures that calls to write return EPIPE"

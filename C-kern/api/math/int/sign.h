@@ -31,6 +31,8 @@
 // group: test
 
 #ifdef KONFIG_UNITTEST
+/* function: unittest_math_int_sign
+ * Tests implementation of <sign_int>. */
 int unittest_math_int_sign(void) ;
 #endif
 
@@ -41,6 +43,7 @@ int unittest_math_int_sign(void) ;
 
 /* function: sign_int
  * Return the sign of an integer (signum function).
+ * This function is implemented as a generic function for all integer types.
  *
  * Paramter:
  * i - The argument whose sign is returned.

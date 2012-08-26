@@ -293,10 +293,10 @@ static int test_querymacros(void)
 {
 
    // TEST query log_maincontext
-   TEST( &(gt_thread_context.ilog) == &log_maincontext() ) ;
+   TEST( &(gt_threadcontext.ilog) == &log_maincontext() ) ;
 
    // TEST query log_maincontext
-   TEST( &(gt_thread_context.objectcache) == &objectcache_maincontext() ) ;
+   TEST( &(gt_threadcontext.objectcache) == &objectcache_maincontext() ) ;
 
    // TEST query valuecache_maincontext
    struct valuecache_t * const oldcache2 = process_maincontext().valuecache ;

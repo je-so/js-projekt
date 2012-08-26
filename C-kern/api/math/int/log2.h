@@ -39,7 +39,7 @@ int unittest_math_int_log2(void) ;
 
 // section: int_t
 
-// group: query
+// group: compute
 
 /* function: log2_int
  * Returns the logarithm to base 2 as integer of an integer value.
@@ -58,8 +58,8 @@ unsigned log2_int(unsigned i) ;
 
 // section: inline implementation
 
-/* define: inline log2_int
- * Implements <log2_int> as a generic function. */
+/* define: log2_int
+ * Implements <int_t.log2_int> as a generic function. */
 #define log2_int(i)                                               \
          ( __extension__ ({                                       \
             int _result ;                                         \

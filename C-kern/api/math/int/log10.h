@@ -28,11 +28,25 @@
 
 // section: Functions
 
-// group: query
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_math_int_log10
+ * Tests implementation of <log10_int>. */
+int unittest_math_int_log10(void) ;
+#endif
+
+
+// section: int_t
+
+// group: compute
 
 /* function: log10_int
  * Returns the logarithm to base 2 as integer of an integer value.
  * This value is the same as the index of the most significant bit.
+ *
+ * This function is generic in that it accepts either 32 or 64 bit
+ * unsigned integers and selects the corresponding implementation.
  *
  * Special case: In case the parameter value is 0 the function returns 0.
  *
@@ -42,21 +56,28 @@
  *
  * Parameter:
  * i - The argument whose logarithm to base 10 is caclulated and returned. */
-unsigned log10_int(uint32_t i) ;
+unsigned log10_int(unsigned i) ;
+
+/* function: log10_int32
+ * Implements <log10_int> for 32 bit values. */
+unsigned log10_int32(uint32_t i) ;
 
 /* function: log10_int64
- * Same as <log10_int>, except for supporting 64 bit values. */
+ * Implements <log10_int> for 64 bit values. */
 unsigned log10_int64(uint64_t i) ;
 
 
-// group: test
+// section: inline implementation
 
-#ifdef KONFIG_UNITTEST
-/* function: unittest_math_int_log10
- * Tests <log10_int>. */
-int unittest_math_int_log10(void) ;
-#endif
-
-
+/* function: log10_int
+ * Implements <int_t.log10_int>.
+ * TODO: reimplement it with _Generic */
+#define log10_int(number)                                               \
+   ( __extension__ ({                                                   \
+      static_assert(0 < (typeof(number))-1, "only unsigned allowed") ;  \
+      (sizeof(number) <= sizeof(uint32_t))                              \
+         ? log10_int32((uint32_t)number)                                \
+         : log10_int64(number) ;                                        \
+   }))
 
 #endif

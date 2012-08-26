@@ -37,37 +37,37 @@
 static int test_abs(void)
 {
    // TEST value 0
-   TEST(0 == abs_int(0)) ;
-   TEST(0 == abs_int((int8_t)0)) ;
-   TEST(0 == abs_int((int16_t)0)) ;
-   TEST(0 == abs_int((int32_t)0)) ;
+   TEST(0 == abs_int32(0)) ;
+   TEST(0 == abs_int32((int8_t)0)) ;
+   TEST(0 == abs_int32((int16_t)0)) ;
+   TEST(0 == abs_int32((int32_t)0)) ;
    TEST(0 == abs_int64((int8_t)0)) ;
    TEST(0 == abs_int64((int16_t)0)) ;
    TEST(0 == abs_int64((int32_t)0)) ;
    TEST(0 == abs_int64((int64_t)0)) ;
 
-   // TEST int8_t
+   // TEST abs_int32, abs_int64 for int8_t
    for(int8_t i = INT8_MIN; i; ++i) {
       uint32_t r = (uint32_t) (- (int32_t)i) ;
-      TEST(r == abs_int(i)) ;
+      TEST(r == abs_int32(i)) ;
       TEST((uint64_t)r == abs_int64(i)) ;
    }
 
-   // TEST int16_t
+   // TEST abs_int32, abs_int64 for int16_t
    for(int16_t i = INT16_MIN; i; ++i) {
       uint32_t r = (uint32_t) (- (int32_t)i) ;
-      TEST(r == abs_int(i)) ;
+      TEST(r == abs_int32(i)) ;
       TEST((uint64_t)r == abs_int64(i)) ;
    }
 
-   // TEST int32_t
+   // TEST abs_int32, abs_int64 for int32_t
    for(int32_t i = INT32_MIN; i < 0; i += 0x1001) {
       uint32_t r = (uint32_t)-i ;
-      TEST(r == abs_int(i)) ;
+      TEST(r == abs_int32(i)) ;
       TEST((uint64_t)r == abs_int64(i)) ;
    }
 
-   // TEST int64_t
+   // TEST abs_int64 for int64_t
    for(int64_t i = INT64_MIN; i < 0; i += 0x100100010001) {
       int64_t r = -i ;
       TEST((uint64_t)r == abs_int64(i)) ;

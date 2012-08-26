@@ -29,21 +29,36 @@
 
 // section: Functions
 
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_math_int_power2
+ * Tests <ispowerof2_int> and <makepowerof2_int>. */
+int unittest_math_int_power2(void) ;
+#endif
+
+
+// section: int_t
+
 // group: query
 
 /* function: ispowerof2_int
  * Determines if argument is of power of 2 or 0.
  * An integer is of power two if exactly one bit is set.
+ * This function is implemented as a generic function for all integer types.
  *
  * Parameter:
  * i - Integer argument to be testet
  *
  * Every integer of the form (binary) 0..00100..0 is of power of 2 (only one bit is set).
  * If a second bit is set i (==01000100) => (i-1) == 01000011 => (i&(i-1)==01000000) != 0 */
-extern int ispowerof2_int(unsigned i) ;
+int ispowerof2_int(unsigned i) ;
+
+// group: compute
 
 /* function: makepowerof2_int
  * Returns power of 2 value of the argument or 0. The returned value is bigger or equal to the given argument.
+ * This function is implemented as a generic function for all integer types.
  *
  * Parameter:
  * i - The argument which is transformed into a power of 2 value and returned.
@@ -55,25 +70,17 @@ extern int ispowerof2_int(unsigned i) ;
  *
  * Algorithm:
  * Set all bits right of highest to one (00011111111) and then add +1 (00100000000). */
-extern unsigned makepowerof2_int(unsigned i) ;
-
-// group: test
-
-#ifdef KONFIG_UNITTEST
-/* function: unittest_math_int_power2
- * Tests <ispowerof2_int>, and <makepowerof2>. */
-extern int unittest_math_int_power2(void) ;
-#endif
+unsigned makepowerof2_int(unsigned i) ;
 
 
 // section: inline implementation
 
-/* define: inline ispowerof2_int
- * Implements <ispowerof2_int> as a generic function. */
-#define ispowerof2_int(i)              !( (typeof(i)) (((i)-1) & (i)) )
+/* define: ispowerof2_int
+ * Implements <int_t.ispowerof2_int> as a generic function. */
+#define ispowerof2_int(i)              (!( (typeof(i)) (((i)-1) & (i)) ))
 
-/* define: inline makepowerof2_int
- * Implements <makepowerof2_int> as a generic function. */
+/* define: makepowerof2_int
+ * Implements <int_t.makepowerof2_int> as a generic function. */
 #define makepowerof2_int(i)                                             \
          (  __extension__ ({                                            \
             typedef typeof(i) _int ;                                    \

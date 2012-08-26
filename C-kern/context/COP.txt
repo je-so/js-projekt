@@ -10,4 +10,4 @@ The execution context of a function (system, process, thread, call stack, object
 is handled implicit by a compiler and the operating system.
 To make these things more amenable a programming should make them explicit.
 The current transaction context as an example for a service is made
-available in the context-object (context_t).
+available in the context-object (maincontext_t).

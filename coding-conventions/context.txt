@@ -1,6 +1,6 @@
 title: Context Oriented Programming
 
-A singleton called g_context defines the global program context.
+A singleton called g_maincontext defines the global program context.
 
 about: Context Types
 * The process of a running program and its associated
@@ -17,23 +17,23 @@ cause only one thread calls this service. This means that every
 service in threadcontext_t must be duplicated for every running thread.
 
 about: Accessing Context
-The process context (<processcontext_t>) can be accessed with <process_context>.
-The thread context (<threadcontext_t>) can be accessed with <thread_context>.
+The process context (<processcontext_t>) can be accessed with <process_maincontext>.
+The thread context (<threadcontext_t>) can be accessed with <thread_maincontext>.
 The returned process context is the same for every thread. Every thread has its own
 thread context.
 
 about: Main Thread
 The main thread which executes the function "int main()"
 and which is created implicitly by the operating system must
-call the function <initmain_context> to initialize the <processcontext_t>
+call the function <init_maincontext> to initialize the <processcontext_t>
 and its <threadcontext_t>.
 
 The difference between the main and any other threads is
-that only the main thread calls <initmain_context> which in turn initializates
+that only the main thread calls <init_maincontext> which in turn initializates
 all subsystems of the C-kernel. This initialization has to be done only once.
 
 Before the main thread exits (after all other threads have exited)
-it should call <freemain_context> to make sure all resources are freed.
+it should call <free_maincontext> to make sure all resources are freed.
 
 about: Other Threads
 Any additional created thread must call <init_threadcontext>
@@ -42,7 +42,7 @@ The thread module implementation does this automatically.
 Use <new_thread> and <delete_thread> for managing additional threads.
 
 about: Internal Workings
-The function <initmain_context> calls <init_processcontext> and <init_threadcontext>.
+The function <init_maincontext> calls <init_processcontext> and <init_threadcontext>.
 
 The function <init_processcontext> calls all functions with patterns
 "int initonce_NAME(void)" / "int initonce_NAME(service_t**)"

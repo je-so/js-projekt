@@ -92,6 +92,7 @@
         <File Name="../../C-kern/api/math/int/log10.h"/>
         <File Name="../../C-kern/api/math/int/sign.h"/>
         <File Name="../../C-kern/api/math/int/bigint.h"/>
+        <File Name="../../C-kern/api/math/int/sqroot.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="hash">
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
@@ -344,6 +345,7 @@
       <File Name="../../C-kern/math/int/log10.c"/>
       <File Name="../../C-kern/math/int/sign.c"/>
       <File Name="../../C-kern/math/int/bigint.c"/>
+      <File Name="../../C-kern/math/int/sqroot.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="hash">
       <File Name="../../C-kern/math/hash/sha1.c"/>

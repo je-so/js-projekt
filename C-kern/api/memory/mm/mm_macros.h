@@ -1,5 +1,5 @@
 /* title: MemoryManagerMacros
-   Exports convenience macros to access <mmtransient_context>.
+   Exports convenience macros for accessing <mmtransient_maincontext>.
 
    about: Copyright
    This program is free software.

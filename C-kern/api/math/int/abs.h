@@ -1,7 +1,7 @@
 /* title: Intop-Abs
    Calculates the absolute value.
 
-   TODO: Reimplement abs_int with c11 functionality and remove abs_int64 !!!
+   TODO: Introduce abs_int with _Generic and replace direct calls to abs_int64 / abs_int32 !!!
    > _Generic( (i), int8_t : uint8_t, int16_t : uint16_t, int32_t : uint32_t, int64_t : uint64_t )
 
    about: Copyright
@@ -31,9 +31,20 @@
 
 // section: Functions
 
-// group: query
+// group: test
 
-/* function: abs_int
+#ifdef KONFIG_UNITTEST
+/* function: unittest_math_int_abs
+ * Tests <abs_int32> and <abs_int64>. */
+int unittest_math_int_abs(void) ;
+#endif
+
+
+// section: int_t
+
+// group: compute
+
+/* function: abs_int32
  * Returns the absolute value as unsigned value from a signed integer.
  *
  * The returned value is the same value as the parameter in case the parameter
@@ -45,27 +56,19 @@
  *
  * Parameter:
  * i - The argument whose absolute value is returned. */
-uint32_t abs_int(int32_t i) ;
+uint32_t abs_int32(int32_t i) ;
 
 /* function: abs_int64
  * Returns the absolute value as unsigned value from a signed.
- * This function operates on 64 bit integers. See also <abs_int>. */
+ * This function operates on 64 bit integers. See also <abs_int32>. */
 uint64_t abs_int64(int64_t i) ;
-
-// group: test
-
-#ifdef KONFIG_UNITTEST
-/* function: unittest_math_int_abs
- * Tests <abs_int>. */
-int unittest_math_int_abs(void) ;
-#endif
 
 
 // section: inline implementation
 
-/* define: inline abs_int
- * Implements <abs_int> as a generic function. */
-#define abs_int(i)                                                \
+/* define: abs_int32
+ * Implements <int_t.abs_int32>. */
+#define abs_int32(i)                                              \
          ( __extension__ ({                                       \
             /* signed ! */                                        \
             static_assert( ((typeof(i))-1) < 0, ) ;               \
@@ -74,8 +77,8 @@ int unittest_math_int_abs(void) ;
             (uint32_t) ((_i < 0) ? -_i : _i) ;                    \
          }))
 
-/* define: inline abs_int64
- * Implements <abs_int64> as a generic function. */
+/* define: abs_int64
+ * Implements <int_t.abs_int64>. */
 #define abs_int64(i)                                              \
          ( __extension__ ({                                       \
             /* signed ! */                                        \

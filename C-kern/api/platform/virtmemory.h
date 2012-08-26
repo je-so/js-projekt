@@ -253,7 +253,7 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator) ;
    (init2_vmblock( vmblock, size_in_pages, accessmode_RDWR|accessmode_PRIVATE ))
 
 /* define: pagesize_vm
- * Uses cached value from <valuecache_context>. */
+ * Uses cached value from <valuecache_maincontext>. */
 #define pagesize_vm() \
    (valuecache_maincontext()->pagesize_vm)
 

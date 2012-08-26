@@ -206,9 +206,13 @@ struct valuecache_t *      valuecache_maincontext(void) ;
 
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
+/* define: thread_maincontext
+ * Inline implementation of <maincontext_t.thread_maincontext>.
+ * If <KONFIG_SUBSYS> contains *THREAD* then <sys_context_thread> is called
+ * else a static variable in <g_maincontext> is returned. */
 #define thread_maincontext()           (g_maincontext.tcontext)
 #else
-#define thread_maincontext()           syscontext_thread()
+#define thread_maincontext()           sys_context_thread()
 #endif
 #undef THREAD
 

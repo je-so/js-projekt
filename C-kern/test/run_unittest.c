@@ -254,6 +254,7 @@ int run_unittest(void)
       RUN(unittest_math_int_log2) ;
       RUN(unittest_math_int_power2) ;
       RUN(unittest_math_int_sign) ;
+      RUN(unittest_math_int_sqroot) ;
 //}
 
 //{ memory unittest

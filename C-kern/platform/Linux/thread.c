@@ -69,24 +69,24 @@ struct thread_startargument_t {
    stack_t        signalstack ;
 } ;
 
-/* variable: gt_thread_context
+/* variable: gt_threadcontest
  * Refers for every thread to corresponding <threadcontext_t> object.
  * Is is located on the thread stack so no heap memory is allocated. */
-__thread  threadcontext_t  gt_thread_context = threadcontext_INIT_STATIC ;
+__thread  threadcontext_t  gt_threadcontext = threadcontext_INIT_STATIC ;
 
-/* variable: gt_thread_self
+/* variable: gt_thread
  * Refers for every thread to corresponding <thread_t> object.
  * Is is located on the thread stack so no heap memory is allocated. */
-__thread  thread_t         gt_thread_self    = { sys_mutex_INIT_DEFAULT, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, memblock_INIT_FREEABLE, 0, 0 } ;
+__thread  thread_t         gt_thread        = { sys_mutex_INIT_DEFAULT, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, memblock_INIT_FREEABLE, 0, 0 } ;
 
 /* variable: s_offset_thread
- * Contains the calculated offset from start of stack thread to <gt_thread_self>. */
-static size_t              s_offset_thread   = 0 ;
+ * Contains the calculated offset from start of stack thread to <gt_thread>. */
+static size_t              s_offset_thread  = 0 ;
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_error_newgroup
  * Simulates an error in <newgroup_thread>. */
-static test_errortimer_t   s_error_newgroup  = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_error_newgroup = test_errortimer_INIT_FREEABLE ;
 #endif
 
 
@@ -267,9 +267,9 @@ static void * startpoint_thread(thread_startargument_t * startarg)
    int err ;
    thread_t * thread = startarg->thread ;
 
-   assert(thread == &gt_thread_self) ;
+   assert(thread == &gt_thread) ;
 
-   err = init_threadcontext(&gt_thread_context) ;
+   err = init_threadcontext(&gt_threadcontext) ;
    if (err) {
       LOG_CALLERR("init_threadcontext", err) ;
       goto ONABORT ;
@@ -324,7 +324,7 @@ static void * startpoint_thread(thread_startargument_t * startarg)
       thread->returncode = thread->task_f(thread->task_arg) ;
    }
 
-   err = free_threadcontext(&gt_thread_context) ;
+   err = free_threadcontext(&gt_threadcontext) ;
    if (err) {
       LOG_CALLERR("free_threadcontext",err) ;
       goto ONABORT ;
@@ -338,7 +338,7 @@ ONABORT:
 
 static void * calculateoffset_thread(thread_stack_t * start_arg)
 {
-   uint8_t * thread  = (uint8_t*) &gt_thread_self ;
+   uint8_t * thread  = (uint8_t*) &gt_thread ;
 
    s_offset_thread = (size_t) (thread - start_arg->addr) ;
    assert(s_offset_thread < start_arg->size) ;
@@ -350,7 +350,7 @@ static void * calculateoffset_thread(thread_stack_t * start_arg)
 
 int initonce_thread()
 {
-   /* calculate position of &gt_thread_self
+   /* calculate position of &gt_thread
     * relative to start threadstack. */
    int err ;
    pthread_attr_t    thread_attr ;
@@ -359,12 +359,12 @@ int initonce_thread()
    bool              isThreadAttrValid = false ;
 
    // init main thread_t
-   if (!gt_thread_self.groupnext) {
-      err = init_mutex(&gt_thread_self.lock) ;
+   if (!gt_thread.groupnext) {
+      err = init_mutex(&gt_thread.lock) ;
       if (err) goto ONABORT ;
-      gt_thread_self.sys_thread = pthread_self() ;
-      gt_thread_self.nr_threads = 1 ;
-      gt_thread_self.groupnext  = &gt_thread_self ;
+      gt_thread.sys_thread = pthread_self() ;
+      gt_thread.nr_threads = 1 ;
+      gt_thread.groupnext  = &gt_thread ;
    }
 
    err = init_threadstack(&stackframe, 1) ;
@@ -902,11 +902,11 @@ static int test_thread_init(void)
 {
    thread_t * thread = 0 ;
 
-   // TEST syscontext_thread
-   TEST(&syscontext_thread() == &gt_thread_context) ;
+   // TEST sys_context_thread
+   TEST(&sys_context_thread() == &gt_threadcontext) ;
 
    // TEST initonce => self_thread()
-   TEST(&gt_thread_self == self_thread()) ;
+   TEST(&gt_thread == self_thread()) ;
    TEST(self_thread()->wlistnext  == 0) ;
    TEST(self_thread()->task_f     == 0) ;
    TEST(self_thread()->task_arg   == 0) ;

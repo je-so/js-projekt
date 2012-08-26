@@ -364,7 +364,7 @@ static shiftleft10p_f determinehshiftleft_decimalhelper(uint32_t shiftcount)
  * exponent you get the aligned exponent. */
 static inline int alignexponent_decimalhelper(/*out*/uint32_t * exponent_correction, int32_t decimal_exponent)
 {
-   if (  abs_int(decimal_exponent) > expmax_decimal()) {
+   if (  abs_int32(decimal_exponent) > expmax_decimal()) {
       return EOVERFLOW ;
    }
 
@@ -1259,7 +1259,7 @@ static int div_decimalhelper(decimal_t *restrict result, bool isNegSign, int32_t
       -- exponent ;
    }
 
-   if (  abs_int(exponent) > INT16_MAX) {
+   if (  abs_int32(exponent) > INT16_MAX) {
       return EOVERFLOW ;
    }
 
@@ -1338,7 +1338,7 @@ static int divi32_decimalhelper(decimal_t *restrict result, bool isNegSign, int3
       -- exponent ;
    }
 
-   if (  abs_int(exponent) > INT16_MAX) {
+   if (  abs_int32(exponent) > INT16_MAX) {
       return EOVERFLOW ;
    }
 
@@ -1606,7 +1606,7 @@ int64_t first18digits_decimal(decimal_t * dec, int32_t * decimal_exponent)
       digits = dec->digits[nrblocks] ;
       if (nrblocks) {
          -- nrblocks ;
-         unsigned l10 = log10_int64(digits) + 1 ;
+         unsigned l10 = log10_int(digits) + 1 ;
          digits *= DIGITSBASE ;
          digits += dec->digits[nrblocks] ;
          if (nrblocks) {
@@ -1671,7 +1671,7 @@ int tocstring_decimal(const decimal_t * dec, struct cstring_t * cstr)
 
       digit     = digits[--size] ;
       digitsize = (uint8_t) (1u + log10_int(digit)) ;
-      expsize   = (uint8_t) (exponent ? (exponent < 0) + 1u/*e*/+ 1u+log10_int(abs_int(exponent)) : 0u) ;
+      expsize   = (uint8_t) (exponent ? (exponent < 0) + 1u/*e*/+ 1u+log10_int(abs_int32(exponent)) : 0u) ;
 
       const size_t strsize = (isnegative_decimal(dec) + (uint32_t)expsize + (uint32_t)digitsize
                               + digitsperint_decimal() * (uint32_t)size) - (uint32_t)nrzeropos ;
@@ -1759,7 +1759,7 @@ ONABORT:
 int setfromint32_decimal(decimal_t *restrict* dec, int32_t value, int32_t decimal_exponent)
 {
    int err ;
-   uint32_t             digit      = abs_int(value) ;
+   uint32_t             digit      = abs_int32(value) ;
    uint32_t             shiftcarry = 0 ;
    alignedexpandshift_t alignshift ;
 
@@ -2286,7 +2286,7 @@ int mult_decimal(decimal_t *restrict* result, const decimal_t * ldec, const deci
 
    uint32_t size = (uint32_t)lsize + rsize ;
 
-   if (  abs_int(exponent) > INT16_MAX) {
+   if (  abs_int32(exponent) > INT16_MAX) {
       err = EOVERFLOW ;
       goto ONABORT ;
    }
@@ -2381,7 +2381,7 @@ ONABORT:
 int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t rdivisor, uint8_t result_size)
 {
    int err ;
-   uint32_t divisor = abs_int(rdivisor) ;
+   uint32_t divisor = abs_int32(rdivisor) ;
 
    VALIDATE_INPARAM_TEST(divisor != 0 && divisor <= DIGITSBASE, ONABORT, ) ;
 
@@ -3051,7 +3051,7 @@ static int test_setfromint(void)
             TEST(dec->size_allocated     == (2 + (0 != shifteddigit[2]))) ;
             TEST(dec->sign_and_used_digits == s * (2 + (0 != shifteddigit[2]))) ;
             TEST(size_decimal(dec)     == 2 + (0 != shifteddigit[2])) ;
-            TEST(nrdigits_decimal(dec) == 1 + log10_int64((uint64_t)testvalues2[i]) + expdiff) ;
+            TEST(nrdigits_decimal(dec) == 1 + log10_int((uint64_t)testvalues2[i]) + expdiff) ;
             TEST(sign_decimal(dec)     == s) ;
             TEST(dec->exponent         == alignexp_test(testexponent2[ei]) / digitsperint_decimal()) ;
             for (unsigned si = 0; si < size_decimal(dec); ++si) {

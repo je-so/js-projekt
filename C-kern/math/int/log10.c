@@ -30,10 +30,21 @@
 #include "C-kern/api/test.h"
 #endif
 
-#define B/*illion*/       1000000000ull
 
+// section: int_t
+
+// group: local variables
+
+#define B/*illion*/       1000000000ull
 #define Q/*uintillian*/   (B*B)
 
+/* variable: s_pow10
+ * Contains powers of 10 (10ⁿ).
+ * > s_pow10[n] == 10ⁿ
+ * > s_pow10[n] == pow(10,n)
+ * Except for (s_pow10[0]==0) instead of (s_pow10[0]==1).
+ * The reason is that <log10_int>(0) is undefined in a mathematical sense
+ * but the implementation is defined to return 0. */
 static uint64_t s_pow10[20] = {
    0,   10,   100,   1000,   10000,   100000,   1000000,   10000000,   100000000,
    B, B*10, B*100, B*1000, B*10000, B*100000, B*1000000, B*10000000, B*100000000,
@@ -43,8 +54,11 @@ static uint64_t s_pow10[20] = {
 #undef Q
 #undef B
 
+// group: compute
 
-unsigned log10_int(uint32_t i)
+/* function: log10_int32
+ * Uses <s_pow10> table to decrement result if necessary. */
+unsigned log10_int32(uint32_t i)
 {
    unsigned lg10 = log2_int(i) ;
 
@@ -61,6 +75,8 @@ unsigned log10_int(uint32_t i)
    return lg10 ;
 }
 
+/* function: log10_int64
+ * Uses <s_pow10> table to decrement result if necessary. */
 unsigned log10_int64(uint64_t i)
 {
    unsigned lg10 = log2_int(i) ;
@@ -113,11 +129,14 @@ static int test_log10(void)
    // TEST values 0 .. 9
    for(unsigned i= 0; i < 10; ++i) {
       TEST(0 == log10_int(i)) ;
+      TEST(0 == log10_int32(i)) ;
       TEST(0 == log10_int64(i)) ;
    }
 
    // TEST UINT_MAX 32,64 bit values
    TEST(9 == log10_int(UINT32_MAX)) ;
+   TEST(9 == log10_int32(UINT32_MAX)) ;
+   TEST(19 == log10_int(UINT64_MAX)) ;
    TEST(19 == log10_int64(UINT64_MAX)) ;
 
    // TEST all 32 bit values multiples of 10 +/- 1
@@ -125,10 +144,16 @@ static int test_log10(void)
       TEST(lg10 == log10_int(i)) ;
       TEST(lg10 == log10_int(i+1)) ;
       TEST(lg10 == 1+log10_int(i-1)) ;
+      TEST(lg10 == log10_int32(i)) ;
+      TEST(lg10 == log10_int32(i+1)) ;
+      TEST(lg10 == 1+log10_int32(i-1)) ;
    }
 
    // TEST all 64 bit values multiples of 10 +/- 1
    for(uint64_t lg10 = 1, i = 10, iprev = 1; (i/10) == iprev; iprev = i, i *= 10, ++lg10) {
+      TEST(lg10 == log10_int(i)) ;
+      TEST(lg10 == log10_int(i+1)) ;
+      TEST(lg10 == 1+log10_int(i-1)) ;
       TEST(lg10 == log10_int64(i)) ;
       TEST(lg10 == log10_int64(i+1)) ;
       TEST(lg10 == 1+log10_int64(i-1)) ;
