@@ -75,7 +75,7 @@ int init_processcontext(processcontext_t * pcontext)
    return 0 ;
 ONABORT:
    (void) free_processcontext(pcontext) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -114,7 +114,7 @@ int free_processcontext(processcontext_t * pcontext)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -172,7 +172,7 @@ int unittest_context_processcontext()
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
    if (test_initfree())            goto ONABORT ;
-   LOG_CLEARBUFFER() ;
+   CLEARBUFFER_LOG() ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 

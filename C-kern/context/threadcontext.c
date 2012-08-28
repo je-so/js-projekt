@@ -77,7 +77,7 @@ int free_threadcontext(threadcontext_t * tcontext)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -112,7 +112,7 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext)
    return 0 ;
 ONABORT:
    (void) free_threadcontext(tcontext) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

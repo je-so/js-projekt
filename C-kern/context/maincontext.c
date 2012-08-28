@@ -111,7 +111,7 @@ int free_maincontext(void)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -157,7 +157,7 @@ ONABORT:
    if (!is_already_initialized) {
       free_maincontext() ;
    }
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -165,8 +165,8 @@ void abort_maincontext(int err)
 {
    // TODO: add abort handler registration ...
    // TODO: add unit test for checking that resources are freed
-   LOG_ERRTEXT(ABORT_FATAL,err) ;
-   LOG_FLUSHBUFFER() ;
+   PRINTERR_LOG(ABORT_FATAL,err) ;
+   FLUSHBUFFER_LOG() ;
    abort() ;
 }
 
@@ -176,8 +176,8 @@ void assertfail_maincontext(
    int          line,
    const char * funcname)
 {
-   LOG_ERRTEXT_ERROR_LOCATION(log_channel_ERR, file, line, funcname) ;
-   LOG_ERRTEXT_ABORT_ASSERT_FAILED(log_channel_ERR, EINVAL, condition) ;
+   ERROR_LOCATION_ERRLOG(log_channel_ERR, file, line, funcname) ;
+   ABORT_ASSERT_FAILED_ERRLOG(log_channel_ERR, EINVAL, condition) ;
    abort_maincontext(EINVAL) ;
 }
 
@@ -266,7 +266,7 @@ static int test_initmain(void)
    TEST(0 == thread_maincontext().objectcache.object) ;
    TEST(0 == thread_maincontext().objectcache.iimpl) ;
 
-   LOG_FLUSHBUFFER() ;
+   FLUSHBUFFER_LOG() ;
    char buffer[4096] = { 0 };
    TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
@@ -277,7 +277,7 @@ static int test_initmain(void)
 
    if (maincontext_STATIC != old_context.type) {
       init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
-      LOGC_PRINTF(ERR, "%s", buffer) ;
+      CPRINTF_LOG(ERR, "%s", buffer) ;
    }
 
    return 0 ;
@@ -341,7 +341,7 @@ static int test_initerror(void)
       TEST(0 == thread_maincontext().objectcache.iimpl) ;
    }
 
-   LOG_FLUSHBUFFER() ;
+   FLUSHBUFFER_LOG() ;
    char buffer[4096] = { 0 };
    TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
@@ -353,20 +353,20 @@ static int test_initerror(void)
    TEST(0 == free_filedescr(&fdpipe[0])) ;
    TEST(0 == free_filedescr(&fdpipe[1])) ;
 
-   LOGC_PRINTF(ERR, "%s", buffer) ;
+   CPRINTF_LOG(ERR, "%s", buffer) ;
 
    // TEST EALREADY
    TEST(EALREADY == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
 
    if (maincontext_STATIC == old_context.type) {
-      LOG_CLEARBUFFER() ;
+      CLEARBUFFER_LOG() ;
       free_maincontext() ;
    }
 
    return 0 ;
 ONABORT:
    if (maincontext_STATIC == old_context.type) {
-      LOG_CLEARBUFFER() ;
+      CLEARBUFFER_LOG() ;
       free_maincontext() ;
    }
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
@@ -406,7 +406,7 @@ static int test_progname(void)
    }
 
    // unprepare
-   LOG_FLUSHBUFFER() ;
+   FLUSHBUFFER_LOG() ;
    char buffer[4096] = { 0 };
    ssize_t bytes = read(fdpipe[0], buffer, sizeof(buffer)) ;
    TEST(0 < bytes || (errno = EAGAIN && -1 == bytes)) ;
@@ -418,7 +418,7 @@ static int test_progname(void)
 
    if (maincontext_STATIC != old_context.type) {
       init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
-      LOGC_PRINTF(ERR, "%s", buffer) ;
+      CPRINTF_LOG(ERR, "%s", buffer) ;
    }
 
    return 0 ;

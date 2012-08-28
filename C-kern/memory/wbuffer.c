@@ -47,7 +47,7 @@ int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size)
       memblock = ((ssize_t)preallocate_size < 0) ? 0 : malloc(preallocate_size) ;
       if (!memblock) {
          err = ENOMEM ;
-         LOG_OUTOFMEMORY(preallocate_size) ;
+         PRINTOUTOFMEM_LOG(preallocate_size) ;
          goto ONABORT ;
       }
    }
@@ -59,7 +59,7 @@ int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -96,7 +96,7 @@ int appendalloc2_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -115,7 +115,7 @@ int appendchar2_wbuffer(wbuffer_t * wbuf, const char c)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -154,7 +154,7 @@ int grow_wbuffer(wbuffer_t * wbuf, size_t free_size)
 
       if (!memblock) {
          err = ENOMEM ;
-         LOG_OUTOFMEMORY(new_size) ;
+         PRINTOUTOFMEM_LOG(new_size) ;
          goto ONABORT ;
       }
 
@@ -165,7 +165,7 @@ int grow_wbuffer(wbuffer_t * wbuf, size_t free_size)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

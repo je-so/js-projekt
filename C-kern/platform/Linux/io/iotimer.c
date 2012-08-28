@@ -60,8 +60,8 @@ int init_iotimer(/*out*/iotimer_t* timer, timeclock_e clock_type)
    fd = timerfd_create(clockid, TFD_NONBLOCK|TFD_CLOEXEC) ;
    if (-1 == fd) {
       err = errno ;
-      LOG_SYSERR("timerfd_create", err) ;
-      LOG_INT(clock_type) ;
+      PRINTSYSERR_LOG("timerfd_create", err) ;
+      PRINTINT_LOG(clock_type) ;
       goto ONABORT ;
    } else {
       *timer = fd ;
@@ -69,7 +69,7 @@ int init_iotimer(/*out*/iotimer_t* timer, timeclock_e clock_type)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -82,7 +82,7 @@ int free_iotimer(iotimer_t * timer)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -96,14 +96,14 @@ int start_iotimer(iotimer_t timer, timevalue_t * relative_time)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      LOG_SYSERR("timer_settime", err) ;
-      LOG_INT(timer) ;
+      PRINTSYSERR_LOG("timer_settime", err) ;
+      PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -117,14 +117,14 @@ int startinterval_iotimer(iotimer_t timer, timevalue_t * interval_time)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      LOG_SYSERR("timer_settime", err) ;
-      LOG_INT(timer) ;
+      PRINTSYSERR_LOG("timer_settime", err) ;
+      PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -138,14 +138,14 @@ int stop_iotimer(iotimer_t timer)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      LOG_SYSERR("timer_settime", err) ;
-      LOG_INT(timer) ;
+      PRINTSYSERR_LOG("timer_settime", err) ;
+      PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -165,8 +165,8 @@ int wait_iotimer(iotimer_t timer)
    if (1 != err) {
       if (-1 == err) {
          err = errno ;
-         LOG_SYSERR("poll", err) ;
-         LOG_INT(timer) ;
+         PRINTSYSERR_LOG("poll", err) ;
+         PRINTINT_LOG(timer) ;
       } else {
          err = EINVAL ;
       }
@@ -175,7 +175,7 @@ int wait_iotimer(iotimer_t timer)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -186,8 +186,8 @@ int remainingtime_iotimer(iotimer_t timer, timevalue_t * remaining_time)
 
    if (timerfd_gettime( timer, &next_timeout )) {
       err = errno ;
-      LOG_SYSERR("timer_gettime", err) ;
-      LOG_INT(timer) ;
+      PRINTSYSERR_LOG("timer_gettime", err) ;
+      PRINTINT_LOG(timer) ;
       goto ONABORT ;
    } else {
       remaining_time->seconds = next_timeout.it_value.tv_sec ;
@@ -196,7 +196,7 @@ int remainingtime_iotimer(iotimer_t timer, timevalue_t * remaining_time)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -209,8 +209,8 @@ int expirationcount_iotimer(iotimer_t timer, /*out*/uint64_t * expiration_count)
    if (sizeof(uint64_t) != read(timer, expiration_count, sizeof(uint64_t))) {
       if (errno != EAGAIN) {
          err = errno ;
-         LOG_SYSERR("read", err) ;
-         LOG_INT(timer) ;
+         PRINTSYSERR_LOG("read", err) ;
+         PRINTINT_LOG(timer) ;
          goto ONABORT ;
       }
       *expiration_count = 0 ;
@@ -218,7 +218,7 @@ int expirationcount_iotimer(iotimer_t timer, /*out*/uint64_t * expiration_count)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

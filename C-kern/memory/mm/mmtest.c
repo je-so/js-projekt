@@ -199,7 +199,7 @@ static int new_mmtestpage(mmtest_page_t ** mmpage, size_t minblocksize, mmtest_p
    return 0 ;
 ONABORT:
    free_vmblock(&vmblock) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -219,7 +219,7 @@ static int delete_mmtestpage(mmtest_page_t ** mmpage)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -281,7 +281,7 @@ static int freeblock_mmtestpage(mmtest_page_t * mmpage, struct memblock_t * memb
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -339,7 +339,7 @@ static int resizeblock_mmtestpage(mmtest_page_t * mmpage, size_t newsize, struct
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -356,7 +356,7 @@ static int getblock_mmtestpage(mmtest_page_t * mmpage, size_t blockindex, /*out*
          memblock_t temp = memblock_INIT(block->header.datasize, block->header.userdata) ;
          if (!isblockvalid_mmtestpage(mmpage, &temp)) {
             err = EINVAL ;
-            LOG_SIZE(blockindex) ;
+            PRINTSIZE_LOG(blockindex) ;
             goto ONABORT ;
          }
       }
@@ -368,7 +368,7 @@ static int getblock_mmtestpage(mmtest_page_t * mmpage, size_t blockindex, /*out*
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -465,7 +465,7 @@ int switchon_mmtest()
    return 0 ;
 ONABORT:
    freeiot_mmtest(&mmtest) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -499,7 +499,7 @@ int switchoff_mmtest()
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -520,7 +520,7 @@ int init_mmtest(/*out*/mmtest_t * mman)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -549,7 +549,7 @@ int free_mmtest(mmtest_t * mman)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -573,7 +573,7 @@ int initiot_mmtest(/*out*/mm_iot * mmtest)
    return err ;
 ONABORT:
    free_mmtest(&mmtestobj) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -596,7 +596,7 @@ int freeiot_mmtest(mm_iot * mmtest)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -677,9 +677,9 @@ int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock
    return 0 ;
 ONABORT:
    if (ENOMEM == err) {
-      LOG_OUTOFMEMORY(newsize) ;
+      PRINTOUTOFMEM_LOG(newsize) ;
    }
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -724,7 +724,7 @@ int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

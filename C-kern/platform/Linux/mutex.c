@@ -66,7 +66,7 @@ ONABORT:
       pthread_mutexattr_destroy(&attr) ;
    }
    pthread_mutex_destroy(&sys_mutex) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -79,7 +79,7 @@ int free_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -92,7 +92,7 @@ int lock_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -105,7 +105,7 @@ int unlock_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -533,11 +533,11 @@ static int test_mutex_slock(void)
 
    {
       char buffer[4096] = {0} ;
-      LOG_FLUSHBUFFER() ;
+      FLUSHBUFFER_LOG() ;
       ssize_t bytes = read(pipefd[0], buffer, sizeof(buffer)) ;
       TEST(bytes > 0) ;
       TEST(bytes < (int)sizeof(buffer)) ;
-      LOGC_PRINTF(ERR, "%s", buffer) ;
+      CPRINTF_LOG(ERR, "%s", buffer) ;
    }
 
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
@@ -651,7 +651,7 @@ int unittest_platform_sync_mutex()
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;
-      LOG_CLEARBUFFER() ;
+      CLEARBUFFER_LOG() ;
    }
 
    TEST(0 == same_resourceusage(&usage)) ;

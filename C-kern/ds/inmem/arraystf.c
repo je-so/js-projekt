@@ -143,7 +143,7 @@ DONE:
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -246,7 +246,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
 
    return err ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -259,7 +259,7 @@ int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type)
 
    VALIDATE_INPARAM_TEST(*array == 0, ONABORT, ) ;
 
-   VALIDATE_INPARAM_TEST(type < nrelementsof(s_arraystf_nrelemroot), ONABORT, LOG_INT(type)) ;
+   VALIDATE_INPARAM_TEST(type < nrelementsof(s_arraystf_nrelemroot), ONABORT, PRINTINT_LOG(type)) ;
 
    const size_t objsize = objectsize_arraystf(type) ;
 
@@ -273,7 +273,7 @@ int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -352,7 +352,7 @@ int delete_arraystf(arraystf_t ** array, typeadapter_iot * typeadp)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -527,7 +527,7 @@ ONABORT:
    if (copied_node) {
       (void) execfree_typeadapteriot(typeadp, copied_node) ;
    }
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -592,7 +592,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -605,7 +605,7 @@ int remove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size]
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -623,7 +623,7 @@ int insert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out*/s
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -653,7 +653,7 @@ int init_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array)
    return 0 ;
 ONABORT:
    MM_FREE(&objectmem) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -677,7 +677,7 @@ int free_arraystfiterator(arraystf_iterator_t * iter)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -749,7 +749,7 @@ ONABORT:
    // move iterator to end of container
    iter->ri = nrelemroot ;
    pop_binarystack(iter->stack, size_binarystack(iter->stack)) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return false ;
 }
 
@@ -1245,20 +1245,20 @@ static int test_error(void)
    // TEST EINVAL
    nodea[0] = (testnode_t) { .node = arraystf_node_INIT(SIZE_MAX, nodea[0].key), .key = { 0 } } ;
       // key has length SIZE_MAX
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    TEST(EINVAL == tryinsert_arraytest(array, &nodea[0], 0, 0)) ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
       // (array != 0)
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    TEST(EINVAL == new_arraytest(&array, arraystf_4BITROOT_UNSORTED)) ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    arraystf_t * array2 = 0 ;
       // type invalid
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    TEST(EINVAL == new_arraytest(&array2, -1)) ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
 
    // TEST EEXIST
@@ -1266,28 +1266,28 @@ static int test_error(void)
    TEST(0 == tryinsert_arraytest(array, &nodea[0], 0, 0)) ;
    testnode_t * existing_node = 0 ;
    nodea[1] = (testnode_t) { .node = arraystf_node_INIT(1, nodea[1].key), .key = { 0 } } ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    TEST(EEXIST == tryinsert_arraytest(array, &nodea[1], &existing_node, 0)) ;  // no log
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
    TEST(&nodea[0]   == existing_node) ;
    existing_node = 0 ;
    TEST(EEXIST == insert_arraytest(array, &nodea[1], &existing_node, 0)) ;     // log
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    TEST(0 == existing_node) ;
 
    // TEST ESRCH
    arraystf_findresult_t found ;
    nodea[1] = (testnode_t) { .node = arraystf_node_INIT(1, nodea[1].key), .key = { 1 } } ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    TEST(0     == at_arraytest(array, 1, nodea[1].key)) ;           // no log
    TEST(ESRCH == find_arraystf(array, &nodea[1].node, &found, offsetof(testnode_t,node))) ;   // no log
    TEST(ESRCH == tryremove_arraytest(array, 1, nodea[1].key, 0)) ; // no log
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
    TEST(ESRCH == remove_arraytest(array, 1, nodea[1].key, 0)) ;    // log
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    nodea[0].freecount = 0 ;
    testnode_t * removed_node = 0 ;
@@ -1579,7 +1579,7 @@ int unittest_ds_inmem_arraystf()
    if (test_generic())        goto ONABORT ;
 
    if (0 == same_resourceusage(&usage)) break ;
-   LOG_CLEARBUFFER() ;
+   CLEARBUFFER_LOG() ;
    }
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

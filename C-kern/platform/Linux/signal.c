@@ -101,22 +101,22 @@ static int clearcallback_signalconfig(unsigned signr)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, LOG_INT(signr)) ;
+   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
 
    if (s_signalhandler[signr-1].isvalid) {
       s_signalhandler[signr-1].isvalid  = false ;
       s_signalhandler[signr-1].callback = 0 ;
       err = sigaction((int)signr, &s_signalhandler[signr-1].oldstate, 0) ;
       if (err) {
-         LOG_SYSERR("sigaction", err) ;
-         LOG_INT(signr) ;
+         PRINTSYSERR_LOG("sigaction", err) ;
+         PRINTINT_LOG(signr) ;
          goto ONABORT ;
       }
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -126,7 +126,7 @@ static int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
    struct sigaction  sighandler ;
 
    VALIDATE_INPARAM_TEST(signr > 0, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, LOG_INT(signr)) ;
+   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
 
    err = clearcallback_signalconfig(signr) ;
    if (err) goto ONABORT ;
@@ -136,14 +136,14 @@ static int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
    err = sigemptyset(&sighandler.sa_mask) ;
    if (err) {
       err = EINVAL ;
-      LOG_SYSERR("sigemptyset", err) ;
+      PRINTSYSERR_LOG("sigemptyset", err) ;
       goto ONABORT ;
    }
 
    err = sigaction((int)signr, &sighandler, &s_signalhandler[signr-1].oldstate);
    if (err) {
-      LOG_SYSERR("sigaction", err) ;
-      LOG_INT(signr) ;
+      PRINTSYSERR_LOG("sigaction", err) ;
+      PRINTINT_LOG(signr) ;
       goto ONABORT ;
    }
    s_signalhandler[signr-1].callback = callback ;
@@ -151,7 +151,7 @@ static int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -161,7 +161,7 @@ static int setignore_signalconfig(unsigned signr)
    struct sigaction  sighandler ;
 
    VALIDATE_INPARAM_TEST(signr > 0, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, LOG_INT(signr)) ;
+   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
 
    err = clearcallback_signalconfig(signr) ;
    if (err) goto ONABORT ;
@@ -171,14 +171,14 @@ static int setignore_signalconfig(unsigned signr)
    err = sigemptyset(&sighandler.sa_mask) ;
    if (err) {
       err = EINVAL ;
-      LOG_SYSERR("sigemptyset", err) ;
+      PRINTSYSERR_LOG("sigemptyset", err) ;
       goto ONABORT ;
    }
 
    err = sigaction((int)signr, &sighandler, &s_signalhandler[signr-1].oldstate) ;
    if (err) {
-      LOG_SYSERR("sigaction", err) ;
-      LOG_INT(signr) ;
+      PRINTSYSERR_LOG("sigaction", err) ;
+      PRINTINT_LOG(signr) ;
       goto ONABORT ;
    }
    s_signalhandler[signr-1].callback = 0 /*ignore*/ ;
@@ -186,7 +186,7 @@ static int setignore_signalconfig(unsigned signr)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -261,20 +261,20 @@ int initonce_signalconfig()
 
    return 0 ;
 ONABORT_sigmask:
-   LOG_SYSERR("pthread_sigmask", err) ;
+   PRINTSYSERR_LOG("pthread_sigmask", err) ;
    goto ONABORT ;
 ONABORT_emptyset:
    err = EINVAL ;
-   LOG_SYSERR("sigemptyset", err) ;
+   PRINTSYSERR_LOG("sigemptyset", err) ;
    goto ONABORT ;
 ONABORT_add:
    err = EINVAL ;
-   LOG_SYSERR("sigaddset", err) ;
-   LOG_INT(signr) ;
+   PRINTSYSERR_LOG("sigaddset", err) ;
+   PRINTINT_LOG(signr) ;
    goto ONABORT ;
 ONABORT:
    if (isoldmask) freeonce_signalconfig() ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -289,8 +289,8 @@ int freeonce_signalconfig()
          signr = (int)i + 1 ;
          err = sigaction(signr, &s_signalhandler[i].oldstate, 0) ;
          if (err) {
-            LOG_SYSERR("sigaction", err) ;
-            LOG_INT(signr) ;
+            PRINTSYSERR_LOG("sigaction", err) ;
+            PRINTINT_LOG(signr) ;
             goto ONABORT ;
          }
       }
@@ -298,13 +298,13 @@ int freeonce_signalconfig()
 
    err = pthread_sigmask(SIG_SETMASK, &s_old_signalmask, 0) ;
    if (err) {
-      LOG_SYSERR("pthread_sigmask", err) ;
+      PRINTSYSERR_LOG("pthread_sigmask", err) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -320,7 +320,7 @@ int new_signalconfig(/*out*/signalconfig_t ** sigconfig)
    newsigconfig = (signalconfig_t*) malloc(objectsize) ;
    if (!newsigconfig) {
       err = ENOMEM ;
-      LOG_OUTOFMEMORY(objectsize) ;
+      PRINTOUTOFMEM_LOG(objectsize) ;
       goto ONABORT ;
    }
 
@@ -329,7 +329,7 @@ int new_signalconfig(/*out*/signalconfig_t ** sigconfig)
 
    err = pthread_sigmask(SIG_SETMASK, 0, &newsigconfig->signalmask) ;
    if (err) {
-      LOG_SYSERR("pthread_sigmask", err) ;
+      PRINTSYSERR_LOG("pthread_sigmask", err) ;
       goto ONABORT ;
    }
 
@@ -338,8 +338,8 @@ int new_signalconfig(/*out*/signalconfig_t ** sigconfig)
       err = sigaction(i, 0, &newsigconfig->signal_handlers[i-1]) ;
       if (err) {
          err = errno ;
-         LOG_SYSERR("sigaction(i,...)", err) ;
-         LOG_INT(i) ;
+         PRINTSYSERR_LOG("sigaction(i,...)", err) ;
+         PRINTINT_LOG(i) ;
          goto ONABORT ;
       }
    }
@@ -348,7 +348,7 @@ int new_signalconfig(/*out*/signalconfig_t ** sigconfig)
    return 0 ;
 ONABORT:
    (void) delete_signalconfig(&newsigconfig) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -409,18 +409,18 @@ int send_rtsignal(rtsignal_t nr)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, PRINTINT_LOG(nr)) ;
 
    err = sigqueue(getpid(), SIGRTMIN+nr, (union sigval) { 0 } ) ;
    if (err) {
       err = errno ;
-      LOG_SYSERR("sigqueue", err) ;
+      PRINTSYSERR_LOG("sigqueue", err) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -429,20 +429,20 @@ int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals)
    int err ;
    sigset_t signalmask ;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, PRINTINT_LOG(nr)) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {
       err = EINVAL ;
-      LOG_SYSERR("sigemptyset", err) ;
+      PRINTSYSERR_LOG("sigemptyset", err) ;
       goto ONABORT ;
    }
 
    err = sigaddset(&signalmask, SIGRTMIN+nr) ;
    if (err) {
       err = EINVAL ;
-      LOG_SYSERR("sigaddset", err) ;
-      LOG_INT(SIGRTMIN+nr) ;
+      PRINTSYSERR_LOG("sigaddset", err) ;
+      PRINTINT_LOG(SIGRTMIN+nr) ;
       goto ONABORT ;
    }
 
@@ -453,14 +453,14 @@ int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals)
 
       if (-1 == err) {
          err = errno ;
-         LOG_SYSERR("sigwaitinfo", err) ;
+         PRINTSYSERR_LOG("sigwaitinfo", err) ;
          goto ONABORT ;
       }
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -470,20 +470,20 @@ int trywait_rtsignal(rtsignal_t nr)
    sigset_t          signalmask ;
    struct timespec   ts = { 0, 0 } ;
 
-   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, LOG_INT(nr)) ;
+   VALIDATE_INPARAM_TEST(nr <= maxnr_rtsignal(), ONABORT, PRINTINT_LOG(nr)) ;
 
    err = sigemptyset(&signalmask) ;
    if (err) {
       err = EINVAL ;
-      LOG_SYSERR("sigemptyset", err) ;
+      PRINTSYSERR_LOG("sigemptyset", err) ;
       goto ONABORT ;
    }
 
    err = sigaddset(&signalmask, SIGRTMIN+nr) ;
    if (err) {
       err = EINVAL ;
-      LOG_SYSERR("sigaddset", err) ;
-      LOG_INT(SIGRTMIN+nr) ;
+      PRINTSYSERR_LOG("sigaddset", err) ;
+      PRINTINT_LOG(SIGRTMIN+nr) ;
       goto ONABORT ;
    }
 
@@ -495,14 +495,14 @@ int trywait_rtsignal(rtsignal_t nr)
          return err ;
       }
       if (EINTR != err) {
-         LOG_SYSERR("sigtimedwait", err) ;
+         PRINTSYSERR_LOG("sigtimedwait", err) ;
          goto ONABORT ;
       }
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -836,7 +836,7 @@ int unittest_platform_sync_signal()
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;
-      LOG_CLEARBUFFER() ;
+      CLEARBUFFER_LOG() ;
    }
 
    TEST(0 == same_resourceusage(&usage)) ;

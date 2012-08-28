@@ -53,7 +53,7 @@ int initthread_objectcache(/*out*/objectcache_iot * objectcache)
 
    if (!newobject) {
       err = ENOMEM ;
-      LOG_OUTOFMEMORY(objsize) ;
+      PRINTOUTOFMEM_LOG(objsize) ;
       goto ONABORT ;
    }
 
@@ -68,7 +68,7 @@ int initthread_objectcache(/*out*/objectcache_iot * objectcache)
    return 0 ;
 ONABORT:
    free(newobject) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -92,7 +92,7 @@ int freethread_objectcache(objectcache_iot * objectcache)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -110,7 +110,7 @@ int init_objectcache(/*out*/objectcache_t * cache )
    return 0 ;
 ONABORT:
    (void) free_vmblock(&iobuffer) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -124,7 +124,7 @@ int free_objectcache(objectcache_t * cache)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -143,7 +143,7 @@ int move_objectcache(objectcache_t * destination, objectcache_t * source)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -157,7 +157,7 @@ static int lockiobuffer2_objectcache(objectcache_t * objectcache, /*out*/membloc
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -172,7 +172,7 @@ static int unlockiobuffer2_objectcache(objectcache_t * objectcache, memblock_t *
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -294,7 +294,7 @@ ONABORT:
 
 static int child_lockassert(objectcache_t * cache)
 {
-   LOG_CLEARBUFFER() ;
+   CLEARBUFFER_LOG() ;
    if (cache) {
       vm_block_t * iobuffer  = (vm_block_t *) 1 ;
       lockiobuffer_objectcache(cache, &iobuffer) ;
@@ -304,7 +304,7 @@ static int child_lockassert(objectcache_t * cache)
 
 static int child_unlockassert(objectcache_t * cache)
 {
-   LOG_CLEARBUFFER() ;
+   CLEARBUFFER_LOG() ;
    if (cache) {
       vm_block_t * iobuffer  = (vm_block_t *) 1 ;
       unlockiobuffer_objectcache(cache, &iobuffer) ;
@@ -376,7 +376,7 @@ static int test_iobuffer(void)
    MEMSET0(&buffer) ;
    ssize_t read_bytes = read(pipefd[0], buffer, sizeof(buffer)-1) ;
    TEST(read_bytes > 50) ;
-   LOG_PRINTF("%s", buffer) ;
+   PRINTF_LOG("%s", buffer) ;
 
    // TEST assertion unlockiobuffer_objectcache
    TEST(0 == init_objectcache( &cache )) ;
@@ -388,7 +388,7 @@ static int test_iobuffer(void)
    MEMSET0(&buffer) ;
    read_bytes = read(pipefd[0], buffer, sizeof(buffer)-1) ;
    TEST(read_bytes > 50) ;
-   LOG_PRINTF("%s", buffer) ;
+   PRINTF_LOG("%s", buffer) ;
 
    TEST(0 == free_filedescr(&pipefd[0])) ;
    TEST(0 == free_filedescr(&pipefd[1])) ;

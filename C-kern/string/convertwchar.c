@@ -70,7 +70,7 @@ int skip_convertwchar(convert_wchar_t * conv, size_t char_count)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -101,7 +101,7 @@ int peek_convertwchar(const convert_wchar_t * conv, size_t char_count, wchar_t *
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -119,7 +119,7 @@ static int test_fromutf8(void)
    const char        * encoding = charencoding_locale() ;
 
    if (strcmp(encoding,"UTF-8")) {
-      LOG_STRING(encoding) ;
+      PRINTCSTR_LOG(encoding) ;
       TEST(0 == strcmp(encoding,"UTF-8")) ;
    }
 

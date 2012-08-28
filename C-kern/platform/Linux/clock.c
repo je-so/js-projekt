@@ -57,8 +57,8 @@ int resolution_timeclock(timeclock_e clock_type, /*out*/timevalue_t * resolution
 
    if (clock_getres(clockid, &tspec)) {
       err = errno ;
-      LOG_SYSERR("clock_getres", err) ;
-      LOG_INT(clock_type) ;
+      PRINTSYSERR_LOG("clock_getres", err) ;
+      PRINTINT_LOG(clock_type) ;
       goto ONABORT ;
    }
 
@@ -67,7 +67,7 @@ int resolution_timeclock(timeclock_e clock_type, /*out*/timevalue_t * resolution
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -79,8 +79,8 @@ int time_timeclock(timeclock_e clock_type, /*out*/timevalue_t * clock_time)
 
    if (clock_gettime(clockid, &tspec)) {
       err = errno ;
-      LOG_SYSERR("clock_gettime", err) ;
-      LOG_INT(clock_type) ;
+      PRINTSYSERR_LOG("clock_gettime", err) ;
+      PRINTINT_LOG(clock_type) ;
       goto ONABORT ;
    }
 
@@ -89,7 +89,7 @@ int time_timeclock(timeclock_e clock_type, /*out*/timevalue_t * clock_time)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -102,14 +102,14 @@ int sleep_timeclock(timeclock_e clock_type, timevalue_t * relative_time)
    while (clock_nanosleep(clockid, 0, &tspec, &tspec)) {
       err = errno ;
       if (EINTR == err) continue ;
-      LOG_SYSERR("clock_gettime", err) ;
-      LOG_INT(clock_type) ;
+      PRINTSYSERR_LOG("clock_gettime", err) ;
+      PRINTINT_LOG(clock_type) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -122,14 +122,14 @@ int sleepms_timeclock(timeclock_e clock_type, uint32_t millisec)
    while (clock_nanosleep(clockid, 0, &tspec, &tspec)) {
       err = errno ;
       if (EINTR == err) continue ;
-      LOG_SYSERR("clock_gettime", err) ;
-      LOG_INT(clock_type) ;
+      PRINTSYSERR_LOG("clock_gettime", err) ;
+      PRINTINT_LOG(clock_type) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

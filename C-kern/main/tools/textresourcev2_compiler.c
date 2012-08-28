@@ -151,10 +151,11 @@ struct proglangC_t {
    conststring_t     guard ;
    conststring_t     langswitch ;
    conststring_t     nameprefix ;
+   conststring_t     namesuffix ;
    conststring_t     printf ;
 } ;
 
-#define proglangC_INIT_FREEABLE        { conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE }
+#define proglangC_INIT_FREEABLE        { conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE }
 
 
 /* struct: textresource_language_t
@@ -317,7 +318,7 @@ static int freeobj_textresourcecondition(typeadapter_t * typeadt, textresource_c
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -416,7 +417,7 @@ static int freeobj_textresourcelangref(typeadapter_t * typeadt, textresource_lan
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -542,7 +543,7 @@ static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -611,7 +612,7 @@ static int free_textresource(textresource_t * textres)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -663,7 +664,7 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
    return 0 ;
 ONABORT:
    free_textresource(textres) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -1614,7 +1615,7 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
                   reader->txtres.progC.firstparam_header = firstattr[1].value ;
                   break ;
       case 'g':   if (  0 == peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
-                     && 'e' == ch) {
+                        && 'e' == ch) {
                      err = match_stringandspace(reader, "generate") ;
                      if (err) goto ONABORT ;
                      err = parse_xmlattributes_textresourcereader(reader, nrelementsof(genattr), genattr, &closetag) ;
@@ -1654,11 +1655,20 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
                   if (err) goto ONABORT ;
                   reader->txtres.progC.langswitch = value.value ;
                   break ;
-      case 'n':   err = match_stringandspace(reader, "nameprefix") ;
-                  if (err) goto ONABORT ;
-                  err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
-                  if (err) goto ONABORT ;
-                  reader->txtres.progC.nameprefix = value.value ;
+      case 'n':   if (  0 == peekasciiatoffset_utf8reader(&reader->txtpos, 4, &ch)
+                        && 's' == ch) {
+                     err = match_stringandspace(reader, "namesuffix") ;
+                     if (err) goto ONABORT ;
+                     err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
+                     if (err) goto ONABORT ;
+                     reader->txtres.progC.namesuffix = value.value ;
+                  } else {
+                     err = match_stringandspace(reader, "nameprefix") ;
+                     if (err) goto ONABORT ;
+                     err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
+                     if (err) goto ONABORT ;
+                     reader->txtres.progC.nameprefix = value.value ;
+                  }
                   break ;
       case 'p':   err = match_stringandspace(reader, "printf") ;
                   if (err) goto ONABORT ;
@@ -1783,7 +1793,7 @@ static int free_textresourcereader(textresource_reader_t * reader)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -1858,7 +1868,7 @@ static int free_textresourcewriter(textresource_writer_t * writer)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -1908,7 +1918,7 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
 ONABORT:
    free_cstring(&filename) ;
    free_textresourcewriter(writer) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -1934,7 +1944,7 @@ static int initfree_textresourcewriter(textresource_t * txtres)
    return 0 ;
 ONABORT:
    free_textresourcewriter(&writer) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -1944,8 +1954,10 @@ static int writeCfctdeclaration_textresourcewriter(textresource_writer_t * write
 {
    proglangC_t * progC = &writer->txtres->progC ;
 
-   dprintf(writer->outfile, "int %.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
-                                             (int)text->name.size, text->name.addr) ;
+   dprintf(writer->outfile, "int %.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
+                                                 (int)text->name.size, text->name.addr,
+                                                 (int)progC->namesuffix.size, progC->namesuffix.addr
+                                                ) ;
 
    bool first_param = true ;
 
@@ -2209,7 +2221,7 @@ static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -2225,7 +2237,7 @@ static int writeCsource_textresourcewriter(textresource_writer_t * writer)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

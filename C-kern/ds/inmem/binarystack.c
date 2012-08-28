@@ -56,7 +56,7 @@ int init_binarystack(/*out*/binarystack_t * stack, size_t initial_size)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -71,7 +71,7 @@ int free_binarystack(binarystack_t * stack)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 
 }
@@ -111,7 +111,7 @@ int push_binarystack(binarystack_t * stack, size_t size, /*out*/void ** lastpush
 
    return 0;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -125,7 +125,7 @@ int pop_binarystack(binarystack_t * stack, size_t size)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

@@ -55,7 +55,7 @@ int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err);
+   PRINTABORT_LOG(err);
    return err ;
 }
 
@@ -76,7 +76,7 @@ int initfromstring_cstring(/*out*/cstring_t * cstr, struct conststring_t * copie
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err);
+   PRINTABORT_LOG(err);
    return err ;
 }
 
@@ -94,7 +94,7 @@ int free_cstring(cstring_t * cstr)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err);
+   PRINTABORTFREE_LOG(err);
    return err ;
 }
 
@@ -128,7 +128,7 @@ int allocate_cstring(cstring_t * cstr, size_t allocate_size)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err);
+   PRINTABORT_LOG(err);
    return err ;
 }
 
@@ -136,7 +136,7 @@ ONABORT:
    {                                                           \
       size_t allocate_size = cstr->length + 1 + append_size ;  \
       if (allocate_size < append_size) {                       \
-         LOG_OUTOFMEMORY(SIZE_MAX) ;                           \
+         PRINTOUTOFMEM_LOG(SIZE_MAX) ;                         \
          err = ENOMEM ;                                        \
          goto ONABORT ;                                        \
       }                                                        \
@@ -161,7 +161,7 @@ int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len])
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err);
+   PRINTABORT_LOG(err);
    return err ;
 }
 
@@ -182,7 +182,7 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
          va_end(args) ;
 
          if (append_size_ < 0) {
-            LOG_OUTOFMEMORY(SIZE_MAX) ;
+            PRINTOUTOFMEM_LOG(SIZE_MAX) ;
             err = ENOMEM ;
             goto ONABORT ;
          }
@@ -201,7 +201,7 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
    return 0 ;
 ONABORT:
    if (cstr->allocated_size) cstr->chars[cstr->length] = 0 ;
-   LOG_ABORT(err);
+   PRINTABORT_LOG(err);
    return err ;
 }
 
@@ -221,7 +221,7 @@ int resize_cstring(cstring_t * cstr, size_t new_length)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err);
+   PRINTABORT_LOG(err);
    return err ;
 }
 
@@ -229,7 +229,7 @@ int truncate_cstring(cstring_t * cstr, size_t new_length)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(new_length <= cstr->length, ONABORT, LOG_SIZE(cstr->length) ; LOG_SIZE(new_length)) ;
+   VALIDATE_INPARAM_TEST(new_length <= cstr->length, ONABORT, PRINTSIZE_LOG(cstr->length) ; PRINTSIZE_LOG(new_length)) ;
 
    if (new_length < cstr->length) {
       cstr->length            = new_length ;
@@ -238,7 +238,7 @@ int truncate_cstring(cstring_t * cstr, size_t new_length)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err);
+   PRINTABORT_LOG(err);
    return err ;
 }
 

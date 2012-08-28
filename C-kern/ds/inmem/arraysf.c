@@ -135,7 +135,7 @@ int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type)
 
    VALIDATE_INPARAM_TEST(*array == 0, ONABORT, ) ;
 
-   VALIDATE_INPARAM_TEST(type < nrelementsof(s_arraysf_nrelemroot), ONABORT, LOG_INT(type)) ;
+   VALIDATE_INPARAM_TEST(type < nrelementsof(s_arraysf_nrelemroot), ONABORT, PRINTINT_LOG(type)) ;
 
    const size_t objsize = objectsize_arraysf(type) ;
 
@@ -149,7 +149,7 @@ int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -228,7 +228,7 @@ int delete_arraysf(arraysf_t ** array, struct typeadapter_iot * typeadp)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -384,7 +384,7 @@ ONABORT:
    if (copied_node) {
       (void) execfree_typeadapteriot(typeadp, copied_node) ;
    }
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -448,7 +448,7 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_objec
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -461,7 +461,7 @@ int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_object_t
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -479,7 +479,7 @@ int insert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out*/str
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -509,7 +509,7 @@ int init_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array)
    return 0 ;
 ONABORT:
    MM_FREE(&objectmem) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -533,7 +533,7 @@ int free_arraysfiterator(arraysf_iterator_t * iter)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -605,7 +605,7 @@ ONABORT:
    // move iterator to end of container
    iter->ri = nrelemroot ;
    pop_binarystack(iter->stack, size_binarystack(iter->stack)) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return false ;
 }
 
@@ -1015,16 +1015,16 @@ static int test_error(void)
 
    // TEST EINVAL
       // (array != 0)
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    TEST(EINVAL == new_tarraysf(&array, arraysf_MSBPOSROOT)) ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
 
    arraysf_t * array2 = 0 ;
       // type invalid
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    TEST(EINVAL == new_tarraysf(&array2, -1)) ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
 
    // TEST EEXIST
@@ -1034,28 +1034,28 @@ static int test_error(void)
    TEST(0 == insert_tarraysf(array, &nodea[0], &inserted_node, 0)) ;
    TEST(&nodea[0] == inserted_node ) ;
    testnode_t * existing_node = 0 ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    TEST(EEXIST == tryinsert_tarraysf(array, &nodea[1], &existing_node, 0)) ;  // no log
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
    TEST(&nodea[0] == existing_node) ;
    inserted_node = 0 ;
    TEST(EEXIST == insert_tarraysf(array, &nodea[1], &inserted_node, 0)) ;     // log
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    TEST(0 == inserted_node) ;
 
    // TEST ESRCH
    testnode_t * removed_node = 0 ;
-   LOG_GETBUFFER(&logbuffer, &logbufsize1) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
    arraysf_findresult_t found ;
    TEST(0 == at_tarraysf(array, 1)) ;                             // no log
    TEST(ESRCH == find_arraysf(array, 1, &found, 0)) ;             // no log
    TEST(ESRCH == tryremove_tarraysf(array, 1, &removed_node)) ;   // no log
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
    TEST(ESRCH == remove_tarraysf(array, 1, &removed_node)) ;      // log
-   LOG_GETBUFFER(&logbuffer, &logbufsize2) ;
+   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    nodea[0].freecount = 0 ;
    TEST(0 == tryremove_tarraysf(array, 0, &removed_node)) ;

@@ -79,7 +79,7 @@ int free_slist(slist_t * list, struct typeadapter_iot * typeadp, uint32_t offset
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -102,7 +102,7 @@ int insertfirst_slist(slist_t * list, struct generic_object_t * new_node, uint32
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -126,7 +126,7 @@ int insertlast_slist(slist_t * list, struct generic_object_t * new_node, uint32_
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -152,7 +152,7 @@ int insertafter_slist(slist_t * list, struct generic_object_t * prev_node, struc
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -180,7 +180,7 @@ int removefirst_slist(slist_t * list, struct generic_object_t ** removed_node, u
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -214,7 +214,7 @@ int removeafter_slist(slist_t * list, struct generic_object_t * prev_node, struc
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

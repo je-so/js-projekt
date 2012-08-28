@@ -64,7 +64,7 @@ static int parse_urlscheme(url_scheme_e * scheme, const char ** encodedstr)
    *encodedstr = next ;
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -146,7 +146,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
    newurl = malloc(objsize) ;
    if (!newurl) {
       err = ENOMEM ;
-      LOG_OUTOFMEMORY(objsize) ;
+      PRINTOUTOFMEM_LOG(objsize) ;
       goto ONABORT ;
    }
 
@@ -178,7 +178,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
    return 0 ;
 ONABORT:
    free(newurl) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return 0 ;
 }
 
@@ -190,7 +190,7 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
    const uint8_t  * slashpos = (const uint8_t*)strchrnul(encodedstr, '/') ;
    url_parts_t    parts      = url_parts_INIT_FREEABLE ;
 
-   VALIDATE_INPARAM_TEST( (unsigned)scheme <= url_scheme_HTTP, ONABORT, LOG_INT(scheme)) ;
+   VALIDATE_INPARAM_TEST( (unsigned)scheme <= url_scheme_HTTP, ONABORT, PRINTINT_LOG(scheme)) ;
 
    if (     (pos = (const uint8_t*)strchrnul((const char*)next, '@'))
          && pos < slashpos) {
@@ -252,7 +252,7 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -277,7 +277,7 @@ int new_url(/*out*/url_t ** url, const char * encodedstr)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -370,7 +370,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    return 0 ;
 ONABORT:
    if (start_result) popbytes_wbuffer(encoded_url_string, result_size) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

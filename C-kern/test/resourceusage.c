@@ -56,7 +56,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    mappedregions = MALLOC(vm_mappedregions_t, malloc, ) ;
    if (!mappedregions) {
       err = ENOMEM ;
-      LOG_OUTOFMEMORY(sizeof(vm_mappedregions_t)) ;
+      PRINTOUTOFMEM_LOG(sizeof(vm_mappedregions_t)) ;
       goto ONABORT ;
    }
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
@@ -84,7 +84,7 @@ ONABORT:
       free(mappedregions) ;
    }
    delete_signalconfig(&signalconfig) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -112,7 +112,7 @@ int free_resourceusage(resourceusage_t * usage)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -127,27 +127,27 @@ int same_resourceusage(const resourceusage_t * usage)
    err = EAGAIN ;
 
    if (usage2.filedescriptor_usage != usage->filedescriptor_usage) {
-      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
+      PRINTERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
       goto ONABORT ;
    }
 
    if (usage2.sizealloc_mmtrans != usage->sizealloc_mmtrans) {
-      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
+      PRINTERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
       goto ONABORT ;
    }
 
    if ((usage2.malloc_usage - usage->malloc_correction) != usage->malloc_usage) {
-      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
+      PRINTERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
       goto ONABORT ;
    }
 
    if (compare_vmmappedregions(usage2.virtualmemory_usage, usage->virtualmemory_usage)) {
-      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
+      PRINTERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
       goto ONABORT ;
    }
 
    if (compare_signalconfig(usage2.signalconfig, usage->signalconfig)) {
-      LOG_ERRTEXTvoid(RESOURCE_USAGE_DIFFERENT) ;
+      PRINTERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
       goto ONABORT ;
    }
 
@@ -157,7 +157,7 @@ int same_resourceusage(const resourceusage_t * usage)
    return 0 ;
 ONABORT:
    (void) free_resourceusage(&usage2) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

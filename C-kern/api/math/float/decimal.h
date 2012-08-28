@@ -323,6 +323,7 @@ int div_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
  * The absolute value of *rdivisor* must be in the range [1..pow(10,digitsperint_decimal())]. */
 int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t rdivisor, uint8_t result_size) ;
 
+
 // section: inline implementation
 
 /* define: bitsperint_decimal

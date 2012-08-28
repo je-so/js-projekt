@@ -60,12 +60,12 @@ static void generate_logresource(const char * test_name)
 
    char   * logbuffer ;
    size_t logbuffer_size ;
-   LOG_GETBUFFER( &logbuffer, &logbuffer_size ) ;
+   GETBUFFER_LOG( &logbuffer, &logbuffer_size ) ;
 
    if (logbuffer_size) {
       int logsize = write( fd, logbuffer, logbuffer_size ) ;
       if (logbuffer_size != (unsigned)logsize) {
-         LOGC_PRINTF(TEST, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
+         CPRINTF_LOG(TEST, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
          goto ONABORT ;
       }
    }
@@ -74,8 +74,8 @@ static void generate_logresource(const char * test_name)
    return ;
 ONABORT:
    if (err != EEXIST) {
-      LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      LOGC_PRINTF(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
+      CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+      CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
    }
    free_filedescr(&fd) ;
    return ;
@@ -85,7 +85,7 @@ ONABORT:
  * Compares saved log with content of log buffer.
  * The log *test_name* is read from directory "C-kern/resource/unittest.log/"
  * and compared with the content of the log buffer.
- * The content of the log buffer is queried with <LOG_GETBUFFER>. */
+ * The content of the log buffer is queried with <GETBUFFER_LOG>. */
 static int check_logresource(const char * test_name)
 {
    int              err ;
@@ -107,10 +107,10 @@ static int check_logresource(const char * test_name)
 
    char * logbuffer ;
    size_t logbuffer_size ;
-   LOG_GETBUFFER( &logbuffer, &logbuffer_size ) ;
+   GETBUFFER_LOG( &logbuffer, &logbuffer_size ) ;
 
    if (logbuffer_size != logfile_size) {
-      LOGC_PRINTF(TEST, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
+      CPRINTF_LOG(TEST, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
       err = EINVAL ;
       goto ONABORT ;
    }
@@ -122,7 +122,7 @@ static int check_logresource(const char * test_name)
          memcpy( addr_mmfile(&logfile2), logbuffer, logbuffer_size ) ;
       }
       free_mmfile(&logfile2) ;
-      LOGC_PRINTF(TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
+      CPRINTF_LOG(TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
       err = EINVAL ;
       goto ONABORT ;
    }
@@ -132,8 +132,8 @@ static int check_logresource(const char * test_name)
 
    return 0 ;
 ONABORT:
-   LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-   LOGC_PRINTF(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
+   CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+   CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
    free_mmfile(&logfile) ;
    return err ;
 }
@@ -163,7 +163,7 @@ static void run_singletest(const char * test_name, int (*test_fct) (void), unsig
    int      err ;
 
    logrun_test(test_name) ;
-   LOG_CLEARBUFFER() ;
+   CLEARBUFFER_LOG() ;
 
    err = test_fct() ;
    if (err) {
@@ -171,7 +171,7 @@ static void run_singletest(const char * test_name, int (*test_fct) (void), unsig
       if (0 == initappend_file(&error_log, "error.log", 0)) {
          char     * buffer ;
          size_t   size ;
-         LOG_GETBUFFER(&buffer, &size) ;
+         GETBUFFER_LOG(&buffer, &size) ;
          write_filedescr(error_log, size, (uint8_t*)buffer, 0) ;
          free_file(&error_log) ;
       }
@@ -210,7 +210,7 @@ int run_unittest(void)
    ++ total_count ;
    if (unittest_context_maincontext()) {
       ++ err_count ;
-      LOGC_PRINTF(TEST, "unittest_context FAILED\n") ;
+      CPRINTF_LOG(TEST, "unittest_context FAILED\n") ;
       goto ONABORT ;
    }
 
@@ -218,8 +218,8 @@ int run_unittest(void)
 
       // init
       if (init_maincontext(test_context_type[type_nr], 0, 0)) {
-         LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-         LOGC_PRINTF(TEST, "%s\n", "Abort reason: initmain_context failed" ) ;
+         CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+         CPRINTF_LOG(TEST, "%s\n", "Abort reason: initmain_context failed" ) ;
          goto ONABORT ;
       }
 
@@ -336,11 +336,11 @@ int run_unittest(void)
 //}
 
 
-      LOG_CLEARBUFFER() ;
+      CLEARBUFFER_LOG() ;
 
       if (free_maincontext()) {
-         LOGC_PRINTF(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-         LOGC_PRINTF(TEST, "%s\n", "Abort reason: freemain_context failed" ) ;
+         CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
+         CPRINTF_LOG(TEST, "%s\n", "Abort reason: freemain_context failed" ) ;
          goto ONABORT ;
       }
 
@@ -349,11 +349,11 @@ int run_unittest(void)
 ONABORT:
 
    if (!err_count) {
-      LOGC_PRINTF(TEST, "\nALL UNITTEST(%d): OK\n", total_count) ;
+      CPRINTF_LOG(TEST, "\nALL UNITTEST(%d): OK\n", total_count) ;
    } else if (err_count == total_count) {
-      LOGC_PRINTF(TEST, "\nALL UNITTEST(%d): FAILED\n", total_count) ;
+      CPRINTF_LOG(TEST, "\nALL UNITTEST(%d): FAILED\n", total_count) ;
    } else {
-      LOGC_PRINTF(TEST, "\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
+      CPRINTF_LOG(TEST, "\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
    }
 
    return err_count > 0 ;

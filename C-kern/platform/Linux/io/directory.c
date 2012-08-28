@@ -64,7 +64,7 @@ int checkpath_directory(const directory_t * dir, const char * const file_path)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -82,14 +82,14 @@ int filesize_directory(const directory_t * relative_to, const char * file_path, 
    err = fstatat( statatfd, file_path, &stat_result, 0 ) ;
    if (err) {
       err = errno ;
-      LOG_SYSERR("fstatat", err) ;
+      PRINTSYSERR_LOG("fstatat", err) ;
       goto ONABORT ;
    }
 
    *file_size = stat_result.st_size ;
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -111,16 +111,16 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
    fdd = openat( openatfd, path, O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
    if (-1 == fdd) {
       err = errno ;
-      LOG_SYSERR("openat", err) ;
-      LOG_STRING(path) ;
+      PRINTSYSERR_LOG("openat", err) ;
+      PRINTCSTR_LOG(path) ;
       goto ONABORT ;
    }
 
    sysdir = fdopendir(fdd) ;
    if (!sysdir) {
       err = errno ;
-      LOG_SYSERR("fdopendir", err) ;
-      LOG_STRING(path) ;
+      PRINTSYSERR_LOG("fdopendir", err) ;
+      PRINTCSTR_LOG(path) ;
       goto ONABORT ;
    }
    fdd = -1 ; // is used internally
@@ -134,7 +134,7 @@ ONABORT:
       (void) closedir(sysdir) ;
    }
    free(cwd) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -166,7 +166,7 @@ int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, cstri
    mkdpath = mkdtemp(str_cstring(tmppath)) ;
    if (!mkdpath) {
       err = errno ;
-      LOG_SYSERR("mkdtemp",err) ;
+      PRINTSYSERR_LOG("mkdtemp",err) ;
       goto ONABORT ;
    }
 
@@ -186,7 +186,7 @@ ONABORT:
    clear_cstring(tmppath) ;
    free_cstring(&buffer) ;
    delete_directory(&newdir) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -201,7 +201,7 @@ int delete_directory(directory_t ** dir)
       err = closedir(DIR_sysdir(delobj)) ;
       if (err) {
          err = errno ;
-         LOG_SYSERR("closedir", err) ;
+         PRINTSYSERR_LOG("closedir", err) ;
       }
 
       if (err) goto ONABORT ;
@@ -209,7 +209,7 @@ int delete_directory(directory_t ** dir)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -222,7 +222,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
    result = readdir( DIR_sysdir(dir) ) ;
    if (!result && errno) {
       err = errno ;
-      LOG_SYSERR("readdir",err) ;
+      PRINTSYSERR_LOG("readdir",err) ;
       goto ONABORT ;
    }
 
@@ -258,7 +258,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -271,7 +271,7 @@ int gofirst_directory(directory_t * dir)
    rewinddir(DIR_sysdir(dir)) ;
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -288,15 +288,15 @@ int makedirectory_directory(directory_t * dir, const char * directory_path)
    err = mkdirat(mkdiratfd, directory_path, 0700) ;
    if (err) {
       err = errno ;
-      LOG_SYSERR("mkdirat(mkdiratfd, directory_path, 0700)",err) ;
-      LOG_INT(mkdiratfd) ;
-      LOG_STRING(directory_path) ;
+      PRINTSYSERR_LOG("mkdirat(mkdiratfd, directory_path, 0700)",err) ;
+      PRINTINT_LOG(mkdiratfd) ;
+      PRINTCSTR_LOG(directory_path) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -313,18 +313,18 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
    fd = openat(openatfd, file_path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
    if (-1 == fd) {
       err = errno ;
-      LOG_SYSERR("openat(openatfd, file_path)",err) ;
-      LOG_INT(openatfd) ;
-      LOG_STRING(file_path) ;
+      PRINTSYSERR_LOG("openat(openatfd, file_path)",err) ;
+      PRINTINT_LOG(openatfd) ;
+      PRINTCSTR_LOG(file_path) ;
       goto ONABORT ;
    }
 
    err = ftruncate(fd, file_length) ;
    if (err) {
       err = errno ;
-      LOG_SYSERR("ftruncate(file_path, file_length)",err) ;
-      LOG_STRING(file_path) ;
-      LOG_UINT64(file_length) ;
+      PRINTSYSERR_LOG("ftruncate(file_path, file_length)",err) ;
+      PRINTCSTR_LOG(file_path) ;
+      PRINTUINT64_LOG(file_length) ;
       goto ONABORT ;
    }
 
@@ -336,7 +336,7 @@ ONABORT:
       free_filedescr(&fd) ;
       unlinkat(openatfd, file_path, 0) ;
    }
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -352,15 +352,15 @@ int removedirectory_directory(directory_t * dir, const char * directory_path)
    err = unlinkat(unlinkatfd, directory_path, AT_REMOVEDIR) ;
    if (err) {
       err = errno ;
-      LOG_SYSERR("unlinkat(unlinkatfd, directory_path)",err) ;
-      LOG_INT(unlinkatfd) ;
-      LOG_STRING(directory_path) ;
+      PRINTSYSERR_LOG("unlinkat(unlinkatfd, directory_path)",err) ;
+      PRINTINT_LOG(unlinkatfd) ;
+      PRINTCSTR_LOG(directory_path) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -376,15 +376,15 @@ int removefile_directory(directory_t * dir, const char * file_path)
    err = unlinkat(unlinkatfd, file_path, 0) ;
    if (err) {
       err = errno ;
-      LOG_SYSERR("unlinkat(unlinkatfd, file_path)",err) ;
-      LOG_INT(unlinkatfd) ;
-      LOG_STRING(file_path) ;
+      PRINTSYSERR_LOG("unlinkat(unlinkatfd, file_path)",err) ;
+      PRINTINT_LOG(unlinkatfd) ;
+      PRINTCSTR_LOG(file_path) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -666,7 +666,7 @@ static int test_initfree(void)
    // adapt LOG
    char * logbuffer ;
    size_t logbuffer_size ;
-   LOG_GETBUFFER( &logbuffer, &logbuffer_size ) ;
+   GETBUFFER_LOG( &logbuffer, &logbuffer_size ) ;
    if (logbuffer_size) {
       char * found = logbuffer ;
       while ( (found=strstr( found, str_cstring(&tmppath) )) ) {
@@ -790,7 +790,7 @@ int unittest_io_directory()
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
    if (test_initfree())          goto ONABORT ;
-   LOG_CLEARBUFFER() ;
+   CLEARBUFFER_LOG() ;
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_checkpath())         goto ONABORT ;

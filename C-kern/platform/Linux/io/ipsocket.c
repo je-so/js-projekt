@@ -43,7 +43,7 @@ int free_ipsocket(ipsocket_t * ipsock)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -63,47 +63,47 @@ int initsocket_helper(/*out*/ipsocket_t * ipsock, const ipaddr_t * localaddr)
    fd = socket(version_ipaddr(localaddr), socktype|SOCK_CLOEXEC, protocol_ipaddr(localaddr)) ;
    if (-1 == fd) {
       err = errno ;
-      LOG_SYSERR("socket", err) ;
+      PRINTSYSERR_LOG("socket", err) ;
       goto ONABORT_LOG ;
    }
 
    const int on = 1 ;
    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) {
       err = errno ;
-      LOG_SYSERR("setsockopt(SO_REUSEADDR)", err) ;
+      PRINTSYSERR_LOG("setsockopt(SO_REUSEADDR)", err) ;
       goto ONABORT_LOG ;
    }
 
    if (ipprotocol_TCP == protocol_ipaddr(localaddr)) {
       if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, &on, sizeof(on))) {
          err = errno ;
-         LOG_SYSERR("setsockopt(SO_OOBINLINE)", err) ;
+         PRINTSYSERR_LOG("setsockopt(SO_OOBINLINE)", err) ;
          goto ONABORT_LOG ;
       }
    }
 
    if (bind(fd, localaddr->addr, localaddr->addrlen)) {
       err = errno ;
-      LOG_SYSERR("bind", err) ;
+      PRINTSYSERR_LOG("bind", err) ;
       goto ONABORT_LOG ;
    }
 
    *ipsock = fd ;
    return 0 ;
 ONABORT_LOG:
-   LOG_INT(port_ipaddr(localaddr)) ;
-   LOG_INT(protocol_ipaddr(localaddr)) ;
-   LOG_INT(version_ipaddr(localaddr)) ;
-   LOG_INT(socktype) ;
-   LOG_INT(fd) ;
+   PRINTINT_LOG(port_ipaddr(localaddr)) ;
+   PRINTINT_LOG(protocol_ipaddr(localaddr)) ;
+   PRINTINT_LOG(version_ipaddr(localaddr)) ;
+   PRINTINT_LOG(socktype) ;
+   PRINTINT_LOG(fd) ;
    cstring_t name = cstring_INIT ;
    if (0 == numericname_ipaddr(localaddr, &name)) {
-      LOG_STRING(str_cstring(&name)) ;
+      PRINTCSTR_LOG(str_cstring(&name)) ;
    }
    (void) free_cstring(&name) ;
 ONABORT:
    free_filedescr(&fd) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -123,7 +123,7 @@ int init_ipsocket(/*out*/ipsocket_t * ipsock, const ipaddr_t * localaddr)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -150,8 +150,8 @@ int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * rem
    err = connect(fd, remoteaddr->addr, remoteaddr->addrlen) ;
    if (err) {
       err = errno ;
-      LOG_SYSERR("connect", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("connect", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
@@ -159,7 +159,7 @@ int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * rem
    return 0 ;
 ONABORT:
    free_ipsocket(&new_ipsock) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -178,9 +178,9 @@ int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loca
 
    if (listen(fd, max_outstanding_connections)) {
       err = errno ;
-      LOG_SYSERR("listen", err) ;
-      LOG_INT(fd) ;
-      LOG_INT(max_outstanding_connections) ;
+      PRINTSYSERR_LOG("listen", err) ;
+      PRINTINT_LOG(fd) ;
+      PRINTINT_LOG(max_outstanding_connections) ;
       goto ONABORT ;
    }
 
@@ -188,7 +188,7 @@ int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loca
    return 0 ;
 ONABORT:
    free_ipsocket(&new_ipsock) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -209,8 +209,8 @@ int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock
    new_socket = accept4(fd, (struct sockaddr*) &saddr, &len, SOCK_CLOEXEC) ;
    if (-1 == new_socket) {
       err = errno ;
-      LOG_SYSERR("accept4", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("accept4", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
@@ -225,7 +225,7 @@ int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock
    return 0 ;
 ONABORT:
    free_filedescr(&new_socket) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -239,8 +239,8 @@ bool isconnected_ipsocket(const ipsocket_t * ipsock)
    if (getpeername(fd, (struct sockaddr*) &saddr, &len)) {
       err = errno ;
       if (err != ENOTCONN) {
-         LOG_SYSERR("getpeername", err) ;
-         LOG_INT(fd) ;
+         PRINTSYSERR_LOG("getpeername", err) ;
+         PRINTINT_LOG(fd) ;
          goto ONABORT ;
       }
       return false ;
@@ -248,7 +248,7 @@ bool isconnected_ipsocket(const ipsocket_t * ipsock)
 
    return true ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return false ;
 }
 
@@ -261,15 +261,15 @@ bool islisten_ipsocket(const ipsocket_t * ipsock)
 
    if (getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &value, &len)) {
       err = errno ;
-      LOG_SYSERR("getsockopt(SO_ACCEPTCONN)", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("getsockopt(SO_ACCEPTCONN)", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
    assert(len == sizeof(int)) ;
 
    return (bool) value ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return false ;
 }
 
@@ -282,15 +282,15 @@ uint16_t protocol_ipsocket(const ipsocket_t * ipsock)
 
    if (getsockopt(fd, SOL_SOCKET, SO_PROTOCOL, &value, &len)) {
       err = errno ;
-      LOG_SYSERR("getsockopt(SO_PROTOCOL)", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("getsockopt(SO_PROTOCOL)", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
    assert(len == sizeof(int)) ;
 
    return (uint16_t) value ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return ipprotocol_ANY ;
 }
 
@@ -303,15 +303,15 @@ uint16_t version_ipsocket(const ipsocket_t * ipsock)
 
    if (getsockopt(fd, SOL_SOCKET, SO_DOMAIN, &value, &len)) {
       err = errno ;
-      LOG_SYSERR("getsockopt(SO_DOMAIN)", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("getsockopt(SO_DOMAIN)", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
    assert(len == sizeof(int)) ;
 
    return (uint16_t) value ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return ipversion_ANY ;
 }
 
@@ -329,8 +329,8 @@ int localaddr_ipsocket(const ipsocket_t * ipsock, /*out*/ipaddr_t * localaddr)
 
    if (getsockname(fd, (struct sockaddr*) &saddr, &len)) {
       err = errno ;
-      LOG_SYSERR("getsockname", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("getsockname", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
@@ -341,7 +341,7 @@ int localaddr_ipsocket(const ipsocket_t * ipsock, /*out*/ipaddr_t * localaddr)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -359,8 +359,8 @@ int remoteaddr_ipsocket(const ipsocket_t * ipsock, ipaddr_t * remoteaddr)
 
    if (getpeername(fd, (struct sockaddr*) &saddr, &len)) {
       err = errno ;
-      LOG_SYSERR("getpeername", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("getpeername", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
@@ -371,7 +371,7 @@ int remoteaddr_ipsocket(const ipsocket_t * ipsock, ipaddr_t * remoteaddr)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -383,15 +383,15 @@ int bytestoread_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unread_bytes
 
    if (ioctl(fd, FIONREAD, &bytes)) {
       err = errno ;
-      LOG_SYSERR("ioctl(FIONREAD)", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("ioctl(FIONREAD)", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
    *unread_bytes = (unsigned)bytes ;
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -403,15 +403,15 @@ int bytestowrite_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * unsend_byte
 
    if (ioctl(fd, TIOCOUTQ, &bytes)) {
       err = errno ;
-      LOG_SYSERR("ioctl(TIOCOUTQ)", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("ioctl(TIOCOUTQ)", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
    *unsend_bytes = (unsigned)bytes ;
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -425,8 +425,8 @@ int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * queuesize_read
    if (queuesize_read) {
       if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &value, &len)) {
          err = errno ;
-         LOG_SYSERR("getsockopt(SO_RCVBUF)", err) ;
-         LOG_INT(fd) ;
+         PRINTSYSERR_LOG("getsockopt(SO_RCVBUF)", err) ;
+         PRINTINT_LOG(fd) ;
          goto ONABORT ;
       }
       assert(len == sizeof(int)) ;
@@ -436,8 +436,8 @@ int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * queuesize_read
    if (queuesize_write) {
       if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &value, &len)) {
          err = errno ;
-         LOG_SYSERR("getsockopt(SO_SNDBUF)", err) ;
-         LOG_INT(fd) ;
+         PRINTSYSERR_LOG("getsockopt(SO_SNDBUF)", err) ;
+         PRINTINT_LOG(fd) ;
          goto ONABORT ;
       }
       assert(len == sizeof(int)) ;
@@ -446,7 +446,7 @@ int queuesize_ipsocket(const ipsocket_t * ipsock, /*out*/size_t * queuesize_read
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -459,14 +459,14 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t que
    int        fd     = *ipsock ;
 
    VALIDATE_INPARAM_TEST(  queuesize_read  <= INT_MAX
-                        && queuesize_write <= INT_MAX, ONABORT, LOG_SIZE(queuesize_read); LOG_SIZE(queuesize_write) ) ;
+                        && queuesize_write <= INT_MAX, ONABORT, PRINTSIZE_LOG(queuesize_read); PRINTSIZE_LOG(queuesize_write) ) ;
 
    if (queuesize_read)  {
       if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rvalue, len)) {
          err = errno ;
-         LOG_SYSERR("setsockopt(SO_RCVBUF)", err) ;
-         LOG_INT(fd) ;
-         LOG_INT(queuesize_read) ;
+         PRINTSYSERR_LOG("setsockopt(SO_RCVBUF)", err) ;
+         PRINTINT_LOG(fd) ;
+         PRINTINT_LOG(queuesize_read) ;
          goto ONABORT ;
       }
    }
@@ -474,16 +474,16 @@ int setqueuesize_ipsocket(ipsocket_t * ipsock, size_t queuesize_read, size_t que
    if (queuesize_write)  {
       if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &wvalue, len)) {
          err = errno ;
-         LOG_SYSERR("setsockopt(SO_SNDBUF)", err) ;
-         LOG_INT(fd) ;
-         LOG_INT(queuesize_write) ;
+         PRINTSYSERR_LOG("setsockopt(SO_SNDBUF)", err) ;
+         PRINTINT_LOG(fd) ;
+         PRINTINT_LOG(queuesize_write) ;
          goto ONABORT ;
       }
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -498,9 +498,9 @@ int read_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[m
    if (-1 == bytes) {
       err = errno ;
       if (EWOULDBLOCK == err) err = EAGAIN ;
-      LOG_SYSERR("recv", err) ;
-      LOG_INT(fd) ;
-      LOG_SIZE(maxdata_len) ;
+      PRINTSYSERR_LOG("recv", err) ;
+      PRINTINT_LOG(fd) ;
+      PRINTSIZE_LOG(maxdata_len) ;
       goto ONABORT ;
    }
 
@@ -509,7 +509,7 @@ int read_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t data[m
    }
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -522,9 +522,9 @@ int write_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, const uint8_t data[m
    if (-1 == bytes) {
       err = errno ;
       if (EWOULDBLOCK == err) err = EAGAIN ;
-      LOG_SYSERR("send", err) ;
-      LOG_INT(fd) ;
-      LOG_SIZE(maxdata_len) ;
+      PRINTSYSERR_LOG("send", err) ;
+      PRINTINT_LOG(fd) ;
+      PRINTSIZE_LOG(maxdata_len) ;
       goto ONABORT ;
    }
 
@@ -533,7 +533,7 @@ int write_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, const uint8_t data[m
    }
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -550,8 +550,8 @@ int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t dat
    if (-1 == err) {
       err = errno ;
       if (err == ENOTTY) err = EOPNOTSUPP ;
-      LOG_SYSERR("ioctl(SIOCATMARK)", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("ioctl(SIOCATMARK)", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
@@ -559,9 +559,9 @@ int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t dat
    if (-1 == bytes) {
       err = errno ;
       if (EWOULDBLOCK == err) err = EAGAIN ;
-      LOG_SYSERR("recv", err) ;
-      LOG_INT(fd) ;
-      LOG_SIZE(maxdata_len) ;
+      PRINTSYSERR_LOG("recv", err) ;
+      PRINTINT_LOG(fd) ;
+      PRINTSIZE_LOG(maxdata_len) ;
       goto ONABORT ;
    }
 
@@ -591,7 +591,7 @@ int readoob_ipsocket(ipsocket_t * ipsock, size_t maxdata_len, /*out*/uint8_t dat
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -608,14 +608,14 @@ int writeoob_ipsocket(ipsocket_t * ipsock, uint8_t data)
       } else {
          err = EAGAIN ;
       }
-      LOG_SYSERR("send", err) ;
-      LOG_INT(fd) ;
+      PRINTSYSERR_LOG("send", err) ;
+      PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -643,9 +643,9 @@ int readfrom_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata
    if (-1 == bytes) {
       err = errno ;
       if (EWOULDBLOCK == err) err = EAGAIN ;
-      LOG_SYSERR("recv", err) ;
-      LOG_INT(fd) ;
-      LOG_SIZE(maxdata_len) ;
+      PRINTSYSERR_LOG("recv", err) ;
+      PRINTINT_LOG(fd) ;
+      PRINTSIZE_LOG(maxdata_len) ;
       goto ONABORT ;
    }
 
@@ -662,7 +662,7 @@ int readfrom_ipsocket(ipsocket_t * ipsock, ipaddr_t * remoteaddr, size_t maxdata
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -688,9 +688,9 @@ int writeto_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t ma
    if (-1 == bytes) {
       err = errno ;
       if (EWOULDBLOCK == err) err = EAGAIN ;
-      LOG_SYSERR("sendto", err) ;
-      LOG_INT(fd) ;
-      LOG_SIZE(maxdata_len) ;
+      PRINTSYSERR_LOG("sendto", err) ;
+      PRINTINT_LOG(fd) ;
+      PRINTSIZE_LOG(maxdata_len) ;
       goto ONABORT ;
    }
 
@@ -699,7 +699,7 @@ int writeto_ipsocket(ipsocket_t * ipsock, const ipaddr_t * remoteaddr, size_t ma
    }
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -717,7 +717,7 @@ int free_ipsocketasync(ipsocket_async_t * ipsockasync)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -748,7 +748,7 @@ int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struc
    }
    if (-1 == err) {
       err = errno ;
-      LOG_SYSERR("fcntl", err) ;
+      PRINTSYSERR_LOG("fcntl", err) ;
       goto ONABORT ;
    }
 
@@ -756,8 +756,8 @@ int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struc
    if (err) {
       err = errno ;
       if (EINPROGRESS != err) {
-         LOG_SYSERR("connect", err) ;
-         LOG_INT(fd) ;
+         PRINTSYSERR_LOG("connect", err) ;
+         PRINTINT_LOG(fd) ;
          goto ONABORT ;
       }
    }
@@ -767,7 +767,7 @@ int initconnect_ipsocketasync(/*out*/ipsocket_async_t * ipsockasync, const struc
    return 0 ;
 ONABORT:
    free_ipsocket(&new_ipsock) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -789,7 +789,7 @@ int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ip
    }
    if (-1 == err) {
       err = errno ;
-      LOG_SYSERR("fcntl", err) ;
+      PRINTSYSERR_LOG("fcntl", err) ;
       goto ONABORT ;
    }
 
@@ -799,7 +799,7 @@ int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ip
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -819,7 +819,7 @@ int success_ipsocketasync(ipsocket_async_t * ipsockasync)
    err = poll(&pollfds, 1, 0) ;
    if (-1 == err) {
       err = errno ;
-      LOG_SYSERR("getsockopt", err) ;
+      PRINTSYSERR_LOG("getsockopt", err) ;
       goto ONABORT ;
    }
 
@@ -827,7 +827,7 @@ int success_ipsocketasync(ipsocket_async_t * ipsockasync)
       socklen_t len = sizeof(err) ;
       if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len)) {
          err = errno ;
-         LOG_SYSERR("getsockopt", err) ;
+         PRINTSYSERR_LOG("getsockopt", err) ;
          goto ONABORT ;
       }
       assert(len == sizeof(int)) ;
@@ -842,7 +842,7 @@ int success_ipsocketasync(ipsocket_async_t * ipsockasync)
 
    return ipsockasync->err ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -864,13 +864,13 @@ int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec)
    err = ppoll(&pollfds, 1, &ts, 0) ;
    if (-1 == err) {
       err = errno ;
-      LOG_SYSERR("poll", err) ;
+      PRINTSYSERR_LOG("poll", err) ;
       goto ONABORT ;
    }
 
    return (1 == err) ? 0 : EINPROGRESS ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -1682,7 +1682,7 @@ int unittest_io_ipsocket()
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;
-      LOG_CLEARBUFFER() ;
+      CLEARBUFFER_LOG() ;
    }
 
    TEST(0 == same_resourceusage(&usage)) ;

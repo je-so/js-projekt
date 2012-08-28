@@ -170,7 +170,7 @@ int invariant_redblacktree( redblacktree_t * tree, const redblacktree_compare_no
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(EINVAL) ;
+   PRINTABORT_LOG(EINVAL) ;
    return EINVAL ;
 }
 
@@ -565,7 +565,7 @@ int insert_redblacktree( redblacktree_t * tree, const void * new_key, redblacktr
 
    return  0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -668,7 +668,7 @@ int updatekey_redblacktree( redblacktree_t * tree, const void * old_key, const v
    if (err) {
       int err2 = insert_redblacktree( tree, old_key, updated_node, compare_callback ) ;
       assert(!err2) ;
-      LOG_CALLERR("redblacktree_update_key_t callback", err) ;
+      PRINTCALLERR_LOG("redblacktree_update_key_t callback", err) ;
       goto ONABORT ;
    }
 
@@ -684,7 +684,7 @@ int updatekey_redblacktree( redblacktree_t * tree, const void * old_key, const v
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -737,7 +737,7 @@ int freenodes_redblacktree( redblacktree_t * tree, const redblacktree_free_t * f
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 

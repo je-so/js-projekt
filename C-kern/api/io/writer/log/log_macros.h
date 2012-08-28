@@ -29,23 +29,23 @@
 
 // group: query
 
-/* define: LOG_GETBUFFER
+/* define: GETBUFFER_LOG
  * Returns C-string of buffered log and its length. See also <getbuffer_logwriter>.
- * > #define LOG_GETBUFFER(buffer, size) getbuffer_logwritermt(log_maincontext(), buffer, size) */
-#define LOG_GETBUFFER(/*out char ** */buffer, /*out size_t * */size) \
+ * > #define GETBUFFER_LOG(buffer, size) getbuffer_logwritermt(log_maincontext(), buffer, size) */
+#define GETBUFFER_LOG(/*out char ** */buffer, /*out size_t * */size) \
    log_maincontext().iimpl->getbuffer(log_maincontext().object, buffer, size)
 
 // group: change
 
-/* define: LOG_CLEARBUFFER
+/* define: CLEARBUFFER_LOG
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>. */
-#define  LOG_CLEARBUFFER()          log_maincontext().iimpl->clearbuffer(log_maincontext().object)
+#define  CLEARBUFFER_LOG()          log_maincontext().iimpl->clearbuffer(log_maincontext().object)
 
-/* define: LOG_FLUSHBUFFER
+/* define: FLUSHBUFFER_LOG
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>. */
-#define  LOG_FLUSHBUFFER()          log_maincontext().iimpl->flushbuffer(log_maincontext().object)
+#define  FLUSHBUFFER_LOG()          log_maincontext().iimpl->flushbuffer(log_maincontext().object)
 
-// group: write-text
+// group: log-text
 
 /* about: LOGCHANNEL
  * The parameter LOGCHANNEL is the first parameter of all log macros writing text.
@@ -57,7 +57,7 @@
  * TEST - Writes to STDOUT channel used for test output when (unit-) tests are run.
  * */
 
-/* define: LOGC_PRINTF
+/* define: CPRINTF_LOG
  * Logs a generic printf type format string.
  *
  * Parameter:
@@ -67,8 +67,8 @@
  *              parameter.
  *
  * Example:
- * > int i ; LOGC_PRINTF(ERR, "%d", i) */
-#define LOGC_PRINTF(LOGCHANNEL, ... )              \
+ * > int i ; CPRINTF_LOG(ERR, "%d", i) */
+#define CPRINTF_LOG(LOGCHANNEL, ... )              \
    do {                                            \
          log_maincontext().iimpl->printf(          \
                log_maincontext().object,           \
@@ -76,14 +76,14 @@
                __VA_ARGS__ ) ; \
    } while(0)
 
-// group: write-variables
+// group: log-variables
 
-/* define: LOGC_VAR
+/* define: CPRINTVAR_LOG
  * Logs "<varname>=varvalue" of a variable with name varname.
  *
  * Parameter:
  * LOGCHANNEL  - The name of the channel where the log is written to. See <LOGCHANNEL>.
- * printf_type - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
+ * format      - Type of the variable as string in printf format. Use "d" for signed int or "u" for unsigned int.
  *               Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
  * varname     - The name of the variable to log.
  * cast        - A type cast expression like "(void*)" without enclosing "". Use this to adapt the type of the variable.
@@ -92,15 +92,16 @@
  * Example:
  * This code logs "memsize=1024\n"
  * > const size_t memsize = 1024 ;
- * > LOGC_VAR(ERR, PRIuSIZE, memsize, ) ; */
-#define LOGC_VAR(LOGCHANNEL, printf_type, varname, cast)       LOGC_PRINTF(LOGCHANNEL, #varname "=%" printf_type "\n", cast (varname))
+ * > CPRINTVAR_LOG(ERR, PRIuSIZE, memsize, ) ; */
+#define CPRINTVAR_LOG(LOGCHANNEL, format, varname, cast)          CPRINTF_LOG(LOGCHANNEL, #varname "=%" format "\n", cast (varname))
 
-/* define: LOGC_INDEX
- * Log "array[i]=value" of variable stored in array at offset i.
+/* define: CPRINTARRAYFIELD_LOG
+ * Log value of variable stored in array at offset i.
+ * The logged text is "array[i]=value".
  *
  * Parameter:
  * LOGCHANNEL  - The name of the channel where the log is written to. See <LOGCHANNEL>.
- * printf_type - Type of the variable as string in printf format. Use "s" for C strings.
+ * format      - Type of the variable as string in printf format. Use "s" for C strings.
  *               Use the C99 standard conforming names PRIx64 for hexadecimal output of uint64_t/int64_t ...
  * arrname     - The name of the array.
  * index       - The index of the array entry whose value is to be logged.
@@ -108,61 +109,61 @@
  * Example:
  * This code logs "names[0]=Jo\n" and "names[1]=Jane\n".
  * > const char * names[] = { "Jo", "Jane" } ;
- * > for(int i = 0; i < 2; ++i) { LOGC_INDEX(ERR, s,names,i) ; } */
-#define LOGC_INDEX(LOGCHANNEL, printf_type, arrname, index)  LOGC_PRINTF(LOGCHANNEL, #arrname "[%d]=%" printf_type "\n", i, (arrname)[i])
+ * > for(int i = 0; i < 2; ++i) { CPRINTARRAYFIELD_LOG(ERR, s,names,i) ; } */
+#define CPRINTARRAYFIELD_LOG(LOGCHANNEL, format, arrname, index)  CPRINTF_LOG(LOGCHANNEL, #arrname "[%d]=%" format "\n", i, (arrname)[i])
 
-/* define: LOGC_STRING
+/* define: CPRINTCSTR_LOG
  * Log "name=value" of string variable.
  * Example:
- * > const char * name = "Jo" ; LOGC_STRING(ERR, name) ; */
-#define LOGC_STRING(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, "s", varname, )
+ * > const char * name = "Jo" ; CPRINTCSTR_LOG(ERR, name) ; */
+#define CPRINTCSTR_LOG(LOGCHANNEL, varname)     CPRINTVAR_LOG(LOGCHANNEL, "s", varname, )
 
-/* define: LOGC_INT
+/* define: CPRINTINT_LOG
  * Log "name=value" of int variable.
  * Example:
- * > const int max = 100 ; LOGC_INT(ERR, max) ; */
-#define LOGC_INT(LOGCHANNEL, varname)        LOGC_VAR(LOGCHANNEL, "d", varname, )
+ * > const int max = 100 ; CPRINTINT_LOG(ERR, max) ; */
+#define CPRINTINT_LOG(LOGCHANNEL, varname)      CPRINTVAR_LOG(LOGCHANNEL, "d", varname, )
 
-/* define: LOGC_SIZE
+/* define: CPRINTSIZE_LOG
  * Log "name=value" of size_t variable.
  * Example:
- * > const size_t maxsize = 100 ; LOGC_SIZE(ERR, maxsize) ; */
-#define LOGC_SIZE(LOGCHANNEL, varname)       LOGC_VAR(LOGCHANNEL, PRIuSIZE, varname, )
+ * > const size_t maxsize = 100 ; CPRINTSIZE_LOG(ERR, maxsize) ; */
+#define CPRINTSIZE_LOG(LOGCHANNEL, varname)     CPRINTVAR_LOG(LOGCHANNEL, PRIuSIZE, varname, )
 
-/* define: LOGC_UINT8
+/* define: CPRINTUINT8_LOG
  * Log "name=value" of uint8_t variable.
  * Example:
- * > const uint8_t limit = 255 ; LOGC_UINT8(ERR, limit) ; */
-#define LOGC_UINT8(LOGCHANNEL, varname)      LOGC_VAR(LOGCHANNEL, PRIu8, varname, )
+ * > const uint8_t limit = 255 ; CPRINTUINT8_LOG(ERR, limit) ; */
+#define CPRINTUINT8_LOG(LOGCHANNEL, varname)    CPRINTVAR_LOG(LOGCHANNEL, PRIu8, varname, )
 
-/* define: LOGC_UINT16
+/* define: CPRINTUINT16_LOG
  * Log "name=value" of uint16_t variable.
  * Example:
- * > const uint16_t limit = 65535 ; LOGC_UINT16(ERR, limit) ; */
-#define LOGC_UINT16(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu16, varname, )
+ * > const uint16_t limit = 65535 ; CPRINTUINT16_LOG(ERR, limit) ; */
+#define CPRINTUINT16_LOG(LOGCHANNEL, varname)   CPRINTVAR_LOG(LOGCHANNEL, PRIu16, varname, )
 
-/* define: LOGC_UINT32
+/* define: CPRINTUINT32_LOG
  * Log "name=value" of uint32_t variable.
  * Example:
- * > const uint32_t max = 100 ; LOGC_UINT32(ERR, max) ; */
-#define LOGC_UINT32(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu32, varname, )
+ * > const uint32_t max = 100 ; CPRINTUINT32_LOG(ERR, max) ; */
+#define CPRINTUINT32_LOG(LOGCHANNEL, varname)   CPRINTVAR_LOG(LOGCHANNEL, PRIu32, varname, )
 
-/* define: LOGC_UINT64
+/* define: CPRINTUINT64_LOG
  * Log "name=value" of uint64_t variable.
  * Example:
- * > const uint64_t max = 100 ; LOGC_UINT64(ERR, max) ; */
-#define LOGC_UINT64(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, PRIu64, varname, )
+ * > const uint64_t max = 100 ; CPRINTUINT64_LOG(ERR, max) ; */
+#define CPRINTUINT64_LOG(LOGCHANNEL, varname)   CPRINTVAR_LOG(LOGCHANNEL, PRIu64, varname, )
 
-/* define: LOGC_PTR
+/* define: CPRINTPTR_LOG
  * Log "name=value" of pointer variable.
  * Example:
- * > const void * ptr = &g_variable ; LOGC_PTR(ERR, ptr) ; */
-#define LOGC_PTR(LOGCHANNEL, varname)        LOGC_VAR(LOGCHANNEL, "p", varname, (const void*))
+ * > const void * ptr = &g_variable ; CPRINTPTR_LOG(ERR, ptr) ; */
+#define CPRINTPTR_LOG(LOGCHANNEL, varname)      CPRINTVAR_LOG(LOGCHANNEL, "p", varname, (const void*))
 
-/* define: LOGC_DOUBLE
+/* define: CPRINTDOUBLE_LOG
  * Log "name=value" of double or float variable.
  * Example:
- * > const double d = 1.234 ; LOGC_DOUBLE(ERR, d) ; */
-#define LOGC_DOUBLE(LOGCHANNEL, varname)     LOGC_VAR(LOGCHANNEL, "g", varname, )
+ * > const double d = 1.234 ; CPRINTDOUBLE_LOG(ERR, d) ; */
+#define CPRINTDOUBLE_LOG(LOGCHANNEL, varname)   CPRINTVAR_LOG(LOGCHANNEL, "g", varname, )
 
 #endif

@@ -40,7 +40,7 @@
 #define VALIDATE_INPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
    if (!(_CONDITION)) {                                     \
       err = EINVAL ;                                        \
-      LOG_ERRTEXT(TEST_INPARAM_FALSE, err, #_CONDITION) ;   \
+      PRINTERR_LOG(TEST_INPARAM_FALSE, err, #_CONDITION) ;  \
       _LOG_VALUE ;                                          \
       goto _ONERROR_LABEL ;                                 \
    }
@@ -58,7 +58,7 @@
 #define VALIDATE_OUTPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
    if (!(_CONDITION)) {                                     \
       err = EINVAL ;                                        \
-      LOG_ERRTEXT(TEST_OUTPARAM_FALSE, err, #_CONDITION) ;  \
+      PRINTERR_LOG(TEST_OUTPARAM_FALSE, err, #_CONDITION) ; \
       _LOG_VALUE ;                                          \
       goto _ONERROR_LABEL ;                                 \
    }
@@ -82,7 +82,7 @@
 #define VALIDATE_INVARIANT_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
    if (!(_CONDITION)) {                                     \
       err = EINVAL ;                                        \
-      LOG_ERRTEXT(TEST_INVARIANT_FALSE, err, #_CONDITION) ; \
+      PRINTERR_LOG(TEST_INVARIANT_FALSE, err, #_CONDITION); \
       _LOG_VALUE ;                                          \
       goto _ONERROR_LABEL ;                                 \
    }
@@ -104,7 +104,7 @@
 #define VALIDATE_STATE_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
    if (!(_CONDITION)) {                                  \
       err = EPROTO ;                                     \
-      LOG_ERRTEXT(TEST_STATE_FALSE, err, #_CONDITION) ;  \
+      PRINTERR_LOG(TEST_STATE_FALSE, err, #_CONDITION) ; \
       _LOG_VALUE ;                                       \
       goto _ONERROR_LABEL ;                              \
    }

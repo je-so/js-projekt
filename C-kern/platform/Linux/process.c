@@ -71,7 +71,7 @@ int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*ou
    err = prctl(PR_GET_NAME, buffer, 0, 0, 0) ;
    if (err) {
       err = errno ;
-      LOG_SYSERR("prctl(PR_GET_NAME)", err) ;
+      PRINTSYSERR_LOG("prctl(PR_GET_NAME)", err) ;
       goto ONABORT ;
    }
 
@@ -118,7 +118,7 @@ static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, p
       devnull = open("/dev/null", O_RDWR|O_CLOEXEC) ;
       if (-1 == devnull) {
          err = errno ;
-         LOG_SYSERR("open(/dev/null,O_RDWR)", err) ;
+         PRINTSYSERR_LOG("open(/dev/null,O_RDWR)", err) ;
          goto ONABORT ;
       }
    }
@@ -134,7 +134,7 @@ static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, p
    return 0 ;
 ONABORT:
    free_filedescr(&devnull) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -149,7 +149,7 @@ static int free_processioredirect2(process_ioredirect2_t * ioredirect2)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -176,9 +176,9 @@ static int redirectstdfd_processioredirect2(const process_ioredirect2_t * ioredi
       while(-1 == dup2(fd, stdfd)) {
          if (EINTR != errno) {
             err = errno ;
-            LOG_SYSERR("dup2(fd, stdfd)", err) ;
-            LOG_INT(fd) ;
-            LOG_INT(stdfd) ;
+            PRINTSYSERR_LOG("dup2(fd, stdfd)", err) ;
+            PRINTINT_LOG(fd) ;
+            PRINTINT_LOG(stdfd) ;
             goto ONABORT ;
          }
       }
@@ -190,7 +190,7 @@ static int redirectstdfd_processioredirect2(const process_ioredirect2_t * ioredi
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -218,7 +218,7 @@ static int redirectstdio_processioredirect2(const process_ioredirect2_t * ioredi
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -245,7 +245,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
       flags = FLAGS ;
       break ;
    default:
-      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ONABORT, LOG_INT(option)) ;
+      VALIDATE_INPARAM_TEST(option == queryoption_WAIT_AND_FREE, ONABORT, PRINTINT_LOG(option)) ;
       flags = FLAGS ;
       break ;
    }
@@ -256,8 +256,8 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
    while(-1 == waitid(P_PID, (id_t) pid, &info, flags)) {
       if (EINTR != errno) {
          err = errno ;
-         LOG_SYSERR("waitid",err) ;
-         LOG_INT(pid) ;
+         PRINTSYSERR_LOG("waitid",err) ;
+         PRINTINT_LOG(pid) ;
          goto ONABORT ;
       }
    }
@@ -284,7 +284,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -316,7 +316,7 @@ int initexec_process(process_t * process, const char * filename, const char * co
 
    if ( pipe2(pipefd,O_CLOEXEC) ) {
       err = errno ;
-      LOG_SYSERR("pipe2", err) ;
+      PRINTSYSERR_LOG("pipe2", err) ;
       goto ONABORT ;
    }
 
@@ -339,15 +339,15 @@ int initexec_process(process_t * process, const char * filename, const char * co
 
    if (-1 == read_bytes) {
       err = errno ;
-      LOG_SYSERR("read", err) ;
+      PRINTSYSERR_LOG("read", err) ;
       goto ONABORT ;
    } else if (read_bytes) {
       // EXEC error
       err = exec_err ? exec_err : ENOEXEC ;
-      LOG_SYSERR("execvp(filename, arguments)", err) ;
-      LOG_STRING(filename) ;
+      PRINTSYSERR_LOG("execvp(filename, arguments)", err) ;
+      PRINTCSTR_LOG(filename) ;
       for(size_t i = 0; arguments[i]; ++i) {
-         LOG_INDEX("s",arguments,i) ;
+         PRINTARRAYFIELD_LOG("s",arguments,i) ;
       }
       goto ONABORT ;
    }
@@ -362,7 +362,7 @@ ONABORT:
    free_filedescr(&pipefd[1]) ;
    free_filedescr(&pipefd[0]) ;
    (void) free_process(&childprocess) ;
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -381,7 +381,7 @@ int init_process(/*out*/process_t         *  process,
    pid = fork() ;
    if (-1 == pid) {
       err = errno ;
-      LOG_SYSERR("fork", err) ;
+      PRINTSYSERR_LOG("fork", err) ;
       goto ONABORT ;
    }
 
@@ -402,7 +402,7 @@ int init_process(/*out*/process_t         *  process,
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -427,7 +427,7 @@ int free_process(process_t * process)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT_FREE(err) ;
+   PRINTABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -443,7 +443,7 @@ int state_process(process_t * process, /*out*/process_state_e * current_state)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -477,7 +477,7 @@ int wait_process(process_t * process, /*out*/process_result_t * result)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -1168,7 +1168,7 @@ int unittest_platform_process()
    // adapt LOG buffer ("pid=1234" replaces with "pid=?")
    char * buffer = 0 ;
    size_t size   = 0 ;
-   LOG_GETBUFFER(&buffer, &size) ;
+   GETBUFFER_LOG(&buffer, &size) ;
    char buffer2[1000] = { 0 } ;
    assert(size < sizeof(buffer2)) ;
    size = 0 ;
@@ -1182,8 +1182,8 @@ int unittest_platform_process()
    }
    strcpy( &buffer2[size], buffer) ;
 
-   LOG_CLEARBUFFER() ;
-   LOG_PRINTF("%s", buffer2) ;
+   CLEARBUFFER_LOG() ;
+   PRINTF_LOG("%s", buffer2) ;
 
    return 0 ;
 ONABORT:

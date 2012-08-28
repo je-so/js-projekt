@@ -9,26 +9,26 @@
 
 #include "C-kern/api/io/writer/log/log_it.h"
 
-int LOG_ERRTEXT_ABORT_ASSERT_FAILED(log_channel_e channel, int err, const char * wrong_condition) ;
-int LOG_ERRTEXT_ABORT_FATAL(log_channel_e channel, int err) ;
-int LOG_ERRTEXT_ERROR_LOCATION(log_channel_e channel, const char * filename, int linenr, const char * funcname) ;
-int LOG_ERRTEXT_FILE_FORMAT_MISSING_ENDOFLINE(log_channel_e channel, const char * filename) ;
-int LOG_ERRTEXT_FILE_FORMAT_WRONG(log_channel_e channel, const char * filename) ;
-int LOG_ERRTEXT_FUNCTION_ABORT(log_channel_e channel, int err) ;
-int LOG_ERRTEXT_FUNCTION_ABORT_FREE(log_channel_e channel, int err) ;
-int LOG_ERRTEXT_FUNCTION_ERROR(log_channel_e channel, const char * funcname, int err, const char * errstr) ;
-int LOG_ERRTEXT_FUNCTION_SYSERR(log_channel_e channel, const char * funcname, int sys_errno, const char * sys_errstr) ;
-int LOG_ERRTEXT_FUNCTION_WRONG_RETURNVALUE(log_channel_e channel, const char * funcname, const char * wrong_value) ;
-int LOG_ERRTEXT_LOCALE_SETLOCALE(log_channel_e channel) ;
-int LOG_ERRTEXT_LOG_ENTRY_TRUNCATED(log_channel_e channel, int before_size, int after_size) ;
-int LOG_ERRTEXT_MEMORY_OUT_OF(log_channel_e channel, size_t size) ;
-int LOG_ERRTEXT_PARAMETER_INT_TOO_BIG(log_channel_e channel, const char * parameter_name, int parameter_max) ;
-int LOG_ERRTEXT_RESOURCE_USAGE_DIFFERENT(log_channel_e channel) ;
-int LOG_ERRTEXT_TEST_INPARAM_FALSE(log_channel_e channel, int err, const char * violated_condition) ;
-int LOG_ERRTEXT_TEST_INVARIANT_FALSE(log_channel_e channel, int err, const char * violated_condition) ;
-int LOG_ERRTEXT_TEST_OUTPARAM_FALSE(log_channel_e channel, int err, const char * violated_condition) ;
-int LOG_ERRTEXT_TEST_STATE_FALSE(log_channel_e channel, int err, const char * violated_condition) ;
-int LOG_ERRTEXT_X11_DISPLAY_NOT_SET(log_channel_e channel) ;
-int LOG_ERRTEXT_X11_NO_CONNECTION(log_channel_e channel, const char * display_server_name) ;
+int ABORT_ASSERT_FAILED_ERRLOG(log_channel_e channel, int err, const char * wrong_condition) ;
+int ABORT_FATAL_ERRLOG(log_channel_e channel, int err) ;
+int ERROR_LOCATION_ERRLOG(log_channel_e channel, const char * filename, int linenr, const char * funcname) ;
+int FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(log_channel_e channel, const char * filename) ;
+int FILE_FORMAT_WRONG_ERRLOG(log_channel_e channel, const char * filename) ;
+int FUNCTION_ABORT_ERRLOG(log_channel_e channel, int err) ;
+int FUNCTION_ABORT_FREE_ERRLOG(log_channel_e channel, int err) ;
+int FUNCTION_ERROR_ERRLOG(log_channel_e channel, const char * funcname, int err, const char * errstr) ;
+int FUNCTION_SYSERR_ERRLOG(log_channel_e channel, const char * funcname, int sys_errno, const char * sys_errstr) ;
+int FUNCTION_WRONG_RETURNVALUE_ERRLOG(log_channel_e channel, const char * funcname, const char * wrong_value) ;
+int LOCALE_SETLOCALE_ERRLOG(log_channel_e channel) ;
+int LOG_ENTRY_TRUNCATED_ERRLOG(log_channel_e channel, int before_size, int after_size) ;
+int MEMORY_OUT_OF_ERRLOG(log_channel_e channel, size_t size) ;
+int PARAMETER_INT_TOO_BIG_ERRLOG(log_channel_e channel, const char * parameter_name, int parameter_max) ;
+int RESOURCE_USAGE_DIFFERENT_ERRLOG(log_channel_e channel) ;
+int TEST_INPARAM_FALSE_ERRLOG(log_channel_e channel, int err, const char * violated_condition) ;
+int TEST_INVARIANT_FALSE_ERRLOG(log_channel_e channel, int err, const char * violated_condition) ;
+int TEST_OUTPARAM_FALSE_ERRLOG(log_channel_e channel, int err, const char * violated_condition) ;
+int TEST_STATE_FALSE_ERRLOG(log_channel_e channel, int err, const char * violated_condition) ;
+int X11_DISPLAY_NOT_SET_ERRLOG(log_channel_e channel) ;
+int X11_NO_CONNECTION_ERRLOG(log_channel_e channel, const char * display_server_name) ;
 
 #endif

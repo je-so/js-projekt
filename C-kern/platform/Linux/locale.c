@@ -47,14 +47,14 @@ const char * current_locale()
 
    if (!lname) {
       err = EINVAL ;
-      LOG_SYSERR("setlocale",err) ;
-      LOG_STRING("LC_ALL=0") ;
+      PRINTSYSERR_LOG("setlocale",err) ;
+      PRINTCSTR_LOG("LC_ALL=0") ;
       goto ONABORT ;
    }
 
    return lname ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return 0 ;
 }
 
@@ -65,14 +65,14 @@ const char * currentmsg_locale()
 
    if (!lname) {
       err = EINVAL ;
-      LOG_SYSERR("setlocale",err) ;
-      LOG_STRING("LC_MESSAGES=0") ;
+      PRINTSYSERR_LOG("setlocale",err) ;
+      PRINTCSTR_LOG("LC_MESSAGES=0") ;
       goto ONABORT ;
    }
 
    return lname ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return 0 ;
 }
 
@@ -96,14 +96,14 @@ int setdefault_locale()
 
    if (!setlocale(LC_ALL, "")) {
       err = EINVAL ;
-      LOG_ERRTEXTvoid(LOCALE_SETLOCALE) ;
-      LOG_STRING(getenv("LC_ALL")) ;
+      PRINTERR_NOARG_LOG(LOCALE_SETLOCALE) ;
+      PRINTCSTR_LOG(getenv("LC_ALL")) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -116,15 +116,15 @@ int reset_locale()
    int err ;
 
    if (!setlocale(LC_ALL, "C")) {
-      LOG_ERRTEXTvoid(LOCALE_SETLOCALE) ;
-      LOG_STRING("LC_ALL=C") ;
+      PRINTERR_NOARG_LOG(LOCALE_SETLOCALE) ;
+      PRINTCSTR_LOG("LC_ALL=C") ;
       err = EINVAL ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -133,15 +133,15 @@ int resetmsg_locale()
    int err ;
 
    if (!setlocale(LC_MESSAGES, "C")) {
-      LOG_ERRTEXTvoid(LOCALE_SETLOCALE) ;
-      LOG_STRING("LC_MESSAGES=C") ;
+      PRINTERR_NOARG_LOG(LOCALE_SETLOCALE) ;
+      PRINTCSTR_LOG("LC_MESSAGES=C") ;
       err = EINVAL ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -156,7 +156,7 @@ int initonce_locale()
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -169,7 +169,7 @@ int freeonce_locale()
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

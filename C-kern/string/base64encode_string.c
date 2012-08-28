@@ -149,7 +149,7 @@ int base64encode_string(const conststring_t * str, wbuffer_t * result)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -225,7 +225,7 @@ int base64decode_string(const conststring_t * str, wbuffer_t * result)
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

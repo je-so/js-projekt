@@ -59,7 +59,7 @@
 <textresource version='2'>
 
 <proglang value=C>
-   <nameprefix value=LOG_ERRTEXT_/>
+   <namesuffix value=_ERRLOG/>
    <langswitch value=KONFIG_LANG/>
    <guard      value=CKERN_RESOURCE_ERRORLOG_HEADER/>
    <generate   header="C-kern/api/resource/logerrtext.h" source="C-kern/io/writer/logerrtext.c"/>

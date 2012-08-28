@@ -70,14 +70,14 @@ int initfl_string(/*out*/string_t * str, uint8_t * first, uint8_t * last)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST((last >= first) && ((last+1) > last), ONABORT, LOG_PTR(first); LOG_PTR(last) ) ;
+   VALIDATE_INPARAM_TEST((last >= first) && ((last+1) > last), ONABORT, PRINTPTR_LOG(first); PRINTPTR_LOG(last) ) ;
 
    str->addr = first ;
    str->size = (size_t) (1 + last - first) ;
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 
@@ -85,14 +85,14 @@ int initse_string(/*out*/string_t * str, uint8_t * start, uint8_t * end)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(end >= start, ONABORT, LOG_PTR(end); LOG_PTR(start) ) ;
+   VALIDATE_INPARAM_TEST(end >= start, ONABORT, PRINTPTR_LOG(end); PRINTPTR_LOG(start) ) ;
 
    str->addr = start ;
    str->size = (size_t) (end - start) ;
 
    return 0 ;
 ONABORT:
-   LOG_ABORT(err) ;
+   PRINTABORT_LOG(err) ;
    return err ;
 }
 

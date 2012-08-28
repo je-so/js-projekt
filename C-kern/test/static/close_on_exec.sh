@@ -24,7 +24,7 @@ for i in $files; do
    IFS=$IFS_old
    info2=""
    for((fi=0;fi<${#function_calls[*]};fi=fi+1)) do
-      call=`echo "${function_calls[$fi]}" | sed -e 's/[ ]*LOG_SYSERR[ ]*(\([ ]*"[^"]*"\|[^")]*\)*)[ ]*;//' -`
+      call=`echo "${function_calls[$fi]}" | sed -e 's/[ ]*PRINTSYSERR_LOG[ ]*(\([ ]*"[^"]*"\|[^")]*\)*)[ ]*;//' -`
       call=`echo "$call" | sed -e "s/[ ]*TEST(\(.*\))/\1/" -`
       call=`echo "$call" | sed -e "s/^[0-9<=>! ]*(\(.*\))/\1/" -`
       call=`echo "$call" | sed -e "s/[^(]*([^,]*,[^,)]*O_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
@@ -36,7 +36,7 @@ for i in $files; do
    for((fi=0;fi<${#function_calls2[*]};fi=fi+1)) do
       call=`echo "${function_calls2[$fi]}" | sed -e "s/[^(]*([^,]*,[^,)]*SOCK_CLOEXEC[^a-zA-Z0-9_]*[^;]*;//" -`
       call=`echo "$call" | sed -e "s/[^(]*accept4[ ]*(\([^,]*,\)\{3\}[^,)]*SOCK_CLOEXEC[^a-zA-Z0-9_]*[^;]*;//" -`
-      call=`echo "$call" | sed -e 's/LOG_SYSERR[ ]*(\([ ]*"[^"]*"\|[^")]*\)*)[ ]*;//' -`
+      call=`echo "$call" | sed -e 's/PRINTSYSERR_LOG[ ]*(\([ ]*"[^"]*"\|[^")]*\)*)[ ]*;//' -`
       if [ "`echo "$call" | sed -e 's/[ ]*//g' -`" != "" ]; then info2="$info2       ${call}\n"; fi
    done
    if [ "$info2" != "" ]; then
