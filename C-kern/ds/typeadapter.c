@@ -129,10 +129,6 @@ typedef struct typeimplementor_t       typeimplementor_t ;
 
 typedef struct implobject_t            implobject_t ;
 
-typedef struct typeimplementor_it      typeimplementor_it ;
-
-typedef struct typeimplementor_iot     typeimplementor_iot ;
-
 typeadapter_it_DECLARE(typeimplementor_it, typeimplementor_t, implobject_t)
 
 typeadapter_iot_DECLARE(typeimplementor_iot, typeimplementor_t, typeimplementor_it)

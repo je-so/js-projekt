@@ -897,8 +897,6 @@ static int test_freenodeerr(typeadapter_t * typeimpl, testnode_t * node)
    return 12345 ;
 }
 
-typedef struct testnode_typeadapter_it    testnode_typeadapter_it ;
-
 typeadapter_it_DECLARE(testnode_typeadapter_it, typeadapter_t, testnode_t)
 
 arraystf_IMPLEMENT(testnode_t, _arraytest, node.addr)

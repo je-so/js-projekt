@@ -131,7 +131,7 @@ int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type) ;
 
 /* function: delete_arraystf
  * Frees allocated memory.
- * If typeadt is set to 0 no free function is called for contained nodes. */
+ * If typeadp is set to 0 no free function is called for contained nodes. */
 int delete_arraystf(arraystf_t ** array, struct typeadapter_iot * typeadp) ;
 
 // group: iterate

@@ -237,8 +237,6 @@ static int test_freecallback(typeadapter_t * typeimpl, test_node_t * node)
    return 0 ;
 }
 
-typedef struct testnode_typeadapt_it   testnode_typeadapt_it ;
-
 typeadapter_it_DECLARE(testnode_typeadapt_it, typeadapter_t, test_node_t)
 
 static int test_initfree(void)
@@ -643,8 +641,6 @@ static int check_gnodes(unsigned size, gnode_t nodes[size], int is_freed)
 ONABORT:
    return EINVAL ;
 }
-
-typedef struct gnode_typeadapt_it      gnode_typeadapt_it ;
 
 typeadapter_it_DECLARE(gnode_typeadapt_it, typeadapter_t, gnode_t)
 

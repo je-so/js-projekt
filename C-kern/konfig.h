@@ -229,6 +229,7 @@
  * PRIu16  - "u" for uint16_t unsigned integer types
  * PRIu32  - "u" for uint32_t unsigned integer types
  * PRIu64  - "u" for uint64_t unsigned integer types
+ * PRIuPTR - "u" for uintptr_t unsigned integer types
  * PRIuSIZE - "u" for size_t unsigned integer types
  *
  * scanf specifiers:
@@ -242,6 +243,7 @@
  * SCNu16  - "u" for uint16_t unsigned integer types
  * SCNu32  - "u" for uint32_t unsigned integer types
  * SCNu64  - "u" for uint64_t unsigned integer types
+ * SCNuPTR - "u" for uintptr_t unsigned integer types
  * */
 
 /* define: PRIuSIZE

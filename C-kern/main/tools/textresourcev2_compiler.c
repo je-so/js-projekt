@@ -267,10 +267,6 @@ struct textresource_condition_t {
 static int copyobj_textresourcecondition(typeadapter_t * typeadt, /*out*/textresource_condition_t ** condcopy, textresource_condition_t * cond) ;
 static int freeobj_textresourcecondition(typeadapter_t * typeadt, textresource_condition_t * cond) ;
 
-typedef struct textresource_condition_it       textresource_condition_it ;
-
-typedef struct textresource_condition_iot      textresource_condition_iot ;
-
 typeadapter_it_DECLARE(textresource_condition_it, typeadapter_t, textresource_condition_t)
 
 typeadapter_iot_DECLARE(textresource_condition_iot, typeadapter_t, textresource_condition_it)
@@ -363,10 +359,6 @@ struct textresource_langref_t {
 
 static int copyobj_textresourcelangref(typeadapter_t * typeadt, /*out*/textresource_langref_t ** langcopy, textresource_langref_t * lang) ;
 static int freeobj_textresourcelangref(typeadapter_t * typeadt, textresource_langref_t * lang) ;
-
-typedef struct textresource_langref_it       textresource_langref_it ;
-
-typedef struct textresource_langref_iot      textresource_langref_iot ;
 
 typeadapter_it_DECLARE(textresource_langref_it, typeadapter_t, textresource_langref_t)
 
@@ -474,10 +466,6 @@ arraystf_IMPLEMENT(textresource_parameter_t, _arrayparam, name.addr)
 
 static int copyobj_textresourcetext(typeadapter_t * typeadt, /*out*/textresource_text_t ** textcopy, textresource_text_t * text) ;
 static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t * text) ;
-
-typedef struct textresource_text_it    textresource_text_it ;
-
-typedef struct textresource_text_iot   textresource_text_iot ;
 
 typeadapter_it_DECLARE(textresource_text_it, typeadapter_t, textresource_text_t)
 

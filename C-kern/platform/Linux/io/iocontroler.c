@@ -70,22 +70,22 @@ struct iocontroler_iocb_t {
  * See <typeadapter_it_DECLARE>. */
 typeadapter_it_DECLARE(iocontroler_iocb_typeadapter_it, typeadapter_t, iocontroler_iocb_t)
 
-/* struct: iocontroler_iocb_typeadapter_it
+/* struct: iocontroler_iocb_typeadapter_iot
  * Declares subtyped object-interface of <typeadapter_iot> adapted to <iocontroler_iocb_typeadapter_it>.
  * See <typeadapter_iot_DECLARE>. */
-typeadapter_iot_DECLARE(iocontroler_iocb_typeadapter_iot, typeadapter_t, struct iocontroler_iocb_typeadapter_it)
+typeadapter_iot_DECLARE(iocontroler_iocb_typeadapter_iot, typeadapter_t, iocontroler_iocb_typeadapter_it)
 
 // group: variable
 
 /* variable: s_iocontroler_iocb_adapter_default
  * Default implementation object of <typeadapter_iot>. */
-static struct typeadapter_t                     s_iocontroler_iocb_adapter_default = typeadapter_INIT(sizeof(iocontroler_iocb_t)) ;
+static typeadapter_t                            s_iocontroler_iocb_adapter_default = typeadapter_INIT(sizeof(iocontroler_iocb_t)) ;
 
 /* variable: s_iocontroler_iocb_adapter_iot
  * Subtyped typeadapter object-interface of type <iocontroler_iocb_typeadapter_it>.
  * It is initialized with <s_iocontroler_iocb_adapter_default> as its implementation object.
  * See <typeadapter_iot_INIT_GENERIC>. */
-static struct iocontroler_iocb_typeadapter_iot  s_iocontroler_iocb_adapter_iot     = typeadapter_iot_INIT_GENERIC(&s_iocontroler_iocb_adapter_default) ;
+static iocontroler_iocb_typeadapter_iot         s_iocontroler_iocb_adapter_iot     = typeadapter_iot_INIT_GENERIC(&s_iocontroler_iocb_adapter_default) ;
 
 // group: data structure
 

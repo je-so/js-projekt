@@ -113,6 +113,7 @@ struct typeadapter_it { /*!*/ union { struct {  // makes it compatible with <typ
  * object_t      - The object type for which typeadapter_t is implemented.
  * */
 #define typeadapter_it_DECLARE(declared_it, typeadapter_t, object_t)          \
+   typedef struct declared_it          declared_it ;                          \
    __extension__ struct declared_it {                                         \
       union {                                                                 \
          struct {                                                             \
@@ -201,6 +202,7 @@ int execfree_typeadapteriot(typeadapter_iot * typeadp, struct generic_object_t *
  * typeadapter_it - The interface type declared with <typeadapter_it_DECLARE>.
  * */
 #define typeadapter_iot_DECLARE(declared_iot, typeadapter_t, typeadapter_it)  \
+      typedef struct declared_iot      declared_iot ;                         \
       __extension__ struct declared_iot {                                     \
          union {                                                              \
             struct {                                                          \

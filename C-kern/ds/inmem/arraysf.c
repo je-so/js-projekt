@@ -647,8 +647,6 @@ static int test_freenodeerr(typeadapter_t * typeimpl, testnode_t * node)
 
 arraysf_IMPLEMENT(testnode_t, _tarraysf, node.pos)
 
-typedef struct testnode_typeadapt_it   testnode_typeadapt_it ;
-
 typeadapter_it_DECLARE(testnode_typeadapt_it, typeadapter_t, testnode_t)
 
 static int test_initfree(void)
