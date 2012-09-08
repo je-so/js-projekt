@@ -110,38 +110,47 @@ static int test_initfreeconststr(void)
    str = (conststring_t) conststring_INIT_FREEABLE ;
    TEST(0 == str.addr) ;
    TEST(0 == str.size) ;
+   TEST(1 == isempty_string(&str)) ;
 
    // TEST conststring_INIT
    str = (conststring_t) conststring_INIT(5, &test[10]) ;
    TEST(str.addr == &test[10]) ;
    TEST(str.size == 5) ;
+   TEST(0 == isempty_string(&str)) ;
    str = (conststring_t) conststring_INIT(3, &test[11]) ;
    TEST(str.addr == &test[11]) ;
    TEST(str.size == 3) ;
+   TEST(0 == isempty_string(&str)) ;
 
    // TEST init_conststring
    init_conststring(&str, 3, &test[12]) ;
    TEST(str.addr == &test[12]) ;
    TEST(str.size == 3) ;
+   TEST(0 == isempty_string(&str)) ;
    init_conststring(&str, 5, &test[13]) ;
    TEST(str.addr == &test[13]) ;
    TEST(str.size == 5) ;
+   TEST(0 == isempty_string(&str)) ;
 
    // TEST initfl_conststring
    initfl_conststring(&str, &test[21], &test[23]) ;
    TEST(str.addr == &test[21]) ;
    TEST(str.size == 3) ;
+   TEST(0 == isempty_string(&str)) ;
    initfl_conststring(&str, &test[24], &test[28]) ;
    TEST(str.addr == &test[24]) ;
    TEST(str.size == 5) ;
+   TEST(0 == isempty_string(&str)) ;
 
    // TEST initse_conststring
    initse_conststring(&str,  &test[21], &test[24]) ;
    TEST(str.addr == &test[21]) ;
    TEST(str.size == 3) ;
+   TEST(0 == isempty_string(&str)) ;
    initse_conststring(&str, &test[24], &test[29]) ;
    TEST(str.addr == &test[24]) ;
    TEST(str.size == 5) ;
+   TEST(0 == isempty_string(&str)) ;
 
    return 0 ;
 ONABORT:
@@ -157,38 +166,47 @@ static int test_initfreestr(void)
    str = (string_t) string_INIT_FREEABLE ;
    TEST(0 == str.addr) ;
    TEST(0 == str.size) ;
+   TEST(1 == isempty_string(&str)) ;
 
    // TEST string_INIT
    str = (string_t) string_INIT(5, &test[10]) ;
    TEST(str.addr == &test[10]) ;
    TEST(str.size == 5) ;
+   TEST(0 == isempty_string(&str)) ;
    str = (string_t) string_INIT(3, &test[11]) ;
    TEST(str.addr == &test[11]) ;
    TEST(str.size == 3) ;
+   TEST(0 == isempty_string(&str)) ;
 
    // TEST init_string
    init_string(&str, 3, &test[12]) ;
    TEST(str.addr == &test[12]) ;
    TEST(str.size == 3) ;
+   TEST(0 == isempty_string(&str)) ;
    init_string(&str, 5, &test[13]) ;
    TEST(str.addr == &test[13]) ;
    TEST(str.size == 5) ;
+   TEST(0 == isempty_string(&str)) ;
 
    // TEST initfl_string
    initfl_string(&str, &test[21], &test[23]) ;
    TEST(str.addr == &test[21]) ;
    TEST(str.size == 3) ;
+   TEST(0 == isempty_string(&str)) ;
    initfl_string(&str, &test[24], &test[28]) ;
    TEST(str.addr == &test[24]) ;
    TEST(str.size == 5) ;
+   TEST(0 == isempty_string(&str)) ;
 
    // TEST initse_string
    initse_string(&str,  &test[21], &test[24]) ;
    TEST(str.addr == &test[21]) ;
    TEST(str.size == 3) ;
+   TEST(0 == isempty_string(&str)) ;
    initse_string(&str, &test[24], &test[29]) ;
    TEST(str.addr == &test[24]) ;
    TEST(str.size == 5) ;
+   TEST(0 == isempty_string(&str)) ;
 
    // TEST asconst_string
    for(int i = 0; i < 5; ++i) {
@@ -196,22 +214,6 @@ static int test_initfreestr(void)
       conststring_t  * str2 = (conststring_t *) i ;
       TEST(str2 == asconst_string(str1)) ;
    }
-
-   // TEST trytrimstart_string
-   str = (string_t) string_INIT(1000, (uint8_t*)3) ;
-   TEST(0 == trytrimstart_string(&str, 1000)) ;
-   TEST(str.addr == (void*)1003) ;
-   TEST(str.size == 0) ;
-   for(unsigned i = 0; i < 5; ++i) {
-      str = (string_t) string_INIT(100+i, (void*)i) ;
-      TEST(0 == trytrimstart_string(&str, 10*i)) ;
-      TEST(str.addr == (void*)(i+10*i)) ;
-      TEST(str.size == 100+i-(10*i)) ;
-   }
-
-   // TEST ENOMEM
-   str = (string_t) string_INIT(100, (void*)3) ;
-   TEST(ENOMEM == trytrimstart_string(&str, 101)) ;
 
    return 0 ;
 ONABORT:
@@ -289,6 +291,94 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_skip(void)
+{
+   string_t       str ;
+   conststring_t  conststr ;
+
+   // TEST skipbyte_string
+   str = (string_t) string_INIT(0, (uint8_t*)0) ;
+   skipbyte_string(&str) ;
+   TEST(str.addr == (uint8_t*)1) ;
+   TEST(str.size == (size_t)-1) ;
+   str = (string_t) string_INIT(44, (uint8_t*)0) ;
+   for(unsigned i = 1; i <= 44; ++i) {
+      skipbyte_string(&str) ;
+      TEST(str.addr == (uint8_t*)i) ;
+      TEST(str.size == 44u-i) ;
+   }
+
+   // TEST skipbyte_conststring
+   conststr = (conststring_t) conststring_INIT(0, (const uint8_t*)0) ;
+   skipbyte_string(&conststr) ;
+   TEST(conststr.addr == (uint8_t*)1) ;
+   TEST(conststr.size == (size_t)-1) ;
+   conststr = (conststring_t) conststring_INIT(44, (const uint8_t*)0) ;
+   for(unsigned i = 1; i <= 44; ++i) {
+      skipbyte_string(&conststr) ;
+      TEST(conststr.addr == (uint8_t*)i) ;
+      TEST(conststr.size == 44u-i) ;
+   }
+
+   // TEST skipbytes_string
+   str = (string_t) string_INIT(1000, (uint8_t*)3) ;
+   skipbytes_string(&str, 1000) ;
+   TEST(str.addr == (void*)1003) ;
+   TEST(str.size == 0) ;
+   for(unsigned i = 0; i < 5; ++i) {
+      str = (string_t) string_INIT(100+i, (void*)i) ;
+      skipbytes_string(&str, 10*i) ;
+      TEST(str.addr == (void*)(i+10*i)) ;
+      TEST(str.size == 100+i-(10*i)) ;
+   }
+
+   // TEST skipbytes_conststring
+   conststr = (conststring_t) conststring_INIT(1000, (const uint8_t*)3) ;
+   skipbytes_string(&conststr, 1000) ;
+   TEST(conststr.addr == (void*)1003) ;
+   TEST(conststr.size == 0) ;
+   for(unsigned i = 0; i < 5; ++i) {
+      conststr = (conststring_t) conststring_INIT(100+i, (void*)i) ;
+      skipbytes_string(&conststr, 10*i) ;
+      TEST(conststr.addr == (void*)(i+10*i)) ;
+      TEST(conststr.size == 100+i-(10*i)) ;
+   }
+
+   // TEST tryskipbytes_string
+   str = (string_t) string_INIT(1000, (uint8_t*)3) ;
+   TEST(0 == tryskipbytes_string(&str, 1000)) ;
+   TEST(str.addr == (void*)1003) ;
+   TEST(str.size == 0) ;
+   for(unsigned i = 0; i < 5; ++i) {
+      str = (string_t) string_INIT(100+i, (void*)i) ;
+      TEST(0 == tryskipbytes_string(&str, 10*i)) ;
+      TEST(str.addr == (void*)(i+10*i)) ;
+      TEST(str.size == 100+i-(10*i)) ;
+   }
+
+   // TEST tryskipbytes_conststring
+   conststr = (conststring_t) conststring_INIT(1000, (const uint8_t*)3) ;
+   TEST(0 == tryskipbytes_string(&conststr, 1000)) ;
+   TEST(conststr.addr == (void*)1003) ;
+   TEST(conststr.size == 0) ;
+   for(unsigned i = 0; i < 5; ++i) {
+      conststr = (conststring_t) conststring_INIT(100+i, (void*)i) ;
+      TEST(0 == tryskipbytes_string(&conststr, 10*i)) ;
+      TEST(conststr.addr == (void*)(i+10*i)) ;
+      TEST(conststr.size == 100+i-(10*i)) ;
+   }
+
+   // TEST EINVAL
+   str = (string_t) string_INIT(100, (uint8_t*)0) ;
+   TEST(EINVAL == tryskipbytes_string(&str, 101)) ;
+   conststr = (conststring_t) conststring_INIT(200, (const uint8_t*)0) ;
+   TEST(EINVAL == tryskipbytes_string(&conststr, 201)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 int unittest_string()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -298,6 +388,7 @@ int unittest_string()
    if (test_initfreeconststr())  goto ONABORT ;
    if (test_initfreestr())       goto ONABORT ;
    if (test_compare())           goto ONABORT ;
+   if (test_skip())              goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

@@ -159,6 +159,12 @@ int initfl_string(/*out*/string_t * str, uint8_t * first, uint8_t * last) ;
  * end    - Address of memory after last character. */
 int initse_string(/*out*/string_t * str, uint8_t * start, uint8_t * end) ;
 
+// group: query
+
+/* function: isempty_string
+ * Returns true if string has length 0. */
+bool isempty_string(const string_t * str) ;
+
 // group: cast
 
 /* function: asconst_string
@@ -167,17 +173,26 @@ conststring_t asconst_string(string_t * str) ;
 
 // group: change
 
-/* function: trytrimstart_string
- * Tries to remove the first size bytes of the string.
- * Make sure that size is the size of a valid mulibyte character sequence.
- * The content of the string is not changed. Instead only the
- * <size_t.addr> is incremented with size and <string_t.size> is decremented with size.
- *
- * Errors:
- * In case <stringt_t.size> is less then the value in *size* ENOMEM is returned.
- * No logging is done in case of an error. */
-int trytrimstart_string(string_t * str, size_t size) ;
+/* function: skipbytes_string
+ * Increments the start address of the string and decrements its length by size bytes.
+ * Call this function only if you know that (<string_t.size> >= size) is valid.
+ * The content of the string is not changed. */
+void skipbytes_string(string_t * str, size_t size) ;
 
+/* function: skipbyte_string
+ * Increments the start address of the string by one and decrements its size.
+ * Call this function only if you know that <isempty_string> does return *false*.
+ * The content of the string is not changed. */
+void skipbyte_string(string_t * str) ;
+
+/* function: tryskipbytes_string
+ * Tries to increments the start address of the string and decrements its length by size bytes.
+ * The content of the string is not changed.
+ *
+ * Returns:
+ * 0      - The address was successul incremented and the length decrementd by size bytes.
+ * EINVAL - The condition (<string_t.size> >= size) is false. *str* is not changed and no error is logged. */
+int tryskipbytes_string(string_t * str, size_t size) ;
 
 // section: inline implementation
 
@@ -217,20 +232,38 @@ int trytrimstart_string(string_t * str, size_t size) ;
          initse_string((string_t*)_str, _start, _end) ;  \
    }))
 
-/* define: trytrimstart_string
- * Implements <string_t.trytrimstart_string>. */
-#define trytrimstart_string(str, _size)         \
+/* define: isempty_string
+ * Implements <string_t.isempty_string>. */
+#define isempty_string(str)                     (0 == (str)->size)
+
+/* define: skipbytes_string
+ * Implements <string_t.skipbytes_string>. */
+#define skipbytes_string(str, _size)            \
+   do {                                         \
+      size_t _size2 = (_size) ;                 \
+      (str)->addr += _size2 ;                   \
+      (str)->size -= _size2 ;                   \
+   } while(0)
+
+/* define: tryskipbytes_string
+ * Implements <string_t.tryskipbytes_string>. */
+#define tryskipbytes_string(str, _size)         \
    ( __extension__ ({                           \
-         int _err ;                             \
-         if ((str)->size < _size) {             \
-            _err = ENOMEM ;                     \
-         } else {                               \
-            (str)->addr += _size ;              \
-            (str)->size -= _size ;              \
-            _err = 0 ;                          \
-         }                                      \
-         _err ;                                 \
+      size_t _size2 = (_size) ;                 \
+      int    _err = ((str)->size < _size2) ;    \
+      if (!_err) {                              \
+         (str)->addr += _size2 ;                \
+         (str)->size -= _size2 ;                \
+      }                                         \
+      (_err ? EINVAL : 0) ;                     \
    }))
 
+/* define: skipbyte_string
+ * Implements <string_t.skipbyte_string>. */
+#define skipbyte_string(str)                    \
+   do {                                         \
+      ++ (str)->addr ;                          \
+      -- (str)->size ;                          \
+   } while(0)
 
 #endif
