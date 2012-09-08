@@ -704,7 +704,8 @@ int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock)
 
       if (ispagefree_mmtestpage(mman->mmpage)) {
          while (  mman->mmpage->next
-               && ispagefree_mmtestpage(mman->mmpage->next)) {
+                  && (  ispagefree_mmtestpage(mman->mmpage->next)
+                        || !mman->mmpage->next->next)/*is first page*/) {
             mmpage = mman->mmpage;
             mman->mmpage = mman->mmpage->next ;
             err = delete_mmtestpage(&mmpage) ;
@@ -1018,6 +1019,9 @@ static int test_allocate(void)
       mmtest_page_t  * oldpage   = mmtest.mmpage ;
       mmtest_page_t  * foundpage = findpage_mmtest(&mmtest, memblocks[i].addr) ;
       bool           isfirst     = (foundpage->datablock.addr + headersize == memblocks[i].addr) ;
+      bool           isRootPage  = (0 != foundpage->next) && (0 == foundpage->next->next) ;
+      mmtest_page_t  * rootpage  = isRootPage ? foundpage->next : 0 ;
+
       if (foundpage == oldpage) {
          TEST(!ispagefree_mmtestpage(oldpage)) ;
       } else {
@@ -1028,18 +1032,18 @@ static int test_allocate(void)
       TEST(i * blocksize == sizeallocated_mmtest(&mmtest)) ;
       TEST(0 == memblocks[i].addr) ;
       TEST(0 == memblocks[i].size) ;
-      if (i) {
-         if (isfirst && oldpage != foundpage) {
-            TEST(foundpage == mmtest.mmpage) ;
-            TEST(ispagefree_mmtestpage(foundpage)) ;
+      if (isfirst && oldpage != foundpage) {
+         if (isRootPage) {
+            TEST(rootpage == mmtest.mmpage) ;
          } else {
-            TEST(oldpage == mmtest.mmpage) ;
+            TEST(foundpage == mmtest.mmpage) ;
          }
       } else {
-         TEST(0 == mmtest.mmpage->next) ;
-         TEST(1 == ispagefree_mmtestpage(mmtest.mmpage)) ;
+         TEST(oldpage == mmtest.mmpage) ;
       }
    }
+   TEST(0 == mmtest.mmpage->next) ;
+   TEST(1 == ispagefree_mmtestpage(mmtest.mmpage)) ;
 
    // TEST alloc, realloc, free in random order
    srandom(10000) ;
@@ -1195,7 +1199,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_memory_manager_test()
+int unittest_memory_manager_mmtest()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
