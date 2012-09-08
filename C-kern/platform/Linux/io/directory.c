@@ -64,7 +64,7 @@ int checkpath_directory(const directory_t * dir, const char * const file_path)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -82,14 +82,14 @@ int filesize_directory(const directory_t * relative_to, const char * file_path, 
    err = fstatat( statatfd, file_path, &stat_result, 0 ) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("fstatat", err) ;
+      TRACESYSERR_LOG("fstatat", err) ;
       goto ONABORT ;
    }
 
    *file_size = stat_result.st_size ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -111,7 +111,7 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
    fdd = openat( openatfd, path, O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
    if (-1 == fdd) {
       err = errno ;
-      PRINTSYSERR_LOG("openat", err) ;
+      TRACESYSERR_LOG("openat", err) ;
       PRINTCSTR_LOG(path) ;
       goto ONABORT ;
    }
@@ -119,7 +119,7 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
    sysdir = fdopendir(fdd) ;
    if (!sysdir) {
       err = errno ;
-      PRINTSYSERR_LOG("fdopendir", err) ;
+      TRACESYSERR_LOG("fdopendir", err) ;
       PRINTCSTR_LOG(path) ;
       goto ONABORT ;
    }
@@ -134,7 +134,7 @@ ONABORT:
       (void) closedir(sysdir) ;
    }
    free(cwd) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -166,7 +166,7 @@ int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, cstri
    mkdpath = mkdtemp(str_cstring(tmppath)) ;
    if (!mkdpath) {
       err = errno ;
-      PRINTSYSERR_LOG("mkdtemp",err) ;
+      TRACESYSERR_LOG("mkdtemp",err) ;
       goto ONABORT ;
    }
 
@@ -186,7 +186,7 @@ ONABORT:
    clear_cstring(tmppath) ;
    free_cstring(&buffer) ;
    delete_directory(&newdir) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -201,7 +201,7 @@ int delete_directory(directory_t ** dir)
       err = closedir(DIR_sysdir(delobj)) ;
       if (err) {
          err = errno ;
-         PRINTSYSERR_LOG("closedir", err) ;
+         TRACESYSERR_LOG("closedir", err) ;
       }
 
       if (err) goto ONABORT ;
@@ -209,7 +209,7 @@ int delete_directory(directory_t ** dir)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -222,7 +222,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
    result = readdir( DIR_sysdir(dir) ) ;
    if (!result && errno) {
       err = errno ;
-      PRINTSYSERR_LOG("readdir",err) ;
+      TRACESYSERR_LOG("readdir",err) ;
       goto ONABORT ;
    }
 
@@ -258,7 +258,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -271,7 +271,7 @@ int gofirst_directory(directory_t * dir)
    rewinddir(DIR_sysdir(dir)) ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -288,7 +288,7 @@ int makedirectory_directory(directory_t * dir, const char * directory_path)
    err = mkdirat(mkdiratfd, directory_path, 0700) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("mkdirat(mkdiratfd, directory_path, 0700)",err) ;
+      TRACESYSERR_LOG("mkdirat(mkdiratfd, directory_path, 0700)",err) ;
       PRINTINT_LOG(mkdiratfd) ;
       PRINTCSTR_LOG(directory_path) ;
       goto ONABORT ;
@@ -296,7 +296,7 @@ int makedirectory_directory(directory_t * dir, const char * directory_path)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -313,7 +313,7 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
    fd = openat(openatfd, file_path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("openat(openatfd, file_path)",err) ;
+      TRACESYSERR_LOG("openat(openatfd, file_path)",err) ;
       PRINTINT_LOG(openatfd) ;
       PRINTCSTR_LOG(file_path) ;
       goto ONABORT ;
@@ -322,7 +322,7 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
    err = ftruncate(fd, file_length) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("ftruncate(file_path, file_length)",err) ;
+      TRACESYSERR_LOG("ftruncate(file_path, file_length)",err) ;
       PRINTCSTR_LOG(file_path) ;
       PRINTUINT64_LOG(file_length) ;
       goto ONABORT ;
@@ -336,7 +336,7 @@ ONABORT:
       free_filedescr(&fd) ;
       unlinkat(openatfd, file_path, 0) ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -352,7 +352,7 @@ int removedirectory_directory(directory_t * dir, const char * directory_path)
    err = unlinkat(unlinkatfd, directory_path, AT_REMOVEDIR) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("unlinkat(unlinkatfd, directory_path)",err) ;
+      TRACESYSERR_LOG("unlinkat(unlinkatfd, directory_path)",err) ;
       PRINTINT_LOG(unlinkatfd) ;
       PRINTCSTR_LOG(directory_path) ;
       goto ONABORT ;
@@ -360,7 +360,7 @@ int removedirectory_directory(directory_t * dir, const char * directory_path)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -376,7 +376,7 @@ int removefile_directory(directory_t * dir, const char * file_path)
    err = unlinkat(unlinkatfd, file_path, 0) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("unlinkat(unlinkatfd, file_path)",err) ;
+      TRACESYSERR_LOG("unlinkat(unlinkatfd, file_path)",err) ;
       PRINTINT_LOG(unlinkatfd) ;
       PRINTCSTR_LOG(file_path) ;
       goto ONABORT ;
@@ -384,7 +384,7 @@ int removefile_directory(directory_t * dir, const char * file_path)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

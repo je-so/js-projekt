@@ -48,7 +48,7 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, int fd, off_t file_offset, size
    err = fstat(fd, &file_info) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("fstat", err) ;
+      TRACESYSERR_LOG("fstat", err) ;
       goto ONABORT ;
    }
 
@@ -81,14 +81,14 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, int fd, off_t file_offset, size
 #undef  protection_flags
    if (MAP_FAILED == mem_start) {
       err = errno ;
-      PRINTSYSERR_LOG("mmap", err) ;
+      TRACESYSERR_LOG("mmap", err) ;
       goto ONABORT ;
    }
 
    err = madvise(mem_start, size, MADV_SEQUENTIAL) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("madvise", err) ;
+      TRACESYSERR_LOG("madvise", err) ;
       goto ONABORT ;
    }
 
@@ -100,7 +100,7 @@ ONABORT:
    if (MAP_FAILED != mem_start) {
       (void) munmap(mem_start, size) ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -135,7 +135,7 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
    fd = openat(openatfd, file_path, ((mode&accessmode_WRITE) ? O_RDWR : O_RDONLY) | O_CLOEXEC ) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("openat", err) ;
+      TRACESYSERR_LOG("openat", err) ;
       PRINTCSTR_LOG(file_path) ;
       goto ONABORT ;
    }
@@ -148,7 +148,7 @@ int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_off
    return 0 ;
 ONABORT:
    free_filedescr(&fd) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -167,7 +167,7 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
    fd = openat(openatfd, file_path, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("openat", err) ;
+      TRACESYSERR_LOG("openat", err) ;
       PRINTCSTR_LOG(file_path) ;
       goto ONABORT ;
    }
@@ -175,7 +175,7 @@ int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t si
    err = ftruncate(fd, size) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("ftruncate", err) ;
+      TRACESYSERR_LOG("ftruncate", err) ;
       PRINTSIZE_LOG(size) ;
       goto ONABORT ;
    }
@@ -191,7 +191,7 @@ ONABORT:
       (void) unlinkat(openatfd, file_path, 0) ;
       free_filedescr(&fd) ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -204,7 +204,7 @@ int free_mmfile(mmfile_t * mfile)
       err = munmap( mfile->addr, mfile->size ) ;
       if (err) {
          err = errno ;
-         PRINTSYSERR_LOG("munmap", err) ;
+         TRACESYSERR_LOG("munmap", err) ;
          PRINTPTR_LOG(mfile->addr) ;
          PRINTSIZE_LOG(mfile->size) ;
       }
@@ -216,7 +216,7 @@ int free_mmfile(mmfile_t * mfile)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 

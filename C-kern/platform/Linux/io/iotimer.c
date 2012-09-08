@@ -60,7 +60,7 @@ int init_iotimer(/*out*/iotimer_t* timer, timeclock_e clock_type)
    fd = timerfd_create(clockid, TFD_NONBLOCK|TFD_CLOEXEC) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("timerfd_create", err) ;
+      TRACESYSERR_LOG("timerfd_create", err) ;
       PRINTINT_LOG(clock_type) ;
       goto ONABORT ;
    } else {
@@ -69,7 +69,7 @@ int init_iotimer(/*out*/iotimer_t* timer, timeclock_e clock_type)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -82,7 +82,7 @@ int free_iotimer(iotimer_t * timer)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -96,14 +96,14 @@ int start_iotimer(iotimer_t timer, timevalue_t * relative_time)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      PRINTSYSERR_LOG("timer_settime", err) ;
+      TRACESYSERR_LOG("timer_settime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -117,14 +117,14 @@ int startinterval_iotimer(iotimer_t timer, timevalue_t * interval_time)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      PRINTSYSERR_LOG("timer_settime", err) ;
+      TRACESYSERR_LOG("timer_settime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -138,14 +138,14 @@ int stop_iotimer(iotimer_t timer)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      PRINTSYSERR_LOG("timer_settime", err) ;
+      TRACESYSERR_LOG("timer_settime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -165,7 +165,7 @@ int wait_iotimer(iotimer_t timer)
    if (1 != err) {
       if (-1 == err) {
          err = errno ;
-         PRINTSYSERR_LOG("poll", err) ;
+         TRACESYSERR_LOG("poll", err) ;
          PRINTINT_LOG(timer) ;
       } else {
          err = EINVAL ;
@@ -175,7 +175,7 @@ int wait_iotimer(iotimer_t timer)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -186,7 +186,7 @@ int remainingtime_iotimer(iotimer_t timer, timevalue_t * remaining_time)
 
    if (timerfd_gettime( timer, &next_timeout )) {
       err = errno ;
-      PRINTSYSERR_LOG("timer_gettime", err) ;
+      TRACESYSERR_LOG("timer_gettime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    } else {
@@ -196,7 +196,7 @@ int remainingtime_iotimer(iotimer_t timer, timevalue_t * remaining_time)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -209,7 +209,7 @@ int expirationcount_iotimer(iotimer_t timer, /*out*/uint64_t * expiration_count)
    if (sizeof(uint64_t) != read(timer, expiration_count, sizeof(uint64_t))) {
       if (errno != EAGAIN) {
          err = errno ;
-         PRINTSYSERR_LOG("read", err) ;
+         TRACESYSERR_LOG("read", err) ;
          PRINTINT_LOG(timer) ;
          goto ONABORT ;
       }
@@ -218,7 +218,7 @@ int expirationcount_iotimer(iotimer_t timer, /*out*/uint64_t * expiration_count)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

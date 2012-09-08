@@ -85,7 +85,7 @@ int init_waitlist(/*out*/waitlist_t * wlist)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -104,7 +104,7 @@ int free_waitlist(waitlist_t * wlist)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -147,7 +147,7 @@ int wait_waitlist(waitlist_t * wlist)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -175,7 +175,7 @@ int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), v
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

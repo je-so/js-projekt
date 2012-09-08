@@ -53,7 +53,7 @@ int initthread_objectcache(/*out*/objectcache_iot * objectcache)
 
    if (!newobject) {
       err = ENOMEM ;
-      PRINTOUTOFMEM_LOG(objsize) ;
+      TRACEOUTOFMEM_LOG(objsize) ;
       goto ONABORT ;
    }
 
@@ -68,7 +68,7 @@ int initthread_objectcache(/*out*/objectcache_iot * objectcache)
    return 0 ;
 ONABORT:
    free(newobject) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -92,7 +92,7 @@ int freethread_objectcache(objectcache_iot * objectcache)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -110,7 +110,7 @@ int init_objectcache(/*out*/objectcache_t * cache )
    return 0 ;
 ONABORT:
    (void) free_vmblock(&iobuffer) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -124,7 +124,7 @@ int free_objectcache(objectcache_t * cache)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -143,7 +143,7 @@ int move_objectcache(objectcache_t * destination, objectcache_t * source)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -157,7 +157,7 @@ static int lockiobuffer2_objectcache(objectcache_t * objectcache, /*out*/membloc
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -172,7 +172,7 @@ static int unlockiobuffer2_objectcache(objectcache_t * objectcache, memblock_t *
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

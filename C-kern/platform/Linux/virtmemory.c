@@ -90,7 +90,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
       const ssize_t read_size = read(fd, buffer + buffer_offset, buffer_maxsize - buffer_offset) ;
       if (!read_size) {
          if (buffer_offset) {
-            PRINTERR_LOG(FILE_FORMAT_MISSING_ENDOFLINE,PROC_SELF_MAPS) ;
+            TRACEERR_LOG(FILE_FORMAT_MISSING_ENDOFLINE,PROC_SELF_MAPS) ;
             err = EINVAL ;
             goto ONABORT ;
          }
@@ -99,7 +99,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
       if (read_size < 0) {
          err = errno ;
          if (err == EINTR) continue ;
-         PRINTSYSERR_LOG("read", err) ;
+         TRACESYSERR_LOG("read", err) ;
          goto ONABORT ;
       }
       buffer_offset += (size_t)read_size ;
@@ -147,7 +147,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    fd = open(PROC_SELF_MAPS, O_RDONLY|O_CLOEXEC ) ;
    if (fd < 0) {
       err = ENOSYS ;
-      PRINTSYSERR_LOG("open(" PROC_SELF_MAPS ")", errno) ;
+      TRACESYSERR_LOG("open(" PROC_SELF_MAPS ")", errno) ;
       goto ONABORT ;
    }
 
@@ -173,7 +173,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
                   &isReadable, &isWriteable, &isExecutable, &isShared,
                   &file_offset, &major, &minor, &inode ) ;
          if (scanned_items != 10) {
-            PRINTERR_LOG(FILE_FORMAT_WRONG,PROC_SELF_MAPS) ;
+            TRACEERR_LOG(FILE_FORMAT_WRONG,PROC_SELF_MAPS) ;
             err = EINVAL ;
             goto ONABORT ;
          }
@@ -250,7 +250,7 @@ ONABORT:
    OBJC_UNLOCKIOBUFFER(&iobuffer) ;
 
    free_filedescr(&fd) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -366,7 +366,7 @@ int init2_vmblock(/*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_
 #undef shared_flags
    if (mapped_pages == MAP_FAILED) {
       err = errno ;
-      PRINTSYSERR_LOG("mmap", err) ;
+      TRACESYSERR_LOG("mmap", err) ;
       PRINTSIZE_LOG(length_in_bytes) ;
       goto ONABORT ;
    }
@@ -376,7 +376,7 @@ int init2_vmblock(/*out*/vm_block_t * vmblock, size_t size_in_pages, accessmode_
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -387,7 +387,7 @@ int free_vmblock(vm_block_t * vmblock )
    if (     vmblock->size
          && munmap(vmblock->addr, vmblock->size )) {
       err = errno ;
-      PRINTSYSERR_LOG("munmap", err) ;
+      TRACESYSERR_LOG("munmap", err) ;
       PRINTPTR_LOG(vmblock->addr) ;
       PRINTSIZE_LOG(vmblock->size) ;
       goto ONABORT ;
@@ -398,7 +398,7 @@ int free_vmblock(vm_block_t * vmblock )
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -412,7 +412,7 @@ int protect_vmblock(vm_block_t * vmblock, const accessmode_e access_mode )
    if (     vmblock->size
          && mprotect(vmblock->addr, vmblock->size, prot)) {
       err = errno ;
-      PRINTSYSERR_LOG("mprotect", err) ;
+      TRACESYSERR_LOG("mprotect", err) ;
       PRINTPTR_LOG(vmblock->addr) ;
       PRINTSIZE_LOG(vmblock->size) ;
       PRINTINT_LOG(access_mode) ;
@@ -421,7 +421,7 @@ int protect_vmblock(vm_block_t * vmblock, const accessmode_e access_mode )
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -450,7 +450,7 @@ int tryexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages )
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -471,7 +471,7 @@ int movexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages )
    new_addr = mremap(vmblock->addr, vmblock->size, newsize_in_bytes, MREMAP_MAYMOVE) ;
    if (MAP_FAILED == new_addr) {
       err = errno ;
-      PRINTOUTOFMEM_LOG(newsize_in_bytes) ;
+      TRACEOUTOFMEM_LOG(newsize_in_bytes) ;
       goto ONABORT ;
    }
 
@@ -480,7 +480,7 @@ int movexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages )
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -501,7 +501,7 @@ int shrink_vmblock(vm_block_t * vmblock, size_t decrement_in_pages )
       err = munmap(vmblock->addr + newsize_in_bytes, shrink_in_bytes) ;
       if (err) {
          err = errno ;
-         PRINTSYSERR_LOG("munmap", err) ;
+         TRACESYSERR_LOG("munmap", err) ;
          PRINTPTR_LOG(vmblock->addr + newsize_in_bytes) ;
          PRINTSIZE_LOG(shrink_in_bytes) ;
          goto ONABORT ;
@@ -512,7 +512,7 @@ int shrink_vmblock(vm_block_t * vmblock, size_t decrement_in_pages )
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

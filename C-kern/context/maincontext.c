@@ -111,7 +111,7 @@ int free_maincontext(void)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -157,7 +157,7 @@ ONABORT:
    if (!is_already_initialized) {
       free_maincontext() ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -165,7 +165,7 @@ void abort_maincontext(int err)
 {
    // TODO: add abort handler registration ...
    // TODO: add unit test for checking that resources are freed
-   PRINTERR_LOG(ABORT_FATAL,err) ;
+   TRACEERR_LOG(ABORT_FATAL,err) ;
    FLUSHBUFFER_LOG() ;
    abort() ;
 }

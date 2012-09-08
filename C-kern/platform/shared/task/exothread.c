@@ -64,7 +64,7 @@ int free_exothread(exothread_t * xthread)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -100,7 +100,7 @@ int run_exothread(exothread_t * xthread)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -131,7 +131,7 @@ static int testinit_xthread(exothread_t * xthread)
    finish_exothread() ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -209,7 +209,7 @@ static int counter_xthread(counter_xthread_t * xthread)
       setholdingresource_exothread() ;
       if (!xthread->dummy) {
          err = ENOMEM ;
-         PRINTOUTOFMEM_LOG(12) ;
+         TRACEOUTOFMEM_LOG(12) ;
          goto ONABORT ;
       }
    }
@@ -248,7 +248,7 @@ static int counter_xthread(counter_xthread_t * xthread)
    finish_exothread() ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

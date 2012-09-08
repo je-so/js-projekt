@@ -64,7 +64,7 @@ static int parse_urlscheme(url_scheme_e * scheme, const char ** encodedstr)
    *encodedstr = next ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -146,7 +146,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
    newurl = malloc(objsize) ;
    if (!newurl) {
       err = ENOMEM ;
-      PRINTOUTOFMEM_LOG(objsize) ;
+      TRACEOUTOFMEM_LOG(objsize) ;
       goto ONABORT ;
    }
 
@@ -178,7 +178,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
    return 0 ;
 ONABORT:
    free(newurl) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return 0 ;
 }
 
@@ -252,7 +252,7 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -277,7 +277,7 @@ int new_url(/*out*/url_t ** url, const char * encodedstr)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -370,7 +370,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    return 0 ;
 ONABORT:
    if (start_result) popbytes_wbuffer(encoded_url_string, result_size) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

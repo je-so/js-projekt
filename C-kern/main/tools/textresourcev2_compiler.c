@@ -318,7 +318,7 @@ static int freeobj_textresourcecondition(typeadapter_t * typeadt, textresource_c
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -417,7 +417,7 @@ static int freeobj_textresourcelangref(typeadapter_t * typeadt, textresource_lan
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -543,7 +543,7 @@ static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -612,7 +612,7 @@ static int free_textresource(textresource_t * textres)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -664,7 +664,7 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
    return 0 ;
 ONABORT:
    free_textresource(textres) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1793,7 +1793,7 @@ static int free_textresourcereader(textresource_reader_t * reader)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -1868,7 +1868,7 @@ static int free_textresourcewriter(textresource_writer_t * writer)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -1918,7 +1918,7 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
 ONABORT:
    free_cstring(&filename) ;
    free_textresourcewriter(writer) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1944,7 +1944,7 @@ static int initfree_textresourcewriter(textresource_t * txtres)
    return 0 ;
 ONABORT:
    free_textresourcewriter(&writer) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2221,7 +2221,7 @@ static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2237,7 +2237,7 @@ static int writeCsource_textresourcewriter(textresource_writer_t * writer)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

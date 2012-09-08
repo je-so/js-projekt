@@ -47,14 +47,14 @@ const char * current_locale()
 
    if (!lname) {
       err = EINVAL ;
-      PRINTSYSERR_LOG("setlocale",err) ;
+      TRACESYSERR_LOG("setlocale",err) ;
       PRINTCSTR_LOG("LC_ALL=0") ;
       goto ONABORT ;
    }
 
    return lname ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return 0 ;
 }
 
@@ -65,14 +65,14 @@ const char * currentmsg_locale()
 
    if (!lname) {
       err = EINVAL ;
-      PRINTSYSERR_LOG("setlocale",err) ;
+      TRACESYSERR_LOG("setlocale",err) ;
       PRINTCSTR_LOG("LC_MESSAGES=0") ;
       goto ONABORT ;
    }
 
    return lname ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return 0 ;
 }
 
@@ -96,14 +96,14 @@ int setdefault_locale()
 
    if (!setlocale(LC_ALL, "")) {
       err = EINVAL ;
-      PRINTERR_NOARG_LOG(LOCALE_SETLOCALE) ;
+      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE) ;
       PRINTCSTR_LOG(getenv("LC_ALL")) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -116,7 +116,7 @@ int reset_locale()
    int err ;
 
    if (!setlocale(LC_ALL, "C")) {
-      PRINTERR_NOARG_LOG(LOCALE_SETLOCALE) ;
+      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE) ;
       PRINTCSTR_LOG("LC_ALL=C") ;
       err = EINVAL ;
       goto ONABORT ;
@@ -124,7 +124,7 @@ int reset_locale()
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -133,7 +133,7 @@ int resetmsg_locale()
    int err ;
 
    if (!setlocale(LC_MESSAGES, "C")) {
-      PRINTERR_NOARG_LOG(LOCALE_SETLOCALE) ;
+      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE) ;
       PRINTCSTR_LOG("LC_MESSAGES=C") ;
       err = EINVAL ;
       goto ONABORT ;
@@ -141,7 +141,7 @@ int resetmsg_locale()
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -156,7 +156,7 @@ int initonce_locale()
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -169,7 +169,7 @@ int freeonce_locale()
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

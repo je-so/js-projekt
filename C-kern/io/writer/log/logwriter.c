@@ -71,7 +71,7 @@ int initthread_logwriter(/*out*/log_iot * ilog)
 
    if (!newlgwrt) {
       err = ENOMEM ;
-      PRINTOUTOFMEM_LOG(objsize) ;
+      TRACEOUTOFMEM_LOG(objsize) ;
       goto ONABORT ;
    }
 
@@ -90,7 +90,7 @@ int initthread_logwriter(/*out*/log_iot * ilog)
    return 0 ;
 ONABORT:
    free(newlgwrt) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -116,7 +116,7 @@ int freethread_logwriter(log_iot * ilog)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -162,7 +162,7 @@ int init_logwriter(/*out*/logwriter_t * lgwrt)
    return 0 ;
 ONABORT:
    (void) freebuffer_logwriter(&buffer) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -180,7 +180,7 @@ int free_logwriter(logwriter_t * lgwrt)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -237,7 +237,7 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args)
       lgwrt->logsize += (unsigned)append_size ;
    } else {
       lgwrt->logsize += buffer_size ;
-      PRINTERR_LOG(LOG_ENTRY_TRUNCATED, append_size, (int)buffer_size-1) ;
+      TRACEERR_LOG(LOG_ENTRY_TRUNCATED, append_size, (int)buffer_size-1) ;
    }
 }
 

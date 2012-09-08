@@ -142,7 +142,7 @@ int urlencode_string(const conststring_t * str, uint8_t except_char, uint8_t cha
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -183,7 +183,7 @@ int urldecode_string(const conststring_t * str, uint8_t changefrom_char, uint8_t
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

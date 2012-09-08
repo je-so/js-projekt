@@ -40,7 +40,7 @@ int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count)
    fd = eventfd(init_signal_count,EFD_CLOEXEC|EFD_SEMAPHORE) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("eventfd", err) ;
+      TRACESYSERR_LOG("eventfd", err) ;
       PRINTUINT32_LOG(init_signal_count) ;
       goto ONABORT ;
    }
@@ -50,7 +50,7 @@ int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -69,7 +69,7 @@ int free_semaphore(semaphore_t * semaobj)
          if (-1 == err2) {
             if (EAGAIN != errno) {
                err = errno ;
-               PRINTSYSERR_LOG("write", err) ;
+               TRACESYSERR_LOG("write", err) ;
                PRINTINT_LOG(semaobj->sys_sema) ;
                break ;
             }
@@ -84,7 +84,7 @@ int free_semaphore(semaphore_t * semaobj)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -96,7 +96,7 @@ int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count)
    err = write(semaobj->sys_sema, &increment, sizeof(increment)) ;
    if (-1 == err) {
       err = errno ;
-      PRINTSYSERR_LOG("write", err) ;
+      TRACESYSERR_LOG("write", err) ;
       PRINTINT_LOG(semaobj->sys_sema) ;
       PRINTUINT32_LOG(signal_count) ;
       goto ONABORT ;
@@ -106,7 +106,7 @@ int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -118,7 +118,7 @@ int wait_semaphore(semaphore_t * semaobj)
    err = read(semaobj->sys_sema, &decrement, sizeof(decrement)) ;
    if (-1 == err) {
       err = errno ;
-      PRINTSYSERR_LOG("read", err) ;
+      TRACESYSERR_LOG("read", err) ;
       PRINTINT_LOG(semaobj->sys_sema) ;
       goto ONABORT ;
    }
@@ -127,7 +127,7 @@ int wait_semaphore(semaphore_t * semaobj)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

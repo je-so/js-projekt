@@ -58,7 +58,7 @@ int free_exoscheduler(exoscheduler_t * xsched)
 
    return 0;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -72,7 +72,7 @@ int register_exoscheduler(exoscheduler_t * xsched, exothread_t * xthread)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -120,7 +120,7 @@ int run_exoscheduler(exoscheduler_t * xsched)
    if (err) goto ONABORT ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

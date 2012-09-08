@@ -121,7 +121,7 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -278,7 +278,7 @@ static int add_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -462,7 +462,7 @@ static int sub_biginthelper(bigint_t *restrict* result, const bigint_t * lbig, c
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -682,7 +682,7 @@ ONABORT:
       delete_bigint(&t[i]) ;
    }
    clear_bigint(*result) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -720,7 +720,7 @@ static int divisorisbigger_biginthelper(bigint_t *restrict* divresult, bigint_t 
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1140,7 +1140,7 @@ int new_bigint(/*out*/bigint_t ** big, uint32_t nrdigits)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1161,7 +1161,7 @@ int newcopy_bigint(/*out*/bigint_t ** big, const bigint_t * copyfrom)
    return 0 ;
 ONABORT:
    delete_bigint(&new_big) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1181,7 +1181,7 @@ int delete_bigint(bigint_t ** big)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -1326,7 +1326,7 @@ int copy_bigint(bigint_t *restrict* big, const bigint_t * restrict copyfrom)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1436,7 +1436,7 @@ int setfromdouble_bigint(bigint_t * big, double value)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1489,7 +1489,7 @@ int setbigfirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, const u
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1539,7 +1539,7 @@ int setlittlefirst_bigint(bigint_t *restrict* big, int sign, uint16_t size, cons
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1636,7 +1636,7 @@ int shiftleft_bigint(bigint_t ** result, uint32_t shift_count)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1709,7 +1709,7 @@ int shiftright_bigint(bigint_t ** result, uint32_t shift_count)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1733,7 +1733,7 @@ int add_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1755,7 +1755,7 @@ int sub_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_t
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1797,7 +1797,7 @@ int multui32_bigint(bigint_t *restrict* result, const bigint_t * lbig, const uin
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1850,7 +1850,7 @@ int mult_bigint(bigint_t *restrict* result, const bigint_t * lbig, const bigint_
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1894,7 +1894,7 @@ int divmodui32_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresu
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1990,7 +1990,7 @@ int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, 
    return 0 ;
 ONABORT:
    delete_bigint(&diff) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

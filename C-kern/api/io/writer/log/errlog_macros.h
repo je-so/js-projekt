@@ -2,7 +2,7 @@
    Defines error logging macros.
 
    - Includes text resource file which contains errorlog messages and
-     defines <PRINTERR_LOG> to log them.
+     defines <TRACEERR_LOG> to log them.
    - All logging macros log to the error channel.
 
    about: Copyright
@@ -34,51 +34,6 @@
 
 // group: log-text
 
-/* define: PRINTABORT_LOG
- * Logs the abortion of a function and the its corresponding error code.
- * If a function encounters an error from which it cannot recover
- * it should roll back the system to its previous state before it was
- * called and use
- * > PRINTABORT_LOG(return_error_code)
- * to signal this fact. */
-#define PRINTABORT_LOG(err)            PRINTERR_LOG(FUNCTION_ABORT,err)
-
-/* define: PRINTABORTFREE_LOG
- * Logs that an error occurred during free_XXX or delete_XXX.
- * This means that not all resources could have been freed
- * only as many as possible. */
-#define PRINTABORTFREE_LOG(err)        PRINTERR_LOG(FUNCTION_ABORT_FREE,err)
-
-/* define: PRINTCALLERR_LOG
- * Logs errorlog text resource PRINTERR_LOG_FUNCTION_ERROR.
- * Use this function to log an error in the function which calls a user library function
- * which does not do logging on its own.
- *
- * TODO: Support own error IDs
- * TODO: Replace strerror(err) with own string_error_function(int sys_err)
- * */
-#define PRINTCALLERR_LOG(fct_name,err) PRINTERR_LOG(FUNCTION_ERROR, fct_name, err, strerror(err))
-
-/* define: PRINTERR_LOG
- * Logs an errorlog text resource with arguments.
- * Use <PRINTERR_LOG> to log any language specific text with additional parameter values. */
-#define PRINTERR_LOG(TEXTID,...)       do {  ERROR_LOCATION_ERRLOG(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
-                                             TEXTID ## _ERRLOG(log_channel_ERR, __VA_ARGS__ ) ;                          \
-                                       }  while(0)
-/* define: PRINTERR_NOARG_LOG
- * Logs an errorlog text resource without any arguments. */
-#define PRINTERR_NOARG_LOG(TEXTID)     do {  ERROR_LOCATION_ERRLOG(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
-                                             TEXTID ## _ERRLOG(log_channel_ERR) ;                                        \
-                                       }  while(0)
-
-/* define: PRINTOUTOFMEM_LOG
- * Logs "out of memory" reason for function abort.
- * If a function could not allocate memory of size bytes and therefore aborts
- * with an error code
- * > PRINTOUTOFMEM_LOG(size_of_memory_in_bytes)
- * should be called before <PRINTABORT_LOG> to document the event leading to an abort. */
-#define PRINTOUTOFMEM_LOG(size)        PRINTERR_LOG(MEMORY_OUT_OF,size)
-
 /* define: PRINTF_LOG
  * Logs a generic printf type format string as error.
  *
@@ -91,11 +46,56 @@
  * > int i ; PRINTF_LOG("%d", i) */
 #define PRINTF_LOG(...)                CPRINTF_LOG(ERR, __VA_ARGS__)
 
-/* define: PRINTSYSERR_LOG
+/* define: TRACEABORT_LOG
+ * Logs the abortion of a function and the its corresponding error code.
+ * If a function encounters an error from which it cannot recover
+ * it should roll back the system to its previous state before it was
+ * called and use
+ * > TRACEABORT_LOG(return_error_code)
+ * to signal this fact. */
+#define TRACEABORT_LOG(err)            TRACEERR_LOG(FUNCTION_ABORT,err)
+
+/* define: TRACEABORTFREE_LOG
+ * Logs that an error occurred during free_XXX or delete_XXX.
+ * This means that not all resources could have been freed
+ * only as many as possible. */
+#define TRACEABORTFREE_LOG(err)        TRACEERR_LOG(FUNCTION_ABORT_FREE,err)
+
+/* define: TRACECALLERR_LOG
+ * Logs errorlog text resource TRACEERR_LOG_FUNCTION_ERROR.
+ * Use this function to log an error in the function which calls a user library function
+ * which does not do logging on its own.
+ *
+ * TODO: Support own error IDs
+ * TODO: Replace strerror(err) with own string_error_function(int sys_err)
+ * */
+#define TRACECALLERR_LOG(fct_name,err) TRACEERR_LOG(FUNCTION_ERROR, fct_name, err, strerror(err))
+
+/* define: TRACEERR_LOG
+ * Logs an errorlog text resource with arguments.
+ * Use <TRACEERR_LOG> to log any language specific text with additional parameter values. */
+#define TRACEERR_LOG(TEXTID,...)       do {  ERROR_LOCATION_ERRLOG(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
+                                             TEXTID ## _ERRLOG(log_channel_ERR, __VA_ARGS__ ) ;                          \
+                                       }  while(0)
+/* define: TRACEERR_NOARG_LOG
+ * Logs an errorlog text resource without any arguments. */
+#define TRACEERR_NOARG_LOG(TEXTID)     do {  ERROR_LOCATION_ERRLOG(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
+                                             TEXTID ## _ERRLOG(log_channel_ERR) ;                                        \
+                                       }  while(0)
+
+/* define: TRACEOUTOFMEM_LOG
+ * Logs "out of memory" reason for function abort.
+ * If a function could not allocate memory of size bytes and therefore aborts
+ * with an error code
+ * > TRACEOUTOFMEM_LOG(size_of_memory_in_bytes)
+ * should be called before <TRACEABORT_LOG> to document the event leading to an abort. */
+#define TRACEOUTOFMEM_LOG(size)        TRACEERR_LOG(MEMORY_OUT_OF,size)
+
+/* define: TRACESYSERR_LOG
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
-#define PRINTSYSERR_LOG(sys_fctname,sys_errno)  PRINTERR_LOG(FUNCTION_SYSERR, sys_fctname, sys_errno, strerror(sys_errno))
+#define TRACESYSERR_LOG(sys_fctname,sys_errno)  TRACEERR_LOG(FUNCTION_SYSERR, sys_fctname, sys_errno, strerror(sys_errno))
 
 // group: log-variables
 

@@ -71,7 +71,7 @@ int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*ou
    err = prctl(PR_GET_NAME, buffer, 0, 0, 0) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("prctl(PR_GET_NAME)", err) ;
+      TRACESYSERR_LOG("prctl(PR_GET_NAME)", err) ;
       goto ONABORT ;
    }
 
@@ -118,7 +118,7 @@ static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, p
       devnull = open("/dev/null", O_RDWR|O_CLOEXEC) ;
       if (-1 == devnull) {
          err = errno ;
-         PRINTSYSERR_LOG("open(/dev/null,O_RDWR)", err) ;
+         TRACESYSERR_LOG("open(/dev/null,O_RDWR)", err) ;
          goto ONABORT ;
       }
    }
@@ -134,7 +134,7 @@ static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, p
    return 0 ;
 ONABORT:
    free_filedescr(&devnull) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -149,7 +149,7 @@ static int free_processioredirect2(process_ioredirect2_t * ioredirect2)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -176,7 +176,7 @@ static int redirectstdfd_processioredirect2(const process_ioredirect2_t * ioredi
       while(-1 == dup2(fd, stdfd)) {
          if (EINTR != errno) {
             err = errno ;
-            PRINTSYSERR_LOG("dup2(fd, stdfd)", err) ;
+            TRACESYSERR_LOG("dup2(fd, stdfd)", err) ;
             PRINTINT_LOG(fd) ;
             PRINTINT_LOG(stdfd) ;
             goto ONABORT ;
@@ -190,7 +190,7 @@ static int redirectstdfd_processioredirect2(const process_ioredirect2_t * ioredi
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -218,7 +218,7 @@ static int redirectstdio_processioredirect2(const process_ioredirect2_t * ioredi
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -256,7 +256,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
    while(-1 == waitid(P_PID, (id_t) pid, &info, flags)) {
       if (EINTR != errno) {
          err = errno ;
-         PRINTSYSERR_LOG("waitid",err) ;
+         TRACESYSERR_LOG("waitid",err) ;
          PRINTINT_LOG(pid) ;
          goto ONABORT ;
       }
@@ -284,7 +284,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -316,7 +316,7 @@ int initexec_process(process_t * process, const char * filename, const char * co
 
    if ( pipe2(pipefd,O_CLOEXEC) ) {
       err = errno ;
-      PRINTSYSERR_LOG("pipe2", err) ;
+      TRACESYSERR_LOG("pipe2", err) ;
       goto ONABORT ;
    }
 
@@ -339,12 +339,12 @@ int initexec_process(process_t * process, const char * filename, const char * co
 
    if (-1 == read_bytes) {
       err = errno ;
-      PRINTSYSERR_LOG("read", err) ;
+      TRACESYSERR_LOG("read", err) ;
       goto ONABORT ;
    } else if (read_bytes) {
       // EXEC error
       err = exec_err ? exec_err : ENOEXEC ;
-      PRINTSYSERR_LOG("execvp(filename, arguments)", err) ;
+      TRACESYSERR_LOG("execvp(filename, arguments)", err) ;
       PRINTCSTR_LOG(filename) ;
       for(size_t i = 0; arguments[i]; ++i) {
          PRINTARRAYFIELD_LOG("s",arguments,i) ;
@@ -362,7 +362,7 @@ ONABORT:
    free_filedescr(&pipefd[1]) ;
    free_filedescr(&pipefd[0]) ;
    (void) free_process(&childprocess) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -381,7 +381,7 @@ int init_process(/*out*/process_t         *  process,
    pid = fork() ;
    if (-1 == pid) {
       err = errno ;
-      PRINTSYSERR_LOG("fork", err) ;
+      TRACESYSERR_LOG("fork", err) ;
       goto ONABORT ;
    }
 
@@ -402,7 +402,7 @@ int init_process(/*out*/process_t         *  process,
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -427,7 +427,7 @@ int free_process(process_t * process)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -443,7 +443,7 @@ int state_process(process_t * process, /*out*/process_state_e * current_state)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -477,7 +477,7 @@ int wait_process(process_t * process, /*out*/process_result_t * result)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

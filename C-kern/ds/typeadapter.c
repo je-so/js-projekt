@@ -53,7 +53,7 @@ static int copyobj_typeadapter(typeadapter_t * typeimpl, /*out*/struct generic_o
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -69,7 +69,7 @@ static int freeobj_typeadapter(typeadapter_t * typeimpl, struct generic_object_t
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 

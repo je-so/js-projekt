@@ -6,7 +6,7 @@ C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 8 byt
 C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
 C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 12: Function aborted
 C-kern/math/float/decimal.c:1471: new_decimal(): error: 12: Function aborted
-C-kern/memory/mm/mmtest.c:727: mfree_mmtest(): error: 12: Function aborted
+C-kern/memory/mm/mmtest.c:728: mfree_mmtest(): error: 12: Function aborted
 C-kern/math/float/decimal.c:1492: delete_decimal(): error: 12: Freeing a resource returned an error
 C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 12 bytes of memory
 C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted

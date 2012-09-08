@@ -129,7 +129,7 @@ int invariant_splaytree( splaytree_t * tree, const splaytree_compare_nodes_t * c
    free(parents) ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    free(parents) ;
    return err ;
 }
@@ -141,7 +141,7 @@ int free_splaytree( splaytree_t * tree, const splaytree_free_t * free_callback )
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -322,7 +322,7 @@ int insert_splaytree( splaytree_t * tree, const void * new_key, splaytree_node_t
    tree->root = new_node ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -371,7 +371,7 @@ int remove_splaytree( splaytree_t * tree, const void * key, /*out*/splaytree_nod
    *removed_node = root ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -391,7 +391,7 @@ int updatekey_splaytree( splaytree_t * tree, const void * old_key, const void * 
 
    err = update_key->fct(update_key->cb_param, new_key, root) ;
    if (err) {
-      PRINTCALLERR_LOG("splaytree_update_key_t callback", err) ;
+      TRACECALLERR_LOG("splaytree_update_key_t callback", err) ;
       goto ONABORT ;    // update failed => nothing done => return
    }
 
@@ -437,7 +437,7 @@ int updatekey_splaytree( splaytree_t * tree, const void * old_key, const void * 
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -489,7 +489,7 @@ int freenodes_splaytree( splaytree_t * tree, const splaytree_free_t * removed_ca
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -509,7 +509,7 @@ int find_splaytree( splaytree_t * tree, const void * key, /*out*/splaytree_node_
    *found_node = tree->root ;
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

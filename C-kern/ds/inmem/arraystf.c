@@ -143,7 +143,7 @@ DONE:
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -246,7 +246,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
 
    return err ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -273,7 +273,7 @@ int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -352,7 +352,7 @@ int delete_arraystf(arraystf_t ** array, typeadapter_iot * typeadp)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -527,7 +527,7 @@ ONABORT:
    if (copied_node) {
       (void) execfree_typeadapteriot(typeadp, copied_node) ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -592,7 +592,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -605,7 +605,7 @@ int remove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size]
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -623,7 +623,7 @@ int insert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out*/s
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -653,7 +653,7 @@ int init_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array)
    return 0 ;
 ONABORT:
    MM_FREE(&objectmem) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -677,7 +677,7 @@ int free_arraystfiterator(arraystf_iterator_t * iter)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -749,7 +749,7 @@ ONABORT:
    // move iterator to end of container
    iter->ri = nrelemroot ;
    pop_binarystack(iter->stack, size_binarystack(iter->stack)) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return false ;
 }
 

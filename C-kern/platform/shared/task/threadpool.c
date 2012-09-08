@@ -82,7 +82,7 @@ int init_threadpool(/*out*/threadpool_t * pool, uint8_t nr_of_threads)
 ONABORT:
    pool->poolsize = 0 ;
    (void) free_waitlist(&pool->idle) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -116,7 +116,7 @@ int free_threadpool(threadpool_t * pool)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -133,7 +133,7 @@ int tryruntask_threadpool(threadpool_t * pool, int (*task_main)(void* start_arg)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

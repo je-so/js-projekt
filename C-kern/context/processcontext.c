@@ -75,7 +75,7 @@ int init_processcontext(processcontext_t * pcontext)
    return 0 ;
 ONABORT:
    (void) free_processcontext(pcontext) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -114,7 +114,7 @@ int free_processcontext(processcontext_t * pcontext)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 

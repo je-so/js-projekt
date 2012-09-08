@@ -49,7 +49,7 @@ int free_filedescr(filedescr_t * fd)
       err = close(del_fd) ;
       if (err) {
          err = errno ;
-         PRINTSYSERR_LOG("close", err) ;
+         TRACESYSERR_LOG("close", err) ;
          PRINTINT_LOG(del_fd) ;
       }
 
@@ -58,7 +58,7 @@ int free_filedescr(filedescr_t * fd)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -72,7 +72,7 @@ accessmode_e accessmode_filedescr(filedescr_t fd)
    flags = fcntl(fd, F_GETFL) ;
    if (-1 == flags) {
       err = errno ;
-      PRINTSYSERR_LOG("fcntl", err) ;
+      TRACESYSERR_LOG("fcntl", err) ;
       PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
@@ -84,7 +84,7 @@ accessmode_e accessmode_filedescr(filedescr_t fd)
 
    return (accessmode_e) (1 + (flags & O_ACCMODE)) ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return accessmode_NONE ;
 }
 
@@ -113,14 +113,14 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
    fd = open( "/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("open(/proc/self/fd)", err) ;
+      TRACESYSERR_LOG("open(/proc/self/fd)", err) ;
       goto ONABORT ;
    }
 
    procself = fdopendir(fd) ;
    if (!procself) {
       err = errno ;
-      PRINTSYSERR_LOG("fdopendir", err) ;
+      TRACESYSERR_LOG("fdopendir", err) ;
       goto ONABORT ;
    }
    fd = -1 ;
@@ -144,7 +144,7 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
    procself = 0 ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("closedir", err) ;
+      TRACESYSERR_LOG("closedir", err) ;
       goto ONABORT ;
    }
 
@@ -162,7 +162,7 @@ ONABORT:
    if (procself) {
       closedir(procself) ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -183,7 +183,7 @@ int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buffer[buf
          err = errno ;
          // non blocking io ?
          if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
-         PRINTSYSERR_LOG("read", err) ;
+         TRACESYSERR_LOG("read", err) ;
          PRINTINT_LOG(fd) ;
          PRINTSIZE_LOG(buffer_size) ;
          goto ONABORT ;
@@ -198,7 +198,7 @@ int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buffer[buf
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -217,7 +217,7 @@ int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer, siz
          err = errno ;
          // non blocking io ?
          if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
-         PRINTSYSERR_LOG("write", err) ;
+         TRACESYSERR_LOG("write", err) ;
          PRINTINT_LOG(fd) ;
          PRINTSIZE_LOG(buffer_size) ;
          goto ONABORT ;
@@ -232,7 +232,7 @@ int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer, siz
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

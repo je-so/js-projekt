@@ -83,7 +83,7 @@ int initthread_mmtransient(/*out*/mm_iot * mmtransient)
    return 0 ;
 ONABORT:
    free_mmtransient(&tempobject) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -112,7 +112,7 @@ int freethread_mmtransient(mm_iot * mmtransient)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -157,7 +157,7 @@ int mresize_mmtransient(mmtransient_t * mman, size_t newsize, struct memblock_t 
 
    if (  (ssize_t)newsize < 0
       || !(newaddr = realloc(memblock->addr, newsize))) {
-      PRINTOUTOFMEM_LOG(newsize) ;
+      TRACEOUTOFMEM_LOG(newsize) ;
       err = ENOMEM ;
       goto ONABORT ;
    }
@@ -167,7 +167,7 @@ int mresize_mmtransient(mmtransient_t * mman, size_t newsize, struct memblock_t 
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -188,7 +188,7 @@ int mfree_mmtransient(mmtransient_t * mman, struct memblock_t * memblock)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

@@ -143,7 +143,7 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
          void * newaddr = realloc(iocntr->eventcache.addr, cache_size) ;
          if (!newaddr) {
             err = ENOMEM ;
-            PRINTOUTOFMEM_LOG(cache_size) ;
+            TRACEOUTOFMEM_LOG(cache_size) ;
             goto ONABORT ;
          }
 
@@ -167,7 +167,7 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
       err = epoll_wait(iocntr->sys_poll, epev, (int)iocntr->nr_filedescr, timeout) ;
       if (-1 == err) {
          err = errno ;
-         PRINTSYSERR_LOG("epoll_wait", err) ;
+         TRACESYSERR_LOG("epoll_wait", err) ;
          PRINTSIZE_LOG(iocntr->nr_filedescr) ;
          PRINTINT_LOG(iocntr->sys_poll) ;
          goto ONABORT ;
@@ -178,7 +178,7 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -195,7 +195,7 @@ int init_iocontroler(/*out*/iocontroler_t * iocntr)
    efd = epoll_create1(EPOLL_CLOEXEC) ;
    if (-1 == efd) {
       err = errno ;
-      PRINTSYSERR_LOG("epoll_create1", err) ;
+      TRACESYSERR_LOG("epoll_create1", err) ;
       goto ONABORT ;
    }
 
@@ -212,7 +212,7 @@ int init_iocontroler(/*out*/iocontroler_t * iocntr)
    return 0 ;
 ONABORT:
    free_filedescr(&efd) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -248,7 +248,7 @@ int free_iocontroler(iocontroler_t * iocntr)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -271,7 +271,7 @@ int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t
    err = epoll_ctl(iocntr->sys_poll, EPOLL_CTL_ADD, fd, &epevent) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("epoll_ctl(EPOLL_CTL_ADD)", err) ;
+      TRACESYSERR_LOG("epoll_ctl(EPOLL_CTL_ADD)", err) ;
       PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
@@ -293,7 +293,7 @@ ONABORT:
          && !newiocb->next ) {
       insertfirst_iocblist(&iocntr->changed_list, newiocb) ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -319,14 +319,14 @@ int changemask_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t i
    err = epoll_ctl(iocntr->sys_poll, EPOLL_CTL_MOD, fd, &epevent) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("epoll_ctl(EPOLL_CTL_MOD)", err) ;
+      TRACESYSERR_LOG("epoll_ctl(EPOLL_CTL_MOD)", err) ;
       PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -345,7 +345,7 @@ int changeiocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, iocallbac
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -364,7 +364,7 @@ int unregisteriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd)
    err = epoll_ctl(iocntr->sys_poll, EPOLL_CTL_DEL, fd, &dummy) ;
    if (err) {
       err = errno ;
-      PRINTSYSERR_LOG("epoll_ctl(EPOLL_CTL_DEL)", err) ;
+      TRACESYSERR_LOG("epoll_ctl(EPOLL_CTL_DEL)", err) ;
       PRINTINT_LOG(fd) ;
       goto ONABORT ;
    }
@@ -379,7 +379,7 @@ int unregisteriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -416,7 +416,7 @@ int processevents_iocontroler(iocontroler_t * iocntr, uint16_t timeout_millisec,
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

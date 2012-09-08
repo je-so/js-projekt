@@ -232,7 +232,7 @@ ONABORT:
       delete_bigint(&newobj->quotient[1]) ;
    }
    MM_FREE(&objmem) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -265,7 +265,7 @@ int delete_decimalfrombigint(decimal_frombigint_t ** converter)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -425,7 +425,7 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -460,7 +460,7 @@ ONABORT:
       err = delete_decimal(&dec[--objectindex]) ;
       if (err) goto ONABORT ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -606,7 +606,7 @@ static int add_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -784,7 +784,7 @@ static int sub_decimalhelper(decimal_t *restrict* result, const decimal_t * ldec
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1046,7 +1046,7 @@ ONABORT:
       }
    }
    clear_decimal(*result) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1148,7 +1148,7 @@ static void submul_decimalhelper(decimal_divstate_t * state)
 
       } else if (state->nextdigit == DIGITSBASE-1) {  // no multiplication needed
          uint32_t lastdigit = 0 ;
-         carry = 1 ; // redefine carry: 0: "subtract 1", 1: "no carry", 2: "add 1"
+         carry = 1 ; // redefine carry: 1 means "no carry", 0 means "subtract 1", 2 means "add 1"
          for (int32_t diff; i != state->loffset; ++i, ++rdigits) {
             if (i == state->lsize) i = 0 ; // ringbuffer
             static_assert( (uint64_t)DIGITSBASE + DIGITSBASE < INT32_MAX, "diff is big enough" ) ;
@@ -1468,7 +1468,7 @@ int new_decimal(/*out*/decimal_t ** dec, uint32_t nrdigits)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1489,7 +1489,7 @@ int delete_decimal(decimal_t ** dec)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -1726,7 +1726,7 @@ int tocstring_decimal(const decimal_t * dec, struct cstring_t * cstr)
    return 0 ;
 ONABORT:
    clear_cstring(cstr) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1752,7 +1752,7 @@ int copy_decimal(decimal_t *restrict* dec, const decimal_t * restrict copyfrom)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1789,7 +1789,7 @@ int setfromint32_decimal(decimal_t *restrict* dec, int32_t value, int32_t decima
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1828,7 +1828,7 @@ int setfromint64_decimal(decimal_t *restrict* dec, int64_t value, int32_t decima
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2056,7 +2056,7 @@ ONABORT:
       delete_bigint(&big[i]) ;
    }
    clear_decimal(*dec) ; // result computed digit by digit
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2211,7 +2211,7 @@ int setfromchar_decimal(decimal_t *restrict* dec, const size_t nrchars, const ch
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2233,7 +2233,7 @@ int add_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2252,7 +2252,7 @@ int sub_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2302,7 +2302,7 @@ int mult_decimal(decimal_t *restrict* result, const decimal_t * ldec, const deci
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2374,7 +2374,7 @@ int div_decimal(decimal_t *restrict* result, const decimal_t * ldec, const decim
    return 0 ;
 ONABORT:
    delete_decimal(&intermediate) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -2414,7 +2414,7 @@ int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t 
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

@@ -54,7 +54,7 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
    fd = openat(openatfd, filepath, ((int)iomode - 1)|O_CLOEXEC ) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("openat", err) ;
+      TRACESYSERR_LOG("openat", err) ;
       PRINTCSTR_LOG(filepath) ;
       goto ONABORT ;
    }
@@ -63,7 +63,7 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -80,7 +80,7 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
    fd = openat(openatfd, filepath, O_WRONLY|O_APPEND|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("openat", err) ;
+      TRACESYSERR_LOG("openat", err) ;
       PRINTINT_LOG(openatfd) ;
       PRINTCSTR_LOG(filepath) ;
       goto ONABORT ;
@@ -90,7 +90,7 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -107,7 +107,7 @@ int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct d
    fd = openat(openatfd, filepath, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    if (-1 == fd) {
       err = errno ;
-      PRINTSYSERR_LOG("openat", err) ;
+      TRACESYSERR_LOG("openat", err) ;
       PRINTINT_LOG(openatfd) ;
       PRINTCSTR_LOG(filepath) ;
       goto ONABORT ;
@@ -117,7 +117,7 @@ int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct d
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -130,7 +130,7 @@ int free_file(file_t * fileobj)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 

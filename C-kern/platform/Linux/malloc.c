@@ -59,7 +59,7 @@ int prepare_malloc()
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -114,20 +114,20 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
 
    if (pipe2(pfd, O_CLOEXEC)) {
       err = errno ;
-      PRINTSYSERR_LOG("pipe2", err) ;
+      TRACESYSERR_LOG("pipe2", err) ;
       goto ONABORT ;
    }
 
    fd = dup(STDERR_FILENO) ;
    if (fd == -1) {
       err = errno ;
-      PRINTSYSERR_LOG("dup", err) ;
+      TRACESYSERR_LOG("dup", err) ;
       goto ONABORT ;
    }
 
    if (-1 == dup2(pfd[1], STDERR_FILENO)) {
       err = errno ;
-      PRINTSYSERR_LOG("dup2", err) ;
+      TRACESYSERR_LOG("dup2", err) ;
       goto ONABORT ;
    }
 
@@ -139,7 +139,7 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
    len = read(pfd[0], buffer, 128) ;
    if (len < 0) {
       err = errno ;
-      PRINTSYSERR_LOG("read", err) ;
+      TRACESYSERR_LOG("read", err) ;
       goto ONABORT ;
    }
 
@@ -147,7 +147,7 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
       len = read(pfd[0], &buffer[128], 128) ;
       if (len < 0) {
          err = errno ;
-         PRINTSYSERR_LOG("read", err) ;
+         TRACESYSERR_LOG("read", err) ;
          goto ONABORT ;
       }
       if (len < 128) {  // read end of input
@@ -178,7 +178,7 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
 
    if (-1 == dup2(fd, STDERR_FILENO)) {
       err = errno ;
-      PRINTSYSERR_LOG("dup2",err) ;
+      TRACESYSERR_LOG("dup2",err) ;
       goto ONABORT ;
    }
 
@@ -199,7 +199,7 @@ ONABORT:
       dup2(fd, STDERR_FILENO) ;
       free_filedescr(&fd) ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return 0 ;
 }
 

@@ -20,7 +20,7 @@ C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
 C-kern/math/int/bigint.c:124: allocate_bigint(): error: 12: Function aborted
 C-kern/math/int/bigint.c:685: multsplit_biginthelper(): error: 12: Function aborted
 C-kern/math/int/bigint.c:1853: mult_bigint(): error: 12: Function aborted
-C-kern/memory/mm/mmtest.c:727: mfree_mmtest(): error: 71: Function aborted
+C-kern/memory/mm/mmtest.c:728: mfree_mmtest(): error: 71: Function aborted
 C-kern/math/int/bigint.c:1184: delete_bigint(): error: 71: Freeing a resource returned an error
 C-kern/math/int/bigint.c:685: multsplit_biginthelper(): error: 71: Function aborted
 C-kern/math/int/bigint.c:685: multsplit_biginthelper(): error: 71: Function aborted

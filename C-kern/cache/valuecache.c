@@ -54,7 +54,7 @@ int initonce_valuecache(/*out*/valuecache_t ** valuecache)
    new_valuecache = malloc(sizeof(valuecache_t)) ;
    if (!new_valuecache) {
       err = ENOMEM ;
-      PRINTOUTOFMEM_LOG(sizeof(valuecache_t)) ;
+      TRACEOUTOFMEM_LOG(sizeof(valuecache_t)) ;
       goto ONABORT ;
    }
 
@@ -66,7 +66,7 @@ int initonce_valuecache(/*out*/valuecache_t ** valuecache)
    return 0 ;
 ONABORT:
    free(new_valuecache) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -87,7 +87,7 @@ int freeonce_valuecache(valuecache_t ** valuecache)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 

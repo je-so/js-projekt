@@ -70,7 +70,7 @@ int skip_convertwchar(convert_wchar_t * conv, size_t char_count)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -101,7 +101,7 @@ int peek_convertwchar(const convert_wchar_t * conv, size_t char_count, wchar_t *
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 

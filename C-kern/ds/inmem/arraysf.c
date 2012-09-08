@@ -149,7 +149,7 @@ int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -228,7 +228,7 @@ int delete_arraysf(arraysf_t ** array, struct typeadapter_iot * typeadp)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -384,7 +384,7 @@ ONABORT:
    if (copied_node) {
       (void) execfree_typeadapteriot(typeadp, copied_node) ;
    }
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -448,7 +448,7 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_objec
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -461,7 +461,7 @@ int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_object_t
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -479,7 +479,7 @@ int insert_arraysf(arraysf_t * array, struct generic_object_t * node, /*out*/str
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -509,7 +509,7 @@ int init_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array)
    return 0 ;
 ONABORT:
    MM_FREE(&objectmem) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -533,7 +533,7 @@ int free_arraysfiterator(arraysf_iterator_t * iter)
 
    return 0 ;
 ONABORT:
-   PRINTABORTFREE_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
@@ -605,7 +605,7 @@ ONABORT:
    // move iterator to end of container
    iter->ri = nrelemroot ;
    pop_binarystack(iter->stack, size_binarystack(iter->stack)) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return false ;
 }
 

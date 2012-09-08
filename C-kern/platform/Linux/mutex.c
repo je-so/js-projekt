@@ -66,7 +66,7 @@ ONABORT:
       pthread_mutexattr_destroy(&attr) ;
    }
    pthread_mutex_destroy(&sys_mutex) ;
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -79,7 +79,7 @@ int free_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -92,7 +92,7 @@ int lock_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -105,7 +105,7 @@ int unlock_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   PRINTABORT_LOG(err) ;
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
