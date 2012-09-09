@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Aug.26  09:24:56
+GenerationDate  := 2012.Sep.09  08:22:52
 GeneratedBy     := je-so
 
 ## Debug
@@ -104,6 +104,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
@@ -169,6 +170,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapter.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
@@ -297,6 +299,9 @@ $(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
@@ -486,6 +491,9 @@ $(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c

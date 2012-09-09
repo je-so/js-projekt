@@ -48,7 +48,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="string">
       <File Name="../../C-kern/api/string/string.h"/>
-      <File Name="../../C-kern/api/string/suffix_tree.h"/>
       <File Name="../../C-kern/api/string/cstring.h"/>
       <File Name="../../C-kern/api/string/convertwchar.h"/>
       <File Name="../../C-kern/api/string/utf8.h"/>
@@ -148,6 +147,7 @@
           <File Name="../../C-kern/api/ds/inmem/node/arraystf_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/slist_node.h"/>
         </VirtualDirectory>
+        <File Name="../../C-kern/api/ds/inmem/suffixtree.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/typeadapter.h"/>
@@ -272,7 +272,6 @@
     <File Name="../../C-kern/tools/hash.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="string">
-    <File Name="../../C-kern/string/suffix_tree.c"/>
     <File Name="../../C-kern/string/string.c"/>
     <File Name="../../C-kern/string/cstring.c"/>
     <File Name="../../C-kern/string/convertwchar.c"/>
@@ -376,6 +375,7 @@
       <File Name="../../C-kern/ds/inmem/arraysf.c"/>
       <File Name="../../C-kern/ds/inmem/binarystack.c"/>
       <File Name="../../C-kern/ds/inmem/arraystf.c"/>
+      <File Name="../../C-kern/ds/inmem/suffixtree.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <File Name="../../C-kern/ds/typeadapter.c"/>

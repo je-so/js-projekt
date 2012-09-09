@@ -1148,7 +1148,7 @@ static void submul_decimalhelper(decimal_divstate_t * state)
 
       } else if (state->nextdigit == DIGITSBASE-1) {  // no multiplication needed
          uint32_t lastdigit = 0 ;
-         carry = 1 ; // redefine carry: 1 means "no carry", 0 means "subtract 1", 2 means "add 1"
+         carry = 1 ; // redefine carry: 0: "subtract 1", 1: "no carry", 2: "add 1"
          for (int32_t diff; i != state->loffset; ++i, ++rdigits) {
             if (i == state->lsize) i = 0 ; // ringbuffer
             static_assert( (uint64_t)DIGITSBASE + DIGITSBASE < INT32_MAX, "diff is big enough" ) ;

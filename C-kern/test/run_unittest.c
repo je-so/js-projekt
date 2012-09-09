@@ -242,6 +242,7 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_arraystf) ;
       RUN(unittest_ds_inmem_binarystack) ;
       RUN(unittest_ds_inmem_slist) ;
+      RUN(unittest_ds_inmem_suffixtree) ;
 //}
 
 //{ math unittest
