@@ -1,8 +1,10 @@
-/*
-   C-System-Layer: C-kern/string/suffix_tree.c
-   Copyright (C) 2010 Jörg Seebohn
+/* title: Suffix-Tree impl
 
-   This program is free software; you can redistribute it and/or modify
+   Implements <Suffix-Tree>.
+
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
@@ -11,6 +13,15 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
+   Author:
+   (C) 2012 Jörg Seebohn
+
+   file: C-kern/api/string/suffix_tree.h
+    Header file of <Suffix Tree>.
+
+   file: C-kern/string/suffix_tree.c
+    Implementation file of <Suffix Tree>.
 */
 
 #include "C-kern/konfig.h"
@@ -18,10 +29,10 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/inmem/slist.h"
 #include "C-kern/api/ds/typeadapter.h"
-#include "C-kern/api/string/cstring.h"
-#include "C-kern/api/string/string.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/string/cstring.h"
+#include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
@@ -1433,7 +1444,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1093,1132,1221,1248,2048,2343,2456,2486,2898,3019,3092,3184,3298,3503,3630,3790,3877,4025,4099,4230,4308,4402,43490,43768,59325,59449,59562,59617} ;
+   size_t         compare_pos[] = {1281,1320,1409,1436,2236,2531,2644,2674,3086,3207,3280,3372,3486,3691,3818,3978,4065,4213,4287,4418,4496,4590,43678,43956,59513,59637,59750,59805} ;
    const uint8_t  * matched_pos[1+nrelementsof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

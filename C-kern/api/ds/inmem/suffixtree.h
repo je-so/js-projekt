@@ -1,4 +1,5 @@
-/* title: Suffix Tree
+/* title: Suffix-Tree
+
    A suffix tree is a tree which stores all suffixes of a given string.
    For "ABABC" all suffixes are: ABABC,BABC,ABC,BC,C and the empty string.
    This implementation considers the empty string as no suffix in contrast to
@@ -31,15 +32,13 @@
    (C) 2012 Jörg Seebohn
 
    file: C-kern/api/string/suffix_tree.h
-    Header file of <Suffix Tree>.
+    Header file of <Suffix-Tree>.
 
    file: C-kern/string/suffix_tree.c
-    Implementation file of <Suffix Tree>.
+    Implementation file of <Suffix-Tree impl>.
 */
 #ifndef CKERN_STRING_SUFFIX_TREE_HEADER
 #define CKERN_STRING_SUFFIX_TREE_HEADER
-
-#include "C-kern/api/aspect/callback.h"
 
 // forward
 struct cstring_t ;
