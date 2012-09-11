@@ -59,7 +59,7 @@ static mmtransient_it   s_mmtransient_interface = mm_it_INIT(
 
 // group: init
 
-int initthread_mmtransient(/*out*/mm_iot * mmtransient)
+int initthread_mmtransient(/*out*/mm_iot * mm_transient)
 {
    int err ;
    const size_t      objsize    = sizeof(mmtransient_t) ;
@@ -67,7 +67,7 @@ int initthread_mmtransient(/*out*/mm_iot * mmtransient)
    memblock_t        newobject  = memblock_INIT_FREEABLE ;
 
 
-   VALIDATE_INPARAM_TEST(0 == mmtransient->object, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 == mm_transient->object, ONABORT, ) ;
 
    err = init_mmtransient(&tempobject) ;
    if (err) goto ONABORT ;
@@ -77,8 +77,8 @@ int initthread_mmtransient(/*out*/mm_iot * mmtransient)
 
    memcpy(newobject.addr, &tempobject, objsize) ;
 
-   mmtransient->object = (struct mm_t*) newobject.addr;
-   mmtransient->iimpl  = (mm_it*) &s_mmtransient_interface ;
+   mm_transient->object = (struct mm_t*) newobject.addr;
+   mm_transient->iimpl  = (mm_it*) &s_mmtransient_interface ;
 
    return 0 ;
 ONABORT:
@@ -87,17 +87,17 @@ ONABORT:
    return err ;
 }
 
-int freethread_mmtransient(mm_iot * mmtransient)
+int freethread_mmtransient(mm_iot * mm_transient)
 {
    int err ;
    int err2 ;
-   mmtransient_t * delobject = (mmtransient_t*) mmtransient->object ;
+   mmtransient_t * delobject = (mmtransient_t*) mm_transient->object ;
 
    if (delobject) {
-      assert(&s_mmtransient_interface == (mmtransient_it*) mmtransient->iimpl) ;
+      assert(&s_mmtransient_interface == (mmtransient_it*) mm_transient->iimpl) ;
 
-      mmtransient->object = 0 ;
-      mmtransient->iimpl  = 0 ;
+      mm_transient->object = 0 ;
+      mm_transient->iimpl  = 0 ;
 
       mmtransient_t  tempobject = *delobject ;
       memblock_t     memobject  = memblock_INIT(sizeof(mmtransient_t), (uint8_t*)delobject) ;

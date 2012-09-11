@@ -19,7 +19,7 @@
    file: C-kern/api/platform/Linux/syscontext.h
     Header file <LinuxSystemContext>.
 
-   file: C-kern/api/context.h
+   file: C-kern/api/maincontext.h
     Included from header <MainContext>.
 */
 #ifndef CKERN_PLATFORM_LINUX_SYSCONTEXT_HEADER

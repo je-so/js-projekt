@@ -18,6 +18,7 @@ error=0  # error flag
 files=`find C-kern/ -name "*.c" -o -name "*.h"`
 # remove exceptions
 files=" "`echo $files | sed -e "s:C-kern/api/resource/[A-Za-z_0-9-]*\\.[ch]::"`
+files=${files/C-kern\/io\/writer\/logerrtext.c/}
 # return value of read_title()
 title=""
 

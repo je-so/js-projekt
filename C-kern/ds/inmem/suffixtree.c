@@ -17,11 +17,11 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/string/suffix_tree.h
-    Header file of <Suffix Tree>.
+   file: C-kern/api/ds/inmem/suffixtree.h
+    Header file of <Suffix-Tree>.
 
-   file: C-kern/string/suffix_tree.c
-    Implementation file of <Suffix Tree>.
+   file: C-kern/ds/inmem/suffixtree.c
+    Implementation file of <Suffix-Tree impl>.
 */
 
 #include "C-kern/konfig.h"
@@ -40,23 +40,23 @@
 #endif
 
 /* typedef: struct suffixtree_iterator_t
- * Shortcut for <suffixtree_iterator_t> - position in <suffixtree_t> used in iteration. */
+ * Shortcut for <suffixtree_iterator_t>. Holds position in <suffixtree_t> used in iteration. */
 typedef struct suffixtree_iterator_t      suffixtree_iterator_t ;
 
 /* typedef: struct suffixtree_addstate_t
- * Shortcut for <suffixtree_addstate_t> - state held for adding another string. */
+ * Shortcut for <suffixtree_addstate_t>. Holds state information used in the operation which adds the next character of the input string. */
 typedef struct suffixtree_addstate_t      suffixtree_addstate_t ;
 
 /* typedef: struct suffixtree_leaf_t
- * Shortcut for <suffixtree_leaf_t> - node of <suffixtree_t> without any children and no suffix link. */
+ * Shortcut for <suffixtree_leaf_t>. Holds node of <suffixtree_t> without any children and no suffix link. */
 typedef struct suffixtree_leaf_t          suffixtree_leaf_t ;
 
 /* typedef: struct suffixtree_node_t
- * Shortcut for <suffixtree_node_t> - node of <suffixtree_t> with children and a suffix link. */
+ * Shortcut for <suffixtree_node_t>. Holds node of <suffixtree_t> with children and a suffix link. */
 typedef struct suffixtree_node_t          suffixtree_node_t ;
 
 /* typedef: struct suffixtree_pos_t
- * Shortcut for <suffixtree_pos_t> - stores position in suffix tree. */
+ * Shortcut for <suffixtree_pos_t>. Stores position in suffix tree. */
 typedef struct suffixtree_pos_t           suffixtree_pos_t ;
 
 
@@ -80,6 +80,8 @@ struct suffixtree_iterator_t {
 
 // group: lifetime
 
+/* function: new_suffixtreeiterator
+ * Allocates a new <suffixtree_iterator_t> object. */
 static inline int new_suffixtreeiterator(/*out*/suffixtree_iterator_t ** iter)
 {
    int err ;
@@ -92,6 +94,8 @@ static inline int new_suffixtreeiterator(/*out*/suffixtree_iterator_t ** iter)
    return 0 ;
 }
 
+/* function: delete_suffixtreeiterator
+ * Frees all memory allocated for <suffixtree_iterator_t> object. */
 static int delete_suffixtreeiterator(suffixtree_iterator_t ** iter)
 {
    int err = 0 ;
@@ -113,8 +117,8 @@ static int delete_suffixtreeiterator(suffixtree_iterator_t ** iter)
 typeadapter_it_DECLARE(suffixtreeiterator_adapter_it, void, suffixtree_iterator_t)
 
 /* function: freenode_suffixtreeiteratoradapter
- * Adapter function of <suffixtreeiterator_adapter_it>.
- * Frees memory of object type <suffixtree_iterator_t>. */
+ * Frees memory of object type <suffixtree_iterator_t>.
+ * Used to adapt <suffixtreeiterator_list_t> to object type <suffixtree_iterator_t>. */
 static int freenode_suffixtreeiteratoradapter(void * dummy, suffixtree_iterator_t * iter)
 {
    (void) dummy ;
@@ -179,6 +183,8 @@ struct suffixtree_leaf_t {
 
 // group: lifetime
 
+/* function: new_suffixtreeleaf
+ * Allocates new leaf of suffix tree. */
 static inline int new_suffixtreeleaf(/*out*/suffixtree_leaf_t ** leaf)
 {
    int err ;
@@ -191,6 +197,8 @@ static inline int new_suffixtreeleaf(/*out*/suffixtree_leaf_t ** leaf)
    return 0 ;
 }
 
+/* function: delete_suffixtreeleaf
+ * Frees resources associated with <suffixtree_leaf_t>. */
 static int delete_suffixtreeleaf(suffixtree_leaf_t ** leaf)
 {
    int err = 0 ;
@@ -258,7 +266,7 @@ struct suffixtree_node_t {
     * Inherit all data fields from <suffixtree_leaf_t>. */
    suffixtree_leaf_EMBED() ;
    /* variable: childs
-    * List fo all children. */
+    * List of all children. */
    suffixtree_node_t * childs ;
    /* variable: suffix_link
     * Points to node which matches same string with this node except without the first character.
@@ -504,8 +512,8 @@ struct suffixtree_addstate_t {
  * >     cxccxccc₀ xccxccc₁   │      cxccxccc₀ xccxccc₁  │ ╭──c───╮╭─>xcc───╮ xccc₂ c₅
  * >     --^                  │       --^                │ ↓--^╭──↓╯  ↓     ↓
  * >                          │                          │ xcc─╯─╮c₆  xccc₁ c₄
- * >                          |                          | ↓     ↓
- * >                          |                          | xccc₀ c₃
+ * >                          │                          │ ↓     ↓
+ * >                          │                          │ xccc₀ c₃
  *
  * Steps 7 and 8 only move the position in the tree. Step 9 is more interesting.
  * It is shown in the next diagrams splitted into 5 substeps.
@@ -569,6 +577,8 @@ struct suffixtree_addstate_t {
 
 // group: helper
 
+/* function: compiletime_tests
+ * Tests that <suffixtree_node_t> inherits from <suffixtree_leaf_t>. */
 static inline void compiletime_tests(void)
 {
    struct dummy_leaf_t {
@@ -668,8 +678,8 @@ ONABORT:
  * Therfore suffix pointers to node are valid furthermore.
  *
  * (unchecked) Preconditions:
- * 1. pos->matched_len >= 1
- * 2. STR_LEN(pos->node) > pos->matched_len
+ * 1. - pos->matched_len >= 1
+ * 2. - STR_LEN(pos->node) > pos->matched_len
  *
  * The preconditions ensure that after the split both nodes match a string of length >= 1.
  * */

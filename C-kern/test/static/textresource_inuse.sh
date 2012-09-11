@@ -13,34 +13,36 @@ function check_textresource_inuse()
    # parameter
    textresource_filename="$1"
    used_resources_file=`mktemp`
-   textids=( `grep "^[a-zA-Z0-9_]*:de:" $textresource_filename | sed -e "s/\(.*\):de:.*/\1/"` )
-   searchstr="\\("
-   for textid in "${textids[@]}"; do
-      searchstr="${searchstr}${textid}\\|"
-   done
-   searchstr="${searchstr%\\|}\\)"
+   textids_file=`mktemp`
+   grep "^[a-zA-Z0-9_]*(" $textresource_filename > /dev/null || exit 1
+   grep "^[a-zA-Z0-9_]*(" $textresource_filename | sed -e "s/\(.*\)(.*/\1/" | sort > $textids_file
+   textids=( `< $textids_file` )
    IFS_old=$IFS
    IFS=$'\n'
-   files=( `find "C-kern/" -name "*.[ch]" -exec grep -l "$searchstr" {} \;` )
+   files=( `find "C-kern/" -name "*.[ch]" -exec grep -lf $textids_file {} \;` )
    IFS=$IFS_old
    for i in "${files[@]}"; do
-      if [ "$i" = "C-kern/api/resource/errorlog.h" ]; then
+      if [ "$i" = "C-kern/api/resource/logerrtext.h" ]\
+         || [ "$i" = "C-kern/io/writer/logerrtext.c" ]; then
          continue ;
       fi
-      grep -o "$searchstr" $i >> $used_resources_file
+      grep -o -f $textids_file $i >> $used_resources_file
    done
    used_resources_file2=`mktemp`
    sort $used_resources_file > $used_resources_file2
    uniq $used_resources_file2 $used_resources_file
-   for textid in "${textids[@]}"; do
-      if [ "`grep ${textid} $used_resources_file`" = "" ]; then
-         info="$info  $textid\n"
-      fi
-   done
+   if ! diff $used_resources_file $textids_file > /dev/null; then
+      for textid in "${textids[@]}"; do
+         if [ "`grep ${textid} $used_resources_file`" = "" ]; then
+            info="$info  $textid\n"
+         fi
+      done
+   fi
    rm $used_resources_file
+   rm $textids_file
 }
 
-check_textresource_inuse "C-kern/resource/errorlog.text"
+check_textresource_inuse "C-kern/resource/logerror2.text"
 
 if [ "$info" = "" ]; then
    exit 0

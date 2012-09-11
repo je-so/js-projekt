@@ -794,10 +794,10 @@ ONABORT:
  * This allows for splitting the nummbers without allocating a new <decimal_t>.
  *
  * (unchecked) Preconditions:
- * 1. result must be allocated with size == (lsize + rsize)
- * 2. (lsize > 0 && rsize > 0)
- * 3. lsize <= rsize
- * 4. ldigits[lsize-1] != 0 && rdigits[rsize-1] != 0
+ * 1. - result must be allocated with size == (lsize + rsize)
+ * 2. - (lsize > 0 && rsize > 0)
+ * 3. - lsize <= rsize
+ * 4. - ldigits[lsize-1] != 0 && rdigits[rsize-1] != 0
  * */
 static void mult_decimalhelper(decimal_t * dec, uint8_t lsize, const uint32_t * ldigits, uint8_t rsize, const uint32_t * rdigits, int16_t exponent)
 {
@@ -848,10 +848,10 @@ static void mult_decimalhelper(decimal_t * dec, uint8_t lsize, const uint32_t * 
  * Implements adding of two positive decimal numbers.
  *
  * (unchecked) Preconditions:
- * 1. result must be allocated with size >= (lsize + rsize)
- * 2. (lsize > 0 && rsize > 0)
- * 3. ldigits[lsize-1] != 0 && rdigits[rsize-1] != 0
- * 4. Either ldigits[0] != 0 || rdigits[0] != 0 => result->baseexponent == 0 !
+ * 1. - result must be allocated with size >= (lsize + rsize)
+ * 2. - (lsize > 0 && rsize > 0)
+ * 3. - ldigits[lsize-1] != 0 && rdigits[rsize-1] != 0
+ * 4. - Either ldigits[0] != 0 || rdigits[0] != 0 => result->baseexponent == 0 !
  * */
 static void addsplit_decimalhelper(decimal_t * restrict result, uint8_t digitsoffset, uint8_t lsize, const uint32_t * ldigits, uint8_t rsize, const uint32_t * rdigits)
 {
@@ -918,9 +918,9 @@ static void addsplit_decimalhelper(decimal_t * restrict result, uint8_t digitsof
  * The multiplication is done with splitting of numbers to save one multiplication.
  *
  * (unchecked) Preconditions:
- * 1. result must be allocated with size == (lsize + rsize)
- * 2. After skipping of trailing zeros: (lsize > 0 && rsize > 0)
- * 3. (ldigits[lsize-1] != 0 && rdigits[rsize-1] != 0)
+ * 1. - result must be allocated with size == (lsize + rsize)
+ * 2. - After skipping of trailing zeros: (lsize > 0 && rsize > 0)
+ * 3. - (ldigits[lsize-1] != 0 && rdigits[rsize-1] != 0)
  * */
 static int multsplit_decimalhelper(decimal_t * restrict * result, uint8_t lsize, const uint32_t * ldigits, uint8_t rsize, const uint32_t * rdigits)
 {
@@ -963,7 +963,8 @@ static int multsplit_decimalhelper(decimal_t * restrict * result, uint8_t lsize,
    rsplit = split ;
    while (0 == rdigits[rsplit-1]) --rsplit ; // rdigits[0] != 0 => loop ends !
 
-   /* Define: X = pow(DIGITSBASE, split)
+   /* (start code)
+    * Define: X = pow(DIGITSBASE, split)
     *         Multiplying by X means to increment the exponent with X !
     *
     * Divide: ldec:(lsize,ldigits) -> lh:(lsize-split, &ldigits[split]) * X + ll:(split, ldigits)
@@ -980,6 +981,7 @@ static int multsplit_decimalhelper(decimal_t * restrict * result, uint8_t lsize,
     *       with lsplit <= split, rsplit <= split
     *       lsplit and rsplit must decremented until
     *       (ldigits[lsplit-1] != 0) && (rdigits[rsplit-1] != 0)
+    * (end code)
     */
 
    // calculate size of t0..t4
@@ -1059,9 +1061,9 @@ ONABORT:
  * 2. dividend  contains result of (dividend * DIGITSBASE + nextdigit) % dividend
  *
  * (unchecked) Preconditions:
- * 1. divisor < DIGITSBASE*DIGITSBASE && dividend < DIGITSBASE*DIGITSBASE && nextdigit < DIGITSBASE
- * 2. divisor > dividend
- * 3. divisor < (dividend * DIGITSBASE + nextdigit)
+ * 1. - divisor < DIGITSBASE*DIGITSBASE && dividend < DIGITSBASE*DIGITSBASE && nextdigit < DIGITSBASE
+ * 2. - divisor > dividend
+ * 3. - divisor < (dividend * DIGITSBASE + nextdigit)
  * */
 static void div3by2digits_decimalhelper(decimal_divstate_t * state)
 {
@@ -1104,9 +1106,9 @@ static void div3by2digits_decimalhelper(decimal_divstate_t * state)
  * No multiplication is done.
  *
  * (unchecked) Precondition:
- * 1. nextdigit > 0 && nextdigit < DIGITSBASE
- * 2. ldigits[loffset] == 0 && ldigits[loffset+1] == 0
- * 3. dividend contains the result of ldigits["top digits"]-=nextdigit*rdigits["top digits"]
+ * 1. - nextdigit > 0 && nextdigit < DIGITSBASE
+ * 2. - ldigits[loffset] == 0 && ldigits[loffset+1] == 0
+ * 3. - dividend contains the result of ldigits["top digits"]-=nextdigit*rdigits["top digits"]
  * */
 static void submul_decimalhelper(decimal_divstate_t * state)
 {
@@ -1219,10 +1221,10 @@ static void submul_decimalhelper(decimal_divstate_t * state)
  * The content of ldigits is destroyed.
  *
  * (unchecked) Preconditions:
- * 1. result must be allocated with result_size && result_size > 0
- * 2. lsize >= rsize && rsize >= 2
- * 3. lsize[lsize-1] != 0 && rsize[rsize-1] != 0
- * 4. exponent must be in range of int16_t
+ * 1. - result must be allocated with result_size && result_size > 0
+ * 2. - lsize >= rsize && rsize >= 2
+ * 3. - lsize[lsize-1] != 0 && rsize[rsize-1] != 0
+ * 4. - exponent must be in range of int16_t
  * */
 static int div_decimalhelper(decimal_t *restrict result, bool isNegSign, int32_t exponent, const uint8_t lsize, uint32_t * const ldigits, const uint8_t rsize, const uint32_t * const rdigits, const uint8_t result_size)
 {
@@ -1313,10 +1315,10 @@ static int div_decimalhelper(decimal_t *restrict result, bool isNegSign, int32_t
  * The division is done as you have learned in school.
  *
  * (unchecked) Preconditions:
- * 1. result must be allocated with result_size && result_size > 0
- * 2. lsize > 0 && ldigits[lsize-1] != 0
- * 3. divisor < DIGITSBASE
- * 4. exponent must be in range of int16_t
+ * 1. - result must be allocated with result_size && result_size > 0
+ * 2. - lsize > 0 && ldigits[lsize-1] != 0
+ * 3. - divisor < DIGITSBASE
+ * 4. - exponent must be in range of int16_t
  * */
 static int divi32_decimalhelper(decimal_t *restrict result, bool isNegSign, int32_t exponent, uint8_t lsize, const uint32_t * ldigits, uint32_t divisor, const uint32_t result_size)
 {

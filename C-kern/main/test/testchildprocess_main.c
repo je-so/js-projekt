@@ -17,7 +17,7 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/main/testchildprocess_main.c
+   file: C-kern/main/test/testchildprocess_main.c
     Implementation file of <Testchildprocess>.
 */
 

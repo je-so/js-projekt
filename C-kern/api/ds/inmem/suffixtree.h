@@ -6,10 +6,11 @@
    the standard definition.
 
    Time in O(n):
-   To store all suffixes in an explicit way is only useful if you want to know
-   if a certain substring of length s is contained in a text in time O(s).
    The construction of a suffix tree runs in time O(n) for
    a given input string of length n.
+
+   If you want to know if a certain substring of length s
+   is contained in a suffix tree you can do so in time O(s).
 
    Reference:
    The algorithm for constructing a suffix tree is from E. Ukkonen (1995).
@@ -31,10 +32,10 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/string/suffix_tree.h
+   file: C-kern/api/ds/inmem/suffixtree.h
     Header file of <Suffix-Tree>.
 
-   file: C-kern/string/suffix_tree.c
+   file: C-kern/ds/inmem/suffixtree.c
     Implementation file of <Suffix-Tree impl>.
 */
 #ifndef CKERN_STRING_SUFFIX_TREE_HEADER
@@ -45,7 +46,7 @@ struct cstring_t ;
 struct suffixtree_node_t ;
 
 /* typedef: struct suffixtree_t
- * Exports <suffixtree_t > - implementation of a suffix tree. */
+ * Exports <suffixtree_t>. Implementation of a suffix tree. */
 typedef struct suffixtree_t            suffixtree_t ;
 
 

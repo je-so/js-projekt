@@ -98,6 +98,7 @@ Group: Api  {
          File: ArraySTF  (api/ds/inmem/arraystf.h)
          File: BinaryStack  (api/ds/inmem/binarystack.h)
          File: SingleLinkedList  (api/ds/inmem/slist.h)
+         File: Suffix-Tree  (api/ds/inmem/suffixtree.h)
          }  # Group: InMemory
 
       File: DataStructure-TypeAdapter  (api/ds/typeadapter.h)
@@ -161,6 +162,7 @@ Group: Api  {
          File: Intop-Log2  (api/math/int/log2.h)
          File: Intop-Power2  (api/math/int/power2.h)
          File: Intop-Sign  (api/math/int/sign.h)
+         File: Intop-SquareRoot  (api/math/int/sqroot.h)
          }  # Group: Int
 
       }  # Group: Math
@@ -225,7 +227,6 @@ Group: Api  {
       File: CString  (api/string/cstring.h)
       File: FormatString  (api/string/format_string.h)
       File: String  (api/string/string.h)
-      File: Suffix Tree  (api/string/suffix_tree.h)
       File: Unicode  (api/string/unicode.h)
       File: URLEncodeString  (api/string/urlencode_string.h)
       File: UTF-8  (api/string/utf8.h)
@@ -278,6 +279,7 @@ Group: Implementation  {
          File: ArraySTF impl  (ds/inmem/arraystf.c)
          File: BinaryStack impl  (ds/inmem/binarystack.c)
          File: SingleLinkedList impl  (ds/inmem/slist.c)
+         File: Suffix-Tree impl  (ds/inmem/suffixtree.c)
          }  # Group: InMemory
 
       File: DataStructure-TypeAdapter impl  (ds/typeadapter.c)
@@ -310,6 +312,7 @@ Group: Implementation  {
       File: Testchildprocess  (main/test/testchildprocess_main.c)
       File: TextDB  (main/tools/textdb.c)
       File: TextResource-v2-Compiler  (main/tools/textresourcev2_compiler.c)
+      File: Unittest-Main  (main/test/unittest_main.c)
       }  # Group: Main
 
    Group: Math  {
@@ -333,6 +336,7 @@ Group: Implementation  {
          File: Intop-Abs impl  (math/int/abs.c)
          File: Intop-Log10 impl  (math/int/log10.c)
          File: Intop-Sign impl  (math/int/sign.c)
+         File: Intop-SquareRoot impl  (math/int/sqroot.c)
          }  # Group: Int
 
       }  # Group: Math
@@ -352,7 +356,6 @@ Group: Implementation  {
       File: CString impl  (string/cstring.c)
       File: FormatString impl  (string/format_string.c)
       File: String impl  (string/string.c)
-      File: test  (string/suffix_tree.c)
       File: URLEncodeString impl  (string/urlencode_string.c)
       File: UTF-8 impl  (string/utf8.c)
       }  # Group: String

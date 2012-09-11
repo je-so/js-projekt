@@ -95,9 +95,6 @@ for i in $files; do
          info="$info  file: <${i}> wrong definition '$result'\n"
          continue ;
       fi
-      if [ "${result#int initthread_*(/\*out\*/*, threadcontext_t \* tcontext) ;}" = "" ]; then
-         continue
-      fi
       if    [ "${result/,/}" != "$result" ] \
          || [ "${result#int initthread_*(*/\*out\*/*) ;}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
@@ -163,12 +160,9 @@ for i in $files; do
          parameter=""
       else
          # [string] means string is optional
-         # initthread_NAME(type *[*] xxx[, threadcontext_t * tcontext])
+         # initthread_NAME(type *[*] xxx)
          parameter="${parameter#*\*}"
          parameter="${parameter#\*}"
-         if [ "${parameter%,*}" != "$parameter" ]; then
-            parameter="${parameter%,*}"
-         fi
       fi
       parameter="${parameter# }"
       parameter="${parameter% }"

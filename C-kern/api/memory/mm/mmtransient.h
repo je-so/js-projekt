@@ -55,12 +55,12 @@ struct mmtransient_t {
 /* function: initthread_mmtransient
  * Calls <init_mmtransient> and wraps object into interface object <mm_iot>.
  * This function is called from <init_threadcontext>. */
-int initthread_mmtransient(/*out*/mm_iot * mmtransient) ;
+int initthread_mmtransient(/*out*/mm_iot * mm_transient) ;
 
 /* function: freethread_mmtransient
  * Calls <free_mmtransient> with object pointer from <mm_iot>.
  * This function is called from <free_threadcontext>. */
-int freethread_mmtransient(mm_iot * mmtransient) ;
+int freethread_mmtransient(mm_iot * mm_transient) ;
 
 // group: lifetime
 
