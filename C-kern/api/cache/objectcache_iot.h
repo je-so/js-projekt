@@ -31,7 +31,7 @@ struct objectcache_t ;
 struct objectcache_it ;
 
 /* typedef: struct objectcache_iot
- * Export <objectcache_iot> -- <objectcache_it> implementing object. */
+ * Export <objectcache_iot>. <objectcache_it> implementing object. */
 typedef struct objectcache_iot         objectcache_iot ;
 
 

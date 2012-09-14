@@ -25,15 +25,15 @@
 #define CKERN_DS_ARRAYSF_NODE_HEADER
 
 /* typedef: struct arraysf_node_t
- * Export <arraysf_node_t> - user supplied (external) type. */
+ * Export <arraysf_node_t>. User supplied (external) type. */
 typedef struct arraysf_node_t          arraysf_node_t ;
 
 /* typedef: struct arraysf_mwaybranch_t
- * Export <arraysf_mwaybranch_t> - internal node type. */
+ * Export <arraysf_mwaybranch_t>. Internal node type. */
 typedef struct arraysf_mwaybranch_t    arraysf_mwaybranch_t ;
 
 /* typedef: struct arraysf_unode_t
- * Export <arraysf_unode_t> - either internal or external type. */
+ * Export <arraysf_unode_t>. Either internal or external type. */
 typedef union arraysf_unode_t          arraysf_unode_t ;
 
 

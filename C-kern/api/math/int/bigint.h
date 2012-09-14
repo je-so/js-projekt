@@ -27,11 +27,11 @@
 #define CKERN_MATH_INT_BIGINT_HEADER
 
 /* typedef: struct bigint_t
- * Export <bigint_t> - arbitrary precision integer. */
+ * Export <bigint_t>. Arbitrary precision integer. */
 typedef struct bigint_t                bigint_t ;
 
 /* typedef: struct bigint_fixed_t
- * Export <bigint_fixed_t> - fixed precision integer. */
+ * Export <bigint_fixed_t>. Fixed precision integer. */
 typedef struct bigint_fixed_t          bigint_fixed_t ;
 
 

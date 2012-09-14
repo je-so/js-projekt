@@ -27,7 +27,7 @@
 #define CKERN_IO_WRITER_LOG_LOG_IOT_HEADER
 
 /* typedef: struct log_iot
- * Export <log_iot> - log service implementing object. */
+ * Export <log_iot>. Log service implementing object. */
 typedef struct log_iot                 log_iot ;
 
 

@@ -23,7 +23,7 @@
 #define CKERN_IO_IOCALLBACK_IOT_HEADER
 
 /* typedef: struct iocallback_iot
- * Export <iocallback_iot> - callback interface implementing object. */
+ * Export <iocallback_iot>. Callback interface implementing object. */
 typedef struct iocallback_iot          iocallback_iot ;
 
 /* typedef: iocallback_f

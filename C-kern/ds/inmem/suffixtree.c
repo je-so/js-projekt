@@ -1454,7 +1454,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1281,1320,1409,1436,2236,2531,2644,2674,3086,3207,3280,3372,3486,3691,3818,3978,4065,4213,4287,4418,4496,4590,43678,43956,59513,59637,59750,59805} ;
+   size_t         compare_pos[] = {1288,1327,1421,1448,2315,2610,2723,2753,3173,3255,3376,3449,3578,3649,3763,3968,4095,4199,4284,4371,4519,4593,4724,4802,4896,44266,44544,60101,60225,60338,60393} ;
    const uint8_t  * matched_pos[1+nrelementsof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

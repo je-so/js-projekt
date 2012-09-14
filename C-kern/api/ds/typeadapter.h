@@ -39,15 +39,15 @@
 struct generic_object_t ;
 
 /* typedef: struct typeadapter_t
- * Exports <typeadapter_t> - default implementation. */
+ * Export struct <typeadapter_t>. Default implementation. */
 typedef struct typeadapter_t           typeadapter_t ;
 
 /* typedef: struct typeadapter_it
- * Export <typeadapter_it> - typeadapter interface. */
+ * Export struct <typeadapter_it> into global namespace. Typeadapter interface. */
 typedef struct typeadapter_it          typeadapter_it ;
 
 /* typedef: struct typeadapter_iot
- * Export <typeadapter_iot> - object and interface implementation. */
+ * Export <typeadapter_iot>. Typeadapter implementing object. */
 typedef struct typeadapter_iot         typeadapter_iot ;
 
 /* variable: g_typeadapter_iimpl

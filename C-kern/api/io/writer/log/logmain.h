@@ -29,7 +29,7 @@
 struct log_it ;
 
 /* typedef: struct logmain_t
- * Export <logmain_t> - the main logging service which works after main is entered. */
+ * Export <logmain_t>. Main logging service which works after main is entered. */
 typedef struct logmain_t               logmain_t ;
 
 /* variable: g_logmain

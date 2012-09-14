@@ -29,15 +29,15 @@
 struct conststring_t ;
 
 /* typedef: struct arraystf_node_t
- * Export <arraystf_node_t> - user supplied (external) type. */
+ * Export <arraystf_node_t>. User supplied (external) type. */
 typedef struct arraystf_node_t         arraystf_node_t ;
 
 /* typedef: struct arraystf_mwaybranch_t
- * Exports <arraystf_mwaybranch_t> - internal node type. */
+ * Exports <arraystf_mwaybranch_t>i. Internal node type. */
 typedef struct arraystf_mwaybranch_t   arraystf_mwaybranch_t ;
 
 /* typedef: struct arraystf_unode_t
- * Export <arraystf_unode_t> - either internal or external type. */
+ * Export <arraystf_unode_t>. Either internal or external type. */
 typedef union arraystf_unode_t         arraystf_unode_t ;
 
 

@@ -31,7 +31,7 @@ struct mm_t ;
 struct mm_it ;
 
 /* typedef: struct mm_iot
- * Export <mm_iot> -- memory manager interface implementing object. */
+ * Export <mm_iot>. Memory manager implementing object. */
 typedef struct mm_iot                  mm_iot ;
 
 
