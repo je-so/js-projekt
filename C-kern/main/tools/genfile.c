@@ -122,7 +122,7 @@ static int test_initfree(void)\n\
 ONABORT:\n\
    return EINVAL ;\n\
 }\n\n\
-int unittest_ds_typeadapt_keycomparator()\n\
+int @UNITTESTNAME()\n\
 {\n\
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;\n\n\
    TEST(0 == switchon_mmtest()) ;\n\
