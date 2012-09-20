@@ -74,7 +74,7 @@ uint64_t abs_int64(int64_t i) ;
             static_assert( ((typeof(i))-1) < 0, ) ;               \
             static_assert( sizeof(i) <= sizeof(int32_t), ) ;      \
             int32_t _i = (i) ;                                    \
-            (uint32_t) ((_i < 0) ? -_i : _i) ;                    \
+            (uint32_t)((_i < 0) ? -(uint32_t)_i : (uint32_t)_i) ; \
          }))
 
 /* define: abs_int64
@@ -85,7 +85,7 @@ uint64_t abs_int64(int64_t i) ;
             static_assert( ((typeof(i))-1) < 0, ) ;               \
             static_assert( sizeof(i) <= sizeof(int64_t), ) ;      \
             int64_t _i = (i) ;                                    \
-            (uint64_t) ((_i < 0) ? -_i : _i) ;                    \
+            (uint64_t)((_i < 0) ? -(uint64_t)_i : (uint64_t)_i) ; \
          }))
 
 #endif
