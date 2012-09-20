@@ -22,7 +22,6 @@ int FUNCTION_WRONG_RETURNVALUE_ERRLOG(log_channel_e channel, const char * funcna
 int LOCALE_SETLOCALE_ERRLOG(log_channel_e channel) ;
 int LOG_ENTRY_TRUNCATED_ERRLOG(log_channel_e channel, int before_size, int after_size) ;
 int MEMORY_OUT_OF_ERRLOG(log_channel_e channel, size_t size) ;
-int PARAMETER_INT_TOO_BIG_ERRLOG(log_channel_e channel, const char * parameter_name, int parameter_max) ;
 int RESOURCE_USAGE_DIFFERENT_ERRLOG(log_channel_e channel) ;
 int TEST_INPARAM_FALSE_ERRLOG(log_channel_e channel, int err, const char * violated_condition) ;
 int TEST_INVARIANT_FALSE_ERRLOG(log_channel_e channel, int err, const char * violated_condition) ;

@@ -6,6 +6,7 @@
 PROJECTS= pp-textdb   \
           pp-textres2 \
           genmake_    \
+          genfile_    \
           testchildprocess_ \
           textres2compiler_ \
           textdb_           \

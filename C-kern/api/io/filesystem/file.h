@@ -45,7 +45,7 @@ typedef sys_filedescr_t                file_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_file
  * Unittest for file interface. */
-extern int unittest_io_file(void) ;
+int unittest_io_file(void) ;
 #endif
 
 
@@ -62,14 +62,14 @@ extern int unittest_io_file(void) ;
  * The filepath can be either a relative or an absolute path.
  * If filepath is relative it is considered relative to the directory relative_to.
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
-extern int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: initappend_file
  * Opens or creates a file to append only.
  * See <init_file> for a description of parameters *filepath* and *relative_to*.
  * The file can be only be written to. Every written content is appended to end of the file
  * even if more than one process is writing to the same file. */
-extern int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: initcreat_file
  * Creates a file identified by its path and name.
@@ -77,34 +77,34 @@ extern int initappend_file(/*out*/file_t * fileobj, const char* filepath, const 
  * The filepath can be either a relative or an absolute path.
  * If filepath is relative it is considered relative to the directory relative_to.
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
-extern int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: free_file
  * Closes an opened file and frees held resources. */
-extern int free_file(file_t * fileobj) ;
+int free_file(file_t * fileobj) ;
 
 // group: query
 
 /* function: convertfd_file
  * Returns the filedescriptor of an open file.
  * Returns filedescr_INIT_FREEABLE in case file is closed. */
-extern sys_filedescr_t fd_file(const file_t * fileobj) ;
+sys_filedescr_t fd_file(const file_t * fileobj) ;
 
 /* function: isinit_file
  * Returns true if the file was opened with <init_file>.
  * Returns false if file is in a freed (closed) state and after <free_file>
  * has been called. */
-extern bool isinit_file(const file_t * fileobj) ;
+bool isinit_file(const file_t * fileobj) ;
 
 // group: io
 
 /* function: read_file
  * Reads binary data from a file. */
-extern int read_file(file_t * fileobj, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read) ;
+int read_file(file_t * fileobj, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read) ;
 
 /* function: write_file
  * Writes binary data to a file. */
-extern int write_file(file_t * fileobj, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written) ;
+int write_file(file_t * fileobj, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written) ;
 
 
 // section: inline implementation

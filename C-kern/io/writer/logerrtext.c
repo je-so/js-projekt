@@ -96,12 +96,6 @@ int MEMORY_OUT_OF_ERRLOG(log_channel_e channel, size_t size)
    return 0;
 }
 
-int PARAMETER_INT_TOO_BIG_ERRLOG(log_channel_e channel, const char * parameter_name, int parameter_max)
-{
-   PRINTF("Parameter '%s' > %d\n", parameter_name, parameter_max) ;
-   return 0;
-}
-
 int RESOURCE_USAGE_DIFFERENT_ERRLOG(log_channel_e channel)
 {
    PRINTF("Ungleiche Anzahl benutzter Ressourcen\n") ;
@@ -223,12 +217,6 @@ int LOG_ENTRY_TRUNCATED_ERRLOG(log_channel_e channel, int before_size, int after
 int MEMORY_OUT_OF_ERRLOG(log_channel_e channel, size_t size)
 {
    PRINTF("Could not allocate %zu bytes of memory\n", size) ;
-   return 0;
-}
-
-int PARAMETER_INT_TOO_BIG_ERRLOG(log_channel_e channel, const char * parameter_name, int parameter_max)
-{
-   PRINTF("Parameter '%s' > %d\n", parameter_name, parameter_max) ;
    return 0;
 }
 

@@ -1,0 +1,200 @@
+##
+## ! Genmake generated Makefile !
+##
+ProjectName     := genfile
+ProjectModes    := Debug Release
+ProjectFile     := projekte/genfile.prj
+ProjectLinks    := 
+
+GenerationDate  := 2012.Sep.18  17:06:28
+GeneratedBy     := Jörg Seebohn
+
+## Debug
+DefineFlag_Debug    := -D
+IncludeFlag_Debug   := -I
+LibraryFlag_Debug   := -l
+LibPathFlag_Debug   := -L
+CFlags_Debug        := -g -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+LFlags_Debug        := -g 
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=none
+Includes_Debug      := $(IncludeFlag_Debug).
+Libraries_Debug     :=
+Libpath_Debug       :=
+ObjectDir_Debug     := bin/Debug/genfile
+TargetDir_Debug     := bin
+Target_Debug        := bin/genfile_Debug
+Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
+CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
+LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
+
+## Release
+DefineFlag_Release    := -D
+IncludeFlag_Release   := -I
+LibraryFlag_Release   := -l
+LibPathFlag_Release   := -L
+CFlags_Release        := -O2 -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+LFlags_Release        := -O2 
+Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=none
+Includes_Release      := $(IncludeFlag_Release).
+Libraries_Release     :=
+Libpath_Release       :=
+ObjectDir_Release     := bin/Release/genfile
+TargetDir_Release     := bin
+Target_Release        := bin/genfile
+Libs_Release          := $(Libpath_Release) $(Libraries_Release)
+CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
+LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
+
+##
+## Targets
+##
+all:   Debug Release
+clean: clean_Debug clean_Release
+init:  init_Debug init_Release
+init_Debug: $(ObjectDir_Debug) $(TargetDir_Debug)
+init_Release: $(ObjectDir_Release) $(TargetDir_Release)
+
+Debug: init_Debug $(Target_Debug)
+
+Release: init_Release $(Target_Release)
+
+clean_Debug:
+	@rm -f "$(ObjectDir_Debug)/"*.[od]
+	@rm -f "$(Target_Debug)"
+	@if [ -d "$(ObjectDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Debug)"; fi
+	@if [ -d "$(TargetDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Debug)"; fi
+
+clean_Release:
+	@rm -f "$(ObjectDir_Release)/"*.[od]
+	@rm -f "$(Target_Release)"
+	@if [ -d "$(ObjectDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Release)"; fi
+	@if [ -d "$(TargetDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Release)"; fi
+
+$(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Release)):
+	@mkdir -p "$@"
+
+Objects_Debug := \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Debug)/C-kern!main!tools!genfile.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!string!cstring.c.o
+
+Objects_Release := \
+ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
+ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Release)/C-kern!main!tools!genfile.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!string!cstring.c.o
+
+$(Target_Debug): $(Objects_Debug)
+	@$(LD_Debug)
+
+$(Target_Release): $(Objects_Release)
+	@$(LD_Release)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!main!tools!genfile.c.o: C-kern/main/tools/genfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!main!tools!genfile.c.o: C-kern/main/tools/genfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
+-include $(Objects_Debug:.o=.d)
+
+-include $(Objects_Release:.o=.d)

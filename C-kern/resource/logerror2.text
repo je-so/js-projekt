@@ -128,10 +128,6 @@ MEMORY_OUT_OF(size_t size)
 de: "Keine "size" Bytes Speicher mehr frei\n"
 en: "Could not allocate "size" bytes of memory\n"
 
-PARAMETER_INT_TOO_BIG(const char * parameter_name, int parameter_max)
-de: "Parameter '"parameter_name"' > "parameter_max"\n"
-en: "Parameter '"parameter_name"' > "parameter_max"\n"
-
 RESOURCE_USAGE_DIFFERENT()
 de: "Ungleiche Anzahl benutzter Ressourcen\n"
 en: "The number of used resources is different\n"
