@@ -49,7 +49,10 @@ int unittest_memory_manager_mmtest(void) ;
 
 
 /* struct: mmtest_t
- * Test memory manager for allocating/freeing transient memory. */
+ * Test memory manager for allocating/freeing transient memory.
+ *
+ * - Call <switchon_mmtest> to install it.
+ * - Call <switchoff_mmtest> to restore normal memory manager. */
 struct mmtest_t {
    struct mmtest_page_t       * mmpage ;
    size_t                     sizeallocated ;
@@ -60,8 +63,12 @@ struct mmtest_t {
 // group: context
 
 /* function: mmcontext_mmtest
+ * Returns true if test memory manager is installed. */
+bool isinstalled_mmtest(void) ;
+
+/* function: mmcontext_mmtest
  * Returns the installed <mmtest_t> memory manager or 0.
- * If no memory amanger of type <mmtest_t> is installed by a call to <switchon_mmtest>
+ * If no memory manager of type <mmtest_t> was installed with a previous call to <switchon_mmtest>
  * the value 0 is returned. */
 mmtest_t * mmcontext_mmtest(void) ;
 
@@ -138,5 +145,11 @@ void setresizeerr_mmtest(mmtest_t * mman, struct test_errortimer_t * errtimer) ;
  * After the timer has fired the reference is set to 0. */
 void setfreeerr_mmtest(mmtest_t * mman, struct test_errortimer_t * errtimer) ;
 
+
+// section: inline implementation
+
+/* define: isinstalled_mmtest
+ * Implements <mmtest_t.isinstalled_mmtest>. */
+#define isinstalled_mmtest()           (0 != mmcontext_mmtest())
 
 #endif

@@ -4000,7 +4000,6 @@ int unittest_math_int_biginteger()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
-   TEST(0 == switchon_mmtest()) ;
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_sign())        goto ONABORT ;
@@ -4019,7 +4018,6 @@ int unittest_math_int_biginteger()
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
-   TEST(0 == switchoff_mmtest()) ;
 
    return 0 ;
 ONABORT:

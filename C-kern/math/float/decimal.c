@@ -4133,7 +4133,6 @@ int unittest_math_float_decimal()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
-   TEST(0 == switchon_mmtest()) ;
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_decimaltables())  goto ONABORT ;
@@ -4153,12 +4152,10 @@ int unittest_math_float_decimal()
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
-   TEST(0 == switchoff_mmtest()) ;
 
    return 0 ;
 ONABORT:
    (void) free_resourceusage(&usage) ;
-   switchoff_mmtest() ;
    return EINVAL ;
 }
 

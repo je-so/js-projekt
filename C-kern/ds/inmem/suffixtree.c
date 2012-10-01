@@ -36,7 +36,6 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
-#include "C-kern/api/memory/mm/mmtest.h"
 #endif
 
 /* typedef: struct suffixtree_iterator_t
@@ -1454,7 +1453,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1288,1327,1421,1448,2315,2610,2723,2753,3173,3255,3376,3449,3578,3649,3763,3968,4095,4199,4284,4371,4519,4593,4724,4802,4896,44266,44544,60101,60225,60338,60393} ;
+   size_t         compare_pos[] = {1247,1286,1380,1407,2274,2569,2682,2712,3132,3214,3335,3408,3537,3608,3722,3927,4054,4158,4243,4330,4478,4552,4683,4761,4855,44225,44503,60060,60184,60297,60352} ;
    const uint8_t  * matched_pos[1+nrelementsof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;
@@ -1558,7 +1557,6 @@ int unittest_ds_inmem_suffixtree()
 
    if (test_dump())           goto ONABORT ;
 
-   TEST(0 == switchon_mmtest()) ;
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())       goto ONABORT ;
@@ -1568,12 +1566,10 @@ int unittest_ds_inmem_suffixtree()
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
-   TEST(0 == switchoff_mmtest()) ;
 
    return 0 ;
 ONABORT:
    (void) free_resourceusage(&usage) ;
-   switchoff_mmtest() ;
    return EINVAL ;
 }
 

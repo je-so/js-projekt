@@ -32,6 +32,7 @@
 #include "C-kern/api/io/writer/log/logmain.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/memory/mm/mmtest.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/thread.h"
 #endif
@@ -442,7 +443,12 @@ int unittest_context_maincontext()
       if (test_progname())       goto ONABORT ;
 
    } else {
-      assert(maincontext_STATIC != type_maincontext()) ;
+
+      const bool ismmtest = isinstalled_mmtest() ;
+
+      if (ismmtest) {
+         switchoff_mmtest() ;
+      }
 
       if (test_initerror())  goto ONABORT ;
 
@@ -466,6 +472,10 @@ int unittest_context_maincontext()
 
       TEST(0 == same_resourceusage(&usage)) ;
       TEST(0 == free_resourceusage(&usage)) ;
+
+      if (ismmtest) {
+         switchon_mmtest() ;
+      }
    }
 
    // make printed system error messages language (English) neutral

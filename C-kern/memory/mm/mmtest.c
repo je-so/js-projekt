@@ -1203,6 +1203,12 @@ int unittest_memory_manager_mmtest()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
+   const bool ismmtest = isinstalled_mmtest() ;
+
+   if (ismmtest) {
+      switchoff_mmtest() ;
+   }
+
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_mmtestpage())  goto ONABORT ;
@@ -1212,6 +1218,10 @@ int unittest_memory_manager_mmtest()
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
+
+   if (ismmtest) {
+      switchon_mmtest() ;
+   }
 
    return 0 ;
 ONABORT:

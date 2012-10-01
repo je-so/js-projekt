@@ -26,16 +26,17 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/test/run/unittest.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test.h"
-#include "C-kern/api/math/fpu.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/math/fpu.h"
+#include "C-kern/api/memory/mm/mmtest.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/test/run/unittest.h"
 
 
 
@@ -158,26 +159,37 @@ static void prepare_test(void)
 
 }
 
-static void run_singletest(const char * test_name, int (*test_fct) (void), unsigned * total_count, unsigned * err_count)
+static void run_singletest(const char * test_name, int (*unittest) (void), unsigned * total_count, unsigned * err_count)
 {
-   int      err ;
+   int err ;
 
    logrun_test(test_name) ;
    CLEARBUFFER_LOG() ;
 
-   err = test_fct() ;
+   err = switchon_mmtest() ;
    if (err) {
-      file_t error_log ;
-      if (0 == initappend_file(&error_log, "error.log", 0)) {
-         char     * buffer ;
-         size_t   size ;
-         GETBUFFER_LOG(&buffer, &size) ;
-         write_filedescr(error_log, size, (uint8_t*)buffer, 0) ;
-         free_file(&error_log) ;
-      }
+      CPRINTF_LOG(TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__ ) ;
+      CPRINTF_LOG(TEST, "switchon_mmtest FAILED\n") ;
    } else {
-      generate_logresource(test_name) ;
-      err = check_logresource(test_name) ;
+      err = unittest() ;
+      if (err) {
+         file_t error_log ;
+         if (0 == initappend_file(&error_log, "error.log", 0)) {
+            char     * buffer ;
+            size_t   size ;
+            GETBUFFER_LOG(&buffer, &size) ;
+            write_filedescr(error_log, size, (uint8_t*)buffer, 0) ;
+            free_file(&error_log) ;
+         }
+      } else {
+         generate_logresource(test_name) ;
+         err = check_logresource(test_name) ;
+      }
+   }
+
+   if (switchoff_mmtest()) {
+      CPRINTF_LOG(TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__ ) ;
+      CPRINTF_LOG(TEST, "switchoff_mmtest FAILED\n") ;
    }
 
    if (err)

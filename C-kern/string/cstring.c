@@ -31,7 +31,6 @@
 #include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/memory/mm/mmtest.h"
 #endif
 
 static inline void compiletime_tests(void)
@@ -567,7 +566,6 @@ int unittest_string_cstring()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
-   TEST(0 == switchon_mmtest()) ;
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())       goto ONABORT ;
@@ -577,7 +575,6 @@ int unittest_string_cstring()
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
-   TEST(0 == switchoff_mmtest()) ;
 
    return 0 ;
 ONABORT:

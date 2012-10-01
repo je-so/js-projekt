@@ -112,7 +112,6 @@ static const char * s_templatesource =
 #include \"C-kern/api/err.h\"\n\
 #ifdef KONFIG_UNITTEST\n\
 #include \"C-kern/api/test.h\"\n\
-#include \"C-kern/api/memory/mm/mmtest.h\"\n\
 #endif\n\n\n\n\
 // group: test\n\n\
 #ifdef KONFIG_UNITTEST\n\n\
@@ -125,16 +124,13 @@ ONABORT:\n\
 int @UNITTESTNAME()\n\
 {\n\
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;\n\n\
-   TEST(0 == switchon_mmtest()) ;\n\
    TEST(0 == init_resourceusage(&usage)) ;\n\n\
    if (test_initfree())       goto ONABORT ;\n\n\
    TEST(0 == same_resourceusage(&usage)) ;\n\
-   TEST(0 == free_resourceusage(&usage)) ;\n\
-   TEST(0 == switchoff_mmtest()) ;\n\n\
+   TEST(0 == free_resourceusage(&usage)) ;\n\n\
    return 0 ;\n\
 ONABORT:\n\
    (void) free_resourceusage(&usage) ;\n\
-   switchoff_mmtest() ;\n\
    return EINVAL ;\n\
 }\n\n\
 #endif\n" ;
