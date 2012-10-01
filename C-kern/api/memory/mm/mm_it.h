@@ -39,7 +39,7 @@ typedef struct mm_it                   mm_it ;
 /* struct: mm_it
  * The function table describing the interface to a memory manager.
  * If you change the interface of <mm_it> to do not forget to adapt
- * <mm_it_DECLARE> to the same signature. */ __extension__
+ * <mm_it_DECLARE> to the same signature. */
 struct mm_it { /*!*/ union { struct {  // this makes it compatible with <mm_it_DECLARE>.
    /* function: mresize
     * See <mmtransient_t.mresize_mmtransient> for an implementation. */
@@ -85,7 +85,7 @@ struct mm_it { /*!*/ union { struct {  // this makes it compatible with <mm_it_D
  * See <mm_it> for a list of declared functions.
  * */
 #define mm_it_DECLARE(declared_it, mm_t)                                                     \
-   __extension__ struct declared_it {                                                        \
+   struct declared_it {                                                                      \
       union {                                                                                \
          struct {                                                                            \
             int   (* mresize) (mm_t * mman, size_t newsize, struct memblock_t * memblock) ;  \

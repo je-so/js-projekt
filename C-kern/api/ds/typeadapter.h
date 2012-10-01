@@ -114,7 +114,7 @@ struct typeadapter_it { /*!*/ union { struct {  // makes it compatible with <typ
  * */
 #define typeadapter_it_DECLARE(declared_it, typeadapter_t, object_t)          \
    typedef struct declared_it          declared_it ;                          \
-   __extension__ struct declared_it {                                         \
+   struct declared_it {                                                       \
       union {                                                                 \
          struct {                                                             \
             int (* copyobj) (typeadapter_t * typeimpl, /*out*/object_t ** copiedobject, object_t * object) ;   \
@@ -133,7 +133,7 @@ struct typeadapter_it { /*!*/ union { struct {  // makes it compatible with <typ
  *
  * This adapter provides a generic interface <typeadapter_it> to let data structures
  * adapt to different object types. */
-__extension__ struct typeadapter_iot { /*!*/ union { struct {  // makes it compatible with <typeadapter_iot_DECLARE>
+struct typeadapter_iot { /*!*/ union { struct {  // makes it compatible with <typeadapter_iot_DECLARE>
    /* variable: object
     * The pointer to typeadapter's default implementation object <typeadapter_t>. */
    typeadapter_t        * object ;
@@ -203,7 +203,7 @@ int execfree_typeadapteriot(typeadapter_iot * typeadp, struct generic_object_t *
  * */
 #define typeadapter_iot_DECLARE(declared_iot, typeadapter_t, typeadapter_it)  \
       typedef struct declared_iot      declared_iot ;                         \
-      __extension__ struct declared_iot {                                     \
+      struct declared_iot {                                                   \
          union {                                                              \
             struct {                                                          \
                typeadapter_t        * object ;                                \

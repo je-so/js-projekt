@@ -213,7 +213,7 @@ slist_IMPLEMENT(textresource_parameterlist_t, _paramlist, next)
 struct textresource_textatom_t {
    textresource_textatom_t    * next ;
    textresource_textatom_e    type ;
-   __extension__ union {
+   union {
       conststring_t           string ;
       struct {
          textresource_parameter_t   * ref ;

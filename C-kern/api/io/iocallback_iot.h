@@ -44,7 +44,7 @@ typedef void                        (* iocallback_f) (void * iohandler, sys_file
 
 /* struct: iocallback_iot
  * Declares a pointer to callback interface implementing object. */
-__extension__ struct iocallback_iot {
+struct iocallback_iot {
    union { struct {  // only there to make it compatible with <iocallback_iot_DECLARE>.
    /* variable: object
     * The value of the first argument of <iocallback_f>. */
@@ -94,7 +94,7 @@ void handleioevent_iocallback(const iocallback_iot * iocb, sys_filedescr_t fd, u
  *                  Also the type of the first parameter of <iocallback_f> is set to (iohandler_t*).
  * */
 #define iocallback_iot_DECLARE(declared_iot, iohandler_t)   \
-      __extension__ struct declared_iot {                   \
+      struct declared_iot {                                 \
          union {                                            \
          struct {                                           \
          iohandler_t    * object ;                          \
