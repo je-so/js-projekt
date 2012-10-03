@@ -5,8 +5,6 @@
   <VirtualDirectory Name="generic">
     <File Name="../../C-kern/generic/depthtree.c"/>
     <File Name="../../C-kern/generic/depthtree.h"/>
-    <File Name="../../C-kern/generic/objekt_collector.c"/>
-    <File Name="../../C-kern/generic/objekt_collector.h"/>
     <File Name="../../C-kern/generic/set.h"/>
     <File Name="../../C-kern/generic/rbtree.c"/>
     <File Name="../../C-kern/generic/rbtree.h"/>
@@ -17,15 +15,10 @@
     <VirtualDirectory Name="iterator">
       <File Name="../../C-kern/generic/iterator/arraylist-it.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="list">
-      <File Name="../../C-kern/generic/dlist.c"/>
-      <File Name="../../C-kern/generic/dlist.h"/>
-    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/konfig.h"/>
     <File Name="../../C-kern/README.txt"/>
-    <File Name="../../C-kern/api/execCcompiler.h"/>
     <File Name="../../C-kern/api/maincontext.h"/>
     <File Name="../../C-kern/api/oostore.h"/>
     <File Name="../../C-kern/api/test.h"/>
@@ -146,12 +139,19 @@
           <File Name="../../C-kern/api/ds/inmem/node/arraysf_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/arraystf_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/slist_node.h"/>
+          <File Name="../../C-kern/api/ds/inmem/node/dlist_node.h"/>
         </VirtualDirectory>
         <File Name="../../C-kern/api/ds/inmem/suffixtree.h"/>
+        <File Name="../../C-kern/api/ds/inmem/dlist.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/typeadapter.h"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
+      <VirtualDirectory Name="typeadapt">
+        <File Name="../../C-kern/api/ds/typeadapt/lifetime.h"/>
+        <File Name="../../C-kern/api/ds/typeadapt/typeinfo.h"/>
+      </VirtualDirectory>
+      <File Name="../../C-kern/api/ds/typeadapt.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/api/err.h"/>
     <VirtualDirectory Name="io">
@@ -165,7 +165,6 @@
       <VirtualDirectory Name="ip">
         <File Name="../../C-kern/api/io/ip/ipaddr.h"/>
         <File Name="../../C-kern/api/io/ip/ipsocket.h"/>
-        <File Name="../../C-kern/api/io/ip/websocket.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/url.h"/>
       <VirtualDirectory Name="protocol"/>
@@ -214,7 +213,6 @@
   </VirtualDirectory>
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>
-    <File Name="../../C-kern/io/websocket.c"/>
     <VirtualDirectory Name="reader">
       <File Name="../../C-kern/io/reader/utf8reader.c"/>
       <File Name="../../C-kern/io/reader/reader.txt"/>
@@ -237,6 +235,7 @@
       <File Name="../../C-kern/main/tools/genmake.c"/>
       <File Name="../../C-kern/main/tools/textdb.c"/>
       <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
+      <File Name="../../C-kern/main/tools/genfile.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -323,7 +322,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
-      <File Name="../../C-kern/platform/shared/execCcompiler.c"/>
       <File Name="../../C-kern/platform/shared/oostore.c"/>
       <VirtualDirectory Name="index">
         <File Name="../../C-kern/platform/shared/index/splaytree.c"/>
@@ -376,9 +374,15 @@
       <File Name="../../C-kern/ds/inmem/binarystack.c"/>
       <File Name="../../C-kern/ds/inmem/arraystf.c"/>
       <File Name="../../C-kern/ds/inmem/suffixtree.c"/>
+      <File Name="../../C-kern/ds/inmem/dlist.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <File Name="../../C-kern/ds/typeadapter.c"/>
+    <VirtualDirectory Name="typeadapt">
+      <File Name="../../C-kern/ds/typeadapt/lifetime.c"/>
+      <File Name="../../C-kern/ds/typeadapt/typeinfo.c"/>
+    </VirtualDirectory>
+    <File Name="../../C-kern/ds/typeadapt.c"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

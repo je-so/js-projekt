@@ -53,9 +53,6 @@
  * Used by <CONCAT> to ensure expansion of arguments.
  * This macro does the real work - combining two language tokens into one.*/
 #define CONCAT_(S1,S2)                 S1 ## S2
-/* define: EMITCODE_0
- * The parameters to <EMITCODE_0> are discarded. */
-#define EMITCODE_0(...)                /*false*/
 /* define: CONST_CAST
  * Removes the const from ptr.
  * Use this macro to remove a const from a pointer. This macro is safe
@@ -74,9 +71,12 @@
  * The returned type is
  * > (type_t*) ptr ; */
 #define VOLATILE_CAST(type_t,ptr)         ( __extension__ ({ volatile type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
-/* define: EMITCODE_1
- * The parameters to <EMITCODE_1> are written (as C code). */
-#define EMITCODE_1(...)                /*true*/ __VA_ARGS__
+/* define: IDNAME
+ * It's a marker in function declaration.
+ * It is used in function declarations which are implemented as macro.
+ * A identifier name is not supported in language C99 or later.
+ * See <dlist_IMPLEMENT> for an example. */
+#define IDNAME                         void*
 /* define: nrelementsof
  * Calculates the number of elements of a static array. */
 #define nrelementsof(static_array)     ( sizeof(static_array) / sizeof(*(static_array)) )
@@ -105,11 +105,18 @@
 #define structof(struct_t, member, ptrmember)                              \
    ( __extension__ ({                                                      \
       typeof(((struct_t*)0)->member) * _ptr = (ptrmember) ;                \
-      (struct_t*)( (uint8_t *) _ptr - offsetof(struct_t, member) ) ; }))
+      (struct_t*)((uintptr_t)_ptr - offsetof(struct_t, member) ) ;         \
+   }))
 /* define: SWAP
  * Swaps content of two local variables.
  * This works only for simple types. */
 #define SWAP(var1,var2)                { typeof(var1) _temp ; _temp = (var1), (var1) = (var2), (var2) = _temp ; }
+/* define: TYPENAME
+ * It's a marker in function declaration.
+ * It is used in function declarations which are implemented as macro.
+ * A type name is not supported in language C99 or later.
+ * See <asgeneric_typeadaptlifetime> for an example. */
+#define TYPENAME                       void*
 /* define: MALLOC
  * Ruft spezifisches malloc auf, wobei der Rückgabewert in den entsprechenden Typ konvertiert wird.
  * Die Paramterliste muss immer mit einem Komma enden !

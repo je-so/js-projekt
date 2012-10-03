@@ -21,8 +21,8 @@
    file: C-kern/api/ds/inmem/node/arraysf_node.h
     Header file <ArraySF-Node>.
 */
-#ifndef CKERN_DS_ARRAYSF_NODE_HEADER
-#define CKERN_DS_ARRAYSF_NODE_HEADER
+#ifndef CKERN_DS_INMEM_NODE_ARRAYSF_NODE_HEADER
+#define CKERN_DS_INMEM_NODE_ARRAYSF_NODE_HEADER
 
 /* typedef: struct arraysf_node_t
  * Export <arraysf_node_t>. User supplied (external) type. */

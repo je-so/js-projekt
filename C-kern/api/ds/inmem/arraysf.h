@@ -117,17 +117,17 @@ int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type) ;
  * If typeadt is set to 0 no free function is called for contained nodes. */
 int delete_arraysf(arraysf_t ** array, struct typeadapter_iot * typeadp) ;
 
-// group: iterate
+// group: foreach-support
 
-/* function: iteratortype_arraysf
- * Function declaration associates <arraysf_iterator_t> with <arraysf_t>.
- * The association is done with the type of the return value - there is no implementation. */
-arraysf_iterator_t * iteratortype_arraysf(void) ;
+/* typedef: iteratortype_arraysf
+ * Declaration to associate <arraysf_iterator_t> with <arraysf_t>.
+ * The association is done with a typedef which looks like a function. */
+typedef arraysf_iterator_t       iteratortype_arraysf ;
 
-/* function: iteratedtype_arraysf
- * Function declaration associates (<generic_object_t>*) with <arraysf_t>.
- * The association is done with the type of the return value - there is no implementation. */
-struct generic_object_t * iteratedtype_arraysf(void) ;
+/* typedef: iteratedtype_arraysf
+ * Function declaration to associate <generic_object_t> with <arraysf_t>.
+ * The association is done with a typedef which looks like a function. */
+typedef struct generic_object_t  iteratedtype_arraysf ;
 
 // group: query
 
@@ -183,20 +183,20 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_objec
  *                name of the first embedded member of <arraysf_node_t> - see <arraysf_node_EMBED>.
  * */
 #define arraysf_IMPLEMENT(objecttype_t, _fctsuffix, name_pos)  \
+   typedef arraysf_iterator_t    iteratortype##_fctsuffix ;    \
+   typedef objecttype_t          iteratedtype##_fctsuffix ;    \
    /*declare helper functions as always inline*/               \
    static inline size_t offsetnode##_fctsuffix(void) __attribute__ ((always_inline)) ; \
    /*declare function signatures as always inline*/            \
    static inline int new##_fctsuffix(/*out*/arraysf_t ** array, arraysf_e type) __attribute__ ((always_inline)) ; \
    static inline int delete##_fctsuffix(arraysf_t ** array, struct typeadapter_iot * typeadp) __attribute__ ((always_inline)) ; \
-                 arraysf_iterator_t * iteratortype##_fctsuffix(void) ; \
-                 objecttype_t       * iteratedtype##_fctsuffix(void) ; \
    static inline size_t length##_fctsuffix(arraysf_t * array) __attribute__ ((always_inline)) ; \
    static inline objecttype_t * at##_fctsuffix(const arraysf_t * array, size_t pos) __attribute__ ((always_inline)) ; \
    static inline int insert##_fctsuffix(arraysf_t * array, objecttype_t * node, /*out*/objecttype_t ** inserted_node/*0=>not returned*/, struct typeadapter_iot * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
    static inline int tryinsert##_fctsuffix(arraysf_t * array, objecttype_t * node, /*out;err*/objecttype_t ** inserted_or_existing_node, struct typeadapter_iot * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
    static inline int remove##_fctsuffix(arraysf_t * array, size_t pos, /*out*/objecttype_t ** removed_node/*could be 0*/) __attribute__ ((always_inline)) ; \
    static inline int tryremove##_fctsuffix(arraysf_t * array, size_t pos, /*out*/objecttype_t ** removed_node/*could be 0*/) __attribute__ ((always_inline)) ; \
-   static inline int init##_fctsuffix##iterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) __attribute__ ((always_inline)) ; \
+   static inline int initfirst##_fctsuffix##iterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) __attribute__ ((always_inline)) ; \
    static inline int free##_fctsuffix##iterator(arraysf_iterator_t * iter) __attribute__ ((always_inline)) ; \
    static inline bool next##_fctsuffix##iterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/objecttype_t ** node) __attribute__ ((always_inline)) ; \
    /*implement helper functions */ \
@@ -232,8 +232,8 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_objec
       return tryremove_arraysf(array, pos, (struct generic_object_t**)removed_node, offsetnode##_fctsuffix()) ; \
    } \
    /*implement iterator functions*/ \
-   static inline int init##_fctsuffix##iterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) { \
-      return init_arraysfiterator(iter, array) ; \
+   static inline int initfirst##_fctsuffix##iterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) { \
+      return initfirst_arraysfiterator(iter, array) ; \
    } \
    static inline int free##_fctsuffix##iterator(arraysf_iterator_t * iter) { \
       return free_arraysfiterator(iter) ; \
@@ -260,9 +260,9 @@ struct arraysf_iterator_t {
  * Static initializer. */
 #define arraysf_iterator_INIT_FREEABLE   { 0, 0 }
 
-/* function: init_arraysfiterator
+/* function: initfirst_arraysfiterator
  * Initializes an iterator for <arraysf_t>. */
-int init_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) ;
+int initfirst_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array) ;
 
 /* function: free_arraysfiterator
  * Frees an iterator for <arraysf_t>. */
@@ -272,7 +272,7 @@ int free_arraysfiterator(arraysf_iterator_t * iter) ;
 
 /* function: next_arraysfiterator
  * Returns next iterated node.
- * The first call after <init_arraysfiterator> returns the first array element
+ * The first call after <initfirst_arraysfiterator> returns the first array element
  * if it is not empty.
  *
  * Returns:

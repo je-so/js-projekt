@@ -253,8 +253,12 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_arraysf) ;
       RUN(unittest_ds_inmem_arraystf) ;
       RUN(unittest_ds_inmem_binarystack) ;
+      RUN(unittest_ds_inmem_dlist) ;
       RUN(unittest_ds_inmem_slist) ;
       RUN(unittest_ds_inmem_suffixtree) ;
+      RUN(unittest_ds_typeadapt) ;
+      RUN(unittest_ds_typeadapt_lifetime) ;
+      RUN(unittest_ds_typeadapt_typeinfo) ;
 //}
 
 //{ math unittest

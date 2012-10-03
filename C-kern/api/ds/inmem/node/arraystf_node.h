@@ -1,8 +1,8 @@
 /* title: ArraySTF-Node
+
    Defines node type <arraystf_node_t> which can be stored in an
    array of type <arraystf_t>. Defines also the internal node type
    <arraystf_mwaybranch_t> which is used in the implementation of <arraystf_t>.
-
 
    about: Copyright
    This program is free software.
@@ -22,8 +22,8 @@
    file: C-kern/api/ds/inmem/node/arraystf_node.h
     Header file <ArraySTF-Node>
 */
-#ifndef CKERN_DS_ARRAYSTF_NODE_HEADER
-#define CKERN_DS_ARRAYSTF_NODE_HEADER
+#ifndef CKERN_DS_INMEM_NODE_ARRAYSTF_NODE_HEADER
+#define CKERN_DS_INMEM_NODE_ARRAYSTF_NODE_HEADER
 
 // forward
 struct conststring_t ;

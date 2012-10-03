@@ -56,7 +56,21 @@ int unittest_ds_inmem_slist(void) ;
 
 
 /* struct: slist_iterator_t
- * Iterates over elements contained in <slist_t>. */
+ * Iterates over elements contained in <slist_t>.
+ * The iterator supports removing or deleting of the current node.
+ *
+ * Example:
+ * > slist_t      list ;
+ * > fill_list(&list) ;
+ * > slist_node_t * prev = last_slist(&list) ;
+ * > foreach (_slist, &list, node) {
+ * >    if (need_to_remove(node)) {
+ * >       removeafter_slist(&list, prev, node) ;
+ * >       delete_node(node) ;
+ * >    }
+ * >    prev = node ;
+ * > }
+ * */
 struct slist_iterator_t {
    struct generic_object_t * next ;
 } ;
@@ -67,9 +81,9 @@ struct slist_iterator_t {
  * Static initializer. */
 #define slist_iterator_INIT_FREEABLE   { 0 }
 
-/* function: init_slistiterator
+/* function: initfirst_slistiterator
  * Initializes an iterator for <slist_t>. */
-int init_slistiterator(/*out*/slist_iterator_t * iter, slist_t * list) ;
+int initfirst_slistiterator(/*out*/slist_iterator_t * iter, slist_t * list) ;
 
 /* function: free_slistiterator
  * Frees an iterator for <slist_t>.
@@ -80,7 +94,7 @@ int free_slistiterator(slist_iterator_t * iter) ;
 
 /* function: next_slistiterator
  * Returns next iterated node.
- * The first call after <init_slistiterator> returns the first list element
+ * The first call after <initfirst_slistiterator> returns the first list element
  * if it is not empty.
  *
  * Returns:
@@ -93,6 +107,9 @@ bool next_slistiterator(slist_iterator_t * iter, slist_t * list, /*out*/struct g
  * Stores pointers to last element of single linked list.
  * The list is organized as a ring so the next element
  * of the last is the first or head of list.
+ *
+ * To search for an element in the list needs time O(n).
+ * Adding and removing needs O(1).
  *
  * Generic Implementation:
  * Almost all exported interface functions take an extra argument *offset_node*.
@@ -122,14 +139,14 @@ struct slist_t {
 // group: lifetime
 
 /* define: slist_INIT
- * Static initializer: you can use it instead of <init_slist>.
+ * Static initializer. You can use it instead of <init_slist>.
  * After assigning you can call <free_slist> or any other function safely. */
 #define slist_INIT                     { (void*)0 }
 
 /* constructor: init_slist
  * Initializes a single linked list object.
  * The caller has to provide an unitialized list object. This function never fails. */
-void init_slist(/*out*/slist_t * list) ;
+int init_slist(/*out*/slist_t * list) ;
 
 /* destructor: free_slist
  * Frees memory of all linked objects (generic).
@@ -157,24 +174,22 @@ struct generic_object_t * last_slist(const slist_t * list) ;
  * The list is implemented as ring list. */
 struct generic_object_t * next_slist(struct generic_object_t * node, uint32_t offset_node) ;
 
-// group: iterate
+// group: foreach-support
 
-/* function: iteratortype_slist
- * Function declaration to associate <slist_iterator_t> with <slist_t>.
- * The association is done with the type of the return value.
- * It must be a pointer to the iterator type. */
-slist_iterator_t * iteratortype_slist(void) ;
+/* typedef: iteratortype_slist
+ * Declaration to associate <slist_iterator_t> with <slist_t>.
+ * The association is done with a typedef which looks like a function. */
+typedef slist_iterator_t      iteratortype_slist ;
 
-/* function: iteratedtype_slist
- * Function declaration to associate (<generic_object_t>*) with <slist_t>.
- * The association is done with the type of the return value.
- * It must be the type of node the iterator returns with a call to <next_slistiterator>. */
-struct generic_object_t * iteratedtype_slist(void) ;
+/* typedef: iteratedtype_slist
+ * Function declaration to associate <generic_object_t> with <slist_t>.
+ * The association is done with a typedef which looks like a function. */
+typedef struct generic_object_t  iteratedtype_slist ;
 
 // group: change
 
 /* function: insertfirst_slist
- * Makes new_node the new first element of list (generic).
+ * Makes new_node the new first element of list.
  * Ownership is transfered from caller to <slist_t>. */
 int insertfirst_slist(slist_t * list, struct generic_object_t * new_node, uint32_t offset_node) ;
 
@@ -199,18 +214,17 @@ int removefirst_slist(slist_t * list, struct generic_object_t ** removed_node, u
 
 /* function: removeafter_slist
  * Removes the next node coming after prev_node from the list.
- * If prev_node points to the last node then ESRCH is returned.
  * If the list contains no elements EINVAL is returned.
  *
  * Note:
- * Make sure that prev_node is part of the list ! */
+ * Make sure that prev_node is part of the list else behaviour is undefined ! */
 int removeafter_slist(slist_t * list, struct generic_object_t * prev_node, struct generic_object_t ** removed_node, uint32_t offset_node) ;
 
 // group: change set
 
 /* function: removeall_slist
  * Removes all nodes from the list (generic).
- * For every removed node *freehandler* is called. */
+ * For every removed node <typeadapter_it.freeobj> is called. */
 int removeall_slist(slist_t * list, struct typeadapter_iot * typeadp/*0=>no free called*/, uint32_t offset_node) ;
 
 // group: generic
@@ -248,12 +262,12 @@ int removeall_slist(slist_t * list, struct typeadapter_iot * typeadp/*0=>no free
    typedef typeof(*((listtype_t*)0)->last)   listtype_t##node_t ;          \
    typedef struct listtype_t##iterator_t     listtype_t##iterator_t ;      \
    struct listtype_t##iterator_t   { listtype_t##node_t * next ; } ;       \
-   listtype_t##iterator_t          * iteratortype##_fctsuffix(void) ;      \
-   listtype_t##node_t              * iteratedtype##_fctsuffix(void) ;      \
-   static inline int  init##_fctsuffix##iterator(listtype_t##iterator_t * iter, listtype_t * list) __attribute__ ((always_inline)) ; \
+   typedef listtype_t##iterator_t   iteratortype##_fctsuffix ;             \
+   typedef listtype_t##node_t       iteratedtype##_fctsuffix ;             \
+   static inline int  initfirst##_fctsuffix##iterator(listtype_t##iterator_t * iter, listtype_t * list) __attribute__ ((always_inline)) ; \
    static inline int  free##_fctsuffix##iterator(listtype_t##iterator_t * iter) __attribute__ ((always_inline)) ; \
    static inline bool next##_fctsuffix##iterator(listtype_t##iterator_t * iter, listtype_t * list, listtype_t##node_t ** node) __attribute__ ((always_inline)) ; \
-   static inline void init##_fctsuffix(listtype_t * list) __attribute__ ((always_inline)) ; \
+   static inline int  init##_fctsuffix(listtype_t * list) __attribute__ ((always_inline)) ; \
    static inline int  free##_fctsuffix(listtype_t * list, struct typeadapter_iot * typeadp) __attribute__ ((always_inline)) ; \
    static inline int  isempty##_fctsuffix(const listtype_t * list) __attribute__ ((always_inline)) ; \
    static inline uint32_t offsetnode##_fctsuffix(void) __attribute__ ((always_inline)) ; \
@@ -268,11 +282,11 @@ int removeall_slist(slist_t * list, struct typeadapter_iot * typeadp/*0=>no free
    static inline int removeall##_fctsuffix(listtype_t * list, struct typeadapter_iot * typeadp) __attribute__ ((always_inline)) ; \
    static inline uint32_t offsetnode##_fctsuffix(void) { \
       static_assert(offsetof(listtype_t, last)  == 0, "listtype_t must have same structure as slist_t") ; \
-      static_assert(offsetof(listtype_t##node_t, name_nextptr) < 65536, "Offset must fit in uint32_t (extend 65536 to pow(2,32) if needed)") ; \
+      static_assert(offsetof(listtype_t##node_t, name_nextptr) < 65536, "Only offset < 65536 considered valid") ; \
       return (uint32_t) offsetof(listtype_t##node_t, name_nextptr) ; \
    } \
-   static inline void init##_fctsuffix(listtype_t * list) { \
-      init_slist(list) ; \
+   static inline int init##_fctsuffix(listtype_t * list) { \
+      return init_slist(list) ; \
    } \
    static inline int free##_fctsuffix(listtype_t * list, struct typeadapter_iot * typeadp) { \
       return free_slist((slist_t*)list, typeadp, offsetnode##_fctsuffix()) ; \
@@ -307,7 +321,7 @@ int removeall_slist(slist_t * list, struct typeadapter_iot * typeadp/*0=>no free
    static inline int removeall##_fctsuffix(listtype_t * list, struct typeadapter_iot * typeadp) { \
       return removeall_slist((slist_t*)list, typeadp, offsetnode##_fctsuffix()) ; \
    } \
-   static inline int  init##_fctsuffix##iterator(listtype_t##iterator_t * iter, listtype_t * list) { \
+   static inline int  initfirst##_fctsuffix##iterator(listtype_t##iterator_t * iter, listtype_t * list) { \
       iter->next = first##_fctsuffix(list) ; return 0 ; \
    } \
    static inline int  free##_fctsuffix##iterator(listtype_t##iterator_t * iter) { \
@@ -327,48 +341,47 @@ int removeall_slist(slist_t * list, struct typeadapter_iot * typeadp/*0=>no free
 
 /* define: first_slist
  * Implements <slist_t.first_slist>. */
-#define first_slist(list, offset_node) ((list)->last ? next_slist((list)->last, offset_node) : 0)
+#define first_slist(list, offset_node)       ((list)->last ? next_slist((list)->last, offset_node) : 0)
 
 /* define: init_slist
  * Implements <slist_t.init_slist>. */
-#define init_slist(list)               ((list)->last = 0)
+#define init_slist(list)                     ((list)->last = 0, 0)
 
 /* define: isempty_slist
  * Implements <slist_t.isempty_slist>. */
-#define isempty_slist(list)            (0 == (list)->last)
+#define isempty_slist(list)                  (0 == (list)->last)
 
 /* define: last_slist
  * Implements <slist_t.last_slist>. */
-#define last_slist(list)               ((list)->last)
+#define last_slist(list)                     ((list)->last)
 
 /* define: next_slist
  * Implements <slist_t.next_slist>. */
-#define next_slist(node, offset_node)  (*(((struct generic_object_t**)((uintptr_t)offset_node + (uintptr_t)(node)))))
+#define next_slist(node, offset_node)        (*(((struct generic_object_t**)((uintptr_t)offset_node + (uintptr_t)(node)))))
 
 /* define: removeall_slist
  * Implements <slist_t.removeall_slist> with help of <slist_t.free_slist>. */
-#define removeall_slist(list, typeadp, offset_node) \
-   free_slist((list), (typeadp), (offset_node))
+#define removeall_slist(list, typeadp, offset_node)   free_slist((list), (typeadp), (offset_node))
 
-/* define: init_slistiterator
- * Implements <slist_t.init_slistiterator>. */
-#define init_slistiterator(iter, list) ((iter)->next = first_slist((list), 0), 0)
+/* define: initfirst_slistiterator
+ * Implements <slist_t.initfirst_slistiterator>. */
+#define initfirst_slistiterator(iter, list)  ((iter)->next = first_slist((list), 0), 0)
 
 /* define: free_slistiterator
  * Implements <slist_t.free_slistiterator>. */
-#define free_slistiterator(iter)       (0)
+#define free_slistiterator(iter)             (0)
 
 /* define: next_slistiterator
  * Implements <slist_t.next_slistiterator>. */
 #define next_slistiterator(iter, list, node)          \
    ( __extension__ ({                                 \
-      typeof(iter) iter2 = (iter) ;                   \
-      bool isNext = (0 != iter2->next) ;              \
+      typeof(iter) _iter = (iter) ;                   \
+      bool isNext = (0 != _iter->next) ;              \
       if (isNext) {                                   \
-         *(node)     = iter2->next ;                  \
-         iter2->next = ((list)->last == iter2->next)? \
-                        0 :                           \
-                        next_slist(iter2->next, 0) ;  \
+         *(node)     = _iter->next ;                  \
+         _iter->next = ((list)->last == _iter->next)  \
+                     ? 0                              \
+                     : next_slist(_iter->next, 0) ;   \
       }                                               \
       isNext ;                                        \
    }))

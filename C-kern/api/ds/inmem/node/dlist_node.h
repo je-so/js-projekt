@@ -1,0 +1,62 @@
+/* title: DoubleLinkedList-Node
+
+   Storage overhead needed by objects which
+   wants to be stored in a <dlist_t>.
+
+   about: Copyright
+   This program is free software.
+   You can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   Author:
+   (C) 2012 Jörg Seebohn
+
+   file: C-kern/api/ds/inmem/node/dlist_node.h
+    Header file <DoubleLinkedList-Node>.
+
+*/
+#ifndef CKERN_DS_INMEM_NODE_DLIST_NODE_HEADER
+#define CKERN_DS_INMEM_NODE_DLIST_NODE_HEADER
+
+/* typedef: struct dlist_node_t
+ * Export <dlist_node_t> into global namespace. */
+typedef struct dlist_node_t            dlist_node_t ;
+
+
+/* struct: dlist_node_t
+ * Provides the means for linking an object to two others of the same type.
+ * This kind of object is managed by the double linked list object <dlist_t>.
+ * The next or previous node can be reached from this node in O(1).
+ * An object which wants to be member of a list must inherit from <dlist_node_t>. */
+struct dlist_node_t {
+   /* variable: next
+    * Points to next node in the list.
+    * If this node is currently not part of any list this value is set to NULL. */
+   dlist_node_t  * next ;
+   /* variable: prev
+    * Points to previous node in the list.
+    * If this node is currently not part of any list this value is set to NULL. */
+   dlist_node_t  * prev ;
+} ;
+
+// group: lifetime
+
+/* define: dlist_node_INIT
+ * Static initializer.
+ * Before inserting a node into a list do not forget to initialize the next pointer with NULL.
+ *
+ * Note:
+ * The next pointer is checked against NULL in the precondition of every insert function
+ * of every list implementation. The <dlist_node_t.prev> pointer is omitted from the check.
+ * This ensures that a node is not inserted in more than one list by mistake. */
+#define dlist_node_INIT     { 0, 0 }
+
+
+#endif

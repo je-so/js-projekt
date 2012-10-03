@@ -486,7 +486,7 @@ ONABORT:
 
 // section: arraysf_iterator_t
 
-int init_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array)
+int initfirst_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * array)
 {
    int err ;
    size_t        objectsize = sizeof(binarystack_t) ;
@@ -1109,7 +1109,7 @@ static int test_iterator(void)
 
    // TEST init, double free
    iter.ri = 1 ;
-   TEST(0 == init_tarraysfiterator(&iter, array)) ;
+   TEST(0 == initfirst_tarraysfiterator(&iter, array)) ;
    TEST(0 != iter.stack) ;
    TEST(0 == iter.ri) ;
    TEST(0 == free_tarraysfiterator(&iter)) ;
@@ -1120,11 +1120,10 @@ static int test_iterator(void)
    TEST(0 == iter.ri) ;
 
    // TEST next_arraysfiterator
-   TEST(0 == init_tarraysfiterator(&iter, array)) ;
+   TEST(0 == initfirst_tarraysfiterator(&iter, array)) ;
    nextpos = 0 ;
-   {
-      typeof(iteratedtype_tarraysf()) node ;
-      while(next_tarraysfiterator(&iter, array, &node)) {
+   for (iteratedtype_tarraysf * node = 0; !node; node = (void*)1) {
+      while (next_tarraysfiterator(&iter, array, &node)) {
          TEST(node->node.pos == nextpos) ;
          ++ nextpos ;
       }

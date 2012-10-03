@@ -630,7 +630,7 @@ ONABORT:
 
 // section: arraystf_iterator_t
 
-int init_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array)
+int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array)
 {
    int err ;
    size_t        objectsize = sizeof(binarystack_t) ;
@@ -1339,7 +1339,7 @@ static int test_iterator(void)
 
    // TEST init, double free
    iter.ri = 1 ;
-   TEST(0 == init_arraytestiterator(&iter, array)) ;
+   TEST(0 == initfirst_arraytestiterator(&iter, array)) ;
    TEST(0 != iter.stack) ;
    TEST(0 == iter.ri) ;
    TEST(0 == free_arraytestiterator(&iter)) ;
@@ -1350,11 +1350,10 @@ static int test_iterator(void)
    TEST(0 == iter.ri) ;
 
    // TEST next_arraysfiterator
-   TEST(0 == init_arraytestiterator(&iter, array)) ;
+   TEST(0 == initfirst_arraytestiterator(&iter, array)) ;
    nextpos = 0 ;
-   {
-      typeof(iteratedtype_arraytest()) node ;
-      while(next_arraytestiterator(&iter, array, &node)) {
+   for (iteratedtype_arraytest * node = 0; !node; node = (void*)1) {
+      while (next_arraytestiterator(&iter, array, &node)) {
          char nextnr[6] ;
          snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
          TEST(0 == strcmp((const char*)node->node.addr, nextnr)) ;

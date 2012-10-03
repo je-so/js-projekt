@@ -20,8 +20,8 @@
    file: C-kern/api/ds/inmem/node/slist_node.h
     Header file of <SingleLinkedList-Node>.
 */
-#ifndef CKERN_DS_SLIST_NODE_HEADER
-#define CKERN_DS_SLIST_NODE_HEADER
+#ifndef CKERN_DS_INMEM_NODE_SLIST_NODE_HEADER
+#define CKERN_DS_INMEM_NODE_SLIST_NODE_HEADER
 
 /* typedef: struct slist_node_t
  * Exports <slist_node_t>. */
@@ -31,12 +31,12 @@ typedef struct slist_node_t            slist_node_t ;
 /* struct: slist_node_t
  * Provides the means for linking an object to another of the same type.
  * This kind of object is managed by the single linked list object <slist_t>.
- * The list allows to access nodes in sequential order in O(n).
+ * The next node can be reached from this node in O(1).
  * An object which wants to be member of a list must inherit from <slist_node_t>. */
 struct slist_node_t {
    /* variable: next
     * Points to next node in the list.
-    * If this node is currently not part of list this value is set to NULL. */
+    * If this node is currently not part of any list this value is set to NULL. */
    struct generic_object_t  * next ;
 } ;
 

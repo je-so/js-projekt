@@ -1398,7 +1398,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          }
       }
 
-      foreach(_langreflist, &textcopy->langlist, parsedlang) {
+      foreach (_langreflist, &textcopy->langlist, parsedlang) {
          parsedlang->lang->isdefined = false ;
       }
 
@@ -1991,7 +1991,7 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
       dprintf(writer->outfile, "#include \"%.*s\"\n\n", (int)progC->firstparam_header.size, progC->firstparam_header.addr) ;
    }
 
-   foreach(_arraytname, writer->txtres->textnames, text) {
+   foreach (_arraytname, writer->txtres->textnames, text) {
       err = writeCfctdeclaration_textresourcewriter(writer, text) ;
       if (err) goto ONABORT ;
       dprintf(writer->outfile, " ;\n") ;
@@ -2184,11 +2184,11 @@ static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
                                                                (int)lang->name.size, lang->name.addr) ;
       }
 
-      foreach(_arraylanguage, writer->txtres->languages, lang2) {
+      foreach (_arraylanguage, writer->txtres->languages, lang2) {
          dprintf(writer->outfile, "\n#undef %.*s", (int)lang2->name.size, lang2->name.addr) ;
       }
 
-      foreach(_arraytname, writer->txtres->textnames, text) {
+      foreach (_arraytname, writer->txtres->textnames, text) {
 
          err = writeCfunction_textresourcewriter(writer, text, lang) ;
          if (err) goto ONABORT ;

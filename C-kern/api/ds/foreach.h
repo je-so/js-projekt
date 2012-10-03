@@ -32,9 +32,15 @@
 // section: Functions
 
 /* define: foreach
- * Iterates over all elements from a container.
+ * Iterates over all elements from first to last stored in a container.
+ * In a sorted container the first element equals the smallest element
+ * and therefore the iteration is done in ascending order.
+ *
+ * Changing Container:
  * During iteration do not change the content of the container
- * except if the iterator allows it.
+ * except if the documentation of the iterator implementation allows it.
+ *
+ * Exiting loop:
  * It is possible to exit <foreach> loop by using *break*.
  * The initialized iterator is also freed in this case.
  * If you exit the loop by use of goto or any other exception handling
@@ -42,7 +48,7 @@
  *
  * Parameter:
  * _fctsuffix - The suffix of the container interface functions.
- *              This name is used to access the container functions offering suuporting an iterator interface.
+ *              This name is used to access the types and iterator functions.
  * container  - Pointer to container which contains all elements.
  * varname    - The name of the variable which iterates over all contained elements.
  *
@@ -50,35 +56,70 @@
  * A container type which wants to offer <foreach> functionality must implement the
  * following iterator interface:
  *
- * (start code)
- * iterator_t * iteratortype##_fctsuffix (void) ;
- * node_t     * iteratedtype##_fctsuffix (void) ;
- * int  init##_fctsuffix##iterator (iterator_t * iter, container_t * container) ;
- * int  free##_fctsuffix##iterator (iterator_t * iter) ;
- * bool next##_fctsuffix##iterator (iterator_t * iter, container_t * container, node_t ** node) ;
- * (end code)
+ * > typedef iterator_t iteratortype##_fctsuffix ;
+ * > typedef node_t     iteratedtype##_fctsuffix ;
+ * > int  initfirst##_fctsuffix##iterator(iterator_t * iter, container_t * container) ;
+ * > int  free##_fctsuffix##iterator(iterator_t * iter) ;
+ * > bool next##_fctsuffix##iterator(iterator_t * iter, container_t * container, node_t ** node) ;
  *
- * Example implementation:
- * - <slist_iterator_t>    Type of iterator.
- * - <init_slistiterator>  Initializes <slist_iterator_t> and allocates necessary resources.
- * - <free_slistiterator>  Frees resources associated with <slist_iterator_t>. This is called
- *                         after leaving the foreach loop automatically with either break or
- *                         if there is no more element in the container.
- * - <next_slistiterator>  Returns next element stored in container.
- * - <iteratortype_slist>  Connects <slist_t> with function suffix "_slist" to <slist_iterator_t>.
- * - <iteratedtype_slist>  Type of element (<slist_node_t>*) which is returned from call <next_slistiterator>.
- * */
-#define foreach(_fctsuffix, container, varname)                               \
-   for( int varname ## _once_ = 1; varname ## _once_; varname ## _once_ = 0)  \
-   for( typeof(* iteratortype ## _fctsuffix ()) varname ## _iter_ ;           \
-        varname ## _once_ &&                                                  \
-        (0 == init ## _fctsuffix ## iterator (                                \
-                     &varname ## _iter_, (container))) ;                      \
-        (void) free ## _fctsuffix ## iterator (                               \
-                     &varname ## _iter_), varname ## _once_ = 0)              \
-   for(  typeof(iteratedtype ## _fctsuffix ()) varname;                       \
-         next ## _fctsuffix ## iterator (                                     \
-                  &varname ## _iter_, (container), & varname); )
+ * The function like typedefs iteratortype##_fctsuffix and iteratedtype##_fctsuffix are used to
+ * get the type of the returned node from next##_fctsuffix##iterator and the type of
+ * the iterator.
+ *
+ * See <slist_t> for an example.
+ */
+#define foreach(_fsuffix, container, varname)                                 \
+   for (iteratedtype##_fsuffix * varname;;)                                   \
+   for (iteratortype##_fsuffix _iter_##varname ;                              \
+        0 == initfirst##_fsuffix##iterator(& _iter_##varname, (container));   \
+        (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname);    \
+                           break/*breaks outermost loop*/; })))               \
+   while (next##_fsuffix##iterator(&_iter_##varname, (container), &varname))
 
+
+/* define: foreachReverse
+ * Iterates over all elements from last to first stored in a container.
+ * In a sorted container the last element equals the biggest element
+ * and therefore the iteration is done in descending order.
+ *
+ * Changing Container:
+ * During iteration do not change the content of the container
+ * except if the documentation of the iterator implementation allows it.
+ *
+ * Exiting loop:
+ * It is possible to exit <foreachReverse> loop by using *break*.
+ * The initialized iterator is also freed in this case.
+ * If you exit the loop by use of goto or any other exception handling
+ * mechanism the iterator is *not* freed which may result in memory leaks.
+ *
+ * Parameter:
+ * _fctsuffix - The suffix of the container interface functions.
+ *              This name is used to access the types and iterator functions.
+ * container  - Pointer to container which contains all elements.
+ * varname    - The name of the variable which iterates over all contained elements.
+ *
+ * Explanation:
+ * A container type which wants to offer <foreachReverse> functionality must implement the
+ * following iterator interface:
+ *
+ * > typedef iterator_t iteratortype##_fctsuffix ;
+ * > typedef node_t     iteratedtype##_fctsuffix ;
+ * > int  initlast##_fctsuffix##iterator(iterator_t * iter, container_t * container) ;
+ * > int  free##_fctsuffix##iterator(iterator_t * iter) ;
+ * > bool prev##_fctsuffix##iterator(iterator_t * iter, container_t * container, node_t ** node) ;
+ *
+ * The function like typedefs iteratortype##_fctsuffix and iteratedtype##_fctsuffix are used to
+ * get the type of the returned node from next##_fctsuffix##iterator and the type of
+ * the iterator.
+ *
+ * See <dlist_t> for an example.
+ */
+#define foreachReverse(_fsuffix, container, varname)                          \
+   for (iteratedtype##_fsuffix * varname;;)                                   \
+   for (iteratortype##_fsuffix _iter_##varname ;                              \
+        0 == initlast##_fsuffix##iterator(& _iter_##varname, (container)) ;   \
+        (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname) ;   \
+                         break/*breaks outermost loop*/; })))                 \
+   while (prev##_fsuffix##iterator(&_iter_##varname, (container), &varname))
 
 #endif

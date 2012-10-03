@@ -247,7 +247,7 @@ static int test_initfree(void)
    typeadapter_iot typeadt     = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
    test_node_t     nodes[100]  = { { 0, 0 } } ;
 
-   // TEST static initializer
+   // TEST slist_INIT
    TEST(0 == slist.last) ;
 
    // TEST init, double free
@@ -322,7 +322,7 @@ ONABORT:
 
 static int test_query(void)
 {
-   slist_t        slist = slist_INIT ;
+   slist_t  slist = slist_INIT ;
 
    // TEST isempty
    TEST(1 == isempty_slist(&slist)) ;
@@ -331,26 +331,23 @@ static int test_query(void)
    slist.last = 0 ;
    TEST(1 == isempty_slist(&slist)) ;
 
-   // TEST getfirst
-   TEST((void*)0 == first_slist(&slist, offsetof(test_node_t, next))) ;
-   {
-      slist_node_t lastnode = { .next = (void*) 3 } ;
-      slist.last = (struct generic_object_t*)&lastnode ;
-      TEST((void*)3 == first_slist(&slist, offsetof(test_node_t, next))) ;
-      slist.last = 0 ;
-   }
-   TEST((void*)0 == first_slist(&slist, offsetof(test_node_t, next))) ;
-
-   // TEST getlast
-   TEST((void*)0 == last_slist(&slist)) ;
-   slist.last = (void*) 4 ;
-   TEST((void*)4 == last_slist(&slist)) ;
+   // TEST first_slist
+   TEST(0 == first_slist(&slist, offsetof(test_node_t, next))) ;
+   slist_node_t lastnode = { .next = (void*) 3 } ;
+   slist.last = (struct generic_object_t*)&lastnode ;
+   TEST(3 == (uintptr_t)first_slist(&slist, offsetof(test_node_t, next))) ;
    slist.last = 0 ;
-   TEST((void*)0 == last_slist(&slist)) ;
+   TEST(0 == first_slist(&slist, offsetof(test_node_t, next))) ;
+
+   // TEST last_slist
+   TEST(0 == last_slist(&slist)) ;
+   slist.last = (void*) 4 ;
+   TEST(4 == (uintptr_t)last_slist(&slist)) ;
+   slist.last = 0 ;
+   TEST(0 == last_slist(&slist)) ;
 
    return 0 ;
 ONABORT:
-   free_slist(&slist, 0, 0) ;
    return EINVAL ;
 }
 
@@ -380,6 +377,8 @@ static int test_iterate(void)
       TEST(idx   == 3) ;
       TEST(count == nrelementsof(nodes)) ;
    }
+
+   // TODO: make iterator more robust (support deleting current element + deleting last element) => only one iteration
 
    // unprepare
    TEST(0 == free_slist(&slist, &typeadt, 0)) ;
@@ -585,6 +584,8 @@ static int test_insertremove(void)
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
    }
+
+   // TODO: replace ESRCH with EINVAL
 
    // TEST ESRCH
    TEST(0 == init_slist(&slist)) ;

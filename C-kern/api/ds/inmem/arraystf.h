@@ -134,17 +134,17 @@ int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type) ;
  * If typeadp is set to 0 no free function is called for contained nodes. */
 int delete_arraystf(arraystf_t ** array, struct typeadapter_iot * typeadp) ;
 
-// group: iterate
+// group: foreach-support
 
-/* function: iteratortype_arraystf
- * Function declaration associates <arraystf_iterator_t> with <arraystf_t>.
- * The association is done with the type of the return value - there is no implementation. */
-arraystf_iterator_t * iteratortype_arraystf(void) ;
+/* typedef: iteratortype_arraystf
+ * Declaration to associate <arraystf_iterator_t> with <arraystf_t>.
+ * The association is done with a typedef which looks like a function. */
+typedef arraystf_iterator_t      iteratortype_arraystf ;
 
-/* function: iteratedtype_arraystf
- * Function declaration associates (<generic_object_t>*) with <arraystf_t>.
- * The association is done with the type of the return value - there is no implementation. */
-struct generic_object_t * iteratedtype_arraystf(void) ;
+/* typedef: iteratedtype_arraystf
+ * Function declaration to associate <generic_object_t> with <arraystf_t>.
+ * The association is done with a typedef which looks like a function. */
+typedef struct generic_object_t  iteratedtype_arraystf ;
 
 // group: query
 
@@ -199,21 +199,21 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
  * name_addr    - The member name (access path) in objecttype_t corresponding to the
  *                name of the first embedded member of <arraystf_node_t> - see <arraystf_node_EMBED>.
  * */
-#define arraystf_IMPLEMENT(objecttype_t, _fctsuffix, name_addr)  \
-   /*declare helper functions as always inline*/               \
+#define arraystf_IMPLEMENT(objecttype_t, _fctsuffix, name_addr)   \
+   typedef arraystf_iterator_t   iteratortype##_fctsuffix ;       \
+   typedef objecttype_t          iteratedtype##_fctsuffix ;       \
+   /*declare helper functions as always inline*/                  \
    static inline size_t offsetnode##_fctsuffix(void) __attribute__ ((always_inline)) ; \
-   /*declare function signatures as always inline*/            \
+   /*declare function signatures as always inline*/               \
    static inline int new##_fctsuffix(/*out*/arraystf_t ** array, arraystf_e type) __attribute__ ((always_inline)) ; \
    static inline int delete##_fctsuffix(arraystf_t ** array, struct typeadapter_iot * typeadp) __attribute__ ((always_inline)) ; \
-                 arraystf_iterator_t * iteratortype##_fctsuffix(void) ; \
-                 objecttype_t        * iteratedtype##_fctsuffix(void) ; \
    static inline size_t length##_fctsuffix(arraystf_t * array) __attribute__ ((always_inline)) ; \
    static inline objecttype_t * at##_fctsuffix(const arraystf_t * array, size_t size, const uint8_t keydata[size]) __attribute__ ((always_inline)) ; \
    static inline int insert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out*/objecttype_t ** inserted_node/*0=>copy not returned*/, struct typeadapter_iot * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
    static inline int tryinsert##_fctsuffix(arraystf_t * array, objecttype_t * node, /*out;err*/objecttype_t ** inserted_or_existing_node, struct typeadapter_iot * typeadp/*0=>no copy is made*/) __attribute__ ((always_inline)) ; \
    static inline int remove##_fctsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/objecttype_t ** removed_node/*could be 0*/) __attribute__ ((always_inline)) ; \
    static inline int tryremove##_fctsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/objecttype_t ** removed_node/*could be 0*/) __attribute__ ((always_inline)) ; \
-   static inline int init##_fctsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) __attribute__ ((always_inline)) ; \
+   static inline int initfirst##_fctsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) __attribute__ ((always_inline)) ; \
    static inline int free##_fctsuffix##iterator(arraystf_iterator_t * iter) __attribute__ ((always_inline)) ; \
    static inline bool next##_fctsuffix##iterator(arraystf_iterator_t * iter, arraystf_t * array, /*out*/objecttype_t ** node) __attribute__ ((always_inline)) ; \
    /*implement helper functions */ \
@@ -249,8 +249,8 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
       return tryremove_arraystf(array, size, keydata, (struct generic_object_t**)removed_node, offsetnode##_fctsuffix()) ; \
    } \
    /*implement iterator functions*/ \
-   static inline int init##_fctsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) { \
-      return init_arraystfiterator(iter, array) ; \
+   static inline int initfirst##_fctsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) { \
+      return initfirst_arraystfiterator(iter, array) ; \
    } \
    static inline int free##_fctsuffix##iterator(arraystf_iterator_t * iter) { \
       return free_arraystfiterator(iter) ; \
@@ -277,9 +277,9 @@ struct arraystf_iterator_t {
  * Static initializer. */
 #define arraystf_iterator_INIT_FREEABLE   { 0, 0 }
 
-/* function: init_arraystfiterator
+/* function: initfirst_arraystfiterator
  * Initializes an iterator for an <arraystf_t>. */
-int init_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) ;
+int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) ;
 
 /* function: free_arraystfiterator
  * Frees an iterator for an <arraystf_t>. */
@@ -289,7 +289,7 @@ int free_arraystfiterator(arraystf_iterator_t * iter) ;
 
 /* function: next_arraystfiterator
  * Returns next iterated node.
- * The first call after <init_arraystfiterator> returns the first array element
+ * The first call after <initfirst_arraystfiterator> returns the first array element
  * if it is not empty.
  *
  * Returns:
