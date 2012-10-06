@@ -32,7 +32,7 @@
 #include "C-kern/api/aspect/callback/free.h"
 #include "C-kern/api/aspect/callback/updatekey.h"
 
-/* about:Red black tree
+/* about: Red Black Tree
  *
  * See:
  * <http://en.wikipedia.org/wiki/Red_black_tree> for a description of the algorithm.

@@ -70,6 +70,17 @@ static int test_initfree(void)
       TEST(i == tinfo.memberoffset) ;
    }
 
+   // TEST isequal_typeadapttypeinfo
+   for (uint32_t i = 1; i <= 10; ++i) {
+      typeadapt_typeinfo_t tinfo2 = typeadapt_typeinfo_INIT(i) ;
+      init_typeadapttypeinfo(&tinfo, i) ;
+      TEST(isequal_typeadapttypeinfo(&tinfo, &tinfo2)) ;
+      TEST(isequal_typeadapttypeinfo(&tinfo2, &tinfo)) ;
+      init_typeadapttypeinfo(&tinfo, 0) ;
+      TEST(! isequal_typeadapttypeinfo(&tinfo, &tinfo2)) ;
+      TEST(! isequal_typeadapttypeinfo(&tinfo2, &tinfo)) ;
+   }
+
    return 0 ;
 ONABORT:
    return EINVAL ;

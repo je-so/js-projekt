@@ -65,9 +65,9 @@ typedef enum fpu_except_e              fpu_except_e ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_math_floatingpointunit
+/* function: unittest_math_fpu
  * Tests configuration interface of floating point unit. */
-int unittest_math_floatingpointunit(void) ;
+int unittest_math_fpu(void) ;
 #endif
 
 

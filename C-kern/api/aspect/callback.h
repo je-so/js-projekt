@@ -24,6 +24,8 @@
 #ifndef CKERN_ASPECT_CALLBACK_HEADER
 #define CKERN_ASPECT_CALLBACK_HEADER
 
+// TODO: remove callback after refblack tree moved in ds/inmem !!
+
 /* typedef: callback_param_t
  * Opaque first callback parameter type used as a place holder.
  *

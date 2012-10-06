@@ -1,6 +1,7 @@
 /* title: DoubleLinkedList-Node
 
-   Storage overhead needed by objects which
+   Defines node type <dlist_node_t> which can be stored in a
+   list of type <dlist_t>. Management overhead of objects which
    wants to be stored in a <dlist_t>.
 
    about: Copyright
@@ -56,7 +57,7 @@ struct dlist_node_t {
  * The next pointer is checked against NULL in the precondition of every insert function
  * of every list implementation. The <dlist_node_t.prev> pointer is omitted from the check.
  * This ensures that a node is not inserted in more than one list by mistake. */
-#define dlist_node_INIT     { 0, 0 }
+#define dlist_node_INIT                { 0, 0 }
 
 
 #endif

@@ -129,7 +129,7 @@ static int freenode_suffixtreeiteratoradapter(void * dummy, suffixtree_iterator_
  * List of <suffixtree_iterator_t> nodes. */
 slist_DECLARE(suffixtreeiterator_list_t, suffixtree_iterator_t)
 
-slist_IMPLEMENT(suffixtreeiterator_list_t, _iterlist, next)
+slist_IMPLEMENT(_iterlist, suffixtreeiterator_list_t, next)
 
 /* function: pushnew_iterlist
  * Creates new <suffixtree_iterator_t> and pushes onto <suffixtreeiterator_list_t>. */

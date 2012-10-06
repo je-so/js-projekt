@@ -3,24 +3,15 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="generic">
-    <File Name="../../C-kern/generic/depthtree.c"/>
-    <File Name="../../C-kern/generic/depthtree.h"/>
-    <File Name="../../C-kern/generic/set.h"/>
-    <File Name="../../C-kern/generic/rbtree.c"/>
-    <File Name="../../C-kern/generic/rbtree.h"/>
     <VirtualDirectory Name="trie">
       <File Name="../../C-kern/generic/trie/patricia.c"/>
       <File Name="../../C-kern/generic/trie/patricia.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="iterator">
-      <File Name="../../C-kern/generic/iterator/arraylist-it.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/konfig.h"/>
     <File Name="../../C-kern/README.txt"/>
     <File Name="../../C-kern/api/maincontext.h"/>
-    <File Name="../../C-kern/api/oostore.h"/>
     <File Name="../../C-kern/api/test.h"/>
     <VirtualDirectory Name="test">
       <File Name="../../C-kern/api/test/compiletime.h"/>
@@ -58,7 +49,6 @@
         <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="index">
-        <File Name="../../C-kern/api/platform/index/splaytree.h"/>
         <File Name="../../C-kern/api/platform/index/redblacktree.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/locale.h"/>
@@ -101,7 +91,6 @@
         <File Name="../../C-kern/api/aspect/callback/updatekey.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/callback.h"/>
-      <File Name="../../C-kern/api/aspect/treenode2.h"/>
       <File Name="../../C-kern/api/aspect/treenode3.h"/>
       <VirtualDirectory Name="constant">
         <File Name="../../C-kern/api/aspect/constant/spacetime.h"/>
@@ -140,14 +129,17 @@
           <File Name="../../C-kern/api/ds/inmem/node/arraystf_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/slist_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/dlist_node.h"/>
+          <File Name="../../C-kern/api/ds/inmem/node/lrtree_node.h"/>
         </VirtualDirectory>
         <File Name="../../C-kern/api/ds/inmem/suffixtree.h"/>
         <File Name="../../C-kern/api/ds/inmem/dlist.h"/>
+        <File Name="../../C-kern/api/ds/inmem/splaytree.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/typeadapter.h"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
       <VirtualDirectory Name="typeadapt">
+        <File Name="../../C-kern/api/ds/typeadapt/keycomparator.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/lifetime.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/typeinfo.h"/>
       </VirtualDirectory>
@@ -195,9 +187,6 @@
         <File Name="../../C-kern/api/presentation/X11/display.h"/>
         <File Name="../../C-kern/api/presentation/X11/glxwindow.h"/>
         <File Name="../../C-kern/api/presentation/X11/x11.h"/>
-        <VirtualDirectory Name="internal">
-          <File Name="../../C-kern/api/presentation/X11/internal/display_oostore.h"/>
-        </VirtualDirectory>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
@@ -260,7 +249,6 @@
     <VirtualDirectory Name="speed">
       <File Name="../../C-kern/test/speed/run_speedcmp_linuxsplice.c"/>
       <File Name="../../C-kern/test/speed/run_speedcmp_madvise.c"/>
-      <File Name="../../C-kern/test/speed/run_speedcmp_set.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/test/resourceusage.c"/>
     <File Name="../../C-kern/test/errortimer.c"/>
@@ -322,9 +310,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
-      <File Name="../../C-kern/platform/shared/oostore.c"/>
       <VirtualDirectory Name="index">
-        <File Name="../../C-kern/platform/shared/index/splaytree.c"/>
         <File Name="../../C-kern/platform/shared/index/redblacktree.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
@@ -375,10 +361,12 @@
       <File Name="../../C-kern/ds/inmem/arraystf.c"/>
       <File Name="../../C-kern/ds/inmem/suffixtree.c"/>
       <File Name="../../C-kern/ds/inmem/dlist.c"/>
+      <File Name="../../C-kern/ds/inmem/splaytree.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <File Name="../../C-kern/ds/typeadapter.c"/>
     <VirtualDirectory Name="typeadapt">
+      <File Name="../../C-kern/ds/typeadapt/keycomparator.c"/>
       <File Name="../../C-kern/ds/typeadapt/lifetime.c"/>
       <File Name="../../C-kern/ds/typeadapt/typeinfo.c"/>
     </VirtualDirectory>

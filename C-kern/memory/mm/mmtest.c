@@ -1118,8 +1118,8 @@ static int test_allocate(void)
    // TEST setresizeerr_mmtest, setfreeeerr_mmtest
    test_errortimer_t errtimer1 ;
    test_errortimer_t errtimer2 ;
-   TEST(0 == init_testerrortimer(&errtimer1, 2, EPROTO)) ;
-   TEST(0 == init_testerrortimer(&errtimer2, 5, EPERM)) ;
+   init_testerrortimer(&errtimer1, 2, EPROTO) ;
+   init_testerrortimer(&errtimer2, 5, EPERM) ;
    TEST(0 == mmtest.simulateResizeError)
    setresizeerr_mmtest(&mmtest, &errtimer1) ;
    TEST(&errtimer1 == mmtest.simulateResizeError)
@@ -1140,8 +1140,8 @@ static int test_allocate(void)
    TEST(0 == mfree_mmtest(&mmtest, &memblocks[1])) ;
 
    // TEST setresizeerr_mmtest, setfreeeerr_mmtest: after firing pointer to timer are cleared
-   TEST(0 == init_testerrortimer(&errtimer1, 1, ENOMEM)) ;
-   TEST(0 == init_testerrortimer(&errtimer2, 1, EINVAL)) ;
+   init_testerrortimer(&errtimer1, 1, ENOMEM) ;
+   init_testerrortimer(&errtimer2, 1, EINVAL) ;
    TEST(0 == mmtest.simulateResizeError) ;
    setresizeerr_mmtest(&mmtest, &errtimer1) ;
    TEST(&errtimer1 == mmtest.simulateResizeError) ;
@@ -1154,8 +1154,8 @@ static int test_allocate(void)
    TEST(0 == mmtest.simulateFreeError)
 
    // TEST setresizeerr_mmtest, setfreeeerr_mmtest: value 0 disarms error timer
-   TEST(0 == init_testerrortimer(&errtimer1, 1, ENOMEM)) ;
-   TEST(0 == init_testerrortimer(&errtimer2, 1, EINVAL)) ;
+   init_testerrortimer(&errtimer1, 1, ENOMEM) ;
+   init_testerrortimer(&errtimer2, 1, EINVAL) ;
    setresizeerr_mmtest(&mmtest, &errtimer1) ;
    setfreeerr_mmtest(&mmtest, &errtimer2) ;
    setresizeerr_mmtest(&mmtest, 0) ;

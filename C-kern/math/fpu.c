@@ -455,7 +455,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_math_floatingpointunit()
+int unittest_math_fpu()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

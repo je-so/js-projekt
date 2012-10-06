@@ -39,7 +39,7 @@ typedef struct valuecache_t            valuecache_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_cache_valuecache
  * Test allocation and free works. */
-extern int unittest_cache_valuecache(void) ;
+int unittest_cache_valuecache(void) ;
 #endif
 
 
@@ -49,18 +49,18 @@ struct valuecache_t {
    /* variable: pagesize_vm
     * The size of a virtual memory page in bytes.
     * Same value as returned by <sys_pagesize_vm>.  */
-   size_t         pagesize_vm ;
+   uint32_t       pagesize_vm ;
 } ;
 
 // group: init
 
 /* function: initonce_valuecache
  * Sets valuecache pointer to a singleton object. */
-extern int initonce_valuecache(/*out*/valuecache_t ** valuecache) ;
+int initonce_valuecache(/*out*/valuecache_t ** valuecache) ;
 
 /* function: freeonce_valuecache
  * Resets the pointer to null. Singleton is never freed. */
-extern int freeonce_valuecache(valuecache_t ** valuecache) ;
+int freeonce_valuecache(valuecache_t ** valuecache) ;
 
 // group: lifetime
 

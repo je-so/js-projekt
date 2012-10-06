@@ -164,7 +164,7 @@ static int test_initfree(void)
 
    // TEST EINVAL init
    for(int i = 0; i <= nrsvc; ++i) {
-      TEST(0 == init_testerrortimer(&s_error_init, 1u+(unsigned)i, EINVAL+i)) ;
+      init_testerrortimer(&s_error_init, 1u+(unsigned)i, EINVAL+i) ;
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
       TEST(EINVAL+i == init_threadcontext(&tcontext)) ;
       TEST(0 == tcontext.initcount) ;

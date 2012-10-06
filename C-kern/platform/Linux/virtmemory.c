@@ -60,10 +60,11 @@ struct vm_regionsarray_t
 
 /* function: sys_pagesize_vm
  * Uses sysconf(_SC_PAGESIZE) which conforms to POSIX.1-2001. */
-size_t sys_pagesize_vm()
+uint32_t sys_pagesize_vm()
 {
-   size_t ps = (size_t) sysconf(_SC_PAGESIZE) ;
-   return ps ;
+   long ps = sysconf(_SC_PAGESIZE) ;
+   assert(0 < ps && (unsigned long)ps <= 0x80000000) ;
+   return (uint32_t)ps ;
 }
 
 
@@ -117,7 +118,7 @@ ONABORT:
    return err ;
 }
 
-int free_vmmappedregions(vm_mappedregions_t * mappedregions )
+int free_vmmappedregions(vm_mappedregions_t * mappedregions)
 {
    vm_regionsarray_t    * first = mappedregions->first_array ;
    for (vm_regionsarray_t * next ; first ; first = next) {

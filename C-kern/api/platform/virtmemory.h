@@ -53,12 +53,12 @@ typedef struct vm_regionsarray_t       vm_regionsarray_t ;
 /* function: pagesize_vm
  * Returns the virtual memory page size supported by the underlying system.
  * This function returns a cached value. */
-size_t pagesize_vm(void) ;
+uint32_t pagesize_vm(void) ;
 
 /* function: sys_pagesize_vm
  * Returns the virtual memory page size supported by the underlying system.
  * This functions always calls the underlying system function. */
-size_t sys_pagesize_vm(void) ;
+uint32_t sys_pagesize_vm(void) ;
 
 // group: test
 
@@ -249,18 +249,15 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator) ;
 
 /* define: init_vmblock
  * Implements <vm_block_t.init_vmblock> with help of <vm_block_t.init2_vmblock>. */
-#define init_vmblock(vmblock, size_in_pages) \
-   (init2_vmblock( vmblock, size_in_pages, accessmode_RDWR|accessmode_PRIVATE ))
+#define init_vmblock(vmblock, size_in_pages)    (init2_vmblock( vmblock, size_in_pages, accessmode_RDWR|accessmode_PRIVATE ))
 
 /* define: pagesize_vm
  * Uses cached value from <valuecache_maincontext>. */
-#define pagesize_vm() \
-   (valuecache_maincontext()->pagesize_vm)
+#define pagesize_vm()                           (valuecache_maincontext()->pagesize_vm)
 
 /* define: size_vmmappedregions
  * Returns <vm_mappedregions_t->total_count>.
  * Inline implementation of <vm_mappedregions_t.size_vmmappedregions>. */
-#define size_vmmappedregions(mappedregions) \
-   ((mappedregions)->total_count)
+#define size_vmmappedregions(mappedregions)     ((mappedregions)->total_count)
 
 #endif

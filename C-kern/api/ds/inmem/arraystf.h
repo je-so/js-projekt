@@ -27,9 +27,9 @@
 #define CKERN_DS_INMEM_ARRAYSTF_HEADER
 
 // forward
-struct generic_object_t ;
 union arraystf_unode_t ;
 struct binarystack_t ;
+struct generic_object_t ;
 struct typeadapter_iot ;
 
 /* typedef: struct arraystf_t
@@ -194,12 +194,12 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
  *
  *
  * Parameter:
- * objecttype_t -
- * _fctsuffix   - It is the suffix of the generated <arraysf_t> interface functions.
+ * _fctsuffix   - It is the suffix of the generated container interface functions which wraps all calls to <arraystf_t>.
+ * objecttype_t - The object which is stored in this container derived from generic <arraystf_t>.
  * name_addr    - The member name (access path) in objecttype_t corresponding to the
  *                name of the first embedded member of <arraystf_node_t> - see <arraystf_node_EMBED>.
  * */
-#define arraystf_IMPLEMENT(objecttype_t, _fctsuffix, name_addr)   \
+#define arraystf_IMPLEMENT(_fctsuffix, objecttype_t, name_addr)   \
    typedef arraystf_iterator_t   iteratortype##_fctsuffix ;       \
    typedef objecttype_t          iteratedtype##_fctsuffix ;       \
    /*declare helper functions as always inline*/                  \

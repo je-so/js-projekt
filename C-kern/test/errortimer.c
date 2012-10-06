@@ -44,12 +44,12 @@ static int test_initfree(void)
    TEST(0 == errtimer.errcode) ;
 
    // TEST init
-   TEST(0 == init_testerrortimer(&errtimer, 123, 200)) ;
+   init_testerrortimer(&errtimer, 123, 200) ;
    TEST(123 == errtimer.timercount) ;
    TEST(200 == errtimer.errcode) ;
 
    // TEST process_testerrortimer
-   TEST(0 == init_testerrortimer(&errtimer, 11, -2)) ;
+   init_testerrortimer(&errtimer, 11, -2) ;
    TEST(11 == errtimer.timercount) ;
    TEST(-2 == errtimer.errcode) ;
    for(int i = 1; i < 11; ++i) {
@@ -66,7 +66,7 @@ static int test_initfree(void)
 
    // TEST ONERROR_testerrortimer
    int err = 0 ;
-   TEST(0 == init_testerrortimer(&errtimer, 2, 3)) ;
+   init_testerrortimer(&errtimer, 2, 3) ;
    ONERROR_testerrortimer(&errtimer, ONABORT) ;
    TEST(0 == err) ;
    TEST(1 == errtimer.timercount) ;

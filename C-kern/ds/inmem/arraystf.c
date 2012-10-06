@@ -31,6 +31,7 @@
 #include "C-kern/api/ds/typeadapter.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/log2.h"
+#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
@@ -689,9 +690,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
 
    for (;;) {
 
-      pos = (arraystf_pos_t*) lastpushed_binarystack(iter->stack, sizeof(arraystf_pos_t)) ;
-
-      if (0 == pos/*isempty_binarystack(iter->stack)*/) {
+      if (isempty_binarystack(iter->stack)) {
 
          arraystf_unode_t * rootnode ;
 
@@ -709,12 +708,14 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
             }
          }
 
-         err = pushgeneric_binarystack(iter->stack, &pos) ;
+         err = push_binarystack(iter->stack, &pos) ;
          if (err) goto ONABORT ;
 
          pos->branch = asbranch_arraystfunode(rootnode) ;
          pos->ci     = 0 ;
 
+      } else {
+         pos = top_binarystack(iter->stack) ;
       }
 
       for (;;) {
@@ -730,7 +731,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
 
          if (childnode) {
             if (isbranchtype_arraystfunode(childnode)) {
-               err = pushgeneric_binarystack(iter->stack, &pos) ;
+               err = push_binarystack(iter->stack, &pos) ;
                if (err) goto ONABORT ;
                pos->branch = asbranch_arraystfunode(childnode) ;
                pos->ci     = 0 ;
@@ -899,7 +900,7 @@ static int test_freenodeerr(typeadapter_t * typeimpl, testnode_t * node)
 
 typeadapter_it_DECLARE(testnode_typeadapter_it, typeadapter_t, testnode_t)
 
-arraystf_IMPLEMENT(testnode_t, _arraytest, node.addr)
+arraystf_IMPLEMENT(_arraytest, testnode_t, node.addr)
 
 static int test_initfree(void)
 {
@@ -1460,7 +1461,7 @@ ONABORT:
    return EINVAL ;
 }
 
-arraystf_IMPLEMENT(testnode_t, _arraytest2, node2.addr)
+arraystf_IMPLEMENT(_arraytest2, testnode_t, node2.addr)
 
 static int test_generic(void)
 {

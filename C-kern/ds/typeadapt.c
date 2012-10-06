@@ -45,13 +45,18 @@ struct testobject_t {
       bool  is_newcopy ;
       bool  is_delete ;
    } lifetime ;
+   struct {
+      bool  is_cmpkeyobj ;
+      bool  is_cmpobj ;
+   } keycomparator ;
+   double key ;
 } ;
 
 /* struct: testadapt_t
  * Implements adapter for type <testobject_t>. */
 struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testobject_t) ;
+      typeadapt_EMBED(testadapt_t, testobject_t, double) ;
    } ;
    int call_count ;
 } ;
@@ -70,6 +75,19 @@ static int impl_delete_testadapt(testadapt_t * typeadp, struct testobject_t ** o
    return (typeadp->call_count ++) ;
 }
 
+static int impl_cmpkeyobj_testadapt(testadapt_t * typeadp, const double * lkey, const struct testobject_t * robject)
+{
+   ++ * CONST_CAST(double,lkey) ;
+   CONST_CAST(testobject_t,robject)->keycomparator.is_cmpkeyobj = true ;
+   return (typeadp->call_count ++) ;
+}
+
+static int impl_cmpobj_testadapt(testadapt_t * typeadp, const struct testobject_t * lobject, const struct testobject_t * robject)
+{
+   CONST_CAST(testobject_t,lobject)->keycomparator.is_cmpobj = true ;
+   CONST_CAST(testobject_t,robject)->keycomparator.is_cmpobj = true ;
+   return (typeadp->call_count ++) ;
+}
 
 static int test_initfree(void)
 {
@@ -78,27 +96,63 @@ static int test_initfree(void)
    // TEST typeadapt_INIT_FREEABLE
    TEST(0 == typeadp.lifetime.newcopy_object) ;
    TEST(0 == typeadp.lifetime.delete_object) ;
+   TEST(0 == typeadp.keycomparator.cmp_object) ;
+   TEST(0 == typeadp.keycomparator.cmp_key_object) ;
 
-   // TEST typeadapt_INIT
-   typeadp = (typeadapt_t) typeadapt_INIT( (typeof(typeadp.lifetime.newcopy_object))1,
-                                           (typeof(typeadp.lifetime.delete_object))2) ;
-   TEST(typeadp.lifetime.newcopy_object == (typeof(typeadp.lifetime.newcopy_object))1) ;
-   TEST(typeadp.lifetime.delete_object  == (typeof(typeadp.lifetime.delete_object))2) ;
+   // TEST typeadapt_INIT_LIFETIME
+   memset(&typeadp, 1, sizeof(typeadp)) ;
+   typeadp = (typeadapt_t) typeadapt_INIT_LIFETIME((typeof(((typeadapt_lifetime_it*)0)->newcopy_object))1,
+                                                   (typeof(((typeadapt_lifetime_it*)0)->delete_object))2) ;
+   TEST(typeadp.lifetime.newcopy_object  == (typeof(((typeadapt_lifetime_it*)0)->newcopy_object))1) ;
+   TEST(typeadp.lifetime.delete_object   == (typeof(((typeadapt_lifetime_it*)0)->delete_object))2) ;
+   TEST(typeadp.keycomparator.cmp_object == 0) ;
+   TEST(typeadp.keycomparator.cmp_key_object == 0) ;
+
+   // TEST typeadapt_INIT_KEYCMP
+   memset(&typeadp, 1, sizeof(typeadp)) ;
+   typeadp = (typeadapt_t) typeadapt_INIT_KEYCMP((typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))1,
+                                                 (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))2) ;
+   TEST(typeadp.lifetime.newcopy_object  == 0) ;
+   TEST(typeadp.lifetime.delete_object   == 0) ;
+   TEST(typeadp.keycomparator.cmp_key_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))1) ;
+   TEST(typeadp.keycomparator.cmp_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))2) ;
+
+   // TEST typeadapt_INIT_LIFEKEYCMP
+   memset(&typeadp, 1, sizeof(typeadp)) ;
+   typeadp = (typeadapt_t) typeadapt_INIT_LIFEKEYCMP((typeof(((typeadapt_lifetime_it*)0)->newcopy_object))3,
+                                                     (typeof(((typeadapt_lifetime_it*)0)->delete_object))4,
+                                                     (typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))5,
+                                                     (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))6) ;
+   TEST(typeadp.lifetime.newcopy_object  == (typeof(((typeadapt_lifetime_it*)0)->newcopy_object))3) ;
+   TEST(typeadp.lifetime.delete_object   == (typeof(((typeadapt_lifetime_it*)0)->delete_object))4) ;
+   TEST(typeadp.keycomparator.cmp_key_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))5) ;
+   TEST(typeadp.keycomparator.cmp_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))6) ;
 
    return 0 ;
 ONABORT:
    return EINVAL ;
 }
 
+static bool isequal_testobject(const testobject_t * lobj, const testobject_t * robj)
+{
+   return   lobj->lifetime.is_newcopy == robj->lifetime.is_newcopy
+            && lobj->lifetime.is_delete == robj->lifetime.is_delete
+            && lobj->keycomparator.is_cmpkeyobj == robj->keycomparator.is_cmpkeyobj
+            && lobj->keycomparator.is_cmpobj == robj->keycomparator.is_cmpobj ;
+}
+
 static int test_generic(void)
 {
-   testadapt_t    testadp      = { typeadapt_INIT(&impl_newcopy_testadapt, &impl_delete_testadapt), 0 } ;
-   testobject_t   testobj[100] = { { .lifetime = {0,0} } } ;
+   testadapt_t    testadp      = {
+      typeadapt_INIT_LIFEKEYCMP(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+      0
+   } ;
+   testobject_t   testobj[100] = { { .lifetime = {0,0}, .keycomparator = {0,0}, .key = 0 } } ;
    testobject_t   * objptr ;
 
    // TEST asgeneric_typeadapt
-   TEST((typeadapt_t*)0        == asgeneric_typeadapt((testadapt_t*)0, testadapt_t, testobject_t)) ;
-   TEST((typeadapt_t*)&testadp == asgeneric_typeadapt(&testadp, testadapt_t, testobject_t)) ;
+   TEST((typeadapt_t*)0        == asgeneric_typeadapt((testadapt_t*)0, testadapt_t, testobject_t, double)) ;
+   TEST((typeadapt_t*)&testadp == asgeneric_typeadapt(&testadp, testadapt_t, testobject_t, double)) ;
 
    // TEST callnewcopy_typeadapt
    for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
@@ -109,8 +163,8 @@ static int test_generic(void)
       TEST(result + 1 == testadp.call_count) ;
    }
    for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
-      TEST(true  == testobj[i].lifetime.is_newcopy) ;
-      TEST(false == testobj[i].lifetime.is_delete) ;
+      const testobject_t result = { .lifetime = { .is_newcopy = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].lifetime.is_newcopy = false ;
    }
 
@@ -123,9 +177,71 @@ static int test_generic(void)
       TEST(result + 1 == testadp.call_count) ;
    }
    for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
-      TEST(false == testobj[i].lifetime.is_newcopy) ;
-      TEST(true  == testobj[i].lifetime.is_delete) ;
+      const testobject_t result = { .lifetime = { .is_delete = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].lifetime.is_delete = false ;
+   }
+
+   // TEST callcmpkeyobj_typeadapt
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      int result = testadp.call_count ;
+      double key = i ;
+      TEST(result == callcmpkeyobj_typeadapt(&testadp, &key, &testobj[i])) ;
+      TEST(i + 1  == key) ;
+      TEST(result + 1 == testadp.call_count) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      const testobject_t result = { .keycomparator = { .is_cmpkeyobj = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
+      testobj[i].keycomparator.is_cmpkeyobj = false ;
+   }
+
+   // TEST callcmpobj_typeadapt
+   for (unsigned i = 0; i < nrelementsof(testobj); i += 2) {
+      int result = testadp.call_count ;
+      TEST(result == callcmpobj_typeadapt(&testadp, &testobj[i], &testobj[i+1])) ;
+      TEST(result + 1 == testadp.call_count) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      const testobject_t result = { .keycomparator = { .is_cmpobj = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
+      testobj[i].keycomparator.is_cmpobj = false ;
+   }
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_typeadaptmember(void)
+{
+   typeadapt_member_t   nodeadp = typeadapt_member_INIT_FREEABLE ;
+   typeadapt_typeinfo_t tinfo   = typeadapt_typeinfo_INIT(0) ;
+
+   // TEST typeadapt_member_INIT_FREEABLE
+   TEST(0 == nodeadp.typeadp) ;
+   TEST(isequal_typeadapttypeinfo(&tinfo, &nodeadp.typeinfo)) ;
+
+   // TEST typeadapt_member_INIT
+   for(unsigned i = 1; i; i <<= 1) {
+      nodeadp = (typeadapt_member_t) typeadapt_member_INIT((typeadapt_t*)i, i+1) ;
+      tinfo   = (typeadapt_typeinfo_t) typeadapt_typeinfo_INIT(i+1) ;
+      TEST((typeadapt_t*)i == nodeadp.typeadp) ;
+      TEST(isequal_typeadapttypeinfo(&tinfo, &nodeadp.typeinfo)) ;
+   }
+
+   // TEST isequal_typeadaptmember
+   for(unsigned i = 1; i; i <<= 1) {
+      nodeadp = (typeadapt_member_t) typeadapt_member_INIT((typeadapt_t*)i, i+1) ;
+      typeadapt_member_t nodeadp2 = { .typeadp = (typeadapt_t*)i, { i+1 } } ;
+      TEST(isequal_typeadaptmember(&nodeadp2, &nodeadp)) ;
+      TEST(isequal_typeadaptmember(&nodeadp, &nodeadp2)) ;
+      nodeadp2 = (typeadapt_member_t) { .typeadp = (typeadapt_t*)(i+1), { i+1 } } ;
+      TEST(!isequal_typeadaptmember(&nodeadp2, &nodeadp)) ;
+      TEST(!isequal_typeadaptmember(&nodeadp, &nodeadp2)) ;
+      nodeadp2 = (typeadapt_member_t) { .typeadp = (typeadapt_t*)i, { i } } ;
+      TEST(!isequal_typeadaptmember(&nodeadp2, &nodeadp)) ;
+      TEST(!isequal_typeadaptmember(&nodeadp, &nodeadp2)) ;
    }
 
    return 0 ;
@@ -139,8 +255,9 @@ int unittest_ds_typeadapt()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ONABORT ;
-   if (test_generic())        goto ONABORT ;
+   if (test_initfree())          goto ONABORT ;
+   if (test_generic())           goto ONABORT ;
+   if (test_typeadaptmember())   goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

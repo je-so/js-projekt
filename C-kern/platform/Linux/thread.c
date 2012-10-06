@@ -1379,7 +1379,7 @@ static int test_thread_array(void)
 
    // Test error in newmany => executing UNDO_LOOP
    for(int i = 1; i < 27; i += 1) {
-      TEST(0 == init_testerrortimer(&s_error_newgroup, (unsigned)i, 99 + i)) ;
+      init_testerrortimer(&s_error_newgroup, (unsigned)i, 99 + i) ;
       s_returncode_signal = 1 ;
       TEST((99 + i) == newgroup_thread(&thread, thread_returncode, 0, 33)) ;
    }

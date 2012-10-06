@@ -2741,13 +2741,13 @@ static int test_initfree(void)
 
    // TEST init: ENOMEM
    test_errortimer_t errtimer ;
-   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   init_testerrortimer(&errtimer, 1, ENOMEM) ;
    setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
    TEST(ENOMEM == new_decimal(&dec, 1)) ;
 
    // TEST free: ENOMEM
    TEST(0 == new_decimal(&dec, 1)) ;
-   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   init_testerrortimer(&errtimer, 1, ENOMEM) ;
    setfreeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
    TEST(ENOMEM == delete_decimal(&dec)) ;
    TEST(0 == dec) ;
@@ -3081,14 +3081,14 @@ static int test_setfromint(void)
    // TEST setfromint32_decimal: ENOMEM
    test_errortimer_t errtimer ;
    TEST(0 == new_decimal(&dec, 1)) ;
-   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   init_testerrortimer(&errtimer, 1, ENOMEM) ;
    setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
    TEST(ENOMEM == setfromint32_decimal(&dec, DIGITSBASE, 0)) ;
    TEST(0 == delete_decimal(&dec)) ;
 
    // TEST setfromint64_decimal: ENOMEM
    TEST(0 == new_decimal(&dec, 2)) ;
-   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   init_testerrortimer(&errtimer, 1, ENOMEM) ;
    setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
    TEST(ENOMEM == setfromint64_decimal(&dec, (uint64_t)DIGITSBASE*DIGITSBASE, 0)) ;
    TEST(0 == delete_decimal(&dec)) ;

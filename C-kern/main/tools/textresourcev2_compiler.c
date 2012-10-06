@@ -204,7 +204,7 @@ struct textresource_parameterlist_t {
    textresource_parameter_t   * last ;
 } ;
 
-slist_IMPLEMENT(textresource_parameterlist_t, _paramlist, next)
+slist_IMPLEMENT(_paramlist, textresource_parameterlist_t, next)
 
 
 /* struct: textresource_textatom_t
@@ -243,7 +243,7 @@ struct textresource_textatomlist_t {
    textresource_textatom_t * last ;
 } ;
 
-slist_IMPLEMENT(textresource_textatomlist_t, _textatomlist, next)
+slist_IMPLEMENT(_textatomlist, textresource_textatomlist_t, next)
 
 
 /* struct: textresource_condition_t
@@ -346,7 +346,7 @@ struct textresource_conditionlist_t {
    textresource_condition_t  * last ;
 } ;
 
-slist_IMPLEMENT(textresource_conditionlist_t, _conditionlist, next)
+slist_IMPLEMENT(_conditionlist, textresource_conditionlist_t, next)
 
 
 /* struct: textresource_langref_t
@@ -444,7 +444,7 @@ struct textresource_langreflist_t {
    textresource_langref_t    * last ;
 } ;
 
-slist_IMPLEMENT(textresource_langreflist_t, _langreflist, next)
+slist_IMPLEMENT(_langreflist, textresource_langreflist_t, next)
 
 
 /* struct: textresource_text_t
@@ -462,7 +462,7 @@ struct textresource_text_t {
    textresource_langreflist_t    langlist ;
 } ;
 
-arraystf_IMPLEMENT(textresource_parameter_t, _arrayparam, name.addr)
+arraystf_IMPLEMENT(_arrayparam, textresource_parameter_t, name.addr)
 
 static int copyobj_textresourcetext(typeadapter_t * typeadt, /*out*/textresource_text_t ** textcopy, textresource_text_t * text) ;
 static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t * text) ;
@@ -571,9 +571,9 @@ struct textresource_t {
    proglangC_t       progC ;
 } ;
 
-arraystf_IMPLEMENT(textresource_text_t, _arraytname, name.addr)
-arraystf_IMPLEMENT(textresource_paramtype_t, _arrayptype, name.addr)
-arraystf_IMPLEMENT(textresource_language_t, _arraylanguage, name.addr)
+arraystf_IMPLEMENT(_arraytname, textresource_text_t, name.addr)
+arraystf_IMPLEMENT(_arrayptype, textresource_paramtype_t, name.addr)
+arraystf_IMPLEMENT(_arraylanguage, textresource_language_t, name.addr)
 
 // group: lifetime
 

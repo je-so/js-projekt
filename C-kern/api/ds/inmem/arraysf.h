@@ -27,9 +27,9 @@
 #define CKERN_DS_INMEM_ARRAYSF_HEADER
 
 // forward
-struct generic_object_t ;
 union arraysf_unode_t ;
 struct binarystack_t ;
+struct generic_object_t ;
 struct typeadapter_iot ;
 
 /* typedef: struct arraysf_t
@@ -177,12 +177,12 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct generic_objec
  *
  *
  * Parameter:
- * objecttype_t -
- * _fctsuffix   - It is the suffix of the generated <arraysf_t> interface functions.
+ * _fctsuffix   - It is the suffix of the generated container interface functions which wraps all calls to <arraysf_t>.
+ * objecttype_t - The object which is stored in this container derived from generic <arraysf_t>.
  * name_pos     - The member name (access path) in objecttype_t corresponding to the
  *                name of the first embedded member of <arraysf_node_t> - see <arraysf_node_EMBED>.
  * */
-#define arraysf_IMPLEMENT(objecttype_t, _fctsuffix, name_pos)  \
+#define arraysf_IMPLEMENT(_fctsuffix, objecttype_t, name_pos)  \
    typedef arraysf_iterator_t    iteratortype##_fctsuffix ;    \
    typedef objecttype_t          iteratedtype##_fctsuffix ;    \
    /*declare helper functions as always inline*/               \

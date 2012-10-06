@@ -63,7 +63,7 @@ struct test_errortimer_t {
  * timercount  - The number of times after <process_testerrortimer> returns an error.
  * errcode     - The errorcode <process_testerrortimer> returns in timer has fired.
  * */
-int init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t timercount, int errcode) ;
+void init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t timercount, int errcode) ;
 
 /* function: process_testerrortimer
  * Returns error if timer has elapsed else 0.
@@ -84,12 +84,7 @@ void ONERROR_testerrortimer(test_errortimer_t * errtimer, void ** ONERROR_LABEL)
 
 /* define: init_testerrortimer
  * Implements <test_errortimer_t.init_testerrortimer>. */
-#define init_testerrortimer(errtimer, timercount, errcode)        \
-   ( __extension__ ({                                             \
-      *(errtimer) = (test_errortimer_t){ timercount, errcode } ;  \
-      0 ;                                                         \
-   }))
-
+#define init_testerrortimer(errtimer, timercount, errcode)     ((void) (*(errtimer) = (test_errortimer_t){ timercount, errcode }))
 
 /* define: process_testerrortimer
  * Implements <test_errortimer_t.process_testerrortimer>. */

@@ -92,12 +92,12 @@ static iocontroler_iocb_typeadapter_iot         s_iocontroler_iocb_adapter_iot  
 /* define: slist_IMPLEMENT_iocblist
  * Implements <slist_t> for <iocontroler_iocb_t> managed by <iocontoler_iocblist_t>.
  * See <slist_IMPLEMENT>. */
-slist_IMPLEMENT(iocontoler_iocblist_t, _iocblist, next)
+slist_IMPLEMENT(_iocblist, iocontoler_iocblist_t, next)
 
 /* define: arraysf_IMPLEMENT_iocbarray
  * Implements <arraysf_t> for <iocontroler_iocb_t> managed by <arraysf_t>.
  * See <arraysf_IMPLEMENT>. */
-arraysf_IMPLEMENT(iocontroler_iocb_t, _iocbarray, fd)
+arraysf_IMPLEMENT(_iocbarray, iocontroler_iocb_t, fd)
 
 
 // section: iocontroler_t

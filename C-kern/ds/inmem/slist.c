@@ -616,8 +616,8 @@ struct gnode_t {
 
 slist_DECLARE(slist1_t, gnode_t)
 slist_DECLARE(slist2_t, gnode_t)
-slist_IMPLEMENT(slist1_t, _slist1, next)
-slist_IMPLEMENT(slist2_t, _slist2, next2)
+slist_IMPLEMENT(_slist1, slist1_t, next)
+slist_IMPLEMENT(_slist2, slist2_t, next2)
 
 static int gnode_freecb(typeadapter_t * typeimpl, gnode_t * node)
 {
@@ -712,7 +712,7 @@ static int test_generic(void)
    {
       unsigned i = nrelementsof(nodes) ;
       gnode_t * nodex = first_slist2(&slist2) ;
-      while( nodex ) {
+      while (nodex) {
          -- i ;
          TEST(nodex == &nodes[i]) ;
          nodex = (nodex == last_slist2(&slist2)) ? 0 : next_slist2(nodex) ;

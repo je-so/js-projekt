@@ -1,5 +1,7 @@
 /* title: DataStructure-TypeAdapter
 
+   TODO: !! replace typeadapter_t with typeadapt_t !!
+
    Adapts object types to functionality needed by data structures.
    So they can be stored in lists or arrays.
 

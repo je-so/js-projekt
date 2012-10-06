@@ -37,9 +37,9 @@
 
 // section: waitlist_t
 
-/* interface: GENERATED_wlist
+/* define: slist_IMPLEMENT_wlist
  * Uses macro <slist_IMPLEMENT> to generate an adapted interface to <slist_t>. */
-slist_IMPLEMENT(waitlist_t, _wlist, wlistnext)
+slist_IMPLEMENT(_wlist, waitlist_t, wlistnext)
 
 // group: helper
 

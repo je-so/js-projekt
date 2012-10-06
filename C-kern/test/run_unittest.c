@@ -255,14 +255,16 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_binarystack) ;
       RUN(unittest_ds_inmem_dlist) ;
       RUN(unittest_ds_inmem_slist) ;
+      RUN(unittest_ds_inmem_splaytree) ;
       RUN(unittest_ds_inmem_suffixtree) ;
       RUN(unittest_ds_typeadapt) ;
       RUN(unittest_ds_typeadapt_lifetime) ;
       RUN(unittest_ds_typeadapt_typeinfo) ;
+      RUN(unittest_ds_typeadapt_keycomparator) ;
 //}
 
 //{ math unittest
-      RUN(unittest_math_floatingpointunit) ;
+      RUN(unittest_math_fpu) ;
       RUN(unittest_math_float_decimal) ;
       RUN(unittest_math_hash_sha1) ;
       RUN(unittest_math_int_abs) ;
@@ -337,7 +339,6 @@ int run_unittest(void)
       RUN(unittest_platform_virtualmemory) ;
       // database subsystem
       RUN(unittest_platform_index_redblacktree) ;
-      RUN(unittest_platform_index_splaytree) ;
       // user interface subsystem
 #define HTML5  1
 #define X11    2

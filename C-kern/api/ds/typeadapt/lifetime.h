@@ -50,8 +50,8 @@ int unittest_ds_typeadapt_lifetime(void) ;
 
 /* struct: typeadapt_lifetime_it
  * Declares interface (function table) for managing the lifetime of objects.
- * If you change this interface of <typeadapter_it> to do not forget to adapt
- * <typeadapter_it_DECLARE> to the same signature. */
+ * If you change this interface do not forget to adapt
+ * <typeadapt_lifetime_EMBED> and <asgeneric_typeadaptlifetime>. */
 struct typeadapt_lifetime_it {
    /* variable: newcopy_object
     * Function copies an object.
@@ -74,7 +74,7 @@ struct typeadapt_lifetime_it {
 #define typeadapt_lifetime_INIT_FREEABLE                    { 0, 0 }
 
 /* define: typeadapt_lifetime_INIT
- * Static initializer. Sets all functions pointers to the provided values.
+ * Static initializer. Sets all function pointers to the provided values.
  *
  * Parameters:
  * newcopyobj_f - Function pointer to copy object function. See <typeadapt_lifetime_it.newcopy_object>.
@@ -86,13 +86,13 @@ struct typeadapt_lifetime_it {
 /* function: callnewcopy_typeadaptlifetime
  * Calls function <typeadapt_lifetime_it.newcopy_object>.
  * The first parameter is of type <typeadapt_lifetime_it> the others are the same as in <typeadapt_lifetime_it.delete_object>.
- * This function is implemented as macro and supports types derived from <typeadapt_lifetime_it> with use of <typeadapt_lifetime_DECLARE>. */
+ * This function is implemented as macro and supports types derived from <typeadapt_lifetime_it> - see <typeadapt_lifetime_DECLARE>. */
 int callnewcopy_typeadaptlifetime(typeadapt_lifetime_it * adplife, struct typeadapt_t * typeadp, /*out*/struct typeadapt_object_t ** destobject, const struct typeadapt_object_t * srcobject) ;
 
 /* function: calldelete_typeadaptlifetime
  * Calls function <typeadapt_lifetime_it.delete_object>.
  * The first parameter is of type <typeadapt_lifetime_it> the others are the same as in <typeadapt_lifetime_it.delete_object>.
- * This function is implemented as macro and supports types derived from <typeadapt_lifetime_it> with use of <typeadapt_lifetime_DECLARE>. */
+ * This function is implemented as macro and supports types derived from <typeadapt_lifetime_it> - see <typeadapt_lifetime_DECLARE>. */
 int calldelete_typeadaptlifetime(typeadapt_lifetime_it * adplife, struct typeadapt_t * typeadp, struct typeadapt_object_t ** object) ;
 
 // group: generic
@@ -101,8 +101,8 @@ int calldelete_typeadaptlifetime(typeadapt_lifetime_it * adplife, struct typeada
  * Casts parameter adplife into pointer to <typeadapt_lifetime_it>.
  * The parameter *adplife* has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <typeadapt_lifetime_DECLARE>.
- * The second and thord parameter must be the same as in <typeadapt_lifetime_DECLARE>. */
-typeadapt_lifetime_it * asgeneric_typeadaptlifetime(void * adplife, TYPENAME testadapter_t, TYPENAME object_t) ;
+ * The second and third parameter must be the same as in <typeadapt_lifetime_DECLARE>. */
+typeadapt_lifetime_it * asgeneric_typeadaptlifetime(void * adplife, TYPENAME typeadapter_t, TYPENAME object_t) ;
 
 /* define: typeadapt_lifetime_DECLARE
  * Declares a derived interface from generic <typeadapt_lifetime_it>.
@@ -114,8 +114,7 @@ typeadapt_lifetime_it * asgeneric_typeadaptlifetime(void * adplife, TYPENAME tes
  *                 The name should have the suffix "_it".
  * typeadapter_t - The adapter type which implements all interface functions.
  *                 The first parameter in every function is a pointer to this type.
- * object_t      - The object type that typeadapt_lifetime_it supports.
- * */
+ * object_t      - The object type that <typeadapt_lifetime_it> supports. */
 #define typeadapt_lifetime_DECLARE(declared_it, typeadapter_t, object_t)   \
    typedef struct declared_it             declared_it ;                    \
    struct declared_it {                                                    \
@@ -130,8 +129,7 @@ typeadapt_lifetime_it * asgeneric_typeadaptlifetime(void * adplife, TYPENAME tes
  * Parameter:
  * typeadapter_t - The adapter type which implements all interface functions.
  *                 The first parameter in every function is a pointer to this type.
- * object_t      - The object type that <typeadapt_lifetime_it> supports.
- * */
+ * object_t      - The object type that <typeadapt_lifetime_it> supports. */
 #define typeadapt_lifetime_EMBED(typeadapter_t, object_t)      \
       int (* newcopy_object) (typeadapter_t * typeadp, /*out*/object_t ** destobject, const object_t * srcobject) ; \
       int (* delete_object)  (typeadapter_t * typeadp, object_t ** object)
@@ -141,7 +139,7 @@ typeadapt_lifetime_it * asgeneric_typeadaptlifetime(void * adplife, TYPENAME tes
 
 /* define: asgeneric_typeadaptlifetime
  * Implements <typeadapt_lifetime_it.asgeneric_typeadaptlifetime>. */
-#define asgeneric_typeadaptlifetime(adplife, testadapter_t, object_t)   \
+#define asgeneric_typeadaptlifetime(adplife, typeadapter_t, object_t)   \
    ( __extension__ ({                                                   \
       static_assert(                                                    \
          offsetof(typeadapt_lifetime_it, newcopy_object)                \
@@ -150,8 +148,8 @@ typeadapt_lifetime_it * asgeneric_typeadaptlifetime(void * adplife, TYPENAME tes
             == offsetof(typeof(*(adplife)), delete_object),             \
          "ensure same structure") ;                                     \
       if (0) {                                                          \
-         int _err = (adplife)->newcopy_object((testadapter_t*)0, (object_t**)0, (const object_t*)0) ; \
-         _err += (adplife)->delete_object((testadapter_t*)0, (object_t**)0) ;                         \
+         int _err = (adplife)->newcopy_object((typeadapter_t*)0, (object_t**)0, (const object_t*)0) ; \
+         _err += (adplife)->delete_object((typeadapter_t*)0, (object_t**)0) ;                         \
          (void) _err ;                                                  \
       }                                                                 \
       (typeadapt_lifetime_it*) (adplife) ;                              \

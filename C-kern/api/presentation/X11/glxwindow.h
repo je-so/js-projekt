@@ -26,6 +26,8 @@
 #ifndef CKERN_PRESENTATION_X11_OPENGL_WINDOW_HEADER
 #define CKERN_PRESENTATION_X11_OPENGL_WINDOW_HEADER
 
+// forward
+struct x11display_t ;
 
 /* typedef: glxwindow_t typedef
  * Shortcut for <glxwindow_t>.
@@ -57,6 +59,7 @@ enum glxwindow_state_e {
 typedef enum glxwindow_state_e glxwindow_state_e ;
 
 /* enums: glxattribute_type_e
+ * ID of an OpenGL attribute a drawing window should support.
  *
  * glxattribute_DOUBLEBUFFER - Indicates with *true*(1) or *false*(0) if a double buffer is supported.
  * glxattribute_REDBITS      - The number of red bits the color buffer supports, e.g. 8 on current hardware.
@@ -87,24 +90,22 @@ enum glxattribute_type_e {
    ,glxattribute_TRANSPARENT_X_VISUAL
 } ;
 
-typedef enum glxattribute_type_e glxattribute_type_e ;
-
-// forward
-struct x11display_t ;
+typedef enum glxattribute_type_e    glxattribute_type_e ;
 
 
 // section: Functions
-
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_presentation_X11_glxwindow
  * Tests opening a window on local display. */
-extern int unittest_presentation_X11_glxwindow(void) ;
+int unittest_presentation_X11_glxwindow(void) ;
 #endif
 
 
+/* struct: glxattribute_t
+ * Associates <glxattribute_type_e> with a value. */
 struct glxattribute_t {
    glxattribute_type_e  type ;
    int32_t              value ;
@@ -112,15 +113,24 @@ struct glxattribute_t {
 
 // group: init
 
-#define GLX_ATTRIB_DOUBLEBUFFER(on_off)   { .type = glxattribute_DOUBLEBUFFER,   .value = on_off }
-#define GLX_ATTRIB_RGBA(redbits,greenbits,bluebits,alphabits)                                        \
-                                          { .type = glxattribute_REDBITS,        .value = redbits   } \
-                                         ,{ .type = glxattribute_GREENBITS,      .value = greenbits } \
-                                         ,{ .type = glxattribute_BLUEBITS,       .value = bluebits  } \
-                                         ,{ .type = glxattribute_ALPHABITS,      .value = alphabits }
-#define GLX_ATTRIB_DEPTH(bits)            { .type = glxattribute_DEPTHBITS,      .value = bits }
-#define GLX_ATTRIB_STENCIL(bits)          { .type = glxattribute_STENCILBITS,    .value = bits }
-/* define: GLX_ATTRIB_TRANSPARENT
+/* define: glxattribute_INIT_DOUBLEBUFFER
+ * Static initializer. */
+#define glxattribute_INIT_DOUBLEBUFFER(on_off)     { .type = glxattribute_DOUBLEBUFFER,   .value = on_off }
+/* define: glxattribute_INIT_DEPTH
+ * Static initializer. */
+#define glxattribute_INIT_DEPTH(bits)              { .type = glxattribute_DEPTHBITS,      .value = bits }
+/* define: glxattribute_INIT_STENCIL
+ * Static initializer. */
+#define glxattribute_INIT_STENCIL(bits)            { .type = glxattribute_STENCILBITS,    .value = bits }
+/* define: glxattribute_INIT_RGBA
+ * Static initializer of 4 <glxattribute_t>.
+ * Sets attrribute values <glxattribute_REDBITS>, <glxattribute_GREENBITS>, <glxattribute_BLUEBITS>, and <glxattribute_ALPHABITS>. */
+#define glxattribute_INIT_RGBA(redbits,greenbits,bluebits,alphabits) \
+   { .type = glxattribute_REDBITS,        .value = redbits   },      \
+   { .type = glxattribute_GREENBITS,      .value = greenbits },      \
+   { .type = glxattribute_BLUEBITS,       .value = bluebits  },      \
+   { .type = glxattribute_ALPHABITS,      .value = alphabits }
+/* define: glxattribute_INIT_TRANSPARENT
  * Makes content of window transparent if set to 1.
  * Tries to choose an X11 RGBA visual (X Render Extension) which interprets the alpha color channel
  * as blending value with the background.
@@ -134,7 +144,8 @@ struct glxattribute_t {
  * The blending function assumes that all color values in the opengl color buffer
  * are premultiplied by alpha.
  * > color.rgb(opengl buffer)´ = color.rgb(opengl buffer) * color.alpha(opengl buffer) */
-#define GLX_ATTRIB_TRANSPARENT(on_off)    { .type = glxattribute_TRANSPARENT_X_VISUAL, .value = on_off }
+#define glxattribute_INIT_TRANSPARENT(on_off)      { .type = glxattribute_TRANSPARENT_X_VISUAL, .value = on_off }
+
 
 /* struct: glxwindow_configuration_t
  * Contains *in* parameters of <init_glxwindow> function call.
@@ -170,7 +181,11 @@ struct glxwindow_configuration_t {
    /* variable: height
     * The height in pixels of the newly created window. */
    uint32_t          height ;
+   /* variable: glxattrib_count
+    * The number of attributes <glxattrib> points to. */
    uint8_t           glxattrib_count ;
+   /* variable: glxattrib
+    * Array of <glxattribute_t> attributes with size <glxattrib_count>. */
    glxattribute_t    * glxattrib/*[glxattrib_count]*/ ;
 } ;
 
@@ -211,43 +226,43 @@ struct glxwindow_t {
 
 /* function: init_glxwindow
  * */
-extern int init_glxwindow( /*out*/glxwindow_t * glxwin, const glxwindow_configuration_t * config ) ;
+int init_glxwindow(/*out*/glxwindow_t * glxwin, const glxwindow_configuration_t * config) ;
 
 /* function: free_glxwindow
  * */
-extern int free_glxwindow( glxwindow_t * glxwin ) ;
+int free_glxwindow(glxwindow_t * glxwin) ;
 
 /* function: initmove_glxwindow
  * Must be called if address of <glxwindow_t> changes.
  * A simple memcpy from source to destination does not work.
  *
  * Not implemented. */
-extern int initmove_glxwindow( /*out*/glxwindow_t * destination, glxwindow_t * source ) ;
+int initmove_glxwindow(/*out*/glxwindow_t * destination, glxwindow_t * source) ;
 
 // group: query
 
 /* function: pos_glxwindow
  * Returns the position of the window in screen coordinates.
  * The value (screen_x == 0, screeny_ == 0) denotes the top left corner of the screen. */
-extern int pos_glxwindow( glxwindow_t * glxwin, /*out*/int32_t * screen_x, /*out*/int32_t * screen_y ) ;
+int pos_glxwindow(glxwindow_t * glxwin, /*out*/int32_t * screen_x, /*out*/int32_t * screen_y) ;
 
 /* function: size_glxwindow
  * Returns the width and height of the window in pixels. */
-extern int size_glxwindow( glxwindow_t * glxwin, /*out*/uint32_t * width, /*out*/uint32_t * height ) ;
+int size_glxwindow(glxwindow_t * glxwin, /*out*/uint32_t * width, /*out*/uint32_t * height) ;
 
 /* function: geometry_glxwindow
  * This is the geometry of window without the window manager frame in screen coordinates.
  * The value (screen_x == 0, screeny_ == 0) denotes the top left corner of the screen. */
-extern int geometry_glxwindow( glxwindow_t * glxwin,
-                        /*out*/int32_t * screen_x, /*out*/int32_t * screen_y,
-                        /*out*/uint32_t * width, /*out*/uint32_t * height ) ;
+int geometry_glxwindow(glxwindow_t * glxwin,
+                       /*out*/int32_t * screen_x, /*out*/int32_t * screen_y,
+                       /*out*/uint32_t * width, /*out*/uint32_t * height) ;
 
 /* function: frame_glxwindow
  * This is the geometry of window including the window manager frame in screen coordinates.
  * The value (screen_x == 0, screeny_ == 0) denotes the top left corner of the screen. */
-extern int frame_glxwindow( glxwindow_t * glxwin,
-                        /*out*/int32_t * screen_x, /*out*/int32_t * screen_y,
-                        /*out*/uint32_t * width, /*out*/uint32_t * height ) ;
+int frame_glxwindow(glxwindow_t * glxwin,
+                    /*out*/int32_t * screen_x, /*out*/int32_t * screen_y,
+                    /*out*/uint32_t * width, /*out*/uint32_t * height) ;
 
 // group: change
 
@@ -260,29 +275,29 @@ extern int frame_glxwindow( glxwindow_t * glxwin,
  * Precondition:
  * For the function to work the window manager of the X11 Screen
  * must support the X11 composite extension. */
-extern int settransparency_glxwindow( glxwindow_t * glxwin, double alpha ) ;
+int settransparency_glxwindow(glxwindow_t * glxwin, double alpha) ;
 
 /* function: show_glxwindow
  * In X11 terms maps a window: makes it visible to the user.
  * After receiveing the notification from the X server
  * the window state is set to <glxwindowVisible>. */
-extern int show_glxwindow( glxwindow_t * glxwin ) ;
+int show_glxwindow(glxwindow_t * glxwin) ;
 
 /* function: hide_glxwindow
  * In X11 terms unmaps a window: makes it invisible to the user.
  * After receiveing the notification from the X server
  * the window state is set to <glxwindowHidden>. */
-extern int hide_glxwindow( glxwindow_t * glxwin ) ;
+int hide_glxwindow(glxwindow_t * glxwin) ;
 
 /* function: setpos_glxwindow
  * Changes the position of the window on the screen.
  * Coordinates are in screen coordinates.
  * The coordinate (0,0) is top left. */
-extern int setpos_glxwindow( glxwindow_t * glxwin, /*out*/int32_t screen_x, /*out*/int32_t screen_y ) ;
+int setpos_glxwindow(glxwindow_t * glxwin, /*out*/int32_t screen_x, /*out*/int32_t screen_y) ;
 
 /* function: clear_glxwindow
  * Clears the content of the window.
  * A redraw event (X11: Expose event) is sent. */
-extern int clear_glxwindow( glxwindow_t * glxwin ) ;
+int clear_glxwindow(glxwindow_t * glxwin) ;
 
 #endif

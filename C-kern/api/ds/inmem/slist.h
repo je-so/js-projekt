@@ -67,8 +67,9 @@ int unittest_ds_inmem_slist(void) ;
  * >    if (need_to_remove(node)) {
  * >       removeafter_slist(&list, prev, node) ;
  * >       delete_node(node) ;
+ * >    } else {
+ * >       prev = node ;
  * >    }
- * >    prev = node ;
  * > }
  * */
 struct slist_iterator_t {
@@ -251,14 +252,14 @@ int removeall_slist(slist_t * list, struct typeadapter_iot * typeadp/*0=>no free
  *
  *
  * Parameter:
+ * _fctsuffix     - It is the suffix of the generated list interface functions, e.g. "init##_fctsuffix".
  * listtype_t     - This is the type of a list type structurally equivalent to <slist_t>.
  *                  See also <slist_DECLARE>. *listtype_t* must have been defined as a
  *                  typedef representing the list object.
- * _fctsuffix     - It is the suffix of the generated list interface functions, e.g. "init##_fctsuffix".
  * name_nextptr   - The name (access path) of the next pointer in objects managed by *listtype_t*.
  *                  The object type is infered from "listtype_t.last"
  * */
-#define slist_IMPLEMENT(listtype_t, _fctsuffix, name_nextptr)              \
+#define slist_IMPLEMENT(_fctsuffix, listtype_t, name_nextptr)              \
    typedef typeof(*((listtype_t*)0)->last)   listtype_t##node_t ;          \
    typedef struct listtype_t##iterator_t     listtype_t##iterator_t ;      \
    struct listtype_t##iterator_t   { listtype_t##node_t * next ; } ;       \

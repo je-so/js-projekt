@@ -1,6 +1,5 @@
 # All Linux and shared operating system specific implementations
 Src += C-kern/platform/Linux/*.c
 Src += C-kern/platform/Linux/io/*.c
-# Src += C-kern/platform/shared/*.c
 Src += C-kern/platform/shared/index/*.c
 Src += C-kern/platform/shared/task/*.c

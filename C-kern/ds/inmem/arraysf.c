@@ -545,9 +545,7 @@ bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/s
 
    for (;;) {
 
-      pos = (arraysf_pos_t*) lastpushed_binarystack(iter->stack, sizeof(arraysf_pos_t)) ;
-
-      if (0 == pos/*isempty_binarystack(iter->stack)*/) {
+      if (isempty_binarystack(iter->stack)) {
 
          arraysf_unode_t * rootnode ;
 
@@ -565,15 +563,17 @@ bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/s
             }
          }
 
-         err = pushgeneric_binarystack(iter->stack, &pos) ;
+         err = push_binarystack(iter->stack, &pos) ;
          if (err) goto ONABORT ;
 
          pos->branch = asbranch_arraysfunode(rootnode) ;
          pos->ci     = 0 ;
 
+      } else {
+         pos = top_binarystack(iter->stack) ;
       }
 
-      for(;;) {
+      for (;;) {
          arraysf_unode_t * childnode = pos->branch->child[pos->ci ++] ;
 
          if (pos->ci >= nrelementsof(pos->branch->child)) {
@@ -586,7 +586,7 @@ bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/s
 
          if (childnode) {
             if (isbranchtype_arraysfunode(childnode)) {
-               err = pushgeneric_binarystack(iter->stack, &pos) ;
+               err = push_binarystack(iter->stack, &pos) ;
                if (err) goto ONABORT ;
                pos->branch = asbranch_arraysfunode(childnode) ;
                pos->ci     = 0 ;
@@ -645,7 +645,7 @@ static int test_freenodeerr(typeadapter_t * typeimpl, testnode_t * node)
    return 12345 ;
 }
 
-arraysf_IMPLEMENT(testnode_t, _tarraysf, node.pos)
+arraysf_IMPLEMENT(_tarraysf, testnode_t, node.pos)
 
 typeadapter_it_DECLARE(testnode_typeadapt_it, typeadapter_t, testnode_t)
 
@@ -1172,7 +1172,7 @@ ONABORT:
    return EINVAL ;
 }
 
-arraysf_IMPLEMENT(testnode_t, _t2arraysf, pos2)
+arraysf_IMPLEMENT(_t2arraysf, testnode_t, pos2)
 
 static int test_generic(void)
 {

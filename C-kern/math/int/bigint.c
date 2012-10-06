@@ -3207,10 +3207,10 @@ static int test_mult(void)
    big[1]->digits[299] = 1 ;
    big[2]->digits[299] = 2 ;
    test_errortimer_t errtimer ;
-   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   init_testerrortimer(&errtimer, 1, ENOMEM) ;
    setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
    TEST(ENOMEM == mult_bigint(&big[3], big[2], big[1])) ;
-   TEST(0 == init_testerrortimer(&errtimer, 1, EPROTO)) ;
+   init_testerrortimer(&errtimer, 1, EPROTO) ;
    setfreeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
    TEST(EPROTO == mult_bigint(&big[3], big[2], big[1])) ;
 
@@ -3735,7 +3735,7 @@ static int test_shift(void)
    // TEST shiftleft_bigint ENOMEM
    TEST(0 == new_bigint(&big, 100)) ;
    test_errortimer_t errtimer ;
-   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   init_testerrortimer(&errtimer, 1, ENOMEM) ;
    setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
    for (unsigned i = 0; i < 100; ++i) {
       big->digits[i] = 0x12345678 ;
@@ -3846,7 +3846,7 @@ static int test_shift(void)
 
    // TEST shiftright_bigint ENOMEM
    TEST(0 == new_bigint(&big, 100)) ;
-   TEST(0 == init_testerrortimer(&errtimer, 1, ENOMEM)) ;
+   init_testerrortimer(&errtimer, 1, ENOMEM) ;
    setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
    for (unsigned i = 0; i < 100; ++i) {
       big->digits[i] = 0x12345678 ;

@@ -331,7 +331,7 @@ static int test_initerror(void)
 
    // TEST error in init_maincontext in different places (called from initmain)
    for(int i = 1; i <= 4; ++i) {
-      TEST(0 == init_testerrortimer(&s_error_init, (unsigned)i, EINVAL+i)) ;
+      init_testerrortimer(&s_error_init, (unsigned)i, EINVAL+i) ;
       TEST(EINVAL+i == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
       TEST(0 == process_maincontext().initcount) ;
       TEST(maincontext_STATIC == type_maincontext()) ;

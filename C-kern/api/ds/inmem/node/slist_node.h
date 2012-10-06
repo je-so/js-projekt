@@ -1,5 +1,7 @@
 /* title: SingleLinkedList-Node
-   Storage overhead needed by objects which
+
+   Defines node type <slist_node_t> which can be stored in a
+   list of type <slist_t>. Management overhead of objects which
    wants to be stored in a <slist_t>.
 
    about: Copyright

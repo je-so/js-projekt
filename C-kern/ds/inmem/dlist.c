@@ -1,4 +1,4 @@
-/* title: DoubleLinkedList
+/* title: DoubleLinkedList impl
 
    Implements <DoubleLinkedList>.
 
@@ -259,7 +259,7 @@ struct genericnode_t {
 
 struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testnode_t) ;
+      typeadapt_EMBED(testadapt_t, testnode_t, void) ;
    } ;
    test_errortimer_t errcounter ;
    unsigned          freenode_count ;
@@ -267,7 +267,7 @@ struct testadapt_t {
 
 struct genericadapt_t {
    struct {
-      typeadapt_EMBED(genericadapt_t, genericnode_t) ;
+      typeadapt_EMBED(genericadapt_t, genericnode_t, void) ;
    } ;
    test_errortimer_t errcounter ;
    unsigned          freenode_count ;
@@ -303,8 +303,8 @@ static int freenode_genericadapt(genericadapt_t * typeadp, genericnode_t ** node
 
 static int test_initfree(void)
 {
-   testadapt_t          typeadapt = { typeadapt_INIT(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t), 0) ;
+   testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), 0) ;
    dlist_t              list = dlist_INIT ;
    testnode_t           nodes[1000] ;
 
@@ -326,13 +326,13 @@ static int test_initfree(void)
    TEST(1 == nodes[0].is_freed) ;
    nodes[0].is_freed = 0 ;
 
-   // TEST free_dlist: no freeobj with 0 parameter
+   // TEST free_dlist: no delete called with 0 parameter
    TEST(0 == init_dlist(&list)) ;
    TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
    TEST(0 == free_dlist(&list, 0)) ;
    TEST(0 == nodes[0].is_freed) ;
 
-   // TEST free_dlist: no free called if typeadapt_t.lifetime.delete_object set to 0
+   // TEST free_dlist: no delete called if typeadapt_t.lifetime.delete_object set to 0
    testadapt_t  old_typeadapt = typeadapt ;
    typeadapt.lifetime.delete_object = 0 ;
    TEST(0 == init_dlist(&list)) ;
@@ -371,7 +371,7 @@ static int test_initfree(void)
       TEST(0 == nodes[i].is_freed) ;
    }
    typeadapt.freenode_count = 0 ;
-   TEST(0 == init_testerrortimer(&typeadapt.errcounter, 2, ENOMEM)) ;
+   init_testerrortimer(&typeadapt.errcounter, 2, ENOMEM) ;
    TEST(ENOMEM == free_dlist(&list, &nodeadapt)) ;
    TEST(0 == list.last) ;
    TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;
@@ -587,8 +587,8 @@ ONABORT:
 
 static int test_insertremove(void)
 {
-   testadapt_t          typeadapt = { typeadapt_INIT(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t), 0) ;
+   testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), 0) ;
    dlist_t              list = dlist_INIT ;
    testnode_t           nodes[1000] ;
    dlist_node_t       * removed_node ;
@@ -977,15 +977,15 @@ ONABORT:
    return EINVAL ;
 }
 
-dlist_IMPLEMENT(genericnode_t, _glist1, node1)
+dlist_IMPLEMENT(_glist1, genericnode_t, node1)
 
-dlist_IMPLEMENT(genericnode_t, _glist2, node2)
+dlist_IMPLEMENT(_glist2, genericnode_t, node2)
 
 static int test_generic(void)
 {
-   genericadapt_t       typeadapt  = { typeadapt_INIT(0, &freenode_genericadapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t), offsetof(genericnode_t, node1)) ;
-   typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t), offsetof(genericnode_t, node2)) ;
+   genericadapt_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void), offsetof(genericnode_t, node1)) ;
+   typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void), offsetof(genericnode_t, node2)) ;
    dlist_t              list1 = dlist_INIT ;
    dlist_t              list2 = dlist_INIT ;
    genericnode_t        nodes[1000] ;
@@ -1128,12 +1128,12 @@ static int test_generic(void)
       TEST(0 == insertlast_glist2(&list2, &nodes[i])) ;
    }
    typeadapt.freenode_count = 0 ;
-   TEST(0 == init_testerrortimer(&typeadapt.errcounter, 5, ENOSYS)) ;
+   init_testerrortimer(&typeadapt.errcounter, 5, ENOSYS) ;
    TEST(ENOSYS == free_glist1(&list1, &nodeadapt1)) ;
    TEST(1 == isempty_glist1(&list1)) ;
    TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;
    typeadapt.freenode_count = 0 ;
-   TEST(0 == init_testerrortimer(&typeadapt.errcounter, 5, EINVAL)) ;
+   init_testerrortimer(&typeadapt.errcounter, 5, EINVAL) ;
    TEST(EINVAL == free_glist2(&list2, &nodeadapt2)) ;
    TEST(1 == isempty_glist2(&list2)) ;
    TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;

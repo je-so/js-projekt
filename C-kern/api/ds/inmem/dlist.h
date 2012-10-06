@@ -52,7 +52,18 @@ int unittest_ds_inmem_dlist(void) ;
 
 
 /* struct: dlist_iterator_t
- * Iterates over elements contained in <dlist_t>. */
+ * Iterates over elements contained in <dlist_t>.
+ * The iterator supports removing or deleting of the current node.
+ *
+ * Example:
+ * > dlist_t list ;
+ * > fill_list(&list) ;
+ * >  foreach (_dlist, &list, node) {
+ * >     if (need_to_remove(node)) {
+ * >        err = remove_dlist(&list, node) ;
+ * >     }
+ * >  }
+ */
 struct dlist_iterator_t {
    struct dlist_node_t * next ;
 } ;
@@ -128,8 +139,7 @@ int init_dlist(/*out*/dlist_t *list) ;
 /* function: free_dlist
  * Frees all resources.
  * For every removed node the typeadapter callback <typeadapt_lifetime_it.delete_object> is called.
- * See <typeadapt_member_t> how to construct the typeadapter for the node member.
- * Calling it is only safe after list was initialized by either a call to init_dlist or assigning <dlist_INIT_FREEABLE>. */
+ * See <typeadapt_member_t> how to construct typeadapter for node member. */
 int free_dlist(dlist_t * list, struct typeadapt_member_t * nodeadp/*0 => no free called*/) ;
 
 // group: query
@@ -231,10 +241,8 @@ int removeall_dlist(dlist_t * list, struct typeadapt_member_t * nodeadp/*0 => no
  *             The object must contain a field of type <dlist_node_t>.
  * _fsuffix  - It is the suffix of the generated list interface functions, e.g. "init##_fsuffix".
  * nodename  - The access path of the field <dlist_node_t> in type object_t.
- *                If <dlist_node_EMBED> is used to embed the fields then set this value to the same
- *                prefix as used in the macro appended with "next".
  * */
-void dlist_IMPLEMENT(TYPENAME object_t, IDNAME _fsuffix, IDNAME nodename) ;
+void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 
 // section: inline implementation
@@ -313,7 +321,7 @@ void dlist_IMPLEMENT(TYPENAME object_t, IDNAME _fsuffix, IDNAME nodename) ;
 
 /* define: dlist_IMPLEMENT
  * Implements <dlist_t.dlist_IMPLEMENT>. */
-#define dlist_IMPLEMENT(object_t, _fsuffix, nodename)    \
+#define dlist_IMPLEMENT(_fsuffix, object_t, nodename)    \
    typedef dlist_iterator_t iteratortype##_fsuffix ;     \
    typedef object_t         iteratedtype##_fsuffix ;     \
    static inline int  initfirst##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list) __attribute__ ((always_inline)) ;   \

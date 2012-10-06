@@ -27,6 +27,7 @@
 #ifndef CKERN_DS_TYPEADAPT_HEADER
 #define CKERN_DS_TYPEADAPT_HEADER
 
+#include "C-kern/api/ds/typeadapt/keycomparator.h"
 #include "C-kern/api/ds/typeadapt/lifetime.h"
 #include "C-kern/api/ds/typeadapt/typeinfo.h"
 
@@ -77,6 +78,16 @@ struct typeadapt_member_t {
  * Static initializer. */
 #define typeadapt_member_INIT(typeadp, nodeoffset)    { typeadp, typeadapt_typeinfo_INIT(nodeoffset) }
 
+/* define: typeadapt_member_INIT_FREEABLE
+ * Static initializer. */
+#define typeadapt_member_INIT_FREEABLE                typeadapt_member_INIT(0, 0)
+
+// group: query
+
+/* function: isequal_typeadaptmember
+ * Returns true if both <typeadapt_member_t>s are equal. */
+bool isequal_typeadaptmember(const typeadapt_member_t * ltypeadp, const typeadapt_member_t * rtypeadp) ;
+
 
 /* struct: typeadapt_t
  * Interface to services needed by containers in the data store.
@@ -84,25 +95,45 @@ struct typeadapt_member_t {
  * in the data store. */
 struct typeadapt_t {
    /* variable: lifetime
-    * Interface to adapt the lifetime of an object type.
-    * See <typeadapt_lifetime_it>. */
+    * Interface to adapt the lifetime of an object type. See <typeadapt_lifetime_it>. */
    struct {
       typeadapt_lifetime_EMBED(typeadapt_t, typeadapt_object_t) ;
    } lifetime ;
+   /* variable: keycomparator
+    * Interface to adapt comparison of key and object. See <typeadapt_keycomparator_it>. */
+   struct {
+      typeadapt_keycomparator_EMBED(typeadapt_t, typeadapt_object_t, void) ;
+   } keycomparator ;
 } ;
 
 // group: lifetime
 
 /* define: typeadapt_INIT_FREEABLE
  * Static initializer. */
-#define typeadapt_INIT_FREEABLE                    { typeadapt_lifetime_INIT_FREEABLE }
+#define typeadapt_INIT_FREEABLE                    { typeadapt_lifetime_INIT_FREEABLE, typeadapt_keycomparator_INIT_FREEABLE }
 
-/* define: typeadapt_INIT
- * Static initializer.
- * Use <typeadapt_lifetime_INIT> and other to init the single service interfaces. */
-#define typeadapt_INIT(newcopyobj_f, deleteobj_f)  { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
+/* define: typeadapt_INIT_LIFETIME
+ * Static initializer. Uses <typeadapt_lifetime_INIT> to init interface <typeadapt_t.lifetime>. */
+#define typeadapt_INIT_LIFETIME(newcopyobj_f, deleteobj_f) \
+  { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT_FREEABLE }
 
-// group: call-service
+/* define: typeadapt_INIT_KEYCMP
+ * Static initializer. Uses <typeadapt_keycomparator_INIT> to init interface <typeadapt_t.keycomparator>. */
+#define typeadapt_INIT_KEYCMP(cmpkeyobj_f, cmpobj_f) \
+  { typeadapt_lifetime_INIT_FREEABLE, typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f) }
+
+/* define: typeadapt_INIT_LIFEKEYCMP
+ * Static initializer. Initializes <typeadapt_t.lifetime> and <typeadapt_t.keycomparator> service interfaces. */
+#define typeadapt_INIT_LIFEKEYCMP(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f) \
+   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f) }
+
+// group: query
+
+/* function: islifetimedelete_typeadapt
+ * Returns true if <typeadapt_lifetime_it.delete_object> is not NULL. */
+bool islifetimedelete_typeadapt(const typeadapt_t * typeadp) ;
+
+// group: lifetime-service
 
 /* function: callnewcopy_typeadapt
  * Wrapper to call <callnewcopy_typeadaptlifetime>. */
@@ -111,6 +142,16 @@ int callnewcopy_typeadapt(typeadapt_t * typeadp, ...) ;
 /* function: calldelete_typeadapt
  * Wrapper to call <calldelete_typeadaptlifetime>. */
 int calldelete_typeadapt(typeadapt_t * typeadp, ...) ;
+
+// group: keycomparator-service
+
+/* function: callcmpkeyobj_typeadapt
+ * Wrapper to call <callcmpkeyobj_typeadaptkeycomparator>. */
+int callcmpkeyobj_typeadapt(typeadapt_t * typeadp, ...) ;
+
+/* function: callcmpobj_typeadapt
+ * Wrapper to call <callcmpobj_typeadaptkeycomparator>. */
+int callcmpobj_typeadapt(typeadapt_t * typeadp, ...) ;
 
 // group: generic
 
@@ -130,36 +171,62 @@ typeadapt_t * asgeneric_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENA
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that typeadapter_t supports.
  * */
-void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t) ;
+void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
 
 
 // section: inline implementation
 
 /* define: asgeneric_typeadapt
  * Implements <typeadapt_t.asgeneric_typeadapt>. */
-#define asgeneric_typeadapt(typeadp, typeadapter_t, object_t)                                   \
-   ( __extension__ ({                                                                           \
-      static_assert(offsetof(typeof(*(typeadp)), lifetime) == offsetof(typeadapt_t, lifetime),  \
-         "ensure same structure") ;                                                             \
-      static_assert((typeadapt_lifetime_it*)&(typeadp)->lifetime                                \
-         == asgeneric_typeadaptlifetime(&(typeadp)->lifetime, typeadapter_t, object_t),         \
-         "ensure correct lifetime service") ;                                                   \
-      (typeadapt_t*) (typeadp) ;                                                                \
+#define asgeneric_typeadapt(typeadp, typeadapter_t, object_t, key_t)                                     \
+   ( __extension__ ({                                                                                    \
+      static_assert(offsetof(typeof(*(typeadp)), lifetime) == offsetof(typeadapt_t, lifetime),           \
+         "ensure same structure") ;                                                                      \
+      static_assert(offsetof(typeof(*(typeadp)), keycomparator) == offsetof(typeadapt_t, keycomparator), \
+         "ensure same structure") ;                                                                      \
+      static_assert((typeadapt_lifetime_it*)&(typeadp)->lifetime                                         \
+         == asgeneric_typeadaptlifetime(&(typeadp)->lifetime, typeadapter_t, object_t),                  \
+         "ensure correct lifetime service") ;                                                            \
+      static_assert((typeadapt_keycomparator_it*)&(typeadp)->keycomparator                               \
+         == asgeneric_typeadaptkeycomparator(&(typeadp)->keycomparator, typeadapter_t, object_t, key_t), \
+         "ensure correct keycomparator service") ;                                                       \
+      (typeadapt_t*) (typeadp) ;                                                                         \
    }))
 
 /* define: callnewcopy_typeadapt
  * Implements <typeadapt_t.callnewcopy_typeadapt>. */
-#define callnewcopy_typeadapt(typeadp, ...)   callnewcopy_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
+#define callnewcopy_typeadapt(typeadp, ...)     callnewcopy_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
 
 /* define: calldelete_typeadapt
  * Implements <typeadapt_t.calldelete_typeadapt>. */
-#define calldelete_typeadapt(typeadp, ...)    calldelete_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
+#define calldelete_typeadapt(typeadp, ...)      calldelete_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
+
+/* function: callcmpkeyobj_typeadapt
+ * Implements <typeadapt_t.callcmpkeyobj_typeadapt>. */
+#define callcmpkeyobj_typeadapt(typeadp, ...)   callcmpkeyobj_typeadaptkeycomparator(&(typeadp)->keycomparator, typeadp, __VA_ARGS__)
+
+/* function: callcmpobj_typeadapt
+ * Implements <typeadapt_t.callcmpobj_typeadapt>. */
+#define callcmpobj_typeadapt(typeadp, ...)      callcmpobj_typeadaptkeycomparator(&(typeadp)->keycomparator, typeadp, __VA_ARGS__)
+
+/* define: isequal_typeadaptmember
+ * Implements <typeadapt_t.isequal_typeadaptmember>. */
+#define isequal_typeadaptmember(ltypeadp, rtypeadp)                                 \
+   (  (ltypeadp)->typeadp == (rtypeadp)->typeadp                                    \
+      && isequal_typeadapttypeinfo(&(ltypeadp)->typeinfo, &(rtypeadp)->typeinfo))
+
+/* define: islifetimedelete_typeadapt
+ * Implements <typeadapt_t.islifetimedelete_typeadapt>. */
+#define islifetimedelete_typeadapt(typeadp)     (0 != (typeadp)->lifetime.delete_object)
 
 /* define: typeadapt_EMBED
  * Implements <typeadapt_t.typeadapt_EMBED>. */
-#define typeadapt_EMBED(typeadapter_t, object_t)            \
-   struct {                                                 \
-      typeadapt_lifetime_EMBED(typeadapter_t, object_t) ;   \
-   } lifetime
+#define typeadapt_EMBED(typeadapter_t, object_t, key_t)                 \
+   struct {                                                             \
+      typeadapt_lifetime_EMBED(typeadapter_t, object_t) ;               \
+   } lifetime ;                                                         \
+   struct {                                                             \
+      typeadapt_keycomparator_EMBED(typeadapter_t, object_t, key_t) ;   \
+   } keycomparator
 
 #endif

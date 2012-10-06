@@ -30,7 +30,7 @@
 #define CKERN_PRESENTATION_X11_DISPLAY_HEADER
 
 // forward
-struct x11display_objectid_t ; // used internally to map an id to an object.
+struct x11display_objectid_t ;
 
 /* typedef: x11display_t typedef
  * Shortcut for <x11display_t>.
@@ -52,16 +52,17 @@ typedef struct x11display_videomodes_t  x11display_videomodes_t ;
  * Describes a list of all video modes. */
 typedef struct x11display_videomode_t   x11display_videomode_t ;
 
-// section: Functions
 
+// section: Functions
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_presentation_X11_display
- * Tests connection to local display. */
-extern int unittest_presentation_X11_display(void) ;
+ * Tests connection to local X11 display. */
+int unittest_presentation_X11_display(void) ;
 #endif
+
 
 /* struct: x11display_extension_t
  * */
@@ -72,6 +73,7 @@ struct x11display_extension_t {
    int         eventbase ;
    bool        isSupported ;
 } ;
+
 
 /* struct: x11display_t
  * Describes connection to X11 display server.
@@ -84,6 +86,8 @@ struct x11display_extension_t {
  * so that accessing core X11 directly via <sys_display> is safe.
  * */
 struct x11display_t {
+   /* variable: idmap
+    * used internally to map an id to an object */
    struct x11display_objectid_t * idmap ;
    char                         * display_server_name ;
    /* variable: sys_display
@@ -131,40 +135,40 @@ struct x11display_t {
  *
  * Do not share connections:
  * Every thread must have its own connection to a X11 graphics display. */
-extern int init_x11display( /*out*/x11display_t * result, const char * display_server_name ) ;
+int init_x11display(/*out*/x11display_t * result, const char * display_server_name) ;
 
 /* function: free_x11display
  * Closes display connection and frees all resources. */
-extern int free_x11display( x11display_t * x11disp ) ;
+int free_x11display(x11display_t * x11disp) ;
 
 /* function: initmove_x11display
  * Must be called if address of <x11display_t> changes.
  * A simple memcpy from source to destination does not work.
  *
  * Not Implemented. */
-extern int initmove_x11display( /*out*/x11display_t * destination, x11display_t * source ) ;
+int initmove_x11display(/*out*/x11display_t * destination, x11display_t * source) ;
 
 // group: query
 
 /* function: filedescriptor_x11display
  * Returns file descriptor of network connection.
  * You can use it to wait for incoming events sent by X11 display server. */
-extern int filedescriptor_x11display(const x11display_t * x11disp) ;
+int filedescriptor_x11display(const x11display_t * x11disp) ;
 
 /* function: errorstring_x11display
  * Returns a NULL terminated name of the error with code »x11_errcode« in plain english.
  * In case of an internal error the number of x11_errcode is returned. */
-extern void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char * buffer, uint8_t buffer_size) ;
+void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char * buffer, uint8_t buffer_size) ;
 
 // group: videomode
 
 /* function: videomode_x11display
  * Returns the current active video mode of the default screen. */
-extern int videomode_x11display(x11display_t * x11disp, /*out*/x11display_videomode_t * current_videomode) ;
+int videomode_x11display(x11display_t * x11disp, /*out*/x11display_videomode_t * current_videomode) ;
 
 /* function: setvideomode_x11display
  * Sets a new videomode for the default screen of the display. */
-extern int setvideomode_x11display(x11display_t * x11disp, const x11display_videomode_t * videomode) ;
+int setvideomode_x11display(x11display_t * x11disp, const x11display_videomode_t * videomode) ;
 
 // group: ID-manager
 
@@ -182,37 +186,45 @@ extern int setvideomode_x11display(x11display_t * x11disp, const x11display_vide
  * e.g. <free_glxwindow>, has been called. Calling free_XXX registers the value 0
  * for the corresponding object_id and a special DestroyNotify_eventhandler then
  * removes the registration with <removeobject_x11display>. */
-extern int findobject_x11display(x11display_t * x11disp, /*out*/void ** object, uint32_t object_id) ;
+int findobject_x11display(x11display_t * x11disp, /*out*/void ** object, uint32_t object_id) ;
 
 /* function: tryfindobject_x11display
  * Checks if an object id is registered.
  * Returns ESRCH if this object id does not exists.
  * In case of success and if object is set to a value != NULL a pointer is returned in object.
  * The function is equal to <findobject_x11display> except that no error logging is done. */
-extern int tryfindobject_x11display(x11display_t * x11disp, /*out*/void ** object /*could be NULL*/, uint32_t object_id) ;
+int tryfindobject_x11display(x11display_t * x11disp, /*out*/void ** object /*could be NULL*/, uint32_t object_id) ;
 
 /* function: insertobject_x11display
  * Registers an object under its corresponding id. */
-extern int insertobject_x11display(x11display_t * x11disp, void * object, uint32_t object_id) ;
+int insertobject_x11display(x11display_t * x11disp, void * object, uint32_t object_id) ;
 
 /* function: updateobject_x11display
  * Changes the pointer associated with an already inserted id. */
-extern int updateobject_x11display(x11display_t * x11disp, void * object, uint32_t object_id) ;
+int updateobject_x11display(x11display_t * x11disp, void * object, uint32_t object_id) ;
 
 /* function: removeobject_x11display
  * Removes the id and its associated pointer from the registration. */
-extern int removeobject_x11display(x11display_t * x11disp, uint32_t object_id) ;
+int removeobject_x11display(x11display_t * x11disp, uint32_t object_id) ;
+
 
 /* struct: x11display_videomode_t
- * */
+ * Describes a single supported videmode. */
 struct x11display_videomode_t {
-   uint16_t    modeid ;
+   /* variable: width_in_pixel
+    * Pixel size in horizontal direction. */
    int         width_in_pixel ;
+   /* variable: height_in_pixel
+    * Pixel size in vertical direction. */
    int         height_in_pixel ;
+   /* variable: modeid
+    * Internal implementation specific id. */
+   uint16_t    modeid ;
 } ;
 
+
 /* struct: x11display_videomodes_t
- * */
+ * Contains all supported videmodes of a <x11display_t>. */
 struct x11display_videomodes_t {
    uint16_t                 element_iterator ;
    uint16_t                 modes_count ;
@@ -223,17 +235,23 @@ struct x11display_videomodes_t {
 
 /* function: new_x11dispvideomodes
  * Returns a list of all video modes supported by the default screen on the display. */
-extern int new_x11dispvideomodes( /*out*/x11display_videomodes_t ** videomodes, x11display_t * x11disp ) ;
+int new_x11dispvideomodes(/*out*/x11display_videomodes_t ** videomodes, x11display_t * x11disp) ;
 
 /* function: delete_x11dispvideomodes
  * Frees the list of all videomodes. */
-extern int delete_x11dispvideomodes( x11display_videomodes_t ** videomodes ) ;
+int delete_x11dispvideomodes(x11display_videomodes_t ** videomodes) ;
 
 // group: iterator
 
-extern void gofirst_x11dispvideomodes( x11display_videomodes_t * videomodes ) ;
+/* function: gofirst_x11dispvideomodes
+ * Resets internal iterator to first element. */
+void gofirst_x11dispvideomodes(x11display_videomodes_t * videomodes) ;
 
-extern const x11display_videomode_t * next_x11dispvideomodes( x11display_videomodes_t * videomodes ) ;
+/* function: next_x11dispvideomodes
+ * Returns next element from internal iterator.
+ * Before return the iterator is moved to next element.
+ * The first call after <gofirst_x11dispvideomodes> returns the first element. */
+const x11display_videomode_t * next_x11dispvideomodes(x11display_videomodes_t * videomodes) ;
 
 
 #endif

@@ -66,15 +66,20 @@ struct typeadapt_typeinfo_t {
 
 /* define: typeadapt_typeinfo_INIT
  * Static initializer. Use offsetof to calculate the parameter. */
-#define typeadapt_typeinfo_INIT(memberoffset)      { (memberoffset) }
+#define typeadapt_typeinfo_INIT(memberoffset)      { memberoffset }
 
 /* function: init_typeadapttypeinfo
  * Inits <typeadapt_typeinfo_t> structure with offset to struct member.
  * Use offsetof to calculate the parameter. */
 void init_typeadapttypeinfo(/*out*/typeadapt_typeinfo_t * tinfo, uint32_t memberoffset) ;
 
+// group: query
 
-// group: object↔node
+/* function: isequal_typeadapttypeinfo
+ * Returns true if both <typeadapt_typeinfo_t>s are equal. */
+bool isequal_typeadapttypeinfo(const typeadapt_typeinfo_t * ltypeinfo, const typeadapt_typeinfo_t * rtypeinfo) ;
+
+// group: conversion
 
 /* function: memberasobject_typeadapttypeinfo
  * Converts a pointer to a struct member to the object which contains it.
@@ -101,5 +106,9 @@ void * objectasmember_typeadapttypeinfo(const typeadapt_typeinfo_t tinfo, struct
 /* define: init_typeadapttypeinfo
  * Implements <typeadapt_storedobject_t.init_typeadapttypeinfo>. */
 #define init_typeadapttypeinfo(tinfo, _memberoffset)     ((void) ((tinfo)->memberoffset = _memberoffset))
+
+/* define: isequal_typeadapttypeinfo
+ * Implements <typeadapt_t.isequal_typeadapttypeinfo>. */
+#define isequal_typeadapttypeinfo(ltypeinfo, rtypeinfo)  ((ltypeinfo)->memberoffset == (rtypeinfo)->memberoffset)
 
 #endif
