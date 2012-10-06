@@ -24,11 +24,13 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
-#include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/thread.h"
 #include "C-kern/api/string/cstring.h"
 #endif
@@ -419,7 +421,7 @@ static int test_readwrite(directory_t * tempdir)
 {
    int               fd        = -1 ;
    int               pipefd[2] = { -1 } ;
-   uint8_t           * buffer  = 0 ;
+   memblock_t        buffer    = memblock_INIT_FREEABLE ;
    thread_t          * thread  = 0 ;
    uint8_t           byte ;
    size_t            bytes_read ;
@@ -460,7 +462,7 @@ static int test_readwrite(directory_t * tempdir)
 
    // TEST write non blocking mode
    TEST(0 == pipe2(pipefd, O_NONBLOCK|O_CLOEXEC)) ;
-   for(bytes_written = 0; ;++ bytes_written) {
+   for (bytes_written = 0; ;++ bytes_written) {
       size_t bytes_written2 = 0 ;
       byte = (uint8_t)bytes_written ;
       int err = write_filedescr(pipefd[1], 1, &byte, &bytes_written2) ;
@@ -478,15 +480,14 @@ static int test_readwrite(directory_t * tempdir)
    pipe_buffersize = bytes_written ;
 
    // TEST read non blocking mode
-   TEST(0 != (buffer = (uint8_t*) malloc(100 + bytes_written))) ;
-   TEST(0 == read_filedescr(pipefd[0], 100 + bytes_written, buffer, &bytes_read)) ;
+   TEST(0 == MM_RESIZE(100 + bytes_written, &buffer)) ;
+   TEST(0 == read_filedescr(pipefd[0], 100 + bytes_written, buffer.addr, &bytes_read)) ;
    TEST(bytes_written == bytes_read) ;
    TEST(-1 == read(pipefd[0], &byte, 1)) ;
    TEST(EAGAIN == errno) ;
    TEST(EAGAIN == read_filedescr(pipefd[0], 1, &byte, &bytes_read)) ;
    TEST(bytes_written == bytes_read /*has not changed*/) ;
-   free(buffer) ;
-   buffer = 0 ;
+   TEST(0 == MM_FREE(&buffer)) ;
 
    // TEST read with interrupts
    TEST(0 == free_filedescr(&pipefd[0])) ;
@@ -585,7 +586,7 @@ ONABORT:
       sigaction(SIGUSR1, &oldact, 0) ;
    }
    delete_thread(&thread) ;
-   free(buffer) ;
+   MM_FREE(&buffer) ;
    removefile_directory(tempdir, "readwrite1") ;
    free_filedescr(&fd) ;
    free_filedescr(&pipefd[0]) ;
@@ -599,19 +600,40 @@ int unittest_io_filedescr()
    cstring_t         tmppath   = cstring_INIT ;
    directory_t       * tempdir = 0 ;
 
+   TEST(0 == newtemp_directory(&tempdir, "iofdtest", &tmppath)) ;
+
+   if (test_readwrite(tempdir))  goto ONABORT ;
+   CLEARBUFFER_LOG() ;
+
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "iofdtest", &tmppath)) ;
+   // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
+   unsigned    open_count = 0 ;
+   directory_t * dummydir[8] ;
+   {
+      size_t nrfdopen ;
+      TEST(0 == nropen_filedescr(&nrfdopen)) ;
+      while (nrfdopen < 8) {
+         TEST(0 == new_directory(&dummydir[open_count], "", 0)) ;
+         ++ open_count ;
+         ++ nrfdopen ;
+      }
+   }
 
    if (test_query())             goto ONABORT ;
    if (test_initfree(tempdir))   goto ONABORT ;
    if (test_readwrite(tempdir))  goto ONABORT ;
 
+   while (open_count) {
+      TEST(0 == delete_directory(&dummydir[--open_count])) ;
+   }
+
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ONABORT:

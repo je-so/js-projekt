@@ -1121,7 +1121,9 @@ static int test_exec(void)
       TEST(0 == free_process(&process)) ;
       MEMSET0(&readbuffer) ;
       TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
-      TEST(0 == strcmp(readbuffer, "3")) ;
+      TEST(1 == strlen(readbuffer)) ;
+      // either 3 or more filedescriptors (X11+GLX opens some fds which are inherited)
+      TEST(3 <= atoi(readbuffer)) ;
    }
 
    // TEST name_process (case 3)

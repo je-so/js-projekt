@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Sep.09  08:22:52
+GenerationDate  := 2012.Oct.03  10:08:03
 GeneratedBy     := je-so
 
 ## Debug
@@ -103,12 +103,16 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeinfo.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
@@ -169,12 +173,16 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapter.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!typeinfo.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
@@ -298,6 +306,9 @@ $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontex
 $(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o: C-kern/ds/typeadapt.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
 	@$(CC_Debug)
 
@@ -310,10 +321,19 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetime.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!typeinfo.c.o: C-kern/ds/typeadapt/typeinfo.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
@@ -490,6 +510,9 @@ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcont
 $(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!ds!typeadapt.c.o: C-kern/ds/typeadapt.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!ds!typeadapter.c.o: C-kern/ds/typeadapter.c
 	@$(CC_Release)
 
@@ -502,10 +525,19 @@ $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystac
 $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetime.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!typeadapt!typeinfo.c.o: C-kern/ds/typeadapt/typeinfo.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c

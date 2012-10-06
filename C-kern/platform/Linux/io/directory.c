@@ -793,10 +793,27 @@ int unittest_io_directory()
    CLEARBUFFER_LOG() ;
    TEST(0 == init_resourceusage(&usage)) ;
 
+   // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
+   unsigned    open_count = 0 ;
+   directory_t * dummydir[8] ;
+   {
+      size_t nrfdopen ;
+      TEST(0 == nropen_filedescr(&nrfdopen)) ;
+      while (nrfdopen < 8) {
+         TEST(0 == new_directory(&dummydir[open_count], "", 0)) ;
+         ++ open_count ;
+         ++ nrfdopen ;
+      }
+   }
+
    if (test_checkpath())         goto ONABORT ;
    if (test_initfree())          goto ONABORT ;
    if (test_workingdir())        goto ONABORT ;
    if (test_filesize())          goto ONABORT ;
+
+   while (open_count) {
+      TEST(0 == delete_directory(&dummydir[--open_count])) ;
+   }
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

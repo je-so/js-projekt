@@ -1673,12 +1673,32 @@ int unittest_io_ipsocket()
    for(int i = 0; i < 2; ++i) {
       TEST(0 == init_resourceusage(&usage)) ;
 
+      // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
+      unsigned   open_count = 0 ;
+      ipsocket_t ipsock[8] ;
+      {
+         size_t     nrfdopen ;
+         ipaddr_t   * ipaddr = 0 ;
+         TEST(0 == nropen_filedescr(&nrfdopen)) ;
+         TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
+         while (nrfdopen < 8) {
+            TEST(0 == init_ipsocket(&ipsock[open_count], ipaddr)) ;
+            ++ open_count ;
+            ++ nrfdopen ;
+         }
+         TEST(0 == delete_ipaddr(&ipaddr)) ;
+      }
+
       if (test_initfree())       goto ONABORT ;
       if (test_connect())        goto ONABORT ;
       if (test_buffersize())     goto ONABORT ;
       if (test_outofbandData())  goto ONABORT ;
       if (test_udpIO())          goto ONABORT ;
       if (test_async())          goto ONABORT ;
+
+      while (open_count) {
+         TEST(0 == free_ipsocket(&ipsock[--open_count])) ;
+      }
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;

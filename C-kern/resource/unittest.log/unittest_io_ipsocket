@@ -1,26 +1,26 @@
 C-kern/platform/Linux/io/ipsocket.c:362: remoteaddr_ipsocket(): error: 107: System call 'getpeername' returned error 'Transport endpoint is not connected'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:374: remoteaddr_ipsocket(): error: 107: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:362: remoteaddr_ipsocket(): error: 107: System call 'getpeername' returned error 'Transport endpoint is not connected'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:374: remoteaddr_ipsocket(): error: 107: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:362: remoteaddr_ipsocket(): error: 107: System call 'getpeername' returned error 'Transport endpoint is not connected'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:374: remoteaddr_ipsocket(): error: 107: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:362: remoteaddr_ipsocket(): error: 107: System call 'getpeername' returned error 'Transport endpoint is not connected'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:374: remoteaddr_ipsocket(): error: 107: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:362: remoteaddr_ipsocket(): error: 107: System call 'getpeername' returned error 'Transport endpoint is not connected'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:374: remoteaddr_ipsocket(): error: 107: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:362: remoteaddr_ipsocket(): error: 107: System call 'getpeername' returned error 'Transport endpoint is not connected'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:374: remoteaddr_ipsocket(): error: 107: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:362: remoteaddr_ipsocket(): error: 107: System call 'getpeername' returned error 'Transport endpoint is not connected'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:374: remoteaddr_ipsocket(): error: 107: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:362: remoteaddr_ipsocket(): error: 107: System call 'getpeername' returned error 'Transport endpoint is not connected'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:374: remoteaddr_ipsocket(): error: 107: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:114: init_ipsocket(): error: 22: Function input violates condition (isvalid_ipaddr(localaddr))
 C-kern/platform/Linux/io/ipsocket.c:126: init_ipsocket(): error: 22: Function aborted
@@ -29,38 +29,38 @@ C-kern/platform/Linux/io/ipsocket.c:126: init_ipsocket(): error: 22: Function ab
 C-kern/platform/Linux/io/ipsocket.c:140: initconnect_ipsocket(): error: 22: Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
 C-kern/platform/Linux/io/ipsocket.c:162: initconnect_ipsocket(): error: 22: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:212: initwaitconnect_ipsocket(): error: 22: System call 'accept4' returned error 'Invalid argument'
-fd=4
+fd=9
 C-kern/platform/Linux/io/ipsocket.c:228: initwaitconnect_ipsocket(): error: 22: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:153: initconnect_ipsocket(): error: 97: System call 'connect' returned error 'Address family not supported by protocol'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:162: initconnect_ipsocket(): error: 97: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:181: initlisten_ipsocket(): error: 95: System call 'listen' returned error 'Operation not supported'
-fd=3
+fd=8
 max_outstanding_connections=1
 C-kern/platform/Linux/io/ipsocket.c:191: initlisten_ipsocket(): error: 95: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:212: initwaitconnect_ipsocket(): error: 95: System call 'accept4' returned error 'Operation not supported'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:228: initwaitconnect_ipsocket(): error: 95: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:501: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
-fd=4
+fd=9
 maxdata_len=1
 C-kern/platform/Linux/io/ipsocket.c:512: read_ipsocket(): error: 11: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:562: readoob_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
-fd=4
+fd=9
 maxdata_len=1
 C-kern/platform/Linux/io/ipsocket.c:594: readoob_ipsocket(): error: 11: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:562: readoob_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
-fd=5
+fd=10
 maxdata_len=1
 C-kern/platform/Linux/io/ipsocket.c:594: readoob_ipsocket(): error: 11: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:611: writeoob_ipsocket(): error: 95: System call 'send' returned error 'Operation not supported'
-fd=4
+fd=9
 C-kern/platform/Linux/io/ipsocket.c:618: writeoob_ipsocket(): error: 95: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:553: readoob_ipsocket(): error: 95: System call 'ioctl(SIOCATMARK)' returned error 'Operation not supported'
-fd=3
+fd=8
 C-kern/platform/Linux/io/ipsocket.c:594: readoob_ipsocket(): error: 95: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:501: read_ipsocket(): error: 11: System call 'recv' returned error 'Resource temporarily unavailable'
-fd=3
+fd=8
 maxdata_len=1
 C-kern/platform/Linux/io/ipsocket.c:512: read_ipsocket(): error: 11: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:702: writeto_ipsocket(): error: 97: Function aborted
@@ -72,5 +72,5 @@ C-kern/platform/Linux/io/ipsocket.c:702: writeto_ipsocket(): error: 93: Function
 C-kern/platform/Linux/io/ipsocket.c:734: initconnect_ipsocketasync(): error: 22: Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
 C-kern/platform/Linux/io/ipsocket.c:770: initconnect_ipsocketasync(): error: 22: Function aborted
 C-kern/platform/Linux/io/ipsocket.c:759: initconnect_ipsocketasync(): error: 97: System call 'connect' returned error 'Address family not supported by protocol'
-fd=4
+fd=9
 C-kern/platform/Linux/io/ipsocket.c:770: initconnect_ipsocketasync(): error: 97: Function aborted
