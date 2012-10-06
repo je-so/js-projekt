@@ -258,9 +258,10 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_splaytree) ;
       RUN(unittest_ds_inmem_suffixtree) ;
       RUN(unittest_ds_typeadapt) ;
+      RUN(unittest_ds_typeadapt_impl) ;
+      RUN(unittest_ds_typeadapt_keycomparator) ;
       RUN(unittest_ds_typeadapt_lifetime) ;
       RUN(unittest_ds_typeadapt_typeinfo) ;
-      RUN(unittest_ds_typeadapt_keycomparator) ;
 //}
 
 //{ math unittest

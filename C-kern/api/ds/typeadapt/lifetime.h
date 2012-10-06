@@ -81,6 +81,10 @@ struct typeadapt_lifetime_it {
  * deleteobj_f  - Function pointer to free object function. See <typeadapt_lifetime_it.delete_object>. */
 #define typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f)  { (newcopyobj_f), (deleteobj_f) }
 
+// group: query
+
+bool isequal_typeadaptlifetime(const typeadapt_lifetime_it * ladplife, const typeadapt_lifetime_it * radplife) ;
+
 // group: call-service
 
 /* function: callnewcopy_typeadaptlifetime

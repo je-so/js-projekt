@@ -199,10 +199,6 @@ int tryfindobject_x11display(x11display_t * x11disp, /*out*/void ** object /*cou
  * Registers an object under its corresponding id. */
 int insertobject_x11display(x11display_t * x11disp, void * object, uint32_t object_id) ;
 
-/* function: updateobject_x11display
- * Changes the pointer associated with an already inserted id. */
-int updateobject_x11display(x11display_t * x11disp, void * object, uint32_t object_id) ;
-
 /* function: removeobject_x11display
  * Removes the id and its associated pointer from the registration. */
 int removeobject_x11display(x11display_t * x11disp, uint32_t object_id) ;

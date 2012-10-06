@@ -85,6 +85,10 @@ struct typeadapt_keycomparator_it {
  * cmpobj_f    - Function pointer to function comparing object with object. See <typeadapt_keycomparator_it.cmp_object>. */
 #define typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f)    { cmpkeyobj_f, cmpobj_f }
 
+// group: query
+
+bool isequal_typeadaptkeycomparator(const typeadapt_keycomparator_it * ladpcmp, const typeadapt_keycomparator_it * radpcmp) ;
+
 // group: call-service
 
 /* function: callcmpkeyobj_typeadaptkeycomparator

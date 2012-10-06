@@ -96,14 +96,10 @@ bool isequal_typeadaptmember(const typeadapt_member_t * ltypeadp, const typeadap
 struct typeadapt_t {
    /* variable: lifetime
     * Interface to adapt the lifetime of an object type. See <typeadapt_lifetime_it>. */
-   struct {
-      typeadapt_lifetime_EMBED(typeadapt_t, typeadapt_object_t) ;
-   } lifetime ;
+   typeadapt_lifetime_it       lifetime ;
    /* variable: keycomparator
     * Interface to adapt comparison of key and object. See <typeadapt_keycomparator_it>. */
-   struct {
-      typeadapt_keycomparator_EMBED(typeadapt_t, typeadapt_object_t, void) ;
-   } keycomparator ;
+   typeadapt_keycomparator_it  keycomparator ;
 } ;
 
 // group: lifetime
@@ -128,6 +124,10 @@ struct typeadapt_t {
    { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f) }
 
 // group: query
+
+/* function: islifetimedelete_typeadapt
+ * Returns true if both <typeadapt_t> are equal. */
+bool isequal_typeadapt(const typeadapt_t * ltypeadp, const typeadapt_t * rtypeadp) ;
 
 /* function: islifetimedelete_typeadapt
  * Returns true if <typeadapt_lifetime_it.delete_object> is not NULL. */

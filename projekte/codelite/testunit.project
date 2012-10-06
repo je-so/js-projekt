@@ -142,6 +142,7 @@
         <File Name="../../C-kern/api/ds/typeadapt/keycomparator.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/lifetime.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/typeinfo.h"/>
+        <File Name="../../C-kern/api/ds/typeadapt/typeadapt_impl.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/ds/typeadapt.h"/>
     </VirtualDirectory>
@@ -369,6 +370,7 @@
       <File Name="../../C-kern/ds/typeadapt/keycomparator.c"/>
       <File Name="../../C-kern/ds/typeadapt/lifetime.c"/>
       <File Name="../../C-kern/ds/typeadapt/typeinfo.c"/>
+      <File Name="../../C-kern/ds/typeadapt/typeadapt_impl.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/ds/typeadapt.c"/>
   </VirtualDirectory>

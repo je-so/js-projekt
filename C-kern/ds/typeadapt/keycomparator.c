@@ -32,6 +32,15 @@
 #endif
 
 
+// section: typeadapt_keycomparator_it
+
+// group: query
+
+bool isequal_typeadaptkeycomparator(const typeadapt_keycomparator_it * ladpcmp, const typeadapt_keycomparator_it * radpcmp)
+{
+   return   ladpcmp->cmp_key_object == radpcmp->cmp_key_object
+            && ladpcmp->cmp_object == radpcmp->cmp_object ;
+}
 
 // group: test
 
@@ -94,6 +103,23 @@ static int test_initfree(void)
    adpcmp = (typeadapt_keycomparator_it) typeadapt_keycomparator_INIT(&impl_cmpkeyobject_typeadapt, &impl_cmpobject_typeadapt) ;
    TEST(adpcmp.cmp_key_object == &impl_cmpkeyobject_typeadapt) ;
    TEST(adpcmp.cmp_object == &impl_cmpobject_typeadapt) ;
+
+   // TEST isequal_typeadaptkeycomparator
+   typeadapt_keycomparator_it adpcmp2 ;
+   for (unsigned i = 0; i < sizeof(typeadapt_keycomparator_it)/sizeof(void*); ++i) {
+      *(((void**)&adpcmp) +i) = (void*)i ;
+      *(((void**)&adpcmp2)+i) = (void*)i ;
+   }
+   TEST(1 == isequal_typeadaptkeycomparator(&adpcmp, &adpcmp2)) ;
+   TEST(1 == isequal_typeadaptkeycomparator(&adpcmp2, &adpcmp)) ;
+   for (unsigned i = 0; i < sizeof(typeadapt_keycomparator_it)/sizeof(void*); ++i) {
+      *(((void**)&adpcmp2)+i) = (void*)(1+i) ;
+      TEST(0 == isequal_typeadaptkeycomparator(&adpcmp, &adpcmp2)) ;
+      TEST(0 == isequal_typeadaptkeycomparator(&adpcmp2, &adpcmp)) ;
+      *(((void**)&adpcmp2)+i) = (void*)i ;
+      TEST(1 == isequal_typeadaptkeycomparator(&adpcmp, &adpcmp2)) ;
+      TEST(1 == isequal_typeadaptkeycomparator(&adpcmp2, &adpcmp)) ;
+   }
 
    return 0 ;
 ONABORT:

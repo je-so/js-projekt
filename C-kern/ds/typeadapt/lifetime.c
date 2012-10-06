@@ -32,6 +32,16 @@
 #endif
 
 
+// section: typeadapt_lifetime_it
+
+// group: query
+
+bool isequal_typeadaptlifetime(const typeadapt_lifetime_it * ladplife, const typeadapt_lifetime_it * radplife)
+{
+   return   ladplife->newcopy_object == radplife->newcopy_object
+            && ladplife->delete_object == radplife->delete_object ;
+}
+
 
 // group: test
 
@@ -91,6 +101,23 @@ static int test_initfree(void)
    adplife = (typeadapt_lifetime_it) typeadapt_lifetime_INIT(&adapt_newcopyobject_testadapter, &adapt_deleteobject_testadapter) ;
    TEST(adplife.newcopy_object == &adapt_newcopyobject_testadapter) ;
    TEST(adplife.delete_object  == &adapt_deleteobject_testadapter) ;
+
+   // TEST isequal_typeadaptlifetime
+   typeadapt_lifetime_it adplife2 ;
+   for (unsigned i = 0; i < sizeof(typeadapt_lifetime_it)/sizeof(void*); ++i) {
+      *(((void**)&adplife) +i) = (void*)i ;
+      *(((void**)&adplife2)+i) = (void*)i ;
+   }
+   TEST(1 == isequal_typeadaptlifetime(&adplife, &adplife2)) ;
+   TEST(1 == isequal_typeadaptlifetime(&adplife2, &adplife)) ;
+   for (unsigned i = 0; i < sizeof(typeadapt_lifetime_it)/sizeof(void*); ++i) {
+      *(((void**)&adplife2)+i) = (void*)(1+i) ;
+      TEST(0 == isequal_typeadaptlifetime(&adplife, &adplife2)) ;
+      TEST(0 == isequal_typeadaptlifetime(&adplife2, &adplife)) ;
+      *(((void**)&adplife2)+i) = (void*)i ;
+      TEST(1 == isequal_typeadaptlifetime(&adplife, &adplife2)) ;
+      TEST(1 == isequal_typeadaptlifetime(&adplife2, &adplife)) ;
+   }
 
    return 0 ;
 ONABORT:
