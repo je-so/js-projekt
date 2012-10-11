@@ -1,12 +1,18 @@
-C-kern/ds/inmem/arraystf.c:137: initdiff_arraystfkeyval(): error: 22: Function input violates condition (size1 != size2)
-C-kern/ds/inmem/arraystf.c:147: initdiff_arraystfkeyval(): error: 22: Function aborted
-C-kern/ds/inmem/arraystf.c:188: find_arraystf(): error: 22: Function input violates condition (keynode->size < SIZE_MAX)
-C-kern/ds/inmem/arraystf.c:250: find_arraystf(): error: 22: Function aborted
-C-kern/ds/inmem/arraystf.c:261: new_arraystf(): error: 22: Function input violates condition (*array == 0)
-C-kern/ds/inmem/arraystf.c:277: new_arraystf(): error: 22: Function aborted
-C-kern/ds/inmem/arraystf.c:263: new_arraystf(): error: 22: Function input violates condition (type < nrelementsof(s_arraystf_nrelemroot))
+C-kern/ds/inmem/arraystf.c:129: initdiff_arraystfkeyval(): error: 22: Function input violates condition (size1 != size2)
+C-kern/ds/inmem/arraystf.c:139: initdiff_arraystfkeyval(): error: 22: Function aborted
+C-kern/ds/inmem/arraystf.c:180: find_arraystf(): error: 22: Function input violates condition (keynode->size < SIZE_MAX)
+C-kern/ds/inmem/arraystf.c:242: find_arraystf(): error: 22: Function aborted
+C-kern/ds/inmem/arraystf.c:253: new_arraystf(): error: 22: Function input violates condition (*array == 0)
+C-kern/ds/inmem/arraystf.c:269: new_arraystf(): error: 22: Function aborted
+C-kern/ds/inmem/arraystf.c:255: new_arraystf(): error: 22: Function input violates condition (type < nrelementsof(s_arraystf_nrelemroot))
 type=-1
-C-kern/ds/inmem/arraystf.c:277: new_arraystf(): error: 22: Function aborted
-C-kern/ds/inmem/arraystf.c:627: insert_arraystf(): error: 17: Function aborted
-C-kern/ds/inmem/arraystf.c:609: remove_arraystf(): error: 3: Function aborted
-C-kern/ds/inmem/arraystf.c:356: delete_arraystf(): error: 12345: Freeing a resource returned an error
+C-kern/ds/inmem/arraystf.c:269: new_arraystf(): error: 22: Function aborted
+C-kern/ds/inmem/arraystf.c:618: insert_arraystf(): error: 17: Function aborted
+C-kern/ds/inmem/arraystf.c:600: remove_arraystf(): error: 3: Function aborted
+C-kern/ds/inmem/arraystf.c:352: delete_arraystf(): error: 12345: Freeing a resource returned an error
+C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 24 bytes of memory
+C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/ds/inmem/arraystf.c:524: tryinsert_arraystf(): error: 12: Function aborted
+C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 24 bytes of memory
+C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/ds/inmem/arraystf.c:524: tryinsert_arraystf(): error: 12: Function aborted

@@ -1,7 +1,10 @@
 /* title: TestMemoryManager
+
    Offers interface for allocating & freeing transient memory.
    This is a test memory manager which checks for writing beyond the allocated memory block.
    It is used during the execution of unit tests.
+
+   // TODO: move mmtest.h under api/test/
 
    about: Copyright
    This program is free software.

@@ -132,7 +132,7 @@ bool next_slistiterator(slist_iterator_t * iter, slist_t * list, /*out*/struct s
  * > void function() {
  * >  slist_t mylist ;
  * >  init_mylist(&mylist) ;
- * >  object_t * new_object = malloc(sizeof(object_t)) ;
+ * >  object_t * new_object = ... ;
  * >  new_object->slnode = slist_node_INIT ;
  * >
  * >  // instead of

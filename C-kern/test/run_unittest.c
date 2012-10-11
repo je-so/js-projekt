@@ -249,7 +249,6 @@ int run_unittest(void)
 //}
 
 //{ data structure unittest
-      RUN(unittest_ds_typeadapter) ;
       RUN(unittest_ds_inmem_arraysf) ;
       RUN(unittest_ds_inmem_arraystf) ;
       RUN(unittest_ds_inmem_binarystack) ;

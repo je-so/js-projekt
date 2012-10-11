@@ -21,7 +21,6 @@
 
    file: C-kern/api/ds/inmem/node/dlist_node.h
     Header file <DoubleLinkedList-Node>.
-
 */
 #ifndef CKERN_DS_INMEM_NODE_DLIST_NODE_HEADER
 #define CKERN_DS_INMEM_NODE_DLIST_NODE_HEADER

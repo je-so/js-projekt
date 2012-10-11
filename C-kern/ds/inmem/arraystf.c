@@ -24,31 +24,21 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/ds/foreach.h"
+#include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/inmem/arraystf.h"
 #include "C-kern/api/ds/inmem/binarystack.h"
-#include "C-kern/api/ds/inmem/node/arraystf_node.h"
-#include "C-kern/api/ds/foreach.h"
-#include "C-kern/api/ds/typeadapter.h"
-#include "C-kern/api/err.h"
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/memory/mm/mmtest.h"
 #include "C-kern/api/platform/virtmemory.h"
+#include "C-kern/api/test/errortimer.h"
 #endif
-
-
-typedef struct arraystf_keyval_t       arraystf_keyval_t ;
-
-typedef struct arraystf_pos_t          arraystf_pos_t ;
-
-
-struct arraystf_pos_t {
-   arraystf_mwaybranch_t * branch ;
-   unsigned              ci ;
-} ;
 
 
 // section: arraystf_node_t
@@ -71,6 +61,8 @@ static inline void compiletime_assert(void)
    static_assert(offsetof(arraystf_node_t, size) == offsetof(conststring_t, size), "arraystf_node_t compatible with conststring_t") ;
    static_assert(sizeof(node.size) == sizeof(cnststr.size), "arraystf_node_t compatible with conststring_t") ;
 }
+
+typedef struct arraystf_keyval_t       arraystf_keyval_t ;
 
 /* struct: arraystf_keyval_t
  * Describes the value of a key string at a certain memory offset. */
@@ -116,19 +108,19 @@ static int initdiff_arraystfkeyval(/*out*/arraystf_keyval_t * keyval, arraystf_n
    size_t         size    = (size1 <= size2) ? size1 : size2 ;
    size_t         offset ;
 
-   for(offset = 0; offset < size; ++offset ) {
+   for (offset = 0; offset < size; ++offset ) {
       if (addr1[offset] == addr2[offset]) continue ;
       keyval->data = (size_t) (addr1[offset] ^ addr2[offset]) ;
       goto DONE ;
    }
 
-   for( ; offset < size1; ++offset) {
+   for (; offset < size1; ++offset) {
       if (0 == addr1[offset]) continue ;
       keyval->data = addr1[offset] ;
       goto DONE ;
    }
 
-   for( ; offset < size2; ++offset) {
+   for (; offset < size2; ++offset) {
       if (0 == addr2[offset]) continue ;
       keyval->data = addr2[offset] ;
       goto DONE ;
@@ -178,7 +170,7 @@ struct arraystf_findresult_t {
    arraystf_node_t         * found_key ;
 } ;
 
-static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*err;out*/arraystf_findresult_t * result, size_t offset_node)
+static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*err;out*/arraystf_findresult_t * result)
 {
    int err ;
    unsigned             rootindex ;
@@ -227,7 +219,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
          childindex  = childindex_arraystfmwaybranch(parent, keyval.data) ;
          node        = parent->child[childindex] ;
       } else {
-         result->found_key = asnode_arraystfunode(node, offset_node) ;
+         result->found_key = asnode_arraystfunode(node) ;
          if (     keynode->size == result->found_key->size
                && 0 == memcmp(keynode->addr, result->found_key->addr, keynode->size)) {
             err = 0 ;
@@ -278,7 +270,7 @@ ONABORT:
    return err ;
 }
 
-int delete_arraystf(arraystf_t ** array, typeadapter_iot * typeadp)
+int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
 {
    int err = 0 ;
    int err2 ;
@@ -287,15 +279,18 @@ int delete_arraystf(arraystf_t ** array, typeadapter_iot * typeadp)
    if (del_obj) {
       *array = 0 ;
 
-      for(unsigned i = 0; i < nrelemroot_arraystf(del_obj); ++i) {
+      const bool isDelete = (nodeadp && islifetimedelete_typeadapt(nodeadp->typeadp)) ;
+
+      for (unsigned i = 0; i < nrelemroot_arraystf(del_obj); ++i) {
 
          if (!del_obj->root[i]) continue ;
 
          arraystf_unode_t * node = del_obj->root[i] ;
 
          if (!isbranchtype_arraystfunode(node)) {
-            if (typeadp) {
-               err2 = execfree_typeadapteriot(typeadp, asgeneric_arraystfunode(node)) ;
+            if (isDelete) {
+               typeadapt_object_t * delobj = memberasobject_typeadapttypeinfo(nodeadp->typeinfo, node) ;
+               err2 = calldelete_typeadapt(nodeadp->typeadp, &delobj) ;
                if (err2) err = err2 ;
             }
             continue ;
@@ -306,9 +301,9 @@ int delete_arraystf(arraystf_t ** array, typeadapter_iot * typeadp)
          branch->child[0] = 0 ;
          branch->used = nrelementsof(branch->child)-1 ;
 
-         for(;;) {
+         for (;;) {
 
-            for(;;) {
+            for (;;) {
                if (node) {
                   if (isbranchtype_arraystfunode(node)) {
                      arraystf_mwaybranch_t * parent = branch ;
@@ -317,8 +312,9 @@ int delete_arraystf(arraystf_t ** array, typeadapter_iot * typeadp)
                      branch->child[0] = (arraystf_unode_t*) parent ;
                      branch->used     = nrelementsof(branch->child)-1 ;
                      continue ;
-                  } else if (typeadp) {
-                     err2 = execfree_typeadapteriot(typeadp, asgeneric_arraystfunode(node)) ;
+                  } else if (isDelete) {
+                     typeadapt_object_t * delobj = memberasobject_typeadapttypeinfo(nodeadp->typeinfo, node) ;
+                     err2 = calldelete_typeadapt(nodeadp->typeadp, &delobj) ;
                      if (err2) err = err2 ;
                   }
                }
@@ -333,7 +329,7 @@ int delete_arraystf(arraystf_t ** array, typeadapter_iot * typeadp)
                err2 = MM_FREE(&mblock) ;
                if (err2) err = err2 ;
                branch = parent ;
-            } while(branch && !branch->used) ;
+            } while (branch && !branch->used) ;
 
             if (!branch) break ;
 
@@ -359,49 +355,47 @@ ONABORT:
 
 // group: query
 
-struct generic_object_t * at_arraystf(const arraystf_t * array, size_t size, const uint8_t keydata[size], size_t offset_node)
+struct arraystf_node_t * at_arraystf(const arraystf_t * array, size_t size, const uint8_t keydata[size])
 {
    int err ;
    arraystf_findresult_t found ;
    arraystf_node_t       key   = arraystf_node_INIT(size, &keydata[0]) ;
 
-   err = find_arraystf(array, &key, &found, offset_node) ;
+   err = find_arraystf(array, &key, &found) ;
    if (err) return 0 ;
 
-   return asgeneric_arraystfunode(found.found_node) ;
+   return asnode_arraystfunode(found.found_node) ;
 }
 
 // group: change
 
-int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out,err*/struct generic_object_t ** inserted_or_existing_node, struct typeadapter_iot * typeadp, size_t offset_node)
+int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;err*/struct arraystf_node_t ** inserted_or_existing_node, struct typeadapt_member_t * nodeadp/*0=>no copy is made*/)
 {
    int err ;
    arraystf_findresult_t   found ;
    arraystf_keyval_t       keydiff ;
-   arraystf_node_t         * nodekey   = asnode_arraystfunode(fromgeneric_arraystfunode(node), offset_node) ;
-   typeof(node)            copied_node = 0 ;
+   typeadapt_object_t      * copied_node ;
    unsigned                shift ;
 
-   err = find_arraystf(array, nodekey, &found, offset_node) ;
+   err = find_arraystf(array, node, &found) ;
    if (ESRCH != err) {
       if (inserted_or_existing_node) {
-         *inserted_or_existing_node = (0 == err) ? asgeneric_arraystfunode(found.found_node) : 0 ;
+         *inserted_or_existing_node = (0 == err) ? asnode_arraystfunode(found.found_node) : 0 ;
       }
       return (0 == err) ? EEXIST : err ;
    }
 
-   if (typeadp) {
-      err = execcopy_typeadapteriot(typeadp, &copied_node, node) ;
+   if (nodeadp) {
+      err = callnewcopy_typeadapt(nodeadp->typeadp, &copied_node, memberasobject_typeadapttypeinfo(nodeadp->typeinfo, node)) ;
       if (err) goto ONABORT ;
-      node    = copied_node ;
-      nodekey = asnode_arraystfunode(fromgeneric_arraystfunode(node), offset_node) ;
+      node = objectasmember_typeadapttypeinfo(nodeadp->typeinfo, copied_node) ;
    }
 
    VALIDATE_INPARAM_TEST(0 == ((uintptr_t)node&0x01), ONABORT, ) ;
 
    if (found.found_node) {
 
-      err = initdiff_arraystfkeyval(&keydiff, found.found_key, nodekey) ;
+      err = initdiff_arraystfkeyval(&keydiff, found.found_key, node) ;
       if (err) goto ONABORT ;
 
       shift = log2_int(keydiff.data) & ~0x01u ;
@@ -420,10 +414,10 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
          arraystf_mwaybranch_t * new_branch = (arraystf_mwaybranch_t *) mblock.addr ;
 
          arraystf_keyval_t keynode ;
-         init_arraystfkeyval(&keynode, keydiff.offset, nodekey) ;
+         init_arraystfkeyval(&keynode, keydiff.offset, node) ;
          keydiff.data ^= keynode.data ;
 
-         init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, found.found_node, keynode.data, fromgeneric_arraystfunode(node)) ;
+         init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, found.found_node, keynode.data, asunode_arraystfnode(node)) ;
 
          if (found.parent) {
             found.parent->child[found.childindex] = asunode_arraystfmwaybranch(new_branch) ;
@@ -440,7 +434,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
    // simple case (parent is 0)
 
       if (! found.parent) {
-         array->root[found.rootindex] = fromgeneric_arraystfunode(node) ;
+         array->root[found.rootindex] = asunode_arraystfnode(node) ;
          goto DONE ;
       }
 
@@ -455,7 +449,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
                continue ;
             }
 
-            err = initdiff_arraystfkeyval(&keydiff, asnode_arraystfunode(branch->child[i], offset_node), nodekey) ;
+            err = initdiff_arraystfkeyval(&keydiff, asnode_arraystfunode(branch->child[i]), node) ;
             if (err) goto ONABORT ;
             break ;
          }
@@ -470,7 +464,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
       if (     found.parent->offset == keydiff.offset
             && found.parent->shift  == shift)  {
          // prefix does match
-         found.parent->child[found.childindex] = fromgeneric_arraystfunode(node) ;
+         found.parent->child[found.childindex] = asunode_arraystfnode(node) ;
          ++ found.parent->used ;
          goto DONE ;
       }
@@ -490,7 +484,7 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
             || (     branch->offset == keydiff.offset
                   && branch->shift  > shift)) {
       parent = branch ;
-      init_arraystfkeyval(&keynode, branch->offset, nodekey) ;
+      init_arraystfkeyval(&keynode, branch->offset, node) ;
       childindex = childindex_arraystfmwaybranch(branch, keynode.data) ;
       arraystf_unode_t * child = branch->child[childindex] ;
       assert(child) ;
@@ -504,10 +498,10 @@ int tryinsert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out
 
    arraystf_mwaybranch_t * new_branch = (arraystf_mwaybranch_t*) mblock.addr ;
 
-   init_arraystfkeyval(&keynode, keydiff.offset, nodekey) ;
+   init_arraystfkeyval(&keynode, keydiff.offset, node) ;
    keydiff.data ^= keynode.data ;
 
-   init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, asunode_arraystfmwaybranch(branch), keynode.data, fromgeneric_arraystfunode(node)) ;
+   init_arraystfmwaybranch(new_branch, keydiff.offset, shift, keydiff.data, asunode_arraystfmwaybranch(branch), keynode.data, asunode_arraystfnode(node)) ;
 
    if (parent) {
       parent->child[childindex] = asunode_arraystfmwaybranch(new_branch) ;
@@ -519,26 +513,25 @@ DONE:
 
    ++ array->length ;
 
-   if (inserted_or_existing_node) {
-      *inserted_or_existing_node = node ;
-   }
+   *inserted_or_existing_node = node ;
 
    return 0 ;
 ONABORT:
+   *inserted_or_existing_node = 0 ;
    if (copied_node) {
-      (void) execfree_typeadapteriot(typeadp, copied_node) ;
+      (void) calldelete_typeadapt(nodeadp->typeadp, &copied_node) ;
    }
    TRACEABORT_LOG(err) ;
    return err ;
 }
 
-int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct generic_object_t ** removed_node/*could be 0*/, size_t offset_node)
+int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node)
 {
    int err ;
    arraystf_findresult_t found ;
    arraystf_node_t       key = arraystf_node_INIT(size, keydata) ;
 
-   err = find_arraystf(array, &key, &found, offset_node) ;
+   err = find_arraystf(array, &key, &found) ;
    if (err) return err ;
 
    if (! found.parent) {
@@ -560,7 +553,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
 
    // delete parent (only one more entry) and adapt parent of parent
 
-         for(unsigned i = nrelementsof(found.parent->child)-1; ; ) {
+         for (unsigned i = nrelementsof(found.parent->child)-1; ; ) {
             if (  i != found.childindex
                && found.parent->child[i]) {
                arraystf_unode_t * other_child = found.parent->child[i] ;
@@ -587,9 +580,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
    assert(array->length > 0) ;
    -- array->length ;
 
-   if (removed_node) {
-      *removed_node = asgeneric_arraystfunode(found.found_node) ;
-   }
+   *removed_node = asnode_arraystfunode(found.found_node) ;
 
    return 0 ;
 ONABORT:
@@ -597,11 +588,11 @@ ONABORT:
    return err ;
 }
 
-int remove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct generic_object_t ** removed_node/*could be 0*/, size_t offset_node)
+int remove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/struct arraystf_node_t ** removed_node)
 {
    int err ;
 
-   err = tryremove_arraystf(array, size, keydata, removed_node, offset_node) ;
+   err = tryremove_arraystf(array, size, keydata, removed_node) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -610,12 +601,12 @@ ONABORT:
    return err ;
 }
 
-int insert_arraystf(arraystf_t * array, struct generic_object_t * node, /*out*/struct generic_object_t ** inserted_node, struct typeadapter_iot * typeadp, size_t offset_node)
+int insert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out*/struct arraystf_node_t ** inserted_node/*0=>copy not returned*/, struct typeadapt_member_t * nodeadp/*0=>no copy is made*/)
 {
    int err ;
-   struct generic_object_t * inserted_or_existing_node ;
+   struct arraystf_node_t * inserted_or_existing_node ;
 
-   err = tryinsert_arraystf(array, node, &inserted_or_existing_node, typeadp, offset_node) ;
+   err = tryinsert_arraystf(array, node, &inserted_or_existing_node, nodeadp) ;
    if (err) goto ONABORT ;
 
    if (inserted_node) {
@@ -630,6 +621,13 @@ ONABORT:
 
 
 // section: arraystf_iterator_t
+
+typedef struct arraystf_pos_t          arraystf_pos_t ;
+
+struct arraystf_pos_t {
+   arraystf_mwaybranch_t * branch ;
+   unsigned              ci ;
+} ;
 
 int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array)
 {
@@ -682,7 +680,7 @@ ONABORT:
    return err ;
 }
 
-bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out*/struct generic_object_t ** node)
+bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out*/struct arraystf_node_t ** node)
 {
    int err ;
    size_t         nrelemroot = nrelemroot_arraystf(array) ;
@@ -694,14 +692,14 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
 
          arraystf_unode_t * rootnode ;
 
-         for(;;) {
+         for (;;) {
             if (iter->ri >= nrelemroot) {
                return false ;
             }
             rootnode = array->root[iter->ri ++] ;
             if (rootnode) {
                if (!isbranchtype_arraystfunode(rootnode)) {
-                  *node = asgeneric_arraystfunode(rootnode) ;
+                  *node = asnode_arraystfunode(rootnode) ;
                   return true ;
                }
                break ;
@@ -737,7 +735,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
                pos->ci     = 0 ;
                continue ;
             } else {
-               *node = asgeneric_arraystfunode(childnode) ;
+               *node = asnode_arraystfunode(childnode) ;
                return true ;
             }
          }
@@ -768,14 +766,14 @@ static int test_arraystfnode(void)
    TEST(0 == node.size) ;
 
    // TEST arraystf_node_INIT
-   for(unsigned i = 0; i < 1000; i += 100) {
+   for (unsigned i = 0; i < 1000; i += 100) {
       node = (arraystf_node_t) arraystf_node_INIT(i+1,(const uint8_t*)i) ;
       TEST(i   == (uintptr_t)node.addr) ;
       TEST(i+1 == node.size) ;
    }
 
    // TEST asconststring_arraystfnode, fromconststring_arraystfnode
-   for(unsigned i = 0; i < 1000; i += 100) {
+   for (unsigned i = 0; i < 1000; i += 100) {
       TEST((conststring_t*)i   == asconststring_arraystfnode((arraystf_node_t*)i)) ;
       TEST((arraystf_node_t*)i == fromconststring_arraystfnode((conststring_t*)i)) ;
    }
@@ -794,7 +792,7 @@ static int test_arraystfkeyval(void)
 
    // TEST initdiff_arraystfkeyval
    key1 = (const uint8_t*) "1234" ;
-   for(unsigned i = 0; i < 4; ++i) {
+   for (unsigned i = 0; i < 4; ++i) {
       node1 = (arraystf_node_t) arraystf_node_INIT(i, key1) ;
       node2 = (arraystf_node_t) arraystf_node_INIT(i+1, key1) ;
       memset(&keyval, 0, sizeof(keyval)) ;
@@ -830,7 +828,7 @@ static int test_arraystfkeyval(void)
    // TEST init_arraystfkeyval (offset lower key size)
    key1 = (const uint8_t*) "0123456789ABCDEF" ;
    node1 = (arraystf_node_t) arraystf_node_INIT(17, key1) ;
-   for(unsigned i = 0; i < 17; ++i) {
+   for (unsigned i = 0; i < 17; ++i) {
       keyval.data   = 0 ;
       keyval.offset = i+1 ;
       init_arraystfkeyval(&keyval, i, &node1) ;
@@ -841,7 +839,7 @@ static int test_arraystfkeyval(void)
    // TEST init_arraystfkeyval (offset higher key size)
    key1 = (const uint8_t*) "0123456789ABCDEF" ;
    node1 = (arraystf_node_t) arraystf_node_INIT(17, key1) ;
-   for(unsigned i = 17; i < SIZE_MAX; i <<= 1, i++) {
+   for (unsigned i = 17; i < SIZE_MAX; i <<= 1, i++) {
       keyval.data   = 0 ;
       keyval.offset = i+1 ;
       init_arraystfkeyval(&keyval, i, &node1) ;
@@ -851,7 +849,7 @@ static int test_arraystfkeyval(void)
 
    // TEST init_arraystfkeyval (special value -1)
    key1 = (const uint8_t*) "0123456789ABCDEF" ;
-   for(unsigned i = 1; i <= 17; i++) {
+   for (unsigned i = 1; i <= 17; i++) {
       node1 = (arraystf_node_t) arraystf_node_INIT(i, key1) ;
       keyval.data   = 0 ;
       keyval.offset = 0 ;
@@ -866,65 +864,72 @@ ONABORT:
 }
 
 typedef struct testnode_t              testnode_t ;
+typedef struct testnode_adapt_t        testnode_adapt_t ;
 
 struct testnode_t {
    arraystf_node_t node ;
    uint8_t         copycount ;
    uint8_t         freecount ;
    uint8_t         key[40] ;
-   arraystf_node_t node2 ;
+   struct {
+      arraystf_node_EMBED(addr, size) ;
+   }               node2 ;
    uint8_t         key2[40] ;
 } ;
 
-static int test_copynode(typeadapter_t * typeimpl, testnode_t ** copied_node, testnode_t * node)
+struct testnode_adapt_t {
+   struct {
+      typeadapt_EMBED(testnode_adapt_t, testnode_t, void) ;
+   } ;
+   test_errortimer_t    errcounter ;
+} ;
+
+static int copynode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** copied_node, const testnode_t * node)
 {
-   (void) typeimpl ;
-   ++ node->copycount ;
-   *copied_node = node ;
+   (void) typeadp ;
+   ++ CONST_CAST(testnode_t,node)->copycount ;
+   *copied_node = CONST_CAST(testnode_t,node) ;
    return 0 ;
 }
 
-static int test_freenode(typeadapter_t * typeimpl, testnode_t * node)
+static int freenode_testnodeadapt(testnode_adapt_t * typeadp, testnode_t ** node)
 {
-   (void) typeimpl ;
-   ++ node->freecount ;
-   return 0 ;
+   int err = process_testerrortimer(&typeadp->errcounter) ;
+
+   if (!err && *node) {
+      ++ (*node)->freecount ;
+   }
+
+   *node = 0 ;
+   return err ;
 }
-
-static int test_freenodeerr(typeadapter_t * typeimpl, testnode_t * node)
-{
-   (void) typeimpl ;
-   ++ node->freecount ;
-   return 12345 ;
-}
-
-typeadapter_it_DECLARE(testnode_typeadapter_it, typeadapter_t, testnode_t)
-
-arraystf_IMPLEMENT(_arraytest, testnode_t, node.addr)
 
 static int test_initfree(void)
 {
    const size_t      nrnodes    = 100000 ;
    vm_block_t        memblock   = vm_block_INIT_FREEABLE ;
    arraystf_t        * array    = 0 ;
-   testnode_typeadapter_it
-                     typeadt_ft = typeadapter_it_INIT(&test_copynode, &test_freenode) ;
-   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
-   testnode_t        * nodea ;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   typeadapt_member_t nodeadp  = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void), offsetof(testnode_t, node)) ;
+   testnode_t        * nodes ;
+   arraystf_node_t   * inserted_node ;
+   arraystf_node_t   * removed_node ;
 
    // prepare
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
-   nodea = (testnode_t *) memblock.addr ;
+   nodes = (testnode_t *) memblock.addr ;
 
-   // TEST static init
-   TEST(0 == array) ;
+   // TEST arraystf_node_EMBED
+   static_assert(sizeof(nodes->node) == sizeof(nodes->node2), "arraystf_node_EMBED creates same structure")
+   static_assert(offsetof(typeof(nodes->node),addr) == offsetof(typeof(nodes->node2),addr), "arraystf_node_EMBED creates same structure")
+   static_assert(offsetof(typeof(nodes->node),size) == offsetof(typeof(nodes->node2),size), "arraystf_node_EMBED creates same structure")
 
    // TEST init, double free
-   for(arraystf_e type = arraystf_4BITROOT_UNSORTED; type <= arraystf_8BITROOT; ++type) {
-      TEST(0 == new_arraytest(&array, type)) ;
+   for (arraystf_e type = arraystf_4BITROOT_UNSORTED; type <= arraystf_8BITROOT; ++type) {
+      TEST(0 == new_arraystf(&array, type)) ;
       TEST(0 != array) ;
       TEST(type == array->type) ;
-      TEST(0 == length_arraytest(array)) ;
+      TEST(0 == length_arraystf(array)) ;
       switch(type) {
       case arraystf_4BITROOT_UNSORTED:  TEST(nrelemroot_arraystf(array) == 16) ; break ;
       case arraystf_6BITROOT_UNSORTED:  TEST(nrelemroot_arraystf(array) == 64) ; break ;
@@ -933,26 +938,25 @@ static int test_initfree(void)
       case arraystf_6BITROOT:    TEST(nrelemroot_arraystf(array) == 64) ; break ;
       case arraystf_8BITROOT:    TEST(nrelemroot_arraystf(array) == 256) ; break ;
       }
-      for(unsigned i = 0; i < nrelemroot_arraystf(array); ++i) {
+      for (unsigned i = 0; i < nrelemroot_arraystf(array); ++i) {
          TEST(0 == array->root[i]) ;
       }
-      TEST(0 == delete_arraytest(&array, 0)) ;
+      TEST(0 == delete_arraystf(&array, 0)) ;
       TEST(0 == array) ;
-      TEST(0 == delete_arraytest(&array, 0)) ;
+      TEST(0 == delete_arraystf(&array, 0)) ;
       TEST(0 == array) ;
    }
 
    // TEST root distributions
-   for(arraystf_e type = arraystf_4BITROOT_UNSORTED; type <= arraystf_8BITROOT; ++type) {
-      TEST(0 == new_arraytest(&array, type)) ;
+   for (arraystf_e type = arraystf_4BITROOT_UNSORTED; type <= arraystf_8BITROOT; ++type) {
+      TEST(0 == new_arraystf(&array, type)) ;
       uint8_t keyvalue[256] = { 0 } ;
-      for(size_t byte = 0; byte < 256; ++byte) {
+      for (size_t byte = 0; byte < 256; ++byte) {
          testnode_t  node            = { .node = arraystf_node_INIT(byte, keyvalue) } ;
-         testnode_t  * inserted_node = 0 ;
          keyvalue[0] = (uint8_t) byte ;
-         TEST(0 == tryinsert_arraytest(array, &node, &inserted_node, 0)) ;
-         TEST(inserted_node == &node) ;
-         TEST(1 == length_arraytest(array)) ;
+         TEST(0 == tryinsert_arraystf(array, &node.node, &inserted_node, 0)) ;
+         TEST(inserted_node == &node.node) ;
+         TEST(1 == length_arraystf(array)) ;
          size_t ri ;
          switch(type) {
          case arraystf_4BITROOT_UNSORTED:  ri = (byte & 15) ; break ;
@@ -963,81 +967,81 @@ static int test_initfree(void)
          case arraystf_8BITROOT:    ri = byte ; break ;
          }
          TEST(ri < nrelemroot_arraystf(array)) ;
-         TEST(&node.node == asnode_arraystfunode(array->root[ri], offsetof(testnode_t,node))) ;
-         for(unsigned i = 0; i < nrelemroot_arraystf(array); ++i) {
+         TEST(&node.node == asnode_arraystfunode(array->root[ri])) ;
+         for (unsigned i = 0; i < nrelemroot_arraystf(array); ++i) {
             if (i == ri) continue ;
             TEST(0 == array->root[i]) ;
          }
-         TEST(0 == tryremove_arraytest(array, node.node.size, node.node.addr, 0)) ;
-         TEST(0 == length_arraytest(array)) ;
+         TEST(0 == tryremove_arraystf(array, node.node.size, node.node.addr, &removed_node)) ;
+         TEST(0 == length_arraystf(array)) ;
          TEST(0 == array->root[ri]) ;
       }
-      TEST(0 == delete_arraytest(&array, 0)) ;
+      TEST(0 == delete_arraystf(&array, 0)) ;
    }
 
    // TEST insert_arraystf (1 level)
-   TEST(0 == new_arraytest(&array, arraystf_MSBROOT)) ;
-   nodea[4] = (testnode_t) { .node = arraystf_node_INIT(1, nodea[4].key), .key = { 4 } } ;
-   TEST(0 == tryinsert_arraytest(array, &nodea[4], 0, &typeadt))
-   TEST(&nodea[4].node == asnode_arraystfunode(array->root[2], offsetof(testnode_t,node))) ;
-   for(uint8_t pos = 5; pos <= 7; ++pos) {
-      testnode_t * inserted_node = 0 ;
-      nodea[pos] = (testnode_t) { .node = arraystf_node_INIT(1, nodea[pos].key), .key = { pos } } ;
-      TEST(0 == tryinsert_arraytest(array, &nodea[pos], &inserted_node, &typeadt)) ;
-      TEST(inserted_node == &nodea[pos]) ;
-      TEST(0 == nodea[pos].freecount) ;
-      TEST(1 == nodea[pos].copycount) ;
-      TEST(pos-3u == length_arraytest(array)) ;
+   TEST(0 == new_arraystf(&array, arraystf_MSBROOT)) ;
+   nodes[4] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[4].key), .key = { 4 } } ;
+   TEST(0 == tryinsert_arraystf(array, &nodes[4].node, &inserted_node, &nodeadp))
+   TEST(&nodes[4].node == asnode_arraystfunode(array->root[2])) ;
+   for (uint8_t pos = 5; pos <= 7; ++pos) {
+      inserted_node = 0 ;
+      nodes[pos] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[pos].key), .key = { pos } } ;
+      TEST(0 == tryinsert_arraystf(array, &nodes[pos].node, &inserted_node, &nodeadp)) ;
+      TEST(inserted_node == &nodes[pos].node) ;
+      TEST(0 == nodes[pos].freecount) ;
+      TEST(1 == nodes[pos].copycount) ;
+      TEST(pos-3u == length_arraystf(array)) ;
       TEST(isbranchtype_arraystfunode(array->root[2])) ;
       TEST(0 == asbranch_arraystfunode(array->root[2])->shift) ;
       TEST(pos-3u == asbranch_arraystfunode(array->root[2])->used) ;
    }
-   for(uint8_t pos = 4; pos <= 7; ++pos) {
-      TEST(&nodea[pos].node == asnode_arraystfunode(asbranch_arraystfunode(array->root[2])->child[pos-4], offsetof(testnode_t,node))) ;
-      TEST(&nodea[pos]      == at_arraytest(array, 1, &pos)) ;
+   for (uint8_t pos = 4; pos <= 7; ++pos) {
+      TEST(&nodes[pos].node == asnode_arraystfunode(asbranch_arraystfunode(array->root[2])->child[pos-4])) ;
+      TEST(&nodes[pos].node == at_arraystf(array, 1, &pos)) ;
    }
-   TEST(0 == at_arraytest(array, 0, 0)) ;
-   TEST(0 == at_arraytest(array, 5, (const uint8_t*)"00000")) ;
+   TEST(0 == at_arraystf(array, 0, 0)) ;
+   TEST(0 == at_arraystf(array, 5, (const uint8_t*)"00000")) ;
 
    // TEST remove_arraystf (1 level)
-   for(uint8_t pos = 4; pos <= 7; ++pos) {
-      testnode_t * removed_node = (void*)1 ;
-      TEST(0 == tryremove_arraytest(array, 1, &pos, &removed_node))
-      TEST(&nodea[pos] == removed_node) ;
-      TEST(1 == nodea[pos].copycount) ;
-      TEST(0 == nodea[pos].freecount) ;
-      TEST(0 == at_arraytest(array, 1, &pos)) ;
+   for (uint8_t pos = 4; pos <= 7; ++pos) {
+      removed_node = (void*)1 ;
+      TEST(0 == tryremove_arraystf(array, 1, &pos, &removed_node))
+      TEST(&nodes[pos].node == removed_node) ;
+      TEST(1 == nodes[pos].copycount) ;
+      TEST(0 == nodes[pos].freecount) ;
+      TEST(0 == at_arraystf(array, 1, &pos)) ;
       if (pos < 6) {
          TEST(array->root[2]) ;
          TEST(isbranchtype_arraystfunode(array->root[2])) ;
       } else if (pos == 6) {
-         TEST(&nodea[7].node == asnode_arraystfunode(array->root[2], offsetof(testnode_t,node))) ;
+         TEST(&nodes[7].node == asnode_arraystfunode(array->root[2])) ;
       } else {
          TEST(! array->root[2]) ;
       }
-      TEST(7u-pos == length_arraytest(array)) ;
+      TEST(7u-pos == length_arraystf(array)) ;
    }
 
    // TEST insert_arraystf (2 levels)
    arraystf_mwaybranch_t * branch1 = 0 ;
-   for(uint8_t pos = 16; pos <= 31; ++pos) {
-      nodea[pos] = (testnode_t) { .node = arraystf_node_INIT(1, nodea[pos].key), .key = { pos } } ;
-      TEST(0 == tryinsert_arraytest(array, &nodea[pos], 0, &typeadt))
-      TEST(1 == nodea[pos].copycount) ;
-      TEST(0 == nodea[pos].freecount) ;
-      TEST(pos-15u == length_arraytest(array)) ;
+   for (uint8_t pos = 16; pos <= 31; ++pos) {
+      nodes[pos] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[pos].key), .key = { pos } } ;
+      TEST(0 == tryinsert_arraystf(array, &nodes[pos].node, &inserted_node, &nodeadp))
+      TEST(1 == nodes[pos].copycount) ;
+      TEST(0 == nodes[pos].freecount) ;
+      TEST(pos-15u == length_arraystf(array)) ;
       if (pos == 16) {
-         TEST(&nodea[16].node == asnode_arraystfunode(array->root[4], offsetof(testnode_t,node))) ;
+         TEST(&nodes[16].node == asnode_arraystfunode(array->root[4])) ;
       } else if (pos == 17) {
          TEST(isbranchtype_arraystfunode(array->root[4])) ;
          branch1 = asbranch_arraystfunode(array->root[4]) ;
          TEST(0 == branch1->shift) ;
-         TEST(&nodea[16].node  == asnode_arraystfunode(branch1->child[0], offsetof(testnode_t,node))) ;
-         TEST(&nodea[17].node  == asnode_arraystfunode(branch1->child[1], offsetof(testnode_t,node))) ;
+         TEST(&nodes[16].node  == asnode_arraystfunode(branch1->child[0])) ;
+         TEST(&nodes[17].node  == asnode_arraystfunode(branch1->child[1])) ;
       } else if (pos <= 19) {
          TEST(isbranchtype_arraystfunode(array->root[4])) ;
          TEST(branch1 == asbranch_arraystfunode(array->root[4])) ;
-         TEST(&nodea[pos].node == asnode_arraystfunode(branch1->child[pos-16], offsetof(testnode_t,node))) ;
+         TEST(&nodes[pos].node == asnode_arraystfunode(branch1->child[pos-16])) ;
       } else if (pos == 20 || pos == 24 || pos == 28) {
          TEST(isbranchtype_arraystfunode(array->root[4])) ;
          if (pos == 20) {
@@ -1046,30 +1050,30 @@ static int test_initfree(void)
             TEST(branch1 == asbranch_arraystfunode(branch2->child[0])) ;
             branch1 = branch2 ;
          }
-         TEST(&nodea[pos].node == asnode_arraystfunode(branch1->child[(pos-16)/4], offsetof(testnode_t,node))) ;
+         TEST(&nodes[pos].node == asnode_arraystfunode(branch1->child[(pos-16)/4])) ;
       } else {
          TEST(isbranchtype_arraystfunode(array->root[4])) ;
          TEST(branch1 == asbranch_arraystfunode(array->root[4])) ;
          TEST(isbranchtype_arraystfunode(branch1->child[(pos-16)/4])) ;
          arraystf_mwaybranch_t * branch2 = asbranch_arraystfunode(branch1->child[(pos-16)/4]) ;
-         TEST(&nodea[pos&~0x03u].node == asnode_arraystfunode(branch2->child[0], offsetof(testnode_t,node))) ;
-         TEST(&nodea[pos].node        == asnode_arraystfunode(branch2->child[pos&0x03u], offsetof(testnode_t,node))) ;
+         TEST(&nodes[pos&~0x03u].node == asnode_arraystfunode(branch2->child[0])) ;
+         TEST(&nodes[pos].node        == asnode_arraystfunode(branch2->child[pos&0x03u])) ;
       }
    }
 
    // TEST remove_arraystf (2 levels)
-   for(uint8_t pos = 16; pos <= 31; ++pos) {
-      testnode_t * removed_node = 0 ;
-      TEST(0 == tryremove_arraytest(array, 1, &pos, &removed_node)) ;
-      TEST(&nodea[pos] == removed_node) ;
-      TEST(1 == nodea[pos].copycount) ;
-      TEST(0 == nodea[pos].freecount) ;
-      TEST(0 == at_arraytest(array, 1, &pos)) ;
-      TEST(31u-pos == length_arraytest(array)) ;
+   for (uint8_t pos = 16; pos <= 31; ++pos) {
+      removed_node = 0 ;
+      TEST(0 == tryremove_arraystf(array, 1, &pos, &removed_node)) ;
+      TEST(&nodes[pos].node == removed_node) ;
+      TEST(1 == nodes[pos].copycount) ;
+      TEST(0 == nodes[pos].freecount) ;
+      TEST(0 == at_arraystf(array, 1, &pos)) ;
+      TEST(31u-pos == length_arraystf(array)) ;
       if (pos <= 17) {
          TEST(1 == isbranchtype_arraystfunode(asbranch_arraystfunode(array->root[4])->child[0])) ;
       } else if (pos == 18) {
-         TEST(&nodea[19].node == asnode_arraystfunode(asbranch_arraystfunode(array->root[4])->child[0], offsetof(testnode_t,node))) ;
+         TEST(&nodes[19].node == asnode_arraystfunode(asbranch_arraystfunode(array->root[4])->child[0])) ;
       } else if (pos == 19) {
          TEST(0 == asbranch_arraystfunode(array->root[4])->child[0]) ;
       } else if (pos < 22) {
@@ -1077,7 +1081,7 @@ static int test_initfree(void)
       } else if (pos == 22) {
          TEST(1 == isbranchtype_arraystfunode(array->root[4])) ;
          TEST(2 == asbranch_arraystfunode(array->root[4])->shift) ;
-         TEST(&nodea[23].node == asnode_arraystfunode(asbranch_arraystfunode(array->root[4])->child[1], offsetof(testnode_t,node))) ;
+         TEST(&nodes[23].node == asnode_arraystfunode(asbranch_arraystfunode(array->root[4])->child[1])) ;
       } else if (pos <= 26) {
          TEST(1 == isbranchtype_arraystfunode(array->root[4])) ;
          TEST(2 == asbranch_arraystfunode(array->root[4])->shift) ;
@@ -1085,130 +1089,130 @@ static int test_initfree(void)
          TEST(1 == isbranchtype_arraystfunode(array->root[4])) ;
          TEST(0 == asbranch_arraystfunode(array->root[4])->shift) ;
       } else if (pos == 30) {
-         TEST(&nodea[31].node == asnode_arraystfunode(array->root[4], offsetof(testnode_t,node))) ;
+         TEST(&nodes[31].node == asnode_arraystfunode(array->root[4])) ;
       } else if (pos == 31) {
          TEST(0 == array->root[4]) ;
       }
    }
 
    // TEST insert_arraystf at_arraystf remove_arraystf forward
-   for(arraystf_e type = arraystf_4BITROOT_UNSORTED; type <= arraystf_8BITROOT; type+=4) {
-      TEST(0 == delete_arraytest(&array, 0)) ;
-      TEST(0 == new_arraytest(&array, type)) ;
-      for(size_t pos = 0; pos < nrnodes; ++pos) {
-         testnode_t * inserted_node = 0 ;
-         nodea[pos] = (testnode_t) { .node = arraystf_node_INIT(4, nodea[pos].key), .key = { 0, (uint8_t)(pos/65536), (uint8_t)(pos/256), (uint8_t)pos } } ;
-         TEST(0 == tryinsert_arraytest(array, &nodea[pos], &inserted_node , 0))
-         TEST(inserted_node == &nodea[pos]) ;
-         TEST(1+pos == length_arraytest(array)) ;
+   for (arraystf_e type = arraystf_4BITROOT_UNSORTED; type <= arraystf_8BITROOT; type+=4) {
+      TEST(0 == delete_arraystf(&array, 0)) ;
+      TEST(0 == new_arraystf(&array, type)) ;
+      for (size_t pos = 0; pos < nrnodes; ++pos) {
+         inserted_node = 0 ;
+         nodes[pos] = (testnode_t) { .node = arraystf_node_INIT(4, nodes[pos].key), .key = { 0, (uint8_t)(pos/65536), (uint8_t)(pos/256), (uint8_t)pos } } ;
+         TEST(0 == tryinsert_arraystf(array, &nodes[pos].node, &inserted_node, 0))
+         TEST(inserted_node == &nodes[pos].node) ;
+         TEST(1+pos == length_arraystf(array)) ;
       }
-      for(size_t pos = 0; pos < nrnodes; ++pos) {
-         TEST(&nodea[pos] == at_arraytest(array, 4, nodea[pos].key)) ;
+      for (size_t pos = 0; pos < nrnodes; ++pos) {
+         TEST(&nodes[pos].node == at_arraystf(array, 4, nodes[pos].key)) ;
       }
-      for(size_t pos = 0; pos < nrnodes; ++pos) {
-         testnode_t * removed_node = 0 ;
-         TEST(0 == tryremove_arraytest(array, 4, nodea[pos].key, &removed_node)) ;
-         TEST(&nodea[pos] == removed_node) ;
-         TEST(0 == nodea[pos].copycount) ;
-         TEST(0 == nodea[pos].freecount) ;
-         TEST(0 == at_arraytest(array,4, nodea[pos].key))
-         TEST(nrnodes-1-pos == length_arraytest(array)) ;
+      for (size_t pos = 0; pos < nrnodes; ++pos) {
+         removed_node = 0 ;
+         TEST(0 == tryremove_arraystf(array, 4, nodes[pos].key, &removed_node)) ;
+         TEST(&nodes[pos].node == removed_node) ;
+         TEST(0 == nodes[pos].copycount) ;
+         TEST(0 == nodes[pos].freecount) ;
+         TEST(0 == at_arraystf(array, 4, nodes[pos].key))
+         TEST(nrnodes-1-pos == length_arraystf(array)) ;
       }
    }
 
    // TEST insert_arraystf at_arraystf remove_arraystf backward
-   for(arraystf_e type = arraystf_4BITROOT_UNSORTED+1; type <= arraystf_8BITROOT; type+=4) {
-      TEST(0 == delete_arraytest(&array, 0)) ;
-      TEST(0 == new_arraytest(&array, type)) ;
-      for(size_t pos = nrnodes; (pos --); ) {
-         nodea[pos] = (testnode_t) { .node = arraystf_node_INIT(4, nodea[pos].key), .key = { 0, (uint8_t)(pos/65536), (uint8_t)(pos/256), (uint8_t)pos } } ;
-         TEST(0 == tryinsert_arraytest(array, &nodea[pos], 0, &typeadt))
-         TEST(1 == nodea[pos].copycount) ;
-         TEST(0 == nodea[pos].freecount) ;
-         TEST(nrnodes-pos == length_arraytest(array)) ;
+   for (arraystf_e type = arraystf_4BITROOT_UNSORTED+1; type <= arraystf_8BITROOT; type+=4) {
+      TEST(0 == delete_arraystf(&array, 0)) ;
+      TEST(0 == new_arraystf(&array, type)) ;
+      for (size_t pos = nrnodes; (pos --); ) {
+         nodes[pos] = (testnode_t) { .node = arraystf_node_INIT(4, nodes[pos].key), .key = { 0, (uint8_t)(pos/65536), (uint8_t)(pos/256), (uint8_t)pos } } ;
+         TEST(0 == tryinsert_arraystf(array, &nodes[pos].node, &inserted_node, &nodeadp))
+         TEST(1 == nodes[pos].copycount) ;
+         TEST(0 == nodes[pos].freecount) ;
+         TEST(nrnodes-pos == length_arraystf(array)) ;
       }
-      for(size_t pos = nrnodes; (pos --); ) {
-         TEST(&nodea[pos] == at_arraytest(array, 4, nodea[pos].key)) ;
+      for (size_t pos = nrnodes; (pos --); ) {
+         TEST(&nodes[pos].node == at_arraystf(array, 4, nodes[pos].key)) ;
       }
-      for(size_t pos = nrnodes; (pos --); ) {
-         testnode_t * removed_node = 0 ;
-         TEST(0 != at_arraytest(array, 4, nodea[pos].key)) ;
-         TEST(0 == tryremove_arraytest(array, 4, nodea[pos].key, &removed_node)) ;
-         TEST(&nodea[pos] == removed_node) ;
-         TEST(1 == nodea[pos].copycount) ;
-         TEST(0 == nodea[pos].freecount) ;
-         TEST(0 == at_arraytest(array, 4, nodea[pos].key))
-         TEST(pos == length_arraytest(array)) ;
-         nodea[pos].copycount = 0 ;
-         nodea[pos].freecount = 0 ;
+      for (size_t pos = nrnodes; (pos --); ) {
+         removed_node = 0 ;
+         TEST(0 != at_arraystf(array, 4, nodes[pos].key)) ;
+         TEST(0 == tryremove_arraystf(array, 4, nodes[pos].key, &removed_node)) ;
+         TEST(&nodes[pos].node == removed_node) ;
+         TEST(1 == nodes[pos].copycount) ;
+         TEST(0 == nodes[pos].freecount) ;
+         TEST(0 == at_arraystf(array, 4, nodes[pos].key))
+         TEST(pos == length_arraystf(array)) ;
+         nodes[pos].copycount = 0 ;
+         nodes[pos].freecount = 0 ;
       }
    }
 
    // TEST random elements (insert_arraystf, remove_arraystf)
    srand(99999) ;
-   for(size_t count2 = 0; count2 < 10; ++count2) {
-      for(size_t count = 0; count < nrnodes; ++count) {
+   for (size_t count2 = 0; count2 < 10; ++count2) {
+      for (size_t count = 0; count < nrnodes; ++count) {
          size_t pos = ((unsigned)rand() % nrnodes) ;
-         if (nodea[pos].copycount) {
-            testnode_t * removed_node = 0 ;
-            TEST(&nodea[pos] == at_arraytest(array, 4, nodea[pos].key)) ;
-            TEST(0 == tryremove_arraytest(array, 4, nodea[pos].key, &removed_node)) ;
-            TEST(&nodea[pos] == removed_node) ;
-            TEST(1 == nodea[pos].copycount) ;
-            TEST(0 == nodea[pos].freecount) ;
-            nodea[pos].copycount = 0 ;
+         if (nodes[pos].copycount) {
+            removed_node = 0 ;
+            TEST(&nodes[pos].node == at_arraystf(array, 4, nodes[pos].key)) ;
+            TEST(0 == tryremove_arraystf(array, 4, nodes[pos].key, &removed_node)) ;
+            TEST(&nodes[pos].node == removed_node) ;
+            TEST(1 == nodes[pos].copycount) ;
+            TEST(0 == nodes[pos].freecount) ;
+            nodes[pos].copycount = 0 ;
          } else {
-            TEST(0 == tryinsert_arraytest(array, &nodea[pos], 0, &typeadt)) ;
-            TEST(1 == nodea[pos].copycount) ;
-            TEST(0 == nodea[pos].freecount) ;
+            TEST(0 == tryinsert_arraystf(array, &nodes[pos].node, &inserted_node, &nodeadp)) ;
+            TEST(1 == nodes[pos].copycount) ;
+            TEST(0 == nodes[pos].freecount) ;
          }
       }
    }
-   TEST(0 == delete_arraytest(&array, 0)) ;
-   for(size_t pos = nrnodes; (pos --); ) {
-      TEST(0 == nodea[pos].freecount) ;
+   TEST(0 == delete_arraystf(&array, 0)) ;
+   for (size_t pos = nrnodes; (pos --); ) {
+      TEST(0 == nodes[pos].freecount) ;
    }
 
    // TEST delete_arraystf frees nodes & memory (1)
-   for(arraystf_e type = arraystf_4BITROOT_UNSORTED+2; type <= arraystf_8BITROOT; type += 4) {
-      TEST(0 == new_arraytest(&array, type)) ;
-      for(size_t pos = nrnodes; (pos --); ) {
-         nodea[pos].copycount = 0 ;
-         nodea[pos].freecount = 0 ;
-         TEST(0 == tryinsert_arraytest(array, &nodea[pos], 0, 0))
-         TEST(nrnodes-pos == length_arraytest(array)) ;
+   for (arraystf_e type = arraystf_4BITROOT_UNSORTED+2; type <= arraystf_8BITROOT; type += 4) {
+      TEST(0 == new_arraystf(&array, type)) ;
+      for (size_t pos = nrnodes; (pos --); ) {
+         nodes[pos].copycount = 0 ;
+         nodes[pos].freecount = 0 ;
+         TEST(0 == tryinsert_arraystf(array, &nodes[pos].node, &inserted_node, 0))
+         TEST(nrnodes-pos == length_arraystf(array)) ;
       }
-      TEST(0 == delete_arraytest(&array, &typeadt)) ;
+      TEST(0 == delete_arraystf(&array, &nodeadp)) ;
       TEST(0 == array) ;
-      for(size_t pos = nrnodes; (pos --); ) {
-         TEST(0 == nodea[pos].copycount) ;
-         TEST(1 == nodea[pos].freecount) ;
+      for (size_t pos = nrnodes; (pos --); ) {
+         TEST(0 == nodes[pos].copycount) ;
+         TEST(1 == nodes[pos].freecount) ;
       }
    }
 
    // TEST delete_arraystf frees nodes & memory (2)
-   for(arraystf_e type = arraystf_4BITROOT_UNSORTED+3; type <= arraystf_8BITROOT; type += 4) {
-      memset(nodea, 0, sizeof(testnode_t) * nrnodes) ;
-      TEST(0 == new_arraytest(&array, type)) ;
+   for (arraystf_e type = arraystf_4BITROOT_UNSORTED+3; type <= arraystf_8BITROOT; type += 4) {
+      memset(nodes, 0, sizeof(testnode_t) * nrnodes) ;
+      TEST(0 == new_arraystf(&array, type)) ;
       unsigned nr = 0 ;
-      for(uint32_t key = 4; key; key <<= 2) {
-         for(uint32_t key2 = 0; key2 <= 11; ++key2) {
+      for (uint32_t key = 4; key; key <<= 2) {
+         for (uint32_t key2 = 0; key2 <= 11; ++key2) {
             uint32_t keysum = key + key2 ;
             TEST(nr < nrnodes) ;
-            nodea[nr] = (testnode_t) { .node = arraystf_node_INIT(4, nodea[nr].key), .key = { (uint8_t)(keysum/(256*65536)), (uint8_t)(keysum/65536), (uint8_t)(keysum/256), (uint8_t)keysum } } ;
-            TEST(0 == tryinsert_arraytest(array, &nodea[nr], 0, &typeadt))
-            TEST((++nr) == length_arraytest(array)) ;
+            nodes[nr] = (testnode_t) { .node = arraystf_node_INIT(4, nodes[nr].key), .key = { (uint8_t)(keysum/(256*65536)), (uint8_t)(keysum/65536), (uint8_t)(keysum/256), (uint8_t)keysum } } ;
+            TEST(0 == tryinsert_arraystf(array, &nodes[nr].node, &inserted_node, &nodeadp))
+            TEST((++nr) == length_arraystf(array)) ;
          }
       }
-      TEST(0 == delete_arraytest(&array, &typeadt)) ;
+      TEST(0 == delete_arraystf(&array, &nodeadp)) ;
       TEST(0 == array) ;
-      for(unsigned pos = 0; pos < nrnodes; ++pos) {
+      for (unsigned pos = 0; pos < nrnodes; ++pos) {
          if (pos < nr) {
-            TEST(1 == nodea[pos].copycount) ;
-            TEST(1 == nodea[pos].freecount) ;
+            TEST(1 == nodes[pos].copycount) ;
+            TEST(1 == nodes[pos].freecount) ;
          } else {
-            TEST(0 == nodea[pos].copycount) ;
-            TEST(0 == nodea[pos].freecount) ;
+            TEST(0 == nodes[pos].copycount) ;
+            TEST(0 == nodes[pos].freecount) ;
          }
       }
    }
@@ -1218,91 +1222,91 @@ static int test_initfree(void)
 
    return 0 ;
 ONABORT:
-   (void) delete_arraytest(&array, 0) ;
+   (void) delete_arraystf(&array, 0) ;
    free_vmblock(&memblock) ;
    return EINVAL ;
 }
 
 static int test_error(void)
 {
-   const size_t      nrnodes    = 10000 ;
-   vm_block_t        memblock   = vm_block_INIT_FREEABLE ;
-   testnode_typeadapter_it
-                     typeadt_ft = typeadapter_it_INIT_FREEABLE ;
-   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, &typeadt_ft.generic) ;
-   arraystf_t        * array    = 0 ;
-   testnode_t        * nodea ;
+   const size_t      nrnodes   = 10000 ;
+   vm_block_t        memblock  = vm_block_INIT_FREEABLE ;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   typeadapt_member_t nodeadp  = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void), offsetof(testnode_t, node)) ;
+   arraystf_t        * array   = 0 ;
+   testnode_t        * nodes ;
+   arraystf_node_t   * removed_node  = 0 ;
+   arraystf_node_t   * inserted_node = 0 ;
+   arraystf_node_t   * existing_node = 0 ;
    char              * logbuffer ;
    size_t            logbufsize1 ;
    size_t            logbufsize2 ;
 
    // prepare
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
-   nodea = (testnode_t *) memblock.addr ;
-   TEST(0 == new_arraytest(&array, arraystf_4BITROOT_UNSORTED)) ;
+   nodes = (testnode_t *) memblock.addr ;
+   TEST(0 == new_arraystf(&array, arraystf_4BITROOT_UNSORTED)) ;
 
    // TEST EINVAL
-   nodea[0] = (testnode_t) { .node = arraystf_node_INIT(SIZE_MAX, nodea[0].key), .key = { 0 } } ;
+   nodes[0] = (testnode_t) { .node = arraystf_node_INIT(SIZE_MAX, nodes[0].key), .key = { 0 } } ;
       // key has length SIZE_MAX
    GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
-   TEST(EINVAL == tryinsert_arraytest(array, &nodea[0], 0, 0)) ;
+   TEST(EINVAL == tryinsert_arraystf(array, &nodes[0].node, &inserted_node, 0)) ;
    GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
       // (array != 0)
    GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
-   TEST(EINVAL == new_arraytest(&array, arraystf_4BITROOT_UNSORTED)) ;
+   TEST(EINVAL == new_arraystf(&array, arraystf_4BITROOT_UNSORTED)) ;
    GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    arraystf_t * array2 = 0 ;
       // type invalid
    GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
-   TEST(EINVAL == new_arraytest(&array2, -1)) ;
+   TEST(EINVAL == new_arraystf(&array2, -1)) ;
    GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
 
    // TEST EEXIST
-   nodea[0] = (testnode_t) { .node = arraystf_node_INIT(1, nodea[0].key), .key = { 0 } } ;
-   TEST(0 == tryinsert_arraytest(array, &nodea[0], 0, 0)) ;
-   testnode_t * existing_node = 0 ;
-   nodea[1] = (testnode_t) { .node = arraystf_node_INIT(1, nodea[1].key), .key = { 0 } } ;
+   nodes[0] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[0].key), .key = { 0 } } ;
+   TEST(0 == tryinsert_arraystf(array, &nodes[0].node, &inserted_node, 0)) ;
+   nodes[1] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[1].key), .key = { 0 } } ;
    GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
-   TEST(EEXIST == tryinsert_arraytest(array, &nodea[1], &existing_node, 0)) ;  // no log
+   TEST(EEXIST == tryinsert_arraystf(array, &nodes[1].node, &existing_node, 0)) ;  // no log
    GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
-   TEST(&nodea[0]   == existing_node) ;
+   TEST(&nodes[0].node   == existing_node) ;
    existing_node = 0 ;
-   TEST(EEXIST == insert_arraytest(array, &nodea[1], &existing_node, 0)) ;     // log
+   TEST(EEXIST == insert_arraystf(array, &nodes[1].node, &existing_node, 0)) ;     // log
    GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    TEST(0 == existing_node) ;
 
    // TEST ESRCH
    arraystf_findresult_t found ;
-   nodea[1] = (testnode_t) { .node = arraystf_node_INIT(1, nodea[1].key), .key = { 1 } } ;
+   nodes[1] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[1].key), .key = { 1 } } ;
    GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
-   TEST(0     == at_arraytest(array, 1, nodea[1].key)) ;           // no log
-   TEST(ESRCH == find_arraystf(array, &nodea[1].node, &found, offsetof(testnode_t,node))) ;   // no log
-   TEST(ESRCH == tryremove_arraytest(array, 1, nodea[1].key, 0)) ; // no log
+   TEST(0     == at_arraystf(array, 1, nodes[1].key)) ;           // no log
+   TEST(ESRCH == find_arraystf(array, &nodes[1].node, &found)) ;  // no log
+   TEST(ESRCH == tryremove_arraystf(array, 1, nodes[1].key, 0)) ; // no log
    GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
-   TEST(ESRCH == remove_arraytest(array, 1, nodea[1].key, 0)) ;    // log
+   TEST(ESRCH == remove_arraystf(array, 1, nodes[1].key, 0)) ;    // log
    GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
-   nodea[0].freecount = 0 ;
-   testnode_t * removed_node = 0 ;
-   TEST(0 == tryremove_arraytest(array, 1, nodea[0].key, &removed_node)) ;
-   TEST(&nodea[0] == removed_node) ;
+   nodes[0].freecount = 0 ;
+   TEST(0 == tryremove_arraystf(array, 1, nodes[0].key, &removed_node)) ;
+   TEST(&nodes[0].node == removed_node) ;
 
    // TEST free memory error
-   typeadt_ft.freeobj = &test_freenodeerr ;
-   for(size_t pos = 0; pos < nrnodes; ++pos) {
-      nodea[pos] = (testnode_t) { .node = arraystf_node_INIT(2, nodea[pos].key), .key = { (uint8_t)(pos/256), (uint8_t)pos } } ;
-      TEST(0 == tryinsert_arraytest(array, &nodea[pos], 0, 0))
-      TEST(1+pos == length_arraytest(array)) ;
+   for (size_t pos = 0; pos < nrnodes; ++pos) {
+      nodes[pos] = (testnode_t) { .node = arraystf_node_INIT(2, nodes[pos].key), .key = { (uint8_t)(pos/256), (uint8_t)pos } } ;
+      TEST(0 == tryinsert_arraystf(array, &nodes[pos].node, &inserted_node, 0))
+      TEST(1+pos == length_arraystf(array)) ;
    }
-   TEST(12345 == delete_arraytest(&array, &typeadt)) ;
-   for(unsigned pos = 0; pos < nrnodes; ++pos) {
-      TEST(1 == nodea[pos].freecount) ;
+   init_testerrortimer(&typeadapt.errcounter, 1, 12345) ;
+   TEST(12345 == delete_arraystf(&array, &nodeadp)) ;
+   for (unsigned pos = 0; pos < nrnodes; ++pos) {
+      TEST((pos != 0) == nodes[pos].freecount) ;
    }
 
    // unprepare
@@ -1310,28 +1314,29 @@ static int test_error(void)
 
    return 0 ;
 ONABORT:
-   (void) delete_arraytest(&array, 0) ;
+   (void) delete_arraystf(&array, 0) ;
    free_vmblock(&memblock) ;
    return EINVAL ;
 }
 
 static int test_iterator(void)
 {
-   const size_t   nrnodes   = 30000 ;
-   vm_block_t     memblock  = vm_block_INIT_FREEABLE ;
-   arraystf_iterator_t iter = arraystf_iterator_INIT_FREEABLE ;
-   arraystf_t     * array   = 0 ;
-   testnode_t     * nodea ;
-   size_t         nextpos ;
+   const size_t      nrnodes  = 30000 ;
+   vm_block_t        memblock = vm_block_INIT_FREEABLE ;
+   arraystf_iterator_t iter   = arraystf_iterator_INIT_FREEABLE ;
+   arraystf_t        * array  = 0 ;
+   testnode_t        * nodes ;
+   arraystf_node_t   * removed_node ;
+   size_t            nextpos ;
 
    // prepare
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
-   nodea = (testnode_t *) memblock.addr ;
-   TEST(0 == new_arraytest(&array, arraystf_8BITROOT)) ;
-   for(size_t i = 0; i < nrnodes; ++i) {
-      snprintf((char*)nodea[i].key, sizeof(nodea[i].key), "%05zu", i) ;
-      nodea[i].node = (arraystf_node_t) arraystf_node_INIT(5, nodea[i].key) ;
-      TEST(0 == insert_arraytest(array, &nodea[i], 0, 0)) ;
+   nodes = (testnode_t *) memblock.addr ;
+   TEST(0 == new_arraystf(&array, arraystf_8BITROOT)) ;
+   for (size_t i = 0; i < nrnodes; ++i) {
+      snprintf((char*)nodes[i].key, sizeof(nodes[i].key), "%05zu", i) ;
+      nodes[i].node = (arraystf_node_t) arraystf_node_INIT(5, nodes[i].key) ;
+      TEST(0 == insert_arraystf(array, &nodes[i].node, 0, 0)) ;
    }
 
    // TEST static init
@@ -1340,29 +1345,29 @@ static int test_iterator(void)
 
    // TEST init, double free
    iter.ri = 1 ;
-   TEST(0 == initfirst_arraytestiterator(&iter, array)) ;
+   TEST(0 == initfirst_arraystfiterator(&iter, array)) ;
    TEST(0 != iter.stack) ;
    TEST(0 == iter.ri) ;
-   TEST(0 == free_arraytestiterator(&iter)) ;
+   TEST(0 == free_arraystfiterator(&iter)) ;
    TEST(0 == iter.stack) ;
    TEST(0 == iter.ri) ;
-   TEST(0 == free_arraytestiterator(&iter)) ;
+   TEST(0 == free_arraystfiterator(&iter)) ;
    TEST(0 == iter.stack) ;
    TEST(0 == iter.ri) ;
 
-   // TEST next_arraysfiterator
-   TEST(0 == initfirst_arraytestiterator(&iter, array)) ;
+   // TEST next_arraystfiterator
+   TEST(0 == initfirst_arraystfiterator(&iter, array)) ;
    nextpos = 0 ;
-   for (iteratedtype_arraytest * node = 0; !node; node = (void*)1) {
-      while (next_arraytestiterator(&iter, array, &node)) {
+   for (iteratedtype_arraystf * node = 0; !node; node = (void*)1) {
+      while (next_arraystfiterator(&iter, array, &node)) {
          char nextnr[6] ;
          snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
-         TEST(0 == strcmp((const char*)node->node.addr, nextnr)) ;
+         TEST(0 == strcmp((const char*)node->addr, nextnr)) ;
       }
    }
    TEST(iter.ri == nrelemroot_arraystf(array)) ;
    TEST(nextpos == nrnodes) ;
-   TEST(0 == free_arraytestiterator(&iter)) ;
+   TEST(0 == free_arraystfiterator(&iter)) ;
 
    // TEST foreach all
    nextpos = 0 ;
@@ -1375,47 +1380,48 @@ static int test_iterator(void)
 
    // TEST foreach break after nrnodes/2
    nextpos = 0 ;
-   foreach (_arraytest, array, node) {
+   foreach (_arraystf, array, node) {
       char nextnr[6] ;
       snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
-      TEST(0 == strcmp((const char*)node->node.addr, nextnr)) ;
+      TEST(0 == strcmp((const char*)node->addr, nextnr)) ;
       if (nextpos == nrnodes/2) break ;
    }
    TEST(nextpos == nrnodes/2) ;
 
    // TEST foreach (nrnodes/2 .. nrnodes) after remove
-   for(size_t i = 0; i < nrnodes/2; ++i) {
+   for (size_t i = 0; i < nrnodes/2; ++i) {
       uint8_t key[10] ;
       sprintf((char*)key, "%05ld", (long)i) ;
-      TEST(0 == remove_arraytest(array, 5, key, 0)) ;
+      TEST(0 == remove_arraystf(array, 5, key, &removed_node)) ;
    }
    nextpos = nrnodes/2 ;
-   foreach (_arraytest, array, node) {
+   foreach (_arraystf, array, node) {
       char nextnr[6] ;
       snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
-      TEST(0 == strcmp((const char*)node->node.addr, nextnr)) ;
+      TEST(0 == strcmp((const char*)node->addr, nextnr)) ;
    }
    TEST(nextpos == nrnodes) ;
 
    // unprepare
-   TEST(0 == delete_arraytest(&array, 0)) ;
+   TEST(0 == delete_arraystf(&array, 0)) ;
    TEST(0 == free_vmblock(&memblock)) ;
 
    return 0 ;
 ONABORT:
-   (void) delete_arraytest(&array, 0) ;
+   (void) delete_arraystf(&array, 0) ;
    free_vmblock(&memblock) ;
    return EINVAL ;
 }
 
 static int test_zerokey(void)
 {
-   arraystf_t     * array  = 0 ;
-   vm_block_t     memblock = vm_block_INIT_FREEABLE ;
-   const uint16_t nrkeys   = 256 ;
-   const uint16_t keylen   = 1024 ;
-   testnode_t     * nodes ;
-   uint8_t        * keys ;
+   arraystf_t        * array  = 0 ;
+   vm_block_t        memblock = vm_block_INIT_FREEABLE ;
+   const uint16_t    nrkeys   = 256 ;
+   const uint16_t    keylen   = 1024 ;
+   testnode_t        * nodes ;
+   arraystf_node_t   * removed_node ;
+   uint8_t           * keys ;
 
    // prepare
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1 + nrkeys*25u*sizeof(testnode_t)+(size_t)nrkeys*keylen) / pagesize_vm() )) ;
@@ -1424,44 +1430,45 @@ static int test_zerokey(void)
 
    // TEST with arraystf
    memset(memblock.addr, 0, memblock.size) ;
-   for(unsigned i = 0; i < nrkeys; ++i) {
+   for (unsigned i = 0; i < nrkeys; ++i) {
       keys[i*keylen] = (uint8_t) i;
    }
-   TEST(0 == new_arraytest(&array, arraystf_6BITROOT)) ;
+   TEST(0 == new_arraystf(&array, arraystf_6BITROOT)) ;
    TEST(0 != array) ;
-   for(unsigned i = 0; i < nrkeys; ++i) {
-      for(unsigned l = 1; l <= 25; ++l) {
+   for (unsigned i = 0; i < nrkeys; ++i) {
+      for (unsigned l = 1; l <= 25; ++l) {
          nodes[25*i+l-1].node = (arraystf_node_t) arraystf_node_INIT(keylen/l, &keys[i*keylen]) ;
-         TEST(0 == insert_arraytest(array, &nodes[25*i+l-1], 0, 0)) ;
+         TEST(0 == insert_arraystf(array, &nodes[25*i+l-1].node, 0, 0)) ;
       }
    }
-   for(unsigned i = 0; i < nrkeys; ++i) {
-      for(unsigned l = 1; l <= 25; ++l) {
-         testnode_t * node = at_arraytest(array, keylen/l, &keys[i*keylen]) ;
-         TEST(&nodes[25*i+l-1] == node) ;
-         TEST(node->node.addr == &keys[i*keylen]) ;
-         TEST(node->node.size == keylen/l) ;
+   for (unsigned i = 0; i < nrkeys; ++i) {
+      for (unsigned l = 1; l <= 25; ++l) {
+         arraystf_node_t * node = at_arraystf(array, keylen/l, &keys[i*keylen]) ;
+         TEST(node       == &nodes[25*i+l-1].node) ;
+         TEST(node->addr == &keys[i*keylen]) ;
+         TEST(node->size == keylen/l) ;
       }
    }
-   for(unsigned i = 0; i < nrkeys; ++i) {
-      for(unsigned l = 1; l <= 25; ++l) {
-         TEST(0 == remove_arraytest(array, keylen/l, &keys[i*keylen], 0)) ;
+   for (unsigned i = 0; i < nrkeys; ++i) {
+      for (unsigned l = 1; l <= 25; ++l) {
+         TEST(0 == remove_arraystf(array, keylen/l, &keys[i*keylen], &removed_node)) ;
       }
    }
-   TEST(0 == length_arraytest(array)) ;
-   TEST(0 == delete_arraytest(&array, 0)) ;
+   TEST(0 == length_arraystf(array)) ;
+   TEST(0 == delete_arraystf(&array, 0)) ;
 
    // unprepare
    TEST(0 == free_vmblock(&memblock)) ;
 
    return 0 ;
 ONABORT:
-   (void) delete_arraytest(&array, 0) ;
+   (void) delete_arraystf(&array, 0) ;
    free_vmblock(&memblock) ;
    return EINVAL ;
 }
 
-arraystf_IMPLEMENT(_arraytest2, testnode_t, node2.addr)
+arraystf_IMPLEMENT(_arraytest, testnode_t, node)
+arraystf_IMPLEMENT(_arraytest2, testnode_t, node2)
 
 static int test_generic(void)
 {
@@ -1469,84 +1476,157 @@ static int test_generic(void)
    vm_block_t        memblock   = vm_block_INIT_FREEABLE ;
    arraystf_t        * array    = 0 ;
    arraystf_t        * array2   = 0 ;
-   testnode_typeadapter_it
-                     typeadt_ft = typeadapter_it_INIT(&test_copynode, &test_freenode) ;
-   typeadapter_iot   typeadt    = typeadapter_iot_INIT(0, (typeadapter_it*) &typeadt_ft) ;
-   testnode_t        * nodea ;
+   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   typeadapt_member_t nodeadp1 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void), offsetof(testnode_t, node)) ;
+   typeadapt_member_t nodeadp2 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void), offsetof(testnode_t, node2)) ;
+   test_errortimer_t memerror ;
+   testnode_t        * nodes ;
+   testnode_t        * inserted_node ;
    size_t            nextpos ;
-
 
    // prepare
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
-   nodea = (testnode_t *) memblock.addr ;
+   nodes = (testnode_t *) memblock.addr ;
    TEST(0 == new_arraytest(&array, arraystf_8BITROOT)) ;
    TEST(0 == new_arraytest2(&array2, arraystf_8BITROOT)) ;
 
+   // TEST insert_arraystf: inserted_node parameter set to 0
+   nodes[0] = (testnode_t) { .node = arraystf_node_INIT(sizeof(nodes[0].key), nodes[0].key), .node2 = arraystf_node_INIT(sizeof(nodes[0].key2), nodes[0].key2) } ;
+   nodes[0].key[0 / 8] = (uint8_t) (0x80u >> (0%8)) ;
+   nodes[0].key2[(nrnodes-1-0) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-0)%8)) ;
+   TEST(0 == insert_arraytest(array, &nodes[0], 0, &nodeadp1)) ;
+   TEST(0 == insert_arraytest2(array2, &nodes[0], 0, &nodeadp2)) ;
+
+   // TEST tryinsert_arraystf: ENOMEM => inserted_node is set to 0
+   nodes[1] = (testnode_t) { .node = arraystf_node_INIT(sizeof(nodes[1].key), nodes[1].key), .node2 = arraystf_node_INIT(sizeof(nodes[1].key2), nodes[1].key2) } ;
+   nodes[1].key[0 / 8] = (uint8_t) (0x80u >> (0%8)) ;
+   nodes[1].key[1] = 1 ;
+   nodes[1].key2[(nrnodes-1-0) / 8] = (uint8_t) (1 + (0x80u >> ((nrnodes-1-0)%8))) ;
+   init_testerrortimer(&memerror, 1, ENOMEM) ;
+   setresizeerr_mmtest(mmcontext_mmtest(), &memerror) ;
+   inserted_node = &nodes[1] ;
+   TEST(ENOMEM == tryinsert_arraytest(array, &nodes[1], &inserted_node, &nodeadp1)) ;
+   TEST(0 == inserted_node) ;
+   TEST(1 == nodes[1].copycount) ;
+   TEST(1 == nodes[1].freecount) ;
+   init_testerrortimer(&memerror, 1, ENOMEM) ;
+   setresizeerr_mmtest(mmcontext_mmtest(), &memerror) ;
+   inserted_node = &nodes[1] ;
+   TEST(ENOMEM == tryinsert_arraytest2(array2, &nodes[1], &inserted_node, &nodeadp2)) ;
+   TEST(0 == inserted_node) ;
+   TEST(2 == nodes[1].copycount) ;
+   TEST(2 == nodes[1].freecount) ;
+
    // TEST insert_arraystf
-   for(size_t i = 0; i < nrnodes; ++i) {
-      nodea[i] = (testnode_t)  { .node = arraystf_node_INIT(sizeof(nodea[i].key), nodea[i].key), .node2 = arraystf_node_INIT(sizeof(nodea[i].key2), nodea[i].key2) } ;
-      nodea[i].key[i / 8] = (uint8_t) (0x80u >> (i%8)) ;
-      nodea[i].key2[(nrnodes-1-i) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-i)%8)) ;
-      TEST(0 == insert_arraytest(array, &nodea[i], 0, &typeadt)) ;
-      TEST(0 == insert_arraytest2(array2, &nodea[i], 0, &typeadt)) ;
-      TEST(2 == nodea[i].copycount) ;
+   for (size_t i = 1; i < nrnodes; i += 2) {
+      nodes[i] = (testnode_t) { .node = arraystf_node_INIT(sizeof(nodes[i].key), nodes[i].key), .node2 = arraystf_node_INIT(sizeof(nodes[i].key2), nodes[i].key2) } ;
+      nodes[i].key[i / 8] = (uint8_t) (0x80u >> (i%8)) ;
+      nodes[i].key2[(nrnodes-1-i) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-i)%8)) ;
+      inserted_node = 0 ;
+      TEST(0 == insert_arraytest(array, &nodes[i], &inserted_node, &nodeadp1)) ;
+      TEST(inserted_node == &nodes[i]) ;
+      inserted_node = 0 ;
+      TEST(0 == insert_arraytest2(array2, &nodes[i], &inserted_node, &nodeadp2)) ;
+      TEST(inserted_node == &nodes[i]) ;
+      TEST(2 == nodes[i].copycount) ;
+      TEST(i/2+2 == length_arraytest(array)) ;
+      TEST(i/2+2 == length_arraytest2(array2)) ;
+   }
+
+   // TEST tryinsert_arraystf
+   for (size_t i = 2; i < nrnodes; i += 2) {
+      nodes[i] = (testnode_t) { .node = arraystf_node_INIT(sizeof(nodes[i].key), nodes[i].key), .node2 = arraystf_node_INIT(sizeof(nodes[i].key2), nodes[i].key2) } ;
+      nodes[i].key[i / 8] = (uint8_t) (0x80u >> (i%8)) ;
+      nodes[i].key2[(nrnodes-1-i) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-i)%8)) ;
+      inserted_node = 0 ;
+      TEST(0 == tryinsert_arraytest(array, &nodes[i], &inserted_node, &nodeadp1)) ;
+      TEST(inserted_node == &nodes[i]) ;
+      inserted_node = 0 ;
+      TEST(0 == tryinsert_arraytest2(array2, &nodes[i], &inserted_node, &nodeadp2)) ;
+      TEST(inserted_node == &nodes[i]) ;
+      TEST(2 == nodes[i].copycount) ;
+      TEST((nrnodes+i)/2+1 == length_arraytest(array)) ;
+      TEST((nrnodes+i)/2+1 == length_arraytest2(array2)) ;
+   }
+
+   // TEST tryinsert_arraystf: EEXIST => inserted_node is set to existing node
+   for (size_t i = 1; i < nrnodes; ++ i) {
+      inserted_node = 0 ;
+      TEST(EEXIST == tryinsert_arraytest(array, &nodes[i], &inserted_node, &nodeadp1)) ;
+      TEST(inserted_node == &nodes[i]) ;
+      inserted_node = 0 ;
+      TEST(EEXIST == tryinsert_arraytest2(array2, &nodes[i], &inserted_node, &nodeadp2)) ;
+      TEST(inserted_node == &nodes[i]) ;
+      TEST(nrnodes == length_arraytest(array)) ;
+      TEST(nrnodes == length_arraytest2(array2)) ;
+   }
+
+   {
+      // TEST at_arraystf: return value 0
+      testnode_t node = { .node = arraystf_node_INIT(sizeof(node.key), node.key), .node2 = arraystf_node_INIT(sizeof(node.key2), node.key2) } ;
+      node.key[0 / 8] = (uint8_t) (0x80u >> (0%8)) ;
+      node.key[0 / 8 + 1] = 1 ;
+      node.key2[(nrnodes-1-0) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-0)%8)) ;
+      node.key2[(nrnodes-1-0) / 8 - 1] = 1 ;
+      TEST(0 == at_arraytest(array, node.node.size, node.node.addr)) ;
+      TEST(0 == at_arraytest2(array2, node.node2.size, node.node2.addr)) ;
    }
 
    // TEST at_arraystf
-   for(size_t i = 0; i < nrnodes; ++i) {
-      testnode_t  node = { .node = arraystf_node_INIT(sizeof(node.key), node.key), .node2 = arraystf_node_INIT(sizeof(node.key2), node.key2) } ;
+   for (size_t i = 0; i < nrnodes; ++i) {
+      testnode_t node = { .node = arraystf_node_INIT(sizeof(node.key), node.key), .node2 = arraystf_node_INIT(sizeof(node.key2), node.key2) } ;
       node.key[i / 8] = (uint8_t) (0x80u >> (i%8)) ;
       node.key2[(nrnodes-1-i) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-i)%8)) ;
-      TEST(&nodea[i] == at_arraytest(array, node.node.size, node.node.addr)) ;
-      TEST(&nodea[i] == at_arraytest2(array2, node.node2.size, node.node2.addr)) ;
-      TEST(2 == nodea[i].copycount) ;
+      TEST(&nodes[i] == at_arraytest(array, node.node.size, node.node.addr)) ;
+      TEST(&nodes[i] == at_arraytest2(array2, node.node2.size, node.node2.addr)) ;
+      TEST(2 == nodes[i].copycount) ;
    }
 
    // TEST foreach all
    nextpos = nrnodes ;
    foreach (_arraytest, array, node) {
       -- nextpos ;
-      TEST(node == &nodea[nextpos]) ;
+      TEST(node == &nodes[nextpos]) ;
    }
    TEST(nextpos == 0) ;
    nextpos = 0 ;
    foreach (_arraytest2, array2, node) {
-      TEST(node == &nodea[nextpos]) ;
+      TEST(node == &nodes[nextpos]) ;
       ++ nextpos ;
    }
    TEST(nextpos == nrnodes) ;
 
    // TEST remove_arraystf
-   for(size_t i = 0; i < nrnodes; ++i) {
+   for (size_t i = 0; i < nrnodes; ++i) {
       testnode_t  * removed_node = 0 ;
       testnode_t  node = { .node = arraystf_node_INIT(sizeof(node.key), node.key), .node2 = arraystf_node_INIT(sizeof(node.key2), node.key2) } ;
       node.key[i / 8] = (uint8_t) (0x80u >> (i%8)) ;
       node.key2[(nrnodes-1-i) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-i)%8)) ;
       TEST(0 == remove_arraytest(array, node.node.size, node.node.addr, &removed_node)) ;
-      TEST(&nodea[i] == removed_node) ;
+      TEST(&nodes[i] == removed_node) ;
       removed_node = 0 ;
       TEST(0 == remove_arraytest2(array2, node.node2.size, node.node2.addr, &removed_node)) ;
-      TEST(&nodea[i] == removed_node) ;
+      TEST(&nodes[i] == removed_node) ;
       TEST(nrnodes-1-i == length_arraytest(array)) ;
       TEST(nrnodes-1-i == length_arraytest2(array2)) ;
    }
 
    // TEST delete_arraystf
-   for(size_t i = nrnodes; (i--); ) {
-      nodea[i] = (testnode_t) { .node = arraystf_node_INIT(sizeof(nodea[i].key), nodea[i].key), .node2 = arraystf_node_INIT(sizeof(nodea[i].key2), nodea[i].key2) } ;
-      nodea[i].key[i / 8] = (uint8_t) (0x80u >> (i%8)) ;
-      nodea[i].key2[(nrnodes-1-i) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-i)%8)) ;
-      TEST(0 == insert_arraytest(array, &nodea[i], 0, &typeadt)) ;
-      TEST(0 == insert_arraytest2(array2, &nodea[i], 0, &typeadt)) ;
-      TEST(2 == nodea[i].copycount) ;
-      TEST(&nodea[i] == at_arraytest(array, nodea[i].node.size, nodea[i].node.addr)) ;
-      TEST(&nodea[i] == at_arraytest2(array2, nodea[i].node2.size, nodea[i].node2.addr)) ;
-      TEST(2 == nodea[i].copycount) ;
+   for (size_t i = nrnodes; (i--); ) {
+      nodes[i] = (testnode_t) { .node = arraystf_node_INIT(sizeof(nodes[i].key), nodes[i].key), .node2 = arraystf_node_INIT(sizeof(nodes[i].key2), nodes[i].key2) } ;
+      nodes[i].key[i / 8] = (uint8_t) (0x80u >> (i%8)) ;
+      nodes[i].key2[(nrnodes-1-i) / 8] = (uint8_t) (0x80u >> ((nrnodes-1-i)%8)) ;
+      TEST(0 == insert_arraytest(array, &nodes[i], 0, &nodeadp1)) ;
+      TEST(0 == insert_arraytest2(array2, &nodes[i], 0, &nodeadp2)) ;
+      TEST(2 == nodes[i].copycount) ;
+      TEST(&nodes[i] == at_arraytest(array, nodes[i].node.size, nodes[i].node.addr)) ;
+      TEST(&nodes[i] == at_arraytest2(array2, nodes[i].node2.size, nodes[i].node2.addr)) ;
+      TEST(2 == nodes[i].copycount) ;
    }
-   TEST(0 == delete_arraystf(&array, &typeadt)) ;
-   TEST(0 == delete_arraystf(&array2, &typeadt)) ;
-   for(size_t i = 0; i < nrnodes; ++i) {
-      TEST(2 == nodea[i].freecount) ;
+   TEST(0 == delete_arraystf(&array, &nodeadp1)) ;
+   TEST(0 == delete_arraystf(&array2, &nodeadp2)) ;
+   for (size_t i = 0; i < nrnodes; ++i) {
+      TEST(2 == nodes[i].freecount) ;
    }
 
    // unprepare
@@ -1564,7 +1644,7 @@ int unittest_ds_inmem_arraystf()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
-   for(int i = 0; i < 2; ++i) {
+   for (int i = 0; i < 2; ++i) {
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage)) ;
 

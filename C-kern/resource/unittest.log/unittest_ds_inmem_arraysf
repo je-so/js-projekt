@@ -1,8 +1,14 @@
-C-kern/ds/inmem/arraysf.c:136: new_arraysf(): error: 22: Function input violates condition (*array == 0)
-C-kern/ds/inmem/arraysf.c:152: new_arraysf(): error: 22: Function aborted
-C-kern/ds/inmem/arraysf.c:138: new_arraysf(): error: 22: Function input violates condition (type < nrelementsof(s_arraysf_nrelemroot))
+C-kern/ds/inmem/arraysf.c:128: new_arraysf(): error: 22: Function input violates condition (*array == 0)
+C-kern/ds/inmem/arraysf.c:144: new_arraysf(): error: 22: Function aborted
+C-kern/ds/inmem/arraysf.c:130: new_arraysf(): error: 22: Function input violates condition (type < nrelementsof(s_arraysf_nrelemroot))
 type=-1
-C-kern/ds/inmem/arraysf.c:152: new_arraysf(): error: 22: Function aborted
-C-kern/ds/inmem/arraysf.c:482: insert_arraysf(): error: 17: Function aborted
-C-kern/ds/inmem/arraysf.c:464: remove_arraysf(): error: 3: Function aborted
-C-kern/ds/inmem/arraysf.c:231: delete_arraysf(): error: 12345: Freeing a resource returned an error
+C-kern/ds/inmem/arraysf.c:144: new_arraysf(): error: 22: Function aborted
+C-kern/ds/inmem/arraysf.c:472: insert_arraysf(): error: 17: Function aborted
+C-kern/ds/inmem/arraysf.c:454: remove_arraysf(): error: 3: Function aborted
+C-kern/ds/inmem/arraysf.c:227: delete_arraysf(): error: 12345: Freeing a resource returned an error
+C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 20 bytes of memory
+C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/ds/inmem/arraysf.c:379: tryinsert_arraysf(): error: 12: Function aborted
+C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 20 bytes of memory
+C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/ds/inmem/arraysf.c:379: tryinsert_arraysf(): error: 12: Function aborted

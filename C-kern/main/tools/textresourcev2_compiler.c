@@ -23,12 +23,10 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/foreach.h"
-#include "C-kern/api/ds/typeadapter.h"
 #include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/typeadapt/typeadapt_impl.h"
 #include "C-kern/api/ds/inmem/arraystf.h"
 #include "C-kern/api/ds/inmem/slist.h"
-#include "C-kern/api/ds/inmem/node/arraystf_node.h"
 #include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
@@ -164,9 +162,12 @@ struct textresource_language_t {
    bool              isdefined ;
 } ;
 
-static typeadapter_t        g_textreslang_adapter     = typeadapter_INIT(sizeof(textresource_language_t)) ;
+static typeadapt_impl_t    g_textreslang_adapter     = typeadapt_impl_INIT(sizeof(textresource_language_t)) ;
+static typeadapt_member_t  g_textreslang_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_textreslang_adapter, offsetof(textresource_language_t, name)) ;
 
-static typeadapter_iot      g_textreslang_adapter_iot = typeadapter_iot_INIT_DEFAULT(&g_textreslang_adapter) ;
+arraystf_IMPLEMENT(_arraylanguage, textresource_language_t, name)
+
+// group: lifetime
 
 /* define: textresource_language_INIT
  * Static initializer. */
@@ -183,16 +184,17 @@ struct textresource_parameter_t {
    typemodifier_e             typemod ;
 } ;
 
-static typeadapter_t        g_parameter_adapter     = typeadapter_INIT(sizeof(textresource_parameter_t)) ;
+arraystf_IMPLEMENT(_arrayparam, textresource_parameter_t, name)
+slist_IMPLEMENT(_paramlist, textresource_parameter_t, next)
 
-static typeadapter_iot      g_parameter_adapter_iot = typeadapter_iot_INIT_DEFAULT(&g_parameter_adapter) ;
+static typeadapt_impl_t    g_parameter_adapter     = typeadapt_impl_INIT(sizeof(textresource_parameter_t)) ;
+static typeadapt_member_t  g_parameter_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_parameter_adapter, offsetof(textresource_parameter_t, name)) ;
+
+// group: lifetime
 
 /* define: textresource_parameter_INIT_FREEABLE
  * Static initializer. */
 #define textresource_parameter_INIT_FREEABLE    { arraystf_node_INIT(0,0), 0, 0, typemodifier_PLAIN }
-
-
-slist_IMPLEMENT(_paramlist, textresource_parameter_t, next)
 
 
 /* struct: textresource_textatom_t
@@ -442,22 +444,23 @@ struct textresource_text_t {
    slist_t           langlist ;
 } ;
 
-arraystf_IMPLEMENT(_arrayparam, textresource_parameter_t, name.addr)
+typedef struct textresource_text_adapt_t   textresource_text_adapt_t ;
 
-static int copyobj_textresourcetext(typeadapter_t * typeadt, /*out*/textresource_text_t ** textcopy, textresource_text_t * text) ;
-static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t * text) ;
+struct textresource_text_adapt_t {
+   typeadapt_EMBED(textresource_text_adapt_t, textresource_text_t, void) ;
+} ;
 
-typeadapter_it_DECLARE(textresource_text_it, typeadapter_t, textresource_text_t)
+static int copyobj_textresourcetext(textresource_text_adapt_t * typeadt, /*out*/textresource_text_t ** textcopy, const textresource_text_t * text) ;
+static int freeobj_textresourcetext(textresource_text_adapt_t * typeadt, textresource_text_t ** text) ;
 
-typeadapter_iot_DECLARE(textresource_text_iot, typeadapter_t, textresource_text_it)
+static textresource_text_adapt_t    g_textrestext_adapter     = typeadapt_INIT_LIFETIME(&copyobj_textresourcetext, &freeobj_textresourcetext) ;
+static typeadapt_member_t           g_textrestext_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_textrestext_adapter, offsetof(textresource_text_t, name)) ;
 
-static textresource_text_it   g_textrestext_adapter_it   = typeadapter_it_INIT(&copyobj_textresourcetext, &freeobj_textresourcetext) ;
-
-static textresource_text_iot  g_textrestext_adapter_iot  = typeadapter_iot_INIT(0, &g_textrestext_adapter_it) ;
+arraystf_IMPLEMENT(_arraytname, textresource_text_t, name)
 
 // group: lifetime
 
-static int init_textresourcetext(/*out*/textresource_text_t * text, conststring_t * name)
+static int init_textresourcetext(/*out*/textresource_text_t * text, const conststring_t * name)
 {
    int err ;
    arraystf_t * textparams = 0 ;
@@ -470,7 +473,7 @@ static int init_textresourcetext(/*out*/textresource_text_t * text, conststring_
    return 0 ;
 }
 
-static int copyobj_textresourcetext(typeadapter_t * typeadt, /*out*/textresource_text_t ** textcopy, textresource_text_t * text)
+static int copyobj_textresourcetext(textresource_text_adapt_t * typeadt, /*out*/textresource_text_t ** textcopy, const textresource_text_t * text)
 {
    int err ;
    memblock_t  mblock = memblock_INIT_FREEABLE ;
@@ -488,26 +491,32 @@ static int copyobj_textresourcetext(typeadapter_t * typeadt, /*out*/textresource
    return 0 ;
 }
 
-static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t * text)
+static int freeobj_textresourcetext(textresource_text_adapt_t * typeadt, textresource_text_t ** text)
 {
    int err ;
    int err2 ;
-   memblock_t  mblock = memblock_INIT(sizeof(textresource_text_t), (uint8_t*)text) ;
 
    (void) typeadt ;
 
-   err = free_paramlist(&text->paramlist, 0) ;                          // do not delete the nodes
+   if (*text) {
+      textresource_text_t * delobj = *text ;
+      *text = 0 ;
 
-   err2 = delete_arrayparam(&text->params, &g_parameter_adapter_iot) ;  // delete nodes
-   if (err2) err = err2 ;
+      memblock_t  mblock = memblock_INIT(sizeof(textresource_text_t), (uint8_t*)delobj) ;
 
-   err2 = free_langreflist(&text->langlist, &g_langref_nodeadapter) ;
-   if (err2) err = err2 ;
+      err = free_paramlist(&delobj->paramlist, 0) ; // do not delete the nodes
 
-   err2 = MM_FREE(&mblock) ;
-   if (err2) err = err2 ;
+      err2 = delete_arrayparam(&delobj->params, &g_parameter_nodeadapter) ;  // delete nodes
+      if (err2) err = err2 ;
 
-   if (err) goto ONABORT ;
+      err2 = free_langreflist(&delobj->langlist, &g_langref_nodeadapter) ;
+      if (err2) err = err2 ;
+
+      err2 = MM_FREE(&mblock) ;
+      if (err2) err = err2 ;
+
+      if (err) goto ONABORT ;
+   }
 
    return 0 ;
 ONABORT:
@@ -551,9 +560,7 @@ struct textresource_t {
    proglangC_t       progC ;
 } ;
 
-arraystf_IMPLEMENT(_arraytname, textresource_text_t, name.addr)
 arraystf_IMPLEMENT(_arrayptype, textresource_paramtype_t, name.addr)
-arraystf_IMPLEMENT(_arraylanguage, textresource_language_t, name.addr)
 
 // group: lifetime
 
@@ -570,10 +577,10 @@ static int free_textresource(textresource_t * textres)
 
    err = delete_arrayptype(&textres->paramtypes, 0) ;
 
-   err2 = delete_arraytname(&textres->textnames, &g_textrestext_adapter_iot.generic) ;
+   err2 = delete_arraytname(&textres->textnames, &g_textrestext_nodeadapter) ;
    if (err) err = err2 ;
 
-   err2 = delete_arraylanguage(&textres->languages, &g_textreslang_adapter_iot) ;
+   err2 = delete_arraylanguage(&textres->languages, &g_textreslang_nodeadapter) ;
    if (err) err = err2 ;
 
    if (err) goto ONABORT ;
@@ -1036,7 +1043,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
             textparam.typemod |= typemodifier_POINTER ;
          }
 
-         err = match_identifier(reader, asconststring_arraystfnode(&textparam.name)) ;
+         err = match_identifier(reader, CONST_CAST(conststring_t,asconststring_arraystfnode(&textparam.name))) ;
          if (err) goto ONABORT ;
 
          if (at_arrayptype(reader->txtres.paramtypes, textparam.name.size, textparam.name.addr)) {
@@ -1047,7 +1054,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
 
          textresource_parameter_t * textparamcopy ;
 
-         err = insert_arrayparam(text->params, &textparam, &textparamcopy, &g_parameter_adapter_iot) ;
+         err = insert_arrayparam(text->params, &textparam, &textparamcopy, &g_parameter_nodeadapter) ;
          if (!err) err = insertlast_paramlist(&text->paramlist, textparamcopy) ;
          if (err) {
             if (EEXIST == err) {
@@ -1311,7 +1318,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
       err = init_textresourcetext(&text, &name) ;
       if (err) return err ;
 
-      err = insert_arraytname(reader->txtres.textnames, &text, &textcopy, &g_textrestext_adapter_iot.generic) ;
+      err = insert_arraytname(reader->txtres.textnames, &text, &textcopy, &g_textrestext_nodeadapter) ;
       if (err) {
          if (EEXIST == err) {
             err = EINVAL ;
@@ -1332,7 +1339,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
       for (;;) {
          language = (textresource_language_t) textresource_language_INIT(name) ;
 
-         err = tryinsert_arraylanguage(reader->txtres.languages, &language, &langcopy, &g_textreslang_adapter_iot) ;
+         err = tryinsert_arraylanguage(reader->txtres.languages, &language, &langcopy, &g_textreslang_nodeadapter) ;
          if (  err
             && EEXIST != err) {
             return err ;
@@ -1934,7 +1941,7 @@ static int writeCfctdeclaration_textresourcewriter(textresource_writer_t * write
       dprintf(writer->outfile, "%.*s", (int)progC->firstparam.size, progC->firstparam.addr) ;
    }
 
-   foreach(_paramlist, &text->paramlist, param) {
+   foreach (_paramlist, &text->paramlist, param) {
       if (first_param) {
          first_param = false ;
       } else {

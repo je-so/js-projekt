@@ -67,7 +67,12 @@ struct arraystf_node_t {
 
 /* function: asconststring_arraystfnode
  * Cast <arraystf_node_t> into <conststring_t>. */
-struct conststring_t   * asconststring_arraystfnode(arraystf_node_t * node) ;
+const struct conststring_t * asconststring_arraystfnode(const arraystf_node_t * node) ;
+
+/* function: asunode_arraystfnode
+ * Cast <arraystf_node_t> into <arraystf_unode_t>.
+ * You need to call this function to make <isbranchtype_arraystfunode> working properly. */
+arraystf_unode_t * asunode_arraystfnode(arraystf_node_t * node) ;
 
 /* function: fromconststring_arraystfnode
  * Cast <conststring_t> into <arraystf_node_t>. */
@@ -97,7 +102,7 @@ arraystf_node_t * fromconststring_arraystfnode(struct conststring_t * str) ;
  * > } */
 #define arraystf_node_EMBED(name_addr, name_size)  \
       const uint8_t *   name_addr ;                \
-      size_t            name_size ;
+      size_t            name_size
 
 
 /* struct: arraystf_mwaybranch_t
@@ -153,7 +158,8 @@ void setchild_arraystfmwaybranch(arraystf_mwaybranch_t * branch, unsigned childi
 
 
 /* union: arraystf_unode_t
- * Pointer to either */
+ * Either <arraystf_node_t> or <arraystf_mwaybranch_t>.
+ * The least significant bit in the pointer to this node discriminates between the two. */
 union arraystf_unode_t {
    arraystf_node_t         node ;
    arraystf_mwaybranch_t   branch ;
@@ -167,20 +173,11 @@ arraystf_mwaybranch_t * asbranch_arraystfunode(arraystf_unode_t * node) ;
 
 /* function: asnode_arraystfunode
  * Casts object pointer into pointer to <arraystf_node_t>. */
-arraystf_node_t * asnode_arraystfunode(arraystf_unode_t * node, size_t offset_node) ;
-
-/* function: asgeneric_arraystfunode
- * Casts object pointer into pointer to *generic_object_t*. */
-struct generic_object_t * asgeneric_arraystfunode(arraystf_unode_t * node) ;
+arraystf_node_t * asnode_arraystfunode(arraystf_unode_t * node) ;
 
 /* function: isbranchtype_arraystfunode
  * Returns true in case node is pointer to <arraystf_mwaybranch_t>. */
 int isbranchtype_arraystfunode(const arraystf_unode_t * node) ;
-
-/* function: fromgeneric_arraystfunode
- * Casts object pointer into pointer to <arraystf_unode_t>.
- * You need to call this function to make <isbranchtype_arraystfunode> working properly. */
-arraystf_unode_t * fromgeneric_arraystfunode(struct generic_object_t * object) ;
 
 
 // section: inline implementation
@@ -189,9 +186,17 @@ arraystf_unode_t * fromgeneric_arraystfunode(struct generic_object_t * object) ;
  * Implements <arraystf_node_t.asconststring_arraystfnode>. */
 #define asconststring_arraystfnode(node)                             \
       (  __extension__ ({                                            \
-            arraystf_node_t * _node1 = (node) ;                      \
-            (struct conststring_t*) (_node1) ;                       \
+            const arraystf_node_t * _node1 = (node) ;                \
+            (const struct conststring_t*) _node1 ;                   \
          }))
+
+/* define: asunode_arraystfnode
+ * Implements <arraystf_node_t.asunode_arraystfnode>. */
+#define asunode_arraystfnode(node)                                   \
+      ( __extension__ ({                                             \
+            struct arraystf_node_t * _node1 = (node) ;               \
+            (arraystf_unode_t*) _node1 ;                             \
+      }))
 
 /* define: fromconststring_arraystfnode
  * Implements <arraystf_node_t.fromconststring_arraystfnode>. */
@@ -199,30 +204,6 @@ arraystf_unode_t * fromgeneric_arraystfunode(struct generic_object_t * object) ;
       (  __extension__ ({                                            \
             struct conststring_t * _str1 = (str) ;                   \
             (arraystf_node_t*) (_str1) ;                             \
-         }))
-
-/* define: asbranch_arraystfunode
- * Implements <arraystf_unode_t.asbranch_arraystfunode>. */
-#define asbranch_arraystfunode(node)                                 \
-      (  __extension__ ({                                            \
-            arraystf_unode_t * _node1 = (node) ;                     \
-            (arraystf_mwaybranch_t*) (0x01 ^ (uintptr_t)(_node1));   \
-         }))
-
-/* define: asgeneric_arraystfunode
- * Implements <arraystf_unode_t.asgeneric_arraystfunode>. */
-#define asgeneric_arraystfunode(node)                                \
-      (  __extension__ ({                                            \
-            arraystf_unode_t * _node2 = (node) ;                     \
-            (struct generic_object_t*) (_node2) ;                    \
-         }))
-
-/* define: arraystf
- * Implements <arraystf_unode_t.asnode_arraystfunode>. */
-#define asnode_arraystfunode(node, offset_node)                      \
-      (  __extension__ ({                                            \
-            arraystf_unode_t * _node3 = (node) ;                     \
-            (arraystf_node_t*) ((offset_node)+(uint8_t*)(_node3)) ;  \
          }))
 
 /* define: asunode_arraystfmwaybranch
@@ -233,17 +214,25 @@ arraystf_unode_t * fromgeneric_arraystfunode(struct generic_object_t * object) ;
             (arraystf_unode_t*) (0x01 ^ (uintptr_t)(_branch)) ;      \
          }))
 
+/* define: asbranch_arraystfunode
+ * Implements <arraystf_unode_t.asbranch_arraystfunode>. */
+#define asbranch_arraystfunode(node)                                 \
+      (  __extension__ ({                                            \
+            arraystf_unode_t * _node1 = (node) ;                     \
+            (arraystf_mwaybranch_t*) (0x01 ^ (uintptr_t)(_node1));   \
+         }))
+
+/* define: arraystf
+ * Implements <arraystf_unode_t.asnode_arraystfunode>. */
+#define asnode_arraystfunode(node)                                   \
+      (  __extension__ ({                                            \
+            arraystf_unode_t * _node3 = (node) ;                     \
+            (arraystf_node_t*) _node3 ;                              \
+         }))
+
 /* define: childindex_arraystfmwaybranch
  * Implements <arraystf_mwaybranch_t.childindex_arraystfmwaybranch>. */
 #define childindex_arraystfmwaybranch(branch, data)      (0x03u & ((data) >> (branch)->shift))
-
-/* define: fromgeneric_arraystfunode
- * Implements <arraystf_unode_t.fromgeneric_arraystfunode>. */
-#define fromgeneric_arraystfunode(object)                            \
-      (  __extension__ ({                                            \
-            struct generic_object_t * _genobj1 = (object) ;          \
-            (arraystf_unode_t*) (_genobj1) ;                         \
-         }))
 
 /* define: init_arraystfmwaybranch
  * Implements <arraystf_mwaybranch_t.init_arraystfmwaybranch>. */
@@ -261,7 +250,7 @@ arraystf_unode_t * fromgeneric_arraystfunode(struct generic_object_t * object) ;
 #define isbranchtype_arraystfunode(node)                             \
       (  __extension__ ({                                            \
             const arraystf_unode_t * _node4 = (node) ;               \
-            ((uintptr_t)(_node4) & 0x01) ;                            \
+            ((uintptr_t)(_node4) & 0x01) ;                           \
          }))
 
 /* define: setchild_arraystfmwaybranch

@@ -26,10 +26,9 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/typeadapt.h"
-#include "C-kern/api/ds/typeadapter.h"
 #include "C-kern/api/ds/inmem/arraysf.h"
 #include "C-kern/api/ds/inmem/slist.h"
-#include "C-kern/api/ds/inmem/node/arraysf_node.h"
+#include "C-kern/api/ds/typeadapt/typeadapt_impl.h"
 #include "C-kern/api/io/iocontroler.h"
 #include "C-kern/api/io/ioevent.h"
 #include "C-kern/api/io/filedescr.h"
@@ -48,7 +47,7 @@ typedef struct iocontroler_iocb_t   iocontroler_iocb_t ;
 struct iocontroler_iocb_t {
    /* variable: fd
     * Filedescriptor is used as index into <arraysf_t>. */
-   size_t               fd ;
+   arraysf_node_EMBED   (fd) ;
    /* variable: iocb
     * I/O callback handler which is called if an event has been occurred. */
    iocallback_iot       iocb ;
@@ -66,29 +65,15 @@ struct iocontroler_iocb_t {
    uint8_t              isunregistered ;
 } ;
 
-// group: declaration
-
-/* struct: iocontroler_iocb_typeadapter_it
- * Declares subtyped interface of <typeadapter_it> adapted to <iocontroler_iocb_t> object types.
- * See <typeadapter_it_DECLARE>. */
-typeadapter_it_DECLARE(iocontroler_iocb_typeadapter_it, typeadapter_t, iocontroler_iocb_t)
-
-/* struct: iocontroler_iocb_typeadapter_iot
- * Declares subtyped object-interface of <typeadapter_iot> adapted to <iocontroler_iocb_typeadapter_it>.
- * See <typeadapter_iot_DECLARE>. */
-typeadapter_iot_DECLARE(iocontroler_iocb_typeadapter_iot, typeadapter_t, iocontroler_iocb_typeadapter_it)
-
 // group: variable
 
-/* variable: s_iocontroler_iocb_adapter_default
- * Default implementation object of <typeadapter_iot>. */
-static typeadapter_t                            s_iocontroler_iocb_adapter_default = typeadapter_INIT(sizeof(iocontroler_iocb_t)) ;
+/* variable: s_iocontroler_iocb_adapter
+ * Default implementation object of <typeadapt_t>. */
+static typeadapt_impl_t       s_iocontroler_iocb_adapter = typeadapt_impl_INIT(sizeof(iocontroler_iocb_t)) ;
 
-/* variable: s_iocontroler_iocb_adapter_iot
- * Subtyped typeadapter object-interface of type <iocontroler_iocb_typeadapter_it>.
- * It is initialized with <s_iocontroler_iocb_adapter_default> as its implementation object.
- * See <typeadapter_iot_INIT_GENERIC>. */
-static iocontroler_iocb_typeadapter_iot         s_iocontroler_iocb_adapter_iot     = typeadapter_iot_INIT_GENERIC(&s_iocontroler_iocb_adapter_default) ;
+/* variable: s_iocontroler_iocb_nodeadp
+ * Converts <arraysf_node_t> to <iocontroler_iocb_t> and vice versa. */
+static typeadapt_member_t     s_iocontroler_iocb_nodeadp = typeadapt_member_INIT((typeadapt_t*)&s_iocontroler_iocb_adapter, offsetof(iocontroler_iocb_t, fd)) ;
 
 // group: data structure
 
@@ -158,9 +143,9 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
          iocontroler_iocb_t * first ;
          removefirst_iocblist(asgeneric_slist(&iocntr->changed_list), &first) ;
          if (first->isunregistered) {
-            err = remove_iocbarray(iocntr->iocbs, first->fd, 0) ;
+            err = remove_iocbarray(iocntr->iocbs, first->fd, &first) ;
             if (err) goto ONABORT ;
-            err = execfree_typeadapteriot(&s_iocontroler_iocb_adapter_iot, first) ;
+            err = calldelete_typeadapt(&s_iocontroler_iocb_adapter, (typeadapt_object_t**)&first) ;
             if (err) goto ONABORT ;
          }
       }
@@ -241,7 +226,7 @@ int free_iocontroler(iocontroler_t * iocntr)
    }
 
    if (iocntr->iocbs) {
-      err2 = delete_iocbarray(&iocntr->iocbs, &s_iocontroler_iocb_adapter_iot.generic) ;
+      err2 = delete_iocbarray(&iocntr->iocbs, &s_iocontroler_iocb_nodeadp) ;
       if (err2) err = err2 ;
    }
 
@@ -264,7 +249,7 @@ int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t
    VALIDATE_INPARAM_TEST(! (ioevents & ~(ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)), ONABORT, PRINTINT_LOG(ioevents) ) ;
 
    iocontroler_iocb_t dummy = { .fd = (size_t)fd, .iocb = iocb, .next = 0, .isunregistered = 1 } ;
-   err = tryinsert_iocbarray(iocntr->iocbs, &dummy, &newiocb, &s_iocontroler_iocb_adapter_iot.generic) ;
+   err = tryinsert_iocbarray(iocntr->iocbs, &dummy, &newiocb, &s_iocontroler_iocb_nodeadp) ;
    if (err && EEXIST != err) goto ONABORT ;
 
    struct epoll_event epevent ;

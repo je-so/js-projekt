@@ -48,8 +48,15 @@ struct arraysf_node_t {
 // group: lifetime
 
 /* define: arraysf_node_INIT
- * Static initializer with paramater index of type size_t. */
-#define arraysf_node_INIT(index)       { (index) }
+ * Static initializer with parameter pos of type size_t. */
+#define arraysf_node_INIT(pos)         { pos }
+
+// group: query
+
+/* function: asunode_arraysfnode
+ * Casts node pointer into pointer to <arraysf_unode_t>.
+ * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
+arraysf_unode_t * asunode_arraysfnode(arraysf_node_t * node) ;
 
 // group: generic
 
@@ -72,7 +79,7 @@ struct arraysf_node_t {
  * >    ... ;
  * >    arraysf_node_t arraysfnode ;
  * > } */
-#define arraysf_node_EMBED(name_pos)   size_t name_pos ;
+#define arraysf_node_EMBED(name_pos)   size_t name_pos
 
 
 /* struct: arraysf_mwaybranch_t
@@ -123,7 +130,8 @@ void setchild_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned childind
 
 
 /* union: arraysf_unode_t
- * Pointer to either */
+ * Either <arraysf_node_t> or <arraysf_mwaybranch_t>.
+ * The least significant bit in the pointer to this node discriminates between the two. */
 union arraysf_unode_t {
    arraysf_node_t       node ;
    arraysf_mwaybranch_t branch ;
@@ -137,47 +145,22 @@ arraysf_mwaybranch_t * asbranch_arraysfunode(arraysf_unode_t * node) ;
 
 /* function: asnode_arraysfunode
  * Casts object pointer into pointer to <arraysf_node_t>. */
-arraysf_node_t * asnode_arraysfunode(arraysf_unode_t * node, size_t offset_node) ;
-
-/* function: asgeneric_arraysfunode
- * Casts object pointer into pointer to *generic_object_t*. */
-struct generic_object_t * asgeneric_arraysfunode(arraysf_unode_t * node) ;
+arraysf_node_t * asnode_arraysfunode(arraysf_unode_t * node) ;
 
 /* function: isbranchtype_arraysfunode
  * Returns true in case node is pointer to <arraysf_mwaybranch_t>. */
 int isbranchtype_arraysfunode(const arraysf_unode_t * node) ;
 
-/* function: fromgeneric_arraysfunode
- * Casts object pointer into pointer to <arraysf_unode_t>.
- * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
-arraysf_unode_t * fromgeneric_arraysfunode(struct generic_object_t * object) ;
-
 
 // section: inline implementation
 
-/* define: asbranch_arraysfunode
- * Implements <arraysf_unode_t.asbranch_arraysfunode>. */
-#define asbranch_arraysfunode(node)                               \
-      (  __extension__ ({                                         \
-            arraysf_unode_t * _node1 = (node) ;                   \
-            (arraysf_mwaybranch_t*)(0x01 ^ (uintptr_t)(_node1)) ; \
-         }))
-
-/* define: asgeneric_arraysfunode
- * Implements <arraysf_unode_t.asgeneric_arraysfunode>. */
-#define asgeneric_arraysfunode(node)                              \
-      (  __extension__ ({                                         \
-            arraysf_unode_t * _node2 = (node) ;                   \
-            (struct generic_object_t*) (_node2) ;                 \
-         }))
-
-/* define: asnode_arraysfunode
- * Implements <arraysf_unode_t.asnode_arraysfunode>. */
-#define asnode_arraysfunode(node, offset_node)                    \
-      (  __extension__ ({                                         \
-            arraysf_unode_t * _node3 = (node) ;                   \
-            (arraysf_node_t*) ((offset_node)+(uint8_t*)(_node3)); \
-         }))
+/* define: asunode_arraysfnode
+ * Implements <arraysf_node_t.asunode_arraysfnode>. */
+#define asunode_arraysfnode(node)                     \
+      ( __extension__ ({                              \
+            struct arraysf_node_t * _node1 = (node) ; \
+            (arraysf_unode_t*) (_node1) ;             \
+      }))
 
 /* define: asunode_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.asunode_arraysfmwaybranch>. */
@@ -187,17 +170,25 @@ arraysf_unode_t * fromgeneric_arraysfunode(struct generic_object_t * object) ;
             (arraysf_unode_t*) (0x01 ^ (uintptr_t)(_branch)) ;    \
          }))
 
+/* define: asbranch_arraysfunode
+ * Implements <arraysf_unode_t.asbranch_arraysfunode>. */
+#define asbranch_arraysfunode(node)                               \
+      ( __extension__ ({                                          \
+            arraysf_unode_t * _node2 = (node) ;                   \
+            (arraysf_mwaybranch_t*)(0x01 ^ (uintptr_t)(_node2)) ; \
+      }))
+
+/* define: asnode_arraysfunode
+ * Implements <arraysf_unode_t.asnode_arraysfunode>. */
+#define asnode_arraysfunode(node)                                 \
+      ( __extension__ ({                                          \
+            arraysf_unode_t * _node3 = (node) ;                   \
+            (arraysf_node_t*) _node3 ;                            \
+      }))
+
 /* define: childindex_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.childindex_arraysfmwaybranch>. */
 #define childindex_arraysfmwaybranch(branch, pos)     (0x03u & ((pos) >> (branch)->shift))
-
-/* define: fromgeneric_arraysfunode
- * Implements <arraysf_unode_t.fromgeneric_arraysfunode>. */
-#define fromgeneric_arraysfunode(object)                          \
-      (  __extension__ ({                                         \
-            struct generic_object_t * _genobj1 = (object) ;       \
-            (arraysf_unode_t*) (_genobj1) ;                       \
-         }))
 
 /* define: init_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.init_arraysfmwaybranch>. */
@@ -212,10 +203,10 @@ arraysf_unode_t * fromgeneric_arraysfunode(struct generic_object_t * object) ;
 /* define: isbranchtype_arraysfunode
  * Implements <arraysf_unode_t.isbranchtype_arraysfunode>. */
 #define isbranchtype_arraysfunode(node)                     \
-      (  __extension__ ({                                   \
+      ( __extension__ ({                                    \
             const arraysf_unode_t * _node4 = (node) ;       \
             ((uintptr_t)(_node4) & 0x01) ;                  \
-         }))
+      }))
 
 /* define: setchild_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.setchild_arraysfmwaybranch>. */

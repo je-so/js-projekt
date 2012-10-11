@@ -136,7 +136,6 @@
         <File Name="../../C-kern/api/ds/inmem/splaytree.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
-      <File Name="../../C-kern/api/ds/typeadapter.h"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
       <VirtualDirectory Name="typeadapt">
         <File Name="../../C-kern/api/ds/typeadapt/keycomparator.h"/>
@@ -242,7 +241,6 @@
       <File Name="../../C-kern/test/static/check_projects.sh"/>
     </VirtualDirectory>
     <VirtualDirectory Name="compiletime">
-      <File Name="../../C-kern/test/compiletime/nodeadapter.h"/>
       <File Name="../../C-kern/test/compiletime/stdtypes.h"/>
       <File Name="../../C-kern/test/compiletime/konfig_value.h"/>
       <File Name="../../C-kern/test/compiletime/system.h"/>
@@ -365,7 +363,6 @@
       <File Name="../../C-kern/ds/inmem/splaytree.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
-    <File Name="../../C-kern/ds/typeadapter.c"/>
     <VirtualDirectory Name="typeadapt">
       <File Name="../../C-kern/ds/typeadapt/keycomparator.c"/>
       <File Name="../../C-kern/ds/typeadapt/lifetime.c"/>
