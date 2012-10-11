@@ -1,6 +1,6 @@
-/* title: Unittest-Main
+/* title: Compiletime-Tests
 
-   Main driver to execute all unittest.
+   Includes all tests performed during compilation time.
 
    about: Copyright
    This program is free software.
@@ -15,22 +15,19 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2012 Jörg Seebohn
+   (C) 2011 Jörg Seebohn
 
-   file: C-kern/main/test/unittest_main.c
-    Implementation file of <Unittest-Main>.
+   file: C-kern/api/test/compiletime.h
+    Header file <Compiletime-Tests>.
+
+   file: C-kern/test/compiletime/konfig_value.h
+    Includes file <CompiletimeTest KONFIG_VALUE>.
 */
+#ifndef CKERN_TEST_COMPILETIME_HEADER
+#define CKERN_TEST_COMPILETIME_HEADER
 
-#include "C-kern/konfig.h"
-#include "C-kern/api/test/run/unittest.h"
+#include "C-kern/test/compiletime/konfig_value.h"
+#include "C-kern/test/compiletime/stdtypes.h"
+#include "C-kern/test/compiletime/system.h"
 
-// *** DO COMPILETIME tests (include is enough) ***
-#include "C-kern/api/test/compiletime.h"
-// *** ***
-
-int main(int argc, char* argv[])
-{
-   (void) argc ;
-   (void) argv ;
-   return run_unittest() ;
-}
+#endif
