@@ -34,8 +34,8 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/math/fpu.h"
-#include "C-kern/api/memory/mm/mmtest.h"
 #include "C-kern/api/test/errortimer.h"
+#include "C-kern/api/test/testmm.h"
 #endif
 
 
@@ -3208,10 +3208,10 @@ static int test_mult(void)
    big[2]->digits[299] = 2 ;
    test_errortimer_t errtimer ;
    init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
    TEST(ENOMEM == mult_bigint(&big[3], big[2], big[1])) ;
    init_testerrortimer(&errtimer, 1, EPROTO) ;
-   setfreeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   setfreeerr_testmm(mmcontext_testmm(), &errtimer) ;
    TEST(EPROTO == mult_bigint(&big[3], big[2], big[1])) ;
 
    // unprepare
@@ -3736,7 +3736,7 @@ static int test_shift(void)
    TEST(0 == new_bigint(&big, 100)) ;
    test_errortimer_t errtimer ;
    init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
    for (unsigned i = 0; i < 100; ++i) {
       big->digits[i] = 0x12345678 ;
    }
@@ -3847,7 +3847,7 @@ static int test_shift(void)
    // TEST shiftright_bigint ENOMEM
    TEST(0 == new_bigint(&big, 100)) ;
    init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
    for (unsigned i = 0; i < 100; ++i) {
       big->digits[i] = 0x12345678 ;
    }

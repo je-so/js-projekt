@@ -2,18 +2,18 @@ C-kern/math/float/decimal.c:1461: new_decimal(): error: 22: Function input viola
 C-kern/math/float/decimal.c:1473: new_decimal(): error: 22: Function aborted
 C-kern/math/float/decimal.c:1461: new_decimal(): error: 22: Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
 C-kern/math/float/decimal.c:1473: new_decimal(): error: 22: Function aborted
-C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 8 bytes of memory
-C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/test/testmm.c:680: mresize_testmm(): error: Could not allocate 8 bytes of memory
+C-kern/test/testmm.c:682: mresize_testmm(): error: 12: Function aborted
 C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 12: Function aborted
 C-kern/math/float/decimal.c:1473: new_decimal(): error: 12: Function aborted
-C-kern/memory/mm/mmtest.c:728: mfree_mmtest(): error: 12: Function aborted
+C-kern/test/testmm.c:728: mfree_testmm(): error: 12: Function aborted
 C-kern/math/float/decimal.c:1494: delete_decimal(): error: 12: Freeing a resource returned an error
-C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 12 bytes of memory
-C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/test/testmm.c:680: mresize_testmm(): error: Could not allocate 12 bytes of memory
+C-kern/test/testmm.c:682: mresize_testmm(): error: 12: Function aborted
 C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 12: Function aborted
 C-kern/math/float/decimal.c:1794: setfromint32_decimal(): error: 12: Function aborted
-C-kern/memory/mm/mmtest.c:680: mresize_mmtest(): error: Could not allocate 16 bytes of memory
-C-kern/memory/mm/mmtest.c:682: mresize_mmtest(): error: 12: Function aborted
+C-kern/test/testmm.c:680: mresize_testmm(): error: Could not allocate 16 bytes of memory
+C-kern/test/testmm.c:682: mresize_testmm(): error: 12: Function aborted
 C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 12: Function aborted
 C-kern/math/float/decimal.c:1833: setfromint64_decimal(): error: 12: Function aborted
 C-kern/math/float/decimal.c:1794: setfromint32_decimal(): error: 75: Function aborted

@@ -36,8 +36,8 @@
 #include "C-kern/api/string/cstring.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/memory/mm/mmtest.h"
 #include "C-kern/api/test/errortimer.h"
+#include "C-kern/api/test/testmm.h"
 #endif
 
 /* typedef: struct decimal_frombigint_t
@@ -2742,13 +2742,13 @@ static int test_initfree(void)
    // TEST init: ENOMEM
    test_errortimer_t errtimer ;
    init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
    TEST(ENOMEM == new_decimal(&dec, 1)) ;
 
    // TEST free: ENOMEM
    TEST(0 == new_decimal(&dec, 1)) ;
    init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setfreeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   setfreeerr_testmm(mmcontext_testmm(), &errtimer) ;
    TEST(ENOMEM == delete_decimal(&dec)) ;
    TEST(0 == dec) ;
 
@@ -3082,14 +3082,14 @@ static int test_setfromint(void)
    test_errortimer_t errtimer ;
    TEST(0 == new_decimal(&dec, 1)) ;
    init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
    TEST(ENOMEM == setfromint32_decimal(&dec, DIGITSBASE, 0)) ;
    TEST(0 == delete_decimal(&dec)) ;
 
    // TEST setfromint64_decimal: ENOMEM
    TEST(0 == new_decimal(&dec, 2)) ;
    init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &errtimer) ;
+   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
    TEST(ENOMEM == setfromint64_decimal(&dec, (uint64_t)DIGITSBASE*DIGITSBASE, 0)) ;
    TEST(0 == delete_decimal(&dec)) ;
 

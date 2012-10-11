@@ -1,4 +1,4 @@
-/* title: TestMemoryManager impl
+/* title: Test-MemoryManager impl
    Implements <TestMemoryManager>.
 
    about: Copyright
@@ -16,45 +16,45 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/memory/mm/mmtest.h
-    Header file <TestMemoryManager>.
+   file: C-kern/api/test/testmm.h
+    Header file <Test-MemoryManager>.
 
-   file: C-kern/memory/mm/mmtest.c
-    Implementation file <TestMemoryManager impl>.
+   file: C-kern/test/testmm.c
+    Implementation file <Test-MemoryManager impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/memory/mm/mmtest.h"
-#include "C-kern/api/memory/mm/mm_it.h"
-#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm_it.h"
 #include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/test/errortimer.h"
+#include "C-kern/api/test/testmm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
-/* typedef: struct mmtest_it
- * Shortcut for <mmtest_it>. */
-typedef struct mmtest_it               mmtest_it ;
+/* typedef: struct testmm_it
+ * Shortcut for <testmm_it>. */
+typedef struct testmm_it               testmm_it ;
 
-/* typedef: struct mmtestblock_t
- * Shortcut for <mmtestblock_t>. */
-typedef struct mmtestblock_t           mmtestblock_t ;
+/* typedef: struct testmm_block_t
+ * Shortcut for <testmm_block_t>. */
+typedef struct testmm_block_t          testmm_block_t ;
 
-/* typedef: struct mmtest_page_t
- * Shortcut for <mmtest_page_t>. */
-typedef struct mmtest_page_t           mmtest_page_t ;
-
-
-/* struct: mmtest_it
- * Declares <mmtest_it> as subtype of <mm_it>. See <mm_it_DECLARE>. */
-mm_it_DECLARE(mmtest_it, mmtest_t)
+/* typedef: struct testmm_page_t
+ * Shortcut for <testmm_page_t>. */
+typedef struct testmm_page_t           testmm_page_t ;
 
 
-/* struct: mmtestblock_t
+/* struct: testmm_it
+ * Declares <testmm_it> as subtype of <mm_it>. See <mm_it_DECLARE>. */
+mm_it_DECLARE(testmm_it, testmm_t)
+
+
+/* struct: testmm_block_t
  * Describes the header of an allocated memory block. */
-struct mmtestblock_t {
+struct testmm_block_t {
    struct {
       size_t               datasize ;
       size_t               alignsize ;
@@ -66,11 +66,11 @@ struct mmtestblock_t {
    // user data
 
    struct {
-      mmtestblock_t        * header[2] ;
+      testmm_block_t       * header[2] ;
    } trailer ;
 } ;
 
-/* function: alignsize_mmtestblock
+/* function: alignsize_testmmblock
  * Aligns a value to the next multiple of KONFIG_MEMALIGN.
  * If KONFIG_MEMALIGN is less than sizeof(void*) the value sizeof(void*)
  * is chosen instead of KONFIG_MEMALIGN.
@@ -80,20 +80,20 @@ struct mmtestblock_t {
  * > return (bytesize + (memalign-1)) & (~(memalign-1)) ;
  * > memalign == 0b001000
  * > (~(memalign-1)) == ~ (0b001000 - 1) == ~ (0b000111) == 0b111000 */
-static inline size_t alignsize_mmtestblock(size_t bytesize)
+static inline size_t alignsize_testmmblock(size_t bytesize)
 {
    const size_t memalign = ((KONFIG_MEMALIGN > sizeof(void*)) ? KONFIG_MEMALIGN : sizeof(void*)) ;
    static_assert(0 == (memalign & (memalign-1)), "memalign must be power of two") ;
    return (bytesize + (memalign-1)) & (~(memalign-1)) ;
 }
 
-static void init_mmtestblock(
-    mmtestblock_t        * block
-   ,size_t               datasize
-   ,size_t               alignsize)
+static void init_testmmblock(
+    testmm_block_t   * block
+   ,size_t           datasize
+   ,size_t           alignsize)
 {
-   const size_t headersize  =  alignsize_mmtestblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_mmtestblock(sizeof(block->trailer)) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
 
    block->header.datasize  = datasize ;
    block->header.alignsize = alignsize ;
@@ -115,11 +115,11 @@ static void init_mmtestblock(
    }
 }
 
-static bool isvalid_mmtestblock(mmtestblock_t * block, struct memblock_t * memblock)
+static bool isvalid_testmmblock(testmm_block_t * block, struct memblock_t * memblock)
 {
-   const size_t headersize  =  alignsize_mmtestblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_mmtestblock(sizeof(block->trailer)) ;
-   const size_t alignsize   =  alignsize_mmtestblock(memblock->size) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
+   const size_t alignsize   =  alignsize_testmmblock(memblock->size) ;
 
    if (block->header.datasize  != memblock->size)  return false ;
    if (block->header.alignsize != alignsize)       return false ;
@@ -144,7 +144,7 @@ static bool isvalid_mmtestblock(mmtestblock_t * block, struct memblock_t * membl
 }
 
 
-/* struct: mmtest_page_t
+/* struct: testmm_page_t
  * Holds one big data block consisting of many vm memory pages.
  * The memory allocation strategy is simple. Memory allocation
  * requests are always satified from the beginning of the last free block.
@@ -153,26 +153,26 @@ static bool isvalid_mmtestblock(mmtestblock_t * block, struct memblock_t * membl
  * it is merged with. The last free block grows in this manner until all
  * freed blocks are merged.
  */
-struct mmtest_page_t {
+struct testmm_page_t {
    vm_block_t     vmblock ;
    memblock_t     datablock ;
    memblock_t     freeblock ;
-   mmtest_page_t  * next ;
+   testmm_page_t  * next ;
 } ;
 
 // group: lifetime
 
-static int new_mmtestpage(mmtest_page_t ** mmpage, size_t minblocksize, mmtest_page_t * next)
+static int new_testmmpage(testmm_page_t ** mmpage, size_t minblocksize, testmm_page_t * next)
 {
    int err ;
    const size_t   blocksize = 1024 * 1024 ;
    const size_t   nrpages   = ((blocksize - 1) + pagesize_vm()) / pagesize_vm() ;
-   const size_t   nrpages2  = 2 + ((sizeof(mmtest_page_t) - 1 + pagesize_vm()) / pagesize_vm()) ;
+   const size_t   nrpages2  = 2 + ((sizeof(testmm_page_t) - 1 + pagesize_vm()) / pagesize_vm()) ;
    vm_block_t     vmblock   = vm_block_INIT_FREEABLE ;
-   mmtest_page_t  * new_mmpage ;
+   testmm_page_t  * new_mmpage ;
 
-   const size_t headersize  =  alignsize_mmtestblock(sizeof(((mmtestblock_t*)0)->header)) ;
-   const size_t trailersize =  alignsize_mmtestblock(sizeof(((mmtestblock_t*)0)->trailer)) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
+   const size_t trailersize =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
 
    if (blocksize < minblocksize + headersize + trailersize) {
       err = ENOMEM ;
@@ -182,7 +182,7 @@ static int new_mmtestpage(mmtest_page_t ** mmpage, size_t minblocksize, mmtest_p
    err = init_vmblock(&vmblock, nrpages + nrpages2) ;
    if (err) goto ONABORT ;
 
-   new_mmpage = (mmtest_page_t*) vmblock.addr ;
+   new_mmpage = (testmm_page_t*) vmblock.addr ;
    new_mmpage->vmblock   = vmblock ;
    const size_t datasize = nrpages * pagesize_vm() ;
    new_mmpage->datablock = (memblock_t) memblock_INIT(datasize, vmblock.addr + vmblock.size - pagesize_vm() - datasize) ;
@@ -203,10 +203,10 @@ ONABORT:
    return err ;
 }
 
-static int delete_mmtestpage(mmtest_page_t ** mmpage)
+static int delete_testmmpage(testmm_page_t ** mmpage)
 {
    int err ;
-   mmtest_page_t * del_mmpage = *mmpage ;
+   testmm_page_t * del_mmpage = *mmpage ;
 
    if (del_mmpage) {
       *mmpage = 0 ;
@@ -223,17 +223,17 @@ ONABORT:
    return err ;
 }
 
-static int ispagefree_mmtestpage(mmtest_page_t * mmpage)
+static int ispagefree_testmmpage(testmm_page_t * mmpage)
 {
    return (mmpage->datablock.addr == mmpage->freeblock.addr) ;
 }
 
-static int isblockvalid_mmtestpage(mmtest_page_t * mmpage, struct memblock_t * memblock)
+static int isblockvalid_testmmpage(testmm_page_t * mmpage, struct memblock_t * memblock)
 {
-   const size_t headersize  =  alignsize_mmtestblock(sizeof(((mmtestblock_t*)0)->header)) ;
-   const size_t trailersize =  alignsize_mmtestblock(sizeof(((mmtestblock_t*)0)->trailer)) ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
+   const size_t trailersize =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
 
-   mmtestblock_t * block = (mmtestblock_t*) (memblock->addr - headersize) ;
+   testmm_block_t * block = (testmm_block_t*) (memblock->addr - headersize) ;
 
    if (     mmpage->datablock.addr + headersize > memblock->addr
          || mmpage->freeblock.addr <= memblock->addr
@@ -242,19 +242,19 @@ static int isblockvalid_mmtestpage(mmtest_page_t * mmpage, struct memblock_t * m
       return false ;
    }
 
-   return isvalid_mmtestblock(block, memblock) ;
+   return isvalid_testmmblock(block, memblock) ;
 }
 
-static int freeblock_mmtestpage(mmtest_page_t * mmpage, struct memblock_t * memblock)
+static int freeblock_testmmpage(testmm_page_t * mmpage, struct memblock_t * memblock)
 {
    int err ;
-   mmtestblock_t  * block ;
-   const size_t headersize  =  alignsize_mmtestblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_mmtestblock(sizeof(block->trailer)) ;
+   testmm_block_t  * block ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
 
-   VALIDATE_INPARAM_TEST(isblockvalid_mmtestpage(mmpage, memblock), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isblockvalid_testmmpage(mmpage, memblock), ONABORT, ) ;
 
-   block = (mmtestblock_t*) (memblock->addr - headersize) ;
+   block = (testmm_block_t*) (memblock->addr - headersize) ;
    block->header.datasize = 0 ;
 
    if (mmpage->freeblock.addr == memblock->addr + trailersize + block->header.alignsize) {
@@ -264,7 +264,7 @@ static int freeblock_mmtestpage(mmtest_page_t * mmpage, struct memblock_t * memb
       // check if the block before is also free and use it as new border
       while ((uint8_t*)block > mmpage->datablock.addr + trailersize) {
          typeof(block->trailer) * trailer = (typeof(block->trailer)*) ((uint8_t*)block - trailersize) ;
-         mmtestblock_t * block2 = trailer->header[0] ;
+         testmm_block_t * block2 = trailer->header[0] ;
 
          if (  (uint8_t*)block2 < mmpage->datablock.addr
             || 0 != block2->header.datasize) {
@@ -285,21 +285,21 @@ ONABORT:
    return err ;
 }
 
-static int newblock_mmtestpage(mmtest_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
+static int newblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
 {
    int err ;
-   mmtestblock_t           * block ;
-   const size_t headersize  =  alignsize_mmtestblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_mmtestblock(sizeof(block->trailer)) ;
-   const size_t alignsize   =  alignsize_mmtestblock(newsize) ;
+   testmm_block_t * block ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
+   const size_t alignsize   =  alignsize_testmmblock(newsize) ;
    const size_t blocksize   =  headersize + trailersize + alignsize ;
 
-   block = (mmtestblock_t*) mmpage->freeblock.addr ;
+   block = (testmm_block_t*) mmpage->freeblock.addr ;
 
    err = shrink_memblock(&mmpage->freeblock, blocksize) ;
    if (err) return err ;
 
-   init_mmtestblock(block, newsize, alignsize) ;
+   init_testmmblock(block, newsize, alignsize) ;
 
    memblock->addr = block->header.userdata ;
    memblock->size = newsize ;
@@ -307,17 +307,17 @@ static int newblock_mmtestpage(mmtest_page_t * mmpage, size_t newsize, struct me
    return 0 ;
 }
 
-static int resizeblock_mmtestpage(mmtest_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
+static int resizeblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
 {
    int err ;
-   mmtestblock_t  * block ;
-   const size_t headersize  =  alignsize_mmtestblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_mmtestblock(sizeof(block->trailer)) ;
-   const size_t alignsize   =  alignsize_mmtestblock(newsize) ;
+   testmm_block_t  * block ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
+   const size_t alignsize   =  alignsize_testmmblock(newsize) ;
 
-   VALIDATE_INPARAM_TEST(isblockvalid_mmtestpage(mmpage, memblock), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isblockvalid_testmmpage(mmpage, memblock), ONABORT, ) ;
 
-   block = (mmtestblock_t*) (memblock->addr - headersize) ;
+   block = (testmm_block_t*) (memblock->addr - headersize) ;
 
    if (mmpage->freeblock.addr != memblock->addr + trailersize + block->header.alignsize) {
       return ENOMEM ;
@@ -333,7 +333,7 @@ static int resizeblock_mmtestpage(mmtest_page_t * mmpage, size_t newsize, struct
    mmpage->freeblock.addr += alignsize ;
    mmpage->freeblock.size -= alignsize ;
 
-   init_mmtestblock(block, newsize, alignsize) ;
+   init_testmmblock(block, newsize, alignsize) ;
 
    memblock->size = newsize ;
 
@@ -343,25 +343,25 @@ ONABORT:
    return err ;
 }
 
-static int getblock_mmtestpage(mmtest_page_t * mmpage, size_t blockindex, /*out*/struct memblock_t * memblock)
+static int getblock_testmmpage(testmm_page_t * mmpage, size_t blockindex, /*out*/struct memblock_t * memblock)
 {
    int err ;
-   mmtestblock_t   * block   =  (mmtestblock_t*) mmpage->datablock.addr ;
-   const size_t headersize  =  alignsize_mmtestblock(sizeof(block->header)) ;
-   const size_t trailersize =  alignsize_mmtestblock(sizeof(block->trailer)) ;
+   testmm_block_t * block   =  (testmm_block_t*) mmpage->datablock.addr ;
+   const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
+   const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;
 
    for (size_t i = 0; i < blockindex; ++i) {
 
       if (block->header.datasize) {
          memblock_t temp = memblock_INIT(block->header.datasize, block->header.userdata) ;
-         if (!isblockvalid_mmtestpage(mmpage, &temp)) {
+         if (!isblockvalid_testmmpage(mmpage, &temp)) {
             err = EINVAL ;
             PRINTSIZE_LOG(blockindex) ;
             goto ONABORT ;
          }
       }
 
-      block = (mmtestblock_t*) ( ((uint8_t*)block) + headersize + trailersize + block->header.alignsize) ;
+      block = (testmm_block_t*) ( ((uint8_t*)block) + headersize + trailersize + block->header.alignsize) ;
    }
 
    *memblock = (memblock_t) memblock_INIT(block->header.datasize, ((uint8_t*)block) + headersize) ;
@@ -373,35 +373,35 @@ ONABORT:
 }
 
 
-// section: mmtest_t
+// section: testmm_t
 
 // group: variables
 
-/* variable: s_mmtest_interface
- * Contains single instance of interface <mmtest_it>. */
-static mmtest_it     s_mmtest_interface = mm_it_INIT(
-                         &mresize_mmtest
-                        ,&mfree_mmtest
-                        ,&sizeallocated_mmtest
+/* variable: s_testmm_interface
+ * Contains single instance of interface <testmm_it>. */
+static testmm_it     s_testmm_interface = mm_it_INIT(
+                         &mresize_testmm
+                        ,&mfree_testmm
+                        ,&sizeallocated_testmm
                      ) ;
 
 // group: helper
 
-static int addpage_mmtest(mmtest_t * mman, size_t newsize)
+static int addpage_testmm(testmm_t * mman, size_t newsize)
 {
    int err ;
-   mmtest_page_t * mmpage ;
+   testmm_page_t * mmpage ;
 
-   err = new_mmtestpage(&mmpage, newsize, mman->mmpage) ;
+   err = new_testmmpage(&mmpage, newsize, mman->mmpage) ;
    if (err) return err ;
 
    mman->mmpage = mmpage ;
    return 0 ;
 }
 
-static mmtest_page_t * findpage_mmtest(mmtest_t * mman, uint8_t * blockaddr)
+static testmm_page_t * findpage_testmm(testmm_t * mman, uint8_t * blockaddr)
 {
-   mmtest_page_t * mmpage = mman->mmpage ;
+   testmm_page_t * mmpage = mman->mmpage ;
 
    do {
       if (  mmpage->datablock.addr <= blockaddr
@@ -414,19 +414,19 @@ static mmtest_page_t * findpage_mmtest(mmtest_t * mman, uint8_t * blockaddr)
    return mmpage ;
 }
 
-static int mallocate_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock)
+static int mallocate_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock)
 {
    int err ;
 
-   err = newblock_mmtestpage(mman->mmpage, newsize, memblock) ;
+   err = newblock_testmmpage(mman->mmpage, newsize, memblock) ;
 
    if (err) {
       if (ENOMEM != err) return err ;
 
-      err = addpage_mmtest(mman, newsize) ;
+      err = addpage_testmm(mman, newsize) ;
       if (err) return err ;
 
-      err = newblock_mmtestpage(mman->mmpage, newsize, memblock) ;
+      err = newblock_testmmpage(mman->mmpage, newsize, memblock) ;
    }
 
    return err ;
@@ -434,56 +434,56 @@ static int mallocate_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t *
 
 // group: context
 
-mmtest_t * mmcontext_mmtest(void)
+testmm_t * mmcontext_testmm(void)
 {
-   if (&s_mmtest_interface.generic != mmtransient_maincontext().iimpl) {
+   if (&s_testmm_interface.generic != mmtransient_maincontext().iimpl) {
       return 0 ;
    }
 
-   return (mmtest_t*) mmtransient_maincontext().object ;
+   return (testmm_t*) mmtransient_maincontext().object ;
 }
 
-int switchon_mmtest()
+int switchon_testmm()
 {
    int err ;
-   mm_iot mmtest = mm_iot_INIT_FREEABLE ;
+   mm_iot testmm = mm_iot_INIT_FREEABLE ;
 
-   if (&s_mmtest_interface.generic != mmtransient_maincontext().iimpl) {
+   if (&s_testmm_interface.generic != mmtransient_maincontext().iimpl) {
       memblock_t  previous_mm = memblock_INIT_FREEABLE ;
 
-      err = initiot_mmtest(&mmtest) ;
+      err = initiot_testmm(&testmm) ;
       if (err) goto ONABORT ;
 
-      err = mmtest.iimpl->mresize(mmtest.object, sizeof(mm_iot), &previous_mm) ;
+      err = testmm.iimpl->mresize(testmm.object, sizeof(mm_iot), &previous_mm) ;
       if (err) goto ONABORT ;
 
       *((mm_iot*)previous_mm.addr) = mmtransient_maincontext() ;
 
-      mmtransient_maincontext() = mmtest ;
+      mmtransient_maincontext() = testmm ;
    }
 
    return 0 ;
 ONABORT:
-   freeiot_mmtest(&mmtest) ;
+   freeiot_testmm(&testmm) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
 
-int switchoff_mmtest()
+int switchoff_testmm()
 {
    int err ;
 
-   if (&s_mmtest_interface.generic == mmtransient_maincontext().iimpl) {
+   if (&s_testmm_interface.generic == mmtransient_maincontext().iimpl) {
       mm_iot      mmiot       = mmtransient_maincontext() ;
-      mmtest_t    * mmtest    = ((mmtest_t*)mmiot.object) ;
+      testmm_t    * testmm    = ((testmm_t*)mmiot.object) ;
       memblock_t  previous_mm = memblock_INIT_FREEABLE ;
-      mmtest_page_t  * mmpage = mmtest->mmpage ;
+      testmm_page_t  * mmpage = testmm->mmpage ;
 
       while (mmpage->next) {
          mmpage = mmpage->next ;
       }
 
-      err = getblock_mmtestpage(mmpage, 1, &previous_mm) ;
+      err = getblock_testmmpage(mmpage, 1, &previous_mm) ;
       if (err) goto ONABORT ;
 
       if (sizeof(mm_iot) != previous_mm.size) {
@@ -493,7 +493,7 @@ int switchoff_mmtest()
 
       mmtransient_maincontext() = *((mm_iot*)previous_mm.addr) ;
 
-      err = freeiot_mmtest(&mmiot) ;
+      err = freeiot_testmm(&mmiot) ;
       if (err) goto ONABORT ;
    }
 
@@ -505,12 +505,12 @@ ONABORT:
 
 // group: lifetime
 
-int init_mmtest(/*out*/mmtest_t * mman)
+int init_testmm(/*out*/testmm_t * mman)
 {
    int err ;
-   mmtest_page_t  * mmpage = 0 ;
+   testmm_page_t  * mmpage = 0 ;
 
-   err = new_mmtestpage(&mmpage, 0, 0) ;
+   err = new_testmmpage(&mmpage, 0, 0) ;
    if (err) goto ONABORT ;
 
    mman->mmpage        = mmpage ;
@@ -524,19 +524,19 @@ ONABORT:
    return err ;
 }
 
-int free_mmtest(mmtest_t * mman)
+int free_testmm(testmm_t * mman)
 {
    int err ;
    int err2 ;
 
    if (mman->mmpage) {
-      mmtest_page_t * mmpage = mman->mmpage->next ;
+      testmm_page_t * mmpage = mman->mmpage->next ;
 
-      err = delete_mmtestpage(&mman->mmpage) ;
+      err = delete_testmmpage(&mman->mmpage) ;
       while (mmpage) {
-         mmtest_page_t * delmmpage = mmpage ;
+         testmm_page_t * delmmpage = mmpage ;
          mmpage = mmpage->next ;
-         err2 = delete_mmtestpage(&delmmpage) ;
+         err2 = delete_testmmpage(&delmmpage) ;
          if (err2) err = err2 ;
       }
 
@@ -553,43 +553,43 @@ ONABORT:
    return err ;
 }
 
-int initiot_mmtest(/*out*/mm_iot * mmtest)
+int initiot_testmm(/*out*/mm_iot * testmm)
 {
    int err ;
-   mmtest_t       mmtestobj = mmtest_INIT_FREEABLE ;
+   testmm_t       testmmobj = testmm_INIT_FREEABLE ;
    memblock_t     memblock  = memblock_INIT_FREEABLE ;
-   const size_t   objsize   = sizeof(mmtest_t) ;
+   const size_t   objsize   = sizeof(testmm_t) ;
 
-   err = init_mmtest(&mmtestobj) ;
+   err = init_testmm(&testmmobj) ;
    if (err) goto ONABORT ;
 
-   err = mresize_mmtest(&mmtestobj, objsize, &memblock) ;
+   err = mresize_testmm(&testmmobj, objsize, &memblock) ;
    if (err) goto ONABORT ;
 
-   memcpy(memblock.addr, &mmtestobj, objsize) ;
+   memcpy(memblock.addr, &testmmobj, objsize) ;
 
-   *mmtest = (mm_iot) mm_iot_INIT((struct mm_t*) memblock.addr, &s_mmtest_interface.generic) ;
+   *testmm = (mm_iot) mm_iot_INIT((struct mm_t*) memblock.addr, &s_testmm_interface.generic) ;
 
    return err ;
 ONABORT:
-   free_mmtest(&mmtestobj) ;
+   free_testmm(&testmmobj) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
 
-int freeiot_mmtest(mm_iot * mmtest)
+int freeiot_testmm(mm_iot * testmm)
 {
    int err ;
-   mmtest_t       mmtestobj = mmtest_INIT_FREEABLE ;
-   const size_t   objsize   = sizeof(mmtest_t) ;
+   testmm_t       testmmobj = testmm_INIT_FREEABLE ;
+   const size_t   objsize   = sizeof(testmm_t) ;
 
-   if (mmtest->object) {
-      assert(mmtest->iimpl == &s_mmtest_interface.generic) ;
+   if (testmm->object) {
+      assert(testmm->iimpl == &s_testmm_interface.generic) ;
 
-      memcpy(&mmtestobj, mmtest->object, objsize) ;
-      err = free_mmtest(&mmtestobj) ;
+      memcpy(&testmmobj, testmm->object, objsize) ;
+      err = free_testmm(&testmmobj) ;
 
-      *mmtest = (mm_iot) mm_iot_INIT_FREEABLE ;
+      *testmm = (mm_iot) mm_iot_INIT_FREEABLE ;
 
       if (err) goto ONABORT ;
    }
@@ -602,31 +602,31 @@ ONABORT:
 
 // group: query
 
-size_t sizeallocated_mmtest(mmtest_t * mman)
+size_t sizeallocated_testmm(testmm_t * mman)
 {
    return mman->sizeallocated ;
 }
 
 // group: simulation
 
-void setresizeerr_mmtest(mmtest_t * mman, struct test_errortimer_t * errtimer)
+void setresizeerr_testmm(testmm_t * mman, struct test_errortimer_t * errtimer)
 {
    mman->simulateResizeError = errtimer ;
 }
 
-void setfreeerr_mmtest(mmtest_t * mman, struct test_errortimer_t * errtimer)
+void setfreeerr_testmm(testmm_t * mman, struct test_errortimer_t * errtimer)
 {
    mman->simulateFreeError = errtimer ;
 }
 
 // group: allocate
 
-int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock)
+int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock)
 {
    int err ;
 
    if (0 == newsize) {
-      return mfree_mmtest(mman, memblock) ;
+      return mfree_testmm(mman, memblock) ;
    }
 
    if (mman->simulateResizeError) {
@@ -638,10 +638,10 @@ int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock
    }
 
    if (isfree_memblock(memblock)) {
-      err = mallocate_mmtest(mman, newsize, memblock) ;
+      err = mallocate_testmm(mman, newsize, memblock) ;
       if (err) goto ONABORT ;
    } else {
-      mmtest_page_t * mmpage = findpage_mmtest(mman, memblock->addr) ;
+      testmm_page_t * mmpage = findpage_testmm(mman, memblock->addr) ;
       if (!mmpage) {
          err = EINVAL ;
          goto ONABORT ;
@@ -649,21 +649,21 @@ int mresize_mmtest(mmtest_t * mman, size_t newsize, struct memblock_t * memblock
 
       size_t freesize = memblock->size ;
 
-      err = resizeblock_mmtestpage(mmpage, newsize, memblock) ;
+      err = resizeblock_testmmpage(mmpage, newsize, memblock) ;
       if (err) {
          if (ENOMEM != err) goto ONABORT ;
 
          memblock_t newmemblock ;
 
-         err = mallocate_mmtest(mman, newsize, &newmemblock) ;
+         err = mallocate_testmm(mman, newsize, &newmemblock) ;
          if (err) goto ONABORT ;
 
          // copy content
          memcpy(newmemblock.addr, memblock->addr, memblock->size < newsize ? memblock->size : newsize) ;
 
-         err = freeblock_mmtestpage(mmpage, memblock) ;
+         err = freeblock_testmmpage(mmpage, memblock) ;
          if (err) {
-            (void) freeblock_mmtestpage(mman->mmpage, &newmemblock) ;
+            (void) freeblock_testmmpage(mman->mmpage, &newmemblock) ;
             goto ONABORT ;
          }
          *memblock = newmemblock ;
@@ -683,12 +683,12 @@ ONABORT:
    return err ;
 }
 
-int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock)
+int mfree_testmm(testmm_t  * mman, struct memblock_t * memblock)
 {
    int err ;
 
    if (!isfree_memblock(memblock)) {
-      mmtest_page_t * mmpage = findpage_mmtest(mman, memblock->addr) ;
+      testmm_page_t * mmpage = findpage_testmm(mman, memblock->addr) ;
       if (!mmpage) {
          err = EINVAL ;
          goto ONABORT ;
@@ -696,19 +696,19 @@ int mfree_mmtest(mmtest_t  * mman, struct memblock_t * memblock)
 
       size_t freesize = memblock->size ;
 
-      err = freeblock_mmtestpage(mmpage, memblock) ;
+      err = freeblock_testmmpage(mmpage, memblock) ;
       if (err) goto ONABORT ;
 
       *memblock = (memblock_t) memblock_INIT_FREEABLE ;
       mman->sizeallocated -= freesize ;
 
-      if (ispagefree_mmtestpage(mman->mmpage)) {
+      if (ispagefree_testmmpage(mman->mmpage)) {
          while (  mman->mmpage->next
-                  && (  ispagefree_mmtestpage(mman->mmpage->next)
+                  && (  ispagefree_testmmpage(mman->mmpage->next)
                         || !mman->mmpage->next->next)/*is first page*/) {
             mmpage = mman->mmpage;
             mman->mmpage = mman->mmpage->next ;
-            err = delete_mmtestpage(&mmpage) ;
+            err = delete_testmmpage(&mmpage) ;
             if (err) goto ONABORT ;
          }
       }
@@ -734,39 +734,39 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_mmtestpage(void)
+static int test_testmmpage(void)
 {
-   mmtest_page_t        * mmpage = 0 ;
+   testmm_page_t        * mmpage = 0 ;
    vm_mappedregions_t   mapping  = vm_mappedregions_INIT_FREEABLE ;
    memblock_t           page[4] ;
    memblock_t           memblock ;
-   const size_t         headersize  = alignsize_mmtestblock(sizeof(((mmtestblock_t*)0)->header)) ;
-   const size_t         trailersize = alignsize_mmtestblock(sizeof(((mmtestblock_t*)0)->trailer)) ;
+   const size_t         headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
+   const size_t         trailersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
 
    // TEST init, double free
-   TEST(0 == new_mmtestpage(&mmpage, 0, 0)) ;
+   TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    TEST(0 != mmpage) ;
-   TEST(0 == delete_mmtestpage(&mmpage)) ;
+   TEST(0 == delete_testmmpage(&mmpage)) ;
    TEST(0 == mmpage) ;
-   TEST(0 == delete_mmtestpage(&mmpage)) ;
+   TEST(0 == delete_testmmpage(&mmpage)) ;
    TEST(0 == mmpage) ;
 
    // TEST init: field contents
-   TEST(0 == new_mmtestpage(&mmpage, 0, (mmtest_page_t*)5)) ;
+   TEST(0 == new_testmmpage(&mmpage, 0, (testmm_page_t*)5)) ;
    TEST(0 != mmpage) ;
    TEST(1024*1024 <= mmpage->datablock.size) ;
    TEST(mmpage->datablock.addr == mmpage->freeblock.addr) ;
    TEST(mmpage->datablock.size == mmpage->freeblock.size) ;
    TEST(mmpage->vmblock.addr   == (uint8_t*)mmpage) ;
-      // assumes sizeof(mmtest_page_t) <= pagesize_vm()
+      // assumes sizeof(testmm_page_t) <= pagesize_vm()
    TEST(mmpage->vmblock.addr   == mmpage->datablock.addr - 2*pagesize_vm()) ;
    TEST(mmpage->vmblock.size   == mmpage->freeblock.size + 3*pagesize_vm()) ;
    TEST(5 == (uintptr_t)mmpage->next) ;
-   TEST(0 == delete_mmtestpage(&mmpage)) ;
+   TEST(0 == delete_testmmpage(&mmpage)) ;
    TEST(0 == mmpage) ;
 
    // TEST init: memory is mapped
-   TEST(0 == new_mmtestpage(&mmpage, 0, 0)) ;
+   TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    TEST(0 != mmpage) ;
    page[0] = (memblock_t) memblock_INIT(pagesize_vm(), mmpage->vmblock.addr) ;
    page[1] = mmpage->datablock ;
@@ -780,7 +780,7 @@ static int test_mmtestpage(void)
    TEST(0 == free_vmmappedregions(&mapping)) ;
 
    // TEST free: memory is unmapped
-   TEST(0 == delete_mmtestpage(&mmpage)) ;
+   TEST(0 == delete_testmmpage(&mmpage)) ;
    TEST(0 == mmpage) ;
    TEST(0 == init_vmmappedregions(&mapping)) ;
    TEST(0 == iscontained_vmmappedregions(&mapping, &page[0], (accessmode_RDWR|accessmode_PRIVATE))) ;
@@ -790,18 +790,18 @@ static int test_mmtestpage(void)
    TEST(0 == free_vmmappedregions(&mapping)) ;
 
    // TEST init ENOMEM
-   TEST(ENOMEM == new_mmtestpage(&mmpage, 1024*1024, 0)) ;
+   TEST(ENOMEM == new_testmmpage(&mmpage, 1024*1024, 0)) ;
    TEST(0 == mmpage) ;
 
-   // TEST newblock_mmtestpage
-   TEST(0 == new_mmtestpage(&mmpage, 0, 0)) ;
+   // TEST newblock_testmmpage
+   TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    memblock_t nextfree = mmpage->freeblock ;
    for(unsigned i = 1; i <= 1000; ++i) {
-      const size_t   alignsize = alignsize_mmtestblock(i) ;
+      const size_t   alignsize = alignsize_testmmblock(i) ;
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0      == newblock_mmtestpage(mmpage, i, &memblock)) ;
-      TEST(true   == isblockvalid_mmtestpage(mmpage, &memblock)) ;
-      TEST(ENOMEM == newblock_mmtestpage(mmpage, nextfree.size+1-headersize-trailersize, &memblock)) ;
+      TEST(0      == newblock_testmmpage(mmpage, i, &memblock)) ;
+      TEST(true   == isblockvalid_testmmpage(mmpage, &memblock)) ;
+      TEST(ENOMEM == newblock_testmmpage(mmpage, nextfree.size+1-headersize-trailersize, &memblock)) ;
       nextfree.addr += headersize ;
       TEST(memblock.addr == nextfree.addr) ;
       TEST(memblock.size == i) ;
@@ -810,19 +810,19 @@ static int test_mmtestpage(void)
       TEST(nextfree.addr == mmpage->freeblock.addr) ;
       TEST(nextfree.size == mmpage->freeblock.size) ;
    }
-   TEST(0 == delete_mmtestpage(&mmpage)) ;
+   TEST(0 == delete_testmmpage(&mmpage)) ;
 
-   // TEST resizeblock_mmtestpage
-   TEST(0 == new_mmtestpage(&mmpage, 0, 0)) ;
+   // TEST resizeblock_testmmpage
+   TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    nextfree = mmpage->freeblock ;
    memblock_t oldblock = memblock_INIT_FREEABLE ;
    for(unsigned i = 1; i <= 1000; ++i) {
-      const size_t   alignsize = alignsize_mmtestblock(i+1) ;
+      const size_t   alignsize = alignsize_testmmblock(i+1) ;
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == newblock_mmtestpage(mmpage, i, &memblock)) ;
-      TEST(0 == resizeblock_mmtestpage(mmpage, i+1, &memblock)) ;
-      TEST(1 == isblockvalid_mmtestpage(mmpage, &memblock)) ;
+      TEST(0 == newblock_testmmpage(mmpage, i, &memblock)) ;
+      TEST(0 == resizeblock_testmmpage(mmpage, i+1, &memblock)) ;
+      TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
       nextfree.addr += headersize ;
       TEST(memblock.addr == nextfree.addr) ;
       TEST(memblock.size == i+1) ;
@@ -831,22 +831,22 @@ static int test_mmtestpage(void)
       TEST(nextfree.addr == mmpage->freeblock.addr) ;
       TEST(nextfree.size == mmpage->freeblock.size) ;
       if (!isfree_memblock(&oldblock)) {
-         TEST(ENOMEM == resizeblock_mmtestpage(mmpage, i+1, &oldblock)) ;
+         TEST(ENOMEM == resizeblock_testmmpage(mmpage, i+1, &oldblock)) ;
       }
       oldblock = memblock ;
    }
-   TEST(0 == delete_mmtestpage(&mmpage)) ;
+   TEST(0 == delete_testmmpage(&mmpage)) ;
 
-   // TEST freeblock_mmtestpage
-   TEST(0 == new_mmtestpage(&mmpage, 0, 0)) ;
+   // TEST freeblock_testmmpage
+   TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    nextfree = mmpage->freeblock ;
    oldblock = (memblock_t) memblock_INIT_FREEABLE ;
    for(unsigned i = 1; i <= 1000; ++i) {
-      const size_t   alignsize = alignsize_mmtestblock(i+1) ;
+      const size_t   alignsize = alignsize_testmmblock(i+1) ;
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == newblock_mmtestpage(mmpage, i, &memblock)) ;
-      TEST(0 == resizeblock_mmtestpage(mmpage, i+1, &memblock)) ;
-      TEST(1 == isblockvalid_mmtestpage(mmpage, &memblock)) ;
+      TEST(0 == newblock_testmmpage(mmpage, i, &memblock)) ;
+      TEST(0 == resizeblock_testmmpage(mmpage, i+1, &memblock)) ;
+      TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
       nextfree.addr += headersize ;
       TEST(memblock.addr == nextfree.addr) ;
       TEST(memblock.size == i+1) ;
@@ -856,40 +856,40 @@ static int test_mmtestpage(void)
       TEST(nextfree.size == mmpage->freeblock.size) ;
       if (!isfree_memblock(&oldblock)) {
          // is only marked as free
-         TEST(0 == freeblock_mmtestpage(mmpage, &oldblock)) ;
+         TEST(0 == freeblock_testmmpage(mmpage, &oldblock)) ;
          TEST(0 == oldblock.addr) ;
          TEST(0 == oldblock.size) ;
       }
       oldblock = memblock ;
    }
    // all free blocks are merged
-   TEST(0 == freeblock_mmtestpage(mmpage, &oldblock)) ;
+   TEST(0 == freeblock_testmmpage(mmpage, &oldblock)) ;
    TEST(isfree_memblock(&oldblock)) ;
    TEST(mmpage->freeblock.addr == mmpage->datablock.addr) ;
    TEST(mmpage->freeblock.size == mmpage->datablock.size) ;
-   TEST(0 == delete_mmtestpage(&mmpage)) ;
+   TEST(0 == delete_testmmpage(&mmpage)) ;
 
-   // TEST isblockvalid_mmtestpage
-   TEST(0 == new_mmtestpage(&mmpage, 0, 0)) ;
+   // TEST isblockvalid_testmmpage
+   TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    nextfree = mmpage->freeblock ;
-   TEST(0 == newblock_mmtestpage(mmpage, 1000000, &memblock)) ;
+   TEST(0 == newblock_testmmpage(mmpage, 1000000, &memblock)) ;
    mmpage->datablock.addr += 1 ;
-   TEST(0 == isblockvalid_mmtestpage(mmpage, &memblock)) ;
+   TEST(0 == isblockvalid_testmmpage(mmpage, &memblock)) ;
    mmpage->datablock.addr -= 1 ;
-   TEST(1 == isblockvalid_mmtestpage(mmpage, &memblock)) ;
+   TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
    mmpage->freeblock.addr -= 1 ;
-   TEST(0 == isblockvalid_mmtestpage(mmpage, &memblock)) ;
+   TEST(0 == isblockvalid_testmmpage(mmpage, &memblock)) ;
    mmpage->freeblock.addr += 1 ;
-   TEST(1 == isblockvalid_mmtestpage(mmpage, &memblock)) ;
-   ((mmtestblock_t*)(memblock.addr-headersize))->header.alignsize = mmpage->datablock.size ;
-   TEST(0 == isblockvalid_mmtestpage(mmpage, &memblock)) ;
-   ((mmtestblock_t*)(memblock.addr-headersize))->header.alignsize = alignsize_mmtestblock(memblock.size) ;
-   TEST(1 == isblockvalid_mmtestpage(mmpage, &memblock)) ;
-   TEST(0 == delete_mmtestpage(&mmpage)) ;
+   TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
+   ((testmm_block_t*)(memblock.addr-headersize))->header.alignsize = mmpage->datablock.size ;
+   TEST(0 == isblockvalid_testmmpage(mmpage, &memblock)) ;
+   ((testmm_block_t*)(memblock.addr-headersize))->header.alignsize = alignsize_testmmblock(memblock.size) ;
+   TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
+   TEST(0 == delete_testmmpage(&mmpage)) ;
 
    return 0 ;
 ONABORT:
-   delete_mmtestpage(&mmpage) ;
+   delete_testmmpage(&mmpage) ;
    free_vmmappedregions(&mapping) ;
    return EINVAL ;
 }
@@ -897,66 +897,66 @@ ONABORT:
 static int test_initfree(void)
 {
    mm_iot       mmiot    = mm_iot_INIT_FREEABLE ;
-   mmtest_t     mmtest   = mmtest_INIT_FREEABLE ;
+   testmm_t     testmm   = testmm_INIT_FREEABLE ;
    memblock_t   memblock = memblock_INIT_FREEABLE ;
-   const size_t headersize = alignsize_mmtestblock(sizeof(((mmtestblock_t*)0)->header)) ;
+   const size_t headersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
 
    // TEST static init
-   TEST(0 == mmtest.mmpage) ;
-   TEST(0 == mmtest.sizeallocated) ;
-   TEST(0 == mmtest.simulateResizeError) ;
-   TEST(0 == mmtest.simulateFreeError) ;
+   TEST(0 == testmm.mmpage) ;
+   TEST(0 == testmm.sizeallocated) ;
+   TEST(0 == testmm.simulateResizeError) ;
+   TEST(0 == testmm.simulateFreeError) ;
 
    // TEST init, double free
-   mmtest.sizeallocated = 1 ;
-   mmtest.simulateResizeError = (void*) 1 ;
-   mmtest.simulateFreeError   = (void*) 1 ;
-   TEST(0 == init_mmtest(&mmtest)) ;
-   TEST(0 != mmtest.mmpage) ;
-   TEST(0 == mmtest.sizeallocated) ;
-   TEST(0 == mmtest.simulateResizeError) ;
-   TEST(0 == mmtest.simulateFreeError) ;
-   TEST(0 == mresize_mmtest(&mmtest, 1, &memblock)) ;
-   TEST(1 == mmtest.sizeallocated) ;
-   mmtest.simulateResizeError = (void*) 1 ;
-   mmtest.simulateFreeError   = (void*) 1 ;
-   TEST(0 == free_mmtest(&mmtest)) ;
-   TEST(0 == mmtest.mmpage) ;
-   TEST(0 == mmtest.sizeallocated) ;
-   TEST(0 == mmtest.simulateResizeError) ;
-   TEST(0 == mmtest.simulateFreeError) ;
-   TEST(0 == free_mmtest(&mmtest)) ;
-   TEST(0 == mmtest.mmpage) ;
-   TEST(0 == mmtest.sizeallocated) ;
+   testmm.sizeallocated = 1 ;
+   testmm.simulateResizeError = (void*) 1 ;
+   testmm.simulateFreeError   = (void*) 1 ;
+   TEST(0 == init_testmm(&testmm)) ;
+   TEST(0 != testmm.mmpage) ;
+   TEST(0 == testmm.sizeallocated) ;
+   TEST(0 == testmm.simulateResizeError) ;
+   TEST(0 == testmm.simulateFreeError) ;
+   TEST(0 == mresize_testmm(&testmm, 1, &memblock)) ;
+   TEST(1 == testmm.sizeallocated) ;
+   testmm.simulateResizeError = (void*) 1 ;
+   testmm.simulateFreeError   = (void*) 1 ;
+   TEST(0 == free_testmm(&testmm)) ;
+   TEST(0 == testmm.mmpage) ;
+   TEST(0 == testmm.sizeallocated) ;
+   TEST(0 == testmm.simulateResizeError) ;
+   TEST(0 == testmm.simulateFreeError) ;
+   TEST(0 == free_testmm(&testmm)) ;
+   TEST(0 == testmm.mmpage) ;
+   TEST(0 == testmm.sizeallocated) ;
 
    // TEST free: free all pages
-   TEST(0 == init_mmtest(&mmtest)) ;
+   TEST(0 == init_testmm(&testmm)) ;
    for (unsigned i = 0; i < 10; ++i) {
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == mresize_mmtest(&mmtest, 1024*1024-1000, &memblock)) ;
+      TEST(0 == mresize_testmm(&testmm, 1024*1024-1000, &memblock)) ;
    }
-   TEST(10*(1024*1024-1000) == mmtest.sizeallocated) ;
-   TEST(0 == free_mmtest(&mmtest)) ;
-   TEST(0 == mmtest.mmpage) ;
-   TEST(0 == mmtest.sizeallocated) ;
-   TEST(0 == free_mmtest(&mmtest)) ;
-   TEST(0 == mmtest.mmpage) ;
-   TEST(0 == mmtest.sizeallocated) ;
+   TEST(10*(1024*1024-1000) == testmm.sizeallocated) ;
+   TEST(0 == free_testmm(&testmm)) ;
+   TEST(0 == testmm.mmpage) ;
+   TEST(0 == testmm.sizeallocated) ;
+   TEST(0 == free_testmm(&testmm)) ;
+   TEST(0 == testmm.mmpage) ;
+   TEST(0 == testmm.sizeallocated) ;
 
    // TEST initiot, double freeiot
    TEST(0 == mmiot.object) ;
    TEST(0 == mmiot.iimpl) ;
-   TEST(0 == initiot_mmtest(&mmiot)) ;
-   TEST(mmiot.object == (void*) (((mmtest_t*)mmiot.object)->mmpage->datablock.addr + headersize)) ;
-   TEST(mmiot.iimpl  == &s_mmtest_interface.generic) ;
-   TEST(0 == freeiot_mmtest(&mmiot)) ;
+   TEST(0 == initiot_testmm(&mmiot)) ;
+   TEST(mmiot.object == (void*) (((testmm_t*)mmiot.object)->mmpage->datablock.addr + headersize)) ;
+   TEST(mmiot.iimpl  == &s_testmm_interface.generic) ;
+   TEST(0 == freeiot_testmm(&mmiot)) ;
    TEST(0 == mmiot.object) ;
    TEST(0 == mmiot.iimpl) ;
 
    return 0 ;
 ONABORT:
-   free_mmtest(&mmtest) ;
-   freeiot_mmtest(&mmiot) ;
+   free_testmm(&testmm) ;
+   freeiot_testmm(&mmiot) ;
    return EINVAL ;
 }
 
@@ -964,86 +964,86 @@ static int test_allocate(void)
 {
    memblock_t     memblocks[1000] ;
    const size_t   blocksize   = 10*1024*1024 / nrelementsof(memblocks) ;
-   mmtest_t       mmtest      = mmtest_INIT_FREEABLE ;
-   const size_t   headersize  = alignsize_mmtestblock(sizeof(((mmtestblock_t*)0)->header)) ;
+   testmm_t       testmm      = testmm_INIT_FREEABLE ;
+   const size_t   headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
 
    // prepare
-   TEST(0 == init_mmtest(&mmtest)) ;
+   TEST(0 == init_testmm(&testmm)) ;
 
    // TEST alloc, realloc, free in FIFO order
    for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
       // allocate blocksize/2 and then resize to blocksize
       memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == mresize_mmtest(&mmtest, blocksize/2, &memblocks[i])) ;
-      TEST(i * blocksize + blocksize/2 == sizeallocated_mmtest(&mmtest))
+      TEST(0 == mresize_testmm(&testmm, blocksize/2, &memblocks[i])) ;
+      TEST(i * blocksize + blocksize/2 == sizeallocated_testmm(&testmm))
       TEST(memblocks[i].addr != 0) ;
       TEST(memblocks[i].size == blocksize/2) ;
       uint8_t        * oldaddr = memblocks[i].addr ;
-      mmtest_page_t  * oldpage = mmtest.mmpage ;
-      TEST(0 == mresize_mmtest(&mmtest, blocksize, &memblocks[i])) ;
-      TEST((i+1) * blocksize == sizeallocated_mmtest(&mmtest))
+      testmm_page_t  * oldpage = testmm.mmpage ;
+      TEST(0 == mresize_testmm(&testmm, blocksize, &memblocks[i])) ;
+      TEST((i+1) * blocksize == sizeallocated_testmm(&testmm))
       TEST(memblocks[i].addr != 0) ;
       TEST(memblocks[i].size == blocksize) ;
-      if (oldpage == mmtest.mmpage) { // oldpage had enough space
+      if (oldpage == testmm.mmpage) { // oldpage had enough space
          TEST(memblocks[i].addr == oldaddr) ;
       } else { // new page allocated, new block is first on page
-         TEST(memblocks[i].addr == mmtest.mmpage->datablock.addr + headersize) ;
+         TEST(memblocks[i].addr == testmm.mmpage->datablock.addr + headersize) ;
       }
    }
    for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
-      mmtest_page_t  * oldpage = mmtest.mmpage ;
+      testmm_page_t  * oldpage = testmm.mmpage ;
       if (i % 2) {
-         TEST(0 == mresize_mmtest(&mmtest, 0, &memblocks[i])) ;
+         TEST(0 == mresize_testmm(&testmm, 0, &memblocks[i])) ;
       } else {
-         TEST(0 == mfree_mmtest(&mmtest, &memblocks[i])) ;
+         TEST(0 == mfree_testmm(&testmm, &memblocks[i])) ;
       }
       TEST(0 == memblocks[i].addr) ;
       TEST(0 == memblocks[i].size) ;
-      TEST((nrelementsof(memblocks)-1-i) * blocksize == sizeallocated_mmtest(&mmtest)) ;
+      TEST((nrelementsof(memblocks)-1-i) * blocksize == sizeallocated_testmm(&testmm)) ;
       if (i != nrelementsof(memblocks)-1) {  // no pages are freed
-         TEST(oldpage == mmtest.mmpage) ;
-      } else {         // mmtest has now only a single empty page
-         TEST(0 == mmtest.mmpage->next) ;
-         TEST(1 == ispagefree_mmtestpage(mmtest.mmpage)) ;
+         TEST(oldpage == testmm.mmpage) ;
+      } else {         // testmm has now only a single empty page
+         TEST(0 == testmm.mmpage->next) ;
+         TEST(1 == ispagefree_testmmpage(testmm.mmpage)) ;
       }
    }
-   TEST(0 == sizeallocated_mmtest(&mmtest)) ;
+   TEST(0 == sizeallocated_testmm(&testmm)) ;
 
    // TEST alloc, realloc, free in LIFO order
    for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
       memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == mresize_mmtest(&mmtest, blocksize, &memblocks[i])) ;
-      TEST((i+1) * blocksize == sizeallocated_mmtest(&mmtest))
+      TEST(0 == mresize_testmm(&testmm, blocksize, &memblocks[i])) ;
+      TEST((i+1) * blocksize == sizeallocated_testmm(&testmm))
    }
    for (unsigned i = nrelementsof(memblocks); (i--) > 0; ) {
-      mmtest_page_t  * oldpage   = mmtest.mmpage ;
-      mmtest_page_t  * foundpage = findpage_mmtest(&mmtest, memblocks[i].addr) ;
+      testmm_page_t  * oldpage   = testmm.mmpage ;
+      testmm_page_t  * foundpage = findpage_testmm(&testmm, memblocks[i].addr) ;
       bool           isfirst     = (foundpage->datablock.addr + headersize == memblocks[i].addr) ;
       bool           isRootPage  = (0 != foundpage->next) && (0 == foundpage->next->next) ;
-      mmtest_page_t  * rootpage  = isRootPage ? foundpage->next : 0 ;
+      testmm_page_t  * rootpage  = isRootPage ? foundpage->next : 0 ;
 
       if (foundpage == oldpage) {
-         TEST(!ispagefree_mmtestpage(oldpage)) ;
+         TEST(!ispagefree_testmmpage(oldpage)) ;
       } else {
-         TEST(ispagefree_mmtestpage(oldpage)) ;
+         TEST(ispagefree_testmmpage(oldpage)) ;
          TEST(foundpage == oldpage->next) ;
       }
-      TEST(0 == mfree_mmtest(&mmtest, &memblocks[i])) ;
-      TEST(i * blocksize == sizeallocated_mmtest(&mmtest)) ;
+      TEST(0 == mfree_testmm(&testmm, &memblocks[i])) ;
+      TEST(i * blocksize == sizeallocated_testmm(&testmm)) ;
       TEST(0 == memblocks[i].addr) ;
       TEST(0 == memblocks[i].size) ;
       if (isfirst && oldpage != foundpage) {
          if (isRootPage) {
-            TEST(rootpage == mmtest.mmpage) ;
+            TEST(rootpage == testmm.mmpage) ;
          } else {
-            TEST(foundpage == mmtest.mmpage) ;
+            TEST(foundpage == testmm.mmpage) ;
          }
       } else {
-         TEST(oldpage == mmtest.mmpage) ;
+         TEST(oldpage == testmm.mmpage) ;
       }
    }
-   TEST(0 == mmtest.mmpage->next) ;
-   TEST(1 == ispagefree_mmtestpage(mmtest.mmpage)) ;
+   TEST(0 == testmm.mmpage->next) ;
+   TEST(1 == ispagefree_testmmpage(testmm.mmpage)) ;
 
    // TEST alloc, realloc, free in random order
    srandom(10000) ;
@@ -1054,48 +1054,48 @@ static int test_allocate(void)
       unsigned i = (unsigned)random() % nrelementsof(memblocks) ;
       if (isfree_memblock(&memblocks[i])) {
          datasize += blocksize/2 ;
-         TEST(0 == mresize_mmtest(&mmtest, blocksize/2, &memblocks[i])) ;
+         TEST(0 == mresize_testmm(&testmm, blocksize/2, &memblocks[i])) ;
          TEST(0 != memblocks[i].addr) ;
          TEST(blocksize/2 == memblocks[i].size) ;
       } else if (blocksize == memblocks[i].size) {
          datasize -= blocksize ;
-         TEST(0 == mfree_mmtest(&mmtest, &memblocks[i])) ;
+         TEST(0 == mfree_testmm(&testmm, &memblocks[i])) ;
          TEST(0 == memblocks[i].addr) ;
          TEST(0 == memblocks[i].size) ;
       } else {
          datasize -= memblocks[i].size ;
          datasize += blocksize ;
-         TEST(0 == mresize_mmtest(&mmtest, blocksize, &memblocks[i])) ;
+         TEST(0 == mresize_testmm(&testmm, blocksize, &memblocks[i])) ;
          TEST(0 != memblocks[i].addr) ;
          TEST(blocksize == memblocks[i].size) ;
       }
-      TEST(datasize == sizeallocated_mmtest(&mmtest)) ;
+      TEST(datasize == sizeallocated_testmm(&testmm)) ;
    }
    for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
-      TEST(0 == mfree_mmtest(&mmtest, &memblocks[i])) ;
+      TEST(0 == mfree_testmm(&testmm, &memblocks[i])) ;
    }
-   TEST(0 == sizeallocated_mmtest(&mmtest)) ;
-   TEST(0 == mmtest.mmpage->next) ;
-   TEST(1 == ispagefree_mmtestpage(mmtest.mmpage)) ;
+   TEST(0 == sizeallocated_testmm(&testmm)) ;
+   TEST(0 == testmm.mmpage->next) ;
+   TEST(1 == ispagefree_testmmpage(testmm.mmpage)) ;
 
    // TEST reallocation preserves content
    for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
       memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[i])) ;
+      TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[i])) ;
       TEST(sizeof(unsigned)*20 == memblocks[i].size) ;
       for (unsigned off = 0; off < 20; ++off) {
          ((unsigned*)(memblocks[i].addr))[off] = i + off ;
       }
    }
    for (unsigned i = nrelementsof(memblocks); (i--) > 0; ) {
-      TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*21, &memblocks[i])) ;
+      TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*21, &memblocks[i])) ;
       TEST(sizeof(unsigned)*21 == memblocks[i].size) ;
       for (unsigned off = 20; off < 21; ++off) {
          ((unsigned*)(memblocks[i].addr))[off] = i + off ;
       }
    }
    for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
-      TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*22, &memblocks[i])) ;
+      TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*22, &memblocks[i])) ;
       TEST(sizeof(unsigned)*22 == memblocks[i].size) ;
       for (unsigned off = 21; off < 22; ++off) {
          ((unsigned*)(memblocks[i].addr))[off] = i + off ;
@@ -1107,68 +1107,68 @@ static int test_allocate(void)
       }
    }
    for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
-      TEST(0 == mfree_mmtest(&mmtest, &memblocks[i])) ;
+      TEST(0 == mfree_testmm(&testmm, &memblocks[i])) ;
       TEST(0 == memblocks[i].addr) ;
       TEST(0 == memblocks[i].size) ;
    }
-   TEST(0 == sizeallocated_mmtest(&mmtest)) ;
-   TEST(0 == mmtest.mmpage->next) ;
-   TEST(1 == ispagefree_mmtestpage(mmtest.mmpage)) ;
+   TEST(0 == sizeallocated_testmm(&testmm)) ;
+   TEST(0 == testmm.mmpage->next) ;
+   TEST(1 == ispagefree_testmmpage(testmm.mmpage)) ;
 
-   // TEST setresizeerr_mmtest, setfreeeerr_mmtest
+   // TEST setresizeerr_testmm, setfreeeerr_testmm
    test_errortimer_t errtimer1 ;
    test_errortimer_t errtimer2 ;
    init_testerrortimer(&errtimer1, 2, EPROTO) ;
    init_testerrortimer(&errtimer2, 5, EPERM) ;
-   TEST(0 == mmtest.simulateResizeError)
-   setresizeerr_mmtest(&mmtest, &errtimer1) ;
-   TEST(&errtimer1 == mmtest.simulateResizeError)
-   TEST(0 == mmtest.simulateFreeError)
-   setfreeerr_mmtest(&mmtest, &errtimer2) ;
-   TEST(&errtimer2 == mmtest.simulateFreeError)
+   TEST(0 == testmm.simulateResizeError)
+   setresizeerr_testmm(&testmm, &errtimer1) ;
+   TEST(&errtimer1 == testmm.simulateResizeError)
+   TEST(0 == testmm.simulateFreeError)
+   setfreeerr_testmm(&testmm, &errtimer2) ;
+   TEST(&errtimer2 == testmm.simulateFreeError)
    static_assert(nrelementsof(memblocks) > 2, "") ;
    memblocks[0] = (memblock_t) memblock_INIT_FREEABLE ;
-   TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[0])) ;
+   TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[0])) ;
    memblocks[1] = (memblock_t) memblock_INIT_FREEABLE ;
-   TEST(EPROTO == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[1])) ;
-   TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[1])) ;
+   TEST(EPROTO == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[1])) ;
+   TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[1])) ;
    for (unsigned i = 0; i < 2; ++i) {
-      TEST(0 == mfree_mmtest(&mmtest, &memblocks[0])) ;
-      TEST(0 == mfree_mmtest(&mmtest, &memblocks[1])) ;
+      TEST(0 == mfree_testmm(&testmm, &memblocks[0])) ;
+      TEST(0 == mfree_testmm(&testmm, &memblocks[1])) ;
    }
-   TEST(EPERM == mfree_mmtest(&mmtest, &memblocks[0])) ;
-   TEST(0 == mfree_mmtest(&mmtest, &memblocks[1])) ;
+   TEST(EPERM == mfree_testmm(&testmm, &memblocks[0])) ;
+   TEST(0 == mfree_testmm(&testmm, &memblocks[1])) ;
 
-   // TEST setresizeerr_mmtest, setfreeeerr_mmtest: after firing pointer to timer are cleared
+   // TEST setresizeerr_testmm, setfreeeerr_testmm: after firing pointer to timer are cleared
    init_testerrortimer(&errtimer1, 1, ENOMEM) ;
    init_testerrortimer(&errtimer2, 1, EINVAL) ;
-   TEST(0 == mmtest.simulateResizeError) ;
-   setresizeerr_mmtest(&mmtest, &errtimer1) ;
-   TEST(&errtimer1 == mmtest.simulateResizeError) ;
-   TEST(ENOMEM == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[0])) ;
-   TEST(0 == mmtest.simulateResizeError) ;
-   TEST(0 == mmtest.simulateFreeError)
-   setfreeerr_mmtest(&mmtest, &errtimer2) ;
-   TEST(&errtimer2 == mmtest.simulateFreeError)
-   TEST(EINVAL == mfree_mmtest(&mmtest, &memblocks[0])) ;
-   TEST(0 == mmtest.simulateFreeError)
+   TEST(0 == testmm.simulateResizeError) ;
+   setresizeerr_testmm(&testmm, &errtimer1) ;
+   TEST(&errtimer1 == testmm.simulateResizeError) ;
+   TEST(ENOMEM == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[0])) ;
+   TEST(0 == testmm.simulateResizeError) ;
+   TEST(0 == testmm.simulateFreeError)
+   setfreeerr_testmm(&testmm, &errtimer2) ;
+   TEST(&errtimer2 == testmm.simulateFreeError)
+   TEST(EINVAL == mfree_testmm(&testmm, &memblocks[0])) ;
+   TEST(0 == testmm.simulateFreeError)
 
-   // TEST setresizeerr_mmtest, setfreeeerr_mmtest: value 0 disarms error timer
+   // TEST setresizeerr_testmm, setfreeeerr_testmm: value 0 disarms error timer
    init_testerrortimer(&errtimer1, 1, ENOMEM) ;
    init_testerrortimer(&errtimer2, 1, EINVAL) ;
-   setresizeerr_mmtest(&mmtest, &errtimer1) ;
-   setfreeerr_mmtest(&mmtest, &errtimer2) ;
-   setresizeerr_mmtest(&mmtest, 0) ;
-   setfreeerr_mmtest(&mmtest, 0) ;
-   TEST(0 == mresize_mmtest(&mmtest, sizeof(unsigned)*20, &memblocks[0])) ;
-   TEST(0 == mfree_mmtest(&mmtest, &memblocks[0])) ;
+   setresizeerr_testmm(&testmm, &errtimer1) ;
+   setfreeerr_testmm(&testmm, &errtimer2) ;
+   setresizeerr_testmm(&testmm, 0) ;
+   setfreeerr_testmm(&testmm, 0) ;
+   TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[0])) ;
+   TEST(0 == mfree_testmm(&testmm, &memblocks[0])) ;
 
    // unprepare
-   TEST(0 == free_mmtest(&mmtest)) ;
+   TEST(0 == free_testmm(&testmm)) ;
 
    return 0 ;
 ONABORT:
-   free_mmtest(&mmtest) ;
+   free_testmm(&testmm) ;
    return EINVAL ;
 }
 
@@ -1176,42 +1176,42 @@ static int test_context(void)
 {
    mm_iot oldmm = mmtransient_maincontext() ;
 
-   // TEST double call switchon_mmtest
-   TEST(&s_mmtest_interface.generic != mmtransient_maincontext().iimpl) ;
-   TEST(0 == switchon_mmtest()) ;
-   TEST(&s_mmtest_interface.generic == mmtransient_maincontext().iimpl) ;
-   TEST(0 == switchon_mmtest()) ;
-   TEST(&s_mmtest_interface.generic == mmtransient_maincontext().iimpl) ;
+   // TEST double call switchon_testmm
+   TEST(&s_testmm_interface.generic != mmtransient_maincontext().iimpl) ;
+   TEST(0 == switchon_testmm()) ;
+   TEST(&s_testmm_interface.generic == mmtransient_maincontext().iimpl) ;
+   TEST(0 == switchon_testmm()) ;
+   TEST(&s_testmm_interface.generic == mmtransient_maincontext().iimpl) ;
 
-   // TEST double call switchoff_mmtest
-   TEST(&s_mmtest_interface.generic == mmtransient_maincontext().iimpl) ;
-   TEST(0 == switchoff_mmtest()) ;
-   TEST(&s_mmtest_interface.generic != mmtransient_maincontext().iimpl) ;
+   // TEST double call switchoff_testmm
+   TEST(&s_testmm_interface.generic == mmtransient_maincontext().iimpl) ;
+   TEST(0 == switchoff_testmm()) ;
+   TEST(&s_testmm_interface.generic != mmtransient_maincontext().iimpl) ;
    TEST(oldmm.object == mmtransient_maincontext().object) ;
    TEST(oldmm.iimpl  == mmtransient_maincontext().iimpl) ;
-   TEST(0 == switchoff_mmtest()) ;
+   TEST(0 == switchoff_testmm()) ;
    TEST(oldmm.object == mmtransient_maincontext().object) ;
    TEST(oldmm.iimpl  == mmtransient_maincontext().iimpl) ;
 
    return 0 ;
 ONABORT:
-   switchoff_mmtest() ;
+   switchoff_testmm() ;
    return EINVAL ;
 }
 
-int unittest_memory_manager_mmtest()
+int unittest_test_testmm()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   const bool ismmtest = isinstalled_mmtest() ;
+   const bool istestmm = isinstalled_testmm() ;
 
-   if (ismmtest) {
-      switchoff_mmtest() ;
+   if (istestmm) {
+      switchoff_testmm() ;
    }
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_mmtestpage())  goto ONABORT ;
+   if (test_testmmpage())  goto ONABORT ;
    if (test_initfree())    goto ONABORT ;
    if (test_allocate())    goto ONABORT ;
    if (test_context())     goto ONABORT ;
@@ -1219,8 +1219,8 @@ int unittest_memory_manager_mmtest()
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   if (ismmtest) {
-      switchon_mmtest() ;
+   if (istestmm) {
+      switchon_testmm() ;
    }
 
    return 0 ;

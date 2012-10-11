@@ -35,7 +35,7 @@
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/memory/mm/mmtest.h"
+#include "C-kern/api/test/testmm.h"
 #endif
 
 
@@ -1201,14 +1201,14 @@ static int test_generic(void)
    // TEST tryinsert_arraysf: ENOMEM => inserted_node is set to 0
    nodes[1] = (testnode_t)  { .node = arraysf_node_INIT(1), .pos2 = (100000u + 1) } ;
    init_testerrortimer(&memerror, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &memerror) ;
+   setresizeerr_testmm(mmcontext_testmm(), &memerror) ;
    inserted_node = &nodes[1] ;
    TEST(ENOMEM == tryinsert_tarraysf(array, &nodes[1], &inserted_node, &nodeadp1)) ;
    TEST(0 == inserted_node) ;
    TEST(1 == nodes[1].copycount) ;
    TEST(1 == nodes[1].freecount) ;
    init_testerrortimer(&memerror, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &memerror) ;
+   setresizeerr_testmm(mmcontext_testmm(), &memerror) ;
    inserted_node = &nodes[1] ;
    TEST(ENOMEM == tryinsert_t2arraysf(array2, &nodes[1], &inserted_node, &nodeadp2)) ;
    TEST(0 == inserted_node) ;

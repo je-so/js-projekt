@@ -33,9 +33,9 @@
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/math/fpu.h"
-#include "C-kern/api/memory/mm/mmtest.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/test/testmm.h"
 #include "C-kern/api/test/run/unittest.h"
 
 
@@ -166,10 +166,10 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
    logrun_test(test_name) ;
    CLEARBUFFER_LOG() ;
 
-   err = switchon_mmtest() ;
+   err = switchon_testmm() ;
    if (err) {
       CPRINTF_LOG(TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__ ) ;
-      CPRINTF_LOG(TEST, "switchon_mmtest FAILED\n") ;
+      CPRINTF_LOG(TEST, "switchon_testmm FAILED\n") ;
    } else {
       err = unittest() ;
       if (err) {
@@ -187,9 +187,9 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
       }
    }
 
-   if (switchoff_mmtest()) {
+   if (switchoff_testmm()) {
       CPRINTF_LOG(TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__ ) ;
-      CPRINTF_LOG(TEST, "switchoff_mmtest FAILED\n") ;
+      CPRINTF_LOG(TEST, "switchoff_testmm FAILED\n") ;
    }
 
    if (err)
@@ -279,7 +279,6 @@ int run_unittest(void)
 //{ memory unittest
       RUN(unittest_memory_memblock) ;
       RUN(unittest_memory_wbuffer) ;
-      RUN(unittest_memory_manager_mmtest) ;
       RUN(unittest_memory_manager_transient) ;
 //}
 
@@ -294,8 +293,9 @@ int run_unittest(void)
 
 //{ test unittest
       RUN(unittest_test_errortimer) ;
-      RUN(unittest_test_functions) ;
       RUN(unittest_test_resourceusage) ;
+      RUN(unittest_test_test) ;
+      RUN(unittest_test_testmm) ;
 //}
 
 //{ time unittest

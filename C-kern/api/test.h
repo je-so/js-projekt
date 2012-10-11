@@ -77,9 +77,9 @@ void logrun_test(const char * testname) ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_test_functions
- * Unittest for exported function in <Test>. */
-int unittest_test_functions(void) ;
+/* function: unittest_test_test
+ * Unittest for <TEST> macro and log functions. */
+int unittest_test_test(void) ;
 #endif
 
 

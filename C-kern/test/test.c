@@ -114,7 +114,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_test_functions()
+int unittest_test_test()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

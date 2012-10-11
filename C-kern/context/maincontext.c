@@ -32,7 +32,7 @@
 #include "C-kern/api/io/writer/log/logmain.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/memory/mm/mmtest.h"
+#include "C-kern/api/test/testmm.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/thread.h"
 #endif
@@ -444,10 +444,10 @@ int unittest_context_maincontext()
 
    } else {
 
-      const bool ismmtest = isinstalled_mmtest() ;
+      const bool istestmm = isinstalled_testmm() ;
 
-      if (ismmtest) {
-         switchoff_mmtest() ;
+      if (istestmm) {
+         switchoff_testmm() ;
       }
 
       if (test_initerror())  goto ONABORT ;
@@ -473,8 +473,8 @@ int unittest_context_maincontext()
       TEST(0 == same_resourceusage(&usage)) ;
       TEST(0 == free_resourceusage(&usage)) ;
 
-      if (ismmtest) {
-         switchon_mmtest() ;
+      if (istestmm) {
+         switchon_testmm() ;
       }
    }
 

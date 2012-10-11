@@ -35,7 +35,7 @@
 #include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/memory/mm/mmtest.h"
+#include "C-kern/api/test/testmm.h"
 #include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/test/errortimer.h"
 #endif
@@ -1503,14 +1503,14 @@ static int test_generic(void)
    nodes[1].key[1] = 1 ;
    nodes[1].key2[(nrnodes-1-0) / 8] = (uint8_t) (1 + (0x80u >> ((nrnodes-1-0)%8))) ;
    init_testerrortimer(&memerror, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &memerror) ;
+   setresizeerr_testmm(mmcontext_testmm(), &memerror) ;
    inserted_node = &nodes[1] ;
    TEST(ENOMEM == tryinsert_arraytest(array, &nodes[1], &inserted_node, &nodeadp1)) ;
    TEST(0 == inserted_node) ;
    TEST(1 == nodes[1].copycount) ;
    TEST(1 == nodes[1].freecount) ;
    init_testerrortimer(&memerror, 1, ENOMEM) ;
-   setresizeerr_mmtest(mmcontext_mmtest(), &memerror) ;
+   setresizeerr_testmm(mmcontext_testmm(), &memerror) ;
    inserted_node = &nodes[1] ;
    TEST(ENOMEM == tryinsert_arraytest2(array2, &nodes[1], &inserted_node, &nodeadp2)) ;
    TEST(0 == inserted_node) ;

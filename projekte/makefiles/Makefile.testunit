@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Oct.11  09:10:05
+GenerationDate  := 2012.Oct.11  09:25:35
 GeneratedBy     := je-so
 
 ## Debug
@@ -131,7 +131,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
- $(ObjectDir_Debug)/C-kern!memory!mm!mmtest.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
@@ -142,7 +141,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
  $(ObjectDir_Debug)/C-kern!test!test.c.o \
- $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o
+ $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
+ $(ObjectDir_Debug)/C-kern!test!testmm.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o \
@@ -202,7 +202,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!float!decimal.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
- $(ObjectDir_Release)/C-kern!memory!mm!mmtest.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
@@ -213,7 +212,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
  $(ObjectDir_Release)/C-kern!test!test.c.o \
- $(ObjectDir_Release)/C-kern!test!run_unittest.c.o
+ $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
+ $(ObjectDir_Release)/C-kern!test!testmm.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -392,9 +392,6 @@ $(ObjectDir_Debug)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!memory!mm!mmtest.c.o: C-kern/memory/mm/mmtest.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
 	@$(CC_Debug)
 
@@ -426,6 +423,9 @@ $(ObjectDir_Debug)/C-kern!test!test.c.o: C-kern/test/test.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!test!testmm.c.o: C-kern/test/testmm.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
@@ -599,9 +599,6 @@ $(ObjectDir_Release)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!memory!mm!mmtest.c.o: C-kern/memory/mm/mmtest.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
 	@$(CC_Release)
 
@@ -633,6 +630,9 @@ $(ObjectDir_Release)/C-kern!test!test.c.o: C-kern/test/test.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!testmm.c.o: C-kern/test/testmm.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)
