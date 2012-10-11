@@ -31,20 +31,11 @@
 
 // forward
 struct arraysf_t ;
+struct slist_node_t ;
 
 /* typedef: struct iocontroler_t
  * Exports <iocontroler_t>. */
 typedef struct iocontroler_t           iocontroler_t ;
-
-/* typedef: struct iocontroler_iocb_t
- * Exports opaque type <iocontroler_iocb_t>.
- * This object is used internally to associate <iocallback_iot>
- * with the corresponding file descriptor. */
-typedef struct iocontroler_iocb_t      iocontroler_iocb_t ;
-
-/* typedef: struct iocontoler_iocblist_t
- * Exports <iocontoler_iocblist_t>. */
-typedef struct iocontoler_iocblist_t   iocontoler_iocblist_t ;
 
 
 // section: Functions
@@ -56,16 +47,6 @@ typedef struct iocontoler_iocblist_t   iocontoler_iocblist_t ;
  * Unittest for <iocontroler_t>. */
 int unittest_io_iocontroler(void) ;
 #endif
-
-
-/* struct: iocontoler_iocblist_t
- * This object is used internally to store a list of <iocontroler_iocb_t>.
- * See <iocontroler_t.changed_list>. */
-struct iocontoler_iocblist_t {
-   /* variable: last
-    * Points to last <iocontroler_iocb_t> which has changed. */
-    iocontroler_iocb_t  * last ;
-} ;
 
 
 /* struct: iocontroler_t
@@ -87,8 +68,10 @@ struct iocontroler_t {
     * This buffer is filled by calling <processevents_iocontroler>. */
    memblock_t              eventcache ;
    /* variable: changed_list
-    * List of changed <iocontroler_iocb_t>. This list cleared in <processevents_iocontroler>. */
-   iocontoler_iocblist_t   changed_list ;
+    * List of changed <iocontroler_iocb_t>. This list is cleared in <processevents_iocontroler>. */
+   struct {
+      struct slist_node_t * last ;
+   }                       changed_list ;
    /* variable: iocbs
     * Contains for every registered filedescriptor the corresponding <iocallback_t>.
     * This info is set by calling <registeriocb_iocontroler> or cleared by calling <unregisteriocb_iocontroler>. */

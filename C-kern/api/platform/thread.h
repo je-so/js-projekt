@@ -27,6 +27,9 @@
 
 #include "C-kern/api/memory/memblock.h"
 
+// forward
+struct slist_node_t ;
+
 /* typedef: struct thread_t
  * Export <thread_t>. */
 typedef struct thread_t                thread_t ;
@@ -79,7 +82,7 @@ struct thread_t {
    /* variable: wlistnext
     * Points to next thread which waits on the same condition in <waitlist_t>.
     * TODO: remove variable wlistnext (see <lock> for explanation) */
-   thread_t          * wlistnext ;
+   struct slist_node_t  * wlistnext ;
    /* variable: task_arg
     * Contains parameter to executed <task_f> function. */
    void              * task_arg ;

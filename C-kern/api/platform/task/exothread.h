@@ -47,6 +47,9 @@
 #ifndef CKERN_PLATFORM_TASK_EXOTHREAD_HEADER
 #define CKERN_PLATFORM_TASK_EXOTHREAD_HEADER
 
+// forward
+struct slist_node_t ;
+
 /* typedef: exothread_t typedef
  * Export <exothread_t>. */
 typedef struct exothread_t             exothread_t ;
@@ -93,7 +96,7 @@ typedef enum exothread_flag_e          exothread_flag_e ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_task_exothread
  * Tests exothread functionality. */
-extern int unittest_platform_task_exothread(void) ;
+int unittest_platform_task_exothread(void) ;
 #endif
 
 
@@ -105,14 +108,14 @@ struct exothread_t {
    // group: private variables
    /* variable: next
     * Pointer to next exothread. Used by <exoscheduler_t>. */
-   exothread_t     * next ;
+   struct slist_node_t  * next ;
    /* variable: main
     * Pointer to implementation of exothread function. */
-   exothread_main_f  main ;
+   exothread_main_f     main ;
    /* variable: instr_ptr
     * Instruction pointer holds position of instruction where execution should continue.
     * The value 0 is a special value. It indicates the execution of thread for the first time. */
-   void            * instr_ptr ;
+   void                 * instr_ptr ;
    /* variable: returncode
     * Holds return code of exothread.
     * The first returned error code is stored.
@@ -121,10 +124,10 @@ struct exothread_t {
     * Values:
     * 0     - Exothread returned success
     * else  - Error code */
-   int               returncode ;
+   int                  returncode ;
    /* variable: flags
     * Holds status information encoded as <exothread_flag_e>. */
-   uint16_t          flags ;
+   uint16_t             flags ;
 } ;
 
 // group: lifetime
@@ -136,7 +139,7 @@ struct exothread_t {
 /* function: init_exothread
  * Inits <exothread_t> objects.
  * The object is not registered with any type of scheduler. */
-extern int init_exothread(/*out*/exothread_t * xthread, exothread_main_f main_fct) ;
+int init_exothread(/*out*/exothread_t * xthread, exothread_main_f main_fct) ;
 
 /* function: initsubtype_exothread
  * Inits the <exothread_t> part of a subtype.
@@ -146,14 +149,14 @@ extern int init_exothread(/*out*/exothread_t * xthread, exothread_main_f main_fc
  * The functionality is equal to <init_exothread>.
  * The name <initsubtype_exothread> is derived from the type of the first parameter
  * which must be a subtype of <exothread_t>. */
-extern int initsubtype_exothread(/*out*/exothread_subtype_t * xthread, exothread_subtype_main_f main_fct) ;
+int initsubtype_exothread(/*out*/exothread_subtype_t * xthread, exothread_subtype_main_f main_fct) ;
 
 /* function: free_exothread
  *
  * Returns:
  * 0     - All resource freed.
  * EBUSY - Xthread has not run to end. Allocated resources may be lost. */
-extern int free_exothread(exothread_t * xthread) ;
+int free_exothread(exothread_t * xthread) ;
 
 // group: execution
 
@@ -162,20 +165,20 @@ extern int free_exothread(exothread_t * xthread) ;
  * If the xthread holds no resources then it is marked a as finished.
  * If it holds resources the state is changed to *exothread_FREE:*
  * and returncode is set to ECANCELED. */
-extern void abort_exothread(exothread_t * xthread) ;
+void abort_exothread(exothread_t * xthread) ;
 
 /* function: run_exothread
  * Calls <exothread_t.main> function a single time.
  * The flags are changed if necessary and the state
  * could be set to *exothread_FREE:*. */
-extern int run_exothread(exothread_t * xthread) ;
+int run_exothread(exothread_t * xthread) ;
 
 /* function: yield_exothread
  * Gives up processing time to other exothreads.
  * It returns from current exothread and sets the state
  * to a generated anonymous label after the return statememt.
  * Next time the xthread is executed it starts after the yield. */
-extern void yield_exothread(void) ;
+void yield_exothread(void) ;
 
 // group: change
 
@@ -183,7 +186,7 @@ extern void yield_exothread(void) ;
  * Marks current xthread that it holds no more resources.
  * This flag is cleared as default value.
  * See <setholdingresource_exothread> for a description. */
-extern void clearholdingresource_exothread(void) ;
+void clearholdingresource_exothread(void) ;
 
 /* function: finish_exothread
  * Marks current xthread that it has finished its computation.
@@ -194,7 +197,7 @@ extern void clearholdingresource_exothread(void) ;
  * Automatism:
  * This flag is set for you if <isholdingresource_exothread> returns false
  * and the xthread function returns an error. */
-extern void finish_exothread(void) ;
+void finish_exothread(void) ;
 
 /* function: rememberstate_exothread
  * Sets the state label of the current exothread to current position.
@@ -205,7 +208,7 @@ extern void finish_exothread(void) ;
  * Do not forget to set the state after *exothread_INIT:* initialized
  * the current thread successfully and before you give up the processor
  * (i.e. return 0). */
-extern void rememberstate_exothread(void) ;
+void rememberstate_exothread(void) ;
 
 /* function: setholdingresource_exothread
  * Sets flag of current xthread indicating that it holds resources.
@@ -218,7 +221,7 @@ extern void rememberstate_exothread(void) ;
  * Automatism:
  * This flag is cleared for you if xthread function returns an error
  * and before itis called with the state set to *exothread_FREE:*. */
-extern void setholdingresource_exothread(void) ;
+void setholdingresource_exothread(void) ;
 
 /* function: setstate_exothread
  * Sets the state label of the current exothread.
@@ -228,42 +231,42 @@ extern void setholdingresource_exothread(void) ;
  * Do not forget to set the state after *exothread_INIT:* initialized
  * the current thread successfully and before you give up the processor
  * (i.e. return 0). */
-extern void setstate_exothread(void * instr_ptr) ;
+void setstate_exothread(void * instr_ptr) ;
 
 // group: query
 
 /* function: iserror_exothread
  * Returns true if xthread once returned an error.
  * Only the first returned error is reported in returncode (0 => OK). */
-extern bool iserror_exothread(const exothread_t * xthread) ;
+bool iserror_exothread(const exothread_t * xthread) ;
 
 /* function: isfinish_exothread
  * Returns true if xthread has finished its computation. */
-extern bool isfinish_exothread(const exothread_t * xthread) ;
+bool isfinish_exothread(const exothread_t * xthread) ;
 
 /* function: isholdingresource_exothread
  * Returns true if xthread holds resources which must be freed. */
-extern bool isholdingresource_exothread(const exothread_t * xthread) ;
+bool isholdingresource_exothread(const exothread_t * xthread) ;
 
 /* function: inarg_exothread
  * Returns pointer to in arguments of exothread.
  * You should call this function only from within an exothread.
  * You need to subtype <exothread_t> and make parameter xthread
  * a pointer to the subtype before this works. */
-extern const void * inarg_exothread(void) ;
+const void * inarg_exothread(void) ;
 
 /* function: outarg_exothread
  * Returns pointer to out arguments of exothread.
  * You should call this function only from within an exothread.
  * You need to subtype <exothread_t> and make parameter xthread
  * a pointer to the subtype before this works. */
-extern void * outarg_exothread(void) ;
+void * outarg_exothread(void) ;
 
 /* function: returncode_exothread
  * This function returns the returned value of a finished exothread.
  * This value is only if <isfinish_exothread> returns true.
  * A value != 0 indicates an error. */
-extern int returncode_exothread(const exothread_t * xthread) ;
+int returncode_exothread(const exothread_t * xthread) ;
 
 // group: implementation macros
 

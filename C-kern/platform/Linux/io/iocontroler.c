@@ -24,20 +24,23 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/iocontroler.h"
-#include "C-kern/api/io/ioevent.h"
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/ds/typeadapt.h"
+#include "C-kern/api/ds/typeadapter.h"
 #include "C-kern/api/ds/inmem/arraysf.h"
 #include "C-kern/api/ds/inmem/slist.h"
 #include "C-kern/api/ds/inmem/node/arraysf_node.h"
-#include "C-kern/api/ds/typeadapter.h"
-#include "C-kern/api/err.h"
+#include "C-kern/api/io/iocontroler.h"
+#include "C-kern/api/io/ioevent.h"
+#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/memory/mm/mm_it.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/iotimer.h"
 #endif
+
+typedef struct iocontroler_iocb_t   iocontroler_iocb_t ;
 
 
 /* struct: iocontroler_iocb_t
@@ -57,7 +60,7 @@ struct iocontroler_iocb_t {
     * are capable of unregistering an I/O handler for any file descriptor and therefore putting them
     * into the list of changed <iocontroler_iocb_t> (<next> != 0).
     * A handler (see <iocb>) for any signaled io event is only called if <next> is 0. */
-   iocontroler_iocb_t   * next ;
+   slist_node_t         * next ;
    /* variable: isunregistered
     * Flag indicating the following change: the file descriptor is unregistered. */
    uint8_t              isunregistered ;
@@ -92,7 +95,7 @@ static iocontroler_iocb_typeadapter_iot         s_iocontroler_iocb_adapter_iot  
 /* define: slist_IMPLEMENT_iocblist
  * Implements <slist_t> for <iocontroler_iocb_t> managed by <iocontoler_iocblist_t>.
  * See <slist_IMPLEMENT>. */
-slist_IMPLEMENT(_iocblist, iocontoler_iocblist_t, next)
+slist_IMPLEMENT(_iocblist, iocontroler_iocb_t, next)
 
 /* define: arraysf_IMPLEMENT_iocbarray
  * Implements <arraysf_t> for <iocontroler_iocb_t> managed by <arraysf_t>.
@@ -151,9 +154,9 @@ static int wait_iocontroler(iocontroler_t * iocntr, uint16_t timeout)
          iocntr->eventcache.size = cache_size ;
       }
 
-      while (!isempty_iocblist(&iocntr->changed_list)) {
+      while (!isempty_iocblist(asgeneric_slist(&iocntr->changed_list))) {
          iocontroler_iocb_t * first ;
-         removefirst_iocblist(&iocntr->changed_list, &first) ;
+         removefirst_iocblist(asgeneric_slist(&iocntr->changed_list), &first) ;
          if (first->isunregistered) {
             err = remove_iocbarray(iocntr->iocbs, first->fd, 0) ;
             if (err) goto ONABORT ;
@@ -206,7 +209,7 @@ int init_iocontroler(/*out*/iocontroler_t * iocntr)
    iocntr->nr_events    = 0 ;
    iocntr->nr_filedescr = 0 ;
    iocntr->eventcache   = (memblock_t) memblock_INIT_FREEABLE ;
-   iocntr->changed_list = (iocontoler_iocblist_t) slist_INIT ;
+   iocntr->changed_list = (typeof(iocntr->changed_list)) slist_INIT ;
    iocntr->iocbs        = iocbs ;
 
    return 0 ;
@@ -242,7 +245,7 @@ int free_iocontroler(iocontroler_t * iocntr)
       if (err2) err = err2 ;
    }
 
-   iocntr->changed_list = (iocontoler_iocblist_t) slist_INIT ;
+   iocntr->changed_list = (typeof(iocntr->changed_list)) slist_INIT ;
 
    if (err) goto ONABORT ;
 
@@ -283,15 +286,15 @@ int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t
    newiocb->iocb           = iocb ;
    newiocb->isunregistered = 0 ;
    if (!newiocb->next) {
-      insertfirst_iocblist(&iocntr->changed_list, newiocb) ;
+      insertfirst_iocblist(asgeneric_slist(&iocntr->changed_list), newiocb) ;
    }
 
    return 0 ;
 ONABORT:
-   if (     newiocb
+   if (  newiocb
          && newiocb->isunregistered
          && !newiocb->next ) {
-      insertfirst_iocblist(&iocntr->changed_list, newiocb) ;
+      insertfirst_iocblist(asgeneric_slist(&iocntr->changed_list), newiocb) ;
    }
    TRACEABORT_LOG(err) ;
    return err ;
@@ -374,7 +377,7 @@ int unregisteriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd)
    foundiocb->isunregistered = 1 ;
 
    if (!foundiocb->next) {
-      insertfirst_iocblist(&iocntr->changed_list, foundiocb) ;
+      insertfirst_iocblist(asgeneric_slist(&iocntr->changed_list), foundiocb) ;
    }
 
    return 0 ;

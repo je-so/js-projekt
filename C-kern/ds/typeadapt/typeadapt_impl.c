@@ -39,7 +39,7 @@
 
 // group: implementation
 
-static int lifetime_newcopyobj_typeadaptimpl(typeadapt_impl_t * typeadp, /*out*/struct typeadapt_object_t ** destobject, const struct typeadapt_object_t * srcobject)
+int lifetime_newcopyobj_typeadaptimpl(typeadapt_impl_t * typeadp, /*out*/struct typeadapt_object_t ** destobject, const struct typeadapt_object_t * srcobject)
 {
    int err ;
    memblock_t destblock = memblock_INIT_FREEABLE ;
@@ -57,7 +57,7 @@ ONABORT:
    return err ;
 }
 
-static int lifetime_deleteobj_typeadaptimpl(typeadapt_impl_t * typeadp, struct typeadapt_object_t ** object)
+int lifetime_deleteobj_typeadaptimpl(typeadapt_impl_t * typeadp, struct typeadapt_object_t ** object)
 {
    int err ;
 
@@ -122,6 +122,10 @@ static int test_initfree(void)
       TEST(0 == free_typeadaptimpl(&typeadp)) ;
       TEST(isequal_typeadapt(&emptytadp, asgeneric_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void))) ;
       TEST(0 == typeadp.objectsize) ;
+      typeadp = (typeadapt_impl_t) typeadapt_impl_INIT(i) ;
+      TEST(isequal_typeadapt(&initadp, asgeneric_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void))) ;
+      TEST(i == typeadp.objectsize) ;
+      TEST(0 == free_typeadaptimpl(&typeadp)) ;
    }
 
    return 0 ;

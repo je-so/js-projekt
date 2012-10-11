@@ -162,7 +162,7 @@ bool isempty_splaytree(const splaytree_t * tree) ;
 typedef splaytree_iterator_t      iteratortype_splaytree ;
 
 /* typedef: iteratedtype_splaytree
- * Function declaration to associate <splaytree_node_t> with <splaytree_t>. */
+ * Declaration to associate <splaytree_node_t> with <splaytree_t>. */
 typedef splaytree_node_t          iteratedtype_splaytree ;
 
 // group: search
@@ -204,9 +204,9 @@ int invariant_splaytree(splaytree_t * tree) ;
  * Generates interface of double linked list storing elements of type object_t.
  *
  * Parameter:
- * _fsuffix  - It is the suffix of the generated list interface functions, e.g. "init##_fsuffix".
- * object_t  - The type of object which can be stored and retrieved from a list.
- *             The object must contain a field of type <dlist_node_t>.
+ * _fsuffix  - The suffix name of all generated tree interface functions, e.g. "init##_fsuffix".
+ * object_t  - The type of object which can be stored and retrieved from this tree.
+ *             The object must contain a field of type <splaytree_node_t>.
  * key_t     - The type of key the objects are sorted by.
  * nodename  - The access path of the field <splaytree_node_t> in type object_t.
  * */

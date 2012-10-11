@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.May.07  09:05:55
+GenerationDate  := 2012.Oct.11  07:30:12
 GeneratedBy     := je-so
 
 ## Debug
@@ -88,6 +88,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!textresourcev2_compiler.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
@@ -113,6 +114,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!textresourcev2_compiler.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
@@ -169,6 +171,9 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o: C-kern/ds/typeadapt/typeadapt_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
@@ -238,6 +243,9 @@ $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystac
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o: C-kern/ds/typeadapt/typeadapt_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c

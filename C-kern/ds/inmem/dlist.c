@@ -50,31 +50,23 @@ int free_dlist(dlist_t *list, struct typeadapt_member_t * nodeadp)
 
       list->last = 0 ;
 
-      if (nodeadp && nodeadp->typeadp->lifetime.delete_object) {
+      const bool isDelete = (nodeadp && islifetimedelete_typeadapt(nodeadp->typeadp)) ;
 
-         err = 0 ;
+      err = 0 ;
 
-         do {
-            dlist_node_t * next = node->next ;
-            node->prev = 0 ;
-            node->next = 0 ;
+      do {
+         dlist_node_t * next = node->next ;
+         node->prev = 0 ;
+         node->next = 0 ;
+         if (isDelete) {
             typeadapt_object_t * delobj = memberasobject_typeadapttypeinfo(nodeadp->typeinfo, node) ;
             int err2 = calldelete_typeadapt(nodeadp->typeadp, &delobj) ;
             if (err2) err = err2 ;
-            node = next ;
-         } while (node) ;
+         }
+         node = next ;
+      } while (node) ;
 
-         if (err) goto ONABORT ;
-
-      } else {
-
-         do {
-            dlist_node_t * next = node->next ;
-            node->prev = 0 ;
-            node->next = 0 ;
-            node = next ;
-         } while (node) ;
-      }
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
@@ -306,16 +298,21 @@ static int test_initfree(void)
    testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), 0) ;
    dlist_t              list = dlist_INIT ;
+   dlist_node_t         node = dlist_node_INIT ;
    testnode_t           nodes[1000] ;
 
    memset(nodes, 0, sizeof(nodes)) ;
 
-   // TEST static init
+   // TEST dlist_node_INIT
+   TEST(0 == node.next) ;
+   TEST(0 == node.prev) ;
+
+   // TEST dlist_INIT
    TEST(0 == list.last) ;
 
    // TEST init_dlist, double free_dlist
    list.last = (void*)1 ;
-   TEST(0 == init_dlist(&list)) ;
+   init_dlist(&list) ;
    TEST(0 == list.last) ;
    TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
    TEST(0 == free_dlist(&list, &nodeadapt)) ;
@@ -327,7 +324,7 @@ static int test_initfree(void)
    nodes[0].is_freed = 0 ;
 
    // TEST free_dlist: no delete called with 0 parameter
-   TEST(0 == init_dlist(&list)) ;
+   init_dlist(&list) ;
    TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
    TEST(0 == free_dlist(&list, 0)) ;
    TEST(0 == nodes[0].is_freed) ;
@@ -335,7 +332,7 @@ static int test_initfree(void)
    // TEST free_dlist: no delete called if typeadapt_t.lifetime.delete_object set to 0
    testadapt_t  old_typeadapt = typeadapt ;
    typeadapt.lifetime.delete_object = 0 ;
-   TEST(0 == init_dlist(&list)) ;
+   init_dlist(&list) ;
    TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
    TEST(0 == free_dlist(&list, &nodeadapt)) ;
    TEST(0 == nodes[0].is_freed) ;
@@ -698,7 +695,7 @@ static int test_insertremove(void)
    }
 
    // TEST insertafter_dlist
-   TEST(0 == init_dlist(&list)) ;
+   init_dlist(&list) ;
    TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
    for(unsigned i = 2; i < nrelementsof(nodes); i+=2) {
       TEST(last_dlist(&list) == &nodes[i-2].node) ;
@@ -769,7 +766,7 @@ static int test_insertremove(void)
    }
 
    // TEST removefirst_dlist
-   TEST(0 == init_dlist(&list)) ;
+   init_dlist(&list) ;
    typeadapt.freenode_count = 0 ;
    for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(0 == insertlast_dlist(&list, &nodes[i].node)) ;
@@ -978,7 +975,6 @@ ONABORT:
 }
 
 dlist_IMPLEMENT(_glist1, genericnode_t, node1)
-
 dlist_IMPLEMENT(_glist2, genericnode_t, node2)
 
 static int test_generic(void)
@@ -992,6 +988,12 @@ static int test_generic(void)
    genericnode_t        * removed_node ;
 
    memset(nodes, 0, sizeof(nodes)) ;
+
+   // TEST asgeneric_dlist
+   struct {
+      dlist_node_t * last ;
+   }  xlist ;
+   TEST((dlist_t*)&xlist == asgeneric_dlist(&xlist)) ;
 
    // TEST empty list
    TEST(0 == first_glist1(&list1)) ;
@@ -1016,8 +1018,8 @@ static int test_generic(void)
    // TEST single element
    list1.last = (void*) 1 ;
    list2.last = (void*) 1 ;
-   TEST(0 == init_glist1(&list1)) ;
-   TEST(0 == init_glist2(&list2)) ;
+   init_glist1(&list1) ;
+   init_glist2(&list2) ;
    TEST(0 == list1.last) ;
    TEST(0 == list2.last) ;
    TEST(0 == memcmp(&nodes[0], &nodes[1], sizeof(nodes[0]))) ;
@@ -1163,12 +1165,12 @@ static int test_generic(void)
       }
       TEST(i == 0) ;
       foreachReverse (_glist2, &list2, node) {
-         TEST(&nodes[i?i-1:nrelementsof(nodes)-1] == next_glist1(node)) ;
+         TEST(&nodes[i?i-1:nrelementsof(nodes)-1] == next_glist2(node)) ;
          TEST(node == &nodes[i++]) ;
       }
       TEST(i == nrelementsof(nodes)) ;
       foreach (_glist2, &list2, node) {
-         TEST(&nodes[i%nrelementsof(nodes)] == prev_glist1(node)) ;
+         TEST(&nodes[i%nrelementsof(nodes)] == prev_glist2(node)) ;
          TEST(node == &nodes[--i]) ;
       }
       TEST(i == 0) ;

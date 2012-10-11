@@ -24,17 +24,21 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/platform/task/exoscheduler.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/platform/task/exoscheduler.h"
 #include "C-kern/api/platform/task/exothread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
-/* functions: exothread_list
- * All <slist_t> functions are adapted to subtype <exothread_list_t>.
- * The macro <slist_IMPLEMENT> does this for us. */
-slist_IMPLEMENT(_exothreadlist, exothread_list_t, next)
+// sectin: exoscheduler_t
+
+/* define: slist_IMPLEMENT_exothreadlist
+ * Generate list managing <exothread_t> -- see <slist_IMPLEMENT>. */
+slist_IMPLEMENT(_exothreadlist, exothread_t, next)
+
+// group: lifetime
 
 int init_exoscheduler(/*out*/exoscheduler_t * xsched)
 {
@@ -49,9 +53,9 @@ int free_exoscheduler(exoscheduler_t * xsched)
 {
    int err ;
 
-   // no free function is required at this time (cause memory is managed by user having registered any xthread)
+   // no free function is required at this time (cause memory is managed by user having registered xthreads)
 
-   err = free_exothreadlist(&xsched->runlist, 0) ;
+   err = free_exothreadlist(asgeneric_slist(&xsched->runlist), 0) ;
    xsched->runlist_size = 0 ;
 
    if (err) goto ONABORT ;
@@ -62,11 +66,13 @@ ONABORT:
    return err ;
 }
 
+// group: change
+
 int register_exoscheduler(exoscheduler_t * xsched, exothread_t * xthread)
 {
    int err ;
 
-   err = insertlast_exothreadlist(&xsched->runlist, xthread) ;
+   err = insertlast_exothreadlist(asgeneric_slist(&xsched->runlist), xthread) ;
    if (err) goto ONABORT ;
    ++ xsched->runlist_size ;
 
@@ -76,11 +82,13 @@ ONABORT:
    return err ;
 }
 
+// group: execute
+
 int run_exoscheduler(exoscheduler_t * xsched)
 {
    int err = 0 ;
-   exothread_t * prev     = last_exothreadlist(&xsched->runlist) ;
-   exothread_t * xthread  = first_exothreadlist(&xsched->runlist) ;
+   exothread_t * prev     = last_exothreadlist(asgeneric_slist(&xsched->runlist)) ;
+   exothread_t * xthread  = first_exothreadlist(asgeneric_slist(&xsched->runlist)) ;
    bool          isfinish = false ;
 
    assert(xthread || 0 == xsched->runlist_size) ;
@@ -104,7 +112,7 @@ int run_exoscheduler(exoscheduler_t * xsched)
 
          int err2 ;
          exothread_t * removed ;
-         err2 = removeafter_exothreadlist(&xsched->runlist, prev, &removed) ;
+         err2 = removeafter_exothreadlist(asgeneric_slist(&xsched->runlist), prev, &removed) ;
          if (err2) {
             err = err2 ;
          } else {
@@ -113,7 +121,7 @@ int run_exoscheduler(exoscheduler_t * xsched)
          assert(0 == err2 && "removeafter_exothread_list should never return an error") ;
       } else {
          prev    = xthread ;
-         xthread = next_exothreadlist( xthread ) ;
+         xthread = next_exothreadlist(xthread) ;
       }
    }
 
@@ -159,8 +167,8 @@ static int test_initfree(void)
    for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
       TEST(0 == init_exothread(&xthreads[i], &simplefinish_xthread)) ;
       TEST(0 == register_exoscheduler(&xsched, &xthreads[i])) ;
-      TEST(&xthreads[0] == next_exothreadlist(xsched.runlist.last)) ;
-      TEST(&xthreads[i] == xsched.runlist.last) ;
+      TEST(&xthreads[0] == next_exothreadlist(last_exothreadlist(asgeneric_slist(&xsched.runlist)))) ;
+      TEST(&xthreads[i] == last_exothreadlist(asgeneric_slist(&xsched.runlist))) ;
       TEST(i + 1 == xsched.runlist_size) ;
    }
    TEST(0 == free_exoscheduler(&xsched)) ;

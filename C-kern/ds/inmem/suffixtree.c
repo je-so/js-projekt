@@ -25,10 +25,10 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/ds/inmem/suffixtree.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/inmem/slist.h"
-#include "C-kern/api/ds/typeadapter.h"
+#include "C-kern/api/ds/inmem/suffixtree.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/cstring.h"
@@ -68,13 +68,13 @@ typedef struct suffixtree_pos_t           suffixtree_pos_t ;
 struct suffixtree_iterator_t {
    /* variable: next
     * Used in <suffixtreeiterator_list_t> to connect all contained <suffixtree_iterator_t>. */
-   suffixtree_iterator_t   * next ;
+   slist_node_t         * next ;
    /* variable: prefixlen
     * Sum of length of strings on the path from root up to <next_child>. */
-   size_t                  prefixlen ;
+   size_t               prefixlen ;
    /* variable: next_child
     * Pointer to <suffixtree_node_t> which has to be visited next on this level of hierachy. */
-   suffixtree_node_t       * next_child ;
+   suffixtree_node_t    * next_child ;
 } ;
 
 // group: lifetime
@@ -110,30 +110,32 @@ static int delete_suffixtreeiterator(suffixtree_iterator_t ** iter)
 }
 
 
+typedef struct suffixtreeiterator_adapter_t  suffixtreeiterator_adapter_t ;
+
 /* struct: suffixtreeiterator_adapter_it
- * Defines type adapter to manage memory of <suffixtree_iterator_t>.
- * Used in <suffixtreeiterator_list_t>. */
-typeadapter_it_DECLARE(suffixtreeiterator_adapter_it, void, suffixtree_iterator_t)
+ * Defines <typeadapt_t> to manage memory of <suffixtree_iterator_t>.
+ * Used in <slist_t> (see <slist_IMPLEMENT_iterlist>) storing <suffixtree_iterator_t>. */
+struct suffixtreeiterator_adapter_t {
+   typeadapt_EMBED(suffixtreeiterator_adapter_t, suffixtree_iterator_t, void) ;
+} ;
 
 /* function: freenode_suffixtreeiteratoradapter
  * Frees memory of object type <suffixtree_iterator_t>.
  * Used to adapt <suffixtreeiterator_list_t> to object type <suffixtree_iterator_t>. */
-static int freenode_suffixtreeiteratoradapter(void * dummy, suffixtree_iterator_t * iter)
+static int freenode_suffixtreeiteratoradapter(suffixtreeiterator_adapter_t * typeadp, suffixtree_iterator_t ** iter)
 {
-   (void) dummy ;
-   return delete_suffixtreeiterator(&iter) ;
+   (void) typeadp ;
+   return delete_suffixtreeiterator(iter) ;
 }
 
 
-/* struct: suffixtreeiterator_list_t
- * List of <suffixtree_iterator_t> nodes. */
-slist_DECLARE(suffixtreeiterator_list_t, suffixtree_iterator_t)
-
-slist_IMPLEMENT(_iterlist, suffixtreeiterator_list_t, next)
+/* define: slist_IMPLEMENT_iterlist
+ * Generates list managing <suffixtree_iterator_t> -- see <slist_IMPLEMENT>. */
+slist_IMPLEMENT(_iterlist, suffixtree_iterator_t, next)
 
 /* function: pushnew_iterlist
  * Creates new <suffixtree_iterator_t> and pushes onto <suffixtreeiterator_list_t>. */
-static suffixtree_iterator_t * pushnew_iterlist(suffixtreeiterator_list_t * stack)
+static suffixtree_iterator_t * pushnew_iterlist(slist_t * stack)
 {
    int err ;
    suffixtree_iterator_t * iter ;
@@ -1051,13 +1053,12 @@ int matchall_suffixtree(
    /*out*/const uint8_t * matchedpos[maxmatchcount])
 {
    int err ;
-   suffixtreeiterator_adapter_it typeadt_ft = typeadapter_it_INIT(0, &freenode_suffixtreeiteratoradapter) ;
-   suffixtreeiterator_list_t  posstack = slist_INIT ;
-   typeadapter_iot            typeadt  = typeadapter_iot_INIT((typeadapter_t*)tree, &typeadt_ft.generic) ;
-
+   suffixtreeiterator_adapter_t typeadapt = typeadapt_INIT_LIFETIME(0, &freenode_suffixtreeiteratoradapter) ;
+   typeadapt_member_t           nodeadapt = typeadapt_member_INIT((typeadapt_t*)&typeadapt, offsetof(suffixtree_iterator_t, next)) ;
    suffixtree_node_t * leaf = 0 ;
    suffixtree_node_t * node = 0 ;
-   size_t prefixlen ;
+   slist_t  posstack = slist_INIT ;
+   size_t   prefixlen ;
 
    {  /* find position in tree */
       suffixtree_pos_t pos ;
@@ -1131,12 +1132,12 @@ int matchall_suffixtree(
    }
 
    *matched_count = leaf_count ;
-   err = free_iterlist(&posstack, &typeadt) ;
+   err = free_iterlist(&posstack, &nodeadapt) ;
    if (err) goto ONABORT ;
 
    return 0 ;
 ONABORT:
-   (void) free_iterlist(&posstack, &typeadt) ;
+   (void) free_iterlist(&posstack, &nodeadapt) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -1453,7 +1454,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1247,1286,1380,1407,2274,2569,2682,2712,3132,3214,3335,3408,3537,3608,3722,3927,4054,4158,4243,4330,4478,4552,4683,4761,4855,44225,44503,60060,60184,60297,60352} ;
+   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4311,4396,4509,4674,4753,4829,4907,4983,43161,44364,44642,60203,60327,60440,60495} ;
    const uint8_t  * matched_pos[1+nrelementsof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

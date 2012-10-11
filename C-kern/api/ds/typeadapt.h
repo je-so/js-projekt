@@ -125,7 +125,7 @@ struct typeadapt_t {
 
 // group: query
 
-/* function: islifetimedelete_typeadapt
+/* function: isequal_typeadapt
  * Returns true if both <typeadapt_t> are equal. */
 bool isequal_typeadapt(const typeadapt_t * ltypeadp, const typeadapt_t * rtypeadp) ;
 

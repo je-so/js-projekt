@@ -39,7 +39,7 @@ struct slist_node_t {
    /* variable: next
     * Points to next node in the list.
     * If this node is currently not part of any list this value is set to NULL. */
-   struct generic_object_t  * next ;
+   struct slist_node_t * next ;
 } ;
 
 // group: lifetime
@@ -60,15 +60,14 @@ struct slist_node_t {
  * Allows to embed members of <slist_node_t> into another structure.
  *
  * Parameter:
- * objecttype_t  - The type of object the list node should link.
  * name_nextptr  - The name of the embedded <slist_node_t.next> member.
  *
  * Your object must inherit or embed <slist_node_t> to be manageable by <slist_t>.
  * With macro <slist_node_EMBED> you can do
  * > struct object_t {
  * >    ... ;
- * >    // declares: struct object_t * next ;
- * >    slist_node_EMBED(struct object_t, next)
+ * >    // declares: slist_node_t * next ;
+ * >    slist_node_EMBED(next) ;
  * > }
  * >
  * > // instead of
@@ -76,28 +75,8 @@ struct slist_node_t {
  * >    ... ;
  * >    slist_node_t listnode ;
  * > } */
-#define slist_node_EMBED(objecttype_t, name_nextptr) \
-   objecttype_t * name_nextptr ;
-
-
-// struct: generic_object_t
-
-// group: query
-
-/* function: asslistnode_genericobject
- * Casts object pointer into pointer to <slist_node_t>. */
-slist_node_t * asslistnode_genericobject(struct generic_object_t * object, size_t offset_node) ;
-
-
-// section: inline implementation
-
-/* define: asslistnode_genericobject
- * Implements <generic_object_t.asslistnode_genericobject>. */
-#define asslistnode_genericobject(node, offset_node)              \
-      (  __extension__ ({                                         \
-            struct generic_object_t * _node1 = (node) ;           \
-            (slist_node_t*) ((offset_node)+(uint8_t*)(_node1)) ;  \
-         }))
+#define slist_node_EMBED(name_nextptr) \
+   slist_node_t * name_nextptr
 
 
 #endif

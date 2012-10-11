@@ -134,12 +134,13 @@ struct dlist_t {
 
 /* function: init_dlist
  * Initializes a <dlist_t> object. Same as assigning <dlist_INIT>. */
-int init_dlist(/*out*/dlist_t *list) ;
+void init_dlist(/*out*/dlist_t *list) ;
 
 /* function: free_dlist
  * Frees all resources.
  * For every removed node the typeadapter callback <typeadapt_lifetime_it.delete_object> is called.
- * See <typeadapt_member_t> how to construct typeadapter for node member. */
+ * See <typeadapt_member_t> how to construct typeadapter for node member.
+ * Set nodeadp to 0 if you do not want to call a free memory on every node. */
 int free_dlist(dlist_t * list, struct typeadapt_member_t * nodeadp/*0 => no free called*/) ;
 
 // group: query
@@ -171,13 +172,11 @@ struct dlist_node_t * prev_dlist(struct dlist_node_t * node) ;
 // group: foreach-support
 
 /* typedef: iteratortype_dlist
- * Declaration to associate <dlist_iterator_t> with <dlist_t>.
- * The association is done with a typedef which looks like a function. */
+ * Declaration to associate <dlist_iterator_t> with <dlist_t>. */
 typedef dlist_iterator_t      iteratortype_dlist ;
 
 /* typedef: iteratedtype_dlist
- * Function declaration to associate <dlist_node_t> with <dlist_t>.
- * The association is done with a typedef which looks like a function. */
+ * Declaration to associate <dlist_node_t> with <dlist_t>. */
 typedef struct dlist_node_t   iteratedtype_dlist ;
 
 // group: change
@@ -228,24 +227,40 @@ int remove_dlist(dlist_t * list, struct dlist_node_t * node) ;
 
 /* function: removeall_dlist
  * Removes all nodes from the list.
- * For every removed node <typeadapt_lifetime_it.delete_object> is called. */
+ * For every removed node <typeadapt_lifetime_it.delete_object> is called.
+ * Set nodeadp to 0 if you do not want to call a free memory on every node. */
 int removeall_dlist(dlist_t * list, struct typeadapt_member_t * nodeadp/*0 => no free called*/) ;
 
 // group: generic
+
+/* function: asgeneric_dlist
+ * Casts list into <dlist_t> if that is possible. */
+dlist_t * asgeneric_dlist(void * list) ;
 
 /* define: dlist_IMPLEMENT
  * Generates interface of double linked list storing elements of type object_t.
  *
  * Parameter:
- * object_t  - The type of object which can be stored and retrieved from a list.
+ * _fsuffix  - The suffix of the generated list interface functions, e.g. "init##_fsuffix".
+ * object_t  - The type of object which can be stored and retrieved from this list.
  *             The object must contain a field of type <dlist_node_t>.
- * _fsuffix  - It is the suffix of the generated list interface functions, e.g. "init##_fsuffix".
  * nodename  - The access path of the field <dlist_node_t> in type object_t.
  * */
 void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 
 // section: inline implementation
+
+/* define: asgeneric_dlist
+ * Implements <dlist_t.asgeneric_dlist>. */
+#define asgeneric_dlist(list)                                                    \
+   ( __extension__ ({                                                            \
+      static_assert(offsetof(typeof(*(list)), last) == offsetof(dlist_t, last),  \
+         "ensure same structure") ;                                              \
+      static_assert((typeof((list)->last))0 == (dlist_node_t*)0,                 \
+         "ensure same type") ;                                                   \
+      (dlist_t*) (list) ;                                                        \
+   }))
 
 /* define: first_dlist
  * Implements <dlist_t.first_dlist>. */
@@ -261,7 +276,7 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 /* define: init_dlist
  * Implements <dlist_t.init_dlist>. */
-#define init_dlist(list)                     (((list)->last = 0), 0)
+#define init_dlist(list)                     ((void)(*(list) = (dlist_t)dlist_INIT))
 
 /* define: initfirst_dlistiterator
  * Implements <dlist_iterator_t.initfirst_dlistiterator>. */
@@ -329,7 +344,7 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
    static inline int  free##_fsuffix##iterator(dlist_iterator_t * iter) __attribute__ ((always_inline)) ; \
    static inline bool next##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline bool prev##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline int  init##_fsuffix(dlist_t * list) __attribute__ ((always_inline)) ; \
+   static inline void init##_fsuffix(dlist_t * list) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline int  isempty##_fsuffix(const dlist_t * list) __attribute__ ((always_inline)) ; \
    static inline object_t * first##_fsuffix(const dlist_t * list) __attribute__ ((always_inline)) ;  \
@@ -344,18 +359,18 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
    static inline int removelast##_fsuffix(dlist_t * list, object_t ** removed_node) __attribute__ ((always_inline)) ;   \
    static inline int remove##_fsuffix(dlist_t * list, object_t * node) __attribute__ ((always_inline)) ; \
    static inline int removeall##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline struct dlist_node_t * asnode##_fsuffix(object_t * object) { \
+   static inline dlist_node_t * asnode##_fsuffix(object_t * object) { \
       static_assert(&((object_t*)0)->nodename == (dlist_node_t*)offsetof(object_t, nodename), "correct type") ; \
-      return (struct dlist_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
+      return (dlist_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
    } \
-   static inline object_t * asobject##_fsuffix(struct dlist_node_t * node) { \
+   static inline object_t * asobject##_fsuffix(dlist_node_t * node) { \
       return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
    } \
-   static inline object_t * asobjectnull##_fsuffix(struct dlist_node_t * node) { \
+   static inline object_t * asobjectnull##_fsuffix(dlist_node_t * node) { \
       return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
    } \
-   static inline int init##_fsuffix(dlist_t * list) { \
-      return init_dlist(list) ; \
+   static inline void init##_fsuffix(dlist_t * list) { \
+      init_dlist(list) ; \
    } \
    static inline int free##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) { \
       return free_dlist(list, nodeadp) ; \
@@ -388,13 +403,13 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
       return insertbefore_dlist(list, asnode##_fsuffix(next_node), asnode##_fsuffix(new_node)) ; \
    } \
    static inline int removefirst##_fsuffix(dlist_t * list, object_t ** removed_node) { \
-      int err = removefirst_dlist(list, (struct dlist_node_t**)removed_node) ; \
-      if (!err) *removed_node = asobject##_fsuffix(*(struct dlist_node_t**)removed_node) ; \
+      int err = removefirst_dlist(list, (dlist_node_t**)removed_node) ; \
+      if (!err) *removed_node = asobject##_fsuffix(*(dlist_node_t**)removed_node) ; \
       return err ; \
    } \
    static inline int removelast##_fsuffix(dlist_t * list, object_t ** removed_node) { \
-      int err = removelast_dlist(list, (struct dlist_node_t**)removed_node) ; \
-      if (!err) *removed_node = asobject##_fsuffix(*(struct dlist_node_t**)removed_node) ; \
+      int err = removelast_dlist(list, (dlist_node_t**)removed_node) ; \
+      if (!err) *removed_node = asobject##_fsuffix(*(dlist_node_t**)removed_node) ; \
       return err ; \
    } \
    static inline int remove##_fsuffix(dlist_t * list, object_t * node) { \
@@ -413,13 +428,13 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
       return free_dlistiterator(iter) ; \
    } \
    static inline bool next##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list, object_t ** node) { \
-      bool isNext = next_dlistiterator(iter, list, (struct dlist_node_t**)node) ; \
-      if (isNext) *node = asobject##_fsuffix(*(struct dlist_node_t**)node) ; \
+      bool isNext = next_dlistiterator(iter, list, (dlist_node_t**)node) ; \
+      if (isNext) *node = asobject##_fsuffix(*(dlist_node_t**)node) ; \
       return isNext ; \
    } \
    static inline bool prev##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list, object_t ** node) { \
-      bool isNext = prev_dlistiterator(iter, list, (struct dlist_node_t**)node) ; \
-      if (isNext) *node = asobject##_fsuffix(*(struct dlist_node_t**)node) ; \
+      bool isNext = prev_dlistiterator(iter, list, (dlist_node_t**)node) ; \
+      if (isNext) *node = asobject##_fsuffix(*(dlist_node_t**)node) ; \
       return isNext ; \
    }
 

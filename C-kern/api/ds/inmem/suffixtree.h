@@ -94,7 +94,7 @@ int init_suffixtree(/*out*/suffixtree_t * tree) ;
 /* function: free_suffixtree
  * Frees all memory of the allocated nodes.
  * The input string can also be freed if it is no longer needed.
- * TODO: Implement free memory group - allow to mark the nodes as aprt of a group ! */
+ * TODO: Implement free memory group - allow to mark the nodes as part of a group ! */
 int free_suffixtree(suffixtree_t * tree) ;
 
 // group: query

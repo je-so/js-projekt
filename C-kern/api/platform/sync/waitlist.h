@@ -32,6 +32,9 @@
  * Exports <waitlist_t>. */
 typedef struct waitlist_t              waitlist_t ;
 
+// forward
+struct slist_node_t ;
+
 
 // section: Functions
 
@@ -40,7 +43,7 @@ typedef struct waitlist_t              waitlist_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_sync_waitlist
  * Tests waitlist functionality. */
-extern int unittest_platform_sync_waitlist(void) ;
+int unittest_platform_sync_waitlist(void) ;
 #endif
 
 
@@ -54,13 +57,13 @@ extern int unittest_platform_sync_waitlist(void) ;
 struct waitlist_t {
    /* variable: last
     * The root pointer of the list of waiting threads. */
-   struct thread_t   * last ;
+   struct slist_node_t  * last ;
    /* variable: nr_waiting
     * The number of threads waiting. */
-   size_t            nr_waiting ;
+   size_t               nr_waiting ;
    /* variable: lock
     * Mutex to protect this object from concurrent access. */
-   sys_mutex_t       lock ;
+   sys_mutex_t          lock ;
 } ;
 
 // group: lifetime
@@ -71,13 +74,13 @@ struct waitlist_t {
 
 /* function: init_waitlist
  * Inits a waiting list. The waiting is protexted by a mutex. */
-extern int init_waitlist(/*out*/waitlist_t * wlist) ;
+int init_waitlist(/*out*/waitlist_t * wlist) ;
 
 /* function: free_waitlist
  * Wakes up all waiting threads and frees all resources.
  * Make sure that no more other thread is trying to call <wait_waitlist>
  * if <free_waitlist> is processing or was already called. */
-extern int free_waitlist(waitlist_t * wlist) ;
+int free_waitlist(waitlist_t * wlist) ;
 
 // group: query
 
@@ -88,7 +91,7 @@ extern int free_waitlist(waitlist_t * wlist) ;
  * But in case more than one thread calls <trywakeup_waitlist>
  * you can not be sure that <trywakeup_waitlist> does not return EAGAIN
  * even if <isempty_waitlist> returns false. */
-extern bool isempty_waitlist(waitlist_t * wlist) ;
+bool isempty_waitlist(waitlist_t * wlist) ;
 
 /* function: nrwaiting_waitlist
  * Returns the number of threads waiting on this list.
@@ -97,7 +100,7 @@ extern bool isempty_waitlist(waitlist_t * wlist) ;
  * But in case more than one thread calls <trywakeup_waitlist>
  * you can not be sure that <trywakeup_waitlist> does not return EAGAIN
  * even if <nrwaiting_waitlist> returns a value greater 0. */
-extern size_t nrwaiting_waitlist(waitlist_t * wlist) ;
+size_t nrwaiting_waitlist(waitlist_t * wlist) ;
 
 // group: change
 
@@ -106,7 +109,7 @@ extern size_t nrwaiting_waitlist(waitlist_t * wlist) ;
  * The waiting threads are woken up in FIFO order.
  * The calling thread enters itself as last in the waiting list and then it suspends
  * itself. See also <suspend_thread>. */
-extern int wait_waitlist(waitlist_t * wlist) ;
+int wait_waitlist(waitlist_t * wlist) ;
 
 /* function: trywakeup_waitlist
  * Tries to wake up the first waiting thread.
@@ -114,7 +117,7 @@ extern int wait_waitlist(waitlist_t * wlist) ;
  * If the list is not empty the argument <thread_t.task> of the first waiting thread is set
  * to *task_main* and *start_arg*. Th first thread is removed from the list.
  * It is then resumed. See also <resume_thread>. */
-extern int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), void * start_arg) ;
+int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), void * start_arg) ;
 
 
 #endif

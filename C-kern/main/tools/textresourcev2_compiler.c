@@ -24,6 +24,8 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/ds/typeadapter.h"
+#include "C-kern/api/ds/typeadapt.h"
+#include "C-kern/api/ds/typeadapt/typeadapt_impl.h"
 #include "C-kern/api/ds/inmem/arraystf.h"
 #include "C-kern/api/ds/inmem/slist.h"
 #include "C-kern/api/ds/inmem/node/arraystf_node.h"
@@ -59,14 +61,6 @@ typedef struct textresource_textatom_t       textresource_textatom_t ;
 typedef struct textresource_paramtype_t      textresource_paramtype_t ;
 
 typedef struct textresource_language_t       textresource_language_t ;
-
-typedef struct textresource_conditionlist_t  textresource_conditionlist_t ;
-
-typedef struct textresource_langreflist_t    textresource_langreflist_t ;
-
-typedef struct textresource_parameterlist_t  textresource_parameterlist_t ;
-
-typedef struct textresource_textatomlist_t   textresource_textatomlist_t ;
 
 typedef struct xmlattribute_t                xmlattribute_t ;
 
@@ -185,7 +179,7 @@ static typeadapter_iot      g_textreslang_adapter_iot = typeadapter_iot_INIT_DEF
 struct textresource_parameter_t {
    arraystf_node_t            name ;
    textresource_paramtype_t   * type ;
-   textresource_parameter_t   * next ;
+   slist_node_EMBED           (next) ;
    typemodifier_e             typemod ;
 } ;
 
@@ -198,20 +192,14 @@ static typeadapter_iot      g_parameter_adapter_iot = typeadapter_iot_INIT_DEFAU
 #define textresource_parameter_INIT_FREEABLE    { arraystf_node_INIT(0,0), 0, 0, typemodifier_PLAIN }
 
 
-/* struct: textresource_parameterlist_t
- * List of <textresource_parameter_t>. */
-struct textresource_parameterlist_t {
-   textresource_parameter_t   * last ;
-} ;
-
-slist_IMPLEMENT(_paramlist, textresource_parameterlist_t, next)
+slist_IMPLEMENT(_paramlist, textresource_parameter_t, next)
 
 
 /* struct: textresource_textatom_t
  * An atomic text element string content referenced by <textresource_condition_t>.
  * It describes either a parameter reference and its formatting or a simple text string. */
 struct textresource_textatom_t {
-   textresource_textatom_t    * next ;
+   slist_node_EMBED           (next) ;
    textresource_textatom_e    type ;
    union {
       conststring_t           string ;
@@ -222,9 +210,8 @@ struct textresource_textatom_t {
    } ;
 } ;
 
-static typeadapter_t        g_textatom_adapter     = typeadapter_INIT(sizeof(textresource_textatom_t)) ;
-
-static typeadapter_iot      g_textatom_adapter_iot = typeadapter_iot_INIT_DEFAULT(&g_textatom_adapter) ;
+static typeadapt_impl_t    g_textatom_adapter     = typeadapt_impl_INIT(sizeof(textresource_textatom_t)) ;
+static typeadapt_member_t  g_textatom_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_textatom_adapter, offsetof(textresource_textatom_t, next)) ;
 
 // group: lifetime
 
@@ -237,13 +224,7 @@ static typeadapter_iot      g_textatom_adapter_iot = typeadapter_iot_INIT_DEFAUL
 #define textresource_textatom_INIT_PARAM(parameter)               { 0, textresource_textatom_PARAMETER, { .param = { parameter, 0 } } }
 
 
-/* struct: textresource_textatomlist_t
- * */
-struct textresource_textatomlist_t {
-   textresource_textatom_t * last ;
-} ;
-
-slist_IMPLEMENT(_textatomlist, textresource_textatomlist_t, next)
+slist_IMPLEMENT(_textatomlist, textresource_textatom_t, next)
 
 
 /* struct: textresource_condition_t
@@ -252,10 +233,10 @@ slist_IMPLEMENT(_textatomlist, textresource_textatomlist_t, next)
  * If <condition> contains "else" it is the last entry of a switch
  * > ((condition1): "str1" (cond2): ... else: "strX")
  * Every switch ends in an else. If the user does not supply one an artifical
- * <textresource_condition_t> is created with <condition> set to "else" and without an empty <textresource_textatomlist_t>. */
+ * <textresource_condition_t> is created with <condition> set to "else" and without an empty atomlist. */
 struct textresource_condition_t {
-   textresource_textatomlist_t   atomlist ;
-   textresource_condition_t      * next ;
+   slist_t                    atomlist ;
+   slist_node_t               * next ;
    /* variable: condition
     * The C99-condition which is checked in the generated source code.
     * If the condition is true the text is used and all other conditional texts until after
@@ -264,27 +245,30 @@ struct textresource_condition_t {
    conststring_t              condition ;
 } ;
 
-static int copyobj_textresourcecondition(typeadapter_t * typeadt, /*out*/textresource_condition_t ** condcopy, textresource_condition_t * cond) ;
-static int freeobj_textresourcecondition(typeadapter_t * typeadt, textresource_condition_t * cond) ;
+typedef struct textresource_condition_adapt_t   textresource_condition_adapt_t ;
 
-typeadapter_it_DECLARE(textresource_condition_it, typeadapter_t, textresource_condition_t)
+struct textresource_condition_adapt_t {
+   typeadapt_EMBED(textresource_condition_adapt_t, textresource_condition_t, void) ;
+} ;
 
-typeadapter_iot_DECLARE(textresource_condition_iot, typeadapter_t, textresource_condition_it)
+static int copyobj_textresourcecondition(textresource_condition_adapt_t * typeadp, /*out*/textresource_condition_t ** condcopy, const textresource_condition_t * cond) ;
+static int freeobj_textresourcecondition(textresource_condition_adapt_t * typeadp, textresource_condition_t ** cond) ;
 
-static textresource_condition_it   g_condition_adapter_it   = typeadapter_it_INIT(&copyobj_textresourcecondition, &freeobj_textresourcecondition) ;
+static textresource_condition_adapt_t  g_condition_adapter     = typeadapt_INIT_LIFETIME(&copyobj_textresourcecondition, &freeobj_textresourcecondition) ;
+static typeadapt_member_t              g_condition_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_condition_adapter, offsetof(textresource_condition_t, next)) ;
 
-static textresource_condition_iot  g_condition_adapter_iot  = typeadapter_iot_INIT(0, &g_condition_adapter_it) ;
+slist_IMPLEMENT(_conditionlist, textresource_condition_t, next)
 
-// grozup: lifetime
+// group: lifetime
 
 #define textresource_condition_INIT(condition)     { slist_INIT, 0, condition }
 
-static int copyobj_textresourcecondition(typeadapter_t * typeadt, /*out*/textresource_condition_t ** condcopy, textresource_condition_t * cond)
+static int copyobj_textresourcecondition(textresource_condition_adapt_t * typeadp, /*out*/textresource_condition_t ** condcopy, const textresource_condition_t * cond)
 {
    int err ;
    memblock_t  mblock = memblock_INIT_FREEABLE ;
 
-   (void) typeadt ;
+   (void) typeadp ;
 
    err = MM_RESIZE(sizeof(textresource_condition_t), &mblock) ;
    if (err) return err ;
@@ -297,20 +281,26 @@ static int copyobj_textresourcecondition(typeadapter_t * typeadt, /*out*/textres
    return 0 ;
 }
 
-static int freeobj_textresourcecondition(typeadapter_t * typeadt, textresource_condition_t * cond)
+static int freeobj_textresourcecondition(textresource_condition_adapt_t * typeadp, textresource_condition_t ** cond)
 {
    int err ;
    int err2 ;
-   memblock_t  mblock = memblock_INIT(sizeof(textresource_condition_t), (uint8_t*)cond) ;
 
-   (void) typeadt ;
+   (void) typeadp ;
 
-   err = free_textatomlist(&cond->atomlist, &g_textatom_adapter_iot) ;
+   if (*cond) {
+      textresource_condition_t * delobj = *cond ;
 
-   err2 = MM_FREE(&mblock) ;
-   if (err2) err = err2 ;
+      *cond = 0 ;
 
-   if (err) goto ONABORT ;
+      err = free_textatomlist(&delobj->atomlist, &g_textatom_nodeadapter) ;
+
+      memblock_t  mblock = memblock_INIT(sizeof(textresource_condition_t), (uint8_t*)delobj) ;
+      err2 = MM_FREE(&mblock) ;
+      if (err2) err = err2 ;
+
+      if (err) goto ONABORT ;
+   }
 
    return 0 ;
 ONABORT:
@@ -325,12 +315,12 @@ static int addtextatom_textresourcecondition(textresource_condition_t * cond, te
    int err ;
    textresource_textatom_t * textatomcopy ;
 
-   err = execcopy_typeadapteriot(&g_textatom_adapter_iot, (struct generic_object_t**)&textatomcopy, (struct generic_object_t*)textatom) ;
+   err = callnewcopy_typeadapt(&g_textatom_adapter, (struct typeadapt_object_t**)&textatomcopy, (struct typeadapt_object_t*)textatom) ;
    if (err) goto ONABORT ;
 
    err = insertlast_textatomlist(&cond->atomlist, textatomcopy) ;
    if (err) {
-      (void) execfree_typeadapteriot(&g_textatom_adapter_iot, (struct generic_object_t*)textatomcopy) ;
+      (void) calldelete_typeadapt(&g_textatom_adapter, (struct typeadapt_object_t**)&textatomcopy) ;
       goto ONABORT ;
    }
 
@@ -340,33 +330,27 @@ ONABORT:
 }
 
 
-/* struct: textresource_conditionlist_t
- * A list of <textresource_condition_t>. */
-struct textresource_conditionlist_t {
-   textresource_condition_t  * last ;
-} ;
-
-slist_IMPLEMENT(_conditionlist, textresource_conditionlist_t, next)
-
-
 /* struct: textresource_langref_t
  * A reference to a language and container for one or more <textresource_condition_t>. */
 struct textresource_langref_t {
-   textresource_conditionlist_t  condlist ;
-   textresource_langref_t        * next ;
-   textresource_language_t       * lang ;
+   slist_t                    condlist ;
+   slist_node_t               * next ;
+   textresource_language_t    * lang ;
 } ;
 
-static int copyobj_textresourcelangref(typeadapter_t * typeadt, /*out*/textresource_langref_t ** langcopy, textresource_langref_t * lang) ;
-static int freeobj_textresourcelangref(typeadapter_t * typeadt, textresource_langref_t * lang) ;
+typedef struct textresource_langref_adapt_t     textresource_langref_adapt_t ;
 
-typeadapter_it_DECLARE(textresource_langref_it, typeadapter_t, textresource_langref_t)
+struct textresource_langref_adapt_t {
+   typeadapt_EMBED(textresource_langref_adapt_t, textresource_langref_t, void) ;
+} ;
 
-typeadapter_iot_DECLARE(textresource_langref_iot, typeadapter_t, textresource_langref_it)
+static int copyobj_textresourcelangref(textresource_langref_adapt_t * typeadp, /*out*/textresource_langref_t ** langcopy, const textresource_langref_t * lang) ;
+static int freeobj_textresourcelangref(textresource_langref_adapt_t * typeadp, textresource_langref_t ** lang) ;
 
-static textresource_langref_it   g_langref_adapter_it   = typeadapter_it_INIT(&copyobj_textresourcelangref, &freeobj_textresourcelangref) ;
+static textresource_langref_adapt_t    g_langref_adapter     = typeadapt_INIT_LIFETIME(&copyobj_textresourcelangref, &freeobj_textresourcelangref) ;
+static typeadapt_member_t              g_langref_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_langref_adapter, offsetof(textresource_langref_t,next)) ;
 
-static textresource_langref_iot  g_langref_adapter_iot  = typeadapter_iot_INIT(0, &g_langref_adapter_it) ;
+slist_IMPLEMENT(_langreflist, textresource_langref_t, next)
 
 // group: lifetime
 
@@ -374,12 +358,12 @@ static textresource_langref_iot  g_langref_adapter_iot  = typeadapter_iot_INIT(0
  * Static initializer. */
 #define textresource_langref_INIT(language)   { slist_INIT, 0, (language) }
 
-static int copyobj_textresourcelangref(typeadapter_t * typeadt, /*out*/textresource_langref_t ** langcopy, textresource_langref_t * lang)
+static int copyobj_textresourcelangref(textresource_langref_adapt_t * typeadp, /*out*/textresource_langref_t ** langcopy, const textresource_langref_t * lang)
 {
    int err ;
    memblock_t  mblock = memblock_INIT_FREEABLE ;
 
-   (void) typeadt ;
+   (void) typeadp ;
 
    err = MM_RESIZE(sizeof(textresource_langref_t), &mblock) ;
    if (err) return err ;
@@ -392,20 +376,26 @@ static int copyobj_textresourcelangref(typeadapter_t * typeadt, /*out*/textresou
    return 0 ;
 }
 
-static int freeobj_textresourcelangref(typeadapter_t * typeadt, textresource_langref_t * lang)
+static int freeobj_textresourcelangref(textresource_langref_adapt_t * typeadp, textresource_langref_t ** lang)
 {
    int err ;
    int err2 ;
-   memblock_t  mblock = memblock_INIT(sizeof(textresource_langref_t), (uint8_t*)lang) ;
 
-   (void) typeadt ;
+   (void) typeadp ;
 
-   err = free_conditionlist(&lang->condlist, &g_condition_adapter_iot.generic) ;
+   if (*lang) {
+      textresource_langref_t * delobj = *lang ;
 
-   err2 = MM_FREE(&mblock) ;
-   if (err2) err = err2 ;
+      *lang = 0 ;
 
-   if (err) goto ONABORT ;
+      err = free_conditionlist(&delobj->condlist, &g_condition_nodeadapter) ;
+
+      memblock_t  mblock = memblock_INIT(sizeof(textresource_langref_t), (uint8_t*)delobj) ;
+      err2 = MM_FREE(&mblock) ;
+      if (err2) err = err2 ;
+
+      if (err) goto ONABORT ;
+   }
 
    return 0 ;
 ONABORT:
@@ -420,12 +410,12 @@ static int addcondition_textresourcelangref(textresource_langref_t * lang, textr
    int err ;
    textresource_condition_t * conditioncopy ;
 
-   err = execcopy_typeadapteriot(&g_condition_adapter_iot, &conditioncopy, condition) ;
+   err = callnewcopy_typeadapt(&g_condition_adapter, &conditioncopy, condition) ;
    if (err) goto ONABORT ;
 
    err = insertlast_conditionlist(&lang->condlist, conditioncopy) ;
    if (err) {
-      (void) execfree_typeadapteriot(&g_condition_adapter_iot, conditioncopy) ;
+      (void) calldelete_typeadapt(&g_condition_adapter, &conditioncopy) ;
       goto ONABORT ;
    }
 
@@ -437,29 +427,19 @@ ONABORT:
 }
 
 
-/* struct: textresource_langreflist_t
- * A list of <textresource_langref_t>.
- * Used in <textresource_t>. */
-struct textresource_langreflist_t {
-   textresource_langref_t    * last ;
-} ;
-
-slist_IMPLEMENT(_langreflist, textresource_langreflist_t, next)
-
-
 /* struct: textresource_text_t
  * A single text resource description.
  * The set of all defined text resources is stored in <textresource_t>.
  *
- * A <textresource_text_t> has 0 or more <textresource_parameter_t> stored in <textresource_parameterlist_t>.
- * It contains one or more language specific text definition stored as <textresource_langref_t> in
- * <textresource_langreflist_t>. A <textresource_langref_t> contains one or more <textresource_coondition_t>
+ * A <textresource_text_t> has 0 or more <textresource_parameter_t> stored in paramlist.
+ * It contains one or more language specific text definition stored as <textresource_langref_t> in langlist.
+ * A <textresource_langref_t> contains one or more <textresource_coondition_t>
  * which defines a condition under which a string has to be used or not. */
 struct textresource_text_t {
-   arraystf_node_t               name ;
-   arraystf_t                    * params ;
-   textresource_parameterlist_t  paramlist ;
-   textresource_langreflist_t    langlist ;
+   arraystf_node_t   name ;
+   arraystf_t        * params ;
+   slist_t           paramlist ;
+   slist_t           langlist ;
 } ;
 
 arraystf_IMPLEMENT(_arrayparam, textresource_parameter_t, name.addr)
@@ -521,7 +501,7 @@ static int freeobj_textresourcetext(typeadapter_t * typeadt, textresource_text_t
    err2 = delete_arrayparam(&text->params, &g_parameter_adapter_iot) ;  // delete nodes
    if (err2) err = err2 ;
 
-   err2 = free_langreflist(&text->langlist, &g_langref_adapter_iot.generic) ;
+   err2 = free_langreflist(&text->langlist, &g_langref_nodeadapter) ;
    if (err2) err = err2 ;
 
    err2 = MM_FREE(&mblock) ;
@@ -1372,12 +1352,12 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          textresource_langref_t langref       = textresource_langref_INIT(langcopy) ;
          textresource_langref_t * langrefcopy = 0 ;
 
-         err = execcopy_typeadapteriot(&g_langref_adapter_iot, &langrefcopy, &langref) ;
+         err = callnewcopy_typeadapt(&g_langref_adapter, &langrefcopy, &langref) ;
          if (err) return err ;
 
          err = insertlast_langreflist(&textcopy->langlist, langrefcopy) ;
          if (err) {
-            (void) execfree_typeadapteriot(&g_langref_adapter_iot, langrefcopy) ;
+            (void) calldelete_typeadapt(&g_langref_adapter, &langrefcopy) ;
             return err ;
          }
 
@@ -2037,7 +2017,7 @@ static int writeCintro_textresourcewriter(textresource_writer_t * writer)
    return 0 ;
 }
 
-static int writeCprintf_textresourcewriter(textresource_writer_t * writer, textresource_textatomlist_t * atomlist)
+static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist_t * atomlist)
 {
    int err = EIO ;
    ssize_t        bytes ;

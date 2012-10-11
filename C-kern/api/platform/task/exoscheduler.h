@@ -29,21 +29,13 @@
 #ifndef CKERN_PLATFORM_TASK_EXOSCHEDULER_HEADER
 #define CKERN_PLATFORM_TASK_EXOSCHEDULER_HEADER
 
-#include "C-kern/api/ds/inmem/slist.h"
-
 // forward
 struct exothread_t ;
+struct slist_node_t ;
 
 /* typedef: exothread_scheduler_t typedef
  * Export <exoscheduler_t>. */
 typedef struct exoscheduler_t      exoscheduler_t ;
-
-
-/* typedef: exothread_list_t
- * Export <exothread_list_t>.
- * It is used in the implementation of <exothread_t>.
- * All waiting or running threads are stored in such a list. */
-slist_DECLARE(exothread_list_t, struct exothread_t)
 
 
 // section: Functions
@@ -53,31 +45,33 @@ slist_DECLARE(exothread_list_t, struct exothread_t)
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_task_exoscheduler
  * Tests exothread scheduler functionality. */
-extern int unittest_platform_task_exoscheduler(void) ;
+int unittest_platform_task_exoscheduler(void) ;
 #endif
 
 
 struct exoscheduler_t {
-   exothread_list_t     runlist ;
-   size_t               runlist_size ;
+   /* variable: runlist
+    * All running threads are stored this list. */
+   struct { struct slist_node_t * last ; }   runlist ;
+   size_t                                    runlist_size ;
 } ;
 
 // group: lifetime
 
 /* define: exoscheduler_INIT
  * Static initializer. */
-#define exoscheduler_INIT           { slist_INIT, 0 }
+#define exoscheduler_INIT           { { 0 }, 0 }
 
 /* function: init_exoscheduler
  * Initializes scheduler object. */
-extern int init_exoscheduler(/*out*/exoscheduler_t * xsched) ;
+int init_exoscheduler(/*out*/exoscheduler_t * xsched) ;
 
 /* function: free_exoscheduler
  * Frees resources associated with <exoscheduler_t>.
  * If not all xthreads has ended running they are removed from any
  * internal run or wait list but no deleted if they are made known
  * to the scheduler by calling <register_exoscheduler>. */
-extern int free_exoscheduler(exoscheduler_t * xsched) ;
+int free_exoscheduler(exoscheduler_t * xsched) ;
 
 // group: query
 
@@ -88,7 +82,7 @@ extern int free_exoscheduler(exoscheduler_t * xsched) ;
  * There is no unregister operation.
  * Every aborted or finished xthread is unregisterd from the runlist
  * automatically within the function <run_exoscheduler>. */
-extern int register_exoscheduler(exoscheduler_t * xsched, struct exothread_t * xthread) ;
+int register_exoscheduler(exoscheduler_t * xsched, struct exothread_t * xthread) ;
 
 // group: execute
 
@@ -97,7 +91,7 @@ extern int register_exoscheduler(exoscheduler_t * xsched, struct exothread_t * x
  * Repeat calling <run_exoscheduler> until all xthreads have finished.
  * Every aborted or finished xthread is unregisterd from the runlist
  * automatically. */
-extern int run_exoscheduler(exoscheduler_t * xsched) ;
+int run_exoscheduler(exoscheduler_t * xsched) ;
 
 
 #endif

@@ -1,27 +1,27 @@
-C-kern/ds/inmem/dlist.c:82: free_dlist(): error: 12: Freeing a resource returned an error
-C-kern/ds/inmem/dlist.c:90: insertfirst_dlist(): error: 22: Function input violates condition (0 == new_node->next)
-C-kern/ds/inmem/dlist.c:105: insertfirst_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:113: insertlast_dlist(): error: 22: Function input violates condition (0 == new_node->next)
-C-kern/ds/inmem/dlist.c:129: insertlast_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:137: insertafter_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != prev_node->next && !isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:150: insertafter_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:158: insertbefore_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != next_node->next && !isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:167: insertbefore_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:137: insertafter_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != prev_node->next && !isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:150: insertafter_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:158: insertbefore_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != next_node->next && !isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:167: insertbefore_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:137: insertafter_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != prev_node->next && !isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:150: insertafter_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:158: insertbefore_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != next_node->next && !isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:167: insertbefore_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:225: remove_dlist(): error: 22: Function input violates condition (!isempty_dlist(list) && node->next)
-C-kern/ds/inmem/dlist.c:233: remove_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:225: remove_dlist(): error: 22: Function input violates condition (!isempty_dlist(list) && node->next)
-C-kern/ds/inmem/dlist.c:233: remove_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:188: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:198: removefirst_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:206: removelast_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:217: removelast_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:82: free_dlist(): error: 38: Freeing a resource returned an error
-C-kern/ds/inmem/dlist.c:82: free_dlist(): error: 22: Freeing a resource returned an error
+C-kern/ds/inmem/dlist.c:74: free_dlist(): error: 12: Freeing a resource returned an error
+C-kern/ds/inmem/dlist.c:82: insertfirst_dlist(): error: 22: Function input violates condition (0 == new_node->next)
+C-kern/ds/inmem/dlist.c:97: insertfirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:105: insertlast_dlist(): error: 22: Function input violates condition (0 == new_node->next)
+C-kern/ds/inmem/dlist.c:121: insertlast_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:129: insertafter_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != prev_node->next && !isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:142: insertafter_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:150: insertbefore_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != next_node->next && !isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:159: insertbefore_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:129: insertafter_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != prev_node->next && !isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:142: insertafter_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:150: insertbefore_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != next_node->next && !isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:159: insertbefore_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:129: insertafter_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != prev_node->next && !isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:142: insertafter_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:150: insertbefore_dlist(): error: 22: Function input violates condition (0 == new_node->next && 0 != next_node->next && !isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:159: insertbefore_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:217: remove_dlist(): error: 22: Function input violates condition (!isempty_dlist(list) && node->next)
+C-kern/ds/inmem/dlist.c:225: remove_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:217: remove_dlist(): error: 22: Function input violates condition (!isempty_dlist(list) && node->next)
+C-kern/ds/inmem/dlist.c:225: remove_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:180: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:190: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:198: removelast_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:209: removelast_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:74: free_dlist(): error: 38: Freeing a resource returned an error
+C-kern/ds/inmem/dlist.c:74: free_dlist(): error: 22: Freeing a resource returned an error

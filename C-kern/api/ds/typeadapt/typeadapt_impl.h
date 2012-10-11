@@ -72,6 +72,10 @@ struct typeadapt_impl_t {
  * Static initializer. */
 #define typeadapt_impl_INIT_FREEABLE         { typeadapt_INIT_FREEABLE, 0 }
 
+/* define: typeadapt_impl_INIT
+ * Static initializer. */
+#define typeadapt_impl_INIT(objectsize)      { typeadapt_INIT_LIFETIME(&lifetime_newcopyobj_typeadaptimpl, &lifetime_deleteobj_typeadaptimpl), objectsize }
+
 /* function: init_typeadaptimpl
  * Initializes implementation to support objectes of size *objectsize*. */
 int init_typeadaptimpl(/*out*/typeadapt_impl_t * typeadp, size_t objectsize) ;
@@ -81,5 +85,14 @@ int init_typeadaptimpl(/*out*/typeadapt_impl_t * typeadp, size_t objectsize) ;
  * which are not freed is kept intact. */
 int free_typeadaptimpl(typeadapt_impl_t * typeadp) ;
 
+// group: lifetime-service-implementation
+
+/* function: lifetime_newcopyobj_typeadaptimpl
+ * Implements <typeadapt_lifetime_it.newcopy_object>. */
+int lifetime_newcopyobj_typeadaptimpl(typeadapt_impl_t * typeadp, /*out*/struct typeadapt_object_t ** destobject, const struct typeadapt_object_t * srcobject) ;
+
+/* function: lifetime_deleteobj_typeadaptimpl
+ * Implements <typeadapt_lifetime_it.delete_object>. */
+int lifetime_deleteobj_typeadaptimpl(typeadapt_impl_t * typeadp, struct typeadapt_object_t ** object) ;
 
 #endif
