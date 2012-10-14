@@ -94,13 +94,13 @@ bool isequal_typeadaptkeycomparator(const typeadapt_keycomparator_it * ladpcmp, 
 /* function: callcmpkeyobj_typeadaptkeycomparator
  * Calls function <typeadapt_keycomparator_it.cmp_key_object>.
  * The first parameter is of type <typeadapt_keycomparator_it> the others are the same as in <typeadapt_keycomparator_it.cmp_key_object>.
- * This function is implemented as macro and supports types derived from <typeadapt_keycomparator_it> - see * with use of <typeadapt_keycomparator_DECLARE>. */
+ * This function is implemented as macro and supports types derived from <typeadapt_keycomparator_it> - see use of <typeadapt_keycomparator_DECLARE>. */
 int callcmpkeyobj_typeadaptkeycomparator(typeadapt_keycomparator_it * adpcmp, struct typeadapt_t * typeadp, const void * key, const struct typeadapt_object_t * robject) ;
 
 /* function: callcmpobj_typeadaptkeycomparator
  * Calls function <typeadapt_keycomparator_it.cmp_object>.
  * The first parameter is of type <typeadapt_keycomparator_it> the others are the same as in <typeadapt_keycomparator_it.cmp_object>.
- * This function is implemented as macro and supports types derived from <typeadapt_keycomparator_it> - see * with use of <typeadapt_keycomparator_DECLARE>. */
+ * This function is implemented as macro and supports types derived from <typeadapt_keycomparator_it> - see use of <typeadapt_keycomparator_DECLARE>. */
 int callcmpobj_typeadaptkeycomparator(typeadapt_keycomparator_it * adpcmp, struct typeadapt_t * typeadp, const struct typeadapt_object_t * lobject, const struct typeadapt_object_t * robject) ;
 
 // group: generic
@@ -136,8 +136,6 @@ typeadapt_keycomparator_it * asgeneric_typeadaptkeycomparator(void * adpcmp, TYP
  * See <typeadapt_keycomparator_it> for a list of contained functions.
  *
  * Parameter:
- * declared_it   - The name of the structure which is declared as the interface.
- *                 The name should have the suffix "_it".
  * typeadapter_t - The adapter type which implements all interface functions.
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that <typeadapt_keycomparator_it> supports.

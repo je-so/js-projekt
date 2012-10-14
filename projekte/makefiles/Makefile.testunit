@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Oct.14  09:00:23
+GenerationDate  := 2012.Oct.14  09:06:16
 GeneratedBy     := je-so
 
 ## Debug
@@ -114,6 +114,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeinfo.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!keycomparator.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!getbinarykey.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
@@ -185,6 +186,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeinfo.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!keycomparator.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!getbinarykey.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
@@ -339,6 +341,9 @@ $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeinfo.c.o: C-kern/ds/typeadapt/typeinf
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!typeadapt!keycomparator.c.o: C-kern/ds/typeadapt/keycomparator.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!getbinarykey.c.o: C-kern/ds/typeadapt/getbinarykey.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
@@ -546,6 +551,9 @@ $(ObjectDir_Release)/C-kern!ds!typeadapt!typeinfo.c.o: C-kern/ds/typeadapt/typei
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!typeadapt!keycomparator.c.o: C-kern/ds/typeadapt/keycomparator.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!typeadapt!getbinarykey.c.o: C-kern/ds/typeadapt/getbinarykey.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c

@@ -258,6 +258,7 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_redblacktree) ;
       RUN(unittest_ds_inmem_suffixtree) ;
       RUN(unittest_ds_typeadapt) ;
+      RUN(unittest_ds_typeadapt_getbinarykey) ;
       RUN(unittest_ds_typeadapt_impl) ;
       RUN(unittest_ds_typeadapt_keycomparator) ;
       RUN(unittest_ds_typeadapt_lifetime) ;

@@ -168,9 +168,9 @@ static int test_generic(void)
    testadapter_it adpcmp  = typeadapt_keycomparator_INIT_FREEABLE ;
 
    // TEST typeadapt_keycomparator_DECLARE
-   static_assert(sizeof(testadapter_it) == sizeof(typeadapt_keycomparator_it), "structur compatible") ;
-   static_assert(offsetof(testadapter_it, cmp_key_object) == offsetof(typeadapt_keycomparator_it, cmp_key_object), "structur compatible") ;
-   static_assert(offsetof(testadapter_it, cmp_object) == offsetof(typeadapt_keycomparator_it, cmp_object), "structur compatible") ;
+   static_assert(sizeof(testadapter_it) == sizeof(typeadapt_keycomparator_it), "structure compatible") ;
+   static_assert(offsetof(testadapter_it, cmp_key_object) == offsetof(typeadapt_keycomparator_it, cmp_key_object), "structure compatible") ;
+   static_assert(offsetof(testadapter_it, cmp_object) == offsetof(typeadapt_keycomparator_it, cmp_object), "structure compatible") ;
 
    // TEST asgeneric_typeadaptkeycomparator
    TEST((struct typeadapt_keycomparator_it*)&adpcmp == asgeneric_typeadaptkeycomparator(&adpcmp, testadapter_t, testobject_t, int)) ;
