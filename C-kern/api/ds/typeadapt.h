@@ -27,6 +27,7 @@
 #ifndef CKERN_DS_TYPEADAPT_HEADER
 #define CKERN_DS_TYPEADAPT_HEADER
 
+#include "C-kern/api/ds/typeadapt/getbinarykey.h"
 #include "C-kern/api/ds/typeadapt/keycomparator.h"
 #include "C-kern/api/ds/typeadapt/lifetime.h"
 #include "C-kern/api/ds/typeadapt/typeinfo.h"
@@ -106,6 +107,10 @@ int callcmpkeyobj_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
  * See <callcmpobj_typeadapt>. */
 int callcmpobj_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
 
+/* function: callgetbinarykey_typeadaptmember
+ * See <callgetbinarykey_typeadapt>. */
+void callgetbinarykey_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
+
 // group: conversion
 
 /* function: memberasobject_typeadaptmember
@@ -124,32 +129,46 @@ void * objectasmember_typeadaptmember(typeadapt_member_t * nodeadp, struct typea
 struct typeadapt_t {
    /* variable: lifetime
     * Interface to adapt the lifetime of an object type. See <typeadapt_lifetime_it>. */
-   typeadapt_lifetime_it       lifetime ;
+   typeadapt_lifetime_it         lifetime ;
    /* variable: keycomparator
     * Interface to adapt comparison of key and object. See <typeadapt_keycomparator_it>. */
-   typeadapt_keycomparator_it  keycomparator ;
+   typeadapt_keycomparator_it    keycomparator ;
+   /* variable: getbinarykey
+    * Interface to adapt reading of a key as binary data. See <typeadapt_getbinarykey_it>. */
+   typeadapt_getbinarykey_it     getbinarykey ;
 } ;
 
 // group: lifetime
 
 /* define: typeadapt_INIT_FREEABLE
  * Static initializer. */
-#define typeadapt_INIT_FREEABLE                    { typeadapt_lifetime_INIT_FREEABLE, typeadapt_keycomparator_INIT_FREEABLE }
+#define typeadapt_INIT_FREEABLE \
+   { typeadapt_lifetime_INIT_FREEABLE, typeadapt_keycomparator_INIT_FREEABLE, typeadapt_getbinarykey_INIT_FREEABLE }
 
 /* define: typeadapt_INIT_LIFETIME
  * Static initializer. Uses <typeadapt_lifetime_INIT> to init interface <typeadapt_t.lifetime>. */
 #define typeadapt_INIT_LIFETIME(newcopyobj_f, deleteobj_f) \
-  { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT_FREEABLE }
+   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT_FREEABLE, typeadapt_getbinarykey_INIT_FREEABLE  }
 
 /* define: typeadapt_INIT_KEYCMP
  * Static initializer. Uses <typeadapt_keycomparator_INIT> to init interface <typeadapt_t.keycomparator>. */
 #define typeadapt_INIT_KEYCMP(cmpkeyobj_f, cmpobj_f) \
-  { typeadapt_lifetime_INIT_FREEABLE, typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f) }
+   { typeadapt_lifetime_INIT_FREEABLE, typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_getbinarykey_INIT_FREEABLE  }
 
 /* define: typeadapt_INIT_LIFEKEYCMP
  * Static initializer. Initializes <typeadapt_t.lifetime> and <typeadapt_t.keycomparator> service interfaces. */
 #define typeadapt_INIT_LIFEKEYCMP(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f) \
-   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f) }
+   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_getbinarykey_INIT_FREEABLE  }
+
+/* define: typeadapt_INIT_LIFEGETKEY
+ * Static initializer. Initializes <typeadapt_t.lifetime> and <typeadapt_t.getbinarykey> service interfaces. */
+#define typeadapt_INIT_LIFEGETKEY(newcopyobj_f, deleteobj_f, getbinarykey_f) \
+   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT_FREEABLE, typeadapt_getbinarykey_INIT(getbinarykey_f) }
+
+/* define: typeadapt_INIT_LIFEGETKEY
+ * Static initializer. Initializes <typeadapt_t.lifetime>, <typeadapt_t.keycomparator>, and <typeadapt_t.getbinarykey> service interfaces. */
+#define typeadapt_INIT_LIFEKEYCMPGET(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f, getbinarykey_f) \
+   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_keycomparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_getbinarykey_INIT(getbinarykey_f) }
 
 // group: query
 
@@ -181,6 +200,12 @@ int callcmpkeyobj_typeadapt(typeadapt_t * typeadp, ...) ;
  * Wrapper to call <callcmpobj_typeadaptkeycomparator>. */
 int callcmpobj_typeadapt(typeadapt_t * typeadp, ...) ;
 
+// group: getbinarykey-service
+
+/* function: callgetbinarykey_typeadapt
+ * Wrapper to call <callgetbinarykey_typeadaptgetbinarykey>. */
+int callgetbinarykey_typeadapt(typeadapt_t * typeadp, ...) ;
+
 // group: generic
 
 /* function: asgeneric_typeadapt
@@ -208,16 +233,19 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
  * Implements <typeadapt_t.asgeneric_typeadapt>. */
 #define asgeneric_typeadapt(typeadp, typeadapter_t, object_t, key_t)                                     \
    ( __extension__ ({                                                                                    \
-      static_assert(offsetof(typeof(*(typeadp)), lifetime) == offsetof(typeadapt_t, lifetime),           \
+      static_assert(                                                                                     \
+         offsetof(typeof(*(typeadp)), lifetime) == offsetof(typeadapt_t, lifetime)                       \
+         && offsetof(typeof(*(typeadp)), keycomparator) == offsetof(typeadapt_t, keycomparator)          \
+         && offsetof(typeof(*(typeadp)), getbinarykey) == offsetof(typeadapt_t, getbinarykey),           \
          "ensure same structure") ;                                                                      \
-      static_assert(offsetof(typeof(*(typeadp)), keycomparator) == offsetof(typeadapt_t, keycomparator), \
-         "ensure same structure") ;                                                                      \
-      static_assert((typeadapt_lifetime_it*)&(typeadp)->lifetime                                         \
-         == asgeneric_typeadaptlifetime(&(typeadp)->lifetime, typeadapter_t, object_t),                  \
-         "ensure correct lifetime service") ;                                                            \
-      static_assert((typeadapt_keycomparator_it*)&(typeadp)->keycomparator                               \
-         == asgeneric_typeadaptkeycomparator(&(typeadp)->keycomparator, typeadapter_t, object_t, key_t), \
-         "ensure correct keycomparator service") ;                                                       \
+      static_assert(                                                                                     \
+         (typeadapt_lifetime_it*)&(typeadp)->lifetime ==                                                 \
+         asgeneric_typeadaptlifetime(&(typeadp)->lifetime, typeadapter_t, object_t)                      \
+         && (typeadapt_keycomparator_it*)&(typeadp)->keycomparator ==                                    \
+            asgeneric_typeadaptkeycomparator(&(typeadp)->keycomparator, typeadapter_t, object_t, key_t)  \
+         && (typeadapt_getbinarykey_it*)&(typeadp)->keycomparator ==                                     \
+            asgeneric_typeadaptgetbinarykey(&(typeadp)->getbinarykey, typeadapter_t, object_t),          \
+         "ensure correct service interface" ) ;                                                          \
       (typeadapt_t*) (typeadp) ;                                                                         \
    }))
 
@@ -237,6 +265,10 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
  * Implements <typeadapt_t.callcmpobj_typeadapt>. */
 #define callcmpobj_typeadapt(typeadp, ...)      callcmpobj_typeadaptkeycomparator(&(typeadp)->keycomparator, typeadp, __VA_ARGS__)
 
+/* define: callgetbinarykey_typeadapt
+ * Implements <typeadapt_t.callgetbinarykey_typeadapt>. */
+#define callgetbinarykey_typeadapt(typeadp, ...)      callgetbinarykey_typeadaptgetbinarykey(&(typeadp)->getbinarykey, typeadp, __VA_ARGS__)
+
 /* define: callnewcopy_typeadaptmember
  * Implements <typeadapt_member_t.callnewcopy_typeadaptmember>. */
 #define callnewcopy_typeadaptmember(nodeadp, ...)     callnewcopy_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
@@ -252,6 +284,10 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
 /* define: callcmpobj_typeadaptmember
  * Implements <typeadapt_member_t.callcmpobj_typeadaptmember>. */
 #define callcmpobj_typeadaptmember(nodeadp, ...)      callcmpobj_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+
+/* define: callgetbinarykey_typeadaptmember
+ * Implements <typeadapt_member_t.callgetbinarykey_typeadaptmember>. */
+#define callgetbinarykey_typeadaptmember(nodeadp, ...)   callgetbinarykey_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
 
 /* define: isequal_typeadaptmember
  * Implements <typeadapt_t.isequal_typeadaptmember>. */
@@ -279,6 +315,9 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
    } lifetime ;                                                         \
    struct {                                                             \
       typeadapt_keycomparator_EMBED(typeadapter_t, object_t, key_t) ;   \
-   } keycomparator
+   } keycomparator ;                                                    \
+   struct {                                                             \
+      typeadapt_getbinarykey_EMBED(typeadapter_t, object_t) ;           \
+   } getbinarykey
 
 #endif

@@ -39,7 +39,8 @@
 bool isequal_typeadapt(const typeadapt_t * ltypeadp, const typeadapt_t * rtypeadp)
 {
    return   isequal_typeadaptlifetime(&ltypeadp->lifetime, &rtypeadp->lifetime)
-            && isequal_typeadaptkeycomparator(&ltypeadp->keycomparator, &rtypeadp->keycomparator) ;
+            && isequal_typeadaptkeycomparator(&ltypeadp->keycomparator, &rtypeadp->keycomparator)
+            && isequal_typeadaptgetbinarykey(&ltypeadp->getbinarykey, &rtypeadp->getbinarykey) ;
 }
 
 
@@ -59,6 +60,9 @@ struct testobject_t {
       bool  is_cmpkeyobj ;
       bool  is_cmpobj ;
    } keycomparator ;
+   struct {
+      bool  is_getbinarykey ;
+   } getbinarykey ;
    double key ;
 } ;
 
@@ -99,6 +103,15 @@ static int impl_cmpobj_testadapt(testadapt_t * typeadp, const struct testobject_
    return (typeadp->call_count ++) ;
 }
 
+static void impl_getbinarykey_testadapt(testadapt_t * typeadp, struct testobject_t * node, struct typeadapt_binarykey_t * binkey)
+{
+   node->getbinarykey.is_getbinarykey = true ;
+   binkey->addr = (void*) &node->key ;
+   binkey->size = (size_t) node->key ;
+   typeadp->call_count ++ ;
+   return ;
+}
+
 static int test_initfree(void)
 {
    typeadapt_t typeadp = typeadapt_INIT_FREEABLE ;
@@ -108,24 +121,27 @@ static int test_initfree(void)
    TEST(0 == typeadp.lifetime.delete_object) ;
    TEST(0 == typeadp.keycomparator.cmp_object) ;
    TEST(0 == typeadp.keycomparator.cmp_key_object) ;
+   TEST(0 == typeadp.getbinarykey.getbinarykey) ;
 
    // TEST typeadapt_INIT_LIFETIME
    memset(&typeadp, 1, sizeof(typeadp)) ;
    typeadp = (typeadapt_t) typeadapt_INIT_LIFETIME((typeof(((typeadapt_lifetime_it*)0)->newcopy_object))1,
                                                    (typeof(((typeadapt_lifetime_it*)0)->delete_object))2) ;
-   TEST(typeadp.lifetime.newcopy_object  == (typeof(((typeadapt_lifetime_it*)0)->newcopy_object))1) ;
-   TEST(typeadp.lifetime.delete_object   == (typeof(((typeadapt_lifetime_it*)0)->delete_object))2) ;
-   TEST(typeadp.keycomparator.cmp_object == 0) ;
+   TEST(typeadp.lifetime.newcopy_object      == (typeof(((typeadapt_lifetime_it*)0)->newcopy_object))1) ;
+   TEST(typeadp.lifetime.delete_object       == (typeof(((typeadapt_lifetime_it*)0)->delete_object))2) ;
+   TEST(typeadp.keycomparator.cmp_object     == 0) ;
    TEST(typeadp.keycomparator.cmp_key_object == 0) ;
+   TEST(typeadp.getbinarykey.getbinarykey    == 0) ;
 
    // TEST typeadapt_INIT_KEYCMP
    memset(&typeadp, 1, sizeof(typeadp)) ;
    typeadp = (typeadapt_t) typeadapt_INIT_KEYCMP((typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))1,
                                                  (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))2) ;
-   TEST(typeadp.lifetime.newcopy_object  == 0) ;
-   TEST(typeadp.lifetime.delete_object   == 0) ;
+   TEST(typeadp.lifetime.newcopy_object      == 0) ;
+   TEST(typeadp.lifetime.delete_object       == 0) ;
    TEST(typeadp.keycomparator.cmp_key_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))1) ;
-   TEST(typeadp.keycomparator.cmp_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))2) ;
+   TEST(typeadp.keycomparator.cmp_object     == (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))2) ;
+   TEST(typeadp.getbinarykey.getbinarykey    == 0) ;
 
    // TEST typeadapt_INIT_LIFEKEYCMP
    memset(&typeadp, 1, sizeof(typeadp)) ;
@@ -133,10 +149,35 @@ static int test_initfree(void)
                                                      (typeof(((typeadapt_lifetime_it*)0)->delete_object))4,
                                                      (typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))5,
                                                      (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))6) ;
-   TEST(typeadp.lifetime.newcopy_object  == (typeof(((typeadapt_lifetime_it*)0)->newcopy_object))3) ;
-   TEST(typeadp.lifetime.delete_object   == (typeof(((typeadapt_lifetime_it*)0)->delete_object))4) ;
+   TEST(typeadp.lifetime.newcopy_object      == (typeof(((typeadapt_lifetime_it*)0)->newcopy_object))3) ;
+   TEST(typeadp.lifetime.delete_object       == (typeof(((typeadapt_lifetime_it*)0)->delete_object))4) ;
    TEST(typeadp.keycomparator.cmp_key_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))5) ;
-   TEST(typeadp.keycomparator.cmp_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))6) ;
+   TEST(typeadp.keycomparator.cmp_object     == (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))6) ;
+   TEST(typeadp.getbinarykey.getbinarykey    == 0) ;
+
+   // TEST typeadapt_INIT_LIFEGETKEY
+   memset(&typeadp, 1, sizeof(typeadp)) ;
+   typeadp = (typeadapt_t) typeadapt_INIT_LIFEGETKEY((typeof(((typeadapt_lifetime_it*)0)->newcopy_object))7,
+                                                     (typeof(((typeadapt_lifetime_it*)0)->delete_object))8,
+                                                     (typeof(((typeadapt_getbinarykey_it*)0)->getbinarykey))9) ;
+   TEST(typeadp.lifetime.newcopy_object      == (typeof(((typeadapt_lifetime_it*)0)->newcopy_object))7) ;
+   TEST(typeadp.lifetime.delete_object       == (typeof(((typeadapt_lifetime_it*)0)->delete_object))8) ;
+   TEST(typeadp.keycomparator.cmp_key_object == 0) ;
+   TEST(typeadp.keycomparator.cmp_object     == 0) ;
+   TEST(typeadp.getbinarykey.getbinarykey    == (typeof(((typeadapt_getbinarykey_it*)0)->getbinarykey))9) ;
+
+   // TEST typeadapt_INIT_LIFEKEYCMPGET
+   memset(&typeadp, 1, sizeof(typeadp)) ;
+   typeadp = (typeadapt_t) typeadapt_INIT_LIFEKEYCMPGET((typeof(((typeadapt_lifetime_it*)0)->newcopy_object))1,
+                                                     (typeof(((typeadapt_lifetime_it*)0)->delete_object))2,
+                                                     (typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))3,
+                                                     (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))4,
+                                                     (typeof(((typeadapt_getbinarykey_it*)0)->getbinarykey))5) ;
+   TEST(typeadp.lifetime.newcopy_object      == (typeof(((typeadapt_lifetime_it*)0)->newcopy_object))1) ;
+   TEST(typeadp.lifetime.delete_object       == (typeof(((typeadapt_lifetime_it*)0)->delete_object))2) ;
+   TEST(typeadp.keycomparator.cmp_key_object == (typeof(((typeadapt_keycomparator_it*)0)->cmp_key_object))3) ;
+   TEST(typeadp.keycomparator.cmp_object     == (typeof(((typeadapt_keycomparator_it*)0)->cmp_object))4) ;
+   TEST(typeadp.getbinarykey.getbinarykey    == (typeof(((typeadapt_getbinarykey_it*)0)->getbinarykey))5) ;
 
    // TEST isequal_typeadapt
    typeadapt_t typeadp2 ;
@@ -173,16 +214,17 @@ static bool isequal_testobject(const testobject_t * lobj, const testobject_t * r
    return   lobj->lifetime.is_newcopy == robj->lifetime.is_newcopy
             && lobj->lifetime.is_delete == robj->lifetime.is_delete
             && lobj->keycomparator.is_cmpkeyobj == robj->keycomparator.is_cmpkeyobj
-            && lobj->keycomparator.is_cmpobj == robj->keycomparator.is_cmpobj ;
+            && lobj->keycomparator.is_cmpobj == robj->keycomparator.is_cmpobj
+            && lobj->getbinarykey.is_getbinarykey == robj->getbinarykey.is_getbinarykey ;
 }
 
 static int test_generic(void)
 {
    testadapt_t    testadp      = {
-      typeadapt_INIT_LIFEKEYCMP(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+      typeadapt_INIT_LIFEKEYCMPGET(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_getbinarykey_testadapt),
       0
    } ;
-   testobject_t   testobj[100] = { { .lifetime = {0,0}, .keycomparator = {0,0}, .key = 0 } } ;
+   testobject_t   testobj[100] = { { .lifetime = {0,0}, .keycomparator = {0,0}, .getbinarykey = {0}, .key = 0 } } ;
    testobject_t   * objptr ;
 
    // TEST asgeneric_typeadapt
@@ -243,6 +285,22 @@ static int test_generic(void)
       testobj[i].keycomparator.is_cmpobj = false ;
    }
 
+   // TEST callgetbinarykey_typeadapt
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      int               call_count = testadp.call_count + 1 ;
+      typeadapt_binarykey_t binkey = typeadapt_binarykey_INIT_FREEABLE ;
+      testobj[i].key = 1 + i ;
+      callgetbinarykey_typeadapt(&testadp, &testobj[i], &binkey) ;
+      TEST(binkey.addr == (void*)&testobj[i].key) ;
+      TEST(binkey.size == 1 + i) ;
+      TEST(call_count  == testadp.call_count) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      const testobject_t result = { .getbinarykey= { .is_getbinarykey = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
+      testobj[i].getbinarykey.is_getbinarykey = false ;
+   }
+
    return 0 ;
 ONABORT:
    return EINVAL ;
@@ -253,7 +311,7 @@ static int test_typeadaptmember(void)
    typeadapt_member_t   nodeadp = typeadapt_member_INIT_FREEABLE ;
    typeadapt_typeinfo_t tinfo   = typeadapt_typeinfo_INIT(0) ;
    testadapt_t          testadp = {
-                           typeadapt_INIT_LIFEKEYCMP(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+                           typeadapt_INIT_LIFEKEYCMPGET(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_getbinarykey_testadapt),
                            0
                         } ;
    typeadapt_member_t   nodeadp5[5] = {
@@ -345,6 +403,22 @@ static int test_typeadaptmember(void)
       const testobject_t result = { .keycomparator = { .is_cmpobj = true } } ;
       TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].keycomparator.is_cmpobj = false ;
+   }
+
+   // TEST callgetbinarykey_typeadaptmember
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      int               call_count = testadp.call_count + 1 ;
+      typeadapt_binarykey_t binkey = typeadapt_binarykey_INIT_FREEABLE ;
+      testobj[i].key = 1 + i ;
+      callgetbinarykey_typeadaptmember(&nodeadp, (typeadapt_object_t*)&testobj[i], &binkey) ;
+      TEST(binkey.addr == (void*)&testobj[i].key) ;
+      TEST(binkey.size == 1 + i) ;
+      TEST(call_count  == testadp.call_count) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      const testobject_t result = { .getbinarykey= { .is_getbinarykey = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
+      testobj[i].getbinarykey.is_getbinarykey = false ;
    }
 
    // TEST memberasobject_typeadaptmember
