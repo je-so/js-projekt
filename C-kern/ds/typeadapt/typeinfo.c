@@ -44,7 +44,6 @@ struct testobject_t {
    uint32_t node1 ;
    uint64_t node2 ;
    uint64_t node3 ;
-   typeadapt_typeinfo_t yyy ;
 } ;
 
 static int test_initfree(void)

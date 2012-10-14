@@ -88,6 +88,34 @@ struct typeadapt_member_t {
  * Returns true if both <typeadapt_member_t>s are equal. */
 bool isequal_typeadaptmember(const typeadapt_member_t * ltypeadp, const typeadapt_member_t * rtypeadp) ;
 
+// group: call-services
+
+/* function: callnewcopy_typeadaptmember
+ * See <callnewcopy_typeadapt>. */
+int callnewcopy_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
+
+/* function: calldelete_typeadaptmember
+ * See <calldelete_typeadapt>. */
+int calldelete_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
+
+/* function: callcmpkeyobj_typeadaptmember
+ * See <callcmpkeyobj_typeadapt>. */
+int callcmpkeyobj_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
+
+/* function: callcmpobj_typeadaptmember
+ * See <callcmpobj_typeadapt>. */
+int callcmpobj_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
+
+// group: conversion
+
+/* function: memberasobject_typeadaptmember
+ * See <memberasobject_typeadapttypeinfo>. */
+struct typeadapt_object_t * memberasobject_typeadaptmember(typeadapt_member_t * nodeadp, void * node) ;
+
+/* function: objectasmember_typeadapttypeinfo
+ * See <objectasmember_typeadapttypeinfo>. */
+void * objectasmember_typeadaptmember(typeadapt_member_t * nodeadp, struct typeadapt_object_t * object) ;
+
 
 /* struct: typeadapt_t
  * Interface to services needed by containers in the data store.
@@ -201,13 +229,29 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
  * Implements <typeadapt_t.calldelete_typeadapt>. */
 #define calldelete_typeadapt(typeadp, ...)      calldelete_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
 
-/* function: callcmpkeyobj_typeadapt
+/* define: callcmpkeyobj_typeadapt
  * Implements <typeadapt_t.callcmpkeyobj_typeadapt>. */
 #define callcmpkeyobj_typeadapt(typeadp, ...)   callcmpkeyobj_typeadaptkeycomparator(&(typeadp)->keycomparator, typeadp, __VA_ARGS__)
 
-/* function: callcmpobj_typeadapt
+/* define: callcmpobj_typeadapt
  * Implements <typeadapt_t.callcmpobj_typeadapt>. */
 #define callcmpobj_typeadapt(typeadp, ...)      callcmpobj_typeadaptkeycomparator(&(typeadp)->keycomparator, typeadp, __VA_ARGS__)
+
+/* define: callnewcopy_typeadaptmember
+ * Implements <typeadapt_member_t.callnewcopy_typeadaptmember>. */
+#define callnewcopy_typeadaptmember(nodeadp, ...)     callnewcopy_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+
+/* define: calldelete_typeadaptmember
+ * Implements <typeadapt_member_t.calldelete_typeadaptmember>. */
+#define calldelete_typeadaptmember(nodeadp, ...)      calldelete_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+
+/* define: callcmpkeyobj_typeadaptmember
+ * Implements <typeadapt_member_t.callcmpkeyobj_typeadaptmember>. */
+#define callcmpkeyobj_typeadaptmember(nodeadp, ...)   callcmpkeyobj_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+
+/* define: callcmpobj_typeadaptmember
+ * Implements <typeadapt_member_t.callcmpobj_typeadaptmember>. */
+#define callcmpobj_typeadaptmember(nodeadp, ...)      callcmpobj_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
 
 /* define: isequal_typeadaptmember
  * Implements <typeadapt_t.isequal_typeadaptmember>. */
@@ -218,6 +262,14 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
 /* define: islifetimedelete_typeadapt
  * Implements <typeadapt_t.islifetimedelete_typeadapt>. */
 #define islifetimedelete_typeadapt(typeadp)     (0 != (typeadp)->lifetime.delete_object)
+
+/* define: memberasobject_typeadaptmember
+ * Imeplements <typeadapt_member_t.memberasobject_typeadaptmember>. */
+#define memberasobject_typeadaptmember(nodeadp, node)       memberasobject_typeadapttypeinfo((nodeadp)->typeinfo, node)
+
+/* define: objectasmember_typeadapttypeinfo
+ * Imeplements <typeadapt_member_t.objectasmember_typeadapttypeinfo>. */
+#define objectasmember_typeadaptmember(nodeadp, object)     objectasmember_typeadapttypeinfo((nodeadp)->typeinfo, object)
 
 /* define: typeadapt_EMBED
  * Implements <typeadapt_t.typeadapt_EMBED>. */

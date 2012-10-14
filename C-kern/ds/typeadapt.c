@@ -252,6 +252,19 @@ static int test_typeadaptmember(void)
 {
    typeadapt_member_t   nodeadp = typeadapt_member_INIT_FREEABLE ;
    typeadapt_typeinfo_t tinfo   = typeadapt_typeinfo_INIT(0) ;
+   testadapt_t          testadp = {
+                           typeadapt_INIT_LIFEKEYCMP(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+                           0
+                        } ;
+   typeadapt_member_t   nodeadp5[5] = {
+                           typeadapt_member_INIT(0,offsetof(testobject_t, lifetime.is_newcopy)),
+                           typeadapt_member_INIT(0,offsetof(testobject_t, lifetime.is_delete)),
+                           typeadapt_member_INIT(0,offsetof(testobject_t, keycomparator.is_cmpkeyobj)),
+                           typeadapt_member_INIT(0,offsetof(testobject_t, keycomparator.is_cmpobj)),
+                           typeadapt_member_INIT(0,offsetof(testobject_t, key))
+                        } ;
+   testobject_t         testobj[100] = { { .lifetime = {0,0}, .keycomparator = {0,0}, .key = 0 } } ;
+   testobject_t         * objptr ;
 
    // TEST typeadapt_member_INIT_FREEABLE
    TEST(0 == nodeadp.typeadp) ;
@@ -277,6 +290,79 @@ static int test_typeadaptmember(void)
       nodeadp2 = (typeadapt_member_t) { .typeadp = (typeadapt_t*)i, { i } } ;
       TEST(!isequal_typeadaptmember(&nodeadp2, &nodeadp)) ;
       TEST(!isequal_typeadaptmember(&nodeadp, &nodeadp2)) ;
+   }
+
+   // TEST callnewcopy_typeadaptmember
+   nodeadp = (typeadapt_member_t) typeadapt_member_INIT(asgeneric_typeadapt(&testadp,testadapt_t, testobject_t, double), 0) ;
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      int result = testadp.call_count ;
+      objptr = (testobject_t *)1 ;
+      TEST(result == callnewcopy_typeadaptmember(&nodeadp, (typeadapt_object_t**)&objptr, (typeadapt_object_t*)&testobj[i])) ;
+      TEST(0 == objptr) ;
+      TEST(result + 1 == testadp.call_count) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      const testobject_t result = { .lifetime = { .is_newcopy = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
+      testobj[i].lifetime.is_newcopy = false ;
+   }
+
+   // TEST calldelete_typeadaptmember
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      int result = testadp.call_count ;
+      objptr = &testobj[i] ;
+      TEST(result == calldelete_typeadaptmember(&nodeadp, (typeadapt_object_t**)&objptr)) ;
+      TEST(0 == objptr) ;
+      TEST(result + 1 == testadp.call_count) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      const testobject_t result = { .lifetime = { .is_delete = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
+      testobj[i].lifetime.is_delete = false ;
+   }
+
+   // TEST callcmpkeyobj_typeadaptmember
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      int result = testadp.call_count ;
+      double key = i ;
+      TEST(result == callcmpkeyobj_typeadaptmember(&nodeadp, (void*)&key, (typeadapt_object_t*)&testobj[i])) ;
+      TEST(i + 1  == key) ;
+      TEST(result + 1 == testadp.call_count) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      const testobject_t result = { .keycomparator = { .is_cmpkeyobj = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
+      testobj[i].keycomparator.is_cmpkeyobj = false ;
+   }
+
+   // TEST callcmpobj_typeadaptmember
+   for (unsigned i = 0; i < nrelementsof(testobj); i += 2) {
+      int result = testadp.call_count ;
+      TEST(result == callcmpobj_typeadaptmember(&nodeadp, (typeadapt_object_t*)&testobj[i], (typeadapt_object_t*)&testobj[i+1])) ;
+      TEST(result + 1 == testadp.call_count) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      const testobject_t result = { .keycomparator = { .is_cmpobj = true } } ;
+      TEST(true == isequal_testobject(&result, &testobj[i])) ;
+      testobj[i].keycomparator.is_cmpobj = false ;
+   }
+
+   // TEST memberasobject_typeadaptmember
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      TEST((struct typeadapt_object_t*)&testobj[i] == memberasobject_typeadaptmember(&nodeadp5[0], &testobj[i].lifetime.is_newcopy)) ;
+      TEST((struct typeadapt_object_t*)&testobj[i] == memberasobject_typeadaptmember(&nodeadp5[1], &testobj[i].lifetime.is_delete)) ;
+      TEST((struct typeadapt_object_t*)&testobj[i] == memberasobject_typeadaptmember(&nodeadp5[2], &testobj[i].keycomparator.is_cmpkeyobj)) ;
+      TEST((struct typeadapt_object_t*)&testobj[i] == memberasobject_typeadaptmember(&nodeadp5[3], &testobj[i].keycomparator.is_cmpobj)) ;
+      TEST((struct typeadapt_object_t*)&testobj[i] == memberasobject_typeadaptmember(&nodeadp5[4], &testobj[i].key)) ;
+   }
+
+   // TEST objectasmember_typeadaptmember
+   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+      TEST(&testobj[i].lifetime.is_newcopy == objectasmember_typeadaptmember(&nodeadp5[0], (struct typeadapt_object_t*)&testobj[i])) ;
+      TEST(&testobj[i].lifetime.is_delete  == objectasmember_typeadaptmember(&nodeadp5[1], (struct typeadapt_object_t*)&testobj[i])) ;
+      TEST(&testobj[i].keycomparator.is_cmpkeyobj == objectasmember_typeadaptmember(&nodeadp5[2], (struct typeadapt_object_t*)&testobj[i])) ;
+      TEST(&testobj[i].keycomparator.is_cmpobj    == objectasmember_typeadaptmember(&nodeadp5[3], (struct typeadapt_object_t*)&testobj[i])) ;
+      TEST(&testobj[i].key == objectasmember_typeadaptmember(&nodeadp5[4], (struct typeadapt_object_t*)&testobj[i])) ;
    }
 
    return 0 ;

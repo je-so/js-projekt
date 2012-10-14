@@ -59,8 +59,8 @@ int free_dlist(dlist_t *list, struct typeadapt_member_t * nodeadp)
          node->prev = 0 ;
          node->next = 0 ;
          if (isDelete) {
-            typeadapt_object_t * delobj = memberasobject_typeadapttypeinfo(nodeadp->typeinfo, node) ;
-            int err2 = calldelete_typeadapt(nodeadp->typeadp, &delobj) ;
+            typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
+            int err2 = calldelete_typeadaptmember(nodeadp, &delobj) ;
             if (err2) err = err2 ;
          }
          node = next ;

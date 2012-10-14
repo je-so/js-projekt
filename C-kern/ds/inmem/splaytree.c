@@ -46,12 +46,12 @@
 /* define: KEYCOMPARE
  * Casts node to type <typeadapt_object_t> and calls <callcmpkeyobj_typeadapt>.
  * This macro expects variable name tree to point to <splaytree_t>. */
-#define KEYCOMPARE(key,node)  callcmpkeyobj_typeadapt(tree->nodeadp.typeadp, key, memberasobject_typeadapttypeinfo(tree->nodeadp.typeinfo, node))
+#define KEYCOMPARE(key,node)  callcmpkeyobj_typeadaptmember(&tree->nodeadp, key, memberasobject_typeadaptmember(&tree->nodeadp, node))
 
 /* define: OBJCOMPARE
  * Casts node to type <typeadapt_object_t> and calls <callcmpobj_typeadapt>.
  * This macro expects variable name tree to point to <splaytree_t>. */
-#define OBJCOMPARE(keyobject,node)  callcmpobj_typeadapt(tree->nodeadp.typeadp, keyobject, memberasobject_typeadapttypeinfo(tree->nodeadp.typeinfo, node))
+#define OBJCOMPARE(keyobject,node)  callcmpobj_typeadaptmember(&tree->nodeadp, keyobject, memberasobject_typeadaptmember(&tree->nodeadp, node))
 
 // group: test
 
@@ -86,12 +86,12 @@ int invariant_splaytree(splaytree_t * tree)
 
          const splaytree_node_t  * leftchild  = state->parent->left ;
          const splaytree_node_t  * rightchild = state->parent->right ;
-         typeadapt_object_t      * stateobj   = memberasobject_typeadapttypeinfo(tree->nodeadp.typeinfo, state->parent) ;
+         typeadapt_object_t      * stateobj   = memberasobject_typeadaptmember(&tree->nodeadp, state->parent) ;
 
          if (  (  state->lowerbound
-                  && callcmpobj_typeadapt(tree->nodeadp.typeadp, state->lowerbound, stateobj) >= 0)
+                  && callcmpobj_typeadaptmember(&tree->nodeadp, state->lowerbound, stateobj) >= 0)
                || (  state->upperbound
-                     && callcmpobj_typeadapt(tree->nodeadp.typeadp, state->upperbound, stateobj) <= 0)) {
+                     && callcmpobj_typeadaptmember(&tree->nodeadp, state->upperbound, stateobj) <= 0)) {
             err = EINVAL ;
             goto ONABORT ;
          }
@@ -131,7 +131,7 @@ int invariant_splaytree(splaytree_t * tree)
                   err = push_binarystack(&parents, &state) ;
                   if (err) goto ONABORT ;
                   state->parent     = prevstate->parent->right ;
-                  state->lowerbound = memberasobject_typeadapttypeinfo(tree->nodeadp.typeinfo, prevstate->parent) ;
+                  state->lowerbound = memberasobject_typeadaptmember(&tree->nodeadp, prevstate->parent) ;
                   state->upperbound = prevstate->upperbound ;
                   break ;
                }
@@ -315,7 +315,7 @@ static int splay_splaytree(splaytree_t * tree, const void * key)
  * Same as <splay_splaytree> except key is an object. */
 static int splay2_splaytree(splaytree_t * tree, const splaytree_node_t * keynode)
 {
-   typeadapt_object_t      * keyobject = memberasobject_typeadapttypeinfo(tree->nodeadp.typeinfo, keynode) ;
+   typeadapt_object_t      * keyobject = memberasobject_typeadaptmember(&tree->nodeadp, keynode) ;
    splaytree_node_t        keyroot = { .left = 0, .right = 0 } ;
    splaytree_node_t        * higherAsKey ;
    splaytree_node_t        * lowerAsKey ;
@@ -509,8 +509,8 @@ int removenodes_splaytree(splaytree_t * tree)
             node   = noderight ;
          } else {
             if (isDeleteObject) {
-               typeadapt_object_t * object = memberasobject_typeadapttypeinfo(tree->nodeadp.typeinfo, node) ;
-               int err2 = calldelete_typeadapt(tree->nodeadp.typeadp, &object) ;
+               typeadapt_object_t * object = memberasobject_typeadaptmember(&tree->nodeadp, node) ;
+               int err2 = calldelete_typeadaptmember(&tree->nodeadp, &object) ;
                if (err2) err = err2 ;
             }
 

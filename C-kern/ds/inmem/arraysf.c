@@ -164,8 +164,8 @@ int delete_arraysf(arraysf_t ** array, struct typeadapt_member_t * nodeadp)
 
          if (!isbranchtype_arraysfunode(node)) {
             if (isDelete) {
-               typeadapt_object_t * delobj = memberasobject_typeadapttypeinfo(nodeadp->typeinfo, node) ;
-               err2 = calldelete_typeadapt(nodeadp->typeadp, &delobj) ;
+               typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
+               err2 = calldelete_typeadaptmember(nodeadp, &delobj) ;
                if (err2) err = err2 ;
             }
             continue ;
@@ -188,8 +188,8 @@ int delete_arraysf(arraysf_t ** array, struct typeadapt_member_t * nodeadp)
                      branch->used     = nrelementsof(branch->child)-1 ;
                      continue ;
                   } else if (isDelete) {
-                     typeadapt_object_t * delobj = memberasobject_typeadapttypeinfo(nodeadp->typeinfo, node) ;
-                     err2 = calldelete_typeadapt(nodeadp->typeadp, &delobj) ;
+                     typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
+                     err2 = calldelete_typeadaptmember(nodeadp, &delobj) ;
                      if (err2) err = err2 ;
                   }
                }
@@ -256,9 +256,9 @@ int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err
    }
 
    if (nodeadp) {
-      err = callnewcopy_typeadapt(nodeadp->typeadp, &copied_node, memberasobject_typeadapttypeinfo(nodeadp->typeinfo, node)) ;
+      err = callnewcopy_typeadaptmember(nodeadp, &copied_node, memberasobject_typeadaptmember(nodeadp, node)) ;
       if (err) goto ONABORT ;
-      node = objectasmember_typeadapttypeinfo(nodeadp->typeinfo, copied_node) ;
+      node = objectasmember_typeadaptmember(nodeadp, copied_node) ;
    }
 
    VALIDATE_INPARAM_TEST(0 == ((uintptr_t)node&0x01), ONABORT, ) ;
@@ -374,7 +374,7 @@ DONE:
 ONABORT:
    *inserted_or_existing_node = 0 ;
    if (copied_node) {
-      (void) calldelete_typeadapt(nodeadp->typeadp, &copied_node) ;
+      (void) calldelete_typeadaptmember(nodeadp, &copied_node) ;
    }
    TRACEABORT_LOG(err) ;
    return err ;
