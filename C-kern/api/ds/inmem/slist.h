@@ -61,7 +61,7 @@ int unittest_ds_inmem_slist(void) ;
  * The iterator supports removing or deleting of the current node.
  *
  * Example:
- * > slist_t      list ;
+ * > slist_t list ;
  * > fill_list(&list) ;
  * > slist_node_t * prev = last_slist(&list) ;
  * > foreach (_slist, &list, node) {

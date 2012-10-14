@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Oct.11  09:25:35
+GenerationDate  := 2012.Oct.14  09:00:23
 GeneratedBy     := je-so
 
 ## Debug
@@ -92,7 +92,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
- $(ObjectDir_Debug)/C-kern!platform!shared!index!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!exothread.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!exoscheduler.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o \
@@ -105,6 +104,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
@@ -163,7 +163,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
- $(ObjectDir_Release)/C-kern!platform!shared!index!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!exothread.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!exoscheduler.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o \
@@ -176,6 +175,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
@@ -275,9 +275,6 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/f
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!shared!index!redblacktree.c.o: C-kern/platform/shared/index/redblacktree.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!platform!shared!task!exothread.c.o: C-kern/platform/shared/task/exothread.c
 	@$(CC_Debug)
 
@@ -312,6 +309,9 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktree.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
@@ -482,9 +482,6 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io
 $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!shared!index!redblacktree.c.o: C-kern/platform/shared/index/redblacktree.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!platform!shared!task!exothread.c.o: C-kern/platform/shared/task/exothread.c
 	@$(CC_Release)
 
@@ -519,6 +516,9 @@ $(ObjectDir_Release)/C-kern!ds!inmem!suffixtree.c.o: C-kern/ds/inmem/suffixtree.
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktree.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c

@@ -27,11 +27,11 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/typeadapt.h"
+#include "C-kern/api/ds/inmem/binarystack.h"
 #include "C-kern/api/ds/inmem/splaytree.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/ds/foreach.h"
-#include "C-kern/api/ds/inmem/binarystack.h"
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
@@ -495,39 +495,32 @@ int removenodes_splaytree(splaytree_t * tree)
 
       err = 0 ;
 
-      for (;;) {
+      do {
          while (node->left) {
             splaytree_node_t * nodeleft = node->left ;
             node->left = parent ;
             parent = node ;
             node   = nodeleft ;
          }
-         if (node->right) {
-            splaytree_node_t * noderight = node->right ;
-            node->left = parent ;
-            parent = node ;
-            node   = noderight ;
+         splaytree_node_t * delnode = node ;
+         if (delnode->right) {
+            node = delnode->right ;
+            delnode->right = 0 ;
          } else {
-            if (isDeleteObject) {
-               typeadapt_object_t * object = memberasobject_typeadaptmember(&tree->nodeadp, node) ;
-               int err2 = calldelete_typeadaptmember(&tree->nodeadp, &object) ;
-               if (err2) err = err2 ;
-            }
-
-            if (!parent) break ;
-
-            if (parent->right == node) {
-               node   = parent ;
-               parent = node->left ;
-               node->left  = 0 ;
-               node->right = 0 ;
-            } else {
-               node   = parent ;
+            node = parent ;
+            if (node) {
                parent = node->left ;
                node->left = 0 ;
             }
          }
-      }
+
+         if (isDeleteObject) {
+            typeadapt_object_t * object = memberasobject_typeadaptmember(&tree->nodeadp, delnode) ;
+            int err2 = calldelete_typeadaptmember(&tree->nodeadp, &object) ;
+            if (err2) err = err2 ;
+         }
+
+      } while (node) ;
 
       if (err) goto ONABORT ;
    }
@@ -719,6 +712,7 @@ static int test_initfree(void)
    memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
    splaytree_t                tree      = splaytree_INIT_FREEABLE ;
    nodesarray_t               * nodes1 ;
+   lrtree_node_t              emptynode = lrtree_node_INIT ;
 
    // prepare
    TEST(0 == MM_RESIZE(sizeof(nodesarray_t), &memblock1)) ;
@@ -727,6 +721,10 @@ static int test_initfree(void)
    for (unsigned i = 0; i < nrelementsof(*nodes1); ++i) {
       (*nodes1)[i].key = (int)i ;
    }
+
+   // TEST lrtree_node_INIT
+   TEST(0 == emptynode.left) ;
+   TEST(0 == emptynode.right) ;
 
    // TEST splaytree_INIT_FREEABLE
    TEST(tree.root    == 0) ;
@@ -794,7 +792,7 @@ static int test_initfree(void)
    // TEST free_splaytree: ERROR
    init_splaytree(&tree, &nodeadapt) ;
    typeadapt.freenode_count = 0 ;
-   init_testerrortimer(&typeadapt.errcounter, 63, EMFILE) ;
+   init_testerrortimer(&typeadapt.errcounter, 32, EMFILE) ;
    tree.root      = build_perfect_tree(63, *nodes1) ;
    TEST(tree.root == &(*nodes1)[32].index) ;
    TEST(0 == invariant_splaytree(&tree)) ;
@@ -811,20 +809,19 @@ static int test_initfree(void)
    // TEST getinistate_splaytree
    splaytree_node_t * saved_root      = (void*) 1 ;
    typeadapt_member_t saved_nodeadapt = nodeadapt ;
+   typeadapt_member_t empty_nodeadapt = typeadapt_member_INIT_FREEABLE ;
    tree = (splaytree_t)splaytree_INIT_FREEABLE ;
    getinistate_splaytree(&tree, &saved_root, 0) ;
    TEST(0 == saved_root) ;
    getinistate_splaytree(&tree, &saved_root, &saved_nodeadapt) ;
    TEST(0 == saved_root) ;
-   TEST(0 == saved_nodeadapt.typeadp) ;
-   TEST(0 == saved_nodeadapt.typeinfo.memberoffset) ;
+   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &empty_nodeadapt)) ;
    tree = (splaytree_t)splaytree_INIT(&(*nodes1)[0].index, nodeadapt) ;
    getinistate_splaytree(&tree, &saved_root, 0) ;
    TEST(&(*nodes1)[0].index == saved_root) ;
    getinistate_splaytree(&tree, &saved_root, &saved_nodeadapt) ;
    TEST(&(*nodes1)[0].index == saved_root) ;
-   TEST(nodeadapt.typeadp   == saved_nodeadapt.typeadp) ;
-   TEST(nodeadapt.typeinfo.memberoffset == saved_nodeadapt.typeinfo.memberoffset) ;
+   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &nodeadapt)) ;
 
    // TEST isempty_splaytree
    tree = (splaytree_t)splaytree_INIT_FREEABLE ;
@@ -1133,7 +1130,7 @@ static int test_iterator(void)
    TEST(0 == iter.next) ;
 
    // TEST next_splaytreeiterator: empty tree
-   iter.next = 0 ;
+   TEST(0 == initfirst_splaytreeiterator(&iter, &emptytree)) ;
    TEST(false == next_splaytreeiterator(&iter, 0, 0)) ;
 
    // TEST initlast_splaytreeiterator: empty tree
@@ -1142,7 +1139,7 @@ static int test_iterator(void)
    TEST(0 == iter.next) ;
 
    // TEST prev_splaytreeiterator: empty tree
-   iter.next = 0 ;
+   TEST(0 == initlast_splaytreeiterator(&iter, &emptytree)) ;
    TEST(false == prev_splaytreeiterator(&iter, 0, 0)) ;
 
    // TEST free_splaytreeiterator

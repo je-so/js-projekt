@@ -1101,11 +1101,11 @@ static int test_iterator(void)
       TEST(0 == insert_arraysf(array, &nodes[i].node, 0, 0)) ;
    }
 
-   // TEST static init
+   // TEST arraysf_iterator_INIT_FREEABLE
    TEST(0 == iter.stack) ;
    TEST(0 == iter.ri) ;
 
-   // TEST init, double free
+   // TEST initfirst_arraysfiterator, free_arraysfiterator
    iter.ri = 1 ;
    TEST(0 == initfirst_arraysfiterator(&iter, array)) ;
    TEST(0 != iter.stack) ;

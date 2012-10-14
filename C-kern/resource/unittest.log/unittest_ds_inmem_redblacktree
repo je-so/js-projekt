@@ -1,0 +1,4 @@
+C-kern/ds/inmem/redblacktree.c:716: removenodes_redblacktree(): error: 8: Freeing a resource returned an error
+C-kern/ds/inmem/redblacktree.c:205: free_redblacktree(): error: 8: Function aborted
+C-kern/ds/inmem/redblacktree.c:533: insert_redblacktree(): error: 22: Function input violates condition (EVENADDRESS(new_node))
+C-kern/ds/inmem/redblacktree.c:583: insert_redblacktree(): error: 22: Function aborted

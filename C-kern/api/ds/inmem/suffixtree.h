@@ -74,7 +74,6 @@ struct suffixtree_t {
    /* variable: childs
     * Points to root node with all childs of root node. */
    struct suffixtree_node_t   * childs ;
-
    /* variable: maxlength
     * Max length (in bytes) of all added strings. */
    size_t                     maxlength ;

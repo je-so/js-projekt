@@ -1,4 +1,0 @@
-C-kern/platform/shared/index/redblacktree.c:568: insert_redblacktree(): error: 22: Function aborted
-C-kern/platform/shared/index/redblacktree.c:687: updatekey_redblacktree(): error: 17: Function aborted
-C-kern/platform/shared/index/redblacktree.c:671: updatekey_redblacktree(): error: 12: Function call 'redblacktree_update_key_t callback' returned error 'Cannot allocate memory'
-C-kern/platform/shared/index/redblacktree.c:687: updatekey_redblacktree(): error: 12: Function aborted

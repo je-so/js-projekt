@@ -255,6 +255,7 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_dlist) ;
       RUN(unittest_ds_inmem_slist) ;
       RUN(unittest_ds_inmem_splaytree) ;
+      RUN(unittest_ds_inmem_redblacktree) ;
       RUN(unittest_ds_inmem_suffixtree) ;
       RUN(unittest_ds_typeadapt) ;
       RUN(unittest_ds_typeadapt_impl) ;
@@ -337,8 +338,6 @@ int run_unittest(void)
       RUN(unittest_platform_process) ;
       RUN(unittest_platform_thread) ;
       RUN(unittest_platform_virtualmemory) ;
-      // database subsystem
-      RUN(unittest_platform_index_redblacktree) ;
       // user interface subsystem
 #define HTML5  1
 #define X11    2

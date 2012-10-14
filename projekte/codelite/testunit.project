@@ -49,9 +49,6 @@
         <File Name="../../C-kern/api/platform/Linux/syskonfig.h"/>
         <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="index">
-        <File Name="../../C-kern/api/platform/index/redblacktree.h"/>
-      </VirtualDirectory>
       <File Name="../../C-kern/api/platform/locale.h"/>
       <File Name="../../C-kern/api/platform/malloc.h"/>
       <VirtualDirectory Name="task">
@@ -130,10 +127,12 @@
           <File Name="../../C-kern/api/ds/inmem/node/slist_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/dlist_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/lrtree_node.h"/>
+          <File Name="../../C-kern/api/ds/inmem/node/lrptree_node.h"/>
         </VirtualDirectory>
         <File Name="../../C-kern/api/ds/inmem/suffixtree.h"/>
         <File Name="../../C-kern/api/ds/inmem/dlist.h"/>
         <File Name="../../C-kern/api/ds/inmem/splaytree.h"/>
+        <File Name="../../C-kern/api/ds/inmem/redblacktree.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
@@ -310,9 +309,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
-      <VirtualDirectory Name="index">
-        <File Name="../../C-kern/platform/shared/index/redblacktree.c"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/shared/task/exoscheduler.c"/>
         <File Name="../../C-kern/platform/shared/task/exothread.c"/>
@@ -361,6 +357,7 @@
       <File Name="../../C-kern/ds/inmem/suffixtree.c"/>
       <File Name="../../C-kern/ds/inmem/dlist.c"/>
       <File Name="../../C-kern/ds/inmem/splaytree.c"/>
+      <File Name="../../C-kern/ds/inmem/redblacktree.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <VirtualDirectory Name="typeadapt">

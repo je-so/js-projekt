@@ -1,7 +1,7 @@
 /* title: LRTree-Node
 
-   Defines node type <lrtree_node_t> which can be stored in a
-   tree of type <splaytree_t>.
+   Defines node type <lrtree_node_t> which can be stored in trees
+   which need only left and right pointers (see <splaytree_t>).
 
    about: Copyright
    This program is free software.
@@ -32,12 +32,21 @@ typedef struct lrtree_node_t           lrtree_node_t ;
 /* struct: lrtree_node_t
  * Management overhead of objects which wants to be stored in a <splaytree_t>.
  * A node of type <lrtree_node_t> can be stored in binary tree structures which
- * needs a pointer to a left and a right child. */
+ * needs a pointer to a left and a right child.
+ *
+ * >    left╭──────╮right
+ * >      ╭─┤ node ├─╮
+ * >      │ ╰──────╯ │
+ * >  ╭───∇───╮   ╭──∇────╮
+ * >  │ left  │   │ right │
+ * >  │ child │   │ child │
+ * >  ╰┬─────┬╯   ╰┬─────┬╯
+ * >  left  right left  right */
 struct lrtree_node_t {
    /* variable: left
     * Points to left subtree. If there is no subtree this value is set to NULL. */
    lrtree_node_t * left ;
-   /* variable: left
+   /* variable: right
     * Points to right subtree. If there is no subtree this value is set to NULL. */
    lrtree_node_t * right ;
 } ;

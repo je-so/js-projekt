@@ -35,17 +35,17 @@
 
 #include "C-kern/api/ds/inmem/node/lrtree_node.h"
 
-/* typedef: splaytree_node_t
- * Rename <lrtree_node_t> into <splaytree_node_t>. */
-typedef struct lrtree_node_t           splaytree_node_t ;
-
-/* typedef: splaytree_t typedef
+/* typedef: struct splaytree_t
  * Export <splaytree_t> into global namespace. */
 typedef struct splaytree_t             splaytree_t ;
 
 /* typedef: struct splaytree_iterator_t
  * Export <splaytree_iterator_t>. */
 typedef struct splaytree_iterator_t    splaytree_iterator_t ;
+
+/* typedef: splaytree_node_t
+ * Rename <lrtree_node_t> into <splaytree_node_t>. */
+typedef struct lrtree_node_t           splaytree_node_t ;
 
 
 // section: Functions
@@ -60,7 +60,16 @@ int unittest_ds_inmem_splaytree(void) ;
 
 
 /* struct: splaytree_iterator_t
- * Iterates over elements contained in <splaytree_t>. */
+ * Iterates over elements contained in <splaytree_t>.
+ * The iterator supports removing or deleting of the current node.
+ * > splaytree_t tree ;
+ * > fill_tree(&tree) ;
+ * > foreach (_splaytree, &tree, node) {
+ * >    if (need_to_remove(node)) {
+ * >       err = remove_splaytree(&tree, get_key_from_node(node), &node)) ;
+ * >    }
+ * > }
+ * */
 struct splaytree_iterator_t {
    splaytree_node_t * next ;
 } ;
@@ -76,11 +85,11 @@ struct splaytree_iterator_t {
 int initfirst_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t * tree) ;
 
 /* function: initlast_splaytreeiterator
- * Initializes an iterator for <splaytree_t>. */
+ * Initializes an iterator of <splaytree_t>. */
 int initlast_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t * tree) ;
 
 /* function: free_splaytreeiterator
- * Frees an iterator for <splaytree_t>. */
+ * Frees an iterator of <splaytree_t>. */
 int free_splaytreeiterator(splaytree_iterator_t * iter) ;
 
 // group: iterate
@@ -130,13 +139,13 @@ struct splaytree_t {
 #define splaytree_INIT_FREEABLE                 splaytree_INIT(0, typeadapt_member_INIT_FREEABLE)
 
 /* define: splaytree_INIT
- * Static initializer. You can use splaytree_INIT(0) instead of <init_splaytree>.
- * After assigning you can call <free_splaytree> or any other function safely. */
+ * Static initializer. You can use <splaytree_INIT> with the returned values prvided by <getinistate_splaytree>. */
 #define splaytree_INIT(root, nodeadp)           { root, nodeadp }
 
 /* function: init_splaytree
  * Inits an empty tree object.
- * The caller has to provide an unitialized tree object. */
+ * The <typeadapt_member_t> is copied but the <typeadapt_t> it references is not.
+ * So do not delete <typeadapt_t> as long as this object lives. */
 void init_splaytree(/*out*/splaytree_t * tree, const typeadapt_member_t * nodeadp) ;
 
 /* function: free_splaytree
@@ -216,7 +225,7 @@ void splaytree_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, TYPENAME key_t, IDN
 // section: inline implementation
 
 /* define: free_splaytreeiterator
- * Implements <splaytree_t.getinistate_splaytree> as NOP. */
+ * Implements <splaytree_iterator_t.free_splaytreeiterator> as NOP. */
 #define free_splaytreeiterator(iter)         ((iter)->next = 0, 0)
 
 /* function: getinistate_splaytree
