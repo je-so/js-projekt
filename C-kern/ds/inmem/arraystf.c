@@ -220,7 +220,7 @@ static int find_arraystf(const arraystf_t * array, arraystf_node_t * keynode, /*
          node        = parent->child[childindex] ;
       } else {
          result->found_key = asnode_arraystfunode(node) ;
-         if (     keynode->size == result->found_key->size
+         if (  keynode->size == result->found_key->size
                && 0 == memcmp(keynode->addr, result->found_key->addr, keynode->size)) {
             err = 0 ;
          }

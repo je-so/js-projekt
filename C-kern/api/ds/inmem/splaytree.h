@@ -95,23 +95,15 @@ int free_splaytreeiterator(splaytree_iterator_t * iter) ;
 // group: iterate
 
 /* function: next_splaytreeiterator
- * Returns all elements from first to last node of tree.
- * The first call after <initfirst_splaytreeiterator> returns the
- * smallest tree element if tree is not empty.
- *
- * Returns:
- * true  - node contains a pointer to the next valid node in the tree.
- * false - There is no next node. The last element was already returned or the tree is empty. */
+ * Returns next node of tree in ascending order.
+ * The first call after <initfirst_splaytreeiterator> returns the node with the lowest key.
+ * In case no next node exists false is returned and parameter node is not changed. */
 bool next_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*out*/splaytree_node_t ** node) ;
 
 /* function: prev_splaytreeiterator
- * Returns all elements from last to first node of tree.
- * The first call after <initlast_splaytreeiterator> returns the
- * biggest tree element if tree is not empty.
- *
- * Returns:
- * true  - node contains a pointer to the next valid node in the tree.
- * false - There is no next node. The last element was already returned or the tree is empty. */
+ * Returns next node of tree in descending order.
+ * The first call after <initlast_splaytreeiterator> returns the node with the highest key.
+ * In case no previous node exists false is returned and parameter node is not changed. */
 bool prev_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*out*/splaytree_node_t ** node) ;
 
 

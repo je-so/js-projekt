@@ -1,6 +1,8 @@
 /* title: ArraySTF
+
    Array implementation which supports strings as indizes (st).
    Once an object is assigned a memory location it is never changed (fixed location).
+   See also <http://en.wikipedia.org/wiki/Radix_tree>.
 
    about: Copyright
    This program is free software.

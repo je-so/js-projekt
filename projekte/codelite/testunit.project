@@ -2,12 +2,6 @@
 <CodeLite_Project Name="testunit" InternalType="Console">
   <Description/>
   <Dependencies/>
-  <VirtualDirectory Name="generic">
-    <VirtualDirectory Name="trie">
-      <File Name="../../C-kern/generic/trie/patricia.c"/>
-      <File Name="../../C-kern/generic/trie/patricia.h"/>
-    </VirtualDirectory>
-  </VirtualDirectory>
   <VirtualDirectory Name="api">
     <File Name="../../C-kern/konfig.h"/>
     <File Name="../../C-kern/README.txt"/>
@@ -89,10 +83,6 @@
         <File Name="../../C-kern/api/aspect/callback/updatekey.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/aspect/callback.h"/>
-      <File Name="../../C-kern/api/aspect/treenode3.h"/>
-      <VirtualDirectory Name="constant">
-        <File Name="../../C-kern/api/aspect/constant/spacetime.h"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
@@ -128,11 +118,13 @@
           <File Name="../../C-kern/api/ds/inmem/node/dlist_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/lrtree_node.h"/>
           <File Name="../../C-kern/api/ds/inmem/node/lrptree_node.h"/>
+          <File Name="../../C-kern/api/ds/inmem/node/patriciatrie_node.h"/>
         </VirtualDirectory>
         <File Name="../../C-kern/api/ds/inmem/suffixtree.h"/>
         <File Name="../../C-kern/api/ds/inmem/dlist.h"/>
         <File Name="../../C-kern/api/ds/inmem/splaytree.h"/>
         <File Name="../../C-kern/api/ds/inmem/redblacktree.h"/>
+        <File Name="../../C-kern/api/ds/inmem/patriciatrie.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
@@ -359,6 +351,7 @@
       <File Name="../../C-kern/ds/inmem/dlist.c"/>
       <File Name="../../C-kern/ds/inmem/splaytree.c"/>
       <File Name="../../C-kern/ds/inmem/redblacktree.c"/>
+      <File Name="../../C-kern/ds/inmem/patriciatrie.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <VirtualDirectory Name="typeadapt">

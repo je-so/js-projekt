@@ -1,0 +1,16 @@
+C-kern/ds/inmem/patriciatrie.c:458: removenodes_patriciatrie(): error: 2: Freeing a resource returned an error
+C-kern/ds/inmem/patriciatrie.c:54: free_patriciatrie(): error: 2: Function aborted
+C-kern/ds/inmem/patriciatrie.c:184: find_patriciatrie(): error: 22: Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
+C-kern/ds/inmem/patriciatrie.c:199: find_patriciatrie(): error: 22: Function aborted
+C-kern/ds/inmem/patriciatrie.c:184: find_patriciatrie(): error: 22: Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
+C-kern/ds/inmem/patriciatrie.c:199: find_patriciatrie(): error: 22: Function aborted
+C-kern/ds/inmem/patriciatrie.c:184: find_patriciatrie(): error: 22: Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
+C-kern/ds/inmem/patriciatrie.c:199: find_patriciatrie(): error: 22: Function aborted
+C-kern/ds/inmem/patriciatrie.c:302: remove_patriciatrie(): error: 22: Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
+C-kern/ds/inmem/patriciatrie.c:402: remove_patriciatrie(): error: 22: Function aborted
+C-kern/ds/inmem/patriciatrie.c:302: remove_patriciatrie(): error: 22: Function input violates condition ((searchkey != 0 || keylength == 0) && keylength < (((size_t)-1)/8))
+C-kern/ds/inmem/patriciatrie.c:402: remove_patriciatrie(): error: 22: Function aborted
+C-kern/ds/inmem/patriciatrie.c:212: insert_patriciatrie(): error: 22: Function input violates condition ((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8))
+C-kern/ds/inmem/patriciatrie.c:292: insert_patriciatrie(): error: 22: Function aborted
+C-kern/ds/inmem/patriciatrie.c:212: insert_patriciatrie(): error: 22: Function input violates condition ((insertkey.addr != 0 || insertkey.size == 0) && insertkey.size < (((size_t)-1)/8))
+C-kern/ds/inmem/patriciatrie.c:292: insert_patriciatrie(): error: 22: Function aborted

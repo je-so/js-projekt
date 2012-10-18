@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Oct.14  09:06:16
+GenerationDate  := 2012.Oct.18  08:12:00
 GeneratedBy     := je-so
 
 ## Debug
@@ -109,6 +109,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
@@ -181,6 +182,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
@@ -326,6 +328,9 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o: C-kern/ds/inmem/patriciatrie.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o: C-kern/ds/inmem/splaytree.c
@@ -536,6 +541,9 @@ $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o: C-kern/ds/inmem/slist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o: C-kern/ds/inmem/patriciatrie.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o: C-kern/ds/inmem/splaytree.c
