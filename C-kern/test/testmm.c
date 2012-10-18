@@ -165,16 +165,15 @@ struct testmm_page_t {
 static int new_testmmpage(testmm_page_t ** mmpage, size_t minblocksize, testmm_page_t * next)
 {
    int err ;
-   const size_t   blocksize = 1024 * 1024 ;
+   const size_t headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
+   const size_t trailersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
+   const size_t   blocksize = (minblocksize + headersize + trailersize) < 1024 * 1024 ? 1024 * 1024 : (minblocksize + headersize + trailersize) ;
    const size_t   nrpages   = ((blocksize - 1) + pagesize_vm()) / pagesize_vm() ;
    const size_t   nrpages2  = 2 + ((sizeof(testmm_page_t) - 1 + pagesize_vm()) / pagesize_vm()) ;
    vm_block_t     vmblock   = vm_block_INIT_FREEABLE ;
    testmm_page_t  * new_mmpage ;
 
-   const size_t headersize  =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
-   const size_t trailersize =  alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
-
-   if (blocksize < minblocksize + headersize + trailersize) {
+   if (minblocksize >= 16*1024*1024) {
       err = ENOMEM ;
       goto ONABORT ;
    }
@@ -790,7 +789,7 @@ static int test_testmmpage(void)
    TEST(0 == free_vmmappedregions(&mapping)) ;
 
    // TEST init ENOMEM
-   TEST(ENOMEM == new_testmmpage(&mmpage, 1024*1024, 0)) ;
+   TEST(ENOMEM == new_testmmpage(&mmpage, 16*1024*1024, 0)) ;
    TEST(0 == mmpage) ;
 
    // TEST newblock_testmmpage
