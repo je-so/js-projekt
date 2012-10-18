@@ -76,14 +76,6 @@
         <File Name="../../C-kern/api/math/float/decimal.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
-    <VirtualDirectory Name="aspect">
-      <VirtualDirectory Name="callback">
-        <File Name="../../C-kern/api/aspect/callback/compare.h"/>
-        <File Name="../../C-kern/api/aspect/callback/free.h"/>
-        <File Name="../../C-kern/api/aspect/callback/updatekey.h"/>
-      </VirtualDirectory>
-      <File Name="../../C-kern/api/aspect/callback.h"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="memory">
       <File Name="../../C-kern/api/memory/memblock.h"/>
       <File Name="../../C-kern/api/memory/wbuffer.h"/>
