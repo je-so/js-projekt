@@ -166,6 +166,22 @@ void setstderr_processioredirect(process_ioredirect_t * ioredirect, filedescr_t 
  * Creates child process which executes a function. */
 int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
 
+/* define: initgeneric_process
+ * Same as <init_process> except that it accepts functions with generic argument type.
+ * The argument must be of size <= sizeof(void*). */
+#define initgeneric_process(process, child_main, start_arg, ioredirection)                         \
+   ( __extension__ ({                                                                              \
+         int (*_child_main) (typeof(start_arg)) = (child_main) ;                                   \
+         static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;                       \
+         init_process(process, (process_task_f) _child_main, (void*)start_arg, ioredirection ) ;   \
+   }))
+
+/* function: initdaemon_process
+ * Creates deamonized child process which executes a function.
+ * The directory of the started daemon is set to root "/" and umsak is set to 007 - which prevents created fiels to be accessed from others
+ * except owner or group. */
+int initdaemon_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection/*0 => /dev/null*/) ;
+
 /* function: initexec_process
  * Executes another program with same environment.
  * The parameter "filename" specifies the path to an executeable binary.
@@ -204,17 +220,6 @@ int wait_process(process_t * process, /*out*/process_result_t * result) ;
 
 
 // section: inline implementation
-
-/* define: init_process
- * Calls <process_t.init_process> with adapted function pointer. */
-#define init_process(process, child_main, start_arg, ioredirection)                 \
-   /*do not forget to adapt definition in process.c test section*/                  \
-   ( __extension__ ({ int _err ;                                                    \
-      int (*_child_main) (typeof(start_arg)) = (child_main) ;                       \
-      static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
-      _err = init_process(process, (process_task_f) _child_main,                    \
-                                 (void*)start_arg, ioredirection ) ;                \
-      _err ; }))
 
 /* define: setstdin_processioredirect
  * Implements <process_ioredirect_t.setstdin_processioredirect>. */

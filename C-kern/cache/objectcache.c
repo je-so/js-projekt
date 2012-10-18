@@ -368,7 +368,7 @@ static int test_iobuffer(void)
 
    // TEST assertion lockiobuffer_objectcache
    TEST(0 == init_objectcache( &cache )) ;
-   TEST(0 == init_process(&process, child_lockassert, &cache, &ioredirect)) ;
+   TEST(0 == initgeneric_process(&process, child_lockassert, &cache, &ioredirect)) ;
    TEST(0 == wait_process(&process, &result)) ;
    TEST(process_state_ABORTED == result.state) ;
    TEST(0 == free_process(&process)) ;
@@ -380,7 +380,7 @@ static int test_iobuffer(void)
 
    // TEST assertion unlockiobuffer_objectcache
    TEST(0 == init_objectcache( &cache )) ;
-   TEST(0 == init_process(&process, child_unlockassert, &cache, &ioredirect)) ;
+   TEST(0 == initgeneric_process(&process, child_unlockassert, &cache, &ioredirect)) ;
    TEST(0 == wait_process(&process, &result)) ;
    TEST(process_state_ABORTED == result.state) ;
    TEST(0 == free_process(&process)) ;

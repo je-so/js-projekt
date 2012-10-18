@@ -173,7 +173,7 @@ static int redirectstdfd_processioredirect2(const process_ioredirect2_t * ioredi
       if (filedescr_INIT_FREEABLE == fd) {
          fd = ioredirect2->devnull ;
       }
-      while(-1 == dup2(fd, stdfd)) {
+      while (-1 == dup2(fd, stdfd)) {
          if (EINTR != errno) {
             err = errno ;
             TRACESYSERR_LOG("dup2(fd, stdfd)", err) ;
@@ -222,6 +222,7 @@ ONABORT:
    return err ;
 }
 
+
 // section: process_t
 
 // group: helper
@@ -253,7 +254,7 @@ static int queryresult_process(sys_process_t pid, /*out*/process_result_t * resu
 #undef FLAGS
 
    info.si_pid = 0 ;
-   while(-1 == waitid(P_PID, (id_t) pid, &info, flags)) {
+   while (-1 == waitid(P_PID, (id_t) pid, &info, flags)) {
       if (EINTR != errno) {
          err = errno ;
          TRACESYSERR_LOG("waitid",err) ;
@@ -300,12 +301,12 @@ static int childprocess_exec(childprocess_exec_t  * execparam)
 
    do {
       write_err = write( execparam->errpipe, &err, sizeof(&err)) ;
-   } while( -1 == write_err && errno == EINTR ) ;
+   } while (-1 == write_err && errno == EINTR) ;
 
    return err ;
 }
 
-// group: implementation
+// group: lifetime
 
 int initexec_process(process_t * process, const char * filename, const char * const * arguments, process_ioredirect_t * ioredirection /*0 => /dev/null*/)
 {
@@ -322,7 +323,7 @@ int initexec_process(process_t * process, const char * filename, const char * co
 
    execparam.errpipe = pipefd[1] ;
 
-   err = init_process( &childprocess, &childprocess_exec, &execparam, ioredirection) ;
+   err = initgeneric_process(&childprocess, &childprocess_exec, &execparam, ioredirection) ;
    if (err) goto ONABORT ;
 
    // CHECK exec error
@@ -335,7 +336,7 @@ int initexec_process(process_t * process, const char * filename, const char * co
 
    do {
       read_bytes = read( pipefd[0], &exec_err, sizeof(exec_err)) ;
-   } while( -1 == read_bytes && EINTR == errno) ;
+   } while (-1 == read_bytes && EINTR == errno) ;
 
    if (-1 == read_bytes) {
       err = errno ;
@@ -346,7 +347,7 @@ int initexec_process(process_t * process, const char * filename, const char * co
       err = exec_err ? exec_err : ENOEXEC ;
       TRACESYSERR_LOG("execvp(filename, arguments)", err) ;
       PRINTCSTR_LOG(filename) ;
-      for(size_t i = 0; arguments[i]; ++i) {
+      for (size_t i = 0; arguments[i]; ++i) {
          PRINTARRAYFIELD_LOG("s",arguments,i) ;
       }
       goto ONABORT ;
@@ -366,34 +367,103 @@ ONABORT:
    return err ;
 }
 
-#undef init_process
-int init_process(/*out*/process_t         *  process,
-                  process_task_f          child_main,
-                  void                    * start_arg,
-                  process_ioredirect_t    * ioredirection /*0 => /dev/null*/)
+/* function: fork_process
+ * This function call returns twice.
+ * It creates a new child process whihc returns from this with pid set to 0.
+ * The calling process (parent process) gets the child's process returned in pid. */
+static int fork_process(/*out*/pid_t * pid)
 {
    int err ;
-   pid_t pid ;
 
    // MULTITHREAD-PRECONDITION: all filedescriptors opened with O_CLOEXEC ; => test/static/close_on_exec.sh
 
    // TODO: MULTITHREAD: system handler for preparing fork
-   pid = fork() ;
-   if (-1 == pid) {
+   pid_t newpid = fork() ;
+   if (-1 == newpid) {
       err = errno ;
       TRACESYSERR_LOG("fork", err) ;
       goto ONABORT ;
    }
 
+   *pid = newpid ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+static int preparechild_process(process_ioredirect_t * ioredirection/*0 => /dev/null*/)
+{
+   int err ;
+   process_ioredirect2_t ioredirect2 = process_ioredirect2_INIT_FREEABLE ;
+
+   // TODO: MULTITHREAD: system handler for freeing thread resources (i.e. clear log, ...) ?!?
+
+   err = init_processioredirect2(&ioredirect2, ioredirection) ;
+   if (err) goto ONABORT ;
+
+   err = redirectstdio_processioredirect2(&ioredirect2) ;
+   if (err) goto ONABORT ;
+
+   err = free_processioredirect2(&ioredirect2) ;
+   if (err) goto ONABORT ;
+
+   return 0 ;
+ONABORT:
+   free_processioredirect2(&ioredirect2) ;
+   return err ;
+}
+
+int init_process(/*out*/process_t         *  process,
+                  process_task_f          child_main,
+                  void                    * start_arg,
+                  process_ioredirect_t    * ioredirection/*0 => /dev/null*/)
+{
+   int err ;
+   pid_t pid = 0 ;
+
+   err = fork_process(&pid) ;
+   if (err) goto ONABORT ;
+
    if (0 == pid) {
       // NEW CHILD PROCESS
-      // TODO: MULTITHREAD: system handler for freeing thread resources (i.e. clear log, ...) ?!?
-      process_ioredirect2_t ioredirect2 ;
-      err = init_processioredirect2(&ioredirect2, ioredirection) ;
-      if (!err) { err = redirectstdio_processioredirect2(&ioredirect2) ; }
-      if (!err) { err = free_processioredirect2(&ioredirect2) ; }
-      assert(!err && "[init|free|redirectstdio]_processioredirect2") ;
+      err = preparechild_process(ioredirection) ;
+      assert(!err) ;
+      int returncode = (child_main ? child_main(start_arg) : 0) ;
+      exit(returncode) ;
+   }
 
+   *process = pid ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+int initdaemon_process(/*out*/process_t      * process,
+                       process_task_f        child_main,
+                       void                  * start_arg,
+                       process_ioredirect_t  * ioredirection/*0 => /dev/null*/)
+{
+   int err ;
+   pid_t pid = 0 ;
+
+   err = fork_process(&pid) ;
+   if (err) goto ONABORT ;
+
+   if (0 == pid) {
+      // NEW CHILD DAEMON PROCESS
+      err = preparechild_process(ioredirection) ;
+      if (setsid() == (pid_t)-1) {
+         err = errno ;
+      }
+      umask(S_IROTH|S_IWOTH|S_IXOTH) ;
+      if (0 != chdir("/")) {
+         err = errno ;
+      }
+      assert(!err) ;
       int returncode = (child_main ? child_main(start_arg) : 0) ;
       exit(returncode) ;
    }
@@ -431,6 +501,8 @@ ONABORT:
    return err ;
 }
 
+// group: query
+
 int state_process(process_t * process, /*out*/process_state_e * current_state)
 {
    int err ;
@@ -447,6 +519,8 @@ ONABORT:
    return err ;
 }
 
+// group: change
+
 int wait_process(process_t * process, /*out*/process_result_t * result)
 {
    int err ;
@@ -454,7 +528,7 @@ int wait_process(process_t * process, /*out*/process_result_t * result)
 
    kill(pid, SIGCONT) ;
 
-   for(;;) {
+   for (;;) {
       process_result_t state ;
 
       err = queryresult_process(pid, &state, queryoption_WAIT) ;
@@ -487,15 +561,6 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-#define init_process(process, child_main, start_arg, ioredirection)                 \
-   /*do not forget to adapt definition in process.c test section*/                  \
-   ( __extension__ ({ int _err ;                                                    \
-      int (*_child_main) (typeof(start_arg)) = (child_main) ;                       \
-      static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;           \
-      _err = init_process(process, (process_task_f) _child_main,                    \
-                                 (void*)start_arg, ioredirection ) ;                \
-      _err ; }))
-
 static int childprocess_return(int returncode)
 {
    kill(getppid(), SIGUSR1) ;
@@ -506,7 +571,7 @@ static int childprocess_endlessloop(int dummy)
 {
    (void) dummy ;
    kill(getppid(), SIGUSR1) ;
-   for(;;) {
+   for (;;) {
       sleepms_thread(1000) ;
    }
    return 0 ;
@@ -537,9 +602,34 @@ static int childprocess_statechange(int fd)
    dprintf(fd,"sleep\n") ;
    kill( getpid(), SIGSTOP) ;
    dprintf(fd,"run\n") ;
-   for(;;) {
+   for (;;) {
       sleepms_thread(1000) ;
    }
+   return 0 ;
+}
+
+static int childprocess_daemon(void * dummy)
+{
+   char buffer[20];
+   char dir[10] = { 0 } ;
+
+   (void) dummy ;
+
+   if (  5 != read(STDIN_FILENO, buffer, 5)
+         || 5 != write(STDOUT_FILENO, buffer, 5)) {
+      return EINVAL ;
+   }
+
+   if (0 == getcwd(dir, sizeof(dir))) {
+      return EINVAL ;
+   }
+
+   snprintf(buffer, sizeof(buffer), "%d:%s", getsid(0), dir) ;
+
+   if ((int)strlen(buffer)+1 != write(STDERR_FILENO, buffer, strlen(buffer)+1)) {
+      return EINVAL ;
+   }
+
    return 0 ;
 }
 
@@ -569,7 +659,7 @@ static int test_redirect(void)
    TEST(filedescr_STDERR == ioredirect.std_err) ;
 
    // TEST setstdin_processioredirect, setstdout_processioredirect, setstderr_processioredirect
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
       TEST(filedescr_INIT_FREEABLE == ioredirect.std_in) ;
       TEST(filedescr_INIT_FREEABLE == ioredirect.std_out) ;
@@ -633,7 +723,7 @@ static int test_redirect2(void)
    TEST(filedescr_INIT_FREEABLE == ioredirect2.devnull) ;
 
    // TEST init(only one fd is set to devnull)
-   for(int i = 0; i < 3; ++i) {
+   for (int i = 0; i < 3; ++i) {
       ioredirect = (process_ioredirect_t) process_ioredirect_INIT_INHERIT ;
       ioredirect2.devnull = filedescr_INIT_FREEABLE ;
       switch(i) { // set one std fd to devnull
@@ -666,7 +756,7 @@ static int test_redirect2(void)
 
    {
       // store old stdio
-      for(int stdfd = 0; stdfd < 3; ++stdfd) {
+      for (int stdfd = 0; stdfd < 3; ++stdfd) {
          oldstdfd[stdfd] = dup(stdfd) ;
          TEST(-1 != oldstdfd[stdfd]) ;
       }
@@ -703,7 +793,7 @@ static int test_redirect2(void)
    // TEST redirectstdio inherit of closed fds
    ioredirect = (process_ioredirect_t) process_ioredirect_INIT_INHERIT ;
    TEST(0 == init_processioredirect2(&ioredirect2, &ioredirect)) ;
-   for(int stdfd = 0; stdfd < 3; ++stdfd) {
+   for (int stdfd = 0; stdfd < 3; ++stdfd) {
       int fd = stdfd ;
       TEST(0 == free_filedescr(&fd)) ;
       TEST(-1 == fd) ;
@@ -713,7 +803,7 @@ static int test_redirect2(void)
 
    {
       // restore stdio
-      for(int stdfd = 0; stdfd < 3; ++stdfd) {
+      for (int stdfd = 0; stdfd < 3; ++stdfd) {
          TEST(stdfd == dup2(oldstdfd[stdfd], stdfd)) ;
          TEST(0 == free_filedescr(&oldstdfd[stdfd]));
       }
@@ -726,7 +816,7 @@ static int test_redirect2(void)
    return 0 ;
 ONABORT:
    (void) free_processioredirect2(&ioredirect2) ;
-   for(int stdfd = 0; stdfd < 3; ++stdfd) {
+   for (int stdfd = 0; stdfd < 3; ++stdfd) {
       if (-1 != oldstdfd[stdfd]) {
          (void) dup2(oldstdfd[stdfd], stdfd) ;
          (void) free_filedescr(&oldstdfd[stdfd]) ;
@@ -759,17 +849,17 @@ static int test_initfree(void)
    TEST(sys_process_INIT_FREEABLE == process) ;
    TEST(0 == sys_process_INIT_FREEABLE) ;
 
-   // TEST init, double free
-   TEST(0 == init_process(&process, &childprocess_return, 0, 0)) ;
+   // TEST init_process, free_process
+   TEST(0 == initgeneric_process(&process, &childprocess_return, 0, 0)) ;
    TEST(0 <  process) ;
    TEST(0 == free_process(&process)) ;
    TEST(0 == process) ;
    TEST(0 == free_process(&process)) ;
    TEST(0 == process) ;
 
-   for(int i = 255; i >= 0; i -= 13) {
+   for (int i = 255; i >= 0; i -= 13) {
       // TEST wait_process
-      TEST(0 == init_process(&process, &childprocess_return, i, 0)) ;
+      TEST(0 == initgeneric_process(&process, &childprocess_return, i, 0)) ;
       TEST(0 <  process) ;
       TEST(0 == wait_process(&process, &process_result)) ;
       TEST(process_result.state      == process_state_TERMINATED) ;
@@ -801,9 +891,9 @@ static int test_initfree(void)
    }
 
    // TEST endless loop => delete ends process
-   for(int i = 0; i < 32; ++i) {
-      while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
-      TEST(0 == init_process(&process, &childprocess_endlessloop, 0, 0)) ;
+   for (int i = 0; i < 32; ++i) {
+      while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
+      TEST(0 == initgeneric_process(&process, &childprocess_endlessloop, 0, 0)) ;
       TEST(0 <  process) ;
       TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
       TEST(0 == state_process(&process, &process_state)) ;
@@ -813,15 +903,15 @@ static int test_initfree(void)
    }
 
    // TEST state_process
-   for(int i = 0; i < 32; ++i) {
-      while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
-      TEST(0 == init_process(&process, &childprocess_endlessloop, 0, 0)) ;
+   for (int i = 0; i < 32; ++i) {
+      while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
+      TEST(0 == initgeneric_process(&process, &childprocess_endlessloop, 0, 0)) ;
       TEST(0 <  process) ;
       TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
       TEST(0 == state_process(&process, &process_state)) ;
       TEST(process_state_RUNNABLE == process_state) ;
       kill(process, SIGSTOP) ;
-      for(int i2 = 0; i2 < 10000; ++i2) {
+      for (int i2 = 0; i2 < 10000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_RUNNABLE != process_state) break ;
          sleepms_thread(1) ;
@@ -831,7 +921,7 @@ static int test_initfree(void)
       TEST(0 == state_process(&process, &process_state)) ;
       TEST(process_state_RUNNABLE == process_state) ;
       kill(process, SIGKILL) ;
-      for(int i2 = 0; i2 < 10000; ++i2) {
+      for (int i2 = 0; i2 < 10000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_RUNNABLE != process_state) break ;
          sleepms_thread(1) ;
@@ -842,7 +932,7 @@ static int test_initfree(void)
    }
 
    // TEST ECHILD
-   TEST(0 == init_process(&process, &childprocess_return, 0, 0)) ;
+   TEST(0 == initgeneric_process(&process, &childprocess_return, 0, 0)) ;
    TEST(0 <  process) ;
    TEST(0 == wait_process(&process, 0)) ;
    TEST(0 <  process) ;
@@ -858,13 +948,13 @@ static int test_initfree(void)
    TEST(0 == process) ;
 
    // restore signalhandler
-   while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
+   while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
    isoldsignalmask = false ;
    TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
 
    return 0 ;
 ONABORT:
-   while( SIGUSR1 == sigtimedwait(&signalmask, 0, &ts) ) ;
+   while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
    if (isoldsignalmask) sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
    (void) free_process(&process) ;
    return EINVAL ;
@@ -887,9 +977,9 @@ static int test_abnormalexit(void)
       ,SIGSYS,    SIGRTMIN, SIGRTMAX,
    } ;
    unsigned signal_count = 0 ;
-   for(unsigned i = 0; i < nrelementsof(test_signals); ++i) {
+   for (unsigned i = 0; i < nrelementsof(test_signals); ++i) {
       int snr = test_signals[i] ;
-      TEST(0 == init_process(&process, &childprocess_signal, snr, 0)) ;
+      TEST(0 == initgeneric_process(&process, &childprocess_signal, snr, 0)) ;
       TEST(0 == wait_process(&process, &process_result)) ;
       if (process_state_ABORTED == process_result.state) {
          TEST(snr == process_result.returncode) ;
@@ -909,11 +999,11 @@ static int test_abnormalexit(void)
    TEST(signal_count > nrelementsof(test_signals)/2) ;
 
    // TEST free works if process has already ended
-   for(unsigned i = 0; i < 16; ++i) {
+   for (unsigned i = 0; i < 16; ++i) {
       TEST(0 == process) ;
-      TEST(0 == init_process(&process, &childprocess_signal, SIGKILL, 0)) ;
+      TEST(0 == initgeneric_process(&process, &childprocess_signal, SIGKILL, 0)) ;
       // wait until child has started
-      for(int i2 = 0; i2 < 10000; ++i2) {
+      for (int i2 = 0; i2 < 10000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_ABORTED == process_state) break ;
          sleepms_thread(1) ;
@@ -926,7 +1016,7 @@ static int test_abnormalexit(void)
       TEST(0 == free_process(&process)) ;
       TEST(0 == process) ;
 
-      TEST(0 == init_process(&process, &childprocess_signal, SIGKILL, 0)) ;
+      TEST(0 == initgeneric_process(&process, &childprocess_signal, SIGKILL, 0)) ;
       sleepms_thread(10) ;
       // do not query state before
       TEST(0 == free_process(&process)) ;
@@ -945,7 +1035,7 @@ static int test_assert(void)
    process_result_t     process_result ;
 
    // TEST assert exits with signal SIGABRT
-   TEST(0 == init_process(&process, &chilprocess_execassert, 0, 0)) ;
+   TEST(0 == initgeneric_process(&process, &chilprocess_execassert, 0, 0)) ;
    TEST(0 == wait_process(&process, &process_result)) ;
    TEST(process_state_ABORTED == process_result.state) ;
    TEST(SIGABRT               == process_result.returncode) ;
@@ -964,7 +1054,7 @@ static int test_assert(void)
       TEST(0 == free_filedescr(&pipefd2[0])) ;
       TEST(0 == free_filedescr(&pipefd2[1])) ;
    }
-   TEST(0 == init_process(&process, &childprocess_donothing, 0, &ioredirect)) ;
+   TEST(0 == initgeneric_process(&process, &childprocess_donothing, 0, &ioredirect)) ;
    TEST(0 == wait_process(&process, &process_result)) ;
    TEST(process_state_ABORTED == process_result.state) ;
    TEST(SIGABRT               == process_result.returncode) ;
@@ -985,12 +1075,12 @@ static int test_statequery(void)
 
    TEST(0 == pipe2(pipefd,O_CLOEXEC)) ;
 
-   for(unsigned i = 0; i < 4; ++i) {
+   for (unsigned i = 0; i < 4; ++i) {
 
       // use wait_process (to end process)
-      TEST(0 == init_process(&process, &childprocess_signal, SIGSTOP, 0)) ;
+      TEST(0 == initgeneric_process(&process, &childprocess_signal, SIGSTOP, 0)) ;
       // wait until child has started
-      for(int i2 = 0; i2 < 1000; ++i2) {
+      for (int i2 = 0; i2 < 1000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_STOPPED == process_state) break ;
          sleepms_thread(1) ;
@@ -1012,9 +1102,9 @@ static int test_statequery(void)
       TEST(0 == free_process(&process)) ;
 
       // use free_process (to end process)
-      TEST(0 == init_process(&process, &childprocess_signal, SIGSTOP, 0)) ;
+      TEST(0 == initgeneric_process(&process, &childprocess_signal, SIGSTOP, 0)) ;
       // wait until child has started
-      for(int i2 = 0; i2 < 1000; ++i2) {
+      for (int i2 = 0; i2 < 1000; ++i2) {
          TEST(0 == state_process(&process, &process_state)) ;
          if (process_state_STOPPED == process_state) break ;
          sleepms_thread(1) ;
@@ -1028,7 +1118,7 @@ static int test_statequery(void)
    }
 
    // TEST state query returns latest state
-   TEST(0 == init_process(&process, &childprocess_statechange, pipefd[1], 0)) ;
+   TEST(0 == initgeneric_process(&process, &childprocess_statechange, pipefd[1], 0)) ;
    {
       // wait until child has started
       char buffer[100] = { 0 } ;
@@ -1090,8 +1180,8 @@ static int test_exec(void)
    const char         * testcase3_args[] = { "bin/testchildprocess", "3", 0 } ;
    char                 readbuffer[32]   = { 0 } ;
 
+   // prepare
    TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK)) ;
-
    if (0 != stat("bin/testchildprocess", &statbuf)) {
       testcase1_args[0] = "bin/testchildprocess_Debug" ;
       testcase2_args[0] = "bin/testchildprocess_Debug" ;
@@ -1099,7 +1189,7 @@ static int test_exec(void)
    }
 
    // TEST executing child process return value (case1)
-   for(int i = 0; i <= 35; i += 7) {
+   for (int i = 0; i <= 35; i += 7) {
       snprintf(numberstr, sizeof(numberstr), "%d", i) ;
       TEST(0 == initexec_process(&process, testcase1_args[0], testcase1_args, 0)) ;
       TEST(0 == wait_process(&process, &process_result)) ;
@@ -1109,7 +1199,7 @@ static int test_exec(void)
    }
 
    // TEST open file descriptors (case2)
-   for(int i = 1; i <= 3; ++i) {
+   for (int i = 1; i <= 3; ++i) {
       ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
       setstderr_processioredirect(&ioredirect, fd[1]) ;
       if (i > 1) setstdin_processioredirect(&ioredirect, STDIN_FILENO) ;
@@ -1138,7 +1228,7 @@ static int test_exec(void)
    TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
    TEST(0 == strncmp(readbuffer, testcase3_args[0]+4, 15)) ;
 
-
+   // unprepare
    TEST(0 == free_filedescr(&fd[0])) ;
    TEST(0 == free_filedescr(&fd[1])) ;
 
@@ -1146,6 +1236,70 @@ static int test_exec(void)
 ONABORT:
    free_filedescr(&fd[0]) ;
    free_filedescr(&fd[1]) ;
+   (void) free_process(&process) ;
+   return EINVAL ;
+}
+
+static int test_daemon(void)
+{
+   process_t            process = process_INIT_FREEABLE ;
+   process_result_t     process_result ;
+   process_ioredirect_t ioredirect = process_ioredirect_INIT_DEVNULL ;
+   int                  fd[2]      = { -1, -1 } ;
+   struct timespec      ts         = { 0, 0 } ;
+   char                 readbuffer[20] ;
+   sigset_t             oldsignalmask ;
+   sigset_t             signalmask ;
+   bool                 isoldsignalmask = false ;
+
+   // prepare
+   TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(0 == sigemptyset(&signalmask)) ;
+   TEST(0 == sigaddset(&signalmask, SIGUSR1)) ;
+   TEST(0 == sigprocmask(SIG_BLOCK, &signalmask, &oldsignalmask)) ;
+   isoldsignalmask = true ;
+
+   // TEST initdaemon_process: return value
+   for (int i = 255; i >= 0; i -= 50) {
+      // TEST wait_process
+      TEST(0 == initdaemon_process(&process, (process_task_f)&childprocess_return, (void*)i, 0)) ;
+      TEST(0 == wait_process(&process, &process_result)) ;
+      TEST(process_result.state      == process_state_TERMINATED) ;
+      TEST(process_result.returncode == i) ;
+      TEST(0 == free_process(&process)) ;
+   }
+
+   // TEST initdaemon_process: ioredirect return ssid
+   ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
+   setstdin_processioredirect(&ioredirect, fd[0]) ;
+   setstdout_processioredirect(&ioredirect, fd[1]) ;
+   setstderr_processioredirect(&ioredirect, fd[1]) ;
+   TEST(5 == write(fd[1], "12345", 5)) ;
+   TEST(0 == initdaemon_process(&process, &childprocess_daemon, (void*)0, &ioredirect)) ;
+   TEST(0 == wait_process(&process, &process_result)) ;
+   TEST(process_result.state      == process_state_TERMINATED) ;
+   TEST(process_result.returncode == 0) ;
+   TEST(5 == read(fd[0], readbuffer, 5)) ;
+   TEST(0 == strncmp(readbuffer, "12345", 5)) ;
+   TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(atoi(readbuffer) == process) ;
+   TEST(0 != strchr(readbuffer, ':')) ;
+   TEST(0 == strcmp(strchr(readbuffer, ':')+1, "/")) ;
+   TEST(0 == free_process(&process)) ;
+
+   // unprepare
+   TEST(0 == free_filedescr(&fd[0])) ;
+   TEST(0 == free_filedescr(&fd[1])) ;
+   while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
+   isoldsignalmask = false ;
+   TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
+
+   return 0 ;
+ONABORT:
+   free_filedescr(&fd[0]) ;
+   free_filedescr(&fd[1]) ;
+   while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
+   if (isoldsignalmask) sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
    (void) free_process(&process) ;
    return EINVAL ;
 }
@@ -1163,6 +1317,7 @@ int unittest_platform_process()
    if (test_assert())         goto ONABORT ;
    if (test_statequery())     goto ONABORT ;
    if (test_exec())           goto ONABORT ;
+   if (test_daemon())         goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -1174,7 +1329,7 @@ int unittest_platform_process()
    char buffer2[1000] = { 0 } ;
    assert(size < sizeof(buffer2)) ;
    size = 0 ;
-   while( strstr(buffer, "\npid=") ) {
+   while (strstr(buffer, "\npid=")) {
       memcpy( &buffer2[size], buffer, (size_t) (strstr(buffer, "\npid=") - buffer)) ;
       size += (size_t) (strstr(buffer, "\npid=") - buffer) ;
       strcpy( &buffer2[size], "\npid=?") ;
