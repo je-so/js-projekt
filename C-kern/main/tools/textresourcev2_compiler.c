@@ -464,7 +464,7 @@ static int init_textresourcetext(/*out*/textresource_text_t * text, const consts
 {
    int err ;
    arraystf_t * textparams = 0 ;
-   err = new_arrayparam(&textparams, arraystf_4BITROOT_UNSORTED) ;
+   err = new_arrayparam(&textparams, 16) ;
    if (err) return err ;
    text->name   = (arraystf_node_t) arraystf_node_INIT(name->size, name->addr) ;
    text->params = textparams ;
@@ -622,13 +622,13 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
 
    textres->read_from_filename = read_from_filename ;
 
-   err = new_arraytname(&textres->textnames, arraystf_8BITROOT) ;
+   err = new_arraytname(&textres->textnames, 256) ;
    if (err) goto ONABORT ;
 
-   err = new_arrayptype(&textres->paramtypes, arraystf_4BITROOT_UNSORTED) ;
+   err = new_arrayptype(&textres->paramtypes, 16) ;
    if (err) goto ONABORT ;
 
-   err = new_arrayptype(&textres->languages, arraystf_8BITROOT) ;
+   err = new_arrayptype(&textres->languages, 256) ;
    if (err) goto ONABORT ;
 
    for (unsigned i = 0; i < nrelementsof(knowntypes); ++i) {

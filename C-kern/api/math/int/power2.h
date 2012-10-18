@@ -63,7 +63,7 @@ int ispowerof2_int(unsigned i) ;
  * Parameter:
  * i - The argument which is transformed into a power of 2 value and returned.
  *
- * The returned value is the same as argument if
+ * The returned value is the same as argument i in case of
  * 1. *i* == 0
  * 2. <ispowerof2_int>(*i*) is true
  * 3. the next higher power of 2 value can not be represented by this type of integer

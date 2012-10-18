@@ -42,28 +42,6 @@ typedef struct arraysf_t               arraysf_t ;
  * Export <arraysf_iterator_t>, iterator type to iterate of contained nodes. */
 typedef struct arraysf_iterator_t      arraysf_iterator_t ;
 
-/* enums: arraysf_e
- *
- * arraysf_6BITROOT_UNSORTED  - This root is optimized for values between 0 .. 63. The root is accessed with the
- *                              the lowest 6 bit of the index (pos % 64) or (pos & 0x3f).
- * arraysf_8BITROOT_UNSORTED  - This root is optimized for values between 0 .. 255. The root is accessed with the
- *                      the lowest 8 bit of the index  (pos % 256) or (pos & 0xff).
- * arraysf_MSBPOSROOT - This root is optimized for indizes *pos* which differ in MSBit position.
- *                      The size of the root array is 1 + 3*(bitsize(size_t)/2).
- * arraysf_8BITROOT24 - If MSBit positions are always >= 24 (and < 32) as is the case for IPv4 addresses
- *                      this root distribution must be used. The root is accessed with the
- *                      the highest 8 bit of a 32 bit number. The number should be less or equal to UINT32_MAX.
- *                      If provided numbers are higher than UINT32_MAX an iteration in ascending order is not possible.
- * */
-enum arraysf_e {
-    arraysf_6BITROOT_UNSORTED
-   ,arraysf_8BITROOT_UNSORTED
-   ,arraysf_MSBPOSROOT
-   ,arraysf_8BITROOT24
-} ;
-
-typedef enum arraysf_e                 arraysf_e ;
-
 
 // section: Functions
 
@@ -81,36 +59,45 @@ int unittest_ds_inmem_arraysf(void) ;
  * This type of array supports non-continuous index numbers (sparse distribution).
  * Once an object is assigned a memory location the address is never changed (fixed location).
  * Every internal trie node contains the bit position (from highest to lowest) of the next
- * 2 bits which are of interest. According to their value the pointer to the next node is
- * chosen from an array of 4 pointers until a leaf node is found where the value is stored.
+ * 2 bits of the index number which are of interest.
+ * According to the bit value value the pointer to the next node is chosen from an array
+ * of 4 pointers until a leaf node is found where the value is stored.
  *
- * From the root node to the leaf node only such bit positions are compared if there exist
- * at least two stored indizes which have different values at this position.
- * Therefore leaf nodes (user type <arraysf_node_t>) has a depth of less than 16 (index_bitsize/2)
- * on a 32 bit machine or 32 on a 64 bit machine. The mean depth is log2(number of stored indizes)/2.
- *
- * If you choose arraysf_MSBPOSROOT as the type of array the maximum depth for
- * a leaf node is log2(index value)/2 (depth<=4 for index values < 256). */
+ * From root to leaf nodes only such bit positions are compared for which there exist
+ * at least two stored indizes withh different values at this bit position.
+ * Therefore leaf nodes (user type <arraysf_node_t>) has a depth of less than 16
+ * on a 32 bit machine or 32 on a 64 bit machine. The typical depth is log2(number_of_stored_nodes)/2.
+ * */
 struct arraysf_t {
    /* variable: length
     * The number of elements stored in this array. */
    size_t                  length ;
-   /* variable: type
-    * The type of the array, see <arraysf_e>. */
-   arraysf_e               type ;
+   /* variable: toplevelsize
+    * The size of array <root>. */
+   uint32_t                toplevelsize:24 ;
+   /* variable: posshift
+    * The number of bits *pos* index of <arraysf_node_t> is shifted right
+    * before it is used modulo <toplevelsize> to access <root>. */
+   uint32_t                posshift:8 ;
    /* variable: root
     * Points to top level nodes.
-    * The size of the root array is determined by the <type> of the array. */
-   union arraysf_unode_t   * root[] ;
+    * The size of the root array is determined by <toplevelsize>. */
+   union arraysf_unode_t   * root[/*toplevelsize*/] ;
 } ;
 
 // group: lifetime
 
 /* function: new_arraysf
  * Allocates a new array object.
- * Parameter *type* determines the size of the <arraystf_t.root> array
- * and the chosen root distribution. */
-int new_arraysf(/*out*/arraysf_t ** array, arraysf_e type) ;
+ * Parameter *toplevelsize* determines the number of childs of root node.
+ * Parameter *posshift* is number of bits pos index of node is shifted to the right before
+ * modulo toplevelsize is computed to get index of the root child.
+ * Set parameter *posshift* to 0 if you want to use the least significant of pos index.
+ * Set posshift to 8*sizeof(size_t)-log2_int(toplevelsize) if you want to use the most
+ * significant digit of pos index to access the childs of the root node.
+ * Set posshift to 24 and toplevelsize to 256 if you want to store ip addresses of 32 bit
+ * (or 23 and 512, 22 and 1024 ...). */
+int new_arraysf(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshift) ;
 
 /* function: delete_arraysf
  * Frees allocated memory.
@@ -235,7 +222,7 @@ bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/s
 #define arraysf_IMPLEMENT(_fsuffix, object_t, nodename)     \
    typedef arraysf_iterator_t    iteratortype##_fsuffix ;   \
    typedef object_t              iteratedtype##_fsuffix ;   \
-   static inline int  new##_fsuffix(/*out*/arraysf_t ** array, arraysf_e type) __attribute__ ((always_inline)) ; \
+   static inline int  new##_fsuffix(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshift) __attribute__ ((always_inline)) ; \
    static inline int  delete##_fsuffix(arraysf_t ** array, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline size_t length##_fsuffix(arraysf_t * array) __attribute__ ((always_inline)) ; \
    static inline object_t * at##_fsuffix(const arraysf_t * array, size_t pos) __attribute__ ((always_inline)) ; \
@@ -256,8 +243,8 @@ bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/s
    static inline object_t * asobjectnull##_fsuffix(arraysf_node_t * node) { \
       return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
    } \
-   static inline int new##_fsuffix(/*out*/arraysf_t ** array, arraysf_e type) { \
-      return new_arraysf(array, type) ; \
+   static inline int new##_fsuffix(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshift) { \
+      return new_arraysf(array, toplevelsize, posshift) ; \
    } \
    static inline int delete##_fsuffix(arraysf_t ** array, struct typeadapt_member_t * nodeadp) { \
       return delete_arraysf(array, nodeadp) ; \

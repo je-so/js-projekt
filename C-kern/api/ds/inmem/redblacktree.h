@@ -144,11 +144,19 @@ bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, redblacktree_t * 
 
 
 /* struct: redblacktree_t
- * Object which carries all information to implement a red black tree data type. */
+ * Object which carries all information to implement a red black tree data type.
+ *
+ * typeadapt_t:
+ * The service <typeadapt_lifetime_it.delete_object> of <typeadapt_t.lifetime> is used in <free_redblacktree> and <removenodes_redblacktree>.
+ * The service <typeadapt_keycomparator_it.cmp_key_object> of <typeadapt_t.keycomparator> is used in <find_redblacktree> and <remove_redblacktree>.
+ * The service <typeadapt_keycomparator_it.cmp_object> of <typeadapt_t.keycomparator> is used in <invariant_redblacktree>.
+ * */
 struct redblacktree_t {
    /* variable: root
     * Points to the root object which has no parent. */
    redblacktree_node_t  * root ;
+   /* variable: nodeadp
+    * Offers lifetime + keycomparator services to handle stored nodes. */
    typeadapt_member_t   nodeadp ;
 } ;
 

@@ -187,7 +187,7 @@ int init_iocontroler(/*out*/iocontroler_t * iocntr)
       goto ONABORT ;
    }
 
-   err = new_iocbarray(&iocbs, arraysf_6BITROOT_UNSORTED) ;
+   err = new_iocbarray(&iocbs, 64, 0) ;
    if (err) goto ONABORT ;
 
    iocntr->sys_poll     = efd ;

@@ -121,6 +121,8 @@ struct splaytree_t {
    /* variable: root
     * Points to the root object which has no parent. */
    splaytree_node_t     * root ;
+   /* variable: nodeadp
+    * Offers lifetime + keycomparator services to handle stored nodes. */
    typeadapt_member_t   nodeadp ;
 } ;
 

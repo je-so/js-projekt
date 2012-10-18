@@ -42,32 +42,6 @@ typedef struct arraystf_t              arraystf_t ;
  * Export <arraystf_iterator_t>, iterator type to iterate of contained nodes. */
 typedef struct arraystf_iterator_t     arraystf_iterator_t ;
 
-/* enums: arraystf_e
- *
- * arraystf_4BITROOT_UNSORTED  - The least significant 4 bits of the string length
- *                               are used to access the root array which is of size 16.
- * arraystf_6BITROOT_UNSORTED  - The least significant 6 bits of the string length
- *                               are used to access the root array which is of size 64.
- * arraystf_MSBROOT    - This root is accessed with MSBit position of first string byte as index.
- *                       The nr elements of the root array is 8.
- * arraystf_4BITROOT   - This root is accessed with the 4 most significant bits (0xf0) of the first string byte as index.
- *                       The nr elements of the root array is 16.
- * arraystf_6BITROOT   - This root is accessed with the 6 most significant bits (0xfc) of the first string byte as index.
- *                       The nr elements of the root array is 64.
- * arraystf_8BITROOT   - This root is accessed with value of the first string byte as index.
- *                       The nr elements of the root array is 256.
- * */
-enum arraystf_e {
-    arraystf_4BITROOT_UNSORTED
-   ,arraystf_6BITROOT_UNSORTED
-   ,arraystf_MSBROOT
-   ,arraystf_4BITROOT
-   ,arraystf_6BITROOT
-   ,arraystf_8BITROOT
-} ;
-
-typedef enum arraystf_e                arraystf_e ;
-
 
 // section: Functions
 
@@ -112,22 +86,24 @@ struct arraystf_t {
    /* variable: length
     * The number of elements stored in this array. */
    size_t                  length ;
-   /* variable: type
-    * The type of the array, see <arraystf_e>. */
-   arraystf_e              type ;
+   /* variable: toplevelsize
+    * The size of array <root>. */
+   uint32_t                toplevelsize:24 ;
+   /* variable: rootidxshift
+    * Nr of bits to shift right before root key is used to access <root>. */
+   uint32_t                rootidxshift:8 ;
    /* variable: root
     * Points to top level nodes.
-    * The size of the root array is determined by the <type> of the array. */
-   union arraystf_unode_t  * root[] ;
+    * The size of the root array is determined by <toplevelsize>. */
+   union arraystf_unode_t  * root[/*toplevelsize*/] ;
 } ;
 
 // group: lifetime
 
 /* function: new_arraystf
  * Allocates a new array object.
- * Parameter *type* determines the size of the <arraystf_t.root> array
- * and the chosen root distribution. */
-int new_arraystf(/*out*/arraystf_t ** array, arraystf_e type) ;
+ * Parameter *toplevelsize* determines the number of childs of root node. */
+int new_arraystf(/*out*/arraystf_t ** array, uint32_t toplevelsize) ;
 
 /* function: delete_arraystf
  * Frees allocated memory.
@@ -252,7 +228,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
 #define arraystf_IMPLEMENT(_fsuffix, object_t, nodename)    \
    typedef arraystf_iterator_t   iteratortype##_fsuffix ;   \
    typedef object_t              iteratedtype##_fsuffix ;   \
-   static inline int  new##_fsuffix(/*out*/arraystf_t ** array, arraystf_e type) __attribute__ ((always_inline)) ; \
+   static inline int  new##_fsuffix(/*out*/arraystf_t ** array, uint32_t toplevelsize) __attribute__ ((always_inline)) ; \
    static inline int  delete##_fsuffix(arraystf_t ** array, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline size_t length##_fsuffix(arraystf_t * array) __attribute__ ((always_inline)) ; \
    static inline object_t * at##_fsuffix(const arraystf_t * array, size_t size, const uint8_t keydata[size]) __attribute__ ((always_inline)) ; \
@@ -273,8 +249,8 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
    static inline object_t * asobjectnull##_fsuffix(arraystf_node_t * node) { \
       return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
    } \
-   static inline int new##_fsuffix(/*out*/arraystf_t ** array, arraystf_e type) { \
-      return new_arraystf(array, type) ; \
+   static inline int new##_fsuffix(/*out*/arraystf_t ** array, uint32_t toplevelsize) { \
+      return new_arraystf(array, toplevelsize) ; \
    } \
    static inline int delete##_fsuffix(arraystf_t ** array, struct typeadapt_member_t * nodeadp) { \
       return delete_arraystf(array, nodeadp) ; \
