@@ -236,7 +236,7 @@ int invariant_redblacktree(redblacktree_t * tree) ;
 // group: generic
 
 /* define: redblacktree_IMPLEMENT
- * Generates interface of double linked list storing elements of type object_t.
+ * Generates interface of <redblacktree_t> storing elements of type object_t.
  *
  * Parameter:
  * _fsuffix  - The suffix name of all generated tree interface functions, e.g. "init##_fsuffix".

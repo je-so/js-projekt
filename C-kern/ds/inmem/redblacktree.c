@@ -1729,6 +1729,7 @@ static int test_generic(void)
                            typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
+   typeadapt_member_t   emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, unsigned), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
 
@@ -1745,7 +1746,6 @@ static int test_generic(void)
    TEST(isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
    init_testtree(&tree, &nodeadapt) ;
    TEST(0 == free_testtree(&tree)) ;
-   typeadapt_member_t emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
    TEST(isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
 
    // TEST getinistate_redblacktree
@@ -1795,6 +1795,7 @@ static int test_generic(void)
       TEST(0 == insert_testtree(&tree, (unsigned*)nodes[i].key, &nodes[i])) ;
    }
    TEST(0 == removenodes_testtree(&tree)) ;
+   TEST(0 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(1 == nodes[i].is_freed) ;
    }
@@ -1802,6 +1803,7 @@ static int test_generic(void)
       TEST(0 == insert_testtree(&tree, (unsigned*)nodes[i].key, &nodes[i])) ;
    }
    TEST(0 == free_testtree(&tree)) ;
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
       TEST(2 == nodes[i].is_freed) ;
    }

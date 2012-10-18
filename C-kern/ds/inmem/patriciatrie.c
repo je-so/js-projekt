@@ -879,6 +879,22 @@ static int test_initfree(void)
       TEST(0 == nodes[i].node.right) ;
    }
 
+   // TEST getinistate_patriciatrie
+   patriciatrie_node_t * saved_root   = (void*) 1 ;
+   typeadapt_member_t saved_nodeadapt = nodeadapt ;
+   tree = (patriciatrie_t)patriciatrie_INIT_FREEABLE ;
+   getinistate_patriciatrie(&tree, &saved_root, 0) ;
+   TEST(0 == saved_root) ;
+   getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt) ;
+   TEST(0 == saved_root) ;
+   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &emptynodeadapt)) ;
+   tree = (patriciatrie_t)patriciatrie_INIT(&nodes[0].node, nodeadapt) ;
+   getinistate_patriciatrie(&tree, &saved_root, 0) ;
+   TEST(&nodes[0].node == saved_root) ;
+   getinistate_patriciatrie(&tree, &saved_root, &saved_nodeadapt) ;
+   TEST(&nodes[0].node == saved_root) ;
+   TEST(1 == isequal_typeadaptmember(&saved_nodeadapt, &nodeadapt)) ;
+
    // TEST isempty_patriciatrie
    tree.root = (void*)1 ;
    TEST(0 == isempty_patriciatrie(&tree)) ;
@@ -1346,7 +1362,7 @@ static int test_iterator(void)
    TEST(0 == free_patriciatrieprefixiter(&preiter)) ;
    TEST(0 == preiter.next) ;
 
-   // TEST random iterator
+   // TEST both iterator
    srand(400) ;
    for (int test = 0; test < 20; ++test) {
       typeadapt.getbinkey_count = 0 ;
@@ -1438,6 +1454,115 @@ ONABORT:
    return EINVAL ;
 }
 
+patriciatrie_IMPLEMENT(_testtree, testnode_t, node)
+
+static int test_generic(void)
+{
+   testadapt_t             typeadapt = { typeadapt_INIT_LIFEGETKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   typeadapt_member_t      nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testadapt_t,testnode_t,void), offsetof(testnode_t, node)) ;
+   typeadapt_member_t emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
+   patriciatrie_t          tree = patriciatrie_INIT_FREEABLE ;
+   testnode_t              nodes[50] ;
+
+   // prepare
+   memset(nodes, 0, sizeof(nodes)) ;
+   init_patriciatrie(&tree, &nodeadapt) ;
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      static_assert(sizeof(nodes[i].key) == 4, "key assignment thinks keysize is 4") ;
+      nodes[i].key_len = sizeof(nodes[i].key) ;
+      nodes[i].key[0] = (uint8_t)((i/1000) % 10) ;
+      nodes[i].key[1] = (uint8_t)((i/100) % 10) ;
+      nodes[i].key[2] = (uint8_t)((i/10) % 10) ;
+      nodes[i].key[3] = (uint8_t)((i/1) % 10) ;
+   }
+
+   // TEST init_patriciatrie, free_patriciatrie
+   tree.root = (void*)1 ;
+   init_testtree(&tree, &nodeadapt) ;
+   TEST(0 == tree.root) ;
+   TEST(isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
+   init_testtree(&tree, &nodeadapt) ;
+   TEST(0 == free_testtree(&tree)) ;
+   TEST(isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+
+   // TEST getinistate_patriciatrie
+   testnode_t         * root     = 0 ;
+   typeadapt_member_t nodeadapt2 = typeadapt_member_INIT_FREEABLE ;
+   init_testtree(&tree, &nodeadapt) ;
+   tree.root = &nodes[10].node ;
+   getinistate_testtree(&tree, &root, &nodeadapt2) ;
+   TEST(&nodes[10] == root) ;
+   TEST(isequal_typeadaptmember(&nodeadapt2, &nodeadapt)) ;
+   tree = (patriciatrie_t) patriciatrie_INIT_FREEABLE ;
+   nodeadapt2 = nodeadapt ;
+   getinistate_testtree(&tree, &root, &nodeadapt2) ;
+   TEST(0 == root) ;
+   TEST(isequal_typeadaptmember(&nodeadapt2, &emptynodeadapt)) ;
+
+   // TEST isempty_patriciatrie
+   tree.root = (void*)1 ;
+   TEST(0 == isempty_testtree(&tree)) ;
+   tree.root = (void*)0 ;
+   TEST(1 == isempty_testtree(&tree)) ;
+
+   // TEST insert_patriciatrie, find_patriciatrie, remove_patriciatrie
+   init_testtree(&tree, &nodeadapt) ;
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      testnode_t * found_node = 0 ;
+      TEST(0 == find_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &found_node)) ;
+      TEST(found_node == &nodes[i]) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      testnode_t * removed_node = 0 ;
+      TEST(0 == remove_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &removed_node)) ;
+      TEST(removed_node == &nodes[i]) ;
+      TEST(ESRCH == find_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &removed_node)) ;
+   }
+
+   // TEST removenodes_patriciatrie, free_patriciatrie
+   init_testtree(&tree, &nodeadapt) ;
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
+   }
+   TEST(0 == removenodes_testtree(&tree)) ;
+   TEST(0 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(1 == nodes[i].is_freed) ;
+   }
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
+   }
+   TEST(0 == free_testtree(&tree)) ;
+   TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(2 == nodes[i].is_freed) ;
+   }
+
+   // TEST foreach, foreachReverse
+   init_testtree(&tree, &nodeadapt) ;
+   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
+   }
+   for (unsigned i = 0; 0 == i; i = 1) {
+      foreach (_testtree, &tree, node) {
+         TEST(node == &nodes[i++]) ;
+      }
+      TEST(i == nrelementsof(nodes)) ;
+
+      foreachReverse (_testtree, &tree, node) {
+         TEST(node == &nodes[--i]) ;
+      }
+      TEST(i == 0) ;
+   }
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 int unittest_ds_inmem_patriciatrie()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -1448,6 +1573,7 @@ int unittest_ds_inmem_patriciatrie()
    if (test_initfree())          goto ONABORT ;
    if (test_insertremove())      goto ONABORT ;
    if (test_iterator())          goto ONABORT ;
+   if (test_generic())           goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
