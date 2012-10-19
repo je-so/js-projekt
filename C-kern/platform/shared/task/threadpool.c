@@ -75,7 +75,7 @@ int init_threadpool(/*out*/threadpool_t * pool, uint8_t nr_of_threads)
    err = init_waitlist(&pool->idle) ;
    if (err) goto ONABORT ;
 
-   err = newgroup_thread(&pool->threads, &threadmain_threadpool, pool, nr_of_threads) ;
+   err = newgeneric_thread(&pool->threads, &threadmain_threadpool, pool, nr_of_threads) ;
    if (err) goto ONABORT ;
 
    return 0 ;

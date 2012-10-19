@@ -221,7 +221,7 @@ static int init_threadstack(thread_stack_t * stackframe, uint32_t nr_threads)
 
    thread_stack_t signalstack = getsignalstack_threadstack(&stack) ;
    thread_stack_t threadstack = getthreadstack_threadstack(&stack) ;
-   for(uint32_t i = 0; i < nr_threads; ++i) {
+   for (uint32_t i = 0; i < nr_threads; ++i) {
       if (mprotect(signalstack.addr, signalstack.size, PROT_READ|PROT_WRITE)) {
          err = errno ;
          TRACESYSERR_LOG("mprotect", err) ;
@@ -298,7 +298,7 @@ static void * startpoint_thread(thread_startargument_t * startarg)
       }
 
       if (startarg->isFreeEvents) {
-         for(uint32_t i = startarg->nr_threads; i ; --i) {
+         for (uint32_t i = startarg->nr_threads; i ; --i) {
             err = wait_semaphore(&startarg->isfreeable_semaphore) ;
             if (err) {
                TRACECALLERR_LOG("wait_semaphore",err) ;
@@ -463,7 +463,6 @@ ONABORT:
    return err ;
 }
 
-#undef newgroup_thread
 int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * start_arg, uint32_t nr_of_threads)
 {
    int err ;
@@ -495,7 +494,7 @@ int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, voi
    next_thread = prev_thread  ;
    thread      = prev_thread  ;
 
-   for(uint32_t i = 0; i < nr_of_threads; ++i) {
+   for (uint32_t i = 0; i < nr_of_threads; ++i) {
 
       sys_thread_t             sys_thread = sys_thread_INIT_FREEABLE ;
       thread_startargument_t * startarg   = (thread_startargument_t*) signalstack.addr ;
@@ -572,7 +571,7 @@ int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, voi
       next_thread->stackframe  = stackframe ;
       next_thread->groupnext   = thread ;
       prev_thread->groupnext   = next_thread ;
-      for(; i < nr_of_threads; --i) {
+      for (; i < nr_of_threads; --i) {
          startarg = (thread_startargument_t*) signalstack.addr ;
          startarg->isAbort = true ;
          signalstack.addr -= framesize ;
@@ -710,15 +709,6 @@ ONABORT:
 // section: test
 
 #ifdef KONFIG_UNITTEST
-
-#define newgroup_thread(threadobj, thread_main, start_arg, nr_of_threads)           \
-   /*do not forget to adapt definition in thead.c test section*/                    \
-   ( __extension__ ({ int _err ;                                                    \
-      int (*_thread_main) (typeof(start_arg)) = (thread_main) ;                     \
-      static_assert(sizeof(start_arg) == sizeof(void*), "same as void*") ;          \
-      _err = newgroup_thread(threadobj, (thread_task_f) _thread_main,               \
-                                    (void*)start_arg, nr_of_threads) ;              \
-      _err ; }))
 
 static thread_stack_t   s_signalstack ;
 static pthread_t        s_threadid ;
@@ -994,7 +984,7 @@ static int test_thread_init(void)
    // could not be tested cause unhandled signals terminate whole process
 
    // TEST returncode
-   for(int i = -5; i < 5; ++i) {
+   for (int i = -5; i < 5; ++i) {
       const intptr_t arg = 1111 * i ;
       s_returncode_signal  = 0 ;
       s_returncode_running = 0 ;
@@ -1003,7 +993,7 @@ static int test_thread_init(void)
       TEST(thread->task_arg   == (void*)arg) ;
       TEST(thread->task_f     == (thread_task_f)&thread_returncode) ;
       TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
-      for(int yi = 0; yi < 100000 && !s_returncode_running; ++yi) {
+      for (int yi = 0; yi < 100000 && !s_returncode_running; ++yi) {
          pthread_yield() ;
       }
       TEST(s_returncode_running) ;
@@ -1168,7 +1158,7 @@ static int test_thread_stack(void)
    TEST(0 == stack.addr) ;
    TEST(0 == stack.size) ;
 
-   for(uint32_t i = 1; i < 64; ++i) {
+   for (uint32_t i = 1; i < 64; ++i) {
       size_t nr_pages1 = (signalstacksize_threadstack() + pagesize_vm() -1) / pagesize_vm() ;
       size_t nr_pages2 = (threadstacksize_threadstack() + pagesize_vm() -1) / pagesize_vm() ;
       // TEST init array
@@ -1182,7 +1172,7 @@ static int test_thread_stack(void)
       TEST(getthreadstack_threadstack(&stack).addr == &stack.addr[pagesize_vm() * (2+nr_pages1)]) ;
       TEST(getthreadstack_threadstack(&stack).size == pagesize_vm() * nr_pages2) ;
       // Test stack protection
-      for(uint32_t o = 0; o < i; ++o) {
+      for (uint32_t o = 0; o < i; ++o) {
          size_t  offset = o * framestacksize_threadstack() ;
          uint8_t * addr = &stack.addr[offset] ;
          addr[pagesize_vm()] = 0 ;
@@ -1227,7 +1217,7 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
    stack_t  current_sigaltstack ;
 
    if (  0 != sigaltstack(0, &current_sigaltstack)
-      || 0 != current_sigaltstack.ss_flags) {
+         || 0 != current_sigaltstack.ss_flags) {
       goto ONABORT ;
    }
 
@@ -1236,14 +1226,14 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
    err = unlock_mutex(&startarg->lock) ;
    if (err) goto ONABORT ;
 
-   for(unsigned i = 0; i < nrelementsof(startarg->isSelfValid); ++i) {
+   for (unsigned i = 0; i < nrelementsof(startarg->isSelfValid); ++i) {
       if (  (void*)startarg->thread[i] == self_thread()) {
          startarg->isSelfValid[i] = true ;
          break ;
       }
    }
 
-   for(unsigned i = 0; i < nrelementsof(startarg->isSignalstackValid); ++i) {
+   for (unsigned i = 0; i < nrelementsof(startarg->isSignalstackValid); ++i) {
       if (  (void*)startarg->signalstack[i].addr == current_sigaltstack.ss_sp
          &&        startarg->signalstack[i].size == current_sigaltstack.ss_size ) {
          startarg->isSignalstackValid[i] = true ;
@@ -1251,7 +1241,7 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
       }
    }
 
-   for(unsigned i = 0; i < nrelementsof(startarg->isSignalstackValid); ++i) {
+   for (unsigned i = 0; i < nrelementsof(startarg->isSignalstackValid); ++i) {
       if (  startarg->threadstack[i].addr < (uint8_t*)&startarg
          && (uint8_t*)&startarg < startarg->threadstack[i].addr + startarg->threadstack[i].size ) {
          startarg->isThreadstackValid[i] = true ;
@@ -1273,11 +1263,11 @@ static int test_thread_array(void)
 
    // TEST init, double free
    s_returncode_signal = 0 ;
-   TEST(0 == newgroup_thread(&thread, thread_returncode, 0, 23)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_returncode, 0, 23)) ;
    TEST(thread) ;
    prev = 0 ;
    next = thread ;
-   for(unsigned i = 0; i < thread->nr_threads; ++i) {
+   for (unsigned i = 0; i < thread->nr_threads; ++i) {
       TEST(prev < next) ;
       TEST(next->wlistnext  == 0) ;
       TEST(next->task_arg   == 0) ;
@@ -1293,7 +1283,7 @@ static int test_thread_array(void)
    TEST(0 == join_thread(thread)) ;
    prev = 0 ;
    next = thread ;
-   for(unsigned i = 0; i < thread->nr_threads; ++i) {
+   for (unsigned i = 0; i < thread->nr_threads; ++i) {
       TEST(prev < next) ;
       TEST(next->wlistnext  == 0) ;
       TEST(next->task_arg   == 0) ;
@@ -1312,11 +1302,11 @@ static int test_thread_array(void)
 
    // Test return values (== 0)
    s_returncode_signal = 1 ;
-   TEST(0 == newgroup_thread(&thread, thread_returncode, 0, 53)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_returncode, 0, 53)) ;
    TEST(0 == join_thread(thread)) ;
    prev = 0 ;
    next = thread ;
-   for(unsigned i = 0; i < thread->nr_threads; ++i) {
+   for (unsigned i = 0; i < thread->nr_threads; ++i) {
       TEST(prev < next) ;
       TEST(next->returncode == 0) ;
       TEST(next->nr_threads == 53) ;
@@ -1329,11 +1319,11 @@ static int test_thread_array(void)
 
    // Test return values (!= 0)
    s_returncode_signal = 1 ;
-   TEST(0 == newgroup_thread(&thread, thread_returncode, 0x0FABC, 87)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_returncode, 0x0FABC, 87)) ;
    TEST(0 == join_thread(thread)) ;
    prev = 0 ;
    next = thread ;
-   for(unsigned i = 0; i < thread->nr_threads; ++i) {
+   for (unsigned i = 0; i < thread->nr_threads; ++i) {
       TEST(prev < next) ;
       TEST(next->returncode == 0x0FABC) ;
       TEST(next->nr_threads == 87) ;
@@ -1346,14 +1336,14 @@ static int test_thread_array(void)
 
    // Test every thread has its own stackframe + self_thread
    TEST(0 == lock_mutex(&startarg.lock)) ;
-   TEST(0 == newgroup_thread(&thread, thread_isvalidstack, &startarg, nrelementsof(startarg.isSignalstackValid))) ;
+   TEST(0 == newgeneric_thread(&thread, thread_isvalidstack, &startarg, nrelementsof(startarg.isSignalstackValid))) ;
 
    thread_stack_t signalstack = getsignalstack_threadstack(&thread->stackframe) ;
    thread_stack_t threadstack = getthreadstack_threadstack(&thread->stackframe) ;
    size_t           framesize = framestacksize_threadstack() ;
    prev = 0 ;
    next = thread ;
-   for(unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
+   for (unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
       TEST(prev < next) ;
       startarg.isSelfValid[i]        = false ;
       startarg.isSignalstackValid[i] = false ;
@@ -1371,17 +1361,17 @@ static int test_thread_array(void)
    TEST(0 == unlock_mutex(&startarg.lock)) ;
    TEST(0 == delete_thread(&thread)) ;
 
-   for(unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
+   for (unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
       TEST(startarg.isSelfValid[i]) ;
       TEST(startarg.isSignalstackValid[i]) ;
       TEST(startarg.isThreadstackValid[i]) ;
    }
 
    // Test error in newmany => executing UNDO_LOOP
-   for(int i = 1; i < 27; i += 1) {
+   for (int i = 1; i < 27; i += 1) {
       init_testerrortimer(&s_error_newgroup, (unsigned)i, 99 + i) ;
       s_returncode_signal = 1 ;
-      TEST((99 + i) == newgroup_thread(&thread, thread_returncode, 0, 33)) ;
+      TEST((99 + i) == newgeneric_thread(&thread, thread_returncode, 0, 33)) ;
    }
 
    TEST(0 == free_mutex(&startarg.lock)) ;
@@ -1689,12 +1679,12 @@ static int test_thread_lockunlock(void)
    TEST(EAGAIN == trywait_rtsignal(2)) ;
    lock_thread(self_thread()) ;
    self_thread()->task_arg = 0 ;
-   TEST(0 == newgroup_thread(&thread, thread_lockunlock, self_thread(), 99)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_lockunlock, self_thread(), 99)) ;
    TEST(0 == wait_rtsignal(0, 99)) ;
    TEST(EAGAIN == trywait_rtsignal(1)) ;
    TEST(EAGAIN == trywait_rtsignal(3)) ;
    unlock_thread(self_thread()) ;
-   for(int i = 0; i < 99; ++i) {
+   for (int i = 0; i < 99; ++i) {
       TEST(0 == wait_rtsignal(1, 1)) ;
       void * volatile * cmdaddr = (void**) & (self_thread()->task_arg) ;
       TEST(1+i == (int)(*cmdaddr)) ;
@@ -1728,7 +1718,7 @@ static int test_thread_lockunlock(void)
 
    return 0 ;
 ONABORT:
-   for(int i = 0; i < 99; ++i) {
+   for (int i = 0; i < 99; ++i) {
       send_rtsignal(2) ;
    }
    delete_thread(&thread) ;

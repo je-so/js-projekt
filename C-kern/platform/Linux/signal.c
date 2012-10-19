@@ -764,7 +764,7 @@ static int test_rtsignal(void)
 
    // TEST send_rtsignal (order unspecified)
    for(unsigned i = 1; i <= maxnr_rtsignal(); ++i) {
-      TEST(0 == newgroup_thread(&thread, thread_receivesignal, i, 3)) ;
+      TEST(0 == newgeneric_thread(&thread, thread_receivesignal, i, 3)) ;
       thread_t * group[3] = { thread, thread->groupnext, thread->groupnext->groupnext } ;
       for(int t = 0; t < 3; ++t) {
          TEST((void*)i == group[t]->task_arg) ;

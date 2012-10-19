@@ -561,13 +561,13 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-static int childprocess_return(int returncode)
+static int childprocess_return(intptr_t returncode)
 {
    kill(getppid(), SIGUSR1) ;
-   return returncode ;
+   return (int) returncode ;
 }
 
-static int childprocess_endlessloop(int dummy)
+static int childprocess_endlessloop(void * dummy)
 {
    (void) dummy ;
    kill(getppid(), SIGUSR1) ;
@@ -577,13 +577,13 @@ static int childprocess_endlessloop(int dummy)
    return 0 ;
 }
 
-static int childprocess_signal(int signr)
+static int childprocess_signal(intptr_t signr)
 {
-   kill(getpid(), signr) ;
+   kill(getpid(), (int)signr) ;
    return 0 ;
 }
 
-static int chilprocess_execassert(int dummy)
+static int chilprocess_execassert(void * dummy)
 {
    (void) dummy ;
    // flushing of log output is redirected to devnull (from caller)
@@ -591,7 +591,7 @@ static int chilprocess_execassert(int dummy)
    return 0 ;
 }
 
-static int childprocess_donothing(int dummy)
+static int childprocess_donothing(void * dummy)
 {
    (void) dummy ;
    return 0 ;
@@ -893,7 +893,7 @@ static int test_initfree(void)
    // TEST endless loop => delete ends process
    for (int i = 0; i < 32; ++i) {
       while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
-      TEST(0 == initgeneric_process(&process, &childprocess_endlessloop, 0, 0)) ;
+      TEST(0 == init_process(&process, &childprocess_endlessloop, 0, 0)) ;
       TEST(0 <  process) ;
       TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
       TEST(0 == state_process(&process, &process_state)) ;
@@ -905,7 +905,7 @@ static int test_initfree(void)
    // TEST state_process
    for (int i = 0; i < 32; ++i) {
       while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
-      TEST(0 == initgeneric_process(&process, &childprocess_endlessloop, 0, 0)) ;
+      TEST(0 == init_process(&process, &childprocess_endlessloop, 0, 0)) ;
       TEST(0 <  process) ;
       TEST(SIGUSR1 == sigwaitinfo(&signalmask, 0)) ;
       TEST(0 == state_process(&process, &process_state)) ;
@@ -1035,7 +1035,7 @@ static int test_assert(void)
    process_result_t     process_result ;
 
    // TEST assert exits with signal SIGABRT
-   TEST(0 == initgeneric_process(&process, &chilprocess_execassert, 0, 0)) ;
+   TEST(0 == init_process(&process, &chilprocess_execassert, 0, 0)) ;
    TEST(0 == wait_process(&process, &process_result)) ;
    TEST(process_state_ABORTED == process_result.state) ;
    TEST(SIGABRT               == process_result.returncode) ;
@@ -1054,7 +1054,7 @@ static int test_assert(void)
       TEST(0 == free_filedescr(&pipefd2[0])) ;
       TEST(0 == free_filedescr(&pipefd2[1])) ;
    }
-   TEST(0 == initgeneric_process(&process, &childprocess_donothing, 0, &ioredirect)) ;
+   TEST(0 == init_process(&process, &childprocess_donothing, 0, &ioredirect)) ;
    TEST(0 == wait_process(&process, &process_result)) ;
    TEST(process_state_ABORTED == process_result.state) ;
    TEST(SIGABRT               == process_result.returncode) ;

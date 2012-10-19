@@ -142,6 +142,16 @@ int new_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * s
  * This preserves transactional all or nothing semantics. */
 int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * start_arg, uint32_t nr_of_threads) ;
 
+/* define: newgeneric_thread
+ * Same as <newgroup_thread> except that it accepts functions with generic argument type.
+ * The function argument must be of size sizeof(void*). */
+#define newgeneric_thread(threadobj, thread_main, start_arg, nr_of_threads)                           \
+   ( __extension__ ({                                                                                 \
+         int (*_thread_main) (typeof(start_arg)) = (thread_main) ;                                    \
+         static_assert(sizeof(start_arg) == sizeof(void*), "same as void*") ;                         \
+         newgroup_thread(threadobj, (thread_task_f)_thread_main, (void*)start_arg, nr_of_threads) ;   \
+   }))
+
 /* function: delete_thread
  * Calls <join_thread> (if not already called) and deletes resources.
  * This function waits until the thread has terminated. So be careful ! */
@@ -239,18 +249,7 @@ void sleepms_thread(uint32_t msec) ;
  * Implements <thread_t.new_thread>.
  * > newgroup_thread(threadobj, thread_main, start_arg, 1) */
 #define new_thread(threadobj, thread_main, start_arg) \
-      newgroup_thread(threadobj, thread_main, start_arg, 1)
-
-/* define: newgroup_thread
- * Calls <thread_t.newgroup_thread> with adapted function pointer. */
-#define newgroup_thread(threadobj, thread_main, start_arg, nr_of_threads)           \
-   /*do not forget to adapt definition in thead.c test section*/                    \
-   ( __extension__ ({ int _err ;                                                    \
-      int (*_thread_main) (typeof(start_arg)) = (thread_main) ;                     \
-      static_assert(sizeof(start_arg) == sizeof(void*), "same as void*") ;          \
-      _err = newgroup_thread(threadobj, (thread_task_f) _thread_main,               \
-                                    (void*)start_arg, nr_of_threads) ;              \
-      _err ; }))
+      newgeneric_thread(threadobj, thread_main, start_arg, 1)
 
 /* define: returncode_thread
  * Implements <thread_t.returncode_thread>.

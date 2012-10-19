@@ -168,11 +168,11 @@ int init_process(/*out*/process_t * process, process_task_f child_main, void * s
 
 /* define: initgeneric_process
  * Same as <init_process> except that it accepts functions with generic argument type.
- * The argument must be of size <= sizeof(void*). */
+ * The argument must be of size sizeof(void*). */
 #define initgeneric_process(process, child_main, start_arg, ioredirection)                         \
    ( __extension__ ({                                                                              \
          int (*_child_main) (typeof(start_arg)) = (child_main) ;                                   \
-         static_assert(sizeof(start_arg) <= sizeof(void*), "cast 2 void*") ;                       \
+         static_assert(sizeof(start_arg) == sizeof(void*), "same as void*") ;                      \
          init_process(process, (process_task_f) _child_main, (void*)start_arg, ioredirection ) ;   \
    }))
 

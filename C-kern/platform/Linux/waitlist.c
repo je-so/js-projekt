@@ -247,7 +247,7 @@ static int test_initfree(void)
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(true == isempty_waitlist(&wlist)) ;
    TEST(0 == nrwaiting_waitlist(&wlist)) ;
-   TEST(0 == newgroup_thread(&thread, thread_waitonwlist, &wlist, 20)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_waitonwlist, &wlist, 20)) ;
    TEST(0 == wait_rtsignal(0, 20)) ;
    TEST(0 != wlist.last) ;
    TEST(0 == isempty_waitlist(&wlist)) ;
@@ -319,7 +319,7 @@ static int test_initfree(void)
    // TEST free wakes up all waiters
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(true == isempty_waitlist(&wlist)) ;
-   TEST(0 == newgroup_thread(&thread, thread_waitonwlist, &wlist, 20)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_waitonwlist, &wlist, 20)) ;
    TEST(0 == wait_rtsignal(0, 20)) ;
    TEST(0 != wlist.last) ;
    TEST(0 == isempty_waitlist(&wlist)) ;
