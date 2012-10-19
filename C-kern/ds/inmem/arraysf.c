@@ -609,7 +609,7 @@ struct testnode_t {
 
 struct testnode_adapt_t {
    struct {
-      typeadapt_EMBED(testnode_adapt_t, testnode_t, void) ;
+      typeadapt_EMBED(testnode_adapt_t, testnode_t, void*) ;
    } ;
    test_errortimer_t    errcounter ;
 } ;
@@ -640,7 +640,7 @@ static int test_initfree(void)
    vm_block_t        memblock  = vm_block_INIT_FREEABLE ;
    arraysf_t         * array   = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
-   typeadapt_member_t nodeadp  = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void), offsetof(testnode_t,node)) ;
+   typeadapt_member_t nodeadp  = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
    testnode_t        * nodes ;
    arraysf_node_t    * inserted_node ;
    arraysf_node_t    * removed_node ;
@@ -978,7 +978,7 @@ static int test_error(void)
    arraysf_t       * array  = 0 ;
    arraysf_t       * array2 = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
-   typeadapt_member_t nodeadp  = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void), offsetof(testnode_t,node)) ;
+   typeadapt_member_t nodeadp  = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
    testnode_t      * nodes ;
    arraysf_node_t  * removed_node  = 0 ;
    arraysf_node_t  * inserted_node = 0 ;
@@ -1150,8 +1150,8 @@ static int test_generic(void)
    arraysf_t         * array   = 0 ;
    arraysf_t         * array2  = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
-   typeadapt_member_t nodeadp1 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void), offsetof(testnode_t,node)) ;
-   typeadapt_member_t nodeadp2 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void), offsetof(testnode_t,pos2)) ;
+   typeadapt_member_t nodeadp1 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
+   typeadapt_member_t nodeadp2 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,pos2)) ;
    test_errortimer_t memerror ;
    testnode_t        * nodes ;
    testnode_t        * inserted_node ;

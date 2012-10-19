@@ -116,7 +116,7 @@ typedef struct suffixtreeiterator_adapter_t  suffixtreeiterator_adapter_t ;
  * Defines <typeadapt_t> to manage memory of <suffixtree_iterator_t>.
  * Used in <slist_t> (see <slist_IMPLEMENT_iterlist>) storing <suffixtree_iterator_t>. */
 struct suffixtreeiterator_adapter_t {
-   typeadapt_EMBED(suffixtreeiterator_adapter_t, suffixtree_iterator_t, void) ;
+   typeadapt_EMBED(suffixtreeiterator_adapter_t, suffixtree_iterator_t, void*) ;
 } ;
 
 /* function: freenode_suffixtreeiteratoradapter
@@ -1454,7 +1454,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4311,4396,4509,4674,4753,4829,4907,4983,43161,44364,44642,60203,60327,60440,60495} ;
+   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43162,44365,44643,60204,60328,60441,60496} ;
    const uint8_t  * matched_pos[1+nrelementsof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

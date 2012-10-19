@@ -222,7 +222,8 @@ typeadapt_t * asgeneric_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENA
  * Parameter:
  * typeadapter_t - The adapter type which implements all interface functions.
  *                 The first parameter in every function is a pointer to this type.
- * object_t      - The object type that typeadapter_t supports.
+ * object_t      - The object type that <typeadapter_t> supports.
+ * key_t         - The key type that <typeadapt_keycomparator_it> supports. Must be of size sizeof(void*).
  * */
 void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
 

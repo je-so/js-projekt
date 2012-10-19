@@ -828,7 +828,7 @@ struct testnode_t {
 
 struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testnode_t, unsigned) ;
+      typeadapt_EMBED(testadapt_t, testnode_t, uintptr_t) ;
    } ;
    test_errortimer_t    errcounter ;
    unsigned             freenode_count ;
@@ -848,11 +848,9 @@ static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
    return err ;
 }
 
-static int impl_cmpkeyobj_testadapt(testadapt_t * testadp, const unsigned * key, const testnode_t * rnode)
+static int impl_cmpkeyobj_testadapt(testadapt_t * testadp, const uintptr_t lkey, const testnode_t * rnode)
 {
    (void) testadp ;
-   static_assert(sizeof(unsigned) <= sizeof(unsigned*), "(unsigned) cast possible") ;
-   unsigned lkey = (unsigned)key ;
    unsigned rkey = rnode->key ;
    return lkey < rkey ? -1 : (lkey > rkey ? +1 : 0) ;
 }
@@ -891,7 +889,7 @@ static int test_initfree(void)
                            typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, unsigned), offsetof(testnode_t, node)) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT_FREEABLE ;
    lrptree_node_t       emptynode = lrptree_node_INIT ;
 
@@ -1022,7 +1020,7 @@ static int test_insertconditions(void)
                            typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, unsigned), offsetof(testnode_t, node)) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
 
    // prepare
@@ -1273,7 +1271,7 @@ static int test_removeconditions(void)
                            typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, unsigned), offsetof(testnode_t, node)) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
    redblacktree_node_t  * node    = 0 ;
 
@@ -1417,7 +1415,7 @@ static int test_insertremove(void)
                            typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, unsigned), offsetof(testnode_t, node)) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
    redblacktree_node_t  * treenode ;
 
@@ -1608,7 +1606,7 @@ static int test_iterator(void)
                            typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, unsigned), offsetof(testnode_t, node)) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
    redblacktree_t       emptytree = redblacktree_INIT_FREEABLE ;
    redblacktree_iterator_t iter   = redblacktree_iterator_INIT_FREEABLE ;
@@ -1720,7 +1718,7 @@ ONABORT:
    return EINVAL ;
 }
 
-redblacktree_IMPLEMENT(_testtree, testnode_t, unsigned, node)
+redblacktree_IMPLEMENT(_testtree, testnode_t, uintptr_t, node)
 
 static int test_generic(void)
 {
@@ -1730,7 +1728,7 @@ static int test_generic(void)
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
    typeadapt_member_t   emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, unsigned), offsetof(testnode_t, node)) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
 
    // prepare
@@ -1772,27 +1770,27 @@ static int test_generic(void)
    init_testtree(&tree, &nodeadapt) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, (unsigned*)nodes[i].key, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, nodes[i].key, &nodes[i])) ;
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
       testnode_t * found_node = 0 ;
-      TEST(0 == find_testtree(&tree, (unsigned*)nodes[i].key, &found_node)) ;
+      TEST(0 == find_testtree(&tree, nodes[i].key, &found_node)) ;
       TEST(found_node == &nodes[i]) ;
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
       testnode_t * removed_node = 0 ;
-      TEST(0 == remove_testtree(&tree, (unsigned*)nodes[i].key, &removed_node)) ;
+      TEST(0 == remove_testtree(&tree, nodes[i].key, &removed_node)) ;
       TEST(removed_node == &nodes[i]) ;
-      TEST(ESRCH == find_testtree(&tree, (unsigned*)nodes[i].key, &removed_node)) ;
+      TEST(ESRCH == find_testtree(&tree, nodes[i].key, &removed_node)) ;
       if (!(i%100)) TEST(0 == invariant_redblacktree(&tree)) ;
    }
 
    // TEST removenodes_redblacktree, free_redblacktree
    init_testtree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, (unsigned*)nodes[i].key, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, nodes[i].key, &nodes[i])) ;
    }
    TEST(0 == removenodes_testtree(&tree)) ;
    TEST(0 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
@@ -1800,7 +1798,7 @@ static int test_generic(void)
       TEST(1 == nodes[i].is_freed) ;
    }
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, (unsigned*)nodes[i].key, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, nodes[i].key, &nodes[i])) ;
    }
    TEST(0 == free_testtree(&tree)) ;
    TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
@@ -1811,7 +1809,7 @@ static int test_generic(void)
    // TEST foreach, foreachReverse
    init_testtree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, (unsigned*)nodes[i].key, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, nodes[i].key, &nodes[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
       foreach (_testtree, &tree, node) {

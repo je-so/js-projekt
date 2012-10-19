@@ -250,7 +250,7 @@ struct textresource_condition_t {
 typedef struct textresource_condition_adapt_t   textresource_condition_adapt_t ;
 
 struct textresource_condition_adapt_t {
-   typeadapt_EMBED(textresource_condition_adapt_t, textresource_condition_t, void) ;
+   typeadapt_EMBED(textresource_condition_adapt_t, textresource_condition_t, void*) ;
 } ;
 
 static int copyobj_textresourcecondition(textresource_condition_adapt_t * typeadp, /*out*/textresource_condition_t ** condcopy, const textresource_condition_t * cond) ;
@@ -343,7 +343,7 @@ struct textresource_langref_t {
 typedef struct textresource_langref_adapt_t     textresource_langref_adapt_t ;
 
 struct textresource_langref_adapt_t {
-   typeadapt_EMBED(textresource_langref_adapt_t, textresource_langref_t, void) ;
+   typeadapt_EMBED(textresource_langref_adapt_t, textresource_langref_t, void*) ;
 } ;
 
 static int copyobj_textresourcelangref(textresource_langref_adapt_t * typeadp, /*out*/textresource_langref_t ** langcopy, const textresource_langref_t * lang) ;
@@ -447,7 +447,7 @@ struct textresource_text_t {
 typedef struct textresource_text_adapt_t   textresource_text_adapt_t ;
 
 struct textresource_text_adapt_t {
-   typeadapt_EMBED(textresource_text_adapt_t, textresource_text_t, void) ;
+   typeadapt_EMBED(textresource_text_adapt_t, textresource_text_t, void*) ;
 } ;
 
 static int copyobj_textresourcetext(textresource_text_adapt_t * typeadt, /*out*/textresource_text_t ** textcopy, const textresource_text_t * text) ;

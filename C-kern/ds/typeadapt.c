@@ -70,7 +70,7 @@ struct testobject_t {
  * Implements adapter for type <testobject_t>. */
 struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testobject_t, double) ;
+      typeadapt_EMBED(testadapt_t, testobject_t, const double*) ;
    } ;
    int call_count ;
 } ;
@@ -228,8 +228,8 @@ static int test_generic(void)
    testobject_t   * objptr ;
 
    // TEST asgeneric_typeadapt
-   TEST((typeadapt_t*)0        == asgeneric_typeadapt((testadapt_t*)0, testadapt_t, testobject_t, double)) ;
-   TEST((typeadapt_t*)&testadp == asgeneric_typeadapt(&testadp, testadapt_t, testobject_t, double)) ;
+   TEST((typeadapt_t*)0        == asgeneric_typeadapt((testadapt_t*)0, testadapt_t, testobject_t, double*)) ;
+   TEST((typeadapt_t*)&testadp == asgeneric_typeadapt(&testadp, testadapt_t, testobject_t, double*)) ;
 
    // TEST callnewcopy_typeadapt
    for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
@@ -351,7 +351,7 @@ static int test_typeadaptmember(void)
    }
 
    // TEST callnewcopy_typeadaptmember
-   nodeadp = (typeadapt_member_t) typeadapt_member_INIT(asgeneric_typeadapt(&testadp,testadapt_t, testobject_t, double), 0) ;
+   nodeadp = (typeadapt_member_t) typeadapt_member_INIT(asgeneric_typeadapt(&testadp,testadapt_t, testobject_t, double*), 0) ;
    for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
       int result = testadp.call_count ;
       objptr = (testobject_t *)1 ;

@@ -59,7 +59,7 @@ int unittest_ds_typeadapt_impl(void) ;
  * <typeadapt_t>*. */
 struct typeadapt_impl_t {
    struct {
-      typeadapt_EMBED(typeadapt_impl_t, typeadapt_object_t, void) ;
+      typeadapt_EMBED(typeadapt_impl_t, typeadapt_object_t, void*) ;
    } ;
    /* variable: objectsize
     * The size of supported structure. */

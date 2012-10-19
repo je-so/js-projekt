@@ -54,12 +54,12 @@ int unittest_ds_typeadapt_keycomparator(void) ;
  * <typeadapt_keycomparator_EMBED> and <asgeneric_typeadaptkeycomparator>. */
 struct typeadapt_keycomparator_it {
    /* variable: cmp_key_object
-    * Compares a key with an object. lkey is the left operand and robject the right one.
+    * Compares key with an object. lkey is the left operand and robject the right one.
     *
     * Returns:
-    * -1 - key <  robject
-    * 0  - key == robject
-    * +1 - key >  robject */
+    * -1 - lkey <  robject
+    * 0  - lkey == robject
+    * +1 - lkey >  robject */
    int  (* cmp_key_object) (struct typeadapt_t * typeadp, const void * lkey, const struct typeadapt_object_t * robject) ;
    /* variable: cmp_object
     * Compares two objects. lobject is left operand and robject the right one.
@@ -123,7 +123,7 @@ typeadapt_keycomparator_it * asgeneric_typeadaptkeycomparator(void * adpcmp, TYP
  * typeadapter_t - The adapter type which implements all interface functions.
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that <typeadapt_keycomparator_it> supports.
- * key_t         - The key type that <typeadapt_keycomparator_it> supports. */
+ * key_t         - The key type that <typeadapt_keycomparator_it> supports. Must be of size sizeof(void*). */
 #define typeadapt_keycomparator_DECLARE(declared_it, typeadapter_t, object_t, key_t)   \
    typedef struct declared_it             declared_it ;                                \
    struct declared_it {                                                                \
@@ -139,9 +139,9 @@ typeadapt_keycomparator_it * asgeneric_typeadaptkeycomparator(void * adpcmp, TYP
  * typeadapter_t - The adapter type which implements all interface functions.
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that <typeadapt_keycomparator_it> supports.
- * key_t         - The key type that <typeadapt_keycomparator_it> supports. */
-#define typeadapt_keycomparator_EMBED(typeadapter_t, object_t, key_t)                                          \
-   int  (* cmp_key_object)  (typeadapter_t * typeadp, const key_t * lkey, const object_t * robject) ;          \
+ * key_t         - The key type that <typeadapt_keycomparator_it> supports. Must be of size sizeof(void*). */
+#define typeadapt_keycomparator_EMBED(typeadapter_t, object_t, key_t)                                       \
+   int  (* cmp_key_object)  (typeadapter_t * typeadp, key_t lkey, const object_t * robject) ;               \
    int  (* cmp_object)      (typeadapter_t * typeadp, const object_t * lobject, const object_t  * robject)
 
 
@@ -158,8 +158,8 @@ typeadapt_keycomparator_it * asgeneric_typeadaptkeycomparator(void * adpcmp, TYP
             == offsetof(typeof(*(adpcmp)), cmp_object),                 \
          "ensure same structure") ;                                     \
       if (0) {                                                          \
-         int _err = (adpcmp)->cmp_key_object((typeadapter_t*)0, (const key_t*)0, (const object_t*)0) ;   \
-         _err += (adpcmp)->cmp_object((typeadapter_t*)0, (const object_t*)0, (const object_t*)0) ;       \
+         int _err = (adpcmp)->cmp_key_object((typeadapter_t*)0, (key_t)0, (const object_t*)0) ;    \
+         _err += (adpcmp)->cmp_object((typeadapter_t*)0, (const object_t*)0, (const object_t*)0) ; \
          (void) _err ;                                                  \
       }                                                                 \
       (typeadapt_keycomparator_it*) (adpcmp) ;                          \

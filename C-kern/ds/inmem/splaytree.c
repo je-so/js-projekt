@@ -649,7 +649,7 @@ typedef testnode_t                     nodesarray_t[10000] ;
 
 struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testnode_t, int) ;
+      typeadapt_EMBED(testadapt_t, testnode_t, intptr_t) ;
    } ;
    test_errortimer_t    errcounter ;
    unsigned             freenode_count ;
@@ -669,13 +669,11 @@ static int impl_deletenode_testadapt(testadapt_t * testadp, testnode_t ** node)
    return err ;
 }
 
-static int impl_cmpkeyobj_testadapt(testadapt_t * testadp, const int * key, const testnode_t * rnode)
+static int impl_cmpkeyobj_testadapt(testadapt_t * testadp, const intptr_t lkey, const testnode_t * rnode)
 {
    (void) testadp ;
-   static_assert(sizeof(int) <= sizeof(int*), "(int) cast possible") ;
-   int lkey = (int)key ;
    int rkey = rnode->key ;
-   return sign_int(lkey - rkey) ;
+   return sign_int((int)lkey - rkey) ;
 }
 
 static int impl_cmpobj_testadapt(testadapt_t * testadp, const testnode_t * lnode, const testnode_t * rnode)
@@ -708,7 +706,7 @@ static int test_initfree(void)
       typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_INIT_FREEABLE, 0
    } ;
-   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), offsetof(testnode_t, index)) ;
+   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t), offsetof(testnode_t, index)) ;
    memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
    splaytree_t                tree      = splaytree_INIT_FREEABLE ;
    nodesarray_t               * nodes1 ;
@@ -845,7 +843,7 @@ static int test_insertremove(void)
       typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_INIT_FREEABLE, 0
    } ;
-   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), offsetof(testnode_t, index)) ;
+   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t), offsetof(testnode_t, index)) ;
    memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
    memblock_t                 memblock2 = memblock_INIT_FREEABLE ;
    splaytree_t                tree      = splaytree_INIT(0, nodeadapt) ;
@@ -1096,7 +1094,7 @@ static int test_iterator(void)
       typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_INIT_FREEABLE, 0
    } ;
-   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), offsetof(testnode_t, index)) ;
+   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t), offsetof(testnode_t, index)) ;
    memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
    splaytree_t                tree      = splaytree_INIT_FREEABLE ;
    splaytree_t                emptytree = splaytree_INIT_FREEABLE ;
@@ -1226,7 +1224,7 @@ ONABORT:
    return EINVAL ;
 }
 
-splaytree_IMPLEMENT(_testtree, testnode_t, int, index)
+splaytree_IMPLEMENT(_testtree, testnode_t, intptr_t, index)
 
 static int test_generic(void)
 {
@@ -1234,7 +1232,7 @@ static int test_generic(void)
       typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_INIT_FREEABLE, 0
    } ;
-   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), offsetof(testnode_t, index)) ;
+   typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t), offsetof(testnode_t, index)) ;
    memblock_t                 memblock1 = memblock_INIT_FREEABLE ;
    splaytree_t                tree      = splaytree_INIT_FREEABLE ;
    nodesarray_t               * nodes1 ;
@@ -1281,34 +1279,34 @@ static int test_generic(void)
    init_testtree(&tree, &nodeadapt) ;
    TEST(0 == invariant_splaytree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_testtree(&tree, (int*)(*nodes1)[i].key, &(*nodes1)[i])) ;
+      TEST(0 == insert_testtree(&tree, (*nodes1)[i].key, &(*nodes1)[i])) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
       testnode_t * found_node = 0 ;
-      TEST(0 == find_testtree(&tree, (int*)(*nodes1)[i].key, &found_node)) ;
+      TEST(0 == find_testtree(&tree, (*nodes1)[i].key, &found_node)) ;
       TEST(found_node == &(*nodes1)[i]) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
       testnode_t * removed_node = 0 ;
-      TEST(0 == remove_testtree(&tree, (int*)(*nodes1)[i].key, &removed_node)) ;
+      TEST(0 == remove_testtree(&tree, (*nodes1)[i].key, &removed_node)) ;
       TEST(removed_node == &(*nodes1)[i]) ;
-      TEST(ESRCH == find_testtree(&tree, (int*)(*nodes1)[i].key, &removed_node)) ;
+      TEST(ESRCH == find_testtree(&tree, (*nodes1)[i].key, &removed_node)) ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
 
    // TEST removenodes_splaytree, free_splaytree
    init_testtree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_testtree(&tree, (int*)(*nodes1)[i].key, &(*nodes1)[i])) ;
+      TEST(0 == insert_testtree(&tree, (*nodes1)[i].key, &(*nodes1)[i])) ;
    }
    TEST(0 == removenodes_testtree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
       TEST(1 == (*nodes1)[i].is_freed) ;
    }
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_testtree(&tree, (int*)(*nodes1)[i].key, &(*nodes1)[i])) ;
+      TEST(0 == insert_testtree(&tree, (*nodes1)[i].key, &(*nodes1)[i])) ;
    }
    TEST(0 == free_testtree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
@@ -1318,7 +1316,7 @@ static int test_generic(void)
    // TEST foreach, foreachReverse
    init_testtree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_testtree(&tree, (int*)(*nodes1)[i].key, &(*nodes1)[i])) ;
+      TEST(0 == insert_testtree(&tree, (*nodes1)[i].key, &(*nodes1)[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
       foreach (_testtree, &tree, node) {

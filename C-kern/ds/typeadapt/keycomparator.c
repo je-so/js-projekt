@@ -53,11 +53,11 @@ struct testadapter_t {
    int result ;
    const struct testobject_t  * lobject ;
    const struct testobject_t  * robject ;
-   const int                  * lkey ;
+   uintptr_t                  lkey ;
    const struct testobject_t  * keyobject ;
 } ;
 
-static int impl_cmpkeyobject_testadapter(testadapter_t * typeadp, const int * lkey, const testobject_t * robject)
+static int impl_cmpkeyobject_testadapter(testadapter_t * typeadp, uintptr_t lkey, const testobject_t * robject)
 {
    typeadp->lkey    = lkey ;
    typeadp->robject = robject ;
@@ -75,7 +75,7 @@ static int impl_cmpobject_testadapter(testadapter_t * typeadp, const testobject_
 
 static int impl_cmpkeyobject_typeadapt(struct typeadapt_t * typeadp, const void * key, const struct typeadapt_object_t * robject)
 {
-   return impl_cmpkeyobject_testadapter((testadapter_t*)typeadp, (const int*)key, (const testobject_t*)robject) ;
+   return impl_cmpkeyobject_testadapter((testadapter_t*)typeadp, (uintptr_t)key, (const testobject_t*)robject) ;
 }
 
 static int impl_cmpobject_typeadapt(struct typeadapt_t * typeadp, const struct typeadapt_object_t * lobject, const struct typeadapt_object_t * robject)
@@ -138,7 +138,7 @@ static int test_callfunctions(void)
          memset(&testadp, (int)i+1, sizeof(testadp)) ;
          testadp.result = result ;
          TEST(result == callcmpkeyobj_typeadaptkeycomparator(&adpcmp, (struct typeadapt_t*)&testadp, (const void*)((8-i)*incr), (const struct typeadapt_object_t*)(i*incr))) ;
-         TEST(testadp.lkey    == (const void*)  ((8-i)*incr)) ;
+         TEST(testadp.lkey    == ((8-i)*incr)) ;
          TEST(testadp.robject == (const struct testobject_t*) (i*incr)) ;
       }
    }
@@ -160,7 +160,7 @@ ONABORT:
    return EINVAL ;
 }
 
-typeadapt_keycomparator_DECLARE(testadapter_it, testadapter_t, testobject_t, int) ;
+typeadapt_keycomparator_DECLARE(testadapter_it, testadapter_t, testobject_t, uintptr_t) ;
 
 static int test_generic(void)
 {
@@ -190,8 +190,8 @@ static int test_generic(void)
       for (uintptr_t i = 0; i <= 4; ++i) {
          memset(&testadp, (int)i+1, sizeof(testadp)) ;
          testadp.result = result ;
-         TEST(result == callcmpkeyobj_typeadaptkeycomparator(&adpcmp, &testadp, (const int *)((4-i)*incr), (const testobject_t*)(i*incr))) ;
-         TEST(testadp.lkey    == (const int*) ((4-i)*incr)) ;
+         TEST(result == callcmpkeyobj_typeadaptkeycomparator(&adpcmp, &testadp, ((4-i)*incr), (const testobject_t*)(i*incr))) ;
+         TEST(testadp.lkey    == ((4-i)*incr)) ;
          TEST(testadp.robject == (const testobject_t*) (i*incr)) ;
          TEST(result == callcmpobj_typeadaptkeycomparator(&adpcmp, &testadp, (const testobject_t*)((i+1)*incr), (const testobject_t*)((5-i)*incr))) ;
          TEST(testadp.lobject == (const testobject_t*) ((i+1)*incr)) ;

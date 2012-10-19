@@ -251,7 +251,7 @@ struct genericnode_t {
 
 struct testadapt_t {
    struct {
-      typeadapt_EMBED(testadapt_t, testnode_t, void) ;
+      typeadapt_EMBED(testadapt_t, testnode_t, void*) ;
    } ;
    test_errortimer_t errcounter ;
    unsigned          freenode_count ;
@@ -259,7 +259,7 @@ struct testadapt_t {
 
 struct genericadapt_t {
    struct {
-      typeadapt_EMBED(genericadapt_t, genericnode_t, void) ;
+      typeadapt_EMBED(genericadapt_t, genericnode_t, void*) ;
    } ;
    test_errortimer_t errcounter ;
    unsigned          freenode_count ;
@@ -296,7 +296,7 @@ static int freenode_genericadapt(genericadapt_t * typeadp, genericnode_t ** node
 static int test_initfree(void)
 {
    testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), 0) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void*), 0) ;
    dlist_t              list = dlist_INIT ;
    dlist_node_t         node = dlist_node_INIT ;
    testnode_t           nodes[1000] ;
@@ -585,7 +585,7 @@ ONABORT:
 static int test_insertremove(void)
 {
    testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void), 0) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void*), 0) ;
    dlist_t              list = dlist_INIT ;
    testnode_t           nodes[1000] ;
    dlist_node_t       * removed_node ;
@@ -980,8 +980,8 @@ dlist_IMPLEMENT(_glist2, genericnode_t, node2)
 static int test_generic(void)
 {
    genericadapt_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void), offsetof(genericnode_t, node1)) ;
-   typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void), offsetof(genericnode_t, node2)) ;
+   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node1)) ;
+   typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node2)) ;
    dlist_t              list1 = dlist_INIT ;
    dlist_t              list2 = dlist_INIT ;
    genericnode_t        nodes[1000] ;
