@@ -35,11 +35,14 @@ static const char * s_filetitle ;
 static const char * s_typename ;
 static const char * s_headerpath ;
 static const char * s_sourcepath ;
+static cstring_t    s_fctsuffix    = cstring_INIT ;
 static cstring_t    s_headertag    = cstring_INIT ;
 static cstring_t    s_unittestname = cstring_INIT ;
 
+
 enum variable_e {
       variable_TITLE,
+      variable_FCTSUFFIX,
       variable_HEADERPATH,
       variable_HEADERTAG,
       variable_SOURCEPATH,
@@ -84,7 +87,17 @@ int @UNITTESTNAME(void) ;\n\
 /* struct: @TYPENAME\n\
  * TODO: describe type */\n\
 struct @TYPENAME {\n\n\
-} ;\n\n\n\
+} ;\n\n\
+// group: lifetime\n\
+\n\
+int init_@FCTSUFFIX(@TYPENAME * obj) ;\n\
+\n\
+int free_@FCTSUFFIX(@TYPENAME * obj) ;\n\
+\n\
+// group: query\n\
+\n\
+// group: update\n\
+\n\n\
 #endif\n" ;
 
 static const char * s_templatesource =
@@ -135,7 +148,7 @@ ONABORT:\n\
 }\n\n\
 #endif\n" ;
 
-static int construct_strings(const char * filepath, cstring_t * headertag, cstring_t * unittestname)
+static int construct_strings_frompath(const char * filepath, cstring_t * headertag, cstring_t * unittestname)
 {
    int err ;
 
@@ -189,14 +202,46 @@ ONABORT:
    return err ;
 }
 
+static int construct_strings_fromtypename(const char * typenamestr, cstring_t * fctsuffix)
+{
+   int err ;
+
+   // remove typename suffix
+   size_t typename_len = strlen(typenamestr) ;
+   if (  strrchr(typenamestr, '_')
+         && strlen(strrchr(typenamestr, '_')) < 5) {
+      typename_len -= strlen(strrchr(typenamestr, '_')) ;
+   }
+
+   clear_cstring(fctsuffix) ;
+
+   for (size_t i = 0; i < typename_len; ++i) {
+      char c  = typenamestr[i] ;
+      if ('A' <= c && c <= 'Z') {
+         c = (char) (c + ('a' - 'A')) ;
+      } else if (c == '_') {
+         continue ;
+      }
+
+      err = append_cstring(fctsuffix, 1, &c) ;
+      if (err) goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
 static int check_variable(const char * filetemplate, /*out*/variable_e * varindex, /*out*/unsigned * varlength)
 {
    static const char * varnames[] = {
       [variable_TITLE] = "TITLE",
+      [variable_FCTSUFFIX]  = "FCTSUFFIX",
       [variable_HEADERPATH] = "HEADERPATH",
-      [variable_HEADERTAG] = "HEADERTAG",
+      [variable_HEADERTAG]  = "HEADERTAG",
       [variable_SOURCEPATH] = "SOURCEPATH",
-      [variable_TYPENAME] = "TYPENAME",
+      [variable_TYPENAME]   = "TYPENAME",
       [variable_UNITTESTNAME] = "UNITTESTNAME"
    } ;
 
@@ -219,6 +264,9 @@ static int substitute_variable(file_t * outfile, variable_e varindex)
    switch (varindex) {
    case variable_TITLE:
       err = write_file(outfile, strlen(s_filetitle), s_filetitle, 0) ;
+      break ;
+   case variable_FCTSUFFIX:
+      err = write_file(outfile, length_cstring(&s_fctsuffix), str_cstring(&s_fctsuffix), 0) ;
       break ;
    case variable_HEADERPATH:
       err = write_file(outfile, strlen(s_headerpath), s_headerpath, 0) ;
@@ -309,7 +357,10 @@ int main(int argc, const char * argv[])
    err = process_arguments(argc, argv) ;
    if (err) goto PRINT_USAGE ;
 
-   err = construct_strings(s_headerpath, &s_headertag, &s_unittestname) ;
+   err = construct_strings_frompath(s_headerpath, &s_headertag, &s_unittestname) ;
+   if (err) goto PRINT_USAGE ;
+
+   err = construct_strings_fromtypename(s_typename, &s_fctsuffix) ;
    if (err) goto PRINT_USAGE ;
 
    // parse templates => expand variables => write header + source files
