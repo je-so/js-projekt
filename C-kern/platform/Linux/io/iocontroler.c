@@ -50,7 +50,7 @@ struct iocontroler_iocb_t {
    arraysf_node_EMBED   (fd) ;
    /* variable: iocb
     * I/O callback handler which is called if an event has been occurred. */
-   iocallback_iot       iocb ;
+   iocallback_t         iocb ;
    /* variable: next
     * Points to next <iocontroler_iocb_t> which has changed.
     * The list of all changed <iocontroler_iocb_t> objects is cleared in <wait_iocontroler>
@@ -240,7 +240,7 @@ ONABORT:
    return err ;
 }
 
-int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t ioevents, iocallback_iot iocb)
+int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t ioevents, iocallback_t iocb)
 {
    int err ;
    iocontroler_iocb_t   * newiocb = 0 ;
@@ -318,7 +318,7 @@ ONABORT:
    return err ;
 }
 
-int changeiocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, iocallback_iot iocb)
+int changeiocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, iocallback_t iocb)
 {
    int err ;
    iocontroler_iocb_t  * foundiocb = at_iocbarray(iocntr->iocbs, (size_t)fd) ;
@@ -392,7 +392,7 @@ int processevents_iocontroler(iocontroler_t * iocntr, uint16_t timeout_millisec,
 
       if (     0 == iocb->next    // not unregistered or unregistered+registered from previous call to iohandler
             && isinit_iocallback(&iocb->iocb)) {
-         handleioevent_iocallback(&iocb->iocb, (sys_filedescr_t) iocb->fd, ioevent) ;
+         call_iocallback(&iocb->iocb, (sys_filedescr_t) iocb->fd, ioevent) ;
       }
    }
 
@@ -448,9 +448,9 @@ static int test_initfree(void)
    TEST(0 == iocntr.changed_list.last) ;
    TEST(0 != iocntr.iocbs) ;
    TEST(0 == length_iocbarray(iocntr.iocbs)) ;
-   TEST(0 == registeriocb_iocontroler(&iocntr, fd[1], ioevent_WRITE, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+   TEST(0 == registeriocb_iocontroler(&iocntr, fd[1], ioevent_WRITE, (iocallback_t)iocallback_INIT_FREEABLE)) ;
    TEST(0 == processevents_iocontroler(&iocntr, 0, &nr_events)) ;
-   TEST(0 == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+   TEST(0 == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ, (iocallback_t)iocallback_INIT_FREEABLE)) ;
    TEST(2 == iocntr.nr_filedescr) ;
    TEST(1 == nr_events) ;
    TEST(! isfree_memblock(&iocntr.eventcache)) ;
@@ -479,7 +479,7 @@ static int test_initfree(void)
    TEST(nrfds[1] == 1 + nrfds[0]) ;
    TEST(0 <  iocntr.sys_poll) ;
    for(unsigned i = 0; i < nrelementsof(fd); ++i) {
-      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], (uint8_t) (i&0xF), (iocallback_iot) iocallback_iot_INIT((void*) i, 0))) ;
+      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], (uint8_t) (i&0xF), (iocallback_t) iocallback_INIT((void*)i, 0))) ;
       TEST(i+1 == iocntr.nr_filedescr) ;
       TEST(i+1 == length_iocbarray(iocntr.iocbs)) ;
       iocontroler_iocb_t * iocb = at_iocbarray(iocntr.iocbs, (size_t)fd[i]) ;
@@ -510,7 +510,7 @@ static int test_initfree(void)
    TEST(isfree_memblock(&iocntr.eventcache)) ;
    for(uint8_t ev = 0; ev <= 15; ++ ev) {
       for(unsigned i = 0; i < nrelementsof(fd); ++i) {
-         iocallback_iot iocb = iocallback_iot_INIT((void*) i, 0) ;
+         iocallback_t iocb = iocallback_INIT((void*)i, 0) ;
          TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ev, iocb)) ;
       }
       TEST(0 == iocntr.nr_events) ;
@@ -537,16 +537,16 @@ static int test_initfree(void)
 
    // TEST changemask_iocontroler, changeiocb_iocontroler
    TEST(0 == init_iocontroler(&iocntr)) ;
-   for(unsigned i = 0; i < nrelementsof(fd); ++i) {
-      iocallback_iot iocb = iocallback_iot_INIT_FREEABLE ;
+   for (unsigned i = 0; i < nrelementsof(fd); ++i) {
+      iocallback_t iocb = iocallback_INIT_FREEABLE ;
       TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], (i%2) ? ioevent_WRITE : ioevent_READ, iocb)) ;
    }
-   for(unsigned i = 0; i < nrelementsof(fd); ++i) {
+   for (unsigned i = 0; i < nrelementsof(fd); ++i) {
       TEST(0 == changemask_iocontroler(&iocntr, fd[i], (uint8_t)(i&0xF))) ;
       iocontroler_iocb_t * iocb = at_iocbarray(iocntr.iocbs, (size_t)fd[i]) ;
       TEST(0 != iocb) ;
       TEST(0 == iocb->iocb.object) ;
-      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i], (iocallback_iot) iocallback_iot_INIT((void*) i, 0))) ;
+      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i], (iocallback_t)iocallback_INIT((void*)i, 0))) ;
       TEST(0 == iocntr.nr_events) ;
       TEST(nrelementsof(fd) == iocntr.nr_filedescr) ;
       TEST(isfree_memblock(&iocntr.eventcache)) ;
@@ -573,8 +573,8 @@ static int test_initfree(void)
 
    // TEST wait_iocontrolerds waits 40 msec
    for(unsigned i = 0; i < nrelementsof(fd); i += 2) {
-      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_EMPTY, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
-      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i+1], ioevent_EMPTY, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_EMPTY, (iocallback_t)iocallback_INIT_FREEABLE)) ;
+      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i+1], ioevent_EMPTY, (iocallback_t)iocallback_INIT_FREEABLE)) ;
       TEST(0 == write_filedescr(fd[i+1], 1, "-", 0)) ;
       iocontroler_iocb_t * iocb = at_iocbarray(iocntr.iocbs, (size_t)fd[i]) ;
       TEST(0 != iocb) ;
@@ -622,7 +622,7 @@ static int test_initfree(void)
 
    // TEST EINVAL (ioevent_e has wrong value)
    TEST(0 == init_iocontroler(&iocntr)) ;
-   TEST(EINVAL == registeriocb_iocontroler(&iocntr, fd[0], 128, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+   TEST(EINVAL == registeriocb_iocontroler(&iocntr, fd[0], 128, (iocallback_t)iocallback_INIT_FREEABLE)) ;
    TEST(EINVAL == changemask_iocontroler(&iocntr, fd[0], 128)) ;
    TEST(0 != iocntr.iocbs) ;
    TEST(0 == length_iocbarray(iocntr.iocbs)) ;
@@ -630,9 +630,9 @@ static int test_initfree(void)
 
    // TEST EEXIST (fd already registered)
    TEST(0 == init_iocontroler(&iocntr)) ;
-   TEST(0 == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ, (iocallback_iot)iocallback_iot_INIT((void*)1, 0))) ;
+   TEST(0 == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ, (iocallback_t)iocallback_INIT((void*)1, 0))) ;
    TEST(1 == iocntr.nr_filedescr) ;
-   TEST(EEXIST == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+   TEST(EEXIST == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ, (iocallback_t)iocallback_INIT_FREEABLE)) ;
    TEST(0 == iocntr.nr_events) ;
    TEST(1 == iocntr.nr_filedescr) ;
    TEST(1 == length_iocbarray(iocntr.iocbs)) ;
@@ -647,9 +647,9 @@ static int test_initfree(void)
 
    // TEST ENOENT (try unregister or change unregistered fd)
    TEST(0 == init_iocontroler(&iocntr)) ;
-   TEST(0 == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+   TEST(0 == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ, (iocallback_t)iocallback_INIT_FREEABLE)) ;
    TEST(ENOENT == changemask_iocontroler(&iocntr, fd[1], ioevent_READ)) ;
-   TEST(ENOENT == changeiocb_iocontroler(&iocntr, fd[1], (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+   TEST(ENOENT == changeiocb_iocontroler(&iocntr, fd[1], (iocallback_t)iocallback_INIT_FREEABLE)) ;
    TEST(ENOENT == unregisteriocb_iocontroler(&iocntr, fd[1])) ;
    TEST(0 == iocntr.nr_events) ;
    TEST(1 == iocntr.nr_filedescr) ;
@@ -663,7 +663,7 @@ static int test_initfree(void)
 
    return 0 ;
 ONABORT:
-   for(unsigned i = 0; i < nrelementsof(fd); ++i) {
+   for (unsigned i = 0; i < nrelementsof(fd); ++i) {
       free_filedescr(fd+i) ;
    }
    free_iocontroler(&iocntr) ;
@@ -671,11 +671,9 @@ ONABORT:
    return EINVAL ;
 }
 
-typedef struct testcallback_iot        testcallback_iot ;
-
 typedef struct test_iohandler_t        test_iohandler_t ;
 
-iocallback_iot_DECLARE(testcallback_iot, test_iohandler_t)
+iocallback_DECLARE(testcallback_t, test_iohandler_t) ;
 
 struct test_iohandler_t {
    iocontroler_t  * iocntr ;
@@ -718,8 +716,8 @@ static void test3_iohandler(test_iohandler_t * iohandler, filedescr_t fd, uint8_
       if (i < iohandler->arraysize2) {
          int err = unregisteriocb_iocontroler(iohandler->iocntr, iohandler->fd[i]) ;
          assert(! err) ;
-         testcallback_iot iocb = iocallback_iot_INIT(iohandler, &test3_iohandler) ;
-         err = registeriocb_iocontroler(iohandler->iocntr, iohandler->fd[i], (i%2)?ioevent_WRITE:ioevent_READ, iocb.generic) ;
+         testcallback_t iocb = iocallback_INIT(iohandler, &test3_iohandler) ;
+         err = registeriocb_iocontroler(iohandler->iocntr, iohandler->fd[i], (i%2)?ioevent_WRITE:ioevent_READ, *asgeneric_iocallback(&iocb, test_iohandler_t)) ;
          assert(! err) ;
       }
       if (fd == iohandler->fd[i]) {
@@ -749,9 +747,9 @@ static int test_processevents(void)
             } ;
    test_iohandler_t  iohandler2 = iohandler1 ;
    test_iohandler_t  iohandler3 = iohandler1 ;
-   testcallback_iot  iocb1      = iocallback_iot_INIT(&iohandler1, &test1_iohandler) ;
-   testcallback_iot  iocb2      = iocallback_iot_INIT(&iohandler2, &test2_iohandler) ;
-   testcallback_iot  iocb3      = iocallback_iot_INIT(&iohandler3, &test3_iohandler) ;
+   testcallback_t    iocb1      = iocallback_INIT(&iohandler1, &test1_iohandler) ;
+   testcallback_t    iocb2      = iocallback_INIT(&iohandler2, &test2_iohandler) ;
+   testcallback_t    iocb3      = iocallback_INIT(&iohandler3, &test3_iohandler) ;
 
    // prepare
    TEST(0 == init_iocontroler(&iocntr)) ;
@@ -762,8 +760,8 @@ static int test_processevents(void)
 
    // TEST processevents_iocontroler does not block
    for(unsigned i = 0; i < nrelementsof(fd); i += 2) {
-      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_EMPTY, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
-      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i+1], ioevent_EMPTY, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_EMPTY, (iocallback_t)iocallback_INIT_FREEABLE)) ;
+      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i+1], ioevent_EMPTY, (iocallback_t)iocallback_INIT_FREEABLE)) ;
       TEST(0 == write_filedescr(fd[i+1], 1, "-", 0)) ;
    }
    nr_events = 1 ;
@@ -795,13 +793,13 @@ static int test_processevents(void)
    // TEST processevents_iocontroler read all events
    for(unsigned i = 0; i < nrelementsof(fd); ++i) {
       TEST(0 == unregisteriocb_iocontroler(&iocntr, fd[i])) ;
-      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_EMPTY, (iocallback_iot)iocallback_iot_INIT_FREEABLE)) ;
+      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_EMPTY, (iocallback_t)iocallback_INIT_FREEABLE)) ;
    }
    for(unsigned i = 0; i < nrelementsof(fd); i += 2) {
       TEST(0 == changemask_iocontroler(&iocntr, fd[i], ioevent_READ)) ;
       TEST(0 == changemask_iocontroler(&iocntr, fd[i+1], ioevent_WRITE)) ;
-      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i], iocb1.generic)) ;
-      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i+1], iocb1.generic)) ;
+      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i], *asgeneric_iocallback(&iocb1, test_iohandler_t))) ;
+      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i+1], *asgeneric_iocallback(&iocb1, test_iohandler_t))) ;
    }
    nr_events = 0 ;
    MEMSET0(&isevent) ;
@@ -866,8 +864,8 @@ static int test_processevents(void)
    for(unsigned i = 0; i < nrelementsof(fd); i += 2) {
       TEST(0 == changemask_iocontroler(&iocntr, fd[i], ioevent_READ)) ;
       TEST(0 == changemask_iocontroler(&iocntr, fd[i+1], ioevent_WRITE)) ;
-      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i], iocb2.generic)) ;
-      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i+1], iocb2.generic)) ;
+      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i], *asgeneric_iocallback(&iocb2, test_iohandler_t))) ;
+      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i+1], *asgeneric_iocallback(&iocb2, test_iohandler_t))) ;
    }
    for(unsigned unregcount = 0; unregcount < nrelementsof(fd); ++unregcount) {
       MEMSET0(&isevent) ;
@@ -881,9 +879,9 @@ static int test_processevents(void)
          sum += isevent[i] ;
          if (i < unregcount) {
             if (i % 2) {
-               TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_WRITE, iocb2.generic)) ;
+               TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_WRITE, *asgeneric_iocallback(&iocb2, test_iohandler_t))) ;
             } else {
-               TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_READ, iocb2.generic)) ;
+               TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_READ, *asgeneric_iocallback(&iocb2, test_iohandler_t))) ;
             }
          }
       }
@@ -894,8 +892,8 @@ static int test_processevents(void)
    for(unsigned i = 0; i < nrelementsof(fd); i += 2) {
       TEST(0 == changemask_iocontroler(&iocntr, fd[i], ioevent_READ)) ;
       TEST(0 == changemask_iocontroler(&iocntr, fd[i+1], ioevent_WRITE)) ;
-      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i], iocb3.generic)) ;
-      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i+1], iocb3.generic)) ;
+      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i], *asgeneric_iocallback(&iocb3, test_iohandler_t))) ;
+      TEST(0 == changeiocb_iocontroler(&iocntr, fd[i+1], *asgeneric_iocallback(&iocb3, test_iohandler_t))) ;
    }
    for(unsigned unregcount = 0; unregcount <= nrelementsof(fd); ++unregcount) {
       MEMSET0(&isevent) ;
@@ -918,7 +916,7 @@ static int test_processevents(void)
    }
    for(unsigned i = 0; i < nrelementsof(fd); i += 2) {
       TEST(0 == pipe2(&fd[i], O_CLOEXEC)) ;
-      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_READ, iocb1.generic)) ;
+      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i], ioevent_READ, *asgeneric_iocallback(&iocb1, test_iohandler_t))) ;
       TEST(0 == free_filedescr(fd+i+1)) ;
    }
    MEMSET0(&isevent) ;
@@ -937,7 +935,7 @@ static int test_processevents(void)
    for(unsigned i = 0; i < nrelementsof(fd); i += 2) {
       TEST(0 == pipe2(&fd[i], O_CLOEXEC)) ;
       TEST(0 == free_filedescr(fd+i)) ;
-      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i+1], ioevent_WRITE, iocb1.generic)) ;
+      TEST(0 == registeriocb_iocontroler(&iocntr, fd[i+1], ioevent_WRITE, *asgeneric_iocallback(&iocb1, test_iohandler_t))) ;
    }
    MEMSET0(&isevent) ;
    nr_events = 0 ;
@@ -953,8 +951,8 @@ static int test_processevents(void)
 
    // TEST shutdown
    TEST(0 == socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0, fd)) ;
-   TEST(0 == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ|ioevent_WRITE, iocb1.generic)) ;
-   TEST(0 == registeriocb_iocontroler(&iocntr, fd[1], ioevent_READ|ioevent_WRITE, iocb1.generic)) ;
+   TEST(0 == registeriocb_iocontroler(&iocntr, fd[0], ioevent_READ|ioevent_WRITE, *asgeneric_iocallback(&iocb1, test_iohandler_t))) ;
+   TEST(0 == registeriocb_iocontroler(&iocntr, fd[1], ioevent_READ|ioevent_WRITE, *asgeneric_iocallback(&iocb1, test_iohandler_t))) ;
    MEMSET0(&isevent) ;
    TEST(0 == processevents_iocontroler(&iocntr, 0, &nr_events)) ;
    TEST(2 == nr_events) ;

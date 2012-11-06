@@ -89,7 +89,7 @@ extern int iseventhandler_X11( int type, int * is_installed ) ;
 extern int unittest_presentation_X11(void) ;
 #endif
 
-// section: inline implementations
+// section: inline implementation
 
 // group: KONFIG_USERINTERFACE
 

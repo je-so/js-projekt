@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.May.07  09:20:52
+GenerationDate  := 2012.Nov.06  20:32:16
 GeneratedBy     := je-so
 
 ## Debug
@@ -79,7 +79,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
- $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
@@ -96,7 +96,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
- $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
+ $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
@@ -128,7 +128,7 @@ $(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcont
 $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
+$(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
@@ -173,7 +173,7 @@ $(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processco
 $(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
+$(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c

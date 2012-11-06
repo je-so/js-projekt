@@ -165,7 +165,7 @@ int resize_cstring(cstring_t * cstr, size_t new_length) ;
 int truncate_cstring(cstring_t * cstr, size_t new_length) ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 /* define: initmove_cstring
  * Implements <cstring_t.initmove_cstring>. */

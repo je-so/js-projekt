@@ -160,18 +160,18 @@ const char *               progname_maincontext(void) ;
 // group: query-service
 
 /* function: log_maincontext
- * Returns log service <log_iot> (see <logwritermt_t>).
+ * Returns log service <log_t> (see <logwriter_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-/*ref*/log_iot             log_maincontext(void) ;
+/*ref*/log_t               log_maincontext(void) ;
 
 /* function: mmtransient_maincontext
- * Returns object interface <mm_iot> for access of memory manager. */
-/*ref*/mm_iot              mmtransient_maincontext(void) ;
+ * Returns interfaceable object <mm_t> for access of memory manager. */
+/*ref*/mm_t                mmtransient_maincontext(void) ;
 
 /* function: objectcache_maincontext
- * Returns object interface <objectcache_iot> for access of cached singleton objects. */
-/*ref*/objectcache_iot     objectcache_maincontext(void) ;
+ * Returns interfaceable object <objectcache_t> for access of cached singleton objects. */
+/*ref*/objectcache_t       objectcache_maincontext(void) ;
 
 /* function: valuecache_maincontext
  * Returns <valuecache_t> holding precomputed values.
@@ -179,12 +179,12 @@ const char *               progname_maincontext(void) ;
 struct valuecache_t *      valuecache_maincontext(void) ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 /* define: log_maincontext
  * Inline implementation of <maincontext_t.log_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define log_maincontext()              (thread_maincontext().ilog)
+#define log_maincontext()              (thread_maincontext().log)
 
 /* define: mmtransient_maincontext
  * Inline implementation of <maincontext_t.mmtransient_maincontext>.

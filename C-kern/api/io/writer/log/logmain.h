@@ -51,7 +51,7 @@ extern struct log_it                   g_logmain_interface ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_writer_log_logmain
  * Tests global variable <g_logmain> and interface <g_logmain_interface>. */
-extern int unittest_io_writer_log_logmain(void) ;
+int unittest_io_writer_log_logmain(void) ;
 #endif
 
 #endif

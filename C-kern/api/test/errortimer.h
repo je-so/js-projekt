@@ -80,7 +80,7 @@ int process_testerrortimer(test_errortimer_t * errtimer) ;
 void ONERROR_testerrortimer(test_errortimer_t * errtimer, void ** ONERROR_LABEL) ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 /* define: init_testerrortimer
  * Implements <test_errortimer_t.init_testerrortimer>. */

@@ -304,7 +304,7 @@ int success_ipsocketasync(ipsocket_async_t * ipsockasync) ;
 int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec/*0 => no timeout*/) ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 #define fd_ipsocket(ipsock)            (*(ipsock))
 

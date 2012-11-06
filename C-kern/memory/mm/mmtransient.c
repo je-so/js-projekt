@@ -59,7 +59,7 @@ static mmtransient_it   s_mmtransient_interface = mm_it_INIT(
 
 // group: init
 
-int initthread_mmtransient(/*out*/mm_iot * mm_transient)
+int initthread_mmtransient(/*out*/mm_t * mm_transient)
 {
    int err ;
    const size_t      objsize    = sizeof(mmtransient_t) ;
@@ -87,7 +87,7 @@ ONABORT:
    return err ;
 }
 
-int freethread_mmtransient(mm_iot * mm_transient)
+int freethread_mmtransient(mm_t * mm_transient)
 {
    int err ;
    int err2 ;
@@ -221,7 +221,7 @@ ONABORT:
 
 static int test_initthread(void)
 {
-   mm_iot   mman = mm_iot_INIT_FREEABLE ;
+   mm_t  mman = mm_INIT_FREEABLE ;
 
    // TEST static init
    TEST(0 == mman.object) ;

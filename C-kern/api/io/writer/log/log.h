@@ -1,5 +1,6 @@
-/* title: Log-ImplementationObject
-   Exports <log_iot> - to use this interface implementaion you need to include <Log-Interface> also.
+/* title: Log-Object
+
+   Exports <log_t> - to use this object you need to include <Log-Interface> also.
    See also <log_it>.
 
    about: Copyright
@@ -20,20 +21,20 @@
    file: C-kern/api/io/writer/log/log_it.h
     Header file of <Log-Interface>.
 
-   file: C-kern/api/io/writer/log/log_iot.h
-    Contains interface implementing object <Log-ImplementationObject>.
+   file: C-kern/api/io/writer/log/log.h
+    Contains interface implementing object <Log-Object>.
 */
-#ifndef CKERN_IO_WRITER_LOG_LOG_IOT_HEADER
-#define CKERN_IO_WRITER_LOG_LOG_IOT_HEADER
+#ifndef CKERN_IO_WRITER_LOG_LOG_HEADER
+#define CKERN_IO_WRITER_LOG_LOG_HEADER
 
-/* typedef: struct log_iot
- * Export <log_iot>. Log service implementing object. */
-typedef struct log_iot                 log_iot ;
+/* typedef: struct log_t
+ * Export <log_t>. Log service implementing object. */
+typedef struct log_t                   log_t ;
 
 
-/* struct: log_iot
+/* struct: log_t
  * A log service implementing object. See also <log_it>. */
-struct log_iot {
+struct log_t {
    /* variable: object
     * The implementing object of interface <log_it>.
     * This is the value of the first argument of functions defined in interface <log_it>. */
@@ -45,8 +46,8 @@ struct log_iot {
 
 // group: lifetime
 
-/* define: log_iot_INIT_FREEABLE
+/* define: log_INIT_FREEABLE
  * Static initializer. */
-#define log_iot_INIT_FREEABLE    { (void*)0, (struct log_it*)0 }
+#define log_INIT_FREEABLE              { (void*)0, (struct log_it*)0 }
 
 #endif

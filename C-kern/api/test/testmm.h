@@ -99,15 +99,15 @@ int init_testmm(/*out*/testmm_t * mman) ;
  * this memory heap is no more reachable or already freed. */
 int free_testmm(testmm_t * mman) ;
 
-/* function: initiot_testmm
- * Calls <init_testmm> and wraps object into interface object <mm_iot>.
+/* function: initinterface_testmm
+ * Calls <init_testmm> and wraps object into interface object <mm_t>.
  * This function is called from <switchon_testmm>. */
-int initiot_testmm(/*out*/mm_iot * testmm) ;
+int initinterface_testmm(/*out*/mm_t * testmm) ;
 
-/* function: freeiot_testmm
- * Calls <free_testmm> with object pointer from <mm_iot>.
+/* function: freeinterface_testmm
+ * Calls <free_testmm> with object pointer from <mm_t>.
  * This function is called from <switchoff_testmm>. */
-int freeiot_testmm(mm_iot * testmm) ;
+int freeinterface_testmm(mm_t * testmm) ;
 
 // group: query
 

@@ -244,7 +244,7 @@ int run_unittest(void)
 //}
 
 //{ cache unittest
-      RUN(unittest_cache_objectcache) ;
+      RUN(unittest_cache_objectcacheimpl) ;
       RUN(unittest_cache_valuecache) ;
 //}
 
@@ -305,7 +305,12 @@ int run_unittest(void)
       RUN(unittest_time_clock) ;
 //}
 
-//{ writer unittest
+//{ io unittest
+      RUN(unittest_io_iocallback) ;
+      RUN(unittest_io_url) ;
+      // reader
+      RUN(unittest_io_reader_utf8reader) ;
+      // writer
       RUN(unittest_io_writer_log_logwriter) ;
       RUN(unittest_io_writer_log_logmain) ;
 //}
@@ -315,7 +320,6 @@ int run_unittest(void)
       RUN(unittest_io_filedescr) ;
       RUN(unittest_io_iocontroler) ;
       RUN(unittest_io_iotimer) ;
-      RUN(unittest_io_url) ;
       // io/filesystem
       RUN(unittest_io_directory) ;
       RUN(unittest_io_file) ;
@@ -323,8 +327,6 @@ int run_unittest(void)
       // io/ip
       RUN(unittest_io_ipaddr) ;
       RUN(unittest_io_ipsocket) ;
-      // io/reader
-      RUN(unittest_io_reader_utf8reader) ;
       // sync unittest
       RUN(unittest_platform_sync_mutex) ;
       RUN(unittest_platform_sync_semaphore) ;

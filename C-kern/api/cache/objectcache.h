@@ -1,10 +1,7 @@
-/* title: Objectcache
-   Offers a simple cache mechanism for objects needed in submodules
-   which are costly to construct or deconstruct.
+/* title: Objectcache-Object
 
-   Implements <initthread_objectcache>/<freethread_objectcache> to allocate
-   storage for cached objects before a new thread is created and frees all storage
-   before the thread exits.
+   Exports <objectcache_t>: a pointer to object and its implementation of interface <objectcache_it>.
+   To use this object you need to include <Objectcache-Interface>
 
    about: Copyright
    This program is free software.
@@ -21,87 +18,39 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/cache/objectcache.h
-    Header file of <Objectcache>.
+   file: C-kern/api/cache/objectcache_it.h
+    Header file of <Objectcache-Interface>.
 
-   file: C-kern/cache/objectcache.c
-    Implementation file <Objectcache impl>.
+   file: C-kern/api/cache/objectcache.h
+    Contains interface implementing object <Objectcache-Object>.
 */
 #ifndef CKERN_CACHE_OBJECTCACHE_HEADER
 #define CKERN_CACHE_OBJECTCACHE_HEADER
 
-#include "C-kern/api/memory/memblock.h"
+// forward
+struct objectcache_t ;
+struct objectcache_it ;
 
 /* typedef: struct objectcache_t
- * Export <objectcache_t>. */
+ * Export <objectcache_t>. <objectcache_it> implementing object. */
 typedef struct objectcache_t           objectcache_t ;
 
 
-// section: Functions
-
-// group: init
-
-#ifdef KONFIG_UNITTEST
-/* function: unittest_cache_objectcache
- * Test allocation and free works. */
-int unittest_cache_objectcache(void) ;
-#endif
-
-
 /* struct: objectcache_t
- * Holds pointers to all cached objects. */
+ * An object which implements interface <objectcache_it>. */
 struct objectcache_t {
-   /* variable: iobuffer
-    * Used in <init_vmmappedregions>. */
-   memblock_t    iobuffer ;
+   /* variable: object
+    * A pointer to the object which is operated on by the interface <objectcache_it>. */
+   struct objectcache_t    * object ;
+   /* variable: iimpl
+    * A pointer to an implementation of interface <objectcache_it> which operates on <object>. */
+   struct objectcache_it   * iimpl ;
 } ;
-
-// group: init
-
-/* function: initthread_objectcache
- * Calls <init_objectcache> and wraps object into interface object <objectcache_iot>.
- * This function is called from <init_threadcontext>. */
-int initthread_objectcache(/*out*/objectcache_iot * objectcache) ;
-
-/* function: freethread_objectcache
- * Calls <free_objectcache> with object pointer from <objectcache_iot>.
- * This function is called from <free_threadcontext>. */
-int freethread_objectcache(objectcache_iot * objectcache) ;
 
 // group: lifetime
 
 /* define: objectcache_INIT_FREEABLE
  * Static initializer. */
-#define objectcache_INIT_FREEABLE      { memblock_INIT_FREEABLE }
-
-/* function: init_objectcache
- * Inits <objectcache_t> and all contained objects. */
-int init_objectcache(objectcache_t * objectcache) ;
-
-/* function: free_objectcache
- * Frees <objectcache_t> and all contained objects. */
-int free_objectcache(objectcache_t * objectcache) ;
-
-// group: query
-
-/* function: lockiobuffer_objectcache
- * Locks the io buffer and returns a pointer to it in iobuffer.
- * The buffer is of type <memblock_t> (equal to <vm_block_t>). */
-void lockiobuffer_objectcache(objectcache_t * objectcache, /*out*/memblock_t ** iobuffer) ;
-
-/* function: unlockiobuffer_objectcache
- * Unlocks the locked io buffer and sets the pointer to NULL.
- * The pointer to the buffer must be acquired by a previous call to <lockiobuffer_objectcache>.
- * Calling unlock with a NULL pointer is a no op. */
-void unlockiobuffer_objectcache(objectcache_t * objectcache, memblock_t ** iobuffer) ;
-
-// group: change
-
-/* Moves content of cached objects from source to destination.
- * Both objects must have been initialized.
- * After successfull return all cached objects of source are in a freed state
- * and the previous content is transfered to destination.
- * Before anything is copied to destiniation all cached objects in destination are freed. */
-int move_objectcache( objectcache_t * destination, objectcache_t * source ) ;
+#define objectcache_INIT_FREEABLE      { (struct objectcache_t*)0, (struct objectcache_it*)0 }
 
 #endif

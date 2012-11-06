@@ -70,13 +70,13 @@ struct logwriter_t
 
 /* function: initthread_logwriter
  * Uses <init_logwriter> - called from <init_threadcontext>. */
-int initthread_logwriter(/*out*/log_iot * ilog) ;
+int initthread_logwriter(/*out*/log_t * log) ;
 
 /* function: freethread_logwriter
  * Uses  <free_logwriter> - called from <free_threadcontext>.
  * After return log is not set to NULL instead it is set to <g_logmain>.
  * To support the most basic logging. */
-int freethread_logwriter(log_iot * ilog) ;
+int freethread_logwriter(log_t * log) ;
 
 // group: lifetime
 
@@ -143,10 +143,10 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
 /* define: initthread_logwriter
  * Implement <logwriter_t.initthread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD)
  * The default logging service is <logmain_t> which may not be thread safe. */
-#define initthread_logwriter(ilog)   (0)
+#define initthread_logwriter(log)    (0)
 /* define: freethread_logwriter
  * Implement <logwriter_t.freethread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
-#define freethread_logwriter(ilog)   (0)
+#define freethread_logwriter(log)    (0)
 #endif
 #undef THREAD
 

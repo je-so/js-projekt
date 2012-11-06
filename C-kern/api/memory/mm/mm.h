@@ -1,5 +1,6 @@
-/* title: MemoryManager-ImplementationObject
-   Exports <mm_iot>: a pointer to object and its implementation of interface <mm_it>.
+/* title: MemoryManager-Object
+
+   Exports <mm_t>: a pointer to object and its implementation of interface <mm_it>.
    To use this object you need to include <MemoryManager-Interface>
 
    about: Copyright
@@ -20,26 +21,27 @@
    file: C-kern/api/memory/mm/mm_it.h
     Header file of <MemoryManager-Interface>.
 
-   file: C-kern/api/memory/mm/mm_iot.h
-    Contains interfaceable object <MemoryManager-ImplementationObject>.
+   file: C-kern/api/memory/mm/mm.h
+    Contains interfaceable object <MemoryManager-Object>.
 */
-#ifndef CKERN_MEMORY_MM_MMIOT_HEADER
-#define CKERN_MEMORY_MM_MMIOT_HEADER
+#ifndef CKERN_MEMORY_MM_MM_HEADER
+#define CKERN_MEMORY_MM_MM_HEADER
 
 // forward
-struct mm_t ;
 struct mm_it ;
 
-/* typedef: struct mm_iot
- * Export <mm_iot>. Memory manager implementing object. */
-typedef struct mm_iot                  mm_iot ;
+/* typedef: struct mm_t
+ * Export <mm_t>. Memory manager interfaceable object. */
+typedef struct mm_t                    mm_t ;
 
 
-/* struct: mm_iot
- * A memory manager object implementing interface <mm_it>. */
-struct mm_iot {
+/* struct: mm_t
+ * A memory manager object exporting interface <mm_it>. */
+struct mm_t {
    /* variable: object
-    * A pointer to the object which implements the interface <mm_it>. */
+    * A pointer to the object which implements the interface <mm_it>.
+    * The type <mm_t> is casted into a custom type in the implementation
+    * of the interface <mm_it>. */
    struct mm_t    * object ;
    /* variable: iimpl
     * A pointer to the implementation of interface <mm_it>. */
@@ -48,13 +50,13 @@ struct mm_iot {
 
 // group: lifetime
 
-/* define: mm_iot_INIT_FREEABLE
+/* define: mm_INIT_FREEABLE
  * Static initializer. */
-#define mm_iot_INIT_FREEABLE           { (struct mm_t*)0, (struct mm_it*)0 }
+#define mm_INIT_FREEABLE               { (struct mm_t*)0, (struct mm_it*)0 }
 
-/* define: mm_iot_INIT
+/* define: mm_INIT
  * Static initializer. */
-#define mm_iot_INIT(object, iimpl)     { (object), (iimpl) }
+#define mm_INIT(object, iimpl)         { (object), (iimpl) }
 
 
 #endif

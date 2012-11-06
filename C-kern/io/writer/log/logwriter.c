@@ -63,7 +63,7 @@ logwriter_it      s_logwriter_interface = {
 
 // group: init
 
-int initthread_logwriter(/*out*/log_iot * ilog)
+int initthread_logwriter(/*out*/log_t * logobj)
 {
    int err ;
    const size_t   objsize  = sizeof(logwriter_t) ;
@@ -75,8 +75,8 @@ int initthread_logwriter(/*out*/log_iot * ilog)
       goto ONABORT ;
    }
 
-   if (  ilog->object
-      && ilog->object != &g_logmain) {
+   if (  logobj->object
+      && logobj->object != &g_logmain) {
       err = EINVAL ;
       goto ONABORT ;
    }
@@ -84,8 +84,8 @@ int initthread_logwriter(/*out*/log_iot * ilog)
    err = init_logwriter( newlgwrt ) ;
    if (err) goto ONABORT ;
 
-   ilog->object = newlgwrt ;
-   ilog->iimpl  = (log_it*) &s_logwriter_interface ;
+   logobj->object = newlgwrt ;
+   logobj->iimpl  = (log_it*) &s_logwriter_interface ;
 
    return 0 ;
 ONABORT:
@@ -94,18 +94,18 @@ ONABORT:
    return err ;
 }
 
-int freethread_logwriter(log_iot * ilog)
+int freethread_logwriter(log_t * logobj)
 {
    int err ;
-   logwriter_t * newlgwrt = (logwriter_t*) ilog->object ;
+   logwriter_t * newlgwrt = (logwriter_t*) logobj->object ;
 
    if (  newlgwrt
       && newlgwrt != (logwriter_t*) &g_logmain ) {
 
-      assert((log_it*)&s_logwriter_interface == ilog->iimpl) ;
+      assert((log_it*)&s_logwriter_interface == logobj->iimpl) ;
 
-      ilog->object = &g_logmain ;
-      ilog->iimpl  = &g_logmain_interface ;
+      logobj->object = &g_logmain ;
+      logobj->iimpl  = &g_logmain_interface ;
 
       err = free_logwriter(newlgwrt) ;
 
@@ -493,12 +493,12 @@ ONABORT:
 
 static int test_initthread(void)
 {
-   log_iot        ilog    = log_iot_INIT_FREEABLE ;
-   logwriter_t    * lgwrt = 0 ;
+   log_t        logobj  = log_INIT_FREEABLE ;
+   logwriter_t  * lgwrt = 0 ;
 
    // TEST static init
-   TEST(0 == ilog.object) ;
-   TEST(0 == ilog.iimpl) ;
+   TEST(0 == logobj.object) ;
+   TEST(0 == logobj.iimpl) ;
 
    // TEST exported interface
    TEST(s_logwriter_interface.printf      == &printf_logwriter)
@@ -506,52 +506,52 @@ static int test_initthread(void)
    TEST(s_logwriter_interface.clearbuffer == &clearbuffer_logwriter) ;
    TEST(s_logwriter_interface.getbuffer   == &getbuffer_logwriter) ;
 
-   // TEST init, double free (ilog.object = 0)
-   TEST(0 == initthread_logwriter(&ilog)) ;
-   TEST(ilog.object) ;
-   TEST(ilog.object != &g_logmain) ;
-   TEST(ilog.iimpl  == (log_it*) &s_logwriter_interface) ;
-   lgwrt = (logwriter_t*) ilog.object ;
+   // TEST init, double free (logobj.object = 0)
+   TEST(0 == initthread_logwriter(&logobj)) ;
+   TEST(logobj.object) ;
+   TEST(logobj.object != &g_logmain) ;
+   TEST(logobj.iimpl  == (log_it*) &s_logwriter_interface) ;
+   lgwrt = (logwriter_t*) logobj.object ;
    TEST(lgwrt->buffer.addr) ;
    TEST(lgwrt->buffer.size) ;
-   TEST(0 == freethread_logwriter(&ilog)) ;
-   TEST(ilog.object == &g_logmain) ;
-   TEST(ilog.iimpl  == &g_logmain_interface) ;
-   TEST(0 == freethread_logwriter(&ilog)) ;
-   TEST(ilog.object == &g_logmain) ;
-   TEST(ilog.iimpl  == &g_logmain_interface) ;
+   TEST(0 == freethread_logwriter(&logobj)) ;
+   TEST(logobj.object == &g_logmain) ;
+   TEST(logobj.iimpl  == &g_logmain_interface) ;
+   TEST(0 == freethread_logwriter(&logobj)) ;
+   TEST(logobj.object == &g_logmain) ;
+   TEST(logobj.iimpl  == &g_logmain_interface) ;
    lgwrt = 0 ;
 
-   // TEST init, double free (ilog.object = &g_logmain)
-   ilog.object = &g_logmain ;
-   TEST(0 == initthread_logwriter(&ilog)) ;
-   TEST(ilog.object) ;
-   TEST(ilog.object != &g_logmain) ;
-   TEST(ilog.iimpl  == (log_it*) &s_logwriter_interface) ;
-   lgwrt = (logwriter_t*) ilog.object ;
+   // TEST init, double free (logobj.object = &g_logmain)
+   logobj.object = &g_logmain ;
+   TEST(0 == initthread_logwriter(&logobj)) ;
+   TEST(logobj.object) ;
+   TEST(logobj.object != &g_logmain) ;
+   TEST(logobj.iimpl  == (log_it*) &s_logwriter_interface) ;
+   lgwrt = (logwriter_t*) logobj.object ;
    TEST(lgwrt->buffer.addr) ;
    TEST(lgwrt->buffer.size) ;
-   TEST(0 == freethread_logwriter(&ilog)) ;
-   TEST(ilog.object == &g_logmain) ;
-   TEST(ilog.iimpl  == &g_logmain_interface) ;
-   TEST(0 == freethread_logwriter(&ilog)) ;
-   TEST(ilog.object == &g_logmain) ;
-   TEST(ilog.iimpl  == &g_logmain_interface) ;
+   TEST(0 == freethread_logwriter(&logobj)) ;
+   TEST(logobj.object == &g_logmain) ;
+   TEST(logobj.iimpl  == &g_logmain_interface) ;
+   TEST(0 == freethread_logwriter(&logobj)) ;
+   TEST(logobj.object == &g_logmain) ;
+   TEST(logobj.iimpl  == &g_logmain_interface) ;
    lgwrt = 0 ;
 
-   // TEST free (ilog.object = 0)
-   ilog.object = 0 ;
-   TEST(0 == freethread_logwriter(&ilog)) ;
-   TEST(0 == ilog.object) ;
+   // TEST free (logobj.object = 0)
+   logobj.object = 0 ;
+   TEST(0 == freethread_logwriter(&logobj)) ;
+   TEST(0 == logobj.object) ;
 
    // TEST EINVAL
-   ilog.object = (logwriter_t*) 1 ;
-   TEST(EINVAL == initthread_logwriter(&ilog)) ;
-   TEST(ilog.object == (logwriter_t*) 1) ;
+   logobj.object = (logwriter_t*) 1 ;
+   TEST(EINVAL == initthread_logwriter(&logobj)) ;
+   TEST(logobj.object == (logwriter_t*) 1) ;
 
    return 0 ;
 ONABORT:
-   freethread_logwriter(&ilog) ;
+   freethread_logwriter(&logobj) ;
    return EINVAL ;
 }
 

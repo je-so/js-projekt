@@ -135,7 +135,7 @@ extern int skip_convertwchar(convert_wchar_t * conv, size_t char_count) ;
 extern int peek_convertwchar(const convert_wchar_t * conv, size_t char_count, wchar_t * wchar_array) ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 /* define: free_convertwchar
  * Implements <convert_wchar_t.free_convertwchar> as a no op. */

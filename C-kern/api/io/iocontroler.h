@@ -26,7 +26,7 @@
 #ifndef CKERN_IO_IOCONTROLER_HEADER
 #define CKERN_IO_IOCONTROLER_HEADER
 
-#include "C-kern/api/io/iocallback_iot.h"
+#include "C-kern/api/io/iocallback.h"
 #include "C-kern/api/memory/memblock.h"
 
 // forward
@@ -50,7 +50,7 @@ int unittest_io_iocontroler(void) ;
 
 
 /* struct: iocontroler_t
- * This object manages a set of <filedescr_t> and associated <iocallback_iot> callbacks.
+ * This object manages a set of <filedescr_t> and associated <iocallback_t> callbacks.
  * It monitors the registered file desciptor for one or more <ioevent_e>s and calls
  * back the associated I/O handlers for any occurred I/O events. */
 struct iocontroler_t {
@@ -97,7 +97,7 @@ int free_iocontroler(iocontroler_t * iocntr) ;
 // group: manage
 
 /* function: registeriocb_iocontroler
- * Registers <iocallback_iot> *iocb* for <filedescr_t> *fd* and monitors for <ioevent_e> *ioevents*.
+ * Registers <iocallback_t> *iocb* for <filedescr_t> *fd* and monitors for <ioevent_e> *ioevents*.
  * The parameter *ioevent* is the event mask. The parameter *iocb* is the
  * io event handler which is called back if any event occurred whose bit is set in *ioevent*.
  *
@@ -111,7 +111,7 @@ int free_iocontroler(iocontroler_t * iocntr) ;
  * ioevent_CLOSE  - Be always prepared that the other side closes the connection.
  *
  * */
-int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t ioevents, struct iocallback_iot iocb) ;
+int registeriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t ioevents, struct iocallback_t iocb) ;
 
 /* function: changemask_iocontroler
  * Changes <ioevent_e> mask *ioevents* the file descriptor fd is monitored for.
@@ -121,7 +121,7 @@ int changemask_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, uint8_t i
 /* function: changeiocb_iocontroler
  * Changes <iocallback_t> *iocb* for <filedescr_t> fd.
  * It returns ENOENT if the filedescriptor *fd* is not registered already. */
-int changeiocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, struct iocallback_iot iocb) ;
+int changeiocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, struct iocallback_t iocb) ;
 
 /* function: unregisteriocb_iocontroler
  * Unregisters <filedescr_t> *fd*.
@@ -129,13 +129,13 @@ int changeiocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd, struct io
 int unregisteriocb_iocontroler(iocontroler_t * iocntr, sys_filedescr_t fd) ;
 
 /* function: processevents_iocontroler
- * Waits *timeout_millisec* milli secconds for events and calls registered <iocallback_iot>.
+ * Waits *timeout_millisec* milli secconds for events and calls registered <iocallback_t>.
  * If *timeout_millisec* is set to 0 then this function polls only for any new events
  * but does not wait. If *timeout_millisec* has a value != 0 this function waits until any
  * event occurs but no longer than timeout_millisec milli seconds.
  *
  * After successfull return *nr_events_process* contains the number of occurred events.
- * If an <iocallback_iot> event handler was registered for a filedescriptor
+ * If an <iocallback_t> event handler was registered for a filedescriptor
  * it is called with the occurred <ioevent_e> as one of its parameters. */
 int processevents_iocontroler(iocontroler_t * iocntr, uint16_t timeout_millisec, /*out*/size_t * nr_events_processed) ;
 

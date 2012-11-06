@@ -1,8 +1,8 @@
 /* title: Log-Interface
-   Interface to access log service.
-   An interface is a structure which lists function pointers.
+
+   Interface to access log service. An interface is a structure which lists function pointers.
    These function pointers point to functions exported by a service implementation.
-   Used in <LogWriter>.
+   Used in <LogWriter> and <LogMain>.
 
    about: Copyright
    This program is free software.
@@ -22,11 +22,11 @@
    file: C-kern/api/io/writer/log/log_it.h
     Header file of <Log-Interface>.
 
-   file: C-kern/api/io/writer/log/log_iot.h
-    Contains interface implementing object <Log-ImplementationObject>.
+   file: C-kern/api/io/writer/log/log.h
+    Contains interface implementing object <Log-Object>.
 */
-#ifndef CKERN_IO_WRITER_LOG_LOG_IT_HEADER
-#define CKERN_IO_WRITER_LOG_LOG_IT_HEADER
+#ifndef CKERN_IO_WRITER_LOG_LOG_INTERFACE_HEADER
+#define CKERN_IO_WRITER_LOG_LOG_INTERFACE_HEADER
 
 /* typedef: struct log_it
  * Export interface (function table) <log_it>.

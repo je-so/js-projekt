@@ -83,15 +83,15 @@
         <File Name="../../C-kern/api/memory/mm/mmtransient.h"/>
         <File Name="../../C-kern/api/memory/mm/mm_it.h"/>
         <File Name="../../C-kern/api/memory/mm/mm_macros.h"/>
-        <File Name="../../C-kern/api/memory/mm/mm_iot.h"/>
+        <File Name="../../C-kern/api/memory/mm/mm.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
-      <File Name="../../C-kern/api/cache/objectcache.h"/>
       <File Name="../../C-kern/api/cache/valuecache.h"/>
       <File Name="../../C-kern/api/cache/objectcache_it.h"/>
       <File Name="../../C-kern/api/cache/objectcache_macros.h"/>
-      <File Name="../../C-kern/api/cache/objectcache_iot.h"/>
+      <File Name="../../C-kern/api/cache/objectcache_impl.h"/>
+      <File Name="../../C-kern/api/cache/objectcache.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="context">
       <File Name="../../C-kern/api/context/processcontext.h"/>
@@ -156,11 +156,11 @@
           <File Name="../../C-kern/api/io/writer/log/log_macros.h"/>
           <File Name="../../C-kern/api/io/writer/log/logmain.h"/>
           <File Name="../../C-kern/api/io/writer/log/logwriter.h"/>
-          <File Name="../../C-kern/api/io/writer/log/log_iot.h"/>
+          <File Name="../../C-kern/api/io/writer/log/log.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/iocontroler.h"/>
-      <File Name="../../C-kern/api/io/iocallback_iot.h"/>
+      <File Name="../../C-kern/api/io/iocallback.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/clock.h"/>
@@ -175,8 +175,8 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
-    <File Name="../../C-kern/cache/objectcache.c"/>
     <File Name="../../C-kern/cache/valuecache.c"/>
+    <File Name="../../C-kern/cache/objectcache_impl.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="context">
     <File Name="../../C-kern/context/processcontext.c"/>
@@ -197,6 +197,7 @@
         <File Name="../../C-kern/io/writer/log/logwriter.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
+    <File Name="../../C-kern/io/iocallback.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
     <VirtualDirectory Name="test">

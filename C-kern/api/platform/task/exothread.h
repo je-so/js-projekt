@@ -391,7 +391,7 @@ struct exothread_subtype_t {
 } ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 /* define: clearholdingresource_exothread
  * Implements <exothread_t.clearholdingresource_exothread>.

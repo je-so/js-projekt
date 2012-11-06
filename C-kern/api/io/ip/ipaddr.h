@@ -347,7 +347,7 @@ extern void gofirst_ipaddrlist(ipaddr_list_t * addrlist) ;
 extern const ipaddr_t * next_ipaddrlist(ipaddr_list_t * addrlist) ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 
 #endif

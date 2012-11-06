@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Oct.18  08:12:00
+GenerationDate  := 2012.Nov.06  20:32:16
 GeneratedBy     := je-so
 
 ## Debug
@@ -96,8 +96,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!exoscheduler.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o \
  $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
- $(ObjectDir_Debug)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
@@ -117,6 +117,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!keycomparator.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!getbinarykey.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
+ $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
@@ -169,8 +170,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!shared!task!exoscheduler.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o \
  $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o \
+ $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
- $(ObjectDir_Release)/C-kern!cache!objectcache.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
@@ -190,6 +191,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!keycomparator.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!getbinarykey.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
+ $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
@@ -291,10 +293,10 @@ $(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o: C-kern/platform/s
 $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o: C-kern/main/test/unittest_main.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+$(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
+$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
@@ -352,6 +354,9 @@ $(ObjectDir_Debug)/C-kern!ds!typeadapt!getbinarykey.c.o: C-kern/ds/typeadapt/get
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
@@ -504,10 +509,10 @@ $(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o: C-kern/platform
 $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o: C-kern/main/test/unittest_main.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+$(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!cache!objectcache.c.o: C-kern/cache/objectcache.c
+$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
@@ -565,6 +570,9 @@ $(ObjectDir_Release)/C-kern!ds!typeadapt!getbinarykey.c.o: C-kern/ds/typeadapt/g
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c

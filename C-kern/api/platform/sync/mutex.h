@@ -103,7 +103,7 @@ extern void slock_mutex(mutex_t * mutex) ;
 extern void sunlock_mutex(mutex_t * mutex) ;
 
 
-// section: inline implementations
+// section: inline implementation
 
 /* define: slock_mutex
  * Implements <mutex_t.slock_mutex>.

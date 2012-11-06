@@ -1,6 +1,6 @@
 /* title: MemoryManager-Interface
-   Interface functions to access memory manager.
-   Implemented by <mmtransient_t>.
+
+   Interface functions to access memory manager. Implemented by <mmtransient_t>.
 
    about: Copyright
    This program is free software.
@@ -20,8 +20,8 @@
    file: C-kern/api/memory/mm/mm_it.h
     Header file of <MemoryManager-Interface>.
 
-   file: C-kern/api/memory/mm/mm_iot.h
-    Contains interfaceable object <MemoryManager-ImplementationObject>.
+   file: C-kern/api/memory/mm/mm.h
+    Defines interfaceable object <MemoryManager-Object>.
 */
 #ifndef CKERN_MEMORY_MM_MMIT_HEADER
 #define CKERN_MEMORY_MM_MMIT_HEADER

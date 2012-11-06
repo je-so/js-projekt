@@ -444,26 +444,26 @@ testmm_t * mmcontext_testmm(void)
 
 int switchon_testmm()
 {
-   int err ;
-   mm_iot testmm = mm_iot_INIT_FREEABLE ;
+   int  err ;
+   mm_t testmm = mm_INIT_FREEABLE ;
 
    if (&s_testmm_interface.generic != mmtransient_maincontext().iimpl) {
       memblock_t  previous_mm = memblock_INIT_FREEABLE ;
 
-      err = initiot_testmm(&testmm) ;
+      err = initinterface_testmm(&testmm) ;
       if (err) goto ONABORT ;
 
-      err = testmm.iimpl->mresize(testmm.object, sizeof(mm_iot), &previous_mm) ;
+      err = testmm.iimpl->mresize(testmm.object, sizeof(mm_t), &previous_mm) ;
       if (err) goto ONABORT ;
 
-      *((mm_iot*)previous_mm.addr) = mmtransient_maincontext() ;
+      *((mm_t*)previous_mm.addr) = mmtransient_maincontext() ;
 
       mmtransient_maincontext() = testmm ;
    }
 
    return 0 ;
 ONABORT:
-   freeiot_testmm(&testmm) ;
+   freeinterface_testmm(&testmm) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -473,8 +473,8 @@ int switchoff_testmm()
    int err ;
 
    if (&s_testmm_interface.generic == mmtransient_maincontext().iimpl) {
-      mm_iot      mmiot       = mmtransient_maincontext() ;
-      testmm_t    * testmm    = ((testmm_t*)mmiot.object) ;
+      mm_t        mmobj       = mmtransient_maincontext() ;
+      testmm_t    * testmm    = ((testmm_t*)mmobj.object) ;
       memblock_t  previous_mm = memblock_INIT_FREEABLE ;
       testmm_page_t  * mmpage = testmm->mmpage ;
 
@@ -485,14 +485,14 @@ int switchoff_testmm()
       err = getblock_testmmpage(mmpage, 1, &previous_mm) ;
       if (err) goto ONABORT ;
 
-      if (sizeof(mm_iot) != previous_mm.size) {
+      if (sizeof(mm_t) != previous_mm.size) {
          err = EINVAL ;
          goto ONABORT ;
       }
 
-      mmtransient_maincontext() = *((mm_iot*)previous_mm.addr) ;
+      mmtransient_maincontext() = *((mm_t*)previous_mm.addr) ;
 
-      err = freeiot_testmm(&mmiot) ;
+      err = freeinterface_testmm(&mmobj) ;
       if (err) goto ONABORT ;
    }
 
@@ -552,7 +552,7 @@ ONABORT:
    return err ;
 }
 
-int initiot_testmm(/*out*/mm_iot * testmm)
+int initinterface_testmm(/*out*/mm_t * testmm)
 {
    int err ;
    testmm_t       testmmobj = testmm_INIT_FREEABLE ;
@@ -567,7 +567,7 @@ int initiot_testmm(/*out*/mm_iot * testmm)
 
    memcpy(memblock.addr, &testmmobj, objsize) ;
 
-   *testmm = (mm_iot) mm_iot_INIT((struct mm_t*) memblock.addr, &s_testmm_interface.generic) ;
+   *testmm = (mm_t) mm_INIT((struct mm_t*) memblock.addr, &s_testmm_interface.generic) ;
 
    return err ;
 ONABORT:
@@ -576,7 +576,7 @@ ONABORT:
    return err ;
 }
 
-int freeiot_testmm(mm_iot * testmm)
+int freeinterface_testmm(mm_t * testmm)
 {
    int err ;
    testmm_t       testmmobj = testmm_INIT_FREEABLE ;
@@ -588,7 +588,7 @@ int freeiot_testmm(mm_iot * testmm)
       memcpy(&testmmobj, testmm->object, objsize) ;
       err = free_testmm(&testmmobj) ;
 
-      *testmm = (mm_iot) mm_iot_INIT_FREEABLE ;
+      *testmm = (mm_t) mm_INIT_FREEABLE ;
 
       if (err) goto ONABORT ;
    }
@@ -895,7 +895,7 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   mm_iot       mmiot    = mm_iot_INIT_FREEABLE ;
+   mm_t         mmobj    = mm_INIT_FREEABLE ;
    testmm_t     testmm   = testmm_INIT_FREEABLE ;
    memblock_t   memblock = memblock_INIT_FREEABLE ;
    const size_t headersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
@@ -943,19 +943,19 @@ static int test_initfree(void)
    TEST(0 == testmm.sizeallocated) ;
 
    // TEST initiot, double freeiot
-   TEST(0 == mmiot.object) ;
-   TEST(0 == mmiot.iimpl) ;
-   TEST(0 == initiot_testmm(&mmiot)) ;
-   TEST(mmiot.object == (void*) (((testmm_t*)mmiot.object)->mmpage->datablock.addr + headersize)) ;
-   TEST(mmiot.iimpl  == &s_testmm_interface.generic) ;
-   TEST(0 == freeiot_testmm(&mmiot)) ;
-   TEST(0 == mmiot.object) ;
-   TEST(0 == mmiot.iimpl) ;
+   TEST(0 == mmobj.object) ;
+   TEST(0 == mmobj.iimpl) ;
+   TEST(0 == initinterface_testmm(&mmobj)) ;
+   TEST(mmobj.object == (void*) (((testmm_t*)mmobj.object)->mmpage->datablock.addr + headersize)) ;
+   TEST(mmobj.iimpl  == &s_testmm_interface.generic) ;
+   TEST(0 == freeinterface_testmm(&mmobj)) ;
+   TEST(0 == mmobj.object) ;
+   TEST(0 == mmobj.iimpl) ;
 
    return 0 ;
 ONABORT:
    free_testmm(&testmm) ;
-   freeiot_testmm(&mmiot) ;
+   freeinterface_testmm(&mmobj) ;
    return EINVAL ;
 }
 
@@ -1173,7 +1173,7 @@ ONABORT:
 
 static int test_context(void)
 {
-   mm_iot oldmm = mmtransient_maincontext() ;
+   mm_t oldmm = mmtransient_maincontext() ;
 
    // TEST double call switchon_testmm
    TEST(&s_testmm_interface.generic != mmtransient_maincontext().iimpl) ;

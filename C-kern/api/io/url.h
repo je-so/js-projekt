@@ -216,7 +216,7 @@ extern const char * user_url(const url_t * url) ;
 
 
 
-// section: inline implementations
+// section: inline implementation
 
 /* define: getpart_url
  * Implements <url_t.getpart_url>. */

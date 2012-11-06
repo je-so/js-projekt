@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/genmake.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.May.07  09:20:52
+GenerationDate  := 2012.Nov.06  20:32:16
 GeneratedBy     := je-so
 
 ## Debug

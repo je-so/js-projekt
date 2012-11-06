@@ -31,7 +31,7 @@
 #include "C-kern/api/io/writer/log/logmain.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initthread")
 #include "C-kern/api/memory/mm/mmtransient.h"
-#include "C-kern/api/cache/objectcache.h"
+#include "C-kern/api/cache/objectcache_impl.h"
 #include "C-kern/api/io/writer/log/logwriter.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
@@ -63,9 +63,9 @@ int free_threadcontext(threadcontext_t * tcontext)
    default:    assert(0 != tcontext->initcount && "out of bounds") ;
                break ;
 // TEXTDB:SELECT("   case "row-id":     err2 = freethread_"module"("(if (parameter!="") "&tcontext->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initthread)DESCENDING
-   case 3:     err2 = freethread_logwriter(&tcontext->ilog) ;
+   case 3:     err2 = freethread_logwriter(&tcontext->log) ;
                if (err2) err = err2 ;
-   case 2:     err2 = freethread_objectcache(&tcontext->objectcache) ;
+   case 2:     err2 = freethread_objectcacheimpl(&tcontext->objectcache) ;
                if (err2) err = err2 ;
    case 1:     err2 = freethread_mmtransient(&tcontext->mm_transient) ;
                if (err2) err = err2 ;
@@ -97,12 +97,12 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext)
    ++tcontext->initcount ;
 
    ONERROR_testerrortimer(&s_error_init, ONABORT) ;
-   err = initthread_objectcache(&tcontext->objectcache) ;
+   err = initthread_objectcacheimpl(&tcontext->objectcache) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
    ONERROR_testerrortimer(&s_error_init, ONABORT) ;
-   err = initthread_logwriter(&tcontext->ilog) ;
+   err = initthread_logwriter(&tcontext->log) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 // TEXTDB:END
@@ -128,8 +128,8 @@ static int test_initfree(void)
 
    // TEST threadcontext_INIT_STATIC
    TEST(0 == tcontext.initcount) ;
-   TEST(tcontext.ilog.object == &g_logmain) ;
-   TEST(tcontext.ilog.iimpl  == &g_logmain_interface) ;
+   TEST(tcontext.log.object == &g_logmain) ;
+   TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
    TEST(0 == tcontext.mm_transient.object) ;
    TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
@@ -138,25 +138,25 @@ static int test_initfree(void)
    // TEST init, double free
    TEST(0 == init_threadcontext(&tcontext)) ;
    TEST(nrsvc == tcontext.initcount) ;
-   TEST(tcontext.ilog.object != 0) ;
-   TEST(tcontext.ilog.object != &g_logmain) ;
-   TEST(tcontext.ilog.iimpl  != &g_logmain_interface) ;
+   TEST(tcontext.log.object != 0) ;
+   TEST(tcontext.log.object != &g_logmain) ;
+   TEST(tcontext.log.iimpl  != &g_logmain_interface) ;
    TEST(0 != tcontext.mm_transient.object) ;
    TEST(0 != tcontext.mm_transient.iimpl) ;
    TEST(0 != tcontext.objectcache.object) ;
    TEST(0 != tcontext.objectcache.iimpl) ;
    TEST(0 == free_threadcontext(&tcontext)) ;
    TEST(0 == tcontext.initcount) ;
-   TEST(tcontext.ilog.object == &g_logmain) ;
-   TEST(tcontext.ilog.iimpl  == &g_logmain_interface) ;
+   TEST(tcontext.log.object == &g_logmain) ;
+   TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
    TEST(0 == tcontext.mm_transient.object) ;
    TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
    TEST(0 == tcontext.objectcache.iimpl) ;
    TEST(0 == free_threadcontext(&tcontext)) ;
    TEST(0 == tcontext.initcount) ;
-   TEST(tcontext.ilog.object == &g_logmain) ;
-   TEST(tcontext.ilog.iimpl  == &g_logmain_interface) ;
+   TEST(tcontext.log.object == &g_logmain) ;
+   TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
    TEST(0 == tcontext.mm_transient.object) ;
    TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
@@ -168,8 +168,8 @@ static int test_initfree(void)
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
       TEST(EINVAL+i == init_threadcontext(&tcontext)) ;
       TEST(0 == tcontext.initcount) ;
-      TEST(tcontext.ilog.object == &g_logmain) ;
-      TEST(tcontext.ilog.iimpl  == &g_logmain_interface) ;
+      TEST(tcontext.log.object == &g_logmain) ;
+      TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
       TEST(0 == tcontext.mm_transient.object) ;
       TEST(0 == tcontext.mm_transient.iimpl) ;
       TEST(0 == tcontext.objectcache.object) ;
