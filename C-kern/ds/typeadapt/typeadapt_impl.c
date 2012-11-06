@@ -44,7 +44,7 @@ int lifetime_newcopyobj_typeadaptimpl(typeadapt_impl_t * typeadp, /*out*/struct 
    int err ;
    memblock_t destblock = memblock_INIT_FREEABLE ;
 
-   err = MM_RESIZE(typeadp->objectsize, &destblock) ;
+   err = RESIZE_MM(typeadp->objectsize, &destblock) ;
    if (err) goto ONABORT ;
 
    memcpy(destblock.addr, srcobject, typeadp->objectsize) ;
@@ -66,7 +66,7 @@ int lifetime_deleteobj_typeadaptimpl(typeadapt_impl_t * typeadp, struct typeadap
 
       *object = 0 ;
 
-      err = MM_FREE(&mblock) ;
+      err = FREE_MM(&mblock) ;
       if (err) goto ONABORT ;
    }
 

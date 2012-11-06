@@ -917,7 +917,7 @@ static int test_insertremove(void)
    unsigned             nodecount ;
 
    // prepare
-   TEST(0 == MM_RESIZE(sizeof(testnode_t) * MAX_TREE_NODES, &memblock)) ;
+   TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock)) ;
    nodes = (testnode_t*)memblock.addr ;
    memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES) ;
    for (unsigned i = 0; i < MAX_TREE_NODES; ++i) {
@@ -1282,12 +1282,12 @@ static int test_insertremove(void)
    }
 
    // unprepare
-   TEST(0 == MM_FREE(&memblock)) ;
+   TEST(0 == FREE_MM(&memblock)) ;
    nodes = 0 ;
 
    return 0 ;
 ONABORT:
-   (void) MM_FREE(&memblock) ;
+   (void) FREE_MM(&memblock) ;
    return EINVAL ;
 }
 
@@ -1303,7 +1303,7 @@ static int test_iterator(void)
    patriciatrie_node_t        * found_node ;
 
    // prepare
-   TEST(0 == MM_RESIZE(sizeof(testnode_t) * MAX_TREE_NODES, &memblock)) ;
+   TEST(0 == RESIZE_MM(sizeof(testnode_t) * MAX_TREE_NODES, &memblock)) ;
    nodes = (testnode_t*)memblock.addr ;
    memset(nodes, 0, sizeof(testnode_t) * MAX_TREE_NODES) ;
    init_patriciatrie(&tree, &nodeadapt) ;
@@ -1445,12 +1445,12 @@ static int test_iterator(void)
    }
 
    // unprepare
-   TEST(0 == MM_FREE(&memblock)) ;
+   TEST(0 == FREE_MM(&memblock)) ;
    nodes = 0 ;
 
    return 0 ;
 ONABORT:
-   (void) MM_FREE(&memblock) ;
+   (void) FREE_MM(&memblock) ;
    return EINVAL ;
 }
 

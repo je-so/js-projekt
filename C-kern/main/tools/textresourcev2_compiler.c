@@ -272,7 +272,7 @@ static int copyobj_textresourcecondition(textresource_condition_adapt_t * typead
 
    (void) typeadp ;
 
-   err = MM_RESIZE(sizeof(textresource_condition_t), &mblock) ;
+   err = RESIZE_MM(sizeof(textresource_condition_t), &mblock) ;
    if (err) return err ;
 
    textresource_condition_t * newcond = (textresource_condition_t *) mblock.addr ;
@@ -298,7 +298,7 @@ static int freeobj_textresourcecondition(textresource_condition_adapt_t * typead
       err = free_textatomlist(&delobj->atomlist, &g_textatom_nodeadapter) ;
 
       memblock_t  mblock = memblock_INIT(sizeof(textresource_condition_t), (uint8_t*)delobj) ;
-      err2 = MM_FREE(&mblock) ;
+      err2 = FREE_MM(&mblock) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -367,7 +367,7 @@ static int copyobj_textresourcelangref(textresource_langref_adapt_t * typeadp, /
 
    (void) typeadp ;
 
-   err = MM_RESIZE(sizeof(textresource_langref_t), &mblock) ;
+   err = RESIZE_MM(sizeof(textresource_langref_t), &mblock) ;
    if (err) return err ;
 
    textresource_langref_t * newlang = (textresource_langref_t *) mblock.addr ;
@@ -393,7 +393,7 @@ static int freeobj_textresourcelangref(textresource_langref_adapt_t * typeadp, t
       err = free_conditionlist(&delobj->condlist, &g_condition_nodeadapter) ;
 
       memblock_t  mblock = memblock_INIT(sizeof(textresource_langref_t), (uint8_t*)delobj) ;
-      err2 = MM_FREE(&mblock) ;
+      err2 = FREE_MM(&mblock) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -480,7 +480,7 @@ static int copyobj_textresourcetext(textresource_text_adapt_t * typeadt, /*out*/
 
    (void) typeadt ;
 
-   err = MM_RESIZE(sizeof(textresource_text_t), &mblock) ;
+   err = RESIZE_MM(sizeof(textresource_text_t), &mblock) ;
    if (err) return err ;
 
    textresource_text_t * newtext = (textresource_text_t *) mblock.addr ;
@@ -512,7 +512,7 @@ static int freeobj_textresourcetext(textresource_text_adapt_t * typeadt, textres
       err2 = free_langreflist(&delobj->langlist, &g_langref_nodeadapter) ;
       if (err2) err = err2 ;
 
-      err2 = MM_FREE(&mblock) ;
+      err2 = FREE_MM(&mblock) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;

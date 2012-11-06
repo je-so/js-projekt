@@ -29,13 +29,13 @@
 
 // group: allocate
 
-/* define: MM_RESIZE
+/* define: RESIZE_MM
  * Resizes memory block. See also <mresize_mmtransient>. */
-#define  MM_RESIZE(newsize, mblock)    mmtransient_maincontext().iimpl->mresize(mmtransient_maincontext().object, (newsize), (mblock))
+#define  RESIZE_MM(newsize, mblock)    mmtransient_maincontext().iimpl->mresize(mmtransient_maincontext().object, (newsize), (mblock))
 
-/* define: MM_FREE
+/* define: FREE_MM
  * Frees memory block. See also <mfree_mmtransient>. */
-#define  MM_FREE(mblock)               mmtransient_maincontext().iimpl->mfree(mmtransient_maincontext().object, (mblock))
+#define  FREE_MM(mblock)               mmtransient_maincontext().iimpl->mfree(mmtransient_maincontext().object, (mblock))
 
 
 #endif

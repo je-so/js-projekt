@@ -109,7 +109,7 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
    uint32_t newobjsize = objectsize_bigint((uint16_t)allocate_digits) ;
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)oldbig) ;
 
-   err = MM_RESIZE(newobjsize, &mblock) ;
+   err = RESIZE_MM(newobjsize, &mblock) ;
    if (err) goto ONABORT ;
 
    bigint_t       * newbig      = (bigint_t*) mblock.addr ;
@@ -1175,7 +1175,7 @@ int delete_bigint(bigint_t ** big)
 
       memblock_t  mblock = memblock_INIT(objectsize_bigint(del_big->allocated_digits), (uint8_t*) del_big) ;
 
-      err = MM_FREE(&mblock) ;
+      err = FREE_MM(&mblock) ;
       if (err) goto ONABORT ;
    }
 

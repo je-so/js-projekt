@@ -713,7 +713,7 @@ static int test_initfree(void)
    lrtree_node_t              emptynode = lrtree_node_INIT ;
 
    // prepare
-   TEST(0 == MM_RESIZE(sizeof(nodesarray_t), &memblock1)) ;
+   TEST(0 == RESIZE_MM(sizeof(nodesarray_t), &memblock1)) ;
    nodes1 = (nodesarray_t*)memblock1.addr ;
    MEMSET0(nodes1) ;
    for (unsigned i = 0; i < nrelementsof(*nodes1); ++i) {
@@ -828,12 +828,12 @@ static int test_initfree(void)
    TEST(! isempty_splaytree(&tree)) ;
 
    // unprepare
-   TEST(0 == MM_FREE(&memblock1)) ;
+   TEST(0 == FREE_MM(&memblock1)) ;
    nodes1 = 0 ;
 
    return 0 ;
 ONABORT:
-   MM_FREE(&memblock1) ;
+   FREE_MM(&memblock1) ;
    return EINVAL ;
 }
 
@@ -852,8 +852,8 @@ static int test_insertremove(void)
    splaytree_node_t           * treenode ;
 
    // prepare
-   TEST(0 == MM_RESIZE(sizeof(nodesarray_t), &memblock1)) ;
-   TEST(0 == MM_RESIZE(sizeof(nodesarray_t), &memblock2)) ;
+   TEST(0 == RESIZE_MM(sizeof(nodesarray_t), &memblock1)) ;
+   TEST(0 == RESIZE_MM(sizeof(nodesarray_t), &memblock2)) ;
    nodes1 = (nodesarray_t*)memblock1.addr ;
    nodes2 = (nodesarray_t*)memblock2.addr ;
    MEMSET0(nodes1) ;
@@ -1076,15 +1076,15 @@ static int test_insertremove(void)
    TEST(ESRCH == remove_splaytree(&tree, (void*)5, &treenode)) ;
 
    // unprepare
-   TEST(0 == MM_FREE(&memblock1)) ;
-   TEST(0 == MM_FREE(&memblock2)) ;
+   TEST(0 == FREE_MM(&memblock1)) ;
+   TEST(0 == FREE_MM(&memblock2)) ;
    nodes1 = 0 ;
    nodes2 = 0 ;
 
    return 0 ;
 ONABORT:
-   MM_FREE(&memblock1) ;
-   MM_FREE(&memblock2) ;
+   FREE_MM(&memblock1) ;
+   FREE_MM(&memblock2) ;
    return EINVAL ;
 }
 
@@ -1102,7 +1102,7 @@ static int test_iterator(void)
    nodesarray_t               * nodes1 ;
 
    // prepare
-   TEST(0 == MM_RESIZE(sizeof(nodesarray_t), &memblock1)) ;
+   TEST(0 == RESIZE_MM(sizeof(nodesarray_t), &memblock1)) ;
    nodes1 = (nodesarray_t*)memblock1.addr ;
    MEMSET0(nodes1) ;
    for (unsigned i = 0; i < nrelementsof(*nodes1); ++i) {
@@ -1215,12 +1215,12 @@ static int test_iterator(void)
    }
 
    // unprepare
-   TEST(0 == MM_FREE(&memblock1)) ;
+   TEST(0 == FREE_MM(&memblock1)) ;
    nodes1 = 0 ;
 
    return 0 ;
 ONABORT:
-   MM_FREE(&memblock1) ;
+   FREE_MM(&memblock1) ;
    return EINVAL ;
 }
 
@@ -1238,7 +1238,7 @@ static int test_generic(void)
    nodesarray_t               * nodes1 ;
 
    // prepare
-   TEST(0 == MM_RESIZE(sizeof(nodesarray_t), &memblock1)) ;
+   TEST(0 == RESIZE_MM(sizeof(nodesarray_t), &memblock1)) ;
    nodes1 = (nodesarray_t*)memblock1.addr ;
    MEMSET0(nodes1) ;
    for (unsigned i = 0; i < nrelementsof(*nodes1); ++i) {
@@ -1331,12 +1331,12 @@ static int test_generic(void)
    }
 
    // unprepare
-   TEST(0 == MM_FREE(&memblock1)) ;
+   TEST(0 == FREE_MM(&memblock1)) ;
    nodes1 = 0 ;
 
    return 0 ;
 ONABORT:
-   MM_FREE(&memblock1) ;
+   FREE_MM(&memblock1) ;
    return EINVAL ;
 }
 

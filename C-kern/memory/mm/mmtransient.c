@@ -322,7 +322,7 @@ static int test_mm_macros(void)
    // TEST mresize empty block
    for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == MM_RESIZE(32 + 32 * i, &mblocks[i])) ;
+      TEST(0 == RESIZE_MM(32 + 32 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].size >= 32 + 32 * i) ;
    }
@@ -330,7 +330,7 @@ static int test_mm_macros(void)
    // TEST mresize allocated block
    for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       void * oldaddr = mblocks[i].addr ;
-      TEST(0 == MM_RESIZE(256 + 256 * i, &mblocks[i])) ;
+      TEST(0 == RESIZE_MM(256 + 256 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].addr != oldaddr) ;
       TEST(mblocks[i].size >= 256 + 256 * i) ;
@@ -338,7 +338,7 @@ static int test_mm_macros(void)
 
    // TEST mfree
    for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
-      TEST(0 == MM_FREE(&mblocks[i])) ;
+      TEST(0 == FREE_MM(&mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
       TEST(0 == mblocks[i].addr) ;
    }

@@ -480,14 +480,14 @@ static int test_readwrite(directory_t * tempdir)
    pipe_buffersize = bytes_written ;
 
    // TEST read non blocking mode
-   TEST(0 == MM_RESIZE(100 + bytes_written, &buffer)) ;
+   TEST(0 == RESIZE_MM(100 + bytes_written, &buffer)) ;
    TEST(0 == read_filedescr(pipefd[0], 100 + bytes_written, buffer.addr, &bytes_read)) ;
    TEST(bytes_written == bytes_read) ;
    TEST(-1 == read(pipefd[0], &byte, 1)) ;
    TEST(EAGAIN == errno) ;
    TEST(EAGAIN == read_filedescr(pipefd[0], 1, &byte, &bytes_read)) ;
    TEST(bytes_written == bytes_read /*has not changed*/) ;
-   TEST(0 == MM_FREE(&buffer)) ;
+   TEST(0 == FREE_MM(&buffer)) ;
 
    // TEST read with interrupts
    TEST(0 == free_filedescr(&pipefd[0])) ;
@@ -586,7 +586,7 @@ ONABORT:
       sigaction(SIGUSR1, &oldact, 0) ;
    }
    delete_thread(&thread) ;
-   MM_FREE(&buffer) ;
+   FREE_MM(&buffer) ;
    removefile_directory(tempdir, "readwrite1") ;
    free_filedescr(&fd) ;
    free_filedescr(&pipefd[0]) ;

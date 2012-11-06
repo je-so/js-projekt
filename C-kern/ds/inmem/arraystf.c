@@ -253,7 +253,7 @@ int new_arraystf(/*out*/arraystf_t ** array, uint32_t toplevelsize)
 
    const size_t objsize = objectsize_arraystf(toplevelsize) ;
 
-   err = MM_RESIZE(objsize, &new_obj) ;
+   err = RESIZE_MM(objsize, &new_obj) ;
    if (err) goto ONABORT ;
 
    memset(new_obj.addr, 0, objsize) ;
@@ -326,7 +326,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
             do {
                arraystf_mwaybranch_t   * parent = (arraystf_mwaybranch_t *) branch->child[0] ;
                memblock_t              mblock   = memblock_INIT(sizeof(arraystf_mwaybranch_t), (uint8_t*)branch) ;
-               err2 = MM_FREE(&mblock) ;
+               err2 = FREE_MM(&mblock) ;
                if (err2) err = err2 ;
                branch = parent ;
             } while (branch && !branch->used) ;
@@ -341,7 +341,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
       const size_t objsize = objectsize_arraystf(toplevelsize_arraystf(del_obj)) ;
 
       memblock_t mblock = memblock_INIT(objsize, (uint8_t*)del_obj) ;
-      err2 = MM_FREE(&mblock) ;
+      err2 = FREE_MM(&mblock) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -409,7 +409,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    // prefix matches (add new branch layer after found.parent)
 
          memblock_t mblock = memblock_INIT_FREEABLE ;
-         err = MM_RESIZE(sizeof(arraystf_mwaybranch_t), &mblock) ;
+         err = RESIZE_MM(sizeof(arraystf_mwaybranch_t), &mblock) ;
          if (err) goto ONABORT ;
 
          arraystf_mwaybranch_t * new_branch = (arraystf_mwaybranch_t *) mblock.addr ;
@@ -494,7 +494,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    }
 
    memblock_t mblock = memblock_INIT_FREEABLE ;
-   err = MM_RESIZE(sizeof(arraystf_mwaybranch_t), &mblock) ;
+   err = RESIZE_MM(sizeof(arraystf_mwaybranch_t), &mblock) ;
    if (err) goto ONABORT ;
 
    arraystf_mwaybranch_t * new_branch = (arraystf_mwaybranch_t*) mblock.addr ;
@@ -572,7 +572,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
          }
 
          memblock_t mblock = memblock_INIT(sizeof(arraystf_mwaybranch_t), (uint8_t*)found.parent) ;
-         err = MM_FREE(&mblock) ;
+         err = FREE_MM(&mblock) ;
          (void) err /*IGNORE*/ ;
       }
 
@@ -639,7 +639,7 @@ int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * a
 
    (void) array ;
 
-   err = MM_RESIZE(objectsize, &objectmem) ;
+   err = RESIZE_MM(objectsize, &objectmem) ;
    if (err) goto ONABORT ;
 
    stack  = (binarystack_t *) objectmem.addr ;
@@ -652,7 +652,7 @@ int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * a
 
    return 0 ;
 ONABORT:
-   MM_FREE(&objectmem) ;
+   FREE_MM(&objectmem) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -669,7 +669,7 @@ int free_arraystfiterator(arraystf_iterator_t * iter)
       err = free_binarystack(iter->stack) ;
       iter->stack = 0 ;
 
-      err2 = MM_FREE(&objectmem) ;
+      err2 = FREE_MM(&objectmem) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;

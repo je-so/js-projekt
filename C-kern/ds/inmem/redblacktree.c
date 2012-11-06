@@ -1420,7 +1420,7 @@ static int test_insertremove(void)
    redblacktree_node_t  * treenode ;
 
    // prepare
-   TEST(0 == MM_RESIZE(sizeof(NODES), &memblock)) ;
+   TEST(0 == RESIZE_MM(sizeof(NODES), &memblock)) ;
    nodes = (NODES*)memblock.addr ;
    MEMSET0(nodes) ;
    for (unsigned i = 0; i < nrelementsof(*nodes); ++i) {
@@ -1590,12 +1590,12 @@ static int test_insertremove(void)
    }
 
    // unprepare
-   TEST(0 == MM_FREE(&memblock)) ;
+   TEST(0 == FREE_MM(&memblock)) ;
    nodes = 0 ;
 
    return 0 ;
 ONABORT:
-   (void) MM_FREE(&memblock) ;
+   (void) FREE_MM(&memblock) ;
    return EINVAL ;
 }
 

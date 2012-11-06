@@ -44,7 +44,7 @@ int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size)
    memblock_t strmem = memblock_INIT_FREEABLE ;
 
    if (preallocate_size) {
-      err = MM_RESIZE(preallocate_size, &strmem) ;
+      err = RESIZE_MM(preallocate_size, &strmem) ;
       if (err) goto ONABORT ;
    }
 
@@ -87,7 +87,7 @@ int free_cstring(cstring_t * cstr)
       memblock_t strmem = memblock_INIT(cstr->allocated_size, cstr->chars) ;
       MEMSET0(cstr) ;
 
-      err = MM_FREE(&strmem) ;
+      err = FREE_MM(&strmem) ;
       if (err) goto ONABORT ;
    }
 
@@ -113,7 +113,7 @@ int allocate_cstring(cstring_t * cstr, size_t allocate_size)
          new_size = allocate_size ;
       }
 
-      err = MM_RESIZE(new_size, &strmem) ;
+      err = RESIZE_MM(new_size, &strmem) ;
       if (err) goto ONABORT ;
 
       if (!cstr->chars) {

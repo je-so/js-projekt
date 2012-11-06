@@ -86,7 +86,7 @@ static inline int new_suffixtreeiterator(/*out*/suffixtree_iterator_t ** iter)
    int err ;
    memblock_t objmem = memblock_INIT_FREEABLE ;
 
-   err = MM_RESIZE(sizeof(suffixtree_iterator_t), &objmem) ;
+   err = RESIZE_MM(sizeof(suffixtree_iterator_t), &objmem) ;
    if (err) return err ;
 
    *iter = (suffixtree_iterator_t*) objmem.addr ;
@@ -103,7 +103,7 @@ static int delete_suffixtreeiterator(suffixtree_iterator_t ** iter)
       memblock_t objmem = memblock_INIT(sizeof(suffixtree_iterator_t), (uint8_t*)*iter) ;
       *iter = 0 ;
 
-      err = MM_FREE(&objmem) ;
+      err = FREE_MM(&objmem) ;
    }
 
    return err ;
@@ -191,7 +191,7 @@ static inline int new_suffixtreeleaf(/*out*/suffixtree_leaf_t ** leaf)
    int err ;
    memblock_t objmem = memblock_INIT_FREEABLE ;
 
-   err = MM_RESIZE(sizeof(suffixtree_leaf_t), &objmem) ;
+   err = RESIZE_MM(sizeof(suffixtree_leaf_t), &objmem) ;
    if (err) return err ;
 
    *leaf = (suffixtree_leaf_t*) objmem.addr ;
@@ -208,7 +208,7 @@ static int delete_suffixtreeleaf(suffixtree_leaf_t ** leaf)
       memblock_t objmem = memblock_INIT(sizeof(suffixtree_leaf_t), (uint8_t*)*leaf) ;
       *leaf = 0 ;
 
-      err = MM_FREE(&objmem) ;
+      err = FREE_MM(&objmem) ;
    }
 
    return err ;
@@ -285,7 +285,7 @@ static inline int new_suffixtreenode(/*out*/suffixtree_node_t ** node)
    int err ;
    memblock_t objmem = memblock_INIT_FREEABLE ;
 
-   err = MM_RESIZE(sizeof(suffixtree_node_t), &objmem) ;
+   err = RESIZE_MM(sizeof(suffixtree_node_t), &objmem) ;
    if (err) return err ;
 
    *node = (suffixtree_node_t*) objmem.addr ;
@@ -300,7 +300,7 @@ static inline int delete_suffixtreenode(suffixtree_node_t ** node)
       memblock_t objmem = memblock_INIT(sizeof(suffixtree_node_t), (uint8_t*)*node) ;
       *node = 0 ;
 
-      err = MM_FREE(&objmem) ;
+      err = FREE_MM(&objmem) ;
    }
 
    return err ;

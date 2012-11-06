@@ -200,7 +200,7 @@ int new_decimalfrombigint(/*out*/decimal_frombigint_t ** converter)
 
    static_assert(nrelementsof(s_decimal_powbase) == nrelementsof(newobj->state), "for every table entry a newobj->state entry") ;
 
-   err = MM_RESIZE(objsize, &objmem) ;
+   err = RESIZE_MM(objsize, &objmem) ;
    if (err) goto ONABORT ;
 
    newobj = (decimal_frombigint_t*) objmem.addr ;
@@ -231,7 +231,7 @@ ONABORT:
       delete_bigint(&newobj->quotient[0]) ;
       delete_bigint(&newobj->quotient[1]) ;
    }
-   MM_FREE(&objmem) ;
+   FREE_MM(&objmem) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -257,7 +257,7 @@ int delete_decimalfrombigint(decimal_frombigint_t ** converter)
       const size_t objsize   = sizeof(decimal_frombigint_t) ;
       memblock_t   objmem    = memblock_INIT(objsize, (uint8_t*)delobj) ;
 
-      err2 = MM_FREE(&objmem) ;
+      err2 = FREE_MM(&objmem) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -415,7 +415,7 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)olddec) ;
 
    // TODO: implement resize in memory manager which does not preserve content
-   err = MM_RESIZE(newobjsize, &mblock) ;
+   err = RESIZE_MM(newobjsize, &mblock) ;
    if (err) goto ONABORT ;
 
    decimal_t     * newdec = (decimal_t*) mblock.addr ;
@@ -445,7 +445,7 @@ static int allocategroup_decimal(uint32_t nrobjects, /*out*/decimal_t * dec[nrob
 
       // TODO: implement group allocate in memory manager
       memblock_t  mblock = memblock_INIT_FREEABLE ;
-      err = MM_RESIZE(objectsize_decimal((uint8_t)size), &mblock) ;
+      err = RESIZE_MM(objectsize_decimal((uint8_t)size), &mblock) ;
       if (err) goto ONABORT ;
 
       ((decimal_t*) mblock.addr)->size_allocated = (uint8_t)size ;
@@ -1485,7 +1485,7 @@ int delete_decimal(decimal_t ** dec)
 
       memblock_t  mblock = memblock_INIT(objectsize_decimal(del_dec->size_allocated), (uint8_t*) del_dec) ;
 
-      err = MM_FREE(&mblock) ;
+      err = FREE_MM(&mblock) ;
       if (err) goto ONABORT ;
    }
 
