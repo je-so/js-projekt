@@ -92,11 +92,14 @@ struct arraysf_t {
  * Parameter *toplevelsize* determines the number of childs of root node.
  * Parameter *posshift* is number of bits pos index of node is shifted to the right before
  * modulo toplevelsize is computed to get index of the root child.
- * Set parameter *posshift* to 0 if you want to use the least significant of pos index.
+ * Set parameter *posshift* to 0 if you want to use the least significant digits of pos index.
  * Set posshift to 8*sizeof(size_t)-log2_int(toplevelsize) if you want to use the most
  * significant digit of pos index to access the childs of the root node.
- * Set posshift to 24 and toplevelsize to 256 if you want to store ip addresses of 32 bit
- * (or 23 and 512, 22 and 1024 ...). */
+ * Set posshift to 24 and toplevelsize to 256 if you want to store ip addresses of 32 bit.
+ *
+ * Iteration:
+ * Only if the most significant bits of pos index are used to compute the index of the root child
+ * <arraysf_iterator_t> iterates the nodes in ascending or descending order. */
 int new_arraysf(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshift) ;
 
 /* function: delete_arraysf
@@ -156,12 +159,10 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_
 // group: generic
 
 /* define: arraysf_IMPLEMENT
- * Generates the interface for a specific single linked list.
- * The type of the list object must be declared with help of <slist_DECLARE>
- * before this macro. It is also possible to construct "listtype_t" in another way before
- * calling this macro. In the latter case "listtype_t" must have a pointer to the object
- * declared as its first field with the name *last*.
- *
+ * Adapts interface of <arraysf_t> to object type object_t.
+ * All generated functions are the same as for <arraysf_t> except the type <arraysf_node_t> is replaced with object_t.
+ * The conversion from object_t to arraysf_node_t and vice versa is done before _arraysf functions are called and after
+ * return the out parameters are converted.
  *
  * Parameter:
  * _fsuffix - It is the suffix of the generated container interface functions which wraps all calls to <arraysf_t>.

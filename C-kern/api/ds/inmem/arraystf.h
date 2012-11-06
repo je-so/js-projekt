@@ -162,12 +162,10 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
 // group: generic
 
 /* define: arraystf_IMPLEMENT
- * Generates the interface for a specific single linked list.
- * The type of the list object must be declared with help of <slist_DECLARE>
- * before this macro. It is also possible to construct "listtype_t" in another way before
- * calling this macro. In the latter case "listtype_t" must have a pointer to the object
- * declared as its first field with the name *last*.
- *
+ * Adapts interface of <arraystf_t> to object type object_t.
+ * All generated functions are the same as for <arraystf_t> except the type <arraystf_node_t> is replaced with object_t.
+ * The conversion from object_t to arraystf_node_t and vice versa is done before _arraystf functions are called and after
+ * return the out parameters are converted.
  *
  * Parameter:
  * _fsuffix - It is the suffix of the generated container interface functions which wraps all calls to <arraystf_t>.
