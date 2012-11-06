@@ -80,18 +80,25 @@ struct memblock_t {
 bool isfree_memblock(const memblock_t * mblock) ;
 
 /* function: isfree_memblock
- * Returns true if either <memblock_t> is free or if its size is not 0. */
+ * Returns true if either <memblock_t->addr> is != 0 or <memblock_t->size> is 0. */
 bool isvalid_memblock(const memblock_t * mblock) ;
 
 /* function: addr_memblock
- * Returns start (lowest) address of memory block. */
+ * Returns start (lowest) address of memory block.
+ * in case of the value null the block is in a freed state. */
 uint8_t * addr_memblock(const memblock_t * mblock) ;
 
 /* function: size_memblock
- * Returns size of memory block. */
+ * Returns size of memory block. The size can also be 0. */
 size_t size_memblock(const memblock_t * mblock) ;
 
-// group: change
+// group: fill
+
+/* function: clear_memblock
+ * Sets the content of the memory block to 0. */
+void clear_memblock(memblock_t * mblock) ;
+
+// group: resize
 
 /* function: shrink_memblock
  * Shrinks the memory block.
@@ -115,11 +122,16 @@ int shrink_memblock(memblock_t * mblock, size_t addr_increment) ;
  * */
 int grow_memblock(memblock_t * mblock, size_t addr_decrement) ;
 
+
 // section: inline implementation
 
 /* define: addr_memblock
  * Implements <memblock_t.addr_memblock>. */
 #define addr_memblock(mblock)          ((mblock)->addr)
+
+/* define: clear_memblock
+ * Implements <memblock_t.clear_memblock>. */
+#define clear_memblock(mblock)         (memset((mblock)->addr, 0, (mblock)->size))
 
 /* define: grow_memblock
  * Implements <memblock_t.grow_memblock>. */
@@ -143,7 +155,7 @@ int grow_memblock(memblock_t * mblock, size_t addr_decrement) ;
 
 /* define: isvalid_memblock
  * Implements <memblock_t.isvalid_memblock>. */
-#define isvalid_memblock(mblock)       (isfree_memblock(mblock) || (0 != (mblock)->size))
+#define isvalid_memblock(mblock)       ((0 == (mblock)->size) || (0 != (mblock)->addr))
 
 /* define: shrink_memblock
  * Implements <memblock_t.shrink_memblock>. */

@@ -45,7 +45,7 @@ static int test_initfree(void)
    TEST(0 == mblock.size) ;
 
    // TEST addr_memblock & size_memblock
-   for(unsigned i = 0; i < 299; ++i) {
+   for (unsigned i = 0; i < 299; ++i) {
       mblock = (memblock_t) { .addr = (uint8_t*) (10 * i), .size = i+5 } ;
       TEST((uint8_t*) (10*i) == addr_memblock(&mblock)) ;
       TEST( 5 + i == size_memblock(&mblock)) ;
@@ -63,12 +63,45 @@ static int test_initfree(void)
    mblock.addr = 0 ;
    TEST(1 == isfree_memblock(&mblock)) ;
 
+   // TEST isvalid_memblock
+   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   TEST(1 == isvalid_memblock(&mblock)) ;
+   /* null pointer with a size != 0 is invalid*/
+   mblock.size = 1 ;
+   TEST(0 == isvalid_memblock(&mblock)) ;
+   mblock.addr = (uint8_t*) 1 ;
+   TEST(1 == isvalid_memblock(&mblock)) ;
+
    return 0 ;
 ONABORT:
    return EINVAL ;
 }
 
-static int test_change(void)
+static int test_fill(void)
+{
+   uint8_t     buffer[100] ;
+   memblock_t  mblock = memblock_INIT(sizeof(buffer), buffer) ;
+
+   // TEST clear_memblock
+   for (unsigned i = 0; i <= sizeof(buffer); ++i) {
+      memset(buffer, 255, sizeof(buffer)) ;
+      mblock.size = i ;
+      clear_memblock(&mblock) ;
+      for (unsigned i2 = 0; i2 < sizeof(buffer); ++i2) {
+         if (i2 < i) {
+            TEST(0 == buffer[i2]) ;
+         } else {
+            TEST(255 == buffer[i2]) ;
+         }
+      }
+   }
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_resize(void)
 {
    memblock_t  mblock = memblock_INIT_FREEABLE ;
    uint8_t     * addr ;
@@ -87,7 +120,7 @@ static int test_change(void)
    // TEST shrink_memblock
    mblock.addr = addr = 0 ;
    mblock.size = size = 1000000 ;
-   for(unsigned i = 0; size > i; ++i) {
+   for (unsigned i = 0; size > i; ++i) {
       addr += i ;
       size -= i ;
       TEST(0 == shrink_memblock(&mblock, i)) ;
@@ -106,7 +139,7 @@ static int test_change(void)
    // TEST grow_memblock
    mblock.addr = addr = (uint8_t*) 1000000 ;
    mblock.size = size = 0 ;
-   for(unsigned i = 0; addr > (uint8_t*)i; ++i) {
+   for (unsigned i = 0; addr > (uint8_t*)i; ++i) {
       addr -= i ;
       size += i ;
       TEST(0 == grow_memblock(&mblock, i)) ;
@@ -135,7 +168,8 @@ int unittest_memory_memblock()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())    goto ONABORT ;
-   if (test_change())      goto ONABORT ;
+   if (test_fill())        goto ONABORT ;
+   if (test_resize())      goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;
