@@ -117,6 +117,7 @@
         <File Name="../../C-kern/api/ds/inmem/splaytree.h"/>
         <File Name="../../C-kern/api/ds/inmem/redblacktree.h"/>
         <File Name="../../C-kern/api/ds/inmem/patriciatrie.h"/>
+        <File Name="../../C-kern/api/ds/inmem/exthash.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
@@ -126,6 +127,7 @@
         <File Name="../../C-kern/api/ds/typeadapt/typeadapt_impl.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/comparator.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/getkey.h"/>
+        <File Name="../../C-kern/api/ds/typeadapt/gethash.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/ds/typeadapt.h"/>
     </VirtualDirectory>
@@ -345,6 +347,7 @@
       <File Name="../../C-kern/ds/inmem/splaytree.c"/>
       <File Name="../../C-kern/ds/inmem/redblacktree.c"/>
       <File Name="../../C-kern/ds/inmem/patriciatrie.c"/>
+      <File Name="../../C-kern/ds/inmem/exthash.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <VirtualDirectory Name="typeadapt">
@@ -353,6 +356,7 @@
       <File Name="../../C-kern/ds/typeadapt/typeadapt_impl.c"/>
       <File Name="../../C-kern/ds/typeadapt/comparator.c"/>
       <File Name="../../C-kern/ds/typeadapt/getkey.c"/>
+      <File Name="../../C-kern/ds/typeadapt/gethash.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/ds/typeadapt.c"/>
   </VirtualDirectory>

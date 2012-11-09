@@ -878,7 +878,7 @@ static int test_initfree(void)
 {
    testnode_t           nodes[100] ;
    testadapt_t          typeadapt = {
-                           typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+                           typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
@@ -1009,7 +1009,7 @@ static int test_insertconditions(void)
 {
    testnode_t           nodes[20] ;
    testadapt_t          typeadapt = {
-                           typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+                           typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
@@ -1260,7 +1260,7 @@ static int test_removeconditions(void)
 {
    testnode_t           nodes[20] ;
    testadapt_t          typeadapt = {
-                           typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+                           typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
@@ -1400,7 +1400,7 @@ static int test_insertremove(void)
    NODES                * nodes ;
    memblock_t           memblock  = memblock_INIT_FREEABLE ;
    testadapt_t          typeadapt = {
-                           typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+                           typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
@@ -1586,7 +1586,7 @@ static int test_iterator(void)
 {
    testnode_t           nodes[100] ;
    testadapt_t          typeadapt = {
-                           typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+                           typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
@@ -1703,7 +1703,7 @@ static int test_generic(void)
 {
    testnode_t           nodes[100] ;
    testadapt_t          typeadapt = {
-                           typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+                           typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
                            test_errortimer_INIT_FREEABLE, 0
                         } ;
    typeadapt_member_t   emptynodeadapt = typeadapt_member_INIT_FREEABLE ;

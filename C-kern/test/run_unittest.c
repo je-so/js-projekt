@@ -253,14 +253,16 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_arraystf) ;
       RUN(unittest_ds_inmem_binarystack) ;
       RUN(unittest_ds_inmem_dlist) ;
+      RUN(unittest_ds_inmem_exthash) ;
       RUN(unittest_ds_inmem_patriciatrie) ;
       RUN(unittest_ds_inmem_redblacktree) ;
       RUN(unittest_ds_inmem_slist) ;
       RUN(unittest_ds_inmem_splaytree) ;
       RUN(unittest_ds_inmem_suffixtree) ;
       RUN(unittest_ds_typeadapt) ;
-      RUN(unittest_ds_typeadapt_getkey) ;
       RUN(unittest_ds_typeadapt_comparator) ;
+      RUN(unittest_ds_typeadapt_getkey) ;
+      RUN(unittest_ds_typeadapt_gethash) ;
       RUN(unittest_ds_typeadapt_lifetime) ;
       RUN(unittest_ds_typeadapt_typeadaptimpl) ;
       RUN(unittest_ds_typeadapt_typeinfo) ;

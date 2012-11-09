@@ -775,7 +775,7 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   testadapt_t             typeadapt = { typeadapt_INIT_LIFEGETKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
    typeadapt_member_t      nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    typeadapt_member_t emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
    patriciatrie_t          tree = patriciatrie_INIT_FREEABLE ;
@@ -908,7 +908,7 @@ ONABORT:
 
 static int test_insertremove(void)
 {
-   testadapt_t          typeadapt = { typeadapt_INIT_LIFEGETKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   testadapt_t          typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    patriciatrie_t       tree      = patriciatrie_INIT_FREEABLE ;
    memblock_t           memblock  = memblock_INIT_FREEABLE ;
@@ -1293,7 +1293,7 @@ ONABORT:
 
 static int test_iterator(void)
 {
-   testadapt_t                typeadapt = { typeadapt_INIT_LIFEGETKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   testadapt_t                typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
    typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    patriciatrie_t             tree      = patriciatrie_INIT_FREEABLE ;
    memblock_t                 memblock  = memblock_INIT_FREEABLE ;
@@ -1458,7 +1458,7 @@ patriciatrie_IMPLEMENT(_testtree, testnode_t, node)
 
 static int test_generic(void)
 {
-   testadapt_t             typeadapt = { typeadapt_INIT_LIFEGETKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
+   testadapt_t             typeadapt = { typeadapt_INIT_LIFEKEY(0, &impl_deletenode_testadapt, &impl_getbinarykey_testadapt), test_errortimer_INIT_FREEABLE, 0, 0 } ;
    typeadapt_member_t      nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt,testadapt_t,testnode_t,void*), offsetof(testnode_t, node)) ;
    typeadapt_member_t emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
    patriciatrie_t          tree = patriciatrie_INIT_FREEABLE ;

@@ -708,7 +708,7 @@ static splaytree_node_t * build_perfect_tree(int count, testnode_t * nodes)
 static int test_initfree(void)
 {
    testadapt_t                typeadapt = {
-      typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+      typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_INIT_FREEABLE, 0
    } ;
    typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t), offsetof(testnode_t, index)) ;
@@ -845,7 +845,7 @@ ONABORT:
 static int test_insertremove(void)
 {
    testadapt_t                typeadapt = {
-      typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+      typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_INIT_FREEABLE, 0
    } ;
    typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t), offsetof(testnode_t, index)) ;
@@ -1099,7 +1099,7 @@ ONABORT:
 static int test_iterator(void)
 {
    testadapt_t                typeadapt = {
-      typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+      typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_INIT_FREEABLE, 0
    } ;
    typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t), offsetof(testnode_t, index)) ;
@@ -1233,7 +1233,7 @@ splaytree_IMPLEMENT(_testtree, testnode_t, intptr_t, index)
 static int test_generic(void)
 {
    testadapt_t                typeadapt = {
-      typeadapt_INIT_LIFEKEYCMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
+      typeadapt_INIT_LIFECMP(0, &impl_deletenode_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt),
       test_errortimer_INIT_FREEABLE, 0
    } ;
    typeadapt_member_t         nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, intptr_t), offsetof(testnode_t, index)) ;

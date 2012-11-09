@@ -106,7 +106,7 @@ struct typeadapt_getkey_it {
 
 // group: query
 
-bool isequal_typeadaptgetkey(const typeadapt_getkey_it * ladpbinkey, const typeadapt_getkey_it * radpbinkey) ;
+bool isequal_typeadaptgetkey(const typeadapt_getkey_it * ladpgetkey, const typeadapt_getkey_it * radpgetkey) ;
 
 // group: call-service
 
@@ -114,16 +114,16 @@ bool isequal_typeadaptgetkey(const typeadapt_getkey_it * ladpbinkey, const typea
  * Calls function <typeadapt_getkey_it.getbinarykey>.
  * The first parameter is of type <typeadapt_getkey_it> the others are the same as in <typeadapt_getkey_it.getbinarykey>.
  * This function is implemented as macro and supports types derived from <typeadapt_getkey_it> - see use of <typeadapt_getkey_DECLARE>. */
-void callgetbinarykey_typeadaptgetkey(typeadapt_getkey_it * adpbinkey, struct typeadapt_t * typeadp, struct typeadapt_object_t * node, /*out*/typeadapt_binarykey_t * binkey) ;
+void callgetbinarykey_typeadaptgetkey(typeadapt_getkey_it * adpgetkey, struct typeadapt_t * typeadp, struct typeadapt_object_t * node, /*out*/typeadapt_binarykey_t * binkey) ;
 
 // group: generic
 
 /* define: asgeneric_typeadaptgetkey
- * Casts parameter adpbinkey into pointer to <typeadapt_getkey_it>.
- * The parameter *adpbinkey* has to be of type "pointer to declared_it" where declared_it
+ * Casts parameter adpgetkey into pointer to <typeadapt_getkey_it>.
+ * The parameter *adpgetkey* has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <typeadapt_getkey_DECLARE>.
  * The second and third parameter must be the same as in <typeadapt_getkey_DECLARE>. */
-typeadapt_getkey_it * asgeneric_typeadaptgetkey(void * adpbinkey, TYPENAME typeadapter_t, TYPENAME object_t) ;
+typeadapt_getkey_it * asgeneric_typeadaptgetkey(void * adpgetkey, TYPENAME typeadapter_t, TYPENAME object_t) ;
 
 /* define: typeadapt_getkey_DECLARE
  * Declares a derived interface from generic <typeadapt_getkey_it>.
@@ -180,24 +180,24 @@ typeadapt_getkey_it * asgeneric_typeadaptgetkey(void * adpbinkey, TYPENAME typea
 
 /* define: asgeneric_typeadaptgetkey
  * Implements <typeadapt_getkey_it.asgeneric_typeadaptgetkey>. */
-#define asgeneric_typeadaptgetkey(adpbinkey, typeadapter_t, object_t)      \
+#define asgeneric_typeadaptgetkey(adpgetkey, typeadapter_t, object_t)      \
    ( __extension__ ({                                                      \
       static_assert(                                                       \
          offsetof(typeadapt_getkey_it, getbinarykey)                       \
-         == offsetof(typeof(*(adpbinkey)), getbinarykey),                  \
+         == offsetof(typeof(*(adpgetkey)), getbinarykey),                  \
          "ensure same structure") ;                                        \
       if (0) {                                                             \
-         (adpbinkey)->getbinarykey(                                        \
+         (adpgetkey)->getbinarykey(                                        \
                       (typeadapter_t*)0, (object_t*)0,                     \
                       (typeadapt_binarykey_t*)0) ;                         \
       }                                                                    \
-      (typeadapt_getkey_it*) (adpbinkey) ;                                 \
+      (typeadapt_getkey_it*) (adpgetkey) ;                                 \
    }))
 
 /* function: callgetbinarykey_typeadaptgetkey
  * Implements <typeadapt_getkey_it.callgetbinarykey_typeadaptgetkey>. */
-#define callgetbinarykey_typeadaptgetkey(adpbinkey, typeadp, node, binkey) \
-   ((adpbinkey)->getbinarykey((typeadp), (node), (binkey)))
+#define callgetbinarykey_typeadaptgetkey(adpgetkey, typeadp, node, binkey) \
+   ((adpgetkey)->getbinarykey((typeadp), (node), (binkey)))
 
 
 #endif

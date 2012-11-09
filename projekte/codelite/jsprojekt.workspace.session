@@ -1,78 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="6" Name="m_selectedTab"/>
+  <int Value="4" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="FileName"/>
-      <int Value="228" Name="FirstVisibleLine"/>
-      <int Value="241" Name="CurrentLine"/>
+      <int Value="236" Name="FirstVisibleLine"/>
+      <int Value="242" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/ds/inmem/redblacktree.h" Name="FileName"/>
-      <int Value="152" Name="FirstVisibleLine"/>
-      <int Value="152" Name="CurrentLine"/>
+      <int Value="219" Name="FirstVisibleLine"/>
+      <int Value="219" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/ds/inmem/patriciatrie.h" Name="FileName"/>
-      <int Value="297" Name="FirstVisibleLine"/>
-      <int Value="297" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/ds/inmem/exthash.h" Name="FileName"/>
+      <int Value="103" Name="FirstVisibleLine"/>
+      <int Value="129" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/patriciatrie.c" Name="FileName"/>
-      <int Value="618" Name="FirstVisibleLine"/>
-      <int Value="618" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/exthash.c" Name="FileName"/>
+      <int Value="54" Name="FirstVisibleLine"/>
+      <int Value="54" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/ds/typeadapt/keycomparator.h" Name="FileName"/>
-      <int Value="131" Name="FirstVisibleLine"/>
-      <int Value="156" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/ds/typeadapt.h" Name="FileName"/>
+      <int Value="197" Name="FirstVisibleLine"/>
+      <int Value="226" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/ds/typeadapt/getbinarykey.h" Name="FileName"/>
-      <int Value="90" Name="FirstVisibleLine"/>
-      <int Value="90" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/ds/typeadapt/getkey.h" Name="FileName"/>
+      <int Value="25" Name="FirstVisibleLine"/>
+      <int Value="199" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/process.c" Name="FileName"/>
-      <int Value="1300" Name="FirstVisibleLine"/>
-      <int Value="1312" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/typeadapt/getkey.c" Name="FileName"/>
+      <int Value="170" Name="FirstVisibleLine"/>
+      <int Value="214" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/platform/process.h" Name="FileName"/>
-      <int Value="9" Name="FirstVisibleLine"/>
-      <int Value="32" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/ds/typeadapt/gethash.h" Name="FileName"/>
+      <int Value="51" Name="FirstVisibleLine"/>
+      <int Value="73" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/typeadapt/gethash.c" Name="FileName"/>
+      <int Value="18" Name="FirstVisibleLine"/>
+      <int Value="47" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
-    <long Value="2" Name="Count"/>
+    <long Value="1" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
-      <int Value="242" Name="lineno"/>
-      <wxString Value="" Name="function_name"/>
-      <wxString Value="" Name="memory_address"/>
-      <int Value="1" Name="bp_type"/>
-      <int Value="0" Name="watchpoint_type"/>
-      <wxString Value="" Name="watchpt_data"/>
-      <CData Name="commandlist"/>
-      <bool Value="0" Name="regex"/>
-      <bool Value="0" Name="is_temp"/>
-      <bool Value="1" Name="is_enabled"/>
-      <int Value="0" Name="ignore_number"/>
-      <wxString Value="" Name="conditions"/>
-      <int Value="0" Name="origin"/>
-    </SerializedObject>
-    <SerializedObject Name="Breakpoint1">
-      <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
-      <int Value="242" Name="lineno"/>
+      <int Value="243" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>

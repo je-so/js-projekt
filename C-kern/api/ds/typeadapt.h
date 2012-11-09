@@ -27,8 +27,9 @@
 #ifndef CKERN_DS_TYPEADAPT_HEADER
 #define CKERN_DS_TYPEADAPT_HEADER
 
-#include "C-kern/api/ds/typeadapt/getkey.h"
 #include "C-kern/api/ds/typeadapt/comparator.h"
+#include "C-kern/api/ds/typeadapt/gethash.h"
+#include "C-kern/api/ds/typeadapt/getkey.h"
 #include "C-kern/api/ds/typeadapt/lifetime.h"
 #include "C-kern/api/ds/typeadapt/typeinfo.h"
 
@@ -107,6 +108,14 @@ int callcmpkeyobj_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
  * See <callcmpobj_typeadapt>. */
 int callcmpobj_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
 
+/* function: callhashobject_typeadaptmember
+ * See <callhashobject_typeadapt>. */
+int callhashobject_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
+
+/* function: callhashkey_typeadaptmember
+ * See <callhashkey_typeadapt>. */
+int callhashkey_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
+
 /* function: callgetbinarykey_typeadaptmember
  * See <callgetbinarykey_typeadapt>. */
 void callgetbinarykey_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
@@ -127,15 +136,18 @@ void * objectasmember_typeadaptmember(typeadapt_member_t * nodeadp, struct typea
  * With this interface you adapt any type to be manageable by containers
  * in the data store. */
 struct typeadapt_t {
-   /* variable: lifetime
-    * Interface to adapt the lifetime of an object type. See <typeadapt_lifetime_it>. */
-   typeadapt_lifetime_it      lifetime ;
    /* variable: comparator
     * Interface to adapt comparison of key and object. See <typeadapt_comparator_it>. */
    typeadapt_comparator_it    comparator ;
+   /* variable: gethash
+    * Interface to adapt reading of a hash value. See <typeadapt_gethash_it>. */
+   typeadapt_gethash_it       gethash ;
    /* variable: getkey
     * Interface to adapt reading of a key as binary data. See <typeadapt_getkey_it>. */
    typeadapt_getkey_it        getkey ;
+   /* variable: lifetime
+    * Interface to adapt the lifetime of an object type. See <typeadapt_lifetime_it>. */
+   typeadapt_lifetime_it      lifetime ;
 } ;
 
 // group: lifetime
@@ -143,32 +155,42 @@ struct typeadapt_t {
 /* define: typeadapt_INIT_FREEABLE
  * Static initializer. */
 #define typeadapt_INIT_FREEABLE \
-   { typeadapt_lifetime_INIT_FREEABLE, typeadapt_comparator_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE }
+   { typeadapt_comparator_INIT_FREEABLE, typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT_FREEABLE }
 
 /* define: typeadapt_INIT_LIFETIME
  * Static initializer. Uses <typeadapt_lifetime_INIT> to init interface <typeadapt_t.lifetime>. */
 #define typeadapt_INIT_LIFETIME(newcopyobj_f, deleteobj_f) \
-   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_comparator_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE  }
+   { typeadapt_comparator_INIT_FREEABLE, typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
-/* define: typeadapt_INIT_KEYCMP
+/* define: typeadapt_INIT_CMP
  * Static initializer. Uses <typeadapt_comparator_INIT> to init interface <typeadapt_t.comparator>. */
-#define typeadapt_INIT_KEYCMP(cmpkeyobj_f, cmpobj_f) \
-   { typeadapt_lifetime_INIT_FREEABLE, typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_getkey_INIT_FREEABLE  }
+#define typeadapt_INIT_CMP(cmpkeyobj_f, cmpobj_f) \
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT_FREEABLE }
 
-/* define: typeadapt_INIT_LIFEKEYCMP
+/* define: typeadapt_INIT_LIFECMP
  * Static initializer. Initializes <typeadapt_t.lifetime> and <typeadapt_t.comparator> service interfaces. */
-#define typeadapt_INIT_LIFEKEYCMP(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f) \
-   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_getkey_INIT_FREEABLE  }
+#define typeadapt_INIT_LIFECMP(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f) \
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
-/* define: typeadapt_INIT_LIFEGETKEY
+/* define: typeadapt_INIT_LIFEKEY
  * Static initializer. Initializes <typeadapt_t.lifetime> and <typeadapt_t.getkey> service interfaces. */
-#define typeadapt_INIT_LIFEGETKEY(newcopyobj_f, deleteobj_f, getbinarykey_f) \
-   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_comparator_INIT_FREEABLE, typeadapt_getkey_INIT(getbinarykey_f) }
+#define typeadapt_INIT_LIFEKEY(newcopyobj_f, deleteobj_f, getbinarykey_f) \
+   { typeadapt_comparator_INIT_FREEABLE, typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT(getbinarykey_f), typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
-/* define: typeadapt_INIT_LIFEGETKEY
+/* define: typeadapt_INIT_LIFECMPKEY
  * Static initializer. Initializes <typeadapt_t.lifetime>, <typeadapt_t.comparator>, and <typeadapt_t.getkey> service interfaces. */
-#define typeadapt_INIT_LIFEKEYCMPGET(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f, getbinarykey_f) \
-   { typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f), typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_getkey_INIT(getbinarykey_f) }
+#define typeadapt_INIT_LIFECMPKEY(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f, getbinarykey_f) \
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT_FREEABLE, typeadapt_getkey_INIT(getbinarykey_f), typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
+
+/* define: typeadapt_INIT_LIFECMPHASH
+ * Static initializer. Initializes <typeadapt_t.lifetime>, <typeadapt_t.comparator>, and <typeadapt_t.gethash> service interfaces. */
+#define typeadapt_INIT_LIFECMPHASH(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f, hashobject_f, hashkey_f) \
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT(hashobject_f, hashkey_f), typeadapt_getkey_INIT_FREEABLE, typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
+
+/* define: typeadapt_INIT_LIFECMPHASHKEY
+ * Static initializer. Initializes <typeadapt_t.lifetime>, <typeadapt_t.comparator>, <typeadapt_t.gethash>, and <typeadapt_t.getkey> service interfaces. */
+#define typeadapt_INIT_LIFECMPHASHKEY(newcopyobj_f, deleteobj_f, cmpkeyobj_f, cmpobj_f, hashobject_f, hashkey_f, getbinarykey_f) \
+   { typeadapt_comparator_INIT(cmpkeyobj_f, cmpobj_f), typeadapt_gethash_INIT(hashobject_f, hashkey_f), typeadapt_getkey_INIT(getbinarykey_f), typeadapt_lifetime_INIT(newcopyobj_f, deleteobj_f) }
 
 // group: query
 
@@ -200,6 +222,16 @@ int callcmpkeyobj_typeadapt(typeadapt_t * typeadp, ...) ;
  * Wrapper to call <callcmpobj_typeadaptcomparator>. */
 int callcmpobj_typeadapt(typeadapt_t * typeadp, ...) ;
 
+// group: gethash-service
+
+/* function: callhashobject_typeadapt
+ * Wrapper to call <callhashobject_typeadaptgethash>. */
+int callhashobject_typeadapt(typeadapt_t * typeadp, ...) ;
+
+/* function: callhashkey_typeadapt
+ * Wrapper to call <callhashkey_typeadaptgethash>. */
+int callhashkey_typeadapt(typeadapt_t * typeadp, ...) ;
+
 // group: getkey-service
 
 /* function: callgetbinarykey_typeadapt
@@ -214,6 +246,18 @@ int callgetbinarykey_typeadapt(typeadapt_t * typeadp, ...) ;
  * embeds the generic public interface with <typeadapt_EMBED> as first member. */
 typeadapt_t * asgeneric_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENAME object_t) ;
 
+/* function: typeadapt_DECLARE
+ * Declares a derived interface from generic <typeadapt_t>.
+ * It is structural compatible with <typeadapt_t>.
+ * See <typeadapt_t> for a list of embedded services.
+ *
+ * Parameter:
+ * typeadapter_t - The name of the structure which is declared as the interface.
+ *                 The first parameter of every function is a also pointer to this type.
+ * object_t      - The object type that <typeadapter_t> supports.
+ * key_t         - The key type that <typeadapt_t> supports. Must be of size sizeof(void*). */
+void typeadapt_DECLARE(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
+
 /* function: typeadapt_EMBED
  * Embeds the public interface part from generic <typeadapt_t>.
  * It is structural compatible with <typeadapt_t>.
@@ -223,7 +267,7 @@ typeadapt_t * asgeneric_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENA
  * typeadapter_t - The adapter type which implements all interface functions.
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that <typeadapter_t> supports.
- * key_t         - The key type that <typeadapt_comparator_it> supports. Must be of size sizeof(void*).
+ * key_t         - The key type that <typeadapt_t> supports. Must be of size sizeof(void*).
  * */
 void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
 
@@ -235,87 +279,110 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
 #define asgeneric_typeadapt(typeadp, typeadapter_t, object_t, key_t)                         \
    ( __extension__ ({                                                                        \
       static_assert(                                                                         \
-         offsetof(typeof(*(typeadp)), lifetime) == offsetof(typeadapt_t, lifetime)           \
-         && offsetof(typeof(*(typeadp)), comparator) == offsetof(typeadapt_t, comparator)    \
-         && offsetof(typeof(*(typeadp)), getkey) == offsetof(typeadapt_t, getkey),           \
+         offsetof(typeof(*(typeadp)), comparator) == offsetof(typeadapt_t, comparator)       \
+         && offsetof(typeof(*(typeadp)), gethash) == offsetof(typeadapt_t, gethash)          \
+         && offsetof(typeof(*(typeadp)), getkey) == offsetof(typeadapt_t, getkey)            \
+         && offsetof(typeof(*(typeadp)), lifetime) == offsetof(typeadapt_t, lifetime),       \
          "ensure same structure") ;                                                          \
       if (0) {                                                                               \
+         (void) asgeneric_typeadaptcomparator((typeof((typeadp)->comparator)*)0, typeadapter_t, object_t, key_t) ;   \
+         (void) asgeneric_typeadaptgethash((typeof((typeadp)->gethash)*)0, typeadapter_t, object_t, key_t) ;         \
+         (void) asgeneric_typeadaptgetkey((typeof((typeadp)->getkey)*)0, typeadapter_t, object_t) ;      \
          (void) asgeneric_typeadaptlifetime((typeof((typeadp)->lifetime)*)0, typeadapter_t, object_t) ;  \
-         (void) asgeneric_typeadaptcomparator((typeof((typeadp)->comparator)*)0, typeadapter_t, object_t, key_t) ; \
-         (void) asgeneric_typeadaptgetkey((typeof((typeadp)->getkey)*)0, typeadapter_t, object_t) ; \
       }                                                                                      \
       (typeadapt_t*) (typeadp) ;                                                             \
    }))
 
-/* define: callnewcopy_typeadapt
- * Implements <typeadapt_t.callnewcopy_typeadapt>. */
-#define callnewcopy_typeadapt(typeadp, ...)     callnewcopy_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
-
-/* define: calldelete_typeadapt
- * Implements <typeadapt_t.calldelete_typeadapt>. */
-#define calldelete_typeadapt(typeadp, ...)      calldelete_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
-
 /* define: callcmpkeyobj_typeadapt
  * Implements <typeadapt_t.callcmpkeyobj_typeadapt>. */
-#define callcmpkeyobj_typeadapt(typeadp, ...)   callcmpkeyobj_typeadaptcomparator(&(typeadp)->comparator, typeadp, __VA_ARGS__)
-
-/* define: callcmpobj_typeadapt
- * Implements <typeadapt_t.callcmpobj_typeadapt>. */
-#define callcmpobj_typeadapt(typeadp, ...)      callcmpobj_typeadaptcomparator(&(typeadp)->comparator, typeadp, __VA_ARGS__)
-
-/* define: callgetbinarykey_typeadapt
- * Implements <typeadapt_t.callgetbinarykey_typeadapt>. */
-#define callgetbinarykey_typeadapt(typeadp, ...)      callgetbinarykey_typeadaptgetkey(&(typeadp)->getkey, typeadp, __VA_ARGS__)
-
-/* define: callnewcopy_typeadaptmember
- * Implements <typeadapt_member_t.callnewcopy_typeadaptmember>. */
-#define callnewcopy_typeadaptmember(nodeadp, ...)     callnewcopy_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
-
-/* define: calldelete_typeadaptmember
- * Implements <typeadapt_member_t.calldelete_typeadaptmember>. */
-#define calldelete_typeadaptmember(nodeadp, ...)      calldelete_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+#define callcmpkeyobj_typeadapt(typeadp, ...)         callcmpkeyobj_typeadaptcomparator(&(typeadp)->comparator, typeadp, __VA_ARGS__)
 
 /* define: callcmpkeyobj_typeadaptmember
  * Implements <typeadapt_member_t.callcmpkeyobj_typeadaptmember>. */
 #define callcmpkeyobj_typeadaptmember(nodeadp, ...)   callcmpkeyobj_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
 
+/* define: callcmpobj_typeadapt
+ * Implements <typeadapt_t.callcmpobj_typeadapt>. */
+#define callcmpobj_typeadapt(typeadp, ...)            callcmpobj_typeadaptcomparator(&(typeadp)->comparator, typeadp, __VA_ARGS__)
+
 /* define: callcmpobj_typeadaptmember
  * Implements <typeadapt_member_t.callcmpobj_typeadaptmember>. */
 #define callcmpobj_typeadaptmember(nodeadp, ...)      callcmpobj_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+
+/* define: calldelete_typeadapt
+ * Implements <typeadapt_t.calldelete_typeadapt>. */
+#define calldelete_typeadapt(typeadp, ...)            calldelete_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
+
+/* define: calldelete_typeadaptmember
+ * Implements <typeadapt_member_t.calldelete_typeadaptmember>. */
+#define calldelete_typeadaptmember(nodeadp, ...)      calldelete_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+
+/* define: callgetbinarykey_typeadapt
+ * Implements <typeadapt_t.callgetbinarykey_typeadapt>. */
+#define callgetbinarykey_typeadapt(typeadp, ...)      callgetbinarykey_typeadaptgetkey(&(typeadp)->getkey, typeadp, __VA_ARGS__)
 
 /* define: callgetbinarykey_typeadaptmember
  * Implements <typeadapt_member_t.callgetbinarykey_typeadaptmember>. */
 #define callgetbinarykey_typeadaptmember(nodeadp, ...)   callgetbinarykey_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
 
-/* define: isequal_typeadaptmember
- * Implements <typeadapt_t.isequal_typeadaptmember>. */
-#define isequal_typeadaptmember(ltypeadp, rtypeadp)                                 \
-   (  (ltypeadp)->typeadp == (rtypeadp)->typeadp                                    \
-      && isequal_typeadapttypeinfo(&(ltypeadp)->typeinfo, &(rtypeadp)->typeinfo))
+/* define: callhashkey_typeadapt
+ * Implements <typeadapt_t.callhashkey_typeadapt>. */
+#define callhashkey_typeadapt(typeadp, ...)           callhashkey_typeadaptgethash(&(typeadp)->gethash, typeadp, __VA_ARGS__)
+
+/* define: callhashkey_typeadaptmember
+ * Implements <typeadapt_member_t.callhashkey_typeadaptmember>. */
+#define callhashkey_typeadaptmember(nodeadp, ...)     callhashkey_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+
+/* define: callhashobject_typeadapt
+ * Implements <typeadapt_t.callhashobject_typeadapt>. */
+#define callhashobject_typeadapt(typeadp, ...)        callhashobject_typeadaptgethash(&(typeadp)->gethash, typeadp, __VA_ARGS__)
+
+/* define: callhashobject_typeadaptmember
+ * Implements <typeadapt_member_t.callhashobject_typeadaptmember>. */
+#define callhashobject_typeadaptmember(nodeadp, ...)  callhashobject_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
+
+/* define: callnewcopy_typeadapt
+ * Implements <typeadapt_t.callnewcopy_typeadapt>. */
+#define callnewcopy_typeadapt(typeadp, ...)           callnewcopy_typeadaptlifetime(&(typeadp)->lifetime, typeadp, __VA_ARGS__)
+
+/* define: callnewcopy_typeadaptmember
+ * Implements <typeadapt_member_t.callnewcopy_typeadaptmember>. */
+#define callnewcopy_typeadaptmember(nodeadp, ...)     callnewcopy_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
 
 /* define: islifetimedelete_typeadapt
  * Implements <typeadapt_t.islifetimedelete_typeadapt>. */
-#define islifetimedelete_typeadapt(typeadp)     (0 != (typeadp)->lifetime.delete_object)
+#define islifetimedelete_typeadapt(typeadp)           (0 != (typeadp)->lifetime.delete_object)
 
 /* define: memberasobject_typeadaptmember
  * Imeplements <typeadapt_member_t.memberasobject_typeadaptmember>. */
-#define memberasobject_typeadaptmember(nodeadp, node)       memberasobject_typeadapttypeinfo((nodeadp)->typeinfo, node)
+#define memberasobject_typeadaptmember(nodeadp, node) memberasobject_typeadapttypeinfo((nodeadp)->typeinfo, node)
 
 /* define: objectasmember_typeadapttypeinfo
  * Imeplements <typeadapt_member_t.objectasmember_typeadapttypeinfo>. */
-#define objectasmember_typeadaptmember(nodeadp, object)     objectasmember_typeadapttypeinfo((nodeadp)->typeinfo, object)
+#define objectasmember_typeadaptmember(nodeadp, object)  objectasmember_typeadapttypeinfo((nodeadp)->typeinfo, object)
 
 /* define: typeadapt_EMBED
  * Implements <typeadapt_t.typeadapt_EMBED>. */
 #define typeadapt_EMBED(typeadapter_t, object_t, key_t)              \
    struct {                                                          \
-      typeadapt_lifetime_EMBED(typeadapter_t, object_t) ;            \
-   } lifetime ;                                                      \
-   struct {                                                          \
       typeadapt_comparator_EMBED(typeadapter_t, object_t, key_t) ;   \
    } comparator ;                                                    \
    struct {                                                          \
+      typeadapt_gethash_EMBED(typeadapter_t, object_t, key_t) ;      \
+   } gethash ;                                                       \
+   struct {                                                          \
       typeadapt_getkey_EMBED(typeadapter_t, object_t) ;              \
-   } getkey
+   } getkey ;                                                        \
+   struct {                                                          \
+      typeadapt_lifetime_EMBED(typeadapter_t, object_t) ;            \
+   } lifetime                                                        \
+
+/* define: typeadapt_DECLARE
+ * Implements <typeadapt_t.typeadapt_DECLARE>. */
+#define typeadapt_DECLARE(typeadapter_t, object_t, key_t)            \
+   typedef struct typeadapter_t           typeadapter_t ;            \
+   struct typeadapter_t {                                            \
+      typeadapt_EMBED(typeadapter_t, object_t, key_t) ;              \
+   }
 
 #endif

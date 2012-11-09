@@ -124,10 +124,13 @@ typeadapt_comparator_it * asgeneric_typeadaptcomparator(void * adpcmp, TYPENAME 
  *                 The first parameter in every function is a pointer to this type.
  * object_t      - The object type that <typeadapt_comparator_it> supports.
  * key_t         - The key type that <typeadapt_comparator_it> supports. Must be of size sizeof(void*). */
-#define typeadapt_comparator_DECLARE(declared_it, typeadapter_t, object_t, key_t)   \
-   typedef struct declared_it             declared_it ;                             \
-   struct declared_it {                                                             \
-      typeadapt_comparator_EMBED(typeadapter_t, object_t, key_t) ;                  \
+#define typeadapt_comparator_DECLARE(declared_it, typeadapter_t, object_t, key_t)      \
+   static inline void compiletimeassert##declared_it(void) {                           \
+      static_assert(sizeof(key_t)==sizeof(void*), "compatible with cmp_key_object") ;  \
+   }                                                                                   \
+   typedef struct declared_it             declared_it ;                                \
+   struct declared_it {                                                                \
+      typeadapt_comparator_EMBED(typeadapter_t, object_t, key_t) ;                     \
    }
 
 /* define: typeadapt_comparator_EMBED
