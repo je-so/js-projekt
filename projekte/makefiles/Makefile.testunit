@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Nov.06  20:32:16
+GenerationDate  := 2012.Nov.09  16:05:43
 GeneratedBy     := je-so
 
 ## Debug
@@ -112,10 +112,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!patriciatrie.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeinfo.c.o \
- $(ObjectDir_Debug)/C-kern!ds!typeadapt!keycomparator.c.o \
- $(ObjectDir_Debug)/C-kern!ds!typeadapt!getbinarykey.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!typeadapt!comparator.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
@@ -186,10 +186,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!patriciatrie.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeinfo.c.o \
- $(ObjectDir_Release)/C-kern!ds!typeadapt!keycomparator.c.o \
- $(ObjectDir_Release)/C-kern!ds!typeadapt!getbinarykey.c.o \
+ $(ObjectDir_Release)/C-kern!ds!typeadapt!comparator.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
@@ -341,16 +341,16 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o: C-kern/ds/inmem/splaytree.c
 $(ObjectDir_Debug)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetime.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o: C-kern/ds/typeadapt/typeadapt_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeinfo.c.o: C-kern/ds/typeadapt/typeinfo.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!ds!typeadapt!keycomparator.c.o: C-kern/ds/typeadapt/keycomparator.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!ds!typeadapt!getbinarykey.c.o: C-kern/ds/typeadapt/getbinarykey.c
+$(ObjectDir_Debug)/C-kern!ds!typeadapt!comparator.c.o: C-kern/ds/typeadapt/comparator.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
@@ -557,16 +557,16 @@ $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o: C-kern/ds/inmem/splaytree.c
 $(ObjectDir_Release)/C-kern!ds!typeadapt!lifetime.c.o: C-kern/ds/typeadapt/lifetime.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!ds!typeadapt!getkey.c.o: C-kern/ds/typeadapt/getkey.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o: C-kern/ds/typeadapt/typeadapt_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!typeadapt!typeinfo.c.o: C-kern/ds/typeadapt/typeinfo.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!ds!typeadapt!keycomparator.c.o: C-kern/ds/typeadapt/keycomparator.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!ds!typeadapt!getbinarykey.c.o: C-kern/ds/typeadapt/getbinarykey.c
+$(ObjectDir_Release)/C-kern!ds!typeadapt!comparator.c.o: C-kern/ds/typeadapt/comparator.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c

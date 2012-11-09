@@ -259,10 +259,10 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_splaytree) ;
       RUN(unittest_ds_inmem_suffixtree) ;
       RUN(unittest_ds_typeadapt) ;
-      RUN(unittest_ds_typeadapt_getbinarykey) ;
-      RUN(unittest_ds_typeadapt_impl) ;
-      RUN(unittest_ds_typeadapt_keycomparator) ;
+      RUN(unittest_ds_typeadapt_getkey) ;
+      RUN(unittest_ds_typeadapt_comparator) ;
       RUN(unittest_ds_typeadapt_lifetime) ;
+      RUN(unittest_ds_typeadapt_typeadaptimpl) ;
       RUN(unittest_ds_typeadapt_typeinfo) ;
 //}
 

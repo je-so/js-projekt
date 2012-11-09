@@ -1,6 +1,6 @@
-/* title: Typeadapt-GetBinaryKey impl
+/* title: Typeadapt-GetKey impl
 
-   Implements <Typeadapt-GetBinaryKey>.
+   Implements <Typeadapt-GetKey>.
 
    about: Copyright
    This program is free software.
@@ -17,15 +17,15 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/ds/typeadapt/getbinarykey.h
-    Header file <Typeadapt-GetBinaryKey>.
+   file: C-kern/api/ds/typeadapt/getkey.h
+    Header file <Typeadapt-GetKey>.
 
-   file: C-kern/ds/typeadapt/getbinarykey.c
-    Implementation file <Typeadapt-GetBinaryKey impl>.
+   file: C-kern/ds/typeadapt/getkey.c
+    Implementation file <Typeadapt-GetKey impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/ds/typeadapt/getbinarykey.h"
+#include "C-kern/api/ds/typeadapt/getkey.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -33,11 +33,11 @@
 #endif
 
 
-// section: typeadapt_getbinarykey_it
+// section: typeadapt_getkey_it
 
 // group: query
 
-bool isequal_typeadaptgetbinarykey(const typeadapt_getbinarykey_it * ladpbinkey, const typeadapt_getbinarykey_it * radpbinkey)
+bool isequal_typeadaptgetkey(const typeadapt_getkey_it * ladpbinkey, const typeadapt_getkey_it * radpbinkey)
 {
    return ladpbinkey->getbinarykey == radpbinkey->getbinarykey ;
 }
@@ -114,35 +114,35 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   typeadapt_getbinarykey_it adpbinkey  = typeadapt_getbinarykey_INIT_FREEABLE ;
-   typeadapt_getbinarykey_it adpbinkey2 ;
+   typeadapt_getkey_it adpbinkey  = typeadapt_getkey_INIT_FREEABLE ;
+   typeadapt_getkey_it adpbinkey2 ;
 
-   // TEST typeadapt_getbinarykey_INIT_FREEABLE
+   // TEST typeadapt_getkey_INIT_FREEABLE
    TEST(0 == adpbinkey.getbinarykey) ;
 
-   // TEST typeadapt_getbinarykey_INIT
-   adpbinkey = (typeadapt_getbinarykey_it) typeadapt_getbinarykey_INIT((typeof(&impl_getbinarykey_typeadapt))1) ;
+   // TEST typeadapt_getkey_INIT
+   adpbinkey = (typeadapt_getkey_it) typeadapt_getkey_INIT((typeof(&impl_getbinarykey_typeadapt))1) ;
    TEST((typeof(&impl_getbinarykey_typeadapt))1 == adpbinkey.getbinarykey) ;
-   adpbinkey = (typeadapt_getbinarykey_it) typeadapt_getbinarykey_INIT(&impl_getbinarykey_typeadapt) ;
+   adpbinkey = (typeadapt_getkey_it) typeadapt_getkey_INIT(&impl_getbinarykey_typeadapt) ;
    TEST(&impl_getbinarykey_typeadapt == adpbinkey.getbinarykey) ;
 
-   // TEST isequal_typeadaptgetbinarykey
-   adpbinkey2 = (typeadapt_getbinarykey_it) typeadapt_getbinarykey_INIT(&impl_getbinarykey_typeadapt) ;
-   TEST(1 == isequal_typeadaptgetbinarykey(&adpbinkey, &adpbinkey2)) ;
-   TEST(1 == isequal_typeadaptgetbinarykey(&adpbinkey2, &adpbinkey)) ;
-   adpbinkey  = (typeadapt_getbinarykey_it) typeadapt_getbinarykey_INIT_FREEABLE ;
-   TEST(0 == isequal_typeadaptgetbinarykey(&adpbinkey, &adpbinkey2)) ;
-   TEST(0 == isequal_typeadaptgetbinarykey(&adpbinkey2, &adpbinkey)) ;
-   adpbinkey2 = (typeadapt_getbinarykey_it) typeadapt_getbinarykey_INIT_FREEABLE ;
-   TEST(1 == isequal_typeadaptgetbinarykey(&adpbinkey, &adpbinkey2)) ;
-   TEST(1 == isequal_typeadaptgetbinarykey(&adpbinkey2, &adpbinkey)) ;
-   for (unsigned i = 0; i < sizeof(typeadapt_getbinarykey_it)/sizeof(void*); ++i) {
+   // TEST isequal_typeadaptgetkey
+   adpbinkey2 = (typeadapt_getkey_it) typeadapt_getkey_INIT(&impl_getbinarykey_typeadapt) ;
+   TEST(1 == isequal_typeadaptgetkey(&adpbinkey, &adpbinkey2)) ;
+   TEST(1 == isequal_typeadaptgetkey(&adpbinkey2, &adpbinkey)) ;
+   adpbinkey  = (typeadapt_getkey_it) typeadapt_getkey_INIT_FREEABLE ;
+   TEST(0 == isequal_typeadaptgetkey(&adpbinkey, &adpbinkey2)) ;
+   TEST(0 == isequal_typeadaptgetkey(&adpbinkey2, &adpbinkey)) ;
+   adpbinkey2 = (typeadapt_getkey_it) typeadapt_getkey_INIT_FREEABLE ;
+   TEST(1 == isequal_typeadaptgetkey(&adpbinkey, &adpbinkey2)) ;
+   TEST(1 == isequal_typeadaptgetkey(&adpbinkey2, &adpbinkey)) ;
+   for (unsigned i = 0; i < sizeof(typeadapt_getkey_it)/sizeof(void*); ++i) {
       *(((void**)&adpbinkey)+i) = (void*)(1+i) ;
-      TEST(0 == isequal_typeadaptgetbinarykey(&adpbinkey, &adpbinkey2)) ;
-      TEST(0 == isequal_typeadaptgetbinarykey(&adpbinkey2, &adpbinkey)) ;
+      TEST(0 == isequal_typeadaptgetkey(&adpbinkey, &adpbinkey2)) ;
+      TEST(0 == isequal_typeadaptgetkey(&adpbinkey2, &adpbinkey)) ;
       *(((void**)&adpbinkey)+i) = (void*)i ;
-      TEST(1 == isequal_typeadaptgetbinarykey(&adpbinkey, &adpbinkey2)) ;
-      TEST(1 == isequal_typeadaptgetbinarykey(&adpbinkey2, &adpbinkey)) ;
+      TEST(1 == isequal_typeadaptgetkey(&adpbinkey, &adpbinkey2)) ;
+      TEST(1 == isequal_typeadaptgetkey(&adpbinkey2, &adpbinkey)) ;
    }
 
    return 0 ;
@@ -152,9 +152,9 @@ ONABORT:
 
 static int test_callfunctions(void)
 {
-   typeadapt_getbinarykey_it  adpbinkey = typeadapt_getbinarykey_INIT(&impl_getbinarykey_typeadapt) ;
-   testadapter_t              testadp   = { .callcount = 0 } ;
-   testnode_t                 nodes[100] ;
+   typeadapt_getkey_it  adpbinkey = typeadapt_getkey_INIT(&impl_getbinarykey_typeadapt) ;
+   testadapter_t        testadp   = { .callcount = 0 } ;
+   testnode_t           nodes[100] ;
 
    // prepare
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
@@ -163,11 +163,11 @@ static int test_callfunctions(void)
       nodes[i].is_getbinarykey = 0 ;
    }
 
-   // TEST callgetbinarykey_typeadaptgetbinarykey
+   // TEST callgetbinarykey_typeadaptgetkey
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
       int callcount = testadp.callcount + 1 ;
       typeadapt_binarykey_t binkey = typeadapt_binarykey_INIT_FREEABLE ;
-      callgetbinarykey_typeadaptgetbinarykey(&adpbinkey, (struct typeadapt_t*)&testadp, (struct typeadapt_object_t*)&nodes[i], &binkey) ;
+      callgetbinarykey_typeadaptgetkey(&adpbinkey, (struct typeadapt_t*)&testadp, (struct typeadapt_object_t*)&nodes[i], &binkey) ;
       TEST(testadp.callcount == callcount) ;
       TEST(binkey.addr == nodes[i].addr) ;
       TEST(binkey.size == nodes[i].size) ;
@@ -179,12 +179,12 @@ ONABORT:
    return EINVAL ;
 }
 
-typeadapt_getbinarykey_DECLARE(testadapter_it, testadapter_t, testnode_t) ;
+typeadapt_getkey_DECLARE(testadapter_it, testadapter_t, testnode_t) ;
 
 static int test_generic(void)
 {
    testadapter_t  testadp   = { .callcount = 0 } ;
-   testadapter_it adpbinkey = typeadapt_getbinarykey_INIT_FREEABLE ;
+   testadapter_it adpbinkey = typeadapt_getkey_INIT_FREEABLE ;
    testnode_t     nodes[100] ;
 
    // prepare
@@ -194,25 +194,25 @@ static int test_generic(void)
       nodes[i].is_getbinarykey = 0 ;
    }
 
-   // TEST typeadapt_getbinarykey_DECLARE
-   static_assert(sizeof(testadapter_it) == sizeof(typeadapt_getbinarykey_it), "structure compatible") ;
-   static_assert(offsetof(testadapter_it, getbinarykey) == offsetof(typeadapt_getbinarykey_it, getbinarykey), "structure compatible") ;
+   // TEST typeadapt_getkey_DECLARE
+   static_assert(sizeof(testadapter_it) == sizeof(typeadapt_getkey_it), "structure compatible") ;
+   static_assert(offsetof(testadapter_it, getbinarykey) == offsetof(typeadapt_getkey_it, getbinarykey), "structure compatible") ;
 
-   // TEST asgeneric_typeadaptgetbinarykey
-   TEST((typeadapt_getbinarykey_it*)&adpbinkey == asgeneric_typeadaptgetbinarykey(&adpbinkey, testadapter_t, testnode_t)) ;
+   // TEST asgeneric_typeadaptgetkey
+   TEST((typeadapt_getkey_it*)&adpbinkey == asgeneric_typeadaptgetkey(&adpbinkey, testadapter_t, testnode_t)) ;
 
-   // TEST typeadapt_getbinarykey_INIT_FREEABLE
+   // TEST typeadapt_getkey_INIT_FREEABLE
    TEST(0 == adpbinkey.getbinarykey) ;
 
-   // TEST typeadapt_getbinarykey_INIT
-   adpbinkey = (testadapter_it) typeadapt_getbinarykey_INIT(&impl_getbinarykey_testadapter) ;
+   // TEST typeadapt_getkey_INIT
+   adpbinkey = (testadapter_it) typeadapt_getkey_INIT(&impl_getbinarykey_testadapter) ;
    TEST(adpbinkey.getbinarykey == &impl_getbinarykey_testadapter) ;
 
-   // TEST callgetbinarykey_typeadaptgetbinarykey
+   // TEST callgetbinarykey_typeadaptgetkey
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
       int callcount = testadp.callcount + 1 ;
       typeadapt_binarykey_t binkey = typeadapt_binarykey_INIT_FREEABLE ;
-      callgetbinarykey_typeadaptgetbinarykey(&adpbinkey, &testadp, &nodes[i], &binkey) ;
+      callgetbinarykey_typeadaptgetkey(&adpbinkey, &testadp, &nodes[i], &binkey) ;
       TEST(testadp.callcount == callcount) ;
       TEST(binkey.addr == nodes[i].addr) ;
       TEST(binkey.size == nodes[i].size) ;
@@ -224,7 +224,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_ds_typeadapt_getbinarykey()
+int unittest_ds_typeadapt_getkey()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

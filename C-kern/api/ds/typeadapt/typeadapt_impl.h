@@ -40,9 +40,9 @@ typedef struct typeadapt_impl_t           typeadapt_impl_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_ds_typeadapt_typeadapt_impl
+/* function: unittest_ds_typeadapt_typeadaptimpl
  * Test <typeadapt_impl_t> functionality. */
-int unittest_ds_typeadapt_impl(void) ;
+int unittest_ds_typeadapt_typeadaptimpl(void) ;
 #endif
 
 

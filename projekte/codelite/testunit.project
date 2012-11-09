@@ -121,11 +121,11 @@
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
       <VirtualDirectory Name="typeadapt">
-        <File Name="../../C-kern/api/ds/typeadapt/keycomparator.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/lifetime.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/typeinfo.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/typeadapt_impl.h"/>
-        <File Name="../../C-kern/api/ds/typeadapt/getbinarykey.h"/>
+        <File Name="../../C-kern/api/ds/typeadapt/comparator.h"/>
+        <File Name="../../C-kern/api/ds/typeadapt/getkey.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/ds/typeadapt.h"/>
     </VirtualDirectory>
@@ -348,11 +348,11 @@
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <VirtualDirectory Name="typeadapt">
-      <File Name="../../C-kern/ds/typeadapt/keycomparator.c"/>
       <File Name="../../C-kern/ds/typeadapt/lifetime.c"/>
       <File Name="../../C-kern/ds/typeadapt/typeinfo.c"/>
       <File Name="../../C-kern/ds/typeadapt/typeadapt_impl.c"/>
-      <File Name="../../C-kern/ds/typeadapt/getbinarykey.c"/>
+      <File Name="../../C-kern/ds/typeadapt/comparator.c"/>
+      <File Name="../../C-kern/ds/typeadapt/getkey.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/ds/typeadapt.c"/>
   </VirtualDirectory>

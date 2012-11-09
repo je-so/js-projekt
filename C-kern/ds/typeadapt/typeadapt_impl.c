@@ -170,7 +170,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_ds_typeadapt_impl()
+int unittest_ds_typeadapt_typeadaptimpl()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

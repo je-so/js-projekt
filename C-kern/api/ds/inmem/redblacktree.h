@@ -32,45 +32,6 @@
 
 #include "C-kern/api/ds/inmem/node/lrptree_node.h"
 
-/* about: Red Black Tree
- *
- * See:
- * <http://en.wikipedia.org/wiki/Red_black_tree> for a description of the algorithm.
- *
- * Properties:
- *    1. Every node is colored red or black.
- *    2. Every leaf is a NIL node, and is colored black.
- *    3. If a node is red, then both its children are black.
- *    4. Every simple path from a node to a descendant leaf contains the same number
- *       of black nodes.
- *    5. The root is always black.
- *
- * Height of tree:
- *    The number of black nodes on a path from root to leaf is known
- *    as the black-height of a tree.
- *
- * 1. The above properties guarantee that any path from the root to a leaf
- *    is no more than twice as long as any other path.
- * 2. A tree of height 2n contains at least N=pow(2,n)-1 nodes =>
- *    A search needs at max 2*log2(N) steps.
- *    The implementation of delete & insert traverses the tree
- *    in worst case twice and therefore needs less than 2*2*log2(N) steps.
- * 3. All operations lie in O(log n).
- *    To see why this is true, consider a tree with a black height of n.
- *    The shortest path from root to leaf is n (B-B-...-B).
- *    The longest path from root to leaf is 2n-1 (B-R-B-...-R-B).
- *    It is not possible to insert more black nodes as this would violate property 4.
- *    Since red nodes must have black children (property 3),
- *    having two red nodes in a row is not allowed.
- *    Cause of property 5 the root has always the color black
- *    and therefore the largest path we can construct consists
- *    of an alternation of red-black nodes with the first node colored black.
- *    For every black node we can insert a read one after it except for the last
- *    one. =>
- *    Length of shortest path of black height n:  = n (property 4)
- *    Length of longest path of black height n:   = n + n - 1 = 2n -1
- */
-
 /* typedef: struct redblacktree_t
  * Export <redblacktree_t> into global namespace. */
 typedef struct redblacktree_t             redblacktree_t ;
@@ -148,22 +109,59 @@ bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, redblacktree_t * 
  *
  * typeadapt_t:
  * The service <typeadapt_lifetime_it.delete_object> of <typeadapt_t.lifetime> is used in <free_redblacktree> and <removenodes_redblacktree>.
- * The service <typeadapt_keycomparator_it.cmp_key_object> of <typeadapt_t.keycomparator> is used in <find_redblacktree> and <remove_redblacktree>.
- * The service <typeadapt_keycomparator_it.cmp_object> of <typeadapt_t.keycomparator> is used in <invariant_redblacktree>.
- * */
+ * The service <typeadapt_comparator_it.cmp_key_object> of <typeadapt_t.comparator> is used in <find_redblacktree> and <remove_redblacktree>.
+ * The service <typeadapt_comparator_it.cmp_object> of <typeadapt_t.comparator> is used in <invariant_redblacktree>.
+ *
+ * Tree Properties:
+ *    1. - Every node is colored red or black.
+ *    2. - Every leaf is a NIL node, and is colored black.
+ *    3. - If a node is red, then both its children are black.
+ *    4. - Every simple path from a node to a descendant leaf contains the same number
+ *         of black nodes.
+ *    5. - The root is always black.
+ *
+ * See also <http://en.wikipedia.org/wiki/Red_black_tree> for a description of the algorithm.
+ *
+ * Height of tree:
+ *    The number of black nodes on a path from root to leaf is known
+ *    as the black-height of a tree.
+ *
+ * Consequences:
+ *
+ * 1. - The above properties guarantee that any path from the root to a leaf
+ *    is no more than twice as long as any other path.
+ * 2. - A tree of height 2n contains at least N=pow(2,n)-1 nodes =>
+ *    A search needs at max 2*log2(N) steps.
+ *    The implementation of delete & insert traverses the tree
+ *    in worst case twice and therefore needs less than 2*2*log2(N) steps.
+ * 3. - All operations lie in O(log n).
+ *    To see why this is true, consider a tree with a black height of n.
+ *    The shortest path from root to leaf is n (B-B-...-B).
+ *    The longest path from root to leaf is 2n-1 (B-R-B-...-R-B).
+ *    It is not possible to insert more black nodes as this would violate property 4.
+ *    Since red nodes must have black children (property 3),
+ *    having two red nodes in a row is not allowed.
+ *    Cause of property 5 the root has always the color black
+ *    and therefore the largest path we can construct consists
+ *    of an alternation of red-black nodes with the first node colored black.
+ *    For every black node we can insert a read one after it except for the last
+ *    one. =>
+ *    Length of shortest path of black height n:  = n (property 4)
+ *    Length of longest path of black height n:   = n + n - 1 = 2n -1
+ */
 struct redblacktree_t {
    /* variable: root
     * Points to the root object which has no parent. */
    redblacktree_node_t  * root ;
    /* variable: nodeadp
-    * Offers lifetime + keycomparator services to handle stored nodes. */
+    * Offers lifetime + comparator services to handle stored nodes. */
    typeadapt_member_t   nodeadp ;
 } ;
 
 // group: lifetime
 
 /* define: redblacktree_INIT_FREEABLE
- * Static initializer: Makes calling <free_redblacktree> safe. */
+ * Static initializer. Makes calling <free_redblacktree> safe. */
 #define redblacktree_INIT_FREEABLE                 redblacktree_INIT(0, typeadapt_member_INIT_FREEABLE)
 
 /* define: redblacktree_INIT
@@ -236,7 +234,7 @@ int invariant_redblacktree(redblacktree_t * tree) ;
 // group: generic
 
 /* define: redblacktree_IMPLEMENT
- * Generates interface of <redblacktree_t> storing elements of type object_t.
+ * Adapts interface of <redblacktree_t> to nodes of type object_t.
  *
  * Parameter:
  * _fsuffix  - The suffix name of all generated tree interface functions, e.g. "init##_fsuffix".

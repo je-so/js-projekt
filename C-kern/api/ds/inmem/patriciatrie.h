@@ -68,7 +68,7 @@ int unittest_ds_inmem_patriciatrie(void) ;
  *
  * typeadapt_t:
  * The service <typeadapt_lifetime_it.delete_object> of <typeadapt_t.lifetime> is used in <free_patriciatrie> and <removenodes_patriciatrie>.
- * The service <typeadapt_getbinarykey_it.getbinarykey> of <typeadapt_t.getbinarykey> is used in find, insert and remove functions.
+ * The service <typeadapt_getkey_it.getbinarykey> of <typeadapt_t.getbinarykey> is used in find, insert and remove functions.
  *
  * Description:
  * A patricia tree is a type of digital tree and manages nodes of type patriciatrie_node_t.
