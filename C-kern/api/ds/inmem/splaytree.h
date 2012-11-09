@@ -66,7 +66,7 @@ int unittest_ds_inmem_splaytree(void) ;
  * > fill_tree(&tree) ;
  * > foreach (_splaytree, &tree, node) {
  * >    if (need_to_remove(node)) {
- * >       err = remove_splaytree(&tree, get_key_from_node(node), &node)) ;
+ * >       err = remove_splaytree(&tree, node)) ;
  * >    }
  * > }
  * */
@@ -182,12 +182,12 @@ int find_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t
  * If another node exists with the same key as *new_key* nothing is inserted and the function returns EEXIST.
  * If no other node is found new_node is inserted
  * The caller has to allocate the new node and has to transfer ownership. */
-int insert_splaytree(splaytree_t * tree, const void * new_key, splaytree_node_t * new_node) ;
+int insert_splaytree(splaytree_t * tree, splaytree_node_t * new_node) ;
 
 /* function: remove_splaytree
- * Removes a node if it has equal key.
- * The removed node is not freed but a pointer to it is returned removed_node to the caller. */
-int remove_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t ** removed_node) ;
+ * Removes a node from the tree. If the node is not part of the tree the behaviour is undefined !
+ * The ownership of the removed node is transfered to the caller. */
+int remove_splaytree(splaytree_t * tree, splaytree_node_t * node) ;
 
 /* function: removenodes_splaytree
  * Removes all nodes from the tree.
@@ -253,8 +253,8 @@ static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splayt
    static inline void getinistate##_fsuffix(const splaytree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline bool isempty##_fsuffix(const splaytree_t * tree) __attribute__ ((always_inline)) ; \
    static inline int  find##_fsuffix(splaytree_t * tree, const key_t key, /*out*/object_t ** found_node) __attribute__ ((always_inline)) ; \
-   static inline int  insert##_fsuffix(splaytree_t * tree, const key_t new_key, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int  remove##_fsuffix(splaytree_t * tree, const key_t key, /*out*/object_t ** removed_node) __attribute__ ((always_inline)) ; \
+   static inline int  insert##_fsuffix(splaytree_t * tree, object_t * new_node) __attribute__ ((always_inline)) ; \
+   static inline int  remove##_fsuffix(splaytree_t * tree, object_t * node) __attribute__ ((always_inline)) ; \
    static inline int  removenodes##_fsuffix(splaytree_t * tree) __attribute__ ((always_inline)) ; \
    static inline int  invariant##_fsuffix(splaytree_t * tree) __attribute__ ((always_inline)) ; \
    static inline splaytree_node_t * asnode##_fsuffix(object_t * object) { \
@@ -286,12 +286,11 @@ static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splayt
       if (err == 0) *found_node = asobject##_fsuffix(*(splaytree_node_t**)found_node) ; \
       return err ; \
    } \
-   static inline int  insert##_fsuffix(splaytree_t * tree, const key_t new_key, object_t * new_node) { \
-      return insert_splaytree(tree, (void*)new_key, asnode##_fsuffix(new_node)) ; \
+   static inline int  insert##_fsuffix(splaytree_t * tree, object_t * new_node) { \
+      return insert_splaytree(tree, asnode##_fsuffix(new_node)) ; \
    } \
-   static inline int  remove##_fsuffix(splaytree_t * tree, const key_t key, /*out*/object_t ** removed_node) { \
-      int err = remove_splaytree(tree, (void*)key, (splaytree_node_t**)removed_node) ; \
-      if (err == 0) *removed_node = asobject##_fsuffix(*(splaytree_node_t**)removed_node) ; \
+   static inline int  remove##_fsuffix(splaytree_t * tree, object_t * node) { \
+      int err = remove_splaytree(tree, asnode##_fsuffix(node)) ; \
       return err ; \
    } \
    static inline int  removenodes##_fsuffix(splaytree_t * tree) { \

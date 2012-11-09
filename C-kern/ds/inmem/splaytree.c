@@ -229,7 +229,7 @@ static splaytree_node_t * recursivesplay_splaytree(splaytree_t * tree, splaytree
 }
 #endif
 
-/* function: splay_splaytree
+/* function: splaykey_splaytree
  * Searches for a node X with key 'key' and makes it the new root of the tree.
  * If the node is not in the tree the last node (with no left or right child)
  * is used instead. The rotations done to move X to the top are called 'splaying'.
@@ -238,7 +238,7 @@ static splaytree_node_t * recursivesplay_splaytree(splaytree_t * tree, splaytree
  * This version splays from top to down without recursion - it is the production version.
  * The result is compared with <recursivesplay_splaytree>.
  */
-static int splay_splaytree(splaytree_t * tree, const void * key)
+static int splaykey_splaytree(splaytree_t * tree, const void * key)
 {
    splaytree_node_t        keyroot = { .left = 0, .right = 0 } ;
    splaytree_node_t        * higherAsKey ;
@@ -311,9 +311,9 @@ static int splay_splaytree(splaytree_t * tree, const void * key)
    return 0 ;
 }
 
-/* function: splay2_splaytree
- * Same as <splay_splaytree> except key is an object. */
-static int splay2_splaytree(splaytree_t * tree, const splaytree_node_t * keynode)
+/* function: splaynode_splaytree
+ * Same as <splaykey_splaytree> except node is used as key. */
+static int splaynode_splaytree(splaytree_t * tree, const splaytree_node_t * keynode, int * rootcmp)
 {
    typeadapt_object_t      * keyobject = memberasobject_typeadaptmember(&tree->nodeadp, keynode) ;
    splaytree_node_t        keyroot = { .left = 0, .right = 0 } ;
@@ -384,10 +384,12 @@ static int splay2_splaytree(splaytree_t * tree, const splaytree_node_t * keynode
    node->left  = keyroot.right ;
    node->right = keyroot.left ;
 
+   *rootcmp = cmp ;
+
    return 0 ;
 }
 
-int insert_splaytree(splaytree_t * tree, const void * new_key, splaytree_node_t * new_node)
+int insert_splaytree(splaytree_t * tree, splaytree_node_t * new_node)
 {
    int err ;
 
@@ -395,31 +397,29 @@ int insert_splaytree(splaytree_t * tree, const void * new_key, splaytree_node_t 
 
       new_node->left  = 0 ;
       new_node->right = 0 ;
-
    } else {
 
-      err = splay_splaytree(tree, new_key) ;
-      if (err) goto ONABORT ;
+      int cmp ;
 
-      splaytree_node_t * const root = tree->root ;
-      const int                 cmp = KEYCOMPARE(new_key, root) ;
+      err = splaynode_splaytree(tree, new_node, &cmp) ;
+      if (err) goto ONABORT ;
 
       if (cmp == 0)  {
          return EEXIST ;
       }
+
+      splaytree_node_t * const root = tree->root ;
 
       if (cmp < 0) {
 
          new_node->left  = root->left ;
          new_node->right = root ;
          root->left = 0 ;
-
       } else {
 
          new_node->right = root->right ;
          new_node->left  = root ;
          root->right = 0 ;
-
       }
    }
 
@@ -431,17 +431,19 @@ ONABORT:
    return err ;
 }
 
-int remove_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t ** removed_node)
+int remove_splaytree(splaytree_t * tree, splaytree_node_t * node)
 {
    if (!tree->root) {
       return ESRCH ;
    }
 
-   int err = splay_splaytree(tree, key) ;
+   int cmp ;
+   int err = splaynode_splaytree(tree, node, &cmp) ;
    if (err) goto ONABORT ;
 
    splaytree_node_t * const root = tree->root ;
-   if (0 != KEYCOMPARE(key, root)) {
+
+   if (root != node) {
       return ESRCH ;
    }
 
@@ -455,25 +457,24 @@ int remove_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node
 
    } else {
 
-      splaytree_node_t * node = root->right ;
-      if (!node->left) {
-         node->left = root->left ;
+      splaytree_node_t * child = root->right ;
+      if (!child->left) {
+         child->left = root->left ;
       } else {
          splaytree_node_t * parent ;
          do {
-            parent = node ;
-            node   = node->left ;
-         } while (node->left) ;
-         parent->left = node->right ;
-         node->left  = root->left ;
-         node->right = root->right ;
+            parent = child ;
+            child  = child->left ;
+         } while (child->left) ;
+         parent->left = child->right ;
+         child->left  = root->left ;
+         child->right = root->right ;
       }
-      tree->root = node ;
+      tree->root = child ;
    }
 
    root->left  = 0 ;
    root->right = 0 ;
-   *removed_node = root ;
 
    return 0 ;
 ONABORT:
@@ -539,7 +540,7 @@ int find_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t
       return ESRCH ;
    }
 
-   int err = splay_splaytree(tree, key) ;
+   int err = splaykey_splaytree(tree, key) ;
    if (err) goto ONABORT ;
 
    if (0 != KEYCOMPARE(key, tree->root)) {
@@ -586,8 +587,10 @@ int initlast_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t *
 
 bool next_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*out*/splaytree_node_t ** node)
 {
+   int cmp/*not used*/ ;
+
    if (  !iter->next
-         || splay2_splaytree(tree, iter->next)) {
+         || splaynode_splaytree(tree, iter->next, &cmp)) {
       return false ;
    }
 
@@ -609,8 +612,10 @@ bool next_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*o
 
 bool prev_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*out*/splaytree_node_t ** node)
 {
+   int cmp/*not used*/ ;
+
    if (  !iter->next
-         || splay2_splaytree(tree, iter->next)) {
+         || splaynode_splaytree(tree, iter->next, &cmp)) {
       return false ;
    }
 
@@ -881,7 +886,7 @@ static int test_insertremove(void)
       (*nodes1)[i].is_freed = 0 ;
    }
 
-   // TEST splay_splaytree, splay2_splaytree: compare it with recursivesplay_splaytree
+   // TEST splaykey_splaytree, splaynode_splaytree: compare it with recursivesplay_splaytree
    init_splaytree(&tree, &nodeadapt) ;
    for (int i = 0; i <= 1024; ++i) {
       tree.root = build_perfect_tree(1023, (*nodes1)) ;
@@ -891,7 +896,7 @@ static int test_insertremove(void)
 
       tree.root = build_perfect_tree(1023, (*nodes2)) ;
       TEST(tree.root == &(*nodes2)[512].index) ;
-      TEST(0         == splay_splaytree(&tree, (void*)i)) ;
+      TEST(0         == splaykey_splaytree(&tree, (void*)i)) ;
       TEST(tree.root == &(*nodes2)[i?(i<1024?i:1023):1].index) ;
 
       for(int i2 = 1; i2 < 1024; ++i2) {
@@ -906,7 +911,15 @@ static int test_insertremove(void)
       tree.root = build_perfect_tree(1023, (*nodes2)) ;
       TEST(tree.root == &(*nodes2)[512].index) ;
       testnode_t keynode = { .key = i } ;
-      TEST(0         == splay2_splaytree(&tree, &keynode.index)) ;
+      int rootcmp ;
+      TEST(0 == splaynode_splaytree(&tree, &keynode.index, &rootcmp)) ;
+      if (0 == i) {
+         TEST(rootcmp < 0) ;
+      } else if (1024 == i) {
+         TEST(rootcmp > 0) ;
+      } else {
+         TEST(rootcmp == 0) ;
+      }
       TEST(tree.root == &(*nodes2)[i?(i<1024?i:1023):1].index) ;
 
       for(int i2 = 1; i2 < 1024; ++i2) {
@@ -922,24 +935,22 @@ static int test_insertremove(void)
    // TEST insert,remove cycle
    init_splaytree(&tree, &nodeadapt) ;
    TEST(!tree.root) ;
-   TEST(0 == insert_splaytree(&tree, 0, &(*nodes1)[0].index)) ;
+   TEST(0 == insert_splaytree(&tree, &(*nodes1)[0].index)) ;
    TEST(tree.root == &(*nodes1)[0].index) ;
-   TEST(0 == remove_splaytree(&tree, 0, &treenode)) ;
-   TEST(treenode == &(*nodes1)[0].index) ;
+   TEST(0 == remove_splaytree(&tree, &(*nodes1)[0].index)) ;
    TEST(!(*nodes1)[0].is_freed) ;
    TEST(!tree.root) ;
 
    TEST(!tree.root) ;
-   TEST(0 == insert_splaytree(&tree, (void*)10, &(*nodes1)[10].index)) ;
+   TEST(0 == insert_splaytree(&tree, &(*nodes1)[10].index)) ;
    TEST(tree.root == &(*nodes1)[10].index) ;
-   TEST(0 == remove_splaytree(&tree, (void*)10, &treenode)) ;
-   TEST(treenode == &(*nodes1)[10].index) ;
+   TEST(0 == remove_splaytree(&tree, &(*nodes1)[10].index)) ;
    TEST(!(*nodes1)[10].is_freed) ;
    TEST(!tree.root) ;
 
    // TEST insert_splaytree, free_splaytree: ascending order
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_splaytree(&tree, (void*)(*nodes1)[i].key, &(*nodes1)[i].index)) ;
+      TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
       (*nodes1)[i].is_inserted = 1 ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
@@ -959,7 +970,7 @@ static int test_insertremove(void)
    // TEST insert_splaytree, free_splaytree: descending order
    init_splaytree(&tree, &nodeadapt) ;
    for (int i = nrelementsof((*nodes1))-1; i >= 0; --i) {
-      TEST(0 == insert_splaytree(&tree, (void*)(*nodes1)[i].key, &(*nodes1)[i].index)) ;
+      TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
       (*nodes1)[i].is_inserted = 1 ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
@@ -982,12 +993,12 @@ static int test_insertremove(void)
    for (unsigned i = 0; i < 10*nrelementsof((*nodes1)); ++i) {
       int id = rand() % (int)nrelementsof((*nodes1)) ;
       if ((*nodes1)[id].is_inserted) continue ;
-      TEST(0 == insert_splaytree(&tree, (void*)(*nodes1)[id].key, &(*nodes1)[id].index)) ;
+      TEST(0 == insert_splaytree(&tree, &(*nodes1)[id].index)) ;
       (*nodes1)[id].is_inserted = 1 ;
    }
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
       if ((*nodes1)[i].is_inserted) continue ;
-      TEST(0 == insert_splaytree(&tree, (void*)(*nodes1)[i].key, &(*nodes1)[i].index)) ;
+      TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
       (*nodes1)[i].is_inserted = 1 ;
    }
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
@@ -995,8 +1006,7 @@ static int test_insertremove(void)
       TEST(treenode == &(*nodes1)[i].index) ;
    }
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == remove_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
-      TEST(treenode == &(*nodes1)[i].index) ;
+      TEST(0 == remove_splaytree(&tree, &(*nodes1)[i].index)) ;
       TEST(ESRCH == find_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
       TEST((*nodes1)[i].is_inserted) ;
@@ -1005,12 +1015,12 @@ static int test_insertremove(void)
    for (unsigned i = 0; i < 10*nrelementsof((*nodes1)); ++i) {
       int id = rand() % (int)nrelementsof((*nodes1)) ;
       if ((*nodes1)[id].is_inserted) continue ;
-      TEST(0 == insert_splaytree(&tree, (void*)(*nodes1)[id].key, &(*nodes1)[id].index)) ;
+      TEST(0 == insert_splaytree(&tree, &(*nodes1)[id].index)) ;
       (*nodes1)[id].is_inserted = 1 ;
    }
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
       if ((*nodes1)[i].is_inserted) continue ;
-      TEST(0 == insert_splaytree(&tree, (void*)(*nodes1)[i].key, &(*nodes1)[i].index)) ;
+      TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
       (*nodes1)[i].is_inserted = 1 ;
    }
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
@@ -1022,16 +1032,14 @@ static int test_insertremove(void)
       int id = rand() % (int)nrelementsof((*nodes1)) ;
       if (!(*nodes1)[id].is_inserted) continue ;
       (*nodes1)[id].is_inserted = 0 ;
-      TEST(0 == remove_splaytree(&tree, (void*)(*nodes1)[id].key, &treenode)) ;
-      TEST(&(*nodes1)[id].index == treenode) ;
+      TEST(0 == remove_splaytree(&tree, &(*nodes1)[id].index)) ;
       TEST(ESRCH == find_splaytree(&tree, (void*)(*nodes1)[id].key, &treenode)) ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
    for (int i = nrelementsof((*nodes1))-1; i >= 0; --i) {
       if ((*nodes1)[i].is_inserted) {
          (*nodes1)[i].is_inserted = 0 ;
-         TEST(0 == remove_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
-         TEST(&(*nodes1)[i].index == treenode) ;
+         TEST(0 == remove_splaytree(&tree, &(*nodes1)[i].index)) ;
          TEST(ESRCH == find_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
       }
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
@@ -1042,7 +1050,7 @@ static int test_insertremove(void)
 
    // TEST removenodes_splaytree
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_splaytree(&tree, (void*)(*nodes1)[i].key, &(*nodes1)[i].index)) ;
+      TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
    typeadapt.freenode_count = 0 ;
@@ -1054,12 +1062,12 @@ static int test_insertremove(void)
    }
 
    // TEST EEXIST
-   TEST(0 == insert_splaytree(&tree, (void*)1, &(*nodes1)[1].index)) ;
-   TEST(0 == insert_splaytree(&tree, (void*)2, &(*nodes1)[2].index)) ;
-   TEST(0 == insert_splaytree(&tree, (void*)3, &(*nodes1)[3].index)) ;
-   TEST(EEXIST == insert_splaytree(&tree, (void*)1, &(*nodes1)[1].index)) ;
-   TEST(EEXIST == insert_splaytree(&tree, (void*)2, &(*nodes1)[2].index)) ;
-   TEST(EEXIST == insert_splaytree(&tree, (void*)3, &(*nodes1)[3].index)) ;
+   TEST(0 == insert_splaytree(&tree, &(*nodes1)[1].index)) ;
+   TEST(0 == insert_splaytree(&tree, &(*nodes1)[2].index)) ;
+   TEST(0 == insert_splaytree(&tree, &(*nodes1)[3].index)) ;
+   TEST(EEXIST == insert_splaytree(&tree, &(*nodes1)[1].index)) ;
+   TEST(EEXIST == insert_splaytree(&tree, &(*nodes1)[2].index)) ;
+   TEST(EEXIST == insert_splaytree(&tree, &(*nodes1)[3].index)) ;
    typeadapt.freenode_count = 0 ;
    TEST(0 == removenodes_splaytree(&tree)) ;
    TEST(3 == typeadapt.freenode_count) ;
@@ -1069,11 +1077,11 @@ static int test_insertremove(void)
    }
 
    // TEST ESRCH
-   TEST(0 == insert_splaytree(&tree, (void*)1, &(*nodes1)[1].index)) ;
-   TEST(0 == insert_splaytree(&tree, (void*)2, &(*nodes1)[2].index)) ;
-   TEST(0 == insert_splaytree(&tree, (void*)3, &(*nodes1)[3].index)) ;
+   TEST(0 == insert_splaytree(&tree, &(*nodes1)[1].index)) ;
+   TEST(0 == insert_splaytree(&tree, &(*nodes1)[2].index)) ;
+   TEST(0 == insert_splaytree(&tree, &(*nodes1)[3].index)) ;
    TEST(ESRCH == find_splaytree(&tree, (void*)4, &treenode)) ;
-   TEST(ESRCH == remove_splaytree(&tree, (void*)5, &treenode)) ;
+   TEST(ESRCH == remove_splaytree(&tree, &(*nodes1)[5].index)) ;
 
    // unprepare
    TEST(0 == FREE_MM(&memblock1)) ;
@@ -1111,7 +1119,7 @@ static int test_iterator(void)
    init_splaytree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
       testnode_t * node = &(*nodes1)[(11*i) % nrelementsof((*nodes1))] ;
-      TEST(0 == insert_splaytree(&tree, (void*)(node->key), &node->index)) ;
+      TEST(0 == insert_splaytree(&tree, &node->index)) ;
       node->is_inserted = 1 ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
@@ -1192,9 +1200,7 @@ static int test_iterator(void)
       foreach (_splaytree, &tree, node) {
          TEST(node == &(*nodes1)[i].index) ;
          if ((i % 2)) {
-            splaytree_node_t * removed_node = 0 ;
-            TEST(0 == remove_splaytree(&tree, (void*)i, &removed_node)) ;
-            TEST(node == removed_node) ;
+            TEST(0 == remove_splaytree(&tree, node)) ;
          }
          ++ i ;
       }
@@ -1206,9 +1212,7 @@ static int test_iterator(void)
          -- i ;
          i -= (i % 2) ;
          TEST(node == &(*nodes1)[i].index) ;
-         splaytree_node_t * removed_node = 0 ;
-         TEST(0 == remove_splaytree(&tree, (void*)i, &removed_node)) ;
-         TEST(node == removed_node) ;
+         TEST(0 == remove_splaytree(&tree, node)) ;
       }
       TEST(i == 0) ;
       TEST(isempty_splaytree(&tree)) ;
@@ -1279,7 +1283,7 @@ static int test_generic(void)
    init_testtree(&tree, &nodeadapt) ;
    TEST(0 == invariant_splaytree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_testtree(&tree, (*nodes1)[i].key, &(*nodes1)[i])) ;
+      TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
@@ -1289,24 +1293,23 @@ static int test_generic(void)
    }
    TEST(0 == invariant_splaytree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      testnode_t * removed_node = 0 ;
-      TEST(0 == remove_testtree(&tree, (*nodes1)[i].key, &removed_node)) ;
-      TEST(removed_node == &(*nodes1)[i]) ;
-      TEST(ESRCH == find_testtree(&tree, (*nodes1)[i].key, &removed_node)) ;
+      TEST(0 == remove_testtree(&tree, &(*nodes1)[i])) ;
+      testnode_t * found_node = 0 ;
+      TEST(ESRCH == find_testtree(&tree, (*nodes1)[i].key, &found_node)) ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
 
    // TEST removenodes_splaytree, free_splaytree
    init_testtree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_testtree(&tree, (*nodes1)[i].key, &(*nodes1)[i])) ;
+      TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    TEST(0 == removenodes_testtree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
       TEST(1 == (*nodes1)[i].is_freed) ;
    }
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_testtree(&tree, (*nodes1)[i].key, &(*nodes1)[i])) ;
+      TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    TEST(0 == free_testtree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
@@ -1316,7 +1319,7 @@ static int test_generic(void)
    // TEST foreach, foreachReverse
    init_testtree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      TEST(0 == insert_testtree(&tree, (*nodes1)[i].key, &(*nodes1)[i])) ;
+      TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
       foreach (_testtree, &tree, node) {

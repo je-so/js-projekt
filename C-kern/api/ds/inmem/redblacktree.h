@@ -63,7 +63,7 @@ int unittest_ds_inmem_redblacktree(void) ;
  * > fill_tree(&tree) ;
  * > foreach (_redblacktree, &tree, node) {
  * >    if (need_to_remove(node)) {
- * >       err = remove_redblacktree(&tree, get_key_from_node(node), &node)) ;
+ * >       err = remove_redblacktree(&tree, node)) ;
  * >    }
  * > }
  * */
@@ -109,8 +109,8 @@ bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, redblacktree_t * 
  *
  * typeadapt_t:
  * The service <typeadapt_lifetime_it.delete_object> of <typeadapt_t.lifetime> is used in <free_redblacktree> and <removenodes_redblacktree>.
- * The service <typeadapt_comparator_it.cmp_key_object> of <typeadapt_t.comparator> is used in <find_redblacktree> and <remove_redblacktree>.
- * The service <typeadapt_comparator_it.cmp_object> of <typeadapt_t.comparator> is used in <invariant_redblacktree>.
+ * The service <typeadapt_comparator_it.cmp_key_object> of <typeadapt_t.comparator> is used in <find_redblacktree>.
+ * The service <typeadapt_comparator_it.cmp_object> of <typeadapt_t.comparator> is used in <invariant_redblacktree>, <insert_redblacktree>, and <remove_redblacktree>.
  *
  * Tree Properties:
  *    1. - Every node is colored red or black.
@@ -210,15 +210,14 @@ int find_redblacktree(redblacktree_t * tree, const void * key, /*out*/redblacktr
 
 /* function: insert_redblacktree
  * Inserts a new node into the tree only if it is unique.
- * If another node exists with the same key as *new_key* nothing is inserted and the function returns EEXIST.
- * If no other node is found new_node is inserted.
- * The caller has to allocate the new node and has to transfer ownership. */
-int insert_redblacktree(redblacktree_t * tree, const void * new_key, redblacktree_node_t * new_node) ;
+ * If another node exists with the same key nothing is inserted and the function returns EEXIST
+ * The caller has to allocate new_node and has to transfer ownership. */
+int insert_redblacktree(redblacktree_t * tree, redblacktree_node_t * new_node) ;
 
 /* function: remove_redblacktree
- * Removes a node if its key equals parameter *key*.
- * The removed node is not freed but a pointer to it is returned in *removed_node* to the caller. */
-int remove_redblacktree(redblacktree_t * tree, const void * key, /*out*/redblacktree_node_t ** removed_node) ;
+ * Removes a node from the tree. If the node is not part of the tree the behaviour is undefined !
+ * The ownership of the removed node is transfered back to the caller. */
+int remove_redblacktree(redblacktree_t * tree, redblacktree_node_t * node) ;
 
 /* function: removenodes_redblacktree
  * Removes all nodes from the tree.
@@ -283,8 +282,8 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
    static inline void getinistate##_fsuffix(const redblacktree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline bool isempty##_fsuffix(const redblacktree_t * tree) __attribute__ ((always_inline)) ; \
    static inline int  find##_fsuffix(redblacktree_t * tree, const key_t key, /*out*/object_t ** found_node) __attribute__ ((always_inline)) ; \
-   static inline int  insert##_fsuffix(redblacktree_t * tree, const key_t new_key, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int  remove##_fsuffix(redblacktree_t * tree, const key_t key, /*out*/object_t ** removed_node) __attribute__ ((always_inline)) ; \
+   static inline int  insert##_fsuffix(redblacktree_t * tree, object_t * new_node) __attribute__ ((always_inline)) ; \
+   static inline int  remove##_fsuffix(redblacktree_t * tree, object_t * node) __attribute__ ((always_inline)) ; \
    static inline int  removenodes##_fsuffix(redblacktree_t * tree) __attribute__ ((always_inline)) ; \
    static inline int  invariant##_fsuffix(redblacktree_t * tree) __attribute__ ((always_inline)) ; \
    static inline redblacktree_node_t * asnode##_fsuffix(object_t * object) { \
@@ -316,12 +315,11 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
       if (err == 0) *found_node = asobject##_fsuffix(*(redblacktree_node_t**)found_node) ; \
       return err ; \
    } \
-   static inline int  insert##_fsuffix(redblacktree_t * tree, const key_t new_key, object_t * new_node) { \
-      return insert_redblacktree(tree, (void*)new_key, asnode##_fsuffix(new_node)) ; \
+   static inline int  insert##_fsuffix(redblacktree_t * tree, object_t * new_node) { \
+      return insert_redblacktree(tree, asnode##_fsuffix(new_node)) ; \
    } \
-   static inline int  remove##_fsuffix(redblacktree_t * tree, const key_t key, /*out*/object_t ** removed_node) { \
-      int err = remove_redblacktree(tree, (void*)key, (redblacktree_node_t**)removed_node) ; \
-      if (err == 0) *removed_node = asobject##_fsuffix(*(redblacktree_node_t**)removed_node) ; \
+   static inline int  remove##_fsuffix(redblacktree_t * tree, object_t * node) { \
+      int err = remove_redblacktree(tree, asnode##_fsuffix(node)) ; \
       return err ; \
    } \
    static inline int  removenodes##_fsuffix(redblacktree_t * tree) { \

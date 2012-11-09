@@ -44,11 +44,11 @@ typedef int (*X11_event_handler_f) (struct x11display_t * x11disp, struct glxwin
  *
  * This may be removed if every thread has its own <x11display_t>
  * connection and draws into its own window. */
-extern int initonce_X11(void) ;
+int initonce_X11(void) ;
 
 /* function: freeonce_X11
  * Does nothing at the moment. */
-extern int freeonce_X11(void) ;
+int freeonce_X11(void) ;
 
 // group: event-handling
 
@@ -61,32 +61,32 @@ extern int freeonce_X11(void) ;
  * 0      - Success
  * EINVAL - Type is not in range [0 .. 255]
  * EBUSY  - Another handler is active for this type of event. */
-extern int seteventhandler_X11( int type, X11_event_handler_f new_handler ) ;
+int seteventhandler_X11(int type, X11_event_handler_f new_handler) ;
 
 /* function: cleareventhandler_X11
  * Clears the current event handler.
  * If the current handler does not match the given argument
  * EPERM is returned. If there is currently no active handler
  * success(0) is returned. */
-extern int cleareventhandler_X11( int type, X11_event_handler_f current_handler ) ;
+int cleareventhandler_X11(int type, X11_event_handler_f current_handler) ;
 
 /* function: cleareventhandler_X11
  * Checks event queue and dispatches 1 event if avialable.
  * If there are no waiting events this function returns immediately.
  * If no event handler is registered for the dispatched event
  * nothing else is done except for consuming one event. */
-extern int dispatchevent_X11(struct x11display_t * x11disp) ;
+int dispatchevent_X11(struct x11display_t * x11disp) ;
 
 // group: query
 
-extern int iseventhandler_X11( int type, int * is_installed ) ;
+int iseventhandler_X11(int type, int * is_installed) ;
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_presentation_X11
  * Test initialization process succeeds. */
-extern int unittest_presentation_X11(void) ;
+int unittest_presentation_X11(void) ;
 #endif
 
 // section: inline implementation

@@ -367,7 +367,6 @@ static void rebalanceAfterInsert(redblacktree_t * tree, redblacktree_node_t * co
 
 }
 
-
 static void rebalanceAfterRemove(redblacktree_t * tree, const bool isNodeLeft, redblacktree_node_t * const parent_node)
 {
    // height is reduced (removed node was black)
@@ -526,7 +525,7 @@ static void rebalanceAfterRemove(redblacktree_t * tree, const bool isNodeLeft, r
    }
 }
 
-int insert_redblacktree(redblacktree_t * tree, const void * new_key, redblacktree_node_t * new_node)
+int insert_redblacktree(redblacktree_t * tree, redblacktree_node_t * new_node)
 {
    int err ;
 
@@ -546,8 +545,8 @@ int insert_redblacktree(redblacktree_t * tree, const void * new_key, redblacktre
       // search insert position in tree; result == (pInsertPos,isKeyLower)
 
       redblacktree_node_t * parent ;
-      for (parent = tree->root ;;) {
-         int cmp = KEYCOMPARE(new_key, parent) ;
+      for (parent = tree->root;;) {
+         int cmp = NODECOMPARE(new_node, parent) ;
          if (cmp == 0) {
             return EEXIST ;
          }
@@ -584,14 +583,8 @@ ONABORT:
    return err ;
 }
 
-int remove_redblacktree(redblacktree_t * tree, const void * key, /*out*/redblacktree_node_t ** removed_node)
+int remove_redblacktree(redblacktree_t * tree, redblacktree_node_t * node)
 {
-   int err ;
-   redblacktree_node_t * node ;
-
-   err = find_redblacktree(tree, key, &node) ;
-   if (err) return err ;
-
    redblacktree_node_t * node_parent ;
    redblacktree_node_t * node_child ;
    bool  isNodeBlack ;
@@ -667,7 +660,6 @@ int remove_redblacktree(redblacktree_t * tree, const void * key, /*out*/redblack
    }
 
    MEMSET0(node) ;
-   *removed_node = node ;
    return 0 ;
 }
 
@@ -1035,20 +1027,20 @@ static int test_insertconditions(void)
       nodes[i].node.left   = &nodes[10].node ;
       nodes[i].node.right  = &nodes[10].node ;
    }
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[1].key, &nodes[1].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[1].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(tree.root         == &nodes[1].node) ;
    TEST(tree.root->left   == 0) ;
    TEST(tree.root->right  == 0) ;
    TEST(tree.root->parent == (redblacktree_node_t*)0x01/*color black*/) ;
    // TEST: parent (BLACK) (insert clears left/right fields)
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[0].key, &nodes[0].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[0].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(tree.root         == &nodes[1].node) ;
    TEST(tree.root->left   == &nodes[0].node) ;
    TEST(tree.root->right  == 0) ;
    TEST(tree.root->parent == (redblacktree_node_t*)0x01/*color black*/) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[2].key, &nodes[2].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[2].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(tree.root         == &nodes[1].node) ;
    TEST(tree.root->left   == &nodes[0].node) ;
@@ -1068,9 +1060,9 @@ static int test_insertconditions(void)
       nodes[i].node.left   = &nodes[10].node ;
       nodes[i].node.right  = &nodes[10].node ;
    }
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[4].key, &nodes[4].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[2].key, &nodes[2].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[4].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[2].node)) ;
    TEST(tree.root == &nodes[3].node) ;
    TEST(0         == PARENT(&nodes[3].node)) ;
    TEST(nodes[3].node.left  == &nodes[2].node) ;
@@ -1083,7 +1075,7 @@ static int test_insertconditions(void)
    TEST(ISRED(&nodes[4].node)) ;
    TEST(nodes[4].node.left  == 0) ;
    TEST(nodes[4].node.right == 0) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[1].key, &nodes[1].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[1].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(PARENT(&nodes[3].node) == 0) ;
    TEST(tree.root == &nodes[3].node) ;
@@ -1105,12 +1097,12 @@ static int test_insertconditions(void)
       nodes[i].node.left   = &nodes[10].node ;
       nodes[i].node.right  = &nodes[10].node ;
    }
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[5].key, &nodes[5].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[2].key, &nodes[2].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[5].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[2].node)) ;
    TEST(tree.root == &nodes[3].node) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[4].key, &nodes[4].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[4].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(0         == PARENT(&nodes[3].node)) ;
    TEST(tree.root == &nodes[3].node) ;
@@ -1128,8 +1120,8 @@ static int test_insertconditions(void)
    TEST(0 == removenodes_redblacktree(&tree)) ;
 
    // TEST: parent (RED)  uncle(NULL)
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[1].key, &nodes[1].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[1].node)) ;
    TEST(tree.root == &nodes[3].node) ;
    TEST(0         == PARENT(&nodes[3].node)) ;
    TEST(nodes[3].node.left  == &nodes[1].node) ;
@@ -1138,7 +1130,7 @@ static int test_insertconditions(void)
    TEST(ISRED(&nodes[1].node)) ;
    TEST(nodes[1].node.left  == 0) ;
    TEST(nodes[1].node.right == 0) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[2].key, &nodes[2].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[2].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(PARENT(&nodes[2].node) == 0) ;
    TEST(tree.root == &nodes[2].node) ;
@@ -1154,11 +1146,11 @@ static int test_insertconditions(void)
    TEST(nodes[1].node.right == 0) ;
    TEST(0 == removenodes_redblacktree(&tree)) ;
    // DUAL
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[4].key, &nodes[4].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[4].node)) ;
    TEST(tree.root == &nodes[3].node) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[5].key, &nodes[5].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[5].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(0 == PARENT(&nodes[4].node)) ;
    TEST(tree.root == &nodes[4].node) ;
@@ -1175,15 +1167,15 @@ static int test_insertconditions(void)
    TEST(0 == removenodes_redblacktree(&tree)) ;
 
    // TEST: parent (RED)  uncle(BLACK) / propagates
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[7].key, &nodes[7].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[5].key, &nodes[5].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[9].key, &nodes[9].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[6].key, &nodes[6].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[8].key, &nodes[8].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[10].key, &nodes[10].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[2].key, &nodes[2].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[4].key, &nodes[4].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[7].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[5].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[9].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[6].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[8].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[10].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[2].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[4].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    /*       7
     *     5     9
@@ -1204,7 +1196,7 @@ static int test_insertconditions(void)
    TEST(ISRED(&nodes[10].node)) ;
    TEST(ISRED(&nodes[2].node)) ;
    TEST(ISRED(&nodes[4].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[1].key, &nodes[1].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[1].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(tree.root == &nodes[5].node) ;
    TEST(nodes[5].node.left  == &nodes[3].node) ;
@@ -1225,21 +1217,21 @@ static int test_insertconditions(void)
    TEST(ISRED(&nodes[1].node)) ;
    TEST(0 == removenodes_redblacktree(&tree)) ;
    // DUAL
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[4].key, &nodes[4].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[2].key, &nodes[2].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[9].key, &nodes[9].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[1].key, &nodes[1].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[7].key, &nodes[7].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[10].key, &nodes[10].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[5].key, &nodes[5].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[8].key, &nodes[8].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[4].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[2].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[9].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[1].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[7].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[10].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[5].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[8].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    /*        4
     *     2       9
     *   1   3   7   10
     *          5 8     */
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[6].key, &nodes[6].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[6].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    TEST(tree.root == &nodes[7].node) ;
    TEST(nodes[7].node.left == &nodes[4].node) ;
@@ -1273,7 +1265,6 @@ static int test_removeconditions(void)
                         } ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
-   redblacktree_node_t  * node    = 0 ;
 
    // prepare
    MEMSET0(&nodes) ;
@@ -1282,12 +1273,12 @@ static int test_removeconditions(void)
    }
 
    // TEST: remove successor (is directly right of node + RED child of black node)
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[7].key, &nodes[7].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[4].key, &nodes[4].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[9].key, &nodes[9].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[5].key, &nodes[5].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[6].key, &nodes[6].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[7].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[4].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[9].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[5].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[6].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    /*        7
     *     4      9
@@ -1303,9 +1294,8 @@ static int test_removeconditions(void)
    TEST(ISBLACK(&nodes[9].node)) ;
    TEST(ISRED(&nodes[6].node)) ;
    TEST(ISRED(&nodes[4].node)) ;
-   TEST(0 == remove_redblacktree(&tree, (void*)nodes[4].key, &node)) ;
+   TEST(0 == remove_redblacktree(&tree, &nodes[4].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
-   TEST(node == &nodes[4].node) ;
    TEST(tree.root           == &nodes[7].node) ;
    TEST(nodes[7].node.left  == &nodes[5].node) ;
    TEST(nodes[7].node.right == &nodes[9].node) ;
@@ -1315,13 +1305,13 @@ static int test_removeconditions(void)
    TEST(0 == removenodes_redblacktree(&tree)) ;
 
    // TEST: remove successor (root)
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[7].key, &nodes[7].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[5].key, &nodes[5].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[9].key, &nodes[9].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[6].key, &nodes[6].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[8].key, &nodes[8].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[10].key, &nodes[10].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[7].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[5].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[9].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[6].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[8].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[10].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    /*        7
     *     5      9
@@ -1334,9 +1324,8 @@ static int test_removeconditions(void)
    TEST(ISBLACK(&nodes[9].node)) ;
    TEST(ISRED(&nodes[8].node)) ;
    TEST(ISRED(&nodes[10].node)) ;
-   TEST(0 == remove_redblacktree(&tree, (void*)nodes[7].key, &node)) ;
+   TEST(0 == remove_redblacktree(&tree, &nodes[7].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
-   TEST(node == &nodes[7].node) ;
    TEST(tree.root           == &nodes[8].node) ;
    TEST(nodes[8].node.left  == &nodes[5].node) ;
    TEST(nodes[8].node.right == &nodes[9].node) ;
@@ -1345,17 +1334,17 @@ static int test_removeconditions(void)
    TEST(0 == removenodes_redblacktree(&tree)) ;
 
    // TEST: uncle of removed is RED
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[7].key, &nodes[7].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[5].key, &nodes[5].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[11].key, &nodes[11].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[3].key, &nodes[3].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[6].key, &nodes[6].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[9].key, &nodes[9].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[13].key, &nodes[13].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[8].key, &nodes[8].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[10].key, &nodes[10].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[12].key, &nodes[12].node)) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)nodes[14].key, &nodes[14].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[7].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[5].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[11].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[3].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[6].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[9].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[13].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[8].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[10].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[12].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &nodes[14].node)) ;
    SETBLACK(&nodes[5].node) ;
    SETBLACK(&nodes[3].node) ;
    SETBLACK(&nodes[6].node) ;
@@ -1382,9 +1371,8 @@ static int test_removeconditions(void)
    TEST(nodes[9].node.right == &nodes[10].node) ;
    TEST(nodes[13].node.left == &nodes[12].node) ;
    TEST(nodes[13].node.right== &nodes[14].node) ;
-   TEST(0 == remove_redblacktree(&tree, (void*)nodes[3].key, &node)) ;
+   TEST(0 == remove_redblacktree(&tree, &nodes[3].node)) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
-   TEST(node == &nodes[3].node) ;
    TEST(tree.root            == &nodes[11].node) ;
    TEST(nodes[11].node.left  == &nodes[7].node) ;
    TEST(nodes[11].node.right == &nodes[13].node) ;
@@ -1428,7 +1416,7 @@ static int test_insertremove(void)
    }
 
    // TEST insert_redblacktree: EINVAL (uneven address)
-   TEST(EINVAL == insert_redblacktree(&tree, (void*)0, (redblacktree_node_t*)(1+(uintptr_t)&(*nodes)[0].node))) ;
+   TEST(EINVAL == insert_redblacktree(&tree, (redblacktree_node_t*)(1+(uintptr_t)&(*nodes)[0].node))) ;
    TEST(0 == tree.root) ;
 
    // TEST find_redblacktree: empty tree
@@ -1441,7 +1429,7 @@ static int test_insertremove(void)
    (*nodes)[0].node.left   = (void*)1 ;
    (*nodes)[0].node.right  = (void*)1 ;
    (*nodes)[0].node.parent = (void*)1 ;
-   TEST(0 == insert_redblacktree(&tree, (void*)(*nodes)[0].key, &(*nodes)[0].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &(*nodes)[0].node)) ;
    TEST(tree.root == &(*nodes)[0].node) ;
    TEST(0 == (*nodes)[0].is_freed) ;
    TEST(0 == (*nodes)[0].node.left) ;
@@ -1455,15 +1443,13 @@ static int test_insertremove(void)
 
    // TEST remove_redblacktree: single node
    TEST(tree.root == &(*nodes)[0].node) ;
-   treenode = 0 ;
-   TEST(0 == remove_redblacktree(&tree, (void*)(*nodes)[0].key, &treenode)) ;
+   TEST(0 == remove_redblacktree(&tree, &(*nodes)[0].node)) ;
    TEST(0 == tree.root) ;
    TEST(0 == (*nodes)[0].is_freed) ;
-   TEST(treenode == &(*nodes)[0].node) ;
 
    // TEST removenodes_redblacktree: single node
    TEST(0 == tree.root) ;
-   TEST(0 == insert_redblacktree(&tree, (void*)(*nodes)[10].key, &(*nodes)[10].node)) ;
+   TEST(0 == insert_redblacktree(&tree, &(*nodes)[10].node)) ;
    TEST(tree.root == &(*nodes)[10].node) ;
    TEST(0 == removenodes_redblacktree(&tree)) ;
    TEST(1 == (*nodes)[10].is_freed) ;
@@ -1472,7 +1458,7 @@ static int test_insertremove(void)
 
    // TEST insert_redblacktree: ascending order
    for (unsigned i = 0; i < nrelementsof(*nodes); ++i) {
-      TEST(0 == insert_redblacktree(&tree, (void*)(*nodes)[i].key, &(*nodes)[i].node)) ;
+      TEST(0 == insert_redblacktree(&tree, &(*nodes)[i].node)) ;
       if (!(i%100)) TEST(0 == invariant_redblacktree(&tree)) ;
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
@@ -1486,9 +1472,8 @@ static int test_insertremove(void)
 
    // TEST remove_redblacktree: ascending order
    for (unsigned i = 0; i < nrelementsof(*nodes); ++i) {
-      TEST(0 == remove_redblacktree(&tree, (void*)(*nodes)[i].key, &treenode)) ;
+      TEST(0 == remove_redblacktree(&tree, &(*nodes)[i].node)) ;
       TEST(0 == (*nodes)[i].is_freed) ;
-      TEST(treenode == &(*nodes)[i].node) ;
       if (!(i%100)) TEST(0 == invariant_redblacktree(&tree)) ;
    }
    TEST(0 == tree.root) ;
@@ -1496,7 +1481,7 @@ static int test_insertremove(void)
 
    // TEST insert_redblacktree: descending order
    for (int i = (int)nrelementsof(*nodes)-1; i >= 0; --i) {
-      TEST(0 == insert_redblacktree(&tree, (void*)(*nodes)[i].key, &(*nodes)[i].node)) ;
+      TEST(0 == insert_redblacktree(&tree, &(*nodes)[i].node)) ;
       if (!(i%100)) TEST(0 == invariant_redblacktree(&tree)) ;
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
@@ -1510,9 +1495,8 @@ static int test_insertremove(void)
 
    // TEST remove_redblacktree: descending order
    for (int i = (int)nrelementsof(*nodes)-1; i >= 0; --i) {
-      TEST(0 == remove_redblacktree(&tree, (void*)(*nodes)[i].key, &treenode)) ;
+      TEST(0 == remove_redblacktree(&tree, &(*nodes)[i].node)) ;
       TEST(0 == (*nodes)[i].is_freed) ;
-      TEST(treenode == &(*nodes)[i].node) ;
       if (!(i%100)) TEST(0 == invariant_redblacktree(&tree)) ;
    }
    TEST(0 == tree.root) ;
@@ -1527,12 +1511,11 @@ static int test_insertremove(void)
          TEST(treenode == &(*nodes)[id].node) ;
          (*nodes)[id].is_inserted = 0 ;
          treenode = 0 ;
-         TEST(0 == remove_redblacktree(&tree, (void*)(*nodes)[id].key, &treenode)) ;
-         TEST(treenode == &(*nodes)[id].node) ;
+         TEST(0 == remove_redblacktree(&tree, &(*nodes)[id].node)) ;
       } else {
          TEST(ESRCH == find_redblacktree(&tree, (void*)(*nodes)[id].key, &treenode)) ;
          (*nodes)[id].is_inserted = 1 ;
-         TEST(0 == insert_redblacktree(&tree, (void*)(*nodes)[id].key, &(*nodes)[id].node)) ;
+         TEST(0 == insert_redblacktree(&tree, &(*nodes)[id].node)) ;
       }
    }
 
@@ -1561,7 +1544,7 @@ static int test_insertremove(void)
 
    // TEST removenodes_redblacktree
    for (unsigned i = 0; i < nrelementsof(*nodes); ++i) {
-      TEST(0 == insert_redblacktree(&tree, (void*)(*nodes)[i].key, &(*nodes)[i].node)) ;
+      TEST(0 == insert_redblacktree(&tree, &(*nodes)[i].node)) ;
    }
    typeadapt.freenode_count = 0 ;
    TEST(0 == removenodes_redblacktree(&tree)) ;
@@ -1576,7 +1559,7 @@ static int test_insertremove(void)
 
    // TEST removenodes_redblacktree: lifetime.delete_object set to 0
    for (unsigned i = 0; i < nrelementsof(*nodes); ++i) {
-      TEST(0 == insert_redblacktree(&tree, (void*)(*nodes)[i].key, &(*nodes)[i].node)) ;
+      TEST(0 == insert_redblacktree(&tree, &(*nodes)[i].node)) ;
    }
    typeadapt.freenode_count = 0 ;
    typeadapt.lifetime.delete_object = 0 ;
@@ -1619,7 +1602,7 @@ static int test_iterator(void)
    init_redblacktree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
       testnode_t * node = &nodes[(13*i) % nrelementsof(nodes)] ;
-      TEST(0 == insert_redblacktree(&tree, (void*)(node->key), &node->node)) ;
+      TEST(0 == insert_redblacktree(&tree, &node->node)) ;
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
 
@@ -1692,9 +1675,7 @@ static int test_iterator(void)
    foreach (_redblacktree, &tree, node) {
       TEST(node == &nodes[i].node) ;
       if ((i % 2)) {
-         redblacktree_node_t * removed_node = 0 ;
-         TEST(0 == remove_redblacktree(&tree, (void*)i, &removed_node)) ;
-         TEST(node == removed_node) ;
+         TEST(0 == remove_redblacktree(&tree, &nodes[i].node)) ;
       }
       ++ i ;
    }
@@ -1706,9 +1687,7 @@ static int test_iterator(void)
       -- i ;
       i -= (i % 2) ;
       TEST(node == &nodes[i].node) ;
-      redblacktree_node_t * removed_node = 0 ;
-      TEST(0 == remove_redblacktree(&tree, (void*)i, &removed_node)) ;
-      TEST(node == removed_node) ;
+      TEST(0 == remove_redblacktree(&tree, &nodes[i].node)) ;
    }
    TEST(i == 0) ;
    TEST(isempty_redblacktree(&tree)) ;
@@ -1730,6 +1709,7 @@ static int test_generic(void)
    typeadapt_member_t   emptynodeadapt = typeadapt_member_INIT_FREEABLE ;
    typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, uintptr_t), offsetof(testnode_t, node)) ;
    redblacktree_t       tree      = redblacktree_INIT(0, nodeadapt) ;
+   testnode_t           * found_node = 0 ;
 
    // prepare
    MEMSET0(&nodes) ;
@@ -1770,27 +1750,25 @@ static int test_generic(void)
    init_testtree(&tree, &nodeadapt) ;
    TEST(0 == invariant_redblacktree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, nodes[i].key, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      testnode_t * found_node = 0 ;
+      found_node = 0 ;
       TEST(0 == find_testtree(&tree, nodes[i].key, &found_node)) ;
       TEST(found_node == &nodes[i]) ;
    }
    TEST(0 == invariant_redblacktree(&tree)) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      testnode_t * removed_node = 0 ;
-      TEST(0 == remove_testtree(&tree, nodes[i].key, &removed_node)) ;
-      TEST(removed_node == &nodes[i]) ;
-      TEST(ESRCH == find_testtree(&tree, nodes[i].key, &removed_node)) ;
+      TEST(0 == remove_testtree(&tree, &nodes[i])) ;
+      TEST(ESRCH == find_testtree(&tree, nodes[i].key, &found_node)) ;
       if (!(i%100)) TEST(0 == invariant_redblacktree(&tree)) ;
    }
 
    // TEST removenodes_redblacktree, free_redblacktree
    init_testtree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, nodes[i].key, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    TEST(0 == removenodes_testtree(&tree)) ;
    TEST(0 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
@@ -1798,7 +1776,7 @@ static int test_generic(void)
       TEST(1 == nodes[i].is_freed) ;
    }
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, nodes[i].key, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    TEST(0 == free_testtree(&tree)) ;
    TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
@@ -1809,7 +1787,7 @@ static int test_generic(void)
    // TEST foreach, foreachReverse
    init_testtree(&tree, &nodeadapt) ;
    for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(0 == insert_testtree(&tree, nodes[i].key, &nodes[i])) ;
+      TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
       foreach (_testtree, &tree, node) {
