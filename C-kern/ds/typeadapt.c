@@ -38,8 +38,9 @@
 
 bool isequal_typeadaptmember(const typeadapt_member_t * lnodeadp, const typeadapt_member_t * rnodeadp)
 {
-   return   lnodeadp->typeadp == rnodeadp->typeadp
-            && isequal_typeadapttypeinfo(&lnodeadp->typeinfo, &rnodeadp->typeinfo) ;
+   bool isEqual = (lnodeadp->typeadp == rnodeadp->typeadp)
+                  && isequal_typeadapttypeinfo(&lnodeadp->typeinfo, &rnodeadp->typeinfo) ;
+   return isEqual ;
 }
 
 
@@ -435,11 +436,11 @@ static int test_typeadaptmember(void)
    // TEST isequal_typeadaptmember
    typeadapt_member_t nodeadp2 = typeadapt_member_INIT_FREEABLE ;
    nodeadp = (typeadapt_member_t) typeadapt_member_INIT_FREEABLE ;
-   for (unsigned i = 0; i < sizeof(typeadapt_member_t)/sizeof(void*); ++i) {
-      ((void**)&nodeadp2)[i] = (void*)1 ;
+   for (unsigned i = 0; i < sizeof(typeadapt_member_t)/sizeof(uint32_t); ++i) {
+      memset(&((uint32_t*)&nodeadp2)[i], 255, sizeof(uint32_t)) ;
       TEST(0 == isequal_typeadaptmember(&nodeadp, &nodeadp2)) ;
       TEST(0 == isequal_typeadaptmember(&nodeadp2, &nodeadp)) ;
-      ((void**)&nodeadp2)[i] = (void*)0 ;
+      memset(&((uint32_t*)&nodeadp2)[i], 0, sizeof(uint32_t)) ;
       TEST(1 == isequal_typeadaptmember(&nodeadp, &nodeadp2)) ;
       TEST(1 == isequal_typeadaptmember(&nodeadp2, &nodeadp)) ;
    }
