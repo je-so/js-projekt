@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/genmake.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Nov.06  20:32:16
+GenerationDate  := 2012.Nov.10  20:06:07
 GeneratedBy     := je-so
 
 ## Debug
@@ -16,7 +16,7 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
-Defines_Debug       :=
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=none
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     :=
 Libpath_Debug       :=
@@ -34,7 +34,7 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
-Defines_Release       :=
+Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=none
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     :=
 Libpath_Release       :=
@@ -74,12 +74,36 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
- $(ObjectDir_Debug)/C-kern!tools!hash.c.o \
- $(ObjectDir_Debug)/C-kern!main!tools!genmake.c.o
+ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
+ $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Debug)/C-kern!main!tools!genmake.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!exthash.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!tools!hash.c.o \
- $(ObjectDir_Release)/C-kern!main!tools!genmake.c.o
+ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
+ $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
+ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Release)/C-kern!main!tools!genmake.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!exthash.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -87,16 +111,88 @@ $(Target_Debug): $(Objects_Debug)
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Debug)/C-kern!tools!hash.c.o: C-kern/tools/hash.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!tools!genmake.c.o: C-kern/main/tools/genmake.c
 	@$(CC_Debug)
 
-$(ObjectDir_Release)/C-kern!tools!hash.c.o: C-kern/tools/hash.c
+$(ObjectDir_Debug)/C-kern!ds!inmem!exthash.c.o: C-kern/ds/inmem/exthash.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktree.c
+	@$(CC_Debug)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!tools!genmake.c.o: C-kern/main/tools/genmake.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!exthash.c.o: C-kern/ds/inmem/exthash.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktree.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

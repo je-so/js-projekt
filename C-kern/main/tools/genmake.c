@@ -23,24 +23,14 @@
     Main implementation of tool <genmake>.
 */
 
+#include "C-kern/konfig.h"
+#include "C-kern/api/ds/foreach.h"
+#include "C-kern/api/ds/typeadapt.h"
+#include "C-kern/api/ds/inmem/exthash.h"
+#include "C-kern/api/string/string.h"
 #include <assert.h>
-#include <dirent.h>
-#include <errno.h>
 #include <glob.h>
 #include <pwd.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <time.h>
-
-
-#include "C-kern/tools/hash.h"
 
 
 const char*     g_programname = 0 ;
@@ -119,6 +109,7 @@ int errmalloc( void ** memblock, size_t size)
    *memblock = new_memblock ;
    return 0 ;
 }
+
 
 typedef struct stringarray stringarray_t ;
 struct stringarray {
@@ -212,33 +203,39 @@ int new_stringarray( const char * values, const char * separators, stringarray_t
    return 0 ;
 }
 
-typedef struct hash_entry_subclass hash_entry_subclass_t ;
-struct hash_entry_subclass
+typedef struct hash_entry_subclass_t   hash_entry_subclass_t ;
+
+struct hash_entry_subclass_t
 {
-   hash_entry_t hash ;
-   uint8_t      isPredefinedID ;
-   uint8_t      isUsed ;
-   char         name[] ;
+   exthash_node_t node ;
+   uint8_t        isPredefinedID ;
+   uint8_t        isUsed ;
+   void           * data ;
+   char           name[] ;
 } ;
 
-static void free_hashtableentry( hash_entry_t* entry )
+typeadapt_DECLARE(hashadapt_t, hash_entry_subclass_t, conststring_t *) ;
+
+static int impl_delobj_hashadapt(hashadapt_t * typeadp, hash_entry_subclass_t ** hashnode)
 {
-   assert( entry->name  == ((hash_entry_subclass_t*)entry)->name ) ;
-   free( entry->data ) ;
-   free( entry ) ;
+   (void) typeadp ;
+   if (*hashnode) {
+      free((*hashnode)->data) ;
+      free(*hashnode) ;
+      *hashnode = 0 ;
+   }
+   return 0 ;
 }
 
-static hash_entry_subclass_t* new_hashtableentry(hash_table_t* hashindex, const char* name, size_t len )
+static hash_entry_subclass_t * new_hashtableentry(exthash_t * hashindex, const char * name, size_t len)
 {
    hash_entry_subclass_t * entry = (hash_entry_subclass_t*) malloc(sizeof(hash_entry_subclass_t) + len + 1) ;
    if (entry) {
       memset(entry, 0, sizeof(hash_entry_subclass_t)) ;
-      entry->hash.name = entry->name ;
       memcpy(entry->name, name, len) ;
       entry->name[len] = 0 ;
-      if (HASH_OK != insert_hashtable(hashindex, &entry->hash)) {
-         free_hashtableentry(&entry->hash) ;
-         entry = 0 ;
+      if (insert_exthash(hashindex, &entry->node)) {
+         impl_delobj_hashadapt(0, &entry) ;
       }
    }
    if (!entry) {
@@ -247,8 +244,55 @@ static hash_entry_subclass_t* new_hashtableentry(hash_table_t* hashindex, const 
    return entry ;
 }
 
-typedef struct konfigvalues konfigvalues_t ;
-struct konfigvalues {    // mode-qualifizierte konfig-Werte
+static int impl_cmpkeyobj_hashadapt(hashadapt_t * typeadp, const conststring_t * lkey, const hash_entry_subclass_t * rnode)
+{
+   (void) typeadp ;
+   return strncmp((const char*)lkey->addr, rnode->name, lkey->size) ;
+}
+
+static int impl_cmpobj_hashadapt(hashadapt_t * typeadp, const hash_entry_subclass_t * lnode, const hash_entry_subclass_t * rnode)
+{
+   (void) typeadp ;
+   return strcmp(lnode->name, rnode->name) ;
+}
+
+static inline uint32_t hashchar(const uint8_t c)
+{
+   if (c == '_') return 0 ;
+   if (c >= 'a' && c <= 'z')   return 1u  + (uint32_t) (c - 'a') ;
+   if (c >= 'A' && c <= 'Z')   return 27u + (uint32_t) (c - 'A') ;
+   return c ;
+}
+
+static size_t impl_hashkey_hashadapt(hashadapt_t * typeadp, const conststring_t * hashkey)
+{
+   size_t hash    = 0 ;
+   (void) typeadp ;
+
+   if (hashkey->size)
+   {
+      for (size_t i = 1; i < hashkey->size; ++i)
+      {
+         hash += hashchar(hashkey->addr[i]) ;
+      }
+      hash = hashchar(hashkey->addr[0]) + 53 * hash ;
+   }
+
+   return hash ;
+}
+
+static size_t impl_hashobj_hashadapt(hashadapt_t * typeadp, const hash_entry_subclass_t * hashnode)
+{
+   conststring_t str = conststring_INIT_CSTR(hashnode->name) ;
+   return impl_hashkey_hashadapt(typeadp, &str) ;
+}
+
+hashadapt_t          s_hashadapt     = typeadapt_INIT_LIFECMPHASH(0, &impl_delobj_hashadapt, &impl_cmpkeyobj_hashadapt, &impl_cmpobj_hashadapt, &impl_hashobj_hashadapt, &impl_hashkey_hashadapt) ;
+typeadapt_member_t   s_hashnodeadapt = typeadapt_member_INIT((typeadapt_t*)&s_hashadapt, offsetof(hash_entry_subclass_t, node)) ;
+
+typedef struct konfigvalues_t    konfigvalues_t ;
+
+struct konfigvalues_t {    // mode-qualifizierte konfig-Werte
    uint16_t  modecount ;
    char** compiler/*[modecount]*/;
    char** compiler_flags/*[modecount]*/ ;
@@ -416,10 +460,10 @@ int new_linkcommand(
    return 0  ;
 }
 
-typedef struct genmakeproject genmakeproject_t ;
-struct genmakeproject {
-   hash_table_t *    index ;
-   // stringarray_t *   modes ;
+typedef struct genmakeproject_t  genmakeproject_t ;
+
+struct genmakeproject_t {
+   exthash_t         index ;
    char *            filename ;
    char *            name ;
    uint32_t          links_count ;
@@ -432,7 +476,7 @@ void free_genmakeproject(genmakeproject_t** genmake)
    assert(genmake) ;
    if (!(*genmake)) return ;
 
-   free_hashtable( &(*genmake)->index ) ;
+   free_exthash(&(*genmake)->index) ;
    (*genmake)->filename = 0 ;
    (*genmake)->name = 0 ;
    free_konfigvalues( &(*genmake)->konfig ) ;
@@ -459,7 +503,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
    assert( result && filename ) ;
    size_t         namelen = 0 ;
    const char *   projectname = 0 ;
-   hash_table_t * hashindex = 0 ;
+   exthash_t      hashindex   = exthash_INIT_FREEABLE ;
 
    projectname = (strrchr(filename, '/') ? strrchr(filename, '/')+1 : filename) ;
    namelen = strlen(projectname) ;
@@ -467,7 +511,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
 
    genmakeproject_t * genmake = (genmakeproject_t*) malloc(sizeof(genmakeproject_t) + strlen(filename) + namelen + 2) ;
 
-   if (!genmake || new_hashtable(&hashindex, 1023, free_hashtableentry)) {
+   if (!genmake || init_exthash(&hashindex, 1024, 65536, &s_hashnodeadapt)) {
       print_err( "Out of memory!\n" ) ;
       goto ONABORT ;
    }
@@ -483,17 +527,17 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
 
    for(int i = 0; g_predefinedIDs[i]; ++i) {
       // predefined variables are mapped onto itself !
-      hash_entry_subclass_t* entry = new_hashtableentry(hashindex, g_predefinedIDs[i], strlen(g_predefinedIDs[i])) ;
+      hash_entry_subclass_t * entry = new_hashtableentry(&hashindex, g_predefinedIDs[i], strlen(g_predefinedIDs[i])) ;
       entry->isPredefinedID = 1 ;
       entry->isUsed    = 0 ;
-      entry->hash.data = malloc( strlen(g_predefinedIDs[i]) + 4 ) ;
-      if (!entry->hash.data) {
-         print_err( "Out of memory!\n" ) ;
+      entry->data      = malloc( strlen(g_predefinedIDs[i]) + 4 ) ;
+      if (!entry->data) {
+         print_err("Out of memory!\n") ;
          goto ONABORT ;
       }
-      strcpy( entry->hash.data, "$(" ) ;
-      strcat( entry->hash.data, g_predefinedIDs[i] ) ;
-      strcat( entry->hash.data, ")" ) ;
+      strcpy(entry->data, "$(") ;
+      strcat(entry->data, g_predefinedIDs[i]) ;
+      strcat(entry->data, ")") ;
    }
 
    *result = genmake ;
@@ -501,7 +545,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
 
 ONABORT:
    free(genmake) ;
-   free_hashtable(&hashindex) ;
+   free_exthash(&hashindex) ;
    return 1 ;
 }
 
@@ -525,7 +569,7 @@ static char * get_directory(const char * path)
    return directory ;
 }
 
-static char* replace_vars(hash_table_t * hashindex, int lineNr, const char * linebuffer, size_t len, const char* filename)
+static char * replace_vars(exthash_t * hashindex, int lineNr, const char * linebuffer, size_t len, const char* filename)
 {
    if (!linebuffer || ((int)len) < 0) return 0 ;
 
@@ -567,13 +611,14 @@ static char* replace_vars(hash_table_t * hashindex, int lineNr, const char * lin
          break ;
       }
       bufferOffset = varEnd + 1 ;
-      hash_entry_t * hash_entry ;
-      if (HASH_OK != search_hashtable2( hashindex, &linebuffer[varStart], varEnd-varStart, &hash_entry)) {
+      hash_entry_subclass_t * hash_entry ;
+      conststring_t  hashkey = conststring_INIT(varEnd-varStart, (const uint8_t*)&linebuffer[varStart]) ;
+      if (find_exthash(hashindex, &hashkey, (exthash_node_t**)&hash_entry)) {
          print_err( "line %d undefined value $(%s) used in file '%s'\n", lineNr, &linebuffer[varStart], filename ) ;
          err = 1 ;
          break ;
       }
-      ((hash_entry_subclass_t*)hash_entry)->isUsed = 1 ;
+      hash_entry->isUsed = 1 ;
       size_t datalen = hash_entry->data ? strlen(hash_entry->data) : 0 ;
       if (datalen) {
          if (datalen > varEnd-varStart+3) {
@@ -776,22 +821,27 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
 }
 
 
-const char * get_varvalue(hash_table_t * hashindex, const char * varname, const char * mode, const char * projectfilename)
+const char * get_varvalue(exthash_t * hashindex, const char * varname, const char * mode, const char * projectfilename)
 {
-   hash_entry_t * hash_entry ;
-   char * qualifiedName = (char*) malloc( strlen(varname) + strlen(mode?mode:"") + 2 ) ;
-   if (!qualifiedName) { print_err("Out of memory!\n") ; return 0 ; }
-   strcpy( qualifiedName, varname ) ;
-   if (mode) {
-      strcat( qualifiedName, "_" ) ;
-      strcat( qualifiedName, mode) ;
+   char * qualifiedName = (char*) malloc(strlen(varname) + strlen(mode?mode:"") + 2) ;
+   if (!qualifiedName) {
+      print_err("Out of memory!\n") ;
+      return 0 ;
    }
-   void * data = 0 ;
-   if (0==search_hashtable(hashindex, qualifiedName, &hash_entry)) {
-      ((hash_entry_subclass_t*)hash_entry)->isUsed = 1 ;
+   strcpy(qualifiedName, varname) ;
+   if (mode) {
+      strcat(qualifiedName, "_") ;
+      strcat(qualifiedName, mode) ;
+   }
+   hash_entry_subclass_t * hash_entry ;
+   void                  * data  = 0 ;
+   conststring_t         hashkey  = conststring_INIT_CSTR(qualifiedName) ;
+   conststring_t         hashkey2 = conststring_INIT_CSTR(varname) ;
+   if (0 == find_exthash(hashindex, &hashkey, (exthash_node_t**)&hash_entry)) {
+      hash_entry->isUsed = 1 ;
       data = hash_entry->data ;
-   } else if (0==search_hashtable(hashindex, varname, &hash_entry)) {
-      ((hash_entry_subclass_t*)hash_entry)->isUsed = 1 ;
+   } else if (0 == find_exthash(hashindex, &hashkey2, (exthash_node_t**)&hash_entry)) {
+      hash_entry->isUsed = 1 ;
       data = hash_entry->data ;
    } else {
       if (mode)
@@ -814,9 +864,10 @@ static int set_compiler_predefinedIDs(genmakeproject_t * genmake, char * mode)
    const char * ids[]    = { "cflags", "includes", "defines", "lflags", "libs", "in", "out", 0 } ;
    const char * values[] = { "$(CFlags_", "$(Includes_", "$(Defines_", "$(LFlags_", "$(Libs_", "'$<'", "'$@'", 0 } ;
 
-   for(int i = 0; ids[i]; ++i) {
-      hash_entry_t * hashentry = 0 ;
-      if (search_hashtable(genmake->index,ids[i],&hashentry)) {
+   for (int i = 0; ids[i]; ++i) {
+      hash_entry_subclass_t * hashentry = 0 ;
+      conststring_t         hashkey = conststring_INIT_CSTR(ids[i]) ;
+      if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
          goto ONABORT ;
       }
@@ -846,8 +897,9 @@ static int set_linker_predefinedIDs(genmakeproject_t * genmake, char * mode)
    if (set_compiler_predefinedIDs(genmake,mode)) goto ONABORT ;
 
    for(int i = 0; ids[i]; ++i) {
-      hash_entry_t * hashentry = 0 ;
-      if (search_hashtable(genmake->index,ids[i],&hashentry)) {
+      hash_entry_subclass_t * hashentry = 0 ;
+      conststring_t         hashkey = conststring_INIT_CSTR(ids[i]) ;
+      if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
          goto ONABORT ;
       }
@@ -875,18 +927,21 @@ static int set_other_predefinedIDs(genmakeproject_t * genmake)
    const char * vars[]  = { g_varCFlags, g_varLFlags, g_varIncludes, g_varDefines, g_varLibs, 0 } ;
 
    for(int i = 0; ids[i]; ++i) {
-      hash_entry_t * hashentry = 0 ;
+      hash_entry_subclass_t * hashentry = 0 ;
+      conststring_t         hashkey = conststring_INIT_CSTR(vars[i]) ;
+
       char * value ;
-      if (search_hashtable(genmake->index, vars[i], &hashentry)) {
+      if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          value = strdup("") ;
       } else {
-         value = replace_vars(genmake->index, 0/*unknown linenr*/, hashentry->data, strlen(hashentry->data), genmake->filename) ;
+         value = replace_vars(&genmake->index, 0/*unknown linenr*/, hashentry->data, strlen(hashentry->data), genmake->filename) ;
       }
       if (!value) {
          print_err("Out of memory!\n") ;
          goto ONABORT ;
       }
-      if (search_hashtable(genmake->index, ids[i], &hashentry)) {
+      hashkey = (conststring_t) conststring_INIT_CSTR(ids[i]) ;
+      if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
          goto ONABORT ;
       }
@@ -904,7 +959,7 @@ int build_konfiguration(genmakeproject_t * genmake)
    konfigvalues_t * konfig = 0 ;
 
    {  stringarray_t * modes = 0 ;
-      const char * modesvalue = get_varvalue( genmake->index, g_varModes, 0, genmake->filename) ;
+      const char * modesvalue = get_varvalue(&genmake->index, g_varModes, 0, genmake->filename) ;
       if (!modesvalue) goto ONABORT ;
       if (modesvalue[0] == 0) modesvalue = "default" ;
       if (new_stringarray( modesvalue, " \t", &modes)) goto ONABORT ;
@@ -916,8 +971,9 @@ int build_konfiguration(genmakeproject_t * genmake)
       free_stringarray(&modes) ;
    }
 
-   hash_entry_t * hashentry = 0 ;
-   if (search_hashtable(genmake->index,"projectname",&hashentry)) {
+   hash_entry_subclass_t * hashentry = 0 ;
+   conststring_t         hashkey     = conststring_INIT_CSTR("projectname") ;
+   if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
       print_err("internal error search_hashtable(,'projectname',)\n") ;
       goto ONABORT ;
    }
@@ -928,8 +984,9 @@ int build_konfiguration(genmakeproject_t * genmake)
       goto ONABORT ;
    }
 
-   for(size_t m = 0; m < konfig->modecount; ++m) {
-      if (search_hashtable(genmake->index,"mode",&hashentry)) {
+   for (size_t m = 0; m < konfig->modecount; ++m) {
+      hashkey = (conststring_t) conststring_INIT_CSTR("mode") ;
+      if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'mode',)\n") ;
          goto ONABORT ;
       }
@@ -941,18 +998,18 @@ int build_konfiguration(genmakeproject_t * genmake)
       }
 
       if (set_compiler_predefinedIDs(genmake, konfig->modes[m])) goto ONABORT ;
-      {  const char * value = get_varvalue( genmake->index, g_varCompiler, konfig->modes[m], genmake->filename) ;
-         konfig->compiler[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varCompiler, konfig->modes[m], genmake->filename) ;
+         konfig->compiler[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->compiler[m]) goto ONABORT ; }
 
       if (set_other_predefinedIDs(genmake)) goto ONABORT ;
-      {  const char * value = get_varvalue( genmake->index, g_varCFlags, konfig->modes[m], genmake->filename) ;
-         konfig->compiler_flags[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varCFlags, konfig->modes[m], genmake->filename) ;
+         konfig->compiler_flags[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->compiler_flags[m]) goto ONABORT ; }
 
-      {  const char * value = get_varvalue( genmake->index, g_varDefines, konfig->modes[m], genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varDefines, konfig->modes[m], genmake->filename) ;
          stringarray_t * strarray = 0 ;
-         char * value2 = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+         char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (new_stringarray( value2, " \t", &strarray)) goto ONABORT ;
          free(value2) ;
          konfig->defines[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_definesprefix)+strlen(konfig->modes[m]))) ;
@@ -967,12 +1024,12 @@ int build_konfiguration(genmakeproject_t * genmake)
          free_stringarray(&strarray) ;
       }
 
-      {  const char * value = get_varvalue( genmake->index, g_varCFlagDefine, konfig->modes[m], genmake->filename) ;
-         konfig->define_flag[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varCFlagDefine, konfig->modes[m], genmake->filename) ;
+         konfig->define_flag[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->define_flag[m]) goto ONABORT ; }
 
-      {  const char * value = get_varvalue( genmake->index, g_varIncludes, konfig->modes[m], genmake->filename) ;
-         char * value2 = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varIncludes, konfig->modes[m], genmake->filename) ;
+         char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
          if (new_stringarray( value2, " \t", &strarray)) goto ONABORT ;
          free(value2) ;
@@ -988,12 +1045,12 @@ int build_konfiguration(genmakeproject_t * genmake)
          free_stringarray(&strarray) ;
       }
 
-      {  const char * value = get_varvalue( genmake->index, g_varCFlagInclude, konfig->modes[m], genmake->filename) ;
-         konfig->include_flag[m] = replace_vars( genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varCFlagInclude, konfig->modes[m], genmake->filename) ;
+         konfig->include_flag[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->include_flag[m]) goto ONABORT ; }
 
-      {  const char * value = get_varvalue( genmake->index, g_varLibs, konfig->modes[m], genmake->filename) ;
-         char * value2 = replace_vars( genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varLibs, konfig->modes[m], genmake->filename) ;
+         char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
          if (new_stringarray( value2, " \t", &strarray)) goto ONABORT ;
          free(value2) ;
@@ -1009,12 +1066,12 @@ int build_konfiguration(genmakeproject_t * genmake)
          free_stringarray(&strarray) ;
       }
 
-      {  const char * value = get_varvalue( genmake->index, g_varLFlagLib, konfig->modes[m], genmake->filename) ;
-         konfig->lib_flag[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varLFlagLib, konfig->modes[m], genmake->filename) ;
+         konfig->lib_flag[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->lib_flag[m]) goto ONABORT ; }
 
-      {  const char * value = get_varvalue( genmake->index, g_varLibpath, konfig->modes[m], genmake->filename) ;
-         char * value2 = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varLibpath, konfig->modes[m], genmake->filename) ;
+         char * value2 = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          stringarray_t * strarray = 0 ;
          if (new_stringarray( value2, " \t", &strarray)) goto ONABORT ;
          free(value2) ;
@@ -1028,31 +1085,31 @@ int build_konfiguration(genmakeproject_t * genmake)
          free_stringarray(&strarray) ;
       }
 
-      {  const char * value = get_varvalue( genmake->index, g_varLFlagLibpath, konfig->modes[m], genmake->filename) ;
-         konfig->libpath_flag[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varLFlagLibpath, konfig->modes[m], genmake->filename) ;
+         konfig->libpath_flag[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->libpath_flag[m]) goto ONABORT ; }
 
       if (set_linker_predefinedIDs(genmake, konfig->modes[m])) goto ONABORT ;
-      {  const char * value = get_varvalue( genmake->index, g_varLinker, konfig->modes[m], genmake->filename) ;
-         konfig->linker[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varLinker, konfig->modes[m], genmake->filename) ;
+         konfig->linker[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->linker[m]) goto ONABORT ; }
 
       if (set_other_predefinedIDs(genmake)) goto ONABORT ;
-      {  const char * value = get_varvalue( genmake->index, g_varLFlags, konfig->modes[m], genmake->filename) ;
-         konfig->linker_flags[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varLFlags, konfig->modes[m], genmake->filename) ;
+         konfig->linker_flags[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->linker_flags[m]) goto ONABORT ; }
 
-      {  const char * value = get_varvalue( genmake->index, g_varObjectdir, konfig->modes[m], genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varObjectdir, konfig->modes[m], genmake->filename) ;
          size_t len = 0 ; if (value) len = strlen(value) ; while (len && value[len-1] == '/') --len ;
-         konfig->objectfiles_directory[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, len, genmake->filename) ;
+         konfig->objectfiles_directory[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, len, genmake->filename) ;
          if (!konfig->objectfiles_directory[m]) goto ONABORT ; }
 
-      {  const char * value = get_varvalue( genmake->index, g_varSrc, konfig->modes[m], genmake->filename) ;
-         konfig->src[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varSrc, konfig->modes[m], genmake->filename) ;
+         konfig->src[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          if (!konfig->src[m]) goto ONABORT ; }
 
-      {  const char * value = get_varvalue( genmake->index, g_varTarget, konfig->modes[m], genmake->filename) ;
-         konfig->target_filename[m] = replace_vars(genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
+      {  const char * value = get_varvalue(&genmake->index, g_varTarget, konfig->modes[m], genmake->filename) ;
+         konfig->target_filename[m] = replace_vars(&genmake->index, 0/*unknown linenr*/, value, strlen(value?value:""), genmake->filename) ;
          konfig->target_directory[m] = get_directory( konfig->target_filename[m] ) ;
          if (!konfig->target_filename[m])  goto ONABORT ;
          if (!konfig->target_directory[m]) goto ONABORT ; }
@@ -1150,29 +1207,30 @@ int build_konfiguration(genmakeproject_t * genmake)
    }
 
    // ! generate errors for unused variables !
-   hash_entry_t * hentry ;
+   hash_entry_subclass_t   * hentry ;
    const char * ids[]   = { "cflags",    "lflags",    "includes",   "defines",     "libs",    0 } ;
    const char * vars[]  = { g_varCFlags, g_varLFlags, g_varIncludes, g_varDefines, g_varLibs, 0 } ;
-   for(int i = 0; ids[i]; ++i) {
-      if (  0 == search_hashtable(genmake->index, ids[i], &hentry)
-            && ((hash_entry_subclass_t*)hentry)->isUsed) {
-            if (  0 == search_hashtable(genmake->index, vars[i], &hentry)) {
-               ((hash_entry_subclass_t*)hentry)->isUsed = 1 ;
+   for (int i = 0; ids[i]; ++i) {
+      hashkey = (conststring_t) conststring_INIT_CSTR(ids[i]) ;
+      if (  0 == find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hentry)
+            && hentry->isUsed) {
+            hashkey = (conststring_t) conststring_INIT_CSTR(vars[i]) ;
+            if (0 == find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hentry)) {
+               hentry->isUsed = 1 ;
             }
       }
    }
-   if (HASH_OK == firstentry_hashtable(genmake->index, &hentry)) {
-      int errflag = 0 ;
-      do {
-         if (  !((hash_entry_subclass_t*)hentry)->isUsed
-            && !((hash_entry_subclass_t*)hentry)->isPredefinedID) {
-            print_err("unused variable definiton '%s' in file '%s'\n", hentry->name, genmake->filename) ;
-            errflag = 1 ;
-         }
-      } while(HASH_OK==nextentry_hashtable(genmake->index, hentry, &hentry)) ;
-      if (errflag) goto ONABORT ;
-   }
 
+   int errflag = 0 ;
+   foreach (_exthash, &genmake->index, node) {
+      hentry = (hash_entry_subclass_t*) node ;
+      if (  !hentry->isUsed
+         && !hentry->isPredefinedID) {
+         print_err("unused variable definiton '%s' in file '%s'\n", hentry->name, genmake->filename) ;
+         errflag = 1 ;
+      }
+   }
+   if (errflag) goto ONABORT ;
 
    free_konfigvalues(&genmake->konfig) ;
    genmake->konfig = konfig ;
@@ -1245,7 +1303,7 @@ static int read_projectfile(genmakeproject_t * genmake)
                   err = 1 ;
                   break ;
                }
-               char* incfilename = replace_vars(genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
+               char * incfilename = replace_vars(&genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
                if (!incfilename) {
                   free(include_file) ;
                   err = 1 ;
@@ -1257,7 +1315,7 @@ static int read_projectfile(genmakeproject_t * genmake)
                goto PROCESS_STACK ;
             } else if (CmdLink == parsed.command) {
                /* read filename  defaultmode=> mode1=>modeX mode2=>modeY mode3=>* ...*/
-               char* readfilename = replace_vars(genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
+               char* readfilename = replace_vars(&genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
                if (!readfilename) {
                   err = 1 ;
                   free_stringarray(&parsed.modemap) ;
@@ -1298,10 +1356,11 @@ static int read_projectfile(genmakeproject_t * genmake)
                      }
                      size_t modelen = strlen(separator+2) ;
                      const char * foundmode = "" ;
-                     hash_entry_t * hash_entry ;
+                     hash_entry_subclass_t * hash_entry ;
                      if (modelen) {
-                        if (  search_hashtable(genmake->index, g_varModes, &hash_entry)
-                           || 0==hash_entry->data) {
+                        conststring_t hashkey = conststring_INIT_CSTR(g_varModes) ;
+                        if (  find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hash_entry)
+                              || 0==hash_entry->data) {
                            print_err( "line %d 'Modes' must be defined beforehand in file '%s'\n", lineNr, prj_file_stack[0].name ) ;
                            err = 1 ;
                            break ;
@@ -1337,21 +1396,22 @@ static int read_projectfile(genmakeproject_t * genmake)
                if (err) break ;
             } else if (CmdAssign == parsed.command) {
                /* ID = value*/
-               hash_entry_t * hash_entry ;
                linebuffer[parsed.idStart + parsed.idLen] = 0 ;
-               if (HASH_OK != search_hashtable(genmake->index, &linebuffer[parsed.idStart], &hash_entry)) {
-                  hash_entry = &(new_hashtableentry( genmake->index, &linebuffer[parsed.idStart], parsed.idLen)->hash) ;
+               hash_entry_subclass_t * hash_entry ;
+               conststring_t         hashkey = conststring_INIT_CSTR(&linebuffer[parsed.idStart]) ;
+               if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hash_entry)) {
+                  hash_entry = new_hashtableentry(&genmake->index, &linebuffer[parsed.idStart], parsed.idLen) ;
                   if (!hash_entry) {
                      err = 1 ;
                      break ;
                   }
                }
-               if ( ((hash_entry_subclass_t *)hash_entry)->isPredefinedID ) {
+               if (hash_entry->isPredefinedID) {
                   print_err( "line %d can not assign predefined '%s' in file '%s'\n", lineNr, hash_entry->name, prj_file_stack[0].name ) ;
                   err = 1 ;
                   break ;
                }
-               char* new_value = replace_vars(genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
+               char* new_value = replace_vars(&genmake->index, lineNr, &linebuffer[parsed.paramStart], parsed.paramLen, prj_file_stack[0].name) ;
                if (!new_value) {
                   err = 1 ;
                   break ;
@@ -1559,14 +1619,12 @@ ONABORT:
    return err ;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, const char * argv[])
 {
+   int err ;
    int isPrintHelp = 0 ;
-   g_programname = argv[0] ;
 
-   #ifdef KONFIG_UNITTEST
-   assert( 0 == unittest_hashtable() ) ;
-   #endif
+   g_programname = argv[0] ;
 
    if (argc < 2) {
       goto PRINT_USAGE ;
@@ -1585,10 +1643,12 @@ int main(int argc, char* argv[])
       currentArgIndex += 2 ;
    }
 
+   err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
+   if (err) goto ONABORT ;
+
    int isDirectory = (argc > currentArgIndex+1) ;
 
-   int err ;
-   for(err = 0; !err && currentArgIndex < argc; ++currentArgIndex) {
+   for (; !err && currentArgIndex < argc; ++currentArgIndex) {
       genmakeproject_t * genmake = 0 ;
 
       if (new_genmakeproject(&genmake, argv[currentArgIndex])) {
@@ -1604,6 +1664,13 @@ int main(int argc, char* argv[])
       free_genmakeproject(&genmake) ;
    }
 
+   if (err) goto ONABORT ;
+
+   err = free_maincontext() ;
+   if (err) goto ONABORT ;
+
+   return 0 ;
+ONABORT:
    return err ;
 
 PRINT_USAGE:
@@ -1745,5 +1812,6 @@ PRINT_USAGE:
       fprintf(stderr, "%s", "\n#                'path/name.ext' => 'name' " ) ;
       fprintf(stderr, "%s", "\n") ;
    }
+
    return 1 ;
 }

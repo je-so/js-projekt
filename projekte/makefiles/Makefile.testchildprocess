@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Nov.06  20:32:16
+GenerationDate  := 2012.Nov.10  20:06:13
 GeneratedBy     := je-so
 
 ## Debug
@@ -76,6 +76,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
@@ -86,13 +87,13 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!main!test!testchildprocess_main.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
@@ -103,7 +104,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!main!test!testchildprocess_main.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o
 
@@ -117,6 +117,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/local
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
@@ -149,9 +152,6 @@ $(ObjectDir_Debug)/C-kern!main!test!testchildprocess_main.c.o: C-kern/main/test/
 $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o: C-kern/platform/Linux/process.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Debug)
 
@@ -162,6 +162,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/loc
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
@@ -192,9 +195,6 @@ $(ObjectDir_Release)/C-kern!main!test!testchildprocess_main.c.o: C-kern/main/tes
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o: C-kern/platform/Linux/process.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c

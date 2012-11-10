@@ -144,7 +144,7 @@ typeadapt_comparator_it * asgeneric_typeadaptcomparator(void * adpcmp, TYPENAME 
  * object_t      - The object type that <typeadapt_comparator_it> supports.
  * key_t         - The key type that <typeadapt_comparator_it> supports. Must be of size sizeof(void*). */
 #define typeadapt_comparator_EMBED(typeadapter_t, object_t, key_t)                                          \
-   int  (* cmp_key_object)  (typeadapter_t * typeadp, key_t lkey, const object_t * robject) ;               \
+   int  (* cmp_key_object)  (typeadapter_t * typeadp, const key_t lkey, const object_t * robject) ;         \
    int  (* cmp_object)      (typeadapter_t * typeadp, const object_t * lobject, const object_t  * robject)
 
 
@@ -161,8 +161,8 @@ typeadapt_comparator_it * asgeneric_typeadaptcomparator(void * adpcmp, TYPENAME 
             == offsetof(typeof(*(adpcmp)), cmp_object),                          \
          "ensure same structure") ;                                              \
       if (0) {                                                                   \
-         int _err = (adpcmp)->cmp_key_object((typeadapter_t*)0, (key_t)0, (const object_t*)0) ;    \
-         _err += (adpcmp)->cmp_object((typeadapter_t*)0, (const object_t*)0, (const object_t*)0) ; \
+         int _err = (adpcmp)->cmp_key_object((typeadapter_t*)0, (const key_t)0, (const object_t*)0) ; \
+         _err += (adpcmp)->cmp_object((typeadapter_t*)0, (const object_t*)0, (const object_t*)0) ;    \
          (void) _err ;                                                           \
       }                                                                          \
       (typeadapt_comparator_it*) (adpcmp) ;                                      \

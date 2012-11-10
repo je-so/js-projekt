@@ -9,8 +9,6 @@
   <Dependencies/>
   <VirtualDirectory Name="src">
     <File Name="../../C-kern/main/tools/genmake.c"/>
-    <File Name="../../C-kern/tools/hash.c"/>
-    <File Name="../../C-kern/tools/hash.h"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

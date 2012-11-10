@@ -241,10 +241,6 @@
     <File Name="../../C-kern/test/test.c"/>
     <File Name="../../C-kern/test/testmm.c"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="tools">
-    <File Name="../../C-kern/tools/hash.c"/>
-    <File Name="../../C-kern/tools/hash.h"/>
-  </VirtualDirectory>
   <VirtualDirectory Name="string">
     <File Name="../../C-kern/string/string.c"/>
     <File Name="../../C-kern/string/cstring.c"/>
