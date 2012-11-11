@@ -80,8 +80,8 @@ int unittest_ds_inmem_arraystf(void) ;
  *
  * - Every key is of length SIZE_MAX (UINT32_MAX or UINT64_MAX)
  * - The byte values at offset 0 .. key->size-1 are taken from key->addr
- * - The byte values key->size .. UINT_MAX-1 are always 0
- * - The value at offset is key->size and has 8*sizeof(size_t) bits instead of only 8 */
+ * - The byte values at offset key->size .. SIZE_MAX-1 are always 0
+ * - The value at offset SIZE_MAX is key->size and has bitsof(size_t) bits instead of only 8 */
 struct arraystf_t {
    /* variable: length
     * The number of elements stored in this array. */

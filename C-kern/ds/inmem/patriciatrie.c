@@ -724,7 +724,7 @@ static int test_firstdiffbit(void)
    // keys are equal until end of key2 + (end marker 0xFF)
    key1[2] = 0xFF ;
    TEST(0==first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset)) ;
-   TEST(bit_offset == 8*sizeof(key1)) ;
+   TEST(bit_offset == bitsof(key1)) ;
    for (unsigned i = 1; i < 8; ++i) {
       key1[2] = (uint8_t)(0xFF << i) ;
       TEST(0 == first_different_bit(key1, sizeof(key1), key2, 2, &bit_offset)) ;
@@ -733,7 +733,7 @@ static int test_firstdiffbit(void)
    key1[2] = 0 ;
    key2[2] = 0xFF ;
    TEST(0 == first_different_bit( key1, 2, key2, sizeof(key2),  &bit_offset)) ;
-   TEST(bit_offset == 8*sizeof(key2)) ;
+   TEST(bit_offset == bitsof(key2)) ;
    for (unsigned i = 1; i < 8; ++i) {
       key2[2] = (uint8_t)(0xFF << i) ;
       TEST(0 == first_different_bit(key1, 2, key2, sizeof(key2), &bit_offset)) ;
@@ -756,7 +756,7 @@ static int test_firstdiffbit(void)
    }
    TEST(EINVAL==first_different_bit(key1, sizeof(key1), key2, sizeof(key2), &bit_offset)) ;
    TEST(0==first_different_bit(key1, sizeof(key1), key2, sizeof(key2)-1, &bit_offset)) ;
-   TEST(bit_offset==8*sizeof(key1)) ;
+   TEST(bit_offset == bitsof(key1)) ;
    for (unsigned i = 0; i < 8; ++i) {
       key2[i] = (uint8_t)(0x80 >> i) ;
       key1[i] = 0 ;

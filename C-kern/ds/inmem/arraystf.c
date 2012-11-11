@@ -1456,7 +1456,7 @@ arraystf_IMPLEMENT(_arraytest2, testnode_t, node2)
 
 static int test_generic(void)
 {
-   const size_t      nrnodes    = 8 * sizeof(((testnode_t*)0)->key) ;
+   const size_t      nrnodes    = bitsof(((testnode_t*)0)->key) ;
    vm_block_t        memblock   = vm_block_INIT_FREEABLE ;
    arraystf_t        * array    = 0 ;
    arraystf_t        * array2   = 0 ;

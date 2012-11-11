@@ -93,7 +93,7 @@ struct arraysf_t {
  * Parameter *posshift* is number of bits pos index of node is shifted to the right before
  * modulo toplevelsize is computed to get index of the root child.
  * Set parameter *posshift* to 0 if you want to use the least significant digits of pos index.
- * Set posshift to 8*sizeof(size_t)-log2_int(toplevelsize) if you want to use the most
+ * Set posshift to bitsof(size_t)-log2_int(toplevelsize) if you want to use the most
  * significant digit of pos index to access the childs of the root node.
  * Set posshift to 24 and toplevelsize to 256 if you want to store ip addresses of 32 bit.
  *

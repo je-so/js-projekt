@@ -112,7 +112,7 @@ int new_arraysf(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshi
    toplevelsize = makepowerof2_int(toplevelsize) ;
 
    VALIDATE_INPARAM_TEST(toplevelsize <= 0x00800000, ONABORT, PRINTUINT32_LOG(toplevelsize)) ;
-   VALIDATE_INPARAM_TEST(posshift <= 8*sizeof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize), ONABORT, PRINTUINT32_LOG(posshift)) ;
+   VALIDATE_INPARAM_TEST(posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize), ONABORT, PRINTUINT32_LOG(posshift)) ;
 
    const size_t objsize = objectsize_arraysf(toplevelsize) ;
 
@@ -660,7 +660,7 @@ static int test_initfree(void)
    // TEST new_arraysf, delete_arraysf
    for (unsigned topsize = 0, expectsize=1; topsize <= 256; ++topsize) {
       if (topsize > expectsize)  expectsize <<= 1 ;
-      for (uint8_t posshift = 0; posshift <= 8*sizeof(size_t)-log2_int(expectsize < 2 ? 2 : expectsize); ++posshift) {
+      for (uint8_t posshift = 0; posshift <= bitsof(size_t)-log2_int(expectsize < 2 ? 2 : expectsize); ++posshift) {
          TEST(0 == new_arraysf(&array, topsize, posshift)) ;
          TEST(0 != array) ;
          TEST(0 == length_arraysf(array)) ;
@@ -678,7 +678,7 @@ static int test_initfree(void)
 
    // TEST root distributions
    for (unsigned rootsize = 1; rootsize <= 256; rootsize *= 2) {
-      for (uint8_t posshift = 0; posshift <= 8*sizeof(size_t)-log2_int(rootsize < 2 ? 2 : rootsize); ++posshift) {
+      for (uint8_t posshift = 0; posshift <= bitsof(size_t)-log2_int(rootsize < 2 ? 2 : rootsize); ++posshift) {
          TEST(0 == new_arraysf(&array, rootsize, posshift)) ;
          for (size_t pos = 0; pos < 512; ++ pos) {
             testnode_t  node = { .node = arraysf_node_INIT(pos << posshift) } ;
@@ -818,7 +818,7 @@ static int test_initfree(void)
 
    // TEST insert_arraysf, at_arraysf, remove_arraysf: ascending
    for (unsigned rootsize = 512; rootsize <= 1024; rootsize *= 2) {
-      for (uint8_t posshift = 0; posshift < 8*sizeof(size_t); posshift = (uint8_t)(posshift+16)) {
+      for (uint8_t posshift = 0; posshift < bitsof(size_t); posshift = (uint8_t)(posshift+16)) {
          TEST(0 == delete_arraysf(&array, 0)) ;
          TEST(0 == new_arraysf(&array, rootsize, posshift)) ;
          for (size_t pos = 0; pos < nrnodes; ++pos) {
@@ -844,7 +844,7 @@ static int test_initfree(void)
 
    // TEST insert_arraysf, at_arraysf, remove_arraysf: descending
    for (unsigned rootsize = 512; rootsize <= 1024; rootsize *= 2) {
-      for (uint8_t posshift = 8*sizeof(size_t)-10; posshift >= 16; posshift=(uint8_t)(posshift-16)) {
+      for (uint8_t posshift = bitsof(size_t)-10; posshift >= 16; posshift=(uint8_t)(posshift-16)) {
          TEST(0 == delete_arraysf(&array, 0)) ;
          TEST(0 == new_arraysf(&array, rootsize, posshift)) ;
          for (size_t pos = nrnodes; (pos --); ) {
@@ -994,7 +994,7 @@ static int test_error(void)
 
    // TEST EINVAL
    TEST(EINVAL == new_arraysf(&array2, 0x800001/*too big*/, 0)) ;
-   TEST(EINVAL == new_arraysf(&array2, 256, 8*sizeof(size_t)-8+1/*too big*/)) ;
+   TEST(EINVAL == new_arraysf(&array2, 256, bitsof(size_t)-8+1/*too big*/)) ;
 
    // TEST EEXIST
    nodes[0] = (testnode_t) { .node = arraysf_node_INIT(0) } ;
@@ -1065,7 +1065,7 @@ static int test_iterator(void)
    // prepare
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
    nodes = (testnode_t *) memblock.addr ;
-   TEST(0 == new_arraysf(&array, 256, 8*sizeof(size_t)-8)) ;
+   TEST(0 == new_arraysf(&array, 256, bitsof(size_t)-8)) ;
    for (size_t i = 0; i < nrnodes; ++i) {
       nodes[i] = (testnode_t)  { .node = arraysf_node_INIT(i) } ;
       TEST(0 == insert_arraysf(array, &nodes[i].node, 0, 0)) ;
@@ -1160,8 +1160,8 @@ static int test_generic(void)
    // prepare
    TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
    nodes = (testnode_t *) memblock.addr ;
-   TEST(0 == new_tarraysf(&array, 256, 8*sizeof(size_t)-8)) ;
-   TEST(0 == new_t2arraysf(&array2, 256, 8*sizeof(size_t)-8)) ;
+   TEST(0 == new_tarraysf(&array, 256, bitsof(size_t)-8)) ;
+   TEST(0 == new_t2arraysf(&array2, 256, bitsof(size_t)-8)) ;
 
    // TEST insert_arraysf: inserted_node parameter set to 0
    nodes[0] = (testnode_t)  { .node = arraysf_node_INIT(0), .pos2 = (100000u + 0) } ;

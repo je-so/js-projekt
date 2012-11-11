@@ -385,7 +385,7 @@ struct bigint_fixed_t ;
 
 /* define: bitsperdigit_bigint
  * Implements <bigint_t.bitsperdigit_bigint>. */
-#define bitsperdigit_bigint()          ((uint8_t)(8 * sizeof(((bigint_t*)0)->digits[0])))
+#define bitsperdigit_bigint()          ((uint8_t)bitsof(((bigint_t*)0)->digits[0]))
 
 /* define: div_bigint
  * Implements <bigint_t.div_bigint>. */

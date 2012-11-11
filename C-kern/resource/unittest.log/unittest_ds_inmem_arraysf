@@ -1,7 +1,7 @@
 C-kern/ds/inmem/arraysf.c:114: new_arraysf(): error: 22: Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
 C-kern/ds/inmem/arraysf.c:130: new_arraysf(): error: 22: Function aborted
-C-kern/ds/inmem/arraysf.c:115: new_arraysf(): error: 22: Function input violates condition (posshift <= 8*sizeof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize))
+C-kern/ds/inmem/arraysf.c:115: new_arraysf(): error: 22: Function input violates condition (posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize))
 posshift=25
 C-kern/ds/inmem/arraysf.c:130: new_arraysf(): error: 22: Function aborted
 C-kern/ds/inmem/arraysf.c:458: insert_arraysf(): error: 17: Function aborted

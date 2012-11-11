@@ -328,7 +328,7 @@ int divi32_decimal(decimal_t *restrict* result, const decimal_t * ldec, int32_t 
 
 /* define: bitsperint_decimal
  * Implements <decimal_t.bitsperint_decimal>. */
-#define bitsperint_decimal()           ((uint8_t)(8*sizeof(((decimal_t*)0)->digits[0])))
+#define bitsperint_decimal()           ((uint8_t)(bitsof(((decimal_t*)0)->digits[0])))
 
 /* define: digitsperint_decimal
  * Implements <decimal_t.digitsperint_decimal>. */

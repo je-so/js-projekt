@@ -42,6 +42,9 @@
 // Useful preprocessor macros.
 
 //{
+/* define: bitsof
+ * Calculates memory size of a type in number of bits. */
+#define bitsof(type_t)                 (8*sizeof(type_t))
 /* define: CONCAT
  * Combines two language tokens into one. Calls <CONCAT_> to ensure expansion of arguments.
  *
