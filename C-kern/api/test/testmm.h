@@ -99,15 +99,15 @@ int init_testmm(/*out*/testmm_t * mman) ;
  * this memory heap is no more reachable or already freed. */
 int free_testmm(testmm_t * mman) ;
 
-/* function: initinterface_testmm
+/* function: initasmm_testmm
  * Calls <init_testmm> and wraps object into interface object <mm_t>.
  * This function is called from <switchon_testmm>. */
-int initinterface_testmm(/*out*/mm_t * testmm) ;
+int initasmm_testmm(/*out*/mm_t * testmm) ;
 
-/* function: freeinterface_testmm
+/* function: freeasmm_testmm
  * Calls <free_testmm> with object pointer from <mm_t>.
  * This function is called from <switchoff_testmm>. */
-int freeinterface_testmm(mm_t * testmm) ;
+int freeasmm_testmm(mm_t * testmm) ;
 
 // group: query
 
