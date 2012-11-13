@@ -27,7 +27,7 @@
 #define CKERN_MATH_HASH_SHA1_HEADER
 
 /* typedef: struct sha1_hash_t
- * Export <sha1_hash_t>. */
+ * Export <sha1_hash_t> into global namespace. */
 typedef struct sha1_hash_t             sha1_hash_t ;
 
 /* typedef: sha1_hashvalue_t
@@ -42,7 +42,7 @@ typedef uint8_t                        sha1_hashvalue_t[20] ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_math_hash_sha1
  * Test <sha1_hash_t>. */
-extern int unittest_math_hash_sha1(void) ;
+int unittest_math_hash_sha1(void) ;
 #endif
 
 
@@ -52,7 +52,11 @@ extern int unittest_math_hash_sha1(void) ;
  * You can call it more than once if your data can not be processed
  * as one single large data chunk. Use <value_sha1hash> to return
  * the hash value. <value_sha1hash> does itself some processing
- * before the value in <h> is returned. */
+ * before the value in <h> is returned.
+ *
+ * Attention:
+ * SHA-1 is not resistent to length extension attack. If you know SHA-1 and the tail of a message
+ * you can extend the message and recompute SHA-1. */
 struct sha1_hash_t {
    /* variable: datalen
     * Stores the number of bytes process so far. This value is needed
@@ -76,7 +80,7 @@ struct sha1_hash_t {
 
 /* function: sha1_hash_INIT
  * Inits internal fields to start values. */
-extern void init_sha1hash(/*out*/sha1_hash_t * sha1) ;
+void init_sha1hash(/*out*/sha1_hash_t * sha1) ;
 
 // group: calculate
 
@@ -85,7 +89,7 @@ extern void init_sha1hash(/*out*/sha1_hash_t * sha1) ;
  * You can call this function more than once if the data is not in one linear memory block.
  * To start a new calculation either call <value_sha1hash> or <init_sha1hash> before calling
  * this function. */
-extern int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buffer[buffer_size]) ;
+int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buffer[buffer_size]) ;
 
 // group: query
 
@@ -94,7 +98,7 @@ extern int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint
  * Calling this function more than once returns always returns the same value.
  * The returned pointer is valid as long as you do not call any other function
  * than <value_sha1hash>. */
-extern sha1_hashvalue_t * value_sha1hash(sha1_hash_t * sha1) ;
+sha1_hashvalue_t * value_sha1hash(sha1_hash_t * sha1) ;
 
 
 #endif

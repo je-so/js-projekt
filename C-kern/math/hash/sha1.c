@@ -31,7 +31,7 @@
 #endif
 
 
-#define ROTATE_LEFT(v,nr)              ( ((v) << nr) | ((v) >> (32-nr)) )
+#define ROTATE_LEFT(v,nr)              (((v) << nr) | ((v) >> (32-nr)))
 
 #define STEP(i,a,b,c,d,e,f,k)                      \
    read_value(i) ;                                 \
@@ -93,9 +93,9 @@ static void update_sha1hash(sha1_hash_t * sha1, const uint8_t block[64])
 
    } else {
 
-#define read_value(i)                              \
-      value  = ntohl( * (const uint32_t*) next ) ; \
-      next  += 4 ;                                 \
+#define read_value(i)                            \
+      value  = ntohl(* (const uint32_t*) next) ; \
+      next  += 4 ;                               \
       *(w++) = value ;
 
       STEP( 0,a,b,c,d,e,F1,K1)
@@ -227,8 +227,8 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
 
    sha1->datalen += buffer_size ;
 
-   if (  (ssize_t)buffer_size < 0
-      || (sha1->datalen & 0xe000000000000000)) {
+   if (  (buffer_size & (~(((size_t)-1)>>1))) != 0
+         || (sha1->datalen & 0xe000000000000000)) {
       err = EOVERFLOW ;
       goto ONABORT ;
    }
@@ -237,27 +237,27 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
 
    if (datasize < 64) {
 
-      memcpy( &sha1->block[blocksize], buffer, buffer_size) ;
+      memcpy(&sha1->block[blocksize], buffer, buffer_size) ;
 
    } else {
       const uint8_t * next = buffer ;
 
       if (blocksize) {
          unsigned missing_size = 64 - blocksize ;
-         memcpy( &sha1->block[blocksize], next, missing_size) ;
+         memcpy(&sha1->block[blocksize], next, missing_size) ;
          next     += missing_size ;
          datasize -= 64 ;
          update_sha1hash(sha1, sha1->block) ;
       }
 
-      while(datasize >= 64) {
+      while (datasize >= 64) {
          update_sha1hash(sha1, next) ;
          next     += 64 ;
          datasize -= 64 ;
       }
 
       if (datasize) {
-         memcpy( sha1->block, next, datasize) ;
+         memcpy(sha1->block, next, datasize) ;
       }
    }
 
@@ -283,8 +283,8 @@ sha1_hashvalue_t * value_sha1hash(sha1_hash_t * sha1)
 
       memset(&sha1->block[blocksize], 0, 56 - blocksize) ;
       // length in bits
-      * (uint32_t*) &sha1->block[56] = htonl( (uint32_t) (sha1->datalen >> 29) ) ;
-      * (uint32_t*) &sha1->block[60] = htonl( (uint32_t) (sha1->datalen << 3) ) ;
+      * (uint32_t*) &sha1->block[56] = htonl((uint32_t) (sha1->datalen >> 29)) ;
+      * (uint32_t*) &sha1->block[60] = htonl((uint32_t) (sha1->datalen << 3)) ;
       update_sha1hash(sha1, sha1->block) ;
 
       sha1->h[0] = htonl(sha1->h[0]) ;
@@ -316,7 +316,7 @@ static int test_unevenaddr(sha1_hashvalue_t * sha1sum, const char * string)
    init_sha1hash(&sha1) ;
    TEST(len >= 64) ;
    TEST(len < sizeof(buffer)-4) ;
-   for(unsigned i = 0; i < len; ++i) {
+   for (unsigned i = 0; i < len; ++i) {
       TEST(0 == calculate_sha1hash(&sha1, 1, (const uint8_t*)&string[i])) ;
    }
    static_assert(20 == sizeof(*sha1sum), ) ;
@@ -351,18 +351,18 @@ static int test_sha1(void)
    TEST(0x98BADCFE == sha1.h[2]) ;
    TEST(0x10325476 == sha1.h[3]) ;
    TEST(0xC3D2E1F0 == sha1.h[4]) ;
-   for(int i = 0; i < 64; ++i) {
+   for (int i = 0; i < 64; ++i) {
       // TEST sha1.block is not changed !
       TEST(255 == sha1.block[i]) ;
    }
 
    // TEST block collects data and after 64 a starts from beginning
-   for(int i = 0; i < 256; ++i) {
+   for (int i = 0; i < 256; ++i) {
       uint8_t buffer = (uint8_t) i ;
       TEST(0 == calculate_sha1hash(&sha1, 1, &buffer)) ;
       TEST((size_t) (1+i) == sha1.datalen) ;
       if (63 != (i&63)) {
-         for(int g = (i&(~63)); g <= i; ++g) {
+         for (int g = (i&(~63)); g <= i; ++g) {
             TEST(g == sha1.block[g&63]) ;
          }
       }
@@ -400,21 +400,21 @@ static int test_sha1(void)
    // TEST SHA1("")
    static_assert(20 == sizeof(sha1sum), ) ;
    init_sha1hash(&sha1) ;
-   strncpy( (char*)sha1sum, "\xda\x39\xa3\xee\x5e\x6b\x4b\x0d\x32\x55\xbf\xef\x95\x60\x18\x90\xaf\xd8\x07\x09", 20) ;
+   strncpy((char*)sha1sum, "\xda\x39\xa3\xee\x5e\x6b\x4b\x0d\x32\x55\xbf\xef\x95\x60\x18\x90\xaf\xd8\x07\x09", 20) ;
    TEST(0 == memcmp(sha1sum, value_sha1hash(&sha1), 20)) ;
 
    // TEST SHA1("Frank jagt im komplett verwahrlosten Taxi quer durch Bayern")
    init_sha1hash(&sha1) ;
    const char * string = "Franz jagt im komplett verwahrlosten Taxi quer durch Bayern" ;
    TEST(0 == calculate_sha1hash(&sha1, strlen(string), (const uint8_t*)string)) ;
-   strncpy( (char*)sha1sum, "\x68\xac\x90\x64\x95\x48\x0a\x34\x04\xbe\xee\x48\x74\xed\x85\x3a\x03\x7a\x7a\x8f", 20) ;
+   strncpy((char*)sha1sum, "\x68\xac\x90\x64\x95\x48\x0a\x34\x04\xbe\xee\x48\x74\xed\x85\x3a\x03\x7a\x7a\x8f", 20) ;
    TEST(0 == memcmp(sha1sum, value_sha1hash(&sha1), 20)) ;
 
    // TEST SHA1("Franz jagt im komplett verwahrlosten Taxi quer durch Bayern")
    init_sha1hash(&sha1) ;
    string = "Frank jagt im komplett verwahrlosten Taxi quer durch Bayern" ;
    TEST(0 == calculate_sha1hash(&sha1, strlen(string), (const uint8_t*)string)) ;
-   strncpy( (char*)sha1sum, "\xd8\xe8\xec\xe3\x9c\x43\x7e\x51\x5a\xa8\x99\x7c\x1a\x1e\x94\xf1\xed\x2a\x0e\x62", 20) ;
+   strncpy((char*)sha1sum, "\xd8\xe8\xec\xe3\x9c\x43\x7e\x51\x5a\xa8\x99\x7c\x1a\x1e\x94\xf1\xed\x2a\x0e\x62", 20) ;
    TEST(0 == memcmp(sha1sum, value_sha1hash(&sha1), 20)) ;
 
    // TEST 4 * 40 bytes
@@ -423,7 +423,7 @@ static int test_sha1(void)
    TEST(0 == calculate_sha1hash(&sha1, strlen(string), (const uint8_t*)string)) ;
    TEST(0 == calculate_sha1hash(&sha1, strlen(string), (const uint8_t*)string)) ;
    TEST(0 == calculate_sha1hash(&sha1, strlen(string), (const uint8_t*)string)) ;
-   strncpy( (char*)sha1sum, "\x38\xf1\x1b\xc1\xb1\xf1\x90\x16\xe2\x53\xc3\x10\x64\xe0\x42\x59\xd9\x44\xb3\x25", 20) ;
+   strncpy((char*)sha1sum, "\x38\xf1\x1b\xc1\xb1\xf1\x90\x16\xe2\x53\xc3\x10\x64\xe0\x42\x59\xd9\x44\xb3\x25", 20) ;
    TEST(0 == memcmp(sha1sum, value_sha1hash(&sha1), 20)) ;
 
    // TEST hash of function
@@ -443,8 +443,17 @@ static int test_sha1(void)
             "   (void) free_resourceusage(&usage) ;\n"
             "   return EINVAL ;\n"
             "}\n" ;
-   strncpy( (char*)sha1sum, "\xea\xbf\xc3\xbc\xc1\x82\x9b\xa3\x37\x61\x0a\xb2\xf9\xb5\x4d\x73\x9a\x18\xae\xa8", 20) ;
+   strncpy((char*)sha1sum, "\xea\xbf\xc3\xbc\xc1\x82\x9b\xa3\x37\x61\x0a\xb2\xf9\xb5\x4d\x73\x9a\x18\xae\xa8", 20) ;
    TEST(0 == test_unevenaddr(&sha1sum, string)) ;
+
+   // TEST EOVERFLOW
+   init_sha1hash(&sha1) ;
+   TEST(EOVERFLOW == calculate_sha1hash(&sha1, sizeof(size_t)==sizeof(uint32_t) ? 0x80000000 : 0x8000000000000000, (const uint8_t*)"")) ;
+   init_sha1hash(&sha1) ;
+   TEST(EOVERFLOW == calculate_sha1hash(&sha1, (size_t)-1, (const uint8_t*)"")) ;
+   init_sha1hash(&sha1) ;
+   sha1.datalen = 0x1fffffffffffffff ;
+   TEST(EOVERFLOW == calculate_sha1hash(&sha1, 1, (const uint8_t*)"")) ;
 
    return 0 ;
 ONABORT:
