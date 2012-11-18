@@ -175,6 +175,9 @@
         <File Name="../../C-kern/api/presentation/X11/x11.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
+    <VirtualDirectory Name="C">
+      <File Name="../../C-kern/api/C/ppmacros.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/valuecache.c"/>

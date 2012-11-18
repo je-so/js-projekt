@@ -39,23 +39,16 @@
 // section: Definitions
 
 // group: 1. Generic defines
-// Useful preprocessor macros.
+//
+// Includes:
+// * <C-Preprocessor-macros>
 
 //{
+#include "C-kern/api/C/ppmacros.h"
+
 /* define: bitsof
  * Calculates memory size of a type in number of bits. */
 #define bitsof(type_t)                 (8*sizeof(type_t))
-/* define: CONCAT
- * Combines two language tokens into one. Calls <CONCAT_> to ensure expansion of arguments.
- *
- * Example:
- * > CONCAT(var,__LINE__)  // generates token var10 if current line number is 10
- * > CONCAT_(var,__LINE__) // generates token var__LINE__ */
-#define CONCAT(S1,S2)                  CONCAT_(S1,S2)
-/* define: CONCAT_
- * Used by <CONCAT> to ensure expansion of arguments.
- * This macro does the real work - combining two language tokens into one.*/
-#define CONCAT_(S1,S2)                 S1 ## S2
 /* define: CONST_CAST
  * Removes the const from ptr.
  * Use this macro to remove a const from a pointer. This macro is safe
@@ -83,17 +76,6 @@
 /* define: nrelementsof
  * Calculates the number of elements of a static array. */
 #define nrelementsof(static_array)     ( sizeof(static_array) / sizeof(*(static_array)) )
-/* define: STR
- * Makes string token out of argument. Calls <STR_> to ensure expansion of argument.
- *
- * Example:
- * > STR(__LINE__)  // generates token "10" if current line number is 10
- * > STR_(__LINE__) // generates token "__LINE__" */
-#define STR(S1)                        STR_(S1)
-/* define: STR_
- * Used by <STR> to ensure expansion of arguments.
- * This macro does the real work - making a string out of its argument.*/
-#define STR_(S1)                       # S1
 /* define: structof
  * Converts pointer to member of structure to pointer of containing structure. */
 #define structof(struct_t, member, ptrmember)                              \
@@ -101,10 +83,6 @@
       typeof(((struct_t*)0)->member) * _ptr = (ptrmember) ;                \
       (struct_t*)((uintptr_t)_ptr - offsetof(struct_t, member) ) ;         \
    }))
-/* define: SWAP
- * Swaps content of two local variables.
- * This works only for simple types. */
-#define SWAP(var1,var2)                { typeof(var1) _temp ; _temp = (var1), (var1) = (var2), (var2) = _temp ; }
 /* define: TYPENAME
  * It's a marker in function declaration.
  * It is used in function declarations which are implemented as macro.
@@ -325,7 +303,10 @@
 //}
 
 // group: 6. Standard environment
-// Includes all C-kern(el) headers which define the standard runtime environment.
+// Includes all C-kern(el) headers which define the standard runtime and compiletime environment.
+//
+// Includes:
+// * <MainContext>.
 
 //{
 #include "C-kern/api/maincontext.h"
