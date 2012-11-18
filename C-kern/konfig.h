@@ -32,7 +32,7 @@
  * 2. Configuration switches: list of all configuration options to switch language and os.
  * 3. Declare system specific types.
  * 4. Declare system specific functions.
- * 5. Include os specific settings which define system specific types.
+ * 5. Include os specific settings which redefine system specific types.
  * 6. Include standard runtime environment
  */
 
@@ -42,64 +42,25 @@
 //
 // Includes:
 // * <C-Preprocessor-macros>
+// * <C-Type-Extensions>
 
 //{
 #include "C-kern/api/C/ppmacros.h"
+#include "C-kern/api/C/typeext.h"
 
-/* define: bitsof
- * Calculates memory size of a type in number of bits. */
-#define bitsof(type_t)                 (8*sizeof(type_t))
-/* define: CONST_CAST
- * Removes the const from ptr.
- * Use this macro to remove a const from a pointer. This macro is safe
- * so if you cast the pointer to a wrong type a warning is issued by the compiler.
- * Parameter *ptr* must be of type
- * > const type_t * ptr ;
- * The returned type is
- * > (type_t *) ptr ; */
-#define CONST_CAST(type_t,ptr)         ( __extension__ ({ const type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
-/* define: VOLATILE_CAST
- * Removes the volatile from ptr.
- * Use this macro to remove a vvolatile from a pointer. This macro is safe
- * so if you cast the pointer to a wrong type a warning is issued by the compiler.
- * Parameter *ptr* must be of type
- * > volatile type_t * ptr ;
- * The returned type is
- * > (type_t*) ptr ; */
-#define VOLATILE_CAST(type_t,ptr)      ( __extension__ ({ volatile type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
-/* define: IDNAME
- * It's a marker in function declaration.
- * It is used in function declarations which are implemented as macro.
- * An identifier name is not supported in language C99 or later.
- * See <dlist_IMPLEMENT> for an example. */
-#define IDNAME                         void*
-/* define: nrelementsof
- * Calculates the number of elements of a static array. */
-#define nrelementsof(static_array)     ( sizeof(static_array) / sizeof(*(static_array)) )
-/* define: structof
- * Converts pointer to member of structure to pointer of containing structure. */
-#define structof(struct_t, member, ptrmember)                              \
-   ( __extension__ ({                                                      \
-      typeof(((struct_t*)0)->member) * _ptr = (ptrmember) ;                \
-      (struct_t*)((uintptr_t)_ptr - offsetof(struct_t, member) ) ;         \
-   }))
-/* define: TYPENAME
- * It's a marker in function declaration.
- * It is used in function declarations which are implemented as macro.
- * A type name is not supported in language C99 or later.
- * See <asgeneric_typeadaptlifetime> for an example. */
-#define TYPENAME                       void*
 /* define: MALLOC
- * Ruft spezifisches malloc auf, wobei der Rückgabewert in den entsprechenden Typ konvertiert wird.
- * Die Paramterliste muss immer mit einem Komma enden !
+ * Calls specific malloc function and converts the returned pointer to
+ * the corresponding type.
+ * The list of parameters must always end with a "," !
  * > usertype_t * ptr = MALLOC(usertype_t, malloc, ) ;
  *
  * Parameter:
- * type_t    - Der Name des Typs, für den Speicher reserviert werden soll.
- *             Der Parameter sizeof(type_t) wird der malloc Funktion als letzter übergeben.
- * malloc_f  - Der Name der aufzurufenden malloc Funktion.
- * ...       - Weitere, malloc spezifische Parameter, welche an erster Stelle noch vor der Grössenangabe stehen. */
+ * type_t    - Name of the type memory should be allocated for.
+ *             The parameter sizeof(type_t) is given as last parameter to malloc function.
+ * malloc_f  - The name of the malloc function which should be called.
+ * ...       - Additional parameters which comes before the sizeof() parameter. **/
 #define MALLOC(type_t,malloc_f,...)    ((type_t*) ((malloc_f)( __VA_ARGS__ sizeof(type_t))))
+
 /* define: MEMCOPY
  * Copies memory from source to destination.
  * The values of sizeof(*(source)) and sizeof(*(destination)) must compare equal.
@@ -110,6 +71,7 @@
  * source      - Pointer to source address
  */
 #define MEMCOPY(destination, source)   do { static_assert(sizeof(*(destination)) == sizeof(*(source)),"same size") ; memcpy((destination), (source), sizeof(*(destination))) ; } while(0)
+
 /* define: MEMSET0
  * Sets memory of variable to 0.
  *
@@ -287,18 +249,17 @@
 #define sys_sqroot_int64               sqroot_int64
 //}
 
-// group: 5. Include
+// group: 5. System Specific Redefinitions
 // Include system specific settings which redefine system specific types.
+// Includes an operating system dependent include file.
+// It redefines all system specific settings and includes all system headers relevant for implementation.
+// > #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
+//
+// Filename:
+// The location of this system specific header is "C-kern/api/platform/KONFIG_OS/syskonfig.h".
+// <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for.
 
 //{
-/* about: Include
- * Includes an operating system dependent include file.
- * It redefines all system specific settings and includes all system headers relevant for implementation.
- * > #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
- *
- * Filename:
- * The location of this system specific header is "C-kern/api/platform/KONFIG_OS/syskonfig.h".
- * <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for. */
 #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
 //}
 

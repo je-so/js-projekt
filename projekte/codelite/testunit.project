@@ -177,6 +177,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="C">
       <File Name="../../C-kern/api/C/ppmacros.h"/>
+      <File Name="../../C-kern/api/C/typeext.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">

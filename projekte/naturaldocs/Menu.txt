@@ -51,29 +51,12 @@ File: Konfiguration  (konfig.h)
 
 Group: Api  {
 
-   Group: Aspect  {
-
-      File: Callback  (api/aspect/callback.h)
-
-      Group: Callback  {
-
-         File: Compare-Callback  (api/aspect/callback/compare.h)
-         File: Free-Callback  (api/aspect/callback/free.h)
-         File: Updatekey-Callback  (api/aspect/callback/updatekey.h)
-         }  # Group: Callback
-
-      File: Spacetime-Aspect  (api/aspect/constant/spacetime.h)
-      File: StreamCallback  (api/adapter/stream.h)
-      File: Treenode2-Aspect  (api/aspect/treenode2.h)
-      File: Treenode3-Aspect  (api/aspect/treenode3.h)
-      }  # Group: Aspect
-
    Group: Cache  {
 
-      File: Objectcache  (api/cache/objectcache.h)
-      File: Objectcache-ImplementationObject  (api/cache/objectcache_iot.h)
+      File: Objectcache  (api/cache/objectcache_impl.h)
       File: Objectcache-Interface  (api/cache/objectcache_it.h)
       File: Objectcache-Macros  (api/cache/objectcache_macros.h)
+      File: Objectcache-Object  (api/cache/objectcache.h)
       File: Valuecache  (api/cache/valuecache.h)
       }  # Group: Cache
 
@@ -91,18 +74,38 @@ Group: Api  {
 
             File: ArraySF-Node  (api/ds/inmem/node/arraysf_node.h)
             File: ArraySTF-Node  (api/ds/inmem/node/arraystf_node.h)
+            File: DoubleLinkedList-Node  (api/ds/inmem/node/dlist_node.h)
+            File: LRPTree-Node  (api/ds/inmem/node/lrptree_node.h)
+            File: LRTree-Node  (api/ds/inmem/node/lrtree_node.h)
+            File: PatriciaTrie-Node  (api/ds/inmem/node/patriciatrie_node.h)
             File: SingleLinkedList-Node  (api/ds/inmem/node/slist_node.h)
             }  # Group: Node
 
          File: ArraySF  (api/ds/inmem/arraysf.h)
          File: ArraySTF  (api/ds/inmem/arraystf.h)
          File: BinaryStack  (api/ds/inmem/binarystack.h)
+         File: DoubleLinkedList  (api/ds/inmem/dlist.h)
+         File: Extendible-Hashing  (api/ds/inmem/exthash.h)
+         File: Patricia-Trie  (api/ds/inmem/patriciatrie.h)
+         File: RedBlacktree-Index  (api/ds/inmem/redblacktree.h)
          File: SingleLinkedList  (api/ds/inmem/slist.h)
+         File: Splaytree  (api/ds/inmem/splaytree.h)
          File: Suffix-Tree  (api/ds/inmem/suffixtree.h)
          }  # Group: InMemory
 
-      File: DataStructure-TypeAdapter  (api/ds/typeadapter.h)
       File: Foreach-Iterator  (api/ds/foreach.h)
+      File: Typeadapt  (api/ds/typeadapt.h)
+
+      Group: Typeadapt  {
+
+         File: Typeadapt-Comparator  (api/ds/typeadapt/comparator.h)
+         File: Typeadapt-GetHash  (api/ds/typeadapt/gethash.h)
+         File: Typeadapt-GetKey  (api/ds/typeadapt/getkey.h)
+         File: Typeadapt-Implementation  (api/ds/typeadapt/typeadapt_impl.h)
+         File: Typeadapt-Lifetime  (api/ds/typeadapt/lifetime.h)
+         File: Typeadapt-Typeinfo  (api/ds/typeadapt/typeinfo.h)
+         }  # Group: Typeadapt
+
       }  # Group: Ds
 
    Group: Io  {
@@ -122,7 +125,7 @@ Group: Api  {
 
       File: Filedescriptor  (api/io/filedescr.h)
       File: IO-Accessmode  (api/io/accessmode.h)
-      File: IOCallback  (api/io/iocallback_iot.h)
+      File: IOCallback  (api/io/iocallback.h)
       File: IOControler  (api/io/iocontroler.h)
       File: IOEvent  (api/io/ioevent.h)
       File: IOTimer  (api/io/iotimer.h)
@@ -132,8 +135,8 @@ Group: Api  {
       Group: Writer  {
 
          File: ErrlogMacros  (api/io/writer/log/errlog_macros.h)
-         File: Log-ImplementationObject  (api/io/writer/log/log_iot.h)
          File: Log-Interface  (api/io/writer/log/log_it.h)
+         File: Log-Object  (api/io/writer/log/log.h)
          File: LogMacros  (api/io/writer/log/log_macros.h)
          File: LogMain  (api/io/writer/log/logmain.h)
          File: LogWriter  (api/io/writer/log/logwriter.h)
@@ -173,10 +176,9 @@ Group: Api  {
 
       Group: Mm  {
 
-         File: MemoryManager-ImplementationObject  (api/memory/mm/mm_iot.h)
          File: MemoryManager-Interface  (api/memory/mm/mm_it.h)
+         File: MemoryManager-Object  (api/memory/mm/mm.h)
          File: MemoryManagerMacros  (api/memory/mm/mm_macros.h)
-         File: TestMemoryManager  (api/memory/mm/mmtest.h)
          File: TransientMemoryManager  (api/memory/mm/mmtransient.h)
          }  # Group: Mm
 
@@ -190,8 +192,6 @@ Group: Api  {
       File: Locale-support  (api/platform/locale.h)
       File: Malloc  (api/platform/malloc.h)
       File: ProcessManagement  (api/platform/process.h)
-      File: RedBlacktree-Index  (api/platform/index/redblacktree.h)
-      File: Splaytree-Index  (api/platform/index/splaytree.h)
 
       Group: Sync  {
 
@@ -215,7 +215,6 @@ Group: Api  {
    Group: Presentation  {
 
       File: X11-Display  (api/presentation/X11/display.h)
-      File: X11-Display OOSTORE  (api/presentation/X11/internal/display_oostore.h)
       File: X11-OpenGL-Window  (api/presentation/X11/glxwindow.h)
       File: X11-Subsystem  (api/presentation/X11/x11.h)
       }  # Group: Presentation
@@ -239,6 +238,7 @@ Group: Api  {
       File: Resourceusage  (api/test/resourceusage.h)
       File: Speed Test  (api/test/run/speedtest.h)
       File: Test-Errortimer  (api/test/errortimer.h)
+      File: Test-MemoryManager  (api/test/testmm.h)
       File: Unittest  (api/test/run/unittest.h)
       File: ValidationTest  (api/test/validate.h)
       }  # Group: Test
@@ -249,9 +249,11 @@ Group: Api  {
       File: Timeclock  (api/time/clock.h)
       }  # Group: Time
 
+   File: C-Preprocessor-macros  (api/C/ppmacros.h)
+   File: C-Type-Extensions  (api/C/typeext.h)
    File: ErrorHandling  (api/err.h)
    File: MainContext  (api/maincontext.h)
-   File: oobjectstore  (api/oostore.h)
+   File: StreamCallback  (api/adapter/stream.h)
    File: Test  (api/test.h)
    }  # Group: Api
 
@@ -259,8 +261,8 @@ Group: Implementation  {
 
    Group: Cache  {
 
+      File: Objectcache impl  (cache/objectcache_impl.c)
       File: Valuecache impl  (cache/valuecache.c)
-      File: Objectcache impl  (cache/objectcache.c)
       }  # Group: Cache
 
    Group: Context  {
@@ -278,26 +280,31 @@ Group: Implementation  {
          File: ArraySF impl  (ds/inmem/arraysf.c)
          File: ArraySTF impl  (ds/inmem/arraystf.c)
          File: BinaryStack impl  (ds/inmem/binarystack.c)
+         File: DoubleLinkedList impl  (ds/inmem/dlist.c)
+         File: Extendible-Hashing impl  (ds/inmem/exthash.c)
+         File: Patricia-Trie impl  (ds/inmem/patriciatrie.c)
+         File: RedBlacktree-Index impl  (ds/inmem/redblacktree.c)
          File: SingleLinkedList impl  (ds/inmem/slist.c)
+         File: Splaytree impl  (ds/inmem/splaytree.c)
          File: Suffix-Tree impl  (ds/inmem/suffixtree.c)
          }  # Group: InMemory
 
-      File: DataStructure-TypeAdapter impl  (ds/typeadapter.c)
+      Group: Typeadapt  {
+
+         File: Typeadapt-Comparator impl  (ds/typeadapt/comparator.c)
+         File: Typeadapt-GetHash impl  (ds/typeadapt/gethash.c)
+         File: Typeadapt-GetKey impl  (ds/typeadapt/getkey.c)
+         File: Typeadapt-Implementation impl  (ds/typeadapt/typeadapt_impl.c)
+         File: Typeadapt-Lifetime impl  (ds/typeadapt/lifetime.c)
+         File: Typeadapt-Typeinfo impl  (ds/typeadapt/typeinfo.c)
+         }  # Group: Typeadapt
+
+      File: Typeadapt impl  (ds/typeadapt.c)
       }  # Group: DataStructures
-
-   Group: Generic Data Structures  {
-
-      File: ArrayList Iterator  (generic/iterator/arraylist-it.h)
-      File: Generic Node Adapter  (generic/GenericNodeAdapter.txt)
-      File: Patricia Tree  (generic/trie/patricia.h)
-      File: test  (generic/rbtree.c)
-      File: test  (generic/dlist.c)
-      File: test  (generic/depthtree.c)
-      File: test  (generic/trie/patricia.c)
-      }  # Group: Generic Data Structures
 
    Group: Io  {
 
+      File: IOCallback impl  (io/iocallback.c)
       File: LogMain impl  (io/writer/log/logmain.c)
       File: LogWriter impl  (io/writer/log/logwriter.c)
       File: Reader-Description  (io/reader/reader.txt)
@@ -307,12 +314,21 @@ Group: Implementation  {
 
    Group: Main  {
 
-      File: genmake  (main/tools/genmake.c)
-      File: Speedtest  (main/test/speedtest_main.c)
-      File: Testchildprocess  (main/test/testchildprocess_main.c)
-      File: TextDB  (main/tools/textdb.c)
-      File: TextResource-v2-Compiler  (main/tools/textresourcev2_compiler.c)
-      File: Unittest-Main  (main/test/unittest_main.c)
+      Group: Test  {
+
+         File: Speedtest  (main/test/speedtest_main.c)
+         File: Testchildprocess  (main/test/testchildprocess_main.c)
+         File: Unittest-Main  (main/test/unittest_main.c)
+         }  # Group: Test
+
+      Group: Tools  {
+
+         File: genfile  (main/tools/genfile.c)
+         File: genmake  (main/tools/genmake.c)
+         File: TextDB  (main/tools/textdb.c)
+         File: TextResource-v2-Compiler  (main/tools/textresourcev2_compiler.c)
+         }  # Group: Tools
+
       }  # Group: Main
 
    Group: Math  {
@@ -344,7 +360,6 @@ Group: Implementation  {
    Group: Memory  {
 
       File: MemoryBlock impl  (memory/memblock.c)
-      File: TestMemoryManager impl  (memory/mm/mmtest.c)
       File: TransientMemoryManager impl  (memory/mm/mmtransient.c)
       File: WBuffer impl  (memory/wbuffer.c)
       }  # Group: Memory
@@ -388,21 +403,12 @@ Group: Implementation  {
          File: Waitlist Linux  (platform/Linux/waitlist.c)
          }  # Group: Linux
 
-      Group: Shared  {
+      Group: Task  {
 
-         File: oobjectstore impl  (platform/shared/oostore.c)
-         File: RedBlacktree-Index impl  (platform/shared/index/redblacktree.c)
-         File: Splaytree-Index impl  (platform/shared/index/splaytree.c)
-
-         Group: Task  {
-
-            File: Exoscheduler impl  (platform/shared/task/exoscheduler.c)
-            File: Exothread impl  (platform/shared/task/exothread.c)
-            File: Threadpool impl  (platform/shared/task/threadpool.c)
-            }  # Group: Task
-
-         File: test  (platform/shared/execCcompiler.c)
-         }  # Group: Shared
+         File: Exoscheduler impl  (platform/shared/task/exoscheduler.c)
+         File: Exothread impl  (platform/shared/task/exothread.c)
+         File: Threadpool impl  (platform/shared/task/threadpool.c)
+         }  # Group: Task
 
       }  # Group: Platform
 
@@ -418,7 +424,6 @@ Group: Implementation  {
       Group: Compiletime  {
 
          File: CompiletimeTest KONFIG_VALUE  (no auto-title, test/compiletime/konfig_value.h)
-         File: CompiletimeTest Nodeadapter  (test/compiletime/nodeadapter.h)
          File: CompiletimeTest StdTypes  (test/compiletime/stdtypes.h)
          File: CompiletimeTest System  (test/compiletime/system.h)
          }  # Group: Compiletime
@@ -427,6 +432,7 @@ Group: Implementation  {
       File: Resourceusage impl  (test/resourceusage.c)
       File: Test impl  (test/test.c)
       File: Test-Errortimer impl  (test/errortimer.c)
+      File: Test-MemoryManager impl  (test/testmm.c)
       }  # Group: Test
 
    }  # Group: Implementation
@@ -444,9 +450,6 @@ Group: Coding-Conventions  {
    File: Unittest conventions  (resource/coding-conventions/unittest.txt)
    }  # Group: Coding-Conventions
 
-File: Tool-HashFunction  (tools/hash.h)
-File: Tool-HashFunction impl  (tools/hash.c)
-
 Group: Index  {
 
    Index: Everything
@@ -457,6 +460,5 @@ Group: Index  {
    Variable Index: Variables
    Class Index: Classes
    Constant Index: Constants
-   Interface Index: Interfaces
    }  # Group: Index
 
