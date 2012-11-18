@@ -22,11 +22,11 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/test/run/unittest.h"
-
+#include "C-kern/api/test/assert.h"
 // *** DO COMPILETIME tests (include is enough) ***
 #include "C-kern/api/test/compiletime.h"
 // *** ***
+#include "C-kern/api/test/run/unittest.h"
 
 int main(int argc, char* argv[])
 {

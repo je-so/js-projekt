@@ -1,5 +1,6 @@
 /* title: AssertTest
-   Defines system specific assert macro.
+
+   Defines system specific <assert> and standard <static_assert>.
 
    about: Copyright
    This program is free software.
@@ -22,11 +23,29 @@
 #ifndef CKERN_TEST_ASSERT_HEADER
 #define CKERN_TEST_ASSERT_HEADER
 
+
+// section: Functions
+
+// group: test
+
 /* define: assert
  * Prints »Assertion failed« and aborts process.
  * Uses <assertfail_maincontext> to implement its functionality. */
 #define assert(expr) \
    ((expr) ? (void) 0 : assertfail_maincontext(STR(expr), __FILE__, __LINE__, __FUNCTION__))
+
+/* define: static_assert
+ * Checks condition to be true during compilation. No runtime code is generated.
+ * Can only be used in function context.
+ *
+ * Paramters:
+ *  C - Condition which must hold true
+ *  S - human readable explanation (ignored) */
+#define static_assert(C,S)                                     \
+   {                                                           \
+      int CONCAT(_extern_static_assert,__LINE__)[(C)?1:-1] ;   \
+      (void)CONCAT(_extern_static_assert,__LINE__) ;           \
+   }
 
 
 #endif

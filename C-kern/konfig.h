@@ -73,25 +73,16 @@
  * > volatile type_t * ptr ;
  * The returned type is
  * > (type_t*) ptr ; */
-#define VOLATILE_CAST(type_t,ptr)         ( __extension__ ({ volatile type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
+#define VOLATILE_CAST(type_t,ptr)      ( __extension__ ({ volatile type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
 /* define: IDNAME
  * It's a marker in function declaration.
  * It is used in function declarations which are implemented as macro.
- * A identifier name is not supported in language C99 or later.
+ * An identifier name is not supported in language C99 or later.
  * See <dlist_IMPLEMENT> for an example. */
 #define IDNAME                         void*
 /* define: nrelementsof
  * Calculates the number of elements of a static array. */
 #define nrelementsof(static_array)     ( sizeof(static_array) / sizeof(*(static_array)) )
-/* define: static_assert
- * Checks condition to be true during compilation. No runtime code is generated.
- * Can only be used in function context.
- * TODO: Remove declaration if GCC provides declaration in <assert.h>
- *
- * Paramters:
- *  C - Condition which must hold true
- *  S - human readable explanation (ignored) */
-#define static_assert(C,S)             { int CONCAT(_extern_static_assert,__LINE__) [ (C) ? 1 : -1] ; (void)CONCAT(_extern_static_assert,__LINE__) ; }
 /* define: STR
  * Makes string token out of argument. Calls <STR_> to ensure expansion of argument.
  *
@@ -176,6 +167,7 @@
  * Supported values:
  * Linux - The only supported operating system during design stage. */
 #define KONFIG_OS                      Linux
+#if !defined(KONFIG_SUBSYS)
 /* define: KONFIG_SUBSYS
  * Defines which subsystems should be included.
  * You can choose more than one subsystem, seperate them by operator '|'.
@@ -184,7 +176,6 @@
  * THREAD -  for thread support
  * none   -  for a minimal system.
  */
-#if !defined(KONFIG_SUBSYS)
 #define KONFIG_SUBSYS                  (THREAD)
 #endif
 #if 0
@@ -196,6 +187,7 @@
 /* define: KONFIG_USERINTERFACE
  * Sets the graphic subsystem.
  * Defines which user interface subsystem should be included if any at all.
+ * You can choose more than one user interface subsystem, seperate them by operator '|'.
  *
  * Supported values are:
  * none  - no graphics support. This is the default value if you do not provide a value.
@@ -258,50 +250,50 @@
 
 /* define: PRIuSIZE
  * printf unsigned int format specifier 'zu' for *size_t*. */
-#define PRIuSIZE             "zu"
+#define PRIuSIZE                       "zu"
 
 /* define: SCNuSIZE
  * scanf unsigned int format specifier 'zu' for *size_t*. */
-#define SCNuSIZE             "zu"
+#define SCNuSIZE                       "zu"
 
 /* define: sys_filedescr_t
  * Type holding system specific description of a file.
  * It is also used for network connections.
  * Overwritten in system specific include file. */
-#define sys_filedescr_t             void
+#define sys_filedescr_t                void
 /* define: sys_filedescr_INIT_FREEABLE
  * Static initializer for a mutex useable by threads of the same process. */
-#define sys_filedescr_INIT_FREEABLE void
+#define sys_filedescr_INIT_FREEABLE    void
 /* define: sys_mutex_t
  * Type holding system specific description of a mutex. */
-#define sys_mutex_t                 void
+#define sys_mutex_t                    void
 /* define: sys_mutex_INIT_DEFAULT
  * Static initializer for a mutex useable by threads of the same process. */
-#define sys_mutex_INIT_DEFAULT      void
+#define sys_mutex_INIT_DEFAULT         void
 /* define: sys_process_t
  * Static initializer for a mutex useable by threads of the same process. */
-#define sys_process_t               void
+#define sys_process_t                  void
 /* define: sys_process_INIT_FREEABLE
  * Static initializer for a process which id invalid. */
-#define sys_process_INIT_FREEABLE   void
+#define sys_process_INIT_FREEABLE      void
 /* define: sys_semaphore_t
  * Type holding system specific description of a semaphore. Overwritten in system specific include file. */
-#define sys_semaphore_t             void
+#define sys_semaphore_t                void
 /* define: sys_semaphore_INIT_FREEABLE
  * Init value to declare an invalid semaphore handle. Overwritten in system specific include file. */
-#define sys_semaphore_INIT_FREEABLE void
+#define sys_semaphore_INIT_FREEABLE    void
 /* define: sys_socketaddr_t
  * Type which holds addresses received from sockets. Overwritten in system specific include file. */
-#define sys_socketaddr_t            void
+#define sys_socketaddr_t               void
 /* define: sys_socketaddr_MAXSIZE
  * Value which holds max size of all versions of socket addresses. Overwritten in system specific include file. */
-#define sys_socketaddr_MAXSIZE      0
+#define sys_socketaddr_MAXSIZE         0
 /* define: sys_thread_t
  * Type holding system specific description of a thread. Overwritten in system specific include file. */
-#define sys_thread_t                void
+#define sys_thread_t                   void
 /* define: sys_thread_INIT_FREEABLE
  * Value of invalid thread ID. Overwritten in system specific include file. */
-#define sys_thread_INIT_FREEABLE    void
+#define sys_thread_INIT_FREEABLE       void
 //}
 
 // group: 4 Declare system specific functions
@@ -309,8 +301,7 @@
 
 //{
 /* define: sys_context_thread
- * System specific fast implementation of <sqroot_int64>.
- * The default is to call <sqroot_int64> as the standard implementation. */
+ * System specific implementation to query <threadcontext_t>. */
 #undef sys_context_thread
 /* define: sys_sqroot_int64
  * Fast system specific implementation of <sqroot_int64>.

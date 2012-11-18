@@ -24,6 +24,7 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/math/int/sign.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
