@@ -440,10 +440,10 @@ Group: Implementation  {
 Group: Coding-Conventions  {
 
    File: C-Types  (resource/coding-conventions/c_types.txt)
-   File: Context Oriented Programming  (resource/coding-conventions/context.txt)
    File: Error-Handling  (resource/coding-conventions/error-handling.txt)
    File: free objects  (resource/coding-conventions/free_objects.txt)
    File: init objects  (resource/coding-conventions/init_objects.txt)
+   File: Main Program Context  (resource/coding-conventions/context.txt)
    File: parameter types  (resource/coding-conventions/parameter_type.txt)
    File: Taskmanagement  (resource/coding-conventions/task.txt)
    File: Textresource  (resource/coding-conventions/textresource.txt)
