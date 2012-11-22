@@ -112,7 +112,7 @@ struct patriciatrie_t {
  * Inits an empty tree object.
  * The <typeadapt_member_t> is copied but the <typeadapt_t> it references is not.
  * So do not delete <typeadapt_t> as long as this object lives. */
-void init_patriciatrie(patriciatrie_t * tree, const typeadapt_member_t * nodeadp) ;
+void init_patriciatrie(/*out*/patriciatrie_t * tree, const typeadapt_member_t * nodeadp) ;
 
 /* function: free_patriciatrie
  * Frees all resources. Calling it twice is safe. */

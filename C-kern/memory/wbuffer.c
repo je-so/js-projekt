@@ -36,7 +36,7 @@
 
 // group: implementation
 
-int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size)
+int init_wbuffer(/*out*/wbuffer_t * wbuf, size_t preallocate_size)
 {
    int err ;
    uint8_t * memblock = 0 ;

@@ -159,7 +159,7 @@ struct exthash_t {
  * Allocates a hash table of at least size 1.
  * The parameter initial_size and max_size should be a power of two.
  * If not the next smaller power of two is chosen. */
-int init_exthash(exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp) ;
+int init_exthash(/*out*/exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp) ;
 
 /* function: free_exthash
  * Calls <removenodes_exthash> and frees the hash table memory. */

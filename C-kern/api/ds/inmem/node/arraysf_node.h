@@ -108,7 +108,7 @@ struct arraysf_mwaybranch_t {
  * Initializes a new branch node.
  * A branch node must point to at least two child nodes. This is the reason
  * two pointers and their corresponding index key has to be provided as parameter. */
-void init_arraysfmwaybranch(arraysf_mwaybranch_t * branch, unsigned shift, size_t pos1, arraysf_unode_t * childnode1, size_t pos2, arraysf_unode_t * childnode2) ;
+void init_arraysfmwaybranch(/*out*/arraysf_mwaybranch_t * branch, unsigned shift, size_t pos1, arraysf_unode_t * childnode1, size_t pos2, arraysf_unode_t * childnode2) ;
 
 // group: query
 

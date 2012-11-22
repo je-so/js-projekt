@@ -43,7 +43,7 @@
 
 // group: lifetime
 
-int init_processcontext(processcontext_t * pcontext)
+int init_processcontext(/*out*/processcontext_t * pcontext)
 {
    int err ;
 

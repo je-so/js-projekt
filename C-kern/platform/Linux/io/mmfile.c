@@ -111,7 +111,7 @@ size_t pagesize_mmfile()
    return pagesize_vm() ;
 }
 
-int init_mmfile( /*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, mmfile_openmode_e mode, const struct directory_t * relative_to)
+int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, mmfile_openmode_e mode, const struct directory_t * relative_to)
 {
    int err ;
    int             fd        = -1 ;

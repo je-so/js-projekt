@@ -118,7 +118,7 @@ ONABORT:
 
 // group: lifetime
 
-int init_mmtransient(mmtransient_t * mman)
+int init_mmtransient(/*out*/mmtransient_t * mman)
 {
    mman->todo__implement_without_malloc__ = 0 ;
    return 0 ;

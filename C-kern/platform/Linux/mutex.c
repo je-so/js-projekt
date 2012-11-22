@@ -35,7 +35,7 @@
 
 // section: mutex_t
 
-int init_mutex(mutex_t * mutex)
+int init_mutex(/*out*/mutex_t * mutex)
 {
    int err ;
    pthread_mutexattr_t  attr ;

@@ -136,7 +136,7 @@ struct arraystf_mwaybranch_t {
  * Initializes a new branch node.
  * A branch node must point to at least two child nodes. This is the reason
  * two pointers and their corresponding index key has to be provided as parameter. */
-void init_arraystfmwaybranch(arraystf_mwaybranch_t * branch, size_t offset, unsigned shift, size_t data1, arraystf_unode_t * childnode1, size_t data2, arraystf_unode_t * childnode2) ;
+void init_arraystfmwaybranch(/*out*/arraystf_mwaybranch_t * branch, size_t offset, unsigned shift, size_t data1, arraystf_unode_t * childnode1, size_t data2, arraystf_unode_t * childnode2) ;
 
 // group: query
 

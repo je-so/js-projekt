@@ -71,7 +71,7 @@ struct processcontext_t {
  * Initializes the current process context. There is exactly one process context
  * for the whole process. It is shared by all threads.
  * Function is called from <init_maincontext>. */
-int init_processcontext(processcontext_t * pcontext) ;
+int init_processcontext(/*out*/processcontext_t * pcontext) ;
 
 /* function: free_processcontext
  * Frees resources associated with <processcontext_t>.

@@ -78,7 +78,7 @@ int freethread_objectcacheimpl(objectcache_t * objectcache) ;
 
 /* function: init_objectcacheimpl
  * Inits <objectcache_impl_t> and all contained objects. */
-int init_objectcacheimpl(objectcache_impl_t * objectcache) ;
+int init_objectcacheimpl(/*out*/objectcache_impl_t * objectcache) ;
 
 /* function: free_objectcacheimpl
  * Frees <objectcache_impl_t> and all contained objects. */

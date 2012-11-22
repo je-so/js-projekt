@@ -158,7 +158,7 @@ static inline size_t sizeoftable_exthash(uint8_t level)
    return nrelementsoftable_exthash(level) * sizeof(void*) ;
 }
 
-int init_exthash(exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp)
+int init_exthash(/*out*/exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp)
 {
    int err ;
    uint8_t     level ;

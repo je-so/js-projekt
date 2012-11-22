@@ -119,7 +119,7 @@ struct wbuffer_t {
 
 /* function: init_wbuffer
  * Inits <wbuffer_t> with a preallocated memory of preallocate_size bytes. */
-int init_wbuffer(wbuffer_t * wbuf, size_t preallocate_size) ;
+int init_wbuffer(/*out*/wbuffer_t * wbuf, size_t preallocate_size) ;
 
 /* function: free_wbuffer
  * Frees all memory associated with wbuf object of type <wbuffer_t>.

@@ -308,7 +308,7 @@ static int childprocess_exec(childprocess_exec_t  * execparam)
 
 // group: lifetime
 
-int initexec_process(process_t * process, const char * filename, const char * const * arguments, process_ioredirect_t * ioredirection /*0 => /dev/null*/)
+int initexec_process(/*out*/process_t * process, const char * filename, const char * const * arguments, process_ioredirect_t * ioredirection/*0 => /dev/null*/)
 {
    int err ;
    process_t            childprocess = process_INIT_FREEABLE ;
