@@ -6,7 +6,7 @@
 
    Encoding:
    Unicode character       - UTF-8
-   (codepoint)             - encoding
+   (codepoint)             - (encoding)
    0x00 .. 0x7F            - 0b0xxxxxxx
    0x80 .. 0x7FF           - 0b110xxxxx 0b10xxxxxx
    0x800 .. 0xFFFF         - 0b1110xxxx 0b10xxxxxx 0b10xxxxxx
@@ -67,12 +67,18 @@ int unittest_string_utf8(void) ;
 /* function: sizechar_utf8
  * Returns the number of bytes of the next utf8 encoded character.
  * The number of bytes can be calculated from the first byte of the next character.
- * A return value between 1 and 4 is OK bigger values (5 ... 7) are per definition wrong.
- * In case of an illegal first byte a value of 1 returned so that it can be skipped. */
+ * A return value between 1 and 4 is OK. Possible bigger values (5 ... 7) are per definition wrong
+ * in such a case (illegal first byte) the value 1 returned so that it can be skipped. */
 unsigned sizechar_utf8(const uint8_t firstbyte) ;
+
+/* function: islegal_utf8
+ * Returns true if the first byte of a utf8 byte sequence is legal. */
+bool islegal_utf8(const uint8_t firstbyte) ;
 
 
 // section: conststring_t
+
+// group: utf8-stream
 
 /* function: nextcharutf8_conststring
  * Reads next utf-8 encoded character from *str*.
@@ -102,6 +108,8 @@ int nextcharutf8_conststring(struct conststring_t * str, unicode_t * wchar) ;
  *           The memory pointer is not changed. */
 int skipcharutf8_conststring(struct conststring_t * str) ;
 
+// group: utf8-query
+
 /* function: findcharutf8_conststring
  * Finds unicode character wchar in utf8 encoded string.
  * The returned value points either the start addr of the multibyte sequence.
@@ -109,14 +117,27 @@ int skipcharutf8_conststring(struct conststring_t * str) ;
  * or if wchar is bigger than 0x10FFFF and therefore invalid. */
 const uint8_t * findcharutf8_conststring(const struct conststring_t * str, unicode_t wchar) ;
 
-/* function: findcharutf8_conststring
+/* function: findbyte_conststring
  * Finds unicode character wchar in utf8 encoded string.
  * The returned value points either to the position of the found character.
  * Or it is null if <conststring_t> *str* does not contain the bytecode. */
 const uint8_t * findbyte_conststring(const struct conststring_t * str, uint8_t byte) ;
 
+/* function: utf8len_conststring
+ * Returns number of UTF-8 characters encoded in string.
+ * If an illegal start byte is encountered it is counted as 1 and skipped.
+ * Even if one or more bytes of the last multibyte sequence are missing it
+ * s also counted as one character. The first byte of a multibyte sequence
+ * determines its size. This function does not check that the remaining bytes
+ * are encoded correctly. */
+size_t utf8len_conststring(const struct conststring_t * str) ;
+
 
 // section: inline implementation
+
+/* function: islegal_utf8
+ * Implements <utf8.islegal_utf8>. */
+#define islegal_utf8(firstbyte)           ((firstbyte) < 0x80 || sizechar_utf8(firstbyte) != 1)
 
 /* function: sizechar_utf8
  * Implements <utf8.sizechar_utf8>. */

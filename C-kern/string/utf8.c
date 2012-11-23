@@ -49,7 +49,7 @@ uint8_t g_utf8_bytesperchar[256] = {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
                                        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,/*192..223*/
                                        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,/*224..239*/
-                                       4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1 /*240..247*/ /*248..251*/ /*252..253*/ /*254..255 error*/
+                                       4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1 /*240..247*/ /*248..251, 252..253, 254..255 error*/
                                     } ;
 
 // section: conststring_t
@@ -140,8 +140,8 @@ const uint8_t * findcharutf8_conststring(const struct conststring_t * str, unico
       utf8c[0] = (uint8_t) (0x80 | (wchar & 0x3f)) ;
       uint32_t uc = wchar >> 6 ;
       uc   = (0xc0 | uc) ;
-      for(found = memchr(str->addr, (int)uc, str->size); found ; found = memchr(found, (int)uc, (size_t)(endstr - found))) {
-         if (  utf8c[0] == found[1]) {
+      for (found = memchr(str->addr, (int)uc, str->size); found ; found = memchr(found, (int)uc, (size_t)(endstr - found))) {
+         if (utf8c[0] == found[1]) {
             break ;
          }
          found += 2 ;
@@ -152,8 +152,8 @@ const uint8_t * findcharutf8_conststring(const struct conststring_t * str, unico
       utf8c[0] = (uint8_t) (0x80 | (uc & 0x3f)) ;
       uc >>= 6 ;
       uc   = (0xe0 | uc) ;
-      for(found = memchr(str->addr, (int)uc, str->size); found ; found = memchr(found, (int)uc, (size_t)(endstr - found))) {
-         if (     utf8c[0] == found[1]
+      for (found = memchr(str->addr, (int)uc, str->size); found ; found = memchr(found, (int)uc, (size_t)(endstr - found))) {
+         if (  utf8c[0] == found[1]
                && utf8c[1] == found[2]) {
             break ;
          }
@@ -167,8 +167,8 @@ const uint8_t * findcharutf8_conststring(const struct conststring_t * str, unico
       utf8c[0] = (uint8_t) (0x80 | (uc & 0x3f)) ;
       uc >>= 6 ;
       uc   = (0xf0 | uc) ;
-      for(found = memchr(str->addr, (int)uc, str->size); found ; found = memchr(found, (int)uc, (size_t)(endstr - found))) {
-         if (     utf8c[0] == found[1]
+      for (found = memchr(str->addr, (int)uc, str->size); found ; found = memchr(found, (int)uc, (size_t)(endstr - found))) {
+         if (  utf8c[0] == found[1]
                && utf8c[1] == found[2]
                && utf8c[2] == found[3]) {
             break ;
@@ -185,12 +185,31 @@ ONABORT:
    return 0 ;
 }
 
+size_t utf8len_conststring(const struct conststring_t * str)
+{
+   size_t len = 0 ;
+
+   if (str->size) {
+      const uint8_t * next  = str->addr ;
+      size_t        strsize = str->size ;
+      for (;;) {
+         ++ len ;
+         const unsigned sizechr = sizechar_utf8(*next) ;
+         next += sizechr ;
+         if (sizechr >= strsize) break ;
+         strsize -= sizechr ;
+      }
+   }
+
+   return len ;
+}
+
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 
-static int test_sizecharutf8(void)
+static int test_utf8(void)
 {
    const uint8_t  * const utf8str[4] = {  (const uint8_t *) "\U001fffff",
                                           (const uint8_t *) "\U0000ffff",
@@ -198,15 +217,15 @@ static int test_sizecharutf8(void)
                                           (const uint8_t *) "\x7f"   } ;
 
    // TEST sizechar_utf8 of string
-   for(unsigned i = 0; i < nrelementsof(utf8str); ++i) {
+   for (unsigned i = 0; i < nrelementsof(utf8str); ++i) {
       TEST(4-i == sizechar_utf8(utf8str[i][0])) ;
    }
 
    // TEST sizechar_utf8 of all 256 first byte values
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       unsigned bpc = 1 ;
       /* values between [128 .. 191] and [248..255] indicate an error (returned value is 1) */
-      if (192 <= i && i <= 247 ) {
+      if (192 <= i && i <= 247) {
          unsigned i2 = i << 1 ;
          while (i2 & 0x80) {
             i2 <<= 1 ;
@@ -218,17 +237,24 @@ static int test_sizecharutf8(void)
       TEST(bpc == sizechar_utf8(1024+i)) ;
    }
 
+   // TEST islegal_utf8 of all 256 first byte values
+   for (unsigned i = 0; i < 256; ++i) {
+      /* values between [128 .. 191] and [248..255] indicate an error */
+      bool isOK = (i < 128 || (192 <= i && i <= 247)) ;
+      TEST(isOK == islegal_utf8((uint8_t)i)) ;
+   }
+
    return 0 ;
 ONABORT:
    return EINVAL ;
 }
 
-static int test_conststring(void)
+static int test_strstream(void)
 {
    conststring_t  str ;
    conststring_t  old ;
    uint32_t       uchar ;
-   const uint8_t  * utf8str = (const uint8_t *) (
+   const uint8_t  * utf8str = (const uint8_t*)(
                                  "\U0010ffff"
                                  "\U00010000"
                                  "\U0000ffff"
@@ -236,7 +262,7 @@ static int test_conststring(void)
                                  "\u07ff"
                                  "\xC2\x80"
                                  "\x7f"
-                                 "\x00" ) ;
+                                 "\x00") ;
 
    // TEST: nextcharutf8_conststring 4 byte
    init_conststring(&str, 8+6+4+2, utf8str) ;
@@ -401,13 +427,13 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_findchar(void)
+static int test_strquery(void)
 {
    const char     * utf8str = "\U0010fff0\U0010ffff abcd\U0000fff0\U0000ffff abcd\u07f0\u07ff abcd\x7f abcd" ;
    conststring_t  cstr      = conststring_INIT_CSTR(utf8str) ;
    const uint8_t  * found ;
 
-   // TEST findcharutf8_conststring (find char)
+   // TEST findcharutf8_conststring: find char
    found = findcharutf8_conststring(&cstr, (uint32_t) 0x10ffff) ;
    TEST(found ==  4+(const uint8_t*)utf8str) ;
    found = findcharutf8_conststring(&cstr, (uint32_t) 0xffff) ;
@@ -419,23 +445,47 @@ static int test_findchar(void)
    found = findcharutf8_conststring(&cstr, (uint32_t) 'a') ;
    TEST(found == 9+(const uint8_t*)utf8str) ;
 
-   // TEST findcharutf8_conststring (end of string)
+   // TEST findcharutf8_conststring: end of string
    TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0x10fffe)) ;
    TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0xfffe)) ;
    TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0x7fe)) ;
    TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0x7e)) ;
 
-   // TEST findcharutf8_conststring (error)
+   // TEST findcharutf8_conststring: error
    TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0x110000)) ;
 
-   // TEST findbyte_conststring (found)
-   for(unsigned i = 0; i < 14; ++i) {
+   // TEST findbyte_conststring: found
+   for (unsigned i = 0; i < 14; ++i) {
       if (i == 4) i += 4 ;
       TEST(&cstr.addr[i] == findbyte_conststring(&cstr, cstr.addr[i])) ;
    }
 
-   // TEST findbyte_conststring (not found)
+   // TEST findbyte_conststring: not found
    TEST(0 == findbyte_conststring(&cstr, 0)) ;
+
+   // TEST utf8len_conststring: empty string
+   cstr = (conststring_t) conststring_INIT_FREEABLE ;
+   TEST(0 == utf8len_conststring(&cstr)) ;
+   cstr = (conststring_t) conststring_INIT_CSTR("") ;
+   TEST(0 == utf8len_conststring(&cstr)) ;
+   cstr = (conststring_t) conststring_INIT(0, (uint8_t*)&cstr) ;
+   TEST(0 == utf8len_conststring(&cstr)) ;
+
+   // TEST utf8len_conststring: non empty strings
+   const char * teststrings[] = { "\U001FFFFF\U00010000", "\u0800\u0999\uFFFF", "\u00A0\u00A1\u07FE\u07FF", "\x01\x02""abcde\x07e\x7f", "\U001FFFFF\uF999\u06FEY" } ;
+   size_t     testlength[]    = { 2,                      3,                    4,                          9,                          4 } ;
+   for (unsigned i = 0; i < nrelementsof(teststrings); ++i) {
+      cstr = (conststring_t) conststring_INIT_CSTR(teststrings[i]) ;
+      TEST(testlength[i] == utf8len_conststring(&cstr)) ;
+   }
+
+   // TEST utf8len_conststring: illegal sequence && last sequence not fully contained in string
+   const char * teststrings2[] = { "\xFC\x80", "ab\xC0", "abc\xE0", "abcd\xF0" } ;
+   size_t     testlength2[]    = { 2,           3,       4,         5 } ;
+   for (unsigned i = 0; i < nrelementsof(teststrings2); ++i) {
+      cstr = (conststring_t) conststring_INIT_CSTR(teststrings2[i]) ;
+      TEST(testlength2[i] == utf8len_conststring(&cstr)) ;
+   }
 
    return 0 ;
 ONABORT:
@@ -448,9 +498,9 @@ int unittest_string_utf8()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_sizecharutf8())   goto ONABORT ;
-   if (test_conststring())    goto ONABORT ;
-   if (test_findchar())       goto ONABORT ;
+   if (test_utf8())           goto ONABORT ;
+   if (test_strstream())      goto ONABORT ;
+   if (test_strquery())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
