@@ -52,14 +52,15 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, int fd, off_t file_offset, size
       goto ONABORT ;
    }
 
-   if (file_info.st_size <= file_offset) {
+   if (file_info.st_size < file_offset) {
       err = ENODATA ;
       goto ONABORT ;
    }
 
-   off_t  filesize_remaining = file_info.st_size - file_offset ;
-   if ( !size ) {
-      if ( filesize_remaining >= (size_t)-1 ) {
+   off_t filesize_remaining = file_info.st_size - file_offset ;
+
+   if (!size) {
+      if (filesize_remaining >= (size_t)-1) {
          err = ENOMEM ;
          goto ONABORT ;
       }
@@ -74,22 +75,26 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, int fd, off_t file_offset, size
       }
    }
 
+   if (size) {
 #define protection_flags   ((mode & accessmode_WRITE)   ? (PROT_READ|PROT_WRITE) : PROT_READ)
 #define shared_flags       ((mode & accessmode_PRIVATE) ? MAP_PRIVATE : MAP_SHARED)
-   mem_start = mmap(0, size, protection_flags, shared_flags, fd, file_offset) ;
+      mem_start = mmap(0, size, protection_flags, shared_flags, fd, file_offset) ;
 #undef  shared_flags
 #undef  protection_flags
-   if (MAP_FAILED == mem_start) {
-      err = errno ;
-      TRACESYSERR_LOG("mmap", err) ;
-      goto ONABORT ;
-   }
+      if (MAP_FAILED == mem_start) {
+         err = errno ;
+         TRACESYSERR_LOG("mmap", err) ;
+         goto ONABORT ;
+      }
 
-   err = madvise(mem_start, size, MADV_SEQUENTIAL) ;
-   if (err) {
-      err = errno ;
-      TRACESYSERR_LOG("madvise", err) ;
-      goto ONABORT ;
+      err = madvise(mem_start, size, MADV_SEQUENTIAL) ;
+      if (err) {
+         err = errno ;
+         TRACESYSERR_LOG("madvise", err) ;
+         goto ONABORT ;
+      }
+   } else {
+      mem_start = 0 ;
    }
 
    mfile->addr        = mem_start ;
@@ -228,7 +233,7 @@ static int test_alignedsize(void)
    size_t   pagesize = pagesize_vm() ;
    mmfile_t    mfile = mmfile_INIT_FREEABLE ;
 
-   for(size_t i = 0, aligned2 = 0; i < 5*pagesize; ++i) {
+   for (size_t i = 0, aligned2 = 0; i < 5*pagesize; ++i) {
       mfile.size = i ;
       if (1 == (i % pagesize)) {
          aligned2 += pagesize ;
@@ -267,7 +272,7 @@ static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
    TEST(mfile.size             == size_mmfile(&mfile)) ;
    TEST(pagesize               == alignedsize_mmfile(&mfile)) ;
    uint8_t * memory = addr_mmfile(&mfile) ;
-   for(uint8_t i = 0; i < 111; ++i) {
+   for (uint8_t i = 0; i < 111; ++i) {
       memory[i] = i ;
    }
    TEST(0 == free_mmfile(&mfile)) ;
@@ -280,7 +285,7 @@ static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
       TEST(fd > 0) ;
       uint8_t buffer[111] = {0} ;
       TEST(111 == read(fd, buffer, 111)) ;
-      for(uint8_t i = 0; i < 111; ++i) {
+      for (uint8_t i = 0; i < 111; ++i) {
          TEST(i == buffer[i]) ;
       }
       TEST(0 == free_filedescr(&fd)) ;
@@ -300,10 +305,10 @@ static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
    TEST(mfile.size             == size_mmfile(&mfile)) ;
    TEST(pagesize               == alignedsize_mmfile(&mfile)) ;
    memory = addr_mmfile(&mfile) ;
-   for(uint8_t i = 0; i < 111; ++i) {
+   for (uint8_t i = 0; i < 111; ++i) {
       memory[i] = '2' ;
    }
-   for(uint8_t i = 0; i < 111; ++i) {
+   for (uint8_t i = 0; i < 111; ++i) {
       TEST('2' == memory[i]) ;
    }
    // write different content
@@ -315,7 +320,7 @@ static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
       TEST(111 == write(fd, buffer, 111)) ;
       TEST(0 == free_filedescr(&fd)) ;
    }
-   for(uint8_t i = 0; i < 111; ++i) {
+   for (uint8_t i = 0; i < 111; ++i) {
       TEST('3' == memory[i]) ;
    }
    TEST(0 == free_mmfile(&mfile)) ;
@@ -363,16 +368,16 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    struct sigaction  newact ;
    struct sigaction  oldact ;
 
-   // TEST static init
-   TEST(0  == mfile.addr) ;
-   TEST(0  == mfile.size) ;
-
-   // creat content
+   // prepare
    TEST(0 == initcreate_mmfile(&mfile, "mmfile", 256, tempdir)) ;
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       addr_mmfile(&mfile)[i] = (uint8_t)i ;
    }
    TEST(0 == free_mmfile(&mfile)) ;
+
+   // TEST mmfile_INIT_FREEABLE
+   TEST(0 == mfile.addr) ;
+   TEST(0 == mfile.size) ;
 
    // TEST init, double free
    TEST(0 == init_mmfile(&mfile, "mmfile", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
@@ -388,6 +393,22 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(mfile.size             ==  0) ;
    TEST(alignedsize_mmfile(&mfile) == 0) ;
 
+   // TEST init_mmfile: offset same size as file
+   TEST(0 == makefile_directory(tempdir, "mmpage", pagesize)) ;
+   TEST(0 == init_mmfile(&mfile, "mmpage", pagesize, 10, mmfile_openmode_RDONLY, tempdir)) ;
+   TEST(0 == mfile.addr) ;
+   TEST(0 == mfile.size) ;
+   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(0 == removefile_directory(tempdir, "mmpage")) ;
+
+   // TEST init_mmfile: empty file
+   TEST(0 == makefile_directory(tempdir, "empty", 0)) ;
+   TEST(0 == init_mmfile(&mfile, "empty", 0, 0, mmfile_openmode_RDWR_SHARED, tempdir)) ;
+   TEST(0 == mfile.addr) ;
+   TEST(0 == mfile.size) ;
+   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(0 == removefile_directory(tempdir, "empty")) ;
+
    // TEST absolute pathname with no relative tempdir path
    {
       char pathname[ strlen("/mmfile") + strlen(tmppath) + 1 ] ;
@@ -396,7 +417,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
       TEST(0 == init_mmfile(&mfile, pathname, 0, 0, mmfile_openmode_RDONLY, 0)) ;
       TEST(size_mmfile(&mfile)       == 256 ) ;
       TEST(alignedsize_mmfile(&mfile) == pagesize) ;
-      for(unsigned i = 0; i < 256; ++i) {
+      for (unsigned i = 0; i < 256; ++i) {
          TEST(addr_mmfile(&mfile)[i] == (uint8_t)i) ;
       }
       TEST(0 == free_mmfile(&mfile)) ;
@@ -406,7 +427,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(0 == init_mmfile(&mfile, "mmfile", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
    TEST(size_mmfile(&mfile)       == 256 ) ;
    TEST(alignedsize_mmfile(&mfile) == pagesize) ;
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       TEST(addr_mmfile(&mfile)[i] == (uint8_t)i) ;
    }
    // writing generates exception
@@ -426,11 +447,11 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    // write different content
    fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
-   memset( buffer, '3', 256 ) ;
+   memset(buffer, '3', 256 ) ;
    TEST(256 == write(fd, buffer, 256)) ;
    TEST(0   == free_filedescr(&fd)) ;
    // test change is shared
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       TEST(addr_mmfile(&mfile)[i] == '3') ;
    }
    TEST(0 == free_mmfile(&mfile)) ;
@@ -439,11 +460,11 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(0 == init_mmfile(&mfile, "mmfile", 0, 512, mmfile_openmode_RDWR_SHARED, tempdir)) ;
    TEST(size_mmfile(&mfile)       == 256 ) ;
    TEST(alignedsize_mmfile(&mfile) == pagesize) ;
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       TEST(addr_mmfile(&mfile)[i] == '3') ;
    }
    // write different content
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       addr_mmfile(&mfile)[i] = (uint8_t)i ;
    }
    // test change is shared
@@ -451,7 +472,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
    TEST(0   == free_filedescr(&fd)) ;
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ;
    }
    TEST(0 == free_mmfile(&mfile)) ;
@@ -460,14 +481,14 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(0 == init_mmfile(&mfile, "mmfile", 0, 1024, mmfile_openmode_RDWR_PRIVATE, tempdir)) ;
    TEST(size_mmfile(&mfile)       == 256 ) ;
    TEST(alignedsize_mmfile(&mfile) == pagesize) ;
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ;
    }
    // write different content
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       addr_mmfile(&mfile)[i] = '1' ;
    }
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       TEST(addr_mmfile(&mfile)[i] == '1') ;
    }
    // test change is *not* shared
@@ -475,7 +496,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
    TEST(0   == free_filedescr(&fd)) ;
-   for(unsigned i = 0; i < 256; ++i) {
+   for (unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ; // old content
    }
    TEST(0 == free_mmfile(&mfile)) ;
@@ -488,12 +509,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
 
    // TEST ENODATA
    // offset > filesize
-   TEST(ENODATA== init_mmfile(&mfile, "mmfile", pagesize, 0, mmfile_openmode_RDWR_PRIVATE, tempdir)) ;
-   fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
-   TEST(fd > 0) ;
-   TEST(0 == ftruncate(fd, 0)) ; // empty file
-   TEST(0 == free_filedescr(&fd)) ;
-   TEST(ENODATA == init_mmfile(&mfile, "mmfile", 0, 0, mmfile_openmode_RDWR_SHARED, tempdir)) ;
+   TEST(ENODATA == init_mmfile(&mfile, "mmfile", pagesize, 0, mmfile_openmode_RDWR_PRIVATE, tempdir)) ;
 
    // TEST ENOMEM
    if (sizeof(size_t) == sizeof(uint32_t)) {
@@ -533,19 +549,19 @@ static int test_writeoffset(directory_t * tempdir)
    TEST(0 == free_mmfile(&mfile)) ;
 
    // TEST offset is correctly calculated
-   for(int i = 0; i < 10; ++i) {
+   for (int i = 0; i < 10; ++i) {
       off_t offset = (size_t)i * pagesize ;
       TEST(0 == init_mmfile(&mfile, "mmfile", offset, pagesize, mmfile_openmode_RDWR_SHARED, tempdir)) ;
       memset( addr_mmfile(&mfile), 1+i, pagesize) ;
       TEST(0 == free_mmfile(&mfile)) ;
 
       TEST(0 == init_mmfile(&mfile, "mmfile", 0, 10*pagesize, mmfile_openmode_RDWR_SHARED, tempdir)) ;
-      for(int j = 0; j <= i; ++j) {
-         for(size_t x = (size_t)j*pagesize; x < (size_t)(j+1)*pagesize; ++x) {
+      for (int j = 0; j <= i; ++j) {
+         for (size_t x = (size_t)j*pagesize; x < (size_t)(j+1)*pagesize; ++x) {
             TEST((j+1) == addr_mmfile(&mfile)[x]) ;
          }
       }
-      for(size_t x = (size_t)offset + pagesize; x < 10*pagesize; ++x) {
+      for (size_t x = (size_t)offset + pagesize; x < 10*pagesize; ++x) {
          TEST(0 == addr_mmfile(&mfile)[x]) ;
       }
       TEST(0 == free_mmfile(&mfile)) ;

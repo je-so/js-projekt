@@ -311,6 +311,7 @@ int run_unittest(void)
       RUN(unittest_io_iocallback) ;
       RUN(unittest_io_url) ;
       // reader
+      RUN(unittest_io_reader_csvfilereader) ;
       RUN(unittest_io_reader_utf8reader) ;
       // writer
       RUN(unittest_io_writer_log_logwriter) ;

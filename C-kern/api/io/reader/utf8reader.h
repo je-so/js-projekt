@@ -1,7 +1,7 @@
 /* title: UTF8TextReader
 
-   This reader decodes ut8 text content into one char and administrates additional information
-   as there are line and column numbers.
+   This reader decodes UTF-8 multibyte text content into a <unicode_t> character
+   and maintains additional information about the current line number and column.
 
    about: Copyright
    This program is free software.
@@ -41,7 +41,7 @@ typedef struct utf8reader_t            utf8reader_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_reader_utf8reader
  * Test <utf8reader_t>. */
-extern int unittest_io_reader_utf8reader(void) ;
+int unittest_io_reader_utf8reader(void) ;
 #endif
 
 

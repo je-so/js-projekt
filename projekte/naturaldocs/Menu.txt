@@ -123,14 +123,10 @@ Group: Api  {
          File: Internetprotocol-Sockets  (api/io/ip/ipsocket.h)
          }  # Group: Ip
 
-      File: Filedescriptor  (api/io/filedescr.h)
-      File: IO-Accessmode  (api/io/accessmode.h)
-      File: IOCallback  (api/io/iocallback.h)
-      File: IOControler  (api/io/iocontroler.h)
-      File: IOEvent  (api/io/ioevent.h)
-      File: IOTimer  (api/io/iotimer.h)
-      File: URL  (api/io/url.h)
-      File: UTF8TextReader  (api/io/reader/utf8reader.h)
+      Group: Reader  {
+
+         File: UTF8TextReader  (api/io/reader/utf8reader.h)
+         }  # Group: Reader
 
       Group: Writer  {
 
@@ -142,6 +138,13 @@ Group: Api  {
          File: LogWriter  (api/io/writer/log/logwriter.h)
          }  # Group: Writer
 
+      File: Filedescriptor  (api/io/filedescr.h)
+      File: IO-Accessmode  (api/io/accessmode.h)
+      File: IOCallback  (api/io/iocallback.h)
+      File: IOControler  (api/io/iocontroler.h)
+      File: IOEvent  (api/io/ioevent.h)
+      File: IOTimer  (api/io/iotimer.h)
+      File: URL  (api/io/url.h)
       }  # Group: Io
 
    Group: Math  {
@@ -304,12 +307,20 @@ Group: Implementation  {
 
    Group: Io  {
 
+      Group: Reader  {
+
+         File: Description-Reader  (io/reader/reader.txt)
+         File: UTF8TextReader impl  (io/reader/utf8reader.c)
+         }  # Group: Reader
+
+      Group: Writer  {
+
+         File: LogMain impl  (io/writer/log/logmain.c)
+         File: LogWriter impl  (io/writer/log/logwriter.c)
+         }  # Group: Writer
+
       File: IOCallback impl  (io/iocallback.c)
-      File: LogMain impl  (io/writer/log/logmain.c)
-      File: LogWriter impl  (io/writer/log/logwriter.c)
-      File: Reader-Description  (io/reader/reader.txt)
       File: URL impl  (io/url.c)
-      File: UTF8TextReader impl  (io/reader/utf8reader.c)
       }  # Group: Io
 
    Group: Main  {

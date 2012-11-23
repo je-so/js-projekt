@@ -79,10 +79,10 @@ accessmode_e accessmode_filedescr(filedescr_t fd)
       goto ONABORT ;
    }
 
-   static_assert( (O_RDONLY+1) == accessmode_READ, "simple conversion") ;
-   static_assert( (O_WRONLY+1) == accessmode_WRITE, "simple conversion") ;
-   static_assert( (O_RDWR+1)   == (accessmode_READ|accessmode_WRITE), "simple conversion") ;
-   static_assert( O_ACCMODE    == (O_RDWR|O_WRONLY|O_RDONLY), "simple conversion") ;
+   static_assert((O_RDONLY+1) == accessmode_READ, "simple conversion") ;
+   static_assert((O_WRONLY+1) == accessmode_WRITE, "simple conversion") ;
+   static_assert((O_RDWR+1)   == (accessmode_READ|accessmode_WRITE), "simple conversion") ;
+   static_assert(O_ACCMODE    == (O_RDWR|O_WRONLY|O_RDONLY), "simple conversion") ;
 
    return (accessmode_e) (1 + (flags & O_ACCMODE)) ;
 ONABORT:
@@ -112,7 +112,7 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
    int fd = -1 ;
    DIR * procself = 0 ;
 
-   fd = open( "/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
+   fd = open("/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
    if (-1 == fd) {
       err = errno ;
       TRACESYSERR_LOG("open(/proc/self/fd)", err) ;
@@ -132,7 +132,7 @@ int nropen_filedescr(/*out*/size_t * number_open_fd)
    for(;;) {
       ++ open_fds ;
       errno = 0 ;
-      name  = readdir( procself ) ;
+      name  = readdir(procself) ;
       if (!name) {
          if (errno) {
             err = errno ;
@@ -178,8 +178,8 @@ int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buffer[buf
 
    do {
       do {
-         bytes = read( fd, buffer + total_read, buffer_size - total_read) ;
-      } while( -1 == bytes && EINTR == errno ) ;
+         bytes = read(fd, buffer + total_read, buffer_size - total_read) ;
+      } while (-1 == bytes && EINTR == errno) ;
       if (-1 == bytes) {
          if (total_read) break ;
          err = errno ;
@@ -192,7 +192,7 @@ int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buffer[buf
       }
       total_read += (size_t) bytes ;
       assert(total_read <= buffer_size) ;
-   } while( bytes && total_read < buffer_size) ;
+   } while (bytes && total_read < buffer_size) ;
 
    if (bytes_read) {
       *bytes_read = total_read ;
@@ -212,8 +212,8 @@ int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer, siz
 
    do {
       do {
-         bytes = write( fd, (const uint8_t*)buffer + total_written, buffer_size - total_written) ;
-      } while( -1 == bytes && EINTR == errno ) ;
+         bytes = write(fd, (const uint8_t*)buffer + total_written, buffer_size - total_written) ;
+      } while (-1 == bytes && EINTR == errno) ;
       if (-1 == bytes) {
          if (total_written) break ;
          err = errno ;
@@ -226,7 +226,7 @@ int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer, siz
       }
       total_written += (size_t) bytes ;
       assert(total_written <= buffer_size) ;
-   } while( bytes && total_written < buffer_size) ;
+   } while (bytes && total_written < buffer_size) ;
 
    if (bytes_written) {
       *bytes_written = total_written ;

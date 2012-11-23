@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Nov.09  16:17:10
+GenerationDate  := 2012.Nov.23  15:53:00
 GeneratedBy     := je-so
 
 ## Debug
@@ -120,6 +120,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!comparator.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
@@ -196,6 +197,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!comparator.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
@@ -367,6 +369,9 @@ $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
@@ -589,6 +594,9 @@ $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c

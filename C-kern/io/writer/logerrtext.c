@@ -96,6 +96,18 @@ int MEMORY_OUT_OF_ERRLOG(log_channel_e channel, size_t size)
    return 0;
 }
 
+int PARSEERROR_EXPECTCHAR_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr, const char * chr)
+{
+   PRINTF("Erwarte Zeichen '%s' in Zeile: %zu, Spalte: %zu\n", chr, linenr, colnr) ;
+   return 0;
+}
+
+int PARSEERROR_EXPECTNEWLINE_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr)
+{
+   PRINTF("Erwarte '(Zeilenende)' in Zeile: %zu, Spalte: %zu\n", linenr, colnr) ;
+   return 0;
+}
+
 int RESOURCE_USAGE_DIFFERENT_ERRLOG(log_channel_e channel)
 {
    PRINTF("Ungleiche Anzahl benutzter Ressourcen\n") ;
@@ -217,6 +229,18 @@ int LOG_ENTRY_TRUNCATED_ERRLOG(log_channel_e channel, int before_size, int after
 int MEMORY_OUT_OF_ERRLOG(log_channel_e channel, size_t size)
 {
    PRINTF("Could not allocate %zu bytes of memory\n", size) ;
+   return 0;
+}
+
+int PARSEERROR_EXPECTCHAR_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr, const char * chr)
+{
+   PRINTF("Expect character '%s' in line: %zu, column: %zu\n", chr, linenr, colnr) ;
+   return 0;
+}
+
+int PARSEERROR_EXPECTNEWLINE_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr)
+{
+   PRINTF("Expect '(newline)' in line: %zu, column: %zu\n", linenr, colnr) ;
    return 0;
 }
 

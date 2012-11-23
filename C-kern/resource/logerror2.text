@@ -74,10 +74,12 @@
    </include>
 </proglang>
 
+# // TODO: rename into ERROR_FATAL
 ABORT_FATAL(int err)
 de: ""err": Programmabbruch wegen fatalem Fehler\n"
 en: ""err": Abort process with fatal error\n"
 
+# // TODO: rename into ERROR_ASSERT_FAILED
 ABORT_ASSERT_FAILED(int err, const char * wrong_condition)
 de: ""err": Assertion '"wrong_condition"' fehlgeschlagen.\n"
 en: ""err": Assertion '"wrong_condition"' failed.\n"
@@ -86,6 +88,7 @@ ERROR_LOCATION(const char * filename, int linenr, const char * funcname)
 de: ""filename":"linenr": "funcname"(): Fehler: "
 en: ""filename":"linenr": "funcname"(): error: "
 
+# // TODO: replace it with PARSEERROR_EXPECTNEWLINE
 FILE_FORMAT_MISSING_ENDOFLINE(const char * filename)
 de: "'"filename"' enthält kein Zeilenendezeichen\n"
 en: "'"filename"' contains no newline\n"
@@ -127,6 +130,14 @@ en: "Log entry truncated from "before_size" to "after_size" bytes\n"
 MEMORY_OUT_OF(size_t size)
 de: "Keine "size" Bytes Speicher mehr frei\n"
 en: "Could not allocate "size" bytes of memory\n"
+
+PARSEERROR_EXPECTCHAR(size_t linenr, size_t colnr, const char * chr)
+de: "Erwarte Zeichen '"chr"' in Zeile: "linenr", Spalte: "colnr"\n"
+en: "Expect character '"chr"' in line: "linenr", column: "colnr"\n"
+
+PARSEERROR_EXPECTNEWLINE(size_t linenr, size_t colnr)
+de: "Erwarte '(Zeilenende)' in Zeile: "linenr", Spalte: "colnr"\n"
+en: "Expect '(newline)' in line: "linenr", column: "colnr"\n"
 
 RESOURCE_USAGE_DIFFERENT()
 de: "Ungleiche Anzahl benutzter Ressourcen\n"
