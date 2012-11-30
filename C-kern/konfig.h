@@ -75,10 +75,11 @@
  * You can choose more than one subsystem, seperate them by operator '|'.
  *
  * Supported values are:
- * THREAD -  for thread support
- * none   -  for a minimal system.
+ * THREAD  -  for thread support
+ * SYSUSER -  for supporting system user and authentication
+ * none    -  for a minimal system.
  */
-#define KONFIG_SUBSYS                  (THREAD)
+#define KONFIG_SUBSYS                  (THREAD|SYSUSER)
 #endif
 #if 0
 /* define: KONFIG_UNITTEST

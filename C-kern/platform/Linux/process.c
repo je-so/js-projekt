@@ -1,5 +1,5 @@
-/* title: ProcessManagement Linux
-   Implements <ProcessManagement>.
+/* title: Process Linuximpl
+   Implements <Process>.
 
    about: Copyright
    This program is free software.
@@ -17,10 +17,10 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/platform/process.h
-    Header file of <ProcessManagement>.
+    Header file of <Process>.
 
    file: C-kern/platform/Linux/process.c
-    Implementation file <ProcessManagement Linux>.
+    Implementation file <Process Linuximpl>.
 */
 
 #include "C-kern/konfig.h"
@@ -56,44 +56,6 @@ struct process_ioredirect2_t {
    filedescr_t          devnull ;
 } ;
 
-
-// section: Functions
-
-// group: query
-
-int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size)
-{
-   int err ;
-   char buffer[16+1] ;
-
-   buffer[16] = 0 ;
-
-   err = prctl(PR_GET_NAME, buffer, 0, 0, 0) ;
-   if (err) {
-      err = errno ;
-      TRACESYSERR_LOG("prctl(PR_GET_NAME)", err) ;
-      goto ONABORT ;
-   }
-
-   size_t size = 1 + strlen(buffer) ;
-
-   if (name_size) {
-      *name_size = size ;
-   }
-
-   if (namebuffer_size) {
-      if (namebuffer_size >= size) {
-         memcpy( name, buffer, size) ;
-      } else {
-         memcpy( name, buffer, namebuffer_size-1) ;
-         name[namebuffer_size-1] = 0 ;
-      }
-   }
-
-   return 0 ;
-ONABORT:
-   return err ;
-}
 
 
 // section: process_ioredirect2_t
@@ -502,6 +464,40 @@ ONABORT:
 }
 
 // group: query
+
+int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size)
+{
+   int err ;
+   char buffer[16+1] ;
+
+   buffer[16] = 0 ;
+
+   err = prctl(PR_GET_NAME, buffer, 0, 0, 0) ;
+   if (err) {
+      err = errno ;
+      TRACESYSERR_LOG("prctl(PR_GET_NAME)", err) ;
+      goto ONABORT ;
+   }
+
+   size_t size = 1 + strlen(buffer) ;
+
+   if (name_size) {
+      *name_size = size ;
+   }
+
+   if (namebuffer_size) {
+      if (namebuffer_size >= size) {
+         memcpy( name, buffer, size) ;
+      } else {
+         memcpy( name, buffer, namebuffer_size-1) ;
+         name[namebuffer_size-1] = 0 ;
+      }
+   }
+
+   return 0 ;
+ONABORT:
+   return err ;
+}
 
 int state_process(process_t * process, /*out*/process_state_e * current_state)
 {

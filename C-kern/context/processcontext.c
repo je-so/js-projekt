@@ -29,10 +29,11 @@
 #include "C-kern/api/err.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initprocess")
 #include "C-kern/api/platform/locale.h"
-#include "C-kern/api/presentation/X11/x11.h"
+#include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/platform/thread.h"
+#include "C-kern/api/presentation/X11/x11.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -55,7 +56,7 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
-   err = initonce_X11() ;
+   err = initonce_sysuser(&pcontext->sysuser) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
@@ -68,6 +69,10 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    ++ pcontext->initcount ;
 
    err = initonce_thread() ;
+   if (err) goto ONABORT ;
+   ++ pcontext->initcount ;
+
+   err = initonce_X11() ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 // TEXTDB:END
@@ -92,6 +97,9 @@ int free_processcontext(processcontext_t * pcontext)
             break ;
 // TEXTDB:SELECT(\n"   case "row-id":  err2 = freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/text.db/initprocess")DESCENDING
 
+   case 6:  err2 = freeonce_X11() ;
+            if (err2) err = err2 ;
+
    case 5:  err2 = freeonce_thread() ;
             if (err2) err = err2 ;
 
@@ -101,7 +109,7 @@ int free_processcontext(processcontext_t * pcontext)
    case 3:  err2 = freeonce_signalconfig() ;
             if (err2) err = err2 ;
 
-   case 2:  err2 = freeonce_X11() ;
+   case 2:  err2 = freeonce_sysuser(&pcontext->sysuser) ;
             if (err2) err = err2 ;
 
    case 1:  err2 = freeonce_locale() ;
@@ -126,25 +134,31 @@ ONABORT:
 static int test_initfree(void)
 {
    processcontext_t  pcontext = processcontext_INIT_FREEABLE ;
+   sysusercontext_t  emptyusr = sysusercontext_INIT_FREEABLE ;
 
-   // TEST static init
-   TEST(0 == pcontext.initcount) ;
+   // TEST processcontext_INIT_FREEABLE
    TEST(0 == pcontext.valuecache) ;
+   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
+   TEST(0 == pcontext.initcount) ;
 
-   // TEST double free
+   // TEST free_processcontext
    pcontext.initcount = process_maincontext().initcount ;
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(0 == pcontext.initcount) ;
+   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
    TEST(0 == pcontext.valuecache) ;
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(0 == pcontext.initcount) ;
+   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
    TEST(0 == pcontext.valuecache) ;
 
    // free_processcontext does nothing in case init_count == 0 ;
    pcontext.initcount  = 0 ;
+   pcontext.sysuser    = (sysusercontext_t) sysusercontext_INIT(process_maincontext().sysuser.realuser, process_maincontext().sysuser.privilegeduser) ;
    pcontext.valuecache = (struct valuecache_t*) 1 ;
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(pcontext.valuecache == (struct valuecache_t*) 1) ;
+   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &process_maincontext().sysuser)) ;
    pcontext.valuecache = 0 ;
 
    // TEST EINVAL
@@ -154,10 +168,12 @@ static int test_initfree(void)
    TEST(pcontext.valuecache == (struct valuecache_t*) 2) ;
    pcontext.valuecache = 0 ;
 
-   // TEST init
+   // TEST init_processcontext
+   pcontext = (processcontext_t) processcontext_INIT_FREEABLE ;
    TEST(0 == init_processcontext(&pcontext)) ;
    TEST(0 != pcontext.valuecache) ;
-   TEST(5 == pcontext.initcount) ;
+   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &process_maincontext().sysuser)) ;
+   TEST(6 == pcontext.initcount) ;
    freeonce_valuecache(&pcontext.valuecache) ;
    TEST(0 == pcontext.valuecache) ;
 

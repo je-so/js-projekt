@@ -173,6 +173,10 @@ const char *               progname_maincontext(void) ;
  * Returns interfaceable object <objectcache_t> for access of cached singleton objects. */
 /*ref*/objectcache_t       objectcache_maincontext(void) ;
 
+/* function: sysuser_maincontext
+ * Returns <sysusercontext_t> of current <maincontext_t>. It is used in implementation of module <SystemUser>. */
+/*ref*/sysusercontext_t    sysuser_maincontext(void) ;
+
 /* function: valuecache_maincontext
  * Returns <valuecache_t> holding precomputed values.
  * Every value is cached as a single copy for the whole process. */
@@ -204,6 +208,11 @@ struct valuecache_t *      valuecache_maincontext(void) ;
  * Inline implementation of <maincontext_t.progname_maincontext>. */
 #define progname_maincontext()         (g_maincontext.progname)
 
+/* define: sysuser_maincontext
+ * Inline implementation of <maincontext_t.sysuser_maincontext>. */
+#define sysuser_maincontext()          (process_maincontext().sysuser)
+
+
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: thread_maincontext
@@ -223,6 +232,6 @@ struct valuecache_t *      valuecache_maincontext(void) ;
 /* define: valuecache_maincontext
  * Inline implementation of <maincontext_t.valuecache_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define valuecache_maincontext()       (g_maincontext.pcontext.valuecache)
+#define valuecache_maincontext()       (process_maincontext().valuecache)
 
 #endif

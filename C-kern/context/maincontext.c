@@ -192,6 +192,7 @@ static int test_initmain(void)
    int               fd_stderr   = -1 ;
    int               fdpipe[2]   = { -1, -1 } ;
    maincontext_t     old_context = g_maincontext ;
+   sysusercontext_t  emptyusrctx = sysusercontext_INIT_FREEABLE ;
 
    fd_stderr = dup(STDERR_FILENO) ;
    TEST(0 < fd_stderr) ;
@@ -204,6 +205,7 @@ static int test_initmain(void)
    TEST(0 == type_maincontext()) ;
    TEST(0 == process_maincontext().initcount) ;
    TEST(0 == process_maincontext().valuecache) ;
+   TEST(1 == isequal_sysusercontext(&process_maincontext().sysuser, &emptyusrctx)) ;
    TEST(0 == thread_maincontext().initcount) ;
    TEST(&g_logmain == thread_maincontext().log.object) ;
    TEST(&g_logmain_interface == thread_maincontext().log.iimpl) ;
@@ -216,7 +218,7 @@ static int test_initmain(void)
    TEST(EINVAL == init_maincontext(3, 0, 0)) ;
    TEST(EINVAL == init_maincontext(maincontext_DEFAULT, -1, 0)) ;
 
-   // TEST init, double free (context_DEFAULT)
+   // TEST init_maincontext, free_maincontext (context_DEFAULT)
    const char * argv[2] = { "1", "2" } ;
    TEST(0 == init_maincontext(maincontext_DEFAULT, 2, argv)) ;
    TEST(1 == type_maincontext()) ;
@@ -224,6 +226,7 @@ static int test_initmain(void)
    TEST(argv    == g_maincontext.argv) ;
    TEST(argv[0] == progname_maincontext()) ;
    TEST(0 != process_maincontext().valuecache) ;
+   TEST(1 != isequal_sysusercontext(&process_maincontext().sysuser, &emptyusrctx)) ;
    TEST(0 != thread_maincontext().initcount) ;
    TEST(0 != thread_maincontext().log.object) ;
    TEST(0 != thread_maincontext().log.iimpl) ;
@@ -238,6 +241,7 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.argv) ;
    TEST(0 == progname_maincontext()) ;
    TEST(0 == process_maincontext().valuecache) ;
+   TEST(1 == isequal_sysusercontext(&process_maincontext().sysuser, &emptyusrctx)) ;
    TEST(0 == strcmp("C", current_locale())) ;
    TEST(thread_maincontext().initcount  == 0) ;
    TEST(thread_maincontext().log.object == &g_logmain) ;
@@ -250,6 +254,7 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.argv) ;
    TEST(0 == progname_maincontext()) ;
    TEST(0 == process_maincontext().valuecache) ;
+   TEST(1 == isequal_sysusercontext(&process_maincontext().sysuser, &emptyusrctx)) ;
    TEST(0 == strcmp("C", current_locale())) ;
    TEST(thread_maincontext().initcount  == 0) ;
    TEST(thread_maincontext().log.object == &g_logmain) ;
@@ -293,13 +298,16 @@ ONABORT:
 static int test_querymacros(void)
 {
 
-   // TEST query log_maincontext
-   TEST( &(gt_threadcontext.log) == &log_maincontext() ) ;
+   // TEST log_maincontext
+   TEST(&(gt_threadcontext.log) == &log_maincontext()) ;
 
-   // TEST query log_maincontext
-   TEST( &(gt_threadcontext.objectcache) == &objectcache_maincontext() ) ;
+   // TEST log_maincontext
+   TEST(&(gt_threadcontext.objectcache) == &objectcache_maincontext()) ;
 
-   // TEST query valuecache_maincontext
+   // TEST sysuser_maincontext
+   TEST(&(process_maincontext().sysuser) == &sysuser_maincontext()) ;
+
+   // TEST valuecache_maincontext
    struct valuecache_t * const oldcache2 = process_maincontext().valuecache ;
    process_maincontext().valuecache = (struct valuecache_t*)3 ;
    TEST((struct valuecache_t*)3 == valuecache_maincontext()) ;

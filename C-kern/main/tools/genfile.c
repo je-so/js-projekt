@@ -37,6 +37,7 @@ static const char * s_headerpath ;
 static const char * s_sourcepath ;
 static cstring_t    s_fctsuffix    = cstring_INIT ;
 static cstring_t    s_headertag    = cstring_INIT ;
+static cstring_t    s_typename2    = cstring_INIT ;
 static cstring_t    s_unittestname = cstring_INIT ;
 
 
@@ -46,6 +47,7 @@ enum variable_e {
       variable_HEADERPATH,
       variable_HEADERTAG,
       variable_SOURCEPATH,
+      variable_TYPENAME2,
       variable_TYPENAME,
       variable_UNITTESTNAME
 } ;
@@ -90,8 +92,16 @@ struct @TYPENAME {\n\n\
 } ;\n\n\
 // group: lifetime\n\
 \n\
+/* define: @TYPENAME2_INIT_FREEABLE\n\
+ * Static initializer. */\n\
+#define @TYPENAME2_INIT_FREEABLE      { 0 }\n\
+\n\
+/* function: init_@FCTSUFFIX\n\
+ * TODO: Describe Initializes object. */\n\
 int init_@FCTSUFFIX(@TYPENAME * obj) ;\n\
 \n\
+/* function: free_@FCTSUFFIX\n\
+ * TODO: Describe Frees all associated resources. */\n\
 int free_@FCTSUFFIX(@TYPENAME * obj) ;\n\
 \n\
 // group: query\n\
@@ -202,7 +212,7 @@ ONABORT:
    return err ;
 }
 
-static int construct_strings_fromtypename(const char * typenamestr, cstring_t * fctsuffix)
+static int construct_strings_fromtypename(const char * typenamestr, cstring_t * tname2, cstring_t * fctsuffix)
 {
    int err ;
 
@@ -214,6 +224,10 @@ static int construct_strings_fromtypename(const char * typenamestr, cstring_t * 
    }
 
    clear_cstring(fctsuffix) ;
+   clear_cstring(tname2) ;
+
+   // construct typename2 without suffix
+   append_cstring(tname2, typename_len, typenamestr) ;
 
    for (size_t i = 0; i < typename_len; ++i) {
       char c  = typenamestr[i] ;
@@ -241,6 +255,7 @@ static int check_variable(const char * filetemplate, /*out*/variable_e * varinde
       [variable_HEADERPATH] = "HEADERPATH",
       [variable_HEADERTAG]  = "HEADERTAG",
       [variable_SOURCEPATH] = "SOURCEPATH",
+      [variable_TYPENAME2]  = "TYPENAME2",
       [variable_TYPENAME]   = "TYPENAME",
       [variable_UNITTESTNAME] = "UNITTESTNAME"
    } ;
@@ -276,6 +291,9 @@ static int substitute_variable(file_t * outfile, variable_e varindex)
       break ;
    case variable_SOURCEPATH:
       err = write_file(outfile, strlen(s_sourcepath), s_sourcepath, 0) ;
+      break ;
+   case variable_TYPENAME2:
+      err = write_file(outfile, length_cstring(&s_typename2), str_cstring(&s_typename2), 0) ;
       break ;
    case variable_TYPENAME:
       err = write_file(outfile, strlen(s_typename), s_typename, 0) ;
@@ -360,7 +378,7 @@ int main(int argc, const char * argv[])
    err = construct_strings_frompath(s_headerpath, &s_headertag, &s_unittestname) ;
    if (err) goto PRINT_USAGE ;
 
-   err = construct_strings_fromtypename(s_typename, &s_fctsuffix) ;
+   err = construct_strings_fromtypename(s_typename, &s_typename2, &s_fctsuffix) ;
    if (err) goto PRINT_USAGE ;
 
    // parse templates => expand variables => write header + source files

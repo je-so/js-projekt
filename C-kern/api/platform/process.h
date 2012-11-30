@@ -1,4 +1,4 @@
-/* title: ProcessManagement
+/* title: Process
    Allows to creates a new process executable or
    a child process which executes a function.
 
@@ -18,30 +18,30 @@
    (C) 2011 Jörg Seebohn
 
    file: C-kern/api/platform/process.h
-    Header file of <ProcessManagement>.
+    Header file of <Process>.
 
    file: C-kern/platform/Linux/process.c
-    Implementation file <ProcessManagement Linux>.
+    Implementation file <Process Linuximpl>.
 */
 #ifndef CKERN_PLATFORM_PROCESS_HEADER
 #define CKERN_PLATFORM_PROCESS_HEADER
 
 #include "C-kern/api/io/filedescr.h"
 
-/* typedef: process_t
- * Represents op. system specific process. */
+/* typedef: struct process_t
+ * Make <process_t> an alias of <sys_process_t>. */
 typedef sys_process_t                  process_t ;
 
-/* typedef: struct process_task_f
+/* typedef: process_task_f
  * Defines function type executed by <process_t>. */
 typedef int                         (* process_task_f) (void * task_arg) ;
 
-/* typedef: process_result_t typedef
- * Export <process_result_t>. */
+/* typedef: struct process_result_t
+ * Export <process_result_t> into global namespace. */
 typedef struct process_result_t        process_result_t ;
 
-/* struct: process_ioredirect_t
- * Exports <process_ioredirect_t>. */
+/* typedef: struct process_ioredirect_t
+ * Export <process_ioredirect_t> into global namespace. */
 typedef struct process_ioredirect_t    process_ioredirect_t ;
 
 
@@ -65,24 +65,6 @@ typedef enum process_state_e        process_state_e ;
 
 
 // section: Functions
-
-// group: query
-
-/* function: name_process
- * Returns the system name of this process in the provided buffer.
- * The returned string is always null-terminated even if the provided buffer
- * is smaller then the name.
- *
- * Parameter:
- * namebuffer_size - The size in bytes of the name buffer.
- *                   If namebuffer_size is smaller than the size of the process name
- *                   the returned value is truncated. A value of 0 means nothing is returned.
- * name            - The name of the process is returned in this buffer.
- *                   The last character is always a '\0' byte.
- *                   Points to character buffer of size namebuffer_size.
- * name_size       - Is set to the size of the name including the trailing \0 byte.
- *                   If this pointer is not NULL nothing is returned. */
-int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size) ;
 
 // group: test
 
@@ -154,7 +136,8 @@ void setstdout_processioredirect(process_ioredirect_t * ioredirect, filedescr_t 
 void setstderr_processioredirect(process_ioredirect_t * ioredirect, filedescr_t error_file) ;
 
 
-// section: process_t
+/* struct: process_t
+ * Represents system specific process. */
 
 // group: lifetime
 
@@ -163,8 +146,10 @@ void setstderr_processioredirect(process_ioredirect_t * ioredirect, filedescr_t 
 #define process_INIT_FREEABLE       { sys_process_INIT_FREEABLE }
 
 /* function: init_process
- * Creates child process which executes a function. */
-int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
+ * Creates child process which executes a function.
+ * Setting pointer ioredirection to 0 has the same effect as providing a pointer to <process_ioredirect_t>
+ * initialized with <process_ioredirect_INIT_DEVNULL>. */
+int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection) ;
 
 /* define: initgeneric_process
  * Same as <init_process> except that it accepts functions with generic argument type.
@@ -202,6 +187,22 @@ int free_process(process_t * process) ;
 
 // group: query
 
+/* function: name_process
+ * Returns the system name of the calling process in the provided buffer.
+ * The returned string is always null-terminated even if the provided buffer
+ * is smaller then the name.
+ *
+ * Parameter:
+ * namebuffer_size - The size in bytes of the name buffer.
+ *                   If namebuffer_size is smaller than the size of the process name
+ *                   the returned value is truncated. A value of 0 means nothing is returned.
+ * name            - The name of the process is returned in this buffer.
+ *                   The last character is always a '\0' byte.
+ *                   Points to character buffer of size namebuffer_size.
+ * name_size       - Is set to the size of the name including the trailing \0 byte.
+ *                   If this pointer is not NULL nothing is returned. */
+int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size) ;
+
 /* function: state_process
  * Returns current state of process.
  *
@@ -226,12 +227,12 @@ int wait_process(process_t * process, /*out*/process_result_t * result) ;
 #define setstdin_processioredirect(ioredirect, input_file) \
    ((void)((ioredirect)->std_in = input_file))
 
-/* function: setstdout_processioredirect
+/* define: setstdout_processioredirect
  * Implements <process_ioredirect_t.setstdout_processioredirect>. */
 #define setstdout_processioredirect(ioredirect, output_file) \
    ((void)((ioredirect)->std_out = output_file))
 
-/* function: setstderr_processioredirect
+/* define: setstderr_processioredirect
  * Implements <process_ioredirect_t.setstderr_processioredirect>. */
 #define setstderr_processioredirect(ioredirect, error_file) \
    ((void)((ioredirect)->std_err = error_file))

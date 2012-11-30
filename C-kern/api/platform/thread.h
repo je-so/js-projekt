@@ -265,15 +265,13 @@ void sleepms_thread(uint32_t msec) ;
  * Do not forget to include "C-kern/api/platform/sync/mutex.h" before using <unlock_thread>. */
 #define unlock_thread(threadobj)       sunlock_mutex(&(threadobj)->lock)
 
-// group: KONFIG_SUBSYS
-
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: initonce_thread
- * Implement <thread_t.initonce_thread> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <thread_t.initonce_thread> as noop if !((KONFIG_SUBSYS)&THREAD) */
 #define initonce_thread()              (0)
 /* define: freeonce_thread
- * Implement <thread_t.freeonce_thread> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <thread_t.freeonce_thread> as noop if !((KONFIG_SUBSYS)&THREAD) */
 #define freeonce_thread()              (0)
 #endif
 #undef THREAD

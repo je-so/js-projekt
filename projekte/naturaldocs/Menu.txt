@@ -64,6 +64,7 @@ Group: Api  {
 
       File: ProcessContext  (api/context/processcontext.h)
       File: Standard-Macros  (api/context/stdmacros.h)
+      File: SystemUserContext  (api/context/sysusercontext.h)
       File: ThreadContext  (api/context/threadcontext.h)
       }  # Group: Context
 
@@ -126,6 +127,7 @@ Group: Api  {
 
       Group: Reader  {
 
+         File: CSV-Filereader  (api/io/reader/csvfilereader.h)
          File: UTF8TextReader  (api/io/reader/utf8reader.h)
          }  # Group: Reader
 
@@ -191,11 +193,11 @@ Group: Api  {
 
    Group: Platform  {
 
-      File: LinuxSystemContext  (api/platform/Linux/syscontext.h)
-      File: LinuxSystemKonfig  (api/platform/Linux/syskonfig.h)
-      File: Locale-support  (api/platform/locale.h)
-      File: Malloc  (api/platform/malloc.h)
-      File: ProcessManagement  (api/platform/process.h)
+      Group: Linux  {
+
+         File: LinuxSystemContext  (api/platform/Linux/syscontext.h)
+         File: LinuxSystemKonfig  (api/platform/Linux/syskonfig.h)
+         }  # Group: Linux
 
       Group: Sync  {
 
@@ -212,6 +214,10 @@ Group: Api  {
          File: Threadpool  (api/platform/task/threadpool.h)
          }  # Group: Task
 
+      File: Locale-support  (api/platform/locale.h)
+      File: Malloc  (api/platform/malloc.h)
+      File: Process  (api/platform/process.h)
+      File: SystemUser  (api/platform/sysuser.h)
       File: Thread  (api/platform/thread.h)
       File: VirtualMemory  (api/platform/virtmemory.h)
       }  # Group: Platform
@@ -308,6 +314,7 @@ Group: Implementation  {
 
       Group: Reader  {
 
+         File: CSV-Filereader impl  (io/reader/csvfilereader.c)
          File: Description-Reader  (io/reader/reader.txt)
          File: UTF8TextReader impl  (io/reader/utf8reader.c)
          }  # Group: Reader
@@ -405,8 +412,9 @@ Group: Implementation  {
          File: Malloc impl  (platform/Linux/malloc.c)
          File: Mutex Linuximpl  (platform/Linux/mutex.c)
          File: PosixSignals Linux  (platform/Linux/signal.c)
-         File: ProcessManagement Linux  (platform/Linux/process.c)
+         File: Process Linuximpl  (platform/Linux/process.c)
          File: Semaphore Linux  (platform/Linux/semaphore.c)
+         File: SystemUser Linuximpl  (platform/Linux/sysuser.c)
          File: Thread Linux  (platform/Linux/thread.c)
          File: Timeclock Linux  (platform/Linux/clock.c)
          File: VirtualMemory Linux  (platform/Linux/virtmemory.c)

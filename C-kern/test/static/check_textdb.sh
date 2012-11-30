@@ -68,7 +68,7 @@ for i in $files; do
    for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
       result=${init_process_calls[$testnr]}
       result=${result#extern }
-      if [ "${result#int initonce_*(/\*out\*/* \*\* *) ;}" = "" ]; then
+      if [ "${result#int initonce_*(/\*out\*/* \*[\* ]*) ;}" = "" ]; then
          continue
       fi
       if [ "${result#int initonce_*(void) ;}" != "" ]; then
@@ -78,7 +78,7 @@ for i in $files; do
    for((testnr=0;testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
       result=${free_process_calls[$testnr]}
       result=${result#extern }
-      if [ "${result#int freeonce_*(* \*\* *) ;}" = "" ]; then
+      if [ "${result#int freeonce_*(* \*[\* ]*) ;}" = "" ]; then
          continue
       fi
       if [ "${result#int freeonce_*(void) ;}" != "" ]; then
@@ -127,7 +127,9 @@ for i in $files; do
       fi
       parameter=${param1%)*}
       parameter=${parameter%void}
-      parameter=${parameter#*\*\* }
+      parameter=${parameter#*\*}
+      parameter=${parameter#\*}
+      parameter=${parameter# }
       if [ ${#name1} -gt 17 ]; then
          continue
       fi

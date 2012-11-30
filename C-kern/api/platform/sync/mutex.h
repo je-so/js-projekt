@@ -71,7 +71,7 @@ int unittest_platform_sync_mutex(void) ;
  * 3. Unlocking a mutex locked by a different thread is prevented and returns error EPERM.
  * 4. Unlocking an already unlocked mutex is prevented and returns error EPERM.
  * */
-int init_mutex(mutex_t * mutex) ;
+int init_mutex(/*out*/mutex_t * mutex) ;
 
 /* function: free_mutex
  * Frees resources of mutex which is not in use.

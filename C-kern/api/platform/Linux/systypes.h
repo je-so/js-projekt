@@ -46,6 +46,8 @@
  * sys_socketaddr_MAXSIZE      - Value which holds max size in bytes of all possible socket addresses.
  * sys_thread_t                - Type holding system specific description of a thread.
  * sys_thread_INIT_FREEABLE    - Static initializer for a thread. It sets a thread id or handle to an invalid value.
+ * sys_userid_t                - Type holding system specific description of a system user id.
+ * sys_userid_INIT_FREEABLE    - Static initializer for a system user id. It sets a user id to an invalid value.
  *
  * */
 
@@ -98,5 +100,12 @@
  * Static initializer for <sys_thread_t>. */
 #define sys_thread_INIT_FREEABLE       (0)
 
+/* define: sys_userid_t
+ * Chooses Posix system user id. */
+#define sys_userid_t                   uid_t
+
+/* define: sys_userid_INIT_FREEABLE
+ * Static initializer for <sys_userid_t>. */
+#define sys_userid_INIT_FREEABLE       ((uid_t)(-1))
 
 #endif

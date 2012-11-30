@@ -210,7 +210,7 @@ int free_exthash(exthash_t * htable)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 

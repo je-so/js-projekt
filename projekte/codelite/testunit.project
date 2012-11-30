@@ -58,6 +58,7 @@
         <File Name="../../C-kern/api/platform/sync/signal.h"/>
         <File Name="../../C-kern/api/platform/sync/waitlist.h"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/platform/sysuser.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="graphik"/>
     <VirtualDirectory Name="math">
@@ -99,6 +100,7 @@
       <File Name="../../C-kern/api/context/processcontext.h"/>
       <File Name="../../C-kern/api/context/threadcontext.h"/>
       <File Name="../../C-kern/api/context/stdmacros.h"/>
+      <File Name="../../C-kern/api/context/sysusercontext.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -296,6 +298,7 @@
         <File Name="../../C-kern/platform/Linux/io/iotimer.c"/>
         <File Name="../../C-kern/platform/Linux/io/iocontroler.c"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/platform/Linux/sysuser.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <VirtualDirectory Name="task">

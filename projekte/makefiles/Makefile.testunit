@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Nov.23  15:53:00
+GenerationDate  := 2012.Nov.30  15:00:31
 GeneratedBy     := je-so
 
 ## Debug
@@ -18,7 +18,7 @@ CFlags_Debug        := -g -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_USERINTERFACE="(HTML5)"
 Includes_Debug      := $(IncludeFlag_Debug).
-Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt
+Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt $(LibraryFlag_Debug)pam
 Libpath_Debug       :=
 ObjectDir_Debug     := bin/Debug/testunit
 TargetDir_Debug     := bin
@@ -36,7 +36,7 @@ CFlags_Release        := -O2 -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversio
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_USERINTERFACE="(HTML5)"
 Includes_Release      := $(IncludeFlag_Release).
-Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt
+Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt $(LibraryFlag_Release)pam
 Libpath_Release       :=
 ObjectDir_Release     := bin/Release/testunit
 TargetDir_Release     := bin
@@ -74,6 +74,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 	@mkdir -p "$@"
 
 Objects_Debug := \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sysuser.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!semaphore.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!clock.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
@@ -151,6 +152,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!test!testmm.c.o
 
 Objects_Release := \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!clock.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
@@ -232,6 +234,9 @@ $(Target_Debug): $(Objects_Debug)
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sysuser.c
+	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
 	@$(CC_Debug)
@@ -457,6 +462,9 @@ $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
 
 $(ObjectDir_Debug)/C-kern!test!testmm.c.o: C-kern/test/testmm.c
 	@$(CC_Debug)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sysuser.c
+	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
 	@$(CC_Release)

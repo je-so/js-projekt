@@ -7,8 +7,9 @@
 # The header-name field references the C99 header file which exports the function prototypes.
 "module",            "parameter",    "header-name"
 "locale",            "",             "C-kern/api/platform/locale.h"
-"X11",               "",             "C-kern/api/presentation/X11/x11.h"
+"sysuser",           "sysuser",      "C-kern/api/platform/sysuser.h"
 "signalconfig",      "",             "C-kern/api/platform/sync/signal.h"
 "valuecache",        "valuecache",   "C-kern/api/cache/valuecache.h"
 # module thread needs valuecache cause of its use of virtual memory !
 "thread",            "",             "C-kern/api/platform/thread.h"
+"X11",               "",             "C-kern/api/presentation/X11/x11.h"

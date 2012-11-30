@@ -14,5 +14,5 @@ Src           += C-kern/memory/*.c C-kern/memory/mm/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/test/*.c
 Includes       = .
-Libs           = m pthread rt
+Libs           = m pthread rt pam
 Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(HTML5)"

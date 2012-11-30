@@ -1,5 +1,6 @@
 Title: Readme
   Content of Readme file of js-projekt.
+  See <Make Command> and also <System Configuration>.
 
 License:
   Licensed under GNU General Public License v2 (see LICENSE),
@@ -97,6 +98,18 @@ about: Make Command
   To run all unit tests execute bin/testunit (release version)
   or bin/testunit_Debug.
 
+about: System Configuration
+
+  To run the test program no special system configuration is required
+  for most of the tests.
+
+unittest_platform_sysuser:
+  The authenfication service which is implemented with help of libpam
+  uses the service name "passwd" and therefore the same configuration
+  as the passwd system command. But to make the unittest work you
+  should create a user "guest" with passowrd "GUEST" and either run
+  the test as setuid root or as setuid guest to work.
+
 about: Make Targets
 
   all      - Builds »Debug« and »Release« version of every subproject except »html«.
@@ -126,10 +139,13 @@ about: Dependencies
   To build the whole project or any subproject the following dependencies should be considered.
 
   Libraries:
-     Only the libraries *libpthread* for threading support and *librt* for realtime signal support are needed.
-     These libararies should be available on any Linux version.
+     - libpthread for threading support (installed on Linux by default)
+     - librt for realtime signal support (installed on Linux by default)
+     - libpam (Pluggable Authentication Modules) for authentication
+       of user names and password secrets (installed on Linux by default)
+       But you need to install libpam0g-dev (other distros than Ubuntu have other names) which contains all the C header development files for libpam.
 
-  For Development:
+about: Development Environment:
      * Git      (http://git-scm.com).
      * Codelite (http://codelite.org).
      * Natural Docs v1.5 (http://www.naturaldocs.org).

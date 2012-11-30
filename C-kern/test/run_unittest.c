@@ -343,6 +343,7 @@ int run_unittest(void)
       RUN(unittest_platform_locale) ;
       RUN(unittest_platform_malloc) ;
       RUN(unittest_platform_process) ;
+      RUN(unittest_platform_sysuser) ;
       RUN(unittest_platform_thread) ;
       RUN(unittest_platform_virtualmemory) ;
       // user interface subsystem
