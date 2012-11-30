@@ -215,7 +215,7 @@ static int test_mutex_staticinit(void)
    thread_t    * thread1 = 0 ;
    thread_t    * thread2 = 0 ;
 
-   // TEST double free
+   // TEST free_mutex: double free
    TEST(0 == free_mutex(&mutex)) ;
    TEST(0 == free_mutex(&mutex)) ;
    mutex = (mutex_t) mutex_INIT_DEFAULT ;

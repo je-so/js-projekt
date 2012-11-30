@@ -43,6 +43,7 @@
         <File Name="../../C-kern/api/platform/Linux/syskonfig.h"/>
         <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
         <File Name="../../C-kern/api/platform/Linux/sysoptimize.h"/>
+        <File Name="../../C-kern/api/platform/Linux/systypes.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/locale.h"/>
       <File Name="../../C-kern/api/platform/malloc.h"/>

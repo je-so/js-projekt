@@ -30,8 +30,8 @@
  *
  * 1. Include standard preprocessor macros.
  * 2. Configuration switches: list of all configuration options to switch language and os.
- * 3. Declare system specific types.
- * 4. Include os specific settings which redefine system specific types.
+ * 3. Declare format specifiers.
+ * 4. Include os specific settings and definitions of system specific types.
  * 5. Include standard runtime environment
  */
 
@@ -102,8 +102,8 @@
 
 //}
 
-// group: 3 Declare system specific types
-// Declares a bunch of system specific types which must be defined in some architecture dependent way.
+// group: 3 Declare format specifiers
+// Declares a bunch of system specific printf / scanf format specifiers
 
 //{
 /* about: integer format specifiers
@@ -158,58 +158,25 @@
  * scanf unsigned int format specifier 'zu' for *size_t*. */
 #define SCNuSIZE                       "zu"
 
-/* define: sys_filedescr_t
- * Type holding system specific description of a file.
- * It is also used for network connections.
- * Overwritten in system specific include file. */
-#define sys_filedescr_t                void
-/* define: sys_filedescr_INIT_FREEABLE
- * Static initializer for a mutex useable by threads of the same process. */
-#define sys_filedescr_INIT_FREEABLE    void
-/* define: sys_mutex_t
- * Type holding system specific description of a mutex. */
-#define sys_mutex_t                    void
-/* define: sys_mutex_INIT_DEFAULT
- * Static initializer for a mutex useable by threads of the same process. */
-#define sys_mutex_INIT_DEFAULT         void
-/* define: sys_process_t
- * Static initializer for a mutex useable by threads of the same process. */
-#define sys_process_t                  void
-/* define: sys_process_INIT_FREEABLE
- * Static initializer for a process which id invalid. */
-#define sys_process_INIT_FREEABLE      void
-/* define: sys_semaphore_t
- * Type holding system specific description of a semaphore. Overwritten in system specific include file. */
-#define sys_semaphore_t                void
-/* define: sys_semaphore_INIT_FREEABLE
- * Init value to declare an invalid semaphore handle. Overwritten in system specific include file. */
-#define sys_semaphore_INIT_FREEABLE    void
-/* define: sys_socketaddr_t
- * Type which holds addresses received from sockets. Overwritten in system specific include file. */
-#define sys_socketaddr_t               void
-/* define: sys_socketaddr_MAXSIZE
- * Value which holds max size of all versions of socket addresses. Overwritten in system specific include file. */
-#define sys_socketaddr_MAXSIZE         0
-/* define: sys_thread_t
- * Type holding system specific description of a thread. Overwritten in system specific include file. */
-#define sys_thread_t                   void
-/* define: sys_thread_INIT_FREEABLE
- * Value of invalid thread ID. Overwritten in system specific include file. */
-#define sys_thread_INIT_FREEABLE       void
 //}
 
-// group: 4. System Specific Redefinitions
-// Include system specific settings which redefine system specific types.
-// Includes an operating system dependent include file.
-// It redefines all system specific settings and includes all system headers relevant for implementation.
+// group: 4. System Specific Definitions
+// Include system settings settings.
+// Include operating system headers relevant for implementation.
+// Include system specific settings which define system specific types.
+// Include system specific settings which define system optimizations.
 // > #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
+// > #include STR(C-kern/api/platform/KONFIG_OS/systypes.h)
+// > #include STR(C-kern/api/platform/KONFIG_OS/sysoptimize.h)
 //
-// Filename:
-// The location of this system specific header is "C-kern/api/platform/KONFIG_OS/syskonfig.h".
+// Path:
+// The location of these system specific headers is "C-kern/api/platform/KONFIG_OS/".
 // <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for.
 
 //{
 #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
+#include STR(C-kern/api/platform/KONFIG_OS/systypes.h)
+#include STR(C-kern/api/platform/KONFIG_OS/sysoptimize.h)
 //}
 
 // group: 5. Standard environment
