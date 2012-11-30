@@ -28,7 +28,7 @@
 /*
  * List of sections:
  *
- * 1. Generic defines: some useful preprocessor macros.
+ * 1. Include standard preprocessor macros.
  * 2. Configuration switches: list of all configuration options to switch language and os.
  * 3. Declare system specific types.
  * 4. Declare system specific functions.
@@ -38,50 +38,13 @@
 
 // section: Definitions
 
-// group: 1. Generic defines
+// group: 1. Standard Macros
 //
 // Includes:
-// * <C-Preprocessor-macros>
-// * <C-Type-Extensions>
+// * <Standard-Macros>
 
 //{
-#include "C-kern/api/C/ppmacros.h"
-#include "C-kern/api/C/typeext.h"
-
-/* define: MALLOC
- * Calls specific malloc function and converts the returned pointer to
- * the corresponding type.
- * The list of parameters must always end with a "," !
- * > usertype_t * ptr = MALLOC(usertype_t, malloc, ) ;
- *
- * Parameter:
- * type_t    - Name of the type memory should be allocated for.
- *             The parameter sizeof(type_t) is given as last parameter to malloc function.
- * malloc_f  - The name of the malloc function which should be called.
- * ...       - Additional parameters which comes before the sizeof() parameter. **/
-#define MALLOC(type_t,malloc_f,...)    ((type_t*) ((malloc_f)( __VA_ARGS__ sizeof(type_t))))
-
-/* define: MEMCOPY
- * Copies memory from source to destination.
- * The values of sizeof(*(source)) and sizeof(*(destination)) must compare equal.
- * This is checked by <static_assert>.
- *
- * Parameter:
- * destination - Pointer to destination address
- * source      - Pointer to source address
- */
-#define MEMCOPY(destination, source)   do { static_assert(sizeof(*(destination)) == sizeof(*(source)),"same size") ; memcpy((destination), (source), sizeof(*(destination))) ; } while(0)
-
-/* define: MEMSET0
- * Sets memory of variable to 0.
- *
- * Parameter:
- * pointer - Pointer to the variable which will be cleared.
- *
- * To clear a whole array use &array as parameter:
- * >  int array[100] ;
- * >  MEMSET0(&array) ; */
-#define MEMSET0(pointer)               memset((pointer), 0, sizeof(*(pointer)))
+#include "C-kern/api/context/stdmacros.h"
 //}
 
 // group: 2. Configuration

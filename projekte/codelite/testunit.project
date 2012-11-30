@@ -96,6 +96,7 @@
     <VirtualDirectory Name="context">
       <File Name="../../C-kern/api/context/processcontext.h"/>
       <File Name="../../C-kern/api/context/threadcontext.h"/>
+      <File Name="../../C-kern/api/context/stdmacros.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -175,10 +176,6 @@
         <File Name="../../C-kern/api/presentation/X11/glxwindow.h"/>
         <File Name="../../C-kern/api/presentation/X11/x11.h"/>
       </VirtualDirectory>
-    </VirtualDirectory>
-    <VirtualDirectory Name="C">
-      <File Name="../../C-kern/api/C/ppmacros.h"/>
-      <File Name="../../C-kern/api/C/typeext.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">

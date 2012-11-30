@@ -63,6 +63,7 @@ Group: Api  {
    Group: Context  {
 
       File: ProcessContext  (api/context/processcontext.h)
+      File: Standard-Macros  (api/context/stdmacros.h)
       File: ThreadContext  (api/context/threadcontext.h)
       }  # Group: Context
 
@@ -252,8 +253,6 @@ Group: Api  {
       File: Timeclock  (api/time/clock.h)
       }  # Group: Time
 
-   File: C-Preprocessor-macros  (api/C/ppmacros.h)
-   File: C-Type-Extensions  (api/C/typeext.h)
    File: ErrorHandling  (api/err.h)
    File: MainContext  (api/maincontext.h)
    File: StreamCallback  (api/adapter/stream.h)
