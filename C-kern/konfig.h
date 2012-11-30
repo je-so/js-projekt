@@ -31,9 +31,8 @@
  * 1. Include standard preprocessor macros.
  * 2. Configuration switches: list of all configuration options to switch language and os.
  * 3. Declare system specific types.
- * 4. Declare system specific functions.
- * 5. Include os specific settings which redefine system specific types.
- * 6. Include standard runtime environment
+ * 4. Include os specific settings which redefine system specific types.
+ * 5. Include standard runtime environment
  */
 
 // section: Definitions
@@ -199,20 +198,7 @@
 #define sys_thread_INIT_FREEABLE       void
 //}
 
-// group: 4 Declare system specific functions
-// Declares a bunch of system specific function which can or must be defined in some architecture dependent way.
-
-//{
-/* define: sys_context_thread
- * System specific implementation to query <threadcontext_t>. */
-#undef sys_context_thread
-/* define: sys_sqroot_int64
- * Fast system specific implementation of <sqroot_int64>.
- * The default is to call <sqroot_int64> as the standard implementation. */
-#define sys_sqroot_int64               sqroot_int64
-//}
-
-// group: 5. System Specific Redefinitions
+// group: 4. System Specific Redefinitions
 // Include system specific settings which redefine system specific types.
 // Includes an operating system dependent include file.
 // It redefines all system specific settings and includes all system headers relevant for implementation.
@@ -226,7 +212,7 @@
 #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
 //}
 
-// group: 6. Standard environment
+// group: 5. Standard environment
 // Includes all C-kern(el) headers which define the standard runtime and compiletime environment.
 //
 // Includes:

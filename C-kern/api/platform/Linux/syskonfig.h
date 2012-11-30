@@ -25,7 +25,8 @@
 #ifndef CKERN_PLATFORM_LINUX_SYSKONFIG_HEADER
 #define CKERN_PLATFORM_LINUX_SYSKONFIG_HEADER
 
-// section: sytem specific configurations
+
+// section: system specific configurations
 
 // group: GNU C-Compiler
 #if defined(__GNUC__)
@@ -50,7 +51,7 @@
 #undef de
 #endif
 
-// group: Include files
+// group: Include Files
 
 /* about: Linux specific includes
  * Include all C99, Posix and Linux specific header files.
@@ -158,29 +159,5 @@
  * Static initializer for <sys_thread_t>. */
 #define sys_thread_INIT_FREEABLE       (0)
 
-
-// group: OVERWRITE system specific functions
-
-// sys_context_thread is defined in own module
-
-#if defined(__GNUC__)
-#if defined(__i386) || defined(__i686)
-/* define: sys_sqroot_int64
- * Replaces <sqroot_int64> with faster sqrtl (long double version).
- * The x86 fpu is faster than the standard integer algorithm for computing the square root. */
-#undef sys_sqroot_int64
-#define sys_sqroot_int64               sqrtl
-#endif
-
-// group: Unknown Compiler
-#else
-#define de 1
-#if (KONFIG_LANG==de)
-#error "nicht unterstützter Compiler unter Linux"
-#else
-#error "unsupported Compiler on Linux"
-#endif
-#undef de
-#endif
 
 #endif
