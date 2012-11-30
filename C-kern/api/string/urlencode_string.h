@@ -47,7 +47,7 @@ int unittest_string_urlencode(void) ;
 #endif
 
 
-// section: string_t
+// struct: string_t
 
 // group: query
 

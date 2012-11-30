@@ -35,11 +35,11 @@
  * Export <exthash_t> into global namespace. */
 typedef struct exthash_t               exthash_t ;
 
-/* typedef: exthash_iterator_t
+/* typedef: struct exthash_iterator_t
  * Export <exthash_iterator_t> into global namespace. */
 typedef struct exthash_iterator_t      exthash_iterator_t ;
 
-/* typedef: exthash_node_t
+/* typedef: struct exthash_node_t
  * Rename <lrptree_node_t> into <exthash_node_t>. */
 typedef struct lrptree_node_t          exthash_node_t ;
 
@@ -94,7 +94,7 @@ int free_exthashiterator(exthash_iterator_t * iter) ;
 bool next_exthashiterator(exthash_iterator_t * iter, exthash_t * htable, /*out*/exthash_node_t ** node) ;
 
 
-// section: exthash_node_t
+// struct: exthash_node_t
 
 // group: lifetime
 

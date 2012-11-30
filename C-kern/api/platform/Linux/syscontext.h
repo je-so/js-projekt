@@ -35,7 +35,7 @@ struct threadcontext_t ;
 extern __thread struct threadcontext_t gt_threadcontext ;
 
 
-// section: thread_t
+// struct: thread_t
 
 /* function: sys_context_thread
  * Returns the <threadcontext_t> of the current thread.

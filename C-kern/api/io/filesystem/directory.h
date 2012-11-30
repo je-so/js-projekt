@@ -78,7 +78,7 @@ int unittest_io_directory(void) ;
 #endif
 
 
-// section: directory_t
+// struct: directory_t
 
 // group: lifetime
 

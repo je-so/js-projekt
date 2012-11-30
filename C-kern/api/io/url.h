@@ -51,9 +51,8 @@ struct wbuffer_t ;
  * Exports <url_t>. */
 typedef struct url_t                   url_t ;
 
-/* typedef: url_parts_t
- * Defines <url_parts_t> as an array of 7 strings.
- * See <conststring_t>. */
+/* typedef: struct url_parts_t
+ * Export <url_parts_t> (array of 7 strings). */
 typedef conststring_t                  url_parts_t[7] ;
 
 /* enums: url_scheme_e
@@ -110,7 +109,7 @@ typedef enum url_part_e                url_part_e ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_url
  * Unittest for parsing URLs from strings. */
-extern int unittest_io_url(void) ;
+int unittest_io_url(void) ;
 #endif
 
 
@@ -144,69 +143,71 @@ struct url_t {
  * The enocded string is decoded ("%AB" -> character code 0xAB) and
  * no conversion into the current local is made. Encoded url strings should be
  * be encoded from utf8 characeter encoding. */
-extern int new_url(/*out*/url_t ** url, const char * encodedstr) ;
+int new_url(/*out*/url_t ** url, const char * encodedstr) ;
 
 /* function: new2_url
  * Parses url from encoded string and fills in all components.
  * The url string must not contain any scheme prefix, it is read from parameter scheme.
  * See also <new_url>. */
-extern int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr) ;
+int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr) ;
 
 /* function: new_url
  * Fills in url components from substrings describing components.
  * If parameter *are_parts_encoded* is set to true the substrings are considered
  * encoded and are therefore decoded before out parameter *url* is constructed. */
-extern int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, bool are_parts_encoded) ;
+int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, bool are_parts_encoded) ;
 
 /* function: delete_url
  * Frees all resources bound to url. */
-extern int delete_url(url_t ** url) ;
+int delete_url(url_t ** url) ;
 
 // group: query
 
 /* function: encode_url
  * Encodes all parts and combines them into one string. */
-extern int encode_url(const url_t * url, struct wbuffer_t * encoded_url_string) ;
+int encode_url(const url_t * url, struct wbuffer_t * encoded_url_string) ;
 
 /* function: getpart_url
  * Return part of url as string. */
-extern const char * getpart_url(const url_t * url, enum url_part_e part) ;
+const char * getpart_url(const url_t * url, enum url_part_e part) ;
 
 /* function: fragment_url
  * Returns the anchor/fragment part of the url.
  * Returns "<fragment>" for the following url:
  * > http://<host>/path?<query>#<fragment>. */
-extern const char * fragment_url(const url_t * url) ;
+const char * fragment_url(const url_t * url) ;
 
 /* function: hostname_url
  * Returns name of IP network node or NULL if undefined. */
-extern const char * hostname_url(const url_t * url) ;
+const char * hostname_url(const url_t * url) ;
 
 /* function: passwd_url
  * Returns password or NULL if undefined. */
-extern const char * passwd_url(const url_t * url) ;
+const char * passwd_url(const url_t * url) ;
 
 /* function: path_url
  * Returns password or NULL if undefined. */
-extern const char * path_url(const url_t * url) ;
+const char * path_url(const url_t * url) ;
 
 /* function: port_url
  * Returns port or NULL if undefined. */
-extern const char * port_url(const url_t * url) ;
+const char * port_url(const url_t * url) ;
 
 /* function: query_url
  * Returns the query part of the url.
  * Returns "<query>" for the following url:
  * > http://<host>/path?<query>#<fragment>. */
-extern const char * query_url(const url_t * url) ;
+const char * query_url(const url_t * url) ;
 
 /* function: user_url
  * Returns username or NULL if undefined. */
-extern const char * user_url(const url_t * url) ;
+const char * user_url(const url_t * url) ;
 
 
 
-// section: url_parts_t
+// struct: url_parts_t
+// Defines <url_parts_t> as an array of 7 strings.
+// See <conststring_t>.
 
 // group: lifetime
 

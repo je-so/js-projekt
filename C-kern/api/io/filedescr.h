@@ -58,11 +58,11 @@ typedef enum filedescr_e               filedescr_e ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_filedescr
  * Unittest for file descriptor interface. */
-extern int unittest_io_filedescr(void) ;
+int unittest_io_filedescr(void) ;
 #endif
 
 
-// section: filedescr_t
+// struct: filedescr_t
 
 // group: lifetime
 
@@ -73,20 +73,20 @@ extern int unittest_io_filedescr(void) ;
 /* function: free_filedescr
  * Closes the file descriptor.
  * This system call frees system resources. */
-extern int free_filedescr(filedescr_t * fd) ;
+int free_filedescr(filedescr_t * fd) ;
 
 // group: query
 
 /* function: accessmode_filedescr
  * Returns access mode (read and or write) for a io channel.
  * Returns <accessmode_NONE> in case of an error. */
-extern accessmode_e accessmode_filedescr(filedescr_t fd) ;
+accessmode_e accessmode_filedescr(filedescr_t fd) ;
 
 /* function: isinit_filedescr
  * Returns true if filedescriptor has not the value <filedescr_INIT_FREEABLE>.
  * Instead of comparing directly use this function. Necessary if
  * <filedescr_t> resp. <sys_filedescr_t> is defined as a complex type. */
-extern bool isinit_filedescr(filedescr_t fd) ;
+bool isinit_filedescr(filedescr_t fd) ;
 
 /* function: isopen_filedescr
  * Returns *true* if the filedescriptor is open.
@@ -95,7 +95,7 @@ extern bool isinit_filedescr(filedescr_t fd) ;
  * and makes a call to the os. It is therefore more costly than <isinit_filedescr>.
  * It is possible that a valid filedescriptor is no more open
  * if the underlying object, e.g. <file_t> is closed. */
-extern bool isopen_filedescr(filedescr_t fd) ;
+bool isopen_filedescr(filedescr_t fd) ;
 
 /* function: nropen_filedescr
  * Returns number of opened file descriptors.
@@ -103,7 +103,7 @@ extern bool isopen_filedescr(filedescr_t fd) ;
  * of your test to check if a file or network socket
  * is not closed properly.
  * In case of error this functions returns 0. */
-extern int nropen_filedescr(/*out*/size_t * number_open_fd) ;
+int nropen_filedescr(/*out*/size_t * number_open_fd) ;
 
 // group: io
 
@@ -116,7 +116,7 @@ extern int nropen_filedescr(/*out*/size_t * number_open_fd) ;
  * Check value *bytes_read* to determine how many bytes were read.
  * Returns 0 and the value 0 in bytes_read if end of input (end of file) is reached.
  * Returns EAGAIN in case io is in non blocking mode and no bytes could be read. */
-extern int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read) ;
+int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read) ;
 
 /* function: write_filedescr
  * Writes binary data to a output channel (e.g. file).
@@ -124,7 +124,7 @@ extern int read_filedescr(filedescr_t fd, size_t buffer_size, /*out*/uint8_t buf
  * (due to no more system buffer space).
  * Returns EPIPE if the receiver has closed its connection or closes it during
  * a blocking write. */
-extern int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer/*[buffer_size]*/, size_t * bytes_written) ;
+int write_filedescr(filedescr_t fd, size_t buffer_size, const void * buffer/*[buffer_size]*/, size_t * bytes_written) ;
 
 
 // section: inline implementation

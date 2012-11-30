@@ -56,7 +56,7 @@ int unittest_io_ipsocket(void) ;
 #endif
 
 
-// section: ipsocket_t
+// struct: ipsocket_t
 
 // group: lifetime
 
@@ -306,6 +306,8 @@ int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec/*0 =>
 
 // section: inline implementation
 
+/* define: fd_ipsocket
+ * Implements <ipsocket_t.fd_ipsocket>. */
 #define fd_ipsocket(ipsock)            (*(ipsock))
 
 #endif

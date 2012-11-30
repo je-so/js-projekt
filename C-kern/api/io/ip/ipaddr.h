@@ -27,16 +27,8 @@
 
 #include "C-kern/api/string/cstring.h"
 
-/* typedef: ipport_t
- * The UDP or TCP port number. Declares <ipport_t> as unsigned 16 bit.
- * The port is an id which identifies a running process on a host.
- * To communicate to a process on a remote system you need the
- * IP address of that system, its port and the protocol (UDP or TCP).
- *
- * Every application on a host must have a unique port number in the protocol domain
- * to be unambiguously identifiable by the system network layer.
- * If you do not know the correct port number but the service name use <initnamed_ipport>
- * first to determine it. */
+/* typedef: struct ipport_t
+ * Export <ipport_t> into global namespace. */
 typedef uint16_t                       ipport_t ;
 
 /* typedef: struct ipaddr_t
@@ -98,11 +90,20 @@ typedef enum ipprotocol_e              ipprotocol_e ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_ipaddr
  * Unittest for resolving dns names into ip addresses. */
-extern int unittest_io_ipaddr(void) ;
+int unittest_io_ipaddr(void) ;
 #endif
 
 
-// section: ipport_t
+// struct: ipport_t
+// The UDP or TCP port number. Declares <ipport_t> as unsigned 16 bit.
+// The port is an id which identifies a running process on a host.
+// To communicate to a process on a remote system you need the
+// IP address of that system, its port and the protocol (UDP or TCP).
+//
+// Every application on a host must have a unique port number in the protocol domain
+// to be unambiguously identifiable by the system network layer.
+// If you do not know the correct port number but the service name use <initnamed_ipport>
+// first to determine it.
 
 // group: lifetime
 
@@ -122,7 +123,7 @@ extern int unittest_io_ipaddr(void) ;
  * ENOENT          - Service name does not exist.
  * EPROTONOSUPPORT - UDP or TCP protocol is not supported by service.
  * */
-extern int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotocol_e protocol) ;
+int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotocol_e protocol) ;
 
 
 /* struct: ipaddr_t
@@ -160,23 +161,23 @@ struct ipaddr_t {
  * port         - A port which identifies this process between all processes on this network node.
  *                If set to <ipport_ANY> (== 0) a free port is randomly chosen by the system during socket creation.
  * version      - IP version: Either <ipversion_4> or <ipversion_6>. */
-extern int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * numeric_addr, ipport_t port, ipversion_e version) ;
+int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * numeric_addr, ipport_t port, ipversion_e version) ;
 
 /* function: newdnsquery_ipaddr
  * Resolves a hostname into its first queried ip address. */
-extern int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * hostname, ipport_t port, ipversion_e version) ;
+int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * hostname, ipport_t port, ipversion_e version) ;
 
 /* function: newaddr_ipaddr
  * Create a new internet address and init it a system specific socket address value.
  * Same as <new_ipaddr> except that *port*, *numeric_address* and *version* are represented by system specific
  * type *sys_socketaddr_t*. If you do not longer need it do not forget to free it with <delete_ipaddr>. */
-extern int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock_addr_len, const sys_socketaddr_t * sock_addr) ;
+int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock_addr_len, const sys_socketaddr_t * sock_addr) ;
 
 /* function: newany_ipaddr
  * Create a new internet address suitable to listen on any network interface.
  * Same as <new_ipaddr> except that numeric_addr is set to "0.0.0.0" or "::" depending on the protocol version.
  * If you do not longer need it do not forget to free it with <delete_ipaddr>. */
-extern int newany_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
+int newany_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
 
 /* function: newloopback_ipaddr
  * Returns an ip address suitable for host only inter process communications.
@@ -184,17 +185,17 @@ extern int newany_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, ipport_
  * Connection to remote network nodes are not supported.
  * Same as <new_ipaddr> except that numeric_addr is set to the loopback address
  * "127.0.0.1" for IPv4 or "::1" for IPv6. */
-extern int newloopback_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
+int newloopback_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
 
 /* function: newcopy_ipaddr
  * Copy an internet address to store it for later usage.
  * If you do no longer need it do not forget to free it with <delete_ipaddr>. */
-extern int newcopy_ipaddr(/*out*/ipaddr_t ** dest, const ipaddr_t * source) ;
+int newcopy_ipaddr(/*out*/ipaddr_t ** dest, const ipaddr_t * source) ;
 
 /* function: delete_ipaddr
  * Deletes a created or copied address.
  * Never free an address returned by <ipaddr_list_t>. */
-extern int delete_ipaddr(ipaddr_t ** addr) ;
+int delete_ipaddr(ipaddr_t ** addr) ;
 
 // group: query
 
@@ -205,15 +206,15 @@ extern int delete_ipaddr(ipaddr_t ** addr) ;
  *  < 0  - left  < right
  * == 0  - left == right
  *  > 0  - left  > right */
-extern int compare_ipaddr(const ipaddr_t * left, const ipaddr_t * right) ;
+int compare_ipaddr(const ipaddr_t * left, const ipaddr_t * right) ;
 
 /* function: isvalid_ipaddr
  * Checks that internal fields are ok. */
-extern bool isvalid_ipaddr(const ipaddr_t * addr) ;
+bool isvalid_ipaddr(const ipaddr_t * addr) ;
 
 /* function: port_ipaddr
  * Returns the port number of the address. */
-extern ipport_t port_ipaddr(const ipaddr_t * addr) ;
+ipport_t port_ipaddr(const ipaddr_t * addr) ;
 
 /* variable: protocol_ipaddr
  * Returns the specified protocol for this ip address.
@@ -222,7 +223,7 @@ extern ipport_t port_ipaddr(const ipaddr_t * addr) ;
  * Return Values:
  * ipprotocol_TCP  - Connection oriented protocol
  * ipprotocol_UDP  - Connectionless protocol */
-extern ipprotocol_e protocol_ipaddr(const ipaddr_t * addr) ;
+ipprotocol_e protocol_ipaddr(const ipaddr_t * addr) ;
 
 /* function: version_ipaddr
  * Returns the supported version of the address.
@@ -231,7 +232,7 @@ extern ipprotocol_e protocol_ipaddr(const ipaddr_t * addr) ;
  * Returned Values:
  * ipversion_4 - Internet Protocol version 4.
  * ipversion_6 - Internet Protocol version 6. */
-extern ipversion_e version_ipaddr(const ipaddr_t * addr) ;
+ipversion_e version_ipaddr(const ipaddr_t * addr) ;
 
 /* function: dnsname_ipaddr
  * Tries a reverse mapping from a binary ip address into its dns name representation.
@@ -243,14 +244,14 @@ extern ipversion_e version_ipaddr(const ipaddr_t * addr) ;
  *
  * See:
  * <RFC: Internationalizing Domain Names in Applications at http://www.ietf.org/rfc/rfc3490.txt> */
-extern int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name) ;
+int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name) ;
 
 /* function: dnsnameace_ipaddr
  * Tries a reverse mapping from a binary ip address into its dns name representation.
  * Same as <dnsname_ipaddr> except that IDN represented in ACE are left untouched (not converted into unicode).
  * The name is returned in dns_name. This string must in a initialized state. Previous content is overwritten.
  * */
-extern int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name) ;
+int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name) ;
 
 /* function: numericname_ipaddr
  * Returns the numeric ascii representation of the ip address.
@@ -258,28 +259,28 @@ extern int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name) ;
  * or 8 16bit hexadecimal numbers separated by ':' for IPv6, i.e. '2010:0dcc:3543:0000:0000:4e9f:0370:2668'.
  * The name is returned in numeric_name. This string must in a initialized state. Previous content is overwritten.
  * */
-extern int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name) ;
+int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name) ;
 
 // group: change
 
 /* function: copy_ipaddr
  * Copies the ip number, protocol and port from source to dest.
  * If version of source is not the same as of dest EAFNOSUPPORT is returned. */
-extern int copy_ipaddr(ipaddr_t * dest, const ipaddr_t * source) ;
+int copy_ipaddr(ipaddr_t * dest, const ipaddr_t * source) ;
 
 /* function: setprotocol_ipaddr
  * Changes ip address' protocol value.
  * Returns 0 in case of success else EINVAL if protocol is not a value from <ipprotocol_e>. */
-extern int setprotocol_ipaddr(ipaddr_t * addr, ipprotocol_e protocol) ;
+int setprotocol_ipaddr(ipaddr_t * addr, ipprotocol_e protocol) ;
 
 /* function: setport_ipaddr
  * Changes ip address' port value. */
-extern int setport_ipaddr(ipaddr_t * addr, ipport_t port) ;
+int setport_ipaddr(ipaddr_t * addr, ipport_t port) ;
 
 /* function: setaddr_ipaddr
  * Sets the ip number, protocol and port.
  * If version of sock_addr is not the same as of addr EAFNOSUPPORT is returned. */
-extern int setaddr_ipaddr(ipaddr_t * addr, ipprotocol_e protocol, uint16_t sock_addr_len, const sys_socketaddr_t * sock_addr) ;
+int setaddr_ipaddr(ipaddr_t * addr, ipprotocol_e protocol, uint16_t sock_addr_len, const sys_socketaddr_t * sock_addr) ;
 
 
 /* struct: ipaddr_storage_t
@@ -310,11 +311,12 @@ struct ipaddr_storage_t {
  *
  * *Never* delete the returned <ipaddr_t> pointer. It points to the given addr (<ipaddr_storage_t>)
  * and is only valid as long as addr is not changed or deleted. */
-extern ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
+ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
 
 
 
-// section: ipaddr_list_t
+// struct: ipaddr_list_t
+// Stores list of <ipaddr_t>. Allows to iterate over every entry.
 
 // group: lifetime
 
@@ -328,23 +330,23 @@ extern ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e pr
  * ENOENT          - The dns name is not known.
  * ENODATA         - No data received (timeout) or the specified network host exists, but does not have any network addresses defined.
  * */
-extern int newdnsquery_ipaddrlist(/*out*/ipaddr_list_t ** addrlist, const char * hostname_or_numeric, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
+int newdnsquery_ipaddrlist(/*out*/ipaddr_list_t ** addrlist, const char * hostname_or_numeric, ipprotocol_e protocol, ipport_t port, ipversion_e version) ;
 
 /* function: delete_ipaddrlist
  * Frees memory of internal list of <ipaddr_list_t>. Calling it more than once is safe. */
-extern int delete_ipaddrlist(ipaddr_list_t ** addrlist) ;
+int delete_ipaddrlist(ipaddr_list_t ** addrlist) ;
 
 // group: read
 
 /* function: gofirst_ipaddrlist
  * Resets iterator to first <ipaddr_t> of internal list of addresses.
  * After calling this function the next call to <next_ipaddrlist> returns the first address in the buffer. */
-extern void gofirst_ipaddrlist(ipaddr_list_t * addrlist) ;
+void gofirst_ipaddrlist(ipaddr_list_t * addrlist) ;
 
 /* function: next_ipaddrlist
  * Returns next <ipaddr_t> from of internal list.
  * Only valid until next call to <next_ipaddrlist> or <delete_ipaddrlist>. */
-extern const ipaddr_t * next_ipaddrlist(ipaddr_list_t * addrlist) ;
+const ipaddr_t * next_ipaddrlist(ipaddr_list_t * addrlist) ;
 
 
 // section: inline implementation

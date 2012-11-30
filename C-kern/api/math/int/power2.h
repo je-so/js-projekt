@@ -38,7 +38,7 @@ int unittest_math_int_power2(void) ;
 #endif
 
 
-// section: int_t
+// struct: int_t
 
 // group: query
 

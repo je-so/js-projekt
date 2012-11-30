@@ -37,7 +37,7 @@ int unittest_math_int_log10(void) ;
 #endif
 
 
-// section: int_t
+// struct: int_t
 
 // group: compute
 

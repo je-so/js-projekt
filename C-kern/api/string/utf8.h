@@ -62,7 +62,9 @@ int unittest_string_utf8(void) ;
 #endif
 
 
-// group: utf8
+// struct: utf8
+
+// group: query
 
 /* function: sizechar_utf8
  * Returns the number of bytes of the next utf8 encoded character.
@@ -76,7 +78,7 @@ unsigned sizechar_utf8(const uint8_t firstbyte) ;
 bool islegal_utf8(const uint8_t firstbyte) ;
 
 
-// section: conststring_t
+// struct: conststring_t
 
 // group: utf8-stream
 

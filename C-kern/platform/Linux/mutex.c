@@ -1,5 +1,5 @@
-/* title: Thread Linux
-   Implements <Thread>.
+/* title: Mutex Linuximpl
+   Implements <Mutex>.
 
    about: Copyright
    This program is free software.
@@ -16,11 +16,11 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/thread.h
-    Header file of <Thread>.
+   file: C-kern/api/platform/sync/mutex.h
+    Header file of <Mutex>.
 
-   file: C-kern/platform/Linux/thread.c
-    Linux specific implementation <Thread Linux>.
+   file: C-kern/platform/Linux/mutex.c
+    Linux specific implementation <Mutex Linuximpl>.
 */
 
 #include "C-kern/konfig.h"

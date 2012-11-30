@@ -1,5 +1,5 @@
-/* title: Thread
-   Encapsulates os specific threading model.
+/* title: Mutex
+   Encapsulates an os specific exclusive lock.
 
    about: Copyright
    This program is free software.
@@ -16,22 +16,17 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/thread.h
-    Header file of <Thread>.
+   file: C-kern/api/platform/sync/mutex.h
+    Header file of <Mutex>.
 
-   file: C-kern/platform/Linux/thread.c
-    Linux specific implementation <Thread Linux>.
+   file: C-kern/platform/Linux/mutex.c
+    Linux specific implementation <Mutex Linuximpl>.
 */
 #ifndef CKERN_PLATFORM_SYNCHRONIZATION_MUTEX_HEADER
 #define CKERN_PLATFORM_SYNCHRONIZATION_MUTEX_HEADER
 
-/* typedef: mutex_t typedef
- * Exports <mutex_t> which describes a mutual exclusion lock.
- * This thread safe object is used to protect a critical section
- * of code against simultaneous execution by several threads.
- * Use <lock_mutex> before entering a critical section of code
- * and use <unlock_mutex> just before you leave it.
- * This mutex can only be used in the same process. */
+/* typedef: struct mutex_t
+ * Exports <mutex_t> into global namespace. */
 typedef sys_mutex_t                 mutex_t ;
 
 
@@ -42,11 +37,17 @@ typedef sys_mutex_t                 mutex_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_sync_mutex
  * Tests system thread functionality. */
-extern int unittest_platform_sync_mutex(void) ;
+int unittest_platform_sync_mutex(void) ;
 #endif
 
 
-// section: mutex_t
+// struct: mutex_t
+// Implements a mutual exclusion lock.
+// This thread safe object is used to protect a critical section
+// of code against simultaneous execution by several threads.
+// Use <lock_mutex> before entering a critical section of code
+// and use <unlock_mutex> just before you leave it.
+// This mutex can only be used in the same process.
 
 // group: lifetime
 
@@ -70,12 +71,12 @@ extern int unittest_platform_sync_mutex(void) ;
  * 3. Unlocking a mutex locked by a different thread is prevented and returns error EPERM.
  * 4. Unlocking an already unlocked mutex is prevented and returns error EPERM.
  * */
-extern int init_mutex(mutex_t * mutex) ;
+int init_mutex(mutex_t * mutex) ;
 
 /* function: free_mutex
  * Frees resources of mutex which is not in use.
  * Returns EBUSY if a thread holds a lock and nothing is freed. */
-extern int free_mutex(mutex_t * mutex) ;
+int free_mutex(mutex_t * mutex) ;
 
 // group: change
 
@@ -83,24 +84,24 @@ extern int free_mutex(mutex_t * mutex) ;
  * Locks a mutex. If another thread holds the lock the calling thread waits until the lock is released.
  * If a lock is acquired more than once a DEADLOCK results.
  * If you try to lock a freed mutex EINVAL is returned. */
-extern int lock_mutex(mutex_t * mutex) ;
+int lock_mutex(mutex_t * mutex) ;
 
 /* function: unlock_mutex
  * Unlocks a previously locked mutex.
  * Unlocking a mutex more than once is unspecified and may return success but corrupts internal counters.
  * Unlocking a mutex which another thread has locked works as if the lock holder thread would call unlock.
  * If you try to lock a freed mutex EINVAL is returned. */
-extern int unlock_mutex(mutex_t * mutex) ;
+int unlock_mutex(mutex_t * mutex) ;
 
 /* function: slock_mutex
  * Same as <lock_mutex>.
  * Except that an error leads to a system abort. */
-extern void slock_mutex(mutex_t * mutex) ;
+void slock_mutex(mutex_t * mutex) ;
 
 /* function: sunlock_mutex
  * Same as <unlock_mutex>.
  * Except that an error leads to a system abort. */
-extern void sunlock_mutex(mutex_t * mutex) ;
+void sunlock_mutex(mutex_t * mutex) ;
 
 
 // section: inline implementation

@@ -28,7 +28,7 @@
 #ifndef CKERN_PLATFORM_SYNCHRONIZATION_SIGNAL_HEADER
 #define CKERN_PLATFORM_SYNCHRONIZATION_SIGNAL_HEADER
 
-/* typedef: signalconfig_t typedef
+/* typedef: struct signalconfig_t
  * Export <signalconfig_t>. */
 typedef struct signalconfig_t          signalconfig_t ;
 
@@ -36,9 +36,8 @@ typedef struct signalconfig_t          signalconfig_t ;
  * Exports callback definition of a signal handler. */
 typedef void                        (* signalcallback_f) (unsigned signr) ;
 
-/* typedef: rtsignal_t
- * Exports realtime signal type as simple number.
- * The supported number range is 0..15 to be portable. */
+/* typedef: struct rtsignal_t
+ * Defines <rtsignal_t> signal type as uint8_t. */
 typedef uint8_t                        rtsignal_t ;
 
 
@@ -53,7 +52,9 @@ int unittest_platform_sync_signal(void) ;
 #endif
 
 
-// section: rtsignal_t
+// struct: rtsignal_t
+// Supports real time signal numbers.
+// The supported number range is 0..15 to be portable.
 
 // group: query
 

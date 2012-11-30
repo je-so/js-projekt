@@ -563,7 +563,7 @@ ONABORT:
 
 
 /* struct: ipaddr_list_t
- * Stores list of <ipaddr_t>. Allows to iterate ovr every entry. */
+ * Stores list of <ipaddr_t>. Allows to iterate over every entry. */
 struct ipaddr_list_t
 {
    /* variable: current_addr

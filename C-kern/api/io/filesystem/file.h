@@ -49,7 +49,7 @@ int unittest_io_file(void) ;
 #endif
 
 
-// section: file_t
+// struct: file_t
 
 // group: lifetime
 
@@ -85,9 +85,9 @@ int free_file(file_t * fileobj) ;
 
 // group: query
 
-/* function: convertfd_file
+/* function: fd_file
  * Returns the filedescriptor of an open file.
- * Returns filedescr_INIT_FREEABLE in case file is closed. */
+ * Returns <filedescr_t.filedescr_INIT_FREEABLE> in case file is closed. */
 sys_filedescr_t fd_file(const file_t * fileobj) ;
 
 /* function: isinit_file

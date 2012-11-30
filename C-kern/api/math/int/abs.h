@@ -40,7 +40,7 @@ int unittest_math_int_abs(void) ;
 #endif
 
 
-// section: int_t
+// struct: int_t
 
 // group: compute
 

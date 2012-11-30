@@ -199,9 +199,9 @@ Group: Api  {
 
       Group: Sync  {
 
+         File: Mutex  (api/platform/sync/mutex.h)
          File: PosixSignals  (api/platform/sync/signal.h)
          File: Semaphore  (api/platform/sync/semaphore.h)
-         File: Thread  (api/platform/sync/mutex.h)
          File: Waitlist  (api/platform/sync/waitlist.h)
          }  # Group: Sync
 
@@ -403,10 +403,10 @@ Group: Implementation  {
 
          File: Locale-support Linux  (platform/Linux/locale.c)
          File: Malloc impl  (platform/Linux/malloc.c)
+         File: Mutex Linuximpl  (platform/Linux/mutex.c)
          File: PosixSignals Linux  (platform/Linux/signal.c)
          File: ProcessManagement Linux  (platform/Linux/process.c)
          File: Semaphore Linux  (platform/Linux/semaphore.c)
-         File: Thread Linux  (platform/Linux/mutex.c)
          File: Thread Linux  (platform/Linux/thread.c)
          File: Timeclock Linux  (platform/Linux/clock.c)
          File: VirtualMemory Linux  (platform/Linux/virtmemory.c)
