@@ -96,7 +96,7 @@ int start_iotimer(iotimer_t timer, timevalue_t * relative_time)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      TRACESYSERR_LOG("timer_settime", err) ;
+      TRACESYSERR_LOG("timerfd_settime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
@@ -117,7 +117,7 @@ int startinterval_iotimer(iotimer_t timer, timevalue_t * interval_time)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      TRACESYSERR_LOG("timer_settime", err) ;
+      TRACESYSERR_LOG("timerfd_settime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
@@ -138,7 +138,7 @@ int stop_iotimer(iotimer_t timer)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      TRACESYSERR_LOG("timer_settime", err) ;
+      TRACESYSERR_LOG("timerfd_settime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    }
@@ -186,7 +186,7 @@ int remainingtime_iotimer(iotimer_t timer, timevalue_t * remaining_time)
 
    if (timerfd_gettime( timer, &next_timeout )) {
       err = errno ;
-      TRACESYSERR_LOG("timer_gettime", err) ;
+      TRACESYSERR_LOG("timerfd_gettime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    } else {

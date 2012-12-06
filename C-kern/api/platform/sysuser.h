@@ -155,8 +155,10 @@ int setusers_sysuser(sysuser_t realuser, sysuser_t privilegeduser) ;
  * ENOMEM          - Buffer allocation failed.
  * ERANGE          - Number of tries of wrong authentication reqeusts reached.
  * EPERM           - Not enough rights to authenticate user.
- * ENOTRECOVERABLE - Caller should exit process after this return
- * ELIBACC         - Shared system not found.
+ * ENOTRECOVERABLE - Caller should exit process after this value has been returned.
+ * ELIBACC         - Shared system library not found.
+ *
+ * Some underlying implementations are returns EACCES in case of EPERM or other error codes.
  *
  * Uses authentication service of the operating system to authenticate system users.
  * This means loading shated libraries into the running process. It is best to shield the caller by
