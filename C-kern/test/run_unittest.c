@@ -305,6 +305,7 @@ int run_unittest(void)
 
 //{ time unittest
       RUN(unittest_time_sysclock) ;
+      RUN(unittest_time_systimer) ;
 //}
 
 //{ io unittest
@@ -322,7 +323,6 @@ int run_unittest(void)
       // io
       RUN(unittest_io_filedescr) ;
       RUN(unittest_io_iocontroler) ;
-      RUN(unittest_io_iotimer) ;
       // io/filesystem
       RUN(unittest_io_directory) ;
       RUN(unittest_io_file) ;

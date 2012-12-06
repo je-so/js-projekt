@@ -151,7 +151,6 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/url.h"/>
       <VirtualDirectory Name="protocol"/>
-      <File Name="../../C-kern/api/io/iotimer.h"/>
       <File Name="../../C-kern/api/io/ioevent.h"/>
       <VirtualDirectory Name="reader">
         <File Name="../../C-kern/api/io/reader/utf8reader.h"/>
@@ -173,6 +172,7 @@
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/timevalue.h"/>
       <File Name="../../C-kern/api/time/sysclock.h"/>
+      <File Name="../../C-kern/api/time/systimer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="presentation">
       <VirtualDirectory Name="X11">
@@ -294,12 +294,12 @@
         <File Name="../../C-kern/platform/Linux/io/filedescr.c"/>
         <File Name="../../C-kern/platform/Linux/io/ipaddr.c"/>
         <File Name="../../C-kern/platform/Linux/io/ipsocket.c"/>
-        <File Name="../../C-kern/platform/Linux/io/iotimer.c"/>
         <File Name="../../C-kern/platform/Linux/io/iocontroler.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/platform/Linux/sysuser.c"/>
       <VirtualDirectory Name="time">
         <File Name="../../C-kern/platform/Linux/time/sysclock.c"/>
+        <File Name="../../C-kern/platform/Linux/time/systimer.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">

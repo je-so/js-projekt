@@ -1,11 +1,8 @@
-/* title: IOTimer
-   Offers a timer which signals timeout via input ready state
-   of <filedescr_t>. This allows you to handle timers like any
-   other io-device.
+/* title: SysTimer
+   Offers a timer which signals timeout via input ready state of <filedescr_t>.
+   This allows you to handle timers like any other io-device.
 
    You need to include "C-kern/api/time/timevalue.h" before you can use the interface.
-
-   TODO: Move iotimer to api/time/ and platform/Linux/time/.
 
    about: Copyright
    This program is free software.
@@ -22,14 +19,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/io/iotimer.h
-    Header file <IOTimer>.
+   file: C-kern/api/time/systimer.h
+    Header file <SysTimer>.
 
-   file: C-kern/platform/Linux/io/iotimer.c
-    Linux implementation file <IOTimer Linux>.
+   file: C-kern/platform/Linux/time/systimer.c
+    Linux implementation file <SysTimer Linux>.
 */
-#ifndef CKERN_IO_IOTIMER_HEADER
-#define CKERN_IO_IOTIMER_HEADER
+#ifndef CKERN_TIME_SYSTIMER_HEADER
+#define CKERN_TIME_SYSTIMER_HEADER
 
 #include "C-kern/api/time/sysclock.h"
 
@@ -37,10 +34,10 @@
 struct timevalue_t ;
 
 
-/* typedef: iotimer_t
- * Exports <iotimer_t> as alias for <filedescr_t>.
+/* typedef: systimer_t
+ * Exports <systimer_t> as alias for <filedescr_t>.
  * See <filedescr_t> or <sys_filedescr_t>. */
-typedef sys_filedescr_t                iotimer_t ;
+typedef sys_filedescr_t                systimer_t ;
 
 
 // section: Functions
@@ -48,71 +45,74 @@ typedef sys_filedescr_t                iotimer_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_iotimer
- * Unittest for <iotimer_t>. */
-int unittest_io_iotimer(void) ;
+/* function: unittest_time_systimer
+ * Unittest for <systimer_t>. */
+int unittest_time_systimer(void) ;
 #endif
 
 
-// section: iotimer
+/* struct: systimer_t
+ * Implements system timer to measure periods of time. */
 
 // group: lifetime
 
-/* define: iotimer_INIT_FREEABLE
+/* define: systimer_INIT_FREEABLE
  * Static initializer. */
-#define iotimer_INIT_FREEABLE          sys_filedescr_INIT_FREEABLE
+#define systimer_INIT_FREEABLE         sys_filedescr_INIT_FREEABLE
 
-/* function: init_iotimer
+/* function: init_systimer
  * Allocates a new system timer.
  * See <sysclock_e> for the different clocks the timer can use to measure time. */
-int init_iotimer(/*out*/iotimer_t * timer, sysclock_e clock_type) ;
+int init_systimer(/*out*/systimer_t * timer, sysclock_e clock_type) ;
 
-/* function: free_iotimer
+/* function: free_systimer
  * Frees any resources associated with the timer.
  * If the timer is running it will be stopped.*/
-int free_iotimer(iotimer_t * timer) ;
+int free_systimer(systimer_t * timer) ;
 
-// group: start/stop
+// group: measure
 
-/* function: start_iotimer
+/* function: start_systimer
  * This function starts (arms) a one shot timer.
  * The started timer fires (expires) only once after *relative_time* seconds (+nanoseconds).
  * After the timer has expired it is stopped. */
-int start_iotimer(iotimer_t timer, struct timevalue_t * relative_time) ;
+int start_systimer(systimer_t timer, struct timevalue_t * relative_time) ;
 
-/* function: startinterval_iotimer
+/* function: startinterval_systimer
  * This function starts (arms) a periodic timer.
  * The started timer fires (expires) at regular intervals after *interval_time* seconds (+nanoseconds).
  * After the timer has expired it is restarted with *interval_time*. */
-int startinterval_iotimer(iotimer_t timer, struct timevalue_t * interval_time) ;
+int startinterval_systimer(systimer_t timer, struct timevalue_t * interval_time) ;
 
-/* function: stop_iotimer
+/* function: stop_systimer
  * Stops a timer. If a timer is stopped the remaining time
  * and the expiration count are reset to 0. */
-int stop_iotimer(iotimer_t timer) ;
+int stop_systimer(systimer_t timer) ;
 
-/* function: wait_iotimer
+// group: wait
+
+/* function: wait_systimer
  * Waits until timer expires. It returns EINVAL if a stopped timer is waited for.
- * After a successfull call to this function calling expirationcount_iotimer will return
- * a value != 0. If the timer has already expired (expirationcount_iotimer return != 0)
+ * After a successfull call to this function calling expirationcount_systimer will return
+ * a value != 0. If the timer has already expired (expirationcount_systimer return != 0)
  * calling this function has no effect. It will return immediately.
  *
  * Event:
  * The timer is also a file descriptor. If the timer expires this is signaled as
  * file descriptor being readable. */
-int wait_iotimer(iotimer_t timer) ;
+int wait_systimer(systimer_t timer) ;
 
 // group: query
 
-/* function: remainingtime_iotimer
+/* function: remainingtime_systimer
  * Returns the remaining time until the timer expires the next time.
  * This value is a relative time value. */
-int remainingtime_iotimer(iotimer_t timer, struct timevalue_t * remaining_time) ;
+int remainingtime_systimer(systimer_t timer, struct timevalue_t * remaining_time) ;
 
-/* function: expirationcount_iotimer
+/* function: expirationcount_systimer
  * Returns the number of times the timer has expired. After reading it is reset to 0.
  * If timer which is not an interval timer expires only once and after that it is considered stopped. */
-int expirationcount_iotimer(iotimer_t timer, /*out*/uint64_t * expiration_count) ;
+int expirationcount_systimer(systimer_t timer, /*out*/uint64_t * expiration_count) ;
 
 
 #endif

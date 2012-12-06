@@ -28,7 +28,7 @@
 #include "C-kern/api/math/int/sqroot.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/io/iotimer.h"
+#include "C-kern/api/time/systimer.h"
 #include "C-kern/api/time/timevalue.h"
 #endif
 
@@ -364,29 +364,29 @@ ONABORT:
 
 static int test_speedcompare(void)
 {
-   iotimer_t timer = iotimer_INIT_FREEABLE ;
-   uint64_t  time_in_microseconds_slow = 0 ;
-   uint64_t  time_in_microseconds_fast = 0 ;
-   uint32_t  sum_slow = 0 ;
-   uint32_t  sum_fast = 0 ;
+   uint64_t   time_in_microseconds_slow = 0 ;
+   uint64_t   time_in_microseconds_fast = 0 ;
+   systimer_t timer    = systimer_INIT_FREEABLE ;
+   uint32_t   sum_slow = 0 ;
+   uint32_t   sum_fast = 0 ;
 
    if ((uint32_t(*)(uint64_t))&sys_sqroot_int64 == &sqroot_int64) {
       // compare default implementation with itself does not make sense
       return 0 ;
    }
 
-   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
-   TEST(0 == startinterval_iotimer(timer, &(timevalue_t) { .nanosec = 1000 } )) ;
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC)) ;
+   TEST(0 == startinterval_systimer(timer, &(timevalue_t) { .nanosec = 1000 } )) ;
    for (unsigned i = 0; i < 500000; ++i) {
       sum_slow += sqroot_int64(UINT64_MAX-i) ;
    }
-   TEST(0 == expirationcount_iotimer(timer, &time_in_microseconds_slow)) ;
+   TEST(0 == expirationcount_systimer(timer, &time_in_microseconds_slow)) ;
    for (unsigned i = 0; i < 500000; ++i) {
       sum_fast += (uint32_t)sys_sqroot_int64(UINT64_MAX-i) ;
    }
-   TEST(0 == expirationcount_iotimer(timer, &time_in_microseconds_fast)) ;
-   TEST(0 == stop_iotimer(timer)) ;
-   TEST(0 == free_iotimer(&timer)) ;
+   TEST(0 == expirationcount_systimer(timer, &time_in_microseconds_fast)) ;
+   TEST(0 == stop_systimer(timer)) ;
+   TEST(0 == free_systimer(&timer)) ;
 
    // TEST sqroot_int64 has same result as sys_sqroot_int64
    TEST(sum_slow == sum_fast) ;
@@ -396,7 +396,7 @@ static int test_speedcompare(void)
 
    return 0 ;
 ONABORT:
-   free_iotimer(&timer) ;
+   free_systimer(&timer) ;
    return EINVAL ;
 }
 

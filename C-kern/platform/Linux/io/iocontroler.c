@@ -36,7 +36,7 @@
 #include "C-kern/api/memory/mm/mm_it.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/io/iotimer.h"
+#include "C-kern/api/time/systimer.h"
 #include "C-kern/api/time/timevalue.h"
 #endif
 
@@ -417,7 +417,7 @@ ONABORT:
 static int test_initfree(void)
 {
    iocontroler_t  iocntr = iocontroler_INIT_FREEABLE ;
-   iotimer_t      timer  = iotimer_INIT_FREEABLE ;
+   systimer_t     timer  = systimer_INIT_FREEABLE ;
    uint64_t       millisec ;
    size_t         nr_events ;
    int            fd[40] ;
@@ -559,11 +559,11 @@ static int test_initfree(void)
 
    // TEST wait_iocontrolerds does not block
    TEST(0 == init_iocontroler(&iocntr)) ;
-   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
-   TEST(0 == startinterval_iotimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC)) ;
+   TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
    TEST(0 == wait_iocontroler(&iocntr, 0)) ;
-   TEST(0 == expirationcount_iotimer(timer, &millisec)) ;
-   TEST(0 == free_iotimer(&timer)) ;
+   TEST(0 == expirationcount_systimer(timer, &millisec)) ;
+   TEST(0 == free_systimer(&timer)) ;
    TEST(iocntr.nr_filedescr == 0) ;
    TEST(iocntr.nr_events    == 0) ;
    TEST(isfree_memblock(&iocntr.eventcache)) ;
@@ -585,11 +585,11 @@ static int test_initfree(void)
       TEST(0 != iocb) ;
       TEST(0 != iocb->next) ;
    }
-   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
-   TEST(0 == startinterval_iotimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC)) ;
+   TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
    TEST(0 == wait_iocontroler(&iocntr, 40)) ;
-   TEST(0 == expirationcount_iotimer(timer, &millisec)) ;
-   TEST(0 == free_iotimer(&timer)) ;
+   TEST(0 == expirationcount_systimer(timer, &millisec)) ;
+   TEST(0 == free_systimer(&timer)) ;
    TEST(iocntr.nr_filedescr == nrelementsof(fd)) ;
    TEST(iocntr.nr_events    == 0) ;
    TEST(! isfree_memblock(&iocntr.eventcache)) ;
@@ -668,7 +668,7 @@ ONABORT:
       free_filedescr(fd+i) ;
    }
    free_iocontroler(&iocntr) ;
-   free_iotimer(&timer) ;
+   free_systimer(&timer) ;
    return EINVAL ;
 }
 
@@ -732,7 +732,7 @@ static void test3_iohandler(test_iohandler_t * iohandler, filedescr_t fd, uint8_
 static int test_processevents(void)
 {
    iocontroler_t     iocntr = iocontroler_INIT_FREEABLE ;
-   iotimer_t         timer  = iotimer_INIT_FREEABLE ;
+   systimer_t        timer  = systimer_INIT_FREEABLE ;
    uint64_t          millisec ;
    size_t            nr_events ;
    int               fd[30] ;
@@ -766,11 +766,11 @@ static int test_processevents(void)
       TEST(0 == write_filedescr(fd[i+1], 1, "-", 0)) ;
    }
    nr_events = 1 ;
-   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
-   TEST(0 == startinterval_iotimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC)) ;
+   TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
    TEST(0 == processevents_iocontroler(&iocntr, 0, &nr_events)) ;
-   TEST(0 == expirationcount_iotimer(timer, &millisec)) ;
-   TEST(0 == free_iotimer(&timer)) ;
+   TEST(0 == expirationcount_systimer(timer, &millisec)) ;
+   TEST(0 == free_systimer(&timer)) ;
    TEST(nr_events              == 0) ;
    TEST(iocntr.nr_events       == 0) ;
    TEST(iocntr.nr_filedescr    == nrelementsof(fd)) ;
@@ -779,11 +779,11 @@ static int test_processevents(void)
 
    // TEST processevents_iocontroler waits 20msec
    nr_events = 1 ;
-   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
-   TEST(0 == startinterval_iotimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC)) ;
+   TEST(0 == startinterval_systimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
    TEST(0 == processevents_iocontroler(&iocntr, 20, &nr_events)) ;
-   TEST(0 == expirationcount_iotimer(timer, &millisec)) ;
-   TEST(0 == free_iotimer(&timer)) ;
+   TEST(0 == expirationcount_systimer(timer, &millisec)) ;
+   TEST(0 == free_systimer(&timer)) ;
    TEST(nr_events              == 0) ;
    TEST(iocntr.nr_events       == 0) ;
    TEST(iocntr.nr_filedescr    == nrelementsof(fd)) ;
@@ -985,7 +985,7 @@ ONABORT:
       free_filedescr(fd+i) ;
    }
    free_iocontroler(&iocntr) ;
-   free_iotimer(&timer) ;
+   free_systimer(&timer) ;
    return EINVAL ;
 }
 
