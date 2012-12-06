@@ -80,7 +80,7 @@
 #include <math.h>
 #include <netdb.h>
 #include <poll.h>
-#include <pthread.h>
+#include <pthread.h>   // -lpthread
 #include <pwd.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -89,11 +89,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <syslog.h>
-#include <time.h>
+#include <time.h>   // -lrt (clock_getres,clock_gettime,clock_settime)
 #include <ucontext.h>
 #include <unistd.h>
 #include <wchar.h>
+#define SYSUSER 1
+#if ((KONFIG_SUBSYS)&SYSUSER)
 #include <security/pam_appl.h>   // -lpam
+#endif
+#undef SYSUSER
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <sys/ioctl.h>
