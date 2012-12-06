@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Nov.30  15:00:31
+GenerationDate  := 2012.Dez.06  08:34:29
 GeneratedBy     := je-so
 
 ## Debug
@@ -76,7 +76,6 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sysuser.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!semaphore.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!clock.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!waitlist.c.o \
@@ -93,6 +92,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!exothread.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!exoscheduler.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o \
@@ -154,7 +154,6 @@ Objects_Debug := \
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!clock.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!waitlist.c.o \
@@ -171,6 +170,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!exothread.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!exoscheduler.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o \
@@ -241,9 +241,6 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sysu
 $(ObjectDir_Debug)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!clock.c.o: C-kern/platform/Linux/clock.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
@@ -290,6 +287,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/f
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!shared!task!exothread.c.o: C-kern/platform/shared/task/exothread.c
@@ -469,9 +469,6 @@ $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sy
 $(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!clock.c.o: C-kern/platform/Linux/clock.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
@@ -518,6 +515,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!shared!task!exothread.c.o: C-kern/platform/shared/task/exothread.c

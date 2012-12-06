@@ -375,7 +375,7 @@ static int test_speedcompare(void)
       return 0 ;
    }
 
-   TEST(0 == init_iotimer(&timer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
    TEST(0 == startinterval_iotimer(timer, &(timevalue_t) { .nanosec = 1000 } )) ;
    for (unsigned i = 0; i < 500000; ++i) {
       sum_slow += sqroot_int64(UINT64_MAX-i) ;

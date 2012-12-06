@@ -304,7 +304,7 @@ int run_unittest(void)
 //}
 
 //{ time unittest
-      RUN(unittest_time_clock) ;
+      RUN(unittest_time_sysclock) ;
 //}
 
 //{ io unittest

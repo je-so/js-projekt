@@ -171,8 +171,8 @@
       <File Name="../../C-kern/api/io/iocallback.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
-      <File Name="../../C-kern/api/time/clock.h"/>
       <File Name="../../C-kern/api/time/timevalue.h"/>
+      <File Name="../../C-kern/api/time/sysclock.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="presentation">
       <VirtualDirectory Name="X11">
@@ -278,7 +278,6 @@
   </VirtualDirectory>
   <VirtualDirectory Name="platform">
     <VirtualDirectory Name="Linux">
-      <File Name="../../C-kern/platform/Linux/clock.c"/>
       <File Name="../../C-kern/platform/Linux/locale.c"/>
       <File Name="../../C-kern/platform/Linux/malloc.c"/>
       <File Name="../../C-kern/platform/Linux/mutex.c"/>
@@ -299,6 +298,9 @@
         <File Name="../../C-kern/platform/Linux/io/iocontroler.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/platform/Linux/sysuser.c"/>
+      <VirtualDirectory Name="time">
+        <File Name="../../C-kern/platform/Linux/time/sysclock.c"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <VirtualDirectory Name="task">

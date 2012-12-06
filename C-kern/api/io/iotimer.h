@@ -31,7 +31,7 @@
 #ifndef CKERN_IO_IOTIMER_HEADER
 #define CKERN_IO_IOTIMER_HEADER
 
-#include "C-kern/api/time/clock.h"
+#include "C-kern/api/time/sysclock.h"
 
 // forward
 struct timevalue_t ;
@@ -64,8 +64,8 @@ int unittest_io_iotimer(void) ;
 
 /* function: init_iotimer
  * Allocates a new system timer.
- * See <timeclock_e> for the different clocks the timer can use to measure time. */
-int init_iotimer(/*out*/iotimer_t * timer, timeclock_e clock_type) ;
+ * See <sysclock_e> for the different clocks the timer can use to measure time. */
+int init_iotimer(/*out*/iotimer_t * timer, sysclock_e clock_type) ;
 
 /* function: free_iotimer
  * Frees any resources associated with the timer.

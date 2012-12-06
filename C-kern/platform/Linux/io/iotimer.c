@@ -40,8 +40,8 @@
 
 static inline void compiletime_(void)
 {
-   static_assert(CLOCK_REALTIME  == timeclock_REAL, "timeclock_e is compatible to clockid_t") ;
-   static_assert(CLOCK_MONOTONIC == timeclock_MONOTONIC, "timeclock_e is compatible to clockid_t") ;
+   static_assert(CLOCK_REALTIME  == sysclock_REAL, "sysclock_e is compatible to clockid_t") ;
+   static_assert(CLOCK_MONOTONIC == sysclock_MONOTONIC, "sysclock_e is compatible to clockid_t") ;
    static_assert(sizeof(uint64_t) >= sizeof(((struct itimerspec*)0)->it_interval.tv_sec), "conversion possible") ;
    static_assert(sizeof(uint32_t) <= sizeof(((struct itimerspec*)0)->it_interval.tv_sec), "conversion possible") ;
    static_assert(sizeof(((struct itimerspec*)0)->it_interval.tv_sec) == sizeof(time_t), "tv_sec is time_t") ;
@@ -52,8 +52,8 @@ static inline void compiletime_(void)
 }
 
 /* define: convertclockid
- * Converts <timeclock_e> into <clockid_t>. */
-#define convertclockid(/*timeclock_e*/clock_type) \
+ * Converts <sysclock_e> into <clockid_t>. */
+#define convertclockid(/*sysclock_e*/clock_type) \
    ((clockid_t) (clock_type))
 
 /* function: timespec2timevalue_iotimer
@@ -77,7 +77,7 @@ static inline uint64_t timespec_MAXSECONDS(void)
 
 // group: lifetime
 
-int init_iotimer(/*out*/iotimer_t* timer, timeclock_e clock_type)
+int init_iotimer(/*out*/iotimer_t* timer, sysclock_e clock_type)
 {
    int err ;
    clockid_t   clockid = convertclockid(clock_type) ;
@@ -270,7 +270,7 @@ static int test_initfree(void)
 
    // TEST init, double free
    TEST(0 == nropen_filedescr(&openfds[0])) ;
-   TEST(0 == init_iotimer(&iotimer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&iotimer, sysclock_MONOTONIC)) ;
    TEST(0 < iotimer) ;
    TEST(0 == nropen_filedescr(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]+1) ;
@@ -285,7 +285,7 @@ static int test_initfree(void)
 
    // TEST free a started timer
    TEST(0 == nropen_filedescr(&openfds[0])) ;
-   TEST(0 == init_iotimer(&iotimer, timeclock_REAL)) ;
+   TEST(0 == init_iotimer(&iotimer, sysclock_REAL)) ;
    TEST(0 < iotimer) ;
    TEST(0 == nropen_filedescr(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]+1) ;
@@ -301,7 +301,7 @@ static int test_initfree(void)
 
    // TEST free a started interval timer
    TEST(0 == nropen_filedescr(&openfds[0])) ;
-   TEST(0 == init_iotimer(&iotimer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&iotimer, sysclock_MONOTONIC)) ;
    TEST(0 < iotimer) ;
    TEST(0 == nropen_filedescr(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]+1) ;
@@ -316,7 +316,7 @@ static int test_initfree(void)
    TEST(openfds[1] == openfds[0]) ;
 
    // TEST start
-   TEST(0 == init_iotimer(&iotimer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&iotimer, sysclock_MONOTONIC)) ;
    TEST(0 < iotimer) ;
    TEST(0 == start_iotimer(iotimer, &(timevalue_t){ .nanosec = 100000 })) ;
    TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
@@ -384,7 +384,7 @@ static int test_initfree(void)
    TEST(EINVAL == start_iotimer(iotimer, &timeval)) ;
 
    // TEST wait timer
-   TEST(0 == init_iotimer(&iotimer, timeclock_REAL)) ;
+   TEST(0 == init_iotimer(&iotimer, sysclock_REAL)) ;
    TEST(0 < iotimer) ;
    TEST(0 == start_iotimer(iotimer, &(timevalue_t){ .nanosec = 100000/*0.1ms*/ })) ;
    TEST(0 == wait_iotimer(iotimer)) ;
@@ -399,7 +399,7 @@ static int test_initfree(void)
    TEST(-1 == iotimer) ;
 
    // TEST wait on stopped timer
-   TEST(0 == init_iotimer(&iotimer, timeclock_REAL)) ;
+   TEST(0 == init_iotimer(&iotimer, sysclock_REAL)) ;
    TEST(0 < iotimer) ;
    TEST(0 == start_iotimer(iotimer, &(timevalue_t){ .seconds = 10 })) ;
    TEST(0 == stop_iotimer(iotimer)) ;
@@ -420,7 +420,7 @@ static int test_initfree(void)
    TEST(-1 == iotimer) ;
 
    // TEST wait on interval timer
-   TEST(0 == init_iotimer(&iotimer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&iotimer, sysclock_MONOTONIC)) ;
    TEST(0 < iotimer) ;
    TEST(0 == startinterval_iotimer(iotimer, &(timevalue_t){ .nanosec = 100000 })) ;
    sleepms_thread(1) ;
@@ -452,9 +452,9 @@ ONABORT:
 static int test_timing(void)
 {
    iotimer_t   iotimer[3] = { iotimer_INIT_FREEABLE, iotimer_INIT_FREEABLE, iotimer_INIT_FREEABLE } ;
-   timeclock_e clocks[2]  = { timeclock_REAL, timeclock_MONOTONIC } ;
+   sysclock_e  clocks[2]  = { sysclock_REAL, sysclock_MONOTONIC } ;
    unsigned    iclock     = 0 ;
-   timeclock_e clock_type ;
+   sysclock_e  clock_type ;
    timevalue_t timeval ;
    timevalue_t starttime ;
    timevalue_t endtime ;
@@ -471,7 +471,7 @@ RESTART_TEST:
 
    // TEST 3 one shot timers running at different speed
    sleepms_thread(1) ;
-   TEST(0 == time_timeclock(clock_type, &starttime)) ;
+   TEST(0 == time_sysclock(clock_type, &starttime)) ;
    TEST(0 == start_iotimer(iotimer[0], &(timevalue_t){ .nanosec = 1000000 })) ;
    TEST(0 == start_iotimer(iotimer[1], &(timevalue_t){ .nanosec = 5000000 })) ;
    TEST(0 == start_iotimer(iotimer[2], &(timevalue_t){ .nanosec = 9000000 })) ;
@@ -510,7 +510,7 @@ RESTART_TEST:
    TEST(0 == wait_iotimer(iotimer[2])) ;
    TEST(0 == expirationcount_iotimer(iotimer[2], &expcount)) ;
    TEST(1 == expcount) ;
-   TEST(0 == time_timeclock(clock_type, &endtime)) ;
+   TEST(0 == time_sysclock(clock_type, &endtime)) ;
    uint64_t elapsed_nanosec = 1000000000 * (uint64_t) (endtime.seconds - starttime.seconds)
                             + (uint64_t) endtime.nanosec - (uint64_t) starttime.nanosec ;
    TEST(9000000 < elapsed_nanosec) ;
@@ -518,7 +518,7 @@ RESTART_TEST:
 
    // TEST 3 interval timers running at different speed
    sleepms_thread(1) ;
-   TEST(0 == time_timeclock(clock_type, &starttime)) ;
+   TEST(0 == time_sysclock(clock_type, &starttime)) ;
    TEST(0 == startinterval_iotimer(iotimer[0], &(timevalue_t){ .nanosec = 1000000 })) ;
    TEST(0 == startinterval_iotimer(iotimer[1], &(timevalue_t){ .nanosec = 2000000 })) ;
    TEST(0 == startinterval_iotimer(iotimer[2], &(timevalue_t){ .nanosec = 3000000 })) ;
@@ -535,7 +535,7 @@ RESTART_TEST:
          TEST(1 == expcount) ;
       }
    }
-   TEST(0 == time_timeclock(clock_type, &endtime)) ;
+   TEST(0 == time_sysclock(clock_type, &endtime)) ;
    elapsed_nanosec = 1000000000 * (uint64_t) (endtime.seconds - starttime.seconds)
                    + (uint64_t) endtime.nanosec - (uint64_t) starttime.nanosec ;
    TEST(10000000 < elapsed_nanosec) ;

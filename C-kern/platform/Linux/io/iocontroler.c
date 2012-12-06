@@ -559,7 +559,7 @@ static int test_initfree(void)
 
    // TEST wait_iocontrolerds does not block
    TEST(0 == init_iocontroler(&iocntr)) ;
-   TEST(0 == init_iotimer(&timer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
    TEST(0 == startinterval_iotimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
    TEST(0 == wait_iocontroler(&iocntr, 0)) ;
    TEST(0 == expirationcount_iotimer(timer, &millisec)) ;
@@ -585,7 +585,7 @@ static int test_initfree(void)
       TEST(0 != iocb) ;
       TEST(0 != iocb->next) ;
    }
-   TEST(0 == init_iotimer(&timer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
    TEST(0 == startinterval_iotimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
    TEST(0 == wait_iocontroler(&iocntr, 40)) ;
    TEST(0 == expirationcount_iotimer(timer, &millisec)) ;
@@ -766,7 +766,7 @@ static int test_processevents(void)
       TEST(0 == write_filedescr(fd[i+1], 1, "-", 0)) ;
    }
    nr_events = 1 ;
-   TEST(0 == init_iotimer(&timer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
    TEST(0 == startinterval_iotimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
    TEST(0 == processevents_iocontroler(&iocntr, 0, &nr_events)) ;
    TEST(0 == expirationcount_iotimer(timer, &millisec)) ;
@@ -779,7 +779,7 @@ static int test_processevents(void)
 
    // TEST processevents_iocontroler waits 20msec
    nr_events = 1 ;
-   TEST(0 == init_iotimer(&timer, timeclock_MONOTONIC)) ;
+   TEST(0 == init_iotimer(&timer, sysclock_MONOTONIC)) ;
    TEST(0 == startinterval_iotimer(timer, &(timevalue_t){ .nanosec = 1000000 } )) ;
    TEST(0 == processevents_iocontroler(&iocntr, 20, &nr_events)) ;
    TEST(0 == expirationcount_iotimer(timer, &millisec)) ;
