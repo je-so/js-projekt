@@ -1,0 +1,2 @@
+C-kern/platform/Linux/clock.c:123: sleep_timeclock(): error: 22: Function input violates condition (relative_time->seconds < timespec_MAXSECONDS())
+C-kern/platform/Linux/clock.c:138: sleep_timeclock(): error: 22: Function aborted

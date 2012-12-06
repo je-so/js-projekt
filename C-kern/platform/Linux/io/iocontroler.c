@@ -37,6 +37,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/iotimer.h"
+#include "C-kern/api/time/timevalue.h"
 #endif
 
 typedef struct iocontroler_iocb_t   iocontroler_iocb_t ;

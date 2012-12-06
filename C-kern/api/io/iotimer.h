@@ -3,6 +3,10 @@
    of <filedescr_t>. This allows you to handle timers like any
    other io-device.
 
+   You need to include "C-kern/api/time/timevalue.h" before you can use the interface.
+
+   TODO: Move iotimer to api/time/ and platform/Linux/time/.
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -27,7 +31,11 @@
 #ifndef CKERN_IO_IOTIMER_HEADER
 #define CKERN_IO_IOTIMER_HEADER
 
-#include "C-kern/api/time/timespec.h"
+#include "C-kern/api/time/clock.h"
+
+// forward
+struct timevalue_t ;
+
 
 /* typedef: iotimer_t
  * Exports <iotimer_t> as alias for <filedescr_t>.
@@ -42,7 +50,7 @@ typedef sys_filedescr_t                iotimer_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_iotimer
  * Unittest for <iotimer_t>. */
-extern int unittest_io_iotimer(void) ;
+int unittest_io_iotimer(void) ;
 #endif
 
 
@@ -57,12 +65,12 @@ extern int unittest_io_iotimer(void) ;
 /* function: init_iotimer
  * Allocates a new system timer.
  * See <timeclock_e> for the different clocks the timer can use to measure time. */
-extern int init_iotimer(/*out*/iotimer_t * timer, timeclock_e clock_type) ;
+int init_iotimer(/*out*/iotimer_t * timer, timeclock_e clock_type) ;
 
 /* function: free_iotimer
  * Frees any resources associated with the timer.
  * If the timer is running it will be stopped.*/
-extern int free_iotimer(iotimer_t * timer) ;
+int free_iotimer(iotimer_t * timer) ;
 
 // group: start/stop
 
@@ -70,18 +78,18 @@ extern int free_iotimer(iotimer_t * timer) ;
  * This function starts (arms) a one shot timer.
  * The started timer fires (expires) only once after *relative_time* seconds (+nanoseconds).
  * After the timer has expired it is stopped. */
-extern int start_iotimer(iotimer_t timer, timevalue_t * relative_time) ;
+int start_iotimer(iotimer_t timer, struct timevalue_t * relative_time) ;
 
 /* function: startinterval_iotimer
  * This function starts (arms) a periodic timer.
  * The started timer fires (expires) at regular intervals after *interval_time* seconds (+nanoseconds).
  * After the timer has expired it is restarted with *interval_time*. */
-extern int startinterval_iotimer(iotimer_t timer, timevalue_t * interval_time) ;
+int startinterval_iotimer(iotimer_t timer, struct timevalue_t * interval_time) ;
 
 /* function: stop_iotimer
  * Stops a timer. If a timer is stopped the remaining time
  * and the expiration count are reset to 0. */
-extern int stop_iotimer(iotimer_t timer) ;
+int stop_iotimer(iotimer_t timer) ;
 
 /* function: wait_iotimer
  * Waits until timer expires. It returns EINVAL if a stopped timer is waited for.
@@ -92,19 +100,19 @@ extern int stop_iotimer(iotimer_t timer) ;
  * Event:
  * The timer is also a file descriptor. If the timer expires this is signaled as
  * file descriptor being readable. */
-extern int wait_iotimer(iotimer_t timer) ;
+int wait_iotimer(iotimer_t timer) ;
 
 // group: query
 
 /* function: remainingtime_iotimer
  * Returns the remaining time until the timer expires the next time.
  * This value is a relative time value. */
-extern int remainingtime_iotimer(iotimer_t timer, timevalue_t * remaining_time) ;
+int remainingtime_iotimer(iotimer_t timer, struct timevalue_t * remaining_time) ;
 
 /* function: expirationcount_iotimer
  * Returns the number of times the timer has expired. After reading it is reset to 0.
  * If timer which is not an interval timer expires only once and after that it is considered stopped. */
-extern int expirationcount_iotimer(iotimer_t timer, /*out*/uint64_t * expiration_count) ;
+int expirationcount_iotimer(iotimer_t timer, /*out*/uint64_t * expiration_count) ;
 
 
 #endif

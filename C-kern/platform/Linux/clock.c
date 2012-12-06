@@ -24,8 +24,9 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/time/clock.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/time/clock.h"
+#include "C-kern/api/time/timevalue.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/thread.h"
@@ -38,14 +39,38 @@
 
 static inline void compiletime_(void)
 {
-   static_assert( CLOCK_REALTIME  == timeclock_REAL, "timeclock_e is compatible to clockid_t" ) ;
-   static_assert( CLOCK_MONOTONIC == timeclock_MONOTONIC, "timeclock_e is compatible to clockid_t" ) ;
+   static_assert(CLOCK_REALTIME  == timeclock_REAL, "timeclock_e is compatible to clockid_t") ;
+   static_assert(CLOCK_MONOTONIC == timeclock_MONOTONIC, "timeclock_e is compatible to clockid_t") ;
+   static_assert(sizeof(uint64_t) >= sizeof(((struct timespec*)0)->tv_sec), "conversion possible") ;
+   static_assert(sizeof(uint32_t) <= sizeof(((struct timespec*)0)->tv_sec), "conversion possible") ;
+   static_assert(sizeof(((struct timespec*)0)->tv_sec) == sizeof(time_t), "tv_sec is time_t") ;
+   static_assert((typeof(((struct timespec*)0)->tv_sec))-1 < 0, "tv_sec is time_t") ;
+   static_assert((time_t)-1 < 0, "time_t is signed") ;
 }
 
 /* define: convertclockid
  * Converts <timeclock_e> into <clockid_t>. */
 #define convertclockid(/*timeclock_e*/clock_type) \
    ((clockid_t) (clock_type))
+
+/* function: timespec2timevalue_timeclock
+ * Converts struct timespec into <timevalue_t>. */
+static inline void timespec2timevalue_timeclock(/*out*/timevalue_t * tval, const struct timespec * tspec)
+{
+   tval->seconds = (uint64_t) tspec->tv_sec ;
+   tval->nanosec = tspec->tv_nsec ;
+}
+
+/* function: timespec_MAXSECONDS
+ * Returns the maximum value timespec->tv_sec can hold. */
+static inline uint64_t timespec_MAXSECONDS(void)
+{
+   if (sizeof(((struct timespec*)0)->tv_sec) == sizeof(uint32_t)) {
+      return INT32_MAX ;
+   } else if (sizeof(((struct timespec*)0)->tv_sec) == sizeof(uint64_t)) {
+      return INT64_MAX ;
+   }
+}
 
 // group: query
 
@@ -62,8 +87,7 @@ int resolution_timeclock(timeclock_e clock_type, /*out*/timevalue_t * resolution
       goto ONABORT ;
    }
 
-   resolution->seconds = tspec.tv_sec ;
-   resolution->nanosec = tspec.tv_nsec ;
+   timespec2timevalue_timeclock(resolution, &tspec) ;
 
    return 0 ;
 ONABORT:
@@ -84,8 +108,7 @@ int time_timeclock(timeclock_e clock_type, /*out*/timevalue_t * clock_time)
       goto ONABORT ;
    }
 
-   clock_time->seconds = tspec.tv_sec ;
-   clock_time->nanosec = tspec.tv_nsec ;
+   timespec2timevalue_timeclock(clock_time, &tspec) ;
 
    return 0 ;
 ONABORT:
@@ -93,10 +116,13 @@ ONABORT:
    return err ;
 }
 
-int sleep_timeclock(timeclock_e clock_type, timevalue_t * relative_time)
+int sleep_timeclock(timeclock_e clock_type, const timevalue_t * relative_time)
 {
    int err ;
-   struct timespec   tspec   = { .tv_sec = relative_time->seconds, .tv_nsec = relative_time->nanosec } ;
+
+   VALIDATE_INPARAM_TEST(relative_time->seconds < timespec_MAXSECONDS(), ONABORT, ) ;
+
+   struct timespec   tspec   = { .tv_sec = (time_t) relative_time->seconds, .tv_nsec = relative_time->nanosec } ;
    clockid_t         clockid = convertclockid(clock_type) ;
 
    while (clock_nanosleep(clockid, 0, &tspec, &tspec)) {
@@ -138,12 +164,39 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_query(void)
+static int test_timevalue(void)
+{
+   timevalue_t timeval ;
+
+   // TEST timevalue_INIT
+   timeval = (timevalue_t) timevalue_INIT(10, 1000) ;
+   TEST(timeval.seconds == 10) ;
+   TEST(timeval.nanosec == 1000) ;
+   timeval = (timevalue_t) timevalue_INIT(0, 1) ;
+   TEST(timeval.seconds == 0) ;
+   TEST(timeval.nanosec == 1) ;
+
+   // TEST isvalid_timevalue
+   timeval = (timevalue_t) timevalue_INIT(0, 999999999u) ;
+   TEST(true == isvalid_timevalue(&timeval)) ;
+   timeval = (timevalue_t) timevalue_INIT(0, 1 + 999999999u) ;
+   TEST(false == isvalid_timevalue(&timeval)) ;
+   timeval = (timevalue_t) timevalue_INIT((uint64_t)-1, 999999999u) ;
+   TEST(true == isvalid_timevalue(&timeval)) ;
+   timeval = (timevalue_t) timevalue_INIT((uint64_t)-1, 1 + 999999999u) ;
+   TEST(false == isvalid_timevalue(&timeval)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_clockquery(void)
 {
    timevalue_t timeval ;
    timevalue_t timeval2 ;
 
-   // TEST: resolution_timeclock (at least 1ms)
+   // TEST resolution_timeclock: (at least 1ms)
    TEST(0 == resolution_timeclock(timeclock_REAL, &timeval)) ;
    TEST(0 == timeval.seconds) ;
    TEST(1000000 >= timeval.nanosec) ;
@@ -152,7 +205,7 @@ static int test_query(void)
    TEST(1000000  >= timeval2.nanosec) ;
    TEST(timeval.nanosec == timeval2.nanosec) ;
 
-   // TEST: time_timeclock (works only if scheduling is in bounds !)
+   // TEST time_timeclock: (works only if scheduling is in bounds !)
    static_assert(timeclock_REAL == 0 && timeclock_MONOTONIC == 1, ) ;
    for(int i = timeclock_REAL; i <= timeclock_MONOTONIC; ++i) {
       pthread_yield() ;
@@ -172,29 +225,43 @@ static int test_query(void)
       TEST( llabs(1000000 /*1msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
    }
 
-   // TEST: sleep_timeclock (works only if scheduling is in bounds !)
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_clockwait(void)
+{
+   timevalue_t timeval ;
+   timevalue_t timeval2 ;
+
+   // TEST sleep_timeclock: (works only if scheduling is in bounds !)
    static_assert(timeclock_REAL == 0 && timeclock_MONOTONIC == 1, ) ;
    for(int i = timeclock_REAL; i <= timeclock_MONOTONIC; ++i) {
       pthread_yield() ;
       timeclock_e clock_type = (timeclock_e) i ;
       TEST(0 == time_timeclock(clock_type, &timeval)) ;
-      timeval2.seconds = 0 ; timeval2.nanosec = 10000000 /*10msec*/;
+      timeval2 = (timevalue_t) timevalue_INIT(0, 10000000) /*10msec*/ ;
       TEST(0 == sleep_timeclock(clock_type, &timeval2)) ;
       TEST(0 == time_timeclock(clock_type, &timeval2)) ;
       uint64_t nanosec = (uint64_t) (timeval2.seconds - timeval.seconds) * 1000000000
                        + (uint64_t) timeval2.nanosec - (uint64_t) timeval.nanosec ;
-      TEST( llabs(10000000 /*10msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
+      TEST(llabs(10000000 /*10msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
       pthread_yield() ;
       TEST(0 == time_timeclock(clock_type, &timeval)) ;
-      timeval2.seconds = 0 ; timeval2.nanosec = 1000000 /*1msec*/;
+      timeval2 = (timevalue_t) timevalue_INIT(0, 1000000) /*1msec*/;
       TEST(0 == sleep_timeclock(clock_type, &timeval2)) ;
       TEST(0 == time_timeclock(clock_type, &timeval2)) ;
       nanosec = (uint64_t) (timeval2.seconds - timeval.seconds) * 1000000000
               + (uint64_t) timeval2.nanosec - (uint64_t) timeval.nanosec ;
-      TEST( llabs(1000000 /*1msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
+      TEST(llabs(1000000 /*1msec*/- (int64_t)nanosec) < 1000000/*1msec*/) ;
    }
 
-   // TEST: sleepms_timeclock (works only if scheduling is in bounds !)
+   // TEST sleep_timeclock: EINVAL
+   timeval = (timevalue_t) timevalue_INIT(timespec_MAXSECONDS(), 0) ;
+   TEST(EINVAL == sleep_timeclock(timeclock_REAL, &timeval)) ;
+
+   // TEST sleepms_timeclock: (works only if scheduling is in bounds !)
    static_assert(timeclock_REAL == 0 && timeclock_MONOTONIC == 1, ) ;
    for(int i = timeclock_REAL; i <= timeclock_MONOTONIC; ++i) {
       pthread_yield() ;
@@ -224,7 +291,9 @@ int unittest_time_clock()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_query())    goto ONABORT ;
+   if (test_timevalue())   goto ONABORT ;
+   if (test_clockquery())  goto ONABORT ;
+   if (test_clockwait())   goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

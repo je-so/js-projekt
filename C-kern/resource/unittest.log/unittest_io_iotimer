@@ -1,2 +1,6 @@
-C-kern/platform/Linux/io/iotimer.c:178: wait_iotimer(): error: 22: Function aborted
-C-kern/platform/Linux/io/iotimer.c:178: wait_iotimer(): error: 22: Function aborted
+C-kern/platform/Linux/io/iotimer.c:143: startinterval_iotimer(): error: 22: Function input violates condition (interval_time->seconds < timespec_MAXSECONDS())
+C-kern/platform/Linux/io/iotimer.c:159: startinterval_iotimer(): error: 22: Function aborted
+C-kern/platform/Linux/io/iotimer.c:119: start_iotimer(): error: 22: Function input violates condition (relative_time->seconds < timespec_MAXSECONDS())
+C-kern/platform/Linux/io/iotimer.c:135: start_iotimer(): error: 22: Function aborted
+C-kern/platform/Linux/io/iotimer.c:210: wait_iotimer(): error: 22: Function aborted
+C-kern/platform/Linux/io/iotimer.c:210: wait_iotimer(): error: 22: Function aborted

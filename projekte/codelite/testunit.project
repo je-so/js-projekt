@@ -172,7 +172,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/clock.h"/>
-      <File Name="../../C-kern/api/time/timespec.h"/>
+      <File Name="../../C-kern/api/time/timevalue.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="presentation">
       <VirtualDirectory Name="X11">

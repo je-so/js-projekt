@@ -24,13 +24,13 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/io/iotimer.h"
 #include "C-kern/api/io/filedescr.h"
-#include "C-kern/api/err.h"
+#include "C-kern/api/time/timevalue.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/thread.h"
-#include "C-kern/api/time/clock.h"
 #endif
 
 
@@ -40,14 +40,40 @@
 
 static inline void compiletime_(void)
 {
-   static_assert( CLOCK_REALTIME  == timeclock_REAL, "timeclock_e is compatible to clockid_t" ) ;
-   static_assert( CLOCK_MONOTONIC == timeclock_MONOTONIC, "timeclock_e is compatible to clockid_t" ) ;
+   static_assert(CLOCK_REALTIME  == timeclock_REAL, "timeclock_e is compatible to clockid_t") ;
+   static_assert(CLOCK_MONOTONIC == timeclock_MONOTONIC, "timeclock_e is compatible to clockid_t") ;
+   static_assert(sizeof(uint64_t) >= sizeof(((struct itimerspec*)0)->it_interval.tv_sec), "conversion possible") ;
+   static_assert(sizeof(uint32_t) <= sizeof(((struct itimerspec*)0)->it_interval.tv_sec), "conversion possible") ;
+   static_assert(sizeof(((struct itimerspec*)0)->it_interval.tv_sec) == sizeof(time_t), "tv_sec is time_t") ;
+   static_assert(sizeof(((struct itimerspec*)0)->it_value.tv_sec) == sizeof(time_t), "tv_sec is time_t") ;
+   static_assert((typeof(((struct itimerspec*)0)->it_interval.tv_sec))-1 < 0, "tv_sec is time_t") ;
+   static_assert((typeof(((struct itimerspec*)0)->it_value.tv_sec))-1 < 0, "tv_sec is time_t") ;
+   static_assert((time_t)-1 < 0, "time_t is signed") ;
 }
 
 /* define: convertclockid
  * Converts <timeclock_e> into <clockid_t>. */
 #define convertclockid(/*timeclock_e*/clock_type) \
    ((clockid_t) (clock_type))
+
+/* function: timespec2timevalue_iotimer
+ * Converts struct timespec into <timevalue_t>. */
+static inline void timespec2timevalue_iotimer(/*out*/timevalue_t * tval, const struct timespec * tspec)
+{
+   tval->seconds = (uint64_t) tspec->tv_sec ;
+   tval->nanosec = tspec->tv_nsec ;
+}
+
+/* function: timespec_MAXSECONDS
+ * Returns the maximum value timespec->tv_sec can hold. */
+static inline uint64_t timespec_MAXSECONDS(void)
+{
+   if (sizeof(((struct timespec*)0)->tv_sec) == sizeof(uint32_t)) {
+      return INT32_MAX ;
+   } else if (sizeof(((struct timespec*)0)->tv_sec) == sizeof(uint64_t)) {
+      return INT64_MAX ;
+   }
+}
 
 // group: lifetime
 
@@ -89,9 +115,12 @@ ONABORT:
 int start_iotimer(iotimer_t timer, timevalue_t * relative_time)
 {
    int err ;
+
+   VALIDATE_INPARAM_TEST(relative_time->seconds < timespec_MAXSECONDS(), ONABORT, ) ;
+
    struct itimerspec new_timeout = {
        .it_interval = { 0, 0 }
-      ,.it_value    = { .tv_sec = relative_time->seconds, .tv_nsec = relative_time->nanosec }
+      ,.it_value    = { .tv_sec = (time_t) relative_time->seconds, .tv_nsec = relative_time->nanosec }
    } ;
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
@@ -110,9 +139,12 @@ ONABORT:
 int startinterval_iotimer(iotimer_t timer, timevalue_t * interval_time)
 {
    int err ;
+
+   VALIDATE_INPARAM_TEST(interval_time->seconds < timespec_MAXSECONDS(), ONABORT, ) ;
+
    struct itimerspec new_timeout = {
-       .it_interval = { .tv_sec = interval_time->seconds, .tv_nsec = interval_time->nanosec }
-      ,.it_value    = { .tv_sec = interval_time->seconds, .tv_nsec = interval_time->nanosec }
+       .it_interval = { .tv_sec = (time_t) interval_time->seconds, .tv_nsec = interval_time->nanosec }
+      ,.it_value    = { .tv_sec = (time_t) interval_time->seconds, .tv_nsec = interval_time->nanosec }
    } ;
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
@@ -184,14 +216,13 @@ int remainingtime_iotimer(iotimer_t timer, timevalue_t * remaining_time)
    int err ;
    struct itimerspec next_timeout ;
 
-   if (timerfd_gettime( timer, &next_timeout )) {
+   if (timerfd_gettime(timer, &next_timeout)) {
       err = errno ;
       TRACESYSERR_LOG("timerfd_gettime", err) ;
       PRINTINT_LOG(timer) ;
       goto ONABORT ;
    } else {
-      remaining_time->seconds = next_timeout.it_value.tv_sec ;
-      remaining_time->nanosec = next_timeout.it_value.tv_nsec ;
+      timespec2timevalue_iotimer(remaining_time, &next_timeout.it_value) ;
    }
 
    return 0 ;
@@ -300,7 +331,7 @@ static int test_initfree(void)
    TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
    TEST(1 == expcount) ;
 
-   // TEST startinterval
+   // TEST startinterval_iotimer
    TEST(0 == startinterval_iotimer(iotimer, &(timevalue_t){ .nanosec = 100000 })) ;
    TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
    TEST(0 == timeval.seconds) ;
@@ -320,7 +351,7 @@ static int test_initfree(void)
    TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
    TEST(9 <= expcount) ;
 
-   // TEST start, stop timer
+   // TEST start_iotimer, stop_iotimer
    TEST(0 == start_iotimer(iotimer, &(timevalue_t){ .seconds = 10 })) ;
    TEST(0 == remainingtime_iotimer(iotimer, &timeval)) ;
    TEST(9 == timeval.seconds) ;
@@ -334,7 +365,7 @@ static int test_initfree(void)
    TEST(0 == expirationcount_iotimer(iotimer, &expcount)) ;
    TEST(0 == expcount) ;
 
-   // TEST startinterval, stop timer
+   // TEST startinterval, stop_iotimer
    TEST(0 == startinterval_iotimer(iotimer, &(timevalue_t){ .nanosec = 100000 })) ;
    sleepms_thread(1) ;
    // expiratiocount > 0
@@ -346,6 +377,11 @@ static int test_initfree(void)
    TEST(0 == expcount) ;
    TEST(0 == free_iotimer(&iotimer)) ;
    TEST(-1 == iotimer) ;
+
+   // TEST startinterval_iotimer, start_iotimer: EINVAL
+   timeval = (timevalue_t) timevalue_INIT(timespec_MAXSECONDS(), 0) ;
+   TEST(EINVAL == startinterval_iotimer(iotimer, &timeval)) ;
+   TEST(EINVAL == start_iotimer(iotimer, &timeval)) ;
 
    // TEST wait timer
    TEST(0 == init_iotimer(&iotimer, timeclock_REAL)) ;
