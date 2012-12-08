@@ -48,7 +48,7 @@ int unittest_memory_hwcache(void) ;
 // group: query
 
 /* function: sizedataprefetch_hwcache
- * Size of memory blocks transfered to and from data cache.
+ * Size of aligned memory block transfered to and from data cache.
  * The stored blocks are also called cache lines internally. A cache line stores
  * more then raw data bytes. It stores also the memory address and additional
  * flags which describe the state of the cached data.

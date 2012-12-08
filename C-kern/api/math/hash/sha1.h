@@ -55,8 +55,9 @@ int unittest_math_hash_sha1(void) ;
  * before the value in <h> is returned.
  *
  * Attention:
- * SHA-1 is not resistent to length extension attack. If you know SHA-1 and the tail of a message
- * you can extend the message and recompute SHA-1. */
+ * The length in bits is added automatically to the input before <value_sha1hash> returns the computed hash.
+ * This makes the computed SHA-1 mores resistent to length extension attacks.
+ * */
 struct sha1_hash_t {
    /* variable: datalen
     * Stores the number of bytes process so far. This value is needed

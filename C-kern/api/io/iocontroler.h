@@ -52,7 +52,10 @@ int unittest_io_iocontroler(void) ;
 /* struct: iocontroler_t
  * This object manages a set of <filedescr_t> and associated <iocallback_t> callbacks.
  * It monitors the registered file desciptor for one or more <ioevent_e>s and calls
- * back the associated I/O handlers for any occurred I/O events. */
+ * back for every filedescriptor the associated I/O handler in case of one or more occurred I/O events.
+ *
+ * TODO: Split iocontroler_t into component managing set of filedescriptor/callbacks
+ *       and component which returns an array of occurred events. */
 struct iocontroler_t {
    /* variable: sys_poll
     * Handle to the underlying system object. */
