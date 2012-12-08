@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Dez.06  08:42:48
+GenerationDate  := 2012.Dez.08  11:19:19
 GeneratedBy     := je-so
 
 ## Debug
@@ -138,6 +138,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
@@ -216,6 +217,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!float!decimal.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!memory!hwcache.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
@@ -425,6 +427,9 @@ $(ObjectDir_Debug)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!hwcache.c.o: C-kern/memory/hwcache.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
@@ -653,6 +658,9 @@ $(ObjectDir_Release)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!hwcache.c.o: C-kern/memory/hwcache.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c

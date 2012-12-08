@@ -282,6 +282,7 @@ int run_unittest(void)
 //}
 
 //{ memory unittest
+      RUN(unittest_memory_hwcache) ;
       RUN(unittest_memory_memblock) ;
       RUN(unittest_memory_wbuffer) ;
       RUN(unittest_memory_manager_transient) ;

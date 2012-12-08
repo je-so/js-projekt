@@ -88,6 +88,7 @@
         <File Name="../../C-kern/api/memory/mm/mm_macros.h"/>
         <File Name="../../C-kern/api/memory/mm/mm.h"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/memory/hwcache.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/valuecache.h"/>
@@ -334,6 +335,7 @@
     <VirtualDirectory Name="mm">
       <File Name="../../C-kern/memory/mm/mmtransient.c"/>
     </VirtualDirectory>
+    <File Name="../../C-kern/memory/hwcache.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="presentation">
     <VirtualDirectory Name="X11">
