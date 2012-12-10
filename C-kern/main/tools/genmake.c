@@ -189,8 +189,8 @@ int new_stringarray( const char * values, const char * separators, stringarray_t
    int valuesoffset = 0 ;
    for(size_t i = 0; i < valuecount; ++i) {
       (*result)->strings[i] = stringvalue ;
-      while( values[valuesoffset] && strchr( separators, values[valuesoffset])) ++valuesoffset ;
-      while( values[valuesoffset] && !strchr( separators, values[valuesoffset])) {
+      while (values[valuesoffset] && strchr(separators, values[valuesoffset])) ++valuesoffset ;
+      while (values[valuesoffset] && !strchr(separators, values[valuesoffset])) {
          *stringvalue = values[valuesoffset] ;
          ++stringvalue ;
          ++valuesoffset ;
@@ -485,14 +485,14 @@ void free_genmakeproject(genmakeproject_t** genmake)
       linkcommand_t * lc_next = lc->next;
       do {
          lc = lc_next ;
-         while( lc->targets ) {
+         while (lc->targets) {
             linktarget_t * next = lc->targets->next ;
             free(lc->targets) ;
             lc->targets = next ;
          }
          lc_next = lc->next ;
          free(lc) ;
-      } while( lc != (*genmake)->links ) ;
+      } while (lc != (*genmake)->links) ;
    }
    free((*genmake)) ;
    *genmake = 0 ;
@@ -523,7 +523,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
    strcpy( genmake->filename, filename) ;
    strncpy(genmake->name, projectname, namelen ) ;
    genmake->name[namelen] = 0 ;
-   while( strpbrk(genmake->name, " \t") ) *strpbrk(genmake->name, " \t") = '_' ;
+   while (strpbrk(genmake->name, " \t")) *strpbrk(genmake->name, " \t") = '_' ;
 
    for(int i = 0; g_predefinedIDs[i]; ++i) {
       // predefined variables are mapped onto itself !
@@ -579,7 +579,7 @@ static char * replace_vars(exthash_t * hashindex, int lineNr, const char * lineb
    char*    result = (char*) malloc(size) ;
    int      err = 0 ;
 
-   while( result ) {
+   while (result) {
       size_t varStart = len ;
       for(size_t i = bufferOffset; i < len; ++i) {
          if (   linebuffer[i]=='$'
@@ -745,7 +745,7 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
       if (modemapStart) {
          assert( modemapStart > &linebuffer[paramStart]) ;
          paramLen = (size_t) (modemapStart - &linebuffer[paramStart]) ;
-         while( *modemapStart == ' ' || *modemapStart == '\t')  ++modemapStart ;
+         while (*modemapStart == ' ' || *modemapStart == '\t')  ++modemapStart ;
       }
       if (!modemapStart || !*modemapStart) {
          print_err( "line %d expected mode mapping after 'read %s' in file '%s'\n", lineNr, &linebuffer[paramStart], filename ) ;
@@ -1258,7 +1258,7 @@ static int read_projectfile(genmakeproject_t * genmake)
    project_file_t*  prj_file_stack = &prj_file ;
 
    FILE * file ;
-   while( prj_file_stack )
+   while (prj_file_stack)
    {
       PROCESS_STACK:
 
@@ -1280,7 +1280,7 @@ static int read_projectfile(genmakeproject_t * genmake)
          err = 1 ;
       } else {
          int lineNr = prj_file_stack[0].lineNr ;
-         while( !feof(file) && !ferror(file) ) {
+         while (!feof(file) && !ferror(file)) {
             /* read one line */
             if (!fgets( linebuffer, sizeof(linebuffer), file)) continue ; /*read error or eof occured */
             size_t len = strlen(linebuffer) ;

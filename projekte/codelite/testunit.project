@@ -167,8 +167,8 @@
           <File Name="../../C-kern/api/io/writer/log/log.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
-      <File Name="../../C-kern/api/io/iocontroler.h"/>
       <File Name="../../C-kern/api/io/iocallback.h"/>
+      <File Name="../../C-kern/api/io/iopoll.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/timevalue.h"/>
@@ -295,7 +295,7 @@
         <File Name="../../C-kern/platform/Linux/io/filedescr.c"/>
         <File Name="../../C-kern/platform/Linux/io/ipaddr.c"/>
         <File Name="../../C-kern/platform/Linux/io/ipsocket.c"/>
-        <File Name="../../C-kern/platform/Linux/io/iocontroler.c"/>
+        <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/platform/Linux/sysuser.c"/>
       <VirtualDirectory Name="time">

@@ -98,7 +98,7 @@ struct @TYPENAME {\n\n\
 \n\
 /* function: init_@FCTSUFFIX\n\
  * TODO: Describe Initializes object. */\n\
-int init_@FCTSUFFIX(@TYPENAME * obj) ;\n\
+int init_@FCTSUFFIX(/*out*/@TYPENAME * obj) ;\n\
 \n\
 /* function: free_@FCTSUFFIX\n\
  * TODO: Describe Frees all associated resources. */\n\

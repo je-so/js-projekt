@@ -134,8 +134,8 @@ static int write_file( int outfd, const char * write_start, size_t write_size )
 static void skip_space( char ** current_pos, char * end_pos )
 {
    char * next = *current_pos ;
-   while(   next < end_pos
-         && ' ' == next[0]) {
+   while (  next < end_pos
+            && ' ' == next[0]) {
       ++ next ;
    }
    *current_pos = next ;
@@ -151,7 +151,7 @@ depfilename_written_t  * s_depfilenamewritten_list = 0 ;
 
 static int free_depfilenamewritten(void)
 {
-   while( s_depfilenamewritten_list ) {
+   while (s_depfilenamewritten_list) {
       depfilename_written_t * entry = s_depfilenamewritten_list ;
       s_depfilenamewritten_list = s_depfilenamewritten_list->next ;
       free(entry->depfilename) ;
@@ -247,7 +247,7 @@ static int scanheader_textdb( textdb_t * txtdb, char * next_char, size_t input_l
 
    size_t nr_cols = 1 ;
 
-   while( input_len ) {
+   while (input_len) {
       if ('\'' != *next_char && '"' != *next_char ) {
          print_err( "Expected ' or \" as first character of value in textdb file '%s' in line: %d", txtdb->filename, txtdb->line_number) ;
          goto ONABORT ;
@@ -324,7 +324,7 @@ static int tablesize_textdb( textdb_t * txtdb, /*out*/size_t * number_of_rows, /
 
    txtdb->line_number = 1 ;
 
-   while( input_len ) {
+   while (input_len) {
       if (' ' == *next_char || '\t' == *next_char || '\n' == *next_char ) {
          // ignore white space
          if ('\n' == *next_char) {
@@ -344,7 +344,7 @@ static int tablesize_textdb( textdb_t * txtdb, /*out*/size_t * number_of_rows, /
          ++ nr_rows ;
       }
       // find end of line
-      while( input_len ) {
+      while (input_len) {
          if ('\n' == *next_char) {
             break ;
          }
@@ -370,7 +370,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index )
 
    txtdb->line_number = 1 ;
 
-   while( input_len ) {
+   while (input_len) {
       // find line containing data
       for (;;) {
          if (' ' == *next_char || '\t' == *next_char || '\n' == *next_char ) {
@@ -382,7 +382,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index )
             ++ next_char ;
          } else if ('#' == *next_char) {
             // ignore comment
-            while( input_len ) {
+            while (input_len) {
                if ('\n' == *next_char) {
                   break ;
                }
@@ -402,7 +402,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index )
       size_t column_index = start_column_index ;
       bool   isExpectData = true ;
 
-      while( input_len ) {
+      while (input_len) {
          if ('\n' == *next_char) {
             break ;
          } else if (' ' == *next_char || '\t' == *next_char) {
@@ -431,7 +431,7 @@ static int readrows_textdb( textdb_t * txtdb, size_t start_column_index )
          -- input_len ;
          ++ next_char ;
          char * str = next_char ;
-         while( input_len ) {
+         while (input_len) {
             if (end_of_string == *next_char) {
                break ;
             }
@@ -618,12 +618,12 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_p
 
    skip_space( &start_expr, end_macro ) ;
    char * start_name = start_expr ;
-   while(   start_expr < end_macro
-         && start_expr[0] != ' '
-         && start_expr[0] != '\''
-         && start_expr[0] != '"'
-         && start_expr[0] != '!'
-         && start_expr[0] != '=' ) {
+   while (  start_expr < end_macro
+            && start_expr[0] != ' '
+            && start_expr[0] != '\''
+            && start_expr[0] != '"'
+            && start_expr[0] != '!'
+            && start_expr[0] != '=') {
       ++ start_expr ;
    }
 
@@ -661,8 +661,8 @@ static int parse_exprcompare(/*out*/expression_t ** result, /*out*/char ** end_p
    }
 
    ++ start_expr ;
-   while(   start_expr < end_macro
-         && start_expr[0] != start_value[0] ) {
+   while (  start_expr < end_macro
+            && start_expr[0] != start_value[0]) {
       ++ start_expr ;
    }
 
@@ -961,10 +961,10 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
          goto ONABORT ;
       }
       ++ next ;
-      while( next < end_macro && next[0] != *start_ifstr)
+      while (next < end_macro && next[0] != *start_ifstr)
          ++ next ;
 
-      if (next >= end_macro ) {
+      if (next >= end_macro) {
          print_err( "Expected closing %c after <(if () %c> in line: %d", *start_ifstr, *start_ifstr, start_linenr ) ;
          goto ONABORT ;
       }
@@ -989,9 +989,9 @@ static int parse_iffunction(/*out*/function_t ** funcobj, /*out*/char ** end_fct
       }
 
       ++ next ;
-      while( next < end_macro && next[0] != *start_elsestr)
+      while (next < end_macro && next[0] != *start_elsestr)
          ++ next ;
-      if (next >= end_macro ) {
+      if (next >= end_macro) {
          print_err( "Expected closing %c after <(if () '' else %c> in line: %d", *start_elsestr, *start_elsestr, start_linenr ) ;
          goto ONABORT ;
       }
@@ -1042,7 +1042,7 @@ static int delete_select_parameter(select_parameter_t ** param)
    int err = 0 ;
    select_parameter_t * next = *param ;
 
-   while( next ) {
+   while (next) {
       select_parameter_t * prev = next ;
       next = next->next ;
       if (prev->funcobj) {
@@ -1148,7 +1148,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
 
    assert(0 == *param) ;
 
-   while( start_param < end_macro && ' ' == start_param[0] ) {
+   while (start_param < end_macro && ' ' == start_param[0]) {
       ++ start_param ;
    }
 
@@ -1160,21 +1160,20 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
 
    char * next = start_param ;
 
-   while( next < end_macro ) {
+   while (next < end_macro) {
       ++ next ;
-      while(   next < end_macro
-            && ' ' == next[0]) {
+      while (  next < end_macro
+               && ' ' == next[0]) {
          ++ next ;
       }
       const char * start_field = next ;
-      while(   next < end_macro
-            && ' ' != next[0]
-            && '(' != next[0]
-            && ')' != next[0]
-            && '"' != next[0]
-            && '\'' != next[0]
-            && '\\' != next[0]
-            ) {
+      while (  next < end_macro
+               && ' ' != next[0]
+               && '(' != next[0]
+               && ')' != next[0]
+               && '"' != next[0]
+               && '\'' != next[0]
+               && '\\' != next[0]) {
          ++ next ;
       }
       size_t field_len = (size_t) (next - start_field) ;
@@ -1212,7 +1211,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
          if ('"' == next[0]) {
             do {
                ++ next ;
-            } while( next < end_macro && '"' != next[0]) ;
+            } while (next < end_macro && '"' != next[0]) ;
             if (next >= end_macro) {
                print_err( "Expected \" after %s(...\" in line: %d", cmd, start_linenr ) ;
                goto ONABORT ;
@@ -1221,7 +1220,7 @@ static int parse_select_parameter(/*out*/select_parameter_t ** param, /*out*/cha
          } else if ('\'' == next[0]) {
             do {
                ++ next ;
-            } while( next < end_macro && '\'' != next[0]) ;
+            } while (next < end_macro && '\'' != next[0]) ;
             if (next >= end_macro) {
                print_err( "Expected ' after %s(...' in line: %d", cmd, start_linenr ) ;
                goto ONABORT ;
@@ -1312,7 +1311,7 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    if (err) goto ONABORT ;
 
    char * start_from = end_param + 1 ;
-   while( start_from < end_macro && ' ' == start_from[0]) {
+   while (start_from < end_macro && ' ' == start_from[0]) {
       ++ start_from ;
    }
 
@@ -1458,7 +1457,7 @@ static int process_macro(const mmfile_t * input_file)
    size_t    input_size = size_mmfile(input_file) ;
    size_t   line_number = 1 ;
 
-   while(input_size) {
+   while (input_size) {
       // find start "// TEXTDB:..."
       size_t  start_linenr ;
       char   * start_macro ;

@@ -323,7 +323,7 @@ int run_unittest(void)
 //{ platform unittest
       // io
       RUN(unittest_io_filedescr) ;
-      RUN(unittest_io_iocontroler) ;
+      RUN(unittest_io_iopoll) ;
       // io/filesystem
       RUN(unittest_io_directory) ;
       RUN(unittest_io_file) ;

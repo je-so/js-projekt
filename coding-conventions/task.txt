@@ -107,7 +107,7 @@ about: Generic Structure of Exothread
 >    setstate_exothread(__extension__ &&exothread_LOOP) ;
 >    exothread_LOOP: ;
 >
->    while( need_some_more_computation ) {
+>    while (need_some_more_computation) {
 >       do_computation() ;
 >       return 0 ;
 >    }
@@ -145,7 +145,7 @@ about: Error Handling
 >    setstate_exothread(__extension__ &&exothread_LOOP) ;
 >    exothread_LOOP: ;
 >
->    while( need_some_more_computation ) {
+>    while (need_some_more_computation) {
 >       int err = do_computation() ;
 >       return err /* 0 == OK */ ;
 >    }
@@ -207,7 +207,7 @@ about: Subtyping Exothreads
 >    setstate_exothread(__extension__ &&exothread_LOOP) ;
 >    exothread_LOOP: ;
 >
->    while( need_some_more_computation ) {
+>    while (need_some_more_computation) {
 >       return do_computation() ;
 >    }
 >

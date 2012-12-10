@@ -32,6 +32,8 @@ typedef struct iocallback_t            iocallback_t ;
 /* typedef: iocallback_f
  * Callback function for handling <ioevent_t>.
  *
+ * TODO: Remove it or change signature to handle groups of events.
+ *
  * (In) Parameter:
  * iohandler  - The object which implements the io callback.
  * ioevents   - Every set bit in this integer value signals a different io event.

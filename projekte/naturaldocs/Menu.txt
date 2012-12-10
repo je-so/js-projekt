@@ -144,9 +144,8 @@ Group: Api  {
       File: Filedescriptor  (api/io/filedescr.h)
       File: IO-Accessmode  (api/io/accessmode.h)
       File: IOCallback  (api/io/iocallback.h)
-      File: IOControler  (api/io/iocontroler.h)
       File: IOEvent  (api/io/ioevent.h)
-      File: IOTimer  (api/io/iotimer.h)
+      File: IOPoll  (api/io/iopoll.h)
       File: URL  (api/io/url.h)
       }  # Group: Io
 
@@ -178,6 +177,7 @@ Group: Api  {
 
    Group: Memory  {
 
+      File: HWCache  (api/memory/hwcache.h)
       File: MemoryBlock  (api/memory/memblock.h)
 
       Group: Mm  {
@@ -197,6 +197,8 @@ Group: Api  {
 
          File: LinuxSystemContext  (api/platform/Linux/syscontext.h)
          File: LinuxSystemKonfig  (api/platform/Linux/syskonfig.h)
+         File: LinuxSystemOptimizations  (api/platform/Linux/sysoptimize.h)
+         File: LinuxSystemTypes  (api/platform/Linux/systypes.h)
          }  # Group: Linux
 
       Group: Sync  {
@@ -255,8 +257,9 @@ Group: Api  {
 
    Group: Time  {
 
-      File: Time-Specifications  (api/time/timespec.h)
-      File: Timeclock  (api/time/clock.h)
+      File: SystemClock  (api/time/sysclock.h)
+      File: SysTimer  (api/time/systimer.h)
+      File: TimeValue  (api/time/timevalue.h)
       }  # Group: Time
 
    File: ErrorHandling  (api/err.h)
@@ -376,6 +379,7 @@ Group: Implementation  {
 
    Group: Memory  {
 
+      File: HWCache impl  (memory/hwcache.c)
       File: MemoryBlock impl  (memory/memblock.c)
       File: TransientMemoryManager impl  (memory/mm/mmtransient.c)
       File: WBuffer impl  (memory/wbuffer.c)
@@ -403,8 +407,7 @@ Group: Implementation  {
             File: Filedescriptor Linux  (platform/Linux/io/filedescr.c)
             File: Internetprotocol-Address Linux  (platform/Linux/io/ipaddr.c)
             File: Internetprotocol-Sockets Linux  (platform/Linux/io/ipsocket.c)
-            File: IOControler Linux  (platform/Linux/io/iocontroler.c)
-            File: IOTimer Linux  (platform/Linux/io/iotimer.c)
+            File: IOPoll Linuximpl  (platform/Linux/io/iopoll.c)
             File: Memory-Mapped-File Linux  (platform/Linux/io/mmfile.c)
             }  # Group: Io
 
@@ -414,9 +417,10 @@ Group: Implementation  {
          File: PosixSignals Linux  (platform/Linux/signal.c)
          File: Process Linuximpl  (platform/Linux/process.c)
          File: Semaphore Linux  (platform/Linux/semaphore.c)
+         File: SystemClock Linux  (platform/Linux/time/sysclock.c)
          File: SystemUser Linuximpl  (platform/Linux/sysuser.c)
+         File: SysTimer Linux  (platform/Linux/time/systimer.c)
          File: Thread Linux  (platform/Linux/thread.c)
-         File: Timeclock Linux  (platform/Linux/clock.c)
          File: VirtualMemory Linux  (platform/Linux/virtmemory.c)
          File: Waitlist Linux  (platform/Linux/waitlist.c)
          }  # Group: Linux
