@@ -22,9 +22,6 @@
     <VirtualDirectory Name="resource">
       <File Name="../../C-kern/api/resource/logerrtext.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="adapter">
-      <File Name="../../C-kern/api/adapter/stream.h"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="string">
       <File Name="../../C-kern/api/string/string.h"/>
       <File Name="../../C-kern/api/string/cstring.h"/>
@@ -60,7 +57,6 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/sysuser.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="graphik"/>
     <VirtualDirectory Name="math">
       <VirtualDirectory Name="int">
         <File Name="../../C-kern/api/math/int/power2.h"/>
@@ -151,7 +147,6 @@
         <File Name="../../C-kern/api/io/ip/ipsocket.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/url.h"/>
-      <VirtualDirectory Name="protocol"/>
       <File Name="../../C-kern/api/io/ioevent.h"/>
       <VirtualDirectory Name="reader">
         <File Name="../../C-kern/api/io/reader/utf8reader.h"/>

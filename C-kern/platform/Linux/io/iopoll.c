@@ -524,6 +524,37 @@ static int test_waitevents(void)
    TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
    TEST(0 == nr_events) ;
 
+   // TEST wait_iopoll: registered with ioevent_EMPTY returns also ioevent_CLOSE
+   TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(0 == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, 10))) ;
+   TEST(1 == write(fd[0][1], "1", 1)) ;
+   TEST(0 == free_filedescr(&fd[0][1])) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(1 == nr_events) ;
+   TEST(ioevents[0].ioevents      == (ioevent_READ|ioevent_CLOSE)) ;
+   TEST(ioevents[0].eventid.val32 == 10) ;
+   TEST(0 == updatefd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_EMPTY, 11))) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(1 == nr_events) ;
+   TEST(ioevents[0].ioevents      == ioevent_CLOSE) ;
+   TEST(ioevents[0].eventid.val32 == 11) ;
+   TEST(0 == free_filedescr(&fd[0][0])) ;
+
+   // TEST wait_iopoll: registered with ioevent_EMPTY returns also ioevent_ERROR
+   TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
+   TEST(0 == registerfd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_WRITE, 10))) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(1 == nr_events) ;
+   TEST(ioevents[0].ioevents      == ioevent_WRITE) ;
+   TEST(ioevents[0].eventid.val32 == 10) ;
+   TEST(0 == free_filedescr(&fd[0][0])) ;
+   TEST(0 == updatefd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_EMPTY, 11))) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(1 == nr_events) ;
+   TEST(ioevents[0].ioevents      == ioevent_ERROR) ;
+   TEST(ioevents[0].eventid.val32 == 11) ;
+   TEST(0 == free_filedescr(&fd[0][1])) ;
+
    // TEST wait_iopoll: shutdown on unix sockets closed connection is signaled with ioevent_READ
    TEST(0 == socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0, fd[0])) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ|ioevent_WRITE, 0))) ;
