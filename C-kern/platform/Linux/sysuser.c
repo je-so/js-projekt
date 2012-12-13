@@ -31,6 +31,7 @@
 #include "C-kern/api/platform/sysuser.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/filedescr.h"
 #endif
 
 
@@ -575,11 +576,20 @@ ONABORT:
 
 int unittest_platform_sysuser()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage    = resourceusage_INIT_FREEABLE ;
+   int               logfd[2] = { -1, -1 } ;
+   pid_t             childid  ;
+   bool              isChildProcess = false ;
 
-   const pid_t childid        = fork() ;
+   TEST(0 == pipe2(logfd, O_CLOEXEC)) ;
+   {
+      long flags = fcntl(logfd[1], F_GETFD) ;
+      fcntl(logfd[1], F_SETFD, flags & (~FD_CLOEXEC)) ;
+   }
+
    // run unittest in child process to protect main process from loading additional shared libs !
-   const bool  isChildProcess = (0 == childid) ;
+   childid = fork() ;
+   isChildProcess = (0 == childid) ;
 
    TEST(childid != -1) ;
 
@@ -591,6 +601,16 @@ int unittest_platform_sysuser()
             || 0 != WEXITSTATUS(status)) {
          goto ONABORT ;
       }
+
+      // read log file from child
+      char logbuffer[256] = {0} ;
+      int  logsize ;
+      logsize = read(logfd[0], logbuffer, sizeof(logbuffer)-1) ;
+      if (logsize > 0) {
+         PRINTF_LOG("%s", logbuffer) ;
+      }
+      TEST(0 == free_filedescr(&logfd[0])) ;
+      TEST(0 == free_filedescr(&logfd[1])) ;
    }
 
    if (isChildProcess) {
@@ -606,11 +626,18 @@ int unittest_platform_sysuser()
       TEST(0 == same_resourceusage(&usage)) ;
       TEST(0 == free_resourceusage(&usage)) ;
 
+      // transfer log file
+      char     * logbuffer ;
+      size_t   logsize ;
+      GETBUFFER_LOG(&logbuffer, &logsize) ;
+      if ((size_t)write(logfd[1], logbuffer, logsize) != logsize) goto ONABORT ;
       exit(0) ;
    }
 
    return 0 ;
 ONABORT:
+   (void) free_filedescr(&logfd[0]) ;
+   (void) free_filedescr(&logfd[1]) ;
    (void) free_resourceusage(&usage) ;
    if (isChildProcess) exit(EINVAL) ;
    return EINVAL ;
