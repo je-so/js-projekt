@@ -265,12 +265,13 @@
       <File Name="../../coding-conventions/textresource.txt"/>
       <File Name="../../coding-conventions/error-handling.txt"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="text.db">
-      <File Name="../../C-kern/resource/text.db/signalconfig"/>
-      <File Name="../../C-kern/resource/text.db/initprocess"/>
-      <File Name="../../C-kern/resource/text.db/initthread"/>
-    </VirtualDirectory>
     <File Name="../../C-kern/resource/logerror2.text"/>
+    <VirtualDirectory Name="config">
+      <File Name="../../C-kern/resource/config/initprocess"/>
+      <File Name="../../C-kern/resource/config/initthread"/>
+      <File Name="../../C-kern/resource/config/signalconfig"/>
+      <File Name="../../C-kern/resource/config/modulevalues"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="platform">
     <VirtualDirectory Name="Linux">

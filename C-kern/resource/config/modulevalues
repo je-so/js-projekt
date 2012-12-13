@@ -1,0 +1,17 @@
+# TEXT.DB (1.0)
+# documentation:
+# List of values used to adapt all programs under C-kern/
+# to your system environment
+# These values are used at compiletime.
+# Runtime configurations will be handled elsewhere.
+
+"module",      "name",                                "value"
+
+# The name of service used during authentication.
+# sysuser_t registers itself to the underlying authentication
+# service provider with this name.
+"sysuser_t",   "SYS_SERVICE_NAME",                    "passwd"
+# The user/password combination used to test switching to other user in setuid program.
+"sysuser_t",   "UNITTEST_USERNAME",                   "guest"
+"sysuser_t",   "UNITTEST_PASSWORD",                   "GUEST"
+

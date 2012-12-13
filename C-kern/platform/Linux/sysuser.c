@@ -47,6 +47,17 @@ bool isequal_sysusercontext(sysusercontext_t * left, sysusercontext_t * right)
 
 // section: sysuser_t
 
+// group: static configuration
+
+// TEXTDB:SELECT('#undef  sysuser_'name\n'#define sysuser_'name'      "'value'"')FROM("C-kern/resource/config/modulevalues")WHERE(module=="sysuser_t")
+#undef  sysuser_SYS_SERVICE_NAME
+#define sysuser_SYS_SERVICE_NAME      "passwd"
+#undef  sysuser_UNITTEST_USERNAME
+#define sysuser_UNITTEST_USERNAME      "guest"
+#undef  sysuser_UNITTEST_PASSWORD
+#define sysuser_UNITTEST_PASSWORD      "GUEST"
+// TEXTDB:END
+
 // group: initonce
 
 int initonce_sysuser(/*out*/sysusercontext_t * sysuser)
@@ -240,7 +251,7 @@ int authenticate_sysuser(const char * username, const char * password)
    pam_handle_t      * pamhandle = 0 ;
    struct pam_conv   pamconv     = { .conv = &authenticatecallback_sysuser, .appdata_ptr = CONST_CAST(char,password) } ;
 
-   err = pam_start(sysuser_CONFIG_AUTHENTICATESERVICENAME, username, &pamconv, &pamhandle) ;
+   err = pam_start(sysuser_SYS_SERVICE_NAME, username, &pamconv, &pamhandle) ;
    err = pamerr2errno_sysuser(err) ;
    if (err) goto ONABORT ;
 
@@ -519,8 +530,8 @@ ONABORT:
 
 static int test_authenticate(bool iswarn)
 {
-   const char     * username = "guest" ;
-   const char     * password = "GUEST" ;
+   const char     * username = sysuser_UNITTEST_USERNAME ;
+   const char     * password = sysuser_UNITTEST_PASSWORD ;
    sysuserinfo_t  * usrinfo[2] = { 0 } ;
 
    // TEST authenticate_sysuser

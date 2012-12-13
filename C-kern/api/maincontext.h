@@ -105,7 +105,7 @@ struct maincontext_t {
  * Background:
  * This function calls init_processcontext and init_threadcontext which call every
  * initonce_NAME and initthread_NAME functions in the same order as defined in
- * "C-kern/resource/text.db/initprocess" and "C-kern/resource/text.db/initthread".
+ * "C-kern/resource/config/initprocess" and "C-kern/resource/config/initthread".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
 int init_maincontext(maincontext_e context_type, int argc, const char ** argv) ;
@@ -119,7 +119,7 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv) ;
  * Background:
  * This function calls free_threadcontext and then free_processcontext which call every
  * freethread_NAME and freeonce_NAME functions in the reverse order as defined in
- * "C-kern/resource/text.db/initthread" and "C-kern/resource/text.db/initprocess".
+ * "C-kern/resource/config/initthread" and "C-kern/resource/config/initprocess".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
 int free_maincontext(void) ;

@@ -2,9 +2,9 @@
 # *********************
 # Test textdb integrity
 # *******************************************************************
-# * 1. Tests that C-kern/resource/text.db/initthread contains all   *
+# * 1. Tests that C-kern/resource/config/initthread contains all    *
 #      initthread_NAME implementations from every source file       *
-# * 2. Tests that C-kern/resource/text.db/initprocess contains all  *
+# * 2. Tests that C-kern/resource/config/initprocess contains all   *
 # *    initonce_NAME    implementations from every source file      *
 # *******************************************************************
 # environment variables:
@@ -186,20 +186,20 @@ temp_compare1=`mktemp`
 temp_compare2=`mktemp`
 
 sort $temp_thread_db > $temp_compare1
-sort C-kern/resource/text.db/initthread \
+sort C-kern/resource/config/initthread \
     | sed -e "/^#/d;/^$/d" -e 's/"multi",/"",     /' -e 's/"single",/"",      /' \
     | uniq > $temp_compare2
 
 if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
-   info="$info  file: <C-kern/resource/text.db/initthread> is incomplete'\n"
+   info="$info  file: <C-kern/resource/config/initthread> is incomplete'\n"
    info="$info  start-diff:\n"`diff $temp_compare1 $temp_compare2 `"\n  end-diff:\n"
 fi
 
 sort $temp_process_db > $temp_compare1
-sort C-kern/resource/text.db/initprocess | sed -e "/^#/d;/^$/d" > $temp_compare2
+sort C-kern/resource/config/initprocess | sed -e "/^#/d;/^$/d" > $temp_compare2
 
 if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
-   info="$info  file: <C-kern/resource/text.db/initprocess> is incomplete'\n"
+   info="$info  file: <C-kern/resource/config/initprocess> is incomplete'\n"
    info="$info  start-diff:\n"`diff $temp_compare1 $temp_compare2 `"\n  end-diff:\n"
 fi
 

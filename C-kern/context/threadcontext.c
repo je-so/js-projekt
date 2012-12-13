@@ -29,7 +29,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/io/writer/log/logmain.h"
-// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initthread")
+// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initthread")
 #include "C-kern/api/memory/mm/mmtransient.h"
 #include "C-kern/api/cache/objectcache_impl.h"
 #include "C-kern/api/io/writer/log/logwriter.h"
@@ -62,7 +62,7 @@ int free_threadcontext(threadcontext_t * tcontext)
    switch(initcount) {
    default:    assert(0 != tcontext->initcount && "out of bounds") ;
                break ;
-// TEXTDB:SELECT("   case "row-id":     err2 = freethread_"module"("(if (parameter!="") "&tcontext->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/text.db/initthread)DESCENDING
+// TEXTDB:SELECT("   case "row-id":     err2 = freethread_"module"("(if (parameter!="") "&tcontext->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/config/initthread)DESCENDING
    case 3:     err2 = freethread_logwriter(&tcontext->log) ;
                if (err2) err = err2 ;
    case 2:     err2 = freethread_objectcacheimpl(&tcontext->objectcache) ;
@@ -89,7 +89,7 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext)
 
    VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONABORT, ) ;
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_error_init, ONABORT) ;"\n"   err = initthread_"module"("(if (parameter!="") "&tcontext->")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/text.db/initthread)
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_error_init, ONABORT) ;"\n"   err = initthread_"module"("(if (parameter!="") "&tcontext->")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/config/initthread)
 
    ONERROR_testerrortimer(&s_error_init, ONABORT) ;
    err = initthread_mmtransient(&tcontext->mm_transient) ;

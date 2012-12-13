@@ -27,7 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/context/processcontext.h"
 #include "C-kern/api/err.h"
-// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/text.db/initprocess")
+// TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initprocess")
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/platform/sync/signal.h"
@@ -50,7 +50,7 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
 
    pcontext->initcount = 0 ;
 
-// TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/text.db/initprocess")
+// TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
 
    err = initonce_locale() ;
    if (err) goto ONABORT ;
@@ -95,7 +95,7 @@ int free_processcontext(processcontext_t * pcontext)
    switch(initcount) {
    default: assert(0 != pcontext->initcount  && "out of bounds" )  ;
             break ;
-// TEXTDB:SELECT(\n"   case "row-id":  err2 = freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/text.db/initprocess")DESCENDING
+// TEXTDB:SELECT(\n"   case "row-id":  err2 = freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/config/initprocess")DESCENDING
 
    case 6:  err2 = freeonce_X11() ;
             if (err2) err = err2 ;

@@ -70,11 +70,20 @@ int unittest_platform_sysuser(void) ;
 
 // group: static configuration
 
-/* define: sysuser_CONFIG_AUTHENTICATESERVICENAME
+/* define: sysuser_SYS_SERVICE_NAME
  * The name of service used during authentication. The module registers itself to the
  * underlying authentication service provider with this name.
- * The current value uses the same name as the "passwd" service. */
-#define sysuser_CONFIG_AUTHENTICATESERVICENAME    "passwd"
+ * The current value uses the same name as the "passwd" service.
+ * This value can be overwritten in C-kern/resource/config/modulevalues. */
+#define sysuser_SYS_SERVICE_NAME         "passwd"
+
+/* define: sysuser_UNITTEST_USERNAME
+ * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>. */
+#define sysuser_UNITTEST_USERNAME               "guest"
+
+/* define: sysuser_UNITTEST_PASSWORD
+ * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>. */
+#define sysuser_UNITTEST_PASSWORD               "GUEST"
 
 // group: initonce
 
@@ -171,7 +180,7 @@ int setusers_sysuser(sysuser_t realuser, sysuser_t privilegeduser) ;
  * Linux specific:
  * The configuration file for PAM is stored in /etc/pam.d/service_name alternatively in /etc/pam.conf.
  * The fallback to /etc/pam.d/other is made if no service with this name exists. Currently the service name
- * "passwd" (see <sysuser_CONFIG_AUTHENTICATESERVICENAME>) is used therefore the configuration file /etc/pam.d/passwd
+ * "passwd" (see <sysuser_SYS_SERVICE_NAME>) is used therefore the configuration file /etc/pam.d/passwd
  * is used which is the configuration of the passwd command to change the own password.
  * This configuration should always exist. */
 int authenticate_sysuser(const char * username, const char * password) ;

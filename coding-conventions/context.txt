@@ -47,11 +47,11 @@ The function <maincontext_t.init_maincontext> calls <processcontext_t.init_proce
 The function <processcontext_t.init_processcontext> calls all functions with patterns
 > int initonce_NAME(void)
 > int initonce_NAME(service_t**)
-defined in any submodule in the same order as defined in "C-kern/resource/text.db/initprocess".
+defined in any submodule in the same order as defined in "C-kern/resource/config/initprocess".
 
 The function <threadcontext_t.init_threadcontext> calls all functions with pattern
 > int initthread_NAME(service_t**)
-defined in any submodule in the same order as defined in "C-kern/resource/text.db/initthread".
+defined in any submodule in the same order as defined in "C-kern/resource/config/initthread".
 
 This init database can be checked against the whole source tree with
 "C-kern/test/static/check_textdb.sh" - so that no entry is forgotten.

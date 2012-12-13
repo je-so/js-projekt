@@ -40,12 +40,12 @@ Subproject TextDB:
 
   Reads text database in CSV format and patches query result into C-source code.
   Used to manage initialization lists and to configure unix signal handlers.
-  See directory "C-kern/resource/text.db/" for the textdb databases.
+  See directory "C-kern/resource/config/" for textdb databases.
 
   Example:
   The following code shows how the init and free functions (which should be called once at the start of the process) are patched into code.
-  The list of functions is stored in the text database file 'C-kern/resource/text.db/initprocess'.
-  > // TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/text.db/initprocess")
+  The list of functions is stored in the text database file 'C-kern/resource/config/initprocess'.
+  > // TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
   > ...
   > err = initonce_valuecache(&pcontext->valuecache) ;
   > if (err) goto ONABORT ;
@@ -109,6 +109,8 @@ unittest_platform_sysuser:
   as the passwd system command. But to make the unittest work you
   should create a user "guest" with passowrd "GUEST" and either run
   the test as setuid root or as setuid guest to work.
+  If you want to change the values edit C-kern/resource/config/modulevalues
+  and change the values prefixed with module "sysuser_t".
 
 about: Make Targets
 

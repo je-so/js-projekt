@@ -28,7 +28,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/platform/thread.h"
-// TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='set')
+// TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/config/signalconfig")WHERE(action=='set')
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -202,7 +202,7 @@ int initonce_signalconfig()
 
 #define add(_SIGNR)  signr = (_SIGNR) ; if (sigaddset(&signalmask, signr)) goto ONABORT_add ;
 
-// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal") ;")FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='block')
+// TEXTDB:SELECT( (if (description!="") ("   // " description \n) ) "   add("signal") ;")FROM("C-kern/resource/config/signalconfig")WHERE(action=='block')
    // used to suspend and resume a single thread
    add(SIGINT) ;
    // SIGRTMIN ... SIGRTMIN+15 used in send_rtsignal
@@ -231,7 +231,7 @@ int initonce_signalconfig()
    err = sigemptyset(&signalmask) ;
    if (err) goto ONABORT_emptyset ;
 
-// TEXTDB:SELECT("   // "description\n"   add("signal") ;")FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='unblock'||action=='set')
+// TEXTDB:SELECT("   // "description\n"   add("signal") ;")FROM("C-kern/resource/config/signalconfig")WHERE(action=='unblock'||action=='set')
 // TEXTDB:END
    err = pthread_sigmask(SIG_UNBLOCK, &signalmask, 0) ;
    if (err) goto ONABORT_sigmask ;
@@ -243,7 +243,7 @@ int initonce_signalconfig()
    err = setcallback_signalconfig(_SIGNR, _CALLBACK) ;                  \
    if (err) goto ONABORT ;
 
-// TEXTDB:SELECT("   // "description\n"   set("signal", "callback") ;")FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='set')
+// TEXTDB:SELECT("   // "description\n"   set("signal", "callback") ;")FROM("C-kern/resource/config/signalconfig")WHERE(action=='set')
 // TEXTDB:END
 #undef set
 
@@ -253,7 +253,7 @@ int initonce_signalconfig()
    err = setignore_signalconfig(_SIGNR) ;                               \
    if (err) goto ONABORT ;
 
-// TEXTDB:SELECT("   // "description\n"   ignore("signal") ;")FROM("C-kern/resource/text.db/signalconfig")WHERE(action=='ignore')
+// TEXTDB:SELECT("   // "description\n"   ignore("signal") ;")FROM("C-kern/resource/config/signalconfig")WHERE(action=='ignore')
    // ensures that calls to write return EPIPE
    ignore(SIGPIPE) ;
 // TEXTDB:END

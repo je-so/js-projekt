@@ -1,7 +1,7 @@
 /* title: PosixSignals
    - Offers storing and comparing of different signal handler configurations.
    - Offers interface to set signal handling configuration at process start up.
-     The configuration is read from "C-kern/resource/text.db/signalhandler"
+     The configuration is read from "C-kern/resource/config/signalhandler"
      during compilation time.
 
    about: Copyright
@@ -96,7 +96,7 @@ struct signalconfig_t ;
 
 /* function: initonce_signalconfig
  * Sets up a process wide signal configuration at process startup.
- * The configuration is read from "C-kern/resource/text.db/signalhandler"
+ * The configuration is read from "C-kern/resource/config/signalhandler"
  * during compilation time. */
 int initonce_signalconfig(void) ;
 
