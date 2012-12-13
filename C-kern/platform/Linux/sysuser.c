@@ -577,21 +577,42 @@ int unittest_platform_sysuser()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
-   if (test_authenticate(true))     goto ONABORT ;
+   const pid_t childid        = fork() ;
+   // run unittest in child process to protect main process from loading additional shared libs !
+   const bool  isChildProcess = (0 == childid) ;
 
-   TEST(0 == init_resourceusage(&usage)) ;
+   TEST(childid != -1) ;
 
-   if (test_sysusercontext())       goto ONABORT ;
-   if (test_sysuser())              goto ONABORT ;
-   if (test_sysuserinfo())          goto ONABORT ;
-   if (test_authenticate(false))    goto ONABORT ;
+   if (! isChildProcess) {
+      // wait for child process to exit
+      int status = -1 ;
+      waitpid(childid, &status, 0) ;
+      if (  false == WIFEXITED(status)
+            || 0 != WEXITSTATUS(status)) {
+         goto ONABORT ;
+      }
+   }
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
+   if (isChildProcess) {
+      if (test_authenticate(true))     goto ONABORT ;
+
+      TEST(0 == init_resourceusage(&usage)) ;
+
+      if (test_sysusercontext())       goto ONABORT ;
+      if (test_sysuser())              goto ONABORT ;
+      if (test_sysuserinfo())          goto ONABORT ;
+      if (test_authenticate(false))    goto ONABORT ;
+
+      TEST(0 == same_resourceusage(&usage)) ;
+      TEST(0 == free_resourceusage(&usage)) ;
+
+      exit(0) ;
+   }
 
    return 0 ;
 ONABORT:
    (void) free_resourceusage(&usage) ;
+   if (isChildProcess) exit(EINVAL) ;
    return EINVAL ;
 }
 
