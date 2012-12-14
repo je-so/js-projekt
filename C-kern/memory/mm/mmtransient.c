@@ -52,7 +52,7 @@ static mmtransient_it   s_mmtransient_interface = mm_it_INIT(
                             &mresize_mmtransient
                            ,&mfree_mmtransient
                            ,&sizeallocated_mmtransient
-                         ) ;
+                        ) ;
 
 
 // section: mmtransient_t
@@ -78,7 +78,7 @@ int initthread_mmtransient(/*out*/mm_t * mm_transient)
    memcpy(newobject.addr, &tempobject, objsize) ;
 
    mm_transient->object = (struct mm_t*) newobject.addr;
-   mm_transient->iimpl  = (mm_it*) &s_mmtransient_interface ;
+   mm_transient->iimpl  = asgeneric_mmit(&s_mmtransient_interface, mmtransient_t) ;
 
    return 0 ;
 ONABORT:
@@ -94,7 +94,7 @@ int freethread_mmtransient(mm_t * mm_transient)
    mmtransient_t * delobject = (mmtransient_t*) mm_transient->object ;
 
    if (delobject) {
-      assert(&s_mmtransient_interface == (mmtransient_it*) mm_transient->iimpl) ;
+      assert(asgeneric_mmit(&s_mmtransient_interface, mmtransient_t) == mm_transient->iimpl) ;
 
       mm_transient->object = 0 ;
       mm_transient->iimpl  = 0 ;
@@ -234,7 +234,7 @@ static int test_initthread(void)
    // TEST initthread and double free
    TEST(0 == initthread_mmtransient(&mman)) ;
    TEST(mman.object != 0) ;
-   TEST(mman.iimpl  == (mm_it*)&s_mmtransient_interface) ;
+   TEST(mman.iimpl  == asgeneric_mmit(&s_mmtransient_interface, mmtransient_t)) ;
    TEST(0 == freethread_mmtransient(&mman)) ;
    TEST(0 == mman.object) ;
    TEST(0 == mman.iimpl) ;
@@ -264,7 +264,7 @@ static int test_allocate(void)
    TEST(0 == allocatedsize_malloc(&number_of_allocated_bytes)) ;
 
    // TEST mresize_mmtransient empty block, sizeallocated_mmtransient
-   for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
       TEST(0 == mresize_mmtransient(&mman, 16 * (1 + i), &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
@@ -278,7 +278,7 @@ static int test_allocate(void)
    }
 
    // TEST mresize_mmtransient allocated block, sizeallocated_mmtransient
-   for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       void * oldaddr = mblocks[i].addr ;
       TEST(0 == mresize_mmtransient(&mman, 2000, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
@@ -293,7 +293,7 @@ static int test_allocate(void)
    }
 
    // TEST mfree_mmtransient, sizeallocated_mmtransient
-   for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       TEST(0 == mfree_mmtransient(&mman, &mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
       TEST(0 == mblocks[i].addr) ;
@@ -320,7 +320,7 @@ static int test_mm_macros(void)
    memblock_t  mblocks[2] ;
 
    // TEST mresize empty block
-   for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
       TEST(0 == RESIZE_MM(32 + 32 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
@@ -328,7 +328,7 @@ static int test_mm_macros(void)
    }
 
    // TEST mresize allocated block
-   for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       void * oldaddr = mblocks[i].addr ;
       TEST(0 == RESIZE_MM(256 + 256 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
@@ -337,7 +337,7 @@ static int test_mm_macros(void)
    }
 
    // TEST mfree
-   for(unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
       TEST(0 == FREE_MM(&mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
       TEST(0 == mblocks[i].addr) ;
@@ -348,7 +348,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_memory_manager_transient()
+int unittest_memory_mm_mmtransient()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 

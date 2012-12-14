@@ -38,9 +38,9 @@ typedef struct mmtransient_t           mmtransient_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_memory_manager_transient
+/* function: unittest_memory_mm_mmtransient
  * Test transient memory manager <mmtransient_t>. */
-int unittest_memory_manager_transient(void) ;
+int unittest_memory_mm_mmtransient(void) ;
 #endif
 
 

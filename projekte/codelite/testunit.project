@@ -330,6 +330,7 @@
     <File Name="../../C-kern/memory/wbuffer.c"/>
     <VirtualDirectory Name="mm">
       <File Name="../../C-kern/memory/mm/mmtransient.c"/>
+      <File Name="../../C-kern/memory/mm/mm_it.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/memory/hwcache.c"/>
   </VirtualDirectory>
