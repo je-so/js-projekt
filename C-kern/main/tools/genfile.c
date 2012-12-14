@@ -88,7 +88,8 @@ int @UNITTESTNAME(void) ;\n\
 #endif\n\n\n\
 /* struct: @TYPENAME\n\
  * TODO: describe type */\n\
-struct @TYPENAME {\n\n\
+struct @TYPENAME {\n\
+   int dummy ; // TODO: remove line\n\
 } ;\n\n\
 // group: lifetime\n\
 \n\
@@ -139,7 +140,10 @@ static const char * s_templatesource =
 // group: test\n\n\
 #ifdef KONFIG_UNITTEST\n\n\
 static int test_initfree(void)\n\
-{\n\n\
+{\n\
+   @TYPENAME obj = @TYPENAME2_INIT_FREEABLE ;\n\n\
+   // TEST @TYPENAME2_INIT_FREEABLE\n\
+   TEST(0 == obj.dummy) ;\n\n\
    return 0 ;\n\
 ONABORT:\n\
    return EINVAL ;\n\
