@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Dez.14  09:34:56
+GenerationDate  := 2012.Dez.17  18:54:18
 GeneratedBy     := je-so
 
 ## Debug
@@ -126,6 +126,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sqroot.c.o \
@@ -206,6 +207,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sqroot.c.o \
@@ -393,6 +395,9 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmai
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/transCparser.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
@@ -627,6 +632,9 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logm
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/transCparser.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c

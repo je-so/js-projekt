@@ -177,6 +177,11 @@
         <File Name="../../C-kern/api/presentation/X11/x11.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
+    <VirtualDirectory Name="lang">
+      <VirtualDirectory Name="transC">
+        <File Name="../../C-kern/api/lang/transC/transCparser.h"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/valuecache.c"/>
@@ -323,6 +328,11 @@
     <File Name="../../C-kern/math/fpu.c"/>
     <VirtualDirectory Name="float">
       <File Name="../../C-kern/math/float/decimal.c"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="lang">
+    <VirtualDirectory Name="transC">
+      <File Name="../../C-kern/lang/transC/transCparser.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="memory">

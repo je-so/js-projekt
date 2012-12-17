@@ -46,14 +46,14 @@
  * Writes log buffer to "C-kern/resource/unittest.log/" + test_name. */
 static void generate_logresource(const char * test_name)
 {
-   int     err = EINVAL ;
-   int     fd  = sys_filedescr_INIT_FREEABLE ;
-   char   resource_path[sizeof(GENERATED_LOGRESOURCE_DIR) + strlen(test_name)] ;
+   int   err = EINVAL ;
+   int   fd  = sys_filedescr_INIT_FREEABLE ;
+   char  resource_path[sizeof(GENERATED_LOGRESOURCE_DIR) + strlen(test_name)] ;
 
-   strcpy( resource_path, GENERATED_LOGRESOURCE_DIR ) ;
-   strcpy( resource_path + sizeof(GENERATED_LOGRESOURCE_DIR)-1, test_name ) ;
+   strcpy(resource_path, GENERATED_LOGRESOURCE_DIR) ;
+   strcpy(resource_path + sizeof(GENERATED_LOGRESOURCE_DIR)-1, test_name) ;
 
-   fd = open( resource_path, O_CREAT|O_EXCL|O_RDWR|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
+   fd = open(resource_path, O_CREAT|O_EXCL|O_RDWR|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
    if (fd < 0) {
       err = errno ;
       goto ONABORT ;
@@ -61,10 +61,10 @@ static void generate_logresource(const char * test_name)
 
    char   * logbuffer ;
    size_t logbuffer_size ;
-   GETBUFFER_LOG( &logbuffer, &logbuffer_size ) ;
+   GETBUFFER_LOG(&logbuffer, &logbuffer_size) ;
 
    if (logbuffer_size) {
-      int logsize = write( fd, logbuffer, logbuffer_size ) ;
+      int logsize = write(fd, logbuffer, logbuffer_size) ;
       if (logbuffer_size != (unsigned)logsize) {
          CPRINTF_LOG(TEST, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
          goto ONABORT ;
@@ -75,8 +75,8 @@ static void generate_logresource(const char * test_name)
    return ;
 ONABORT:
    if (err != EEXIST) {
-      CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-      CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
+      CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
+      CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name) ;
    }
    free_filedescr(&fd) ;
    return ;
@@ -89,26 +89,26 @@ ONABORT:
  * The content of the log buffer is queried with <GETBUFFER_LOG>. */
 static int check_logresource(const char * test_name)
 {
-   int              err ;
-   mmfile_t     logfile = mmfile_INIT_FREEABLE ;
-   off_t   logfile_size ;
-   char   resource_path[sizeof(GENERATED_LOGRESOURCE_DIR) + strlen(test_name)] ;
+   int   err ;
+   mmfile_t logfile = mmfile_INIT_FREEABLE ;
+   off_t    logfile_size ;
+   char     resource_path[sizeof(GENERATED_LOGRESOURCE_DIR) + strlen(test_name)] ;
 
-   strcpy( resource_path, GENERATED_LOGRESOURCE_DIR ) ;
-   strcpy( resource_path + sizeof(GENERATED_LOGRESOURCE_DIR)-1, test_name ) ;
+   strcpy(resource_path, GENERATED_LOGRESOURCE_DIR) ;
+   strcpy(resource_path + sizeof(GENERATED_LOGRESOURCE_DIR)-1, test_name) ;
 
-   err = filesize_directory(0, resource_path, &logfile_size ) ;
+   err = filesize_directory(0, resource_path, &logfile_size) ;
    if (err) goto ONABORT ;
 
    if (logfile_size != 0) {
-      err = init_mmfile( &logfile, resource_path, 0, 0, mmfile_openmode_RDONLY, 0) ;
+      err = init_mmfile(&logfile, resource_path, 0, 0, mmfile_openmode_RDONLY, 0) ;
       if (err) goto ONABORT ;
       logfile_size = size_mmfile(&logfile) ;
    }
 
    char * logbuffer ;
    size_t logbuffer_size ;
-   GETBUFFER_LOG( &logbuffer, &logbuffer_size ) ;
+   GETBUFFER_LOG(&logbuffer, &logbuffer_size) ;
 
    if (logbuffer_size != logfile_size) {
       CPRINTF_LOG(TEST, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
@@ -117,10 +117,10 @@ static int check_logresource(const char * test_name)
    }
 
    char * stored_content = (char*) addr_mmfile(&logfile) ;
-   if (logbuffer_size && memcmp(stored_content, logbuffer, logbuffer_size )) {
+   if (logbuffer_size && memcmp(stored_content, logbuffer, logbuffer_size)) {
       mmfile_t logfile2 = mmfile_INIT_FREEABLE ;
       if (0 == initcreate_mmfile(&logfile2, "/tmp/logbuffer", logbuffer_size, 0)) {
-         memcpy( addr_mmfile(&logfile2), logbuffer, logbuffer_size ) ;
+         memcpy(addr_mmfile(&logfile2), logbuffer, logbuffer_size) ;
       }
       free_mmfile(&logfile2) ;
       CPRINTF_LOG(TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
@@ -133,8 +133,8 @@ static int check_logresource(const char * test_name)
 
    return 0 ;
 ONABORT:
-   CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-   CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name ) ;
+   CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
+   CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name) ;
    free_mmfile(&logfile) ;
    return err ;
 }
@@ -168,7 +168,7 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
 
    err = switchon_testmm() ;
    if (err) {
-      CPRINTF_LOG(TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__ ) ;
+      CPRINTF_LOG(TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
       CPRINTF_LOG(TEST, "switchon_testmm FAILED\n") ;
    } else {
       err = unittest() ;
@@ -188,7 +188,7 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
    }
 
    if (switchoff_testmm()) {
-      CPRINTF_LOG(TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__ ) ;
+      CPRINTF_LOG(TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
       CPRINTF_LOG(TEST, "switchoff_testmm FAILED\n") ;
    }
 
@@ -210,8 +210,8 @@ int run_unittest(void)
    unsigned    err_count   = 0 ;
    unsigned    total_count = 0 ;
    const maincontext_e test_context_type[2] = {
+      maincontext_DEFAULT,
       maincontext_DEFAULT
-      ,maincontext_DEFAULT
    } ;
 
    if (0 == checkpath_directory(0, "error.log")) {
@@ -230,8 +230,8 @@ int run_unittest(void)
 
       // init
       if (init_maincontext(test_context_type[type_nr], 0, 0)) {
-         CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-         CPRINTF_LOG(TEST, "%s\n", "Abort reason: initmain_context failed" ) ;
+         CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
+         CPRINTF_LOG(TEST, "%s\n", "Abort reason: initmain_context failed") ;
          goto ONABORT ;
       }
 
@@ -362,12 +362,16 @@ int run_unittest(void)
 #undef X11
 //}
 
+//{ lang(uage) unittest
+      RUN(unittest_lang_transc_transcparser) ;
+//}
+
 
       CLEARBUFFER_LOG() ;
 
       if (free_maincontext()) {
-         CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__ ) ;
-         CPRINTF_LOG(TEST, "%s\n", "Abort reason: freemain_context failed" ) ;
+         CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
+         CPRINTF_LOG(TEST, "%s\n", "Abort reason: freemain_context failed") ;
          goto ONABORT ;
       }
 
