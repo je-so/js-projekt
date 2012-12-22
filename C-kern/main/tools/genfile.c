@@ -25,7 +25,6 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/string/cstring.h"
 
@@ -276,34 +275,34 @@ static int check_variable(const char * filetemplate, /*out*/variable_e * varinde
    return EINVAL ;
 }
 
-static int substitute_variable(file_t * outfile, variable_e varindex)
+static int substitute_variable(file_t outfile, variable_e varindex)
 {
    int err ;
 
    switch (varindex) {
    case variable_TITLE:
-      err = write_file(outfile, strlen(s_filetitle), s_filetitle, 0) ;
+      err = write_file(outfile, strlen(s_filetitle), (const uint8_t*)s_filetitle, 0) ;
       break ;
    case variable_FCTSUFFIX:
-      err = write_file(outfile, length_cstring(&s_fctsuffix), str_cstring(&s_fctsuffix), 0) ;
+      err = write_file(outfile, length_cstring(&s_fctsuffix), (uint8_t*)str_cstring(&s_fctsuffix), 0) ;
       break ;
    case variable_HEADERPATH:
-      err = write_file(outfile, strlen(s_headerpath), s_headerpath, 0) ;
+      err = write_file(outfile, strlen(s_headerpath), (const uint8_t*)s_headerpath, 0) ;
       break ;
    case variable_HEADERTAG:
-      err = write_file(outfile, length_cstring(&s_headertag), str_cstring(&s_headertag), 0) ;
+      err = write_file(outfile, length_cstring(&s_headertag), (uint8_t*)str_cstring(&s_headertag), 0) ;
       break ;
    case variable_SOURCEPATH:
-      err = write_file(outfile, strlen(s_sourcepath), s_sourcepath, 0) ;
+      err = write_file(outfile, strlen(s_sourcepath), (const uint8_t*)s_sourcepath, 0) ;
       break ;
    case variable_TYPENAME2:
-      err = write_file(outfile, length_cstring(&s_typename2), str_cstring(&s_typename2), 0) ;
+      err = write_file(outfile, length_cstring(&s_typename2), (uint8_t*)str_cstring(&s_typename2), 0) ;
       break ;
    case variable_TYPENAME:
-      err = write_file(outfile, strlen(s_typename), s_typename, 0) ;
+      err = write_file(outfile, strlen(s_typename), (const uint8_t*)s_typename, 0) ;
       break ;
    case variable_UNITTESTNAME:
-      err = write_file(outfile, length_cstring(&s_unittestname), str_cstring(&s_unittestname), 0) ;
+      err = write_file(outfile, length_cstring(&s_unittestname), (uint8_t*)str_cstring(&s_unittestname), 0) ;
       break ;
    }
 
@@ -324,7 +323,7 @@ static int generate_file(const char * filetemplate, const char * filepath)
    if (err) goto ONABORT ;
 
    for (size_t toff = 0; filetemplate[toff]; ++toff) {
-      char c = filetemplate[toff] ;
+      uint8_t c = (uint8_t) filetemplate[toff] ;
 
       if (c == '@') {
          // variable substitution
@@ -332,13 +331,13 @@ static int generate_file(const char * filetemplate, const char * filepath)
          unsigned varlength ;
          if (0 == check_variable(&filetemplate[toff+1], &varindex, &varlength)) {
             toff += varlength ;
-            err = substitute_variable(&outfile, varindex) ;
+            err = substitute_variable(outfile, varindex) ;
             if (err) goto ONABORT ;
             continue ;
          }
       }
 
-      err = write_file(&outfile, 1, &c, 0) ;
+      err = write_file(outfile, 1, &c, 0) ;
       if (err) goto ONABORT ;
    }
 

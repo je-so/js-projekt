@@ -24,14 +24,14 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/maincontext.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/maincontext.h"
+#include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/io/writer/log/logmain.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/test/testmm.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/thread.h"
@@ -277,9 +277,9 @@ static int test_initmain(void)
    TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
    TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
-   TEST(0 == free_filedescr(&fd_stderr)) ;
-   TEST(0 == free_filedescr(&fdpipe[0])) ;
-   TEST(0 == free_filedescr(&fdpipe[1])) ;
+   TEST(0 == free_file(&fd_stderr)) ;
+   TEST(0 == free_file(&fdpipe[0])) ;
+   TEST(0 == free_file(&fdpipe[1])) ;
 
    if (maincontext_STATIC != old_context.type) {
       init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
@@ -289,9 +289,9 @@ static int test_initmain(void)
    return 0 ;
 ONABORT:
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
-   free_filedescr(&fd_stderr) ;
-   free_filedescr(&fdpipe[0]);
-   free_filedescr(&fdpipe[1]);
+   free_file(&fd_stderr) ;
+   free_file(&fdpipe[0]);
+   free_file(&fdpipe[1]);
    return EINVAL ;
 }
 
@@ -358,9 +358,9 @@ static int test_initerror(void)
    TEST(0 != process_maincontext().initcount) ;
 
    TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
-   TEST(0 == free_filedescr(&fd_stderr)) ;
-   TEST(0 == free_filedescr(&fdpipe[0])) ;
-   TEST(0 == free_filedescr(&fdpipe[1])) ;
+   TEST(0 == free_file(&fd_stderr)) ;
+   TEST(0 == free_file(&fdpipe[0])) ;
+   TEST(0 == free_file(&fdpipe[1])) ;
 
    CPRINTF_LOG(ERR, "%s", buffer) ;
 
@@ -379,9 +379,9 @@ ONABORT:
       free_maincontext() ;
    }
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
-   free_filedescr(&fd_stderr) ;
-   free_filedescr(&fdpipe[0]);
-   free_filedescr(&fdpipe[1]);
+   free_file(&fd_stderr) ;
+   free_file(&fdpipe[0]);
+   free_file(&fdpipe[1]);
    return EINVAL ;
 }
 
@@ -421,9 +421,9 @@ static int test_progname(void)
    TEST(0 < bytes || (errno = EAGAIN && -1 == bytes)) ;
 
    TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
-   TEST(0 == free_filedescr(&fd_stderr)) ;
-   TEST(0 == free_filedescr(&fdpipe[0])) ;
-   TEST(0 == free_filedescr(&fdpipe[1])) ;
+   TEST(0 == free_file(&fd_stderr)) ;
+   TEST(0 == free_file(&fdpipe[0])) ;
+   TEST(0 == free_file(&fdpipe[1])) ;
 
    if (maincontext_STATIC != old_context.type) {
       init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
@@ -433,9 +433,9 @@ static int test_progname(void)
    return 0 ;
 ONABORT:
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
-   free_filedescr(&fd_stderr) ;
-   free_filedescr(&fdpipe[0]);
-   free_filedescr(&fdpipe[1]);
+   free_file(&fd_stderr) ;
+   free_file(&fdpipe[0]);
+   free_file(&fdpipe[1]);
    return EINVAL ;
 }
 

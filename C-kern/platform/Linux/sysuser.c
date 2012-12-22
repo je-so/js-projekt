@@ -31,7 +31,7 @@
 #include "C-kern/api/platform/sysuser.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/io/filesystem/file.h"
 #endif
 
 
@@ -609,8 +609,8 @@ int unittest_platform_sysuser()
       if (logsize > 0) {
          PRINTF_LOG("%s", logbuffer) ;
       }
-      TEST(0 == free_filedescr(&logfd[0])) ;
-      TEST(0 == free_filedescr(&logfd[1])) ;
+      TEST(0 == free_file(&logfd[0])) ;
+      TEST(0 == free_file(&logfd[1])) ;
    }
 
    if (isChildProcess) {
@@ -636,8 +636,8 @@ int unittest_platform_sysuser()
 
    return 0 ;
 ONABORT:
-   (void) free_filedescr(&logfd[0]) ;
-   (void) free_filedescr(&logfd[1]) ;
+   (void) free_file(&logfd[0]) ;
+   (void) free_file(&logfd[1]) ;
    (void) free_resourceusage(&usage) ;
    if (isChildProcess) exit(EINVAL) ;
    return EINVAL ;

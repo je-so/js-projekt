@@ -26,8 +26,6 @@
 #ifndef CKERN_PLATFORM_PROCESS_HEADER
 #define CKERN_PLATFORM_PROCESS_HEADER
 
-#include "C-kern/api/io/filedescr.h"
-
 /* typedef: struct process_t
  * Make <process_t> an alias of <sys_process_t>. */
 typedef sys_process_t                  process_t ;
@@ -55,10 +53,10 @@ typedef struct process_ioredirect_t    process_ioredirect_t ;
  * process_state_TERMINATED  - The process has exited normal and returned an exit code.
  * process_state_ABORTED     - The process has ended due to an abnormal condition (unhandled signal/exception). */
 enum process_state_e {
-    process_state_RUNNABLE
-   ,process_state_STOPPED
-   ,process_state_TERMINATED
-   ,process_state_ABORTED
+   process_state_RUNNABLE,
+   process_state_STOPPED,
+   process_state_TERMINATED,
+   process_state_ABORTED
 } ;
 
 typedef enum process_state_e        process_state_e ;
@@ -103,9 +101,9 @@ struct process_result_t
  * Make sure that redirected files are automatically closed in case
  * another process is executed (i.e. have set their O_CLOEXEC flag). */
 struct process_ioredirect_t {
-   filedescr_t  std_in ;
-   filedescr_t  std_out ;
-   filedescr_t  std_err ;
+   sys_filedescr_t   std_in ;
+   sys_filedescr_t   std_out ;
+   sys_filedescr_t   std_err ;
 } ;
 
 // group: lifetime
@@ -114,26 +112,26 @@ struct process_ioredirect_t {
  * Static initializer lets new process write and read from null device.
  * All written output is therefore ignored and reading returns always
  * with 0 bytes read. */
-#define process_ioredirect_INIT_DEVNULL      { filedescr_INIT_FREEABLE, filedescr_INIT_FREEABLE, filedescr_INIT_FREEABLE }
+#define process_ioredirect_INIT_DEVNULL      { sys_filedescr_INIT_FREEABLE, sys_filedescr_INIT_FREEABLE, sys_filedescr_INIT_FREEABLE }
 
 /* define: process_ioredirect_INIT_INHERIT
  * Static initializer lets new process inherit standard io channels. */
-#define process_ioredirect_INIT_INHERIT      { filedescr_STDIN, filedescr_STDOUT, filedescr_STDERR }
+#define process_ioredirect_INIT_INHERIT      { file_STDIN, file_STDOUT, file_STDERR }
 
 /* function: setstdin_processioredirect
  * Redirects standard input to given file.
  * Use value <filedescr_INIT_FREEABLE> to redirect standard input to device null. */
-void setstdin_processioredirect(process_ioredirect_t * ioredirect, filedescr_t input_file) ;
+void setstdin_processioredirect(process_ioredirect_t * ioredirect, sys_filedescr_t input_file) ;
 
 /* function: setstdout_processioredirect
  * Redirects standard output to given file.
  * Use value <filedescr_INIT_FREEABLE> to redirect standard output to device null. */
-void setstdout_processioredirect(process_ioredirect_t * ioredirect, filedescr_t output_file) ;
+void setstdout_processioredirect(process_ioredirect_t * ioredirect, sys_filedescr_t output_file) ;
 
 /* function: setstderr_processioredirect
  * Redirects standard error output to given file.
  * Use value <filedescr_INIT_FREEABLE> to redirect standard error to device null. */
-void setstderr_processioredirect(process_ioredirect_t * ioredirect, filedescr_t error_file) ;
+void setstderr_processioredirect(process_ioredirect_t * ioredirect, sys_filedescr_t error_file) ;
 
 
 /* struct: process_t

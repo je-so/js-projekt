@@ -24,10 +24,10 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/io/writer/log/log_it.h"
-#include "C-kern/api/err.h"
-#include "C-kern/api/io/filedescr.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -71,17 +71,17 @@ log_it         g_logmain_interface  = {
 
 static void printf_logmain(void * lgwrt, log_channel_e channel, const char * format, ... )
 {
-   char     buffer[log_PRINTF_MAXSIZE+1] = { 0 } ;
+   uint8_t  buffer[log_PRINTF_MAXSIZE+1] = { 0 } ;
    va_list  args ;
    (void) lgwrt ;
    va_start(args, format) ;
-   int bytes = vsnprintf(buffer, sizeof(buffer), format, args) ;
+   int bytes = vsnprintf((char*)buffer, sizeof(buffer), format, args) ;
    if (bytes > 0) {
       unsigned ubytes = ((unsigned)bytes >= sizeof(buffer)) ? sizeof(buffer) -1 : (unsigned) bytes ;
       if (log_channel_TEST == channel) {
-         write_filedescr(filedescr_STDOUT, ubytes, buffer, 0) ;
+         write_file(file_STDOUT, ubytes, buffer, 0) ;
       } else {
-         write_filedescr(filedescr_STDERR, ubytes, buffer, 0) ;
+         write_file(file_STDERR, ubytes, buffer, 0) ;
       }
    }
    va_end(args) ;
@@ -173,10 +173,10 @@ static int test_globalvar(void)
    TEST(STDOUT_FILENO == dup2(oldstdout, STDOUT_FILENO)) ;
 
    // unprepare
-   TEST(0 == free_filedescr(&pipefd[0])) ;
-   TEST(0 == free_filedescr(&pipefd[1])) ;
-   TEST(0 == free_filedescr(&oldstderr)) ;
-   TEST(0 == free_filedescr(&oldstdout)) ;
+   TEST(0 == free_file(&pipefd[0])) ;
+   TEST(0 == free_file(&pipefd[1])) ;
+   TEST(0 == free_file(&oldstderr)) ;
+   TEST(0 == free_file(&oldstdout)) ;
 
    return 0 ;
 ONABORT:
@@ -186,10 +186,10 @@ ONABORT:
    if (-1 != oldstdout) {
       dup2(oldstdout, STDOUT_FILENO) ;
    }
-   free_filedescr(&oldstderr) ;
-   free_filedescr(&oldstdout) ;
-   free_filedescr(&pipefd[0]) ;
-   free_filedescr(&pipefd[1]) ;
+   free_file(&oldstderr) ;
+   free_file(&oldstdout) ;
+   free_file(&pipefd[0]) ;
+   free_file(&pipefd[1]) ;
    return EINVAL ;
 }
 

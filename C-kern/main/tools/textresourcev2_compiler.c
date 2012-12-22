@@ -27,7 +27,6 @@
 #include "C-kern/api/ds/typeadapt/typeadapt_impl.h"
 #include "C-kern/api/ds/inmem/arraystf.h"
 #include "C-kern/api/ds/inmem/slist.h"
-#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
@@ -1811,10 +1810,10 @@ ONABORT:
  * Writes programming language representation of text resource.
  * This writer implements the C language output. */
 struct textresource_writer_t {
-   textresource_t    * txtres ;
-   filedescr_t       outfile ;
-   filedescr_t       cfile ;
-   filedescr_t       hfile ;
+   textresource_t  * txtres ;
+   file_t          outfile ;
+   file_t          cfile ;
+   file_t          hfile ;
 } ;
 
 static int writeCheader_textresourcewriter(textresource_writer_t * writer) ;
@@ -1824,7 +1823,7 @@ static int writeCsource_textresourcewriter(textresource_writer_t * writer) ;
 
 /* define: textresource_writer_INIT_FREEABLE
  * Static initializer. */
-#define textresource_writer_INIT_FREEABLE       { 0, filedescr_INIT_FREEABLE, filedescr_INIT_FREEABLE, filedescr_INIT_FREEABLE }
+#define textresource_writer_INIT_FREEABLE       { 0, file_INIT_FREEABLE, file_INIT_FREEABLE, file_INIT_FREEABLE }
 
 static int free_textresourcewriter(textresource_writer_t * writer)
 {
@@ -1832,11 +1831,11 @@ static int free_textresourcewriter(textresource_writer_t * writer)
    int err2 ;
 
    writer->txtres  = 0 ;
-   writer->outfile = filedescr_INIT_FREEABLE ;
+   writer->outfile = file_INIT_FREEABLE ;
 
-   err = free_filedescr(&writer->hfile) ;
+   err = free_file(&writer->hfile) ;
 
-   err2 = free_filedescr(&writer->cfile) ;
+   err2 = free_file(&writer->cfile) ;
    if (err2) err = err2 ;
 
    if (err) goto ONABORT ;

@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Dez.22  13:44:42
+GenerationDate  := 2012.Dez.22  14:31:48
 GeneratedBy     := je-so
 
 ## Debug
@@ -85,7 +85,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
@@ -167,7 +166,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
@@ -274,9 +272,6 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signa
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c
@@ -514,9 +509,6 @@ $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/sig
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!io!filedescr.c.o: C-kern/platform/Linux/io/filedescr.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io/ipaddr.c

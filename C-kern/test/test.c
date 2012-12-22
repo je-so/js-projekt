@@ -24,9 +24,9 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/test.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/test.h"
+#include "C-kern/api/io/filesystem/file.h"
 
 
 void logfailed_test(const char * filename, unsigned line_number)
@@ -39,13 +39,13 @@ void logfailed_test(const char * filename, unsigned line_number)
       ,{ (void*) (uintptr_t) ": FAILED TEST\n", 14 }
    } ;
 
-   ssize_t written = writev(filedescr_STDOUT, iov, nrelementsof(iov)) ;
+   ssize_t written = writev(file_STDOUT, iov, nrelementsof(iov)) ;
    (void) written ;
 }
 
 void logworking_test()
 {
-   (void) write_filedescr(filedescr_STDOUT, 3, (const uint8_t*)"OK\n", 0) ;
+   (void) write_file(file_STDOUT, 3, (const uint8_t*)"OK\n", 0) ;
 }
 
 void logrun_test(const char * testname)
@@ -56,7 +56,7 @@ void logrun_test(const char * testname)
       ,{ (void*) (uintptr_t) ": ", 2 }
    } ;
 
-   ssize_t written = writev(filedescr_STDOUT, iov, nrelementsof(iov)) ;
+   ssize_t written = writev(file_STDOUT, iov, nrelementsof(iov)) ;
    (void) written ;
 }
 
@@ -66,51 +66,51 @@ void logrun_test(const char * testname)
 
 static int test_helper(void)
 {
-   int      fd[2]     = { sys_filedescr_INIT_FREEABLE, sys_filedescr_INIT_FREEABLE } ;
-   int      oldstdout = sys_filedescr_INIT_FREEABLE;
+   int      fd[2]     = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
+   int      oldstdout = file_INIT_FREEABLE;
    uint8_t  buffer[100] ;
    size_t   bytes_read ;
 
    // prepare
    TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK)) ;
-   TEST(0 < (oldstdout = dup(filedescr_STDOUT))) ;
-   TEST(filedescr_STDOUT == dup2(fd[1], filedescr_STDOUT)) ;
+   TEST(0 < (oldstdout = dup(file_STDOUT))) ;
+   TEST(file_STDOUT == dup2(fd[1], file_STDOUT)) ;
 
    // TEST logfailed_test
    logfailed_test("123", 45) ;
-   TEST(0 == read_filedescr(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(0 == read_file(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
    TEST(20 == bytes_read) ;
    TEST(0 == strncmp((const char*)buffer, "123:45: FAILED TEST\n", bytes_read)) ;
 
    // TEST logworking_test
    logworking_test() ;
-   TEST(0 == read_filedescr(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(0 == read_file(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
    TEST(3 == bytes_read) ;
    TEST(0 == strncmp((const char*)buffer, "OK\n", bytes_read)) ;
 
    // TEST logrun_test
    logrun_test("test-name") ;
-   TEST(0 == read_filedescr(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(0 == read_file(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
    TEST(15 == bytes_read) ;
    TEST(0 == strncmp((const char*)buffer, "RUN test-name: ", bytes_read)) ;
 
    // unprepare
-   TEST(filedescr_STDOUT == dup2(oldstdout, filedescr_STDOUT)) ;
-   TEST(0 == free_filedescr(&oldstdout)) ;
-   TEST(0 == free_filedescr(&fd[0])) ;
-   TEST(0 == free_filedescr(&fd[1])) ;
+   TEST(file_STDOUT == dup2(oldstdout, file_STDOUT)) ;
+   TEST(0 == free_file(&oldstdout)) ;
+   TEST(0 == free_file(&fd[0])) ;
+   TEST(0 == free_file(&fd[1])) ;
 
    return 0 ;
 ONABORT:
-   if (isinit_filedescr(oldstdout)) {
-      dup2(oldstdout, filedescr_STDOUT) ;
+   if (isinit_file(oldstdout)) {
+      dup2(oldstdout, file_STDOUT) ;
    }
    memset(buffer, 0, sizeof(buffer)) ;
-   read_filedescr(fd[0], sizeof(buffer)-1, buffer, 0) ;
-   write_filedescr(filedescr_STDOUT, strlen((char*)buffer), buffer, 0) ;
-   free_filedescr(&oldstdout) ;
-   free_filedescr(&fd[0]) ;
-   free_filedescr(&fd[1]) ;
+   read_file(fd[0], sizeof(buffer)-1, buffer, 0) ;
+   write_file(file_STDOUT, strlen((char*)buffer), buffer, 0) ;
+   free_file(&oldstdout) ;
+   free_file(&fd[0]) ;
+   free_file(&fd[1]) ;
    return EINVAL ;
 }
 

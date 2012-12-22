@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/directory.h"
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
@@ -129,7 +129,7 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
 
    return 0 ;
 ONABORT:
-   free_filedescr(&fdd) ;
+   free_file(&fdd) ;
    if (sysdir) {
       (void) closedir(sysdir) ;
    }
@@ -328,12 +328,12 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
       goto ONABORT ;
    }
 
-   free_filedescr(&fd) ;
+   free_file(&fd) ;
 
    return 0 ;
 ONABORT:
    if (-1 != fd) {
-      free_filedescr(&fd) ;
+      free_file(&fd) ;
       unlinkat(openatfd, file_path, 0) ;
    }
    TRACEABORT_LOG(err) ;
@@ -678,7 +678,7 @@ static int test_initfree(void)
 
    TEST(0 == delete_directory(&temp_dir)) ;
    TEST(0 == free_cstring(&tmppath)) ;
-   TEST(0 == free_filedescr(&fd_oldwd)) ;
+   TEST(0 == free_file(&fd_oldwd)) ;
 
    return 0 ;
 ONABORT:
@@ -686,7 +686,7 @@ ONABORT:
    (void) delete_directory(&temp_dir) ;
    (void) delete_directory(&dir) ;
    free_cstring(&tmppath) ;
-   free_filedescr(&fd_oldwd) ;
+   free_file(&fd_oldwd) ;
    return EINVAL ;
 }
 
@@ -738,7 +738,7 @@ static int test_filesize(void)
       int fd = openat(fd_directory(tempdir), filename, O_RDWR|O_CLOEXEC) ;
       TEST(fd > 0) ;
       int written = (int) write(fd, filename, (size_t) i) ;
-      free_filedescr(&fd) ;
+      free_file(&fd) ;
       TEST(i == written) ;
    }
 
@@ -798,7 +798,7 @@ int unittest_io_directory()
    directory_t * dummydir[8] ;
    {
       size_t nrfdopen ;
-      TEST(0 == nropen_filedescr(&nrfdopen)) ;
+      TEST(0 == nropen_file(&nrfdopen)) ;
       while (nrfdopen < 8) {
          TEST(0 == new_directory(&dummydir[open_count], "", 0)) ;
          ++ open_count ;

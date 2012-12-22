@@ -24,11 +24,11 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/filesystem/mmfile.h"
-#include "C-kern/api/io/filesystem/directory.h"
-#include "C-kern/api/io/filedescr.h"
-#include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/platform/virtmemory.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/string/cstring.h"
@@ -148,11 +148,11 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    err = init2_mmfile(mfile, fd, file_offset, size, mode) ;
    if (err) goto ONABORT ;
 
-   (void) free_filedescr(&fd) ;
+   (void) free_file(&fd) ;
 
    return 0 ;
 ONABORT:
-   free_filedescr(&fd) ;
+   free_file(&fd) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -230,7 +230,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
       buffer[i] = (uint8_t)i ;
    }
    TEST(256 == write(fd, buffer, 256)) ;
-   TEST(0 == free_filedescr(&fd)) ;
+   TEST(0 == free_file(&fd)) ;
 
    // TEST mmfile_INIT_FREEABLE
    TEST(0 == mfile.addr) ;
@@ -306,7 +306,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(fd > 0) ;
    memset(buffer, '3', 256 ) ;
    TEST(256 == write(fd, buffer, 256)) ;
-   TEST(0   == free_filedescr(&fd)) ;
+   TEST(0   == free_file(&fd)) ;
    // test change is shared
    for (unsigned i = 0; i < 256; ++i) {
       TEST(addr_mmfile(&mfile)[i] == '3') ;
@@ -328,7 +328,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
-   TEST(0   == free_filedescr(&fd)) ;
+   TEST(0   == free_file(&fd)) ;
    for (unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ;
    }
@@ -352,7 +352,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
-   TEST(0   == free_filedescr(&fd)) ;
+   TEST(0   == free_file(&fd)) ;
    for (unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ; // old content
    }
@@ -373,7 +373,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
       fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       TEST(0 == ftruncate(fd, (size_t)-1)) ; // 4 GB
-      TEST(0 == free_filedescr(&fd)) ;
+      TEST(0 == free_file(&fd)) ;
       // mmap is never called
       TEST(ENOMEM == init_mmfile(&mfile, "mmfile", 0, 0, mmfile_openmode_RDWR_PRIVATE, tempdir)) ;
       // mmap returns ENOMEM (size == 0)
@@ -389,7 +389,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    return 0 ;
 ONABORT:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
-   free_filedescr(&fd) ;
+   free_file(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
    return EINVAL ;
@@ -405,7 +405,7 @@ static int test_writeoffset(directory_t * tempdir)
    fd = openat(fd_directory(tempdir), "mmfile", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    TEST(0 <= fd) ;
    TEST(0 == fallocate(fd, 0, 0, 10*pagesize)) ;
-   TEST(0 == free_filedescr(&fd)) ;
+   TEST(0 == free_file(&fd)) ;
 
    // TEST offset is correctly calculated
    for (int i = 0; i < 10; ++i) {
@@ -430,7 +430,7 @@ static int test_writeoffset(directory_t * tempdir)
 
    return 0 ;
 ONABORT:
-   (void) free_filedescr(&fd) ;
+   (void) free_file(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
    return EINVAL ;

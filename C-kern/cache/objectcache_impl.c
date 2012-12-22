@@ -25,14 +25,14 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache_impl.h"
 #include "C-kern/api/cache/objectcache_it.h"
-#include "C-kern/api/err.h"
 #include "C-kern/api/platform/virtmemory.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/platform/process.h"
-#include "C-kern/api/io/filedescr.h"
 #endif
 
 // group: variables
@@ -393,13 +393,13 @@ static int test_iobuffer(void)
    TEST(read_bytes > 50) ;
    PRINTF_LOG("%s", buffer) ;
 
-   TEST(0 == free_filedescr(&pipefd[0])) ;
-   TEST(0 == free_filedescr(&pipefd[1])) ;
+   TEST(0 == free_file(&pipefd[0])) ;
+   TEST(0 == free_file(&pipefd[1])) ;
 
    return 0 ;
 ONABORT:
-   (void) free_filedescr(&pipefd[0]) ;
-   (void) free_filedescr(&pipefd[1]) ;
+   (void) free_file(&pipefd[0]) ;
+   (void) free_file(&pipefd[1]) ;
    (void) free_objectcacheimpl(&cache) ;
    return EINVAL ;
 }

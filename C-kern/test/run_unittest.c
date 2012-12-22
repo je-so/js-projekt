@@ -28,7 +28,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test.h"
-#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
@@ -71,14 +70,14 @@ static void generate_logresource(const char * test_name)
       }
    }
 
-   free_filedescr(&fd) ;
+   free_file(&fd) ;
    return ;
 ONABORT:
    if (err != EEXIST) {
       CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
       CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name) ;
    }
-   free_filedescr(&fd) ;
+   free_file(&fd) ;
    return ;
 }
 
@@ -122,7 +121,7 @@ static int check_logresource(const char * test_name)
       if (logfile2 >= 0) {
          ssize_t byteswritten = write(logfile2, logbuffer, logbuffer_size) ;
          (void) byteswritten ;
-         free_filedescr(&logfile2) ;
+         free_file(&logfile2) ;
       }
       CPRINTF_LOG(TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
       err = EINVAL ;
@@ -179,7 +178,7 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
             char     * buffer ;
             size_t   size ;
             GETBUFFER_LOG(&buffer, &size) ;
-            write_filedescr(error_log, size, (uint8_t*)buffer, 0) ;
+            write_file(error_log, size, (uint8_t*)buffer, 0) ;
             free_file(&error_log) ;
          }
       } else {
@@ -316,8 +315,6 @@ int run_unittest(void)
       RUN(unittest_io_instream) ;
       RUN(unittest_io_iocallback) ;
       RUN(unittest_io_url) ;
-      // basic I/O
-      RUN(unittest_io_filedescr) ;
       RUN(unittest_io_iopoll) ;
       // filesystem
       RUN(unittest_io_directory) ;

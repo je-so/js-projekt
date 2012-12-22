@@ -24,10 +24,10 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/ip/ipsocket.h"
 #include "C-kern/api/io/ip/ipaddr.h"
-#include "C-kern/api/io/filedescr.h"
-#include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/thread.h"
@@ -38,7 +38,7 @@ int free_ipsocket(ipsocket_t * ipsock)
 {
    int err ;
 
-   err = free_filedescr(ipsock) ;
+   err = free_file(ipsock) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -102,7 +102,7 @@ ONABORT_LOG:
    }
    (void) free_cstring(&name) ;
 ONABORT:
-   free_filedescr(&fd) ;
+   free_file(&fd) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -224,7 +224,7 @@ int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock
    *ipsock = new_socket ;
    return 0 ;
 ONABORT:
-   free_filedescr(&new_socket) ;
+   free_file(&new_socket) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -1679,7 +1679,7 @@ int unittest_io_ipsocket()
       {
          size_t     nrfdopen ;
          ipaddr_t   * ipaddr = 0 ;
-         TEST(0 == nropen_filedescr(&nrfdopen)) ;
+         TEST(0 == nropen_file(&nrfdopen)) ;
          TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
          while (nrfdopen < 8) {
             TEST(0 == init_ipsocket(&ipsock[open_count], ipaddr)) ;

@@ -1,5 +1,12 @@
 /* title: File
-   Offers an interface to check for open file descriptors.
+
+   Offers an interface to handle system files.
+   A file is described as system specific filedescriptor <sys_filedescr_t>
+   which is renamed into <file_t>.
+
+   A filedescriptor is an id that identifies an input/output channel
+   like files, network connections or other system specific devices.
+   Therefore I/O operations on <file_t> can be used also on other I/O objects.
 
    about: Copyright
    This program is free software.
@@ -36,6 +43,21 @@ struct directory_t ;
  * Describes an opened file for doing reading and/or writing.
  * The file is located in a system specific filesystem. */
 typedef sys_filedescr_t                file_t ;
+
+/* enums: file_e
+ * Standard files which are usually open at process start by convention.
+ *
+ * file_STDIN  - The file descriptor value of the standard input channel.
+ * file_STDOUT - The file descriptor value of the standard output channel.
+ * file_STDERR - The file descriptor value of the standard error (output) channel.
+ * */
+enum file_e {
+   file_STDIN  = STDIN_FILENO,
+   file_STDOUT = STDOUT_FILENO,
+   file_STDERR = STDERR_FILENO
+} ;
+
+typedef enum file_e                    file_e ;
 
 
 // section: Functions
@@ -85,48 +107,65 @@ int free_file(file_t * fileobj) ;
 
 // group: query
 
-/* function: fd_file
- * Returns the filedescriptor of an open file.
- * Returns <filedescr_t.filedescr_INIT_FREEABLE> in case file is closed. */
-sys_filedescr_t fd_file(const file_t * fileobj) ;
+/* function: accessmode_file
+ * Returns access mode (read and or write) for a io channel.
+ * Returns <accessmode_NONE> in case of an error. */
+accessmode_e accessmode_file(const file_t fileobj) ;
 
 /* function: isinit_file
  * Returns true if the file was opened with <init_file>.
  * Returns false if file is in a freed (closed) state and after <free_file>
  * has been called. */
-bool isinit_file(const file_t * fileobj) ;
+bool isinit_file(const file_t fileobj) ;
+
+/* function: isopen_file
+ * Returns *true* if the underlying system file object is open.
+ * If it is open then it <isinit_filedescr> returns also true.
+ * <isopen_filedescr> checks that the value in fd refers to an open descriptor
+ * and makes a call to the operating system.
+ * It is therefore more costly than <isinit_filedescr>.
+ * It is possible that a former valid file descriptor is no more open
+ * if a copied value of it was closed. */
+bool isopen_file(const file_t fileobj) ;
+
+/* function: nropen_file
+ * Returns number of opened file descriptors.
+ * Use this function at the beginning and the end
+ * of your test to check if a file or network socket
+ * is not closed properly.
+ * In case of error this functions returns 0. */
+int nropen_file(/*out*/size_t * number_open_fd) ;
 
 // group: io
 
 /* function: read_file
- * Reads binary data from a file. */
-int read_file(file_t * fileobj, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read) ;
+ * Reads binary data from a file.
+ * Returns buffer_size bytes in buffer. If an error occurrs or
+ * end of input is reached less then buffer_size bytes are returned.
+ * Less then buffer_size bytes could be returned also if *fileobj* is configured
+ * to operate in non blocking mode.
+ * Check value *bytes_read* to determine how many bytes were read.
+ * Returns 0 and the value 0 in bytes_read if end of input (end of file) is reached.
+ * Returns EAGAIN in case io is in non blocking mode and no bytes could be read. */
+int read_file(file_t fileobj, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read) ;
 
 /* function: write_file
- * Writes binary data to a file. */
-int write_file(file_t * fileobj, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written) ;
+ * Writes binary data to a file.
+ * Returns EAGAIN in case io is in non blocking mode and no bytes could be written
+ * (due to no more system buffer space).
+ * Returns EPIPE if the receiver has closed its connection or closes it during a blocking write. */
+int write_file(file_t fileobj, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written) ;
+
+// group: allocation
+
 
 
 // section: inline implementation
 
-/* define: fd_file
- * Implements <file_t.fd_file>.
- * This function assumes that <file_t> and <filedescr_t> are interchangeable. */
-#define fd_file(fileobj)               (*(fileobj))
-
 /* define: isinit_file
  * Implements <file_t.isinit_file>.
  * This function assumes that file is primitive type. */
-#define isinit_file(fileobj)           (file_INIT_FREEABLE != *(fileobj))
+#define isinit_file(fileobj)           (file_INIT_FREEABLE != (fileobj))
 
-/* define: read_file
- * Implements <file_t.read_file>. */
-#define read_file(fileobj, buffer_size, buffer, bytes_read) \
-   read_filedescr(fd_file(fileobj), buffer_size, buffer, bytes_read)
-
-/* define: write_file
- * Implements <file_t.write_file>. */
-#define write_file(fileobj, buffer_size, buffer, bytes_written) \
-   write_filedescr(fd_file(fileobj), buffer_size, buffer, bytes_written)
 
 #endif

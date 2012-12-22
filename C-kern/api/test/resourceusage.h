@@ -49,9 +49,9 @@ extern int unittest_test_resourceusage(void) ;
 /* struct: resourceusage_t
  * Stores the number of resources currently in use. */
 struct resourceusage_t {
-   /* variable: filedescriptor_usage
-    * Number of open file descriptors. */
-   size_t                        filedescriptor_usage ;
+   /* variable: file_usage
+    * Number of open files. */
+   size_t                        file_usage ;
    /* variable: sizealloc_mmtrans
     * Number of memory bytes allocated by <mmtransient_t>. */
    size_t                        sizealloc_mmtrans ;

@@ -24,10 +24,10 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/cache/objectcache_macros.h"
+#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/platform/virtmemory.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/test.h"
@@ -226,7 +226,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
       }
    }
 
-   err = free_filedescr(&fd) ;
+   err = free_file(&fd) ;
    if (err) goto ONABORT ;
 
    OBJC_UNLOCKIOBUFFER(&iobuffer) ;
@@ -250,7 +250,7 @@ ONABORT:
 
    OBJC_UNLOCKIOBUFFER(&iobuffer) ;
 
-   free_filedescr(&fd) ;
+   free_file(&fd) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }

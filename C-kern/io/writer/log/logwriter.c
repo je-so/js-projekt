@@ -25,13 +25,13 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/platform/virtmemory.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/writer/log/logmain.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
+#include "C-kern/api/platform/virtmemory.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/io/filedescr.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/string/cstring.h"
@@ -246,11 +246,11 @@ void printf_logwriter(logwriter_t * lgwrt, enum log_channel_e channel, const cha
    va_list args ;
    va_start(args, format) ;
    if (log_channel_TEST == channel) {
-      char buffer[log_PRINTF_MAXSIZE+1] ;
-      int bytes = vsnprintf(buffer, sizeof(buffer), format, args) ;
+      uint8_t buffer[log_PRINTF_MAXSIZE+1] ;
+      int bytes = vsnprintf((char*)buffer, sizeof(buffer), format, args) ;
       if (bytes > 0) {
          unsigned ubytes = ((unsigned)bytes >= sizeof(buffer)) ? sizeof(buffer) -1 : (unsigned) bytes ;
-         write_filedescr(filedescr_STDOUT, ubytes, buffer, 0) ;
+         write_file(file_STDOUT, ubytes, buffer, 0) ;
       }
    } else {
       vprintf_logwriter(lgwrt, format, args) ;
@@ -388,8 +388,8 @@ static int test_flushbuffer(void)
 
    // unprepare/free logfile
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
-   TEST(0 == free_filedescr(&oldstderr)) ;
-   TEST(0 == free_filedescr(&tempfd)) ;
+   TEST(0 == free_file(&oldstderr)) ;
+   TEST(0 == free_file(&tempfd)) ;
    TEST(0 == removefile_directory(tempdir, "testlog")) ;
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
@@ -397,10 +397,10 @@ static int test_flushbuffer(void)
 
    return 0 ;
 ONABORT:
-   free_filedescr(&tempfd) ;
+   free_file(&tempfd) ;
    if (oldstderr >= 0) {
       dup2(oldstderr, STDERR_FILENO) ;
-      free_filedescr(&oldstderr) ;
+      free_file(&oldstderr) ;
    }
    free_mmfile(&logcontent) ;
    delete_directory(&tempdir) ;
@@ -477,16 +477,16 @@ static int test_printf(void)
    // unprepare
    TEST(0 == free_logwriter(&lgwrt)) ;
    dup2(oldstdout, STDOUT_FILENO) ;
-   free_filedescr(&oldstdout) ;
-   free_filedescr(&pipefd[0]) ;
-   free_filedescr(&pipefd[1]) ;
+   free_file(&oldstdout) ;
+   free_file(&pipefd[0]) ;
+   free_file(&pipefd[1]) ;
 
    return 0 ;
 ONABORT:
    if (-1 != oldstdout) dup2(oldstdout, STDOUT_FILENO) ;
-   free_filedescr(&oldstdout) ;
-   free_filedescr(&pipefd[0]) ;
-   free_filedescr(&pipefd[1]) ;
+   free_file(&oldstdout) ;
+   free_file(&pipefd[0]) ;
+   free_file(&pipefd[1]) ;
    free_logwriter(&lgwrt) ;
    return EINVAL ;
 }

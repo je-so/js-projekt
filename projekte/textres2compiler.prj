@@ -8,7 +8,6 @@ Src           += C-kern/io/reader/utf8reader.c
 Src           += C-kern/main/tools/textresourcev2_compiler.c
 Src           += C-kern/platform/Linux/io/mmfile.c
 Src           += C-kern/platform/Linux/io/directory.c
-Src           += C-kern/platform/Linux/io/file.c
 Src           += C-kern/string/cstring.c C-kern/string/string.c C-kern/string/utf8.c
 Includes       = .
 Defines        = KONFIG_SUBSYS=none

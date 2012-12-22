@@ -24,9 +24,9 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/platform/process.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/platform/process.h"
+#include "C-kern/api/io/filesystem/file.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/thread.h"
@@ -46,14 +46,14 @@ enum queryoption_e {
 typedef enum queryoption_e                queryoption_e ;
 
 struct childprocess_exec_t {
-   const char    *   filename ;
-   char          **  arguments ;
-   filedescr_t       errpipe ;
+   const char  *   filename ;
+   char        **  arguments ;
+   file_t      errpipe ;
 } ;
 
 struct process_ioredirect2_t {
    process_ioredirect_t ioredirect ;
-   filedescr_t          devnull ;
+   file_t               devnull ;
 } ;
 
 
@@ -62,21 +62,21 @@ struct process_ioredirect2_t {
 
 // group: lifetime
 
-#define process_ioredirect2_INIT_FREEABLE    { process_ioredirect_INIT_DEVNULL, filedescr_INIT_FREEABLE }
+#define process_ioredirect2_INIT_FREEABLE    { process_ioredirect_INIT_DEVNULL, file_INIT_FREEABLE }
 
 /* function: init_processioredirect2
  * Initializes <process_ioredirect2_t> with <process_ioredirect_t> and opens devnull.
  * The device null is only opened if ioredirection is 0 or at least one file descriptor
- * is set to <filedescr_INIT_FREEABLE>. */
+ * is set to <file_INIT_FREEABLE>. */
 static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, process_ioredirect_t * ioredirection)
 {
    int err ;
    int devnull = -1 ;
 
    if (  !ioredirection
-      || filedescr_INIT_FREEABLE == ioredirection->std_in
-      || filedescr_INIT_FREEABLE == ioredirection->std_out
-      || filedescr_INIT_FREEABLE == ioredirection->std_err ) {
+      || file_INIT_FREEABLE == ioredirection->std_in
+      || file_INIT_FREEABLE == ioredirection->std_out
+      || file_INIT_FREEABLE == ioredirection->std_err ) {
       devnull = open("/dev/null", O_RDWR|O_CLOEXEC) ;
       if (-1 == devnull) {
          err = errno ;
@@ -95,7 +95,7 @@ static int init_processioredirect2(/*out*/process_ioredirect2_t * ioredirect2, p
 
    return 0 ;
 ONABORT:
-   free_filedescr(&devnull) ;
+   free_file(&devnull) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -106,7 +106,7 @@ static int free_processioredirect2(process_ioredirect2_t * ioredirect2)
 {
    int err ;
 
-   err = free_filedescr(&ioredirect2->devnull) ;
+   err = free_file(&ioredirect2->devnull) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -122,7 +122,7 @@ ONABORT:
  * stdfd           - The file descriptor of the standard io channel.
  *                   Set this value to one of STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO
  * redirectto_file - The file descriptor of the file which now becomes the new standard io channel.
- *                   Use value <filedescr_INIT_FREEABLE> to redirect to devnull.
+ *                   Use value <file_INIT_FREEABLE> to redirect to devnull.
  *                   Use same value as stdfd if the standard channel should be
  *                   inherited between processes.
  * */
@@ -132,7 +132,7 @@ static int redirectstdfd_processioredirect2(const process_ioredirect2_t * ioredi
    int fd = redirectto_file ;
 
    if (stdfd != fd) {
-      if (filedescr_INIT_FREEABLE == fd) {
+      if (file_INIT_FREEABLE == fd) {
          fd = ioredirect2->devnull ;
       }
       while (-1 == dup2(fd, stdfd)) {
@@ -289,7 +289,7 @@ int initexec_process(/*out*/process_t * process, const char * filename, const ch
    if (err) goto ONABORT ;
 
    // CHECK exec error
-   err = free_filedescr(&pipefd[1]) ;
+   err = free_file(&pipefd[1]) ;
    assert(!err) ;
 
    ssize_t read_bytes = 0 ;
@@ -315,15 +315,15 @@ int initexec_process(/*out*/process_t * process, const char * filename, const ch
       goto ONABORT ;
    }
 
-   err = free_filedescr(&pipefd[0]) ;
+   err = free_file(&pipefd[0]) ;
    if (err) goto ONABORT ;
 
    *process = childprocess ;
 
    return 0 ;
 ONABORT:
-   free_filedescr(&pipefd[1]) ;
-   free_filedescr(&pipefd[0]) ;
+   free_file(&pipefd[1]) ;
+   free_file(&pipefd[0]) ;
    (void) free_process(&childprocess) ;
    TRACEABORT_LOG(err) ;
    return err ;
@@ -337,7 +337,7 @@ static int fork_process(/*out*/pid_t * pid)
 {
    int err ;
 
-   // MULTITHREAD-PRECONDITION: all filedescriptors opened with O_CLOEXEC ; => test/static/close_on_exec.sh
+   // MULTITHREAD-PRECONDITION: all files opened with O_CLOEXEC ; => test/static/close_on_exec.sh
 
    // TODO: MULTITHREAD: system handler for preparing fork
    pid_t newpid = fork() ;
@@ -638,9 +638,9 @@ static int test_redirect(void)
    TEST(-1 == ioredirect.std_in) ;
    TEST(-1 == ioredirect.std_out) ;
    TEST(-1 == ioredirect.std_err) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect.std_in) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect.std_out) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect.std_err) ;
+   TEST(file_INIT_FREEABLE == ioredirect.std_in) ;
+   TEST(file_INIT_FREEABLE == ioredirect.std_out) ;
+   TEST(file_INIT_FREEABLE == ioredirect.std_err) ;
 
    // TEST static init: process_ioredirect_INIT_INHERIT
    ioredirect = (process_ioredirect_t) process_ioredirect_INIT_INHERIT ;
@@ -650,24 +650,24 @@ static int test_redirect(void)
    TEST(STDIN_FILENO  == ioredirect.std_in) ;
    TEST(STDOUT_FILENO == ioredirect.std_out) ;
    TEST(STDERR_FILENO == ioredirect.std_err) ;
-   TEST(filedescr_STDIN  == ioredirect.std_in) ;
-   TEST(filedescr_STDOUT == ioredirect.std_out) ;
-   TEST(filedescr_STDERR == ioredirect.std_err) ;
+   TEST(file_STDIN  == ioredirect.std_in) ;
+   TEST(file_STDOUT == ioredirect.std_out) ;
+   TEST(file_STDERR == ioredirect.std_err) ;
 
    // TEST setstdin_processioredirect, setstdout_processioredirect, setstderr_processioredirect
    for (int i = 0; i < 100; ++i) {
       ioredirect = (process_ioredirect_t) process_ioredirect_INIT_DEVNULL ;
-      TEST(filedescr_INIT_FREEABLE == ioredirect.std_in) ;
-      TEST(filedescr_INIT_FREEABLE == ioredirect.std_out) ;
-      TEST(filedescr_INIT_FREEABLE == ioredirect.std_err) ;
+      TEST(file_INIT_FREEABLE == ioredirect.std_in) ;
+      TEST(file_INIT_FREEABLE == ioredirect.std_out) ;
+      TEST(file_INIT_FREEABLE == ioredirect.std_err) ;
       setstdin_processioredirect(&ioredirect, i) ;
       TEST(i == ioredirect.std_in) ;
-      TEST(filedescr_INIT_FREEABLE == ioredirect.std_out) ;
-      TEST(filedescr_INIT_FREEABLE == ioredirect.std_err) ;
+      TEST(file_INIT_FREEABLE == ioredirect.std_out) ;
+      TEST(file_INIT_FREEABLE == ioredirect.std_err) ;
       setstdout_processioredirect(&ioredirect, i+1) ;
       TEST(i == ioredirect.std_in) ;
       TEST(i == ioredirect.std_out-1) ;
-      TEST(filedescr_INIT_FREEABLE == ioredirect.std_err) ;
+      TEST(file_INIT_FREEABLE == ioredirect.std_err) ;
       setstderr_processioredirect(&ioredirect, i+2) ;
       TEST(i == ioredirect.std_in) ;
       TEST(i == ioredirect.std_out-1) ;
@@ -689,65 +689,65 @@ static int test_redirect2(void)
    process_ioredirect_t  ioredirect ;
 
    // TEST static init
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_in) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_out) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_err) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.devnull) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_in) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_out) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_err) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.devnull) ;
 
    // TEST init(0), double free
    MEMSET0(&ioredirect2) ;
-   ioredirect2.devnull = filedescr_INIT_FREEABLE ;
+   ioredirect2.devnull = file_INIT_FREEABLE ;
    TEST(0 == init_processioredirect2(&ioredirect2, 0)) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_in) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_out) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_err) ;
-   TEST(filedescr_INIT_FREEABLE != ioredirect2.devnull) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_in) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_out) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_err) ;
+   TEST(file_INIT_FREEABLE != ioredirect2.devnull) ;
    TEST(0 == free_processioredirect2(&ioredirect2)) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.devnull) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.devnull) ;
    TEST(0 == free_processioredirect2(&ioredirect2)) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.devnull) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.devnull) ;
 
    // TEST init(inherit)
    ioredirect = (process_ioredirect_t) process_ioredirect_INIT_INHERIT ;
    ioredirect2.devnull = -2 ;
    TEST(0 == init_processioredirect2(&ioredirect2, &ioredirect)) ;
-   TEST(filedescr_STDIN  == ioredirect2.ioredirect.std_in) ;
-   TEST(filedescr_STDOUT == ioredirect2.ioredirect.std_out) ;
-   TEST(filedescr_STDERR == ioredirect2.ioredirect.std_err) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.devnull) ;
+   TEST(file_STDIN  == ioredirect2.ioredirect.std_in) ;
+   TEST(file_STDOUT == ioredirect2.ioredirect.std_out) ;
+   TEST(file_STDERR == ioredirect2.ioredirect.std_err) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.devnull) ;
    TEST(0 == free_processioredirect2(&ioredirect2)) ;
-   TEST(filedescr_INIT_FREEABLE == ioredirect2.devnull) ;
+   TEST(file_INIT_FREEABLE == ioredirect2.devnull) ;
 
    // TEST init(only one fd is set to devnull)
    for (int i = 0; i < 3; ++i) {
       ioredirect = (process_ioredirect_t) process_ioredirect_INIT_INHERIT ;
-      ioredirect2.devnull = filedescr_INIT_FREEABLE ;
+      ioredirect2.devnull = file_INIT_FREEABLE ;
       switch(i) { // set one std fd to devnull
-      case 0:  setstdin_processioredirect(&ioredirect, filedescr_INIT_FREEABLE) ; break ;
-      case 1:  setstdout_processioredirect(&ioredirect, filedescr_INIT_FREEABLE) ; break ;
-      case 2:  setstderr_processioredirect(&ioredirect, filedescr_INIT_FREEABLE) ; break ;
+      case 0:  setstdin_processioredirect(&ioredirect, file_INIT_FREEABLE) ; break ;
+      case 1:  setstdout_processioredirect(&ioredirect, file_INIT_FREEABLE) ; break ;
+      case 2:  setstderr_processioredirect(&ioredirect, file_INIT_FREEABLE) ; break ;
       }
       TEST(0 == init_processioredirect2(&ioredirect2, &ioredirect)) ;
       if (i == 0) {
-         TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_in) ;
+         TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_in) ;
       } else {
-         TEST(filedescr_STDIN == ioredirect2.ioredirect.std_in) ;
+         TEST(file_STDIN == ioredirect2.ioredirect.std_in) ;
       }
       if (i == 1) {
-         TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_out) ;
+         TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_out) ;
       } else {
-         TEST(filedescr_STDOUT == ioredirect2.ioredirect.std_out) ;
+         TEST(file_STDOUT == ioredirect2.ioredirect.std_out) ;
       }
       if (i == 2) {
-         TEST(filedescr_INIT_FREEABLE == ioredirect2.ioredirect.std_err) ;
+         TEST(file_INIT_FREEABLE == ioredirect2.ioredirect.std_err) ;
       } else {
-         TEST(filedescr_STDERR == ioredirect2.ioredirect.std_err) ;
+         TEST(file_STDERR == ioredirect2.ioredirect.std_err) ;
       }
-      TEST(filedescr_INIT_FREEABLE != ioredirect2.devnull) ;
+      TEST(file_INIT_FREEABLE != ioredirect2.devnull) ;
       TEST(0 == free_processioredirect2(&ioredirect2)) ;
-      TEST(filedescr_INIT_FREEABLE == ioredirect2.devnull) ;
+      TEST(file_INIT_FREEABLE == ioredirect2.devnull) ;
       TEST(0 == free_processioredirect2(&ioredirect2)) ;
-      TEST(filedescr_INIT_FREEABLE == ioredirect2.devnull) ;
+      TEST(file_INIT_FREEABLE == ioredirect2.devnull) ;
    }
 
    {
@@ -769,29 +769,29 @@ static int test_redirect2(void)
    TEST(ioredirect2.ioredirect.std_in  == pipefd1[0]) ;
    TEST(ioredirect2.ioredirect.std_out == pipefd1[1]) ;
    TEST(ioredirect2.ioredirect.std_err == pipefd2[1]) ;
-   TEST(ioredirect2.devnull            == filedescr_INIT_FREEABLE) ;
+   TEST(ioredirect2.devnull            == file_INIT_FREEABLE) ;
    TEST(0 == redirectstdio_processioredirect2(&ioredirect2)) ;
-   TEST(1 == write(filedescr_STDOUT, "1", 1)) ;
-   TEST(1 == write(filedescr_STDERR, "2", 1)) ;
+   TEST(1 == write(file_STDOUT, "1", 1)) ;
+   TEST(1 == write(file_STDERR, "2", 1)) ;
    TEST(1 == read(pipefd1[0], buffer, sizeof(buffer))) ;
    TEST('1' == buffer[0]) ;
    TEST(1 == read(pipefd2[0], buffer, sizeof(buffer))) ;
    TEST('2' == buffer[0]) ;
    TEST(3 == write(pipefd1[1], "123", 3)) ;
-   TEST(3 == read(filedescr_STDIN, &buffer, sizeof(buffer))) ;
+   TEST(3 == read(file_STDIN, &buffer, sizeof(buffer))) ;
    TEST(0 == strncmp(buffer, "123", 3)) ;
    TEST(0 == free_processioredirect2(&ioredirect2)) ;
    TEST(ioredirect2.ioredirect.std_in  == pipefd1[0]) ;
    TEST(ioredirect2.ioredirect.std_out == pipefd1[1]) ;
    TEST(ioredirect2.ioredirect.std_err == pipefd2[1]) ;
-   TEST(ioredirect2.devnull            == filedescr_INIT_FREEABLE) ;
+   TEST(ioredirect2.devnull            == file_INIT_FREEABLE) ;
 
    // TEST redirectstdio inherit of closed fds
    ioredirect = (process_ioredirect_t) process_ioredirect_INIT_INHERIT ;
    TEST(0 == init_processioredirect2(&ioredirect2, &ioredirect)) ;
    for (int stdfd = 0; stdfd < 3; ++stdfd) {
       int fd = stdfd ;
-      TEST(0 == free_filedescr(&fd)) ;
+      TEST(0 == free_file(&fd)) ;
       TEST(-1 == fd) ;
    }
    TEST(0 == redirectstdio_processioredirect2(&ioredirect2)) ;
@@ -801,12 +801,12 @@ static int test_redirect2(void)
       // restore stdio
       for (int stdfd = 0; stdfd < 3; ++stdfd) {
          TEST(stdfd == dup2(oldstdfd[stdfd], stdfd)) ;
-         TEST(0 == free_filedescr(&oldstdfd[stdfd]));
+         TEST(0 == free_file(&oldstdfd[stdfd]));
       }
-      TEST(0 == free_filedescr(&pipefd1[0])) ;
-      TEST(0 == free_filedescr(&pipefd1[1])) ;
-      TEST(0 == free_filedescr(&pipefd2[0])) ;
-      TEST(0 == free_filedescr(&pipefd2[1])) ;
+      TEST(0 == free_file(&pipefd1[0])) ;
+      TEST(0 == free_file(&pipefd1[1])) ;
+      TEST(0 == free_file(&pipefd2[0])) ;
+      TEST(0 == free_file(&pipefd2[1])) ;
    }
 
    return 0 ;
@@ -815,13 +815,13 @@ ONABORT:
    for (int stdfd = 0; stdfd < 3; ++stdfd) {
       if (-1 != oldstdfd[stdfd]) {
          (void) dup2(oldstdfd[stdfd], stdfd) ;
-         (void) free_filedescr(&oldstdfd[stdfd]) ;
+         (void) free_file(&oldstdfd[stdfd]) ;
       }
    }
-   free_filedescr(&pipefd1[0]) ;
-   free_filedescr(&pipefd1[1]) ;
-   free_filedescr(&pipefd2[0]) ;
-   free_filedescr(&pipefd2[1]) ;
+   free_file(&pipefd1[0]) ;
+   free_file(&pipefd1[1]) ;
+   free_file(&pipefd2[0]) ;
+   free_file(&pipefd2[1]) ;
    return EINVAL ;
 }
 
@@ -1045,10 +1045,10 @@ static int test_assert(void)
       TEST(0 == pipe2(pipefd1,O_CLOEXEC|O_NONBLOCK)) ;
       TEST(0 == pipe2(pipefd2,O_CLOEXEC|O_NONBLOCK)) ;
       setstdin_processioredirect(&ioredirect, pipefd2[0]) ;
-      TEST(0 == free_filedescr(&pipefd1[0])) ;
-      TEST(0 == free_filedescr(&pipefd1[1])) ;
-      TEST(0 == free_filedescr(&pipefd2[0])) ;
-      TEST(0 == free_filedescr(&pipefd2[1])) ;
+      TEST(0 == free_file(&pipefd1[0])) ;
+      TEST(0 == free_file(&pipefd1[1])) ;
+      TEST(0 == free_file(&pipefd2[0])) ;
+      TEST(0 == free_file(&pipefd2[1])) ;
    }
    TEST(0 == init_process(&process, &childprocess_donothing, 0, &ioredirect)) ;
    TEST(0 == wait_process(&process, &process_result)) ;
@@ -1152,14 +1152,14 @@ static int test_statequery(void)
    TEST(0 == free_process(&process)) ;
    TEST(0 == process) ;
 
-   TEST(0 == free_filedescr(&pipefd[0])) ;
-   TEST(0 == free_filedescr(&pipefd[1])) ;
+   TEST(0 == free_file(&pipefd[0])) ;
+   TEST(0 == free_file(&pipefd[1])) ;
 
    return 0 ;
 ONABORT:
    (void) free_process(&process) ;
-   free_filedescr(&pipefd[0]) ;
-   free_filedescr(&pipefd[1]) ;
+   free_file(&pipefd[0]) ;
+   free_file(&pipefd[1]) ;
    return EINVAL ;
 }
 
@@ -1208,7 +1208,7 @@ static int test_exec(void)
       MEMSET0(&readbuffer) ;
       TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
       TEST(1 == strlen(readbuffer)) ;
-      // either 3 or more filedescriptors (X11+GLX opens some fds which are inherited)
+      // either 3 or more files (X11+GLX opens some fds which are inherited)
       TEST(3 <= atoi(readbuffer)) ;
    }
 
@@ -1225,13 +1225,13 @@ static int test_exec(void)
    TEST(0 == strncmp(readbuffer, testcase3_args[0]+4, 15)) ;
 
    // unprepare
-   TEST(0 == free_filedescr(&fd[0])) ;
-   TEST(0 == free_filedescr(&fd[1])) ;
+   TEST(0 == free_file(&fd[0])) ;
+   TEST(0 == free_file(&fd[1])) ;
 
    return 0 ;
 ONABORT:
-   free_filedescr(&fd[0]) ;
-   free_filedescr(&fd[1]) ;
+   free_file(&fd[0]) ;
+   free_file(&fd[1]) ;
    (void) free_process(&process) ;
    return EINVAL ;
 }
@@ -1284,16 +1284,16 @@ static int test_daemon(void)
    TEST(0 == free_process(&process)) ;
 
    // unprepare
-   TEST(0 == free_filedescr(&fd[0])) ;
-   TEST(0 == free_filedescr(&fd[1])) ;
+   TEST(0 == free_file(&fd[0])) ;
+   TEST(0 == free_file(&fd[1])) ;
    while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
    isoldsignalmask = false ;
    TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
 
    return 0 ;
 ONABORT:
-   free_filedescr(&fd[0]) ;
-   free_filedescr(&fd[1]) ;
+   free_file(&fd[0]) ;
+   free_file(&fd[1]) ;
    while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
    if (isoldsignalmask) sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
    (void) free_process(&process) ;

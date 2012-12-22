@@ -24,13 +24,13 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/test/resourceusage.h"
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/mm/mm_it.h"
 #include "C-kern/api/platform/malloc.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/platform/virtmemory.h"
-#include "C-kern/api/err.h"
+#include "C-kern/api/test/resourceusage.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -45,7 +45,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    vm_mappedregions_t * mappedregions = 0 ;
    signalconfig_t     * signalconfig  = 0 ;
 
-   err = nropen_filedescr(&fds) ;
+   err = nropen_file(&fds) ;
    if (err) goto ONABORT ;
 
    sizeallocated_mmtransient = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
@@ -70,12 +70,12 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    err = allocatedsize_malloc(&allocated_endinit) ;
    if (err) goto ONABORT ;
 
-   usage->filedescriptor_usage = fds ;
-   usage->sizealloc_mmtrans    = sizeallocated_mmtransient ;
-   usage->malloc_usage         = allocated ;
-   usage->malloc_correction    = allocated_endinit - allocated ;
-   usage->signalconfig         = signalconfig ;
-   usage->virtualmemory_usage  = mappedregions ;
+   usage->file_usage          = fds ;
+   usage->sizealloc_mmtrans   = sizeallocated_mmtransient ;
+   usage->malloc_usage        = allocated ;
+   usage->malloc_correction   = allocated_endinit - allocated ;
+   usage->signalconfig        = signalconfig ;
+   usage->virtualmemory_usage = mappedregions ;
 
    return 0 ;
 ONABORT:
@@ -93,9 +93,9 @@ int free_resourceusage(resourceusage_t * usage)
    int err ;
    int err2 ;
 
-   usage->filedescriptor_usage = 0 ;
-   usage->malloc_usage         = 0 ;
-   usage->malloc_correction    = 0 ;
+   usage->file_usage        = 0 ;
+   usage->malloc_usage      = 0 ;
+   usage->malloc_correction = 0 ;
 
    if (usage->virtualmemory_usage) {
 
@@ -126,7 +126,7 @@ int same_resourceusage(const resourceusage_t * usage)
 
    err = EAGAIN ;
 
-   if (usage2.filedescriptor_usage != usage->filedescriptor_usage) {
+   if (usage2.file_usage != usage->file_usage) {
       TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
       goto ONABORT ;
    }
@@ -181,27 +181,27 @@ static int test_initfree(void)
    TEST(0 == allocatedsize_malloc(&malloc_usage)) ;
 
    // TEST static initializer
-   TEST(0 == usage.filedescriptor_usage) ;
+   TEST(0 == usage.file_usage) ;
    TEST(0 == usage.malloc_usage) ;
    TEST(0 == usage.virtualmemory_usage) ;
    TEST(0 == usage.malloc_correction) ;
 
    // TEST init, double free
    TEST(0 == init_resourceusage(&usage)) ;
-   TEST(0 != usage.filedescriptor_usage) ;
+   TEST(0 != usage.file_usage) ;
    TEST(0 != usage.malloc_usage) ;
    TEST(0 != usage.malloc_correction) ;
    TEST(0 != usage.signalconfig) ;
    TEST(0 != usage.virtualmemory_usage) ;
    TEST(20000 > usage.malloc_correction) ;
    TEST(0 == free_resourceusage(&usage)) ;
-   TEST(0 == usage.filedescriptor_usage) ;
+   TEST(0 == usage.file_usage) ;
    TEST(0 == usage.malloc_usage) ;
    TEST(0 == usage.malloc_correction) ;
    TEST(0 == usage.signalconfig) ;
    TEST(0 == usage.virtualmemory_usage) ;
    TEST(0 == free_resourceusage(&usage)) ;
-   TEST(0 == usage.filedescriptor_usage) ;
+   TEST(0 == usage.file_usage) ;
    TEST(0 == usage.malloc_usage) ;
    TEST(0 == usage.malloc_correction) ;
    TEST(0 == usage.signalconfig) ;
@@ -212,14 +212,14 @@ static int test_initfree(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST compare EAGAIN cause of filedescriptor
+   // TEST compare EAGAIN cause of open file
    TEST(0 == init_resourceusage(&usage)) ;
    fd = dup(STDERR_FILENO) ;
    TEST(fd > 0) ;
    TEST(EAGAIN == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
-   TEST(usage.filedescriptor_usage + 1 == usage2.filedescriptor_usage) ;
-   TEST(0 == free_filedescr(&fd)) ;
+   TEST(usage.file_usage + 1 == usage2.file_usage) ;
+   TEST(0 == free_file(&fd)) ;
    TEST(0 == free_resourceusage(&usage2)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -245,8 +245,8 @@ static int test_initfree(void)
    TEST(EAGAIN == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
    TEST(0 == free_vmblock(&vmblock)) ;
-   TEST(usage.filedescriptor_usage == usage2.filedescriptor_usage) ;
-   TEST(usage.malloc_usage         == usage2.malloc_usage - usage.malloc_correction) ;
+   TEST(usage.file_usage   == usage2.file_usage) ;
+   TEST(usage.malloc_usage == usage2.malloc_usage - usage.malloc_correction) ;
    TEST(0 == free_resourceusage(&usage2)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -271,7 +271,7 @@ static int test_initfree(void)
    return 0 ;
 ONABORT:
    free(memblock) ;
-   free_filedescr(&fd) ;
+   free_file(&fd) ;
    (void) free_vmblock(&vmblock) ;
    (void) free_resourceusage(&usage) ;
    if (isoldsigmask) (void) sigprocmask(SIG_SETMASK, &oldsigmask, 0) ;

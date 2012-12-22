@@ -24,9 +24,9 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/platform/malloc.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filedescr.h"
+#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/platform/malloc.h"
 #include <malloc.h>
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -182,22 +182,22 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
       goto ONABORT ;
    }
 
-   err = free_filedescr(&fd) ;
+   err = free_file(&fd) ;
    if (err) goto ONABORT ;
-   err = free_filedescr(&pfd[0]) ;
+   err = free_file(&pfd[0]) ;
    if (err) goto ONABORT ;
-   err = free_filedescr(&pfd[1]) ;
+   err = free_file(&pfd[1]) ;
    if (err) goto ONABORT ;
 
    *number_of_allocated_bytes = used_bytes ;
 
    return 0;
 ONABORT:
-   free_filedescr(&pfd[0]) ;
-   free_filedescr(&pfd[1]) ;
+   free_file(&pfd[0]) ;
+   free_file(&pfd[1]) ;
    if (fd != -1) {
       dup2(fd, STDERR_FILENO) ;
-      free_filedescr(&fd) ;
+      free_file(&fd) ;
    }
    TRACEABORT_LOG(err) ;
    return 0 ;
