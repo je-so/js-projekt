@@ -311,8 +311,20 @@ int run_unittest(void)
 //}
 
 //{ io unittest
+      // generic
+      RUN(unittest_io_instream) ;
       RUN(unittest_io_iocallback) ;
       RUN(unittest_io_url) ;
+      // basic I/O
+      RUN(unittest_io_filedescr) ;
+      RUN(unittest_io_iopoll) ;
+      // filesystem
+      RUN(unittest_io_directory) ;
+      RUN(unittest_io_file) ;
+      RUN(unittest_io_mmfile) ;
+      // IP
+      RUN(unittest_io_ipaddr) ;
+      RUN(unittest_io_ipsocket) ;
       // reader
       RUN(unittest_io_reader_csvfilereader) ;
       RUN(unittest_io_reader_utf8reader) ;
@@ -321,17 +333,11 @@ int run_unittest(void)
       RUN(unittest_io_writer_log_logmain) ;
 //}
 
+//{ lang(uage) unittest
+      RUN(unittest_lang_transc_transcparser) ;
+//}
+
 //{ platform unittest
-      // io
-      RUN(unittest_io_filedescr) ;
-      RUN(unittest_io_iopoll) ;
-      // io/filesystem
-      RUN(unittest_io_directory) ;
-      RUN(unittest_io_file) ;
-      RUN(unittest_io_mmfile) ;
-      // io/ip
-      RUN(unittest_io_ipaddr) ;
-      RUN(unittest_io_ipsocket) ;
       // sync unittest
       RUN(unittest_platform_sync_mutex) ;
       RUN(unittest_platform_sync_semaphore) ;
@@ -361,11 +367,6 @@ int run_unittest(void)
 #undef HTML5
 #undef X11
 //}
-
-//{ lang(uage) unittest
-      RUN(unittest_lang_transc_transcparser) ;
-//}
-
 
       CLEARBUFFER_LOG() ;
 

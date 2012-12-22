@@ -164,6 +164,7 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/iocallback.h"/>
       <File Name="../../C-kern/api/io/iopoll.h"/>
+      <File Name="../../C-kern/api/io/instream.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/timevalue.h"/>
@@ -208,6 +209,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <File Name="../../C-kern/io/iocallback.c"/>
+    <File Name="../../C-kern/io/instream.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
     <VirtualDirectory Name="test">

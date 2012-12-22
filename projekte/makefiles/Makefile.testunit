@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Dez.17  18:54:18
+GenerationDate  := 2012.Dez.22  13:44:42
 GeneratedBy     := je-so
 
 ## Debug
@@ -119,6 +119,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeinfo.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!comparator.c.o \
+ $(ObjectDir_Debug)/C-kern!io!instream.c.o \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
@@ -200,6 +201,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeinfo.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!comparator.c.o \
+ $(ObjectDir_Release)/C-kern!io!instream.c.o \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
@@ -374,6 +376,9 @@ $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeinfo.c.o: C-kern/ds/typeadapt/typeinf
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!typeadapt!comparator.c.o: C-kern/ds/typeadapt/comparator.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!instream.c.o: C-kern/io/instream.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!url.c.o: C-kern/io/url.c
@@ -611,6 +616,9 @@ $(ObjectDir_Release)/C-kern!ds!typeadapt!typeinfo.c.o: C-kern/ds/typeadapt/typei
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!typeadapt!comparator.c.o: C-kern/ds/typeadapt/comparator.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!instream.c.o: C-kern/io/instream.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!url.c.o: C-kern/io/url.c

@@ -242,7 +242,7 @@ int callgetbinarykey_typeadapt(typeadapt_t * typeadp, ...) ;
 
 /* function: asgeneric_typeadapt
  * Casts parameter typeadp into pointer to <typeadapt_t>.
- * The parameter *typeadp* has to be of type "pointer to own typeadapter" that
+ * The parameter *typeadp* has to be of type "pointer to type" that
  * embeds the generic public interface with <typeadapt_EMBED> as first member. */
 typeadapt_t * asgeneric_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENAME object_t) ;
 

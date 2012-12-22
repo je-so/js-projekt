@@ -194,6 +194,7 @@ void skipbyte_string(string_t * str) ;
  * EINVAL - The condition (<string_t.size> >= size) is false. *str* is not changed and no error is logged. */
 int tryskipbytes_string(string_t * str, size_t size) ;
 
+
 // section: inline implementation
 
 /* define: asconst_string
