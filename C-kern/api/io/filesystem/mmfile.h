@@ -127,11 +127,6 @@ struct mmfile_t {
  * */
 int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, mmfile_openmode_e mode, const struct directory_t * relative_to /*0=>current_working_directory*/) ;
 
-/* function: initcreate_mmfile
- * Creates a new file with the given size and opens it with <mmfile_openmode_RDWR_SHARED>.
- * If the file exists EEXIST is returned. The file is always mapped from the beginning. */
-int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t size, const struct directory_t * relative_to /*0=>current working directory*/) ;
-
 /* function: free_mmfile
  * Frees all mapped memory and closes the file. */
 int free_mmfile(mmfile_t * mfile) ;

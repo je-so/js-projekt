@@ -1,14 +1,3 @@
-C-kern/platform/Linux/io/mmfile.c:166: initcreate_mmfile(): error: 22: Function input violates condition (0 != size)
-C-kern/platform/Linux/io/mmfile.c:199: initcreate_mmfile(): error: 22: Function aborted
-C-kern/platform/Linux/io/mmfile.c:126: init_mmfile(): error: 22: Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
-file_offset=18446744073709551615
-C-kern/platform/Linux/io/mmfile.c:156: init_mmfile(): error: 22: Function aborted
-C-kern/platform/Linux/io/mmfile.c:126: init_mmfile(): error: 22: Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
-file_offset=4097
-C-kern/platform/Linux/io/mmfile.c:156: init_mmfile(): error: 22: Function aborted
-C-kern/platform/Linux/io/mmfile.c:175: initcreate_mmfile(): error: 17: System call 'openat' returned error 'File exists'
-file_path=mmfile
-C-kern/platform/Linux/io/mmfile.c:199: initcreate_mmfile(): error: 17: Function aborted
 C-kern/platform/Linux/io/mmfile.c:134: init_mmfile(): error: 22: Function input violates condition ((mode & accessmode_READ) && !(mode & (typeof(mode))(~(accessmode_READ|accessmode_WRITE|accessmode_SHARED|accessmode_PRIVATE))) && (mode & (accessmode_SHARED|accessmode_PRIVATE)) != (accessmode_SHARED|accessmode_PRIVATE) && ( !(mode & accessmode_WRITE) || (mode & (accessmode_SHARED|accessmode_PRIVATE)) ))
 mode=12
 C-kern/platform/Linux/io/mmfile.c:156: init_mmfile(): error: 22: Function aborted

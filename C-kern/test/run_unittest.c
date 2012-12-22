@@ -118,11 +118,12 @@ static int check_logresource(const char * test_name)
 
    char * stored_content = (char*) addr_mmfile(&logfile) ;
    if (logbuffer_size && memcmp(stored_content, logbuffer, logbuffer_size)) {
-      mmfile_t logfile2 = mmfile_INIT_FREEABLE ;
-      if (0 == initcreate_mmfile(&logfile2, "/tmp/logbuffer", logbuffer_size, 0)) {
-         memcpy(addr_mmfile(&logfile2), logbuffer, logbuffer_size) ;
+      int      logfile2 = open("/tmp/logbuffer", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
+      if (logfile2 >= 0) {
+         ssize_t byteswritten = write(logfile2, logbuffer, logbuffer_size) ;
+         (void) byteswritten ;
+         free_filedescr(&logfile2) ;
       }
-      free_mmfile(&logfile2) ;
       CPRINTF_LOG(TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
       err = EINVAL ;
       goto ONABORT ;

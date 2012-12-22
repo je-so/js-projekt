@@ -157,49 +157,6 @@ ONABORT:
    return err ;
 }
 
-int initcreate_mmfile(/*out*/mmfile_t * mfile, const char * file_path, size_t size, const struct directory_t * relative_to)
-{
-   int err ;
-   int  fd       = -1 ;
-   int  openatfd = AT_FDCWD ;
-
-   VALIDATE_INPARAM_TEST(0 != size, ONABORT, ) ;
-
-   if (relative_to) {
-      openatfd = fd_directory(relative_to) ;
-   }
-
-   fd = openat(openatfd, file_path, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
-   if (-1 == fd) {
-      err = errno ;
-      TRACESYSERR_LOG("openat", err) ;
-      PRINTCSTR_LOG(file_path) ;
-      goto ONABORT ;
-   }
-
-   err = ftruncate(fd, size) ;
-   if (err) {
-      err = errno ;
-      TRACESYSERR_LOG("ftruncate", err) ;
-      PRINTSIZE_LOG(size) ;
-      goto ONABORT ;
-   }
-
-   err = init2_mmfile(mfile, fd, 0, size, mmfile_openmode_RDWR_SHARED) ;
-   if (err) goto ONABORT ;
-
-   (void) free_filedescr(&fd) ;
-
-   return 0 ;
-ONABORT:
-   if (-1 != fd) {
-      (void) unlinkat(openatfd, file_path, 0) ;
-      free_filedescr(&fd) ;
-   }
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
 int free_mmfile(mmfile_t * mfile)
 {
    int err ;
@@ -247,109 +204,6 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_creat_mmfile(directory_t * tempdir, const char* tmppath)
-{
-   size_t   pagesize = pagesize_vm() ;
-   mmfile_t    mfile = mmfile_INIT_FREEABLE ;
-   int            fd = -1 ;
-
-   // TEST init, double free
-   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 1, tempdir)) ;
-   TEST(mfile.addr             != 0) ;
-   TEST(mfile.size             == 1) ;
-   TEST(alignedsize_mmfile(&mfile) == pagesize) ;
-   TEST(0 == free_mmfile(&mfile)) ;
-   TEST(mfile.addr             ==  0) ;
-   TEST(mfile.size             ==  0) ;
-   TEST(0 == free_mmfile(&mfile)) ;
-   TEST(0 == removefile_directory(tempdir, "mmfile")) ;
-
-   // TEST write
-   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 111, tempdir)) ;
-   TEST(mfile.addr             != 0) ;
-   TEST(mfile.addr             == addr_mmfile(&mfile)) ;
-   TEST(mfile.size             == 111) ;
-   TEST(mfile.size             == size_mmfile(&mfile)) ;
-   TEST(pagesize               == alignedsize_mmfile(&mfile)) ;
-   uint8_t * memory = addr_mmfile(&mfile) ;
-   for (uint8_t i = 0; i < 111; ++i) {
-      memory[i] = i ;
-   }
-   TEST(0 == free_mmfile(&mfile)) ;
-   TEST(mfile.addr             ==  0) ;
-   TEST(mfile.size             ==  0) ;
-   TEST(alignedsize_mmfile(&mfile) ==  0) ;
-   // read written content
-   {
-      fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
-      TEST(fd > 0) ;
-      uint8_t buffer[111] = {0} ;
-      TEST(111 == read(fd, buffer, 111)) ;
-      for (uint8_t i = 0; i < 111; ++i) {
-         TEST(i == buffer[i]) ;
-      }
-      TEST(0 == free_filedescr(&fd)) ;
-   }
-   TEST(0 == removefile_directory(tempdir, "mmfile")) ;
-
-   // TEST mapping is shared
-   {
-      char pathname[ strlen("/mmfile") + strlen(tmppath) + 1 ] ;
-      strcpy( pathname, tmppath ) ;
-      strcat( pathname, "/mmfile" ) ;
-      TEST(0 == initcreate_mmfile(&mfile, pathname, 111, 0)) ;
-   }
-   TEST(mfile.addr             != 0) ;
-   TEST(mfile.addr             == addr_mmfile(&mfile)) ;
-   TEST(mfile.size             == 111) ;
-   TEST(mfile.size             == size_mmfile(&mfile)) ;
-   TEST(pagesize               == alignedsize_mmfile(&mfile)) ;
-   memory = addr_mmfile(&mfile) ;
-   for (uint8_t i = 0; i < 111; ++i) {
-      memory[i] = '2' ;
-   }
-   for (uint8_t i = 0; i < 111; ++i) {
-      TEST('2' == memory[i]) ;
-   }
-   // write different content
-   {
-      fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
-      TEST(fd > 0) ;
-      uint8_t buffer[111] ;
-      memset( buffer, '3', 111 ) ;
-      TEST(111 == write(fd, buffer, 111)) ;
-      TEST(0 == free_filedescr(&fd)) ;
-   }
-   for (uint8_t i = 0; i < 111; ++i) {
-      TEST('3' == memory[i]) ;
-   }
-   TEST(0 == free_mmfile(&mfile)) ;
-   TEST(0 == removefile_directory(tempdir, "mmfile")) ;
-
-   // TEST EINVAL
-   {
-      // size == 0
-      TEST(EINVAL == initcreate_mmfile(&mfile, "mmfile", 0, tempdir)) ;
-      // offset < 0
-      TEST(EINVAL == init_mmfile(&mfile, "mmfile", -1, 1, mmfile_openmode_RDWR_SHARED, tempdir)) ;
-      // offset != n*pagesize_vm()
-      TEST(EINVAL == init_mmfile(&mfile, "mmfile", pagesize_vm()+1, 1, mmfile_openmode_RDWR_SHARED, tempdir)) ;
-   }
-
-   // TEST EEXIST
-   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 1, tempdir)) ;
-   TEST(0 == free_mmfile(&mfile)) ;
-   TEST(EEXIST == initcreate_mmfile(&mfile, "mmfile", 1, tempdir)) ;
-   TEST(0 == removefile_directory(tempdir, "mmfile")) ;
-
-   return 0 ;
-ONABORT:
-   free_filedescr(&fd) ;
-   (void) free_mmfile(&mfile) ;
-   (void) removefile_directory(tempdir, "mmfile") ;
-   return 1 ;
-}
-
 static ucontext_t s_usercontext ;
 
 static void sigsegfault(int _signr)
@@ -369,11 +223,14 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    struct sigaction  oldact ;
 
    // prepare
-   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 256, tempdir)) ;
+   fd = openat(fd_directory(tempdir), "mmfile", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
+   TEST(0 <= fd) ;
+   TEST(0 == ftruncate(fd, 256)) ;
    for (unsigned i = 0; i < 256; ++i) {
-      addr_mmfile(&mfile)[i] = (uint8_t)i ;
+      buffer[i] = (uint8_t)i ;
    }
-   TEST(0 == free_mmfile(&mfile)) ;
+   TEST(256 == write(fd, buffer, 256)) ;
+   TEST(0 == free_filedescr(&fd)) ;
 
    // TEST mmfile_INIT_FREEABLE
    TEST(0 == mfile.addr) ;
@@ -542,11 +399,13 @@ static int test_writeoffset(directory_t * tempdir)
 {
    size_t   pagesize = pagesize_vm() ;
    mmfile_t mfile    = mmfile_INIT_FREEABLE ;
+   int      fd       = -1 ;
 
    // create content
-   TEST(0 == initcreate_mmfile(&mfile, "mmfile", 10*pagesize, tempdir)) ;
-   memset( addr_mmfile(&mfile), 0, 10*pagesize) ;
-   TEST(0 == free_mmfile(&mfile)) ;
+   fd = openat(fd_directory(tempdir), "mmfile", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
+   TEST(0 <= fd) ;
+   TEST(0 == fallocate(fd, 0, 0, 10*pagesize)) ;
+   TEST(0 == free_filedescr(&fd)) ;
 
    // TEST offset is correctly calculated
    for (int i = 0; i < 10; ++i) {
@@ -571,6 +430,7 @@ static int test_writeoffset(directory_t * tempdir)
 
    return 0 ;
 ONABORT:
+   (void) free_filedescr(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
    return EINVAL ;
@@ -590,7 +450,6 @@ int unittest_io_mmfile()
    tmpstr = str_cstring(&tmppath) ;
 
    if (test_alignedsize())                   goto ONABORT ;
-   if (test_creat_mmfile(tempdir, tmpstr))   goto ONABORT ;
    if (test_initfree(tempdir, tmpstr))       goto ONABORT ;
    if (test_writeoffset(tempdir))            goto ONABORT ;
 
@@ -607,7 +466,7 @@ ONABORT:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    (void) free_resourceusage(&usage) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 #endif
