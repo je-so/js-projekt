@@ -92,8 +92,8 @@ int free_processcontext(processcontext_t * pcontext)
    uint16_t  initcount = pcontext->initcount ;
    pcontext->initcount = 0 ;
 
-   switch(initcount) {
-   default: assert(0 != pcontext->initcount  && "out of bounds" )  ;
+   switch (initcount) {
+   default: assert(false && "initcount out of bounds")  ;
             break ;
 // TEXTDB:SELECT(\n"   case "row-id":  err2 = freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/config/initprocess")DESCENDING
 

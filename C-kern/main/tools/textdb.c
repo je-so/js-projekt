@@ -509,7 +509,7 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
       goto ONABORT ;
    }
 
-   err = init_mmfile( &txtdb.input_file, filename, 0, 0, mmfile_openmode_RDONLY, 0) ;
+   err = init_mmfile( &txtdb.input_file, filename, 0, 0, accessmode_READ, 0) ;
    if (err) {
       print_err( "Can not open textdb file '%s' for reading: %s", filename, strerror(err)) ;
       goto ONABORT ;
@@ -1571,7 +1571,7 @@ int main(int argc, const char * argv[])
    }
 
    // open input file for reading
-   err = init_mmfile(&input_file, g_infilename, 0, 0, mmfile_openmode_RDONLY, 0) ;
+   err = init_mmfile(&input_file, g_infilename, 0, 0, accessmode_READ, 0) ;
    if (err) {
       print_err( "Can not open file '%s' for reading: %s", g_infilename, strerror(err)) ;
       goto ONABORT ;

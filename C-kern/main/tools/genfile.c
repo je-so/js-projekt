@@ -319,7 +319,7 @@ static int generate_file(const char * filetemplate, const char * filepath)
    int err ;
    file_t outfile = file_INIT_FREEABLE ;
 
-   err = initcreat_file(&outfile, filepath, 0) ;
+   err = initcreate_file(&outfile, filepath, 0) ;
    if (err) goto ONABORT ;
 
    for (size_t toff = 0; filetemplate[toff]; ++toff) {

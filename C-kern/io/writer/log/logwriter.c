@@ -329,7 +329,7 @@ static int test_flushbuffer(void)
    TEST(0 == init_logwriter(&lgwrt)) ;
    TEST(lgwrt.logsize     == 0) ;
    TEST(lgwrt.buffer.size != 0) ;
-   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, accessmode_READ, tempdir)) ;
    TEST(lgwrt.buffer.size == size_mmfile(&logcontent)) ;
    for(unsigned i = 0; i < lgwrt.buffer.size; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (1+i)) ;
@@ -360,7 +360,7 @@ static int test_flushbuffer(void)
    TEST(lgwrt.logsize == 1) ;
    TEST('Y' == (char) lgwrt.buffer.addr[0]) ;
    TEST(0 == lgwrt.buffer.addr[1]) ;
-   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, accessmode_READ, tempdir)) ;
    TEST((lgwrt.buffer.size - log_PRINTF_MAXSIZE) == size_mmfile(&logcontent)) ;
    for(unsigned i = 0; i < lgwrt.buffer.size - log_PRINTF_MAXSIZE; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (2+i)) ;
@@ -378,7 +378,7 @@ static int test_flushbuffer(void)
    lgwrt.logsize = lgwrt.buffer.size ;
    TEST(0 == free_logwriter(&lgwrt)) ; // call flush
    TEST(0 == init_logwriter(&lgwrt)) ;
-   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, mmfile_openmode_RDONLY, tempdir)) ;
+   TEST(0 == init_mmfile(&logcontent, "testlog", 0, 0, accessmode_READ, tempdir)) ;
    TEST(lgwrt.buffer.size == size_mmfile(&logcontent)) ;
    for(unsigned i = 0; i < lgwrt.buffer.size; ++i) {
       TEST(addr_mmfile(&logcontent)[i] == (uint8_t) (3+i)) ;

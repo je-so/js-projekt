@@ -59,8 +59,8 @@ int free_threadcontext(threadcontext_t * tcontext)
    uint16_t  initcount = tcontext->initcount ;
    tcontext->initcount = 0 ;
 
-   switch(initcount) {
-   default:    assert(0 != tcontext->initcount && "out of bounds") ;
+   switch (initcount) {
+   default:    assert(false && "initcount out of bounds") ;
                break ;
 // TEXTDB:SELECT("   case "row-id":     err2 = freethread_"module"("(if (parameter!="") "&tcontext->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/config/initthread)DESCENDING
    case 3:     err2 = freethread_logwriter(&tcontext->log) ;

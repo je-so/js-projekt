@@ -1783,7 +1783,7 @@ static int init_textresourcereader(/*out*/textresource_reader_t * reader, const 
    err = init_textresource(&new_reader.txtres, filename) ;
    if (err) goto ONABORT ;
 
-   err = init_mmfile(&new_reader.mfile, filename, 0, 0, mmfile_openmode_RDONLY, 0) ;
+   err = init_mmfile(&new_reader.mfile, filename, 0, 0, accessmode_READ, 0) ;
    if (err) {
       print_error("Can not open file »%s«", filename) ;
       goto ONABORT ;
@@ -1863,7 +1863,7 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
       (void) removefile_directory(0, str_cstring(&filename)) ;
    }
 
-   err = initcreat_file(&writer->cfile, str_cstring(&filename), 0) ;
+   err = initcreate_file(&writer->cfile, str_cstring(&filename), 0) ;
    if (err) {
       print_error("Can not create file »%s«", str_cstring(&filename)) ;
       goto ONABORT ;
@@ -1879,7 +1879,7 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
       (void) removefile_directory(0, str_cstring(&filename)) ;
    }
 
-   err = initcreat_file(&writer->hfile, str_cstring(&filename), 0) ;
+   err = initcreate_file(&writer->hfile, str_cstring(&filename), 0) ;
    if (err) {
       print_error("Can not create file »%s«", str_cstring(&filename)) ;
       goto ONABORT ;

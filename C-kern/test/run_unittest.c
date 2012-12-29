@@ -100,7 +100,7 @@ static int check_logresource(const char * test_name)
    if (err) goto ONABORT ;
 
    if (logfile_size != 0) {
-      err = init_mmfile(&logfile, resource_path, 0, 0, mmfile_openmode_RDONLY, 0) ;
+      err = init_mmfile(&logfile, resource_path, 0, 0, accessmode_READ, 0) ;
       if (err) goto ONABORT ;
       logfile_size = size_mmfile(&logfile) ;
    }

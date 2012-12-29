@@ -32,6 +32,7 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/thread.h"
 #include "C-kern/api/string/cstring.h"
+#include <sys/statvfs.h>
 #endif
 
 
@@ -99,7 +100,7 @@ ONABORT:
    return err ;
 }
 
-int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to)
+int initcreate_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to)
 {
    int err ;
    int fd       = -1 ;
@@ -251,6 +252,27 @@ ONABORT:
    return err ;
 }
 
+int size_file(const file_t fileobj, /*out*/off_t * file_size)
+{
+   int err ;
+   struct stat stat_result ;
+
+   err = fstat(fileobj, &stat_result) ;
+   if (err) {
+      err = errno ;
+      TRACESYSERR_LOG("fstat", err) ;
+      PRINTINT_LOG(fileobj) ;
+      goto ONABORT ;
+   }
+
+   *file_size = stat_result.st_size ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
 // group: io
 
 int read_file(file_t fileobj, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read)
@@ -295,7 +317,8 @@ int write_file(file_t fileobj, size_t buffer_size, const uint8_t buffer[buffer_s
    ssize_t bytes ;
    size_t  total_written = 0 ;
 
-   do {
+   while (total_written < buffer_size) {
+      /* buffer_size > 0 */
       do {
          bytes = write(fileobj, (const uint8_t*)buffer + total_written, buffer_size - total_written) ;
       } while (-1 == bytes && EINTR == errno) ;
@@ -311,10 +334,48 @@ int write_file(file_t fileobj, size_t buffer_size, const uint8_t buffer[buffer_s
       }
       total_written += (size_t) bytes ;
       assert(bytes && total_written <= buffer_size) ;
-   } while (total_written < buffer_size) ;
+   }
 
    if (bytes_written) {
       *bytes_written = total_written ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+// group: allocation
+
+int truncate_file(file_t fileobj, off_t file_size)
+{
+   int err ;
+
+   err = ftruncate(fileobj, file_size) ;
+   if (err) {
+      err = errno ;
+      TRACESYSERR_LOG("ftruncate", err) ;
+      PRINTINT_LOG(fileobj) ;
+      goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+int allocate_file(file_t fileobj, off_t file_size)
+{
+   int err ;
+
+   err = fallocate(fileobj, 0/*adapt file size*/, 0, file_size) ;
+   if (err) {
+      err = errno ;
+      TRACESYSERR_LOG("fallocate", err) ;
+      PRINTINT_LOG(fileobj) ;
+      goto ONABORT ;
    }
 
    return 0 ;
@@ -339,12 +400,12 @@ static int test_nropen(void)
       fds[i] = file_INIT_FREEABLE ;
    }
 
-   // TEST nropen_filedescr: std file descriptors are open
+   // TEST nropen_file: std file descriptors are open
    openfd = 0 ;
    TEST(0 == nropen_file(&openfd)) ;
    TEST(3 <= openfd) ;
 
-   // TEST nropen_filedescr: increment
+   // TEST nropen_file: increment
    for (unsigned i = 0; i < nrelementsof(fds); ++i) {
       fds[i] = open("/dev/null", O_RDONLY|O_CLOEXEC) ;
       TEST(0 < fds[i]) ;
@@ -354,7 +415,7 @@ static int test_nropen(void)
       TEST(openfd == openfd2) ;
    }
 
-   // TEST nropen_filedescr: decrement
+   // TEST nropen_file: decrement
    for (unsigned i = 0; i < nrelementsof(fds); ++i) {
       TEST(0 == free_file(&fds[i])) ;
       TEST(fds[i] == file_INIT_FREEABLE) ;
@@ -376,6 +437,8 @@ static int test_query(directory_t * tempdir)
 {
    file_t fd  = file_INIT_FREEABLE ;
    file_t fd2 = file_INIT_FREEABLE ;
+   int    pipefd[2] = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
+   off_t  filesize ;
 
    // prepare
    TEST(0 == makefile_directory(tempdir, "testfile", 1)) ;
@@ -440,14 +503,52 @@ static int test_query(directory_t * tempdir)
    TEST(accessmode_NONE == accessmode_file(fd2)) ;
    TEST(accessmode_NONE == accessmode_file(fd)) ;
    TEST(accessmode_NONE == accessmode_file(fd)) ;
+   fd2 = file_INIT_FREEABLE ;
+
+   // TEST size_file: regular file
+   TEST(0 == initappend_file(&fd, "testfilesize", tempdir)) ;
+   filesize = 1 ;
+   TEST(0 == size_file(fd, &filesize)) ;
+   TEST(0 == filesize) ;
+   for (unsigned i = 1; i <= 256; ++i) {
+      uint8_t  buffer[257] ;
+      memset(buffer, 3, sizeof(buffer)) ;
+      TEST(0 == write_file(fd, sizeof(buffer), buffer, 0)) ;
+      TEST(0 == size_file(fd, &filesize)) ;
+      TEST(filesize == sizeof(buffer)*i) ;
+      filesize = 0 ;
+      TEST(0 == init_file(&fd2, "testfilesize", accessmode_READ, tempdir)) ;
+      TEST(0 == size_file(fd2, &filesize)) ;
+      TEST(0 == free_file(&fd2)) ;
+      TEST(filesize == sizeof(buffer)*i) ;
+      filesize = 0 ;
+      TEST(0 == filesize_directory(tempdir, "testfilesize", &filesize)) ;
+      TEST(filesize == sizeof(buffer)*i) ;
+   }
+   TEST(0 == free_file(&fd)) ;
+
+   // TEST size_file: pipe
+   TEST(0 == pipe2(pipefd, O_NONBLOCK|O_CLOEXEC)) ;
+   TEST(0 == size_file(pipefd[0], &filesize)) ;
+   TEST(0 == filesize) ;
+   TEST(0 == size_file(pipefd[1], &filesize)) ;
+   TEST(0 == filesize) ;
+   TEST(0 == free_file(&pipefd[0])) ;
+   TEST(0 == free_file(&pipefd[1])) ;
+
+   // TEST EBADF
+   TEST(EBADF == size_file(file_INIT_FREEABLE, &filesize)) ;
 
    // unprepare
    TEST(0 == removefile_directory(tempdir, "testfile")) ;
+   TEST(0 == removefile_directory(tempdir, "testfilesize")) ;
 
    return 0 ;
 ONABORT:
    free_file(&fd) ;
    free_file(&fd2) ;
+   free_file(&pipefd[0]) ;
+   free_file(&pipefd[1]) ;
    removefile_directory(tempdir, "testfile") ;
    return EINVAL ;
 }
@@ -485,9 +586,9 @@ static int test_initfree(directory_t * tempdir)
    }
    TEST(0 == removefile_directory(tempdir, "init1")) ;
 
-   // TEST initcreat_file, free_file
+   // TEST initcreate_file, free_file
    TEST(ENOENT == checkpath_directory(tempdir, "init2")) ;
-   TEST(0 == initcreat_file(&file, "init2", tempdir)) ;
+   TEST(0 == initcreate_file(&file, "init2", tempdir)) ;
    TEST(accessmode_RDWR == accessmode_file(file)) ;
    TEST(isinit_file(file)) ;
    TEST(0 == nropen_file(&nropenfd2)) ;
@@ -521,9 +622,25 @@ static int test_initfree(directory_t * tempdir)
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == removefile_directory(tempdir, "init3")) ;
 
+   // TEST initmove_file
+   for (int i = 0; i < 100; ++i) {
+      file_t destfile   = file_INIT_FREEABLE ;
+      file_t sourcefile = i ;
+      TEST(isinit_file(sourcefile)) ;
+      initmove_file(&destfile, &sourcefile) ;
+      TEST(!isinit_file(sourcefile)) /*source is reset*/ ;
+      TEST(destfile == i) /*dest contains former value of source*/ ;
+   }
+
+   // TEST initmove_file: move to itself does not work !
+   file = 0 ;
+   TEST(isinit_file(file)) ;
+   initmove_file(&file, &file) ;
+   TEST(!isinit_file(file)) ;
+
    // TEST EEXIST
    TEST(0 == makefile_directory(tempdir, "init1", 0)) ;
-   TEST(EEXIST == initcreat_file(&file, "init1", tempdir)) ;
+   TEST(EEXIST == initcreate_file(&file, "init1", tempdir)) ;
    TEST(file == file_INIT_FREEABLE) ;
    TEST(0 == removefile_directory(tempdir, "init1")) ;
 
@@ -578,9 +695,9 @@ static int test_create(directory_t * tempdir)
       buffer[i] = (uint8_t) i ;
    }
 
-   // TEST initcreat_file: file does not exist
+   // TEST initcreate_file: file does not exist
    TEST(ENOENT == checkpath_directory(tempdir, "testcreate")) ;
-   TEST(0 == initcreat_file(&file, "testcreate", tempdir)) ;
+   TEST(0 == initcreate_file(&file, "testcreate", tempdir)) ;
    TEST(0 == filesize_directory(tempdir, "testcreate", &size)) ;
    TEST(0 == size) ;
    TEST(0 == write_file(file, 256, buffer, &bwritten)) ;
@@ -591,9 +708,9 @@ static int test_create(directory_t * tempdir)
    TEST(file == file_INIT_FREEABLE) ;
    if (compare_file_content(tempdir, "testcreate", 1)) goto ONABORT ;
 
-   // TEST initcreat_file: EEXIST
+   // TEST initcreate_file: EEXIST
    TEST(0 == checkpath_directory(tempdir, "testcreate")) ;
-   TEST(EEXIST == initcreat_file(&file, "testcreate", tempdir)) ;
+   TEST(EEXIST == initcreate_file(&file, "testcreate", tempdir)) ;
    TEST(0 == filesize_directory(tempdir, "testcreate", &size)) ;
    TEST(256 == size) ;
    TEST(file == file_INIT_FREEABLE) ;
@@ -657,7 +774,6 @@ ONABORT:
    return EINVAL ;
 }
 
-
 // test read / write with interrupts
 
 typedef struct thread_arg_t   thread_arg_t ;
@@ -714,7 +830,7 @@ static void siguser(int signr)
 static int test_readwrite(directory_t * tempdir)
 {
    int               fd        = -1 ;
-   int               pipefd[2] = { -1 } ;
+   int               pipefd[2] = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
    memblock_t        buffer    = memblock_INIT_FREEABLE ;
    thread_t          * thread  = 0 ;
    uint8_t           byte ;
@@ -896,6 +1012,176 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_allocate(directory_t * tempdir)
+{
+   file_t   file  = file_INIT_FREEABLE ;
+   file_t   file2 = file_INIT_FREEABLE ;
+   int      pipefd[2] = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
+   size_t   bwritten ;
+   size_t   bread ;
+   uint32_t buffer[1024] ;
+   uint32_t buffer2[1024] ;
+   off_t    size ;
+
+   // prepare
+   TEST(0 == pipe2(pipefd, O_CLOEXEC)) ;
+   for (uint32_t i = 0; i < nrelementsof(buffer); ++i) {
+      buffer[i] = i ;
+   }
+
+   // TEST truncate_file: shrink file
+   TEST(ENOENT == checkpath_directory(tempdir, "testallocate")) ;
+   TEST(0 == initcreate_file(&file, "testallocate", tempdir)) ;
+   TEST(0 == filesize_directory(tempdir, "testallocate", &size)) ;
+   TEST(0 == size) ;
+   for (unsigned i = 1; i <= 256; ++i) {
+      TEST(0 == write_file(file, sizeof(buffer), (uint8_t*)buffer, &bwritten)) ;
+      TEST(bwritten == sizeof(buffer)) ;
+      TEST(0 == size_file(file, &size)) ;
+      TEST(size == sizeof(buffer)*i) ;
+   }
+   for (unsigned i = 256; i >= 1; --i) {
+      TEST(0 == truncate_file(file, sizeof(buffer)*(i-1))) ;
+      TEST(0 == size_file(file, &size)) ;
+      TEST(size == sizeof(buffer)*(i-1)) ;
+      TEST(0 == init_file(&file2, "testallocate", accessmode_READ, tempdir)) ;
+      for (unsigned i2 = 1; i2 < i; i2++) {
+         memset(buffer2, 1, sizeof(buffer2)) ;
+         TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread)) ;
+         TEST(bread == sizeof(buffer2)) ;
+         TEST(0 == memcmp(buffer, buffer2, sizeof(buffer))) ;
+      }
+      TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread)) ;
+      TEST(0 == bread/*end of input*/) ;
+      TEST(0 == free_file(&file2)) ;
+   }
+
+   // TEST truncate_file: grow file with 0 bytes
+   memset(buffer, 0, sizeof(buffer)) ;
+   TEST(0 == truncate_file(file, 11/*support sizes smaller than blocksize*/)) ;
+   TEST(0 == size_file(file, &size)) ;
+   TEST(size == 11) ;
+   for (unsigned i = 1; i <= 256; ++i) {
+      TEST(0 == truncate_file(file, sizeof(buffer)*i)) ;
+      TEST(0 == size_file(file, &size)) ;
+      TEST(size == sizeof(buffer)*i) ;
+      TEST(0 == init_file(&file2, "testallocate", accessmode_READ, tempdir)) ;
+      for (unsigned i2 = 0; i2 < i; i2++) {
+         memset(buffer2, 1, sizeof(buffer2)) ;
+         TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread)) ;
+         TEST(bread == sizeof(buffer2)) ;
+         TEST(0 == memcmp(buffer, buffer2, sizeof(buffer))) ;
+      }
+      TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread)) ;
+      TEST(0 == bread/*end of input*/) ;
+      TEST(0 == free_file(&file2)) ;
+   }
+   TEST(0 == free_file(&file)) ;
+
+   // TEST allocate_file: grow
+   TEST(0 == removefile_directory(tempdir, "testallocate")) ;
+   TEST(0 == initcreate_file(&file, "testallocate", tempdir)) ;
+   TEST(0 == allocate_file(file, 12/*support sizes smaller than blocksize*/)) ;
+   TEST(0 == size_file(file, &size)) ;
+   TEST(size == 12) ;
+   for (unsigned i = 1; i <= 256; ++i) {
+      TEST(0 == allocate_file(file, sizeof(buffer)*i)) ;
+      TEST(0 == size_file(file, &size)) ;
+      TEST(size == sizeof(buffer)*i) ;
+      TEST(0 == init_file(&file2, "testallocate", accessmode_READ, tempdir)) ;
+      for (unsigned i2 = 0; i2 < i; i2++) {
+         memset(buffer2, 1, sizeof(buffer2)) ;
+         TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread)) ;
+         TEST(bread == sizeof(buffer2)) ;
+         TEST(0 == memcmp(buffer, buffer2, sizeof(buffer))) ;
+      }
+      TEST(0 == read_file(file2, sizeof(buffer2), (uint8_t*)buffer2, &bread)) ;
+      TEST(0 == bread/*end of input*/) ;
+      TEST(0 == free_file(&file2)) ;
+   }
+
+   // TEST allocate_file: no shrink possible
+   for (unsigned i = 1; i <= 256; ++i) {
+      TEST(0 == allocate_file(file, sizeof(buffer)*i)) ;
+      TEST(0 == size_file(file, &size)) ;
+      TEST(size == sizeof(buffer)*256) ;
+   }
+   TEST(0 == free_file(&file)) ;
+
+   // TEST allocate_file: free disk blocks really allocated on file system
+   TEST(0 == removefile_directory(tempdir, "testallocate")) ;
+   TEST(0 == initcreate_file(&file, "testallocate", tempdir)) ;
+   struct statvfs statvfs_result1 ;
+   struct statvfs statvfs_result2 ;
+   TEST(0 == fstatvfs(file, &statvfs_result1)) ;
+   TEST(0 == allocate_file(file, statvfs_result1.f_frsize * 10000)) ;
+   TEST(0 == fstatvfs(file, &statvfs_result2)) ;
+   TEST(statvfs_result2.f_bfree + 10000 <= statvfs_result1.f_bfree) ;
+   TEST(0 == truncate_file(file, 0)) ;
+   TEST(0 == fstatvfs(file, &statvfs_result2)) ;
+   TEST(statvfs_result2.f_bfree + 100 >= statvfs_result1.f_bfree) ;
+   TEST(0 == free_file(&file)) ;
+
+   // TEST truncate_file: free disk blocks are not allocated on file system
+   TEST(0 == removefile_directory(tempdir, "testallocate")) ;
+   TEST(0 == initcreate_file(&file, "testallocate", tempdir)) ;
+   TEST(0 == fstatvfs(file, &statvfs_result1)) ;
+   TEST(0 == truncate_file(file, statvfs_result1.f_frsize * 10000)) ;
+   TEST(0 == fstatvfs(file, &statvfs_result2)) ;
+   TEST(statvfs_result2.f_bfree + 100 >= statvfs_result1.f_bfree) ;
+   TEST(0 == free_file(&file)) ;
+
+   // TEST EINVAL
+   // resize pipe
+   TEST(EINVAL == truncate_file(pipefd[1], 4096))
+   // read only
+   TEST(0 == init_file(&file, "testallocate", accessmode_READ, tempdir)) ;
+   TEST(EINVAL == truncate_file(file, 4096))
+   TEST(0 == free_file(&file)) ;
+   // negative size
+   TEST(0 == init_file(&file, "testallocate", accessmode_RDWR, tempdir)) ;
+   TEST(EINVAL == truncate_file(file, -4096))
+   TEST(EINVAL == allocate_file(file, -4096))
+   TEST(0 == free_file(&file)) ;
+
+   // TEST ESPIPE (illegal seek)
+   // resize pipe
+   TEST(ESPIPE == allocate_file(pipefd[1], 4096))
+
+   // TEST EBADF
+   // read only
+   TEST(0 == init_file(&file, "testallocate", accessmode_READ, tempdir)) ;
+   TEST(EBADF == allocate_file(file, 4096)) ;
+   int oldfile = file ;
+   TEST(0 == free_file(&file)) ;
+   // closed file
+   TEST(EBADF == truncate_file(oldfile, 4096))
+   TEST(EBADF == allocate_file(oldfile, 4096))
+   // invalid file descriptor
+   TEST(EBADF == truncate_file(file_INIT_FREEABLE, 4096))
+   TEST(EBADF == allocate_file(file_INIT_FREEABLE, 4096))
+
+   // TEST ENOSPC
+   TEST(0 == init_file(&file, "testallocate", accessmode_RDWR, tempdir)) ;
+   TEST(0 == fstatvfs(file, &statvfs_result1)) ;
+   TEST(ENOSPC == allocate_file(file, (off_t) (statvfs_result1.f_frsize * (1+statvfs_result1.f_bavail)))) ;
+   TEST(0 == free_file(&file)) ;
+
+   // unprepare
+   TEST(0 == removefile_directory(tempdir, "testallocate")) ;
+   TEST(0 == free_file(&pipefd[0])) ;
+   TEST(0 == free_file(&pipefd[1])) ;
+
+   return 0 ;
+ONABORT:
+   free_file(&file) ;
+   free_file(&file2) ;
+   free_file(&pipefd[0]) ;
+   free_file(&pipefd[1]) ;
+   removefile_directory(tempdir, "testallocate") ;
+   return EINVAL ;
+}
+
 int unittest_io_file()
 {
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
@@ -909,9 +1195,10 @@ int unittest_io_file()
    if (test_nropen())            goto ONABORT ;
    if (test_query(tempdir))      goto ONABORT ;
    if (test_initfree(tempdir))   goto ONABORT ;
-   if (test_append(tempdir))     goto ONABORT ;
    if (test_create(tempdir))     goto ONABORT ;
+   if (test_append(tempdir))     goto ONABORT ;
    if (test_readwrite(tempdir))  goto ONABORT ;
+   if (test_allocate(tempdir))   goto ONABORT ;
 
    // adapt LOG
    char * logbuffer ;

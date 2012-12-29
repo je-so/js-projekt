@@ -1,34 +1,70 @@
-C-kern/platform/Linux/io/file.c:163: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
+C-kern/platform/Linux/io/file.c:164: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=4
-C-kern/platform/Linux/io/file.c:175: accessmode_file(): error: 9: Function aborted
-C-kern/platform/Linux/io/file.c:163: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
+C-kern/platform/Linux/io/file.c:176: accessmode_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:164: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=4
-C-kern/platform/Linux/io/file.c:175: accessmode_file(): error: 9: Function aborted
-C-kern/platform/Linux/io/file.c:163: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
+C-kern/platform/Linux/io/file.c:176: accessmode_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:164: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=-1
-C-kern/platform/Linux/io/file.c:175: accessmode_file(): error: 9: Function aborted
-C-kern/platform/Linux/io/file.c:163: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
+C-kern/platform/Linux/io/file.c:176: accessmode_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:164: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=-1
-C-kern/platform/Linux/io/file.c:175: accessmode_file(): error: 9: Function aborted
-C-kern/platform/Linux/io/file.c:115: initcreat_file(): error: 17: System call 'openat' returned error 'File exists'
+C-kern/platform/Linux/io/file.c:176: accessmode_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:263: size_file(): error: 9: System call 'fstat' returned error 'Bad file descriptor'
+fileobj=-1
+C-kern/platform/Linux/io/file.c:272: size_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:116: initcreate_file(): error: 17: System call 'openat' returned error 'File exists'
 openatfd=3
 filepath=init1
-C-kern/platform/Linux/io/file.c:125: initcreat_file(): error: 17: Function aborted
-C-kern/platform/Linux/io/file.c:49: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-C-kern/platform/Linux/io/file.c:71: init_file(): error: 22: Function aborted
-C-kern/platform/Linux/io/file.c:49: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-C-kern/platform/Linux/io/file.c:71: init_file(): error: 22: Function aborted
-C-kern/platform/Linux/io/file.c:49: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-C-kern/platform/Linux/io/file.c:71: init_file(): error: 22: Function aborted
-C-kern/platform/Linux/io/file.c:115: initcreat_file(): error: 17: System call 'openat' returned error 'File exists'
+C-kern/platform/Linux/io/file.c:126: initcreate_file(): error: 17: Function aborted
+C-kern/platform/Linux/io/file.c:50: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
+C-kern/platform/Linux/io/file.c:72: init_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:50: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
+C-kern/platform/Linux/io/file.c:72: init_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:50: init_file(): error: 22: Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
+C-kern/platform/Linux/io/file.c:72: init_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:116: initcreate_file(): error: 17: System call 'openat' returned error 'File exists'
 openatfd=3
 filepath=testcreate
-C-kern/platform/Linux/io/file.c:125: initcreat_file(): error: 17: Function aborted
-C-kern/platform/Linux/io/file.c:307: write_file(): error: 32: System call 'write' returned error 'Broken pipe'
+C-kern/platform/Linux/io/file.c:126: initcreate_file(): error: 17: Function aborted
+C-kern/platform/Linux/io/file.c:330: write_file(): error: 32: System call 'write' returned error 'Broken pipe'
 fileobj=5
 buffer_size=1
-C-kern/platform/Linux/io/file.c:322: write_file(): error: 32: Function aborted
-C-kern/platform/Linux/io/file.c:307: write_file(): error: 32: System call 'write' returned error 'Broken pipe'
+C-kern/platform/Linux/io/file.c:345: write_file(): error: 32: Function aborted
+C-kern/platform/Linux/io/file.c:330: write_file(): error: 32: System call 'write' returned error 'Broken pipe'
 fileobj=5
 buffer_size=1
-C-kern/platform/Linux/io/file.c:322: write_file(): error: 32: Function aborted
+C-kern/platform/Linux/io/file.c:345: write_file(): error: 32: Function aborted
+C-kern/platform/Linux/io/file.c:358: truncate_file(): error: 22: System call 'ftruncate' returned error 'Invalid argument'
+fileobj=5
+C-kern/platform/Linux/io/file.c:365: truncate_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:358: truncate_file(): error: 22: System call 'ftruncate' returned error 'Invalid argument'
+fileobj=6
+C-kern/platform/Linux/io/file.c:365: truncate_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:358: truncate_file(): error: 22: System call 'ftruncate' returned error 'Invalid argument'
+fileobj=6
+C-kern/platform/Linux/io/file.c:365: truncate_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:376: allocate_file(): error: 22: System call 'fallocate' returned error 'Invalid argument'
+fileobj=6
+C-kern/platform/Linux/io/file.c:383: allocate_file(): error: 22: Function aborted
+C-kern/platform/Linux/io/file.c:376: allocate_file(): error: 29: System call 'fallocate' returned error 'Illegal seek'
+fileobj=5
+C-kern/platform/Linux/io/file.c:383: allocate_file(): error: 29: Function aborted
+C-kern/platform/Linux/io/file.c:376: allocate_file(): error: 9: System call 'fallocate' returned error 'Bad file descriptor'
+fileobj=6
+C-kern/platform/Linux/io/file.c:383: allocate_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:358: truncate_file(): error: 9: System call 'ftruncate' returned error 'Bad file descriptor'
+fileobj=6
+C-kern/platform/Linux/io/file.c:365: truncate_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:376: allocate_file(): error: 9: System call 'fallocate' returned error 'Bad file descriptor'
+fileobj=6
+C-kern/platform/Linux/io/file.c:383: allocate_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:358: truncate_file(): error: 9: System call 'ftruncate' returned error 'Bad file descriptor'
+fileobj=-1
+C-kern/platform/Linux/io/file.c:365: truncate_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:376: allocate_file(): error: 9: System call 'fallocate' returned error 'Bad file descriptor'
+fileobj=-1
+C-kern/platform/Linux/io/file.c:383: allocate_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:376: allocate_file(): error: 28: System call 'fallocate' returned error 'No space left on device'
+fileobj=6
+C-kern/platform/Linux/io/file.c:383: allocate_file(): error: 28: Function aborted

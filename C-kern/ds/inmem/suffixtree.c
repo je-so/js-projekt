@@ -1461,7 +1461,7 @@ static int test_matchfile(void)
 
    // prepare
    // open and read this source file
-   TEST(0 == init_mmfile(&sourcefile, __FILE__, 0, 0, mmfile_openmode_RDONLY, 0)) ;
+   TEST(0 == init_mmfile(&sourcefile, __FILE__, 0, 0, accessmode_READ, 0)) ;
    uint8_t   * buffer = addr_mmfile(&sourcefile) ;
    size_t buffer_size = size_mmfile(&sourcefile) ;
 

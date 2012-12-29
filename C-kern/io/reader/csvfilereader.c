@@ -288,7 +288,7 @@ int init_csvfilereader(/*out*/csvfilereader_t * csvfile, const char * filepath)
 
    *csvfile = (csvfilereader_t) csvfilereader_INIT_FREEABLE ;
 
-   err = init_mmfile(&csvfile->file, filepath, 0, 0, mmfile_openmode_RDONLY, 0) ;
+   err = init_mmfile(&csvfile->file, filepath, 0, 0, accessmode_READ, 0) ;
    if (err) goto ONABORT ;
 
    csvfilereader_parsestate_t parsestate = csvfilereader_parsestate_INIT(size_mmfile(&csvfile->file), addr_mmfile(&csvfile->file)) ;

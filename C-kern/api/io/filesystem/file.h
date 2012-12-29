@@ -62,6 +62,15 @@ typedef enum file_e                    file_e ;
 
 // section: Functions
 
+// group: query
+
+/* function: nropen_file
+ * Returns number of opened file descriptors.
+ * You can use this function at the beginning and end
+ * of any transaction to check if an I/O object (file, network socket...)
+ * was not closed properly. */
+int nropen_file(/*out*/size_t * number_open_fd) ;
+
 // group: test
 
 #ifdef KONFIG_UNITTEST
@@ -93,13 +102,17 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
  * even if more than one process is writing to the same file. */
 int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
-/* function: initcreat_file
+/* function: initcreate_file
  * Creates a file identified by its path and name.
  * If the file exists already EEXIST is returned.
  * The filepath can be either a relative or an absolute path.
  * If filepath is relative it is considered relative to the directory relative_to.
  * If relative_to is set to NULL then it is considered relative to the current working directory. */
-int initcreat_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int initcreate_file(/*out*/file_t * fileobj, const char* filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+
+/* function: initmove_file
+ * Moves content of sourcefile to destfile. sourcefile is also reset to <file_INIT_FREEABLE>. */
+static inline void initmove_file(/*out*/file_t * restrict destfile, file_t * restrict sourcefile) ;
 
 /* function: free_file
  * Closes an opened file and frees held resources. */
@@ -116,25 +129,21 @@ accessmode_e accessmode_file(const file_t fileobj) ;
  * Returns true if the file was opened with <init_file>.
  * Returns false if file is in a freed (closed) state and after <free_file>
  * has been called. */
-bool isinit_file(const file_t fileobj) ;
+static inline bool isinit_file(const file_t fileobj) ;
 
 /* function: isopen_file
  * Returns *true* if the underlying system file object is open.
- * If it is open then it <isinit_filedescr> returns also true.
- * <isopen_filedescr> checks that the value in fd refers to an open descriptor
+ * If it is open then it <isinit_file> returns also true.
+ * <isopen_file> checks that the value in fd refers to an open descriptor
  * and makes a call to the operating system.
- * It is therefore more costly than <isinit_filedescr>.
+ * It is therefore more costly than <isinit_file>.
  * It is possible that a former valid file descriptor is no more open
  * if a copied value of it was closed. */
 bool isopen_file(const file_t fileobj) ;
 
-/* function: nropen_file
- * Returns number of opened file descriptors.
- * Use this function at the beginning and the end
- * of your test to check if a file or network socket
- * is not closed properly.
- * In case of error this functions returns 0. */
-int nropen_file(/*out*/size_t * number_open_fd) ;
+/* function: size_file
+ * Returns the size in bytes of the file. */
+int size_file(const file_t fileobj, /*out*/off_t * file_size) ;
 
 // group: io
 
@@ -158,14 +167,37 @@ int write_file(file_t fileobj, size_t buffer_size, const uint8_t buffer[buffer_s
 
 // group: allocation
 
+/* function: truncate_file
+ * Truncates file to file_size bytes.
+ * Data beyond file_size is lost. If file_size is bigger than the value <size_file> returns
+ * the file is either extended with 0 bytes or EPERM is returned. This call only changes the length
+ * but does not allocate data blocks on the file system. */
+int truncate_file(file_t fileobj, off_t file_size) ;
+
+/* function: allocate_file
+ * Preallocates blocks on disk filled with 0 bytes.
+ * The preallocation is faster than filling a file with 0 bytes and it ensures that
+ * a writer does not run out of disk space.
+ * This call can only grow the file size.
+ * Returns ENOSPC if not enough space is available on the disk. */
+int allocate_file(file_t fileobj, off_t file_size) ;
 
 
 // section: inline implementation
 
-/* define: isinit_file
- * Implements <file_t.isinit_file>.
- * This function assumes that file is primitive type. */
-#define isinit_file(fileobj)           (file_INIT_FREEABLE != (fileobj))
+// group: file_t
 
+/* function: isinit_file
+ * Implements <file_t.initmove_file>. */
+static inline void initmove_file(file_t * restrict destfile, file_t * restrict sourcefile)
+{
+   *destfile = *sourcefile ;
+   *sourcefile = file_INIT_FREEABLE ;
+}
+
+/* function: isinit_file
+ * Implements <file_t.isinit_file>.
+ * This function assumes that file is a primitive type. */
+static inline bool isinit_file(file_t fileobj)        {  return file_INIT_FREEABLE != fileobj ; }
 
 #endif
