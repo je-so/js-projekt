@@ -44,7 +44,18 @@ int unittest_lang_transc_transcparser(void) ;
 
 
 /* struct: transCparser_t
- * TODO: describe type */
+ * TODO: describe type
+ *
+ * Data Flow:
+ * >  ─────────────        ┌──────────────┐       ┌────────────────┐
+ * >   Source File  ────➜  │ transCparser │ ────➜ │ Structured     │
+ * >  ─────────────        └──────────────┘       │ Representation │
+ * >      │                                       └────────↑───────┘
+ * >      ╰────────────────────────────────────────────────╯
+ * >           ( source code positions are stored in memory
+ * >             to support error reporting / interpretation )
+ *
+ * */
 struct transCparser_t {
    int dummy ;
 } ;
