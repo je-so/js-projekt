@@ -1,0 +1,24 @@
+title: UTF8-Art
+
+This document lists utf8 characters which can be used to
+draw diagrams.
+
+group: software models
+
+about: object diagram
+
+> ╭─────────╮     ┬     ┌─────────┐
+> │ Object  │ ├─→ ↓ ←─┤ │ Class   │ ⤒
+> ├─────────┤ ─●➤ ↑ ◯─┤ ├─────────┤ 
+> ╰─────────╯     ┴     └─────────┘ 
+> ◂▸▴▾ ◃▹▵▿                 ∆◯◇△   ➜
+>                           ││││
+
+
+about: buttons
+
+> ╭─╮╭─╮
+> │✓││✔│
+> ╰─╯╰─╯
+>
+
