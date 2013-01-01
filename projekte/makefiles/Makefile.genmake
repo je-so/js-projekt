@@ -6,8 +6,8 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/genmake.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Dez.22  14:30:15
-GeneratedBy     := je-so
+GenerationDate  := 2012.Dez.28  14:39:33
+GeneratedBy     := Jörg Seebohn
 
 ## Debug
 DefineFlag_Debug    := -D
@@ -83,7 +83,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!genmake.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!exthash.c.o \
@@ -99,7 +99,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!genmake.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!exthash.c.o \
@@ -138,7 +138,7 @@ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
+$(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
@@ -180,7 +180,7 @@ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!writer!logerrtext.c.o: C-kern/io/writer/logerrtext.c
+$(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c

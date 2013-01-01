@@ -22,12 +22,15 @@
 
    file: C-kern/api/io/writer/log/errlog_macros.h
     Header file of <ErrlogMacros>.
+
+   file: C-kern/io/writer/errlog.c
+    Implementation file <Errorlog-Writer>.
 */
 #ifndef CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 #define CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 
-#include "C-kern/api/resource/logerrtext.h"
 #include "C-kern/api/io/writer/log/log_macros.h"
+#include "C-kern/resource/generated/errlog.h"
 
 
 // section: Functions

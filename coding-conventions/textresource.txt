@@ -4,11 +4,11 @@ Describes how texts are described to support internationalization.
 
 section: Format
 
-See "C-kern/resource/logerror2.txt" for a description of the format.
-This text resource is compiled into header file "C-kern/api/resource/logerrtext.h"
-and source file "C-kern/io/writer/logerrtext.c".
+See "C-kern/resource/errlog.text" for a description of the format.
+This text resource is compiled into header file "C-kern/resource/generated/errlog.h"
+and source files "C-kern/resource/generated/errlog.{de,en}".
 
 section: Usage
 
-See "C-kern/api/io/writer/log/errlog_macros.h" which includes the generated
-header file "C-kern/api/resource/logerrtext.h" how to use it.
+See alos "C-kern/api/io/writer/log/errlog_macros.h" which includes the generated
+header file and "C-kern/io/writer/errlog.c" which includes the language specific part.

@@ -6,8 +6,8 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textres2.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Nov.06  20:32:16
-GeneratedBy     := je-so
+GenerationDate  := 2012.Dez.28  14:39:33
+GeneratedBy     := Jörg Seebohn
 
 ## Release
 DefineFlag_Release    := ?
@@ -47,12 +47,12 @@ $(sort $(ObjectDir_Release) $(TargetDir_Release)):
 	@mkdir -p "$@"
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!resource!logerror2.text.o
+ $(ObjectDir_Release)/C-kern!resource!errlog.text.o
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Release)/C-kern!resource!logerror2.text.o: C-kern/resource/logerror2.text
+$(ObjectDir_Release)/C-kern!resource!errlog.text.o: C-kern/resource/errlog.text
 	@$(CC_Release)
 
 -include $(Objects_Release:.o=.d)

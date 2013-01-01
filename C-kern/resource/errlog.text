@@ -61,17 +61,9 @@
 <proglang value=C>
    <namesuffix value=_ERRLOG/>
    <langswitch value=KONFIG_LANG/>
-   <guard      value=CKERN_RESOURCE_ERRORLOG_HEADER/>
-   <generate   header="C-kern/api/resource/logerrtext.h" source="C-kern/io/writer/logerrtext.c"/>
+   <generate   header="C-kern/resource/generated/errlog.h" source="C-kern/resource/generated/errlog"/>
    <printf     value=PRINTF/>
-   <firstparam value="log_channel_e channel" header="C-kern/api/io/writer/log/log_it.h"/>
-   <include>
-      #include "C-kern/konfig.h"
-      #include "C-kern/api/resource/logerrtext.h"
-      #include "C-kern/api/err.h"
-
-      #define PRINTF(...)  log_maincontext().iimpl->printf(log_maincontext().object, channel, __VA_ARGS__ )
-   </include>
+   <firstparam value="log_channel_e channel"/>
 </proglang>
 
 # // TODO: rename into ERROR_FATAL

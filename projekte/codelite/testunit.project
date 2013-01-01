@@ -19,9 +19,6 @@
       <File Name="../../C-kern/api/test/assert.h"/>
       <File Name="../../C-kern/api/test/testmm.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="resource">
-      <File Name="../../C-kern/api/resource/logerrtext.h"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="string">
       <File Name="../../C-kern/api/string/string.h"/>
       <File Name="../../C-kern/api/string/cstring.h"/>
@@ -201,11 +198,11 @@
       <File Name="../../C-kern/io/reader/csvfilereader.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
-      <File Name="../../C-kern/io/writer/logerrtext.c"/>
       <VirtualDirectory Name="log">
         <File Name="../../C-kern/io/writer/log/logmain.c"/>
         <File Name="../../C-kern/io/writer/log/logwriter.c"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/io/writer/errlog.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/io/iocallback.c"/>
     <File Name="../../C-kern/io/instream.c"/>
@@ -271,13 +268,18 @@
       <File Name="../../coding-conventions/textresource.txt"/>
       <File Name="../../coding-conventions/error-handling.txt"/>
     </VirtualDirectory>
-    <File Name="../../C-kern/resource/logerror2.text"/>
     <VirtualDirectory Name="config">
       <File Name="../../C-kern/resource/config/initprocess"/>
       <File Name="../../C-kern/resource/config/initthread"/>
       <File Name="../../C-kern/resource/config/signalconfig"/>
       <File Name="../../C-kern/resource/config/modulevalues"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="generated">
+      <File Name="../../C-kern/resource/generated/errlog.h"/>
+      <File Name="../../C-kern/resource/generated/errlog.de"/>
+      <File Name="../../C-kern/resource/generated/errlog.en"/>
+    </VirtualDirectory>
+    <File Name="../../C-kern/resource/errlog.text"/>
   </VirtualDirectory>
   <VirtualDirectory Name="platform">
     <VirtualDirectory Name="Linux">

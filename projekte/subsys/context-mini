@@ -6,4 +6,4 @@ Src += C-kern/context/threadcontext.c
 Src += C-kern/cache/objectcache_impl.c
 Src += C-kern/cache/valuecache.c
 Src += C-kern/memory/mm/mmtransient.c
-Src += C-kern/io/writer/logerrtext.c C-kern/io/writer/log/logmain.c
+Src += C-kern/io/writer/errlog.c C-kern/io/writer/log/logmain.c

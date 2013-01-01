@@ -42,7 +42,7 @@ function check_textresource_inuse()
    rm $textids_file
 }
 
-check_textresource_inuse "C-kern/resource/logerror2.text"
+check_textresource_inuse "C-kern/resource/errlog.text"
 
 if [ "$info" = "" ]; then
    exit 0

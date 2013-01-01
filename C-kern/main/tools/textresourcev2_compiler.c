@@ -70,17 +70,17 @@ enum xmltag_openclose_e {
 typedef enum xmltag_openclose_e        xmltag_openclose_e ;
 
 enum typemodifier_e {
-    typemodifier_PLAIN    = 0
-   ,typemodifier_POINTER  = 1
-   ,typemodifier_CONST    = 2
-   ,typemodifier_RESERVED = 4
+   typemodifier_PLAIN    = 0,
+   typemodifier_POINTER  = 1,
+   typemodifier_CONST    = 2,
+   typemodifier_RESERVED = 4
 } ;
 
 typedef enum typemodifier_e            typemodifier_e ;
 
 enum textresource_textatom_e {
-    textresource_textatom_STRING
-   ,textresource_textatom_PARAMETER = 1
+   textresource_textatom_STRING,
+   textresource_textatom_PARAMETER
 } ;
 
 typedef enum textresource_textatom_e   textresource_textatom_e ;
@@ -134,19 +134,16 @@ struct xmlattribute_t {
 /* struct: proglangC_t
  * Contains control information for formatting written "C" language output. */
 struct proglangC_t {
-   conststring_t     include ;
    conststring_t     cfilename;
    conststring_t     hfilename ;
    conststring_t     firstparam ;
-   conststring_t     firstparam_header ;
-   conststring_t     guard ;
    conststring_t     langswitch ;
    conststring_t     nameprefix ;
    conststring_t     namesuffix ;
    conststring_t     printf ;
 } ;
 
-#define proglangC_INIT_FREEABLE        { conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE }
+#define proglangC_INIT_FREEABLE        { conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE }
 
 
 /* struct: textresource_language_t
@@ -1583,45 +1580,18 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
       switch (ch) {
       case 'f':   err = match_stringandspace(reader, "firstparam") ;
                   if (err) goto ONABORT ;
-                  err = parse_xmlattributes_textresourcereader(reader, 2, firstattr, &closetag) ;
+                  err = parse_xmlattributes_textresourcereader(reader, nrelementsof(firstattr), firstattr, &closetag) ;
                   if (err) goto ONABORT ;
-                  reader->txtres.progC.firstparam        = firstattr[0].value ;
-                  reader->txtres.progC.firstparam_header = firstattr[1].value ;
+                  static_assert(nrelementsof(firstattr) == 2, "assume one value") ;
+                  reader->txtres.progC.firstparam = firstattr[0].value ;
                   break ;
-      case 'g':   if (  0 == peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
-                        && 'e' == ch) {
-                     err = match_stringandspace(reader, "generate") ;
-                     if (err) goto ONABORT ;
-                     err = parse_xmlattributes_textresourcereader(reader, nrelementsof(genattr), genattr, &closetag) ;
-                     if (err) goto ONABORT ;
-                     reader->txtres.progC.hfilename = genattr[0].value ;
-                     reader->txtres.progC.cfilename = genattr[1].value ;
-                  } else {
-                     err = match_stringandspace(reader, "guard") ;
-                     if (err) goto ONABORT ;
-                     err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
-                     if (err) goto ONABORT ;
-                     reader->txtres.progC.guard = value.value ;
-                     break ;
-                  }
-                  break ;
-      case 'i':   err = match_string(reader, "include>") ;
+      case 'g':   err = match_stringandspace(reader, "generate") ;
                   if (err) goto ONABORT ;
-                  const uint8_t * incl_start = unread_utf8reader(&reader->txtpos) ;
-                  const uint8_t * incl_end   = incl_start ;
-                  while (0 == peekascii_utf8reader(&reader->txtpos, &ch)) {
-                     if (  '<' == ch
-                        && 0 == peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
-                        && '/' == ch) {
-                        incl_end = unread_utf8reader(&reader->txtpos) ;
-                        break ;
-                     }
-                     skipchar_utf8reader(&reader->txtpos) ;
-                  }
-                  err = initse_conststring(&reader->txtres.progC.include, incl_start, incl_end) ;
+                  err = parse_xmlattributes_textresourcereader(reader, nrelementsof(genattr), genattr, &closetag) ;
                   if (err) goto ONABORT ;
-                  err = match_string(reader, "</include>") ;
-                  if (err) goto ONABORT ;
+                  static_assert(nrelementsof(genattr) == 2, "assume two values") ;
+                  reader->txtres.progC.hfilename = genattr[0].value ;
+                  reader->txtres.progC.cfilename = genattr[1].value ;
                   break ;
       case 'l':   err = match_stringandspace(reader, "langswitch") ;
                   if (err) goto ONABORT ;
@@ -1812,32 +1782,24 @@ ONABORT:
 struct textresource_writer_t {
    textresource_t  * txtres ;
    file_t          outfile ;
-   file_t          cfile ;
-   file_t          hfile ;
 } ;
 
 static int writeCheader_textresourcewriter(textresource_writer_t * writer) ;
-static int writeCsource_textresourcewriter(textresource_writer_t * writer) ;
+static int writeCsource_textresourcewriter(textresource_writer_t * writer, textresource_language_t * lang) ;
 
 // group: lifetime
 
 /* define: textresource_writer_INIT_FREEABLE
  * Static initializer. */
-#define textresource_writer_INIT_FREEABLE       { 0, file_INIT_FREEABLE, file_INIT_FREEABLE, file_INIT_FREEABLE }
+#define textresource_writer_INIT_FREEABLE       { 0, file_INIT_FREEABLE }
 
 static int free_textresourcewriter(textresource_writer_t * writer)
 {
    int err ;
-   int err2 ;
 
-   writer->txtres  = 0 ;
-   writer->outfile = file_INIT_FREEABLE ;
+   writer->txtres = 0 ;
 
-   err = free_file(&writer->hfile) ;
-
-   err2 = free_file(&writer->cfile) ;
-   if (err2) err = err2 ;
-
+   err = free_file(&writer->outfile) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -1856,34 +1818,58 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
 
    writer->txtres = txtres ;
 
-   err = initfromstring_cstring(&filename, &progC->cfilename) ;
+   // generate C source file
+
+   foreach(_arraylanguage, writer->txtres->languages, lang) {
+
+      err = initfromstring_cstring(&filename, &progC->cfilename) ;
+      if (err) goto ONABORT ;
+
+      if (lang->name.size > INT_MAX) {
+         err = ENOMEM ;
+         goto ONABORT ;
+      }
+
+      err = printfappend_cstring(&filename, ".%.*s", (int)lang->name.size, (const char*)lang->name.addr) ;
+      if (err) goto ONABORT ;
+
+      if (0 == checkpath_directory(0, str_cstring(&filename))) {
+         (void) removefile_directory(0, str_cstring(&filename)) ;
+      }
+
+      err = initcreate_file(&writer->outfile, str_cstring(&filename), 0) ;
+      if (err) {
+         print_error("Can not create file »%s«", str_cstring(&filename)) ;
+         goto ONABORT ;
+      }
+
+      err = writeCsource_textresourcewriter(writer, lang) ;
+      if (err) goto ONABORT ;
+
+      err = free_file(&writer->outfile) ;
+      if (err) goto ONABORT ;
+
+      err = free_cstring(&filename) ;
+      if (err) goto ONABORT ;
+   }
+
+   // generate C header file
+
+   err = initfromstring_cstring(&filename, &progC->hfilename) ;
    if (err) goto ONABORT ;
 
    if (0 == checkpath_directory(0, str_cstring(&filename))) {
       (void) removefile_directory(0, str_cstring(&filename)) ;
    }
 
-   err = initcreate_file(&writer->cfile, str_cstring(&filename), 0) ;
+   err = initcreate_file(&writer->outfile, str_cstring(&filename), 0) ;
    if (err) {
       print_error("Can not create file »%s«", str_cstring(&filename)) ;
       goto ONABORT ;
    }
 
-   err = truncate_cstring(&filename, 0) ;
+   err = writeCheader_textresourcewriter(writer) ;
    if (err) goto ONABORT ;
-
-   err = append_cstring(&filename, progC->hfilename.size, (const char*)progC->hfilename.addr) ;
-   if (err) goto ONABORT ;
-
-   if (0 == checkpath_directory(0, str_cstring(&filename))) {
-      (void) removefile_directory(0, str_cstring(&filename)) ;
-   }
-
-   err = initcreate_file(&writer->hfile, str_cstring(&filename), 0) ;
-   if (err) {
-      print_error("Can not create file »%s«", str_cstring(&filename)) ;
-      goto ONABORT ;
-   }
 
    err = free_cstring(&filename) ;
    if (err) goto ONABORT ;
@@ -1892,32 +1878,6 @@ static int init_textresourcewriter(textresource_writer_t * writer, textresource_
 ONABORT:
    free_cstring(&filename) ;
    free_textresourcewriter(writer) ;
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-static int initfree_textresourcewriter(textresource_t * txtres)
-{
-   int err ;
-   textresource_writer_t   writer = textresource_writer_INIT_FREEABLE ;
-
-   err = init_textresourcewriter(&writer, txtres) ;
-   if (err) goto ONABORT ;
-
-   writer.outfile = writer.hfile ;
-   err = writeCheader_textresourcewriter(&writer) ;
-   if (err) goto ONABORT ;
-
-   writer.outfile = writer.cfile ;
-   err = writeCsource_textresourcewriter(&writer) ;
-   if (err) goto ONABORT ;
-
-   err = free_textresourcewriter(&writer) ;
-   if (err) goto ONABORT ;
-
-   return 0 ;
-ONABORT:
-   free_textresourcewriter(&writer) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -1966,16 +1926,7 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
    int err ;
 
    dprintf(writer->outfile, "/*\n * C header generated by textresource compiler v2\n *\n") ;
-   dprintf(writer->outfile, " * Do not edit this file -- instead edit '%s'\n *\n */\n", writer->txtres->read_from_filename) ;
-
-   proglangC_t * progC = &writer->txtres->progC ;
-
-   dprintf(writer->outfile, "#ifndef %.*s\n", (int)progC->guard.size, progC->guard.addr) ;
-   dprintf(writer->outfile, "#define %.*s\n\n", (int)progC->guard.size, progC->guard.addr) ;
-
-   if (progC->firstparam_header.size) {
-      dprintf(writer->outfile, "#include \"%.*s\"\n\n", (int)progC->firstparam_header.size, progC->firstparam_header.addr) ;
-   }
+   dprintf(writer->outfile, " * Do not edit this file -- instead edit '%s'\n *\n */\n\n", writer->txtres->read_from_filename) ;
 
    foreach (_arraytname, writer->txtres->textnames, text) {
       err = writeCfctdeclaration_textresourcewriter(writer, text) ;
@@ -1983,44 +1934,9 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
       dprintf(writer->outfile, " ;\n") ;
    }
 
-   dprintf(writer->outfile, "\n#endif\n") ;
-
    return 0 ;
 ONABORT:
    return err ;
-}
-
-static int writeCintro_textresourcewriter(textresource_writer_t * writer)
-{
-   dprintf(writer->outfile, "/*\n * C source code generated by textresource compiler v2\n *\n") ;
-   dprintf(writer->outfile, " * Do not edit this file -- instead edit '%s'\n *\n */\n\n", writer->txtres->read_from_filename) ;
-
-   conststring_t incl = writer->txtres->progC.include ;
-   size_t        off ;
-   for (off = 0; off < incl.size; ++ off) {
-      if (' ' != incl.addr[off]) {
-         if ('\n' != incl.addr[off]) break ;
-         // skip empty lines
-         incl.size -= (off+1) ;
-         incl.addr += (off+1) ;
-         off = (size_t)0 - 1 ;
-      }
-   }
-
-   for (size_t offend = off; offend < incl.size; ) {
-      size_t offstart = offend ;
-      for (; offend < incl.size; ++offend) {
-         if ('\n' == incl.addr[offend]) break ;
-      }
-      size_t sz = offend - offstart ;
-      dprintf(writer->outfile, "%.*s\n", (int)sz, &incl.addr[offstart]) ;
-      for (offstart = ++ offend/*skip \n*/; offstart < incl.size && offend + off; ++offstart) {
-         if (' ' != incl.addr[offstart]) break ;
-      }
-      offend = offstart ;
-   }
-
-   return 0 ;
 }
 
 static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist_t * atomlist)
@@ -2095,7 +2011,7 @@ static int writeCfunction_textresourcewriter(textresource_writer_t * writer, tex
 {
    int err ;
 
-   dprintf(writer->outfile, "\n\n") ;
+   dprintf(writer->outfile, "\n") ;
 
    err = writeCfctdeclaration_textresourcewriter(writer, text) ;
    if (err) goto ONABORT ;
@@ -2138,76 +2054,26 @@ static int writeCfunction_textresourcewriter(textresource_writer_t * writer, tex
       }
    }
 
-   dprintf(writer->outfile, "   return 0;\n}") ;
+   dprintf(writer->outfile, "   return 0;\n}\n") ;
 
    return 0 ;
 ONABORT:
    return err ;
 }
 
-static int writeCfunctions_textresourcewriter(textresource_writer_t * writer)
+static int writeCsource_textresourcewriter(textresource_writer_t * writer, textresource_language_t * lang)
 {
    int err ;
 
-   proglangC_t * progC = &writer->txtres->progC ;
+   dprintf(writer->outfile, "/*\n * C source code generated by textresource compiler v2\n *\n") ;
+   dprintf(writer->outfile, " * Do not edit this file -- instead edit '%s'\n *\n */\n", writer->txtres->read_from_filename) ;
 
-   unsigned langid = 1 ;
-   foreach(_arraylanguage, writer->txtres->languages, lang) {
-      dprintf(writer->outfile, "\n#define %.*s   %u", (int)lang->name.size, lang->name.addr, langid) ;
-      langid <<= 1 ;
-   }
+   foreach (_arraytname, writer->txtres->textnames, text) {
 
-   bool first_param = true ;
-
-   foreach(_arraylanguage, writer->txtres->languages, lang) {
-
-      if (first_param) {
-         first_param = false ;
-         dprintf(writer->outfile, "\n\n#if ((%.*s) & %.*s)",   (int)progC->langswitch.size, progC->langswitch.addr,
-                                                               (int)lang->name.size, lang->name.addr) ;
-      } else {
-         dprintf(writer->outfile, "\n\n#elif ((%.*s) & %.*s)", (int)progC->langswitch.size, progC->langswitch.addr,
-                                                               (int)lang->name.size, lang->name.addr) ;
-      }
-
-      foreach (_arraylanguage, writer->txtres->languages, lang2) {
-         dprintf(writer->outfile, "\n#undef %.*s", (int)lang2->name.size, lang2->name.addr) ;
-      }
-
-      foreach (_arraytname, writer->txtres->textnames, text) {
-
-         err = writeCfunction_textresourcewriter(writer, text, lang) ;
-         if (err) goto ONABORT ;
-
-      }
+      err = writeCfunction_textresourcewriter(writer, text, lang) ;
+      if (err) goto ONABORT ;
 
    }
-
-   if (!first_param) {
-      dprintf(writer->outfile, "\n\n#endif") ;
-   }
-
-   foreach(_arraylanguage, writer->txtres->languages, lang) {
-      dprintf(writer->outfile, "\n#undef %.*s", (int)lang->name.size, lang->name.addr) ;
-   }
-
-   dprintf(writer->outfile, "\n") ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-static int writeCsource_textresourcewriter(textresource_writer_t * writer)
-{
-   int err ;
-
-   err = writeCintro_textresourcewriter(writer) ;
-   if (err) goto ONABORT ;
-
-   err = writeCfunctions_textresourcewriter(writer) ;
-   if (err) goto ONABORT ;
 
    return 0 ;
 ONABORT:
@@ -2218,7 +2084,8 @@ ONABORT:
 int main(int argc, const char * argv[])
 {
    int err ;
-   textresource_reader_t   reader   = textresource_reader_INIT_FREEABLE ;
+   textresource_reader_t   reader = textresource_reader_INIT_FREEABLE ;
+   textresource_writer_t   writer = textresource_writer_INIT_FREEABLE ;
    const char              * infile ;
 
    err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
@@ -2232,10 +2099,11 @@ int main(int argc, const char * argv[])
    err = init_textresourcereader(&reader, infile) ;
    if (err) goto ONABORT ;
 
-   err = initfree_textresourcewriter(&reader.txtres) ;
+   err = init_textresourcewriter(&writer, &reader.txtres) ;
    if (err) goto ONABORT ;
 
 ONABORT:
+   free_textresourcewriter(&writer) ;
    free_textresourcereader(&reader) ;
    free_maincontext() ;
    return err ;
