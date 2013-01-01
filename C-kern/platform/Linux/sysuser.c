@@ -297,6 +297,7 @@ int new_sysuserinfo(/*out*/sysuserinfo_t ** usrinfo, sysuser_t sysusr)
    int err ;
    struct passwd  info ;
    struct passwd  * result = 0 ;
+   static_assert(sizeof(size_t) == sizeof(long), "long sysconf(...) converted to size_t" ) ;
    size_t         strsize  = (size_t) sysconf(_SC_GETPW_R_SIZE_MAX) ;
    memblock_t     mblock   = memblock_INIT_FREEABLE ;
 

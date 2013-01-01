@@ -33,11 +33,11 @@
 
 /* typedef: struct sysuser_t
  * Make <sysuser_t> an alias of <sys_userid_t>. */
-typedef sys_userid_t                      sysuser_t ;
+typedef sys_userid_t                   sysuser_t ;
 
 /* typedef: struct sysuserinfo_t
  * Export <sysuserinfo_t> into global namespace. */
-typedef struct sysuserinfo_t              sysuserinfo_t ;
+typedef struct sysuserinfo_t           sysuserinfo_t ;
 
 
 // section: Functions
@@ -75,15 +75,15 @@ int unittest_platform_sysuser(void) ;
  * underlying authentication service provider with this name.
  * The current value uses the same name as the "passwd" service.
  * This value can be overwritten in C-kern/resource/config/modulevalues. */
-#define sysuser_SYS_SERVICE_NAME         "passwd"
+#define sysuser_SYS_SERVICE_NAME       "passwd"
 
 /* define: sysuser_UNITTEST_USERNAME
  * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>. */
-#define sysuser_UNITTEST_USERNAME               "guest"
+#define sysuser_UNITTEST_USERNAME      "guest"
 
 /* define: sysuser_UNITTEST_PASSWORD
  * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>. */
-#define sysuser_UNITTEST_PASSWORD               "GUEST"
+#define sysuser_UNITTEST_PASSWORD      "GUEST"
 
 // group: initonce
 

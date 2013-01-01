@@ -30,7 +30,7 @@
  *
  * 1. Include standard preprocessor macros.
  * 2. Configuration switches: list of all configuration options to switch language and os.
- * 3. Declare format specifiers.
+ * 3. Declare format/type specifiers.
  * 4. Include os specific settings and definitions of system specific types.
  * 5. Include standard runtime environment
  */
@@ -103,8 +103,8 @@
 
 //}
 
-// group: 3 Declare format specifiers
-// Declares a bunch of system specific printf / scanf format specifiers
+// group: 3 Declare some missing standard specifiers
+// Declares some printf/scanf format specifiers and type descriptions.
 
 //{
 /* about: integer format specifiers
@@ -159,13 +159,17 @@
  * scanf unsigned int format specifier 'zu' for *size_t*. */
 #define SCNuSIZE                       "zu"
 
+/* define: OFF_MAX
+ * Declares the maximum value of type off_t.
+ * The size of off_t is checked in file "C-kern/test/compiletime/stdtypes.h"*/
+#define OFF_MAX                        INT64_MAX
 //}
 
 // group: 4. System Specific Definitions
-// Include system settings settings.
-// Include operating system headers relevant for implementation.
-// Include system specific settings which define system specific types.
-// Include system specific settings which define system optimizations.
+// Include system settings:
+// - Include operating system headers relevant for implementation.
+// - Include system specific types.
+// - Include system specific optimizations.
 // > #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
 // > #include STR(C-kern/api/platform/KONFIG_OS/systypes.h)
 // > #include STR(C-kern/api/platform/KONFIG_OS/sysoptimize.h)
