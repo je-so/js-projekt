@@ -1151,14 +1151,14 @@ static int test_ipaddrlist(void)
    TEST(0 == addrlist) ;
 
    // Test IDN
-   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.café.com", ipprotocol_TCP, 3, ipversion_4)) ;
+   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.wörterbuch.de", ipprotocol_TCP, 3, ipversion_4)) ;
    // check result (TCP protocol)
    TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
    TEST(version_ipaddr(ipaddr)  == ipversion_4) ;
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_TCP) ;
    TEST(port_ipaddr(ipaddr)     == 3) ;
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.café.com")) ;
+   TEST(0 == strcmp( str_cstring(&name), "www.wörterbuch.de")) ;
    TEST(0 == newcopy_ipaddr(&copiedaddr, ipaddr)) ;
    TEST(copiedaddr) ;
    TEST(0 == next_ipaddrlist(addrlist)) ;
@@ -1166,7 +1166,7 @@ static int test_ipaddrlist(void)
    TEST(0 == addrlist) ;
 
       // compare same result as ACE encoded
-   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.xn--caf-dma.com", ipprotocol_TCP, 3, ipversion_4)) ;
+   TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.xn--wrterbuch-07a.de", ipprotocol_TCP, 3, ipversion_4)) ;
    // check result (TCP protocol)
    TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
    TEST(version_ipaddr(ipaddr)  == ipversion_4) ;
@@ -1178,9 +1178,9 @@ static int test_ipaddrlist(void)
    TEST(0 == delete_ipaddr(&copiedaddr)) ;
    TEST(0 == copiedaddr) ;
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.café.com")) ;
+   TEST(0 == strcmp( str_cstring(&name), "www.wörterbuch.de")) ;
    TEST(0 == dnsnameace_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.xn--caf-dma.com")) ;
+   TEST(0 == strcmp( str_cstring(&name), "www.xn--wrterbuch-07a.de")) ;
    TEST(0 == next_ipaddrlist(addrlist)) ;
    TEST(0 == delete_ipaddrlist(&addrlist)) ;
    TEST(0 == addrlist) ;
