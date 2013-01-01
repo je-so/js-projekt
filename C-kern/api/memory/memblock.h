@@ -101,8 +101,8 @@ void clear_memblock(memblock_t * mblock) ;
 
 // group: resize
 
-/* function: shrink_memblock
- * Shrinks the memory block.
+/* function: shrinkleft_memblock
+ * Shrinks the memory block by incr its addr and decr its size.
  * The start address <memblock_t.addr> is incremented by *addr_increment* and
  * the size of the block <memblock_t.size> is decremented by the same amount.
  * > ╭───────────────╮        ╭┈┈┈┈┬──────────╮
@@ -110,19 +110,40 @@ void clear_memblock(memblock_t * mblock) ;
  * > ├───────────────┤        ╰┈┈┈┈├──────────┤ size' == size - addr_increment
  * > └- addr         └- addr+size  └- addr'   └- addr+size == addr'+size'
  * */
-int shrink_memblock(memblock_t * mblock, size_t addr_increment) ;
+int shrinkleft_memblock(memblock_t * mblock, size_t addr_increment) ;
 
-/* function: grow_memblock
- * Grows the memory block.
+/* function: shrinkright_memblock
+ * Shrinks the memory block by decrementing only its size.
+ * The start address <memblock_t.addr> is not changed but
+ * the size of the block <memblock_t.size> is decremented by size_decrement.
+ * > ╭───────────────╮            ╭─────────┬┈┈┈┈┈╮
+ * > │<--- size ---->│    ==>     │<-size'->│<-D->│ D     == size_decrement
+ * > ├───────────────┤            ╰─────────├┈┈┈┈┈┤ size' == size - D
+ * > └- addr         └- addr+size └- addr   └- addr+size'
+ * */
+int shrinkright_memblock(memblock_t * mblock, size_t size_decrement) ;
+
+/* function: growleft_memblock
+ * Grows the memory block by decr its addr and incr its size..
  * The start address <memblock_t.addr> is decremented by *addr_decrement* and
  * the size of the block <memblock_t.size> is incremented by the same amount.
  * > ╭────────────╮            ╭┈┈┈┈┈──────────╮
  * > │<-- size -->│        ==> │<--- size' --->│ addr' == addr - addr_decrement
  * > ├────────────┤            ├┈┈┈┈┈──────────┤ size' == size + addr_decrement
- * > └- addr      └- addr+size └- addr'        └- addr+size == addr'+size'
+ * > └- addr      └- addr+size └- addr'        └- addr'+size'
  * */
-int grow_memblock(memblock_t * mblock, size_t addr_decrement) ;
+int growleft_memblock(memblock_t * mblock, size_t addr_decrement) ;
 
+/* function: growright_memblock
+ * Grows the memory block by incrementing only its size.
+ * The start address <memblock_t.addr> is not changed but
+ * the size of the block <memblock_t.size> is incremented by size_increment.
+ * > ╭────────────╮            ╭┈┈┈┈┈──────────╮
+ * > │<-- size -->│        ==> │<--- size' --->│
+ * > ├────────────┤            ├┈┈┈┈┈──────────┤ size' == size + size_increment
+ * > └- addr      └- addr+size └- addr         └- addr+size'
+ * */
+int growright_memblock(memblock_t * mblock, size_t size_increment) ;
 
 // section: inline implementation
 
@@ -134,17 +155,35 @@ int grow_memblock(memblock_t * mblock, size_t addr_decrement) ;
  * Implements <memblock_t.clear_memblock>. */
 #define clear_memblock(mblock)         (memset((mblock)->addr, 0, (mblock)->size))
 
-/* define: grow_memblock
- * Implements <memblock_t.grow_memblock>. */
-#define grow_memblock(mblock, addr_decrement)            \
+/* define: growleft_memblock
+ * Implements <memblock_t.growleft_memblock>. */
+#define growleft_memblock(mblock, addr_decrement)        \
       ( __extension__ ({ int _err ;                      \
             typeof(mblock) _mblock = (mblock) ;          \
             size_t _decr = (addr_decrement) ;            \
-            if ((uintptr_t)_mblock->addr <= _decr) {     \
+            if ((uintptr_t)_mblock->addr < _decr) {      \
                _err = ENOMEM ;                           \
             } else {                                     \
                _mblock->addr -= _decr ;                  \
                _mblock->size += _decr ;                  \
+               _err = 0 ;                                \
+            }                                            \
+            _err ;                                       \
+      }))
+
+/* define: growright_memblock
+ * Implements <memblock_t.growright_memblock>. */
+#define growright_memblock(mblock, size_increment)       \
+      ( __extension__ ({ int _err ;                      \
+            typeof(mblock) _mblock = (mblock) ;          \
+            size_t _size = _mblock->size                 \
+                         + (size_increment) ;            \
+            if ( _size < _mblock->size                   \
+                 || ((uintptr_t)_mblock->addr + _size    \
+                      < (uintptr_t)_mblock->addr)) {     \
+               _err = ENOMEM ;                           \
+            } else {                                     \
+               _mblock->size = _size ;                   \
                _err = 0 ;                                \
             }                                            \
             _err ;                                       \
@@ -158,9 +197,9 @@ int grow_memblock(memblock_t * mblock, size_t addr_decrement) ;
  * Implements <memblock_t.isvalid_memblock>. */
 #define isvalid_memblock(mblock)       (0 == (mblock)->size || 0 != (mblock)->addr)
 
-/* define: shrink_memblock
- * Implements <memblock_t.shrink_memblock>. */
-#define shrink_memblock(mblock, addr_increment)          \
+/* define: shrinkleft_memblock
+ * Implements <memblock_t.shrinkleft_memblock>. */
+#define shrinkleft_memblock(mblock, addr_increment)      \
       ( __extension__ ({ int _err ;                      \
             typeof(mblock) _mblock = (mblock) ;          \
             size_t _incr = (addr_increment) ;            \
@@ -169,6 +208,21 @@ int grow_memblock(memblock_t * mblock, size_t addr_decrement) ;
             } else {                                     \
                _mblock->addr += _incr ;                  \
                _mblock->size -= _incr ;                  \
+               _err = 0 ;                                \
+            }                                            \
+            _err ;                                       \
+      }))
+
+/* define: shrinkright_memblock
+ * Implements <memblock_t.shrinkright_memblock>. */
+#define shrinkright_memblock(mblock, size_decrement)     \
+      ( __extension__ ({ int _err ;                      \
+            typeof(mblock) _mblock = (mblock) ;          \
+            size_t _decr = (size_decrement) ;            \
+            if (_mblock->size < _decr) {                 \
+               _err = ENOMEM ;                           \
+            } else {                                     \
+               _mblock->size -= _decr ;                  \
                _err = 0 ;                                \
             }                                            \
             _err ;                                       \

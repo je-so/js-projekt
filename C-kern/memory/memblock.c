@@ -108,56 +108,91 @@ ONABORT:
 static int test_resize(void)
 {
    memblock_t  mblock = memblock_INIT_FREEABLE ;
-   uint8_t     * addr ;
-   size_t      size   ;
 
-   // TEST shrink_memblock with 0
-   TEST(0 == shrink_memblock(&mblock, 0)) ;
-   TEST(0 == mblock.addr) ;
-   TEST(0 == mblock.size) ;
+   // TEST growleft_memblock with 0
+   TEST(0 == growleft_memblock(&mblock, 0)) ;
+   TEST(isfree_memblock(&mblock)) ;
 
-   // TEST grow_memblock with 0
-   TEST(ENOMEM == grow_memblock(&mblock, 0)) ;
-   TEST(0 == mblock.addr) ;
-   TEST(0 == mblock.size) ;
-
-   // TEST shrink_memblock
-   mblock.addr = addr = 0 ;
-   mblock.size = size = 1000000 ;
-   for (unsigned i = 0; size > i; ++i) {
-      addr += i ;
-      size -= i ;
-      TEST(0 == shrink_memblock(&mblock, i)) ;
-      TEST(addr == addr_memblock(&mblock)) ;
-      TEST(size == size_memblock(&mblock)) ;
+   // TEST growleft_memblock
+   for (unsigned i = 0; i <= 1000000; ++i) {
+      mblock = (memblock_t) memblock_INIT(0, (uint8_t*)1000000) ;
+      TEST(0 == growleft_memblock(&mblock, i)) ;
+      TEST(addr_memblock(&mblock) == (uint8_t*)(1000000-i)) ;
+      TEST(size_memblock(&mblock) == i) ;
    }
-   TEST(0 == shrink_memblock(&mblock, size)) ;
-   TEST((uint8_t*)1000000 == addr_memblock(&mblock)) ;
-   TEST(0 == size_memblock(&mblock)) ;
 
-   // TEST shrink_memblock ENOMEM
-   mblock.addr = 0 ;
-   mblock.size = 10000 ;
-   TEST(ENOMEM == shrink_memblock(&mblock, 10000 + 1)) ;
+   // TEST growleft_memblock ENOMEM
+   mblock = (memblock_t) memblock_INIT(0, (uint8_t*)10000) ;
+   TEST(ENOMEM == growleft_memblock(&mblock, 10000 + 1)) ;
+   TEST(addr_memblock(&mblock) == (uint8_t*)10000) ;
+   TEST(size_memblock(&mblock) == 0) ;
 
-   // TEST grow_memblock
-   mblock.addr = addr = (uint8_t*) 1000000 ;
-   mblock.size = size = 0 ;
-   for (unsigned i = 0; addr > (uint8_t*)i; ++i) {
-      addr -= i ;
-      size += i ;
-      TEST(0 == grow_memblock(&mblock, i)) ;
-      TEST(addr == addr_memblock(&mblock)) ;
-      TEST(size == size_memblock(&mblock)) ;
+   // TEST growright_memblock with 0
+   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   TEST(0 == growright_memblock(&mblock, 0)) ;
+   TEST(addr_memblock(&mblock) == 0) ;
+   TEST(size_memblock(&mblock) == 0) ;
+
+   // TEST growright_memblock with SIZE_MAX
+   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   TEST(0 == growright_memblock(&mblock, SIZE_MAX)) ;
+   TEST(addr_memblock(&mblock) == 0) ;
+   TEST(size_memblock(&mblock) == SIZE_MAX) ;
+
+   // TEST growright_memblock
+   for (unsigned i = 0; i <= 1000000; ++i) {
+      mblock = (memblock_t) memblock_INIT((i/1000), (uint8_t*)(1000000+i)) ;
+      TEST(0 == growright_memblock(&mblock, i)) ;
+      TEST(addr_memblock(&mblock) == (uint8_t*)(1000000+i)) ;
+      TEST(size_memblock(&mblock) == i+(i/1000)) ;
    }
-   TEST(0 == grow_memblock(&mblock, (uintptr_t)(addr) - 1)) ;
-   TEST((uint8_t*)1 == addr_memblock(&mblock)) ;
-   TEST(999999 == size_memblock(&mblock)) ;
 
-   // TEST grow_memblock ENOMEM
-   mblock.addr = (uint8_t*)10000 ;
-   mblock.size = 0 ;
-   TEST(ENOMEM == grow_memblock(&mblock, 10000)) ;
+   // TEST growright_memblock ENOMEM
+   mblock = (memblock_t) memblock_INIT(65536, (uint8_t*)10000) ;
+   TEST(ENOMEM == growright_memblock(&mblock, SIZE_MAX/*size overflows*/)) ;
+   TEST(addr_memblock(&mblock) == (uint8_t*)10000) ;
+   TEST(size_memblock(&mblock) == 65536) ;
+   TEST(ENOMEM == growright_memblock(&mblock, SIZE_MAX-10000-65536+1/*addr overflows*/)) ;
+   TEST(addr_memblock(&mblock) == (uint8_t*)10000) ;
+   TEST(size_memblock(&mblock) == 65536) ;
+
+   // TEST shrinkleft_memblock: incr == 0
+   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   TEST(0 == shrinkleft_memblock(&mblock, 0)) ;
+   TEST(isfree_memblock(&mblock)) ;
+
+   // TEST shrinkleft_memblock
+   for (unsigned i = 0; i < 1000000; ++i) {
+      mblock = (memblock_t) memblock_INIT(1000000, (uint8_t*)(i/1000)) ;
+      TEST(0 == shrinkleft_memblock(&mblock, i)) ;
+      TEST(addr_memblock(&mblock) == (uint8_t*)((i/1000)+i)) ;
+      TEST(size_memblock(&mblock) == 1000000 - i) ;
+   }
+
+   // TEST shrinkleft_memblock ENOMEM
+   mblock = (memblock_t) memblock_INIT(10000, (uint8_t*)1) ;
+   TEST(ENOMEM == shrinkleft_memblock(&mblock, 10000 + 1)) ;
+   TEST(addr_memblock(&mblock) == (uint8_t*)1) ;
+   TEST(size_memblock(&mblock) == 10000) ;
+
+   // TEST shrinkright_memblock: decr == 0
+   mblock = (memblock_t) memblock_INIT_FREEABLE ;
+   TEST(0 == shrinkright_memblock(&mblock, 0)) ;
+   TEST(isfree_memblock(&mblock)) ;
+
+   // TEST shrinkright_memblock
+   for (unsigned i = 0; i < 1000000; ++i) {
+      mblock = (memblock_t) memblock_INIT(1000000, (uint8_t*)i) ;
+      TEST(0 == shrinkright_memblock(&mblock, i)) ;
+      TEST(addr_memblock(&mblock) == (uint8_t*)i) ;
+      TEST(size_memblock(&mblock) == 1000000 - i) ;
+   }
+
+   // TEST shrinkright_memblock ENOMEM
+   mblock = (memblock_t) memblock_INIT(10000, (uint8_t*)2) ;
+   TEST(ENOMEM == shrinkleft_memblock(&mblock, 10000 + 1)) ;
+   TEST(addr_memblock(&mblock) == (uint8_t*)2) ;
+   TEST(size_memblock(&mblock) == 10000) ;
 
    return 0 ;
 ONABORT:

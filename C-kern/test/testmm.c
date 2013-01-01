@@ -273,7 +273,7 @@ static int freeblock_testmmpage(testmm_page_t * mmpage, struct memblock_t * memb
          block = block2 ;
       }
 
-      (void) grow_memblock(&mmpage->freeblock, (size_t)(mmpage->freeblock.addr - (uint8_t*)block)) ;
+      (void) growleft_memblock(&mmpage->freeblock, (size_t)(mmpage->freeblock.addr - (uint8_t*)block)) ;
    }
 
    *memblock = (memblock_t) memblock_INIT_FREEABLE ;
@@ -295,7 +295,7 @@ static int newblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct me
 
    block = (testmm_block_t*) mmpage->freeblock.addr ;
 
-   err = shrink_memblock(&mmpage->freeblock, blocksize) ;
+   err = shrinkleft_memblock(&mmpage->freeblock, blocksize) ;
    if (err) return err ;
 
    init_testmmblock(block, newsize, alignsize) ;
