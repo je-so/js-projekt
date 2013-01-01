@@ -76,11 +76,12 @@ struct memblock_t {
 // group: query
 
 /* function: isfree_memblock
- * Returns true if <memblock_t->addr> is NULL. */
+ * Returns true if mblock equals <memblock_INIT_FREEABLE>. */
 bool isfree_memblock(const memblock_t * mblock) ;
 
-/* function: isfree_memblock
- * Returns true if either <memblock_t->addr> is != 0 or <memblock_t->size> is 0. */
+/* function: isvalid_memblock
+ * Returns true if mblock->addr != 0 or block->size is 0.
+ * This functions returns true for a <memblock_t> which is initialized to <memblock_INIT_FREEABLE>. */
 bool isvalid_memblock(const memblock_t * mblock) ;
 
 /* function: addr_memblock
@@ -151,11 +152,11 @@ int grow_memblock(memblock_t * mblock, size_t addr_decrement) ;
 
 /* define: isfree_memblock
  * Implements <memblock_t.isfree_memblock>. */
-#define isfree_memblock(mblock)        (0 == (mblock)->addr)
+#define isfree_memblock(mblock)        (0 == (mblock)->addr && 0 == (mblock)->size)
 
 /* define: isvalid_memblock
  * Implements <memblock_t.isvalid_memblock>. */
-#define isvalid_memblock(mblock)       ((0 == (mblock)->size) || (0 != (mblock)->addr))
+#define isvalid_memblock(mblock)       (0 == (mblock)->size || 0 != (mblock)->addr)
 
 /* define: shrink_memblock
  * Implements <memblock_t.shrink_memblock>. */
