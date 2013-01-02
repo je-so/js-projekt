@@ -161,6 +161,11 @@
       <File Name="../../C-kern/api/io/iocallback.h"/>
       <File Name="../../C-kern/api/io/iopoll.h"/>
       <File Name="../../C-kern/api/io/instream.h"/>
+      <VirtualDirectory Name="adapter">
+        <File Name="../../C-kern/api/io/adapter/instream_mmfile.h"/>
+        <File Name="../../C-kern/api/io/adapter/konfig_buffersize.h"/>
+        <File Name="../../C-kern/api/io/adapter/instream_factory.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/timevalue.h"/>
@@ -206,6 +211,10 @@
     </VirtualDirectory>
     <File Name="../../C-kern/io/iocallback.c"/>
     <File Name="../../C-kern/io/instream.c"/>
+    <VirtualDirectory Name="adapter">
+      <File Name="../../C-kern/io/adapter/instream_mmfile.c"/>
+      <File Name="../../C-kern/io/adapter/instream_factory.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">
     <VirtualDirectory Name="test">

@@ -65,27 +65,26 @@ struct instream_it {
     * memory address may change from call to call or not - consider old addresses
     * to become invalid.
     *
-    * If you want to keep data of a previously read data block set keepstart to
-    * the start address of the data within datablock you want to keep
-    * else set it to datablock->addr + datablock->size.
-    * After return keepstart points to the beginning of the same data but adapted
-    * to the memory frame of the newly returned datablock. In case keepstart was set
-    * to old value of (datablock->addr + datablock->size) it is set to new value of
-    * datablock->addr.
+    * If you want to keep data of a previously read data block set keepsize to
+    * number of the last bytes within datablock you want to keep else set keepsize 0.
+    * After return keepaddr points to the start address of the kept data within
+    * the memory frame of the newly returned datablock. In case keepsize was set to 0
+    * it points to the start address of the returned datablock.
     *
-    * After return datablock contains data of the next data block plus (in case keepstart != 0)
-    * (<memblock_t.size> - (keepstart - <memblock_t.addr>) + alignment) bytes of the end of the
+    * After return datablock contains data of the next data block. In case keepsize != 0
+    * the next data block contains also (keepsize + alignment) bytes of the end of the
     * previous read data block. The kept data is aligned to some unknown value
-    * which depends on the implementation.
+    * which depends on the implementation. The start address within datablock is returned in keepaddr.
+    * The return value of keepaddr is always != 0 except in case no more data was read and keepsize was set to 0.
     *
-    * For the first call parameters datablock and keepstart must be set to
-    * <memblock_INIT_FREEABLE> and 0 respectively. For all other calls datablock must contain
-    * the unmodified value returned from a previous call and keepstart must always point within
-    * address space of datablock.
+    * For the first call parameter datablock must be set to <memblock_INIT_FREEABLE> and keepsize to 0.
+    * For all other calls datablock must contain the unmodified value returned from a previous call
+    * and keepsize must always be smaller than the size of the datablock.
     *
     * In case there is no more data the returncode is 0 and datablock is either set to <memblock_INIT_FREEABLE>
-    * or contains the data beginning with (keepstart - alignment). */
-   int (* readnext)  (struct instream_impl_t * isimpl, /*inout*/struct memblock_t * datablock, /*inout*/uint8_t ** keepstart) ;
+    * or if (keepsize != 0) contains (keepsize + alignment) number of bytes.
+    * keepaddr is set to (datablock->addr + datablock->size - keepsize). */
+   int (* readnext)  (struct instream_impl_t * instr, /*inout*/struct memblock_t * datablock, /*out*/uint8_t ** keepaddr, size_t keepsize) ;
 } ;
 
 // group: lifetime
@@ -135,11 +134,11 @@ struct instream_t {
     * <enddata> - <nextdata> gives the number of unread bytes.
     * <enddata> - <startdata> gives the size of the data block read from underlying stream. */
    uint8_t        * enddata ;
-   /* variable: keepstart
+   /* variable: keepaddr
     * Marks start of data to be kept in buffer.
     * A value of 0 means that no data should be kept in the buffer
     * if a new datablock is read with <instream_it.readnext>. */
-   uint8_t        * keepstart ;
+   uint8_t        * keepaddr ;
    /* variable: startdata
     * Points to start address of data block read from data stream. */
    uint8_t        * startdata ;
@@ -148,7 +147,7 @@ struct instream_t {
    instream_impl_t * object ;
    /* variable: iimpl
     * A pointer to an implementation of interface <instream_it>. */
-   instream_it    * iimpl ;
+   const instream_it * iimpl ;
    /* variable: readerror
     * Safes status of last call to <instream_it.readnext>.
     * In case <readerror> is not 0 no more call to <instream_it.readnext> is made. */
@@ -169,7 +168,7 @@ struct instream_t {
  * Initialize object. The object of type <instream_impl_t> and its interface
  * given in the two parameter must live at least as long as this object lives.
  * No copy is made only pointers are stored. */
-int init_instream(/*out*/instream_t * instr, instream_impl_t * obj, instream_it * iimpl) ;
+int init_instream(/*out*/instream_t * instr, instream_impl_t * obj, const instream_it * iimpl) ;
 
 /* function: free_instream
  * Free resources but associated <instream_impl_t> is not freed.
@@ -218,7 +217,7 @@ void endkeep_instream(instream_t * instr) ;
 /* function: readnextdatablock_instream
  * Do not call this function. It is called from <readnext_instream> or other reading functions.
  *
- * If <readerror_instream> returns a value != 0 this function does nothing else it
+ * If <readerror_instream> returns a value != 0 this function does nothing. Else it
  * calls <instream_it.readnext> to read the next data block into the read buffer.
  * The read buffer is grown if <keepaddr_instream> returns a value != 0 or
  * if the read buffer contains unread data.
@@ -242,7 +241,7 @@ int readnextdatablock_instream(instream_t * instr) ;
          "ensure same structure") ;                                                             \
       if (0) {                                                                                  \
          int _err = 0 ;                                                                         \
-         _err += (iinstr)->readnext((instream_impl_t*)0, (struct memblock_t*)0, (uint8_t**)0) ; \
+         _err += (iinstr)->readnext((instream_impl_t*)0, (struct memblock_t*)0, (uint8_t**)0, (size_t)0) ; \
          (void) _err ;                                                                          \
       }                                                                                         \
       (instream_it*) (iinstr) ;                                                                 \
@@ -250,7 +249,7 @@ int readnextdatablock_instream(instream_t * instr) ;
 
 /* define: endkeep_instream
  * Implements <instream_t.endkeep_instream>. */
-#define endkeep_instream(instr)           do { (instr)->keepstart = 0 ; } while (0)
+#define endkeep_instream(instr)           do { (instr)->keepaddr = 0 ; } while (0)
 
 /* define: free_instream
  * Implements <instream_t.free_instream>. */
@@ -262,7 +261,7 @@ int readnextdatablock_instream(instream_t * instr) ;
 
 /* define: keepaddr_instream
  * Implements <instream_t.keepaddr_instream>. */
-#define keepaddr_instream(instr)          ((instr)->keepstart)
+#define keepaddr_instream(instr)          ((instr)->keepaddr)
 
 /* define: readerror_instream
  * Implements <instream_t.readerror_instream>. */
@@ -284,14 +283,14 @@ int readnextdatablock_instream(instream_t * instr) ;
 
 /* define: startkeep_instream
  * Implements <instream_t.startkeep_instream>. */
-#define startkeep_instream(instr)         do { (instr)->keepstart = (instr)->nextdata - 1 ; } while (0)
+#define startkeep_instream(instr)         do { (instr)->keepaddr = (instr)->nextdata - 1 ; } while (0)
 
 /* define: instream_it_DECLARE
  * Implements <instream_it.instream_it_DECLARE>. */
 #define instream_it_DECLARE(declared_it, instream_impl_t)         \
    typedef struct declared_it          declared_it ;              \
    struct declared_it {                                           \
-      int (* readnext)  (instream_impl_t * isimpl, /*inout*/struct memblock_t * datablock, /*inout*/uint8_t ** keepstart) ;   \
+      int (* readnext)  (instream_impl_t * isimpl, /*inout*/struct memblock_t * datablock, /*out*/uint8_t ** keepaddr, size_t keepsize) ; \
    }
 
 

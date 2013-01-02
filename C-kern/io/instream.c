@@ -35,11 +35,13 @@
 
 // section: instream_t
 
+// group: buffer
+
 /* function: readnextdatablock_instream
  * Calls <instream_t.readnext> to read the next data block.
- * If <instream_t.keepstart> is set or if not all data from the current
+ * If <instream_t.keepaddr> is set or if not all data from the current
  * read buffer has been consumed then part of the read buffer is not overwritten.
- * The implementation of <instream_t.keepstart> is responsible for this. */
+ * The implementation of <instream_it.readnext> is responsible for this. */
 int readnextdatablock_instream(instream_t * instr)
 {
    int err ;
@@ -49,20 +51,25 @@ int readnextdatablock_instream(instream_t * instr)
       return instr->readerror ;
    }
 
-   uint8_t ** keepstart  = instr->keepstart ? &instr->keepstart : &instr->nextdata ;
-   // instr->keepstart == instr->nextdata - 1 and only nextdata is incremented ==> instr->nextdata > instr->keepstart
-   // keepstart == &instr->keepstart ||  keepstart == &instr->nextdata ==> nextoffset > 0 || nextoffset == 0
-   size_t     nextoffset = (size_t) (instr->nextdata - *keepstart) ;
+   uint8_t  * keepaddr = instr->keepaddr ? instr->keepaddr : instr->nextdata ;
+   // (instr->keepaddr == 0 || instr->keepaddr == (instr->nextdata - 1))
+   // && (keepaddr == instr->keepaddr || keepaddr == instr->nextdata)
+   // && (instr->nextdata <= instr->enddata)
+   // ==> (instr->enddata - keepaddr) >= 0
+   size_t   keepsize   = (size_t) (instr->enddata - keepaddr) ;
+   // (keepaddr <= keepaddr) ==> nextoffset >= 0
+   size_t   nextoffset = (size_t) (instr->nextdata - keepaddr) ;
 
    memblock_t datablock = memblock_INIT((size_t)(instr->enddata - instr->startdata), instr->startdata) ;
-   err = instr->iimpl->readnext(instr->object, &datablock, keepstart) ;
+   err = instr->iimpl->readnext(instr->object, &datablock, &keepaddr, keepsize) ;
    if (err) {
       instr->readerror = err ;
       goto ONABORT ;
    }
 
-   instr->nextdata  = *keepstart + nextoffset ;
+   instr->nextdata  = keepaddr + nextoffset ;
    instr->enddata   = datablock.addr + datablock.size ;
+   if (instr->keepaddr) instr->keepaddr = keepaddr ;
    instr->startdata = datablock.addr ;
 
    return datablock.size ? 0 : ENODATA ;
@@ -106,35 +113,32 @@ static void init_instreamtestimpl(instream_testimpl_t * testimpl, size_t datasiz
 
 /* function: readnext_testimpl
  * Test implementation of <instream_it.readnext>. */
-static int readnext_testimpl(instream_testimpl_t * isimpl, /*inout*/memblock_t * datablock, /*inout*/uint8_t ** startkeep)
+static int readnext_testimpl(instream_testimpl_t * instr, /*inout*/memblock_t * datablock, /*out*/uint8_t ** keepaddr, size_t keepsize)
 {
    int err ;
 
-   ++ isimpl->callcount ;
+   ++ instr->callcount ;
 
-   if (isimpl->err) return isimpl->err ;
+   if (instr->err) return instr->err ;
 
    // test datablock is never changed
-   if (datablock->addr != isimpl->olddatablock.addr || datablock->size != isimpl->olddatablock.size) {
+   if (datablock->addr != instr->olddatablock.addr || datablock->size != instr->olddatablock.size) {
       err = EINVAL ;
       goto ONABORT ;
    }
 
    // read next block
-   isimpl->readoffset += datablock->size > 16 ? 16 : datablock->size ;
-   if (isimpl->readoffset > isimpl->datasize) isimpl->readoffset = isimpl->datasize ;
+   instr->readoffset += datablock->size > 16 ? 16 : datablock->size ;
+   if (instr->readoffset > instr->datasize) instr->readoffset = instr->datasize ;
 
    // simulate address change in next call
-   isimpl->dataindex = !isimpl->dataindex ;
-
-   uint8_t  * keepaddr = *startkeep ;
-   size_t   keepsize   = (size_t) (datablock->size + datablock->addr - keepaddr) ;
+   instr->dataindex = !instr->dataindex ;
 
    // simulate alignment 16 byte (which is pagesize_vm in a real implementation)
    size_t keepsize_aligned = (keepsize + 0x0F) & (~(size_t)0x0F) ;
 
    if (keepsize_aligned > datablock->size) {
-      if (datablock->size == isimpl->datasize /*for test: all data in a single block*/) {
+      if (datablock->size == instr->datasize /*for test: all data in a single block*/) {
          keepsize_aligned = datablock->size ;
       } else {
          err = EINVAL ;
@@ -142,38 +146,39 @@ static int readnext_testimpl(instream_testimpl_t * isimpl, /*inout*/memblock_t *
       }
    }
 
-   if (  isimpl->readoffset == isimpl->datasize
+   if (  instr->readoffset == instr->datasize
          && !keepsize_aligned) {
       // no more data
-      *startkeep = 0 ;
+      *keepaddr = 0 ;
       datablock->addr = 0 ;
       datablock->size = 0 ;
    } else {
-      datablock->addr = isimpl->data[isimpl->dataindex] + isimpl->readoffset ;
-      datablock->size = isimpl->datasize - isimpl->readoffset ;
+      datablock->addr = instr->data[instr->dataindex] + instr->readoffset ;
+      datablock->size = instr->datasize - instr->readoffset ;
       if (datablock->size > 16) datablock->size = 16 ;
 
-      *startkeep = datablock->addr - keepsize ;
+      *keepaddr = datablock->addr - keepsize ;
       datablock->addr -= keepsize_aligned ;
       datablock->size += keepsize_aligned ;
    }
 
-   isimpl->olddatablock = *datablock ;
+   instr->olddatablock = *datablock ;
 
    return 0 ;
 ONABORT:
    return err ;
 }
 
-static int readnext_dummy(instream_impl_t * isimpl, /*inout*/memblock_t * datablock, /*inout*/uint8_t ** startkeep)
+static int readnext_dummy(instream_impl_t * instr, /*inout*/memblock_t * datablock, /*out*/uint8_t ** keepaddr, size_t keepsize)
 {
-   (void)isimpl ;
+   (void)instr ;
    (void)datablock ;
-   (void)startkeep ;
+   (void)keepaddr ;
+   (void)keepsize ;
    return 0 ;
 }
 
-static int test_interface(void)
+static int test_initfree_it(void)
 {
    instream_it       iinstr = instream_it_INIT_FREEABLE ;
    instream_test_it  itest  = instream_it_INIT_FREEABLE ;
@@ -207,7 +212,7 @@ static int test_initfree(void)
    // TEST instream_INIT_FREEABLE
    TEST(0 == instr.nextdata) ;
    TEST(0 == instr.enddata) ;
-   TEST(0 == instr.keepstart) ;
+   TEST(0 == instr.keepaddr) ;
    TEST(0 == instr.startdata) ;
    TEST(0 == instr.object) ;
    TEST(0 == instr.iimpl) ;
@@ -219,7 +224,7 @@ static int test_initfree(void)
    TEST(instr.iimpl  == (instream_it*)2) ;
    TEST(0 == instr.nextdata) ;
    TEST(0 == instr.enddata) ;
-   TEST(0 == instr.keepstart) ;
+   TEST(0 == instr.keepaddr) ;
    TEST(0 == instr.startdata) ;
    TEST(0 == instr.readerror) ;
 
@@ -230,13 +235,14 @@ static int test_initfree(void)
    TEST(instr.iimpl  == (instream_it*)&iimpl) ;
    TEST(0 == instr.nextdata) ;
    TEST(0 == instr.enddata) ;
-   TEST(0 == instr.keepstart) ;
+   TEST(0 == instr.keepaddr) ;
    TEST(0 == instr.startdata) ;
    TEST(0 == instr.readerror) ;
+   memset(&instr, -1, sizeof(instr)) ;
    TEST(0 == free_instream(&instr)) ;
    TEST(0 == instr.nextdata) ;
    TEST(0 == instr.enddata) ;
-   TEST(0 == instr.keepstart) ;
+   TEST(0 == instr.keepaddr) ;
    TEST(0 == instr.startdata) ;
    TEST(0 == instr.object) ;
    TEST(0 == instr.iimpl) ;
@@ -244,7 +250,7 @@ static int test_initfree(void)
    TEST(0 == free_instream(&instr)) ;
    TEST(0 == instr.nextdata) ;
    TEST(0 == instr.enddata) ;
-   TEST(0 == instr.keepstart) ;
+   TEST(0 == instr.keepaddr) ;
    TEST(0 == instr.startdata) ;
    TEST(0 == instr.object) ;
    TEST(0 == instr.iimpl) ;
@@ -252,23 +258,23 @@ static int test_initfree(void)
 
    // TEST keepaddr_instream
    TEST(0 == keepaddr_instream(&instr)) ;
-   instr.keepstart = (uint8_t*)1 ;
+   instr.keepaddr = (uint8_t*)1 ;
    TEST((uint8_t*)1 == keepaddr_instream(&instr)) ;
-   instr.keepstart = (uint8_t*)2 ;
+   instr.keepaddr = (uint8_t*)2 ;
    TEST((uint8_t*)2 == keepaddr_instream(&instr)) ;
 
    // TEST startkeep_instream
    instr.nextdata = (uint8_t*)5 ;
    startkeep_instream(&instr) ;
-   TEST(instr.keepstart == (uint8_t*)4) ;
+   TEST(instr.keepaddr == (uint8_t*)4) ;
    instr.nextdata = (void*)2 ;
    startkeep_instream(&instr) ;
-   TEST(instr.keepstart == (uint8_t*)1) ;
+   TEST(instr.keepaddr == (uint8_t*)1) ;
 
    // TEST endkeep_instream
-   TEST(instr.keepstart != 0) ;
+   TEST(instr.keepaddr != 0) ;
    endkeep_instream(&instr) ;
-   TEST(instr.keepstart == 0) ;
+   TEST(instr.keepaddr == 0) ;
 
    // TEST readerror_instream
    instr.readerror = EPERM ;
@@ -301,7 +307,7 @@ static int test_readblock(void)
       TEST(&data[di][i]    == instr.nextdata) ;
       TEST(&data[di][i+sz] == instr.enddata) ;
       TEST(&data[di][i]    == instr.startdata) ;
-      TEST(0               == instr.keepstart) ;
+      TEST(0               == instr.keepaddr) ;
       instr.nextdata = instr.enddata ; // simulate reading
    }
    TEST(ENODATA == readnextdatablock_instream(&instr)) ;
@@ -321,7 +327,7 @@ static int test_readblock(void)
       TEST(&data[di][in] == instr.nextdata) ;
       TEST(&data[di][ie] == instr.enddata) ;
       TEST(&data[di][is] == instr.startdata) ;
-      TEST(0             == instr.keepstart) ;
+      TEST(0             == instr.keepaddr) ;
       instr.nextdata += 1 + (i ? 16 : 0) ; // simulate reading
    }
    TEST(ENODATA == readnextdatablock_instream(&instr)) ;
@@ -339,7 +345,7 @@ static int test_readblock(void)
       TEST(&data[di][0]  == instr.nextdata) ;
       TEST(&data[di][ie] == instr.enddata) ;
       TEST(&data[di][0]  == instr.startdata) ;
-      TEST(0             == instr.keepstart) ;
+      TEST(0             == instr.keepaddr) ;
       // no reading at all
    }
    TEST(0 == readnextdatablock_instream(&instr)) ;
@@ -347,7 +353,7 @@ static int test_readblock(void)
    TEST(&data[di][sizeof(data[0])] == instr.enddata) ;
    TEST(&data[di][0] == instr.startdata) ;
 
-   // TEST readnextdatablock_instream: startkeep will be adapted
+   // TEST readnextdatablock_instream: keepaddr will be adapted
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
    TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
    di = 1 ;
@@ -359,29 +365,54 @@ static int test_readblock(void)
       TEST(&data[di][i ] == instr.nextdata) ;
       TEST(&data[di][ie] == instr.enddata) ;
       TEST(&data[di][is] == instr.startdata) ;
-      TEST(ks            == instr.keepstart) ;
-      instr.keepstart = &data[di][i] + 1 + (i/16) ;
-      if (instr.keepstart > instr.enddata) instr.keepstart = instr.enddata ;
-      instr.nextdata  = instr.enddata ; // simulate reading
+      TEST(ks            == instr.keepaddr) ;
+      instr.keepaddr = &data[di][i] + 1 + (i/16) ;
+      if (instr.keepaddr > instr.enddata) instr.keepaddr = instr.enddata ;
+      instr.nextdata = instr.enddata ; // simulate reading
    }
    TEST(ENODATA == readnextdatablock_instream(&instr)) ;
    TEST(0 == instr.nextdata) ;
    TEST(0 == instr.enddata) ;
    TEST(0 == instr.startdata) ;
-   TEST(0 == instr.keepstart) ;
+   TEST(0 == instr.keepaddr) ;
+
+   // TEST readnextdatablock_instream: keepaddr + unread data
+   init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
+   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
+   di = 1 ;
+   for (unsigned i = 0; i < sizeof(data[0]); i += 16, di = !di) {
+      TEST(0 == readnextdatablock_instream(&instr)) ;
+      const unsigned in = i ? i - 1 : 0 ;
+      const unsigned ie = i + ((i + 16 <= sizeof(data[0])) ? 16 : sizeof(data[0]) - i) ;
+      const unsigned is = i ? i - 16 : i ;
+      uint8_t      * ks = i ? &data[di][i - 2] : 0 ;
+      TEST(&data[di][in] == instr.nextdata) ;
+      TEST(&data[di][ie] == instr.enddata) ;
+      TEST(&data[di][is] == instr.startdata) ;
+      TEST(ks            == instr.keepaddr) ;
+      instr.keepaddr = instr.enddata - 2 ; // simulate two bytes to keep
+      instr.nextdata = instr.enddata - 1 ; // simulate one byte unread
+   }
+   instr.keepaddr = 0 ;
+   instr.nextdata = instr.enddata ; // simulate all read
+   TEST(ENODATA == readnextdatablock_instream(&instr)) ;
+   TEST(0 == instr.nextdata) ;
+   TEST(0 == instr.enddata) ;
+   TEST(0 == instr.startdata) ;
+   TEST(0 == instr.keepaddr) ;
 
    // TEST readnextdatablock_instream: error prevents calling instream_it.readnext another time
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
    TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
    TEST(0 == readnextdatablock_instream(&instr)) ;
    di = 1 ;
-   instr.keepstart = data[1] + 1 ;
-   instr.nextdata  = data[1] + 2 ;
+   instr.keepaddr = data[1] + 1 ;
+   instr.nextdata = data[1] + 2 ;
    TEST(0 == readnextdatablock_instream(&instr)) ;
    TEST(&data[0][2]  == instr.nextdata) ;
    TEST(&data[0][32] == instr.enddata) ;
    TEST(&data[0][0]  == instr.startdata) ;
-   TEST(&data[0][1]  == instr.keepstart) ;
+   TEST(&data[0][1]  == instr.keepaddr) ;
    TEST(0            == instr.readerror) ;
    testimpl.err = EIO ;
    testimpl.callcount = 0 ;
@@ -390,14 +421,14 @@ static int test_readblock(void)
    TEST(&data[0][2]  == instr.nextdata) ;
    TEST(&data[0][32] == instr.enddata) ;
    TEST(&data[0][0]  == instr.startdata) ;
-   TEST(&data[0][1]  == instr.keepstart) ;
+   TEST(&data[0][1]  == instr.keepaddr) ;
    TEST(EIO          == instr.readerror) ;
    TEST(1            == testimpl.callcount) ;
    TEST(EIO == readnextdatablock_instream(&instr)) ;
    TEST(&data[0][2]  == instr.nextdata) ;
    TEST(&data[0][32] == instr.enddata) ;
    TEST(&data[0][0]  == instr.startdata) ;
-   TEST(&data[0][1]  == instr.keepstart) ;
+   TEST(&data[0][1]  == instr.keepaddr) ;
    TEST(EIO          == instr.readerror) ;
    TEST(1            == testimpl.callcount) ;
 
@@ -435,9 +466,9 @@ static int test_readbyte(void)
    TEST(instr.nextdata == 0) ;
    TEST(instr.enddata  == 0) ;
    TEST(instr.startdata == 0) ;
-   TEST(instr.keepstart == 0) ;
+   TEST(instr.keepaddr == 0) ;
 
-   // TEST readnext_instream: startkeep_instream
+   // TEST readnext_instream + startkeep_instream
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
    TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
    di = 1 ;
@@ -457,7 +488,7 @@ static int test_readbyte(void)
    TEST(instr.nextdata == 0) ;
    TEST(instr.enddata  == 0) ;
    TEST(instr.startdata == 0) ;
-   TEST(instr.keepstart == 0) ;
+   TEST(instr.keepaddr == 0) ;
 
    return 0 ;
 ONABORT:
@@ -470,7 +501,7 @@ int unittest_io_instream()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_interface())   goto ONABORT ;
+   if (test_initfree_it()) goto ONABORT ;
    if (test_initfree())    goto ONABORT ;
    if (test_readblock())   goto ONABORT ;
    if (test_readbyte())    goto ONABORT ;

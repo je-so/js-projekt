@@ -323,6 +323,8 @@ int run_unittest(void)
       // IP
       RUN(unittest_io_ipaddr) ;
       RUN(unittest_io_ipsocket) ;
+      // adapter
+      RUN(unittest_io_adapter_instream_mmfile) ;
       // reader
       RUN(unittest_io_reader_csvfilereader) ;
       RUN(unittest_io_reader_utf8reader) ;
