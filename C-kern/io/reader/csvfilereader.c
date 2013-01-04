@@ -92,8 +92,8 @@ static void skipempty_csvfilereaderparsestate(csvfilereader_parsestate_t * state
 
 static size_t colnr_csvfilereaderparsestate(csvfilereader_parsestate_t * state)
 {
-   conststring_t cstr = conststring_INIT(state->offset - state->startofline, &state->data[state->startofline]) ;
-   return 1 + utf8len_conststring(&cstr) ;
+   string_t cstr = string_INIT(state->offset - state->startofline, &state->data[state->startofline]) ;
+   return 1 + utf8len_string(&cstr) ;
 }
 
 /* function: parsechar_csvfilereaderparsestate
@@ -114,7 +114,7 @@ static int parsechar_csvfilereaderparsestate(csvfilereader_parsestate_t * state,
 /* function: parsedatafield_csvfilereaderparsestate
  * Parses value between two double quotes. The function expects the current offset
  * at the first double quote character. */
-static int parsedatafield_csvfilereaderparsestate(csvfilereader_parsestate_t * state, /*out*/conststring_t * value)
+static int parsedatafield_csvfilereaderparsestate(csvfilereader_parsestate_t * state, /*out*/string_t * value)
 {
    int err ;
 
@@ -133,7 +133,7 @@ static int parsedatafield_csvfilereaderparsestate(csvfilereader_parsestate_t * s
    if (err) goto ONABORT ;
 
    if (value) {
-      *value = (conststring_t) conststring_INIT(end - start, state->data + start) ;
+      *value = (string_t) string_INIT(end - start, state->data + start) ;
    }
 
    return 0 ;
@@ -211,7 +211,7 @@ static int resizetable_csvfilereader(csvfilereader_t * csvfile, size_t nrrows)
          csvfile->allocated_rows = oldalloc ;
          goto ONABORT ;
       }
-      csvfile->tablevalues = (conststring_t*) addr_memblock(&mblock) ;
+      csvfile->tablevalues = (string_t*) addr_memblock(&mblock) ;
    }
 
    return 0 ;
@@ -343,7 +343,7 @@ ONABORT:
    return err ;
 }
 
-int colvalue_csvfilereader(const csvfilereader_t * csvfile, size_t row/*1..nrrows-1*/, size_t column/*0..nrcolumns-1*/, /*out*/struct conststring_t * colvalue)
+int colvalue_csvfilereader(const csvfilereader_t * csvfile, size_t row/*1..nrrows-1*/, size_t column/*0..nrcolumns-1*/, /*out*/struct string_t * colvalue)
 {
    int err ;
 
@@ -351,7 +351,7 @@ int colvalue_csvfilereader(const csvfilereader_t * csvfile, size_t row/*1..nrrow
    VALIDATE_INPARAM_TEST(row < csvfile->nrrows, ONABORT, PRINTSIZE_LOG(row); PRINTSIZE_LOG(csvfile->nrrows)) ;
 
    const size_t offset = csvfile->nrcolumns * row + column ;
-   *colvalue = (conststring_t) conststring_INIT(csvfile->tablevalues[offset].size, csvfile->tablevalues[offset].addr) ;
+   *colvalue = (string_t) string_INIT(csvfile->tablevalues[offset].size, csvfile->tablevalues[offset].addr) ;
 
    return 0 ;
 ONABORT:
@@ -427,10 +427,10 @@ ONABORT:
 static int test_query(void)
 {
    csvfilereader_t   csvfile  = csvfilereader_INIT_FREEABLE ;
-   conststring_t     values[] = {
-                                 conststring_INIT_CSTR("1"), conststring_INIT_CSTR("22"), conststring_INIT_CSTR("333"), conststring_INIT_CSTR("444"),
-                                 conststring_INIT_CSTR("v1"), conststring_INIT_CSTR("v2"), conststring_INIT_CSTR("v3"), conststring_INIT_CSTR("v4"),
-                                 conststring_INIT_CSTR("v5"), conststring_INIT_CSTR("v6"), conststring_INIT_CSTR("v7"), conststring_INIT_CSTR("v8"),
+   string_t          values[] = {
+                                 string_INIT_CSTR("1"), string_INIT_CSTR("22"), string_INIT_CSTR("333"), string_INIT_CSTR("444"),
+                                 string_INIT_CSTR("v1"), string_INIT_CSTR("v2"), string_INIT_CSTR("v3"), string_INIT_CSTR("v4"),
+                                 string_INIT_CSTR("v5"), string_INIT_CSTR("v6"), string_INIT_CSTR("v7"), string_INIT_CSTR("v8"),
                               } ;
 
    // TEST nrcolumns_csvfilereader
@@ -454,7 +454,7 @@ static int test_query(void)
    csvfile.nrrows    = 3 ;
    csvfile.tablevalues = values ;
    for (unsigned i = 0; i < nrcolumns_csvfilereader(&csvfile); ++i) {
-      conststring_t colname = conststring_INIT_FREEABLE ;
+      string_t colname = string_INIT_FREEABLE ;
       TEST(0 == colname_csvfilereader(&csvfile, i, &colname)) ;
       TEST(values[i].addr == colname.addr) ;
       TEST(values[i].size == colname.size) ;
@@ -463,7 +463,7 @@ static int test_query(void)
    // TEST colvalue_csvfilereader
    for (unsigned ri = 0; ri < nrrows_csvfilereader(&csvfile); ++ri) {
       for (unsigned ci = 0; ci < nrcolumns_csvfilereader(&csvfile); ++ci) {
-         conststring_t colvalue = conststring_INIT_FREEABLE ;
+         string_t colvalue = string_INIT_FREEABLE ;
          TEST(0 == colvalue_csvfilereader(&csvfile, ri, ci, &colvalue)) ;
          TEST(values[ri * nrcolumns_csvfilereader(&csvfile) + ci].addr == colvalue.addr) ;
          TEST(values[ri * nrcolumns_csvfilereader(&csvfile) + ci].size == colvalue.size) ;
@@ -471,8 +471,8 @@ static int test_query(void)
    }
 
    // TEST EINVAL
-   conststring_t colname ;
-   conststring_t colvalue ;
+   string_t colname ;
+   string_t colvalue ;
    TEST(EINVAL == colname_csvfilereader(&csvfile, nrcolumns_csvfilereader(&csvfile), &colname)) ;
    TEST(EINVAL == colname_csvfilereader(&csvfile, (size_t)-1, &colname)) ;
    TEST(EINVAL == colvalue_csvfilereader(&csvfile, nrrows_csvfilereader(&csvfile), 0, &colvalue)) ;
@@ -592,8 +592,8 @@ static int test_reading(void)
    TEST(50 == nrrows_csvfilereader(&csvfile)) ;
    for (unsigned rows = 0; rows < 50; ++rows) {
       for (unsigned cols = 0; cols < 20; ++cols) {
-         conststring_t colvalue = conststring_INIT_FREEABLE ;
-         char          buffer[100] ;
+         string_t colvalue = string_INIT_FREEABLE ;
+         char     buffer[100] ;
          sprintf(buffer, "%s%u%u", rows ? "value" : "header", rows, cols) ;
          TEST(0 == colvalue_csvfilereader(&csvfile, rows, cols, &colvalue)) ;
          TEST(strlen(buffer) == colvalue.size) ;

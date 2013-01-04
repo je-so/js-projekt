@@ -70,7 +70,7 @@ static int8_t     s_base64values[256] = {
    [250]=-1, [251]=-1, [252]=-1, [253]=-1, [254]=-1, [255]=-1
 } ;
 
-size_t sizebase64decode_string(const struct conststring_t * str)
+size_t sizebase64decode_string(const struct string_t * str)
 {
    size_t size = str->size / 4;
 
@@ -88,7 +88,7 @@ size_t sizebase64decode_string(const struct conststring_t * str)
    return size ;
 }
 
-int base64encode_string(const conststring_t * str, wbuffer_t * result)
+int base64encode_string(const string_t * str, wbuffer_t * result)
 {
    int err ;
    const uint8_t  * next = str->addr ;
@@ -153,7 +153,7 @@ ONABORT:
    return err ;
 }
 
-int base64decode_string(const conststring_t * str, wbuffer_t * result)
+int base64decode_string(const string_t * str, wbuffer_t * result)
 {
    int err ;
    const uint8_t  * next = str->addr ;
@@ -244,10 +244,10 @@ static int test_base64(void)
    // TEST encode / decode
    test  = (const uint8_t*) "Test this string : 123" ;
    test2 = (const uint8_t*) "VGVzdCB0aGlzIHN0cmluZyA6IDEyMw==" ;
-   TEST(0 == base64encode_string(&(conststring_t)conststring_INIT(strlen((const char*)test), test), &result)) ;
+   TEST(0 == base64encode_string(&(string_t)string_INIT(strlen((const char*)test), test), &result)) ;
    TEST(strlen((const char*)test2) == sizecontent_wbuffer(&result)) ;
    TEST(0 == strncmp((const char*)test2, (char*)content_wbuffer(&result), strlen((const char*)test2))) ;
-   TEST(0 == base64decode_string(&(conststring_t)conststring_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
+   TEST(0 == base64decode_string(&(string_t)string_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
    TEST(strlen((const char*)test) == sizecontent_wbuffer(&result2)) ;
    TEST(0 == strncmp((const char*)test, (char*)content_wbuffer(&result2), strlen((const char*)test))) ;
    reset_wbuffer(&result) ;
@@ -258,10 +258,10 @@ static int test_base64(void)
             "\x55\x97\x61\x96\x9b\x71\xd7\x9f\x82\x18\xa3\x92\x59\xa7\xa2\x9a"
             "\xab\xb2\xdb\xaf\xc3\x1c\xb3\xd3\x5d\xb7\xe3\x9e\xbb\xf3\xdf\xbf" ;
    test2 = (const uint8_t*) "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" ;
-   TEST(0 == base64encode_string(&(conststring_t)conststring_INIT(48, test), &result)) ;
+   TEST(0 == base64encode_string(&(string_t)string_INIT(48, test), &result)) ;
    TEST(64 == sizecontent_wbuffer(&result)) ;
    TEST(0 == strncmp((const char*)test2, (char*)content_wbuffer(&result), 64)) ;
-   TEST(0 == base64decode_string(&(conststring_t)conststring_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
+   TEST(0 == base64decode_string(&(string_t)string_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
    TEST(48 == sizecontent_wbuffer(&result2)) ;
    TEST(0 == strncmp((const char*)test, (char*)content_wbuffer(&result2), 48)) ;
    reset_wbuffer(&result) ;
@@ -278,11 +278,11 @@ static int test_base64(void)
       for(unsigned i = 0; i < 256; ++i) {
          buffer[i] = (uint8_t) i ;
       }
-      TEST(0 == base64encode_string(&(conststring_t)conststring_INIT(256, buffer), &result)) ;
+      TEST(0 == base64encode_string(&(string_t)string_INIT(256, buffer), &result)) ;
       TEST((4*((256+2) / 3)) == sizecontent_wbuffer(&result)) ;
       TEST((4*((256+2) / 3)) == strlen((const char*)test)) ;
       TEST(0 == strncmp((const char*)test, (char*)content_wbuffer(&result), strlen((const char*)test))) ;
-      TEST(0 == base64decode_string(&(conststring_t)conststring_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
+      TEST(0 == base64decode_string(&(string_t)string_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
       TEST(256 == sizecontent_wbuffer(&result2)) ;
       TEST(0 == memcmp(buffer, content_wbuffer(&result2), 256)) ;
       reset_wbuffer(&result) ;
@@ -292,20 +292,20 @@ static int test_base64(void)
    // TEST not multiple of 3
    test  = (const uint8_t*)"X" ;
    test2 = (const uint8_t*)"WA==" ;
-   TEST(0 == base64encode_string(&(conststring_t)conststring_INIT(strlen((const char*)test), test), &result)) ;
+   TEST(0 == base64encode_string(&(string_t)string_INIT(strlen((const char*)test), test), &result)) ;
    TEST(4 == sizecontent_wbuffer(&result)) ;
    TEST(0 == strncmp((const char*)test2, (char*)content_wbuffer(&result), 4)) ;
-   TEST(0 == base64decode_string(&(conststring_t)conststring_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
+   TEST(0 == base64decode_string(&(string_t)string_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
    TEST(1 == sizecontent_wbuffer(&result2)) ;
    TEST(0 == strncmp((const char*)test, (char*)content_wbuffer(&result2), strlen((const char*)test))) ;
    reset_wbuffer(&result) ;
    reset_wbuffer(&result2) ;
    test  = (const uint8_t*)"XY" ;
    test2 = (const uint8_t*)"WFk=" ;
-   TEST(0 == base64encode_string(&(conststring_t)conststring_INIT(strlen((const char*)test), test), &result)) ;
+   TEST(0 == base64encode_string(&(string_t)string_INIT(strlen((const char*)test), test), &result)) ;
    TEST(4 == sizecontent_wbuffer(&result)) ;
    TEST(0 == strncmp((const char*)test2, (char*)content_wbuffer(&result), 4)) ;
-   TEST(0 == base64decode_string(&(conststring_t)conststring_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
+   TEST(0 == base64decode_string(&(string_t)string_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
    TEST(2 == sizecontent_wbuffer(&result2)) ;
    TEST(0 == strncmp((const char*)test, (char*)content_wbuffer(&result2), strlen((const char*)test))) ;
    reset_wbuffer(&result) ;
@@ -313,14 +313,14 @@ static int test_base64(void)
 
    // TEST EINVAL decode not multiple of 4
    for(unsigned i = 1; i < 4; ++i) {
-      TEST(EINVAL == base64decode_string(&(conststring_t)conststring_INIT(4*i+i, (const uint8_t*)""), &result)) ;
+      TEST(EINVAL == base64decode_string(&(string_t)string_INIT(4*i+i, (const uint8_t*)""), &result)) ;
       TEST(0 == sizecontent_wbuffer(&result)) ;
    }
 
    // TEST EINVAL decode wrong chars
-   TEST(EINVAL == base64decode_string(&(conststring_t)conststring_INIT(4, (const uint8_t*)"Ab3@"), &result)) ;
-   TEST(EINVAL == base64decode_string(&(conststring_t)conststring_INIT(4, (const uint8_t*)"Ab=4"), &result)) ;
-   TEST(EINVAL == base64decode_string(&(conststring_t)conststring_INIT(4, (const uint8_t*)"=b34"), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("Ab3@"), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("Ab=4"), &result)) ;
+   TEST(EINVAL == base64decode_string(&(string_t)string_INIT_CSTR("=b34"), &result)) ;
 
    TEST(0 == free_wbuffer(&result)) ;
    TEST(0 == free_wbuffer(&result2)) ;
@@ -338,23 +338,23 @@ static int test_sizebase64(void)
    wbuffer_t   result2 = wbuffer_INIT ;
 
    // TEST input length 1..3 sizebase64encode_string
-   TEST(4 == sizebase64encode_string(&(conststring_t)conststring_INIT(1, (const uint8_t*)"xxx"))) ;
-   TEST(4 == sizebase64encode_string(&(conststring_t)conststring_INIT(2, (const uint8_t*)"xxx"))) ;
-   TEST(4 == sizebase64encode_string(&(conststring_t)conststring_INIT(3, (const uint8_t*)"xxx"))) ;
+   TEST(4 == sizebase64encode_string(&(string_t)string_INIT(1, (const uint8_t*)"xxx"))) ;
+   TEST(4 == sizebase64encode_string(&(string_t)string_INIT(2, (const uint8_t*)"xxx"))) ;
+   TEST(4 == sizebase64encode_string(&(string_t)string_INIT(3, (const uint8_t*)"xxx"))) ;
 
    // TEST output length 1..3 sizebase64decode_string
-   TEST(1 == sizebase64decode_string(&(conststring_t)conststring_INIT(4, (const uint8_t*)"WA=="))) ;
-   TEST(2 == sizebase64decode_string(&(conststring_t)conststring_INIT(4, (const uint8_t*)"WAA="))) ;
-   TEST(3 == sizebase64decode_string(&(conststring_t)conststring_INIT(4, (const uint8_t*)"WAAA"))) ;
+   TEST(1 == sizebase64decode_string(&(string_t)string_INIT_CSTR("WA=="))) ;
+   TEST(2 == sizebase64decode_string(&(string_t)string_INIT_CSTR("WAA="))) ;
+   TEST(3 == sizebase64decode_string(&(string_t)string_INIT_CSTR("WAAA"))) ;
 
    // TEST sizes 1 .. 256 of sizebase64encode_string / sizebase64encode_string
    for(unsigned i = 0; i < 256; ++i) {
       buffer[i] = (uint8_t)i ;
-      TEST(4*((i+3)/3) == sizebase64encode_string(&(conststring_t)conststring_INIT(i+1, buffer))) ;
-      TEST(0 == base64encode_string(&(conststring_t)conststring_INIT(i+1, buffer), &result)) ;
+      TEST(4*((i+3)/3) == sizebase64encode_string(&(string_t)string_INIT(i+1, buffer))) ;
+      TEST(0 == base64encode_string(&(string_t)string_INIT(i+1, buffer), &result)) ;
       TEST(4*((i+3)/3) == sizecontent_wbuffer(&result)) ;
-      TEST(i+1 == sizebase64decode_string(&(conststring_t)conststring_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)))) ;
-      TEST(0 == base64decode_string(&(conststring_t)conststring_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
+      TEST(i+1 == sizebase64decode_string(&(string_t)string_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)))) ;
+      TEST(0 == base64decode_string(&(string_t)string_INIT(sizecontent_wbuffer(&result), content_wbuffer(&result)), &result2)) ;
       TEST(i+1 == sizecontent_wbuffer(&result2)) ;
       TEST(0 == memcmp(buffer, content_wbuffer(&result2), i+1)) ;
       reset_wbuffer(&result) ;

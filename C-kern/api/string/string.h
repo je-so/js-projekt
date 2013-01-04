@@ -1,5 +1,6 @@
 /* title: String
-   Offers type to wrap static strings or substrings into an object.
+
+   Offers type to wrap constant strings or substrings into an object.
 
    about: Copyright
    This program is free software.
@@ -25,10 +26,6 @@
 #ifndef CKERN_API_STRING_HEADER
 #define CKERN_API_STRING_HEADER
 
-/* typedef: struct conststring_t
- * Export <conststring_t>. */
-typedef struct conststring_t           conststring_t ;
-
 /* typedef: struct string_t
  * Export <string_t>. */
 typedef struct string_t                string_t ;
@@ -45,61 +42,12 @@ int unittest_string(void) ;
 #endif
 
 
-/* struct: conststring_t
- * Same as <string_t>, except memory space is constant. */
-struct conststring_t {
-   /* variable: addr
-    * Start address of const string memory. */
-   const uint8_t  * addr ;
-   /* variable: size
-    * Size in bytes of string memory.
-    * The number of characters is lower or equal to this value. */
-   size_t         size ;
-} ;
-
-// group: lifetime
-
-/* define: conststring_INIT_FREEABLE
- * Static initializer. Sets <conststring_t> to null. */
-#define conststring_INIT_FREEABLE      { 0, 0 }
-
-/* define: conststring_INIT
- * See <string_INIT>. */
-#define conststring_INIT(strsize, straddr)   { (straddr), (strsize) }
-
-/* define: conststring_INIT_CSTR
- * Static initializer. Sets <conststring_t> to address C string *cstr* and size to strlen(cstr).
- * Example:
- * > const char    * buffer = "teststring" ;
- * > conststring_t str      = conststring_t(buffer) ; */
-#define conststring_INIT_CSTR(cstr)          { (const uint8_t*)(cstr), strlen(cstr) }
-
-/* function: init_conststring
- * See <init_string>. */
-void init_conststring(/*out*/conststring_t * str, size_t size, const uint8_t string[size]) ;
-
-/* function: initfl_conststring
- * See <initfl_string>. */
-int initfl_conststring(/*out*/conststring_t * str, const uint8_t * first, const uint8_t * last) ;
-
-/* function: initse_conststring
- * See <initse_string>. */
-int initse_conststring(/*out*/conststring_t * str, const uint8_t * start, const uint8_t * end) ;
-
-// group: compare
-
-/* function: isequalasciicase_conststring
- * Returns true if two strings compare equal under in a case insensitive way.
- * This functions assumes only 'A'-'Z' and 'a'-'z' as case sensitive characters. */
-bool isequalasciicase_conststring(const conststring_t * str, const conststring_t * str2) ;
-
-
 /* struct: string_t
- * Points to memory which contains a string.
- * This string does *not* include a the trailing '\0' byte.
+ * Points to memory which contains a constant string.
+ * This string does *not* include a trailing '\0' byte.
  * Null bytes are allowed in the string cause <size> describes
  * the length of string and not any implicit trailing \0 byte.
- * If you want to convert this string into a C string, i.e. eiether (char *)
+ * If you want to convert this string into a C string, i.e. either (char *)
  * or <cstring_t> make sure that is does not include any \0 byte.
  *
  * Empty string:
@@ -109,11 +57,12 @@ bool isequalasciicase_conststring(const conststring_t * str, const conststring_t
  *
  * Undefined string:
  * The undefined (or *null*) string is represented as
- * > { 0, 0 } */
+ * > { 0, 0 }
+ * */
 struct string_t {
    /* variable: addr
     * Start address of non-const string memory. */
-   uint8_t        * addr ;
+   const uint8_t  * addr ;
    /* variable: size
     * Size in bytes of memory.
     * The number of characters is lower or equal to this value. */
@@ -135,41 +84,60 @@ struct string_t {
  * straddr   - The start address of the string. */
 #define string_INIT(strsize, straddr)  { (straddr), (strsize) }
 
+/* define: string_INIT_CSTR
+ * Static initializer. Sets <string_t> to address of *cstr* and size to strlen(cstr).
+ *
+ * Example:
+ * > const char   * buffer = "teststring" ;
+ * > string_t     str      = string_t(buffer) ; */
+#define string_INIT_CSTR(cstr)          { (const uint8_t*)(cstr), strlen(cstr) }
+
 /* function: init_string
- * Assigns static string buffer to out param str.
+ * Assigns constant string buffer to str.
+ *
  * Expected parameter:
- * str     - <string_t> object to initialize
+ * str     - pointer to <string_t> object which is initialized
  * size    - Length of string in bytes
  * string  - Address of first character. */
-void init_string(/*out*/string_t * str, size_t size, uint8_t string[size]) ;
+static inline void init_string(/*out*/string_t * str, size_t size, const uint8_t string[size]) ;
 
 /* function: initfl_string
- * Assigns static string buffer to out param str.
+ * Assigns static string buffer to str.
+ * To initialize as empty string set last to a value smaller first.
+ * If first == last the size of the string is one.
+ *
  * Expected parameter:
- * str    - <string_t> object to initialize
+ * str    - pointer to <string_t> object which is initialized
  * first  - Address of first character.
  * last   - Address of last character. */
-int initfl_string(/*out*/string_t * str, uint8_t * first, uint8_t * last) ;
+int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * last) ;
 
 /* function: initse_string
- * Assigns static string buffer to out param str.
+ * Assigns static string buffer to str.
+ *
  * Expected parameter:
- * str    - <string_t> object to initialize
+ * str    - pointer to <string_t> object which is initialized
  * start  - Address of first character.
  * end    - Address of memory after last character. */
-int initse_string(/*out*/string_t * str, uint8_t * start, uint8_t * end) ;
+int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * end) ;
 
 // group: query
 
+/* function: isfree_string
+ * Returns true if string has address and size of 0. */
+bool isfree_string(const string_t * str) ;
+
 /* function: isempty_string
- * Returns true if string has length 0. */
+ * Returns true if string has size 0. A string initialized with <string_INIT_FREEABLE>
+ * is considered an empty string. Use <isfree_string> to check if it is uninitialized. */
 bool isempty_string(const string_t * str) ;
 
-// group: cast
+// group: compare
 
-/* function: asconst_string
- * Casts <string_t> to <constcast_t>. */
-conststring_t asconst_string(string_t * str) ;
+/* function: isequalasciicase_string
+ * Returns true if two strings compare equal in a case insensitive way.
+ * This functions assumes only 'A'-'Z' and 'a'-'z' as case sensitive characters. */
+bool isequalasciicase_string(const string_t * str, const string_t * str2) ;
 
 // group: change
 
@@ -197,45 +165,23 @@ int tryskipbytes_string(string_t * str, size_t size) ;
 
 // section: inline implementation
 
-/* define: asconst_string
- * Implements <string_t.asconst_string>. */
-#define asconst_string(str)               \
-   ( __extension__ ({                     \
-         string_t * _str = (str) ;        \
-         (conststring_t*) _str ;          \
-   }))
+// group: string_t
 
-/* define: init_conststring
- * Implements <conststring_t.init_conststring>. */
-#define init_conststring(str, size, string)                 \
-   do {  conststring_t * _str = (str) ;                     \
-         uint8_t * _string = CONST_CAST(uint8_t, string) ;  \
-         init_string((string_t*)_str, (size), _string) ;    \
-   } while(0)
-
-/* define: initfl_conststring
- * Implements <conststring_t.initfl_conststring>. */
-#define initfl_conststring(str, first, last)             \
-   ( __extension__ ({                                    \
-         conststring_t * _str = (str) ;                  \
-         uint8_t * _first = CONST_CAST(uint8_t, first) ; \
-         uint8_t * _last  = CONST_CAST(uint8_t, last) ;  \
-         initfl_string((string_t*)_str, _first, _last) ; \
-   }))
-
-/* define: initse_conststring
- * Implements <conststring_t.initse_conststring>. */
-#define initse_conststring(str, start, end)              \
-   ( __extension__ ({                                    \
-         conststring_t * _str = (str) ;                  \
-         uint8_t * _start = CONST_CAST(uint8_t, start) ; \
-         uint8_t * _end   = CONST_CAST(uint8_t, end) ;   \
-         initse_string((string_t*)_str, _start, _end) ;  \
-   }))
+/* function: init_string
+ * Implements <string_t.init_string>. */
+static inline void init_string(/*out*/string_t * str, size_t size, const uint8_t string[size])
+{
+   str->addr = string ;
+   str->size = size ;
+}
 
 /* define: isempty_string
  * Implements <string_t.isempty_string>. */
 #define isempty_string(str)                     (0 == (str)->size)
+
+/* define: isfree_string
+ * Implements <string_t.isfree_string>. */
+#define isfree_string(str)                      (0 == (str)->addr && 0 == (str)->size)
 
 /* define: skipbytes_string
  * Implements <string_t.skipbytes_string>. */

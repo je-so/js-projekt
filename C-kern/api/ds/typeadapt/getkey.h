@@ -77,7 +77,7 @@ struct typeadapt_binarykey_t {
 
 /* function: asgeneric_typeadaptbinarykey
  * Casts parameter conststr into pointer to <typeadapt_binarykey_t>.
- * Parameter constr should be of type pointer to <conststring_t>. */
+ * Parameter constr should be of type pointer to <string_t>. */
 typeadapt_binarykey_t * asgeneric_typeadaptbinarykey(void * conststr) ;
 
 

@@ -38,21 +38,21 @@
 
 static inline void compiletime_assert(void)
 {
-   conststring_t     cnststr ;
+   string_t          str ;
    utf8reader_t      utfread ;
    struct {
       const uint8_t  * addr ;
       size_t         size ;
    }                 dummy_size ;
 
-   // TEST conststring_t has only members: addr & size
-   static_assert(sizeof(dummy_size)   == sizeof(cnststr), "considered all members in conststring_t") ;
+   // TEST string_t has only members: addr & size
+   static_assert(sizeof(dummy_size)   == sizeof(str), "considered all members in string_t") ;
 
-   // TEST utf8reader_t.next & utf8reader_t.size compatible with conststring_t.addr & conststring_t.size
-   static_assert(offsetof(utf8reader_t, next) == offsetof(conststring_t, addr), "utf8reader_t compatible with conststring_t") ;
-   static_assert(sizeof(utfread.next) == sizeof(cnststr.addr), "utf8reader_t compatible with conststring_t") ;
-   static_assert(offsetof(utf8reader_t, size) == offsetof(conststring_t, size), "utf8reader_t compatible with conststring_t") ;
-   static_assert(sizeof(utfread.size) == sizeof(cnststr.size), "utf8reader_t compatible with conststring_t") ;
+   // TEST utf8reader_t.next & utf8reader_t.size compatible with string_t.addr & string_t.size
+   static_assert(offsetof(utf8reader_t, next) == offsetof(string_t, addr), "utf8reader_t compatible with string_t") ;
+   static_assert(sizeof(utfread.next) == sizeof(str.addr), "utf8reader_t compatible with string_t") ;
+   static_assert(offsetof(utf8reader_t, size) == offsetof(string_t, size), "utf8reader_t compatible with string_t") ;
+   static_assert(sizeof(utfread.size) == sizeof(str.size), "utf8reader_t compatible with string_t") ;
 }
 
 // group: read

@@ -26,7 +26,7 @@
 #define CKERN_STRING_CSTRING_HEADER
 
 // forward
-struct conststring_t ;
+struct string_t ;
 
 /* typedef: struct cstring_t
  * Export <cstring_t>. */
@@ -84,9 +84,9 @@ struct cstring_t
 int init_cstring(/*out*/cstring_t * cstr, size_t preallocate_size) ;
 
 /* function: initfromstring_cstring
- * Inits <cstring_t> and copies data from <conststring_t>.
+ * Inits <cstring_t> and copies data from <string_t>.
  * If parameter *copiedfrom* is empty no data is preallocated. */
-int initfromstring_cstring(/*out*/cstring_t * cstr, struct conststring_t * copiedfrom) ;
+int initfromstring_cstring(/*out*/cstring_t * cstr, const struct string_t * copiedfrom) ;
 
 /* function: initmove_cstring
  * Inits dest with content of source and sets source to <cstring_INIT_FREEABLE>. */

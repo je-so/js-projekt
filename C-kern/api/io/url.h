@@ -53,7 +53,7 @@ typedef struct url_t                   url_t ;
 
 /* typedef: struct url_parts_t
  * Export <url_parts_t> (array of 7 strings). */
-typedef conststring_t                  url_parts_t[7] ;
+typedef string_t                       url_parts_t[7] ;
 
 /* enums: url_scheme_e
  *
@@ -207,7 +207,7 @@ const char * user_url(const url_t * url) ;
 
 // struct: url_parts_t
 // Defines <url_parts_t> as an array of 7 strings.
-// See <conststring_t>.
+// See <string_t>.
 
 // group: lifetime
 

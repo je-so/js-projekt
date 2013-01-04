@@ -44,7 +44,7 @@
 #include "C-kern/api/string/unicode.h"
 
 // forward
-struct conststring_t ;
+struct string_t ;
 
 /* variable: g_utf8_bytesperchar
  * Returns the number of bytes from the first byte of an utf8 char. */
@@ -78,11 +78,11 @@ unsigned sizechar_utf8(const uint8_t firstbyte) ;
 bool islegal_utf8(const uint8_t firstbyte) ;
 
 
-// struct: conststring_t
+// struct: string_t
 
 // group: utf8-stream
 
-/* function: nextcharutf8_conststring
+/* function: nextcharutf8_string
  * Reads next utf-8 encoded character from *str*.
  * The character is returned as unicode character (codepoint)
  * which is the same as wchar_t on Linux or Unix.
@@ -93,12 +93,12 @@ bool islegal_utf8(const uint8_t firstbyte) ;
  * ENODATA - String is empty and memory pointer is not changed.
  * EILSEQ  - The next character is encoded in a wrong way or there are not enough bytes left in the string
  *           to decode from. Either way the memory pointer is not changed.
- *           Use <skipcharutf8_conststring> to move the memory pointer to the next byte or character.
+ *           Use <skipcharutf8_string> to move the memory pointer to the next byte or character.
  *           If it returns EILSEQ you know also that there are not enough bytes left.
  *           It my be necessary to repeat this step to skip a whole multibyte sequence. */
-int nextcharutf8_conststring(struct conststring_t * str, unicode_t * wchar) ;
+int nextcharutf8_string(struct string_t * str, unicode_t * wchar) ;
 
-/* function: skipcharutf8_conststring
+/* function: skipcharutf8_string
  * Moves internal *str* pointer to next character.
  * This function assumes characters are encoded correctly.
  *
@@ -108,31 +108,31 @@ int nextcharutf8_conststring(struct conststring_t * str, unicode_t * wchar) ;
  * EILSEQ  - String contains not enough data. The last character
  *           has more encoded bytes than are available in the string.
  *           The memory pointer is not changed. */
-int skipcharutf8_conststring(struct conststring_t * str) ;
+int skipcharutf8_string(struct string_t * str) ;
 
 // group: utf8-query
 
-/* function: findcharutf8_conststring
+/* function: findcharutf8_string
  * Finds unicode character wchar in utf8 encoded string.
  * The returned value points either the start addr of the multibyte sequence.
- * Or it is null if <conststring_t> *str* does not contain the unicode character
+ * Or it is null if <string_t> *str* does not contain the unicode character
  * or if wchar is bigger than 0x10FFFF and therefore invalid. */
-const uint8_t * findcharutf8_conststring(const struct conststring_t * str, unicode_t wchar) ;
+const uint8_t * findcharutf8_string(const struct string_t * str, unicode_t wchar) ;
 
-/* function: findbyte_conststring
+/* function: findbyte_string
  * Finds unicode character wchar in utf8 encoded string.
  * The returned value points either to the position of the found character.
- * Or it is null if <conststring_t> *str* does not contain the bytecode. */
-const uint8_t * findbyte_conststring(const struct conststring_t * str, uint8_t byte) ;
+ * Or it is null if <string_t> *str* does not contain the bytecode. */
+const uint8_t * findbyte_string(const struct string_t * str, uint8_t byte) ;
 
-/* function: utf8len_conststring
+/* function: utf8len_string
  * Returns number of UTF-8 characters encoded in string.
  * If an illegal start byte is encountered it is counted as 1 and skipped.
  * Even if one or more bytes of the last multibyte sequence are missing it
  * s also counted as one character. The first byte of a multibyte sequence
  * determines its size. This function does not check that the remaining bytes
  * are encoded correctly. */
-size_t utf8len_conststring(const struct conststring_t * str) ;
+size_t utf8len_string(const struct string_t * str) ;
 
 
 // section: inline implementation
@@ -145,8 +145,8 @@ size_t utf8len_conststring(const struct conststring_t * str) ;
  * Implements <utf8.sizechar_utf8>. */
 #define sizechar_utf8(firstbyte)          (g_utf8_bytesperchar[(uint8_t)(firstbyte)])
 
-/* function: findbyte_conststring
- * Implements <conststring_t.findbyte_conststring>. */
-#define findbyte_conststring(str, byte)   (memchr((str)->addr, (uint8_t)(byte), (str)->size))
+/* function: findbyte_string
+ * Implements <string_t.findbyte_string>. */
+#define findbyte_string(str, byte)        (memchr((str)->addr, (uint8_t)(byte), (str)->size))
 
 #endif

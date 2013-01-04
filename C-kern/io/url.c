@@ -314,7 +314,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
       size_t size = (size_t) (url->parts[i] - buffer_offset) ;
       if (size) {
          -- size ; // include no trailing '\0' byte
-         conststring_t part = conststring_INIT(size, &url->buffer[buffer_offset]) ;
+         string_t   part = string_INIT(size, &url->buffer[buffer_offset]) ;
          sizeencoding[i] = sizeurlencode_string(&part, i == url_part_PATH? '/' : 0) ;
          if (i == url_part_HOSTNAME) {
             result_size += /* no special marker for hostname */ sizeencoding[i] ;
@@ -351,7 +351,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
 
             wbuffer_t encoded = wbuffer_INIT_STATIC(sizeencoding[i], result) ;
 
-            err = urlencode_string(&(conststring_t)conststring_INIT(size, urlbuffer), i == url_part_PATH? '/' : 0, '/', &encoded) ;
+            err = urlencode_string(&(string_t)string_INIT(size, urlbuffer), i == url_part_PATH? '/' : 0, '/', &encoded) ;
             if (err) goto ONABORT ;
 
          } else {

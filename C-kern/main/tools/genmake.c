@@ -136,7 +136,7 @@ int ccopy_stringarray( size_t size, char ** strings, stringarray_t** result)
    }
 
    size_t valuelen  = 0 ;
-   for(size_t i = 0; i < size; ++i) {
+   for (size_t i = 0; i < size; ++i) {
          valuelen += strlen(strings[i]) ;
    }
    if (errmalloc((void**)result, sizeof(stringarray_t) + size * (1+sizeof(char*)) + valuelen)) {
@@ -145,7 +145,7 @@ int ccopy_stringarray( size_t size, char ** strings, stringarray_t** result)
    (*result)->size = (uint16_t) size ;
    (*result)->valueslen = valuelen ;
    char * stringvalue = ((char*)(*result)) + sizeof(stringarray_t) + size * sizeof(char*) ;
-   for(size_t i = 0; i < size; ++i) {
+   for (size_t i = 0; i < size; ++i) {
       (*result)->strings[i] = stringvalue ;
       strcpy( stringvalue, strings[i]) ;
       stringvalue += strlen(strings[i]) + 1 ;
@@ -161,7 +161,7 @@ int new_stringarray( const char * values, const char * separators, stringarray_t
    int isSeparator = 1 ;
    size_t valuecount = 0 ;
    size_t valuelen  = 0 ;
-   for(size_t i = 0; values[i]; ++i) {
+   for (size_t i = 0; values[i]; ++i) {
       if (isSeparator) {
          if (!strchr( separators, values[i])) {
             isSeparator = 0 ;
@@ -187,7 +187,7 @@ int new_stringarray( const char * values, const char * separators, stringarray_t
    (*result)->valueslen = valuelen ;
    char * stringvalue = ((char*)(*result)) + sizeof(stringarray_t) + valuecount * sizeof(char*) ;
    int valuesoffset = 0 ;
-   for(size_t i = 0; i < valuecount; ++i) {
+   for (size_t i = 0; i < valuecount; ++i) {
       (*result)->strings[i] = stringvalue ;
       while (values[valuesoffset] && strchr(separators, values[valuesoffset])) ++valuesoffset ;
       while (values[valuesoffset] && !strchr(separators, values[valuesoffset])) {
@@ -214,7 +214,7 @@ struct hash_entry_subclass_t
    char           name[] ;
 } ;
 
-typeadapt_DECLARE(hashadapt_t, hash_entry_subclass_t, conststring_t *) ;
+typeadapt_DECLARE(hashadapt_t, hash_entry_subclass_t, string_t *) ;
 
 static int impl_delobj_hashadapt(hashadapt_t * typeadp, hash_entry_subclass_t ** hashnode)
 {
@@ -244,7 +244,7 @@ static hash_entry_subclass_t * new_hashtableentry(exthash_t * hashindex, const c
    return entry ;
 }
 
-static int impl_cmpkeyobj_hashadapt(hashadapt_t * typeadp, const conststring_t * lkey, const hash_entry_subclass_t * rnode)
+static int impl_cmpkeyobj_hashadapt(hashadapt_t * typeadp, const string_t * lkey, const hash_entry_subclass_t * rnode)
 {
    (void) typeadp ;
    return strncmp((const char*)lkey->addr, rnode->name, lkey->size) ;
@@ -264,7 +264,7 @@ static inline uint32_t hashchar(const uint8_t c)
    return c ;
 }
 
-static size_t impl_hashkey_hashadapt(hashadapt_t * typeadp, const conststring_t * hashkey)
+static size_t impl_hashkey_hashadapt(hashadapt_t * typeadp, const string_t * hashkey)
 {
    size_t hash    = 0 ;
    (void) typeadp ;
@@ -283,7 +283,7 @@ static size_t impl_hashkey_hashadapt(hashadapt_t * typeadp, const conststring_t 
 
 static size_t impl_hashobj_hashadapt(hashadapt_t * typeadp, const hash_entry_subclass_t * hashnode)
 {
-   conststring_t str = conststring_INIT_CSTR(hashnode->name) ;
+   string_t str = string_INIT_CSTR(hashnode->name) ;
    return impl_hashkey_hashadapt(typeadp, &str) ;
 }
 
@@ -320,7 +320,7 @@ struct konfigvalues_t {    // mode-qualifizierte konfig-Werte
 void free_konfigvalues(konfigvalues_t** konfig)
 {
    if (konfig && *konfig) {
-      for(size_t i = 0; i < (*konfig)->modecount; ++i) {
+      for (size_t i = 0; i < (*konfig)->modecount; ++i) {
          free((*konfig)->compiler[i]) ;
          free((*konfig)->compiler_flags[i]) ;
          free((*konfig)->defines[i]) ;
@@ -382,7 +382,7 @@ int new_konfigvalues(stringarray_t * modes, konfigvalues_t** result)
    konfig->linktargets           = 19 * modecount + (stringarray_t**) (&konfig[1]) ;
    konfig->linkmodefrom          = 20 * modecount + (stringarray_t**) (&konfig[1]) ;
 
-   for(size_t i = 0; i < modes->size; ++i) {
+   for (size_t i = 0; i < modes->size; ++i) {
       konfig->modes[i] = strdup(modes->strings[i]) ;
       if (!konfig->modes[i]) {
          print_err( "Out of memory!\n" ) ;
@@ -525,7 +525,7 @@ int new_genmakeproject(genmakeproject_t** result, const char * filename)
    genmake->name[namelen] = 0 ;
    while (strpbrk(genmake->name, " \t")) *strpbrk(genmake->name, " \t") = '_' ;
 
-   for(int i = 0; g_predefinedIDs[i]; ++i) {
+   for (int i = 0; g_predefinedIDs[i]; ++i) {
       // predefined variables are mapped onto itself !
       hash_entry_subclass_t * entry = new_hashtableentry(&hashindex, g_predefinedIDs[i], strlen(g_predefinedIDs[i])) ;
       entry->isPredefinedID = 1 ;
@@ -581,7 +581,7 @@ static char * replace_vars(exthash_t * hashindex, int lineNr, const char * lineb
 
    while (result) {
       size_t varStart = len ;
-      for(size_t i = bufferOffset; i < len; ++i) {
+      for (size_t i = bufferOffset; i < len; ++i) {
          if (   linebuffer[i]=='$'
             &&  i < len-1
             &&  linebuffer[i+1]=='(' ) {
@@ -594,7 +594,7 @@ static char * replace_vars(exthash_t * hashindex, int lineNr, const char * lineb
       }
       if (varStart == len) break ;
       size_t varEnd = len ;
-      for(size_t i = varStart; i < len; ++i) {
+      for (size_t i = varStart; i < len; ++i) {
          if ( linebuffer[i]==')' ) {
             varEnd = i ;
             break ;
@@ -612,7 +612,7 @@ static char * replace_vars(exthash_t * hashindex, int lineNr, const char * lineb
       }
       bufferOffset = varEnd + 1 ;
       hash_entry_subclass_t * hash_entry ;
-      conststring_t  hashkey = conststring_INIT(varEnd-varStart, (const uint8_t*)&linebuffer[varStart]) ;
+      string_t  hashkey = string_INIT(varEnd-varStart, (const uint8_t*)&linebuffer[varStart]) ;
       if (find_exthash(hashindex, &hashkey, (exthash_node_t**)&hash_entry)) {
          print_err( "line %d undefined value $(%s) used in file '%s'\n", lineNr, &linebuffer[varStart], filename ) ;
          err = 1 ;
@@ -758,7 +758,7 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
        * 'Debug=>* is an abbreviation for Debug=>Debug'
        * */
       bool isDefault = false ;
-      for(size_t mi = 0; mi < modemap->size; ++mi) {
+      for (size_t mi = 0; mi < modemap->size; ++mi) {
          const char * sep = strstr( modemap->strings[mi], "=>" ) ;
          if (!sep) {
             print_err( "line %d expected '=>' in '%s' (no space allowed) in file '%s'\n", lineNr, modemap->strings[mi], filename ) ;
@@ -773,7 +773,7 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
             }
             isDefault = true ;
          }
-         for(ci = 0; modemap->strings[mi][ci]; ++ci) {
+         for (ci = 0; modemap->strings[mi][ci]; ++ci) {
             const char c = modemap->strings[mi][ci] ;
             if (c == '=' && (&modemap->strings[mi][ci]) == sep) {
                if (0==strcmp(&sep[2], "*")) break ;  // skip abbreviation '=>*'
@@ -795,7 +795,7 @@ static int parse_line(parse_line_result_t* result, int lineNr, const char* lineb
    } else {
       /* parse assign */
       if (strlen(g_varModes) == idLen && 0==strncmp(&linebuffer[idStart], g_varModes, idLen)) {
-         for(ci = 0; ci < paramLen; ++ci) {
+         for (ci = 0; ci < paramLen; ++ci) {
             const char c = linebuffer[paramStart+ci] ;
             if (  ('0' <= c && c <= '9')
                || ('a' <= c && c <= 'z')
@@ -835,8 +835,8 @@ const char * get_varvalue(exthash_t * hashindex, const char * varname, const cha
    }
    hash_entry_subclass_t * hash_entry ;
    void                  * data  = 0 ;
-   conststring_t         hashkey  = conststring_INIT_CSTR(qualifiedName) ;
-   conststring_t         hashkey2 = conststring_INIT_CSTR(varname) ;
+   string_t              hashkey  = string_INIT_CSTR(qualifiedName) ;
+   string_t              hashkey2 = string_INIT_CSTR(varname) ;
    if (0 == find_exthash(hashindex, &hashkey, (exthash_node_t**)&hash_entry)) {
       hash_entry->isUsed = 1 ;
       data = hash_entry->data ;
@@ -866,7 +866,7 @@ static int set_compiler_predefinedIDs(genmakeproject_t * genmake, char * mode)
 
    for (int i = 0; ids[i]; ++i) {
       hash_entry_subclass_t * hashentry = 0 ;
-      conststring_t         hashkey = conststring_INIT_CSTR(ids[i]) ;
+      string_t              hashkey = string_INIT_CSTR(ids[i]) ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
          goto ONABORT ;
@@ -896,9 +896,9 @@ static int set_linker_predefinedIDs(genmakeproject_t * genmake, char * mode)
 
    if (set_compiler_predefinedIDs(genmake,mode)) goto ONABORT ;
 
-   for(int i = 0; ids[i]; ++i) {
+   for (int i = 0; ids[i]; ++i) {
       hash_entry_subclass_t * hashentry = 0 ;
-      conststring_t         hashkey = conststring_INIT_CSTR(ids[i]) ;
+      string_t              hashkey = string_INIT_CSTR(ids[i]) ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
          goto ONABORT ;
@@ -926,9 +926,9 @@ static int set_other_predefinedIDs(genmakeproject_t * genmake)
    const char * ids[]   = { "cflags",    "lflags",    "includes",   "defines",     "libs",    0 } ;
    const char * vars[]  = { g_varCFlags, g_varLFlags, g_varIncludes, g_varDefines, g_varLibs, 0 } ;
 
-   for(int i = 0; ids[i]; ++i) {
+   for (int i = 0; ids[i]; ++i) {
       hash_entry_subclass_t * hashentry = 0 ;
-      conststring_t         hashkey = conststring_INIT_CSTR(vars[i]) ;
+      string_t              hashkey = string_INIT_CSTR(vars[i]) ;
 
       char * value ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
@@ -940,7 +940,7 @@ static int set_other_predefinedIDs(genmakeproject_t * genmake)
          print_err("Out of memory!\n") ;
          goto ONABORT ;
       }
-      hashkey = (conststring_t) conststring_INIT_CSTR(ids[i]) ;
+      hashkey = (string_t) string_INIT_CSTR(ids[i]) ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'%s',)\n", ids[i]) ;
          goto ONABORT ;
@@ -965,14 +965,14 @@ int build_konfiguration(genmakeproject_t * genmake)
       if (new_stringarray( modesvalue, " \t", &modes)) goto ONABORT ;
       if (new_konfigvalues( modes, &konfig)) goto ONABORT ;
 
-      for(size_t i = 0; i < modes->size; ++i) {
+      for (size_t i = 0; i < modes->size; ++i) {
          assert(konfig->modes[i]) ;
       }
       free_stringarray(&modes) ;
    }
 
    hash_entry_subclass_t * hashentry = 0 ;
-   conststring_t         hashkey     = conststring_INIT_CSTR("projectname") ;
+   string_t              hashkey     = string_INIT_CSTR("projectname") ;
    if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
       print_err("internal error search_hashtable(,'projectname',)\n") ;
       goto ONABORT ;
@@ -985,7 +985,7 @@ int build_konfiguration(genmakeproject_t * genmake)
    }
 
    for (size_t m = 0; m < konfig->modecount; ++m) {
-      hashkey = (conststring_t) conststring_INIT_CSTR("mode") ;
+      hashkey = (string_t) string_INIT_CSTR("mode") ;
       if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hashentry)) {
          print_err("internal error search_hashtable(,'mode',)\n") ;
          goto ONABORT ;
@@ -1015,7 +1015,7 @@ int build_konfiguration(genmakeproject_t * genmake)
          konfig->defines[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_definesprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->defines[m]) { print_err("Out of memory!\n") ; goto ONABORT ; }
          int size = 0 ;
-         for(uint16_t i = 0; i < strarray->size; ++i) {
+         for (uint16_t i = 0; i < strarray->size; ++i) {
             size += sprintf(konfig->defines[m]+size, g_definesprefix, konfig->modes[m]) ;
             size += sprintf(konfig->defines[m]+size, "%s", strarray->strings[i]) ;
          }
@@ -1036,7 +1036,7 @@ int build_konfiguration(genmakeproject_t * genmake)
          konfig->includes[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_includesprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->includes[m]) { print_err("Out of memory!\n") ; goto ONABORT ; }
          int size = 0 ;
-         for(uint16_t i = 0; i < strarray->size; ++i) {
+         for (uint16_t i = 0; i < strarray->size; ++i) {
             size += sprintf(konfig->includes[m]+size, g_includesprefix, konfig->modes[m]) ;
             size += sprintf(konfig->includes[m]+size, "%s", strarray->strings[i]) ;
          }
@@ -1057,7 +1057,7 @@ int build_konfiguration(genmakeproject_t * genmake)
          konfig->libs[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_libsprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->libs[m]) { print_err("Out of memory!\n") ; goto ONABORT ; }
          int size = 0 ;
-         for(uint16_t i = 0; i < strarray->size; ++i) {
+         for (uint16_t i = 0; i < strarray->size; ++i) {
             size += sprintf( konfig->libs[m]+size, g_libsprefix, konfig->modes[m]) ;
             size += sprintf( konfig->libs[m]+size, "%s", strarray->strings[i]) ;
          }
@@ -1078,7 +1078,7 @@ int build_konfiguration(genmakeproject_t * genmake)
          konfig->libpath[m] = (char*) malloc(1 + strarray->valueslen + strarray->size * (strlen(g_libpathprefix)+strlen(konfig->modes[m]))) ;
          if (!konfig->libpath[m]) { print_err("Out of memory!\n") ; goto ONABORT ; }
          konfig->libpath[m][0] = 0 ;
-         for(uint16_t i = 0; i < strarray->size; ++i) {
+         for (uint16_t i = 0; i < strarray->size; ++i) {
             sprintf( konfig->libpath[m]+strlen(konfig->libpath[m]), g_libpathprefix, konfig->modes[m]) ;
             strcat( konfig->libpath[m], strarray->strings[i]) ;
          }
@@ -1119,7 +1119,7 @@ int build_konfiguration(genmakeproject_t * genmake)
          int errflag = 0 ;
          if (new_stringarray( konfig->src[m], " \t", &searchpatterns)) goto ONABORT ;
          glob_t foundfiles = { .gl_pathc = 0, .gl_pathv= 0 } ;
-         for(size_t pi=0; !errflag && pi < searchpatterns->size; ++pi) {
+         for (size_t pi=0; !errflag && pi < searchpatterns->size; ++pi) {
             char * pattern = searchpatterns->strings[pi] ;
 
             errflag = glob( pattern, (pi? (GLOB_APPEND|GLOB_NOSORT):(GLOB_NOSORT)), print_read_warning, &foundfiles) ;
@@ -1141,7 +1141,7 @@ int build_konfiguration(genmakeproject_t * genmake)
       }
 
       {  assert(konfig->obj_files[m]) ;
-         for(uint16_t f = 0; f < konfig->obj_files[m]->size; ++f) {
+         for (uint16_t f = 0; f < konfig->obj_files[m]->size; ++f) {
             char * unsupported_character ;
             if ( (unsupported_character=strpbrk(konfig->obj_files[m]->strings[f], " \t\n:$'\"")) ) {
                char ch[2] = { *unsupported_character, 0 } ;
@@ -1156,8 +1156,8 @@ int build_konfiguration(genmakeproject_t * genmake)
       }
 
       {  assert(konfig->obj_files[m]) ;
-         for(uint16_t f = 0; f < konfig->obj_files[m]->size; ++f) {
-            for(size_t i = 0; konfig->obj_files[m]->strings[f][i]; ++i) {
+         for (uint16_t f = 0; f < konfig->obj_files[m]->size; ++f) {
+            for (size_t i = 0; konfig->obj_files[m]->strings[f][i]; ++i) {
                if (konfig->obj_files[m]->strings[f][i] == '/') konfig->obj_files[m]->strings[f][i] = '!' ;
             }
             if (konfig->obj_files[m]->strings[f][0] == '.') konfig->obj_files[m]->strings[f][0] = '_' ;
@@ -1175,12 +1175,12 @@ int build_konfiguration(genmakeproject_t * genmake)
          }
          // (1) find corresponding targets for every link command
          linkcommand_t * linkcmd = genmake->links ;
-         for(size_t cmdi = 0; cmdi < genmake->links_count; ++cmdi) {
+         for (size_t cmdi = 0; cmdi < genmake->links_count; ++cmdi) {
             assert( linkcmd && "internal error" ) ;
             linkcmd = linkcmd->next ;
             linktargets[cmdi]  = 0 ;
             linkmodefrom[cmdi] = 0 ;
-            for( linktarget_t * lt = linkcmd->targets ; lt ; lt = lt->next ) {
+            for (linktarget_t * lt = linkcmd->targets ; lt ; lt = lt->next) {
                if (  0==strcmp(konfig->modes[m], lt->mode)
                   || (!lt->mode[0] && !linktargets[cmdi]) /*defaultmapping (mode[0]="")*/ ) {
                   linktargets[cmdi]  = lt->target ;
@@ -1211,10 +1211,10 @@ int build_konfiguration(genmakeproject_t * genmake)
    const char * ids[]   = { "cflags",    "lflags",    "includes",   "defines",     "libs",    0 } ;
    const char * vars[]  = { g_varCFlags, g_varLFlags, g_varIncludes, g_varDefines, g_varLibs, 0 } ;
    for (int i = 0; ids[i]; ++i) {
-      hashkey = (conststring_t) conststring_INIT_CSTR(ids[i]) ;
+      hashkey = (string_t) string_INIT_CSTR(ids[i]) ;
       if (  0 == find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hentry)
             && hentry->isUsed) {
-            hashkey = (conststring_t) conststring_INIT_CSTR(vars[i]) ;
+            hashkey = (string_t) string_INIT_CSTR(vars[i]) ;
             if (0 == find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hentry)) {
                hentry->isUsed = 1 ;
             }
@@ -1337,15 +1337,16 @@ static int read_projectfile(genmakeproject_t * genmake)
                   }
                   genmake->links = lc ;
                }
+
                if (!err) {
                   // check modemap mapping
-                  for(size_t i = 0; i < parsed.modemap->size; ++i) {
+                  for (size_t i = 0; i < parsed.modemap->size; ++i) {
                      size_t submode_index ;
                      char* separator = strstr(parsed.modemap->strings[i], "=>") ;
                      assert(separator && "internal error") ;
                      *separator = 0 ;
                      bool found = false ;
-                     for(submode_index = 0; submode_index < subgenmake->konfig->modecount; ++submode_index) {
+                     for (submode_index = 0; submode_index < subgenmake->konfig->modecount; ++submode_index) {
                         found = (0==strcmp(parsed.modemap->strings[i], subgenmake->konfig->modes[submode_index])) ;
                         if (found) break ;
                      }
@@ -1358,7 +1359,7 @@ static int read_projectfile(genmakeproject_t * genmake)
                      const char * foundmode = "" ;
                      hash_entry_subclass_t * hash_entry ;
                      if (modelen) {
-                        conststring_t hashkey = conststring_INIT_CSTR(g_varModes) ;
+                        string_t hashkey = string_INIT_CSTR(g_varModes) ;
                         if (  find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hash_entry)
                               || 0==hash_entry->data) {
                            print_err( "line %d 'Modes' must be defined beforehand in file '%s'\n", lineNr, prj_file_stack[0].name ) ;
@@ -1398,7 +1399,7 @@ static int read_projectfile(genmakeproject_t * genmake)
                /* ID = value*/
                linebuffer[parsed.idStart + parsed.idLen] = 0 ;
                hash_entry_subclass_t * hash_entry ;
-               conststring_t         hashkey = conststring_INIT_CSTR(&linebuffer[parsed.idStart]) ;
+               string_t              hashkey = string_INIT_CSTR(&linebuffer[parsed.idStart]) ;
                if (find_exthash(&genmake->index, &hashkey, (exthash_node_t**)&hash_entry)) {
                   hash_entry = new_hashtableentry(&genmake->index, &linebuffer[parsed.idStart], parsed.idLen) ;
                   if (!hash_entry) {
@@ -1520,14 +1521,14 @@ int write_makefile(
    strftime( datbuffer, sizeof(datbuffer), "%Y.%b.%d  %H:%M:%S", localtime(&t)) ;
    fprintf(makefile, "ProjectName     := %s\n", genmake->name) ;
    fprintf(makefile, "ProjectModes    :=") ;
-   for(uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, " %s", konfig->modes[m]) ;
+   for (uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, " %s", konfig->modes[m]) ;
    fprintf(makefile, "\nProjectFile     := %s", genmake->filename) ;
    fprintf(makefile, "\nProjectLinks    := ") ;
    uint16_t li = 0 ;
-   for(linkcommand_t * l = genmake->links; li < genmake->links_count; ++li) {
+   for (linkcommand_t * l = genmake->links; li < genmake->links_count; ++li) {
       l = l->next ; if (li) fprintf(makefile, "\\\n                   ") ;
       fprintf(makefile, "%s (", l->filename) ;
-      for(uint16_t m = 0; m < konfig->modecount; ++m) {
+      for (uint16_t m = 0; m < konfig->modecount; ++m) {
          fprintf(makefile, " %s", konfig->linkmodefrom[m]->strings[li]) ;
       }
       fprintf(makefile, " )") ;
@@ -1538,7 +1539,7 @@ int write_makefile(
    if (strchr(user->pw_gecos,',')) userlen = (size_t) (strchr(user->pw_gecos,',') - user->pw_gecos) ;
    fprintf(makefile, "GeneratedBy     := %.*s\n", userlen, user?user->pw_gecos:"?") ;
 
-   for(uint16_t m = 0; m < konfig->modecount; ++m) {
+   for (uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\n## %s\n", konfig->modes[m]) ;
       fprintf(makefile, "DefineFlag_%s    := %s\n", konfig->modes[m], konfig->define_flag[m]) ;
       fprintf(makefile, "IncludeFlag_%s   := %s\n", konfig->modes[m], konfig->include_flag[m]) ;
@@ -1559,18 +1560,18 @@ int write_makefile(
    }
    fprintf(makefile, "\n##\n## Targets\n##\n") ;
    fprintf(makefile, "all:   ") ;
-   for(uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, "%s%c", konfig->modes[m], m==konfig->modecount-1?'\n':' ') ;
+   for (uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, "%s%c", konfig->modes[m], m==konfig->modecount-1?'\n':' ') ;
    fprintf(makefile, "clean: ") ;
-   for(uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, "clean_%s%c", konfig->modes[m], m==konfig->modecount-1?'\n':' ') ;
+   for (uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, "clean_%s%c", konfig->modes[m], m==konfig->modecount-1?'\n':' ') ;
    fprintf(makefile, "init: ") ;
-   for(uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, " init_%s", konfig->modes[m] ) ;
-   for(uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, "\ninit_%s: $(ObjectDir_%s) $(TargetDir_%s)", konfig->modes[m], konfig->modes[m], konfig->modes[m] ) ;
+   for (uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, " init_%s", konfig->modes[m] ) ;
+   for (uint16_t m = 0; m < konfig->modecount; ++m) fprintf(makefile, "\ninit_%s: $(ObjectDir_%s) $(TargetDir_%s)", konfig->modes[m], konfig->modes[m], konfig->modes[m] ) ;
    fprintf(makefile, "\n") ;
 
-   for(uint16_t m = 0; m < konfig->modecount; ++m) {
+   for (uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\n%s: init_%s $(Target_%s)\n", konfig->modes[m], konfig->modes[m], konfig->modes[m]) ;
    }
-   for(uint16_t m = 0; m < konfig->modecount; ++m) {
+   for (uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\nclean_%s:\n", konfig->modes[m]) ;
       fprintf(makefile, "\t@rm -f \"$(ObjectDir_%s)/\"*.[od]\n", konfig->modes[m]) ;
       fprintf(makefile, "\t@rm -f \"$(Target_%s)\"\n", konfig->modes[m]) ;
@@ -1578,36 +1579,36 @@ int write_makefile(
       fprintf(makefile, "\t@if [ -d \"$(TargetDir_%s)\" ]; then rmdir -p --ignore-fail-on-non-empty \"$(TargetDir_%s)\"; fi\n", konfig->modes[m], konfig->modes[m]) ;
    }
    fprintf(makefile, "\n$(sort") ;
-   for(uint16_t m = 0; m < konfig->modecount; ++m) {
+   for (uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, " $(ObjectDir_%s) $(TargetDir_%s)", konfig->modes[m], konfig->modes[m]) ;
    }
    fprintf(makefile, "):\n\t@mkdir -p \"$@\"\n") ;
 
-   for(uint16_t m = 0; m < konfig->modecount; ++m) {
+   for (uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\nObjects_%s :=", konfig->modes[m]) ;
-      for(uint16_t f = 0; f < konfig->obj_files[m]->size; ++f) {
+      for (uint16_t f = 0; f < konfig->obj_files[m]->size; ++f) {
          fprintf(makefile, " \\\n $(ObjectDir_%s)/%s.o", konfig->modes[m], konfig->obj_files[m]->strings[f]) ;
       }
-      for(uint16_t l = 0; l < konfig->linktargets[m]->size; ++l) {
+      for (uint16_t l = 0; l < konfig->linktargets[m]->size; ++l) {
          fprintf(makefile, " \\\n %s", konfig->linktargets[m]->strings[l]) ;
       }
       fprintf(makefile, "\n") ;
    }
 
-   for(uint16_t m = 0; m < konfig->modecount; ++m) {
+   for (uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\n$(Target_%s): $(Objects_%s)", konfig->modes[m], konfig->modes[m]) ;
       fprintf(makefile, "\n\t@$(LD_%s)\n", konfig->modes[m]) ;
    }
 
-   for(uint16_t m = 0; m < konfig->modecount; ++m) {
+   for (uint16_t m = 0; m < konfig->modecount; ++m) {
       assert( konfig->src_files[m]->size == konfig->obj_files[m]->size ) ;
-      for(uint16_t f = 0; f < konfig->src_files[m]->size; ++f) {
+      for (uint16_t f = 0; f < konfig->src_files[m]->size; ++f) {
          fprintf(makefile, "\n$(ObjectDir_%s)/%s.o: %s\n", konfig->modes[m], konfig->obj_files[m]->strings[f], konfig->src_files[m]->strings[f]) ;
          fprintf(makefile, "\t@$(CC_%s)\n", konfig->modes[m]) ;
       }
    }
 
-   for(uint16_t m = 0; m < konfig->modecount; ++m) {
+   for (uint16_t m = 0; m < konfig->modecount; ++m) {
       fprintf(makefile, "\n-include $(Objects_%s:.o=.d)\n", konfig->modes[m]) ;
    }
 

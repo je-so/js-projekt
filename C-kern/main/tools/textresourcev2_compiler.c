@@ -119,8 +119,8 @@ static void print_error(const char * format, ...)
 
 
 struct xmlattribute_t {
-   const char     * name ;
-   conststring_t  value ;
+   const char  * name ;
+   string_t    value ;
 } ;
 
 // group: lifetime
@@ -128,22 +128,22 @@ struct xmlattribute_t {
 /* define: xmlattribute_INIT
  * Static initializer. Sets <xmlattribute_t> name to parameter value name and
  * its value to undefined. */
-#define xmlattribute_INIT(name)        { (name), conststring_INIT_FREEABLE }
+#define xmlattribute_INIT(name)        { (name), string_INIT_FREEABLE }
 
 
 /* struct: proglangC_t
  * Contains control information for formatting written "C" language output. */
 struct proglangC_t {
-   conststring_t     cfilename;
-   conststring_t     hfilename ;
-   conststring_t     firstparam ;
-   conststring_t     langswitch ;
-   conststring_t     nameprefix ;
-   conststring_t     namesuffix ;
-   conststring_t     printf ;
+   string_t     cfilename;
+   string_t     hfilename ;
+   string_t     firstparam ;
+   string_t     langswitch ;
+   string_t     nameprefix ;
+   string_t     namesuffix ;
+   string_t     printf ;
 } ;
 
-#define proglangC_INIT_FREEABLE        { conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE, conststring_INIT_FREEABLE }
+#define proglangC_INIT_FREEABLE        { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE }
 
 
 /* struct: textresource_language_t
@@ -200,7 +200,7 @@ struct textresource_textatom_t {
    slist_node_EMBED           (next) ;
    textresource_textatom_e    type ;
    union {
-      conststring_t           string ;
+      string_t                string ;
       struct {
          textresource_parameter_t   * ref ;
          int                        maxlen ;
@@ -240,7 +240,7 @@ struct textresource_condition_t {
     * If the condition is true the text is used and all other conditional texts until after
     * the next encountered "else" are skipped. A <condition> set to "else" marks
     * the last entry of a conditional sequence. */
-   conststring_t              condition ;
+   string_t                   condition ;
 } ;
 
 typedef struct textresource_condition_adapt_t   textresource_condition_adapt_t ;
@@ -456,7 +456,7 @@ arraystf_IMPLEMENT(_arraytname, textresource_text_t, name)
 
 // group: lifetime
 
-static int init_textresourcetext(/*out*/textresource_text_t * text, const conststring_t * name)
+static int init_textresourcetext(/*out*/textresource_text_t * text, const string_t * name)
 {
    int err ;
    arraystf_t * textparams = 0 ;
@@ -480,7 +480,7 @@ static int copyobj_textresourcetext(textresource_text_adapt_t * typeadt, /*out*/
    if (err) return err ;
 
    textresource_text_t * newtext = (textresource_text_t *) mblock.addr ;
-   (void) init_textresourcetext(newtext, asconststring_arraystfnode(&text->name)) ;
+   (void) init_textresourcetext(newtext, asstring_arraystfnode(&text->name)) ;
 
    *textcopy = newtext ;
 
@@ -796,7 +796,7 @@ ONABORT:
    return EINVAL ;
 }
 
-static int match_identifier(textresource_reader_t * reader, /*out*/conststring_t * idname)
+static int match_identifier(textresource_reader_t * reader, /*out*/string_t * idname)
 {
    int err ;
    uint32_t ch ;
@@ -849,7 +849,7 @@ static int match_identifier(textresource_reader_t * reader, /*out*/conststring_t
       skipascii_utf8reader(&reader->txtpos) ;
    }
 
-   err = initse_conststring(idname, idstart, unread_utf8reader(&reader->txtpos)) ;
+   err = initse_string(idname, idstart, unread_utf8reader(&reader->txtpos)) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -857,7 +857,7 @@ ONABORT:
    return err ;
 }
 
-static int match_quotedcstring(textresource_reader_t * reader, conststring_t * cstring)
+static int match_quotedcstring(textresource_reader_t * reader, string_t * cstring)
 {
    int err ;
 
@@ -893,14 +893,14 @@ static int match_quotedcstring(textresource_reader_t * reader, conststring_t * c
       }
    }
 
-   initse_conststring(cstring, startstr, endstr) ;
+   initse_string(cstring, startstr, endstr) ;
 
    return 0 ;
 ONABORT:
    return err ;
 }
 
-static int match_ifcondition(textresource_reader_t * reader, conststring_t * ifcondition)
+static int match_ifcondition(textresource_reader_t * reader, string_t * ifcondition)
 {
    int err ;
 
@@ -934,7 +934,7 @@ static int match_ifcondition(textresource_reader_t * reader, conststring_t * ifc
       goto ONABORT ;
    }
 
-   initse_conststring(ifcondition, startstr, endstr) ;
+   initse_string(ifcondition, startstr, endstr) ;
 
    return 0 ;
 ONABORT:
@@ -955,7 +955,7 @@ static int match_formatdescription(textresource_reader_t * reader, textresource_
          break ;
       }
 
-      conststring_t formatid ;
+      string_t formatid ;
       err = match_identifier(reader, &formatid) ;
 
       if (  6 == formatid.size
@@ -998,7 +998,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
 
       for (;;) {
 
-         conststring_t              name_type ;
+         string_t                   name_type ;
          textresource_parameter_t   textparam = textresource_parameter_INIT_FREEABLE ;
 
          do {
@@ -1039,7 +1039,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
             textparam.typemod |= typemodifier_POINTER ;
          }
 
-         err = match_identifier(reader, CONST_CAST(conststring_t,asconststring_arraystfnode(&textparam.name))) ;
+         err = match_identifier(reader, CONST_CAST(string_t,asstring_arraystfnode(&textparam.name))) ;
          if (err) goto ONABORT ;
 
          if (at_arrayptype(reader->txtres.paramtypes, textparam.name.size, textparam.name.addr)) {
@@ -1101,7 +1101,7 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
       if ('"' == ch) {
          isLineEnding = false ;  // " character lets the line continue
 
-         conststring_t cstring ;
+         string_t cstring ;
 
          err = match_quotedcstring(reader, &cstring) ;
          if (err) goto ONABORT ;
@@ -1135,7 +1135,7 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
 
          if (!isParam) break ;
 
-         conststring_t paramname ;
+         string_t paramname ;
 
          err = match_identifier(reader, &paramname) ;
          if (err) goto ONABORT ;
@@ -1195,7 +1195,7 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
             err = EINVAL ;
             goto ONABORT ;
          }
-         textresource_condition_t elsecond = textresource_condition_INIT(conststring_INIT(4, (const uint8_t*)"else")) ;
+         textresource_condition_t elsecond = textresource_condition_INIT(string_INIT_CSTR("else")) ;
          err = addcondition_textresourcelangref(lang, &elsecond, 0) ;
          if (err) goto ONABORT ;
          break ;
@@ -1212,7 +1212,7 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
             goto ONABORT ;
          }
 
-         textresource_condition_t   elsecond   = textresource_condition_INIT(conststring_INIT(4, (const uint8_t*)"else")) ;
+         textresource_condition_t   elsecond   = textresource_condition_INIT(string_INIT_CSTR("else")) ;
          textresource_condition_t   * elsecopy = 0 ;
 
          err = addcondition_textresourcelangref(lang, &elsecond, &elsecopy) ;
@@ -1225,7 +1225,7 @@ static int parse_conditional_textatoms(textresource_reader_t * reader, textresou
 
       if ('(' == ch) {
          // match (x == y && ...) "<string>"
-         conststring_t boolstring ;
+         string_t boolstring ;
          err = match_ifcondition(reader, &boolstring) ;
          if (err) goto ONABORT ;
 
@@ -1274,7 +1274,7 @@ static int parse_unconditional_textatoms(textresource_reader_t * reader, textres
          textresource_condition_t * condition ;
 
          {
-            textresource_condition_t  emptycond = textresource_condition_INIT(conststring_INIT_FREEABLE) ;
+            textresource_condition_t  emptycond = textresource_condition_INIT(string_INIT_FREEABLE) ;
             err = addcondition_textresourcelangref(lang, &emptycond, &condition) ;
             if (err) goto ONABORT ;
          }
@@ -1300,7 +1300,7 @@ ONABORT:
 static int parse_textdefinitions_textresourcereader(textresource_reader_t * reader)
 {
    int err ;
-   conststring_t           name ;
+   string_t                name ;
    textresource_text_t     text ;
    textresource_text_t     * textcopy = 0 ;
    textresource_language_t language ;
@@ -1394,7 +1394,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
    return 0 ;
 }
 
-static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader, /*out*/conststring_t * name, /*out*/conststring_t * value)
+static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader, /*out*/string_t * name, /*out*/string_t * value)
 {
    int err ;
    uint32_t ch ;
@@ -1463,8 +1463,8 @@ static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader,
       value_end = unread_utf8reader(&reader->txtpos) ;
    }
 
-   *name  = (conststring_t) conststring_INIT((size_t)(name_end-name_start),name_start) ;
-   *value = (conststring_t) conststring_INIT((size_t)(value_end-value_start),value_start) ;
+   *name  = (string_t) string_INIT((size_t)(name_end-name_start),name_start) ;
+   *value = (string_t) string_INIT((size_t)(value_end-value_start),value_start) ;
 
    return 0 ;
 }
@@ -1472,10 +1472,10 @@ static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader,
 static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader, uint8_t nr_of_attribs, xmlattribute_t attribs[nr_of_attribs], /*inout*/xmltag_openclose_e * opclose)
 {
    int err ;
-   conststring_t name ;
-   conststring_t value ;
-   utf8reader_t  oldpos ;
-   bool          isOpenElement = true ;
+   string_t       name ;
+   string_t       value ;
+   utf8reader_t   oldpos ;
+   bool           isOpenElement = true ;
 
    for (uint8_t ch;;) {
       err = parse_xmlattribute_textresourcereader(reader, &name, &value) ;

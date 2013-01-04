@@ -353,14 +353,14 @@ struct suffixtree_addstate_t {
     * The first character of the suffix is read suffix.addr[0] if (suffix.size > 0).
     * A special end-marker is also allowed with a suffix.size of 0.
     * This is translated internal into the character code 256 which does not exist in any string. */
-   conststring_t     suffix ;
+   string_t          suffix ;
 } ;
 
 // group: lifetime
 
 /* define: suffixtree_addstate_INIT
  * Static initializer. */
-#define suffixtree_addstate_INIT(strsize, straddr)   { suffixtree_pos_INIT, conststring_INIT(strsize,straddr) }
+#define suffixtree_addstate_INIT(strsize, straddr)   { suffixtree_pos_INIT, string_INIT(strsize,straddr) }
 
 
 // section: suffixtree_t
@@ -803,7 +803,7 @@ static int addchar_suffixtree(suffixtree_t * tree, suffixtree_addstate_t * state
          // (state->pos.matched_len == 0) ==> the next iteration overwrites state->pos.parent with state->pos.node.
 
       } else {
-         conststring_t match = (conststring_t) conststring_INIT(STR_SIZE(state->pos.node), STR_START(state->pos.node)) ;
+         string_t match = (string_t) string_INIT(STR_SIZE(state->pos.node), STR_START(state->pos.node)) ;
 
          if (state->pos.parent) {
             state->pos.parent = state->pos.parent->suffix_link ; // skipped first character
@@ -990,11 +990,11 @@ ONABORT:
  * */
 static int findstring_suffixtree(
    suffixtree_t   * tree,
-   conststring_t  * searchstring,
+   string_t       * searchstring,
    /*out*/suffixtree_pos_t * pos)
 {
    int err ;
-   // conststring_t     match = (conststring_t) conststring_INIT(length, searchstring) ;
+   // string_t     match = (string_t) string_INIT(length, searchstring) ;
    suffixtree_node_t * parent = 0/*root*/ ;
    suffixtree_node_t * node ;
 
@@ -1037,7 +1037,7 @@ bool isstring_suffixtree(suffixtree_t * tree, size_t length, const uint8_t searc
    bool isStrContained ;
 
    suffixtree_pos_t pos ;
-   conststring_t    searchstring = conststring_INIT(length, searchstr);
+   string_t         searchstring = string_INIT(length, searchstr);
    isStrContained = (0 == findstring_suffixtree(tree, &searchstring, &pos)) ;
 
    return isStrContained ;
@@ -1062,7 +1062,7 @@ int matchall_suffixtree(
 
    {  /* find position in tree */
       suffixtree_pos_t pos ;
-      conststring_t    searchstring = conststring_INIT(length, searchstr);
+      string_t         searchstring = string_INIT(length, searchstr);
       err = findstring_suffixtree(tree, &searchstring, &pos) ;
       if (err) return err ;
 
@@ -1276,13 +1276,13 @@ static int test_suffixtree(void)
    // TEST suffix tree with splitting
    teststr = (const uint8_t*)"ABABCABCDCABCDX" ;
    TEST(0 == build_suffixtree(&tree, strlen((const char*)teststr), teststr)) ;
-   TEST(0 == findstring_suffixtree(&tree, &(conststring_t)conststring_INIT(5, (const uint8_t*)"CABCD"), &found_pos)) ;
+   TEST(0 == findstring_suffixtree(&tree, &(string_t)string_INIT_CSTR("CABCD"), &found_pos)) ;
    TEST(5 == STR_START(found_pos.node) - teststr) ;
    TEST(4 == STR_SIZE(found_pos.node)) ;
    TEST(0 == findchild_suffixtree(&tree, found_pos.node/*CABCD*/, 'X', &found_node)) ;
    TEST(ISLEAF(found_node)) ;
    TEST(14 == STR_START(found_node) - teststr) ;
-   TEST(0 == findstring_suffixtree(&tree, &(conststring_t)conststring_INIT(4, (const uint8_t*)"ABCD"), &found_pos)) ;
+   TEST(0 == findstring_suffixtree(&tree, &(string_t)string_INIT_CSTR("ABCD"), &found_pos)) ;
    TEST(8 == STR_START(found_pos.node) - teststr) ;
    TEST(1 == STR_SIZE(found_pos.node)) ;
    TEST(0 == findchild_suffixtree(&tree, found_pos.node/*ABCD*/, 'X', &found_node)) ;
@@ -1292,13 +1292,13 @@ static int test_suffixtree(void)
    // TEST suffix tree with splitting
    teststr = (const uint8_t*)"ABABCABCDCABCX" ;
    TEST(0 == build_suffixtree(&tree, strlen((const char*)teststr), teststr)) ;
-   TEST(0 == findstring_suffixtree(&tree, &(conststring_t)conststring_INIT(4, (const uint8_t*)"CABC"), &found_pos)) ;
+   TEST(0 == findstring_suffixtree(&tree, &(string_t)string_INIT_CSTR("CABC"), &found_pos)) ;
    TEST(5 == STR_START(found_pos.node) - teststr) ;
    TEST(3 == STR_SIZE(found_pos.node)) ;
    TEST(0 == findchild_suffixtree(&tree, found_pos.node/*CABC*/, 'X', &found_node)) ;
    TEST(1 == ISLEAF(found_node)) ;
    TEST(13 == STR_START(found_node) - teststr) ;
-   TEST(0 == findstring_suffixtree(&tree, &(conststring_t)conststring_INIT(3, (const uint8_t*)"ABC"), &found_pos)) ;
+   TEST(0 == findstring_suffixtree(&tree, &(string_t)string_INIT_CSTR("ABC"), &found_pos)) ;
    TEST(4 == STR_START(found_pos.node) - teststr) ;
    TEST(1 == STR_SIZE(found_pos.node)) ;
    TEST(0 == findchild_suffixtree(&tree, found_pos.node/*ABC*/, 'X', &found_node)) ;
@@ -1454,7 +1454,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43162,44365,44643,60204,60328,60441,60496} ;
+   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43122,44320,44598,60063,60187,60300,60355} ;
    const uint8_t  * matched_pos[1+nrelementsof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

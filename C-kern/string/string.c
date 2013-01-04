@@ -30,11 +30,44 @@
 #include "C-kern/api/test.h"
 #endif
 
-// section: conststring_t
+
+// section: string_t
+
+// group: lifetime
+
+int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * last)
+{
+   int err ;
+
+   VALIDATE_INPARAM_TEST((last+1) > last, ONABORT, PRINTPTR_LOG(last)) ;
+
+   str->addr = first ;
+   str->size = last < first ? 0 : (size_t) (1 + last - first) ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * end)
+{
+   int err ;
+
+   VALIDATE_INPARAM_TEST(end >= start, ONABORT, PRINTPTR_LOG(end); PRINTPTR_LOG(start) ) ;
+
+   str->addr = start ;
+   str->size = (size_t) (end - start) ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
 
 // group: compare
 
-bool isequalasciicase_conststring(const conststring_t * str, const conststring_t * str2)
+bool isequalasciicase_string(const string_t * str, const string_t * str2)
 {
    if (str->size != str2->size) return false ;
 
@@ -56,108 +89,11 @@ bool isequalasciicase_conststring(const conststring_t * str, const conststring_t
 }
 
 
-// section: string_t
-
-// group: lifetime
-
-void init_string(/*out*/string_t * str, size_t size, uint8_t string[size])
-{
-   str->addr = string ;
-   str->size = size ;
-}
-
-int initfl_string(/*out*/string_t * str, uint8_t * first, uint8_t * last)
-{
-   int err ;
-
-   VALIDATE_INPARAM_TEST((last >= first) && ((last+1) > last), ONABORT, PRINTPTR_LOG(first); PRINTPTR_LOG(last) ) ;
-
-   str->addr = first ;
-   str->size = (size_t) (1 + last - first) ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-int initse_string(/*out*/string_t * str, uint8_t * start, uint8_t * end)
-{
-   int err ;
-
-   VALIDATE_INPARAM_TEST(end >= start, ONABORT, PRINTPTR_LOG(end); PRINTPTR_LOG(start) ) ;
-
-   str->addr = start ;
-   str->size = (size_t) (end - start) ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-
 // group: test
 
 #ifdef KONFIG_UNITTEST
 
-static int test_initfreeconststr(void)
-{
-   conststring_t  str ;
-   const uint8_t  test[256] ;
-
-   // TEST conststring_INIT_FREEABLE
-   str = (conststring_t) conststring_INIT_FREEABLE ;
-   TEST(0 == str.addr) ;
-   TEST(0 == str.size) ;
-   TEST(1 == isempty_string(&str)) ;
-
-   // TEST conststring_INIT
-   str = (conststring_t) conststring_INIT(5, &test[10]) ;
-   TEST(str.addr == &test[10]) ;
-   TEST(str.size == 5) ;
-   TEST(0 == isempty_string(&str)) ;
-   str = (conststring_t) conststring_INIT(3, &test[11]) ;
-   TEST(str.addr == &test[11]) ;
-   TEST(str.size == 3) ;
-   TEST(0 == isempty_string(&str)) ;
-
-   // TEST init_conststring
-   init_conststring(&str, 3, &test[12]) ;
-   TEST(str.addr == &test[12]) ;
-   TEST(str.size == 3) ;
-   TEST(0 == isempty_string(&str)) ;
-   init_conststring(&str, 5, &test[13]) ;
-   TEST(str.addr == &test[13]) ;
-   TEST(str.size == 5) ;
-   TEST(0 == isempty_string(&str)) ;
-
-   // TEST initfl_conststring
-   initfl_conststring(&str, &test[21], &test[23]) ;
-   TEST(str.addr == &test[21]) ;
-   TEST(str.size == 3) ;
-   TEST(0 == isempty_string(&str)) ;
-   initfl_conststring(&str, &test[24], &test[28]) ;
-   TEST(str.addr == &test[24]) ;
-   TEST(str.size == 5) ;
-   TEST(0 == isempty_string(&str)) ;
-
-   // TEST initse_conststring
-   initse_conststring(&str,  &test[21], &test[24]) ;
-   TEST(str.addr == &test[21]) ;
-   TEST(str.size == 3) ;
-   TEST(0 == isempty_string(&str)) ;
-   initse_conststring(&str, &test[24], &test[29]) ;
-   TEST(str.addr == &test[24]) ;
-   TEST(str.size == 5) ;
-   TEST(0 == isempty_string(&str)) ;
-
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
-
-static int test_initfreestr(void)
+static int test_initfree(void)
 {
    string_t    str ;
    uint8_t     test[256] ;
@@ -167,53 +103,95 @@ static int test_initfreestr(void)
    TEST(0 == str.addr) ;
    TEST(0 == str.size) ;
    TEST(1 == isempty_string(&str)) ;
+   TEST(1 == isfree_string(&str)) ;
 
    // TEST string_INIT
    str = (string_t) string_INIT(5, &test[10]) ;
    TEST(str.addr == &test[10]) ;
    TEST(str.size == 5) ;
-   TEST(0 == isempty_string(&str)) ;
    str = (string_t) string_INIT(3, &test[11]) ;
    TEST(str.addr == &test[11]) ;
    TEST(str.size == 3) ;
-   TEST(0 == isempty_string(&str)) ;
+
+   // TEST string_INIT_CSTR
+   const char * cstr[] = { "123", "123456" } ;
+   for (unsigned i = 0; i < nrelementsof(cstr); ++i) {
+      str = (string_t) string_INIT_CSTR(cstr[i]) ;
+      TEST(str.addr == (const uint8_t*)cstr[i]) ;
+      TEST(str.size == strlen(cstr[i])) ;
+   }
 
    // TEST init_string
    init_string(&str, 3, &test[12]) ;
    TEST(str.addr == &test[12]) ;
    TEST(str.size == 3) ;
-   TEST(0 == isempty_string(&str)) ;
    init_string(&str, 5, &test[13]) ;
    TEST(str.addr == &test[13]) ;
    TEST(str.size == 5) ;
-   TEST(0 == isempty_string(&str)) ;
+
+   // TEST init_string: free string
+   init_string(&str, 0, 0) ;
+   TEST(0 == str.addr) ;
+   TEST(0 == str.size) ;
+
+   // TEST init_string: empty string
+   init_string(&str, 0, (const uint8_t*)"") ;
+   TEST(str.addr == (const uint8_t*)"") ;
+   TEST(str.size == 0) ;
 
    // TEST initfl_string
    initfl_string(&str, &test[21], &test[23]) ;
    TEST(str.addr == &test[21]) ;
    TEST(str.size == 3) ;
-   TEST(0 == isempty_string(&str)) ;
    initfl_string(&str, &test[24], &test[28]) ;
    TEST(str.addr == &test[24]) ;
    TEST(str.size == 5) ;
-   TEST(0 == isempty_string(&str)) ;
+   initfl_string(&str, &test[1], &test[1]) ;
+   TEST(str.addr == &test[1]) ;
+   TEST(str.size == 1) ;
+
+   // TEST initfl_string: empty string
+   initfl_string(&str, &test[1], &test[0]) ;
+   TEST(str.addr == &test[1]) ;
+   TEST(str.size == 0) ;
 
    // TEST initse_string
    initse_string(&str,  &test[21], &test[24]) ;
    TEST(str.addr == &test[21]) ;
    TEST(str.size == 3) ;
-   TEST(0 == isempty_string(&str)) ;
    initse_string(&str, &test[24], &test[29]) ;
    TEST(str.addr == &test[24]) ;
    TEST(str.size == 5) ;
-   TEST(0 == isempty_string(&str)) ;
+   initse_string(&str, &test[25], &test[26]) ;
+   TEST(str.addr == &test[25]) ;
+   TEST(str.size == 1) ;
 
-   // TEST asconst_string
-   for(int i = 0; i < 5; ++i) {
-      string_t       * str1 = (string_t *) i ;
-      conststring_t  * str2 = (conststring_t *) i ;
-      TEST(str2 == asconst_string(str1)) ;
-   }
+   // TEST initse_string: empty string
+   initse_string(&str,  &test[2], &test[2]) ;
+   TEST(str.addr == &test[2]) ;
+   TEST(str.size == 0) ;
+
+   // TEST isempty_string
+   str.addr = (const uint8_t*) "" ;
+   str.size = 0 ;
+   TEST(1 == isempty_string(&str)) ;
+   str.size = 1 ;
+   TEST(0 == isempty_string(&str)) ;
+   str.addr = 0 ;
+   TEST(0 == isempty_string(&str)) ;
+   str.size = 0 ;
+   TEST(1 == isempty_string(&str)) ;
+
+   // TEST isfree_string
+   str = (string_t) string_INIT_FREEABLE ;
+   TEST(1 == isfree_string(&str)) ;
+   str.addr = (const uint8_t*) "" ;
+   TEST(0 == isfree_string(&str)) ;
+   str.addr = 0 ;
+   str.size = 1 ;
+   TEST(0 == isfree_string(&str)) ;
+   str.size = 0 ;
+   TEST(1 == isfree_string(&str)) ;
 
    return 0 ;
 ONABORT:
@@ -222,67 +200,67 @@ ONABORT:
 
 static int test_compare(void)
 {
-   conststring_t  str1 ;
-   conststring_t  str2 ;
-   const char     * utf8str1 ;
-   const char     * utf8str2 ;
+   string_t    str1 ;
+   string_t    str2 ;
+   const char  * utf8str1 ;
+   const char  * utf8str2 ;
 
-   // TEST isequalasciicase_conststring simple utf8 string
+   // TEST isequalasciicase_string simple utf8 string
    utf8str1 = "\U001fffff abcd\U0000ffff abcd\u07ff abcd\x7f abcd" ;
    utf8str2 = "\U001fffff ABCD\U0000ffff ABCD\u07ff abcd\x7f ABCD" ;
-   init_conststring(&str1, strlen(utf8str1), (const uint8_t*)utf8str1) ;
-   init_conststring(&str2, strlen(utf8str2), (const uint8_t*)utf8str2) ;
-   TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+   init_string(&str1, strlen(utf8str1), (const uint8_t*)utf8str1) ;
+   init_string(&str2, strlen(utf8str2), (const uint8_t*)utf8str2) ;
+   TEST(true == isequalasciicase_string(&str1, &str2)) ;
 
-   // TEST isequalasciicase_conststring with all characters from A-Z
+   // TEST isequalasciicase_string with all characters from A-Z
    utf8str1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@^¬^°üöä" ;
    utf8str2 = "abcdefghijklmnopqrstuvwxyz1234567890!@^¬^°üöä" ;
-   init_conststring(&str1, strlen(utf8str1), (const uint8_t*)utf8str1) ;
-   init_conststring(&str2, strlen(utf8str2), (const uint8_t*)utf8str2) ;
-   TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
-   TEST(true == isequalasciicase_conststring(&str1, &str1)) ;
-   TEST(true == isequalasciicase_conststring(&str2, &str2)) ;
+   init_string(&str1, strlen(utf8str1), (const uint8_t*)utf8str1) ;
+   init_string(&str2, strlen(utf8str2), (const uint8_t*)utf8str2) ;
+   TEST(true == isequalasciicase_string(&str1, &str2)) ;
+   TEST(true == isequalasciicase_string(&str1, &str1)) ;
+   TEST(true == isequalasciicase_string(&str2, &str2)) ;
 
-   // TEST isequalasciicase_conststring inequality for all other 256 characters
+   // TEST isequalasciicase_string inequality for all other 256 characters
    uint8_t buffer1[256] ;
    uint8_t buffer2[256] ;
    for(unsigned i = 0; i < sizeof(buffer1); ++i) {
       buffer1[i] = (uint8_t)i ;
       buffer2[i] = (uint8_t)i ;
    }
-   init_conststring(&str1, sizeof(buffer1), buffer1) ;
-   init_conststring(&str2, sizeof(buffer2), buffer2) ;
-   TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+   init_string(&str1, sizeof(buffer1), buffer1) ;
+   init_string(&str2, sizeof(buffer2), buffer2) ;
+   TEST(true == isequalasciicase_string(&str1, &str2)) ;
    for(unsigned i = 0; i < sizeof(buffer1); ++i) {
       bool isEqual = (  ('a' <= i && i <= 'z')
                      || ('A' <= i && i <= 'Z')) ;
       buffer1[i] ^= 0x20 ; // change case (works only for a-z or A-Z)
-      TEST(isEqual == isequalasciicase_conststring(&str1, &str2)) ;
+      TEST(isEqual == isequalasciicase_string(&str1, &str2)) ;
       buffer1[i] = (uint8_t)i ;
       buffer2[i] ^= 0x20 ; // change case (works only for a-z or A-Z)
-      TEST(isEqual == isequalasciicase_conststring(&str1, &str2)) ;
+      TEST(isEqual == isequalasciicase_string(&str1, &str2)) ;
       buffer2[i] = (uint8_t)i ;
    }
 
-   // TEST isequalasciicase_conststring inequality for size
+   // TEST isequalasciicase_string inequality for size
    for(unsigned i = 0; i < sizeof(buffer1); ++i) {
-      TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+      TEST(true == isequalasciicase_string(&str1, &str2)) ;
       str1.size = i ;
-      TEST(false == isequalasciicase_conststring(&str1, &str2)) ;
+      TEST(false == isequalasciicase_string(&str1, &str2)) ;
       str1.size = sizeof(buffer1) ;
       str2.size = i ;
-      TEST(false == isequalasciicase_conststring(&str1, &str2)) ;
+      TEST(false == isequalasciicase_string(&str1, &str2)) ;
       str2.size = sizeof(buffer2) ;
    }
 
-   // TEST isequalasciicase_conststring inequality for one differing char
+   // TEST isequalasciicase_string inequality for one differing char
    for(unsigned i = 0; i < sizeof(buffer1); ++i) {
-      TEST(true == isequalasciicase_conststring(&str1, &str2)) ;
+      TEST(true == isequalasciicase_string(&str1, &str2)) ;
       buffer1[i] = (uint8_t)(i+1) ;
-      TEST(false == isequalasciicase_conststring(&str1, &str2)) ;
+      TEST(false == isequalasciicase_string(&str1, &str2)) ;
       buffer1[i] = (uint8_t)i ;
       buffer2[i] = (uint8_t)(i+1) ;
-      TEST(false == isequalasciicase_conststring(&str1, &str2)) ;
+      TEST(false == isequalasciicase_string(&str1, &str2)) ;
       buffer2[i] = (uint8_t)i ;
    }
 
@@ -293,8 +271,7 @@ ONABORT:
 
 static int test_skip(void)
 {
-   string_t       str ;
-   conststring_t  conststr ;
+   string_t str ;
 
    // TEST skipbyte_string
    str = (string_t) string_INIT(0, (uint8_t*)0) ;
@@ -302,22 +279,10 @@ static int test_skip(void)
    TEST(str.addr == (uint8_t*)1) ;
    TEST(str.size == (size_t)-1) ;
    str = (string_t) string_INIT(44, (uint8_t*)0) ;
-   for(unsigned i = 1; i <= 44; ++i) {
+   for (unsigned i = 1; i <= 44; ++i) {
       skipbyte_string(&str) ;
       TEST(str.addr == (uint8_t*)i) ;
       TEST(str.size == 44u-i) ;
-   }
-
-   // TEST skipbyte_conststring
-   conststr = (conststring_t) conststring_INIT(0, (const uint8_t*)0) ;
-   skipbyte_string(&conststr) ;
-   TEST(conststr.addr == (uint8_t*)1) ;
-   TEST(conststr.size == (size_t)-1) ;
-   conststr = (conststring_t) conststring_INIT(44, (const uint8_t*)0) ;
-   for(unsigned i = 1; i <= 44; ++i) {
-      skipbyte_string(&conststr) ;
-      TEST(conststr.addr == (uint8_t*)i) ;
-      TEST(conststr.size == 44u-i) ;
    }
 
    // TEST skipbytes_string
@@ -325,23 +290,11 @@ static int test_skip(void)
    skipbytes_string(&str, 1000) ;
    TEST(str.addr == (void*)1003) ;
    TEST(str.size == 0) ;
-   for(unsigned i = 0; i < 5; ++i) {
+   for (unsigned i = 0; i < 5; ++i) {
       str = (string_t) string_INIT(100+i, (void*)i) ;
       skipbytes_string(&str, 10*i) ;
       TEST(str.addr == (void*)(i+10*i)) ;
       TEST(str.size == 100+i-(10*i)) ;
-   }
-
-   // TEST skipbytes_conststring
-   conststr = (conststring_t) conststring_INIT(1000, (const uint8_t*)3) ;
-   skipbytes_string(&conststr, 1000) ;
-   TEST(conststr.addr == (void*)1003) ;
-   TEST(conststr.size == 0) ;
-   for(unsigned i = 0; i < 5; ++i) {
-      conststr = (conststring_t) conststring_INIT(100+i, (void*)i) ;
-      skipbytes_string(&conststr, 10*i) ;
-      TEST(conststr.addr == (void*)(i+10*i)) ;
-      TEST(conststr.size == 100+i-(10*i)) ;
    }
 
    // TEST tryskipbytes_string
@@ -356,23 +309,9 @@ static int test_skip(void)
       TEST(str.size == 100+i-(10*i)) ;
    }
 
-   // TEST tryskipbytes_conststring
-   conststr = (conststring_t) conststring_INIT(1000, (const uint8_t*)3) ;
-   TEST(0 == tryskipbytes_string(&conststr, 1000)) ;
-   TEST(conststr.addr == (void*)1003) ;
-   TEST(conststr.size == 0) ;
-   for(unsigned i = 0; i < 5; ++i) {
-      conststr = (conststring_t) conststring_INIT(100+i, (void*)i) ;
-      TEST(0 == tryskipbytes_string(&conststr, 10*i)) ;
-      TEST(conststr.addr == (void*)(i+10*i)) ;
-      TEST(conststr.size == 100+i-(10*i)) ;
-   }
-
    // TEST EINVAL
    str = (string_t) string_INIT(100, (uint8_t*)0) ;
    TEST(EINVAL == tryskipbytes_string(&str, 101)) ;
-   conststr = (conststring_t) conststring_INIT(200, (const uint8_t*)0) ;
-   TEST(EINVAL == tryskipbytes_string(&conststr, 201)) ;
 
    return 0 ;
 ONABORT:
@@ -385,10 +324,9 @@ int unittest_string()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfreeconststr())  goto ONABORT ;
-   if (test_initfreestr())       goto ONABORT ;
-   if (test_compare())           goto ONABORT ;
-   if (test_skip())              goto ONABORT ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_compare())        goto ONABORT ;
+   if (test_skip())           goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

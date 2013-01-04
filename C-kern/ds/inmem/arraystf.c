@@ -47,20 +47,20 @@
 // group: helper
 
 /* function: compiletime_assert
- * Checks that <arraystf_node_t> can be castet into <conststring_t>. */
+ * Checks that <arraystf_node_t> can be castet into <string_t>. */
 static inline void compiletime_assert(void)
 {
-   conststring_t     cnststr ;
+   string_t          str ;
    arraystf_node_t   node ;
 
-   // TEST conststring_t has only members: addr & size
-   static_assert(sizeof(node)   == sizeof(cnststr), "considered same number of members in conststring_t") ;
+   // TEST string_t has only members: addr & size
+   static_assert(sizeof(node) == sizeof(str), "considered same number of members in string_t") ;
 
-   // TEST arraystf_node_t.addr & arraystf_node_t.size compatible with conststring_t.addr & conststring_t.size
-   static_assert(offsetof(arraystf_node_t, addr) == offsetof(conststring_t, addr), "arraystf_node_t compatible with conststring_t") ;
-   static_assert(sizeof(node.addr) == sizeof(cnststr.addr), "arraystf_node_t compatible with conststring_t") ;
-   static_assert(offsetof(arraystf_node_t, size) == offsetof(conststring_t, size), "arraystf_node_t compatible with conststring_t") ;
-   static_assert(sizeof(node.size) == sizeof(cnststr.size), "arraystf_node_t compatible with conststring_t") ;
+   // TEST arraystf_node_t.addr & arraystf_node_t.size compatible with string_t.addr & string_t.size
+   static_assert(offsetof(arraystf_node_t, addr) == offsetof(string_t, addr), "arraystf_node_t compatible with string_t") ;
+   static_assert(sizeof(node.addr) == sizeof(str.addr), "arraystf_node_t compatible with string_t") ;
+   static_assert(offsetof(arraystf_node_t, size) == offsetof(string_t, size), "arraystf_node_t compatible with string_t") ;
+   static_assert(sizeof(node.size) == sizeof(str.size), "arraystf_node_t compatible with string_t") ;
 }
 
 typedef struct arraystf_keyval_t       arraystf_keyval_t ;
@@ -773,10 +773,10 @@ static int test_arraystfnode(void)
       TEST(i+1 == node.size) ;
    }
 
-   // TEST asconststring_arraystfnode, fromconststring_arraystfnode
+   // TEST asstring_arraystfnode, fromstring_arraystfnode
    for (unsigned i = 0; i < 1000; i += 100) {
-      TEST((conststring_t*)i   == asconststring_arraystfnode((arraystf_node_t*)i)) ;
-      TEST((arraystf_node_t*)i == fromconststring_arraystfnode((conststring_t*)i)) ;
+      TEST(asstring_arraystfnode((arraystf_node_t*)i) == (string_t*)i) ;
+      TEST(fromstring_arraystfnode((string_t*)i) == (arraystf_node_t*)i) ;
    }
 
    return 0 ;

@@ -52,9 +52,9 @@ uint8_t g_utf8_bytesperchar[256] = {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                        4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1 /*240..247*/ /*248..251, 252..253, 254..255 error*/
                                     } ;
 
-// section: conststring_t
+// section: string_t
 
-int nextcharutf8_conststring(struct conststring_t * str, unicode_t * wchar)
+int nextcharutf8_string(struct string_t * str, unicode_t * wchar)
 {
    uint8_t        firstbyte ;
    uint8_t        size ;
@@ -110,7 +110,7 @@ int nextcharutf8_conststring(struct conststring_t * str, unicode_t * wchar)
    return 0 ;
 }
 
-int skipcharutf8_conststring(struct conststring_t * str)
+int skipcharutf8_string(struct string_t * str)
 {
    size_t   size ;
    uint8_t  firstbyte ;
@@ -128,7 +128,7 @@ int skipcharutf8_conststring(struct conststring_t * str)
    return 0 ;
 }
 
-const uint8_t * findcharutf8_conststring(const struct conststring_t * str, unicode_t wchar)
+const uint8_t * findcharutf8_string(const struct string_t * str, unicode_t wchar)
 {
    const uint8_t  * endstr = str->addr + str->size ;
    const uint8_t  * found  ;
@@ -185,7 +185,7 @@ ONABORT:
    return 0 ;
 }
 
-size_t utf8len_conststring(const struct conststring_t * str)
+size_t utf8len_string(const struct string_t * str)
 {
    size_t len = 0 ;
 
@@ -251,8 +251,8 @@ ONABORT:
 
 static int test_strstream(void)
 {
-   conststring_t  str ;
-   conststring_t  old ;
+   string_t       str ;
+   string_t       old ;
    uint32_t       uchar ;
    const uint8_t  * utf8str = (const uint8_t*)(
                                  "\U0010ffff"
@@ -264,162 +264,162 @@ static int test_strstream(void)
                                  "\x7f"
                                  "\x00") ;
 
-   // TEST: nextcharutf8_conststring 4 byte
-   init_conststring(&str, 8+6+4+2, utf8str) ;
-   TEST(0 == nextcharutf8_conststring(&str, &uchar)) ;
+   // TEST: nextcharutf8_string 4 byte
+   init_string(&str, 8+6+4+2, utf8str) ;
+   TEST(0 == nextcharutf8_string(&str, &uchar)) ;
    TEST(uchar    == 0x10ffff) ;
    TEST(str.addr == utf8str + 4) ;
    TEST(str.size == 20 - 4) ;
-   TEST(0 == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(0 == nextcharutf8_string(&str, &uchar)) ;
    TEST(uchar    == 0x10000) ;
    TEST(str.addr == utf8str + 8) ;
    TEST(str.size == 20 - 8) ;
 
-   // TEST nextcharutf8_conststring 3 byte
-   TEST(0 == nextcharutf8_conststring(&str, &uchar)) ;
+   // TEST nextcharutf8_string 3 byte
+   TEST(0 == nextcharutf8_string(&str, &uchar)) ;
    TEST(uchar    == 0xffff) ;
    TEST(str.addr == utf8str + 11) ;
    TEST(str.size == 20 - 11) ;
-   TEST(0 == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(0 == nextcharutf8_string(&str, &uchar)) ;
    TEST(uchar    == 0x800) ;
    TEST(str.addr == utf8str + 14) ;
    TEST(str.size == 20 - 14) ;
 
-   // TEST nextcharutf8_conststring two byte
-   TEST(0 == nextcharutf8_conststring(&str, &uchar)) ;
+   // TEST nextcharutf8_string two byte
+   TEST(0 == nextcharutf8_string(&str, &uchar)) ;
    TEST(uchar    == 0x7ff) ;
    TEST(str.addr == utf8str + 16) ;
    TEST(str.size == 20 - 16) ;
-   TEST(0 == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(0 == nextcharutf8_string(&str, &uchar)) ;
    TEST(uchar    == 0x80) ;
    TEST(str.addr == utf8str + 18) ;
    TEST(str.size == 20 - 18) ;
 
-   // TEST nextcharutf8_conststring one byte
-   TEST(0 == nextcharutf8_conststring(&str, &uchar)) ;
+   // TEST nextcharutf8_string one byte
+   TEST(0 == nextcharutf8_string(&str, &uchar)) ;
    TEST(uchar    == 0x7F) ;
    TEST(str.addr == utf8str + 19) ;
    TEST(str.size == 20 - 19) ;
-   TEST(0 == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(0 == nextcharutf8_string(&str, &uchar)) ;
    TEST(uchar    == 0x00) ;
    TEST(str.addr == utf8str + 20) ;
    TEST(str.size == 20 - 20) ;
 
-   // TEST: skipcharutf8_conststring 4 byte
-   init_conststring(&str, 8+6+4+2, utf8str) ;
-   TEST(0 == skipcharutf8_conststring(&str)) ;
+   // TEST: skipcharutf8_string 4 byte
+   init_string(&str, 8+6+4+2, utf8str) ;
+   TEST(0 == skipcharutf8_string(&str)) ;
    TEST(str.addr == utf8str + 4) ;
    TEST(str.size == 20 - 4) ;
-   TEST(0 == skipcharutf8_conststring(&str)) ;
+   TEST(0 == skipcharutf8_string(&str)) ;
    TEST(str.addr == utf8str + 8) ;
    TEST(str.size == 20 - 8) ;
 
-   // TEST skipcharutf8_conststring 3 byte
-   TEST(0 == skipcharutf8_conststring(&str)) ;
+   // TEST skipcharutf8_string 3 byte
+   TEST(0 == skipcharutf8_string(&str)) ;
    TEST(str.addr == utf8str + 11) ;
    TEST(str.size == 20 - 11) ;
-   TEST(0 == skipcharutf8_conststring(&str)) ;
+   TEST(0 == skipcharutf8_string(&str)) ;
    TEST(str.addr == utf8str + 14) ;
    TEST(str.size == 20 - 14) ;
 
-   // TEST skipcharutf8_conststring two byte
-   TEST(0 == skipcharutf8_conststring(&str)) ;
+   // TEST skipcharutf8_string two byte
+   TEST(0 == skipcharutf8_string(&str)) ;
    TEST(str.addr == utf8str + 16) ;
    TEST(str.size == 20 - 16) ;
-   TEST(0 == skipcharutf8_conststring(&str)) ;
+   TEST(0 == skipcharutf8_string(&str)) ;
    TEST(str.addr == utf8str + 18) ;
    TEST(str.size == 20 - 18) ;
 
-   // TEST skipcharutf8_conststring one byte
-   TEST(0 == skipcharutf8_conststring(&str)) ;
+   // TEST skipcharutf8_string one byte
+   TEST(0 == skipcharutf8_string(&str)) ;
    TEST(str.addr == utf8str + 19) ;
    TEST(str.size == 20 - 19) ;
-   TEST(0 == skipcharutf8_conststring(&str)) ;
+   TEST(0 == skipcharutf8_string(&str)) ;
    TEST(str.addr == utf8str + 20) ;
    TEST(str.size == 20 - 20) ;
 
    // TEST ENODATA (empty string)
    old = str ;
-   TEST(ENODATA == skipcharutf8_conststring(&str)) ;
-   TEST(ENODATA == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(ENODATA == skipcharutf8_string(&str)) ;
+   TEST(ENODATA == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
 
    // TEST EILSEQ (wrong encodings)
       // 1 byte code > 127
-   str = (conststring_t) conststring_INIT_CSTR("\x80") ;
+   str = (string_t) string_INIT_CSTR("\x80") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
       // 2 byte code < 128
-   str = (conststring_t) conststring_INIT_CSTR("\xC1\xBF") ;
+   str = (string_t) string_INIT_CSTR("\xC1\xBF") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
       // 2 byte code second byte not in [0x80 .. 0xBF]
-   str = (conststring_t) conststring_INIT_CSTR("\xC2\x7F") ;
+   str = (string_t) string_INIT_CSTR("\xC2\x7F") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
-   str = (conststring_t) conststring_INIT_CSTR("\xC2\xC0") ;
+   str = (string_t) string_INIT_CSTR("\xC2\xC0") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
       // 3 byte code < 0x800
-   str = (conststring_t) conststring_INIT_CSTR("\xE0\x9F\xBF") ;
+   str = (string_t) string_INIT_CSTR("\xE0\x9F\xBF") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
       // 3 byte code second/3rd byte not in [0x80 .. 0xBF]
-   str = (conststring_t) conststring_INIT_CSTR("\xE1\x1F\xBF") ;
+   str = (string_t) string_INIT_CSTR("\xE1\x1F\xBF") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
-   str = (conststring_t) conststring_INIT_CSTR("\xE1\xBF\xFF") ;
+   str = (string_t) string_INIT_CSTR("\xE1\xBF\xFF") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
       // 4 byte code < 10000
-   str = (conststring_t) conststring_INIT_CSTR("\xF0\x8F\xBF\xBF") ;
+   str = (string_t) string_INIT_CSTR("\xF0\x8F\xBF\xBF") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
       // 4 byte code > 10FFFF
-   str = (conststring_t) conststring_INIT_CSTR("\xF4\x90\x80\x80") ;
+   str = (string_t) string_INIT_CSTR("\xF4\x90\x80\x80") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
       // 4 byte code second/3rd/4th byte not in [0x80 .. 0xBF]
-   str = (conststring_t) conststring_INIT_CSTR("\xF1\x7F\xBF\xBF") ;
+   str = (string_t) string_INIT_CSTR("\xF1\x7F\xBF\xBF") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
-   str = (conststring_t) conststring_INIT_CSTR("\xF1\xBF\xFF\xBF") ;
+   str = (string_t) string_INIT_CSTR("\xF1\xBF\xFF\xBF") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
-   str = (conststring_t) conststring_INIT_CSTR("\xF1\xBF\xBF\x0F") ;
+   str = (string_t) string_INIT_CSTR("\xF1\xBF\xBF\x0F") ;
    old = str ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
 
    // TEST EILSEQ (not that many bytes)
-   str = (conststring_t) conststring_INIT_CSTR("\U0010ffff") ;
+   str = (string_t) string_INIT_CSTR("\U0010ffff") ;
    -- str.size ;
    old = str ;
-   TEST(EILSEQ == skipcharutf8_conststring(&str)) ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == skipcharutf8_string(&str)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
-   str = (conststring_t) conststring_INIT_CSTR("\U0000ffff") ;
+   str = (string_t) string_INIT_CSTR("\U0000ffff") ;
    -- str.size ;
    old = str ;
-   TEST(EILSEQ == skipcharutf8_conststring(&str)) ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == skipcharutf8_string(&str)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
-   str = (conststring_t) conststring_INIT_CSTR("\u07ff") ;
+   str = (string_t) string_INIT_CSTR("\u07ff") ;
    -- str.size ;
    old = str ;
-   TEST(EILSEQ == skipcharutf8_conststring(&str)) ;
-   TEST(EILSEQ == nextcharutf8_conststring(&str, &uchar)) ;
+   TEST(EILSEQ == skipcharutf8_string(&str)) ;
+   TEST(EILSEQ == nextcharutf8_string(&str, &uchar)) ;
    TEST(old.size == str.size && old.addr == str.addr) ;
 
    return 0 ;
@@ -430,61 +430,61 @@ ONABORT:
 static int test_strquery(void)
 {
    const char     * utf8str = "\U0010fff0\U0010ffff abcd\U0000fff0\U0000ffff abcd\u07f0\u07ff abcd\x7f abcd" ;
-   conststring_t  cstr      = conststring_INIT_CSTR(utf8str) ;
+   string_t       cstr      = string_INIT_CSTR(utf8str) ;
    const uint8_t  * found ;
 
-   // TEST findcharutf8_conststring: find char
-   found = findcharutf8_conststring(&cstr, (uint32_t) 0x10ffff) ;
+   // TEST findcharutf8_string: find char
+   found = findcharutf8_string(&cstr, (uint32_t) 0x10ffff) ;
    TEST(found ==  4+(const uint8_t*)utf8str) ;
-   found = findcharutf8_conststring(&cstr, (uint32_t) 0xffff) ;
+   found = findcharutf8_string(&cstr, (uint32_t) 0xffff) ;
    TEST(found == 16+(const uint8_t*)utf8str) ;
-   found = findcharutf8_conststring(&cstr, (uint32_t) 0x7ff) ;
+   found = findcharutf8_string(&cstr, (uint32_t) 0x7ff) ;
    TEST(found == 26+(const uint8_t*)utf8str) ;
-   found = findcharutf8_conststring(&cstr, (uint32_t) 0x7f) ;
+   found = findcharutf8_string(&cstr, (uint32_t) 0x7f) ;
    TEST(found == 33+(const uint8_t*)utf8str) ;
-   found = findcharutf8_conststring(&cstr, (uint32_t) 'a') ;
+   found = findcharutf8_string(&cstr, (uint32_t) 'a') ;
    TEST(found == 9+(const uint8_t*)utf8str) ;
 
-   // TEST findcharutf8_conststring: end of string
-   TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0x10fffe)) ;
-   TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0xfffe)) ;
-   TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0x7fe)) ;
-   TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0x7e)) ;
+   // TEST findcharutf8_string: end of string
+   TEST(0 == findcharutf8_string(&cstr, (uint32_t) 0x10fffe)) ;
+   TEST(0 == findcharutf8_string(&cstr, (uint32_t) 0xfffe)) ;
+   TEST(0 == findcharutf8_string(&cstr, (uint32_t) 0x7fe)) ;
+   TEST(0 == findcharutf8_string(&cstr, (uint32_t) 0x7e)) ;
 
-   // TEST findcharutf8_conststring: error
-   TEST(0 == findcharutf8_conststring(&cstr, (uint32_t) 0x110000)) ;
+   // TEST findcharutf8_string: error
+   TEST(0 == findcharutf8_string(&cstr, (uint32_t) 0x110000)) ;
 
-   // TEST findbyte_conststring: found
+   // TEST findbyte_string: found
    for (unsigned i = 0; i < 14; ++i) {
       if (i == 4) i += 4 ;
-      TEST(&cstr.addr[i] == findbyte_conststring(&cstr, cstr.addr[i])) ;
+      TEST(&cstr.addr[i] == findbyte_string(&cstr, cstr.addr[i])) ;
    }
 
-   // TEST findbyte_conststring: not found
-   TEST(0 == findbyte_conststring(&cstr, 0)) ;
+   // TEST findbyte_string: not found
+   TEST(0 == findbyte_string(&cstr, 0)) ;
 
-   // TEST utf8len_conststring: empty string
-   cstr = (conststring_t) conststring_INIT_FREEABLE ;
-   TEST(0 == utf8len_conststring(&cstr)) ;
-   cstr = (conststring_t) conststring_INIT_CSTR("") ;
-   TEST(0 == utf8len_conststring(&cstr)) ;
-   cstr = (conststring_t) conststring_INIT(0, (uint8_t*)&cstr) ;
-   TEST(0 == utf8len_conststring(&cstr)) ;
+   // TEST utf8len_string: empty string
+   cstr = (string_t) string_INIT_FREEABLE ;
+   TEST(0 == utf8len_string(&cstr)) ;
+   cstr = (string_t) string_INIT_CSTR("") ;
+   TEST(0 == utf8len_string(&cstr)) ;
+   cstr = (string_t) string_INIT(0, (uint8_t*)&cstr) ;
+   TEST(0 == utf8len_string(&cstr)) ;
 
-   // TEST utf8len_conststring: non empty strings
+   // TEST utf8len_string: non empty strings
    const char * teststrings[] = { "\U001FFFFF\U00010000", "\u0800\u0999\uFFFF", "\u00A0\u00A1\u07FE\u07FF", "\x01\x02""abcde\x07e\x7f", "\U001FFFFF\uF999\u06FEY" } ;
    size_t     testlength[]    = { 2,                      3,                    4,                          9,                          4 } ;
    for (unsigned i = 0; i < nrelementsof(teststrings); ++i) {
-      cstr = (conststring_t) conststring_INIT_CSTR(teststrings[i]) ;
-      TEST(testlength[i] == utf8len_conststring(&cstr)) ;
+      cstr = (string_t) string_INIT_CSTR(teststrings[i]) ;
+      TEST(testlength[i] == utf8len_string(&cstr)) ;
    }
 
-   // TEST utf8len_conststring: illegal sequence && last sequence not fully contained in string
+   // TEST utf8len_string: illegal sequence && last sequence not fully contained in string
    const char * teststrings2[] = { "\xFC\x80", "ab\xC0", "abc\xE0", "abcd\xF0" } ;
    size_t     testlength2[]    = { 2,           3,       4,         5 } ;
    for (unsigned i = 0; i < nrelementsof(teststrings2); ++i) {
-      cstr = (conststring_t) conststring_INIT_CSTR(teststrings2[i]) ;
-      TEST(testlength2[i] == utf8len_conststring(&cstr)) ;
+      cstr = (string_t) string_INIT_CSTR(teststrings2[i]) ;
+      TEST(testlength2[i] == utf8len_string(&cstr)) ;
    }
 
    return 0 ;

@@ -26,7 +26,7 @@
 #define CKERN_DS_INMEM_NODE_ARRAYSTF_NODE_HEADER
 
 // forward
-struct conststring_t ;
+struct string_t ;
 
 /* typedef: struct arraystf_node_t
  * Export <arraystf_node_t>. User supplied (external) type. */
@@ -43,7 +43,7 @@ typedef union arraystf_unode_t         arraystf_unode_t ;
 
 /* struct: arraystf_node_t
  * Generic user node type stored by <arraystf_t>.
- * See also <conststring_t>. */
+ * See also <string_t>. */
 struct arraystf_node_t {
    /* variable: addr
     * Memory start address of binary/string key. */
@@ -65,18 +65,18 @@ struct arraystf_node_t {
 
 // group: conversion
 
-/* function: asconststring_arraystfnode
- * Cast <arraystf_node_t> into <conststring_t>. */
-const struct conststring_t * asconststring_arraystfnode(const arraystf_node_t * node) ;
+/* function: asstring_arraystfnode
+ * Cast <arraystf_node_t> into <string_t>. */
+const struct string_t * asstring_arraystfnode(const arraystf_node_t * node) ;
 
 /* function: asunode_arraystfnode
  * Cast <arraystf_node_t> into <arraystf_unode_t>.
  * You need to call this function to make <isbranchtype_arraystfunode> working properly. */
 arraystf_unode_t * asunode_arraystfnode(arraystf_node_t * node) ;
 
-/* function: fromconststring_arraystfnode
- * Cast <conststring_t> into <arraystf_node_t>. */
-arraystf_node_t * fromconststring_arraystfnode(struct conststring_t * str) ;
+/* function: fromstring_arraystfnode
+ * Cast <string_t> into <arraystf_node_t>. */
+arraystf_node_t * fromstring_arraystfnode(struct string_t * str) ;
 
 // group: generic
 
@@ -182,12 +182,12 @@ int isbranchtype_arraystfunode(const arraystf_unode_t * node) ;
 
 // section: inline implementation
 
-/* define: asconststring_arraystfnode
- * Implements <arraystf_node_t.asconststring_arraystfnode>. */
-#define asconststring_arraystfnode(node)                             \
+/* define: asstring_arraystfnode
+ * Implements <arraystf_node_t.asstring_arraystfnode>. */
+#define asstring_arraystfnode(node)                                  \
       (  __extension__ ({                                            \
             const arraystf_node_t * _node1 = (node) ;                \
-            (const struct conststring_t*) _node1 ;                   \
+            (const struct string_t*) _node1 ;                        \
          }))
 
 /* define: asunode_arraystfnode
@@ -198,11 +198,11 @@ int isbranchtype_arraystfunode(const arraystf_unode_t * node) ;
             (arraystf_unode_t*) _node1 ;                             \
       }))
 
-/* define: fromconststring_arraystfnode
- * Implements <arraystf_node_t.fromconststring_arraystfnode>. */
-#define fromconststring_arraystfnode(str)                            \
+/* define: fromstring_arraystfnode
+ * Implements <arraystf_node_t.fromstring_arraystfnode>. */
+#define fromstring_arraystfnode(str)                                 \
       (  __extension__ ({                                            \
-            struct conststring_t * _str1 = (str) ;                   \
+            struct string_t * _str1 = (str) ;                        \
             (arraystf_node_t*) (_str1) ;                             \
          }))
 

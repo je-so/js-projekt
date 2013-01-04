@@ -77,8 +77,7 @@ static int test_binarykey(void)
       /*without const */uint8_t  * addr ;
       size_t   size ;
    }                       anonym = { 0, 0 } ;
-   conststring_t           str1   = conststring_INIT(5, (const uint8_t*)"12345") ;
-   string_t                str2   = string_INIT(5, 0) ;
+   string_t                str1   = string_INIT_CSTR("12345") ;
    typeadapt_binarykey_t   binkey = typeadapt_binarykey_INIT_FREEABLE ;
    typeadapt_binarykey_t   * ptrkey = 0 ;
 
@@ -94,13 +93,9 @@ static int test_binarykey(void)
    TEST(binkey.addr == (void*)-2) ;
    TEST(binkey.size == (size_t)-1) ;
 
-   // TEST asgeneric_typeadaptbinarykey: with type conststring_t
+   // TEST asgeneric_typeadaptbinarykey: with type string_t
    ptrkey = asgeneric_typeadaptbinarykey(&str1) ;
    TEST(ptrkey == (void*)&str1) ;
-
-   // TEST asgeneric_typeadaptbinarykey: with type string_t
-   ptrkey = asgeneric_typeadaptbinarykey(&str2) ;
-   TEST(ptrkey == (void*)&str2) ;
 
    // TEST asgeneric_typeadaptbinarykey: with anonymous type
    ptrkey = asgeneric_typeadaptbinarykey(&anonym) ;

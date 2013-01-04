@@ -29,7 +29,7 @@
 #include "C-kern/api/io/filesystem/mmfile.h"
 
 // forward
-struct conststring_t ;
+struct string_t ;
 
 /* typedef: struct csvfilereader_t
  * Export <csvfilereader_t> into global namespace. */
@@ -71,7 +71,7 @@ struct csvfilereader_t {
     * Table of strings indexing memory mapped <file>.
     * The allocated table size is determined by <allocated_rows> and <nrcolumns>.
     * The valid values are determined by <nrrows> and <nrcolumns>. */
-   struct conststring_t * tablevalues/*[nrrows][nrcolumns]*/ ;
+   struct string_t * tablevalues/*[nrrows][nrcolumns]*/ ;
 } ;
 
 // group: lifetime
@@ -103,14 +103,14 @@ size_t nrrows_csvfilereader(const csvfilereader_t * csvfile) ;
 
 /* function: colname_csvfilereader
  * The name of a column. This name is defined in the first row of data and is the same for all following rows. */
-int colname_csvfilereader(const csvfilereader_t * csvfile, size_t column/*0..nrcolumns-1*/, /*out*/struct conststring_t * colname) ;
+int colname_csvfilereader(const csvfilereader_t * csvfile, size_t column/*0..nrcolumns-1*/, /*out*/struct string_t * colname) ;
 
 /* function: colvalue_csvfilereader
  * Returns the value of a single column in a certain row.
  * The index of the columns a value between 0 and <nrcolumns_csvfilereader>-1.
  * The index of the row is a value between 1 and <nrrows_csvfilereader>-1.
  * A row index of 0 is the same as calling <colname_csvfilereader>. */
-int colvalue_csvfilereader(const csvfilereader_t * csvfile, size_t row/*1..nrrows-1*/, size_t column/*0..nrcolumns-1*/, /*out*/struct conststring_t * colvalue) ;
+int colvalue_csvfilereader(const csvfilereader_t * csvfile, size_t row/*1..nrrows-1*/, size_t column/*0..nrcolumns-1*/, /*out*/struct string_t * colvalue) ;
 
 // group: description
 

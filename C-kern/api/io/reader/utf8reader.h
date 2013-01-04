@@ -242,8 +242,8 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
 #define nextchar_utf8reader(utfread, nxtchar)            \
    ( __extension__ ({                                    \
             typeof(utfread) _rd1 = (utfread) ;           \
-            int _err = nextcharutf8_conststring(         \
-                     (conststring_t*)_rd1, (nxtchar)) ;  \
+            int _err = nextcharutf8_string(              \
+                     (string_t*)_rd1, (nxtchar)) ;       \
             if (0 == _err) {                             \
                ++ _rd1->colnr ;                          \
                if ('\n' == *(nxtchar)) {                 \
