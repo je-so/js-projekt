@@ -93,12 +93,12 @@ static int test_binarykey(void)
    TEST(binkey.addr == (void*)-2) ;
    TEST(binkey.size == (size_t)-1) ;
 
-   // TEST asgeneric_typeadaptbinarykey: with type string_t
-   ptrkey = asgeneric_typeadaptbinarykey(&str1) ;
+   // TEST genericcast_typeadaptbinarykey: with type string_t
+   ptrkey = genericcast_typeadaptbinarykey(&str1) ;
    TEST(ptrkey == (void*)&str1) ;
 
-   // TEST asgeneric_typeadaptbinarykey: with anonymous type
-   ptrkey = asgeneric_typeadaptbinarykey(&anonym) ;
+   // TEST genericcast_typeadaptbinarykey: with anonymous type
+   ptrkey = genericcast_typeadaptbinarykey(&anonym) ;
    TEST(ptrkey == (void*)&anonym) ;
 
    return 0 ;
@@ -192,8 +192,8 @@ static int test_generic(void)
    static_assert(sizeof(testadapter_it) == sizeof(typeadapt_getkey_it), "structure compatible") ;
    static_assert(offsetof(testadapter_it, getbinarykey) == offsetof(typeadapt_getkey_it, getbinarykey), "structure compatible") ;
 
-   // TEST asgeneric_typeadaptgetkey
-   TEST((typeadapt_getkey_it*)&adpgetkey == asgeneric_typeadaptgetkey(&adpgetkey, testadapter_t, testnode_t)) ;
+   // TEST genericcast_typeadaptgetkey
+   TEST((typeadapt_getkey_it*)&adpgetkey == genericcast_typeadaptgetkey(&adpgetkey, testadapter_t, testnode_t)) ;
 
    // TEST typeadapt_getkey_INIT_FREEABLE
    TEST(0 == adpgetkey.getbinarykey) ;

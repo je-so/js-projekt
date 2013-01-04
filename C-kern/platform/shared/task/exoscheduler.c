@@ -55,7 +55,7 @@ int free_exoscheduler(exoscheduler_t * xsched)
 
    // no free function is required at this time (cause memory is managed by user having registered xthreads)
 
-   err = free_exothreadlist(asgeneric_slist(&xsched->runlist), 0) ;
+   err = free_exothreadlist(genericcast_slist(&xsched->runlist), 0) ;
    xsched->runlist_size = 0 ;
 
    if (err) goto ONABORT ;
@@ -72,7 +72,7 @@ int register_exoscheduler(exoscheduler_t * xsched, exothread_t * xthread)
 {
    int err ;
 
-   err = insertlast_exothreadlist(asgeneric_slist(&xsched->runlist), xthread) ;
+   err = insertlast_exothreadlist(genericcast_slist(&xsched->runlist), xthread) ;
    if (err) goto ONABORT ;
    ++ xsched->runlist_size ;
 
@@ -87,8 +87,8 @@ ONABORT:
 int run_exoscheduler(exoscheduler_t * xsched)
 {
    int err = 0 ;
-   exothread_t * prev     = last_exothreadlist(asgeneric_slist(&xsched->runlist)) ;
-   exothread_t * xthread  = first_exothreadlist(asgeneric_slist(&xsched->runlist)) ;
+   exothread_t * prev     = last_exothreadlist(genericcast_slist(&xsched->runlist)) ;
+   exothread_t * xthread  = first_exothreadlist(genericcast_slist(&xsched->runlist)) ;
    bool          isfinish = false ;
 
    assert(xthread || 0 == xsched->runlist_size) ;
@@ -112,7 +112,7 @@ int run_exoscheduler(exoscheduler_t * xsched)
 
          int err2 ;
          exothread_t * removed ;
-         err2 = removeafter_exothreadlist(asgeneric_slist(&xsched->runlist), prev, &removed) ;
+         err2 = removeafter_exothreadlist(genericcast_slist(&xsched->runlist), prev, &removed) ;
          if (err2) {
             err = err2 ;
          } else {
@@ -167,8 +167,8 @@ static int test_initfree(void)
    for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
       TEST(0 == init_exothread(&xthreads[i], &simplefinish_xthread)) ;
       TEST(0 == register_exoscheduler(&xsched, &xthreads[i])) ;
-      TEST(&xthreads[0] == next_exothreadlist(last_exothreadlist(asgeneric_slist(&xsched.runlist)))) ;
-      TEST(&xthreads[i] == last_exothreadlist(asgeneric_slist(&xsched.runlist))) ;
+      TEST(&xthreads[0] == next_exothreadlist(last_exothreadlist(genericcast_slist(&xsched.runlist)))) ;
+      TEST(&xthreads[i] == last_exothreadlist(genericcast_slist(&xsched.runlist))) ;
       TEST(i + 1 == xsched.runlist_size) ;
    }
    TEST(0 == free_exoscheduler(&xsched)) ;

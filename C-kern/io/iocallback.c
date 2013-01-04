@@ -94,10 +94,10 @@ static int test_generic(void)
    static_assert(offsetof(test_iocallback_t, object) == offsetof(iocallback_t, object), "iocallback_DECLARE declares compatible type") ;
    static_assert(offsetof(test_iocallback_t, iimpl) == offsetof(iocallback_t, iimpl), "iocallback_DECLARE declares compatible type") ;
 
-   // TEST asgeneric_iocallback
-   TEST((iocallback_t*)&iocb == asgeneric_iocallback(&iocb, test_iocallback_handler_t)) ;
+   // TEST genericcast_iocallback
+   TEST((iocallback_t*)&iocb == genericcast_iocallback(&iocb, test_iocallback_handler_t)) ;
    for (unsigned i = 1; i != 0; i <<= 1) {
-      TEST((iocallback_t*)i == asgeneric_iocallback((test_iocallback_t*)i, test_iocallback_handler_t)) ;
+      TEST((iocallback_t*)i == genericcast_iocallback((test_iocallback_t*)i, test_iocallback_handler_t)) ;
    }
 
    return 0 ;

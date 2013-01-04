@@ -51,7 +51,7 @@ int unittest_ds_typeadapt_lifetime(void) ;
 /* struct: typeadapt_lifetime_it
  * Declares interface (function table) for managing the lifetime of objects.
  * If you change this interface do not forget to adapt
- * <typeadapt_lifetime_EMBED> and <asgeneric_typeadaptlifetime>. */
+ * <typeadapt_lifetime_EMBED> and <genericcast_typeadaptlifetime>. */
 struct typeadapt_lifetime_it {
    /* variable: newcopy_object
     * Function copies an object.
@@ -101,12 +101,12 @@ int calldelete_typeadaptlifetime(typeadapt_lifetime_it * adplife, struct typeada
 
 // group: generic
 
-/* define: asgeneric_typeadaptlifetime
+/* define: genericcast_typeadaptlifetime
  * Casts parameter adplife into pointer to <typeadapt_lifetime_it>.
  * The parameter *adplife* has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <typeadapt_lifetime_DECLARE>.
  * The second and third parameter must be the same as in <typeadapt_lifetime_DECLARE>. */
-typeadapt_lifetime_it * asgeneric_typeadaptlifetime(void * adplife, TYPENAME typeadapter_t, TYPENAME object_t) ;
+typeadapt_lifetime_it * genericcast_typeadaptlifetime(void * adplife, TYPENAME typeadapter_t, TYPENAME object_t) ;
 
 /* define: typeadapt_lifetime_DECLARE
  * Declares a derived interface from generic <typeadapt_lifetime_it>.
@@ -141,9 +141,9 @@ typeadapt_lifetime_it * asgeneric_typeadaptlifetime(void * adplife, TYPENAME typ
 
 // section: inline implementation
 
-/* define: asgeneric_typeadaptlifetime
- * Implements <typeadapt_lifetime_it.asgeneric_typeadaptlifetime>. */
-#define asgeneric_typeadaptlifetime(adplife, typeadapter_t, object_t)   \
+/* define: genericcast_typeadaptlifetime
+ * Implements <typeadapt_lifetime_it.genericcast_typeadaptlifetime>. */
+#define genericcast_typeadaptlifetime(adplife, typeadapter_t, object_t) \
    ( __extension__ ({                                                   \
       static_assert(                                                    \
          offsetof(typeadapt_lifetime_it, newcopy_object)                \

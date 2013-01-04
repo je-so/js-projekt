@@ -240,11 +240,11 @@ int callgetbinarykey_typeadapt(typeadapt_t * typeadp, ...) ;
 
 // group: generic
 
-/* function: asgeneric_typeadapt
+/* function: genericcast_typeadapt
  * Casts parameter typeadp into pointer to <typeadapt_t>.
  * The parameter *typeadp* has to be of type "pointer to type" that
  * embeds the generic public interface with <typeadapt_EMBED> as first member. */
-typeadapt_t * asgeneric_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENAME object_t) ;
+typeadapt_t * genericcast_typeadapt(void * typeadp, TYPENAME testadapter_t, TYPENAME object_t) ;
 
 /* function: typeadapt_DECLARE
  * Declares a derived interface from generic <typeadapt_t>.
@@ -274,9 +274,9 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
 
 // section: inline implementation
 
-/* define: asgeneric_typeadapt
- * Implements <typeadapt_t.asgeneric_typeadapt>. */
-#define asgeneric_typeadapt(typeadp, typeadapter_t, object_t, key_t)                         \
+/* define: genericcast_typeadapt
+ * Implements <typeadapt_t.genericcast_typeadapt>. */
+#define genericcast_typeadapt(typeadp, typeadapter_t, object_t, key_t)                       \
    ( __extension__ ({                                                                        \
       static_assert(                                                                         \
          offsetof(typeof(*(typeadp)), comparator) == offsetof(typeadapt_t, comparator)       \
@@ -285,10 +285,10 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
          && offsetof(typeof(*(typeadp)), lifetime) == offsetof(typeadapt_t, lifetime),       \
          "ensure same structure") ;                                                          \
       if (0) {                                                                               \
-         (void) asgeneric_typeadaptcomparator((typeof((typeadp)->comparator)*)0, typeadapter_t, object_t, key_t) ;   \
-         (void) asgeneric_typeadaptgethash((typeof((typeadp)->gethash)*)0, typeadapter_t, object_t, key_t) ;         \
-         (void) asgeneric_typeadaptgetkey((typeof((typeadp)->getkey)*)0, typeadapter_t, object_t) ;      \
-         (void) asgeneric_typeadaptlifetime((typeof((typeadp)->lifetime)*)0, typeadapter_t, object_t) ;  \
+         (void) genericcast_typeadaptcomparator((typeof((typeadp)->comparator)*)0, typeadapter_t, object_t, key_t) ;   \
+         (void) genericcast_typeadaptgethash((typeof((typeadp)->gethash)*)0, typeadapter_t, object_t, key_t) ;         \
+         (void) genericcast_typeadaptgetkey((typeof((typeadp)->getkey)*)0, typeadapter_t, object_t) ;      \
+         (void) genericcast_typeadaptlifetime((typeof((typeadp)->lifetime)*)0, typeadapter_t, object_t) ;  \
       }                                                                                      \
       (typeadapt_t*) (typeadp) ;                                                             \
    }))

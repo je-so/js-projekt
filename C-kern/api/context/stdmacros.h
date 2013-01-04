@@ -97,7 +97,7 @@
  * It's a marker in function declaration.
  * It is used in function declarations which are implemented as macro.
  * A type name is not supported in language C99 or later.
- * See <asgeneric_typeadaptlifetime> for an example. */
+ * See <genericcast_typeadaptlifetime> for an example. */
 #define TYPENAME                       void*
 
 // group: size-calculations

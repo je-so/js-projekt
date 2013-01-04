@@ -598,7 +598,7 @@ static int test_initfree(void)
    exthash_t            htable    = exthash_INIT_FREEABLE ;
    typeadapt_member_t   emptyadp  = typeadapt_member_INIT_FREEABLE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    exthash_node_t       node      = exthash_node_INIT ;
    exthash_iterator_t   iter      = exthash_iterator_INIT_FREEABLE ;
    testobject_t         nodes[256] ;
@@ -711,7 +711,7 @@ static int test_privquery(void)
 {
    exthash_t            htable    = exthash_INIT_FREEABLE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    testobject_t         node      = { 0, 0, exthash_node_INIT } ;
 
    // prepare
@@ -793,7 +793,7 @@ static int test_privchange(void)
 {
    exthash_t            htable     = exthash_INIT_FREEABLE ;
    testadapt_t          typeadapt  = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp    = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp    = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    testobject_t         nodes[256] = { { 0, 0, exthash_node_INIT } } ;
 
    // prepare
@@ -868,7 +868,7 @@ static int test_findinsertremove(void)
 {
    exthash_t            htable    = exthash_INIT_FREEABLE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    const size_t         MAXNODES  = 524288 ;
    memblock_t           mem       = memblock_INIT_FREEABLE ;
    testobject_t         * nodes ;
@@ -1038,7 +1038,7 @@ static int test_generic(void)
 {
    exthash_t            htable    = exthash_INIT_FREEABLE ;
    testadapt_t          typeadapt = typeadapt_INIT_LIFECMPHASH(0, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt) ;
-   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
+   typeadapt_member_t   nodeadp   = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testobject_t, intptr_t), offsetof(testobject_t, node)) ;
    testobject_t         nodes[256] ;
 
    // prepare

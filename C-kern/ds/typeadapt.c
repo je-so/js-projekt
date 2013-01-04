@@ -295,9 +295,9 @@ static int test_generic(void)
    testobject_t   testobj[100] = { { .lifetime = {0,0}, .comparator = {0,0}, .getkey = {0}, .key = 0 } } ;
    testobject_t   * objptr ;
 
-   // TEST asgeneric_typeadapt
-   TEST((typeadapt_t*)0        == asgeneric_typeadapt((testadapt_t*)0, testadapt_t, testobject_t, double*)) ;
-   TEST((typeadapt_t*)&testadp == asgeneric_typeadapt(&testadp, testadapt_t, testobject_t, double*)) ;
+   // TEST genericcast_typeadapt
+   TEST((typeadapt_t*)0        == genericcast_typeadapt((testadapt_t*)0, testadapt_t, testobject_t, double*)) ;
+   TEST((typeadapt_t*)&testadp == genericcast_typeadapt(&testadp, testadapt_t, testobject_t, double*)) ;
 
    // TEST callnewcopy_typeadapt
    for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
@@ -446,7 +446,7 @@ static int test_typeadaptmember(void)
    }
 
    // TEST callnewcopy_typeadaptmember
-   nodeadp = (typeadapt_member_t) typeadapt_member_INIT(asgeneric_typeadapt(&testadp, testadapt_t, testobject_t, double*), 0) ;
+   nodeadp = (typeadapt_member_t) typeadapt_member_INIT(genericcast_typeadapt(&testadp, testadapt_t, testobject_t, double*), 0) ;
    callcount = testadp.call_count ;
    TEST(callcount == callnewcopy_typeadaptmember(&nodeadp, &objptr, (typeadapt_object_t*)&testobj)) ;
    TEST(callcount + 1 == testadp.call_count) ;

@@ -90,12 +90,12 @@ void call_iocallback(const iocallback_t * iocb, sys_filedescr_t fd, uint8_t ioev
 
 // group: generic
 
-/* define: asgeneric_iocallback
+/* define: genericcast_iocallback
  * Casts parameter iocb into pointer to <iocallback_t>.
  * The parameter *iocb* has to be of type "pointer to declared_t" where declared_t
  * is the name used as first parameter in <iocallback_DECLARE>.
  * The second parameter must be the same as in <iocallback_DECLARE>. */
-iocallback_t * asgeneric_iocallback(void * iocb, TYPENAME iohandler_t) ;
+iocallback_t * genericcast_iocallback(void * iocb, TYPENAME iohandler_t) ;
 
 /* define: iocallback_DECLARE
  * Declares a subtype of <iocallback_t>, i.e. a specific io handler implementation.
@@ -119,9 +119,9 @@ iocallback_t * asgeneric_iocallback(void * iocb, TYPENAME iohandler_t) ;
 
 // section: inline implementation
 
-/* define: asgeneric_iocallback
- * Implements <iocallback_t.asgeneric_iocallback>. */
-#define asgeneric_iocallback(iocb, iohandler_t)                            \
+/* define: genericcast_iocallback
+ * Implements <iocallback_t.genericcast_iocallback>. */
+#define genericcast_iocallback(iocb, iohandler_t)                          \
    ( __extension__ ({                                                      \
       static_assert(                                                       \
          offsetof(iocallback_t, object)                                    \

@@ -195,8 +195,8 @@ static int test_initfree_it(void)
    itest = (instream_test_it) instream_it_INIT(&readnext_testimpl) ;
    TEST(itest.readnext == &readnext_testimpl) ;
 
-   // TEST asgeneric_instreamit
-   TEST((instream_it*)&itest == asgeneric_instreamit(&itest, instream_testimpl_t)) ;
+   // TEST genericcast_instreamit
+   TEST((instream_it*)&itest == genericcast_instreamit(&itest, instream_testimpl_t)) ;
 
    return 0 ;
 ONABORT:
@@ -230,7 +230,7 @@ static int test_initfree(void)
 
    // TEST init_instream, free_instream
    memset(&instr, -1, sizeof(instr)) ;
-   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
+   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t))) ;
    TEST(instr.object == (instream_impl_t*)&testimpl) ;
    TEST(instr.iimpl  == (instream_it*)&iimpl) ;
    TEST(0 == instr.nextdata) ;
@@ -291,7 +291,7 @@ static int test_readblock(void)
 {
    instream_testimpl_t  testimpl ;
    instream_test_it     iimpl = instream_it_INIT(&readnext_testimpl) ;
-   instream_t           instr = instream_INIT((instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t)) ;
+   instream_t           instr = instream_INIT((instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t)) ;
    uint8_t              data[2][250] ;
    bool                 di ;
 
@@ -317,7 +317,7 @@ static int test_readblock(void)
 
    // TEST readnextdatablock_instream: keeping [15..0] bytes unread data
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
-   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
+   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t))) ;
    di = 1 ;
    for (unsigned i = 0; i < sizeof(data[0]); i += 16, di = !di) {
       TEST(0 == readnextdatablock_instream(&instr)) ;
@@ -337,7 +337,7 @@ static int test_readblock(void)
 
    // TEST readnextdatablock_instream: keeping sizeof(data[0]) bytes unread data
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
-   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
+   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t))) ;
    di = 1 ;
    for (unsigned i = 0; i < sizeof(data[0]); i += 16, di = !di) {
       TEST(0 == readnextdatablock_instream(&instr)) ;
@@ -355,7 +355,7 @@ static int test_readblock(void)
 
    // TEST readnextdatablock_instream: keepaddr will be adapted
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
-   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
+   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t))) ;
    di = 1 ;
    for (unsigned i = 0; i < sizeof(data[0]); i += 16, di = !di) {
       TEST(0 == readnextdatablock_instream(&instr)) ;
@@ -378,7 +378,7 @@ static int test_readblock(void)
 
    // TEST readnextdatablock_instream: keepaddr + unread data
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
-   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
+   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t))) ;
    di = 1 ;
    for (unsigned i = 0; i < sizeof(data[0]); i += 16, di = !di) {
       TEST(0 == readnextdatablock_instream(&instr)) ;
@@ -403,7 +403,7 @@ static int test_readblock(void)
 
    // TEST readnextdatablock_instream: error prevents calling instream_it.readnext another time
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
-   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
+   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t))) ;
    TEST(0 == readnextdatablock_instream(&instr)) ;
    di = 1 ;
    instr.keepaddr = data[1] + 1 ;
@@ -441,7 +441,7 @@ static int test_readbyte(void)
 {
    instream_testimpl_t  testimpl ;
    instream_test_it     iimpl = instream_it_INIT(&readnext_testimpl) ;
-   instream_t           instr = instream_INIT((instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t)) ;
+   instream_t           instr = instream_INIT((instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t)) ;
    uint8_t              data[2][250] ;
    bool                 di ;
    uint8_t              nb ;
@@ -470,7 +470,7 @@ static int test_readbyte(void)
 
    // TEST readnext_instream + startkeep_instream
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
-   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, asgeneric_instreamit(&iimpl, instream_testimpl_t))) ;
+   TEST(0 == init_instream(&instr, (instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t))) ;
    di = 1 ;
    for (unsigned i = 0; i < sizeof(data[0]); ++i, di = (i % 16) ? di : !di) {
       nb = 255 ;

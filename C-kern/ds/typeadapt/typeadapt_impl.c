@@ -111,19 +111,19 @@ static int test_initfree(void)
    typeadapt_impl_t typeadp   = typeadapt_impl_INIT_FREEABLE ;
 
    // TEST typeadapt_impl_INIT_FREEABLE
-   TEST(isequal_typeadapt(&emptytadp, asgeneric_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
+   TEST(isequal_typeadapt(&emptytadp, genericcast_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
    TEST(0 == typeadp.objectsize) ;
 
    // TEST init_typeadaptimpl, free_typeadaptimpl
    for (size_t i = 0; i < SIZE_MAX/2; i += SIZE_MAX/100) {
       TEST(0 == init_typeadaptimpl(&typeadp, i)) ;
-      TEST(isequal_typeadapt(&initadp, asgeneric_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
+      TEST(isequal_typeadapt(&initadp, genericcast_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
       TEST(i == typeadp.objectsize) ;
       TEST(0 == free_typeadaptimpl(&typeadp)) ;
-      TEST(isequal_typeadapt(&emptytadp, asgeneric_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
+      TEST(isequal_typeadapt(&emptytadp, genericcast_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
       TEST(0 == typeadp.objectsize) ;
       typeadp = (typeadapt_impl_t) typeadapt_impl_INIT(i) ;
-      TEST(isequal_typeadapt(&initadp, asgeneric_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
+      TEST(isequal_typeadapt(&initadp, genericcast_typeadapt(&typeadp,typeadapt_impl_t,typeadapt_object_t,void*))) ;
       TEST(i == typeadp.objectsize) ;
       TEST(0 == free_typeadaptimpl(&typeadp)) ;
    }

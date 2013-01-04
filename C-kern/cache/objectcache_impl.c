@@ -66,7 +66,7 @@ int initthread_objectcacheimpl(/*out*/objectcache_t * objectcache)
    if (err) goto ONABORT ;
 
    objectcache->object = (objectcache_t*) newobject;
-   objectcache->iimpl  = asgeneric_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
+   objectcache->iimpl  = genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
 
    return 0 ;
 ONABORT:
@@ -81,7 +81,7 @@ int freethread_objectcacheimpl(objectcache_t * objectcache)
    objectcache_impl_t * delobject = (objectcache_impl_t*) objectcache->object ;
 
    if (delobject) {
-      assert(asgeneric_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) == objectcache->iimpl) ;
+      assert(genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) == objectcache->iimpl) ;
 
       objectcache->object = 0 ;
       objectcache->iimpl  = 0 ;
@@ -277,7 +277,7 @@ static int test_initthread(void)
    // TEST initthread and double free
    TEST(0 == initthread_objectcacheimpl(&cache)) ;
    TEST(cache.object != 0) ;
-   TEST(cache.iimpl  == asgeneric_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
+   TEST(cache.iimpl  == genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
    TEST(0 == freethread_objectcacheimpl(&cache)) ;
    TEST(0 == cache.object) ;
    TEST(0 == cache.iimpl) ;

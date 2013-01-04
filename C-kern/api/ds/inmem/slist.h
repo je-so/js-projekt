@@ -251,9 +251,11 @@ int removeall_slist(slist_t * list, struct typeadapt_member_t * nodeadp/*0=>no f
 
 // group: generic
 
-/* function: asgeneric_slist
- * Casts list into <slist_t> if that is possible. */
-slist_t * asgeneric_slist(void * list) ;
+/* function: genericcast_slist
+ * Casts list into <slist_t> if that is possible.
+ * The generic object list must have a last pointer
+ * as first member. */
+slist_t * genericcast_slist(void * list) ;
 
 /* define: slist_IMPLEMENT
  * Generates interface of single linked list storing elements of type object_t.
@@ -270,9 +272,9 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
 
 // section: inline implementation
 
-/* define: asgeneric_slist
- * Implements <slist_t.asgeneric_slist>. */
-#define asgeneric_slist(list)                                                    \
+/* define: genericcast_slist
+ * Implements <slist_t.genericcast_slist>. */
+#define genericcast_slist(list)                                                    \
    ( __extension__ ({                                                            \
       static_assert(offsetof(typeof(*(list)), last) == offsetof(slist_t, last),  \
          "ensure same structure") ;                                              \

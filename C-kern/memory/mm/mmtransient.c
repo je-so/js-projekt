@@ -78,7 +78,7 @@ int initthread_mmtransient(/*out*/mm_t * mm_transient)
    memcpy(newobject.addr, &tempobject, objsize) ;
 
    mm_transient->object = (struct mm_t*) newobject.addr;
-   mm_transient->iimpl  = asgeneric_mmit(&s_mmtransient_interface, mmtransient_t) ;
+   mm_transient->iimpl  = genericcast_mmit(&s_mmtransient_interface, mmtransient_t) ;
 
    return 0 ;
 ONABORT:
@@ -94,7 +94,7 @@ int freethread_mmtransient(mm_t * mm_transient)
    mmtransient_t * delobject = (mmtransient_t*) mm_transient->object ;
 
    if (delobject) {
-      assert(asgeneric_mmit(&s_mmtransient_interface, mmtransient_t) == mm_transient->iimpl) ;
+      assert(genericcast_mmit(&s_mmtransient_interface, mmtransient_t) == mm_transient->iimpl) ;
 
       mm_transient->object = 0 ;
       mm_transient->iimpl  = 0 ;
@@ -234,7 +234,7 @@ static int test_initthread(void)
    // TEST initthread and double free
    TEST(0 == initthread_mmtransient(&mman)) ;
    TEST(mman.object != 0) ;
-   TEST(mman.iimpl  == asgeneric_mmit(&s_mmtransient_interface, mmtransient_t)) ;
+   TEST(mman.iimpl  == genericcast_mmit(&s_mmtransient_interface, mmtransient_t)) ;
    TEST(0 == freethread_mmtransient(&mman)) ;
    TEST(0 == mman.object) ;
    TEST(0 == mman.iimpl) ;

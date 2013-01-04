@@ -51,7 +51,7 @@ int unittest_ds_typeadapt_gethash(void) ;
 /* struct: typeadapt_gethash_it
  * Declares interface for computing a hash value from key / object.
  * If you change this interface do not forget to adapt
- * <typeadapt_gethash_EMBED> and <asgeneric_typeadaptgethash>. */
+ * <typeadapt_gethash_EMBED> and <genericcast_typeadaptgethash>. */
 struct typeadapt_gethash_it {
    /* function: hashobject
     * Computes the hash value of the key of an object. The parameter is a pointer to the object which contains
@@ -101,12 +101,12 @@ size_t callhashkey_typeadaptgethash(typeadapt_gethash_it * gethash, struct typea
 
 // group: generic
 
-/* define: asgeneric_typeadaptgethash
+/* define: genericcast_typeadaptgethash
  * Casts parameter gethash into pointer to <typeadapt_gethash_it>.
  * The parameter *gethash* has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <typeadapt_gethash_DECLARE>.
  * The other parameter have to be the same as in <typeadapt_gethash_DECLARE>. */
-typeadapt_gethash_it * asgeneric_typeadaptgethash(void * gethash, TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
+typeadapt_gethash_it * genericcast_typeadaptgethash(void * gethash, TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
 
 /* define: typeadapt_gethash_DECLARE
  * Declares a derived interface from generic <typeadapt_gethash_it>.
@@ -136,9 +136,9 @@ void typeadapt_gethash_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME
 
 // section: inline implementation
 
-/* define: asgeneric_typeadaptgethash
- * Implements <typeadapt_gethash_it.asgeneric_typeadaptgethash>. */
-#define asgeneric_typeadaptgethash(gethash, typeadapter_t, object_t, key_t)      \
+/* define: genericcast_typeadaptgethash
+ * Implements <typeadapt_gethash_it.genericcast_typeadaptgethash>. */
+#define genericcast_typeadaptgethash(gethash, typeadapter_t, object_t, key_t)    \
    ( __extension__ ({                                                            \
       static_assert(                                                             \
          offsetof(typeadapt_gethash_it, hashobject)                              \

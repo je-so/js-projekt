@@ -52,12 +52,12 @@ struct objectcache_it {
 
 // group: generic
 
-/* define: asgeneric_objectcacheit
+/* define: genericcast_objectcacheit
  * Casts first parameter into pointer to <objectcache_it>.
  * The first parameter has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <objectcache_it_DECLARE>.
  * The second must be the same as in <objectcache_it_DECLARE>. */
-objectcache_it * asgeneric_objectcacheit(void * cache, TYPENAME object_t) ;
+objectcache_it * genericcast_objectcacheit(void * cache, TYPENAME object_t) ;
 
 /* define: objectcache_it_DECLARE
  * Declares a function table for accessing an objectcache service.
@@ -86,9 +86,9 @@ objectcache_it * asgeneric_objectcacheit(void * cache, TYPENAME object_t) ;
 
 // section: inline implementation
 
-/* define: asgeneric_objectcacheit
- * Implements <objectcache_it.asgeneric_objectcacheit>. */
-#define asgeneric_objectcacheit(cache, object_t)                     \
+/* define: genericcast_objectcacheit
+ * Implements <objectcache_it.genericcast_objectcacheit>. */
+#define genericcast_objectcacheit(cache, object_t)                   \
    ( __extension__ ({                                                \
       static_assert(                                                 \
          offsetof(objectcache_it, lock_iobuffer)                     \

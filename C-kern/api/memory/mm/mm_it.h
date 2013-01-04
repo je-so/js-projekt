@@ -84,11 +84,11 @@ struct mm_it {
 
 // group: generic
 
-/* function: asgeneric_mmit
+/* function: genericcast_mmit
  * Casts parameter mminterface into pointer to interface <mm_it>.
  * The parameter *mminterface* has to be of type pointer to type declared with <mm_it_DECLARE>.
  * The other parameters must be the same as in <mm_it_DECLARE> without the first. */
-mm_it * asgeneric_mmit(void * mminterface, TYPENAME memorymanager_t) ;
+mm_it * genericcast_mmit(void * mminterface, TYPENAME memorymanager_t) ;
 
 
 /* function: mm_it_DECLARE
@@ -110,9 +110,9 @@ void mm_it_DECLARE(TYPENAME declared_it, TYPENAME memorymanager_t) ;
 
 // section: inline implementation
 
-/* define: asgeneric_mmit
- * Implements <mm_it.asgeneric_mmit>. */
-#define asgeneric_mmit(mminterface, memorymanager_t)                                            \
+/* define: genericcast_mmit
+ * Implements <mm_it.genericcast_mmit>. */
+#define genericcast_mmit(mminterface, memorymanager_t)                                          \
    ( __extension__ ({                                                                           \
       static_assert(                                                                            \
          offsetof(typeof(*(mminterface)), mresize) == offsetof(mm_it, mresize)                  \

@@ -101,11 +101,11 @@ struct instream_it {
 
 // group: generic
 
-/* function: asgeneric_instreamit
+/* function: genericcast_instreamit
  * Casts parameter iinstr into pointer to <instream_it>.
  * The parameter *iinstr* has to be of type "pointer to type" which was
  * declared with . */
-instream_it * asgeneric_instreamit(void * iinstr, TYPENAME instream_impl_t) ;
+instream_it * genericcast_instreamit(void * iinstr, TYPENAME instream_impl_t) ;
 
 /* function: typeadapt_DECLARE
  * Declares a derived interface from generic <instream_it>.
@@ -232,9 +232,9 @@ int readnextdatablock_instream(instream_t * instr) ;
 
 // section: inline implementation
 
-/* define: asgeneric_instreamit
- * Implements <instream_it.asgeneric_instreamit>. */
-#define asgeneric_instreamit(iinstr, instream_impl_t)                                           \
+/* define: genericcast_instreamit
+ * Implements <instream_it.genericcast_instreamit>. */
+#define genericcast_instreamit(iinstr, instream_impl_t)                                         \
    ( __extension__ ({                                                                           \
       static_assert(                                                                            \
          offsetof(typeof(*(iinstr)), readnext) == offsetof(instream_it, readnext),              \

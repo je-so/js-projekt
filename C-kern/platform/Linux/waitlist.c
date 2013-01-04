@@ -47,14 +47,14 @@ static int wakupfirst_nolock_waitlist(waitlist_t * wlist, int (*task_main)(void 
 {
    int err ;
 
-   thread_t * thread = first_wlist(asgeneric_slist(wlist)) ;
+   thread_t * thread = first_wlist(genericcast_slist(wlist)) ;
 
    lock_thread(thread) ;
 
    thread->task_f   = task_main ;
    thread->task_arg = start_arg ;
 
-   err = removefirst_wlist(asgeneric_slist(wlist), &thread) ;
+   err = removefirst_wlist(genericcast_slist(wlist), &thread) ;
    assert(!err) ;
    assert(!thread->wlistnext /*indicates that thread->task is valid*/) ;
 
@@ -81,7 +81,7 @@ int init_waitlist(/*out*/waitlist_t * wlist)
 
    wlist->nr_waiting = 0 ;
 
-   init_wlist(asgeneric_slist(wlist)) ;
+   init_wlist(genericcast_slist(wlist)) ;
 
    return 0 ;
 ONABORT:
@@ -95,7 +95,7 @@ int free_waitlist(waitlist_t * wlist)
 
    err = free_mutex(&wlist->lock) ;
 
-   while (!isempty_wlist(asgeneric_slist(wlist))) {
+   while (!isempty_wlist(genericcast_slist(wlist))) {
       int err2 = wakupfirst_nolock_waitlist( wlist, 0, 0 ) ;
       if (err2) err = err2 ;
    }
@@ -111,7 +111,7 @@ ONABORT:
 bool isempty_waitlist(waitlist_t * wlist)
 {
    slock_mutex(&wlist->lock) ;
-   bool isempty = isempty_wlist(asgeneric_slist(wlist)) ;
+   bool isempty = isempty_wlist(genericcast_slist(wlist)) ;
    sunlock_mutex(&wlist->lock) ;
    return isempty ;
 }
@@ -130,7 +130,7 @@ int wait_waitlist(waitlist_t * wlist)
    thread_t * self = self_thread() ;
 
    slock_mutex(&wlist->lock) ;
-   err = insertlast_wlist(asgeneric_slist(wlist), self) ;
+   err = insertlast_wlist(genericcast_slist(wlist), self) ;
    if (!err) {
       ++ wlist->nr_waiting ;
    }
@@ -158,7 +158,7 @@ int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), v
 
    slock_mutex(&wlist->lock) ;
 
-   isEmpty = isempty_wlist(asgeneric_slist(wlist)) ;
+   isEmpty = isempty_wlist(genericcast_slist(wlist)) ;
    if (isEmpty) {
       err = EAGAIN ;
    } else {
@@ -223,9 +223,9 @@ static int test_initfree(void)
    TEST(0 == wait_rtsignal(0, 1)) ;
    for(int i = 0; i < 1000000; ++i) {
       pthread_yield() ;
-      if (thread == last_wlist(asgeneric_slist(&wlist))) break ;
+      if (thread == last_wlist(genericcast_slist(&wlist))) break ;
    }
-   TEST(thread == last_wlist(asgeneric_slist(&wlist))) ;
+   TEST(thread == last_wlist(genericcast_slist(&wlist))) ;
    TEST(thread == next_wlist(thread)) ;
    thread->task_arg = 0 ;
    thread->task_f   = 0 ;
@@ -264,19 +264,19 @@ static int test_initfree(void)
    }
    TEST(20 == nrwaiting_waitlist(&wlist)) ;
       // list has 20 members !
-   next = last_wlist(asgeneric_slist(&wlist)) ;
+   next = last_wlist(genericcast_slist(&wlist)) ;
    for (int i = 0; i < 20; ++i) {
       next = next_wlist(next) ;
       TEST(next) ;
       next->task_arg = 0 ;
       if (i != 19) {
-         TEST(next != last_wlist(asgeneric_slist(&wlist))) ;
+         TEST(next != last_wlist(genericcast_slist(&wlist))) ;
       } else {
-         TEST(next == last_wlist(asgeneric_slist(&wlist))) ;
+         TEST(next == last_wlist(genericcast_slist(&wlist))) ;
       }
    }
       // wakeup all members
-   next = first_wlist(asgeneric_slist(&wlist)) ;
+   next = first_wlist(genericcast_slist(&wlist)) ;
    for(int i = 0; i < 20; ++i) {
       thread_t * first = next ;
       next = next_wlist(next) ;

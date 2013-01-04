@@ -51,7 +51,7 @@ int unittest_ds_typeadapt_comparator(void) ;
 /* struct: typeadapt_comparator_it
  * Declares interface for comparing two objects and key with object.
  * If you change this interface do not forget to adapt
- * <typeadapt_comparator_EMBED> and <asgeneric_typeadaptcomparator>. */
+ * <typeadapt_comparator_EMBED> and <genericcast_typeadaptcomparator>. */
 struct typeadapt_comparator_it {
    /* variable: cmp_key_object
     * Compares key with an object. lkey is the left operand and robject the right one.
@@ -105,12 +105,12 @@ int callcmpobj_typeadaptcomparator(typeadapt_comparator_it * adpcmp, struct type
 
 // group: generic
 
-/* define: asgeneric_typeadaptcomparator
+/* define: genericcast_typeadaptcomparator
  * Casts parameter adpcmp into pointer to <typeadapt_comparator_it>.
  * The parameter *adpcmp* has to be of type "pointer to declared_it" where declared_it
  * is the name used as first parameter in <typeadapt_comparator_DECLARE>.
  * The second and third parameter must be the same as in <typeadapt_comparator_DECLARE>. */
-typeadapt_comparator_it * asgeneric_typeadaptcomparator(void * adpcmp, TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
+typeadapt_comparator_it * genericcast_typeadaptcomparator(void * adpcmp, TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) ;
 
 /* define: typeadapt_comparator_DECLARE
  * Declares a derived interface from generic <typeadapt_comparator_it>.
@@ -150,9 +150,9 @@ typeadapt_comparator_it * asgeneric_typeadaptcomparator(void * adpcmp, TYPENAME 
 
 // section: inline implementation
 
-/* define: asgeneric_typeadaptcomparator
- * Implements <typeadapt_comparator_it.asgeneric_typeadaptcomparator>. */
-#define asgeneric_typeadaptcomparator(adpcmp, typeadapter_t, object_t, key_t)    \
+/* define: genericcast_typeadaptcomparator
+ * Implements <typeadapt_comparator_it.genericcast_typeadaptcomparator>. */
+#define genericcast_typeadaptcomparator(adpcmp, typeadapter_t, object_t, key_t)  \
    ( __extension__ ({                                                            \
       static_assert(                                                             \
          offsetof(typeadapt_comparator_it, cmp_key_object)                       \

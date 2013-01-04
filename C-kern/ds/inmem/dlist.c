@@ -296,7 +296,7 @@ static int freenode_genericadapt(genericadapt_t * typeadp, genericnode_t ** node
 static int test_initfree(void)
 {
    testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void*), 0) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*), 0) ;
    dlist_t              list = dlist_INIT ;
    dlist_node_t         node = dlist_node_INIT ;
    testnode_t           nodes[1000] ;
@@ -585,7 +585,7 @@ ONABORT:
 static int test_insertremove(void)
 {
    testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, testadapt_t, testnode_t, void*), 0) ;
+   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*), 0) ;
    dlist_t              list = dlist_INIT ;
    testnode_t           nodes[1000] ;
    dlist_node_t       * removed_node ;
@@ -980,8 +980,8 @@ dlist_IMPLEMENT(_glist2, genericnode_t, node2)
 static int test_generic(void)
 {
    genericadapt_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node1)) ;
-   typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(asgeneric_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node2)) ;
+   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node1)) ;
+   typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node2)) ;
    dlist_t              list1 = dlist_INIT ;
    dlist_t              list2 = dlist_INIT ;
    genericnode_t        nodes[1000] ;
@@ -989,11 +989,11 @@ static int test_generic(void)
 
    memset(nodes, 0, sizeof(nodes)) ;
 
-   // TEST asgeneric_dlist
+   // TEST genericcast_dlist
    struct {
       dlist_node_t * last ;
    }  xlist ;
-   TEST((dlist_t*)&xlist == asgeneric_dlist(&xlist)) ;
+   TEST((dlist_t*)&xlist == genericcast_dlist(&xlist)) ;
 
    // TEST empty list
    TEST(0 == first_glist1(&list1)) ;

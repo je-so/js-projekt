@@ -169,8 +169,8 @@ static int test_generic(void)
    static_assert(offsetof(testadapter_it, newcopy_object) == offsetof(typeadapt_lifetime_it, newcopy_object), "structur compatible") ;
    static_assert(offsetof(testadapter_it, delete_object)  == offsetof(typeadapt_lifetime_it, delete_object), "structur compatible") ;
 
-   // TEST asgeneric_typeadaptlifetime
-   TEST((struct typeadapt_lifetime_it*)&adplife == asgeneric_typeadaptlifetime(&adplife, testadapter_t, struct typeadapt_object_t)) ;
+   // TEST genericcast_typeadaptlifetime
+   TEST((struct typeadapt_lifetime_it*)&adplife == genericcast_typeadaptlifetime(&adplife, testadapter_t, struct typeadapt_object_t)) ;
 
    // TEST typeadapt_lifetime_INIT_FREEABLE
    TEST(0 == adplife.newcopy_object) ;

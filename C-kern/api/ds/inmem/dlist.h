@@ -233,9 +233,11 @@ int removeall_dlist(dlist_t * list, struct typeadapt_member_t * nodeadp/*0 => no
 
 // group: generic
 
-/* function: asgeneric_dlist
- * Casts list into <dlist_t> if that is possible. */
-dlist_t * asgeneric_dlist(void * list) ;
+/* function: genericcast_dlist
+ * Casts list into <dlist_t> if that is possible.
+ * The generic object list must have a last pointer
+ * as first member. */
+dlist_t * genericcast_dlist(void * list) ;
 
 /* define: dlist_IMPLEMENT
  * Generates interface of double linked list storing elements of type object_t.
@@ -251,9 +253,9 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 // section: inline implementation
 
-/* define: asgeneric_dlist
- * Implements <dlist_t.asgeneric_dlist>. */
-#define asgeneric_dlist(list)                                                    \
+/* define: genericcast_dlist
+ * Implements <dlist_t.genericcast_dlist>. */
+#define genericcast_dlist(list)                                                    \
    ( __extension__ ({                                                            \
       static_assert(offsetof(typeof(*(list)), last) == offsetof(dlist_t, last),  \
          "ensure same structure") ;                                              \
