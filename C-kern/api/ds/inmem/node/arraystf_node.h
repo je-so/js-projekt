@@ -74,9 +74,9 @@ const struct string_t * asstring_arraystfnode(const arraystf_node_t * node) ;
  * You need to call this function to make <isbranchtype_arraystfunode> working properly. */
 arraystf_unode_t * asunode_arraystfnode(arraystf_node_t * node) ;
 
-/* function: fromstring_arraystfnode
+/* function: stringcast_arraystfnode
  * Cast <string_t> into <arraystf_node_t>. */
-arraystf_node_t * fromstring_arraystfnode(struct string_t * str) ;
+arraystf_node_t * stringcast_arraystfnode(struct string_t * str) ;
 
 // group: generic
 
@@ -198,9 +198,9 @@ int isbranchtype_arraystfunode(const arraystf_unode_t * node) ;
             (arraystf_unode_t*) _node1 ;                             \
       }))
 
-/* define: fromstring_arraystfnode
- * Implements <arraystf_node_t.fromstring_arraystfnode>. */
-#define fromstring_arraystfnode(str)                                 \
+/* define: stringcast_arraystfnode
+ * Implements <arraystf_node_t.stringcast_arraystfnode>. */
+#define stringcast_arraystfnode(str)                                 \
       (  __extension__ ({                                            \
             struct string_t * _str1 = (str) ;                        \
             (arraystf_node_t*) (_str1) ;                             \
