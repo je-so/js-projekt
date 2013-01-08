@@ -162,10 +162,42 @@ void skipbyte_string(string_t * str) ;
  * EINVAL - The condition (<string_t.size> >= size) is false. *str* is not changed and no error is logged. */
 int tryskipbytes_string(string_t * str, size_t size) ;
 
+// group: generic
+
+/* function: genericcast_string
+ * Casts a pointer to generic obj type into pointer to <string_t>. */
+const string_t * genericcast_string(const void * obj) ;
+
 
 // section: inline implementation
 
 // group: string_t
+
+/* function: genericcast_string
+ * Implements <string_t.genericcast_string>. */
+#define genericcast_string(obj)                 \
+   ( __extension__ ({                           \
+      typeof(obj) _obj = (obj) ;                \
+      static_assert(                            \
+         sizeof(_obj->addr)                     \
+         == sizeof(((string_t*)0)->addr)        \
+         && 0 == offsetof(string_t, addr),      \
+         "addr member is compatible") ;         \
+      static_assert(                            \
+         sizeof(_obj->size)                     \
+         == sizeof(((string_t*)0)->size)        \
+         && offsetof(string_t, size)            \
+            == ((uintptr_t)&_obj->size)         \
+               -((uintptr_t)&_obj->addr),       \
+         "size member is compatible") ;         \
+      if (0) {                                  \
+         volatile uint8_t _err ;                \
+         volatile size_t _size = _obj->size ;   \
+         _err = _obj->addr[_size] ;             \
+         (void) _err ;                          \
+      }                                         \
+      (const string_t*)(&_obj->addr) ;          \
+   }))
 
 /* function: init_string
  * Implements <string_t.init_string>. */

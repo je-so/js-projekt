@@ -318,6 +318,23 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_generic(void)
+{
+   struct {
+      int            dummy1 ;
+      const uint8_t  * addr ;
+      size_t         size ;
+      int            dummy2 ;
+   }        str1 ;
+
+   // TEST genericcast_string
+   TEST((const string_t*)&str1.addr == genericcast_string(&str1)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 int unittest_string()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -327,6 +344,7 @@ int unittest_string()
    if (test_initfree())       goto ONABORT ;
    if (test_compare())        goto ONABORT ;
    if (test_skip())           goto ONABORT ;
+   if (test_generic())        goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
