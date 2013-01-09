@@ -1,0 +1,34 @@
+title: Type Casts
+
+The different types of casts which are supported in the interface
+of the objects.
+
+Casts are mostly used to change a pointer pointing to type a
+into a pointer pointing to type b. a and b must be structural
+compatible. They both must have the same members (type + name).
+
+section: casting pointers
+
+group: genericcast
+
+If an interface subtype is constructed with help of TYPE_it_DECLARE
+it is compatible with TYPE_it. To cast a pointer to subtype into a
+pointer to TYPE_it use genericcast_TYPEit(...). This function which
+is implemented as macro checks the compatibility.
+
+group: FROMTYPEcast
+
+The same as genericcast except that function FROMTYPEcast_TYPE(...)
+casts a pointer to FROMTYPE into a pointer to TYPE.
+This cast is more specific and does only accepts pointers to FROMTYPE.
+
+group: castasTOTYPE
+
+This cast reverses the type conversion. The function castasTOTYPE_TYPE
+converts a pointer to TYPE into a pointer to TOTYPE.
+It is considered an extension of TOTYPE. The same functionality could
+be achieved with function TYPEcast_TOTYPE implemented as part of the
+interface of TOTYPE.
+Therefore it is encouraged to implement always TYPEcast_TOTYPE even
+in another module. Type extensions will be supported by the upcoming
+language "transactional C".
