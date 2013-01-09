@@ -773,9 +773,8 @@ static int test_arraystfnode(void)
       TEST(i+1 == node.size) ;
    }
 
-   // TEST asstring_arraystfnode, stringcast_arraystfnode
+   // TEST stringcast_arraystfnode
    for (unsigned i = 0; i < 1000; i += 100) {
-      TEST(asstring_arraystfnode((arraystf_node_t*)i) == (string_t*)i) ;
       TEST(stringcast_arraystfnode((string_t*)i) == (arraystf_node_t*)i) ;
    }
 

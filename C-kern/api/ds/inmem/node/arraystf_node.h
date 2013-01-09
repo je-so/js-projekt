@@ -65,10 +65,6 @@ struct arraystf_node_t {
 
 // group: conversion
 
-/* function: asstring_arraystfnode
- * Cast <arraystf_node_t> into <string_t>. */
-const struct string_t * asstring_arraystfnode(const arraystf_node_t * node) ;
-
 /* function: asunode_arraystfnode
  * Cast <arraystf_node_t> into <arraystf_unode_t>.
  * You need to call this function to make <isbranchtype_arraystfunode> working properly. */
@@ -181,14 +177,6 @@ int isbranchtype_arraystfunode(const arraystf_unode_t * node) ;
 
 
 // section: inline implementation
-
-/* define: asstring_arraystfnode
- * Implements <arraystf_node_t.asstring_arraystfnode>. */
-#define asstring_arraystfnode(node)                                  \
-      (  __extension__ ({                                            \
-            const arraystf_node_t * _node1 = (node) ;                \
-            (const struct string_t*) _node1 ;                        \
-         }))
 
 /* define: asunode_arraystfnode
  * Implements <arraystf_node_t.asunode_arraystfnode>. */
