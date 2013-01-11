@@ -51,13 +51,6 @@ struct arraysf_node_t {
  * Static initializer with parameter pos of type size_t. */
 #define arraysf_node_INIT(pos)         { pos }
 
-// group: query
-
-/* function: asunode_arraysfnode
- * Casts node pointer into pointer to <arraysf_unode_t>.
- * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
-arraysf_unode_t * asunode_arraysfnode(arraysf_node_t * node) ;
-
 // group: generic
 
 /* define: arraysf_node_EMBED
@@ -112,11 +105,6 @@ void init_arraysfmwaybranch(/*out*/arraysf_mwaybranch_t * branch, unsigned shift
 
 // group: query
 
-/* function: asunode_arraysfmwaybranch
- * Casts object pointer into pointer to <arraysf_unode_t>.
- * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
-arraysf_unode_t * asunode_arraysfmwaybranch(arraysf_mwaybranch_t * branch) ;
-
 /* function: childindex_arraysfmwaybranch
  * Determines the index into the internal array <arraysf_mwaybranch_t.childs>.
  * The index is calculated from parameter *pos* which is the index of the node. */
@@ -139,81 +127,94 @@ union arraysf_unode_t {
 
 // group: query
 
-/* function: asbranch_arraysfunode
- * Casts pointer to <arraysf_unode_t> into pointer to <arraysf_mwaybranch_t>. */
-arraysf_mwaybranch_t * asbranch_arraysfunode(arraysf_unode_t * node) ;
+/* function: branch_arraysfunode
+ * Gets pointer to value <arraysf_mwaybranch_t>. */
+arraysf_mwaybranch_t * branch_arraysfunode(arraysf_unode_t * node) ;
 
-/* function: asnode_arraysfunode
- * Casts object pointer into pointer to <arraysf_node_t>. */
-arraysf_node_t * asnode_arraysfunode(arraysf_unode_t * node) ;
+/* function: node_arraysfunode
+ * Gets pointer to value <arraysf_node_t>. */
+arraysf_node_t * node_arraysfunode(arraysf_unode_t * node) ;
 
 /* function: isbranchtype_arraysfunode
  * Returns true in case node is pointer to <arraysf_mwaybranch_t>. */
 int isbranchtype_arraysfunode(const arraysf_unode_t * node) ;
 
+// group: conversion
+
+/* function: nodecast_arraysfunode
+ * Casts pointer to <arraysf_node_t> into pointer to <arraysf_unode_t>.
+ * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
+static inline arraysf_unode_t * nodecast_arraysfunode(arraysf_node_t * node) ;
+
+/* function: branchcast_arraysfunode
+ * Casts pointer to <arraysf_mwaybranch_t> into pointer to <arraysf_unode_t>.
+ * You need to call this function to make <isbranchtype_arraysfunode> working properly. */
+static inline arraysf_unode_t * branchcast_arraysfunode(arraysf_mwaybranch_t * branch) ;
+
 
 // section: inline implementation
 
-/* define: asunode_arraysfnode
- * Implements <arraysf_node_t.asunode_arraysfnode>. */
-#define asunode_arraysfnode(node)                     \
-      ( __extension__ ({                              \
-            struct arraysf_node_t * _node1 = (node) ; \
-            (arraysf_unode_t*) (_node1) ;             \
-      }))
-
-/* define: asunode_arraysfmwaybranch
- * Implements <arraysf_mwaybranch_t.asunode_arraysfmwaybranch>. */
-#define asunode_arraysfmwaybranch(branch)                         \
-      (  __extension__ ({                                         \
-            arraysf_mwaybranch_t * _branch = (branch) ;           \
-            (arraysf_unode_t*) (0x01 ^ (uintptr_t)(_branch)) ;    \
-         }))
-
-/* define: asbranch_arraysfunode
- * Implements <arraysf_unode_t.asbranch_arraysfunode>. */
-#define asbranch_arraysfunode(node)                               \
-      ( __extension__ ({                                          \
-            arraysf_unode_t * _node2 = (node) ;                   \
-            (arraysf_mwaybranch_t*)(0x01 ^ (uintptr_t)(_node2)) ; \
-      }))
-
-/* define: asnode_arraysfunode
- * Implements <arraysf_unode_t.asnode_arraysfunode>. */
-#define asnode_arraysfunode(node)                                 \
-      ( __extension__ ({                                          \
-            arraysf_unode_t * _node3 = (node) ;                   \
-            (arraysf_node_t*) _node3 ;                            \
-      }))
+// group: arraysf_mwaybranch_t
 
 /* define: childindex_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.childindex_arraysfmwaybranch>. */
-#define childindex_arraysfmwaybranch(branch, pos)     (0x03u & ((pos) >> (branch)->shift))
+#define childindex_arraysfmwaybranch(branch, pos)                 (0x03u & ((pos) >> (branch)->shift))
 
 /* define: init_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.init_arraysfmwaybranch>. */
 #define init_arraysfmwaybranch(branch, _shift, pos1, childnode1, pos2, childnode2)  \
       do {  memset((branch)->child, 0, sizeof((branch)->child)) ;                   \
-            (branch)->child[0x03u & ((pos1) >> (shift))] = childnode1 ;             \
-            (branch)->child[0x03u & ((pos2) >> (shift))] = childnode2 ;             \
+            (branch)->child[0x03u & ((pos1) >> (_shift))] = childnode1 ;            \
+            (branch)->child[0x03u & ((pos2) >> (_shift))] = childnode2 ;            \
             (branch)->shift = (uint8_t) _shift ;                                    \
             (branch)->used  = 2 ;                                                   \
          } while(0)
 
-/* define: isbranchtype_arraysfunode
- * Implements <arraysf_unode_t.isbranchtype_arraysfunode>. */
-#define isbranchtype_arraysfunode(node)                     \
-      ( __extension__ ({                                    \
-            const arraysf_unode_t * _node4 = (node) ;       \
-            ((uintptr_t)(_node4) & 0x01) ;                  \
-      }))
-
 /* define: setchild_arraysfmwaybranch
  * Implements <arraysf_mwaybranch_t.setchild_arraysfmwaybranch>. */
-#define setchild_arraysfmwaybranch(branch, childindex, childnode)    \
-      do {                                                           \
-            (branch)->child[childindex] = (childnode) ;              \
+#define setchild_arraysfmwaybranch(branch, childindex, childnode) \
+      do {                                                        \
+            (branch)->child[childindex] = (childnode) ;           \
          } while(0)
+
+// group: arraysf_unode_t
+
+/* define: branch_arraysfunode
+ * Implements <arraysf_unode_t.branch_arraysfunode>. */
+#define branch_arraysfunode(node)                                 \
+      ( __extension__ ({                                          \
+            arraysf_unode_t * _node1 = (node) ;                   \
+            (arraysf_mwaybranch_t*)(0x01 ^ (uintptr_t)(_node1)) ; \
+      }))
+
+static inline arraysf_unode_t * branchcast_arraysfunode(arraysf_mwaybranch_t * branch)
+{
+   return (arraysf_unode_t*) (0x01 ^ (uintptr_t)branch) ;
+}
+
+/* define: isbranchtype_arraysfunode
+ * Implements <arraysf_unode_t.isbranchtype_arraysfunode>. */
+#define isbranchtype_arraysfunode(node)                           \
+      ( __extension__ ({                                          \
+            const arraysf_unode_t * _node2 = (node) ;             \
+            ((uintptr_t)(_node2) & 0x01) ;                        \
+      }))
+
+/* define: node_arraysfunode
+ * Implements <arraysf_unode_t.node_arraysfunode>. */
+#define node_arraysfunode(node)                                   \
+      ( __extension__ ({                                          \
+            arraysf_unode_t * _node3 = (node) ;                   \
+            (arraysf_node_t*) _node3 ;                            \
+      }))
+
+/* define: nodecast_arraysfunode
+ * Implements <arraysf_unode_t.nodecast_arraysfunode>. */
+static inline arraysf_unode_t * nodecast_arraysfunode(arraysf_node_t * node)
+{
+   return (arraysf_unode_t*) node ;
+}
+
 
 
 #endif
