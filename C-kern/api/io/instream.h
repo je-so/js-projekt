@@ -190,6 +190,10 @@ uint8_t * keepaddr_instream(const instream_t * instr) ;
  * has occurred the input stream is no more accessed. */
 int readerror_instream(const instream_t * instr) ;
 
+/* function: isfree_instream
+ * Returns true if instr is set to <instream_INIT_FREEABLE>. */
+bool isfree_instream(const instream_t * instr) ;
+
 // group: read
 
 /* function: readnext_instream

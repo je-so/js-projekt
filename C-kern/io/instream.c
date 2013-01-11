@@ -35,6 +35,19 @@
 
 // section: instream_t
 
+// group: query
+
+bool isfree_instream(const instream_t * instr)
+{
+   return   0 == instr->nextdata
+            && 0 == instr->enddata
+            && 0 == instr->keepaddr
+            && 0 == instr->startdata
+            && 0 == instr->object
+            && 0 == instr->iimpl
+            && 0 == instr->readerror ;
+}
+
 // group: buffer
 
 /* function: readnextdatablock_instream
@@ -263,6 +276,40 @@ static int test_initfree(void)
    instr.keepaddr = (uint8_t*)2 ;
    TEST((uint8_t*)2 == keepaddr_instream(&instr)) ;
 
+   // TEST readerror_instream
+   instr.readerror = EPERM ;
+   TEST(EPERM == readerror_instream(&instr)) ;
+   instr.readerror = 0 ;
+   TEST(0 == readerror_instream(&instr)) ;
+
+   // TEST isfree_instream
+   instr = (instream_t) instream_INIT_FREEABLE ;
+   uint8_t * members[] = { (uint8_t*)&instr.nextdata, (uint8_t*)&instr.enddata,
+                           (uint8_t*)&instr.keepaddr, (uint8_t*)&instr.startdata,
+                           (uint8_t*)&instr.object, (uint8_t*)&instr.iimpl,
+                           (uint8_t*)&instr.readerror
+                        } ;
+   for (unsigned i = 0; i < nrelementsof(members); ++i) {
+      *members[i] = 1 ;
+      TEST(0 == isfree_instream(&instr)) ;
+      *members[i] = 0 ;
+      TEST(1 == isfree_instream(&instr)) ;
+   }
+
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_buffer(void)
+{
+   instream_testimpl_t  testimpl ;
+   instream_test_it     iimpl = instream_it_INIT(&readnext_testimpl) ;
+   instream_t           instr = instream_INIT_FREEABLE ;
+   uint8_t              data[2][250] ;
+   bool                 di ;
+
    // TEST startkeep_instream
    instr.nextdata = (uint8_t*)5 ;
    startkeep_instream(&instr) ;
@@ -276,26 +323,8 @@ static int test_initfree(void)
    endkeep_instream(&instr) ;
    TEST(instr.keepaddr == 0) ;
 
-   // TEST readerror_instream
-   instr.readerror = EPERM ;
-   TEST(EPERM == readerror_instream(&instr)) ;
-   instr.readerror = 0 ;
-   TEST(0 == readerror_instream(&instr)) ;
-
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
-
-static int test_readblock(void)
-{
-   instream_testimpl_t  testimpl ;
-   instream_test_it     iimpl = instream_it_INIT(&readnext_testimpl) ;
-   instream_t           instr = instream_INIT((instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t)) ;
-   uint8_t              data[2][250] ;
-   bool                 di ;
-
    // TEST readnextdatablock_instream: simulate reading byte by byte
+   instr = (instream_t) instream_INIT((instream_impl_t*)&testimpl, genericcast_instreamit(&iimpl, instream_testimpl_t)) ;
    init_instreamtestimpl(&testimpl, sizeof(data[0]), data[0], data[1]) ;
    TEST(0 == instr.nextdata) ;
    TEST(0 == instr.enddata) ;
@@ -503,7 +532,7 @@ int unittest_io_instream()
 
    if (test_initfree_it()) goto ONABORT ;
    if (test_initfree())    goto ONABORT ;
-   if (test_readblock())   goto ONABORT ;
+   if (test_buffer())      goto ONABORT ;
    if (test_readbyte())    goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
