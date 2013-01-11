@@ -275,7 +275,7 @@ ONABORT:
 
 // group: io
 
-int read_file(file_t fileobj, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read)
+int read_file(file_t fileobj, size_t buffer_size, /*out*/void * buffer/*[buffer_size]*/, size_t * bytes_read)
 {
    int err ;
    ssize_t bytes ;
@@ -283,7 +283,7 @@ int read_file(file_t fileobj, size_t buffer_size, /*out*/uint8_t buffer[buffer_s
 
    do {
       do {
-         bytes = read(fileobj, buffer + total_read, buffer_size - total_read) ;
+         bytes = read(fileobj, (uint8_t*)buffer + total_read, buffer_size - total_read) ;
       } while (-1 == bytes && EINTR == errno) ;
 
       if (-1 == bytes) {
@@ -311,7 +311,7 @@ ONABORT:
    return err ;
 }
 
-int write_file(file_t fileobj, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written)
+int write_file(file_t fileobj, size_t buffer_size, const void * buffer/*[buffer_size]*/, size_t * bytes_written)
 {
    int err ;
    ssize_t bytes ;
@@ -1035,7 +1035,7 @@ static int test_allocate(directory_t * tempdir)
    TEST(0 == filesize_directory(tempdir, "testallocate", &size)) ;
    TEST(0 == size) ;
    for (unsigned i = 1; i <= 256; ++i) {
-      TEST(0 == write_file(file, sizeof(buffer), (uint8_t*)buffer, &bwritten)) ;
+      TEST(0 == write_file(file, sizeof(buffer), buffer, &bwritten)) ;
       TEST(bwritten == sizeof(buffer)) ;
       TEST(0 == size_file(file, &size)) ;
       TEST(size == sizeof(buffer)*i) ;

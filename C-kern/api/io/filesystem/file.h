@@ -156,14 +156,14 @@ int size_file(const file_t fileobj, /*out*/off_t * file_size) ;
  * Check value *bytes_read* to determine how many bytes were read.
  * Returns 0 and the value 0 in bytes_read if end of input (end of file) is reached.
  * Returns EAGAIN in case io is in non blocking mode and no bytes could be read. */
-int read_file(file_t fileobj, size_t buffer_size, /*out*/uint8_t buffer[buffer_size], size_t * bytes_read) ;
+int read_file(file_t fileobj, size_t buffer_size, /*out*/void * buffer/*[buffer_size]*/, size_t * bytes_read) ;
 
 /* function: write_file
  * Writes binary data to a file.
  * Returns EAGAIN in case io is in non blocking mode and no bytes could be written
  * (due to no more system buffer space).
  * Returns EPIPE if the receiver has closed its connection or closes it during a blocking write. */
-int write_file(file_t fileobj, size_t buffer_size, const uint8_t buffer[buffer_size], size_t * bytes_written) ;
+int write_file(file_t fileobj, size_t buffer_size, const void * buffer/*[buffer_size]*/, size_t * bytes_written) ;
 
 // group: allocation
 

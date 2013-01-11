@@ -378,7 +378,7 @@ static int test_initfree(void)
    TEST(0 == newtemp_directory(&tmpdir, "test_initfree", &tmppath)) ;
    TEST(0 == makefile_directory(tmpdir, "single", 0)) ;
    TEST(0 == init_file(&file, "single", accessmode_WRITE, tmpdir)) ;
-   TEST(0 == write_file(file, strlen("\"1\""), (const uint8_t*)"\"1\"", 0)) ;
+   TEST(0 == write_file(file, strlen("\"1\""), "\"1\"", 0)) ;
    TEST(0 == free_file(&file)) ;
 
    // TEST csvfilereader_INIT_FREEABLE
@@ -532,7 +532,7 @@ static int test_reading(void)
    const char * empty ="# gggg\n  \t  # fff\n\n\n# fojsfoj" ;
    TEST(0 == makefile_directory(tmpdir, "empty", strlen(empty))) ;
    TEST(0 == init_file(&file, "empty", accessmode_WRITE, tmpdir)) ;
-   TEST(0 == write_file(file, strlen(empty), (const uint8_t*)empty, 0)) ;
+   TEST(0 == write_file(file, strlen(empty), empty, 0)) ;
    TEST(0 == free_file(&file)) ;
    clear_cstring(&filepath) ;
    TEST(0 == printfappend_cstring(&filepath, "%s/empty", str_cstring(&tmppath))) ;
@@ -548,7 +548,7 @@ static int test_reading(void)
    for (unsigned i = 0; i < nrelementsof(errdata); ++i) {
       TEST(0 == makefile_directory(tmpdir, "error", strlen(errdata[i]))) ;
       TEST(0 == init_file(&file, "error", accessmode_WRITE, tmpdir)) ;
-      TEST(0 == write_file(file, strlen(errdata[i]), (const uint8_t*)errdata[i], 0)) ;
+      TEST(0 == write_file(file, strlen(errdata[i]), errdata[i], 0)) ;
       TEST(0 == free_file(&file)) ;
       clear_cstring(&filepath) ;
       TEST(0 == printfappend_cstring(&filepath, "%s/error", str_cstring(&tmppath))) ;
@@ -577,11 +577,11 @@ static int test_reading(void)
    TEST(0 == init_file(&file, "content", accessmode_WRITE, tmpdir)) ;
    const char * comment = "  # xxx \n" ;
    for (unsigned rows = 0; rows < 50; ++rows) {
-      TEST(0 == write_file(file, strlen(comment), (const uint8_t*)comment, 0)) ;
+      TEST(0 == write_file(file, strlen(comment), comment, 0)) ;
       for (unsigned cols = 0; cols < 20; ++cols) {
          char buffer[100] ;
          sprintf(buffer, "\"%s%u%u\"%s", rows ? "value" : "header", rows, cols, cols != 19 ? " \t, \t" : " \r # s1289e0u,\"\",\r\n") ;
-         TEST(0 == write_file(file, strlen(buffer), (const uint8_t*)buffer, 0)) ;
+         TEST(0 == write_file(file, strlen(buffer), buffer, 0)) ;
       }
    }
    TEST(0 == free_file(&file)) ;

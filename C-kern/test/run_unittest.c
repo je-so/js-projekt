@@ -178,7 +178,7 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
             char     * buffer ;
             size_t   size ;
             GETBUFFER_LOG(&buffer, &size) ;
-            write_file(error_log, size, (uint8_t*)buffer, 0) ;
+            write_file(error_log, size, buffer, 0) ;
             free_file(&error_log) ;
          }
       } else {

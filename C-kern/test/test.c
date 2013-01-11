@@ -45,7 +45,7 @@ void logfailed_test(const char * filename, unsigned line_number)
 
 void logworking_test()
 {
-   (void) write_file(file_STDOUT, 3, (const uint8_t*)"OK\n", 0) ;
+   (void) write_file(file_STDOUT, 3, "OK\n", 0) ;
 }
 
 void logrun_test(const char * testname)
