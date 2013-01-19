@@ -199,6 +199,37 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_generic(void)
+{
+   uint8_t     buffer[100] ;
+   struct {
+      int dummy1 ;
+      uint8_t  * pre_addr ;
+      size_t   pre_size ;
+      int dummy2 ;
+   }           mblock = { 0, 0, 0, 0 } ;
+   struct {
+      uint8_t  * addr ;
+      size_t   size ;
+   }           mblock2 = { 0, 0 } ;
+
+   // TEST genericcast_memblock
+   TEST((memblock_t*)&mblock.pre_addr == genericcast_memblock(&mblock, pre_)) ;
+   TEST((memblock_t*)&mblock2         == genericcast_memblock(&mblock2, )) ;
+
+   // TEST genericcast_memblock: memblock_INIT
+   *genericcast_memblock(&mblock, pre_) = (memblock_t) memblock_INIT(sizeof(buffer), buffer) ;
+   *genericcast_memblock(&mblock2, )    = (memblock_t) memblock_INIT(sizeof(buffer), buffer) ;
+   TEST(mblock.pre_addr == buffer)
+   TEST(mblock2.addr    == buffer)
+   TEST(mblock.pre_size == sizeof(buffer)) ;
+   TEST(mblock2.size    == sizeof(buffer)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 int unittest_memory_memblock()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -209,6 +240,7 @@ int unittest_memory_memblock()
    if (test_initfree())    goto ONABORT ;
    if (test_fill())        goto ONABORT ;
    if (test_resize())      goto ONABORT ;
+   if (test_generic())     goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

@@ -145,6 +145,15 @@ int growleft_memblock(memblock_t * mblock, size_t addr_decrement) ;
  * */
 int growright_memblock(memblock_t * mblock, size_t size_increment) ;
 
+// group: generic
+
+/* function: genericcast_memblock
+ * Casts a pointer to generic object into pointer to <memblock_t>.
+ * The object must have two fields nameprefix##addr and nameprefix##size
+ * of the same type as <memblock_t> and in the same order. */
+memblock_t * genericcast_memblock(void * obj, IDNAME nameprefix) ;
+
+
 // section: inline implementation
 
 /* define: addr_memblock
@@ -154,6 +163,33 @@ int growright_memblock(memblock_t * mblock, size_t size_increment) ;
 /* define: clear_memblock
  * Implements <memblock_t.clear_memblock>. */
 #define clear_memblock(mblock)         (memset((mblock)->addr, 0, (mblock)->size))
+
+/* define: genericcast_memblock
+ * Implements <memblock_t.genericcast_memblock>. */
+#define genericcast_memblock(obj, nameprefix)            \
+   ( __extension__ ({                                    \
+      typeof(obj) _obj = (obj) ;                         \
+      static_assert(                                     \
+         sizeof(_obj->nameprefix##addr)                  \
+         == sizeof(((memblock_t*)0)->addr)               \
+         && 0 == offsetof(memblock_t, addr),             \
+         "addr member is compatible") ;                  \
+      static_assert(                                     \
+         sizeof(_obj->nameprefix##size)                  \
+         == sizeof(((memblock_t*)0)->size)               \
+         && offsetof(memblock_t, size)                   \
+            == ((uintptr_t)&_obj->nameprefix##size)      \
+               -((uintptr_t)&_obj->nameprefix##addr),    \
+         "size member is compatible") ;                  \
+      if (0) {                                           \
+         volatile uint8_t _err ;                         \
+         volatile size_t _size ;                         \
+         _size = _obj->nameprefix##size ;                \
+         _err  = _obj->nameprefix##addr[_size] ;         \
+         (void) _err ;                                   \
+      }                                                  \
+      (memblock_t *)(&_obj->nameprefix##addr) ;          \
+   }))
 
 /* define: growleft_memblock
  * Implements <memblock_t.growleft_memblock>. */
