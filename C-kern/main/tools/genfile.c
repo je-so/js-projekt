@@ -67,7 +67,7 @@ static const char * s_templateheader =
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
    GNU General Public License for more details.\n\n\
    Author:\n\
-   (C) 2012 Jörg Seebohn\n\n\
+   (C) 2013 Jörg Seebohn\n\n\
    file: @HEADERPATH\n\
     Header file <@TITLE>.\n\n\
    file: @SOURCEPATH\n\
@@ -124,7 +124,7 @@ static const char * s_templatesource =
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
    GNU General Public License for more details.\n\n\
    Author:\n\
-   (C) 2012 Jörg Seebohn\n\n\
+   (C) 2013 Jörg Seebohn\n\n\
    file: @HEADERPATH\n\
     Header file <@TITLE>.\n\n\
    file: @SOURCEPATH\n\
