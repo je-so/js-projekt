@@ -284,25 +284,25 @@ static int substitute_variable(file_t outfile, variable_e varindex)
       err = write_file(outfile, strlen(s_filetitle), s_filetitle, 0) ;
       break ;
    case variable_FCTSUFFIX:
-      err = write_file(outfile, length_cstring(&s_fctsuffix), str_cstring(&s_fctsuffix), 0) ;
+      err = write_file(outfile, size_cstring(&s_fctsuffix), str_cstring(&s_fctsuffix), 0) ;
       break ;
    case variable_HEADERPATH:
       err = write_file(outfile, strlen(s_headerpath), s_headerpath, 0) ;
       break ;
    case variable_HEADERTAG:
-      err = write_file(outfile, length_cstring(&s_headertag), str_cstring(&s_headertag), 0) ;
+      err = write_file(outfile, size_cstring(&s_headertag), str_cstring(&s_headertag), 0) ;
       break ;
    case variable_SOURCEPATH:
       err = write_file(outfile, strlen(s_sourcepath), s_sourcepath, 0) ;
       break ;
    case variable_TYPENAME2:
-      err = write_file(outfile, length_cstring(&s_typename2), str_cstring(&s_typename2), 0) ;
+      err = write_file(outfile, size_cstring(&s_typename2), str_cstring(&s_typename2), 0) ;
       break ;
    case variable_TYPENAME:
       err = write_file(outfile, strlen(s_typename), s_typename, 0) ;
       break ;
    case variable_UNITTESTNAME:
-      err = write_file(outfile, length_cstring(&s_unittestname), str_cstring(&s_unittestname), 0) ;
+      err = write_file(outfile, size_cstring(&s_unittestname), str_cstring(&s_unittestname), 0) ;
       break ;
    }
 

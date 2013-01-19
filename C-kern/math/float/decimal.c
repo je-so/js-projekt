@@ -3905,7 +3905,7 @@ static int test_tocstring(void)
       const size_t L = (size_t) ti ;
       TEST(0 == setfromint32_decimal(&dec, digit, 0)) ;
       TEST(0 == tocstring_decimal(dec, &cstr)) ;
-      TEST(L == length_cstring(&cstr)) ;
+      TEST(L == size_cstring(&cstr)) ;
       snprintf(buffer, sizeof(buffer), "%"PRIu32, digit) ;
       TEST(0 == strcmp(buffer, str_cstring(&cstr))) ;
    }
@@ -3915,7 +3915,7 @@ static int test_tocstring(void)
       const size_t L = (size_t) (ti == 9 ? 9 : ti + 2) ;
       TEST(0 == setfromint32_decimal(&dec, digit, 0)) ;
       TEST(0 == tocstring_decimal(dec, &cstr)) ;
-      TEST(L == length_cstring(&cstr)) ;
+      TEST(L == size_cstring(&cstr)) ;
       snprintf(buffer, sizeof(buffer)-2, "%"PRIu32, digit) ;
       unsigned exponent = 0 ;
       for (size_t i = strlen(buffer); i && buffer[i-1] == '0'; --i) {
@@ -3941,7 +3941,7 @@ static int test_tocstring(void)
          L += 1 + log10_int(d) ;
          TEST(0 == setfromint32_decimal(&dec, (int32_t) (digit % 1000000000), 0)) ;
          TEST(0 == tocstring_decimal(dec, &cstr)) ;
-         TEST(L == length_cstring(&cstr)) ;
+         TEST(L == size_cstring(&cstr)) ;
          if (exponent) {
             snprintf(buffer, sizeof(buffer), "%"PRIu32"e%d", d, exponent) ;
          } else {
@@ -3961,7 +3961,7 @@ static int test_tocstring(void)
       dec->exponent             = (int16_t) - INT16_MAX ;
       TEST(0 == tocstring_decimal(dec, &cstr)) ;
       size_t L = 1 + nrdigitsmax_decimal() + 8 ;
-      TEST(L == length_cstring(&cstr)) ;
+      TEST(L == size_cstring(&cstr)) ;
       TEST(0 == str_cstring(&cstr)[L]) ;
       TEST('-' == (uint8_t)str_cstring(&cstr)[0]) ;
       for (unsigned i = 1; i < L-8; ++i) {
@@ -3985,12 +3985,12 @@ static int test_tocstring(void)
       size_t L = strlen(testvalues[ti]) ;
       TEST(0 == setfromchar_decimal(&dec, L, testvalues[ti])) ;
       TEST(0 == tocstring_decimal(dec, &cstr)) ;
-      TEST(L == length_cstring(&cstr)) ;
+      TEST(L == size_cstring(&cstr)) ;
       TEST(0 == strcmp(str_cstring(&cstr), testvalues[ti])) ;
       negate_decimal(dec) ;
       ++ L ;
       TEST(0 == tocstring_decimal(dec, &cstr)) ;
-      TEST(L == length_cstring(&cstr)) ;
+      TEST(L == size_cstring(&cstr)) ;
       TEST(0 == strncmp(str_cstring(&cstr), "-", 1)) ;
       TEST(0 == strcmp(str_cstring(&cstr)+1, testvalues[ti])) ;
    }

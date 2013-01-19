@@ -52,13 +52,13 @@ struct cstring_t
     * Length of string in bytes (sizeof(char)==1). The number of characters could be smaller if the encoding is UTF-8 for example.
     *
     * Invariant:
-    * (0 == <chars>) || <chars>[length] == 0 */
-   size_t   length ;
+    * (0 == <chars>) || <chars>[size] == 0 */
+   size_t   size ;
    /* variable: allocated_size
     * Size of allocated memory block <chars> points to.
     *
     * Invariant:
-    * (0 == <chars>) || <length> + 1 <= allocated_size */
+    * (0 == <chars>) || <size> + 1 <= allocated_size */
    size_t   allocated_size ;
    /* variable: chars
     * Pointer to character array with '\0' at the end of the string.
@@ -99,16 +99,16 @@ int free_cstring(cstring_t * cstr) ;
 // group: query
 
 /* function: str_cstring
- * Returns "\0" terminated string.
+ * Returns '\0' terminated string.
  * The returned value can be NULL in case cstr->chars is NULL.
  * The returned value is valid as long as *cstr* is not changed. */
 char * str_cstring(cstring_t * cstr) ;
 
-/* function: length_cstring
- * Returns the length of the string in bytes.
- * For mbs encoded strings the length in character is less
- * than the length in bytes. */
-size_t length_cstring(const cstring_t * cstr) ;
+/* function: size_cstring
+ * Returns the size of the string in bytes.
+ * For multibyte encoded characters the length of a string in characters
+ * is less than the size in bytes. */
+size_t size_cstring(const cstring_t * cstr) ;
 
 /* function: allocatedsize_cstring
  * Returns the allocated buffer size in bytes.
@@ -133,7 +133,7 @@ int allocate_cstring(cstring_t * cstr, size_t allocate_size) ;
 int append_cstring(cstring_t * cstr, size_t str_len, const char str[str_len]) ;
 
 /* function: clear_cstring
- * Sets length of string to 0.
+ * Sets size of string to 0.
  * This function has the same result as calling <truncate_cstring> with parameter 0.
  * No memory is deallocated. */
 void clear_cstring(cstring_t * cstr) ;
@@ -148,21 +148,21 @@ void clear_cstring(cstring_t * cstr) ;
 int printfappend_cstring(cstring_t * cstr, const char * format, ...) __attribute__ ((__format__ (__printf__, 2, 3))) ;
 
 /* function: resize_cstring
- * Allocates memory and sets length to *new_length*.
+ * Allocates memory and sets size to *new_size*.
  * The possibly reallocated buffer can be accessed with a call to <str_cstring>.
- * If the new length is bigger than the current length the buffer
+ * If the new size is bigger than the current size the buffer
  * will contain "random" characters. */
-int resize_cstring(cstring_t * cstr, size_t new_length) ;
+int resize_cstring(cstring_t * cstr, size_t new_size) ;
 
 /* function: truncate_cstring
- * Adapts length of cstr to a smaller value.
- * Use this if you you want to make the string smaller in length.
+ * Adapts size of cstr to a smaller value.
+ * Use this if you you want to make the string smaller in size.
  * A trailing 0 byte is added by this call.
- * Use this function with caution cause new_length is interpreted as
+ * Use this function with caution cause new_size is interpreted as
  * byte offset. If a character uses more than one byte for its encoding
- * and if new_length points not to the end of a valid character sequence
+ * and if new_size points not to the end of a valid character sequence
  * the encoded character sequence becomes invalid. */
-int truncate_cstring(cstring_t * cstr, size_t new_length) ;
+int truncate_cstring(cstring_t * cstr, size_t new_size) ;
 
 
 // section: inline implementation
@@ -176,9 +176,9 @@ int truncate_cstring(cstring_t * cstr, size_t new_length) ;
  * Implements <cstring_t.allocatedsize>. */
 #define allocatedsize_cstring(cstr)    ((cstr)->allocated_size)
 
-/* define: length_cstring
- * Implements <cstring_t.length_cstring>. */
-#define length_cstring(cstr)           ((cstr)->length)
+/* define: size_cstring
+ * Implements <cstring_t.size_cstring>. */
+#define size_cstring(cstr)             ((cstr)->size)
 
 /* define: str_cstring
  * Implements <cstring_t.str_cstring>. */

@@ -541,7 +541,7 @@ static int test_initfree(void)
    // TEST newtemp
    TEST(0 == newtemp_directory(&temp_dir, "test1", &tmppath)) ;
    TEST(0 != temp_dir) ;
-   TEST(17 == length_cstring(&tmppath)) ;
+   TEST(17 == size_cstring(&tmppath)) ;
    TEST(0 == strncmp(str_cstring(&tmppath), "/tmp/test1.", 11)) ;
    TEST(0 == glob(str_cstring(&tmppath), GLOB_NOSORT, 0, &fndfiles)) ;
    TEST(1 == fndfiles.gl_pathc) ;
@@ -616,7 +616,7 @@ static int test_initfree(void)
 
    // TEST ENOTDIR
    char buffer[1000] ;
-   assert(sizeof(buffer) > length_cstring(&tmppath)+13) ;
+   assert(sizeof(buffer) > size_cstring(&tmppath)+13) ;
    strcpy( buffer, str_cstring(&tmppath) ) ;
    strcat( buffer, "/file_000000" ) ;
    TEST(ENOTDIR == new_directory(&dir, buffer, NULL)) ;
@@ -672,7 +672,7 @@ static int test_initfree(void)
       while ( (found=strstr( found, str_cstring(&tmppath) )) ) {
          if (!strchr(found, '.')) break ;
          memcpy( strchr(found, '.')+1, "123456", 6 ) ;
-         found += length_cstring(&tmppath) ;
+         found += size_cstring(&tmppath) ;
       }
    }
 

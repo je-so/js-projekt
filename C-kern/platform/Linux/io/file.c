@@ -1209,7 +1209,7 @@ int unittest_io_file()
       while ( (found = strstr( found, str_cstring(&tmppath))) ) {
          if (!strchr(found, '.')) break ;
          memcpy( strchr(found, '.')+1, "123456", 6 ) ;
-         found += length_cstring(&tmppath) ;
+         found += size_cstring(&tmppath) ;
       }
    }
 
