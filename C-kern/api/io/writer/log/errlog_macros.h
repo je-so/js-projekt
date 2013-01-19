@@ -130,6 +130,12 @@
  * > const int max = 100 ; PRINTINT_LOG(max) ; */
 #define PRINTINT_LOG(varname)                   CPRINTINT_LOG(ERR, varname)
 
+/* define: PRINTINT64_LOG
+ * Log "name=value" of int variable.
+ * Example:
+ * > const int64_t min = 100 ; PRINTINT64_LOG(min) ; */
+#define PRINTINT64_LOG(varname)                 CPRINTINT64_LOG(ERR, varname)
+
 /* define: PRINTSIZE_LOG
  * Log "name=value" of size_t variable.
  * Example:
