@@ -67,6 +67,9 @@ int init_instreammmfile(/*out*/instream_mmfile_t * obj, /*out*/const instream_mm
       bufsize = (size_t) inputsize ;
    }
 
+   err = advisereadahead_file(fd, 0, inputsize) ;
+   if (err) goto ONABORT ;
+
    err = initfd_mmfile(&mfile, fd, 0, bufsize, accessmode_READ) ;
    if (err) goto ONABORT ;
 
