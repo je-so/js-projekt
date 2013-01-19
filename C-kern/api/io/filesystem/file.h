@@ -165,6 +165,18 @@ int read_file(file_t fileobj, size_t buffer_size, /*out*/void * buffer/*[buffer_
  * Returns EPIPE if the receiver has closed its connection or closes it during a blocking write. */
 int write_file(file_t fileobj, size_t buffer_size, const void * buffer/*[buffer_size]*/, size_t * bytes_written) ;
 
+/* function: advisereadahead_file
+ * Expects data to be accessed sequentially and in the near future.
+ * The operating system is advised to read ahead the data beginning at offset and extending for length bytes
+ * right now. The value 0 for length means: until the end of the file. */
+int advisereadahead_file(file_t fileobj, off_t offset, off_t length) ;
+
+/* function: advisedontneed_file
+ * Expects data not to be accessed in the near future.
+ * The operating system is advised to free the page cache for the file beginning at offset and extending
+ * for length bytes. The value 0 for length means: until the end of the file. */
+int advisedontneed_file(file_t fileobj, off_t offset, off_t length) ;
+
 // group: allocation
 
 /* function: truncate_file

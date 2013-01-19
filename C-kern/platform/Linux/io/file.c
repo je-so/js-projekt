@@ -346,6 +346,45 @@ ONABORT:
    return err ;
 }
 
+int advisereadahead_file(file_t fileobj, off_t offset, off_t length)
+{
+   int err ;
+
+   err = posix_fadvise(fileobj, offset, length, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED) ;
+   if (err) {
+      TRACESYSERR_LOG("posix_fadvise", err) ;
+      PRINTINT_LOG(fileobj) ;
+      PRINTINT64_LOG(offset) ;
+      PRINTINT64_LOG(length) ;
+      goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+int advisedontneed_file(file_t fileobj, off_t offset, off_t length)
+{
+   int err ;
+
+   err = posix_fadvise(fileobj, offset, length, POSIX_FADV_DONTNEED) ;
+   if (err) {
+      TRACESYSERR_LOG("posix_fadvise", err) ;
+      PRINTINT_LOG(fileobj) ;
+      PRINTINT64_LOG(offset) ;
+      PRINTINT64_LOG(length) ;
+      goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+
 // group: allocation
 
 int truncate_file(file_t fileobj, off_t file_size)
@@ -829,8 +868,8 @@ static void siguser(int signr)
 
 static int test_readwrite(directory_t * tempdir)
 {
-   int               fd        = -1 ;
-   int               pipefd[2] = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
+   file_t            fd        = file_INIT_FREEABLE ;
+   file_t            pipefd[2] = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
    memblock_t        buffer    = memblock_INIT_FREEABLE ;
    thread_t          * thread  = 0 ;
    uint8_t           byte ;
@@ -1182,6 +1221,80 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_advise(directory_t * tempdir)
+{
+   file_t         fd     = file_INIT_FREEABLE ;
+   uint8_t        buffer[256] ;
+   size_t         bytes_read ;
+   size_t         bytes_written ;
+   const size_t   filesize = 1024*1024 ;
+
+   // prepare
+   TEST(0 == makefile_directory(tempdir, "advise1", filesize)) ;
+   TEST(0 == init_file(&fd, "advise1", accessmode_WRITE, tempdir)) ;
+   for (unsigned i = 0; i < sizeof(buffer); ++i) {
+      buffer[i] = (uint8_t)i ;
+   }
+   for (unsigned i = 0; i < filesize; i += sizeof(buffer)) {
+      buffer[0] = (uint8_t) (i/sizeof(buffer)) ;
+      TEST(0 == write_file(fd, sizeof(buffer), buffer, &bytes_written)) ;
+      TEST(bytes_written == sizeof(buffer)) ;
+   }
+   TEST(0 == free_file(&fd)) ;
+
+   // TEST advisereadahead_file
+   TEST(0 == init_file(&fd, "advise1", accessmode_READ, tempdir)) ;
+   TEST(0 == advisereadahead_file(fd, 0, 0/*whole file*/)) ;
+   TEST(0 == advisereadahead_file(fd, 0, filesize)) ;
+   for (unsigned i = 0; i < filesize; i += sizeof(buffer)) {
+      TEST(0 == read_file(fd, sizeof(buffer), buffer, &bytes_read)) ;
+      TEST(bytes_read == sizeof(buffer)) ;
+      TEST(buffer[0] == (uint8_t)(i/sizeof(buffer))) ;
+   }
+   TEST(0 == free_file(&fd)) ;
+
+   // TEST advisereadahead_file: EINVAL
+   TEST(0 == init_file(&fd, "advise1", accessmode_READ, tempdir)) ;
+   TEST(EINVAL == advisereadahead_file(fd, 0, -1)) ;
+   file_t badfd = fd ;
+   TEST(0 == free_file(&fd)) ;
+
+   // TEST advisereadahead_file: EBADF
+   TEST(EBADF == advisereadahead_file(badfd, 0, 0)) ;
+   TEST(EBADF == advisereadahead_file(file_INIT_FREEABLE, 0, 0)) ;
+
+   // TEST advisedontneed_file: EINVAL
+   TEST(0 == init_file(&fd, "advise1", accessmode_READ, tempdir)) ;
+   TEST(EINVAL == advisedontneed_file(fd, 0, -1)) ;
+   badfd = fd ;
+   TEST(0 == free_file(&fd)) ;
+
+   // TEST advisedontneed_file
+   TEST(0 == init_file(&fd, "advise1", accessmode_READ, tempdir)) ;
+   TEST(0 == advisedontneed_file(fd, 0, 0/*whole file*/)) ;
+   TEST(0 == advisedontneed_file(fd, 0, filesize)) ;
+   for (unsigned i = 0; i < filesize; i += sizeof(buffer)) {
+      TEST(0 == read_file(fd, sizeof(buffer), buffer, &bytes_read)) ;
+      TEST(bytes_read == sizeof(buffer)) ;
+      TEST(buffer[0] == (uint8_t)(i/sizeof(buffer))) ;
+   }
+   TEST(0 == free_file(&fd)) ;
+
+   // TEST advisedontneed_file: EBADF
+   TEST(EBADF == advisedontneed_file(badfd, 0, 0)) ;
+   TEST(EBADF == advisedontneed_file(file_INIT_FREEABLE, 0, 0)) ;
+
+   // unprepare
+   TEST(0 == removefile_directory(tempdir, "advise1")) ;
+
+   return 0 ;
+ONABORT:
+   removefile_directory(tempdir, "advise1") ;
+   free_file(&fd) ;
+   return EINVAL ;
+}
+
+
 int unittest_io_file()
 {
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
@@ -1199,6 +1312,7 @@ int unittest_io_file()
    if (test_append(tempdir))     goto ONABORT ;
    if (test_readwrite(tempdir))  goto ONABORT ;
    if (test_allocate(tempdir))   goto ONABORT ;
+   if (test_advise(tempdir))     goto ONABORT ;
 
    // adapt LOG
    char * logbuffer ;
