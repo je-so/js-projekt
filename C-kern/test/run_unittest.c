@@ -329,6 +329,8 @@ int run_unittest(void)
       // reader
       RUN(unittest_io_reader_csvfilereader) ;
       RUN(unittest_io_reader_utf8reader) ;
+      // reader / text
+      RUN(unittest_io_reader_text_textpos) ;
       // writer
       RUN(unittest_io_writer_log_logwriter) ;
       RUN(unittest_io_writer_log_logmain) ;

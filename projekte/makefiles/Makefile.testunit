@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jan.20  15:12:13
+GenerationDate  := 2013.Jan.20  15:17:44
 GeneratedBy     := je-so
 
 ## Debug
@@ -123,11 +123,12 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Debug)/C-kern!io!adapter!instream_factory.c.o \
  $(ObjectDir_Debug)/C-kern!io!adapter!instream_mmfile.c.o \
- $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
- $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!text!textpos.c.o \
  $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
@@ -207,11 +208,12 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Release)/C-kern!io!adapter!instream_factory.c.o \
  $(ObjectDir_Release)/C-kern!io!adapter!instream_mmfile.c.o \
- $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
- $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!text!textpos.c.o \
  $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
@@ -394,12 +396,6 @@ $(ObjectDir_Debug)/C-kern!io!adapter!instream_factory.c.o: C-kern/io/adapter/ins
 $(ObjectDir_Debug)/C-kern!io!adapter!instream_mmfile.c.o: C-kern/io/adapter/instream_mmfile.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Debug)
 
@@ -407,6 +403,15 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmai
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!reader!text!textpos.c.o: C-kern/io/reader/text/textpos.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/transCparser.c
@@ -640,12 +645,6 @@ $(ObjectDir_Release)/C-kern!io!adapter!instream_factory.c.o: C-kern/io/adapter/i
 $(ObjectDir_Release)/C-kern!io!adapter!instream_mmfile.c.o: C-kern/io/adapter/instream_mmfile.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Release)
 
@@ -653,6 +652,15 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logm
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!text!textpos.c.o: C-kern/io/reader/text/textpos.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/transCparser.c

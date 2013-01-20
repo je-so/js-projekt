@@ -147,6 +147,9 @@
       <VirtualDirectory Name="reader">
         <File Name="../../C-kern/api/io/reader/utf8reader.h"/>
         <File Name="../../C-kern/api/io/reader/csvfilereader.h"/>
+        <VirtualDirectory Name="text">
+          <File Name="../../C-kern/api/io/reader/text/textpos.h"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="writer">
         <VirtualDirectory Name="log">
@@ -201,6 +204,9 @@
       <File Name="../../C-kern/io/reader/utf8reader.c"/>
       <File Name="../../C-kern/io/reader/reader.txt"/>
       <File Name="../../C-kern/io/reader/csvfilereader.c"/>
+      <VirtualDirectory Name="text">
+        <File Name="../../C-kern/io/reader/text/textpos.c"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <VirtualDirectory Name="log">
