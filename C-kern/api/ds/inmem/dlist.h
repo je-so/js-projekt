@@ -255,7 +255,7 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 /* define: genericcast_dlist
  * Implements <dlist_t.genericcast_dlist>. */
-#define genericcast_dlist(list)                                                    \
+#define genericcast_dlist(list)                                                  \
    ( __extension__ ({                                                            \
       static_assert(offsetof(typeof(*(list)), last) == offsetof(dlist_t, last),  \
          "ensure same structure") ;                                              \

@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jan.02  09:00:51
+GenerationDate  := 2013.Jan.20  15:12:13
 GeneratedBy     := je-so
 
 ## Debug
@@ -148,6 +148,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o \
  $(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o \
+ $(ObjectDir_Debug)/C-kern!string!stringstream.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
@@ -231,6 +232,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!base64encode_string.c.o \
  $(ObjectDir_Release)/C-kern!string!urlencode_string.c.o \
+ $(ObjectDir_Release)/C-kern!string!stringstream.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
@@ -465,6 +467,9 @@ $(ObjectDir_Debug)/C-kern!string!base64encode_string.c.o: C-kern/string/base64en
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!urlencode_string.c.o: C-kern/string/urlencode_string.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!stringstream.c.o: C-kern/string/stringstream.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
@@ -708,6 +713,9 @@ $(ObjectDir_Release)/C-kern!string!base64encode_string.c.o: C-kern/string/base64
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!urlencode_string.c.o: C-kern/string/urlencode_string.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!stringstream.c.o: C-kern/string/stringstream.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c

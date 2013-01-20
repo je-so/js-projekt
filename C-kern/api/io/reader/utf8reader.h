@@ -3,6 +3,8 @@
    This reader decodes UTF-8 multibyte text content into a <unicode_t> character
    and maintains additional information about the current line number and column.
 
+   TODO: Adapt to instream_t
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -52,16 +54,16 @@ int unittest_io_reader_utf8reader(void) ;
  * Reading a character advances this positions. */
 struct utf8reader_t {
    const uint8_t  * next ;
-   size_t         size ;
-   size_t         linenr ;
+   const uint8_t  * end ;
    size_t         colnr ;
+   size_t         linenr ;
 } ;
 
 // group: lifetime
 
 /* define: utf8reader_INIT_FREEABLE
  * Static initializer.  */
-#define utf8reader_INIT_FREEABLE   { 0, 0, 0, 0}
+#define utf8reader_INIT_FREEABLE       { 0, 0, 0, 0 }
 
 /* function: init_utf8reader
  * Inits *utfread* to point to text at *textaddr* with *length* bytes. */
@@ -75,8 +77,8 @@ void free_utf8reader(utf8reader_t * utfread) ;
 
 /* function: isnext_utf8reader
  * Returns true if there is at least one byte to read.
- * It is possible that a character is encoded in up to 4 bytes
- * and that the string no more contains that many bytes. In this
+ * It is possible that a character is encoded into several bytes
+ * and the string does contain less bytes. In this
  * case <nextchar_utf8reader> or <skipchar_utf8reader> return EILSEQ. */
 bool isnext_utf8reader(const utf8reader_t * utfread) ;
 
@@ -113,7 +115,7 @@ size_t unreadsize_utf8reader(utf8reader_t * utfread) ;
 /* function: savetextpos_utf8reader
  * Saves the current textposition from *utfread* into *memento*.
  * You can restore it later with a call to <restoretextpos_utf8reader>. */
-void savetextpos_utf8reader(const utf8reader_t * utfread, utf8reader_t * memento) ;
+void savetextpos_utf8reader(const utf8reader_t * utfread, /*out*/utf8reader_t * memento) ;
 
 /* function: restoretextpos_utf8reader
  * Restores the current textposition from *memento* into *utfread*.
@@ -217,33 +219,35 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
 /* define: free_utf8reader
  * Implements <utf8reader_t.free_utf8reader>. */
 #define free_utf8reader(utfread)       \
-   do {     (utfread)->next    = 0 ;   \
-            (utfread)->size    = 0 ;   \
-            (utfread)->linenr  = 0 ;   \
-            (utfread)->colnr   = 0 ;   \
+   do {     (utfread)->next   = 0 ;    \
+            (utfread)->end    = 0 ;    \
+            (utfread)->colnr  = 0 ;    \
+            (utfread)->linenr = 0 ;    \
    } while(0)
 
 /* define: init_utf8reader
  * Implements <utf8reader_t.init_utf8reader>. */
 #define init_utf8reader(utfread, _size, textaddr)  \
-   do {     (utfread)->next    = (textaddr) ;      \
-            (utfread)->size    = (_size) ;         \
-            (utfread)->linenr  = 1 ;               \
-            (utfread)->colnr   = 0 ;               \
+   do {     (utfread)->next   = (textaddr) ;       \
+            (utfread)->end    = (utfread)->next    \
+                                + (_size) ;        \
+            (utfread)->colnr  = 0 ;                \
+            (utfread)->linenr = 1 ;                \
    } while(0)
 
 /* define: isnext_utf8reader
  * Implements <utf8reader_t.isnext_utf8reader>. */
 #define isnext_utf8reader(utfread)                       \
-            (0 != (utfread)->size)
+            ((utfread)->next < (utfread)->end)
 
 /* define: nextchar_utf8reader
  * Implements <utf8reader_t.nextchar_utf8reader>. */
 #define nextchar_utf8reader(utfread, nxtchar)            \
    ( __extension__ ({                                    \
             typeof(utfread) _rd1 = (utfread) ;           \
-            int _err = nextcharutf8_string(              \
-                     (string_t*)_rd1, (nxtchar)) ;       \
+            int _err = nextutf8_stringstream(            \
+                  genericcast_stringstream(_rd1),        \
+                  (nxtchar)) ;                           \
             if (0 == _err) {                             \
                ++ _rd1->colnr ;                          \
                if ('\n' == *(nxtchar)) {                 \
@@ -283,10 +287,11 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
  * Implements <utf8reader_t.peekasciiatoffset_utf8reader>. */
 #define peekasciiatoffset_utf8reader(utfread, offset, nextascii) \
    ( __extension__ ({                                    \
-            int             _err2 ;                      \
             typeof(utfread) _rd2  = (utfread) ;          \
-            size_t          _off2 = (offset) ;           \
-            if (_rd2->size > _off2) {                    \
+            int    _err2 ;                               \
+            size_t _off2 = (offset) ;                    \
+            size_t _size = unreadsize_utf8reader(_rd2) ; \
+            if (_size > _off2) {                         \
                *(nextascii) = _rd2->next[_off2] ;        \
                _err2 = 0 ;                               \
             } else {                                     \
@@ -314,7 +319,6 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
             bool _isnext = isnext_utf8reader(_urd1) ;    \
             if (_isnext) {                               \
                ++ _urd1->colnr ;                         \
-               -- _urd1->size ;                          \
                if ('\n' == *(_urd1->next ++)) {          \
                   ++ _urd1->linenr ;                     \
                   _urd1->colnr = 0 ;                     \
@@ -334,15 +338,13 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
                   ++ _rd1->linenr ;                      \
                   _rd1->colnr = 0 ;                      \
                   ++ _rd1->next ;                        \
-                  -- _rd1->size ;                        \
                } else {                                  \
                   uint8_t _sz ;                          \
                   _sz = sizechar_utf8(firstbyte) ;       \
-                  if (_sz > _rd1->size) {                \
+                  if (_sz > (_rd1->end - _rd1->next)) {  \
                      _err = EILSEQ ;                     \
                   } else {                               \
-                     _rd1->next += _sz ;                 \
-                     _rd1->size -= _sz ;                 \
+                     _rd1->next += _sz + (_sz==0) ;      \
                      ++ _rd1->colnr ;                    \
                   }                                      \
                }                                         \
@@ -357,11 +359,10 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
 #define skipNbytes_utf8reader(utfread, nrbytes, nrchars) \
    do {                                                  \
             typeof(utfread) _urd1 = (utfread) ;          \
-            size_t          _nrb1 = (nrbytes) ;          \
-            bool _isnext = (_urd1->size >= _nrb1) ;      \
-            if (_isnext) {                               \
+            size_t _nrb1 = (nrbytes) ;                   \
+            size_t _size = unreadsize_utf8reader(_urd1); \
+            if (_size > _nrb1)  {                        \
                _urd1->next  += _nrb1 ;                   \
-               _urd1->size  -= _nrb1 ;                   \
                _urd1->colnr += (nrchars) ;               \
             }                                            \
    } while(0)
@@ -375,7 +376,7 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
 /* define: unreadsize_utf8reader
  * Implements <utf8reader_t.unreadsize_utf8reader>. */
 #define unreadsize_utf8reader(utfread)                   \
-            ((utfread)->size)
+            ((size_t)((utfread)->end - (utfread)->next))
 
 
 #endif

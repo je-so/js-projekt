@@ -3,6 +3,7 @@
 
    TODO: remove module; either replace it with another implementation (see iconv(3))
          or with an external process which converts local character sets into UTF-8.
+         Consider 32bit unicode support in C11
 
    about: Copyright
    This program is free software.

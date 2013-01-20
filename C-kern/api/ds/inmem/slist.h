@@ -274,7 +274,7 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
 
 /* define: genericcast_slist
  * Implements <slist_t.genericcast_slist>. */
-#define genericcast_slist(list)                                                    \
+#define genericcast_slist(list)                                                  \
    ( __extension__ ({                                                            \
       static_assert(offsetof(typeof(*(list)), last) == offsetof(slist_t, last),  \
          "ensure same structure") ;                                              \

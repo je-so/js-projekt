@@ -832,7 +832,7 @@ static int addchar_suffixtree(suffixtree_t * tree, suffixtree_addstate_t * state
                break ; // done
             } else {
                // step down
-               skipbytes_string(&match, nodelen) ;
+               shrinkleft_string(&match, nodelen) ;
                state->pos.parent = state->pos.node ;
             }
          }
@@ -977,7 +977,7 @@ ONABORT:
 }
 
 /* function: findstring_suffixtree
- * Searches beginning from root the node which searchstring.
+ * Searches the node matching searchstring beginning from root.
  * The out parameter pos contains after successul return the
  * found node, its parent, and the number of bytes which are
  * matched from the beginning of the string in node.
@@ -1022,7 +1022,7 @@ static int findstring_suffixtree(
          }
       }
 
-      skipbytes_string(searchstring, node_len) ;
+      shrinkleft_string(searchstring, node_len) ;
       parent = node ;
    }
 
@@ -1454,7 +1454,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43122,44320,44598,60055,60179,60292,60347} ;
+   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43127,44325,44603,60060,60184,60297,60352} ;
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

@@ -92,8 +92,7 @@ static void skipempty_csvfilereaderparsestate(csvfilereader_parsestate_t * state
 
 static size_t colnr_csvfilereaderparsestate(csvfilereader_parsestate_t * state)
 {
-   string_t cstr = string_INIT(state->offset - state->startofline, &state->data[state->startofline]) ;
-   return 1 + utf8len_string(&cstr) ;
+   return 1 + length_utf8(&state->data[state->startofline], &state->data[state->offset]) ;
 }
 
 /* function: parsechar_csvfilereaderparsestate

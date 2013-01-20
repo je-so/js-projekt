@@ -26,6 +26,9 @@
 #ifndef CKERN_API_STRING_HEADER
 #define CKERN_API_STRING_HEADER
 
+// forward
+struct stringstream_t ;
+
 /* typedef: struct string_t
  * Export <string_t>. */
 typedef struct string_t                string_t ;
@@ -48,7 +51,7 @@ int unittest_string(void) ;
  * Null bytes are allowed in the string cause <size> describes
  * the length of string and not any implicit trailing \0 byte.
  * If you want to convert this string into a C string, i.e. either (char *)
- * or <cstring_t> make sure that is does not include any \0 byte.
+ * or <cstring_t> make sure that it does not contain any \0 byte.
  *
  * Empty string:
  * The empty string is represented as
@@ -101,6 +104,11 @@ struct string_t {
  * string  - Address of first character. */
 static inline void init_string(/*out*/string_t * str, size_t size, const uint8_t string[size]) ;
 
+/* function: initsubstr_string
+ * Copies content of srcstr to str. The two string objects are not allowed to overlap.
+ * Only references are copied. The characters in memory are not copied. */
+static inline void initcopy_string(/*out*/string_t * str, const string_t * restrict srcstr) ;
+
 /* function: initfl_string
  * Assigns static string buffer to str.
  * To initialize as empty string set last to a value smaller first.
@@ -121,6 +129,20 @@ int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * 
  * end    - Address of memory after last character. */
 int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * end) ;
 
+/* function: initsubstr_string
+ * Initializes str with substring of fromstr.
+ * Same as calling <initcopy_string>(str,fromstr) and then calling <substr_string>(str,start_offset,size). */
+int initsubstr_string(/*out*/string_t * str, const string_t * restrict fromstr, size_t start_offset, size_t size) ;
+
+/* function: initfromstringstream_string
+ * Initializes str with content of <stringstream_t>.
+ * The string points to the unread string buffer of <stringstream_t>. */
+void initfromstringstream_string(/*out*/string_t * str, const struct stringstream_t * strstream) ;
+
+/* function: free_string
+ * Sets string to <string_INIT_FREEABLE>. */
+void free_string(string_t * str) ;
+
 // group: query
 
 /* function: isfree_string
@@ -132,6 +154,27 @@ bool isfree_string(const string_t * str) ;
  * is considered an empty string. Use <isfree_string> to check if it is uninitialized. */
 bool isempty_string(const string_t * str) ;
 
+/* function: addr_string
+ * Returns the start address of the string in memory.
+ * The start address is the lowest address in memory.
+ * To access the second byte of the string use
+ * > string_t str = string_INIT(...) ;
+ * > uint8_t  seconde_byte = addr_string(&str)[1] ;
+ * */
+const uint8_t * addr_string(const string_t * str) ;
+
+/* function: size_string
+ * Returns size in bytes of string. The size is not the same as the number of contained characters.
+ * A character can occupy more than one byte in memory so the size of a string is the upper limit
+ * of the number of contained characters. */
+size_t size_string(const string_t * str) ;
+
+/* function: findbyte_string
+ * Finds byte in string.
+ * The returned value points to the position of the found byte.
+ * The value 0 is returned if *str* does not contain the byte. */
+const uint8_t * findbyte_string(const string_t * str, uint8_t byte) ;
+
 // group: compare
 
 /* function: isequalasciicase_string
@@ -141,26 +184,39 @@ bool isequalasciicase_string(const string_t * str, const string_t * str2) ;
 
 // group: change
 
-/* function: skipbytes_string
- * Increments the start address of the string and decrements its length by size bytes.
- * Call this function only if you know that (<string_t.size> >= size) is valid.
- * The content of the string is not changed. */
-void skipbytes_string(string_t * str, size_t size) ;
+/* function: substr_string
+ * The string is made a substring of itself. Call <initsubstr_string> if you want to keep the original.
+ * If the precondition fails EINVAL is returned.
+ *
+ * Parameter:
+ * start_offset - The start address of substring relative to the previous start address (see <addr_string>).
+ *                This value must be smaller or equal than <size_string>(str).
+ * size         - The size (length) in number of bytes of the substring.
+ *                This value must be smaller or equal than (<size_string>(str)-start_offset). */
+int substr_string(string_t * str, size_t start_offset, size_t size) ;
+
+/* function: shrinkleft_string
+ * Shrinks size of string by skipping bytes from the start.
+ * Increments the start address of the string and decrements its size by nr_bytes_removed_from_string_start.
+ * The parameter nr_bytes_removed_from_string_start must be smaller or equal to <size_string>(str).
+ * If the precondition fails EINVAL is returned. */
+int shrinkleft_string(string_t * str, size_t nr_bytes_removed_from_string_start) ;
+
+/* function: keeplast_string
+ * Shrinks size of string by decrementing its size.
+ * The parameter nr_bytes_removed_from_string_end must be smaller or equal to <size_string>(str).
+ * If the precondition fails EINVAL is returned.
+ * After successfull return the size is decremented by nr_bytes_removed_from_string_end.
+ * The start address of the string keeps the same. */
+int shrinkright_string(string_t * str, size_t nr_bytes_removed_from_string_end) ;
 
 /* function: skipbyte_string
  * Increments the start address of the string by one and decrements its size.
- * Call this function only if you know that <isempty_string> does return *false*.
- * The content of the string is not changed. */
+ *
+ * Attention:
+ * Call this function only if you know that <isempty_string> does return *false*. */
 void skipbyte_string(string_t * str) ;
 
-/* function: tryskipbytes_string
- * Tries to increments the start address of the string and decrements its length by size bytes.
- * The content of the string is not changed.
- *
- * Returns:
- * 0      - The address was successul incremented and the length decrementd by size bytes.
- * EINVAL - The condition (<string_t.size> >= size) is false. *str* is not changed and no error is logged. */
-int tryskipbytes_string(string_t * str, size_t size) ;
 
 // group: generic
 
@@ -172,6 +228,18 @@ const string_t * genericcast_string(const void * obj) ;
 // section: inline implementation
 
 // group: string_t
+
+/* define: addr_string
+ * Implements <string_t.addr_string>. */
+#define addr_string(str)                        ((str)->addr)
+
+/* function: findbyte_string
+ * Implements <string_t.findbyte_string>. */
+#define findbyte_string(str, byte)              ((const uint8_t*)memchr((str)->addr, (uint8_t)(byte), (str)->size))
+
+/* function: free_string
+ * Implements <string_t.free_string>. */
+#define free_string(str)                        ((void)((*str) = (string_t)string_INIT_FREEABLE))
 
 /* function: genericcast_string
  * Implements <string_t.genericcast_string>. */
@@ -207,6 +275,13 @@ static inline void init_string(/*out*/string_t * str, size_t size, const uint8_t
    str->size = size ;
 }
 
+/* function: initcopy_string
+ * Implements <string_t.initcopy_string>. */
+static inline void initcopy_string(/*out*/string_t * str, const string_t * restrict srcstr)
+{
+   *str = *srcstr ;
+}
+
 /* define: isempty_string
  * Implements <string_t.isempty_string>. */
 #define isempty_string(str)                     (0 == (str)->size)
@@ -215,27 +290,9 @@ static inline void init_string(/*out*/string_t * str, size_t size, const uint8_t
  * Implements <string_t.isfree_string>. */
 #define isfree_string(str)                      (0 == (str)->addr && 0 == (str)->size)
 
-/* define: skipbytes_string
- * Implements <string_t.skipbytes_string>. */
-#define skipbytes_string(str, _size)            \
-   do {                                         \
-      size_t _size2 = (_size) ;                 \
-      (str)->addr += _size2 ;                   \
-      (str)->size -= _size2 ;                   \
-   } while(0)
-
-/* define: tryskipbytes_string
- * Implements <string_t.tryskipbytes_string>. */
-#define tryskipbytes_string(str, _size)         \
-   ( __extension__ ({                           \
-      size_t _size2 = (_size) ;                 \
-      int    _err = ((str)->size < _size2) ;    \
-      if (!_err) {                              \
-         (str)->addr += _size2 ;                \
-         (str)->size -= _size2 ;                \
-      }                                         \
-      (_err ? EINVAL : 0) ;                     \
-   }))
+/* define: size_string
+ * Implements <string_t.size_string>. */
+#define size_string(str)                      ((str)->size)
 
 /* define: skipbyte_string
  * Implements <string_t.skipbyte_string>. */

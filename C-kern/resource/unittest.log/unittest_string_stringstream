@@ -1,0 +1,4 @@
+C-kern/string/stringstream.c:44: init_stringstream(): error: 22: Function input violates condition (startaddr <= endaddr)
+C-kern/string/stringstream.c:51: init_stringstream(): error: 22: Function aborted
+C-kern/string/stringstream.c:61: initfromstring_string(): error: 22: Function input violates condition (addr_string(str) <= end)
+C-kern/string/stringstream.c:68: initfromstring_string(): error: 22: Function aborted

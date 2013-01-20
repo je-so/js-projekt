@@ -294,6 +294,7 @@ int run_unittest(void)
       RUN(unittest_string_convertwchar) ;
       RUN(unittest_string_cstring) ;
       RUN(unittest_string_base64encode) ;
+      RUN(unittest_string_stringstream) ;
       RUN(unittest_string_urlencode) ;
       RUN(unittest_string_utf8) ;
 //}

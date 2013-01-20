@@ -35,6 +35,7 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/string/string.h"
+#include "C-kern/api/string/stringstream.h"
 
 
 typedef struct proglangC_t             proglangC_t ;
@@ -756,7 +757,7 @@ static int match_string(textresource_reader_t * reader, const char * string)
    err = skip_spaceandcomment(reader) ;
    if (err) goto ONABORT ;
 
-   if (     unreadsize_utf8reader(&reader->txtpos) < len
+   if (  unreadsize_utf8reader(&reader->txtpos) < len
          || 0 != strncmp((const char*)unread_utf8reader(&reader->txtpos), string, len)) {
       skipchar_utf8reader(&reader->txtpos) ;
       report_parseerror(reader, "expected to read »%s«", string) ;
@@ -1406,26 +1407,24 @@ static int parse_xmlattribute_textresourcereader(textresource_reader_t * reader,
    const uint8_t * name_end   = name_start ;
 
    while (0 == nextchar_utf8reader(&reader->txtpos, &ch)) {
-      if ('a' <= ch && ch <= 'z') continue ;
+      if (!('a' <= ch && ch <= 'z')) break ;
+   }
 
-      name_end = unread_utf8reader(&reader->txtpos) - 1 ;
-      if (name_end == name_start) {
-         report_parseerror(reader, "expect non empty attribute name") ;
-         return EINVAL ;
-      }
+   name_end = unread_utf8reader(&reader->txtpos) - 1 ;
+   if (name_end == name_start) {
+      report_parseerror(reader, "expect non empty attribute name") ;
+      return EINVAL ;
+   }
 
-      if ('\t' == ch || ' ' == ch) {
-         err = skip_spaceandcomment(reader) ;
-         if (err) return err ;
-         (void) nextchar_utf8reader(&reader->txtpos, &ch) ;
-      }
+   if ('\t' == ch || ' ' == ch) {
+      err = skip_spaceandcomment(reader) ;
+      if (err) return err ;
+      (void) nextchar_utf8reader(&reader->txtpos, &ch) ;
+   }
 
-      if ('=' != ch) {
-         report_parseerror(reader, "expect '=' after attribute name") ;
-         return EINVAL ;
-      }
-
-      break ;
+   if ('=' != ch) {
+      report_parseerror(reader, "expect '=' after attribute name") ;
+      return EINVAL ;
    }
 
    err = skip_spaceandcomment(reader) ;

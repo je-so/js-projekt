@@ -1,0 +1,20 @@
+C-kern/string/string.c:74: initsubstr_string(): error: 22: Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
+C-kern/string/string.c:81: initsubstr_string(): error: 22: Function aborted
+C-kern/string/string.c:74: initsubstr_string(): error: 22: Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
+C-kern/string/string.c:81: initsubstr_string(): error: 22: Function aborted
+C-kern/string/string.c:43: initfl_string(): error: 22: Function input violates condition ((uintptr_t)last+1 > (uintptr_t)last)
+C-kern/string/string.c:50: initfl_string(): error: 22: Function aborted
+C-kern/string/string.c:58: initse_string(): error: 22: Function input violates condition ((uintptr_t)end >= (uintptr_t)start)
+C-kern/string/string.c:65: initse_string(): error: 22: Function aborted
+C-kern/string/string.c:121: substr_string(): error: 22: Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
+C-kern/string/string.c:128: substr_string(): error: 22: Function aborted
+C-kern/string/string.c:121: substr_string(): error: 22: Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
+C-kern/string/string.c:128: substr_string(): error: 22: Function aborted
+C-kern/string/string.c:121: substr_string(): error: 22: Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
+C-kern/string/string.c:128: substr_string(): error: 22: Function aborted
+C-kern/string/string.c:121: substr_string(): error: 22: Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
+C-kern/string/string.c:128: substr_string(): error: 22: Function aborted
+C-kern/string/string.c:136: shrinkleft_string(): error: 22: Function input violates condition (nr_bytes_removed_from_string_start <= size_string(str))
+C-kern/string/string.c:143: shrinkleft_string(): error: 22: Function aborted
+C-kern/string/string.c:151: shrinkright_string(): error: 22: Function input violates condition (nr_bytes_removed_from_string_end <= size_string(str))
+C-kern/string/string.c:157: shrinkright_string(): error: 22: Function aborted
