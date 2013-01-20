@@ -76,7 +76,7 @@ static int parsepart_url(url_part_e part, url_parts_t * parts, const uint8_t ** 
 
    assert(endmarker < 0x80) ;
 
-   for(c = *next; endmarker != c; c = *next) {
+   for (c = *next; endmarker != c; c = *next) {
       ++ next ;
    }
 
@@ -96,7 +96,7 @@ static int parsepart2_url(url_part_e part, url_parts_t * parts, const uint8_t **
    assert(endmarker1 < 0x80) ;
    assert(endmarker2 < 0x80) ;
 
-   for(c = *next; endmarker1 != c && endmarker2 != c; c = *next) {
+   for (c = *next; endmarker1 != c && endmarker2 != c; c = *next) {
       ++ next ;
    }
 
@@ -112,12 +112,12 @@ static int parsepart2_url(url_part_e part, url_parts_t * parts, const uint8_t **
 int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, bool are_parts_encoded)
 {
    int err ;
-   size_t      decoded_sizes[nrelementsof(*parts)] ;
+   size_t      decoded_sizes[lengthof(*parts)] ;
    url_t       * newurl   = 0 ;
    size_t      len        = 0 ;
    uint16_t    buffidx    = 0 ;
 
-   for(unsigned i = 0; i < nrelementsof(*parts); ++i) {
+   for (unsigned i = 0; i < lengthof(*parts); ++i) {
       if ((*parts)[i].addr) {
          size_t decoded_size ;
 
@@ -152,7 +152,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
 
    // init newurl
    newurl->scheme = scheme ;
-   for(unsigned i = 0; i < nrelementsof(*parts); ++i) {
+   for (unsigned i = 0; i < lengthof(*parts); ++i) {
       if ((*parts)[i].addr) {
          size_t decoded_size = decoded_sizes[i] ;
          if (decoded_size < (*parts)[i].size) {
@@ -168,7 +168,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
          buffidx = (uint16_t) (buffidx + decoded_size) ;
          newurl->buffer[buffidx ++] = 0 ;
       }
-      static_assert( nrelementsof(newurl->parts) == nrelementsof(*parts), ) ;
+      static_assert(lengthof(newurl->parts) == lengthof(*parts), ) ;
       newurl->parts[i] = buffidx ;
    }
 
@@ -215,7 +215,7 @@ int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr)
       ++ next ;
       err = parsepart_url(url_part_PORT, &parts, &next, *slashpos) ;
       if (err) goto ONABORT ;
-      for(const uint8_t * nr = parts[url_part_PORT].addr; nr < next; ++nr) {
+      for (const uint8_t * nr = parts[url_part_PORT].addr; nr < next; ++nr) {
          if (!('0' <= *nr && *nr <= '9')) {
             err = EINVAL ;
             goto ONABORT ;
@@ -297,7 +297,7 @@ int delete_url(url_t ** url)
 int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
 {
    int err ;
-   size_t      sizeencoding[nrelementsof(url->parts)] = { 0 } ;
+   size_t      sizeencoding[lengthof(url->parts)] = { 0 } ;
    uint8_t     * start_result = 0 ;
    size_t      result_size    = sizeof("http://")-1 ;
 
@@ -310,7 +310,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    // calculate total length of result
    static_assert( 2 == sizeof(url->parts[0]), ) ;
    uint16_t buffer_offset = 0 ;
-   for(unsigned i = 0; i < nrelementsof(url->parts); ++i) {
+   for (unsigned i = 0; i < lengthof(url->parts); ++i) {
       size_t size = (size_t) (url->parts[i] - buffer_offset) ;
       if (size) {
          -- size ; // include no trailing '\0' byte
@@ -333,7 +333,7 @@ int encode_url(const url_t * url, wbuffer_t * encoded_url_string)
    uint8_t  * result = start_result + sizeof("http://")-1 ;
    bool     isuser   = false ;
    buffer_offset = 0 ;
-   for(unsigned i = 0; i < nrelementsof(url->parts); ++i) {
+   for (unsigned i = 0; i < lengthof(url->parts); ++i) {
       size_t size = (size_t) (url->parts[i] - buffer_offset) ;
       if (size) {
          -- size ; // copy no trailing '\0' byte

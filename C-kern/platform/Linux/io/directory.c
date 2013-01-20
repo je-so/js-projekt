@@ -453,7 +453,7 @@ static int test_directory_stream__nextdir(directory_t * dir, int test_flags_valu
    filetype_e   read_type ;
    int read_flag[100] = { 0 } ;
 
-   for(int i = 0; i < 100 * ((0!=(test_flags_value&2)) + (0!=(test_flags_value&1))); ++i) {
+   for (int i = 0; i < 100 * ((0!=(test_flags_value&2)) + (0!=(test_flags_value&1))); ++i) {
       unsigned read_number = 0 ;
       do {
          TEST(0 == next_directory(dir, &read_name, &read_type)) ;
@@ -482,7 +482,7 @@ static int test_directory_stream__nextdir(directory_t * dir, int test_flags_valu
    TEST(read_name == 0) ;
    TEST(read_type == ftUnknown) ;
    // all files found
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       TEST(test_flags_value == read_flag[i]) ;
    }
 
@@ -508,7 +508,7 @@ static int test_initfree(void)
    TEST(0 == new_directory(&dir, ".", NULL)) ;
    TEST(0 != dir) ;
    TEST(0 == glob("*", GLOB_PERIOD|GLOB_NOSORT, 0, &fndfiles)) ;
-   for(nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
+   for (nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
       if (!fname) {
          TEST(nr_files == fndfiles.gl_pathc) ;
          break ;
@@ -525,7 +525,7 @@ static int test_initfree(void)
    TEST(0 == new_directory(&dir, "", NULL)) ;
    TEST(0 != dir) ;
    TEST(0 == glob("*", GLOB_PERIOD|GLOB_NOSORT, 0, &fndfiles)) ;
-   for(nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
+   for (nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
       if (!fname) {
          TEST(nr_files == fndfiles.gl_pathc) ;
          break ;
@@ -563,7 +563,7 @@ static int test_initfree(void)
    TEST(0 == fchdir(fd_directory(temp_dir))) ;
    TEST(0 == glob("*", GLOB_PERIOD|GLOB_NOSORT, 0, &fndfiles)) ;
    TEST(0 == fchdir(fd_oldwd)) ;
-   for(nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
+   for (nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
       if (!fname) {
          TEST(nr_files == fndfiles.gl_pathc) ;
          break ;
@@ -578,7 +578,7 @@ static int test_initfree(void)
    // TEST init absolute pathname + relative_to
    TEST(0 == new_directory(&dir, "/", temp_dir)) ;
    TEST(0 == glob("/*", GLOB_PERIOD|GLOB_NOSORT, 0, &fndfiles)) ;
-   for(nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
+   for (nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
       if (!fname) {
          TEST(nr_files == fndfiles.gl_pathc) ;
          break ;
@@ -589,7 +589,7 @@ static int test_initfree(void)
    TEST(0 == delete_directory(&dir)) ;
 
    // TEST makedirecory & makefile
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
       TEST(0 == makefile_directory(temp_dir, filename, 0)) ;
@@ -633,7 +633,7 @@ static int test_initfree(void)
    TEST(0 == delete_directory(&dir)) ;
 
    // TEST removedirectory
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "dir_%06d", i) ;
       TEST(0 == removedirectory_directory(temp_dir, filename)) ;
@@ -645,7 +645,7 @@ static int test_initfree(void)
    TEST(0 == test_directory_stream__nextdir(temp_dir, 1)) ;
 
    // TEST removefile
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
       TEST(0 == removefile_directory(temp_dir, filename)) ;
@@ -699,7 +699,7 @@ static int test_workingdir(void)
    TEST(0 == new_directory(&local1, "", 0)) ;
    TEST(0 == new_directory(&local2, ".", 0)) ;
 
-   for(;;) {
+   for (;;) {
       const char  * name1, * name2 ;
       filetype_e  ft1,     ft2 ;
       TEST(0 == next_directory(local1, &name1, &ft1)) ;
@@ -731,7 +731,7 @@ static int test_filesize(void)
    TEST(0 == newtemp_directory(&tempdir, "tempdir", &tmppath)) ;
 
    // prepare
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
       TEST(0 == makefile_directory(tempdir, filename, 0)) ;
@@ -743,7 +743,7 @@ static int test_filesize(void)
    }
 
    // TEST filesize workdir != 0
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
       off_t file_size = -1 ;
@@ -753,7 +753,7 @@ static int test_filesize(void)
 
    // TEST filesize workdir == 0
    TEST(0 == fchdir(fd_directory(tempdir))) ;
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
       off_t file_size = -1 ;
@@ -763,7 +763,7 @@ static int test_filesize(void)
    TEST(0 == fchdir(fd_directory(workdir))) ;
 
    // unprepare
-   for(int i = 0; i < 100; ++i) {
+   for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
       TEST(0 == removefile_directory(tempdir, filename)) ;

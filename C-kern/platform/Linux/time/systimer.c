@@ -477,7 +477,7 @@ RESTART_TEST:
    // prepare
    clock_type = clocks[iclock] ;
 
-   for (unsigned i = 0; i < nrelementsof(systimer); ++i) {
+   for (unsigned i = 0; i < lengthof(systimer); ++i) {
       TEST(0 == init_systimer(systimer + i, clock_type)) ;
    }
 
@@ -487,7 +487,7 @@ RESTART_TEST:
    TEST(0 == start_systimer(systimer[0], &(timevalue_t){ .nanosec = 1000000 })) ;
    TEST(0 == start_systimer(systimer[1], &(timevalue_t){ .nanosec = 5000000 })) ;
    TEST(0 == start_systimer(systimer[2], &(timevalue_t){ .nanosec = 9000000 })) ;
-   for (unsigned i = 0; i < nrelementsof(systimer); ++i) {
+   for (unsigned i = 0; i < lengthof(systimer); ++i) {
       TEST(0 == remainingtime_systimer(systimer[i], &timeval)) ;
       TEST(0 == timeval.seconds) ;
       TEST( 900000 < timeval.nanosec) ;
@@ -504,7 +504,7 @@ RESTART_TEST:
    TEST(0 == timeval.seconds) ;
    TEST(7900000 < timeval.nanosec) ;
    TEST(8000000 > timeval.nanosec) ;
-   for (unsigned i = 0; i < nrelementsof(systimer); ++i) {
+   for (unsigned i = 0; i < lengthof(systimer); ++i) {
       TEST(0 == expirationcount_systimer(systimer[i], &expcount)) ;
       TEST(0 == expcount) ;
    }
@@ -515,7 +515,7 @@ RESTART_TEST:
    TEST(0 == timeval.seconds) ;
    TEST(3900000 < timeval.nanosec) ;
    TEST(4000000 > timeval.nanosec) ;
-   for (unsigned i = 0; i < nrelementsof(systimer); ++i) {
+   for (unsigned i = 0; i < lengthof(systimer); ++i) {
       TEST(0 == expirationcount_systimer(systimer[i], &expcount)) ;
       TEST(0 == expcount) ;
    }
@@ -554,16 +554,16 @@ RESTART_TEST:
    TEST(10100000 > elapsed_nanosec) ;
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(systimer); ++i) {
+   for (unsigned i = 0; i < lengthof(systimer); ++i) {
       TEST(0 == free_systimer(systimer + i)) ;
    }
 
    ++ iclock ;
-   if (iclock < nrelementsof(clocks)) goto RESTART_TEST ;
+   if (iclock < lengthof(clocks)) goto RESTART_TEST ;
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(systimer); ++i) {
+   for (unsigned i = 0; i < lengthof(systimer); ++i) {
       (void) free_systimer(systimer + i) ;
    }
    return EINVAL ;

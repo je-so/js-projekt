@@ -264,7 +264,7 @@ static int test_allocate(void)
    TEST(0 == allocatedsize_malloc(&number_of_allocated_bytes)) ;
 
    // TEST mresize_mmtransient empty block, sizeallocated_mmtransient
-   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
       TEST(0 == mresize_mmtransient(&mman, 16 * (1 + i), &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
@@ -278,7 +278,7 @@ static int test_allocate(void)
    }
 
    // TEST mresize_mmtransient allocated block, sizeallocated_mmtransient
-   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       void * oldaddr = mblocks[i].addr ;
       TEST(0 == mresize_mmtransient(&mman, 2000, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
@@ -293,7 +293,7 @@ static int test_allocate(void)
    }
 
    // TEST mfree_mmtransient, sizeallocated_mmtransient
-   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       TEST(0 == mfree_mmtransient(&mman, &mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
       TEST(0 == mblocks[i].addr) ;
@@ -320,7 +320,7 @@ static int test_mm_macros(void)
    memblock_t  mblocks[2] ;
 
    // TEST mresize empty block
-   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
       TEST(0 == RESIZE_MM(32 + 32 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
@@ -328,7 +328,7 @@ static int test_mm_macros(void)
    }
 
    // TEST mresize allocated block
-   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       void * oldaddr = mblocks[i].addr ;
       TEST(0 == RESIZE_MM(256 + 256 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
@@ -337,7 +337,7 @@ static int test_mm_macros(void)
    }
 
    // TEST mfree
-   for (unsigned i = 0; i < nrelementsof(mblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       TEST(0 == FREE_MM(&mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
       TEST(0 == mblocks[i].addr) ;

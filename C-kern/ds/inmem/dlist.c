@@ -339,10 +339,10 @@ static int test_initfree(void)
    typeadapt = old_typeadapt ;
 
    // TEST free_dlist: all inserted nodes
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertfirst_dlist(&list, &nodes[i].node)) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 != nodes[i].node.next) ;
       TEST(0 != nodes[i].node.prev) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -350,8 +350,8 @@ static int test_initfree(void)
    typeadapt.freenode_count = 0 ;
    TEST(0 == free_dlist(&list, &nodeadapt)) ;
    TEST(0 == list.last) ;
-   TEST(nrelementsof(nodes) == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(lengthof(nodes) == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -359,10 +359,10 @@ static int test_initfree(void)
    }
 
    // TEST free_dlist: error in second node
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_dlist(&list, &nodes[i].node)) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 != nodes[i].node.next) ;
       TEST(0 != nodes[i].node.prev) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -371,8 +371,8 @@ static int test_initfree(void)
    init_testerrortimer(&typeadapt.errcounter, 2, ENOMEM) ;
    TEST(ENOMEM == free_dlist(&list, &nodeadapt)) ;
    TEST(0 == list.last) ;
-   TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST((i!=1) == nodes[i].is_freed) ;
@@ -455,16 +455,16 @@ static int test_dlistiterator(void)
    TEST(0 == remove_dlist(&list, &nodes[0].node)) ;
 
    // TEST foreach, foreachReverse: loop over all elements
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_dlist(&list, &nodes[i].node)) ;
    }
    TEST(first_dlist(&list) == &nodes[0].node) ;
-   TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-1].node) ;
+   TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
    for (unsigned i = 0; 0 == i; i=1) {
       foreach (_dlist, &list, node) {
          TEST(node == &nodes[i++].node) ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
 
       foreachReverse (_dlist, &list, node) {
          TEST(node == &nodes[--i].node) ;
@@ -474,16 +474,16 @@ static int test_dlistiterator(void)
    TEST(0 == removeall_dlist(&list, 0)) ;
 
    // TEST foreach, foreachReverse: loop over all elements (reverse)
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertfirst_dlist(&list, &nodes[i].node)) ;
    }
-   TEST(first_dlist(&list) == &nodes[nrelementsof(nodes)-1].node) ;
+   TEST(first_dlist(&list) == &nodes[lengthof(nodes)-1].node) ;
    TEST(last_dlist(&list)  == &nodes[0].node) ;
    for (unsigned i = 0; 0 == i; i=1) {
       foreachReverse (_dlist, &list, node) {
          TEST(node == &nodes[i++].node) ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
 
       foreach (_dlist, &list, node) {
          TEST(node == &nodes[--i].node) ;
@@ -515,7 +515,7 @@ static int test_dlistiterator(void)
 
    // TEST foreach, foreachReverse: removing all current nodes
    for (unsigned i = 0; 0 == i; i=1) {
-      for(unsigned ni = 0; ni < nrelementsof(nodes); ++ni) {
+      for (unsigned ni = 0; ni < lengthof(nodes); ++ni) {
          TEST(0 == insertlast_dlist(&list, &nodes[ni].node)) ;
       }
       foreach (_dlist, &list, node) {
@@ -523,9 +523,9 @@ static int test_dlistiterator(void)
          TEST(0 == remove_dlist(&list, node)) ;
       }
       TEST(isempty_dlist(&list)) ;
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
 
-      for(unsigned ni = 0; ni < nrelementsof(nodes); ++ni) {
+      for (unsigned ni = 0; ni < lengthof(nodes); ++ni) {
          TEST(0 == insertlast_dlist(&list, &nodes[ni].node)) ;
       }
       foreachReverse (_dlist, &list, node) {
@@ -538,7 +538,7 @@ static int test_dlistiterator(void)
 
    // TEST foreach, foreachReverse: removing every 2nd node
    for (unsigned i = 0; 0 == i; i=1) {
-      for(unsigned ni = 0; ni < nrelementsof(nodes); ++ni) {
+      for (unsigned ni = 0; ni < lengthof(nodes); ++ni) {
          TEST(0 == insertlast_dlist(&list, &nodes[ni].node)) ;
       }
       foreach (_dlist, &list, node) {
@@ -547,19 +547,19 @@ static int test_dlistiterator(void)
             TEST(0 == remove_dlist(&list, node)) ;
          }
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
       i = 0 ;
       foreach (_dlist, &list, node) {
          TEST(node == &nodes[i+1].node) ;
          i += 2 ;
       }
-      TEST(i == nrelementsof(nodes) - (0x01 & nrelementsof(nodes))) ;
+      TEST(i == lengthof(nodes) - (0x01 & lengthof(nodes))) ;
 
       removeall_dlist(&list, 0) ;
-      for(unsigned ni = 0; ni < nrelementsof(nodes); ++ni) {
+      for (unsigned ni = 0; ni < lengthof(nodes); ++ni) {
          TEST(0 == insertlast_dlist(&list, &nodes[ni].node)) ;
       }
-      i = nrelementsof(nodes) ;
+      i = lengthof(nodes) ;
       foreachReverse (_dlist, &list, node) {
          TEST(node == &nodes[--i].node) ;
          if ((i&0x01)) {
@@ -567,12 +567,12 @@ static int test_dlistiterator(void)
          }
       }
       TEST(i == 0) ;
-      i = nrelementsof(nodes) ;
+      i = lengthof(nodes) ;
       foreachReverse (_dlist, &list, node) {
-         TEST(node == &nodes[i-1-(0x01 & (nrelementsof(nodes)-1))].node) ;
+         TEST(node == &nodes[i-1-(0x01 & (lengthof(nodes)-1))].node) ;
          i -= 2 ;
       }
-      TEST(i == -(unsigned)(0x01 & nrelementsof(nodes))) ;
+      TEST(i == -(unsigned)(0x01 & lengthof(nodes))) ;
    }
 
    // ! removing of other nodes than the current is not supported !
@@ -606,24 +606,24 @@ static int test_insertremove(void)
    TEST(0 == first_dlist(&list)) ;
 
    // TEST insertfirst_dlist: whole array
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertfirst_dlist(&list, &nodes[i].node)) ;
       TEST(nodes[i].node.next != 0) ;
       TEST(nodes[i].node.prev != 0) ;
       TEST(last_dlist(&list)  == &nodes[0].node) ;
       TEST(first_dlist(&list) == &nodes[i].node) ;
    }
-   for(unsigned i = nrelementsof(nodes); (i--) > 0; ) {
-      TEST(nodes[i].node.next == &nodes[(i?i:nrelementsof(nodes))-1].node) ;
-      TEST(nodes[i].node.prev == &nodes[(i+1)%nrelementsof(nodes)].node) ;
+   for (unsigned i = lengthof(nodes); (i--) > 0; ) {
+      TEST(nodes[i].node.next == &nodes[(i?i:lengthof(nodes))-1].node) ;
+      TEST(nodes[i].node.prev == &nodes[(i+1)%lengthof(nodes)].node) ;
    }
 
    // TEST removeall_dlist: free all objects
    typeadapt.freenode_count = 0 ;
    TEST(0 == removeall_dlist(&list, &nodeadapt)) ;
    TEST(0 == list.last) ;
-   TEST(nrelementsof(nodes) == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(lengthof(nodes) == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -637,7 +637,7 @@ static int test_insertremove(void)
    TEST(0 == removeall_dlist(&list, 0)) ;
    TEST(0 == list.last) ;
    TEST(0 == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < 1; ++i) {
+   for (unsigned i = 0; i < 1; ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -653,7 +653,7 @@ static int test_insertremove(void)
    typeadapt = old_typeadapt ;
    TEST(0 == list.last) ;
    TEST(0 == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < 1; ++i) {
+   for (unsigned i = 0; i < 1; ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -673,21 +673,21 @@ static int test_insertremove(void)
    TEST(0 == first_dlist(&list)) ;
 
    // TEST insertlast_dlist: whole array
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_dlist(&list, &nodes[i].node)) ;
       TEST(nodes[i].node.next != 0) ;
       TEST(nodes[i].node.prev != 0) ;
       TEST(first_dlist(&list) == &nodes[0].node) ;
       TEST(last_dlist(&list)  == &nodes[i].node) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(nodes[i].node.prev == &nodes[(i?i:nrelementsof(nodes))-1].node) ;
-      TEST(nodes[i].node.next == &nodes[(i+1)%nrelementsof(nodes)].node) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(nodes[i].node.prev == &nodes[(i?i:lengthof(nodes))-1].node) ;
+      TEST(nodes[i].node.next == &nodes[(i+1)%lengthof(nodes)].node) ;
    }
    typeadapt.freenode_count = 0 ;
    TEST(0 == free_dlist(&list, &nodeadapt)) ;
-   TEST(nrelementsof(nodes) == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(lengthof(nodes) == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -697,31 +697,31 @@ static int test_insertremove(void)
    // TEST insertafter_dlist
    init_dlist(&list) ;
    TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
-   for(unsigned i = 2; i < nrelementsof(nodes); i+=2) {
+   for (unsigned i = 2; i < lengthof(nodes); i+=2) {
       TEST(last_dlist(&list) == &nodes[i-2].node) ;
       TEST(0 == insertafter_dlist(&list, &nodes[i-2].node, &nodes[i].node)) ;
       TEST(last_dlist(&list)  == &nodes[i].node) ;
       TEST(first_dlist(&list) == &nodes[0].node) ;
    }
-   for(unsigned i = 1; i < nrelementsof(nodes); i+=2) {
-      TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-2].node) ;
+   for (unsigned i = 1; i < lengthof(nodes); i+=2) {
+      TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-2].node) ;
       TEST(0 == insertafter_dlist(&list, &nodes[i-1].node, &nodes[i].node)) ;
       TEST(first_dlist(&list) == &nodes[0].node) ;
    }
-   TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-1].node) ;
+   TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
    for (unsigned i = 0; (i == 0); i = 1) {
       foreach (_dlist, &list, node) {
          TEST(node == &nodes[i].node) ;
-         TEST(node->prev == &nodes[(i?i:nrelementsof(nodes))-1].node) ;
-         TEST(node->next == &nodes[(i+1)%nrelementsof(nodes)].node) ;
+         TEST(node->prev == &nodes[(i?i:lengthof(nodes))-1].node) ;
+         TEST(node->next == &nodes[(i+1)%lengthof(nodes)].node) ;
          ++ i ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
    }
    typeadapt.freenode_count = 0 ;
    TEST(0 == removeall_dlist(&list, &nodeadapt)) ;
-   TEST(nrelementsof(nodes) == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(lengthof(nodes) == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -729,36 +729,36 @@ static int test_insertremove(void)
    }
 
    // TEST insertbefore_dlist
-   TEST(0 == insertfirst_dlist(&list, &nodes[nrelementsof(nodes)-2].node)) ;
-   for(unsigned i = nrelementsof(nodes)-2; i >= 2; i-=2) {
+   TEST(0 == insertfirst_dlist(&list, &nodes[lengthof(nodes)-2].node)) ;
+   for (unsigned i = lengthof(nodes)-2; i >= 2; i-=2) {
       TEST(first_dlist(&list) == &nodes[i].node) ;
       TEST(0 == insertbefore_dlist(&list, &nodes[i].node, &nodes[i-2].node)) ;
       TEST(first_dlist(&list) == &nodes[i-2].node) ;
-      TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-2].node) ;
+      TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-2].node) ;
    }
-   for(unsigned i = 1; i < nrelementsof(nodes); i+=2) {
-      if (i+1 == nrelementsof(nodes)) {
+   for (unsigned i = 1; i < lengthof(nodes); i+=2) {
+      if (i+1 == lengthof(nodes)) {
          TEST(0 == insertafter_dlist(&list, &nodes[i-1].node, &nodes[i].node)) ;
-         TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-1].node) ;
+         TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
       } else {
          TEST(0 == insertbefore_dlist(&list, &nodes[i+1].node, &nodes[i].node)) ;
-         TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-2].node) ;
+         TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-2].node) ;
       }
       TEST(first_dlist(&list) == &nodes[0].node) ;
    }
    for (unsigned i = 0; (i == 0); i = 1) {
       foreach (_dlist, &list, node) {
          TEST(node == &nodes[i].node) ;
-         TEST(node->prev == &nodes[(i?i:nrelementsof(nodes))-1].node) ;
-         TEST(node->next == &nodes[(i+1)%nrelementsof(nodes)].node) ;
+         TEST(node->prev == &nodes[(i?i:lengthof(nodes))-1].node) ;
+         TEST(node->next == &nodes[(i+1)%lengthof(nodes)].node) ;
          ++ i ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
    }
    typeadapt.freenode_count = 0 ;
    TEST(0 == free_dlist(&list, &nodeadapt)) ;
-   TEST(nrelementsof(nodes) == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(lengthof(nodes) == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -768,14 +768,14 @@ static int test_insertremove(void)
    // TEST removefirst_dlist
    init_dlist(&list) ;
    typeadapt.freenode_count = 0 ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_dlist(&list, &nodes[i].node)) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(first_dlist(&list) == &nodes[i].node) ;
       TEST(last_dlist(&list)  == nodes[i].node.prev) ;
-      TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-1].node) ;
-      TEST(first_dlist(&list) == nodes[nrelementsof(nodes)-1].node.next) ;
+      TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
+      TEST(first_dlist(&list) == nodes[lengthof(nodes)-1].node.next) ;
       TEST(0 == removefirst_dlist(&list, &removed_node)) ;
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
@@ -787,10 +787,10 @@ static int test_insertremove(void)
 
    // TEST removelast_dlist
    typeadapt.freenode_count = 0 ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_dlist(&list, &nodes[i].node)) ;
    }
-   for(unsigned i = nrelementsof(nodes); (i--) > 0;) {
+   for (unsigned i = lengthof(nodes); (i--) > 0;) {
       TEST(first_dlist(&list) == &nodes[0].node) ;
       TEST(last_dlist(&list)  == nodes[0].node.prev) ;
       TEST(last_dlist(&list)  == &nodes[i].node) ;
@@ -805,44 +805,44 @@ static int test_insertremove(void)
    TEST(0 == typeadapt.freenode_count) ;
 
    // TEST remove_dlist: node after (next node)
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_dlist(&list, &nodes[i].node)) ;
    }
    TEST(&nodes[1].node == next_dlist(&nodes[0].node)) ;
    TEST(0 == remove_dlist(&list, next_dlist(&nodes[0].node))) ;
    TEST(0 == nodes[1].node.next) ;
    TEST(0 == nodes[1].node.prev) ;
-   TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-1].node) ;
+   TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
    TEST(first_dlist(&list) == &nodes[0].node) ;
    TEST(first_dlist(&list) == next_dlist(last_dlist(&list))) ;
    TEST(0 == remove_dlist(&list, next_dlist(last_dlist(&list)))) ;
    TEST(0 == nodes[0].node.next) ;
    TEST(0 == nodes[0].node.prev) ;
-   TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-1].node) ;
+   TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
    TEST(first_dlist(&list) == &nodes[2].node) ;
-   TEST(last_dlist(&list)  == next_dlist(&nodes[nrelementsof(nodes)-2].node)) ;
-   TEST(0 == remove_dlist(&list, next_dlist(&nodes[nrelementsof(nodes)-2].node))) ;
-   TEST(0 == nodes[nrelementsof(nodes)-1].node.next) ;
-   TEST(0 == nodes[nrelementsof(nodes)-1].node.prev) ;
+   TEST(last_dlist(&list)  == next_dlist(&nodes[lengthof(nodes)-2].node)) ;
+   TEST(0 == remove_dlist(&list, next_dlist(&nodes[lengthof(nodes)-2].node))) ;
+   TEST(0 == nodes[lengthof(nodes)-1].node.next) ;
+   TEST(0 == nodes[lengthof(nodes)-1].node.prev) ;
    TEST(first_dlist(&list) == &nodes[2].node) ;
-   TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-2].node) ;
-   for(unsigned i = 2; i < nrelementsof(nodes)-2; i+=2) {
+   TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-2].node) ;
+   for (unsigned i = 2; i < lengthof(nodes)-2; i+=2) {
       TEST(0 == remove_dlist(&list, next_dlist(&nodes[i].node))) ;
       TEST(0 == nodes[i+1].node.next) ;
       TEST(0 == nodes[i+1].node.prev) ;
       TEST(first_dlist(&list) == &nodes[2].node) ;
-      TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-2].node) ;
+      TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-2].node) ;
    }
    for (unsigned i = 2; i == 2; ) {
       foreach (_dlist, &list, node) {
          TEST(node == &nodes[i].node) ;
-         TEST(node->prev == &nodes[(i>2)?i-2:nrelementsof(nodes)-2].node) ;
-         TEST(node->next == &nodes[(i<nrelementsof(nodes)-2)?i+2:2].node) ;
+         TEST(node->prev == &nodes[(i>2)?i-2:lengthof(nodes)-2].node) ;
+         TEST(node->next == &nodes[(i<lengthof(nodes)-2)?i+2:2].node) ;
          i += 2 ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
    }
-   for(unsigned i = nrelementsof(nodes)-4; i >= 2; i-=2) {
+   for (unsigned i = lengthof(nodes)-4; i >= 2; i-=2) {
       TEST(next_dlist(&nodes[i].node) == &nodes[i+2].node) ;
       TEST(0 == remove_dlist(&list, next_dlist(&nodes[i].node))) ;
       TEST(0 == nodes[i+2].node.next) ;
@@ -855,7 +855,7 @@ static int test_insertremove(void)
    TEST(0 == first_dlist(&list)) ;
    TEST(0 == last_dlist(&list)) ;
    TEST(1 == isempty_dlist(&list)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -863,47 +863,47 @@ static int test_insertremove(void)
    TEST(0 == typeadapt.freenode_count) ;
 
    // TEST remove_dlist: node before (prev node)
-   TEST(0 == insertlast_dlist(&list, &nodes[nrelementsof(nodes)-1].node)) ;
-   for(unsigned i = nrelementsof(nodes)-1; (i--) > 0;) {
+   TEST(0 == insertlast_dlist(&list, &nodes[lengthof(nodes)-1].node)) ;
+   for (unsigned i = lengthof(nodes)-1; (i--) > 0;) {
       TEST(0 == insertbefore_dlist(&list, &nodes[i+1].node, &nodes[i].node)) ;
    }
-   TEST(prev_dlist(last_dlist(&list)) == &nodes[nrelementsof(nodes)-2].node) ;
+   TEST(prev_dlist(last_dlist(&list)) == &nodes[lengthof(nodes)-2].node) ;
    TEST(0 == remove_dlist(&list, prev_dlist(last_dlist(&list)))) ;
-   TEST(0 == nodes[nrelementsof(nodes)-2].node.next) ;
-   TEST(0 == nodes[nrelementsof(nodes)-2].node.prev) ;
-   TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-1].node) ;
+   TEST(0 == nodes[lengthof(nodes)-2].node.next) ;
+   TEST(0 == nodes[lengthof(nodes)-2].node.prev) ;
+   TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
    TEST(first_dlist(&list) == &nodes[0].node) ;
    TEST(0 == remove_dlist(&list, prev_dlist(first_dlist(&list)))) ;
-   TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-3].node) ;
-   for(unsigned i = 0; i < nrelementsof(nodes)-2; i+=2) {
-      TEST(prev_dlist(&nodes[i].node) = &nodes[i?i-1:nrelementsof(nodes)-3].node) ;
+   TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-3].node) ;
+   for (unsigned i = 0; i < lengthof(nodes)-2; i+=2) {
+      TEST(prev_dlist(&nodes[i].node) = &nodes[i?i-1:lengthof(nodes)-3].node) ;
       TEST(0 == remove_dlist(&list, prev_dlist(&nodes[i].node))) ;
-      TEST(0 == nodes[i?i-1:nrelementsof(nodes)-3].node.next) ;
-      TEST(0 == nodes[i?i-1:nrelementsof(nodes)-3].node.prev) ;
+      TEST(0 == nodes[i?i-1:lengthof(nodes)-3].node.next) ;
+      TEST(0 == nodes[i?i-1:lengthof(nodes)-3].node.prev) ;
    }
-   TEST(last_dlist(&list) == &nodes[nrelementsof(nodes)-4].node) ;
+   TEST(last_dlist(&list) == &nodes[lengthof(nodes)-4].node) ;
    for (unsigned i = 0; 0 == i; ) {
       foreach (_dlist, &list, node) {
          TEST(node == &nodes[i].node) ;
-         TEST(node->prev == &nodes[i?i-2:nrelementsof(nodes)-4].node) ;
-         TEST(node->next == &nodes[(i<nrelementsof(nodes)-4)?i+2:0].node) ;
+         TEST(node->prev == &nodes[i?i-2:lengthof(nodes)-4].node) ;
+         TEST(node->next == &nodes[(i<lengthof(nodes)-4)?i+2:0].node) ;
          i += 2 ;
       }
-      TEST(i == nrelementsof(nodes)-2) ;
+      TEST(i == lengthof(nodes)-2) ;
    }
-   for(unsigned i = 2; i <= nrelementsof(nodes)-4; i+=2) {
+   for (unsigned i = 2; i <= lengthof(nodes)-4; i+=2) {
       TEST(0 == remove_dlist(&list, prev_dlist(&nodes[i].node))) ;
       TEST(0 == nodes[i-2].node.next) ;
       TEST(0 == nodes[i-2].node.prev) ;
    }
    // if there is only one node remove removes last
-   TEST(first_dlist(&list) == &nodes[nrelementsof(nodes)-4].node) ;
-   TEST(last_dlist(&list)  == &nodes[nrelementsof(nodes)-4].node) ;
-   TEST(0 == remove_dlist( &list, prev_dlist(&nodes[nrelementsof(nodes)-4].node))) ;
+   TEST(first_dlist(&list) == &nodes[lengthof(nodes)-4].node) ;
+   TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-4].node) ;
+   TEST(0 == remove_dlist( &list, prev_dlist(&nodes[lengthof(nodes)-4].node))) ;
    TEST(0 == first_dlist(&list)) ;
    TEST(0 == last_dlist(&list)) ;
    TEST(1 == isempty_dlist(&list)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -913,7 +913,7 @@ static int test_insertremove(void)
    // TEST insertfirst_dlist, insertlast_dlist, removelast_dlist, removefirst_dlist, remove_dlist: random order
    srand(100) ;
    for (unsigned i = 0; i < 10000; ++i) {
-      static_assert(100 <= nrelementsof(nodes), "no array overflow") ;
+      static_assert(100 <= lengthof(nodes), "no array overflow") ;
       unsigned id = (unsigned)rand() % 100u ;
       if (nodes[id].is_inserted) {
          nodes[id].is_inserted = 0 ;
@@ -944,7 +944,7 @@ static int test_insertremove(void)
       TEST(0 == remove_dlist(&list, first)) ;
       ((testnode_t*)first)->is_inserted = 0 ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
       TEST(0 == nodes[i].node.prev) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -1116,7 +1116,7 @@ static int test_generic(void)
    TEST(2 == nodes[3].is_freed) ;
    nodes[2].is_freed = 0 ;
    nodes[3].is_freed = 0 ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node1.next) ;
       TEST(0 == nodes[i].node1.prev) ;
       TEST(0 == nodes[i].node2.next) ;
@@ -1125,7 +1125,7 @@ static int test_generic(void)
    }
 
    // TEST free_dlist: error
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_glist1(&list1, &nodes[i])) ;
       TEST(0 == insertlast_glist2(&list2, &nodes[i])) ;
    }
@@ -1133,13 +1133,13 @@ static int test_generic(void)
    init_testerrortimer(&typeadapt.errcounter, 5, ENOSYS) ;
    TEST(ENOSYS == free_glist1(&list1, &nodeadapt1)) ;
    TEST(1 == isempty_glist1(&list1)) ;
-   TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;
+   TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 5, EINVAL) ;
    TEST(EINVAL == free_glist2(&list2, &nodeadapt2)) ;
    TEST(1 == isempty_glist2(&list2)) ;
-   TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node1.next) ;
       TEST(0 == nodes[i].node1.prev) ;
       TEST(0 == nodes[i].node2.next) ;
@@ -1149,35 +1149,35 @@ static int test_generic(void)
    }
 
    // TEST iterator, next_dlist, prev_dlist
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertfirst_glist1(&list1, &nodes[i])) ;
       TEST(0 == insertfirst_glist2(&list2, &nodes[i])) ;
    }
-   for(unsigned i = 0; !i; i=1) {
+   for (unsigned i = 0; !i; i=1) {
       foreachReverse (_glist1, &list1, node) {
-         TEST(&nodes[i?i-1:nrelementsof(nodes)-1] == next_glist1(node)) ;
+         TEST(&nodes[i?i-1:lengthof(nodes)-1] == next_glist1(node)) ;
          TEST(node == &nodes[i++]) ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
       foreach (_glist1, &list1, node) {
-         TEST(&nodes[i%nrelementsof(nodes)] == prev_glist1(node)) ;
+         TEST(&nodes[i%lengthof(nodes)] == prev_glist1(node)) ;
          TEST(node == &nodes[--i]) ;
       }
       TEST(i == 0) ;
       foreachReverse (_glist2, &list2, node) {
-         TEST(&nodes[i?i-1:nrelementsof(nodes)-1] == next_glist2(node)) ;
+         TEST(&nodes[i?i-1:lengthof(nodes)-1] == next_glist2(node)) ;
          TEST(node == &nodes[i++]) ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
       foreach (_glist2, &list2, node) {
-         TEST(&nodes[i%nrelementsof(nodes)] == prev_glist2(node)) ;
+         TEST(&nodes[i%lengthof(nodes)] == prev_glist2(node)) ;
          TEST(node == &nodes[--i]) ;
       }
       TEST(i == 0) ;
    }
    TEST(0 == free_glist1(&list1, 0)) ;
    TEST(0 == free_glist2(&list2, 0)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node1.next) ;
       TEST(0 == nodes[i].node1.prev) ;
       TEST(0 == nodes[i].node2.next) ;

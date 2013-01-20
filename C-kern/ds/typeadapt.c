@@ -300,61 +300,61 @@ static int test_generic(void)
    TEST((typeadapt_t*)&testadp == genericcast_typeadapt(&testadp, testadapt_t, testobject_t, double*)) ;
 
    // TEST callnewcopy_typeadapt
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       int callcount = testadp.call_count ;
       objptr = (testobject_t *)1 ;
       TEST(callcount == callnewcopy_typeadapt(&testadp, &objptr, &testobj[i])) ;
       TEST(0 == objptr) ;
       TEST(callcount + 1 == testadp.call_count) ;
    }
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       const testobject_t result = { .lifetime = { .is_newcopy = true } } ;
       TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].lifetime.is_newcopy = false ;
    }
 
    // TEST calldelete_typeadapt
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       int callcount = testadp.call_count ;
       objptr = &testobj[i] ;
       TEST(callcount == calldelete_typeadapt(&testadp, &objptr)) ;
       TEST(0 == objptr) ;
       TEST(callcount + 1 == testadp.call_count) ;
    }
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       const testobject_t result = { .lifetime = { .is_delete = true } } ;
       TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].lifetime.is_delete = false ;
    }
 
    // TEST callcmpkeyobj_typeadapt
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       int callcount = testadp.call_count ;
       double key = i ;
       TEST(callcount == callcmpkeyobj_typeadapt(&testadp, &key, &testobj[i])) ;
       TEST(i + 1  == key) ;
       TEST(callcount + 1 == testadp.call_count) ;
    }
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       const testobject_t result = { .comparator = { .is_cmpkeyobj = true } } ;
       TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].comparator.is_cmpkeyobj = false ;
    }
 
    // TEST callcmpobj_typeadapt
-   for (unsigned i = 0; i < nrelementsof(testobj); i += 2) {
+   for (unsigned i = 0; i < lengthof(testobj); i += 2) {
       int callcount = testadp.call_count ;
       TEST(callcount == callcmpobj_typeadapt(&testadp, &testobj[i], &testobj[i+1])) ;
       TEST(callcount + 1 == testadp.call_count) ;
    }
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       const testobject_t result = { .comparator = { .is_cmpobj = true } } ;
       TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].comparator.is_cmpobj = false ;
    }
 
    // TEST callgetbinarykey_typeadapt
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       int                   callcount = testadp.call_count + 1 ;
       typeadapt_binarykey_t binkey    = typeadapt_binarykey_INIT_FREEABLE ;
       testobj[i].key = 1 + i ;
@@ -363,31 +363,31 @@ static int test_generic(void)
       TEST(binkey.size == 1 + i) ;
       TEST(callcount   == testadp.call_count) ;
    }
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       const testobject_t result = { .getkey = { .is_getbinarykey = true } } ;
       TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].getkey.is_getbinarykey = false ;
    }
 
    // TEST callhashobject_typeadapt
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       int callcount = testadp.call_count ;
       TEST((size_t)callcount == callhashobject_typeadapt(&testadp, &testobj[i])) ;
       TEST(callcount + 1 == testadp.call_count) ;
    }
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       const testobject_t result = { .gethash = { .is_hashobject = true } } ;
       TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].gethash.is_hashobject = false ;
    }
 
    // TEST callhashkey_typeadapt
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       int callcount = testadp.call_count ;
       TEST((size_t)callcount == callhashkey_typeadapt(&testadp, (const double*)&testobj[i])) ;
       TEST(callcount + 1 == testadp.call_count) ;
    }
-   for (unsigned i = 0; i < nrelementsof(testobj); ++i) {
+   for (unsigned i = 0; i < lengthof(testobj); ++i) {
       const testobject_t result = { .gethash = { .is_hashkey = true } } ;
       TEST(true == isequal_testobject(&result, &testobj[i])) ;
       testobj[i].gethash.is_hashkey = false ;
@@ -426,7 +426,7 @@ static int test_typeadaptmember(void)
    TEST(isequal_typeadapttypeinfo(&tinfo, &nodeadp.typeinfo)) ;
 
    // TEST typeadapt_member_INIT
-   for(unsigned i = 1; i; i <<= 1) {
+   for (unsigned i = 1; i; i <<= 1) {
       nodeadp = (typeadapt_member_t) typeadapt_member_INIT((typeadapt_t*)i, i+1) ;
       tinfo   = (typeadapt_typeinfo_t) typeadapt_typeinfo_INIT(i+1) ;
       TEST((typeadapt_t*)i == nodeadp.typeadp) ;

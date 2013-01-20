@@ -213,7 +213,7 @@ int nropen_file(/*out*/size_t * number_open_fd)
 
    size_t         open_fds = (size_t)0 ;
    struct dirent  * name ;
-   for(;;) {
+   for (;;) {
       ++ open_fds ;
       errno = 0 ;
       name  = readdir(procself) ;
@@ -435,7 +435,7 @@ static int test_nropen(void)
    int     fds[128] ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(fds); ++i) {
+   for (unsigned i = 0; i < lengthof(fds); ++i) {
       fds[i] = file_INIT_FREEABLE ;
    }
 
@@ -445,7 +445,7 @@ static int test_nropen(void)
    TEST(3 <= openfd) ;
 
    // TEST nropen_file: increment
-   for (unsigned i = 0; i < nrelementsof(fds); ++i) {
+   for (unsigned i = 0; i < lengthof(fds); ++i) {
       fds[i] = open("/dev/null", O_RDONLY|O_CLOEXEC) ;
       TEST(0 < fds[i]) ;
       openfd2 = 0 ;
@@ -455,7 +455,7 @@ static int test_nropen(void)
    }
 
    // TEST nropen_file: decrement
-   for (unsigned i = 0; i < nrelementsof(fds); ++i) {
+   for (unsigned i = 0; i < lengthof(fds); ++i) {
       TEST(0 == free_file(&fds[i])) ;
       TEST(fds[i] == file_INIT_FREEABLE) ;
       openfd2 = 0 ;
@@ -466,7 +466,7 @@ static int test_nropen(void)
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(fds); ++i) {
+   for (unsigned i = 0; i < lengthof(fds); ++i) {
       free_file(&fds[i]) ;
    }
    return EINVAL ;
@@ -607,7 +607,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == makefile_directory(tempdir, "init1", 1999)) ;
    TEST(0 == checkpath_directory(tempdir, "init1")) ;
    TEST(0 == nropen_file(&nropenfd)) ;
-   for (unsigned i = 0; i < nrelementsof(modes); ++i) {
+   for (unsigned i = 0; i < lengthof(modes); ++i) {
       TEST(0 == init_file(&file, "init1", modes[i], tempdir)) ;
       TEST(modes[i] == accessmode_file(file)) ;
       TEST(isinit_file(file)) ;
@@ -886,7 +886,7 @@ static int test_readwrite(directory_t * tempdir)
 
    // TEST write_file: blocking write
    TEST(0 < (fd = openat(fd_directory(tempdir), "readwrite1", O_WRONLY|O_CLOEXEC))) ;
-   for(unsigned i = 0; i < 10000; ++i) {
+   for (unsigned i = 0; i < 10000; ++i) {
       byte = (uint8_t) i ;
       bytes_written = 0 ;
       TEST(0 == write_file(fd, 1, &byte, &bytes_written)) ;
@@ -896,7 +896,7 @@ static int test_readwrite(directory_t * tempdir)
 
    // TEST read_file: blocking read
    TEST(0 < (fd = openat(fd_directory(tempdir), "readwrite1", O_RDONLY|O_CLOEXEC))) ;
-   for(unsigned i = 0; i < 10000-1; ++i) {
+   for (unsigned i = 0; i < 10000-1; ++i) {
       byte = (uint8_t) (1+i) ;
       bytes_read = 0 ;
       TEST(0 == read_file(fd, 1, &byte, &bytes_read)) ;
@@ -956,7 +956,7 @@ static int test_readwrite(directory_t * tempdir)
    sleepms_thread(100) ;
    s_siguser_count  = 0 ;
    s_siguser_thread = 0 ;
-   for(int i = 0; i < 50; ++i) {
+   for (int i = 0; i < 50; ++i) {
       pthread_kill(thread->sys_thread, SIGUSR1) ;
       sleepms_thread(5) ;
    }
@@ -970,7 +970,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == delete_thread(&thread)) ;
 
    // TEST write with interrupts
-   for(size_t i = 0; i < pipe_buffersize; ++i) {
+   for (size_t i = 0; i < pipe_buffersize; ++i) {
       byte = 0 ;
       TEST(0 == write_file(pipefd[1], 1, &byte, 0)) ;
    }
@@ -980,11 +980,11 @@ static int test_readwrite(directory_t * tempdir)
    sleepms_thread(100) ;
    s_siguser_count  = 0 ;
    s_siguser_thread = 0 ;
-   for(int i = 0; i < 50; ++i) {
+   for (int i = 0; i < 50; ++i) {
       pthread_kill(thread->sys_thread, SIGUSR1) ;
       sleepms_thread(5) ;
    }
-   for(size_t i = 0; i < pipe_buffersize; ++i) {
+   for (size_t i = 0; i < pipe_buffersize; ++i) {
       byte = 1 ;
       TEST(0 == read_file(pipefd[0], 1, &byte, &bytes_read)) ;
       TEST(1 == bytes_read) ;
@@ -1003,7 +1003,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == free_file(&pipefd[0])) ;
    TEST(0 == free_file(&pipefd[1])) ;
    TEST(0 == pipe2(pipefd, O_CLOEXEC)) ;
-   for(size_t i = 0; i < pipe_buffersize-1; ++i) {
+   for (size_t i = 0; i < pipe_buffersize-1; ++i) {
       byte = 0 ;
       TEST(0 == write_file(pipefd[1], 1, &byte, 0)) ;
    }
@@ -1064,7 +1064,7 @@ static int test_allocate(directory_t * tempdir)
 
    // prepare
    TEST(0 == pipe2(pipefd, O_CLOEXEC)) ;
-   for (uint32_t i = 0; i < nrelementsof(buffer); ++i) {
+   for (uint32_t i = 0; i < lengthof(buffer); ++i) {
       buffer[i] = i ;
    }
 

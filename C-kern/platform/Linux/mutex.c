@@ -144,7 +144,7 @@ static int thread_loop(mutex_t * mutex)
 {
    int err = 0 ;
 
-   for(int i = 0 ; i < 1000000; ++i) {
+   for (int i = 0 ; i < 1000000; ++i) {
       int v = s_shared_wrong + 1 ;
       err = lock_mutex(mutex) ;
       if (err) break ;
@@ -161,7 +161,7 @@ static int thread_sloop(mutex_t * mutex)
 {
    int err = 0 ;
 
-   for(int i = 0 ; i < 100000; ++i) {
+   for (int i = 0 ; i < 100000; ++i) {
       int v = s_shared_wrong + 1 ;
       slock_mutex(mutex) ;
       ++ s_shared_count ;
@@ -604,7 +604,7 @@ static int test_mutex_interrupt(void)
    TEST(0 == lock_mutex(&mutex)) ;
    s_lockmutex_signal = 0 ;
    TEST(0 == new_thread(&thread1, &thread_lockmutex, &mutex)) ;
-   for(int i = 0; i < 1000; ++i) {
+   for (int i = 0; i < 1000; ++i) {
       if (s_lockmutex_signal) break ;
       sleepms_thread(1) ;
    }
@@ -612,7 +612,7 @@ static int test_mutex_interrupt(void)
    sleepms_thread(10) ;
    s_lockmutex_signal = 0 ;
    TEST(0 == pthread_kill(thread1->sys_thread, SIGUSR1)) ;
-   for(int i = 0; i < 1000; ++i) {
+   for (int i = 0; i < 1000; ++i) {
       if (s_lockmutex_signal) break ;
       sleepms_thread(1) ;
    }
@@ -639,7 +639,7 @@ int unittest_platform_sync_mutex()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   for(int i = 0; i < 2; ++i) {
+   for (int i = 0; i < 2; ++i) {
       // store current mapping
       TEST(0 == init_resourceusage(&usage)) ;
 

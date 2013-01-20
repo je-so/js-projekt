@@ -671,14 +671,14 @@ static int multsplit_biginthelper(bigint_t *restrict * result, uint16_t lnrdigit
    (*result)->exponent = (uint16_t) ((*result)->exponent + exponent) ;
 
    // free resources
-   for (unsigned i = 0; i < nrelementsof(t); ++i) {
+   for (unsigned i = 0; i < lengthof(t); ++i) {
       err = delete_bigint(&t[i]) ;
       if (err) goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(t); ++i) {
+   for (unsigned i = 0; i < lengthof(t); ++i) {
       delete_bigint(&t[i]) ;
    }
    clear_bigint(*result) ;
@@ -2006,9 +2006,9 @@ static int test_sign(void)
 
    // TEST xorsign_biginthelper
    int16_t signtestvalues[] = { INT16_MAX, 1, 0, -1, INT16_MIN } ;
-   for (unsigned i1 = 0; i1 < nrelementsof(signtestvalues); ++i1) {
+   for (unsigned i1 = 0; i1 < lengthof(signtestvalues); ++i1) {
       const int s1 = signtestvalues[i1] < 0 ? -1 : +1 ;
-      for (unsigned i2 = 0; i2 < nrelementsof(signtestvalues); ++i2) {
+      for (unsigned i2 = 0; i2 < lengthof(signtestvalues); ++i2) {
          const int s2 = signtestvalues[i2] < 0 ? -1 : +1 ;
          const int expected = s1 * s2 ;
          int16_t xorsign = xorsign_biginthelper(signtestvalues[i1], signtestvalues[i2]) ;
@@ -2160,7 +2160,7 @@ static int test_compare(void)
       { { 3, 3, 1, 2, 3 }, { 0, 6, 0, 0, 0, 1, 2, 3 } }
       ,{ { 500, 5, 0, 10, 12, 13, 1 }, { 501, 4, 10, 12, 13, 1 } }
    } ;
-   for (unsigned i = 0; i < nrelementsof(testvalues); ++i) {
+   for (unsigned i = 0; i < lengthof(testvalues); ++i) {
       big1->exponent = (uint16_t) testvalues[i][0][0] ;
       big2->exponent = (uint16_t) testvalues[i][1][0] ;
       big1->sign_and_used_digits = (int16_t) testvalues[i][0][1] ;
@@ -2189,7 +2189,7 @@ static int test_compare(void)
       ,{ { 0, 2, M, M-1 }, { 0, 2, M-1, M } }
    } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testvalues2); ++i) {
+   for (unsigned i = 0; i < lengthof(testvalues2); ++i) {
       big1->exponent = (uint16_t) testvalues2[i][0][0] ;
       big2->exponent = (uint16_t) testvalues2[i][1][0] ;
       big1->sign_and_used_digits = (int16_t) testvalues2[i][0][1] ;
@@ -2286,7 +2286,7 @@ static int test_initfree(void)
    TEST(32 == bitsperdigit_bigint()) ;
 
    // TEST init, double free
-   for (unsigned i = 0; i < nrelementsof(nrdigits); ++i) {
+   for (unsigned i = 0; i < lengthof(nrdigits); ++i) {
       TEST(0 == new_bigint(&big, nrdigits[i])) ;
       TEST(0 != big) ;
       uint16_t nrdig = (uint16_t) (nrdigits[i] < 4 ? 4 : nrdigits[i]) ;
@@ -2304,7 +2304,7 @@ static int test_initfree(void)
 
    // TEST initcopy: simple integers
    TEST(0 == new_bigint(&big, 32)) ;
-   for (unsigned i = 0; i < nrelementsof(copyvalues); ++i) {
+   for (unsigned i = 0; i < lengthof(copyvalues); ++i) {
       setfromint32_bigint(big, copyvalues[i]) ;
       TEST(0 == newcopy_bigint(&big2, big)) ;
       TEST((double)copyvalues[i] == todouble_bigint(big2)) ;
@@ -2314,7 +2314,7 @@ static int test_initfree(void)
 
    // TEST initcopy: integers of different lengths
    TEST(0 == new_bigint(&big, nrdigitsmax_bigint())) ;
-   for (unsigned i = 0; i < nrelementsof(copylength); ++i) {
+   for (unsigned i = 0; i < lengthof(copylength); ++i) {
       for (unsigned d = 0; d < (unsigned)copylength[i]; ++d) {
          big->digits[d] = i + d ;
       }
@@ -2396,7 +2396,7 @@ static int test_unaryops(void)
 
    // TEST removetrailingzero_bigint 1 digit
    const uint32_t values1digit[] = { 0, 1, UINT16_MAX-1, UINT16_MAX } ;
-   for (unsigned int i = 0 ; i < nrelementsof(values1digit); ++i) {
+   for (unsigned int i = 0 ; i < lengthof(values1digit); ++i) {
       setfromuint32_bigint(big, values1digit[i]) ;
       removetrailingzero_bigint(big) ;
       TEST(firstdigit_bigint(big) == values1digit[i]) ;
@@ -2414,7 +2414,7 @@ static int test_unaryops(void)
       ,{ 1, 0, 0, 0, UINT16_MAX, UINT16_MAX, 0, UINT16_MAX, 1, 2 }
       ,{ UINT16_MAX, 0, UINT16_MAX, 1, 100, 200, 1000, 0xff000000, 0xffff0000, 0xff00 }
    } ;
-   for (unsigned int i = 0 ; i < nrelementsof(values10digits); ++i) {
+   for (unsigned int i = 0 ; i < lengthof(values10digits); ++i) {
       for (int s =-1; s <= 1; s += 2) {
          // normal shift
          const unsigned offset   = 100 * (1+i) + i ;
@@ -2484,7 +2484,7 @@ static int test_assign(void)
    }
 
    // TEST copy_bigint: with and without allocating memory
-   for (unsigned i = 0; i < nrelementsof(copylength); ++i) {
+   for (unsigned i = 0; i < lengthof(copylength); ++i) {
       for (unsigned d = 0; d < copylength[i]; ++d) {
          big->digits[d] = 1 + (i+1) * d ;
       }
@@ -2512,7 +2512,7 @@ static int test_assign(void)
 
    // TEST setfromint32_bigint, setfromuint32_bigint
    uint32_t testvaluesint[7] = { 0, 1, 0xffffffff, 0x7fffffff, 0x80000000, 0x0f0f0f0f, 0xf0f0f0f0 } ;
-   for (unsigned i = 0; i < nrelementsof(testvaluesint); ++i) {
+   for (unsigned i = 0; i < lengthof(testvaluesint); ++i) {
       big->sign_and_used_digits = 0 ;
       big->exponent  = 1 ;
       big->digits[0] = ~ testvaluesint[i] ;
@@ -2540,7 +2540,7 @@ static int test_assign(void)
 
    // TEST setfromuint64_bigint
    uint64_t testvaluesint64[] = { 0, 1, 0xffffffff, 0x7fffffff, 0x80000000, 0x0f0f0f0f, 0xf0f0f0f0, 0xf0f0f0f0f0f0f0f0, 0x123456789abcdeff, 0x9999999900000000, UINT64_MAX, UINT64_MAX-1, INT64_MAX } ;
-   for (unsigned i = 0; i < nrelementsof(testvaluesint64); ++i) {
+   for (unsigned i = 0; i < lengthof(testvaluesint64); ++i) {
       big->sign_and_used_digits = -10 ;
       big->exponent  = 1 ;
       big->digits[0] = ~ (uint32_t)testvaluesint64[i] ;
@@ -2561,7 +2561,7 @@ static int test_assign(void)
 
    // TEST setfromdouble_bigint: absolute value < 1 (big is set to 0)
    double normalvalues[6] = { 0, -0, 0.9, -0.1, 0x1p-1022, -0x1p-1022 } ;
-   for (unsigned i = 0; i < nrelementsof(normalvalues); ++i) {
+   for (unsigned i = 0; i < lengthof(normalvalues); ++i) {
       TEST(0 == normalvalues[i] || FP_NORMAL == fpclassify(normalvalues[i])) ;
       big->sign_and_used_digits = -1 ;
       big->exponent = 1 ;
@@ -2575,7 +2575,7 @@ static int test_assign(void)
 
    // TEST setfromdouble_bigint: subnormal (big is set to 0)
    double subnormalvalues[2] = { 0x0.8p-1022, -0x0.8p-1022 } ;
-   for (unsigned i = 0; i < nrelementsof(subnormalvalues); ++i) {
+   for (unsigned i = 0; i < lengthof(subnormalvalues); ++i) {
       TEST(FP_SUBNORMAL == fpclassify(subnormalvalues[i])) ;
       big->sign_and_used_digits = -1 ;
       big->exponent = 1 ;
@@ -2607,7 +2607,7 @@ static int test_assign(void)
 
    // TEST setfromdouble_bigint: integer part (fractional part is discarded)
    double dvalues[5] = { UINT16_MAX, UINT32_MAX, 0x001FFFFFFFFFFFFFull, 0x123456789ABCDE00ull, 0xFEDCBA9876543800ull } ;
-   for (unsigned i = 0; i < nrelementsof(dvalues); ++i) {
+   for (unsigned i = 0; i < lengthof(dvalues); ++i) {
       double downscalef = 1.0 ;
       double upscalef   = 1.0 ;
       for (int iscale = 0; iscale <= 63; ++iscale) {
@@ -2835,7 +2835,7 @@ static int test_addsub(void)
    bigint_t    * big[4] = { 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], 1024)) ;
    }
 
@@ -2865,7 +2865,7 @@ static int test_addsub(void)
       ,{ { 6,7,9,0,0,0,M-1,M,M-1,1 }, { 6,7,9, 0, 0, 0, M, M, 0, 129/*special code*/ }, { 0,0,0,0,0,0,0,M,1,M } }
    } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows[i][nr], 0)) ;
       }
@@ -2888,7 +2888,7 @@ static int test_addsub(void)
    }
 
    // TEST add, sub with operands of different sign
-   for (unsigned i = 0; i < nrelementsof(testrows); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows[i][nr], 0)) ;
       }
@@ -2921,13 +2921,13 @@ static int test_addsub(void)
    }
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == delete_bigint(&big[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
    return EINVAL ;
@@ -2938,7 +2938,7 @@ static int test_mult(void)
    bigint_t    * big[4] = { 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
    }
 
@@ -2957,7 +2957,7 @@ static int test_mult(void)
       ,{ { 1, 3, M-99 }, { 0, 42949672/*M/100*/, M }, { 0,0,0,0,0,0,0,0,0, 100 } }
    } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows[i][nr], 0)) ;
       }
@@ -2991,7 +2991,7 @@ static int test_mult(void)
       ,{ { 1,2,3,4,0,1,2,3,4,0 }, { 0,0,0,0,0,0, 1, 2, 3, 4 }, { 0,0,0,1,0,0,0,0,1,1/*set to 0*/ } }
    } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows2); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows2); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows2[i][nr], 0)) ;
       }
@@ -3040,9 +3040,9 @@ static int test_mult(void)
 #undef M7
 #undef M8
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows3); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows3); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
-         TEST(0 == setlittlefirst_bigint(&big[nr], +1, nrelementsof(testrows3[0][0]), testrows3[i][nr], 0)) ;
+         TEST(0 == setlittlefirst_bigint(&big[nr], +1, lengthof(testrows3[0][0]), testrows3[i][nr], 0)) ;
       }
       TEST(0 == delete_bigint(&big[3])) ;
       TEST(0 == new_bigint(&big[3], 1)) ;
@@ -3215,13 +3215,13 @@ static int test_mult(void)
    TEST(EPROTO == mult_bigint(&big[3], big[2], big[1])) ;
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == delete_bigint(&big[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
    return EINVAL ;
@@ -3232,7 +3232,7 @@ static int test_divhelper(void)
    bigint_t * big[5] = { 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
    }
 
@@ -3246,7 +3246,7 @@ static int test_divhelper(void)
       ,{ 0xff00ff,0xffff00,UINT32_MAX,  UINT32_MAX,1,  16711935 }
       ,{ 0x80000001,0,UINT32_MAX,  0x80000002,0x40001,  4294967293}
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testdiv); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testdiv); ++tvi) {
       bigint_divstate_t divstate = {
          .dividend  = ((uint64_t)testdiv[tvi][0] << 32) + testdiv[tvi][1],
          .divisor   = ((uint64_t)testdiv[tvi][3] << 32) + testdiv[tvi][4],
@@ -3286,7 +3286,7 @@ static int test_divhelper(void)
       ,{ {M,M-1,8,8,8,8,8}, {M-1,M}, {1,0,M,M}, {1,0,9,6,8,8,8} }
    } ;
 #undef M
-   for (unsigned tvi = 0; tvi < nrelementsof(testsubmul); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testsubmul); ++tvi) {
       big[1]->digits[0] = 0 ;
       big[1]->digits[1] = 0 ;
       for (int i = 0; i < 4; ++i) {
@@ -3332,7 +3332,7 @@ static int test_divhelper(void)
       ,{ {0,0,0,0x1A034567,0xE67CBA98,0x32800000,0xCDF044FF,0x0011BE03,0xFEFE2D3B,0xFFFFCFC0}, {M-1}, {0x1A034568,0x00800000,0xF3000001,0x00F04500,0x01020304,0x00003040}, {0,0,0,0,0x1A034567,0x40800001,0xB3000001,0x00F04500,0x01020304,0x00003040} }
    } ;
 #undef M
-   for (unsigned tvi = 0; tvi < nrelementsof(testsubmul2); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testsubmul2); ++tvi) {
       big[1]->digits[0] = 0 ;
       for (int i = 0; i < 4; ++i) {
          TEST(0 == setbigfirst_bigint(&big[i], +1, 10, testsubmul2[tvi][i], 0)) ;
@@ -3384,13 +3384,13 @@ static int test_divhelper(void)
    }
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == delete_bigint(&big[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
    return EINVAL ;
@@ -3401,7 +3401,7 @@ static int test_div(void)
    bigint_t    * big[5] = { 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
    }
 
@@ -3431,7 +3431,7 @@ static int test_div(void)
       ,{ { 1023 }, { 100000 } }
    } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows); ++i) {
       for (unsigned nr = 0; nr < 2; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 1, testrows[i][nr], 0)) ;
       }
@@ -3474,7 +3474,7 @@ static int test_div(void)
       ,{ { 1000, 1020, 20000, M, M-1000, M-10000 }, { 1222345 } }
    } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows2); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows2); ++i) {
       for (unsigned nr = 0; nr < 2; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows2[i][nr], 0)) ;
       }
@@ -3534,11 +3534,11 @@ static int test_div(void)
    } ;
    uint32_t testadd[][5] = { {0}, {0,0,0,0,M}, {1,2,3,4,5}, {M,M,M,M,M}, {M-1,M-2}, {M-12345}, {0,0,12345} } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows4); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows4); ++i) {
       for (unsigned nr = 0; nr < 2; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows4[i][nr], 0)) ;
       }
-      for (unsigned addi = 0; addi < nrelementsof(testadd); ++addi) {
+      for (unsigned addi = 0; addi < lengthof(testadd); ++addi) {
          TEST(0 == setbigfirst_bigint(&big[4], +1, 5, testadd[addi], 0)) ; // modulo
          TEST(0 == mult_bigint(&big[3], big[0], big[1])) ;
          TEST(0 == add_bigint(&big[2], big[3], big[4])) ;
@@ -3584,7 +3584,7 @@ static int test_div(void)
       ,{ {1,1,0,0,M,M,M,M,M,0}, { 0,0,0,0,0,0,1,1,0,1 }, {0,0,0,0,M,M,M,M,M,M} }
    } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows5); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows5); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows5[i][nr], 0)) ;
       }
@@ -3627,7 +3627,7 @@ static int test_div(void)
       ,{ {5,0,0,1,11 }, {0,0,1,0,0,0,0,1}, {0,0,0,1,0x0000000A,0xFFFFFFFB,0,0,0,0} }
    } ;
 #undef M
-   for (unsigned i = 0; i < nrelementsof(testrows6); ++i) {
+   for (unsigned i = 0; i < lengthof(testrows6); ++i) {
       for (unsigned nr = 0; nr < 3; ++nr) {
          TEST(0 == setbigfirst_bigint(&big[nr], +1, 10, testrows6[i][nr], 0)) ;
       }
@@ -3643,13 +3643,13 @@ static int test_div(void)
    }
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == delete_bigint(&big[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
    return EINVAL ;
@@ -3873,7 +3873,7 @@ static int test_example1(void)
    bigint_t    * big[5] = { 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
    }
 
@@ -3912,13 +3912,13 @@ static int test_example1(void)
    TEST(0 == cmp_bigint(big[1], big[0])) ;
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == delete_bigint(&big[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
    return EINVAL ;
@@ -3934,7 +3934,7 @@ static int test_fixedsize(void)
                                       } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
    }
    setlittlefirst_bigint(&big[0], +1, 12, (uint32_t[12]){1,2,3,4,5,6,7,8,9,10,11,12}, 0) ;
@@ -3984,13 +3984,13 @@ static int test_fixedsize(void)
    TEST(0 == cmp_bigint(big[1], big[0])) ;
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == delete_bigint(&big[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
    return EINVAL ;

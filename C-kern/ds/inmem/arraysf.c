@@ -160,7 +160,7 @@ int delete_arraysf(arraysf_t ** array, struct typeadapt_member_t * nodeadp)
          arraysf_mwaybranch_t * branch = branch_arraysfunode(node) ;
          node = branch->child[0] ;
          branch->child[0] = 0 ;
-         branch->used = nrelementsof(branch->child)-1 ;
+         branch->used = lengthof(branch->child)-1 ;
 
          for (;;) {
 
@@ -171,7 +171,7 @@ int delete_arraysf(arraysf_t ** array, struct typeadapt_member_t * nodeadp)
                      branch = branch_arraysfunode(node) ;
                      node = branch->child[0] ;
                      branch->child[0] = (arraysf_unode_t*) parent ;
-                     branch->used     = nrelementsof(branch->child)-1 ;
+                     branch->used     = lengthof(branch->child)-1 ;
                      continue ;
                   } else if (isDelete) {
                      typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
@@ -294,11 +294,11 @@ int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err
    // get pos of already stored node / check prefix match => second simple case
 
       arraysf_mwaybranch_t * branch = found.parent ;
-      for (unsigned i = nrelementsof(branch->child); (i--); ) {
+      for (unsigned i = lengthof(branch->child); (i--); ) {
          if (branch->child[i]) {
             if (isbranchtype_arraysfunode(branch->child[i])) {
                branch = branch_arraysfunode(branch->child[i]) ;
-               i = nrelementsof(branch->child) ;
+               i = lengthof(branch->child) ;
                continue ;
             }
             pos2    = node_arraysfunode(branch->child[i])->pos ;
@@ -393,7 +393,7 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_
 
    // delete parent (only one more entry) and adapt parent of parent
 
-         for (unsigned i = nrelementsof(found.parent->child)-1; ; ) {
+         for (unsigned i = lengthof(found.parent->child)-1; ; ) {
             if (  i != found.childindex
                && found.parent->child[i]) {
                arraysf_unode_t * other_child = found.parent->child[i] ;
@@ -559,7 +559,7 @@ bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/s
       for (;;) {
          arraysf_unode_t * childnode = pos->branch->child[pos->ci ++] ;
 
-         if (pos->ci >= nrelementsof(pos->branch->child)) {
+         if (pos->ci >= lengthof(pos->branch->child)) {
             // pos becomes invalid
             err = pop_binarystack(iter->stack, sizeof(arraysf_pos_t)) ;
             if (err) goto ONABORT ;
@@ -677,7 +677,7 @@ static int test_arraysfnode(void)
    TEST(branch.used     == 2) ;
 
    // TEST setchild_arraysfmwaybranch
-   for (unsigned i = 0; i < nrelementsof(branch.child); ++i) {
+   for (unsigned i = 0; i < lengthof(branch.child); ++i) {
       unode = (arraysf_unode_t*) 1 ;
       setchild_arraysfmwaybranch(&branch, i, unode) ;
       TEST(unode == branch.child[i]) ;

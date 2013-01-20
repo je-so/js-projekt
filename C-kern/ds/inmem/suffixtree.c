@@ -1312,7 +1312,7 @@ static int test_suffixtree(void)
       ,"ABABCABCDCABCDX", "rittrtrrirtritrx", "rittrtrriptrieptptriept*trx"
       , "trptiptrptx",
    } ;
-   for (unsigned i = 0; i < nrelementsof(test_string); ++i) {
+   for (unsigned i = 0; i < lengthof(test_string); ++i) {
       const uint8_t  * text = (const uint8_t*) test_string[i] ;
       const size_t text_len = strlen(test_string[i]) ;
       TEST(0 == build_suffixtree(&tree, text_len, text)) ;
@@ -1329,7 +1329,7 @@ static int test_suffixtree(void)
    // TEST matchall
    size_t matched_count ;
    const uint8_t * matched_pos[30] = {0} ;
-   for (unsigned i = 0; i < nrelementsof(test_string); ++i) {
+   for (unsigned i = 0; i < lengthof(test_string); ++i) {
       const uint8_t  * text = (const uint8_t*) test_string[i] ;
       const size_t text_len = strlen(test_string[i]) ;
       TEST(0 == build_suffixtree(&tree, text_len, text)) ;
@@ -1454,8 +1454,8 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43122,44320,44598,60063,60187,60300,60355} ;
-   const uint8_t  * matched_pos[1+nrelementsof(compare_pos)] ;
+   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43122,44320,44598,60055,60179,60292,60347} ;
+   const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;
 
@@ -1474,8 +1474,8 @@ static int test_matchfile(void)
    TEST(0 == matchall_suffixtree(&tree, strlen((const char*)teststring), teststring, 0, &matched_count, 10, matched_pos)) ;
    TEST(1 == matched_count) ;
    teststring = iterposstr ;
-   TEST(0 == matchall_suffixtree(&tree, strlen((const char*)teststring), teststring, 0, &matched_count, nrelementsof(matched_pos), matched_pos)) ;
-   TEST(nrelementsof(compare_pos) == matched_count) ;
+   TEST(0 == matchall_suffixtree(&tree, strlen((const char*)teststring), teststring, 0, &matched_count, lengthof(matched_pos), matched_pos)) ;
+   TEST(lengthof(compare_pos) == matched_count) ;
    qsort(matched_pos, matched_count, sizeof(size_t), &compare_size_f) ;
    for (unsigned i = 0; i < matched_count; ++i) {
       TEST(&buffer[compare_pos[i]] == matched_pos[i]) ;

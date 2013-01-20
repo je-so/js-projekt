@@ -223,7 +223,7 @@ const char * user_url(const url_t * url) ;
  * Implements <url_t.getpart_url>. */
 #define getpart_url(url, part)                                    \
    ( __extension__ ({  const uint8_t * _result = 0 ;              \
-      if ( (size_t)(part) < nrelementsof((url)->parts) ) {        \
+      if ((size_t)(part) < lengthof((url)->parts)) {              \
          uint16_t _offset = ((part) ? (url)->parts[(size_t)(part)-1] : 0) ; \
          if ((url)->parts[(size_t)(part)] > _offset) {            \
          _result = &(url)->buffer[_offset] ;                      \

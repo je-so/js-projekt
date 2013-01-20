@@ -289,7 +289,7 @@ static int test_initfree(void)
                            (uint8_t*)&instr.object, (uint8_t*)&instr.iimpl,
                            (uint8_t*)&instr.readerror
                         } ;
-   for (unsigned i = 0; i < nrelementsof(members); ++i) {
+   for (unsigned i = 0; i < lengthof(members); ++i) {
       *members[i] = 1 ;
       TEST(0 == isfree_instream(&instr)) ;
       *members[i] = 0 ;

@@ -973,7 +973,7 @@ static int test_abnormalexit(void)
       ,SIGSYS,    SIGRTMIN, SIGRTMAX,
    } ;
    unsigned signal_count = 0 ;
-   for (unsigned i = 0; i < nrelementsof(test_signals); ++i) {
+   for (unsigned i = 0; i < lengthof(test_signals); ++i) {
       int snr = test_signals[i] ;
       TEST(0 == initgeneric_process(&process, &childprocess_signal, snr, 0)) ;
       TEST(0 == wait_process(&process, &process_result)) ;
@@ -992,7 +992,7 @@ static int test_abnormalexit(void)
       TEST(0 == free_process(&process)) ;
       TEST(0 == process) ;
    }
-   TEST(signal_count > nrelementsof(test_signals)/2) ;
+   TEST(signal_count > lengthof(test_signals)/2) ;
 
    // TEST free works if process has already ended
    for (unsigned i = 0; i < 16; ++i) {

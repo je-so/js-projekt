@@ -217,7 +217,7 @@ static int test_utf8(void)
                                           (const uint8_t *) "\x7f"   } ;
 
    // TEST sizechar_utf8 of string
-   for (unsigned i = 0; i < nrelementsof(utf8str); ++i) {
+   for (unsigned i = 0; i < lengthof(utf8str); ++i) {
       TEST(4-i == sizechar_utf8(utf8str[i][0])) ;
    }
 
@@ -474,7 +474,7 @@ static int test_strquery(void)
    // TEST utf8len_string: non empty strings
    const char * teststrings[] = { "\U001FFFFF\U00010000", "\u0800\u0999\uFFFF", "\u00A0\u00A1\u07FE\u07FF", "\x01\x02""abcde\x07e\x7f", "\U001FFFFF\uF999\u06FEY" } ;
    size_t     testlength[]    = { 2,                      3,                    4,                          9,                          4 } ;
-   for (unsigned i = 0; i < nrelementsof(teststrings); ++i) {
+   for (unsigned i = 0; i < lengthof(teststrings); ++i) {
       cstr = (string_t) string_INIT_CSTR(teststrings[i]) ;
       TEST(testlength[i] == utf8len_string(&cstr)) ;
    }
@@ -482,7 +482,7 @@ static int test_strquery(void)
    // TEST utf8len_string: illegal sequence && last sequence not fully contained in string
    const char * teststrings2[] = { "\xFC\x80", "ab\xC0", "abc\xE0", "abcd\xF0" } ;
    size_t     testlength2[]    = { 2,           3,       4,         5 } ;
-   for (unsigned i = 0; i < nrelementsof(teststrings2); ++i) {
+   for (unsigned i = 0; i < lengthof(teststrings2); ++i) {
       cstr = (string_t) string_INIT_CSTR(teststrings2[i]) ;
       TEST(testlength2[i] == utf8len_string(&cstr)) ;
    }

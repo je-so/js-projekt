@@ -64,7 +64,7 @@ int free_semaphore(semaphore_t * semaobj)
       int flags = fcntl(semaobj->sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;
       fcntl(semaobj->sys_sema, F_SETFL, (long)flags) ;
-      for(uint64_t increment = 0xffff; increment; increment <<= 16) {
+      for (uint64_t increment = 0xffff; increment; increment <<= 16) {
          err2 = write(semaobj->sys_sema, &increment, sizeof(increment)) ;
          if (-1 == err2) {
             if (EAGAIN != errno) {
@@ -154,7 +154,7 @@ static int test_semaphore_init(void)
    // TEST init, wait
    TEST(0 == init_semaphore(&sema, 13)) ;
    TEST(sema.sys_sema != sys_semaphore_INIT_FREEABLE) ;
-   for(int i = 0; i < 13; ++i) {
+   for (int i = 0; i < 13; ++i) {
       TEST(0 == wait_semaphore(&sema)) ;
    }
    {
@@ -168,7 +168,7 @@ static int test_semaphore_init(void)
 
    // TEST signal, wait
    TEST(0 == init_semaphore(&sema, 0)) ;
-   for(int i = 0; i < 13; ++i) {
+   for (int i = 0; i < 13; ++i) {
       TEST(0 == signal_semaphore(&sema, 1)) ;
       TEST(0 == wait_semaphore(&sema)) ;
    }
@@ -183,10 +183,10 @@ static int test_semaphore_init(void)
       flags &= ~(O_NONBLOCK) ;
       TEST(0 == fcntl(sema.sys_sema, F_SETFL, (long)flags)) ;
    }
-   for(int i = 0; i < 3; ++i) {
+   for (int i = 0; i < 3; ++i) {
       TEST(0 == signal_semaphore(&sema, 3)) ;
    }
-   for(int i = 0; i < 9; ++i) {
+   for (int i = 0; i < 9; ++i) {
       TEST(0 == wait_semaphore(&sema)) ;
    }
    {
@@ -241,21 +241,21 @@ static int test_semaphore_threads(void)
    isMutex = true ;
 
    // start up threads
-   for(unsigned i = 0; i < nrelementsof(threads); ++i) {
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
       TEST(0 == pthread_create(&threads[i], 0, semathread, &startarg)) ;
       valid_thread_index = 1 + i ;
    }
 
-   for(int w = 0; valid_thread_index != startarg.count; ++w) {
+   for (int w = 0; valid_thread_index != startarg.count; ++w) {
       pthread_yield() ;
       TEST(w < 100000) ;
    }
    TEST(valid_thread_index == startarg.count) ;
 
    // TEST singalling 1 thread runs exactly one thread
-   for(unsigned i = 0; i < nrelementsof(threads)/2; ++i) {
+   for (unsigned i = 0; i < lengthof(threads)/2; ++i) {
       TEST(0 == signal_semaphore(&startarg.sema, 1)) ;
-      for(int w = 0; valid_thread_index != (1 + i + startarg.count); ++w) {
+      for (int w = 0; valid_thread_index != (1 + i + startarg.count); ++w) {
          pthread_yield() ;
          TEST(w < 100000) ;
       }
@@ -263,14 +263,14 @@ static int test_semaphore_threads(void)
    }
 
    // TEST signalling many threads runs exactly that many threads
-   TEST(0 == signal_semaphore(&startarg.sema, nrelementsof(threads) - nrelementsof(threads)/2)) ;
-   for(int w = 0; 0 != startarg.count; ++w) {
+   TEST(0 == signal_semaphore(&startarg.sema, lengthof(threads) - lengthof(threads)/2)) ;
+   for (int w = 0; 0 != startarg.count; ++w) {
       pthread_yield() ;
       TEST(w < 100000) ;
    }
    TEST(0 == startarg.count) ;
 
-   for(unsigned i = nrelementsof(threads)-1; i < nrelementsof(threads); --i) {
+   for (unsigned i = lengthof(threads)-1; i < lengthof(threads); --i) {
       void * result = (void*) 1 ;
       TEST(0 == pthread_join(threads[i], &result)) ;
       valid_thread_index = i ;
@@ -278,12 +278,12 @@ static int test_semaphore_threads(void)
    }
 
    // start up threads
-   for(unsigned i = 0; i < nrelementsof(threads); ++i) {
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
       TEST(0 == pthread_create(&threads[i], 0, semathread, &startarg)) ;
       valid_thread_index = 1 + i ;
    }
 
-   for(int w = 0; valid_thread_index != startarg.count; ++w) {
+   for (int w = 0; valid_thread_index != startarg.count; ++w) {
       pthread_yield() ;
       TEST(w < 100000) ;
    }
@@ -292,13 +292,13 @@ static int test_semaphore_threads(void)
 
    // TEST free *signals* all waiting threads
    TEST(0 == free_semaphore(&startarg.sema)) ;
-   for(int w = 0; 0 != startarg.count; ++w) {
+   for (int w = 0; 0 != startarg.count; ++w) {
       pthread_yield() ;
       TEST(w < 100000) ;
    }
    TEST(0 == startarg.count) ;
 
-   for(unsigned i = nrelementsof(threads)-1; i < nrelementsof(threads); --i) {
+   for (unsigned i = lengthof(threads)-1; i < lengthof(threads); --i) {
       void * result = (void*) 1 ;
       TEST(0 == pthread_join(threads[i], &result)) ;
       valid_thread_index = i ;

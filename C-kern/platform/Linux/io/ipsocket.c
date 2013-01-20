@@ -922,7 +922,7 @@ static int test_initfree(void)
       { ipprotocol_UDP, "::1", 31234, ipversion_6 },
       { ipprotocol_TCP, "::1", 31236, ipversion_6 },
    } ;
-   for(int i = 0; i < 8; ++i) {
+   for (int i = 0; i < 8; ++i) {
       bool isListen = (ipprotocol_TCP == testdata[i].protocol) ;
       TEST(0 == new_ipaddr(&ipaddr, testdata[i].protocol, testdata[i].addr, testdata[i].port, testdata[i].version)) ;
       if (isListen ) {
@@ -974,7 +974,7 @@ static int test_connect(void)
    ipsocket_t  ipsockSV = ipsocket_INIT_FREEABLE ;
 
    // TEST connect TCP
-   for(unsigned islocal = 0; islocal < 2; ++islocal) {
+   for (unsigned islocal = 0; islocal < 2; ++islocal) {
       TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 0, ipversion_4 )) ;
       TEST(0 == initlisten_ipsocket(&ipsockLT, ipaddr, 1)) ;
       TEST(0 == isconnected_ipsocket(&ipsockLT)) ;
@@ -1001,7 +1001,7 @@ static int test_connect(void)
    }
 
    // TEST connect UDP
-   for(unsigned islocal = 0; islocal < 2; ++islocal) {
+   for (unsigned islocal = 0; islocal < 2; ++islocal) {
       TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
       TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_UDP, 12345, ipversion_4)) ;
       TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, islocal ? ipaddr : 0)) ;
@@ -1078,7 +1078,7 @@ static int test_buffersize(void)
    size_t      unread_bytes ;
 
 
-   for(unsigned i = 0; i < 3; ++i) {
+   for (unsigned i = 0; i < 3; ++i) {
       const unsigned  buffer_size  = 65536u * (i+1) ;
       const unsigned  sockbuf_size = 3 * buffer_size / 4 ;
       buffer = malloc(buffer_size) ;
@@ -1136,7 +1136,7 @@ static int test_buffersize(void)
          TEST(0 == write_ipsocket(&ipsockSV, buffer_size, buffer, &size)) ;
          TEST(0 < size && size < buffer_size) ;
          size_t writecount = size ;
-         for(int si = 0; si < 100; ++si) {
+         for (int si = 0; si < 100; ++si) {
             TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
             if (! unsend_bytes) break ;
             sleepms_thread(1) ;
@@ -1160,7 +1160,7 @@ static int test_buffersize(void)
          TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
          TEST(unread_bytes == size) ;
          readcount += size ;  // 2nd
-         for(int si = 0; si < 100; ++si) {
+         for (int si = 0; si < 100; ++si) {
             TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
             if (! unsend_bytes) break ;
             sleepms_thread(1) ;
@@ -1193,7 +1193,7 @@ static int test_buffersize(void)
       buffer = 0 ;
    }
 
-   for(unsigned i = 1; i < 3; ++i) {
+   for (unsigned i = 1; i < 3; ++i) {
       const unsigned   buffer_size = i * 16384u ;
       buffer = malloc(buffer_size) ;
       TEST(buffer) ;
@@ -1421,96 +1421,96 @@ int test_udpIO(void)
    cstring_t      name         = cstring_INIT ;
    const size_t   buffer_size  = 512u  ;
    uint8_t      * buffer       = (uint8_t*) malloc(buffer_size) ;
-   uint16_t       portCL[nrelementsof(ipsockCL)] ;
-   uint16_t       portSV[nrelementsof(ipsockSV)] ;
+   uint16_t       portCL[lengthof(ipsockCL)] ;
+   uint16_t       portSV[lengthof(ipsockSV)] ;
    size_t         size ;
 
    TEST(buffer) ;
 
    // TEST ipversion_4, ipversion_6
    static_assert( ipversion_4 < ipversion_6, "" ) ;
-   for(ipversion_e version = ipversion_4; version <= ipversion_6; version = (ipversion_e) (version + (ipversion_6-ipversion_4)) ) {
+   for (ipversion_e version = ipversion_4; version <= ipversion_6; version = (ipversion_e) (version + (ipversion_6-ipversion_4)) ) {
 
       // TEST connected send&receive (messages from other client discarded)
       TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, version)) ;
       TEST(0 == newcopy_ipaddr(&ipaddr2, ipaddr)) ;
-      for(uint16_t i = 0; i < nrelementsof(ipsockCL); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockCL); ++i) {
          TEST(0 == init_ipsocket(&ipsockCL[i], ipaddr)) ;
          TEST(0 == localaddr_ipsocket(&ipsockCL[i], ipaddr2)) ;
          portCL[i] = port_ipaddr(ipaddr2) ;
       }
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
-         unsigned ci = (i % nrelementsof(ipsockCL)) ;
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
+         unsigned ci = (i % lengthof(ipsockCL)) ;
          TEST(0 == setport_ipaddr(ipaddr2, portCL[ci])) ;
          TEST(0 == initconnect_ipsocket(&ipsockSV[i], ipaddr2, ipaddr)) ;
          TEST(0 == localaddr_ipsocket(&ipsockSV[i], ipaddr2)) ;
          portSV[i] = port_ipaddr(ipaddr2) ;
       }
 
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
          memset( buffer, (int)i, buffer_size) ;
-         for(uint16_t ci = 0; ci < nrelementsof(ipsockCL); ++ci) {
+         for (uint16_t ci = 0; ci < lengthof(ipsockCL); ++ci) {
             TEST(0 == setport_ipaddr(ipaddr2, portSV[i])) ;
             TEST(0 == writeto_ipsocket(&ipsockCL[ci], ipaddr2, buffer_size, buffer, &size)) ;
             TEST(buffer_size == size) ;
          }
       }
 
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
-         unsigned ci = (i % nrelementsof(ipsockCL)) ;
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
+         unsigned ci = (i % lengthof(ipsockCL)) ;
          TEST(0 == bytestoread_ipsocket(&ipsockSV[i], &size)) ;
          TEST(buffer_size == size) ;
          TEST(0 == readfrom_ipsocket(&ipsockSV[i], ipaddr, buffer_size, buffer, &size)) ;
          TEST(buffer_size == size) ;
-         for(unsigned b = 0; b < buffer_size; ++b) {
+         for (unsigned b = 0; b < buffer_size; ++b) {
             TEST(buffer[b] == i) ;
          }
          TEST(0 == setport_ipaddr(ipaddr2, portCL[ci])) ;
          TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
       }
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
          TEST(0 == bytestoread_ipsocket(&ipsockSV[i], &size)) ;
          TEST(0 == size) ;
       }
 
       // TEST unconnected send & receive
       TEST(0 == setport_ipaddr(ipaddr, 0)) ;
-      for(uint16_t i = 0; i < nrelementsof(ipsockCL); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockCL); ++i) {
          TEST(0 == free_ipsocket(&ipsockCL[i])) ;
          TEST(0 == init_ipsocket(&ipsockCL[i], ipaddr)) ;
          TEST(0 == localaddr_ipsocket(&ipsockCL[i], ipaddr2)) ;
          portCL[i] = port_ipaddr(ipaddr2) ;
       }
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
          TEST(0 == free_ipsocket(&ipsockSV[i])) ;
          TEST(0 == init_ipsocket(&ipsockSV[i], ipaddr)) ;
          TEST(0 == localaddr_ipsocket(&ipsockSV[i], ipaddr2)) ;
          portSV[i] = port_ipaddr(ipaddr2) ;
       }
 
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
          memset( buffer, (int)i, buffer_size) ;
-         for(uint16_t ci = 0; ci < nrelementsof(ipsockCL); ++ci) {
+         for (uint16_t ci = 0; ci < lengthof(ipsockCL); ++ci) {
             TEST(0 == setport_ipaddr(ipaddr2, portSV[i])) ;
             TEST(0 == writeto_ipsocket(&ipsockCL[ci], ipaddr2, buffer_size, buffer, &size)) ;
             TEST(buffer_size == size) ;
          }
       }
 
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
-         for(uint16_t ci = 0; ci < nrelementsof(ipsockCL); ++ci) {
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
+         for (uint16_t ci = 0; ci < lengthof(ipsockCL); ++ci) {
             TEST(0 == bytestoread_ipsocket(&ipsockSV[i], &size)) ;
             TEST(buffer_size == size) ;
             TEST(0 == readfrom_ipsocket(&ipsockSV[i], ipaddr, buffer_size, buffer, &size)) ;
             TEST(buffer_size == size) ;
-            for(unsigned b = 0; b < buffer_size; ++b) {
+            for (unsigned b = 0; b < buffer_size; ++b) {
                TEST(buffer[b] == i) ;
             }
             TEST(0 == setport_ipaddr(ipaddr2, portCL[ci])) ;
             TEST(0 == compare_ipaddr(ipaddr, ipaddr2)) ;
          }
       }
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
          TEST(0 == bytestoread_ipsocket(&ipsockSV[i], &size)) ;
          TEST(0 == size) ;
       }
@@ -1527,10 +1527,10 @@ int test_udpIO(void)
       TEST(EPROTONOSUPPORT == writeto_ipsocket(&ipsockSV[0], ipaddr, buffer_size, buffer, &size)) ;
 
       // TEST close
-      for(uint16_t i = 0; i < nrelementsof(ipsockCL); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockCL); ++i) {
          TEST(0 == free_ipsocket(&ipsockCL[i])) ;
       }
-      for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
+      for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
          TEST(0 == free_ipsocket(&ipsockSV[i])) ;
       }
 
@@ -1545,10 +1545,10 @@ ONABORT:
    free(buffer) ;
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
-   for(uint16_t i = 0; i < nrelementsof(ipsockCL); ++i) {
+   for (uint16_t i = 0; i < lengthof(ipsockCL); ++i) {
       free_ipsocket(&ipsockCL[i]) ;
    }
-   for(uint16_t i = 0; i < nrelementsof(ipsockSV); ++i) {
+   for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
       free_ipsocket(&ipsockSV[i]) ;
    }
    return EINVAL ;
@@ -1585,7 +1585,7 @@ static int test_async(void)
    TEST(0 == ipasync.err) ;
 
    // TEST TCP async connect
-   for(unsigned islocal = 0; islocal < 2; ++islocal) {
+   for (unsigned islocal = 0; islocal < 2; ++islocal) {
       TEST(0 == localaddr_ipsocket(&iplisten, ipaddr2)) ;
       TEST(0 == initconnect_ipsocketasync(&ipasync, ipaddr2, islocal ? ipaddr : 0)) ;
       TEST(EINPROGRESS == ipasync.err) ;
@@ -1605,7 +1605,7 @@ static int test_async(void)
    }
 
    // TEST UDP (completes immediately)
-   for(unsigned islocal = 0; islocal < 2; ++islocal) {
+   for (unsigned islocal = 0; islocal < 2; ++islocal) {
       TEST(0 == localaddr_ipsocket(&iplisten, ipaddr2)) ;
       TEST(0 == setprotocol_ipaddr(ipaddr, ipprotocol_UDP)) ;
       TEST(0 == setprotocol_ipaddr(ipaddr2, ipprotocol_UDP)) ;
@@ -1670,7 +1670,7 @@ int unittest_io_ipsocket()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   for(int i = 0; i < 2; ++i) {
+   for (int i = 0; i < 2; ++i) {
       TEST(0 == init_resourceusage(&usage)) ;
 
       // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)

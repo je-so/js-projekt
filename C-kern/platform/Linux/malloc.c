@@ -217,7 +217,7 @@ static int test_allocatedsize(void)
    TEST(1 <= allocated) ;
 
    // TEST increment
-   for (unsigned i = 0; i < nrelementsof(memblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       memblocks[i] = malloc(16) ;
       TEST(0 != memblocks[i]) ;
       size_t   allocated2 ;
@@ -228,7 +228,7 @@ static int test_allocatedsize(void)
    }
 
    // TEST decrement
-   for(unsigned i = 0; i < nrelementsof(memblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       free(memblocks[i]) ;
       memblocks[i] = 0 ;
       size_t   allocated2 ;
@@ -240,7 +240,7 @@ static int test_allocatedsize(void)
 
    return 0 ;
 ONABORT:
-   for(unsigned i = 0; i < nrelementsof(memblocks); ++i) {
+   for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       if (memblocks[i]) {
          free(memblocks[i]) ;
       }

@@ -74,7 +74,7 @@ static void initprogname_maincontext(struct maincontext_t * maincontext)
    if (maincontext->argc) {
       progname = maincontext->argv[0] ;
 
-      for(unsigned i = 0; progname[i];) {
+      for (unsigned i = 0; progname[i];) {
          if (  '/' == progname[i]
             && progname[i+1]) {
             progname = &progname[i+1] ;
@@ -338,7 +338,7 @@ static int test_initerror(void)
    TEST(EPROTO == init_threadcontext(&tcontext)) ;
 
    // TEST error in init_maincontext in different places (called from initmain)
-   for(int i = 1; i <= 4; ++i) {
+   for (int i = 1; i <= 4; ++i) {
       init_testerrortimer(&s_error_init, (unsigned)i, EINVAL+i) ;
       TEST(EINVAL+i == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
       TEST(0 == process_maincontext().initcount) ;
@@ -402,7 +402,7 @@ static int test_progname(void)
     // TEST progname_maincontext
    const char * argv[3] = { "/p1/yxz1", "/p2/yxz2/", "p3/p4/yxz3" } ;
 
-   for(unsigned i = 0; i< nrelementsof(argv); ++i) {
+   for (unsigned i = 0; i< lengthof(argv); ++i) {
       TEST(0 == init_maincontext(maincontext_DEFAULT, 1, &argv[i])) ;
       TEST(1 == g_maincontext.argc) ;
       TEST(&argv[i] == g_maincontext.argv) ;
@@ -463,10 +463,10 @@ int unittest_context_maincontext()
       TEST(0 == init_resourceusage(&usage)) ;
       {  // TODO: remove in case malloc is no more in use (init_resourceusage)
          resourceusage_t   usage2[10] ;
-         for(unsigned i = 0; i < nrelementsof(usage2); ++i) {
+         for (unsigned i = 0; i < lengthof(usage2); ++i) {
             TEST(0 == init_resourceusage(&usage2[i])) ;
          }
-         for(unsigned i = 0; i < nrelementsof(usage2); ++i) {
+         for (unsigned i = 0; i < lengthof(usage2); ++i) {
             TEST(0 == free_resourceusage(&usage2[i])) ;
          }
          TEST(0 == free_resourceusage(&usage)) ;

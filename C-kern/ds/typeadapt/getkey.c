@@ -151,14 +151,14 @@ static int test_callfunctions(void)
    testnode_t           nodes[100] ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i].addr = (const void*) (1 + i) ;
       nodes[i].size = - (size_t) i ;
       nodes[i].is_getbinarykey = 0 ;
    }
 
    // TEST callgetbinarykey_typeadaptgetkey
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       int callcount = testadp.callcount + 1 ;
       typeadapt_binarykey_t binkey = typeadapt_binarykey_INIT_FREEABLE ;
       callgetbinarykey_typeadaptgetkey(&adpgetkey, (struct typeadapt_t*)&testadp, (struct typeadapt_object_t*)&nodes[i], &binkey) ;
@@ -182,7 +182,7 @@ static int test_generic(void)
    testnode_t     nodes[100] ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i].addr = (const void*) (1 + i) ;
       nodes[i].size = - (size_t) i ;
       nodes[i].is_getbinarykey = 0 ;
@@ -203,7 +203,7 @@ static int test_generic(void)
    TEST(adpgetkey.getbinarykey == &impl_getbinarykey_testadapter) ;
 
    // TEST callgetbinarykey_typeadaptgetkey
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       int callcount = testadp.callcount + 1 ;
       typeadapt_binarykey_t binkey = typeadapt_binarykey_INIT_FREEABLE ;
       callgetbinarykey_typeadaptgetkey(&adpgetkey, &testadp, &nodes[i], &binkey) ;

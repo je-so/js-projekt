@@ -784,7 +784,7 @@ static int test_initfree(void)
 
    // prepare
    memset(nodes, 0, sizeof(nodes)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i].key_len = sizeof(nodes[i].key) ;
       nodes[i].key[0] = (uint8_t) i ;
    }
@@ -820,17 +820,17 @@ static int test_initfree(void)
 
    // TEST free_patriciatrie: frees all nodes
    init_patriciatrie(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_patriciatrie(&tree, &nodes[i].node)) ;
    }
    TEST(0 != tree.root) ;
    TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &nodeadapt)) ;
    typeadapt.freenode_count = 0 ;
    TEST(0 == free_patriciatrie(&tree)) ;
-   TEST(nrelementsof(nodes) == typeadapt.freenode_count) ;
+   TEST(lengthof(nodes) == typeadapt.freenode_count) ;
    TEST(0 == tree.root) ;
    TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(1 == nodes[i].is_freed) ;
       TEST(0 == nodes[i].node.bit_offset) ;
       TEST(0 == nodes[i].node.left) ;
@@ -840,7 +840,7 @@ static int test_initfree(void)
 
    // TEST free_patriciatrie: lifetime.delete_object set to 0
    init_patriciatrie(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_patriciatrie(&tree, &nodes[i].node)) ;
    }
    TEST(0 != tree.root) ;
@@ -852,7 +852,7 @@ static int test_initfree(void)
    TEST(0 == typeadapt.freenode_count) ;
    TEST(0 == tree.root) ;
    TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].is_freed) ;
       TEST(0 == nodes[i].node.bit_offset) ;
       TEST(0 == nodes[i].node.left) ;
@@ -861,7 +861,7 @@ static int test_initfree(void)
 
    // TEST free_patriciatrie: ERROR
    init_patriciatrie(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_patriciatrie(&tree, &nodes[i].node)) ;
    }
    TEST(0 != tree.root) ;
@@ -869,10 +869,10 @@ static int test_initfree(void)
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 4, ENOENT) ;
    TEST(ENOENT == free_patriciatrie(&tree)) ;
-   TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;
+   TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    TEST(0 == tree.root) ;
    TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST((i != 2) == nodes[i].is_freed) ;
       TEST(0 == nodes[i].node.bit_offset) ;
       TEST(0 == nodes[i].node.left) ;
@@ -1467,7 +1467,7 @@ static int test_generic(void)
    // prepare
    memset(nodes, 0, sizeof(nodes)) ;
    init_patriciatrie(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       static_assert(sizeof(nodes[i].key) == 4, "key assignment thinks keysize is 4") ;
       nodes[i].key_len = sizeof(nodes[i].key) ;
       nodes[i].key[0] = (uint8_t)((i/1000) % 10) ;
@@ -1507,15 +1507,15 @@ static int test_generic(void)
 
    // TEST insert_patriciatrie, find_patriciatrie, remove_patriciatrie
    init_testtree(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       testnode_t * found_node = 0 ;
       TEST(0 == find_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &found_node)) ;
       TEST(found_node == &nodes[i]) ;
    }
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       testnode_t * removed_node = 0 ;
       TEST(0 == remove_testtree(&tree, sizeof(nodes[i].key), nodes[i].key, &removed_node)) ;
       TEST(removed_node == &nodes[i]) ;
@@ -1524,33 +1524,33 @@ static int test_generic(void)
 
    // TEST removenodes_patriciatrie, free_patriciatrie
    init_testtree(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    TEST(0 == removenodes_testtree(&tree)) ;
    TEST(0 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(1 == nodes[i].is_freed) ;
    }
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    TEST(0 == free_testtree(&tree)) ;
    TEST(1 == isequal_typeadaptmember(&tree.nodeadp, &emptynodeadapt)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(2 == nodes[i].is_freed) ;
    }
 
    // TEST foreach, foreachReverse
    init_testtree(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
       foreach (_testtree, &tree, node) {
          TEST(node == &nodes[i++]) ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
 
       foreachReverse (_testtree, &tree, node) {
          TEST(node == &nodes[--i]) ;

@@ -293,18 +293,18 @@ static int test_registerfd(void)
 
    // prepare
    memset(fd, -1, sizeof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == pipe2(fd[i], O_CLOEXEC)) ;
       TEST(3 == write(fd[i][1], "123", 3)) ;
    }
    TEST(0 == init_iopoll(&iopoll)) ;
 
    // TEST registerfd_iopoll
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == registerfd_iopoll(&iopoll, fd[i][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 5*i))) ;
       // check that all registered fd generate an event
       memset(ioevents, 0, sizeof(ioevents)) ;
-      TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+      TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
       TEST(nr_events == 1+i) ;
       for (unsigned i2 = 0; i2 < i+1; ++ i2) {
          TEST(ioevents[i2].ioevents      == ioevent_READ) ;
@@ -313,32 +313,32 @@ static int test_registerfd(void)
    }
 
    // TEST updatefd_iopoll: change ioevent mask
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == updatefd_iopoll(&iopoll, fd[i][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 5*i))) ;
    }
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(0 == nr_events) ;
 
    // TEST updatefd_iopoll: change ioevent mask and eventid
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == updatefd_iopoll(&iopoll, fd[i][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 5*i+1))) ;
    }
    memset(ioevents, 0, sizeof(ioevents)) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-   TEST(nr_events == nrelementsof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+   TEST(nr_events == lengthof(fd)) ;
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(ioevents[i].ioevents      == ioevent_READ) ;
       TEST(ioevents[i].eventid.val64 == 5*i+1) ;
    }
 
    // TEST unregisterfd_iopoll
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == unregisterfd_iopoll(&iopoll, fd[i][0])) ;
       // check that no unregistered fd generates an event
       memset(ioevents, 0, sizeof(ioevents)) ;
-      TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-      TEST(nr_events == nrelementsof(fd)-1-i) ;
-      for (unsigned i2 = 0; i2 < nrelementsof(fd)-1-i; ++ i2) {
+      TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+      TEST(nr_events == lengthof(fd)-1-i) ;
+      for (unsigned i2 = 0; i2 < lengthof(fd)-1-i; ++ i2) {
          TEST(ioevents[i2].ioevents      == ioevent_READ) ;
          TEST(ioevents[i2].eventid.val64 == 5*(i+1+i2)+1) ;
       }
@@ -377,7 +377,7 @@ static int test_registerfd(void)
 
    // unprepare
    TEST(0 == free_iopoll(&iopoll)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++i) {
+   for (unsigned i = 0; i < lengthof(fd); ++i) {
       TEST(0 == free_file(fd[i])) ;
       TEST(0 == free_file(fd[i]+1)) ;
    }
@@ -385,7 +385,7 @@ static int test_registerfd(void)
    return 0 ;
 ONABORT:
    free_iopoll(&iopoll) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++i) {
+   for (unsigned i = 0; i < lengthof(fd); ++i) {
       free_file(fd[i]) ;
       free_file(fd[i]+1) ;
    }
@@ -402,35 +402,35 @@ static int test_waitevents(void)
 
    // prepare
    memset(fd, -1, sizeof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == pipe2(fd[i], O_CLOEXEC|O_NONBLOCK)) ;
       TEST(2 == write(fd[i][1], "89", 2)) ;
    }
    TEST(0 == init_iopoll(&iopoll)) ;
 
    // TEST wait_iopoll: calling it twice returns the same nr of events (level triggered)
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == registerfd_iopoll(&iopoll, fd[i][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, i))) ;
    }
    memset(ioevents, 0, sizeof(ioevents)) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-   TEST(nr_events == nrelementsof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+   TEST(nr_events == lengthof(fd)) ;
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(ioevents[i].ioevents      == ioevent_READ) ;
       TEST(ioevents[i].eventid.val32 == i) ;
    }
    memset(ioevents, 0, sizeof(ioevents)) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-   TEST(nr_events == nrelementsof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+   TEST(nr_events == lengthof(fd)) ;
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(ioevents[i].ioevents      == ioevent_READ) ;
       TEST(ioevents[i].eventid.val32 == i) ;
    }
 
    // TEST wait_iopoll: in case eventqueue too small => consecutive calls return all events
-   for (unsigned offset = 0; offset < nrelementsof(fd); offset += 5) {
-      static_assert(nrelementsof(fd) > 5, "reading 5 at once") ;
-      static_assert(0 == (nrelementsof(fd) % 5), "all events read in steps of 5") ;
+   for (unsigned offset = 0; offset < lengthof(fd); offset += 5) {
+      static_assert(lengthof(fd) > 5, "reading 5 at once") ;
+      static_assert(0 == (lengthof(fd) % 5), "all events read in steps of 5") ;
       TEST(0 == wait_iopoll(&iopoll, &nr_events, 5, ioevents, 0)) ;
       TEST(5 == nr_events) ;
       for (unsigned i = 0; i < 5; ++ i) {
@@ -440,26 +440,26 @@ static int test_waitevents(void)
    }
 
    // TEST wait_iopoll: no registered fd => result size 0
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == unregisterfd_iopoll(&iopoll, fd[i][0])) ;
    }
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(0 == nr_events) ;
 
    // TEST wait_iopoll: ioevent_READ + ioevent_WRITE events
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == registerfd_iopoll(&iopoll, fd[i][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, 2*i))) ;
       TEST(0 == registerfd_iopoll(&iopoll, fd[i][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_WRITE, 2*i+1))) ;
    }
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-   TEST(nr_events == 2*nrelementsof(fd)) ;
-   for (unsigned i = 0; i < 2*nrelementsof(fd); ++ i) {
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+   TEST(nr_events == 2*lengthof(fd)) ;
+   for (unsigned i = 0; i < 2*lengthof(fd); ++ i) {
       TEST(ioevents[i].ioevents      == ((i%2) ? ioevent_WRITE : ioevent_READ)) ;
       TEST(ioevents[i].eventid.val32 == i) ;
    }
 
    // TEST wait_iopoll: no ioevent_READ after reading
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       memset(buffer, 0 , 3) ;
       TEST(2 == read(fd[i][0], buffer, 2)) ;
       TEST(0 == strcmp(buffer, "89")) ;
@@ -467,61 +467,61 @@ static int test_waitevents(void)
       TEST(-1 == read(fd[i][0], buffer, 1)/*not closed*/) ;
       TEST(EAGAIN == errno) ;
    }
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-   TEST(nr_events == nrelementsof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+   TEST(nr_events == lengthof(fd)) ;
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(ioevents[i].ioevents      == ioevent_WRITE) ;
       TEST(ioevents[i].eventid.val32 == 2*i+1) ;
    }
 
    // TEST wait_iopoll: no ioevent_WRITE after buffer full
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       while (sizeof(buffer) == write(fd[i][1], buffer, sizeof(buffer))) ;
       errno = 0 ;
       TEST(-1 == write(fd[i][1], buffer, 1)) ;
       TEST(EAGAIN == errno) ;
    }
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-   TEST(nr_events == nrelementsof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+   TEST(nr_events == lengthof(fd)) ;
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(ioevents[i].ioevents      == ioevent_READ) ;
       TEST(ioevents[i].eventid.val32 == 2*i) ;
    }
 
    // TEST wait_iopoll: ioevent_READ+ioevent_CLOSE / no ioevent_WRITE after close
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == free_file(&fd[i][1])) ;
    }
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-   TEST(nr_events == nrelementsof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+   TEST(nr_events == lengthof(fd)) ;
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(ioevents[i].ioevents      == (ioevent_READ|ioevent_CLOSE)) ;
       TEST(ioevents[i].eventid.val32 == 2*i) ;
    }
 
    // TEST wait_iopoll: only ioevent_CLOSE after reading data
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       while (sizeof(buffer) == read(fd[i][0], buffer, sizeof(buffer))) ;
       TEST(0 == read(fd[i][0], buffer, 1)/*closed*/) ;
    }
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
-   TEST(nr_events == nrelementsof(fd)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
+   TEST(nr_events == lengthof(fd)) ;
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(ioevents[i].ioevents      == ioevent_CLOSE) ;
       TEST(ioevents[i].eventid.val32 == 2*i) ;
    }
 
    // TEST wait_iopoll: close removes files except if another fd refers to the same system file object
    fd[0][1] = dup(fd[0][0]) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++ i) {
+   for (unsigned i = 0; i < lengthof(fd); ++ i) {
       TEST(0 == free_file(&fd[i][0])) ;
    }
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_CLOSE) ;
    TEST(ioevents[0].eventid.val32 == 0) ;
    TEST(0 == free_file(&fd[0][1])) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(0 == nr_events) ;
 
    // TEST wait_iopoll: registered with ioevent_EMPTY returns also ioevent_CLOSE
@@ -529,12 +529,12 @@ static int test_waitevents(void)
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, 10))) ;
    TEST(1 == write(fd[0][1], "1", 1)) ;
    TEST(0 == free_file(&fd[0][1])) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == (ioevent_READ|ioevent_CLOSE)) ;
    TEST(ioevents[0].eventid.val32 == 10) ;
    TEST(0 == updatefd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_EMPTY, 11))) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_CLOSE) ;
    TEST(ioevents[0].eventid.val32 == 11) ;
@@ -543,13 +543,13 @@ static int test_waitevents(void)
    // TEST wait_iopoll: registered with ioevent_EMPTY returns also ioevent_ERROR
    TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_WRITE, 10))) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_WRITE) ;
    TEST(ioevents[0].eventid.val32 == 10) ;
    TEST(0 == free_file(&fd[0][0])) ;
    TEST(0 == updatefd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_EMPTY, 11))) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_ERROR) ;
    TEST(ioevents[0].eventid.val32 == 11) ;
@@ -559,7 +559,7 @@ static int test_waitevents(void)
    TEST(0 == socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0, fd[0])) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ|ioevent_WRITE, 0))) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ|ioevent_WRITE, 1))) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(2 == nr_events) ;
    for (unsigned i = 0; i < 2; ++ i) {
       TEST(ioevents[i].ioevents      == ioevent_WRITE) ;
@@ -571,7 +571,7 @@ static int test_waitevents(void)
    TEST(0 == shutdown(fd[0][0], SHUT_WR)) ;
    TEST(0 == read(fd[0][1], buffer, 1)/*connection closed in reading direction*/) ;
    TEST(0 == updatefd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, 0))) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == (ioevent_WRITE|ioevent_READ/*signals shutdown connection*/)) ;
    TEST(ioevents[0].eventid.val32 == 1) ;
@@ -579,7 +579,7 @@ static int test_waitevents(void)
 
    // TEST wait_iopoll: unix sockets closed => ioevent_CLOSE
    TEST(0 == free_file(&fd[0][0])) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == (ioevent_WRITE|ioevent_READ|ioevent_CLOSE/*signals peer closed connection*/)) ;
    TEST(ioevents[0].eventid.val32 == 1) ;
@@ -589,7 +589,7 @@ static int test_waitevents(void)
    TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_WRITE, 1))) ;
    TEST(0 == free_file(&fd[0][0])) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 0)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == (ioevent_WRITE|ioevent_ERROR/*signals peer closed connection*/)) ;
    TEST(ioevents[0].eventid.val32 == 1) ;
@@ -601,7 +601,7 @@ static int test_waitevents(void)
    timevalue_t starttv ;
    timevalue_t endtv ;
    TEST(0 == time_sysclock(sysclock_MONOTONIC, &starttv)) ;
-   TEST(0 == wait_iopoll(&iopoll, &nr_events, nrelementsof(ioevents), ioevents, 40)) ;
+   TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 40)) ;
    TEST(0 == time_sysclock(sysclock_MONOTONIC, &endtv)) ;
    uint64_t millisec = diffms_timevalue(&endtv, &starttv) ;
    TEST(30 <= millisec && millisec <= 50) ;
@@ -624,7 +624,7 @@ static int test_waitevents(void)
 
    // unprepare
    TEST(0 == free_iopoll(&iopoll)) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++i) {
+   for (unsigned i = 0; i < lengthof(fd); ++i) {
       free_file(fd[i]) ;
       free_file(fd[i]+1) ;
    }
@@ -632,7 +632,7 @@ static int test_waitevents(void)
    return 0 ;
 ONABORT:
    free_iopoll(&iopoll) ;
-   for (unsigned i = 0; i < nrelementsof(fd); ++i) {
+   for (unsigned i = 0; i < lengthof(fd); ++i) {
       free_file(fd[i]) ;
       free_file(fd[i]+1) ;
    }

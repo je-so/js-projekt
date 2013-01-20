@@ -96,7 +96,7 @@ static int test_objectnodeconversion(void)
    testobject_t         objects[100] ;
 
    // TEST memberasobject_typeadapttypeinfo
-   for (unsigned i = 0; i < nrelementsof(objects); ++i) {
+   for (unsigned i = 0; i < lengthof(objects); ++i) {
       TEST((struct typeadapt_object_t*)&objects[i] == memberasobject_typeadapttypeinfo(tinfo[0], &objects[i].node0)) ;
       TEST((struct typeadapt_object_t*)&objects[i] == memberasobject_typeadapttypeinfo(tinfo[1], &objects[i].node1)) ;
       TEST((struct typeadapt_object_t*)&objects[i] == memberasobject_typeadapttypeinfo(tinfo[2], &objects[i].node2)) ;
@@ -104,7 +104,7 @@ static int test_objectnodeconversion(void)
    }
 
    // TEST objectasmember_typeadapttypeinfo
-   for (unsigned i = 0; i < nrelementsof(objects); ++i) {
+   for (unsigned i = 0; i < lengthof(objects); ++i) {
       TEST(&objects[i].node0 == objectasmember_typeadapttypeinfo(tinfo[0], (struct typeadapt_object_t*)&objects[i])) ;
       TEST(&objects[i].node1 == objectasmember_typeadapttypeinfo(tinfo[1], (struct typeadapt_object_t*)&objects[i])) ;
       TEST(&objects[i].node2 == objectasmember_typeadapttypeinfo(tinfo[2], (struct typeadapt_object_t*)&objects[i])) ;

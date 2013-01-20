@@ -150,10 +150,10 @@ static void prepare_test(void)
    // preallocate some memory
    // TODO: remove line if own memory subsystem instead of malloc
    resourceusage_t   usage[2000]  = { resourceusage_INIT_FREEABLE } ;
-   for (unsigned i = 0; i < nrelementsof(usage); ++i) {
+   for (unsigned i = 0; i < lengthof(usage); ++i) {
       (void) init_resourceusage(&usage[i]) ;
    }
-   for (unsigned i = 0; i < nrelementsof(usage); ++i) {
+   for (unsigned i = 0; i < lengthof(usage); ++i) {
       (void) free_resourceusage(&usage[i]) ;
    }
 
@@ -226,7 +226,7 @@ int run_unittest(void)
       goto ONABORT ;
    }
 
-   for (unsigned type_nr = 0; type_nr < nrelementsof(test_context_type); ++type_nr) {
+   for (unsigned type_nr = 0; type_nr < lengthof(test_context_type); ++type_nr) {
 
       // init
       if (init_maincontext(test_context_type[type_nr], 0, 0)) {

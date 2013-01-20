@@ -143,7 +143,7 @@ static int test_lifetime(void)
    TEST(0 == init_typeadaptimpl(&typeadp, sizeof(testtype_t))) ;
 
    // TEST callnewcopy_typeadapt
-   for(unsigned i = 0; i < nrelementsof(valuecopy); ++i) {
+   for (unsigned i = 0; i < lengthof(valuecopy); ++i) {
       value        = (testtype_t) { .a = i+1, .b = i+2, .c = i+3 } ;
       valuecopy[i] = 0 ;
       TEST(0 == callnewcopy_typeadapt(&typeadp, (struct typeadapt_object_t**)&valuecopy[i], (struct typeadapt_object_t*)&value)) ;
@@ -154,7 +154,7 @@ static int test_lifetime(void)
    }
 
    // TEST calldelete_typeadapt
-   for(unsigned i = 0; i < nrelementsof(valuecopy); ++i) {
+   for (unsigned i = 0; i < lengthof(valuecopy); ++i) {
       TEST(i+1 == valuecopy[i]->a) ;
       TEST(i+2 == valuecopy[i]->b) ;
       TEST(i+3 == valuecopy[i]->c) ;

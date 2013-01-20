@@ -299,7 +299,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
          arraystf_mwaybranch_t * branch = branch_arraystfunode(node) ;
          node = branch->child[0] ;
          branch->child[0] = 0 ;
-         branch->used = nrelementsof(branch->child)-1 ;
+         branch->used = lengthof(branch->child)-1 ;
 
          for (;;) {
 
@@ -310,7 +310,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
                      branch = branch_arraystfunode(node) ;
                      node = branch->child[0] ;
                      branch->child[0] = (arraystf_unode_t*) parent ;
-                     branch->used     = nrelementsof(branch->child)-1 ;
+                     branch->used     = lengthof(branch->child)-1 ;
                      continue ;
                   } else if (isDelete) {
                      typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
@@ -442,11 +442,11 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    // get pos of already stored node / check prefix match => second simple case
 
       arraystf_mwaybranch_t * branch = found.parent ;
-      for (unsigned i = nrelementsof(branch->child)-1; ;) {
+      for (unsigned i = lengthof(branch->child)-1; ;) {
          if (branch->child[i]) {
             if (isbranchtype_arraystfunode(branch->child[i])) {
                branch = branch_arraystfunode(branch->child[i]) ;
-               i = nrelementsof(branch->child)-1;
+               i = lengthof(branch->child)-1;
                continue ;
             }
 
@@ -554,7 +554,7 @@ int tryremove_arraystf(arraystf_t * array, size_t size, const uint8_t keydata[si
 
    // delete parent (only one more entry) and adapt parent of parent
 
-         for (unsigned i = nrelementsof(found.parent->child)-1; ; ) {
+         for (unsigned i = lengthof(found.parent->child)-1; ; ) {
             if (  i != found.childindex
                && found.parent->child[i]) {
                arraystf_unode_t * other_child = found.parent->child[i] ;
@@ -720,7 +720,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
       for (;;) {
          arraystf_unode_t * childnode = pos->branch->child[pos->ci ++] ;
 
-         if (pos->ci >= nrelementsof(pos->branch->child)) {
+         if (pos->ci >= lengthof(pos->branch->child)) {
             // pos becomes invalid
             err = pop_binarystack(iter->stack, sizeof(arraystf_pos_t)) ;
             if (err) goto ONABORT ;
@@ -801,7 +801,7 @@ static int test_arraystfnode(void)
    TEST(branch.used     == 2) ;
 
    // TEST setchild_arraystfmwaybranch
-   for (unsigned i = 0; i < nrelementsof(branch.child); ++i) {
+   for (unsigned i = 0; i < lengthof(branch.child); ++i) {
       unode = (arraystf_unode_t*) 1 ;
       setchild_arraystfmwaybranch(&branch, i, unode) ;
       TEST(unode == branch.child[i]) ;

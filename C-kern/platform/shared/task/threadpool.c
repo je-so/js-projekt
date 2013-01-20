@@ -41,7 +41,7 @@ static int threadmain_threadpool(threadpool_t * pool)
 {
    int err ;
 
-   for(;;) {
+   for (;;) {
 
       err = wait_waitlist(&pool->idle) ;
       assert(!err) ;
@@ -163,7 +163,7 @@ static int test_initfree(void)
    TEST(0 == init_threadpool(&pool, 8)) ;
    TEST(8 == pool.poolsize) ;
    TEST(0 != pool.threads) ;
-   for(int i = 0; i < 10000; ++i) {
+   for (int i = 0; i < 10000; ++i) {
       if (8 == pool.idle.nr_waiting) break ;
       sleepms_thread(1) ;
    }
@@ -181,7 +181,7 @@ static int test_initfree(void)
    TEST(0 == pool.threads) ;
 
    // TEST free waits until all threads started (registered with pool)
-   for(;;) {
+   for (;;) {
       TEST(0 == init_threadpool(&pool, 3)) ;
       TEST(3 == pool.poolsize) ;
       TEST(0 != pool.threads) ;
@@ -217,22 +217,22 @@ static int test_run(void)
 
    // TEST tryruntask
    memset(s_isrun, 0, sizeof(s_isrun)) ;
-   TEST(0 == init_threadpool(&pool, nrelementsof(s_isrun))) ;
-   for(unsigned i = 0; i < 10000; ++i) {
+   TEST(0 == init_threadpool(&pool, lengthof(s_isrun))) ;
+   for (unsigned i = 0; i < 10000; ++i) {
       if (poolsize_threadpool(&pool) == nridle_threadpool(&pool)) break ;
       sleepms_thread(1) ;
    }
    TEST(poolsize_threadpool(&pool) == nridle_threadpool(&pool)) ;
-   for(unsigned i = 0; i < poolsize_threadpool(&pool); ++i) {
+   for (unsigned i = 0; i < poolsize_threadpool(&pool); ++i) {
       TEST(0 == tryruntask_threadpool(&pool, &task_sleep, i)) ;
    }
    TEST(EAGAIN == tryruntask_threadpool(&pool, &task_sleep, 0u)) ;
-   for(unsigned i = 0; i < 10000; ++i) {
+   for (unsigned i = 0; i < 10000; ++i) {
       if (poolsize_threadpool(&pool) == nridle_threadpool(&pool)) break ;
       sleepms_thread(1) ;
    }
    TEST(poolsize_threadpool(&pool) == nridle_threadpool(&pool)) ;
-   for(unsigned i = 0; i < poolsize_threadpool(&pool); ++i) {
+   for (unsigned i = 0; i < poolsize_threadpool(&pool); ++i) {
       TEST(1 == s_isrun[i]) ;
    }
    TEST(0 == free_threadpool(&pool)) ;

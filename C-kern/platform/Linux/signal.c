@@ -88,7 +88,7 @@ static void cbdispatcher_signalconfig(int signr, siginfo_t * siginfo, void * uco
 {
    (void) ucontext ;
    (void) siginfo ;
-   if (0 < signr && signr <= (int)nrelementsof(s_signalhandler)) {
+   if (0 < signr && signr <= (int)lengthof(s_signalhandler)) {
       if (s_signalhandler[signr-1].isvalid) {
          s_signalhandler[signr-1].callback((unsigned)signr) ;
       }
@@ -101,7 +101,7 @@ static int clearcallback_signalconfig(unsigned signr)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
+   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
 
    if (s_signalhandler[signr-1].isvalid) {
       s_signalhandler[signr-1].isvalid  = false ;
@@ -126,7 +126,7 @@ static int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
    struct sigaction  sighandler ;
 
    VALIDATE_INPARAM_TEST(signr > 0, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
+   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
 
    err = clearcallback_signalconfig(signr) ;
    if (err) goto ONABORT ;
@@ -161,7 +161,7 @@ static int setignore_signalconfig(unsigned signr)
    struct sigaction  sighandler ;
 
    VALIDATE_INPARAM_TEST(signr > 0, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(signr <= nrelementsof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
+   VALIDATE_INPARAM_TEST(signr <= lengthof(s_signalhandler), ONABORT, PRINTINT_LOG(signr)) ;
 
    err = clearcallback_signalconfig(signr) ;
    if (err) goto ONABORT ;
@@ -238,7 +238,7 @@ int initonce_signalconfig()
 #undef add
 
 #define set(_SIGNR, _CALLBACK) \
-   static_assert(0 < _SIGNR && _SIGNR <= nrelementsof(s_signalhandler), \
+   static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),     \
    "s_signalhandler must be big enough" ) ;                             \
    err = setcallback_signalconfig(_SIGNR, _CALLBACK) ;                  \
    if (err) goto ONABORT ;
@@ -248,7 +248,7 @@ int initonce_signalconfig()
 #undef set
 
 #define ignore(_SIGNR) \
-   static_assert(0 < _SIGNR && _SIGNR <= nrelementsof(s_signalhandler), \
+   static_assert(0 < _SIGNR && _SIGNR <= lengthof(s_signalhandler),     \
    "s_signalhandler must be big enough" ) ;                             \
    err = setignore_signalconfig(_SIGNR) ;                               \
    if (err) goto ONABORT ;
@@ -283,7 +283,7 @@ int freeonce_signalconfig()
    int err ;
    int signr ;
 
-   for(unsigned i = 0; i < nrelementsof(s_signalhandler); ++i) {
+   for (unsigned i = 0; i < lengthof(s_signalhandler); ++i) {
       if (s_signalhandler[i].isvalid) {
          s_signalhandler[i].isvalid = false ;
          signr = (int)i + 1 ;
@@ -333,7 +333,7 @@ int new_signalconfig(/*out*/signalconfig_t ** sigconfig)
       goto ONABORT ;
    }
 
-   for(int i = nr_signal_handlers; i > 0; --i) {
+   for (int i = nr_signal_handlers; i > 0; --i) {
       if (32 <= i && i < SIGRTMIN) continue ;
       err = sigaction(i, 0, &newsigconfig->signal_handlers[i-1]) ;
       if (err) {
@@ -378,7 +378,7 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
          return cmp ;
       }
 
-      for(int i = sigconfig1->nr_signal_handlers; i > 0; ) {
+      for (int i = sigconfig1->nr_signal_handlers; i > 0; ) {
          --i ;
          if (sigconfig1->signal_handlers[i].sa_flags != sigconfig2->signal_handlers[i].sa_flags) {
             return sign_int(sigconfig1->signal_handlers[i].sa_flags - sigconfig2->signal_handlers[i].sa_flags) ;
@@ -446,7 +446,7 @@ int wait_rtsignal(rtsignal_t nr, uint32_t nr_signals)
       goto ONABORT ;
    }
 
-   for(uint32_t i = nr_signals; i; --i) {
+   for (uint32_t i = nr_signals; i; --i) {
       do {
          err = sigwaitinfo(&signalmask, 0) ;
       } while(-1 == err && EINTR == errno) ;
@@ -487,7 +487,7 @@ int trywait_rtsignal(rtsignal_t nr)
       goto ONABORT ;
    }
 
-   for(;;) {
+   for (;;) {
       err = sigtimedwait(&signalmask, 0, &ts) ;
       if (-1 != err) break ;
       err = errno ;
@@ -646,7 +646,7 @@ static int test_helper(void)
    TEST(0 == pthread_sigmask(SIG_SETMASK, 0, &oldmask)) ;
    isoldmask = true ;
 
-   for(unsigned i = 0; i < nrelementsof(testsignals); ++i) {
+   for (unsigned i = 0; i < lengthof(testsignals); ++i) {
       int              signr   = testsignals[i] ;
       signalcallback_t handler = s_signalhandler[signr-1] ;
       TEST(0 == sigemptyset(&signalmask)) ;
@@ -674,7 +674,7 @@ ONABORT:
 static int test_initonce(void)
 {
    sigset_t            old_signalmask ;
-   signalcallback_t    signalhandler[nrelementsof(s_signalhandler)] ;
+   signalcallback_t    signalhandler[lengthof(s_signalhandler)] ;
 
    static_assert(sizeof(old_signalmask) == sizeof(s_old_signalmask), "must be of same type") ;
    static_assert(sizeof(signalhandler) == sizeof(s_signalhandler), "must be of same type") ;
@@ -722,7 +722,7 @@ static int test_rtsignal(void)
    TEST(0 == sigprocmask(SIG_SETMASK, 0, &oldmask)) ;
    isoldmask = true ;
    TEST(0 == sigemptyset(&signalmask)) ;
-   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
+   for (unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       TEST(0 == sigaddset(&signalmask, SIGRTMIN + (int)i)) ;
    }
    TEST(0 == sigprocmask(SIG_BLOCK, &signalmask, 0)) ;
@@ -730,51 +730,51 @@ static int test_rtsignal(void)
    // TEST wait (consume all queued signals)
    while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
    // generate signals in queue
-   for(int i = 0; i <= maxnr_rtsignal(); ++i) {
-      for(int nr = 0; nr <= i; ++nr) {
+   for (int i = 0; i <= maxnr_rtsignal(); ++i) {
+      for (int nr = 0; nr <= i; ++nr) {
          TEST(0 == kill(getpid(), SIGRTMIN+i)) ;
       }
    }
    // consume signals
-   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
+   for (unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       TEST(0 == wait_rtsignal((rtsignal_t)i, (1+i))) ;
    }
    // all signals consumed
-   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
+   for (unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       TEST(EAGAIN == trywait_rtsignal((rtsignal_t)i)) ;
    }
 
    // TEST wait (consume not all signals)
    while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
    // generate signals in queue
-   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
-      for(int nr = 0; nr < 6; ++nr) {
+   for (unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
+      for (int nr = 0; nr < 6; ++nr) {
          TEST(0 == kill(getpid(), SIGRTMIN+(int)i)) ;
       }
    }
    // consume signals
-   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
+   for (unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       TEST(0 == wait_rtsignal((rtsignal_t)i, 5)) ;
    }
    // all signals consumed except for one
-   for(unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
+   for (unsigned i = 0; i <= maxnr_rtsignal(); ++i) {
       TEST(0 == trywait_rtsignal((rtsignal_t)i)) ;
       TEST(EAGAIN == trywait_rtsignal((rtsignal_t)i)) ;
    }
 
    // TEST send_rtsignal (order unspecified)
-   for(unsigned i = 1; i <= maxnr_rtsignal(); ++i) {
+   for (unsigned i = 1; i <= maxnr_rtsignal(); ++i) {
       TEST(0 == newgeneric_thread(&thread, thread_receivesignal, i, 3)) ;
       thread_t * group[3] = { thread, thread->groupnext, thread->groupnext->groupnext } ;
-      for(int t = 0; t < 3; ++t) {
+      for (int t = 0; t < 3; ++t) {
          TEST((void*)i == group[t]->task_arg) ;
       }
-      for(int t = 0; t < 3; ++t) {
+      for (int t = 0; t < 3; ++t) {
          // wake up one thread
          TEST(0 == send_rtsignal((rtsignal_t)i)) ;
          // wait until woken up
          TEST(0 == wait_rtsignal(0, 1)) ;
-         for(int t2 = 0; t2 < 3; ++t2) {
+         for (int t2 = 0; t2 < 3; ++t2) {
             if (group[t2] && 0 == group[t2]->task_arg) {
                group[t2] = 0 ;
                break ;
@@ -782,7 +782,7 @@ static int test_rtsignal(void)
          }
          // only one woken up
          int count = t ;
-         for(int t2 = 0; t2 < 3; ++t2) {
+         for (int t2 = 0; t2 < 3; ++t2) {
             if (group[t2]) {
                ++ count ;
                TEST((void*)i == group[t2]->task_arg) ;
@@ -801,7 +801,7 @@ static int test_rtsignal(void)
 
    // TEST EAGAIN
    unsigned queue_size ;
-   for(queue_size = 0; queue_size < 1000000; ++queue_size) {
+   for (queue_size = 0; queue_size < 1000000; ++queue_size) {
       if (0 == send_rtsignal(0)) continue ;
       TEST(EAGAIN == send_rtsignal(0)) ;
       break ;
@@ -826,7 +826,7 @@ int unittest_platform_sync_signal()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
-   for(int i = 0; i < 2; ++i) {
+   for (int i = 0; i < 2; ++i) {
       TEST(0 == init_resourceusage(&usage)) ;
 
       if (test_initfree())       goto ONABORT ;

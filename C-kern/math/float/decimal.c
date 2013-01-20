@@ -152,7 +152,7 @@ static const bigint_t          * s_decimal_powbase[7] = {
 /* function: tableindex_decimalpowbase
  * Returns index into table <s_decimal_powbase>.
  * The index is calculated from the size of the <bigint_t>.
- * Check the returned index if it is < nrelementsof(s_decimal_powbase).
+ * Check the returned index if it is < lengthof(s_decimal_powbase).
  * If it is out of range than bigintsize is too big.
  *
  * Returns:
@@ -198,7 +198,7 @@ int new_decimalfrombigint(/*out*/decimal_frombigint_t ** converter)
    memblock_t           objmem    = memblock_INIT_FREEABLE ;
    const size_t         objsize   = sizeof(decimal_frombigint_t) ;
 
-   static_assert(nrelementsof(s_decimal_powbase) == nrelementsof(newobj->state), "for every table entry a newobj->state entry") ;
+   static_assert(lengthof(s_decimal_powbase) == lengthof(newobj->state), "for every table entry a newobj->state entry") ;
 
    err = RESIZE_MM(objsize, &objmem) ;
    if (err) goto ONABORT ;
@@ -207,7 +207,7 @@ int new_decimalfrombigint(/*out*/decimal_frombigint_t ** converter)
 
    memset(newobj, 0, sizeof(*newobj)) ;
 
-   int maxindex = (int) nrelementsof(newobj->state)-1 ;
+   int maxindex = (int) lengthof(newobj->state)-1 ;
 
    // For all 0 <= i < maxindex: size_bigint(newobj->state[i].big) > size_bigint(newobj->state[i+1].big)
    for (int i = maxindex; i >= 0; --i) {
@@ -249,7 +249,7 @@ int delete_decimalfrombigint(decimal_frombigint_t ** converter)
       err2 = delete_bigint(&delobj->quotient[1]) ;
       if (err2) err = err2 ;
 
-      for (int i = (int)nrelementsof(delobj->state)-1; i >= 0; --i) {
+      for (int i = (int)lengthof(delobj->state)-1; i >= 0; --i) {
          err2 = delete_bigint(&delobj->state[i].big) ;
          if (err2) err = err2 ;
       }
@@ -927,7 +927,7 @@ static int multsplit_decimalhelper(decimal_t * restrict * result, uint8_t lsize,
    int err ;
    decimal_t   * t[5] ;
    int32_t     exponent = 0 ;
-   t[nrelementsof(t)-1] = 0 ;  // (t[3] == 0) ==> t[] is *not* allocated
+   t[lengthof(t)-1] = 0 ;  // (t[3] == 0) ==> t[] is *not* allocated
 
    // skip trailing zero in both operands
    while (lsize && 0 == ldigits[0]) {
@@ -1000,8 +1000,8 @@ static int multsplit_decimalhelper(decimal_t * restrict * result, uint8_t lsize,
                               * if   (0 == lsize%2) => rsize == 2*split   => (1 + 2*split) == (1+rsize)
                               * else (0 != lsize%2) => rsize == 2*split-1 => (1 + 2*split) == (2+rsize) */
    } ;
-   static_assert(nrelementsof(tsize) == nrelementsof(t), "arrays must have same size") ;
-   err = allocategroup_decimal(nrelementsof(t), t, tsize) ;
+   static_assert(lengthof(tsize) == lengthof(t), "arrays must have same size") ;
+   err = allocategroup_decimal(lengthof(t), t, tsize) ;
    if (err) goto ONABORT ;
 
    // compute t0
@@ -1035,15 +1035,15 @@ static int multsplit_decimalhelper(decimal_t * restrict * result, uint8_t lsize,
    (*result)->exponent = (int16_t) ((*result)->exponent + exponent) ;
 
    // free resources
-   for (unsigned i = 0; i < nrelementsof(t); ++i) {
+   for (unsigned i = 0; i < lengthof(t); ++i) {
       err = delete_decimal(&t[i]) ;
       if (err) goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   if (t[nrelementsof(t)-1]) {
-      for (unsigned i = 0; i < nrelementsof(t); ++i) {
+   if (t[lengthof(t)-1]) {
+      for (unsigned i = 0; i < lengthof(t); ++i) {
          (void) delete_decimal(&t[i]) ;
       }
    }
@@ -1973,7 +1973,7 @@ int setfromfloat_decimal(decimal_t *restrict* dec, float value)
       // 1. determine size of result
       unsigned tabidx = tableindex_decimalpowbase(size_bigint(&fbig)) ;
 
-      if ((unsigned)tabidx >= nrelementsof(s_decimal_powbase)) {
+      if ((unsigned)tabidx >= lengthof(s_decimal_powbase)) {
          err = EOVERFLOW ;
          goto ONABORT ;
       }
@@ -2448,13 +2448,13 @@ static int test_decimaltables(void)
 
    // TEST power10_decimalhelper: invalid argument returns 0
    unsigned invalid_args[] = { (unsigned)-1, (unsigned)INT_MIN, UINT_MAX, 10 } ;
-   for (unsigned i = 0; i < nrelementsof(invalid_args); ++i) {
+   for (unsigned i = 0; i < lengthof(invalid_args); ++i) {
       TEST(0 == power10_decimalhelper(invalid_args[i])) ;
    }
 
    // TEST s_decimal_powbase: entries has values == pow(10, digitsperint_decimal() * pow(2,i))
    setfromuint32_bigint(big, DIGITSBASE) ;
-   for (unsigned i = 0; i < nrelementsof(s_decimal_powbase); ++i) {
+   for (unsigned i = 0; i < lengthof(s_decimal_powbase); ++i) {
       TEST(0 == cmp_bigint(big, s_decimal_powbase[i])) ;
       TEST(0 == mult_bigint(&temp1, big, big)) ;
       removetrailingzero_bigint(temp1) ;
@@ -2464,7 +2464,7 @@ static int test_decimaltables(void)
    // TEST s_decimal_powbase: pow(10, nrdigitsmax_decimal()) fits in BIGINT_MAXSIZE digits
    unsigned nrdigitsmax = 0 ;
    setfromuint32_bigint(big, 1) ;
-   for (unsigned e10 = digitsperint_decimal(), i = 0; i < nrelementsof(s_decimal_powbase); ++i, e10 *= 2) {
+   for (unsigned e10 = digitsperint_decimal(), i = 0; i < lengthof(s_decimal_powbase); ++i, e10 *= 2) {
       TEST(0 == mult_bigint(&temp1, big, s_decimal_powbase[i])) ;
       removetrailingzero_bigint(temp1) ;
       TEST(0 == copy_bigint(&big, temp1)) ;
@@ -2474,13 +2474,13 @@ static int test_decimaltables(void)
    TEST(BIGINT_MAXSIZE == size_bigint(big)) ;
 
    // TEST s_decimal_powbase: decsize_decimalpowbase
-   for (unsigned e10 = digitsperint_decimal(), i = 0; i < nrelementsof(s_decimal_powbase); ++i, e10 *= 2) {
+   for (unsigned e10 = digitsperint_decimal(), i = 0; i < lengthof(s_decimal_powbase); ++i, e10 *= 2) {
       TEST(e10 == decsize_decimalpowbase(i) * digitsperint_decimal()) ;
    }
 
    // TEST s_decimal_powbase: number 15 used in tableindex_decimalpowbase
    TEST((const bigint_t*)&s_decimal_10raised144 == s_decimal_powbase[4]) ;
-   for (unsigned i = 4, expectsize = 15; i < nrelementsof(s_decimal_powbase); ++i, expectsize *= 2) {
+   for (unsigned i = 4, expectsize = 15; i < lengthof(s_decimal_powbase); ++i, expectsize *= 2) {
       // pow(10,16*9)) needs only 15 integer digits, pow(10,32*9)) only 30, ...
       TEST(expectsize == size_bigint(s_decimal_powbase[i])) ;
    }
@@ -2488,22 +2488,22 @@ static int test_decimaltables(void)
    // TEST s_decimal_powbase: last entry overflows if used in fractional multiplication
    // => algorithm can rely on fact that s_decimal_powbase is big enough for multiplication
    uint32_t zerosize = 0 ;
-   uint32_t nrzerobits   = bitsperdigit_bigint()*size_bigint(s_decimal_powbase[nrelementsof(s_decimal_powbase)-1]) ;
+   uint32_t nrzerobits   = bitsperdigit_bigint()*size_bigint(s_decimal_powbase[lengthof(s_decimal_powbase)-1]) ;
    uint32_t fractionbits = nrzerobits + 1 ;
    uint32_t fsize = calcfractionsize_decimalhelper(&zerosize, fractionbits, nrzerobits) ;
    TEST(fsize == sizemax_decimal() + 1/*OVERFLOW*/) ;
    TEST(0     == zerosize) ;
    // TEST s_decimal_powbase: second last entry overflows not if used in fractional multiplication
-   nrzerobits   = bitsperdigit_bigint()*size_bigint(s_decimal_powbase[nrelementsof(s_decimal_powbase)-2]) ;
+   nrzerobits   = bitsperdigit_bigint()*size_bigint(s_decimal_powbase[lengthof(s_decimal_powbase)-2]) ;
    fractionbits = nrzerobits + 1 ;
    fsize = calcfractionsize_decimalhelper(&zerosize, fractionbits, nrzerobits) ;
    TEST(fsize == 75/*adapt this value to table size*/) ;
    TEST(fsize  < sizemax_decimal()) ;
-   TEST(zerosize == decsize_decimalpowbase(nrelementsof(s_decimal_powbase)-2)) ;
+   TEST(zerosize == decsize_decimalpowbase(lengthof(s_decimal_powbase)-2)) ;
 
    // TEST s_decimal_powbase: tableindex_decimalpowbase values <= BIGINT_MAXSIZE returns the correct index
    for (unsigned size = 0, expected = 0; size <= BIGINT_MAXSIZE; ++size) {
-      if (  expected <  nrelementsof(s_decimal_powbase)-1
+      if (  expected <  lengthof(s_decimal_powbase)-1
             && size  >= size_bigint(s_decimal_powbase[expected+1])) {
          ++ expected ;
       }
@@ -2514,15 +2514,15 @@ static int test_decimaltables(void)
    // TEST s_decimal_powbase: tableindexfromdecsize_decimalpowbase
    TEST(0 == tableindexfromdecsize_decimalpowbase(0)) ;
    TEST(0 == tableindexfromdecsize_decimalpowbase(1)) ;
-   for (unsigned decsize = 1, expected = 0; expected < nrelementsof(s_decimal_powbase); ++expected, decsize *= 2) {
+   for (unsigned decsize = 1, expected = 0; expected < lengthof(s_decimal_powbase); ++expected, decsize *= 2) {
       TEST(expected == tableindexfromdecsize_decimalpowbase(decsize)) ;
       TEST(expected == tableindexfromdecsize_decimalpowbase(decsize + decsize-1)) ;
    }
 
    // TEST s_decimal_powbase: tableindex_decimalpowbase values > BIGINT_MAXSIZE
-   TEST(nrelementsof(s_decimal_powbase)     == tableindex_decimalpowbase(BIGINT_MAXSIZE+1)) ;
-   TEST(nrelementsof(s_decimal_powbase)+1   == tableindex_decimalpowbase(BIGINT_MAXSIZE+129)) ;
-   TEST(2*nrelementsof(s_decimal_powbase)+2 == tableindex_decimalpowbase((uint32_t)2*INT16_MAX)) ;
+   TEST(lengthof(s_decimal_powbase)     == tableindex_decimalpowbase(BIGINT_MAXSIZE+1)) ;
+   TEST(lengthof(s_decimal_powbase)+1   == tableindex_decimalpowbase(BIGINT_MAXSIZE+129)) ;
+   TEST(2*lengthof(s_decimal_powbase)+2 == tableindex_decimalpowbase((uint32_t)2*INT16_MAX)) ;
 
    // unprepare
    TEST(0 == delete_bigint(&big)) ;
@@ -2544,7 +2544,7 @@ static int test_helper(void)
    bigint_t * big[3] = { 0, 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
    }
 
@@ -2690,13 +2690,13 @@ static int test_helper(void)
    TEST(DIGITSBASE/11 == divteststate[6].nextdigit) ;
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == delete_bigint(&big[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
    return EINVAL ;
@@ -2907,7 +2907,7 @@ static int test_copy(void)
       ,{ 9, { 3, 222, 10000, 10004, 0, 0, 999999999, 88888 } }
       ,{ 10, { 3, 222, 10000, 0, 2001, 123456789, 999999999, 0, 4 } }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues); ++tvi) {
       for (int s = -1; s <= 1; s += 2) {
          for (int32_t e = -INT16_MAX; e <= INT16_MAX; e += INT16_MAX) {
             const int n = testvalues[tvi].nrdigits ;
@@ -2992,8 +2992,8 @@ static int test_setfromint(void)
    // TEST setfromint32_decimal, setfromint64_decimal: 32 bit values
    int32_t testvalues[]   = { 1, 2, 100, 999, 999999, 999000000, DIGITSBASE-1, DIGITSBASE, INT32_MAX } ;
    int32_t testexponent[] = { expmax_decimal(), expmax_decimal()-8, 1, 0, -1, -(expmax_decimal()-8), -expmax_decimal() } ;
-   for (unsigned i = 0; i < nrelementsof(testvalues); ++i) {
-      for (unsigned ei = 0; ei < nrelementsof(testexponent); ++ei) {
+   for (unsigned i = 0; i < lengthof(testvalues); ++i) {
+      for (unsigned ei = 0; ei < lengthof(testexponent); ++ei) {
          for (int s = -1; s <= +1; s += 2) {
             for (int bits=32; bits <= 64; bits += 32) {
                int32_t  expdiff      = testexponent[ei] - alignexp_test(testexponent[ei]) ;
@@ -3038,8 +3038,8 @@ static int test_setfromint(void)
    // TEST setfromint64_decimal: sign, exponent, values >= DIGITSBASE*DIGITSBASE
    int64_t testvalues2[]   = { (int64_t)8999999998999999996, (int64_t)999999999000000000, (int64_t)123456789987654321, INT64_MAX } ;
    int32_t testexponent2[] = { expmax_decimal()-18, expmax_decimal()-26, 11, 0, -10, -(expmax_decimal()-5), -expmax_decimal() } ;
-   for (unsigned i = 0; i < nrelementsof(testvalues2); ++i) {
-      for (unsigned ei = 0; ei < nrelementsof(testexponent2); ++ei) {
+   for (unsigned i = 0; i < lengthof(testvalues2); ++i) {
+      for (unsigned ei = 0; ei < lengthof(testexponent2); ++ei) {
          for (int s = -1; s <= +1; s += 2) {
             uint16_t expdiff         = (uint16_t) (testexponent2[ei] - alignexp_test(testexponent2[ei])) ;
             uint32_t shifteddigit[3] ;
@@ -3124,7 +3124,7 @@ static int test_setfromfloat(void)
 
    // prepare
    frexp(FLT_MAX, &fmaxexp) ;
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == new_bigint(&big[i], nrdigitsmax_bigint())) ;
    }
    TEST(0 == new_decimal(&dec, nrdigitsmax_decimal())) ;
@@ -3145,7 +3145,7 @@ static int test_setfromfloat(void)
 
    // TEST setfromfloat_decimal: fraction != 0 && integral != 0
    uint32_t testvalues1[] = { 0x00ffffff, 0x00fffff9, 0x00800001, 0x1f3, 0x3f5, 0x707, 0x70001, 0x80001 } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues1); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues1); ++tvi) {
       fvalue = (float) testvalues1[tvi] / 2.0f ;
       for (int nrshift = 1; fvalue > 2; ++ nrshift, fvalue /= 2) {
          float integral, fraction = modff(fvalue, &integral) ;
@@ -3159,7 +3159,7 @@ static int test_setfromfloat(void)
          TEST(0 == shiftright_bigint(&big[0], 32)) ;
          uint32_t expecteddigits[4] ;
          unsigned expectedsize = 0 ;
-         for (; expectedsize < nrelementsof(expecteddigits) && 0 != sign_bigint(big[0]); ++expectedsize) {
+         for (; expectedsize < lengthof(expecteddigits) && 0 != sign_bigint(big[0]); ++expectedsize) {
             TEST(0 == divmodui32_bigint(&big[2], &big[1], big[0], DIGITSBASE)) ;
             TEST(0 == copy_bigint(&big[0], big[2])) ;
             expecteddigits[expectedsize] = firstdigit_bigint(big[1]) ;
@@ -3180,7 +3180,7 @@ static int test_setfromfloat(void)
 
    // TEST setfromfloat_decimal: only integral part
    uint32_t testvalues2[] = { 0xffffff, 1, 3, 7, 9999999, 0x800001, 0x888888, 0x123456, 0xf, 0xff, 0xfff, 0xffff, 0xfffff } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues2); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues2); ++tvi) {
       int fexp ;
       fvalue = (float) testvalues2[tvi] ;
       frexp(fvalue, &fexp) ;
@@ -3205,7 +3205,7 @@ static int test_setfromfloat(void)
    }
 
    // TEST setfromfloat_decimal: only fractional part
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues2); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues2); ++tvi) {
       fvalue = (float) testvalues2[tvi] ;
       while (fvalue >= 1) fvalue /= 2 ;
       // this check tests for denormalized float (1==testvalues2[tvi] && 0!=fvalue)
@@ -3271,14 +3271,14 @@ static int test_setfromfloat(void)
 
    // unprepare
    TEST(0 == delete_decimal(&dec)) ;
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       TEST(0 == delete_bigint(&big[i])) ;
    }
 
    return 0 ;
 ONABORT:
    delete_decimal(&dec) ;
-   for (unsigned i = 0; i < nrelementsof(big); ++i) {
+   for (unsigned i = 0; i < lengthof(big); ++i) {
       delete_bigint(&big[i]) ;
    }
    return EINVAL ;
@@ -3314,7 +3314,7 @@ static int test_setfromchar(void)
       ,{ "-000034.0567812345678900000000000000000e-32746", -32760, 16, { 3405678, 123456789 } }
       ,{ "-000034.0567812345678900000000000000000e-32745", -32760, 16+1, { 34056781, 234567890 } }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues); ++tvi) {
       for (int s = -1; s <= 1; s += 2) {
          uint32_t    size = (uint32_t) (testvalues[tvi].nrdigits + digitsperint_decimal()-1) / digitsperint_decimal() ;
          const char * str = testvalues[tvi].decimalstr + (s == +1) ;
@@ -3346,13 +3346,13 @@ static int test_setfromchar(void)
 
    // TEST setfromchar_decimal: EINVAL
    const char * errvalues1[] = { "", "-", "-.", "-.e+10", "1.2e", "1.2e+", "1.2e-", "1.2e-100x", "1.x", "1x", "-.123y" } ;
-   for (unsigned i = 0; i < nrelementsof(errvalues1); ++i) {
+   for (unsigned i = 0; i < lengthof(errvalues1); ++i) {
       TEST(EINVAL == setfromchar_decimal(&dec, strlen(errvalues1[i]), errvalues1[i])) ;
    }
 
    // TEST setfromchar_decimal: EOVERFLOW
    const char * errvalues2[] = { "1e-294904", ".0000001e-294897", "100000.000e+294899", "123456789123456789e+294904" } ;
-   for (unsigned i = 0; i < nrelementsof(errvalues2); ++i) {
+   for (unsigned i = 0; i < lengthof(errvalues2); ++i) {
       TEST(EOVERFLOW  == setfromchar_decimal(&dec, strlen(errvalues2[i]), errvalues2[i])) ;
    }
    memset(strbuf, '1', sizeof(strbuf)) ;
@@ -3375,7 +3375,7 @@ static int test_compare(void)
    decimal_t   * dec[2] = { 0, 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == new_decimal(&dec[i], nrdigitsmax_decimal())) ;
    }
 
@@ -3400,8 +3400,8 @@ static int test_compare(void)
       ,{ "123456789123456789", "123456789123456789.1234567891234",  }
       ,{ "123456789123456788.1234567891234", "123456789123456789" }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testvalues[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testvalues[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues[tvi][i]), testvalues[tvi][i])) ;
       }
       for (int s = -1;  s <= 1; s += 2) {
@@ -3425,8 +3425,8 @@ static int test_compare(void)
       ,{ "12345678912345678e10", "123456789123456780000000001" }
       ,{ "123456789123456789e18", "123456789123456789000000000000000010" }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues2); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testvalues2[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues2); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testvalues2[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues2[tvi][i]), testvalues2[tvi][i])) ;
       }
       dec[1]->digits[0] = 0 ;
@@ -3441,13 +3441,13 @@ static int test_compare(void)
    }
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == delete_decimal(&dec[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
    return EINVAL ;
@@ -3458,7 +3458,7 @@ static int test_addsub(void)
    decimal_t   * dec[4] = { 0, 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == new_decimal(&dec[i], nrdigitsmax_decimal())) ;
    }
 
@@ -3483,8 +3483,8 @@ static int test_addsub(void)
       ,{ "123456789123456788999999999999999999887766555", "112233445", "123456789123456789e27" }
       ,{ "123456789123456788999999999899999999887766555", "100000000112233445", "123456789123456789e27" }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testvalues[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testvalues[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues[tvi][i]), testvalues[tvi][i])) ;
       }
       for (int s = -1; s <= +1; s += 2) {
@@ -3506,8 +3506,8 @@ static int test_addsub(void)
    }
 
    // TEST: add_decimal, sub_decimal, sub_decimalhelper: no trailing zero in summands
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testvalues[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testvalues[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues[tvi][i]), testvalues[tvi][i])) ;
       }
       for (int s = -1; s <= +1; s += 2) {
@@ -3540,8 +3540,8 @@ static int test_addsub(void)
       ,{ "11000000000000000000000000000000000001", "99000000000000000000000000000000000001", "110e36" }
       ,{ "123456789123456789123456789123456789000000000000000001", "900000000876543211000000000000000001e18", "1023456790000000000123456789123456789e18" }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues2); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testvalues2[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues2); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testvalues2[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues2[tvi][i]), testvalues2[tvi][i])) ;
          if (i <= 1 && 1 == dec[i]->digits[0]) {
             dec[i]->digits[0] = 0 ;
@@ -3570,8 +3570,8 @@ static int test_addsub(void)
    }
 
    // TEST: add_decimal, sub_decimal, sub_decimalhelper: trailing zero in summands
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues2); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testvalues2[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues2); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testvalues2[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues2[tvi][i]), testvalues2[tvi][i])) ;
          if (i <= 1 && 1 == dec[i]->digits[0]) {
             dec[i]->digits[0] = 0 ;
@@ -3605,8 +3605,8 @@ static int test_addsub(void)
       { "1e9000", "123" /*size overflow*/}
       ,{ "1e1143", "123" /*size overflow*/}
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testerrvalues); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testerrvalues[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testerrvalues); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testerrvalues[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testerrvalues[tvi][i]), testerrvalues[tvi][i])) ;
       }
       TEST(EOVERFLOW == add_decimal(&dec[3], dec[0], dec[1])) ;
@@ -3614,13 +3614,13 @@ static int test_addsub(void)
    }
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == delete_decimal(&dec[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
    return EINVAL ;
@@ -3631,7 +3631,7 @@ static int test_mult(void)
    decimal_t   * dec[5] = { 0, 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == new_decimal(&dec[i], nrdigitsmax_decimal())) ;
    }
 
@@ -3656,8 +3656,8 @@ static int test_mult(void)
       ,{ "9e-123", "5e-300", "45e-423" }
       ,{ "3e-30999", "111111111222222222333333333e+32000", "333333333666666666999999999e1001" }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testvalues[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testvalues[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues[tvi][i]), testvalues[tvi][i])) ;
       }
       for (int s = -1; s <= +1; s += 2) {
@@ -3732,13 +3732,13 @@ static int test_mult(void)
    TEST(EOVERFLOW == mult_decimal(&dec[0], dec[1], dec[1])) ;
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == delete_decimal(&dec[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
    return EINVAL ;
@@ -3749,7 +3749,7 @@ static int test_div(void)
    decimal_t   * dec[5] = { 0, 0 } ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == new_decimal(&dec[i], nrdigitsmax_decimal())) ;
    }
 
@@ -3761,9 +3761,9 @@ static int test_div(void)
       ,{ "123499004370324769803247640e90", "923000917", "133801605280880527e90" }
       ,{ "10999999999", "9", "1222222222" }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues1); ++tvi) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues1); ++tvi) {
       // TEST divi32_decimal: divisor < DIGITSBASE
-      for (unsigned i = 0; i < nrelementsof(testvalues1[0]); ++i) {
+      for (unsigned i = 0; i < lengthof(testvalues1[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues1[tvi][i]), testvalues1[tvi][i])) ;
       }
       for (int s = +1; s >= -1; s -= 2) {
@@ -3845,8 +3845,8 @@ static int test_div(void)
       ,{ "1000000001888888888888888888000000000", "1000000001888888888888888889", "999999999999999999e-9" }
       ,{ "9000000009888888888888888888000000000000000000", "9000000009888888888888888889", "999999999999999999" }
    } ;
-   for (unsigned tvi = 0; tvi < nrelementsof(testvalues2); ++tvi) {
-      for (unsigned i = 0; i < nrelementsof(testvalues2[0]); ++i) {
+   for (unsigned tvi = 0; tvi < lengthof(testvalues2); ++tvi) {
+      for (unsigned i = 0; i < lengthof(testvalues2[0]); ++i) {
          TEST(0 == setfromchar_decimal(&dec[i], strlen(testvalues2[tvi][i]), testvalues2[tvi][i])) ;
       }
       for (int s = -1; s <= +1; s += 2) {
@@ -3879,13 +3879,13 @@ static int test_div(void)
 
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == delete_decimal(&dec[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
    return EINVAL ;
@@ -3929,7 +3929,7 @@ static int test_tocstring(void)
 
    // TEST tocstring_decimal: only one digit (mixed leading and trailing zeros)
    uint32_t testmixed[] = { 1, 9, 22, 88, 678, 901, 1008, 9999, 10204, 99999, 405123, 999999, 9050602, 9999999, 10013101, 11111111 } ;
-   for (unsigned ti = 0; ti < nrelementsof(testmixed); ++ti) {
+   for (unsigned ti = 0; ti < lengthof(testmixed); ++ti) {
       for (uint64_t digit = testmixed[ti] * (uint64_t)100000000; digit; digit /= 10) {
          int      exponent = 0 ;
          uint32_t d = (uint32_t) (digit % 1000000000) ;
@@ -3981,7 +3981,7 @@ static int test_tocstring(void)
                                     ,"99009444403332194566e-32001"
                                     ,"1230456780912345657809e-32760"
                                } ;
-   for (unsigned ti = 0; ti < nrelementsof(testvalues); ++ti) {
+   for (unsigned ti = 0; ti < lengthof(testvalues); ++ti) {
       size_t L = strlen(testvalues[ti]) ;
       TEST(0 == setfromchar_decimal(&dec, L, testvalues[ti])) ;
       TEST(0 == tocstring_decimal(dec, &cstr)) ;
@@ -4019,7 +4019,7 @@ static int test_example1(void)
    cstring_t   cstr     = cstring_INIT ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == new_decimal(&dec[i], nrdigitsmax_decimal())) ;
    }
 
@@ -4115,14 +4115,14 @@ static int test_example1(void)
    TEST(0 == strcmp(str_cstring(&cstr), "77615")) ;
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       TEST(0 == delete_decimal(&dec[i])) ;
    }
    TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(dec); ++i) {
+   for (unsigned i = 0; i < lengthof(dec); ++i) {
       delete_decimal(&dec[i]) ;
    }
    free_cstring(&cstr) ;

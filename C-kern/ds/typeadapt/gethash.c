@@ -123,25 +123,25 @@ static int test_callfunctions(void)
    typeadapt_gethash_it gethash = typeadapt_gethash_INIT(&impl_hashobject_typeadapt, &impl_hashkey_typeadapt) ;
    testadapter_t        testadp = { 0, 0, 0, 0 } ;
    double               nodes[50] ;
-   float                keys[nrelementsof(nodes)] ;
+   float                keys[lengthof(nodes)] ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i] = 3*i ;
       keys[i]  = (float) (4*i) ;
    }
 
    // TEST callhashobject_typeadaptgethash
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(3*i == callhashobject_typeadaptgethash(&gethash, (struct typeadapt_t*)&testadp, (const struct typeadapt_object_t*)&nodes[i])) ;
       TEST(testadp.is_hashobject == 1+i) ;
       TEST(testadp.is_hashkey    == 0) ;
    }
 
    // TEST callhashkey_typeadaptgethash
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(4*i == callhashkey_typeadaptgethash(&gethash, (struct typeadapt_t*)&testadp, (const void*)&keys[i])) ;
-      TEST(testadp.is_hashobject == nrelementsof(nodes)) ;
+      TEST(testadp.is_hashobject == lengthof(nodes)) ;
       TEST(testadp.is_hashkey    == 1+i) ;
    }
 
@@ -157,10 +157,10 @@ static int test_generic(void)
    testadapter_it    gethash = typeadapt_gethash_INIT(&impl_hashobject_testadapter, &impl_hashkey_testadapter) ;
    testadapter_t     testadp = { 0, 0, 0, 0 } ;
    double            nodes[50] ;
-   float             keys[nrelementsof(nodes)] ;
+   float             keys[lengthof(nodes)] ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i] = 5*i ;
       keys[i]  = (float) (6*i) ;
    }
@@ -174,16 +174,16 @@ static int test_generic(void)
    TEST((typeadapt_gethash_it*)&gethash == genericcast_typeadaptgethash(&gethash, testadapter_t, double, float*)) ;
 
    // TEST callhashobject_typeadaptgethash
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(5*i == callhashobject_typeadaptgethash(&gethash, &testadp, &nodes[i])) ;
       TEST(testadp.is_hashobject == 1+i) ;
       TEST(testadp.is_hashkey    == 0) ;
    }
 
    // TEST callhashkey_typeadaptgethash
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(6*i == callhashkey_typeadaptgethash(&gethash, &testadp, &keys[i])) ;
-      TEST(testadp.is_hashobject == nrelementsof(nodes)) ;
+      TEST(testadp.is_hashobject == lengthof(nodes)) ;
       TEST(testadp.is_hashkey    == 1+i) ;
    }
 

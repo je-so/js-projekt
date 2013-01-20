@@ -1226,14 +1226,14 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
    err = unlock_mutex(&startarg->lock) ;
    if (err) goto ONABORT ;
 
-   for (unsigned i = 0; i < nrelementsof(startarg->isSelfValid); ++i) {
+   for (unsigned i = 0; i < lengthof(startarg->isSelfValid); ++i) {
       if (  (void*)startarg->thread[i] == self_thread()) {
          startarg->isSelfValid[i] = true ;
          break ;
       }
    }
 
-   for (unsigned i = 0; i < nrelementsof(startarg->isSignalstackValid); ++i) {
+   for (unsigned i = 0; i < lengthof(startarg->isSignalstackValid); ++i) {
       if (  (void*)startarg->signalstack[i].addr == current_sigaltstack.ss_sp
          &&        startarg->signalstack[i].size == current_sigaltstack.ss_size ) {
          startarg->isSignalstackValid[i] = true ;
@@ -1241,7 +1241,7 @@ static int thread_isvalidstack(thread_isvalidstack_t * startarg)
       }
    }
 
-   for (unsigned i = 0; i < nrelementsof(startarg->isSignalstackValid); ++i) {
+   for (unsigned i = 0; i < lengthof(startarg->isSignalstackValid); ++i) {
       if (  startarg->threadstack[i].addr < (uint8_t*)&startarg
          && (uint8_t*)&startarg < startarg->threadstack[i].addr + startarg->threadstack[i].size ) {
          startarg->isThreadstackValid[i] = true ;
@@ -1336,14 +1336,14 @@ static int test_thread_array(void)
 
    // Test every thread has its own stackframe + self_thread
    TEST(0 == lock_mutex(&startarg.lock)) ;
-   TEST(0 == newgeneric_thread(&thread, thread_isvalidstack, &startarg, nrelementsof(startarg.isSignalstackValid))) ;
+   TEST(0 == newgeneric_thread(&thread, thread_isvalidstack, &startarg, lengthof(startarg.isSignalstackValid))) ;
 
    thread_stack_t signalstack = getsignalstack_threadstack(&thread->stackframe) ;
    thread_stack_t threadstack = getthreadstack_threadstack(&thread->stackframe) ;
    size_t           framesize = framestacksize_threadstack() ;
    prev = 0 ;
    next = thread ;
-   for (unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
+   for (unsigned i = 0; i < lengthof(startarg.isSignalstackValid); ++i) {
       TEST(prev < next) ;
       startarg.isSelfValid[i]        = false ;
       startarg.isSignalstackValid[i] = false ;
@@ -1361,7 +1361,7 @@ static int test_thread_array(void)
    TEST(0 == unlock_mutex(&startarg.lock)) ;
    TEST(0 == delete_thread(&thread)) ;
 
-   for (unsigned i = 0; i < nrelementsof(startarg.isSignalstackValid); ++i) {
+   for (unsigned i = 0; i < lengthof(startarg.isSignalstackValid); ++i) {
       TEST(startarg.isSelfValid[i]) ;
       TEST(startarg.isSignalstackValid[i]) ;
       TEST(startarg.isThreadstackValid[i]) ;

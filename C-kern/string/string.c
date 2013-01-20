@@ -71,7 +71,7 @@ bool isequalasciicase_string(const string_t * str, const string_t * str2)
 {
    if (str->size != str2->size) return false ;
 
-   for(size_t i = str->size; (i --);) {
+   for (size_t i = str->size; (i --);) {
       uint8_t c1 = str->addr[i] ;
       uint8_t c2 = str2->addr[i] ;
       uint8_t x  = c1 ^ c2 ;
@@ -115,7 +115,7 @@ static int test_initfree(void)
 
    // TEST string_INIT_CSTR
    const char * cstr[] = { "123", "123456" } ;
-   for (unsigned i = 0; i < nrelementsof(cstr); ++i) {
+   for (unsigned i = 0; i < lengthof(cstr); ++i) {
       str = (string_t) string_INIT_CSTR(cstr[i]) ;
       TEST(str.addr == (const uint8_t*)cstr[i]) ;
       TEST(str.size == strlen(cstr[i])) ;
@@ -224,14 +224,14 @@ static int test_compare(void)
    // TEST isequalasciicase_string inequality for all other 256 characters
    uint8_t buffer1[256] ;
    uint8_t buffer2[256] ;
-   for(unsigned i = 0; i < sizeof(buffer1); ++i) {
+   for (unsigned i = 0; i < sizeof(buffer1); ++i) {
       buffer1[i] = (uint8_t)i ;
       buffer2[i] = (uint8_t)i ;
    }
    init_string(&str1, sizeof(buffer1), buffer1) ;
    init_string(&str2, sizeof(buffer2), buffer2) ;
    TEST(true == isequalasciicase_string(&str1, &str2)) ;
-   for(unsigned i = 0; i < sizeof(buffer1); ++i) {
+   for (unsigned i = 0; i < sizeof(buffer1); ++i) {
       bool isEqual = (  ('a' <= i && i <= 'z')
                      || ('A' <= i && i <= 'Z')) ;
       buffer1[i] ^= 0x20 ; // change case (works only for a-z or A-Z)
@@ -243,7 +243,7 @@ static int test_compare(void)
    }
 
    // TEST isequalasciicase_string inequality for size
-   for(unsigned i = 0; i < sizeof(buffer1); ++i) {
+   for (unsigned i = 0; i < sizeof(buffer1); ++i) {
       TEST(true == isequalasciicase_string(&str1, &str2)) ;
       str1.size = i ;
       TEST(false == isequalasciicase_string(&str1, &str2)) ;
@@ -254,7 +254,7 @@ static int test_compare(void)
    }
 
    // TEST isequalasciicase_string inequality for one differing char
-   for(unsigned i = 0; i < sizeof(buffer1); ++i) {
+   for (unsigned i = 0; i < sizeof(buffer1); ++i) {
       TEST(true == isequalasciicase_string(&str1, &str2)) ;
       buffer1[i] = (uint8_t)(i+1) ;
       TEST(false == isequalasciicase_string(&str1, &str2)) ;
@@ -302,7 +302,7 @@ static int test_skip(void)
    TEST(0 == tryskipbytes_string(&str, 1000)) ;
    TEST(str.addr == (void*)1003) ;
    TEST(str.size == 0) ;
-   for(unsigned i = 0; i < 5; ++i) {
+   for (unsigned i = 0; i < 5; ++i) {
       str = (string_t) string_INIT(100+i, (void*)i) ;
       TEST(0 == tryskipbytes_string(&str, 10*i)) ;
       TEST(str.addr == (void*)(i+10*i)) ;

@@ -502,7 +502,7 @@ static int test_reading(void)
                          "\"h1\", \"h2\"\n\"v1\", \"v2", // unexpected end of input
                          "\"v\n1\"\n"                    // data field contains '\n'
                      } ;
-   unsigned          errcol[nrelementsof(errdata)] = {
+   unsigned          errcol[lengthof(errdata)] = {
                         12,
                         12,
                         12,
@@ -545,7 +545,7 @@ static int test_reading(void)
    TEST(0 == free_csvfilereader(&csvfile)) ;
 
    // TEST init_csvfilereader: read error
-   for (unsigned i = 0; i < nrelementsof(errdata); ++i) {
+   for (unsigned i = 0; i < lengthof(errdata); ++i) {
       TEST(0 == makefile_directory(tmpdir, "error", strlen(errdata[i]))) ;
       TEST(0 == init_file(&file, "error", accessmode_WRITE, tmpdir)) ;
       TEST(0 == write_file(file, strlen(errdata[i]), errdata[i], 0)) ;

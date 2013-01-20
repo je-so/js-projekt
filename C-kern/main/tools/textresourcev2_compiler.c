@@ -627,7 +627,7 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
    err = new_arrayptype(&textres->languages, 256) ;
    if (err) goto ONABORT ;
 
-   for (unsigned i = 0; i < nrelementsof(knowntypes); ++i) {
+   for (unsigned i = 0; i < lengthof(knowntypes); ++i) {
       err = insert_arrayptype(textres->paramtypes, &knowntypes[i], 0, 0) ;
       if (err) goto ONABORT ;
    }
@@ -1580,16 +1580,16 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
       switch (ch) {
       case 'f':   err = match_stringandspace(reader, "firstparam") ;
                   if (err) goto ONABORT ;
-                  err = parse_xmlattributes_textresourcereader(reader, nrelementsof(firstattr), firstattr, &closetag) ;
+                  err = parse_xmlattributes_textresourcereader(reader, lengthof(firstattr), firstattr, &closetag) ;
                   if (err) goto ONABORT ;
-                  static_assert(nrelementsof(firstattr) == 2, "assume one value") ;
+                  static_assert(lengthof(firstattr) == 2, "assume one value") ;
                   reader->txtres.progC.firstparam = firstattr[0].value ;
                   break ;
       case 'g':   err = match_stringandspace(reader, "generate") ;
                   if (err) goto ONABORT ;
-                  err = parse_xmlattributes_textresourcereader(reader, nrelementsof(genattr), genattr, &closetag) ;
+                  err = parse_xmlattributes_textresourcereader(reader, lengthof(genattr), genattr, &closetag) ;
                   if (err) goto ONABORT ;
-                  static_assert(nrelementsof(genattr) == 2, "assume two values") ;
+                  static_assert(lengthof(genattr) == 2, "assume two values") ;
                   reader->txtres.progC.hfilename = genattr[0].value ;
                   reader->txtres.progC.cfilename = genattr[1].value ;
                   break ;

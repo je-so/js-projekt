@@ -148,14 +148,14 @@
 
 // group: lifetime
 
-static inline size_t nrelementsoftable_exthash(uint8_t level)
+static inline size_t lengthoftable_exthash(uint8_t level)
 {
    return ((size_t)1 << level) ;
 }
 
 static inline size_t sizeoftable_exthash(uint8_t level)
 {
-   return nrelementsoftable_exthash(level) * sizeof(void*) ;
+   return lengthoftable_exthash(level) * sizeof(void*) ;
 }
 
 int init_exthash(/*out*/exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp)
@@ -244,7 +244,7 @@ static inline size_t tableindex_exthash(exthash_t * htable, const exthash_node_t
    }
 
    // modulo to the size of hash table
-   size_t mask   = nrelementsoftable_exthash(htable->level) - 1 ;
+   size_t mask   = lengthoftable_exthash(htable->level) - 1 ;
    size_t tabidx = hashvalue & mask ;
 
    return tabidx ;
@@ -436,7 +436,7 @@ int removenodes_exthash(exthash_t * htable)
 {
    int err = 0 ;
 
-   size_t endindex = nrelementsoftable_exthash(htable->level) ;
+   size_t endindex = lengthoftable_exthash(htable->level) ;
 
    for (size_t i = 0; i < endindex; ++i) {
       if (htable->hashtable[i]) {
@@ -465,7 +465,7 @@ int invariant_exthash(const exthash_t * htable)
 {
    int err = 0 ;
 
-   size_t         endindex = nrelementsoftable_exthash(htable->level) ;
+   size_t         endindex = lengthoftable_exthash(htable->level) ;
    redblacktree_t tree = redblacktree_INIT(0, htable->nodeadp) ;
 
    for (size_t i = 0; i < endindex; ++i) {
@@ -491,7 +491,7 @@ ONABORT:
 
 int initfirst_exthashiterator(/*out*/exthash_iterator_t * iter, exthash_t * htable)
 {
-   size_t endindex = nrelementsoftable_exthash(htable->level) ;
+   size_t endindex = lengthoftable_exthash(htable->level) ;
 
    static_assert( sizeof(void*) == sizeof(redblacktree_iterator_t)
                   && sizeof(void*) == sizeof(iter->next)
@@ -523,7 +523,7 @@ bool next_exthashiterator(exthash_iterator_t * iter, exthash_t * htable, /*out*/
    }
 
    if (!iter->next) {
-      size_t endindex = nrelementsoftable_exthash(htable->level) ;
+      size_t endindex = lengthoftable_exthash(htable->level) ;
 
       for (size_t i = iter->tableindex+1; i < endindex; ++i) {
          if (  htable->hashtable[i]
@@ -604,7 +604,7 @@ static int test_initfree(void)
    testobject_t         nodes[256] ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i].deletecount = 0 ;
       nodes[i].key  = i ;
       nodes[i].node = (exthash_node_t) exthash_node_INIT ;
@@ -634,7 +634,7 @@ static int test_initfree(void)
       TEST(1 == isequal_typeadaptmember(&htable.nodeadp, &nodeadp)) ;
       TEST(level   == htable.level) ;
       TEST(level+2 == htable.maxlevel) ;
-      for (size_t ti = 0; ti < nrelementsoftable_exthash((uint8_t)level); ++ti) {
+      for (size_t ti = 0; ti < lengthoftable_exthash((uint8_t)level); ++ti) {
          TEST(0 == htable.hashtable[ti]) ;
       }
       TEST(0 == free_exthash(&htable)) ;
@@ -654,19 +654,19 @@ static int test_initfree(void)
 
    // TEST free_exthash: free all nodes in tree
    TEST(0 == init_exthash(&htable, 1, 1, &nodeadp)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       redblacktree_t tree = redblacktree_INIT(htable.hashtable[0], nodeadp) ;
       TEST(0 == insert_redblacktree(&tree, &nodes[i].node)) ;
       getinistate_redblacktree(&tree, &htable.hashtable[0], 0) ;
    }
-   htable.nr_nodes = nrelementsof(nodes) ;
+   htable.nr_nodes = lengthof(nodes) ;
    TEST(0 == free_exthash(&htable)) ;
    TEST(0 == htable.hashtable) ;
    TEST(0 == htable.nr_nodes) ;
    TEST(1 == isequal_typeadaptmember(&htable.nodeadp, &emptyadp)) ;
    TEST(0 == htable.level) ;
    TEST(0 == htable.maxlevel) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(1 == nodes[i].deletecount) ;
       nodes[i].deletecount = 0 ;
       TEST(0 == nodes[i].node.parent) ;
@@ -676,13 +676,13 @@ static int test_initfree(void)
 
    // TEST free_exthash: free all nodes in table
    TEST(0 == init_exthash(&htable, 131072, 131072, &nodeadp)) ;
-   TEST(131072 == nrelementsoftable_exthash(htable.level)) ;
+   TEST(131072 == lengthoftable_exthash(htable.level)) ;
    for (unsigned i = 0; i < 131072; ++i) {
-      htable.hashtable[i] = &nodes[i % nrelementsof(nodes)].node ;
+      htable.hashtable[i] = &nodes[i % lengthof(nodes)].node ;
    }
    TEST(0 == free_exthash(&htable)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(131072/nrelementsof(nodes) == nodes[i].deletecount) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(131072/lengthof(nodes) == nodes[i].deletecount) ;
       nodes[i].deletecount = 0 ;
    }
 
@@ -717,9 +717,9 @@ static int test_privquery(void)
    // prepare
    TEST(0 == init_exthash(&htable, 65536, 65536, &nodeadp)) ;
 
-   // TEST nrelementsoftable_exthash
+   // TEST lengthoftable_exthash
    for (size_t level = 0, result = 1; level < sizeof(size_t)*8; ++level, result <<= 1) {
-      TEST(result == nrelementsoftable_exthash((uint8_t)level)) ;
+      TEST(result == lengthoftable_exthash((uint8_t)level)) ;
    }
 
    // TEST sizeoftable_exthash
@@ -760,7 +760,7 @@ static int test_privquery(void)
    htable.level = 16 ;
 
    // TEST unsharedtableindex_exthash: index 0 is where it all ends + unshared buckets grow
-   TEST(65536 == nrelementsoftable_exthash(htable.level)) ;
+   TEST(65536 == lengthoftable_exthash(htable.level)) ;
    memset(htable.hashtable, 255, sizeoftable_exthash(htable.level)) ;
    for (unsigned unshared = 1; unshared <= 256; unshared *= 2) {
       memset(htable.hashtable, 0, unshared * sizeof(htable.hashtable[0])) ;
@@ -802,22 +802,22 @@ static int test_privchange(void)
    // TEST doubletablesize_exthash
    for (uint8_t level = 0; level < 16; ++level) {
       TEST(level == htable.level) ;
-      for (size_t ti = 0; ti < nrelementsoftable_exthash(level); ++ti) {
+      for (size_t ti = 0; ti < lengthoftable_exthash(level); ++ti) {
          htable.hashtable[ti] = (exthash_node_t*) ti ;
       }
       TEST(0 == doubletablesize_exthash(&htable)) ;
       TEST(level+1 == htable.level) ;
       TEST(16      == htable.maxlevel) ;
-      for (size_t ti = 0; ti < nrelementsoftable_exthash(level); ++ti) {
+      for (size_t ti = 0; ti < lengthoftable_exthash(level); ++ti) {
          TEST(htable.hashtable[ti] == (exthash_node_t*)ti) ;
       }
-      for (size_t ti = nrelementsoftable_exthash(level); ti < nrelementsoftable_exthash((uint8_t)(level+1)); ++ti) {
+      for (size_t ti = lengthoftable_exthash(level); ti < lengthoftable_exthash((uint8_t)(level+1)); ++ti) {
          TEST(htable.hashtable[ti] == (exthash_node_t*)(uintptr_t)-1) ;
       }
    }
 
    // TEST unsharebucket_exthash: finds shared bucket with higher index
-   TEST(65536 == nrelementsoftable_exthash(htable.level)) ;
+   TEST(65536 == lengthoftable_exthash(htable.level)) ;
    memset(htable.hashtable, 255, sizeoftable_exthash(htable.level)) ;
    htable.hashtable[0] = 0 ; // this value is always unshared
    for (unsigned level = 0; level < 15; ++level) {
@@ -919,7 +919,7 @@ static int test_findinsertremove(void)
       TEST(EEXIST == insert_exthash(&htable, &nodes[i].node)) ;
       TEST(i+1 == nrelements_exthash(&htable)) ;
    }
-   TEST(MAXNODES/8 == nrelementsoftable_exthash(htable.level)) ;
+   TEST(MAXNODES/8 == lengthoftable_exthash(htable.level)) ;
    for (size_t i = 0; i < MAXNODES; ++i) {
       TEST(0 == find_exthash(&htable, (const void*)(uintptr_t)i, &found_node)) ;
       TEST(found_node == &nodes[i].node) ;
@@ -1042,14 +1042,14 @@ static int test_generic(void)
    testobject_t         nodes[256] ;
 
    // prepare
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       nodes[i].deletecount = 0 ;
       nodes[i].key  = i ;
       nodes[i].node = (exthash_node_t) exthash_node_INIT ;
    }
 
    // TEST init_exthash
-   TEST(0 == init_testhash(&htable, 1, nrelementsof(nodes), &nodeadp)) ;
+   TEST(0 == init_testhash(&htable, 1, lengthof(nodes), &nodeadp)) ;
    TEST(0 != htable.hashtable) ;
    TEST(0 == htable.nr_nodes) ;
    TEST(1 == isequal_typeadaptmember(&htable.nodeadp, &nodeadp)) ;
@@ -1066,8 +1066,8 @@ static int test_generic(void)
    TEST(1 == isequal_typeadaptmember(&htable.nodeadp, &emptyadp)) ;
 
    // TEST insert_exthash
-   TEST(0 == init_testhash(&htable, nrelementsof(nodes), nrelementsof(nodes), &nodeadp)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(0 == init_testhash(&htable, lengthof(nodes), lengthof(nodes), &nodeadp)) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insert_testhash(&htable, &nodes[i])) ;
       TEST(i+1 == nrelements_testhash(&htable)) ;
       TEST(0 == isempty_testhash(&htable)) ;
@@ -1079,35 +1079,35 @@ static int test_generic(void)
          TEST(node == &nodes[i]) ;
          ++ i ;
       }
-      TEST(nrelementsof(nodes) == i) ;
+      TEST(lengthof(nodes) == i) ;
    }
 
    // TEST find_exthash
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       testobject_t * found_node ;
       TEST(0 == find_testhash(&htable, i, &found_node)) ;
       TEST(found_node == &nodes[i]) ;
    }
 
    // TEST remove_exthash
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       testobject_t * found_node ;
       TEST(0 == isempty_testhash(&htable)) ;
       TEST(0 == remove_testhash(&htable, &nodes[i])) ;
       TEST(ESRCH == find_testhash(&htable, i, &found_node)) ;
-      TEST(nrelementsof(nodes)-1-i == nrelements_testhash(&htable)) ;
+      TEST(lengthof(nodes)-1-i == nrelements_testhash(&htable)) ;
    }
    TEST(1 == isempty_testhash(&htable)) ;
 
    // TEST removenodes_exthash
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].deletecount) ;
       TEST(0 == insert_testhash(&htable, &nodes[i])) ;
    }
    TEST(0 == removenodes_testhash(&htable)) ;
    TEST(0 == nrelements_testhash(&htable)) ;
    TEST(1 == isempty_testhash(&htable)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(1 == nodes[i].deletecount) ;
       nodes[i].deletecount = 0 ;
    }

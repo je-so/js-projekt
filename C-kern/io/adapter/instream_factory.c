@@ -124,14 +124,14 @@ static int test_query(void)
    size_t implsize[] = { [instream_factory_impltype_MMFILE] = sizeof(instream_mmfile_t) } ;
 
    // TEST sizeimplobj_instreamfactory
-   for (unsigned i = 0; i < nrelementsof(implsize); ++i) {
+   for (unsigned i = 0; i < lengthof(implsize); ++i) {
       size_t expect = implsize[i] ;
       size_t value  = sizeimplobj_instreamfactory((instream_factory_impltype_e)i) ;
       TEST(expect == value) ;
    }
 
    // TEST sizeimplobj_instreamfactory: invalid value
-   TEST(0 == sizeimplobj_instreamfactory((instream_factory_impltype_e)nrelementsof(implsize))) ;
+   TEST(0 == sizeimplobj_instreamfactory((instream_factory_impltype_e)lengthof(implsize))) ;
    TEST(0 == sizeimplobj_instreamfactory((instream_factory_impltype_e)-1)) ;
 
    return 0 ;
@@ -169,9 +169,9 @@ static int test_factory(void)
    TEST(0 == free_file(&fd)) ;
 
    // TEST array readnextimpl contains all values of type instream_factory_impltype_e
-   TEST(0 == sizeimplobj_instreamfactory((instream_factory_impltype_e)nrelementsof(readnextimpl))) ;
+   TEST(0 == sizeimplobj_instreamfactory((instream_factory_impltype_e)lengthof(readnextimpl))) ;
 
-   for (instream_factory_impltype_e i = 0; i < nrelementsof(readnextimpl); ++i) {
+   for (instream_factory_impltype_e i = 0; i < lengthof(readnextimpl); ++i) {
 
       // TEST createimpl_instreamfactory
       TEST(sizeimplobj_instreamfactory(i) < sizeof(implobj)) ;
@@ -191,7 +191,7 @@ static int test_factory(void)
    }
 
    // TEST createimpl_instreamfactory, destroyimpl_instreamfactory: EINVAL
-   for (instream_factory_impltype_e i = 0; i < nrelementsof(readnextimpl); ++i) {
+   for (instream_factory_impltype_e i = 0; i < lengthof(readnextimpl); ++i) {
       TEST(EINVAL == createimpl_instreamfactory(&instr, i, sizeimplobj_instreamfactory(i)-1, implobj, "inputstream", tempdir)) ;
       TEST(EINVAL == destroyimpl_instreamfactory(&instr, i, sizeimplobj_instreamfactory(i)-1, implobj)) ;
    }

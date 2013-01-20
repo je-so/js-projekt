@@ -240,17 +240,17 @@ static int test_initfree(void)
 
    // TEST free_slist: call free callback
    init_slist(&slist) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 != nodes[i].next) ;
    }
    TEST(0 == free_slist(&slist, &nodeadapt)) ;
    TEST(0 == slist.last) ;
    TEST(0 == free_slist(&slist, &nodeadapt)) ;
    TEST(0 == slist.last) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
@@ -258,31 +258,31 @@ static int test_initfree(void)
 
    // TEST free_slist: no free callback
    init_slist(&slist) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 != nodes[i].next) ;
    }
    TEST(0 == free_slist(&slist, 0)) ;
    TEST(0 == slist.last) ;
    TEST(0 == free_slist(&slist, 0)) ;
    TEST(0 == slist.last) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
    }
 
    // TEST free_slist: ENOMEM
    init_slist(&slist) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
    }
    init_testerrortimer(&typeadapt.errcounter, 3, ENOMEM) ;
    TEST(ENOMEM == free_slist(&slist, &nodeadapt)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
-      TEST((nrelementsof(nodes)-3!=i) == nodes[i].is_freed) ;
+      TEST((lengthof(nodes)-3!=i) == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
    }
 
@@ -335,8 +335,8 @@ static int test_iterate(void)
 
    // prepare
    slist.last = (slist_node_t*) &nodes[0].next ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      nodes[(3*i)%nrelementsof(nodes)].next = (slist_node_t*)&nodes[(3*i+3)%nrelementsof(nodes)].next ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      nodes[(3*i)%lengthof(nodes)].next = (slist_node_t*)&nodes[(3*i+3)%lengthof(nodes)].next ;
    }
 
    // TEST slist_iterator_INIT_FREEABLE
@@ -356,9 +356,9 @@ static int test_iterate(void)
    for (unsigned count = 0; 0 == count; count = 1) {
       foreach (_slist, &slist, node) {
          ++ count ;
-         TEST(node == (slist_node_t*)&nodes[(3*count) % nrelementsof(nodes)].next) ;
+         TEST(node == (slist_node_t*)&nodes[(3*count) % lengthof(nodes)].next) ;
       }
-      TEST(count == nrelementsof(nodes)) ;
+      TEST(count == lengthof(nodes)) ;
    }
 
    // TEST foreach: remove current element
@@ -366,17 +366,17 @@ static int test_iterate(void)
       slist_node_t * prev = last_slist(&slist) ;
       foreach (_slist, &slist, node) {
          ++ count ;
-         TEST(node == (struct slist_node_t*)&nodes[(3*count) % nrelementsof(nodes)].next) ;
+         TEST(node == (struct slist_node_t*)&nodes[(3*count) % lengthof(nodes)].next) ;
          slist_node_t * removed_node ;
          TEST(0 == removeafter_slist(&slist, prev, &removed_node)) ;
          TEST(node == removed_node) ;
       }
-      TEST(count == nrelementsof(nodes)) ;
+      TEST(count == lengthof(nodes)) ;
       TEST(isempty_slist(&slist)) ;
    }
 
    // unprepare
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
    }
@@ -437,23 +437,23 @@ static int test_insertremove(void)
    TEST(0 == removeafter_slist(&slist, (struct slist_node_t*)&nodes[2].next, &node)) ;
    TEST(0 == last_slist(&slist)) ;
    TEST(node == (slist_node_t*)&nodes[2].next) ;
-   for(int i = 0; i < 3; ++i) {
+   for (int i = 0; i < 3; ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
    }
 
    // TEST insertfirst
    init_slist(&slist) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
       TEST(&nodes[i].next == (void*)first_slist(&slist)) ;
       TEST(&nodes[0].next == (void*)last_slist(&slist)) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(nodes[(i+1)%nrelementsof(nodes)].next == (slist_node_t*)&nodes[i].next) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(nodes[(i+1)%lengthof(nodes)].next == (slist_node_t*)&nodes[i].next) ;
    }
    TEST(0 == free_slist(&slist, &nodeadapt)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
@@ -461,16 +461,16 @@ static int test_insertremove(void)
 
    // TEST insertlast
    init_slist(&slist) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
       TEST(&nodes[0].next == (void*)first_slist(&slist)) ;
       TEST(&nodes[i].next == (void*)last_slist(&slist)) ;
    }
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(nodes[i].next == (slist_node_t*)&nodes[(i+1)%nrelementsof(nodes)].next) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(nodes[i].next == (slist_node_t*)&nodes[(i+1)%lengthof(nodes)].next) ;
    }
    TEST(0 == free_slist(&slist, &nodeadapt)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
@@ -479,21 +479,21 @@ static int test_insertremove(void)
    // TEST insertafter
    init_slist(&slist) ;
    TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[0].next)) ;
-   for (unsigned i = 2; i < nrelementsof(nodes); i += 2) {
+   for (unsigned i = 2; i < lengthof(nodes); i += 2) {
       TEST(0 == insertafter_slist(&slist, (struct slist_node_t*)&nodes[i-2].next, (struct slist_node_t*)&nodes[i].next)) ;
       TEST(&nodes[0].next == (void*)first_slist(&slist)) ;
       TEST(&nodes[i].next == (void*)last_slist(&slist)) ;
    }
-   for (unsigned i = 1; i < nrelementsof(nodes); i += 2) {
+   for (unsigned i = 1; i < lengthof(nodes); i += 2) {
       TEST(0 == insertafter_slist(&slist, (struct slist_node_t*)&nodes[i-1].next, (struct slist_node_t*)&nodes[i].next)) ;
    }
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
-      TEST(nodes[i].next == (slist_node_t*)&nodes[(i+1)%nrelementsof(nodes)].next) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(nodes[i].next == (slist_node_t*)&nodes[(i+1)%lengthof(nodes)].next) ;
    }
    TEST(&nodes[0].next                     == (void*)first_slist(&slist)) ;
-   TEST(&nodes[nrelementsof(nodes)-1].next == (void*)last_slist(&slist)) ;
+   TEST(&nodes[lengthof(nodes)-1].next == (void*)last_slist(&slist)) ;
    TEST(0 == free_slist(&slist, &nodeadapt)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
@@ -501,34 +501,34 @@ static int test_insertremove(void)
 
    // TEST removefirst
    init_slist(&slist) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
    }
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(&nodes[i].next                     == (void*)first_slist(&slist)) ;
-      TEST(&nodes[nrelementsof(nodes)-1].next == (void*)last_slist(&slist)) ;
+      TEST(&nodes[lengthof(nodes)-1].next == (void*)last_slist(&slist)) ;
       TEST(0 == removefirst_slist(&slist, &node)) ;
       TEST(node == (slist_node_t*)&nodes[i].next)
    }
    TEST(0 == slist.last) ;
    TEST(0 == free_slist(&slist, &nodeadapt)) ;
-   for (unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
    }
 
    // TEST removeafter
    init_slist(&slist) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes)-1; i += 2) {
+   for (unsigned i = 0; i < lengthof(nodes)-1; i += 2) {
       TEST(&nodes[0].next                     == (void*)first_slist(&slist)) ;
-      TEST(&nodes[nrelementsof(nodes)-1].next == (void*)last_slist(&slist)) ;
+      TEST(&nodes[lengthof(nodes)-1].next == (void*)last_slist(&slist)) ;
       TEST(0    == removeafter_slist(&slist, (struct slist_node_t*)&nodes[i].next, &node)) ;
       TEST(node == (slist_node_t*)&nodes[i+1].next)
    }
-   for(unsigned i = nrelementsof(nodes)-2; i > 1; i -= 2) {
+   for (unsigned i = lengthof(nodes)-2; i > 1; i -= 2) {
       TEST(&nodes[0].next == (void*)first_slist(&slist)) ;
       TEST(&nodes[i].next == (void*)last_slist(&slist)) ;
       TEST(0         == removeafter_slist(&slist, (struct slist_node_t*)&nodes[i-2].next, &node)) ;
@@ -538,23 +538,23 @@ static int test_insertremove(void)
    TEST(node == (slist_node_t*)&nodes[0].next)
    TEST(0 == slist.last) ;
    TEST(0 == free_slist(&slist, &nodeadapt)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
    }
 
    // TEST removeall
    init_slist(&slist) ;
-   for(unsigned i = 0; i < nrelementsof(nodes)/2; ++i) {
+   for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
       TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
    }
-   for(unsigned i = nrelementsof(nodes)/2; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = lengthof(nodes)/2; i < lengthof(nodes); ++i) {
       TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
    }
-   TEST(&nodes[nrelementsof(nodes)-1].next   == (void*)first_slist(&slist)) ;
-   TEST(&nodes[nrelementsof(nodes)/2-1].next == (void*)last_slist(&slist)) ;
+   TEST(&nodes[lengthof(nodes)-1].next   == (void*)first_slist(&slist)) ;
+   TEST(&nodes[lengthof(nodes)/2-1].next == (void*)last_slist(&slist)) ;
    TEST(0 == removeall_slist(&slist, &nodeadapt)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
@@ -739,18 +739,18 @@ static int test_generic(void)
    TEST(2 == typeadapt.freenode_count) ;
    TEST(0 == free_slist2(&slist2, &nodeadapt2)) ;
    TEST(4 == typeadapt.freenode_count) ;
-   for(unsigned i = 1; i <= 2; ++i) {
+   for (unsigned i = 1; i <= 2; ++i) {
       TEST(2 == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
    }
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].next2.next) ;
       TEST(0 == nodes[i].is_freed) ;
    }
 
    // TEST free_slist: error
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_slist1(&slist1, &nodes[i])) ;
       TEST(0 == insertlast_slist2(&slist2, &nodes[i])) ;
    }
@@ -758,13 +758,13 @@ static int test_generic(void)
    init_testerrortimer(&typeadapt.errcounter, 5, ENOSYS) ;
    TEST(ENOSYS == free_slist1(&slist1, &nodeadapt1)) ;
    TEST(1 == isempty_slist1(&slist1)) ;
-   TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;
+   TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 5, EINVAL) ;
    TEST(EINVAL == free_slist2(&slist2, &nodeadapt2)) ;
    TEST(1 == isempty_slist2(&slist2)) ;
-   TEST(nrelementsof(nodes)-1 == typeadapt.freenode_count) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].next2.next) ;
       TEST(2*(i!=4) == nodes[i].is_freed) ;
@@ -772,26 +772,26 @@ static int test_generic(void)
    }
 
    // TEST iterator, next_dlist, prev_dlist
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == insertlast_slist1(&slist1, &nodes[i])) ;
       TEST(0 == insertfirst_slist2(&slist2, &nodes[i])) ;
    }
-   for(unsigned i = 0; !i; i=1) {
+   for (unsigned i = 0; !i; i=1) {
       foreach (_slist1, &slist1, node) {
-         TEST(&nodes[(i+1)%nrelementsof(nodes)] == next_slist1(node)) ;
+         TEST(&nodes[(i+1)%lengthof(nodes)] == next_slist1(node)) ;
          TEST(node == &nodes[i++]) ;
       }
-      TEST(i == nrelementsof(nodes)) ;
+      TEST(i == lengthof(nodes)) ;
       foreach (_slist2, &slist2, node) {
          -- i ;
-         TEST(&nodes[i?i-1:nrelementsof(nodes)-1] == next_slist2(node)) ;
+         TEST(&nodes[i?i-1:lengthof(nodes)-1] == next_slist2(node)) ;
          TEST(node == &nodes[i]) ;
       }
       TEST(i == 0) ;
    }
    TEST(0 == free_slist1(&slist1, 0)) ;
    TEST(0 == free_slist2(&slist2, 0)) ;
-   for(unsigned i = 0; i < nrelementsof(nodes); ++i) {
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].next2.next) ;
       TEST(0 == nodes[i].is_freed) ;

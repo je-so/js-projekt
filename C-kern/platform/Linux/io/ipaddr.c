@@ -400,7 +400,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    err = resize_cstring(dns_name, NI_MAXHOST) ;
    if (err) goto ONABORT ;
 
-   for(;;) {
+   for (;;) {
       err = getnameinfo( addr->addr, addr->addrlen, str_cstring(dns_name), dns_name->allocated_size, 0, 0, NI_IDN|NI_IDN_ALLOW_UNASSIGNED|NI_NAMEREQD) ;
       if (err) {
          if (     EAI_OVERFLOW == err
@@ -430,7 +430,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    err = resize_cstring(dns_name, NI_MAXHOST) ;
    if (err) goto ONABORT ;
 
-   for(;;) {
+   for (;;) {
       err = getnameinfo( addr->addr, addr->addrlen, str_cstring(dns_name), dns_name->allocated_size, 0, 0, NI_NAMEREQD) ;
       if (err) {
          if (     EAI_OVERFLOW == err
@@ -460,7 +460,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
    err = resize_cstring(numeric_name, 32) ;
    if (err) goto ONABORT ;
 
-   for(;;) {
+   for (;;) {
       err = getnameinfo( addr->addr, addr->addrlen, str_cstring(numeric_name), numeric_name->allocated_size, 0, 0, NI_NUMERICHOST) ;
       if (err) {
          if (     EAI_OVERFLOW == err
@@ -683,7 +683,7 @@ int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotoco
 
    err = EPROTONOSUPPORT ;
 
-   for(struct addrinfo * next = addrinfo_list; next ; next = next->ai_next) {
+   for (struct addrinfo * next = addrinfo_list; next ; next = next->ai_next) {
       if ((int)protocol == next->ai_protocol) {
          *port = ntohs(((struct sockaddr_in *)next->ai_addr)->sin_port) ;
          err = 0 ;
@@ -768,7 +768,7 @@ static int test_ipport(void)
    TEST(0 == udp_port) ;
 
    // TEST query tcp,udp / ERROR EPROTONOSUPPORT
-   for(int i = 0; i < 8; ++i) {
+   for (int i = 0; i < 8; ++i) {
       if (test_service[i].tcp_port) {
          tcp_port = 0 ;
          TEST(0 == initnamed_ipport(&tcp_port, test_service[i].name, ipprotocol_TCP)) ;
@@ -897,7 +897,7 @@ static int test_ipaddr(void)
       { ipprotocol_TCP, "::", 2964, ipversion_6 },
       { ipprotocol_TCP, "1234:5678:abcd:ef00:ef00:abcd:cccc:aa55", 964, ipversion_6 },
    } ;
-   for(unsigned i = 0; i < nrelementsof(testdata); ++i) {
+   for (unsigned i = 0; i < lengthof(testdata); ++i) {
       TEST(0 == new_ipaddr(&ipaddr, testdata[i].protocol, testdata[i].addr, testdata[i].port, testdata[i].version )) ;
       TEST(ipaddr) ;
       TEST(port_ipaddr(ipaddr)    == testdata[i].port) ;
@@ -927,7 +927,7 @@ static int test_ipaddr(void)
       TEST(!ipaddr) ;
    }
 
-   for(unsigned i = 0; i < nrelementsof(testdata); ++i) {
+   for (unsigned i = 0; i < lengthof(testdata); ++i) {
       TEST(0 == new_ipaddr(&ipaddr, testdata[i].protocol, testdata[i].addr, testdata[i].port, testdata[i].version )) ;
 
       // TEST copy
@@ -975,7 +975,7 @@ static int test_ipaddr(void)
       TEST(0 == strcasecmp( str_cstring(&name), testdata[i].addr)) ;
 
       // TEST setport
-      for(unsigned p = 0; p < 65536; p += 250) {
+      for (unsigned p = 0; p < 65536; p += 250) {
          TEST(0 == setport_ipaddr(ipaddr, (uint16_t)p)) ;
          TEST(port_ipaddr(ipaddr)    == (uint16_t)p) ;
       }
@@ -1092,7 +1092,7 @@ static int test_ipaddrlist(void)
    TEST(addrlist->first != 0) ;
    TEST(addrlist->first == addrlist->next) ;
    first = addrlist->first ;
-   for(int i = 0; i < 4; ++i) {
+   for (int i = 0; i < 4; ++i) {
       TEST(addrlist->next  != 0) ;
       TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
       TEST(addrlist->first == first) ;
@@ -1229,8 +1229,8 @@ static int test_ipaddrstorage(void)
    // TEST initconvert ipversion_4
    ipversion_e  vers[2]   = { ipversion_4, ipversion_6 } ;
    ipprotocol_e protos[2] = { ipprotocol_TCP, ipprotocol_UDP } ;
-   for(unsigned versi = 0, port = 0; versi < nrelementsof(vers); ++versi) {
-      for(unsigned protoi = 0; protoi < nrelementsof(protos); ++protoi, port += 13) {
+   for (unsigned versi = 0, port = 0; versi < lengthof(vers); ++versi) {
+      for (unsigned protoi = 0; protoi < lengthof(protos); ++protoi, port += 13) {
          ipaddr2 = initany_ipaddrstorage(&ipaddr_st, protos[protoi], (ipport_t)port, vers[versi]) ;
          TEST((void*)&ipaddr_st == (void*)ipaddr2) ;
          TEST(port_ipaddr(ipaddr2)    == port) ;

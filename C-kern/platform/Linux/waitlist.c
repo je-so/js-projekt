@@ -221,7 +221,7 @@ static int test_initfree(void)
    TEST(EAGAIN == trywait_rtsignal(0)) ;
    TEST(0 == new_thread(&thread, thread_waitonwlist, &wlist)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;
-   for(int i = 0; i < 1000000; ++i) {
+   for (int i = 0; i < 1000000; ++i) {
       pthread_yield() ;
       if (thread == last_wlist(genericcast_slist(&wlist))) break ;
    }
@@ -252,8 +252,8 @@ static int test_initfree(void)
    TEST(0 != wlist.last) ;
    TEST(0 == isempty_waitlist(&wlist)) ;
    next = thread ;
-   for(int i = 0; i < 20; ++i) {
-      for(int i2 = 0; i2 < 1000000; ++i2) {
+   for (int i = 0; i < 20; ++i) {
+      for (int i2 = 0; i2 < 1000000; ++i2) {
          TEST(EAGAIN == trywait_rtsignal(1)) ;
          if (next->wlistnext) break ;
          pthread_yield() ;
@@ -277,7 +277,7 @@ static int test_initfree(void)
    }
       // wakeup all members
    next = first_wlist(genericcast_slist(&wlist)) ;
-   for(int i = 0; i < 20; ++i) {
+   for (int i = 0; i < 20; ++i) {
       thread_t * first = next ;
       next = next_wlist(next) ;
       TEST(first) ;
@@ -297,7 +297,7 @@ static int test_initfree(void)
       }
       // test that others are not changed
       thread_t * next2 = next ;
-      for(int i2 = i; i2 < 19; ++i2) {
+      for (int i2 = i; i2 < 19; ++i2) {
          TEST(0 == next2->task_arg) ;
          TEST(0 != next2->wlistnext) ;
          next2 = next_wlist(next2) ;
@@ -324,14 +324,14 @@ static int test_initfree(void)
    TEST(0 != wlist.last) ;
    TEST(0 == isempty_waitlist(&wlist)) ;
    next = thread ;
-   for(int i = 0; i < 20; ++i) {
+   for (int i = 0; i < 20; ++i) {
       next->task_arg = (void*)13 ;
       next = next->groupnext ;
       TEST(next) ;
    }
    next = thread ;
-   for(int i = 0; i < 20; ++i) {
-      for(int i2 = 0; i2 < 1000000; ++i2) {
+   for (int i = 0; i < 20; ++i) {
+      for (int i2 = 0; i2 < 1000000; ++i2) {
          TEST(EAGAIN == trywait_rtsignal(1)) ;
          if (next->wlistnext) break ;
          pthread_yield() ;
@@ -346,7 +346,7 @@ static int test_initfree(void)
    TEST(0 == wlist.last) ;
    TEST(0 == wait_rtsignal(1, 20)) ;
    next = thread ;
-   for(int i = 0; i < 20; ++i) {
+   for (int i = 0; i < 20; ++i) {
       // free_waitlist sets command to 0
       TEST(0 == next->task_arg)
       TEST(0 == next->wlistnext) ;

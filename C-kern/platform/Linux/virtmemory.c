@@ -849,7 +849,7 @@ static int test_protection(void)
 
    // TEST protection after init, expand, movexpand, shrink
    accessmode_e prot[6] = { accessmode_RDWR, accessmode_WRITE, accessmode_READ, accessmode_READ|accessmode_EXEC, accessmode_RDWR|accessmode_EXEC, accessmode_NONE } ;
-   for (unsigned i = 0; i < nrelementsof(prot); ++i) {
+   for (unsigned i = 0; i < lengthof(prot); ++i) {
       // TEST init2 generates correct protection
       TEST(0 == init2_vmblock(&vmblock, 2, prot[i])) ;
       TEST(0 == compare_protection(&vmblock, prot[i])) ;

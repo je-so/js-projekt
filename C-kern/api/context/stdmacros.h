@@ -106,9 +106,9 @@
  * Calculates memory size of a type in number of bits. */
 #define bitsof(type_t)                 (8*sizeof(type_t))
 
-/* define: nrelementsof
- * Calculates the number of elements of a static array. */
-#define nrelementsof(static_array)     ( sizeof(static_array) / sizeof(*(static_array)) )
+/* define: lengthof
+ * Returns number of elements of the first dimension of a static array. */
+#define lengthof(static_array)         (sizeof(static_array) / sizeof(*(static_array)))
 
 // group: misc
 

@@ -93,7 +93,7 @@ int run_exoscheduler(exoscheduler_t * xsched)
 
    assert(xthread || 0 == xsched->runlist_size) ;
 
-   for(size_t i = xsched->runlist_size; i; --i) {
+   for (size_t i = xsched->runlist_size; i; --i) {
 
       isfinish = isfinish_exothread(xthread) ;
 
@@ -164,7 +164,7 @@ static int test_initfree(void)
 
    // TEST register, free
    TEST(0 == init_exoscheduler(&xsched)) ;
-   for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
+   for (unsigned i = 0; i < lengthof(xthreads); ++i) {
       TEST(0 == init_exothread(&xthreads[i], &simplefinish_xthread)) ;
       TEST(0 == register_exoscheduler(&xsched, &xthreads[i])) ;
       TEST(&xthreads[0] == next_exothreadlist(last_exothreadlist(genericcast_slist(&xsched.runlist)))) ;
@@ -174,14 +174,14 @@ static int test_initfree(void)
    TEST(0 == free_exoscheduler(&xsched)) ;
    TEST(0 == xsched.runlist_size) ;
    TEST(0 == xsched.runlist.last) ;
-   for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
+   for (unsigned i = 0; i < lengthof(xthreads); ++i) {
       TEST(0 == isfinish_exothread(&xthreads[i])) ;
       TEST(0 == free_exothread(&xthreads[i])) ;
    }
 
    // TEST run => automatic unregister in case of finish
    TEST(0 == init_exoscheduler(&xsched)) ;
-   for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
+   for (unsigned i = 0; i < lengthof(xthreads); ++i) {
       TEST(0 == init_exothread(&xthreads[i], &simplefinish_xthread)) ;
       TEST(0 == register_exoscheduler(&xsched, &xthreads[i])) ;
       TEST(i + 1 == xsched.runlist_size) ;
@@ -189,7 +189,7 @@ static int test_initfree(void)
    TEST(0 == run_exoscheduler(&xsched)) ;
    TEST(0 == xsched.runlist_size) ;
    TEST(0 == xsched.runlist.last) ;
-   for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
+   for (unsigned i = 0; i < lengthof(xthreads); ++i) {
       TEST(0 != isfinish_exothread(&xthreads[i])) ;
       TEST(0 == free_exothread(&xthreads[i])) ;
    }
@@ -197,12 +197,12 @@ static int test_initfree(void)
 
    // TEST run => automatic unregister if xthread has already finished
    TEST(0 == init_exoscheduler(&xsched)) ;
-   for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
+   for (unsigned i = 0; i < lengthof(xthreads); ++i) {
       TEST(0 == init_exothread(&xthreads[i], &simplefinish_xthread)) ;
       TEST(0 == register_exoscheduler(&xsched, &xthreads[i])) ;
       TEST(i + 1 == xsched.runlist_size) ;
    }
-   for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
+   for (unsigned i = 0; i < lengthof(xthreads); ++i) {
       if (i%2) {
          TEST(0 == run_exothread(&xthreads[i])) ;
       } else {
@@ -212,7 +212,7 @@ static int test_initfree(void)
    TEST(0 == run_exoscheduler(&xsched)) ;
    TEST(0 == xsched.runlist_size) ;
    TEST(0 == xsched.runlist.last) ;
-   for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
+   for (unsigned i = 0; i < lengthof(xthreads); ++i) {
       TEST(0 != isfinish_exothread(&xthreads[i])) ;
       TEST(((i%2)? 0 : ECANCELED) == returncode_exothread(&xthreads[i])) ;
       TEST(0 == free_exothread(&xthreads[i])) ;
@@ -222,7 +222,7 @@ static int test_initfree(void)
    return 0 ;
 ONABORT:
    (void) free_exoscheduler(&xsched) ;
-   for(unsigned i = 0; i < nrelementsof(xthreads); ++i) {
+   for (unsigned i = 0; i < lengthof(xthreads); ++i) {
       TEST(0 == free_exothread(&xthreads[i])) ;
    }
    return EINVAL ;

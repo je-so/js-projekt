@@ -168,7 +168,7 @@ static int construct_strings_frompath(const char * filepath, cstring_t * headert
    // remove path prefix
 
    const char * removeprefix[] = { "C-kern", "api", "/", "home" } ;
-   for (unsigned i = 0; i < nrelementsof(removeprefix); ) {
+   for (unsigned i = 0; i < lengthof(removeprefix); ) {
       size_t prefixlen = strlen(removeprefix[i]) ;
       if (0 == strncmp(filepath, removeprefix[i], prefixlen)) {
          filepath += prefixlen ;
@@ -263,7 +263,7 @@ static int check_variable(const char * filetemplate, /*out*/variable_e * varinde
       [variable_UNITTESTNAME] = "UNITTESTNAME"
    } ;
 
-   for (unsigned i = 0; i < nrelementsof(varnames); ++i) {
+   for (unsigned i = 0; i < lengthof(varnames); ++i) {
       if (  varnames[i]
             && 0 == strncmp(varnames[i], filetemplate, strlen(varnames[i]))) {
          *varlength = strlen(varnames[i]) ;

@@ -236,7 +236,7 @@ static int test_clockquery(void)
 
    // TEST time_sysclock: (works only if scheduling is in bounds !)
    static_assert(sysclock_REAL == 0 && sysclock_MONOTONIC == 1, ) ;
-   for(int i = sysclock_REAL; i <= sysclock_MONOTONIC; ++i) {
+   for (int i = sysclock_REAL; i <= sysclock_MONOTONIC; ++i) {
       pthread_yield() ;
       sysclock_e clock_type = (sysclock_e) i ;
       TEST(0 == time_sysclock(clock_type, &timeval)) ;
@@ -266,7 +266,7 @@ static int test_clockwait(void)
 
    // TEST sleep_sysclock: (works only if scheduling is in bounds !)
    static_assert(sysclock_REAL == 0 && sysclock_MONOTONIC == 1, ) ;
-   for(int i = sysclock_REAL; i <= sysclock_MONOTONIC; ++i) {
+   for (int i = sysclock_REAL; i <= sysclock_MONOTONIC; ++i) {
       pthread_yield() ;
       sysclock_e clock_type = (sysclock_e) i ;
       TEST(0 == time_sysclock(clock_type, &timeval)) ;
@@ -298,7 +298,7 @@ static int test_clockwait(void)
 
    // TEST sleepms_sysclock: (works only if scheduling is in bounds !)
    static_assert(sysclock_REAL == 0 && sysclock_MONOTONIC == 1, ) ;
-   for(int i = sysclock_REAL; i <= sysclock_MONOTONIC; ++i) {
+   for (int i = sysclock_REAL; i <= sysclock_MONOTONIC; ++i) {
       pthread_yield() ;
       sysclock_e clock_type = (sysclock_e) i ;
       TEST(0 == time_sysclock(clock_type, &timeval)) ;

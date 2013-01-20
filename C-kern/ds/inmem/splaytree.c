@@ -721,7 +721,7 @@ static int test_initfree(void)
    TEST(0 == RESIZE_MM(sizeof(nodesarray_t), &memblock1)) ;
    nodes1 = (nodesarray_t*)memblock1.addr ;
    MEMSET0(nodes1) ;
-   for (unsigned i = 0; i < nrelementsof(*nodes1); ++i) {
+   for (unsigned i = 0; i < lengthof(*nodes1); ++i) {
       (*nodes1)[i].key = (int)i ;
    }
 
@@ -863,7 +863,7 @@ static int test_insertremove(void)
    nodes2 = (nodesarray_t*)memblock2.addr ;
    MEMSET0(nodes1) ;
    MEMSET0(nodes2) ;
-   for (unsigned i = 0; i < nrelementsof(*nodes1); ++i) {
+   for (unsigned i = 0; i < lengthof(*nodes1); ++i) {
       (*nodes1)[i].key = (int)i ;
       (*nodes2)[i].key = (int)i ;
    }
@@ -871,16 +871,16 @@ static int test_insertremove(void)
    // TEST invariant parent buffer allocation (depth is 10000)
    typeadapt.freenode_count = 0 ;
    tree.root = &(*nodes1)[0].index ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       (*nodes1)[i].is_freed    = 0 ;
       (*nodes1)[i].index.left  = 0 ;
       (*nodes1)[i].index.right = &(*nodes1)[i+1].index ;
    }
-   (*nodes1)[nrelementsof((*nodes1))-1].index.right = 0 ;
+   (*nodes1)[lengthof((*nodes1))-1].index.right = 0 ;
    TEST(0 == invariant_splaytree(&tree)) ;
    TEST(0 == free_splaytree(&tree)) ;
-   TEST(nrelementsof((*nodes1)) == typeadapt.freenode_count) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   TEST(lengthof((*nodes1)) == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST((*nodes1)[i].is_freed    == 1) ;
       TEST((*nodes1)[i].index.right == 0) ;
       (*nodes1)[i].is_freed = 0 ;
@@ -899,7 +899,7 @@ static int test_insertremove(void)
       TEST(0         == splaykey_splaytree(&tree, (void*)i)) ;
       TEST(tree.root == &(*nodes2)[i?(i<1024?i:1023):1].index) ;
 
-      for(int i2 = 1; i2 < 1024; ++i2) {
+      for (int i2 = 1; i2 < 1024; ++i2) {
          if ((*nodes1)[i2].index.left) {
             TEST(((*nodes1)[i2].index.left - &(*nodes1)[0].index) == ((*nodes2)[i2].index.left - &(*nodes2)[0].index)) ;
          }
@@ -922,7 +922,7 @@ static int test_insertremove(void)
       }
       TEST(tree.root == &(*nodes2)[i?(i<1024?i:1023):1].index) ;
 
-      for(int i2 = 1; i2 < 1024; ++i2) {
+      for (int i2 = 1; i2 < 1024; ++i2) {
          if ((*nodes1)[i2].index.left) {
             TEST(((*nodes1)[i2].index.left - &(*nodes1)[0].index) == ((*nodes2)[i2].index.left - &(*nodes2)[0].index)) ;
          }
@@ -949,19 +949,19 @@ static int test_insertremove(void)
    TEST(!tree.root) ;
 
    // TEST insert_splaytree, free_splaytree: ascending order
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
       (*nodes1)[i].is_inserted = 1 ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == find_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
       TEST(treenode == &(*nodes1)[i].index) ;
       TEST((*nodes1)[i].is_inserted && !(*nodes1)[i].is_freed) ;
    }
    TEST(0 == free_splaytree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST((*nodes1)[i].is_inserted && (*nodes1)[i].is_freed) ;
       (*nodes1)[i].is_freed    = 0 ;
       (*nodes1)[i].is_inserted = 0 ;
@@ -969,19 +969,19 @@ static int test_insertremove(void)
 
    // TEST insert_splaytree, free_splaytree: descending order
    init_splaytree(&tree, &nodeadapt) ;
-   for (int i = nrelementsof((*nodes1))-1; i >= 0; --i) {
+   for (int i = lengthof((*nodes1))-1; i >= 0; --i) {
       TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
       (*nodes1)[i].is_inserted = 1 ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == find_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
       TEST(treenode == &(*nodes1)[i].index) ;
       TEST((*nodes1)[i].is_inserted && !(*nodes1)[i].is_freed) ;
    }
    TEST(0 == free_splaytree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST((*nodes1)[i].is_inserted && (*nodes1)[i].is_freed) ;
       (*nodes1)[i].is_freed    = 0 ;
       (*nodes1)[i].is_inserted = 0 ;
@@ -990,53 +990,53 @@ static int test_insertremove(void)
    // TEST insert_splaytree, remove_splaytree: random order
    init_splaytree(&tree, &nodeadapt) ;
    srand(100) ;
-   for (unsigned i = 0; i < 10*nrelementsof((*nodes1)); ++i) {
-      int id = rand() % (int)nrelementsof((*nodes1)) ;
+   for (unsigned i = 0; i < 10*lengthof((*nodes1)); ++i) {
+      int id = rand() % (int)lengthof((*nodes1)) ;
       if ((*nodes1)[id].is_inserted) continue ;
       TEST(0 == insert_splaytree(&tree, &(*nodes1)[id].index)) ;
       (*nodes1)[id].is_inserted = 1 ;
    }
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       if ((*nodes1)[i].is_inserted) continue ;
       TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
       (*nodes1)[i].is_inserted = 1 ;
    }
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == find_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
       TEST(treenode == &(*nodes1)[i].index) ;
    }
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == remove_splaytree(&tree, &(*nodes1)[i].index)) ;
       TEST(ESRCH == find_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
       TEST((*nodes1)[i].is_inserted) ;
       (*nodes1)[i].is_inserted = 0 ;
    }
-   for (unsigned i = 0; i < 10*nrelementsof((*nodes1)); ++i) {
-      int id = rand() % (int)nrelementsof((*nodes1)) ;
+   for (unsigned i = 0; i < 10*lengthof((*nodes1)); ++i) {
+      int id = rand() % (int)lengthof((*nodes1)) ;
       if ((*nodes1)[id].is_inserted) continue ;
       TEST(0 == insert_splaytree(&tree, &(*nodes1)[id].index)) ;
       (*nodes1)[id].is_inserted = 1 ;
    }
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       if ((*nodes1)[i].is_inserted) continue ;
       TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
       (*nodes1)[i].is_inserted = 1 ;
    }
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == find_splaytree(&tree, (void*)(*nodes1)[i].key, &treenode)) ;
       TEST(treenode == &(*nodes1)[i].index) ;
       TEST(!(*nodes1)[i].is_freed) ;
    }
-   for (unsigned i = 0; i < 10*nrelementsof((*nodes1)); ++i) {
-      int id = rand() % (int)nrelementsof((*nodes1)) ;
+   for (unsigned i = 0; i < 10*lengthof((*nodes1)); ++i) {
+      int id = rand() % (int)lengthof((*nodes1)) ;
       if (!(*nodes1)[id].is_inserted) continue ;
       (*nodes1)[id].is_inserted = 0 ;
       TEST(0 == remove_splaytree(&tree, &(*nodes1)[id].index)) ;
       TEST(ESRCH == find_splaytree(&tree, (void*)(*nodes1)[id].key, &treenode)) ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
-   for (int i = nrelementsof((*nodes1))-1; i >= 0; --i) {
+   for (int i = lengthof((*nodes1))-1; i >= 0; --i) {
       if ((*nodes1)[i].is_inserted) {
          (*nodes1)[i].is_inserted = 0 ;
          TEST(0 == remove_splaytree(&tree, &(*nodes1)[i].index)) ;
@@ -1049,14 +1049,14 @@ static int test_insertremove(void)
    TEST(! tree.root) ;
 
    // TEST removenodes_splaytree
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == insert_splaytree(&tree, &(*nodes1)[i].index)) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
    typeadapt.freenode_count = 0 ;
    TEST(0 == removenodes_splaytree(&tree)) ;
-   TEST(nrelementsof((*nodes1)) == typeadapt.freenode_count) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   TEST(lengthof((*nodes1)) == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST((*nodes1)[i].is_freed) ;
       (*nodes1)[i].is_freed = 0 ;
    }
@@ -1113,17 +1113,17 @@ static int test_iterator(void)
    TEST(0 == RESIZE_MM(sizeof(nodesarray_t), &memblock1)) ;
    nodes1 = (nodesarray_t*)memblock1.addr ;
    MEMSET0(nodes1) ;
-   for (unsigned i = 0; i < nrelementsof(*nodes1); ++i) {
+   for (unsigned i = 0; i < lengthof(*nodes1); ++i) {
       (*nodes1)[i].key = (int)i ;
    }
    init_splaytree(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-      testnode_t * node = &(*nodes1)[(11*i) % nrelementsof((*nodes1))] ;
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
+      testnode_t * node = &(*nodes1)[(11*i) % lengthof((*nodes1))] ;
       TEST(0 == insert_splaytree(&tree, &node->index)) ;
       node->is_inserted = 1 ;
       if (!(i%100)) TEST(0 == invariant_splaytree(&tree)) ;
    }
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(1 == (*nodes1)[i].is_inserted) ;
    }
 
@@ -1159,7 +1159,7 @@ static int test_iterator(void)
       TEST(&(*nodes1)[0].index == iter.next) ;
 
       // TEST next_splaytreeiterator: full tree
-      for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+      for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
          splaytree_node_t * resultnode = &(*nodes1)[i].index ;
          splaytree_node_t * nextnode   = 0 ;
          TEST(next_splaytreeiterator(&iter, &tree, &nextnode)) ;
@@ -1170,11 +1170,11 @@ static int test_iterator(void)
 
       // TEST initlast_splaytreeiterator: full tree
       TEST(0 == initlast_splaytreeiterator(&iter, &tree)) ;
-      TEST(&(*nodes1)[nrelementsof((*nodes1))-1].index == iter.next) ;
+      TEST(&(*nodes1)[lengthof((*nodes1))-1].index == iter.next) ;
 
       // TEST next_splaytreeiterator: full tree
-      for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
-         splaytree_node_t * resultnode = &(*nodes1)[nrelementsof((*nodes1))-1-i].index ;
+      for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
+         splaytree_node_t * resultnode = &(*nodes1)[lengthof((*nodes1))-1-i].index ;
          splaytree_node_t * nextnode   = 0 ;
          TEST(prev_splaytreeiterator(&iter, &tree, &nextnode)) ;
          TEST(resultnode == nextnode);
@@ -1188,7 +1188,7 @@ static int test_iterator(void)
       foreach (_splaytree, &tree, node) {
          TEST(node == &(*nodes1)[i++].index) ;
       }
-      TEST(i == nrelementsof((*nodes1))) ;
+      TEST(i == lengthof((*nodes1))) ;
 
       // TEST foreachReverse
       foreachReverse (_splaytree, &tree, node) {
@@ -1204,10 +1204,10 @@ static int test_iterator(void)
          }
          ++ i ;
       }
-      TEST(i == nrelementsof((*nodes1))) ;
+      TEST(i == lengthof((*nodes1))) ;
 
       // TEST foreachReverse: remove all elements
-      i = nrelementsof((*nodes1)) ;
+      i = lengthof((*nodes1)) ;
       foreachReverse (_splaytree, &tree, node) {
          -- i ;
          i -= (i % 2) ;
@@ -1245,7 +1245,7 @@ static int test_generic(void)
    TEST(0 == RESIZE_MM(sizeof(nodesarray_t), &memblock1)) ;
    nodes1 = (nodesarray_t*)memblock1.addr ;
    MEMSET0(nodes1) ;
-   for (unsigned i = 0; i < nrelementsof(*nodes1); ++i) {
+   for (unsigned i = 0; i < lengthof(*nodes1); ++i) {
       (*nodes1)[i].key = (int)i ;
    }
 
@@ -1282,17 +1282,17 @@ static int test_generic(void)
    // TEST insert_splaytree, find_splaytree, remove_splaytree, invariant_splaytree
    init_testtree(&tree, &nodeadapt) ;
    TEST(0 == invariant_splaytree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       testnode_t * found_node = 0 ;
       TEST(0 == find_testtree(&tree, (*nodes1)[i].key, &found_node)) ;
       TEST(found_node == &(*nodes1)[i]) ;
    }
    TEST(0 == invariant_splaytree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == remove_testtree(&tree, &(*nodes1)[i])) ;
       testnode_t * found_node = 0 ;
       TEST(ESRCH == find_testtree(&tree, (*nodes1)[i].key, &found_node)) ;
@@ -1301,31 +1301,31 @@ static int test_generic(void)
 
    // TEST removenodes_splaytree, free_splaytree
    init_testtree(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    TEST(0 == removenodes_testtree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(1 == (*nodes1)[i].is_freed) ;
    }
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    TEST(0 == free_testtree(&tree)) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(2 == (*nodes1)[i].is_freed) ;
    }
 
    // TEST foreach, foreachReverse
    init_testtree(&tree, &nodeadapt) ;
-   for (unsigned i = 0; i < nrelementsof((*nodes1)); ++i) {
+   for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
       TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
       foreach (_testtree, &tree, node) {
          TEST(node == &(*nodes1)[i++]) ;
       }
-      TEST(i == nrelementsof((*nodes1))) ;
+      TEST(i == lengthof((*nodes1))) ;
 
       foreachReverse (_testtree, &tree, node) {
          TEST(node == &(*nodes1)[--i]) ;

@@ -311,7 +311,7 @@ static int test_readnext(directory_t * tempdir)
 
    // prepare
    TEST(0 == (pagesize_vm() % sizeof(uint32_t))) ;
-   for (unsigned i = 0; i < nrelementsof(filename); ++i) {
+   for (unsigned i = 0; i < lengthof(filename); ++i) {
       TEST(0 == makefile_directory(tempdir, filename[i], filesize[i])) ;
       TEST(0 == init_mmfile(&mfile, filename[i], 0, 0, accessmode_RDWR_SHARED, tempdir)) ;
       for (size_t b = 0; b < filesize[i]/sizeof(uint32_t); ++b) {
@@ -321,7 +321,7 @@ static int test_readnext(directory_t * tempdir)
    }
 
    // TEST readnext_instreammmfile
-   for (unsigned i = 0; i < nrelementsof(filename); ++i) {
+   for (unsigned i = 0; i < lengthof(filename); ++i) {
       TEST(0 == init_instreammmfile(&obj, &iinstream, filename[i], tempdir)) ;
       size_t readoffset = 0 ;
       // check streaming blocks
@@ -353,7 +353,7 @@ static int test_readnext(directory_t * tempdir)
    }
 
    // TEST readnext_instreammmfile: if (keepsize == blocksize) { "buffer doubles in size" }
-   for (unsigned i = 0; i < nrelementsof(filename); ++i) {
+   for (unsigned i = 0; i < lengthof(filename); ++i) {
       TEST(0 == init_instreammmfile(&obj, &iinstream, filename[i], tempdir)) ;
       keepsize = 0 ;
       size_t bufsize = buffersize_instreammmfile() ;
@@ -397,7 +397,7 @@ static int test_readnext(directory_t * tempdir)
    }
 
    // TEST readnext_instreammmfile: keepsize < buffersize_instreammmfile()
-   for (unsigned i = 0; i < nrelementsof(filename); ++i) {
+   for (unsigned i = 0; i < lengthof(filename); ++i) {
       TEST(0 == init_instreammmfile(&obj, &iinstream, filename[i], tempdir)) ;
       TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;
       keepsize = pagesize_vm()-1 ;
@@ -426,7 +426,7 @@ static int test_readnext(directory_t * tempdir)
    }
 
    // TEST readnext_instreammmfile: buffer would grow but unreadsize fits so resize is not necessary
-   TEST(0 == init_instreammmfile(&obj, &iinstream, filename[nrelementsof(filename)-1], tempdir)) ;
+   TEST(0 == init_instreammmfile(&obj, &iinstream, filename[lengthof(filename)-1], tempdir)) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;
    keepsize = pagesize_vm() ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, keepsize)) ;
@@ -440,7 +440,7 @@ static int test_readnext(directory_t * tempdir)
    TEST(0 == free_instreammmfile(&obj)) ;
 
    // TEST readnext_instreammmfile: reposition considers unread size and shrinks datablock
-   TEST(0 == init_instreammmfile(&obj, &iinstream, filename[nrelementsof(filename)-1], tempdir)) ;
+   TEST(0 == init_instreammmfile(&obj, &iinstream, filename[lengthof(filename)-1], tempdir)) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, pagesize_vm())) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;
@@ -460,13 +460,13 @@ static int test_readnext(directory_t * tempdir)
    TEST(0 == free_instreammmfile(&obj)) ;
 
    // unprepare
-   for (unsigned i = 0; i < nrelementsof(filename); ++i) {
+   for (unsigned i = 0; i < lengthof(filename); ++i) {
       TEST(0 == removefile_directory(tempdir, filename[i])) ;
    }
 
    return 0 ;
 ONABORT:
-   for (unsigned i = 0; i < nrelementsof(filename); ++i) {
+   for (unsigned i = 0; i < lengthof(filename); ++i) {
       (void) removefile_directory(tempdir, filename[i]) ;
    }
    free_mmfile(&mfile) ;

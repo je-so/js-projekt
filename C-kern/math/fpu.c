@@ -123,33 +123,33 @@ static int test_fpuexcept_signalclear(void)
 
    // TEST clear_fpuexcept: signaled exception all cleared
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-   for(unsigned i = 0; i < nrelementsof(exceptflags); ++i) {
+   for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
       TEST(0 == getsignaled_fpuexcept(exceptflags[i])) ;
    }
 
    // TEST signal_fpuexcept: all set
    TEST(0 == signal_fpuexcept(fpu_except_MASK_ALL)) ;
-   for(unsigned i = 0; i < nrelementsof(exceptflags); ++i) {
+   for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
       TEST(exceptflags[i] == getsignaled_fpuexcept(exceptflags[i])) ;
    }
 
    // TEST clear_fpuexcept: single bit
-   for(unsigned i = 0, mask = fpu_except_MASK_ALL; i < nrelementsof(exceptflags); ++i) {
+   for (unsigned i = 0, mask = fpu_except_MASK_ALL; i < lengthof(exceptflags); ++i) {
       mask = mask & ~ exceptflags[i] ;
       TEST(0 == clear_fpuexcept(exceptflags[i])) ;
       TEST(0 == getsignaled_fpuexcept(exceptflags[i])) ;
       TEST(mask == getsignaled_fpuexcept(fpu_except_MASK_ALL)) ;
-      for(unsigned i2 = i+1; i2 < nrelementsof(exceptflags); ++i2) {
+      for (unsigned i2 = i+1; i2 < lengthof(exceptflags); ++i2) {
          if (fpu_except_MASK_ALL == exceptflags[i2]) continue ;
          TEST(exceptflags[i2] == getsignaled_fpuexcept(exceptflags[i2])) ;
       }
    }
 
    // TEST signal_fpuexcept: single bit
-   for(unsigned i = 0; i < nrelementsof(exceptflags); ++i) {
+   for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
       TEST(0 == signal_fpuexcept(exceptflags[i])) ;
       TEST(exceptflags[i] == getsignaled_fpuexcept(exceptflags[i])) ;
-      for(unsigned i2 = 0; i2 < nrelementsof(exceptflags); ++i2) {
+      for (unsigned i2 = 0; i2 < lengthof(exceptflags); ++i2) {
          TEST((exceptflags[i2] & exceptflags[i]) == getsignaled_fpuexcept(exceptflags[i2])) ;
       }
       TEST(0 == clear_fpuexcept(exceptflags[i])) ;
@@ -159,7 +159,7 @@ static int test_fpuexcept_signalclear(void)
    // TEST fpu_except_INVALID: sqrt(-1)
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
    volatile long double d = time(0) ;
-   for(int i = 2; i > -2; --i) {
+   for (int i = 2; i > -2; --i) {
       double d1 = sqrt(i) ;
       if (i >= 0) {
          TEST(0 == getsignaled_fpuexcept(fpu_except_INVALID)) ;
@@ -173,7 +173,7 @@ static int test_fpuexcept_signalclear(void)
    // TEST fpu_except_DIVBYZERO: 1.0 / 0.0
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
    d = 1 ;
-   for(int i = 2; i > -1; --i) {
+   for (int i = 2; i > -1; --i) {
       double d1 = 1.0 / (double)i ;
       if (i != 0) {
          TEST(0 == getsignaled_fpuexcept(fpu_except_INVALID)) ;
@@ -187,7 +187,7 @@ static int test_fpuexcept_signalclear(void)
 
    // TEST fpu_except_OVERFLOW: DBL_MAX
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-   for(int i = 2; i > 0; --i) {
+   for (int i = 2; i > 0; --i) {
       d = LDBL_MAX ;
       d += (LDBL_MAX/i) ;
       TEST(fpu_except_OVERFLOW == getsignaled_fpuexcept(fpu_except_OVERFLOW)) ;
@@ -197,7 +197,7 @@ static int test_fpuexcept_signalclear(void)
 
    // TEST fpu_except_UNDERFLOW: DBL_MIN / 2
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
-   for(int i = 2; i > 0; --i) {
+   for (int i = 2; i > 0; --i) {
       d = LDBL_MIN ;
       d /= 1e10 * (1 + (time(0) & 0x03)) ;
       TEST(fpu_except_UNDERFLOW == getsignaled_fpuexcept(fpu_except_UNDERFLOW)) ;
@@ -207,7 +207,7 @@ static int test_fpuexcept_signalclear(void)
    // TEST fpu_except_INEXACT: 1 / 3
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
    d = 1 ;
-   for(int i = 2; i > 0; --i) {
+   for (int i = 2; i > 0; --i) {
       volatile double d1 = 1.0 / (3.0 * (1 + (time(0) & 0x3))) ;
       TEST(fpu_except_INEXACT == getsignaled_fpuexcept(fpu_except_INEXACT)) ;
       TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
@@ -288,7 +288,7 @@ static int test_fpuexcept_enabledisable(void)
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
    TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL)) ;
    TEST(0 == getenabled_fpuexcept()) ;
-   for(i = 0; i < nrelementsof(exceptflags); ++i) {
+   for (i = 0; i < lengthof(exceptflags); ++i) {
       TEST(0 == enable_fpuexcept(exceptflags[i])) ;
       TEST(exceptflags[i] == getenabled_fpuexcept()) ;
       TEST(0 == disable_fpuexcept(exceptflags[i])) ;
@@ -296,7 +296,7 @@ static int test_fpuexcept_enabledisable(void)
    }
 
    // TEST enable_fpuexcept + throwing exception with fpu instruction
-   for(i = 0; i < nrelementsof(exceptflags); ++i) {
+   for (i = 0; i < lengthof(exceptflags); ++i) {
       if (fpu_except_MASK_ALL == exceptflags[i]) continue ;
       s_getcontext_count = 0 ;
       s_sigcount         = 0 ;
@@ -330,7 +330,7 @@ static int test_fpuexcept_enabledisable(void)
    }
 
    // TEST enable_fpuexcept + throwing exception with signal_fpuexcept
-   for(i = 0; i < nrelementsof(exceptflags); ++i) {
+   for (i = 0; i < lengthof(exceptflags); ++i) {
       if (fpu_except_MASK_ALL == exceptflags[i]) continue ;
       s_getcontext_count = 0 ;
       s_sigcount         = 0 ;
@@ -409,7 +409,7 @@ static int test_fpuexcept_thread(void)
 
    // TEST thread inherits fpu settings and does not change settings in main thread
    TEST(EAGAIN == trywait_rtsignal(4)) ;
-   for(unsigned i = 0; i < nrelementsof(exceptflags); ++i) {
+   for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
       TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
       TEST(0 == enable_fpuexcept(exceptflags[i])) ;
       TEST(0 == signal_fpuexcept(fpu_except_MASK_ALL & ~exceptflags[i])) ;
@@ -425,7 +425,7 @@ static int test_fpuexcept_thread(void)
 
    // TEST changes in main thread are also local
    TEST(EAGAIN == trywait_rtsignal(4)) ;
-   for(unsigned i = 0; i < nrelementsof(exceptflags); ++i) {
+   for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
       TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
       TEST(0 == enable_fpuexcept(exceptflags[i])) ;
       TEST(0 == signal_fpuexcept(fpu_except_MASK_ALL & ~exceptflags[i])) ;

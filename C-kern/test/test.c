@@ -39,7 +39,7 @@ void logfailed_test(const char * filename, unsigned line_number)
       ,{ (void*) (uintptr_t) ": FAILED TEST\n", 14 }
    } ;
 
-   ssize_t written = writev(file_STDOUT, iov, nrelementsof(iov)) ;
+   ssize_t written = writev(file_STDOUT, iov, lengthof(iov)) ;
    (void) written ;
 }
 
@@ -56,7 +56,7 @@ void logrun_test(const char * testname)
       ,{ (void*) (uintptr_t) ": ", 2 }
    } ;
 
-   ssize_t written = writev(file_STDOUT, iov, nrelementsof(iov)) ;
+   ssize_t written = writev(file_STDOUT, iov, lengthof(iov)) ;
    (void) written ;
 }
 
