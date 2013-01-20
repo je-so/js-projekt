@@ -45,8 +45,9 @@ static const instream_mmfile_it s_iinstream = { &readnext_instreammmfile } ;
 
 static inline size_t buffersize_instreammmfile(void)
 {
-   size_t align_remain = KONFIG_BUFFERSIZE_INSTREAM_READNEXT % (2*pagesize_vm()) ;
-   return (align_remain ? KONFIG_BUFFERSIZE_INSTREAM_READNEXT + (2*pagesize_vm()) - align_remain : KONFIG_BUFFERSIZE_INSTREAM_READNEXT) ;
+   size_t align_remain = KONFIG_BUFFERSIZE_INSTREAM_READNEXT % pagesize_vm() ;
+   size_t bufsize      = (align_remain ? KONFIG_BUFFERSIZE_INSTREAM_READNEXT + pagesize_vm() - align_remain : KONFIG_BUFFERSIZE_INSTREAM_READNEXT) ;
+   return bufsize == pagesize_vm() ? 2 * pagesize_vm() : bufsize ;
 }
 
 int init_instreammmfile(/*out*/instream_mmfile_t * obj, /*out*/const instream_mmfile_it ** iinstream, const char * filepath, const struct directory_t * relative_to)

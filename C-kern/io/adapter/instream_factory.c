@@ -73,8 +73,7 @@ int createimpl_instreamfactory(/*out*/instream_t * instr, instream_factory_implt
       goto ONABORT ;
    }
 
-   err = init_instream(instr, (instream_impl_t*)implobj, it.instream) ;
-   if (err) goto ONABORT ;
+   init_instream(instr, (instream_impl_t*)implobj, it.instream) ;
 
    return 0 ;
 ONABORT:

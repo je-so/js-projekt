@@ -1,1 +1,1 @@
-C-kern/io/instream.c:90: readnextdatablock_instream(): error: 5: Function aborted
+C-kern/io/instream.c:90: readnextblock_instream(): error: 5: Function aborted

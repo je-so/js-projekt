@@ -3,6 +3,9 @@
    Offers interface to stream data from files (or network sockets)
    to reader components. Readers could be parsers or image loaders or other.
 
+   Do not forget to include "C-kern/api/string/stringstream.h" before
+   using some of the inlined functions.
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -29,6 +32,7 @@
 
 // forward
 struct memblock_t ;
+struct stringstream_t ;
 
 /* typedef: struct instream_it
  * Export interface <instream_it> into global namespace. */
@@ -125,23 +129,26 @@ void instream_it_DECLARE(TYPENAME declared_it, TYPENAME instream_impl_t) ;
  * to be used by this object. */
 struct instream_t {
    // group: variables
-   /* variable: nextdata
-    * Points to next unread data byte. Only valid if this value is not equal to <enddata>. */
-   uint8_t        * nextdata ;
-   /* variable: enddata
+   /* variable: next
+    * Points to next unread data byte. Only valid if this value is not equal to <end>. */
+   uint8_t        * next ;
+   /* variable: end
     * Points to end address of data block read from stream.
     * The end address points to the address after the last data byte.
-    * <enddata> - <nextdata> gives the number of unread bytes.
-    * <enddata> - <startdata> gives the size of the data block read from underlying stream. */
-   uint8_t        * enddata ;
+    * <end> - <next> gives the number of unread bytes.
+    * <end> - <blockaddr> gives the size of the data block read from underlying stream. */
+   uint8_t        * end ;
    /* variable: keepaddr
     * Marks start of data to be kept in buffer.
     * A value of 0 means that no data should be kept in the buffer
     * if a new datablock is read with <instream_it.readnext>. */
    uint8_t        * keepaddr ;
-   /* variable: startdata
-    * Points to start address of data block read from data stream. */
-   uint8_t        * startdata ;
+   /* variable: blockaddr
+    * The start address of the data block returned from last call to <instream_it.readnext>. */
+   uint8_t        * blockaddr ;
+   /* variable: blocksize
+    * The size of the data block returned from last call to <instream_it.readnext>. */
+   size_t         blocksize ;
    /* variable: object
     * A pointer to the object which is manipulated by the interface <instream_it>. */
    instream_impl_t * object ;
@@ -162,7 +169,7 @@ struct instream_t {
 
 /* define: instream_INIT
  * Static initializer. */
-#define instream_INIT(obj, iimpl)         { 0, 0, 0, 0, obj, iimpl, 0 }
+#define instream_INIT(obj, iimpl)         { 0, 0, 0, 0, 0, obj, iimpl, 0 }
 
 /* function: init_instream
  * Initialize object. The object of type <instream_impl_t> and its interface
@@ -178,10 +185,26 @@ int free_instream(instream_t * instr) ;
 
 // group: query
 
+/* function: isbufferempty_instream
+ * Returns true if buffer returned by <buffer_instream> is empty.
+ * Internally <readnextblock_instream> is called before the next data byte can be returned.
+ * Keep in mind that the buffer of unread bytes could be empty but the internal buffer could
+ * contain already read data if <keepaddr_instream> is not 0. */
+bool isbufferempty_instream(const instream_t * instr) ;
+
+/* function: isfree_instream
+ * Returns true if instr is set to <instream_INIT_FREEABLE>. */
+bool isfree_instream(const instream_t * instr) ;
+
 /* function: keepaddr_instream
  * Returns start address of data which must be kept in the buffer.
- * See <startkeep_instream>. A value of 0 is returned if no data
- * is kept in the buffer. See <endkeep_instream>. */
+ * See <startkeep_instream> and <endkeep_instream>.
+ * A value of 0 is returned if no data is kept in the buffer.
+ * The returned address is start address of an internal buffer which extends
+ * to end of the buffer returned by <buffer_instream>.
+ *
+ * Invariant:
+ * keepaddr_instream() < buffer_instream()->next <= buffer_instream()->end. */
 uint8_t * keepaddr_instream(const instream_t * instr) ;
 
 /* function: readerror_instream
@@ -190,9 +213,19 @@ uint8_t * keepaddr_instream(const instream_t * instr) ;
  * has occurred the input stream is no more accessed. */
 int readerror_instream(const instream_t * instr) ;
 
-/* function: isfree_instream
- * Returns true if instr is set to <instream_INIT_FREEABLE>. */
-bool isfree_instream(const instream_t * instr) ;
+/* function: buffer_instream
+ * Returns the unread data buffered in memory as <stringstream_t>.
+ * Use this function only if you want to do something with the unread data.
+ * The buffer keeps valid as long as you do not call any functions on
+ * <instream_t> which change the buffer address (readnext, free).
+ *
+ * Changing <stringstream_t> does also change the reading position of *instr*.
+ *
+ * The buffer does not contain all unread data. If this buffer is empty call
+ * <readnextblock_instream> to get another block of unread data.
+ *
+ * Always consider that multibyte encoded characters can cross buffer boundaries ! */
+struct stringstream_t * buffer_instream(instream_t * instr) ;
 
 // group: read
 
@@ -207,18 +240,32 @@ bool isfree_instream(const instream_t * instr) ;
  * The function returns ENODATA if there is no more data to read. */
 int readnext_instream(instream_t * instr, /*out*/uint8_t * databyte) ;
 
+/* function: skipuntil_instream
+ * Skips data until byte is found in stream or end of stream.
+ *
+ * Attention:
+ * If <keepaddr_instream> is not null then the buffer my grow until end of input is reached !
+ *
+ * Returns:
+ * 0       - The byte was found and all data up to this byte including the byte are marked as read.
+ *           The next call to <readnext_instream> returns the byte after.
+ * ENODATA - Data byte was not found in the stream. All data until end of stream is marked as read.
+ * ...     - Indicates I/O error or out of memory error. */
+int skipuntil_instream(instream_t * instr, uint8_t byte) ;
+
 // group: buffer
 
 /* function: startkeep_instream
  * Keeps data in the read buffer starting from the last read byte.
- * If you call this function twice only data associated with the last call is remembered. */
+ * If you call this function twice only data associated with the last call is remembered.
+ * If no data was read previously nothing is done. */
 void startkeep_instream(instream_t * instr) ;
 
 /* function: endkeep_instream
  * Stops keeping data in the buffer. This allows the read buffer to shrink. */
 void endkeep_instream(instream_t * instr) ;
 
-/* function: readnextdatablock_instream
+/* function: readnextblock_instream
  * Do not call this function. It is called from <readnext_instream> or other reading functions.
  *
  * If <readerror_instream> returns a value != 0 this function does nothing. Else it
@@ -231,10 +278,22 @@ void endkeep_instream(instream_t * instr) ;
  * a call to <readerror_instream>.
  *
  * Returns ENODATA if the read buffer contains no more data. */
-int readnextdatablock_instream(instream_t * instr) ;
+int readnextblock_instream(instream_t * instr) ;
 
 
 // section: inline implementation
+
+/* define: buffer_instream
+ * Implements <instream_t.buffer_instream>. */
+#define buffer_instream(instr)            (genericcast_stringstream(instr))
+
+/* define: free_instream
+ * Implements <instream_t.free_instream>. */
+#define free_instream(instr)              (*(instr) = (instream_t) instream_INIT_FREEABLE, 0)
+
+/* define: endkeep_instream
+ * Implements <instream_t.endkeep_instream>. */
+#define endkeep_instream(instr)           do { (instr)->keepaddr = 0 ; } while (0)
 
 /* define: genericcast_instreamit
  * Implements <instream_it.genericcast_instreamit>. */
@@ -251,17 +310,13 @@ int readnextdatablock_instream(instream_t * instr) ;
       (instream_it*) (iinstr) ;                                                                 \
    }))
 
-/* define: endkeep_instream
- * Implements <instream_t.endkeep_instream>. */
-#define endkeep_instream(instr)           do { (instr)->keepaddr = 0 ; } while (0)
-
-/* define: free_instream
- * Implements <instream_t.free_instream>. */
-#define free_instream(instr)              (*(instr) = (instream_t) instream_INIT_FREEABLE, 0)
-
 /* define: init_instream
  * Implements <instream_t.init_instream>. */
-#define init_instream(instr, obj, iimpl)  (*(instr) = (instream_t) instream_INIT(obj, iimpl), 0)
+#define init_instream(instr, obj, iimpl)  ((void)(*(instr) = (instream_t) instream_INIT(obj, iimpl)))
+
+/* define: isbufferempty_instream
+ * Implements <instream_t.isbufferempty_instream>. */
+#define isbufferempty_instream(instr)     ((instr)->next == (instr)->end)
 
 /* define: keepaddr_instream
  * Implements <instream_t.keepaddr_instream>. */
@@ -277,9 +332,9 @@ int readnextdatablock_instream(instream_t * instr) ;
    ( __extension__ ({                                          \
       int _err ;                                               \
       typeof(instr) _istr = (instr) ;                          \
-      if (  _istr->nextdata != _istr->enddata                  \
-            || !(_err = readnextdatablock_instream(_istr))) {  \
-         *(databyte) = * (_istr->nextdata ++) ;                \
+      if (  _istr->next != _istr->end                          \
+            || !(_err = readnextblock_instream(_istr))) {      \
+         *(databyte) = * (_istr->next ++) ;                    \
          _err = 0 ;                                            \
       }                                                        \
       _err ;                                                   \
@@ -287,7 +342,7 @@ int readnextdatablock_instream(instream_t * instr) ;
 
 /* define: startkeep_instream
  * Implements <instream_t.startkeep_instream>. */
-#define startkeep_instream(instr)         do { (instr)->keepaddr = (instr)->nextdata - 1 ; } while (0)
+#define startkeep_instream(instr)         do { instream_t * _i = (instr); _i->keepaddr = _i->next > _i->blockaddr ? _i->next - 1 : 0 ; } while (0)
 
 /* define: instream_it_DECLARE
  * Implements <instream_it.instream_it_DECLARE>. */
