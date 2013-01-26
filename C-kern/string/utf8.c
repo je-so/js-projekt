@@ -55,7 +55,7 @@ uint8_t g_utf8_bytesperchar[256] = {   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                        4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0 /*240..247*/ /*248..250, 252..253, 254..255 error*/
                                     } ;
 
-unicode_t decode_utf8(const uint8_t ** strstart)
+char32_t decode_utf8(const uint8_t ** strstart)
 {
    __extension__ static void * jumptable[256] = {
       &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1,
@@ -79,7 +79,7 @@ unicode_t decode_utf8(const uint8_t ** strstart)
    uint8_t        firstbyte ;
    uint8_t        flags ;
    uint8_t        nbyte ;
-   unicode_t      uchar ;
+   char32_t       uchar ;
    const uint8_t  * next = *strstart ;
 
    firstbyte = *next++ ;
@@ -136,7 +136,7 @@ L4:
 
 // group: read-utf8
 
-int nextutf8_stringstream(struct stringstream_t * strstream, /*out*/unicode_t * wchar)
+int nextutf8_stringstream(struct stringstream_t * strstream, /*out*/char32_t * wchar)
 {
    __extension__ static void * jumptable[256] = {
       &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1, &&L1,
@@ -160,7 +160,7 @@ int nextutf8_stringstream(struct stringstream_t * strstream, /*out*/unicode_t * 
    uint8_t        firstbyte ;
    uint8_t        flags ;
    uint8_t        nbyte ;
-   unicode_t      uchar ;
+   char32_t       uchar ;
    const uint8_t  * next  = strstream->next ;
    size_t         strsize = size_stringstream(strstream) ;
 
@@ -241,7 +241,7 @@ int skiputf8_stringstream(struct stringstream_t * strstream)
 void skipillegalutf8_strstream(struct stringstream_t * strstream)
 {
    int err ;
-   unicode_t   wchar ;
+   char32_t    wchar ;
    uint8_t     size ;
 
    while (strstream->next < strstream->end) {
@@ -260,7 +260,7 @@ void skipillegalutf8_strstream(struct stringstream_t * strstream)
 
 // group: find-utf8
 
-const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, unicode_t wchar)
+const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, char32_t wchar)
 {
    const size_t   size = size_stringstream(strstream) ;
    const uint8_t  * found  ;
@@ -406,13 +406,13 @@ static int test_utf8(void)
    }
 
    // TEST decode_utf8: whole range of first byte, ENOTEMPTY, EILSEQ
-   unicode_t fillchar[] = { 0x0, 0x1, 0x3F } ;
-   for (unicode_t i = 0; i < 256; ++i) {
+   char32_t fillchar[] = { 0x0, 0x1, 0x3F } ;
+   for (char32_t i = 0; i < 256; ++i) {
       for (unsigned fci = 0; fci < lengthof(fillchar); ++fci) {
          uint8_t buffer[4]  = { (uint8_t)i, (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]) } ;
          const uint8_t * strstart = buffer ;
          int err = 0 ;
-         unicode_t expect = 0 ;
+         char32_t expect = 0 ;
          switch (sizechar_utf8(i)) {
          case 0:
             err = EILSEQ ;
@@ -434,7 +434,7 @@ static int test_utf8(void)
             err = (expect < 0x10000 || expect > 0x10FFFF) ? EILSEQ : 0 ;
             break ;
          }
-         unicode_t uchar = decode_utf8(&strstart) ;
+         char32_t uchar = decode_utf8(&strstart) ;
          if (err || !expect) {
             TEST(strstart == buffer) ;
             expect = 0 ;
@@ -549,13 +549,13 @@ static int test_readstrstream(void)
    TEST(ENODATA == peekutf8_stringstream(&strstream, &uchar)) ;
 
    // TEST nextutf8_stringstream, peekutf8_stringstream: whole range of first byte, ENOTEMPTY, EILSEQ
-   unicode_t fillchar[] = { 0x0, 0x1, 0x3F } ;
-   for (unicode_t i = 0; i < 256; ++i) {
+   char32_t fillchar[] = { 0x0, 0x1, 0x3F } ;
+   for (char32_t i = 0; i < 256; ++i) {
       for (unsigned fci = 0; fci < lengthof(fillchar); ++fci) {
          uint8_t buffer[4] = { (uint8_t)i, (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]), (uint8_t)(0x80 + fillchar[fci]) } ;
          TEST(0 == init_stringstream(&strstream, buffer, buffer+4)) ;
          int err = 0 ;
-         unicode_t expect = 0 ;
+         char32_t expect = 0 ;
          switch (sizechar_utf8(i)) {
          case 0:
             err = EILSEQ ;
@@ -660,7 +660,7 @@ static int test_readstrstream(void)
    TEST(strstream.end  == utf8str + utf8strsize) ;
 
    // TEST skiputf8_stringstream: whole range of first byte, ENOTEMPTY, EILSEQ
-   for (unicode_t i = 0; i < 256; ++i) {
+   for (char32_t i = 0; i < 256; ++i) {
       uint8_t buffer[4] = { (uint8_t)i, (uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff } ;
       TEST(0 == init_stringstream(&strstream, buffer, buffer+4)) ;
       int err = sizechar_utf8(i) ? 0 : EILSEQ ;
@@ -739,17 +739,17 @@ static int test_findstrstream(void)
    TEST(found == 26+(const uint8_t*)utf8str) ;
    found = findutf8_stringstream(&strstream, 0x7fu) ;
    TEST(found == 33+(const uint8_t*)utf8str) ;
-   found = findutf8_stringstream(&strstream, (unicode_t) 'a') ;
+   found = findutf8_stringstream(&strstream, (char32_t) 'a') ;
    TEST(found == 9+(const uint8_t*)utf8str) ;
 
    // TEST findutf8_stringstream: character not in stream
-   TEST(0 == findutf8_stringstream(&strstream, (unicode_t) 0x10fffe)) ;
-   TEST(0 == findutf8_stringstream(&strstream, (unicode_t) 0xfffe)) ;
-   TEST(0 == findutf8_stringstream(&strstream, (unicode_t) 0x7fe)) ;
-   TEST(0 == findutf8_stringstream(&strstream, (unicode_t) 0x7e)) ;
+   TEST(0 == findutf8_stringstream(&strstream, (char32_t) 0x10fffe)) ;
+   TEST(0 == findutf8_stringstream(&strstream, (char32_t) 0xfffe)) ;
+   TEST(0 == findutf8_stringstream(&strstream, (char32_t) 0x7fe)) ;
+   TEST(0 == findutf8_stringstream(&strstream, (char32_t) 0x7e)) ;
 
    // TEST findutf8_stringstream: codepoint out of range
-   TEST(0 == findutf8_stringstream(&strstream, (unicode_t)-1)) ;
+   TEST(0 == findutf8_stringstream(&strstream, (char32_t)-1)) ;
 
    return 0 ;
 ONABORT:
@@ -778,7 +778,7 @@ static int test_speed(void)
       for (unsigned decoderepeat = 0 ; decoderepeat < 5; ++decoderepeat) {
          const uint8_t * strstream = data.buffer ;
          for (unsigned nrchars = 0 ; nrchars < sizeof(data.buffer)/4; ++nrchars) {
-            unicode_t uchar = 0 ;
+            char32_t uchar = 0 ;
             uchar = decode_utf8(&strstream) ;
             TEST(uchar == 0x10FFFF) ;
          }
@@ -794,7 +794,7 @@ static int test_speed(void)
       for (unsigned decoderepeat = 0 ; decoderepeat < 5; ++decoderepeat) {
          stringstream_t strstream = stringstream_INIT(data.buffer, data.buffer + sizeof(data.buffer)) ;
          for (unsigned nrchars = 0 ; nrchars < sizeof(data.buffer)/4; ++nrchars) {
-            unicode_t uchar = 0 ;
+            char32_t uchar = 0 ;
             TEST(0 == nextutf8_stringstream(&strstream, &uchar)) ;
             TEST(uchar == 0x10FFFF) ;
          }

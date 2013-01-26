@@ -27,7 +27,6 @@
       <File Name="../../C-kern/api/string/urlencode_string.h"/>
       <File Name="../../C-kern/api/string/base64encode_string.h"/>
       <File Name="../../C-kern/api/string/format_string.h"/>
-      <File Name="../../C-kern/api/string/unicode.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <File Name="../../C-kern/api/platform/process.h"/>
@@ -97,6 +96,7 @@
       <File Name="../../C-kern/api/context/threadcontext.h"/>
       <File Name="../../C-kern/api/context/stdmacros.h"/>
       <File Name="../../C-kern/api/context/sysusercontext.h"/>
+      <File Name="../../C-kern/api/context/unicode.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">

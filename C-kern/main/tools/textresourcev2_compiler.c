@@ -675,7 +675,7 @@ static void report_parseerror(textresource_reader_t * reader, const char * forma
 
 static void report_unexpectedendofinput(textresource_reader_t * reader)
 {
-   unicode_t ch ;
+   char32_t ch ;
    if (EILSEQ == nextchar_utf8reader(&reader->txtpos, &ch)) {
       skipascii_utf8reader(&reader->txtpos) ;
       print_error("Wrong UTF-8 character encoding") ;

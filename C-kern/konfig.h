@@ -189,8 +189,10 @@
 //
 // Includes:
 // * <MainContext>.
+// * <Unicode> (Will be removed if upcoming C11 is supported)
 
 //{
+#include "C-kern/api/context/unicode.h"
 #include "C-kern/api/maincontext.h"
 //}
 

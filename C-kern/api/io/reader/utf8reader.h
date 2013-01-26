@@ -1,6 +1,6 @@
 /* title: UTF8TextReader
 
-   This reader decodes UTF-8 multibyte text content into a <unicode_t> character
+   This reader decodes UTF-8 multibyte text content into a <char32_t> character
    and maintains additional information about the current line number and column.
 
    TODO: Adapt to instream_t
@@ -126,19 +126,19 @@ void restoretextpos_utf8reader(utf8reader_t * utfread, const utf8reader_t * meme
 // group: read
 
 /* function: nextchar_utf8reader
- * Decodes next unicode character from input.
+ * Decodes next unicode character as from input (UTF-32 encoding).
  * The character is returned as unicode character (codepoint).
  * This function assumes characters are encoded correctly.
  *
  * Returns:
- * 0       - UTF8 character decoded and returned in nxtchar and reading position is moved to next character.
+ * 0       - Next UTF-8 encoded character decoded and returned in nxtchar and reading position is moved to next character.
  * ENODATA - No more bytes to read from. Reading position is not changed.
  * EILSEQ  - The next character is encoded in a wrong way or there are not enough bytes left in the input.
  *           Either way the reading position is not changed.
  *           Use <skipchar_utf8reader> or <skipNbytes_utf8reader> to move the reading position to the next byte or character.
  *           If you called <skipchar_utf8reader> and it returned EILSEQ you know also that there are not enough bytes left.
  *           It may be necessary to repeat this step to skip a whole multibyte sequence. */
-int nextchar_utf8reader(utf8reader_t * utfread, unicode_t * nxtchar) ;
+int nextchar_utf8reader(utf8reader_t * utfread, char32_t * nxtchar) ;
 
 /* function: skipchar_utf8reader
  * Skips next character.

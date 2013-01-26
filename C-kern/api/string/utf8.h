@@ -41,8 +41,6 @@
 #ifndef CKERN_STRING_UTF8_HEADER
 #define CKERN_STRING_UTF8_HEADER
 
-#include "C-kern/api/string/unicode.h"
-
 /* variable: g_utf8_bytesperchar
  * Returns the number of bytes from the first byte of an utf8 char. */
 extern uint8_t g_utf8_bytesperchar[256] ;
@@ -97,7 +95,7 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
 // group: decode
 
 /* function: decode_utf8
- * Decodes utf-8 encoded bytes and returns value as <unicode_t>.
+ * Decodes utf-8 encoded bytes and returns value as <char32_t>.
  * The pointer strstart is incremented after successful decoding.
  *
  * Attention:
@@ -114,14 +112,14 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
  * > uint8_t * strend = strbuffer + sizeof(strbuffer) ;
  * > while ((strend - str) >= sizecharmax_utf8()
  * >        || (strend - str) >= sizechar_utf8(*str)) {
- * >    unicode_t uchar = decode_utf8(&str) ;
+ * >    char32_t uchar = decode_utf8(&str) ;
  * >    if (uchar == 0 && *str == 0)
  * >       ++str ;
  * >    else
  * >       { ...decode error... ; break ; }
  * >    { ...add_uchar_to_decoded_string... }
  * > } */
-unicode_t decode_utf8(const uint8_t ** strstart) ;
+char32_t decode_utf8(const uint8_t ** strstart) ;
 
 
 // struct: stringstream_t
@@ -141,12 +139,12 @@ struct stringstream_t ;
  *             are not enough bytes left in the string.
  * EILSEQ    - The next character is encoded in a wrong way. The stringstream is not changed.
  *             Use <skipillegalutf8_strstream> to skip all illegal bytes. */
-int nextutf8_stringstream(struct stringstream_t * strstream, /*out*/unicode_t * wchar) ;
+int nextutf8_stringstream(struct stringstream_t * strstream, /*out*/char32_t * wchar) ;
 
 /* function: peekutf8_stringstream
  * Same as <nextutf8_stringstream> except character is not marked as unread.
  * Calling this function more than once returns always the same result. */
-int peekutf8_stringstream(const struct stringstream_t * strstream, /*out*/unicode_t * wchar) ;
+int peekutf8_stringstream(const struct stringstream_t * strstream, /*out*/char32_t * wchar) ;
 
 /* function: skiputf8_stringstream
  * Skips next unread utf-8 character.
@@ -176,7 +174,7 @@ void skipillegalutf8_strstream(struct stringstream_t * strstream) ;
  * The returned value points either the start addr of the multibyte sequence
  * in the unread buffer. THe returned value is 0 if *strstream* does not contain the multibyte sequence
  * or if wchar is bigger than 0x10FFFF and therefore invalid. */
-const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, unicode_t wchar) ;
+const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, char32_t wchar) ;
 
 
 // section: inline implementation
