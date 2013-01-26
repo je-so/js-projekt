@@ -392,12 +392,14 @@ static int test_initfree(void)
 
    // TEST free_binarystack: ENOMEM
    TEST(0 == init_binarystack(&stack, 16)) ;
-   TEST(stack.freeblocksize -= 16) ;
+   TEST(stack.freeblocksize > 16) ;
+   stack.freeblocksize -= 16 ;   // allocate 16 bytes
    for (unsigned i = 1; i <= 8; ++i) {
       // allocate 8 blocks
       TEST(16*i == size_binarystack(&stack)) ;
       TEST(0 == allocateblock_binarystack(&stack, 16)) ;
-      TEST(stack.freeblocksize -= 16) ;
+      TEST(stack.freeblocksize > 16) ;
+      stack.freeblocksize -= 16 ; // allocate 16 bytes
    }
    s_testerror_freeblock = ENOMEM ;
    TEST(ENOMEM == free_binarystack(&stack)) ;
@@ -646,11 +648,13 @@ static int test_change(void)
    addr = stack.blockstart ;
    TEST(0 == size_binarystack(&stack)) ;
    TEST(EINVAL == pop_binarystack(&stack, 1)) ;
-   TEST(stack.freeblocksize -= 8) ;
+   TEST(stack.freeblocksize > 8) ;
+   stack.freeblocksize -= 8 ;
    for (unsigned i = 0; i < 7; ++i) {
       // allocate 8 blocks
       TEST(0 == allocateblock_binarystack(&stack, 32)) ;
-      TEST(stack.freeblocksize -= 32) ;
+      TEST(stack.freeblocksize > 32) ;
+      stack.freeblocksize -= 32 ; // allocate 32 bytes
    }
    TEST(EINVAL == pop_binarystack(&stack, 1 + 8 + 7*32)) ;
    TEST(addr != stack.blockstart) ;

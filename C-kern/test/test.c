@@ -73,7 +73,8 @@ static int test_helper(void)
 
    // prepare
    TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK)) ;
-   TEST(0 < (oldstdout = dup(file_STDOUT))) ;
+   oldstdout = dup(file_STDOUT) ;
+   TEST(0 < oldstdout) ;
    TEST(file_STDOUT == dup2(fd[1], file_STDOUT)) ;
 
    // TEST logfailed_test

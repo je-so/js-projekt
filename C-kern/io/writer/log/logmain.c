@@ -123,8 +123,10 @@ static int test_globalvar(void)
    // prepare
    memset(maxstring, '$', sizeof(maxstring)) ;
    TEST(0 == pipe2(pipefd,O_CLOEXEC|O_NONBLOCK)) ;
-   TEST(0 < (oldstderr = dup(STDERR_FILENO))) ;
-   TEST(0 < (oldstdout = dup(STDOUT_FILENO))) ;
+   oldstderr = dup(STDERR_FILENO) ;
+   TEST(0 < oldstderr) ;
+   oldstdout = dup(STDOUT_FILENO) ;
+   TEST(0 < oldstdout) ;
 
    // TEST interface
    TEST(g_logmain_interface.printf      == &printf_logmain) ;

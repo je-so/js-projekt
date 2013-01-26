@@ -418,7 +418,7 @@ static int test_progname(void)
    FLUSHBUFFER_LOG() ;
    char buffer[4096] = { 0 };
    ssize_t bytes = read(fdpipe[0], buffer, sizeof(buffer)) ;
-   TEST(0 < bytes || (errno = EAGAIN && -1 == bytes)) ;
+   TEST(0 < bytes || (errno == EAGAIN && -1 == bytes)) ;
 
    TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
    TEST(0 == free_file(&fd_stderr)) ;

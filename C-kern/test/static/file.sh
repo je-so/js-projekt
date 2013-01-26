@@ -32,7 +32,6 @@ else
    echo -e "\nError: FILE used outside allowed files" 1>&2
    if [ "$verbose" != "" ]; then
       for i in $files; do
-         uses=""
          echo "  file: <${i}> uses "
          grep '\(^\|[ ]\|[^A-Za-z0-9_]\)\(FILE[^_A-Za-z0-9]\|stderr\|stdout\|stdin\)' $i | sed -e "s/^/  /"
       done

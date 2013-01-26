@@ -935,7 +935,8 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == makefile_directory(tempdir, "readwrite1", sizeof(buffer))) ;
 
    // TEST write_file: blocking write
-   TEST(0 < (fd = openat(fd_directory(tempdir), "readwrite1", O_WRONLY|O_CLOEXEC))) ;
+   fd = openat(fd_directory(tempdir), "readwrite1", O_WRONLY|O_CLOEXEC) ;
+   TEST(0 < fd) ;
    for (unsigned i = 0; i < 10000; ++i) {
       byte = (uint8_t) i ;
       bytes_written = 0 ;
@@ -945,7 +946,8 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == free_file(&fd)) ;
 
    // TEST read_file: blocking read
-   TEST(0 < (fd = openat(fd_directory(tempdir), "readwrite1", O_RDONLY|O_CLOEXEC))) ;
+   fd = openat(fd_directory(tempdir), "readwrite1", O_RDONLY|O_CLOEXEC) ;
+   TEST(0 < fd) ;
    for (unsigned i = 0; i < 10000-1; ++i) {
       byte = (uint8_t) (1+i) ;
       bytes_read = 0 ;

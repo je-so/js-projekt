@@ -1035,7 +1035,8 @@ static int test_ipaddrlist(void)
    TEST(addrlist->first != 0) ;
    TEST(addrlist->first == addrlist->next) ;
    first = addrlist->first ;
-   TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
+   ipaddr = next_ipaddrlist(addrlist) ;
+   TEST(0 != ipaddr) ;
    TEST(addrlist->first == first) ;
    TEST(addrlist->next  == 0) ;
    TEST(port_ipaddr(ipaddr)     == 234) ;
@@ -1058,7 +1059,8 @@ static int test_ipaddrlist(void)
    TEST(addrlist->first != 0) ;
    TEST(addrlist->first == addrlist->next) ;
    first = addrlist->first ;
-   TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
+   ipaddr = next_ipaddrlist(addrlist) ;
+   TEST(0 != ipaddr) ;
    TEST(addrlist->first == first) ;
    TEST(addrlist->next  != 0) ;
    TEST(protocol_ipaddr(ipaddr)== ipprotocol_TCP) ;
@@ -1068,7 +1070,8 @@ static int test_ipaddrlist(void)
    TEST(ipprotocol_TCP == protocol_ipaddr(ipaddr)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "127.0.0.1")) ;
-   TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
+   ipaddr = next_ipaddrlist(addrlist) ;
+   TEST(0 != ipaddr) ;
    TEST(addrlist->first == first) ;
    TEST(addrlist->next  != 0/*IPPROTO_IP*/) ;
    TEST(protocol_ipaddr(ipaddr)== ipprotocol_UDP) ;
@@ -1094,7 +1097,8 @@ static int test_ipaddrlist(void)
    first = addrlist->first ;
    for (int i = 0; i < 4; ++i) {
       TEST(addrlist->next  != 0) ;
-      TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
+      ipaddr = next_ipaddrlist(addrlist) ;
+      TEST(0 != ipaddr) ;
       TEST(addrlist->first == first) ;
       TEST(port_ipaddr(ipaddr) == 5) ;
       if (ipversion_4 == version_ipaddr(ipaddr)) {
@@ -1138,7 +1142,8 @@ static int test_ipaddrlist(void)
    // ipversion_6 does not work with my provider
    TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.heise.de", ipprotocol_UDP, 0, ipversion_4)) ;
    // check result (UDP protocol)
-   TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
+   ipaddr = next_ipaddrlist(addrlist) ;
+   TEST(0 != ipaddr) ;
    TEST(version_ipaddr(ipaddr)  == ipversion_4) ;
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_UDP) ;
    TEST(port_ipaddr(ipaddr)     == 0) ;
@@ -1153,7 +1158,8 @@ static int test_ipaddrlist(void)
    // Test IDN
    TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.wörterbuch.de", ipprotocol_TCP, 3, ipversion_4)) ;
    // check result (TCP protocol)
-   TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
+   ipaddr = next_ipaddrlist(addrlist) ;
+   TEST(0 != ipaddr) ;
    TEST(version_ipaddr(ipaddr)  == ipversion_4) ;
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_TCP) ;
    TEST(port_ipaddr(ipaddr)     == 3) ;
@@ -1168,7 +1174,8 @@ static int test_ipaddrlist(void)
       // compare same result as ACE encoded
    TEST(0 == newdnsquery_ipaddrlist(&addrlist, "www.xn--wrterbuch-07a.de", ipprotocol_TCP, 3, ipversion_4)) ;
    // check result (TCP protocol)
-   TEST(0 != (ipaddr = next_ipaddrlist(addrlist))) ;
+   ipaddr = next_ipaddrlist(addrlist) ;
+   TEST(0 != ipaddr) ;
    TEST(version_ipaddr(ipaddr)  == ipversion_4) ;
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_TCP) ;
    TEST(port_ipaddr(ipaddr)     == 3) ;

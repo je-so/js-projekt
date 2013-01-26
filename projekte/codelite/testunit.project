@@ -253,6 +253,7 @@
       <File Name="../../C-kern/test/static/check_textdb.sh"/>
       <File Name="../../C-kern/test/static/textresource_inuse.sh"/>
       <File Name="../../C-kern/test/static/check_projects.sh"/>
+      <File Name="../../C-kern/test/static/test.sh"/>
     </VirtualDirectory>
     <VirtualDirectory Name="compiletime">
       <File Name="../../C-kern/test/compiletime/stdtypes.h"/>

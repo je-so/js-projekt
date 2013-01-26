@@ -319,7 +319,7 @@ static int test_flushbuffer(void)
       lgwrt.buffer.addr[i] = (uint8_t) (1+i) ;
    }
    lgwrt.logsize = lgwrt.buffer.size ;
-   TEST(lgwrt.buffer.addr[0] = 1) ;
+   TEST(lgwrt.buffer.addr[0] == 1) ;
    flushbuffer_logwriter(&lgwrt) ;
    TEST(lgwrt.logsize        == 0) ;
    TEST(lgwrt.buffer.addr[0] == 0) ; // NULL byte
@@ -417,7 +417,8 @@ static int test_printf(void)
 
    // prepare pipe
    TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
-   TEST(0 < (oldstdout = dup(STDOUT_FILENO))) ;
+   oldstdout = dup(STDOUT_FILENO) ;
+   TEST(0 < oldstdout) ;
    TEST(STDOUT_FILENO == dup2(pipefd[1], STDOUT_FILENO)) ;
    // prepare logwriter
    TEST(0 == init_logwriter(&lgwrt)) ;
