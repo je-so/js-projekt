@@ -197,7 +197,7 @@ typedef redblacktree_iterator_t      iteratortype_redblacktree ;
 
 /* typedef: iteratedtype_redblacktree
  * Declaration to associate <redblacktree_node_t> with <redblacktree_t>. */
-typedef redblacktree_node_t          iteratedtype_redblacktree ;
+typedef redblacktree_node_t       *  iteratedtype_redblacktree ;
 
 // group: search
 
@@ -271,7 +271,7 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
  * Implements <redblacktree_t.redblacktree_IMPLEMENT>. */
 #define redblacktree_IMPLEMENT(_fsuffix, object_t, key_t, nodename)  \
    typedef redblacktree_iterator_t  iteratortype##_fsuffix ;         \
-   typedef object_t                 iteratedtype##_fsuffix ;         \
+   typedef object_t              *  iteratedtype##_fsuffix ;         \
    static inline int  initfirst##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree) __attribute__ ((always_inline)) ;   \
    static inline int  initlast##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(redblacktree_iterator_t * iter) __attribute__ ((always_inline)) ; \

@@ -7,8 +7,6 @@
    Do no forget to include "C-kern/api/ds/foreach.h" and "C-kern/api/memory/memblock.h"
    if you want to iterate the content of <wbuffer_t>.
 
-   TODO: redefine foreach iteratedtype_wbuffer (include pointer * ) / adapt wbuffer
-
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -108,16 +106,14 @@ struct wbuffer_it {
  * The standard implementations provided by this module store all content
  * in one memory block. */
 struct wbuffer_iterator_t {
-   uint8_t  * addr ;
-   size_t   size ;
-   void     * next ;
+   void * next ;
 } ;
 
 // group: lifetime
 
 /* define: wbuffer_iterator_INIT_FREEABLE
  * Static initializer. */
-#define wbuffer_iterator_INIT_FREEABLE    { 0, 0, 0 }
+#define wbuffer_iterator_INIT_FREEABLE    { 0 }
 
 /* function: initfirst_wbufferiterator
  * Initializes an iterator for <wbuffer_t>. */
@@ -392,12 +388,8 @@ void clear_wbuffer(wbuffer_t * wbuf) ;
          ( __extension__ ({                           \
             wbuffer_iterator_t * _it = (iter) ;       \
             wbuffer_t  * _wb = (wbuf) ;               \
-            memblock_t * _mb =                        \
-               genericcast_memblock(_it, ) ;          \
-   /* TODO: remove line, change after foreach is adapted !*/ \
-            *(memblock) = _mb ;                       \
             (_wb->iimpl->iterate(_wb,                 \
-                                 &_it->next, _mb)) ;  \
+                        &_it->next, (memblock))) ;    \
          }))
 
 #endif

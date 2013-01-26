@@ -120,7 +120,7 @@ typedef arraystf_iterator_t      iteratortype_arraystf ;
 /* typedef: iteratedtype_arraystf
  * Function declaration to associate <arraystf_node_t> with <arraystf_t>.
  * The association is done with a typedef which looks like a function. */
-typedef struct arraystf_node_t   iteratedtype_arraystf ;
+typedef struct arraystf_node_t * iteratedtype_arraystf ;
 
 // group: query
 
@@ -225,7 +225,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
  * Implements <arraystf_t.arraystf_IMPLEMENT>. */
 #define arraystf_IMPLEMENT(_fsuffix, object_t, nodename)    \
    typedef arraystf_iterator_t   iteratortype##_fsuffix ;   \
-   typedef object_t              iteratedtype##_fsuffix ;   \
+   typedef object_t           *  iteratedtype##_fsuffix ;   \
    static inline int  new##_fsuffix(/*out*/arraystf_t ** array, uint32_t toplevelsize) __attribute__ ((always_inline)) ; \
    static inline int  delete##_fsuffix(arraystf_t ** array, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline size_t length##_fsuffix(arraystf_t * array) __attribute__ ((always_inline)) ; \

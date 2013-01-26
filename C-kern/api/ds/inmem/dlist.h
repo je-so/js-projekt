@@ -177,7 +177,7 @@ typedef dlist_iterator_t      iteratortype_dlist ;
 
 /* typedef: iteratedtype_dlist
  * Declaration to associate <dlist_node_t> with <dlist_t>. */
-typedef struct dlist_node_t   iteratedtype_dlist ;
+typedef struct dlist_node_t * iteratedtype_dlist ;
 
 // group: change
 
@@ -340,7 +340,7 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
  * Implements <dlist_t.dlist_IMPLEMENT>. */
 #define dlist_IMPLEMENT(_fsuffix, object_t, nodename)    \
    typedef dlist_iterator_t iteratortype##_fsuffix ;     \
-   typedef object_t         iteratedtype##_fsuffix ;     \
+   typedef object_t       * iteratedtype##_fsuffix ;     \
    static inline int  initfirst##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list) __attribute__ ((always_inline)) ;   \
    static inline int  initlast##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(dlist_iterator_t * iter) __attribute__ ((always_inline)) ; \

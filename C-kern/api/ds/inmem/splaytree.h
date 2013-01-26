@@ -166,7 +166,7 @@ typedef splaytree_iterator_t      iteratortype_splaytree ;
 
 /* typedef: iteratedtype_splaytree
  * Declaration to associate <splaytree_node_t> with <splaytree_t>. */
-typedef splaytree_node_t          iteratedtype_splaytree ;
+typedef splaytree_node_t       *  iteratedtype_splaytree ;
 
 // group: search
 
@@ -242,7 +242,7 @@ static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splayt
  * Implements <splaytree_t.splaytree_IMPLEMENT>. */
 #define splaytree_IMPLEMENT(_fsuffix, object_t, key_t, nodename)      \
    typedef splaytree_iterator_t  iteratortype##_fsuffix ;   \
-   typedef object_t              iteratedtype##_fsuffix ;   \
+   typedef object_t           *  iteratedtype##_fsuffix ;   \
    static inline int  initfirst##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree) __attribute__ ((always_inline)) ;   \
    static inline int  initlast##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(splaytree_iterator_t * iter) __attribute__ ((always_inline)) ; \

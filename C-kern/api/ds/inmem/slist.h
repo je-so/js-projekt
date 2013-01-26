@@ -204,7 +204,7 @@ typedef slist_iterator_t      iteratortype_slist ;
 
 /* typedef: iteratedtype_slist
  * Declaration to associate <slist_node_t> with <slist_t>. */
-typedef struct slist_node_t   iteratedtype_slist ;
+typedef struct slist_node_t * iteratedtype_slist ;
 
 // group: change
 
@@ -334,7 +334,7 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
  * Implements <slist_t.slist_IMPLEMENT>. */
 #define slist_IMPLEMENT(_fsuffix, object_t, name_nextptr)    \
    typedef slist_iterator_t   iteratortype##_fsuffix ;       \
-   typedef object_t           iteratedtype##_fsuffix ;       \
+   typedef object_t        *  iteratedtype##_fsuffix ;       \
    static inline int  initfirst##_fsuffix##iterator(slist_iterator_t * iter, slist_t * list) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix##iterator(slist_iterator_t * iter) __attribute__ ((always_inline)) ; \
    static inline bool next##_fsuffix##iterator(slist_iterator_t * iter, slist_t * list, object_t ** node) __attribute__ ((always_inline)) ; \

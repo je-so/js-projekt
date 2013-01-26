@@ -183,7 +183,7 @@ typedef exthash_iterator_t      iteratortype_exthash ;
 
 /* typedef: iteratedtype_exthash
  * Declaration to associate <exthash_node_t> with <exthash_t>. */
-typedef exthash_node_t          iteratedtype_exthash ;
+typedef exthash_node_t       *  iteratedtype_exthash ;
 
 // group: search
 
@@ -250,7 +250,7 @@ int invariant_exthash(const exthash_t * htable) ;
  * Implements <exthash_t.exthash_IMPLEMENT>. */
 #define exthash_IMPLEMENT(_fsuffix, object_t, key_t, nodename)  \
    typedef exthash_iterator_t  iteratortype##_fsuffix ;         \
-   typedef object_t            iteratedtype##_fsuffix ;         \
+   typedef object_t         *  iteratedtype##_fsuffix ;         \
    static inline int  initfirst##_fsuffix##iterator(exthash_iterator_t * iter, exthash_t * htable) __attribute__ ((always_inline)) ;   \
    static inline int  free##_fsuffix##iterator(exthash_iterator_t * iter) __attribute__ ((always_inline)) ; \
    static inline bool next##_fsuffix##iterator(exthash_iterator_t * iter, exthash_t * htable, object_t ** node) __attribute__ ((always_inline)) ; \

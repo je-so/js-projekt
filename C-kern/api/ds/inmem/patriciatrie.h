@@ -136,7 +136,7 @@ typedef patriciatrie_iterator_t      iteratortype_patriciatrie ;
 
 /* typedef: iteratedtype_patriciatrie
  * Declaration to associate <patriciatrie_node_t> with <patriciatrie_t>. */
-typedef patriciatrie_node_t          iteratedtype_patriciatrie ;
+typedef patriciatrie_node_t       *  iteratedtype_patriciatrie ;
 
 // group: search
 
@@ -278,7 +278,7 @@ static inline void getinistate_patriciatrie(const patriciatrie_t * tree, /*out*/
  * Implements <patriciatrie_t.patriciatrie_IMPLEMENT>. */
 #define patriciatrie_IMPLEMENT(_fsuffix, object_t, nodename)   \
    typedef patriciatrie_iterator_t  iteratortype##_fsuffix ;   \
-   typedef object_t                 iteratedtype##_fsuffix ;   \
+   typedef object_t              *  iteratedtype##_fsuffix ;   \
    static inline int  initfirst##_fsuffix##iterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree) __attribute__ ((always_inline)) ;   \
    static inline int  initlast##_fsuffix##iterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(patriciatrie_iterator_t * iter) __attribute__ ((always_inline)) ; \

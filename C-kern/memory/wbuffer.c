@@ -259,35 +259,27 @@ static int test_wbufferiterator(void)
 {
    wbuffer_iterator_t iter = wbuffer_iterator_INIT_FREEABLE ;
    wbuffer_t          wbuf = wbuffer_INIT_STATIC(1000, (uint8_t*)1) ;
-   memblock_t         * data ;
-
-   genericcast_memblock(&iter, ) ;
+   memblock_t         data ;
 
    // TEST wbuffer_iterator_INIT_FREEABLE
-   TEST(iter.addr == 0) ;
-   TEST(iter.size == 0) ;
    TEST(iter.next == 0) ;
 
    // TEST init_wbufferiterator
    memset(&iter, 1, sizeof(iter)) ;
    TEST(0 == initfirst_wbufferiterator(&iter, &wbuf)) ;
-   TEST(iter.addr == 0) ;
-   TEST(iter.size == 0) ;
    TEST(iter.next == 0) ;
 
    // TEST free_wbufferiterator
    memset(&iter, 1, sizeof(iter)) ;
    TEST(0 == free_wbufferiterator(&iter)) ;
-   TEST(iter.addr == 0) ;
-   TEST(iter.size == 0) ;
    TEST(iter.next == 0) ;
 
    // TEST next_wbufferiterator
    wbuf.next = wbuf.end ;
    TEST(0 == initfirst_wbufferiterator(&iter, &wbuf)) ;
    TEST(true == next_wbufferiterator(&iter, &wbuf, &data)) ;
-   TEST(data->addr == (void*)1) ;
-   TEST(data->size == 1000) ;
+   TEST(data.addr == (void*)1) ;
+   TEST(data.size == 1000) ;
    TEST(false == next_wbufferiterator(&iter, &wbuf, &data)) ;
    TEST(false == next_wbufferiterator(&iter, &wbuf, &data)) ;
 
@@ -394,22 +386,22 @@ static int test_query(void)
          wbuf.addr = (void*)(i + 1) ;
          foreach (_wbuffer, &wbuf, memblock) {
             ++ count ;
-            TEST(memblock->addr == (void*)(i + 1)) ;
-            TEST(memblock->size == (size_t)-1) ;
+            TEST(memblock.addr == (void*)(i + 1)) ;
+            TEST(memblock.size == (size_t)-1) ;
          }
          TEST(count == 1) ;
          wbuf.next = (void*)(i+2) ;
          foreach (_wbuffer, &wbuf, memblock) {
             ++ count ;
-            TEST(memblock->addr == (void*)(i + 1)) ;
-            TEST(memblock->size == 1) ;
+            TEST(memblock.addr == (void*)(i + 1)) ;
+            TEST(memblock.size == 1) ;
          }
          TEST(count == 2) ;
          wbuf.next = (void*)(5*i+2) ;
          foreach (_wbuffer, &wbuf, memblock) {
             ++ count ;
-            TEST(memblock->addr == (void*)(i + 1)) ;
-            TEST(memblock->size == 4*i+1) ;
+            TEST(memblock.addr == (void*)(i + 1)) ;
+            TEST(memblock.size == 4*i+1) ;
          }
          TEST(count == 3) ;
          wbuf.next = wbuf.addr ;
@@ -870,16 +862,16 @@ static int test_implstrategy(void)
    }
    for (unsigned i = 1; i == 1; i = 0) {
       foreach (_wbuffer, &wbuf, memblock) {
-         TEST(memblock->addr == &buffer[(i%4)*16]) ;
-         TEST(memblock->size == 4-(i%4)) ;
+         TEST(memblock.addr == &buffer[(i%4)*16]) ;
+         TEST(memblock.size == 4-(i%4)) ;
          ++ i ;
       }
       TEST(i == 5) ;
       i = 1 ;
       wbuf.next = buffer ;
       foreach (_wbuffer, &wbuf, memblock) {
-         TEST(memblock->addr == &buffer[(i%4)*16]) ;
-         TEST(memblock->size == 4-(i%4)) ;
+         TEST(memblock.addr == &buffer[(i%4)*16]) ;
+         TEST(memblock.size == 4-(i%4)) ;
          ++ i ;
       }
       TEST(i == 4) ;

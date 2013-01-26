@@ -1163,7 +1163,7 @@ static int test_iterator(void)
    // TEST next_arraysfiterator
    TEST(0 == initfirst_arraysfiterator(&iter, array)) ;
    nextpos = 0 ;
-   for (iteratedtype_arraysf * node = 0; !node; node = (void*)1) {
+   for (iteratedtype_arraysf node = 0; !node; node = (void*)1) {
       while (next_arraysfiterator(&iter, array, &node)) {
          TEST(node->pos == nextpos) ;
          ++ nextpos ;

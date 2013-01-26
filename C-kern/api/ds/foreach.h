@@ -57,7 +57,7 @@
  * following iterator interface:
  *
  * > typedef iterator_t iteratortype##_fctsuffix ;
- * > typedef node_t     iteratedtype##_fctsuffix ;
+ * > typedef node_t   * iteratedtype##_fctsuffix ;
  * > int  initfirst##_fctsuffix##iterator(iterator_t * iter, container_t * container) ;
  * > int  free##_fctsuffix##iterator(iterator_t * iter) ;
  * > bool next##_fctsuffix##iterator(iterator_t * iter, container_t * container, node_t ** node) ;
@@ -69,7 +69,7 @@
  * See <slist_t> for an example.
  */
 #define foreach(_fsuffix, container, varname)                                 \
-   for (iteratedtype##_fsuffix * varname;;)                                   \
+   for (iteratedtype##_fsuffix varname;;)                                     \
    for (iteratortype##_fsuffix _iter_##varname ;                              \
         0 == initfirst##_fsuffix##iterator(& _iter_##varname, (container));   \
         (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname);    \
@@ -103,7 +103,7 @@
  * following iterator interface:
  *
  * > typedef iterator_t iteratortype##_fctsuffix ;
- * > typedef node_t     iteratedtype##_fctsuffix ;
+ * > typedef node_t  *  iteratedtype##_fctsuffix ;
  * > int  initlast##_fctsuffix##iterator(iterator_t * iter, container_t * container) ;
  * > int  free##_fctsuffix##iterator(iterator_t * iter) ;
  * > bool prev##_fctsuffix##iterator(iterator_t * iter, container_t * container, node_t ** node) ;
@@ -115,7 +115,7 @@
  * See <dlist_t> for an example.
  */
 #define foreachReverse(_fsuffix, container, varname)                          \
-   for (iteratedtype##_fsuffix * varname;;)                                   \
+   for (iteratedtype##_fsuffix varname;;)                                     \
    for (iteratortype##_fsuffix _iter_##varname ;                              \
         0 == initlast##_fsuffix##iterator(& _iter_##varname, (container)) ;   \
         (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname) ;   \

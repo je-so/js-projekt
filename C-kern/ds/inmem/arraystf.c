@@ -1389,7 +1389,7 @@ static int test_iterator(void)
    // TEST next_arraystfiterator
    TEST(0 == initfirst_arraystfiterator(&iter, array)) ;
    nextpos = 0 ;
-   for (iteratedtype_arraystf * node = 0; !node; node = (void*)1) {
+   for (iteratedtype_arraystf node = 0; !node; node = (void*)1) {
       while (next_arraystfiterator(&iter, array, &node)) {
          char nextnr[6] ;
          snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
