@@ -29,6 +29,7 @@
 #define CKERN_IO_ADAPTER_INSTREAM_MMFILE_HEADER
 
 #include "C-kern/api/io/instream.h"
+#include "C-kern/api/io/adapter/instream_factory.h"
 #include "C-kern/api/io/adapter/konfig_buffersize.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
@@ -87,7 +88,7 @@ struct instream_mmfile_t {
  * Opens a file for input to be streamed.
  * The inistialized object plays the role of <instream_impl_t> and <instream_mmfile_it> plays the role of <instream_it>.
  * See <init_file> for a description of parameter filepath and relative_to. */
-int init_instreammmfile(/*out*/instream_mmfile_t * obj, /*out*/const instream_mmfile_it ** iinstream, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int init_instreammmfile(/*out*/instream_mmfile_t * obj, /*out*/const instream_mmfile_it ** iinstream, instream_factory_config_e config, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: free_instreammmfile
  * Frees all associated resources and closes the input file. */

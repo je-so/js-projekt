@@ -60,7 +60,6 @@
 
 <proglang value=C>
    <namesuffix value=_ERRLOG/>
-   <langswitch value=KONFIG_LANG/>
    <generate   header="C-kern/resource/generated/errlog.h" source="C-kern/resource/generated/errlog"/>
    <printf     value=PRINTF/>
    <firstparam value="log_channel_e channel"/>

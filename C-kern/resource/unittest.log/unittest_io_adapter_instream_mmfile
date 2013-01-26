@@ -1,2 +1,6 @@
-C-kern/io/adapter/instream_mmfile.c:204: readnext_instreammmfile(): error: 22: Function aborted
-C-kern/io/adapter/instream_mmfile.c:204: readnext_instreammmfile(): error: 22: Function aborted
+C-kern/io/adapter/instream_mmfile.c:63: init_instreammmfile(): error: 22: Function input violates condition (config <= instream_factory_config_SINGLEBUFFER)
+C-kern/io/adapter/instream_mmfile.c:98: init_instreammmfile(): error: 22: Function aborted
+C-kern/io/adapter/instream_mmfile.c:63: init_instreammmfile(): error: 22: Function input violates condition (config <= instream_factory_config_SINGLEBUFFER)
+C-kern/io/adapter/instream_mmfile.c:98: init_instreammmfile(): error: 22: Function aborted
+C-kern/io/adapter/instream_mmfile.c:213: readnext_instreammmfile(): error: 22: Function aborted
+C-kern/io/adapter/instream_mmfile.c:213: readnext_instreammmfile(): error: 22: Function aborted

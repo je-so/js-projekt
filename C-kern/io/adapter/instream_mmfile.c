@@ -50,7 +50,7 @@ static inline size_t buffersize_instreammmfile(void)
    return bufsize == pagesize_vm() ? 2 * pagesize_vm() : bufsize ;
 }
 
-int init_instreammmfile(/*out*/instream_mmfile_t * obj, /*out*/const instream_mmfile_it ** iinstream, const char * filepath, const struct directory_t * relative_to)
+int init_instreammmfile(/*out*/instream_mmfile_t * obj, /*out*/const instream_mmfile_it ** iinstream, instream_factory_config_e config, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/)
 {
    int err ;
    file_t   fd    = file_INIT_FREEABLE ;
@@ -58,13 +58,22 @@ int init_instreammmfile(/*out*/instream_mmfile_t * obj, /*out*/const instream_mm
    size_t   bufsize = 2 * buffersize_instreammmfile() ;
    off_t    inputsize ;
 
+   static_assert( 0 == instream_factory_config_DEFAULT
+                  && 1 == instream_factory_config_SINGLEBUFFER, "VALIDATE_INPARAM assumes both values") ;
+   VALIDATE_INPARAM_TEST(config <= instream_factory_config_SINGLEBUFFER, ONABORT, ) ;
+
    err = init_file(&fd, filepath, accessmode_READ, relative_to) ;
    if (err) goto ONABORT ;
 
    err = size_file(fd, &inputsize) ;
    if (err) goto ONABORT ;
 
-   if (inputsize <= bufsize) {
+   if (  config == instream_factory_config_SINGLEBUFFER
+         || inputsize <= bufsize) {
+      if (sizeof(inputsize) > sizeof(size_t) && inputsize >= (off_t)SIZE_MAX) {
+         err = ENOMEM ;
+         goto ONABORT ;
+      }
       bufsize = (size_t) inputsize ;
    }
 
@@ -228,9 +237,29 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == obj.bufferoffset) ;
    TEST(0 == isinit_file(obj.inputstream)) ;
 
+   // TEST init_instreammmfile, free_instreammmfile: instream_factory_config_SINGLEBUFFER
+   memset(&obj, -1, sizeof(obj)) ;
+   iinstream = 0 ;
+   TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_SINGLEBUFFER, "doublebuffer", tempdir)) ;
+   TEST(iinstream == &s_iinstream) ;
+   TEST(iinstream->readnext == &readnext_instreammmfile) ;
+   TEST(1 == isinit_mmfile(&obj.buffer)) ;
+   TEST(D == size_mmfile(&obj.buffer)) ;
+   TEST(D == obj.inputsize) ;
+   TEST(0 == obj.inputoffset) ;
+   TEST(0 == obj.bufferoffset) ;
+   TEST(1 == isinit_file(obj.inputstream)) ;
+   TEST(0 == free_instreammmfile(&obj)) ;
+   TEST(0 == isinit_mmfile(&obj.buffer)) ;
+   TEST(0 == obj.inputsize) ;
+   TEST(0 == obj.inputoffset) ;
+   TEST(0 == obj.bufferoffset) ;
+   TEST(0 == isinit_file(obj.inputstream)) ;
+   TEST(0 == free_instreammmfile(&obj)) ;
+
    // TEST init_instreammmfile, free_instreammmfile: single buffer enough
    memset(&obj, -1, sizeof(obj)) ;
-   TEST(0 == init_instreammmfile(&obj, &iinstream, "singlebuffer", tempdir)) ;
+   TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_DEFAULT, "singlebuffer", tempdir)) ;
    TEST(iinstream == &s_iinstream) ;
    TEST(iinstream->readnext == &readnext_instreammmfile) ;
    TEST(1 == isinit_mmfile(&obj.buffer)) ;
@@ -257,7 +286,7 @@ static int test_initfree(directory_t * tempdir)
    // TEST init_instreammmfile, free_instreammmfile: double buffer needed
    memset(&obj, -1, sizeof(obj)) ;
    iinstream = 0 ;
-   TEST(0 == init_instreammmfile(&obj, &iinstream, "doublebuffer", tempdir)) ;
+   TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_DEFAULT, "doublebuffer", tempdir)) ;
    TEST(iinstream == &s_iinstream) ;
    TEST(iinstream->readnext == &readnext_instreammmfile) ;
    TEST(1 == isinit_mmfile(&obj.buffer)) ;
@@ -273,6 +302,10 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == obj.bufferoffset) ;
    TEST(0 == isinit_file(obj.inputstream)) ;
    TEST(0 == free_instreammmfile(&obj)) ;
+
+   // TEST init_instreammmfile: EINVAL
+   TEST(EINVAL == init_instreammmfile(&obj, &iinstream, instream_factory_config_SINGLEBUFFER+1, "doublebuffer", tempdir)) ;
+   TEST(EINVAL == init_instreammmfile(&obj, &iinstream, (instream_factory_config_e)-1, "doublebuffer", tempdir)) ;
 
    // TEST isinit_instreammmfile
    obj = (instream_mmfile_t) instream_mmfile_INIT_FREEABLE ;
@@ -323,7 +356,7 @@ static int test_readnext(directory_t * tempdir)
 
    // TEST readnext_instreammmfile
    for (unsigned i = 0; i < lengthof(filename); ++i) {
-      TEST(0 == init_instreammmfile(&obj, &iinstream, filename[i], tempdir)) ;
+      TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_DEFAULT, filename[i], tempdir)) ;
       size_t readoffset = 0 ;
       // check streaming blocks
       while (readoffset < filesize[i]) {
@@ -355,7 +388,7 @@ static int test_readnext(directory_t * tempdir)
 
    // TEST readnext_instreammmfile: if (keepsize == blocksize) { "buffer doubles in size" }
    for (unsigned i = 0; i < lengthof(filename); ++i) {
-      TEST(0 == init_instreammmfile(&obj, &iinstream, filename[i], tempdir)) ;
+      TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_DEFAULT, filename[i], tempdir)) ;
       keepsize = 0 ;
       size_t bufsize = buffersize_instreammmfile() ;
       // check streaming blocks
@@ -399,7 +432,7 @@ static int test_readnext(directory_t * tempdir)
 
    // TEST readnext_instreammmfile: keepsize < buffersize_instreammmfile()
    for (unsigned i = 0; i < lengthof(filename); ++i) {
-      TEST(0 == init_instreammmfile(&obj, &iinstream, filename[i], tempdir)) ;
+      TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_DEFAULT, filename[i], tempdir)) ;
       TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;
       keepsize = pagesize_vm()-1 ;
       bool   isoffset   = true ;
@@ -427,7 +460,7 @@ static int test_readnext(directory_t * tempdir)
    }
 
    // TEST readnext_instreammmfile: buffer would grow but unreadsize fits so resize is not necessary
-   TEST(0 == init_instreammmfile(&obj, &iinstream, filename[lengthof(filename)-1], tempdir)) ;
+   TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_DEFAULT, filename[lengthof(filename)-1], tempdir)) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;
    keepsize = pagesize_vm() ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, keepsize)) ;
@@ -441,7 +474,7 @@ static int test_readnext(directory_t * tempdir)
    TEST(0 == free_instreammmfile(&obj)) ;
 
    // TEST readnext_instreammmfile: reposition considers unread size and shrinks datablock
-   TEST(0 == init_instreammmfile(&obj, &iinstream, filename[lengthof(filename)-1], tempdir)) ;
+   TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_DEFAULT, filename[lengthof(filename)-1], tempdir)) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, pagesize_vm())) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;
@@ -452,7 +485,7 @@ static int test_readnext(directory_t * tempdir)
    TEST(0 == free_instreammmfile(&obj)) ;
 
    // TEST readnext_instreammmfile: EINVAL
-   TEST(0 == init_instreammmfile(&obj, &iinstream, filename[1], tempdir)) ;
+   TEST(0 == init_instreammmfile(&obj, &iinstream, instream_factory_config_DEFAULT, filename[1], tempdir)) ;
    datablock = (memblock_t) memblock_INIT_FREEABLE ;
    TEST(EINVAL == readnext_instreammmfile(&obj, &datablock, &keepaddr, 1)/*keepsize_aligned > obj.inputoffset*/) ;
    TEST(0 == readnext_instreammmfile(&obj, &datablock, &keepaddr, 0)) ;

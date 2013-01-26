@@ -138,13 +138,12 @@ struct proglangC_t {
    string_t     cfilename;
    string_t     hfilename ;
    string_t     firstparam ;
-   string_t     langswitch ;
    string_t     nameprefix ;
    string_t     namesuffix ;
    string_t     printf ;
 } ;
 
-#define proglangC_INIT_FREEABLE        { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE }
+#define proglangC_INIT_FREEABLE        { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE }
 
 
 /* struct: textresource_language_t
@@ -232,7 +231,7 @@ slist_IMPLEMENT(_textatomlist, textresource_textatom_t, next)
  * If <condition> contains "else" it is the last entry of a switch
  * > ((condition1): "str1" (cond2): ... else: "strX")
  * Every switch ends in an else. If the user does not supply one an artifical
- * <textresource_condition_t> is created with <condition> set to "else" and without an empty atomlist. */
+ * <textresource_condition_t> is created with <condition> set to "else" and an empty atomlist. */
 struct textresource_condition_t {
    slist_t                    atomlist ;
    slist_node_t               * next ;
@@ -647,7 +646,6 @@ ONABORT:
  * a structure of type <textresource_t>. */
 struct textresource_reader_t {
    textresource_t    txtres ;
-   mmfile_t          mfile ;
    utf8reader_t      txtpos ;
    uint16_t          version ;
 } ;
@@ -701,11 +699,11 @@ static void report_unexpectedendofinput(textresource_reader_t * reader)
  * The readoffset is moved forward until end of input. */
 static int skip_spaceandcomment(textresource_reader_t * reader)
 {
+   int err ;
    for (uint8_t ch; 0 == peekascii_utf8reader(&reader->txtpos, &ch); ) {
       if ('#' == ch) {
-         if (ENODATA == skipline_utf8reader(&reader->txtpos)) {
-            skipall_utf8reader(&reader->txtpos) ;
-         }
+         err = skipline_utf8reader(&reader->txtpos) ;
+         if (err && err != ENODATA) return err ;
       } else {
          if (     ' '  != ch
                && '\t' != ch
@@ -728,8 +726,8 @@ static int match_unsigned(textresource_reader_t * reader, int * number)
    err = skip_spaceandcomment(reader) ;
    if (err) goto ONABORT ;
 
-   if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
-      || !('0' <= ch && ch <= '9')) {
+   if (  0 != nextbyte_utf8reader(&reader->txtpos, &ch)
+         || !('0' <= ch && ch <= '9')) {
       report_parseerror(reader, "expected to read a number") ;
       err = EINVAL ;
       goto ONABORT ;
@@ -737,20 +735,16 @@ static int match_unsigned(textresource_reader_t * reader, int * number)
 
    value = (ch - '0') ;
 
-   for (;;) {
+   while (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
+            && ('0' <= ch && ch <= '9')) {
       skipascii_utf8reader(&reader->txtpos) ;
-      if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
-         && ('0' <= ch && ch <= '9')) {
-         if (value >= (INT_MAX/10 - 1)) {
-            report_parseerror(reader, "number too big") ;
-            err = EINVAL ;
-            goto ONABORT ;
-         }
-         value *= 10 ;
-         value += (ch - '0') ;
-         continue ;
+      if (value >= (INT_MAX/10 - 1)) {
+         report_parseerror(reader, "number too big") ;
+         err = EINVAL ;
+         goto ONABORT ;
       }
-      break ;
+      value *= 10 ;
+      value += (ch - '0') ;
    }
 
    *number = value ;
@@ -764,19 +758,19 @@ static int match_string(textresource_reader_t * reader, const char * string)
 {
    int err ;
    size_t len = strlen(string) ;
+   size_t matchlen ;
 
    err = skip_spaceandcomment(reader) ;
    if (err) goto ONABORT ;
 
-   if (  unreadsize_utf8reader(&reader->txtpos) < len
-         || 0 != strncmp((const char*)unread_utf8reader(&reader->txtpos), string, len)) {
-      skipchar_utf8reader(&reader->txtpos) ;
+   // only ascii string are supported cause of nrbytes == columnIncrement
+   err = matchbytes_utf8reader(&reader->txtpos, len, len, (const uint8_t*)string, &matchlen) ;
+   if (err) {
+      nextcolumn_textpos(textpos_utf8reader(&reader->txtpos)) ;
       report_parseerror(reader, "expected to read »%s«", string) ;
       err = EINVAL ;
       goto ONABORT ;
    }
-
-   skipNbytes_utf8reader(&reader->txtpos, len, len) ;
 
    return 0 ;
 ONABORT:
@@ -787,24 +781,20 @@ static int match_stringandspace(textresource_reader_t * reader, const char * str
 {
    int err ;
    uint8_t     ch ;
-   const char  * expect ;
 
    err = match_string(reader, string) ;
    if (err) return err ;
 
-   if (     0 != peekascii_utf8reader(&reader->txtpos, &ch)
-         || (     ' '  != ch
+   if (  0 != nextbyte_utf8reader(&reader->txtpos, &ch)
+         || (  ' '  != ch
                && '\t' != ch
                && '\n' != ch)) {
-      expect = " " ;
       goto ONABORT ;
    }
 
-   skipascii_utf8reader(&reader->txtpos) ;
-
    return 0 ;
 ONABORT:
-   report_parseerror(reader, "expected to read »%s«", expect) ;
+   report_parseerror(reader, "expected to read » «") ;
    return EINVAL ;
 }
 
@@ -818,8 +808,8 @@ static int match_identifier(textresource_reader_t * reader, /*out*/string_t * id
 
    const uint8_t * idstart = unread_utf8reader(&reader->txtpos) ;
 
-   if (nextchar_utf8reader(&reader->txtpos, &ch)) {
-      err = nextchar_utf8reader(&reader->txtpos, &ch) ;
+   err = nextchar_utf8reader(&reader->txtpos, &ch) ;
+   if (err) {
       report_unexpectedendofinput(reader) ;
       goto ONABORT ;
    }
@@ -969,9 +959,10 @@ static int match_formatdescription(textresource_reader_t * reader, textresource_
 
       string_t formatid ;
       err = match_identifier(reader, &formatid) ;
+      if (err) goto ONABORT ;
 
       if (  6 == formatid.size
-         && 0 == strncmp((const char*)formatid.addr, "maxlen", 6)) {
+            && 0 == strncmp((const char*)formatid.addr, "maxlen", 6)) {
          err = match_string(reader, "=") ;
          if (err) goto ONABORT ;
          err = match_unsigned(reader, &param->param.maxlen) ;
@@ -1131,15 +1122,15 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
          for (size_t i = 0, endi = unreadsize_utf8reader(&reader->txtpos); i < endi; ++i) {
             if (0 != peekasciiatoffset_utf8reader(&reader->txtpos, i, &ch)) break ;
             if (  ('a' <= ch && ch <= 'z')
-               || ('A' <= ch && ch <= 'Z')
-               || ('0' <= ch && ch <= '9')
-               ||  '_' == ch) {
+                  || ('A' <= ch && ch <= 'Z')
+                  || ('0' <= ch && ch <= '9')
+                  ||  '_' == ch) {
                isParam = true ;
                continue ;
             }
             if (  ':' == ch
-               || (  i == 4
-                  && 0 == strncmp((const char*)unread_utf8reader(&reader->txtpos), "else", 4))) {
+                  || (  i == 4
+                        && 0 == strncmp((const char*)unread_utf8reader(&reader->txtpos), "else", 4))) {
                isParam = false ;
             }
             break ;
@@ -1505,7 +1496,7 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
       if (     0 == peekascii_utf8reader(&reader->txtpos, &ch)
             && '/' == ch) {
          skipascii_utf8reader(&reader->txtpos) ;
-         closepos = textpos_utf8reader(&reader->txtpos) ;
+         closepos = *textpos_utf8reader(&reader->txtpos) ;
          isOpenElement = false ;
       }
 
@@ -1601,12 +1592,6 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
                   static_assert(lengthof(genattr) == 2, "assume two values") ;
                   reader->txtres.progC.hfilename = genattr[0].value ;
                   reader->txtres.progC.cfilename = genattr[1].value ;
-                  break ;
-      case 'l':   err = match_stringandspace(reader, "langswitch") ;
-                  if (err) goto ONABORT ;
-                  err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
-                  if (err) goto ONABORT ;
-                  reader->txtres.progC.langswitch = value.value ;
                   break ;
       case 'n':   if (  0 == peekasciiatoffset_utf8reader(&reader->txtpos, 4, &ch)
                         && 's' == ch) {
@@ -1725,7 +1710,7 @@ ONABORT:
 
 /* define: textresource_reader_INIT_FREEABLE
  * Static initializer. */
-#define textresource_reader_INIT_FREEABLE       { textresource_INIT_FREEABLE, mmfile_INIT_FREEABLE, utf8reader_INIT_FREEABLE, 0 } ;
+#define textresource_reader_INIT_FREEABLE       { textresource_INIT_FREEABLE, utf8reader_INIT_FREEABLE, 0 } ;
 
 /* function: free_textresourcereader
  * Closes file and frees memory of <textresource_t>. */
@@ -1735,11 +1720,9 @@ static int free_textresourcereader(textresource_reader_t * reader)
    int err2 ;
 
    reader->version  = 0 ;
-   free_utf8reader(&reader->txtpos) ;
 
-   err = free_textresource(&reader->txtres) ;
-
-   err2 = free_mmfile(&reader->mfile) ;
+   err = free_utf8reader(&reader->txtpos) ;
+   err2 = free_textresource(&reader->txtres) ;
    if (err2) err = err2 ;
 
    if (err) goto ONABORT ;
@@ -1762,13 +1745,11 @@ static int init_textresourcereader(/*out*/textresource_reader_t * reader, const 
    err = init_textresource(&new_reader.txtres, filename) ;
    if (err) goto ONABORT ;
 
-   err = init_mmfile(&new_reader.mfile, filename, 0, 0, accessmode_READ, 0) ;
+   err = initsinglebuffer_utf8reader(&new_reader.txtpos, filename, 0) ;
    if (err) {
       print_error("Can not open file »%s«", filename) ;
       goto ONABORT ;
    }
-
-   init_utf8reader(&new_reader.txtpos, size_mmfile(&new_reader.mfile), addr_mmfile(&new_reader.mfile)) ;
    new_reader.version  = 2 ;
 
    err = parse_header_textresourcereader(&new_reader) ;

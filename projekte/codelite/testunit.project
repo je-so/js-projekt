@@ -27,6 +27,7 @@
       <File Name="../../C-kern/api/string/urlencode_string.h"/>
       <File Name="../../C-kern/api/string/base64encode_string.h"/>
       <File Name="../../C-kern/api/string/format_string.h"/>
+      <File Name="../../C-kern/api/string/stringstream.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <File Name="../../C-kern/api/platform/process.h"/>
@@ -277,6 +278,7 @@
     <File Name="../../C-kern/string/urlencode_string.c"/>
     <File Name="../../C-kern/string/base64encode_string.c"/>
     <File Name="../../C-kern/string/format_string.c"/>
+    <File Name="../../C-kern/string/stringstream.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <VirtualDirectory Name="coding conventions">
@@ -289,6 +291,9 @@
       <File Name="../../coding-conventions/context.txt"/>
       <File Name="../../coding-conventions/textresource.txt"/>
       <File Name="../../coding-conventions/error-handling.txt"/>
+      <File Name="../../coding-conventions/casts.txt"/>
+      <File Name="../../coding-conventions/todo-list.txt"/>
+      <File Name="../../coding-conventions/utf8art.txt"/>
     </VirtualDirectory>
     <VirtualDirectory Name="config">
       <File Name="../../C-kern/resource/config/initprocess"/>

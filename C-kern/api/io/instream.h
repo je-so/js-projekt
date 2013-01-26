@@ -6,6 +6,9 @@
    Do not forget to include "C-kern/api/string/stringstream.h" before
    using some of the inlined functions.
 
+   TODO: replace instream_t & instream_factory_t & adapter
+         with a much simpler concept !!
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -250,7 +253,7 @@ int readnext_instream(instream_t * instr, /*out*/uint8_t * databyte) ;
  * 0       - The byte was found and all data up to this byte including the byte are marked as read.
  *           The next call to <readnext_instream> returns the byte after.
  * ENODATA - Data byte was not found in the stream. All data until end of stream is marked as read.
- * ...     - Indicates I/O error or out of memory error. */
+ * ...     - Indicates I/O error or out of memory error. Some data my already be marked as read. */
 int skipuntil_instream(instream_t * instr, uint8_t byte) ;
 
 // group: buffer

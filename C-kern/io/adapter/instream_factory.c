@@ -51,13 +51,16 @@ size_t sizeimplobj_instreamfactory(instream_factory_impltype_e type)
 
 // group: object-factory
 
-int createimpl_instreamfactory(/*out*/instream_t * instr, instream_factory_impltype_e type, size_t sizeimplobj, uint8_t implobj[sizeimplobj], const char * filepath, const struct directory_t * relative_to)
+int createimpl_instreamfactory(/*out*/instream_t * instr, instream_factory_config_e config, instream_factory_impltype_e type, size_t sizeimplobj, void * implobj/*[sizeimplobj]*/, const char * filepath, const struct directory_t * relative_to)
 {
    int err ;
+
    union {
       const instream_it        * instream ;
       const instream_mmfile_it * mmfile ;
    }   it = { 0 } ;
+
+   VALIDATE_INPARAM_TEST(config <= instream_factory_config_SINGLEBUFFER, ONABORT, ) ;
 
    switch(type) {
    case instream_factory_impltype_MMFILE:
@@ -65,7 +68,7 @@ int createimpl_instreamfactory(/*out*/instream_t * instr, instream_factory_implt
          err = EINVAL ;
          goto ONABORT ;
       }
-      err = init_instreammmfile((instream_mmfile_t*)implobj, &it.mmfile, filepath, relative_to) ;
+      err = init_instreammmfile((instream_mmfile_t*)implobj, &it.mmfile, config, filepath, relative_to) ;
       if (err) goto ONABORT ;
       break ;
    default:
@@ -84,7 +87,7 @@ ONABORT:
    return err ;
 }
 
-int destroyimpl_instreamfactory(instream_t * instr, instream_factory_impltype_e type, size_t sizeimplobj, uint8_t implobj[sizeimplobj])
+int destroyimpl_instreamfactory(instream_t * instr, instream_factory_impltype_e type, size_t sizeimplobj, void * implobj/*[sizeimplobj]*/)
 {
    int err ;
    int err2 ;
@@ -166,16 +169,18 @@ static int test_factory(void)
    TEST(0 == initcreate_file(&fd, "inputstream", tempdir)) ;
    TEST(0 == allocate_file(fd, 4096)) ;
    TEST(0 == free_file(&fd)) ;
+   TEST(0 == initcreate_file(&fd, "inputstream_big", tempdir)) ;
+   TEST(0 == allocate_file(fd, 32*1024*1024)) ;
+   TEST(0 == free_file(&fd)) ;
 
    // TEST array readnextimpl contains all values of type instream_factory_impltype_e
    TEST(0 == sizeimplobj_instreamfactory((instream_factory_impltype_e)lengthof(readnextimpl))) ;
 
    for (instream_factory_impltype_e i = 0; i < lengthof(readnextimpl); ++i) {
-
       // TEST createimpl_instreamfactory
       TEST(sizeimplobj_instreamfactory(i) < sizeof(implobj)) ;
       memset(implobj, 0, sizeof(implobj)) ;
-      TEST(0 == createimpl_instreamfactory(&instr, i, sizeimplobj_instreamfactory(i), implobj, "inputstream", tempdir)) ;
+      TEST(0 == createimpl_instreamfactory(&instr, instream_factory_config_DEFAULT, i, sizeimplobj_instreamfactory(i), implobj, "inputstream", tempdir)) ;
       TEST(instr.object == (instream_impl_t*)implobj) ;
       TEST(instr.iimpl  != 0) ;
       TEST(instr.iimpl->readnext == readnextimpl[i]) ;
@@ -189,14 +194,26 @@ static int test_factory(void)
       TEST(0 == destroyimpl_instreamfactory(&instr, i, sizeimplobj_instreamfactory(i), implobj)) ;
    }
 
+   // TEST createimpl_instreamfactory: instream_factory_impltype_MMFILE , instream_factory_config_SINGLEBUFFER
+   instream_mmfile_t mmfileadapt ;
+   TEST(0 == createimpl_instreamfactory(&instr, instream_factory_config_DEFAULT, instream_factory_impltype_MMFILE, sizeof(mmfileadapt), &mmfileadapt, "inputstream_big", tempdir)) ;
+   TEST(size_mmfile(&mmfileadapt.buffer) < mmfileadapt.inputsize) ;
+   TEST(0 == destroyimpl_instreamfactory(&instr, instream_factory_impltype_MMFILE, sizeof(mmfileadapt), &mmfileadapt)) ;
+   TEST(0 == createimpl_instreamfactory(&instr, instream_factory_config_SINGLEBUFFER, instream_factory_impltype_MMFILE, sizeof(instream_mmfile_t), &mmfileadapt, "inputstream_big", tempdir)) ;
+   TEST(size_mmfile(&mmfileadapt.buffer) == mmfileadapt.inputsize) ;
+   TEST(0 == destroyimpl_instreamfactory(&instr, instream_factory_impltype_MMFILE, sizeof(mmfileadapt), &mmfileadapt)) ;
+
    // TEST createimpl_instreamfactory, destroyimpl_instreamfactory: EINVAL
    for (instream_factory_impltype_e i = 0; i < lengthof(readnextimpl); ++i) {
-      TEST(EINVAL == createimpl_instreamfactory(&instr, i, sizeimplobj_instreamfactory(i)-1, implobj, "inputstream", tempdir)) ;
+      TEST(EINVAL == createimpl_instreamfactory(&instr, instream_factory_config_DEFAULT, i, sizeimplobj_instreamfactory(i)-1, implobj, "inputstream", tempdir)) ;
       TEST(EINVAL == destroyimpl_instreamfactory(&instr, i, sizeimplobj_instreamfactory(i)-1, implobj)) ;
    }
+   TEST(EINVAL == createimpl_instreamfactory(&instr, instream_factory_config_SINGLEBUFFER+1, instream_factory_impltype_MMFILE, sizeof(implobj), implobj, "inputstream", tempdir)) ;
+   TEST(EINVAL == createimpl_instreamfactory(&instr, (instream_factory_config_e)-1, instream_factory_impltype_MMFILE, sizeof(implobj), implobj, "inputstream", tempdir)) ;
 
    // unprepare
    TEST(0 == removefile_directory(tempdir, "inputstream")) ;
+   TEST(0 == removefile_directory(tempdir, "inputstream_big")) ;
    TEST(0 == delete_directory(&tempdir)) ;
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
@@ -206,6 +223,7 @@ ONABORT:
    free_file(&fd) ;
    if (tempdir) {
       removefile_directory(tempdir, "inputstream") ;
+      removefile_directory(tempdir, "inputstream_big") ;
       delete_directory(&tempdir) ;
       removedirectory_directory(0, str_cstring(&tmppath)) ;
       free_cstring(&tmppath) ;

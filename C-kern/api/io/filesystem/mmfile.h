@@ -57,7 +57,7 @@ int unittest_io_mmfile(void) ;
  * Register special recovery handler for mmfiles => abort + read error !
  *
  * TODO: memory mapping fails:
- * Add a check function to file_t which checks if memory mapping is possible !
+ * Add a check function to mmfile_t which checks if memory mapping is possible !
  * If not then use some »read into buffer fallback operation« in some higher component !!
  * */
 struct mmfile_t {

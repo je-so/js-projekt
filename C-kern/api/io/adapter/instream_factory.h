@@ -27,10 +27,9 @@
 #ifndef CKERN_IO_ADAPTER_INSTREAM_FACTORY_HEADER
 #define CKERN_IO_ADAPTER_INSTREAM_FACTORY_HEADER
 
-#include "C-kern/api/io/instream.h"
-
 // forward
 struct directory_t ;
+struct instream_t ;
 
 /* enums: instream_factory_impltype_e
  *
@@ -42,6 +41,19 @@ enum instream_factory_impltype_e {
 } ;
 
 typedef enum instream_factory_impltype_e     instream_factory_impltype_e ;
+
+
+/* enums: instream_factory_config_e
+ *
+ * instream_factory_config_DEFAULT      - Implementation can split reading into multiple buffers
+ *                                        and is allowed to remove old buffers from memory.
+ * instream_factory_config_SINGLEBUFFER - All data from the stream is read into a single continous buffer. */
+enum instream_factory_config_e {
+   instream_factory_config_DEFAULT,
+   instream_factory_config_SINGLEBUFFER
+} ;
+
+typedef enum instream_factory_config_e       instream_factory_config_e ;
 
 
 // section: Functions
@@ -72,10 +84,10 @@ size_t sizeimplobj_instreamfactory(instream_factory_impltype_e type) ;
  * The implementation object is stored in the memory array implobj.
  * The value of parameter implsize must be equal to the value returned from <sizeimplobj_instreamfactory>.
  * The type of the implementation object is determined by parameter type. */
-int createimpl_instreamfactory(/*out*/instream_t * instr, instream_factory_impltype_e type, size_t sizeimplobj, uint8_t implobj[sizeimplobj], const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int createimpl_instreamfactory(/*out*/struct instream_t * instr, instream_factory_config_e config, instream_factory_impltype_e type, size_t sizeimplobj, void * implobj/*[sizeimplobj]*/, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: destroyimpl_instreamfactory
  * Frees <instream_t> and its implementing object. */
-int destroyimpl_instreamfactory(instream_t * instr, instream_factory_impltype_e type, size_t sizeimplobj, uint8_t implobj[sizeimplobj]) ;
+int destroyimpl_instreamfactory(struct instream_t * instr, instream_factory_impltype_e type, size_t sizeimplobj, void * implobj/*[sizeimplobj]*/) ;
 
 #endif

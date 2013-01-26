@@ -164,7 +164,7 @@ int skiputf8_stringstream(struct stringstream_t * strstream) ;
  * Skips bytes until begin of the next valid utf-8 encoding or end of stream.
  * If the last utf-8 can not be fully decoded (ENOTEMPTY) this function returns and
  * does not remove it from the buffer. This ensures that character encodings
- * split over two buffers are handled correctly. */
+ * split over two buffers can be handled correctly. */
 void skipillegalutf8_strstream(struct stringstream_t * strstream) ;
 
 // group: find-utf8
