@@ -82,7 +82,7 @@ size_t sizeurldecode_string(const struct string_t * str) ;
  * Set *except_char* to ' ' and *changeto_char* to '+' if a formdata field is to be encoded.
  *
  * */
-int urlencode_string(const struct string_t * str, uint8_t except_char, uint8_t changeto_char, struct wbuffer_t * result) ;
+int urlencode_string(const struct string_t * str, uint8_t except_char, uint8_t changeto_char, /*ret*/struct wbuffer_t * result) ;
 
 /* function: urldecode_string
  * Decodes a URL encoded string.
@@ -92,7 +92,7 @@ int urlencode_string(const struct string_t * str, uint8_t except_char, uint8_t c
  * in case a formdata field is decoded.
  *
  * Else set changefrom_char to 0 so no character is changed therefore changeinto_char is never used. */
-int urldecode_string(const struct string_t * str, uint8_t changefrom_char, uint8_t changeinto_char, struct wbuffer_t * result) ;
+int urldecode_string(const struct string_t * str, uint8_t changefrom_char, uint8_t changeinto_char, /*ret*/struct wbuffer_t * result) ;
 
 
 #endif

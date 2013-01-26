@@ -22,7 +22,7 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: /jsprojekt/JS/C-kern/api/ds/foreach.h
+   file: C-kern/api/ds/foreach.h
     Header file <Foreach-Iterator>.
 */
 #ifndef CKERN_DS_FOREACH_HEADER

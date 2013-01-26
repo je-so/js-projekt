@@ -138,6 +138,7 @@
         <File Name="../../C-kern/api/io/filesystem/directory.h"/>
         <File Name="../../C-kern/api/io/filesystem/mmfile.h"/>
         <File Name="../../C-kern/api/io/filesystem/file.h"/>
+        <File Name="../../C-kern/api/io/filesystem/fileutil.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/accessmode.h"/>
       <VirtualDirectory Name="ip">
@@ -222,6 +223,9 @@
     <VirtualDirectory Name="adapter">
       <File Name="../../C-kern/io/adapter/instream_mmfile.c"/>
       <File Name="../../C-kern/io/adapter/instream_factory.c"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="filesystem">
+      <File Name="../../C-kern/io/filesystem/fileutil.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="main">

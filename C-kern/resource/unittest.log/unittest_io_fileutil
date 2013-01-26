@@ -1,0 +1,9 @@
+C-kern/platform/Linux/io/file.c:206: initcreate_file(): error: 17: System call 'openat' returned error 'File exists'
+openatfd=3
+filepath=save
+C-kern/platform/Linux/io/file.c:216: initcreate_file(): error: 17: Function aborted
+C-kern/io/filesystem/fileutil.c:116: save_file(): error: 17: Function aborted
+C-kern/platform/Linux/io/file.c:153: init_file(): error: 2: System call 'openat' returned error 'No such file or directory'
+filepath=save
+C-kern/platform/Linux/io/file.c:162: init_file(): error: 2: Function aborted
+C-kern/io/filesystem/fileutil.c:83: load_file(): error: 2: Function aborted

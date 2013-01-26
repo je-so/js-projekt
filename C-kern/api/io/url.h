@@ -165,7 +165,7 @@ int delete_url(url_t ** url) ;
 
 /* function: encode_url
  * Encodes all parts and combines them into one string. */
-int encode_url(const url_t * url, struct wbuffer_t * encoded_url_string) ;
+int encode_url(const url_t * url, /*ret*/struct wbuffer_t * encoded_url_string) ;
 
 /* function: getpart_url
  * Return part of url as string. */

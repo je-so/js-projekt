@@ -322,6 +322,7 @@ int run_unittest(void)
       // filesystem
       RUN(unittest_io_directory) ;
       RUN(unittest_io_file) ;
+      RUN(unittest_io_fileutil) ;
       RUN(unittest_io_mmfile) ;
       // IP
       RUN(unittest_io_ipaddr) ;

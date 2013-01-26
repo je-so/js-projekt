@@ -30,6 +30,12 @@ Function parameters are distinguished according to their direction of informatio
             in several steps can use the return parameter as buffer and in case of error call free.
             The second advantage is that in case no error checking is made the returned value
             is definitely in a defined freed state.
+/*ret*/   - The parameter contains the result or return value in case of success.
+            In case of error it is either left unchanged or reset or cleared.
+            The parameter must be initialized by the caller of the function before the function is called.
+            It must be freed by the caller after the return value is no more required.
+            The type <wbuffer_t> is used typically as a parameter of such a type.
+            It can store return values of unknown size.
 /*err*/   - This parameter is only written to and conveys an extended error description.
             The returned value is only valid if the function returns an error.
             In case of success this value is never changed.

@@ -66,9 +66,9 @@ C-kern/platform/Linux/io/mmfile.c:48: init2_mmfile(): error: 22: Function input 
 file_offset=4095
 C-kern/platform/Linux/io/mmfile.c:86: init2_mmfile(): error: 22: Function aborted
 C-kern/platform/Linux/io/mmfile.c:223: seek_mmfile(): error: 22: Function aborted
-C-kern/platform/Linux/io/file.c:164: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
+C-kern/platform/Linux/io/file.c:254: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=-1
-C-kern/platform/Linux/io/file.c:176: accessmode_file(): error: 9: Function aborted
+C-kern/platform/Linux/io/file.c:266: accessmode_file(): error: 9: Function aborted
 C-kern/platform/Linux/io/mmfile.c:58: init2_mmfile(): error: 22: Function input violates condition (0 != (fdmode & accessmode_READ) && (mode == accessmode_READ || 0 != (fdmode & accessmode_WRITE)))
 fdmode=0
 C-kern/platform/Linux/io/mmfile.c:86: init2_mmfile(): error: 22: Function aborted

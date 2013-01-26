@@ -71,6 +71,10 @@ typedef enum file_e                    file_e ;
  * was not closed properly. */
 int nropen_file(/*out*/size_t * number_open_fd) ;
 
+/* function: remove_file
+ * Removes created file from filesystem. */
+int remove_file(const char * filepath, struct directory_t * relative_to) ;
+
 // group: test
 
 #ifdef KONFIG_UNITTEST

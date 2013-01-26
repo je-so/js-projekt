@@ -68,13 +68,13 @@ size_t sizebase64decode_string(const struct string_t * str) ;
  * Encodes string str in Base64 format.
  * The encoded size is 4/3 of the orginal size. If the size is not a multiple of 3
  * then it is rounded up to the next higher value which is a multiple of 3. */
-int base64encode_string(const struct string_t * str, struct wbuffer_t * result) ;
+int base64encode_string(const struct string_t * str, /*ret*/struct wbuffer_t * result) ;
 
 /* function: base64decode_string
  * Decodes string str from Base64 into a binary octet stream.
  * The decoded size is 3/4 of the orginal size.
  * EINVAL is returned if the encoded size is not a multiple of 4. */
-int base64decode_string(const struct string_t * str, struct wbuffer_t * result) ;
+int base64decode_string(const struct string_t * str, /*ret*/struct wbuffer_t * result) ;
 
 
 // section: inline implementation

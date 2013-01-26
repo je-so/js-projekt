@@ -38,6 +38,96 @@
 
 // section: file_t
 
+// group: functions
+
+/* function: nropen_file
+ * Uses Linux specific "/proc/self/fd" interface. */
+int nropen_file(/*out*/size_t * number_open_fd)
+{
+   int err ;
+   int fd = -1 ;
+   DIR * procself = 0 ;
+
+   fd = open("/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
+   if (-1 == fd) {
+      err = errno ;
+      TRACESYSERR_LOG("open(/proc/self/fd)", err) ;
+      goto ONABORT ;
+   }
+
+   procself = fdopendir(fd) ;
+   if (!procself) {
+      err = errno ;
+      TRACESYSERR_LOG("fdopendir", err) ;
+      goto ONABORT ;
+   }
+   fd = -1 ;
+
+   size_t         open_fds = (size_t)0 ;
+   struct dirent  * name ;
+   for (;;) {
+      ++ open_fds ;
+      errno = 0 ;
+      name  = readdir(procself) ;
+      if (!name) {
+         if (errno) {
+            err = errno ;
+            goto ONABORT ;
+         }
+         break ;
+      }
+   }
+
+   err = closedir(procself) ;
+   procself = 0 ;
+   if (err) {
+      err = errno ;
+      TRACESYSERR_LOG("closedir", err) ;
+      goto ONABORT ;
+   }
+
+   /* adapt open_fds for
+      1. counts one too high
+      2. counts "."
+      3. counts ".."
+      4. counts fd opened in init_directorystream
+   */
+   *number_open_fd = open_fds >= 4 ? open_fds-4 : 0 ;
+
+   return 0 ;
+ONABORT:
+   (void) free_file(&fd) ;
+   if (procself) {
+      closedir(procself) ;
+   }
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+int remove_file(const char * filepath, struct directory_t * relative_to)
+{
+   int err ;
+   int unlinkatfd = AT_FDCWD ;
+
+   if (relative_to) {
+      unlinkatfd = fd_directory(relative_to) ;
+   }
+
+   err = unlinkat(unlinkatfd, filepath, 0) ;
+   if (err) {
+      err = errno ;
+      TRACESYSERR_LOG("unlinkat(unlinkatfd, filepath)", err) ;
+      PRINTINT_LOG(unlinkatfd) ;
+      PRINTCSTR_LOG(filepath) ;
+      goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
 // group: lifetime
 
 int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode, const struct directory_t * relative_to)
@@ -186,70 +276,6 @@ bool isopen_file(file_t fileobj)
    err = fcntl(fileobj, F_GETFD) ;
 
    return (-1 != err) ;
-}
-
-/* function: nropen_file
- * Uses Linux specific "/proc/self/fd" interface. */
-int nropen_file(/*out*/size_t * number_open_fd)
-{
-   int err ;
-   int fd = -1 ;
-   DIR * procself = 0 ;
-
-   fd = open("/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
-   if (-1 == fd) {
-      err = errno ;
-      TRACESYSERR_LOG("open(/proc/self/fd)", err) ;
-      goto ONABORT ;
-   }
-
-   procself = fdopendir(fd) ;
-   if (!procself) {
-      err = errno ;
-      TRACESYSERR_LOG("fdopendir", err) ;
-      goto ONABORT ;
-   }
-   fd = -1 ;
-
-   size_t         open_fds = (size_t)0 ;
-   struct dirent  * name ;
-   for (;;) {
-      ++ open_fds ;
-      errno = 0 ;
-      name  = readdir(procself) ;
-      if (!name) {
-         if (errno) {
-            err = errno ;
-            goto ONABORT ;
-         }
-         break ;
-      }
-   }
-
-   err = closedir(procself) ;
-   procself = 0 ;
-   if (err) {
-      err = errno ;
-      TRACESYSERR_LOG("closedir", err) ;
-      goto ONABORT ;
-   }
-
-   /* adapt open_fds for
-      1. counts one too high
-      2. counts "."
-      3. counts ".."
-      4. counts fd opened in init_directorystream
-   */
-   *number_open_fd = open_fds >= 4 ? open_fds-4 : 0 ;
-
-   return 0 ;
-ONABORT:
-   (void) free_file(&fd) ;
-   if (procself) {
-      closedir(procself) ;
-   }
-   TRACEABORT_LOG(err) ;
-   return err ;
 }
 
 int size_file(const file_t fileobj, /*out*/off_t * file_size)
@@ -469,6 +495,30 @@ ONABORT:
    for (unsigned i = 0; i < lengthof(fds); ++i) {
       free_file(&fds[i]) ;
    }
+   return EINVAL ;
+}
+
+static int test_remove(directory_t * tempdir)
+{
+   file_t   file = file_INIT_FREEABLE ;
+   off_t    filesize ;
+
+   // TEST remove_file
+   for (unsigned i = 0; i < 10; ++i) {
+      // create
+      const size_t datasize = i * 1000 ;
+      TEST(0 == makefile_directory(tempdir, "remove", datasize)) ;
+      TEST(0 == filesize_directory(tempdir, "remove", &filesize)) ;
+      TEST(filesize == datasize) ;
+      // now remove
+      TEST(0 == checkpath_directory(tempdir, "remove")) ;
+      TEST(0 == remove_file("remove", tempdir)) ;
+      TEST(ENOENT == checkpath_directory(tempdir, "remove")) ;
+   }
+
+   return 0 ;
+ONABORT:
+   free_file(&file) ;
    return EINVAL ;
 }
 
@@ -1306,6 +1356,7 @@ int unittest_io_file()
    TEST(0 == newtemp_directory(&tempdir, "iofiletest", &tmppath)) ;
 
    if (test_nropen())            goto ONABORT ;
+   if (test_remove(tempdir))     goto ONABORT ;
    if (test_query(tempdir))      goto ONABORT ;
    if (test_initfree(tempdir))   goto ONABORT ;
    if (test_create(tempdir))     goto ONABORT ;

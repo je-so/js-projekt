@@ -1,8 +1,13 @@
-/* title: WBuffer
+/* title: WriteBuffer
    Implements a simple write buffer.
 
    Used by every function which needs to return strings
    or other information of unknown size.
+
+   Do no forget to include "C-kern/api/ds/foreach.h" and "C-kern/api/memory/memblock.h"
+   if you want to iterate the content of <wbuffer_t>.
+
+   TODO: redefine foreach iteratedtype_wbuffer (include pointer * ) / adapt wbuffer
 
    about: Copyright
    This program is free software.
@@ -17,13 +22,13 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2011 Jörg Seebohn
+   (C) 2013 Jörg Seebohn
 
    file: C-kern/api/memory/wbuffer.h
-    Header file <WBuffer>.
+    Header file <WriteBuffer>.
 
    file: C-kern/memory/wbuffer.c
-    Implementation file <WBuffer impl>.
+    Implementation file <WriteBuffer impl>.
 */
 #ifndef CKERN_MEMORY_WBUFFER_HEADER
 #define CKERN_MEMORY_WBUFFER_HEADER
@@ -35,9 +40,22 @@ struct memblock_t ;
  * Exports <wbuffer_t>. */
 typedef struct wbuffer_t               wbuffer_t ;
 
-/* typedef: wbuffer_it
- * Exports <wbuffer_it>.*/
+/* typedef: struct wbuffer_it
+ * Exports implementation interface <wbuffer_it>.*/
 typedef struct wbuffer_it              wbuffer_it ;
+
+/* typedef: struct wbuffer_iterator_t
+ * Exports wbuffer iterator <wbuffer_iterator_t>.*/
+typedef struct wbuffer_iterator_t      wbuffer_iterator_t ;
+
+
+/* variable: g_wbuffer_dynamic
+ * The implementation of a dynamic growing <wbuffer_t>. */
+extern wbuffer_it                      g_wbuffer_dynamic ;
+
+/* variable: g_wbuffer_static
+ * The implementation of a static allocated <wbuffer_t>. */
+extern wbuffer_it                      g_wbuffer_static ;
 
 
 // section: Functions
@@ -51,71 +69,134 @@ int unittest_memory_wbuffer(void) ;
 #endif
 
 
-/* struct: wbuffer_t
- * Wraps pointer to dynamically growing memory.
- * Supports construction of return values of unknown size a priori.
- *
- * It is also possible to wrap a static buffer into a <wbuffer_t> type.
- * In the static case ENOMEM is returned if there is no more buffer space
- * available.
- *
- * In the dynamic case the memory is grown automatically.
- * A pointer to internal memory acquired for example by a call to <appendalloc_wbuffer>
- * is therefore only valid as long as no other append operation is called.
- *
- * TODO: Implement block store, a simple chain of memory blocks.
- *       Provide adaption interface to wbuffer_t.
- * TODO: Use block store as default implementation.
- *       No need for memory copy in case of resize only adding of new block !
- *       Read must always use block iterator for reading !
- * TODO: Allow implementation to provide a static allocated block as first
- *       block in the list. Allocate additional buffer if necessary.
- *       The first static allocated memory blocked is not freed.
- * TODO: provide wbuffer_adapt2cstring for adaption to cstring_t
- *
- * */
-struct wbuffer_t {
-   /* variable: free_size
-    * Size of free memory pointer <free> points to. */
-   size_t            free_size ;
+/* struct: wbuffer_it
+ * Defines implementation interface for <wbuffer_t>.
+ * This allows <wbuffer_t> to adapt to different memory allocation strategies. */
+struct wbuffer_it {
+   /* variable: reserve
+    * Function pointer which grows buffer if necessary. In case of error or a static buffer ENOMEM is returned.
+    * The buffer is grown so that at least reserve_size continues bytes are reserved
+    * in addtion to the already stored bytes. */
+   int     (* reserve) (wbuffer_t * wbuf, size_t reserve_size) ;
+   /* variable: size
+    * Returns number of bytes stored in the buffer.
+    * The number of allocated bytes is greater or equal than this number.
+    * This return value is 0 after calling <clear_wbuffer>. */
+   size_t  (* size) (const wbuffer_t * wbuf) ;
+   /* variable: iterate
+    * Returns the next memoryblock stored in <wbuffer_t>.
+    * A return value of true indicates that the content of memblock is valid.
+    * A return value of false indicates that memblock is not changed and that there is no more data.
+    * The value next is also changed to point to the next data block. It remembers the state of the iterator.
+    * Set *next to 0 if you want to return the first data block. */
+   bool    (* iterate) (const wbuffer_t * wbuf, void ** next, /*out*/struct memblock_t * memblock) ;
    /* variable: free
-    * Points to free memory.
-    * The size of the free memory is storead in <free_size>. */
-   uint8_t           * free ;
-   /* variable: addr
-    * Points to start byte of allocated memory. */
-   uint8_t           * addr ;
-   const wbuffer_it  * interface ;
+    * Function pointer which frees buffer memory.
+    * After successful return all fields in <wbuffer_t> are set to 0.
+    * If addr is a pointer to a static buffer calling free_buffer returns always 0. */
+   int     (* free) (wbuffer_t * wbuf) ;
+   /* variable: clear
+    * Function pointer which sets content size of wbuffer 0.
+    * Memory is not necessarily deallocated. This depends on the strategy. */
+   void    (* clear) (wbuffer_t * wbuf) ;
+} ;
+
+
+/* struct: wbuffer_iterator_t
+ * Iterator for <wbuffer_t>.
+ * Returns a <memblock_t> describing part of the content of <wbuffer_t>.
+ * The standard implementations provided by this module store all content
+ * in one memory block. */
+struct wbuffer_iterator_t {
+   uint8_t  * addr ;
+   size_t   size ;
+   void     * next ;
 } ;
 
 // group: lifetime
 
-/* define: wbuffer_INIT
- * Static initializer for dynamic growing buffer with default memory policy. */
-#define wbuffer_INIT                   { 0, 0, 0, (void*)1 }
+/* define: wbuffer_iterator_INIT_FREEABLE
+ * Static initializer. */
+#define wbuffer_iterator_INIT_FREEABLE    { 0, 0, 0 }
 
-/* define: wbuffer_INIT
- * Static initializer for freed (invalid) buffer. */
-#define wbuffer_INIT_FREEABLE          { 0, 0, 0, 0 }
+/* function: initfirst_wbufferiterator
+ * Initializes an iterator for <wbuffer_t>. */
+int initfirst_wbufferiterator(/*out*/wbuffer_iterator_t * iter, wbuffer_t * wbuf) ;
+
+/* function: free_wbufferiterator
+ * Frees <wbuffer_t> iterator. */
+int free_wbufferiterator(wbuffer_iterator_t * iter) ;
+
+// group: iterate
+
+/* function: next_wbufferiterator
+ * Returns all contained memory blocks.
+ * The first call after <initfirst_wbufferiterator> returns the
+ * first memory block if wbuf is not empty.
+ *
+ * Returns:
+ * true  - memblock contains a pointer to the next valid <memblock_t>.
+ * false - There is no next <memblock_t>. The last element was already returned or wbuf is empty. */
+bool next_wbufferiterator(wbuffer_iterator_t * iter, wbuffer_t * wbuf, /*out*/struct memblock_t ** memblock) ;
+
+
+/* struct: wbuffer_t
+ * Wraps pointer to dynamically growing or static memory.
+ * Supports construction of return values of unknown size.
+ *
+ * In the dynamic case the memory is grown automatically.
+ *
+ * In the static case ENOMEM is returned if memory is exhausted.
+ * */
+struct wbuffer_t {
+   /* variable: next
+    * Pointer to next free memory location of the reserved memory. */
+   uint8_t           * next ;
+   /* variable: end
+    * Points to memory address after last reserved memory block.
+    * end-next gives the size of the reserved memory. */
+   uint8_t           * end ;
+   /* variable: addr
+    * Points to first byte (lowest address) of allocated memory.
+    * This may be redefined in your own memory allocation strategy. */
+   void              * addr ;
+   /* variable: iimpl
+    * Pointer to interface implementing memeory allocation strategy. */
+   const wbuffer_it  * iimpl ;
+} ;
+
+// group: lifetime
+
+/* define: wbuffer_INIT_DYNAMIC
+ * Static initializer for dynamic growing buffer with default memory policy. */
+#define wbuffer_INIT_DYNAMIC                       \
+         { 0, 0, 0, &g_wbuffer_dynamic }
 
 /* define: wbuffer_INIT_STATIC
  * Static initializer to wrap static memory into a <wbuffer_t>.
+ * Reserving memory beyond the size of static memory always results in ENOMEM.
  *
  * Parameter:
  * buffer_size   - Size in bytes of static memory.
- * static_buffer - Memory address (uint8_t*) of static memory. */
-#define wbuffer_INIT_STATIC(buffer_size, static_buffer) \
-      { buffer_size, (static_buffer), (static_buffer), 0 }
+ * static_buffer - Memory address of static memory. */
+#define wbuffer_INIT_STATIC(buffer_size, buffer)   \
+         { (buffer), (buffer) + (buffer_size), (buffer), &g_wbuffer_static }
 
-/* define: wbuffer_INIT_SUBTYPE
- * Static initializer to subtype <wbuffer_t> with own memory management.
+/* define: wbuffer_INIT_IMPL
+ * Static initializer to adapt <wbuffer_t> ot own memory allocation strategy.
  *
  * Parameter:
- * buffer_size     - Size in bytes of preallocated memory.
- * prealloc_buffer - Memory address (uint8_t*) of preallocated memory.
- * subtype_it      - Interface pointer (<wbuffer_it>*) which overwrites the memory management functions. */
-#define wbuffer_INIT_SUBTYPE(buffer_size, prealloc_buffer, subtype_it) \
-      { buffer_size, (prealloc_buffer), (prealloc_buffer), subtype_it }
+ * buffer_size  - Size in bytes of already reserved memory.
+ * buffer       - Start address of already reserved memory.
+ * addr         - Pointer to data used by allocation strategy.
+ * iimpl_it     - Pointer to interface of type <wbuffer_it> which implements memory allocation strategy. */
+#define wbuffer_INIT_IMPL(buffer_size, buffer, addr, iimpl_it)  \
+         { (buffer), (buffer) + (buffer_size), (addr), (iimpl_it) }
+
+/* define: wbuffer_INIT_FREEABLE
+ * Static initializer for freed (invalid) buffer. */
+#define wbuffer_INIT_FREEABLE                      \
+         { 0, 0, 0, 0 }
 
 /* function: init_wbuffer
  * Inits <wbuffer_t> with a preallocated memory of preallocate_size bytes. */
@@ -126,143 +207,197 @@ int init_wbuffer(/*out*/wbuffer_t * wbuf, size_t preallocate_size) ;
  * In case of a static buffer*/
 int free_wbuffer(wbuffer_t * wbuf) ;
 
-// group: change
-
-/* function: appendalloc_wbuffer
- * Allocates and appends buffer of buffer_size.
- * The pointer to the buffer is returned in buffer. */
-int appendalloc_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer) ;
-
-/* function: appendchar_wbuffer
- * Appends 1 character to the buffer. */
-int appendchar_wbuffer(wbuffer_t * wbuf, const char c) ;
-
-/* function: grow_wbuffer
- * Function grows buffer. In case of error ENOMEM is returned.
- * The buffer is only grown if free memory size (<sizefree_wbuffer>) is less
- * than parameter free_size.
- *
- * After successful return the follwowing is true:
- * > (sizefree_wbuffer(wbuf) >= free_size)
- *
- * If addr is a pointer to a static buffer calling grow_buffer returns always ENOMEM. */
-int grow_wbuffer(wbuffer_t * wbuf, size_t free_size) ;
-
-/* function: popbytes_wbuffer
- * Removes the last size appended bytes from <wbuffer_t>.
- * If the buffer contains less bytes then only the contained bytes
- * are removed until the buffer is empty. */
-void popbytes_wbuffer(wbuffer_t * wbuf, size_t size) ;
-
-/* function: reset_wbuffer
- * Removes all appended content from wbuffer.
- * Only allocated memory is not freed. */
-void reset_wbuffer(wbuffer_t * wbuf) ;
-
 // group: query
 
-/* function: sizefree_wbuffer
+/* function: isreserved_wbuffer
+ * Returns true if at least one byte is reserved. */
+bool isreserved_wbuffer(const wbuffer_t * wbuf) ;
+
+/* function: reservedsize_wbuffer
  * Returns the number of allocated bytes which are not in use. */
-size_t sizefree_wbuffer(const wbuffer_t * wbuf) ;
+size_t reservedsize_wbuffer(const wbuffer_t * wbuf) ;
 
-/* function: sizecontent_wbuffer
- * Returns the number of bytes appended / written to the buffer. */
-size_t sizecontent_wbuffer(const wbuffer_t * wbuf) ;
+/* function: size_wbuffer
+ * Returns the number of all bytes appended / written to the buffer. */
+size_t size_wbuffer(const wbuffer_t * wbuf) ;
 
-/* function: content_wbuffer
- * Returns address of content.
- * A value of 0 indicates no content.
- * The size of content can be queried by a call to <sizecontent_wbuffer>.
- *
- * Special case:
- * If <sizecontent_wbuffer> returns a value != 0 but <content_wbuffer> a value of 0
- * you need to access the content with <contentiterator_wbuffer>.
- * The default implementation supports only <content_wbuffer> but highly optimized
- * versions may be using an internal list of more than one preallocated memory block. */
-uint8_t * content_wbuffer(const wbuffer_t * wbuf) ;
+/* function: firstmemblock_wbuffer
+ * Returns the first appended data block. The size of the block could be less
+ * than <size_wbuffer>. Use <foreach> to iterate over all contained data blocks.
+ * A return value of 0 indicates a non empty wbuf and datablock is set to a valid value.
+ * A return value of ENODATA indicates an empty wbuf and datablock is not changed. */
+int firstmemblock_wbuffer(const wbuffer_t * wbuf, /*out*/struct memblock_t * datablock) ;
 
-/* function: contentiterator_wbuffer
- * There is *no* need to implement this function.
- * Cause the default imeplementation supports only one linear buffer and therefore
- * calling <content_wbuffer> always works.
- *
- * Returns:
- * 0       - Parameter *content* is set to valid memory block description which contains the index-th content block.
- * ENODATA - Parameter *index* is too high and no data is returned. */
-int contentiterator_wbuffer(const wbuffer_t * wbuf, size_t index, /*out*/struct memblock_t * content);
+// group: foreach-support
 
-// group: helper
+/* typedef: iteratortype_wbuffer
+ * Declaration to associate <wbuffer_iterator_t> with <wbuffer_t>. */
+typedef wbuffer_iterator_t    iteratortype_wbuffer ;
 
-/* function: appendalloc2_wbuffer
- * Same as <appendalloc_wbuffer> but implemented not inline. */
-int appendalloc2_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer) ;
+/* typedef: iteratedtype_wbuffer
+ * Declaration to associate <memblock_t> with <wbuffer_t>. */
+typedef struct memblock_t     iteratedtype_wbuffer ;
 
-/* function: appendchar2_wbuffer
- * Same as <appendchar_wbuffer> but implemented not inline. */
-int appendchar2_wbuffer(wbuffer_t * wbuf, const char c) ;
+// group: change
 
+/* function: appendbytes_wbuffer
+ * Reserves buffer_size bytes and appends them uninitialized.
+ * A pointer to the uninitialized memory block is returned in buffer.
+ * If you have called <reserve_wbuffer> before with reserve_size set to a value
+ * greater or equal to buffer_size the returned pointer in buffer is the same.
+ * The returned buffer pointer is valid as long as no other function is called on wbuf. */
+int appendbytes_wbuffer(wbuffer_t * wbuf, size_t buffer_size, uint8_t ** buffer) ;
 
-/* struct: wbuffer_it
- * Defines interface for <wbuffer_t>.
- * This allows subtyping - for example <cstring_t> uses this to offer a <wbuffer_t> view. */
-struct wbuffer_it {
-   /* variable: free_wbuffer
-    * Function pointer which frees buffer memory.
-    * After successful return all fields in <wbuffer_t> are set to 0.
-    * If addr is a pointer to a static buffer calling free_buffer returns always 0. */
-   int     (* free_wbuffer) (wbuffer_t * wbuf) ;
+/* function: appendbyte_wbuffer
+ * Appends 1 byte to the buffer. */
+int appendbyte_wbuffer(wbuffer_t * wbuf, const uint8_t c) ;
 
-   /* variable: grow_wbuffer
-    * Function pointer which grows buffer. In case of error ENOMEM is returned.
-    * The buffer is only grown if (addr_plus_size-free) is less than free_size.
-    *
-    * After successful return the follwowing is true:
-    * > (addr_plus_size - free) >= free_size
-    *
-    * If addr is a pointer to a static buffer calling grow_buffer returns always ENOMEM. */
-   int     (* grow_wbuffer) (wbuffer_t * wbuf, size_t free_size) ;
-} ;
+/* function: reserve_wbuffer
+ * Reserves reserve_size bytes. In case of error ENOMEM is returned.
+ * The buffer is only grown if <reservedsize_wbuffer> returns a value
+ * less than parameter reserve_size. A pointer to the uninitialized
+ * reserved memory block is returned. If you want to append the data after
+ * having it initialized call <appendbytes_wbuffer> with buffer_size set to reserve_size.
+ * The returned buffer pointer is valid as long as no other function is called on wbuf.
+ * The following holds after successful return:
+ * > reservedsize_wbuffer(wbuf) >= reserve_size  */
+int reserve_wbuffer(wbuffer_t * wbuf, size_t reserve_size, uint8_t ** buffer) ;
+
+/* function: clear_wbuffer
+ * Removes all appended content from wbuffer.
+ * The memory is not necessarily freed but it is marked as free.
+ * Use this function if an error has occurred but the out parameter of type <wbuffer_t>
+ * has been filled with content partially. */
+void clear_wbuffer(wbuffer_t * wbuf) ;
 
 
 // section: inline implementation
 
-/* define: appendalloc_wbuffer
- * Implements <wbuffer_t.appendalloc_wbuffer>. */
-#define appendalloc_wbuffer(wbuf, buffer_size, buffer)            \
-   ( __extension__ ({   int _err ;                                   \
-      if (sizefree_wbuffer(wbuf) >= (size_t)(buffer_size)) {         \
-         ((wbuf)->free_size) -= (size_t)(buffer_size) ;              \
-         *(buffer) = ((wbuf)->free) ;                                \
-         ((wbuf)->free)      += (size_t)(buffer_size) ;              \
-         _err = 0 ;                                                  \
-      } else {                                                       \
-         _err = appendalloc2_wbuffer(wbuf, buffer_size, buffer) ;    \
-      }                                                              \
-      _err ; }))
+// group: wbuffer_t
 
-/* define: appendchar_wbuffer
- * Implements <wbuffer_t.appendchar_wbuffer>. */
-#define appendchar_wbuffer(wbuf, c)             \
-   ( __extension__ ({   int _err ;              \
-      if (sizefree_wbuffer(wbuf)) {             \
-         -- ((wbuf)->free_size) ;               \
-         *((wbuf)->free++) = (uint8_t)c ;       \
-         _err = 0 ;                             \
-      } else {                                  \
-         _err = appendchar2_wbuffer(wbuf, c) ;  \
-      }                                         \
-      _err ; }))
+/* define: appendbyte_wbuffer
+ * Implements <wbuffer_t.appendbyte_wbuffer>. */
+#define appendbyte_wbuffer(wbuf, c)                      \
+         ( __extension__ ({                              \
+            int         _err = 0 ;                       \
+            wbuffer_t * _wb  = (wbuf) ;                  \
+            if (  isreserved_wbuffer(_wb)                \
+                  || (0 == (_err = _wb->iimpl->          \
+                      reserve(_wb, 1)))) {               \
+               *(_wb->next++) = c ;                      \
+            }                                            \
+            _err ;                                       \
+         }))
 
-/* define: content_wbuffer
- * Implements <wbuffer_t.content_wbuffer>. */
-#define content_wbuffer(wbuf)          ((wbuf)->addr)
+/* define: appendbytes_wbuffer
+ * Implements <wbuffer_t.appendbytes_wbuffer>. */
+#define appendbytes_wbuffer(wbuf, buffer_size, buffer)   \
+         ( __extension__ ({                              \
+            int         _err = 0 ;                       \
+            wbuffer_t * _wb = (wbuf) ;                   \
+            size_t      _bs = (buffer_size) ;            \
+            if (  _bs <= reservedsize_wbuffer(_wb)       \
+                  || (0 == (_err = _wb->iimpl->          \
+                      reserve(_wb, _bs)))) {             \
+               *(buffer)  = _wb->next ;                  \
+               _wb->next += _bs ;                        \
+            }                                            \
+            _err ;                                       \
+         }))
 
-/* define: sizefree_wbuffer
- * Implements <wbuffer_t.sizefree_wbuffer>. */
-#define sizefree_wbuffer(wbuf)         ((wbuf)->free_size)
+/* define: clear_wbuffer
+ * Implements <wbuffer_t.clear_wbuffer>. */
+#define clear_wbuffer(wbuf)                              \
+         ( __extension__ ({                              \
+            wbuffer_t  * _wb = (wbuf) ;                  \
+            _wb->iimpl->clear(_wb) ;                     \
+         }))
 
-/* define: sizecontent_wbuffer
- * Implements <wbuffer_t.sizecontent_wbuffer>. */
-#define sizecontent_wbuffer(wbuf)         ((size_t)((wbuf)->free - (wbuf)->addr))
+/* define: firstmemblock_wbuffer
+ * Implements <wbuffer_t.firstmemblock_wbuffer>. */
+#define firstmemblock_wbuffer(wbuf, datablock)           \
+         ( __extension__ ({                              \
+            wbuffer_t  * _wb = (wbuf) ;                  \
+            void       * _n  = 0 ;                       \
+            (_wb->iimpl->iterate(_wb, &_n, datablock)    \
+            ? 0                                          \
+            : ENODATA) ;                                 \
+         }))
+
+/* define: free_wbuffer
+ * Implements <wbuffer_t.free_wbuffer>. */
+#define free_wbuffer(wbuf)                               \
+         ( __extension__ ({                              \
+            wbuffer_t  * _wb = (wbuf) ;                  \
+            (  _wb->iimpl                                \
+               ? _wb->iimpl->free(_wb)                   \
+               : 0                                       \
+            ) ;                                          \
+         }))
+
+/* define: isreserved_wbuffer
+ * Implements <wbuffer_t.isreserved_wbuffer>. */
+#define isreserved_wbuffer(wbuf)                         \
+         ( __extension__ ({                              \
+            const wbuffer_t  * _wb2 = (wbuf) ;           \
+            (_wb2->next < _wb2->end) ;                   \
+         }))
+
+/* define: reserve_wbuffer
+ * Implements <wbuffer_t.reserve_wbuffer>. */
+#define reserve_wbuffer(wbuf, reserve_size, buffer)      \
+         ( __extension__ ({                              \
+            int         _err = 0 ;                       \
+            size_t      _rs  = (reserve_size) ;          \
+            wbuffer_t  * _wb = (wbuf) ;                  \
+            if (  _rs <= reservedsize_wbuffer(_wb)       \
+                  || (0 == (_err = _wb->iimpl->          \
+                      reserve(_wb, _rs)))) {             \
+               (*buffer) = _wb->next ;                   \
+            }                                            \
+            _err ;                                       \
+         }))
+
+/* define: reservedsize_wbuffer
+ * Implements <wbuffer_t.reservedsize_wbuffer>. */
+#define reservedsize_wbuffer(wbuf)                       \
+         ( __extension__ ({                              \
+            const wbuffer_t * _wb2 = (wbuf) ;            \
+            (size_t) (_wb2->end - _wb2->next) ;          \
+         }))
+
+/* define: size_wbuffer
+ * Implements <wbuffer_t.size_wbuffer>. */
+#define size_wbuffer(wbuf)                               \
+         ( __extension__ ({                              \
+            const wbuffer_t  * _wb = (wbuf) ;            \
+            _wb->iimpl->size(_wb) ;                      \
+         }))
+
+// group: wbuffer_iterator_t
+
+/* define: free_wbufferiterator
+ * Implements <wbuffer_iterator_t.free_wbufferiterator>. */
+#define free_wbufferiterator(iter)                    \
+         (*(iter) = (wbuffer_iterator_t)wbuffer_iterator_INIT_FREEABLE, 0)
+
+/* define: initfirst_wbufferiterator
+ * Implements <wbuffer_iterator_t.initfirst_wbufferiterator>. */
+#define initfirst_wbufferiterator(iter, wbuf)         \
+         (*(iter) = (wbuffer_iterator_t)wbuffer_iterator_INIT_FREEABLE, 0)
+
+/* define: next_wbufferiterator
+ * Implements <wbuffer_iterator_t.next_wbufferiterator>. */
+#define next_wbufferiterator(iter, wbuf, memblock)    \
+         ( __extension__ ({                           \
+            wbuffer_iterator_t * _it = (iter) ;       \
+            wbuffer_t  * _wb = (wbuf) ;               \
+            memblock_t * _mb =                        \
+               genericcast_memblock(_it, ) ;          \
+   /* TODO: remove line, change after foreach is adapted !*/ \
+            *(memblock) = _mb ;                       \
+            (_wb->iimpl->iterate(_wb,                 \
+                                 &_it->next, _mb)) ;  \
+         }))
 
 #endif

@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jan.26  18:51:15
+GenerationDate  := 2013.Jan.26  18:59:52
 GeneratedBy     := je-so
 
 ## Debug
@@ -123,6 +123,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Debug)/C-kern!io!adapter!instream_factory.c.o \
  $(ObjectDir_Debug)/C-kern!io!adapter!instream_mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
@@ -210,6 +211,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Release)/C-kern!io!adapter!instream_factory.c.o \
  $(ObjectDir_Release)/C-kern!io!adapter!instream_mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
@@ -398,6 +400,9 @@ $(ObjectDir_Debug)/C-kern!io!adapter!instream_factory.c.o: C-kern/io/adapter/ins
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!adapter!instream_mmfile.c.o: C-kern/io/adapter/instream_mmfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
@@ -653,6 +658,9 @@ $(ObjectDir_Release)/C-kern!io!adapter!instream_factory.c.o: C-kern/io/adapter/i
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!adapter!instream_mmfile.c.o: C-kern/io/adapter/instream_mmfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
