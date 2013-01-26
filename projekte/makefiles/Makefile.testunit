@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jan.20  15:17:44
+GenerationDate  := 2013.Jan.26  11:29:12
 GeneratedBy     := je-so
 
 ## Debug
@@ -131,6 +131,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!reader!text!textpos.c.o \
  $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
+ $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!reverse.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sqroot.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
@@ -216,6 +218,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!reader!text!textpos.c.o \
  $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
+ $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!reverse.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sqroot.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
@@ -418,6 +422,12 @@ $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/trans
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o: C-kern/math/hash/crc32.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!reverse.c.o: C-kern/math/int/reverse.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
@@ -667,6 +677,12 @@ $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/tra
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!hash!crc32.c.o: C-kern/math/hash/crc32.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!reverse.c.o: C-kern/math/int/reverse.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c

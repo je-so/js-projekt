@@ -63,9 +63,11 @@
         <File Name="../../C-kern/api/math/int/sign.h"/>
         <File Name="../../C-kern/api/math/int/bigint.h"/>
         <File Name="../../C-kern/api/math/int/sqroot.h"/>
+        <File Name="../../C-kern/api/math/int/reverse.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="hash">
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
+        <File Name="../../C-kern/api/math/hash/crc32.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/math/fpu.h"/>
       <VirtualDirectory Name="float">
@@ -338,9 +340,11 @@
       <File Name="../../C-kern/math/int/sign.c"/>
       <File Name="../../C-kern/math/int/bigint.c"/>
       <File Name="../../C-kern/math/int/sqroot.c"/>
+      <File Name="../../C-kern/math/int/reverse.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="hash">
       <File Name="../../C-kern/math/hash/sha1.c"/>
+      <File Name="../../C-kern/math/hash/crc32.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/math/fpu.c"/>
     <VirtualDirectory Name="float">

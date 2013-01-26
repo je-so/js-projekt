@@ -96,7 +96,7 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
 
 /* function: gethash_sha1hash
  * Udpates internal fields the last time and returns hash value.
- * Calling this function more than once returns always returns the same value.
+ * Calling this function more than once always returns the same value.
  * The returned pointer is valid as long as you do not call any other function
  * than <value_sha1hash>. */
 sha1_hashvalue_t * value_sha1hash(sha1_hash_t * sha1) ;

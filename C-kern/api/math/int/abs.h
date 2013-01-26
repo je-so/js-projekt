@@ -35,7 +35,7 @@
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_math_int_abs
- * Tests <abs_int32> and <abs_int64>. */
+ * Tests <int_t.abs_int32> and <int_t.abs_int64>. */
 int unittest_math_int_abs(void) ;
 #endif
 

@@ -271,12 +271,14 @@ int run_unittest(void)
 //{ math unittest
       RUN(unittest_math_fpu) ;
       RUN(unittest_math_float_decimal) ;
+      RUN(unittest_math_hash_crc32) ;
       RUN(unittest_math_hash_sha1) ;
       RUN(unittest_math_int_abs) ;
       RUN(unittest_math_int_biginteger) ;
       RUN(unittest_math_int_log10) ;
       RUN(unittest_math_int_log2) ;
       RUN(unittest_math_int_power2) ;
+      RUN(unittest_math_int_reverse) ;
       RUN(unittest_math_int_sign) ;
       RUN(unittest_math_int_sqroot) ;
 //}
