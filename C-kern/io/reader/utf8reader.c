@@ -43,10 +43,8 @@ int skipline_utf8reader(utf8reader_t * utfread)
    const uint8_t * found = findbyte_stringstream(genericcast_stringstream(utfread), '\n') ;
 
    if (found) {
-      ++ found ;
-      utfread->next  = found ;
-      utfread->colnr = 0 ;
-      ++ utfread->linenr ;
+      utfread->next = ++ found ;
+      nextline_textpos(&utfread->pos) ;
 
       return 0 ;
    }
@@ -75,34 +73,34 @@ static int test_initfree(void)
 {
    utf8reader_t   utfread = utf8reader_INIT_FREEABLE ;
 
-   // TEST static init: utf8reader_INIT_FREEABLE
-   TEST(0 == nrcolumn_utf8reader(&utfread)) ;
-   TEST(0 == nrline_utf8reader(&utfread)) ;
+   // TEST utf8reader_INIT_FREEABLE
+   TEST(0 == column_utf8reader(&utfread)) ;
+   TEST(0 == line_utf8reader(&utfread)) ;
    TEST(0 == isnext_utf8reader(&utfread)) ;
    TEST(0 == unread_utf8reader(&utfread)) ;
    TEST(0 == unreadsize_utf8reader(&utfread)) ;
 
-   // TEST init_utf8reader, double free_utf8reader
+   // TEST init_utf8reader, free_utf8reader
    for (size_t i = 0; i <= 110; i+=11) {
       init_utf8reader(&utfread, 10+3*i, (uint8_t*)i) ;
       TEST((uint8_t*)i == unread_utf8reader(&utfread)) ;
       TEST((10+3*i)    == unreadsize_utf8reader(&utfread)) ;
-      TEST(0 == nrcolumn_utf8reader(&utfread)) ;
-      TEST(1 == nrline_utf8reader(&utfread)) ;
+      TEST(0 == column_utf8reader(&utfread)) ;
+      TEST(1 == line_utf8reader(&utfread)) ;
       TEST(1 == isnext_utf8reader(&utfread)) ;
 
       free_utf8reader(&utfread) ;
       TEST(0 == unread_utf8reader(&utfread)) ;
       TEST(0 == unreadsize_utf8reader(&utfread)) ;
-      TEST(0 == nrcolumn_utf8reader(&utfread)) ;
-      TEST(0 == nrline_utf8reader(&utfread)) ;
+      TEST(0 == column_utf8reader(&utfread)) ;
+      TEST(0 == line_utf8reader(&utfread)) ;
       TEST(0 == isnext_utf8reader(&utfread)) ;
 
       free_utf8reader(&utfread) ;
       TEST(0 == unread_utf8reader(&utfread)) ;
       TEST(0 == unreadsize_utf8reader(&utfread)) ;
-      TEST(0 == nrcolumn_utf8reader(&utfread)) ;
-      TEST(0 == nrline_utf8reader(&utfread)) ;
+      TEST(0 == column_utf8reader(&utfread)) ;
+      TEST(0 == line_utf8reader(&utfread)) ;
       TEST(0 == isnext_utf8reader(&utfread)) ;
    }
 
@@ -111,25 +109,28 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_memento(void)
+static int test_query(void)
 {
    utf8reader_t   utfread  ;
-   utf8reader_t   utfread2 ;
 
-   // TEST savetextpos_utf8reader, restoretextpos_utf8reader
-   for (unsigned i = 0; i < 256; ++i) {
-      utfread.colnr  = 10 + i ;
-      utfread.linenr = 11 + i ;
-      utfread.next   = (uint8_t*) 12 + i ;
-      utfread.end    = utfread.next + 13 + i ;
-      savetextpos_utf8reader(&utfread, &utfread2) ;
-      utfread = (utf8reader_t) utf8reader_INIT_FREEABLE ;
-      restoretextpos_utf8reader(&utfread, &utfread2) ;
-      TEST(10 + i == nrcolumn_utf8reader(&utfread)) ;
-      TEST(11 + i == nrline_utf8reader(&utfread)) ;
-      TEST(12 + i == (uintptr_t) unread_utf8reader(&utfread)) ;
-      TEST(13 + i == unreadsize_utf8reader(&utfread)) ;
+   // TEST column_utf8reader, line_utf8reader
+   for (unsigned i = 0; i < 16; ++i) {
+      utfread.pos.column = i ;
+      utfread.pos.line   = 2*i + 1 ;
+      TEST(1*i+0 == column_utf8reader(&utfread)) ;
+      TEST(2*i+1 == line_utf8reader(&utfread)) ;
    }
+
+   // TEST textpos_utf8reader
+   for (unsigned i = 0; i < 16; ++i) {
+      utfread.pos.column = 10 + i ;
+      utfread.pos.line   = 11 + i ;
+      textpos_t pos = textpos_utf8reader(&utfread) ;
+      TEST(10 + i == column_textpos(&pos)) ;
+      TEST(11 + i == line_textpos(&pos)) ;
+   }
+
+   // other query functions tested in test_read
 
    return 0 ;
 ONABORT:
@@ -142,21 +143,21 @@ static int test_read(void)
    const uint8_t  mbs[]  = { "ab\n\U000fffffab\n\U00000fffab\nöab\näab\nü" } ;
    uint32_t       ch ;
 
-   // TEST: nextchar_utf8reader
+   // TEST nextchar_utf8reader
    init_utf8reader(&utfread, 5*3+4+3+3*2, mbs) ;
    for (unsigned i = 0, col = 0; i < 5; ++i, col = 1) {
       ch = 0 ;
       TEST(0    == nextchar_utf8reader(&utfread, &ch)) ;
       TEST('a'  == ch) ;
-      TEST(col+1== nrcolumn_utf8reader(&utfread)) ;
+      TEST(col+1== column_utf8reader(&utfread)) ;
       TEST(0    == nextchar_utf8reader(&utfread, &ch)) ;
       TEST('b'  == ch) ;
-      TEST(col+2== nrcolumn_utf8reader(&utfread));
-      TEST(1+i  == nrline_utf8reader(&utfread));
+      TEST(col+2== column_utf8reader(&utfread));
+      TEST(1+i  == line_utf8reader(&utfread));
       TEST(0    == nextchar_utf8reader(&utfread, &ch)) ;
       TEST('\n' == ch) ;
-      TEST(0    == nrcolumn_utf8reader(&utfread));
-      TEST(2+i  == nrline_utf8reader(&utfread));
+      TEST(0    == column_utf8reader(&utfread));
+      TEST(2+i  == line_utf8reader(&utfread));
       TEST(0    == nextchar_utf8reader(&utfread, &ch)) ;
       switch(i) {
       case 0:  TEST(0xfffff == ch); break ;
@@ -165,26 +166,26 @@ static int test_read(void)
       case 3:  TEST(L'ä' == ch) ;   break ;
       default: TEST(L'ü' == ch) ;   break ;
       }
-      TEST(1    == nrcolumn_utf8reader(&utfread));
-      TEST(2+i  == nrline_utf8reader(&utfread));
+      TEST(1    == column_utf8reader(&utfread));
+      TEST(2+i  == line_utf8reader(&utfread));
    }
 
-   // TEST: nextchar_utf8reader ENODATA
+   // TEST nextchar_utf8reader: ENODATA
    TEST(ENODATA == nextchar_utf8reader(&utfread, &ch)) ;
 
-   // TEST: skipchar_utf8reader
+   // TEST skipchar_utf8reader
    init_utf8reader(&utfread, 5*3+4+3+3*2, mbs) ;
    for (unsigned i = 0, col = 0, size = 28; i < 5; ++i, col = 1) {
       TEST(0      == skipchar_utf8reader(&utfread)) ;
       TEST(--size == unreadsize_utf8reader(&utfread)) ;
-      TEST(col+1  == nrcolumn_utf8reader(&utfread)) ;
+      TEST(col+1  == column_utf8reader(&utfread)) ;
       TEST(0      == skipchar_utf8reader(&utfread)) ;
       TEST(--size == unreadsize_utf8reader(&utfread)) ;
-      TEST(col+2  == nrcolumn_utf8reader(&utfread)) ;
+      TEST(col+2  == column_utf8reader(&utfread)) ;
       TEST(0      == skipchar_utf8reader(&utfread)) ;
       TEST(--size == unreadsize_utf8reader(&utfread)) ;
-      TEST(0    == nrcolumn_utf8reader(&utfread));
-      TEST(2+i  == nrline_utf8reader(&utfread));
+      TEST(0    == column_utf8reader(&utfread));
+      TEST(2+i  == line_utf8reader(&utfread));
       TEST(0    == skipchar_utf8reader(&utfread)) ;
       switch(i) {
       case 0:  size -= 4 ; break ;
@@ -193,11 +194,11 @@ static int test_read(void)
       }
       TEST(size          == unreadsize_utf8reader(&utfread)) ;
       TEST(&mbs[28-size] == unread_utf8reader(&utfread)) ;
-      TEST(1    == nrcolumn_utf8reader(&utfread));
-      TEST(2+i  == nrline_utf8reader(&utfread));
+      TEST(1    == column_utf8reader(&utfread));
+      TEST(2+i  == line_utf8reader(&utfread));
    }
 
-   // TEST: skipchar_utf8reader ENODATA
+   // TEST skipchar_utf8reader ENODATA
    TEST(ENODATA == skipchar_utf8reader(&utfread)) ;
 
    // TEST nextchar_utf8reader, skipchar_utf8reader: EILSEQ + ENOTEMPTY
@@ -218,7 +219,7 @@ static int test_read(void)
    TEST(ENOTEMPTY == nextchar_utf8reader(&utfread, &ch)) ;
    TEST(0 == memcmp(&old, &utfread, sizeof(utfread))) ;
 
-   // TEST: peekascii_utf8reader, skipascii_utf8reader
+   // TEST peekascii_utf8reader, skipascii_utf8reader
    init_utf8reader(&utfread, 28, mbs) ;
    for (unsigned i = 0, col = 1, lnr = 1; i < 28; ++i, ++col) {
       TEST(0 == peekascii_utf8reader(&utfread, &ch)) ;
@@ -228,18 +229,18 @@ static int test_read(void)
          ++ lnr ;
       }
       skipascii_utf8reader(&utfread) ;
-      TEST(col == nrcolumn_utf8reader(&utfread)) ;
-      TEST(lnr == nrline_utf8reader(&utfread)) ;
+      TEST(col == column_utf8reader(&utfread)) ;
+      TEST(lnr == line_utf8reader(&utfread)) ;
       if (i == 27) {
       }
    }
 
-   // TEST: peekascii_utf8reader ENODATA
+   // TEST peekascii_utf8reader: ENODATA
    ch = 0 ;
    TEST(ENODATA == peekascii_utf8reader(&utfread, &ch)) ;
    TEST(0 == ch) ;
 
-   // TEST: peekasciiatoffset_utf8reader, skipNbytes_utf8reader
+   // TEST peekasciiatoffset_utf8reader, skipNbytes_utf8reader
    for (unsigned i = 0; i < 28; ++i) {
       init_utf8reader(&utfread, 28, mbs) ;
       TEST(0 == peekasciiatoffset_utf8reader(&utfread, i, &ch)) ;
@@ -248,8 +249,8 @@ static int test_read(void)
       TEST(mbs[i] == ch) ;
       skipNbytes_utf8reader(&utfread, i, 3*i) ;
       TEST(&mbs[i] == unread_utf8reader(&utfread)) ;
-      TEST(3*i  == nrcolumn_utf8reader(&utfread)) ;
-      TEST(1    == nrline_utf8reader(&utfread)) ;
+      TEST(3*i  == column_utf8reader(&utfread)) ;
+      TEST(1    == line_utf8reader(&utfread)) ;
       TEST(0    == peekascii_utf8reader(&utfread, &ch)) ;
       TEST(mbs[i]  == ch) ;
       TEST(ENODATA == peekasciiatoffset_utf8reader(&utfread, 28-i, &ch)) ;
@@ -275,13 +276,13 @@ static int test_skiplineall(void)
       buffer[i-1] = (uint8_t) ((uint8_t)i==10?0:i) ;
       for (unsigned al = 0; al < 4; ++al) {
          init_utf8reader(&utfread, sizeof(buffer)-al, buffer+al) ;
-         utfread.linenr = i ;
-         utfread.colnr  = 100 + i ;
+         utfread.pos.line   = i ;
+         utfread.pos.column = 100 + i ;
          TEST(0 == skipline_utf8reader(&utfread)) ;
-         TEST(utfread.next   == &buffer[i+1]) ;
-         TEST(utfread.end    == &buffer[sizeof(buffer)]) ;
-         TEST(utfread.colnr  == 0) ;
-         TEST(utfread.linenr == i + 1) ;
+         TEST(utfread.next == &buffer[i+1]) ;
+         TEST(utfread.end  == &buffer[sizeof(buffer)]) ;
+         TEST(0   == column_utf8reader(&utfread)) ;
+         TEST(i+1 == line_utf8reader(&utfread)) ;
       }
    }
 
@@ -290,22 +291,22 @@ static int test_skiplineall(void)
       memset(buffer, 0, 16) ;
       buffer[i] = '\n' ;
       init_utf8reader(&utfread, 16, buffer) ;
-      utfread.linenr = i ;
-      utfread.colnr  = 100 + i ;
+      utfread.pos.line   = i ;
+      utfread.pos.column = 100 + i ;
       TEST(0 == skipline_utf8reader(&utfread)) ;
       TEST(utfread.next   == &buffer[i+1]) ;
       TEST(utfread.end    == &buffer[16]) ;
-      TEST(utfread.linenr == i + 1) ;
-      TEST(utfread.colnr  == 0) ;
+      TEST(0   == column_utf8reader(&utfread)) ;
+      TEST(i+1 == line_utf8reader(&utfread)) ;
       // \n at the end of input
       memset(buffer, 0, 16) ;
       buffer[15] = '\n' ;
       init_utf8reader(&utfread, 16-i, buffer+i) ;
       TEST(0 == skipline_utf8reader(&utfread)) ;
-      TEST(utfread.next   == &buffer[16]) ;
-      TEST(utfread.end    == &buffer[16]) ;
-      TEST(utfread.colnr  == 0) ;
-      TEST(utfread.linenr == 2) ;
+      TEST(utfread.next == &buffer[16]) ;
+      TEST(utfread.end  == &buffer[16]) ;
+      TEST(0 == column_utf8reader(&utfread)) ;
+      TEST(2 == line_utf8reader(&utfread)) ;
    }
 
    // TEST skipline_utf8reader ENODATA
@@ -313,10 +314,10 @@ static int test_skiplineall(void)
    init_utf8reader(&utfread, sizeof(buffer), buffer) ;
    TEST(ENODATA == skipline_utf8reader(&utfread)) ;
       // nothing changed
-   TEST(utfread.next   == buffer) ;
-   TEST(utfread.end    == buffer+sizeof(buffer)) ;
-   TEST(utfread.colnr  == 0) ;
-   TEST(utfread.linenr == 1) ;
+   TEST(utfread.next == buffer) ;
+   TEST(utfread.end  == buffer+sizeof(buffer)) ;
+   TEST(0 == column_utf8reader(&utfread)) ;
+   TEST(1 == line_utf8reader(&utfread)) ;
 
    // TEST skipall_utf8reader (only columns)
    unsigned   bufsize = 9 * (sizeof(buffer) / 9) ;
@@ -330,8 +331,8 @@ static int test_skiplineall(void)
          TEST(0 == skipall_utf8reader(&utfread)) ;
          TEST(utfread.next   == &buffer[bufsize]) ;
          TEST(utfread.end    == &buffer[bufsize]) ;
-         TEST(utfread.colnr  == cols) ;
-         TEST(utfread.linenr == 1) ;
+         TEST(cols == column_utf8reader(&utfread)) ;
+         TEST(1    == line_utf8reader(&utfread)) ;
       }
    }
 
@@ -341,10 +342,10 @@ static int test_skiplineall(void)
    buffer[sizeof(buffer)-1] = 'b' ;
    init_utf8reader(&utfread, sizeof(buffer), buffer) ;
    TEST(0 == skipall_utf8reader(&utfread)) ;
-   TEST(utfread.next   == &buffer[sizeof(buffer)]) ;
-   TEST(utfread.end    == &buffer[sizeof(buffer)]) ;
-   TEST(utfread.colnr  == 2) ;
-   TEST(utfread.linenr == sizeof(buffer)-1) ;
+   TEST(utfread.next == &buffer[sizeof(buffer)]) ;
+   TEST(utfread.end  == &buffer[sizeof(buffer)]) ;
+   TEST(2 == column_utf8reader(&utfread)) ;
+   TEST(sizeof(buffer)-1 == line_utf8reader(&utfread)) ;
 
    // TEST skipline_utf8reader / skipall_utf8reader ENODATA empty string
    memset(buffer, 0, sizeof(buffer)) ;
@@ -368,7 +369,7 @@ int unittest_io_reader_utf8reader()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())    goto ONABORT ;
-   if (test_memento())     goto ONABORT ;
+   if (test_query())       goto ONABORT ;
    if (test_read())        goto ONABORT ;
    if (test_skiplineall()) goto ONABORT ;
 

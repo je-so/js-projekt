@@ -4,6 +4,7 @@
    and maintains additional information about the current line number and column.
 
    TODO: Adapt to instream_t
+   TODO: replace memento with reading textpos !
 
    about: Copyright
    This program is free software.
@@ -29,6 +30,7 @@
 #ifndef CKERN_IO_READER_UTF8READER_HEADER
 #define CKERN_IO_READER_UTF8READER_HEADER
 
+#include "C-kern/api/io/reader/util/textpos.h"
 #include "C-kern/api/string/utf8.h"
 
 /* typedef: struct utf8reader_t
@@ -48,22 +50,21 @@ int unittest_io_reader_utf8reader(void) ;
 
 
 /* struct: utf8reader_t
- * Manages position in text buffer.
- * It stores the current read position in memory
- * and the current text position as linnr and colnr.
- * Reading a character advances this positions. */
+ * Extends <instream_t> with text reading capapbilities.
+ * Only text files encoded in UTF-8 are supported.
+ * The current read position is also handled by this object.
+ * Reading a character advances the text position. */
 struct utf8reader_t {
    const uint8_t  * next ;
    const uint8_t  * end ;
-   size_t         colnr ;
-   size_t         linenr ;
+   textpos_t      pos ;
 } ;
 
 // group: lifetime
 
 /* define: utf8reader_INIT_FREEABLE
  * Static initializer.  */
-#define utf8reader_INIT_FREEABLE       { 0, 0, 0, 0 }
+#define utf8reader_INIT_FREEABLE       { 0, 0, textpos_INIT_FREEABLE }
 
 /* function: init_utf8reader
  * Inits *utfread* to point to text at *textaddr* with *length* bytes. */
@@ -75,26 +76,31 @@ void free_utf8reader(utf8reader_t * utfread) ;
 
 // group: query
 
+/* function: column_utf8reader
+ * Returns the column nr of the current reading position.
+ * At the beginning of each line this value is 0. Reading a
+ * character increments this value is by one. Therefore this value
+ * represents the column nr of the last read character. */
+size_t column_utf8reader(const utf8reader_t * utfread) ;
+
+/* function: line_utf8reader
+ * Returns the line nr of the current readng position.
+ * During initialization of <utf8reader_t> this value is set to 1.
+ * Eve3ry time a new line character is read this value is incremented
+ * by one and the column nr is set to 0 (see <column_utf8reader>). */
+size_t line_utf8reader(const utf8reader_t * utfread) ;
+
+/* function: textpos_utf8reader
+ * Returns the current textposition from *utfread*.
+ * You can restore it later with a call to <restoretextpos_utf8reader>. */
+textpos_t textpos_utf8reader(const utf8reader_t * utfread) ;
+
 /* function: isnext_utf8reader
  * Returns true if there is at least one byte to read.
  * It is possible that a character is encoded into several bytes
  * and the string does contain less bytes. In this
  * case <nextchar_utf8reader> or <skipchar_utf8reader> return EILSEQ. */
 bool isnext_utf8reader(const utf8reader_t * utfread) ;
-
-/* function: nrcolumn_utf8reader
- * Returns the column nr of the current reading position.
- * At the beginning of each line this value is 0. Reading a
- * character increments this value is by one. Therefore this value
- * represents the column nr of the last read character. */
-size_t nrcolumn_utf8reader(const utf8reader_t * utfread) ;
-
-/* function: nrline_utf8reader
- * Returns the line nr of the current readng position.
- * During initialization of <utf8reader_t> this value is set to 1.
- * Eve3ry time a new line character is read this value is incremented
- * by one and the column nr is set to 0 (see <nrcolumn_utf8reader>). */
-size_t nrline_utf8reader(const utf8reader_t * utfread) ;
 
 /* function: unread_utf8reader
  * Returns a pointer to the buffer beginning with the next unread character.
@@ -109,19 +115,6 @@ const uint8_t * unread_utf8reader(const utf8reader_t * utfread) ;
  * it to an UTF-8/ascii string without decoding it. With <skipNbytes_utf8reader> it is possible
  * to skip all bytes of such a comparison. */
 size_t unreadsize_utf8reader(utf8reader_t * utfread) ;
-
-// group: memento
-
-/* function: savetextpos_utf8reader
- * Saves the current textposition from *utfread* into *memento*.
- * You can restore it later with a call to <restoretextpos_utf8reader>. */
-void savetextpos_utf8reader(const utf8reader_t * utfread, /*out*/utf8reader_t * memento) ;
-
-/* function: restoretextpos_utf8reader
- * Restores the current textposition from *memento* into *utfread*.
- * If memento was not initialized by a previous call to <savetextpos_utf8reader>
- * the behaviour is undefined. */
-void restoretextpos_utf8reader(utf8reader_t * utfread, const utf8reader_t * memento) ;
 
 // group: read
 
@@ -218,21 +211,21 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
 
 /* define: free_utf8reader
  * Implements <utf8reader_t.free_utf8reader>. */
-#define free_utf8reader(utfread)       \
-   do {     (utfread)->next   = 0 ;    \
-            (utfread)->end    = 0 ;    \
-            (utfread)->colnr  = 0 ;    \
-            (utfread)->linenr = 0 ;    \
+#define free_utf8reader(utfread)                         \
+   do {                                                  \
+      (utfread)->next = 0 ;                              \
+      (utfread)->end  = 0 ;                              \
+      free_textpos(&(utfread)->pos) ;                    \
    } while(0)
 
 /* define: init_utf8reader
  * Implements <utf8reader_t.init_utf8reader>. */
-#define init_utf8reader(utfread, _size, textaddr)  \
-   do {     (utfread)->next   = (textaddr) ;       \
-            (utfread)->end    = (utfread)->next    \
-                                + (_size) ;        \
-            (utfread)->colnr  = 0 ;                \
-            (utfread)->linenr = 1 ;                \
+#define init_utf8reader(utfread, _size, textaddr)        \
+   do {                                                  \
+      (utfread)->next   = (textaddr) ;                   \
+      (utfread)->end    = (utfread)->next                \
+                        + (_size) ;                      \
+      (utfread)->pos    = (textpos_t) textpos_INIT ;     \
    } while(0)
 
 /* define: isnext_utf8reader
@@ -249,24 +242,23 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
                   genericcast_stringstream(_rd1),        \
                   (nxtchar)) ;                           \
             if (0 == _err) {                             \
-               ++ _rd1->colnr ;                          \
+               nextcolumn_textpos(&_rd1->pos) ;          \
                if ('\n' == *(nxtchar)) {                 \
-                  ++ _rd1->linenr ;                      \
-                  _rd1->colnr = 0 ;                      \
+                  nextline_textpos(&_rd1->pos) ;         \
                }                                         \
             }                                            \
             _err ;                                       \
    }))
 
-/* define: nrcolumn_utf8reader
- * Implements <utf8reader_t.nrcolumn_utf8reader>. */
-#define nrcolumn_utf8reader(utfread)                     \
-            ((utfread)->colnr)
+/* define: column_utf8reader
+ * Implements <utf8reader_t.column_utf8reader>. */
+#define column_utf8reader(utfread)                       \
+         (column_textpos(&(utfread)->pos))
 
-/* define: nrline_utf8reader
- * Implements <utf8reader_t.nrline_utf8reader>. */
-#define nrline_utf8reader(utfread)                       \
-            ((utfread)->linenr)
+/* define: line_utf8reader
+ * Implements <utf8reader_t.line_utf8reader>. */
+#define line_utf8reader(utfread)                         \
+         (line_textpos(&(utfread)->pos))
 
 /* define: peekascii_utf8reader
  * Implements <utf8reader_t.peekascii_utf8reader>. */
@@ -301,27 +293,16 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
    }))
 
 
-/* define: restoretextpos_utf8reader
- * Implements <utf8reader_t.restoretextpos_utf8reader>. */
-#define restoretextpos_utf8reader(utfread, memento)      \
-   ((void) (*(utfread) = *(memento)))
-
-/* define: savetextpos_utf8reader
- * Implements <utf8reader_t.savetextpos_utf8reader>. */
-#define savetextpos_utf8reader(utfread, memento)         \
-   ((void) (*(memento) = *(utfread)))
-
 /* define: skipascii_utf8reader
  * Implements <utf8reader_t.skipascii_utf8reader>. */
 #define skipascii_utf8reader(utfread)                    \
    do {                                                  \
-            typeof(utfread) _urd1 = (utfread) ;          \
-            bool _isnext = isnext_utf8reader(_urd1) ;    \
+            typeof(utfread) _rd1 = (utfread) ;           \
+            bool _isnext = isnext_utf8reader(_rd1) ;     \
             if (_isnext) {                               \
-               ++ _urd1->colnr ;                         \
-               if ('\n' == *(_urd1->next ++)) {          \
-                  ++ _urd1->linenr ;                     \
-                  _urd1->colnr = 0 ;                     \
+               nextcolumn_textpos(&_rd1->pos) ;          \
+               if ('\n' == *(_rd1->next ++)) {           \
+                  nextline_textpos(&_rd1->pos) ;         \
                }                                         \
             }                                            \
    } while(0)
@@ -335,8 +316,7 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
             if (isnext_utf8reader(_rd1)) {               \
                uint8_t firstbyte = *(_rd1->next) ;       \
                if ('\n' == firstbyte) {                  \
-                  ++ _rd1->linenr ;                      \
-                  _rd1->colnr = 0 ;                      \
+                  nextline_textpos(&_rd1->pos) ;         \
                   ++ _rd1->next ;                        \
                } else {                                  \
                   uint8_t _sz ;                          \
@@ -345,7 +325,7 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
                      _err = EILSEQ ;                     \
                   } else {                               \
                      _rd1->next += _sz + (_sz==0) ;      \
-                     ++ _rd1->colnr ;                    \
+                     nextcolumn_textpos(&_rd1->pos) ;    \
                   }                                      \
                }                                         \
             } else {                                     \
@@ -358,15 +338,20 @@ int skipall_utf8reader(utf8reader_t * utfread) ;
  * Implements <utf8reader_t.skipNbytes_utf8reader>. */
 #define skipNbytes_utf8reader(utfread, nrbytes, nrchars) \
    do {                                                  \
-            typeof(utfread) _urd1 = (utfread) ;          \
+            typeof(utfread) _rd1 = (utfread) ;           \
             size_t _nrb1 = (nrbytes) ;                   \
-            size_t _size = unreadsize_utf8reader(_urd1); \
+            size_t _size = unreadsize_utf8reader(_rd1) ; \
             if (_size > _nrb1)  {                        \
-               _urd1->next  += _nrb1 ;                   \
-               _urd1->colnr += (nrchars) ;               \
+               _rd1->next  += _nrb1 ;                    \
+               addcolumn_textpos(&_rd1->pos,(nrchars)) ; \
             }                                            \
    } while(0)
 
+
+/* define: unread_utf8reader
+ * Implements <utf8reader_t.unread_utf8reader>. */
+#define textpos_utf8reader(utfread)                      \
+            ((utfread)->pos)
 
 /* define: unread_utf8reader
  * Implements <utf8reader_t.unread_utf8reader>. */

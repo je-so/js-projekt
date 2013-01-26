@@ -657,15 +657,26 @@ struct textresource_reader_t {
 static void report_parseerror(textresource_reader_t * reader, const char * format, ...) __attribute__ ((__format__ (__printf__, 2, 3))) ;
 
 
-static void report_errorposition(textresource_reader_t * reader)
+static void report_errorposition(const char * filename, size_t column, size_t line)
 {
-   dprintf(STDERR_FILENO, "%s: line:%zu col:%zu\n", reader->txtres.read_from_filename, reader->txtpos.linenr, reader->txtpos.colnr) ;
+   dprintf(STDERR_FILENO, "%s: line:%zu col:%zu\n", filename, line, column) ;
+}
+
+static void report2_parseerror(textresource_reader_t * reader, const textpos_t * pos, const char * format, ...)
+{
+   print_error("Syntax error") ;
+   report_errorposition(reader->txtres.read_from_filename, column_textpos(pos), line_textpos(pos)) ;
+   va_list vargs ;
+   va_start(vargs, format) ;
+   vdprintf(STDERR_FILENO, format, vargs) ;
+   dprintf(STDERR_FILENO, "\n") ;
+   va_end(vargs) ;
 }
 
 static void report_parseerror(textresource_reader_t * reader, const char * format, ...)
 {
    print_error("Syntax error") ;
-   report_errorposition(reader) ;
+   report_errorposition(reader->txtres.read_from_filename, column_utf8reader(&reader->txtpos), line_utf8reader(&reader->txtpos)) ;
    va_list vargs ;
    va_start(vargs, format) ;
    vdprintf(STDERR_FILENO, format, vargs) ;
@@ -682,7 +693,7 @@ static void report_unexpectedendofinput(textresource_reader_t * reader)
    } else {
       print_error("Unexpected end of input") ;
    }
-   report_errorposition(reader) ;
+   report_errorposition(reader->txtres.read_from_filename, column_utf8reader(&reader->txtpos), line_utf8reader(&reader->txtpos)) ;
 }
 
 /* function: skip_spaceandcomment
@@ -1473,7 +1484,7 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
    int err ;
    string_t       name ;
    string_t       value ;
-   utf8reader_t   oldpos ;
+   textpos_t      closepos ;
    bool           isOpenElement = true ;
 
    for (uint8_t ch;;) {
@@ -1494,7 +1505,7 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
       if (     0 == peekascii_utf8reader(&reader->txtpos, &ch)
             && '/' == ch) {
          skipascii_utf8reader(&reader->txtpos) ;
-         savetextpos_utf8reader(&reader->txtpos, &oldpos) ;
+         closepos = textpos_utf8reader(&reader->txtpos) ;
          isOpenElement = false ;
       }
 
@@ -1509,8 +1520,7 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
          skipascii_utf8reader(&reader->txtpos) ;
          switch (*opclose) {
          case xmltag_OPEN:    if (!isOpenElement) {
-                                 restoretextpos_utf8reader(&reader->txtpos, &oldpos) ;
-                                 report_parseerror(reader, "Expected no closing '/>' ") ;
+                                 report2_parseerror(reader, &closepos, "Expected no closing '/>' ") ;
                                  return EINVAL ;
                               }
                               break ;

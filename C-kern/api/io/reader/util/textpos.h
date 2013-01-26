@@ -17,14 +17,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/io/reader/text/textpos.h
+   file: C-kern/api/io/reader/util/textpos.h
     Header file <TextPosition>.
 
-   file: C-kern/io/reader/text/textpos.c
+   file: C-kern/io/reader/util/textpos.c
     Implementation file <TextPosition impl>.
 */
-#ifndef CKERN_IO_READER_TEXT_TEXTPOS_HEADER
-#define CKERN_IO_READER_TEXT_TEXTPOS_HEADER
+#ifndef CKERN_IO_READER_UTIL_TEXTPOS_HEADER
+#define CKERN_IO_READER_UTIL_TEXTPOS_HEADER
 
 /* typedef: struct textpos_t
  * Export <textpos_t> into global namespace. */
@@ -36,9 +36,9 @@ typedef struct textpos_t         textpos_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_reader_text_textpos
+/* function: unittest_io_reader_util_textpos
  * Test <textpos_t> functionality. */
-int unittest_io_reader_text_textpos(void) ;
+int unittest_io_reader_util_textpos(void) ;
 #endif
 
 
@@ -90,6 +90,11 @@ size_t line_textpos(const textpos_t * txtpos) ;
 
 // group: change
 
+/* function: addcolumn_textpos
+ * Adds increment to the column number.
+ * The incremented column number is returned. */
+size_t addcolumn_textpos(textpos_t * txtpos, size_t increment) ;
+
 /* function: nextcolumn_textpos
  * Increments the column number. */
 void nextcolumn_textpos(textpos_t * txtpos) ;
@@ -102,6 +107,10 @@ void nextline_textpos(textpos_t * txtpos) ;
 // section: inline implementation
 
 // group: textpos_t
+
+/* define: addcolumn_textpos
+ * Implements <textpos_t.addcolumn_textpos>. */
+#define addcolumn_textpos(txtpos, increment)       ((txtpos)->column += (increment))
 
 /* define: column_textpos
  * Implements <textpos_t.column_textpos>. */

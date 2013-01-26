@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/io/reader/text/textpos.h
+   file: C-kern/api/io/reader/util/textpos.h
     Header file <TextPosition>.
 
-   file: C-kern/io/reader/text/textpos.c
+   file: C-kern/io/reader/util/textpos.c
     Implementation file <TextPosition impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/reader/text/textpos.h"
+#include "C-kern/api/io/reader/util/textpos.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -68,6 +68,24 @@ static int test_initfree(void)
       TEST(i+1 == line_textpos(&txtpos)) ;
    }
 
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_change(void)
+{
+   textpos_t txtpos = textpos_INIT_FREEABLE ;
+
+   // TEST addcolumn_textpos
+   for (unsigned i = 1; i < 15; ++i) {
+      size_t oldline = line_textpos(&txtpos) ;
+      size_t oldcol  = column_textpos(&txtpos) ;
+      TEST(oldcol+i == addcolumn_textpos(&txtpos, i)) ;
+      TEST(oldcol+i == column_textpos(&txtpos)) ;
+      TEST(oldline  == line_textpos(&txtpos)) ;
+   }
+
    // TEST nextcolumn_textpos
    for (unsigned i = 0; i < 15; ++i) {
       size_t oldline = line_textpos(&txtpos) ;
@@ -91,13 +109,14 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_io_reader_text_textpos()
+int unittest_io_reader_util_textpos()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ONABORT ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_change())      goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
