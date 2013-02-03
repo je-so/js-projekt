@@ -40,13 +40,13 @@
 typedef struct test_iocallback_handler_t     test_iocallback_handler_t ;
 
 struct test_iocallback_handler_t {
-   sys_filedescr_t   fd ;
-   uint8_t           ioevents ;
+   sys_file_t   fd ;
+   uint8_t      ioevents ;
 } ;
 
 iocallback_DECLARE(test_iocallback_t, test_iocallback_handler_t) ;
 
-void iocallback_testiocallbackhandler(test_iocallback_handler_t * iohandler, sys_filedescr_t fd, uint8_t ioevents)
+void iocallback_testiocallbackhandler(test_iocallback_handler_t * iohandler, sys_file_t fd, uint8_t ioevents)
 {
    iohandler->fd       = fd ;
    iohandler->ioevents = ioevents ;
@@ -76,7 +76,7 @@ static int test_generic(void)
 {
    test_iocallback_t iocb = iocallback_INIT_FREEABLE ;
 
-   typedef void   (* test_iocallback_f) (test_iocallback_handler_t*, sys_filedescr_t, uint8_t) ;
+   typedef void   (* test_iocallback_f) (test_iocallback_handler_t*, sys_file_t, uint8_t) ;
 
    // TEST iocallback_INIT_FREEABLE
    TEST(0 == iocb.object) ;
@@ -112,15 +112,15 @@ static int test_callback(void)
    iocallback_t               iocb2     = iocallback_INIT((iocallback_t*)&iohandler, (iocallback_f)&iocallback_testiocallbackhandler) ;
 
    // TEST call_iocallback
-   for (unsigned i = 0; i < 256; ++i) {
-      call_iocallback(&iocb, (sys_filedescr_t)i, (uint8_t)(255-i)) ;
-      TEST((sys_filedescr_t)i == iohandler.fd) ;
-      TEST((uint8_t)(255-i)   == iohandler.ioevents) ;
+   for (sys_file_t i = 0; i < 256; ++i) {
+      call_iocallback(&iocb, i, (uint8_t)(255-i)) ;
+      TEST(iohandler.fd       == i) ;
+      TEST(iohandler.ioevents == (uint8_t)(255-i)) ;
    }
-   for (unsigned i = 0; i < 256; ++i) {
-      call_iocallback(&iocb2, (sys_filedescr_t)i, (uint8_t)(255-i)) ;
-      TEST((sys_filedescr_t)i == iohandler.fd) ;
-      TEST((uint8_t)(255-i)   == iohandler.ioevents) ;
+   for (int i = 0; i < 256; ++i) {
+      call_iocallback(&iocb2, i, (uint8_t)(255-i)) ;
+      TEST(iohandler.fd       == i) ;
+      TEST(iohandler.ioevents == (uint8_t)(255-i)) ;
    }
 
    return 0 ;

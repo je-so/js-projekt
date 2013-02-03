@@ -101,9 +101,9 @@ struct process_result_t
  * Make sure that redirected files are automatically closed in case
  * another process is executed (i.e. have set their O_CLOEXEC flag). */
 struct process_ioredirect_t {
-   sys_filedescr_t   std_in ;
-   sys_filedescr_t   std_out ;
-   sys_filedescr_t   std_err ;
+   sys_file_t   std_in ;
+   sys_file_t   std_out ;
+   sys_file_t   std_err ;
 } ;
 
 // group: lifetime
@@ -112,7 +112,7 @@ struct process_ioredirect_t {
  * Static initializer lets new process write and read from null device.
  * All written output is therefore ignored and reading returns always
  * with 0 bytes read. */
-#define process_ioredirect_INIT_DEVNULL      { sys_filedescr_INIT_FREEABLE, sys_filedescr_INIT_FREEABLE, sys_filedescr_INIT_FREEABLE }
+#define process_ioredirect_INIT_DEVNULL      { sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE }
 
 /* define: process_ioredirect_INIT_INHERIT
  * Static initializer lets new process inherit standard io channels. */
@@ -120,18 +120,18 @@ struct process_ioredirect_t {
 
 /* function: setstdin_processioredirect
  * Redirects standard input to given file.
- * Use value <filedescr_INIT_FREEABLE> to redirect standard input to device null. */
-void setstdin_processioredirect(process_ioredirect_t * ioredirect, sys_filedescr_t input_file) ;
+ * Use value <file_INIT_FREEABLE> to redirect standard input to device null. */
+void setstdin_processioredirect(process_ioredirect_t * ioredirect, sys_file_t input_file) ;
 
 /* function: setstdout_processioredirect
  * Redirects standard output to given file.
- * Use value <filedescr_INIT_FREEABLE> to redirect standard output to device null. */
-void setstdout_processioredirect(process_ioredirect_t * ioredirect, sys_filedescr_t output_file) ;
+ * Use value <file_INIT_FREEABLE> to redirect standard output to device null. */
+void setstdout_processioredirect(process_ioredirect_t * ioredirect, sys_file_t output_file) ;
 
 /* function: setstderr_processioredirect
  * Redirects standard error output to given file.
- * Use value <filedescr_INIT_FREEABLE> to redirect standard error to device null. */
-void setstderr_processioredirect(process_ioredirect_t * ioredirect, sys_filedescr_t error_file) ;
+ * Use value <file_INIT_FREEABLE> to redirect standard error to device null. */
+void setstderr_processioredirect(process_ioredirect_t * ioredirect, sys_file_t error_file) ;
 
 
 /* struct: process_t

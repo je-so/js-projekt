@@ -1,5 +1,5 @@
 /* title: SysTimer
-   Offers a timer which signals timeout via input ready state of <filedescr_t>.
+   Offers a timer which signals timeout via input ready state of <sys_file_t>.
    This allows you to handle timers like any other io-device.
 
    You need to include "C-kern/api/time/timevalue.h" before you can use the interface.
@@ -35,9 +35,8 @@ struct timevalue_t ;
 
 
 /* typedef: systimer_t
- * Exports <systimer_t> as alias for <filedescr_t>.
- * See <filedescr_t> or <sys_filedescr_t>. */
-typedef sys_filedescr_t                systimer_t ;
+ * Exports <systimer_t> as alias for <sys_file_t>. */
+typedef sys_file_t                     systimer_t ;
 
 
 // section: Functions
@@ -58,7 +57,7 @@ int unittest_time_systimer(void) ;
 
 /* define: systimer_INIT_FREEABLE
  * Static initializer. */
-#define systimer_INIT_FREEABLE         sys_filedescr_INIT_FREEABLE
+#define systimer_INIT_FREEABLE         sys_file_INIT_FREEABLE
 
 /* function: init_systimer
  * Allocates a new system timer.

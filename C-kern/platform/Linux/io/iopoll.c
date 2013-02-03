@@ -154,7 +154,7 @@ ONABORT:
 
 /* function: registerfd_iopoll
  * Adds file descriptor to Linux epoll object. */
-int registerfd_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, const struct ioevent_t * for_event)
+int registerfd_iopoll(iopoll_t * iopoll, sys_file_t fd, const struct ioevent_t * for_event)
 {
    int err ;
 
@@ -179,8 +179,8 @@ ONABORT:
 }
 
 /* function: updatefd_iopoll
- * Updates event mask/value of filedescriptor registered at Linux epoll object. */
-int updatefd_iopoll(iopoll_t * iopoll, sys_filedescr_t fd, const struct ioevent_t * updated_event)
+ * Updates event mask/value of <sys_file_t> registered at Linux epoll object. */
+int updatefd_iopoll(iopoll_t * iopoll, sys_file_t fd, const struct ioevent_t * updated_event)
 {
    int err ;
 
@@ -205,8 +205,8 @@ ONABORT:
 }
 
 /* function: updatefd_iopoll
- * Unregisteres filedescriptor at Linux epoll object. */
-int unregisterfd_iopoll(iopoll_t * iopoll, sys_filedescr_t fd)
+ * Unregisteres <sys_file_t> at Linux epoll object. */
+int unregisterfd_iopoll(iopoll_t * iopoll, sys_file_t fd)
 {
    int err ;
    struct epoll_event dummy ;
@@ -260,15 +260,15 @@ static int test_initfree(void)
    iopoll_t  iopoll = iopoll_INIT_FREEABLE ;
 
    // TEST iopoll_INIT_FREEABLE
-   TEST(iopoll.sys_poll == sys_filedescr_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == sys_file_INIT_FREEABLE) ;
 
    // TEST init_iopoll, free_iopoll
    TEST(0 == init_iopoll(&iopoll)) ;
    TEST(iopoll.sys_poll > 0) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == sys_filedescr_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == sys_file_INIT_FREEABLE) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == sys_filedescr_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == sys_file_INIT_FREEABLE) ;
 
    // TEST free_iopoll: removes regisestered fds
    TEST(0 == init_iopoll(&iopoll)) ;
@@ -277,7 +277,7 @@ static int test_initfree(void)
    TEST(0 == registerfd_iopoll(&iopoll, file_STDOUT, &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 2))) ;
    TEST(0 == registerfd_iopoll(&iopoll, file_STDERR, &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 3))) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == sys_filedescr_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == sys_file_INIT_FREEABLE) ;
 
    return 0 ;
 ONABORT:
@@ -350,10 +350,10 @@ static int test_registerfd(void)
    TEST(EINVAL == updatefd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_MASK+1, 0))) ;
    TEST(EINVAL == updatefd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_MASK+1, 0))) ;
 
-   // TEST EEXIST: filedescriptor registered twice
+   // TEST EEXIST: sys_file_t registered twice
    TEST(EEXIST == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 0))) ;
 
-   // TEST ENOENT: filedescriptor not registered
+   // TEST ENOENT: sys_file_t not registered
    TEST(ENOENT == updatefd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 0))) ;
    TEST(ENOENT == unregisterfd_iopoll(&iopoll, fd[0][1])) ;
 

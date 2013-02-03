@@ -39,7 +39,7 @@
 
 // group: lifetime
 
-static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_filedescr_t fd, off_t file_offset, size_t size, accessmode_e mode)
+static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_file_t fd, off_t file_offset, size_t size, accessmode_e mode)
 {
    int err ;
    const size_t    pagesize  = pagesize_vm() ;
@@ -87,7 +87,7 @@ ONABORT:
    return err ;
 }
 
-int initfd_mmfile(/*out*/mmfile_t * mfile, sys_filedescr_t fd, off_t file_offset, size_t size, accessmode_e mode)
+int initfd_mmfile(/*out*/mmfile_t * mfile, sys_file_t fd, off_t file_offset, size_t size, accessmode_e mode)
 {
    int err ;
 
@@ -211,7 +211,7 @@ ONABORT:
 
 // group: change
 
-int seek_mmfile(mmfile_t * mfile, sys_filedescr_t fd, off_t file_offset, accessmode_e mode)
+int seek_mmfile(mmfile_t * mfile, sys_file_t fd, off_t file_offset, accessmode_e mode)
 {
    int err ;
 

@@ -105,7 +105,7 @@ struct mmfile_t {
 int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, accessmode_e mode, const struct directory_t * relative_to /*0=>current_working_directory*/) ;
 
 /* function: initfd_mmfile
- * Maps a file referenced by <filedescr_t> into memory.
+ * Maps a file referenced by <sys_file_t> into memory.
  * The function does the same as <init_mmfile> except it does not open a file but takes a file descriptor to the already opened file.
  * The file must always be opened with read access and also write access in case mode contains <accessmode_WRITE>.
  *
@@ -114,7 +114,7 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
  * is undefinded. The operating system creates a bus error exception in cases where a whole memory page has no backing file object.
  * If the size is set to 0 no mapping is done at all and <mmfile_t> is initialized with a 0 (<memblock_INIT_FREEABLE>).
  * */
-int initfd_mmfile(/*out*/mmfile_t * mfile, sys_filedescr_t fd, off_t file_offset, size_t size, accessmode_e mode) ;
+int initfd_mmfile(/*out*/mmfile_t * mfile, sys_file_t fd, off_t file_offset, size_t size, accessmode_e mode) ;
 
 /* function: initsplit_mmfile
  * Split a memory mapping into two. After return destheadmfile maps the first headsize bytes. headsize must be a multiple of <pagesize_vm>.
@@ -167,7 +167,7 @@ size_t  alignedsize_mmfile(const mmfile_t * mfile) ;
  * in a SIGBUS (see <initfd_mmfile>). The solution is to handle the size on a higher level
  * after a change of the file offset.
  * */
-int seek_mmfile(mmfile_t * mfile, sys_filedescr_t fd, off_t file_offset, accessmode_e mode) ;
+int seek_mmfile(mmfile_t * mfile, sys_file_t fd, off_t file_offset, accessmode_e mode) ;
 
 
 // section: inline implementation

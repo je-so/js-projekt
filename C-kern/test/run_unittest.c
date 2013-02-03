@@ -46,7 +46,7 @@
 static void generate_logresource(const char * test_name)
 {
    int   err = EINVAL ;
-   int   fd  = sys_filedescr_INIT_FREEABLE ;
+   int   fd  = sys_file_INIT_FREEABLE ;
    char  resource_path[sizeof(GENERATED_LOGRESOURCE_DIR) + strlen(test_name)] ;
 
    strcpy(resource_path, GENERATED_LOGRESOURCE_DIR) ;

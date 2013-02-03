@@ -126,7 +126,7 @@ int checkpath_directory(const directory_t * dir/*0 => current working directory*
 
 /* function: fd_directory
  * Returns the file descriptor of the opened directory. */
-sys_filedescr_t fd_directory(const directory_t * dir) ;
+sys_file_t fd_directory(const directory_t * dir) ;
 
 /* function: filesize_directory
  * Returns the filesize of a file with path »file_path«.

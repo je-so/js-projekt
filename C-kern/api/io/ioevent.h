@@ -98,7 +98,7 @@ struct ioevent_t {
    uint32_t       ioevents ;
    /* variable: eventid
     * Every event has an associated id. It is set by the caller
-    * which registers an object, i.e. a <filedescr_t>, with an event manager. */
+    * which registers an object, i.e. a <sys_filet>, with an associated <ioevent_id_t>. */
    ioevent_id_t   eventid ;
 } ;
 

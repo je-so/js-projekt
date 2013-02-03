@@ -1,10 +1,10 @@
 /* title: File
 
    Offers an interface to handle system files.
-   A file is described as system specific filedescriptor <sys_filedescr_t>
+   A file is described as system specific file descriptor <sys_file_t>
    which is renamed into <file_t>.
 
-   A filedescriptor is an id that identifies an input/output channel
+   A file descriptor is an id that identifies an input/output channel
    like files, network connections or other system specific devices.
    Therefore I/O operations on <file_t> can be used also on other I/O objects.
 
@@ -38,11 +38,11 @@
 struct directory_t ;
 
 /* typedef: file_t
- * Export <file_t>, alias for <sys_filedescr_t>.
+ * Export <file_t>, alias for <sys_file_t>.
  * Describes a persistent binary object with a name.
  * Describes an opened file for doing reading and/or writing.
  * The file is located in a system specific filesystem. */
-typedef sys_filedescr_t                file_t ;
+typedef sys_file_t                     file_t ;
 
 /* enums: file_e
  * Standard files which are usually open at process start by convention.
@@ -90,7 +90,7 @@ int unittest_io_file(void) ;
 
 /* define: file_INIT_FREEABLE
  * Static initializer. */
-#define file_INIT_FREEABLE             sys_filedescr_INIT_FREEABLE
+#define file_INIT_FREEABLE             sys_file_INIT_FREEABLE
 
 /* function: init_file
  * Opens a file identified by its path and name.

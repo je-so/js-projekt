@@ -33,9 +33,9 @@
 
 /* about: Public System Types
  *
- * sys_filedescr_t             - Type holding system specific description of a file.
+ * sys_file_t                  - Type holding system specific description of a file.
  *                               It is also used for network connections (sockets).
- * sys_filedescr_INIT_FREEABLE - Static initializer for <sys_filedescr_t>. It marks the filedescriptor as invalid.
+ * sys_file_INIT_FREEABLE      - Static initializer for <sys_file_t>. It marks the file descriptor as invalid.
  * sys_mutex_t                 - Type holding system specific description of a mutex (lock).
  * sys_mutex_INIT_DEFAULT      - Static initializer for a mutex useable by threads of the same process.
  * sys_process_t               - Type represents a system process.
@@ -52,13 +52,13 @@
  * */
 
 
-/* define: sys_filedescr_t
+/* define: sys_file_t
  * Chooses Posix file descriptor type. */
-#define sys_filedescr_t                int
+#define sys_file_t                     int
 
-/* define: sys_filedescr_INIT_FREEABLE
- * Static initializer for <sys_filedescr_t>. */
-#define sys_filedescr_INIT_FREEABLE    (-1)
+/* define: sys_file_INIT_FREEABLE
+ * Static initializer for <sys_file_t>. */
+#define sys_file_INIT_FREEABLE         (-1)
 
 /* define: sys_mutex_t
  * Chooses Posix mutex type. Needs pthread support. */

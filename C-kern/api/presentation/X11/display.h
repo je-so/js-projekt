@@ -150,10 +150,10 @@ int initmove_x11display(/*out*/x11display_t * destination, x11display_t * source
 
 // group: query
 
-/* function: filedescriptor_x11display
+/* function: fdr_x11display
  * Returns file descriptor of network connection.
  * You can use it to wait for incoming events sent by X11 display server. */
-int filedescriptor_x11display(const x11display_t * x11disp) ;
+sys_file_t fd_x11display(const x11display_t * x11disp) ;
 
 /* function: errorstring_x11display
  * Returns a NULL terminated name of the error with code »x11_errcode« in plain english.
