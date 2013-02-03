@@ -87,18 +87,25 @@
 // group: function-declaration
 
 /* define: IDNAME
- * It's a marker in function declaration.
+ * It's a marker in a function declaration.
  * It is used in function declarations which are implemented as macro.
  * An identifier name is not supported in language C99 or later.
  * See <dlist_IMPLEMENT> for an example. */
 #define IDNAME                         void*
 
 /* define: TYPENAME
- * It's a marker in function declaration.
+ * It's a marker in a function declaration.
  * It is used in function declarations which are implemented as macro.
  * A type name is not supported in language C99 or later.
  * See <genericcast_typeadaptlifetime> for an example. */
 #define TYPENAME                       void*
+
+/* define: TYPEQUALIFIER
+ * It's a marker in a function declaration.
+ * It is used in function declarations which are implemented as macro.
+ * Set it to either an empty value ,, or to ,const,.
+ * See <genericcast_mmfile> for an example. */
+#define TYPEQUALIFIER                  void*
 
 // group: size-calculations
 

@@ -4,7 +4,7 @@ include        projekte/binary.gcc
 include        projekte/subsys/Linux-mini
 include        projekte/subsys/context-mini
 Src           += C-kern/ds/inmem/arraystf.c C-kern/ds/inmem/binarystack.c C-kern/ds/inmem/slist.c C-kern/ds/typeadapt/typeadapt_impl.c
-Src           += C-kern/io/reader/utf8reader.c C-kern/io/adapter/instream_factory.c C-kern/io/adapter/instream_mmfile.c C-kern/io/instream.c
+Src           += C-kern/io/reader/utf8reader.c
 Src           += C-kern/main/tools/textresourcev2_compiler.c
 Src           += C-kern/platform/Linux/io/mmfile.c
 Src           += C-kern/platform/Linux/io/directory.c

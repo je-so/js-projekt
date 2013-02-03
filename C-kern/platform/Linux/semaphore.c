@@ -59,7 +59,7 @@ int free_semaphore(semaphore_t * semaobj)
    int err = 0 ;
    int err2 ;
 
-   if (isinit_file(semaobj->sys_sema)) {
+   if (!isfree_file(semaobj->sys_sema)) {
       // wake up any waiters
       int flags = fcntl(semaobj->sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;

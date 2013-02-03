@@ -84,7 +84,7 @@ int init_iopoll(/*out*/iopoll_t * iopoll)
    int err ;
    int efd = epoll_create1(EPOLL_CLOEXEC) ;
 
-   if (! isinit_file(efd)) {
+   if (-1 == efd) {
       err = errno ;
       TRACESYSERR_LOG("epoll_create1", err) ;
       goto ONABORT ;

@@ -119,7 +119,7 @@ int initfd_mmfile(/*out*/mmfile_t * mfile, sys_file_t fd, off_t file_offset, siz
 /* function: initsplit_mmfile
  * Split a memory mapping into two. After return destheadmfile maps the first headsize bytes. headsize must be a multiple of <pagesize_vm>.
  * desttailmfile maps the last (size_mmfile(sourcemfile)-headsize) bytes.
- * If sourcemfile is not equal to destheadmfile or desttailmfile it is initialized to <mmfile_INIT_FREEABLE>. */
+ * sourcemfile is set to <mmfile_INIT_FREEABLE> if it is not equal to destheadmfile or desttailmfile. */
 int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttailmfile, size_t headsize, mmfile_t * sourcemfile) ;
 
 /* function: initmove_mmfile
@@ -132,9 +132,9 @@ int free_mmfile(mmfile_t * mfile) ;
 
 // group: query
 
-/* function: isinit_mmfile
- * Returns true if mfile != <mmfile_INIT_FREEABLE>. */
-bool isinit_mmfile(const mmfile_t * mfile) ;
+/* function: isfree_mmfile
+ * Returns true if mfile == <mmfile_INIT_FREEABLE>. */
+bool isfree_mmfile(const mmfile_t * mfile) ;
 
 /* function: addr_mmfile
  * Returns the lowest address of the mapped memory.
@@ -169,6 +169,15 @@ size_t  alignedsize_mmfile(const mmfile_t * mfile) ;
  * */
 int seek_mmfile(mmfile_t * mfile, sys_file_t fd, off_t file_offset, accessmode_e mode) ;
 
+// group: generic
+
+/* function: genericcast_mmfile
+ * Casts a generic object pointer into pointer to <memblock_t>.
+ * Set qual to *const* if you want to cast a const pointer.
+ * The object must have two data members with access path "obj->nameprefix##addr" and
+ * "obj->nameprefix##size" of the same type as <mmfile_t> and in the same order. */
+mmfile_t * genericcast_mmfile(void * obj, IDNAME nameprefix, TYPEQUALIFIER qualifier) ;
+
 
 // section: inline implementation
 
@@ -180,18 +189,45 @@ int seek_mmfile(mmfile_t * mfile, sys_file_t fd, off_t file_offset, accessmode_e
  * Implements <mmfile_t.alignedsize_mmfile>. */
 #define alignedsize_mmfile(mfile)      ((size_mmfile(mfile) + (pagesize_vm()-1)) & ~(pagesize_vm()-1))
 
+/* define: genericcast_mmfile
+ * Implements <mmfile_t.genericcast_mmfile>. */
+#define genericcast_mmfile(obj, nameprefix, qualifier)            \
+         ( __extension__ ({                                       \
+            typeof(obj) _obj = (obj) ;                            \
+            static_assert(                                        \
+               sizeof(_obj->nameprefix##addr)                     \
+               == sizeof(((mmfile_t*)0)->addr)                    \
+               && 0 == offsetof(mmfile_t, addr),                  \
+               "addr member is compatible") ;                     \
+            static_assert(                                        \
+               sizeof(_obj->nameprefix##size)                     \
+               == sizeof(((mmfile_t*)0)->size)                    \
+               && offsetof(mmfile_t, size)                        \
+                  == ((uintptr_t)&_obj->nameprefix##size)         \
+                     -((uintptr_t)&_obj->nameprefix##addr),       \
+               "size member is compatible") ;                     \
+            if (0) {                                              \
+               volatile uint8_t _err ;                            \
+               volatile size_t _size ;                            \
+               _size = _obj->nameprefix##size ;                   \
+               _err  = _obj->nameprefix##addr[_size] ;            \
+               (void) _err ;                                      \
+            }                                                     \
+            (qualifier mmfile_t *)(&_obj->nameprefix##addr) ;     \
+         }))
+
 /* define: initmove_mmfile
  * Implements <mmfile_t.initmove_mmfile>. */
-#define initmove_mmfile(destmfile, sourcemfile)             \
-   do {                                                     \
-      mmfile_t * _sourcemfile = (sourcemfile) ;             \
-      *(destmfile) = *(_sourcemfile) ;                      \
-      *(_sourcemfile) = (mmfile_t) mmfile_INIT_FREEABLE ;   \
-   } while (0)
+#define initmove_mmfile(destmfile, sourcemfile)                   \
+         do {                                                     \
+            mmfile_t * _sourcemfile = (sourcemfile) ;             \
+            *(destmfile) = *(_sourcemfile) ;                      \
+            *(_sourcemfile) = (mmfile_t) mmfile_INIT_FREEABLE ;   \
+         } while (0)
 
-/* define: isinit_mmfile
- * Implements <mmfile_t.isinit_mmfile>. */
-#define isinit_mmfile(mfile)           (0 != addr_mmfile(mfile) || 0 != size_mmfile(mfile))
+/* define: isfree_mmfile
+ * Implements <mmfile_t.isfree_mmfile>. */
+#define isfree_mmfile(mfile)           (0 == addr_mmfile(mfile) && 0 == size_mmfile(mfile))
 
 /* define: size_mmfile
  * Implements <mmfile_t.size_mmfile>. */

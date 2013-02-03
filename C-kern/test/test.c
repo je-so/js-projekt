@@ -103,7 +103,7 @@ static int test_helper(void)
 
    return 0 ;
 ONABORT:
-   if (isinit_file(oldstdout)) {
+   if (!isfree_file(oldstdout)) {
       dup2(oldstdout, file_STDOUT) ;
    }
    memset(buffer, 0, sizeof(buffer)) ;

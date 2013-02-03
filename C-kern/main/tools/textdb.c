@@ -1,4 +1,5 @@
 /* title: TextDB
+
    Implements main function and core logic of TextDB.
    TextDB is used to read from simple CSV files and
    patch the content into C source code files.

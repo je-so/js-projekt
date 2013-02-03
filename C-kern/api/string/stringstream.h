@@ -90,9 +90,9 @@ void free_stringstream(stringstream_t * strstream) ;
 
 // group: query
 
-/* function: isempty_stringstream
- * Returns true if there are no more unread bytes. */
-bool isempty_stringstream(const stringstream_t * strstream) ;
+/* function: isnext_stringstream
+ * Returns true if there are is at least one more unread bytes. */
+bool isnext_stringstream(const stringstream_t * strstream) ;
 
 /* function: size_stringstream
  * Returns the number of unread bytes. */
@@ -116,7 +116,7 @@ const uint8_t * findbyte_stringstream(const struct string_t * strstream, uint8_t
  * Attention:
  * This function is unsafe ! It does not *check* that the stream contains
  * at least one more unread byte. Call this function only if you know that
- * <isempty_stringstream> does return *false*. */
+ * <isnext_stringstream> does return *true*. */
 uint8_t nextbyte_stringstream(stringstream_t * strstream) ;
 
 /* function: skipbyte_stringstream
@@ -125,7 +125,7 @@ uint8_t nextbyte_stringstream(stringstream_t * strstream) ;
  * Attention:
  * This function is unsafe ! It does not *check* that the stream contains
  * at least one more unread byte. Call this function only if you know that
- * <isempty_stringstream> does return *false*. */
+ * <isnext_stringstream> does return *true*. */
 void skipbyte_stringstream(stringstream_t * strstream) ;
 
 /* function: skipbytes_stringstream
@@ -190,12 +190,12 @@ stringstream_t * genericcast_stringstream(void * strstream) ;
       (stringstream_t*)(&_obj->next) ;                               \
    }))
 
-/* define: isempty_stringstream
- * Implements <stringstream_t.isempty_stringstream>. */
-#define isempty_stringstream(strstream)                              \
+/* define: isnext_stringstream
+ * Implements <stringstream_t.isnext_stringstream>. */
+#define isnext_stringstream(strstream)                               \
    ( __extension__({                                                 \
       typeof(strstream) _strstream = (strstream) ;                   \
-      (_strstream->next >= _strstream->end) ;                        \
+      (_strstream->next < _strstream->end) ;                         \
    }))
 
 /* define: nextbyte_stringstream

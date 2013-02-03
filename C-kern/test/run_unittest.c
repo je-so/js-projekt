@@ -314,11 +314,6 @@ int run_unittest(void)
 //}
 
 //{ io unittest
-      // generic
-      RUN(unittest_io_instream) ;
-      RUN(unittest_io_iocallback) ;
-      RUN(unittest_io_url) ;
-      RUN(unittest_io_iopoll) ;
       // filesystem
       RUN(unittest_io_directory) ;
       RUN(unittest_io_file) ;
@@ -327,10 +322,13 @@ int run_unittest(void)
       // IP
       RUN(unittest_io_ipaddr) ;
       RUN(unittest_io_ipsocket) ;
-      // adapter
-      RUN(unittest_io_adapter_instream_mmfile) ;
+      // generic
+      RUN(unittest_io_iocallback) ;
+      RUN(unittest_io_url) ;
+      RUN(unittest_io_iopoll) ;
       // reader
       RUN(unittest_io_reader_csvfilereader) ;
+      RUN(unittest_io_reader_filereader) ;
       RUN(unittest_io_reader_utf8reader) ;
       // reader / util
       RUN(unittest_io_reader_util_textpos) ;

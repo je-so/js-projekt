@@ -3,7 +3,7 @@
    This reader decodes UTF-8 multibyte text content into a <char32_t> character
    and maintains additional information about the current line number and column.
 
-   TODO: Remove utf8reader_t->next/end and implement double buffering
+   TODO: Replace utf8reader_t with utf8scanner_t
 
    about: Copyright
    This program is free software.
@@ -29,8 +29,7 @@
 #ifndef CKERN_IO_READER_UTF8READER_HEADER
 #define CKERN_IO_READER_UTF8READER_HEADER
 
-#include "C-kern/api/io/instream.h"
-#include "C-kern/api/io/adapter/instream_mmfile.h"
+#include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/io/reader/util/textpos.h"
 #include "C-kern/api/string/utf8.h"
 
@@ -59,16 +58,14 @@ struct utf8reader_t {
    const uint8_t        * next ;
    const uint8_t        * end ;
    textpos_t            pos ;
-   instream_t           instream ;
-   instream_mmfile_t    fileadapter ;
-   bool                 isSingleBufferMode ;
+   mmfile_t             mmfile ;
 } ;
 
 // group: lifetime
 
 /* define: utf8reader_INIT_FREEABLE
  * Static initializer.  */
-#define utf8reader_INIT_FREEABLE       { 0, 0, textpos_INIT_FREEABLE, instream_INIT_FREEABLE, instream_mmfile_INIT_FREEABLE, false }
+#define utf8reader_INIT_FREEABLE       { 0, 0, textpos_INIT_FREEABLE, mmfile_INIT_FREEABLE }
 
 /* function: init_utf8reader
  * Opens file at *filepath* for reading as UTF-8 encoded text. */

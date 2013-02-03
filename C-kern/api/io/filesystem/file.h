@@ -129,18 +129,18 @@ int free_file(file_t * fileobj) ;
  * Returns <accessmode_NONE> in case of an error. */
 accessmode_e accessmode_file(const file_t fileobj) ;
 
-/* function: isinit_file
+/* function: isfree_file
  * Returns true if the file was opened with <init_file>.
  * Returns false if file is in a freed (closed) state and after <free_file>
  * has been called. */
-static inline bool isinit_file(const file_t fileobj) ;
+static inline bool isfree_file(const file_t fileobj) ;
 
 /* function: isopen_file
  * Returns *true* if the underlying system file object is open.
- * If it is open then it <isinit_file> returns also true.
+ * If it is open then it <isfree_file> returns false.
  * <isopen_file> checks that the value in fd refers to an open descriptor
  * and makes a call to the operating system.
- * It is therefore more costly than <isinit_file>.
+ * It is therefore more costly than <isfree_file>.
  * It is possible that a former valid file descriptor is no more open
  * if a copied value of it was closed. */
 bool isopen_file(const file_t fileobj) ;
@@ -203,7 +203,7 @@ int allocate_file(file_t fileobj, off_t file_size) ;
 
 // group: file_t
 
-/* function: isinit_file
+/* function: isfree_file
  * Implements <file_t.initmove_file>. */
 static inline void initmove_file(file_t * restrict destfile, file_t * restrict sourcefile)
 {
@@ -211,9 +211,12 @@ static inline void initmove_file(file_t * restrict destfile, file_t * restrict s
    *sourcefile = file_INIT_FREEABLE ;
 }
 
-/* function: isinit_file
- * Implements <file_t.isinit_file>.
+/* function: isfree_file
+ * Implements <file_t.isfree_file>.
  * This function assumes that file is a primitive type. */
-static inline bool isinit_file(file_t fileobj)        {  return file_INIT_FREEABLE != fileobj ; }
+static inline bool isfree_file(file_t fileobj)
+{
+   return file_INIT_FREEABLE == fileobj ;
+}
 
 #endif

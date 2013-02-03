@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Feb.03  14:31:46
+GenerationDate  := 2013.Feb.03  15:03:36
 GeneratedBy     := je-so
 
 ## Debug
@@ -90,9 +90,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Debug)/C-kern!io!adapter!instream_factory.c.o \
- $(ObjectDir_Debug)/C-kern!io!adapter!instream_mmfile.c.o \
- $(ObjectDir_Debug)/C-kern!io!instream.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!textresourcev2_compiler.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
@@ -117,9 +114,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Release)/C-kern!io!adapter!instream_factory.c.o \
- $(ObjectDir_Release)/C-kern!io!adapter!instream_mmfile.c.o \
- $(ObjectDir_Release)/C-kern!io!instream.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!textresourcev2_compiler.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
@@ -179,15 +173,6 @@ $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o: C-kern/ds/typeadapt/t
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!adapter!instream_factory.c.o: C-kern/io/adapter/instream_factory.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!adapter!instream_mmfile.c.o: C-kern/io/adapter/instream_mmfile.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!instream.c.o: C-kern/io/instream.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!tools!textresourcev2_compiler.c.o: C-kern/main/tools/textresourcev2_compiler.c
@@ -254,15 +239,6 @@ $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o: C-kern/ds/typeadapt
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!adapter!instream_factory.c.o: C-kern/io/adapter/instream_factory.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!adapter!instream_mmfile.c.o: C-kern/io/adapter/instream_mmfile.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!instream.c.o: C-kern/io/instream.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!tools!textresourcev2_compiler.c.o: C-kern/main/tools/textresourcev2_compiler.c

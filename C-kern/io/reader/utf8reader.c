@@ -27,12 +27,12 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/reader/utf8reader.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/adapter/instream_factory.h"
 #include "C-kern/api/string/stringstream.h"
 #include "C-kern/api/math/int/log2.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/string/cstring.h"
 #endif
@@ -54,8 +54,6 @@ int init_utf8reader(/*out*/utf8reader_t * utfread, const char * filepath, const 
    err = ENOSYS ;
    if (err) goto ONABORT ;
 
-   utfread->isSingleBufferMode = false ;
-
    return 0 ;
 ONABORT:
    TRACEABORT_LOG(err) ;
@@ -66,24 +64,12 @@ int initsinglebuffer_utf8reader(/*out*/utf8reader_t * utfread, const char * file
 {
    int err ;
 
-   err = createimpl_instreamfactory(&utfread->instream, instream_factory_config_SINGLEBUFFER, instream_factory_impltype_MMFILE,
-            sizeof(utfread->fileadapter), (uint8_t*)&utfread->fileadapter, filepath, relative_to) ;
+   err = init_mmfile(&utfread->mmfile, filepath, 0, 0, accessmode_READ, relative_to) ;
    if (err) goto ONABORT ;
 
    utfread->pos  = (textpos_t) textpos_INIT ;
-
-   // TODO: remove next + data field
-   // TODO: remove start ===
-   err = readnextblock_instream(&utfread->instream) ;
-   if (err) {
-      free_utf8reader(utfread) ;
-      goto ONABORT ;
-   }
-   utfread->next = buffer_instream(&utfread->instream)->next ;
-   utfread->end  = buffer_instream(&utfread->instream)->end ;
-   // TODO: remove end ===
-
-   utfread->isSingleBufferMode = true ;
+   utfread->next = addr_mmfile(&utfread->mmfile) ;
+   utfread->end  = utfread->next + size_mmfile(&utfread->mmfile) ;
 
    return 0 ;
 ONABORT:
@@ -100,8 +86,7 @@ int free_utf8reader(utf8reader_t * utfread)
    utfread->end  = 0 ;
    free_textpos(&utfread->pos) ;
 
-   err = destroyimpl_instreamfactory(&utfread->instream, instream_factory_impltype_MMFILE,
-            sizeof(utfread->fileadapter), (uint8_t*)&utfread->fileadapter) ;
+   err = free_mmfile(&utfread->mmfile) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -132,7 +117,6 @@ int skipline_utf8reader(utf8reader_t * utfread)
 
 int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, const uint8_t bytes[nrbytes], /*err*/size_t * matchedsize)
 {
-   if (!utfread->isSingleBufferMode) return ENOSYS ;
 
    if (  unreadsize_utf8reader(utfread) < nrbytes
          || 0 != strncmp((const char*)unread_utf8reader(utfread), (const char*)bytes, nrbytes)) {
@@ -167,8 +151,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == isnext_utf8reader(&utfread)) ;
    TEST(0 == unread_utf8reader(&utfread)) ;
    TEST(0 == unreadsize_utf8reader(&utfread)) ;
-   TEST(1 == isfree_instream(&utfread.instream)) ;
-   TEST(0 == isinit_instreammmfile(&utfread.fileadapter)) ;
+   TEST(1 == isfree_mmfile(&utfread.mmfile)) ;
 
    // TEST init_utf8reader: ENOSYS
    TEST(0 == makefile_directory(tempdir, "grow", 0)) ;
@@ -192,8 +175,7 @@ static int test_initfree(directory_t * tempdir)
       TEST(0 == column_utf8reader(&utfread)) ;
       TEST(0 == line_utf8reader(&utfread)) ;
       TEST(0 == isnext_utf8reader(&utfread)) ;
-      TEST(1 == isfree_instream(&utfread.instream)) ;
-      TEST(0 == isinit_instreammmfile(&utfread.fileadapter)) ;
+      TEST(1 == isfree_mmfile(&utfread.mmfile)) ;
 
       free_utf8reader(&utfread) ;
       TEST(0 == unread_utf8reader(&utfread)) ;
@@ -201,15 +183,21 @@ static int test_initfree(directory_t * tempdir)
       TEST(0 == column_utf8reader(&utfread)) ;
       TEST(0 == line_utf8reader(&utfread)) ;
       TEST(0 == isnext_utf8reader(&utfread)) ;
-      TEST(1 == isfree_instream(&utfread.instream)) ;
-      TEST(0 == isinit_instreammmfile(&utfread.fileadapter)) ;
+      TEST(1 == isfree_mmfile(&utfread.mmfile)) ;
 
       TEST(0 == removefile_directory(tempdir, "grow")) ;
    }
 
-   // TEST initsinglebuffer_utf8reader: ENODATA (empty file)
+   // TEST initsinglebuffer_utf8reader: empty file
    TEST(0 == makefile_directory(tempdir, "grow", 0)) ;
-   TEST(ENODATA == initsinglebuffer_utf8reader(&utfread, "grow", tempdir)) ;
+   TEST(0 == initsinglebuffer_utf8reader(&utfread, "grow", tempdir)) ;
+   TEST(0 == unread_utf8reader(&utfread)) ;
+   TEST(0 == unreadsize_utf8reader(&utfread)) ;
+   TEST(0 == column_utf8reader(&utfread)) ;
+   TEST(1 == line_utf8reader(&utfread)) ;
+   TEST(0 == isnext_utf8reader(&utfread)) ;
+   TEST(1 == isfree_mmfile(&utfread.mmfile)) ;
+   TEST(0 == free_utf8reader(&utfread)) ;
    TEST(0 == removefile_directory(tempdir, "grow")) ;
 
    return 0 ;

@@ -154,6 +154,7 @@
         <VirtualDirectory Name="util">
           <File Name="../../C-kern/api/io/reader/util/textpos.h"/>
         </VirtualDirectory>
+        <File Name="../../C-kern/api/io/reader/filereader.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="writer">
         <VirtualDirectory Name="log">
@@ -167,12 +168,6 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/iocallback.h"/>
       <File Name="../../C-kern/api/io/iopoll.h"/>
-      <File Name="../../C-kern/api/io/instream.h"/>
-      <VirtualDirectory Name="adapter">
-        <File Name="../../C-kern/api/io/adapter/instream_mmfile.h"/>
-        <File Name="../../C-kern/api/io/adapter/konfig_buffersize.h"/>
-        <File Name="../../C-kern/api/io/adapter/instream_factory.h"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/timevalue.h"/>
@@ -211,6 +206,7 @@
       <VirtualDirectory Name="util">
         <File Name="../../C-kern/io/reader/util/textpos.c"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/io/reader/filereader.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <VirtualDirectory Name="log">
@@ -220,11 +216,6 @@
       <File Name="../../C-kern/io/writer/errlog.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/io/iocallback.c"/>
-    <File Name="../../C-kern/io/instream.c"/>
-    <VirtualDirectory Name="adapter">
-      <File Name="../../C-kern/io/adapter/instream_mmfile.c"/>
-      <File Name="../../C-kern/io/adapter/instream_factory.c"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="filesystem">
       <File Name="../../C-kern/io/filesystem/fileutil.c"/>
     </VirtualDirectory>

@@ -1,8 +1,11 @@
 /* title: genfile
 
    Generates header and source file skeleton.
-   This generator is onot configurable you must change
-   the soruce coe if you want to adapt or customize it.
+   This generator is not configurable you must change
+   the source code if you want to adapt or customize it.
+
+   Call Signature:
+   genfile <filetitle> <typename> <headerfilename> <sourcefilename>
 
    about: Copyright
    This program is free software.
@@ -135,7 +138,9 @@ static const char * s_templatesource =
 #include \"C-kern/api/err.h\"\n\
 #ifdef KONFIG_UNITTEST\n\
 #include \"C-kern/api/test.h\"\n\
-#endif\n\n\n\n\
+#endif\n\n\
+// section: @TYPENAME\n\n\
+// group: lifetime\n\n\
 // group: test\n\n\
 #ifdef KONFIG_UNITTEST\n\n\
 static int test_initfree(void)\n\

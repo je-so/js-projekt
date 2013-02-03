@@ -1,2 +1,1 @@
-C-kern/io/reader/utf8reader.c:61: init_utf8reader(): error: 38: Function aborted
-C-kern/io/reader/utf8reader.c:90: initsinglebuffer_utf8reader(): error: 61: Function aborted
+C-kern/io/reader/utf8reader.c:59: init_utf8reader(): error: 38: Function aborted

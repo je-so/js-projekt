@@ -1,6 +1,0 @@
-C-kern/io/adapter/instream_factory.c:86: createimpl_instreamfactory(): error: 22: Function aborted
-C-kern/io/adapter/instream_factory.c:115: destroyimpl_instreamfactory(): error: 22: Freeing a resource returned an error
-C-kern/io/adapter/instream_factory.c:63: createimpl_instreamfactory(): error: 22: Function input violates condition (config <= instream_factory_config_SINGLEBUFFER)
-C-kern/io/adapter/instream_factory.c:86: createimpl_instreamfactory(): error: 22: Function aborted
-C-kern/io/adapter/instream_factory.c:63: createimpl_instreamfactory(): error: 22: Function input violates condition (config <= instream_factory_config_SINGLEBUFFER)
-C-kern/io/adapter/instream_factory.c:86: createimpl_instreamfactory(): error: 22: Function aborted

@@ -222,7 +222,7 @@ int free_file(file_t * fileobj)
    int err ;
    int close_fd = *fileobj ;
 
-   if (isinit_file(close_fd)) {
+   if (!isfree_file(close_fd)) {
       *fileobj = file_INIT_FREEABLE ;
 
       err = close(close_fd) ;
@@ -537,15 +537,15 @@ static int test_query(directory_t * tempdir)
    TEST(1 == file_STDOUT) ;
    TEST(2 == file_STDERR) ;
 
-   // TEST isinit_file
+   // TEST isfree_file
    fd = file_INIT_FREEABLE ;
-   TEST(0 == isinit_file(fd)) ;
+   TEST(1 == isfree_file(fd)) ;
    fd = file_STDIN ;
-   TEST(1 == isinit_file(fd)) ;
+   TEST(0 == isfree_file(fd)) ;
    fd = file_STDOUT ;
-   TEST(1 == isinit_file(fd)) ;
+   TEST(0 == isfree_file(fd)) ;
    fd = file_STDERR ;
-   TEST(1 == isinit_file(fd)) ;
+   TEST(0 == isfree_file(fd)) ;
 
    // TEST isopen_file
    TEST(0 == isopen_file(file_INIT_FREEABLE)) ;
@@ -650,7 +650,7 @@ static int test_initfree(directory_t * tempdir)
 
    // TEST static init
    TEST(-1 == file) ;
-   TEST(!isinit_file(file)) ;
+   TEST(isfree_file(file)) ;
 
    // TEST init_file, free_file
    accessmode_e modes[3] = {  accessmode_READ,  accessmode_WRITE, accessmode_RDWR } ;
@@ -660,12 +660,12 @@ static int test_initfree(directory_t * tempdir)
    for (unsigned i = 0; i < lengthof(modes); ++i) {
       TEST(0 == init_file(&file, "init1", modes[i], tempdir)) ;
       TEST(modes[i] == accessmode_file(file)) ;
-      TEST(isinit_file(file)) ;
+      TEST(!isfree_file(file)) ;
       TEST(0 == nropen_file(&nropenfd2)) ;
       TEST(nropenfd+1 == nropenfd2) ;
       TEST(0 == free_file(&file)) ;
       TEST(file == file_INIT_FREEABLE) ;
-      TEST(!isinit_file(file)) ;
+      TEST(isfree_file(file)) ;
       TEST(0 == nropen_file(&nropenfd2)) ;
       TEST(nropenfd == nropenfd2) ;
       TEST(0 == free_file(&file)) ;
@@ -679,7 +679,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(ENOENT == checkpath_directory(tempdir, "init2")) ;
    TEST(0 == initcreate_file(&file, "init2", tempdir)) ;
    TEST(accessmode_RDWR == accessmode_file(file)) ;
-   TEST(isinit_file(file)) ;
+   TEST(!isfree_file(file)) ;
    TEST(0 == nropen_file(&nropenfd2)) ;
    TEST(nropenfd+1 == nropenfd2) ;
    TEST(0 == checkpath_directory(tempdir, "init2")) ;
@@ -697,7 +697,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(ENOENT == checkpath_directory(tempdir, "init3")) ;
    TEST(0 == initappend_file(&file, "init3", tempdir)) ;
    TEST(accessmode_WRITE == accessmode_file(file)) ;
-   TEST(isinit_file(file)) ;
+   TEST(!isfree_file(file)) ;
    TEST(0 == nropen_file(&nropenfd2)) ;
    TEST(nropenfd+1 == nropenfd2) ;
    TEST(0 == checkpath_directory(tempdir, "init3")) ;
@@ -715,17 +715,17 @@ static int test_initfree(directory_t * tempdir)
    for (int i = 0; i < 100; ++i) {
       file_t destfile   = file_INIT_FREEABLE ;
       file_t sourcefile = i ;
-      TEST(isinit_file(sourcefile)) ;
+      TEST(!isfree_file(sourcefile)) ;
       initmove_file(&destfile, &sourcefile) ;
-      TEST(!isinit_file(sourcefile)) /*source is reset*/ ;
+      TEST(isfree_file(sourcefile)) /*source is reset*/ ;
       TEST(destfile == i) /*dest contains former value of source*/ ;
    }
 
    // TEST initmove_file: move to itself does not work !
    file = 0 ;
-   TEST(isinit_file(file)) ;
+   TEST(!isfree_file(file)) ;
    initmove_file(&file, &file) ;
-   TEST(!isinit_file(file)) ;
+   TEST(isfree_file(file)) ;
 
    // TEST EEXIST
    TEST(0 == makefile_directory(tempdir, "init1", 0)) ;

@@ -2,7 +2,13 @@
 
    Makefile Generator <genmake>.
 
-   Uses <Tool-HashFunction> for its implementation.
+   Uses <exthash_t> to store names.
+
+   Call Signature:
+   genmake -o <makefile.name> <filename>
+
+   All paths in <filename> which references source codes are relative to the working directory of genmake.
+   The command make must also be run in with the same working directory as genmake.
 
    about: Copyright
    This program is free software.
@@ -1676,21 +1682,15 @@ ONABORT:
 
 PRINT_USAGE:
    fprintf(stderr, "Genmake version 0.1; Copyright (C) 2010 Joerg Seebohn\n" ) ;
-   fprintf(stderr, "\nUsage(1): %s -o <makefile.name> [OPTS] <filename>\n", g_programname ) ;
+   fprintf(stderr, "\nUsage(1): %s -o <makefile.name> <filename>\n", g_programname ) ;
    fprintf(stderr, "%s", "       -> generates a makefile from a project description\n" ) ;
-   fprintf(stderr, "     (2): %s -o <directory> [OPTS] <filename1> ... <filenameN>\n", g_programname ) ;
+   fprintf(stderr, "     (2): %s -o <directory> <filename1> ... <filenameN>\n", g_programname ) ;
    fprintf(stderr, "%s", "       -> generates N makefiles from N project descriptions in the specified directory.\n" ) ;
    fprintf(stderr, "%s", "          Makefile names follow the pattern 'Makefile.<projectname>'.\n" ) ;
-   fprintf(stderr, "     (3): %s [OPTS] <filename1> ... <filenameN>\n", g_programname ) ;
+   fprintf(stderr, "     (3): %s <filename1> ... <filenameN>\n", g_programname ) ;
    fprintf(stderr, "%s", "       -> generates N makefiles and prints them to stdout.\n" ) ;
    fprintf(stderr, "     (4): %s  -h\n", g_programname ) ;
    fprintf(stderr, "%s", "       -> prints additional help.\n" ) ;
-   fprintf(stderr, "Optional paramters [OPTS]:\n" ) ;
-   fprintf(stderr, "-md <dir> : Every path in a project description is considered to be\n" ) ;
-   fprintf(stderr, "            relative to the working directory of genmake.\n" ) ;
-   fprintf(stderr, "            Filenames stored in generated Makefiles rely on this too.\n" ) ;
-   fprintf(stderr, "            To be able to run make in a different directory than genmake\n" ) ;
-   fprintf(stderr, "            use -md <dir> to set the working directory of make.\n" ) ;
 
    if (isPrintHelp) {
       fprintf(stderr, "%s", "\nGenmake reads in a project textfile decribing the compiler&linker" ) ;

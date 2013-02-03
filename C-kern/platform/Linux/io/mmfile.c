@@ -250,17 +250,17 @@ static int test_query(void)
       TEST(aligned2 == aligned) ;
    }
 
-   // TEST isinit_mmfile
+   // TEST isfree_mmfile
    mfile = (mmfile_t) mmfile_INIT_FREEABLE ;
-   TEST(false == isinit_mmfile(&mfile)) ;
+   TEST(1 == isfree_mmfile(&mfile)) ;
    mfile.addr = (void*) 1 ;
-   TEST(true == isinit_mmfile(&mfile)) ;
+   TEST(0 == isfree_mmfile(&mfile)) ;
    mfile.addr = (void*) 0 ;
-   TEST(false == isinit_mmfile(&mfile)) ;
+   TEST(1 == isfree_mmfile(&mfile)) ;
    mfile.size = 1u ;
-   TEST(true == isinit_mmfile(&mfile)) ;
+   TEST(0 == isfree_mmfile(&mfile)) ;
    mfile.size = 0 ;
-   TEST(false == isinit_mmfile(&mfile)) ;
+   TEST(1 == isfree_mmfile(&mfile)) ;
 
    // TEST size_mmfile
    mfile.size = 4567 ;
@@ -440,9 +440,9 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    for (unsigned i = 0; i < 256; ++i) {
       mmfile_t destmfile = mmfile_INIT_FREEABLE ;
       mmfile_t sourcemfile = { .addr = (uint8_t*)(100+i), .size = i } ;
-      TEST(isinit_mmfile(&sourcemfile)) ;
+      TEST(!isfree_mmfile(&sourcemfile)) ;
       initmove_mmfile(&destmfile, &sourcemfile) ;
-      TEST(!isinit_mmfile(&sourcemfile)) /*source is reset*/ ;
+      TEST(isfree_mmfile(&sourcemfile)) /*source is reset*/ ;
       TEST(addr_mmfile(&destmfile) == (uint8_t*)(100+i)) /*dest contains former addr of source*/ ;
       TEST(size_mmfile(&destmfile) == i) /*dest contains former size of source*/ ;
    }
@@ -451,7 +451,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    mfile.addr = (uint8_t*)1 ;
    mfile.size = 1u ;
    initmove_mmfile(&mfile, &mfile) ;
-   TEST(!isinit_mmfile(&mfile)) /*resets mfile instead of doing nothing*/ ;
+   TEST(isfree_mmfile(&mfile)) /*resets mfile instead of doing nothing*/ ;
 
    // TEST initsplit_mmfile
    for (size_t splitoffset = pagesize; splitoffset <= 2*pagesize; splitoffset += pagesize) {
@@ -460,7 +460,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
       size_t   size   = size_mmfile(&mfile) ;
       TEST(size == 2*pagesize+sizeof(uint32_t)) ;
       TEST(0 == initsplit_mmfile(&split[0], &split[1], splitoffset, &mfile)) ;
-      TEST(!isinit_mmfile(&mfile)) /*source is reset*/ ;
+      TEST(isfree_mmfile(&mfile)) /*source is reset*/ ;
       // head
       TEST(split[0].addr == addr) ;
       TEST(split[0].size == splitoffset) ;
@@ -729,6 +729,33 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_generic(void)
+{
+   struct testobj_t {
+      struct inner {
+         uint8_t  * addr ;
+         size_t   size ;
+      }        mmfile[2] ;
+      uint8_t  * preFX_addr ;
+      size_t   preFX_size ;
+   }                       obj ;
+   const struct testobj_t  cobj ;
+
+   // TEST genericcast_mmfile: non const
+   TEST((mmfile_t*)(&obj.mmfile[0].addr) == genericcast_mmfile(&obj.mmfile[0],,)) ;
+   TEST((mmfile_t*)(&obj.mmfile[1].addr) == genericcast_mmfile(&obj.mmfile[1],,)) ;
+   TEST((mmfile_t*)(&obj.preFX_addr)     == genericcast_mmfile(&obj,preFX_,)) ;
+
+   // TEST genericcast_mmfile: const
+   TEST((const mmfile_t*)(&cobj.mmfile[0].addr) == genericcast_mmfile(&cobj.mmfile[0],,const)) ;
+   TEST((const mmfile_t*)(&cobj.mmfile[1].addr) == genericcast_mmfile(&cobj.mmfile[1],,const)) ;
+   TEST((const mmfile_t*)(&cobj.preFX_addr)     == genericcast_mmfile(&cobj,preFX_,const)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 int unittest_io_mmfile()
 {
    directory_t     * tempdir = 0 ;
@@ -745,6 +772,7 @@ int unittest_io_mmfile()
    if (test_initfree(tempdir, tmpstr))    goto ONABORT ;
    if (test_fileoffset(tempdir))          goto ONABORT ;
    if (test_seek(tempdir))                goto ONABORT ;
+   if (test_generic())                    goto ONABORT ;
 
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;

@@ -149,7 +149,7 @@ int growright_memblock(memblock_t * mblock, size_t size_increment) ;
 
 /* function: genericcast_memblock
  * Casts a pointer to generic object into pointer to <memblock_t>.
- * The object must have two fields nameprefix##addr and nameprefix##size
+ * The object must have two members nameprefix##addr and nameprefix##size
  * of the same type as <memblock_t> and in the same order. */
 memblock_t * genericcast_memblock(void * obj, IDNAME nameprefix) ;
 

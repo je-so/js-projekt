@@ -1,4 +1,5 @@
 /* title: TextResource-v2-Compiler
+
    Translates text resource descriptions into C files.
 
    about: Copyright

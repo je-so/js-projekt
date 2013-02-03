@@ -139,14 +139,14 @@ static int test_query(void)
       buffer[i] = (uint8_t) i ;
    }
 
-   // TEST isempty_stringstream
+   // TEST isnext_stringstream
    for (unsigned i = 0; i < sizeof(buffer); ++i) {
       TEST(0 == init_stringstream(&strstream, buffer+i, buffer+i)) ;
-      TEST(1 == isempty_stringstream(&strstream)) ;
+      TEST(0 == isnext_stringstream(&strstream)) ;
       // in case of next > end (which is considered an error) returns also empty state
       strstream.next = buffer + i ;
       strstream.end  = buffer ;
-      TEST(1 == isempty_stringstream(&strstream)) ;
+      TEST(0 == isnext_stringstream(&strstream)) ;
    }
 
    // TEST size_stringstream
@@ -201,11 +201,11 @@ static int test_change(void)
    // TEST nextbyte_stringstream: does not test end of buffer reached !
    TEST(0 == init_stringstream(&strstream, buffer+3, buffer+3)) ;
    TEST(0 == size_stringstream(&strstream)) ;
-   TEST(1 == isempty_stringstream(&strstream)) ;
+   TEST(0 == isnext_stringstream(&strstream)) ;
    TEST(3 == nextbyte_stringstream(&strstream)) ;
    TEST(4 == nextbyte_stringstream(&strstream)) ;
    TEST(0 != size_stringstream(&strstream)) ;
-   TEST(1 == isempty_stringstream(&strstream)) ;
+   TEST(0 == isnext_stringstream(&strstream)) ;
    TEST(strstream.next == strstream.end + 2) ;
 
    // TEST skipbyte_stringstream
