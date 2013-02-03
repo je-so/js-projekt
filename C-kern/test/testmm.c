@@ -24,12 +24,12 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/test/testmm.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/memory/mm/mm_it.h"
-#include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/test/testmm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif

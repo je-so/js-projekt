@@ -16,10 +16,10 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/virtmemory.h
+   file: C-kern/api/memory/vm.h
     Header file of <VirtualMemory>.
 
-   file: C-kern/platform/Linux/virtmemory.c
+   file: C-kern/platform/Linux/vm.c
     Linux specific implementation <VirtualMemory Linux>.
 */
 
@@ -27,7 +27,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache_macros.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/platform/virtmemory.h"
+#include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/test.h"
@@ -907,7 +907,7 @@ ONABORT:
    return EINVAL;
 }
 
-int unittest_platform_virtualmemory()
+int unittest_platform_vm()
 {
    vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
    vm_mappedregions_t mappedregions2 = vm_mappedregions_INIT_FREEABLE ;

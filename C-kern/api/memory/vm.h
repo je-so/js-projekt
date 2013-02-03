@@ -16,14 +16,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/virtmemory.h
+   file: C-kern/api/memory/vm.h
     Header file of <VirtualMemory>.
 
-   file: C-kern/platform/Linux/virtmemory.c
+   file: C-kern/platform/Linux/vm.c
     Linux specific implementation <VirtualMemory Linux>.
 */
-#ifndef CKERN_PLATFORM_VIRTUALMEMORY_HEADER
-#define CKERN_PLATFORM_VIRTUALMEMORY_HEADER
+#ifndef CKERN_MEMORY_VM_HEADER
+#define CKERN_MEMORY_VM_HEADER
 
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/memory/memblock.h"
@@ -63,9 +63,9 @@ uint32_t sys_pagesize_vm(void) ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_platform_virtualmemory
+/* function: unittest_platform_vm
  * Unittest for virtual memory module. */
-int unittest_platform_virtualmemory(void) ;
+int unittest_platform_vm(void) ;
 #endif
 
 

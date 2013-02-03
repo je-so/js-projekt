@@ -6,8 +6,8 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/genmake.prj
 ProjectLinks    := 
 
-GenerationDate  := 2012.Dez.28  14:39:33
-GeneratedBy     := Jörg Seebohn
+GenerationDate  := 2013.Feb.03  14:31:05
+GeneratedBy     := je-so
 
 ## Debug
 DefineFlag_Debug    := -D
@@ -75,7 +75,7 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
@@ -91,7 +91,7 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
@@ -114,7 +114,7 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
@@ -156,7 +156,7 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktre
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+$(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c

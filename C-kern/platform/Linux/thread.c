@@ -25,12 +25,12 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/thread.h"
-#include "C-kern/api/platform/virtmemory.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/writer/log/logmain.h"
+#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/sync/semaphore.h"
 #include "C-kern/api/platform/sync/signal.h"
-#include "C-kern/api/io/writer/log/logmain.h"
-#include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/test/errortimer.h"

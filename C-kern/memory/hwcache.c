@@ -29,7 +29,7 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/platform/virtmemory.h"
+#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/time/sysclock.h"
 #include "C-kern/api/time/timevalue.h"
 #endif

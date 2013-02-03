@@ -28,7 +28,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache_impl.h"
 #include "C-kern/api/cache/objectcache_it.h"
-#include "C-kern/api/platform/virtmemory.h"
+#include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/file.h"

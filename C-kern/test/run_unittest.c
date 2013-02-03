@@ -359,7 +359,7 @@ int run_unittest(void)
       RUN(unittest_platform_process) ;
       RUN(unittest_platform_sysuser) ;
       RUN(unittest_platform_thread) ;
-      RUN(unittest_platform_virtualmemory) ;
+      RUN(unittest_platform_vm) ;
       // user interface subsystem
 #define HTML5  1
 #define X11    2

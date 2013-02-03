@@ -25,11 +25,11 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/writer/log/logmain.h"
-#include "C-kern/api/io/writer/log/logwriter.h"
-#include "C-kern/api/platform/virtmemory.h"
+#include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/directory.h"

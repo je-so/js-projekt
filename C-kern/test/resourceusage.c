@@ -24,13 +24,13 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/memory/mm/mm_it.h"
 #include "C-kern/api/platform/malloc.h"
 #include "C-kern/api/platform/sync/signal.h"
-#include "C-kern/api/platform/virtmemory.h"
-#include "C-kern/api/test/resourceusage.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif

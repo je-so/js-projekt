@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jan.26  18:59:52
+GenerationDate  := 2013.Feb.03  14:36:53
 GeneratedBy     := je-so
 
 ## Debug
@@ -79,8 +79,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!waitlist.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!thread.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o \
@@ -167,8 +167,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!waitlist.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!thread.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o \
@@ -270,10 +270,10 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/mallo
 $(ObjectDir_Debug)/C-kern!platform!Linux!waitlist.c.o: C-kern/platform/Linux/waitlist.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!thread.c.o: C-kern/platform/Linux/thread.c
@@ -528,10 +528,10 @@ $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/mal
 $(ObjectDir_Release)/C-kern!platform!Linux!waitlist.c.o: C-kern/platform/Linux/waitlist.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
+$(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!virtmemory.c.o: C-kern/platform/Linux/virtmemory.c
+$(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!thread.c.o: C-kern/platform/Linux/thread.c

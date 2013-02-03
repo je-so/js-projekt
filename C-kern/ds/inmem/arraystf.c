@@ -37,8 +37,8 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/test/testmm.h"
-#include "C-kern/api/platform/virtmemory.h"
 #include "C-kern/api/test/errortimer.h"
+#include "C-kern/api/memory/vm.h"
 #endif
 
 
