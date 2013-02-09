@@ -1,14 +1,14 @@
 C-kern/platform/Linux/io/file.c:153: init_file(): error: 2: System call 'openat' returned error 'No such file or directory'
 filepath=X
 C-kern/platform/Linux/io/file.c:162: init_file(): error: 2: Function aborted
-C-kern/io/reader/filereader.c:143: init_filereader(): error: 2: Function aborted
+C-kern/io/reader/filereader.c:154: init_filereader(): error: 2: Function aborted
 C-kern/platform/Linux/io/file.c:153: init_file(): error: 2: System call 'openat' returned error 'No such file or directory'
 filepath=X
 C-kern/platform/Linux/io/file.c:162: init_file(): error: 2: Function aborted
-C-kern/io/reader/filereader.c:171: initsb_filereader(): error: 2: Function aborted
+C-kern/io/reader/filereader.c:182: initsb_filereader(): error: 2: Function aborted
 C-kern/platform/Linux/io/mmfile.c:66: init2_mmfile(): error: 12: System call 'mmap' returned error 'Cannot allocate memory'
 C-kern/platform/Linux/io/mmfile.c:86: init2_mmfile(): error: 12: Function aborted
 C-kern/platform/Linux/io/mmfile.c:99: initfd_mmfile(): error: 12: Function aborted
-C-kern/io/reader/filereader.c:171: initsb_filereader(): error: 12: Function aborted
-C-kern/io/reader/filereader.c:280: acquirenext_filereader(): error: 105: Function aborted
-C-kern/io/reader/filereader.c:280: acquirenext_filereader(): error: 105: Function aborted
+C-kern/io/reader/filereader.c:182: initsb_filereader(): error: 12: Function aborted
+C-kern/io/reader/filereader.c:291: acquirenext_filereader(): error: 105: Function aborted
+C-kern/io/reader/filereader.c:291: acquirenext_filereader(): error: 105: Function aborted

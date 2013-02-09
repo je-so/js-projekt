@@ -78,11 +78,13 @@ int unittest_platform_sysuser(void) ;
 #define sysuser_SYS_SERVICE_NAME       "passwd"
 
 /* define: sysuser_UNITTEST_USERNAME
- * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>. */
+ * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>.
+ * This value can be overwritten in C-kern/resource/config/modulevalues. */
 #define sysuser_UNITTEST_USERNAME      "guest"
 
 /* define: sysuser_UNITTEST_PASSWORD
- * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>. */
+ * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>.
+ * This value can be overwritten in C-kern/resource/config/modulevalues. */
 #define sysuser_UNITTEST_PASSWORD      "GUEST"
 
 // group: initonce

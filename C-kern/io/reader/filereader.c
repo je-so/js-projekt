@@ -49,12 +49,23 @@
  * Names type <filereader_t.mmfile>. */
 typedef typeof(((filereader_t*)0)->mmfile[0])      filereader_mmfile_t ;
 
+// group: static configuration
+
+// TEXTDB:SELECT('#undef  filereader_'name\n'#define filereader_'name'      ('value')')FROM("C-kern/resource/config/modulevalues")WHERE(module=="filereader_t")
+#undef  filereader_SYS_BUFFER_SIZE
+#define filereader_SYS_BUFFER_SIZE      (4*4096)
+// TEXTDB:END
+
 // group: helper
 
+/* function: buffersize_filereader
+ * Returns the buffer size in bytes. See also <filereader_t.filereader_SYS_BUFFER_SIZE>.
+ * The size is aligned to 2*pagesize_vm() => every buffer of the two is aligned to pagesize_vm().
+ * TODO: 1. read configuration value at runtime ! */
 static size_t buffersize_filereader(void)
 {
-   // TODO: 1. patch value from static initfile with textdb; 2. read configuration file at runtime !
-   return 4 * pagesize_vm() ;
+   size_t sizeremain = filereader_SYS_BUFFER_SIZE % (2*pagesize_vm()) ;
+   return filereader_SYS_BUFFER_SIZE + (sizeremain ? 2*pagesize_vm() : 0) - sizeremain ;
 }
 
 // group: lifetime

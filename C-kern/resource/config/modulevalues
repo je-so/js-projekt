@@ -15,3 +15,5 @@
 "sysuser_t",   "UNITTEST_USERNAME",                   "guest"
 "sysuser_t",   "UNITTEST_PASSWORD",                   "GUEST"
 
+# The buffersize used in filereader_t. Two buffers of size SYS_BUFFER_SIZE/2 are allocated.
+"filereader_t", "SYS_BUFFER_SIZE",                    "4*4096"

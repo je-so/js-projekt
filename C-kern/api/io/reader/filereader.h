@@ -89,6 +89,14 @@ struct filereader_t {
    }           mmfile[2] ;
 } ;
 
+// group: static configuration
+
+/* define: filereader_SYS_BUFFER_SIZE
+ * The sum of the size the two allocated buffers.
+ * Every buffer is allocated half the size in bytes of this value.
+ * This value can be overwritten in C-kern/resource/config/modulevalues. */
+#define filereader_SYS_BUFFER_SIZE     (4*4096)
+
 // group: lifetime
 
 /* define: filereader_INIT_FREEABLE

@@ -17,5 +17,6 @@ Objectdir     = bin/$(mode)/$(projectname)
 Target        = $(Objectdir)/__dummy_target__
 Src          += C-kern/context/processcontext.c
 Src          += C-kern/context/threadcontext.c
+Src          += C-kern/io/reader/filereader.c
 Src          += C-kern/platform/Linux/signal.c
 Src          += C-kern/platform/Linux/sysuser.c
