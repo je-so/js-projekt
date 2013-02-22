@@ -1746,7 +1746,7 @@ static int init_textresourcereader(/*out*/textresource_reader_t * reader, const 
    err = init_textresource(&new_reader.txtres, filename) ;
    if (err) goto ONABORT ;
 
-   err = initsinglebuffer_utf8reader(&new_reader.txtpos, filename, 0) ;
+   err = init_utf8reader(&new_reader.txtpos, filename, 0) ;
    if (err) {
       print_error("Can not open file »%s«", filename) ;
       goto ONABORT ;

@@ -17,14 +17,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/io/reader/util/textpos.h
+   file: C-kern/string/textpos.h
     Header file <TextPosition>.
 
-   file: C-kern/io/reader/util/textpos.c
+   file: C-kern/string/textpos.c
     Implementation file <TextPosition impl>.
 */
-#ifndef CKERN_IO_READER_UTIL_TEXTPOS_HEADER
-#define CKERN_IO_READER_UTIL_TEXTPOS_HEADER
+#ifndef CKERN_STRING_TEXTPOS_HEADER
+#define CKERN_STRING_TEXTPOS_HEADER
 
 /* typedef: struct textpos_t
  * Export <textpos_t> into global namespace. */
@@ -36,9 +36,9 @@ typedef struct textpos_t         textpos_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_io_reader_util_textpos
+/* function: unittest_string_textpos
  * Test <textpos_t> functionality. */
-int unittest_io_reader_util_textpos(void) ;
+int unittest_string_textpos(void) ;
 #endif
 
 

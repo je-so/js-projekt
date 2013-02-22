@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/io/reader/util/textpos.h
+   file: C-kern/api/string/textpos.h
     Header file <TextPosition>.
 
-   file: C-kern/io/reader/util/textpos.c
+   file: C-kern/string/textpos.c
     Implementation file <TextPosition impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/reader/util/textpos.h"
+#include "C-kern/api/string/textpos.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -109,7 +109,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_io_reader_util_textpos()
+int unittest_string_textpos()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

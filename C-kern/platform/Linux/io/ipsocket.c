@@ -1545,6 +1545,7 @@ ONABORT:
    free(buffer) ;
    (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
+   (void) delete_ipaddr(&ipaddr2) ;
    for (uint16_t i = 0; i < lengthof(ipsockCL); ++i) {
       free_ipsocket(&ipsockCL[i]) ;
    }
@@ -1669,13 +1670,13 @@ ONABORT:
 int unittest_io_ipsocket()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+   unsigned        open_count = 0 ;
+   ipsocket_t      ipsock[8] ;
 
    for (int i = 0; i < 2; ++i) {
       TEST(0 == init_resourceusage(&usage)) ;
 
       // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
-      unsigned   open_count = 0 ;
-      ipsocket_t ipsock[8] ;
       {
          size_t     nrfdopen ;
          ipaddr_t   * ipaddr = 0 ;
@@ -1710,6 +1711,9 @@ int unittest_io_ipsocket()
 
    return 0 ;
 ONABORT:
+   while (open_count) {
+      free_ipsocket(&ipsock[--open_count]) ;
+   }
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

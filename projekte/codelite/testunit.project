@@ -28,6 +28,7 @@
       <File Name="../../C-kern/api/string/base64encode_string.h"/>
       <File Name="../../C-kern/api/string/format_string.h"/>
       <File Name="../../C-kern/api/string/stringstream.h"/>
+      <File Name="../../C-kern/api/string/textpos.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <File Name="../../C-kern/api/platform/process.h"/>
@@ -151,9 +152,6 @@
       <VirtualDirectory Name="reader">
         <File Name="../../C-kern/api/io/reader/utf8reader.h"/>
         <File Name="../../C-kern/api/io/reader/csvfilereader.h"/>
-        <VirtualDirectory Name="util">
-          <File Name="../../C-kern/api/io/reader/util/textpos.h"/>
-        </VirtualDirectory>
         <File Name="../../C-kern/api/io/reader/filereader.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="writer">
@@ -185,6 +183,8 @@
       <VirtualDirectory Name="transC">
         <File Name="../../C-kern/api/lang/transC/transCparser.h"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/lang/utf8scanner.h"/>
+      <File Name="../../C-kern/api/lang/splittoken.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
@@ -203,9 +203,6 @@
       <File Name="../../C-kern/io/reader/utf8reader.c"/>
       <File Name="../../C-kern/io/reader/reader.txt"/>
       <File Name="../../C-kern/io/reader/csvfilereader.c"/>
-      <VirtualDirectory Name="util">
-        <File Name="../../C-kern/io/reader/util/textpos.c"/>
-      </VirtualDirectory>
       <File Name="../../C-kern/io/reader/filereader.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
@@ -270,6 +267,7 @@
     <File Name="../../C-kern/string/base64encode_string.c"/>
     <File Name="../../C-kern/string/format_string.c"/>
     <File Name="../../C-kern/string/stringstream.c"/>
+    <File Name="../../C-kern/string/textpos.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <VirtualDirectory Name="coding conventions">
@@ -356,6 +354,8 @@
     <VirtualDirectory Name="transC">
       <File Name="../../C-kern/lang/transC/transCparser.c"/>
     </VirtualDirectory>
+    <File Name="../../C-kern/lang/utf8scanner.c"/>
+    <File Name="../../C-kern/lang/splittoken.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>

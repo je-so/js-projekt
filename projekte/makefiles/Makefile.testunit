@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Feb.03  15:03:36
+GenerationDate  := 2013.Feb.22  09:48:31
 GeneratedBy     := je-so
 
 ## Debug
@@ -127,7 +127,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Debug)/C-kern!io!reader!util!textpos.c.o \
+ $(ObjectDir_Debug)/C-kern!lang!utf8scanner.c.o \
+ $(ObjectDir_Debug)/C-kern!lang!splittoken.c.o \
  $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
@@ -153,6 +154,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!string!stringstream.c.o \
  $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o \
+ $(ObjectDir_Debug)/C-kern!string!textpos.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
  $(ObjectDir_Debug)/C-kern!test!test.c.o \
@@ -213,7 +215,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Release)/C-kern!io!reader!util!textpos.c.o \
+ $(ObjectDir_Release)/C-kern!lang!utf8scanner.c.o \
+ $(ObjectDir_Release)/C-kern!lang!splittoken.c.o \
  $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
@@ -239,6 +242,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!string!stringstream.c.o \
  $(ObjectDir_Release)/C-kern!string!convertwchar.c.o \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o \
+ $(ObjectDir_Release)/C-kern!string!textpos.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
  $(ObjectDir_Release)/C-kern!test!test.c.o \
@@ -410,7 +414,10 @@ $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!reader!util!textpos.c.o: C-kern/io/reader/util/textpos.c
+$(ObjectDir_Debug)/C-kern!lang!utf8scanner.c.o: C-kern/lang/utf8scanner.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!lang!splittoken.c.o: C-kern/lang/splittoken.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/transCparser.c
@@ -486,6 +493,9 @@ $(ObjectDir_Debug)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
@@ -662,7 +672,10 @@ $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereade
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!reader!util!textpos.c.o: C-kern/io/reader/util/textpos.c
+$(ObjectDir_Release)/C-kern!lang!utf8scanner.c.o: C-kern/lang/utf8scanner.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!lang!splittoken.c.o: C-kern/lang/splittoken.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/transCparser.c
@@ -738,6 +751,9 @@ $(ObjectDir_Release)/C-kern!string!convertwchar.c.o: C-kern/string/convertwchar.
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!textpos.c.o: C-kern/string/textpos.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c

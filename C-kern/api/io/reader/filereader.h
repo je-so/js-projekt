@@ -60,7 +60,6 @@ struct filereader_t {
     * In case <ioerror> != 0 no more call is made to the underlying file. */
    int         ioerror ;
    /* variable: unreadsize
-    * The size of buffered data which is not read.
     * The size of buffered data for which <acquirenext_filereader> is not called. */
    size_t      unreadsize ;
    /* variable: nextindex
@@ -73,7 +72,7 @@ struct filereader_t {
     * This value can range from 0 to 2. */
    uint8_t     nrfreebuffer ;
    /* variable: fileoffset
-    * <mmfile>[<nextindex>] maps <file> into memory starting from fileoffset[x]. */
+    * Offset into <file> where the next read operation begins. */
    off_t       fileoffset ;
    /* variable: filesize
     * The size of the io-stream <file> refers to. */
@@ -101,7 +100,7 @@ struct filereader_t {
 
 /* define: filereader_INIT_FREEABLE
  * Static initializer. */
-#define filereader_INIT_FREEABLE       { 0, 0, 0, 0, 0, 0, sys_file_INIT_FREEABLE, { mmfile_INIT_FREEABLE, mmfile_INIT_FREEABLE } }
+#define filereader_INIT_FREEABLE       { 0, 0, 0, 0, 0, 0, sys_file_INIT_FREEABLE, { {0, 0}, {0, 0} } }
 
 /* function: initsb_filereader
  * Opens file for reading into a single buffer.
@@ -109,8 +108,8 @@ struct filereader_t {
 int initsb_filereader(/*out*/filereader_t * frd, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: init_filereader
- * Opens file for reading into a single buffer.
- * Works only on files < 2GB on 32 bit systems. */
+ * Opens file for reading into a double buffer.
+ * Works also for files > 2GB on 32 bit systems. */
 int init_filereader(/*out*/filereader_t * frd, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: free_filereader
@@ -118,6 +117,12 @@ int init_filereader(/*out*/filereader_t * frd, const char * filepath, const stru
 int free_filereader(filereader_t * frd) ;
 
 // group: query
+
+/* function: buffersize_filereader
+ * Returns the buffer size in bytes. See also <filereader_t.filereader_SYS_BUFFER_SIZE>.
+ * The size is aligned to value (2 * pagesize_vm()). Therefore every buffer in a double buffer configuration
+ * is aligned to pagesize_vm(). */
+size_t buffersize_filereader(void) ;
 
 /* function: ioerror_filereader
  * Returns the I/0 error (>0) or 0 if no error occurred.
@@ -139,7 +144,6 @@ bool isfree_filereader(const filereader_t * frd) ;
  * Therefore <acquirenext_filereader> will not return ENOBUFS or ENODATA. */
 bool isnext_filereader(const filereader_t * frd) ;
 
-
 // group: read
 
 /* function: acquirenext_filereader
@@ -155,7 +159,8 @@ bool isnext_filereader(const filereader_t * frd) ;
 int acquirenext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffer) ;
 
 /* function: release_filereader
- * Releases the oldest acquired buffer. */
+ * Releases the oldest acquired buffer.
+ * If no buffer is acquired calling release does nothing and returns no error. */
 int release_filereader(filereader_t * frd) ;
 
 

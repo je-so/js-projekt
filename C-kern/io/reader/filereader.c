@@ -56,18 +56,6 @@ typedef typeof(((filereader_t*)0)->mmfile[0])      filereader_mmfile_t ;
 #define filereader_SYS_BUFFER_SIZE      (4*4096)
 // TEXTDB:END
 
-// group: helper
-
-/* function: buffersize_filereader
- * Returns the buffer size in bytes. See also <filereader_t.filereader_SYS_BUFFER_SIZE>.
- * The size is aligned to 2*pagesize_vm() => every buffer of the two is aligned to pagesize_vm().
- * TODO: 1. read configuration value at runtime ! */
-static size_t buffersize_filereader(void)
-{
-   size_t sizeremain = filereader_SYS_BUFFER_SIZE % (2*pagesize_vm()) ;
-   return filereader_SYS_BUFFER_SIZE + (sizeremain ? 2*pagesize_vm() : 0) - sizeremain ;
-}
-
 // group: lifetime
 
 static inline void initvariables_filereader(filereader_t * frd)
@@ -212,6 +200,15 @@ ONABORT:
 
 // group: query
 
+/* function: buffersize_filereader
+ * TODO: 1. read configuration value at runtime !
+ * */
+size_t buffersize_filereader(void)
+{
+   size_t sizeremain = filereader_SYS_BUFFER_SIZE % (2*pagesize_vm()) ;
+   return filereader_SYS_BUFFER_SIZE + (sizeremain ? 2*pagesize_vm() : 0) - sizeremain ;
+}
+
 bool isfree_filereader(const filereader_t * frd)
 {
    return   0 == frd->ioerror
@@ -266,7 +263,7 @@ int acquirenext_filereader(filereader_t * frd, /*out*/struct stringstream_t * bu
    }
 
    if (! frd->unreadsize) {
-      // ENODATA no logged
+      // ENODATA is not logged
       if (frd->fileoffset == frd->filesize) return ENODATA ;
       err = ENOBUFS ;
       goto ONABORT ;
@@ -314,7 +311,7 @@ static int test_initfree(directory_t * tempdir)
    filereader_t frd = filereader_INIT_FREEABLE ;
    const size_t B   = buffersize_filereader() ;
 
-   // TEST iobuffer_INIT_FREEABLE
+   // TEST filereader_INIT_FREEABLE
    TEST(0 == frd.ioerror) ;
    TEST(0 == frd.unreadsize) ;
    TEST(0 == frd.nextindex) ;
@@ -323,9 +320,13 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == frd.filesize) ;
    TEST(sys_file_INIT_FREEABLE == frd.file) ;
    for (unsigned i = 0; i < lengthof(frd.mmfile); ++i) {
-      TEST(0 == frd.mmfile[i].addr) ;
-      TEST(0 == frd.mmfile[i].size) ;
+      mmfile_t mfile = mmfile_INIT_FREEABLE ;
+      TEST(0 == frd.mmfile[i].addr) ;  // same as mmfile_INIT_FREEABLE
+      TEST(0 == frd.mmfile[i].size) ;  // same as mmfile_INIT_FREEABLE
+      TEST(0 == mfile.addr) ;
+      TEST(0 == mfile.size) ;
    }
+
 
    // TEST genericcast_mmfile: filereader_t.mmfile compatible with mmfile_t
    TEST((mmfile_t*)&frd.mmfile[0].addr == genericcast_mmfile(&frd.mmfile[0],,)) ;
@@ -403,10 +404,14 @@ ONABORT:
    return EINVAL ;
 }
 
-
 static int test_query(void)
 {
    filereader_t frd = filereader_INIT_FREEABLE ;
+
+   // TEST buffersize_filereader
+   TEST(buffersize_filereader() >= (2*pagesize_vm())) ;
+   TEST(buffersize_filereader() >= filereader_SYS_BUFFER_SIZE) ;
+   TEST(buffersize_filereader() % (2*pagesize_vm()) == 0) ;
 
    // TEST ioerror_filereader
    for (int i = 15; i >= 0; --i) {

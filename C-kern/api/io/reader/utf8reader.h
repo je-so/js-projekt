@@ -3,8 +3,6 @@
    This reader decodes UTF-8 multibyte text content into a <char32_t> character
    and maintains additional information about the current line number and column.
 
-   TODO: Replace utf8reader_t with utf8scanner_t
-
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -30,7 +28,7 @@
 #define CKERN_IO_READER_UTF8READER_HEADER
 
 #include "C-kern/api/io/filesystem/mmfile.h"
-#include "C-kern/api/io/reader/util/textpos.h"
+#include "C-kern/api/string/textpos.h"
 #include "C-kern/api/string/utf8.h"
 
 /* typedef: struct utf8reader_t
@@ -50,7 +48,7 @@ int unittest_io_reader_utf8reader(void) ;
 
 
 /* struct: utf8reader_t
- * Extends <instream_t> with text reading capapbilities.
+ * Extends <mmfile_t> with text reading capapbilities.
  * Only text files encoded in UTF-8 are supported.
  * The current read position is also handled by this object.
  * Reading a character advances the text position. */
@@ -68,14 +66,10 @@ struct utf8reader_t {
 #define utf8reader_INIT_FREEABLE       { 0, 0, textpos_INIT_FREEABLE, mmfile_INIT_FREEABLE }
 
 /* function: init_utf8reader
- * Opens file at *filepath* for reading as UTF-8 encoded text. */
-int init_utf8reader(/*out*/utf8reader_t * utfread, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
-
-/* function: initsinglebuffer_utf8reader
  * Opens file at *filepath* for reading as UTF-8 encoded text.
- * The whole file is read into a single buffer. Therfore the parser must never
- * make a copy of an parsed identifierinstead it can store references into the buffer. */
-int initsinglebuffer_utf8reader(/*out*/utf8reader_t * utfread, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+ * The whole file is read into a single buffer. Therefore the parser must never
+ * make a copy of any parsed identifier instead it can store references to the buffer. */
+int init_utf8reader(/*out*/utf8reader_t * utfread, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: init_utf8reader
  * Sets all internal members to 0. There is no need to free any resources. */
@@ -213,7 +207,7 @@ int skipline_utf8reader(utf8reader_t * utfread) ;
  * and rhe reading position is advanced by nrbytes.
  *
  * In case of an error *matchedsize contains the number of matched bytes before the error
- * and the reading position is advanced with the same amount. The column number is not changed.
+ * and the reading position is advanced by the same amount. The column number is not changed.
  *
  * Returns:
  * 0        - All nrbytes have been matched.
