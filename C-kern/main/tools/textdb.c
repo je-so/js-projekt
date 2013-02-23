@@ -593,7 +593,7 @@ static int new_expression(expression_t ** expr, expression_type_e type)
 {
    expression_t * new_expr ;
 
-   new_expr = MALLOC(expression_t,malloc,) ;
+   new_expr = (expression_t*) malloc(sizeof(expression_t)) ;
    if (!new_expr) {
       print_err("Out of memory") ;
       goto ONABORT ;
@@ -851,7 +851,7 @@ static int prepare_iffunction(iffunction_t * iffunc, const textdb_t * dbfile, co
 
 static int new_iffunction(/*out*/iffunction_t ** iffunc, expression_t * condition, const char * ifstring, size_t ifstring_len, select_parameter_t * ifstring2, const char * elsestring, size_t elsestring_len)
 {
-   iffunction_t * newiffunc = MALLOC(iffunction_t,malloc,) ;
+   iffunction_t * newiffunc = (iffunction_t*) malloc(sizeof(iffunction_t)) ;
 
    if (!newiffunc) {
       print_err("Out of memory") ;
@@ -1058,7 +1058,7 @@ static int delete_select_parameter(select_parameter_t ** param)
 
 static int extend_select_parameter(/*inout*/select_parameter_t ** next_param)
 {
-   select_parameter_t * new_param = MALLOC(select_parameter_t,malloc,) ;
+   select_parameter_t * new_param = (select_parameter_t*) malloc(sizeof(select_parameter_t)) ;
 
    if (!new_param) {
       print_err("Out of memory") ;

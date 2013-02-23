@@ -8,7 +8,7 @@
 # environment variables:
 # verbose: if set to != "" => $info is printed
 info=""
-files=`grep -rl '[^a-z]\(calloc\|malloc\|MALLOC\|free\|realloc\)[ \t]*(' C-kern/ | sed -e '/.*\.txt$/d' -`
+files=`grep -rl '[^a-z]\(calloc\|malloc\|free\|realloc\)[ \t]*(' C-kern/ | sed -e '/.*\.txt$/d' -`
 # array of files which are allowed to use malloc...
 ok=( C-kern/main/tools/genmake.c
      C-kern/tools/hash.c
@@ -22,7 +22,6 @@ files=`echo "${files}" | sed -e '/^[ ]*$/d' -`
 for i in $files; do
    uses=""
    if [ "`grep 'calloc[ \t]*(' $i`" != "" ]; then uses=" calloc"; fi
-   if [ "`grep 'MALLOC[ \t]*(' $i`" != "" ]; then uses=" MALLOC"; fi
    err=`grep 'malloc[ \t]*(' $i | sed -e '/->malloc/d;/[_a-zA-Z]malloc/d' -`
    if [ "$err" != "" ]; then uses="${uses} malloc"; fi
    err=`grep 'free[ \t]*(' $i | sed -e '/->free/d' -`

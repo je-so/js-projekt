@@ -135,15 +135,14 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    int fd = -1 ;
    vm_regionsarray_t * first_array = 0 ;
    vm_regionsarray_t * last_array  = 0 ;
-   size_t      total_regions_count = 0 ;
-   size_t        free_region_count = 0 ;
+   size_t            total_regions_count = 0 ;
+   size_t            free_region_count   = 0 ;
    vm_region_t       * next_region = 0 ;
-   vm_block_t         * iobuffer   = 0 ;
-
+   vm_block_t        * iobuffer    = 0 ;
 
    OBJC_LOCKIOBUFFER(&iobuffer) ;
 
-   const size_t  buffer_maxsize = iobuffer->size ;
+   size_t  const buffer_maxsize = iobuffer->size ;
    uint8_t       * const buffer = iobuffer->addr ;
    fd = open(PROC_SELF_MAPS, O_RDONLY|O_CLOEXEC ) ;
    if (fd < 0) {
@@ -151,7 +150,6 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
       TRACESYSERR_LOG("open(" PROC_SELF_MAPS ")", errno) ;
       goto ONABORT ;
    }
-
 
    for (size_t buffer_offset = 0;;) {
       size_t line_start = 0 ;
@@ -181,7 +179,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
 
          if (!free_region_count) {
             vm_regionsarray_t * next_array ;
-            next_array = MALLOC(vm_regionsarray_t,malloc,) ;
+            next_array = (vm_regionsarray_t*) malloc(sizeof(vm_regionsarray_t)) ;
             if (!next_array) {
                err = ENOMEM ;
                goto ONABORT ;
@@ -240,6 +238,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
       last_array->size            -= free_region_count ;
    }
    gofirst_vmmappedregions(mappedregions) ;
+
    return 0 ;
 ONABORT:
    while (first_array) {
@@ -247,9 +246,7 @@ ONABORT:
       free(first_array) ;
       first_array = next ;
    }
-
    OBJC_UNLOCKIOBUFFER(&iobuffer) ;
-
    free_file(&fd) ;
    TRACEABORT_LOG(err) ;
    return err ;

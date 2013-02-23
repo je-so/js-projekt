@@ -53,7 +53,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    err = allocatedsize_malloc(&allocated) ;
    if (err) goto ONABORT ;
 
-   mappedregions = MALLOC(vm_mappedregions_t, malloc, ) ;
+   mappedregions = (vm_mappedregions_t*) malloc(sizeof(vm_mappedregions_t)) ;
    if (!mappedregions) {
       err = ENOMEM ;
       TRACEOUTOFMEM_LOG(sizeof(vm_mappedregions_t)) ;

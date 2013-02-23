@@ -117,27 +117,7 @@
  * Returns number of elements of the first dimension of a static array. */
 #define lengthof(static_array)         (sizeof(static_array) / sizeof(*(static_array)))
 
-// group: misc
-
-/* define: SWAP
- * Swaps content of two local variables.
- * This works only for simple types. */
-#define SWAP(var1,var2)                { typeof(var1) _temp ; _temp = (var1), (var1) = (var2), (var2) = _temp ; }
-
 // group: memory
-
-/* define: MALLOC
- * Calls specific malloc function and converts the returned pointer to
- * the corresponding type.
- * The list of parameters must always end with a "," !
- * > usertype_t * ptr = MALLOC(usertype_t, malloc, ) ;
- *
- * Parameter:
- * type_t    - Name of the type memory should be allocated for.
- *             The parameter sizeof(type_t) is given as last parameter to malloc function.
- * malloc_f  - The name of the malloc function which should be called.
- * ...       - Additional parameters which comes before the sizeof() parameter. **/
-#define MALLOC(type_t,malloc_f,...)    ((type_t*) ((malloc_f)( __VA_ARGS__ sizeof(type_t))))
 
 /* define: MEMCOPY
  * Copies memory from source to destination.
@@ -160,5 +140,10 @@
  * >  int array[100] ;
  * >  MEMSET0(&array) ; */
 #define MEMSET0(pointer)               memset((pointer), 0, sizeof(*(pointer)))
+
+/* define: SWAP
+ * Swaps content of two local variables.
+ * This works only for simple types. */
+#define SWAP(var1,var2)                { typeof(var1) _temp ; _temp = (var1), (var1) = (var2), (var2) = _temp ; }
 
 #endif
