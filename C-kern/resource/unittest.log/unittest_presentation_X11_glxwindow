@@ -1,0 +1,5 @@
+C-kern/presentation/X11/glxwindow.c:210: init_glxwindow(): error: 3: Function aborted
+C-kern/presentation/X11/x11display.c:398: findobject_x11display(): error: 3: Function aborted
+C-kern/presentation/X11/x11display.c:398: findobject_x11display(): error: 3: Function aborted
+C-kern/presentation/X11/x11display.c:398: findobject_x11display(): error: 3: Function aborted
+C-kern/presentation/X11/glxwindow.c:210: init_glxwindow(): error: 3: Function aborted

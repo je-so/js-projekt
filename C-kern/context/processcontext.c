@@ -34,6 +34,7 @@
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/platform/thread.h"
 #include "C-kern/api/presentation/X11/x11.h"
+#include "C-kern/api/presentation/X11/x11window.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -75,6 +76,10 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    err = initonce_X11() ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
+
+   err = initonce_x11window() ;
+   if (err) goto ONABORT ;
+   ++ pcontext->initcount ;
 // TEXTDB:END
 
    return 0 ;
@@ -96,6 +101,9 @@ int free_processcontext(processcontext_t * pcontext)
    default: assert(false && "initcount out of bounds")  ;
             break ;
 // TEXTDB:SELECT(\n"   case "row-id":  err2 = freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/config/initprocess")DESCENDING
+
+   case 7:  err2 = freeonce_x11window() ;
+            if (err2) err = err2 ;
 
    case 6:  err2 = freeonce_X11() ;
             if (err2) err = err2 ;
@@ -173,7 +181,7 @@ static int test_initfree(void)
    TEST(0 == init_processcontext(&pcontext)) ;
    TEST(0 != pcontext.valuecache) ;
    TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &process_maincontext().sysuser)) ;
-   TEST(6 == pcontext.initcount) ;
+   TEST(7 == pcontext.initcount) ;
    freeonce_valuecache(&pcontext.valuecache) ;
    TEST(0 == pcontext.valuecache) ;
 

@@ -27,15 +27,15 @@
 
 // foward
 struct x11display_t ;
-struct glxwindow_t ;
 
-/* typedef: X11_event_handler_f
- * Type of asynchronous event handler callback.
- * The paramter is of type »void*« but the real type is »XEvent*«. */
-typedef int (*X11_event_handler_f) (struct x11display_t * x11disp, struct glxwindow_t * glxwin, void * xevent) ;
+/* typedef: X11_callback_f
+ * Type of asynchronous event callback.
+ * The parameter object points to the type you registered with <x11display_t>.
+ * The parameter xevent points to type »XEvent«. */
+typedef void (*X11_callback_f) (struct x11display_t * x11disp, void * xevent) ;
 
 
-// section: Functions
+// struct: X11_t
 
 // group: init
 
@@ -50,9 +50,9 @@ int initonce_X11(void) ;
  * Does nothing at the moment. */
 int freeonce_X11(void) ;
 
-// group: event-handling
+// group: callback
 
-/* function: seteventhandler_X11
+/* function: setcallback_X11
  * Sets an event handler. Only one handler can be registered
  * at a time. Before a new handler can be registered the old
  * one must have unregistered itself.
@@ -61,16 +61,16 @@ int freeonce_X11(void) ;
  * 0      - Success
  * EINVAL - Type is not in range [0 .. 255]
  * EBUSY  - Another handler is active for this type of event. */
-int seteventhandler_X11(int type, X11_event_handler_f new_handler) ;
+int setcallback_X11(uint8_t type, X11_callback_f eventcb) ;
 
-/* function: cleareventhandler_X11
+/* function: clearcallback_X11
  * Clears the current event handler.
  * If the current handler does not match the given argument
  * EPERM is returned. If there is currently no active handler
  * success(0) is returned. */
-int cleareventhandler_X11(int type, X11_event_handler_f current_handler) ;
+int clearcallback_X11(uint8_t type, X11_callback_f eventcb) ;
 
-/* function: cleareventhandler_X11
+/* function: dispatchevent_X11
  * Checks event queue and dispatches 1 event if avialable.
  * If there are no waiting events this function returns immediately.
  * If no event handler is registered for the dispatched event
@@ -79,7 +79,7 @@ int dispatchevent_X11(struct x11display_t * x11disp) ;
 
 // group: query
 
-int iseventhandler_X11(int type, int * is_installed) ;
+bool iscallback_X11(uint8_t type) ;
 
 // group: test
 
@@ -88,6 +88,7 @@ int iseventhandler_X11(int type, int * is_installed) ;
  * Test initialization process succeeds. */
 int unittest_presentation_X11(void) ;
 #endif
+
 
 // section: inline implementation
 

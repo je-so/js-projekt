@@ -138,9 +138,9 @@ static const char * s_templatesource =
 #include \"C-kern/api/err.h\"\n\
 #ifdef KONFIG_UNITTEST\n\
 #include \"C-kern/api/test.h\"\n\
-#endif\n\n\
+#endif\n\n\n\
 // section: @TYPENAME\n\n\
-// group: lifetime\n\n\
+// group: lifetime\n\n\n\
 // group: test\n\n\
 #ifdef KONFIG_UNITTEST\n\n\
 static int test_initfree(void)\n\

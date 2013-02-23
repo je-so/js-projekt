@@ -174,9 +174,15 @@
     </VirtualDirectory>
     <VirtualDirectory Name="presentation">
       <VirtualDirectory Name="X11">
-        <File Name="../../C-kern/api/presentation/X11/display.h"/>
         <File Name="../../C-kern/api/presentation/X11/glxwindow.h"/>
         <File Name="../../C-kern/api/presentation/X11/x11.h"/>
+        <File Name="../../C-kern/api/presentation/X11/x11syskonfig.h"/>
+        <File Name="../../C-kern/api/presentation/X11/x11videomode.h"/>
+        <File Name="../../C-kern/api/presentation/X11/x11display.h"/>
+        <File Name="../../C-kern/api/presentation/X11/x11screen.h"/>
+        <File Name="../../C-kern/api/presentation/X11/x11window.h"/>
+        <File Name="../../C-kern/api/presentation/X11/x11attribute.h"/>
+        <File Name="../../C-kern/api/presentation/X11/x11drawable.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="lang">
@@ -368,9 +374,14 @@
   </VirtualDirectory>
   <VirtualDirectory Name="presentation">
     <VirtualDirectory Name="X11">
-      <File Name="../../C-kern/presentation/X11/display.c"/>
       <File Name="../../C-kern/presentation/X11/glxwindow.c"/>
       <File Name="../../C-kern/presentation/X11/x11.c"/>
+      <File Name="../../C-kern/presentation/X11/x11videomode.c"/>
+      <File Name="../../C-kern/presentation/X11/x11display.c"/>
+      <File Name="../../C-kern/presentation/X11/x11screen.c"/>
+      <File Name="../../C-kern/presentation/X11/x11window.c"/>
+      <File Name="../../C-kern/presentation/X11/x11attribute.c"/>
+      <File Name="../../C-kern/presentation/X11/x11drawable.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">

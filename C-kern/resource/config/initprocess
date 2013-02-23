@@ -13,3 +13,4 @@
 # module thread needs valuecache cause of its use of virtual memory !
 "thread",            "",             "C-kern/api/platform/thread.h"
 "X11",               "",             "C-kern/api/presentation/X11/x11.h"
+"x11window",         "",             "C-kern/api/presentation/X11/x11window.h"

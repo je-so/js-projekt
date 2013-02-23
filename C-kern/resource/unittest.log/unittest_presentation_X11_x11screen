@@ -1,0 +1,2 @@
+C-kern/presentation/X11/x11screen.c:64: init_x11screen(): error: 22: Function input violates condition (nrscreen < nrofscreens_x11display(display))
+C-kern/presentation/X11/x11screen.c:71: init_x11screen(): error: 22: Function aborted
