@@ -1352,10 +1352,22 @@ int unittest_io_file()
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
    cstring_t         tmppath = cstring_INIT ;
    directory_t     * tempdir = 0 ;
+   unsigned          open_count = 0 ;
+   directory_t     * dummydir[8] ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
    TEST(0 == newtemp_directory(&tempdir, "iofiletest", &tmppath)) ;
+
+   {
+      size_t nrfdopen ;
+      TEST(0 == nropen_file(&nrfdopen)) ;
+      while (nrfdopen < 8) {
+         TEST(0 == new_directory(&dummydir[open_count], "", 0)) ;
+         ++ open_count ;
+         ++ nrfdopen ;
+      }
+   }
 
    if (test_nropen())            goto ONABORT ;
    if (test_remove(tempdir))     goto ONABORT ;
@@ -1380,14 +1392,22 @@ int unittest_io_file()
       }
    }
 
+   while (open_count) {
+      TEST(0 == delete_directory(&dummydir[--open_count])) ;
+   }
+
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;
+
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ONABORT:
+   while (open_count) {
+      TEST(0 == delete_directory(&dummydir[--open_count])) ;
+   }
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
    (void) free_resourceusage(&usage) ;

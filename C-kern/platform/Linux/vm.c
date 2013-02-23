@@ -24,10 +24,12 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache_macros.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/memory/vm.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/test.h"
@@ -120,13 +122,26 @@ ONABORT:
 
 int free_vmmappedregions(vm_mappedregions_t * mappedregions)
 {
-   vm_regionsarray_t    * first = mappedregions->first_array ;
-   for (vm_regionsarray_t * next ; first ; first = next) {
-      next = first->next ;
-      free(first) ;
+   int err = 0 ;
+   vm_regionsarray_t * first = mappedregions->first_array ;
+
+   while (first) {
+      memblock_t mem = memblock_INIT(sizeof(vm_regionsarray_t), (uint8_t*) first) ;
+
+      first = first->next ;
+
+      int err2 = FREE_MM(&mem) ;
+      if (err2) err = err2;
    }
+
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
+
+   if (err) goto ONABORT ;
+
    return 0 ;
+ONABORT:
+   TRACEABORTFREE_LOG(err) ;
+   return err ;
 }
 
 int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
@@ -178,12 +193,10 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
          }
 
          if (!free_region_count) {
-            vm_regionsarray_t * next_array ;
-            next_array = (vm_regionsarray_t*) malloc(sizeof(vm_regionsarray_t)) ;
-            if (!next_array) {
-               err = ENOMEM ;
-               goto ONABORT ;
-            }
+            memblock_t mem = memblock_INIT_FREEABLE ;
+            err = RESIZE_MM(sizeof(vm_regionsarray_t), &mem) ;
+            if (err) goto ONABORT ;
+            vm_regionsarray_t * next_array = (vm_regionsarray_t*) mem.addr ;
             free_region_count = sizeof(next_array->elements) / sizeof(next_array->elements[0]) ;
             next_region       = &next_array->elements[0] ;
             next_array->next  = 0 ;
@@ -242,9 +255,9 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    return 0 ;
 ONABORT:
    while (first_array) {
-      vm_regionsarray_t * next = first_array->next ;
-      free(first_array) ;
-      first_array = next ;
+      memblock_t mem = memblock_INIT(sizeof(vm_regionsarray_t), (uint8_t*) first_array) ;
+      first_array = first_array->next ;
+      (void) FREE_MM(&mem) ;
    }
    OBJC_UNLOCKIOBUFFER(&iobuffer) ;
    free_file(&fd) ;

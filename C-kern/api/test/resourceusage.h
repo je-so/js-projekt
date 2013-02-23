@@ -42,7 +42,7 @@ typedef struct resourceusage_t      resourceusage_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_test_resourceusage
  * Unittest for query usage & releasing all resources. */
-extern int unittest_test_resourceusage(void) ;
+int unittest_test_resourceusage(void) ;
 #endif
 
 
@@ -52,9 +52,12 @@ struct resourceusage_t {
    /* variable: file_usage
     * Number of open files. */
    size_t                        file_usage ;
-   /* variable: sizealloc_mmtrans
+   /* variable: mmtrans_usage
     * Number of memory bytes allocated by <mmtransient_t>. */
-   size_t                        sizealloc_mmtrans ;
+   size_t                        mmtrans_usage ;
+   /* variable: mmtrans_correction
+    * Number of bytes <resourceusage_t> uses itself. */
+   size_t                        mmtrans_correction ;
    /* variable: malloc_usage
     * Number of memory bytes allocated by malloc. */
    size_t                        malloc_usage ;
@@ -73,7 +76,7 @@ struct resourceusage_t {
 
 /* define: resourceusage_INIT_FREEABLE
  * Static initializer. */
-#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0, 0, 0 }
+#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0, 0, 0, 0 }
 
 /* function: init_resourceusage
  * Stores the number of resources currently in use. */

@@ -27,6 +27,8 @@
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/sign.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/thread.h"
 // TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/config/signalconfig")WHERE(action=='set')
 // TEXTDB:END
@@ -308,22 +310,30 @@ ONABORT:
    return err ;
 }
 
+static int nrhandlers_signalconfig(void)
+{
+   return SIGRTMAX ;
+}
+
+static size_t objectsize_signalconfig(void)
+{
+   const size_t objectsize = sizeof(signalconfig_t)
+                           + sizeof(struct sigaction) * (unsigned) nrhandlers_signalconfig() ;
+   return objectsize ;
+}
 
 int new_signalconfig(/*out*/signalconfig_t ** sigconfig)
 {
    int err ;
-   const int         nr_signal_handlers = SIGRTMAX ;
-   const size_t      objectsize         = sizeof(signalconfig_t)
-                                        + sizeof(struct sigaction) * (unsigned) nr_signal_handlers ;
-   signalconfig_t  * newsigconfig       = 0 ;
+   const int         nr_signal_handlers = nrhandlers_signalconfig() ;
+   const size_t      objectsize         = objectsize_signalconfig() ;
+   memblock_t        mem                = memblock_INIT_FREEABLE ;
+   signalconfig_t *  newsigconfig       = 0 ;
 
-   newsigconfig = (signalconfig_t*) malloc(objectsize) ;
-   if (!newsigconfig) {
-      err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(objectsize) ;
-      goto ONABORT ;
-   }
+   err = RESIZE_MM(objectsize, &mem) ;
+   if (err) goto ONABORT ;
 
+   newsigconfig = (signalconfig_t*) mem.addr ;
    memset(newsigconfig, 0, objectsize) ;
    newsigconfig->nr_signal_handlers = nr_signal_handlers ;
 
@@ -334,7 +344,7 @@ int new_signalconfig(/*out*/signalconfig_t ** sigconfig)
    }
 
    for (int i = nr_signal_handlers; i > 0; --i) {
-      if (32 <= i && i < SIGRTMIN) continue ;
+      if (32 <= i && i < SIGRTMIN) continue ; // not used in Linux
       err = sigaction(i, 0, &newsigconfig->signal_handlers[i-1]) ;
       if (err) {
          err = errno ;
@@ -345,6 +355,7 @@ int new_signalconfig(/*out*/signalconfig_t ** sigconfig)
    }
 
    *sigconfig = newsigconfig ;
+
    return 0 ;
 ONABORT:
    (void) delete_signalconfig(&newsigconfig) ;
@@ -354,14 +365,22 @@ ONABORT:
 
 int delete_signalconfig(signalconfig_t ** sigconfig)
 {
+   int err ;
    signalconfig_t * delsigconfig = *sigconfig ;
 
    if (delsigconfig) {
+      memblock_t mem = memblock_INIT(objectsize_signalconfig(), (uint8_t*)delsigconfig) ;
       *sigconfig = 0 ;
-      free(delsigconfig) ;
+
+      err = FREE_MM(&mem) ;
+
+      if (err) goto ONABORT ;
    }
 
    return 0 ;
+ONABORT:
+   TRACEABORTFREE_LOG(err) ;
+   return err ;
 }
 
 int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t * sigconfig2)

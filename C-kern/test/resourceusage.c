@@ -27,8 +27,10 @@
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/memory/mm/mm_it.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/malloc.h"
 #include "C-kern/api/platform/sync/signal.h"
 #ifdef KONFIG_UNITTEST
@@ -39,26 +41,26 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
 {
    int err ;
    size_t               fds ;
-   size_t               sizeallocated_mmtransient ;
+   size_t               mmtrans_usage ;
+   size_t               mmtrans_endinit ;
    size_t               allocated ;
    size_t               allocated_endinit ;
+   memblock_t           memmapreg     = memblock_INIT_FREEABLE ;
    vm_mappedregions_t * mappedregions = 0 ;
    signalconfig_t     * signalconfig  = 0 ;
 
    err = nropen_file(&fds) ;
    if (err) goto ONABORT ;
 
-   sizeallocated_mmtransient = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
+   mmtrans_usage = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
 
    err = allocatedsize_malloc(&allocated) ;
    if (err) goto ONABORT ;
 
-   mappedregions = (vm_mappedregions_t*) malloc(sizeof(vm_mappedregions_t)) ;
-   if (!mappedregions) {
-      err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(sizeof(vm_mappedregions_t)) ;
-      goto ONABORT ;
-   }
+   err = RESIZE_MM(sizeof(vm_mappedregions_t), &memmapreg) ;
+   if (err) goto ONABORT ;
+
+   mappedregions  = (vm_mappedregions_t*) memmapreg.addr ;
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
 
    err = new_signalconfig(&signalconfig) ;
@@ -70,8 +72,11 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    err = allocatedsize_malloc(&allocated_endinit) ;
    if (err) goto ONABORT ;
 
+   mmtrans_endinit = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
+
    usage->file_usage          = fds ;
-   usage->sizealloc_mmtrans   = sizeallocated_mmtransient ;
+   usage->mmtrans_usage       = mmtrans_usage ;
+   usage->mmtrans_correction  = mmtrans_endinit - mmtrans_usage ;
    usage->malloc_usage        = allocated ;
    usage->malloc_correction   = allocated_endinit - allocated ;
    usage->signalconfig        = signalconfig ;
@@ -79,10 +84,8 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
 
    return 0 ;
 ONABORT:
-   if (mappedregions) {
-      (void) free_vmmappedregions(mappedregions) ;
-      free(mappedregions) ;
-   }
+   if (mappedregions) (void) free_vmmappedregions(mappedregions) ;
+   FREE_MM(&memmapreg) ;
    delete_signalconfig(&signalconfig) ;
    TRACEABORT_LOG(err) ;
    return err ;
@@ -98,13 +101,16 @@ int free_resourceusage(resourceusage_t * usage)
    usage->malloc_correction = 0 ;
 
    if (usage->virtualmemory_usage) {
+      memblock_t mem = memblock_INIT(sizeof(vm_mappedregions_t), (uint8_t*)usage->virtualmemory_usage) ;
 
       err = delete_signalconfig(&usage->signalconfig) ;
 
       err2 = free_vmmappedregions(usage->virtualmemory_usage) ;
       if (err2) err = err2 ;
 
-      free(usage->virtualmemory_usage) ;
+      err2 = FREE_MM(&mem) ;
+      if (err2) err = err2 ;
+
       usage->virtualmemory_usage = 0 ;
 
       if (err) goto ONABORT ;
@@ -131,7 +137,7 @@ int same_resourceusage(const resourceusage_t * usage)
       goto ONABORT ;
    }
 
-   if (usage2.sizealloc_mmtrans != usage->sizealloc_mmtrans) {
+   if ((usage2.mmtrans_usage - usage->mmtrans_correction) != usage->mmtrans_usage) {
       TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
       goto ONABORT ;
    }
@@ -182,15 +188,20 @@ static int test_initfree(void)
 
    // TEST static initializer
    TEST(0 == usage.file_usage) ;
+   TEST(0 == usage.mmtrans_usage) ;
+   TEST(0 == usage.mmtrans_correction) ;
    TEST(0 == usage.malloc_usage) ;
-   TEST(0 == usage.virtualmemory_usage) ;
    TEST(0 == usage.malloc_correction) ;
+   TEST(0 == usage.signalconfig) ;
+   TEST(0 == usage.virtualmemory_usage) ;
 
    // TEST init, double free
    TEST(0 == init_resourceusage(&usage)) ;
    TEST(0 != usage.file_usage) ;
+   TEST(0 != usage.mmtrans_usage) ;
+   TEST(0 != usage.mmtrans_correction) ;
    TEST(0 != usage.malloc_usage) ;
-   TEST(0 != usage.malloc_correction) ;
+   TEST(0 == usage.malloc_correction) ;
    TEST(0 != usage.signalconfig) ;
    TEST(0 != usage.virtualmemory_usage) ;
    TEST(20000 > usage.malloc_correction) ;

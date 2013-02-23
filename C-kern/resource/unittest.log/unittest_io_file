@@ -1,8 +1,8 @@
 C-kern/platform/Linux/io/file.c:254: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
-fileobj=4
+fileobj=8
 C-kern/platform/Linux/io/file.c:266: accessmode_file(): error: 9: Function aborted
 C-kern/platform/Linux/io/file.c:254: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
-fileobj=4
+fileobj=8
 C-kern/platform/Linux/io/file.c:266: accessmode_file(): error: 9: Function aborted
 C-kern/platform/Linux/io/file.c:254: accessmode_file(): error: 9: System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=-1
@@ -28,36 +28,36 @@ openatfd=3
 filepath=testcreate
 C-kern/platform/Linux/io/file.c:216: initcreate_file(): error: 17: Function aborted
 C-kern/platform/Linux/io/file.c:356: write_file(): error: 32: System call 'write' returned error 'Broken pipe'
-fileobj=5
+fileobj=9
 buffer_size=1
 C-kern/platform/Linux/io/file.c:371: write_file(): error: 32: Function aborted
 C-kern/platform/Linux/io/file.c:356: write_file(): error: 32: System call 'write' returned error 'Broken pipe'
-fileobj=5
+fileobj=9
 buffer_size=1
 C-kern/platform/Linux/io/file.c:371: write_file(): error: 32: Function aborted
 C-kern/platform/Linux/io/file.c:423: truncate_file(): error: 22: System call 'ftruncate' returned error 'Invalid argument'
-fileobj=5
+fileobj=9
 C-kern/platform/Linux/io/file.c:430: truncate_file(): error: 22: Function aborted
 C-kern/platform/Linux/io/file.c:423: truncate_file(): error: 22: System call 'ftruncate' returned error 'Invalid argument'
-fileobj=6
+fileobj=10
 C-kern/platform/Linux/io/file.c:430: truncate_file(): error: 22: Function aborted
 C-kern/platform/Linux/io/file.c:423: truncate_file(): error: 22: System call 'ftruncate' returned error 'Invalid argument'
-fileobj=6
+fileobj=10
 C-kern/platform/Linux/io/file.c:430: truncate_file(): error: 22: Function aborted
 C-kern/platform/Linux/io/file.c:441: allocate_file(): error: 22: System call 'fallocate' returned error 'Invalid argument'
-fileobj=6
+fileobj=10
 C-kern/platform/Linux/io/file.c:448: allocate_file(): error: 22: Function aborted
 C-kern/platform/Linux/io/file.c:441: allocate_file(): error: 29: System call 'fallocate' returned error 'Illegal seek'
-fileobj=5
+fileobj=9
 C-kern/platform/Linux/io/file.c:448: allocate_file(): error: 29: Function aborted
 C-kern/platform/Linux/io/file.c:441: allocate_file(): error: 9: System call 'fallocate' returned error 'Bad file descriptor'
-fileobj=6
+fileobj=10
 C-kern/platform/Linux/io/file.c:448: allocate_file(): error: 9: Function aborted
 C-kern/platform/Linux/io/file.c:423: truncate_file(): error: 9: System call 'ftruncate' returned error 'Bad file descriptor'
-fileobj=6
+fileobj=10
 C-kern/platform/Linux/io/file.c:430: truncate_file(): error: 9: Function aborted
 C-kern/platform/Linux/io/file.c:441: allocate_file(): error: 9: System call 'fallocate' returned error 'Bad file descriptor'
-fileobj=6
+fileobj=10
 C-kern/platform/Linux/io/file.c:448: allocate_file(): error: 9: Function aborted
 C-kern/platform/Linux/io/file.c:423: truncate_file(): error: 9: System call 'ftruncate' returned error 'Bad file descriptor'
 fileobj=-1
@@ -66,15 +66,15 @@ C-kern/platform/Linux/io/file.c:441: allocate_file(): error: 9: System call 'fal
 fileobj=-1
 C-kern/platform/Linux/io/file.c:448: allocate_file(): error: 9: Function aborted
 C-kern/platform/Linux/io/file.c:441: allocate_file(): error: 28: System call 'fallocate' returned error 'No space left on device'
-fileobj=6
+fileobj=10
 C-kern/platform/Linux/io/file.c:448: allocate_file(): error: 28: Function aborted
 C-kern/platform/Linux/io/file.c:381: advisereadahead_file(): error: 22: System call 'posix_fadvise' returned error 'Invalid argument'
-fileobj=4
+fileobj=8
 offset=0
 length=-1
 C-kern/platform/Linux/io/file.c:390: advisereadahead_file(): error: 22: Function aborted
 C-kern/platform/Linux/io/file.c:381: advisereadahead_file(): error: 9: System call 'posix_fadvise' returned error 'Bad file descriptor'
-fileobj=4
+fileobj=8
 offset=0
 length=0
 C-kern/platform/Linux/io/file.c:390: advisereadahead_file(): error: 9: Function aborted
@@ -84,12 +84,12 @@ offset=0
 length=0
 C-kern/platform/Linux/io/file.c:390: advisereadahead_file(): error: 9: Function aborted
 C-kern/platform/Linux/io/file.c:400: advisedontneed_file(): error: 22: System call 'posix_fadvise' returned error 'Invalid argument'
-fileobj=4
+fileobj=8
 offset=0
 length=-1
 C-kern/platform/Linux/io/file.c:409: advisedontneed_file(): error: 22: Function aborted
 C-kern/platform/Linux/io/file.c:400: advisedontneed_file(): error: 9: System call 'posix_fadvise' returned error 'Bad file descriptor'
-fileobj=4
+fileobj=8
 offset=0
 length=0
 C-kern/platform/Linux/io/file.c:409: advisedontneed_file(): error: 9: Function aborted

@@ -1,16 +1,16 @@
-C-kern/platform/Linux/signal.c:412: send_rtsignal(): error: 22: Function input violates condition (nr <= maxnr_rtsignal())
+C-kern/platform/Linux/signal.c:431: send_rtsignal(): error: 22: Function input violates condition (nr <= maxnr_rtsignal())
 nr=16
-C-kern/platform/Linux/signal.c:423: send_rtsignal(): error: 22: Function aborted
-C-kern/platform/Linux/signal.c:473: trywait_rtsignal(): error: 22: Function input violates condition (nr <= maxnr_rtsignal())
+C-kern/platform/Linux/signal.c:442: send_rtsignal(): error: 22: Function aborted
+C-kern/platform/Linux/signal.c:492: trywait_rtsignal(): error: 22: Function input violates condition (nr <= maxnr_rtsignal())
 nr=16
-C-kern/platform/Linux/signal.c:505: trywait_rtsignal(): error: 22: Function aborted
-C-kern/platform/Linux/signal.c:432: wait_rtsignal(): error: 22: Function input violates condition (nr <= maxnr_rtsignal())
+C-kern/platform/Linux/signal.c:524: trywait_rtsignal(): error: 22: Function aborted
+C-kern/platform/Linux/signal.c:451: wait_rtsignal(): error: 22: Function input violates condition (nr <= maxnr_rtsignal())
 nr=16
-C-kern/platform/Linux/signal.c:463: wait_rtsignal(): error: 22: Function aborted
-C-kern/platform/Linux/signal.c:432: wait_rtsignal(): error: 22: Function input violates condition (nr <= maxnr_rtsignal())
+C-kern/platform/Linux/signal.c:482: wait_rtsignal(): error: 22: Function aborted
+C-kern/platform/Linux/signal.c:451: wait_rtsignal(): error: 22: Function input violates condition (nr <= maxnr_rtsignal())
 nr=255
-C-kern/platform/Linux/signal.c:463: wait_rtsignal(): error: 22: Function aborted
-C-kern/platform/Linux/signal.c:417: send_rtsignal(): error: 11: System call 'sigqueue' returned error 'Resource temporarily unavailable'
-C-kern/platform/Linux/signal.c:423: send_rtsignal(): error: 11: Function aborted
-C-kern/platform/Linux/signal.c:417: send_rtsignal(): error: 11: System call 'sigqueue' returned error 'Resource temporarily unavailable'
-C-kern/platform/Linux/signal.c:423: send_rtsignal(): error: 11: Function aborted
+C-kern/platform/Linux/signal.c:482: wait_rtsignal(): error: 22: Function aborted
+C-kern/platform/Linux/signal.c:436: send_rtsignal(): error: 11: System call 'sigqueue' returned error 'Resource temporarily unavailable'
+C-kern/platform/Linux/signal.c:442: send_rtsignal(): error: 11: Function aborted
+C-kern/platform/Linux/signal.c:436: send_rtsignal(): error: 11: System call 'sigqueue' returned error 'Resource temporarily unavailable'
+C-kern/platform/Linux/signal.c:442: send_rtsignal(): error: 11: Function aborted

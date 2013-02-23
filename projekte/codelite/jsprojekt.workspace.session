@@ -1,60 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="8" Name="m_selectedTab"/>
+  <int Value="5" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="FileName"/>
-      <int Value="239" Name="FirstVisibleLine"/>
-      <int Value="255" Name="CurrentLine"/>
+      <int Value="360" Name="FirstVisibleLine"/>
+      <int Value="383" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/lang/transC/transCparser.h" Name="FileName"/>
-      <int Value="31" Name="FirstVisibleLine"/>
-      <int Value="39" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/presentation/X11/x11.c" Name="FileName"/>
+      <int Value="137" Name="FirstVisibleLine"/>
+      <int Value="135" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/io/reader/filereader.h" Name="FileName"/>
-      <int Value="145" Name="FirstVisibleLine"/>
-      <int Value="174" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/io/reader/utf8reader.h" Name="FileName"/>
-      <int Value="215" Name="FirstVisibleLine"/>
-      <int Value="213" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/string/textpos.h" Name="FileName"/>
-      <int Value="95" Name="FirstVisibleLine"/>
-      <int Value="107" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/lang/utf8scanner.h" Name="FileName"/>
-      <int Value="95" Name="FirstVisibleLine"/>
-      <int Value="108" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/lang/utf8scanner.c" Name="FileName"/>
-      <int Value="336" Name="FirstVisibleLine"/>
-      <int Value="356" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/lang/splittoken.h" Name="FileName"/>
-      <int Value="86" Name="FirstVisibleLine"/>
-      <int Value="87" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/lang/splittoken.c" Name="FileName"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/presentation/X11/x11.h" Name="FileName"/>
       <int Value="57" Name="FirstVisibleLine"/>
-      <int Value="58" Name="CurrentLine"/>
+      <int Value="77" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/platform/Linux/syskonfig.h" Name="FileName"/>
+      <int Value="4" Name="FirstVisibleLine"/>
+      <int Value="2" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/presentation/X11/display.h" Name="FileName"/>
+      <int Value="133" Name="FirstVisibleLine"/>
+      <int Value="134" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/presentation/X11/display.c" Name="FileName"/>
+      <int Value="558" Name="FirstVisibleLine"/>
+      <int Value="573" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="310"/>
+      </wxArrayString>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/presentation/X11/x11videomode.h" Name="FileName"/>
+      <int Value="71" Name="FirstVisibleLine"/>
+      <int Value="69" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/presentation/X11/x11videomode.c" Name="FileName"/>
+      <int Value="396" Name="FirstVisibleLine"/>
+      <int Value="394" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>

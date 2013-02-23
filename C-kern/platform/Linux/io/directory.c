@@ -787,15 +787,16 @@ ONABORT:
 
 int unittest_io_directory()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage      = resourceusage_INIT_FREEABLE ;
+   unsigned          open_count = 0 ;
+   directory_t     * dummydir[8] ;
 
    if (test_initfree())          goto ONABORT ;
    CLEARBUFFER_LOG() ;
+
    TEST(0 == init_resourceusage(&usage)) ;
 
    // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
-   unsigned    open_count = 0 ;
-   directory_t * dummydir[8] ;
    {
       size_t nrfdopen ;
       TEST(0 == nropen_file(&nrfdopen)) ;
@@ -820,6 +821,9 @@ int unittest_io_directory()
 
    return 0 ;
 ONABORT:
+   while (open_count) {
+      TEST(0 == delete_directory(&dummydir[--open_count])) ;
+   }
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
