@@ -767,7 +767,7 @@ static int match_string(textresource_reader_t * reader, const char * string)
    // only ascii string are supported cause of nrbytes == columnIncrement
    err = matchbytes_utf8reader(&reader->txtpos, len, len, (const uint8_t*)string, &matchlen) ;
    if (err) {
-      nextcolumn_textpos(textpos_utf8reader(&reader->txtpos)) ;
+      incrcolumn_textpos(textpos_utf8reader(&reader->txtpos)) ;
       report_parseerror(reader, "expected to read »%s«", string) ;
       err = EINVAL ;
       goto ONABORT ;

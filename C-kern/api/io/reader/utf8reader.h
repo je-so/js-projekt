@@ -232,9 +232,9 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
                   genericcast_stringstream(_rd1),        \
                   (nxtchar)) ;                           \
             if (0 == _err) {                             \
-               nextcolumn_textpos(&_rd1->pos) ;          \
+               incrcolumn_textpos(&_rd1->pos) ;          \
                if ('\n' == *(nxtchar)) {                 \
-                  nextline_textpos(&_rd1->pos) ;         \
+                  incrline_textpos(&_rd1->pos) ;         \
                }                                         \
             }                                            \
             _err ;                                       \
@@ -257,11 +257,11 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
             int             _err ;                       \
             typeof(utfread) _rd  = (utfread) ;           \
             if (isnext_utf8reader(_rd)) {                \
-               nextcolumn_textpos(&_rd->pos) ;           \
+               incrcolumn_textpos(&_rd->pos) ;           \
                const uint8_t _b = *(_rd->next ++) ;      \
                *(nextbyte) = _b ;                        \
                if ('\n' == _b) {                         \
-                  nextline_textpos(&_rd->pos) ;          \
+                  incrline_textpos(&_rd->pos) ;          \
                }                                         \
                _err = 0 ;                                \
             } else {                                     \
@@ -310,9 +310,9 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
             typeof(utfread) _rd1 = (utfread) ;           \
             bool _isnext = isnext_utf8reader(_rd1) ;     \
             if (_isnext) {                               \
-               nextcolumn_textpos(&_rd1->pos) ;          \
+               incrcolumn_textpos(&_rd1->pos) ;          \
                if ('\n' == *(_rd1->next ++)) {           \
-                  nextline_textpos(&_rd1->pos) ;         \
+                  incrline_textpos(&_rd1->pos) ;         \
                }                                         \
             }                                            \
    } while(0)
@@ -326,7 +326,7 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
             if (isnext_utf8reader(_rd1)) {               \
                uint8_t firstbyte = *(_rd1->next) ;       \
                if ('\n' == firstbyte) {                  \
-                  nextline_textpos(&_rd1->pos) ;         \
+                  incrline_textpos(&_rd1->pos) ;         \
                   ++ _rd1->next ;                        \
                } else {                                  \
                   uint8_t _sz ;                          \
@@ -335,7 +335,7 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
                      _err = EILSEQ ;                     \
                   } else {                               \
                      _rd1->next += _sz + (_sz==0) ;      \
-                     nextcolumn_textpos(&_rd1->pos) ;    \
+                     incrcolumn_textpos(&_rd1->pos) ;    \
                   }                                      \
                }                                         \
             } else {                                     \

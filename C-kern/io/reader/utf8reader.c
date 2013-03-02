@@ -86,7 +86,7 @@ int skipline_utf8reader(utf8reader_t * utfread)
 
    if (found) {
       utfread->next = ++ found ;
-      nextline_textpos(&utfread->pos) ;
+      incrline_textpos(&utfread->pos) ;
 
       return 0 ;
    }

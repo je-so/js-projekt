@@ -17,10 +17,10 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/io/filesystem/filereader.h
+   file: C-kern/api/io/reader/filereader.h
     Header file <FileReader>.
 
-   file: C-kern/io/filesystem/filereader.c
+   file: C-kern/io/reader/filereader.c
     Implementation file <FileReader impl>.
 */
 

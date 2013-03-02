@@ -1,6 +1,10 @@
 /* title: TextPosition
 
    Exports <textpos_t> which describes position in text as column and line number.
+   A text is a big string which contains special formatting characters.
+   The only formatting character which is supported by any text function handling
+   UTF-8 encoded strings is the '\n' newline characters which marks the end of a
+   text line.
 
    about: Copyright
    This program is free software.
@@ -17,7 +21,7 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/string/textpos.h
+   file: C-kern/api/string/textpos.h
     Header file <TextPosition>.
 
    file: C-kern/string/textpos.c
@@ -58,17 +62,21 @@ struct textpos_t {
     * Line number of the next unread character. This value is initialized to 1.
     * It is incremented every time a newline character '\n' is encountered. */
    size_t         line ;
+   /* variable: prevlastcolumn
+    * Column number of the last character on the previous line.
+    * This value is a copy of <column> before it is set to 0 in function <incrline_textpos>. */
+   size_t         prevlastcolumn ;
 } ;
 
 // group: lifetime
 
 /* define: textpos_INIT
  * Static initializer. Initializes position to start of text. */
-#define textpos_INIT                { 0, 1 }
+#define textpos_INIT                { 0, 1, 0 }
 
 /* define: textpos_INIT_FREEABLE
  * Static initializer. */
-#define textpos_INIT_FREEABLE       { 0, 0 }
+#define textpos_INIT_FREEABLE       { 0, 0, 0 }
 
 /* function: init_textpos
  * Sets column and line numbers to arbitrary values. */
@@ -88,6 +96,11 @@ size_t column_textpos(const textpos_t * txtpos) ;
  * Returns the current line number beginning from 1. */
 size_t line_textpos(const textpos_t * txtpos) ;
 
+/* function: prevlastcolumn_textpos
+ * Returns the column number of the last character of the previous line (number). */
+size_t prevlastcolumn_textpos(const textpos_t * txtpos) ;
+
+
 // group: change
 
 /* function: addcolumn_textpos
@@ -95,13 +108,13 @@ size_t line_textpos(const textpos_t * txtpos) ;
  * The incremented column number is returned. */
 size_t addcolumn_textpos(textpos_t * txtpos, size_t increment) ;
 
-/* function: nextcolumn_textpos
+/* function: incrcolumn_textpos
  * Increments the column number. */
-void nextcolumn_textpos(textpos_t * txtpos) ;
+void incrcolumn_textpos(textpos_t * txtpos) ;
 
-/* function: nextline_textpos
+/* function: incrline_textpos
  * Increments the line number. */
-void nextline_textpos(textpos_t * txtpos) ;
+void incrline_textpos(textpos_t * txtpos) ;
 
 
 // section: inline implementation
@@ -122,25 +135,28 @@ void nextline_textpos(textpos_t * txtpos) ;
 
 /* define: init_textpos
  * Implements <textpos_t.init_textpos>. */
-#define init_textpos(txtpos, colnr, linenr)        ((void)(*(txtpos) = (textpos_t) { colnr, linenr }))
-
-/* define: nextcolumn_textpos
- * Implements <textpos_t.nextcolumn_textpos>. */
-#define nextcolumn_textpos(txtpos)                 ((void)(++(txtpos)->column))
-
-/* define: nextline_textpos
- * Implements <textpos_t.nextline_textpos>. */
-#define nextline_textpos(txtpos)                   \
-   do {                                            \
-         textpos_t * _tpos = (txtpos) ;            \
-         _tpos->column = 0 ;                       \
-         ++ _tpos->line ;                          \
-   } while (0)
+#define init_textpos(txtpos, colnr, linenr)        ((void)(*(txtpos) = (textpos_t) { colnr, linenr, 0 }))
 
 /* define: line_textpos
  * Implements <textpos_t.line_textpos>. */
 #define line_textpos(txtpos)                       ((txtpos)->line)
 
+/* define: incrcolumn_textpos
+ * Implements <textpos_t.incrcolumn_textpos>. */
+#define incrcolumn_textpos(txtpos)                 ((void)(++(txtpos)->column))
 
+/* define: incrline_textpos
+ * Implements <textpos_t.incrline_textpos>. */
+#define incrline_textpos(txtpos)                   \
+   do {                                            \
+         textpos_t * _tpos = (txtpos) ;            \
+         _tpos->prevlastcolumn = _tpos->column ;   \
+         _tpos->column = 0 ;                       \
+         ++ _tpos->line ;                          \
+   } while (0)
+
+/* define: prevlastcolumn_textpos
+ * Implements <textpos_t.prevlastcolumn_textpos>. */
+#define prevlastcolumn_textpos(txtpos)             ((txtpos)->prevlastcolumn)
 
 #endif

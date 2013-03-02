@@ -20,7 +20,7 @@
    file: C-kern/api/io/reader/filereader.h
     Header file <FileReader>.
 
-   file: C-kern/io/filesystem/filereader.c
+   file: C-kern/io/reader/filereader.c
     Implementation file <FileReader impl>.
 */
 #ifndef CKERN_IO_READER_FILEREADER_HEADER

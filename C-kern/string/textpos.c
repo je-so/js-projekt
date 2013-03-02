@@ -44,28 +44,35 @@ static int test_initfree(void)
    // TEST textpos_INIT_FREEABLE
    TEST(0 == txtpos.column) ;
    TEST(0 == txtpos.line) ;
+   TEST(0 == txtpos.prevlastcolumn) ;
 
    // TEST textpos_INIT
    txtpos = (textpos_t) textpos_INIT ;
    TEST(0 == txtpos.column) ;
    TEST(1 == txtpos.line) ;
+   TEST(0 == txtpos.prevlastcolumn) ;
 
    // TEST init_textpos, free_textpos
    for (unsigned i = 0; i < 15; ++i) {
       init_textpos(&txtpos, 2*i, i+1) ;
       TEST(2*i == txtpos.column) ;
       TEST(i+1 == txtpos.line) ;
+      TEST(0   == txtpos.prevlastcolumn) ;
+      txtpos.prevlastcolumn = 1 ;
       free_textpos(&txtpos) ;
       TEST(0 == txtpos.column) ;
       TEST(0 == txtpos.line) ;
+      TEST(0 == txtpos.prevlastcolumn) ;
    }
 
    // TEST column_textpos, line_textpos
    for (unsigned i = 0; i < 15; ++i) {
       txtpos.column = i ;
       txtpos.line   = i+1 ;
+      txtpos.prevlastcolumn = i+2 ;
       TEST(i   == column_textpos(&txtpos)) ;
       TEST(i+1 == line_textpos(&txtpos)) ;
+      TEST(i+2 == prevlastcolumn_textpos(&txtpos)) ;
    }
 
    return 0 ;
@@ -86,22 +93,23 @@ static int test_change(void)
       TEST(oldline  == line_textpos(&txtpos)) ;
    }
 
-   // TEST nextcolumn_textpos
+   // TEST incrcolumn_textpos
    for (unsigned i = 0; i < 15; ++i) {
       size_t oldline = line_textpos(&txtpos) ;
       size_t oldcol  = column_textpos(&txtpos) ;
-      nextcolumn_textpos(&txtpos) ;
+      incrcolumn_textpos(&txtpos) ;
       TEST(oldcol+1 == column_textpos(&txtpos)) ;
       TEST(oldline  == line_textpos(&txtpos)) ;
    }
 
-   // TEST nextline_textpos
+   // TEST incrline_textpos
    for (unsigned i = 0; i < 15; ++i) {
       size_t old = line_textpos(&txtpos) ;
       txtpos.column = 100+i ;
-      nextline_textpos(&txtpos) ;
+      incrline_textpos(&txtpos) ;
       TEST(0     == column_textpos(&txtpos)) ;
       TEST(old+1 == line_textpos(&txtpos)) ;
+      TEST(100+i == prevlastcolumn_textpos(&txtpos)) ;
    }
 
    return 0 ;
