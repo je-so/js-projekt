@@ -365,14 +365,14 @@ int run_unittest(void)
 #if ((KONFIG_USERINTERFACE)&HTML5)
 #endif
 #if ((KONFIG_USERINTERFACE)&X11)
-      RUN(unittest_presentation_X11) ;
-      RUN(unittest_presentation_X11_x11attribute) ;
-      RUN(unittest_presentation_X11_x11display) ;
-      RUN(unittest_presentation_X11_x11screen) ;
-      RUN(unittest_presentation_X11_x11drawable) ;
-      // RUN(unittest_presentation_X11_x11window) ;      // TODO: remove comment
-      // RUN(unittest_presentation_X11_glxwindow) ;      // TODO: remove comment
-      // RUN(unittest_presentation_x11_x11videomode) ;   // TODO: remove comment
+      RUN(unittest_platform_X11) ;
+      RUN(unittest_platform_X11_x11attribute) ;
+      RUN(unittest_platform_X11_x11display) ;
+      RUN(unittest_platform_X11_x11screen) ;
+      RUN(unittest_platform_X11_x11drawable) ;
+      // RUN(unittest_platform_X11_x11window) ;      // TODO: remove comment
+      // RUN(unittest_platform_X11_glxwindow) ;      // TODO: remove comment
+      // RUN(unittest_platform_X11_x11videomode) ;   // TODO: remove comment
 #endif
 #undef HTML5
 #undef X11

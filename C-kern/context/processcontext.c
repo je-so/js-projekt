@@ -33,8 +33,8 @@
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/platform/thread.h"
-#include "C-kern/api/presentation/X11/x11.h"
-#include "C-kern/api/presentation/X11/x11window.h"
+#include "C-kern/api/platform/X11/x11.h"
+#include "C-kern/api/platform/X11/x11window.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

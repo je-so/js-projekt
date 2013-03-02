@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11attribute.h
+   file: C-kern/api/platform/X11/x11attribute.h
     Header file <X11-Attribute>.
 
-   file: C-kern/presentation/X11/x11attribute.c
+   file: C-kern/platform/shared/X11/x11attribute.c
     Implementation file <X11-Attribute impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/presentation/X11/x11attribute.h"
+#include "C-kern/api/platform/X11/x11attribute.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -175,7 +175,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_presentation_X11_x11attribute()
+int unittest_platform_X11_x11attribute()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

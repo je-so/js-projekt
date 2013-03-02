@@ -17,28 +17,28 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/glxwindow.h
+   file: C-kern/api/platform/X11/glxwindow.h
     Header file of <X11-OpenGL-Window>.
 
-   file: C-kern/presentation/X11/glxwindow.c
+   file: C-kern/platform/shared/X11/glxwindow.c
     Implementation file <X11-OpenGL-Window impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/presentation/X11/glxwindow.h"
+#include "C-kern/api/platform/X11/glxwindow.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/presentation/X11/x11.h"
-#include "C-kern/api/presentation/X11/x11attribute.h"
-#include "C-kern/api/presentation/X11/x11display.h"
-#include "C-kern/api/presentation/X11/x11drawable.h"
-#include "C-kern/api/presentation/X11/x11screen.h"
-#include "C-kern/api/presentation/X11/x11window.h"
+#include "C-kern/api/platform/X11/x11.h"
+#include "C-kern/api/platform/X11/x11attribute.h"
+#include "C-kern/api/platform/X11/x11display.h"
+#include "C-kern/api/platform/X11/x11drawable.h"
+#include "C-kern/api/platform/X11/x11screen.h"
+#include "C-kern/api/platform/X11/x11window.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/thread.h"
 #include "C-kern/api/string/cstring.h"
 #endif
-#include "C-kern/api/presentation/X11/x11syskonfig.h"
+#include "C-kern/api/platform/X11/x11syskonfig.h"
 
 
 
@@ -803,7 +803,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_presentation_X11_glxwindow()
+int unittest_platform_X11_glxwindow()
 {
    x11display_t      x11disp   = x11display_INIT_FREEABLE ;
    x11screen_t       x11screen = x11screen_INIT_FREEABLE ;

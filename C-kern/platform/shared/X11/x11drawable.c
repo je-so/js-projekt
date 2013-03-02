@@ -17,21 +17,21 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11drawable.h
+   file: C-kern/api/platform/X11/x11drawable.h
     Header file <X11-Drawable>.
 
-   file: C-kern/presentation/X11/x11drawable.c
+   file: C-kern/platform/shared/X11/x11drawable.c
     Implementation file <X11-Drawable impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/presentation/X11/x11drawable.h"
+#include "C-kern/api/platform/X11/x11drawable.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/presentation/X11/x11display.h"
+#include "C-kern/api/platform/X11/x11display.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
-#include "C-kern/api/presentation/X11/x11syskonfig.h"
+#include "C-kern/api/platform/X11/x11syskonfig.h"
 
 
 // section: x11drawable_t
@@ -63,7 +63,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_presentation_X11_x11drawable()
+int unittest_platform_X11_x11drawable()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

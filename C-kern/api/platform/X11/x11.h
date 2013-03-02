@@ -16,14 +16,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11.h
+   file: C-kern/api/platform/X11/x11.h
     Header file of <X11-Subsystem>.
 
-   file: C-kern/presentation/X11/x11.c
+   file: C-kern/platform/shared/X11/x11.c
     Implementation file <X11-Subsystem impl>.
 */
-#ifndef CKERN_PRESENTATION_X11_HEADER
-#define CKERN_PRESENTATION_X11_HEADER
+#ifndef CKERN_PLATFORM_X11_HEADER
+#define CKERN_PLATFORM_X11_HEADER
 
 // foward
 struct x11display_t ;
@@ -33,6 +33,17 @@ struct x11display_t ;
  * The parameter object points to the type you registered with <x11display_t>.
  * The parameter xevent points to type »XEvent«. */
 typedef void (*X11_callback_f) (struct x11display_t * x11disp, void * xevent) ;
+
+
+// section: Functions
+
+// group: test
+
+#ifdef KONFIG_UNITTEST
+/* function: unittest_platform_X11
+ * Test initialization process succeeds. */
+int unittest_platform_X11(void) ;
+#endif
 
 
 // struct: X11_t
@@ -80,14 +91,6 @@ int dispatchevent_X11(struct x11display_t * x11disp) ;
 // group: query
 
 bool iscallback_X11(uint8_t type) ;
-
-// group: test
-
-#ifdef KONFIG_UNITTEST
-/* function: unittest_presentation_X11
- * Test initialization process succeeds. */
-int unittest_presentation_X11(void) ;
-#endif
 
 
 // section: inline implementation

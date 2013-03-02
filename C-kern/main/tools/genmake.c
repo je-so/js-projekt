@@ -77,7 +77,7 @@ const char * const g_varLFlagTarget = "LFlagTarget" ;  // example: LFlagTarget =
 const char * const g_varLinker   = "Linker" ;   // example: Linker = gcc
 const char * const g_varModes    = "Modes" ;    // example: Modes = Debug Release
 const char * const g_varObjectdir= "Objectdir" ;// example: Objectdir =  obj/$(mode)
-const char * const g_varSrc      = "Src" ;      // example: Src =  src/presentation/*.c
+const char * const g_varSrc      = "Src" ;      // example: Src =  src/platform/*.c
 const char * const g_varTarget   = "Target" ;   // example: Target =  bin/$(projectname)_$(mode)
 
 

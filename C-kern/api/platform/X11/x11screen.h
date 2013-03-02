@@ -17,14 +17,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11screen.h
+   file: C-kern/api/platform/X11/x11screen.h
     Header file <X11-Screen>.
 
-   file: C-kern/presentation/X11/x11screen.c
+   file: C-kern/platform/shared/X11/x11screen.c
     Implementation file <X11-Screen impl>.
 */
-#ifndef CKERN_PRESENTATION_X11_X11SCREEN_HEADER
-#define CKERN_PRESENTATION_X11_X11SCREEN_HEADER
+#ifndef CKERN_PLATFORM_X11_X11SCREEN_HEADER
+#define CKERN_PLATFORM_X11_X11SCREEN_HEADER
 
 /* typedef: struct x11screen_t
  * Export <x11screen_t> into global namespace. */
@@ -36,9 +36,9 @@ typedef struct x11screen_t             x11screen_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_presentation_X11_x11screen
+/* function: unittest_platform_X11_x11screen
  * Test <x11screen_t> functionality. */
-int unittest_presentation_X11_x11screen(void) ;
+int unittest_platform_X11_x11screen(void) ;
 #endif
 
 

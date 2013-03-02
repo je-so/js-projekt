@@ -17,11 +17,11 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11syskonfig.h
+   file: C-kern/api/platform/X11/x11syskonfig.h
     Header file <X11SystemKonfig>.
 */
-#ifndef CKERN_PRESENTATION_X11_X11SYSKONFIG_HEADER
-#define CKERN_PRESENTATION_X11_X11SYSKONFIG_HEADER
+#ifndef CKERN_PLATFORM_X11_X11SYSKONFIG_HEADER
+#define CKERN_PLATFORM_X11_X11SYSKONFIG_HEADER
 
 // section: X11-System-Configuration
 

@@ -17,27 +17,27 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11window.h
+   file: C-kern/api/platform/X11/x11window.h
     Header file <X11-Window>.
 
-   file: C-kern/presentation/X11/x11window.c
+   file: C-kern/platform/shared/X11/x11window.c
     Implementation file <X11-Window impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/presentation/X11/x11window.h"
+#include "C-kern/api/platform/X11/x11window.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/presentation/X11/x11.h"
-#include "C-kern/api/presentation/X11/x11attribute.h"
-#include "C-kern/api/presentation/X11/x11display.h"
-#include "C-kern/api/presentation/X11/x11drawable.h"
-#include "C-kern/api/presentation/X11/x11screen.h"
+#include "C-kern/api/platform/X11/x11.h"
+#include "C-kern/api/platform/X11/x11attribute.h"
+#include "C-kern/api/platform/X11/x11display.h"
+#include "C-kern/api/platform/X11/x11drawable.h"
+#include "C-kern/api/platform/X11/x11screen.h"
 #include "C-kern/api/string/cstring.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/thread.h"
 #endif
-#include "C-kern/api/presentation/X11/x11syskonfig.h"
+#include "C-kern/api/platform/X11/x11syskonfig.h"
 
 
 // section: x11window_t
@@ -1735,7 +1735,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_presentation_X11_x11window()
+int unittest_platform_X11_x11window()
 {
    x11display_t      x11disp   = x11display_INIT_FREEABLE ;
    testwindow_t      x11win    = testwindow_INIT_FREEABLE ;

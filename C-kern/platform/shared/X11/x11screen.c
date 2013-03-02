@@ -17,21 +17,21 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11screen.h
+   file: C-kern/api/platform/X11/x11screen.h
     Header file <X11-Screen>.
 
-   file: C-kern/presentation/X11/x11screen.c
+   file: C-kern/platform/shared/X11/x11screen.c
     Implementation file <X11-Screen impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/presentation/X11/x11screen.h"
+#include "C-kern/api/platform/X11/x11screen.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/presentation/X11/x11display.h"
+#include "C-kern/api/platform/X11/x11display.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
-#include "C-kern/api/presentation/X11/x11syskonfig.h"
+#include "C-kern/api/platform/X11/x11syskonfig.h"
 
 
 // section: x11display_t
@@ -163,7 +163,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_presentation_X11_x11screen()
+int unittest_platform_X11_x11screen()
 {
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
    x11display_t      x11disp = x11display_INIT_FREEABLE ;

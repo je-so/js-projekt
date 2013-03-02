@@ -21,14 +21,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11display.h
+   file: C-kern/api/platform/X11/x11display.h
     Header file of <X11-Display>.
 
-   file: C-kern/presentation/X11/x11display.c
+   file: C-kern/platform/shared/X11/x11display.c
     Implementation file of <X11-Display impl>.
 */
-#ifndef CKERN_PRESENTATION_X11_X11DISPLAY_HEADER
-#define CKERN_PRESENTATION_X11_X11DISPLAY_HEADER
+#ifndef CKERN_PLATFORM_X11_X11DISPLAY_HEADER
+#define CKERN_PLATFORM_X11_X11DISPLAY_HEADER
 
 // forward
 struct x11display_objectid_t ;
@@ -54,9 +54,9 @@ typedef struct x11display_objectid_t      x11display_objectid_t  ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_presentation_X11_x11display
+/* function: unittest_platform_X11_x11display
  * Tests connection to local X11 display. */
-int unittest_presentation_X11_x11display(void) ;
+int unittest_platform_X11_x11display(void) ;
 #endif
 
 

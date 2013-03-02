@@ -18,14 +18,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11attribute.h
+   file: C-kern/api/platform/X11/x11attribute.h
     Header file <X11-Attribute>.
 
-   file: C-kern/presentation/X11/x11attribute.c
+   file: C-kern/platform/shared/X11/x11attribute.c
     Implementation file <X11-Attribute impl>.
 */
-#ifndef CKERN_PRESENTATION_X11_X11ATTRIBUTE_HEADER
-#define CKERN_PRESENTATION_X11_X11ATTRIBUTE_HEADER
+#ifndef CKERN_PLATFORM_X11_X11ATTRIBUTE_HEADER
+#define CKERN_PLATFORM_X11_X11ATTRIBUTE_HEADER
 
 /* typedef: struct x11attribute_t
  * Export <x11attribute_t> into global namespace. */
@@ -107,9 +107,9 @@ enum x11attribute_name_e {
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_presentation_X11_x11attribute
+/* function: unittest_platform_X11_x11attribute
  * Test <x11attribute_t> functionality. */
-int unittest_presentation_X11_x11attribute(void) ;
+int unittest_platform_X11_x11attribute(void) ;
 #endif
 
 

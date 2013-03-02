@@ -16,23 +16,23 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11.h
+   file: C-kern/api/platform/X11/x11.h
     Header file of <X11-Subsystem>.
 
-   file: C-kern/presentation/X11/x11.c
+   file: C-kern/platform/shared/X11/x11.c
     Implementation file <X11-Subsystem impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/presentation/X11/x11.h"
-#include "C-kern/api/presentation/X11/x11display.h"
-#include "C-kern/api/presentation/X11/glxwindow.h"
+#include "C-kern/api/platform/X11/x11.h"
+#include "C-kern/api/platform/X11/x11display.h"
+#include "C-kern/api/platform/X11/glxwindow.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/platform/thread.h"
 #endif
-#include "C-kern/api/presentation/X11/x11syskonfig.h"
+#include "C-kern/api/platform/X11/x11syskonfig.h"
 
 
 // section: X11_t
@@ -341,7 +341,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_presentation_X11()
+int unittest_platform_X11()
 {
    Display           * disp = 0 ;
    resourceusage_t   usage  = resourceusage_INIT_FREEABLE ;

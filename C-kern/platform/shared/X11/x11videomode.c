@@ -17,24 +17,24 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11videomode.h
+   file: C-kern/api/platform/X11/x11videomode.h
     Header file <X11-Videomode>.
 
-   file: C-kern/presentation/X11/x11videomode.c
+   file: C-kern/platform/shared/X11/x11videomode.c
     Implementation file <X11-Videomode impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/presentation/X11/x11videomode.h"
+#include "C-kern/api/platform/X11/x11videomode.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/platform/thread.h"
-#include "C-kern/api/presentation/X11/x11.h"
-#include "C-kern/api/presentation/X11/x11display.h"
-#include "C-kern/api/presentation/X11/x11screen.h"
+#include "C-kern/api/platform/X11/x11.h"
+#include "C-kern/api/platform/X11/x11display.h"
+#include "C-kern/api/platform/X11/x11screen.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
-#include "C-kern/api/presentation/X11/x11syskonfig.h"
+#include "C-kern/api/platform/X11/x11syskonfig.h"
 
 
 // section: x11videomode_iterator_t
@@ -438,7 +438,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_presentation_x11_x11videomode()
+int unittest_platform_X11_x11videomode()
 {
    x11display_t      x11disp   = x11display_INIT_FREEABLE ;
    x11screen_t       x11screen = x11screen_INIT_FREEABLE ;

@@ -17,14 +17,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/presentation/X11/x11videomode.h
+   file: C-kern/api/platform/X11/x11videomode.h
     Header file <X11-Videomode>.
 
-   file: C-kern/presentation/X11/x11videomode.c
+   file: C-kern/platform/shared/X11/x11videomode.c
     Implementation file <X11-Videomode impl>.
 */
-#ifndef CKERN_PRESENTATION_X11_X11VIDEOMODE_HEADER
-#define CKERN_PRESENTATION_X11_X11VIDEOMODE_HEADER
+#ifndef CKERN_PLATFORM_X11_X11VIDEOMODE_HEADER
+#define CKERN_PLATFORM_X11_X11VIDEOMODE_HEADER
 
 // forward
 struct x11screen_t ;
@@ -43,9 +43,9 @@ typedef struct x11videomode_iterator_t    x11videomode_iterator_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_presentation_x11_x11videomode
+/* function: unittest_platform_X11_x11videomode
  * Test <x11videomode_t> functionality. */
-int unittest_presentation_x11_x11videomode(void) ;
+int unittest_platform_X11_x11videomode(void) ;
 #endif
 
 

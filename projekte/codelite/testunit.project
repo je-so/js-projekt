@@ -29,6 +29,7 @@
       <File Name="../../C-kern/api/string/format_string.h"/>
       <File Name="../../C-kern/api/string/stringstream.h"/>
       <File Name="../../C-kern/api/string/textpos.h"/>
+      <File Name="../../C-kern/api/string/splitstring.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
       <File Name="../../C-kern/api/platform/process.h"/>
@@ -53,6 +54,17 @@
         <File Name="../../C-kern/api/platform/sync/waitlist.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/sysuser.h"/>
+      <VirtualDirectory Name="X11">
+        <File Name="../../C-kern/api/platform/X11/glxwindow.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11attribute.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11display.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11drawable.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11screen.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11syskonfig.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11videomode.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11window.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="math">
       <VirtualDirectory Name="int">
@@ -172,25 +184,11 @@
       <File Name="../../C-kern/api/time/sysclock.h"/>
       <File Name="../../C-kern/api/time/systimer.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="presentation">
-      <VirtualDirectory Name="X11">
-        <File Name="../../C-kern/api/presentation/X11/glxwindow.h"/>
-        <File Name="../../C-kern/api/presentation/X11/x11.h"/>
-        <File Name="../../C-kern/api/presentation/X11/x11syskonfig.h"/>
-        <File Name="../../C-kern/api/presentation/X11/x11videomode.h"/>
-        <File Name="../../C-kern/api/presentation/X11/x11display.h"/>
-        <File Name="../../C-kern/api/presentation/X11/x11screen.h"/>
-        <File Name="../../C-kern/api/presentation/X11/x11window.h"/>
-        <File Name="../../C-kern/api/presentation/X11/x11attribute.h"/>
-        <File Name="../../C-kern/api/presentation/X11/x11drawable.h"/>
-      </VirtualDirectory>
-    </VirtualDirectory>
     <VirtualDirectory Name="lang">
       <VirtualDirectory Name="transC">
         <File Name="../../C-kern/api/lang/transC/transCparser.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/lang/utf8scanner.h"/>
-      <File Name="../../C-kern/api/lang/splittoken.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
@@ -274,6 +272,7 @@
     <File Name="../../C-kern/string/format_string.c"/>
     <File Name="../../C-kern/string/stringstream.c"/>
     <File Name="../../C-kern/string/textpos.c"/>
+    <File Name="../../C-kern/string/splitstring.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resource">
     <VirtualDirectory Name="coding conventions">
@@ -334,6 +333,16 @@
         <File Name="../../C-kern/platform/shared/task/exothread.c"/>
         <File Name="../../C-kern/platform/shared/task/threadpool.c"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="X11">
+        <File Name="../../C-kern/platform/shared/X11/glxwindow.c"/>
+        <File Name="../../C-kern/platform/shared/X11/x11.c"/>
+        <File Name="../../C-kern/platform/shared/X11/x11attribute.c"/>
+        <File Name="../../C-kern/platform/shared/X11/x11display.c"/>
+        <File Name="../../C-kern/platform/shared/X11/x11drawable.c"/>
+        <File Name="../../C-kern/platform/shared/X11/x11screen.c"/>
+        <File Name="../../C-kern/platform/shared/X11/x11videomode.c"/>
+        <File Name="../../C-kern/platform/shared/X11/x11window.c"/>
+      </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="math">
@@ -361,7 +370,6 @@
       <File Name="../../C-kern/lang/transC/transCparser.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/lang/utf8scanner.c"/>
-    <File Name="../../C-kern/lang/splittoken.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>
@@ -371,18 +379,6 @@
       <File Name="../../C-kern/memory/mm/mm_it.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/memory/hwcache.c"/>
-  </VirtualDirectory>
-  <VirtualDirectory Name="presentation">
-    <VirtualDirectory Name="X11">
-      <File Name="../../C-kern/presentation/X11/glxwindow.c"/>
-      <File Name="../../C-kern/presentation/X11/x11.c"/>
-      <File Name="../../C-kern/presentation/X11/x11videomode.c"/>
-      <File Name="../../C-kern/presentation/X11/x11display.c"/>
-      <File Name="../../C-kern/presentation/X11/x11screen.c"/>
-      <File Name="../../C-kern/presentation/X11/x11window.c"/>
-      <File Name="../../C-kern/presentation/X11/x11attribute.c"/>
-      <File Name="../../C-kern/presentation/X11/x11drawable.c"/>
-    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">
