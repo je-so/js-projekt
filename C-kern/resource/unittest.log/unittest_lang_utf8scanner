@@ -1,2 +1,1 @@
-C-kern/lang/utf8scanner.c:122: endscan_utf8scanner(): error: 22: Function aborted
-C-kern/lang/utf8scanner.c:160: readbuffer_utf8scanner(): error: 105: Function aborted
+C-kern/lang/utf8scanner.c:126: readbuffer_utf8scanner(): error: 105: Function aborted

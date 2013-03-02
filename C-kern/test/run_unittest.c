@@ -296,9 +296,10 @@ int run_unittest(void)
       RUN(unittest_string_convertwchar) ;
       RUN(unittest_string_cstring) ;
       RUN(unittest_string_base64encode) ;
+      RUN(unittest_string_splitstring) ;
       RUN(unittest_string_stringstream) ;
-      RUN(unittest_string_urlencode) ;
       RUN(unittest_string_textpos) ;
+      RUN(unittest_string_urlencode) ;
       RUN(unittest_string_utf8) ;
 //}
 
@@ -337,7 +338,6 @@ int run_unittest(void)
 //}
 
 //{ lang(uage) unittest
-      RUN(unittest_lang_splittoken) ;
       RUN(unittest_lang_utf8scanner) ;
       RUN(unittest_lang_transc_transcparser) ;
 //}
