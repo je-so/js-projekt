@@ -317,11 +317,7 @@ static int addtextatom_textresourcecondition(textresource_condition_t * cond, te
    err = callnewcopy_typeadapt(&g_textatom_adapter, (struct typeadapt_object_t**)&textatomcopy, (struct typeadapt_object_t*)textatom) ;
    if (err) goto ONABORT ;
 
-   err = insertlast_textatomlist(&cond->atomlist, textatomcopy) ;
-   if (err) {
-      (void) calldelete_typeadapt(&g_textatom_adapter, (struct typeadapt_object_t**)&textatomcopy) ;
-      goto ONABORT ;
-   }
+   insertlast_textatomlist(&cond->atomlist, textatomcopy) ;
 
    return 0 ;
 ONABORT:
@@ -412,11 +408,7 @@ static int addcondition_textresourcelangref(textresource_langref_t * lang, textr
    err = callnewcopy_typeadapt(&g_condition_adapter, &conditioncopy, condition) ;
    if (err) goto ONABORT ;
 
-   err = insertlast_conditionlist(&lang->condlist, conditioncopy) ;
-   if (err) {
-      (void) calldelete_typeadapt(&g_condition_adapter, &conditioncopy) ;
-      goto ONABORT ;
-   }
+   insertlast_conditionlist(&lang->condlist, conditioncopy) ;
 
    if (copy) *copy = conditioncopy ;
 
@@ -1055,7 +1047,7 @@ static int parse_parameterlist(textresource_reader_t * reader, textresource_text
          textresource_parameter_t * textparamcopy ;
 
          err = insert_arrayparam(text->params, &textparam, &textparamcopy, &g_parameter_nodeadapter) ;
-         if (!err) err = insertlast_paramlist(&text->paramlist, textparamcopy) ;
+         if (!err) insertlast_paramlist(&text->paramlist, textparamcopy) ;
          if (err) {
             if (EEXIST == err) {
                report_parseerror(reader, "parameter name '%.*s' is not unique", (int)textparam.name.size, (const char*)textparam.name.addr) ;
@@ -1362,11 +1354,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          err = callnewcopy_typeadapt(&g_langref_adapter, &langrefcopy, &langref) ;
          if (err) return err ;
 
-         err = insertlast_langreflist(&textcopy->langlist, langrefcopy) ;
-         if (err) {
-            (void) calldelete_typeadapt(&g_langref_adapter, &langrefcopy) ;
-            return err ;
-         }
+         insertlast_langreflist(&textcopy->langlist, langrefcopy) ;
 
          err = parse_unconditional_textatoms(reader, textcopy, langrefcopy) ;
          if (err) return err ;

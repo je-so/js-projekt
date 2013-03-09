@@ -72,12 +72,8 @@ ONABORT:
    return err ;
 }
 
-int insertfirst_slist(slist_t * list, struct slist_node_t * new_node)
+void insertfirst_slist(slist_t * list, struct slist_node_t * new_node)
 {
-   int err ;
-
-   VALIDATE_INPARAM_TEST(! new_node->next, ONABORT, ) ;
-
    if (!list->last) {
       list->last = new_node ;
       new_node->next = new_node ;
@@ -85,19 +81,10 @@ int insertfirst_slist(slist_t * list, struct slist_node_t * new_node)
       new_node->next   = list->last->next ;
       list->last->next = new_node ;
    }
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
 }
 
-int insertlast_slist(slist_t * list, struct slist_node_t * new_node)
+void insertlast_slist(slist_t * list, struct slist_node_t * new_node)
 {
-   int err ;
-
-   VALIDATE_INPARAM_TEST(! new_node->next, ONABORT, ) ;
-
    if (!list->last) {
       list->last = new_node ;
       new_node->next = new_node ;
@@ -106,29 +93,15 @@ int insertlast_slist(slist_t * list, struct slist_node_t * new_node)
       list->last->next = new_node ;
       list->last       = new_node ;
    }
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
 }
 
-int insertafter_slist(slist_t * list, struct slist_node_t * prev_node, struct slist_node_t * new_node)
+void insertafter_slist(slist_t * list, struct slist_node_t * prev_node, struct slist_node_t * new_node)
 {
-   int err ;
-
-   VALIDATE_INPARAM_TEST(! new_node->next && prev_node->next && ! isempty_slist(list), ONABORT, ) ;
-
    new_node->next  = prev_node->next ;
    prev_node->next = new_node ;
    if (list->last == prev_node) {
       list->last = new_node ;
    }
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
 }
 
 int removefirst_slist(slist_t * list, struct slist_node_t ** removed_node)
@@ -254,7 +227,7 @@ static int test_initfree(void)
    // TEST free_slist: call free callback
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 != nodes[i].next) ;
@@ -272,7 +245,7 @@ static int test_initfree(void)
    // TEST free_slist: no free callback
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 != nodes[i].next) ;
@@ -289,7 +262,7 @@ static int test_initfree(void)
    // TEST free_slist: ENOMEM
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    init_testerrortimer(&typeadapt.errcounter, 3, ENOMEM) ;
    TEST(ENOMEM == free_slist(&slist, &nodeadapt)) ;
@@ -411,7 +384,7 @@ static int test_insertremove(void)
    init_slist(&slist) ;
 
    // TEST insertfirst, removefirst single element
-   TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[0].next)) ;
+   insertfirst_slist(&slist, (struct slist_node_t*)&nodes[0].next) ;
    TEST(&nodes[0].next  == (void*)nodes[0].next) ;
    TEST(slist.last == (void*)&nodes[0].next) ;
    TEST(0 == removefirst_slist(&slist, &node)) ;
@@ -420,7 +393,7 @@ static int test_insertremove(void)
    TEST(0 == nodes[0].is_freed) ;
 
    // TEST insertlast, removefirst single element
-   TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[0].next)) ;
+   insertlast_slist(&slist, (struct slist_node_t*)&nodes[0].next) ;
    TEST(&nodes[0].next == (slist_node_t**)nodes[0].next) ;
    TEST(slist.last     == (slist_node_t*)&nodes[0].next) ;
    TEST(0 == removefirst_slist(&slist, &node)) ;
@@ -429,12 +402,12 @@ static int test_insertremove(void)
    TEST(0 == nodes[0].is_freed) ;
 
    // TEST insertafter, removeafter three elements
-   TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[0].next)) ;
+   insertlast_slist(&slist, (struct slist_node_t*)&nodes[0].next) ;
    TEST(slist.last  == (void*)&nodes[0].next) ;
-   TEST(0 == insertafter_slist(&slist, (struct slist_node_t*)&nodes[0].next, (struct slist_node_t*)&nodes[1].next)) ;
+   insertafter_slist(&slist, (struct slist_node_t*)&nodes[0].next, (struct slist_node_t*)&nodes[1].next) ;
    TEST(first_slist(&slist) == (void*)&nodes[0].next) ;
    TEST(last_slist(&slist)  == (void*)&nodes[1].next) ;
-   TEST(0 == insertafter_slist(&slist, (struct slist_node_t*)&nodes[0].next, (struct slist_node_t*)&nodes[2].next)) ;
+   insertafter_slist(&slist, (struct slist_node_t*)&nodes[0].next, (struct slist_node_t*)&nodes[2].next) ;
    TEST(&nodes[0].next == (void*)first_slist(&slist)) ;
    TEST(&nodes[1].next == (void*)last_slist(&slist)) ;
    TEST(&nodes[2].next == (void*)next_slist((slist_node_t*)&nodes[0].next)) ;
@@ -458,7 +431,7 @@ static int test_insertremove(void)
    // TEST insertfirst
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
       TEST(&nodes[i].next == (void*)first_slist(&slist)) ;
       TEST(&nodes[0].next == (void*)last_slist(&slist)) ;
    }
@@ -475,7 +448,7 @@ static int test_insertremove(void)
    // TEST insertlast
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
       TEST(&nodes[0].next == (void*)first_slist(&slist)) ;
       TEST(&nodes[i].next == (void*)last_slist(&slist)) ;
    }
@@ -491,14 +464,14 @@ static int test_insertremove(void)
 
    // TEST insertafter
    init_slist(&slist) ;
-   TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[0].next)) ;
+   insertfirst_slist(&slist, (struct slist_node_t*)&nodes[0].next) ;
    for (unsigned i = 2; i < lengthof(nodes); i += 2) {
-      TEST(0 == insertafter_slist(&slist, (struct slist_node_t*)&nodes[i-2].next, (struct slist_node_t*)&nodes[i].next)) ;
+      insertafter_slist(&slist, (struct slist_node_t*)&nodes[i-2].next, (struct slist_node_t*)&nodes[i].next) ;
       TEST(&nodes[0].next == (void*)first_slist(&slist)) ;
       TEST(&nodes[i].next == (void*)last_slist(&slist)) ;
    }
    for (unsigned i = 1; i < lengthof(nodes); i += 2) {
-      TEST(0 == insertafter_slist(&slist, (struct slist_node_t*)&nodes[i-1].next, (struct slist_node_t*)&nodes[i].next)) ;
+      insertafter_slist(&slist, (struct slist_node_t*)&nodes[i-1].next, (struct slist_node_t*)&nodes[i].next) ;
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(nodes[i].next == (slist_node_t*)&nodes[(i+1)%lengthof(nodes)].next) ;
@@ -515,7 +488,7 @@ static int test_insertremove(void)
    // TEST removefirst
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(&nodes[i].next                     == (void*)first_slist(&slist)) ;
@@ -533,7 +506,7 @@ static int test_insertremove(void)
    // TEST removeafter
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    for (unsigned i = 0; i < lengthof(nodes)-1; i += 2) {
       TEST(&nodes[0].next                     == (void*)first_slist(&slist)) ;
@@ -559,10 +532,10 @@ static int test_insertremove(void)
    // TEST removeall
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
-      TEST(0 == insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertlast_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    for (unsigned i = lengthof(nodes)/2; i < lengthof(nodes); ++i) {
-      TEST(0 == insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next)) ;
+      insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    TEST(&nodes[lengthof(nodes)-1].next   == (void*)first_slist(&slist)) ;
    TEST(&nodes[lengthof(nodes)/2-1].next == (void*)last_slist(&slist)) ;
@@ -575,16 +548,9 @@ static int test_insertremove(void)
 
    // TEST EINVAL
    init_slist(&slist) ;
-   TEST(0 == insertfirst_slist(&slist, (slist_node_t*)&nodes[1].next)) ;
-   nodes[0].next = (void*) 1 ;
-   TEST(EINVAL == insertfirst_slist(&slist, (slist_node_t*)&nodes[0].next)) ;
-   TEST(EINVAL == insertlast_slist(&slist, (slist_node_t*)&nodes[0].next)) ;
-   TEST(EINVAL == insertafter_slist(&slist, (slist_node_t*)&nodes[1].next, (slist_node_t*)&nodes[0].next)) ;
-   nodes[0].next = (void*) 0 ;
-   TEST(EINVAL == insertafter_slist(&slist, (slist_node_t*)&nodes[0].next, (slist_node_t*)&nodes[0].next)) ;
+   insertfirst_slist(&slist, (slist_node_t*)&nodes[1].next) ;
    TEST(EINVAL == removeafter_slist(&slist, (slist_node_t*)&nodes[0].next, &node)) ;
    slist.last = 0 ;
-   TEST(EINVAL == insertafter_slist(&slist, (slist_node_t*)&nodes[1].next, (slist_node_t*)&nodes[0].next)) ;
    TEST(EINVAL == removefirst_slist(&slist, &node)) ;
    TEST(EINVAL == removeafter_slist(&slist, (slist_node_t*)&nodes[1].next, &node)) ;
 
@@ -696,10 +662,10 @@ static int test_generic(void)
    // TEST single element
    init_slist1(&slist1) ;
    init_slist2(&slist2) ;
-   TEST(0 == insertfirst_slist1(&slist1, &nodes[0])) ;
+   insertfirst_slist1(&slist1, &nodes[0]) ;
    TEST(nodes[0].next == (slist_node_t*)&nodes[0].next) ;
    TEST(0 == nodes[0].next2.next) ;
-   TEST(0 == insertfirst_slist2(&slist2, &nodes[0])) ;
+   insertfirst_slist2(&slist2, &nodes[0]) ;
    TEST(nodes[0].next2.next == (slist_node_t*)&nodes[0].next2.next) ;
    TEST(&nodes[0] == first_slist1(&slist1)) ;
    TEST(&nodes[0] == last_slist1(&slist1)) ;
@@ -721,26 +687,26 @@ static int test_generic(void)
    TEST(1 == isempty_slist2(&slist2)) ;
 
    // TEST insertfirst_slist
-   TEST(0 == insertfirst_slist1(&slist1, &nodes[1])) ;
-   TEST(0 == insertfirst_slist2(&slist2, &nodes[1])) ;
-   TEST(0 == insertfirst_slist1(&slist1, &nodes[0])) ;
-   TEST(0 == insertfirst_slist2(&slist2, &nodes[0])) ;
+   insertfirst_slist1(&slist1, &nodes[1]) ;
+   insertfirst_slist2(&slist2, &nodes[1]) ;
+   insertfirst_slist1(&slist1, &nodes[0]) ;
+   insertfirst_slist2(&slist2, &nodes[0]) ;
    TEST(&nodes[0] == first_slist1(&slist1)) ;
    TEST(&nodes[1] == last_slist1(&slist1)) ;
    TEST(&nodes[0] == first_slist2(&slist2)) ;
    TEST(&nodes[1] == last_slist2(&slist2)) ;
 
    // TEST insertlast_slist
-   TEST(0 == insertlast_slist1(&slist1, &nodes[2])) ;
-   TEST(0 == insertlast_slist2(&slist2, &nodes[2])) ;
+   insertlast_slist1(&slist1, &nodes[2]) ;
+   insertlast_slist2(&slist2, &nodes[2]) ;
    TEST(&nodes[0] == first_slist1(&slist1)) ;
    TEST(&nodes[2] == last_slist1(&slist1)) ;
    TEST(&nodes[0] == first_slist2(&slist2)) ;
    TEST(&nodes[2] == last_slist2(&slist2)) ;
 
    // TEST insertafter_slist
-   TEST(0 == insertafter_slist1(&slist1, &nodes[2], &nodes[3])) ;
-   TEST(0 == insertafter_slist2(&slist2, &nodes[2], &nodes[3])) ;
+   insertafter_slist1(&slist1, &nodes[2], &nodes[3]) ;
+   insertafter_slist2(&slist2, &nodes[2], &nodes[3]) ;
    TEST(&nodes[0] == first_slist1(&slist1)) ;
    TEST(&nodes[3] == last_slist1(&slist1)) ;
    TEST(&nodes[0] == first_slist2(&slist2)) ;
@@ -780,8 +746,8 @@ static int test_generic(void)
 
    // TEST free_slist: error
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertlast_slist1(&slist1, &nodes[i])) ;
-      TEST(0 == insertlast_slist2(&slist2, &nodes[i])) ;
+      insertlast_slist1(&slist1, &nodes[i]) ;
+      insertlast_slist2(&slist2, &nodes[i]) ;
    }
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 5, ENOSYS) ;
@@ -802,8 +768,8 @@ static int test_generic(void)
 
    // TEST iterator, next_dlist, prev_dlist
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == insertlast_slist1(&slist1, &nodes[i])) ;
-      TEST(0 == insertfirst_slist2(&slist2, &nodes[i])) ;
+      insertlast_slist1(&slist1, &nodes[i]) ;
+      insertfirst_slist2(&slist2, &nodes[i]) ;
    }
    for (unsigned i = 0; !i; i=1) {
       foreach (_slist1, &slist1, node) {

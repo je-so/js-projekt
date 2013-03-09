@@ -126,16 +126,12 @@ size_t nrwaiting_waitlist(waitlist_t * wlist)
 
 int wait_waitlist(waitlist_t * wlist)
 {
-   int err ;
    thread_t * self = self_thread() ;
 
    slock_mutex(&wlist->lock) ;
-   err = insertlast_wlist(genericcast_slist(wlist), self) ;
-   if (!err) {
-      ++ wlist->nr_waiting ;
-   }
+   insertlast_wlist(genericcast_slist(wlist), self) ;
+   ++ wlist->nr_waiting ;
    sunlock_mutex(&wlist->lock) ;
-   if (err) goto ONABORT ;
 
    bool isSpuriousWakeup ;
    do {
@@ -143,12 +139,9 @@ int wait_waitlist(waitlist_t * wlist)
       lock_thread(self) ;
       isSpuriousWakeup = (0 != self->wlistnext) ;
       unlock_thread(self) ;
-   } while( isSpuriousWakeup ) ;
+   } while (isSpuriousWakeup) ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
 }
 
 int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), void * start_arg)

@@ -144,10 +144,7 @@ static suffixtree_iterator_t * pushnew_iterlist(slist_t * stack)
    if (err) goto ONABORT ;
    iter->next = 0 ;
 
-   if (0 != insertfirst_iterlist(stack, iter)) {
-      delete_suffixtreeiterator(&iter) ;
-      goto ONABORT ;
-   }
+   insertfirst_iterlist(stack, iter) ;
 
    return iter ;
 ONABORT:
@@ -1454,7 +1451,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43127,44325,44603,60060,60184,60297,60352} ;
+   size_t         compare_pos[] = {1245,1284,1378,1405,2272,2567,2680,3121,3203,3324,3397,3526,3597,3711,3994,4081,4195,4312,4397,4510,4675,4754,4830,4908,4984,43050,44248,44526,59983,60107,60220,60275} ;
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

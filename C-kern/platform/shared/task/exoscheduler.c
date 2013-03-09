@@ -72,8 +72,9 @@ int register_exoscheduler(exoscheduler_t * xsched, exothread_t * xthread)
 {
    int err ;
 
-   err = insertlast_exothreadlist(genericcast_slist(&xsched->runlist), xthread) ;
-   if (err) goto ONABORT ;
+   VALIDATE_INPARAM_TEST(! xthread->next, ONABORT, ) ;
+
+   insertlast_exothreadlist(genericcast_slist(&xsched->runlist), xthread) ;
    ++ xsched->runlist_size ;
 
    return 0 ;

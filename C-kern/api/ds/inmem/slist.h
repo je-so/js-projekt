@@ -214,21 +214,28 @@ typedef struct slist_node_t * iteratedtype_slist ;
 
 /* function: insertfirst_slist
  * Makes new_node the new first element of list.
- * Ownership is transfered from caller to <slist_t>. */
-int insertfirst_slist(slist_t * list, struct slist_node_t * new_node) ;
+ * Ownership is transfered from caller to <slist_t>.
+ *
+ * Note:
+ * Make sure that new_node is not part of a list ! */
+void insertfirst_slist(slist_t * list, struct slist_node_t * new_node) ;
 
 /* function: insertlast_slist
  * Makes new_node the new last element of list.
- * Ownership is transfered from caller to <slist_t>. */
-int insertlast_slist(slist_t * list, struct slist_node_t * new_node) ;
+ * Ownership is transfered from caller to <slist_t>.
+ *
+ * Note:
+ * Make sure that new_node is not part of a list ! */
+void insertlast_slist(slist_t * list, struct slist_node_t * new_node) ;
 
 /* function: insertafter_slist
  * Adds new_node after prev_node into list.
  * Ownership is transfered from caller to <slist_t>.
  *
  * Note:
- * Make sure that prev_node is part of the list ! */
-int insertafter_slist(slist_t * list, struct slist_node_t * prev_node, struct slist_node_t * new_node) ;
+ * Make sure that new_node is not part of a list
+ * and that prev_node is part of the list ! */
+void insertafter_slist(slist_t * list, struct slist_node_t * prev_node, struct slist_node_t * new_node) ;
 
 /* function: removefirst_slist
  * Removes the first element from list.
@@ -352,9 +359,9 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    static inline object_t * first##_fsuffix(const slist_t * list) __attribute__ ((always_inline)) ; \
    static inline object_t * last##_fsuffix(const slist_t * list) __attribute__ ((always_inline)) ; \
    static inline object_t * next##_fsuffix(object_t * node) __attribute__ ((always_inline)) ; \
-   static inline int insertfirst##_fsuffix(slist_t * list, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int insertlast##_fsuffix(slist_t * list, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int insertafter##_fsuffix(slist_t * list, object_t * prev_node, object_t * new_node) __attribute__ ((always_inline)) ; \
+   static inline void insertfirst##_fsuffix(slist_t * list, object_t * new_node) __attribute__ ((always_inline)) ; \
+   static inline void insertlast##_fsuffix(slist_t * list, object_t * new_node) __attribute__ ((always_inline)) ; \
+   static inline void insertafter##_fsuffix(slist_t * list, object_t * prev_node, object_t * new_node) __attribute__ ((always_inline)) ; \
    static inline int removefirst##_fsuffix(slist_t * list, object_t ** removed_node) __attribute__ ((always_inline)) ; \
    static inline int removeafter##_fsuffix(slist_t * list, object_t * prev_node, object_t ** removed_node) __attribute__ ((always_inline)) ; \
    static inline int removeall##_fsuffix(slist_t * list, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
@@ -389,14 +396,14 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    static inline object_t * next##_fsuffix(object_t * node) { \
       return asobject##_fsuffix(next_slist(asnode##_fsuffix(node))) ; \
    } \
-   static inline int insertfirst##_fsuffix(slist_t * list, object_t * new_node) { \
-      return insertfirst_slist(list, asnode##_fsuffix(new_node)) ; \
+   static inline void insertfirst##_fsuffix(slist_t * list, object_t * new_node) { \
+      insertfirst_slist(list, asnode##_fsuffix(new_node)) ; \
    } \
-   static inline int insertlast##_fsuffix(slist_t * list, object_t * new_node) { \
-      return insertlast_slist(list, asnode##_fsuffix(new_node)) ; \
+   static inline void insertlast##_fsuffix(slist_t * list, object_t * new_node) { \
+      insertlast_slist(list, asnode##_fsuffix(new_node)) ; \
    } \
-   static inline int insertafter##_fsuffix(slist_t * list, object_t * prev_node, object_t * new_node) { \
-      return insertafter_slist(list, asnode##_fsuffix(prev_node), asnode##_fsuffix(new_node)) ; \
+   static inline void insertafter##_fsuffix(slist_t * list, object_t * prev_node, object_t * new_node) { \
+      insertafter_slist(list, asnode##_fsuffix(prev_node), asnode##_fsuffix(new_node)) ; \
    } \
    static inline int removefirst##_fsuffix(slist_t * list, object_t ** removed_node) { \
       int err = removefirst_slist(list, (slist_node_t**)removed_node) ; \
