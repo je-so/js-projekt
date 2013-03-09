@@ -52,7 +52,7 @@ typedef struct vm_regionsarray_t       vm_regionsarray_t ;
 
 /* function: pagesize_vm
  * Returns the virtual memory page size supported by the underlying system.
- * This function returns a cached value. */
+ * This function returns a cached value >= 256. */
 uint32_t pagesize_vm(void) ;
 
 /* function: sys_pagesize_vm
