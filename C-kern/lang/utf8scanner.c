@@ -268,15 +268,15 @@ static int test_read(directory_t * tempdir)
    addr = (const uint8_t*) "1234" ;
    scan.next = addr + 1 ;
    scan.end  = addr + 4 ;
-   setaddr_splitstring(scannedtoken_utf8scanner(&scan), 0, addr) ;
-   setsize_splitstring(scannedtoken_utf8scanner(&scan), 0, 1) ;
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 0) ;
+   setaddr_splitstring(&scan.scanned_token, 0, addr) ;
+   setsize_splitstring(&scan.scanned_token, 0, 1) ;
+   setnrofparts_splitstring(&scan.scanned_token, 0) ;
    TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == 1 + freader.nrfreebuffer) ;
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
    TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr) ;
    TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 1) ;
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 1) ;
+   setnrofparts_splitstring(&scan.scanned_token, 1) ;
    TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == 1 + freader.nrfreebuffer) ;
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
@@ -284,7 +284,7 @@ static int test_read(directory_t * tempdir)
    TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 1) ;
 
    // TEST cleartoken_utf8scanner: frees buffer in case two are acquired
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 2) ;
+   setnrofparts_splitstring(&scan.scanned_token, 2) ;
    TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == freader.nrfreebuffer/*freed, no buffer loaded cause buffer not empty*/) ;
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
@@ -301,15 +301,15 @@ static int test_read(directory_t * tempdir)
    addr = (const uint8_t*) "1234" ;
    scan.next = addr + 1 ;
    scan.end  = addr + 4 ;
-   setaddr_splitstring(scannedtoken_utf8scanner(&scan), 0, 0) ;
-   setsize_splitstring(scannedtoken_utf8scanner(&scan), 0, 12) ;
+   setaddr_splitstring(&scan.scanned_token, 0, 0) ;
+   setsize_splitstring(&scan.scanned_token, 0, 12) ;
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
    TEST(0 == settokenstart_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == 1 + freader.nrfreebuffer/*freed, no buffer loaded cause buffer not empty*/) ;
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 1) ;
    TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr) ;
    TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 0) ;
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 1) ;
+   setnrofparts_splitstring(&scan.scanned_token, 1) ;
    TEST(0 == settokenstart_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == 1 + freader.nrfreebuffer) ;
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 1) ;
@@ -317,8 +317,8 @@ static int test_read(directory_t * tempdir)
    TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 0) ;
 
    // TEST settokenstart_utf8scanner: frees buffer in case two are acquired
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 2) ;
-   setsize_splitstring(scannedtoken_utf8scanner(&scan), 0, 12) ;
+   setnrofparts_splitstring(&scan.scanned_token, 2) ;
+   setsize_splitstring(&scan.scanned_token, 0, 12) ;
    scan.next = addr + 2 ;
    TEST(0 == settokenstart_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == freader.nrfreebuffer/*freed, no buffer loaded cause buffer not empty*/) ;
@@ -342,8 +342,8 @@ static int test_read(directory_t * tempdir)
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 1) ;
    TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0)   == addr) ;
    TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0)   == (size_t)(scan.end - addr) / 4) ;
-   setpart_splitstring(scannedtoken_utf8scanner(&scan), 1, 0, scan.next-5) ;
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 2) ;
+   setpart_splitstring(&scan.scanned_token, 1, 0, scan.next-5) ;
+   setnrofparts_splitstring(&scan.scanned_token, 2) ;
    // nrofparts_splitstring == 2
    settokenend_utf8scanner(&scan) ;
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 2) ;
@@ -353,7 +353,7 @@ static int test_read(directory_t * tempdir)
    TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 1)   == 5) ;
    TEST(scan.next == addr + (scan.end - addr) / 4) ;
    // nrofparts_splitstring == 0 ==> does nothing
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 0) ;
+   setnrofparts_splitstring(&scan.scanned_token, 0) ;
    settokenend_utf8scanner(&scan) ;
    TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
    TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0)   == addr) ;
@@ -422,7 +422,7 @@ static int test_read(directory_t * tempdir)
    setsize_splitstring(&scan.scanned_token, 0, 0) ;
    setaddr_splitstring(&scan.scanned_token, 1, 0) ;
    setsize_splitstring(&scan.scanned_token, 1, 1) ;
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 1/*simulates beginscan_utf8scanner*/) ;
+   setnrofparts_splitstring(&scan.scanned_token, 1/*simulates beginscan_utf8scanner*/) ;
    scan.next = scan.end ;
    TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == freader.nrfreebuffer+2/*old buffer not released*/) ;
@@ -455,7 +455,7 @@ static int test_read(directory_t * tempdir)
    oldfree = freader.nrfreebuffer ;
    TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
    scan.next = scan.end ;  // simulate all bytes read from buffer
-   setnrofparts_splitstring(scannedtoken_utf8scanner(&scan), 1/*simulates token points to buffer*/) ;
+   setnrofparts_splitstring(&scan.scanned_token, 1/*simulates token points to buffer*/) ;
    TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == freader.nrfreebuffer+2/*loads 2 buffer*/) ;
    scan.next = scan.end ;  // simulate all bytes read from buffer

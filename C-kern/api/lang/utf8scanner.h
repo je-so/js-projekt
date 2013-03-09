@@ -112,7 +112,7 @@ bool isnext_utf8scanner(const utf8scanner_t * scan) ;
  * The content of the returned string is only valid after calling <endscan_utf8scanner>
  * with no error. The returned string is valid as long as no other function is called
  * except query functions. */
-splitstring_t * scannedtoken_utf8scanner(utf8scanner_t * scan) ;
+const splitstring_t * scannedtoken_utf8scanner(const utf8scanner_t * scan) ;
 
 // group: read
 
@@ -200,7 +200,7 @@ void skipbyte_utf8scanner(utf8scanner_t * scan) ;
 /* function: scannedtoken_utf8scanner
  * Implements <utf8scanner_t.scannedtoken_utf8scanner>. */
 #define scannedtoken_utf8scanner(scan)          \
-         (&(scan)->scanned_token)
+         ((const splitstring_t *)(&(scan)->scanned_token))
 
 /* function: settokenend_utf8scanner
  * Implements <utf8scanner_t.settokenend_utf8scanner>. */
