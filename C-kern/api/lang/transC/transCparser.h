@@ -1,4 +1,4 @@
-/* title: TransactionalC
+/* title: TransC-Parser
 
    Offers interface to parse a transactional C source code file
    and represent its content as syntax tree.
@@ -19,10 +19,10 @@
    (C) 2012 Jörg Seebohn
 
    file: C-kern/api/lang/transC/transCparser.h
-    Header file <TransactionalC>.
+    Header file <TransC-Parser>.
 
    file: C-kern/lang/transC/transCparser.c
-    Implementation file <TransactionalC impl>.
+    Implementation file <TransC-Parser impl>.
 */
 #ifndef CKERN_LANG_TRANSC_TRANSCPARSER_HEADER
 #define CKERN_LANG_TRANSC_TRANSCPARSER_HEADER
@@ -37,9 +37,9 @@ typedef struct transCparser_t          transCparser_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_lang_transc_transcparser
+/* function: unittest_lang_transc_transCparser
  * Test <transCparser_t> functionality. */
-int unittest_lang_transc_transcparser(void) ;
+int unittest_lang_transc_transCparser(void) ;
 #endif
 
 

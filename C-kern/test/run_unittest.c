@@ -339,7 +339,8 @@ int run_unittest(void)
 
 //{ lang(uage) unittest
       RUN(unittest_lang_utf8scanner) ;
-      RUN(unittest_lang_transc_transcparser) ;
+      RUN(unittest_lang_transc_transCtoken) ;
+      RUN(unittest_lang_transc_transCparser) ;
 //}
 
 //{ platform unittest

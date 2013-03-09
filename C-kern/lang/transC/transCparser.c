@@ -1,6 +1,6 @@
-/* title: TransactionalC impl
+/* title: TransC-Parser impl
 
-   Implements <TransactionalC>.
+   Implements <TransC-Parser>.
 
    about: Copyright
    This program is free software.
@@ -18,10 +18,10 @@
    (C) 2012 Jörg Seebohn
 
    file: C-kern/api/lang/transC/transCparser.h
-    Header file <TransactionalC>.
+    Header file <TransC-Parser>.
 
    file: C-kern/lang/transC/transCparser.c
-    Implementation file <TransactionalC impl>.
+    Implementation file <TransC-Parser impl>.
 */
 
 #include "C-kern/konfig.h"
@@ -49,7 +49,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_lang_transc_transcparser()
+int unittest_lang_transc_transCparser()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
