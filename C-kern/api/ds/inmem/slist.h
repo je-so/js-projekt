@@ -170,6 +170,10 @@ struct slist_t {
  * The caller has to provide an unitialized list object. This function never fails. */
 void init_slist(/*out*/slist_t * list) ;
 
+/* constructor: initsingle_slist
+ * Initializes a single linked list object containing a single node. */
+void initsingle_slist(/*out*/slist_t * list, slist_node_t * node) ;
+
 /* destructor: free_slist
  * Frees memory of all contained objects.
  * Set nodeadp to 0 if you do not want to call a free memory on every node. */
@@ -291,6 +295,10 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
  * Implements <slist_t.init_slist>. */
 #define init_slist(list)                     ((void)(*(list) = (slist_t)slist_INIT))
 
+/* define: initsingle_slist
+ * Implements <slist_t.initsingle_slist>. */
+#define initsingle_slist(list, node)         ((void)(*(list) = (slist_t){ node }, (node)->next = (node)))
+
 /* define: isempty_slist
  * Implements <slist_t.isempty_slist>. */
 #define isempty_slist(list)                  (0 == (list)->last)
@@ -362,6 +370,9 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    } \
    static inline void init##_fsuffix(slist_t * list) { \
       init_slist(list) ; \
+   } \
+   static inline void initsingle##_fsuffix(slist_t * list, object_t * node) { \
+      initsingle_slist(list, asnode##_fsuffix(node)) ; \
    } \
    static inline int free##_fsuffix(slist_t * list, struct typeadapt_member_t  * nodeadp) { \
       return free_slist(list, nodeadp) ; \

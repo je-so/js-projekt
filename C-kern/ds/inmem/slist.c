@@ -238,6 +238,19 @@ static int test_initfree(void)
    TEST(0 == free_slist(&slist, &nodeadapt)) ;
    TEST(0 == slist.last) ;
 
+   // TEST initsingle_slist
+   initsingle_slist(&slist, (struct slist_node_t*)&nodes[0].next) ;
+   TEST(nodes[0].next == (struct slist_node_t*)&nodes[0].next) ;
+   TEST(first_slist(&slist) == (struct slist_node_t*)&nodes[0].next) ;
+   TEST(last_slist(&slist)  == (struct slist_node_t*)&nodes[0].next) ;
+
+   // TEST free_slist: call free callback (single element)
+   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == slist.last) ;
+   TEST(0 == nodes[0].next) ;
+   TEST(1 == nodes[0].is_freed) ;
+   nodes[0].is_freed = 0 ;
+
    // TEST free_slist: call free callback
    init_slist(&slist) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -660,13 +673,29 @@ static int test_generic(void)
    TEST(0 == free_slist1(&slist1, &nodeadapt1)) ;
    TEST(0 == free_slist2(&slist2, &nodeadapt2)) ;
 
-   // TEST single element
+   // TEST init_slist
    slist1.last = (void*) 1 ;
    slist2.last = (void*) 1 ;
    init_slist1(&slist1) ;
    init_slist2(&slist2) ;
    TEST(0 == slist1.last) ;
    TEST(0 == slist2.last) ;
+
+   // TEST initsingle_slist
+   initsingle_slist1(&slist1, &nodes[1]) ;
+   initsingle_slist2(&slist2, &nodes[1]) ;
+   TEST(nodes[1].next       == (slist_node_t*)&nodes[1].next) ;
+   TEST(nodes[1].next2.next == (slist_node_t*)&nodes[1].next2.next) ;
+   TEST(&nodes[1] == first_slist1(&slist1)) ;
+   TEST(&nodes[1] == last_slist1(&slist1)) ;
+   TEST(&nodes[1] == first_slist2(&slist2)) ;
+   TEST(&nodes[1] == last_slist2(&slist2)) ;
+   nodes[1].next       = 0 ;
+   nodes[1].next2.next = 0 ;
+
+   // TEST single element
+   init_slist1(&slist1) ;
+   init_slist2(&slist2) ;
    TEST(0 == insertfirst_slist1(&slist1, &nodes[0])) ;
    TEST(nodes[0].next == (slist_node_t*)&nodes[0].next) ;
    TEST(0 == nodes[0].next2.next) ;
