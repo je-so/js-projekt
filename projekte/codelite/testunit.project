@@ -187,6 +187,8 @@
     <VirtualDirectory Name="lang">
       <VirtualDirectory Name="transC">
         <File Name="../../C-kern/api/lang/transC/transCparser.h"/>
+        <File Name="../../C-kern/api/lang/transC/transCtoken.h"/>
+        <File Name="../../C-kern/api/lang/transC/transCstringtable.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/lang/utf8scanner.h"/>
     </VirtualDirectory>
@@ -368,6 +370,8 @@
   <VirtualDirectory Name="lang">
     <VirtualDirectory Name="transC">
       <File Name="../../C-kern/lang/transC/transCparser.c"/>
+      <File Name="../../C-kern/lang/transC/transCtoken.c"/>
+      <File Name="../../C-kern/lang/transC/transCstringtable.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/lang/utf8scanner.c"/>
   </VirtualDirectory>

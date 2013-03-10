@@ -1,0 +1,17 @@
+C-kern/lang/transC/transCstringtable.c:78: new_transCstringtablepage(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:176: init_transcstringtable(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:78: new_transCstringtablepage(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:242: insertstring_transcstringtable(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:78: new_transCstringtablepage(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:242: insertstring_transcstringtable(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:290: appendstring_transcstringtable(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:270: appendstring_transcstringtable(): error: 22: Function input violates condition (strtable->prev != &strtable->first)
+C-kern/lang/transC/transCstringtable.c:290: appendstring_transcstringtable(): error: 22: Function aborted
+C-kern/lang/transC/transCstringtable.c:253: shrinkstring_transcstringtable(): error: 22: Function input violates condition (strtable->prev != &strtable->first)
+C-kern/lang/transC/transCstringtable.c:261: shrinkstring_transcstringtable(): error: 22: Function aborted
+C-kern/lang/transC/transCstringtable.c:254: shrinkstring_transcstringtable(): error: 22: Function input violates condition (newsize <= size)
+C-kern/lang/transC/transCstringtable.c:261: shrinkstring_transcstringtable(): error: 22: Function aborted
+C-kern/lang/transC/transCstringtable.c:254: shrinkstring_transcstringtable(): error: 22: Function input violates condition (newsize <= size)
+C-kern/lang/transC/transCstringtable.c:261: shrinkstring_transcstringtable(): error: 22: Function aborted
+C-kern/lang/transC/transCstringtable.c:115: initfirst_transCstringtableiterator(): error: 22: Function input violates condition (strtable->first && strid)
+C-kern/lang/transC/transCstringtable.c:128: initfirst_transCstringtableiterator(): error: 22: Freeing a resource returned an error
