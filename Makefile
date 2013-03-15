@@ -3,8 +3,10 @@
 # global Makefile building all subprojects
 
 # projects with suffix _ support the two build modes: Debug and Release
-PROJECTS= pp-textdb   \
+PROJECTS= pp-generrtab \
+          pp-textdb   \
           pp-textres2 \
+          generrtab_  \
           genmake_    \
           genfile_    \
           testchildprocess_ \
@@ -65,6 +67,8 @@ makefiles: $(patsubst %,$(MAKEFILES_PREFIX)%,$(subst _,,$(PROJECTS)))
 
 $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.gcc projekte/subsys/context-mini | genmake_Release
 	@bin/genmake $< > "$(@)"
+
+pp-generrtab: generrtab_Release
 
 pp-textdb: textdb_Release
 

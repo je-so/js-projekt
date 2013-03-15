@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Feb.03  14:34:02
+GenerationDate  := 2013.Mär.15  07:00:00
 GeneratedBy     := je-so
 
 ## Debug
@@ -77,6 +77,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
@@ -94,6 +95,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
@@ -120,6 +122,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
@@ -165,6 +170,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c

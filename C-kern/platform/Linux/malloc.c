@@ -47,9 +47,6 @@ int prepare_malloc()
 
    s_isprepared_malloc = true ;
 
-   // force load language module
-   (void) strerror(ENOMEM) ;
-   (void) strerror(EEXIST) ;
    // force some overhead
    void * dummy = malloc((size_t)-1) ;
    assert(! dummy) ;

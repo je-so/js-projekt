@@ -69,10 +69,8 @@
  * Use this function to log an error in the function which calls a user library function
  * which does not do logging on its own.
  *
- * TODO: Support own error IDs
- * TODO: Replace strerror(err) with own string_error_function(int sys_err)
- * */
-#define TRACECALLERR_LOG(fct_name,err) TRACEERR_LOG(FUNCTION_ERROR, fct_name, err, strerror(err))
+ * TODO: Support own error IDs */
+#define TRACECALLERR_LOG(fct_name,err) TRACEERR_LOG(FUNCTION_ERROR, fct_name, err, (const char*)string_errorcontext(error_maincontext(), err))
 
 /* define: TRACEERR_LOG
  * Logs an errorlog text resource with arguments.
@@ -98,7 +96,7 @@
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
-#define TRACESYSERR_LOG(sys_fctname,sys_errno)  TRACEERR_LOG(FUNCTION_SYSERR, sys_fctname, sys_errno, strerror(sys_errno))
+#define TRACESYSERR_LOG(sys_fctname,sys_errno)  TRACEERR_LOG(FUNCTION_SYSERR, sys_fctname, sys_errno, (const char*)string_errorcontext(error_maincontext(), sys_errno))
 
 // group: log-variables
 

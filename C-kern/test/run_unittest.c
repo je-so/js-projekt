@@ -1,7 +1,9 @@
 /* title: Unittest impl
+
    Implements <run_unittest>.
 
-   Ruft nacheinander alle Unittests auf.
+   Calls all unittest. The calling sequence and list of unittests
+   must be managed manually.
 
    about: Copyright
    This program is free software.
@@ -36,7 +38,6 @@
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/testmm.h"
 #include "C-kern/api/test/run/unittest.h"
-
 
 
 #define GENERATED_LOGRESOURCE_DIR   "C-kern/resource/unittest.log/"
@@ -75,7 +76,7 @@ static void generate_logresource(const char * test_name)
 ONABORT:
    if (err != EEXIST) {
       CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-      CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name) ;
+      CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, string_errorcontext(error_maincontext(),err), test_name) ;
    }
    free_file(&fd) ;
    return ;
@@ -134,29 +135,25 @@ static int check_logresource(const char * test_name)
    return 0 ;
 ONABORT:
    CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-   CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, strerror(err), test_name) ;
+   CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, string_errorcontext(error_maincontext(),err), test_name) ;
    free_mmfile(&logfile) ;
    return err ;
 }
 
 static void prepare_test(void)
 {
-   // make printed system error messages language (English) neutral
-   resetmsg_locale() ;
-
    // check for fpu errors
    enable_fpuexcept(fpu_except_MASK_ERR) ;
 
    // preallocate some memory
    // TODO: remove line if own memory subsystem instead of malloc
-   resourceusage_t   usage[2000]  = { resourceusage_INIT_FREEABLE } ;
+   resourceusage_t   usage[200]  = { resourceusage_INIT_FREEABLE } ;
    for (unsigned i = 0; i < lengthof(usage); ++i) {
       (void) init_resourceusage(&usage[i]) ;
    }
    for (unsigned i = 0; i < lengthof(usage); ++i) {
       (void) free_resourceusage(&usage[i]) ;
    }
-
 }
 
 static void run_singletest(const char * test_name, int (*unittest) (void), unsigned * total_count, unsigned * err_count)
@@ -231,13 +228,14 @@ int run_unittest(void)
       // init
       if (init_maincontext(test_context_type[type_nr], 0, 0)) {
          CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-         CPRINTF_LOG(TEST, "%s\n", "Abort reason: initmain_context failed") ;
+         CPRINTF_LOG(TEST, "%s\n", "Abort reason: init_maincontext failed") ;
          goto ONABORT ;
       }
 
       prepare_test() ;
 
 //{ context unittest
+      RUN(unittest_context_errorcontext) ;
       RUN(unittest_context_maincontext) ;
       RUN(unittest_context_processcontext) ;
       RUN(unittest_context_threadcontext) ;
@@ -384,7 +382,7 @@ int run_unittest(void)
 
       if (free_maincontext()) {
          CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-         CPRINTF_LOG(TEST, "%s\n", "Abort reason: freemain_context failed") ;
+         CPRINTF_LOG(TEST, "%s\n", "Abort reason: free_maincontext failed") ;
          goto ONABORT ;
       }
 

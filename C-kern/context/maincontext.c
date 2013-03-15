@@ -297,12 +297,17 @@ ONABORT:
 
 static int test_querymacros(void)
 {
+   // TEST error_maincontext
+   TEST(&(process_maincontext().errcontext) == error_maincontext()) ;
 
    // TEST log_maincontext
    TEST(&(gt_threadcontext.log) == &log_maincontext()) ;
 
    // TEST log_maincontext
    TEST(&(gt_threadcontext.objectcache) == &objectcache_maincontext()) ;
+
+   // TEST process_maincontext
+   TEST(&g_maincontext.pcontext == &process_maincontext()) ;
 
    // TEST sysuser_maincontext
    TEST(&(process_maincontext().sysuser) == &sysuser_maincontext()) ;

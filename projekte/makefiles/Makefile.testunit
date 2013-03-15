@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mär.09  15:16:38
+GenerationDate  := 2013.Mär.15  07:00:00
 GeneratedBy     := je-so
 
 ## Debug
@@ -99,6 +99,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt.c.o \
@@ -128,6 +129,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!lang!utf8scanner.c.o \
+ $(ObjectDir_Debug)/C-kern!lang!transC!transCstringtable.c.o \
  $(ObjectDir_Debug)/C-kern!lang!transC!transCtoken.c.o \
  $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
@@ -188,6 +190,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!ds!typeadapt.c.o \
@@ -217,6 +220,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!lang!utf8scanner.c.o \
+ $(ObjectDir_Release)/C-kern!lang!transC!transCstringtable.c.o \
  $(ObjectDir_Release)/C-kern!lang!transC!transCtoken.c.o \
  $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
@@ -332,6 +336,9 @@ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
 	@$(CC_Debug)
 
@@ -417,6 +424,9 @@ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!lang!utf8scanner.c.o: C-kern/lang/utf8scanner.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!lang!transC!transCstringtable.c.o: C-kern/lang/transC/transCstringtable.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!lang!transC!transCtoken.c.o: C-kern/lang/transC/transCtoken.c
@@ -593,6 +603,9 @@ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
 $(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
 	@$(CC_Release)
 
@@ -678,6 +691,9 @@ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reade
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!lang!utf8scanner.c.o: C-kern/lang/utf8scanner.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!lang!transC!transCstringtable.c.o: C-kern/lang/transC/transCstringtable.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!lang!transC!transCtoken.c.o: C-kern/lang/transC/transCtoken.c

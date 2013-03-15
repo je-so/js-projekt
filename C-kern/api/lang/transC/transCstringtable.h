@@ -132,7 +132,7 @@ struct transCstringtable_iterator_t {
 
 /* function: initfirst_transCstringtableiterator
  * Initializes iter to point to the first datablock of string with id strid. */
-int initfirst_transCstringtableiterator(transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid) ;
+int initfirst_transCstringtableiterator(/*out*/transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid) ;
 
 /* function: free_transCstringtableiterator
  * Sets iterator iter to <transCstringtable_iterator_INIT_FREEABLE>. */

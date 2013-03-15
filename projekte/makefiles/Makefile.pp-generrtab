@@ -1,12 +1,12 @@
 ##
 ## ! Genmake generated Makefile !
 ##
-ProjectName     := pp-textres2
+ProjectName     := pp-generrtab
 ProjectModes    := Release
-ProjectFile     := projekte/pp-textres2.prj
+ProjectFile     := projekte/pp-generrtab.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mär.15  07:01:07
+GenerationDate  := 2013.Mär.15  07:00:00
 GeneratedBy     := je-so
 
 ## Release
@@ -20,12 +20,12 @@ Defines_Release       :=
 Includes_Release      :=
 Libraries_Release     :=
 Libpath_Release       :=
-ObjectDir_Release     := bin/Release/pp-textres2
-TargetDir_Release     := bin/Release/pp-textres2
-Target_Release        := bin/Release/pp-textres2/__dummy_target__
+ObjectDir_Release     := bin/Release/pp-generrtab
+TargetDir_Release     := C-kern/resource/generated
+Target_Release        := C-kern/resource/generated/errtable.h
 Libs_Release          := $(Libpath_Release) $(Libraries_Release)
-CC_Release            = if [ -f '$<' ]; then cp '$<' '$@'; bin/textres2compiler '$<' ; fi
-LD_Release            = touch '$@'
+CC_Release            = touch '$@'
+LD_Release            = bin/generrtab > '$@'
 
 ##
 ## Targets
@@ -47,12 +47,16 @@ $(sort $(ObjectDir_Release) $(TargetDir_Release)):
 	@mkdir -p "$@"
 
 Objects_Release := \
- $(ObjectDir_Release)/C-kern!resource!errlog.text.o
+ $(ObjectDir_Release)/C-kern!main!tools!generrtab.c.o \
+ $(ObjectDir_Release)/projekte!pp-generrtab.prj.o
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
 
-$(ObjectDir_Release)/C-kern!resource!errlog.text.o: C-kern/resource/errlog.text
+$(ObjectDir_Release)/C-kern!main!tools!generrtab.c.o: C-kern/main/tools/generrtab.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/projekte!pp-generrtab.prj.o: projekte/pp-generrtab.prj
 	@$(CC_Release)
 
 -include $(Objects_Release:.o=.d)

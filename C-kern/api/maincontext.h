@@ -32,6 +32,9 @@
 #include "C-kern/api/context/threadcontext.h"
 #include "C-kern/api/context/processcontext.h"
 
+// forward
+struct errorcontext_t ;
+
 /* typedef: struct maincontext_t
  * Export <maincontext_t>. */
 typedef struct maincontext_t           maincontext_t ;
@@ -48,8 +51,8 @@ typedef struct maincontext_t           maincontext_t ;
  *
  * */
 enum maincontext_e {
-    maincontext_STATIC  = 0
-   ,maincontext_DEFAULT = 1
+   maincontext_STATIC  = 0,
+   maincontext_DEFAULT = 1
 } ;
 
 typedef enum maincontext_e             maincontext_e ;
@@ -159,6 +162,10 @@ const char *               progname_maincontext(void) ;
 
 // group: query-service
 
+/* function: error_maincontext
+ * Returns error context (see <errorcontext_t>). */
+errorcontext_t *           error_maincontext(void) ;
+
 /* function: log_maincontext
  * Returns log service <log_t> (see <logwriter_t>).
  * This function can only be implemented as a macro. C99 does not support
@@ -184,6 +191,10 @@ struct valuecache_t *      valuecache_maincontext(void) ;
 
 
 // section: inline implementation
+
+/* define: error_maincontext
+ * Implementation of <maincontext_t.error_maincontext>. */
+#define error_maincontext()            (&process_maincontext().errcontext)
 
 /* define: log_maincontext
  * Inline implementation of <maincontext_t.log_maincontext>.

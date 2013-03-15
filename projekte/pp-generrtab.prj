@@ -1,0 +1,21 @@
+# Project description
+# Runs generrtab to to generate errorstringtable.h
+Modes         = Release
+Compiler      = touch $(out)
+Linker        = bin/generrtab > $(out)
+CFlagInclude  = ?
+CFlagDefine   = ?
+LFlagLib      = ?
+LFlagLibpath  = ?
+CFlags        =
+LFlags        =
+Libs          =
+Libpath       =
+Includes      =
+Defines       =
+Objectdir     = bin/$(mode)/$(projectname)
+Target        = C-kern/resource/generated/errtable.h
+# source are not used but create dependencies cause generrtab must be rerun
+# whenever this project file or the source of the tool changes
+Src           = C-kern/main/tools/generrtab.c
+Src          += projekte/pp-generrtab.prj

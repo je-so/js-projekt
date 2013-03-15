@@ -34,29 +34,29 @@
 
 /* function: initonce_locale
  * Called from <init_maincontext>. */
-extern int initonce_locale(void) ;
+int initonce_locale(void) ;
 
 /* function: freeonce_locale
  * Called from <free_maincontext>. */
-extern int freeonce_locale(void) ;
+int freeonce_locale(void) ;
 
 // group: query
 
 /* function: charencoding_locale
  * Returns the name of the character encoding of the current selected locale.
  * For example "UTF-8" for utf-8 multibyte character encoding. */
-extern const char * charencoding_locale(void) ;
+const char * charencoding_locale(void) ;
 
 /* function: current_locale
  * Returns the name of the current active locale.
  * "C" is returned for the locale which is set by <reset_locale>
  * "de_DE@utf8" is returned if the user runs a german locale with utf8 text encoding
  * and after <setdefault_locale> has been called. */
-extern const char * current_locale(void) ;
+const char * current_locale(void) ;
 
 /* function: currentmsg_locale
  * Returns the name of the current active locale for system messages. */
-extern const char * currentmsg_locale(void) ;
+const char * currentmsg_locale(void) ;
 
 // group: set
 
@@ -64,22 +64,22 @@ extern const char * currentmsg_locale(void) ;
  * Sets the default locale defined by the program environment.
  * This sets the program locale normally to the default locale
  * the user has set for itself. */
-extern int setdefault_locale(void) ;
+int setdefault_locale(void) ;
 
 /* function: reset_locale
  * Sets the locale a C program uses after it has started. */
-extern int reset_locale(void) ;
+int reset_locale(void) ;
 
 /* function: resetmsg_locale
  * Sets the system messages locale a C program uses after it has started. */
-extern int resetmsg_locale(void) ;
+int resetmsg_locale(void) ;
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_locale
  * Tests XXX_locale functions. */
-extern int unittest_platform_locale(void) ;
+int unittest_platform_locale(void) ;
 #endif
 
 #endif

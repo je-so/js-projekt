@@ -111,6 +111,7 @@
       <File Name="../../C-kern/api/context/stdmacros.h"/>
       <File Name="../../C-kern/api/context/sysusercontext.h"/>
       <File Name="../../C-kern/api/context/unicode.h"/>
+      <File Name="../../C-kern/api/context/errorcontext.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -202,6 +203,7 @@
     <File Name="../../C-kern/context/threadcontext.c"/>
     <File Name="../../C-kern/context/COP.txt"/>
     <File Name="../../C-kern/context/maincontext.c"/>
+    <File Name="../../C-kern/context/errorcontext.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>
@@ -234,6 +236,7 @@
       <File Name="../../C-kern/main/tools/textdb.c"/>
       <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
       <File Name="../../C-kern/main/tools/genfile.c"/>
+      <File Name="../../C-kern/main/tools/generrtab.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -249,6 +252,7 @@
       <File Name="../../C-kern/test/static/textresource_inuse.sh"/>
       <File Name="../../C-kern/test/static/check_projects.sh"/>
       <File Name="../../C-kern/test/static/test.sh"/>
+      <File Name="../../C-kern/test/static/threadsafe.sh"/>
     </VirtualDirectory>
     <VirtualDirectory Name="compiletime">
       <File Name="../../C-kern/test/compiletime/stdtypes.h"/>
@@ -301,6 +305,7 @@
       <File Name="../../C-kern/resource/generated/errlog.h"/>
       <File Name="../../C-kern/resource/generated/errlog.de"/>
       <File Name="../../C-kern/resource/generated/errlog.en"/>
+      <File Name="../../C-kern/resource/generated/errtable.h"/>
     </VirtualDirectory>
     <File Name="../../C-kern/resource/errlog.text"/>
   </VirtualDirectory>

@@ -1,4 +1,5 @@
 # minimal runtime context needed for every derived project
+Src += C-kern/context/errorcontext.c
 Src += C-kern/context/maincontext.c
 Src += C-kern/context/processcontext.c
 Src += C-kern/context/threadcontext.c

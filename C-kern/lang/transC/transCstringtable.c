@@ -107,7 +107,7 @@ ONABORT:
 
 // group: lifetime
 
-int initfirst_transCstringtableiterator(transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid)
+int initfirst_transCstringtableiterator(/*out*/transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid)
 {
    int err ;
    const size_t                     pgsize = pagesize_vm() ;
@@ -157,7 +157,7 @@ slist_IMPLEMENT(_pagelist, transCstringtable_page_t, next)
 
 // group: lifetime
 
-int init_transcstringtable(transCstringtable_t * strtable)
+int init_transcstringtable(/*out*/transCstringtable_t * strtable)
 {
    int err ;
    transCstringtable_page_t * page ;

@@ -28,6 +28,7 @@
 #include "C-kern/api/context/processcontext.h"
 #include "C-kern/api/err.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initprocess")
+#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/platform/sync/signal.h"
@@ -52,6 +53,10 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    pcontext->initcount = 0 ;
 
 // TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
+
+   err = initonce_errorcontext(&pcontext->errcontext) ;
+   if (err) goto ONABORT ;
+   ++ pcontext->initcount ;
 
    err = initonce_locale() ;
    if (err) goto ONABORT ;
@@ -102,25 +107,28 @@ int free_processcontext(processcontext_t * pcontext)
             break ;
 // TEXTDB:SELECT(\n"   case "row-id":  err2 = freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/config/initprocess")DESCENDING
 
-   case 7:  err2 = freeonce_x11window() ;
+   case 8:  err2 = freeonce_x11window() ;
             if (err2) err = err2 ;
 
-   case 6:  err2 = freeonce_X11() ;
+   case 7:  err2 = freeonce_X11() ;
             if (err2) err = err2 ;
 
-   case 5:  err2 = freeonce_thread() ;
+   case 6:  err2 = freeonce_thread() ;
             if (err2) err = err2 ;
 
-   case 4:  err2 = freeonce_valuecache(&pcontext->valuecache) ;
+   case 5:  err2 = freeonce_valuecache(&pcontext->valuecache) ;
             if (err2) err = err2 ;
 
-   case 3:  err2 = freeonce_signalconfig() ;
+   case 4:  err2 = freeonce_signalconfig() ;
             if (err2) err = err2 ;
 
-   case 2:  err2 = freeonce_sysuser(&pcontext->sysuser) ;
+   case 3:  err2 = freeonce_sysuser(&pcontext->sysuser) ;
             if (err2) err = err2 ;
 
-   case 1:  err2 = freeonce_locale() ;
+   case 2:  err2 = freeonce_locale() ;
+            if (err2) err = err2 ;
+
+   case 1:  err2 = freeonce_errorcontext(&pcontext->errcontext) ;
             if (err2) err = err2 ;
 // TEXTDB:END
    case 0:  break ;
@@ -147,33 +155,41 @@ static int test_initfree(void)
    // TEST processcontext_INIT_FREEABLE
    TEST(0 == pcontext.valuecache) ;
    TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
+   TEST(0 == pcontext.errcontext.stroffset) ;
+   TEST(0 == pcontext.errcontext.strdata) ;
    TEST(0 == pcontext.initcount) ;
-
-   // TEST free_processcontext
-   pcontext.initcount = process_maincontext().initcount ;
-   TEST(0 == free_processcontext(&pcontext)) ;
-   TEST(0 == pcontext.initcount) ;
-   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
-   TEST(0 == pcontext.valuecache) ;
-   TEST(0 == free_processcontext(&pcontext)) ;
-   TEST(0 == pcontext.initcount) ;
-   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
-   TEST(0 == pcontext.valuecache) ;
 
    // free_processcontext does nothing in case init_count == 0 ;
    pcontext.initcount  = 0 ;
+   pcontext.errcontext.strdata   = (uint8_t*)3 ;
+   pcontext.errcontext.stroffset = (uint16_t*)2 ;
    pcontext.sysuser    = (sysusercontext_t) sysusercontext_INIT(process_maincontext().sysuser.realuser, process_maincontext().sysuser.privilegeduser) ;
    pcontext.valuecache = (struct valuecache_t*) 1 ;
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(pcontext.valuecache == (struct valuecache_t*) 1) ;
    TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &process_maincontext().sysuser)) ;
+   TEST(2 == (uintptr_t)pcontext.errcontext.stroffset) ;
+   TEST(3 == (uintptr_t)pcontext.errcontext.strdata) ;
+
+   // TEST free_processcontext
+   pcontext.initcount = process_maincontext().initcount ;
    pcontext.valuecache = 0 ;
+   TEST(0 == initonce_valuecache(&pcontext.valuecache)) ;
+   TEST(0 != pcontext.valuecache) ;
+   TEST(0 == free_processcontext(&pcontext)) ;
+   TEST(0 == pcontext.valuecache) ;
+   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
+   TEST(0 == pcontext.errcontext.stroffset) ;
+   TEST(0 == pcontext.errcontext.strdata) ;
+   TEST(0 == pcontext.initcount) ;
 
    // TEST EINVAL
    pcontext.valuecache = (struct valuecache_t*) 2 ;
    TEST(EINVAL == init_processcontext(&pcontext)) ;
-   TEST(pcontext.initcount  == 0) ;
-   TEST(pcontext.valuecache == (struct valuecache_t*) 2) ;
+   TEST(2 == (uintptr_t)pcontext.valuecache) ;
+   TEST(0 == pcontext.errcontext.stroffset) ;
+   TEST(0 == pcontext.errcontext.strdata) ;
+   TEST(0 == pcontext.initcount) ;
    pcontext.valuecache = 0 ;
 
    // TEST init_processcontext
@@ -181,7 +197,9 @@ static int test_initfree(void)
    TEST(0 == init_processcontext(&pcontext)) ;
    TEST(0 != pcontext.valuecache) ;
    TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &process_maincontext().sysuser)) ;
-   TEST(7 == pcontext.initcount) ;
+   TEST(0 != pcontext.errcontext.stroffset) ;
+   TEST(0 != pcontext.errcontext.strdata) ;
+   TEST(8 == pcontext.initcount) ;
    freeonce_valuecache(&pcontext.valuecache) ;
    TEST(0 == pcontext.valuecache) ;
 
