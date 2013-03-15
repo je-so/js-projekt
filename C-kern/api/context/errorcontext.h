@@ -60,12 +60,16 @@ struct errorcontext_t {
 // group: initonce
 
 /* function: initonce_errorcontext
- * Called from <init_maincontext>. */
-int initonce_errorcontext(/*support generic type*/void * errcontext) ;
+ * Called from <init_maincontext>.
+ * The parameter errcontext supports any generic object type which
+ * has the same structure as <errorcontext_t>. */
+int initonce_errorcontext(/*out*/void * errcontext) ;
 
 /* function: freeonce_locale
- * Called from <free_maincontext>. */
-int freeonce_errorcontext(/*support generic type*/void * errcontext) ;
+ * Called from <free_maincontext>.
+ * The parameter errcontext supports any generic object type which
+ * has the same structure as <errorcontext_t>. */
+int freeonce_errorcontext(void * errcontext) ;
 
 // group: lifetime
 

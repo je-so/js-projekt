@@ -1,8 +1,8 @@
-C-kern/platform/shared/X11/x11display.c:439: removeobject_x11display(): error: 3: Function aborted
-C-kern/platform/shared/X11/x11display.c:439: removeobject_x11display(): error: 3: Function aborted
-C-kern/platform/shared/X11/x11display.c:398: findobject_x11display(): error: 3: Function aborted
-C-kern/platform/shared/X11/x11display.c:398: findobject_x11display(): error: 3: Function aborted
-C-kern/platform/shared/X11/x11display.c:439: removeobject_x11display(): error: 3: Function aborted
-C-kern/platform/shared/X11/x11display.c:439: removeobject_x11display(): error: 3: Function aborted
-C-kern/platform/shared/X11/x11display.c:426: insertobject_x11display(): error: 17: Function aborted
-C-kern/platform/shared/X11/x11display.c:426: insertobject_x11display(): error: 17: Function aborted
+C-kern/platform/shared/X11/x11display.c:409: removeobject_x11display(): error: 3: Function aborted
+C-kern/platform/shared/X11/x11display.c:409: removeobject_x11display(): error: 3: Function aborted
+C-kern/platform/shared/X11/x11display.c:368: findobject_x11display(): error: 3: Function aborted
+C-kern/platform/shared/X11/x11display.c:368: findobject_x11display(): error: 3: Function aborted
+C-kern/platform/shared/X11/x11display.c:409: removeobject_x11display(): error: 3: Function aborted
+C-kern/platform/shared/X11/x11display.c:409: removeobject_x11display(): error: 3: Function aborted
+C-kern/platform/shared/X11/x11display.c:396: insertobject_x11display(): error: 17: Function aborted
+C-kern/platform/shared/X11/x11display.c:396: insertobject_x11display(): error: 17: Function aborted

@@ -18,6 +18,7 @@ error=0  # error flag
 files=`find C-kern/ -name "*.c" -o -name "*.h"`
 # remove exceptions
 files=" "`echo $files | sed -e "s:C-kern/resource/[/A-Za-z_0-9-]*\\.[ch]::"`
+files=" "`echo $files | sed -e "s:C-kern/resource/generated/[/A-Za-z_0-9-]*\\.[ch]::"`
 # return value of read_title()
 title=""
 

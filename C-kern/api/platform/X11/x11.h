@@ -1,5 +1,10 @@
 /* title: X11-Subsystem
-   Offers window management for X11 graphics environment.
+
+   Implements initialization of X11 graphics environment (makes it thread safe)
+   and allows to dispatch events with <dispatchevent_X11>.
+
+   The event handler logic is also contained <dispatchevent_X11> which allows to
+   read and understand the event handler state machine.
 
    about: Copyright
    This program is free software.
@@ -28,12 +33,6 @@
 // foward
 struct x11display_t ;
 
-/* typedef: X11_callback_f
- * Type of asynchronous event callback.
- * The parameter object points to the type you registered with <x11display_t>.
- * The parameter xevent points to type »XEvent«. */
-typedef void (*X11_callback_f) (struct x11display_t * x11disp, void * xevent) ;
-
 
 // section: Functions
 
@@ -61,25 +60,11 @@ int initonce_X11(void) ;
  * Does nothing at the moment. */
 int freeonce_X11(void) ;
 
-// group: callback
+// group: query
 
-/* function: setcallback_X11
- * Sets an event handler. Only one handler can be registered
- * at a time. Before a new handler can be registered the old
- * one must have unregistered itself.
- *
- * Returns:
- * 0      - Success
- * EINVAL - Type is not in range [0 .. 255]
- * EBUSY  - Another handler is active for this type of event. */
-int setcallback_X11(uint8_t type, X11_callback_f eventcb) ;
+// ?
 
-/* function: clearcallback_X11
- * Clears the current event handler.
- * If the current handler does not match the given argument
- * EPERM is returned. If there is currently no active handler
- * success(0) is returned. */
-int clearcallback_X11(uint8_t type, X11_callback_f eventcb) ;
+// group: update
 
 /* function: dispatchevent_X11
  * Checks event queue and dispatches 1 event if avialable.
@@ -87,10 +72,6 @@ int clearcallback_X11(uint8_t type, X11_callback_f eventcb) ;
  * If no event handler is registered for the dispatched event
  * nothing else is done except for consuming one event. */
 int dispatchevent_X11(struct x11display_t * x11disp) ;
-
-// group: query
-
-bool iscallback_X11(uint8_t type) ;
 
 
 // section: inline implementation

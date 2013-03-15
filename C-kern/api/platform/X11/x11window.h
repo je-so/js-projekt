@@ -4,8 +4,6 @@
    in a rectangular area called window on a screen
    served by an X11 display server.
 
-   TODO: Implement x11drawable_t
-
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -183,16 +181,6 @@ struct x11window_t {
     * If the window is not configured with a back buffer <sys_backbuffer> contains the same value as <sys_window>. */
    uint32_t             sys_backbuffer ;
 } ;
-
-// group: init
-
-/* function: initonce_x11window
- * Calls <setcallback_X11> to handle all windows events. */
-int initonce_x11window(void) ;
-
-/* function: freeonce_x11window
- * Calls <clearcallback_X11> for all registered handlers. */
-int freeonce_x11window(void) ;
 
 // group: lifetime
 
@@ -389,20 +377,6 @@ x11window_t * genericcast_x11window(void * object) ;
    }
 
 // group: x11window_t
-
-#define X11 1
-#if !((KONFIG_USERINTERFACE)&X11)
-
-/* define: initonce_x11window
- * Implement init as a no op if (KONFIG_USERINTERFACE!=X11). */
-#define initonce_x11window()  (0)
-
-/* define: freeonce_x11window
- * Implement free as a no op if (KONFIG_USERINTERFACE!=X11). */
-#define freeonce_x11window()  (0)
-
-#endif
-#undef X11
 
 /* define: backbuffer_x11window
  * Implements <x11window_t.backbuffer_x11window>. */

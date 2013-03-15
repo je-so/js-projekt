@@ -1,54 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="3" Name="m_selectedTab"/>
+  <int Value="2" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="FileName"/>
-      <int Value="158" Name="FirstVisibleLine"/>
-      <int Value="156" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/context/processcontext.h" Name="FileName"/>
-      <int Value="27" Name="FirstVisibleLine"/>
-      <int Value="28" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/test/static/threadsafe.sh" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="6" Name="CurrentLine"/>
+      <int Value="216" Name="FirstVisibleLine"/>
+      <int Value="247" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/context/errorcontext.h" Name="FileName"/>
-      <int Value="109" Name="FirstVisibleLine"/>
-      <int Value="127" Name="CurrentLine"/>
+      <int Value="113" Name="FirstVisibleLine"/>
+      <int Value="115" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/context/errorcontext.c" Name="FileName"/>
-      <int Value="71" Name="FirstVisibleLine"/>
-      <int Value="116" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/platform/shared/X11/x11.c" Name="FileName"/>
+      <int Value="223" Name="FirstVisibleLine"/>
+      <int Value="257" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/main/tools/generrtab.c" Name="FileName"/>
-      <int Value="97" Name="FirstVisibleLine"/>
-      <int Value="110" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/platform/X11/x11.h" Name="FileName"/>
+      <int Value="45" Name="FirstVisibleLine"/>
+      <int Value="96" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/io/writer/log/errlog_macros.h" Name="FileName"/>
-      <int Value="112" Name="FirstVisibleLine"/>
-      <int Value="110" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/platform/X11/x11window.h" Name="FileName"/>
+      <int Value="381" Name="FirstVisibleLine"/>
+      <int Value="402" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/resource/generated/syserrtable.h" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="39" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/platform/shared/X11/x11window.c" Name="FileName"/>
+      <int Value="740" Name="FirstVisibleLine"/>
+      <int Value="788" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/platform/shared/X11/x11display.c" Name="FileName"/>
+      <int Value="175" Name="FirstVisibleLine"/>
+      <int Value="188" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/platform/X11/x11display.h" Name="FileName"/>
+      <int Value="78" Name="FirstVisibleLine"/>
+      <int Value="88" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>
@@ -56,7 +56,7 @@
     <long Value="1" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
-      <int Value="245" Name="lineno"/>
+      <int Value="253" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>

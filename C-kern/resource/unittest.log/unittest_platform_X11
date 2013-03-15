@@ -1,2 +1,0 @@
-C-kern/platform/shared/X11/x11.c:96: setcallback_X11(): error: 16: Function aborted
-C-kern/platform/shared/X11/x11.c:118: clearcallback_X11(): error: 1: Function aborted

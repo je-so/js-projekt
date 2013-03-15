@@ -62,130 +62,6 @@ static inline void compiletime_assert(void)
                  "x11window_t can be cast to x11drawable_t") ;
 }
 
-static void handleClientMessage_x11window(x11display_t * x11disp, void * xevent)
-{
-   XClientMessageEvent * event = &((XEvent*)xevent)->xclient ;
-   x11window_t         * x11win ;
-
-   assert(event->type == ClientMessage) ;
-
-   if (  event->message_type       == x11disp->atoms.WM_PROTOCOLS
-         && (Atom)event->data.l[0] == x11disp->atoms.WM_DELETE_WINDOW) {
-
-      // filter event
-      if (0 != tryfindobject_x11display(x11disp, (void**)&x11win, event->window)) {
-         return ;
-      }
-
-      if (x11win->iimpl && x11win->iimpl->closerequest) {
-         x11win->iimpl->closerequest(x11win) ;
-      }
-   }
-}
-
-static void handleDestroyNotify_x11window(x11display_t * x11disp, void * xevent)
-{
-   XDestroyWindowEvent  * event = &((XEvent*)xevent)->xdestroywindow ;
-   x11window_t          * x11win ;
-
-   assert(event->type == DestroyNotify) ;
-
-   // filter event
-   if (0 != tryfindobject_x11display(x11disp, (void**)&x11win, event->window)) {
-      return ;
-   }
-
-   // <free_x11window> was not called before this message
-   x11win->sys_window = 0 ;
-   x11win->state      = x11window_Destroyed ;
-   x11win->flags      = (uint8_t) (x11win->flags & ~x11window_OwnWindow) ;
-   (void) removeobject_x11display(x11disp, event->window) ;
-   if (x11win->iimpl && x11win->iimpl->destroy) {
-      x11win->iimpl->destroy(x11win) ;
-   }
-}
-
-static void handleConfigureNotify_x11window(x11display_t * x11disp, void * xevent)
-{
-   XConfigureEvent * event = &((XEvent*)xevent)->xconfigure ;
-   x11window_t     * x11win ;
-
-   assert(event->type == ConfigureNotify) ;
-
-   // filter event
-   if (0 != tryfindobject_x11display(x11disp, (void**)&x11win, event->window)) {
-      return ;
-   }
-
-   if (x11win->iimpl) {
-      if (event->above != 0 && x11win->iimpl->repos) {
-         if (event->override_redirect && !event->send_event) {
-            x11win->iimpl->resize(x11win, (uint32_t)event->width, (uint32_t)event->height) ;
-         }
-         x11win->iimpl->repos(x11win, event->x, event->y, (uint32_t)event->width, (uint32_t)event->height) ;
-      } else if (event->above == 0 && x11win->iimpl->resize) {
-         x11win->iimpl->resize(x11win, (uint32_t)event->width, (uint32_t)event->height) ;
-      }
-   }
-}
-
-static void handleExpose_x11window(x11display_t * x11disp, void * xevent)
-{
-   XExposeEvent   * event = &((XEvent*)xevent)->xexpose ;
-   x11window_t    * x11win ;
-
-   assert(event->type == Expose) ;
-
-   if (0 == event->count/*last expose*/) {
-      // filter event
-      if (0 != tryfindobject_x11display(x11disp, (void**)&x11win, event->window)) {
-         return ;
-      }
-
-      if (x11win->iimpl && x11win->iimpl->redraw) {
-         x11win->iimpl->redraw(x11win) ;
-      }
-   }
-}
-
-static void handleMapNotify_x11window(x11display_t * x11disp, void * xevent)
-{
-   XMapEvent      * event = &((XEvent*)xevent)->xmap ;
-   x11window_t    * x11win ;
-
-   assert(event->type == MapNotify) ;
-
-   // filter event
-   if (0 != tryfindobject_x11display(x11disp, (void**)&x11win, event->window)) {
-      return ;
-   }
-
-   x11win->state = x11window_Shown ;
-
-   if (x11win->iimpl && x11win->iimpl->showhide) {
-      x11win->iimpl->showhide(x11win) ;
-   }
-}
-
-static void handleUnmapNotify_x11window(x11display_t * x11disp, void * xevent)
-{
-   XUnmapEvent    * event = &((XEvent*)xevent)->xunmap ;
-   x11window_t    * x11win ;
-
-   assert(event->type == UnmapNotify) ;
-
-   // filter event
-   if (0 != tryfindobject_x11display(x11disp, (void**)&x11win, event->window)) {
-      return ;
-   }
-
-   x11win->state = x11window_Hidden ;
-
-   if (x11win->iimpl && x11win->iimpl->showhide) {
-      x11win->iimpl->showhide(x11win) ;
-   }
-}
-
 static void setwinopacity_x11window(x11display_t * x11disp, Window win, uint32_t opacity)
 {
    if (opacity == UINT32_MAX) {
@@ -297,54 +173,6 @@ static int matchvisual_x11window(
    return 0 ;
 ONABORT:
    return ESRCH ;
-}
-
-// group: init
-
-#define PROCESS_HANDLERS(ACTION) \
-   ACTION(ClientMessage)         \
-   ACTION(DestroyNotify)         \
-   ACTION(ConfigureNotify)       \
-   ACTION(Expose)                \
-   ACTION(MapNotify)             \
-   ACTION(UnmapNotify)
-
-int initonce_x11window(void)
-{
-   int err ;
-
-#define INSTALL(EventType) \
-   err = setcallback_X11(EventType, & handle##EventType##_x11window) ; \
-   if (err) goto ONABORT ;
-
-   PROCESS_HANDLERS(INSTALL)
-#undef INSTALL
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-int freeonce_x11window(void)
-{
-   int err, err2 ;
-
-   err = 0 ;
-
-#define UNINSTALL(EventType) \
-   err2 = clearcallback_X11(EventType, & handle##EventType##_x11window) ; \
-   if (err2) err = err2 ;
-
-   PROCESS_HANDLERS(UNINSTALL)
-#undef UNINSTALL
-
-   if (err) goto ONABORT ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORTFREE_LOG(err) ;
-   return err ;
 }
 
 // group: lifetime
@@ -954,35 +782,6 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_initonce(void)
-{
-   uint8_t  events[] = {   ClientMessage,
-                           DestroyNotify,
-                           Expose,
-                           MapNotify,
-                           UnmapNotify
-                        } ;
-
-   // TEST freeonce_x11window
-   for (unsigned i = 0; i < lengthof(events); ++i) {
-      TEST(iscallback_X11(events[i])) ;
-   }
-   TEST(0 == freeonce_x11window()) ;
-   for (unsigned i = 0; i < lengthof(events); ++i) {
-      TEST(!iscallback_X11(events[i])) ;
-   }
-
-   // TEST initonce_x11window
-   TEST(0 == initonce_x11window()) ;
-   for (unsigned i = 0; i < lengthof(events); ++i) {
-      TEST(iscallback_X11(events[i])) ;
-   }
-
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
-
 #define WAITFOR(x11disp, loop_count, CONDITION)                   \
    XFlush(x11disp->sys_display) ;                                 \
    for (int _count = 0; _count < loop_count; ++_count) {          \
@@ -1313,7 +1112,7 @@ static int test_showhide(testwindow_t * testwin)
    // TEST show_x11window
    TEST(state_x11window(x11win) == x11window_Hidden) ;
    TEST(0 == show_x11window(x11win)) ;
-   WAITFOR(x11win->display, 10, state_x11window(x11win) != x11window_Hidden) ;
+   WAITFOR(x11win->display, 20, state_x11window(x11win) != x11window_Hidden) ;
    TEST(state_x11window(x11win) == x11window_Shown) ;
 
    // TEST hide_x11window
@@ -1771,7 +1570,6 @@ int unittest_platform_X11_x11window()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_interface())                     goto ONABORT ;
-   if (test_initonce())                      goto ONABORT ;
    if (test_query(&x11screen, &x11win,
                   &x11win2))                 goto ONABORT ;
    if (test_update(&x11win))                 goto ONABORT ;

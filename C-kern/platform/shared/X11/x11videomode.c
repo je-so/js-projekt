@@ -350,43 +350,32 @@ static int waitXRRScreenChangeNotify(x11screen_t * x11screen, x11videomode_t * x
 
    XFlush(sys_display) ;
 
-   for (;;) {
-      if (!XPending(sys_display)) {
-         sleep(1) ;
-         TEST(XPending(sys_display)) ;
-      }
-      XEvent e ;
-      XRRScreenChangeNotifyEvent e2 ;
-      XPeekEvent(sys_display, &e) ;
-      memcpy(&e2, &e, sizeof(e2)) ;
+   int oldheight = DisplayHeight(sys_display, number_x11screen(x11screen)) ;
+   int oldwidth  = DisplayWidth(sys_display, number_x11screen(x11screen)) ;
 
-      if (  e.type == (RRScreenChangeNotify + display_x11screen(x11screen)->xrandr.eventbase)
-            && e2.height == DisplayHeight(sys_display, number_x11screen(x11screen))
-            && e2.width  == DisplayWidth(sys_display, number_x11screen(x11screen))) {
-         // got previous configuration
-         TEST(0 == dispatchevent_X11(display_x11screen(x11screen))) ;
-         continue ;
-
-      } else if (e.type == (RRScreenChangeNotify + display_x11screen(x11screen)->xrandr.eventbase)) {
-         // display_x11screen(x11screen) contains old video configuration
-         TEST( e2.height != DisplayHeight(sys_display, number_x11screen(x11screen))
-               || e2.width != DisplayWidth(sys_display, number_x11screen(x11screen))) ;
-         TEST(0 == dispatchevent_X11(display_x11screen(x11screen))) ;
-         // event dispatcher has updated video configuration
-         TEST(e2.height == DisplayHeight(sys_display, number_x11screen(x11screen))) ;
-         TEST(e2.width  == DisplayWidth(sys_display, number_x11screen(x11screen))) ;
-         TEST(xvidmode->height_in_pixel == (uint32_t)e2.height) ;
-         TEST(xvidmode->width_in_pixel  == (uint32_t)e2.width) ;
-         break ;
-
-      } else {
-         // consume event
-         XNextEvent(sys_display, &e) ;
-      }
+   for (int i = 0; i < 100 && !XPending(sys_display); ++i) {
+      sleepms_thread(10) ;
    }
+   TEST(XPending(sys_display)) ;
+
+   XEvent e ;
+   XRRScreenChangeNotifyEvent e2 ;
+   XPeekEvent(sys_display, &e) ;
+   memcpy(&e2, &e, sizeof(e2)) ;
+   TEST(e.type == (RRScreenChangeNotify + display_x11screen(x11screen)->xrandr.eventbase)) ;
+
+   TEST( oldheight == DisplayHeight(sys_display, number_x11screen(x11screen))
+         && oldwidth  == DisplayWidth(sys_display, number_x11screen(x11screen))) ;
+
+   // handles multiple RRScreenChangeNotify events (first comes old configuration then new)
+   TEST(0 == dispatchevent_X11(display_x11screen(x11screen))) ;
+
+   // event dispatcher has updated video configuration
+   TEST(xvidmode->height_in_pixel == (uint32_t)DisplayHeight(sys_display, number_x11screen(x11screen))) ;
+   TEST(xvidmode->width_in_pixel  == (uint32_t)DisplayWidth(sys_display, number_x11screen(x11screen))) ;
 
    TEST(0 == dispatchevent_X11(display_x11screen(x11screen))) ;
-   sleepms_thread(100) ;
+   sleepms_thread(10) ;
 
    return 0 ;
 ONABORT:

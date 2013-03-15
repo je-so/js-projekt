@@ -179,31 +179,16 @@ static int deleteall_x11displayobjectid(x11display_objectid_t ** root)
 
 // group: extension support
 
-/* function: RRScreenChangeNotify_eventhandler
- * Handles action for RRScreenChangeNotify event.
- * If an X11 event of type RRScreenChangeNotify is received
- * internal fields of Display must be updated.
- *
- * This event handler calls back into Xlib which then
- * adapts the Display structure with the new values of
- * the newly set video mode on the screen. */
-static void RRScreenChangeNotify_eventhandler(x11display_t * x11disp, void * xevent)
-{
-   (void) x11disp ;
-   (void) XRRUpdateConfiguration((XEvent*)xevent) ;
-}
-
 /* function: initextensions_x11display
  * Initializes extension variables of <x11display_t>.
  * It is expected that memory of all extension variables is set to zero
  * before you call this function. */
 static int initextensions_x11display(x11display_t * x11disp)
 {
-   Bool isSupported ;
-   int err ;
-   int major ;
-   int minor ;
-   int dummy ;
+   int   major ;
+   int   minor ;
+   int   dummy ;
+   Bool  isSupported ;
 
    isSupported = XQueryExtension(x11disp->sys_display, "GLX", &dummy, &x11disp->opengl.eventbase, &x11disp->opengl.errorbase) ;
    if (isSupported) {
@@ -238,19 +223,7 @@ static int initextensions_x11display(x11display_t * x11disp)
 
          // prepare receiving events
          for (int i = ScreenCount(x11disp->sys_display); (--i) >= 0 ;) {
-            err = insertobject_x11display(x11disp, 0, RootWindow(x11disp->sys_display,i)) ;
-            if (err) goto ONABORT ;
             XRRSelectInput(x11disp->sys_display, RootWindow(x11disp->sys_display,i), RRScreenChangeNotifyMask) ;
-         }
-
-         int eventnr = RRScreenChangeNotify + x11disp->xrandr.eventbase ;
-         if (eventnr > UINT8_MAX) {
-            err = EOVERFLOW ;
-            goto ONABORT ;
-         }
-         if (! iscallback_X11((uint8_t)eventnr)) {
-            err = setcallback_X11((uint8_t)eventnr, &RRScreenChangeNotify_eventhandler) ;
-            if (err) goto ONABORT ;
          }
       }
    }
@@ -266,9 +239,6 @@ static int initextensions_x11display(x11display_t * x11disp)
    }
 
    return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
 }
 
 // group: lifetime
@@ -461,7 +431,7 @@ static int test_initfree(void)
 
    // TEST init_x11display, free_x11display
    TEST(0 == init_x11display(&x11disp, ":0.0")) ;
-   TEST(x11disp.idmap       != 0) ;
+   TEST(x11disp.idmap       == 0) ;
    TEST(x11disp.sys_display != 0) ;
    TEST(x11disp.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
    TEST(x11disp.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
@@ -475,7 +445,7 @@ static int test_initfree(void)
 
    // TEST init_x11display: 2 different connections
    TEST(0 == init_x11display(&x11disp, ":0.0")) ;
-   TEST(x11disp.idmap       != 0) ;
+   TEST(x11disp.idmap       == 0) ;
    TEST(x11disp.sys_display != 0) ;
    TEST(x11disp.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
    TEST(x11disp.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
@@ -483,7 +453,7 @@ static int test_initfree(void)
    TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
    TEST(0  < fd_x11display(&x11disp)) ;
    TEST(0 == init_x11display(&x11disp2, ":0.0")) ;  // creates new connection
-   TEST(x11disp2.idmap       != 0) ;
+   TEST(x11disp2.idmap       == 0) ;
    TEST(x11disp2.sys_display != 0) ;
    TEST(x11disp2.sys_display != x11disp.sys_display) ;
    TEST(x11disp2.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
@@ -595,37 +565,15 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_containsrootwindows(x11display_t * x11disp)
-{
-   TEST(0 != x11disp->idmap) ;
-
-   for (int i = ScreenCount(x11disp->sys_display); (--i) >= 0 ;) {
-      Window  rootwin = RootWindow(x11disp->sys_display,i) ;
-      void   * object = (void*) 1 ;
-      TEST(0 == findobject_x11display(x11disp, &object, rootwin)) ;
-      TEST(0 == object) ;
-   }
-
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
-
 static int test_id_manager(x11display_t * x11disp1, x11display_t * x11disp2)
 {
-   x11display_t copy        = x11display_INIT_FREEABLE ;
-   void         * oldidmap1 = x11disp1->idmap ;
-   void         * oldidmap2 = x11disp2->idmap ;
-   void         * object1   = 0 ;
-   void         * object2   = 0 ;
-
-   // TEST init_x11display: idmap contains root windows
-   TEST(0 == test_containsrootwindows(x11disp1)) ;
-   TEST(0 == test_containsrootwindows(x11disp2)) ;
-   x11disp1->idmap = 0 ;
-   x11disp2->idmap = 0 ;
+   x11display_t   copy    = x11display_INIT_FREEABLE ;
+   void *         object1 = 0 ;
+   void *         object2 = 0 ;
 
    // TEST insertobject_x11display
+   TEST(0 == x11disp1->idmap) ;
+   TEST(0 == x11disp2->idmap) ;
    for (uint32_t i = 100; i < 200; ++i) {
       TEST(0 == insertobject_x11display(x11disp1, (void*) (1000 + i), i)) ;
       TEST(0 == insertobject_x11display(x11disp2, (void*) (2000 + i), i)) ;
@@ -646,7 +594,6 @@ static int test_id_manager(x11display_t * x11disp1, x11display_t * x11disp2)
       TEST(0 == removeobject_x11display(x11disp1, i)) ;
       TEST(0 == removeobject_x11display(x11disp2, i)) ;
    }
-
    TEST(0 == x11disp1->idmap) ;
    TEST(0 == x11disp2->idmap) ;
 
@@ -665,21 +612,23 @@ static int test_id_manager(x11display_t * x11disp1, x11display_t * x11disp2)
    TEST(EEXIST == insertobject_x11display(x11disp2, (void*) 2000, 98)) ;
 
    // TEST free_x11display: frees x11disp1->idmap
+   for (uint32_t i = 10; i < 20; ++i) {
+      TEST(0 == insertobject_x11display(x11disp1, (void*) (100 + i), i)) ;
+      TEST(0 == insertobject_x11display(x11disp2, (void*) (200 + i), i)) ;
+   }
    TEST(0 != x11disp1->idmap) ;
    TEST(0 != x11disp2->idmap) ;
    copy.idmap = x11disp1->idmap ;
-   x11disp1->idmap = oldidmap1 ;
+   x11disp1->idmap = 0 ;
    TEST(0 == free_x11display(&copy)) ;
    TEST(0 == copy.idmap) ;
    copy.idmap = x11disp2->idmap ;
-   x11disp2->idmap = oldidmap2 ;
+   x11disp2->idmap = 0 ;
    TEST(0 == free_x11display(&copy)) ;
    TEST(0 == copy.idmap) ;
 
    return 0 ;
 ONABORT:
-   x11disp1->idmap = oldidmap1 ;
-   x11disp2->idmap = oldidmap2 ;
    return EINVAL ;
 }
 
