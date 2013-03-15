@@ -825,8 +825,6 @@ int unittest_platform_X11_glxwindow()
    x11screen = defaultscreen_x11display(&x11disp) ;
    TEST(0 == init_glxwindow(glxwin, &x11screen, genericcast_x11windowit(&iimpl, testwindow_t), lengthof(config), config)) ;
 
-   if (test_openglconfig(&x11screen))     goto ONABORT ; // TODO: remove line
-
    // X11/GLX has memory leaks or caching or malloc consumes additional management space
    if (test_initfree(&x11screen))         goto ONABORT ;
    if (test_query(&x11screen, glxwin))    goto ONABORT ;

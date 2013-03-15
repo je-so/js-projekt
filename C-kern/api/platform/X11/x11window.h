@@ -201,7 +201,7 @@ int freeonce_x11window(void) ;
 #define x11window_INIT_FREEABLE        { 0, 0, 0, 0, 0, 0, 0 }
 
 /* function: init_x11window
- * Creates a new window resource and assign it to this object.
+ * Create a new window on x11screen and assign it to x11win.
  * After successful return <state_x11window> returns <x11window_Hidden>.
  * Call <show_x11window> to show the window to the user. */
 int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/) ;

@@ -84,11 +84,14 @@ struct glxwindow_t {
 #define glxwindow_INIT_FREEABLE           { 0, 0, 0, 0, 0, 0 }
 
 /* function: init_glxwindow
- * TODO: */
+ * Initializes glxwin and creates a hidden on window on x11screen.
+ * The configuration is read from the array configuration[nrofattributes].
+ * To handle any events set eventhandler to a valid value != 0.
+ * Call <show_glxwindow> to make the window visible to the user. */
 int init_glxwindow(/*out*/glxwindow_t * glxwin, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/) ;
 
 /* function: free_glxwindow
- * TODO: */
+ * Delete the associated x11 window and clear glxwin. */
 int free_glxwindow(glxwindow_t * glxwin) ;
 
 // group: query
