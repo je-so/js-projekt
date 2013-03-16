@@ -30,7 +30,7 @@
 #include "C-kern/api/time/timevalue.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #endif
 
 

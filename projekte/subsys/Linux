@@ -2,4 +2,5 @@
 Src += C-kern/platform/Linux/*.c
 Src += C-kern/platform/Linux/io/*.c
 Src += C-kern/platform/Linux/time/*.c
+Src += C-kern/platform/Linux/task/*.c
 Src += C-kern/platform/shared/task/*.c

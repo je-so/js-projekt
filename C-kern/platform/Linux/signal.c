@@ -29,7 +29,7 @@
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 // TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/config/signalconfig")WHERE(action=='set')
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST

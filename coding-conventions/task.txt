@@ -294,11 +294,11 @@ group: System Process
    Do not use them. There will be a higher level abstraction
    which maps either to a thread or a process.
 
-   > #include "C-kern/api/platform/process.h"
+   > #include "C-kern/api/platform/task/process.h"
 
 group: System Thread
 
    Do not use them. There will be a higher level abstraction
    which maps either to a thread or a process.
 
-   > #include "C-kern/api/platform/thread.h"
+   > #include "C-kern/api/platform/task/thread.h"

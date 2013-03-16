@@ -1,4 +1,5 @@
 /* title: Thread
+
    Encapsulates os specific threading model.
 
    about: Copyright
@@ -16,14 +17,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/thread.h
+   file: C-kern/api/platform/task/thread.h
     Header file of <Thread>.
 
-   file: C-kern/platform/Linux/thread.c
+   file: C-kern/platform/Linux/task/thread.c
     Linux specific implementation <Thread Linux>.
 */
-#ifndef CKERN_PLATFORM_THREAD_HEADER
-#define CKERN_PLATFORM_THREAD_HEADER
+#ifndef CKERN_PLATFORM_TASK_THREAD_HEADER
+#define CKERN_PLATFORM_TASK_THREAD_HEADER
 
 #include "C-kern/api/memory/memblock.h"
 
@@ -52,9 +53,9 @@ extern __thread  thread_t              gt_thread ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_platform_thread
+/* function: unittest_platform_task_thread
  * Tests <thread_t> interface. */
-int unittest_platform_thread(void) ;
+int unittest_platform_task_thread(void) ;
 #endif
 
 

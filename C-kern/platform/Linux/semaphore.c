@@ -29,7 +29,7 @@
 #include "C-kern/api/platform/sync/semaphore.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #endif
 
 int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count)

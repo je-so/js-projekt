@@ -28,7 +28,7 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/sync/signal.h"
 #endif
 

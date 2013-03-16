@@ -16,15 +16,15 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/thread.h
+   file: C-kern/api/platform/task/thread.h
     Header file of <Thread>.
 
-   file: C-kern/platform/Linux/thread.c
+   file: C-kern/platform/Linux/task/thread.c
     Linux specific implementation <Thread Linux>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/memory/vm.h"
@@ -1759,7 +1759,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_platform_thread()
+int unittest_platform_task_thread()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 

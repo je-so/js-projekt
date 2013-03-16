@@ -19,14 +19,14 @@
    file: C-kern/api/platform/task/threadpool.h
     Header file of <Threadpool>.
 
-   file: C-kern/platform/shared/task/threadpool.c
+   file: C-kern/platform/Linux/task/threadpool.c
     Implementation file of <Threadpool impl>.
 */
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/task/threadpool.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

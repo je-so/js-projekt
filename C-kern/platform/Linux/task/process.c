@@ -16,20 +16,20 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/process.h
+   file: C-kern/api/platform/task/process.h
     Header file of <Process>.
 
-   file: C-kern/platform/Linux/process.c
+   file: C-kern/platform/Linux/task/process.c
     Implementation file <Process Linuximpl>.
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/platform/process.h"
 #include "C-kern/api/io/filesystem/file.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #endif
 
 
@@ -1300,7 +1300,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_platform_process()
+int unittest_platform_task_process()
 {
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
 

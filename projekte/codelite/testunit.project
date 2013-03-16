@@ -32,8 +32,6 @@
       <File Name="../../C-kern/api/string/splitstring.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="platform">
-      <File Name="../../C-kern/api/platform/process.h"/>
-      <File Name="../../C-kern/api/platform/thread.h"/>
       <VirtualDirectory Name="Linux">
         <File Name="../../C-kern/api/platform/Linux/syskonfig.h"/>
         <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
@@ -46,6 +44,8 @@
         <File Name="../../C-kern/api/platform/task/threadpool.h"/>
         <File Name="../../C-kern/api/platform/task/exoscheduler.h"/>
         <File Name="../../C-kern/api/platform/task/exothread.h"/>
+        <File Name="../../C-kern/api/platform/task/thread.h"/>
+        <File Name="../../C-kern/api/platform/task/process.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="sync">
         <File Name="../../C-kern/api/platform/sync/semaphore.h"/>
@@ -314,10 +314,10 @@
       <File Name="../../C-kern/platform/Linux/locale.c"/>
       <File Name="../../C-kern/platform/Linux/malloc.c"/>
       <File Name="../../C-kern/platform/Linux/mutex.c"/>
-      <File Name="../../C-kern/platform/Linux/process.c"/>
       <File Name="../../C-kern/platform/Linux/semaphore.c"/>
       <File Name="../../C-kern/platform/Linux/signal.c"/>
-      <File Name="../../C-kern/platform/Linux/thread.c"/>
+      <File Name="../../C-kern/platform/Linux/sysuser.c"/>
+      <File Name="../../C-kern/platform/Linux/vm.c"/>
       <File Name="../../C-kern/platform/Linux/waitlist.c"/>
       <VirtualDirectory Name="io">
         <File Name="../../C-kern/platform/Linux/io/directory.c"/>
@@ -327,18 +327,20 @@
         <File Name="../../C-kern/platform/Linux/io/ipsocket.c"/>
         <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/platform/Linux/sysuser.c"/>
+      <VirtualDirectory Name="task">
+        <File Name="../../C-kern/platform/Linux/task/threadpool.c"/>
+        <File Name="../../C-kern/platform/Linux/task/process.c"/>
+        <File Name="../../C-kern/platform/Linux/task/thread.c"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="time">
         <File Name="../../C-kern/platform/Linux/time/sysclock.c"/>
         <File Name="../../C-kern/platform/Linux/time/systimer.c"/>
       </VirtualDirectory>
-      <File Name="../../C-kern/platform/Linux/vm.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/shared/task/exoscheduler.c"/>
         <File Name="../../C-kern/platform/shared/task/exothread.c"/>
-        <File Name="../../C-kern/platform/shared/task/threadpool.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="X11">
         <File Name="../../C-kern/platform/shared/X11/glxwindow.c"/>

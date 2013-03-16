@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/sync/mutex.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

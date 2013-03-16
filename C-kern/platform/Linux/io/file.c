@@ -30,7 +30,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/string/cstring.h"
 #include <sys/statvfs.h>
 #endif

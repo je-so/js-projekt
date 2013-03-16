@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mär.15  07:00:00
+GenerationDate  := 2013.Mär.16  17:32:35
 GeneratedBy     := je-so
 
 ## Debug
@@ -81,8 +81,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!waitlist.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!thread.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
@@ -92,9 +90,11 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!threadpool.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!exothread.c.o \
  $(ObjectDir_Debug)/C-kern!platform!shared!task!exoscheduler.c.o \
- $(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o \
  $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
@@ -172,8 +172,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!waitlist.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!thread.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!process.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
@@ -183,9 +181,11 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!threadpool.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!exothread.c.o \
  $(ObjectDir_Release)/C-kern!platform!shared!task!exoscheduler.c.o \
- $(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o \
  $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
@@ -282,12 +282,6 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 $(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!thread.c.o: C-kern/platform/Linux/thread.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!process.c.o: C-kern/platform/Linux/process.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signal.c
 	@$(CC_Debug)
 
@@ -315,13 +309,19 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linu
 $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!threadpool.c.o: C-kern/platform/Linux/task/threadpool.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!platform!shared!task!exothread.c.o: C-kern/platform/shared/task/exothread.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!shared!task!exoscheduler.c.o: C-kern/platform/shared/task/exoscheduler.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!shared!task!threadpool.c.o: C-kern/platform/shared/task/threadpool.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o: C-kern/main/test/unittest_main.c
@@ -549,12 +549,6 @@ $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 $(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!thread.c.o: C-kern/platform/Linux/thread.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!process.c.o: C-kern/platform/Linux/process.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signal.c
 	@$(CC_Release)
 
@@ -582,13 +576,19 @@ $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Li
 $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!platform!Linux!task!threadpool.c.o: C-kern/platform/Linux/task/threadpool.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o: C-kern/platform/Linux/task/process.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!platform!shared!task!exothread.c.o: C-kern/platform/shared/task/exothread.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!shared!task!exoscheduler.c.o: C-kern/platform/shared/task/exoscheduler.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!shared!task!threadpool.c.o: C-kern/platform/shared/task/threadpool.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o: C-kern/main/test/unittest_main.c

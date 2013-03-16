@@ -23,7 +23,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/platform/process.h"
+#include "C-kern/api/platform/task/process.h"
 
 enum testcase_e {
     testcase_RETURNEXITCODE    = 1

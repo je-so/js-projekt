@@ -351,13 +351,13 @@ int run_unittest(void)
       // task unittest
       RUN(unittest_platform_task_exothread) ;
       RUN(unittest_platform_task_exoscheduler) ;
+      RUN(unittest_platform_task_process) ;
+      RUN(unittest_platform_task_thread) ;
       RUN(unittest_platform_task_threadpool) ;
       // other
       RUN(unittest_platform_locale) ;
       RUN(unittest_platform_malloc) ;
-      RUN(unittest_platform_process) ;
       RUN(unittest_platform_sysuser) ;
-      RUN(unittest_platform_thread) ;
       RUN(unittest_platform_vm) ;
       // user interface subsystem
 #define HTML5  1

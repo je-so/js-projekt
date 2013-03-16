@@ -34,7 +34,7 @@
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/test/testmm.h"
 #include "C-kern/api/platform/locale.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #endif
 
 

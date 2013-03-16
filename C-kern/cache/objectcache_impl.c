@@ -32,7 +32,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/file.h"
-#include "C-kern/api/platform/process.h"
+#include "C-kern/api/platform/task/process.h"
 #endif
 
 // group: variables

@@ -1,8 +1,10 @@
 /* title: Waitlist
-   Allows to let threads wait for a certain condition.
-   If the condition is signaled the first thread in the
-   waiting list is woken up if and the thread argument
-   is set to the value given in signaling function.
+
+   Allows threads to wait for a certain condition.
+   If the condition is true a call to <trywakeup_waitlist>
+   wakes up the first thread in the  waiting list.
+   Before it is woken up its task arguments are set to the
+   values given as arguments in the function <trywakeup_waitlist>.
 
    about: Copyright
    This program is free software.
@@ -115,7 +117,7 @@ int wait_waitlist(waitlist_t * wlist) ;
  * Tries to wake up the first waiting thread.
  * If the list is empty EAGAIN is returned and no error is logged.
  * If the list is not empty the argument <thread_t.task> of the first waiting thread is set
- * to *task_main* and *start_arg*. Th first thread is removed from the list.
+ * to *task_main* and *start_arg*. Thie first thread is removed from the list.
  * It is then resumed. See also <resume_thread>. */
 int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), void * start_arg) ;
 

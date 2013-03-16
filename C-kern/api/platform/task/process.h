@@ -17,14 +17,14 @@
    Author:
    (C) 2011 Jörg Seebohn
 
-   file: C-kern/api/platform/process.h
+   file: C-kern/api/platform/task/process.h
     Header file of <Process>.
 
-   file: C-kern/platform/Linux/process.c
+   file: C-kern/platform/Linux/task/process.c
     Implementation file <Process Linuximpl>.
 */
-#ifndef CKERN_PLATFORM_PROCESS_HEADER
-#define CKERN_PLATFORM_PROCESS_HEADER
+#ifndef CKERN_PLATFORM_TASK_PROCESS_HEADER
+#define CKERN_PLATFORM_TASK_PROCESS_HEADER
 
 /* typedef: struct process_t
  * Make <process_t> an alias of <sys_process_t>. */
@@ -67,9 +67,9 @@ typedef enum process_state_e        process_state_e ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_platform_process
+/* function: unittest_platform_task_process
  * Unittest for pagecache module. */
-int unittest_platform_process(void) ;
+int unittest_platform_task_process(void) ;
 #endif
 
 

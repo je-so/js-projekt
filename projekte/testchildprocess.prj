@@ -4,7 +4,7 @@ include        projekte/binary.gcc
 include        projekte/subsys/Linux-mini
 include        projekte/subsys/context-mini
 Src           += C-kern/main/test/testchildprocess_main.c
-Src           += C-kern/platform/Linux/process.c
+Src           += C-kern/platform/Linux/task/process.c
 Src           += C-kern/platform/Linux/io/directory.c
 Src           += C-kern/string/cstring.c
 Includes       = .

@@ -19,7 +19,7 @@
    file: C-kern/api/platform/task/threadpool.h
     Header file of <Threadpool>.
 
-   file: C-kern/platform/shared/task/threadpool.c
+   file: C-kern/platform/Linux/task/threadpool.c
     Implementation file of <Threadpool impl>.
 */
 #ifndef CKERN_PLATFORM_TASK_THREADPOOL_HEADER

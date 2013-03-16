@@ -27,7 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/X11/x11videomode.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/platform/thread.h"
+#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/X11/x11display.h"
 #include "C-kern/api/platform/X11/x11screen.h"
