@@ -265,12 +265,12 @@ static int test_initfree(void)
       TEST(1 == isequal_typeadapt(&typeadp2, &typeadp)) ;
    }
 
-   // TEST islifetimedelete_typeadapt
+   // TEST iscalldelete_typeadapt
    typeadp = (typeadapt_t) typeadapt_INIT_FREEABLE ;
    typeadp.lifetime.delete_object = (typeof(typeadp.lifetime.delete_object)) 1 ;
-   TEST(1 == islifetimedelete_typeadapt(&typeadp)) ;
+   TEST(1 == iscalldelete_typeadapt(&typeadp)) ;
    typeadp.lifetime.delete_object = (typeof(typeadp.lifetime.delete_object)) 0 ;
-   TEST(0 == islifetimedelete_typeadapt(&typeadp)) ;
+   TEST(0 == iscalldelete_typeadapt(&typeadp)) ;
 
    return 0 ;
 ONABORT:

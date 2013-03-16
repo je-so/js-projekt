@@ -1,0 +1,10 @@
+static uint16_t s_errtab_stroffset = {
+   [EINVAL] = 0,
+   [133] = 21,
+   [134] = 21 /*same as 133*/
+} ;
+
+static uint8_t s_errtab_strdata[40] = {
+   "Ungültiges Argument\0"
+   "Unbekannter Fehler\0"
+} ;

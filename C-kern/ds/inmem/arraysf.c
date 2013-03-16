@@ -140,7 +140,7 @@ int delete_arraysf(arraysf_t ** array, struct typeadapt_member_t * nodeadp)
    if (del_obj) {
       *array = 0 ;
 
-      const bool isDelete = (nodeadp && islifetimedelete_typeadapt(nodeadp->typeadp)) ;
+      const bool isDelete = (nodeadp && iscalldelete_typeadapt(nodeadp->typeadp)) ;
 
       for (unsigned i = 0; i < toplevelsize_arraysf(del_obj); ++i) {
 

@@ -50,7 +50,7 @@ int free_dlist(dlist_t *list, struct typeadapt_member_t * nodeadp)
 
       list->last = 0 ;
 
-      const bool isDelete = (nodeadp && islifetimedelete_typeadapt(nodeadp->typeadp)) ;
+      const bool isDelete = (nodeadp && iscalldelete_typeadapt(nodeadp->typeadp)) ;
 
       err = 0 ;
 

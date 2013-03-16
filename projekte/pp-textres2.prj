@@ -16,3 +16,4 @@ Defines       =
 Objectdir     = bin/$(mode)/$(projectname)
 Target        = $(Objectdir)/__dummy_target__
 Src           = C-kern/resource/errlog.text
+Src          += C-kern/resource/errtab.text

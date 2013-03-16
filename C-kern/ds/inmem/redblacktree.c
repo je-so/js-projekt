@@ -672,7 +672,7 @@ int removenodes_redblacktree(redblacktree_t * tree)
 
    if (node) {
 
-      const bool isDeleteObject = islifetimedelete_typeadapt(tree->nodeadp.typeadp) ;
+      const bool isDeleteObject = iscalldelete_typeadapt(tree->nodeadp.typeadp) ;
 
       err = 0 ;
 

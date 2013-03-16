@@ -234,9 +234,9 @@
     <VirtualDirectory Name="tools">
       <File Name="../../C-kern/main/tools/genmake.c"/>
       <File Name="../../C-kern/main/tools/textdb.c"/>
-      <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
       <File Name="../../C-kern/main/tools/genfile.c"/>
       <File Name="../../C-kern/main/tools/generrtab.c"/>
+      <File Name="../../C-kern/main/tools/textresource_compiler.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
@@ -306,8 +306,11 @@
       <File Name="../../C-kern/resource/generated/errlog.de"/>
       <File Name="../../C-kern/resource/generated/errlog.en"/>
       <File Name="../../C-kern/resource/generated/errtable.h"/>
+      <File Name="../../C-kern/resource/generated/errtab.de"/>
+      <File Name="../../C-kern/resource/generated/errtab.en"/>
     </VirtualDirectory>
     <File Name="../../C-kern/resource/errlog.text"/>
+    <File Name="../../C-kern/resource/errtab.text"/>
   </VirtualDirectory>
   <VirtualDirectory Name="platform">
     <VirtualDirectory Name="Linux">

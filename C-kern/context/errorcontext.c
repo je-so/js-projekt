@@ -103,8 +103,8 @@ static int test_query(void)
       TEST(lengthof(s_errorcontext_strdata) == s_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]+strlen(errstr)+1) ;
    }
 
-   // TEST string_errorcontext: 0 <= errno <= 255
-   // s_errorcontext_stroffset has 256 entries so string_errorcontext can use (uint8_t) to mask index
+   // TEST str_errorcontext: 0 <= errno <= 255
+   // s_errorcontext_stroffset has 256 entries so str_errorcontext can use (uint8_t) to mask index
    TEST(256 == lengthof(s_errorcontext_stroffset)) ;
    // s_errorcontext_strdata: last byte is '\0' byte
    TEST(0 == s_errorcontext_strdata[lengthof(s_errorcontext_strdata)-1]) ;
@@ -117,13 +117,13 @@ static int test_query(void)
       } else {
          TEST(0 == strcmp(errstr, "Unknown error")) ;
       }
-      TEST((const uint8_t*)errstr == string_errorcontext(&errcontext, i)) ;
+      TEST((const uint8_t*)errstr == str_errorcontext(&errcontext, i)) ;
    }
 
-   // TEST string_errorcontext: 255 <= errno <= SIZE_MAX
+   // TEST str_errorcontext: 255 <= errno <= SIZE_MAX
    for (size_t i = 255; true; i *= 2, ++i) {
       const uint8_t * errstr = s_errorcontext_strdata + s_errorcontext_stroffset[255] ;
-      TEST(errstr == string_errorcontext(&errcontext, i)) ;
+      TEST(errstr == str_errorcontext(&errcontext, i)) ;
       if (i == SIZE_MAX) break ;
    }
 

@@ -198,9 +198,9 @@ struct typeadapt_t {
  * Returns true if both <typeadapt_t> are equal. */
 bool isequal_typeadapt(const typeadapt_t * ltypeadp, const typeadapt_t * rtypeadp) ;
 
-/* function: islifetimedelete_typeadapt
+/* function: iscalldelete_typeadapt
  * Returns true if <typeadapt_lifetime_it.delete_object> is not NULL. */
-bool islifetimedelete_typeadapt(const typeadapt_t * typeadp) ;
+bool iscalldelete_typeadapt(const typeadapt_t * typeadp) ;
 
 // group: lifetime-service
 
@@ -349,9 +349,9 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
  * Implements <typeadapt_member_t.callnewcopy_typeadaptmember>. */
 #define callnewcopy_typeadaptmember(nodeadp, ...)     callnewcopy_typeadapt((nodeadp)->typeadp, __VA_ARGS__)
 
-/* define: islifetimedelete_typeadapt
- * Implements <typeadapt_t.islifetimedelete_typeadapt>. */
-#define islifetimedelete_typeadapt(typeadp)           (0 != (typeadp)->lifetime.delete_object)
+/* define: iscalldelete_typeadapt
+ * Implements <typeadapt_t.iscalldelete_typeadapt>. */
+#define iscalldelete_typeadapt(typeadp)               (0 != (typeadp)->lifetime.delete_object)
 
 /* define: memberasobject_typeadaptmember
  * Imeplements <typeadapt_member_t.memberasobject_typeadaptmember>. */

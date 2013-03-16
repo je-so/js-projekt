@@ -6,7 +6,7 @@
 #    Use '#' to mark the begin of comment until end of line
 # 2. Resource Header
 #    Every file must begin with the header
-#    <textresource version='2'>
+#    <textresource version='3'>
 #    Every textresource section must end with
 #    </textresource>
 #    This ensures that later version upgrades can be mixed together with older versions
@@ -56,14 +56,15 @@
 #    en: "I have deleted " ((nr_of_deleted_files==0) "no" (nr_of_deleted_files==1) "one" else nr_of_deleted_files)
 #        ((nr_of_deleted_files==1) " file\n" else " files\n")
 
-<textresource version='2'>
+<textresource version='3'>
 
-<proglang value=C>
+<outconfig type=C>
    <namesuffix value=_ERRLOG/>
    <generate   header="C-kern/resource/generated/errlog.h" source="C-kern/resource/generated/errlog"/>
    <printf     value=PRINTF/>
    <firstparam value="log_channel_e channel"/>
-</proglang>
+   <languages>de, en</languages>
+</outconfig>
 
 # // TODO: rename into ERROR_FATAL
 ABORT_FATAL(int err)

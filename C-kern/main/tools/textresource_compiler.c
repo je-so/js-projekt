@@ -1,4 +1,4 @@
-/* title: TextResource-v2-Compiler
+/* title: TextResource-Compiler
 
    Translates text resource descriptions into C files.
 
@@ -15,10 +15,10 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2012 Jörg Seebohn
+   (C) 2013 Jörg Seebohn
 
-   file: C-kern/main/tools/textresourcev2_compiler.c
-    Implementation file <TextResource-v2-Compiler>.
+   file: C-kern/main/tools/textresource_compiler.c
+    Implementation file <TextResource-Compiler>.
 */
 
 #include "C-kern/konfig.h"
@@ -39,7 +39,7 @@
 #include "C-kern/api/string/stringstream.h"
 
 
-typedef struct proglangC_t             proglangC_t ;
+typedef struct outconfig_t             outconfig_t ;
 
 typedef struct textresource_t          textresource_t ;
 
@@ -87,7 +87,12 @@ enum textresource_textatom_e {
 
 typedef enum textresource_textatom_e   textresource_textatom_e ;
 
-// section: Functions
+
+// section: Helper
+
+// group: constants
+
+#define VERSION   "v3"
 
 // group: log
 
@@ -97,7 +102,7 @@ static void print_error(const char * format, ...) __attribute__ ((__format__ (__
  * Prints version information */
 static void print_version(void)
 {
-   printf("Text resource v2 compiler\n") ;
+   printf("Text resource " VERSION " compiler\n") ;
 }
 
 /* function: print_usage
@@ -119,7 +124,9 @@ static void print_error(const char * format, ...)
    va_end(vargs) ;
 }
 
-
+/* struct: xmlattribute_t
+ * Name and value of an xml attribute.
+ * > <entity attr_name="attr_value" ...>. */
 struct xmlattribute_t {
    const char  * name ;
    string_t    value ;
@@ -133,42 +140,48 @@ struct xmlattribute_t {
 #define xmlattribute_INIT(name)        { (name), string_INIT_FREEABLE }
 
 
-/* struct: proglangC_t
- * Contains control information for formatting written "C" language output. */
-struct proglangC_t {
-   string_t     cfilename;
-   string_t     hfilename ;
-   string_t     firstparam ;
-   string_t     nameprefix ;
-   string_t     namesuffix ;
-   string_t     printf ;
+/* struct: outconfig_t
+ * Contains control information how the generated output is to be formatted. */
+struct outconfig_t {
+   string_t    type ;
+   union {
+      struct {
+         string_t    cfilename;
+         string_t    hfilename ;
+         string_t    firstparam ;
+         string_t    nameprefix ;
+         string_t    namesuffix ;
+         string_t    printf ;
+      } C ;
+      struct {
+         string_t    cfilename ;
+         string_t    strdata ;
+         string_t    stroffset ;
+      } Ctable ;
+   } ;
 } ;
 
-#define proglangC_INIT_FREEABLE        { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE }
+#define outconfig_INIT_FREEABLE        { string_INIT_FREEABLE, { .C = { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE } } }
 
 
 /* struct: textresource_language_t
  * A language selector for <textresource_text_t>.
  * */
 struct textresource_language_t {
-   arraystf_node_t   name ;
-   /* variable: isdefined
-    * Used during parsing so that
-    * a textresource does not contain two definitions for the same
-    * language. */
-   bool              isdefined ;
+   string_t          name ;
+   slist_node_EMBED  (next) ;
 } ;
 
 static typeadapt_impl_t    g_textreslang_adapter     = typeadapt_impl_INIT(sizeof(textresource_language_t)) ;
-static typeadapt_member_t  g_textreslang_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_textreslang_adapter, offsetof(textresource_language_t, name)) ;
+static typeadapt_member_t  g_textreslang_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_textreslang_adapter, offsetof(textresource_language_t, next)) ;
 
-arraystf_IMPLEMENT(_arraylanguage, textresource_language_t, name)
+slist_IMPLEMENT(_languagelist, textresource_language_t, next)
 
 // group: lifetime
 
 /* define: textresource_language_INIT
  * Static initializer. */
-#define textresource_language_INIT(name)     { arraystf_node_INIT(name.size, name.addr), 0 }
+#define textresource_language_INIT(name)     { string_INIT(name->size, name->addr), 0 }
 
 
 /* struct: textresource_parameter_t
@@ -423,14 +436,17 @@ ONABORT:
  * The set of all defined text resources is stored in <textresource_t>.
  *
  * A <textresource_text_t> has 0 or more <textresource_parameter_t> stored in paramlist.
- * It contains one or more language specific text definition stored as <textresource_langref_t> in langlist.
- * A <textresource_langref_t> contains one or more <textresource_coondition_t>
- * which defines a condition under which a string has to be used or not. */
+ * It contains one or more language specific text definitions stored as <textresource_langref_t> in langlist.
+ * A <textresource_langref_t> contains one or more <textresource_condition_t>
+ * which define a condition under which a string has to be used or not. */
 struct textresource_text_t {
    arraystf_node_t   name ;
-   arraystf_t        * params ;
+   slist_node_t *    next ;
+   arraystf_t   *    params ;
    slist_t           paramlist ;
    slist_t           langlist ;
+   textresource_text_t * textref ;  // used in outconfig C-table
+   size_t            tableoffset ;  // used in outconfig C-table
 } ;
 
 typedef struct textresource_text_adapt_t   textresource_text_adapt_t ;
@@ -446,6 +462,7 @@ static textresource_text_adapt_t    g_textrestext_adapter     = typeadapt_INIT_L
 static typeadapt_member_t           g_textrestext_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_textrestext_adapter, offsetof(textresource_text_t, name)) ;
 
 arraystf_IMPLEMENT(_arraytname, textresource_text_t, name)
+slist_IMPLEMENT(_textlist, textresource_text_t, next)
 
 // group: lifetime
 
@@ -456,9 +473,12 @@ static int init_textresourcetext(/*out*/textresource_text_t * text, const string
    err = new_arrayparam(&textparams, 16) ;
    if (err) return err ;
    text->name   = (arraystf_node_t) arraystf_node_INIT(name->size, name->addr) ;
+   text->next   = 0 ;
    text->params = textparams ;
    init_paramlist(&text->paramlist);
    init_langreflist(&text->langlist) ;
+   text->textref = 0 ;
+   text->tableoffset = 0 ;
    return 0 ;
 }
 
@@ -484,11 +504,11 @@ static int freeobj_textresourcetext(textresource_text_adapt_t * typeadt, textres
 {
    int err ;
    int err2 ;
+   textresource_text_t * delobj = *text ;
 
    (void) typeadt ;
 
-   if (*text) {
-      textresource_text_t * delobj = *text ;
+   if (delobj) {
       *text = 0 ;
 
       memblock_t  mblock = memblock_INIT(sizeof(textresource_text_t), (uint8_t*)delobj) ;
@@ -510,6 +530,22 @@ static int freeobj_textresourcetext(textresource_text_adapt_t * typeadt, textres
    return 0 ;
 ONABORT:
    TRACEABORTFREE_LOG(err) ;
+   return err ;
+}
+
+// group: update
+
+static int copyfromref_textresourcetext(textresource_text_t * text, textresource_text_t * textref)
+{
+   int err ;
+
+   VALIDATE_INPARAM_TEST(isempty_langreflist(&text->langlist), ONABORT, ) ;
+
+   text->textref = textref ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -545,8 +581,13 @@ struct textresource_t {
    const char        * read_from_filename ;
    arraystf_t        * textnames ;
    arraystf_t        * paramtypes ;
-   arraystf_t        * languages ;
-   proglangC_t       progC ;
+   /* variable: languages
+    * Contains list of <textresource_language_t>. */
+   slist_t           languages ;
+   /* variable: textlist
+    * Contains list of <textresource_text_t>. */
+   slist_t           textlist ;
+   outconfig_t       outconfig ;
 } ;
 
 arraystf_IMPLEMENT(_arrayptype, textresource_paramtype_t, name.addr)
@@ -555,7 +596,7 @@ arraystf_IMPLEMENT(_arrayptype, textresource_paramtype_t, name.addr)
 
 /* define: textresource_INIT_FREEABLE
  * Static initializer. */
-#define textresource_INIT_FREEABLE     { 0, 0, 0, 0, proglangC_INIT_FREEABLE }
+#define textresource_INIT_FREEABLE     { 0, 0, 0, slist_INIT, slist_INIT, outconfig_INIT_FREEABLE }
 
 static int free_textresource(textresource_t * textres)
 {
@@ -566,10 +607,13 @@ static int free_textresource(textresource_t * textres)
 
    err = delete_arrayptype(&textres->paramtypes, 0) ;
 
+   err2 = free_textlist(&textres->textlist, 0 /*freed in delete_arraytname*/) ;
+   if (err) err = err2 ;
+
    err2 = delete_arraytname(&textres->textnames, &g_textrestext_nodeadapter) ;
    if (err) err = err2 ;
 
-   err2 = delete_arraylanguage(&textres->languages, &g_textreslang_nodeadapter) ;
+   err2 = free_languagelist(&textres->languages, &g_textreslang_nodeadapter) ;
    if (err) err = err2 ;
 
    if (err) goto ONABORT ;
@@ -617,8 +661,7 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
    err = new_arrayptype(&textres->paramtypes, 16) ;
    if (err) goto ONABORT ;
 
-   err = new_arrayptype(&textres->languages, 256) ;
-   if (err) goto ONABORT ;
+   init_slist(&textres->languages) ;
 
    for (unsigned i = 0; i < lengthof(knowntypes); ++i) {
       err = insert_arrayptype(textres->paramtypes, &knowntypes[i], 0, 0) ;
@@ -632,6 +675,30 @@ ONABORT:
    return err ;
 }
 
+// group: add
+
+static int addlanguage_textresource(textresource_t * textres, string_t * langid)
+{
+   int err ;
+   textresource_language_t    lang = textresource_language_INIT(langid) ;
+   textresource_language_t *  langcopy ;
+
+   err = callnewcopy_typeadapt(&g_textreslang_adapter, (struct typeadapt_object_t**)&langcopy, (struct typeadapt_object_t*)&lang) ;
+   if (err) goto ONABORT ;
+
+   insertlast_languagelist(&textres->languages, langcopy) ;
+
+   return 0 ;
+ONABORT:
+   return err ;
+}
+
+static int addtext_textresource(textresource_t * textres, textresource_text_t * text)
+{
+   insertlast_textlist(&textres->textlist, text) ;
+   return 0 ;
+}
+
 
 /* struct: textresource_reader_t
  * Reads textual representation of text resource.
@@ -640,7 +707,6 @@ ONABORT:
 struct textresource_reader_t {
    textresource_t    txtres ;
    utf8reader_t      txtpos ;
-   uint16_t          version ;
 } ;
 
 // group: helper
@@ -809,6 +875,7 @@ static int match_identifier(textresource_reader_t * reader, /*out*/string_t * id
 
    if (  !( ('a' <= ch && ch <= 'z')
          || ('A' <= ch && ch <= 'Z')
+         || ('0' <= ch && ch <= '9')
          || '_' == ch)) {
       report_parseerror(reader, "expected identifier but read unsupported character") ;
       err = EINVAL ;
@@ -827,6 +894,7 @@ static int match_identifier(textresource_reader_t * reader, /*out*/string_t * id
          || ',' == ch
          || '=' == ch
          || '*' == ch
+         || '<' == ch
          || ':' == ch) {
          break ;
       }
@@ -1299,13 +1367,11 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
    string_t                name ;
    textresource_text_t     text ;
    textresource_text_t     * textcopy = 0 ;
-   textresource_language_t language ;
-   textresource_language_t * langcopy = 0 ;
-
-   err = match_identifier(reader, &name) ;
-   if (err) return err ;
 
    for (uint8_t ch;;) {
+
+      err = match_identifier(reader, &name) ;
+      if (err) return err ;
 
       err = init_textresourcetext(&text, &name) ;
       if (err) return err ;
@@ -1319,62 +1385,60 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          return err ;
       }
 
-      err = parse_parameterlist(reader, textcopy) ;
+      err = addtext_textresource(&reader->txtres, textcopy) ;
       if (err) return err ;
 
       err = skip_spaceandcomment(reader) ;
       if (err) return err ;
 
-      err = match_identifier(reader, &name) ;
-      if (err) return err ;
-
-      for (;;) {
-         language = (textresource_language_t) textresource_language_INIT(name) ;
-
-         err = tryinsert_arraylanguage(reader->txtres.languages, &language, &langcopy, &g_textreslang_nodeadapter) ;
-         if (  err
-            && EEXIST != err) {
-            return err ;
-         }
-
-         if (langcopy->isdefined) {
-            report_parseerror(reader, "double defined language specific string") ;
-            err = EINVAL ;
-            return err ;
-         } else {
-            langcopy->isdefined = true ;
-         }
-
-         err = match_string(reader, ":") ;
+      if (  reader->txtres.outconfig.type.size == 7 /*outconfig C-table*/
+            && 0 == peekascii_utf8reader(&reader->txtpos, &ch)
+            && '-' == ch) {
+         err = match_string(reader, "->") ;
          if (err) return err ;
-
-         textresource_langref_t langref       = textresource_langref_INIT(langcopy) ;
-         textresource_langref_t * langrefcopy = 0 ;
-
-         err = callnewcopy_typeadapt(&g_langref_adapter, &langrefcopy, &langref) ;
-         if (err) return err ;
-
-         insertlast_langreflist(&textcopy->langlist, langrefcopy) ;
-
-         err = parse_unconditional_textatoms(reader, textcopy, langrefcopy) ;
-         if (err) return err ;
-
-         if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
-            || '<' == ch) {
-            break ;
-         }
-
          err = match_identifier(reader, &name) ;
          if (err) return err ;
-
-         if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
-            || ':' != ch) {
-            break ;
+         textresource_text_t * textref = at_arraytname(reader->txtres.textnames, name.size, name.addr) ;
+         if (! textref) {
+            report_parseerror(reader, "undefined identifier '%.*s'", (int)name.size, name.addr) ;
+            return EINVAL ;
          }
-      }
+         err = copyfromref_textresourcetext(textcopy, textref) ;
+         if (err) return err ;
+         err = skip_spaceandcomment(reader) ;
+         if (err) return err ;
 
-      foreach (_langreflist, &textcopy->langlist, parsedlang) {
-         parsedlang->lang->isdefined = false ;
+      } else {
+         if (reader->txtres.outconfig.type.size != 7 /*outconfig C*/) {
+            err = parse_parameterlist(reader, textcopy) ;
+            if (err) return err ;
+         }
+
+         foreach(_languagelist, &reader->txtres.languages, language) {
+
+            err = match_identifier(reader, &name) ;
+            if (err) return err ;
+
+            err = match_string(reader, ":") ;
+            if (err) return err ;
+
+            if (  language->name.size != name.size
+                  || 0 != memcmp(language->name.addr, name.addr, name.size)) {
+               report_parseerror(reader, "expected language definition '%.*s'", (int)language->name.size, language->name.addr) ;
+               return EINVAL ;
+            }
+
+            textresource_langref_t langref       = textresource_langref_INIT(language) ;
+            textresource_langref_t * langrefcopy = 0 ;
+
+            err = callnewcopy_typeadapt(&g_langref_adapter, &langrefcopy, &langref) ;
+            if (err) return err ;
+
+            insertlast_langreflist(&textcopy->langlist, langrefcopy) ;
+
+            err = parse_unconditional_textatoms(reader, textcopy, langrefcopy) ;
+            if (err) return err ;
+         }
       }
 
       if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
@@ -1521,16 +1585,14 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
 }
 
 /* function: parse_version_textresourcereader
- * Skips comments until "<textresource version='2'>" is found.
+ * Skips comments until "<textresource version='3'>" is found.
  * The whole header tag is consumed. */
 static int parse_version_textresourcereader(textresource_reader_t * reader)
 {
    int err ;
-   char                 expectversion[10] ;
-   xmltag_openclose_e   opclose = xmltag_OPEN ;
-   xmlattribute_t       version = xmlattribute_INIT("version") ;
-
-   snprintf(expectversion, sizeof(expectversion), "%d", reader->version) ;
+   const char *         expectversion = "3" ;
+   xmltag_openclose_e   opclose       = xmltag_OPEN ;
+   xmlattribute_t       version       = xmlattribute_INIT("version") ;
 
    err = match_stringandspace(reader, "<textresource") ;
    if (err) return err ;
@@ -1547,9 +1609,45 @@ static int parse_version_textresourcereader(textresource_reader_t * reader)
    return 0 ;
 }
 
-/* function: parse_proglangC_utf8reader
+static int parse_languages_utf8reader(textresource_reader_t * reader)
+{
+   int err ;
+   string_t langid ;
+   uint8_t  ch ;
+
+   err = match_string(reader, "languages>") ;
+   if (err) goto ONABORT ;
+
+   for (;;) {
+      err = match_identifier(reader, &langid) ;
+      if (err) goto ONABORT ;
+
+      err = addlanguage_textresource(&reader->txtres, &langid) ;
+      if (err) goto ONABORT ;
+
+      err = skip_spaceandcomment(reader) ;
+      if (err) goto ONABORT ;
+
+      if (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
+            && ch == '<') {
+         break ;
+      }
+
+      err = match_string(reader, ",") ;
+      if (err) goto ONABORT ;
+   }
+
+   err = match_string(reader, "</languages>") ;
+   if (err) goto ONABORT ;
+
+   return 0 ;
+ONABORT:
+   return err ;
+}
+
+/* function: parse_outconfigC_utf8reader
  * Parses control information for generated output. */
-static int parse_proglangC_utf8reader(textresource_reader_t * reader)
+static int parse_outconfigC_utf8reader(textresource_reader_t * reader)
 {
    int err ;
    xmltag_openclose_e   closetag   = xmltag_CLOSE ;
@@ -1572,15 +1670,18 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
                   err = parse_xmlattributes_textresourcereader(reader, lengthof(firstattr), firstattr, &closetag) ;
                   if (err) goto ONABORT ;
                   static_assert(lengthof(firstattr) == 2, "assume one value") ;
-                  reader->txtres.progC.firstparam = firstattr[0].value ;
+                  reader->txtres.outconfig.C.firstparam = firstattr[0].value ;
                   break ;
       case 'g':   err = match_stringandspace(reader, "generate") ;
                   if (err) goto ONABORT ;
                   err = parse_xmlattributes_textresourcereader(reader, lengthof(genattr), genattr, &closetag) ;
                   if (err) goto ONABORT ;
                   static_assert(lengthof(genattr) == 2, "assume two values") ;
-                  reader->txtres.progC.hfilename = genattr[0].value ;
-                  reader->txtres.progC.cfilename = genattr[1].value ;
+                  reader->txtres.outconfig.C.hfilename = genattr[0].value ;
+                  reader->txtres.outconfig.C.cfilename = genattr[1].value ;
+                  break ;
+      case 'l':   err = parse_languages_utf8reader(reader) ;
+                  if (err) goto ONABORT ;
                   break ;
       case 'n':   if (  0 == peekasciiatoffset_utf8reader(&reader->txtpos, 4, &ch)
                         && 's' == ch) {
@@ -1588,20 +1689,66 @@ static int parse_proglangC_utf8reader(textresource_reader_t * reader)
                      if (err) goto ONABORT ;
                      err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
                      if (err) goto ONABORT ;
-                     reader->txtres.progC.namesuffix = value.value ;
+                     reader->txtres.outconfig.C.namesuffix = value.value ;
                   } else {
                      err = match_stringandspace(reader, "nameprefix") ;
                      if (err) goto ONABORT ;
                      err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
                      if (err) goto ONABORT ;
-                     reader->txtres.progC.nameprefix = value.value ;
+                     reader->txtres.outconfig.C.nameprefix = value.value ;
                   }
                   break ;
       case 'p':   err = match_stringandspace(reader, "printf") ;
                   if (err) goto ONABORT ;
                   err = parse_xmlattributes_textresourcereader(reader, 1, &value, &closetag) ;
                   if (err) goto ONABORT ;
-                  reader->txtres.progC.printf = value.value ;
+                  reader->txtres.outconfig.C.printf = value.value ;
+                  break ;
+      default:    return 0 ;
+      }
+   }
+
+   return 0 ;
+ONABORT:
+   return err ;
+}
+
+/* function: parse_outconfigCtable_utf8reader
+ * Parses control information for generated output. */
+static int parse_outconfigCtable_utf8reader(textresource_reader_t * reader)
+{
+   int err ;
+   xmltag_openclose_e   closetag   = xmltag_CLOSE ;
+   xmlattribute_t       genattr[1] = { xmlattribute_INIT("source") } ;
+   xmlattribute_t       tabattr[2] = { xmlattribute_INIT("strdata"), xmlattribute_INIT("stroffset") } ;
+
+   for (uint8_t ch;;) {
+      err = skip_spaceandcomment(reader) ;
+      if (err) goto ONABORT ;
+
+      err = match_string(reader, "<") ;
+      if (err) goto ONABORT ;
+
+      if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) break ;
+
+      switch (ch) {
+      case 'g':   err = match_stringandspace(reader, "generate") ;
+                  if (err) goto ONABORT ;
+                  err = parse_xmlattributes_textresourcereader(reader, lengthof(genattr), genattr, &closetag) ;
+                  if (err) goto ONABORT ;
+                  static_assert(lengthof(genattr) == 1, "assume one value") ;
+                  reader->txtres.outconfig.Ctable.cfilename = genattr[0].value ;
+                  break ;
+      case 'l':   err = parse_languages_utf8reader(reader) ;
+                  if (err) goto ONABORT ;
+                  break ;
+      case 't':   err = match_stringandspace(reader, "tablename") ;
+                  if (err) goto ONABORT ;
+                  err = parse_xmlattributes_textresourcereader(reader, lengthof(tabattr), tabattr, &closetag) ;
+                  if (err) goto ONABORT ;
+                  static_assert(lengthof(tabattr) == 2, "assume two values") ;
+                  reader->txtres.outconfig.Ctable.strdata   = tabattr[0].value ;
+                  reader->txtres.outconfig.Ctable.stroffset = tabattr[1].value ;
                   break ;
       default:    return 0 ;
       }
@@ -1619,39 +1766,47 @@ ONABORT:
 static int parse_header_textresourcereader(textresource_reader_t * reader)
 {
    int err ;
-   xmltag_openclose_e   opclose = xmltag_OPEN ;
-   xmlattribute_t       value   = xmlattribute_INIT("value") ;
+   xmltag_openclose_e   opclose  = xmltag_OPEN ;
+   xmlattribute_t       typeattr = xmlattribute_INIT("type") ;
 
    err = parse_version_textresourcereader(reader) ;
    if (err) goto ONABORT ;
 
-   for (uint8_t ch;;) {
-      err = skip_spaceandcomment(reader) ;
+   err = skip_spaceandcomment(reader) ;
+   if (err) goto ONABORT ;
+
+   err = match_stringandspace(reader, "<outconfig") ;
+   if (err) goto ONABORT ;
+
+   err = parse_xmlattributes_textresourcereader(reader, 1, &typeattr, &opclose) ;
+   if (err) goto ONABORT ;
+
+   if (  (  1 != typeattr.value.size
+            || 0 != memcmp("C", typeattr.value.addr, typeattr.value.size))
+         && (  7 != typeattr.value.size
+               || 0 != memcmp("C-table", typeattr.value.addr, typeattr.value.size))) {
+      report_parseerror(reader, "Only output configurations 'C' and 'C-table' are supported at the moment") ;
+      err = EINVAL ;
+      goto ONABORT ;
+   }
+
+   reader->txtres.outconfig.type = typeattr.value ;
+
+   if (1 == typeattr.value.size) {
+      err = parse_outconfigC_utf8reader(reader) ;
       if (err) goto ONABORT ;
-
-      if (  0 != peekascii_utf8reader(&reader->txtpos, &ch)
-         || '<' != ch) {
-         break ;
-      }
-
-      err = match_stringandspace(reader, "<proglang") ;
+   } else {
+      err = parse_outconfigCtable_utf8reader(reader) ;
       if (err) goto ONABORT ;
+   }
 
-      err = parse_xmlattributes_textresourcereader(reader, 1, &value, &opclose) ;
-      if (err) goto ONABORT ;
+   err = match_string(reader, "/outconfig>") ;
+   if (err) goto ONABORT ;
 
-      if (     1 != value.value.size
-            || 0 != strncmp("C", (const char*)value.value.addr, value.value.size)) {
-         report_parseerror(reader, "Only language 'C' is supported at the moment") ;
-         err = EINVAL ;
-         goto ONABORT ;
-      }
-
-      err = parse_proglangC_utf8reader(reader) ;
-      if (err) goto ONABORT ;
-
-      err = match_string(reader, "/proglang>") ;
-      if (err) goto ONABORT ;
+   if (isempty_languagelist(&reader->txtres.languages)) {
+      report_parseerror(reader, "<languages>de, en, ...</languages> not defined in <outconfig>") ;
+      err = EINVAL ;
+      goto ONABORT ;
    }
 
    return 0 ;
@@ -1659,9 +1814,9 @@ ONABORT:
    return err ;
 }
 
-/* function: parse_contentversion2_textresourcereader
- * Parses content of "<textresource version='2'> </textresource>". */
-static int parse_contentversion2_textresourcereader(textresource_reader_t * reader)
+/* function: parse_contentversion3_textresourcereader
+ * Parses content of "<textresource version='3'> </textresource>". */
+static int parse_contentversion3_textresourcereader(textresource_reader_t * reader)
 {
    int err ;
 
@@ -1699,7 +1854,7 @@ ONABORT:
 
 /* define: textresource_reader_INIT_FREEABLE
  * Static initializer. */
-#define textresource_reader_INIT_FREEABLE       { textresource_INIT_FREEABLE, utf8reader_INIT_FREEABLE, 0 } ;
+#define textresource_reader_INIT_FREEABLE       { textresource_INIT_FREEABLE, utf8reader_INIT_FREEABLE } ;
 
 /* function: free_textresourcereader
  * Closes file and frees memory of <textresource_t>. */
@@ -1707,8 +1862,6 @@ static int free_textresourcereader(textresource_reader_t * reader)
 {
    int err ;
    int err2 ;
-
-   reader->version  = 0 ;
 
    err = free_utf8reader(&reader->txtpos) ;
    err2 = free_textresource(&reader->txtres) ;
@@ -1739,12 +1892,11 @@ static int init_textresourcereader(/*out*/textresource_reader_t * reader, const 
       print_error("Can not open file »%s«", filename) ;
       goto ONABORT ;
    }
-   new_reader.version  = 2 ;
 
    err = parse_header_textresourcereader(&new_reader) ;
    if (err) goto ONABORT ;
 
-   err = parse_contentversion2_textresourcereader(&new_reader) ;
+   err = parse_contentversion3_textresourcereader(&new_reader) ;
    if (err) goto ONABORT ;
 
    *reader = new_reader ;
@@ -1763,8 +1915,8 @@ struct textresource_writer_t {
    file_t          outfile ;
 } ;
 
-static int writeCheader_textresourcewriter(textresource_writer_t * writer) ;
-static int writeCsource_textresourcewriter(textresource_writer_t * writer, textresource_language_t * lang) ;
+static int writeCconfig_textresourcewriter(textresource_writer_t * writer) ;
+static int writeCtableconfig_textresourcewriter(textresource_writer_t * writer) ;
 
 // group: lifetime
 
@@ -1790,74 +1942,21 @@ ONABORT:
 static int init_textresourcewriter(textresource_writer_t * writer, textresource_t * txtres)
 {
    int err ;
-   cstring_t   filename  = cstring_INIT_FREEABLE ;
-   proglangC_t * progC   = &txtres->progC ;
 
    *writer = (textresource_writer_t) textresource_writer_INIT_FREEABLE ;
-
    writer->txtres = txtres ;
 
-   // generate C source file
-
-   foreach(_arraylanguage, writer->txtres->languages, lang) {
-
-      err = initfromstring_cstring(&filename, &progC->cfilename) ;
-      if (err) goto ONABORT ;
-
-      if (lang->name.size > INT_MAX) {
-         err = ENOMEM ;
-         goto ONABORT ;
-      }
-
-      err = printfappend_cstring(&filename, ".%.*s", (int)lang->name.size, (const char*)lang->name.addr) ;
-      if (err) goto ONABORT ;
-
-      if (0 == checkpath_directory(0, str_cstring(&filename))) {
-         (void) removefile_directory(0, str_cstring(&filename)) ;
-      }
-
-      err = initcreate_file(&writer->outfile, str_cstring(&filename), 0) ;
-      if (err) {
-         print_error("Can not create file »%s«", str_cstring(&filename)) ;
-         goto ONABORT ;
-      }
-
-      err = writeCsource_textresourcewriter(writer, lang) ;
-      if (err) goto ONABORT ;
-
-      err = free_file(&writer->outfile) ;
-      if (err) goto ONABORT ;
-
-      err = free_cstring(&filename) ;
-      if (err) goto ONABORT ;
+   if (1 == size_string(&txtres->outconfig.type)) {
+      err = writeCconfig_textresourcewriter(writer) ;
+   } else {
+      err = writeCtableconfig_textresourcewriter(writer) ;
    }
 
-   // generate C header file
-
-   err = initfromstring_cstring(&filename, &progC->hfilename) ;
-   if (err) goto ONABORT ;
-
-   if (0 == checkpath_directory(0, str_cstring(&filename))) {
-      (void) removefile_directory(0, str_cstring(&filename)) ;
-   }
-
-   err = initcreate_file(&writer->outfile, str_cstring(&filename), 0) ;
-   if (err) {
-      print_error("Can not create file »%s«", str_cstring(&filename)) ;
-      goto ONABORT ;
-   }
-
-   err = writeCheader_textresourcewriter(writer) ;
-   if (err) goto ONABORT ;
-
-   err = free_cstring(&filename) ;
    if (err) goto ONABORT ;
 
    return 0 ;
 ONABORT:
-   free_cstring(&filename) ;
    free_textresourcewriter(writer) ;
-   TRACEABORT_LOG(err) ;
    return err ;
 }
 
@@ -1865,7 +1964,7 @@ ONABORT:
 
 static int writeCfctdeclaration_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
 {
-   proglangC_t * progC = &writer->txtres->progC ;
+   typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C ;
 
    dprintf(writer->outfile, "int %.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
                                                  (int)text->name.size, text->name.addr,
@@ -1904,10 +2003,10 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
 {
    int err ;
 
-   dprintf(writer->outfile, "/*\n * C header generated by textresource compiler v2\n *\n") ;
+   dprintf(writer->outfile, "/*\n * C header generated by textresource compiler "VERSION"\n *\n") ;
    dprintf(writer->outfile, " * Do not edit this file -- instead edit '%s'\n *\n */\n\n", writer->txtres->read_from_filename) ;
 
-   foreach (_arraytname, writer->txtres->textnames, text) {
+   foreach (_textlist, &writer->txtres->textlist, text) {
       err = writeCfctdeclaration_textresourcewriter(writer, text) ;
       if (err) goto ONABORT ;
       dprintf(writer->outfile, " ;\n") ;
@@ -1921,8 +2020,8 @@ ONABORT:
 static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist_t * atomlist)
 {
    int err = EIO ;
-   ssize_t        bytes ;
-   proglangC_t    * progC = &writer->txtres->progC ;
+   ssize_t                        bytes ;
+   typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C ;
 
    dprintf(writer->outfile, "%.*s(\"", (int)progC->printf.size, progC->printf.addr) ;
 
@@ -2044,10 +2143,10 @@ static int writeCsource_textresourcewriter(textresource_writer_t * writer, textr
 {
    int err ;
 
-   dprintf(writer->outfile, "/*\n * C source code generated by textresource compiler v2\n *\n") ;
+   dprintf(writer->outfile, "/*\n * C source code generated by textresource compiler "VERSION"\n *\n") ;
    dprintf(writer->outfile, " * Do not edit this file -- instead edit '%s'\n *\n */\n", writer->txtres->read_from_filename) ;
 
-   foreach (_arraytname, writer->txtres->textnames, text) {
+   foreach (_textlist, &writer->txtres->textlist, text) {
 
       err = writeCfunction_textresourcewriter(writer, text, lang) ;
       if (err) goto ONABORT ;
@@ -2059,6 +2158,205 @@ ONABORT:
    TRACEABORT_LOG(err) ;
    return err ;
 }
+
+static int writeCconfig_textresourcewriter(textresource_writer_t * writer)
+{
+   int err ;
+   cstring_t                      filename = cstring_INIT_FREEABLE ;
+   typeof(((outconfig_t*)0)->C) * progC    = &writer->txtres->outconfig.C ;
+
+   // generate C source file
+
+   foreach(_languagelist, &writer->txtres->languages, lang) {
+
+      err = initfromstring_cstring(&filename, &progC->cfilename) ;
+      if (err) goto ONABORT ;
+
+      if (lang->name.size > INT_MAX) {
+         err = ENOMEM ;
+         goto ONABORT ;
+      }
+
+      err = printfappend_cstring(&filename, ".%.*s", (int)lang->name.size, (const char*)lang->name.addr) ;
+      if (err) goto ONABORT ;
+
+      if (0 == checkpath_directory(0, str_cstring(&filename))) {
+         (void) removefile_directory(0, str_cstring(&filename)) ;
+      }
+
+      err = initcreate_file(&writer->outfile, str_cstring(&filename), 0) ;
+      if (err) {
+         print_error("Can not create file »%s«", str_cstring(&filename)) ;
+         goto ONABORT ;
+      }
+
+      err = writeCsource_textresourcewriter(writer, lang) ;
+      if (err) goto ONABORT ;
+
+      err = free_file(&writer->outfile) ;
+      if (err) goto ONABORT ;
+
+      err = free_cstring(&filename) ;
+      if (err) goto ONABORT ;
+   }
+
+   // generate C header file
+
+   err = initfromstring_cstring(&filename, &progC->hfilename) ;
+   if (err) goto ONABORT ;
+
+   if (0 == checkpath_directory(0, str_cstring(&filename))) {
+      (void) removefile_directory(0, str_cstring(&filename)) ;
+   }
+
+   err = initcreate_file(&writer->outfile, str_cstring(&filename), 0) ;
+   if (err) {
+      print_error("Can not create file »%s«", str_cstring(&filename)) ;
+      goto ONABORT ;
+   }
+
+   err = writeCheader_textresourcewriter(writer) ;
+   if (err) goto ONABORT ;
+
+   err = free_cstring(&filename) ;
+   if (err) goto ONABORT ;
+
+   return 0 ;
+ONABORT:
+   free_cstring(&filename) ;
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+static int writeCtable_textresourcewriter(textresource_writer_t * writer, textresource_language_t * lang)
+{
+   int err ;
+   typeof(((outconfig_t*)0)->Ctable) * Ctable = &writer->txtres->outconfig.Ctable ;
+
+
+   dprintf(writer->outfile, "%.*s = {\n", (int)Ctable->stroffset.size, Ctable->stroffset.addr) ;
+
+   size_t tableoffset = 0 ;
+
+   foreach (_textlist, &writer->txtres->textlist, text) {
+
+      if (text->textref) continue ;
+
+      text->tableoffset = tableoffset ;
+
+      foreach(_langreflist, &text->langlist, langref) {
+         if (lang == langref->lang) {
+            textresource_condition_t * condition = first_conditionlist(&langref->condlist) ;
+            if (  condition->condition.size
+                  || last_conditionlist(&langref->condlist) != condition) {
+               print_error("type 'C-table' does not support conditional strings") ;
+               err = EINVAL ;
+               goto ONABORT ;
+            }
+            foreach(_textatomlist, &condition->atomlist, textatom) {
+               if (textresource_textatom_STRING == textatom->type) {
+                  tableoffset += textatom->string.size ;
+               } else {
+                  print_error("type 'C-table' does not support parameter values") ;
+                  err = EINVAL ;
+                  goto ONABORT ;
+               }
+            }
+            tableoffset += 1 /*0 byte*/ ;
+            break ;
+         }
+      }
+   }
+
+   bool isPrev = false ;
+
+   foreach (_textlist, &writer->txtres->textlist, text) {
+
+      if (isPrev) dprintf(writer->outfile, ",\n") ;
+
+      dprintf(writer->outfile, "   [%.*s] = ", (int)text->name.size, text->name.addr) ;
+
+      if (text->textref)
+         dprintf(writer->outfile, "%zu /*same as %.*s*/", text->textref->tableoffset, (int)text->textref->name.size, text->textref->name.addr) ;
+      else
+         dprintf(writer->outfile, "%zu", text->tableoffset) ;
+
+      isPrev = true ;
+   }
+
+   dprintf(writer->outfile, "\n} ;\n\n%.*s[%zu] = {\n", (int)Ctable->strdata.size, Ctable->strdata.addr, tableoffset) ;
+
+   foreach (_textlist, &writer->txtres->textlist, text) {
+
+      if (text->textref) continue ;
+
+      foreach(_langreflist, &text->langlist, langref) {
+         if (lang == langref->lang) {
+            textresource_condition_t * condition = first_conditionlist(&langref->condlist) ;
+            dprintf(writer->outfile, "   \"") ;
+            foreach(_textatomlist, &condition->atomlist, textatom) {
+               dprintf(writer->outfile, "%.*s", (int)textatom->string.size, textatom->string.addr) ;
+            }
+            dprintf(writer->outfile, "\\0\"\n") ;
+            break ;
+         }
+      }
+   }
+
+   dprintf(writer->outfile, "} ;\n") ;
+
+   return 0 ;
+ONABORT:
+   return err ;
+}
+
+static int writeCtableconfig_textresourcewriter(textresource_writer_t * writer)
+{
+   int err ;
+   cstring_t                           filename = cstring_INIT_FREEABLE ;
+   typeof(((outconfig_t*)0)->Ctable) * Ctable   = &writer->txtres->outconfig.Ctable ;
+
+   // generate C source file
+
+   foreach(_languagelist, &writer->txtres->languages, lang) {
+
+      err = initfromstring_cstring(&filename, &Ctable->cfilename) ;
+      if (err) goto ONABORT ;
+
+      if (lang->name.size > INT_MAX) {
+         err = ENOMEM ;
+         goto ONABORT ;
+      }
+
+      err = printfappend_cstring(&filename, ".%.*s", (int)lang->name.size, (const char*)lang->name.addr) ;
+      if (err) goto ONABORT ;
+
+      if (0 == checkpath_directory(0, str_cstring(&filename))) {
+         (void) removefile_directory(0, str_cstring(&filename)) ;
+      }
+
+      err = initcreate_file(&writer->outfile, str_cstring(&filename), 0) ;
+      if (err) {
+         print_error("Can not create file »%s«", str_cstring(&filename)) ;
+         goto ONABORT ;
+      }
+
+      err = writeCtable_textresourcewriter(writer, lang) ;
+      if (err) goto ONABORT ;
+
+      err = free_file(&writer->outfile) ;
+      if (err) goto ONABORT ;
+
+      err = free_cstring(&filename) ;
+      if (err) goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   free_cstring(&filename) ;
+   return err ;
+}
+
 
 int main(int argc, const char * argv[])
 {

@@ -91,10 +91,10 @@ int free_errorcontext(errorcontext_t * errcontext) ;
  * Returns the number of entries*/
 uint16_t maxsyserrnum_errorcontext(void) ;
 
-/* function: string_errorcontext
- * Returns the error description as string for error errnum.
- * The value of errnum is set to the value returned in errno. */
-const uint8_t * string_errorcontext(const errorcontext_t * errcontext, int errnum) ;
+/* function: str_errorcontext
+ * Returns the error description of errnum as a null terminated C string.
+ * The value of errnum should be set to the value returned in errno. */
+const uint8_t * str_errorcontext(const errorcontext_t * errcontext, int errnum) ;
 
 // group: generic
 
@@ -153,9 +153,9 @@ errorcontext_t * genericcast_errorcontext(void * object) ;
 #define maxsyserrnum_errorcontext() \
          (132)
 
-/* define: string_errorcontext
- * Implements <errorcontext_t.string_errorcontext>. */
-#define string_errorcontext(errcontext, errnum)                \
+/* define: str_errorcontext
+ * Implements <errorcontext_t.str_errorcontext>. */
+#define str_errorcontext(errcontext, errnum)                   \
          ( __extension__ ({                                    \
             const errorcontext_t * _errcontext = (errcontext); \
             unsigned _errnum = (unsigned) (errnum) ;           \

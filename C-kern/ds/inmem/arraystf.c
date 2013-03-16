@@ -279,7 +279,7 @@ int delete_arraystf(arraystf_t ** array, typeadapt_member_t * nodeadp)
 
       err = 0 ;
 
-      const bool isDelete = (nodeadp && islifetimedelete_typeadapt(nodeadp->typeadp)) ;
+      const bool isDelete = (nodeadp && iscalldelete_typeadapt(nodeadp->typeadp)) ;
 
       for (unsigned i = 0; i < toplevelsize_arraystf(del_obj); ++i) {
 
