@@ -1,10 +1,395 @@
-static uint16_t s_errtab_stroffset = {
-   [EINVAL] = 0,
-   [133] = 17,
-   [134] = 17 /*same as 133*/
+static uint16_t s_errorcontext_stroffset[] = {
+   [0x00] = 0,
+   [0x01] = 8,
+   [0x02] = 32,
+   [0x03] = 58,
+   [0x04] = 74,
+   [0x05] = 98,
+   [0x06] = 117,
+   [0x07] = 143,
+   [0x08] = 166,
+   [0x09] = 184,
+   [0x0a] = 204,
+   [0x0b] = 223,
+   [0x0c] = 256,
+   [0x0d] = 279,
+   [0x0e] = 297,
+   [0x0f] = 309,
+   [0x10] = 331,
+   [0x11] = 355,
+   [0x12] = 367,
+   [0x13] = 393,
+   [0x14] = 408,
+   [0x15] = 424,
+   [0x16] = 439,
+   [0x17] = 456,
+   [0x18] = 486,
+   [0x19] = 506,
+   [0x1a] = 537,
+   [0x1b] = 552,
+   [0x1c] = 567,
+   [0x1d] = 591,
+   [0x1e] = 604,
+   [0x1f] = 626,
+   [0x20] = 641,
+   [0x21] = 653,
+   [0x22] = 686,
+   [0x23] = 716,
+   [0x24] = 742,
+   [0x25] = 761,
+   [0x26] = 780,
+   [0x27] = 805,
+   [0x28] = 825,
+   [0x29] = 859,
+   [0x2a] = 876,
+   [0x2b] = 903,
+   [0x2c] = 922,
+   [0x2d] = 950,
+   [0x2e] = 975,
+   [0x2f] = 990,
+   [0x30] = 1004,
+   [0x31] = 1029,
+   [0x32] = 1058,
+   [0x33] = 1085,
+   [0x34] = 1100,
+   [0x35] = 1117,
+   [0x36] = 1144,
+   [0x37] = 1158,
+   [0x38] = 1167,
+   [0x39] = 1188,
+   [0x3a] = 1201,
+   [0x3b] = 1218,
+   [0x3c] = 1239,
+   [0x3d] = 1259,
+   [0x3e] = 1277,
+   [0x3f] = 1291,
+   [0x40] = 1316,
+   [0x41] = 1346,
+   [0x42] = 1368,
+   [0x43] = 1385,
+   [0x44] = 1407,
+   [0x45] = 1423,
+   [0x46] = 1437,
+   [0x47] = 1465,
+   [0x48] = 1480,
+   [0x49] = 1499,
+   [0x4a] = 1518,
+   [0x4b] = 1530,
+   [0x4c] = 1568,
+   [0x4d] = 1595,
+   [0x4e] = 1624,
+   [0x4f] = 1647,
+   [0x50] = 1686,
+   [0x51] = 1723,
+   [0x52] = 1755,
+   [0x53] = 1803,
+   [0x54] = 1841,
+   [0x55] = 1891,
+   [0x56] = 1935,
+   [0x57] = 1954,
+   [0x58] = 1969,
+   [0x59] = 2000,
+   [0x5a] = 2029,
+   [0x5b] = 2046,
+   [0x5c] = 2077,
+   [0x5d] = 2100,
+   [0x5e] = 2123,
+   [0x5f] = 2149,
+   [0x60] = 2173,
+   [0x61] = 2203,
+   [0x62] = 2244,
+   [0x63] = 2267,
+   [0x64] = 2299,
+   [0x65] = 2315,
+   [0x66] = 2338,
+   [0x67] = 2374,
+   [0x68] = 2407,
+   [0x69] = 2432,
+   [0x6a] = 2458,
+   [0x6b] = 2498,
+   [0x6c] = 2534,
+   [0x6d] = 2580,
+   [0x6e] = 2615,
+   [0x6f] = 2636,
+   [0x70] = 2655,
+   [0x71] = 2668,
+   [0x72] = 2685,
+   [0x73] = 2715,
+   [0x74] = 2741,
+   [0x75] = 2763,
+   [0x76] = 2788,
+   [0x77] = 2816,
+   [0x78] = 2846,
+   [0x79] = 2867,
+   [0x7a] = 2884,
+   [0x7b] = 2904,
+   [0x7c] = 2920,
+   [0x7d] = 2938,
+   [0x7e] = 2957,
+   [0x7f] = 2984,
+   [0x80] = 3000,
+   [0x81] = 3021,
+   [0x82] = 3049,
+   [0x83] = 3060,
+   [0x84] = 3082,
+   [0x85] = 3120,
+   [0x86] = 3120 /*same as 0x85*/,
+   [0x87] = 3120 /*same as 0x85*/,
+   [0x88] = 3120 /*same as 0x85*/,
+   [0x89] = 3120 /*same as 0x85*/,
+   [0x8a] = 3120 /*same as 0x85*/,
+   [0x8b] = 3120 /*same as 0x85*/,
+   [0x8c] = 3120 /*same as 0x85*/,
+   [0x8d] = 3120 /*same as 0x85*/,
+   [0x8e] = 3120 /*same as 0x85*/,
+   [0x8f] = 3120 /*same as 0x85*/,
+   [0x90] = 3120 /*same as 0x85*/,
+   [0x91] = 3120 /*same as 0x85*/,
+   [0x92] = 3120 /*same as 0x85*/,
+   [0x93] = 3120 /*same as 0x85*/,
+   [0x94] = 3120 /*same as 0x85*/,
+   [0x95] = 3120 /*same as 0x85*/,
+   [0x96] = 3120 /*same as 0x85*/,
+   [0x97] = 3120 /*same as 0x85*/,
+   [0x98] = 3120 /*same as 0x85*/,
+   [0x99] = 3120 /*same as 0x85*/,
+   [0x9a] = 3120 /*same as 0x85*/,
+   [0x9b] = 3120 /*same as 0x85*/,
+   [0x9c] = 3120 /*same as 0x85*/,
+   [0x9d] = 3120 /*same as 0x85*/,
+   [0x9e] = 3120 /*same as 0x85*/,
+   [0x9f] = 3120 /*same as 0x85*/,
+   [0xa0] = 3120 /*same as 0x85*/,
+   [0xa1] = 3120 /*same as 0x85*/,
+   [0xa2] = 3120 /*same as 0x85*/,
+   [0xa3] = 3120 /*same as 0x85*/,
+   [0xa4] = 3120 /*same as 0x85*/,
+   [0xa5] = 3120 /*same as 0x85*/,
+   [0xa6] = 3120 /*same as 0x85*/,
+   [0xa7] = 3120 /*same as 0x85*/,
+   [0xa8] = 3120 /*same as 0x85*/,
+   [0xa9] = 3120 /*same as 0x85*/,
+   [0xaa] = 3120 /*same as 0x85*/,
+   [0xab] = 3120 /*same as 0x85*/,
+   [0xac] = 3120 /*same as 0x85*/,
+   [0xad] = 3120 /*same as 0x85*/,
+   [0xae] = 3120 /*same as 0x85*/,
+   [0xaf] = 3120 /*same as 0x85*/,
+   [0xb0] = 3120 /*same as 0x85*/,
+   [0xb1] = 3120 /*same as 0x85*/,
+   [0xb2] = 3120 /*same as 0x85*/,
+   [0xb3] = 3120 /*same as 0x85*/,
+   [0xb4] = 3120 /*same as 0x85*/,
+   [0xb5] = 3120 /*same as 0x85*/,
+   [0xb6] = 3120 /*same as 0x85*/,
+   [0xb7] = 3120 /*same as 0x85*/,
+   [0xb8] = 3120 /*same as 0x85*/,
+   [0xb9] = 3120 /*same as 0x85*/,
+   [0xba] = 3120 /*same as 0x85*/,
+   [0xbb] = 3120 /*same as 0x85*/,
+   [0xbc] = 3120 /*same as 0x85*/,
+   [0xbd] = 3120 /*same as 0x85*/,
+   [0xbe] = 3120 /*same as 0x85*/,
+   [0xbf] = 3120 /*same as 0x85*/,
+   [0xc0] = 3120 /*same as 0x85*/,
+   [0xc1] = 3120 /*same as 0x85*/,
+   [0xc2] = 3120 /*same as 0x85*/,
+   [0xc3] = 3120 /*same as 0x85*/,
+   [0xc4] = 3120 /*same as 0x85*/,
+   [0xc5] = 3120 /*same as 0x85*/,
+   [0xc6] = 3120 /*same as 0x85*/,
+   [0xc7] = 3120 /*same as 0x85*/,
+   [0xc8] = 3120 /*same as 0x85*/,
+   [0xc9] = 3120 /*same as 0x85*/,
+   [0xca] = 3120 /*same as 0x85*/,
+   [0xcb] = 3120 /*same as 0x85*/,
+   [0xcc] = 3120 /*same as 0x85*/,
+   [0xcd] = 3120 /*same as 0x85*/,
+   [0xce] = 3120 /*same as 0x85*/,
+   [0xcf] = 3120 /*same as 0x85*/,
+   [0xd0] = 3120 /*same as 0x85*/,
+   [0xd1] = 3120 /*same as 0x85*/,
+   [0xd2] = 3120 /*same as 0x85*/,
+   [0xd3] = 3120 /*same as 0x85*/,
+   [0xd4] = 3120 /*same as 0x85*/,
+   [0xd5] = 3120 /*same as 0x85*/,
+   [0xd6] = 3120 /*same as 0x85*/,
+   [0xd7] = 3120 /*same as 0x85*/,
+   [0xd8] = 3120 /*same as 0x85*/,
+   [0xd9] = 3120 /*same as 0x85*/,
+   [0xda] = 3120 /*same as 0x85*/,
+   [0xdb] = 3120 /*same as 0x85*/,
+   [0xdc] = 3120 /*same as 0x85*/,
+   [0xdd] = 3120 /*same as 0x85*/,
+   [0xde] = 3120 /*same as 0x85*/,
+   [0xdf] = 3120 /*same as 0x85*/,
+   [0xe0] = 3120 /*same as 0x85*/,
+   [0xe1] = 3120 /*same as 0x85*/,
+   [0xe2] = 3120 /*same as 0x85*/,
+   [0xe3] = 3120 /*same as 0x85*/,
+   [0xe4] = 3120 /*same as 0x85*/,
+   [0xe5] = 3120 /*same as 0x85*/,
+   [0xe6] = 3120 /*same as 0x85*/,
+   [0xe7] = 3120 /*same as 0x85*/,
+   [0xe8] = 3120 /*same as 0x85*/,
+   [0xe9] = 3120 /*same as 0x85*/,
+   [0xea] = 3120 /*same as 0x85*/,
+   [0xeb] = 3120 /*same as 0x85*/,
+   [0xec] = 3120 /*same as 0x85*/,
+   [0xed] = 3120 /*same as 0x85*/,
+   [0xee] = 3120 /*same as 0x85*/,
+   [0xef] = 3120 /*same as 0x85*/,
+   [0xf0] = 3120 /*same as 0x85*/,
+   [0xf1] = 3120 /*same as 0x85*/,
+   [0xf2] = 3120 /*same as 0x85*/,
+   [0xf3] = 3120 /*same as 0x85*/,
+   [0xf4] = 3120 /*same as 0x85*/,
+   [0xf5] = 3120 /*same as 0x85*/,
+   [0xf6] = 3120 /*same as 0x85*/,
+   [0xf7] = 3120 /*same as 0x85*/,
+   [0xf8] = 3120 /*same as 0x85*/,
+   [0xf9] = 3120 /*same as 0x85*/,
+   [0xfa] = 3120 /*same as 0x85*/,
+   [0xfb] = 3120 /*same as 0x85*/,
+   [0xfc] = 3120 /*same as 0x85*/,
+   [0xfd] = 3120 /*same as 0x85*/,
+   [0xfe] = 3120 /*same as 0x85*/,
+   [0xff] = 3120 /*same as 0x85*/
 } ;
 
-static uint8_t s_errtab_strdata[31] = {
+static uint8_t s_errorcontext_strdata[3134] = {
+   "Success\0"
+   "Operation not permitted\0"
+   "No such file or directory\0"
+   "No such process\0"
+   "Interrupted system call\0"
+   "Input/output error\0"
+   "No such device or address\0"
+   "Argument list too long\0"
+   "Exec format error\0"
+   "Bad file descriptor\0"
+   "No child processes\0"
+   "Resource temporarily unavailable\0"
+   "Cannot allocate memory\0"
+   "Permission denied\0"
+   "Bad address\0"
+   "Block device required\0"
+   "Device or resource busy\0"
+   "File exists\0"
+   "Invalid cross-device link\0"
+   "No such device\0"
+   "Not a directory\0"
+   "Is a directory\0"
    "Invalid argument\0"
+   "Too many open files in system\0"
+   "Too many open files\0"
+   "Inappropriate ioctl for device\0"
+   "Text file busy\0"
+   "File too large\0"
+   "No space left on device\0"
+   "Illegal seek\0"
+   "Read-only file system\0"
+   "Too many links\0"
+   "Broken pipe\0"
+   "Numerical argument out of domain\0"
+   "Numerical result out of range\0"
+   "Resource deadlock avoided\0"
+   "File name too long\0"
+   "No locks available\0"
+   "Function not implemented\0"
+   "Directory not empty\0"
+   "Too many levels of symbolic links\0"
+   "Unknown error 41\0"
+   "No message of desired type\0"
+   "Identifier removed\0"
+   "Channel number out of range\0"
+   "Level 2 not synchronized\0"
+   "Level 3 halted\0"
+   "Level 3 reset\0"
+   "Link number out of range\0"
+   "Protocol driver not attached\0"
+   "No CSI structure available\0"
+   "Level 2 halted\0"
+   "Invalid exchange\0"
+   "Invalid request descriptor\0"
+   "Exchange full\0"
+   "No anode\0"
+   "Invalid request code\0"
+   "Invalid slot\0"
+   "Unknown error 58\0"
+   "Bad font file format\0"
+   "Device not a stream\0"
+   "No data available\0"
+   "Timer expired\0"
+   "Out of streams resources\0"
+   "Machine is not on the network\0"
+   "Package not installed\0"
+   "Object is remote\0"
+   "Link has been severed\0"
+   "Advertise error\0"
+   "Srmount error\0"
+   "Communication error on send\0"
+   "Protocol error\0"
+   "Multihop attempted\0"
+   "RFS specific error\0"
+   "Bad message\0"
+   "Value too large for defined data type\0"
+   "Name not unique on network\0"
+   "File descriptor in bad state\0"
+   "Remote address changed\0"
+   "Can not access a needed shared library\0"
+   "Accessing a corrupted shared library\0"
+   ".lib section in a.out corrupted\0"
+   "Attempting to link in too many shared libraries\0"
+   "Cannot exec a shared library directly\0"
+   "Invalid or incomplete multibyte or wide character\0"
+   "Interrupted system call should be restarted\0"
+   "Streams pipe error\0"
+   "Too many users\0"
+   "Socket operation on non-socket\0"
+   "Destination address required\0"
+   "Message too long\0"
+   "Protocol wrong type for socket\0"
+   "Protocol not available\0"
+   "Protocol not supported\0"
+   "Socket type not supported\0"
+   "Operation not supported\0"
+   "Protocol family not supported\0"
+   "Address family not supported by protocol\0"
+   "Address already in use\0"
+   "Cannot assign requested address\0"
+   "Network is down\0"
+   "Network is unreachable\0"
+   "Network dropped connection on reset\0"
+   "Software caused connection abort\0"
+   "Connection reset by peer\0"
+   "No buffer space available\0"
+   "Transport endpoint is already connected\0"
+   "Transport endpoint is not connected\0"
+   "Cannot send after transport endpoint shutdown\0"
+   "Too many references: cannot splice\0"
+   "Connection timed out\0"
+   "Connection refused\0"
+   "Host is down\0"
+   "No route to host\0"
+   "Operation already in progress\0"
+   "Operation now in progress\0"
+   "Stale NFS file handle\0"
+   "Structure needs cleaning\0"
+   "Not a XENIX named type file\0"
+   "No XENIX semaphores available\0"
+   "Is a named type file\0"
+   "Remote I/O error\0"
+   "Disk quota exceeded\0"
+   "No medium found\0"
+   "Wrong medium type\0"
+   "Operation canceled\0"
+   "Required key not available\0"
+   "Key has expired\0"
+   "Key has been revoked\0"
+   "Key was rejected by service\0"
+   "Owner died\0"
+   "State not recoverable\0"
+   "Operation not possible due to RF-kill\0"
    "Unknown error\0"
 } ;

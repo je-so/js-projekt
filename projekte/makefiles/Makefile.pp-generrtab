@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-generrtab.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mär.16  17:32:34
+GenerationDate  := 2013.Mär.16  18:33:06
 GeneratedBy     := je-so
 
 ## Release
@@ -21,11 +21,11 @@ Includes_Release      :=
 Libraries_Release     :=
 Libpath_Release       :=
 ObjectDir_Release     := bin/Release/pp-generrtab
-TargetDir_Release     := C-kern/resource/generated
-Target_Release        := C-kern/resource/generated/errtable.h
+TargetDir_Release     := C-kern/resource
+Target_Release        := C-kern/resource/errtab.text
 Libs_Release          := $(Libpath_Release) $(Libraries_Release)
 CC_Release            = touch '$@'
-LD_Release            = bin/generrtab > '$@'
+LD_Release            = bin/generrtab '$@'
 
 ##
 ## Targets

@@ -2,7 +2,7 @@
 # Runs generrtab to to generate errorstringtable.h
 Modes         = Release
 Compiler      = touch $(out)
-Linker        = bin/generrtab > $(out)
+Linker        = bin/generrtab $(out)
 CFlagInclude  = ?
 CFlagDefine   = ?
 LFlagLib      = ?
@@ -14,7 +14,7 @@ Libpath       =
 Includes      =
 Defines       =
 Objectdir     = bin/$(mode)/$(projectname)
-Target        = C-kern/resource/generated/errtable.h
+Target        = C-kern/resource/errtab.text
 # source are not used but create dependencies cause generrtab must be rerun
 # whenever this project file or the source of the tool changes
 Src           = C-kern/main/tools/generrtab.c

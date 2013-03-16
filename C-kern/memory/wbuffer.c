@@ -26,11 +26,11 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/ds/foreach.h"
-#include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/test/testmm.h"
 #endif

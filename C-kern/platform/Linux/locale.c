@@ -76,6 +76,7 @@ ONABORT:
    return 0 ;
 }
 
+
 /* function: setdefault_locale implementation
  * Calls C99 conforming function »setlocale«.
  * With category LC_ALL all different subsystems of the C runtime environment

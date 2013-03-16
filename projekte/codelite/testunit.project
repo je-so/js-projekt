@@ -305,7 +305,6 @@
       <File Name="../../C-kern/resource/generated/errlog.h"/>
       <File Name="../../C-kern/resource/generated/errlog.de"/>
       <File Name="../../C-kern/resource/generated/errlog.en"/>
-      <File Name="../../C-kern/resource/generated/errtable.h"/>
       <File Name="../../C-kern/resource/generated/errtab.de"/>
       <File Name="../../C-kern/resource/generated/errtab.en"/>
     </VirtualDirectory>

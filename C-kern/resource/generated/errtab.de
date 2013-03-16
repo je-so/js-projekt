@@ -1,10 +1,395 @@
-static uint16_t s_errtab_stroffset = {
-   [EINVAL] = 0,
-   [133] = 21,
-   [134] = 21 /*same as 133*/
+static uint16_t s_errorcontext_stroffset[] = {
+   [0x00] = 0,
+   [0x01] = 7,
+   [0x02] = 39,
+   [0x03] = 77,
+   [0x04] = 109,
+   [0x05] = 158,
+   [0x06] = 181,
+   [0x07] = 240,
+   [0x08] = 270,
+   [0x09] = 305,
+   [0x0a] = 333,
+   [0x0b] = 353,
+   [0x0c] = 397,
+   [0x0d] = 438,
+   [0x0e] = 457,
+   [0x0f] = 476,
+   [0x10] = 510,
+   [0x11] = 551,
+   [0x12] = 579,
+   [0x13] = 624,
+   [0x14] = 655,
+   [0x15] = 676,
+   [0x16] = 696,
+   [0x17] = 723,
+   [0x18] = 757,
+   [0x19] = 781,
+   [0x1a] = 829,
+   [0x1b] = 895,
+   [0x1c] = 918,
+   [0x1d] = 972,
+   [0x1e] = 993,
+   [0x1f] = 1024,
+   [0x20] = 1039,
+   [0x21] = 1081,
+   [0x22] = 1145,
+   [0x23] = 1208,
+   [0x24] = 1262,
+   [0x25] = 1288,
+   [0x26] = 1313,
+   [0x27] = 1363,
+   [0x28] = 1394,
+   [0x29] = 1433,
+   [0x2a] = 1455,
+   [0x2b] = 1493,
+   [0x2c] = 1519,
+   [0x2d] = 1574,
+   [0x2e] = 1607,
+   [0x2f] = 1626,
+   [0x30] = 1649,
+   [0x31] = 1704,
+   [0x32] = 1739,
+   [0x33] = 1773,
+   [0x34] = 1792,
+   [0x35] = 1814,
+   [0x36] = 1844,
+   [0x37] = 1872,
+   [0x38] = 1884,
+   [0x39] = 1908,
+   [0x3a] = 1925,
+   [0x3b] = 1947,
+   [0x3c] = 1976,
+   [0x3d] = 2003,
+   [0x3e] = 2026,
+   [0x3f] = 2066,
+   [0x40] = 2106,
+   [0x41] = 2159,
+   [0x42] = 2198,
+   [0x43] = 2220,
+   [0x44] = 2247,
+   [0x45] = 2275,
+   [0x46] = 2294,
+   [0x47] = 2327,
+   [0x48] = 2343,
+   [0x49] = 2375,
+   [0x4a] = 2399,
+   [0x4b] = 2420,
+   [0x4c] = 2472,
+   [0x4d] = 2513,
+   [0x4e] = 2566,
+   [0x4f] = 2613,
+   [0x50] = 2678,
+   [0x51] = 2735,
+   [0x52] = 2791,
+   [0x53] = 2837,
+   [0x54] = 2894,
+   [0x55] = 2958,
+   [0x56] = 3025,
+   [0x57] = 3047,
+   [0x58] = 3065,
+   [0x59] = 3104,
+   [0x5a] = 3138,
+   [0x5b] = 3164,
+   [0x5c] = 3204,
+   [0x5d] = 3239,
+   [0x5e] = 3277,
+   [0x5f] = 3312,
+   [0x60] = 3350,
+   [0x61] = 3395,
+   [0x62] = 3462,
+   [0x63] = 3497,
+   [0x64] = 3551,
+   [0x65] = 3580,
+   [0x66] = 3614,
+   [0x67] = 3672,
+   [0x68] = 3724,
+   [0x69] = 3786,
+   [0x6a] = 3832,
+   [0x6b] = 3865,
+   [0x6c] = 3896,
+   [0x6d] = 3955,
+   [0x6e] = 3989,
+   [0x6f] = 4038,
+   [0x70] = 4066,
+   [0x71] = 4094,
+   [0x72] = 4122,
+   [0x73] = 4161,
+   [0x74] = 4200,
+   [0x75] = 4234,
+   [0x76] = 4269,
+   [0x77] = 4302,
+   [0x78] = 4336,
+   [0x79] = 4365,
+   [0x7a] = 4409,
+   [0x7b] = 4465,
+   [0x7c] = 4486,
+   [0x7d] = 4506,
+   [0x7e] = 4537,
+   [0x7f] = 4584,
+   [0x80] = 4622,
+   [0x81] = 4654,
+   [0x82] = 4702,
+   [0x83] = 4740,
+   [0x84] = 4779,
+   [0x85] = 4826,
+   [0x86] = 4826 /*same as 0x85*/,
+   [0x87] = 4826 /*same as 0x85*/,
+   [0x88] = 4826 /*same as 0x85*/,
+   [0x89] = 4826 /*same as 0x85*/,
+   [0x8a] = 4826 /*same as 0x85*/,
+   [0x8b] = 4826 /*same as 0x85*/,
+   [0x8c] = 4826 /*same as 0x85*/,
+   [0x8d] = 4826 /*same as 0x85*/,
+   [0x8e] = 4826 /*same as 0x85*/,
+   [0x8f] = 4826 /*same as 0x85*/,
+   [0x90] = 4826 /*same as 0x85*/,
+   [0x91] = 4826 /*same as 0x85*/,
+   [0x92] = 4826 /*same as 0x85*/,
+   [0x93] = 4826 /*same as 0x85*/,
+   [0x94] = 4826 /*same as 0x85*/,
+   [0x95] = 4826 /*same as 0x85*/,
+   [0x96] = 4826 /*same as 0x85*/,
+   [0x97] = 4826 /*same as 0x85*/,
+   [0x98] = 4826 /*same as 0x85*/,
+   [0x99] = 4826 /*same as 0x85*/,
+   [0x9a] = 4826 /*same as 0x85*/,
+   [0x9b] = 4826 /*same as 0x85*/,
+   [0x9c] = 4826 /*same as 0x85*/,
+   [0x9d] = 4826 /*same as 0x85*/,
+   [0x9e] = 4826 /*same as 0x85*/,
+   [0x9f] = 4826 /*same as 0x85*/,
+   [0xa0] = 4826 /*same as 0x85*/,
+   [0xa1] = 4826 /*same as 0x85*/,
+   [0xa2] = 4826 /*same as 0x85*/,
+   [0xa3] = 4826 /*same as 0x85*/,
+   [0xa4] = 4826 /*same as 0x85*/,
+   [0xa5] = 4826 /*same as 0x85*/,
+   [0xa6] = 4826 /*same as 0x85*/,
+   [0xa7] = 4826 /*same as 0x85*/,
+   [0xa8] = 4826 /*same as 0x85*/,
+   [0xa9] = 4826 /*same as 0x85*/,
+   [0xaa] = 4826 /*same as 0x85*/,
+   [0xab] = 4826 /*same as 0x85*/,
+   [0xac] = 4826 /*same as 0x85*/,
+   [0xad] = 4826 /*same as 0x85*/,
+   [0xae] = 4826 /*same as 0x85*/,
+   [0xaf] = 4826 /*same as 0x85*/,
+   [0xb0] = 4826 /*same as 0x85*/,
+   [0xb1] = 4826 /*same as 0x85*/,
+   [0xb2] = 4826 /*same as 0x85*/,
+   [0xb3] = 4826 /*same as 0x85*/,
+   [0xb4] = 4826 /*same as 0x85*/,
+   [0xb5] = 4826 /*same as 0x85*/,
+   [0xb6] = 4826 /*same as 0x85*/,
+   [0xb7] = 4826 /*same as 0x85*/,
+   [0xb8] = 4826 /*same as 0x85*/,
+   [0xb9] = 4826 /*same as 0x85*/,
+   [0xba] = 4826 /*same as 0x85*/,
+   [0xbb] = 4826 /*same as 0x85*/,
+   [0xbc] = 4826 /*same as 0x85*/,
+   [0xbd] = 4826 /*same as 0x85*/,
+   [0xbe] = 4826 /*same as 0x85*/,
+   [0xbf] = 4826 /*same as 0x85*/,
+   [0xc0] = 4826 /*same as 0x85*/,
+   [0xc1] = 4826 /*same as 0x85*/,
+   [0xc2] = 4826 /*same as 0x85*/,
+   [0xc3] = 4826 /*same as 0x85*/,
+   [0xc4] = 4826 /*same as 0x85*/,
+   [0xc5] = 4826 /*same as 0x85*/,
+   [0xc6] = 4826 /*same as 0x85*/,
+   [0xc7] = 4826 /*same as 0x85*/,
+   [0xc8] = 4826 /*same as 0x85*/,
+   [0xc9] = 4826 /*same as 0x85*/,
+   [0xca] = 4826 /*same as 0x85*/,
+   [0xcb] = 4826 /*same as 0x85*/,
+   [0xcc] = 4826 /*same as 0x85*/,
+   [0xcd] = 4826 /*same as 0x85*/,
+   [0xce] = 4826 /*same as 0x85*/,
+   [0xcf] = 4826 /*same as 0x85*/,
+   [0xd0] = 4826 /*same as 0x85*/,
+   [0xd1] = 4826 /*same as 0x85*/,
+   [0xd2] = 4826 /*same as 0x85*/,
+   [0xd3] = 4826 /*same as 0x85*/,
+   [0xd4] = 4826 /*same as 0x85*/,
+   [0xd5] = 4826 /*same as 0x85*/,
+   [0xd6] = 4826 /*same as 0x85*/,
+   [0xd7] = 4826 /*same as 0x85*/,
+   [0xd8] = 4826 /*same as 0x85*/,
+   [0xd9] = 4826 /*same as 0x85*/,
+   [0xda] = 4826 /*same as 0x85*/,
+   [0xdb] = 4826 /*same as 0x85*/,
+   [0xdc] = 4826 /*same as 0x85*/,
+   [0xdd] = 4826 /*same as 0x85*/,
+   [0xde] = 4826 /*same as 0x85*/,
+   [0xdf] = 4826 /*same as 0x85*/,
+   [0xe0] = 4826 /*same as 0x85*/,
+   [0xe1] = 4826 /*same as 0x85*/,
+   [0xe2] = 4826 /*same as 0x85*/,
+   [0xe3] = 4826 /*same as 0x85*/,
+   [0xe4] = 4826 /*same as 0x85*/,
+   [0xe5] = 4826 /*same as 0x85*/,
+   [0xe6] = 4826 /*same as 0x85*/,
+   [0xe7] = 4826 /*same as 0x85*/,
+   [0xe8] = 4826 /*same as 0x85*/,
+   [0xe9] = 4826 /*same as 0x85*/,
+   [0xea] = 4826 /*same as 0x85*/,
+   [0xeb] = 4826 /*same as 0x85*/,
+   [0xec] = 4826 /*same as 0x85*/,
+   [0xed] = 4826 /*same as 0x85*/,
+   [0xee] = 4826 /*same as 0x85*/,
+   [0xef] = 4826 /*same as 0x85*/,
+   [0xf0] = 4826 /*same as 0x85*/,
+   [0xf1] = 4826 /*same as 0x85*/,
+   [0xf2] = 4826 /*same as 0x85*/,
+   [0xf3] = 4826 /*same as 0x85*/,
+   [0xf4] = 4826 /*same as 0x85*/,
+   [0xf5] = 4826 /*same as 0x85*/,
+   [0xf6] = 4826 /*same as 0x85*/,
+   [0xf7] = 4826 /*same as 0x85*/,
+   [0xf8] = 4826 /*same as 0x85*/,
+   [0xf9] = 4826 /*same as 0x85*/,
+   [0xfa] = 4826 /*same as 0x85*/,
+   [0xfb] = 4826 /*same as 0x85*/,
+   [0xfc] = 4826 /*same as 0x85*/,
+   [0xfd] = 4826 /*same as 0x85*/,
+   [0xfe] = 4826 /*same as 0x85*/,
+   [0xff] = 4826 /*same as 0x85*/
 } ;
 
-static uint8_t s_errtab_strdata[40] = {
-   "Ungültiges Argument\0"
-   "Unbekannter Fehler\0"
+static uint8_t s_errorcontext_strdata[4840] = {
+   "Erfolg\0"
+   "Die Operation ist nicht erlaubt\0"
+   "Datei oder Verzeichnis nicht gefunden\0"
+   "Kein passender Prozess gefunden\0"
+   "Unterbrechung während des Betriebssystemaufrufs\0"
+   "Eingabe-/Ausgabefehler\0"
+   "Kein passendes Gerät bzw. keine passende Adresse gefunden\0"
+   "Die Argumentliste ist zu lang\0"
+   "Fehler im Format der Programmdatei\0"
+   "Ungültiger Dateideskriptor\0"
+   "Keine Kind-Prozesse\0"
+   "Die Ressource ist zur Zeit nicht verfügbar\0"
+   "Nicht genügend Hauptspeicher verfügbar\0"
+   "Keine Berechtigung\0"
+   "Ungültige Adresse\0"
+   "Es ist ein Block-Device notwendig\0"
+   "Das Gerät oder die Ressource ist belegt\0"
+   "Die Datei existiert bereits\0"
+   "Ungültiger Link über Gerätegrenzen hinweg\0"
+   "Kein passendes Gerät gefunden\0"
+   "Ist kein Verzeichnis\0"
+   "Ist ein Verzeichnis\0"
+   "Das Argument ist ungültig\0"
+   "Zu viele offene Dateien im System\0"
+   "Zu viele offene Dateien\0"
+   "Unpassender IOCTL (I/O-Control) für das Gerät\0"
+   "Das Programm kann nicht ausgeführt oder verändert werden (busy)\0"
+   "Die Datei ist zu groß\0"
+   "Auf dem Gerät ist kein Speicherplatz mehr verfügbar\0"
+   "Nicht erlaubter Seek\0"
+   "Das Dateisystem ist nur lesbar\0"
+   "Zu viele Links\0"
+   "Datenübergabe unterbrochen (broken pipe)\0"
+   "Das numerische Argument ist außerhalb des Definitionsbereiches\0"
+   "Das numerische Ergebnis ist außerhalb des gültigen Bereiches\0"
+   "Verklemmung beim Zugriff auf eine Ressource vermieden\0"
+   "Der Dateiname ist zu lang\0"
+   "Keine Sperren verfügbar\0"
+   "Die angeforderte Funktion ist nicht implementiert\0"
+   "Das Verzeichnis ist nicht leer\0"
+   "Zu viele Ebenen aus symbolischen Links\0"
+   "Unbekannter Fehler 41\0"
+   "Keine Nachricht des gewünschten Typs\0"
+   "Bezeichner wurde entfernt\0"
+   "Die Kanalnummer ist außerhalb des gültigen Bereiches\0"
+   "Level 2 ist nicht synchronisiert\0"
+   "Level 3 angehalten\0"
+   "Level 3 zurückgesetzt\0"
+   "Die Link-Nummer ist außerhalb des gültigen Bereiches\0"
+   "Das Protokoll ist nicht verfügbar\0"
+   "Keine »CSI«-Struktur verfügbar\0"
+   "Level 2 angehalten\0"
+   "Ungültiger Austausch\0"
+   "Ungültiger Aufruf-Deskriptor\0"
+   "Vermittlung ist überfüllt\0"
+   "Keine Anode\0"
+   "Ungültiger Aufruf-Code\0"
+   "Ungültiger Slot\0"
+   "Unbekannter Fehler 58\0"
+   "Ungültiges Font-Dateiformat\0"
+   "Das Gerät ist kein Stream\0"
+   "Keine Daten verfügbar\0"
+   "Der virtuelle Zeitnehmer ist abgelaufen\0"
+   "Keine Stream-Ressourcen mehr verfügbar\0"
+   "Die Maschine ist nicht an das Netzwerk angeschlossen\0"
+   "Das Zusatzpacket ist nicht installiert\0"
+   "Das Objekt ist remote\0"
+   "Der Link wurde beschädigt\0"
+   "Konflikt mit Bekanntmachung\0"
+   "»Srmount«-Fehler\0"
+   "Kommunikationsfehler beim Senden\0"
+   "Protokollfehler\0"
+   "Ein »Multihop« wurde versucht\0"
+   "RFS-spezifischer Fehler\0"
+   "Ungültige Nachricht\0"
+   "Der Wert ist zu groß für den definierten Datentyp\0"
+   "Der Name ist im Netzwerk nicht eindeutig\0"
+   "Die Dateizugriffsnummer ist in schlechter Verfassung\0"
+   "Die Adresse der Gegenstelle hat sich geändert\0"
+   "Auf eine benötigte Shared Library kann nicht zugegriffen werden\0"
+   "Zugriff auf eine fehlerhafte oder defekte Shared Library\0"
+   "».lib«-Sektion in der »a.out«-Datei ist beschädigt\0"
+   "Versuch zu viele Shared Libraries einzubinden\0"
+   "Eine Shared Library kann nicht direkt ausgeführt werden\0"
+   "Ungültiges oder unvollständiges Multi-Byte- oder Wide-Zeichen\0"
+   "Der unterbrochene Betriebssystemaufruf sollte neu gestartet werden\0"
+   "Fehler in Stream-Pipe\0"
+   "Zu viele Benutzer\0"
+   "Socket-Operation an einem nicht-Socket\0"
+   "Es ist eine Zieladresse notwendig\0"
+   "Die Nachricht ist zu lang\0"
+   "Das Protokoll passt nicht zu dem Socket\0"
+   "Das Protokoll ist nicht verfügbar\0"
+   "Das Protokoll wird nicht unterstützt\0"
+   "Socket-Typ wird nicht unterstützt\0"
+   "Die Operation wird nicht unterstützt\0"
+   "Die Protokollfamilie wird nicht unterstützt\0"
+   "Die Adressfamilie wird von der Protokollfamilie nicht unterstützt\0"
+   "Die Adresse wird bereits verwendet\0"
+   "Die angeforderte Adresse kann nicht zugewiesen werden\0"
+   "Das Netzwerk ist nicht aktiv\0"
+   "Das Netzwerk ist nicht erreichbar\0"
+   "Das Netzwerk hat die Verbindung nach einem Reset verloren\0"
+   "Das Programm verursachte den Abbruch der Verbindung\0"
+   "Die Verbindung wurde vom Kommunikationspartner zurückgesetzt\0"
+   "Kein Hauptspeicher für den Puffer verfügbar\0"
+   "Der Socket ist bereits verbunden\0"
+   "Der Socket ist nicht verbunden\0"
+   "Ein Senden nach dem Beenden des Sockets ist nicht möglich\0"
+   "Zu viele Referenzen: can't splice\0"
+   "Die Wartezeit für die Verbindung ist abgelaufen\0"
+   "Verbindungsaufbau abgelehnt\0"
+   "Der Rechner ist nicht aktiv\0"
+   "Keine Route zum Zielrechner\0"
+   "Die Operation wird bereits ausgeführt\0"
+   "Die Operation ist jetzt in Bearbeitung\0"
+   "Veraltete NFS-Dateizugriffsnummer\0"
+   "Die Struktur muss bereinigt werden\0"
+   "Keine XENIX »named type« Datei\0"
+   "Keine XENIX-Semaphoren verfügbar\0"
+   "Ist eine »named type file«\0"
+   "Ein-/Ausgabefehler der Gegenstelle (remote)\0"
+   "Der zugewiesene Plattenplatz (Quota) ist überschritten\0"
+   "Kein Medium gefunden\0"
+   "Falscher Medien-Typ\0"
+   "Die Operation wird abgebrochen\0"
+   "Der notwendige Schlüssek ist nicht verfügbar\0"
+   "Der Schlüssel ist nicht mehr gültig\0"
+   "Der Schlüssel wurde widerrufen\0"
+   "Der SChlüssel wurde von Dienst zurückgewiesen\0"
+   "Der Eigentümer-Prozess wurde beendet\0"
+   "Der Status ist nicht wiederherstellbar\0"
+   "Die Operation ist nicht möglich wegen RF-kill\0"
+   "Unknown error\0"
 } ;

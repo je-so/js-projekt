@@ -2234,7 +2234,7 @@ static int writeCtable_textresourcewriter(textresource_writer_t * writer, textre
    typeof(((outconfig_t*)0)->Ctable) * Ctable = &writer->txtres->outconfig.Ctable ;
 
 
-   dprintf(writer->outfile, "%.*s = {\n", (int)Ctable->stroffset.size, Ctable->stroffset.addr) ;
+   dprintf(writer->outfile, "%.*s[] = {\n", (int)Ctable->stroffset.size, Ctable->stroffset.addr) ;
 
    size_t tableoffset = 0 ;
 
