@@ -130,21 +130,21 @@ struct transCstringtable_iterator_t {
  * Static initializer. */
 #define transCstringtable_iterator_INIT_FREEABLE   { 0 }
 
-/* function: initfirst_transCstringtableiterator
+/* function: initfirst_transcstringtableiterator
  * Initializes iter to point to the first datablock of string with id strid. */
-int initfirst_transCstringtableiterator(/*out*/transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid) ;
+int initfirst_transcstringtableiterator(/*out*/transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid) ;
 
-/* function: free_transCstringtableiterator
+/* function: free_transcstringtableiterator
  * Sets iterator iter to <transCstringtable_iterator_INIT_FREEABLE>. */
-void free_transCstringtableiterator(transCstringtable_iterator_t * iter) ;
+void free_transcstringtableiterator(transCstringtable_iterator_t * iter) ;
 
 // group: iterate
 
-/* function: next_transCstringtableiterator
+/* function: next_transcstringtableiterator
  * Returns data the next datablock of the string.
  * A return value of true indicates success a value of false that no more data is available.
  * In case of false data is not changed. */
-bool next_transCstringtableiterator(transCstringtable_iterator_t * iter, transCstringtable_t * strtable, /*out*/struct memblock_t * data) ;
+bool next_transcstringtableiterator(transCstringtable_iterator_t * iter, /*out*/struct memblock_t * data) ;
 
 
 /* struct: transCstringtable_t
@@ -184,7 +184,7 @@ int free_transcstringtable(transCstringtable_t * strtable) ;
 typedef transCstringtable_iterator_t   iteratortype_transcstringtable ;
 
 /* typedef: iteratedtype_transcstringtable
- * Associate <memblock_t> with return value of <next_transCstringtableiterator>. */
+ * Associate <memblock_t> with return value of <next_transcstringtableiterator>. */
 typedef struct memblock_t              iteratedtype_transcstringtable ;
 
 // group: update
@@ -216,9 +216,9 @@ int shrinkstring_transcstringtable(transCstringtable_t * strtable, uint8_t * end
 
 // group: transCstringtable_iterator_t
 
-/* define: free_transCstringtableiterator
- * Implements <transCstringtable_iterator_t.free_transCstringtableiterator>. */
-#define free_transCstringtableiterator(iter) \
+/* define: free_transcstringtableiterator
+ * Implements <transCstringtable_iterator_t.free_transcstringtableiterator>. */
+#define free_transcstringtableiterator(iter) \
          ((void)(*(iter) = (transCstringtable_iterator_t) transCstringtable_iterator_INIT_FREEABLE))
 
 // group: transCstringtable_entry_t

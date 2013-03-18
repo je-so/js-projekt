@@ -1,17 +1,17 @@
-C-kern/lang/transC/transCstringtable.c:79: new_transCstringtablepage(): error: 12: Function aborted
-C-kern/lang/transC/transCstringtable.c:177: init_transcstringtable(): error: 12: Function aborted
-C-kern/lang/transC/transCstringtable.c:79: new_transCstringtablepage(): error: 12: Function aborted
-C-kern/lang/transC/transCstringtable.c:243: insertstring_transcstringtable(): error: 12: Function aborted
-C-kern/lang/transC/transCstringtable.c:79: new_transCstringtablepage(): error: 12: Function aborted
-C-kern/lang/transC/transCstringtable.c:243: insertstring_transcstringtable(): error: 12: Function aborted
-C-kern/lang/transC/transCstringtable.c:291: appendstring_transcstringtable(): error: 12: Function aborted
-C-kern/lang/transC/transCstringtable.c:271: appendstring_transcstringtable(): error: 22: Function input violates condition (strtable->prev != &strtable->first)
-C-kern/lang/transC/transCstringtable.c:291: appendstring_transcstringtable(): error: 22: Function aborted
-C-kern/lang/transC/transCstringtable.c:254: shrinkstring_transcstringtable(): error: 22: Function input violates condition (strtable->prev != &strtable->first)
-C-kern/lang/transC/transCstringtable.c:262: shrinkstring_transcstringtable(): error: 22: Function aborted
-C-kern/lang/transC/transCstringtable.c:255: shrinkstring_transcstringtable(): error: 22: Function input violates condition (newsize <= size)
-C-kern/lang/transC/transCstringtable.c:262: shrinkstring_transcstringtable(): error: 22: Function aborted
-C-kern/lang/transC/transCstringtable.c:255: shrinkstring_transcstringtable(): error: 22: Function input violates condition (newsize <= size)
-C-kern/lang/transC/transCstringtable.c:262: shrinkstring_transcstringtable(): error: 22: Function aborted
-C-kern/lang/transC/transCstringtable.c:116: initfirst_transCstringtableiterator(): error: 22: Function input violates condition (strtable->first && strid)
-C-kern/lang/transC/transCstringtable.c:129: initfirst_transCstringtableiterator(): error: 22: Freeing a resource returned an error
+C-kern/lang/transC/transCstringtable.c:80: new_transCstringtablepage(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:176: init_transcstringtable(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:80: new_transCstringtablepage(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:242: insertstring_transcstringtable(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:80: new_transCstringtablepage(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:242: insertstring_transcstringtable(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:290: appendstring_transcstringtable(): error: 12: Function aborted
+C-kern/lang/transC/transCstringtable.c:270: appendstring_transcstringtable(): error: 22: Function input violates condition (strtable->prev != &strtable->first)
+C-kern/lang/transC/transCstringtable.c:290: appendstring_transcstringtable(): error: 22: Function aborted
+C-kern/lang/transC/transCstringtable.c:253: shrinkstring_transcstringtable(): error: 22: Function input violates condition (strtable->prev != &strtable->first)
+C-kern/lang/transC/transCstringtable.c:261: shrinkstring_transcstringtable(): error: 22: Function aborted
+C-kern/lang/transC/transCstringtable.c:254: shrinkstring_transcstringtable(): error: 22: Function input violates condition (newsize <= size)
+C-kern/lang/transC/transCstringtable.c:261: shrinkstring_transcstringtable(): error: 22: Function aborted
+C-kern/lang/transC/transCstringtable.c:254: shrinkstring_transcstringtable(): error: 22: Function input violates condition (newsize <= size)
+C-kern/lang/transC/transCstringtable.c:261: shrinkstring_transcstringtable(): error: 22: Function aborted
+C-kern/lang/transC/transCstringtable.c:117: initfirst_transcstringtableiterator(): error: 22: Function input violates condition (strtable->first && strid)
+C-kern/lang/transC/transCstringtable.c:130: initfirst_transcstringtableiterator(): error: 22: Freeing a resource returned an error

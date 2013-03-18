@@ -59,6 +59,7 @@
  *              This name is used to access the types and iterator functions.
  * varname    - The name of the variable which iterates over all contained elements.
  * container  - Pointer to container which contains all elements.
+ * ...        - Any additional parameter function initfirst##_fctsuffix##iterator takes
  *
  * Explanation:
  * A container type which wants to offer <foreach> functionality must implement the
@@ -76,10 +77,10 @@
  *
  * See <slist_t> for an example.
  */
-#define foreach(_fsuffix, varname, container)                                 \
+#define foreach(_fsuffix, varname, ...)                                       \
    for (iteratedtype##_fsuffix varname;;)                                     \
    for (iteratortype##_fsuffix _iter_##varname ;                              \
-        0 == initfirst##_fsuffix##iterator(& _iter_##varname, (container));   \
+        0 == initfirst##_fsuffix##iterator(& _iter_##varname, __VA_ARGS__);   \
         (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname);    \
                            break/*breaks outermost loop*/; })))               \
    while (next##_fsuffix##iterator(&_iter_##varname, &varname))
@@ -109,6 +110,7 @@
  *              This name is used to access the types and iterator functions.
  * varname    - The name of the variable which iterates over all contained elements.
  * container  - Pointer to container which contains all elements.
+ * ...        - Any additional parameter function initlast##_fctsuffix##iterator takes
  *
  * Explanation:
  * A container type which wants to offer <foreachReverse> functionality must implement the
@@ -126,10 +128,10 @@
  *
  * See <dlist_t> for an example.
  */
-#define foreachReverse(_fsuffix, varname, container)                          \
+#define foreachReverse(_fsuffix, varname, ...)                                \
    for (iteratedtype##_fsuffix varname;;)                                     \
    for (iteratortype##_fsuffix _iter_##varname ;                              \
-        0 == initlast##_fsuffix##iterator(& _iter_##varname, (container)) ;   \
+        0 == initlast##_fsuffix##iterator(& _iter_##varname, __VA_ARGS__) ;   \
         (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname) ;   \
                          break/*breaks outermost loop*/; })))                 \
    while (prev##_fsuffix##iterator(&_iter_##varname, &varname))

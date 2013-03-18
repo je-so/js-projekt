@@ -33,6 +33,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/test/errortimer.h"
+#include "C-kern/api/ds/foreach.h"
 #endif
 
 
@@ -107,7 +108,7 @@ ONABORT:
 
 // group: lifetime
 
-int initfirst_transCstringtableiterator(/*out*/transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid)
+int initfirst_transcstringtableiterator(/*out*/transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid)
 {
    int err ;
    const size_t                     pgsize = pagesize_vm() ;
@@ -130,10 +131,8 @@ ONABORT:
    return err ;
 }
 
-bool next_transCstringtableiterator(transCstringtable_iterator_t * iter, transCstringtable_t * strtable, /*out*/struct memblock_t * data)
+bool next_transcstringtableiterator(transCstringtable_iterator_t * iter, /*out*/struct memblock_t * data)
 {
-   (void) strtable ;
-
    if (!iter->next) return false ;
 
    transCstringtable_entry_t * entry = iter->next ;
@@ -645,14 +644,33 @@ static int test_iterator(void)
 
    for (size_t i = 0; i < lengthof(strid); ++i) {
 
-      // TEST initfirst_transCstringtableiterator
-      TEST(0 == initfirst_transCstringtableiterator(&iter, &strtable, strid[i])) ;
+      // TEST initfirst_transcstringtableiterator
+      TEST(0 == initfirst_transcstringtableiterator(&iter, &strtable, strid[i])) ;
       TEST(strid[i] == iter.next) ;
 
-      // TEST next_transCstringtableiterator
-      memblock_t data = memblock_INIT_FREEABLE ;
-      size_t     size = 0 ;
-      while (next_transCstringtableiterator(&iter, &strtable, &data)) {
+      // TEST next_transcstringtableiterator
+      size_t size = 0 ;
+      {
+         memblock_t data = memblock_INIT_FREEABLE ;
+         while (next_transcstringtableiterator(&iter, &data)) {
+            TEST(data.addr != 0) ;
+            TEST(data.size >= 1) ;
+            for (size_t i2 = 0; i2 < data.size; ++i2) {
+               TEST(data.addr[i2] == (uint8_t)i) ;
+            }
+            size += data.size ;
+            data = (memblock_t) memblock_INIT_FREEABLE ;
+         }
+         TEST(1+i == size) ;
+      }
+
+      // TEST free_transcstringtableiterator
+      free_transcstringtableiterator(&iter) ;
+      TEST(0 == iter.next) ;
+
+      // TEST foreach
+      size = 0 ;
+      foreach (_transcstringtable, data, &strtable, strid[i]) {
          TEST(data.addr != 0) ;
          TEST(data.size >= 1) ;
          for (size_t i2 = 0; i2 < data.size; ++i2) {
@@ -662,15 +680,11 @@ static int test_iterator(void)
          data = (memblock_t) memblock_INIT_FREEABLE ;
       }
       TEST(1+i == size) ;
-
-      // TEST free_transCstringtableiterator
-      free_transCstringtableiterator(&iter) ;
-      TEST(0 == iter.next) ;
    }
 
-   // TEST initfirst_transCstringtableiterator: EINVAL
+   // TEST initfirst_transcstringtableiterator: EINVAL
    TEST(0 == free_transcstringtable(&strtable)) ;
-   TEST(EINVAL == initfirst_transCstringtableiterator(&iter, &strtable, strid[0])) ;
+   TEST(EINVAL == initfirst_transcstringtableiterator(&iter, &strtable, strid[0])) ;
 
    return 0 ;
 ONABORT:
