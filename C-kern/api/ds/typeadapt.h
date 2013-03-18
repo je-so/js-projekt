@@ -31,7 +31,7 @@
 #include "C-kern/api/ds/typeadapt/gethash.h"
 #include "C-kern/api/ds/typeadapt/getkey.h"
 #include "C-kern/api/ds/typeadapt/lifetime.h"
-#include "C-kern/api/ds/typeadapt/typeinfo.h"
+#include "C-kern/api/ds/typeadapt/nodeoffset.h"
 
 /* typedef: struct typeadapt_t
  * Export <typeadapt_t> into global namespace. */
@@ -59,26 +59,26 @@ int unittest_ds_typeadapt(void) ;
 
 
 /* struct: typeadapt_member_t
- * Relates <typeadapt_typeinfo_t> with <typeadapt_t>.
+ * Relates <typeadapt_nodeoffset_t> with <typeadapt_t>.
  * With this object it is possible to call services on a pointer.
  * The pointer needs not point to the start address of the object but
- * could point to any struct member. The variable <typeinfo> stores
+ * could point to any struct member. The variable <nodeoff> stores
  * the information to cast the pointer into the generic type
  * <typeadapt_object_t> which is used to tag any object type. */
 struct typeadapt_member_t {
    /* variable: typeadp
     * Pointer to <typeadapt_t>. */
-   typeadapt_t          * typeadp ;
-   /* variable: typeinfo
-    * Stores <typeadapt_typeinfo_t>. */
-   typeadapt_typeinfo_t typeinfo ;
+   typeadapt_t         *   typeadp ;
+   /* variable: nodeoff
+    * Stores <typeadapt_nodeoffset_t>. */
+   typeadapt_nodeoffset_t  nodeoff ;
 } ;
 
 // group: lifetime
 
 /* define: typeadapt_member_INIT
  * Static initializer. */
-#define typeadapt_member_INIT(typeadp, nodeoffset)    { typeadp, typeadapt_typeinfo_INIT(nodeoffset) }
+#define typeadapt_member_INIT(typeadp, nodeoffset)    { typeadp, typeadapt_nodeoffset_INIT(nodeoffset) }
 
 /* define: typeadapt_member_INIT_FREEABLE
  * Static initializer. */
@@ -123,11 +123,11 @@ void callgetbinarykey_typeadaptmember(typeadapt_member_t * nodeadp, ...) ;
 // group: conversion
 
 /* function: memberasobject_typeadaptmember
- * See <memberasobject_typeadapttypeinfo>. */
+ * See <memberasobject_typeadaptnodeoffset>. */
 struct typeadapt_object_t * memberasobject_typeadaptmember(typeadapt_member_t * nodeadp, void * node) ;
 
-/* function: objectasmember_typeadapttypeinfo
- * See <objectasmember_typeadapttypeinfo>. */
+/* function: objectasmember_typeadaptmember
+ * See <objectasmember_typeadaptnodeoffset>. */
 void * objectasmember_typeadaptmember(typeadapt_member_t * nodeadp, struct typeadapt_object_t * object) ;
 
 
@@ -355,11 +355,11 @@ void typeadapt_EMBED(TYPENAME typeadapter_t, TYPENAME object_t, TYPENAME key_t) 
 
 /* define: memberasobject_typeadaptmember
  * Imeplements <typeadapt_member_t.memberasobject_typeadaptmember>. */
-#define memberasobject_typeadaptmember(nodeadp, node) memberasobject_typeadapttypeinfo((nodeadp)->typeinfo, node)
+#define memberasobject_typeadaptmember(nodeadp, node) memberasobject_typeadaptnodeoffset((nodeadp)->nodeoff, node)
 
-/* define: objectasmember_typeadapttypeinfo
- * Imeplements <typeadapt_member_t.objectasmember_typeadapttypeinfo>. */
-#define objectasmember_typeadaptmember(nodeadp, object)  objectasmember_typeadapttypeinfo((nodeadp)->typeinfo, object)
+/* define: objectasmember_typeadaptmember
+ * Imeplements <typeadapt_member_t.objectasmember_typeadaptmember>. */
+#define objectasmember_typeadaptmember(nodeadp, object)  objectasmember_typeadaptnodeoffset((nodeadp)->nodeoff, object)
 
 /* define: typeadapt_EMBED
  * Implements <typeadapt_t.typeadapt_EMBED>. */

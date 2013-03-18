@@ -109,10 +109,10 @@ static int find_x11displayobjectid(x11display_objectid_t ** root, uintptr_t obje
 {
    int err ;
    x11display_objectid_adapt_t typeadp = typeadapt_INIT_CMP(&impl_cmpkeyobj_objectidadapt, &impl_cmpobj_objectidadapt) ;
-   splaytree_t                 tree    = splaytree_INIT(&(*root)->index, typeadapt_member_INIT(genericcast_typeadapt(&typeadp,x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t), offsetof(x11display_objectid_t, index))) ;
+   splaytree_t                 tree    = splaytree_INIT(&(*root)->index) ;
 
-   err = find_objidtree(&tree, objectid, object) ;
-   getinistate_objidtree(&tree, root, 0) ;
+   err = find_objidtree(&tree, objectid, object, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
+   getinistate_objidtree(&tree, root) ;
 
    return err ;
 }
@@ -121,7 +121,7 @@ static int new_x11displayobjectid(x11display_objectid_t ** root, uintptr_t objec
 {
    int err ;
    x11display_objectid_adapt_t typeadp = typeadapt_INIT_CMP(&impl_cmpkeyobj_objectidadapt, &impl_cmpobj_objectidadapt) ;
-   splaytree_t          tree     = splaytree_INIT(&(*root)->index, typeadapt_member_INIT(genericcast_typeadapt(&typeadp,x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t), offsetof(x11display_objectid_t, index))) ;
+   splaytree_t          tree     = splaytree_INIT(&(*root)->index) ;
    memblock_t           memblock = memblock_INIT_FREEABLE ;
 
    err = RESIZE_MM(sizeof(x11display_objectid_t), &memblock) ;
@@ -132,8 +132,8 @@ static int new_x11displayobjectid(x11display_objectid_t ** root, uintptr_t objec
    new_object->id     = objectid ;
    new_object->object = value_object ;
 
-   err = insert_objidtree(&tree, new_object) ;
-   getinistate_objidtree(&tree, root, 0) ;
+   err = insert_objidtree(&tree, new_object, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
+   getinistate_objidtree(&tree, root) ;
 
    if (err) {
       (void) FREE_MM(&memblock) ;
@@ -146,14 +146,14 @@ static int delete_x11displayobjectid(x11display_objectid_t ** root, uintptr_t ob
 {
    int err ;
    x11display_objectid_adapt_t typeadp = typeadapt_INIT_CMP(&impl_cmpkeyobj_objectidadapt, &impl_cmpobj_objectidadapt) ;
-   splaytree_t                 tree    = splaytree_INIT(&(*root)->index, typeadapt_member_INIT(genericcast_typeadapt(&typeadp,x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t), offsetof(x11display_objectid_t, index))) ;
+   splaytree_t                 tree    = splaytree_INIT(&(*root)->index) ;
    x11display_objectid_t       * removed_obj ;
 
-   err = find_objidtree(&tree, objectid, &removed_obj) ;
+   err = find_objidtree(&tree, objectid, &removed_obj, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
    if (!err) {
-      err = remove_objidtree(&tree, removed_obj) ;
+      err = remove_objidtree(&tree, removed_obj, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
    }
-   getinistate_objidtree(&tree, root, 0) ;
+   getinistate_objidtree(&tree, root) ;
 
    if (!err) {
       err = impl_delete_objectidadapt(0, &removed_obj) ;
@@ -166,10 +166,10 @@ static int deleteall_x11displayobjectid(x11display_objectid_t ** root)
 {
    int err ;
    x11display_objectid_adapt_t typeadp = typeadapt_INIT_LIFETIME(0, &impl_delete_objectidadapt) ;
-   splaytree_t                 tree    = splaytree_INIT(&(*root)->index, typeadapt_member_INIT(genericcast_typeadapt(&typeadp,x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t), offsetof(x11display_objectid_t, index))) ;
+   splaytree_t                 tree    = splaytree_INIT(&(*root)->index) ;
 
-   err = free_objidtree(&tree) ;
-   getinistate_objidtree(&tree, root, 0) ;
+   err = free_objidtree(&tree, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
+   getinistate_objidtree(&tree, root) ;
 
    return err ;
 }

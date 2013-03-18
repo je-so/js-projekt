@@ -139,11 +139,11 @@
       <File Name="../../C-kern/api/ds/foreach.h"/>
       <VirtualDirectory Name="typeadapt">
         <File Name="../../C-kern/api/ds/typeadapt/lifetime.h"/>
-        <File Name="../../C-kern/api/ds/typeadapt/typeinfo.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/typeadapt_impl.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/comparator.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/getkey.h"/>
         <File Name="../../C-kern/api/ds/typeadapt/gethash.h"/>
+        <File Name="../../C-kern/api/ds/typeadapt/nodeoffset.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/ds/typeadapt.h"/>
     </VirtualDirectory>
@@ -409,11 +409,11 @@
     <VirtualDirectory Name="ondisk"/>
     <VirtualDirectory Name="typeadapt">
       <File Name="../../C-kern/ds/typeadapt/lifetime.c"/>
-      <File Name="../../C-kern/ds/typeadapt/typeinfo.c"/>
       <File Name="../../C-kern/ds/typeadapt/typeadapt_impl.c"/>
       <File Name="../../C-kern/ds/typeadapt/comparator.c"/>
       <File Name="../../C-kern/ds/typeadapt/getkey.c"/>
       <File Name="../../C-kern/ds/typeadapt/gethash.c"/>
+      <File Name="../../C-kern/ds/typeadapt/nodeoffset.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/ds/typeadapt.c"/>
   </VirtualDirectory>

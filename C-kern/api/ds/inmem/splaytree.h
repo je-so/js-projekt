@@ -71,23 +71,25 @@ int unittest_ds_inmem_splaytree(void) ;
  * > }
  * */
 struct splaytree_iterator_t {
-   splaytree_node_t * next ;
-   splaytree_t      * tree ;
+   splaytree_node_t   * next ;
+   splaytree_t        * tree ;
+   struct typeadapt_t * typeadp ;
+   uint16_t             nodeoff ;
 } ;
 
 // group: lifetime
 
 /* define: splaytree_iterator_INIT_FREEABLE
  * Static initializer. */
-#define splaytree_iterator_INIT_FREEABLE   { 0, 0 }
+#define splaytree_iterator_INIT_FREEABLE   { 0, 0, 0, 0 }
 
 /* function: initfirst_splaytreeiterator
  * Initializes an iterator for <splaytree_t>. */
-int initfirst_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t * tree) ;
+int initfirst_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 /* function: initlast_splaytreeiterator
  * Initializes an iterator of <splaytree_t>. */
-int initlast_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t * tree) ;
+int initlast_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 /* function: free_splaytreeiterator
  * Frees an iterator of <splaytree_t>. */
@@ -121,39 +123,36 @@ bool prev_splaytreeiterator(splaytree_iterator_t * iter, /*out*/splaytree_node_t
 struct splaytree_t {
    /* variable: root
     * Points to the root object which has no parent. */
-   splaytree_node_t     * root ;
-   /* variable: nodeadp
-    * Offers lifetime + comparator services to handle stored nodes. */
-   typeadapt_member_t   nodeadp ;
+   splaytree_node_t   * root ;
 } ;
 
 // group: lifetime
 
 /* define: splaytree_INIT_FREEABLE
  * Static initializer: After assigning you can call <free_splaytree> without harm. */
-#define splaytree_INIT_FREEABLE                 splaytree_INIT(0, typeadapt_member_INIT_FREEABLE)
+#define splaytree_INIT_FREEABLE                 splaytree_INIT(0)
 
 /* define: splaytree_INIT
  * Static initializer. You can use <splaytree_INIT> with the returned values prvided by <getinistate_splaytree>. */
-#define splaytree_INIT(root, nodeadp)           { root, nodeadp }
+#define splaytree_INIT(root)                    { root }
 
 /* function: init_splaytree
  * Inits an empty tree object.
  * The <typeadapt_member_t> is copied but the <typeadapt_t> it references is not.
  * So do not delete <typeadapt_t> as long as this object lives. */
-void init_splaytree(/*out*/splaytree_t * tree, const typeadapt_member_t * nodeadp) ;
+void init_splaytree(/*out*/splaytree_t * tree) ;
 
 /* function: free_splaytree
  * Frees all resources.
  * For every removed node the typeadapter callback <typeadapt_lifetime_it.delete_object> is called.
  * See <typeadapt_member_t> how to construct typeadapter for node member. */
-int free_splaytree(splaytree_t * tree) ;
+int free_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 // group: query
 
 /* function: getinistate_splaytree
  * Returns the current state of <splaytree_t> for later use in <splaytree_INIT>. */
-static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splaytree_node_t ** root, /*out*/typeadapt_member_t * nodeadp/*0=>ignored*/) ;
+static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splaytree_node_t ** root) ;
 
 /* function: isempty_splaytree
  * Returns true if tree contains no elements. */
@@ -174,7 +173,7 @@ typedef splaytree_node_t       *  iteratedtype_splaytree ;
 /* function: find_splaytree
  * Searches for a node with equal key.
  * If it exists it is returned in found_node else ESRCH is returned. */
-int find_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t ** found_node) ;
+int find_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t ** found_node, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 // group: change
 
@@ -183,26 +182,31 @@ int find_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t
  * If another node exists with the same key as *new_key* nothing is inserted and the function returns EEXIST.
  * If no other node is found new_node is inserted
  * The caller has to allocate the new node and has to transfer ownership. */
-int insert_splaytree(splaytree_t * tree, splaytree_node_t * new_node) ;
+int insert_splaytree(splaytree_t * tree, splaytree_node_t * new_node, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 /* function: remove_splaytree
  * Removes a node from the tree. If the node is not part of the tree the behaviour is undefined !
  * The ownership of the removed node is transfered to the caller. */
-int remove_splaytree(splaytree_t * tree, splaytree_node_t * node) ;
+int remove_splaytree(splaytree_t * tree, splaytree_node_t * node, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 /* function: removenodes_splaytree
  * Removes all nodes from the tree.
  * For every removed node <typeadapt_lifetime_it.delete_object> is called. */
-int removenodes_splaytree(splaytree_t * tree) ;
+int removenodes_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 // group: test
 
 /* function: invariant_splaytree
  * Checks that all nodes are stored in correct search order.
  * The parameter nodeadp must offer compare objects functionality. */
-int invariant_splaytree(splaytree_t * tree) ;
+int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 // group: generic
+
+/* function: genericcast_splaytree
+ * Casts tree into <slaytree_t> if that is possible.
+ * The generic object tree must have a root pointer to <splaytree_node_t>. */
+splaytree_t * genericcast_splaytree(void * tree) ;
 
 /* define: splaytree_IMPLEMENT
  * Generates interface of <splaytree_t> storing elements of type object_t.
@@ -217,47 +221,61 @@ int invariant_splaytree(splaytree_t * tree) ;
 void splaytree_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, TYPENAME key_t, IDNAME nodename) ;
 
 
+
 // section: inline implementation
 
 /* define: free_splaytreeiterator
  * Implements <splaytree_iterator_t.free_splaytreeiterator> as NOP. */
-#define free_splaytreeiterator(iter)         ((iter)->next = 0, 0)
+#define free_splaytreeiterator(iter)   \
+         ((iter)->next = 0, 0)
+
+/* define: genericcast_splaytree
+ * Implements <splaytree_t.genericcast_splaytree>. */
+#define genericcast_splaytree(tree)                                        \
+         ( __extension__ ({                                                \
+            static_assert(offsetof(splaytree_t, root) == 0,                \
+               "first member") ;                                           \
+            static_assert((typeof((tree)->root))0 == (splaytree_node_t*)0, \
+               "ensure same type") ;                                       \
+            (splaytree_t*) &(tree)->root ;                                 \
+         }))
 
 /* function: getinistate_splaytree
  * Implements <splaytree_t.getinistate_splaytree>. */
-static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splaytree_node_t ** root, /*out*/typeadapt_member_t * nodeadp)
+static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splaytree_node_t ** root)
 {
-   *root = tree->root ;
-   if (0 != nodeadp) *nodeadp = tree->nodeadp ;
+         *root = tree->root ;
 }
 
 /* define: init_splaytree
  * Implements <splaytree_t.init_splaytree>. */
-#define init_splaytree(tree,nodeadp)         ((void)(*(tree) = (splaytree_t) splaytree_INIT(0, *(nodeadp))))
+#define init_splaytree(tree)   \
+         ((void)(*(tree) = (splaytree_t) splaytree_INIT(0)))
 
 /* define: isempty_splaytree
  * Implements <splaytree_t.isempty_splaytree>. */
-#define isempty_splaytree(tree)              (0 == (tree)->root)
+#define isempty_splaytree(tree)  \
+         (0 == (tree)->root)
 
 /* define: splaytree_IMPLEMENT
  * Implements <splaytree_t.splaytree_IMPLEMENT>. */
 #define splaytree_IMPLEMENT(_fsuffix, object_t, key_t, nodename)      \
    typedef splaytree_iterator_t  iteratortype##_fsuffix ;   \
    typedef object_t           *  iteratedtype##_fsuffix ;   \
-   static inline int  initfirst##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree) __attribute__ ((always_inline)) ;   \
-   static inline int  initlast##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree) __attribute__ ((always_inline)) ;    \
+   static inline int  initfirst##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree, typeadapt_t * typeadp) __attribute__ ((always_inline)) ;   \
+   static inline int  initlast##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree, typeadapt_t * typeadp) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(splaytree_iterator_t * iter) __attribute__ ((always_inline)) ; \
    static inline bool next##_fsuffix##iterator(splaytree_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline bool prev##_fsuffix##iterator(splaytree_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline void init##_fsuffix(/*out*/splaytree_t * tree, const typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline int  free##_fsuffix(splaytree_t * tree) __attribute__ ((always_inline)) ; \
-   static inline void getinistate##_fsuffix(const splaytree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
+   static inline void init##_fsuffix(/*out*/splaytree_t * tree) __attribute__ ((always_inline)) ; \
+   static inline int  free##_fsuffix(splaytree_t * tree, typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
+   static inline void getinistate##_fsuffix(const splaytree_t * tree, /*out*/object_t ** root) __attribute__ ((always_inline)) ; \
    static inline bool isempty##_fsuffix(const splaytree_t * tree) __attribute__ ((always_inline)) ; \
-   static inline int  find##_fsuffix(splaytree_t * tree, const key_t key, /*out*/object_t ** found_node) __attribute__ ((always_inline)) ; \
-   static inline int  insert##_fsuffix(splaytree_t * tree, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int  remove##_fsuffix(splaytree_t * tree, object_t * node) __attribute__ ((always_inline)) ; \
-   static inline int  removenodes##_fsuffix(splaytree_t * tree) __attribute__ ((always_inline)) ; \
-   static inline int  invariant##_fsuffix(splaytree_t * tree) __attribute__ ((always_inline)) ; \
+   static inline int  find##_fsuffix(splaytree_t * tree, const key_t key, /*out*/object_t ** found_node, typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
+   static inline int  insert##_fsuffix(splaytree_t * tree, object_t * new_node, typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
+   static inline int  remove##_fsuffix(splaytree_t * tree, object_t * node, typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
+   static inline int  removenodes##_fsuffix(splaytree_t * tree, typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
+   static inline int  invariant##_fsuffix(splaytree_t * tree, typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
    static inline splaytree_node_t * asnode##_fsuffix(object_t * object) { \
       static_assert(&((object_t*)0)->nodename == (splaytree_node_t*)offsetof(object_t, nodename), "correct type") ; \
       return (splaytree_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
@@ -268,43 +286,43 @@ static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splayt
    static inline object_t * asobjectnull##_fsuffix(splaytree_node_t * node) { \
       return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
    } \
-   static inline void init##_fsuffix(/*out*/splaytree_t * tree, const typeadapt_member_t * nodeadp) { \
-      init_splaytree(tree, nodeadp) ; \
+   static inline void init##_fsuffix(/*out*/splaytree_t * tree) { \
+      init_splaytree(tree) ; \
    } \
-   static inline int  free##_fsuffix(splaytree_t * tree) { \
-      return free_splaytree(tree) ; \
+   static inline int  free##_fsuffix(splaytree_t * tree, typeadapt_t * typeadp) { \
+      return free_splaytree(tree, offsetof(object_t, nodename), typeadp) ; \
    } \
-   static inline void getinistate##_fsuffix(const splaytree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) { \
+   static inline void getinistate##_fsuffix(const splaytree_t * tree, /*out*/object_t ** root) { \
       splaytree_node_t * rootnode ; \
-      getinistate_splaytree(tree, &rootnode, nodeadp) ; \
+      getinistate_splaytree(tree, &rootnode) ; \
       *root = asobjectnull##_fsuffix(rootnode) ; \
    } \
    static inline bool isempty##_fsuffix(const splaytree_t * tree) { \
       return isempty_splaytree(tree) ; \
    } \
-   static inline int  find##_fsuffix(splaytree_t * tree, const key_t key, /*out*/object_t ** found_node) { \
-      int err = find_splaytree(tree, (void*)key, (splaytree_node_t**)found_node) ; \
+   static inline int  find##_fsuffix(splaytree_t * tree, const key_t key, /*out*/object_t ** found_node, typeadapt_t * typeadp) { \
+      int err = find_splaytree(tree, (void*)key, (splaytree_node_t**)found_node, offsetof(object_t, nodename), typeadp) ; \
       if (err == 0) *found_node = asobject##_fsuffix(*(splaytree_node_t**)found_node) ; \
       return err ; \
    } \
-   static inline int  insert##_fsuffix(splaytree_t * tree, object_t * new_node) { \
-      return insert_splaytree(tree, asnode##_fsuffix(new_node)) ; \
+   static inline int  insert##_fsuffix(splaytree_t * tree, object_t * new_node, typeadapt_t * typeadp) { \
+      return insert_splaytree(tree, asnode##_fsuffix(new_node), offsetof(object_t, nodename), typeadp) ; \
    } \
-   static inline int  remove##_fsuffix(splaytree_t * tree, object_t * node) { \
-      int err = remove_splaytree(tree, asnode##_fsuffix(node)) ; \
+   static inline int  remove##_fsuffix(splaytree_t * tree, object_t * node, typeadapt_t * typeadp) { \
+      int err = remove_splaytree(tree, asnode##_fsuffix(node), offsetof(object_t, nodename), typeadp) ; \
       return err ; \
    } \
-   static inline int  removenodes##_fsuffix(splaytree_t * tree) { \
-      return removenodes_splaytree(tree) ; \
+   static inline int  removenodes##_fsuffix(splaytree_t * tree, typeadapt_t * typeadp) { \
+      return removenodes_splaytree(tree, offsetof(object_t, nodename), typeadp) ; \
    } \
-   static inline int  invariant##_fsuffix(splaytree_t * tree) { \
-      return invariant_splaytree(tree) ; \
+   static inline int  invariant##_fsuffix(splaytree_t * tree, typeadapt_t * typeadp) { \
+      return invariant_splaytree(tree, offsetof(object_t, nodename), typeadp) ; \
    } \
-   static inline int  initfirst##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree) { \
-      return initfirst_splaytreeiterator(iter, tree) ; \
+   static inline int  initfirst##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree, typeadapt_t * typeadp) { \
+      return initfirst_splaytreeiterator(iter, tree, offsetof(object_t, nodename), typeadp) ; \
    } \
-   static inline int  initlast##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree) { \
-      return initlast_splaytreeiterator(iter, tree) ; \
+   static inline int  initlast##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree, typeadapt_t * typeadp) { \
+      return initlast_splaytreeiterator(iter, tree, offsetof(object_t, nodename), typeadp) ; \
    } \
    static inline int  free##_fsuffix##iterator(splaytree_iterator_t * iter) { \
       return free_splaytreeiterator(iter) ; \

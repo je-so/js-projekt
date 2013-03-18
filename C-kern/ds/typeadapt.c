@@ -39,7 +39,7 @@
 bool isequal_typeadaptmember(const typeadapt_member_t * lnodeadp, const typeadapt_member_t * rnodeadp)
 {
    bool isEqual = (lnodeadp->typeadp == rnodeadp->typeadp)
-                  && isequal_typeadapttypeinfo(&lnodeadp->typeinfo, &rnodeadp->typeinfo) ;
+                  && isequal_typeadaptnodeoffset(lnodeadp->nodeoff, rnodeadp->nodeoff) ;
    return isEqual ;
 }
 
@@ -400,12 +400,12 @@ ONABORT:
 
 static int test_typeadaptmember(void)
 {
-   typeadapt_member_t   nodeadp = typeadapt_member_INIT_FREEABLE ;
-   typeadapt_typeinfo_t tinfo   = typeadapt_typeinfo_INIT(0) ;
-   testadapt_t          testadp = {
-                           typeadapt_INIT_LIFECMPHASHKEY(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt, &impl_getbinarykey_testadapt),
-                           0
-                        } ;
+   typeadapt_member_t      nodeadp = typeadapt_member_INIT_FREEABLE ;
+   typeadapt_nodeoffset_t  nodeoff = typeadapt_nodeoffset_INIT(0) ;
+   testadapt_t             testadp = {
+                              typeadapt_INIT_LIFECMPHASHKEY(&impl_newcopy_testadapt, &impl_delete_testadapt, &impl_cmpkeyobj_testadapt, &impl_cmpobj_testadapt, &impl_hashobj_testadapt, &impl_hashkey_testadapt, &impl_getbinarykey_testadapt),
+                              0
+                           } ;
    typeadapt_member_t   nodeadp8[8] = {
                            typeadapt_member_INIT(0,offsetof(testobject_t, comparator.is_cmpkeyobj)),
                            typeadapt_member_INIT(0,offsetof(testobject_t, comparator.is_cmpobj)),
@@ -423,14 +423,14 @@ static int test_typeadaptmember(void)
 
    // TEST typeadapt_member_INIT_FREEABLE
    TEST(0 == nodeadp.typeadp) ;
-   TEST(isequal_typeadapttypeinfo(&tinfo, &nodeadp.typeinfo)) ;
+   TEST(isequal_typeadaptnodeoffset(nodeoff, nodeadp.nodeoff)) ;
 
    // TEST typeadapt_member_INIT
-   for (unsigned i = 1; i; i <<= 1) {
-      nodeadp = (typeadapt_member_t) typeadapt_member_INIT((typeadapt_t*)i, i+1) ;
-      tinfo   = (typeadapt_typeinfo_t) typeadapt_typeinfo_INIT(i+1) ;
-      TEST((typeadapt_t*)i == nodeadp.typeadp) ;
-      TEST(isequal_typeadapttypeinfo(&tinfo, &nodeadp.typeinfo)) ;
+   for (uint16_t i = 1; i; i = (uint16_t) (i << 1)) {
+      nodeadp = (typeadapt_member_t) typeadapt_member_INIT((typeadapt_t*)(uintptr_t)i, (uint16_t)(i+1)) ;
+      nodeoff = (typeadapt_nodeoffset_t) typeadapt_nodeoffset_INIT((uint16_t)(i+1)) ;
+      TEST((typeadapt_t*)(uintptr_t)i == nodeadp.typeadp) ;
+      TEST(isequal_typeadaptnodeoffset(nodeoff, nodeadp.nodeoff)) ;
    }
 
    // TEST isequal_typeadaptmember

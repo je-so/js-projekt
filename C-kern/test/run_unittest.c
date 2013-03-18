@@ -263,7 +263,7 @@ int run_unittest(void)
       RUN(unittest_ds_typeadapt_gethash) ;
       RUN(unittest_ds_typeadapt_lifetime) ;
       RUN(unittest_ds_typeadapt_typeadaptimpl) ;
-      RUN(unittest_ds_typeadapt_typeinfo) ;
+      RUN(unittest_ds_typeadapt_nodeoffset) ;
 //}
 
 //{ math unittest
