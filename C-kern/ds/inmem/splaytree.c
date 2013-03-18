@@ -1185,19 +1185,19 @@ static int test_iterator(void)
 
    for (unsigned i = 0; 0 == i; i = 1) {
       // TEST foreach
-      foreach (_splaytree, &tree, node) {
+      foreach (_splaytree, node, &tree) {
          TEST(node == &(*nodes1)[i++].index) ;
       }
       TEST(i == lengthof((*nodes1))) ;
 
       // TEST foreachReverse
-      foreachReverse (_splaytree, &tree, node) {
+      foreachReverse (_splaytree, node, &tree) {
          TEST(node == &(*nodes1)[--i].index) ;
       }
       TEST(i == 0) ;
 
       // TEST foreach: remove every second current element
-      foreach (_splaytree, &tree, node) {
+      foreach (_splaytree, node, &tree) {
          TEST(node == &(*nodes1)[i].index) ;
          if ((i % 2)) {
             TEST(0 == remove_splaytree(&tree, node)) ;
@@ -1208,7 +1208,7 @@ static int test_iterator(void)
 
       // TEST foreachReverse: remove all elements
       i = lengthof((*nodes1)) ;
-      foreachReverse (_splaytree, &tree, node) {
+      foreachReverse (_splaytree, node, &tree) {
          -- i ;
          i -= (i % 2) ;
          TEST(node == &(*nodes1)[i].index) ;
@@ -1322,12 +1322,12 @@ static int test_generic(void)
       TEST(0 == insert_testtree(&tree, &(*nodes1)[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
-      foreach (_testtree, &tree, node) {
+      foreach (_testtree, node, &tree) {
          TEST(node == &(*nodes1)[i++]) ;
       }
       TEST(i == lengthof((*nodes1))) ;
 
-      foreachReverse (_testtree, &tree, node) {
+      foreachReverse (_testtree, node, &tree) {
          TEST(node == &(*nodes1)[--i]) ;
       }
       TEST(i == 0) ;

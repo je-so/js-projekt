@@ -424,13 +424,13 @@ static int test_dlistiterator(void)
 
    // TEST foreach, foreachReverse: empty iteration
    for (unsigned i = 0; 0 == i; i=1) {
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i].node) ;
          ++ i ;
       }
       TEST(0 == i) ;
 
-      foreachReverse (_dlist, &list, node) {
+      foreachReverse (_dlist, node, &list) {
          TEST(node == &nodes[i].node) ;
          ++ i ;
       }
@@ -440,13 +440,13 @@ static int test_dlistiterator(void)
    // TEST foreach, foreachReverse: single element iteration
    TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
    for (unsigned i = 0; 0 == i; i=1) {
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[0].node) ;
          ++ i ;
       }
       TEST(i == 1) ;
 
-      foreachReverse (_dlist, &list, node) {
+      foreachReverse (_dlist, node, &list) {
          TEST(node == &nodes[0].node) ;
          -- i ;
       }
@@ -461,12 +461,12 @@ static int test_dlistiterator(void)
    TEST(first_dlist(&list) == &nodes[0].node) ;
    TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
    for (unsigned i = 0; 0 == i; i=1) {
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i++].node) ;
       }
       TEST(i == lengthof(nodes)) ;
 
-      foreachReverse (_dlist, &list, node) {
+      foreachReverse (_dlist, node, &list) {
          TEST(node == &nodes[--i].node) ;
       }
       TEST(i == 0) ;
@@ -480,12 +480,12 @@ static int test_dlistiterator(void)
    TEST(first_dlist(&list) == &nodes[lengthof(nodes)-1].node) ;
    TEST(last_dlist(&list)  == &nodes[0].node) ;
    for (unsigned i = 0; 0 == i; i=1) {
-      foreachReverse (_dlist, &list, node) {
+      foreachReverse (_dlist, node, &list) {
          TEST(node == &nodes[i++].node) ;
       }
       TEST(i == lengthof(nodes)) ;
 
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[--i].node) ;
       }
       TEST(i == 0) ;
@@ -495,7 +495,7 @@ static int test_dlistiterator(void)
    // TEST foreach, foreachReverse: remove current node; single element
    for (unsigned i = 0; 0 == i; i=1) {
       TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[0].node) ;
          TEST(0 == remove_dlist(&list, node)) ;
          TEST(isempty_dlist(&list)) ;
@@ -504,7 +504,7 @@ static int test_dlistiterator(void)
       TEST(i == 1) ;
 
       TEST(0 == insertfirst_dlist(&list, &nodes[0].node)) ;
-      foreachReverse (_dlist, &list, node) {
+      foreachReverse (_dlist, node, &list) {
          TEST(node == &nodes[0].node) ;
          TEST(0 == remove_dlist(&list, node)) ;
          TEST(isempty_dlist(&list)) ;
@@ -518,7 +518,7 @@ static int test_dlistiterator(void)
       for (unsigned ni = 0; ni < lengthof(nodes); ++ni) {
          TEST(0 == insertlast_dlist(&list, &nodes[ni].node)) ;
       }
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i++].node) ;
          TEST(0 == remove_dlist(&list, node)) ;
       }
@@ -528,7 +528,7 @@ static int test_dlistiterator(void)
       for (unsigned ni = 0; ni < lengthof(nodes); ++ni) {
          TEST(0 == insertlast_dlist(&list, &nodes[ni].node)) ;
       }
-      foreachReverse (_dlist, &list, node) {
+      foreachReverse (_dlist, node, &list) {
          TEST(node == &nodes[--i].node) ;
          TEST(0 == remove_dlist(&list, node)) ;
       }
@@ -541,7 +541,7 @@ static int test_dlistiterator(void)
       for (unsigned ni = 0; ni < lengthof(nodes); ++ni) {
          TEST(0 == insertlast_dlist(&list, &nodes[ni].node)) ;
       }
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i++].node) ;
          if ((i&0x01)) {
             TEST(0 == remove_dlist(&list, node)) ;
@@ -549,7 +549,7 @@ static int test_dlistiterator(void)
       }
       TEST(i == lengthof(nodes)) ;
       i = 0 ;
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i+1].node) ;
          i += 2 ;
       }
@@ -560,7 +560,7 @@ static int test_dlistiterator(void)
          TEST(0 == insertlast_dlist(&list, &nodes[ni].node)) ;
       }
       i = lengthof(nodes) ;
-      foreachReverse (_dlist, &list, node) {
+      foreachReverse (_dlist, node, &list) {
          TEST(node == &nodes[--i].node) ;
          if ((i&0x01)) {
             TEST(0 == remove_dlist(&list, node)) ;
@@ -568,7 +568,7 @@ static int test_dlistiterator(void)
       }
       TEST(i == 0) ;
       i = lengthof(nodes) ;
-      foreachReverse (_dlist, &list, node) {
+      foreachReverse (_dlist, node, &list) {
          TEST(node == &nodes[i-1-(0x01 & (lengthof(nodes)-1))].node) ;
          i -= 2 ;
       }
@@ -710,7 +710,7 @@ static int test_insertremove(void)
    }
    TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
    for (unsigned i = 0; (i == 0); i = 1) {
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i].node) ;
          TEST(node->prev == &nodes[(i?i:lengthof(nodes))-1].node) ;
          TEST(node->next == &nodes[(i+1)%lengthof(nodes)].node) ;
@@ -747,7 +747,7 @@ static int test_insertremove(void)
       TEST(first_dlist(&list) == &nodes[0].node) ;
    }
    for (unsigned i = 0; (i == 0); i = 1) {
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i].node) ;
          TEST(node->prev == &nodes[(i?i:lengthof(nodes))-1].node) ;
          TEST(node->next == &nodes[(i+1)%lengthof(nodes)].node) ;
@@ -834,7 +834,7 @@ static int test_insertremove(void)
       TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-2].node) ;
    }
    for (unsigned i = 2; i == 2; ) {
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i].node) ;
          TEST(node->prev == &nodes[(i>2)?i-2:lengthof(nodes)-2].node) ;
          TEST(node->next == &nodes[(i<lengthof(nodes)-2)?i+2:2].node) ;
@@ -883,7 +883,7 @@ static int test_insertremove(void)
    }
    TEST(last_dlist(&list) == &nodes[lengthof(nodes)-4].node) ;
    for (unsigned i = 0; 0 == i; ) {
-      foreach (_dlist, &list, node) {
+      foreach (_dlist, node, &list) {
          TEST(node == &nodes[i].node) ;
          TEST(node->prev == &nodes[i?i-2:lengthof(nodes)-4].node) ;
          TEST(node->next == &nodes[(i<lengthof(nodes)-4)?i+2:0].node) ;
@@ -935,7 +935,7 @@ static int test_insertremove(void)
          }
       }
    }
-   foreach (_dlist, &list, node) {
+   foreach (_dlist, node, &list) {
       TEST(1 == ((testnode_t*)(node->prev))->is_inserted) ;
       TEST(1 == ((testnode_t*)(node->next))->is_inserted) ;
    }
@@ -1003,11 +1003,11 @@ static int test_generic(void)
    TEST(1 == isempty_glist2(&list1)) ;
    TEST(1 == isempty_glist2(&list1)) ;
    for (unsigned i = 0; !i; i =1) {
-      foreach (_glist1, &list1, node) {
+      foreach (_glist1, node, &list1) {
          ++ i ;
       }
       TEST(i == 0) ;
-      foreach (_glist2, &list2, node) {
+      foreach (_glist2, node, &list2) {
          ++ i ;
       }
       TEST(i == 0) ;
@@ -1154,22 +1154,22 @@ static int test_generic(void)
       TEST(0 == insertfirst_glist2(&list2, &nodes[i])) ;
    }
    for (unsigned i = 0; !i; i=1) {
-      foreachReverse (_glist1, &list1, node) {
+      foreachReverse (_glist1, node, &list1) {
          TEST(&nodes[i?i-1:lengthof(nodes)-1] == next_glist1(node)) ;
          TEST(node == &nodes[i++]) ;
       }
       TEST(i == lengthof(nodes)) ;
-      foreach (_glist1, &list1, node) {
+      foreach (_glist1, node, &list1) {
          TEST(&nodes[i%lengthof(nodes)] == prev_glist1(node)) ;
          TEST(node == &nodes[--i]) ;
       }
       TEST(i == 0) ;
-      foreachReverse (_glist2, &list2, node) {
+      foreachReverse (_glist2, node, &list2) {
          TEST(&nodes[i?i-1:lengthof(nodes)-1] == next_glist2(node)) ;
          TEST(node == &nodes[i++]) ;
       }
       TEST(i == lengthof(nodes)) ;
-      foreach (_glist2, &list2, node) {
+      foreach (_glist2, node, &list2) {
          TEST(&nodes[i%lengthof(nodes)] == prev_glist2(node)) ;
          TEST(node == &nodes[--i]) ;
       }

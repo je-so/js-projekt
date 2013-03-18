@@ -1402,7 +1402,7 @@ static int test_iterator(void)
 
    // TEST foreach all
    nextpos = 0 ;
-   foreach (_arraystf, array, node) {
+   foreach (_arraystf, node, array) {
       char nextnr[6] ;
       snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
       TEST(0 == strcmp((const char*)((arraystf_node_t*)node)->addr, nextnr)) ;
@@ -1411,7 +1411,7 @@ static int test_iterator(void)
 
    // TEST foreach break after nrnodes/2
    nextpos = 0 ;
-   foreach (_arraystf, array, node) {
+   foreach (_arraystf, node, array) {
       char nextnr[6] ;
       snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
       TEST(0 == strcmp((const char*)node->addr, nextnr)) ;
@@ -1426,7 +1426,7 @@ static int test_iterator(void)
       TEST(0 == remove_arraystf(array, 5, key, &removed_node)) ;
    }
    nextpos = nrnodes/2 ;
-   foreach (_arraystf, array, node) {
+   foreach (_arraystf, node, array) {
       char nextnr[6] ;
       snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
       TEST(0 == strcmp((const char*)node->addr, nextnr)) ;
@@ -1615,13 +1615,13 @@ static int test_generic(void)
 
    // TEST foreach all
    nextpos = nrnodes ;
-   foreach (_arraytest, array, node) {
+   foreach (_arraytest, node, array) {
       -- nextpos ;
       TEST(node == &nodes[nextpos]) ;
    }
    TEST(nextpos == 0) ;
    nextpos = 0 ;
-   foreach (_arraytest2, array2, node) {
+   foreach (_arraytest2, node, array2) {
       TEST(node == &nodes[nextpos]) ;
       ++ nextpos ;
    }

@@ -384,28 +384,28 @@ static int test_query(void)
          unsigned count = 0 ;
          wbuf.next = (void*)i ;
          wbuf.addr = (void*)(i + 1) ;
-         foreach (_wbuffer, &wbuf, memblock) {
+         foreach (_wbuffer, memblock, &wbuf) {
             ++ count ;
             TEST(memblock.addr == (void*)(i + 1)) ;
             TEST(memblock.size == (size_t)-1) ;
          }
          TEST(count == 1) ;
          wbuf.next = (void*)(i+2) ;
-         foreach (_wbuffer, &wbuf, memblock) {
+         foreach (_wbuffer, memblock, &wbuf) {
             ++ count ;
             TEST(memblock.addr == (void*)(i + 1)) ;
             TEST(memblock.size == 1) ;
          }
          TEST(count == 2) ;
          wbuf.next = (void*)(5*i+2) ;
-         foreach (_wbuffer, &wbuf, memblock) {
+         foreach (_wbuffer, memblock, &wbuf) {
             ++ count ;
             TEST(memblock.addr == (void*)(i + 1)) ;
             TEST(memblock.size == 4*i+1) ;
          }
          TEST(count == 3) ;
          wbuf.next = wbuf.addr ;
-         foreach (_wbuffer, &wbuf, memblock) {
+         foreach (_wbuffer, memblock, &wbuf) {
             ++ count ;
             (void) memblock ;
          }
@@ -861,7 +861,7 @@ static int test_implstrategy(void)
       smemblocks[i].used = 4-i ;
    }
    for (unsigned i = 1; i == 1; i = 0) {
-      foreach (_wbuffer, &wbuf, memblock) {
+      foreach (_wbuffer, memblock, &wbuf) {
          TEST(memblock.addr == &buffer[(i%4)*16]) ;
          TEST(memblock.size == 4-(i%4)) ;
          ++ i ;
@@ -869,7 +869,7 @@ static int test_implstrategy(void)
       TEST(i == 5) ;
       i = 1 ;
       wbuf.next = buffer ;
-      foreach (_wbuffer, &wbuf, memblock) {
+      foreach (_wbuffer, memblock, &wbuf) {
          TEST(memblock.addr == &buffer[(i%4)*16]) ;
          TEST(memblock.size == 4-(i%4)) ;
          ++ i ;

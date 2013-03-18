@@ -1228,7 +1228,7 @@ int build_konfiguration(genmakeproject_t * genmake)
    }
 
    int errflag = 0 ;
-   foreach (_exthash, &genmake->index, node) {
+   foreach (_exthash, node, &genmake->index) {
       hentry = (hash_entry_subclass_t*) node ;
       if (  !hentry->isUsed
          && !hentry->isPredefinedID) {

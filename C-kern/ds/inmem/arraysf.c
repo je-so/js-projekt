@@ -1175,7 +1175,7 @@ static int test_iterator(void)
 
    // TEST foreach all
    nextpos = 0 ;
-   foreach (_arraysf, array, node) {
+   foreach (_arraysf, node, array) {
       TEST(((arraysf_node_t*)node)->pos == nextpos) ;
       ++ nextpos ;
    }
@@ -1183,7 +1183,7 @@ static int test_iterator(void)
 
    // TEST foreach_arraysf break after nrnodes/2
    nextpos = 0 ;
-   foreach (_arraysf, array, node) {
+   foreach (_arraysf, node, array) {
       TEST(node->pos == nextpos) ;
       ++ nextpos ;
       if (nextpos == nrnodes/2) break ;
@@ -1196,7 +1196,7 @@ static int test_iterator(void)
       TEST(removed_node == &nodes[i].node) ;
    }
    nextpos = nrnodes/2 ;
-   foreach (_arraysf, array, node) {
+   foreach (_arraysf, node, array) {
       TEST(node->pos == nextpos) ;
       ++ nextpos ;
    }
@@ -1313,13 +1313,13 @@ static int test_generic(void)
 
    // TEST foreach all
    nextpos = 0 ;
-   foreach (_tarraysf, array, node) {
+   foreach (_tarraysf, node, array) {
       TEST(node->node.pos == nextpos) ;
       ++ nextpos ;
    }
    TEST(nextpos == nrnodes) ;
    nextpos = 100000 ;
-   foreach (_t2arraysf, array2, node) {
+   foreach (_t2arraysf, node, array2) {
       TEST(node->pos2 == nextpos) ;
       ++ nextpos ;
    }

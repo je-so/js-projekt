@@ -1547,12 +1547,12 @@ static int test_generic(void)
       TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
-      foreach (_testtree, &tree, node) {
+      foreach (_testtree, node, &tree) {
          TEST(node == &nodes[i++]) ;
       }
       TEST(i == lengthof(nodes)) ;
 
-      foreachReverse (_testtree, &tree, node) {
+      foreachReverse (_testtree, node, &tree) {
          TEST(node == &nodes[--i]) ;
       }
       TEST(i == 0) ;

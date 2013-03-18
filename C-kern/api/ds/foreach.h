@@ -36,6 +36,10 @@
  * In a sorted container the first element equals the smallest element
  * and therefore the iteration is done in ascending order.
  *
+ * Mnemonic:
+ * > foreach variable in container {         // Intention
+ * > foreach(_type, variable, &container) {  // Macro syntax
+ *
  * Changing Container:
  * During iteration do not change the content of the container
  * except if the documentation of the iterator implementation allows it.
@@ -49,8 +53,8 @@
  * Parameter:
  * _fctsuffix - The suffix of the container interface functions.
  *              This name is used to access the types and iterator functions.
- * container  - Pointer to container which contains all elements.
  * varname    - The name of the variable which iterates over all contained elements.
+ * container  - Pointer to container which contains all elements.
  *
  * Explanation:
  * A container type which wants to offer <foreach> functionality must implement the
@@ -68,7 +72,7 @@
  *
  * See <slist_t> for an example.
  */
-#define foreach(_fsuffix, container, varname)                                 \
+#define foreach(_fsuffix, varname, container)                                 \
    for (iteratedtype##_fsuffix varname;;)                                     \
    for (iteratortype##_fsuffix _iter_##varname ;                              \
         0 == initfirst##_fsuffix##iterator(& _iter_##varname, (container));   \
@@ -81,6 +85,10 @@
  * Iterates over all elements from last to first stored in a container.
  * In a sorted container the last element equals the biggest element
  * and therefore the iteration is done in descending order.
+ *
+ * Mnemonic:
+ * > foreachReverse variable in container {         // Intention
+ * > foreachReverse(_type, variable, &container) {  // Macro syntax
  *
  * Changing Container:
  * During iteration do not change the content of the container
@@ -95,8 +103,8 @@
  * Parameter:
  * _fctsuffix - The suffix of the container interface functions.
  *              This name is used to access the types and iterator functions.
- * container  - Pointer to container which contains all elements.
  * varname    - The name of the variable which iterates over all contained elements.
+ * container  - Pointer to container which contains all elements.
  *
  * Explanation:
  * A container type which wants to offer <foreachReverse> functionality must implement the
@@ -114,7 +122,7 @@
  *
  * See <dlist_t> for an example.
  */
-#define foreachReverse(_fsuffix, container, varname)                          \
+#define foreachReverse(_fsuffix, varname, container)                          \
    for (iteratedtype##_fsuffix varname;;)                                     \
    for (iteratortype##_fsuffix _iter_##varname ;                              \
         0 == initlast##_fsuffix##iterator(& _iter_##varname, (container)) ;   \

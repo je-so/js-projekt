@@ -351,7 +351,7 @@ static int unsharebucket_exthash(exthash_t * htable, size_t tabidx)
    redblacktree_t tree  = redblacktree_INIT(htable->hashtable[tabidx], htable->nodeadp) ;
    redblacktree_t tree2 = redblacktree_INIT(0/*empty tree*/, htable->nodeadp) ;
    err = 0 ;
-   foreach (_redblacktree, &tree, node) {
+   foreach (_redblacktree, node, &tree) {
       size_t hashvalue = hashobject_exthash(htable, node) ;
 
       if ((hashvalue & highbit)) {
@@ -843,14 +843,14 @@ static int test_privchange(void)
    TEST(0 == unsharebucket_exthash(&htable, 0)) ;
    tree.root = htable.hashtable[0] ;
    unsigned count = 0 ;
-   foreach (_redblacktree, &tree, node) {
+   foreach (_redblacktree, node, &tree) {
       TEST((count << 8) == ((testobject_t*)memberasobject_typeadaptmember(&nodeadp, node))->key) ;
       count += 2 ;
    }
    TEST(count == 256) ;
    tree.root = htable.hashtable[1] ;
    count = 1 ;
-   foreach (_redblacktree, &tree, node) {
+   foreach (_redblacktree, node, &tree) {
       TEST(((count << 8)+1) == ((testobject_t*)memberasobject_typeadaptmember(&nodeadp, node))->key) ;
       count += 2 ;
    }
@@ -973,7 +973,7 @@ static int test_findinsertremove(void)
       TEST(0 == insert_exthash(&htable, &nodes[i].node)) ;
    }
    for (size_t i = 0; i == 0; i = 1) {
-      foreach (_exthash, &htable, node) {
+      foreach (_exthash, node, &htable) {
          TEST(node == &nodes[i/2 + 512*(i&1)].node)
          ++ i ;
       }
@@ -1075,7 +1075,7 @@ static int test_generic(void)
 
    // TEST foreach
    for (unsigned i = 0; !i; i = 1) {
-      foreach (_testhash, &htable, node) {
+      foreach (_testhash, node, &htable) {
          TEST(node == &nodes[i]) ;
          ++ i ;
       }

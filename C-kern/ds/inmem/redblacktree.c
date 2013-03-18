@@ -1660,19 +1660,19 @@ static int test_iterator(void)
 
    // TEST foreach
    unsigned i = 0 ;
-   foreach (_redblacktree, &tree, node) {
+   foreach (_redblacktree, node, &tree) {
       TEST(node == &nodes[i++].node) ;
    }
    TEST(i == lengthof(nodes)) ;
 
    // TEST foreachReverse
-   foreachReverse (_redblacktree, &tree, node) {
+   foreachReverse (_redblacktree, node, &tree) {
       TEST(node == &nodes[--i].node) ;
    }
    TEST(i == 0) ;
 
    // TEST foreach: remove every second current element
-   foreach (_redblacktree, &tree, node) {
+   foreach (_redblacktree, node, &tree) {
       TEST(node == &nodes[i].node) ;
       if ((i % 2)) {
          TEST(0 == remove_redblacktree(&tree, &nodes[i].node)) ;
@@ -1683,7 +1683,7 @@ static int test_iterator(void)
 
    // TEST foreachReverse: remove all elements
    i = lengthof(nodes) ;
-   foreachReverse (_redblacktree, &tree, node) {
+   foreachReverse (_redblacktree, node, &tree) {
       -- i ;
       i -= (i % 2) ;
       TEST(node == &nodes[i].node) ;
@@ -1790,12 +1790,12 @@ static int test_generic(void)
       TEST(0 == insert_testtree(&tree, &nodes[i])) ;
    }
    for (unsigned i = 0; 0 == i; i = 1) {
-      foreach (_testtree, &tree, node) {
+      foreach (_testtree, node, &tree) {
          TEST(node == &nodes[i++]) ;
       }
       TEST(i == lengthof(nodes)) ;
 
-      foreachReverse (_testtree, &tree, node) {
+      foreachReverse (_testtree, node, &tree) {
          TEST(node == &nodes[--i]) ;
       }
       TEST(i == 0) ;

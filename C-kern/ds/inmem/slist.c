@@ -340,7 +340,7 @@ static int test_iterate(void)
 
    // TEST foreach
    for (unsigned count = 0; 0 == count; count = 1) {
-      foreach (_slist, &slist, node) {
+      foreach (_slist, node, &slist) {
          ++ count ;
          TEST(node == (slist_node_t*)&nodes[(3*count) % lengthof(nodes)].next) ;
       }
@@ -350,7 +350,7 @@ static int test_iterate(void)
    // TEST foreach: remove current element
    for (unsigned count = 0; 0 == count; count = 1) {
       slist_node_t * prev = last_slist(&slist) ;
-      foreach (_slist, &slist, node) {
+      foreach (_slist, node, &slist) {
          ++ count ;
          TEST(node == (struct slist_node_t*)&nodes[(3*count) % lengthof(nodes)].next) ;
          slist_node_t * removed_node ;
@@ -627,11 +627,11 @@ static int test_generic(void)
    TEST(1 == isempty_slist2(&slist1)) ;
    TEST(1 == isempty_slist2(&slist1)) ;
    for (unsigned i = 0; !i; i =1) {
-      foreach (_slist1, &slist1, node) {
+      foreach (_slist1, node, &slist1) {
          ++ i ;
       }
       TEST(i == 0) ;
-      foreach (_slist2, &slist2, node) {
+      foreach (_slist2, node, &slist2) {
          ++ i ;
       }
       TEST(i == 0) ;
@@ -772,12 +772,12 @@ static int test_generic(void)
       insertfirst_slist2(&slist2, &nodes[i]) ;
    }
    for (unsigned i = 0; !i; i=1) {
-      foreach (_slist1, &slist1, node) {
+      foreach (_slist1, node, &slist1) {
          TEST(&nodes[(i+1)%lengthof(nodes)] == next_slist1(node)) ;
          TEST(node == &nodes[i++]) ;
       }
       TEST(i == lengthof(nodes)) ;
-      foreach (_slist2, &slist2, node) {
+      foreach (_slist2, node, &slist2) {
          -- i ;
          TEST(&nodes[i?i-1:lengthof(nodes)-1] == next_slist2(node)) ;
          TEST(node == &nodes[i]) ;
