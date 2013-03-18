@@ -506,6 +506,7 @@ int initfirst_exthashiterator(/*out*/exthash_iterator_t * iter, exthash_t * htab
          int err = initfirst_redblacktreeiterator((redblacktree_iterator_t*)iter, &tree) ;
          if (err) return err ;
 
+         iter->htable     = htable ;
          iter->tableindex = i ;
          break ;
       }
@@ -516,19 +517,19 @@ int initfirst_exthashiterator(/*out*/exthash_iterator_t * iter, exthash_t * htab
 
 // group: iterate
 
-bool next_exthashiterator(exthash_iterator_t * iter, exthash_t * htable, /*out*/exthash_node_t ** node)
+bool next_exthashiterator(exthash_iterator_t * iter, /*out*/exthash_node_t ** node)
 {
-   if (!next_redblacktreeiterator((redblacktree_iterator_t*)iter, 0/*not needed*/, node)) {
+   if (!next_redblacktreeiterator((redblacktree_iterator_t*)iter, node)) {
       return false ;
    }
 
    if (!iter->next) {
-      size_t endindex = lengthoftable_exthash(htable->level) ;
+      size_t endindex = lengthoftable_exthash(iter->htable->level) ;
 
       for (size_t i = iter->tableindex+1; i < endindex; ++i) {
-         if (  htable->hashtable[i]
-               && 0 != ~(uintptr_t)htable->hashtable[i]) {
-            redblacktree_t tree = redblacktree_INIT(htable->hashtable[i], htable->nodeadp) ;
+         if (  iter->htable->hashtable[i]
+               && 0 != ~(uintptr_t)iter->htable->hashtable[i]) {
+            redblacktree_t tree = redblacktree_INIT(iter->htable->hashtable[i], iter->htable->nodeadp) ;
             (void) initfirst_redblacktreeiterator((redblacktree_iterator_t*)iter, &tree) ;
             iter->tableindex = i ;
             break ;
@@ -612,6 +613,7 @@ static int test_initfree(void)
 
    // TEST exthash_iterator_INIT_FREEABLE
    TEST(0 == iter.next) ;
+   TEST(0 == iter.htable) ;
    TEST(0 == iter.tableindex) ;
 
    // TEST exthash_node_INIT
@@ -985,22 +987,25 @@ static int test_findinsertremove(void)
    exthash_node_t * old = htable.hashtable[0] ;
    htable.hashtable[0] = 0 ;
    TEST(0 == initfirst_exthashiterator(&iter, &htable)) ;
-   TEST(0 != iter.next) ;
-   TEST(1 == iter.tableindex) ;
+   TEST(iter.next   != 0) ;
+   TEST(iter.htable == &htable) ;
+   TEST(iter.tableindex == 1) ;
    htable.hashtable[0] = (void*)(uintptr_t)-1 ;
    iter = (exthash_iterator_t) exthash_iterator_INIT_FREEABLE ;
    TEST(0 == initfirst_exthashiterator(&iter, &htable)) ;
-   TEST(0 != iter.next) ;
-   TEST(1 == iter.tableindex) ;
+   TEST(iter.next   != 0) ;
+   TEST(iter.htable == &htable) ;
+   TEST(iter.tableindex == 1) ;
    htable.hashtable[0] = old ;
    iter = (exthash_iterator_t) { .next = 0, .tableindex = 1 } ;
    TEST(0 == initfirst_exthashiterator(&iter, &htable)) ;
-   TEST(0 != iter.next) ;
-   TEST(0 == iter.tableindex) ;
+   TEST(iter.next   != 0) ;
+   TEST(iter.htable == &htable) ;
+   TEST(iter.tableindex == 0) ;
 
    // TEST next_exthashiterator
    for (size_t i = 0; i == 0; i = 1) {
-      while (next_exthashiterator(&iter, &htable, &found_node)) {
+      while (next_exthashiterator(&iter, &found_node)) {
          TEST(found_node == &nodes[i/2 + 512*(i&1)].node)
          if (i&1 && iter.next) {
             TEST(iter.tableindex == (i+1)/2) ;
@@ -1010,17 +1015,19 @@ static int test_findinsertremove(void)
       TEST(i == 1024) ;
       TEST(0 == iter.next) ;
       TEST(511 == iter.tableindex) ;
-      TEST(0 == next_exthashiterator(&iter, &htable, &found_node)) ;
+      TEST(0 == next_exthashiterator(&iter, &found_node)) ;
       TEST(0 == iter.next) ;
       TEST(511 == iter.tableindex) ;
    }
 
    // TEST free_exthashiterator
-   iter.next = (void*) 1 ;
+   iter.next   = (void*) 1 ;
+   iter.htable = &htable ;
    iter.tableindex = 3 ;
    TEST(0 == free_exthashiterator(&iter)) ;
-   TEST(0 == iter.next) ;
-   TEST(3 == iter.tableindex) ;
+   TEST(iter.next       == 0) ;
+   TEST(iter.htable     == &htable) ;
+   TEST(iter.tableindex == 3) ;
 
    // unprepare
    TEST(0 == free_exthash(&htable)) ;

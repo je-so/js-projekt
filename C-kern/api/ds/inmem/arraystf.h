@@ -182,17 +182,20 @@ void arraystf_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 struct arraystf_iterator_t {
    /* variable: stack
     * Remembers last position in tree. */
-   struct binarystack_t * stack ;
+   struct binarystack_t *  stack ;
+   /* variable: array
+    * Remembers iterated container. */
+   arraystf_t           *  array ;
    /* variable: ri
     * Index into <arraystf_t.root>. */
-   unsigned             ri ;
+   unsigned                ri ;
 } ;
 
 // group: lifetime
 
 /* define: arraystf_iterator_INIT_FREEABLE
  * Static initializer. */
-#define arraystf_iterator_INIT_FREEABLE   { 0, 0 }
+#define arraystf_iterator_INIT_FREEABLE   { 0, 0, 0 }
 
 /* function: initfirst_arraystfiterator
  * Initializes an iterator for an <arraystf_t>. */
@@ -212,7 +215,7 @@ int free_arraystfiterator(arraystf_iterator_t * iter) ;
  * Returns:
  * true  - node contains a pointer to the next valid node in the list.
  * false - There is no next node. The last element was already returned or the array is empty. */
-bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out*/struct arraystf_node_t ** node) ;
+bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_node_t ** node) ;
 
 
 // section: inline implementation
@@ -236,7 +239,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
    static inline int  tryremove##_fsuffix(arraystf_t * array, size_t size, const uint8_t keydata[size], /*out*/object_t ** removed_node) __attribute__ ((always_inline)) ; \
    static inline int  initfirst##_fsuffix##iterator(/*out*/arraystf_iterator_t * iter, arraystf_t * array) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix##iterator(arraystf_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(arraystf_iterator_t * iter, arraystf_t * array, /*out*/object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool next##_fsuffix##iterator(arraystf_iterator_t * iter, /*out*/object_t ** node) __attribute__ ((always_inline)) ; \
    static inline arraystf_node_t * asnode##_fsuffix(object_t * object) { \
       static_assert(&((object_t*)0)->nodename == (void*)offsetof(object_t, nodename), "correct type") ; \
       return (arraystf_node_t*) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
@@ -286,8 +289,8 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
    static inline int free##_fsuffix##iterator(arraystf_iterator_t * iter) { \
       return free_arraystfiterator(iter) ; \
    } \
-   static inline bool next##_fsuffix##iterator(arraystf_iterator_t * iter, arraystf_t * array, /*out*/object_t ** node) { \
-      bool isNext = next_arraystfiterator(iter, array, (struct arraystf_node_t**)node) ; \
+   static inline bool next##_fsuffix##iterator(arraystf_iterator_t * iter, /*out*/object_t ** node) { \
+      bool isNext = next_arraystfiterator(iter, (struct arraystf_node_t**)node) ; \
       if (isNext) *node = asobject##_fsuffix(*(struct arraystf_node_t**)node) ; \
       return isNext ; \
    }

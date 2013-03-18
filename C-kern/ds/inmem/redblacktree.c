@@ -739,10 +739,8 @@ int initlast_redblacktreeiterator(/*out*/redblacktree_iterator_t * iter, redblac
    return 0 ;
 }
 
-bool next_redblacktreeiterator(redblacktree_iterator_t * iter, redblacktree_t * tree, /*out*/redblacktree_node_t ** node)
+bool next_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktree_node_t ** node)
 {
-   (void) tree ;
-
    if (!iter->next) {
       return false ;
    }
@@ -770,10 +768,8 @@ bool next_redblacktreeiterator(redblacktree_iterator_t * iter, redblacktree_t * 
    return true ;
 }
 
-bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, redblacktree_t * tree, /*out*/redblacktree_node_t ** node)
+bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktree_node_t ** node)
 {
-   (void) tree ;
-
    if (!iter->next) {
       return false ;
    }
@@ -1616,7 +1612,7 @@ static int test_iterator(void)
 
    // TEST next_redblacktreeiterator: empty tree
    TEST(0 == initfirst_redblacktreeiterator(&iter, &emptytree)) ;
-   TEST(false == next_redblacktreeiterator(&iter, 0/*not needed*/, 0/*not needed*/)) ;
+   TEST(false == next_redblacktreeiterator(&iter, 0/*not needed*/)) ;
 
    // TEST initlast_redblacktreeiterator: empty tree
    iter.next = (void*)1 ;
@@ -1625,7 +1621,7 @@ static int test_iterator(void)
 
    // TEST prev_redblacktreeiterator: empty tree
    TEST(0 == initlast_redblacktreeiterator(&iter, &emptytree)) ;
-   TEST(false == prev_redblacktreeiterator(&iter, 0/*not needed*/, 0/*not needed*/)) ;
+   TEST(false == prev_redblacktreeiterator(&iter, 0/*not needed*/)) ;
 
    // TEST free_redblacktreeiterator
    iter.next = (void*)1 ;
@@ -1639,11 +1635,11 @@ static int test_iterator(void)
    // TEST next_redblacktreeiterator: full tree
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       redblacktree_node_t * nextnode = 0 ;
-      TEST(next_redblacktreeiterator(&iter, 0/*not needed*/, &nextnode)) ;
+      TEST(next_redblacktreeiterator(&iter, &nextnode)) ;
       TEST(&nodes[i].node == nextnode);
    }
    TEST(0 == iter.next) ;
-   TEST(! next_redblacktreeiterator(&iter, 0/*not needed*/, 0/*not needed*/)) ;
+   TEST(! next_redblacktreeiterator(&iter, 0/*not needed*/)) ;
 
    // TEST initlast_redblacktreeiterator: full tree
    TEST(0 == initlast_redblacktreeiterator(&iter, &tree)) ;
@@ -1652,11 +1648,11 @@ static int test_iterator(void)
    // TEST next_redblacktreeiterator: full tree
    for (unsigned i = lengthof(nodes); (i--) > 0;) {
       redblacktree_node_t * nextnode = 0 ;
-      TEST(prev_redblacktreeiterator(&iter, 0/*not needed*/, &nextnode)) ;
+      TEST(prev_redblacktreeiterator(&iter, &nextnode)) ;
       TEST(&nodes[i].node == nextnode);
    }
    TEST(0 == iter.next) ;
-   TEST(! prev_redblacktreeiterator(&iter, 0/*not needed*/, 0/*not needed*/)) ;
+   TEST(! prev_redblacktreeiterator(&iter, 0/*not needed*/)) ;
 
    // TEST foreach
    unsigned i = 0 ;

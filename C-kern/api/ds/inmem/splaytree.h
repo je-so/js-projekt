@@ -72,13 +72,14 @@ int unittest_ds_inmem_splaytree(void) ;
  * */
 struct splaytree_iterator_t {
    splaytree_node_t * next ;
+   splaytree_t      * tree ;
 } ;
 
 // group: lifetime
 
 /* define: splaytree_iterator_INIT_FREEABLE
  * Static initializer. */
-#define splaytree_iterator_INIT_FREEABLE   { 0 }
+#define splaytree_iterator_INIT_FREEABLE   { 0, 0 }
 
 /* function: initfirst_splaytreeiterator
  * Initializes an iterator for <splaytree_t>. */
@@ -98,13 +99,13 @@ int free_splaytreeiterator(splaytree_iterator_t * iter) ;
  * Returns next node of tree in ascending order.
  * The first call after <initfirst_splaytreeiterator> returns the node with the lowest key.
  * In case no next node exists false is returned and parameter node is not changed. */
-bool next_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*out*/splaytree_node_t ** node) ;
+bool next_splaytreeiterator(splaytree_iterator_t * iter, /*out*/splaytree_node_t ** node) ;
 
 /* function: prev_splaytreeiterator
  * Returns next node of tree in descending order.
  * The first call after <initlast_splaytreeiterator> returns the node with the highest key.
  * In case no previous node exists false is returned and parameter node is not changed. */
-bool prev_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*out*/splaytree_node_t ** node) ;
+bool prev_splaytreeiterator(splaytree_iterator_t * iter, /*out*/splaytree_node_t ** node) ;
 
 
 /* struct: splaytree_t
@@ -246,8 +247,8 @@ static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splayt
    static inline int  initfirst##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree) __attribute__ ((always_inline)) ;   \
    static inline int  initlast##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(splaytree_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline bool prev##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree, object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool next##_fsuffix##iterator(splaytree_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool prev##_fsuffix##iterator(splaytree_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline void init##_fsuffix(/*out*/splaytree_t * tree, const typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix(splaytree_t * tree) __attribute__ ((always_inline)) ; \
    static inline void getinistate##_fsuffix(const splaytree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
@@ -308,13 +309,13 @@ static inline void getinistate_splaytree(const splaytree_t * tree, /*out*/splayt
    static inline int  free##_fsuffix##iterator(splaytree_iterator_t * iter) { \
       return free_splaytreeiterator(iter) ; \
    } \
-   static inline bool next##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree, object_t ** node) { \
-      bool isNext = next_splaytreeiterator(iter, tree, (splaytree_node_t**)node) ; \
+   static inline bool next##_fsuffix##iterator(splaytree_iterator_t * iter, object_t ** node) { \
+      bool isNext = next_splaytreeiterator(iter, (splaytree_node_t**)node) ; \
       if (isNext) *node = asobject##_fsuffix(*(splaytree_node_t**)node) ; \
       return isNext ; \
    } \
-   static inline bool prev##_fsuffix##iterator(splaytree_iterator_t * iter, splaytree_t * tree, object_t ** node) { \
-      bool isNext = prev_splaytreeiterator(iter, tree, (splaytree_node_t**)node) ; \
+   static inline bool prev##_fsuffix##iterator(splaytree_iterator_t * iter, object_t ** node) { \
+      bool isNext = prev_splaytreeiterator(iter, (splaytree_node_t**)node) ; \
       if (isNext) *node = asobject##_fsuffix(*(splaytree_node_t**)node) ; \
       return isNext ; \
    }

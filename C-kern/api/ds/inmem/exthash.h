@@ -67,15 +67,16 @@ int unittest_ds_inmem_exthash(void) ;
  * > }
  * */
 struct exthash_iterator_t {
-   exthash_node_t * next ;
-   size_t         tableindex ;
+   exthash_node_t *  next ;
+   exthash_t      *  htable ;
+   size_t            tableindex ;
 } ;
 
 // group: lifetime
 
 /* define: exthash_iterator_INIT_FREEABLE
  * Static initializer. */
-#define exthash_iterator_INIT_FREEABLE       { 0, 0 }
+#define exthash_iterator_INIT_FREEABLE       { 0, 0, 0 }
 
 /* function: initfirst_exthashiterator
  * Initializes an iterator for <exthash_t>. */
@@ -91,7 +92,7 @@ int free_exthashiterator(exthash_iterator_t * iter) ;
  * Returns next node of htable not sorted in any order.
  * The first call after <initfirst_exthashiterator> returns the node with the lowest key.
  * In case no next node exists false is returned and parameter node is not changed. */
-bool next_exthashiterator(exthash_iterator_t * iter, exthash_t * htable, /*out*/exthash_node_t ** node) ;
+bool next_exthashiterator(exthash_iterator_t * iter, /*out*/exthash_node_t ** node) ;
 
 
 // struct: exthash_node_t
@@ -253,7 +254,7 @@ int invariant_exthash(const exthash_t * htable) ;
    typedef object_t         *  iteratedtype##_fsuffix ;         \
    static inline int  initfirst##_fsuffix##iterator(exthash_iterator_t * iter, exthash_t * htable) __attribute__ ((always_inline)) ;   \
    static inline int  free##_fsuffix##iterator(exthash_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(exthash_iterator_t * iter, exthash_t * htable, object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool next##_fsuffix##iterator(exthash_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline int  init##_fsuffix(/*out*/exthash_t * htable, size_t initial_size, size_t max_size, const typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix(exthash_t * htable) __attribute__ ((always_inline)) ; \
    static inline bool isempty##_fsuffix(const exthash_t * htable) __attribute__ ((always_inline)) ; \
@@ -306,8 +307,8 @@ int invariant_exthash(const exthash_t * htable) ;
    static inline int  free##_fsuffix##iterator(exthash_iterator_t * iter) { \
       return free_exthashiterator(iter) ; \
    } \
-   static inline bool next##_fsuffix##iterator(exthash_iterator_t * iter, exthash_t * htable, object_t ** node) { \
-      bool isNext = next_exthashiterator(iter, htable, (exthash_node_t**)node) ; \
+   static inline bool next##_fsuffix##iterator(exthash_iterator_t * iter, object_t ** node) { \
+      bool isNext = next_exthashiterator(iter, (exthash_node_t**)node) ; \
       if (isNext) *node = asobject##_fsuffix(*(exthash_node_t**)node) ; \
       return isNext ; \
    }

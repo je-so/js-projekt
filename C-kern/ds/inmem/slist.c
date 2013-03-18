@@ -327,16 +327,17 @@ static int test_iterate(void)
 
    // TEST slist_iterator_INIT_FREEABLE
    TEST(0 == iter.next) ;
+   TEST(0 == iter.list) ;
 
    // TEST initfirst_slistiterator
-   iter.next = 0 ;
    TEST(0 == initfirst_slistiterator(&iter, &slist)) ;
-   TEST((slist_node_t*)&nodes[3].next == iter.next) ;
+   TEST(iter.next == (slist_node_t*)&nodes[3].next) ;
+   TEST(iter.list == &slist) ;
 
    // TEST free_slistiterator
-   iter.next = (void*)1 ;
    TEST(0 == free_slistiterator(&iter)) ;
-   TEST(0 == iter.next) ;
+   TEST(iter.next == 0) ;
+   TEST(iter.list != 0/*not changed*/) ;
 
    // TEST foreach
    for (unsigned count = 0; 0 == count; count = 1) {
@@ -656,10 +657,28 @@ static int test_generic(void)
    TEST(&nodes[1] == last_slist1(&slist1)) ;
    TEST(&nodes[1] == first_slist2(&slist2)) ;
    TEST(&nodes[1] == last_slist2(&slist2)) ;
-   nodes[1].next       = 0 ;
-   nodes[1].next2.next = 0 ;
+
+   // TEST initfirst_slistiterator
+   slist_iterator_t it1 = slist_iterator_INIT_FREEABLE ;
+   slist_iterator_t it2 = slist_iterator_INIT_FREEABLE ;
+   TEST(0 == initfirst_slist1iterator(&it1, &slist1)) ;
+   TEST(it1.next == (slist_node_t*)&first_slist1(&slist1)->next) ;
+   TEST(it1.list == &slist1) ;
+   TEST(0 == initfirst_slist2iterator(&it2, &slist2)) ;
+   TEST(it2.next == (slist_node_t*)&first_slist2(&slist2)->next2.next) ;
+   TEST(it2.list == &slist2) ;
+
+   // TEST free_slistiterator
+   TEST(0 == free_slist1iterator(&it1)) ;
+   TEST(it1.next == 0) ;
+   TEST(it1.list != 0) ;
+   TEST(0 == free_slist2iterator(&it2)) ;
+   TEST(it2.next == 0) ;
+   TEST(it2.list != 0) ;
 
    // TEST single element
+   TEST(0 == free_slist1(&slist1, 0)) ;
+   TEST(0 == free_slist2(&slist2, 0)) ;
    init_slist1(&slist1) ;
    init_slist2(&slist2) ;
    insertfirst_slist1(&slist1, &nodes[0]) ;

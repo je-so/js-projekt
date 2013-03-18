@@ -487,6 +487,7 @@ int initfirst_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * arra
    if (err) goto ONABORT ;
 
    iter->stack = stack ;
+   iter->array = array ;
    iter->ri    = 0 ;
 
    return 0 ;
@@ -520,11 +521,11 @@ ONABORT:
    return err ;
 }
 
-bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/struct arraysf_node_t ** node)
+bool next_arraysfiterator(arraysf_iterator_t * iter, /*out*/struct arraysf_node_t ** node)
 {
    int err ;
-   size_t         nrelemroot = toplevelsize_arraysf(array) ;
-   arraysf_pos_t  * pos ;
+   size_t            nrelemroot = toplevelsize_arraysf(iter->array) ;
+   arraysf_pos_t *   pos ;
 
    for (;;) {
 
@@ -536,7 +537,7 @@ bool next_arraysfiterator(arraysf_iterator_t * iter, arraysf_t * array, /*out*/s
             if (iter->ri >= nrelemroot) {
                return false ;
             }
-            rootnode = array->root[iter->ri ++] ;
+            rootnode = iter->array->root[iter->ri ++] ;
             if (rootnode) {
                if (!isbranchtype_arraysfunode(rootnode)) {
                   *node = node_arraysfunode(rootnode) ;
@@ -1146,25 +1147,29 @@ static int test_iterator(void)
 
    // TEST arraysf_iterator_INIT_FREEABLE
    TEST(0 == iter.stack) ;
+   TEST(0 == iter.array) ;
    TEST(0 == iter.ri) ;
 
    // TEST initfirst_arraysfiterator, free_arraysfiterator
    iter.ri = 1 ;
    TEST(0 == initfirst_arraysfiterator(&iter, array)) ;
-   TEST(0 != iter.stack) ;
-   TEST(0 == iter.ri) ;
+   TEST(iter.stack != 0) ;
+   TEST(iter.array == array) ;
+   TEST(iter.ri    == 0) ;
    TEST(0 == free_arraysfiterator(&iter)) ;
-   TEST(0 == iter.stack) ;
-   TEST(0 == iter.ri) ;
+   TEST(iter.stack == 0) ;
+   TEST(iter.array == array) ;
+   TEST(iter.ri    == 0) ;
    TEST(0 == free_arraysfiterator(&iter)) ;
-   TEST(0 == iter.stack) ;
-   TEST(0 == iter.ri) ;
+   TEST(iter.stack == 0) ;
+   TEST(iter.array == array) ;
+   TEST(iter.ri    == 0) ;
 
    // TEST next_arraysfiterator
    TEST(0 == initfirst_arraysfiterator(&iter, array)) ;
    nextpos = 0 ;
    for (iteratedtype_arraysf node = 0; !node; node = (void*)1) {
-      while (next_arraysfiterator(&iter, array, &node)) {
+      while (next_arraysfiterator(&iter, &node)) {
          TEST(node->pos == nextpos) ;
          ++ nextpos ;
       }
@@ -1310,6 +1315,20 @@ static int test_generic(void)
       TEST(&nodes[i] == at_t2arraysf(array2, 100000u + i)) ;
       TEST(2 == nodes[i].copycount) ;
    }
+
+   // TEST initfirst_arraysfiterator
+   arraysf_iterator_t iter = arraysf_iterator_INIT_FREEABLE ;
+   iter.ri = 1 ;
+   TEST(0 == initfirst_tarraysfiterator(&iter, array)) ;
+   TEST(iter.stack != 0) ;
+   TEST(iter.array == array) ;
+   TEST(iter.ri    == 0) ;
+
+   // TEST free_arraysfiterator
+   TEST(0 == free_tarraysfiterator(&iter)) ;
+   TEST(iter.stack == 0) ;
+   TEST(iter.array == array) ;
+   TEST(iter.ri    == 0) ;
 
    // TEST foreach all
    nextpos = 0 ;

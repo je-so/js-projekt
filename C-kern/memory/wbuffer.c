@@ -263,30 +263,34 @@ static int test_wbufferiterator(void)
 
    // TEST wbuffer_iterator_INIT_FREEABLE
    TEST(iter.next == 0) ;
+   TEST(iter.wbuf == 0) ;
 
    // TEST init_wbufferiterator
    memset(&iter, 1, sizeof(iter)) ;
    TEST(0 == initfirst_wbufferiterator(&iter, &wbuf)) ;
    TEST(iter.next == 0) ;
+   TEST(iter.wbuf == &wbuf) ;
 
    // TEST free_wbufferiterator
-   memset(&iter, 1, sizeof(iter)) ;
+   iter.next = (void*) 1 ;
+   iter.wbuf = &wbuf ;
    TEST(0 == free_wbufferiterator(&iter)) ;
    TEST(iter.next == 0) ;
+   TEST(iter.wbuf == &wbuf) ;
 
    // TEST next_wbufferiterator
    wbuf.next = wbuf.end ;
    TEST(0 == initfirst_wbufferiterator(&iter, &wbuf)) ;
-   TEST(true == next_wbufferiterator(&iter, &wbuf, &data)) ;
+   TEST(true == next_wbufferiterator(&iter, &data)) ;
    TEST(data.addr == (void*)1) ;
    TEST(data.size == 1000) ;
-   TEST(false == next_wbufferiterator(&iter, &wbuf, &data)) ;
-   TEST(false == next_wbufferiterator(&iter, &wbuf, &data)) ;
+   TEST(false == next_wbufferiterator(&iter, &data)) ;
+   TEST(false == next_wbufferiterator(&iter, &data)) ;
 
    // TEST next_wbufferiterator: empty wbuffer_t
    wbuf.next = wbuf.addr ;
    TEST(0 == initfirst_wbufferiterator(&iter, &wbuf)) ;
-   TEST(false == next_wbufferiterator(&iter, &wbuf, &data)) ;
+   TEST(false == next_wbufferiterator(&iter, &data)) ;
 
    return 0 ;
 ONABORT:

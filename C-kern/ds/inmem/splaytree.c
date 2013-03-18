@@ -568,6 +568,7 @@ int initfirst_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t 
    }
 
    iter->next = node ;
+   iter->tree = tree ;
    return 0 ;
 }
 
@@ -582,22 +583,23 @@ int initlast_splaytreeiterator(/*out*/splaytree_iterator_t * iter, splaytree_t *
    }
 
    iter->next = node ;
+   iter->tree = tree ;
    return 0 ;
 }
 
-bool next_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*out*/splaytree_node_t ** node)
+bool next_splaytreeiterator(splaytree_iterator_t * iter, /*out*/splaytree_node_t ** node)
 {
    int cmp/*not used*/ ;
 
    if (  !iter->next
-         || splaynode_splaytree(tree, iter->next, &cmp)) {
+         || splaynode_splaytree(iter->tree, iter->next, &cmp)) {
       return false ;
    }
 
-   *node = tree->root ;
+   *node = iter->tree->root ;
 
    // search next higher
-   splaytree_node_t * next = tree->root->right ;
+   splaytree_node_t * next = iter->tree->root->right ;
 
    if (next) {
       while (next->left) {
@@ -610,19 +612,19 @@ bool next_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*o
    return true ;
 }
 
-bool prev_splaytreeiterator(splaytree_iterator_t * iter, splaytree_t * tree, /*out*/splaytree_node_t ** node)
+bool prev_splaytreeiterator(splaytree_iterator_t * iter, /*out*/splaytree_node_t ** node)
 {
    int cmp/*not used*/ ;
 
    if (  !iter->next
-         || splaynode_splaytree(tree, iter->next, &cmp)) {
+         || splaynode_splaytree(iter->tree, iter->next, &cmp)) {
       return false ;
    }
 
-   *node = tree->root ;
+   *node = iter->tree->root ;
 
    // search next lower
-   splaytree_node_t * next = tree->root->left ;
+   splaytree_node_t * next = iter->tree->root->left ;
 
    if (next) {
       while (next->right) {
@@ -1129,29 +1131,36 @@ static int test_iterator(void)
 
    // TEST splaytree_iterator_INIT_FREEABLE
    TEST(0 == iter.next) ;
+   TEST(0 == iter.tree) ;
 
    // TEST initfirst_splaytreeiterator: empty tree
    iter.next = (void*)1 ;
+   iter.tree = 0 ;
    TEST(0 == initfirst_splaytreeiterator(&iter, &emptytree)) ;
-   TEST(0 == iter.next) ;
+   TEST(iter.next == 0) ;
+   TEST(iter.tree == &emptytree) ;
 
    // TEST next_splaytreeiterator: empty tree
    TEST(0 == initfirst_splaytreeiterator(&iter, &emptytree)) ;
-   TEST(false == next_splaytreeiterator(&iter, 0, 0)) ;
+   TEST(false == next_splaytreeiterator(&iter, 0)) ;
 
    // TEST initlast_splaytreeiterator: empty tree
    iter.next = (void*)1 ;
+   iter.tree = 0 ;
    TEST(0 == initlast_splaytreeiterator(&iter, &emptytree)) ;
-   TEST(0 == iter.next) ;
+   TEST(iter.next == 0) ;
+   TEST(iter.tree == &emptytree) ;
 
    // TEST prev_splaytreeiterator: empty tree
    TEST(0 == initlast_splaytreeiterator(&iter, &emptytree)) ;
-   TEST(false == prev_splaytreeiterator(&iter, 0, 0)) ;
+   TEST(false == prev_splaytreeiterator(&iter, 0)) ;
 
    // TEST free_splaytreeiterator
    iter.next = (void*)1 ;
+   iter.tree = &tree ;
    TEST(0 == free_splaytreeiterator(&iter)) ;
-   TEST(0 == iter.next) ;
+   TEST(iter.next == 0) ;
+   TEST(iter.tree == &tree) ;
 
    for (unsigned itercount = 0; itercount < 3; ++itercount) {
       // TEST initfirst_splaytreeiterator: full tree
@@ -1162,11 +1171,11 @@ static int test_iterator(void)
       for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
          splaytree_node_t * resultnode = &(*nodes1)[i].index ;
          splaytree_node_t * nextnode   = 0 ;
-         TEST(next_splaytreeiterator(&iter, &tree, &nextnode)) ;
+         TEST(next_splaytreeiterator(&iter, &nextnode)) ;
          TEST(resultnode == nextnode);
       }
       TEST(0 == iter.next) ;
-      TEST(! next_splaytreeiterator(&iter, &tree, 0)) ;
+      TEST(! next_splaytreeiterator(&iter, 0)) ;
 
       // TEST initlast_splaytreeiterator: full tree
       TEST(0 == initlast_splaytreeiterator(&iter, &tree)) ;
@@ -1176,11 +1185,11 @@ static int test_iterator(void)
       for (unsigned i = 0; i < lengthof((*nodes1)); ++i) {
          splaytree_node_t * resultnode = &(*nodes1)[lengthof((*nodes1))-1-i].index ;
          splaytree_node_t * nextnode   = 0 ;
-         TEST(prev_splaytreeiterator(&iter, &tree, &nextnode)) ;
+         TEST(prev_splaytreeiterator(&iter, &nextnode)) ;
          TEST(resultnode == nextnode);
       }
       TEST(0 == iter.next) ;
-      TEST(! prev_splaytreeiterator(&iter, &tree, 0)) ;
+      TEST(! prev_splaytreeiterator(&iter, 0)) ;
    }
 
    for (unsigned i = 0; 0 == i; i = 1) {

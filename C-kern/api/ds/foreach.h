@@ -3,9 +3,13 @@
    with simple <foreach> macro.
    Using the iterator interface directly is also possible
 
-   > int  init_containeriterator (container_iterator_t * iter, container_t * container) ;
+   > int  initfirst_containeriterator (container_iterator_t * iter, container_t * container) ;
+   > bool next_containeriterator (container_iterator_t * iter, container_node_t ** node) ;
+   >
+   > int  initlast_containeriterator (container_iterator_t * iter, container_t * container) ;
+   > bool prev_containeriterator (container_iterator_t * iter, container_node_t ** node) ;
+   >
    > int  free_containeriterator (container_iterator_t * iter) ;
-   > bool next_containeriterator (container_iterator_t * iter, container_t * container, container_node_t ** node) ;
 
    about: Copyright
    This program is free software.
@@ -64,7 +68,7 @@
  * > typedef node_t   * iteratedtype##_fctsuffix ;
  * > int  initfirst##_fctsuffix##iterator(iterator_t * iter, container_t * container) ;
  * > int  free##_fctsuffix##iterator(iterator_t * iter) ;
- * > bool next##_fctsuffix##iterator(iterator_t * iter, container_t * container, node_t ** node) ;
+ * > bool next##_fctsuffix##iterator(iterator_t * iter, node_t ** node) ;
  *
  * The function like typedefs iteratortype##_fctsuffix and iteratedtype##_fctsuffix are used to
  * get the type of the returned node from next##_fctsuffix##iterator and the type of
@@ -78,7 +82,7 @@
         0 == initfirst##_fsuffix##iterator(& _iter_##varname, (container));   \
         (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname);    \
                            break/*breaks outermost loop*/; })))               \
-   while (next##_fsuffix##iterator(&_iter_##varname, (container), &varname))
+   while (next##_fsuffix##iterator(&_iter_##varname, &varname))
 
 
 /* define: foreachReverse
@@ -114,10 +118,10 @@
  * > typedef node_t  *  iteratedtype##_fctsuffix ;
  * > int  initlast##_fctsuffix##iterator(iterator_t * iter, container_t * container) ;
  * > int  free##_fctsuffix##iterator(iterator_t * iter) ;
- * > bool prev##_fctsuffix##iterator(iterator_t * iter, container_t * container, node_t ** node) ;
+ * > bool prev##_fctsuffix##iterator(iterator_t * iter, node_t ** node) ;
  *
  * The function like typedefs iteratortype##_fctsuffix and iteratedtype##_fctsuffix are used to
- * get the type of the returned node from next##_fctsuffix##iterator and the type of
+ * get the type of the returned node from prev##_fctsuffix##iterator and the type of
  * the iterator.
  *
  * See <dlist_t> for an example.
@@ -128,6 +132,6 @@
         0 == initlast##_fsuffix##iterator(& _iter_##varname, (container)) ;   \
         (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname) ;   \
                          break/*breaks outermost loop*/; })))                 \
-   while (prev##_fsuffix##iterator(&_iter_##varname, (container), &varname))
+   while (prev##_fsuffix##iterator(&_iter_##varname, &varname))
 
 #endif

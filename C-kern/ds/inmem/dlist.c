@@ -417,12 +417,39 @@ ONABORT:
 
 static int test_dlistiterator(void)
 {
-   dlist_t     list = dlist_INIT ;
-   testnode_t  nodes[999] ;
+   dlist_t           list = dlist_INIT ;
+   dlist_iterator_t  iter = dlist_iterator_INIT_FREEABLE ;
+   testnode_t        nodes[999] ;
 
    memset(nodes, 0, sizeof(nodes)) ;
 
+   // TEST dlist_iterator_INIT_FREEABLE
+   TEST(0 == iter.next) ;
+   TEST(0 == iter.list) ;
+
+   // TEST initfirst_dlistiterator
+   TEST(0 == insertlast_dlist(&list, &nodes[0].node)) ;
+   TEST(0 == insertlast_dlist(&list, &nodes[1].node)) ;
+   iter.next = 0 ;
+   iter.list = 0 ;
+   TEST(0 == initfirst_dlistiterator(&iter, &list)) ;
+   TEST(iter.next == first_dlist(&list)) ;
+   TEST(iter.list == &list) ;
+
+   // TEST initlast_dlistiterator
+   iter.next = 0 ;
+   iter.list = 0 ;
+   TEST(0 == initlast_dlistiterator(&iter, &list)) ;
+   TEST(iter.next == last_dlist(&list)) ;
+   TEST(iter.list == &list) ;
+
+   // TEST free_dlistiterator
+   TEST(0 == free_dlistiterator(&iter)) ;
+   TEST(iter.next == 0) ;
+   TEST(iter.list == &list) ;
+
    // TEST foreach, foreachReverse: empty iteration
+   TEST(0 == removeall_dlist(&list, 0)) ;
    for (unsigned i = 0; 0 == i; i=1) {
       foreach (_dlist, node, &list) {
          TEST(node == &nodes[i].node) ;

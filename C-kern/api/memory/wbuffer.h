@@ -106,14 +106,15 @@ struct wbuffer_it {
  * The standard implementations provided by this module store all content
  * in one memory block. */
 struct wbuffer_iterator_t {
-   void * next ;
+   void      * next ;
+   wbuffer_t * wbuf ;
 } ;
 
 // group: lifetime
 
 /* define: wbuffer_iterator_INIT_FREEABLE
  * Static initializer. */
-#define wbuffer_iterator_INIT_FREEABLE    { 0 }
+#define wbuffer_iterator_INIT_FREEABLE    { 0, 0 }
 
 /* function: initfirst_wbufferiterator
  * Initializes an iterator for <wbuffer_t>. */
@@ -133,7 +134,7 @@ int free_wbufferiterator(wbuffer_iterator_t * iter) ;
  * Returns:
  * true  - memblock contains a pointer to the next valid <memblock_t>.
  * false - There is no next <memblock_t>. The last element was already returned or wbuf is empty. */
-bool next_wbufferiterator(wbuffer_iterator_t * iter, wbuffer_t * wbuf, /*out*/struct memblock_t ** memblock) ;
+bool next_wbufferiterator(wbuffer_iterator_t * iter, /*out*/struct memblock_t ** memblock) ;
 
 
 /* struct: wbuffer_t
@@ -375,21 +376,20 @@ void clear_wbuffer(wbuffer_t * wbuf) ;
 /* define: free_wbufferiterator
  * Implements <wbuffer_iterator_t.free_wbufferiterator>. */
 #define free_wbufferiterator(iter)                    \
-         (*(iter) = (wbuffer_iterator_t)wbuffer_iterator_INIT_FREEABLE, 0)
+         ((iter)->next = 0, 0)
 
 /* define: initfirst_wbufferiterator
  * Implements <wbuffer_iterator_t.initfirst_wbufferiterator>. */
 #define initfirst_wbufferiterator(iter, wbuf)         \
-         (*(iter) = (wbuffer_iterator_t)wbuffer_iterator_INIT_FREEABLE, 0)
+         (*(iter) = (typeof(*(iter))) { 0, wbuf }, 0)
 
 /* define: next_wbufferiterator
  * Implements <wbuffer_iterator_t.next_wbufferiterator>. */
-#define next_wbufferiterator(iter, wbuf, memblock)    \
+#define next_wbufferiterator(iter, memblock)          \
          ( __extension__ ({                           \
             wbuffer_iterator_t * _it = (iter) ;       \
-            wbuffer_t  * _wb = (wbuf) ;               \
-            (_wb->iimpl->iterate(_wb,                 \
-                        &_it->next, (memblock))) ;    \
+            (_it->wbuf->iimpl->iterate(_it->wbuf,     \
+                  &_it->next, (memblock))) ;          \
          }))
 
 #endif

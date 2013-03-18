@@ -477,6 +477,7 @@ int initfirst_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patric
    }
 
    iter->next = node ;
+   iter->tree = tree ;
    return 0 ;
 }
 
@@ -493,21 +494,22 @@ int initlast_patriciatrieiterator(/*out*/patriciatrie_iterator_t * iter, patrici
    }
 
    iter->next = node ;
+   iter->tree = tree ;
    return 0 ;
 }
 
 // group: iterate
 
-bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree, /*out*/patriciatrie_node_t ** node)
+bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node)
 {
    if (!iter->next) return false ;
 
    *node = iter->next ;
 
    typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, iter->next), &nextk) ;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, memberasobject_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
 
-   patriciatrie_node_t * next = tree->root ;
+   patriciatrie_node_t * next = iter->tree->root ;
    patriciatrie_node_t * parent ;
    patriciatrie_node_t * higher_branch_parent = 0 ;
    do {
@@ -535,16 +537,16 @@ bool next_patriciatrieiterator(patriciatrie_iterator_t * iter, patriciatrie_t * 
    return true ;
 }
 
-bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, patriciatrie_t * tree, /*out*/patriciatrie_node_t ** node)
+bool prev_patriciatrieiterator(patriciatrie_iterator_t * iter, /*out*/patriciatrie_node_t ** node)
 {
    if (!iter->next) return false ;
 
    *node = iter->next ;
 
    typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, iter->next), &nextk) ;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, memberasobject_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
 
-   patriciatrie_node_t * next = tree->root ;
+   patriciatrie_node_t * next = iter->tree->root ;
    patriciatrie_node_t * parent ;
    patriciatrie_node_t * lower_branch_parent = 0 ;
    do {
@@ -610,22 +612,23 @@ int initfirst_patriciatrieprefixiter(/*out*/patriciatrie_prefixiter_t * iter, pa
    }
 
    iter->next        = node ;
+   iter->tree        = tree ;
    iter->prefix_bits = prefix_bits ;
    return 0 ;
 }
 
 // group: iterate
 
-bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, patriciatrie_t * tree, /*out*/patriciatrie_node_t ** node)
+bool next_patriciatrieprefixiter(patriciatrie_prefixiter_t * iter, /*out*/patriciatrie_node_t ** node)
 {
    if (!iter->next) return false ;
 
    *node = iter->next ;
 
    typeadapt_binarykey_t nextk ;
-   callgetbinarykey_typeadaptmember(&tree->nodeadp, memberasobject_typeadaptmember(&tree->nodeadp, iter->next), &nextk) ;
+   callgetbinarykey_typeadaptmember(&iter->tree->nodeadp, memberasobject_typeadaptmember(&iter->tree->nodeadp, iter->next), &nextk) ;
 
-   patriciatrie_node_t * next = tree->root ;
+   patriciatrie_node_t * next = iter->tree->root ;
    patriciatrie_node_t * parent ;
    patriciatrie_node_t * higher_branch_parent = 0 ;
    do {
@@ -1318,49 +1321,63 @@ static int test_iterator(void)
 
    // TEST patriciatrie_iterator_INIT_FREEABLE
    TEST(0 == iter.next) ;
+   TEST(0 == iter.tree) ;
 
    // TEST initfirst_patriciatrieiterator: empty tree
    iter.next = (void*)1 ;
+   iter.tree = 0 ;
    TEST(0 == initfirst_patriciatrieiterator(&iter, &tree)) ;
-   TEST(0 == iter.next) ;
+   TEST(iter.next == 0) ;
+   TEST(iter.tree == &tree) ;
 
    // TEST initlast_patriciatrieiterator: empty tree
    iter.next = (void*)1 ;
+   iter.tree = 0 ;
    TEST(0 == initlast_patriciatrieiterator(&iter, &tree)) ;
-   TEST(0 == iter.next) ;
+   TEST(iter.next == 0) ;
+   TEST(iter.tree == &tree) ;
 
    // TEST next_patriciatrieiterator: empty tree
    TEST(0 == initfirst_patriciatrieiterator(&iter, &tree)) ;
-   TEST(0 == next_patriciatrieiterator(&iter, 0/*not needed*/, 0/*not used*/)) ;
+   TEST(0 == next_patriciatrieiterator(&iter, 0/*not used*/)) ;
 
    // TEST prev_patriciatrieiterator: empty tree
    TEST(0 == initlast_patriciatrieiterator(&iter, &tree)) ;
-   TEST(0 == prev_patriciatrieiterator(&iter, 0/*not needed*/, 0/*not used*/)) ;
+   TEST(0 == prev_patriciatrieiterator(&iter, 0/*not used*/)) ;
 
    // TEST free_patriciatrieiterator
    iter.next = (void*)1 ;
+   iter.tree = &tree ;
    TEST(0 == free_patriciatrieiterator(&iter)) ;
    TEST(0 == iter.next) ;
+   TEST(0 != iter.tree) ;
 
    // TEST patriciatrie_prefixiter_INIT_FREEABLE
    TEST(0 == preiter.next) ;
+   TEST(0 == preiter.tree) ;
    TEST(0 == preiter.prefix_bits) ;
 
    // TEST initfirst_patriciatrieprefixiter: empty tree
    preiter.next = (void*)1 ;
+   preiter.tree = 0 ;
    preiter.prefix_bits = 1 ;
    TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 0, 0)) ;
-   TEST(0 == preiter.next) ;
-   TEST(0 == preiter.prefix_bits) ;
+   TEST(preiter.next        == 0) ;
+   TEST(preiter.tree        == &tree) ;
+   TEST(preiter.prefix_bits == 0) ;
 
    // TEST next_patriciatrieprefixiter: empty tree
    TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 0, 0)) ;
-   TEST(0 == next_patriciatrieprefixiter(&preiter, 0/*not needed*/, 0/*not used*/)) ;
+   TEST(0 == next_patriciatrieprefixiter(&preiter, 0/*not used*/)) ;
 
    // TEST free_patriciatrieprefixiter
    preiter.next = (void*)1 ;
+   preiter.tree = &tree ;
+   preiter.prefix_bits = 1 ;
    TEST(0 == free_patriciatrieprefixiter(&preiter)) ;
    TEST(0 == preiter.next) ;
+   TEST(0 != preiter.tree) ;
+   TEST(0 != preiter.prefix_bits) ;
 
    // TEST both iterator
    srand(400) ;
@@ -1384,24 +1401,24 @@ static int test_iterator(void)
             TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, sizeof(nodes[i].key)-1, nodes[i].key)) ;
          }
          if (nodes[i].is_used) {
-            TEST(1 == next_patriciatrieprefixiter(&preiter, &tree, &found_node)) ;
+            TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node)) ;
             TEST(found_node == &nodes[i].node) ;
-            TEST(1 == next_patriciatrieiterator(&iter, &tree, &found_node)) ;
+            TEST(1 == next_patriciatrieiterator(&iter, &found_node)) ;
             TEST(found_node == &nodes[i].node) ;
          }
       }
       found_node = (void*)1 ;
-      TEST(false == next_patriciatrieiterator(&iter, &tree, &found_node)) ;
+      TEST(false == next_patriciatrieiterator(&iter, &found_node)) ;
       TEST(found_node == (void*)1/*not changed*/) ;
       TEST(0 == initlast_patriciatrieiterator(&iter, &tree)) ;
       for (int i = MAX_TREE_NODES-1; i >= 0 ; --i) {
          if (nodes[i].is_used) {
-            TEST(1 == prev_patriciatrieiterator(&iter, &tree, &found_node)) ;
+            TEST(1 == prev_patriciatrieiterator(&iter, &found_node)) ;
             TEST(found_node == &nodes[i].node) ;
          }
       }
       found_node = (void*)1 ;
-      TEST(false == prev_patriciatrieiterator(&iter, &tree, &found_node)) ;
+      TEST(false == prev_patriciatrieiterator(&iter, &found_node)) ;
       TEST(found_node == (void*)1/*not changed*/) ;
    }
 
@@ -1427,20 +1444,20 @@ static int test_iterator(void)
    }
    TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 1, nodes[0].key)) ;
    for (int i = 0; i < MAX_TREE_NODES; ++i) {
-      TEST(1 == next_patriciatrieprefixiter(&preiter, &tree, &found_node)) ;
+      TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node)) ;
       TEST(found_node == &nodes[i].node) ;
    }
    found_node = (void*)1 ;
-   TEST(false == next_patriciatrieprefixiter(&preiter, &tree, &found_node)) ;
+   TEST(false == next_patriciatrieprefixiter(&preiter, &found_node)) ;
    TEST(found_node == (void*)1/*not changed*/) ;
    for (int i = 0; i < MAX_TREE_NODES-255; i += 256) {
       TEST(0 == initfirst_patriciatrieprefixiter(&preiter, &tree, 2, nodes[i].key)) ;
       for (int g = 0; g <= 255; ++g) {
-         TEST(1 == next_patriciatrieprefixiter(&preiter, &tree, &found_node)) ;
+         TEST(1 == next_patriciatrieprefixiter(&preiter, &found_node)) ;
          TEST(found_node == &nodes[i+g].node) ;
       }
       found_node = (void*)1 ;
-      TEST(false == next_patriciatrieprefixiter(&preiter, &tree, &found_node)) ;
+      TEST(false == next_patriciatrieprefixiter(&preiter, &found_node)) ;
       TEST(found_node == (void*)1/*not changed*/) ;
    }
 

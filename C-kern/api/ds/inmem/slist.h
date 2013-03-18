@@ -75,13 +75,14 @@ int unittest_ds_inmem_slist(void) ;
  * */
 struct slist_iterator_t {
    struct slist_node_t * next ;
+   slist_t             * list ;
 } ;
 
 // group: lifetime
 
 /* define: slist_iterator_INIT_FREEABLE
  * Static initializer. */
-#define slist_iterator_INIT_FREEABLE   { 0 }
+#define slist_iterator_INIT_FREEABLE   { 0, 0 }
 
 /* function: initfirst_slistiterator
  * Initializes an iterator for <slist_t>. */
@@ -101,7 +102,7 @@ int free_slistiterator(slist_iterator_t * iter) ;
  * Returns:
  * true  - node contains a pointer to the next valid node in the list.
  * false - There is no next node. The last element was already returned or the list is empty. */
-bool next_slistiterator(slist_iterator_t * iter, slist_t * list, /*out*/struct slist_node_t ** node) ;
+bool next_slistiterator(slist_iterator_t * iter, /*out*/struct slist_node_t ** node) ;
 
 
 /* struct: slist_t
@@ -283,6 +284,43 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
 
 // section: inline implementation
 
+// group: slist_iterator_t
+
+/* define: free_slistiterator
+ * Implements <slist_t.free_slistiterator>. */
+#define free_slistiterator(iter)                      \
+         ((iter)->next = 0, 0)
+
+/* define: initfirst_slistiterator
+ * Implements <slist_t.initfirst_slistiterator>. */
+#define initfirst_slistiterator(iter, list)           \
+         ( __extension__ ({                           \
+            typeof(iter) _iter = (iter) ;             \
+            typeof(list) _list = (list) ;             \
+            *_iter = (typeof(*_iter))                 \
+                     { first_slist(_list), _list } ;  \
+            0 ;                                       \
+         }))
+
+/* define: next_slistiterator
+ * Implements <slist_t.next_slistiterator>. */
+#define next_slistiterator(iter, node)                \
+         ( __extension__ ({                           \
+            typeof(iter) _iter = (iter) ;             \
+            bool _isNext = (0 != _iter->next) ;       \
+            if (_isNext) {                            \
+               *(node) = _iter->next ;                \
+               if (_iter->list->last == _iter->next)  \
+                  _iter->next = 0 ;                   \
+               else                                   \
+                  _iter->next =                       \
+                           next_slist(_iter->next) ;  \
+            }                                         \
+            _isNext ;                                 \
+         }))
+
+// group: slist_t
+
 /* define: genericcast_slist
  * Implements <slist_t.genericcast_slist>. */
 #define genericcast_slist(list)                                                  \
@@ -322,29 +360,6 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
  * Implements <slist_t.removeall_slist> with help of <slist_t.free_slist>. */
 #define removeall_slist(list, nodeadp)       free_slist((list), (nodeadp))
 
-/* define: initfirst_slistiterator
- * Implements <slist_t.initfirst_slistiterator>. */
-#define initfirst_slistiterator(iter, list)  ((iter)->next = first_slist(list), 0)
-
-/* define: free_slistiterator
- * Implements <slist_t.free_slistiterator>. */
-#define free_slistiterator(iter)             ((iter)->next = 0, 0)
-
-/* define: next_slistiterator
- * Implements <slist_t.next_slistiterator>. */
-#define next_slistiterator(iter, list, node)          \
-   ( __extension__ ({                                 \
-      typeof(iter) _iter = (iter) ;                   \
-      bool _isNext = (0 != _iter->next) ;             \
-      if (_isNext) {                                  \
-         *(node)     = _iter->next ;                  \
-         _iter->next = ((list)->last == _iter->next)  \
-                     ? 0                              \
-                     : next_slist(_iter->next) ;      \
-      }                                               \
-      _isNext ;                                       \
-   }))
-
 /* define: slist_IMPLEMENT
  * Implements <slist_t.slist_IMPLEMENT>. */
 #define slist_IMPLEMENT(_fsuffix, object_t, name_nextptr)    \
@@ -352,7 +367,7 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    typedef object_t        *  iteratedtype##_fsuffix ;       \
    static inline int  initfirst##_fsuffix##iterator(slist_iterator_t * iter, slist_t * list) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix##iterator(slist_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(slist_iterator_t * iter, slist_t * list, object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool next##_fsuffix##iterator(slist_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline void init##_fsuffix(slist_t * list) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix(slist_t * list, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline int  isempty##_fsuffix(const slist_t * list) __attribute__ ((always_inline)) ; \
@@ -424,9 +439,9 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    static inline int free##_fsuffix##iterator(slist_iterator_t * iter) { \
       return free_slistiterator(iter) ; \
    } \
-   static inline bool next##_fsuffix##iterator(slist_iterator_t * iter, slist_t * list, object_t ** node) { \
-      bool isNext = next_slistiterator(iter, list, (slist_node_t**)node) ; \
-      if (isNext) *node = asobject##_fsuffix(*(slist_node_t**)node) ; \
+   static inline bool next##_fsuffix##iterator(slist_iterator_t * iter, object_t ** node) { \
+      bool isNext = next_slistiterator(iter, (slist_node_t**)node) ;    \
+      if (isNext) *node = asobject##_fsuffix(*(slist_node_t**)node) ;   \
       return isNext ; \
    }
 

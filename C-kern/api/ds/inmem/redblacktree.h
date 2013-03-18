@@ -95,13 +95,13 @@ int free_redblacktreeiterator(redblacktree_iterator_t * iter) ;
  * Returns next node of tree in ascending order.
  * The first call after <initfirst_redblacktreeiterator> returns the node with the lowest key.
  * In case no next node exists false is returned and parameter node is not changed. */
-bool next_redblacktreeiterator(redblacktree_iterator_t * iter, redblacktree_t * tree, /*out*/redblacktree_node_t ** node) ;
+bool next_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktree_node_t ** node) ;
 
 /* function: prev_redblacktreeiterator
  * Returns next node of tree in descending order.
  * The first call after <initlast_redblacktreeiterator> returns the node with the highest key.
  * In case no previous node exists false is returned and parameter node is not changed. */
-bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, redblacktree_t * tree, /*out*/redblacktree_node_t ** node) ;
+bool prev_redblacktreeiterator(redblacktree_iterator_t * iter, /*out*/redblacktree_node_t ** node) ;
 
 
 /* struct: redblacktree_t
@@ -249,7 +249,8 @@ void redblacktree_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, TYPENAME key_t, 
 
 /* define: free_redblacktreeiterator
  * Implements <redblacktree_iterator_t.free_redblacktreeiterator> as NOP. */
-#define free_redblacktreeiterator(iter)      ((iter)->next = 0, 0)
+#define free_redblacktreeiterator(iter)   \
+         ((iter)->next = 0, 0)
 
 /* function: getinistate_redblacktree
  * Implements <redblacktree_t.getinistate_redblacktree>. */
@@ -275,8 +276,8 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
    static inline int  initfirst##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree) __attribute__ ((always_inline)) ;   \
    static inline int  initlast##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(redblacktree_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline bool prev##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree, object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool next##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool prev##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline void init##_fsuffix(/*out*/redblacktree_t * tree, const typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix(redblacktree_t * tree) __attribute__ ((always_inline)) ; \
    static inline void getinistate##_fsuffix(const redblacktree_t * tree, /*out*/object_t ** root, /*out*/typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
@@ -337,13 +338,13 @@ static inline void getinistate_redblacktree(const redblacktree_t * tree, /*out*/
    static inline int  free##_fsuffix##iterator(redblacktree_iterator_t * iter) { \
       return free_redblacktreeiterator(iter) ; \
    } \
-   static inline bool next##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree, object_t ** node) { \
-      bool isNext = next_redblacktreeiterator(iter, tree, (redblacktree_node_t**)node) ; \
+   static inline bool next##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) { \
+      bool isNext = next_redblacktreeiterator(iter, (redblacktree_node_t**)node) ; \
       if (isNext) *node = asobject##_fsuffix(*(redblacktree_node_t**)node) ; \
       return isNext ; \
    } \
-   static inline bool prev##_fsuffix##iterator(redblacktree_iterator_t * iter, redblacktree_t * tree, object_t ** node) { \
-      bool isNext = prev_redblacktreeiterator(iter, tree, (redblacktree_node_t**)node) ; \
+   static inline bool prev##_fsuffix##iterator(redblacktree_iterator_t * iter, object_t ** node) { \
+      bool isNext = prev_redblacktreeiterator(iter, (redblacktree_node_t**)node) ; \
       if (isNext) *node = asobject##_fsuffix(*(redblacktree_node_t**)node) ; \
       return isNext ; \
    }

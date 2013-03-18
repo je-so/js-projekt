@@ -648,6 +648,7 @@ int initfirst_arraystfiterator(/*out*/arraystf_iterator_t * iter, arraystf_t * a
    if (err) goto ONABORT ;
 
    iter->stack = stack ;
+   iter->array = array ;
    iter->ri    = 0 ;
 
    return 0 ;
@@ -681,10 +682,10 @@ ONABORT:
    return err ;
 }
 
-bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out*/struct arraystf_node_t ** node)
+bool next_arraystfiterator(arraystf_iterator_t * iter, /*out*/struct arraystf_node_t ** node)
 {
    int err ;
-   size_t         nrelemroot = toplevelsize_arraystf(array) ;
+   size_t         nrelemroot = toplevelsize_arraystf(iter->array) ;
    arraystf_pos_t * pos ;
 
    for (;;) {
@@ -697,7 +698,7 @@ bool next_arraystfiterator(arraystf_iterator_t * iter, arraystf_t * array, /*out
             if (iter->ri >= nrelemroot) {
                return false ;
             }
-            rootnode = array->root[iter->ri ++] ;
+            rootnode = iter->array->root[iter->ri ++] ;
             if (rootnode) {
                if (!isbranchtype_arraystfunode(rootnode)) {
                   *node = node_arraystfunode(rootnode) ;
@@ -1372,25 +1373,29 @@ static int test_iterator(void)
 
    // TEST arraystf_iterator_INIT_FREEABLE
    TEST(0 == iter.stack) ;
+   TEST(0 == iter.array) ;
    TEST(0 == iter.ri) ;
 
    // TEST initfirst_arraystfiterator, free_arraystfiterator
    iter.ri = 1 ;
    TEST(0 == initfirst_arraystfiterator(&iter, array)) ;
-   TEST(0 != iter.stack) ;
+   TEST(iter.stack != 0) ;
+   TEST(iter.array == array) ;
+   TEST(iter.ri    == 0) ;
+   TEST(0 == free_arraystfiterator(&iter)) ;
+   TEST(0 == iter.stack) ;
+   TEST(0 != iter.array) ;
    TEST(0 == iter.ri) ;
    TEST(0 == free_arraystfiterator(&iter)) ;
    TEST(0 == iter.stack) ;
-   TEST(0 == iter.ri) ;
-   TEST(0 == free_arraystfiterator(&iter)) ;
-   TEST(0 == iter.stack) ;
+   TEST(0 != iter.array) ;
    TEST(0 == iter.ri) ;
 
    // TEST next_arraystfiterator
    TEST(0 == initfirst_arraystfiterator(&iter, array)) ;
    nextpos = 0 ;
    for (iteratedtype_arraystf node = 0; !node; node = (void*)1) {
-      while (next_arraystfiterator(&iter, array, &node)) {
+      while (next_arraystfiterator(&iter, &node)) {
          char nextnr[6] ;
          snprintf(nextnr, sizeof(nextnr), "%05zu", nextpos ++) ;
          TEST(0 == strcmp((const char*)node->addr, nextnr)) ;
@@ -1612,6 +1617,20 @@ static int test_generic(void)
       TEST(&nodes[i] == at_arraytest2(array2, node.node2.size, node.node2.addr)) ;
       TEST(2 == nodes[i].copycount) ;
    }
+
+   // TEST initfirst_arraystfiterator
+   arraystf_iterator_t iter = arraystf_iterator_INIT_FREEABLE ;
+   iter.ri = 1 ;
+   TEST(0 == initfirst_arraytestiterator(&iter, array)) ;
+   TEST(iter.stack != 0) ;
+   TEST(iter.array == array) ;
+   TEST(iter.ri    == 0) ;
+
+   // TEST free_arraystfiterator
+   TEST(0 == free_arraytestiterator(&iter)) ;
+   TEST(iter.stack == 0) ;
+   TEST(iter.array == array) ;
+   TEST(iter.ri    == 0) ;
 
    // TEST foreach all
    nextpos = nrnodes ;

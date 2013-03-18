@@ -66,13 +66,14 @@ int unittest_ds_inmem_dlist(void) ;
  */
 struct dlist_iterator_t {
    struct dlist_node_t * next ;
+   dlist_t             * list ;
 } ;
 
 // group: lifetime
 
 /* define: dlist_iterator_INIT_FREEABLE
  * Static initializer. */
-#define dlist_iterator_INIT_FREEABLE   { 0 }
+#define dlist_iterator_INIT_FREEABLE   { 0, 0 }
 
 /* function: initfirst_dlistiterator
  * Initializes an iterator for <dlist_t>. */
@@ -96,7 +97,7 @@ int free_dlistiterator(dlist_iterator_t * iter) ;
  * Returns:
  * true  - node contains a pointer to the next valid node in the list.
  * false - There is no next node. The last element was already returned or the list is empty. */
-bool next_dlistiterator(dlist_iterator_t * iter, dlist_t * list, /*out*/struct dlist_node_t ** node) ;
+bool next_dlistiterator(dlist_iterator_t * iter, /*out*/struct dlist_node_t ** node) ;
 
 /* function: prev_dlistiterator
  * Returns all elements from last to first node of list.
@@ -106,7 +107,7 @@ bool next_dlistiterator(dlist_iterator_t * iter, dlist_t * list, /*out*/struct d
  * Returns:
  * true  - node contains a pointer to the next valid node in the list.
  * false - There is no next node. The last element was already returned or the list is empty. */
-bool prev_dlistiterator(dlist_iterator_t * iter, dlist_t * list, /*out*/struct dlist_node_t ** node) ;
+bool prev_dlistiterator(dlist_iterator_t * iter, /*out*/struct dlist_node_t ** node) ;
 
 
 /* struct: dlist_t
@@ -253,6 +254,70 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 // section: inline implementation
 
+// group: dlist_iterator_t
+
+/* define: free_dlistiterator
+ * Implements <dlist_iterator_t.free_dlistiterator>. */
+#define free_dlistiterator(iter)    \
+         (((iter)->next = 0), 0)
+
+/* define: initfirst_dlistiterator
+ * Implements <dlist_iterator_t.initfirst_dlistiterator>. */
+#define initfirst_dlistiterator(iter, list)  \
+         ( __extension__ ({                                 \
+            typeof(iter) _iter = (iter) ;                   \
+            typeof(list) _list = (list) ;                   \
+            *_iter = (typeof(*_iter))                       \
+                        { first_dlist(_list), _list } ;     \
+            0 ;                                             \
+         }))
+
+/* define: initlast_dlistiterator
+ * Implements <dlist_iterator_t.initlast_dlistiterator>. */
+#define initlast_dlistiterator(iter, list)   \
+         ( __extension__ ({                                 \
+            typeof(iter) _iter = (iter) ;                   \
+            typeof(list) _list = (list) ;                   \
+            *_iter = (typeof(*_iter))                       \
+                        { last_dlist(_list), _list } ;      \
+            0 ;                                             \
+         }))
+
+/* define: next_dlistiterator
+ * Implements <dlist_iterator_t.next_dlistiterator>. */
+#define next_dlistiterator(iter, node)                      \
+         ( __extension__ ({                                 \
+            typeof(iter) _iter = (iter) ;                   \
+            bool _isNext = (0 != _iter->next) ;             \
+            if (_isNext) {                                  \
+               *(node) = _iter->next ;                      \
+               if (_iter->list->last == _iter->next)        \
+                  _iter->next = 0 ;                         \
+               else                                         \
+                  _iter->next = next_dlist(_iter->next) ;   \
+            }                                               \
+            _isNext ;                                       \
+         }))
+
+
+/* define: prev_dlistiterator
+ * Implements <dlist_iterator_t.prev_dlistiterator>. */
+#define prev_dlistiterator(iter, node)                      \
+         ( __extension__ ({                                 \
+            typeof(iter) _iter = (iter) ;                   \
+            bool _isNext = (0 != _iter->next) ;             \
+            if (_isNext) {                                  \
+               *(node)     = _iter->next ;                  \
+               _iter->next = prev_dlist(_iter->next) ;      \
+               if (_iter->list->last == _iter->next) {      \
+                  _iter->next = 0 ;                         \
+               }                                            \
+            }                                               \
+            _isNext ;                                       \
+         }))
+
+// group: dlist_t
+
 /* define: genericcast_dlist
  * Implements <dlist_t.genericcast_dlist>. */
 #define genericcast_dlist(list)                                                  \
@@ -268,10 +333,6 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
  * Implements <dlist_t.first_dlist>. */
 #define first_dlist(list)                    ((list)->last ? (list)->last->next : (struct dlist_node_t*)0)
 
-/* define: free_dlistiterator
- * Implements <dlist_iterator_t.free_dlistiterator>. */
-#define free_dlistiterator(iter)             (((iter)->next = 0), 0)
-
 /* define: last_dlist
  * Implements <dlist_t.last_dlist>. */
 #define last_dlist(list)                     ((list)->last)
@@ -279,14 +340,6 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 /* define: init_dlist
  * Implements <dlist_t.init_dlist>. */
 #define init_dlist(list)                     ((void)(*(list) = (dlist_t)dlist_INIT))
-
-/* define: initfirst_dlistiterator
- * Implements <dlist_iterator_t.initfirst_dlistiterator>. */
-#define initfirst_dlistiterator(iter, list)  (((iter)->next = first_dlist(list)), 0)
-
-/* define: initlast_dlistiterator
- * Implements <dlist_iterator_t.initlast_dlistiterator>. */
-#define initlast_dlistiterator(iter, list)   (((iter)->next = last_dlist(list)), 0)
 
 /* define: isempty_dlist
  * Implements <dlist_t.isempty_dlist>. */
@@ -296,41 +349,9 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
  * Implements <dlist_t.next_dlist>. */
 #define next_dlist(node)                     ((node)->next)
 
-/* define: next_dlistiterator
- * Implements <dlist_iterator_t.next_dlistiterator>. */
-#define next_dlistiterator(iter, list, node)          \
-   ( __extension__ ({                                 \
-      typeof(iter) _iter = (iter) ;                   \
-      bool _isNext = (0 != _iter->next) ;             \
-      if (_isNext) {                                  \
-         *(node)     = _iter->next ;                  \
-         _iter->next = ((list)->last == _iter->next)  \
-                     ? 0                              \
-                     : next_dlist(_iter->next) ;      \
-      }                                               \
-      _isNext ;                                       \
-   }))
-
-
 /* define: prev_dlist
  * Implements <dlist_t.prev_dlist>. */
 #define prev_dlist(node)                     ((node)->prev)
-
-/* define: prev_dlistiterator
- * Implements <dlist_iterator_t.prev_dlistiterator>. */
-#define prev_dlistiterator(iter, list, node)          \
-   ( __extension__ ({                                 \
-      typeof(iter) _iter = (iter) ;                   \
-      bool _isNext = (0 != _iter->next) ;             \
-      if (_isNext) {                                  \
-         *(node)     = _iter->next ;                  \
-         _iter->next = prev_dlist(_iter->next) ;      \
-         _iter->next = ((list)->last == _iter->next)  \
-                     ? 0                              \
-                     : _iter->next ;                  \
-      }                                               \
-      _isNext ;                                       \
-   }))
 
 /* define: removeall_dlist
  * Implements <dlist_t.removeall_dlist> with a call to <dlist_t.free_dlist>. */
@@ -344,8 +365,8 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
    static inline int  initfirst##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list) __attribute__ ((always_inline)) ;   \
    static inline int  initlast##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(dlist_iterator_t * iter) __attribute__ ((always_inline)) ; \
-   static inline bool next##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list, object_t ** node) __attribute__ ((always_inline)) ; \
-   static inline bool prev##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list, object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool next##_fsuffix##iterator(dlist_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
+   static inline bool prev##_fsuffix##iterator(dlist_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline void init##_fsuffix(dlist_t * list) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
    static inline int  isempty##_fsuffix(const dlist_t * list) __attribute__ ((always_inline)) ; \
@@ -429,13 +450,13 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
    static inline int free##_fsuffix##iterator(dlist_iterator_t * iter) { \
       return free_dlistiterator(iter) ; \
    } \
-   static inline bool next##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list, object_t ** node) { \
-      bool isNext = next_dlistiterator(iter, list, (dlist_node_t**)node) ; \
+   static inline bool next##_fsuffix##iterator(dlist_iterator_t * iter, object_t ** node) { \
+      bool isNext = next_dlistiterator(iter, (dlist_node_t**)node) ; \
       if (isNext) *node = asobject##_fsuffix(*(dlist_node_t**)node) ; \
       return isNext ; \
    } \
-   static inline bool prev##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list, object_t ** node) { \
-      bool isNext = prev_dlistiterator(iter, list, (dlist_node_t**)node) ; \
+   static inline bool prev##_fsuffix##iterator(dlist_iterator_t * iter, object_t ** node) { \
+      bool isNext = prev_dlistiterator(iter, (dlist_node_t**)node) ; \
       if (isNext) *node = asobject##_fsuffix(*(dlist_node_t**)node) ; \
       return isNext ; \
    }
