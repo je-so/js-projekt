@@ -37,7 +37,7 @@
 
 // group: lifetime
 
-int free_slist(slist_t * list, struct typeadapt_member_t * nodeadp)
+int free_slist(slist_t * list, uint16_t nodeoffset, struct typeadapt_t * typeadp)
 {
    int err ;
    slist_node_t * const last = list->last ;
@@ -48,7 +48,7 @@ int free_slist(slist_t * list, struct typeadapt_member_t * nodeadp)
 
       list->last = 0 ;
 
-      const bool isDelete = (nodeadp && iscalldelete_typeadapt(nodeadp->typeadp)) ;
+      const bool isDelete = (typeadp && iscalldelete_typeadapt(typeadp)) ;
 
       err = 0 ;
 
@@ -57,8 +57,8 @@ int free_slist(slist_t * list, struct typeadapt_member_t * nodeadp)
          next = node->next ;
          node->next = 0 ;
          if (isDelete) {
-            typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
-            int err2 = calldelete_typeadaptmember(nodeadp, &delobj) ;
+            typeadapt_object_t * delobj = memberasobject_typeadaptnodeoffset(nodeoffset, node) ;
+            int err2 = calldelete_typeadapt(typeadp, &delobj) ;
             if (err2) err = err2 ;
          }
       } while (last != node) ;
@@ -193,7 +193,7 @@ static int test_initfree(void)
    slist_t            slist     = slist_INIT ;
    slist_node_t       node      = slist_node_INIT ;
    testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
-   typeadapt_member_t nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, next)) ;
+   typeadapt_t *      typeadp   = genericcast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
 
    // TEST slist_node_INIT
@@ -206,9 +206,9 @@ static int test_initfree(void)
    slist.last  = (void*) 1 ;
    init_slist(&slist) ;
    TEST(0 == slist.last) ;
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    TEST(0 == slist.last) ;
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    TEST(0 == slist.last) ;
 
    // TEST initsingle_slist
@@ -218,7 +218,7 @@ static int test_initfree(void)
    TEST(last_slist(&slist)  == (struct slist_node_t*)&nodes[0].next) ;
 
    // TEST free_slist: call free callback (single element)
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    TEST(0 == slist.last) ;
    TEST(0 == nodes[0].next) ;
    TEST(1 == nodes[0].is_freed) ;
@@ -232,9 +232,9 @@ static int test_initfree(void)
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 != nodes[i].next) ;
    }
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    TEST(0 == slist.last) ;
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    TEST(0 == slist.last) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
@@ -250,9 +250,9 @@ static int test_initfree(void)
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 != nodes[i].next) ;
    }
-   TEST(0 == free_slist(&slist, 0)) ;
+   TEST(0 == free_slist(&slist, 0, 0)) ;
    TEST(0 == slist.last) ;
-   TEST(0 == free_slist(&slist, 0)) ;
+   TEST(0 == free_slist(&slist, 0, 0)) ;
    TEST(0 == slist.last) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
@@ -265,7 +265,7 @@ static int test_initfree(void)
       insertfirst_slist(&slist, (struct slist_node_t*)&nodes[i].next) ;
    }
    init_testerrortimer(&typeadapt.errcounter, 3, ENOMEM) ;
-   TEST(ENOMEM == free_slist(&slist, &nodeadapt)) ;
+   TEST(ENOMEM == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST((lengthof(nodes)-3!=i) == nodes[i].is_freed) ;
@@ -274,7 +274,7 @@ static int test_initfree(void)
 
    return 0 ;
 ONABORT:
-   free_slist(&slist, &nodeadapt) ;
+   free_slist(&slist, offsetof(testnode_t, next), typeadp) ;
    return EINVAL ;
 }
 
@@ -377,7 +377,7 @@ static int test_insertremove(void)
 {
    slist_t            slist      = slist_INIT ;
    testnode_adapt_t   typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_delete_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
-   typeadapt_member_t nodeadapt  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t, next)) ;
+   typeadapt_t *      typeadp    = genericcast_typeadapt(&typeadapt, testnode_adapt_t, testnode_t, void*) ;
    testnode_t         nodes[100] = { { 0, 0, 0 } } ;
    slist_node_t       * node     = 0 ;
 
@@ -439,7 +439,7 @@ static int test_insertremove(void)
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(nodes[(i+1)%lengthof(nodes)].next == (slist_node_t*)&nodes[i].next) ;
    }
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -456,7 +456,7 @@ static int test_insertremove(void)
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(nodes[i].next == (slist_node_t*)&nodes[(i+1)%lengthof(nodes)].next) ;
    }
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -479,7 +479,7 @@ static int test_insertremove(void)
    }
    TEST(&nodes[0].next                     == (void*)first_slist(&slist)) ;
    TEST(&nodes[lengthof(nodes)-1].next == (void*)last_slist(&slist)) ;
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -498,7 +498,7 @@ static int test_insertremove(void)
       TEST(node == (slist_node_t*)&nodes[i].next)
    }
    TEST(0 == slist.last) ;
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -524,7 +524,7 @@ static int test_insertremove(void)
    TEST(0 == removeafter_slist(&slist, (struct slist_node_t*)&nodes[0].next, &node)) ;
    TEST(node == (slist_node_t*)&nodes[0].next)
    TEST(0 == slist.last) ;
-   TEST(0 == free_slist(&slist, &nodeadapt)) ;
+   TEST(0 == free_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -540,7 +540,7 @@ static int test_insertremove(void)
    }
    TEST(&nodes[lengthof(nodes)-1].next   == (void*)first_slist(&slist)) ;
    TEST(&nodes[lengthof(nodes)/2-1].next == (void*)last_slist(&slist)) ;
-   TEST(0 == removeall_slist(&slist, &nodeadapt)) ;
+   TEST(0 == removeall_slist(&slist, offsetof(testnode_t, next), typeadp)) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].next) ;
       TEST(1 == nodes[i].is_freed) ;
@@ -557,7 +557,7 @@ static int test_insertremove(void)
 
    return 0 ;
 ONABORT:
-   free_slist(&slist, 0) ;
+   free_slist(&slist, 0, 0) ;
    return EINVAL ;
 }
 
@@ -604,10 +604,9 @@ static int test_generic(void)
    slist_t              slist1     = slist_INIT ;
    slist_t              slist2     = slist_INIT ;
    gnodeadapter_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &impl_deleteobject_gnodeadapter), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,gnodeadapter_t,gnode_t,void*), offsetof(gnode_t,next)) ;
-   typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,gnodeadapter_t,gnode_t,void*), offsetof(gnode_t,next2.next)) ;
+   typeadapt_t *        typeadp    = genericcast_typeadapt(&typeadapt, gnodeadapter_t, gnode_t, void*) ;
    gnode_t              nodes[100] = { { 0, 0, 0, {0}, 0, 0 } } ;
-   gnode_t              * removed_node ;
+   gnode_t *            removed_node ;
 
    // TEST slist_node_EMBED
    static_assert(offsetof(gnode_t, next) == sizeof(((gnode_t*)0)->marker1), "next after marker1 defined") ;
@@ -637,8 +636,8 @@ static int test_generic(void)
       }
       TEST(i == 0) ;
    }
-   TEST(0 == free_slist1(&slist1, &nodeadapt1)) ;
-   TEST(0 == free_slist2(&slist2, &nodeadapt2)) ;
+   TEST(0 == free_slist1(&slist1, typeadp)) ;
+   TEST(0 == free_slist2(&slist2, typeadp)) ;
 
    // TEST init_slist
    slist1.last = (void*) 1 ;
@@ -692,10 +691,10 @@ static int test_generic(void)
    TEST(&nodes[0] == last_slist2(&slist2)) ;
    TEST(0 == isempty_slist1(&slist1)) ;
    TEST(0 == isempty_slist2(&slist2)) ;
-   TEST(0 == free_slist1(&slist1, &nodeadapt1)) ;
+   TEST(0 == free_slist1(&slist1, typeadp)) ;
    TEST(1 == nodes[0].is_freed)
    TEST(1 == typeadapt.freenode_count) ;
-   TEST(0 == free_slist2(&slist2, &nodeadapt2)) ;
+   TEST(0 == free_slist2(&slist2, typeadp)) ;
    TEST(2 == nodes[0].is_freed)
    TEST(2 == typeadapt.freenode_count) ;
    nodes[0].is_freed = 0 ;
@@ -749,9 +748,9 @@ static int test_generic(void)
 
    // TEST free_slist: no error
    typeadapt.freenode_count = 0 ;
-   TEST(0 == free_slist1(&slist1, &nodeadapt1)) ;
+   TEST(0 == free_slist1(&slist1, typeadp)) ;
    TEST(2 == typeadapt.freenode_count) ;
-   TEST(0 == free_slist2(&slist2, &nodeadapt2)) ;
+   TEST(0 == free_slist2(&slist2, typeadp)) ;
    TEST(4 == typeadapt.freenode_count) ;
    for (unsigned i = 1; i <= 2; ++i) {
       TEST(2 == nodes[i].is_freed) ;
@@ -770,12 +769,12 @@ static int test_generic(void)
    }
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 5, ENOSYS) ;
-   TEST(ENOSYS == free_slist1(&slist1, &nodeadapt1)) ;
+   TEST(ENOSYS == free_slist1(&slist1, typeadp)) ;
    TEST(1 == isempty_slist1(&slist1)) ;
    TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 5, EINVAL) ;
-   TEST(EINVAL == free_slist2(&slist2, &nodeadapt2)) ;
+   TEST(EINVAL == free_slist2(&slist2, typeadp)) ;
    TEST(1 == isempty_slist2(&slist2)) ;
    TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {

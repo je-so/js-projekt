@@ -173,7 +173,6 @@ struct textresource_language_t {
 } ;
 
 static typeadapt_impl_t    g_textreslang_adapter     = typeadapt_impl_INIT(sizeof(textresource_language_t)) ;
-static typeadapt_member_t  g_textreslang_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_textreslang_adapter, offsetof(textresource_language_t, next)) ;
 
 slist_IMPLEMENT(_languagelist, textresource_language_t, next)
 
@@ -223,7 +222,7 @@ struct textresource_textatom_t {
 } ;
 
 static typeadapt_impl_t    g_textatom_adapter     = typeadapt_impl_INIT(sizeof(textresource_textatom_t)) ;
-static typeadapt_member_t  g_textatom_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_textatom_adapter, offsetof(textresource_textatom_t, next)) ;
+
 
 // group: lifetime
 
@@ -267,7 +266,6 @@ static int copyobj_textresourcecondition(textresource_condition_adapt_t * typead
 static int freeobj_textresourcecondition(textresource_condition_adapt_t * typeadp, textresource_condition_t ** cond) ;
 
 static textresource_condition_adapt_t  g_condition_adapter     = typeadapt_INIT_LIFETIME(&copyobj_textresourcecondition, &freeobj_textresourcecondition) ;
-static typeadapt_member_t              g_condition_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_condition_adapter, offsetof(textresource_condition_t, next)) ;
 
 slist_IMPLEMENT(_conditionlist, textresource_condition_t, next)
 
@@ -305,7 +303,7 @@ static int freeobj_textresourcecondition(textresource_condition_adapt_t * typead
 
       *cond = 0 ;
 
-      err = free_textatomlist(&delobj->atomlist, &g_textatom_nodeadapter) ;
+      err = free_textatomlist(&delobj->atomlist, (typeadapt_t*)&g_textatom_adapter) ;
 
       memblock_t  mblock = memblock_INIT(sizeof(textresource_condition_t), (uint8_t*)delobj) ;
       err2 = FREE_MM(&mblock) ;
@@ -356,7 +354,6 @@ static int copyobj_textresourcelangref(textresource_langref_adapt_t * typeadp, /
 static int freeobj_textresourcelangref(textresource_langref_adapt_t * typeadp, textresource_langref_t ** lang) ;
 
 static textresource_langref_adapt_t    g_langref_adapter     = typeadapt_INIT_LIFETIME(&copyobj_textresourcelangref, &freeobj_textresourcelangref) ;
-static typeadapt_member_t              g_langref_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_langref_adapter, offsetof(textresource_langref_t,next)) ;
 
 slist_IMPLEMENT(_langreflist, textresource_langref_t, next)
 
@@ -396,7 +393,7 @@ static int freeobj_textresourcelangref(textresource_langref_adapt_t * typeadp, t
 
       *lang = 0 ;
 
-      err = free_conditionlist(&delobj->condlist, &g_condition_nodeadapter) ;
+      err = free_conditionlist(&delobj->condlist, (typeadapt_t*)&g_condition_adapter) ;
 
       memblock_t  mblock = memblock_INIT(sizeof(textresource_langref_t), (uint8_t*)delobj) ;
       err2 = FREE_MM(&mblock) ;
@@ -518,7 +515,7 @@ static int freeobj_textresourcetext(textresource_text_adapt_t * typeadt, textres
       err2 = delete_arrayparam(&delobj->params, &g_parameter_nodeadapter) ;  // delete nodes
       if (err2) err = err2 ;
 
-      err2 = free_langreflist(&delobj->langlist, &g_langref_nodeadapter) ;
+      err2 = free_langreflist(&delobj->langlist, (typeadapt_t*)&g_langref_adapter) ;
       if (err2) err = err2 ;
 
       err2 = FREE_MM(&mblock) ;
@@ -613,7 +610,7 @@ static int free_textresource(textresource_t * textres)
    err2 = delete_arraytname(&textres->textnames, &g_textrestext_nodeadapter) ;
    if (err) err = err2 ;
 
-   err2 = free_languagelist(&textres->languages, &g_textreslang_nodeadapter) ;
+   err2 = free_languagelist(&textres->languages, (typeadapt_t*)&g_textreslang_adapter) ;
    if (err) err = err2 ;
 
    if (err) goto ONABORT ;
