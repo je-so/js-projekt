@@ -244,12 +244,13 @@ dlist_t * genericcast_dlist(void * list) ;
  * Generates interface of double linked list storing elements of type object_t.
  *
  * Parameter:
- * _fsuffix  - The suffix of the generated list interface functions, e.g. "init##_fsuffix".
- * object_t  - The type of object which can be stored and retrieved from this list.
- *             The object must contain a field of type <dlist_node_t>.
- * nodename  - The access path of the field <dlist_node_t> in type object_t.
+ * _fsuffix   - The suffix of the generated list interface functions, e.g. "init##_fsuffix".
+ * object_t   - The type of object which can be stored and retrieved from this list.
+ *              The object must contain a field of type <dlist_node_t>.
+ * nodeprefix - The access path of the field <dlist_node_t> in type object_t including ".".
+ *              if next and prev pointers are part of object_t leave this field emtpy.
  * */
-void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
+void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
 
 
 // section: inline implementation
@@ -320,14 +321,19 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 /* define: genericcast_dlist
  * Implements <dlist_t.genericcast_dlist>. */
-#define genericcast_dlist(list)                                                  \
-   ( __extension__ ({                                                            \
-      static_assert(offsetof(typeof(*(list)), last) == offsetof(dlist_t, last),  \
-         "ensure same structure") ;                                              \
-      static_assert((typeof((list)->last))0 == (dlist_node_t*)0,                 \
-         "ensure same type") ;                                                   \
-      (dlist_t*) (list) ;                                                        \
-   }))
+#define genericcast_dlist(list)                             \
+         ( __extension__ ({                                 \
+            static_assert(                                  \
+                  sizeof((list)->last)                      \
+                  == sizeof(((dlist_t*)0)->last)            \
+                  && offsetof(typeof(*(list)), last)        \
+                  == offsetof(dlist_t, last)                \
+                  && (typeof((list)->last))0                \
+                     == (dlist_node_t*)0,                   \
+                  "ensure compatible structure"             \
+            ) ;                                             \
+            (dlist_t*) (list) ;                             \
+         }))
 
 /* define: first_dlist
  * Implements <dlist_t.first_dlist>. */
@@ -359,9 +365,9 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
 
 /* define: dlist_IMPLEMENT
  * Implements <dlist_t.dlist_IMPLEMENT>. */
-#define dlist_IMPLEMENT(_fsuffix, object_t, nodename)    \
-   typedef dlist_iterator_t iteratortype##_fsuffix ;     \
-   typedef object_t       * iteratedtype##_fsuffix ;     \
+#define dlist_IMPLEMENT(_fsuffix, object_t, nodeprefix)     \
+   typedef dlist_iterator_t   iteratortype##_fsuffix ;      \
+   typedef object_t *         iteratedtype##_fsuffix ;      \
    static inline int  initfirst##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list) __attribute__ ((always_inline)) ;   \
    static inline int  initlast##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list) __attribute__ ((always_inline)) ;    \
    static inline int  free##_fsuffix##iterator(dlist_iterator_t * iter) __attribute__ ((always_inline)) ; \
@@ -382,15 +388,20 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodename) ;
    static inline int removelast##_fsuffix(dlist_t * list, object_t ** removed_node) __attribute__ ((always_inline)) ;   \
    static inline int remove##_fsuffix(dlist_t * list, object_t * node) __attribute__ ((always_inline)) ; \
    static inline int removeall##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
+   static inline uintptr_t nodeoffset##_fsuffix(void) __attribute__ ((always_inline)) ; \
+   static inline uintptr_t nodeoffset##_fsuffix(void) { \
+      return (uintptr_t) & (((object_t*)0)->nodeprefix next) ; \
+   }  \
    static inline dlist_node_t * asnode##_fsuffix(object_t * object) { \
-      static_assert(&((object_t*)0)->nodename == (dlist_node_t*)offsetof(object_t, nodename), "correct type") ; \
-      return (dlist_node_t *) ((uintptr_t)object + offsetof(object_t, nodename)) ; \
+      static_assert(&(((object_t*)0)->nodeprefix next) == (dlist_node_t**)(nodeoffset##_fsuffix()), "correct type") ; \
+      static_assert(&(((object_t*)0)->nodeprefix prev) == (dlist_node_t**)(nodeoffset##_fsuffix() + sizeof(dlist_node_t*)), "correct type and offset") ; \
+      return (dlist_node_t *) ((uintptr_t)object + nodeoffset##_fsuffix()) ; \
    } \
    static inline object_t * asobject##_fsuffix(dlist_node_t * node) { \
-      return (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) ; \
+      return (object_t *) ((uintptr_t)node - nodeoffset##_fsuffix()) ; \
    } \
    static inline object_t * asobjectnull##_fsuffix(dlist_node_t * node) { \
-      return node ? (object_t *) ((uintptr_t)node - offsetof(object_t, nodename)) : 0 ; \
+      return node ? (object_t *) ((uintptr_t)node - nodeoffset##_fsuffix()) : 0 ; \
    } \
    static inline void init##_fsuffix(dlist_t * list) { \
       init_dlist(list) ; \

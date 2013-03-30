@@ -245,7 +245,8 @@ struct testnode_t {
 struct genericnode_t {
    int is_freed ;
    // both dlist_node_t with offset !
-   dlist_node_t   node1 ;
+   dlist_node_t * next ;
+   dlist_node_t * prev ;
    dlist_node_t   node2 ;
 } ;
 
@@ -1001,13 +1002,13 @@ ONABORT:
    return EINVAL ;
 }
 
-dlist_IMPLEMENT(_glist1, genericnode_t, node1)
-dlist_IMPLEMENT(_glist2, genericnode_t, node2)
+dlist_IMPLEMENT(_glist1, genericnode_t, )
+dlist_IMPLEMENT(_glist2, genericnode_t, node2.)
 
 static int test_generic(void)
 {
    genericadapt_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node1)) ;
+   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, next)) ;
    typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node2)) ;
    dlist_t              list1 = dlist_INIT ;
    dlist_t              list2 = dlist_INIT ;
@@ -1051,8 +1052,8 @@ static int test_generic(void)
    TEST(0 == list2.last) ;
    TEST(0 == memcmp(&nodes[0], &nodes[1], sizeof(nodes[0]))) ;
    TEST(0 == insertfirst_glist1(&list1, &nodes[0])) ;
-   TEST(nodes[0].node1.next == &nodes[0].node1) ;
-   TEST(nodes[0].node1.prev == &nodes[0].node1) ;
+   TEST(nodes[0].next == (void*)&nodes[0].next) ;
+   TEST(nodes[0].prev == (void*)&nodes[0].next) ;
    TEST(0 == memcmp(&nodes[0].node2, &nodes[1].node2, sizeof(nodes[0].node2))) ;
    TEST(0 == insertfirst_glist2(&list2, &nodes[0])) ;
    TEST(nodes[0].node2.next == &nodes[0].node2) ;
@@ -1144,8 +1145,8 @@ static int test_generic(void)
    nodes[2].is_freed = 0 ;
    nodes[3].is_freed = 0 ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == nodes[i].node1.next) ;
-      TEST(0 == nodes[i].node1.prev) ;
+      TEST(0 == nodes[i].next) ;
+      TEST(0 == nodes[i].prev) ;
       TEST(0 == nodes[i].node2.next) ;
       TEST(0 == nodes[i].node2.prev) ;
       TEST(0 == nodes[i].is_freed) ;
@@ -1167,8 +1168,8 @@ static int test_generic(void)
    TEST(1 == isempty_glist2(&list2)) ;
    TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == nodes[i].node1.next) ;
-      TEST(0 == nodes[i].node1.prev) ;
+      TEST(0 == nodes[i].next) ;
+      TEST(0 == nodes[i].prev) ;
       TEST(0 == nodes[i].node2.next) ;
       TEST(0 == nodes[i].node2.prev) ;
       TEST(2*(i!=4) == nodes[i].is_freed) ;
@@ -1205,8 +1206,8 @@ static int test_generic(void)
    TEST(0 == free_glist1(&list1, 0)) ;
    TEST(0 == free_glist2(&list2, 0)) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
-      TEST(0 == nodes[i].node1.next) ;
-      TEST(0 == nodes[i].node1.prev) ;
+      TEST(0 == nodes[i].next) ;
+      TEST(0 == nodes[i].prev) ;
       TEST(0 == nodes[i].node2.next) ;
       TEST(0 == nodes[i].node2.prev) ;
       TEST(0 == nodes[i].is_freed) ;
