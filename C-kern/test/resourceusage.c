@@ -177,8 +177,8 @@ static int test_initfree(void)
    size_t          malloc_usage  = 1 ;
    size_t          malloc_usage2 = 0 ;
    int             fd            = -1 ;
-   void          * memblock      = 0 ;
-   vm_block_t      vmblock       = vm_block_INIT_FREEABLE ;
+   void *          memblock      = 0 ;
+   vmpage_t        vmblock       = vmpage_INIT_FREEABLE ;
    resourceusage_t usage         = resourceusage_INIT_FREEABLE ;
    resourceusage_t usage2        = resourceusage_INIT_FREEABLE ;
    bool            isoldsigmask  = false ;
@@ -252,10 +252,10 @@ static int test_initfree(void)
 
    // TEST compare EAGAIN cause of virtual memory
    TEST(0 == init_resourceusage(&usage)) ;
-   TEST(0 == init_vmblock(&vmblock,1)) ;
+   TEST(0 == init_vmpage(&vmblock,1)) ;
    TEST(EAGAIN == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
-   TEST(0 == free_vmblock(&vmblock)) ;
+   TEST(0 == free_vmpage(&vmblock)) ;
    TEST(usage.file_usage   == usage2.file_usage) ;
    TEST(usage.malloc_usage == usage2.malloc_usage - usage.malloc_correction) ;
    TEST(0 == free_resourceusage(&usage2)) ;
@@ -283,7 +283,7 @@ static int test_initfree(void)
 ONABORT:
    free(memblock) ;
    free_file(&fd) ;
-   (void) free_vmblock(&vmblock) ;
+   (void) free_vmpage(&vmblock) ;
    (void) free_resourceusage(&usage) ;
    if (isoldsigmask) (void) sigprocmask(SIG_SETMASK, &oldsigmask, 0) ;
    return EINVAL ;

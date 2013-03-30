@@ -64,7 +64,7 @@ int unittest_ds_inmem_binarystack(void) ;
  * So if you need to align memory to number X make sure that every push operation pushes only objects
  * with sizes which are multiples of X. The first pushed object is page aligned (see <pagesize_vm>).
  *
- * TODO: replace <init_vmblock>, <free_vmblock> with cached vmblock implementation.
+ * TODO: replace <init_vmpage>, <free_vmpage> with cached vmpage implementation.
  * */
 struct binarystack_t {
    /* variable: freeblocksize

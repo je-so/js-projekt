@@ -28,6 +28,7 @@
 #include "C-kern/api/lang/transC/transCstringtable.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/string/stringstream.h"
 #ifdef KONFIG_UNITTEST
@@ -41,15 +42,15 @@
  * Header of memory page which stores <transCstringtable_entry_t>.
  * The header of a memory page is stored within the page itself at offset 0. */
 struct transCstringtable_page_t {
-   slist_node_t *          next ;
-   vm_block_t              vmblock ;
+   slist_node_t *       next ;
+   vmpage_t             vmblock ;
 } ;
 
 // group: variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_transCstringtablepage_error
- * Simulates <init_vmblock> error in <new_transCstringtablepage>. */
+ * Simulates <init_vmpage> error in <new_transCstringtablepage>. */
 test_errortimer_t          s_transCstringtablepage_error = test_errortimer_INIT_FREEABLE ;
 #endif
 
@@ -60,13 +61,13 @@ test_errortimer_t          s_transCstringtablepage_error = test_errortimer_INIT_
 int new_transCstringtablepage(/*out*/transCstringtable_page_t ** page)
 {
    int err ;
-   vm_block_t                 vmblock ;
+   vmpage_t                   vmblock ;
    transCstringtable_page_t * newpage ;
 
    static_assert(sizeof(transCstringtable_page_t) <= 128, "pagesize_vm() >= 256") ;
 
    ONERROR_testerrortimer(&s_transCstringtablepage_error, ONABORT) ;
-   err = init_vmblock(&vmblock, 1) ;
+   err = init_vmpage(&vmblock, 1) ;
    if (err) goto ONABORT ;
 
    newpage = (transCstringtable_page_t *) vmblock.addr ;
@@ -93,7 +94,7 @@ int delete_transCstringtablepage(transCstringtable_page_t ** page)
 
       delpage->next  = 0 ;
 
-      err = free_vmblock(&delpage->vmblock) ;
+      err = free_vmpage(&delpage->vmblock) ;
       if (err) goto ONABORT ;
    }
 

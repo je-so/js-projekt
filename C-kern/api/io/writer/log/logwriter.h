@@ -26,7 +26,6 @@
 #ifndef CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 #define CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 
-#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/io/writer/log/log_it.h"
 
 
@@ -59,7 +58,10 @@ struct logwriter_t
     * Holds memory address and size of internal buffer.
     * If buffering mode is off this buffer can hold only one entry.
     * If buffering mode is one this buffer can hold several log entries. */
-   memblock_t     buffer ;
+   struct {
+      uint8_t *   addr ;
+      size_t      size ;
+   }              buffer ;
    /* variable: logsize
     * Stores the size in bytes of the buffered log entries.
     * If the buffer is empty this entry is 0. */
@@ -82,7 +84,7 @@ int freethread_logwriter(log_t * log) ;
 
 /* define: logwriter_INIT_FREEABLE
  * Static initializer. */
-#define logwriter_INIT_FREEABLE        {  memblock_INIT_FREEABLE, 0 }
+#define logwriter_INIT_FREEABLE        {  { 0, 0 }, 0 }
 
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.

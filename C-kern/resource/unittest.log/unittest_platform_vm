@@ -1,6 +1,6 @@
-C-kern/platform/Linux/vm.c:465: tryexpand_vmblock(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:527: shrink_vmblock(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:390: init2_vmblock(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:495: movexpand_vmblock(): error: 12: Function aborted
-C-kern/platform/Linux/vm.c:486: movexpand_vmblock(): error: Could not allocate 4294926336 bytes of memory
-C-kern/platform/Linux/vm.c:495: movexpand_vmblock(): error: 12: Function aborted
+C-kern/platform/Linux/vm.c:472: tryexpand_vmpage(): error: 22: Function aborted
+C-kern/platform/Linux/vm.c:534: shrink_vmpage(): error: 22: Function aborted
+C-kern/platform/Linux/vm.c:397: init2_vmpage(): error: 22: Function aborted
+C-kern/platform/Linux/vm.c:502: movexpand_vmpage(): error: 12: Function aborted
+C-kern/platform/Linux/vm.c:493: movexpand_vmpage(): error: Could not allocate 4294926336 bytes of memory
+C-kern/platform/Linux/vm.c:502: movexpand_vmpage(): error: 12: Function aborted

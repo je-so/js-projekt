@@ -26,12 +26,11 @@
 #define CKERN_MEMORY_VM_HEADER
 
 #include "C-kern/api/cache/valuecache.h"
-#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/io/accessmode.h"
 
-/* typedef: struct vm_block_t
- * Exports <vm_block_t>. */
-typedef struct memblock_t              vm_block_t ;
+/* typedef: struct vmpage_t
+ * Exports <vmpage_t> into global namespace. */
+typedef struct vmpage_t                vmpage_t ;
 
 /* typedef: struct vm_region_t
  * Exports <vm_region_t>, describes a single virtual memory region. */
@@ -69,75 +68,105 @@ int unittest_platform_vm(void) ;
 #endif
 
 
-/* struct: vm_block_t
- * It is a synonym for <memblock_t>.
+/* struct: vmpage_t
+ * Type has same structure as <memblock_t>.
  * The size of the mapped memory block is always
  * a multiple of <pagesize_vm>. */
-struct vm_block_t ;
+struct vmpage_t {
+   /* variable: addr
+    * Points to start (lowest) address of memory. */
+   uint8_t  * addr ;
+   /* variable: size
+    * Size of memory in bytes <addr> points to.
+    * A value of 0 indicates a free memory page.
+    * The valid memory region is
+    * > addr[ 0 .. size - 1 ] */
+   size_t   size ;
+} ;
 
 // group: lifetime
 
-/* define: vm_block_INIT_FREEABLE
- * Static initializer. Sets object of type <vm_block_t> to NULL.
- * Unmapping (<free_vmblock>) such a NULL <vm_block_t> is safe. */
-#define vm_block_INIT_FREEABLE         memblock_INIT_FREEABLE
+/* define: vmpage_INIT_FREEABLE
+ * Static initializer. Sets object of type <vmpage_t> to NULL.
+ * Unmapping (<free_vmpage>) such a NULL <vmpage_t> is safe. */
+#define vmpage_INIT_FREEABLE           vmpage_INIT(0, 0)
 
-/* function: init_vmblock
+/* define: vmpage_INIT
+ * Static initializer.
+ * Precondition:
+ * o Make sure that size is a multiple of <pagesize_vm>. */
+#define vmpage_INIT(size, addr)        { addr, size }
+
+/* function: init_vmpage
  * New memory is mapped into the virtual address space of the calling process.
  * The new memory has size == size_in_pages * <pagesize_vm>.
  * It is read and writeable and not shared between processes.
  * But a child process can access its content after a fork (COPY_ON_WRITE semantics). */
-int init_vmblock(/*out*/vm_block_t * vmblock, size_t size_in_pages) ;
+int init_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_pages) ;
 
-/* function: init_vmblock
+/* function: init_vmpage
  * New memory is mapped into the virtual address space of the calling process.
  * The new memory has size == size_in_pages * <pagesize_vm>.
  * It has accessible as stated in paramter *access_mode*.
  * A child process can access its content after a fork and a change is shared with the parent process
  * if <accessmode_SHARED> was specified. */
-int init2_vmblock(/*out*/vm_block_t * vmblock, size_t size_in_pages, const accessmode_e access_mode) ;
+int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_pages, const accessmode_e access_mode) ;
 
-/* function: free_vmblock
+/* function: free_vmpage
  * Invalidates virtual memory address range
- * > vmblock->addr[0 .. vmblock->size - 1 ]
+ * > vmpage->addr[0 .. vmpage->size - 1 ]
  * After successull return every access to this memory range will generate a memory exception and
- * vmblock is set to <vm_block_t.vm_block_INIT_FREEABLE>.
+ * vmpage is set to <vmpage_t.vmpage_INIT_FREEABLE>.
  * Therefore unmapping an already unmapped memory region does nothing and returns success. */
-int free_vmblock(vm_block_t * vmblock) ;
+int free_vmpage(vmpage_t * vmpage) ;
+
+// group: query
+
+/* function: isfree_vmpage
+ * Returns true if <vmpage_t.size> is 0. */
+bool isfree_vmpage(vmpage_t * vmpage) ;
 
 // group: change
 
-/* function: protect_vmblock
+/* function: protect_vmpage
  * Sets protection of memory (e.g. if write is possible).
  * See <accessmode_e> for a list of all supported bits.
  * <accessmode_PRIVATE> and <accessmode_SHARED> can not be changed after creation. */
-int protect_vmblock(vm_block_t * vmblock, const accessmode_e access_mode) ;
+int protect_vmpage(vmpage_t * vmpage, const accessmode_e access_mode) ;
 
-/* function: tryexpand_vmblock
+/* function: tryexpand_vmpage
  * Tries to grow the upper bound of an already mapped address range.
  * The start address of virtual memory block is not changed.
  * Returns 0 on success else ENOMEM or another system specific error code.
  * In case of success the new address range is
- * > [old:vmblock->addr .. old:vmblock->addr + old:vmblock->size + increment_in_pages * <pagesize_vm>).
+ * > [old:vmpage->addr .. old:vmpage->addr + old:vmpage->size + increment_in_pages * <pagesize_vm>).
  * If the memory could not be expanded no error logging is done. */
-int tryexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages) ;
+int tryexpand_vmpage(vmpage_t * vmpage, size_t increment_in_pages) ;
 
-/* function: movexpand_vmblock
+/* function: movexpand_vmpage
  * Grows an already mapped virtual memory block.
- * If the block can not be expanded (see <tryexpand_vmblock>) it is relocated
+ * If the block can not be expanded (see <tryexpand_vmpage>) it is relocated
  * to a new virtual address with sufficient space.
  * In case of success the new address range is
- * >    [ old:vmblock->addr .. old:vmblock->addr + old:vmblock->size + increment_in_pages * <pagesize_vm>)
- * > or [ NEW_ADDR .. NEW_ADDR + old:vmblock->size + increment_in_pages * <pagesize_vm>). */
-int movexpand_vmblock(vm_block_t * vmblock, size_t increment_in_pages) ;
+ * >    [ old:vmpage->addr .. old:vmpage->addr + old:vmpage->size + increment_in_pages * <pagesize_vm>)
+ * > or [ NEW_ADDR .. NEW_ADDR + old:vmpage->size + increment_in_pages * <pagesize_vm>). */
+int movexpand_vmpage(vmpage_t * vmpage, size_t increment_in_pages) ;
 
-/* function: shrink_vmblock
+/* function: shrink_vmpage
  * Shrinks an already mapped virtual memory block (start addr keeps same).
- * If decrement_in_pages * pagesize_vm() if greater or equal to vmblock->size
+ * If decrement_in_pages * pagesize_vm() if greater or equal to vmpage->size
  * EINVAL is returned and nothing is changed.
  * In case of success the new address range is
- * > [vmblock->addr .. vmblock->addr + vmblock->size - decrement_in_pages * <pagesize_vm>). */
-int shrink_vmblock(vm_block_t * vmblock, size_t decrement_in_pages) ;
+ * > [vmpage->addr .. vmpage->addr + vmpage->size - decrement_in_pages * <pagesize_vm>). */
+int shrink_vmpage(vmpage_t * vmpage, size_t decrement_in_pages) ;
+
+// generic
+
+/* function: genericcast_vmpage
+ * Casts a pointer to an compatible object into pointer to <vmpage_t>.
+ * The object must have two members nameprefix##addr and nameprefix##size
+ * of the same type as <vmpage_t> and in the same order. */
+vmpage_t * genericcast_vmpage(void * obj, IDNAME nameprefix) ;
 
 
 /* struct: vm_region_t
@@ -228,7 +257,7 @@ int compare_vmmappedregions(const vm_mappedregions_t * left, const vm_mappedregi
  * Returns true if <vm_mappedregions_t> contains a memory region with correct protection.
  * In either case *mblock* is not fully contained or the *protection* is different false
  * is returned. */
-bool iscontained_vmmappedregions(vm_mappedregions_t * mappedregions, const memblock_t * mblock, accessmode_e protection) ;
+bool iscontained_vmmappedregions(vm_mappedregions_t * mappedregions, const vmpage_t * mblock, accessmode_e protection) ;
 
 // group: iterate
 
@@ -247,9 +276,42 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator) ;
 
 // section: inline implementation
 
-/* define: init_vmblock
- * Implements <vm_block_t.init_vmblock> with help of <vm_block_t.init2_vmblock>. */
-#define init_vmblock(vmblock, size_in_pages)    (init2_vmblock( vmblock, size_in_pages, accessmode_RDWR|accessmode_PRIVATE ))
+/* define: genericcast_vmpage
+ * Implements <vmpage_t.genericcast_vmpage>. */
+#define genericcast_vmpage(obj, nameprefix)              \
+   ( __extension__ ({                                    \
+      typeof(obj) _obj = (obj) ;                         \
+      static_assert(                                     \
+         sizeof(_obj->nameprefix##addr)                  \
+         == sizeof(((vmpage_t*)0)->addr)                 \
+         && 0 == offsetof(vmpage_t, addr),               \
+         "addr member is compatible") ;                  \
+      static_assert(                                     \
+         sizeof(_obj->nameprefix##size)                  \
+         == sizeof(((vmpage_t*)0)->size)                 \
+         && offsetof(vmpage_t, size)                     \
+            == ((uintptr_t)&_obj->nameprefix##size)      \
+               -((uintptr_t)&_obj->nameprefix##addr),    \
+         "size member is compatible") ;                  \
+      if (0) {                                           \
+         volatile uint8_t _err ;                         \
+         volatile size_t _size ;                         \
+         _size = _obj->nameprefix##size ;                \
+         _err  = _obj->nameprefix##addr[_size] ;         \
+         (void) _err ;                                   \
+      }                                                  \
+      (vmpage_t *)(&_obj->nameprefix##addr) ;            \
+   }))
+
+/* define: init_vmpage
+ * Implements <vmpage_t.init_vmpage>. */
+#define init_vmpage(vmpage, size_in_pages) \
+         (init2_vmpage((vmpage), (size_in_pages), accessmode_RDWR|accessmode_PRIVATE))
+
+/* define: isfree_vmpage
+ * Implements <vmpage_t.isfree_vmpage>>. */
+#define isfree_vmpage(vmpage)  \
+         (0 == (vmpage)->size)
 
 /* define: pagesize_vm
  * Uses cached value from <valuecache_maincontext>. */

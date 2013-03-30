@@ -27,10 +27,9 @@
 #ifndef CKERN_CACHE_INTERFACE_OBJECTCACHE_IT_HEADER
 #define CKERN_CACHE_INTERFACE_OBJECTCACHE_IT_HEADER
 
-#include "C-kern/api/memory/memblock.h"
-
 // forward
 struct objectcache_t ;
+struct vmpage_t ;
 
 /* typedef: struct objectcache_it
  * Export interface (function table) <objectcache_it>.
@@ -44,10 +43,10 @@ typedef struct objectcache_it          objectcache_it ;
 struct objectcache_it {
    /* function: lock_iobuffer
     * See <objectcache_impl_t.lockiobuffer_objectcacheimpl> for an implementation. */
-   void (*lock_iobuffer)   (struct objectcache_t * cache, /*out*/memblock_t ** iobuffer) ;
+   void (*lock_iobuffer)   (struct objectcache_t * cache, /*out*/struct vmpage_t ** iobuffer) ;
    /* function: unlock_iobuffer
     * See <objectcache_impl_t.unlockiobuffer_objectcacheimpl> for an implementation. */
-   void (*unlock_iobuffer) (struct objectcache_t * cache, memblock_t ** iobuffer) ;
+   void (*unlock_iobuffer) (struct objectcache_t * cache, struct vmpage_t ** iobuffer) ;
 } ;
 
 // group: generic
@@ -76,11 +75,11 @@ objectcache_it * genericcast_objectcacheit(void * cache, TYPENAME object_t) ;
  * lock_iobuffer    - See <objectcache_it.lock_iobuffer>
  * unlock_iobuffer  - See <objectcache_it.unlock_iobuffer>
  * */
-#define objectcache_it_DECLARE(declared_it, object_t)                            \
-   typedef struct declared_it          declared_it ;                             \
-   struct declared_it {                                                          \
-      void (*lock_iobuffer)   (object_t * cache, /*out*/memblock_t ** iobuffer); \
-      void (*unlock_iobuffer) (object_t * cache, memblock_t ** iobuffer) ;       \
+#define objectcache_it_DECLARE(declared_it, object_t)                                  \
+   typedef struct declared_it          declared_it ;                                   \
+   struct declared_it {                                                                \
+      void (*lock_iobuffer)   (object_t * cache, /*out*/struct vmpage_t ** iobuffer);  \
+      void (*unlock_iobuffer) (object_t * cache, struct vmpage_t ** iobuffer) ;        \
    }
 
 
@@ -88,19 +87,19 @@ objectcache_it * genericcast_objectcacheit(void * cache, TYPENAME object_t) ;
 
 /* define: genericcast_objectcacheit
  * Implements <objectcache_it.genericcast_objectcacheit>. */
-#define genericcast_objectcacheit(cache, object_t)                   \
-   ( __extension__ ({                                                \
-      static_assert(                                                 \
-         offsetof(objectcache_it, lock_iobuffer)                     \
-         == offsetof(typeof(*(cache)), lock_iobuffer)                \
-         && offsetof(objectcache_it, unlock_iobuffer)                \
-            == offsetof(typeof(*(cache)), unlock_iobuffer),          \
-         "ensure same structure") ;                                  \
-      if (0) {                                                       \
-         (cache)->lock_iobuffer((object_t*)0, (memblock_t**)0) ;     \
-         (cache)->unlock_iobuffer((object_t*)0, (memblock_t**)0) ;   \
-      }                                                              \
-      (objectcache_it*) (cache) ;                                    \
+#define genericcast_objectcacheit(cache, object_t)                      \
+   ( __extension__ ({                                                   \
+      static_assert(                                                    \
+         offsetof(objectcache_it, lock_iobuffer)                        \
+         == offsetof(typeof(*(cache)), lock_iobuffer)                   \
+         && offsetof(objectcache_it, unlock_iobuffer)                   \
+            == offsetof(typeof(*(cache)), unlock_iobuffer),             \
+         "ensure same structure") ;                                     \
+      if (0) {                                                          \
+         (cache)->lock_iobuffer((object_t*)0, (struct vmpage_t**)0) ;   \
+         (cache)->unlock_iobuffer((object_t*)0, (struct vmpage_t**)0) ; \
+      }                                                                 \
+      (objectcache_it*) (cache) ;                                       \
    }))
 
 #endif

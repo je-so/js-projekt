@@ -55,7 +55,7 @@ ONABORT:
 
 static int test_prefetch(void)
 {
-   vm_block_t     memblock = vm_block_INIT_FREEABLE ;
+   vmpage_t       memblock = vmpage_INIT_FREEABLE ;
    const uint32_t nrpages  = (256*1024*1024) / pagesize_vm() ;
    int64_t        time_noprefetch = INT64_MAX ;
    int64_t        time_prefetch   = INT64_MAX ;
@@ -63,7 +63,7 @@ static int test_prefetch(void)
    uint64_t       sum, sum2 = 0 ;
 
    // prepare
-   TEST(0 == init_vmblock(&memblock, nrpages)) ;
+   TEST(0 == init_vmpage(&memblock, nrpages)) ;
    memset(memblock.addr, 0x03, memblock.size) ;
    uint32_t * const endmem = (uint32_t*) (memblock.addr + memblock.size) ;
 
@@ -107,11 +107,11 @@ static int test_prefetch(void)
    }
 
    // unprepare
-   TEST(0 == free_vmblock(&memblock)) ;
+   TEST(0 == free_vmpage(&memblock)) ;
 
    return 0 ;
 ONABORT:
-   free_vmblock(&memblock) ;
+   free_vmpage(&memblock) ;
    return EINVAL ;
 }
 

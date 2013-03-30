@@ -24,13 +24,14 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/ds/inmem/arraysf.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/ds/typeadapt.h"
-#include "C-kern/api/ds/inmem/arraysf.h"
 #include "C-kern/api/ds/inmem/binarystack.h"
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/math/int/power2.h"
+#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -711,16 +712,16 @@ ONABORT:
 static int test_initfree(void)
 {
    const size_t      nrnodes   = 100000 ;
-   vm_block_t        memblock  = vm_block_INIT_FREEABLE ;
-   arraysf_t         * array   = 0 ;
+   vmpage_t          memblock  = vmpage_INIT_FREEABLE ;
+   arraysf_t *       array     = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
    typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
-   testnode_t        * nodes ;
-   arraysf_node_t    * inserted_node ;
-   arraysf_node_t    * removed_node ;
+   testnode_t *      nodes ;
+   arraysf_node_t *  inserted_node ;
+   arraysf_node_t *  removed_node ;
 
    // prepare
-   TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
+   TEST(0 == init_vmpage(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
    nodes = (testnode_t *) memblock.addr ;
 
    // TEST arraysf_node_INIT
@@ -1036,33 +1037,33 @@ static int test_initfree(void)
    }
 
    // unprepare
-   TEST(0 == free_vmblock(&memblock)) ;
+   TEST(0 == free_vmpage(&memblock)) ;
 
    return 0 ;
 ONABORT:
    (void) delete_arraysf(&array, 0) ;
-   free_vmblock(&memblock) ;
+   free_vmpage(&memblock) ;
    return EINVAL ;
 }
 
 static int test_error(void)
 {
-   const size_t    nrnodes  = 100000 ;
-   vm_block_t      memblock = vm_block_INIT_FREEABLE ;
-   arraysf_t       * array  = 0 ;
-   arraysf_t       * array2 = 0 ;
+   const size_t      nrnodes   = 100000 ;
+   vmpage_t          memblock  = vmpage_INIT_FREEABLE ;
+   arraysf_t *       array     = 0 ;
+   arraysf_t *       array2    = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
    typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
-   testnode_t      * nodes ;
-   arraysf_node_t  * removed_node  = 0 ;
-   arraysf_node_t  * inserted_node = 0 ;
-   arraysf_node_t  * existing_node = 0 ;
-   char            * logbuffer ;
-   size_t          logbufsize1 ;
-   size_t          logbufsize2 ;
+   testnode_t     *  nodes ;
+   arraysf_node_t *  removed_node  = 0 ;
+   arraysf_node_t *  inserted_node = 0 ;
+   arraysf_node_t *  existing_node = 0 ;
+   char           *  logbuffer ;
+   size_t            logbufsize1 ;
+   size_t            logbufsize2 ;
 
    // prepare
-   TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
+   TEST(0 == init_vmpage(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
    nodes = (testnode_t *) memblock.addr ;
    TEST(0 == new_arraysf(&array, 256, 0)) ;
 
@@ -1117,27 +1118,27 @@ static int test_error(void)
    }
 
    // unprepare
-   TEST(0 == free_vmblock(&memblock)) ;
+   TEST(0 == free_vmpage(&memblock)) ;
 
    return 0 ;
 ONABORT:
    (void) delete_arraysf(&array, 0) ;
-   free_vmblock(&memblock) ;
+   free_vmpage(&memblock) ;
    return EINVAL ;
 }
 
 static int test_iterator(void)
 {
    const size_t   nrnodes  = 30000 ;
-   vm_block_t     memblock = vm_block_INIT_FREEABLE ;
+   vmpage_t       memblock = vmpage_INIT_FREEABLE ;
    arraysf_iterator_t iter = arraysf_iterator_INIT_FREEABLE ;
-   arraysf_t      * array  = 0 ;
-   testnode_t     * nodes ;
-   arraysf_node_t * removed_node ;
+   arraysf_t  *   array    = 0 ;
+   testnode_t *   nodes ;
+   arraysf_node_t*removed_node ;
    size_t         nextpos ;
 
    // prepare
-   TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
+   TEST(0 == init_vmpage(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
    nodes = (testnode_t *) memblock.addr ;
    TEST(0 == new_arraysf(&array, 256, bitsof(size_t)-8)) ;
    for (size_t i = 0; i < nrnodes; ++i) {
@@ -1209,12 +1210,12 @@ static int test_iterator(void)
 
    // unprepare
    TEST(0 == delete_arraysf(&array, 0)) ;
-   TEST(0 == free_vmblock(&memblock)) ;
+   TEST(0 == free_vmpage(&memblock)) ;
 
    return 0 ;
 ONABORT:
    (void) delete_arraysf(&array, 0) ;
-   free_vmblock(&memblock) ;
+   free_vmpage(&memblock) ;
    return EINVAL ;
 }
 
@@ -1224,19 +1225,19 @@ arraysf_IMPLEMENT(_t2arraysf, testnode_t, pos2)
 static int test_generic(void)
 {
    const size_t      nrnodes   = 300 ;
-   vm_block_t        memblock  = vm_block_INIT_FREEABLE ;
-   arraysf_t         * array   = 0 ;
-   arraysf_t         * array2  = 0 ;
+   vmpage_t          memblock  = vmpage_INIT_FREEABLE ;
+   arraysf_t  *      array     = 0 ;
+   arraysf_t  *      array2    = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
    typeadapt_member_t nodeadp1 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
    typeadapt_member_t nodeadp2 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,pos2)) ;
    test_errortimer_t memerror ;
-   testnode_t        * nodes ;
-   testnode_t        * inserted_node ;
+   testnode_t *      nodes ;
+   testnode_t *      inserted_node ;
    size_t            nextpos ;
 
    // prepare
-   TEST(0 == init_vmblock(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
+   TEST(0 == init_vmpage(&memblock, (pagesize_vm()-1+nrnodes*sizeof(testnode_t)) / pagesize_vm() )) ;
    nodes = (testnode_t *) memblock.addr ;
    TEST(0 == new_tarraysf(&array, 256, bitsof(size_t)-8)) ;
    TEST(0 == new_t2arraysf(&array2, 256, bitsof(size_t)-8)) ;
@@ -1373,13 +1374,13 @@ static int test_generic(void)
    }
 
    // unprepare
-   TEST(0 == free_vmblock(&memblock)) ;
+   TEST(0 == free_vmpage(&memblock)) ;
 
    return 0 ;
 ONABORT:
    TEST(0 == delete_tarraysf(&array, 0)) ;
    TEST(0 == delete_t2arraysf(&array2, 0)) ;
-   free_vmblock(&memblock) ;
+   free_vmpage(&memblock) ;
    return EINVAL ;
 }
 

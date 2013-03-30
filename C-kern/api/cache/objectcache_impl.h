@@ -31,7 +31,7 @@
 #ifndef CKERN_CACHE_OBJECTCACHE_IMPL_HEADER
 #define CKERN_CACHE_OBJECTCACHE_IMPL_HEADER
 
-#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/vm.h"
 
 /* typedef: struct objectcache_impl_t
  * Export <objectcache_impl_t>. */
@@ -54,8 +54,8 @@ int unittest_cache_objectcacheimpl(void) ;
  * Holds pointers to all cached objects. */
 struct objectcache_impl_t {
    /* variable: iobuffer
-    * Used in <init_vmmappedregions>. */
-   memblock_t    iobuffer ;
+    * Used in <init_vmpage>. */
+   vmpage_t    iobuffer ;
 } ;
 
 // group: init
@@ -74,7 +74,7 @@ int freethread_objectcacheimpl(objectcache_t * objectcache) ;
 
 /* define: objectcache_impl_INIT_FREEABLE
  * Static initializer. */
-#define objectcache_impl_INIT_FREEABLE      { memblock_INIT_FREEABLE }
+#define objectcache_impl_INIT_FREEABLE      { vmpage_INIT_FREEABLE }
 
 /* function: init_objectcacheimpl
  * Inits <objectcache_impl_t> and all contained objects. */
@@ -88,14 +88,14 @@ int free_objectcacheimpl(objectcache_impl_t * objectcache) ;
 
 /* function: lockiobuffer_objectcacheimpl
  * Locks the io buffer and returns a pointer to it in iobuffer.
- * The buffer is of type <memblock_t> (equal to <vm_block_t>). */
-void lockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/memblock_t ** iobuffer) ;
+ * The buffer is of type <vmpage_t> (compatible with <memblock_t>). */
+void lockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/vmpage_t ** iobuffer) ;
 
 /* function: unlockiobuffer_objectcacheimpl
  * Unlocks the locked io buffer and sets the pointer to NULL.
  * The pointer to the buffer must be acquired by a previous call to <lockiobuffer_objectcacheimpl>.
  * Calling unlock with a NULL pointer is a no op. */
-void unlockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, memblock_t ** iobuffer) ;
+void unlockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, vmpage_t ** iobuffer) ;
 
 // group: change
 

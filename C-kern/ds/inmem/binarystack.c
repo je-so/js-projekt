@@ -133,9 +133,9 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
    if (  ! stack->blockcache
          || freesize_blockheader((blockheader_t*)stack->blockcache) < size) {
       int err ;
-      memblock_t mem ;
-      uint32_t   pagesize = pagesize_vm() ;
-      uint32_t   nrpages  = 1 ;
+      vmpage_t mem ;
+      uint32_t pagesize = pagesize_vm() ;
+      uint32_t nrpages  = 1 ;
 
       size += headersize_blockheader() ;
       if (size < headersize_blockheader()) return ENOMEM ;
@@ -147,7 +147,7 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
       }
 
       ADDCODE_IFUNITTEST(if (s_testerror_allocateblock) return s_testerror_allocateblock ;)
-      err = init_vmblock(&mem, nrpages) ;
+      err = init_vmpage(&mem, nrpages) ;
       if (err) return err ;
 
       header = (blockheader_t *) mem.addr ;
@@ -175,7 +175,7 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
 
 static inline int freeblock_binarystack(binarystack_t * stack, blockheader_t * block)
 {
-   memblock_t mem = (memblock_t) memblock_INIT(block->size, (uint8_t*)block) ;
+   vmpage_t mem = (vmpage_t) vmpage_INIT(block->size, (uint8_t*)block) ;
 
    if (0 == stack->blockcache) {
       block->usedsize   = 0 ;
@@ -183,7 +183,7 @@ static inline int freeblock_binarystack(binarystack_t * stack, blockheader_t * b
       return 0 ;
    }
 
-   return free_vmblock(&mem) ADDCODE_IFUNITTEST(+ s_testerror_freeblock) ;
+   return free_vmpage(&mem) ADDCODE_IFUNITTEST(+ s_testerror_freeblock) ;
 }
 
 // group: lifetime

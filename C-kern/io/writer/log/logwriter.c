@@ -30,6 +30,7 @@
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/memory/vm.h"
+#include "C-kern/api/memory/memblock.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -124,24 +125,24 @@ ONABORT:
 
 /* function: allocatebuffer_logwriter
  * Reserves virtual memory for internal buffer. */
-static int allocatebuffer_logwriter(/*out*/vm_block_t * buffer)
+static int allocatebuffer_logwriter(/*out*/vmpage_t * buffer)
 {
    int err ;
    size_t  pgsize = pagesize_vm() ;
    size_t nrpages = (8191 + pgsize) / pgsize ;
 
-   err = init_vmblock(buffer, nrpages) ;
+   err = init_vmpage(buffer, nrpages) ;
 
    return err ;
 }
 
 /* function: freebuffer_logwriter
  * Frees internal buffer. */
-static int freebuffer_logwriter(vm_block_t * buffer)
+static int freebuffer_logwriter(vmpage_t * buffer)
 {
    int err ;
 
-   err = free_vmblock(buffer) ;
+   err = free_vmpage(buffer) ;
 
    return err ;
 }
@@ -151,13 +152,15 @@ static int freebuffer_logwriter(vm_block_t * buffer)
 int init_logwriter(/*out*/logwriter_t * lgwrt)
 {
    int err ;
-   vm_block_t  buffer = vm_block_INIT_FREEABLE ;
+   vmpage_t  buffer = vmpage_INIT_FREEABLE ;
 
    err = allocatebuffer_logwriter(&buffer) ;
    if (err) goto ONABORT ;
 
-   lgwrt->buffer        = buffer ;
-   lgwrt->logsize       = 0 ;
+   static_assert( &lgwrt->buffer == (void*)genericcast_memblock(&lgwrt->buffer, ), "same structure") ;
+   static_assert( &buffer        == (void*)genericcast_memblock(&buffer, ), "same structure") ;
+   lgwrt->buffer  = (typeof(lgwrt->buffer)) memblock_INIT(buffer.size, buffer.addr) ;
+   lgwrt->logsize = 0 ;
 
    return 0 ;
 ONABORT:
@@ -174,7 +177,7 @@ int free_logwriter(logwriter_t * lgwrt)
       flushbuffer_logwriter(lgwrt) ;
    }
 
-   err = freebuffer_logwriter(&lgwrt->buffer) ;
+   err = freebuffer_logwriter((vmpage_t*)&lgwrt->buffer) ;
 
    if (err) goto ONABORT ;
 

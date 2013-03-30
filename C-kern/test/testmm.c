@@ -154,10 +154,10 @@ static bool isvalid_testmmblock(testmm_block_t * block, struct memblock_t * memb
  * freed blocks are merged.
  */
 struct testmm_page_t {
-   vm_block_t     vmblock ;
+   vmpage_t       vmblock ;
    memblock_t     datablock ;
    memblock_t     freeblock ;
-   testmm_page_t  * next ;
+   testmm_page_t* next ;
 } ;
 
 // group: lifetime
@@ -165,20 +165,20 @@ struct testmm_page_t {
 static int new_testmmpage(testmm_page_t ** mmpage, size_t minblocksize, testmm_page_t * next)
 {
    int err ;
-   const size_t headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
-   const size_t trailersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
+   const size_t   headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
+   const size_t   trailersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
    const size_t   blocksize = (minblocksize + headersize + trailersize) < 1024 * 1024 ? 1024 * 1024 : (minblocksize + headersize + trailersize) ;
    const size_t   nrpages   = ((blocksize - 1) + pagesize_vm()) / pagesize_vm() ;
    const size_t   nrpages2  = 2 + ((sizeof(testmm_page_t) - 1 + pagesize_vm()) / pagesize_vm()) ;
-   vm_block_t     vmblock   = vm_block_INIT_FREEABLE ;
-   testmm_page_t  * new_mmpage ;
+   vmpage_t       vmblock   = vmpage_INIT_FREEABLE ;
+   testmm_page_t* new_mmpage ;
 
    if (minblocksize >= 16*1024*1024) {
       err = ENOMEM ;
       goto ONABORT ;
    }
 
-   err = init_vmblock(&vmblock, nrpages + nrpages2) ;
+   err = init_vmpage(&vmblock, nrpages + nrpages2) ;
    if (err) goto ONABORT ;
 
    new_mmpage = (testmm_page_t*) vmblock.addr ;
@@ -188,16 +188,16 @@ static int new_testmmpage(testmm_page_t ** mmpage, size_t minblocksize, testmm_p
    new_mmpage->freeblock = new_mmpage->datablock ;
    new_mmpage->next      = next ;
 
-   err = protect_vmblock(&(memblock_t)memblock_INIT(pagesize_vm(), new_mmpage->datablock.addr - pagesize_vm()), accessmode_NONE) ;
+   err = protect_vmpage(&(vmpage_t)vmpage_INIT(pagesize_vm(), new_mmpage->datablock.addr - pagesize_vm()), accessmode_NONE) ;
    if (err) goto ONABORT ;
-   err = protect_vmblock(&(memblock_t)memblock_INIT(pagesize_vm(), new_mmpage->datablock.addr + new_mmpage->datablock.size), accessmode_NONE) ;
+   err = protect_vmpage(&(vmpage_t)vmpage_INIT(pagesize_vm(), new_mmpage->datablock.addr + new_mmpage->datablock.size), accessmode_NONE) ;
    if (err) goto ONABORT ;
 
    *mmpage = new_mmpage ;
 
    return 0 ;
 ONABORT:
-   free_vmblock(&vmblock) ;
+   free_vmpage(&vmblock) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -210,8 +210,8 @@ static int delete_testmmpage(testmm_page_t ** mmpage)
    if (del_mmpage) {
       *mmpage = 0 ;
 
-      vm_block_t  vmblock = del_mmpage->vmblock ;
-      err = free_vmblock(&vmblock) ;
+      vmpage_t  vmblock = del_mmpage->vmblock ;
+      err = free_vmpage(&vmblock) ;
 
       if (err) goto ONABORT ;
    }
@@ -735,9 +735,9 @@ ONABORT:
 
 static int test_testmmpage(void)
 {
-   testmm_page_t        * mmpage = 0 ;
-   vm_mappedregions_t   mapping  = vm_mappedregions_INIT_FREEABLE ;
-   memblock_t           page[4] ;
+   testmm_page_t      * mmpage  = 0 ;
+   vm_mappedregions_t   mapping = vm_mappedregions_INIT_FREEABLE ;
+   vmpage_t             page[4] ;
    memblock_t           memblock ;
    const size_t         headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
    const size_t         trailersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
@@ -767,10 +767,10 @@ static int test_testmmpage(void)
    // TEST init: memory is mapped
    TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    TEST(0 != mmpage) ;
-   page[0] = (memblock_t) memblock_INIT(pagesize_vm(), mmpage->vmblock.addr) ;
-   page[1] = mmpage->datablock ;
-   page[2] = (memblock_t) memblock_INIT(pagesize_vm(), mmpage->datablock.addr + mmpage->datablock.size) ;
-   page[3] = (memblock_t) memblock_INIT(pagesize_vm(), mmpage->datablock.addr - pagesize_vm()) ;
+   page[0] = (vmpage_t) vmpage_INIT(pagesize_vm(), mmpage->vmblock.addr) ;
+   page[1] = (vmpage_t) vmpage_INIT(mmpage->datablock.size, mmpage->datablock.addr) ;
+   page[2] = (vmpage_t) vmpage_INIT(pagesize_vm(), mmpage->datablock.addr + mmpage->datablock.size) ;
+   page[3] = (vmpage_t) vmpage_INIT(pagesize_vm(), mmpage->datablock.addr - pagesize_vm()) ;
    TEST(0 == init_vmmappedregions(&mapping)) ;
    TEST(1 == iscontained_vmmappedregions(&mapping, &page[0], (accessmode_RDWR|accessmode_PRIVATE))) ;
    TEST(1 == iscontained_vmmappedregions(&mapping, &page[1], (accessmode_RDWR|accessmode_PRIVATE))) ;
