@@ -170,6 +170,10 @@ struct dlist_node_t * next_dlist(struct dlist_node_t * node) ;
  * If node is the first node in the list the last is returned instead. */
 struct dlist_node_t * prev_dlist(struct dlist_node_t * node) ;
 
+/* function: isinlist_dlist
+ * Returns true if node is stored in a list else false. */
+bool isinlist_dlist(const struct dlist_node_t * node) ;
+
 // group: foreach-support
 
 /* typedef: iteratortype_dlist
@@ -185,24 +189,24 @@ typedef struct dlist_node_t * iteratedtype_dlist ;
 /* function: insertfirst_dlist
  * Makes new_node the new first element of list.
  * Ownership is transfered from caller to <dlist_t>. */
-int insertfirst_dlist(dlist_t * list, struct dlist_node_t * new_node) ;
+void insertfirst_dlist(dlist_t * list, struct dlist_node_t * new_node) ;
 
 /* function: insertlast_dlist
  * Makes new_node the new last element of list.
  * Ownership is transfered from caller to <dlist_t>. */
-int insertlast_dlist(dlist_t * list, struct dlist_node_t * new_node) ;
+void insertlast_dlist(dlist_t * list, struct dlist_node_t * new_node) ;
 
 /* function: insertafter_dlist
  * Inserts new_node after prev_node into the list.
  * Ownership is transfered from caller to <dlist_t>.
  * new_node will be made the new last node if prev_node is the <last_dlist>(list) node. */
-int insertafter_dlist(dlist_t * list, struct dlist_node_t * prev_node, struct dlist_node_t * new_node) ;
+void insertafter_dlist(dlist_t * list, struct dlist_node_t * prev_node, struct dlist_node_t * new_node) ;
 
 /* function: insertbefore_dlist
- * Inserts new_node befire next_node into the list.
+ * Inserts new_node before next_node into the list.
  * Ownership is transfered from caller to <dlist_t>.
  * new_node will be made the new first node if next_node is the <first_dlist>(list) node. */
-int insertbefore_dlist(dlist_t * list, struct dlist_node_t * next_node, struct dlist_node_t * new_node) ;
+void insertbefore_dlist(dlist_t * list, struct dlist_node_t * next_node, struct dlist_node_t * new_node) ;
 
 /* function: removefirst_dlist
  * Removes the first node from the list.
@@ -351,6 +355,11 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
  * Implements <dlist_t.isempty_dlist>. */
 #define isempty_dlist(list)                  (0 == (list)->last)
 
+/* define: isinlist_dlist
+ * Implements <dlist_t.isinlist_dlist>. */
+#define isinlist_dlist(node) \
+         (0 != (node)->next)
+
 /* define: next_dlist
  * Implements <dlist_t.next_dlist>. */
 #define next_dlist(node)                     ((node)->next)
@@ -380,10 +389,11 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
    static inline object_t * last##_fsuffix(const dlist_t * list) __attribute__ ((always_inline)) ;   \
    static inline object_t * next##_fsuffix(object_t * node) __attribute__ ((always_inline)) ; \
    static inline object_t * prev##_fsuffix(object_t * node) __attribute__ ((always_inline)) ; \
-   static inline int insertfirst##_fsuffix(dlist_t * list, object_t * new_node) __attribute__ ((always_inline)) ;   \
-   static inline int insertlast##_fsuffix(dlist_t * list, object_t * new_node) __attribute__ ((always_inline)) ;    \
-   static inline int insertafter##_fsuffix(dlist_t * list, object_t * prev_node, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline int insertbefore##_fsuffix(dlist_t * list, object_t* next_node, object_t * new_node) __attribute__ ((always_inline)) ; \
+   static inline bool isinlist##_fsuffix(object_t * node) __attribute__ ((always_inline)) ; \
+   static inline void insertfirst##_fsuffix(dlist_t * list, object_t * new_node) __attribute__ ((always_inline)) ;   \
+   static inline void insertlast##_fsuffix(dlist_t * list, object_t * new_node) __attribute__ ((always_inline)) ;    \
+   static inline void insertafter##_fsuffix(dlist_t * list, object_t * prev_node, object_t * new_node) __attribute__ ((always_inline)) ; \
+   static inline void insertbefore##_fsuffix(dlist_t * list, object_t* next_node, object_t * new_node) __attribute__ ((always_inline)) ; \
    static inline int removefirst##_fsuffix(dlist_t * list, object_t ** removed_node) __attribute__ ((always_inline)) ;  \
    static inline int removelast##_fsuffix(dlist_t * list, object_t ** removed_node) __attribute__ ((always_inline)) ;   \
    static inline int remove##_fsuffix(dlist_t * list, object_t * node) __attribute__ ((always_inline)) ; \
@@ -424,17 +434,20 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
    static inline object_t * prev##_fsuffix(object_t * node) { \
       return asobject##_fsuffix(prev_dlist(asnode##_fsuffix(node))) ; \
    } \
-   static inline int insertfirst##_fsuffix(dlist_t * list, object_t * new_node) { \
-      return insertfirst_dlist(list, asnode##_fsuffix(new_node)) ; \
+   static inline bool isinlist##_fsuffix(object_t * node) { \
+      return isinlist_dlist(asnode##_fsuffix(node)) ; \
    } \
-   static inline int insertlast##_fsuffix(dlist_t * list, object_t * new_node) { \
-      return insertlast_dlist(list, asnode##_fsuffix(new_node)) ; \
+   static inline void insertfirst##_fsuffix(dlist_t * list, object_t * new_node) { \
+      insertfirst_dlist(list, asnode##_fsuffix(new_node)) ; \
    } \
-   static inline int insertafter##_fsuffix(dlist_t * list, object_t * prev_node, object_t * new_node) { \
-      return insertafter_dlist(list, asnode##_fsuffix(prev_node), asnode##_fsuffix(new_node)) ; \
+   static inline void insertlast##_fsuffix(dlist_t * list, object_t * new_node) { \
+      insertlast_dlist(list, asnode##_fsuffix(new_node)) ; \
    } \
-   static inline int insertbefore##_fsuffix(dlist_t * list, object_t * next_node, object_t * new_node) { \
-      return insertbefore_dlist(list, asnode##_fsuffix(next_node), asnode##_fsuffix(new_node)) ; \
+   static inline void insertafter##_fsuffix(dlist_t * list, object_t * prev_node, object_t * new_node) { \
+      insertafter_dlist(list, asnode##_fsuffix(prev_node), asnode##_fsuffix(new_node)) ; \
+   } \
+   static inline void insertbefore##_fsuffix(dlist_t * list, object_t * next_node, object_t * new_node) { \
+      insertbefore_dlist(list, asnode##_fsuffix(next_node), asnode##_fsuffix(new_node)) ; \
    } \
    static inline int removefirst##_fsuffix(dlist_t * list, object_t ** removed_node) { \
       int err = removefirst_dlist(list, (dlist_node_t**)removed_node) ; \
