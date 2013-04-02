@@ -135,6 +135,7 @@
         <File Name="../../C-kern/api/ds/inmem/redblacktree.h"/>
         <File Name="../../C-kern/api/ds/inmem/patriciatrie.h"/>
         <File Name="../../C-kern/api/ds/inmem/exthash.h"/>
+        <File Name="../../C-kern/api/ds/inmem/queue.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ondisk"/>
       <File Name="../../C-kern/api/ds/foreach.h"/>
@@ -408,6 +409,7 @@
       <File Name="../../C-kern/ds/inmem/redblacktree.c"/>
       <File Name="../../C-kern/ds/inmem/patriciatrie.c"/>
       <File Name="../../C-kern/ds/inmem/exthash.c"/>
+      <File Name="../../C-kern/ds/inmem/queue.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ondisk"/>
     <VirtualDirectory Name="typeadapt">

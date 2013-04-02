@@ -253,6 +253,7 @@ int run_unittest(void)
       RUN(unittest_ds_inmem_dlist) ;
       RUN(unittest_ds_inmem_exthash) ;
       RUN(unittest_ds_inmem_patriciatrie) ;
+      RUN(unittest_ds_inmem_queue) ;
       RUN(unittest_ds_inmem_redblacktree) ;
       RUN(unittest_ds_inmem_slist) ;
       RUN(unittest_ds_inmem_splaytree) ;

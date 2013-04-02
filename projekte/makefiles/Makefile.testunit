@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Apr.02  15:04:12
+GenerationDate  := 2013.Apr.02  15:06:28
 GeneratedBy     := je-so
 
 ## Debug
@@ -107,6 +107,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
@@ -199,6 +200,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
@@ -360,6 +362,9 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblacktre
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
@@ -630,6 +635,9 @@ $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o: C-kern/ds/inmem/redblackt
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraysf.c.o: C-kern/ds/inmem/arraysf.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
