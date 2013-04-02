@@ -153,7 +153,7 @@ int mresize_mmtransient(mmtransient_t * mman, size_t newsize, struct memblock_t 
       return mfree_mmtransient(mman, memblock) ;
    }
 
-   VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(isfree_memblock(memblock) || isvalid_memblock(memblock), ONABORT, ) ;
 
    if (  (ssize_t)newsize < 0
       || !(newaddr = realloc(memblock->addr, newsize))) {
@@ -176,11 +176,12 @@ int mfree_mmtransient(mmtransient_t * mman, struct memblock_t * memblock)
    int err ;
    (void) mman ;
 
-   VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONABORT, ) ;
+   if (memblock->addr) {
 
-   // TODO: implement mfree_mmtransient without free
+      VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONABORT, ) ;
 
-   if (!isfree_memblock(memblock)) {
+      // TODO: implement mfree_mmtransient without free
+
       free(memblock->addr) ;
       memblock->addr = 0 ;
       memblock->size = 0 ;

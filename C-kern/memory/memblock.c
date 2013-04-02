@@ -54,27 +54,24 @@ static int test_initfree(void)
    // TEST isfree_memblock
    mblock = (memblock_t) memblock_INIT_FREEABLE ;
    TEST(1 == isfree_memblock(&mblock)) ;
-   mblock.size = 100 ;
-   TEST(0 == isfree_memblock(&mblock)) ;
-   mblock.size = 0 ;
-   TEST(1 == isfree_memblock(&mblock)) ;
    mblock.addr = (void*)1 ;
    TEST(0 == isfree_memblock(&mblock)) ;
-   mblock.addr = (void*) ~(uintptr_t)0 ;
+   mblock.size = 100 ;
    TEST(0 == isfree_memblock(&mblock)) ;
    mblock.addr = 0 ;
+   TEST(0 == isfree_memblock(&mblock)) ;
+   mblock.size = 0 ;
    TEST(1 == isfree_memblock(&mblock)) ;
 
    // TEST isvalid_memblock
    mblock = (memblock_t) memblock_INIT_FREEABLE ;
-   TEST(1 == isvalid_memblock(&mblock)) ;
-   /* null pointer with a size != 0 is invalid*/
+   TEST(0 == isvalid_memblock(&mblock)) ;
    mblock.size = 1 ;
    TEST(0 == isvalid_memblock(&mblock)) ;
    mblock.addr = (uint8_t*) 1 ;
    TEST(1 == isvalid_memblock(&mblock)) ;
    mblock.size = 0 ;
-   TEST(1 == isvalid_memblock(&mblock)) ;
+   TEST(0 == isvalid_memblock(&mblock)) ;
 
    return 0 ;
 ONABORT:
