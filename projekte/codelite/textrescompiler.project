@@ -8,7 +8,7 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
-    <File Name="../../C-kern/main/tools/textresourcev2_compiler.c"/>
+    <File Name="../../C-kern/main/tools/textresource_compiler.c"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

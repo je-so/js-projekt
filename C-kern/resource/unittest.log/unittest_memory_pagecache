@@ -1,0 +1,37 @@
+C-kern/memory/pagecache.c:183: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache.c:217: delete_pagecacheblock(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache.c:217: delete_pagecacheblock(): error: 12: Freeing a resource returned an error
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
+C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
+C-kern/memory/pagecache.c:183: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache.c:346: init_pagecache(): error: 12: Function aborted
+C-kern/memory/pagecache.c:217: delete_pagecacheblock(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache.c:368: free_pagecache(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache.c:217: delete_pagecacheblock(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache.c:368: free_pagecache(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache.c:183: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache.c:183: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache.c:183: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache.c:183: new_pagecacheblock(): error: 12: Function aborted

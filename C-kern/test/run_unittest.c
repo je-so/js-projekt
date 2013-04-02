@@ -284,6 +284,7 @@ int run_unittest(void)
 //{ memory unittest
       RUN(unittest_memory_hwcache) ;
       RUN(unittest_memory_memblock) ;
+      RUN(unittest_memory_pagecache) ;
       RUN(unittest_memory_wbuffer) ;
       RUN(unittest_memory_mm_mmit) ;
       RUN(unittest_memory_mm_mmtransient) ;

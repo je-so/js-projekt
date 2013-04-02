@@ -97,6 +97,7 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/memory/hwcache.h"/>
       <File Name="../../C-kern/api/memory/vm.h"/>
+      <File Name="../../C-kern/api/memory/pagecache.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/valuecache.h"/>
@@ -253,6 +254,7 @@
       <File Name="../../C-kern/test/static/check_projects.sh"/>
       <File Name="../../C-kern/test/static/test.sh"/>
       <File Name="../../C-kern/test/static/threadsafe.sh"/>
+      <File Name="../../C-kern/test/static/use_pagecache.sh"/>
     </VirtualDirectory>
     <VirtualDirectory Name="compiletime">
       <File Name="../../C-kern/test/compiletime/stdtypes.h"/>
@@ -392,6 +394,7 @@
       <File Name="../../C-kern/memory/mm/mm_it.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/memory/hwcache.c"/>
+    <File Name="../../C-kern/memory/pagecache.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">

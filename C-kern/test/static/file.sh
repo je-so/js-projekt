@@ -10,7 +10,6 @@ filter='\(^\|[ ]\|[^A-Za-z0-9_]\)\(FILE[^_A-Za-z0-9]\|stderr\|stdout\|stdin\)'
 files=`grep -rl "$filter" C-kern/ | sed -e '/^.*\.sh/d'`
 # array of files which are allowed to use FILE ...
 ok=( C-kern/main/tools/genmake.c
-     C-kern/tools/hash.c
      C-kern/main/tools/text_resource_compiler.c
    )
 for((i=0;i<${#ok[*]};i=i+1)) do
