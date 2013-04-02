@@ -539,10 +539,12 @@ RESTART_TEST:
       TEST(0 == expirationcount_systimer(systimer[0], &expcount)) ;
       TEST(1 == expcount) ;
       if (0 == (i % 2)) {
+         TEST(0 == wait_systimer(systimer[1])) ;
          TEST(0 == expirationcount_systimer(systimer[1], &expcount)) ;
          TEST(1 == expcount) ;
       }
       if (0 == (i % 3)) {
+         TEST(0 == wait_systimer(systimer[2])) ;
          TEST(0 == expirationcount_systimer(systimer[2], &expcount)) ;
          TEST(1 == expcount) ;
       }
