@@ -52,8 +52,8 @@ int unittest_io_reader_filereader(void) ;
  * Reads file data into internal memory buffers.
  * At least two buffers are supported. If one buffer is in use the other could be filled with new data from the file.
  * The function <acquirenext_filereader> returns a buffer containing the next read data.
- * Use <releaseold_filereader> if you do not longer need it. For every called <acquirenext_filereader>
- * you need to call <releaseold_filereader>. Always the oldest acquired buffer is released. */
+ * Use <release_filereader> if you do not longer need it. For every called <acquirenext_filereader>
+ * you need to call <release_filereader>. Always the oldest acquired buffer is released. */
 struct filereader_t {
    /* variable: ioerror
     * Safes status of last read access to <file>.
@@ -154,7 +154,7 @@ bool isnext_filereader(const filereader_t * frd) ;
  * Returns:
  * 0       - New buffer acquired.
  * ENODATA - All data read.
- * ENOBUFS - No more buffer avialable. Call <releaseold_filereader> first before calling this function.
+ * ENOBUFS - No more buffer available. Call <release_filereader> first before calling this function.
  * EIO     - Input/Output error (ENOMEM or other error codes are also possible). */
 int acquirenext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffer) ;
 
