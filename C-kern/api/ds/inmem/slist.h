@@ -200,6 +200,10 @@ struct slist_node_t * last_slist(const slist_t * list) ;
  * If node is the last node in the list the first is returned instead. */
 struct slist_node_t * next_slist(struct slist_node_t * node) ;
 
+/* function: isinlist_slist
+ * Returns true if node is stored in a list else false. */
+bool isinlist_slist(struct slist_node_t * node) ;
+
 // group: foreach-support
 
 /* typedef: iteratortype_slist
@@ -332,6 +336,11 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
       (slist_t*) (list) ;                                                        \
    }))
 
+/* define: isinlist_slist
+ * Implements <slist_t.isinlist_slist>. */
+#define isinlist_slist(node) \
+         (0 != (node)->next)
+
 /* define: first_slist
  * Implements <slist_t.first_slist>. */
 #define first_slist(list)                    ((list)->last ? next_slist((list)->last) : 0)
@@ -375,6 +384,7 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    static inline object_t * first##_fsuffix(const slist_t * list) __attribute__ ((always_inline)) ; \
    static inline object_t * last##_fsuffix(const slist_t * list) __attribute__ ((always_inline)) ; \
    static inline object_t * next##_fsuffix(object_t * node) __attribute__ ((always_inline)) ; \
+   static inline bool isinlist##_fsuffix(object_t * node) __attribute__ ((always_inline)) ; \
    static inline void insertfirst##_fsuffix(slist_t * list, object_t * new_node) __attribute__ ((always_inline)) ; \
    static inline void insertlast##_fsuffix(slist_t * list, object_t * new_node) __attribute__ ((always_inline)) ; \
    static inline void insertafter##_fsuffix(slist_t * list, object_t * prev_node, object_t * new_node) __attribute__ ((always_inline)) ; \
@@ -411,6 +421,9 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
    } \
    static inline object_t * next##_fsuffix(object_t * node) { \
       return asobject##_fsuffix(next_slist(asnode##_fsuffix(node))) ; \
+   } \
+   static inline bool isinlist##_fsuffix(object_t * node) { \
+      return isinlist_slist(asnode##_fsuffix(node)) ; \
    } \
    static inline void insertfirst##_fsuffix(slist_t * list, object_t * new_node) { \
       insertfirst_slist(list, asnode##_fsuffix(new_node)) ; \

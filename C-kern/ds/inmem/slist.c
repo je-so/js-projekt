@@ -308,6 +308,12 @@ static int test_query(void)
    slist.last = 0 ;
    TEST(0 == last_slist(&slist)) ;
 
+   // TEST isinlist_slist
+   lastnode.next = (void*)1 ;
+   TEST(1 == isinlist_slist(&lastnode)) ;
+   lastnode.next = 0 ;
+   TEST(0 == isinlist_slist(&lastnode)) ;
+
    return 0 ;
 ONABORT:
    return EINVAL ;
@@ -689,14 +695,20 @@ static int test_generic(void)
    TEST(&nodes[0] == last_slist1(&slist1)) ;
    TEST(&nodes[0] == first_slist2(&slist2)) ;
    TEST(&nodes[0] == last_slist2(&slist2)) ;
+   TEST(1 == isinlist_slist1(&nodes[0])) ;
+   TEST(1 == isinlist_slist2(&nodes[0])) ;
    TEST(0 == isempty_slist1(&slist1)) ;
    TEST(0 == isempty_slist2(&slist2)) ;
    TEST(0 == free_slist1(&slist1, typeadp)) ;
    TEST(1 == nodes[0].is_freed)
    TEST(1 == typeadapt.freenode_count) ;
+   TEST(0 == isinlist_slist1(&nodes[0])) ;
+   TEST(1 == isinlist_slist2(&nodes[0])) ;
    TEST(0 == free_slist2(&slist2, typeadp)) ;
    TEST(2 == nodes[0].is_freed)
    TEST(2 == typeadapt.freenode_count) ;
+   TEST(0 == isinlist_slist1(&nodes[0])) ;
+   TEST(0 == isinlist_slist2(&nodes[0])) ;
    nodes[0].is_freed = 0 ;
    typeadapt.freenode_count = 0 ;
    TEST(0 == nodes[0].next) ;
