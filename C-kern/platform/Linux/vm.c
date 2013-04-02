@@ -28,10 +28,10 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache_macros.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/test.h"
 #endif
 
@@ -73,6 +73,7 @@ uint32_t sys_pagesize_vm()
 {
    long ps = sysconf(_SC_PAGESIZE) ;
    assert(256 <= ps && (unsigned long)ps <= 0x80000000) ;
+   assert(ispowerof2_int((uint32_t)ps)) ;
    return (uint32_t)ps ;
 }
 

@@ -56,7 +56,8 @@ uint32_t pagesize_vm(void) ;
 
 /* function: sys_pagesize_vm
  * Returns the virtual memory page size supported by the underlying system.
- * This functions always calls the underlying system function. */
+ * This functions always calls the underlying system function.
+ * The returned value is a power of two. */
 uint32_t sys_pagesize_vm(void) ;
 
 // group: test
@@ -116,7 +117,7 @@ int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_pages, const accessmod
  * Invalidates virtual memory address range
  * > vmpage->addr[0 .. vmpage->size - 1 ]
  * After successull return every access to this memory range will generate a memory exception and
- * vmpage is set to <vmpage_t.vmpage_INIT_FREEABLE>.
+ * vmpage is set to <vmpage_INIT_FREEABLE>.
  * Therefore unmapping an already unmapped memory region does nothing and returns success. */
 int free_vmpage(vmpage_t * vmpage) ;
 
