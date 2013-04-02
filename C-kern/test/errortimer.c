@@ -39,30 +39,62 @@ static int test_initfree(void)
 {
    test_errortimer_t  errtimer = test_errortimer_INIT_FREEABLE ;
 
-   // TEST static init
+   // TEST test_errortimer_INIT_FREEABLE
    TEST(0 == errtimer.timercount) ;
    TEST(0 == errtimer.errcode) ;
 
-   // TEST init
+   // TEST init_testerrortimer
    init_testerrortimer(&errtimer, 123, 200) ;
    TEST(123 == errtimer.timercount) ;
    TEST(200 == errtimer.errcode) ;
+   init_testerrortimer(&errtimer, 999, -20) ;
+   TEST(999 == errtimer.timercount) ;
+   TEST(-20 == errtimer.errcode) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_query(void)
+{
+   test_errortimer_t  errtimer = test_errortimer_INIT_FREEABLE ;
+
+   // TEST isenabled_testerrortimer
+   TEST(0 == isenabled_testerrortimer(&errtimer)) ;
+   init_testerrortimer(&errtimer, 1, 0) ;
+   TEST(1 == isenabled_testerrortimer(&errtimer)) ;
+   init_testerrortimer(&errtimer, UINT32_MAX, 0) ;
+   TEST(1 == isenabled_testerrortimer(&errtimer)) ;
+   init_testerrortimer(&errtimer, 0, 20) ;
+   TEST(0 == isenabled_testerrortimer(&errtimer)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+
+static int test_update(void)
+{
+   test_errortimer_t  errtimer = test_errortimer_INIT_FREEABLE ;
 
    // TEST process_testerrortimer
    init_testerrortimer(&errtimer, 11, -2) ;
-   TEST(11 == errtimer.timercount) ;
-   TEST(-2 == errtimer.errcode) ;
-   for(int i = 1; i < 11; ++i) {
+   for (int i = 1; i < 11; ++i) {
       // 1 .. 10th call does not fire
       TEST(0 == process_testerrortimer(&errtimer)) ;
       TEST(11-i == (int)errtimer.timercount) ;
    }
-      // 11th call fires
+   // 11th call fires
    TEST(-2 == process_testerrortimer(&errtimer)) ;
-      // disarmed
-   TEST(0 == (int)errtimer.timercount) ;
+   TEST(0  == (int)errtimer.timercount) ;
    TEST(-2 == errtimer.errcode) ;
+
+   // TEST process_testerrortimer
    TEST(0 == process_testerrortimer(&errtimer)) ;
+   TEST(0  == (int)errtimer.timercount) ;
+   TEST(-2 == errtimer.errcode) ;
 
    // TEST ONERROR_testerrortimer
    int err = 0 ;
@@ -77,6 +109,12 @@ XXX:
    TEST(3 == err) ;
    TEST(0 == errtimer.timercount) ;
    TEST(3 == errtimer.errcode) ;
+   ONERROR_testerrortimer(&errtimer, XXX2) ;  // does nothing
+   err = 10 ;
+XXX2:
+   TEST(10== err) ;
+   TEST(0 == errtimer.timercount) ;
+   TEST(3 == errtimer.errcode) ;
 
    return 0 ;
 ONABORT:
@@ -89,7 +127,9 @@ int unittest_test_errortimer()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())   goto ONABORT ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_query())       goto ONABORT ;
+   if (test_update())      goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
