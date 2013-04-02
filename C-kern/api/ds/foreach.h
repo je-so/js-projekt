@@ -58,6 +58,8 @@
  * _fctsuffix - The suffix of the container interface functions.
  *              This name is used to access the types and iterator functions.
  * varname    - The name of the variable which iterates over all contained elements.
+ *              The used iterator has the generated name "iter_varname" with varname
+ *              replaced with the given argument value. You can access it to modify it.
  * container  - Pointer to container which contains all elements.
  * ...        - Any additional parameter function initfirst##_fctsuffix##iterator takes
  *
@@ -79,11 +81,11 @@
  */
 #define foreach(_fsuffix, varname, ...)                                       \
    for (iteratedtype##_fsuffix varname;;)                                     \
-   for (iteratortype##_fsuffix _iter_##varname ;                              \
-        0 == initfirst##_fsuffix##iterator(& _iter_##varname, __VA_ARGS__);   \
-        (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname);    \
+   for (iteratortype##_fsuffix iter_##varname ;                               \
+        0 == initfirst##_fsuffix##iterator(& iter_##varname, __VA_ARGS__);    \
+        (__extension__({ (void)free##_fsuffix##iterator(&iter_##varname);     \
                            break/*breaks outermost loop*/; })))               \
-   while (next##_fsuffix##iterator(&_iter_##varname, &varname))
+   while (next##_fsuffix##iterator(&iter_##varname, &varname))
 
 
 /* define: foreachReverse
@@ -109,6 +111,8 @@
  * _fctsuffix - The suffix of the container interface functions.
  *              This name is used to access the types and iterator functions.
  * varname    - The name of the variable which iterates over all contained elements.
+ *              The used iterator has the generated name "iter_varname" with varname
+ *              replaced with the given argument value. You can access it to modify it.
  * container  - Pointer to container which contains all elements.
  * ...        - Any additional parameter function initlast##_fctsuffix##iterator takes
  *
@@ -130,10 +134,10 @@
  */
 #define foreachReverse(_fsuffix, varname, ...)                                \
    for (iteratedtype##_fsuffix varname;;)                                     \
-   for (iteratortype##_fsuffix _iter_##varname ;                              \
-        0 == initlast##_fsuffix##iterator(& _iter_##varname, __VA_ARGS__) ;   \
-        (__extension__({ (void)free##_fsuffix##iterator(&_iter_##varname) ;   \
+   for (iteratortype##_fsuffix iter_##varname ;                               \
+        0 == initlast##_fsuffix##iterator(& iter_##varname, __VA_ARGS__) ;    \
+        (__extension__({ (void)free##_fsuffix##iterator(&iter_##varname) ;    \
                          break/*breaks outermost loop*/; })))                 \
-   while (prev##_fsuffix##iterator(&_iter_##varname, &varname))
+   while (prev##_fsuffix##iterator(&iter_##varname, &varname))
 
 #endif
