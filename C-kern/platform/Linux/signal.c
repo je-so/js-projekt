@@ -122,7 +122,7 @@ ONABORT:
    return err ;
 }
 
-static int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
+static inline int setcallback_signalconfig(unsigned signr, signalcallback_f callback)
 {
    int err ;
    struct sigaction  sighandler ;

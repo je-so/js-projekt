@@ -29,10 +29,10 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/inmem/dlist.h"
 #include "C-kern/api/memory/vm.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/ds/foreach.h"
-#include "C-kern/api/test/errortimer.h"
 #endif
 
 

@@ -31,9 +31,9 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/string/stringstream.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/ds/foreach.h"
 #endif
 

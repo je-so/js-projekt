@@ -33,9 +33,9 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/test/errortimer.h"
 #endif
 
 /* typedef: struct pagecache_block_t

@@ -31,9 +31,9 @@
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/sync/semaphore.h"
 #include "C-kern/api/platform/sync/signal.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/test/errortimer.h"
 #endif
 
 
