@@ -243,7 +243,8 @@ int removelast_queue(queue_t * queue, uint16_t nodesize) ;
  * The error EINVAL is returned in case newsize > 512.
  * If newsize does not fit on the last page a new page is allocated and nodeaddr
  * will contain a changed value else it keeps the same as the value returned in
- * the last call to <insertlast_queue>. */
+ * the last call to <insertlast_queue>. The first min(oldsize, newsize) bytes
+ * keep their value. If nodeaddr changed the old content has been copied to the new page. */
 int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize, uint16_t newsize) ;
 
 // group: generic
