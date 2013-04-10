@@ -14,5 +14,5 @@ C-kern/platform/Linux/time/systimer.c:145: startinterval_systimer(): error: 22: 
 C-kern/platform/Linux/time/systimer.c:162: startinterval_systimer(): error: 22: Function aborted
 C-kern/platform/Linux/time/systimer.c:120: start_systimer(): error: 22: Function input violates condition (isvalid_timevalue(relative_time))
 C-kern/platform/Linux/time/systimer.c:137: start_systimer(): error: 22: Function aborted
-C-kern/platform/Linux/time/systimer.c:213: wait_systimer(): error: 22: Function aborted
-C-kern/platform/Linux/time/systimer.c:213: wait_systimer(): error: 22: Function aborted
+C-kern/platform/Linux/time/systimer.c:213: wait_systimer(): error: 62: Function aborted
+C-kern/platform/Linux/time/systimer.c:213: wait_systimer(): error: 62: Function aborted

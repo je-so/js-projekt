@@ -190,21 +190,21 @@ int wait_systimer(systimer_t timer)
    struct pollfd  pfds[1] = { { .fd = timer, .events = POLLIN } } ;
    timevalue_t remaining_time ;
 
-   err = remainingtime_systimer(timer, &remaining_time ) ;
+   err = remainingtime_systimer(timer, &remaining_time) ;
    if (err) goto ONABORT ;
 
    do {
-      err = poll( pfds, 1, (remaining_time.nanosec || remaining_time.seconds) ? -1/*wait indefinitely*/ : 0 ) ;
+      err = poll(pfds, 1, (remaining_time.nanosec || remaining_time.seconds) ? -1/*wait indefinitely*/ : 1/*msec*/) ;
    } while (-1 == err && errno == EINTR) ;
 
-   if (1 != err) {
-      if (-1 == err) {
-         err = errno ;
-         TRACESYSERR_LOG("poll", err) ;
-         PRINTINT_LOG(timer) ;
-      } else {
-         err = EINVAL ;
-      }
+   if (-1 == err) {
+      err = errno ;
+      TRACESYSERR_LOG("poll", err) ;
+      PRINTINT_LOG(timer) ;
+      goto ONABORT ;
+   } else if (1 != err) {
+      // !! timer already expired !!
+      err = ETIME ;
       goto ONABORT ;
    }
 
@@ -395,22 +395,29 @@ static int test_initfree(void)
    TEST(EINVAL == startinterval_systimer(systimer, &timeval)) ;
    TEST(EINVAL == start_systimer(systimer, &timeval)) ;
 
-   // TEST wait timer
+   // TEST wait_systimer, expirationcount_systimer
    TEST(0 == init_systimer(&systimer, sysclock_REAL)) ;
    TEST(0 < systimer) ;
    TEST(0 == start_systimer(systimer, &(timevalue_t){ .nanosec = 100000/*0.1ms*/ })) ;
+   TEST(0 == remainingtime_systimer(systimer, &timeval)) ;
+   TEST(0 == timeval.seconds) ;
+   TEST(0 != timeval.nanosec) ;
+   TEST(0 == expirationcount_systimer(systimer, &expcount)) ;
+   TEST(0 == expcount) ;
    TEST(0 == wait_systimer(systimer)) ;
    TEST(0 == remainingtime_systimer(systimer, &timeval)) ;
    TEST(0 == timeval.seconds) ;
    TEST(0 == timeval.nanosec) ;
+   TEST(0 == wait_systimer(systimer)) ;
+   TEST(0 == wait_systimer(systimer)) ;
    TEST(0 == expirationcount_systimer(systimer, &expcount)) ;
    TEST(1 == expcount) ;
+   // after call exount is reset
    TEST(0 == expirationcount_systimer(systimer, &expcount)) ;
    TEST(0 == expcount) ;
    TEST(0 == free_systimer(&systimer)) ;
-   TEST(-1 == systimer) ;
 
-   // TEST wait on stopped timer
+   // TEST wait_systimer: ETIME (wait on stopped timer)
    TEST(0 == init_systimer(&systimer, sysclock_REAL)) ;
    TEST(0 < systimer) ;
    TEST(0 == start_systimer(systimer, &(timevalue_t){ .seconds = 10 })) ;
@@ -420,18 +427,19 @@ static int test_initfree(void)
    TEST(0 == remainingtime_systimer(systimer, &timeval)) ;
    TEST(0 == timeval.seconds) ;
    TEST(0 == timeval.nanosec) ;
-   TEST(EINVAL == wait_systimer(systimer)) ;
+   TEST(ETIME == wait_systimer(systimer)) ;
 
-   // TEST wait on expired timer
+   // TEST wait_systimer: wait on expired timer with expirationcount_systimer == 0
    TEST(0 == start_systimer(systimer, &(timevalue_t){ .nanosec = 1 })) ;
-   pthread_yield() ;
+   TEST(0 == wait_systimer(systimer)) ;
    TEST(0 == expirationcount_systimer(systimer, &expcount)) ;
    TEST(1 == expcount) ;
-   TEST(EINVAL == wait_systimer(systimer)) ;
+   TEST(0 == expirationcount_systimer(systimer, &expcount)) ;
+   TEST(0 == expcount) ;
+   TEST(ETIME == wait_systimer(systimer)) ;
    TEST(0 == free_systimer(&systimer)) ;
-   TEST(-1 == systimer) ;
 
-   // TEST wait on interval timer
+   // TEST wait_systimer: interval timer
    TEST(0 == init_systimer(&systimer, sysclock_MONOTONIC)) ;
    TEST(0 < systimer) ;
    TEST(0 == startinterval_systimer(systimer, &(timevalue_t){ .nanosec = 100000 })) ;
