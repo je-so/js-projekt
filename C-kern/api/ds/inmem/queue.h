@@ -57,7 +57,9 @@ int unittest_ds_inmem_queue(void) ;
 
 /* struct: queue_iterator_t
  * Iterates over elements contained in <queue_t>.
- * The iterator does not support removing or inserting during iteration. */
+ * The iterator does not support removing or inserting during iteration.
+ * If elements are inserted as last then they are iterated if they fit on
+ * the last page else not. */
 struct queue_iterator_t {
    /* variable: lastpage
     * The last memory page in the list of pages. */
@@ -180,6 +182,14 @@ size_t sizefirst_queue(const queue_t * queue) ;
  * If only one memory page is allocated this value equals to <sizenodesfirstpage_queue>. */
 size_t sizelast_queue(const queue_t * queue) ;
 
+/* function: queuefromaddr_queue
+ * Returns queue an inserted node with address nodeaddr belongs to. */
+queue_t * queuefromaddr_queue(uint32_t pagesize, void * nodeaddr) ;
+
+/* function: pagesize_queue
+ * Returns the pagesize the queue uses. */
+uint32_t pagesize_queue(const queue_t * queue) ;
+
 // group: foreach-support
 
 /* typedef: iteratortype_queue
@@ -265,9 +275,6 @@ struct queue_page_t {
    /* variable: queue
     * Queue this page belongs to. */
    queue_t *      queue ;
-   /* variable: pagesize
-    * Number of total bytes in this page. */
-   uint32_t       pagesize ;
    /* variable: end_offset
     * Offset of end of last node relative to start address of this object.
     * Bytes from <end_offset> up to <pagesize>-1 are unused. */
@@ -431,6 +438,16 @@ struct queue_page_t {
                }                                         \
                _node ;                                   \
          }))
+
+/* define: queuefromaddr_queue
+ * Implements <queue_t.queuefromaddr_queue>. */
+#define pagesize_queue(queue) \
+         (4096u)
+
+/* define: queuefromaddr_queue
+ * Implements <queue_t.queuefromaddr_queue>. */
+#define queuefromaddr_queue(pagesize, nodeaddr) \
+         (((queue_page_t*)((uintptr_t)nodeaddr & ~(uintptr_t)((pagesize)-1u)))->queue)
 
 /* define: sizefirst_queue
  * Implements <queue_t.sizefirst_queue>. */
