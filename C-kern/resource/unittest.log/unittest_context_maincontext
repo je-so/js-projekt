@@ -1,5 +1,5 @@
-C-kern/context/threadcontext.c:90: init_threadcontext(): error: 71: Operation allowed only in state (maincontext_STATIC != type_maincontext())
-C-kern/context/threadcontext.c:115: init_threadcontext(): error: 71: Function aborted
+C-kern/context/threadcontext.c:94: init_threadcontext(): error: 71: Operation allowed only in state (maincontext_STATIC != type_maincontext())
+C-kern/context/threadcontext.c:124: init_threadcontext(): error: 71: Function aborted
 C-kern/context/maincontext.c:161: init_maincontext(): error: 23: Function aborted
 C-kern/context/maincontext.c:161: init_maincontext(): error: 24: Function aborted
 C-kern/context/maincontext.c:161: init_maincontext(): error: 25: Function aborted
@@ -11,8 +11,8 @@ C-kern/context/maincontext.c:130: init_maincontext(): error: 22: Function input 
 C-kern/context/maincontext.c:161: init_maincontext(): error: 22: Function aborted
 C-kern/context/maincontext.c:133: init_maincontext(): error: 22: Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
 C-kern/context/maincontext.c:161: init_maincontext(): error: 22: Function aborted
-C-kern/context/threadcontext.c:90: init_threadcontext(): error: 71: Operation allowed only in state (maincontext_STATIC != type_maincontext())
-C-kern/context/threadcontext.c:115: init_threadcontext(): error: 71: Function aborted
+C-kern/context/threadcontext.c:94: init_threadcontext(): error: 71: Operation allowed only in state (maincontext_STATIC != type_maincontext())
+C-kern/context/threadcontext.c:124: init_threadcontext(): error: 71: Function aborted
 C-kern/context/maincontext.c:161: init_maincontext(): error: 23: Function aborted
 C-kern/context/maincontext.c:161: init_maincontext(): error: 24: Function aborted
 C-kern/context/maincontext.c:161: init_maincontext(): error: 25: Function aborted

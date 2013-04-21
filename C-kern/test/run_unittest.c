@@ -76,7 +76,7 @@ static void generate_logresource(const char * test_name)
 ONABORT:
    if (err != EEXIST) {
       CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-      CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
+      CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(&error_maincontext(),err), test_name) ;
    }
    free_file(&fd) ;
    return ;
@@ -135,7 +135,7 @@ static int check_logresource(const char * test_name)
    return 0 ;
 ONABORT:
    CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-   CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
+   CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(&error_maincontext(),err), test_name) ;
    free_mmfile(&logfile) ;
    return err ;
 }
@@ -286,6 +286,8 @@ int run_unittest(void)
       RUN(unittest_memory_hwcache) ;
       RUN(unittest_memory_memblock) ;
       RUN(unittest_memory_pagecache) ;
+      RUN(unittest_memory_pagecacheimpl) ;
+      RUN(unittest_memory_pagecache_macros) ;
       RUN(unittest_memory_wbuffer) ;
       RUN(unittest_memory_mm_mmit) ;
       RUN(unittest_memory_mm_mmtransient) ;

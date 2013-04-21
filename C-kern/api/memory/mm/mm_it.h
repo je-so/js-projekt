@@ -90,7 +90,6 @@ struct mm_it {
  * The other parameters must be the same as in <mm_it_DECLARE> without the first. */
 mm_it * genericcast_mmit(void * mminterface, TYPENAME memorymanager_t) ;
 
-
 /* function: mm_it_DECLARE
  * Declares an interface function table for accessing a memory manager service.
  * The declared interface is structural compatible with the generic interface <mm_it>.
@@ -108,32 +107,41 @@ mm_it * genericcast_mmit(void * mminterface, TYPENAME memorymanager_t) ;
 void mm_it_DECLARE(TYPENAME declared_it, TYPENAME memorymanager_t) ;
 
 
+
 // section: inline implementation
 
 /* define: genericcast_mmit
  * Implements <mm_it.genericcast_mmit>. */
-#define genericcast_mmit(mminterface, memorymanager_t)                                          \
-   ( __extension__ ({                                                                           \
-      static_assert(                                                                            \
-         offsetof(typeof(*(mminterface)), mresize) == offsetof(mm_it, mresize)                  \
-         && offsetof(typeof(*(mminterface)), mfree) == offsetof(mm_it, mfree)                   \
-         && offsetof(typeof(*(mminterface)), sizeallocated) == offsetof(mm_it, sizeallocated),  \
-         "ensure same structure") ;                                                             \
-      if (0) {                                                                                  \
-         int _err = (mminterface)->mresize((memorymanager_t*)0, (size_t)-1, (struct memblock_t*)0) ;  \
-         _err += (mminterface)->mfree((memorymanager_t*)0, (struct memblock_t*)0) ;                   \
-         size_t _err2 = (mminterface)->sizeallocated((memorymanager_t*)0) ;                           \
-         _err += _err2 > INT_MAX ? INT_MAX : (int) _err2 ;                                      \
-         (void) _err ;                                                                          \
-      }                                                                                         \
-      (mm_it*) (mminterface) ;                                                                  \
+#define genericcast_mmit(mminterface, memorymanager_t)         \
+   ( __extension__ ({                                          \
+      static_assert(                                           \
+         offsetof(typeof(*(mminterface)), mresize)             \
+         == offsetof(mm_it, mresize)                           \
+         && offsetof(typeof(*(mminterface)), mfree)            \
+            == offsetof(mm_it, mfree)                          \
+         && offsetof(typeof(*(mminterface)), sizeallocated)    \
+            == offsetof(mm_it, sizeallocated),                 \
+         "ensure same structure") ;                            \
+      if (0) {                                                 \
+         int _err = (mminterface)->mresize(                    \
+                     (memorymanager_t*)0, (size_t)-1,          \
+                     (struct memblock_t*)0) ;                  \
+         _err += (mminterface)->mfree(                         \
+                     (memorymanager_t*)0,                      \
+                     (struct memblock_t*)0) ;                  \
+         size_t _err2 = (mminterface)->sizeallocated(          \
+                     (memorymanager_t*)0) ;                    \
+         (void) (_err2 + (size_t)_err) ;                       \
+      }                                                        \
+      (mm_it*) (mminterface) ;                                 \
    }))
 
 
 /* define: mm_it_DECLARE
  * Implements <mm_it.mm_it_DECLARE>. */
-#define mm_it_DECLARE(declared_it, memorymanager_t)                                                \
-   struct declared_it {                                                                            \
+#define mm_it_DECLARE(declared_it, memorymanager_t)   \
+   typedef struct declared_it       declared_it ;     \
+   struct declared_it {                               \
       int    (* mresize) (memorymanager_t * mman, size_t newsize, struct memblock_t * memblock) ;  \
       int    (* mfree)   (memorymanager_t * mman, struct memblock_t * memblock) ;                  \
       size_t (* sizeallocated) (memorymanager_t * mman) ;                                          \

@@ -31,11 +31,13 @@
 #include "C-kern/api/io/writer/log/logmain.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initthread")
 #include "C-kern/api/memory/mm/mmtransient.h"
+#include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/cache/objectcache_impl.h"
 #include "C-kern/api/io/writer/log/logwriter.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/memory/pagecache_macros.h"
 #endif
 
 
@@ -44,9 +46,9 @@
 // group: variables
 
 #ifdef KONFIG_UNITTEST
-/* variable: s_error_init
+/* variable: s_threadcontext_errtimer
  * Simulates an error in <init_thread_resources>. */
-static test_errortimer_t   s_error_init = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_threadcontext_errtimer = test_errortimer_INIT_FREEABLE ;
 #endif
 
 // group: lifetime
@@ -63,9 +65,11 @@ int free_threadcontext(threadcontext_t * tcontext)
    default:    assert(false && "initcount out of bounds") ;
                break ;
 // TEXTDB:SELECT("   case "row-id":     err2 = freethread_"module"("(if (parameter!="") "&tcontext->" else "")parameter") ;"\n"               if (err2) err = err2 ;")FROM(C-kern/resource/config/initthread)DESCENDING
-   case 3:     err2 = freethread_logwriter(&tcontext->log) ;
+   case 4:     err2 = freethread_logwriter(&tcontext->log) ;
                if (err2) err = err2 ;
-   case 2:     err2 = freethread_objectcacheimpl(&tcontext->objectcache) ;
+   case 3:     err2 = freethread_objectcacheimpl(&tcontext->objectcache) ;
+               if (err2) err = err2 ;
+   case 2:     err2 = freethread_pagecacheimpl(&tcontext->pgcache) ;
                if (err2) err = err2 ;
    case 1:     err2 = freethread_mmtransient(&tcontext->mm_transient) ;
                if (err2) err = err2 ;
@@ -89,25 +93,30 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext)
 
    VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONABORT, ) ;
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_error_init, ONABORT) ;"\n"   err = initthread_"module"("(if (parameter!="") "&tcontext->")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/config/initthread)
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;"\n"   err = initthread_"module"("(if (parameter!="") "&tcontext->")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/config/initthread)
 
-   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
    err = initthread_mmtransient(&tcontext->mm_transient) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
+   err = initthread_pagecacheimpl(&tcontext->pgcache) ;
+   if (err) goto ONABORT ;
+   ++tcontext->initcount ;
+
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
    err = initthread_objectcacheimpl(&tcontext->objectcache) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
    err = initthread_logwriter(&tcontext->log) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 // TEXTDB:END
 
-   ONERROR_testerrortimer(&s_error_init, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
 
    return 0 ;
 ONABORT:
@@ -123,69 +132,85 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   threadcontext_t   tcontext = threadcontext_INIT_STATIC ;
-   const int         nrsvc    = 3 ;
+   threadcontext_t   tcontext   = threadcontext_INIT_STATIC ;
+   const int         nrsvc      = 4 ;
+   size_t            sizestatic ;
 
    // TEST threadcontext_INIT_STATIC
    TEST(0 == tcontext.initcount) ;
-   TEST(tcontext.log.object == &g_logmain) ;
-   TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
+   TEST(0 == tcontext.pgcache.object) ;
+   TEST(0 == tcontext.pgcache.iimpl) ;
    TEST(0 == tcontext.mm_transient.object) ;
    TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
    TEST(0 == tcontext.objectcache.iimpl) ;
+   TEST(&g_logmain           == tcontext.log.object) ;
+   TEST(&g_logmain_interface == tcontext.log.iimpl) ;
 
-   // TEST init, double free
+   // TEST init_threadcontext, free_threadcontext
+   sizestatic = SIZESTATIC_PAGECACHE() ;
    TEST(0 == init_threadcontext(&tcontext)) ;
    TEST(nrsvc == tcontext.initcount) ;
-   TEST(tcontext.log.object != 0) ;
-   TEST(tcontext.log.object != &g_logmain) ;
-   TEST(tcontext.log.iimpl  != &g_logmain_interface) ;
+   TEST(0 != tcontext.pgcache.object) ;
+   TEST(0 != tcontext.pgcache.iimpl) ;
    TEST(0 != tcontext.mm_transient.object) ;
    TEST(0 != tcontext.mm_transient.iimpl) ;
    TEST(0 != tcontext.objectcache.object) ;
    TEST(0 != tcontext.objectcache.iimpl) ;
+   TEST(0 != tcontext.log.object) ;
+   TEST(0 != tcontext.log.iimpl) ;
+   TEST(&g_logmain           != tcontext.log.object) ;
+   TEST(&g_logmain_interface != tcontext.log.iimpl) ;
+   TEST(SIZESTATIC_PAGECACHE() > sizestatic) ;
    TEST(0 == free_threadcontext(&tcontext)) ;
    TEST(0 == tcontext.initcount) ;
-   TEST(tcontext.log.object == &g_logmain) ;
-   TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
+   TEST(0 == tcontext.pgcache.object) ;
+   TEST(0 == tcontext.pgcache.iimpl) ;
    TEST(0 == tcontext.mm_transient.object) ;
    TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
    TEST(0 == tcontext.objectcache.iimpl) ;
-   TEST(0 == free_threadcontext(&tcontext)) ;
-   TEST(0 == tcontext.initcount) ;
    TEST(tcontext.log.object == &g_logmain) ;
    TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+   TEST(0 == free_threadcontext(&tcontext)) ;
+   TEST(0 == tcontext.initcount) ;
+   TEST(0 == tcontext.pgcache.object) ;
+   TEST(0 == tcontext.pgcache.iimpl) ;
    TEST(0 == tcontext.mm_transient.object) ;
    TEST(0 == tcontext.mm_transient.iimpl) ;
    TEST(0 == tcontext.objectcache.object) ;
    TEST(0 == tcontext.objectcache.iimpl) ;
+   TEST(&g_logmain           == tcontext.log.object) ;
+   TEST(&g_logmain_interface == tcontext.log.iimpl) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
 
-   // TEST EINVAL init
+   // TEST init_threadcontext: EINVAL
    for(int i = 0; i <= nrsvc; ++i) {
-      init_testerrortimer(&s_error_init, 1u+(unsigned)i, EINVAL+i) ;
+      init_testerrortimer(&s_threadcontext_errtimer, 1u+(unsigned)i, EINVAL+i) ;
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
       TEST(EINVAL+i == init_threadcontext(&tcontext)) ;
       TEST(0 == tcontext.initcount) ;
-      TEST(tcontext.log.object == &g_logmain) ;
-      TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
+      TEST(0 == tcontext.pgcache.object) ;
+      TEST(0 == tcontext.pgcache.iimpl) ;
       TEST(0 == tcontext.mm_transient.object) ;
       TEST(0 == tcontext.mm_transient.iimpl) ;
       TEST(0 == tcontext.objectcache.object) ;
       TEST(0 == tcontext.objectcache.iimpl) ;
+      TEST(&g_logmain           == tcontext.log.object) ;
+      TEST(&g_logmain_interface == tcontext.log.iimpl) ;
+      TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
    }
 
    return 0 ;
 ONABORT:
-   s_error_init = (test_errortimer_t) test_errortimer_INIT_FREEABLE ;
+   s_threadcontext_errtimer = (test_errortimer_t) test_errortimer_INIT_FREEABLE ;
    return EINVAL ;
 }
 
 int unittest_context_threadcontext()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
-
 
    TEST(0 == init_resourceusage(&usage)) ;
 

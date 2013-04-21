@@ -34,10 +34,6 @@
 #include "C-kern/api/test.h"
 #endif
 
-/* typedef: struct testmm_it
- * Shortcut for <testmm_it>. */
-typedef struct testmm_it               testmm_it ;
-
 /* typedef: struct testmm_block_t
  * Shortcut for <testmm_block_t>. */
 typedef struct testmm_block_t          testmm_block_t ;

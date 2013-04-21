@@ -35,11 +35,6 @@
 #endif
 
 
-/* typedef: struct mmtransient_it
- * Shortcut for <mmtransient_it>. */
-typedef struct mmtransient_it          mmtransient_it ;
-
-
 /* struct: mmtransient_it
  * Adapts <mm_it> to <mmtransient_t>. See <mm_it_DECLARE>. */
 mm_it_DECLARE(mmtransient_it, mmtransient_t)
@@ -65,7 +60,6 @@ int initthread_mmtransient(/*out*/mm_t * mm_transient)
    const size_t      objsize    = sizeof(mmtransient_t) ;
    mmtransient_t     tempobject = mmtransient_INIT_FREEABLE ;
    memblock_t        newobject  = memblock_INIT_FREEABLE ;
-
 
    VALIDATE_INPARAM_TEST(0 == mm_transient->object, ONABORT, ) ;
 

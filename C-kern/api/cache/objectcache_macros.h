@@ -29,17 +29,17 @@
 
 // group: iobuffer
 
-/* define: OBJC_LOCKIOBUFFER
+/* define: LOCKIOBUFFER_OBJECTCACHE
  * Locks the io buffer and returns a pointer to it in iobuffer.
  * See also <lockiobuffer_objectcache>. */
-#define OBJC_LOCKIOBUFFER(/*out*/iobuffer) \
-      (objectcache_maincontext().iimpl->lock_iobuffer(objectcache_maincontext().object, (iobuffer)))
+#define LOCKIOBUFFER_OBJECTCACHE(/*out*/iobuffer) \
+         (objectcache_maincontext().iimpl->lock_iobuffer(objectcache_maincontext().object, (iobuffer)))
 
-/* define: OBJC_UNLOCKIOBUFFER
+/* define: UNLOCKIOBUFFER_OBJECTCACHE
  * Unlocks the locked io buffer and sets the pointer to NULL.
  * See also <unlockiobuffer_objectcache>. */
-#define OBJC_UNLOCKIOBUFFER(iobuffer) \
-   (objectcache_maincontext().iimpl->unlock_iobuffer(objectcache_maincontext().object, (iobuffer)))
+#define UNLOCKIOBUFFER_OBJECTCACHE(iobuffer) \
+         (objectcache_maincontext().iimpl->unlock_iobuffer(objectcache_maincontext().object, (iobuffer)))
 
 
 #endif

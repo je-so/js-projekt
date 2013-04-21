@@ -1,0 +1,55 @@
+C-kern/memory/pagecache_impl.c:246: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:280: delete_pagecacheblock(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache_impl.c:280: delete_pagecacheblock(): error: 12: Freeing a resource returned an error
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:246: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:482: init_pagecacheimpl(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:280: delete_pagecacheblock(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache_impl.c:504: free_pagecacheimpl(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache_impl.c:280: delete_pagecacheblock(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache_impl.c:504: free_pagecacheimpl(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache_impl.c:246: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:246: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:246: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:246: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:606: releasepage_pagecacheimpl(): error: 114: Function aborted
+C-kern/memory/pagecache_impl.c:616: allocstatic_pagecacheimpl(): error: 22: Function input violates condition (0 < alignedsize && alignedsize <= 128)
+C-kern/memory/pagecache_impl.c:637: allocstatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:616: allocstatic_pagecacheimpl(): error: 22: Function input violates condition (0 < alignedsize && alignedsize <= 128)
+C-kern/memory/pagecache_impl.c:637: allocstatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:246: new_pagecacheblock(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:562: allocpage_pagecacheimpl(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:637: allocstatic_pagecacheimpl(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:652: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+C-kern/memory/pagecache_impl.c:671: freestatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:652: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+C-kern/memory/pagecache_impl.c:671: freestatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:652: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+C-kern/memory/pagecache_impl.c:671: freestatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:652: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+C-kern/memory/pagecache_impl.c:671: freestatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:346: initthread_pagecacheimpl(): error: 22: Function input violates condition (0 == pgcache->object)
+C-kern/memory/pagecache_impl.c:362: initthread_pagecacheimpl(): error: 22: Function aborted

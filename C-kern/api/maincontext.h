@@ -163,8 +163,8 @@ const char *               progname_maincontext(void) ;
 // group: query-service
 
 /* function: error_maincontext
- * Returns error context (see <errorcontext_t>). */
-errorcontext_t *           error_maincontext(void) ;
+ * Returns error string table (see <errorcontext_t>). */
+/*ref*/errorcontext_t      error_maincontext(void) ;
 
 /* function: log_maincontext
  * Returns log service <log_t> (see <logwriter_t>).
@@ -180,6 +180,10 @@ errorcontext_t *           error_maincontext(void) ;
  * Returns interfaceable object <objectcache_t> for access of cached singleton objects. */
 /*ref*/objectcache_t       objectcache_maincontext(void) ;
 
+/* function: pagecache_maincontext
+ * Returns object interface <pagecache_t> to access functionality of <pagecache_impl_t>. */
+/*ref*/pagecache_t         pagecache_maincontext(void) ;
+
 /* function: sysuser_maincontext
  * Returns <sysusercontext_t> of current <maincontext_t>. It is used in implementation of module <SystemUser>. */
 /*ref*/sysusercontext_t    sysuser_maincontext(void) ;
@@ -194,7 +198,7 @@ struct valuecache_t *      valuecache_maincontext(void) ;
 
 /* define: error_maincontext
  * Implementation of <maincontext_t.error_maincontext>. */
-#define error_maincontext()            (&process_maincontext().errcontext)
+#define error_maincontext()            (process_maincontext().errcontext)
 
 /* define: log_maincontext
  * Inline implementation of <maincontext_t.log_maincontext>.
@@ -210,6 +214,10 @@ struct valuecache_t *      valuecache_maincontext(void) ;
  * Inline implementation of <maincontext_t.objectcache_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
 #define objectcache_maincontext()      (thread_maincontext().objectcache)
+
+/* define: pagecache_maincontext
+ * Implements <maincontext_t.pagecache_maincontext>. */
+#define pagecache_maincontext()        (thread_maincontext().pgcache)
 
 /* define: process_maincontext
  * Inline implementation of <maincontext_t.process_maincontext>. */

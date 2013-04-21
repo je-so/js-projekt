@@ -31,7 +31,8 @@
 #ifndef CKERN_CACHE_OBJECTCACHE_IMPL_HEADER
 #define CKERN_CACHE_OBJECTCACHE_IMPL_HEADER
 
-#include "C-kern/api/memory/vm.h"
+// forward
+struct memblock_t ;
 
 /* typedef: struct objectcache_impl_t
  * Export <objectcache_impl_t>. */
@@ -50,12 +51,15 @@ int unittest_cache_objectcacheimpl(void) ;
 
 
 /* struct: objectcache_impl_t
- * Implements <objectcache_impl_t>.
- * Holds pointers to all cached objects. */
+ * Holds pointers to all cached objects.
+ * TODO: remove iobuffer and add other types ! */
 struct objectcache_impl_t {
    /* variable: iobuffer
-    * Used in <init_vmpage>. */
-   vmpage_t    iobuffer ;
+    * Used in <ALLOC_PAGECACHE>. */
+   struct {
+      uint8_t *   addr ;
+      size_t      size ;
+   }           iobuffer ;
 } ;
 
 // group: init
@@ -84,26 +88,18 @@ int init_objectcacheimpl(/*out*/objectcache_impl_t * objectcache) ;
  * Frees <objectcache_impl_t> and all contained objects. */
 int free_objectcacheimpl(objectcache_impl_t * objectcache) ;
 
-// group: query
+// group: access
 
 /* function: lockiobuffer_objectcacheimpl
  * Locks the io buffer and returns a pointer to it in iobuffer.
  * The buffer is of type <vmpage_t> (compatible with <memblock_t>). */
-void lockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/vmpage_t ** iobuffer) ;
+void lockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/struct memblock_t ** iobuffer) ;
 
 /* function: unlockiobuffer_objectcacheimpl
  * Unlocks the locked io buffer and sets the pointer to NULL.
  * The pointer to the buffer must be acquired by a previous call to <lockiobuffer_objectcacheimpl>.
  * Calling unlock with a NULL pointer is a no op. */
-void unlockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, vmpage_t ** iobuffer) ;
+void unlockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, struct memblock_t ** iobuffer) ;
 
-// group: change
-
-/* Moves content of cached objects from source to destination.
- * Both objects must have been initialized.
- * After successfull return all cached objects of source are in a freed state
- * and the previous content is transfered to destination.
- * Before anything is copied to destiniation all cached objects in destination are freed. */
-int move_objectcacheimpl(objectcache_impl_t * destination, objectcache_impl_t * source) ;
 
 #endif

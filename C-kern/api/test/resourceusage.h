@@ -64,6 +64,15 @@ struct resourceusage_t {
    /* variable: malloc_correction
     * Number of bytes <resourceusage_t> uses itself. */
    size_t                        malloc_correction ;
+   /* variable: pagecache_usage
+    * Sum of size of all cache memory pages. */
+   size_t                        pagecache_usage ;
+   /* variable: pagecache_correction
+    * Size of pages <resourceusage_t> uses itself. */
+   size_t                        pagecache_correction ;
+   /* variable: pagecache_staticusage
+    * Size of static memory allocated in <pagecache_t>. */
+   size_t                        pagecache_staticusage ;
    /* variable: signalconfig
     * Stores configuration of signal subsystem. */
    struct signalconfig_t       * signalconfig ;
@@ -76,7 +85,7 @@ struct resourceusage_t {
 
 /* define: resourceusage_INIT_FREEABLE
  * Static initializer. */
-#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0, 0, 0, 0 }
+#define resourceusage_INIT_FREEABLE    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 /* function: init_resourceusage
  * Stores the number of resources currently in use. */

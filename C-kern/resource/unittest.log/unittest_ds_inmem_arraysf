@@ -7,9 +7,9 @@ C-kern/ds/inmem/arraysf.c:131: new_arraysf(): error: 22: Function aborted
 C-kern/ds/inmem/arraysf.c:459: insert_arraysf(): error: 17: Function aborted
 C-kern/ds/inmem/arraysf.c:441: remove_arraysf(): error: 3: Function aborted
 C-kern/ds/inmem/arraysf.c:214: delete_arraysf(): error: 12345: Freeing a resource returned an error
-C-kern/test/testmm.c:679: mresize_testmm(): error: Could not allocate 20 bytes of memory
-C-kern/test/testmm.c:681: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 20 bytes of memory
+C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
 C-kern/ds/inmem/arraysf.c:366: tryinsert_arraysf(): error: 12: Function aborted
-C-kern/test/testmm.c:679: mresize_testmm(): error: Could not allocate 20 bytes of memory
-C-kern/test/testmm.c:681: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 20 bytes of memory
+C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
 C-kern/ds/inmem/arraysf.c:366: tryinsert_arraysf(): error: 12: Function aborted

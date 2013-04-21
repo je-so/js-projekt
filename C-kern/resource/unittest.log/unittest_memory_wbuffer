@@ -1,14 +1,14 @@
 C-kern/memory/wbuffer.c:91: staticimpl_reserve_wbuffer(): error: 12: Function aborted
 C-kern/memory/wbuffer.c:91: staticimpl_reserve_wbuffer(): error: 12: Function aborted
 C-kern/memory/wbuffer.c:91: staticimpl_reserve_wbuffer(): error: 12: Function aborted
-C-kern/test/testmm.c:201: new_testmmpage(): error: 12: Function aborted
-C-kern/test/testmm.c:679: mresize_testmm(): error: Could not allocate 2147483647 bytes of memory
-C-kern/test/testmm.c:681: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:197: new_testmmpage(): error: 12: Function aborted
+C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 2147483647 bytes of memory
+C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
 C-kern/memory/wbuffer.c:82: dynamicimpl_reserve_wbuffer(): error: 12: Function aborted
-C-kern/test/testmm.c:679: mresize_testmm(): error: Could not allocate 2 bytes of memory
-C-kern/test/testmm.c:681: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 2 bytes of memory
+C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
 C-kern/memory/wbuffer.c:82: dynamicimpl_reserve_wbuffer(): error: 12: Function aborted
-C-kern/test/testmm.c:201: new_testmmpage(): error: 12: Function aborted
-C-kern/test/testmm.c:679: mresize_testmm(): error: Could not allocate 2147483647 bytes of memory
-C-kern/test/testmm.c:681: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:197: new_testmmpage(): error: 12: Function aborted
+C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 2147483647 bytes of memory
+C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
 C-kern/memory/wbuffer.c:82: dynamicimpl_reserve_wbuffer(): error: 12: Function aborted

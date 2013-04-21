@@ -28,6 +28,9 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache_impl.h"
 #include "C-kern/api/cache/objectcache_it.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/pagecache_impl.h"
+#include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -51,26 +54,22 @@ objectcache_impl_it  s_objectcacheimpl_interface = {
 int initthread_objectcacheimpl(/*out*/objectcache_t * objectcache)
 {
    int err ;
-   const size_t       objsize     = sizeof(objectcache_impl_t) ;
-   objectcache_impl_t * newobject = (objectcache_impl_t*) malloc(objsize) ;
-
-   if (!newobject) {
-      err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(objsize) ;
-      goto ONABORT ;
-   }
+   memblock_t  objmem ;
 
    VALIDATE_INPARAM_TEST(0 == objectcache->object, ONABORT, ) ;
 
-   err = init_objectcacheimpl(newobject) ;
+   err = ALLOCSTATIC_PAGECACHE(sizeof(objectcache_impl_t), &objmem) ;
    if (err) goto ONABORT ;
 
-   objectcache->object = (objectcache_t*) newobject;
+   objectcache_impl_t * newobj = (objectcache_impl_t*) objmem.addr ;
+   err = init_objectcacheimpl(newobj) ;
+   if (err) goto ONABORT ;
+
+   objectcache->object = (objectcache_t*) newobj ;
    objectcache->iimpl  = genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
 
    return 0 ;
 ONABORT:
-   free(newobject) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -78,17 +77,19 @@ ONABORT:
 int freethread_objectcacheimpl(objectcache_t * objectcache)
 {
    int err ;
-   objectcache_impl_t * delobject = (objectcache_impl_t*) objectcache->object ;
+   objectcache_impl_t * delobj = (objectcache_impl_t*) objectcache->object ;
 
-   if (delobject) {
+   if (delobj) {
       assert(genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) == objectcache->iimpl) ;
 
       objectcache->object = 0 ;
       objectcache->iimpl  = 0 ;
 
-      err = free_objectcacheimpl(delobject) ;
+      err = free_objectcacheimpl(delobj) ;
 
-      free(delobject) ;
+      memblock_t memblock = memblock_INIT(sizeof(*delobj), (uint8_t*)delobj) ;
+      int err2 = FREESTATIC_PAGECACHE(&memblock) ;
+      if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
    }
@@ -102,17 +103,17 @@ ONABORT:
 int init_objectcacheimpl(/*out*/objectcache_impl_t * cache)
 {
    int err ;
-   vmpage_t      iobuffer  = vmpage_INIT_FREEABLE ;
+   memblock_t  iobuffer = memblock_INIT_FREEABLE ;
 
-   err = init_vmpage(&iobuffer, (4096-1+sys_pagesize_vm()) / sys_pagesize_vm()) ;
+   err = ALLOC_PAGECACHE(pagesize_4096, &iobuffer) ;
    if (err) goto ONABORT ;
 
    static_assert(sizeof(*cache) == sizeof(iobuffer), "only one cached object") ;
-   cache->iobuffer = iobuffer ;
+   *genericcast_memblock(&cache->iobuffer, ) = iobuffer ;
 
    return 0 ;
 ONABORT:
-   (void) free_vmpage(&iobuffer) ;
+   (void) RELEASE_PAGECACHE(&iobuffer) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -121,7 +122,7 @@ int free_objectcacheimpl(objectcache_impl_t * cache)
 {
    int err ;
 
-   err = free_vmpage(&cache->iobuffer) ;
+   err = RELEASE_PAGECACHE(genericcast_memblock(&cache->iobuffer, )) ;
 
    if (err) goto ONABORT ;
 
@@ -131,32 +132,15 @@ ONABORT:
    return err ;
 }
 
-int move_objectcacheimpl(objectcache_impl_t * destination, objectcache_impl_t * source)
-{
-   int err ;
+// group: access
 
-   // move vm_rootbuffer
-   if (source != destination) {
-      err = free_vmpage(&destination->iobuffer) ;
-      if (err) goto ONABORT ;
-
-      MEMCOPY(&destination->iobuffer, (const typeof(source->iobuffer) *)&source->iobuffer) ;
-      source->iobuffer = (vmpage_t) vmpage_INIT_FREEABLE ;
-   }
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-static int lockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/vmpage_t ** iobuffer)
+static int lockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/memblock_t ** iobuffer)
 {
    int err ;
 
    VALIDATE_INPARAM_TEST(0 == *iobuffer, ONABORT, ) ;
 
-   *iobuffer = &objectcache->iobuffer ;
+   *iobuffer = genericcast_memblock(&objectcache->iobuffer,) ;
 
    return 0 ;
 ONABORT:
@@ -164,12 +148,12 @@ ONABORT:
    return err ;
 }
 
-static int unlockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, vmpage_t ** iobuffer)
+static int unlockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, memblock_t ** iobuffer)
 {
    int err ;
 
    if (*iobuffer) {
-      VALIDATE_INPARAM_TEST(&objectcache->iobuffer == *iobuffer, ONABORT, ) ;
+      VALIDATE_INPARAM_TEST(genericcast_memblock(&objectcache->iobuffer,) == *iobuffer, ONABORT, ) ;
       *iobuffer = 0 ;
    }
 
@@ -179,7 +163,7 @@ ONABORT:
    return err ;
 }
 
-void lockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/vmpage_t ** iobuffer)
+void lockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/memblock_t ** iobuffer)
 {
    int err ;
 
@@ -188,7 +172,7 @@ void lockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, /*out*/vmpag
    assert(!err && "lockiobuffer2_objectcacheimpl") ;
 }
 
-void unlockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, vmpage_t ** iobuffer)
+void unlockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, memblock_t ** iobuffer)
 {
    int err ;
 
@@ -204,90 +188,66 @@ void unlockiobuffer_objectcacheimpl(objectcache_impl_t * objectcache, vmpage_t *
 
 static int test_initfree(void)
 {
-   objectcache_impl_t   cache  = objectcache_impl_INIT_FREEABLE ;
-   objectcache_impl_t   cache2 = objectcache_impl_INIT_FREEABLE ;
+   objectcache_impl_t   cache = objectcache_impl_INIT_FREEABLE ;
 
-   // TEST static init
+   // TEST objectcache_impl_INIT_FREEABLE
    TEST(0 == cache.iobuffer.addr) ;
    TEST(0 == cache.iobuffer.size) ;
 
-   // TEST init, double free
+   // TEST init_objectcacheimpl, free_objectcacheimpl
    TEST(0 == init_objectcacheimpl(&cache)) ;
    TEST(0 != cache.iobuffer.addr) ;
-   TEST(0 != cache.iobuffer.size) ;
+   TEST(4096 == cache.iobuffer.size) ;
    TEST(0 == free_objectcacheimpl(&cache)) ;
    TEST(0 == cache.iobuffer.addr) ;
    TEST(0 == cache.iobuffer.size) ;
    TEST(0 == free_objectcacheimpl(&cache)) ;
    TEST(0 == cache.iobuffer.addr) ;
    TEST(0 == cache.iobuffer.size) ;
-
-   // TEST move
-   TEST(0 == init_objectcacheimpl(&cache)) ;
-   TEST(0 == init_objectcacheimpl(&cache2)) ;
-   void * start = cache.iobuffer.addr ;
-   TEST(cache.iobuffer.addr  != 0) ;
-   TEST(cache.iobuffer.size  == pagesize_vm()) ;
-   TEST(cache2.iobuffer.addr != 0) ;
-   TEST(cache2.iobuffer.size == pagesize_vm()) ;
-   TEST(cache2.iobuffer.addr != start) ;
-   TEST(0 == move_objectcacheimpl(&cache2, &cache)) ;
-   TEST(cache.iobuffer.addr  == 0) ;
-   TEST(cache.iobuffer.size  == 0) ;
-   TEST(cache2.iobuffer.addr == start) ;
-   TEST(cache2.iobuffer.size == pagesize_vm()) ;
-   TEST(0 == free_objectcacheimpl(&cache)) ;
-   TEST(0 == free_objectcacheimpl(&cache2)) ;
-   TEST(cache.iobuffer.addr  == 0) ;
-   TEST(cache.iobuffer.size  == 0) ;
-   TEST(cache2.iobuffer.addr == 0) ;
-   TEST(cache2.iobuffer.size == 0) ;
-
-   // Test move to same address dos nothing
-   TEST(0 == init_objectcacheimpl(&cache)) ;
-   start = cache.iobuffer.addr ;
-   TEST(cache.iobuffer.addr != 0) ;
-   TEST(cache.iobuffer.size == pagesize_vm()) ;
-   TEST(0 == move_objectcacheimpl(&cache, &cache)) ;
-   TEST(cache.iobuffer.addr == start) ;
-   TEST(cache.iobuffer.size == pagesize_vm()) ;
-   TEST(0 == free_objectcacheimpl(&cache)) ;
-   TEST(cache.iobuffer.addr == 0) ;
-   TEST(cache.iobuffer.size == 0) ;
 
    return 0 ;
 ONABORT:
    (void) free_objectcacheimpl(&cache) ;
-   (void) free_objectcacheimpl(&cache2) ;
    return EINVAL ;
 }
 
 static int test_initthread(void)
 {
-   objectcache_t   cache = objectcache_INIT_FREEABLE;
+   objectcache_t  cache      = objectcache_INIT_FREEABLE ;
 
-   // TEST static init
+   // TEST objectcache_INIT_FREEABLE
    TEST(0 == cache.object) ;
    TEST(0 == cache.iimpl) ;
 
-   // TEST exported interface
+   // TEST s_objectcacheimpl_interface
    TEST(s_objectcacheimpl_interface.lock_iobuffer   == &lockiobuffer_objectcacheimpl) ;
    TEST(s_objectcacheimpl_interface.unlock_iobuffer == &unlockiobuffer_objectcacheimpl) ;
 
-   // TEST initthread and double free
+   // TEST genericcast_objectcacheit
+   TEST((objectcache_it*)&s_objectcacheimpl_interface == genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
+
+   // TEST initthread_objectcacheimpl
+   size_t sizestatic = SIZESTATIC_PAGECACHE() ;
    TEST(0 == initthread_objectcacheimpl(&cache)) ;
    TEST(cache.object != 0) ;
    TEST(cache.iimpl  == genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
-   TEST(0 == freethread_objectcacheimpl(&cache)) ;
-   TEST(0 == cache.object) ;
-   TEST(0 == cache.iimpl) ;
-   TEST(0 == freethread_objectcacheimpl(&cache)) ;
-   TEST(0 == cache.object) ;
-   TEST(0 == cache.iimpl) ;
+   size_t alignsize = sizeof(objectcache_impl_t)%KONFIG_MEMALIGN ? sizeof(objectcache_impl_t)+KONFIG_MEMALIGN-(sizeof(objectcache_impl_t)%KONFIG_MEMALIGN) : sizeof(objectcache_impl_t) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic + alignsize) ;
 
-   // TEST EINVAL initthread
-   cache.object = (objectcache_t*) 1 ;
-   TEST(EINVAL == initthread_objectcacheimpl(&cache)) ;
+   // TEST freethread_objectcacheimpl
+   TEST(0 == freethread_objectcacheimpl(&cache)) ;
+   TEST(0 == cache.object) ;
+   TEST(0 == cache.iimpl) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+   TEST(0 == freethread_objectcacheimpl(&cache)) ;
+   TEST(0 == cache.object) ;
+   TEST(0 == cache.iimpl) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+
+   // TEST initthread_objectcacheimpl: EINVAL
+   objectcache_t  cache2 = { .object = (objectcache_t*) 1 } ;
+   TEST(EINVAL == initthread_objectcacheimpl(&cache2)) ;
+   TEST(cache2.object == (objectcache_t*) 1) ;
 
    return 0 ;
 ONABORT:
@@ -299,7 +259,7 @@ static int child_lockassert(objectcache_impl_t * cache)
 {
    CLEARBUFFER_LOG() ;
    if (cache) {
-      vmpage_t * iobuffer  = (vmpage_t *) 1 ;
+      memblock_t * iobuffer = (memblock_t*) 1 ;
       lockiobuffer_objectcacheimpl(cache, &iobuffer) ;
    }
    return 0 ;
@@ -309,7 +269,7 @@ static int child_unlockassert(objectcache_impl_t * cache)
 {
    CLEARBUFFER_LOG() ;
    if (cache) {
-      vmpage_t * iobuffer  = (vmpage_t *) 1 ;
+      memblock_t * iobuffer = (memblock_t*) 1 ;
       unlockiobuffer_objectcacheimpl(cache, &iobuffer) ;
    }
    return 0 ;
@@ -319,7 +279,7 @@ static int test_iobuffer(void)
 {
    objectcache_impl_t   cache     = objectcache_impl_INIT_FREEABLE ;
    process_t            process   = process_INIT_FREEABLE ;
-   vmpage_t *           iobuffer  = 0 ;
+   memblock_t *         iobuffer  = 0 ;
    int                  pipefd[2] = { -1, -1 } ;
    process_result_t     result ;
    char                 buffer[512] ;
@@ -328,7 +288,7 @@ static int test_iobuffer(void)
    TEST(0 == init_objectcacheimpl(&cache)) ;
    TEST(0 == iobuffer) ;
    TEST(0 == lockiobuffer2_objectcacheimpl(&cache, &iobuffer)) ;
-   TEST(&cache.iobuffer == iobuffer) ;
+   TEST(&cache.iobuffer == (void*)iobuffer) ;
    TEST(0 == unlockiobuffer2_objectcacheimpl(&cache, &iobuffer)) ;
    TEST(0 == iobuffer) ;
    TEST(0 == free_objectcacheimpl(&cache)) ;
@@ -361,7 +321,7 @@ static int test_iobuffer(void)
    TEST(0 != iobuffer) ;
    TEST(0 == unlockiobuffer2_objectcacheimpl(&cache, &iobuffer)) ;
    TEST(0 == iobuffer) ;
-   iobuffer = (vmpage_t*) (uintptr_t) &iobuffer ;
+   iobuffer = (void*) 1 ;
    TEST(EINVAL == unlockiobuffer2_objectcacheimpl(&cache, &iobuffer)) ;
    TEST(0 == free_objectcacheimpl(&cache)) ;
 
@@ -408,14 +368,12 @@ int unittest_cache_objectcacheimpl()
 {
    resourceusage_t    usage = resourceusage_INIT_FREEABLE ;
 
-   // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())       goto ONABORT ;
    if (test_initthread())     goto ONABORT ;
    if (test_iobuffer())       goto ONABORT ;
 
-   // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 

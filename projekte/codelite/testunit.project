@@ -97,6 +97,8 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/memory/hwcache.h"/>
       <File Name="../../C-kern/api/memory/vm.h"/>
+      <File Name="../../C-kern/api/memory/pagecache_macros.h"/>
+      <File Name="../../C-kern/api/memory/pagecache_impl.h"/>
       <File Name="../../C-kern/api/memory/pagecache.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
@@ -395,6 +397,8 @@
       <File Name="../../C-kern/memory/mm/mm_it.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/memory/hwcache.c"/>
+    <File Name="../../C-kern/memory/pagecache_macros.c"/>
+    <File Name="../../C-kern/memory/pagecache_impl.c"/>
     <File Name="../../C-kern/memory/pagecache.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">

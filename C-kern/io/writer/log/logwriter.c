@@ -29,8 +29,9 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/writer/log/logmain.h"
-#include "C-kern/api/memory/vm.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/pagecache_macros.h"
+#include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -43,12 +44,8 @@
 
 // group: types
 
-/* typedef: struct logwriter_it
- * Export <logwriter_it>, see also <log_it>. */
-typedef struct logwriter_it            logwriter_it ;
-
-/* struct: logwriter_it
- * Generates interface with macro <log_it_DECLARE>. */
+/* typedef: logwriter_it
+ * Defines interface for <logwriter_t> - see <log_it_DECLARE>. */
 log_it_DECLARE(logwriter_it, logwriter_t)
 
 // group: variables
@@ -59,7 +56,7 @@ logwriter_it      s_logwriter_interface = {
                         &printf_logwriter,
                         &flushbuffer_logwriter,
                         &clearbuffer_logwriter,
-                        &getbuffer_logwriter,
+                        &getbuffer_logwriter
                   } ;
 
 // group: init
@@ -67,30 +64,22 @@ logwriter_it      s_logwriter_interface = {
 int initthread_logwriter(/*out*/log_t * logobj)
 {
    int err ;
-   const size_t   objsize  = sizeof(logwriter_t) ;
-   logwriter_t  * newlgwrt = (logwriter_t*) malloc(objsize) ;
+   memblock_t  objmem ;
 
-   if (!newlgwrt) {
-      err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(objsize) ;
-      goto ONABORT ;
-   }
+   VALIDATE_INPARAM_TEST(logobj->object == 0 || logobj->object == &g_logmain, ONABORT, ) ;
 
-   if (  logobj->object
-      && logobj->object != &g_logmain) {
-      err = EINVAL ;
-      goto ONABORT ;
-   }
-
-   err = init_logwriter( newlgwrt ) ;
+   err = ALLOCSTATIC_PAGECACHE(sizeof(logwriter_t), &objmem) ;
    if (err) goto ONABORT ;
 
-   logobj->object = newlgwrt ;
-   logobj->iimpl  = (log_it*) &s_logwriter_interface ;
+   logwriter_t * newobj = (logwriter_t*) objmem.addr ;
+   err = init_logwriter(newobj) ;
+   if (err) goto ONABORT ;
+
+   logobj->object = newobj ;
+   logobj->iimpl  = genericcast_logit(&s_logwriter_interface, logwriter_t) ;
 
    return 0 ;
 ONABORT:
-   free(newlgwrt) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -98,19 +87,20 @@ ONABORT:
 int freethread_logwriter(log_t * logobj)
 {
    int err ;
-   logwriter_t * newlgwrt = (logwriter_t*) logobj->object ;
+   logwriter_t * delobj = (logwriter_t*) logobj->object ;
 
-   if (  newlgwrt
-      && newlgwrt != (logwriter_t*) &g_logmain ) {
-
+   if (  delobj
+         && delobj != (logwriter_t*) &g_logmain) {
       assert((log_it*)&s_logwriter_interface == logobj->iimpl) ;
 
       logobj->object = &g_logmain ;
       logobj->iimpl  = &g_logmain_interface ;
 
-      err = free_logwriter(newlgwrt) ;
+      err = free_logwriter(delobj) ;
 
-      free(newlgwrt) ;
+      memblock_t memblock = memblock_INIT(sizeof(*delobj), (uint8_t*)delobj) ;
+      int err2 = FREESTATIC_PAGECACHE(&memblock) ;
+      if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
    }
@@ -270,10 +260,10 @@ static int test_initfree(void)
 {
    logwriter_t lgwrt = logwriter_INIT_FREEABLE ;
 
-   // TEST static init
-   TEST(! lgwrt.buffer.addr ) ;
-   TEST(! lgwrt.buffer.size ) ;
-   TEST(! lgwrt.logsize ) ;
+   // TEST logwriter_INIT_FREEABLE
+   TEST(0 == lgwrt.buffer.addr) ;
+   TEST(0 == lgwrt.buffer.size) ;
+   TEST(0 == lgwrt.logsize) ;
 
    // TEST init, double free
    lgwrt.logsize = 1 ;
@@ -282,13 +272,13 @@ static int test_initfree(void)
    TEST(lgwrt.buffer.size == 8192) ;
    TEST(lgwrt.logsize     == 0 ) ;
    TEST(0 == free_logwriter(&lgwrt)) ;
-   TEST(! lgwrt.buffer.addr ) ;
-   TEST(! lgwrt.buffer.size ) ;
-   TEST(! lgwrt.logsize ) ;
+   TEST(0 == lgwrt.buffer.addr) ;
+   TEST(0 == lgwrt.buffer.size) ;
+   TEST(0 == lgwrt.logsize) ;
    TEST(0 == free_logwriter(&lgwrt)) ;
-   TEST(! lgwrt.buffer.addr ) ;
-   TEST(! lgwrt.buffer.size ) ;
-   TEST(! lgwrt.logsize ) ;
+   TEST(0 == lgwrt.buffer.addr) ;
+   TEST(0 == lgwrt.buffer.size) ;
+   TEST(0 == lgwrt.logsize) ;
 
    return 0 ;
 ONABORT:
@@ -497,61 +487,66 @@ ONABORT:
 
 static int test_initthread(void)
 {
-   log_t        logobj  = log_INIT_FREEABLE ;
-   logwriter_t  * lgwrt = 0 ;
+   log_t          logobj     = log_INIT_FREEABLE ;
+   logwriter_t *  lgwrt      = 0 ;
 
-   // TEST static init
+   // TEST log_INIT_FREEABLE
    TEST(0 == logobj.object) ;
    TEST(0 == logobj.iimpl) ;
 
-   // TEST exported interface
+   // TEST s_logwriter_interface
    TEST(s_logwriter_interface.printf      == &printf_logwriter)
    TEST(s_logwriter_interface.flushbuffer == &flushbuffer_logwriter) ;
    TEST(s_logwriter_interface.clearbuffer == &clearbuffer_logwriter) ;
    TEST(s_logwriter_interface.getbuffer   == &getbuffer_logwriter) ;
 
-   // TEST init, double free (logobj.object = 0)
+   // TEST initthread_logwriter
+   size_t sizestatic = SIZESTATIC_PAGECACHE() ;
    TEST(0 == initthread_logwriter(&logobj)) ;
-   TEST(logobj.object) ;
+   TEST(logobj.object != 0) ;
    TEST(logobj.object != &g_logmain) ;
    TEST(logobj.iimpl  == (log_it*) &s_logwriter_interface) ;
    lgwrt = (logwriter_t*) logobj.object ;
    TEST(lgwrt->buffer.addr) ;
    TEST(lgwrt->buffer.size) ;
-   TEST(0 == freethread_logwriter(&logobj)) ;
-   TEST(logobj.object == &g_logmain) ;
-   TEST(logobj.iimpl  == &g_logmain_interface) ;
-   TEST(0 == freethread_logwriter(&logobj)) ;
-   TEST(logobj.object == &g_logmain) ;
-   TEST(logobj.iimpl  == &g_logmain_interface) ;
-   lgwrt = 0 ;
+   size_t alignsize = sizeof(logwriter_t)%KONFIG_MEMALIGN ? sizeof(logwriter_t)+KONFIG_MEMALIGN-(sizeof(logwriter_t)%KONFIG_MEMALIGN) : sizeof(logwriter_t) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic + alignsize) ;
 
-   // TEST init, double free (logobj.object = &g_logmain)
-   logobj.object = &g_logmain ;
-   TEST(0 == initthread_logwriter(&logobj)) ;
-   TEST(logobj.object) ;
-   TEST(logobj.object != &g_logmain) ;
-   TEST(logobj.iimpl  == (log_it*) &s_logwriter_interface) ;
-   lgwrt = (logwriter_t*) logobj.object ;
-   TEST(lgwrt->buffer.addr) ;
-   TEST(lgwrt->buffer.size) ;
-   TEST(0 == freethread_logwriter(&logobj)) ;
-   TEST(logobj.object == &g_logmain) ;
-   TEST(logobj.iimpl  == &g_logmain_interface) ;
-   TEST(0 == freethread_logwriter(&logobj)) ;
-   TEST(logobj.object == &g_logmain) ;
-   TEST(logobj.iimpl  == &g_logmain_interface) ;
+   // TEST freethread_logwriter
    lgwrt = 0 ;
-
-   // TEST free (logobj.object = 0)
+   TEST(0 == freethread_logwriter(&logobj)) ;
+   TEST(logobj.object == &g_logmain) ;
+   TEST(logobj.iimpl  == &g_logmain_interface) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+   // logobj.object == &g_logmain
+   TEST(0 == freethread_logwriter(&logobj)) ;
+   TEST(logobj.object == &g_logmain) ;
+   TEST(logobj.iimpl  == &g_logmain_interface) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+   // logobj.object == 0
    logobj.object = 0 ;
    TEST(0 == freethread_logwriter(&logobj)) ;
    TEST(0 == logobj.object) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
 
-   // TEST EINVAL
-   logobj.object = (logwriter_t*) 1 ;
-   TEST(EINVAL == initthread_logwriter(&logobj)) ;
-   TEST(logobj.object == (logwriter_t*) 1) ;
+   // TEST initthread_logwriter: logobj.object == &g_logmain
+   logobj.object = &g_logmain ;
+   TEST(0 == initthread_logwriter(&logobj)) ;
+   TEST(logobj.object != 0) ;
+   TEST(logobj.object != &g_logmain) ;
+   TEST(logobj.iimpl  == (log_it*) &s_logwriter_interface) ;
+   lgwrt = (logwriter_t*) logobj.object ;
+   TEST(lgwrt->buffer.addr) ;
+   TEST(lgwrt->buffer.size) ;
+   TEST(0 == freethread_logwriter(&logobj)) ;
+   TEST(logobj.object == &g_logmain) ;
+   TEST(logobj.iimpl  == &g_logmain_interface) ;
+   lgwrt = 0 ;
+
+   // TEST initthread_logwriter: EINVAL
+   log_t logobj2 = { .object = (logwriter_t*) 1 } ;
+   TEST(EINVAL == initthread_logwriter(&logobj2)) ;
+   TEST(logobj2.object == (logwriter_t*)1) ;
 
    return 0 ;
 ONABORT:

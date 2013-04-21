@@ -161,9 +161,9 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    size_t               total_regions_count = 0 ;
    size_t               free_region_count   = 0 ;
    vm_region_t       *  next_region = 0 ;
-   vmpage_t          *  iobuffer    = 0 ;
+   memblock_t        *  iobuffer    = 0 ;
 
-   OBJC_LOCKIOBUFFER(&iobuffer) ;
+   LOCKIOBUFFER_OBJECTCACHE(&iobuffer) ;
 
    size_t  const buffer_maxsize = iobuffer->size ;
    uint8_t       * const buffer = iobuffer->addr ;
@@ -248,7 +248,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
    err = free_file(&fd) ;
    if (err) goto ONABORT ;
 
-   OBJC_UNLOCKIOBUFFER(&iobuffer) ;
+   UNLOCKIOBUFFER_OBJECTCACHE(&iobuffer) ;
 
    mappedregions->total_count      = total_regions_count ;
    mappedregions->element_count    = 0 ;
@@ -267,7 +267,7 @@ ONABORT:
       first_array = first_array->next ;
       (void) FREE_MM(&mem) ;
    }
-   OBJC_UNLOCKIOBUFFER(&iobuffer) ;
+   UNLOCKIOBUFFER_OBJECTCACHE(&iobuffer) ;
    free_file(&fd) ;
    TRACEABORT_LOG(err) ;
    return err ;

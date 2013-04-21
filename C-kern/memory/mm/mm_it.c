@@ -77,20 +77,49 @@ ONABORT:
    return EINVAL ;
 }
 
+struct mmx_t ;
+
+static int mresize_mmx(struct mmx_t * mman, size_t newsize, struct memblock_t * memblock)
+{
+   (void) mman ;
+   (void) newsize ;
+   (void) memblock ;
+   return 0 ;
+}
+
+static int mfree_mmx(struct mmx_t * mman, struct memblock_t * memblock)
+{
+   (void) mman ;
+   (void) memblock ;
+   return 0 ;
+}
+
+size_t sizeallocated_mmx(struct mmx_t * mman)
+{
+   (void) mman ;
+   return 0 ;
+}
+
+// TEST mm_it_DECLARE
+mm_it_DECLARE(mmx_it, struct mmx_t)
+
 static int test_generic(void)
 {
-   mm_it mminterface = mm_it_INIT_FREEABLE ;
+   mmx_it mmxif = mm_it_INIT_FREEABLE ;
 
    // TEST mm_it_INIT_FREEABLE
-   TEST(0 == mminterface.mresize) ;
-   TEST(0 == mminterface.mfree) ;
-   TEST(0 == mminterface.sizeallocated) ;
+   TEST(0 == mmxif.mresize) ;
+   TEST(0 == mmxif.mfree) ;
+   TEST(0 == mmxif.sizeallocated) ;
 
    // TEST mm_it_INIT
-   mminterface = (mm_it) mm_it_INIT(&mresize_dummy, &mfree_dummy, &sizeallocated_dummy) ;
-   TEST(mminterface.mresize       == &mresize_dummy) ;
-   TEST(mminterface.mfree         == &mfree_dummy) ;
-   TEST(mminterface.sizeallocated == &sizeallocated_dummy) ;
+   mmxif = (mmx_it) mm_it_INIT(&mresize_mmx, &mfree_mmx, &sizeallocated_mmx) ;
+   TEST(mmxif.mresize       == &mresize_mmx) ;
+   TEST(mmxif.mfree         == &mfree_mmx) ;
+   TEST(mmxif.sizeallocated == &sizeallocated_mmx) ;
+
+   // TEST genericcast_mmit
+   TEST((mm_it*)&mmxif == genericcast_mmit(&mmxif, struct mmx_t)) ;
 
    return 0 ;
 ONABORT:

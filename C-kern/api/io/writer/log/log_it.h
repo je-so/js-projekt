@@ -79,32 +79,65 @@ struct log_it {
 
 // group: generic
 
-/* define: log_it_DECLARE
+/* function: genericcast_logit
+ * Casts pointer logif into pointer to interface <log_it>.
+ * Parameter *logif* must point to a type declared with <log_it_DECLARE>.
+ * The other parameters must be the same as in <log_it_DECLARE> without the first. */
+log_it * genericcast_logit(void * logif, TYPENAME log_t) ;
+
+/* function: log_it_DECLARE
  * Declares a function table for accessing a log service.
- * Use this macro to define an interface which is structural compatible
- * with the generic interface <log_it>.
+ * The declared interface is structural compatible with <log_it>.
  * The difference between the newly declared interface and the generic interface
- * is the type of the object. Every interface function takes a pointer to this object type
- * as its first parameter.
+ * is the type of the first parameter.
+ *
+ * See <log_it> for a list of declared functions.
  *
  * Parameter:
- * declared_it - The name of the structure which is declared as the functional log interface.
+ * declared_it - The name of the structure which is declared as the interface.
  *               The name should have the suffix "_it".
- * object_t    - The type of the log object which is the first parameter of all log functions.
- *
- * List of declared functions:
- * printf       - See <logwriter_t.printf_logwriter>
- * flushbuffer  - See <logwriter_t.flushbuffer_logwriter>
- * clearbuffer  - See <logwriter_t.clearbuffer_logwriter>
- * getbuffer    - See <logwriter_t.getbuffer_logwriter>
- *
- * */
-#define log_it_DECLARE(declared_it, object_t)                                                \
-   struct declared_it {                                                                      \
-      void  (*printf)      (object_t * log, log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ; \
-      void  (*flushbuffer) (object_t * log) ;                                                \
-      void  (*clearbuffer) (object_t * log) ;                                                \
-      void  (*getbuffer)   (object_t * log, /*out*/char ** buffer, /*out*/size_t * size) ;   \
+ * log_t       - The type of the log object which is the first parameter of all interface functions. */
+void log_it_DECLARE(TYPENAME declared_it, TYPENAME log_t) ;
+
+
+
+// section: inline implementation
+
+/* define: genericcast_logit
+ * Implements <log_it.genericcast_logit>. */
+#define genericcast_logit(logif, log_t)                  \
+   ( __extension__ ({                                    \
+      static_assert(                                     \
+         offsetof(typeof(*(logif)), printf)              \
+         == offsetof(log_it, printf)                     \
+         && offsetof(typeof(*(logif)), flushbuffer)      \
+            == offsetof(log_it, flushbuffer)             \
+         && offsetof(typeof(*(logif)), clearbuffer)      \
+            == offsetof(log_it, clearbuffer)             \
+         && offsetof(typeof(*(logif)), getbuffer)        \
+            == offsetof(log_it, getbuffer),              \
+         "ensure same structure") ;                      \
+      if (0) {                                           \
+         (logif)->printf(  (log_t*)0, log_channel_ERR,   \
+                           "%d%s", 1, "") ;              \
+         (logif)->flushbuffer((log_t*)0) ;               \
+         (logif)->clearbuffer((log_t*)0) ;               \
+         (logif)->getbuffer(  (log_t*)0, (char**)0,      \
+                              (size_t*)0) ;              \
+      }                                                  \
+      (log_it*) (logif) ;                                \
+   }))
+
+
+/* define: log_it_DECLARE
+ * Implements <log_it.log_it_DECLARE>. */
+#define log_it_DECLARE(declared_it, log_t)      \
+   typedef struct declared_it    declared_it ;  \
+   struct declared_it {                         \
+      void  (*printf)      (log_t * log, log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ; \
+      void  (*flushbuffer) (log_t * log) ;                                                \
+      void  (*clearbuffer) (log_t * log) ;                                                \
+      void  (*getbuffer)   (log_t * log, /*out*/char ** buffer, /*out*/size_t * size) ;   \
    } ;
 
 #endif

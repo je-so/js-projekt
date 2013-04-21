@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Apr.02  15:06:28
+GenerationDate  := 2013.Apr.21  17:09:21
 GeneratedBy     := je-so
 
 ## Debug
@@ -146,9 +146,11 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!fpu.c.o \
  $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!pagecache_macros.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_it.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
@@ -239,9 +241,11 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!fpu.c.o \
  $(ObjectDir_Release)/C-kern!math!float!decimal.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
+ $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!hwcache.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache.c.o \
+ $(ObjectDir_Release)/C-kern!memory!pagecache_macros.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_it.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
@@ -481,6 +485,9 @@ $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o: C-kern/math/float/decimal.c
 $(ObjectDir_Debug)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Debug)
 
@@ -488,6 +495,9 @@ $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o: C-kern/memory/hwcache.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!pagecache_macros.c.o: C-kern/memory/pagecache_macros.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mm_it.c.o: C-kern/memory/mm/mm_it.c
@@ -754,6 +764,9 @@ $(ObjectDir_Release)/C-kern!math!float!decimal.c.o: C-kern/math/float/decimal.c
 $(ObjectDir_Release)/C-kern!memory!memblock.c.o: C-kern/memory/memblock.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Release)
 
@@ -761,6 +774,9 @@ $(ObjectDir_Release)/C-kern!memory!hwcache.c.o: C-kern/memory/hwcache.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!pagecache_macros.c.o: C-kern/memory/pagecache_macros.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mm_it.c.o: C-kern/memory/mm/mm_it.c

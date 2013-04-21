@@ -298,26 +298,35 @@ ONABORT:
 static int test_querymacros(void)
 {
    // TEST error_maincontext
-   TEST(&(process_maincontext().errcontext) == error_maincontext()) ;
+   TEST(&process_maincontext().errcontext == &error_maincontext()) ;
 
    // TEST log_maincontext
-   TEST(&(gt_threadcontext.log) == &log_maincontext()) ;
+   TEST(&thread_maincontext().log         == &log_maincontext()) ;
 
    // TEST log_maincontext
-   TEST(&(gt_threadcontext.objectcache) == &objectcache_maincontext()) ;
+   TEST(&thread_maincontext().objectcache == &objectcache_maincontext()) ;
+
+   // TEST pagecache_maincontext
+   TEST(&thread_maincontext().pgcache     == &pagecache_maincontext()) ;
 
    // TEST process_maincontext
-   TEST(&g_maincontext.pcontext == &process_maincontext()) ;
+   TEST(&g_maincontext.pcontext           == &process_maincontext()) ;
 
    // TEST sysuser_maincontext
-   TEST(&(process_maincontext().sysuser) == &sysuser_maincontext()) ;
+   TEST(&process_maincontext().sysuser    == &sysuser_maincontext()) ;
+
+#define THREAD 1
+#if (!((KONFIG_SUBSYS)&THREAD))
+   TEST(&g_maincontext.tcontext           == &thread_maincontext()) ;
+#else
+   TEST(&gt_threadcontext                 == &thread_maincontext()) ;
+#endif
+
+   // TEST type_maincontext
+   TEST(&g_maincontext.type == &type_maincontext()) ;
 
    // TEST valuecache_maincontext
-   struct valuecache_t * const oldcache2 = process_maincontext().valuecache ;
-   process_maincontext().valuecache = (struct valuecache_t*)3 ;
-   TEST((struct valuecache_t*)3 == valuecache_maincontext()) ;
-   process_maincontext().valuecache = oldcache2 ;
-   TEST(oldcache2 == valuecache_maincontext()) ;
+   TEST(&process_maincontext().valuecache == &valuecache_maincontext()) ;
 
    return 0 ;
 ONABORT:

@@ -58,7 +58,7 @@ int unittest_context_processcontext(void) ;
 struct processcontext_t {
    /* variable: valuecache
     * Points to global read only variables. */
-   struct valuecache_t        * valuecache ;
+   struct valuecache_t *      valuecache ;
    /* variable: sysuser
     * Context for <sysuser_t> module. */
    sysusercontext_t           sysuser ;

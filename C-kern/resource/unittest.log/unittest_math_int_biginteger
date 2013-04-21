@@ -15,12 +15,12 @@ C-kern/math/int/bigint.c:1800: multui32_bigint(): error: 75: Function aborted
 C-kern/math/int/bigint.c:124: allocate_bigint(): error: 75: Function aborted
 C-kern/math/int/bigint.c:1853: mult_bigint(): error: 75: Function aborted
 C-kern/math/int/bigint.c:1853: mult_bigint(): error: 75: Function aborted
-C-kern/test/testmm.c:679: mresize_testmm(): error: Could not allocate 1208 bytes of memory
-C-kern/test/testmm.c:681: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 1208 bytes of memory
+C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
 C-kern/math/int/bigint.c:124: allocate_bigint(): error: 12: Function aborted
 C-kern/math/int/bigint.c:685: multsplit_biginthelper(): error: 12: Function aborted
 C-kern/math/int/bigint.c:1853: mult_bigint(): error: 12: Function aborted
-C-kern/test/testmm.c:727: mfree_testmm(): error: 71: Function aborted
+C-kern/test/testmm.c:723: mfree_testmm(): error: 71: Function aborted
 C-kern/math/int/bigint.c:1184: delete_bigint(): error: 71: Freeing a resource returned an error
 C-kern/math/int/bigint.c:685: multsplit_biginthelper(): error: 71: Function aborted
 C-kern/math/int/bigint.c:685: multsplit_biginthelper(): error: 71: Function aborted
@@ -44,12 +44,12 @@ C-kern/math/int/bigint.c:1917: divmod_bigint(): error: 22: Function input violat
 C-kern/math/int/bigint.c:1993: divmod_bigint(): error: 22: Function aborted
 C-kern/math/int/bigint.c:1639: shiftleft_bigint(): error: 75: Function aborted
 C-kern/math/int/bigint.c:1639: shiftleft_bigint(): error: 75: Function aborted
-C-kern/test/testmm.c:679: mresize_testmm(): error: Could not allocate 412 bytes of memory
-C-kern/test/testmm.c:681: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 412 bytes of memory
+C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
 C-kern/math/int/bigint.c:124: allocate_bigint(): error: 12: Function aborted
 C-kern/math/int/bigint.c:1639: shiftleft_bigint(): error: 12: Function aborted
-C-kern/test/testmm.c:679: mresize_testmm(): error: Could not allocate 412 bytes of memory
-C-kern/test/testmm.c:681: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 412 bytes of memory
+C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
 C-kern/math/int/bigint.c:124: allocate_bigint(): error: 12: Function aborted
 C-kern/math/int/bigint.c:1712: shiftright_bigint(): error: 12: Function aborted
 C-kern/math/int/bigint.c:124: allocate_bigint(): error: 22: Function aborted

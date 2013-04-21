@@ -1,8 +1,12 @@
-C-kern/test/resourceusage.c:136: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:166: same_resourceusage(): error: 11: Function aborted
-C-kern/test/resourceusage.c:146: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:166: same_resourceusage(): error: 11: Function aborted
-C-kern/test/resourceusage.c:151: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:166: same_resourceusage(): error: 11: Function aborted
-C-kern/test/resourceusage.c:156: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:166: same_resourceusage(): error: 11: Function aborted
+C-kern/test/resourceusage.c:152: same_resourceusage(): error: The number of used resources is different
+C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
+C-kern/test/resourceusage.c:162: same_resourceusage(): error: The number of used resources is different
+C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
+C-kern/test/resourceusage.c:167: same_resourceusage(): error: The number of used resources is different
+C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
+C-kern/test/resourceusage.c:172: same_resourceusage(): error: The number of used resources is different
+C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
+C-kern/test/resourceusage.c:177: same_resourceusage(): error: The number of used resources is different
+C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
+C-kern/test/resourceusage.c:182: same_resourceusage(): error: The number of used resources is different
+C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted

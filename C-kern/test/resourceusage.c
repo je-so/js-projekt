@@ -1,4 +1,5 @@
 /* title: Resourceusage impl
+
    Implements <Resourceusage>.
 
    about: Copyright
@@ -28,6 +29,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/memory/mm/mm_it.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
@@ -41,6 +43,9 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
 {
    int err ;
    size_t               fds ;
+   size_t               pagecache_usage ;
+   size_t               pagecache_endinit ;
+   size_t               pagecache_staticusage ;
    size_t               mmtrans_usage ;
    size_t               mmtrans_endinit ;
    size_t               allocated ;
@@ -51,6 +56,9 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
 
    err = nropen_file(&fds) ;
    if (err) goto ONABORT ;
+
+   pagecache_usage       = pagecache_maincontext().iimpl->sizeallocated(pagecache_maincontext().object) ;
+   pagecache_staticusage = pagecache_maincontext().iimpl->sizestatic(pagecache_maincontext().object) ;
 
    mmtrans_usage = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
 
@@ -71,16 +79,19 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
 
    err = allocatedsize_malloc(&allocated_endinit) ;
    if (err) goto ONABORT ;
+   mmtrans_endinit   = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
+   pagecache_endinit = pagecache_maincontext().iimpl->sizeallocated(pagecache_maincontext().object) ;
 
-   mmtrans_endinit = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
-
-   usage->file_usage          = fds ;
-   usage->mmtrans_usage       = mmtrans_usage ;
-   usage->mmtrans_correction  = mmtrans_endinit - mmtrans_usage ;
-   usage->malloc_usage        = allocated ;
-   usage->malloc_correction   = allocated_endinit - allocated ;
-   usage->signalconfig        = signalconfig ;
-   usage->virtualmemory_usage = mappedregions ;
+   usage->file_usage           = fds ;
+   usage->mmtrans_usage        = mmtrans_usage ;
+   usage->mmtrans_correction   = mmtrans_endinit - mmtrans_usage ;
+   usage->malloc_usage         = allocated ;
+   usage->malloc_correction    = allocated_endinit - allocated ;
+   usage->pagecache_usage      = pagecache_usage ;
+   usage->pagecache_correction = pagecache_endinit - pagecache_usage ;
+   usage->pagecache_staticusage= pagecache_staticusage ;
+   usage->signalconfig         = signalconfig ;
+   usage->virtualmemory_usage  = mappedregions ;
 
    return 0 ;
 ONABORT:
@@ -97,21 +108,26 @@ int free_resourceusage(resourceusage_t * usage)
    int err2 ;
 
    usage->file_usage        = 0 ;
+   usage->mmtrans_usage     = 0 ;
+   usage->mmtrans_correction= 0 ;
    usage->malloc_usage      = 0 ;
    usage->malloc_correction = 0 ;
+   usage->pagecache_usage   = 0 ;
+   usage->pagecache_correction = 0 ;
+   usage->pagecache_staticusage= 0 ;
 
    if (usage->virtualmemory_usage) {
-      memblock_t mem = memblock_INIT(sizeof(vm_mappedregions_t), (uint8_t*)usage->virtualmemory_usage) ;
 
       err = delete_signalconfig(&usage->signalconfig) ;
 
       err2 = free_vmmappedregions(usage->virtualmemory_usage) ;
       if (err2) err = err2 ;
 
+      memblock_t mem = memblock_INIT(sizeof(vm_mappedregions_t), (uint8_t*)usage->virtualmemory_usage) ;
+      usage->virtualmemory_usage = 0 ;
+
       err2 = FREE_MM(&mem) ;
       if (err2) err = err2 ;
-
-      usage->virtualmemory_usage = 0 ;
 
       if (err) goto ONABORT ;
    }
@@ -147,6 +163,16 @@ int same_resourceusage(const resourceusage_t * usage)
       goto ONABORT ;
    }
 
+   if ((usage2.pagecache_usage - usage->pagecache_correction) != usage->pagecache_usage) {
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      goto ONABORT ;
+   }
+
+   if (usage2.pagecache_staticusage != usage->pagecache_staticusage) {
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      goto ONABORT ;
+   }
+
    if (compare_vmmappedregions(usage2.virtualmemory_usage, usage->virtualmemory_usage)) {
       TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
       goto ONABORT ;
@@ -174,6 +200,64 @@ ONABORT:
 
 static int test_initfree(void)
 {
+   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+
+   // TEST static initializer
+   TEST(0 == usage.file_usage) ;
+   TEST(0 == usage.mmtrans_usage) ;
+   TEST(0 == usage.mmtrans_correction) ;
+   TEST(0 == usage.malloc_usage) ;
+   TEST(0 == usage.malloc_correction) ;
+   TEST(0 == usage.pagecache_usage) ;
+   TEST(0 == usage.pagecache_correction) ;
+   TEST(0 == usage.pagecache_staticusage) ;
+   TEST(0 == usage.signalconfig) ;
+   TEST(0 == usage.virtualmemory_usage) ;
+
+   // TEST init_resourceusage, free_resourceusage
+   TEST(0 == init_resourceusage(&usage)) ;
+   TEST(0 != usage.file_usage) ;
+   TEST(0 != usage.mmtrans_usage) ;
+   TEST(0 != usage.mmtrans_correction) ;
+   TEST(0 != usage.malloc_usage) ;
+   TEST(0 == usage.malloc_correction) ;
+   TEST(0 != usage.pagecache_usage) ;
+   TEST(0 == usage.pagecache_correction) ; // change to != 0 if testmm uses pagecache !!
+   TEST(0 != usage.pagecache_staticusage) ;
+   TEST(0 != usage.signalconfig) ;
+   TEST(0 != usage.virtualmemory_usage) ;
+   TEST(20000 > usage.malloc_correction) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+   TEST(0 == usage.file_usage) ;
+   TEST(0 == usage.mmtrans_usage) ;
+   TEST(0 == usage.mmtrans_correction) ;
+   TEST(0 == usage.malloc_usage) ;
+   TEST(0 == usage.malloc_correction) ;
+   TEST(0 == usage.pagecache_usage) ;
+   TEST(0 == usage.pagecache_correction) ;
+   TEST(0 == usage.pagecache_staticusage) ;
+   TEST(0 == usage.signalconfig) ;
+   TEST(0 == usage.virtualmemory_usage) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+   TEST(0 == usage.file_usage) ;
+   TEST(0 == usage.mmtrans_usage) ;
+   TEST(0 == usage.mmtrans_correction) ;
+   TEST(0 == usage.malloc_usage) ;
+   TEST(0 == usage.malloc_correction) ;
+   TEST(0 == usage.pagecache_usage) ;
+   TEST(0 == usage.pagecache_correction) ;
+   TEST(0 == usage.pagecache_staticusage) ;
+   TEST(0 == usage.signalconfig) ;
+   TEST(0 == usage.virtualmemory_usage) ;
+
+   return 0 ;
+ONABORT:
+   (void) free_resourceusage(&usage) ;
+   return EINVAL ;
+}
+
+static int test_query(void)
+{
    size_t          malloc_usage  = 1 ;
    size_t          malloc_usage2 = 0 ;
    int             fd            = -1 ;
@@ -184,46 +268,15 @@ static int test_initfree(void)
    bool            isoldsigmask  = false ;
    sigset_t        oldsigmask ;
 
+   // prepare
    TEST(0 == allocatedsize_malloc(&malloc_usage)) ;
-
-   // TEST static initializer
-   TEST(0 == usage.file_usage) ;
-   TEST(0 == usage.mmtrans_usage) ;
-   TEST(0 == usage.mmtrans_correction) ;
-   TEST(0 == usage.malloc_usage) ;
-   TEST(0 == usage.malloc_correction) ;
-   TEST(0 == usage.signalconfig) ;
-   TEST(0 == usage.virtualmemory_usage) ;
-
-   // TEST init, double free
-   TEST(0 == init_resourceusage(&usage)) ;
-   TEST(0 != usage.file_usage) ;
-   TEST(0 != usage.mmtrans_usage) ;
-   TEST(0 != usage.mmtrans_correction) ;
-   TEST(0 != usage.malloc_usage) ;
-   TEST(0 == usage.malloc_correction) ;
-   TEST(0 != usage.signalconfig) ;
-   TEST(0 != usage.virtualmemory_usage) ;
-   TEST(20000 > usage.malloc_correction) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-   TEST(0 == usage.file_usage) ;
-   TEST(0 == usage.malloc_usage) ;
-   TEST(0 == usage.malloc_correction) ;
-   TEST(0 == usage.signalconfig) ;
-   TEST(0 == usage.virtualmemory_usage) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-   TEST(0 == usage.file_usage) ;
-   TEST(0 == usage.malloc_usage) ;
-   TEST(0 == usage.malloc_correction) ;
-   TEST(0 == usage.signalconfig) ;
-   TEST(0 == usage.virtualmemory_usage) ;
 
    // TEST compare the same
    TEST(0 == init_resourceusage(&usage)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST compare EAGAIN cause of open file
+   // TEST same_resourceusage: EAGAIN cause of open file
    TEST(0 == init_resourceusage(&usage)) ;
    fd = dup(STDERR_FILENO) ;
    TEST(fd > 0) ;
@@ -235,7 +288,7 @@ static int test_initfree(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST compare EAGAIN cause of memory
+   // TEST same_resourceusage: EAGAIN cause of memory
    TEST(0 == init_resourceusage(&usage)) ;
    size_t allocated[2] ;
    TEST(0 == allocatedsize_malloc(&allocated[0])) ;
@@ -250,7 +303,24 @@ static int test_initfree(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST compare EAGAIN cause of virtual memory
+   // TEST same_resourceusage: EAGAIN cause of pagecache
+   TEST(0 == init_resourceusage(&usage)) ;
+   memblock_t page = memblock_INIT_FREEABLE ;
+   TEST(0 == pagecache_maincontext().iimpl->allocpage(pagecache_maincontext().object, pagesize_4096, &page)) ;
+   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(0 == pagecache_maincontext().iimpl->releasepage(pagecache_maincontext().object, &page)) ;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   // TEST same_resourceusage: EAGAIN cause of static memory
+   TEST(0 == init_resourceusage(&usage)) ;
+   TEST(0 == pagecache_maincontext().iimpl->allocstatic(pagecache_maincontext().object, 128, &page)) ;
+   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(0 == pagecache_maincontext().iimpl->freestatic(pagecache_maincontext().object, &page)) ;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   // TEST same_resourceusage: EAGAIN cause of virtual memory
    TEST(0 == init_resourceusage(&usage)) ;
    TEST(0 == init_vmpage(&vmblock,1)) ;
    TEST(EAGAIN == same_resourceusage(&usage)) ;
@@ -262,7 +332,7 @@ static int test_initfree(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST compare EAGAIN cause of virtual memory
+   // TEST same_resourceusage: EAGAIN cause of changed signals
    sigset_t sigmask ;
    sigemptyset(&sigmask) ;
    sigaddset(&sigmask, SIGABRT) ;
@@ -276,6 +346,7 @@ static int test_initfree(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
+   // unprepare
    TEST(0 == allocatedsize_malloc(&malloc_usage2)) ;
    TEST(malloc_usage == malloc_usage2) ;
 
@@ -296,6 +367,7 @@ int unittest_test_resourceusage()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())    goto ONABORT ;
+   if (test_query())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
