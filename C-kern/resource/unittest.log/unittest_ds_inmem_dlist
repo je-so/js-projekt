@@ -1,11 +1,11 @@
 C-kern/ds/inmem/dlist.c:74: free_dlist(): error: 12: Freeing a resource returned an error
-C-kern/ds/inmem/dlist.c:182: remove_dlist(): error: 22: Function input violates condition (!isempty_dlist(list) && node->next)
-C-kern/ds/inmem/dlist.c:190: remove_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:182: remove_dlist(): error: 22: Function input violates condition (!isempty_dlist(list) && node->next)
-C-kern/ds/inmem/dlist.c:190: remove_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:145: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:155: removefirst_dlist(): error: 22: Function aborted
-C-kern/ds/inmem/dlist.c:163: removelast_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
-C-kern/ds/inmem/dlist.c:174: removelast_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:181: remove_dlist(): error: 22: Function input violates condition (!isempty_dlist(list) && node->next)
+C-kern/ds/inmem/dlist.c:189: remove_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:181: remove_dlist(): error: 22: Function input violates condition (!isempty_dlist(list) && node->next)
+C-kern/ds/inmem/dlist.c:189: remove_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
+C-kern/ds/inmem/dlist.c:162: removelast_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
+C-kern/ds/inmem/dlist.c:173: removelast_dlist(): error: 22: Function aborted
 C-kern/ds/inmem/dlist.c:74: free_dlist(): error: 38: Freeing a resource returned an error
 C-kern/ds/inmem/dlist.c:74: free_dlist(): error: 22: Freeing a resource returned an error

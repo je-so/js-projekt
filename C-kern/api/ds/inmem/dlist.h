@@ -29,7 +29,7 @@
 #include "C-kern/api/ds/inmem/node/dlist_node.h"
 
 // forward
-struct typeadapt_member_t ;
+struct typeadapt_t ;
 
 /* typedef: struct dlist_t
  * Export <dlist_t> into global namespace. */
@@ -133,6 +133,10 @@ struct dlist_t {
  * After assigning you can call <free_dlist> or any other function safely. */
 #define dlist_INIT                     { (void*)0 }
 
+/* define: dlist_INIT_LAST
+ * Static initializer. Sets the last pointer in <dlist_t> to lastnode. */
+#define dlist_INIT_LAST(lastnode)      { (lastnode) }
+
 /* function: init_dlist
  * Initializes a <dlist_t> object. Same as assigning <dlist_INIT>. */
 void init_dlist(/*out*/dlist_t *list) ;
@@ -140,9 +144,9 @@ void init_dlist(/*out*/dlist_t *list) ;
 /* function: free_dlist
  * Frees all resources.
  * For every removed node the typeadapter callback <typeadapt_lifetime_it.delete_object> is called.
- * See <typeadapt_member_t> how to construct typeadapter for node member.
- * Set nodeadp to 0 if you do not want to call a free memory on every node. */
-int free_dlist(dlist_t * list, struct typeadapt_member_t * nodeadp/*0 => no free called*/) ;
+ * See <typeadapt_t> how to construct a typeadapter.
+ * Set typeadp to 0 if you do not want to call a free memory on every node. */
+int free_dlist(dlist_t * list, uint16_t nodeoffset, struct typeadapt_t * typeadp/*0=>no free called*/) ;
 
 // group: query
 
@@ -206,7 +210,7 @@ void insertafter_dlist(dlist_t * list, struct dlist_node_t * prev_node, struct d
  * Inserts new_node before next_node into the list.
  * Ownership is transfered from caller to <dlist_t>.
  * new_node will be made the new first node if next_node is the <first_dlist>(list) node. */
-void insertbefore_dlist(dlist_t * list, struct dlist_node_t * next_node, struct dlist_node_t * new_node) ;
+void insertbefore_dlist(struct dlist_node_t * next_node, struct dlist_node_t * new_node) ;
 
 /* function: removefirst_dlist
  * Removes the first node from the list.
@@ -225,16 +229,36 @@ int removelast_dlist(dlist_t * list, struct dlist_node_t ** removed_node) ;
 /* function: remove_dlist
  * Removes the node from the list.
  * Ownership is transfered from <dlist_t> to caller.
- * Make sure that node is part of this list and not any other else undefined behaviour happens. */
+ *
+ * Precondition:
+ * Make sure that node is part of this list and not any other else undefined behaviour could happen. */
 int remove_dlist(dlist_t * list, struct dlist_node_t * node) ;
 
-// group: change set
+/* function: replacenode_dlist
+ * Removes oldnode from list and replaces it with newnode.
+ * Ownership of oldnode is transfered back to caller.
+ * Ownership of newnode is transfered from caller to <dlist_t>.
+ * oldnode's prev and next pointer are cleared.
+ *
+ * Precondition:
+ * o Make sure that newnode is not part of any list else undefined behaviour will happen.
+ * o Make sure that oldnode is part of list and not any other else
+ *   last pointer of list will not be updated if oldnode is the last node. */
+void replacenode_dlist(dlist_t * list, struct dlist_node_t * newnode, struct dlist_node_t * oldnode) ;
+
+// group: set-ops
 
 /* function: removeall_dlist
  * Removes all nodes from the list.
  * For every removed node <typeadapt_lifetime_it.delete_object> is called.
- * Set nodeadp to 0 if you do not want to call a free memory on every node. */
-int removeall_dlist(dlist_t * list, struct typeadapt_member_t * nodeadp/*0 => no free called*/) ;
+ * Set typeadp to 0 if you do not want to call a free memory on every node. */
+int removeall_dlist(dlist_t * list, uint16_t nodeoffset, struct typeadapt_t * typeadp/*0=>no free called*/) ;
+
+/* function: transfer_dlist
+ * Transfer ownership of all nodes from fromlist to tolist.
+ * After this operation fromlist is empty and tolist contains all nodes.
+ * The nodes are appended at the end of tolist. */
+void transfer_dlist(dlist_t * tolist, dlist_t * fromlist) ;
 
 // group: generic
 
@@ -370,7 +394,8 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
 
 /* define: removeall_dlist
  * Implements <dlist_t.removeall_dlist> with a call to <dlist_t.free_dlist>. */
-#define removeall_dlist(list, nodeadp)       (free_dlist((list), (nodeadp)))
+#define removeall_dlist(list, nodeoffset, typeadp) \
+         (free_dlist((list), (nodeoffset), (typeadp)))
 
 /* define: dlist_IMPLEMENT
  * Implements <dlist_t.dlist_IMPLEMENT>. */
@@ -383,7 +408,7 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
    static inline bool next##_fsuffix##iterator(dlist_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline bool prev##_fsuffix##iterator(dlist_iterator_t * iter, object_t ** node) __attribute__ ((always_inline)) ; \
    static inline void init##_fsuffix(dlist_t * list) __attribute__ ((always_inline)) ; \
-   static inline int  free##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
+   static inline int  free##_fsuffix(dlist_t * list, struct typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
    static inline int  isempty##_fsuffix(const dlist_t * list) __attribute__ ((always_inline)) ; \
    static inline object_t * first##_fsuffix(const dlist_t * list) __attribute__ ((always_inline)) ;  \
    static inline object_t * last##_fsuffix(const dlist_t * list) __attribute__ ((always_inline)) ;   \
@@ -393,17 +418,20 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
    static inline void insertfirst##_fsuffix(dlist_t * list, object_t * new_node) __attribute__ ((always_inline)) ;   \
    static inline void insertlast##_fsuffix(dlist_t * list, object_t * new_node) __attribute__ ((always_inline)) ;    \
    static inline void insertafter##_fsuffix(dlist_t * list, object_t * prev_node, object_t * new_node) __attribute__ ((always_inline)) ; \
-   static inline void insertbefore##_fsuffix(dlist_t * list, object_t* next_node, object_t * new_node) __attribute__ ((always_inline)) ; \
+   static inline void insertbefore##_fsuffix(object_t* next_node, object_t * new_node) __attribute__ ((always_inline)) ; \
    static inline int removefirst##_fsuffix(dlist_t * list, object_t ** removed_node) __attribute__ ((always_inline)) ;  \
    static inline int removelast##_fsuffix(dlist_t * list, object_t ** removed_node) __attribute__ ((always_inline)) ;   \
    static inline int remove##_fsuffix(dlist_t * list, object_t * node) __attribute__ ((always_inline)) ; \
-   static inline int removeall##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) __attribute__ ((always_inline)) ; \
-   static inline uintptr_t nodeoffset##_fsuffix(void) __attribute__ ((always_inline)) ; \
-   static inline uintptr_t nodeoffset##_fsuffix(void) { \
-      return (uintptr_t) & (((object_t*)0)->nodeprefix next) ; \
+   static inline void replacenode##_fsuffix(dlist_t * list, object_t * newnode, object_t * oldnode) __attribute__ ((always_inline)) ; \
+   static inline int removeall##_fsuffix(dlist_t * list, struct typeadapt_t * typeadp) __attribute__ ((always_inline)) ; \
+   static inline void transfer##_fsuffix(dlist_t * tolist, dlist_t * fromlist) __attribute__ ((always_inline)) ; \
+   static inline uint16_t nodeoffset##_fsuffix(void) __attribute__ ((always_inline)) ; \
+   static inline uint16_t nodeoffset##_fsuffix(void) { \
+      static_assert(UINT16_MAX > (uintptr_t) & (((object_t*)0)->nodeprefix next), "offset fits in uint16_t") ; \
+      return (uint16_t) (uintptr_t) & (((object_t*)0)->nodeprefix next) ; \
    }  \
    static inline dlist_node_t * asnode##_fsuffix(object_t * object) { \
-      static_assert(&(((object_t*)0)->nodeprefix next) == (dlist_node_t**)(nodeoffset##_fsuffix()), "correct type") ; \
+      static_assert(&(((object_t*)0)->nodeprefix next) == (dlist_node_t**)((uintptr_t)nodeoffset##_fsuffix()), "correct type") ; \
       static_assert(&(((object_t*)0)->nodeprefix prev) == (dlist_node_t**)(nodeoffset##_fsuffix() + sizeof(dlist_node_t*)), "correct type and offset") ; \
       return (dlist_node_t *) ((uintptr_t)object + nodeoffset##_fsuffix()) ; \
    } \
@@ -416,8 +444,8 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
    static inline void init##_fsuffix(dlist_t * list) { \
       init_dlist(list) ; \
    } \
-   static inline int free##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) { \
-      return free_dlist(list, nodeadp) ; \
+   static inline int free##_fsuffix(dlist_t * list, struct typeadapt_t * typeadp) { \
+      return free_dlist(list, nodeoffset##_fsuffix(), typeadp) ; \
    } \
    static inline int isempty##_fsuffix(const dlist_t * list) { \
       return isempty_dlist(list) ; \
@@ -446,8 +474,8 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
    static inline void insertafter##_fsuffix(dlist_t * list, object_t * prev_node, object_t * new_node) { \
       insertafter_dlist(list, asnode##_fsuffix(prev_node), asnode##_fsuffix(new_node)) ; \
    } \
-   static inline void insertbefore##_fsuffix(dlist_t * list, object_t * next_node, object_t * new_node) { \
-      insertbefore_dlist(list, asnode##_fsuffix(next_node), asnode##_fsuffix(new_node)) ; \
+   static inline void insertbefore##_fsuffix(object_t * next_node, object_t * new_node) { \
+      insertbefore_dlist(asnode##_fsuffix(next_node), asnode##_fsuffix(new_node)) ; \
    } \
    static inline int removefirst##_fsuffix(dlist_t * list, object_t ** removed_node) { \
       int err = removefirst_dlist(list, (dlist_node_t**)removed_node) ; \
@@ -462,8 +490,14 @@ void dlist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME nodeprefix) ;
    static inline int remove##_fsuffix(dlist_t * list, object_t * node) { \
       return remove_dlist(list, asnode##_fsuffix(node)) ; \
    } \
-   static inline int removeall##_fsuffix(dlist_t * list, struct typeadapt_member_t * nodeadp) { \
-      return removeall_dlist(list, nodeadp) ; \
+   static inline void replacenode##_fsuffix(dlist_t * list, object_t * newnode, object_t * oldnode) { \
+      replacenode_dlist(list, asnode##_fsuffix(newnode), asnode##_fsuffix(oldnode)) ; \
+   } \
+   static inline int removeall##_fsuffix(dlist_t * list, struct typeadapt_t * typeadp) { \
+      return removeall_dlist(list, nodeoffset##_fsuffix(), typeadp) ; \
+   } \
+   static inline void transfer##_fsuffix(dlist_t * tolist, dlist_t * fromlist) { \
+      transfer_dlist(tolist, fromlist) ; \
    } \
    static inline int initfirst##_fsuffix##iterator(dlist_iterator_t * iter, dlist_t * list) { \
       return initfirst_dlistiterator(iter, list) ; \

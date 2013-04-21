@@ -39,7 +39,7 @@
 
 // group: lifetime
 
-int free_dlist(dlist_t *list, struct typeadapt_member_t * nodeadp)
+int free_dlist(dlist_t *list, uint16_t nodeoffset, struct typeadapt_t * typeadp)
 {
    int err ;
 
@@ -50,7 +50,7 @@ int free_dlist(dlist_t *list, struct typeadapt_member_t * nodeadp)
 
       list->last = 0 ;
 
-      const bool isDelete = (nodeadp && iscalldelete_typeadapt(nodeadp->typeadp)) ;
+      const bool isDelete = (typeadp && iscalldelete_typeadapt(typeadp)) ;
 
       err = 0 ;
 
@@ -59,8 +59,8 @@ int free_dlist(dlist_t *list, struct typeadapt_member_t * nodeadp)
          node->prev = 0 ;
          node->next = 0 ;
          if (isDelete) {
-            typeadapt_object_t * delobj = memberasobject_typeadaptmember(nodeadp, node) ;
-            int err2 = calldelete_typeadaptmember(nodeadp, &delobj) ;
+            typeadapt_object_t * delobj = memberasobject_typeadaptnodeoffset(nodeoffset, node) ;
+            int err2 = calldelete_typeadapt(typeadp, &delobj) ;
             if (err2) err = err2 ;
          }
          node = next ;
@@ -116,9 +116,8 @@ void insertafter_dlist(dlist_t * list, dlist_node_t * prev_node, dlist_node_t * 
    }
 }
 
-void insertbefore_dlist(dlist_t * list, dlist_node_t * next_node, dlist_node_t * new_node)
+void insertbefore_dlist(dlist_node_t * next_node, dlist_node_t * new_node)
 {
-   (void) list ;
    new_node->prev  = next_node->prev ;
    new_node->prev->next = new_node ;
    new_node->next  = next_node ;
@@ -191,6 +190,49 @@ ONABORT:
    return err ;
 }
 
+void replacenode_dlist(dlist_t * list, struct dlist_node_t * newnode, struct dlist_node_t * oldnode)
+{
+   if (list->last == oldnode) {
+      list->last = newnode ;
+   }
+
+   if (oldnode->next == oldnode) {
+      // ==> oldnode->prev == oldnode
+      newnode->next = newnode ;
+      newnode->prev = newnode ;
+   } else {
+      newnode->next = oldnode->next ;
+      oldnode->next->prev = newnode ;
+      newnode->prev = oldnode->prev ;
+      oldnode->prev->next = newnode ;
+   }
+
+   oldnode->next = 0 ;
+   oldnode->prev = 0 ;
+}
+
+// group: set-ops
+
+void transfer_dlist(dlist_t * tolist, dlist_t * fromlist)
+{
+   if (!tolist->last) {
+      tolist->last = fromlist->last ;
+
+   } else if (fromlist->last) {
+      dlist_node_t * first = tolist->last->next ;
+
+      tolist->last->next         = fromlist->last->next ;
+      fromlist->last->next->prev = tolist->last ;
+
+      fromlist->last->next       = first ;
+      first->prev                = fromlist->last ;
+
+      tolist->last = fromlist->last ;
+   }
+
+   fromlist->last = 0 ;
+}
+
 
 // group: test
 
@@ -259,21 +301,50 @@ static int freenode_genericadapt(genericadapt_t * typeadp, genericnode_t ** node
    return err ;
 }
 
-static int test_initfree(void)
+static int test_dlistnode(void)
 {
-   testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*), 0) ;
-   dlist_t              list = dlist_INIT ;
-   dlist_node_t         node = dlist_node_INIT ;
-   testnode_t           nodes[1000] ;
+   dlist_node_t   node = dlist_node_INIT ;
+   struct {
+      dlist_node_t * next ;
+      dlist_node_t * prev ;
+   }              node1 ;
 
-   memset(nodes, 0, sizeof(nodes)) ;
+   struct {
+      size_t dummy ;
+      dlist_node_t * next ;
+      dlist_node_t * prev ;
+   }              node2 ;
 
    // TEST dlist_node_INIT
    TEST(0 == node.next) ;
    TEST(0 == node.prev) ;
 
+   // TEST genericcast_dlistnode
+   TEST(genericcast_dlistnode(&node)  == &node) ;
+   TEST(genericcast_dlistnode(&node1) == (dlist_node_t*)&node1.next) ;
+   TEST(genericcast_dlistnode(&node2) == (dlist_node_t*)&node2.next) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_initfree(void)
+{
+   testadapt_t       typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
+   dlist_t           list = dlist_INIT ;
+   testnode_t        nodes[1000] ;
+
+   memset(nodes, 0, sizeof(nodes)) ;
+
    // TEST dlist_INIT
+   TEST(0 == list.last) ;
+
+   // TEST dlist_INIT_LAST
+   list = (dlist_t) dlist_INIT_LAST((dlist_node_t*)3) ;
+   TEST(3 == (uintptr_t)list.last) ;
+   list = (dlist_t) dlist_INIT_LAST(0) ;
    TEST(0 == list.last) ;
 
    // TEST init_dlist, double free_dlist
@@ -281,10 +352,10 @@ static int test_initfree(void)
    init_dlist(&list) ;
    TEST(0 == list.last) ;
    insertfirst_dlist(&list, &nodes[0].node) ;
-   TEST(0 == free_dlist(&list, &nodeadapt)) ;
+   TEST(0 == free_dlist(&list, 0, typeadp)) ;
    TEST(0 == list.last) ;
    TEST(1 == nodes[0].is_freed) ;
-   TEST(0 == free_dlist(&list, &nodeadapt)) ;
+   TEST(0 == free_dlist(&list, 0, typeadp)) ;
    TEST(0 == list.last) ;
    TEST(1 == nodes[0].is_freed) ;
    nodes[0].is_freed = 0 ;
@@ -292,7 +363,7 @@ static int test_initfree(void)
    // TEST free_dlist: no delete called with 0 parameter
    init_dlist(&list) ;
    insertfirst_dlist(&list, &nodes[0].node) ;
-   TEST(0 == free_dlist(&list, 0)) ;
+   TEST(0 == free_dlist(&list, 0, 0)) ;
    TEST(0 == nodes[0].is_freed) ;
 
    // TEST free_dlist: no delete called if typeadapt_t.lifetime.delete_object set to 0
@@ -300,7 +371,7 @@ static int test_initfree(void)
    typeadapt.lifetime.delete_object = 0 ;
    init_dlist(&list) ;
    insertfirst_dlist(&list, &nodes[0].node) ;
-   TEST(0 == free_dlist(&list, &nodeadapt)) ;
+   TEST(0 == free_dlist(&list, 0, typeadp)) ;
    TEST(0 == nodes[0].is_freed) ;
    typeadapt = old_typeadapt ;
 
@@ -314,7 +385,7 @@ static int test_initfree(void)
       TEST(0 == nodes[i].is_freed) ;
    }
    typeadapt.freenode_count = 0 ;
-   TEST(0 == free_dlist(&list, &nodeadapt)) ;
+   TEST(0 == free_dlist(&list, 0, typeadp)) ;
    TEST(0 == list.last) ;
    TEST(lengthof(nodes) == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -335,7 +406,7 @@ static int test_initfree(void)
    }
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 2, ENOMEM) ;
-   TEST(ENOMEM == free_dlist(&list, &nodeadapt)) ;
+   TEST(ENOMEM == free_dlist(&list, 0, typeadp)) ;
    TEST(0 == list.last) ;
    TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -422,7 +493,7 @@ static int test_dlistiterator(void)
    TEST(iter.list == &list) ;
 
    // TEST foreach, foreachReverse: empty iteration
-   TEST(0 == removeall_dlist(&list, 0)) ;
+   TEST(0 == removeall_dlist(&list, 0, 0)) ;
    for (unsigned i = 0; 0 == i; i=1) {
       foreach (_dlist, node, &list) {
          TEST(node == &nodes[i].node) ;
@@ -471,7 +542,7 @@ static int test_dlistiterator(void)
       }
       TEST(i == 0) ;
    }
-   TEST(0 == removeall_dlist(&list, 0)) ;
+   TEST(0 == removeall_dlist(&list, 0, 0)) ;
 
    // TEST foreach, foreachReverse: loop over all elements (reverse)
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -490,7 +561,7 @@ static int test_dlistiterator(void)
       }
       TEST(i == 0) ;
    }
-   TEST(0 == removeall_dlist(&list, 0)) ;
+   TEST(0 == removeall_dlist(&list, 0, 0)) ;
 
    // TEST foreach, foreachReverse: remove current node; single element
    for (unsigned i = 0; 0 == i; i=1) {
@@ -555,7 +626,7 @@ static int test_dlistiterator(void)
       }
       TEST(i == lengthof(nodes) - (0x01 & lengthof(nodes))) ;
 
-      removeall_dlist(&list, 0) ;
+      removeall_dlist(&list, 0, 0) ;
       for (unsigned ni = 0; ni < lengthof(nodes); ++ni) {
          insertlast_dlist(&list, &nodes[ni].node) ;
       }
@@ -584,11 +655,11 @@ ONABORT:
 
 static int test_insertremove(void)
 {
-   testadapt_t          typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*), 0) ;
-   dlist_t              list = dlist_INIT ;
-   testnode_t           nodes[1000] ;
-   dlist_node_t       * removed_node ;
+   testadapt_t       typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
+   dlist_t           list = dlist_INIT ;
+   testnode_t        nodes[1000] ;
+   dlist_node_t *    removed_node ;
 
    memset(nodes, 0, sizeof(nodes)) ;
 
@@ -617,10 +688,8 @@ static int test_insertremove(void)
       TEST(nodes[i].node.next == &nodes[(i?i:lengthof(nodes))-1].node) ;
       TEST(nodes[i].node.prev == &nodes[(i+1)%lengthof(nodes)].node) ;
    }
-
-   // TEST removeall_dlist: free all objects
    typeadapt.freenode_count = 0 ;
-   TEST(0 == removeall_dlist(&list, &nodeadapt)) ;
+   TEST(0 == free_dlist(&list, 0, typeadp)) ;
    TEST(0 == list.last) ;
    TEST(lengthof(nodes) == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -628,35 +697,6 @@ static int test_insertremove(void)
       TEST(0 == nodes[i].node.prev) ;
       TEST(1 == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
-   }
-
-   // TEST removeall_dlist: no free called if parameter 0
-   insertfirst_dlist(&list, &nodes[0].node) ;
-   insertfirst_dlist(&list, &nodes[1].node) ;
-   typeadapt.freenode_count = 0 ;
-   TEST(0 == removeall_dlist(&list, 0)) ;
-   TEST(0 == list.last) ;
-   TEST(0 == typeadapt.freenode_count) ;
-   for (unsigned i = 0; i < 1; ++i) {
-      TEST(0 == nodes[i].node.next) ;
-      TEST(0 == nodes[i].node.prev) ;
-      TEST(0 == nodes[i].is_freed) ;
-   }
-
-   // TEST removeall_dlist: no free called if typeadapt_t.lifetime.delete_object set to 0
-   testadapt_t  old_typeadapt = typeadapt ;
-   typeadapt.lifetime.delete_object = 0 ;
-   insertfirst_dlist(&list, &nodes[0].node) ;
-   insertfirst_dlist(&list, &nodes[1].node) ;
-   typeadapt.freenode_count = 0 ;
-   TEST(0 == removeall_dlist(&list, &nodeadapt)) ;
-   typeadapt = old_typeadapt ;
-   TEST(0 == list.last) ;
-   TEST(0 == typeadapt.freenode_count) ;
-   for (unsigned i = 0; i < 1; ++i) {
-      TEST(0 == nodes[i].node.next) ;
-      TEST(0 == nodes[i].node.prev) ;
-      TEST(0 == nodes[i].is_freed) ;
    }
 
    // TEST insertlast_dlist: single element
@@ -685,7 +725,7 @@ static int test_insertremove(void)
       TEST(nodes[i].node.next == &nodes[(i+1)%lengthof(nodes)].node) ;
    }
    typeadapt.freenode_count = 0 ;
-   TEST(0 == free_dlist(&list, &nodeadapt)) ;
+   TEST(0 == free_dlist(&list, 0, typeadp)) ;
    TEST(lengthof(nodes) == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
@@ -719,7 +759,7 @@ static int test_insertremove(void)
       TEST(i == lengthof(nodes)) ;
    }
    typeadapt.freenode_count = 0 ;
-   TEST(0 == removeall_dlist(&list, &nodeadapt)) ;
+   TEST(0 == free_dlist(&list, 0, typeadp)) ;
    TEST(lengthof(nodes) == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
@@ -732,7 +772,7 @@ static int test_insertremove(void)
    insertfirst_dlist(&list, &nodes[lengthof(nodes)-2].node) ;
    for (unsigned i = lengthof(nodes)-2; i >= 2; i-=2) {
       TEST(first_dlist(&list) == &nodes[i].node) ;
-      insertbefore_dlist(&list, &nodes[i].node, &nodes[i-2].node) ;
+      insertbefore_dlist(&nodes[i].node, &nodes[i-2].node) ;
       TEST(first_dlist(&list) == &nodes[i-2].node) ;
       TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-2].node) ;
    }
@@ -741,7 +781,7 @@ static int test_insertremove(void)
          insertafter_dlist(&list, &nodes[i-1].node, &nodes[i].node) ;
          TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-1].node) ;
       } else {
-         insertbefore_dlist(&list, &nodes[i+1].node, &nodes[i].node) ;
+         insertbefore_dlist(&nodes[i+1].node, &nodes[i].node) ;
          TEST(last_dlist(&list)  == &nodes[lengthof(nodes)-2].node) ;
       }
       TEST(first_dlist(&list) == &nodes[0].node) ;
@@ -756,7 +796,7 @@ static int test_insertremove(void)
       TEST(i == lengthof(nodes)) ;
    }
    typeadapt.freenode_count = 0 ;
-   TEST(0 == free_dlist(&list, &nodeadapt)) ;
+   TEST(0 == free_dlist(&list, 0, typeadp)) ;
    TEST(lengthof(nodes) == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
       TEST(0 == nodes[i].node.next) ;
@@ -865,7 +905,7 @@ static int test_insertremove(void)
    // TEST remove_dlist: node before (prev node)
    insertlast_dlist(&list, &nodes[lengthof(nodes)-1].node) ;
    for (unsigned i = lengthof(nodes)-1; (i--) > 0;) {
-      insertbefore_dlist(&list, &nodes[i+1].node, &nodes[i].node) ;
+      insertbefore_dlist(&nodes[i+1].node, &nodes[i].node) ;
    }
    TEST(prev_dlist(last_dlist(&list)) == &nodes[lengthof(nodes)-2].node) ;
    TEST(0 == remove_dlist(&list, prev_dlist(last_dlist(&list)))) ;
@@ -951,6 +991,58 @@ static int test_insertremove(void)
       TEST(0 == nodes[i].is_inserted) ;
    }
 
+   // TEST replacenode_dlist: list.last == 0 / single node
+   init_dlist(&list) ;
+   insertlast_dlist(&list, &nodes[0].node) ;
+   list.last = 0 ;
+   replacenode_dlist(&list, &nodes[2].node, &nodes[0].node) ;
+   TEST(nodes[0].node.next == 0) ;
+   TEST(nodes[0].node.prev == 0) ;
+   TEST(nodes[2].node.next == &nodes[2].node) ;
+   TEST(nodes[2].node.prev == &nodes[2].node) ;
+   TEST(list.last == 0) ;
+   list.last = &nodes[2].node ;
+   TEST(0 == free_dlist(&list, 0, 0)) ;
+
+   // TEST replacenode_dlist: single node
+   init_dlist(&list) ;
+   insertlast_dlist(&list, &nodes[0].node) ;
+   replacenode_dlist(&list, &nodes[1].node, &nodes[0].node) ;
+   TEST(nodes[0].node.next == 0) ;
+   TEST(nodes[0].node.prev == 0) ;
+   TEST(nodes[1].node.next == &nodes[1].node) ;
+   TEST(nodes[1].node.prev == &nodes[1].node) ;
+   TEST(list.last == &nodes[1].node) ;
+   TEST(0 == free_dlist(&list, 0, 0)) ;
+
+   // TEST replacenode_dlist: many nodes
+   init_dlist(&list) ;
+   for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
+      insertlast_dlist(&list, &nodes[i].node) ;
+   }
+   for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
+      TEST(list.last == &nodes[lengthof(nodes)/2-1].node) ;
+      replacenode_dlist(&list, &nodes[i+lengthof(nodes)/2].node, &nodes[i].node) ;
+      TEST(0 == nodes[i].node.next) ;
+      TEST(0 == nodes[i].node.prev) ;
+      TEST(0 != nodes[i+lengthof(nodes)/2].node.next) ;
+      TEST(0 != nodes[i+lengthof(nodes)/2].node.prev) ;
+   }
+   TEST(list.last == &nodes[lengthof(nodes)-1].node) ;
+   for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
+      unsigned previ = i ? i-1 : lengthof(nodes)/2-1 ;
+      unsigned nexti = i+1 != lengthof(nodes)/2 ? i+1 : 0 ;
+      TEST(&nodes[i+lengthof(nodes)/2].node == nodes[previ+lengthof(nodes)/2].node.next) ;
+      TEST(&nodes[i+lengthof(nodes)/2].node == nodes[nexti+lengthof(nodes)/2].node.prev) ;
+   }
+   TEST(0 == free_dlist(&list, 0, 0)) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(0 == nodes[i].node.next) ;
+      TEST(0 == nodes[i].node.prev) ;
+      TEST(0 == nodes[i].is_freed) ;
+      TEST(0 == nodes[i].is_inserted) ;
+   }
+
    // TEST EINVAL
    dlist_t emptylist = dlist_INIT ;
    insertfirst_dlist(&list, &nodes[0].node) ;
@@ -962,22 +1054,142 @@ static int test_insertremove(void)
 
    return 0 ;
 ONABORT:
-   free_dlist(&list, &nodeadapt) ;
+   free_dlist(&list, 0, typeadp) ;
    return EINVAL ;
 }
+
+static int test_setops(void)
+{
+   testadapt_t    typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_testdapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   typeadapt_t *  typeadp   = genericcast_typeadapt(&typeadapt, testadapt_t, testnode_t, void*) ;
+   dlist_t        list  = dlist_INIT ;
+   dlist_t        list2 = dlist_INIT ;
+   testnode_t     nodes[1000] ;
+
+   memset(nodes, 0, sizeof(nodes)) ;
+
+   // TEST removeall_dlist: free all objects
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      insertfirst_dlist(&list, &nodes[i].node) ;
+   }
+   typeadapt.freenode_count = 0 ;
+   TEST(0 == removeall_dlist(&list, 0, typeadp)) ;
+   TEST(0 == list.last) ;
+   TEST(typeadapt.freenode_count == lengthof(nodes)) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(0 == nodes[i].node.next) ;
+      TEST(0 == nodes[i].node.prev) ;
+      TEST(1 == nodes[i].is_freed) ;
+      nodes[i].is_freed = 0 ;
+   }
+
+   // TEST removeall_dlist: no free called if parameter 0
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      insertfirst_dlist(&list, &nodes[i].node) ;
+   }
+   typeadapt.freenode_count = 0 ;
+   TEST(0 == removeall_dlist(&list, 0, 0)) ;
+   TEST(0 == list.last) ;
+   TEST(0 == typeadapt.freenode_count) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(0 == nodes[i].node.next) ;
+      TEST(0 == nodes[i].node.prev) ;
+      TEST(0 == nodes[i].is_freed) ;
+   }
+
+   // TEST removeall_dlist: no free called if typeadapt_t.lifetime.delete_object set to 0
+   {
+      testadapt_t    typeadapt2 = typeadapt ;
+      typeadapt_t *  typeadp2   = genericcast_typeadapt(&typeadapt2, testadapt_t, testnode_t, void*) ;
+      typeadapt2.lifetime.delete_object = 0 ;
+      for (unsigned i = 0; i < lengthof(nodes); ++i) {
+         insertfirst_dlist(&list, &nodes[i].node) ;
+      }
+      typeadapt2.freenode_count = 0 ;
+      TEST(0 == removeall_dlist(&list, 0, typeadp2)) ;
+      TEST(0 == list.last) ;
+      TEST(0 == typeadapt2.freenode_count) ;
+      for (unsigned i = 0; i < 1; ++i) {
+         TEST(0 == nodes[i].node.next) ;
+         TEST(0 == nodes[i].node.prev) ;
+         TEST(0 == nodes[i].is_freed) ;
+      }
+   }
+
+   // TEST transfer_dlist: both list empty
+   transfer_dlist(&list, &list2) ;
+   TEST(0 == list.last) ;
+   TEST(0 == list2.last) ;
+
+   // TEST transfer_dlist: tolist empty
+   insertfirst_dlist(&list2, &nodes[0].node) ;
+   TEST(0 == list.last) ;
+   transfer_dlist(&list, &list2) ;
+   TEST(0 != list.last) ;
+   TEST(0 == list2.last) ;
+   TEST(&nodes[0].node == list.last) ;
+   TEST(&nodes[0].node == nodes[0].node.prev) ;
+   TEST(&nodes[0].node == nodes[0].node.next) ;
+
+   // TEST transfer_dlist: fromlist empty
+   TEST(0 != list.last) ;
+   TEST(0 == list2.last) ;
+   transfer_dlist(&list, &list2) ;
+   TEST(0 != list.last) ;
+   TEST(0 == list2.last) ;
+   TEST(&nodes[0].node == list.last) ;
+   TEST(&nodes[0].node == nodes[0].node.prev) ;
+   TEST(&nodes[0].node == nodes[0].node.next) ;
+
+   // TEST transfer_dlist: both list contain one node
+   list.last  = 0 ;
+   list2.last = 0 ;
+   insertfirst_dlist(&list, &nodes[0].node) ;
+   insertfirst_dlist(&list2, &nodes[1].node) ;
+   transfer_dlist(&list, &list2) ;
+   TEST(0 != list.last) ;
+   TEST(0 == list2.last) ;
+   TEST(&nodes[1].node == list.last) ;
+   TEST(&nodes[1].node == nodes[0].node.prev) ;
+   TEST(&nodes[1].node == nodes[0].node.next) ;
+   TEST(&nodes[0].node == nodes[1].node.prev) ;
+   TEST(&nodes[0].node == nodes[1].node.next) ;
+
+   // TEST transfer_dlist: both list many elements
+   list.last  = 0 ;
+   list2.last = 0 ;
+   for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
+      insertlast_dlist(&list, &nodes[i].node) ;
+      insertlast_dlist(&list2, &nodes[lengthof(nodes)/2 + i].node) ;
+   }
+   transfer_dlist(&list, &list2) ;
+   TEST(list.last  == &nodes[lengthof(nodes)-1].node) ;
+   TEST(list2.last == 0) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      unsigned previ = i ? i-1u : lengthof(nodes)-1 ;
+      unsigned nexti = i+1u != lengthof(nodes) ? i+1u : 0 ;
+      TEST(&nodes[i].node == nodes[nexti].node.prev) ;
+      TEST(&nodes[i].node == nodes[previ].node.next) ;
+   }
+
+   return 0 ;
+ONABORT:
+   free_dlist(&list, 0, typeadp) ;
+   return EINVAL ;
+}
+
 
 dlist_IMPLEMENT(_glist1, genericnode_t, )
 dlist_IMPLEMENT(_glist2, genericnode_t, node2.)
 
 static int test_generic(void)
 {
-   genericadapt_t       typeadapt  = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_INIT_FREEABLE, 0 } ;
-   typeadapt_member_t   nodeadapt1 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, next)) ;
-   typeadapt_member_t   nodeadapt2 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*), offsetof(genericnode_t, node2)) ;
-   dlist_t              list1 = dlist_INIT ;
-   dlist_t              list2 = dlist_INIT ;
-   genericnode_t        nodes[1000] ;
-   genericnode_t        * removed_node ;
+   genericadapt_t    typeadapt = { typeadapt_INIT_LIFETIME(0, &freenode_genericadapt), test_errortimer_INIT_FREEABLE, 0 } ;
+   typeadapt_t *     typeadp   = genericcast_typeadapt(&typeadapt, genericadapt_t, genericnode_t, void*) ;
+   dlist_t           list1 = dlist_INIT ;
+   dlist_t           list2 = dlist_INIT ;
+   genericnode_t     nodes[1000] ;
+   genericnode_t *   removed_node ;
 
    memset(nodes, 0, sizeof(nodes)) ;
 
@@ -1030,12 +1242,12 @@ static int test_generic(void)
    TEST(0 == isempty_glist2(&list2)) ;
    TEST(1 == isinlist_glist1(&nodes[0])) ;
    TEST(1 == isinlist_glist2(&nodes[0])) ;
-   TEST(0 == free_glist1(&list1, &nodeadapt1)) ;
+   TEST(0 == free_glist1(&list1, typeadp)) ;
    TEST(1 == nodes[0].is_freed)
    TEST(1 == typeadapt.freenode_count) ;
    TEST(0 == isinlist_glist1(&nodes[0])) ;
    TEST(1 == isinlist_glist2(&nodes[0])) ;
-   TEST(0 == free_glist2(&list2, &nodeadapt2)) ;
+   TEST(0 == free_glist2(&list2, typeadp)) ;
    TEST(2 == nodes[0].is_freed)
    TEST(2 == typeadapt.freenode_count) ;
    TEST(0 == isinlist_glist1(&nodes[0])) ;
@@ -1065,8 +1277,8 @@ static int test_generic(void)
    TEST(&nodes[3] == last_glist2(&list2)) ;
 
    // TEST insertbefore_dlist
-   insertbefore_glist1(&list1, &nodes[3], &nodes[2]) ;
-   insertbefore_glist2(&list2, &nodes[3], &nodes[2]) ;
+   insertbefore_glist1(&nodes[3], &nodes[2]) ;
+   insertbefore_glist2(&nodes[3], &nodes[2]) ;
    TEST(&nodes[2] == prev_glist1(&nodes[3])) ;
    TEST(&nodes[3] == last_glist1(&list1)) ;
    TEST(&nodes[2] == prev_glist2(&nodes[3])) ;
@@ -1106,9 +1318,9 @@ static int test_generic(void)
 
    // TEST free_dlist: no error
    typeadapt.freenode_count = 0 ;
-   TEST(0 == free_glist1(&list1, &nodeadapt1)) ;
+   TEST(0 == free_glist1(&list1, typeadp)) ;
    TEST(2 == typeadapt.freenode_count) ;
-   TEST(0 == free_glist2(&list2, &nodeadapt2)) ;
+   TEST(0 == free_glist2(&list2, typeadp)) ;
    TEST(4 == typeadapt.freenode_count) ;
    TEST(2 == nodes[2].is_freed) ;
    TEST(2 == nodes[3].is_freed) ;
@@ -1129,12 +1341,12 @@ static int test_generic(void)
    }
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 5, ENOSYS) ;
-   TEST(ENOSYS == free_glist1(&list1, &nodeadapt1)) ;
+   TEST(ENOSYS == free_glist1(&list1, typeadp)) ;
    TEST(1 == isempty_glist1(&list1)) ;
    TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    typeadapt.freenode_count = 0 ;
    init_testerrortimer(&typeadapt.errcounter, 5, EINVAL) ;
-   TEST(EINVAL == free_glist2(&list2, &nodeadapt2)) ;
+   TEST(EINVAL == free_glist2(&list2, typeadp)) ;
    TEST(1 == isempty_glist2(&list2)) ;
    TEST(lengthof(nodes)-1 == typeadapt.freenode_count) ;
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -1145,6 +1357,24 @@ static int test_generic(void)
       TEST(2*(i!=4) == nodes[i].is_freed) ;
       nodes[i].is_freed = 0 ;
    }
+
+   // TEST replacenode_dlist
+   init_glist1(&list1) ;
+   init_glist2(&list2) ;
+   insertlast_glist1(&list1, &nodes[0]) ;
+   insertlast_glist2(&list2, &nodes[0]) ;
+   replacenode_glist1(&list1, &nodes[1], &nodes[0]) ;
+   TEST(nodes[0].next == 0) ;
+   TEST(nodes[0].prev == 0) ;
+   TEST(nodes[1].next == (dlist_node_t*)&nodes[1].next) ;
+   TEST(nodes[1].prev == (dlist_node_t*)&nodes[1].next) ;
+   replacenode_glist2(&list2, &nodes[1], &nodes[0]) ;
+   TEST(nodes[0].node2.next == 0) ;
+   TEST(nodes[0].node2.prev == 0) ;
+   TEST(nodes[1].node2.next == (dlist_node_t*)&nodes[1].node2.next) ;
+   TEST(nodes[1].node2.prev == (dlist_node_t*)&nodes[1].node2.next) ;
+   free_glist1(&list1, 0) ;
+   free_glist2(&list2, 0) ;
 
    // TEST iterator, next_dlist, prev_dlist
    for (unsigned i = 0; i < lengthof(nodes); ++i) {
@@ -1183,6 +1413,53 @@ static int test_generic(void)
       TEST(0 == nodes[i].is_freed) ;
    }
 
+   // TEST removeall_dlist
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      insertfirst_glist1(&list1, &nodes[i]) ;
+      insertfirst_glist2(&list2, &nodes[i]) ;
+   }
+   TEST(0 == removeall_glist1(&list1, typeadp)) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(0 == nodes[i].next) ;
+      TEST(0 == nodes[i].prev) ;
+      TEST(0 != nodes[i].node2.next) ;
+      TEST(0 != nodes[i].node2.prev) ;
+      TEST(1 == nodes[i].is_freed) ;
+   }
+   TEST(0 == removeall_glist2(&list2, typeadp)) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      TEST(0 == nodes[i].next) ;
+      TEST(0 == nodes[i].prev) ;
+      TEST(0 == nodes[i].node2.next) ;
+      TEST(0 == nodes[i].node2.prev) ;
+      TEST(2 == nodes[i].is_freed) ;
+      nodes[i].is_freed = 0 ;
+   }
+
+   // TEST transfer_dlist
+   dlist_t list1_2 = dlist_INIT ;
+   dlist_t list2_2 = dlist_INIT ;
+   for (unsigned i = 0; i < lengthof(nodes)/2; ++i) {
+      insertlast_glist1(&list1, &nodes[i]) ;
+      insertlast_glist2(&list2, &nodes[i]) ;
+      insertlast_glist1(&list1_2, &nodes[i + lengthof(nodes)/2]) ;
+      insertlast_glist2(&list2_2, &nodes[i + lengthof(nodes)/2]) ;
+   }
+   transfer_glist1(&list1, &list1_2) ;
+   transfer_glist2(&list2, &list2_2) ;
+   TEST(list1.last   == (void*)&nodes[lengthof(nodes)-1].next) ;
+   TEST(list1_2.last == 0) ;
+   TEST(list2.last   == (void*)&nodes[lengthof(nodes)-1].node2) ;
+   TEST(list2_2.last == 0) ;
+   for (unsigned i = 0; i < lengthof(nodes); ++i) {
+      unsigned previ = i ? i-1u : lengthof(nodes)-1 ;
+      unsigned nexti = i+1u != lengthof(nodes) ? i+1u : 0 ;
+      TEST(&nodes[i].next  == (void*)nodes[nexti].prev) ;
+      TEST(&nodes[i].next  == (void*)nodes[previ].next) ;
+      TEST(&nodes[i].node2 == (void*)nodes[nexti].node2.prev) ;
+      TEST(&nodes[i].node2 == (void*)nodes[previ].node2.next) ;
+   }
+
    return 0 ;
 ONABORT:
    return EINVAL ;
@@ -1194,10 +1471,12 @@ int unittest_ds_inmem_dlist()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
+   if (test_dlistnode())      goto ONABORT ;
    if (test_initfree())       goto ONABORT ;
    if (test_query())          goto ONABORT ;
    if (test_dlistiterator())  goto ONABORT ;
    if (test_insertremove())   goto ONABORT ;
+   if (test_setops())         goto ONABORT ;
    if (test_generic())        goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;

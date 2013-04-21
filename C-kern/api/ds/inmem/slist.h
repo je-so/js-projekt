@@ -367,8 +367,8 @@ void slist_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t, IDNAME name_nextptr) ;
 
 /* define: removeall_slist
  * Implements <slist_t.removeall_slist> with help of <slist_t.free_slist>. */
-#define removeall_slist(list, nodeoffset, nodeadp) \
-         free_slist((list), (nodeoffset), (nodeadp))
+#define removeall_slist(list, nodeoffset, typeadp) \
+         free_slist((list), (nodeoffset), (typeadp))
 
 /* define: slist_IMPLEMENT
  * Implements <slist_t.slist_IMPLEMENT>. */

@@ -112,7 +112,7 @@ bool prev_splaytreeiterator(splaytree_iterator_t * iter, /*out*/splaytree_node_t
 
 /* struct: splaytree_t
  * Implements a splay tree index.
- * The structure contains a root pointer and a member adapter <typeadapt_member_t>.
+ * The structure contains a root pointer.
  * No other information is maintained.
  *
  * typeadapt_t:
@@ -137,15 +137,13 @@ struct splaytree_t {
 #define splaytree_INIT(root)                    { root }
 
 /* function: init_splaytree
- * Inits an empty tree object.
- * The <typeadapt_member_t> is copied but the <typeadapt_t> it references is not.
- * So do not delete <typeadapt_t> as long as this object lives. */
+ * Inits an empty tree object. */
 void init_splaytree(/*out*/splaytree_t * tree) ;
 
 /* function: free_splaytree
  * Frees all resources.
  * For every removed node the typeadapter callback <typeadapt_lifetime_it.delete_object> is called.
- * See <typeadapt_member_t> how to construct typeadapter for node member. */
+ * See <typeadapt_t> how to construct a typeadapter. */
 int free_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 // group: query
@@ -198,7 +196,7 @@ int removenodes_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t *
 
 /* function: invariant_splaytree
  * Checks that all nodes are stored in correct search order.
- * The parameter nodeadp must offer compare objects functionality. */
+ * The parameter typeadp must offer compare objects functionality. */
 int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typeadp) ;
 
 // group: generic
