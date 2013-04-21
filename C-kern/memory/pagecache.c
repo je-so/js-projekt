@@ -122,6 +122,22 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_queryit(void)
+{
+   // TEST pagesizeinbytes_pagecacheit
+   static_assert(6 == pagesize_NROFPAGESIZE, "tested all possible values") ;
+   TEST(256   == pagesizeinbytes_pagecacheit(pagesize_256)) ;
+   TEST(1024  == pagesizeinbytes_pagecacheit(pagesize_1024)) ;
+   TEST(4096  == pagesizeinbytes_pagecacheit(pagesize_4096)) ;
+   TEST(16384 == pagesizeinbytes_pagecacheit(pagesize_16384)) ;
+   TEST(65536 == pagesizeinbytes_pagecacheit(pagesize_65536)) ;
+   TEST(1048576 == pagesizeinbytes_pagecacheit(pagesize_1MB)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 struct pagecachex_t ;
 
 static int allocpage2_dummy(struct pagecachex_t * pgcache, pagesize_e pgsize, /*out*/struct memblock_t * page)
@@ -203,6 +219,7 @@ int unittest_memory_pagecache()
 
    if (test_initfreeit())     goto ONABORT ;
    if (test_initfree())       goto ONABORT ;
+   if (test_queryit())        goto ONABORT ;
    if (test_genericit())      goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;

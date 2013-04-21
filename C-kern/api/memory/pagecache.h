@@ -45,12 +45,16 @@ typedef struct pagecache_it               pagecache_it ;
  * pagesize_1024  - Request page size of 1024 byte aligned to a 1024 byte boundary.
  * pagesize_4096  - Request page size of 4096 byte aligned to a 4096 byte boundary.
  * pagesize_16384 - Request page size of 16384 byte aligned to a 16384 byte boundary.
+ * pagesize_65536 - Request page size of 65536 byte aligned to a 65536 byte boundary.
+ * pagesize_1MB   - Request page size of 1024*1024 byte aligned to a 1MB byte boundary.
  * */
 enum pagesize_e {
    pagesize_256,
    pagesize_1024,
    pagesize_4096,
    pagesize_16384,
+   pagesize_65536,
+   pagesize_1MB,
    pagesize_NROFPAGESIZE
 } ;
 
@@ -151,6 +155,16 @@ struct pagecache_it {
  * sizestatic_f    - Function pointer to query size of static allocated memory. See <pagecache_it.sizestatic>. */
 #define pagecache_it_INIT(allocpage_f, releasepage_f, sizeallocated_f, allocstatic_f, sizestatic_f, freestatic_f) \
          { (allocpage_f), (releasepage_f), (sizeallocated_f), (allocstatic_f), (sizestatic_f), (freestatic_f) }
+
+// group: query
+
+/* function: pagesizeinbytes_pagecacheit
+ * Translates enum <pagesize_e> into size in bytes.
+ *
+ * Precondition:
+ * o pagesize is a value out of <pagesize_e>
+ *   else an invalid value is returned. */
+size_t pagesizeinbytes_pagecacheit(pagesize_e pagesize) ;
 
 // group: generic
 
@@ -254,6 +268,15 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
       int    (*freestatic)    (pagecache_t * pgcache, struct memblock_t * memblock) ;                          \
       size_t (*sizestatic)    (const pagecache_t * pgcache) ;                                                  \
    } ;
+
+/* define: pagesizeinbytes_pagecacheit
+ * Implements <pagecache_it.pagesizeinbytes_pagecacheit>. */
+#define pagesizeinbytes_pagecacheit(pagesize)   \
+   ( __extension__ ({                           \
+         unsigned _pgsize ;                     \
+         _pgsize = (unsigned)(pagesize) ;       \
+         (size_t)256 << (2u*_pgsize + 2u*(_pgsize == pagesize_1MB)) ; \
+   }))
 
 
 #endif
