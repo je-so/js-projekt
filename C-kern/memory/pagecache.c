@@ -21,7 +21,7 @@
     Header file <PageCache-Object>.
 
    file: C-kern/memory/pagecache.c
-    Implementation file <PageCache-Object Impl>.
+    Implementation file <PageCache-Object impl>.
 */
 
 #include "C-kern/konfig.h"
@@ -81,6 +81,12 @@ static size_t sizestatic1_dummy(const pagecache_t * pgcache)
    return 0 ;
 }
 
+static int releasecache1_dummy(pagecache_t * pgcache)
+{
+   (void)pgcache ;
+   return 0 ;
+}
+
 static int test_initfreeit(void)
 {
    pagecache_it   pgcacheif = pagecache_it_INIT_FREEABLE ;
@@ -91,13 +97,16 @@ static int test_initfreeit(void)
    TEST(0 == pgcacheif.sizeallocated) ;
 
    // TEST pagecache_it_INIT
-   pgcacheif = (pagecache_it) pagecache_it_INIT(&allocpage1_dummy, &releasepage1_dummy, &sizeallocated1_dummy, &allocstatic1_dummy, &freestatic1_dummy, &sizestatic1_dummy) ;
+   pgcacheif = (pagecache_it) pagecache_it_INIT(   &allocpage1_dummy, &releasepage1_dummy, &sizeallocated1_dummy,
+                                                   &allocstatic1_dummy, &freestatic1_dummy, &sizestatic1_dummy,
+                                                   &releasecache1_dummy) ;
    TEST(pgcacheif.allocpage     == &allocpage1_dummy) ;
    TEST(pgcacheif.releasepage   == &releasepage1_dummy) ;
    TEST(pgcacheif.sizeallocated == &sizeallocated1_dummy) ;
    TEST(pgcacheif.allocstatic   == &allocstatic1_dummy) ;
    TEST(pgcacheif.freestatic    == &freestatic1_dummy) ;
    TEST(pgcacheif.sizestatic    == &sizestatic1_dummy) ;
+   TEST(pgcacheif.releasecached == &releasecache1_dummy) ;
 
    return 0 ;
 ONABORT:
@@ -182,6 +191,12 @@ static size_t sizestatic2_dummy(const struct pagecachex_t * pgcache)
    return 0 ;
 }
 
+static int releasecache2_dummy(struct pagecachex_t * pgcache)
+{
+   (void)pgcache ;
+   return 0 ;
+}
+
 // TEST pagecache_it_DECLARE
 pagecache_it_DECLARE(pagecachex_it, struct pagecachex_t)
 
@@ -195,13 +210,16 @@ static int test_genericit(void)
    TEST(0 == pgcacheif.sizeallocated) ;
 
    // TEST pagecache_it_INIT
-   pgcacheif = (pagecachex_it) pagecache_it_INIT(&allocpage2_dummy, &releasepage2_dummy, &sizeallocated2_dummy, &allocstatic2_dummy, &freestatic2_dummy, &sizestatic2_dummy) ;
+   pgcacheif = (pagecachex_it) pagecache_it_INIT(  &allocpage2_dummy, &releasepage2_dummy, &sizeallocated2_dummy,
+                                                   &allocstatic2_dummy, &freestatic2_dummy, &sizestatic2_dummy,
+                                                   &releasecache2_dummy) ;
    TEST(pgcacheif.allocpage     == &allocpage2_dummy) ;
    TEST(pgcacheif.releasepage   == &releasepage2_dummy) ;
    TEST(pgcacheif.sizeallocated == &sizeallocated2_dummy) ;
    TEST(pgcacheif.allocstatic   == &allocstatic2_dummy) ;
    TEST(pgcacheif.freestatic    == &freestatic2_dummy) ;
    TEST(pgcacheif.sizestatic    == &sizestatic2_dummy) ;
+   TEST(pgcacheif.releasecached == &releasecache2_dummy) ;
 
    // TEST genericcast_pagecacheit
    TEST((pagecache_it*)&pgcacheif == genericcast_pagecacheit(&pgcacheif, struct pagecachex_t)) ;

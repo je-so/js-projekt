@@ -123,6 +123,39 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_cache(void)
+{
+   pagecache_t    oldpagecache  = pagecache_INIT_FREEABLE ;
+   pagecache_t    testpagecache = pagecache_INIT_FREEABLE ;
+   memblock_t     page ;
+
+   // prepare
+   TEST(0 == initthread_pagecacheimpl(&testpagecache)) ;
+   oldpagecache = pagecache_maincontext() ;
+   pagecache_maincontext() = testpagecache ;
+
+   // TEST RELEASECACHED_PAGECACHE
+   pagecache_impl_t * pgcache = (pagecache_impl_t*) testpagecache.object ;
+   TEST(0 == pgcache->freeblocklist[pagesize_256].last) ;
+   TEST(0 == ALLOC_PAGECACHE(pagesize_256, &page)) ;
+   TEST(0 == RELEASE_PAGECACHE(&page)) ;
+   TEST(0 != pgcache->freeblocklist[pagesize_256].last) ;
+   TEST(0 == RELEASECACHED_PAGECACHE()) ;
+   TEST(0 == pgcache->freeblocklist[pagesize_256].last) ;
+
+   // unprepare
+   pagecache_maincontext() = oldpagecache ;
+   TEST(0 == freethread_pagecacheimpl(&testpagecache)) ;
+
+   return 0 ;
+ONABORT:
+   if (oldpagecache.object) {
+      pagecache_maincontext() = oldpagecache ;
+   }
+   freethread_pagecacheimpl(&testpagecache) ;
+   return EINVAL ;
+}
+
 int unittest_memory_pagecache_macros()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -131,6 +164,7 @@ int unittest_memory_pagecache_macros()
 
    if (test_query())       goto ONABORT ;
    if (test_alloc())       goto ONABORT ;
+   if (test_cache())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

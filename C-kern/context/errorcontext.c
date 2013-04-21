@@ -159,11 +159,11 @@ ONABORT:
 int unittest_context_errorcontext()
 {
    resourceusage_t   usage     = resourceusage_INIT_FREEABLE ;
-   char *            msglocale = 0 ;
+   char              msglocale[100] = { 0 } ;
 
    // switch system error messages returned from strerror to english
-   msglocale = setlocale(LC_MESSAGES, "C") ;
-   if (msglocale) msglocale = strdup(msglocale) ;
+   const char * prevlocale = setlocale(LC_MESSAGES, "C") ;
+   if (prevlocale) strncpy(msglocale, prevlocale, sizeof(msglocale)) ;
 
    if (test_query())          goto ONABORT ;
 
@@ -176,12 +176,10 @@ int unittest_context_errorcontext()
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   setlocale(LC_MESSAGES, msglocale ? msglocale : "") ;
-   free(msglocale) ;
+   setlocale(LC_MESSAGES, msglocale) ;
 
    return 0 ;
 ONABORT:
-   (void) free(msglocale) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

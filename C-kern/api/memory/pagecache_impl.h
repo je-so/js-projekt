@@ -180,5 +180,11 @@ int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out
  * Calling this function with memblock set to <memblock_INIT_FREEABLE> does nothing. */
 int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * memblock) ;
 
+// group: cache
+
+/* function: releasecached_pagecacheimpl
+ * Releases all unused memory blocks back to the operating system. */
+int releasecached_pagecacheimpl(pagecache_impl_t * pgcache) ;
+
 
 #endif

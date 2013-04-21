@@ -70,6 +70,14 @@
 #define SIZESTATIC_PAGECACHE()  \
          (pagecache_maincontext().iimpl->sizestatic(pagecache_maincontext().object))
 
+// group: cache
+
+/* define: RELEASECACHED_PAGECACHE
+ * Returns unused memory blocks back to OS.
+ * See <pagecache_it.releasecached> for a description. */
+#define RELEASECACHED_PAGECACHE()  \
+         (pagecache_maincontext().iimpl->releasecached(pagecache_maincontext().object))
+
 // group: test
 
 #ifdef KONFIG_UNITTEST

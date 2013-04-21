@@ -184,13 +184,12 @@ static inline size_t blocksize_pagecacheblock(const size_t syspagesize)
 int new_pagecacheblock(/*out*/struct pagecache_block_t ** block, size_t pagesize, uint8_t freelistindex)
 {
    int err ;
-   memblock_t     memblock  = memblock_INIT_FREEABLE ;
    vmpage_t       pageblock = vmpage_INIT_FREEABLE ;
    size_t         blocksize = blocksize_pagecacheblock(pagesize_vm()) ;
 
    VALIDATE_INPARAM_TEST(pagesize <= blocksize, ONABORT,) ;
 
-   // TODO: change second argument of init_vmpage from nrofpages into into size_in_bytes
+   // TODO: change second argument of init_vmpage from nrofpages into size_in_bytes
    ONERROR_testerrortimer(&s_pagecacheblock_errtimer, ONABORT) ;
    err = init_vmpage(&pageblock, blocksize / pagesize_vm()) ;
    if (err) goto ONABORT ;
@@ -221,12 +220,13 @@ int new_pagecacheblock(/*out*/struct pagecache_block_t ** block, size_t pagesize
       }
    }
 
-   err = RESIZE_MM(sizeof(pagecache_block_t), &memblock) ;
-   if (err) goto ONABORT ;
-
    // init new object
-   pagecache_block_t * new_block = (pagecache_block_t *) memblock.addr ;
-   new_block->pageblock = pageblock ;
+   pagecache_block_t * new_block = (pagecache_block_t*) malloc(sizeof(pagecache_block_t)) ;
+   if (!new_block) {
+      err = ENOMEM ;
+      goto ONABORT ;
+   }
+   new_block->pageblock    = pageblock ;
    // Member new_block->next_block set in calling function
    // Member new_block->next_freeblock set in calling function
    new_block->freepagelist = (dlist_t) dlist_INIT ;
@@ -254,7 +254,6 @@ ONABORT:
 int delete_pagecacheblock(/*out*/struct pagecache_block_t ** block)
 {
    int err ;
-   int err2 ;
    pagecache_block_t * del_block = *block ;
 
    if (del_block) {
@@ -262,13 +261,12 @@ int delete_pagecacheblock(/*out*/struct pagecache_block_t ** block)
 
       err = free_vmpage(&del_block->pageblock) ;
 #ifdef KONFIG_UNITTEST
-      err2 = process_testerrortimer(&s_pagecacheblock_errtimer) ;
+      int err2 = process_testerrortimer(&s_pagecacheblock_errtimer) ;
       if (err2) err = err2 ;
 #endif
 
-      memblock_t memblock = memblock_INIT(sizeof(pagecache_block_t), (uint8_t*)del_block) ;
-      err2 = FREE_MM(&memblock) ;
-      if (err2) err = err2 ;
+      free(del_block) ;
+
 #ifdef KONFIG_UNITTEST
       err2 = process_testerrortimer(&s_pagecacheblock_errtimer) ;
       if (err2) err = err2 ;
@@ -331,7 +329,8 @@ static pagecache_impl_it   s_pagecacheimpl_interface = pagecache_it_INIT(
                               &sizeallocated_pagecacheimpl,
                               &allocstatic_pagecacheimpl,
                               &freestatic_pagecacheimpl,
-                              &sizestatic_pagecacheimpl
+                              &sizestatic_pagecacheimpl,
+                              &releasecached_pagecacheimpl
                            ) ;
 
 // group: init
@@ -461,6 +460,22 @@ static inline int allocblock_pagecacheimpl(pagecache_impl_t * pgcache, pagesize_
    return 0 ;
 }
 
+/* function: freeblock_pagecacheimpl
+ * Frees <pageblock_block_t> and removes it from freelist and blocklist. */
+static inline int freeblock_pagecacheimpl(pagecache_impl_t * pgcache, pagecache_block_t * block)
+{
+   int err ;
+
+   err = remove_freeblocklist(genericcast_dlist(&pgcache->freeblocklist[block->freelistidx]), block) ;
+   if (err) return err ;
+   err = remove_blocklist(genericcast_dlist(&pgcache->blocklist), block) ;
+   if (err) return err ;
+   err = delete_pagecacheblock(&block) ;
+   if (err) return err ;
+
+   return 0 ;
+}
+
 // group: lifetime
 
 int init_pagecacheimpl(/*out*/pagecache_impl_t * pgcache)
@@ -585,11 +600,7 @@ int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * pa
          pagecache_block_t * firstblock = last_freeblocklist(genericcast_dlist(&pgcache->freeblocklist[block->freelistidx])) ;
          pagecache_block_t * lastblock  = first_freeblocklist(genericcast_dlist(&pgcache->freeblocklist[block->freelistidx])) ;
          if (firstblock != lastblock) {
-            err = remove_freeblocklist(genericcast_dlist(&pgcache->freeblocklist[block->freelistidx]), block) ;
-            if (err) goto ONABORT ;
-            err = remove_blocklist(genericcast_dlist(&pgcache->blocklist), block) ;
-            if (err) goto ONABORT ;
-            err = delete_pagecacheblock(&block) ;
+            err = freeblock_pagecacheimpl(pgcache, block) ;
             if (err) goto ONABORT ;
          }
       }
@@ -660,6 +671,27 @@ int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * mem
       }
 
       *memblock = (memblock_t) memblock_INIT_FREEABLE ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+// group: cache
+
+int releasecached_pagecacheimpl(pagecache_impl_t * pgcache)
+{
+   int err ;
+
+   for (unsigned pgsize = 0; pgsize < lengthof(pgcache->freeblocklist); ++pgsize) {
+      foreach (_freeblocklist, block, genericcast_dlist(&pgcache->freeblocklist[pgsize])) {
+         if (! block->usedpagecount) {
+            err = freeblock_pagecacheimpl(pgcache, block) ;
+            if (err) goto ONABORT ;
+         }
+      }
    }
 
    return 0 ;
@@ -965,6 +997,23 @@ static int test_helper(void)
       TEST(1 == isfree_pagecacheimpl(&pgcache)) ;
    }
 
+   // TEST freeblock_pagecacheimpl
+   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
+      pgcache = (pagecache_impl_t) pagecache_impl_INIT_FREEABLE ;
+      for (uint8_t i = 0; i < lengthof(block); ++i) {
+         TEST(0 == allocblock_pagecacheimpl(&pgcache, pgsize, &block[i])) ;
+         TEST(block[i] == last_freeblocklist(genericcast_dlist(&pgcache.freeblocklist[pgsize]))) ;
+         TEST(block[i] == last_blocklist(genericcast_dlist(&pgcache.blocklist))) ;
+      }
+      for (uint8_t i = 0; i < lengthof(block); ++i) {
+         TEST(block[i] == first_freeblocklist(genericcast_dlist(&pgcache.freeblocklist[pgsize]))) ;
+         TEST(block[i] == first_blocklist(genericcast_dlist(&pgcache.blocklist))) ;
+         TEST(0 == freeblock_pagecacheimpl(&pgcache, block[i])) ;
+      }
+      TEST(0 == pgcache.freeblocklist[pgsize].last) ;
+      TEST(0 == pgcache.blocklist.last) ;
+   }
+
    // unprepare
 
    return 0 ;
@@ -1261,6 +1310,42 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_cache(void)
+{
+   pagecache_impl_t     pgcache   = pagecache_impl_INIT_FREEABLE ;
+   pagecache_block_t *  block[10] ;
+
+   // TEST releasecached_pagecacheimpl
+   for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
+      TEST(0 == init_pagecacheimpl(&pgcache)) ;
+      for (uint8_t i = 0; i < lengthof(block); ++i) {
+         TEST(0 == allocblock_pagecacheimpl(&pgcache, pgsize, &block[i])) ;
+      }
+      block[2]->usedpagecount = 1 ; // mark as in use
+      for (uint8_t i = 0; i < lengthof(block); ++i) {
+         TEST(0 == releasecached_pagecacheimpl(&pgcache)) ;
+      }
+      TEST(block[2] == last_blocklist(genericcast_dlist(&pgcache.blocklist))) ;
+      for (pagesize_e pgsize2 = 0; pgsize2 < pagesize_NROFPAGESIZE; ++pgsize2) {
+         if (pgsize2 == pgsize) {
+            TEST(block[2] == last_freeblocklist(genericcast_dlist(&pgcache.freeblocklist[pgsize2]))) ;
+         } else {
+            TEST(0 == pgcache.freeblocklist[pgsize2].last) ;
+         }
+      }
+      block[2]->usedpagecount = 0 ; // mark as unused
+      TEST(0 == releasecached_pagecacheimpl(&pgcache)) ;
+      TEST(0 == pgcache.freeblocklist[pgsize].last) ;
+      TEST(0 == pgcache.blocklist.last) ;
+      TEST(0 == free_pagecacheimpl(&pgcache)) ;
+   }
+
+   return 0 ;
+ONABORT:
+   free_pagecacheimpl(&pgcache) ;
+   return EINVAL ;
+}
+
 static int test_initthread(void)
 {
    pagecache_t          pgcache = pagecache_INIT_FREEABLE ;
@@ -1315,6 +1400,7 @@ int unittest_memory_pagecacheimpl()
    if (test_helper())      goto ONABORT ;
    if (test_query())       goto ONABORT ;
    if (test_alloc())       goto ONABORT ;
+   if (test_cache())       goto ONABORT ;
    if (test_initthread())  goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;

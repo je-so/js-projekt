@@ -134,6 +134,9 @@ struct pagecache_it {
    /* function: sizestatic
     * Size of memory allocated with <allocstatic>. */
    size_t (*sizestatic)    (const pagecache_t * pgcache) ;
+   /* function: releasecached
+    * Releases all unused memory blocks back to the operating system. */
+   int    (*releasecached) (pagecache_t * pgcache) ;
 } ;
 
 // group: lifetime
@@ -141,7 +144,7 @@ struct pagecache_it {
 /* define: pagecache_it_INIT_FREEABLE
  * Static initializer. */
 #define pagecache_it_INIT_FREEABLE  \
-         { 0, 0, 0, 0, 0, 0 }
+         { 0, 0, 0, 0, 0, 0, 0 }
 
 /* define: pagecache_it_INIT_FREEABLE
  * Static initializer. Set all function pointers to the provided values.
@@ -152,9 +155,15 @@ struct pagecache_it {
  * sizeallocated_f - Function pointer to query the sum of the size of all allocated memory page. See <pagecache_it.sizeallocated>.
  * allocstatic_f   - Function pointer to allocate static blocks of memory. See <pagecache_it.allocstatic>.
  * freestatic_f    - Function pointer to free static blocks of memory. See <pagecache_it.freestatic>.
- * sizestatic_f    - Function pointer to query size of static allocated memory. See <pagecache_it.sizestatic>. */
-#define pagecache_it_INIT(allocpage_f, releasepage_f, sizeallocated_f, allocstatic_f, sizestatic_f, freestatic_f) \
-         { (allocpage_f), (releasepage_f), (sizeallocated_f), (allocstatic_f), (sizestatic_f), (freestatic_f) }
+ * sizestatic_f    - Function pointer to query size of static allocated memory. See <pagecache_it.sizestatic>.
+ * releasecached_f - Function pointer to return unused memory blocks back to the OS. See <pagecache_it.releasecached>. */
+#define pagecache_it_INIT( allocpage_f, releasepage_f, sizeallocated_f,    \
+                           allocstatic_f, sizestatic_f, freestatic_f,      \
+                           releasecached_f)                                \
+         {  (allocpage_f), (releasepage_f), (sizeallocated_f),             \
+            (allocstatic_f), (sizestatic_f), (freestatic_f),               \
+            (releasecached_f)                                              \
+         }
 
 // group: query
 
@@ -230,7 +239,10 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
                      (struct memblock_t*)0))                \
          && sizeof(size_t)                                  \
             == sizeof((pgcacheif)->sizestatic(              \
-                        (const pagecache_t*)0)),            \
+                        (const pagecache_t*)0))             \
+         && sizeof(int)                                     \
+            == sizeof((pgcacheif)->releasecached(           \
+                        (pagecache_t*)0)),                  \
          "ensure same structure") ;                         \
       if (0) {                                              \
          int      _err ;                                    \
@@ -250,6 +262,8 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
                (struct memblock_t *)0) ;                    \
          _err2 += (pgcacheif)->sizestatic(                  \
                         (const pagecache_t*)0) ;            \
+         _err += (pgcacheif)->releasecached(                \
+                        (pagecache_t*)0) ;                  \
          _err2 += (size_t)_err ;                            \
          (void) _err2 ;                                     \
       }                                                     \
@@ -267,6 +281,7 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
       int    (*allocstatic)   (pagecache_t * pgcache, size_t bytesize, /*out*/struct memblock_t * memblock) ;  \
       int    (*freestatic)    (pagecache_t * pgcache, struct memblock_t * memblock) ;                          \
       size_t (*sizestatic)    (const pagecache_t * pgcache) ;                                                  \
+      int    (*releasecached) (pagecache_t * pgcache) ;                                                        \
    } ;
 
 /* define: pagesizeinbytes_pagecacheit

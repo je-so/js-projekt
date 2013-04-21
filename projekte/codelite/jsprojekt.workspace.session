@@ -5,38 +5,50 @@
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="FileName"/>
-      <int Value="231" Name="FirstVisibleLine"/>
-      <int Value="242" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/memory/pagecache_impl.h" Name="FileName"/>
-      <int Value="90" Name="FirstVisibleLine"/>
-      <int Value="88" Name="CurrentLine"/>
+      <int Value="223" Name="FirstVisibleLine"/>
+      <int Value="239" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/memory/pagecache_impl.c" Name="FileName"/>
-      <int Value="1223" Name="FirstVisibleLine"/>
-      <int Value="1240" Name="CurrentLine"/>
+      <int Value="268" Name="FirstVisibleLine"/>
+      <int Value="266" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/memory/pagecache_impl.h" Name="FileName"/>
+      <int Value="139" Name="FirstVisibleLine"/>
+      <int Value="186" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/memory/pagecache_macros.h" Name="FileName"/>
-      <int Value="31" Name="FirstVisibleLine"/>
-      <int Value="55" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/memory/pagecache_macros.c" Name="FileName"/>
-      <int Value="93" Name="FirstVisibleLine"/>
-      <int Value="130" Name="CurrentLine"/>
+      <int Value="39" Name="FirstVisibleLine"/>
+      <int Value="79" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/memory/pagecache.h" Name="FileName"/>
-      <int Value="93" Name="FirstVisibleLine"/>
-      <int Value="124" Name="CurrentLine"/>
+      <int Value="137" Name="FirstVisibleLine"/>
+      <int Value="138" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/ds/inmem/blockarray.h" Name="FileName"/>
+      <int Value="180" Name="FirstVisibleLine"/>
+      <int Value="208" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/blockarray.c" Name="FileName"/>
+      <int Value="814" Name="FirstVisibleLine"/>
+      <int Value="842" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/ds/inmem/slist.h" Name="FileName"/>
+      <int Value="364" Name="FirstVisibleLine"/>
+      <int Value="377" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>
@@ -44,7 +56,7 @@
     <long Value="1" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
-      <int Value="245" Name="lineno"/>
+      <int Value="243" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>
