@@ -35,6 +35,7 @@
 #ifndef CKERN_MEMORY_PAGECACHEIMPL_HEADER
 #define CKERN_MEMORY_PAGECACHEIMPL_HEADER
 
+#include "C-kern/api/ds/inmem/blockarray.h"
 #include "C-kern/api/memory/pagecache.h"
 
 // forward
@@ -70,6 +71,10 @@ int unittest_memory_pagecacheimpl(void) ;
  *       Blocks with pages with short lifetime can be reclaimed faster.
  */
 struct pagecache_impl_t {
+   /* variable: blockarray
+    * Array of <pagecache_block_t>. This array serves as hash map which maps
+    * any page address to the description of the memory block the page is contained. */
+   blockarray_t            blockarray ;
    /* variable: blocklist
     * A list of <pagecache_block_t>.
     * This list contains all allocated blocks and serves to free all allocated blocks.
@@ -119,7 +124,7 @@ int freethread_pagecacheimpl(pagecache_t * pgcache) ;
 
 /* define: pagecache_impl_INIT_FREEABLE
  * Static initializer. */
-#define pagecache_impl_INIT_FREEABLE      { { 0 }, { { 0 } }, { 0 }, 0, 0 }
+#define pagecache_impl_INIT_FREEABLE      { blockarray_INIT_FREEABLE, { 0 }, { { 0 } }, { 0 }, 0, 0 }
 
 /* function: init_pagecacheimpl
  * Preallocates at least 1MB of memory and initializes pgcache. */
@@ -182,9 +187,9 @@ int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * mem
 
 // group: cache
 
-/* function: releasecached_pagecacheimpl
+/* function: emptycache_pagecacheimpl
  * Releases all unused memory blocks back to the operating system. */
-int releasecached_pagecacheimpl(pagecache_impl_t * pgcache) ;
+int emptycache_pagecacheimpl(pagecache_impl_t * pgcache) ;
 
 
 #endif

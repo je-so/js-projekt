@@ -100,6 +100,42 @@ struct pagecache_t {
 #define pagecache_INIT(object, iimpl)  \
          { (object), (iimpl) }
 
+// group: query
+
+/* function: isobject_pagecache
+ * Returns true if member <pagecache_t.object> of pgcache is not null. */
+bool isobject_pagecache(const pagecache_t * pgcache) ;
+
+// group: call
+
+/* function: allocpage_pagecache
+ * Calls pgcache->iimpl->allocpage with pgcache->object as first parameter. See <pagecache_it.allocpage>. */
+int allocpage_pagecache(const pagecache_t pgcache, pagesize_e pgsize, /*out*/struct memblock_t * page) ;
+
+/* function: releasepage_pagecache
+ * Calls pgcache->iimpl->releasepage with pgcache->object as first parameter. See <pagecache_it.releasepage>. */
+int releasepage_pagecache(const pagecache_t pgcache, struct memblock_t * page) ;
+
+/* function: sizeallocated_pagecache
+ * Calls pgcache->iimpl->sizeallocated with pgcache->object as first parameter. See <pagecache_it.sizeallocated>. */
+size_t sizeallocated_pagecache(const pagecache_t pgcache) ;
+
+/* function: allocstatic_pagecache
+ * Calls pgcache->iimpl->allocstatic with pgcache->object as first parameter. See <pagecache_it.allocstatic>. */
+int allocstatic_pagecache(const pagecache_t pgcache, size_t bytesize, /*out*/struct memblock_t * memblock) ;
+
+/* function: freestatic_pagecache
+ * Calls pgcache->iimpl->freestatic with pgcache->object as first parameter. See <pagecache_it.freestatic>. */
+int freestatic_pagecache(const pagecache_t pgcache, struct memblock_t * memblock) ;
+
+/* function: sizestatic_pagecache
+ * Calls pgcache->iimpl->sizestatic with pgcache->object as first parameter. See <pagecache_it.sizestatic>. */
+size_t sizestatic_pagecache(const pagecache_t pgcache) ;
+
+/* function: emptycache_pagecache
+ * Calls pgcache->iimpl->emptycache with pgcache->object as first parameter. See <pagecache_it.emptycache>. */
+int emptycache_pagecache(const pagecache_t pgcache) ;
+
 
 /* struct: pagecache_it
  * Interface which allows to allocate and relase pages of memory. */
@@ -134,9 +170,9 @@ struct pagecache_it {
    /* function: sizestatic
     * Size of memory allocated with <allocstatic>. */
    size_t (*sizestatic)    (const pagecache_t * pgcache) ;
-   /* function: releasecached
+   /* function: emptycache
     * Releases all unused memory blocks back to the operating system. */
-   int    (*releasecached) (pagecache_t * pgcache) ;
+   int    (*emptycache) (pagecache_t * pgcache) ;
 } ;
 
 // group: lifetime
@@ -156,13 +192,13 @@ struct pagecache_it {
  * allocstatic_f   - Function pointer to allocate static blocks of memory. See <pagecache_it.allocstatic>.
  * freestatic_f    - Function pointer to free static blocks of memory. See <pagecache_it.freestatic>.
  * sizestatic_f    - Function pointer to query size of static allocated memory. See <pagecache_it.sizestatic>.
- * releasecached_f - Function pointer to return unused memory blocks back to the OS. See <pagecache_it.releasecached>. */
+ * emptycache_f    - Function pointer to return unused memory blocks back to the OS. See <pagecache_it.emptycache>. */
 #define pagecache_it_INIT( allocpage_f, releasepage_f, sizeallocated_f,    \
                            allocstatic_f, sizestatic_f, freestatic_f,      \
-                           releasecached_f)                                \
+                           emptycache_f)                                   \
          {  (allocpage_f), (releasepage_f), (sizeallocated_f),             \
             (allocstatic_f), (sizestatic_f), (freestatic_f),               \
-            (releasecached_f)                                              \
+            (emptycache_f)                                                 \
          }
 
 // group: query
@@ -201,6 +237,50 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
 
 
 // section: inline implementation
+
+// group: pagecache_t
+
+/* define: allocpage_pagecache
+ * Implements <pagecache_t.allocpage_pagecache>. */
+#define allocpage_pagecache(pgcache, pgsize, page) \
+         ((pgcache).iimpl->allocpage((pgcache).object, (pgsize), (page)))
+
+/* define: allocstatic_pagecache
+ * Implements <pagecache_t.allocstatic_pagecache>. */
+#define allocstatic_pagecache(pgcache, bytesize, memblock)  \
+         ((pgcache).iimpl->allocstatic((pgcache).object, (bytesize), (memblock)))
+
+/* define: freestatic_pagecache
+ * Implements <pagecache_t.freestatic_pagecache>. */
+#define freestatic_pagecache(pgcache, memblock) \
+         ((pgcache).iimpl->freestatic((pgcache).object, (memblock)))
+
+/* define: isobject_pagecache
+ * Implements <pagecache_t.isobject_pagecache>. */
+#define isobject_pagecache(pgcache) \
+         (0 != (pgcache)->object)
+
+/* define: emptycache_pagecache
+ * Implements <pagecache_t.emptycache_pagecache>. */
+#define emptycache_pagecache(pgcache)  \
+         ((pgcache).iimpl->emptycache((pgcache).object))
+
+/* define: releasepage_pagecache
+ * Implements <pagecache_t.releasepage_pagecache>. */
+#define releasepage_pagecache(pgcache, page) \
+         ((pgcache).iimpl->releasepage((pgcache).object, (page)))
+
+/* define: sizeallocated_pagecache
+ * Implements <pagecache_t.sizeallocated_pagecache>. */
+#define sizeallocated_pagecache(pgcache)  \
+         ((pgcache).iimpl->sizeallocated((pgcache).object))
+
+/* define: sizestatic_pagecache
+ * Implements <pagecache_t.sizestatic_pagecache>. */
+#define sizestatic_pagecache(pgcache)  \
+         ((pgcache).iimpl->sizestatic((pgcache).object))
+
+// group: pagecache_it
 
 /* define: genericcast_pagecacheit
  * Implements <pagecache_it.genericcast_pagecacheit>. */
@@ -241,7 +321,7 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
             == sizeof((pgcacheif)->sizestatic(              \
                         (const pagecache_t*)0))             \
          && sizeof(int)                                     \
-            == sizeof((pgcacheif)->releasecached(           \
+            == sizeof((pgcacheif)->emptycache(              \
                         (pagecache_t*)0)),                  \
          "ensure same structure") ;                         \
       if (0) {                                              \
@@ -262,7 +342,7 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
                (struct memblock_t *)0) ;                    \
          _err2 += (pgcacheif)->sizestatic(                  \
                         (const pagecache_t*)0) ;            \
-         _err += (pgcacheif)->releasecached(                \
+         _err += (pgcacheif)->emptycache(                   \
                         (pagecache_t*)0) ;                  \
          _err2 += (size_t)_err ;                            \
          (void) _err2 ;                                     \
@@ -281,7 +361,7 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
       int    (*allocstatic)   (pagecache_t * pgcache, size_t bytesize, /*out*/struct memblock_t * memblock) ;  \
       int    (*freestatic)    (pagecache_t * pgcache, struct memblock_t * memblock) ;                          \
       size_t (*sizestatic)    (const pagecache_t * pgcache) ;                                                  \
-      int    (*releasecached) (pagecache_t * pgcache) ;                                                        \
+      int    (*emptycache) (pagecache_t * pgcache) ;                                                        \
    } ;
 
 /* define: pagesizeinbytes_pagecacheit

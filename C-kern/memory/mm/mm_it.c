@@ -36,6 +36,24 @@
 
 #ifdef KONFIG_UNITTEST
 
+static int test_initmm(void)
+{
+   mm_t mman = mm_INIT_FREEABLE ;
+
+   // TEST mm_INIT_FREEABLE
+   TEST(0 == mman.object) ;
+   TEST(0 == mman.iimpl) ;
+
+   // TEST mm_INIT
+   mman = (mm_t) mm_INIT((mm_t*)2, (mm_it*)3) ;
+   TEST(2 == (uintptr_t)mman.object) ;
+   TEST(3 == (uintptr_t)mman.iimpl) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 static int mresize_dummy(struct mm_t * mman, size_t newsize, struct memblock_t * memblock)
 {
    (void) mman ;
@@ -132,8 +150,9 @@ int unittest_memory_mm_mmit()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())          goto ONABORT ;
-   if (test_generic())           goto ONABORT ;
+   if (test_initmm())      goto ONABORT ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_generic())     goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

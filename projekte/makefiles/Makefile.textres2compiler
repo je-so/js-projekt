@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Apr.21  17:09:21
+GenerationDate  := 2013.Apr.27  12:49:20
 GeneratedBy     := je-so
 
 ## Debug
@@ -83,6 +83,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
@@ -110,6 +111,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
@@ -158,6 +160,9 @@ $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_i
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
@@ -233,6 +238,9 @@ $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c

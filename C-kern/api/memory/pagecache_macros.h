@@ -36,25 +36,25 @@
  * Allocates a single memory page of size pgsize (see <pagesize_e>) and returns it in page.
  * See <pagecache_it.allocpage> for a description. */
 #define ALLOC_PAGECACHE(pgsize, page)  \
-         (pagecache_maincontext().iimpl->allocpage(pagecache_maincontext().object, (pgsize), (page)))
+         (allocpage_pagecache(pagecache_maincontext(), (pgsize), (page)))
 
 /* define: RELEASE_PAGECACHE
  * Releases previously allocated memory page.
  * See <pagecache_it.releasepage> for a description. */
 #define RELEASE_PAGECACHE(page)  \
-         (pagecache_maincontext().iimpl->releasepage(pagecache_maincontext().object, (page)))
+         (releasepage_pagecache(pagecache_maincontext(), (page)))
 
 /* define: ALLOCSTATIC_PAGECACHE
  * Allocates static block of memory and returns it in memblock.
  * See <pagecache_it.allocstatic> for a description. */
 #define ALLOCSTATIC_PAGECACHE(bytesize, memblock)  \
-         (pagecache_maincontext().iimpl->allocstatic(pagecache_maincontext().object, (bytesize), (memblock)))
+         (allocstatic_pagecache(pagecache_maincontext(), (bytesize), (memblock)))
 
 /* define: FREESTATIC_PAGECACHE
  * Frees static block of memory and clears memblock.
  * See <pagecache_it.freestatic> for a description. */
 #define FREESTATIC_PAGECACHE(memblock)  \
-         (pagecache_maincontext().iimpl->freestatic(pagecache_maincontext().object, (memblock)))
+         (freestatic_pagecache(pagecache_maincontext(), (memblock)))
 
 // group: query
 
@@ -62,21 +62,21 @@
  * Returns sum of size of all allocated pages.
  * See <pagecache_it.sizeallocated> for a description. */
 #define SIZEALLOCATED_PAGECACHE()  \
-         (pagecache_maincontext().iimpl->sizeallocated(pagecache_maincontext().object))
+         (sizeallocated_pagecache(pagecache_maincontext()))
 
 /* define: SIZESTATIC_PAGECACHE
  * Returns size of static allocated memory.
  * See <pagecache_it.sizestatic> for a description. */
 #define SIZESTATIC_PAGECACHE()  \
-         (pagecache_maincontext().iimpl->sizestatic(pagecache_maincontext().object))
+         (sizestatic_pagecache(pagecache_maincontext()))
 
 // group: cache
 
-/* define: RELEASECACHED_PAGECACHE
+/* define: EMPTYCACHE_PAGECACHE
  * Returns unused memory blocks back to OS.
- * See <pagecache_it.releasecached> for a description. */
-#define RELEASECACHED_PAGECACHE()  \
-         (pagecache_maincontext().iimpl->releasecached(pagecache_maincontext().object))
+ * See <pagecache_it.emptycache> for a description. */
+#define EMPTYCACHE_PAGECACHE()  \
+         (emptycache_pagecache(pagecache_maincontext()))
 
 // group: test
 

@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Apr.21  17:54:06
+GenerationDate  := 2013.Apr.27  12:49:20
 GeneratedBy     := je-so
 
 ## Debug

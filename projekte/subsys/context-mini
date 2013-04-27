@@ -6,6 +6,7 @@ Src += C-kern/context/threadcontext.c
 # default services
 Src += C-kern/cache/objectcache_impl.c
 Src += C-kern/cache/valuecache.c
+Src += C-kern/ds/inmem/blockarray.c
 Src += C-kern/ds/inmem/dlist.c
 Src += C-kern/memory/pagecache_impl.c
 Src += C-kern/memory/mm/mmtransient.c

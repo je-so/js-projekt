@@ -78,6 +78,8 @@ uint32_t sys_pagesize_vm()
 }
 
 
+// section: vm_region_t
+
 int compare_vmregion(const vm_region_t * left, const vm_region_t * right)
 {
 #define RETURN_ON_UNEQUAL(name)  \
@@ -92,6 +94,10 @@ int compare_vmregion(const vm_region_t * left, const vm_region_t * right)
    return 0 ;
 }
 
+
+// sectin: vm_mappedregions_t
+
+// group: helper
 
 static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffer_maxsize], size_t buffer_offset, /*out*/size_t * buffer_size, /*out*/size_t * line_end)
 {
@@ -127,6 +133,8 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
 ONABORT:
    return err ;
 }
+
+// group: lifetime
 
 int free_vmmappedregions(vm_mappedregions_t * mappedregions)
 {
@@ -273,6 +281,8 @@ ONABORT:
    return err ;
 }
 
+// group: query
+
 int compare_vmmappedregions(const vm_mappedregions_t * left, const vm_mappedregions_t * right)
 {
    if (left->total_count != right->total_count) {
@@ -294,7 +304,7 @@ int compare_vmmappedregions(const vm_mappedregions_t * left, const vm_mappedregi
    return 0 ;
 }
 
-bool iscontained_vmmappedregions(vm_mappedregions_t * mappedregions, const vmpage_t * mblock, accessmode_e protection)
+bool ismapped_vmmappedregions(vm_mappedregions_t * mappedregions, const vmpage_t * mblock, accessmode_e protection)
 {
    vm_mappedregions_t   iterator    = *mappedregions ;
    void                 * startaddr = (void*) mblock->addr ;
@@ -303,22 +313,46 @@ bool iscontained_vmmappedregions(vm_mappedregions_t * mappedregions, const vmpag
    gofirst_vmmappedregions(&iterator) ;
 
    for (const vm_region_t * vmregion; (vmregion = next_vmmappedregions(&iterator));) {
-      if (  vmregion->protection == protection
-         && startaddr < vmregion->endaddr
-         && endaddr   > vmregion->addr) {
+      if (  startaddr  < vmregion->endaddr
+            && endaddr > vmregion->addr) {
+         if (vmregion->protection != protection) {
+            return false ;
+         }
          if (vmregion->addr <= startaddr) {
             if (endaddr <= vmregion->endaddr) {
                return true ;
             }
+            // support simple splitting (this occurs after split block, shrink lower half and expand lower half)
             startaddr = vmregion->endaddr ;
-         } else if (endaddr <= vmregion->endaddr) {
-            endaddr = vmregion->addr ;
+         } else {
+            // iterator returns elements in ascending order
+            return false ;
          }
       }
    }
 
    return false ;
 }
+
+bool isunmapped_vmmappedregions(vm_mappedregions_t * mappedregions, const vmpage_t * mblock)
+{
+   vm_mappedregions_t   iterator    = *mappedregions ;
+   void                 * startaddr = (void*) mblock->addr ;
+   void                 * endaddr   = (void*) (mblock->addr + mblock->size) ;
+
+   gofirst_vmmappedregions(&iterator) ;
+
+   for (const vm_region_t * vmregion; (vmregion = next_vmmappedregions(&iterator));) {
+      if (  startaddr < vmregion->endaddr
+            && endaddr > vmregion->addr) {
+         return false ;
+      }
+   }
+
+   return true ;
+}
+
+// group: iterate
 
 void gofirst_vmmappedregions(vm_mappedregions_t * iterator)
 {
@@ -344,14 +378,23 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator)
    return iterator->element_iterator ++ ;
 }
 
+
+// section: vmpage_t
+
+// group: helper
+
+/* define: SET_PROT
+ * Converts <accessmode_e> into POSIX representation.
+ * The parameter prot is set to the POSIX representation
+ * of the value access_mode which is of type <accessmode_e>. */
 #define SET_PROT(prot, access_mode) \
    static_assert(0 == accessmode_NONE, "") ;    \
    static_assert(0 == PROT_NONE, "") ;          \
    if (     accessmode_READ  == PROT_READ       \
          && accessmode_WRITE == PROT_WRITE      \
          && accessmode_EXEC  == PROT_EXEC) {    \
-      prot  = access_mode ;                     \
-      prot &= (accessmode_RDWR|accessmode_EXEC);\
+      prot = access_mode                        \
+           & (accessmode_RDWR|accessmode_EXEC); \
    } else {                                     \
       if (accessmode_READ & access_mode) {      \
          prot = PROT_READ ;                     \
@@ -366,35 +409,75 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator)
       }                                         \
    }
 
+// group: lifetime
+
 int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_pages, accessmode_e access_mode)
 {
    int    err ;
    int    prot ;
-   size_t pagesize        = pagesize_vm() ;
-   size_t length_in_bytes = pagesize * size_in_pages ;
+   size_t size_in_bytes = size_in_pages << log2pagesize_vm() ;
 
-   if (length_in_bytes / pagesize != size_in_pages) {
-      err = EINVAL ;
-      goto ONABORT ;
-   }
+   VALIDATE_INPARAM_TEST(0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)), ONABORT,) ;
+   VALIDATE_INPARAM_TEST(size_in_pages > 0, ONABORT,) ;
+   VALIDATE_INPARAM_TEST((SIZE_MAX >> log2pagesize_vm()) > size_in_pages, ONABORT,) ;
 
    SET_PROT(prot, access_mode)
 
-#define shared_flags       ((access_mode & accessmode_SHARED) ? MAP_SHARED|MAP_ANONYMOUS : MAP_PRIVATE|MAP_ANONYMOUS)
-   void * mapped_pages = mmap(0, length_in_bytes, prot, shared_flags, -1, 0) ;
-#undef shared_flags
+   const int shared_flags = (access_mode & accessmode_SHARED ? MAP_SHARED|MAP_ANONYMOUS : MAP_PRIVATE|MAP_ANONYMOUS) ;
+   void *    mapped_pages = mmap(0, size_in_bytes, prot, shared_flags, -1, 0) ;
+
    if (mapped_pages == MAP_FAILED) {
       err = errno ;
       TRACESYSERR_LOG("mmap", err) ;
-      PRINTSIZE_LOG(length_in_bytes) ;
+      PRINTSIZE_LOG(size_in_bytes) ;
       goto ONABORT ;
    }
 
    vmpage->addr = mapped_pages ;
-   vmpage->size = length_in_bytes ;
+   vmpage->size = size_in_bytes ;
 
    return 0 ;
 ONABORT:
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+int initaligned_vmpage(/*out*/vmpage_t * vmpage, size_t powerof2_size_in_bytes)
+{
+   int err ;
+
+   *vmpage = (vmpage_t) vmpage_INIT_FREEABLE ;
+
+   VALIDATE_INPARAM_TEST(powerof2_size_in_bytes >= pagesize_vm(), ONABORT,) ;
+   VALIDATE_INPARAM_TEST(ispowerof2_int(powerof2_size_in_bytes), ONABORT,) ;
+
+   err = init_vmpage(vmpage, powerof2_size_in_bytes >> log2pagesize_vm()) ;
+   if (err) goto ONABORT ;
+
+   // align vmpage to boundary of powerof2_size_in_bytes
+
+   if (0 != ((uintptr_t)vmpage->addr % powerof2_size_in_bytes)) {
+      err = movexpand_vmpage(vmpage, powerof2_size_in_bytes >> log2pagesize_vm()) ;
+      if (err) goto ONABORT ;
+
+      uintptr_t offset = (uintptr_t)vmpage->addr % powerof2_size_in_bytes ;
+      size_t    hdsize = offset ? powerof2_size_in_bytes - offset : 0 ;
+
+      vmpage_t header  = vmpage_INIT(hdsize, vmpage->addr) ;
+      vmpage->addr += hdsize ;
+      vmpage->size -= hdsize ;
+      err = free_vmpage(&header) ;
+      if (err) goto ONABORT ;
+
+      vmpage_t trailer = vmpage_INIT(vmpage->size - powerof2_size_in_bytes, vmpage->addr + powerof2_size_in_bytes) ;
+      vmpage->size  = powerof2_size_in_bytes ;
+      err = free_vmpage(&trailer) ;
+      if (err) goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   free_vmpage(vmpage) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -422,6 +505,8 @@ ONABORT:
    return err ;
 }
 
+// group: change
+
 int protect_vmpage(vmpage_t * vmpage, const accessmode_e access_mode)
 {
    int err ;
@@ -448,13 +533,12 @@ ONABORT:
 int tryexpand_vmpage(vmpage_t * vmpage, size_t increment_in_pages)
 {
    int err ;
-   size_t    pagesize         = pagesize_vm() ;
-   size_t    expand_in_bytes  = pagesize * increment_in_pages ;
+   size_t    expand_in_bytes  = increment_in_pages << log2pagesize_vm() ;
    size_t    newsize_in_bytes = vmpage->size + expand_in_bytes ;
    uint8_t * new_addr ;
 
-   if (  increment_in_pages != (expand_in_bytes / pagesize)
-         || newsize_in_bytes   <  expand_in_bytes) {
+   if (  increment_in_pages != (expand_in_bytes >> log2pagesize_vm())
+         || newsize_in_bytes <  expand_in_bytes) {
       err = EINVAL ;
       goto ONABORT ;
    }
@@ -477,13 +561,12 @@ ONABORT:
 int movexpand_vmpage(vmpage_t * vmpage, size_t increment_in_pages)
 {
    int err ;
-   size_t    pagesize         = pagesize_vm() ;
-   size_t    expand_in_bytes  = pagesize * increment_in_pages ;
+   size_t    expand_in_bytes  = increment_in_pages << log2pagesize_vm() ;
    size_t    newsize_in_bytes = vmpage->size + expand_in_bytes ;
    uint8_t * new_addr ;
 
-   if (  increment_in_pages  != (expand_in_bytes / pagesize)
-         || newsize_in_bytes <   expand_in_bytes) {
+   if (  increment_in_pages != (expand_in_bytes >> log2pagesize_vm())
+         || newsize_in_bytes <  expand_in_bytes) {
       err = ENOMEM ;
       goto ONABORT ;
    }
@@ -507,17 +590,16 @@ ONABORT:
 int shrink_vmpage(vmpage_t * vmpage, size_t decrement_in_pages)
 {
    int err ;
-   size_t    pagesize         = pagesize_vm() ;
-   size_t    shrink_in_bytes  = pagesize * decrement_in_pages ;
-   size_t    newsize_in_bytes = vmpage->size - shrink_in_bytes ;
 
-   if (  decrement_in_pages != (shrink_in_bytes / pagesize)
-         || vmpage->size    <=  shrink_in_bytes) {
+   if ((vmpage->size >> log2pagesize_vm()) <= decrement_in_pages) {
       err = EINVAL ;
       goto ONABORT ;
    }
 
-   if (shrink_in_bytes) {
+   if (decrement_in_pages) {
+      size_t shrink_in_bytes  = (decrement_in_pages << log2pagesize_vm()) ;
+      size_t newsize_in_bytes = vmpage->size - shrink_in_bytes ;
+
       err = munmap(vmpage->addr + newsize_in_bytes, shrink_in_bytes) ;
       if (err) {
          err = errno ;
@@ -526,9 +608,9 @@ int shrink_vmpage(vmpage_t * vmpage, size_t decrement_in_pages)
          PRINTSIZE_LOG(shrink_in_bytes) ;
          goto ONABORT ;
       }
-   }
 
-   vmpage->size = newsize_in_bytes ;
+      vmpage->size = newsize_in_bytes ;
+   }
 
    return 0 ;
 ONABORT:
@@ -539,98 +621,114 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-/* function: iscontained_in_mapping
- * Returns:
- * true  - mapped_block is contained in <vm_mappedregions_t> with protection (accessmode_RDWR|accessmode_PRIVATE).
- * false - *mapped_block* is either not contained or has the wrong accessmode.
- * */
-static bool iscontained_in_mapping(const vmpage_t * mapped_block)
+static int test_functions(void)
 {
-   vm_mappedregions_t mappedregions = vm_mappedregions_INIT_FREEABLE ;
+   // TEST sys_pagesize_vm
+   TEST(sys_pagesize_vm() >= 256) ;
+   TEST(ispowerof2_int(sys_pagesize_vm())) ;
 
-   if (init_vmmappedregions(&mappedregions)) {
-      return false ;
-   }
+   // TEST pagesize_vm
+   TEST(sys_pagesize_vm() == pagesize_vm()) ;
 
-   bool ismapped = iscontained_vmmappedregions(&mappedregions, mapped_block, (accessmode_RDWR | accessmode_PRIVATE)) ;
-
-   if (free_vmmappedregions(&mappedregions)) {
-      return false ;
-   }
-
-   return ismapped ;
-}
-
-static int query_region(/*out*/vm_region_t * region, const vmpage_t * vmpage)
-{
-   int err ;
-   vm_mappedregions_t mappedregions = vm_mappedregions_INIT_FREEABLE ;
-   void              * mapped_start = vmpage->addr ;
-   void              * mapped_end   = (void*) (vmpage->size + vmpage->addr) ;
-
-   err = init_vmmappedregions(&mappedregions) ;
-   if (err) goto ONABORT ;
-
-   err = EINVAL ;
-
-   for (const vm_region_t * next; (next = next_vmmappedregions(&mappedregions));) {
-      if (  mapped_start  >= next->addr
-            && mapped_end <= next->endaddr) {
-         // vmpage is contained in region
-         *region = *next ;
-         err = 0 ;
-         break ;
-      }
-   }
-
-ONABORT:
-   free_vmmappedregions(&mappedregions) ;
-   return err ;
-}
-
-static int compare_protection(const vmpage_t * vmpage, accessmode_e prot)
-{
-   int err ;
-   vm_region_t region ;
-
-   err = query_region(&region, vmpage) ;
-   if (err) goto ONABORT ;
-
-   if (region.protection != (prot | accessmode_PRIVATE)) {
-      err = EINVAL ;
-      goto ONABORT ;
-   }
+   // TEST log2pagesize_vm
+   TEST(log2pagesize_vm() != 0) ;
+   TEST(sys_pagesize_vm() == 1u << log2pagesize_vm()) ;
 
    return 0 ;
 ONABORT:
-   return err ;
+   return EINVAL ;
+}
+
+/* function: is_page_mapped
+ *
+ * Returns:
+ * true  - vmpage is contained in <vm_mappedregions_t> with protection prot.
+ * false - vmpage is either not contained or has the wrong accessmode.
+ * */
+static int is_page_mapped(const vmpage_t * vmpage, accessmode_e prot)
+{
+   int err ;
+   vm_mappedregions_t mappedregions ;
+
+   err = init_vmmappedregions(&mappedregions) ;
+   if (err) return false ;
+
+   bool is_mapped = ismapped_vmmappedregions(&mappedregions, vmpage, prot) ;
+
+   (void) free_vmmappedregions(&mappedregions) ;
+
+   return is_mapped ;
+}
+
+/* function: is_page_mapped
+ *
+ * Returns:
+ * true  - vmpage does not overlap any memory block in <vm_mappedregions_t> .
+ * false - vmpage overlaps with another mapped memory block.
+ * */
+static int is_page_unmapped(const vmpage_t * vmpage)
+{
+   int err ;
+   vm_mappedregions_t mappedregions ;
+
+   err = init_vmmappedregions(&mappedregions) ;
+   if (err) return false ;
+
+   bool is_unmapped = isunmapped_vmmappedregions(&mappedregions, vmpage) ;
+
+   (void) free_vmmappedregions(&mappedregions) ;
+
+   return is_unmapped ;
 }
 
 static int test_mappedregions(void)
 {
-   int err = 1 ;
-   vm_mappedregions_t mappedregions  = vm_mappedregions_INIT_FREEABLE ;
+   vm_mappedregions_t mappedregions = vm_mappedregions_INIT_FREEABLE ;
 
-   // TEST query empty buffer
+   // TEST vm_mappedregions_INIT_FREEABLE
+   TEST(0 == mappedregions.total_count) ;
+   TEST(0 == mappedregions.element_count) ;
+   TEST(0 == mappedregions.element_iterator) ;
+   TEST(0 == mappedregions.array_iterator) ;
+   TEST(0 == mappedregions.first_array) ;
+
+   // TEST next_vmmappedregions: empty buffer
    TEST(0 == next_vmmappedregions(&mappedregions)) ;
-   TEST(0 == size_vmmappedregions(&mappedregions)) ;
-   gofirst_vmmappedregions(&mappedregions) ;
 
-   // TEST init, double free
+   // TEST size_vmmappedregions: empty buffer
+   TEST(0 == size_vmmappedregions(&mappedregions)) ;
+
+   // TEST gofirst_vmmappedregions
+   gofirst_vmmappedregions(&mappedregions) ;
+   TEST(0 == mappedregions.total_count) ;
+   TEST(0 == mappedregions.element_count) ;
+   TEST(0 == mappedregions.element_iterator) ;
+   TEST(0 == mappedregions.array_iterator) ;
+   TEST(0 == mappedregions.first_array) ;
+
+   // TEST init_vmmappedregions
    TEST(0 == init_vmmappedregions(&mappedregions)) ;
    TEST(16 == mappedregions.element_count) ;          // see vm_regionsarray_t.elements
    TEST(mappedregions.total_count >= mappedregions.element_count) ;
    TEST(mappedregions.first_array) ;
    TEST(mappedregions.first_array->next == mappedregions.array_iterator) ;
    TEST(mappedregions.element_iterator == &mappedregions.first_array->elements[0]) ;
-   TEST(0 == free_vmmappedregions(&mappedregions)) ;
-   TEST(!mappedregions.first_array && !mappedregions.element_iterator && !mappedregions.element_count) ;
-   TEST(!mappedregions.array_iterator && !mappedregions.total_count) ;
-   TEST(0 == free_vmmappedregions(&mappedregions)) ;
-   TEST(!mappedregions.first_array && !mappedregions.element_iterator && !mappedregions.element_count) ;
-   TEST(!mappedregions.array_iterator && !mappedregions.total_count) ;
 
-   // TEST iterator
+   // TEST free_vmmappedregions
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == mappedregions.total_count) ;
+   TEST(0 == mappedregions.element_count) ;
+   TEST(0 == mappedregions.element_iterator) ;
+   TEST(0 == mappedregions.array_iterator) ;
+   TEST(0 == mappedregions.first_array) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == mappedregions.total_count) ;
+   TEST(0 == mappedregions.element_count) ;
+   TEST(0 == mappedregions.element_iterator) ;
+   TEST(0 == mappedregions.array_iterator) ;
+   TEST(0 == mappedregions.first_array) ;
+
+   // TEST gofirst_vmmappedregions, next_vmmappedregions: simulation
    vm_regionsarray_t array[3] = {
       { .size = 1, .next = &array[1] },
       { .size = 2, .next = &array[2] },
@@ -659,209 +757,344 @@ static int test_mappedregions(void)
       TEST(0 == next_vmmappedregions(&mappedregions2)) ;
    }
 
-   err = 0 ;
+   // TEST compare_vmmappedregions: compare not same
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 != compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+
+   // TEST gofirst_vmmappedregions, next_vmmappedregions: current mapping of process is in ascending order !
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   gofirst_vmmappedregions(&mappedregions) ;
+   const vm_region_t * first = next_vmmappedregions(&mappedregions) ;
+   for (int do_twice = 0; do_twice < 2; ++do_twice) {
+      const vm_region_t * next ;
+      gofirst_vmmappedregions(&mappedregions) ;
+      TEST(first == next_vmmappedregions(&mappedregions)) ;
+      for (void * addr = first->endaddr; 0 != (next = next_vmmappedregions(&mappedregions));) {
+         TEST(next->addr >= addr) ;
+         TEST(next->addr <  next->endaddr) ;
+         addr = next->endaddr ;
+      }
+      TEST(0 == next_vmmappedregions(&mappedregions)) ;
+   }
+
+   // TEST compare_vmmappedregions: compare same
+   TEST(0 == init_vmmappedregions(&mappedregions2)) ;
+   TEST(0 == compare_vmmappedregions(&mappedregions, &mappedregions2)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions2)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+
+   // TEST ismapped_vmmappedregions
+   uint8_t * addr = mmap(0, 3*pagesize_vm(), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) ;
+   TEST(addr != 0) ;
+   vmpage_t vmpage = vmpage_INIT(3*pagesize_vm(), addr) ;
+   // protection is checked
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(1 == ismapped_vmmappedregions(&mappedregions, &vmpage, accessmode_RDWR_PRIVATE)) ;
+   TEST(0 == ismapped_vmmappedregions(&mappedregions, &vmpage, accessmode_RDWR_SHARED)) ;
+   TEST(0 == ismapped_vmmappedregions(&mappedregions, &vmpage, accessmode_RDWR)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   // memory address range is checked
+   TEST(0 == munmap(addr, pagesize_vm())) ;
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == ismapped_vmmappedregions(&mappedregions, &vmpage, accessmode_RDWR_PRIVATE)) ;
+   vmpage = (vmpage_t) vmpage_INIT(2*pagesize_vm(), addr + pagesize_vm()) ;
+   TEST(1 == ismapped_vmmappedregions(&mappedregions, &vmpage, accessmode_RDWR_PRIVATE)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == munmap(addr + 2*pagesize_vm(), pagesize_vm())) ;
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == ismapped_vmmappedregions(&mappedregions, &vmpage, accessmode_RDWR_PRIVATE)) ;
+   vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), addr + pagesize_vm()) ;
+   TEST(1 == ismapped_vmmappedregions(&mappedregions, &vmpage, accessmode_RDWR_PRIVATE)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == munmap(addr + pagesize_vm(), pagesize_vm())) ;
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == ismapped_vmmappedregions(&mappedregions, &vmpage, accessmode_RDWR_PRIVATE)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+
+   // TEST isunmapped_vmmappedregions
+   addr = mmap(0, 3*pagesize_vm(), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) ;
+   TEST(addr != 0) ;
+   vmpage = (vmpage_t) vmpage_INIT(3*pagesize_vm(), addr) ;
+   // memory address range is checked
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == isunmapped_vmmappedregions(&mappedregions, &vmpage)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == munmap(addr, pagesize_vm())) ;
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == isunmapped_vmmappedregions(&mappedregions, &vmpage)) ;
+   vmpage_t vmpage2 = vmpage_INIT(pagesize_vm(), addr) ;
+   TEST(1 == isunmapped_vmmappedregions(&mappedregions, &vmpage2)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == munmap(addr + 2*pagesize_vm(), pagesize_vm())) ;
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(0 == isunmapped_vmmappedregions(&mappedregions, &vmpage)) ;
+   vmpage2 = (vmpage_t) vmpage_INIT(pagesize_vm(), addr + 2*pagesize_vm()) ;
+   TEST(1 == isunmapped_vmmappedregions(&mappedregions, &vmpage2)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+   TEST(0 == munmap(addr + pagesize_vm(), pagesize_vm())) ;
+   TEST(0 == init_vmmappedregions(&mappedregions)) ;
+   TEST(1 == isunmapped_vmmappedregions(&mappedregions, &vmpage)) ;
+   TEST(0 == free_vmmappedregions(&mappedregions)) ;
+
+   return 0 ;
 ONABORT:
    free_vmmappedregions(&mappedregions) ;
-   return err ;
+   return EINVAL ;
 }
 
 static int test_vmpage(void)
 {
-   vmpage_t mapped_block = vmpage_INIT_FREEABLE ;
-   vmpage_t unmapped_block ;
+   vmpage_t page = vmpage_INIT_FREEABLE ;
+   vmpage_t unpage ; // unmapped page
    size_t   size_in_pages ;
 
    // TEST vmpage_INIT_FREEABLE
-   TEST(0 == mapped_block.addr) ;
-   TEST(0 == mapped_block.size) ;
+   TEST(0 == page.addr) ;
+   TEST(0 == page.size) ;
 
    // TEST vmpage_INIT
-   mapped_block = (vmpage_t) vmpage_INIT(11, (uint8_t*)10) ;
-   TEST(mapped_block.addr == (uint8_t*)10) ;
-   TEST(mapped_block.size == 11) ;
+   page = (vmpage_t) vmpage_INIT(11, (uint8_t*)10) ;
+   TEST(page.addr == (uint8_t*)10) ;
+   TEST(page.size == 11) ;
 
-   // TEST pagesize_vm
-   TEST(pagesize_vm() >= 256) ;
-   TEST(ispowerof2_int(pagesize_vm())) ;
-
-   // TEST isfree_vmpage
-   mapped_block = (vmpage_t) vmpage_INIT_FREEABLE ;
-   TEST(1 == isfree_vmpage(&mapped_block)) ;
-   mapped_block.addr = (uint8_t*)1 ;
-   TEST(1 == isfree_vmpage(&mapped_block)) ;
-   mapped_block.size = 1 ;
-   TEST(0 == isfree_vmpage(&mapped_block)) ;
-   mapped_block.addr = 0 ;
-   TEST(0 == isfree_vmpage(&mapped_block)) ;
-   mapped_block.size = 0 ;
-   TEST(1 == isfree_vmpage(&mapped_block)) ;
+   // TEST isfree_vmpage: checks only size !
+   page = (vmpage_t) vmpage_INIT_FREEABLE ;
+   TEST(1 == isfree_vmpage(&page)) ;
+   page.addr = (uint8_t*)1 ;
+   TEST(1 == isfree_vmpage(&page)) ;
+   page.size = 1 ;
+   TEST(0 == isfree_vmpage(&page)) ;
+   page.addr = 0 ;
+   TEST(0 == isfree_vmpage(&page)) ;
+   page.size = 0 ;
+   TEST(1 == isfree_vmpage(&page)) ;
 
    // TEST genericcast_vmpage
    struct {
       uint8_t *   test_addr ;
       size_t      test_size ;
+      uint8_t *   addr ;
+      size_t      size ;
    } genericpage ;
-   TEST(genericcast_vmpage(&genericpage, test_) == (vmpage_t*)&genericpage) ;
 
-   // TEST map, unmap
-   size_in_pages = 1 ;
-   TEST(0 == init_vmpage(&mapped_block, size_in_pages)) ;
-   TEST(mapped_block.addr && mapped_block.size == size_in_pages * pagesize_vm()) ;
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   unmapped_block = mapped_block ;
-   TEST(0 == free_vmpage(&unmapped_block)) ;
-   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
-   TEST(0 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(genericcast_vmpage(&genericpage, test_) == (vmpage_t*)&genericpage) ;
+   TEST(genericcast_vmpage(&genericpage, )      == (vmpage_t*)&genericpage.addr) ;
+
+
+   // TEST init_vmpage, free_vmpage
+   for (size_in_pages = 1; size_in_pages < 100; ++size_in_pages) {
+      size_t s = size_in_pages * pagesize_vm() ;
+      TEST(0 == init_vmpage(&page, size_in_pages)) ;
+      TEST(0 != page.addr) ;
+      TEST(s == page.size) ;
+      TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+      unpage = page ;
+      TEST(0 == free_vmpage(&unpage)) ;
+      TEST(0 == unpage.addr)
+      TEST(0 == unpage.size) ;
+      TEST(1 == is_page_unmapped(&page)) ;
+      TEST(0 == free_vmpage(&unpage)) ;
+      TEST(0 == unpage.addr)
+      TEST(0 == unpage.size) ;
+   }
+
+   // TEST init2_vmpage, free_vmpage
+   accessmode_e prot[] = { accessmode_RDWR_SHARED, accessmode_RDWR_PRIVATE, accessmode_WRITE|accessmode_PRIVATE, accessmode_READ|accessmode_SHARED, accessmode_READ|accessmode_EXEC|accessmode_PRIVATE, accessmode_RDWR_PRIVATE|accessmode_EXEC, accessmode_NONE|accessmode_PRIVATE } ;
+   for (size_in_pages = 1; size_in_pages < 100; ++size_in_pages) {
+      accessmode_e mode = prot[size_in_pages % lengthof(prot)] ;
+      size_t s = size_in_pages * pagesize_vm() ;
+      TEST(0 == init2_vmpage(&page, size_in_pages, mode)) ;
+      TEST(0 != page.addr) ;
+      TEST(s == page.size) ;
+      TEST(1 == is_page_mapped(&page, mode)) ;
+      unpage = page ;
+      TEST(0 == free_vmpage(&unpage)) ;
+      TEST(0 == unpage.addr)
+      TEST(0 == unpage.size) ;
+      TEST(1 == is_page_unmapped(&page)) ;
+   }
+
+   // TEST init_vmpage: EINVAL
+   TEST(EINVAL == init_vmpage(&page, 0)) ;
+   TEST(EINVAL == init_vmpage(&page, SIZE_MAX)) ;
+
+   // TEST init2_vmpage: EINVAL
+   TEST(EINVAL == init2_vmpage(&page, 0, accessmode_RDWR)) ;
+   TEST(EINVAL == init2_vmpage(&page, SIZE_MAX, accessmode_RDWR)) ;
+   TEST(EINVAL == init2_vmpage(&page, 1, accessmode_RDWR|accessmode_NEXTFREE_BITPOS)) ;
+
+   // TEST initaligned_vmpage
+   for (size_t size = pagesize_vm(); size <= 100*1024*1024; size *= 2) {
+      TEST(0 == initaligned_vmpage(&page, size)) ;
+      TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+      TEST(0 != page.addr) ;
+      TEST(0 == ((uintptr_t)page.addr % size))
+      TEST(size == page.size) ;
+      unpage = page ;
+      TEST(0 == free_vmpage(&unpage)) ;
+      TEST(1 == is_page_unmapped(&page)) ;
+   }
+
+   // TEST initaligned_vmpage: EINVAL
+   // too small
+   TEST(EINVAL == initaligned_vmpage(&page, pagesize_vm()/2)) ;
+   TEST(0 == page.addr) ;
+   TEST(0 == page.size) ;
+   // not a power of two
+   TEST(EINVAL == initaligned_vmpage(&page, pagesize_vm()+1)) ;
+   TEST(0 == page.addr) ;
+   TEST(0 == page.size) ;
 
    // TEST map, shrink, expand, unmap in (50 pages) loop
    size_in_pages = 50 ;
-   TEST(0 == init_vmpage(&mapped_block, size_in_pages)) ;
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(0 == init_vmpage(&page, size_in_pages)) ;
+   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
    for (size_t i = 1; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
-      vmpage_t upperhalf = { mapped_block.addr + unmapoffset, mapped_block.size - unmapoffset } ;
-      vmpage_t lowerhalf = mapped_block ;
+      vmpage_t upperhalf = { page.addr + unmapoffset, page.size - unmapoffset } ;
+      vmpage_t lowerhalf = page ;
       TEST(0 == shrink_vmpage(&lowerhalf, size_in_pages-i)) ;
-      TEST(lowerhalf.addr == mapped_block.addr) ;
+      TEST(lowerhalf.addr == page.addr) ;
       TEST(lowerhalf.size == unmapoffset) ;
-      TEST(0 == iscontained_in_mapping(&upperhalf)) ;
-      TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
+      TEST(1 == is_page_unmapped(&upperhalf)) ;
+      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
       TEST(0 == tryexpand_vmpage(&lowerhalf, size_in_pages-i)) ;
-      TEST(lowerhalf.addr == mapped_block.addr) ;
-      TEST(lowerhalf.size == mapped_block.size) ;
+      TEST(lowerhalf.addr == page.addr) ;
+      TEST(lowerhalf.size == page.size) ;
    }
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   unmapped_block = mapped_block ;
-   TEST(0 == free_vmpage(&unmapped_block)) ;
-   TEST(0 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   unpage = page ;
+   TEST(0 == free_vmpage(&unpage)) ;
+   TEST(1 == is_page_unmapped(&page)) ;
 
    // TEST map, movexpand, unmap in (50 pages) loop
    size_in_pages = 50 ;
-   TEST(0 == init_vmpage(&mapped_block, size_in_pages)) ;
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(0 == init_vmpage(&page, size_in_pages)) ;
+   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
    for (size_t i = 1; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
-      vmpage_t upperhalf = { mapped_block.addr + unmapoffset, mapped_block.size - unmapoffset } ;
-      vmpage_t lowerhalf = { mapped_block.addr, unmapoffset } ;
-      unmapped_block = upperhalf ;
-      TEST(0 == free_vmpage(&unmapped_block)) ;
-      TEST(! unmapped_block.addr && ! unmapped_block.size) ;
-      TEST(0 == iscontained_in_mapping(&upperhalf)) ;
-      TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
+      vmpage_t upperhalf = { page.addr + unmapoffset, page.size - unmapoffset } ;
+      vmpage_t lowerhalf = { page.addr, unmapoffset } ;
+      unpage = upperhalf ;
+      TEST(0 == free_vmpage(&unpage)) ;
+      TEST(! unpage.addr && ! unpage.size) ;
+      TEST(1 == is_page_unmapped(&upperhalf)) ;
+      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
       TEST(0 == movexpand_vmpage(&lowerhalf, size_in_pages-i)) ;
-      TEST(mapped_block.addr == lowerhalf.addr) ;
-      TEST(mapped_block.size == lowerhalf.size) ;
+      TEST(page.addr == lowerhalf.addr) ;
+      TEST(page.size == lowerhalf.size) ;
    }
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
    for (size_t i = 2; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
-      vmpage_t upperhalf = { mapped_block.addr + unmapoffset, mapped_block.size - unmapoffset } ;
-      vmpage_t lowerhalf = { mapped_block.addr, unmapoffset } ;
+      vmpage_t upperhalf = { page.addr + unmapoffset, page.size - unmapoffset } ;
+      vmpage_t lowerhalf = { page.addr, unmapoffset } ;
       TEST(0 == shrink_vmpage(&lowerhalf, 1)) ;
-      TEST(1 == iscontained_in_mapping(&upperhalf)) ;
-      TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
-      unmapped_block = (vmpage_t) { mapped_block.addr + unmapoffset - pagesize_vm(), pagesize_vm() } ;
-      TEST(0 == iscontained_in_mapping(&unmapped_block)) ;
+      TEST(1 == is_page_mapped(&upperhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+      unpage = (vmpage_t) { page.addr + unmapoffset - pagesize_vm(), pagesize_vm() } ;
+      TEST(1 == is_page_unmapped(&unpage)) ;
       TEST(0 == movexpand_vmpage(&lowerhalf, 1)) ;
-      TEST(lowerhalf.addr == mapped_block.addr) ;
+      TEST(lowerhalf.addr == page.addr) ;
       TEST(lowerhalf.size == unmapoffset) ;
    }
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   unmapped_block = mapped_block ;
-   TEST(0 == free_vmpage(&unmapped_block)) ;
-   TEST(0 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   unpage = page ;
+   TEST(0 == free_vmpage(&unpage)) ;
+   TEST(1 == is_page_unmapped(&page)) ;
 
-   // TEST movexpand (move)
+   // TEST movexpand_vmpage: (move)
    size_in_pages = 50 ;
    for (size_t i = 2; i < size_in_pages; ++i) {
-      TEST(0 == init_vmpage(&mapped_block, size_in_pages)) ;
-      TEST(1 == iscontained_in_mapping(&mapped_block)) ;
+      TEST(0 == init_vmpage(&page, size_in_pages)) ;
+      TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
       size_t   unmapoffset = i * pagesize_vm() ;
-      vmpage_t upperhalf = { mapped_block.addr + unmapoffset, mapped_block.size - unmapoffset } ;
-      vmpage_t lowerhalf = { mapped_block.addr, unmapoffset  } ;
+      vmpage_t upperhalf = { page.addr + unmapoffset, page.size - unmapoffset } ;
+      vmpage_t lowerhalf = { page.addr, unmapoffset  } ;
       TEST(0 == shrink_vmpage(&lowerhalf, 1)) ;
-      TEST(lowerhalf.addr == mapped_block.addr) ;
+      TEST(lowerhalf.addr == page.addr) ;
       TEST(lowerhalf.size == unmapoffset - pagesize_vm()) ;
-      TEST(1 == iscontained_in_mapping(&upperhalf)) ;
-      TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
-      unmapped_block = (vmpage_t) { mapped_block.addr + unmapoffset - pagesize_vm(), pagesize_vm() } ;
-      TEST(0 == iscontained_in_mapping(&unmapped_block)) ;
+      TEST(1 == is_page_mapped(&upperhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+      unpage = (vmpage_t) { page.addr + unmapoffset - pagesize_vm(), pagesize_vm() } ;
+      TEST(1 == is_page_unmapped(&unpage)) ;
       TEST(0 == movexpand_vmpage(&lowerhalf, 2)) ;
-      TEST(lowerhalf.addr != mapped_block.addr) ;
+      TEST(lowerhalf.addr != page.addr) ;
       TEST(lowerhalf.size == unmapoffset + pagesize_vm()) ;
       TEST(0 == free_vmpage(&lowerhalf)) ;
       TEST(0 == free_vmpage(&upperhalf)) ;
-      TEST(0 == iscontained_in_mapping(&mapped_block)) ;
+      TEST(1 == is_page_unmapped(&page)) ;
    }
 
-   // TEST ENOMEM tryexpand
+   // TEST tryexpand_vmpage: ENOMEM
    size_in_pages = 10 ;
-   TEST(0 == init_vmpage(&mapped_block, size_in_pages)) ;
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(0 == init_vmpage(&page, size_in_pages)) ;
+   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
    {
       size_t   unmapoffset = 7 * pagesize_vm() ;
-      vmpage_t upperhalf = { mapped_block.addr + unmapoffset,  mapped_block.size - unmapoffset } ;
-      vmpage_t lowerhalf = mapped_block ;
+      vmpage_t upperhalf = { page.addr + unmapoffset,  page.size - unmapoffset } ;
+      vmpage_t lowerhalf = page ;
       TEST(0 == shrink_vmpage(&lowerhalf, 3)) ;
       TEST(lowerhalf.size == unmapoffset) ;
-      TEST(lowerhalf.addr == mapped_block.addr) ;
-      TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
-      TEST(0 == iscontained_in_mapping(&upperhalf)) ;
+      TEST(lowerhalf.addr == page.addr) ;
+      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == is_page_unmapped(&upperhalf)) ;
       for (size_t i = 1; i < 7; ++i) {
-         vmpage_t ext_block = { mapped_block.addr, i * pagesize_vm() } ;
+         vmpage_t ext_block = { page.addr, i * pagesize_vm() } ;
          TEST(ENOMEM == tryexpand_vmpage(&ext_block, 3)) ;
-         TEST(ext_block.addr == mapped_block.addr) ;
+         TEST(ext_block.addr == page.addr) ;
          TEST(ext_block.size == i * pagesize_vm()) ;
-         TEST(1 == iscontained_in_mapping(&ext_block)) ;
-         TEST(1 == iscontained_in_mapping(&lowerhalf)) ;
-         TEST(0 == iscontained_in_mapping(&upperhalf)) ;
+         TEST(1 == is_page_mapped(&ext_block, accessmode_RDWR_PRIVATE)) ;
+         TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+         TEST(1 == is_page_unmapped(&upperhalf)) ;
       }
       TEST(0 == tryexpand_vmpage(&lowerhalf, 3)) ;
-      TEST(lowerhalf.size == mapped_block.size) ;
-      TEST(lowerhalf.addr == mapped_block.addr) ;
+      TEST(lowerhalf.size == page.size) ;
+      TEST(lowerhalf.addr == page.addr) ;
    }
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
-   unmapped_block = mapped_block ;
-   TEST(0 == free_vmpage(&unmapped_block)) ;
-   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
-   TEST(0 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   unpage = page ;
+   TEST(0 == free_vmpage(&unpage)) ;
+   TEST(1 == is_page_unmapped(&page)) ;
 
-   // TEST map of already mapped
+   // TEST tryexpand_vmpage: expand of already mapped
    size_in_pages = 3 ;
-   TEST(0 == init_vmpage(&mapped_block, size_in_pages)) ;
-   TEST(1 == iscontained_in_mapping(&mapped_block)) ;
+   TEST(0 == init_vmpage(&page, size_in_pages)) ;
+   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
    for (size_t i = 0; i < size_in_pages; ++i) {
       size_t     lowersize = i * pagesize_vm() ;
-      vmpage_t lowerhalf = { mapped_block.addr, lowersize } ;
+      vmpage_t lowerhalf = { page.addr, lowersize } ;
       TEST(ENOMEM == tryexpand_vmpage(&lowerhalf, 1)) ;
    }
 
-   // TEST unmap of already unmapped (no error)
-   unmapped_block = mapped_block ;
-   TEST(0 == free_vmpage(&unmapped_block)) ;
-   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
-   TEST(0 == iscontained_in_mapping(&mapped_block)) ;
-   unmapped_block = mapped_block ;
-   TEST(0 == free_vmpage(&unmapped_block)) ;
-   TEST(0 == iscontained_in_mapping(&mapped_block)) ;
+   // TEST free_vmpage: unmap of already unmapped (no error)
+   unpage = page ;
+   TEST(0 == free_vmpage(&unpage)) ;
+   TEST(1 == is_page_unmapped(&page)) ;
+   unpage = page ;
+   TEST(0 == free_vmpage(&unpage)) ;
+   TEST(1 == is_page_unmapped(&page)) ;
 
-   // TEST unmap empty block
-   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
-   TEST(0 == free_vmpage(&unmapped_block)) ;
-   TEST(! unmapped_block.addr && ! unmapped_block.size) ;
+   // TEST free_vmpage: unmap empty block
+   TEST(0 == unpage.addr) ;
+   TEST(0 == unpage.size) ;
+   TEST(0 == free_vmpage(&unpage)) ;
+   TEST(0 == unpage.addr) ;
+   TEST(0 == unpage.size) ;
 
    // TEST EINVAL
-   TEST(0      == init_vmpage(&mapped_block, 1)) ;
-   TEST(EINVAL == tryexpand_vmpage(&mapped_block, (size_t)-1)) ;
-   TEST(EINVAL == shrink_vmpage(&mapped_block, 1)) ;
-   TEST(0      == free_vmpage(&mapped_block)) ;
-   TEST(EINVAL == init_vmpage(&mapped_block, (size_t)-1)) ;
+   TEST(0      == init_vmpage(&page, 1)) ;
+   TEST(EINVAL == tryexpand_vmpage(&page, (size_t)-1)) ;
+   TEST(EINVAL == shrink_vmpage(&page, 1)) ;
+   TEST(0      == free_vmpage(&page)) ;
+   TEST(EINVAL == init_vmpage(&page, (size_t)-1)) ;
 
    // TEST ENOMEM movexpand
-   TEST(0      == init_vmpage(&mapped_block, 1)) ;
-   TEST(ENOMEM == movexpand_vmpage(&mapped_block, (size_t)-1)) ;
-   TEST(ENOMEM == movexpand_vmpage(&mapped_block, (((size_t)-1) / pagesize_vm()) - 10)) ;
-   TEST(0      == free_vmpage(&mapped_block)) ;
+   TEST(0      == init_vmpage(&page, 1)) ;
+   TEST(ENOMEM == movexpand_vmpage(&page, (size_t)-1)) ;
+   TEST(ENOMEM == movexpand_vmpage(&page, (((size_t)-1) / pagesize_vm()) - 10)) ;
+   TEST(0      == free_vmpage(&page)) ;
 
    return 0 ;
 ONABORT:
@@ -894,28 +1127,30 @@ static int test_protection(void)
    }
 
    // TEST protection after init, expand, movexpand, shrink
-   accessmode_e prot[6] = { accessmode_RDWR, accessmode_WRITE, accessmode_READ, accessmode_READ|accessmode_EXEC, accessmode_RDWR|accessmode_EXEC, accessmode_NONE } ;
+   accessmode_e prot[6] = { accessmode_RDWR_PRIVATE, accessmode_WRITE|accessmode_PRIVATE, accessmode_READ|accessmode_PRIVATE, accessmode_READ|accessmode_EXEC|accessmode_PRIVATE, accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE, accessmode_NONE|accessmode_PRIVATE } ;
    for (unsigned i = 0; i < lengthof(prot); ++i) {
       // TEST init2 generates correct protection
       TEST(0 == init2_vmpage(&vmpage, 2, prot[i])) ;
-      TEST(0 == compare_protection(&vmpage, prot[i])) ;
+      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
       TEST(0 == free_vmpage(&vmpage)) ;
       // TEST init generates RW protection
       TEST(0 == init_vmpage(&vmpage, 2)) ;
-      TEST(0 == compare_protection(&vmpage, accessmode_RDWR)) ;
+      TEST(1 == is_page_mapped(&vmpage, accessmode_RDWR_PRIVATE)) ;
       // TEST setting protection
       TEST(0 == protect_vmpage(&vmpage, prot[i])) ;
-      TEST(0 == compare_protection(&vmpage, prot[i])) ;
+      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
       // TEST shrink does not change flags
       TEST(0 == shrink_vmpage(&vmpage, 1)) ;
-      TEST(0 == compare_protection(&vmpage, prot[i])) ;
+      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
       // TEST expand does not change flags
       TEST(0 == tryexpand_vmpage(&vmpage, 1)) ;
-      TEST(0 == compare_protection(&vmpage, prot[i])) ;
+      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
       // TEST movexpand does not change flags
       TEST(0 == movexpand_vmpage(&vmpage, 10)) ;
-      TEST(0 == compare_protection(&vmpage, prot[i])) ;
+      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
+      vmpage_t old = vmpage ;
       TEST(0 == free_vmpage(&vmpage)) ;
+      TEST(1 == is_page_unmapped(&old)) ;
    }
 
    // TEST write of readonly page is not possible
@@ -961,6 +1196,7 @@ int unittest_platform_vm()
    // store current mapping
    TEST(0 == init_vmmappedregions(&mappedregions)) ;
 
+   if (test_functions())      goto ONABORT ;
    if (test_mappedregions())  goto ONABORT ;
    if (test_vmpage())         goto ONABORT ;
    if (test_protection())     goto ONABORT ;

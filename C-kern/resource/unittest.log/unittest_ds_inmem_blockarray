@@ -21,7 +21,6 @@ C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resour
 C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
 C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
 C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:327: assign2_blockarray(): error: 12: Function aborted
-C-kern/ds/inmem/blockarray.c:327: assign2_blockarray(): error: 12: Function aborted
-C-kern/ds/inmem/blockarray.c:327: assign2_blockarray(): error: 12: Function aborted
-C-kern/ds/inmem/blockarray.c:327: assign2_blockarray(): error: 12: Function aborted
+C-kern/ds/inmem/blockarray.c:340: assign_blockarray(): error: 12: Function aborted
+C-kern/ds/inmem/blockarray.c:340: assign_blockarray(): error: 12: Function aborted
+C-kern/ds/inmem/blockarray.c:340: assign_blockarray(): error: 12: Function aborted

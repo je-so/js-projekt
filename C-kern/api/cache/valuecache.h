@@ -48,8 +48,12 @@ int unittest_cache_valuecache(void) ;
 struct valuecache_t {
    /* variable: pagesize_vm
     * The size of a virtual memory page in bytes.
-    * Same value as returned by <sys_pagesize_vm>.  */
+    * Same value as returned by <sys_pagesize_vm>.
+    * This value can be queried with function pagesize_vm. */
    uint32_t       pagesize_vm ;
+   /* variable: log2pagesize_vm
+    * The <log2_int> value of <pagesize_vm>. */
+   uint8_t        log2pagesize_vm ;
 } ;
 
 // group: init
@@ -66,6 +70,7 @@ int freeonce_valuecache(valuecache_t ** valuecache) ;
 
 /* define: valuecache_INIT_FREEABLE
  * Static initializer. */
-#define valuecache_INIT_FREEABLE       { 0 }
+#define valuecache_INIT_FREEABLE \
+         { 0, 0 }
 
 #endif

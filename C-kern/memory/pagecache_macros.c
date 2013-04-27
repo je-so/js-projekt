@@ -134,13 +134,13 @@ static int test_cache(void)
    oldpagecache = pagecache_maincontext() ;
    pagecache_maincontext() = testpagecache ;
 
-   // TEST RELEASECACHED_PAGECACHE
+   // TEST EMPTYCACHE_PAGECACHE
    pagecache_impl_t * pgcache = (pagecache_impl_t*) testpagecache.object ;
    TEST(0 == pgcache->freeblocklist[pagesize_256].last) ;
    TEST(0 == ALLOC_PAGECACHE(pagesize_256, &page)) ;
    TEST(0 == RELEASE_PAGECACHE(&page)) ;
    TEST(0 != pgcache->freeblocklist[pagesize_256].last) ;
-   TEST(0 == RELEASECACHED_PAGECACHE()) ;
+   TEST(0 == EMPTYCACHE_PAGECACHE()) ;
    TEST(0 == pgcache->freeblocklist[pagesize_256].last) ;
 
    // unprepare

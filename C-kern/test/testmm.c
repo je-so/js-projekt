@@ -768,20 +768,20 @@ static int test_testmmpage(void)
    page[2] = (vmpage_t) vmpage_INIT(pagesize_vm(), mmpage->datablock.addr + mmpage->datablock.size) ;
    page[3] = (vmpage_t) vmpage_INIT(pagesize_vm(), mmpage->datablock.addr - pagesize_vm()) ;
    TEST(0 == init_vmmappedregions(&mapping)) ;
-   TEST(1 == iscontained_vmmappedregions(&mapping, &page[0], (accessmode_RDWR|accessmode_PRIVATE))) ;
-   TEST(1 == iscontained_vmmappedregions(&mapping, &page[1], (accessmode_RDWR|accessmode_PRIVATE))) ;
-   TEST(1 == iscontained_vmmappedregions(&mapping, &page[2], (accessmode_NONE|accessmode_PRIVATE))) ;
-   TEST(1 == iscontained_vmmappedregions(&mapping, &page[3], (accessmode_NONE|accessmode_PRIVATE))) ;
+   TEST(1 == ismapped_vmmappedregions(&mapping, &page[0], (accessmode_RDWR|accessmode_PRIVATE))) ;
+   TEST(1 == ismapped_vmmappedregions(&mapping, &page[1], (accessmode_RDWR|accessmode_PRIVATE))) ;
+   TEST(1 == ismapped_vmmappedregions(&mapping, &page[2], (accessmode_NONE|accessmode_PRIVATE))) ;
+   TEST(1 == ismapped_vmmappedregions(&mapping, &page[3], (accessmode_NONE|accessmode_PRIVATE))) ;
    TEST(0 == free_vmmappedregions(&mapping)) ;
 
    // TEST free: memory is unmapped
    TEST(0 == delete_testmmpage(&mmpage)) ;
    TEST(0 == mmpage) ;
    TEST(0 == init_vmmappedregions(&mapping)) ;
-   TEST(0 == iscontained_vmmappedregions(&mapping, &page[0], (accessmode_RDWR|accessmode_PRIVATE))) ;
-   TEST(0 == iscontained_vmmappedregions(&mapping, &page[1], (accessmode_RDWR|accessmode_PRIVATE))) ;
-   TEST(0 == iscontained_vmmappedregions(&mapping, &page[2], (accessmode_NONE|accessmode_PRIVATE))) ;
-   TEST(0 == iscontained_vmmappedregions(&mapping, &page[3], (accessmode_NONE|accessmode_PRIVATE))) ;
+   TEST(1 == isunmapped_vmmappedregions(&mapping, &page[0])) ;
+   TEST(1 == isunmapped_vmmappedregions(&mapping, &page[1])) ;
+   TEST(1 == isunmapped_vmmappedregions(&mapping, &page[2])) ;
+   TEST(1 == isunmapped_vmmappedregions(&mapping, &page[3])) ;
    TEST(0 == free_vmmappedregions(&mapping)) ;
 
    // TEST init ENOMEM

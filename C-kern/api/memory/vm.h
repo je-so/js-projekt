@@ -49,6 +49,10 @@ typedef struct vm_regionsarray_t       vm_regionsarray_t ;
 
 // group: query
 
+/* function: log2pagesize_vm
+ * Returns <log2_int> of <pagesize_vm>. */
+uint8_t  log2pagesize_vm(void) ;
+
 /* function: pagesize_vm
  * Returns the virtual memory page size supported by the underlying system.
  * This function returns a cached value >= 256. */
@@ -108,10 +112,18 @@ int init_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_pages) ;
 /* function: init_vmpage
  * New memory is mapped into the virtual address space of the calling process.
  * The new memory has size == size_in_pages * <pagesize_vm>.
- * It has accessible as stated in paramter *access_mode*.
+ * It is accessible as stated in paramter *access_mode*.
  * A child process can access its content after a fork and a change is shared with the parent process
  * if <accessmode_SHARED> was specified. */
 int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_pages, const accessmode_e access_mode) ;
+
+/* function: initaligned_vmpage
+ * Map new memory into the virtual address space of the calling process.
+ * The new memory has size powerof2_size_in_bytes and its description is returned in vmpage.
+ * It is read and writeable and not shared between processes.
+ * The address of the new memory is aligned to its own size.
+ * EINVAL is returned in case powerof2_size_in_bytes < <pagesize_vm> or if it is not a power of 2. */
+int initaligned_vmpage(/*out*/vmpage_t * vmpage, size_t powerof2_size_in_bytes) ;
 
 /* function: free_vmpage
  * Invalidates virtual memory address range
@@ -254,11 +266,14 @@ size_t size_vmmappedregions(const vm_mappedregions_t * mappedregions) ;
  * Returns 0 if all regions stored in left and right container compare equal. */
 int compare_vmmappedregions(const vm_mappedregions_t * left, const vm_mappedregions_t * right) ;
 
-/* function: iscontained_vmmappedregions
- * Returns true if <vm_mappedregions_t> contains a memory region with correct protection.
- * In either case *mblock* is not fully contained or the *protection* is different false
- * is returned. */
-bool iscontained_vmmappedregions(vm_mappedregions_t * mappedregions, const vmpage_t * mblock, accessmode_e protection) ;
+/* function: ismapped_vmmappedregions
+ * Returns true if mappedregions contains a memory region with correct protection.
+ * if *mblock* is not fully contained or the *protection* is different false is returned. */
+bool ismapped_vmmappedregions(vm_mappedregions_t * mappedregions, const vmpage_t * mblock, accessmode_e protection) ;
+
+/* function: isunmapped_vmmappedregions
+ * Returns true if mappedregions contains no memory region which overlaps with mblock. */
+bool isunmapped_vmmappedregions(vm_mappedregions_t * mappedregions, const vmpage_t * mblock) ;
 
 // group: iterate
 
@@ -313,6 +328,10 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator) ;
  * Implements <vmpage_t.isfree_vmpage>>. */
 #define isfree_vmpage(vmpage)  \
          (0 == (vmpage)->size)
+
+/* define: log2pagesize_vm
+ * Uses cached value from <valuecache_maincontext>. */
+#define log2pagesize_vm()                       (valuecache_maincontext()->log2pagesize_vm)
 
 /* define: pagesize_vm
  * Uses cached value from <valuecache_maincontext>. */

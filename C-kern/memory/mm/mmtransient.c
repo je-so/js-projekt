@@ -28,6 +28,7 @@
 #include "C-kern/api/memory/mm/mm_it.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/platform/malloc.h"
 #ifdef KONFIG_UNITTEST
@@ -44,9 +45,9 @@ mm_it_DECLARE(mmtransient_it, mmtransient_t)
 /* variable: s_mmtransient_interface
  * Contains single instance of interface <mmtransient_it>. */
 static mmtransient_it   s_mmtransient_interface = mm_it_INIT(
-                            &mresize_mmtransient
-                           ,&mfree_mmtransient
-                           ,&sizeallocated_mmtransient
+                           &mresize_mmtransient,
+                           &mfree_mmtransient,
+                           &sizeallocated_mmtransient
                         ) ;
 
 
@@ -57,26 +58,23 @@ static mmtransient_it   s_mmtransient_interface = mm_it_INIT(
 int initthread_mmtransient(/*out*/mm_t * mm_transient)
 {
    int err ;
-   const size_t      objsize    = sizeof(mmtransient_t) ;
-   mmtransient_t     tempobject = mmtransient_INIT_FREEABLE ;
-   memblock_t        newobject  = memblock_INIT_FREEABLE ;
+   memblock_t memobject = memblock_INIT_FREEABLE ;
 
    VALIDATE_INPARAM_TEST(0 == mm_transient->object, ONABORT, ) ;
 
-   err = init_mmtransient(&tempobject) ;
+   err = ALLOCSTATIC_PAGECACHE(sizeof(mmtransient_t), &memobject) ;
    if (err) goto ONABORT ;
 
-   err = mresize_mmtransient(&tempobject, objsize, &newobject) ;
+   mmtransient_t * newobj = (mmtransient_t*) memobject.addr ;
+
+   err = init_mmtransient(newobj) ;
    if (err) goto ONABORT ;
 
-   memcpy(newobject.addr, &tempobject, objsize) ;
-
-   mm_transient->object = (struct mm_t*) newobject.addr;
-   mm_transient->iimpl  = genericcast_mmit(&s_mmtransient_interface, mmtransient_t) ;
+   *mm_transient = (mm_t) mm_INIT((struct mm_t*)newobj, genericcast_mmit(&s_mmtransient_interface, mmtransient_t)) ;
 
    return 0 ;
 ONABORT:
-   free_mmtransient(&tempobject) ;
+   FREESTATIC_PAGECACHE(&memobject) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -85,20 +83,17 @@ int freethread_mmtransient(mm_t * mm_transient)
 {
    int err ;
    int err2 ;
-   mmtransient_t * delobject = (mmtransient_t*) mm_transient->object ;
+   mmtransient_t * delobj = (mmtransient_t*) mm_transient->object ;
 
-   if (delobject) {
+   if (delobj) {
       assert(genericcast_mmit(&s_mmtransient_interface, mmtransient_t) == mm_transient->iimpl) ;
 
-      mm_transient->object = 0 ;
-      mm_transient->iimpl  = 0 ;
+      *mm_transient = (mm_t) mm_INIT_FREEABLE ;
 
-      mmtransient_t  tempobject = *delobject ;
-      memblock_t     memobject  = memblock_INIT(sizeof(mmtransient_t), (uint8_t*)delobject) ;
+      err = free_mmtransient(delobj) ;
 
-      err = mfree_mmtransient(&tempobject, &memobject) ;
-
-      err2 = free_mmtransient(&tempobject) ;
+      memblock_t memobject = memblock_INIT(sizeof(mmtransient_t), (uint8_t*)delobj) ;
+      err2 = FREESTATIC_PAGECACHE(&memobject) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -194,15 +189,17 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   mmtransient_t   mman = mmtransient_INIT_FREEABLE ;
+   mmtransient_t mman = mmtransient_INIT_FREEABLE ;
 
-   // TEST static init memoryman_transient_INIT_FREEABLE
+   // TEST mmtransient_INIT_FREEABLE
    TEST(0 == mman.todo__implement_without_malloc__) ;
 
-   // TEST init_mmtransient, double free_mmtransient
+   // TEST init_mmtransient
    memset(&mman, 255, sizeof(mman)) ;
    TEST(0 == init_mmtransient(&mman)) ;
    TEST(0 == mman.todo__implement_without_malloc__) ;
+
+   // TEST free_mmtransient
    mman.todo__implement_without_malloc__ = 1 ;
    TEST(0 == free_mmtransient(&mman)) ;
    TEST(0 == mman.todo__implement_without_malloc__) ;
@@ -218,28 +215,31 @@ static int test_initthread(void)
 {
    mm_t  mman = mm_INIT_FREEABLE ;
 
-   // TEST static init
-   TEST(0 == mman.object) ;
-   TEST(0 == mman.iimpl) ;
-
-   // TEST exported interface
+   // TEST s_mmtransient_interface
    TEST(s_mmtransient_interface.mresize == &mresize_mmtransient) ;
    TEST(s_mmtransient_interface.mfree   == &mfree_mmtransient) ;
 
-   // TEST initthread and double free
+   // TEST initthread_mmtransient
+   size_t sizestatic = SIZESTATIC_PAGECACHE() ;
    TEST(0 == initthread_mmtransient(&mman)) ;
    TEST(mman.object != 0) ;
    TEST(mman.iimpl  == genericcast_mmit(&s_mmtransient_interface, mmtransient_t)) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic + sizeof(mmtransient_t)) ;
+
+   // TEST freethread_mmtransient
    TEST(0 == freethread_mmtransient(&mman)) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
    TEST(0 == mman.object) ;
    TEST(0 == mman.iimpl) ;
    TEST(0 == freethread_mmtransient(&mman)) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
    TEST(0 == mman.object) ;
    TEST(0 == mman.iimpl) ;
 
-   // TEST EINVAL initthread
+   // TEST initthread_mmtransient: EINVAL
    mman.object = (struct mm_t*) 1 ;
    TEST(EINVAL == initthread_mmtransient(&mman)) ;
+   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
 
    return 0 ;
 ONABORT:

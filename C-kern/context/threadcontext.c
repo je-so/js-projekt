@@ -30,8 +30,8 @@
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initthread")
-#include "C-kern/api/memory/mm/mmtransient.h"
 #include "C-kern/api/memory/pagecache_impl.h"
+#include "C-kern/api/memory/mm/mmtransient.h"
 #include "C-kern/api/cache/objectcache_impl.h"
 #include "C-kern/api/io/writer/log/logwriter.h"
 // TEXTDB:END
@@ -69,9 +69,9 @@ int free_threadcontext(threadcontext_t * tcontext)
                if (err2) err = err2 ;
    case 3:     err2 = freethread_objectcacheimpl(&tcontext->objectcache) ;
                if (err2) err = err2 ;
-   case 2:     err2 = freethread_pagecacheimpl(&tcontext->pgcache) ;
+   case 2:     err2 = freethread_mmtransient(&tcontext->mm_transient) ;
                if (err2) err = err2 ;
-   case 1:     err2 = freethread_mmtransient(&tcontext->mm_transient) ;
+   case 1:     err2 = freethread_pagecacheimpl(&tcontext->pgcache) ;
                if (err2) err = err2 ;
 // TEXTDB:END
    case 0:     break ;
@@ -96,12 +96,12 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext)
 // TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;"\n"   err = initthread_"module"("(if (parameter!="") "&tcontext->")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/config/initthread)
 
    ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
-   err = initthread_mmtransient(&tcontext->mm_transient) ;
+   err = initthread_pagecacheimpl(&tcontext->pgcache) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
    ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
-   err = initthread_pagecacheimpl(&tcontext->pgcache) ;
+   err = initthread_mmtransient(&tcontext->mm_transient) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
