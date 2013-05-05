@@ -13,43 +13,43 @@ C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input viol
 C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
 C-kern/ds/inmem/dlist.c:144: removefirst_dlist(): error: 22: Function input violates condition (!isempty_dlist(list))
 C-kern/ds/inmem/dlist.c:154: removefirst_dlist(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:508: init_pagecacheimpl(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:505: init_pagecacheimpl(): error: 12: Function aborted
 C-kern/memory/pagecache_impl.c:242: new_pagecacheblock(): error: 12: Function aborted
-C-kern/memory/pagecache_impl.c:508: init_pagecacheimpl(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:505: init_pagecacheimpl(): error: 12: Function aborted
 C-kern/memory/pagecache_impl.c:263: free_pagecacheblock(): error: 12: Freeing a resource returned an error
-C-kern/memory/pagecache_impl.c:542: free_pagecacheimpl(): error: 12: Freeing a resource returned an error
-C-kern/memory/pagecache_impl.c:542: free_pagecacheimpl(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache_impl.c:539: free_pagecacheimpl(): error: 12: Freeing a resource returned an error
+C-kern/memory/pagecache_impl.c:539: free_pagecacheimpl(): error: 12: Freeing a resource returned an error
 C-kern/memory/pagecache_impl.c:242: new_pagecacheblock(): error: 12: Function aborted
 C-kern/memory/pagecache_impl.c:242: new_pagecacheblock(): error: 12: Function aborted
 C-kern/memory/pagecache_impl.c:242: new_pagecacheblock(): error: 12: Function aborted
 C-kern/memory/pagecache_impl.c:242: new_pagecacheblock(): error: 12: Function aborted
 C-kern/memory/pagecache_impl.c:242: new_pagecacheblock(): error: 12: Function aborted
 C-kern/memory/pagecache_impl.c:242: new_pagecacheblock(): error: 12: Function aborted
-C-kern/memory/pagecache_impl.c:581: allocpage_blockarray_pagecacheimpl(): error: 22: Function input violates condition (pgsize == pagesize_1MB)
-C-kern/memory/pagecache_impl.c:590: allocpage_blockarray_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:618: allocpage_pagecacheimpl(): error: 22: Function input violates condition (pgsize < pagesize_NROFPAGESIZE)
-C-kern/memory/pagecache_impl.c:643: allocpage_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:618: allocpage_pagecacheimpl(): error: 22: Function input violates condition (pgsize < pagesize_NROFPAGESIZE)
-C-kern/memory/pagecache_impl.c:643: allocpage_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:683: releasepage_pagecacheimpl(): error: 114: Function aborted
-C-kern/memory/pagecache_impl.c:683: releasepage_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:683: releasepage_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:683: releasepage_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:683: releasepage_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:693: allocstatic_pagecacheimpl(): error: 22: Function input violates condition (0 < alignedsize && alignedsize <= 128)
-C-kern/memory/pagecache_impl.c:714: allocstatic_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:693: allocstatic_pagecacheimpl(): error: 22: Function input violates condition (0 < alignedsize && alignedsize <= 128)
-C-kern/memory/pagecache_impl.c:714: allocstatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:578: allocpage_blockarray_pagecacheimpl(): error: 22: Function input violates condition (pgsize == pagesize_1MB)
+C-kern/memory/pagecache_impl.c:587: allocpage_blockarray_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:615: allocpage_pagecacheimpl(): error: 22: Function input violates condition (pgsize < pagesize_NROFPAGESIZE)
+C-kern/memory/pagecache_impl.c:640: allocpage_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:615: allocpage_pagecacheimpl(): error: 22: Function input violates condition (pgsize < pagesize_NROFPAGESIZE)
+C-kern/memory/pagecache_impl.c:640: allocpage_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:680: releasepage_pagecacheimpl(): error: 114: Function aborted
+C-kern/memory/pagecache_impl.c:680: releasepage_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:680: releasepage_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:680: releasepage_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:680: releasepage_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:690: allocstatic_pagecacheimpl(): error: 22: Function input violates condition (0 < alignedsize && alignedsize <= 128)
+C-kern/memory/pagecache_impl.c:711: allocstatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:690: allocstatic_pagecacheimpl(): error: 22: Function input violates condition (0 < alignedsize && alignedsize <= 128)
+C-kern/memory/pagecache_impl.c:711: allocstatic_pagecacheimpl(): error: 22: Function aborted
 C-kern/memory/pagecache_impl.c:242: new_pagecacheblock(): error: 12: Function aborted
-C-kern/memory/pagecache_impl.c:643: allocpage_pagecacheimpl(): error: 12: Function aborted
-C-kern/memory/pagecache_impl.c:714: allocstatic_pagecacheimpl(): error: 12: Function aborted
-C-kern/memory/pagecache_impl.c:729: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-C-kern/memory/pagecache_impl.c:748: freestatic_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:729: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-C-kern/memory/pagecache_impl.c:748: freestatic_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:729: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-C-kern/memory/pagecache_impl.c:748: freestatic_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:729: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-C-kern/memory/pagecache_impl.c:748: freestatic_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:365: initthread_pagecacheimpl(): error: 22: Function input violates condition (0 == pgcache->object)
-C-kern/memory/pagecache_impl.c:383: initthread_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:640: allocpage_pagecacheimpl(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:711: allocstatic_pagecacheimpl(): error: 12: Function aborted
+C-kern/memory/pagecache_impl.c:726: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+C-kern/memory/pagecache_impl.c:745: freestatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:726: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+C-kern/memory/pagecache_impl.c:745: freestatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:726: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+C-kern/memory/pagecache_impl.c:745: freestatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:726: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+C-kern/memory/pagecache_impl.c:745: freestatic_pagecacheimpl(): error: 22: Function aborted
+C-kern/memory/pagecache_impl.c:362: initthread_pagecacheimpl(): error: 22: Function input violates condition (0 == pgcache->object)
+C-kern/memory/pagecache_impl.c:380: initthread_pagecacheimpl(): error: 22: Function aborted
