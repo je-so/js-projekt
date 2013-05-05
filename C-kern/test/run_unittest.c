@@ -268,6 +268,13 @@ int run_unittest(void)
       RUN(unittest_ds_typeadapt_nodeoffset) ;
 //}
 
+//{ lang(uage) unittest
+      RUN(unittest_lang_utf8scanner) ;
+      RUN(unittest_lang_transc_transCtoken) ;
+      RUN(unittest_lang_transc_transCstringtable) ;
+      RUN(unittest_lang_transc_transCparser) ;
+//}
+
 //{ math unittest
       RUN(unittest_math_fpu) ;
       RUN(unittest_math_float_decimal) ;
@@ -306,6 +313,14 @@ int run_unittest(void)
       RUN(unittest_string_utf8) ;
 //}
 
+//{ task unittest
+      RUN(unittest_task_syncthread) ;
+      RUN(unittest_task_syncrun) ;
+      RUN(unittest_task_syncqueue) ;
+      RUN(unittest_task_syncwait) ;
+      RUN(unittest_task_syncwlist) ;
+//}
+
 //{ test unittest
       RUN(unittest_test_errortimer) ;
       RUN(unittest_test_resourceusage) ;
@@ -340,13 +355,6 @@ int run_unittest(void)
       RUN(unittest_io_writer_log_logmain) ;
 //}
 
-//{ lang(uage) unittest
-      RUN(unittest_lang_utf8scanner) ;
-      RUN(unittest_lang_transc_transCtoken) ;
-      RUN(unittest_lang_transc_transCstringtable) ;
-      RUN(unittest_lang_transc_transCparser) ;
-//}
-
 //{ platform unittest
       // sync unittest
       RUN(unittest_platform_sync_mutex) ;
@@ -354,8 +362,6 @@ int run_unittest(void)
       RUN(unittest_platform_sync_signal) ;
       RUN(unittest_platform_sync_waitlist) ;
       // task unittest
-      RUN(unittest_platform_task_exothread) ;
-      RUN(unittest_platform_task_exoscheduler) ;
       RUN(unittest_platform_task_process) ;
       RUN(unittest_platform_task_thread) ;
       RUN(unittest_platform_task_threadpool) ;

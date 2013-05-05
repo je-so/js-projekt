@@ -58,7 +58,7 @@ typedef enum variable_e                variable_e ;
 
 static const char * s_templateheader =
 "/* title: @TITLE\n\n\
-   TODO: describe module interface\n\n\
+   TO""DO: describe module interface\n\n\
    about: Copyright\n\
    This program is free software.\n\
    You can redistribute it and/or modify\n\
@@ -89,9 +89,9 @@ typedef struct @TYPENAME         @TYPENAME ;\n\n\n\
 int @UNITTESTNAME(void) ;\n\
 #endif\n\n\n\
 /* struct: @TYPENAME\n\
- * TODO: describe type */\n\
+ * TO""DO: describe type */\n\
 struct @TYPENAME {\n\
-   int dummy ; // TODO: remove line\n\
+   int dummy ; // TO""DO: remove line\n\
 } ;\n\n\
 // group: lifetime\n\
 \n\
@@ -100,16 +100,22 @@ struct @TYPENAME {\n\
 #define @TYPENAME2_INIT_FREEABLE      { 0 }\n\
 \n\
 /* function: init_@FCTSUFFIX\n\
- * TODO: Describe Initializes object. */\n\
+ * TO""DO: Describe Initializes object. */\n\
 int init_@FCTSUFFIX(/*out*/@TYPENAME * obj) ;\n\
 \n\
 /* function: free_@FCTSUFFIX\n\
- * TODO: Describe Frees all associated resources. */\n\
+ * TO""DO: Describe Frees all associated resources. */\n\
 int free_@FCTSUFFIX(@TYPENAME * obj) ;\n\
 \n\
 // group: query\n\
 \n\
 // group: update\n\
+\n\n\n\
+// section: inline implementation\n\
+\n\
+/* define: init_@FCTSUFFIX\n\
+ * Implements <@TYPENAME.init_@FCTSUFFIX>. */\n\
+#define init_@FCTSUFFIX(obj) ;\n\
 \n\n\
 #endif\n" ;
 

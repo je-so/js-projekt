@@ -15,6 +15,7 @@ Src           += C-kern/lang/*.c C-kern/lang/transC/*.c
 Src           += C-kern/math/hash/*.c C-kern/math/int/*.c C-kern/math/*.c C-kern/math/float/*.c
 Src           += C-kern/memory/*.c C-kern/memory/mm/*.c
 Src           += C-kern/string/*.c
+Src           += C-kern/task/*.c
 Src           += C-kern/test/*.c
 Includes       = .
 # No X11

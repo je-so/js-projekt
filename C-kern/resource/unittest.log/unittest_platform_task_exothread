@@ -1,9 +1,0 @@
-C-kern/platform/shared/task/exothread.c:92: run_exothread(): error: 22: Function input violates condition (0 == isfinish_exothread(xthread))
-C-kern/platform/shared/task/exothread.c:103: run_exothread(): error: 22: Function aborted
-C-kern/platform/shared/task/exothread.c:67: free_exothread(): error: 16: Freeing a resource returned an error
-C-kern/platform/shared/task/exothread.c:204: counter_xthread(): error: 22: Function input violates condition (inparam->limit > 0)
-inparam->limit=-1
-C-kern/platform/shared/task/exothread.c:251: counter_xthread(): error: 22: Function aborted
-C-kern/platform/shared/task/exothread.c:251: counter_xthread(): error: 62: Function aborted
-C-kern/platform/shared/task/exothread.c:251: counter_xthread(): error: 2345: Function aborted
-C-kern/platform/shared/task/exothread.c:251: counter_xthread(): error: 22: Function aborted

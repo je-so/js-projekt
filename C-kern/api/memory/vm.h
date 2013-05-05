@@ -64,6 +64,14 @@ uint32_t pagesize_vm(void) ;
  * The returned value is a power of two. */
 uint32_t sys_pagesize_vm(void) ;
 
+/* function: ismapped_vm
+ * Returns true is vmpage is mapped whose accessmode equals protection. */
+bool ismapped_vm(const vmpage_t * vmpage, accessmode_e protection) ;
+
+/* function: isunmapped_vm
+ * Returns true if memory at vmpage is not mapped. */
+bool isunmapped_vm(const vmpage_t * vmpage) ;
+
 // group: test
 
 #ifdef KONFIG_UNITTEST

@@ -42,8 +42,6 @@
       <File Name="../../C-kern/api/platform/malloc.h"/>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/api/platform/task/threadpool.h"/>
-        <File Name="../../C-kern/api/platform/task/exoscheduler.h"/>
-        <File Name="../../C-kern/api/platform/task/exothread.h"/>
         <File Name="../../C-kern/api/platform/task/thread.h"/>
         <File Name="../../C-kern/api/platform/task/process.h"/>
       </VirtualDirectory>
@@ -198,6 +196,13 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/lang/utf8scanner.h"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="task">
+      <File Name="../../C-kern/api/task/syncthread.h"/>
+      <File Name="../../C-kern/api/task/syncrun.h"/>
+      <File Name="../../C-kern/api/task/syncwait.h"/>
+      <File Name="../../C-kern/api/task/syncwlist.h"/>
+      <File Name="../../C-kern/api/task/syncqueue.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/valuecache.c"/>
@@ -346,10 +351,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
-      <VirtualDirectory Name="task">
-        <File Name="../../C-kern/platform/shared/task/exoscheduler.c"/>
-        <File Name="../../C-kern/platform/shared/task/exothread.c"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="X11">
         <File Name="../../C-kern/platform/shared/X11/glxwindow.c"/>
         <File Name="../../C-kern/platform/shared/X11/x11.c"/>
@@ -513,4 +514,11 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="task">
+    <File Name="../../C-kern/task/syncthread.c"/>
+    <File Name="../../C-kern/task/syncrun.c"/>
+    <File Name="../../C-kern/task/syncwait.c"/>
+    <File Name="../../C-kern/task/syncwlist.c"/>
+    <File Name="../../C-kern/task/syncqueue.c"/>
+  </VirtualDirectory>
 </CodeLite_Project>

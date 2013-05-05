@@ -1,29 +1,31 @@
 /* title: BlockArray
 
-   A blocked array is implementation of an array where not all
-   elements are stored in a single memory block.
-   It support non contiguous blocks of memory to store elements
+   A blocked array implements an array where not all contained
+   elements are stored in a contiguous way.
+   It supports non contiguous blocks of memory to store elements
    in a B-tree like hierarchy.
 
    It is possible that child pointers in any ptr block (including root) are NULL.
    This helps to save memory but this type of array is not optimized for a
-   sparse distribution of array indices.
+   sparse distribution of indices.
 
    Once an element is assigned to an index its memory address never
    changes except if the array is resized to a smaller size which deletes the
    memory block containing the assigned element.
 
-   >                   +──[ root block ]───────────+
+   >                   ╭──[ root block ]───────────╮
    >                   │ child[0] | child[1] | ... |
-   >                   +──┬───────────┬────────────+
-   >         ▾------------+           +------▾
-   >         +──[ ptr block ]────────────+   +──[ ptr block ]────────────+
-   >         │ child[0] | child[1] | ... |   │ child[0] | child[1] | ... |
-   >         +──┬──────────┬─────────────+   +───┬───────────────────────+
-   > ▾----------+          +-------▾             NULL
-   > +──[ data block ]─────────+   +──[ data block ]─────────+
-   > │ elem[0] | elem[1] | ... |   │ elem[0] | elem[1] | ... |
-   > +─────────────────────────+   +─────────────────────────+
+   >                   ╰──┬───────────┬────────────╯
+   >                      │           │
+   >         ▾────────────┘           └────────▾
+   >         ╭──[ ptr block ]────────────╮     ╭──[ ptr block ]────────────╮
+   >         │ child[0] | child[1] | ... |     │ child[0] | child[1] | ... |
+   >         ╰──┬──────────┬─────────────╯     ╰───┬───────────────────────╯
+   >            │          │                       NULL
+   >  ▾─────────┘          └──────▾
+   > ╭──[ data block ]─────────╮  ╭──[ data block ]─────────╮
+   > │ elem[0] | elem[1] | ... |  │ elem[0] | elem[1] | ... |
+   > ╰─────────────────────────╯  ╰─────────────────────────╯
    >
 
    about: Copyright
@@ -68,36 +70,37 @@ int unittest_ds_inmem_blockarray(void) ;
 
 /* struct: blockarray_t
  * Stores elements and retrieves them by index of type integer.
- * All elements are stored in memory blocks. So a single element
- * wastes (blocksize-elementsize) bytes. A block can store up to
- * blocksize/elementsize elements.
+ * All elements are stored in memory blocks. So a block with a
+ * single element wastes (blocksize-elementsize) bytes.
+ * A block can store up to blocksize divided by elementsize elements.
  *
  * The index determines the memory block and the position within it
- * so elements can be accessed on a single block without searching.
- * If elements are assigned with non continues index values the elements on
- * the same page between the assigned elements are set to 0.
+ * so elements can be accessed in a single block without searching.
+ * If elements are assigned with non continues index values the non assigned
+ * elements between the assigned elements are set to 0.
  * The implementation does not remember that such an element was not assigned
- * or initialized. So you need to detect unassigned elements yourself by comparing
- * them with 0.
+ * or not initialized. So you need to detect unassigned elements yourself by
+ * comparing them with 0.
  *
- * If all elements fitr on one page the depth of the tree is 0 and root points to a data block.
+ * If all elements fit on one page the depth of the tree is 0 and root points to a data block.
  * If all elements do not fit on a single block a B-tree like hierarchy is created.
- * In this case root points and ptr blocks contains pointers to ptr blocks or data blocks.
- * The depth value is > 0 and determines how many ptr blocks are encouontered from root to data block.
- * These so called child pointers will be set to NULL to save memory if the index value
- * is sparse (which is not recommended). If an element is accessed whose path encounters
+ * In this case root (and ptr blocks also) contains pointers to ptr blocks or data blocks.
+ * The depth value determines how many ptr blocks are encouontered from root to data block.
+ * Any value > 0 means the root is of type ptr block and (depth-1) ptr blocks follow.
+ * These pointers to child nodes will be set to NULL to save memory if a range of index values
+ * is not asigned (which is not recommended). If an element is read whose path contains
  * a NULL pointer the address NULL is returned which states that this element was not
  * assigned before.
  *
- * Accessing an element in such a hierarchy costs time
+ * Accessing an element in a dense hierarchy costs time
  * O(log(nr_elements)/log(nr_of_elements_per_block)).
  *
- * The size of a memory block can be set once at array init,
+ * The size of a memory block can be set once at initialization of array,
  * it corresponds to <pagesize_e>.
  *
  * Implementation Invariant:
- * Blockarray uses only <allocpage_pagecache> and <releasepage_pagecache> the allocate and free
- * blocks of memory with the pagesize given as parameter in <init_blockarray>. */
+ * Blockarray uses only <allocpage_pagecache> and <releasepage_pagecache> to allocate and free
+ * blocks of memory with size pagesize given as parameter in <init_blockarray>. */
 struct blockarray_t {
    /* variable: elements_per_block
     * Number of elements stored in a single data block. */
@@ -110,7 +113,7 @@ struct blockarray_t {
     * The size of a single element */
    uint16_t elementsize ;
    /* variable: log2elements_per_block
-    * The log2 of <elements_per_block> plus 1.
+    * The log2 of <elements_per_block> plus 1 or value 0.
     * If this value is 0 the value <elements_per_block> is not a power of two.
     * This is used to speed up computation (avoiding division by <elements_per_block>). */
    uint8_t  log2elements_per_block ;

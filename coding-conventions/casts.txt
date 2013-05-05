@@ -9,22 +9,27 @@ compatible. They both must have the same members (type + name).
 
 section: casting pointers
 
-group: genericcast
+group: genericcast_TYPE
 
 If an interface subtype is constructed with help of TYPE_it_DECLARE
 it is compatible with TYPE_it. To cast a pointer to subtype into a
 pointer to TYPE_it use genericcast_TYPEit(...). This function which
 is implemented as macro checks the compatibility.
 
-group: FROMTYPEcast
+group: FROMTYPEcast_TYPE
 
 The same as genericcast except that function FROMTYPEcast_TYPE(...)
 casts a pointer to FROMTYPE into a pointer to TYPE.
 This cast is more specific and does only accepts pointers to FROMTYPE.
 
-group: castasTOTYPE
+group: cast_TYPE
 
-This cast reverses the type conversion. The function castasTOTYPE_TYPE
+If you do not need a generic cast and have only one FROMTYPEcast_TYPE
+you can rename it into cast_TYPE.
+
+group: asTOTYPE
+
+This cast reverses the type conversion. The function asTOTYPE_TYPE
 converts a pointer to TYPE into a pointer to TOTYPE.
 It is considered an extension of TOTYPE. The same functionality could
 be achieved with function TYPEcast_TOTYPE implemented as part of the

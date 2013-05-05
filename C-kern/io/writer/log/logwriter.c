@@ -31,7 +31,6 @@
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
-#include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -114,27 +113,17 @@ ONABORT:
 // group: helper
 
 /* function: allocatebuffer_logwriter
- * Reserves virtual memory for internal buffer. */
-static int allocatebuffer_logwriter(/*out*/vmpage_t * buffer)
+ * Reserves some memory pages for internal buffer. */
+static int allocatebuffer_logwriter(/*out*/memblock_t * buffer)
 {
-   int err ;
-   size_t  pgsize = pagesize_vm() ;
-   size_t nrpages = (8191 + pgsize) / pgsize ;
-
-   err = init_vmpage(buffer, nrpages) ;
-
-   return err ;
+   return ALLOC_PAGECACHE(pagesize_16384, buffer) ;
 }
 
 /* function: freebuffer_logwriter
  * Frees internal buffer. */
-static int freebuffer_logwriter(vmpage_t * buffer)
+static int freebuffer_logwriter(memblock_t * buffer)
 {
-   int err ;
-
-   err = free_vmpage(buffer) ;
-
-   return err ;
+   return RELEASE_PAGECACHE(buffer) ;
 }
 
 // group: lifetime
@@ -142,19 +131,16 @@ static int freebuffer_logwriter(vmpage_t * buffer)
 int init_logwriter(/*out*/logwriter_t * lgwrt)
 {
    int err ;
-   vmpage_t  buffer = vmpage_INIT_FREEABLE ;
+   memblock_t  buffer ;
 
    err = allocatebuffer_logwriter(&buffer) ;
    if (err) goto ONABORT ;
 
-   static_assert( &lgwrt->buffer == (void*)genericcast_memblock(&lgwrt->buffer, ), "same structure") ;
-   static_assert( &buffer        == (void*)genericcast_memblock(&buffer, ), "same structure") ;
-   lgwrt->buffer  = (typeof(lgwrt->buffer)) memblock_INIT(buffer.size, buffer.addr) ;
+   *genericcast_memblock(&lgwrt->buffer,) = buffer ;
    lgwrt->logsize = 0 ;
 
    return 0 ;
 ONABORT:
-   (void) freebuffer_logwriter(&buffer) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -167,7 +153,7 @@ int free_logwriter(logwriter_t * lgwrt)
       flushbuffer_logwriter(lgwrt) ;
    }
 
-   err = freebuffer_logwriter((vmpage_t*)&lgwrt->buffer) ;
+   err = freebuffer_logwriter(genericcast_memblock(&lgwrt->buffer,)) ;
 
    if (err) goto ONABORT ;
 
@@ -269,7 +255,7 @@ static int test_initfree(void)
    lgwrt.logsize = 1 ;
    TEST(0 == init_logwriter(&lgwrt)) ;
    TEST(lgwrt.buffer.addr != 0 ) ;
-   TEST(lgwrt.buffer.size == 8192) ;
+   TEST(lgwrt.buffer.size == 16384) ;
    TEST(lgwrt.logsize     == 0 ) ;
    TEST(0 == free_logwriter(&lgwrt)) ;
    TEST(0 == lgwrt.buffer.addr) ;
@@ -408,16 +394,12 @@ static int test_printf(void)
    int            pipefd[2] = { -1, -1 } ;
    int            oldstdout = -1 ;
 
-   // prepare pipe
+   // prepare
+   TEST(0 == init_logwriter(&lgwrt)) ;
    TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
    oldstdout = dup(STDOUT_FILENO) ;
    TEST(0 < oldstdout) ;
    TEST(STDOUT_FILENO == dup2(pipefd[1], STDOUT_FILENO)) ;
-   // prepare logwriter
-   TEST(0 == init_logwriter(&lgwrt)) ;
-   TEST(lgwrt.buffer.addr != 0 ) ;
-   TEST(lgwrt.buffer.size == 8192) ;
-   TEST(lgwrt.logsize     == 0 ) ;
 
    // TEST printf_logwriter (log_channel_ERR)
    printf_logwriter(&lgwrt, log_channel_ERR, "%s", "TESTSTRT\n" ) ;

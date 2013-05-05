@@ -116,6 +116,18 @@ XXX2:
    TEST(0 == errtimer.timercount) ;
    TEST(3 == errtimer.errcode) ;
 
+   // TEST SETONERROR_testerrortimer
+   err = 0 ;
+   init_testerrortimer(&errtimer, 2, 4) ;
+   SETONERROR_testerrortimer(&errtimer, &err) ;
+   TEST(0 == err) ;
+   TEST(1 == errtimer.timercount) ;
+   TEST(4 == errtimer.errcode) ;
+   SETONERROR_testerrortimer(&errtimer, &err) ;
+   TEST(4 == err) ;
+   TEST(0 == errtimer.timercount) ;
+   TEST(4 == errtimer.errcode) ;
+
    return 0 ;
 ONABORT:
    return EINVAL ;

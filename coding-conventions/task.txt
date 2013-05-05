@@ -4,301 +4,247 @@ title: Taskmanagement
 
    The following modules exist which allow to run multiple threads of execution.
 
-   * ??? (TODO: implement higher level abstraction on top)
-   * exothreads
-   * system processes
-   * system threads
+   * system process (main thread)
+   * system thread
+   * syncrun_t / syncthread_t
 
-group: Exothread
-   Synchronous, cooperative thread running quasi-parallel.
+group: Syncthread
+   A synchronous, cooperative thread which runs exclusive in a system thread
+   context. Explicitly giving up the processor gives other syncthreads in
+   the same system thread a chance to run. Synchronisation mechanisms
+   can be used to wait for exit of another syncthread or for a certain
+   condition.
 
    Also called stackless threads, protothreads or coroutines.
 
-   *exo*       - A prefix meaning outside or external (Greek origin).
-   *exothread* - A thread which stores its execution context and state
-                 in an external object.
+   > #include "C-kern/api/task/syncrun.h"
+   > #include "C-kern/api/task/syncthread.h"
 
-   > #include "C-kern/api/task/exothread.h"
+   Synchreads are stored and executed by <syncrun_t>.
+   Every system thread has its own <syncrun_t>.
 
-   It is possible to call them exthreads or xthreads for short.
+   Syncthreads do not need to lock objects as long as these objects
+   are local to the system thread. Therefore the programming style
+   is lockless and synchronous.
 
-   Exothreads are grouped together and every such group is
-   executed by exactly one thread.
+about: Some Implementation Details
 
-   At any time only one xthread is executed from one group.
-   The programming style is synchronous. Explicitly giving
-   up the processor gives other exothreads in the same group
-   a chance to run. Locks and other synchronisation mechanisms
-   are not necessary.
+> struct syncthread_t {
+>    syncthread_f   mainfct ;
+>    void *         state ;
+> } ;
 
-about: Internal Workings
+   A <syncthread_t> consists of a pointer to its main function
+   and a pointer to its state.
 
-> struct exothread_t {
->    exothread_main_f  main ;
->    void            * instr_ptr ;
+   Both variables constitutes the execution state of the syncthread.
+   Except if a syncthread waits for an event (see <waitforexit_syncrun>,
+   <waitforevent_syncrun> or <waitforlist_syncrun>) and becomes inactive.
+   In that case its execution state is extended with an address of a label
+   so that execution continues right after the call to the wait function
+   if it is woken up.
+
+> struct syncrun_t {
+>    /* variable: queues
+>     * Queues wich are used to store <syncthread_t>.
+>     * Every queue symbolizes a different running state. */
+>    syncqueue_t       queues[7] ;
+>    /* variable: wakeup_list
+>     * List of <syncevent_t>.
+>     * Every event references a waiting <syncthread_t> (see <syncwait_t>). ... */
+>    syncwlist_t       wakeup_list ;
 >    ...
-> }
+> } ;
 
-   An <exothread_t> mainly is pointer to a function and a pointer to label in this function.
-   The instr_ptr constitutes the execution state of the exothread.
+The second type <syncthread_t> manages all syncthread contained in a
+single system thread. The thread global singleton can be queried with
+<syncrun_maincontext>. It manages a set of queues of type <syncqueue_t>.
+The queue in which a <syncthread_t> is stored determines its state.
+There is queue for threads which must be initialized (initqueue),
+there are 2 queues for initialized threads which are ready to run (runqueue)
+and there are 2 queues for syncthreads which wait for an event to occur.
+There is an additional wakeup queue for events <syncevent_t> and a queue to
+store thee nodes of list type <syncwlist_t> which implements a list of waiting
+threads.
 
-   Right at the beginning of an exothread execution function
-   you do a simple call to <exothread_t.jumpstate_exothread>.
-   This call jumps to the last location within the function which must have been saved with a previous
-   call to <exothread_t.setstate_exothread>.
+about: Generic Structure of Syncthread
 
-   With gcc you can get the address of a label with
-> &&LABEL
-   To jump to such a label the implementation of jumpstate_exothread uses another gcc extension
-> goto *instr_ptr
-
-about: Generic Structure of Exothread
-
-> int test_exthread(exothread_t * xthread)
+> struct initparam_t {
+>    int dummy1 ;
+> } ;
+>
+> struct runparam_t {
+>    int dummy1 ;
+> } ;
+>
+> static int maintest_syncthread(syncthread_t * sthread, uint32_t signalstate)
 > {
->    jumpstate_exothread() ;
+>    struct runparam_t * runparam = state_syncthread(sthread) ;
 >
->    exothread_INIT: ;
+>    handlesignal_syncthread(signalstate, continuelabel_syncrun(syncrun_maincontext()), ONINIT, ONRUN, ONABORT) ;
 >
->    do_some_stuff() ;
+> ONINIT:
+>    // runparam is initparam (only at initialization)
+>    struct initparam_t * initparam = (struct initparam_t *)runparam
+>    runparam = malloc(sizeof(struct runparam_t)) ;
+>    setstate_syncthread(sthread, runparam) ;
+>    if (runparam == 0) abortthread_syncrun(syncrun_maincontext()) ;
+>    // ... initialize it ...
+>    return 0 ; // yield processor (continue execution)
 >
->    exothread_FREE: ;
+> ONRUN:
+>    // is called after init
+>    bool have_done_enough = false ;
+>    // .. do what a syncthread has to do ..
 >
->    finish_exothread() ;
+>    if (have_done_enough) exitthread_syncrun(syncrun_maincontext(), 0) ;
+>    return 0 ; // yield processor (continue execution)
+>
+> ONABORT:
+>    // called if out of memory in component syncrun_t or if malloc in ONINIT went wrong
+>    if (runparam) free(runparam) ;
 >    return 0 ;
 > }
 
-   Parameter xthread:
+   Function Signature:
 
-   The main execution function of an exothread must have the above signature.
-   The parameter name must be *xthread*. If not some functions implemented as macros
-   like <exothread_t.finish_exothread> or <exothread_t.jumpstate_exothread> would not work. These functions assume that the
-   current exothread can be accessed with (xthread).
+   The main execution function of a syncthread must have the above signature.
+   The first parameter references the executed syncthread. The second is a flag
+   which is used to signal a value from <syncthread_signal_e>.
+
+   Use parameter sthread to access the state of the syncthread with <state_syncthread>.
+   Use parameter signalstate to switch between the states:
+   initialization (see <syncthread_signal_INIT>), normal running (see <syncthread_signal_NULL>),
+   restart after a waiting operation (see <syncthread_signal_WAKEUP>) and abort situation
+   (see <syncthread_signal_ABORT>).
+
+   Use function <handlesignal_syncthread> to decode the signalstate and jump to the correct
+   labels which are called "ONINIT", "ONRUN" and "ONABORT" (you can use other names).
+   There is no special label for wakeup. This label is constructed dynamically
+   (see for example <waitforevent_syncrun>) and read with function <continuelabel_syncrun>.
 
    Initialization:
 
-   The function is executed sequentially until <exothread_t.jumpstate_exothread>.
-   From then on the execution continues at the label set with the last call to
-   <exothread_t.setstate_exothread>.
+   To start a new syncthread with a single initialization argument call function
+   <startthread_syncrun> which copies the start parameter (mainfct + init param) into
+   the initqueue of <syncrun_t>.
 
-   If test_exthread is entered the first time jumpstate_exothread() continues the
-   execution at label *exothread_INIT:*. The label *exothread_FREE:* is not necessary
-   in the above implementation but it must be defined to prevent compilation errors.
+>  ╭───────────────────────────╮      ╭────────────────────────╮
+>  | syncrun_t                 |      | queue_page_t           |
+>  ├───────────────────────────┤      ├────────────────────────┤
+>  | queues[syncrun_qid_INIT] ─┼─────▸| /* prev entries */     |
+>  ╰───────────────────────────╯      ├────────────────────────┤
+>                                     | initqueue_entry_t {    |
+>                                     |  mainfct               |
+>  startthread_syncrun()  ┈┈┈┈┈┈┈┈┈>  |  state /*initparam*/  ┈┼┈┐ // (possible connection)
+>       /*creates new entry*/➜        |  exitevent             | ┊ // use startthread2_syncrun()
+>                                     |  initarg[initargsize]  |<┘ // to allocate the initparam
+>                                     | }                      |   // in the queue
+>                                     ╰────────────────────────╯
+
+   A second function <startthread2_syncrun> provides a way to allocate an additional
+   initialization argument which is freed automatically after the thread has been
+   initialized. That is the reason the above maintest_syncthread() function allocates
+   a new runtime argument in the initialization phase.
+
+   If you want to run a syncthread synchronous way call function <waitforexit_syncrun>
+   directly after startthread_syncrun or startthread2_syncrun. This moves the calling
+   thread into one of the wait queues. After the newly started thread stops running
+   the calling thread is woken up and continues execution after waitforexit_syncrun(),
+
+   All threads stored in the initqueue are run the first time and therefore receive
+   the value <syncthread_signal_INIT> as their signalstate parameter.
+   The simplest way to check the signalstate parameter is to use function
+   <handlesignal_syncthread> which handles every possible signal value for you.
+   The initsignal indicates the thread state (can be read with <state_syncthread>)
+   contains the initialization argument which could be automatically allocated and freed
+   in the initqueue and therefore must be copied if the values are needed after init time.
+
+   Running:
+
+   After the syncthread has returned from initialization it is called with a signalstate set
+   to 0 (<syncthread_signal_NULL>) which indicates normal running mode. If the syncthread
+   calls no exit, abort or waiting function it continues to run forever.
+
+   Therefore yielding the processor with "return 0;" after a small amount of time (< 1ms)
+   is necessary to allow other syncthreads to run.
+
+   Waiting:
+
+   A syncthread_t can wait for an event (see <syncevent_t>) which supports only one waiting
+   thread. It can also wait for a condition in a waitlist (see <syncwlist_t>). A syncwlist
+   supports any number of waiting threads. It uses an internal queue in <syncrun_t> to store
+   necessary information. The functions to wait for an event or in a list are <waitforevent_syncrun>
+   resp. <waitforlist_syncrun>. Another thread which wants to wakeup waiting threads uses
+   <signalevent_syncrun> and <signalfirst_syncrun> to put a single thread into the wakeup queue
+   or onto the wakeup_list. It can call <signalall_syncrun> to wakeup all waiting threads stored a
+   syncwlist at once.
+
+   The waitqueue in <syncrun_t> stores an additional continuelabel. Every wait function is implemented
+   as macro and contains the following code sequence
+
+> setstatewaitlist_syncrun( ... __extension__ && waitlabel) ;
+> return 0 ;
+> waitlabel:
+
+   which uses an extension of gcc. Gcc allows to store the address of a C label and jump to its location
+   with "goto*(address_of_label);" This is used in the function <handlesignal_syncthread> to continue
+   execution if signalstate is set to value <syncthread_signal_WAKEUP>. The label where execution should
+   continue can be queried for with <continuelabel_syncrun>.
 
    Finishing a Computation:
 
-   The function will be reexecuted until it is finished.
-   In the above example only a single computation do_some_stuff() is executed.
-   Before function exit the xthread is marked as finished with <exothread_t.finish_exothread>.
-   The result is that the state of the current xthread will be marked as "computation is finished"
-   and it will be never executed again.
-
-   A more complex example:
-
-> int test_exthread2(exothread_t * xthread)
-> {
->    jumpstate_exothread() ;
->
->    exothread_INIT: ;
->
->    do_allocate_resources() ;
->    setholdingresource_exothread() ;
->
->    setstate_exothread(__extension__ &&exothread_LOOP) ;
->    exothread_LOOP: ;
->
->    while (need_some_more_computation) {
->       do_computation() ;
->       return 0 ;
->    }
->
->    exothread_FREE: ;
->
->    do_free_resource() ;
->
->    finish_exothread() ;
->    return 0 ;
-> }
-
-   The next example allocates some resources which must be freed even in case of error.
-   To ensure this <exothread_t.setholdingresource_exothread> is called.
-
-   Next the new state *exothread_LOOP:* is set to be active and a computation step is done.
-   With *return 0* the xthread yields its execution time and ensures that other exothreads
-   can be executed.
-
-   The next time test_exthread2 is called the execution continues at label *exothread_LOOP:*.
-   Unless there is more computation to do all allocated resources are freed and a call to
-   finish_exothread() marks the exothread as finished.
+   The syncthread runs as long as it wants to. But if its omputation is finished it should call
+   <exitthread_syncrun> with the return code set to value 0 indicating success. If the computation
+   could not be finished successfully a return value > 0 indicates the corresponding error code.
+   Negative return values are reserved for signaling special exit conditions. There is only one
+   special value in use at the time of writing (see <syncrun_returncode_ABORT>.)
 
 about: Error Handling
 
-> int test_exthread3(exothread_t * xthread)
-> {
->    jumpstate_exothread() ;
->
->    exothread_INIT: ;
->
->    do_allocate_resources() ;
->    setholdingresource_exothread() ;
->
->    setstate_exothread(__extension__ &&exothread_LOOP) ;
->    exothread_LOOP: ;
->
->    while (need_some_more_computation) {
->       int err = do_computation() ;
->       return err /* 0 == OK */ ;
->    }
->
->    exothread_FREE: ;
->
->    do_free_resource() ;
->
->    finish_exothread() ;
->    return 0 ;
-> }
+   Resource Errors in syncthread_t:
 
-   The next sample implementation number 3 is the same as number 2 except for
-   returning an error if do_computation fails.
+   If a running syncthread can not allocate a system resource it needs for its computation it
+   could either wait a little time and try again. Or it could free its already allocated resources
+   and call <exitthread_syncrun> with a return value != 0. If the error code should be logged
+   it should call a logging function before its exit.
 
-   Effect of an Error:
+   Resource Errors in syncrun_t:
 
-   Returning a value not 0 is considered an error. In such a case the computation
-   of the exothread is finished automatically unless <exothread_t.setholdingresource_exothread>
-   was called before. The error code is safed in the <exothread_t> object so a later
-   stage can react accordingly.
+   If a running syncthread calls a wait operation and there is no more memory in the waitqueue of
+   <syncrun_t> the state of the thread is changed to abort. After the running syncthread has returned
+   the <syncrun_t> component calls the thread again with its signalstate set to <syncthread_signal_ABORT>.
+   Therefore every <syncthread_t> must implement an ONABORT handler which frees all allocated resources.
 
-   Freeing Resources:
+   It is also possible that a running thread calls <abortthread_syncrun> which sets its own state
+   to abort explicitly.
 
-   If the xthread has set its own state to "resources must freed" and if is not in finished state
-   it is executed again but this time the execution starts at label *exothread_FREE:*.
-   So freeing resources directly after this label ensures that they are freed even in case of an error.
-   It is considered not a problem if all resources can not be freed in one step.
-   The function is rexecuted until a finish_exothread() is encountered. In the above example
-   a simple do_free_resource() frees all resources and a following finish_exothread() prevents
-   rexecution.
+   An aborted syncthread is marked as exited and if there is another syncthread waiting for its exit
+   the waiting thread is woken up and function <waitforexit_syncrun> returns the value
+   <syncrun_returncode_ABORT> to indicate that the called thread has been aborted.
 
-   Second Error returned by exothread_FREE:
+about: Blocking OS Call
 
-   If another error is returned from the execution path starting at exothread_FREE: the xthread
-   is also marked as finished and it is assumed that some or all resources are lost.
-   The second error value is ignored, i.e. it does not overwrite the first one already stored.
-   If you do not want to end in case of a second error you have to set <exothread_t.setholdingresource_exothread>
-   a second time before returning another error.
+   The C-kern/api encapsulates OS calls and offers asynchronous non-blocking calls if possible.
+   If this is not possible due to limitations of the underlaying OS a thread pool will be used.
+   And every call to a service which calls the OS in a blocking way must start a new thread which
+   calls the OS instead. The <syncthread_t> is moved into the waitqueue until the system thread
+   returns from the OS.
 
-about: Subtyping Exothreads
-
-> typedef struct extra_xthread1_t {
->    exothread_t   xthread ;
->    // extra state variables
->    void        * extra_memory ;
-> } extra_xthread1_t ;
->
-> int test_exthread4(extra_xthread1_t * xthread)
-> {
->    jumpstate_exothread() ;
->
->    exothread_INIT: ;
->
->    xthread->extra_memory = malloc(1024) ;
->    if (!xthread->extra_memory) return ENOMEM ;
->    setholdingresource_exothread() ;
->
->    setstate_exothread(__extension__ &&exothread_LOOP) ;
->    exothread_LOOP: ;
->
->    while (need_some_more_computation) {
->       return do_computation() ;
->    }
->
->    exothread_FREE: ;
->
->    free(xthread->extra_memory) ;
->    xthread->extra_memory = 0 ; // mark it as freed (so calling it twice is ok)
->
->    finish_exothread() ;
->    return 0 ;
-> }
-
-   In the above example the exothread subtype extra_xthread1_t defines
-   an extra state variable to store a memory resource.
-
-   Creating a new Exothread:
-
-   To create an exothread you call <exothread_t.init_exothread>. But the above implementation
-   function has not the correct signature.
-   Use <exothread_t.initsubtpe_exothread> instead which casts the function pointer
-   to the correct signature and checks for a correct signature
-   and calls init_exothread for you.
-
-> #define initsubtype_exothread(_xthread, _main_fct) \
->    ( __extension__ ({                                                                    \
->          static_assert( ((int(*)(typeof(_xthread)))0) == (typeof(_main_fct)) 0, "" ) ;   \
->          static_assert( ((exothread_t*)0) == &((typeof(_xthread))0)->xthread, "" ) ;     \
->          init_exothread(&(_xthread)->xthread, (exothread_main_f) (_main_fct)) ;          \
->    }))
-
-
-about: Parameter Handling
-
-> typedef struct param_xthread1_t {
->    exothread_t   xthread ;
->    struct {
->       int x, y, z ;
->    } inarg ;
->    struct {
->       int sum ;
->    } outarg ;
-> } param_xthread1_t ;
->
-> int test_exthread5(param_xthread1_t * xthread)
-> {
->    jumpstate_exothread() ;
->
->    exothread_INIT: ;
->
->    declare_inparam_exothread(input) ;
->
->    int sum ;
->    sum  = input->x ;
->    sum += input->y ;
->    sum += input->z ;
->
->    declare_outparam_exothread(result) ;
->
->    result->sum = sum ;
->
->    exothread_FREE: ;
->
->    finish_exothread() ;
->    return 0 ;
-> }
-
-   In the above example the exothread subtype param_xthread1_t defines
-   an three input and one output arguments.
-   The fields inarg and outarg contains the list of arguments.
-   Both are defined as anonymous structs.
-
-   Accessing Arguments:
-
-   There are two different ways to access the in and out arguments to the function.
-   First to declare a name of a parameter which points to the input arguments use
-   <exothread_t.declare_inparam_exothread> respectively <exothread_t.declare_inparam_exothread>.
-
-   To get a temporary pointer to the arguments use either <exothread_t.inarg_exothread> or <exothread_t.outarg_exothread>.
-
-   It is not recommended to access them directly via xthread->inarg or xthread->outarg.
+   This functionality is not implemented yet and will be not implemented until the higher level
+   system of starting and stopping services as threads or processes or processes on other nodes
+   in a network is implemented.
 
 group: System Process
 
-   Do not use them. There will be a higher level abstraction
+   Do not use them except for test code. There will be a higher level abstraction
    which maps either to a thread or a process.
 
    > #include "C-kern/api/platform/task/process.h"
 
 group: System Thread
 
-   Do not use them. There will be a higher level abstraction
+   Do not use them except for test code. There will be a higher level abstraction
    which maps either to a thread or a process.
 
    > #include "C-kern/api/platform/task/thread.h"

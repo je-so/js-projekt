@@ -1,22 +1,21 @@
-C-kern/ds/inmem/queue.c:279: free_queue(): error: 22: Freeing a resource returned an error
-C-kern/ds/inmem/queue.c:305: insertfirst_queue(): error: 12: Function aborted
-C-kern/ds/inmem/queue.c:329: insertlast_queue(): error: 12: Function aborted
-C-kern/ds/inmem/queue.c:289: insertfirst_queue(): error: 22: Function input violates condition (nodesize <= 512)
-C-kern/ds/inmem/queue.c:305: insertfirst_queue(): error: 22: Function aborted
-C-kern/ds/inmem/queue.c:289: insertfirst_queue(): error: 22: Function input violates condition (nodesize <= 512)
-C-kern/ds/inmem/queue.c:305: insertfirst_queue(): error: 22: Function aborted
-C-kern/ds/inmem/queue.c:313: insertlast_queue(): error: 22: Function input violates condition (nodesize <= 512)
-C-kern/ds/inmem/queue.c:329: insertlast_queue(): error: 22: Function aborted
-C-kern/ds/inmem/queue.c:313: insertlast_queue(): error: 22: Function input violates condition (nodesize <= 512)
-C-kern/ds/inmem/queue.c:329: insertlast_queue(): error: 22: Function aborted
-C-kern/ds/inmem/queue.c:353: removefirst_queue(): error: 61: Function aborted
-C-kern/ds/inmem/queue.c:377: removelast_queue(): error: 61: Function aborted
-C-kern/ds/inmem/queue.c:417: resizelast_queue(): error: 61: Function aborted
-C-kern/ds/inmem/queue.c:353: removefirst_queue(): error: 75: Function aborted
-C-kern/ds/inmem/queue.c:377: removelast_queue(): error: 75: Function aborted
-C-kern/ds/inmem/queue.c:417: resizelast_queue(): error: 75: Function aborted
-C-kern/ds/inmem/queue.c:386: resizelast_queue(): error: 22: Function input violates condition (newsize <= 512)
-C-kern/ds/inmem/queue.c:417: resizelast_queue(): error: 22: Function aborted
-C-kern/ds/inmem/queue.c:353: removefirst_queue(): error: 12: Function aborted
-C-kern/ds/inmem/queue.c:377: removelast_queue(): error: 12: Function aborted
-C-kern/ds/inmem/queue.c:417: resizelast_queue(): error: 12: Function aborted
+C-kern/ds/inmem/queue.c:298: insertfirst_queue(): error: 12: Function aborted
+C-kern/ds/inmem/queue.c:322: insertlast_queue(): error: 12: Function aborted
+C-kern/ds/inmem/queue.c:282: insertfirst_queue(): error: 22: Function input violates condition (nodesize <= 512)
+C-kern/ds/inmem/queue.c:298: insertfirst_queue(): error: 22: Function aborted
+C-kern/ds/inmem/queue.c:282: insertfirst_queue(): error: 22: Function input violates condition (nodesize <= 512)
+C-kern/ds/inmem/queue.c:298: insertfirst_queue(): error: 22: Function aborted
+C-kern/ds/inmem/queue.c:306: insertlast_queue(): error: 22: Function input violates condition (nodesize <= 512)
+C-kern/ds/inmem/queue.c:322: insertlast_queue(): error: 22: Function aborted
+C-kern/ds/inmem/queue.c:306: insertlast_queue(): error: 22: Function input violates condition (nodesize <= 512)
+C-kern/ds/inmem/queue.c:322: insertlast_queue(): error: 22: Function aborted
+C-kern/ds/inmem/queue.c:346: removefirst_queue(): error: 61: Function aborted
+C-kern/ds/inmem/queue.c:370: removelast_queue(): error: 61: Function aborted
+C-kern/ds/inmem/queue.c:411: resizelast_queue(): error: 61: Function aborted
+C-kern/ds/inmem/queue.c:346: removefirst_queue(): error: 75: Function aborted
+C-kern/ds/inmem/queue.c:370: removelast_queue(): error: 75: Function aborted
+C-kern/ds/inmem/queue.c:411: resizelast_queue(): error: 75: Function aborted
+C-kern/ds/inmem/queue.c:379: resizelast_queue(): error: 22: Function input violates condition (newsize <= 512)
+C-kern/ds/inmem/queue.c:411: resizelast_queue(): error: 22: Function aborted
+C-kern/ds/inmem/queue.c:346: removefirst_queue(): error: 12: Function aborted
+C-kern/ds/inmem/queue.c:370: removelast_queue(): error: 12: Function aborted
+C-kern/ds/inmem/queue.c:411: resizelast_queue(): error: 12: Function aborted

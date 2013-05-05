@@ -122,7 +122,7 @@ bool nextskip_queueiterator(queue_iterator_t * iter, uint16_t extrasize) ;
  * from the front (first) or back (last) of the queue.
  *
  * The queue maintains a list of memory pages. On every memory page
- * several nodes are stored. */
+ * several nodes are stored. The queue uses a fixed pagesize of 4096. */
 struct queue_t {
    struct dlist_node_t * last ;
 } ;
@@ -146,7 +146,9 @@ int init_queue(/*out*/queue_t * queue) ;
  * Moves the object to another memory address.
  * After successful return dest is a copy of the old value of src
  * and src is set to <queue_INIT>.
- * This function has runtime O(n/NB) where NB is the number of nodes per memory page. */
+ * This function has runtime O(n/NB) where NB is the number of nodes per memory page.
+ * (You could copy queue_t directly but then <queuefromaddr_queue> returns the old
+ * address. If you can live with that then copy directly). */
 void initmove_queue(/*out*/queue_t * dest, queue_t * src) ;
 
 /* function: free_queue
@@ -163,13 +165,13 @@ bool isempty_queue(const queue_t * queue) ;
  * Returns the first element or 0.
  * In case of 0 the queue is either empty or the first
  * memory page contains less than nodesize bytes. */
-void * first_queue(queue_t * queue, uint16_t nodesize) ;
+void * first_queue(const queue_t * queue, uint16_t nodesize) ;
 
 /* function: last_queue
  * Returns the last element or 0.
  * In case of 0 the queue is either empty or the last
  * memory page contains less than nodesize bytes. */
-void * last_queue(queue_t * queue, uint16_t nodesize) ;
+void * last_queue(const queue_t * queue, uint16_t nodesize) ;
 
 /* function: sizefirst_queue
  * Returns the number of bytes allocated on the first memory page.
@@ -184,11 +186,11 @@ size_t sizelast_queue(const queue_t * queue) ;
 
 /* function: queuefromaddr_queue
  * Returns queue an inserted node with address nodeaddr belongs to. */
-queue_t * queuefromaddr_queue(uint32_t pagesize, void * nodeaddr) ;
+queue_t * queuefromaddr_queue(void * nodeaddr) ;
 
-/* function: pagesize_queue
- * Returns the pagesize the queue uses. */
-uint32_t pagesize_queue(const queue_t * queue) ;
+/* function: pagesizeinbytes_queue
+ * Returns the static size of a memory page the queue uses. */
+uint32_t pagesizeinbytes_queue(void) ;
 
 // group: foreach-support
 
@@ -281,7 +283,8 @@ struct queue_page_t {
     * Bytes from <end_offset> up to <pagesize>-1 are unused. */
    uint32_t       end_offset ;
    /* variable: start_offset
-    * Offset of first node relative to relative to start address of this object.
+    * Offset of first node relative to start address of this object.
+    * Bytes from start_offset up to <end_offset>-1 are in use.
     * Bytes from sizeof(queue_page_t) up to <start_offset>-1 are unused. */
    uint32_t       start_offset ;
 } ;
@@ -440,15 +443,15 @@ struct queue_page_t {
                _node ;                                   \
          }))
 
-/* define: queuefromaddr_queue
- * Implements <queue_t.queuefromaddr_queue>. */
-#define pagesize_queue(queue) \
+/* define: pagesizeinbytes_queue
+ * Implements <queue_t.pagesizeinbytes_queue>. */
+#define pagesizeinbytes_queue()  \
          (4096u)
 
 /* define: queuefromaddr_queue
  * Implements <queue_t.queuefromaddr_queue>. */
-#define queuefromaddr_queue(pagesize, nodeaddr) \
-         (((queue_page_t*)((uintptr_t)nodeaddr & ~(uintptr_t)((pagesize)-1u)))->queue)
+#define queuefromaddr_queue(nodeaddr) \
+         (((queue_page_t*)((uintptr_t)(nodeaddr) & ~((uintptr_t)pagesizeinbytes_queue()-1u)))->queue)
 
 /* define: sizefirst_queue
  * Implements <queue_t.sizefirst_queue>. */
@@ -497,8 +500,8 @@ struct queue_page_t {
    static inline void initmove##_fsuffix(/*out*/queue_t * dest, queue_t * src) __attribute__ ((always_inline)) ; \
    static inline int  free##_fsuffix(queue_t * queue) __attribute__ ((always_inline)) ; \
    static inline bool isempty##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)) ; \
-   static inline object_t * first##_fsuffix(queue_t * queue) __attribute__ ((always_inline)) ; \
-   static inline object_t * last##_fsuffix(queue_t * queue) __attribute__ ((always_inline)) ; \
+   static inline object_t * first##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)) ; \
+   static inline object_t * last##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)) ; \
    static inline size_t sizefirst##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)) ; \
    static inline size_t sizelast##_fsuffix(const queue_t * queue) __attribute__ ((always_inline)) ; \
    static inline int insertfirst##_fsuffix(queue_t * queue,/*out*/object_t ** new_node) __attribute__ ((always_inline)) ; \
@@ -517,10 +520,10 @@ struct queue_page_t {
    static inline bool isempty##_fsuffix(const queue_t * queue) { \
       return isempty_queue(queue) ; \
    } \
-   static inline object_t * first##_fsuffix(queue_t * queue) { \
+   static inline object_t * first##_fsuffix(const queue_t * queue) { \
       return first_queue(queue, sizeof(object_t)) ; \
    } \
-   static inline object_t * last##_fsuffix(queue_t * queue) { \
+   static inline object_t * last##_fsuffix(const queue_t * queue) { \
       return last_queue(queue, sizeof(object_t)) ; \
    } \
    static inline size_t sizefirst##_fsuffix(const queue_t * queue) { \

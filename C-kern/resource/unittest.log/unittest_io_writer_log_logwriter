@@ -1,2 +1,2 @@
-C-kern/io/writer/log/logwriter.c:69: initthread_logwriter(): error: 22: Function input violates condition (logobj->object == 0 || logobj->object == &g_logmain)
-C-kern/io/writer/log/logwriter.c:83: initthread_logwriter(): error: 22: Function aborted
+C-kern/io/writer/log/logwriter.c:68: initthread_logwriter(): error: 22: Function input violates condition (logobj->object == 0 || logobj->object == &g_logmain)
+C-kern/io/writer/log/logwriter.c:82: initthread_logwriter(): error: 22: Function aborted

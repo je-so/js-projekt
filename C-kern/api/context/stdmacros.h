@@ -64,14 +64,21 @@
  * > const type_t * ptr ;
  * The returned type is
  * > (type_t *) ptr ; */
-#define CONST_CAST(type_t,ptr)         ( __extension__ ({ const type_t * _ptr = (ptr) ;  (type_t*)((uintptr_t)_ptr) ; }))
+#define CONST_CAST(type_t, ptr)              \
+         ( __extension__ ({                  \
+            const type_t * _ptr1 = (ptr) ;   \
+            (type_t*) ((uintptr_t)_ptr1) ;   \
+         }))
 
 /* define: structof
  * Converts pointer to member of structure to pointer of containing structure. */
-#define structof(struct_t, member, ptrmember)                              \
-   ( __extension__ ({                                                      \
-      typeof(((struct_t*)0)->member) * _ptr = (ptrmember) ;                \
-      (struct_t*)((uintptr_t)_ptr - offsetof(struct_t, member) ) ;         \
+#define structof(struct_t, member, ptrmember)   \
+   ( __extension__ ({                           \
+      typeof(((struct_t*)0)->member) * _ptr2 ;  \
+      _ptr2 = (ptrmember) ;                     \
+      (struct_t*)                               \
+         ((uintptr_t)_ptr2                      \
+         - offsetof(struct_t, member)) ;        \
    }))
 
 /* define: VOLATILE_CAST

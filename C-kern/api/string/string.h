@@ -75,7 +75,7 @@ struct string_t {
 // group: lifetime
 
 /* define: string_INIT_FREEABLE
- * Static initializer. Sets string_t null. */
+ * Static initializer. Sets string_t to null. */
 #define string_INIT_FREEABLE           { 0, 0 }
 
 /* define: string_INIT
@@ -92,7 +92,7 @@ struct string_t {
  *
  * Example:
  * > const char   * buffer = "teststring" ;
- * > string_t     str      = string_t(buffer) ; */
+ * > string_t     str      = string_INIT_CSTR(buffer) ; */
 #define string_INIT_CSTR(cstr)          { (const uint8_t*)(cstr), strlen(cstr) }
 
 /* function: init_string

@@ -51,7 +51,7 @@ struct transCstringtable_page_t {
 #ifdef KONFIG_UNITTEST
 /* variable: s_transCstringtablepage_error
  * Simulates <init_vmpage> error in <new_transCstringtablepage>. */
-test_errortimer_t          s_transCstringtablepage_error = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t      s_transCstringtablepage_error = test_errortimer_INIT_FREEABLE ;
 #endif
 
 // group: lifetime

@@ -62,10 +62,12 @@ Group: Api  {
 
    Group: Context  {
 
+      File: ErrorContext  (api/context/errorcontext.h)
       File: ProcessContext  (api/context/processcontext.h)
       File: Standard-Macros  (api/context/stdmacros.h)
       File: SystemUserContext  (api/context/sysusercontext.h)
       File: ThreadContext  (api/context/threadcontext.h)
+      File: Unicode  (api/context/unicode.h)
       }  # Group: Context
 
    Group: Ds  {
@@ -86,17 +88,16 @@ Group: Api  {
          File: ArraySF  (api/ds/inmem/arraysf.h)
          File: ArraySTF  (api/ds/inmem/arraystf.h)
          File: BinaryStack  (api/ds/inmem/binarystack.h)
+         File: BlockArray  (api/ds/inmem/blockarray.h)
          File: DoubleLinkedList  (api/ds/inmem/dlist.h)
          File: Extendible-Hashing  (api/ds/inmem/exthash.h)
          File: Patricia-Trie  (api/ds/inmem/patriciatrie.h)
+         File: Queue  (api/ds/inmem/queue.h)
          File: RedBlacktree-Index  (api/ds/inmem/redblacktree.h)
          File: SingleLinkedList  (api/ds/inmem/slist.h)
          File: Splaytree  (api/ds/inmem/splaytree.h)
          File: Suffix-Tree  (api/ds/inmem/suffixtree.h)
          }  # Group: InMemory
-
-      File: Foreach-Iterator  (api/ds/foreach.h)
-      File: Typeadapt  (api/ds/typeadapt.h)
 
       Group: Typeadapt  {
 
@@ -105,9 +106,11 @@ Group: Api  {
          File: Typeadapt-GetKey  (api/ds/typeadapt/getkey.h)
          File: Typeadapt-Implementation  (api/ds/typeadapt/typeadapt_impl.h)
          File: Typeadapt-Lifetime  (api/ds/typeadapt/lifetime.h)
-         File: Typeadapt-Typeinfo  (api/ds/typeadapt/typeinfo.h)
+         File: Typeadapt-Nodeoffset  (api/ds/typeadapt/nodeoffset.h)
          }  # Group: Typeadapt
 
+      File: Foreach-Iterator  (api/ds/foreach.h)
+      File: Typeadapt  (api/ds/typeadapt.h)
       }  # Group: Ds
 
    Group: Io  {
@@ -116,6 +119,7 @@ Group: Api  {
 
          File: Directory  (api/io/filesystem/directory.h)
          File: File  (api/io/filesystem/file.h)
+         File: File-Util  (api/io/filesystem/fileutil.h)
          File: Memory-Mapped-File  (api/io/filesystem/mmfile.h)
          }  # Group: Filesystem
 
@@ -128,6 +132,7 @@ Group: Api  {
       Group: Reader  {
 
          File: CSV-Filereader  (api/io/reader/csvfilereader.h)
+         File: FileReader  (api/io/reader/filereader.h)
          File: UTF8TextReader  (api/io/reader/utf8reader.h)
          }  # Group: Reader
 
@@ -141,7 +146,6 @@ Group: Api  {
          File: LogWriter  (api/io/writer/log/logwriter.h)
          }  # Group: Writer
 
-      File: Filedescriptor  (api/io/filedescr.h)
       File: IO-Accessmode  (api/io/accessmode.h)
       File: IOCallback  (api/io/iocallback.h)
       File: IOEvent  (api/io/ioevent.h)
@@ -159,6 +163,7 @@ Group: Api  {
 
       Group: Hash  {
 
+         File: CRC-32  (api/math/hash/crc32.h)
          File: SHA-1-Hashcode  (api/math/hash/sha1.h)
          }  # Group: Hash
 
@@ -169,6 +174,7 @@ Group: Api  {
          File: Intop-Log10  (api/math/int/log10.h)
          File: Intop-Log2  (api/math/int/log2.h)
          File: Intop-Power2  (api/math/int/power2.h)
+         File: Intop-Reverse  (api/math/int/reverse.h)
          File: Intop-Sign  (api/math/int/sign.h)
          File: Intop-SquareRoot  (api/math/int/sqroot.h)
          }  # Group: Int
@@ -176,9 +182,6 @@ Group: Api  {
       }  # Group: Math
 
    Group: Memory  {
-
-      File: HWCache  (api/memory/hwcache.h)
-      File: MemoryBlock  (api/memory/memblock.h)
 
       Group: Mm  {
 
@@ -188,7 +191,13 @@ Group: Api  {
          File: TransientMemoryManager  (api/memory/mm/mmtransient.h)
          }  # Group: Mm
 
-      File: WBuffer  (api/memory/wbuffer.h)
+      File: HWCache  (api/memory/hwcache.h)
+      File: MemoryBlock  (api/memory/memblock.h)
+      File: MemoryPageCache  (api/memory/pagecache_impl.h)
+      File: PageCache-Object  (api/memory/pagecache.h)
+      File: PageCacheMacros  (api/memory/pagecache_macros.h)
+      File: VirtualMemory  (api/memory/vm.h)
+      File: WriteBuffer  (api/memory/wbuffer.h)
       }  # Group: Memory
 
    Group: Platform  {
@@ -211,25 +220,28 @@ Group: Api  {
 
       Group: Task  {
 
-         File: Exoscheduler  (api/platform/task/exoscheduler.h)
-         File: Exothread  (api/platform/task/exothread.h)
+         File: Process  (api/platform/task/process.h)
+         File: Thread  (api/platform/task/thread.h)
          File: Threadpool  (api/platform/task/threadpool.h)
          }  # Group: Task
 
+      Group: X11  {
+
+         File: X11-Attribute  (api/platform/X11/x11attribute.h)
+         File: X11-Display  (api/platform/X11/x11display.h)
+         File: X11-Drawable  (api/platform/X11/x11drawable.h)
+         File: X11-OpenGL-Window  (api/platform/X11/glxwindow.h)
+         File: X11-Screen  (api/platform/X11/x11screen.h)
+         File: X11-Subsystem  (api/platform/X11/x11.h)
+         File: X11-Videomode  (api/platform/X11/x11videomode.h)
+         File: X11-Window  (api/platform/X11/x11window.h)
+         File: X11SystemKonfig  (api/platform/X11/x11syskonfig.h)
+         }  # Group: X11
+
       File: Locale-support  (api/platform/locale.h)
       File: Malloc  (api/platform/malloc.h)
-      File: Process  (api/platform/process.h)
       File: SystemUser  (api/platform/sysuser.h)
-      File: Thread  (api/platform/thread.h)
-      File: VirtualMemory  (api/platform/virtmemory.h)
       }  # Group: Platform
-
-   Group: Presentation  {
-
-      File: X11-Display  (api/presentation/X11/display.h)
-      File: X11-OpenGL-Window  (api/presentation/X11/glxwindow.h)
-      File: X11-Subsystem  (api/presentation/X11/x11.h)
-      }  # Group: Presentation
 
    Group: String  {
 
@@ -237,8 +249,10 @@ Group: Api  {
       File: Convert-wchar  (api/string/convertwchar.h)
       File: CString  (api/string/cstring.h)
       File: FormatString  (api/string/format_string.h)
+      File: SplitString  (api/string/splitstring.h)
       File: String  (api/string/string.h)
-      File: Unicode  (api/string/unicode.h)
+      File: StringStream  (api/string/stringstream.h)
+      File: TextPosition  (api/string/textpos.h)
       File: URLEncodeString  (api/string/urlencode_string.h)
       File: UTF-8  (api/string/utf8.h)
       }  # Group: String
@@ -262,9 +276,25 @@ Group: Api  {
       File: TimeValue  (api/time/timevalue.h)
       }  # Group: Time
 
+   Group: Lang  {
+
+      File: TransC-Parser  (api/lang/transC/transCparser.h)
+      File: TransC-StringTable  (api/lang/transC/transCstringtable.h)
+      File: TransC-Token  (api/lang/transC/transCtoken.h)
+      File: UTF8-Scanner  (api/lang/utf8scanner.h)
+      }  # Group: Lang
+
+   Group: Task  {
+
+      File: SyncQueue  (api/task/syncqueue.h)
+      File: SyncRun  (api/task/syncrun.h)
+      File: SyncThread  (api/task/syncthread.h)
+      File: SyncWait  (api/task/syncwait.h)
+      File: SyncWaitlist  (api/task/syncwlist.h)
+      }  # Group: Task
+
    File: ErrorHandling  (api/err.h)
    File: MainContext  (api/maincontext.h)
-   File: StreamCallback  (api/adapter/stream.h)
    File: Test  (api/test.h)
    }  # Group: Api
 
@@ -279,6 +309,7 @@ Group: Implementation  {
    Group: Context  {
 
       File: Context-Oriented-Programming  (context/COP.txt)
+      File: ErrorContext impl  (context/errorcontext.c)
       File: MainContext impl  (context/maincontext.c)
       File: ProcessContext impl  (context/processcontext.c)
       File: ThreadContext impl  (context/threadcontext.c)
@@ -291,9 +322,11 @@ Group: Implementation  {
          File: ArraySF impl  (ds/inmem/arraysf.c)
          File: ArraySTF impl  (ds/inmem/arraystf.c)
          File: BinaryStack impl  (ds/inmem/binarystack.c)
+         File: BlockArray impl  (ds/inmem/blockarray.c)
          File: DoubleLinkedList impl  (ds/inmem/dlist.c)
          File: Extendible-Hashing impl  (ds/inmem/exthash.c)
          File: Patricia-Trie impl  (ds/inmem/patriciatrie.c)
+         File: Queue impl  (ds/inmem/queue.c)
          File: RedBlacktree-Index impl  (ds/inmem/redblacktree.c)
          File: SingleLinkedList impl  (ds/inmem/slist.c)
          File: Splaytree impl  (ds/inmem/splaytree.c)
@@ -307,7 +340,7 @@ Group: Implementation  {
          File: Typeadapt-GetKey impl  (ds/typeadapt/getkey.c)
          File: Typeadapt-Implementation impl  (ds/typeadapt/typeadapt_impl.c)
          File: Typeadapt-Lifetime impl  (ds/typeadapt/lifetime.c)
-         File: Typeadapt-Typeinfo impl  (ds/typeadapt/typeinfo.c)
+         File: Typeadapt-Nodeoffset impl  (ds/typeadapt/nodeoffset.c)
          }  # Group: Typeadapt
 
       File: Typeadapt impl  (ds/typeadapt.c)
@@ -319,6 +352,7 @@ Group: Implementation  {
 
          File: CSV-Filereader impl  (io/reader/csvfilereader.c)
          File: Description-Reader  (io/reader/reader.txt)
+         File: FileReader impl  (io/reader/filereader.c)
          File: UTF8TextReader impl  (io/reader/utf8reader.c)
          }  # Group: Reader
 
@@ -328,9 +362,19 @@ Group: Implementation  {
          File: LogWriter impl  (io/writer/log/logwriter.c)
          }  # Group: Writer
 
+      File: Errorlog-Writer  (io/writer/errlog.c)
+      File: File-Util impl  (io/filesystem/fileutil.c)
       File: IOCallback impl  (io/iocallback.c)
       File: URL impl  (io/url.c)
       }  # Group: Io
+
+   Group: Lang  {
+
+      File: TransC-Parser impl  (lang/transC/transCparser.c)
+      File: TransC-StringTable impl  (lang/transC/transCstringtable.c)
+      File: TransC-Token impl  (lang/transC/transCtoken.c)
+      File: UTF8-Scanner impl  (lang/utf8scanner.c)
+      }  # Group: Lang
 
    Group: Main  {
 
@@ -343,10 +387,11 @@ Group: Implementation  {
 
       Group: Tools  {
 
+         File: GenerateErrorStringTable-Tool  (main/tools/generrtab.c)
          File: genfile  (main/tools/genfile.c)
          File: genmake  (main/tools/genmake.c)
          File: TextDB  (main/tools/textdb.c)
-         File: TextResource-v2-Compiler  (main/tools/textresourcev2_compiler.c)
+         File: TextResource-Compiler  (main/tools/textresource_compiler.c)
          }  # Group: Tools
 
       }  # Group: Main
@@ -361,6 +406,7 @@ Group: Implementation  {
 
       Group: Hash  {
 
+         File: CRC-32 impl  (math/hash/crc32.c)
          File: SHA-1-Hashcode impl  (math/hash/sha1.c)
          }  # Group: Hash
 
@@ -373,6 +419,7 @@ Group: Implementation  {
          File: Intop-Log10 impl  (math/int/log10.c)
          File: Intop-Sign impl  (math/int/sign.c)
          File: Intop-SquareRoot impl  (math/int/sqroot.c)
+         File: Intop-Reverse impl  (math/int/reverse.c)
          }  # Group: Int
 
       }  # Group: Math
@@ -381,20 +428,13 @@ Group: Implementation  {
 
       File: HWCache impl  (memory/hwcache.c)
       File: MemoryBlock impl  (memory/memblock.c)
+      File: MemoryManager-Interface impl  (memory/mm/mm_it.c)
+      File: MemoryPageCache impl  (memory/pagecache_impl.c)
+      File: PageCache-Object impl  (memory/pagecache.c)
+      File: PageCacheMacros impl  (memory/pagecache_macros.c)
       File: TransientMemoryManager impl  (memory/mm/mmtransient.c)
-      File: WBuffer impl  (memory/wbuffer.c)
+      File: WriteBuffer impl  (memory/wbuffer.c)
       }  # Group: Memory
-
-   Group: String  {
-
-      File: Base64EncodeString impl  (string/base64encode_string.c)
-      File: Convert-wchar impl  (string/convertwchar.c)
-      File: CString impl  (string/cstring.c)
-      File: FormatString impl  (string/format_string.c)
-      File: String impl  (string/string.c)
-      File: URLEncodeString impl  (string/urlencode_string.c)
-      File: UTF-8 impl  (string/utf8.c)
-      }  # Group: String
 
    Group: Platform  {
 
@@ -404,42 +444,71 @@ Group: Implementation  {
 
             File: Directory Linux  (platform/Linux/io/directory.c)
             File: File Linux  (platform/Linux/io/file.c)
-            File: Filedescriptor Linux  (platform/Linux/io/filedescr.c)
             File: Internetprotocol-Address Linux  (platform/Linux/io/ipaddr.c)
             File: Internetprotocol-Sockets Linux  (platform/Linux/io/ipsocket.c)
             File: IOPoll Linuximpl  (platform/Linux/io/iopoll.c)
             File: Memory-Mapped-File Linux  (platform/Linux/io/mmfile.c)
             }  # Group: Io
 
+         Group: Task  {
+
+            File: Process Linuximpl  (platform/Linux/task/process.c)
+            File: Thread Linux  (platform/Linux/task/thread.c)
+            File: Threadpool impl  (platform/Linux/task/threadpool.c)
+            }  # Group: Task
+
+         Group: Time  {
+
+            File: SystemClock Linux  (platform/Linux/time/sysclock.c)
+            File: SysTimer Linux  (platform/Linux/time/systimer.c)
+            }  # Group: Time
+
          File: Locale-support Linux  (platform/Linux/locale.c)
          File: Malloc impl  (platform/Linux/malloc.c)
          File: Mutex Linuximpl  (platform/Linux/mutex.c)
          File: PosixSignals Linux  (platform/Linux/signal.c)
-         File: Process Linuximpl  (platform/Linux/process.c)
          File: Semaphore Linux  (platform/Linux/semaphore.c)
-         File: SystemClock Linux  (platform/Linux/time/sysclock.c)
          File: SystemUser Linuximpl  (platform/Linux/sysuser.c)
-         File: SysTimer Linux  (platform/Linux/time/systimer.c)
-         File: Thread Linux  (platform/Linux/thread.c)
-         File: VirtualMemory Linux  (platform/Linux/virtmemory.c)
+         File: VirtualMemory Linux  (platform/Linux/vm.c)
          File: Waitlist Linux  (platform/Linux/waitlist.c)
          }  # Group: Linux
 
-      Group: Task  {
+      Group: X11  {
 
-         File: Exoscheduler impl  (platform/shared/task/exoscheduler.c)
-         File: Exothread impl  (platform/shared/task/exothread.c)
-         File: Threadpool impl  (platform/shared/task/threadpool.c)
-         }  # Group: Task
+         File: X11-Attribute impl  (platform/shared/X11/x11attribute.c)
+         File: X11-Display impl  (platform/shared/X11/x11display.c)
+         File: X11-Drawable impl  (platform/shared/X11/x11drawable.c)
+         File: X11-OpenGL-Window impl  (platform/shared/X11/glxwindow.c)
+         File: X11-Screen impl  (platform/shared/X11/x11screen.c)
+         File: X11-Subsystem impl  (platform/shared/X11/x11.c)
+         File: X11-Videomode impl  (platform/shared/X11/x11videomode.c)
+         File: X11-Window impl  (platform/shared/X11/x11window.c)
+         }  # Group: X11
 
       }  # Group: Platform
 
-   Group: Presentation  {
+   Group: String  {
 
-      File: X11-Display impl  (presentation/X11/display.c)
-      File: X11-OpenGL-Window impl  (presentation/X11/glxwindow.c)
-      File: X11-Subsystem impl  (presentation/X11/x11.c)
-      }  # Group: Presentation
+      File: Base64EncodeString impl  (string/base64encode_string.c)
+      File: Convert-wchar impl  (string/convertwchar.c)
+      File: CString impl  (string/cstring.c)
+      File: FormatString impl  (string/format_string.c)
+      File: SplitString impl  (string/splitstring.c)
+      File: String impl  (string/string.c)
+      File: StringStream impl  (string/stringstream.c)
+      File: TextPosition impl  (string/textpos.c)
+      File: URLEncodeString impl  (string/urlencode_string.c)
+      File: UTF-8 impl  (string/utf8.c)
+      }  # Group: String
+
+   Group: Task  {
+
+      File: SyncQueue impl  (task/syncqueue.c)
+      File: SyncRun impl  (task/syncrun.c)
+      File: SyncThread impl  (task/syncthread.c)
+      File: SyncWait impl  (task/syncwait.c)
+      File: SyncWaitlist impl  (task/syncwlist.c)
+      }  # Group: Task
 
    Group: Test  {
 
@@ -469,7 +538,9 @@ Group: Coding-Conventions  {
    File: parameter types  (resource/coding-conventions/parameter_type.txt)
    File: Taskmanagement  (resource/coding-conventions/task.txt)
    File: Textresource  (resource/coding-conventions/textresource.txt)
+   File: Type Casts  (resource/coding-conventions/casts.txt)
    File: Unittest conventions  (resource/coding-conventions/unittest.txt)
+   File: UTF8-Art  (resource/coding-conventions/utf8art.txt)
    }  # Group: Coding-Conventions
 
 Group: Index  {

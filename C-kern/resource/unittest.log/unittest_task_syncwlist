@@ -1,0 +1,10 @@
+C-kern/task/syncwlist.c:167: free_syncwlist(): error: 22: Freeing a resource returned an error
+C-kern/task/syncwlist.c:167: free_syncwlist(): error: 22: Freeing a resource returned an error
+C-kern/task/syncwlist.c:167: free_syncwlist(): error: 22: Freeing a resource returned an error
+C-kern/task/syncwlist.c:167: free_syncwlist(): error: 22: Freeing a resource returned an error
+C-kern/task/syncwlist.c:167: free_syncwlist(): error: 22: Freeing a resource returned an error
+C-kern/task/syncwlist.c:205: insert_syncwlist(): error: 12: Function aborted
+C-kern/task/syncwlist.c:243: remove_syncwlist(): error: 22: Function aborted
+C-kern/task/syncwlist.c:243: remove_syncwlist(): error: 22: Function aborted
+C-kern/task/syncwlist.c:270: removeempty_syncwlist(): error: 22: Function aborted
+C-kern/task/syncwlist.c:270: removeempty_syncwlist(): error: 22: Function aborted

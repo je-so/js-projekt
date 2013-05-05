@@ -77,6 +77,37 @@ uint32_t sys_pagesize_vm()
    return (uint32_t)ps ;
 }
 
+bool ismapped_vm(const vmpage_t * vmpage, accessmode_e protection)
+{
+   int err ;
+   vm_mappedregions_t mappedregions ;
+
+   err = init_vmmappedregions(&mappedregions) ;
+   if (err) return false ;
+
+   bool is_mapped = ismapped_vmmappedregions(&mappedregions, vmpage, protection) ;
+
+   (void) free_vmmappedregions(&mappedregions) ;
+
+   return is_mapped ;
+}
+
+bool isunmapped_vm(const vmpage_t * vmpage)
+{
+   int err ;
+   vm_mappedregions_t mappedregions ;
+
+   err = init_vmmappedregions(&mappedregions) ;
+   if (err) return false ;
+
+   bool is_unmapped = isunmapped_vmmappedregions(&mappedregions, vmpage) ;
+
+   (void) free_vmmappedregions(&mappedregions) ;
+
+   return is_unmapped ;
+}
+
+
 
 // section: vm_region_t
 
@@ -634,51 +665,39 @@ static int test_functions(void)
    TEST(log2pagesize_vm() != 0) ;
    TEST(sys_pagesize_vm() == 1u << log2pagesize_vm()) ;
 
+   // TEST ismapped_vm, isunmapped_vm
+   uint8_t * addr = mmap(0, 3*pagesize_vm(), PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANONYMOUS, -1, 0) ;
+   TEST(addr != 0) ;
+   vmpage_t vmpage = vmpage_INIT(3*pagesize_vm(), addr) ;
+   // protection is checked
+   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_SHARED|accessmode_EXEC)) ;
+   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE|accessmode_EXEC)) ;
+   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_SHARED)) ;
+   // memory address range is checked
+   TEST(0 == isunmapped_vm(&vmpage)) ;
+   TEST(0 == munmap(addr+pagesize_vm(), pagesize_vm())) ;
+   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_SHARED|accessmode_EXEC)) ;
+   vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), addr + pagesize_vm()) ;
+   TEST(1 == isunmapped_vm(&vmpage)) ;
+   vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), addr + 2*pagesize_vm()) ;
+   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_SHARED|accessmode_EXEC)) ;
+   TEST(0 == isunmapped_vm(&vmpage)) ;
+   TEST(0 == munmap(addr+2*pagesize_vm(), pagesize_vm())) ;
+   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_SHARED|accessmode_EXEC)) ;
+   TEST(1 == isunmapped_vm(&vmpage)) ;
+   vmpage = (vmpage_t) vmpage_INIT(pagesize_vm(), addr) ;
+   TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_SHARED|accessmode_EXEC)) ;
+   TEST(0 == isunmapped_vm(&vmpage)) ;
+   TEST(0 == munmap(addr, pagesize_vm())) ;
+   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_SHARED|accessmode_EXEC)) ;
+   TEST(1 == isunmapped_vm(&vmpage)) ;
+   vmpage = (vmpage_t) vmpage_INIT(3*pagesize_vm(), addr) ;
+   TEST(0 == ismapped_vm(&vmpage, accessmode_RDWR_SHARED|accessmode_EXEC)) ;
+   TEST(1 == isunmapped_vm(&vmpage)) ;
+
    return 0 ;
 ONABORT:
    return EINVAL ;
-}
-
-/* function: is_page_mapped
- *
- * Returns:
- * true  - vmpage is contained in <vm_mappedregions_t> with protection prot.
- * false - vmpage is either not contained or has the wrong accessmode.
- * */
-static int is_page_mapped(const vmpage_t * vmpage, accessmode_e prot)
-{
-   int err ;
-   vm_mappedregions_t mappedregions ;
-
-   err = init_vmmappedregions(&mappedregions) ;
-   if (err) return false ;
-
-   bool is_mapped = ismapped_vmmappedregions(&mappedregions, vmpage, prot) ;
-
-   (void) free_vmmappedregions(&mappedregions) ;
-
-   return is_mapped ;
-}
-
-/* function: is_page_mapped
- *
- * Returns:
- * true  - vmpage does not overlap any memory block in <vm_mappedregions_t> .
- * false - vmpage overlaps with another mapped memory block.
- * */
-static int is_page_unmapped(const vmpage_t * vmpage)
-{
-   int err ;
-   vm_mappedregions_t mappedregions ;
-
-   err = init_vmmappedregions(&mappedregions) ;
-   if (err) return false ;
-
-   bool is_unmapped = isunmapped_vmmappedregions(&mappedregions, vmpage) ;
-
-   (void) free_vmmappedregions(&mappedregions) ;
-
-   return is_unmapped ;
 }
 
 static int test_mappedregions(void)
@@ -888,12 +907,12 @@ static int test_vmpage(void)
       TEST(0 == init_vmpage(&page, size_in_pages)) ;
       TEST(0 != page.addr) ;
       TEST(s == page.size) ;
-      TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
       unpage = page ;
       TEST(0 == free_vmpage(&unpage)) ;
       TEST(0 == unpage.addr)
       TEST(0 == unpage.size) ;
-      TEST(1 == is_page_unmapped(&page)) ;
+      TEST(1 == isunmapped_vm(&page)) ;
       TEST(0 == free_vmpage(&unpage)) ;
       TEST(0 == unpage.addr)
       TEST(0 == unpage.size) ;
@@ -907,12 +926,12 @@ static int test_vmpage(void)
       TEST(0 == init2_vmpage(&page, size_in_pages, mode)) ;
       TEST(0 != page.addr) ;
       TEST(s == page.size) ;
-      TEST(1 == is_page_mapped(&page, mode)) ;
+      TEST(1 == ismapped_vm(&page, mode)) ;
       unpage = page ;
       TEST(0 == free_vmpage(&unpage)) ;
       TEST(0 == unpage.addr)
       TEST(0 == unpage.size) ;
-      TEST(1 == is_page_unmapped(&page)) ;
+      TEST(1 == isunmapped_vm(&page)) ;
    }
 
    // TEST init_vmpage: EINVAL
@@ -927,13 +946,13 @@ static int test_vmpage(void)
    // TEST initaligned_vmpage
    for (size_t size = pagesize_vm(); size <= 100*1024*1024; size *= 2) {
       TEST(0 == initaligned_vmpage(&page, size)) ;
-      TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
       TEST(0 != page.addr) ;
       TEST(0 == ((uintptr_t)page.addr % size))
       TEST(size == page.size) ;
       unpage = page ;
       TEST(0 == free_vmpage(&unpage)) ;
-      TEST(1 == is_page_unmapped(&page)) ;
+      TEST(1 == isunmapped_vm(&page)) ;
    }
 
    // TEST initaligned_vmpage: EINVAL
@@ -949,7 +968,7 @@ static int test_vmpage(void)
    // TEST map, shrink, expand, unmap in (50 pages) loop
    size_in_pages = 50 ;
    TEST(0 == init_vmpage(&page, size_in_pages)) ;
-   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
    for (size_t i = 1; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
       vmpage_t upperhalf = { page.addr + unmapoffset, page.size - unmapoffset } ;
@@ -957,21 +976,21 @@ static int test_vmpage(void)
       TEST(0 == shrink_vmpage(&lowerhalf, size_in_pages-i)) ;
       TEST(lowerhalf.addr == page.addr) ;
       TEST(lowerhalf.size == unmapoffset) ;
-      TEST(1 == is_page_unmapped(&upperhalf)) ;
-      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == isunmapped_vm(&upperhalf)) ;
+      TEST(1 == ismapped_vm(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
       TEST(0 == tryexpand_vmpage(&lowerhalf, size_in_pages-i)) ;
       TEST(lowerhalf.addr == page.addr) ;
       TEST(lowerhalf.size == page.size) ;
    }
-   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
    unpage = page ;
    TEST(0 == free_vmpage(&unpage)) ;
-   TEST(1 == is_page_unmapped(&page)) ;
+   TEST(1 == isunmapped_vm(&page)) ;
 
    // TEST map, movexpand, unmap in (50 pages) loop
    size_in_pages = 50 ;
    TEST(0 == init_vmpage(&page, size_in_pages)) ;
-   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
    for (size_t i = 1; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
       vmpage_t upperhalf = { page.addr + unmapoffset, page.size - unmapoffset } ;
@@ -979,58 +998,58 @@ static int test_vmpage(void)
       unpage = upperhalf ;
       TEST(0 == free_vmpage(&unpage)) ;
       TEST(! unpage.addr && ! unpage.size) ;
-      TEST(1 == is_page_unmapped(&upperhalf)) ;
-      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == isunmapped_vm(&upperhalf)) ;
+      TEST(1 == ismapped_vm(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
       TEST(0 == movexpand_vmpage(&lowerhalf, size_in_pages-i)) ;
       TEST(page.addr == lowerhalf.addr) ;
       TEST(page.size == lowerhalf.size) ;
    }
-   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
    for (size_t i = 2; i < size_in_pages; ++i) {
       size_t   unmapoffset = i * pagesize_vm() ;
       vmpage_t upperhalf = { page.addr + unmapoffset, page.size - unmapoffset } ;
       vmpage_t lowerhalf = { page.addr, unmapoffset } ;
       TEST(0 == shrink_vmpage(&lowerhalf, 1)) ;
-      TEST(1 == is_page_mapped(&upperhalf, accessmode_RDWR_PRIVATE)) ;
-      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == ismapped_vm(&upperhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == ismapped_vm(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
       unpage = (vmpage_t) { page.addr + unmapoffset - pagesize_vm(), pagesize_vm() } ;
-      TEST(1 == is_page_unmapped(&unpage)) ;
+      TEST(1 == isunmapped_vm(&unpage)) ;
       TEST(0 == movexpand_vmpage(&lowerhalf, 1)) ;
       TEST(lowerhalf.addr == page.addr) ;
       TEST(lowerhalf.size == unmapoffset) ;
    }
-   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
    unpage = page ;
    TEST(0 == free_vmpage(&unpage)) ;
-   TEST(1 == is_page_unmapped(&page)) ;
+   TEST(1 == isunmapped_vm(&page)) ;
 
    // TEST movexpand_vmpage: (move)
    size_in_pages = 50 ;
    for (size_t i = 2; i < size_in_pages; ++i) {
       TEST(0 == init_vmpage(&page, size_in_pages)) ;
-      TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
       size_t   unmapoffset = i * pagesize_vm() ;
       vmpage_t upperhalf = { page.addr + unmapoffset, page.size - unmapoffset } ;
       vmpage_t lowerhalf = { page.addr, unmapoffset  } ;
       TEST(0 == shrink_vmpage(&lowerhalf, 1)) ;
       TEST(lowerhalf.addr == page.addr) ;
       TEST(lowerhalf.size == unmapoffset - pagesize_vm()) ;
-      TEST(1 == is_page_mapped(&upperhalf, accessmode_RDWR_PRIVATE)) ;
-      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == ismapped_vm(&upperhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == ismapped_vm(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
       unpage = (vmpage_t) { page.addr + unmapoffset - pagesize_vm(), pagesize_vm() } ;
-      TEST(1 == is_page_unmapped(&unpage)) ;
+      TEST(1 == isunmapped_vm(&unpage)) ;
       TEST(0 == movexpand_vmpage(&lowerhalf, 2)) ;
       TEST(lowerhalf.addr != page.addr) ;
       TEST(lowerhalf.size == unmapoffset + pagesize_vm()) ;
       TEST(0 == free_vmpage(&lowerhalf)) ;
       TEST(0 == free_vmpage(&upperhalf)) ;
-      TEST(1 == is_page_unmapped(&page)) ;
+      TEST(1 == isunmapped_vm(&page)) ;
    }
 
    // TEST tryexpand_vmpage: ENOMEM
    size_in_pages = 10 ;
    TEST(0 == init_vmpage(&page, size_in_pages)) ;
-   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
    {
       size_t   unmapoffset = 7 * pagesize_vm() ;
       vmpage_t upperhalf = { page.addr + unmapoffset,  page.size - unmapoffset } ;
@@ -1038,30 +1057,30 @@ static int test_vmpage(void)
       TEST(0 == shrink_vmpage(&lowerhalf, 3)) ;
       TEST(lowerhalf.size == unmapoffset) ;
       TEST(lowerhalf.addr == page.addr) ;
-      TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
-      TEST(1 == is_page_unmapped(&upperhalf)) ;
+      TEST(1 == ismapped_vm(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == isunmapped_vm(&upperhalf)) ;
       for (size_t i = 1; i < 7; ++i) {
          vmpage_t ext_block = { page.addr, i * pagesize_vm() } ;
          TEST(ENOMEM == tryexpand_vmpage(&ext_block, 3)) ;
          TEST(ext_block.addr == page.addr) ;
          TEST(ext_block.size == i * pagesize_vm()) ;
-         TEST(1 == is_page_mapped(&ext_block, accessmode_RDWR_PRIVATE)) ;
-         TEST(1 == is_page_mapped(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
-         TEST(1 == is_page_unmapped(&upperhalf)) ;
+         TEST(1 == ismapped_vm(&ext_block, accessmode_RDWR_PRIVATE)) ;
+         TEST(1 == ismapped_vm(&lowerhalf, accessmode_RDWR_PRIVATE)) ;
+         TEST(1 == isunmapped_vm(&upperhalf)) ;
       }
       TEST(0 == tryexpand_vmpage(&lowerhalf, 3)) ;
       TEST(lowerhalf.size == page.size) ;
       TEST(lowerhalf.addr == page.addr) ;
    }
-   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
    unpage = page ;
    TEST(0 == free_vmpage(&unpage)) ;
-   TEST(1 == is_page_unmapped(&page)) ;
+   TEST(1 == isunmapped_vm(&page)) ;
 
    // TEST tryexpand_vmpage: expand of already mapped
    size_in_pages = 3 ;
    TEST(0 == init_vmpage(&page, size_in_pages)) ;
-   TEST(1 == is_page_mapped(&page, accessmode_RDWR_PRIVATE)) ;
+   TEST(1 == ismapped_vm(&page, accessmode_RDWR_PRIVATE)) ;
    for (size_t i = 0; i < size_in_pages; ++i) {
       size_t     lowersize = i * pagesize_vm() ;
       vmpage_t lowerhalf = { page.addr, lowersize } ;
@@ -1071,10 +1090,10 @@ static int test_vmpage(void)
    // TEST free_vmpage: unmap of already unmapped (no error)
    unpage = page ;
    TEST(0 == free_vmpage(&unpage)) ;
-   TEST(1 == is_page_unmapped(&page)) ;
+   TEST(1 == isunmapped_vm(&page)) ;
    unpage = page ;
    TEST(0 == free_vmpage(&unpage)) ;
-   TEST(1 == is_page_unmapped(&page)) ;
+   TEST(1 == isunmapped_vm(&page)) ;
 
    // TEST free_vmpage: unmap empty block
    TEST(0 == unpage.addr) ;
@@ -1131,26 +1150,26 @@ static int test_protection(void)
    for (unsigned i = 0; i < lengthof(prot); ++i) {
       // TEST init2 generates correct protection
       TEST(0 == init2_vmpage(&vmpage, 2, prot[i])) ;
-      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
+      TEST(1 == ismapped_vm(&vmpage, prot[i])) ;
       TEST(0 == free_vmpage(&vmpage)) ;
       // TEST init generates RW protection
       TEST(0 == init_vmpage(&vmpage, 2)) ;
-      TEST(1 == is_page_mapped(&vmpage, accessmode_RDWR_PRIVATE)) ;
+      TEST(1 == ismapped_vm(&vmpage, accessmode_RDWR_PRIVATE)) ;
       // TEST setting protection
       TEST(0 == protect_vmpage(&vmpage, prot[i])) ;
-      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
+      TEST(1 == ismapped_vm(&vmpage, prot[i])) ;
       // TEST shrink does not change flags
       TEST(0 == shrink_vmpage(&vmpage, 1)) ;
-      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
+      TEST(1 == ismapped_vm(&vmpage, prot[i])) ;
       // TEST expand does not change flags
       TEST(0 == tryexpand_vmpage(&vmpage, 1)) ;
-      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
+      TEST(1 == ismapped_vm(&vmpage, prot[i])) ;
       // TEST movexpand does not change flags
       TEST(0 == movexpand_vmpage(&vmpage, 10)) ;
-      TEST(1 == is_page_mapped(&vmpage, prot[i])) ;
+      TEST(1 == ismapped_vm(&vmpage, prot[i])) ;
       vmpage_t old = vmpage ;
       TEST(0 == free_vmpage(&vmpage)) ;
-      TEST(1 == is_page_unmapped(&old)) ;
+      TEST(1 == isunmapped_vm(&old)) ;
    }
 
    // TEST write of readonly page is not possible
