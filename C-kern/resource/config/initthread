@@ -8,5 +8,6 @@
 "module",            "parameter",    "header-name"
 "pagecacheimpl",     "pgcache",      "C-kern/api/memory/pagecache_impl.h"
 "mmtransient",       "mm_transient", "C-kern/api/memory/mm/mmtransient.h"
+"syncrun",           "syncrun",      "C-kern/api/task/syncrun.h"
 "objectcacheimpl",   "objectcache",  "C-kern/api/cache/objectcache_impl.h"
 "logwriter",         "log",          "C-kern/api/io/writer/log/logwriter.h"

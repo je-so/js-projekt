@@ -184,6 +184,11 @@ const char *               progname_maincontext(void) ;
  * Returns object interface <pagecache_t> to access functionality of <pagecache_impl_t>. */
 /*ref*/pagecache_t         pagecache_maincontext(void) ;
 
+/* function: syncrun_maincontext
+ * Returns <syncrun_t> of current <maincontext_t>. It is used to store and run
+ * all <syncthread_t> of the current thread. */
+struct syncrun_t *         syncrun_maincontext(void) ;
+
 /* function: sysuser_maincontext
  * Returns <sysusercontext_t> of current <maincontext_t>. It is used in implementation of module <SystemUser>. */
 /*ref*/sysusercontext_t    sysuser_maincontext(void) ;
@@ -226,6 +231,10 @@ struct valuecache_t *      valuecache_maincontext(void) ;
 /* define: progname_maincontext
  * Inline implementation of <maincontext_t.progname_maincontext>. */
 #define progname_maincontext()         (g_maincontext.progname)
+
+/* define: syncrun_maincontext
+ * Inline implementation of <maincontext_t.syncrun_maincontext>. */
+#define syncrun_maincontext()          (thread_maincontext().syncrun)
 
 /* define: sysuser_maincontext
  * Inline implementation of <maincontext_t.sysuser_maincontext>. */

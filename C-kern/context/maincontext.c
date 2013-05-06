@@ -315,6 +315,9 @@ static int test_querymacros(void)
    // TEST sysuser_maincontext
    TEST(&process_maincontext().sysuser    == &sysuser_maincontext()) ;
 
+   // TEST syncrun_maincontext
+   TEST(&thread_maincontext().syncrun     == &syncrun_maincontext()) ;
+
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
    TEST(&g_maincontext.tcontext           == &thread_maincontext()) ;
@@ -323,7 +326,7 @@ static int test_querymacros(void)
 #endif
 
    // TEST type_maincontext
-   TEST(&g_maincontext.type == &type_maincontext()) ;
+   TEST(&g_maincontext.type               == &type_maincontext()) ;
 
    // TEST valuecache_maincontext
    TEST(&process_maincontext().valuecache == &valuecache_maincontext()) ;

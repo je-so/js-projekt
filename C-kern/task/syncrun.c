@@ -30,6 +30,8 @@
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/ds/inmem/queue.h"
 #include "C-kern/api/ds/inmem/dlist.h"
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/task/syncthread.h"
 #include "C-kern/api/task/syncwait.h"
 #include "C-kern/api/test/errortimer.h"
@@ -277,6 +279,56 @@ static int clearevents_syncrun(syncrun_t * srun) ;
 #ifdef KONFIG_UNITTEST
 static test_errortimer_t      s_syncrun_errtimer = test_errortimer_INIT_FREEABLE ;
 #endif
+
+// group: init
+
+int initthread_syncrun(/*out*/syncrun_t ** syncrun)
+{
+   int err ;
+   memblock_t memobject = memblock_INIT_FREEABLE ;
+
+   VALIDATE_INPARAM_TEST(0 == *syncrun, ONABORT, ) ;
+
+   err = ALLOCSTATIC_PAGECACHE(sizeof(syncrun_t), &memobject) ;
+   if (err) goto ONABORT ;
+
+   syncrun_t * newobj = (syncrun_t*) memobject.addr ;
+
+   err = init_syncrun(newobj) ;
+   if (err) goto ONABORT ;
+
+   *syncrun = newobj ;
+
+   return 0 ;
+ONABORT:
+   FREESTATIC_PAGECACHE(&memobject) ;
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+int freethread_syncrun(syncrun_t ** syncrun)
+{
+   int err ;
+   int err2 ;
+   syncrun_t * delobj = *syncrun ;
+
+   if (delobj) {
+      *syncrun = 0 ;
+
+      err = free_syncrun(delobj) ;
+
+      memblock_t memobject = memblock_INIT(sizeof(syncrun_t), (uint8_t*)delobj) ;
+      err2 = FREESTATIC_PAGECACHE(&memobject) ;
+      if (err2) err = err2 ;
+
+      if (err) goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORTFREE_LOG(err) ;
+   return err ;
+}
 
 // group: lifetime
 
@@ -3184,6 +3236,38 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_initthread(void)
+{
+   syncrun_t * srun = 0 ;
+   void *      initarg ;
+
+   // TEST initthread_syncrun
+   s_test_execcount = 0 ;
+   size_t stsize    = SIZESTATIC_PAGECACHE() ;
+   TEST(0 == initthread_syncrun(&srun)) ;
+   TEST(0 != srun) ;
+   stsize += sizeof(syncrun_t) ;
+   TEST(stsize == SIZESTATIC_PAGECACHE()) ;
+   TEST(0 == startthread_syncrun(srun, &maintestabort_syncthread, 0)) ;
+   TEST(1 == leninitqueue_syncrun(srun))
+   TEST(0 == startthread2_syncrun(srun, &maintestabort_syncthread, 200, &initarg)) ;
+   TEST(2 == leninitqueue_syncrun(srun))
+
+   // TEST freethread_sycnrun
+   TEST(0 == freethread_syncrun(&srun)) ;
+   TEST(0 == srun) ;
+   stsize -= sizeof(syncrun_t) ;
+   TEST(stsize == SIZESTATIC_PAGECACHE()) ;
+   TEST(0 == freethread_syncrun(&srun)) ;
+   TEST(0 == srun) ;
+   TEST(stsize == SIZESTATIC_PAGECACHE()) ;
+
+   return 0 ;
+ONABORT:
+   freethread_syncrun(&srun) ;
+   return EINVAL ;
+}
+
 int unittest_task_syncrun()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -3200,6 +3284,7 @@ int unittest_task_syncrun()
    if (test_run2())           goto ONABORT ;
    if (test_runwaitchain())   goto ONABORT ;
    if (test_abort())          goto ONABORT ;
+   if (test_initthread())     goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

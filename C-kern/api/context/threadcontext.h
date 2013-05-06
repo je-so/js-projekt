@@ -34,6 +34,9 @@
 #include "C-kern/api/memory/pagecache.h"
 #include "C-kern/api/memory/mm/mm.h"
 
+// forward
+struct syncrun_t ;
+
 /* typedef: struct threadcontext_t
  * Export <threadcontext_t>. */
 typedef struct threadcontext_t            threadcontext_t ;
@@ -56,6 +59,7 @@ int unittest_context_threadcontext(void) ;
 struct threadcontext_t {
    pagecache_t          pgcache ;
    mm_t                 mm_transient ;
+   struct syncrun_t *   syncrun ;
    objectcache_t        objectcache ;
    log_t                log ;
    uint16_t             initcount ;
@@ -69,7 +73,7 @@ struct threadcontext_t {
  * even without calling <init_maincontext> first.
  */
 #define threadcontext_INIT_STATIC   \
-         { pagecache_INIT_FREEABLE, mm_INIT_FREEABLE, objectcache_INIT_FREEABLE, { &g_logmain, &g_logmain_interface }, 0 }
+         { pagecache_INIT_FREEABLE, mm_INIT_FREEABLE, 0, objectcache_INIT_FREEABLE, { &g_logmain, &g_logmain_interface }, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.

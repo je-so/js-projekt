@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textres2.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Apr.27  12:49:20
+GenerationDate  := 2013.Mai.06  18:56:36
 GeneratedBy     := je-so
 
 ## Release

@@ -27,11 +27,11 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/task/syncqueue.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/ds/inmem/dlist.h"
 #include "C-kern/api/ds/inmem/queue.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/ds/foreach.h"
-#include "C-kern/api/ds/inmem/dlist.h"
 #endif
 
 

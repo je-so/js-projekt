@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testchildprocess.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Apr.27  12:49:20
+GenerationDate  := 2013.Mai.06  18:56:36
 GeneratedBy     := je-so
 
 ## Debug
@@ -85,8 +85,12 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncqueue.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncrun.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!main!test!testchildprocess_main.c.o \
@@ -106,8 +110,12 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncqueue.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncrun.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!main!test!testchildprocess_main.c.o \
@@ -154,10 +162,22 @@ $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
 $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncqueue.c.o: C-kern/task/syncqueue.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncrun.c.o: C-kern/task/syncrun.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncwlist.c.o: C-kern/task/syncwlist.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
@@ -211,10 +231,22 @@ $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.
 $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncqueue.c.o: C-kern/task/syncqueue.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncrun.c.o: C-kern/task/syncrun.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncwlist.c.o: C-kern/task/syncwlist.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
