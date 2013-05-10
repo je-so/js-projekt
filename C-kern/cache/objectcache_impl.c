@@ -25,11 +25,10 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache_impl.h"
-#include "C-kern/api/cache/objectcache_it.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/cache/objectcache.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
@@ -46,59 +45,17 @@ objectcache_it_DECLARE(objectcache_impl_it, objectcache_impl_t) ;
  * Contains single instance of interface <objectcache_it>. */
 objectcache_impl_it  s_objectcacheimpl_interface = {
                         &lockiobuffer_objectcacheimpl,
-                        &unlockiobuffer_objectcacheimpl,
+                        &unlockiobuffer_objectcacheimpl
                      } ;
 
-// group: init
+// group: initthread
 
-int initthread_objectcacheimpl(/*out*/objectcache_t * objectcache)
+objectcache_it * interfacethread_objectcacheimpl(void)
 {
-   int err ;
-   memblock_t  objmem ;
-
-   VALIDATE_INPARAM_TEST(0 == objectcache->object, ONABORT, ) ;
-
-   err = ALLOCSTATIC_PAGECACHE(sizeof(objectcache_impl_t), &objmem) ;
-   if (err) goto ONABORT ;
-
-   objectcache_impl_t * newobj = (objectcache_impl_t*) objmem.addr ;
-   err = init_objectcacheimpl(newobj) ;
-   if (err) goto ONABORT ;
-
-   objectcache->object = (objectcache_t*) newobj ;
-   objectcache->iimpl  = genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
+   return genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
 }
 
-int freethread_objectcacheimpl(objectcache_t * objectcache)
-{
-   int err ;
-   objectcache_impl_t * delobj = (objectcache_impl_t*) objectcache->object ;
-
-   if (delobj) {
-      assert(genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) == objectcache->iimpl) ;
-
-      objectcache->object = 0 ;
-      objectcache->iimpl  = 0 ;
-
-      err = free_objectcacheimpl(delobj) ;
-
-      memblock_t memblock = memblock_INIT(sizeof(*delobj), (uint8_t*)delobj) ;
-      int err2 = FREESTATIC_PAGECACHE(&memblock) ;
-      if (err2) err = err2 ;
-
-      if (err) goto ONABORT ;
-   }
-
-   return 0 ;
-ONABORT:
-   TRACEABORTFREE_LOG(err) ;
-   return err ;
-}
+// group: lifetime
 
 int init_objectcacheimpl(/*out*/objectcache_impl_t * cache)
 {
@@ -213,45 +170,18 @@ ONABORT:
 
 static int test_initthread(void)
 {
-   objectcache_t  cache      = objectcache_INIT_FREEABLE ;
-
-   // TEST objectcache_INIT_FREEABLE
-   TEST(0 == cache.object) ;
-   TEST(0 == cache.iimpl) ;
+   // TEST genericcast_objectcacheit
+   TEST((objectcache_it*)&s_objectcacheimpl_interface == genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
 
    // TEST s_objectcacheimpl_interface
    TEST(s_objectcacheimpl_interface.lock_iobuffer   == &lockiobuffer_objectcacheimpl) ;
    TEST(s_objectcacheimpl_interface.unlock_iobuffer == &unlockiobuffer_objectcacheimpl) ;
 
-   // TEST genericcast_objectcacheit
-   TEST((objectcache_it*)&s_objectcacheimpl_interface == genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
-
-   // TEST initthread_objectcacheimpl
-   size_t sizestatic = SIZESTATIC_PAGECACHE() ;
-   TEST(0 == initthread_objectcacheimpl(&cache)) ;
-   TEST(cache.object != 0) ;
-   TEST(cache.iimpl  == genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t)) ;
-   size_t alignsize = sizeof(objectcache_impl_t)%KONFIG_MEMALIGN ? sizeof(objectcache_impl_t)+KONFIG_MEMALIGN-(sizeof(objectcache_impl_t)%KONFIG_MEMALIGN) : sizeof(objectcache_impl_t) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic + alignsize) ;
-
-   // TEST freethread_objectcacheimpl
-   TEST(0 == freethread_objectcacheimpl(&cache)) ;
-   TEST(0 == cache.object) ;
-   TEST(0 == cache.iimpl) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
-   TEST(0 == freethread_objectcacheimpl(&cache)) ;
-   TEST(0 == cache.object) ;
-   TEST(0 == cache.iimpl) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
-
-   // TEST initthread_objectcacheimpl: EINVAL
-   objectcache_t  cache2 = { .object = (objectcache_t*) 1 } ;
-   TEST(EINVAL == initthread_objectcacheimpl(&cache2)) ;
-   TEST(cache2.object == (objectcache_t*) 1) ;
+   // TEST interfacethread_objectcacheimpl
+   TEST(interfacethread_objectcacheimpl() == (objectcache_it*)&s_objectcacheimpl_interface) ;
 
    return 0 ;
 ONABORT:
-   (void) freethread_objectcacheimpl(&cache) ;
    return EINVAL ;
 }
 

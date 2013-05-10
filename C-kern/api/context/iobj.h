@@ -128,6 +128,11 @@ struct iobj_t {
  * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
 void init_iobj(/*out*/iobj_t * iobj, void * object, void * iimpl) ;
 
+/* function: init_iobj
+ * Generic initialization. Same as assigning <iobj_INIT>(srciobj->object, srciobj->iimpl).
+ * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
+void initcopy_iobj(/*out*/iobj_t * destiobj, const iobj_t * srciobj) ;
+
 /* function: free_iobj
  * Generic free operation. Same as assigning <iobj_INIT_FREEABLE>.
  * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
@@ -179,6 +184,11 @@ void iobj_DECLARE(TYPENAME declared_t, IDNAME typenameprefix) ;
  * Implements <iobj_t.init_iobj>. */
 #define init_iobj(iobj, object, iimpl) \
          ((void)(*(iobj) = (typeof(*(iobj))) iobj_INIT(object, iimpl)))
+
+/* define: initcopy_iobj
+ * Implements <iobj_t.initcopy_iobj>. */
+#define initcopy_iobj(destiobj, srciobj)   \
+         ((void)(*(destiobj) = (typeof(*(destiobj))) iobj_INIT((srciobj)->object, (srciobj)->iimpl)))
 
 /* define: iobj_DECLARE
  * Implements <iobj_t.iobj_DECLARE>. */

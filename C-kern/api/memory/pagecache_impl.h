@@ -113,12 +113,12 @@ struct pagecache_impl_t {
 /* function: initthread_pagecacheimpl
  * Calls <init_pagecacheimpl> and adds interface <pagecache_it> to object.
  * This function is called from <init_threadcontext>. */
-int initthread_pagecacheimpl(/*out*/pagecache_t * pgcache) ;
+int initthread_pagecacheimpl(/*out*/pagecache_t * pagecache) ;
 
 /* function: freethread_pagecacheimpl
  * Calls <free_pagecacheimpl> with for object pointer in <pagecache_t>.
  * This function is called from <free_threadcontext>. */
-int freethread_pagecacheimpl(pagecache_t * pgcache) ;
+int freethread_pagecacheimpl(pagecache_t * pagecache) ;
 
 // group: lifetime
 

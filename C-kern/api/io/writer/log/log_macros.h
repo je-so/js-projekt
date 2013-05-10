@@ -22,7 +22,7 @@
 #ifndef CKERN_IO_WRITER_LOG_LOG_MACROS_HEADER
 #define CKERN_IO_WRITER_LOG_LOG_MACROS_HEADER
 
-#include "C-kern/api/io/writer/log/log_it.h"
+#include "C-kern/api/io/writer/log/log.h"
 
 
 // section: Functions
@@ -33,17 +33,19 @@
  * Returns C-string of buffered log and its length. See also <getbuffer_logwriter>.
  * > #define GETBUFFER_LOG(buffer, size) getbuffer_logwritermt(log_maincontext(), buffer, size) */
 #define GETBUFFER_LOG(/*out char ** */buffer, /*out size_t * */size) \
-   log_maincontext().iimpl->getbuffer(log_maincontext().object, buffer, size)
+         log_maincontext().iimpl->getbuffer(log_maincontext().object, buffer, size)
 
 // group: change
 
 /* define: CLEARBUFFER_LOG
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>. */
-#define  CLEARBUFFER_LOG()          log_maincontext().iimpl->clearbuffer(log_maincontext().object)
+#define CLEARBUFFER_LOG()  \
+         log_maincontext().iimpl->clearbuffer(log_maincontext().object)
 
 /* define: FLUSHBUFFER_LOG
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>. */
-#define  FLUSHBUFFER_LOG()          log_maincontext().iimpl->flushbuffer(log_maincontext().object)
+#define FLUSHBUFFER_LOG()  \
+         log_maincontext().iimpl->flushbuffer(log_maincontext().object)
 
 // group: log-text
 

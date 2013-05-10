@@ -22,7 +22,7 @@
 #ifndef CKERN_CACHE_OBJECTCACHE_MACROS_HEADER
 #define CKERN_CACHE_OBJECTCACHE_MACROS_HEADER
 
-#include "C-kern/api/cache/objectcache_it.h"
+#include "C-kern/api/cache/objectcache.h"
 
 
 // section: Functions

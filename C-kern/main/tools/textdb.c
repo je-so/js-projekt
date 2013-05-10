@@ -525,7 +525,7 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
       goto ONABORT ;
    }
 
-   ++ txtdb.column_count /*special column row-id*/ ;
+   txtdb.column_count += 2 ; /*special columns row-id, row-nr*/
    size_t rows_size = sizeof(textdb_column_t) * txtdb.row_count * txtdb.column_count ;
    txtdb.rows       = (textdb_column_t*) malloc( rows_size) ;
    if (!txtdb.rows) {
@@ -538,7 +538,10 @@ static int init_textdb(/*out*/textdb_t * result, const char * filename)
    err = appendvalue_textdbcolumn( &txtdb.rows[0], "row-id", 6) ;
    if (err) goto ONABORT ;
 
-   err = readrows_textdb( &txtdb, 1/*start after special columns*/) ;
+   err = appendvalue_textdbcolumn( &txtdb.rows[1], "row-nr", 6) ;
+   if (err) goto ONABORT ;
+
+   err = readrows_textdb( &txtdb, 2/*start after special columns*/) ;
    if (err) goto ONABORT ;
 
    memcpy( result, &txtdb, sizeof(txtdb)) ;
@@ -1382,17 +1385,25 @@ static int process_selectcmd( char * start_macro, char * end_macro, size_t start
    err = matchnames_expression( where_expr, &dbfile, start_linenr ) ;
    if (err) goto ONABORT ;
 
-   // determine row-id
-   for (size_t row = 1/*skip header*/, rowid = 1; row < dbfile.row_count; ++row) {
-      if (  ismatch_expression( where_expr, row, &dbfile, start_linenr ) ) {
-         textdb_column_t * data  = &dbfile.rows[row * dbfile.column_count] ;
-         char              buffer[10] ;
+   // determine row-id, row-nr
+   for (size_t row = 1/*skip header*/, rownr = 1; row < dbfile.row_count; ++row) {
+      textdb_column_t * data ;
+      char              buffer[10] ;
 
-         snprintf(buffer, sizeof(buffer), "%u", (int)rowid) ;
+      // row-id
+      data = &dbfile.rows[row * dbfile.column_count] ;
+      snprintf(buffer, sizeof(buffer), "%u", (int)row) ;
+      err = appendvalue_textdbcolumn( &data[0], buffer, strlen(buffer)) ;
+      if (err) goto ONABORT ;
+
+      if (  ismatch_expression(where_expr, row, &dbfile, start_linenr)) {
+         // row-nr
+         data = &dbfile.rows[row * dbfile.column_count + 1] ;
+         snprintf(buffer, sizeof(buffer), "%u", (int)rownr) ;
          err = appendvalue_textdbcolumn( &data[0], buffer, strlen(buffer)) ;
          if (err) goto ONABORT ;
 
-         ++ rowid ;
+         ++ rownr ;
       }
    }
 

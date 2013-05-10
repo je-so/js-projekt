@@ -62,23 +62,18 @@ struct objectcache_impl_t {
    }           iobuffer ;
 } ;
 
-// group: init
+// group: initthread
 
-/* function: initthread_objectcacheimpl
- * Calls <init_objectcacheimpl> and wraps object into interfaceable object <objectcache_t>.
- * This function is called from <init_threadcontext>. */
-int initthread_objectcacheimpl(/*out*/objectcache_t * objectcache) ;
-
-/* function: freethread_objectcacheimpl
- * Calls <free_objectcacheimpl> with object pointer from <objectcache_t>.
- * This function is called from <free_threadcontext>. */
-int freethread_objectcacheimpl(objectcache_t * objectcache) ;
+/* function: interfacethread_objectcacheimpl
+ * This function is called from <init_threadcontext>.
+ * Used to initialize interface of <objectcache_t>. */
+struct objectcache_it * interfacethread_objectcacheimpl(void) ;
 
 // group: lifetime
 
 /* define: objectcache_impl_INIT_FREEABLE
  * Static initializer. */
-#define objectcache_impl_INIT_FREEABLE      { vmpage_INIT_FREEABLE }
+#define objectcache_impl_INIT_FREEABLE    { vmpage_INIT_FREEABLE }
 
 /* function: init_objectcacheimpl
  * Inits <objectcache_impl_t> and all contained objects. */

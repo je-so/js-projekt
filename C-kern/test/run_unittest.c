@@ -236,6 +236,7 @@ int run_unittest(void)
 
 //{ context unittest
       RUN(unittest_context_errorcontext) ;
+      RUN(unittest_context_iobj) ;
       RUN(unittest_context_maincontext) ;
       RUN(unittest_context_processcontext) ;
       RUN(unittest_context_threadcontext) ;
@@ -297,8 +298,8 @@ int run_unittest(void)
       RUN(unittest_memory_pagecacheimpl) ;
       RUN(unittest_memory_pagecache_macros) ;
       RUN(unittest_memory_wbuffer) ;
-      RUN(unittest_memory_mm_mmit) ;
-      RUN(unittest_memory_mm_mmtransient) ;
+      RUN(unittest_memory_mm_mm) ;
+      RUN(unittest_memory_mm_mmimpl) ;
 //}
 
 //{ string unittest

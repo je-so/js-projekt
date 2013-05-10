@@ -5,9 +5,17 @@
 # Init functions are called from first to last entry in this database.
 # Free functions are called from last entry to first entry.
 # The header-name field references the C99 header file which exports the function prototypes.
-"module",            "parameter",    "header-name"
-"pagecacheimpl",     "pgcache",      "C-kern/api/memory/pagecache_impl.h"
-"mmtransient",       "mm_transient", "C-kern/api/memory/mm/mmtransient.h"
-"syncrun",           "syncrun",      "C-kern/api/task/syncrun.h"
-"objectcacheimpl",   "objectcache",  "C-kern/api/cache/objectcache_impl.h"
-"logwriter",         "log",          "C-kern/api/io/writer/log/logwriter.h"
+# The field inittype determines what kind of init function is called.
+# Possible values:
+# "initthread" - Calls initthread_module(parameter) / freethread_module(parameter)
+# "interface"  - Calls init_module(&parameter->object) / free_module(&parameter->object)
+#                and sets parameter->iimpl to values returned from interfacethread_module().
+#                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE
+# "object"     - Calls init_module(parameter) / free_module(parameter->object)
+#                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE
+"module",            "inittype",    "objtype",            "parameter",     "header-name"
+"pagecacheimpl",     "initthread",  "",                   "pagecache",     "C-kern/api/memory/pagecache_impl.h"
+"mmimpl",            "interface",   "mm_impl_t",          "mm",            "C-kern/api/memory/mm/mm_impl.h"
+"syncrun",           "object",      "syncrun_t",          "syncrun",       "C-kern/api/task/syncrun.h"
+"objectcacheimpl",   "interface",   "objectcache_impl_t", "objectcache",   "C-kern/api/cache/objectcache_impl.h"
+"logwriter",         "interface",   "logwriter_t",        "log",           "C-kern/api/io/writer/log/logwriter.h"

@@ -88,10 +88,9 @@
       <File Name="../../C-kern/api/memory/memblock.h"/>
       <File Name="../../C-kern/api/memory/wbuffer.h"/>
       <VirtualDirectory Name="mm">
-        <File Name="../../C-kern/api/memory/mm/mmtransient.h"/>
-        <File Name="../../C-kern/api/memory/mm/mm_it.h"/>
         <File Name="../../C-kern/api/memory/mm/mm_macros.h"/>
         <File Name="../../C-kern/api/memory/mm/mm.h"/>
+        <File Name="../../C-kern/api/memory/mm/mm_impl.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/memory/hwcache.h"/>
       <File Name="../../C-kern/api/memory/vm.h"/>
@@ -101,7 +100,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/valuecache.h"/>
-      <File Name="../../C-kern/api/cache/objectcache_it.h"/>
       <File Name="../../C-kern/api/cache/objectcache_macros.h"/>
       <File Name="../../C-kern/api/cache/objectcache_impl.h"/>
       <File Name="../../C-kern/api/cache/objectcache.h"/>
@@ -174,7 +172,6 @@
       <VirtualDirectory Name="writer">
         <VirtualDirectory Name="log">
           <File Name="../../C-kern/api/io/writer/log/errlog_macros.h"/>
-          <File Name="../../C-kern/api/io/writer/log/log_it.h"/>
           <File Name="../../C-kern/api/io/writer/log/log_macros.h"/>
           <File Name="../../C-kern/api/io/writer/log/logmain.h"/>
           <File Name="../../C-kern/api/io/writer/log/logwriter.h"/>
@@ -397,8 +394,8 @@
     <File Name="../../C-kern/memory/memblock.c"/>
     <File Name="../../C-kern/memory/wbuffer.c"/>
     <VirtualDirectory Name="mm">
-      <File Name="../../C-kern/memory/mm/mmtransient.c"/>
-      <File Name="../../C-kern/memory/mm/mm_it.c"/>
+      <File Name="../../C-kern/memory/mm/mm.c"/>
+      <File Name="../../C-kern/memory/mm/mm_impl.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/memory/hwcache.c"/>
     <File Name="../../C-kern/memory/pagecache_macros.c"/>

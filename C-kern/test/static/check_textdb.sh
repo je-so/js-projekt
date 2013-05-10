@@ -13,12 +13,13 @@ info=""
 
 # test all *.h files
 files=`find C-kern/ -name "*.[h]" -exec grep -l "\(init\|free\)\(once\|thread\)_[a-zA-Z0-9_]*[ \t]*(" {} \;`
+files="$files `find C-kern/ -name "*.[h]" -exec grep -l "interfacethread_[a-zA-Z0-9_]*[ \t]*(" {} \;`"
 space="                               "
 
 temp_process_db=`mktemp`
 temp_thread_db=`mktemp`
 
-echo '"module",            "parameter",    "header-name"' > $temp_thread_db
+echo '"module",            "inittype",    "objtype",            "parameter",     "header-name"' > $temp_thread_db
 echo '"module",            "parameter",    "header-name"' > $temp_process_db
 
 for i in $files; do
@@ -26,6 +27,7 @@ for i in $files; do
    IFS=$'\n'
    init_process_calls=( `grep "initonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    init_thread_calls=( `grep "initthread_[a-zA-Z0-9_]*[ \t]*(" $i` )
+   interface_thread=( `grep "interfacethread_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_process_calls=( `grep "freeonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_thread_calls=( `grep "freethread_[a-zA-Z0-9_]*[ \t]*(" $i` )
    IFS=$IFS_old
@@ -63,6 +65,16 @@ for i in $files; do
          let "testnr=testnr-1"
       fi
    done
+   # filter input interfacethread_
+   for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
+      result="${interface_thread[$testnr]}"
+      if [ "${result/define interfacethread_*(*)/}" != "$result" ]; then
+         interface_thread[$testnr]="${interface_thread[${#interface_thread[*]}-1]}"
+         unset interface_thread[${#interface_thread[*]}-1]
+         let "testnr=testnr-1"
+      fi
+   done
+
 
    # test for correct interface
    for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
@@ -107,6 +119,12 @@ for i in $files; do
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
+   for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
+      result=${interface_thread[$testnt]}
+      if [ "${result#struct *_it \* interfacethread_*(void) ;}" != "" ]; then
+         info="$info  file: <${i}> wrong definition '$result'\n"
+      fi
+   done
 
    # test for matching init and free calls
    for((testnr=0;testnr < ${#init_process_calls[*]}; testnr=testnr+1)) do
@@ -143,6 +161,7 @@ for i in $files; do
    for((testnr=${#init_process_calls[*]};testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
       info="$info  file: <${i}> missing initonce for '${free_process_calls[$testnr]}'\n"
    done
+
    for((testnr=0;testnr < ${#init_thread_calls[*]}; testnr=testnr+1)) do
       result=${init_thread_calls[$testnr]}
       result=${result#extern }
@@ -174,11 +193,35 @@ for i in $files; do
       fi
       space2=${space:0:18-${#name1}}
       echo -n "\"${name1}\",${space2}" >> $temp_thread_db
-      space2=${space:0:13-${#parameter}}
+      echo -n "\"initthread\",  \"\",                   " >> $temp_thread_db
+      space2=${space:0:14-${#parameter}}
       echo "\"${parameter}\",${space2}\"${i}\"" >> $temp_thread_db
    done
    for((testnr=${#init_thread_calls[*]};testnr < ${#free_thread_calls[*]}; testnr=testnr+1)) do
       info="$info  file: <${i}> missing initthread for '${free_thread_calls[$testnr]}'\n"
+   done
+   for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
+      result=${interface_thread[$testnt]}
+      result=${result#*interfacethread_}
+      name1=${result%%(*}
+      parameter=`grep "int init_${name1}(" $i`
+      if [ "$parameter" == "" ]; then
+         info="$info  file: <${i}> missing init_${name1} for '${interface_thread[$testnr]}'\n"
+      fi
+      parameter=${parameter#*(}
+      parameter=${parameter#/\*out\*/}
+      parameter=${parameter%%\**}
+      parameter=${parameter% }
+      space2=${space:0:18-${#name1}}
+      entry="\"${name1}\",${space2}\"interface\",   \"${parameter}\","
+      space2=${space:0:19-${#parameter}}
+      entry="${entry}${space2}"
+      echo -n "$entry" >> $temp_thread_db
+      parameter=`grep "${entry}" C-kern/resource/config/initthread`
+      parameter=${parameter#${entry}\"}
+      parameter=${parameter%%\"*}
+      space2=${space:0:14-${#parameter}}
+      echo "\"${parameter}\",${space2}\"${i}\"" >> $temp_thread_db
    done
 done
 
@@ -187,7 +230,7 @@ temp_compare2=`mktemp`
 
 sort $temp_thread_db > $temp_compare1
 sort C-kern/resource/config/initthread \
-    | sed -e "/^#/d;/^$/d" -e 's/"multi",/"",     /' -e 's/"single",/"",      /' \
+    | sed -e "/^#/d;/^$/d" -e '/^"[^"]*",[ ]*"object"/d;' \
     | uniq > $temp_compare2
 
 if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then

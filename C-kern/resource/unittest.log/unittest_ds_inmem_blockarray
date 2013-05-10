@@ -1,26 +1,26 @@
-C-kern/ds/inmem/blockarray.c:129: init_blockarray(): error: 22: Function input violates condition (pagesize < pagesize_NROFPAGESIZE)
-C-kern/ds/inmem/blockarray.c:151: init_blockarray(): error: 22: Function aborted
-C-kern/ds/inmem/blockarray.c:129: init_blockarray(): error: 22: Function input violates condition (pagesize < pagesize_NROFPAGESIZE)
-C-kern/ds/inmem/blockarray.c:151: init_blockarray(): error: 22: Function aborted
-C-kern/ds/inmem/blockarray.c:130: init_blockarray(): error: 22: Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
-C-kern/ds/inmem/blockarray.c:151: init_blockarray(): error: 22: Function aborted
-C-kern/ds/inmem/blockarray.c:130: init_blockarray(): error: 22: Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
-C-kern/ds/inmem/blockarray.c:151: init_blockarray(): error: 22: Function aborted
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:209: free_blockarray(): error: 14: Freeing a resource returned an error
-C-kern/ds/inmem/blockarray.c:340: assign_blockarray(): error: 12: Function aborted
-C-kern/ds/inmem/blockarray.c:340: assign_blockarray(): error: 12: Function aborted
-C-kern/ds/inmem/blockarray.c:340: assign_blockarray(): error: 12: Function aborted
+C-kern/ds/inmem/blockarray.c:130: init_blockarray(): error: 22: Function input violates condition (pagesize < pagesize_NROFPAGESIZE)
+C-kern/ds/inmem/blockarray.c:152: init_blockarray(): error: 22: Function aborted
+C-kern/ds/inmem/blockarray.c:130: init_blockarray(): error: 22: Function input violates condition (pagesize < pagesize_NROFPAGESIZE)
+C-kern/ds/inmem/blockarray.c:152: init_blockarray(): error: 22: Function aborted
+C-kern/ds/inmem/blockarray.c:131: init_blockarray(): error: 22: Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
+C-kern/ds/inmem/blockarray.c:152: init_blockarray(): error: 22: Function aborted
+C-kern/ds/inmem/blockarray.c:131: init_blockarray(): error: 22: Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
+C-kern/ds/inmem/blockarray.c:152: init_blockarray(): error: 22: Function aborted
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:210: free_blockarray(): error: 14: Freeing a resource returned an error
+C-kern/ds/inmem/blockarray.c:341: assign_blockarray(): error: 12: Function aborted
+C-kern/ds/inmem/blockarray.c:341: assign_blockarray(): error: 12: Function aborted
+C-kern/ds/inmem/blockarray.c:341: assign_blockarray(): error: 12: Function aborted

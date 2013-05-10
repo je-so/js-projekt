@@ -28,7 +28,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
-#include "C-kern/api/memory/mm/mm_it.h"
+#include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -431,11 +431,11 @@ static int mallocate_testmm(testmm_t * mman, size_t newsize, struct memblock_t *
 
 testmm_t * mmcontext_testmm(void)
 {
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mmtransient_maincontext().iimpl) {
+   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
       return 0 ;
    }
 
-   return (testmm_t*) mmtransient_maincontext().object ;
+   return (testmm_t*) mm_maincontext().object ;
 }
 
 int switchon_testmm()
@@ -443,18 +443,17 @@ int switchon_testmm()
    int  err ;
    mm_t testmm = mm_INIT_FREEABLE ;
 
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mmtransient_maincontext().iimpl) {
+   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
       memblock_t  previous_mm = memblock_INIT_FREEABLE ;
 
       err = initasmm_testmm(&testmm) ;
       if (err) goto ONABORT ;
 
-      err = testmm.iimpl->mresize(testmm.object, sizeof(mm_t), &previous_mm) ;
+      err = mresize_mm(testmm, sizeof(mm_t), &previous_mm) ;
       if (err) goto ONABORT ;
 
-      *((mm_t*)previous_mm.addr) = mmtransient_maincontext() ;
-
-      mmtransient_maincontext() = testmm ;
+      initcopy_iobj((mm_t*)previous_mm.addr, &mm_maincontext()) ;
+      initcopy_iobj(&mm_maincontext(), &testmm) ;
    }
 
    return 0 ;
@@ -468,11 +467,10 @@ int switchoff_testmm()
 {
    int err ;
 
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) == mmtransient_maincontext().iimpl) {
-      mm_t        mmobj       = mmtransient_maincontext() ;
-      testmm_t    * testmm    = ((testmm_t*)mmobj.object) ;
-      memblock_t  previous_mm = memblock_INIT_FREEABLE ;
-      testmm_page_t  * mmpage = testmm->mmpage ;
+   if (genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) {
+      testmm_t *        testmm      = (testmm_t*)mm_maincontext().object ;
+      memblock_t        previous_mm = memblock_INIT_FREEABLE ;
+      testmm_page_t *   mmpage      = testmm->mmpage ;
 
       while (mmpage->next) {
          mmpage = mmpage->next ;
@@ -486,7 +484,9 @@ int switchoff_testmm()
          goto ONABORT ;
       }
 
-      mmtransient_maincontext() = *((mm_t*)previous_mm.addr) ;
+      mm_t mmobj ;
+      initcopy_iobj(&mmobj, &mm_maincontext()) ;
+      initcopy_iobj(&mm_maincontext(), (mm_t*)previous_mm.addr) ;
 
       err = freeasmm_testmm(&mmobj) ;
       if (err) goto ONABORT ;
@@ -1169,24 +1169,25 @@ ONABORT:
 
 static int test_context(void)
 {
-   mm_t oldmm = mmtransient_maincontext() ;
+   mm_t oldmm ;
+   initcopy_iobj(&oldmm, &mm_maincontext()) ;
 
    // TEST double call switchon_testmm
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) != mmtransient_maincontext().iimpl) ;
+   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) ;
    TEST(0 == switchon_testmm()) ;
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mmtransient_maincontext().iimpl) ;
+   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
    TEST(0 == switchon_testmm()) ;
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mmtransient_maincontext().iimpl) ;
+   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
 
    // TEST double call switchoff_testmm
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mmtransient_maincontext().iimpl) ;
+   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
    TEST(0 == switchoff_testmm()) ;
-   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) != mmtransient_maincontext().iimpl) ;
-   TEST(oldmm.object == mmtransient_maincontext().object) ;
-   TEST(oldmm.iimpl  == mmtransient_maincontext().iimpl) ;
+   TEST(genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) ;
+   TEST(oldmm.object == mm_maincontext().object) ;
+   TEST(oldmm.iimpl  == mm_maincontext().iimpl) ;
    TEST(0 == switchoff_testmm()) ;
-   TEST(oldmm.object == mmtransient_maincontext().object) ;
-   TEST(oldmm.iimpl  == mmtransient_maincontext().iimpl) ;
+   TEST(oldmm.object == mm_maincontext().object) ;
+   TEST(oldmm.iimpl  == mm_maincontext().iimpl) ;
 
    return 0 ;
 ONABORT:

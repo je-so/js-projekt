@@ -1,14 +1,12 @@
-C-kern/cache/objectcache_impl.c:59: initthread_objectcacheimpl(): error: 22: Function input violates condition (0 == objectcache->object)
-C-kern/cache/objectcache_impl.c:73: initthread_objectcacheimpl(): error: 22: Function aborted
-C-kern/cache/objectcache_impl.c:141: lockiobuffer2_objectcacheimpl(): error: 22: Function input violates condition (0 == *iobuffer)
-C-kern/cache/objectcache_impl.c:147: lockiobuffer2_objectcacheimpl(): error: 22: Function aborted
-C-kern/cache/objectcache_impl.c:156: unlockiobuffer2_objectcacheimpl(): error: 22: Function input violates condition (genericcast_memblock(&objectcache->iobuffer,) == *iobuffer)
-C-kern/cache/objectcache_impl.c:162: unlockiobuffer2_objectcacheimpl(): error: 22: Function aborted
-C-kern/cache/objectcache_impl.c:141: lockiobuffer2_objectcacheimpl(): error: 22: Function input violates condition (0 == *iobuffer)
-C-kern/cache/objectcache_impl.c:147: lockiobuffer2_objectcacheimpl(): error: 22: Function aborted
-C-kern/cache/objectcache_impl.c:172: lockiobuffer_objectcacheimpl(): error: 22: Assertion '!err && "lockiobuffer2_objectcacheimpl"' failed.
-C-kern/context/maincontext.c:169: abort_maincontext(): error: 22: Abort process with fatal error
-C-kern/cache/objectcache_impl.c:156: unlockiobuffer2_objectcacheimpl(): error: 22: Function input violates condition (genericcast_memblock(&objectcache->iobuffer,) == *iobuffer)
-C-kern/cache/objectcache_impl.c:162: unlockiobuffer2_objectcacheimpl(): error: 22: Function aborted
-C-kern/cache/objectcache_impl.c:181: unlockiobuffer_objectcacheimpl(): error: 22: Assertion '!err && "unlockiobuffer2_objectcacheimpl"' failed.
-C-kern/context/maincontext.c:169: abort_maincontext(): error: 22: Abort process with fata
+C-kern/cache/objectcache_impl.c:98: lockiobuffer2_objectcacheimpl(): error: 22: Function input violates condition (0 == *iobuffer)
+C-kern/cache/objectcache_impl.c:104: lockiobuffer2_objectcacheimpl(): error: 22: Function aborted
+C-kern/cache/objectcache_impl.c:113: unlockiobuffer2_objectcacheimpl(): error: 22: Function input violates condition (genericcast_memblock(&objectcache->iobuffer,) == *iobuffer)
+C-kern/cache/objectcache_impl.c:119: unlockiobuffer2_objectcacheimpl(): error: 22: Function aborted
+C-kern/cache/objectcache_impl.c:98: lockiobuffer2_objectcacheimpl(): error: 22: Function input violates condition (0 == *iobuffer)
+C-kern/cache/objectcache_impl.c:104: lockiobuffer2_objectcacheimpl(): error: 22: Function aborted
+C-kern/cache/objectcache_impl.c:129: lockiobuffer_objectcacheimpl(): error: 22: Assertion '!err && "lockiobuffer2_objectcacheimpl"' failed.
+C-kern/context/maincontext.c:170: abort_maincontext(): error: 22: Abort process with fatal error
+C-kern/cache/objectcache_impl.c:113: unlockiobuffer2_objectcacheimpl(): error: 22: Function input violates condition (genericcast_memblock(&objectcache->iobuffer,) == *iobuffer)
+C-kern/cache/objectcache_impl.c:119: unlockiobuffer2_objectcacheimpl(): error: 22: Function aborted
+C-kern/cache/objectcache_impl.c:138: unlockiobuffer_objectcacheimpl(): error: 22: Assertion '!err && "unlockiobuffer2_objectcacheimpl"' failed.
+C-kern/context/maincontext.c:170: abort_maincontext(): error: 22: Abort process with fata

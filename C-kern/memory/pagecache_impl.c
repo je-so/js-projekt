@@ -212,7 +212,7 @@ static int new_pagecacheblock(/*out*/struct pagecache_block_t ** block, pagesize
    if (err) goto ONABORT ;
 
    ONERROR_testerrortimer(&s_pagecacheblock_errtimer, ONABORT) ;
-   pagecache_block_t * new_block = assign_blockarray(blockarray, arrayindex_pagecacheblock(pageblock.addr), *pagecache, &err) ;
+   pagecache_block_t * new_block = assign_blockarray(blockarray, arrayindex_pagecacheblock(pageblock.addr), pagecache, &err) ;
    if (!new_block) goto ONABORT ;
 
    if (!isfree_vmpage(&new_block->pageblock)) {
@@ -353,50 +353,50 @@ static pagecache_impl_it   s_pagecacheimpl_blockarray_interface = pagecache_it_I
 
 // group: init
 
-int initthread_pagecacheimpl(/*out*/pagecache_t * pgcache)
+int initthread_pagecacheimpl(/*out*/pagecache_t * pagecache)
 {
    int err ;
-   pagecache_impl_t  temppgcache = pagecache_impl_INIT_FREEABLE ;
+   pagecache_impl_t  temppagecache = pagecache_impl_INIT_FREEABLE ;
    memblock_t        memobject ;
 
-   VALIDATE_INPARAM_TEST(0 == pgcache->object, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 == pagecache->object, ONABORT, ) ;
 
-   err = init_pagecacheimpl(&temppgcache) ;
+   err = init_pagecacheimpl(&temppagecache) ;
    if (err) goto ONABORT ;
 
-   err = allocstatic_pagecacheimpl(&temppgcache, sizeof(temppgcache), &memobject) ;
+   err = allocstatic_pagecacheimpl(&temppagecache, sizeof(temppagecache), &memobject) ;
    if (err) goto ONABORT ;
 
-   memcpy(memobject.addr, &temppgcache, sizeof(temppgcache)) ;
+   memcpy(memobject.addr, &temppagecache, sizeof(temppagecache)) ;
 
-   *pgcache = (pagecache_t) pagecache_INIT(
+   *pagecache = (pagecache_t) pagecache_INIT(
                   (struct pagecache_t*)memobject.addr,
                   genericcast_pagecacheit(&s_pagecacheimpl_interface, pagecache_impl_t)
                ) ;
 
    return 0 ;
 ONABORT:
-   free_pagecacheimpl(&temppgcache) ;
+   free_pagecacheimpl(&temppagecache) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
 
-int freethread_pagecacheimpl(pagecache_t * pgcache)
+int freethread_pagecacheimpl(pagecache_t * pagecache)
 {
    int err ;
-   pagecache_impl_t * delobj = (pagecache_impl_t*) pgcache->object ;
+   pagecache_impl_t * delobj = (pagecache_impl_t*) pagecache->object ;
 
    if (delobj) {
-      assert(genericcast_pagecacheit(&s_pagecacheimpl_interface, pagecache_impl_t) == pgcache->iimpl) ;
+      assert(genericcast_pagecacheit(&s_pagecacheimpl_interface, pagecache_impl_t) == pagecache->iimpl) ;
 
-      *pgcache = (pagecache_t) pagecache_INIT_FREEABLE ;
+      *pagecache = (pagecache_t) pagecache_INIT_FREEABLE ;
 
-      pagecache_impl_t temppgcache = *delobj ;
+      pagecache_impl_t temppagecache = *delobj ;
 
       memblock_t memobject = memblock_INIT(sizeof(*delobj), (uint8_t*)delobj) ;
-      err = freestatic_pagecacheimpl(&temppgcache, &memobject) ;
+      err = freestatic_pagecacheimpl(&temppagecache, &memobject) ;
 
-      int err2 = free_pagecacheimpl(&temppgcache) ;
+      int err2 = free_pagecacheimpl(&temppagecache) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -491,7 +491,7 @@ int init_pagecacheimpl(/*out*/pagecache_impl_t * pgcache)
                               ) ;
 
    ONERROR_testerrortimer(&s_pagecacheblock_errtimer, ONABORT) ;
-   err = init_blockarray(&pgcache->blockarray, pagesize_1MB, elemsize, pagecache) ;
+   err = init_blockarray(&pgcache->blockarray, pagesize_1MB, elemsize, &pagecache) ;
    if (err) goto ONABORT ;
 
    pagecache_block_t * block ;
@@ -523,7 +523,7 @@ int free_pagecacheimpl(pagecache_impl_t * pgcache)
                                  genericcast_pagecacheit(&s_pagecacheimpl_blockarray_interface, pagecache_impl_t)
                               ) ;
 
-   err2 = free_blockarray(&pgcache->blockarray, pagecache) ;
+   err2 = free_blockarray(&pgcache->blockarray, &pagecache) ;
    if (err2) err = err2 ;
 #ifdef KONFIG_UNITTEST
    err2 = process_testerrortimer(&s_pagecacheblock_errtimer) ;
@@ -783,7 +783,7 @@ static int test_block(void)
                                     ) ;
 
    // prepare
-   TEST(0 == init_blockarray(&blockarray, pagesize_1MB, makepowerof2_int(sizeof(pagecache_block_t)), pagecache)) ;
+   TEST(0 == init_blockarray(&blockarray, pagesize_1MB, makepowerof2_int(sizeof(pagecache_block_t)), &pagecache)) ;
 
    // TEST arrayindex_pagecacheblock
    for (size_t i = 0; i < 99; ++i) {
@@ -909,14 +909,14 @@ static int test_block(void)
    }
 
    // unprepare
-   TEST(0 == free_blockarray(&blockarray, pagecache)) ;
+   TEST(0 == free_blockarray(&blockarray, &pagecache)) ;
 
    return 0 ;
 ONABORT:
    for (unsigned i = 0; i < lengthof(block); ++i) {
       if (block[i]) free_pagecacheblock(block[i]) ;
    }
-   free_blockarray(&blockarray, pagecache) ;
+   free_blockarray(&blockarray, &pagecache) ;
    return EINVAL ;
 }
 
@@ -1015,7 +1015,7 @@ static int test_helper(void)
                                     ) ;
 
    // prepare
-   TEST(0 == init_blockarray(&blockarray, pagesize_1MB, makepowerof2_int(sizeof(pagecache_block_t)), pagecache)) ;
+   TEST(0 == init_blockarray(&blockarray, pagesize_1MB, makepowerof2_int(sizeof(pagecache_block_t)), &pagecache)) ;
 
    // TEST findfreeblock_pagecacheimpl
    for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
@@ -1116,14 +1116,14 @@ static int test_helper(void)
    }
 
    // unprepare
-   TEST(0 == free_blockarray(&blockarray, pagecache)) ;
+   TEST(0 == free_blockarray(&blockarray, &pagecache)) ;
 
    return 0 ;
 ONABORT:
    for (uint8_t i = 0; i < lengthof(block); ++i) {
       if (block[i]) free_pagecacheblock(block[i]) ;
    }
-   free_blockarray(&blockarray, pagecache) ;
+   free_blockarray(&blockarray, &pagecache) ;
    return EINVAL ;
 }
 
@@ -1132,9 +1132,9 @@ static int test_query(void)
    pagecache_impl_t pgcache = pagecache_impl_INIT_FREEABLE ;
 
    // TEST isfree_pagecacheimpl
-   TEST(0 == init_blockarray(&pgcache.blockarray, pagesize_4096, 1, pagecache_maincontext())) ;
+   TEST(0 == init_blockarray(&pgcache.blockarray, pagesize_4096, 1, genericcast_iobj(&pagecache_maincontext(), pagecache))) ;
    TEST(0 == isfree_pagecacheimpl(&pgcache)) ;
-   TEST(0 == free_blockarray(&pgcache.blockarray, pagecache_maincontext())) ;
+   TEST(0 == free_blockarray(&pgcache.blockarray, genericcast_iobj(&pagecache_maincontext(), pagecache))) ;
    TEST(1 == isfree_pagecacheimpl(&pgcache)) ;
    pgcache.blocklist.last = (void*)1 ;
    TEST(0 == isfree_pagecacheimpl(&pgcache)) ;

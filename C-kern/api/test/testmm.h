@@ -1,6 +1,6 @@
 /* title: Test-MemoryManager
 
-   Offers interface for allocating & freeing transient memory.
+   Offers interface for allocating & freeing blocks of memory.
    This is a test memory manager which checks for writing beyond the allocated memory block.
    It is used during the execution of unit tests.
 
@@ -30,12 +30,13 @@
 
 // forward
 struct memblock_t ;
+struct mm_t ;
 struct testmm_page_t ;
 struct test_errortimer_t ;
 
 /* typedef: struct testmm_t
  * Exports <testmm_t>. */
-typedef struct testmm_t                testmm_t ;
+typedef struct testmm_t                   testmm_t ;
 
 
 // section: Functions
@@ -44,13 +45,13 @@ typedef struct testmm_t                testmm_t ;
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_test_testmm
- * Test <testmm_t> - a test memory manager for transient memory. */
+ * Test <testmm_t> - memory manager for tests. */
 int unittest_test_testmm(void) ;
 #endif
 
 
 /* struct: testmm_t
- * Test memory manager for allocating/freeing transient memory.
+ * Test memory manager for allocating/freeing blocks of memory.
  *
  * - Call <switchon_testmm> to install it.
  * - Call <switchoff_testmm> to restore normal memory manager. */
@@ -90,7 +91,7 @@ int switchoff_testmm(void) ;
 #define testmm_INIT_FREEABLE           { 0, 0, 0, 0 }
 
 /* function: init_testmm
- * Initializes a new memory manager for transient memory. */
+ * Initializes a new test memory manager. */
 int init_testmm(/*out*/testmm_t * mman) ;
 
 /* function: free_testmm
@@ -102,12 +103,12 @@ int free_testmm(testmm_t * mman) ;
 /* function: initasmm_testmm
  * Calls <init_testmm> and wraps object into interface object <mm_t>.
  * This function is called from <switchon_testmm>. */
-int initasmm_testmm(/*out*/mm_t * testmm) ;
+int initasmm_testmm(/*out*/struct mm_t * testmm) ;
 
 /* function: freeasmm_testmm
  * Calls <free_testmm> with object pointer from <mm_t>.
  * This function is called from <switchoff_testmm>. */
-int freeasmm_testmm(mm_t * testmm) ;
+int freeasmm_testmm(struct mm_t * testmm) ;
 
 // group: query
 
@@ -120,12 +121,12 @@ size_t sizeallocated_testmm(testmm_t * mman) ;
 
 /* function: mresize_testmm
  * Allocates new memory or resizes already allocated memory.
- * Test implementation replacement of <mresize_mmtransient>. */
+ * Test implementation replacement of <mresize_mmimpl>. */
 int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock) ;
 
 /* function: mfree_testmm
  * Frees the memory of an allocated memory block.
- * Test implementation replacement of <mfree_mmtransient>. */
+ * Test implementation replacement of <mfree_mmimpl>. */
 int mfree_testmm(testmm_t  * mman, struct memblock_t * memblock) ;
 
 // group: simulation

@@ -169,19 +169,19 @@ const char *               progname_maincontext(void) ;
  * Returns log service <log_t> (see <logwriter_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-/*ref*/log_t               log_maincontext(void) ;
+/*ref*/iobj_DECLARE(,log)  log_maincontext(void) ;
 
-/* function: mmtransient_maincontext
+/* function: mm_maincontext
  * Returns interfaceable object <mm_t> for access of memory manager. */
-/*ref*/mm_t                mmtransient_maincontext(void) ;
+/*ref*/iobj_DECLARE(,mm)   mm_maincontext(void) ;
 
 /* function: objectcache_maincontext
  * Returns interfaceable object <objectcache_t> for access of cached singleton objects. */
-/*ref*/objectcache_t       objectcache_maincontext(void) ;
+/*ref*/iobj_DECLARE(,objectcache) objectcache_maincontext(void) ;
 
 /* function: pagecache_maincontext
  * Returns object interface <pagecache_t> to access functionality of <pagecache_impl_t>. */
-/*ref*/pagecache_t         pagecache_maincontext(void) ;
+/*ref*/iobj_DECLARE(,pagecache) pagecache_maincontext(void) ;
 
 /* function: syncrun_maincontext
  * Returns <syncrun_t> of current <maincontext_t>. It is used to store and run
@@ -202,42 +202,42 @@ struct valuecache_t *      valuecache_maincontext(void) ;
 
 /* define: error_maincontext
  * Implementation of <maincontext_t.error_maincontext>. */
-#define error_maincontext()            (process_maincontext().errcontext)
+#define error_maincontext()               (process_maincontext().errcontext)
 
 /* define: log_maincontext
  * Inline implementation of <maincontext_t.log_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define log_maincontext()              (thread_maincontext().log)
+#define log_maincontext()                 (thread_maincontext().log)
 
-/* define: mmtransient_maincontext
- * Inline implementation of <maincontext_t.mmtransient_maincontext>.
+/* define: mm_maincontext
+ * Inline implementation of <maincontext_t.mm_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define mmtransient_maincontext()      (thread_maincontext().mm_transient)
+#define mm_maincontext()                  (thread_maincontext().mm)
 
 /* define: objectcache_maincontext
  * Inline implementation of <maincontext_t.objectcache_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define objectcache_maincontext()      (thread_maincontext().objectcache)
+#define objectcache_maincontext()         (thread_maincontext().objectcache)
 
 /* define: pagecache_maincontext
  * Implements <maincontext_t.pagecache_maincontext>. */
-#define pagecache_maincontext()        (thread_maincontext().pgcache)
+#define pagecache_maincontext()           (thread_maincontext().pagecache)
 
 /* define: process_maincontext
  * Inline implementation of <maincontext_t.process_maincontext>. */
-#define process_maincontext()          (g_maincontext.pcontext)
+#define process_maincontext()             (g_maincontext.pcontext)
 
 /* define: progname_maincontext
  * Inline implementation of <maincontext_t.progname_maincontext>. */
-#define progname_maincontext()         (g_maincontext.progname)
+#define progname_maincontext()            (g_maincontext.progname)
 
 /* define: syncrun_maincontext
  * Inline implementation of <maincontext_t.syncrun_maincontext>. */
-#define syncrun_maincontext()          (thread_maincontext().syncrun)
+#define syncrun_maincontext()             (thread_maincontext().syncrun)
 
 /* define: sysuser_maincontext
  * Inline implementation of <maincontext_t.sysuser_maincontext>. */
-#define sysuser_maincontext()          (process_maincontext().sysuser)
+#define sysuser_maincontext()             (process_maincontext().sysuser)
 
 
 #define THREAD 1

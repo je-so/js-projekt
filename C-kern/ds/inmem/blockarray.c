@@ -30,10 +30,11 @@
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/pagecache_impl.h"
+#include "C-kern/api/memory/pagecache.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/memory/pagecache_impl.h"
 #endif
 
 
@@ -117,7 +118,7 @@ static test_errortimer_t      s_blockarray_errtimer = test_errortimer_INIT_FREEA
 
 // group: lifetime
 
-int init_blockarray(/*out*/blockarray_t * barray, pagesize_e pagesize, uint16_t elementsize, const struct pagecache_t pagecache)
+int init_blockarray(/*out*/blockarray_t * barray, uint8_t pagesize, uint16_t elementsize, const struct pagecache_t * pagecache)
 {
    int err ;
    datablock_t *  datablock ;
@@ -129,7 +130,7 @@ int init_blockarray(/*out*/blockarray_t * barray, pagesize_e pagesize, uint16_t 
    VALIDATE_INPARAM_TEST(pagesize < pagesize_NROFPAGESIZE, ONABORT,) ;
    VALIDATE_INPARAM_TEST(0 < elementsize && elementsize <= blocksize_in_bytes, ONABORT,) ;
 
-   err = new_datablock(&datablock, pagesize, &pagecache);
+   err = new_datablock(&datablock, pagesize, pagecache);
    if (err) goto ONABORT ;
 
    size_t ptr_per_block = blocksize_in_bytes / sizeof(void*) ;
@@ -152,7 +153,7 @@ ONABORT:
    return err ;
 }
 
-int free_blockarray(blockarray_t * barray, struct pagecache_t pagecache)
+int free_blockarray(blockarray_t * barray, const struct pagecache_t * pagecache)
 {
    int err ;
 
@@ -181,7 +182,7 @@ int free_blockarray(blockarray_t * barray, struct pagecache_t pagecache)
             err2 = process_testerrortimer(&s_blockarray_errtimer) ;
             if (err2) err = err2 ;
 #endif
-            err2 = delete_memoryblock(treepath[depth].block, pagesize_in_bytes, &pagecache) ;
+            err2 = delete_memoryblock(treepath[depth].block, pagesize_in_bytes, pagecache) ;
             if (err2) err = err2 ;
 
             if (!depth) break ;  // deleted root => done
@@ -251,7 +252,7 @@ static int adaptdepth_blockarray(blockarray_t * barray, uint8_t depth, const str
    return 0 ;
 }
 
-void * assign_blockarray(blockarray_t * barray, size_t arrayindex, struct pagecache_t pagecache, /*err*/int * errcode)
+void * assign_blockarray(blockarray_t * barray, size_t arrayindex, const struct pagecache_t * pagecache, /*err*/int * errcode)
 {
    int err ;
    size_t   blockindex ;
@@ -286,9 +287,9 @@ void * assign_blockarray(blockarray_t * barray, size_t arrayindex, struct pageca
 
       if (depth > barray->depth) {
          // allocate new root at correct depth level
-         if (!isobject_pagecache(&pagecache)) goto ONNOTALLOCATE ;
+         if (!isobject_pagecache(pagecache)) goto ONNOTALLOCATE ;
          ONERROR_testerrortimer(&s_blockarray_errtimer, ONABORT) ;
-         err = adaptdepth_blockarray(barray, depth, &pagecache) ;
+         err = adaptdepth_blockarray(barray, depth, pagecache) ;
          if (err) goto ONABORT ;
       }
    }
@@ -306,9 +307,9 @@ void * assign_blockarray(blockarray_t * barray, size_t arrayindex, struct pageca
          ptrblock_t * child = ptrblock->childs[childindex] ;
          if (! child) {
             // allocate new ptrblock_t
-            if (!isobject_pagecache(&pagecache)) goto ONNOTALLOCATE ;
+            if (!isobject_pagecache(pagecache)) goto ONNOTALLOCATE ;
             ONERROR_testerrortimer(&s_blockarray_errtimer, ONABORT) ;
-            err = new_ptrblock(&child, barray->pagesize, &pagecache) ;
+            err = new_ptrblock(&child, barray->pagesize, pagecache) ;
             if (err) goto ONABORT ;
             ptrblock->childs[childindex] = child ;
          }
@@ -319,9 +320,9 @@ void * assign_blockarray(blockarray_t * barray, size_t arrayindex, struct pageca
 
       if (! ptrblock->childs[childindex]) {
          // allocate new datablock_t
-         if (!isobject_pagecache(&pagecache)) goto ONNOTALLOCATE ;
+         if (!isobject_pagecache(pagecache)) goto ONNOTALLOCATE ;
          ONERROR_testerrortimer(&s_blockarray_errtimer, ONABORT) ;
-         err = new_datablock((datablock_t**)&ptrblock->childs[childindex], barray->pagesize, &pagecache) ;
+         err = new_datablock((datablock_t**)&ptrblock->childs[childindex], barray->pagesize, pagecache) ;
          if (err) goto ONABORT ;
       }
 
@@ -347,7 +348,7 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_helpertypes(const struct pagecache_t pgcache)
+static int test_helpertypes(const struct pagecache_t * pgcache)
 {
    ptrblock_t *   ptrblock  = 0 ;
    datablock_t *  datablock = 0 ;
@@ -359,44 +360,44 @@ static int test_helpertypes(const struct pagecache_t pgcache)
       TEST(blocksize >= 256) ;
       TEST(ispowerof2_int(blocksize)) ;
 
-      size_t oldsize = sizeallocated_pagecache(pgcache) ;
-      TEST(0 == new_ptrblock(&ptrblock, pgsize, &pgcache)) ;
+      size_t oldsize = sizeallocated_pagecache(*pgcache) ;
+      TEST(0 == new_ptrblock(&ptrblock, pgsize, pgcache)) ;
       TEST(0 != ptrblock) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize + blocksize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize + blocksize) ;
       for (size_t i = 0 ; i < blocksize; ++i) {
          TEST(0 == ((uint8_t*)ptrblock)[i]) ;
       }
 
-      TEST(0 == delete_memoryblock(ptrblock, blocksize, &pgcache)) ;
+      TEST(0 == delete_memoryblock(ptrblock, blocksize, pgcache)) ;
       ptrblock = 0 ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize) ;
    }
 
    // TEST new_datablock, delete_memoryblock
    for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
       blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
 
-      size_t oldsize = sizeallocated_pagecache(pgcache) ;
+      size_t oldsize = sizeallocated_pagecache(*pgcache) ;
 
-      TEST(0 == new_datablock(&datablock, pgsize, &pgcache)) ;
+      TEST(0 == new_datablock(&datablock, pgsize, pgcache)) ;
       TEST(0 != datablock) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize + blocksize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize + blocksize) ;
       for (size_t i = 0 ; i < blocksize; ++i) {
          TEST(0 == ((uint8_t*)datablock)[i]) ;
       }
 
-      TEST(0 == delete_memoryblock(datablock, blocksize, &pgcache)) ;
+      TEST(0 == delete_memoryblock(datablock, blocksize, pgcache)) ;
       datablock = 0 ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize) ;
    }
 
    return 0 ;
 ONABORT:
    if (ptrblock) {
-      delete_memoryblock(ptrblock, blocksize, &pgcache) ;
+      delete_memoryblock(ptrblock, blocksize, pgcache) ;
    }
    if (datablock) {
-      delete_memoryblock(datablock, blocksize, &pgcache) ;
+      delete_memoryblock(datablock, blocksize, pgcache) ;
    }
    return EINVAL ;
 }
@@ -449,7 +450,7 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_initfree(const struct pagecache_t pgcache)
+static int test_initfree(const struct pagecache_t * pgcache)
 {
    blockarray_t   barray  = blockarray_INIT_FREEABLE ;
 
@@ -458,13 +459,13 @@ static int test_initfree(const struct pagecache_t pgcache)
 
    // TEST init_blockarray, free_blockarray: elementsize not power of two
    for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      size_t oldsize   = sizeallocated_pagecache(pgcache) ;
+      size_t oldsize   = sizeallocated_pagecache(*pgcache) ;
       size_t blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
 
       barray.depth = 1 ;
       barray.log2elements_per_block = 1 ;
       TEST(0 == init_blockarray(&barray, pgsize, (uint16_t)(3+4*pgsize), pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize + blocksize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize + blocksize) ;
       TEST(barray.elements_per_block     == blocksize / (3+4*pgsize)) ;
       TEST(barray.root                   != 0) ;
       TEST(barray.elementsize            == 3+4*pgsize) ;
@@ -474,21 +475,21 @@ static int test_initfree(const struct pagecache_t pgcache)
       TEST(barray.pagesize               == pgsize) ;
 
       TEST(0 == free_blockarray(&barray, pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize) ;
       TEST(1 == isfree_blockarray(&barray)) ;
       TEST(0 == free_blockarray(&barray, pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize) ;
       TEST(1 == isfree_blockarray(&barray)) ;
    }
 
    // TEST init_blockarray, free_blockarray: elementsize power of two
    for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      size_t oldsize   = sizeallocated_pagecache(pgcache) ;
+      size_t oldsize   = sizeallocated_pagecache(*pgcache) ;
       size_t blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
 
       barray.depth = 1 ;
       TEST(0 == init_blockarray(&barray, pgsize, 32, pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize + blocksize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize + blocksize) ;
       TEST(barray.elements_per_block     == blocksize / 32) ;
       TEST(barray.root                   != 0) ;
       TEST(barray.elementsize            == 32) ;
@@ -498,24 +499,24 @@ static int test_initfree(const struct pagecache_t pgcache)
       TEST(barray.pagesize               == pgsize) ;
 
       TEST(0 == free_blockarray(&barray, pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize) ;
       TEST(1 == isfree_blockarray(&barray)) ;
    }
 
    // TEST init_blockarray: EINVAL
-   TEST(EINVAL == init_blockarray(&barray, -1, 16, pgcache)) ;
+   TEST(EINVAL == init_blockarray(&barray, (uint8_t)-1, 16, pgcache)) ;
    TEST(EINVAL == init_blockarray(&barray, pagesize_NROFPAGESIZE, 16, pgcache)) ;
    TEST(EINVAL == init_blockarray(&barray, pagesize_16384, 0, pgcache)) ;
    TEST(EINVAL == init_blockarray(&barray, pagesize_16384, 16385, pgcache)) ;
 
    // TEST init_blockarray, free_blockarray: one per page, free whole tree
    for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
-      size_t oldsize   = sizeallocated_pagecache(pgcache) ;
+      size_t oldsize   = sizeallocated_pagecache(*pgcache) ;
       size_t blocksize = pagesizeinbytes_pagecacheit(pgsize) ;
       uint16_t elemsize = (uint16_t) (blocksize < UINT16_MAX ? blocksize : 32768) ;
 
       TEST(0 == init_blockarray(&barray, pgsize, elemsize, pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize + blocksize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize + blocksize) ;
       TEST(barray.elements_per_block     == blocksize / elemsize) ;
       TEST(barray.root                   != 0) ;
       TEST(barray.elementsize            == elemsize) ;
@@ -525,16 +526,16 @@ static int test_initfree(const struct pagecache_t pgcache)
       TEST(barray.pagesize               == pgsize) ;
 
       // build whole tree and free all pages
-      TEST(0 == build_test_tree(&barray, pgsize, 5, &pgcache)) ;
+      TEST(0 == build_test_tree(&barray, pgsize, 5, pgcache)) ;
       TEST(0 == free_blockarray(&barray, pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize) ;
       TEST(1 == isfree_blockarray(&barray)) ;
    }
 
    // TEST free_blockarray: EFAULT
    for (unsigned i = 1; i <= 15; ++i) {
       TEST(0 == init_blockarray(&barray, pagesize_1024, 128, pgcache)) ;
-      TEST(0 == build_test_tree(&barray, pagesize_1024, 3, &pgcache)) ;
+      TEST(0 == build_test_tree(&barray, pagesize_1024, 3, pgcache)) ;
       init_testerrortimer(&s_blockarray_errtimer, i, EFAULT) ;
       TEST(EFAULT == free_blockarray(&barray, pgcache)) ;
       TEST(1 == isfree_blockarray(&barray)) ;
@@ -584,7 +585,7 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_update(const struct pagecache_t pgcache)
+static int test_update(const struct pagecache_t * pgcache)
 {
    blockarray_t   barray = blockarray_INIT_FREEABLE ;
    size_t         oldsize ;
@@ -592,15 +593,15 @@ static int test_update(const struct pagecache_t pgcache)
 
    // TEST adaptdepth_blockarray
    for (uint8_t d = 1; d < 64; ++d) {
-      oldsize = sizeallocated_pagecache(pgcache) ;
+      oldsize = sizeallocated_pagecache(*pgcache) ;
       TEST(0 == init_blockarray(&barray, pagesize_256, 256, pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize + 256) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize + 256) ;
       TEST(0 == barray.depth) ;
       oldroot = barray.root ;
-      TEST(0 == adaptdepth_blockarray(&barray, d, &pgcache)) ;
+      TEST(0 == adaptdepth_blockarray(&barray, d, pgcache)) ;
       TEST(d == barray.depth) ;
       TEST(oldroot != barray.root) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize + 256u + d*256u) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize + 256u + d*256u) ;
       void * block = barray.root ;
       for (unsigned i = d; i > 0; --i) {
          TEST(0 != ((ptrblock_t*)block)->childs[0]) ;
@@ -609,21 +610,21 @@ static int test_update(const struct pagecache_t pgcache)
       }
       TEST(oldroot == block) ;
       TEST(0 == free_blockarray(&barray, pgcache)) ;
-      TEST(sizeallocated_pagecache(pgcache) == oldsize) ;
+      TEST(sizeallocated_pagecache(*pgcache) == oldsize) ;
    }
 
    // TEST adaptdepth_blockarray: add always new root even if parameter depth <= barray.depth
-   oldsize = sizeallocated_pagecache(pgcache) ;
+   oldsize = sizeallocated_pagecache(*pgcache) ;
    TEST(0 == init_blockarray(&barray, pagesize_65536, 256, pgcache)) ;
-   TEST(sizeallocated_pagecache(pgcache) == oldsize + 65536) ;
+   TEST(sizeallocated_pagecache(*pgcache) == oldsize + 65536) ;
    oldroot = barray.root ;
-   TEST(0 == adaptdepth_blockarray(&barray, 0, &pgcache)) ;
-   TEST(sizeallocated_pagecache(pgcache) == oldsize + 2*65536) ;
+   TEST(0 == adaptdepth_blockarray(&barray, 0, pgcache)) ;
+   TEST(sizeallocated_pagecache(*pgcache) == oldsize + 2*65536) ;
    TEST(1 == barray.depth) ;  // one layer added
    TEST(oldroot != barray.root) ;
    TEST(oldroot == ((ptrblock_t*)barray.root)->childs[0]) ;
    TEST(0 == free_blockarray(&barray, pgcache)) ;
-   TEST(sizeallocated_pagecache(pgcache) == oldsize) ;
+   TEST(sizeallocated_pagecache(*pgcache) == oldsize) ;
 
    // TEST assign_blockarray: first block
    for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
@@ -637,16 +638,16 @@ static int test_update(const struct pagecache_t pgcache)
          TEST(barray.elements_per_block == blocksize / elemsize[sizeindex]) ;
          for (size_t i = 0; i < barray.elements_per_block; ++i) {
             // no allocation wanted
-            uint8_t * elem = assign_blockarray(&barray, i, (pagecache_t)pagecache_INIT_FREEABLE, 0) ;
+            uint8_t * elem = assign_blockarray(&barray, i, &(pagecache_t)pagecache_INIT_FREEABLE, 0) ;
             TEST(elem == block + i*elemsize[sizeindex]) ;
             // no allocation needed
             TEST(elem == assign_blockarray(&barray, i, pgcache, 0)) ;
          }
          // increase depth (repeat same test)
-         TEST(0 == adaptdepth_blockarray(&barray, 3, &pgcache)) ;
+         TEST(0 == adaptdepth_blockarray(&barray, 3, pgcache)) ;
          for (size_t i = 0; i < barray.elements_per_block; ++i) {
             // no allocation wanted
-            uint8_t * elem = assign_blockarray(&barray, i, (pagecache_t)pagecache_INIT_FREEABLE, 0) ;
+            uint8_t * elem = assign_blockarray(&barray, i, &(pagecache_t)pagecache_INIT_FREEABLE, 0) ;
             TEST(elem == block + i*elemsize[sizeindex]) ;
             // no allocation needed
             TEST(elem == assign_blockarray(&barray, i, pgcache, 0)) ;
@@ -702,7 +703,7 @@ static int test_update(const struct pagecache_t pgcache)
             datablock_t * datablock = (datablock_t*) ptrblock ;   // last is of type data
             TEST(elem == &datablock->elements[elemsize[sizeindex] * elemindex]) ;
             // only reading
-            TEST(elem == assign_blockarray(&barray, arrayindex, (pagecache_t)pagecache_INIT_FREEABLE, 0)) ;
+            TEST(elem == assign_blockarray(&barray, arrayindex, &(pagecache_t)pagecache_INIT_FREEABLE, 0)) ;
             // no need for allocation
             TEST(elem == assign_blockarray(&barray, arrayindex, pgcache, 0)) ;
             TEST(0 == free_blockarray(&barray, pgcache)) ;
@@ -714,15 +715,15 @@ static int test_update(const struct pagecache_t pgcache)
    int errcode = 0 ;
    TEST(0 == init_blockarray(&barray, pagesize_256, 1, pgcache)) ;
    // no root block at correct depth level
-   TEST(0 == assign_blockarray(&barray, 256, (pagecache_t)pagecache_INIT_FREEABLE, &errcode)) ;
+   TEST(0 == assign_blockarray(&barray, 256, &(pagecache_t)pagecache_INIT_FREEABLE, &errcode)) ;
    TEST(errcode == ENODATA) ;
    // no datablock
-   TEST(0 == adaptdepth_blockarray(&barray, 1, &pgcache)) ;
-   TEST(0 == assign_blockarray(&barray, 256, (pagecache_t)pagecache_INIT_FREEABLE, &errcode)) ;
+   TEST(0 == adaptdepth_blockarray(&barray, 1, pgcache)) ;
+   TEST(0 == assign_blockarray(&barray, 256, &(pagecache_t)pagecache_INIT_FREEABLE, &errcode)) ;
    TEST(errcode == ENODATA) ;
    // no ptrblock
-   TEST(0 == adaptdepth_blockarray(&barray, 2, &pgcache)) ;
-   TEST(0 == assign_blockarray(&barray, 256*(256/sizeof(void*)), (pagecache_t)pagecache_INIT_FREEABLE, &errcode)) ;
+   TEST(0 == adaptdepth_blockarray(&barray, 2, pgcache)) ;
+   TEST(0 == assign_blockarray(&barray, 256*(256/sizeof(void*)), &(pagecache_t)pagecache_INIT_FREEABLE, &errcode)) ;
    TEST(errcode == ENODATA) ;
    TEST(0 == free_blockarray(&barray, pgcache)) ;
 
@@ -735,7 +736,7 @@ static int test_update(const struct pagecache_t pgcache)
    TEST(0 == barray.depth) ;
    TEST(errcode == ENOMEM) ;
    // ENOMEM: no datablock
-   TEST(0 == adaptdepth_blockarray(&barray, 1, &pgcache)) ;
+   TEST(0 == adaptdepth_blockarray(&barray, 1, pgcache)) ;
    init_testerrortimer(&s_blockarray_errtimer, 1, ENOMEM) ;
    TEST(0 == assign_blockarray(&barray, 256, pgcache, &errcode)) ;
    TEST(1 == barray.depth) ;
@@ -746,7 +747,7 @@ static int test_update(const struct pagecache_t pgcache)
    TEST(0 != ((ptrblock_t*)barray.root)->childs[1]) ;
    TEST(errcode == ENOMEM) ;
    // ENOMEM: no ptrblock
-   TEST(0 == adaptdepth_blockarray(&barray, 2, &pgcache)) ;
+   TEST(0 == adaptdepth_blockarray(&barray, 2, pgcache)) ;
    init_testerrortimer(&s_blockarray_errtimer, 1, ENOMEM) ;
    TEST(0 == assign_blockarray(&barray, 256*(256/sizeof(void*)), pgcache, &errcode)) ;
    TEST(2 == barray.depth) ;
@@ -764,7 +765,7 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_read(const struct pagecache_t pgcache)
+static int test_read(const struct pagecache_t * pgcache)
 {
    blockarray_t   barray = blockarray_INIT_FREEABLE ;
    uint16_t       elemsize[]   = { 1, 3, 4, 8, 12, 16, 24, 30, 32, 55 } ;
@@ -885,11 +886,11 @@ int unittest_ds_inmem_blockarray()
    TEST(0 == initthread_pagecacheimpl(&pgcache)) ;
    size_t oldsize = sizeallocated_pagecache(pgcache) ;
 
-   if (test_helpertypes(pgcache))   goto ONABORT ;
-   if (test_initfree(pgcache))      goto ONABORT ;
+   if (test_helpertypes(&pgcache))  goto ONABORT ;
+   if (test_initfree(&pgcache))     goto ONABORT ;
    if (test_query())                goto ONABORT ;
-   if (test_update(pgcache))        goto ONABORT ;
-   if (test_read(pgcache))          goto ONABORT ;
+   if (test_update(&pgcache))       goto ONABORT ;
+   if (test_read(&pgcache))         goto ONABORT ;
    if (test_generic())              goto ONABORT ;
 
    // unprepare

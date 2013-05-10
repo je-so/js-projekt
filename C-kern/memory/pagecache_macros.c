@@ -26,18 +26,15 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/memory/pagecache_macros.h"
+#ifdef KONFIG_UNITTEST
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_impl.h"
-#ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
 
 // section: pagecache_macros_t
-
-// group: lifetime
-
 
 // group: test
 
@@ -131,26 +128,26 @@ static int test_cache(void)
 
    // prepare
    TEST(0 == initthread_pagecacheimpl(&testpagecache)) ;
-   oldpagecache = pagecache_maincontext() ;
-   pagecache_maincontext() = testpagecache ;
+   initcopy_iobj(&oldpagecache, &pagecache_maincontext()) ;
+   initcopy_iobj(&pagecache_maincontext(), &testpagecache) ;
 
    // TEST EMPTYCACHE_PAGECACHE
-   pagecache_impl_t * pgcache = (pagecache_impl_t*) testpagecache.object ;
-   TEST(0 == pgcache->freeblocklist[pagesize_256].last) ;
+   pagecache_impl_t * pagecache = (pagecache_impl_t*) testpagecache.object ;
+   TEST(0 == pagecache->freeblocklist[pagesize_256].last) ;
    TEST(0 == ALLOC_PAGECACHE(pagesize_256, &page)) ;
    TEST(0 == RELEASE_PAGECACHE(&page)) ;
-   TEST(0 != pgcache->freeblocklist[pagesize_256].last) ;
+   TEST(0 != pagecache->freeblocklist[pagesize_256].last) ;
    TEST(0 == EMPTYCACHE_PAGECACHE()) ;
-   TEST(0 == pgcache->freeblocklist[pagesize_256].last) ;
+   TEST(0 == pagecache->freeblocklist[pagesize_256].last) ;
 
    // unprepare
-   pagecache_maincontext() = oldpagecache ;
+   initcopy_iobj(&pagecache_maincontext(), &oldpagecache) ;
    TEST(0 == freethread_pagecacheimpl(&testpagecache)) ;
 
    return 0 ;
 ONABORT:
    if (oldpagecache.object) {
-      pagecache_maincontext() = oldpagecache ;
+      initcopy_iobj(&pagecache_maincontext(), &oldpagecache) ;
    }
    freethread_pagecacheimpl(&testpagecache) ;
    return EINVAL ;

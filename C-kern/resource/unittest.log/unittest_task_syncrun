@@ -1,85 +1,85 @@
-C-kern/task/syncrun.c:414: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:421: setstateexit_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:414: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:421: setstateexit_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:414: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:421: setstateexit_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:414: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:421: setstateexit_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:429: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:429: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:429: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:429: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:428: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:428: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:449: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:449: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:449: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:449: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:448: setstatewaitlist_syncrun(): error: 22: Function input violates condition (queue == 0 || queue == &srun->queues[syncrun_qid_WLIST])
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:414: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:421: setstateexit_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:414: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:421: setstateexit_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:414: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:421: setstateexit_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:414: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:421: setstateexit_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:428: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:429: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:428: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:428: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
-C-kern/task/syncrun.c:440: setstatewait_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:448: setstatewaitlist_syncrun(): error: 22: Function input violates condition (queue == 0 || queue == &srun->queues[syncrun_qid_WLIST])
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:449: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 71: Function aborted
-C-kern/task/syncrun.c:524: signalevent_syncrun(): error: 22: Function input violates condition (queue == &srun->queues[syncrun_qid_WAIT] || queue == &srun->queues[syncrun_qid_WAIT2])
-C-kern/task/syncrun.c:539: signalevent_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:526: signalevent_syncrun(): error: 22: Function input violates condition (syncevent == event_syncwait(syncwait))
-C-kern/task/syncrun.c:539: signalevent_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:539: signalevent_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:551: signalfirst_syncrun(): error: 22: Function input violates condition (queue == &srun->queues[syncrun_qid_WLIST])
-C-kern/task/syncrun.c:558: signalfirst_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:570: signalall_syncrun(): error: 22: Function input violates condition (queue == &srun->queues[syncrun_qid_WLIST])
-C-kern/task/syncrun.c:577: signalall_syncrun(): error: 22: Function aborted
-C-kern/task/syncrun.c:1002: runall_syncrun(): error: 115: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
-C-kern/task/syncrun.c:465: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:363: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:370: setstateexit_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:363: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:370: setstateexit_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:363: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:370: setstateexit_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:363: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:370: setstateexit_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:378: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:378: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:378: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:378: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:377: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:377: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:398: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:398: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:398: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:398: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:397: setstatewaitlist_syncrun(): error: 22: Function input violates condition (queue == 0 || queue == &srun->queues[syncrun_qid_WLIST])
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:363: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:370: setstateexit_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:363: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:370: setstateexit_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:363: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:370: setstateexit_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:363: setstateexit_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:370: setstateexit_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:377: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:378: setstatewait_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:377: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:377: setstatewait_syncrun(): error: 22: Function input violates condition (event && false == iswaiting_syncevent(event))
+C-kern/task/syncrun.c:389: setstatewait_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:397: setstatewaitlist_syncrun(): error: 22: Function input violates condition (queue == 0 || queue == &srun->queues[syncrun_qid_WLIST])
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:398: setstatewaitlist_syncrun(): error: 71: Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 71: Function aborted
+C-kern/task/syncrun.c:473: signalevent_syncrun(): error: 22: Function input violates condition (queue == &srun->queues[syncrun_qid_WAIT] || queue == &srun->queues[syncrun_qid_WAIT2])
+C-kern/task/syncrun.c:488: signalevent_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:475: signalevent_syncrun(): error: 22: Function input violates condition (syncevent == event_syncwait(syncwait))
+C-kern/task/syncrun.c:488: signalevent_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:488: signalevent_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:500: signalfirst_syncrun(): error: 22: Function input violates condition (queue == &srun->queues[syncrun_qid_WLIST])
+C-kern/task/syncrun.c:507: signalfirst_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:519: signalall_syncrun(): error: 22: Function input violates condition (queue == &srun->queues[syncrun_qid_WLIST])
+C-kern/task/syncrun.c:526: signalall_syncrun(): error: 22: Function aborted
+C-kern/task/syncrun.c:951: runall_syncrun(): error: 115: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted
+C-kern/task/syncrun.c:414: setstatewaitlist_syncrun(): error: 12: Function aborted

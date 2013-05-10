@@ -1,6 +1,6 @@
-/* title: MemoryManager-Interface impl
+/* title: MemoryManager-Object impl
 
-   Implements unittest of <MemoryManager-Interface>.
+   Implements unittest of <MemoryManager-Object>.
 
    about: Copyright
    This program is free software.
@@ -17,16 +17,16 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/memory/mm/mm_it.h
-    Header file of <MemoryManager-Interface>.
+   file: C-kern/api/memory/mm/mm.h
+    Header file of <MemoryManager-Object>.
 
-   file: C-kern/memory/mm/mm_it.c
-    Implements unittest <MemoryManager-Interface impl>.
+   file: C-kern/memory/mm/mm.c
+    Implements unittest <MemoryManager-Object impl>.
 */
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/memory/mm/mm_it.h"
+#include "C-kern/api/memory/mm/mm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
@@ -35,24 +35,6 @@
 // group: test
 
 #ifdef KONFIG_UNITTEST
-
-static int test_initmm(void)
-{
-   mm_t mman = mm_INIT_FREEABLE ;
-
-   // TEST mm_INIT_FREEABLE
-   TEST(0 == mman.object) ;
-   TEST(0 == mman.iimpl) ;
-
-   // TEST mm_INIT
-   mman = (mm_t) mm_INIT((mm_t*)2, (mm_it*)3) ;
-   TEST(2 == (uintptr_t)mman.object) ;
-   TEST(3 == (uintptr_t)mman.iimpl) ;
-
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
 
 static int mresize_dummy(struct mm_t * mman, size_t newsize, struct memblock_t * memblock)
 {
@@ -75,9 +57,21 @@ size_t sizeallocated_dummy(struct mm_t * mman)
    return 0 ;
 }
 
+/* function: test_initfree
+ * Test lifetime functions of <mm_t> and <mm_it>. */
 static int test_initfree(void)
 {
    mm_it mminterface = mm_it_INIT_FREEABLE ;
+   mm_t  mman        = mm_INIT_FREEABLE ;
+
+   // TEST mm_INIT_FREEABLE
+   TEST(0 == mman.object) ;
+   TEST(0 == mman.iimpl) ;
+
+   // TEST mm_INIT
+   mman = (mm_t) mm_INIT((mm_t*)2, (mm_it*)3) ;
+   TEST(2 == (uintptr_t)mman.object) ;
+   TEST(3 == (uintptr_t)mman.iimpl) ;
 
    // TEST mm_it_INIT_FREEABLE
    TEST(0 == mminterface.mresize) ;
@@ -95,32 +89,45 @@ ONABORT:
    return EINVAL ;
 }
 
-struct mmx_t ;
+typedef struct mmx_t    mmx_t ;
 
-static int mresize_mmx(struct mmx_t * mman, size_t newsize, struct memblock_t * memblock)
+struct mmx_t {
+   mmx_t *        mm ;
+   size_t         newsize ;
+   struct
+   memblock_t *   memblock ;
+   uint8_t        opid ;
+} ;
+
+static int mresize_mmx(struct mmx_t * mm, size_t newsize, struct memblock_t * memblock)
 {
-   (void) mman ;
-   (void) newsize ;
-   (void) memblock ;
+   mm->mm       = mm ;
+   mm->newsize  = newsize ;
+   mm->memblock = memblock ;
+   mm->opid     = 1 ;
    return 0 ;
 }
 
-static int mfree_mmx(struct mmx_t * mman, struct memblock_t * memblock)
+static int mfree_mmx(struct mmx_t * mm, struct memblock_t * memblock)
 {
-   (void) mman ;
-   (void) memblock ;
+   mm->mm       = mm ;
+   mm->memblock = memblock ;
+   mm->opid     = 2 ;
    return 0 ;
 }
 
-size_t sizeallocated_mmx(struct mmx_t * mman)
+size_t sizeallocated_mmx(struct mmx_t * mm)
 {
-   (void) mman ;
+   mm->mm   = mm ;
+   mm->opid = 3 ;
    return 0 ;
 }
 
 // TEST mm_it_DECLARE
 mm_it_DECLARE(mmx_it, struct mmx_t)
 
+/* function:test_generic
+ * Test generic functions of <mm_it>. */
 static int test_generic(void)
 {
    mmx_it mmxif = mm_it_INIT_FREEABLE ;
@@ -144,15 +151,51 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_memory_mm_mmit()
+/* function: test_call
+ * Test call functions of <mm_t>. */
+static int test_call(void)
+{
+   mmx_it mmxif = mm_it_INIT(&mresize_mmx, &mfree_mmx, &sizeallocated_mmx) ;
+   mmx_t  mmx   = { 0, 0, 0, 0 } ;
+   mm_t   mm    = mm_INIT((mm_t*)&mmx, genericcast_mmit(&mmxif, struct mmx_t)) ;
+
+   // TEST mresize_mm
+   TEST(0 == mresize_mm(mm, 1000, (struct memblock_t*)10001)) ;
+   TEST(mmx.mm       == &mmx) ;
+   TEST(mmx.newsize  == 1000) ;
+   TEST(mmx.memblock == (struct memblock_t*)10001) ;
+   TEST(mmx.opid     == 1) ;
+
+   // TEST mfree_mm
+   memset(&mmx, 0, sizeof(mmx)) ;
+   TEST(0 == mfree_mm(mm, (struct memblock_t*)10002)) ;
+   TEST(mmx.mm       == &mmx) ;
+   TEST(mmx.newsize  == 0) ;
+   TEST(mmx.memblock == (struct memblock_t*)10002) ;
+   TEST(mmx.opid     == 2) ;
+
+   // TEST sizeallocated_mm
+   memset(&mmx, 0, sizeof(mmx)) ;
+   TEST(0 == sizeallocated_mm(mm)) ;
+   TEST(mmx.mm       == &mmx) ;
+   TEST(mmx.newsize  == 0) ;
+   TEST(mmx.memblock == 0) ;
+   TEST(mmx.opid     == 3) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+int unittest_memory_mm_mm()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initmm())      goto ONABORT ;
    if (test_initfree())    goto ONABORT ;
    if (test_generic())     goto ONABORT ;
+   if (test_call())        goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

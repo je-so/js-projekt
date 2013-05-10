@@ -53,7 +53,7 @@ struct resourceusage_t {
     * Number of open files. */
    size_t                        file_usage ;
    /* variable: mmtrans_usage
-    * Number of memory bytes allocated by <mmtransient_t>. */
+    * Number of memory bytes allocated by <mm_impl_t>. */
    size_t                        mmtrans_usage ;
    /* variable: mmtrans_correction
     * Number of bytes <resourceusage_t> uses itself. */

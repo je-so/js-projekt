@@ -27,6 +27,8 @@
 #ifndef CKERN_MEMORY_PAGECACHE_MACROS_HEADER
 #define CKERN_MEMORY_PAGECACHE_MACROS_HEADER
 
+#include "C-kern/api/memory/pagecache.h"
+
 
 // section: Functions
 

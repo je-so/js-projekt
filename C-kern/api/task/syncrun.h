@@ -162,18 +162,6 @@ struct syncrun_t {
    }                 running ;
 } ;
 
-// group: init
-
-/* function: initthread_syncrun
- * Allocates static memory and calls <init_syncrun>.
- * This function is called from <init_threadcontext>. */
-int initthread_syncrun(/*out*/syncrun_t ** syncrun) ;
-
-/* function: freethread_syncrun
- * Calls <free_syncrun> and frees static memory.
- * This function is called from <free_threadcontext>. */
-int freethread_syncrun(syncrun_t ** syncrun) ;
-
 // group: lifetime
 
 /* define: syncrun_INIT_FREEABLE

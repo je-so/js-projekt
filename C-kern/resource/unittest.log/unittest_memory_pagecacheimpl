@@ -51,5 +51,5 @@ C-kern/memory/pagecache_impl.c:726: freestatic_pagecacheimpl(): error: 22: Funct
 C-kern/memory/pagecache_impl.c:745: freestatic_pagecacheimpl(): error: 22: Function aborted
 C-kern/memory/pagecache_impl.c:726: freestatic_pagecacheimpl(): error: 22: Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
 C-kern/memory/pagecache_impl.c:745: freestatic_pagecacheimpl(): error: 22: Function aborted
-C-kern/memory/pagecache_impl.c:362: initthread_pagecacheimpl(): error: 22: Function input violates condition (0 == pgcache->object)
+C-kern/memory/pagecache_impl.c:362: initthread_pagecacheimpl(): error: 22: Function input violates condition (0 == pagecache->object)
 C-kern/memory/pagecache_impl.c:380: initthread_pagecacheimpl(): error: 22: Function aborted

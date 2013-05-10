@@ -26,12 +26,12 @@
 #ifndef CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 #define CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 
-#include "C-kern/api/io/writer/log/log_it.h"
+#include "C-kern/api/io/writer/log/log.h"
 
 
 /* typedef: logwriter_t typedef
  * Exports <logwriter_t>. */
-typedef struct logwriter_t          logwriter_t ;
+typedef struct logwriter_t                logwriter_t ;
 
 
 // section: Functions
@@ -68,23 +68,18 @@ struct logwriter_t
    size_t         logsize ;
 } ;
 
-// group: init
+// group: initthread
 
-/* function: initthread_logwriter
- * Uses <init_logwriter> - called from <init_threadcontext>. */
-int initthread_logwriter(/*out*/log_t * log) ;
-
-/* function: freethread_logwriter
- * Uses  <free_logwriter> - called from <free_threadcontext>.
- * After return log is not set to NULL instead it is set to <g_logmain>.
- * To support the most basic logging. */
-int freethread_logwriter(log_t * log) ;
+/* function: interfacethread_logwriter
+ * This function is called from <init_threadcontext>.
+ * Used to initialize interface of <log_t>. */
+struct log_it * interfacethread_logwriter(void) ;
 
 // group: lifetime
 
 /* define: logwriter_INIT_FREEABLE
  * Static initializer. */
-#define logwriter_INIT_FREEABLE        {  { 0, 0 }, 0 }
+#define logwriter_INIT_FREEABLE           {  { 0, 0 }, 0 }
 
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.
@@ -142,13 +137,15 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
 
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
-/* define: initthread_logwriter
- * Implement <logwriter_t.initthread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD)
- * The default logging service is <logmain_t> which may not be thread safe. */
-#define initthread_logwriter(log)    (0)
-/* define: freethread_logwriter
- * Implement <logwriter_t.freethread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
-#define freethread_logwriter(log)    (0)
+/* define: interfacethread_logwriter
+ * Implement <logwriter_t.interfacethread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define interfacethread_logwriter()       (0)
+/* define: init_logwriter
+ * Implement <logwriter_t.init_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define init_logwriter(log)               (0)
+/* define: free_logwriter
+ * Implement <logwriter_t.free_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+#define free_logwriter(log)               (0)
 #endif
 #undef THREAD
 

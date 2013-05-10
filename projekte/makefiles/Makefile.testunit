@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mai.10  19:04:57
+GenerationDate  := 2013.Mai.10  19:19:39
 GeneratedBy     := je-so
 
 ## Debug
@@ -151,8 +151,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache_macros.c.o \
- $(ObjectDir_Debug)/C-kern!memory!mm!mm_it.c.o \
- $(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!splitstring.c.o \
@@ -251,8 +251,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!hwcache.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache_macros.c.o \
- $(ObjectDir_Release)/C-kern!memory!mm!mm_it.c.o \
- $(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o \
+ $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
+ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!splitstring.c.o \
@@ -510,10 +510,10 @@ $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
 $(ObjectDir_Debug)/C-kern!memory!pagecache_macros.c.o: C-kern/memory/pagecache_macros.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!memory!mm!mm_it.c.o: C-kern/memory/mm/mm_it.c
+$(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
+$(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!string!string.c.o: C-kern/string/string.c
@@ -804,10 +804,10 @@ $(ObjectDir_Release)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
 $(ObjectDir_Release)/C-kern!memory!pagecache_macros.c.o: C-kern/memory/pagecache_macros.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!memory!mm!mm_it.c.o: C-kern/memory/mm/mm_it.c
+$(ObjectDir_Release)/C-kern!memory!mm!mm.c.o: C-kern/memory/mm/mm.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!memory!mm!mmtransient.c.o: C-kern/memory/mm/mmtransient.c
+$(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!string.c.o: C-kern/string/string.c

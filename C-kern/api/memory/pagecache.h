@@ -74,31 +74,19 @@ int unittest_memory_pagecache(void) ;
 
 
 /* struct: pagecache_t
- * An object exporting interface <pagecache_it>.
- * The object implements caching of memory pages.
+ * Uses <iobj_DECLARE> to declare interfaceable object.
  * See also <pagecache_impl_t> which is the default implementation. */
-struct pagecache_t {
-   /* variable: object
-    * A pointer to the object which implements the interface <pagecache_it>.
-    * The type <pagecache_t> is casted into a custom type in the implementation
-    * of the interface <pagecache_it>. */
-   pagecache_t *     object ;
-   /* variable: iimpl
-    * A pointer to the implementation of interface <pagecache_it>. */
-   pagecache_it *    iimpl ;
-} ;
+iobj_DECLARE(pagecache_t, pagecache) ;
 
 // group: lifetime
 
 /* define: pagecache_INIT_FREEABLE
- * Static initializer. */
-#define pagecache_INIT_FREEABLE  \
-         pagecache_INIT(0,0)
+ * Static initializer. See <iobj_INIT_FREEABLE>. */
+#define pagecache_INIT_FREEABLE           iobj_INIT_FREEABLE
 
 /* define: pagecache_INIT
- * Static initializer. */
-#define pagecache_INIT(object, iimpl)  \
-         { (object), (iimpl) }
+ * Static initializer. See <iobj_INIT>. */
+#define pagecache_INIT(object, iimpl)     iobj_INIT(object, iimpl)
 
 // group: query
 

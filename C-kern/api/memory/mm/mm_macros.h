@@ -1,5 +1,5 @@
 /* title: MemoryManagerMacros
-   Exports convenience macros for accessing <mmtransient_maincontext>.
+   Exports convenience macros for accessing <mm_maincontext>.
 
    about: Copyright
    This program is free software.
@@ -22,7 +22,7 @@
 #ifndef CKERN_MEMORY_MM_MMMACROS_HEADER
 #define CKERN_MEMORY_MM_MMMACROS_HEADER
 
-#include "C-kern/api/memory/mm/mm_it.h"
+#include "C-kern/api/memory/mm/mm.h"
 
 
 // section: Functions
@@ -30,12 +30,12 @@
 // group: allocate
 
 /* define: RESIZE_MM
- * Resizes memory block. See also <mresize_mmtransient>. */
-#define  RESIZE_MM(newsize, mblock)    mmtransient_maincontext().iimpl->mresize(mmtransient_maincontext().object, (newsize), (mblock))
+ * Resizes memory block. See also <mresize_mmimpl>. */
+#define  RESIZE_MM(newsize, mblock)    mresize_mm(mm_maincontext(), newsize, mblock)
 
 /* define: FREE_MM
- * Frees memory block. See also <mfree_mmtransient>. */
-#define  FREE_MM(mblock)               mmtransient_maincontext().iimpl->mfree(mmtransient_maincontext().object, (mblock))
+ * Frees memory block. See also <mfree_mmimpl>. */
+#define  FREE_MM(mblock)               mfree_mm(mm_maincontext(), mblock)
 
 
 #endif

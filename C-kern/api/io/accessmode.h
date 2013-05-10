@@ -1,8 +1,7 @@
 /* title: IO-Accessmode
    Defines how you can access a data block.
    This aspect is shared between all objects / modules
-   supporting accessing persistent data block or transient
-   memory blocks.
+   which support accessing of persistent or transient data.
 
    about: Copyright
    This program is free software.

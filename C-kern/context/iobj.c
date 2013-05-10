@@ -102,6 +102,17 @@ static int test_generic(void)
    TEST(testiobj3.object == (testiobj_t*)5) ;
    TEST(testiobj3.iimpl  == (testiobj_it*)6) ;
 
+   // TEST initcopy_iobj
+   initcopy_iobj(&testiobj3, &testiobj2) ;
+   TEST(testiobj3.object == (testiobj_t*)3) ;
+   TEST(testiobj3.iimpl  == (testiobj_it*)4) ;
+   initcopy_iobj(&testiobj3, &testiobj1) ;
+   TEST(testiobj3.object == (testiobj_t*)1) ;
+   TEST(testiobj3.iimpl  == (testiobj_it*)2) ;
+   initcopy_iobj(&testiobj2, &testiobj1) ;
+   TEST(testiobj2.object == (testiobj_t*)1) ;
+   TEST(testiobj2.iimpl  == (testiobj_it*)2) ;
+
    // TEST free_iobj
    free_iobj(&testiobj1) ;
    free_iobj(&testiobj2) ;

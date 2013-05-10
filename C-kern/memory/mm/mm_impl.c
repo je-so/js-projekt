@@ -1,5 +1,6 @@
-/* title: TransientMemoryManager impl
-   Implements <TransientMemoryManager>.
+/* title: DefaultMemoryManager impl
+
+   Implements <DefaultMemoryManager>.
 
    about: Copyright
    This program is free software.
@@ -16,104 +17,58 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/memory/mm/mmtransient.h
-    Header file <TransientMemoryManager>.
+   file: C-kern/api/memory/mm/mm_impl.h
+    Header file <DefaultMemoryManager>.
 
-   file: C-kern/memory/mm/mmtransient.c
-    Implementation file <TransientMemoryManager impl>.
+   file: C-kern/memory/mm/mm_impl.c
+    Implementation file <DefaultMemoryManager impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/memory/mm/mmtransient.h"
-#include "C-kern/api/memory/mm/mm_it.h"
+#include "C-kern/api/memory/mm/mm_impl.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/pagecache_macros.h"
-#include "C-kern/api/err.h"
 #include "C-kern/api/platform/malloc.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
 
-/* struct: mmtransient_it
- * Adapts <mm_it> to <mmtransient_t>. See <mm_it_DECLARE>. */
-mm_it_DECLARE(mmtransient_it, mmtransient_t)
+/* struct: mm_impl_it
+ * Adapts <mm_it> to <mm_impl_t>. See <mm_it_DECLARE>. */
+mm_it_DECLARE(mm_impl_it, mm_impl_t)
 
 // group: variables
 
-/* variable: s_mmtransient_interface
- * Contains single instance of interface <mmtransient_it>. */
-static mmtransient_it   s_mmtransient_interface = mm_it_INIT(
-                           &mresize_mmtransient,
-                           &mfree_mmtransient,
-                           &sizeallocated_mmtransient
+/* variable: s_mmimpl_interface
+ * Contains single instance of interface <mm_impl_it>. */
+static mm_impl_it    s_mmimpl_interface = mm_it_INIT(
+                           &mresize_mmimpl,
+                           &mfree_mmimpl,
+                           &sizeallocated_mmimpl
                         ) ;
 
 
-// section: mmtransient_t
+// section: mm_impl_t
 
-// group: init
+// group: initthread
 
-int initthread_mmtransient(/*out*/mm_t * mm_transient)
+mm_it * interfacethread_mmimpl(void)
 {
-   int err ;
-   memblock_t memobject = memblock_INIT_FREEABLE ;
-
-   VALIDATE_INPARAM_TEST(0 == mm_transient->object, ONABORT, ) ;
-
-   err = ALLOCSTATIC_PAGECACHE(sizeof(mmtransient_t), &memobject) ;
-   if (err) goto ONABORT ;
-
-   mmtransient_t * newobj = (mmtransient_t*) memobject.addr ;
-
-   err = init_mmtransient(newobj) ;
-   if (err) goto ONABORT ;
-
-   *mm_transient = (mm_t) mm_INIT((struct mm_t*)newobj, genericcast_mmit(&s_mmtransient_interface, mmtransient_t)) ;
-
-   return 0 ;
-ONABORT:
-   FREESTATIC_PAGECACHE(&memobject) ;
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-int freethread_mmtransient(mm_t * mm_transient)
-{
-   int err ;
-   int err2 ;
-   mmtransient_t * delobj = (mmtransient_t*) mm_transient->object ;
-
-   if (delobj) {
-      assert(genericcast_mmit(&s_mmtransient_interface, mmtransient_t) == mm_transient->iimpl) ;
-
-      *mm_transient = (mm_t) mm_INIT_FREEABLE ;
-
-      err = free_mmtransient(delobj) ;
-
-      memblock_t memobject = memblock_INIT(sizeof(mmtransient_t), (uint8_t*)delobj) ;
-      err2 = FREESTATIC_PAGECACHE(&memobject) ;
-      if (err2) err = err2 ;
-
-      if (err) goto ONABORT ;
-   }
-
-   return 0 ;
-ONABORT:
-   TRACEABORTFREE_LOG(err) ;
-   return err ;
+   return genericcast_mmit(&s_mmimpl_interface, mm_impl_t) ;
 }
 
 // group: lifetime
 
-int init_mmtransient(/*out*/mmtransient_t * mman)
+int init_mmimpl(/*out*/mm_impl_t * mman)
 {
    mman->todo__implement_without_malloc__ = 0 ;
    return 0 ;
 }
 
-int free_mmtransient(mmtransient_t * mman)
+int free_mmimpl(mm_impl_t * mman)
 {
    mman->todo__implement_without_malloc__ = 0 ;
    return 0 ;
@@ -121,25 +76,25 @@ int free_mmtransient(mmtransient_t * mman)
 
 // group: query
 
-size_t sizeallocated_mmtransient(mmtransient_t * mman)
+size_t sizeallocated_mmimpl(mm_impl_t * mman)
 {
-   // TODO: implement sizeallocated_mmtransient
+   // TODO: implement sizeallocated_mmimpl
    (void) mman ;
    return 0 ;
 }
 
 // group: allocate
 
-int mresize_mmtransient(mmtransient_t * mman, size_t newsize, struct memblock_t * memblock)
+int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * memblock)
 {
    int err ;
    void * newaddr ;
 
-   // TODO: implement mresize_mmtransient without realloc
+   // TODO: implement mresize_mmimpl without realloc
 
    (void) mman ;
    if (0 == newsize) {
-      return mfree_mmtransient(mman, memblock) ;
+      return mfree_mmimpl(mman, memblock) ;
    }
 
    VALIDATE_INPARAM_TEST(isfree_memblock(memblock) || isvalid_memblock(memblock), ONABORT, ) ;
@@ -160,7 +115,7 @@ ONABORT:
    return err ;
 }
 
-int mfree_mmtransient(mmtransient_t * mman, struct memblock_t * memblock)
+int mfree_mmimpl(mm_impl_t * mman, struct memblock_t * memblock)
 {
    int err ;
    (void) mman ;
@@ -169,7 +124,7 @@ int mfree_mmtransient(mmtransient_t * mman, struct memblock_t * memblock)
 
       VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONABORT, ) ;
 
-      // TODO: implement mfree_mmtransient without free
+      // TODO: implement mfree_mmimpl without free
 
       free(memblock->addr) ;
       memblock->addr = 0 ;
@@ -189,21 +144,21 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   mmtransient_t mman = mmtransient_INIT_FREEABLE ;
+   mm_impl_t mman = mmimpl_INIT_FREEABLE ;
 
-   // TEST mmtransient_INIT_FREEABLE
+   // TEST mmimpl_INIT_FREEABLE
    TEST(0 == mman.todo__implement_without_malloc__) ;
 
-   // TEST init_mmtransient
+   // TEST init_mmimpl
    memset(&mman, 255, sizeof(mman)) ;
-   TEST(0 == init_mmtransient(&mman)) ;
+   TEST(0 == init_mmimpl(&mman)) ;
    TEST(0 == mman.todo__implement_without_malloc__) ;
 
-   // TEST free_mmtransient
+   // TEST free_mmimpl
    mman.todo__implement_without_malloc__ = 1 ;
-   TEST(0 == free_mmtransient(&mman)) ;
+   TEST(0 == free_mmimpl(&mman)) ;
    TEST(0 == mman.todo__implement_without_malloc__) ;
-   TEST(0 == free_mmtransient(&mman)) ;
+   TEST(0 == free_mmimpl(&mman)) ;
    TEST(0 == mman.todo__implement_without_malloc__) ;
 
    return 0 ;
@@ -213,55 +168,34 @@ ONABORT:
 
 static int test_initthread(void)
 {
-   mm_t  mman = mm_INIT_FREEABLE ;
+   // TEST s_mmimpl_interface
+   TEST(s_mmimpl_interface.mresize == &mresize_mmimpl) ;
+   TEST(s_mmimpl_interface.mfree   == &mfree_mmimpl) ;
+   TEST(s_mmimpl_interface.sizeallocated == &sizeallocated_mmimpl) ;
 
-   // TEST s_mmtransient_interface
-   TEST(s_mmtransient_interface.mresize == &mresize_mmtransient) ;
-   TEST(s_mmtransient_interface.mfree   == &mfree_mmtransient) ;
-
-   // TEST initthread_mmtransient
-   size_t sizestatic = SIZESTATIC_PAGECACHE() ;
-   TEST(0 == initthread_mmtransient(&mman)) ;
-   TEST(mman.object != 0) ;
-   TEST(mman.iimpl  == genericcast_mmit(&s_mmtransient_interface, mmtransient_t)) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic + sizeof(mmtransient_t)) ;
-
-   // TEST freethread_mmtransient
-   TEST(0 == freethread_mmtransient(&mman)) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
-   TEST(0 == mman.object) ;
-   TEST(0 == mman.iimpl) ;
-   TEST(0 == freethread_mmtransient(&mman)) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
-   TEST(0 == mman.object) ;
-   TEST(0 == mman.iimpl) ;
-
-   // TEST initthread_mmtransient: EINVAL
-   mman.object = (struct mm_t*) 1 ;
-   TEST(EINVAL == initthread_mmtransient(&mman)) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+   // TEST interfacethread_mmimpl
+   TEST(interfacethread_mmimpl() == genericcast_mmit(&s_mmimpl_interface, mm_impl_t)) ;
 
    return 0 ;
 ONABORT:
-   (void) freethread_mmtransient(&mman) ;
    return EINVAL ;
 }
 
 static int test_allocate(void)
 {
-   mmtransient_t  mman = mmtransient_INIT_FREEABLE ;
+   mm_impl_t      mman = mmimpl_INIT_FREEABLE ;
    size_t         number_of_allocated_bytes ;
    size_t         number_of_allocated_bytes2 ;
    memblock_t     mblocks[100] ;
 
    // prepare
-   TEST(0 == init_mmtransient(&mman)) ;
+   TEST(0 == init_mmimpl(&mman)) ;
    TEST(0 == allocatedsize_malloc(&number_of_allocated_bytes)) ;
 
-   // TEST mresize_mmtransient empty block, sizeallocated_mmtransient
+   // TEST mresize_mmimpl empty block, sizeallocated_mmimpl
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == mresize_mmtransient(&mman, 16 * (1 + i), &mblocks[i])) ;
+      TEST(0 == mresize_mmimpl(&mman, 16 * (1 + i), &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].size >= 16 * (1 + i)) ;
 
@@ -269,13 +203,13 @@ static int test_allocate(void)
       TEST(number_of_allocated_bytes + mblocks[i].size <= number_of_allocated_bytes2) ;
       number_of_allocated_bytes = number_of_allocated_bytes2 ;
 
-      TEST(0 == sizeallocated_mmtransient(&mman)) ;
+      TEST(0 == sizeallocated_mmimpl(&mman)) ;
    }
 
-   // TEST mresize_mmtransient allocated block, sizeallocated_mmtransient
+   // TEST mresize_mmimpl allocated block, sizeallocated_mmimpl
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       void * oldaddr = mblocks[i].addr ;
-      TEST(0 == mresize_mmtransient(&mman, 2000, &mblocks[i])) ;
+      TEST(0 == mresize_mmimpl(&mman, 2000, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].addr != oldaddr) ;
       TEST(mblocks[i].size >= 2000) ;
@@ -284,12 +218,12 @@ static int test_allocate(void)
       TEST(number_of_allocated_bytes + 2000 - 24 * (1+i) <= number_of_allocated_bytes2) ;
       number_of_allocated_bytes = number_of_allocated_bytes2 ;
 
-      TEST(0 == sizeallocated_mmtransient(&mman)) ;
+      TEST(0 == sizeallocated_mmimpl(&mman)) ;
    }
 
-   // TEST mfree_mmtransient, sizeallocated_mmtransient
+   // TEST mfree_mmimpl, sizeallocated_mmimpl
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
-      TEST(0 == mfree_mmtransient(&mman, &mblocks[i])) ;
+      TEST(0 == mfree_mmimpl(&mman, &mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
       TEST(0 == mblocks[i].addr) ;
 
@@ -297,16 +231,16 @@ static int test_allocate(void)
       TEST(number_of_allocated_bytes >= 2000 + number_of_allocated_bytes2) ;
       number_of_allocated_bytes = number_of_allocated_bytes2 ;
 
-      TEST(0 == sizeallocated_mmtransient(&mman)) ;
+      TEST(0 == sizeallocated_mmimpl(&mman)) ;
    }
 
 
    // unprepare
-   TEST(0 == free_mmtransient(&mman)) ;
+   TEST(0 == free_mmimpl(&mman)) ;
 
    return 0 ;
 ONABORT:
-   free_mmtransient(&mman) ;
+   free_mmimpl(&mman) ;
    return EINVAL ;
 }
 
@@ -343,7 +277,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_memory_mm_mmtransient()
+int unittest_memory_mm_mmimpl()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 

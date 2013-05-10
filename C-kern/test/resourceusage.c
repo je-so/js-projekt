@@ -29,9 +29,9 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/pagecache_impl.h"
+#include "C-kern/api/memory/pagecache.h"
 #include "C-kern/api/memory/vm.h"
-#include "C-kern/api/memory/mm/mm_it.h"
+#include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/malloc.h"
 #include "C-kern/api/platform/sync/signal.h"
@@ -57,10 +57,10 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    err = nropen_file(&fds) ;
    if (err) goto ONABORT ;
 
-   pagecache_usage       = pagecache_maincontext().iimpl->sizeallocated(pagecache_maincontext().object) ;
-   pagecache_staticusage = pagecache_maincontext().iimpl->sizestatic(pagecache_maincontext().object) ;
+   pagecache_usage       = sizeallocated_pagecache(pagecache_maincontext()) ;
+   pagecache_staticusage = sizestatic_pagecache(pagecache_maincontext()) ;
 
-   mmtrans_usage = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
+   mmtrans_usage = sizeallocated_mm(mm_maincontext()) ;
 
    err = allocatedsize_malloc(&allocated) ;
    if (err) goto ONABORT ;
@@ -79,8 +79,8 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
 
    err = allocatedsize_malloc(&allocated_endinit) ;
    if (err) goto ONABORT ;
-   mmtrans_endinit   = mmtransient_maincontext().iimpl->sizeallocated(mmtransient_maincontext().object) ;
-   pagecache_endinit = pagecache_maincontext().iimpl->sizeallocated(pagecache_maincontext().object) ;
+   mmtrans_endinit   = sizeallocated_mm(mm_maincontext()) ;
+   pagecache_endinit = sizeallocated_pagecache(pagecache_maincontext()) ;
 
    usage->file_usage           = fds ;
    usage->mmtrans_usage        = mmtrans_usage ;
@@ -306,17 +306,17 @@ static int test_query(void)
    // TEST same_resourceusage: EAGAIN cause of pagecache
    TEST(0 == init_resourceusage(&usage)) ;
    memblock_t page = memblock_INIT_FREEABLE ;
-   TEST(0 == pagecache_maincontext().iimpl->allocpage(pagecache_maincontext().object, pagesize_4096, &page)) ;
+   TEST(0 == allocpage_pagecache(pagecache_maincontext(), pagesize_4096, &page)) ;
    TEST(EAGAIN == same_resourceusage(&usage)) ;
-   TEST(0 == pagecache_maincontext().iimpl->releasepage(pagecache_maincontext().object, &page)) ;
+   TEST(0 == releasepage_pagecache(pagecache_maincontext(), &page)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
    // TEST same_resourceusage: EAGAIN cause of static memory
    TEST(0 == init_resourceusage(&usage)) ;
-   TEST(0 == pagecache_maincontext().iimpl->allocstatic(pagecache_maincontext().object, 128, &page)) ;
+   TEST(0 == allocstatic_pagecache(pagecache_maincontext(), 128, &page)) ;
    TEST(EAGAIN == same_resourceusage(&usage)) ;
-   TEST(0 == pagecache_maincontext().iimpl->freestatic(pagecache_maincontext().object, &page)) ;
+   TEST(0 == freestatic_pagecache(pagecache_maincontext(), &page)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
