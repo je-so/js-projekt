@@ -29,6 +29,7 @@
 #ifndef CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 #define CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 
+#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/io/writer/log/log_macros.h"
 #include "C-kern/resource/generated/errlog.h"
 
@@ -70,7 +71,7 @@
  * which does not do logging on its own.
  *
  * TODO: Support own error IDs */
-#define TRACECALLERR_LOG(fct_name,err) TRACEERR_LOG(FUNCTION_ERROR, fct_name, err, (const char*)str_errorcontext(&error_maincontext(), err))
+#define TRACECALLERR_LOG(fct_name,err) TRACEERR_LOG(FUNCTION_ERROR, fct_name, err, (const char*)str_errorcontext(error_maincontext(), err))
 
 /* define: TRACEERR_LOG
  * Logs an errorlog text resource with arguments.
@@ -96,7 +97,7 @@
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
-#define TRACESYSERR_LOG(sys_fctname,sys_errno)  TRACEERR_LOG(FUNCTION_SYSERR, sys_fctname, sys_errno, (const char*)str_errorcontext(&error_maincontext(), sys_errno))
+#define TRACESYSERR_LOG(sys_fctname,sys_errno)  TRACEERR_LOG(FUNCTION_SYSERR, sys_fctname, sys_errno, (const char*)str_errorcontext(error_maincontext(), sys_errno))
 
 // group: log-variables
 

@@ -299,7 +299,7 @@ ONABORT:
 static int test_querymacros(void)
 {
    // TEST error_maincontext
-   TEST(&process_maincontext().errcontext == &error_maincontext()) ;
+   TEST(&process_maincontext().error      == &error_maincontext()) ;
 
    // TEST log_maincontext
    TEST(&thread_maincontext().log         == &log_maincontext()) ;

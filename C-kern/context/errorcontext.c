@@ -119,13 +119,13 @@ static int test_query(void)
       } else {
          TEST(0 == strcmp(errstr, "Unknown error")) ;
       }
-      TEST((const uint8_t*)errstr == str_errorcontext(&errcontext, i)) ;
+      TEST((const uint8_t*)errstr == str_errorcontext(errcontext, i)) ;
    }
 
    // TEST str_errorcontext: 255 <= errno <= SIZE_MAX
    for (size_t i = 255; true; i *= 2, ++i) {
       const uint8_t * errstr = s_errorcontext_strdata + s_errorcontext_stroffset[255] ;
-      TEST(errstr == str_errorcontext(&errcontext, i)) ;
+      TEST(errstr == str_errorcontext(errcontext, i)) ;
       if (i == SIZE_MAX) break ;
    }
 
@@ -149,6 +149,17 @@ static int test_generic(void)
    // TEST genericcast_errorcontext
    TEST(&errcontext                   == genericcast_errorcontext(&errcontext)) ;
    TEST((errorcontext_t*)&errcontext2 == genericcast_errorcontext(&errcontext2)) ;
+
+   // TEST init_errorcontext
+   TEST(0 == init_errorcontext(genericcast_errorcontext(&errcontext2))) ;
+
+   // TEST str_errorcontext
+   const uint8_t * errstr = str_errorcontext(errcontext2, maxsyserrnum_errorcontext()+1) ;
+   TEST(errstr != 0) ;
+   TEST(0 == strcmp((const char*)errstr, "Unknown error")) ;
+
+   // TEST free_errorcontext
+   TEST(0 == init_errorcontext(genericcast_errorcontext(&errcontext2))) ;
 
    return 0 ;
 ONABORT:

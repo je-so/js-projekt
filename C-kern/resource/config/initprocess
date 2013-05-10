@@ -6,7 +6,7 @@
 # Free functions are called from last entry to first entry.
 # The header-name field references the C99 header file which exports the function prototypes.
 "module",            "parameter",    "header-name"
-"errorcontext",      "errcontext",   "C-kern/api/context/errorcontext.h"
+"errorcontext",      "error",        "C-kern/api/context/errorcontext.h"
 "locale",            "",             "C-kern/api/platform/locale.h"
 "sysuser",           "sysuser",      "C-kern/api/platform/sysuser.h"
 "signalconfig",      "",             "C-kern/api/platform/sync/signal.h"

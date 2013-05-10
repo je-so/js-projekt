@@ -27,7 +27,6 @@
 #ifndef CKERN_CONTEXT_PROCESSCONTEXT_HEADER
 #define CKERN_CONTEXT_PROCESSCONTEXT_HEADER
 
-#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/context/sysusercontext.h"
 
 // forward
@@ -63,8 +62,11 @@ struct processcontext_t {
     * Context for <sysuser_t> module. */
    sysusercontext_t           sysuser ;
    /* variable: errcontext
-    * Context for <errorcontext_t> module. */
-   errorcontext_t             errcontext ;
+    * Data for <errorcontext_t> module. */
+   struct {
+      uint16_t *  stroffset ;
+      uint8_t  *  strdata ;
+   }                          error ;
    /* variable: initcount
     * Counts the number of successfull initialized services/subsystems.
     * This number is can be higher than 1 cause there are subsystems which
@@ -76,7 +78,7 @@ struct processcontext_t {
 
 /* define: processcontext_INIT_FREEABLE
  * Static initializer. */
-#define processcontext_INIT_FREEABLE   { 0, sysusercontext_INIT_FREEABLE, { 0, 0 }, 0 }
+#define processcontext_INIT_FREEABLE      { 0, sysusercontext_INIT_FREEABLE, { 0, 0 }, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context

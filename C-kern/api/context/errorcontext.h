@@ -63,19 +63,19 @@ struct errorcontext_t {
  * Called from <init_maincontext>.
  * The parameter errcontext supports any generic object type which
  * has the same structure as <errorcontext_t>. */
-int initonce_errorcontext(/*out*/void * errcontext) ;
+int initonce_errorcontext(/*out*/errorcontext_t * errcontext) ;
 
 /* function: freeonce_locale
  * Called from <free_maincontext>.
  * The parameter errcontext supports any generic object type which
  * has the same structure as <errorcontext_t>. */
-int freeonce_errorcontext(void * errcontext) ;
+int freeonce_errorcontext(errorcontext_t * errcontext) ;
 
 // group: lifetime
 
 /* define: errorcontext_INIT_FREEABLE
  * Static initializer. */
-#define errorcontext_INIT_FREEABLE      { 0, 0 }
+#define errorcontext_INIT_FREEABLE        { 0, 0 }
 
 /* function: init_errorcontext
  * Initializes errcontext with static system error string table. */
@@ -88,13 +88,15 @@ int free_errorcontext(errorcontext_t * errcontext) ;
 // group: query
 
 /* function: maxsyserrnum_errorcontext
- * Returns the number of entries*/
+ * Returns the number of system error entries. */
 uint16_t maxsyserrnum_errorcontext(void) ;
 
 /* function: str_errorcontext
  * Returns the error description of errnum as a null terminated C string.
- * The value of errnum should be set to the value returned in errno. */
-const uint8_t * str_errorcontext(const errorcontext_t * errcontext, int errnum) ;
+ * The value of errnum should be set to the value returned in errno.
+ * If errnum is < 0 or errnum > <maxsyserrnum_errorcontext> then string "Unknown error"
+ * is returned. */
+const uint8_t * str_errorcontext(const errorcontext_t errcontext, int errnum) ;
 
 // group: generic
 
@@ -157,10 +159,9 @@ errorcontext_t * genericcast_errorcontext(void * object) ;
  * Implements <errorcontext_t.str_errorcontext>. */
 #define str_errorcontext(errcontext, errnum)                   \
          ( __extension__ ({                                    \
-            const errorcontext_t * _errcontext = (errcontext); \
             unsigned _errnum = (unsigned) (errnum) ;           \
-            _errcontext->strdata                               \
-               + _errcontext->stroffset[                       \
+            (errcontext).strdata                               \
+               + (errcontext).stroffset[                       \
                      (uint8_t)(_errnum)                        \
                      | (_errnum >= 255 ? 255 : 0)] ;           \
          }))

@@ -31,9 +31,6 @@
 #include "C-kern/api/context/threadcontext.h"
 #include "C-kern/api/context/processcontext.h"
 
-// forward
-struct errorcontext_t ;
-
 /* typedef: struct maincontext_t
  * Export <maincontext_t>. */
 typedef struct maincontext_t              maincontext_t ;
@@ -163,7 +160,7 @@ const char *               progname_maincontext(void) ;
 
 /* function: error_maincontext
  * Returns error string table (see <errorcontext_t>). */
-/*ref*/errorcontext_t      error_maincontext(void) ;
+/*ref*/typeof(((processcontext_t*)0)->error) error_maincontext(void) ;
 
 /* function: log_maincontext
  * Returns log service <log_t> (see <logwriter_t>).
@@ -202,7 +199,7 @@ struct valuecache_t *      valuecache_maincontext(void) ;
 
 /* define: error_maincontext
  * Implementation of <maincontext_t.error_maincontext>. */
-#define error_maincontext()               (process_maincontext().errcontext)
+#define error_maincontext()               (process_maincontext().error)
 
 /* define: log_maincontext
  * Inline implementation of <maincontext_t.log_maincontext>.
