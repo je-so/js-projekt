@@ -1,9 +1,9 @@
 title: Context-Oriented-Programming
 The idea behind COP is that a function is aware of its execution context.
 
-OOP has the concept of a method which describes a function being aware
+OOP has the concept of a method which is a function being aware
 of its object context. COP goes a step further in that functions are
-also aware of the system thread, process and general service context as
+also aware of the thread, process and general service context like
 the current transaction.
 
 The execution context of a function (system, process, thread, call stack, object, ...)

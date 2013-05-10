@@ -19,8 +19,8 @@
    file: C-kern/api/platform/Linux/syscontext.h
     Header file <LinuxSystemContext>.
 
-   file: C-kern/api/maincontext.h
-    Included from header <MainContext>.
+   file: C-kern/konfig.h
+    Included from header <Konfiguration>.
 */
 #ifndef CKERN_PLATFORM_LINUX_SYSCONTEXT_HEADER
 #define CKERN_PLATFORM_LINUX_SYSCONTEXT_HEADER
@@ -32,7 +32,7 @@ struct threadcontext_t ;
  * Refers for every thread to corresponding <threadcontext_t> object.
  * Is is located on the thread stack so no heap memory is allocated.
  * This variable is defined in <Thread Linux>. */
-extern __thread struct threadcontext_t gt_threadcontext ;
+extern __thread struct threadcontext_t    gt_threadcontext ;
 
 
 // struct: thread_t
@@ -43,11 +43,12 @@ extern __thread struct threadcontext_t gt_threadcontext ;
 /*ref*/ struct threadcontext_t  sys_context_thread(void) ;
 
 
+
 // section: inline implementation
 
 /* define: sys_context_thread
  * Implements <thread_t.sys_context_thread>. */
-#define sys_context_thread()           (gt_threadcontext)
+#define sys_context_thread()              (gt_threadcontext)
 
 
 #endif

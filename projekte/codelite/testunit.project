@@ -111,8 +111,9 @@
       <File Name="../../C-kern/api/context/threadcontext.h"/>
       <File Name="../../C-kern/api/context/stdmacros.h"/>
       <File Name="../../C-kern/api/context/sysusercontext.h"/>
-      <File Name="../../C-kern/api/context/unicode.h"/>
       <File Name="../../C-kern/api/context/errorcontext.h"/>
+      <File Name="../../C-kern/api/context/iobj.h"/>
+      <File Name="../../C-kern/api/context/stdtypes.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -214,6 +215,7 @@
     <File Name="../../C-kern/context/COP.txt"/>
     <File Name="../../C-kern/context/maincontext.c"/>
     <File Name="../../C-kern/context/errorcontext.c"/>
+    <File Name="../../C-kern/context/iobj.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>

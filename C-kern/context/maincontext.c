@@ -44,22 +44,23 @@
 
 /* variable: g_maincontext
  * Reserve space for the global main context. */
+maincontext_t              g_maincontext  = {
+   processcontext_INIT_FREEABLE,
 #define THREAD 1
-maincontext_t                 g_maincontext     = {   processcontext_INIT_FREEABLE
 #if (!((KONFIG_SUBSYS)&THREAD))
-                                                      ,threadcontext_INIT_STATIC
+   threadcontext_INIT_STATIC,
 #endif
-                                                      ,maincontext_STATIC
-                                                      ,0
-                                                      ,0
-                                                      ,0
-                                                   } ;
 #undef THREAD
+   maincontext_STATIC,
+   0,
+   0,
+   0,
+} ;
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_error_init
  * Simulates an error in <init_maincontext>. */
-static test_errortimer_t      s_error_init      = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_error_init   = test_errortimer_INIT_FREEABLE ;
 #endif
 
 

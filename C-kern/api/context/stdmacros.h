@@ -19,6 +19,9 @@
 
    file: C-kern/api/context/stdmacros.h
     Header file <Standard-Macros>.
+
+   file: C-kern/konfig.h
+    Included from header <Konfiguration>.
 */
 #ifndef CKERN_CONTEXT_STDMACROS_HEADER
 #define CKERN_CONTEXT_STDMACROS_HEADER

@@ -28,7 +28,6 @@
 #ifndef CKERN_API_MAINCONTEXT_HEADER
 #define CKERN_API_MAINCONTEXT_HEADER
 
-#include STR(C-kern/api/platform/KONFIG_OS/syscontext.h)
 #include "C-kern/api/context/threadcontext.h"
 #include "C-kern/api/context/processcontext.h"
 
@@ -37,7 +36,7 @@ struct errorcontext_t ;
 
 /* typedef: struct maincontext_t
  * Export <maincontext_t>. */
-typedef struct maincontext_t           maincontext_t ;
+typedef struct maincontext_t              maincontext_t ;
 
 /* enums: maincontext_e
  * Used to switch between different implementations.
@@ -55,13 +54,13 @@ enum maincontext_e {
    maincontext_DEFAULT = 1
 } ;
 
-typedef enum maincontext_e             maincontext_e ;
+typedef enum maincontext_e                maincontext_e ;
 
 /* variable: g_maincontext
  * Global variable which describes the main context for the current process.
  * The variable is located in process global storage.
  * So every thread references the same <maincontext_t>. */
-extern struct maincontext_t            g_maincontext ;
+extern struct maincontext_t               g_maincontext ;
 
 
 // section: Functions

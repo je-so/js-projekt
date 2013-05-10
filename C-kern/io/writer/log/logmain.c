@@ -59,7 +59,7 @@ static void getbuffer_logmain(void * log, /*out*/char ** buffer, /*out*/size_t *
 logmain_t      g_logmain            = { 0 } ;
 
 /* variable: g_logmain_interface
- * Contains single instance of interface <logwritermt_it>. */
+ * Contains single instance of interface <log_it>. */
 log_it         g_logmain_interface  = {
                      &printf_logmain,
                      &flushbuffer_logmain,

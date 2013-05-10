@@ -28,25 +28,15 @@
 /*
  * List of sections:
  *
- * 1. Include standard preprocessor macros.
- * 2. Configuration switches: list of all configuration options to switch language and os.
- * 3. Declare format/type specifiers.
- * 4. Include os specific settings and definitions of system specific types.
- * 5. Include standard runtime environment
+ * 1. Configuration switches: list of all configuration options to switch language and os.
+ * 2. Include standard preprocessor macros and additional format/type specifiers.
+ * 3. Include os specific settings and definitions of system specific types.
+ * 4. Include standard runtime environment
  */
 
 // section: Definitions
 
-// group: 1. Standard Macros
-//
-// Includes:
-// * <Standard-Macros>
-
-//{
-#include "C-kern/api/context/stdmacros.h"
-//}
-
-// group: 2. Configuration
+// group: 1. Configuration
 // List of all configuration options.
 
 //{
@@ -99,81 +89,25 @@
  * X11   - X11 window system + OpenGL graphics (currently no development, not supported yet). */
 #define KONFIG_USERINTERFACE           none
 #endif
-
-
 //}
 
-// group: 3 Declare some missing standard specifiers
-// Declares some printf/scanf format specifiers and type descriptions.
+// group: 2. Standard Macros
+//
+// Includes:
+// * <Standard-Macros>
+// * <Standard-Types>
 
 //{
-/* about: integer format specifiers
- * Adapts printf/scanf format specifiers to 32/64 bit architectures.
- * These specificiers are taken from the C99 std header file "inttypes.h".
- *
- * Rationale:
- * > int64_t i ; printf("i = %lld\n", i) ;
- * This code does only work on 32 bit architectures where *long long int* is of type 64 bit.
- * On 64 bit architectures using the LP64 data model int64_t is defined as *long int*.
- * Therefore the following macros exist to adapt integer type to different architecture data models.
- *
- * Usage:
- * Instead of non portable code:
- * > int64_t i ; printf("i = %lld\n", i) ; scanf( "%lld", &i) ;
- * Use portable code:
- * > int64_t i ; printf("i = %" PRId64 "\n", i) ; scanf( "%" SCNd64, &i) ;
- *
- * printf specifiers:
- * They are prefixed with the correct length modifier ( 'l', 'll' )
- *
- * PRId8   - "d" for int8_t integer types
- * PRId16  - "d" for int16_t integer types
- * PRId32  - "d" for int32_t integer types
- * PRId64  - "d" for int64_t integer types
- * PRIu8   - "u" for uint8_t unsigned integer types
- * PRIu16  - "u" for uint16_t unsigned integer types
- * PRIu32  - "u" for uint32_t unsigned integer types
- * PRIu64  - "u" for uint64_t unsigned integer types
- * PRIuPTR - "u" for uintptr_t unsigned integer types
- * PRIuSIZE - "u" for size_t unsigned integer types
- *
- * scanf specifiers:
- * They are prefixed with the correct length modifier ( 'hh', 'h', 'l', 'll' )
- *
- * SCNd8   - "d" for int8_t integer types
- * SCNd16  - "d" for int16_t integer types
- * SCNd32  - "d" for int32_t integer types
- * SCNd64  - "d" for int64_t integer types
- * SCNu8   - "u" for uint8_t unsigned integer types
- * SCNu16  - "u" for uint16_t unsigned integer types
- * SCNu32  - "u" for uint32_t unsigned integer types
- * SCNu64  - "u" for uint64_t unsigned integer types
- * SCNuPTR - "u" for uintptr_t unsigned integer types
- * */
-
-/* define: PRIuSIZE
- * printf unsigned int format specifier 'zu' for *size_t*. */
-#define PRIuSIZE                       "zu"
-
-/* define: SCNuSIZE
- * scanf unsigned int format specifier 'zu' for *size_t*. */
-#define SCNuSIZE                       "zu"
-
-/* define: OFF_MAX
- * Declares the maximum value of type off_t.
- * The size of off_t is checked in file "C-kern/test/compiletime/stdtypes.h"*/
-#define OFF_MAX                        INT64_MAX
+#include "C-kern/api/context/stdmacros.h"
+#include "C-kern/api/context/stdtypes.h"
 //}
 
-// group: 4. System Specific Definitions
+// group: 3. System Specific Definitions
 // Include system settings:
-// - Include operating system headers relevant for implementation.
-// - Include system specific types.
-// - Include system specific optimizations.
-// > #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
-// > #include STR(C-kern/api/platform/KONFIG_OS/systypes.h)
-// > #include STR(C-kern/api/platform/KONFIG_OS/sysoptimize.h)
-//
+// - Include <LinuxSystemKonfig>
+// - Include <LinuxSystemTypes>
+// - Include <LinuxSystemOptimizations>
+// - Include <LinuxSystemContext>
 // Path:
 // The location of these system specific headers is "C-kern/api/platform/KONFIG_OS/".
 // <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for.
@@ -182,17 +116,18 @@
 #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
 #include STR(C-kern/api/platform/KONFIG_OS/systypes.h)
 #include STR(C-kern/api/platform/KONFIG_OS/sysoptimize.h)
+#include STR(C-kern/api/platform/KONFIG_OS/syscontext.h)
 //}
 
-// group: 5. Standard environment
+// group: 4. Standard environment
 // Includes all C-kern(el) headers which define the standard runtime and compiletime environment.
 //
 // Includes:
 // * <MainContext>.
-// * <Unicode> (Will be removed if upcoming C11 is supported)
+// * <InterfaceableObject> Standard type used to access objects independently from their implementation
 
 //{
-#include "C-kern/api/context/unicode.h"
+#include "C-kern/api/context/iobj.h"
 #include "C-kern/api/maincontext.h"
 //}
 
