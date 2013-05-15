@@ -27,6 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/context/processcontext.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/test/errortimer.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initprocess")
 #include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/platform/locale.h"
@@ -48,13 +49,13 @@
 /* define: processcontext_STATICSIZE
  * Defines size for <s_processcontext_staticmem>.
  * This extrasize is needed during unit tests. */
-#define processcontext_STATICSIZE         (sizeof(valuecache_t))
+#define processcontext_STATICSIZE         (sizeof(valuecache_t) + sizeof(sysuser_t))
 
 #ifdef KONFIG_UNITTEST
 /* define: processcontext_STATICTESTSIZE
  * Defines additonal size for <s_processcontext_staticmem>.
  * This extrasize is needed during unit tests. */
-#define processcontext_STATICTESTSIZE     (2*sizeof(valuecache_t))
+#define processcontext_STATICTESTSIZE     (sizeof(valuecache_t) + sizeof(sysuser_t))
 #else
 #define processcontext_STATICTESTSIZE     0
 #endif
@@ -63,7 +64,15 @@
 
 /* variable: s_processcontext_staticmem
  * Static memory block used in in global <processcontext_t>. */
-static uint8_t s_processcontext_staticmem[1 + processcontext_STATICSIZE + processcontext_STATICTESTSIZE] = { 0 } ;
+static uint8_t             s_processcontext_staticmem[1 + processcontext_STATICSIZE + processcontext_STATICTESTSIZE] = { 0 } ;
+
+// group: variables
+
+#ifdef KONFIG_UNITTEST
+/* variable: s_processcontext_errtimer
+ * Simulates an error in <init_processcontext>. */
+static test_errortimer_t   s_processcontext_errtimer = test_errortimer_INIT_FREEABLE ;
+#endif
 
 // group: lifetime
 
@@ -83,36 +92,45 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
       pcontext->staticmem.addr = &s_processcontext_staticmem[1] ;
    }
 
-// TEXTDB:SELECT(\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;"\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
 
+   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
    err = initonce_errorcontext(&pcontext->error) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
+   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
    err = initonce_locale() ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
+   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
    err = initonce_sysuser(&pcontext->sysuser) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
+   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
    err = initonce_signalconfig() ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
+   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
    err = initonce_valuecache(&pcontext->valuecache) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
+   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
    err = initonce_thread() ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
+   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
    err = initonce_X11() ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 // TEXTDB:END
+
+   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
 
    return 0 ;
 ONABORT:
@@ -202,7 +220,7 @@ ONABORT:
    return 0 ;
 }
 
-void freestatic_processcontext(processcontext_t * pcontext, uint8_t size)
+int freestatic_processcontext(processcontext_t * pcontext, uint8_t size)
 {
    int err ;
 
@@ -210,10 +228,10 @@ void freestatic_processcontext(processcontext_t * pcontext, uint8_t size)
 
    pcontext->staticmem.used = (uint16_t)(pcontext->staticmem.used - size) ;
 
-   return ;
+   return 0 ;
 ONABORT:
    TRACEABORT_LOG(err) ;
-   return ;
+   return err ;
 }
 
 
@@ -224,12 +242,11 @@ ONABORT:
 static int test_initfree(void)
 {
    processcontext_t  pcontext = processcontext_INIT_FREEABLE ;
-   sysusercontext_t  emptyusr = sysusercontext_INIT_FREEABLE ;
    const uint16_t    I        = 7 ;
 
    // TEST processcontext_INIT_FREEABLE
    TEST(0 == pcontext.valuecache) ;
-   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
+   TEST(0 == pcontext.sysuser) ;
    TEST(0 == pcontext.error.stroffset) ;
    TEST(0 == pcontext.error.strdata) ;
    TEST(0 == pcontext.staticmem.addr) ;
@@ -246,7 +263,7 @@ static int test_initfree(void)
    // TEST init_processcontext
    TEST(0 == init_processcontext(&pcontext)) ;
    TEST(0 != pcontext.valuecache) ;
-   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &process_maincontext().sysuser)) ;
+   TEST(0 != pcontext.sysuser) ;
    TEST(0 != pcontext.error.stroffset) ;
    TEST(0 != pcontext.error.strdata) ;
    TEST(0 != pcontext.staticmem.addr) ;
@@ -259,7 +276,7 @@ static int test_initfree(void)
    // TEST free_processcontext
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(0 == pcontext.valuecache) ;
-   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &emptyusr)) ;
+   TEST(0 == pcontext.sysuser) ;
    TEST(0 == pcontext.error.stroffset) ;
    TEST(0 == pcontext.error.strdata) ;
    TEST(0 == pcontext.staticmem.addr) ;
@@ -270,18 +287,18 @@ static int test_initfree(void)
 
    // TEST free_processcontext: initcount == 0
    pcontext.initcount = 0 ;
-   pcontext.error.strdata   = (uint8_t*)3 ;
-   pcontext.error.stroffset = (uint16_t*)2 ;
-   pcontext.sysuser    = (sysusercontext_t) sysusercontext_INIT(process_maincontext().sysuser.realuser, process_maincontext().sysuser.privilegeduser) ;
    pcontext.valuecache = (struct valuecache_t*) 1 ;
+   pcontext.sysuser    = (struct sysuser_t*) 2 ;
+   pcontext.error.stroffset = (uint16_t*)3 ;
+   pcontext.error.strdata   = (uint8_t*)4 ;
    pcontext.staticmem.addr = malloc(100) ;
    pcontext.staticmem.size = 100 ;
    pcontext.staticmem.used = 0 ;
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(pcontext.valuecache == (struct valuecache_t*) 1) ;
-   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &process_maincontext().sysuser)) ;
-   TEST(2 == (uintptr_t)pcontext.error.stroffset) ;
-   TEST(3 == (uintptr_t)pcontext.error.strdata) ;
+   TEST(pcontext.sysuser    == (struct sysuser_t*) 2) ;
+   TEST(pcontext.error.stroffset == (uint16_t*)3) ;
+   TEST(pcontext.error.strdata   == (uint8_t*)4) ;
    // staticmem is freed
    TEST(0 == pcontext.staticmem.addr) ;
    TEST(0 == pcontext.staticmem.size) ;
@@ -299,36 +316,41 @@ static int test_initfree(void)
    TEST(0 == pcontext.staticmem.used) ;
    TEST(process_maincontext().staticmem.used == processcontext_STATICSIZE) ;
 
-   // TEST init_processcontext: EINVAL
-   pcontext.valuecache = (struct valuecache_t*) 2 ;
-   TEST(EINVAL == init_processcontext(&pcontext)) ;
-   TEST(2 == (uintptr_t)pcontext.valuecache) ;
-   TEST(0 == pcontext.error.stroffset) ;
-   TEST(0 == pcontext.error.strdata) ;
-   TEST(0 == pcontext.staticmem.addr) ;
-   TEST(0 == pcontext.staticmem.size) ;
-   TEST(0 == pcontext.staticmem.used) ;
-   TEST(0 == pcontext.initcount) ;
-   pcontext.valuecache = 0 ;
-   TEST(process_maincontext().staticmem.used == processcontext_STATICSIZE) ;
+   // TEST init_processcontext: ERROR
+   memset(&pcontext, 0, sizeof(pcontext)) ;
+   for(int i = 1; i; ++i) {
+      init_testerrortimer(&s_processcontext_errtimer, (unsigned)i, i) ;
+      int err = init_processcontext(&pcontext) ;
+      if (err == 0) {
+         TEST(0 == free_processcontext(&pcontext)) ;
+         TEST(i > I) ;
+         break ;
+      }
+      TEST(i == err) ;
+      TEST(0 == pcontext.valuecache) ;
+      TEST(0 == pcontext.sysuser) ;
+      TEST(0 == pcontext.error.stroffset) ;
+      TEST(0 == pcontext.error.strdata) ;
+      TEST(0 == pcontext.staticmem.addr) ;
+      TEST(0 == pcontext.staticmem.size) ;
+      TEST(0 == pcontext.staticmem.used) ;
+      TEST(0 == pcontext.initcount) ;
+      TEST(process_maincontext().staticmem.used == processcontext_STATICSIZE) ;
+   }
+   init_testerrortimer(&s_processcontext_errtimer, 0, 0) ;
 
    // TEST init_processcontext: restore default environment
    pcontext = (processcontext_t) processcontext_INIT_FREEABLE ;
    TEST(0 == init_processcontext(&pcontext)) ;
-   TEST(0 != pcontext.valuecache) ;
-   TEST(1 == isequal_sysusercontext(&pcontext.sysuser, &process_maincontext().sysuser)) ;
-   TEST(0 != pcontext.error.stroffset) ;
-   TEST(0 != pcontext.error.strdata) ;
-   TEST(0 != pcontext.staticmem.addr) ;
-   TEST(0 != pcontext.staticmem.size) ;
-   TEST(0 == pcontext.staticmem.used) ;
    TEST(I == pcontext.initcount) ;
    TEST(process_maincontext().staticmem.used == 2*processcontext_STATICSIZE) ;
    freeonce_valuecache(&pcontext.valuecache) ;
-   TEST(0 == pcontext.valuecache) ;
+   freeonce_sysuser(&pcontext.sysuser) ;
+   // restore (if setuid)
+   switchtoreal_sysuser(sysuser_maincontext()) ;
+   TEST(process_maincontext().staticmem.used == processcontext_STATICSIZE) ;
    free(pcontext.staticmem.addr) ;
    pcontext.staticmem.addr = 0 ;
-   TEST(process_maincontext().staticmem.used == processcontext_STATICSIZE) ;
 
    return 0 ;
 ONABORT:
@@ -357,7 +379,7 @@ static int test_staticmem(void)
    // TEST freestatic_processcontext: all block sizes
    for (unsigned i = 0; i <= 255; ++i) {
       pcontext.staticmem.used = 255 ;
-      freestatic_processcontext(&pcontext, (uint8_t)i) ;
+      TEST(0 == freestatic_processcontext(&pcontext, (uint8_t)i)) ;
       TEST(pcontext.staticmem.used == 255-i) ;
    }
 
@@ -373,12 +395,12 @@ static int test_staticmem(void)
 
    // TEST freestatic_processcontext: all bytes
    for (unsigned i = memsize; i > 0; --i) {
-      freestatic_processcontext(&pcontext, 1) ;
+      TEST(0 == freestatic_processcontext(&pcontext, 1)) ;
       TEST(pcontext.staticmem.used == i-1) ;
    }
 
    // TEST freestatic_processcontext: EINVAL
-   freestatic_processcontext(&pcontext, 1) ;
+   TEST(EINVAL == freestatic_processcontext(&pcontext, 1)) ;
    TEST(pcontext.staticmem.addr == mem) ;
    TEST(pcontext.staticmem.size == memsize) ;
    TEST(pcontext.staticmem.used == 0) ;

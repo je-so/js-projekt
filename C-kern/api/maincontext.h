@@ -187,7 +187,7 @@ struct syncrun_t *         syncrun_maincontext(void) ;
 
 /* function: sysuser_maincontext
  * Returns <sysusercontext_t> of current <maincontext_t>. It is used in implementation of module <SystemUser>. */
-/*ref*/sysusercontext_t    sysuser_maincontext(void) ;
+/*ref*/struct sysuser_t *  sysuser_maincontext(void) ;
 
 /* function: valuecache_maincontext
  * Returns <valuecache_t> holding precomputed values.

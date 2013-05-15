@@ -1200,6 +1200,7 @@ static int test_exec(void)
       setstderr_processioredirect(&ioredirect, fd[1]) ;
       if (i > 1) setstdin_processioredirect(&ioredirect, STDIN_FILENO) ;
       if (i > 2) setstdout_processioredirect(&ioredirect, STDOUT_FILENO) ;
+      // TODO: TEST why fd[1] is not closed !!
       TEST(0 == initexec_process(&process, testcase2_args[0], testcase2_args, &ioredirect)) ;
       TEST(0 == wait_process(&process, &process_result)) ;
       TEST(process_result.state      == process_state_TERMINATED) ;

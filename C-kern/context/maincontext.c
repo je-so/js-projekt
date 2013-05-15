@@ -193,7 +193,6 @@ static int test_initmain(void)
    int               fd_stderr   = -1 ;
    int               fdpipe[2]   = { -1, -1 } ;
    maincontext_t     old_context = g_maincontext ;
-   sysusercontext_t  emptyusrctx = sysusercontext_INIT_FREEABLE ;
 
    fd_stderr = dup(STDERR_FILENO) ;
    TEST(0 < fd_stderr) ;
@@ -206,7 +205,7 @@ static int test_initmain(void)
    TEST(0 == type_maincontext()) ;
    TEST(0 == process_maincontext().initcount) ;
    TEST(0 == process_maincontext().valuecache) ;
-   TEST(1 == isequal_sysusercontext(&process_maincontext().sysuser, &emptyusrctx)) ;
+   TEST(0 == process_maincontext().sysuser) ;
    TEST(0 == thread_maincontext().initcount) ;
    TEST(&g_logmain == (logmain_t*)thread_maincontext().log.object) ;
    TEST(&g_logmain_interface == thread_maincontext().log.iimpl) ;
@@ -227,7 +226,7 @@ static int test_initmain(void)
    TEST(argv    == g_maincontext.argv) ;
    TEST(argv[0] == progname_maincontext()) ;
    TEST(0 != process_maincontext().valuecache) ;
-   TEST(1 != isequal_sysusercontext(&process_maincontext().sysuser, &emptyusrctx)) ;
+   TEST(0 != process_maincontext().sysuser) ;
    TEST(0 != thread_maincontext().initcount) ;
    TEST(0 != thread_maincontext().log.object) ;
    TEST(0 != thread_maincontext().log.iimpl) ;
@@ -242,7 +241,7 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.argv) ;
    TEST(0 == progname_maincontext()) ;
    TEST(0 == process_maincontext().valuecache) ;
-   TEST(1 == isequal_sysusercontext(&process_maincontext().sysuser, &emptyusrctx)) ;
+   TEST(0 == process_maincontext().sysuser) ;
    TEST(0 == strcmp("C", current_locale())) ;
    TEST(thread_maincontext().initcount  == 0) ;
    TEST(thread_maincontext().log.object == (struct log_t*)&g_logmain) ;
@@ -255,7 +254,7 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.argv) ;
    TEST(0 == progname_maincontext()) ;
    TEST(0 == process_maincontext().valuecache) ;
-   TEST(1 == isequal_sysusercontext(&process_maincontext().sysuser, &emptyusrctx)) ;
+   TEST(0 == process_maincontext().sysuser) ;
    TEST(0 == strcmp("C", current_locale())) ;
    TEST(thread_maincontext().initcount  == 0) ;
    TEST(thread_maincontext().log.object == (struct log_t*)&g_logmain) ;
@@ -267,6 +266,7 @@ static int test_initmain(void)
    TEST(0 == type_maincontext()) ;
    TEST(0 == process_maincontext().initcount) ;
    TEST(0 == process_maincontext().valuecache) ;
+   TEST(0 == process_maincontext().sysuser) ;
    TEST(0 == thread_maincontext().initcount) ;
    TEST(thread_maincontext().log.object == (struct log_t*)&g_logmain) ;
    TEST(thread_maincontext().log.iimpl  == &g_logmain_interface) ;
@@ -492,10 +492,6 @@ int unittest_context_maincontext()
          switchon_testmm() ;
       }
    }
-
-   // TODO: remove line
-   // make printed system error messages language (English) neutral
-   resetmsg_locale() ;
 
    return 0 ;
 ONABORT:

@@ -108,7 +108,6 @@
       <File Name="../../C-kern/api/context/processcontext.h"/>
       <File Name="../../C-kern/api/context/threadcontext.h"/>
       <File Name="../../C-kern/api/context/stdmacros.h"/>
-      <File Name="../../C-kern/api/context/sysusercontext.h"/>
       <File Name="../../C-kern/api/context/errorcontext.h"/>
       <File Name="../../C-kern/api/context/iobj.h"/>
       <File Name="../../C-kern/api/context/stdtypes.h"/>

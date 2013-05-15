@@ -50,9 +50,7 @@ static int free_valuecache(valuecache_t * valuecache)
 int initonce_valuecache(/*out*/valuecache_t ** valuecache)
 {
    int err ;
-   valuecache_t * new_valuecache = 0 ;
-
-   VALIDATE_INPARAM_TEST(0 == *valuecache, ONABORT,) ;
+   valuecache_t * new_valuecache ;
 
    new_valuecache = allocstatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
    if (!new_valuecache) {
@@ -84,7 +82,8 @@ int freeonce_valuecache(valuecache_t ** valuecache)
 
       err = free_valuecache(delobj) ;
 
-      freestatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
+      int err2 = freestatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
+      if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
    }
@@ -130,9 +129,7 @@ ONABORT:
 
 static int test_initonce(void)
 {
-   valuecache_t   valuecache = valuecache_INIT_FREEABLE ;
    valuecache_t * cache      = 0 ;
-   valuecache_t * cache2     = 0 ;
    size_t         oldsize ;
 
    // prepare
@@ -153,42 +150,22 @@ static int test_initonce(void)
    TEST(0 == cache) ;
    TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
 
-   // TEST initonce_valuecache: EINVAL
-   cache = &valuecache ;
-   TEST(EINVAL == initonce_valuecache(&cache)) ;
-   TEST(cache  == &valuecache) ;
-   cache = 0 ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
-
-   // TEST initonce_valuecache, freeonce_valuecache: 2 objects
-   TEST(0 == initonce_valuecache(&cache)) ;
-   TEST(0 != cache) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + sizeof(valuecache_t)) ;
-   TEST(0 == initonce_valuecache(&cache2)) ;
-   TEST(0 != cache2) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + 2*sizeof(valuecache_t)) ;
-   TEST(cache != cache2) ;
-
    // TEST initonce_valuecache: ENOMEM
+   while (0 != allocstatic_processcontext(&process_maincontext(), sizeof(valuecache_t))) {
+   }
    valuecache_t * dummy = 0 ;
    TEST(ENOMEM == initonce_valuecache(&dummy)) ;
-
-   // TEST freeonce_valuecache: 2 objects
-   TEST(0 == freeonce_valuecache(&cache)) ;
-   TEST(0 == cache) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + sizeof(valuecache_t)) ;
-   TEST(0 == freeonce_valuecache(&cache2)) ;
-   TEST(0 == cache2) ;
+   while (sizestatic_processcontext(&process_maincontext()) > oldsize) {
+      freestatic_processcontext(&process_maincontext(), 1) ;
+   }
    TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
 
    return 0 ;
 ONABORT:
-   if (  cache
-         && cache != &valuecache) {
-      freeonce_valuecache(&cache) ;
+   while (sizestatic_processcontext(&process_maincontext()) > oldsize) {
+      freestatic_processcontext(&process_maincontext(), 1) ;
    }
-   freeonce_valuecache(&cache2) ;
-   free_valuecache(&valuecache) ;
+   freeonce_valuecache(&cache) ;
    return EINVAL ;
 }
 

@@ -27,10 +27,9 @@
 #ifndef CKERN_CONTEXT_PROCESSCONTEXT_HEADER
 #define CKERN_CONTEXT_PROCESSCONTEXT_HEADER
 
-#include "C-kern/api/context/sysusercontext.h"
-
 // forward
 struct valuecache_t ;
+struct sysuser_t ;
 
 /* typedef: struct processcontext_t
  * Export <processcontext_t>. */
@@ -60,7 +59,7 @@ struct processcontext_t {
    struct valuecache_t *      valuecache ;
    /* variable: sysuser
     * Context for <sysuser_t> module. */
-   sysusercontext_t           sysuser ;
+   struct sysuser_t *         sysuser ;
    /* variable: error
     * Data for <errorcontext_t> module. */
    struct {
@@ -85,7 +84,7 @@ struct processcontext_t {
 
 /* define: processcontext_INIT_FREEABLE
  * Static initializer. */
-#define processcontext_INIT_FREEABLE      { 0, sysusercontext_INIT_FREEABLE, { 0, 0 }, { 0, 0, 0 }, 0 }
+#define processcontext_INIT_FREEABLE      { 0, 0, { 0, 0 }, { 0, 0, 0 }, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context
@@ -109,8 +108,10 @@ void * allocstatic_processcontext(processcontext_t * pcontext, uint8_t size) ;
 
 /* function: freestatic_processcontext
  * Frees size bytes of last allocated memory.
- * Must be called in reverse order of calls to <allocstatic_processcontext>. */
-void freestatic_processcontext(processcontext_t * pcontext, uint8_t size) ;
+ * Must be called in reverse order of calls to <allocstatic_processcontext>.
+ * It is possible to free x calls to <allocstatic_processcontext> with one
+ * call to <freestatic_processcontext> where all sizes are summed up. */
+int freestatic_processcontext(processcontext_t * pcontext, uint8_t size) ;
 
 /* function: sizestatic_processcontext
  * Returns size in bytes of allocated static memory. */

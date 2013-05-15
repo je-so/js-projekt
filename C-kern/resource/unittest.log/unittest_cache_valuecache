@@ -1,5 +1,5 @@
-C-kern/cache/valuecache.c:55: initonce_valuecache(): error: 22: Function input violates condition (0 == *valuecache)
-C-kern/cache/valuecache.c:73: initonce_valuecache(): error: 22: Function aborted
-C-kern/context/processcontext.c:191: allocstatic_processcontext(): error: Could not allocate 8 bytes of memory
-C-kern/context/processcontext.c:201: allocstatic_processcontext(): error: 12: Function aborted
-C-kern/cache/valuecache.c:73: initonce_valuecache(): error: 12: Function aborted
+C-kern/context/processcontext.c:209: allocstatic_processcontext(): error: Could not allocate 8 bytes of memory
+C-kern/context/processcontext.c:219: allocstatic_processcontext(): error: 12: Function aborted
+C-kern/context/processcontext.c:209: allocstatic_processcontext(): error: Could not allocate 8 bytes of memory
+C-kern/context/processcontext.c:219: allocstatic_processcontext(): error: 12: Function aborted
+C-kern/cache/valuecache.c:71: initonce_valuecache(): error: 12: Function aborted

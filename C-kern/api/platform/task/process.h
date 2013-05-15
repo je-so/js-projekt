@@ -118,6 +118,8 @@ struct process_ioredirect_t {
  * Static initializer lets new process inherit standard io channels. */
 #define process_ioredirect_INIT_INHERIT      { file_STDIN, file_STDOUT, file_STDERR }
 
+// group: update
+
 /* function: setstdin_processioredirect
  * Redirects standard input to given file.
  * Use value <file_INIT_FREEABLE> to redirect standard input to device null. */

@@ -211,10 +211,6 @@ int run_unittest(void)
       maincontext_DEFAULT
    } ;
 
-   if (0 == checkpath_directory(0, "error.log")) {
-      (void) removefile_directory(0, "error.log") ;
-   }
-
    // before init
    ++ total_count ;
    if (unittest_context_maincontext()) {
@@ -230,6 +226,10 @@ int run_unittest(void)
          CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
          CPRINTF_LOG(TEST, "%s\n", "Abort reason: init_maincontext failed") ;
          goto ONABORT ;
+      }
+
+      if (0 == checkpath_directory(0, "error.log")) {
+         (void) removefile_directory(0, "error.log") ;
       }
 
       prepare_test() ;

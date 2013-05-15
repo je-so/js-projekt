@@ -35,14 +35,19 @@
 #endif
 
 
-// section: sysusercontext_t
+
+// section: sysuser_id_t
 
 // group: query
 
-bool isequal_sysusercontext(sysusercontext_t * left, sysusercontext_t * right)
+bool isadmin_sysuserid(sysuser_id_t uid)
 {
-   return   left->realuser == right->realuser
-            && left->privilegeduser == right->privilegeduser ;
+   return uid == 0 ;
+}
+
+bool isequal_sysuserid(sysuser_id_t luid, sysuser_id_t ruid)
+{
+   return luid == ruid ;
 }
 
 
@@ -61,76 +66,132 @@ bool isequal_sysusercontext(sysusercontext_t * left, sysusercontext_t * right)
 
 // group: initonce
 
-int initonce_sysuser(/*out*/sysusercontext_t * sysuser)
+int initonce_sysuser(/*out*/sysuser_t ** sysuser)
 {
    int err ;
+   sysuser_t * new_sysusr ;
 
-   if (sys_userid_INIT_FREEABLE != real_sysuser()) {
-      // already initialized
-      *sysuser = (sysusercontext_t) sysusercontext_INIT(real_sysuser(), privileged_sysuser()) ;
-   } else {
-      *sysuser = (sysusercontext_t) sysusercontext_INIT(getuid(), geteuid()) ;
+   new_sysusr = allocstatic_processcontext(&process_maincontext(), sizeof(sysuser_t)) ;
+   if (!new_sysusr) {
+      err = ENOMEM ;
+      goto ONABORT ;
    }
 
-   err = setresuid(sysuser->realuser, sysuser->realuser, sysuser->privilegeduser) ;
+   err = init_sysuser(new_sysusr) ;
+   if (err) goto ONABORT ;
+
+   *sysuser = new_sysusr ;
+
+   return 0 ;
+ONABORT:
+   if (new_sysusr) {
+      freestatic_processcontext(&process_maincontext(), sizeof(sysuser_t)) ;
+   }
+   TRACEABORT_LOG(err) ;
+   return err ;
+}
+
+int freeonce_sysuser(sysuser_t ** sysuser)
+{
+   int err ;
+   sysuser_t * delobj = *sysuser ;
+
+   if (delobj) {
+      *sysuser = 0 ;
+
+      err = free_sysuser(delobj) ;
+
+      int err2 = freestatic_processcontext(&process_maincontext(), sizeof(sysuser_t)) ;
+      if (err2) err = err2 ;
+
+      if (err) goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORTFREE_LOG(err) ;
+   return err ;
+}
+
+// group: lifetime
+
+int init_sysuser(sysuser_t * sysusr)
+{
+   int err ;
+   sysuser_id_t uid ;
+   sysuser_id_t euid ;
+
+   if (0 != sysuser_maincontext()) {
+      // already initialized (used in testing)
+      uid  = sysuser_maincontext()->realuser ;
+      euid = sysuser_maincontext()->privilegeduser ;
+   } else {
+      uid  = getuid() ;
+      euid = geteuid() ;
+   }
+
+   err = setresuid(uid, uid, euid) ;
    if (err) {
       err = errno ;
       TRACESYSERR_LOG("setresuid", err) ;
       goto ONABORT ;
    }
 
+   sysusr->current  = uid ;
+   sysusr->realuser = uid ;
+   sysusr->privilegeduser = euid ;
+
    return 0 ;
 ONABORT:
    TRACEABORT_LOG(err) ;
    return err ;
 }
 
-int freeonce_sysuser(sysusercontext_t * sysuser)
+int free_sysuser(sysuser_t * sysusr)
 {
    int err ;
 
-   if (sys_userid_INIT_FREEABLE != sysuser->realuser) {
-      err = setresuid(sysuser->realuser, sysuser->privilegeduser, sysuser->privilegeduser) ;
+   if (sysuser_id_INIT_FREEABLE != sysusr->realuser) {
+      err = setresuid(sysusr->realuser, sysusr->privilegeduser, sysusr->privilegeduser) ;
       if (err) {
          err = errno ;
          TRACESYSERR_LOG("setresuid", err) ;
          goto ONABORT ;
       }
 
-      *sysuser = (sysusercontext_t) sysusercontext_INIT_FREEABLE ;
+      *sysusr = (sysuser_t) sysuser_INIT_FREEABLE ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORTFREE_LOG(err) ;
    return err ;
 }
 
 // group: query
 
-sysuser_t current_sysuser(void)
+bool isequal_sysuser(const sysuser_t * lsysusr, const sysuser_t * rsysusr)
 {
-   return getuid() ;
-}
-
-bool isadmin_sysuser(sysuser_t sysusr)
-{
-   return 0 == sysusr ;
+   return   lsysusr->current == rsysusr->current
+            && lsysusr->realuser == rsysusr->realuser
+            && lsysusr->privilegeduser == rsysusr->privilegeduser ;
 }
 
 // group: switch
 
-int switchtoprivilege_sysuser(void)
+int switchtoprivilege_sysuser(sysuser_t * sysusr)
 {
    int err ;
 
-   if (sys_userid_INIT_FREEABLE != privileged_sysuser()) {
-      err = setresuid(privileged_sysuser(), privileged_sysuser(), real_sysuser()) ;
+   if (sysuser_id_INIT_FREEABLE != sysusr->privilegeduser) {
+      err = setresuid(sysusr->privilegeduser, sysusr->privilegeduser, sysusr->realuser) ;
       if (err) {
          err = errno ;
          TRACESYSERR_LOG("setresuid", err) ;
          goto ONABORT ;
       }
+
+      sysusr->current = sysusr->privilegeduser ;
    }
 
    return 0 ;
@@ -139,17 +200,19 @@ ONABORT:
    return err ;
 }
 
-int switchtoreal_sysuser(void)
+int switchtoreal_sysuser(sysuser_t * sysusr)
 {
    int err ;
 
-   if (sys_userid_INIT_FREEABLE != real_sysuser()) {
-      err = setresuid(real_sysuser(), real_sysuser(), privileged_sysuser()) ;
+   if (sysuser_id_INIT_FREEABLE != sysusr->realuser) {
+      err = setresuid(sysusr->realuser, sysusr->realuser, sysusr->privilegeduser) ;
       if (err) {
          err = errno ;
          TRACESYSERR_LOG("setresuid", err) ;
          goto ONABORT ;
       }
+
+      sysusr->current = sysusr->realuser ;
    }
 
    return 0 ;
@@ -160,11 +223,11 @@ ONABORT:
 
 // group: set
 
-int setusers_sysuser(sysuser_t realuser, sysuser_t privilegeduser)
+int setusers_sysuser(sysuser_t * sysusr, sysuser_id_t realuser, sysuser_id_t privilegeduser)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(realuser != sys_userid_INIT_FREEABLE && privilegeduser != sys_userid_INIT_FREEABLE, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(realuser != sysuser_id_INIT_FREEABLE && privilegeduser != sysuser_id_INIT_FREEABLE, ONABORT, ) ;
 
    err = setresuid(realuser, realuser, privilegeduser) ;
    if (err) {
@@ -173,7 +236,9 @@ int setusers_sysuser(sysuser_t realuser, sysuser_t privilegeduser)
       goto ONABORT ;
    }
 
-   sysuser_maincontext() = (sysusercontext_t) sysusercontext_INIT(realuser, privilegeduser) ;
+   sysusr->current  = realuser ;
+   sysusr->realuser = realuser ;
+   sysusr->privilegeduser = privilegeduser ;
 
    return 0 ;
 ONABORT:
@@ -290,24 +355,25 @@ ONABORT:
 }
 
 
-// section: sysuserinfo_t
+// section: sysuser_info_t
 
-int new_sysuserinfo(/*out*/sysuserinfo_t ** usrinfo, sysuser_t sysusr)
+int new_sysuserinfo(/*out*/sysuser_info_t ** usrinfo, sysuser_id_t uid)
 {
    int err ;
    struct passwd  info ;
    struct passwd  * result = 0 ;
    static_assert(sizeof(size_t) == sizeof(long), "long sysconf(...) converted to size_t" ) ;
-   size_t         strsize  = (size_t) sysconf(_SC_GETPW_R_SIZE_MAX) ;
-   memblock_t     mblock   = memblock_INIT_FREEABLE ;
+   size_t         size   = sizeof(sysuser_info_t) + (size_t) sysconf(_SC_GETPW_R_SIZE_MAX) ;
+   memblock_t     mblock = memblock_INIT_FREEABLE ;
 
-   err = RESIZE_MM(strsize + sizeof(sysuserinfo_t), &mblock) ;
+   err = RESIZE_MM(size, &mblock) ;
    if (err) goto ONABORT ;
 
-   sysuserinfo_t * newobj = (sysuserinfo_t *)(mblock.addr) ;
-   char          * strbuf = (char*)          (mblock.addr + sizeof(sysuserinfo_t)) ;
+   sysuser_info_t *  newobj  = (sysuser_info_t*)(mblock.addr) ;
+   char *            straddr = (char*)          (mblock.addr + sizeof(sysuser_info_t)) ;
+   size_t            strsize = size - sizeof(sysuser_info_t) ;
 
-   err = getpwuid_r(sysusr, &info, strbuf, strsize, &result) ;
+   err = getpwuid_r(uid, &info, straddr, strsize, &result) ;
    if (err) {
       TRACESYSERR_LOG("getpwuid_r", err) ;
       goto ONABORT ;
@@ -318,8 +384,8 @@ int new_sysuserinfo(/*out*/sysuserinfo_t ** usrinfo, sysuser_t sysusr)
       goto ONABORT ;
    }
 
-   newobj->strsize  = strsize ;
-   newobj->name     = result->pw_name ;
+   newobj->size  = size ;
+   newobj->name  = result->pw_name ;
 
    *usrinfo = newobj ;
 
@@ -332,16 +398,17 @@ ONABORT:
    return err ;
 }
 
-int delete_sysuserinfo(sysuserinfo_t ** usrinfo)
+int delete_sysuserinfo(sysuser_info_t ** usrinfo)
 {
    int err ;
+   sysuser_info_t * delobj = *usrinfo ;
 
-   if (*usrinfo) {
-      memblock_t mblock = memblock_INIT((*usrinfo)->strsize + sizeof(sysuserinfo_t), (uint8_t*)(*usrinfo)) ;
-
+   if (delobj) {
       *usrinfo = 0 ;
 
+      memblock_t mblock = memblock_INIT(delobj->size, (uint8_t*)delobj) ;
       err = FREE_MM(&mblock) ;
+
       if (err) goto ONABORT ;
    }
 
@@ -351,153 +418,177 @@ ONABORT:
    return err ;
 }
 
+
 // group: test
 
 #ifdef KONFIG_UNITTEST
 
-static int test_sysusercontext(void)
+static int test_userid(void)
 {
-   sysusercontext_t  sysusrctxt  = sysusercontext_INIT_FREEABLE ;
-   sysusercontext_t  sysusrctxt2 = sysusercontext_INIT_FREEABLE ;
+   sysuser_id_t   usrid  = sysuser_id_INIT_FREEABLE ;
 
-   // TEST sysusercontext_INIT_FREEABLE
-   TEST(sysusrctxt.realuser       == sys_userid_INIT_FREEABLE) ;
-   TEST(sysusrctxt.privilegeduser == sys_userid_INIT_FREEABLE) ;
+   // TEST sysuser_id_INIT_FREEABLE
+   TEST(usrid == sys_userid_INIT_FREEABLE) ;
+   TEST(usrid == (uid_t)-1) ;
 
-   // TEST sysusercontext_INIT
-   sysusrctxt = (sysusercontext_t) sysusercontext_INIT((sys_userid_t)5, (sys_userid_t)23) ;
-   TEST(sysusrctxt.realuser       == (sys_userid_t)5) ;
-   TEST(sysusrctxt.privilegeduser == (sys_userid_t)23) ;
+   // TEST isadmin_sysuserid
+   TEST(true == isadmin_sysuserid(0)) ;
+   TEST(false == isadmin_sysuserid(1)) ;
+   TEST(false == isadmin_sysuserid(sysuser_id_INIT_FREEABLE)) ;
 
-   // TEST isequal_sysusercontext
-   sysusrctxt = (sysusercontext_t) sysusercontext_INIT_FREEABLE ;
-   TEST(1 == isequal_sysusercontext(&sysusrctxt, &sysusrctxt2)) ;
-   for (unsigned i = 0; i < 65536; i += 255) {
-      sysusrctxt.realuser = i ;
-      TEST(0 == isequal_sysusercontext(&sysusrctxt, &sysusrctxt2)) ;
-      sysusrctxt2.realuser = i ;
-      TEST(1 == isequal_sysusercontext(&sysusrctxt, &sysusrctxt2)) ;
-      sysusrctxt.privilegeduser = i + 1 ;
-      TEST(0 == isequal_sysusercontext(&sysusrctxt2, &sysusrctxt)) ;
-      sysusrctxt2.privilegeduser = i + 1 ;
-      TEST(1 == isequal_sysusercontext(&sysusrctxt2, &sysusrctxt)) ;
-   }
+   // TEST isequal_sysuserid
+   TEST( isequal_sysuserid((sysuser_id_t)0,    (sysuser_id_t)0)) ;
+   TEST( isequal_sysuserid((sysuser_id_t)1,    (sysuser_id_t)1)) ;
+   TEST( isequal_sysuserid((sysuser_id_t)1234, (sysuser_id_t)1234)) ;
+   TEST( isequal_sysuserid(sysuser_id_INIT_FREEABLE, sysuser_id_INIT_FREEABLE)) ;
+   TEST(!isequal_sysuserid((sysuser_id_t)1,    (sysuser_id_t)0)) ;
+   TEST(!isequal_sysuserid(sysuser_id_INIT_FREEABLE, (sysuser_id_t)0)) ;
+   TEST(!isequal_sysuserid((sysuser_id_t)1234, sysuser_id_INIT_FREEABLE)) ;
 
    return 0 ;
 ONABORT:
    return EINVAL ;
 }
 
-static int test_sysuser(void)
+static int test_initfree(void)
 {
-   sysuser_t   sysusr = sysuser_INIT_FREEABLE ;
-   sysuser_t   ruid   = sysuser_INIT_FREEABLE ;
-   sysuser_t   euid   = sysuser_INIT_FREEABLE ;
-   sysuser_t   suid   = sysuser_INIT_FREEABLE ;
-   sysusercontext_t oldsysuser = sysuser_maincontext() ;
+   sysuser_t      sysusr  = sysuser_INIT_FREEABLE ;
+   sysuser_t      freeusr = sysuser_INIT_FREEABLE ;
+
+   // warning is printed in test_authenticate
+   // if sysuser_maincontext()->realuser == sysuser_maincontext()->privilegeduser
 
    // TEST sysuser_INIT_FREEABLE
-   TEST((uid_t)-1 == sysusr) ;
+   TEST(sysusr.current  == sysuser_id_INIT_FREEABLE) ;
+   TEST(sysusr.realuser == sysuser_id_INIT_FREEABLE) ;
+   TEST(sysusr.privilegeduser == sysuser_id_INIT_FREEABLE) ;
 
-   // TEST current_sysuser
-   TEST(sysuser_INIT_FREEABLE != current_sysuser()) ;
-   TEST(getuid()       == current_sysuser()) ;
-   TEST(real_sysuser() == current_sysuser()) ;
+   // TEST init_sysuser
+   TEST(getuid()  == sysuser_maincontext()->current) ;
+   TEST(getuid()  == sysuser_maincontext()->realuser) ;
+   TEST(geteuid() == sysuser_maincontext()->realuser) ;
+   TEST(0 == setresuid(sysuser_maincontext()->realuser, sysuser_maincontext()->privilegeduser, sysuser_maincontext()->privilegeduser)) ;
+   TEST(0 == init_sysuser(&sysusr)) ;
+   TEST(1 == isequal_sysuser(&sysusr, sysuser_maincontext())) ;
+   TEST(getuid()  == sysuser_maincontext()->realuser) ;
+   TEST(geteuid() == sysuser_maincontext()->realuser) ;
 
-   // TEST isadmin_sysuser
-   TEST(true == isadmin_sysuser(0)) ;
-   TEST(false == isadmin_sysuser(1)) ;
-   TEST(false == isadmin_sysuser(sysuser_INIT_FREEABLE)) ;
-
-   // TEST isequal_sysuser
-   TEST(isequal_sysuser((sysuser_t)0, (sysuser_t)0)) ;
-   TEST(isequal_sysuser((sysuser_t)1234, (sysuser_t)1234)) ;
-   TEST(isequal_sysuser(sysuser_INIT_FREEABLE, sysuser_INIT_FREEABLE)) ;
-   TEST(!isequal_sysuser(sysuser_INIT_FREEABLE, (sysuser_t)0)) ;
-   TEST(!isequal_sysuser((sysuser_t)1234, sysuser_INIT_FREEABLE)) ;
-
-   TEST(0 == getresuid(&ruid, &euid, &suid)) ;
-   TEST(ruid == euid) ;
-   if (suid != ruid) {  // warning is printed in test_authenticate
-      // TEST freeonce_sysuser
-      sysusercontext_t emptyusrctxt = sysusercontext_INIT_FREEABLE ;
-      sysusercontext_t sysuserctxt  = sysuser_maincontext() ;
-      TEST(0 == freeonce_sysuser(&sysuser_maincontext())) ;
-      TEST(1 == isequal_sysusercontext(&sysuser_maincontext(), &emptyusrctxt)) ;
-      TEST(suid == geteuid()) ;
-      TEST(ruid == getuid()) ;
-      TEST(0 == freeonce_sysuser(&sysuser_maincontext())) ;
-      TEST(1 == isequal_sysusercontext(&sysuser_maincontext(), &emptyusrctxt)) ;
-      TEST(suid == geteuid()) ;
-      TEST(ruid == getuid()) ;
-
-      // TEST initonce_sysuser
-      TEST(0 == initonce_sysuser(&sysuser_maincontext())) ;
-      TEST(1 == isequal_sysusercontext(&sysuserctxt, &sysuser_maincontext())) ;
-      TEST(0 == getresuid(&ruid, &euid, &suid)) ;
-      TEST(ruid == sysuserctxt.realuser) ;
-      TEST(euid == sysuserctxt.realuser) ;
-      TEST(suid == sysuserctxt.privilegeduser) ;
-
-      // TEST initonce_sysuser: twice
-      TEST(0 == initonce_sysuser(&emptyusrctxt)) ;
-      TEST(1 == isequal_sysusercontext(&sysuserctxt, &emptyusrctxt)) ;
-      TEST(0 == getresuid(&ruid, &euid, &suid)) ;
-      TEST(ruid == sysuserctxt.realuser) ;
-      TEST(euid == sysuserctxt.realuser) ;
-      TEST(suid == sysuserctxt.privilegeduser) ;
-
-      // TEST real_sysuser, privileged_sysuser
-      sysuserctxt = sysuser_maincontext() ;
-      for (unsigned i = 0; i < 256; ++i) {
-         sysuser_maincontext().realuser       = (sys_userid_t)i ;
-         sysuser_maincontext().privilegeduser = (sys_userid_t)(i+1) ;
-         TEST(real_sysuser()       == (sys_userid_t)i) ;
-         TEST(privileged_sysuser() == (sys_userid_t)(i+1)) ;
-      }
-      sysuser_maincontext() = sysuserctxt ;
-
-      // TEST switchtoprivilege_sysuser
-      TEST(real_sysuser() == current_sysuser()) ;
-      TEST(0 == switchtoprivilege_sysuser()) ;
-      TEST(privileged_sysuser() == getuid()) ;
-      TEST(privileged_sysuser() == geteuid()) ;
-      TEST(privileged_sysuser() == current_sysuser()) ;
-
-      // TEST switchtoreal_sysuser
-      TEST(privileged_sysuser() == current_sysuser()) ;
-      TEST(0 == switchtoreal_sysuser()) ;
-      TEST(real_sysuser() == getuid()) ;
-      TEST(real_sysuser() == geteuid()) ;
-      TEST(real_sysuser() == current_sysuser()) ;
-
-      // TEST setusers_sysuser
-      sysuserctxt = sysuser_maincontext() ;
-      TEST(0 == switchtoprivilege_sysuser()) ;
-      TEST(0 == setusers_sysuser(sysuserctxt.privilegeduser, sysuserctxt.realuser)) ;
-      TEST(sysuserctxt.privilegeduser == getuid()) ;
-      TEST(sysuserctxt.privilegeduser == geteuid()) ;
-      TEST(false == isequal_sysusercontext(&sysuserctxt, &sysuser_maincontext())) ;
-      TEST(sysuserctxt.realuser       == privileged_sysuser()) ;
-      TEST(sysuserctxt.privilegeduser == real_sysuser()) ;
-      TEST(0 == setusers_sysuser(sysuserctxt.realuser, sysuserctxt.privilegeduser)) ;
-      TEST(sysuserctxt.realuser == getuid()) ;
-      TEST(sysuserctxt.realuser == geteuid()) ;
-      TEST(true == isequal_sysusercontext(&sysuserctxt, &sysuser_maincontext())) ;
-      TEST(sysuserctxt.realuser       == real_sysuser()) ;
-      TEST(sysuserctxt.privilegeduser == privileged_sysuser()) ;
-      sysuser_maincontext() = sysuserctxt ;
-   }
+   // TEST free_sysuser
+   TEST(0 == free_sysuser(&sysusr)) ;
+   TEST(1 == isequal_sysuser(&sysusr, &freeusr)) ;
+   TEST(getuid()  == sysuser_maincontext()->realuser) ;
+   TEST(geteuid() == sysuser_maincontext()->privilegeduser) ;
+   TEST(0 == setresuid(sysuser_maincontext()->realuser, sysuser_maincontext()->realuser, sysuser_maincontext()->privilegeduser)) ;
+   // changes nothing
+   TEST(0 == free_sysuser(&sysusr)) ;
+   TEST(1 == isequal_sysuser(&sysusr, &freeusr)) ;
+   TEST(getuid()  == sysuser_maincontext()->realuser) ;
+   TEST(geteuid() == sysuser_maincontext()->realuser) ;
 
    return 0 ;
 ONABORT:
-   sysuser_maincontext() = oldsysuser ;
    return EINVAL ;
 }
 
-static int test_sysuserinfo(void)
+static int test_query(void)
 {
-   sysuserinfo_t  * usrinfo = 0 ;
+   sysuser_t   sysusr = sysuser_INIT_FREEABLE ;
+
+   // TEST current_sysuser
+   TEST(current_sysuser(&sysusr) == sysuser_id_INIT_FREEABLE) ;
+   sysusr.current = 0 ;
+   TEST(current_sysuser(&sysusr) == 0) ;
+   for (uid_t i = 1; i; i = (uid_t)(i << 1)) {
+      sysusr.current = i ;
+      TEST(current_sysuser(&sysusr) == i) ;
+   }
+
+   // TEST real_sysuser
+   TEST(real_sysuser(&sysusr) == sysuser_id_INIT_FREEABLE) ;
+   sysusr.realuser = 0 ;
+   TEST(real_sysuser(&sysusr) == 0) ;
+   for (uid_t i = 1; i; i = (uid_t)(i << 1)) {
+      sysusr.realuser = i ;
+      TEST(real_sysuser(&sysusr) == i) ;
+   }
+
+   // TEST privileged_sysuser
+   TEST(privileged_sysuser(&sysusr) == sysuser_id_INIT_FREEABLE) ;
+   sysusr.privilegeduser = 0 ;
+   TEST(privileged_sysuser(&sysusr) == 0) ;
+   for (uid_t i = 1; i; i = (uid_t)(i << 1)) {
+      sysusr.privilegeduser = i ;
+      TEST(privileged_sysuser(&sysusr) == i) ;
+   }
+
+   // TEST isequal_sysuser
+   sysuser_t   sysusr1 = sysuser_INIT_FREEABLE ;
+   sysuser_t   sysusr2 = sysuser_INIT_FREEABLE ;
+   TEST(1 == isequal_sysuser(&sysusr1, &sysusr2)) ;
+   sysusr1.current = 0 ;
+   TEST(0 == isequal_sysuser(&sysusr1, &sysusr2)) ;
+   sysusr2.current = 0 ;
+   TEST(1 == isequal_sysuser(&sysusr1, &sysusr2)) ;
+   sysusr1.realuser = 0 ;
+   TEST(0 == isequal_sysuser(&sysusr1, &sysusr2)) ;
+   sysusr2.realuser = 0 ;
+   TEST(1 == isequal_sysuser(&sysusr1, &sysusr2)) ;
+   sysusr1.privilegeduser = 0 ;
+   TEST(0 == isequal_sysuser(&sysusr1, &sysusr2)) ;
+   sysusr2.privilegeduser = 0 ;
+   TEST(1 == isequal_sysuser(&sysusr1, &sysusr2)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_switchandset(void)
+{
+   sysuser_t   oldusr = *sysuser_maincontext() ;
+
+   // warning is printed in test_authenticate
+   // if sysuser_maincontext()->realuser == sysuser_maincontext()->privilegeduser
+
+   // TEST switchtoprivilege_sysuser
+   TEST(getuid()  == sysuser_maincontext()->current) ;
+   TEST(getuid()  == sysuser_maincontext()->realuser) ;
+   TEST(geteuid() == sysuser_maincontext()->realuser) ;
+   TEST(0 == switchtoprivilege_sysuser(sysuser_maincontext())) ;
+   TEST(sysuser_maincontext()->privilegeduser == getuid()) ;
+   TEST(sysuser_maincontext()->privilegeduser == geteuid()) ;
+   TEST(sysuser_maincontext()->current        == getuid()) ;
+
+   // TEST switchtoreal_sysuser
+   TEST(0 == switchtoreal_sysuser(sysuser_maincontext())) ;
+   TEST(sysuser_maincontext()->realuser == getuid()) ;
+   TEST(sysuser_maincontext()->realuser == geteuid()) ;
+   TEST(sysuser_maincontext()->current  == getuid()) ;
+
+   // TEST setusers_sysuser
+   TEST(0 == switchtoprivilege_sysuser(sysuser_maincontext())) ;
+   TEST(0 == setusers_sysuser(sysuser_maincontext(), sysuser_maincontext()->privilegeduser, sysuser_maincontext()->realuser)) ;
+   TEST(sysuser_maincontext()->current        == oldusr.privilegeduser) ;
+   TEST(sysuser_maincontext()->realuser       == oldusr.privilegeduser) ;
+   TEST(sysuser_maincontext()->privilegeduser == oldusr.realuser) ;
+   TEST(sysuser_maincontext()->realuser       == getuid()) ;
+   TEST(sysuser_maincontext()->realuser       == geteuid()) ;
+   TEST(0 == setusers_sysuser(sysuser_maincontext(), sysuser_maincontext()->privilegeduser, sysuser_maincontext()->realuser)) ;
+   TEST(1 == isequal_sysuser(sysuser_maincontext(), &oldusr)) ;
+   TEST(sysuser_maincontext()->realuser       == getuid()) ;
+   TEST(sysuser_maincontext()->realuser       == geteuid()) ;
+
+   return 0 ;
+ONABORT:
+   if (!isequal_sysuser(sysuser_maincontext(), &oldusr)) {
+      setusers_sysuser(sysuser_maincontext(), oldusr.realuser, oldusr.privilegeduser) ;
+   }
+   return EINVAL ;
+}
+
+static int test_userinfo(void)
+{
+   sysuser_info_t  * usrinfo = 0 ;
 
    // TEST new_sysuserinfo, delete_sysuserinfo: root
    TEST(0 == new_sysuserinfo(&usrinfo, 0/*root*/)) ;
@@ -510,7 +601,7 @@ static int test_sysuserinfo(void)
    TEST(0 == usrinfo) ;
 
    // TEST new_sysuserinfo: current user
-   TEST(0 == new_sysuserinfo(&usrinfo, current_sysuser())) ;
+   TEST(0 == new_sysuserinfo(&usrinfo, getuid())) ;
    TEST(0 != usrinfo) ;
    TEST(name_sysuserinfo(usrinfo) == (char*)(&usrinfo[1])) ;
    TEST(0 != strcmp("", name_sysuserinfo(usrinfo))) ;
@@ -532,26 +623,26 @@ ONABORT:
 
 static int test_authenticate(bool iswarn)
 {
-   const char     * username = sysuser_UNITTEST_USERNAME ;
-   const char     * password = sysuser_UNITTEST_PASSWORD ;
-   sysuserinfo_t  * usrinfo[2] = { 0 } ;
+   const char     * username   = sysuser_UNITTEST_USERNAME ;
+   const char     * password   = sysuser_UNITTEST_PASSWORD ;
+   sysuser_info_t * usrinfo[2] = { 0 } ;
 
    // TEST authenticate_sysuser
-   TEST(0 == new_sysuserinfo(&usrinfo[0], real_sysuser())) ;
-   TEST(0 == new_sysuserinfo(&usrinfo[1], privileged_sysuser())) ;
-   if (  isadmin_sysuser(real_sysuser())
-         || isadmin_sysuser(privileged_sysuser())
+   TEST(0 == new_sysuserinfo(&usrinfo[0], real_sysuser(sysuser_maincontext()))) ;
+   TEST(0 == new_sysuserinfo(&usrinfo[1], privileged_sysuser(sysuser_maincontext()))) ;
+   if (  isadmin_sysuserid(real_sysuser(sysuser_maincontext()))
+         || isadmin_sysuserid(privileged_sysuser(sysuser_maincontext()))
          || 0 == strcmp(name_sysuserinfo(usrinfo[0]), username)
          || 0 == strcmp(name_sysuserinfo(usrinfo[1]), username)) {
-      bool isChangeUID = ( real_sysuser() != privileged_sysuser()
-                           && (  isadmin_sysuser(privileged_sysuser())
+      bool isChangeUID = ( real_sysuser(sysuser_maincontext()) != privileged_sysuser(sysuser_maincontext())
+                           && (  isadmin_sysuserid(privileged_sysuser(sysuser_maincontext()))
                                  || 0 == strcmp(name_sysuserinfo(usrinfo[1]), username))) ;
       if (isChangeUID) {
-         TEST(0 == switchtoprivilege_sysuser())
+         TEST(0 == switchtoprivilege_sysuser(sysuser_maincontext()))
       }
       int err = authenticate_sysuser(username, password) ;
       if (isChangeUID) {
-         TEST(0 == switchtoreal_sysuser())
+         TEST(0 == switchtoreal_sysuser(sysuser_maincontext()))
       }
       if (err && iswarn) {
          CPRINTF_LOG(TEST, "\n*** Need user account name=%s password=%s ***\n", username, password) ;
@@ -572,6 +663,41 @@ static int test_authenticate(bool iswarn)
    return 0 ;
 ONABORT:
    closelog() ;
+   return EINVAL ;
+}
+
+static int test_initonce(void)
+{
+   sysuser_t   *  sysusr = 0 ;
+
+   // warning is printed in test_authenticate
+   // if sysuser_maincontext()->realuser == sysuser_maincontext()->privilegeduser
+
+   // TEST initonce_sysuser
+   size_t oldsize = sizestatic_processcontext(&process_maincontext()) ;
+   TEST(0 == initonce_sysuser(&sysusr)) ;
+   TEST(0 != sysusr) ;
+   TEST(1 == isequal_sysuser(sysusr, sysuser_maincontext())) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + sizeof(sysuser_t)) ;
+   TEST(getuid()  == sysuser_maincontext()->realuser) ;
+   TEST(geteuid() == sysuser_maincontext()->realuser) ;
+
+   // TEST freeonce_sysuser
+   TEST(0 == freeonce_sysuser(&sysusr)) ;
+   TEST(0 == sysusr) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+   TEST(getuid()  == sysuser_maincontext()->realuser) ;
+   TEST(geteuid() == sysuser_maincontext()->privilegeduser) ;
+   TEST(0 == setresuid(sysuser_maincontext()->realuser, sysuser_maincontext()->realuser, sysuser_maincontext()->privilegeduser)) ;
+   // changes nothing
+   TEST(0 == freeonce_sysuser(&sysusr)) ;
+   TEST(0 == sysusr) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+   TEST(getuid()  == sysuser_maincontext()->realuser) ;
+   TEST(geteuid() == sysuser_maincontext()->realuser) ;
+
+   return 0 ;
+ONABORT:
    return EINVAL ;
 }
 
@@ -619,10 +745,13 @@ int unittest_platform_sysuser()
 
       TEST(0 == init_resourceusage(&usage)) ;
 
-      if (test_sysusercontext())       goto ONABORT ;
-      if (test_sysuser())              goto ONABORT ;
-      if (test_sysuserinfo())          goto ONABORT ;
+      if (test_userid())               goto ONABORT ;
+      if (test_initfree())             goto ONABORT ;
+      if (test_query())                goto ONABORT ;
+      if (test_switchandset())         goto ONABORT ;
+      if (test_userinfo())             goto ONABORT ;
       if (test_authenticate(false))    goto ONABORT ;
+      if (test_initonce())             goto ONABORT ;
 
       TEST(0 == same_resourceusage(&usage)) ;
       TEST(0 == free_resourceusage(&usage)) ;
@@ -634,6 +763,8 @@ int unittest_platform_sysuser()
       if ((size_t)write(logfd[1], logbuffer, logsize) != logsize) goto ONABORT ;
       exit(0) ;
    }
+
+   // TODO: replace fork with process_t
 
    return 0 ;
 ONABORT:

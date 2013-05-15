@@ -1,2 +1,2 @@
-C-kern/platform/Linux/sysuser.c:288: authenticate_sysuser(): error: 13: Function aborted
-C-kern/platform/Linux/sysuser.c:288: authenticate_sysuser(): error: 13: Function aborted
+C-kern/platform/Linux/sysuser.c:353: authenticate_sysuser(): error: 13: Function aborted
+C-kern/platform/Linux/sysuser.c:353: authenticate_sysuser(): error: 13: Function aborted

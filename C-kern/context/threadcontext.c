@@ -49,7 +49,7 @@
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_threadcontext_errtimer
- * Simulates an error in <init_thread_resources>. */
+ * Simulates an error in <init_threadcontext>. */
 static test_errortimer_t   s_threadcontext_errtimer = test_errortimer_INIT_FREEABLE ;
 #endif
 
@@ -543,7 +543,7 @@ static int test_initfree(void)
    TEST(0 == tcontext.initcount) ;
    TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
 
-   // TEST init_threadcontext: EINVAL
+   // TEST init_threadcontext: ERROR
    for(int i = 1; i; ++i) {
       init_testerrortimer(&s_threadcontext_errtimer, (unsigned)i, i) ;
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
