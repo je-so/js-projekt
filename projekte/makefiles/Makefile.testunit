@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mai.15  17:39:23
+GenerationDate  := 2013.Mai.15  18:04:50
 GeneratedBy     := je-so
 
 ## Debug
@@ -75,19 +75,20 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sysuser.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!semaphore.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!waitlist.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
@@ -175,19 +176,20 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!waitlist.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
@@ -282,25 +284,13 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sysuser.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!waitlist.c.o: C-kern/platform/Linux/waitlist.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signal.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
@@ -319,6 +309,21 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/f
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linux/sync/waitlist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!mutex.c.o: C-kern/platform/Linux/sync/mutex.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linux/time/systimer.c
@@ -576,25 +581,13 @@ $(ObjectDir_Debug)/C-kern!test!testmm.c.o: C-kern/test/testmm.c
 $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sysuser.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!semaphore.c.o: C-kern/platform/Linux/semaphore.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!malloc.c.o: C-kern/platform/Linux/malloc.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!waitlist.c.o: C-kern/platform/Linux/waitlist.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!mutex.c.o: C-kern/platform/Linux/mutex.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!Linux!signal.c.o: C-kern/platform/Linux/signal.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o: C-kern/platform/Linux/io/ipsocket.c
@@ -613,6 +606,21 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!semaphore.c.o: C-kern/platform/Linux/sync/semaphore.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!waitlist.c.o: C-kern/platform/Linux/sync/waitlist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!mutex.c.o: C-kern/platform/Linux/sync/mutex.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!rwlock.c.o: C-kern/platform/Linux/sync/rwlock.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!sync!signal.c.o: C-kern/platform/Linux/sync/signal.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linux/time/systimer.c

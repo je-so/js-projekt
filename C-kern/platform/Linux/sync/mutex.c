@@ -19,7 +19,7 @@
    file: C-kern/api/platform/sync/mutex.h
     Header file of <Mutex>.
 
-   file: C-kern/platform/Linux/mutex.c
+   file: C-kern/platform/Linux/sync/mutex.c
     Linux specific implementation <Mutex Linuximpl>.
 */
 

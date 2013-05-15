@@ -46,6 +46,7 @@ typedef struct thread_startargument_t  thread_startargument_t ;
  * The function <main_thread> then calls the main task of the thread which
  * is stored in <thread_t.main>. */
 struct thread_startargument_t {
+   thread_t *     self ;
    thread_f       main_task ;
    void *         main_arg ;
    uint8_t *      stackframe ;
@@ -186,6 +187,8 @@ static test_errortimer_t   s_thread_errtimer = test_errortimer_INIT_FREEABLE ;
 static void * main_thread(thread_startargument_t * startarg)
 {
    int err ;
+
+   assert(startarg->self == &gt_thread) ;
 
    gt_thread.main_task  = startarg->main_task ;
    gt_thread.main_arg   = startarg->main_arg ;
@@ -367,6 +370,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
 
    thread_startargument_t * startarg   = (thread_startargument_t*) signalstack.addr ;
 
+   startarg->self        = thread ;
    startarg->main_task   = thread_main ;
    startarg->main_arg    = main_arg ;
    startarg->stackframe  = stackframe.addr ;
@@ -480,6 +484,36 @@ void suspend_thread()
 ONABORT:
    abort_maincontext(err) ;
 }
+
+int trysuspend_thread(void)
+{
+   int err ;
+   sigset_t signalmask ;
+
+   err = sigemptyset(&signalmask) ;
+   if (err) {
+      err = errno ;
+      TRACESYSERR_LOG("sigemptyset", err) ;
+      goto ONABORT ;
+   }
+
+   err = sigaddset(&signalmask, SIGINT) ;
+   if (err) {
+      err = errno ;
+      TRACESYSERR_LOG("sigaddset", err) ;
+      goto ONABORT ;
+   }
+
+   struct timespec   ts = { 0, 0 } ;
+   err = sigtimedwait(&signalmask, 0, &ts) ;
+   if (-1 == err) return EAGAIN ;
+
+   return 0 ;
+ONABORT:
+   abort_maincontext(err) ;
+   return err ;
+}
+
 
 void resume_thread(thread_t * threadobj)
 {
@@ -1510,6 +1544,14 @@ static int test_suspendresume(void)
    TEST(0 == poll_for_signal(SIGINT)) ;
    TEST(EAGAIN == poll_for_signal(SIGINT)) ;
 
+   // TEST trysuspend_thread
+   for (unsigned i = 0; i < 100; ++i) {
+      TEST(EAGAIN == trysuspend_thread()) ;
+      resume_thread(self_thread()) ;
+      TEST(0 == trysuspend_thread()) ;
+      TEST(EAGAIN == trysuspend_thread()) ;
+   }
+
    // TEST suspend_thread: thread suspends
    TEST(EAGAIN == trywait_rtsignal(0)) ;
    TEST(EAGAIN == trywait_rtsignal(1)) ;
@@ -1649,6 +1691,7 @@ static int test_yield(void)
    thread_t * thread_noyield = 0 ;
 
    // TEST yield_thread
+   s_countyield_exit = 0 ;
    TEST(0 == new_thread(&thread_yield, &thread_countyield, 0)) ;
    TEST(0 == new_thread(&thread_noyield, &thread_countnoyield, 0)) ;
    TEST(0 == join_thread(thread_noyield)) ;

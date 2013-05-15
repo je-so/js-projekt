@@ -1,4 +1,5 @@
-/* title: Semaphore Linux
+/* title: Semaphore Linuximpl
+
    Implements <Semaphore>.
 
    about: Copyright
@@ -19,8 +20,8 @@
    file: C-kern/api/platform/sync/semaphore.h
     Header file of <Semaphore>.
 
-   file: C-kern/platform/Linux/semaphore.c
-    Linux implementation file <Semaphore Linux>.
+   file: C-kern/platform/Linux/sync/semaphore.c
+    Linux implementation file <Semaphore Linuximpl>.
 */
 
 #include "C-kern/konfig.h"

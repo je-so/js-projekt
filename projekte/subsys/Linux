@@ -1,5 +1,6 @@
 # All Linux and shared operating system specific implementations
 Src += C-kern/platform/Linux/*.c
 Src += C-kern/platform/Linux/io/*.c
+Src += C-kern/platform/Linux/sync/*.c
 Src += C-kern/platform/Linux/time/*.c
 Src += C-kern/platform/Linux/task/*.c

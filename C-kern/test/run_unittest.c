@@ -360,6 +360,7 @@ int run_unittest(void)
 //{ platform unittest
       // sync unittest
       RUN(unittest_platform_sync_mutex) ;
+      RUN(unittest_platform_sync_rwlock) ;
       RUN(unittest_platform_sync_semaphore) ;
       RUN(unittest_platform_sync_signal) ;
       RUN(unittest_platform_sync_waitlist) ;

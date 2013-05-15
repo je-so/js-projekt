@@ -1,4 +1,5 @@
-/* title: Waitlist Linux
+/* title: Waitlist Linuximpl
+
    Implements <Waitlist>.
 
    about: Copyright
@@ -19,13 +20,14 @@
    file: C-kern/api/platform/sync/waitlist.h
     Header file of <Waitlist>.
 
-   file: C-kern/platform/Linux/waitlist.c
-    Linux specific implementation file <Waitlist Linux>.
+   file: C-kern/platform/Linux/sync/waitlist.c
+    Linux specific implementation file <Waitlist Linuximpl>.
 */
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/math/int/atomic.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/sync/waitlist.h"
@@ -67,7 +69,10 @@ int free_waitlist(waitlist_t * wlist)
 {
    int err ;
 
-   while (0 == trywakeup_waitlist(wlist, 0, 0)) {
+   if (atomicread_int(&wlist->nr_waiting)) {
+      do {
+         trywakeup_waitlist(wlist, 0, 0) ;
+      } while (nrwaiting_waitlist(wlist)) ;
    }
 
    err = free_mutex(&wlist->lock) ;
@@ -109,13 +114,14 @@ int wait_waitlist(waitlist_t * wlist)
    ++ wlist->nr_waiting ;
    sunlock_mutex(&wlist->lock) ;
 
-   bool isSpuriousWakeup ;
+   bool isWakeup ;
    do {
       suspend_thread() ;
       slock_mutex(&wlist->lock) ;
-      isSpuriousWakeup = (0 != self->wlistnext) ;
+      isWakeup = (0 == self->wlistnext) ;
+      wlist->nr_waiting -= isWakeup ;
       sunlock_mutex(&wlist->lock) ;
-   } while (isSpuriousWakeup) ;
+   } while (! isWakeup) ;
 
    return 0 ;
 }
@@ -132,8 +138,6 @@ int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * main_arg), vo
       int err = removefirst_wlist(genericcast_slist(wlist), &thread) ;
       assert(!err) ;
       assert(!thread->wlistnext /*indicates that thread->task is valid*/) ;
-
-      -- wlist->nr_waiting ;
 
       resume_thread(thread) ;
    }
@@ -158,6 +162,67 @@ static int thread_waitonwlist(waitlist_t * wlist)
 }
 
 static int test_initfree(void)
+{
+   waitlist_t  wlist       = waitlist_INIT_FREEABLE ;
+
+   // TEST waitlist_INIT_FREEABLE
+   TEST(0 == wlist.last) ;
+   TEST(0 == wlist.nr_waiting) ;
+
+   // TEST init_waitlist
+   wlist.last = (slist_node_t*)1 ;
+   TEST(0 == init_waitlist(&wlist)) ;
+   TEST(0 == wlist.last) ;
+   TEST(0 == wlist.nr_waiting) ;
+
+   // TEST free_waitlist
+   TEST(0 == free_waitlist(&wlist)) ;
+   TEST(0 == wlist.last) ;
+   TEST(0 == wlist.nr_waiting) ;
+   TEST(0 == free_waitlist(&wlist)) ;
+   TEST(0 == wlist.last) ;
+   TEST(0 == wlist.nr_waiting) ;
+
+   return 0 ;
+ONABORT:
+   free_waitlist(&wlist) ;
+   return EINVAL ;
+}
+
+static int test_query(void)
+{
+   waitlist_t  wlist = waitlist_INIT_FREEABLE ;
+
+   // prepare
+   TEST(0 == init_waitlist(&wlist)) ;
+
+   // TEST isempty_waitlist
+   TEST(1 == isempty_waitlist(&wlist)) ;
+   wlist.nr_waiting = 1 ;
+   TEST(0 == isempty_waitlist(&wlist)) ;
+   wlist.nr_waiting = SIZE_MAX ;
+   TEST(0 == isempty_waitlist(&wlist)) ;
+   wlist.nr_waiting = 0 ;
+   TEST(1 == isempty_waitlist(&wlist)) ;
+
+   // TEST nrwaiting_waitlist
+   TEST(0 == nrwaiting_waitlist(&wlist)) ;
+   for (size_t i = 1; i; i <<= 1) {
+      wlist.nr_waiting = i ;
+      TEST(i == nrwaiting_waitlist(&wlist)) ;
+   }
+
+   // unprepare
+   wlist.nr_waiting = 0 ;
+   TEST(0 == free_waitlist(&wlist)) ;
+
+   return 0 ;
+ONABORT:
+   free_waitlist(&wlist) ;
+   return EINVAL ;
+}
+
+static int test_wait(void)
 {
    waitlist_t  wlist       = waitlist_INIT_FREEABLE ;
    thread_t *  threads[20] = { 0 } ;
@@ -199,11 +264,11 @@ static int test_initfree(void)
    // TEST trywakeup_waitlist: 1 thread
    TEST(0 == trywakeup_waitlist(&wlist, (thread_f)1, (void*)2)) ;
    TEST(0 == wlist.last) ;
-   TEST(0 == wlist.nr_waiting) ;
    TEST(0 == threads[0]->wlistnext) ;
    TEST(1 == (uintptr_t)threads[0]->main_task) ;
    TEST(2 == (uintptr_t)threads[0]->main_arg) ;
    TEST(0 == wait_rtsignal(1, 1)) ;
+   TEST(0 == wlist.nr_waiting) ;
    TEST(0 == delete_thread(&threads[0])) ;
    TEST(0 == free_waitlist(&wlist)) ;
 
@@ -220,9 +285,7 @@ static int test_initfree(void)
       }
       TEST(threads[i]->wlistnext) ;
    }
-   TEST(EAGAIN == trywait_rtsignal(1)) ;
-   TEST(20 == wlist.nr_waiting) ;
-      // list has lengthof(threads) members !
+   TEST(lengthof(threads) == wlist.nr_waiting) ;
    next = last_wlist(genericcast_slist(&wlist)) ;
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       next = next_wlist(next) ;
@@ -236,6 +299,7 @@ static int test_initfree(void)
    }
 
    // TEST trywakeup_waitlist: wakeup group of threads
+   TEST(EAGAIN == trywait_rtsignal(1)) ;  // no one woken up
    next = first_wlist(genericcast_slist(&wlist)) ;
    for (unsigned i = lengthof(threads); i > 0; --i) {
       thread_t * first = next ;
@@ -246,10 +310,10 @@ static int test_initfree(void)
       TEST(EAGAIN == trywait_rtsignal(1)) ;
       TEST(i == wlist.nr_waiting) ;
       TEST(0 == trywakeup_waitlist(&wlist, (thread_f)0, (void*)i)) ;
-      TEST(i == wlist.nr_waiting+1u) ;
       TEST(0 == first->wlistnext) ;
       TEST(i == (unsigned)first->main_arg) ;
       TEST(0 == wait_rtsignal(1, 1)) ;
+      TEST(i == wlist.nr_waiting+1u) ;
       if (i != 1) {
          TEST(next != first) ;
       } else {
@@ -257,11 +321,11 @@ static int test_initfree(void)
       }
       // test that others have not changed
       thread_t * next2 = next ;
-      for (unsigned i2 = i; i2 < lengthof(threads)-1u; ++i2) {
+      for (unsigned i2 = 0; i2 < i-1u; ++i2) {
          TEST(0 == next2->main_arg) ;
          TEST(0 != next2->wlistnext) ;
          next2 = next_wlist(next2) ;
-         if (i2 != lengthof(threads)-2) {
+         if (i2 != i-2) {
             TEST(next2 != next) ;
          } else {
             TEST(next2 == next) ;
@@ -286,7 +350,8 @@ static int test_initfree(void)
    }
    TEST(0 == wait_rtsignal(0, 20)) ;
    for (unsigned i = 0; i < lengthof(threads); ++i) {
-      threads[i]->main_arg = (void*)13 ;
+      threads[i]->main_task = (thread_f)1 ;
+      threads[i]->main_arg  = (void*)13 ;
    }
    for (int i = 0; i < 20; ++i) {
       for (int i2 = 0; i2 < 1000000; ++i2) {
@@ -295,15 +360,16 @@ static int test_initfree(void)
       }
       TEST(threads[i]->wlistnext) ;
    }
+   TEST(lengthof(threads) == wlist.nr_waiting) ;
    TEST(EAGAIN == trywait_rtsignal(1)) ;
-   TEST(20 == wlist.nr_waiting) ;
    TEST(0 == free_waitlist(&wlist)) ;
    TEST(0 == wlist.nr_waiting) ;
    TEST(0 == wlist.last) ;
+   // all woken up
    TEST(0 == wait_rtsignal(1, 20)) ;
-   // free_waitlist sets command to 0
    for (unsigned i = 0; i < lengthof(threads); ++i) {
-      TEST(0 == threads[i]->main_arg)
+      TEST(0 == threads[i]->main_task) ;     // cleared in free_waitlist
+      TEST(0 == threads[i]->main_arg) ;      // cleared in free_waitlist
       TEST(0 == threads[i]->wlistnext) ;
       TEST(0 == delete_thread(&threads[i])) ;
    }
@@ -326,38 +392,6 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_query(void)
-{
-   waitlist_t  wlist = waitlist_INIT_FREEABLE ;
-
-   // prepare
-   TEST(0 == init_waitlist(&wlist)) ;
-
-   // TEST isempty_waitlist
-   TEST(1 == isempty_waitlist(&wlist)) ;
-   wlist.nr_waiting = 1 ;
-   TEST(0 == isempty_waitlist(&wlist)) ;
-   wlist.nr_waiting = SIZE_MAX ;
-   TEST(0 == isempty_waitlist(&wlist)) ;
-   wlist.nr_waiting = 0 ;
-   TEST(1 == isempty_waitlist(&wlist)) ;
-
-   // TEST nrwaiting_waitlist
-   TEST(0 == nrwaiting_waitlist(&wlist)) ;
-   for (size_t i = 1; i; i <<= 1) {
-      wlist.nr_waiting = i ;
-      TEST(i == nrwaiting_waitlist(&wlist)) ;
-   }
-
-   // unprepare
-   TEST(0 == free_waitlist(&wlist)) ;
-
-   return 0 ;
-ONABORT:
-   free_waitlist(&wlist) ;
-   return EINVAL ;
-}
-
 int unittest_platform_sync_waitlist()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -367,8 +401,9 @@ int unittest_platform_sync_waitlist()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())       goto ONABORT ;
-   if (test_query())          goto ONABORT ;
+   if (test_initfree())    goto ONABORT ;
+   if (test_query())       goto ONABORT ;
+   if (test_wait())        goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

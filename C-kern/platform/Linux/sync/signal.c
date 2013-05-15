@@ -1,4 +1,5 @@
-/* title: PosixSignals Linux
+/* title: PosixSignals Linuximpl
+
    Implements <PosixSignals> with help of POSIX interface.
 
    about: Copyright
@@ -19,8 +20,8 @@
    file: C-kern/api/platform/sync/signal.h
     Header file of <PosixSignals>.
 
-   file: C-kern/platform/Linux/signal.c
-    Linux specific implementation <PosixSignals Linux>.
+   file: C-kern/platform/Linux/sync/signal.c
+    Linux specific implementation <PosixSignals Linuximpl>.
 */
 
 #include "C-kern/konfig.h"

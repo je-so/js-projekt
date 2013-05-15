@@ -183,6 +183,15 @@ void settask_thread(thread_t * thread, thread_f main, void * main_arg) ;
  * from <suspend_thread> emanates from a corresponding call to <resume_thread>. */
 void suspend_thread(void) ;
 
+/* function: trysuspend_thread
+ * The function returns 0 if the calling thread has been resumed.
+ * IF the functions returns 0 this is the same as calling <suspend_thread>
+ * and returning immediately. The resume event is consumed.
+ * It returns EAGAIN if no there is no pending resume. Nothing is done in
+ * this case. Use this function to poll for any pending <resume_thread>
+ * without sleeping.  */
+int trysuspend_thread(void) ;
+
 /* function: resume_thread
  * The thread which is refered by threadobj is woken up.
  * The status of resume is conserved if the other thread is currently not sleeping.

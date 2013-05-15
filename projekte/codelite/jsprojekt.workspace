@@ -4,6 +4,9 @@
   <Project Name="testunit" Path="testunit.project" Active="Yes"/>
   <Project Name="textdb" Path="textdb.project" Active="No"/>
   <Project Name="textrescompiler" Path="textrescompiler.project" Active="No"/>
+  <Environment>
+    <![CDATA[]]>
+  </Environment>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Project Name="textrescompiler" ConfigName="Debug"/>
@@ -11,14 +14,11 @@
       <Project Name="testunit" ConfigName="Debug"/>
       <Project Name="genmake" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Project Name="textrescompiler" ConfigName="Release"/>
       <Project Name="textdb" ConfigName="Release"/>
       <Project Name="testunit" ConfigName="Release"/>
       <Project Name="genmake" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
-  <Environment>
-    <![CDATA[]]>
-  </Environment>
 </CodeLite_Workspace>

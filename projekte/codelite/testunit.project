@@ -49,6 +49,7 @@
         <File Name="../../C-kern/api/platform/sync/mutex.h"/>
         <File Name="../../C-kern/api/platform/sync/signal.h"/>
         <File Name="../../C-kern/api/platform/sync/waitlist.h"/>
+        <File Name="../../C-kern/api/platform/sync/rwlock.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/sysuser.h"/>
       <VirtualDirectory Name="X11">
@@ -324,12 +325,8 @@
     <VirtualDirectory Name="Linux">
       <File Name="../../C-kern/platform/Linux/locale.c"/>
       <File Name="../../C-kern/platform/Linux/malloc.c"/>
-      <File Name="../../C-kern/platform/Linux/mutex.c"/>
-      <File Name="../../C-kern/platform/Linux/semaphore.c"/>
-      <File Name="../../C-kern/platform/Linux/signal.c"/>
       <File Name="../../C-kern/platform/Linux/sysuser.c"/>
       <File Name="../../C-kern/platform/Linux/vm.c"/>
-      <File Name="../../C-kern/platform/Linux/waitlist.c"/>
       <VirtualDirectory Name="io">
         <File Name="../../C-kern/platform/Linux/io/directory.c"/>
         <File Name="../../C-kern/platform/Linux/io/file.c"/>
@@ -345,6 +342,13 @@
       <VirtualDirectory Name="time">
         <File Name="../../C-kern/platform/Linux/time/sysclock.c"/>
         <File Name="../../C-kern/platform/Linux/time/systimer.c"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="sync">
+        <File Name="../../C-kern/platform/Linux/sync/mutex.c"/>
+        <File Name="../../C-kern/platform/Linux/sync/semaphore.c"/>
+        <File Name="../../C-kern/platform/Linux/sync/waitlist.c"/>
+        <File Name="../../C-kern/platform/Linux/sync/signal.c"/>
+        <File Name="../../C-kern/platform/Linux/sync/rwlock.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">

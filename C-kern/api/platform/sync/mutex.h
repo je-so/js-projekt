@@ -1,4 +1,5 @@
 /* title: Mutex
+
    Encapsulates an os specific exclusive lock.
 
    about: Copyright
@@ -19,11 +20,11 @@
    file: C-kern/api/platform/sync/mutex.h
     Header file of <Mutex>.
 
-   file: C-kern/platform/Linux/mutex.c
+   file: C-kern/platform/Linux/sync/mutex.c
     Linux specific implementation <Mutex Linuximpl>.
 */
-#ifndef CKERN_PLATFORM_SYNCHRONIZATION_MUTEX_HEADER
-#define CKERN_PLATFORM_SYNCHRONIZATION_MUTEX_HEADER
+#ifndef CKERN_PLATFORM_SYNC_MUTEX_HEADER
+#define CKERN_PLATFORM_SYNC_MUTEX_HEADER
 
 /* typedef: struct mutex_t
  * Exports <mutex_t> into global namespace. */
@@ -104,19 +105,18 @@ void slock_mutex(mutex_t * mutex) ;
 void sunlock_mutex(mutex_t * mutex) ;
 
 
+
 // section: inline implementation
 
 /* define: slock_mutex
- * Implements <mutex_t.slock_mutex>.
- * > do {  int _err = lock_mutex(mutex) ; assert(! _err) ; } while(0) */
+ * Implements <mutex_t.slock_mutex>. */
 #define slock_mutex(/*mutex_t * */mutex) \
-   do {  int _err_slock_mutex = lock_mutex(mutex) ; assert(! _err_slock_mutex) ; } while(0)
+         (assert(!lock_mutex(mutex))) ;
 
 /* define: sunlock_mutex
- * Implements <mutex_t.sunlock_mutex>.
- * > do {  int _err = unlock_mutex(mutex) ; assert(! _err) ; } while(0) */
+ * Implements <mutex_t.sunlock_mutex>. */
 #define sunlock_mutex(/*mutex_t * */mutex) \
-   do {  int _err_sunlock_mutex = unlock_mutex(mutex) ; assert(! _err_sunlock_mutex) ; } while(0)
+         (assert(!unlock_mutex(mutex))) ;
 
 // group: KONFIG_SUBSYS
 

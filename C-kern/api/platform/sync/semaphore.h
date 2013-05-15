@@ -20,11 +20,11 @@
    file: C-kern/api/platform/sync/semaphore.h
     Header file of <Semaphore>.
 
-   file: C-kern/platform/Linux/semaphore.c
-    Linux implementation file <Semaphore Linux>.
+   file: C-kern/platform/Linux/sync/semaphore.c
+    Linux implementation file <Semaphore Linuximpl>.
 */
-#ifndef CKERN_PLATFORM_SYNCHRONIZATION_SEMAPHORE_HEADER
-#define CKERN_PLATFORM_SYNCHRONIZATION_SEMAPHORE_HEADER
+#ifndef CKERN_PLATFORM_SYNC_SEMAPHORE_HEADER
+#define CKERN_PLATFORM_SYNC_SEMAPHORE_HEADER
 
 /* typedef: semaphore_t typedef
  * Export <semaphore_t>. */

@@ -24,11 +24,11 @@
    file: C-kern/api/platform/sync/waitlist.h
     Header file of <Waitlist>.
 
-   file: C-kern/platform/Linux/waitlist.c
-    Linux specific implementation file <Waitlist Linux>.
+   file: C-kern/platform/Linux/sync/waitlist.c
+    Linux specific implementation file <Waitlist Linuximpl>.
 */
-#ifndef CKERN_PLATFORM_SYNCHRONIZATION_WAITLIST_HEADER
-#define CKERN_PLATFORM_SYNCHRONIZATION_WAITLIST_HEADER
+#ifndef CKERN_PLATFORM_SYNC_WAITLIST_HEADER
+#define CKERN_PLATFORM_SYNC_WAITLIST_HEADER
 
 /* typedef: waitlist_t typedef
  * Exports <waitlist_t>. */

@@ -22,11 +22,11 @@
    file: C-kern/api/platform/sync/signal.h
     Header file of <PosixSignals>.
 
-   file: C-kern/platform/Linux/signal.c
-    Linux specific implementation <PosixSignals Linux>.
+   file: C-kern/platform/Linux/sync/signal.c
+    Linux specific implementation <PosixSignals Linuximpl>.
 */
-#ifndef CKERN_PLATFORM_SYNCHRONIZATION_SIGNAL_HEADER
-#define CKERN_PLATFORM_SYNCHRONIZATION_SIGNAL_HEADER
+#ifndef CKERN_PLATFORM_SYNC_SIGNAL_HEADER
+#define CKERN_PLATFORM_SYNC_SIGNAL_HEADER
 
 /* typedef: struct signalconfig_t
  * Export <signalconfig_t>. */
