@@ -65,55 +65,6 @@ bool isequal_sysuserid(sysuser_id_t luid, sysuser_id_t ruid)
 #define sysuser_UNITTEST_PASSWORD      "GUEST"
 // TEXTDB:END
 
-// group: initonce
-
-int initonce_sysuser(/*out*/sysuser_t ** sysuser)
-{
-   int err ;
-   sysuser_t * new_sysusr ;
-
-   new_sysusr = allocstatic_maincontext(sizeof(sysuser_t)) ;
-   if (!new_sysusr) {
-      err = ENOMEM ;
-      goto ONABORT ;
-   }
-
-   err = init_sysuser(new_sysusr) ;
-   if (err) goto ONABORT ;
-
-   *sysuser = new_sysusr ;
-
-   return 0 ;
-ONABORT:
-   if (new_sysusr) {
-      freestatic_maincontext(sizeof(sysuser_t)) ;
-   }
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-int freeonce_sysuser(sysuser_t ** sysuser)
-{
-   int err ;
-   sysuser_t * delobj = *sysuser ;
-
-   if (delobj) {
-      *sysuser = 0 ;
-
-      err = free_sysuser(delobj) ;
-
-      int err2 = freestatic_maincontext(sizeof(sysuser_t)) ;
-      if (err2) err = err2 ;
-
-      if (err) goto ONABORT ;
-   }
-
-   return 0 ;
-ONABORT:
-   TRACEABORTFREE_LOG(err) ;
-   return err ;
-}
-
 // group: lifetime
 
 int init_sysuser(sysuser_t * sysusr)
@@ -667,41 +618,6 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_initonce(void)
-{
-   sysuser_t   *  sysusr = 0 ;
-
-   // warning is printed in test_authenticate
-   // if sysuser_maincontext()->realuser == sysuser_maincontext()->privilegeduser
-
-   // TEST initonce_sysuser
-   size_t oldsize = sizestatic_maincontext() ;
-   TEST(0 == initonce_sysuser(&sysusr)) ;
-   TEST(0 != sysusr) ;
-   TEST(1 == isequal_sysuser(sysusr, sysuser_maincontext())) ;
-   TEST(sizestatic_maincontext() == oldsize + sizeof(sysuser_t)) ;
-   TEST(getuid()  == sysuser_maincontext()->realuser) ;
-   TEST(geteuid() == sysuser_maincontext()->realuser) ;
-
-   // TEST freeonce_sysuser
-   TEST(0 == freeonce_sysuser(&sysusr)) ;
-   TEST(0 == sysusr) ;
-   TEST(sizestatic_maincontext() == oldsize) ;
-   TEST(getuid()  == sysuser_maincontext()->realuser) ;
-   TEST(geteuid() == sysuser_maincontext()->privilegeduser) ;
-   TEST(0 == setresuid(sysuser_maincontext()->realuser, sysuser_maincontext()->realuser, sysuser_maincontext()->privilegeduser)) ;
-   // changes nothing
-   TEST(0 == freeonce_sysuser(&sysusr)) ;
-   TEST(0 == sysusr) ;
-   TEST(sizestatic_maincontext() == oldsize) ;
-   TEST(getuid()  == sysuser_maincontext()->realuser) ;
-   TEST(geteuid() == sysuser_maincontext()->realuser) ;
-
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
-
 static int exectest_childprocess(void * logfd)
 {
    resourceusage_t   usage    = resourceusage_INIT_FREEABLE ;
@@ -716,7 +632,6 @@ static int exectest_childprocess(void * logfd)
    if (test_switchandset())         goto ONABORT ;
    if (test_userinfo())             goto ONABORT ;
    if (test_authenticate(false))    goto ONABORT ;
-   if (test_initonce())             goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

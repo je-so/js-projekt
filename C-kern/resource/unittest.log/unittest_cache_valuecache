@@ -1,5 +1,0 @@
-C-kern/context/maincontext.c:222: allocstatic_maincontext(): error: Could not allocate 8 bytes of memory
-C-kern/context/maincontext.c:233: allocstatic_maincontext(): error: 12: Function aborted
-C-kern/context/maincontext.c:222: allocstatic_maincontext(): error: Could not allocate 8 bytes of memory
-C-kern/context/maincontext.c:233: allocstatic_maincontext(): error: 12: Function aborted
-C-kern/cache/valuecache.c:71: initonce_valuecache(): error: 12: Function aborted

@@ -33,65 +33,22 @@
 #endif
 
 
-static int init_valuecache(/*out*/valuecache_t * valuecache)
+// section: valuecache_t
+
+// group: lifetime
+
+int init_valuecache(/*out*/valuecache_t * valuecache)
 {
    valuecache->pagesize_vm     = sys_pagesize_vm() ;
    valuecache->log2pagesize_vm = log2_int(valuecache->pagesize_vm) ;
    return 0 ;
 }
 
-static int free_valuecache(valuecache_t * valuecache)
+int free_valuecache(valuecache_t * valuecache)
 {
    valuecache->pagesize_vm     = 0 ;
    valuecache->log2pagesize_vm = 0 ;
    return 0 ;
-}
-
-int initonce_valuecache(/*out*/valuecache_t ** valuecache)
-{
-   int err ;
-   valuecache_t * new_valuecache ;
-
-   new_valuecache = allocstatic_maincontext(sizeof(valuecache_t)) ;
-   if (!new_valuecache) {
-      err = ENOMEM ;
-      goto ONABORT ;
-   }
-
-   err = init_valuecache(new_valuecache) ;
-   if (err) goto ONABORT ;
-
-   *valuecache = new_valuecache ;
-
-   return 0 ;
-ONABORT:
-   if (new_valuecache) {
-      freestatic_maincontext(sizeof(valuecache_t)) ;
-   }
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-int freeonce_valuecache(valuecache_t ** valuecache)
-{
-   int err ;
-   valuecache_t * delobj = *valuecache ;
-
-   if (delobj) {
-      *valuecache = 0 ;
-
-      err = free_valuecache(delobj) ;
-
-      int err2 = freestatic_maincontext(sizeof(valuecache_t)) ;
-      if (err2) err = err2 ;
-
-      if (err) goto ONABORT ;
-   }
-
-   return 0 ;
-ONABORT:
-   TRACEABORTFREE_LOG(err) ;
-   return err ;
 }
 
 
@@ -124,48 +81,6 @@ static int test_initfree(void)
    return 0 ;
 ONABORT:
    free_valuecache(&valuecache) ;
-   return EINVAL ;
-}
-
-static int test_initonce(void)
-{
-   valuecache_t * cache      = 0 ;
-   size_t         oldsize ;
-
-   // prepare
-   oldsize = sizestatic_maincontext() ;
-
-   // TEST initonce_valuecache
-   TEST(0 == initonce_valuecache(&cache)) ;
-   TEST(0 != cache) ;
-   TEST(cache->pagesize_vm == sys_pagesize_vm()) ;
-   TEST(cache->pagesize_vm == 1u << cache->log2pagesize_vm) ;
-   TEST(sizestatic_maincontext() == oldsize + sizeof(valuecache_t)) ;
-
-   // TEST freeonce_valuecache
-   TEST(0 == freeonce_valuecache(&cache)) ;
-   TEST(0 == cache) ;
-   TEST(sizestatic_maincontext() == oldsize) ;
-   TEST(0 == freeonce_valuecache(&cache)) ;
-   TEST(0 == cache) ;
-   TEST(sizestatic_maincontext() == oldsize) ;
-
-   // TEST initonce_valuecache: ENOMEM
-   while (0 != allocstatic_maincontext(sizeof(valuecache_t))) {
-   }
-   valuecache_t * dummy = 0 ;
-   TEST(ENOMEM == initonce_valuecache(&dummy)) ;
-   while (sizestatic_maincontext() > oldsize) {
-      freestatic_maincontext(1) ;
-   }
-   TEST(sizestatic_maincontext() == oldsize) ;
-
-   return 0 ;
-ONABORT:
-   while (sizestatic_maincontext() > oldsize) {
-      freestatic_maincontext(1) ;
-   }
-   freeonce_valuecache(&cache) ;
    return EINVAL ;
 }
 
@@ -208,7 +123,6 @@ int unittest_cache_valuecache()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())    goto ONABORT ;
-   if (test_initonce())    goto ONABORT ;
    if (test_queryvalues()) goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;

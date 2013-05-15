@@ -56,20 +56,18 @@ struct valuecache_t {
    uint8_t        log2pagesize_vm ;
 } ;
 
-// group: init
-
-/* function: initonce_valuecache
- * Sets valuecache pointer to a singleton object. */
-int initonce_valuecache(/*out*/valuecache_t ** valuecache) ;
-
-/* function: freeonce_valuecache
- * Resets the pointer to null. Singleton is never freed. */
-int freeonce_valuecache(valuecache_t ** valuecache) ;
-
 // group: lifetime
 
 /* define: valuecache_INIT_FREEABLE
  * Static initializer. */
 #define valuecache_INIT_FREEABLE          { 0, 0 }
+
+/* function: init_valuecache
+ * Sets values of valuecache. */
+int init_valuecache(/*out*/valuecache_t * valuecache) ;
+
+/* function: free_valuecache
+ * Clears values of valuecache. */
+int free_valuecache(valuecache_t * valuecache) ;
 
 #endif

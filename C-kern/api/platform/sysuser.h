@@ -123,9 +123,13 @@ struct sysuser_t {
  * This value can be overwritten in C-kern/resource/config/modulevalues. */
 #define sysuser_UNITTEST_PASSWORD         "GUEST"
 
-// group: initonce
+// group: lifetime
 
-/* function: initonce_sysuser
+/* define: sysuser_INIT_FREEABLE
+ * Static initializer. Sets user to invalid value. */
+#define sysuser_INIT_FREEABLE             { sysuser_id_INIT_FREEABLE, sysuser_id_INIT_FREEABLE, sysuser_id_INIT_FREEABLE }
+
+/* function: init_sysuser
  * Initializes system user of process at process start.
  *
  * Posix (Linux):
@@ -134,23 +138,7 @@ struct sysuser_t {
  * of the program file if the setuid bit is set.
  *
  * This function sets the effective user id to the real user id but remembers it.
- * You can later switch between the two.
- * */
-int initonce_sysuser(/*out*/sysuser_t ** sysuser) ;
-
-/* function: freeonce_sysuser
- * Does nothing. Called from <free_maincontext>. */
-int freeonce_sysuser(sysuser_t ** sysuser) ;
-
-// group: lifetime
-
-/* define: sysuser_INIT_FREEABLE
- * Static initializer. Sets user to invalid value. */
-#define sysuser_INIT_FREEABLE             { sysuser_id_INIT_FREEABLE, sysuser_id_INIT_FREEABLE, sysuser_id_INIT_FREEABLE }
-
-/* function: init_sysuser
- * Initializes sysusr with the real and privileged user ids.
- * The current user is changed to the real user id. To get privileged rights call <switchtoprivilege_sysuser>. */
+ * To get privileged rights call <switchtoprivilege_sysuser>. */
 int init_sysuser(sysuser_t * sysusr) ;
 
 /* function: free_sysuser
@@ -281,12 +269,12 @@ const char * name_sysuserinfo(sysuser_info_t * usrinfo) ;
 
 #define SYSUSER 1
 #if (!((KONFIG_SUBSYS)&SYSUSER))
-/* define: initonce_sysuser
- * Implement <sysuser_t.initonce_sysuser> as noop if !((KONFIG_SUBSYS)&SYSUSER) */
-#define initonce_sysuser(sysuser)         (0)
-/* define: freeonce_sysuser
- * Implement <sysuser_t.freeonce_sysuser> as noop if !((KONFIG_SUBSYS)&SYSUSER) */
-#define freeonce_sysuser(sysuser)         (0)
+/* define: init_sysuser
+ * Implement <sysuser_t.init_sysuser> as noop if !((KONFIG_SUBSYS)&SYSUSER) */
+#define init_sysuser(sysuser)             ((*(sysuser)) = (sysuser_t) sysuser_INIT_FREEABLE, 0)
+/* define: free_sysuser
+ * Implement <sysuser_t.free_sysuser> as noop if !((KONFIG_SUBSYS)&SYSUSER) */
+#define free_sysuser(sysuser)             ((*(sysuser)) = (sysuser_t) sysuser_INIT_FREEABLE, 0)
 #endif
 #undef SYSUSER
 

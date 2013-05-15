@@ -5,12 +5,17 @@
 # Init functions are called from first to last entry in this database.
 # Free functions are called from last entry to first entry.
 # The header-name field references the C99 header file which exports the function prototypes.
-"module",            "parameter",    "header-name"
-"errorcontext",      "error",        "C-kern/api/context/errorcontext.h"
-"locale",            "",             "C-kern/api/platform/locale.h"
-"sysuser",           "sysuser",      "C-kern/api/platform/sysuser.h"
-"signalconfig",      "",             "C-kern/api/platform/sync/signal.h"
-"valuecache",        "valuecache",   "C-kern/api/cache/valuecache.h"
+# The field inittype determines what kind of init function is called.
+# Possible values:
+# "initonce"   - Calls initonce_module(parameter) / freeonce_module(parameter)
+# "object"     - Calls init_module(parameter) / free_module(parameter)
+#                The memory is allocated and freed with allocstatic_maincontext / freestatic_maincontext.
+"module",            "inittype",  "parameter",    "header-name"
+"errorcontext",      "initonce",  "error",        "C-kern/api/context/errorcontext.h"
+"locale",            "initonce",  "",             "C-kern/api/platform/locale.h"
+"signalconfig",      "initonce",  "",             "C-kern/api/platform/sync/signal.h"
+"valuecache",        "object",    "valuecache",   "C-kern/api/cache/valuecache.h"
+"sysuser",           "object",    "sysuser",      "C-kern/api/platform/sysuser.h"
 # module thread needs valuecache cause of its use of virtual memory !
-"thread",            "",             "C-kern/api/platform/task/thread.h"
-"X11",               "",             "C-kern/api/platform/X11/x11.h"
+"thread",            "initonce",  "",             "C-kern/api/platform/task/thread.h"
+"X11",               "initonce",  "",             "C-kern/api/platform/X11/x11.h"

@@ -1,6 +1,6 @@
 #!/bin/bash
-# *********************
-# Test textdb integrity
+# ***************************
+# Test config/init* integrity
 # *******************************************************************
 # * 1. Tests that C-kern/resource/config/initthread contains all    *
 #      initthread_NAME implementations from every source file       *
@@ -20,7 +20,7 @@ temp_process_db=`mktemp`
 temp_thread_db=`mktemp`
 
 echo '"module",            "inittype",    "objtype",            "parameter",     "header-name"' > $temp_thread_db
-echo '"module",            "parameter",    "header-name"' > $temp_process_db
+echo '"module",            "inittype",  "parameter",    "header-name"' > $temp_process_db
 
 for i in $files; do
    IFS_old=$IFS
@@ -153,9 +153,9 @@ for i in $files; do
       fi
       space2=${space:0:18-${#name1}}
       if [ "$parameter" = "" ]; then
-         echo "\"${name1}\",${space2}\"\",             \"${i}\"" >> $temp_process_db
+         echo "\"${name1}\",${space2}\"initonce\",  \"\",             \"${i}\"" >> $temp_process_db
       else
-         echo "\"${name1}\",${space2}\"${parameter}\",${space:0:13-${#parameter}}\"${i}\"" >> $temp_process_db
+         echo "\"${name1}\",${space2}\"initonce\",  \"${parameter}\",${space:0:13-${#parameter}}\"${i}\"" >> $temp_process_db
       fi
    done
    for((testnr=${#init_process_calls[*]};testnr < ${#free_process_calls[*]}; testnr=testnr+1)) do
@@ -239,7 +239,8 @@ if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
 fi
 
 sort $temp_process_db > $temp_compare1
-sort C-kern/resource/config/initprocess | sed -e "/^#/d;/^$/d" > $temp_compare2
+sort C-kern/resource/config/initprocess \
+    | sed -e "/^#/d;/^$/d" -e '/^"[^"]*",[ ]*"object"/d;' > $temp_compare2
 
 if ! diff $temp_compare1 $temp_compare2 > /dev/null 2>&1; then
    info="$info  file: <C-kern/resource/config/initprocess> is incomplete'\n"

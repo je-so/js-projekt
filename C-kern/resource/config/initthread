@@ -11,7 +11,7 @@
 # "interface"  - Calls init_module(&parameter->object) / free_module(&parameter->object)
 #                and sets parameter->iimpl to values returned from interfacethread_module().
 #                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE
-# "object"     - Calls init_module(parameter) / free_module(parameter->object)
+# "object"     - Calls init_module(parameter) / free_module(parameter)
 #                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE
 "module",            "inittype",    "objtype",            "parameter",     "header-name"
 "pagecacheimpl",     "initthread",  "",                   "pagecache",     "C-kern/api/memory/pagecache_impl.h"

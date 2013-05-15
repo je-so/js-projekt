@@ -31,9 +31,9 @@
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initprocess")
 #include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/platform/locale.h"
-#include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/X11/x11.h"
 // TEXTDB:END
@@ -52,6 +52,165 @@
 static test_errortimer_t   s_processcontext_errtimer = test_errortimer_INIT_FREEABLE ;
 #endif
 
+// group: helper
+
+/* define: INITOBJECT
+ * Initializes object. Calls allocstatic_maincontext to allocate memory.
+ * This memory is initialized with call to init_##module() and the address
+ * is assigned to object. */
+#define INITOBJECT(module, objtype_t, object)               \
+         int err ;                                          \
+         objtype_t * newobj = 0 ;                           \
+                                                            \
+         ONERROR_testerrortimer(                            \
+               &s_processcontext_errtimer, ONABORT) ;       \
+         newobj = allocstatic_maincontext(                  \
+                           sizeof(objtype_t)) ;             \
+         if (!newobj) {                                     \
+            err = ENOMEM ;                                  \
+            goto ONABORT ;                                  \
+         }                                                  \
+                                                            \
+         ONERROR_testerrortimer(                            \
+               &s_processcontext_errtimer, ONABORT) ;       \
+         err = init_##module(newobj) ;                      \
+         if (err) goto ONABORT ;                            \
+                                                            \
+         (object) = newobj ;                                \
+                                                            \
+         return 0 ;                                         \
+      ONABORT:                                              \
+         if (newobj) {                                      \
+            freestatic_maincontext(sizeof(objtype_t)) ;     \
+         }                                                  \
+         return err ;
+
+/* define: FREEOBJECT
+ * Frees object. Calls freestatic_maincontext to free memory as last operation.
+ * Calls free_##module() to free object. object is set to 0.
+ * Calling it twice has no effect. */
+#define FREEOBJECT(module, objtype_t, object)               \
+         int err ;                                          \
+         int err2 ;                                         \
+         objtype_t * delobj = (object) ;                    \
+                                                            \
+         if (delobj != (0)) {                               \
+                                                            \
+            (object) = (0) ;                                \
+                                                            \
+            err = free_##module(delobj) ;                   \
+            err2 = freestatic_maincontext(                  \
+                                 sizeof(objtype_t)) ;       \
+            if (err2) err = err2 ;                          \
+                                                            \
+            return err ;                                    \
+         }                                                  \
+         return 0 ;
+
+/* about: inithelperX_processcontext
+ * o Generated inithelper functions to init modules with calls to initonce_module.
+ * o Generated inithelper functions to init objects with calls init_module.
+ * */
+
+// TEXTDB:SELECT(\n"static int inithelper"row-id"_processcontext(processcontext_t * pcontext)"\n"{"\n"   (void) pcontext ;"\n"   return initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="initonce")
+
+static int inithelper1_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return initonce_errorcontext(&pcontext->error) ;
+}
+
+static int inithelper2_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return initonce_locale() ;
+}
+
+static int inithelper3_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return initonce_signalconfig() ;
+}
+
+static int inithelper6_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return initonce_thread() ;
+}
+
+static int inithelper7_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return initonce_X11() ;
+}
+// TEXTDB:END
+
+// TEXTDB:SELECT(\n"static int inithelper"row-id"_processcontext(processcontext_t * pcontext)"\n"{"\n"   INITOBJECT("module", typeof(*pcontext->"parameter"), pcontext->"parameter")"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="object")
+
+static int inithelper4_processcontext(processcontext_t * pcontext)
+{
+   INITOBJECT(valuecache, typeof(*pcontext->valuecache), pcontext->valuecache)
+}
+
+static int inithelper5_processcontext(processcontext_t * pcontext)
+{
+   INITOBJECT(sysuser, typeof(*pcontext->sysuser), pcontext->sysuser)
+}
+// TEXTDB:END
+
+
+/* about: freehelperX_processcontext
+ * o Generated freehelper functions to free modules with calls to freeonce_module.
+ * o Generated freehelper functions to free objects with calls free_module.
+ * */
+
+// TEXTDB:SELECT(\n"static int freehelper"row-id"_processcontext(processcontext_t * pcontext)"\n"{"\n"   (void) pcontext ;"\n"   return freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="initonce")
+
+static int freehelper1_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return freeonce_errorcontext(&pcontext->error) ;
+}
+
+static int freehelper2_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return freeonce_locale() ;
+}
+
+static int freehelper3_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return freeonce_signalconfig() ;
+}
+
+static int freehelper6_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return freeonce_thread() ;
+}
+
+static int freehelper7_processcontext(processcontext_t * pcontext)
+{
+   (void) pcontext ;
+   return freeonce_X11() ;
+}
+// TEXTDB:END
+
+// TEXTDB:SELECT(\n"static int freehelper"row-id"_processcontext(processcontext_t * pcontext)"\n"{"\n"   FREEOBJECT("module", typeof(*pcontext->"parameter"), pcontext->"parameter")"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="object")
+
+static int freehelper4_processcontext(processcontext_t * pcontext)
+{
+   FREEOBJECT(valuecache, typeof(*pcontext->valuecache), pcontext->valuecache)
+}
+
+static int freehelper5_processcontext(processcontext_t * pcontext)
+{
+   FREEOBJECT(sysuser, typeof(*pcontext->sysuser), pcontext->sysuser)
+}
+// TEXTDB:END
+
+
 // group: lifetime
 
 int init_processcontext(/*out*/processcontext_t * pcontext)
@@ -60,40 +219,40 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
 
    pcontext->initcount = 0 ;
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;"\n"   err = initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;"\n"   err = inithelper"row-id"_processcontext(pcontext) ;"\n"   if (err) goto ONABORT ;"\n"   ++ pcontext->initcount ;")FROM("C-kern/resource/config/initprocess")
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
-   err = initonce_errorcontext(&pcontext->error) ;
+   err = inithelper1_processcontext(pcontext) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
-   err = initonce_locale() ;
+   err = inithelper2_processcontext(pcontext) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
-   err = initonce_sysuser(&pcontext->sysuser) ;
+   err = inithelper3_processcontext(pcontext) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
-   err = initonce_signalconfig() ;
+   err = inithelper4_processcontext(pcontext) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
-   err = initonce_valuecache(&pcontext->valuecache) ;
+   err = inithelper5_processcontext(pcontext) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
-   err = initonce_thread() ;
+   err = inithelper6_processcontext(pcontext) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
-   err = initonce_X11() ;
+   err = inithelper7_processcontext(pcontext) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
 // TEXTDB:END
@@ -117,27 +276,27 @@ int free_processcontext(processcontext_t * pcontext)
    switch (pcontext->initcount) {
    default: assert(false && "initcount out of bounds")  ;
             break ;
-// TEXTDB:SELECT(\n"   case "row-id":  err2 = freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/config/initprocess")DESCENDING
+// TEXTDB:SELECT(\n"   case "row-id":  err2 = freehelper"row-id"_processcontext(pcontext) ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/config/initprocess")DESCENDING
 
-   case 7:  err2 = freeonce_X11() ;
+   case 7:  err2 = freehelper7_processcontext(pcontext) ;
             if (err2) err = err2 ;
 
-   case 6:  err2 = freeonce_thread() ;
+   case 6:  err2 = freehelper6_processcontext(pcontext) ;
             if (err2) err = err2 ;
 
-   case 5:  err2 = freeonce_valuecache(&pcontext->valuecache) ;
+   case 5:  err2 = freehelper5_processcontext(pcontext) ;
             if (err2) err = err2 ;
 
-   case 4:  err2 = freeonce_signalconfig() ;
+   case 4:  err2 = freehelper4_processcontext(pcontext) ;
             if (err2) err = err2 ;
 
-   case 3:  err2 = freeonce_sysuser(&pcontext->sysuser) ;
+   case 3:  err2 = freehelper3_processcontext(pcontext) ;
             if (err2) err = err2 ;
 
-   case 2:  err2 = freeonce_locale() ;
+   case 2:  err2 = freehelper2_processcontext(pcontext) ;
             if (err2) err = err2 ;
 
-   case 1:  err2 = freeonce_errorcontext(&pcontext->error) ;
+   case 1:  err2 = freehelper1_processcontext(pcontext) ;
             if (err2) err = err2 ;
 // TEXTDB:END
    case 0:  break ;
@@ -226,10 +385,11 @@ static int test_initfree(void)
    TEST(0 == init_processcontext(&pcontext)) ;
    TEST(I == pcontext.initcount) ;
    TEST(sizestatic_maincontext() == 2*processcontext_STATICSIZE) ;
-   freeonce_valuecache(&pcontext.valuecache) ;
-   freeonce_sysuser(&pcontext.sysuser) ;
+   TEST(0 == free_valuecache(pcontext.valuecache)) ;
+   TEST(0 == free_sysuser(pcontext.sysuser)) ;
    // restore (if setuid)
    switchtoreal_sysuser(sysuser_maincontext()) ;
+   TEST(0 == freestatic_maincontext(processcontext_STATICSIZE)) ;
    TEST(sizestatic_maincontext() == processcontext_STATICSIZE) ;
 
    return 0 ;
