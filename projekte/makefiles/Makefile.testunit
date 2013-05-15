@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/testunit.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mai.15  17:33:11
+GenerationDate  := 2013.Mai.15  17:39:23
 GeneratedBy     := je-so
 
 ## Debug
@@ -142,6 +142,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!math!int!log10.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log2.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!atomic.c.o \
  $(ObjectDir_Debug)/C-kern!math!fpu.c.o \
  $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o \
  $(ObjectDir_Debug)/C-kern!memory!memblock.c.o \
@@ -241,6 +242,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!math!int!log10.c.o \
  $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log2.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!atomic.c.o \
  $(ObjectDir_Release)/C-kern!math!fpu.c.o \
  $(ObjectDir_Release)/C-kern!math!float!decimal.c.o \
  $(ObjectDir_Release)/C-kern!memory!memblock.c.o \
@@ -479,6 +481,9 @@ $(ObjectDir_Debug)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!atomic.c.o: C-kern/math/int/atomic.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!fpu.c.o: C-kern/math/fpu.c
@@ -770,6 +775,9 @@ $(ObjectDir_Release)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!atomic.c.o: C-kern/math/int/atomic.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!fpu.c.o: C-kern/math/fpu.c

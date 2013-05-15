@@ -282,6 +282,7 @@ int run_unittest(void)
       RUN(unittest_math_hash_crc32) ;
       RUN(unittest_math_hash_sha1) ;
       RUN(unittest_math_int_abs) ;
+      RUN(unittest_math_int_atomic) ;
       RUN(unittest_math_int_biginteger) ;
       RUN(unittest_math_int_log10) ;
       RUN(unittest_math_int_log2) ;
