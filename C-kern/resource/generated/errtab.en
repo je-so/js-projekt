@@ -1,4 +1,4 @@
-static uint16_t s_errorcontext_stroffset[] = {
+uint16_t g_errorcontext_stroffset[] = {
    [0x00] = 0,
    [0x01] = 8,
    [0x02] = 32,
@@ -257,7 +257,7 @@ static uint16_t s_errorcontext_stroffset[] = {
    [0xff] = 3120 /*same as 0x85*/
 } ;
 
-static uint8_t s_errorcontext_strdata[3134] = {
+uint8_t g_errorcontext_strdata[3134] = {
    "Success\0"
    "Operation not permitted\0"
    "No such file or directory\0"

@@ -45,7 +45,7 @@
 /* variable: g_maincontext
  * Reserve space for the global main context. */
 maincontext_t              g_maincontext  = {
-   processcontext_INIT_FREEABLE,
+   processcontext_INIT_STATIC,
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
    threadcontext_INIT_STATIC,

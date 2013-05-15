@@ -30,6 +30,14 @@
  * Export <errorcontext_t> into global namespace. */
 typedef struct errorcontext_t             errorcontext_t ;
 
+/* variable: g_errorcontext_stroffset
+ * Used in <processcontext_INIT_STATIC> to initialize static <processcontext_t>. */
+extern uint16_t                           g_errorcontext_stroffset[] ;
+
+/* variable: g_errorcontext_strdata
+ * Used in <processcontext_INIT_STATIC> to initialize static <processcontext_t>. */
+extern uint8_t                            g_errorcontext_strdata[] ;
+
 
 // section: Functions
 
@@ -68,7 +76,9 @@ int initonce_errorcontext(/*out*/errorcontext_t * error) ;
 /* function: freeonce_locale
  * Called from <free_maincontext>.
  * The parameter errcontext supports any generic object type which
- * has the same structure as <errorcontext_t>. */
+ * has the same structure as <errorcontext_t>.
+ * This operation is a no op. This ensures that errorcontext_t works
+ * in an uninitialized (static) context. */
 int freeonce_errorcontext(errorcontext_t * error) ;
 
 // group: lifetime
@@ -76,6 +86,10 @@ int freeonce_errorcontext(errorcontext_t * error) ;
 /* define: errorcontext_INIT_FREEABLE
  * Static initializer. */
 #define errorcontext_INIT_FREEABLE        { 0, 0 }
+
+/* define: errorcontext_INIT_FREEABLE
+ * Static initializer used in <processcontext_INIT_STATIC>. */
+#define errorcontext_INIT_STATIC          { g_errorcontext_stroffset, g_errorcontext_strdata }
 
 /* function: init_errorcontext
  * Initializes errcontext with static system error string table. */
@@ -117,7 +131,7 @@ errorcontext_t * genericcast_errorcontext(void * object) ;
 /* define: freeonce_errorcontext
  * Implements <errorcontext_t.freeonce_errorcontext>. */
 #define freeonce_errorcontext(error) \
-         (free_errorcontext(genericcast_errorcontext(error)))
+         (0)
 
 /* define: freeonce_errorcontext
  * Implements <errorcontext_t.freeonce_errorcontext>. */

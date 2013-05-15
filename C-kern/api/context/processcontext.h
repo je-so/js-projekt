@@ -82,9 +82,9 @@ struct processcontext_t {
 
 // group: lifetime
 
-/* define: processcontext_INIT_FREEABLE
+/* define: processcontext_INIT_STATIC
  * Static initializer. */
-#define processcontext_INIT_FREEABLE      { 0, 0, { 0, 0 }, { 0, 0, 0 }, 0 }
+#define processcontext_INIT_STATIC        { 0, 0, errorcontext_INIT_STATIC, { 0, 0, 0 }, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context

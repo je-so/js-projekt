@@ -43,8 +43,8 @@
 
 int init_errorcontext(/*out*/errorcontext_t * errcontext)
 {
-   errcontext->stroffset = s_errorcontext_stroffset ;
-   errcontext->strdata   = s_errorcontext_strdata ;
+   errcontext->stroffset = g_errorcontext_stroffset ;
+   errcontext->strdata   = g_errorcontext_strdata ;
    return 0 ;
 }
 
@@ -68,10 +68,18 @@ static int test_initfree(void)
    TEST(0 == errcontext.stroffset) ;
    TEST(0 == errcontext.strdata) ;
 
-   // TEST init_errorcontext, free_errorcontext
+   // TEST errorcontext_INIT_STATIC
+   errcontext = (errorcontext_t) errorcontext_INIT_STATIC ;
+   TEST(errcontext.stroffset == g_errorcontext_stroffset) ;
+   TEST(errcontext.strdata   == g_errorcontext_strdata) ;
+
+   // TEST init_errorcontext
+   errcontext = (errorcontext_t) errorcontext_INIT_FREEABLE ;
    TEST(0 == init_errorcontext(&errcontext)) ;
-   TEST(errcontext.stroffset == s_errorcontext_stroffset) ;
-   TEST(errcontext.strdata   == s_errorcontext_strdata) ;
+   TEST(errcontext.stroffset == g_errorcontext_stroffset) ;
+   TEST(errcontext.strdata   == g_errorcontext_strdata) ;
+
+   // TEST free_errorcontext
    TEST(0 == free_errorcontext(&errcontext)) ;
    TEST(0 == errcontext.stroffset) ;
    TEST(0 == errcontext.strdata) ;
@@ -98,22 +106,22 @@ static int test_query(void)
       char buffer[50] ;
       snprintf(buffer, sizeof(buffer), "Unknown error %d", (int)i) ;
       TEST(0 == strcmp(strerror((int)i), buffer)) ;
-      const char * errstr = (const char*) (s_errorcontext_strdata + s_errorcontext_stroffset[i]) ;
+      const char * errstr = (const char*) (g_errorcontext_strdata + g_errorcontext_stroffset[i]) ;
       TEST(0 == strcmp("Unknown error", errstr)) ;
-      TEST(s_errorcontext_stroffset[i]      == s_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]) ;
-      TEST(lengthof(s_errorcontext_strdata) == s_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]+strlen(errstr)+1) ;
+      TEST(g_errorcontext_stroffset[i]      == g_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]) ;
+      TEST(lengthof(g_errorcontext_strdata) == g_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]+strlen(errstr)+1) ;
    }
 
    // TEST str_errorcontext: 0 <= errno <= 255
-   // s_errorcontext_stroffset has 256 entries so str_errorcontext can use (uint8_t) to mask index
-   TEST(256 == lengthof(s_errorcontext_stroffset)) ;
-   // s_errorcontext_strdata: last byte is '\0' byte
-   TEST(0 == s_errorcontext_strdata[lengthof(s_errorcontext_strdata)-1]) ;
-   TEST(0 != s_errorcontext_strdata[lengthof(s_errorcontext_strdata)-2]) ;
+   // g_errorcontext_stroffset has 256 entries so str_errorcontext can use (uint8_t) to mask index
+   TEST(256 == lengthof(g_errorcontext_stroffset)) ;
+   // g_errorcontext_strdata: last byte is '\0' byte
+   TEST(0 == g_errorcontext_strdata[lengthof(g_errorcontext_strdata)-1]) ;
+   TEST(0 != g_errorcontext_strdata[lengthof(g_errorcontext_strdata)-2]) ;
    for (size_t i = 0; i <= 255; ++i) {
-      const char * errstr = (const char*) (s_errorcontext_strdata + s_errorcontext_stroffset[i]) ;
-      TEST(lengthof(s_errorcontext_strdata) > s_errorcontext_stroffset[i]) ;
-      TEST(lengthof(s_errorcontext_strdata) > s_errorcontext_stroffset[i] + strlen(errstr)) ;
+      const char * errstr = (const char*) (g_errorcontext_strdata + g_errorcontext_stroffset[i]) ;
+      TEST(lengthof(g_errorcontext_strdata) > g_errorcontext_stroffset[i]) ;
+      TEST(lengthof(g_errorcontext_strdata) > g_errorcontext_stroffset[i] + strlen(errstr)) ;
       if (i <= maxsyserrnum_errorcontext()) {
          TEST(0 == strcmp(errstr, strerror((int)i))) ;
       } else {
@@ -124,7 +132,7 @@ static int test_query(void)
 
    // TEST str_errorcontext: 255 <= errno <= SIZE_MAX
    for (size_t i = 255; true; i *= 2, ++i) {
-      const uint8_t * errstr = s_errorcontext_strdata + s_errorcontext_stroffset[255] ;
+      const uint8_t * errstr = g_errorcontext_strdata + g_errorcontext_stroffset[255] ;
       TEST(errstr == str_errorcontext(errcontext, i)) ;
       if (i == SIZE_MAX) break ;
    }
@@ -166,6 +174,26 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_initonce(void)
+{
+   errorcontext_t errcontext = errorcontext_INIT_FREEABLE ;
+
+
+   // TEST initonce_errorcontext
+   TEST(0 == initonce_errorcontext(&errcontext)) ;
+   TEST(errcontext.stroffset == g_errorcontext_stroffset) ;
+   TEST(errcontext.strdata   == g_errorcontext_strdata) ;
+
+   // TEST freeonce_errorcontext: no-op
+   TEST(0 == freeonce_errorcontext(&errcontext)) ;
+   TEST(errcontext.stroffset == g_errorcontext_stroffset) ;
+   TEST(errcontext.strdata   == g_errorcontext_strdata) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 
 int unittest_context_errorcontext()
 {
@@ -183,6 +211,7 @@ int unittest_context_errorcontext()
    if (test_initfree())       goto ONABORT ;
    if (test_query())          goto ONABORT ;
    if (test_generic())        goto ONABORT ;
+   if (test_initonce())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

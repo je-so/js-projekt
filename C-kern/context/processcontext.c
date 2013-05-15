@@ -241,14 +241,14 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   processcontext_t  pcontext = processcontext_INIT_FREEABLE ;
+   processcontext_t  pcontext = processcontext_INIT_STATIC ;
    const uint16_t    I        = 7 ;
 
-   // TEST processcontext_INIT_FREEABLE
+   // TEST processcontext_INIT_STATIC
    TEST(0 == pcontext.valuecache) ;
    TEST(0 == pcontext.sysuser) ;
-   TEST(0 == pcontext.error.stroffset) ;
-   TEST(0 == pcontext.error.strdata) ;
+   TEST(0 != pcontext.error.stroffset) ;
+   TEST(0 != pcontext.error.strdata) ;
    TEST(0 == pcontext.staticmem.addr) ;
    TEST(0 == pcontext.staticmem.size) ;
    TEST(0 == pcontext.staticmem.used) ;
@@ -277,8 +277,8 @@ static int test_initfree(void)
    TEST(0 == free_processcontext(&pcontext)) ;
    TEST(0 == pcontext.valuecache) ;
    TEST(0 == pcontext.sysuser) ;
-   TEST(0 == pcontext.error.stroffset) ;
-   TEST(0 == pcontext.error.strdata) ;
+   TEST(0 != pcontext.error.stroffset) ;
+   TEST(0 != pcontext.error.strdata) ;
    TEST(0 == pcontext.staticmem.addr) ;
    TEST(0 == pcontext.staticmem.size) ;
    TEST(0 == pcontext.staticmem.used) ;
@@ -317,7 +317,7 @@ static int test_initfree(void)
    TEST(process_maincontext().staticmem.used == processcontext_STATICSIZE) ;
 
    // TEST init_processcontext: ERROR
-   memset(&pcontext, 0, sizeof(pcontext)) ;
+   pcontext = (processcontext_t) processcontext_INIT_STATIC ;
    for(int i = 1; i; ++i) {
       init_testerrortimer(&s_processcontext_errtimer, (unsigned)i, i) ;
       int err = init_processcontext(&pcontext) ;
@@ -329,8 +329,8 @@ static int test_initfree(void)
       TEST(i == err) ;
       TEST(0 == pcontext.valuecache) ;
       TEST(0 == pcontext.sysuser) ;
-      TEST(0 == pcontext.error.stroffset) ;
-      TEST(0 == pcontext.error.strdata) ;
+      TEST(0 != pcontext.error.stroffset) ;
+      TEST(0 != pcontext.error.strdata) ;
       TEST(0 == pcontext.staticmem.addr) ;
       TEST(0 == pcontext.staticmem.size) ;
       TEST(0 == pcontext.staticmem.used) ;
@@ -340,7 +340,7 @@ static int test_initfree(void)
    init_testerrortimer(&s_processcontext_errtimer, 0, 0) ;
 
    // TEST init_processcontext: restore default environment
-   pcontext = (processcontext_t) processcontext_INIT_FREEABLE ;
+   pcontext = (processcontext_t) processcontext_INIT_STATIC ;
    TEST(0 == init_processcontext(&pcontext)) ;
    TEST(I == pcontext.initcount) ;
    TEST(process_maincontext().staticmem.used == 2*processcontext_STATICSIZE) ;
@@ -360,7 +360,7 @@ ONABORT:
 
 static int test_staticmem(void)
 {
-   processcontext_t  pcontext = processcontext_INIT_FREEABLE ;
+   processcontext_t  pcontext = processcontext_INIT_STATIC ;
    const uint16_t    memsize  = 1024;
    uint8_t  *        mem      = malloc(memsize) ;
 
