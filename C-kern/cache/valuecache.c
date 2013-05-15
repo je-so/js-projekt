@@ -52,7 +52,7 @@ int initonce_valuecache(/*out*/valuecache_t ** valuecache)
    int err ;
    valuecache_t * new_valuecache ;
 
-   new_valuecache = allocstatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
+   new_valuecache = allocstatic_maincontext(sizeof(valuecache_t)) ;
    if (!new_valuecache) {
       err = ENOMEM ;
       goto ONABORT ;
@@ -66,7 +66,7 @@ int initonce_valuecache(/*out*/valuecache_t ** valuecache)
    return 0 ;
 ONABORT:
    if (new_valuecache) {
-      freestatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
+      freestatic_maincontext(sizeof(valuecache_t)) ;
    }
    TRACEABORT_LOG(err) ;
    return err ;
@@ -82,7 +82,7 @@ int freeonce_valuecache(valuecache_t ** valuecache)
 
       err = free_valuecache(delobj) ;
 
-      int err2 = freestatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
+      int err2 = freestatic_maincontext(sizeof(valuecache_t)) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -133,37 +133,37 @@ static int test_initonce(void)
    size_t         oldsize ;
 
    // prepare
-   oldsize = sizestatic_processcontext(&process_maincontext()) ;
+   oldsize = sizestatic_maincontext() ;
 
    // TEST initonce_valuecache
    TEST(0 == initonce_valuecache(&cache)) ;
    TEST(0 != cache) ;
    TEST(cache->pagesize_vm == sys_pagesize_vm()) ;
    TEST(cache->pagesize_vm == 1u << cache->log2pagesize_vm) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + sizeof(valuecache_t)) ;
+   TEST(sizestatic_maincontext() == oldsize + sizeof(valuecache_t)) ;
 
    // TEST freeonce_valuecache
    TEST(0 == freeonce_valuecache(&cache)) ;
    TEST(0 == cache) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+   TEST(sizestatic_maincontext() == oldsize) ;
    TEST(0 == freeonce_valuecache(&cache)) ;
    TEST(0 == cache) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+   TEST(sizestatic_maincontext() == oldsize) ;
 
    // TEST initonce_valuecache: ENOMEM
-   while (0 != allocstatic_processcontext(&process_maincontext(), sizeof(valuecache_t))) {
+   while (0 != allocstatic_maincontext(sizeof(valuecache_t))) {
    }
    valuecache_t * dummy = 0 ;
    TEST(ENOMEM == initonce_valuecache(&dummy)) ;
-   while (sizestatic_processcontext(&process_maincontext()) > oldsize) {
-      freestatic_processcontext(&process_maincontext(), 1) ;
+   while (sizestatic_maincontext() > oldsize) {
+      freestatic_maincontext(1) ;
    }
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+   TEST(sizestatic_maincontext() == oldsize) ;
 
    return 0 ;
 ONABORT:
-   while (sizestatic_processcontext(&process_maincontext()) > oldsize) {
-      freestatic_processcontext(&process_maincontext(), 1) ;
+   while (sizestatic_maincontext() > oldsize) {
+      freestatic_maincontext(1) ;
    }
    freeonce_valuecache(&cache) ;
    return EINVAL ;

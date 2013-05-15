@@ -256,12 +256,12 @@ static int test_iobuffer(void)
    TEST(0 == free_objectcacheimpl(&cache)) ;
 
    TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
-   process_ioredirect_t ioredirect = process_ioredirect_INIT_DEVNULL ;
-   setstderr_processioredirect(&ioredirect, pipefd[1]) ;
+   process_stdfd_t stdfd = process_stdfd_INIT_DEVNULL ;
+   redirecterr_processstdfd(&stdfd, pipefd[1]) ;
 
    // TEST assertion lockiobuffer_objectcacheimpl
    TEST(0 == init_objectcacheimpl(&cache)) ;
-   TEST(0 == initgeneric_process(&process, child_lockassert, &cache, &ioredirect)) ;
+   TEST(0 == initgeneric_process(&process, child_lockassert, &cache, &stdfd)) ;
    TEST(0 == wait_process(&process, &result)) ;
    TEST(process_state_ABORTED == result.state) ;
    TEST(0 == free_process(&process)) ;
@@ -273,7 +273,7 @@ static int test_iobuffer(void)
 
    // TEST assertion unlockiobuffer_objectcacheimpl
    TEST(0 == init_objectcacheimpl(&cache)) ;
-   TEST(0 == initgeneric_process(&process, child_unlockassert, &cache, &ioredirect)) ;
+   TEST(0 == initgeneric_process(&process, child_unlockassert, &cache, &stdfd)) ;
    TEST(0 == wait_process(&process, &result)) ;
    TEST(process_state_ABORTED == result.state) ;
    TEST(0 == free_process(&process)) ;

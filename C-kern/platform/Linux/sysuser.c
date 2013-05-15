@@ -32,6 +32,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/platform/task/process.h"
 #endif
 
 
@@ -71,7 +72,7 @@ int initonce_sysuser(/*out*/sysuser_t ** sysuser)
    int err ;
    sysuser_t * new_sysusr ;
 
-   new_sysusr = allocstatic_processcontext(&process_maincontext(), sizeof(sysuser_t)) ;
+   new_sysusr = allocstatic_maincontext(sizeof(sysuser_t)) ;
    if (!new_sysusr) {
       err = ENOMEM ;
       goto ONABORT ;
@@ -85,7 +86,7 @@ int initonce_sysuser(/*out*/sysuser_t ** sysuser)
    return 0 ;
 ONABORT:
    if (new_sysusr) {
-      freestatic_processcontext(&process_maincontext(), sizeof(sysuser_t)) ;
+      freestatic_maincontext(sizeof(sysuser_t)) ;
    }
    TRACEABORT_LOG(err) ;
    return err ;
@@ -101,7 +102,7 @@ int freeonce_sysuser(sysuser_t ** sysuser)
 
       err = free_sysuser(delobj) ;
 
-      int err2 = freestatic_processcontext(&process_maincontext(), sizeof(sysuser_t)) ;
+      int err2 = freestatic_maincontext(sizeof(sysuser_t)) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -674,25 +675,25 @@ static int test_initonce(void)
    // if sysuser_maincontext()->realuser == sysuser_maincontext()->privilegeduser
 
    // TEST initonce_sysuser
-   size_t oldsize = sizestatic_processcontext(&process_maincontext()) ;
+   size_t oldsize = sizestatic_maincontext() ;
    TEST(0 == initonce_sysuser(&sysusr)) ;
    TEST(0 != sysusr) ;
    TEST(1 == isequal_sysuser(sysusr, sysuser_maincontext())) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + sizeof(sysuser_t)) ;
+   TEST(sizestatic_maincontext() == oldsize + sizeof(sysuser_t)) ;
    TEST(getuid()  == sysuser_maincontext()->realuser) ;
    TEST(geteuid() == sysuser_maincontext()->realuser) ;
 
    // TEST freeonce_sysuser
    TEST(0 == freeonce_sysuser(&sysusr)) ;
    TEST(0 == sysusr) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+   TEST(sizestatic_maincontext() == oldsize) ;
    TEST(getuid()  == sysuser_maincontext()->realuser) ;
    TEST(geteuid() == sysuser_maincontext()->privilegeduser) ;
    TEST(0 == setresuid(sysuser_maincontext()->realuser, sysuser_maincontext()->realuser, sysuser_maincontext()->privilegeduser)) ;
    // changes nothing
    TEST(0 == freeonce_sysuser(&sysusr)) ;
    TEST(0 == sysusr) ;
-   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+   TEST(sizestatic_maincontext() == oldsize) ;
    TEST(getuid()  == sysuser_maincontext()->realuser) ;
    TEST(geteuid() == sysuser_maincontext()->realuser) ;
 
@@ -701,77 +702,73 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_platform_sysuser()
+static int exectest_childprocess(void * logfd)
 {
    resourceusage_t   usage    = resourceusage_INIT_FREEABLE ;
-   int               logfd[2] = { -1, -1 } ;
-   pid_t             childid  ;
-   bool              isChildProcess = false ;
 
-   TEST(0 == pipe2(logfd, O_CLOEXEC)) ;
-   {
-      long flags = fcntl(logfd[1], F_GETFD) ;
-      fcntl(logfd[1], F_SETFD, flags & (~FD_CLOEXEC)) ;
-   }
+   if (test_authenticate(true))     goto ONABORT ;
 
-   // run unittest in child process to protect main process from loading additional shared libs !
-   childid = fork() ;
-   isChildProcess = (0 == childid) ;
+   TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(childid != -1) ;
+   if (test_userid())               goto ONABORT ;
+   if (test_initfree())             goto ONABORT ;
+   if (test_query())                goto ONABORT ;
+   if (test_switchandset())         goto ONABORT ;
+   if (test_userinfo())             goto ONABORT ;
+   if (test_authenticate(false))    goto ONABORT ;
+   if (test_initonce())             goto ONABORT ;
 
-   if (! isChildProcess) {
-      // wait for child process to exit
-      int status = -1 ;
-      waitpid(childid, &status, 0) ;
-      if (  false == WIFEXITED(status)
-            || 0 != WEXITSTATUS(status)) {
-         goto ONABORT ;
-      }
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
 
-      // read log file from child
-      char logbuffer[256] = {0} ;
-      int  logsize ;
-      logsize = read(logfd[0], logbuffer, sizeof(logbuffer)-1) ;
-      if (logsize > 0) {
-         PRINTF_LOG("%s", logbuffer) ;
-      }
-      TEST(0 == free_file(&logfd[0])) ;
-      TEST(0 == free_file(&logfd[1])) ;
-   }
-
-   if (isChildProcess) {
-      if (test_authenticate(true))     goto ONABORT ;
-
-      TEST(0 == init_resourceusage(&usage)) ;
-
-      if (test_userid())               goto ONABORT ;
-      if (test_initfree())             goto ONABORT ;
-      if (test_query())                goto ONABORT ;
-      if (test_switchandset())         goto ONABORT ;
-      if (test_userinfo())             goto ONABORT ;
-      if (test_authenticate(false))    goto ONABORT ;
-      if (test_initonce())             goto ONABORT ;
-
-      TEST(0 == same_resourceusage(&usage)) ;
-      TEST(0 == free_resourceusage(&usage)) ;
-
-      // transfer log file
-      char     * logbuffer ;
-      size_t   logsize ;
-      GETBUFFER_LOG(&logbuffer, &logsize) ;
-      if ((size_t)write(logfd[1], logbuffer, logsize) != logsize) goto ONABORT ;
-      exit(0) ;
-   }
-
-   // TODO: replace fork with process_t
+   // transfer log file
+   char *   logbuffer ;
+   size_t   logsize ;
+   GETBUFFER_LOG(&logbuffer, &logsize) ;
+   TEST((size_t)write((int)logfd, logbuffer, logsize) == logsize) ;
 
    return 0 ;
 ONABORT:
+   return EINVAL ;
+}
+
+int unittest_platform_sysuser()
+{
+   resourceusage_t      usage    = resourceusage_INIT_FREEABLE ;
+   int                  logfd[2] = { -1, -1 } ;
+   process_t            child    = process_INIT_FREEABLE ;
+   process_stdfd_t      stdfd    = process_stdfd_INIT_INHERIT ;
+
+   TEST(0 == init_resourceusage(&usage)) ;
+
+   TEST(0 == pipe2(logfd, O_CLOEXEC)) ;
+   // run unittest in child process to protect main process from loading additional shared libs !
+   TEST(0 == init_process(&child, &exectest_childprocess, (void*)logfd[1], &stdfd)) ;
+   process_result_t result ;
+   TEST(0 == wait_process(&child, &result)) ;
+   TEST(result.returncode == 0) ;
+   TEST(result.state      == process_state_TERMINATED) ;
+
+   // read log file from child
+   char logbuffer[256] = {0} ;
+   int  logsize ;
+   logsize = read(logfd[0], logbuffer, sizeof(logbuffer)-1) ;
+   if (logsize > 0) {
+      PRINTF_LOG("%s", logbuffer) ;
+   }
+   TEST(0 == free_file(&logfd[0])) ;
+   TEST(0 == free_file(&logfd[1])) ;
+   TEST(0 == free_process(&child)) ;
+
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   return 0 ;
+ONABORT:
+   (void) free_process(&child) ;
    (void) free_file(&logfd[0]) ;
    (void) free_file(&logfd[1]) ;
    (void) free_resourceusage(&usage) ;
-   if (isChildProcess) exit(EINVAL) ;
    return EINVAL ;
 }
 

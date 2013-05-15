@@ -36,30 +36,31 @@ typedef int                         (* process_task_f) (void * task_arg) ;
 
 /* typedef: struct process_result_t
  * Export <process_result_t> into global namespace. */
-typedef struct process_result_t        process_result_t ;
+typedef struct process_result_t           process_result_t ;
 
-/* typedef: struct process_ioredirect_t
- * Export <process_ioredirect_t> into global namespace. */
-typedef struct process_ioredirect_t    process_ioredirect_t ;
+/* typedef: struct process_stdfd_t
+ * Export <process_stdfd_t> into global namespace. */
+typedef struct process_stdfd_t            process_stdfd_t ;
 
 
 /* enums: process_state_e
  * Describes the state of a process.
  *
+ * process_state_TERMINATED  - The process has exited normal and returned an exit code.
+ * process_state_ABORTED     - The process has ended due to an abnormal condition (unhandled signal/exception).
  * process_state_RUNNABLE    - The process is in a runable state (either executing, waiting for execution or
  *                             waiting for a system call to complete)
- * process_state_STOPPED     - The process has been stopped by a STOP signal. After receiving of a CONT signal
- *                             it goes to state RUNABLE
- * process_state_TERMINATED  - The process has exited normal and returned an exit code.
- * process_state_ABORTED     - The process has ended due to an abnormal condition (unhandled signal/exception). */
+ * process_state_STOPPED     - The process has been stopped by a STOP signal. It it receives a CONT signal
+ *                             it goes to state process_state_RUNNABLE.
+ * */
 enum process_state_e {
-   process_state_RUNNABLE,
-   process_state_STOPPED,
    process_state_TERMINATED,
-   process_state_ABORTED
+   process_state_ABORTED,
+   process_state_RUNNABLE,
+   process_state_STOPPED
 } ;
 
-typedef enum process_state_e        process_state_e ;
+typedef enum process_state_e              process_state_e ;
 
 
 // section: Functions
@@ -88,19 +89,19 @@ struct process_result_t
 } ;
 
 
-/* struct: process_ioredirect_t
+/* struct: process_stdfd_t
  * The process standard file redirections.
  * The process standard input, output and error channel are
  * redirected to the files given in this structure.
  * Redirection means that instead of reading from standard input
- * the process reads from <process_ioredirect_t.infile>.
+ * the process reads from <process_stdfd_t.infile>.
  * And instead of writing to standard output or standard error
- * it writes to <process_ioredirect_t.outfile> resp. <process_ioredirect_t.errfile>.
+ * it writes to <process_stdfd_t.outfile> resp. <process_stdfd_t.errfile>.
  *
  * Attention:
  * Make sure that redirected files are automatically closed in case
  * another process is executed (i.e. have set their O_CLOEXEC flag). */
-struct process_ioredirect_t {
+struct process_stdfd_t {
    sys_file_t   std_in ;
    sys_file_t   std_out ;
    sys_file_t   std_err ;
@@ -108,32 +109,35 @@ struct process_ioredirect_t {
 
 // group: lifetime
 
-/* define: process_ioredirect_INIT_DEVNULL
+/* define: process_stdfd_INIT_DEVNULL
  * Static initializer lets new process write and read from null device.
  * All written output is therefore ignored and reading returns always
  * with 0 bytes read. */
-#define process_ioredirect_INIT_DEVNULL      { sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE }
+#define process_stdfd_INIT_DEVNULL        { sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE, sys_file_INIT_FREEABLE }
 
-/* define: process_ioredirect_INIT_INHERIT
+/* define: process_stdfd_INIT_INHERIT
  * Static initializer lets new process inherit standard io channels. */
-#define process_ioredirect_INIT_INHERIT      { file_STDIN, file_STDOUT, file_STDERR }
+#define process_stdfd_INIT_INHERIT        { file_STDIN, file_STDOUT, file_STDERR }
 
 // group: update
 
-/* function: setstdin_processioredirect
+/* function: redirectin_processstdfd
  * Redirects standard input to given file.
- * Use value <file_INIT_FREEABLE> to redirect standard input to device null. */
-void setstdin_processioredirect(process_ioredirect_t * ioredirect, sys_file_t input_file) ;
+ * Use value <file_INIT_FREEABLE> to redirect standard input to device null.
+ * Use value <file_STDIN> to let child inherit standard error. */
+void redirectin_processstdfd(process_stdfd_t * stdfd, sys_file_t input_file) ;
 
-/* function: setstdout_processioredirect
+/* function: redirectout_processstdfd
  * Redirects standard output to given file.
- * Use value <file_INIT_FREEABLE> to redirect standard output to device null. */
-void setstdout_processioredirect(process_ioredirect_t * ioredirect, sys_file_t output_file) ;
+ * Use value <file_INIT_FREEABLE> to redirect standard output to device null.
+ * Use value <file_STDOUT> to let child inherit standard error. */
+void redirectout_processstdfd(process_stdfd_t * stdfd, sys_file_t output_file) ;
 
-/* function: setstderr_processioredirect
+/* function: redirecterr_processstdfd
  * Redirects standard error output to given file.
- * Use value <file_INIT_FREEABLE> to redirect standard error to device null. */
-void setstderr_processioredirect(process_ioredirect_t * ioredirect, sys_file_t error_file) ;
+ * Use value <file_INIT_FREEABLE> to redirect standard error to device null.
+ * Use value <file_STDERR> to let child inherit standard error. */
+void redirecterr_processstdfd(process_stdfd_t * stdfd, sys_file_t error_file) ;
 
 
 /* struct: process_t
@@ -143,29 +147,24 @@ void setstderr_processioredirect(process_ioredirect_t * ioredirect, sys_file_t e
 
 /* define: process_INIT_FREEABLE
  * Static initializer. */
-#define process_INIT_FREEABLE       { sys_process_INIT_FREEABLE }
+#define process_INIT_FREEABLE             { sys_process_INIT_FREEABLE }
 
 /* function: init_process
  * Creates child process which executes a function.
- * Setting pointer ioredirection to 0 has the same effect as providing a pointer to <process_ioredirect_t>
- * initialized with <process_ioredirect_INIT_DEVNULL>. */
-int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection) ;
+ * Setting pointer stdfd to 0 has the same effect as providing a pointer to <process_stdfd_t>
+ * initialized with <process_stdfd_INIT_DEVNULL>. */
+int init_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_stdfd_t * stdfd) ;
 
-/* define: initgeneric_process
+/* function: initgeneric_process
  * Same as <init_process> except that it accepts functions with generic argument type.
- * The argument must be of size sizeof(void*). */
-#define initgeneric_process(process, child_main, start_arg, ioredirection)                         \
-   ( __extension__ ({                                                                              \
-         int (*_child_main) (typeof(start_arg)) = (child_main) ;                                   \
-         static_assert(sizeof(start_arg) == sizeof(void*), "same as void*") ;                      \
-         init_process(process, (process_task_f) _child_main, (void*)start_arg, ioredirection ) ;   \
-   }))
+ * The argument must have same size as sizeof(void*). */
+int initgeneric_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_stdfd_t * stdfd) ;
 
 /* function: initdaemon_process
  * Creates deamonized child process which executes a function.
  * The directory of the started daemon is set to root "/" and umsak is set to 007 - which prevents created fiels to be accessed from others
  * except owner or group. */
-int initdaemon_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_ioredirect_t * ioredirection/*0 => /dev/null*/) ;
+int initdaemon_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_stdfd_t * stdfd/*0 => /dev/null*/) ;
 
 /* function: initexec_process
  * Executes another program with same environment.
@@ -176,7 +175,7 @@ int initdaemon_process(/*out*/process_t * process, process_task_f child_main, vo
  * that represent the argument list available to the new program.
  * The first argument should point to the filename associated with the file being executed.
  * It must be terminated by a NULL pointer. */
-int initexec_process(/*out*/process_t * process, const char * filename, const char * const * arguments, process_ioredirect_t * ioredirection /*0 => /dev/null*/) ;
+int initexec_process(/*out*/process_t * process, const char * filename, const char * const * arguments, process_stdfd_t * stdfd /*0 => /dev/null*/) ;
 
 /* function: free_process
  * Frees resource associated with a process.
@@ -220,22 +219,39 @@ int state_process(process_t * process, /*out*/process_state_e * current_state) ;
 int wait_process(process_t * process, /*out*/process_result_t * result) ;
 
 
+
 // section: inline implementation
 
-/* define: setstdin_processioredirect
- * Implements <process_ioredirect_t.setstdin_processioredirect>. */
-#define setstdin_processioredirect(ioredirect, input_file) \
-   ((void)((ioredirect)->std_in = input_file))
+// group: process_stdfd_t
 
-/* define: setstdout_processioredirect
- * Implements <process_ioredirect_t.setstdout_processioredirect>. */
-#define setstdout_processioredirect(ioredirect, output_file) \
-   ((void)((ioredirect)->std_out = output_file))
+/* define: redirectin_processstdfd
+ * Implements <process_stdfd_t.redirectin_processstdfd>. */
+#define redirectin_processstdfd(stdfd, input_file) \
+         ((void)((stdfd)->std_in = input_file))
 
-/* define: setstderr_processioredirect
- * Implements <process_ioredirect_t.setstderr_processioredirect>. */
-#define setstderr_processioredirect(ioredirect, error_file) \
-   ((void)((ioredirect)->std_err = error_file))
+/* define: redirectout_processstdfd
+ * Implements <process_stdfd_t.redirectout_processstdfd>. */
+#define redirectout_processstdfd(stdfd, output_file) \
+         ((void)((stdfd)->std_out = output_file))
+
+/* define: redirecterr_processstdfd
+ * Implements <process_stdfd_t.redirecterr_processstdfd>. */
+#define redirecterr_processstdfd(stdfd, error_file) \
+         ((void)((stdfd)->std_err = error_file))
+
+// group: process_t
+
+/* define: initgeneric_process
+ * Implements <process_t.initgeneric_process>. */
+#define initgeneric_process(process, child_main, start_arg, stdfd)   \
+         ( __extension__ ({                                          \
+               int (*_child_main) (typeof(start_arg)) ;              \
+               _child_main = (child_main) ;                          \
+               static_assert( sizeof(start_arg) == sizeof(void*),    \
+                              "same as void*" ) ;                    \
+               init_process(  process, (process_task_f) _child_main, \
+                              (void*)start_arg, stdfd ) ;            \
+         }))
 
 #endif
 
