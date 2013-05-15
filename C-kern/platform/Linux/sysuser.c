@@ -67,7 +67,7 @@ bool isequal_sysuserid(sysuser_id_t luid, sysuser_id_t ruid)
 
 // group: lifetime
 
-int init_sysuser(sysuser_t * sysusr)
+int init_sysuser(/*out*/sysuser_t * sysusr)
 {
    int err ;
    sysuser_id_t uid ;

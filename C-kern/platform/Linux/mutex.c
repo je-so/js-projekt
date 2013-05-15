@@ -223,8 +223,8 @@ static int test_mutex_staticinit(void)
    // TEST 2 threads parallel counting: lock, unlock
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_loop, &mutex)) ;
-   TEST(0 == new_thread(&thread2, &thread_loop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_loop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread2, &thread_loop, &mutex)) ;
    TEST(0 == join_thread(thread1)) ;
    TEST(0 == join_thread(thread2)) ;
    TEST(0 == thread1->returncode ) ;
@@ -237,9 +237,9 @@ static int test_mutex_staticinit(void)
    // TEST sequential threads do not need lock
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_loop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_loop, &mutex)) ;
    TEST(0 == join_thread(thread1)) ;
-   TEST(0 == new_thread(&thread2, &thread_loop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread2, &thread_loop, &mutex)) ;
    TEST(0 == join_thread(thread2)) ;
    TEST(0 == thread1->returncode ) ;
    TEST(0 == thread2->returncode ) ;
@@ -282,7 +282,7 @@ static int test_mutex_staticinit(void)
 
    // TEST EBUSY: calling free on a locked mutex
    s_lockmutex_signal = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
    while( ! s_lockmutex_signal ) {
       pthread_yield() ;
    }
@@ -294,12 +294,12 @@ static int test_mutex_staticinit(void)
 
    // TEST calling unlock from another thread is executed
    TEST(0 == lock_mutex(&mutex)) ;
-   TEST(0 == new_thread(&thread1, thread_unlockmutex, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, thread_unlockmutex, &mutex)) ;
    TEST(0 == join_thread(thread1)) ;
    TEST(0 == thread1->returncode ) ;
    TEST(0 == delete_thread(&thread1)) ;
    // now check that free generates no error
-   TEST(0 == new_thread(&thread1, thread_freemutex, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, thread_freemutex, &mutex)) ;
    TEST(0 == join_thread(thread1)) ;
    TEST(0 == thread1->returncode ) ;
    TEST(0 == delete_thread(&thread1)) ;
@@ -338,8 +338,8 @@ static int test_mutex_errorcheck(void)
    // TEST 2 threads parallel counting: lock, unlock
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_loop, &mutex)) ;
-   TEST(0 == new_thread(&thread2, &thread_loop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_loop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread2, &thread_loop, &mutex)) ;
    TEST(0 == join_thread(thread1)) ;
    TEST(0 == join_thread(thread2)) ;
    TEST(0 == thread1->returncode ) ;
@@ -352,9 +352,9 @@ static int test_mutex_errorcheck(void)
    // TEST sequential threads do not need lock
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_loop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_loop, &mutex)) ;
    TEST(0 == join_thread(thread1)) ;
-   TEST(0 == new_thread(&thread2, &thread_loop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread2, &thread_loop, &mutex)) ;
    TEST(0 == join_thread(thread2)) ;
    TEST(0 == thread1->returncode ) ;
    TEST(0 == thread2->returncode ) ;
@@ -370,7 +370,7 @@ static int test_mutex_errorcheck(void)
 
    // TEST EBUSY: calling free on a locked mutex
    s_lockmutex_signal = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
    while( ! s_lockmutex_signal ) {
       pthread_yield() ;
    }
@@ -382,7 +382,7 @@ static int test_mutex_errorcheck(void)
 
    // TEST EPERM: calling unlock from another thread is prevented
    s_lockmutex_signal = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
    while( ! s_lockmutex_signal ) {
       pthread_yield() ;
    }
@@ -452,8 +452,8 @@ static int test_mutex_slock(void)
    TEST(0 == init_mutex(&mutex)) ;
    s_shared_count = 0 ;
    s_shared_wrong = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_sloop, &mutex)) ;
-   TEST(0 == new_thread(&thread2, &thread_sloop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_sloop, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread2, &thread_sloop, &mutex)) ;
    TEST(0 == join_thread(thread1)) ;
    TEST(0 == join_thread(thread2)) ;
    TEST(0 == thread1->returncode ) ;
@@ -477,7 +477,7 @@ static int test_mutex_slock(void)
 
    // TEST EPERM: calling unlock from another thread is prevented
    s_lockmutex_signal = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_lockunlockmutex, &mutex)) ;
    while( ! s_lockmutex_signal ) {
       pthread_yield() ;
    }
@@ -603,7 +603,7 @@ static int test_mutex_interrupt(void)
    TEST(0 == init_mutex(&mutex)) ;
    TEST(0 == lock_mutex(&mutex)) ;
    s_lockmutex_signal = 0 ;
-   TEST(0 == new_thread(&thread1, &thread_lockmutex, &mutex)) ;
+   TEST(0 == newgeneric_thread(&thread1, &thread_lockmutex, &mutex)) ;
    for (int i = 0; i < 1000; ++i) {
       if (s_lockmutex_signal) break ;
       sleepms_thread(1) ;

@@ -139,7 +139,7 @@ struct sysuser_t {
  *
  * This function sets the effective user id to the real user id but remembers it.
  * To get privileged rights call <switchtoprivilege_sysuser>. */
-int init_sysuser(sysuser_t * sysusr) ;
+int init_sysuser(/*out*/sysuser_t * sysusr) ;
 
 /* function: free_sysuser
  * Clears sysusr and resets system user ids.

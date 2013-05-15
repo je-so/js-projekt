@@ -29,6 +29,7 @@
 #include "C-kern/api/io/filesystem/file.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/string/cstring.h"
@@ -1003,7 +1004,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == sigaction(SIGUSR1, &newact, &oldact)) ;
    isOldact = true ;
    thread_arg_t startarg = { .caller = self_thread(), .fd = pipefd[0] } ;
-   TEST(0 == new_thread(&thread, thread_reader, &startarg)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_reader, &startarg)) ;
    suspend_thread() ;
    sleepms_thread(100) ;
    s_siguser_count  = 0 ;
@@ -1027,7 +1028,7 @@ static int test_readwrite(directory_t * tempdir)
       TEST(0 == write_file(pipefd[1], 1, &byte, 0)) ;
    }
    startarg.fd = pipefd[1] ;
-   TEST(0 == new_thread(&thread, thread_writer, &startarg)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_writer, &startarg)) ;
    suspend_thread() ;
    sleepms_thread(100) ;
    s_siguser_count  = 0 ;
@@ -1062,7 +1063,7 @@ static int test_readwrite(directory_t * tempdir)
    startarg = (thread_arg_t) { .caller = self_thread(), .fd = pipefd[1] } ;
    // thread_writer2 writes 2 bytes and therefore waits
    // (pipe buffer can only hold 1 more byte)
-   TEST(0 == new_thread(&thread, thread_writer2, &startarg)) ;
+   TEST(0 == newgeneric_thread(&thread, thread_writer2, &startarg)) ;
    suspend_thread() ;
    sleepms_thread(100) ;
    TEST(0 == free_file(&pipefd[0])) ;

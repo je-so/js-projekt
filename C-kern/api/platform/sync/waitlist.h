@@ -32,7 +32,7 @@
 
 /* typedef: waitlist_t typedef
  * Exports <waitlist_t>. */
-typedef struct waitlist_t              waitlist_t ;
+typedef struct waitlist_t                 waitlist_t ;
 
 // forward
 struct slist_node_t ;
@@ -59,20 +59,20 @@ int unittest_platform_sync_waitlist(void) ;
 struct waitlist_t {
    /* variable: last
     * The root pointer of the list of waiting threads. */
-   struct slist_node_t  * last ;
+   struct slist_node_t  *  last ;
    /* variable: nr_waiting
     * The number of threads waiting. */
-   size_t               nr_waiting ;
+   size_t                  nr_waiting ;
    /* variable: lock
     * Mutex to protect this object from concurrent access. */
-   sys_mutex_t          lock ;
+   sys_mutex_t             lock ;
 } ;
 
 // group: lifetime
 
 /* define: waitlist_INIT_FREEABLE
  * Static initializer. After initialization it is safe to call <free_waitlist>. */
-#define waitlist_INIT_FREEABLE   { 0, 0, mutex_INIT_DEFAULT }
+#define waitlist_INIT_FREEABLE            { 0, 0, mutex_INIT_DEFAULT }
 
 /* function: init_waitlist
  * Inits a waiting list. The waiting is protexted by a mutex. */
@@ -104,7 +104,7 @@ bool isempty_waitlist(waitlist_t * wlist) ;
  * even if <nrwaiting_waitlist> returns a value greater 0. */
 size_t nrwaiting_waitlist(waitlist_t * wlist) ;
 
-// group: change
+// group: synchronize
 
 /* function: wait_waitlist
  * Suspends the calling thread until some other calls <trywakeup_waitlist>.
@@ -117,9 +117,9 @@ int wait_waitlist(waitlist_t * wlist) ;
  * Tries to wake up the first waiting thread.
  * If the list is empty EAGAIN is returned and no error is logged.
  * If the list is not empty the argument <thread_t.task> of the first waiting thread is set
- * to *task_main* and *start_arg*. Thie first thread is removed from the list.
+ * to *task_main* and *main_arg*. Thie first thread is removed from the list.
  * It is then resumed. See also <resume_thread>. */
-int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), void * start_arg) ;
+int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * main_arg), void * main_arg) ;
 
 
 #endif

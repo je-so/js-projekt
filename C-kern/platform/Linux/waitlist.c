@@ -41,33 +41,7 @@
  * Uses macro <slist_IMPLEMENT> to generate an adapted interface to <slist_t>. */
 slist_IMPLEMENT(_wlist, thread_t, wlistnext)
 
-// group: helper
-
-static int wakupfirst_nolock_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), void * start_arg)
-{
-   int err ;
-
-   thread_t * thread = first_wlist(genericcast_slist(wlist)) ;
-
-   lock_thread(thread) ;
-
-   thread->task_f   = task_main ;
-   thread->task_arg = start_arg ;
-
-   err = removefirst_wlist(genericcast_slist(wlist), &thread) ;
-   assert(!err) ;
-   assert(!thread->wlistnext /*indicates that thread->task is valid*/) ;
-
-   -- wlist->nr_waiting ;
-
-   unlock_thread(thread) ;
-
-   resume_thread(thread) ;
-
-   return 0 ;
-}
-
-// group: implementation
+// group: lifetime
 
 int init_waitlist(/*out*/waitlist_t * wlist)
 {
@@ -79,9 +53,9 @@ int init_waitlist(/*out*/waitlist_t * wlist)
    err = init_mutex(&wlist->lock) ;
    if (err) goto ONABORT ;
 
-   wlist->nr_waiting = 0 ;
-
    init_wlist(genericcast_slist(wlist)) ;
+
+   wlist->nr_waiting = 0 ;
 
    return 0 ;
 ONABORT:
@@ -93,12 +67,10 @@ int free_waitlist(waitlist_t * wlist)
 {
    int err ;
 
-   err = free_mutex(&wlist->lock) ;
-
-   while (!isempty_wlist(genericcast_slist(wlist))) {
-      int err2 = wakupfirst_nolock_waitlist( wlist, 0, 0 ) ;
-      if (err2) err = err2 ;
+   while (0 == trywakeup_waitlist(wlist, 0, 0)) {
    }
+
+   err = free_mutex(&wlist->lock) ;
 
    if (err) goto ONABORT ;
 
@@ -108,10 +80,12 @@ ONABORT:
    return err ;
 }
 
+// group: query
+
 bool isempty_waitlist(waitlist_t * wlist)
 {
    slock_mutex(&wlist->lock) ;
-   bool isempty = isempty_wlist(genericcast_slist(wlist)) ;
+   bool isempty = (wlist->nr_waiting == 0) ;
    sunlock_mutex(&wlist->lock) ;
    return isempty ;
 }
@@ -123,6 +97,8 @@ size_t nrwaiting_waitlist(waitlist_t * wlist)
    sunlock_mutex(&wlist->lock) ;
    return nr_waiting ;
 }
+
+// group: synchronize
 
 int wait_waitlist(waitlist_t * wlist)
 {
@@ -136,41 +112,37 @@ int wait_waitlist(waitlist_t * wlist)
    bool isSpuriousWakeup ;
    do {
       suspend_thread() ;
-      lock_thread(self) ;
+      slock_mutex(&wlist->lock) ;
       isSpuriousWakeup = (0 != self->wlistnext) ;
-      unlock_thread(self) ;
+      sunlock_mutex(&wlist->lock) ;
    } while (isSpuriousWakeup) ;
 
    return 0 ;
 }
 
-int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * start_arg), void * start_arg)
+int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * main_arg), void * main_arg)
 {
-   int err ;
-   bool isEmpty ;
-
    slock_mutex(&wlist->lock) ;
 
-   isEmpty = isempty_wlist(genericcast_slist(wlist)) ;
-   if (isEmpty) {
-      err = EAGAIN ;
-   } else {
-      err = wakupfirst_nolock_waitlist(wlist, task_main, start_arg ) ;
+   thread_t * thread = first_wlist(genericcast_slist(wlist)) ;
+   if (thread) {
+
+      settask_thread(thread, task_main, main_arg) ;
+
+      int err = removefirst_wlist(genericcast_slist(wlist), &thread) ;
+      assert(!err) ;
+      assert(!thread->wlistnext /*indicates that thread->task is valid*/) ;
+
+      -- wlist->nr_waiting ;
+
+      resume_thread(thread) ;
    }
 
    sunlock_mutex(&wlist->lock) ;
 
-   if (isEmpty) {
-      return err ;
-   }
-
-   if (err) goto ONABORT ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
+   return thread ? 0 : EAGAIN ;
 }
+
 
 
 // section: test
@@ -187,19 +159,21 @@ static int thread_waitonwlist(waitlist_t * wlist)
 
 static int test_initfree(void)
 {
-   waitlist_t  wlist    = waitlist_INIT_FREEABLE ;
-   thread_t    * thread = 0 ;
-   thread_t    * next ;
+   waitlist_t  wlist       = waitlist_INIT_FREEABLE ;
+   thread_t *  threads[20] = { 0 } ;
+   thread_t *  next ;
 
-   // TEST static init
+   // TEST waitlist_INIT_FREEABLE
    TEST(0 == wlist.last) ;
+   TEST(0 == wlist.nr_waiting) ;
 
-   // TEST init, double free
+   // TEST init_waitlist
    wlist.last = (slist_node_t*)1 ;
    TEST(0 == init_waitlist(&wlist)) ;
    TEST(0 == wlist.last) ;
-   TEST(0 == nrwaiting_waitlist(&wlist)) ;
-   TEST(true == isempty_waitlist(&wlist)) ;
+   TEST(0 == wlist.nr_waiting) ;
+
+   // TEST free_waitlist
    TEST(0 == free_waitlist(&wlist)) ;
    TEST(0 == wlist.last) ;
    TEST(0 == wlist.nr_waiting) ;
@@ -207,160 +181,180 @@ static int test_initfree(void)
    TEST(0 == wlist.last) ;
    TEST(0 == wlist.nr_waiting) ;
 
-   // TEST waiting 1 thread
+   // TEST wait_waitlist: 1 thread
    TEST(0 == init_waitlist(&wlist)) ;
-   TEST(true == isempty_waitlist(&wlist)) ;
-   TEST(0 == nrwaiting_waitlist(&wlist)) ;
    TEST(EAGAIN == trywait_rtsignal(0)) ;
-   TEST(0 == new_thread(&thread, thread_waitonwlist, &wlist)) ;
+   TEST(0 == newgeneric_thread(&threads[0], thread_waitonwlist, &wlist)) ;
    TEST(0 == wait_rtsignal(0, 1)) ;
    for (int i = 0; i < 1000000; ++i) {
       pthread_yield() ;
-      if (thread == last_wlist(genericcast_slist(&wlist))) break ;
+      if (threads[0] == last_wlist(genericcast_slist(&wlist))) break ;
    }
-   TEST(thread == last_wlist(genericcast_slist(&wlist))) ;
-   TEST(thread == next_wlist(thread)) ;
-   thread->task_arg = 0 ;
-   thread->task_f   = 0 ;
-   TEST(0 == isempty_waitlist(&wlist)) ;
-   TEST(1 == nrwaiting_waitlist(&wlist)) ;
+   TEST(threads[0] == last_wlist(genericcast_slist(&wlist))) ;
+   TEST(threads[0] == next_wlist(threads[0])) ;
+   settask_thread(threads[0], 0, 0) ;
+   TEST(1 == wlist.nr_waiting) ;
    TEST(EAGAIN == trywait_rtsignal(1)) ;
-   TEST(0 == trywakeup_waitlist(&wlist, (thread_task_f)1, (void*)2 )) ;
+
+   // TEST trywakeup_waitlist: 1 thread
+   TEST(0 == trywakeup_waitlist(&wlist, (thread_f)1, (void*)2)) ;
    TEST(0 == wlist.last) ;
-   TEST(0 == thread->wlistnext) ;
-   TEST((thread_task_f)1 == thread->task_f) ;
-   TEST((void*)2         == thread->task_arg) ;
-   TEST(true == isempty_waitlist(&wlist)) ;
-   TEST(0 == nrwaiting_waitlist(&wlist)) ;
+   TEST(0 == wlist.nr_waiting) ;
+   TEST(0 == threads[0]->wlistnext) ;
+   TEST(1 == (uintptr_t)threads[0]->main_task) ;
+   TEST(2 == (uintptr_t)threads[0]->main_arg) ;
    TEST(0 == wait_rtsignal(1, 1)) ;
-   TEST(0 == delete_thread(&thread)) ;
+   TEST(0 == delete_thread(&threads[0])) ;
    TEST(0 == free_waitlist(&wlist)) ;
 
-   // TEST waiting group of threads (FIFO)
+   // TEST wait_waitlist: waiting group of threads (FIFO)
    TEST(0 == init_waitlist(&wlist)) ;
-   TEST(true == isempty_waitlist(&wlist)) ;
-   TEST(0 == nrwaiting_waitlist(&wlist)) ;
-   TEST(0 == newgeneric_thread(&thread, thread_waitonwlist, &wlist, 20)) ;
-   TEST(0 == wait_rtsignal(0, 20)) ;
-   TEST(0 != wlist.last) ;
-   TEST(0 == isempty_waitlist(&wlist)) ;
-   next = thread ;
-   for (int i = 0; i < 20; ++i) {
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      TEST(0 == newgeneric_thread(&threads[i], thread_waitonwlist, &wlist)) ;
+   }
+   TEST(0 == wait_rtsignal(0, lengthof(threads))) ;
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
       for (int i2 = 0; i2 < 1000000; ++i2) {
-         TEST(EAGAIN == trywait_rtsignal(1)) ;
-         if (next->wlistnext) break ;
+         if (threads[i]->wlistnext) break ;
          pthread_yield() ;
       }
-      TEST(next->wlistnext) ;
-      next = next->groupnext ;
-      TEST(next) ;
+      TEST(threads[i]->wlistnext) ;
    }
-   TEST(20 == nrwaiting_waitlist(&wlist)) ;
-      // list has 20 members !
+   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(20 == wlist.nr_waiting) ;
+      // list has lengthof(threads) members !
    next = last_wlist(genericcast_slist(&wlist)) ;
-   for (int i = 0; i < 20; ++i) {
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
       next = next_wlist(next) ;
       TEST(next) ;
-      next->task_arg = 0 ;
-      if (i != 19) {
+      next->main_arg = 0 ;
+      if (i != lengthof(threads)-1) {
          TEST(next != last_wlist(genericcast_slist(&wlist))) ;
       } else {
          TEST(next == last_wlist(genericcast_slist(&wlist))) ;
       }
    }
-      // wakeup all members
+
+   // TEST trywakeup_waitlist: wakeup group of threads
    next = first_wlist(genericcast_slist(&wlist)) ;
-   for (int i = 0; i < 20; ++i) {
+   for (unsigned i = lengthof(threads); i > 0; --i) {
       thread_t * first = next ;
       next = next_wlist(next) ;
       TEST(first) ;
       // test that first is woken up
-      TEST(0 == first->task_arg) ;
+      TEST(0 == first->main_arg) ;
       TEST(EAGAIN == trywait_rtsignal(1)) ;
-      TEST(20-i == (int)nrwaiting_waitlist(&wlist)) ;
-      TEST(0 == trywakeup_waitlist(&wlist, (thread_task_f)0, (void*)(i+1) )) ;
-      TEST(19-i == (int)nrwaiting_waitlist(&wlist)) ;
+      TEST(i == wlist.nr_waiting) ;
+      TEST(0 == trywakeup_waitlist(&wlist, (thread_f)0, (void*)i)) ;
+      TEST(i == wlist.nr_waiting+1u) ;
       TEST(0 == first->wlistnext) ;
-      TEST(i+1 == (int)first->task_arg) ;
+      TEST(i == (unsigned)first->main_arg) ;
       TEST(0 == wait_rtsignal(1, 1)) ;
-      if (i != 19) {
+      if (i != 1) {
          TEST(next != first) ;
       } else {
          TEST(next == first) ;
       }
-      // test that others are not changed
+      // test that others have not changed
       thread_t * next2 = next ;
-      for (int i2 = i; i2 < 19; ++i2) {
-         TEST(0 == next2->task_arg) ;
+      for (unsigned i2 = i; i2 < lengthof(threads)-1u; ++i2) {
+         TEST(0 == next2->main_arg) ;
          TEST(0 != next2->wlistnext) ;
          next2 = next_wlist(next2) ;
-         if (i2 != 18) {
+         if (i2 != lengthof(threads)-2) {
             TEST(next2 != next) ;
          } else {
             TEST(next2 == next) ;
          }
       }
+      for (unsigned i2 = 0; i2 < lengthof(threads); ++i2) {
+         if (threads[i2] == first) {
+            TEST(0 == delete_thread(&threads[i2])) ;
+         }
+      }
+   }
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      TEST(threads[i] == 0) ;
    }
    TEST(0 == wlist.last) ;
-   TEST(true == isempty_waitlist(&wlist)) ;
-   TEST(0 == nrwaiting_waitlist(&wlist)) ;
-   TEST(0 == join_thread(thread)) ;
-   TEST(0 == delete_thread(&thread)) ;
    TEST(0 == free_waitlist(&wlist)) ;
-   TEST(0 == wlist.last) ;
 
-   // TEST free wakes up all waiters
+   // TEST free_waitlist: free wakes up all waiters
    TEST(0 == init_waitlist(&wlist)) ;
-   TEST(true == isempty_waitlist(&wlist)) ;
-   TEST(0 == newgeneric_thread(&thread, thread_waitonwlist, &wlist, 20)) ;
-   TEST(0 == wait_rtsignal(0, 20)) ;
-   TEST(0 != wlist.last) ;
-   TEST(0 == isempty_waitlist(&wlist)) ;
-   next = thread ;
-   for (int i = 0; i < 20; ++i) {
-      next->task_arg = (void*)13 ;
-      next = next->groupnext ;
-      TEST(next) ;
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      TEST(0 == newgeneric_thread(&threads[i], thread_waitonwlist, &wlist)) ;
    }
-   next = thread ;
+   TEST(0 == wait_rtsignal(0, 20)) ;
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      threads[i]->main_arg = (void*)13 ;
+   }
    for (int i = 0; i < 20; ++i) {
       for (int i2 = 0; i2 < 1000000; ++i2) {
-         TEST(EAGAIN == trywait_rtsignal(1)) ;
-         if (next->wlistnext) break ;
+         if (threads[i]->wlistnext) break ;
          pthread_yield() ;
       }
-      TEST(next->wlistnext) ;
-      next = next->groupnext ;
-      TEST(next) ;
+      TEST(threads[i]->wlistnext) ;
    }
-   TEST(20 == nrwaiting_waitlist(&wlist)) ;
+   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(20 == wlist.nr_waiting) ;
    TEST(0 == free_waitlist(&wlist)) ;
    TEST(0 == wlist.nr_waiting) ;
    TEST(0 == wlist.last) ;
    TEST(0 == wait_rtsignal(1, 20)) ;
-   next = thread ;
-   for (int i = 0; i < 20; ++i) {
-      // free_waitlist sets command to 0
-      TEST(0 == next->task_arg)
-      TEST(0 == next->wlistnext) ;
-      next = next->groupnext ;
-      TEST(next) ;
+   // free_waitlist sets command to 0
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      TEST(0 == threads[i]->main_arg)
+      TEST(0 == threads[i]->wlistnext) ;
+      TEST(0 == delete_thread(&threads[i])) ;
    }
-   TEST(next == thread) ;
-   TEST(0 == delete_thread(&thread)) ;
 
-   // TEST EAGAIN
+   // TEST trywakeup_waitlist: EAGAIN
    TEST(0 == init_waitlist(&wlist)) ;
-   TEST(true == isempty_waitlist(&wlist)) ;
    TEST(EAGAIN == trywakeup_waitlist(&wlist, 0, 0)) ;
    TEST(0 == free_waitlist(&wlist)) ;
 
    return 0 ;
 ONABORT:
    (void) free_waitlist(&wlist) ;
-   (void) delete_thread(&thread) ;
-   while( 0 == trywait_rtsignal(0) ) ;
-   while( 0 == trywait_rtsignal(1) ) ;
+   for (unsigned i = 0; i < lengthof(threads); ++i) {
+      (void) delete_thread(&threads[i]) ;
+   }
+   while (0 == trywait_rtsignal(0)) {
+   }
+   while (0 == trywait_rtsignal(1)) {
+   }
+   return EINVAL ;
+}
+
+static int test_query(void)
+{
+   waitlist_t  wlist = waitlist_INIT_FREEABLE ;
+
+   // prepare
+   TEST(0 == init_waitlist(&wlist)) ;
+
+   // TEST isempty_waitlist
+   TEST(1 == isempty_waitlist(&wlist)) ;
+   wlist.nr_waiting = 1 ;
+   TEST(0 == isempty_waitlist(&wlist)) ;
+   wlist.nr_waiting = SIZE_MAX ;
+   TEST(0 == isempty_waitlist(&wlist)) ;
+   wlist.nr_waiting = 0 ;
+   TEST(1 == isempty_waitlist(&wlist)) ;
+
+   // TEST nrwaiting_waitlist
+   TEST(0 == nrwaiting_waitlist(&wlist)) ;
+   for (size_t i = 1; i; i <<= 1) {
+      wlist.nr_waiting = i ;
+      TEST(i == nrwaiting_waitlist(&wlist)) ;
+   }
+
+   // unprepare
+   TEST(0 == free_waitlist(&wlist)) ;
+
+   return 0 ;
+ONABORT:
+   free_waitlist(&wlist) ;
    return EINVAL ;
 }
 
@@ -374,6 +368,7 @@ int unittest_platform_sync_waitlist()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())       goto ONABORT ;
+   if (test_query())          goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

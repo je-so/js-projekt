@@ -51,6 +51,11 @@ static int test_initfree(void)
    TEST(999 == errtimer.timercount) ;
    TEST(-20 == errtimer.errcode) ;
 
+   // TEST free_testerrortimer
+   free_testerrortimer(&errtimer) ;
+   TEST(0 == errtimer.timercount) ;
+   TEST(0 == errtimer.errcode) ;
+
    return 0 ;
 ONABORT:
    return EINVAL ;

@@ -715,13 +715,13 @@ ONABORT:
    return EINVAL ;
 }
 
-static int thread_receivesignal(unsigned rtsignr)
+static int thread_receivesignal(uintptr_t rtsignr)
 {
    int err ;
    assert(rtsignr) ;
-   assert(self_thread()->task_arg) ;
+   assert(self_thread()->main_arg) ;
    err = wait_rtsignal((rtsignal_t)rtsignr, 1) ;
-   self_thread()->task_arg = 0 ;
+   self_thread()->main_arg = 0 ;
    assert(0 == send_rtsignal(0)) ;
    return err ;
 }
@@ -730,6 +730,7 @@ static int test_rtsignal(void)
 {
    sigset_t          oldmask ;
    sigset_t          signalmask ;
+   thread_t *        group[3]  = { 0, 0, 0 } ;
    thread_t          * thread  = 0 ;
    bool              isoldmask = false ;
    struct timespec   ts        = { 0, 0 } ;
@@ -782,34 +783,31 @@ static int test_rtsignal(void)
    }
 
    // TEST send_rtsignal (order unspecified)
-   for (unsigned i = 1; i <= maxnr_rtsignal(); ++i) {
-      TEST(0 == newgeneric_thread(&thread, thread_receivesignal, i, 3)) ;
-      thread_t * group[3] = { thread, thread->groupnext, thread->groupnext->groupnext } ;
-      for (int t = 0; t < 3; ++t) {
-         TEST((void*)i == group[t]->task_arg) ;
+   for (uintptr_t i = 1; i <= maxnr_rtsignal(); ++i) {
+      for (unsigned t = 0; t < lengthof(group); ++t) {
+         TEST(0 == newgeneric_thread(&group[t], thread_receivesignal, i)) ;
       }
-      for (int t = 0; t < 3; ++t) {
+      for (unsigned t = 0; t < lengthof(group); ++t) {
+         TEST(i == (uintptr_t)group[t]->main_arg) ;
+      }
+      for (unsigned t = 1; t <= lengthof(group); ++t) {
          // wake up one thread
          TEST(0 == send_rtsignal((rtsignal_t)i)) ;
          // wait until woken up
          TEST(0 == wait_rtsignal(0, 1)) ;
-         for (int t2 = 0; t2 < 3; ++t2) {
-            if (group[t2] && 0 == group[t2]->task_arg) {
-               group[t2] = 0 ;
+         for (unsigned t2 = 0; t2 < lengthof(group); ++t2) {
+            if (group[t2] && 0 == group[t2]->main_arg) {
+               TEST(0 == delete_thread(&group[t2])) ;
                break ;
             }
          }
          // only one woken up
-         int count = t ;
-         for (int t2 = 0; t2 < 3; ++t2) {
-            if (group[t2]) {
-               ++ count ;
-               TEST((void*)i == group[t2]->task_arg) ;
-            }
+         unsigned count = t ;
+         for (unsigned t2 = 0; t2 < lengthof(group); ++t2) {
+            count += (group[t2] != 0) ;
          }
-         TEST(2 == count) ;
+         TEST(count == lengthof(group)) ;
       }
-      TEST(0 == delete_thread(&thread)) ;
    }
 
    // TEST EINVAL
@@ -835,8 +833,14 @@ static int test_rtsignal(void)
    return 0 ;
 ONABORT:
    (void) delete_thread(&thread) ;
-   while( 0 < sigtimedwait(&signalmask, 0, &ts) ) ;
-   if (isoldmask) (void) sigprocmask(SIG_SETMASK, &oldmask, 0) ;
+   for (unsigned i = 0; i < lengthof(group);++i) {
+      (void) delete_thread(&group[i]) ;
+   }
+   while (0 < sigtimedwait(&signalmask, 0, &ts)) {
+   }
+   if (isoldmask) {
+      (void) sigprocmask(SIG_SETMASK, &oldmask, 0) ;
+   }
    return EINVAL ;
 }
 

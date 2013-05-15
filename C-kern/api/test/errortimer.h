@@ -58,7 +58,7 @@ struct test_errortimer_t {
 #define test_errortimer_INIT_FREEABLE    { 0, 0 }
 
 /* function: init_testerrortimer
- * Inits <test_errortimer_t> with timercount and errcode.
+ * Inits errtimer with timercount and errcode.
  *
  * Parameter:
  * errtimer    - Pointer to object of type <test_errortimer_t> which is initialized.
@@ -67,6 +67,10 @@ struct test_errortimer_t {
  * errcode     - The errorcode <process_testerrortimer> returns in timer has fired.
  * */
 void init_testerrortimer(/*out*/test_errortimer_t * errtimer, uint32_t timercount, int errcode) ;
+
+/* function: free_testerrortimer
+ * Sets errtimer to <test_errortimer_INIT_FREEABLE>. */
+void free_testerrortimer(test_errortimer_t * errtimer) ;
 
 // group: query
 
@@ -98,6 +102,11 @@ void SETONERROR_testerrortimer(test_errortimer_t * errtimer, /*err*/int * err) ;
 
 
 // section: inline implementation
+
+/* define: free_testerrortimer
+ * Implements <test_errortimer_t.free_testerrortimer>. */
+#define free_testerrortimer(errtimer)  \
+         ((void)(*(errtimer) = (test_errortimer_t) test_errortimer_INIT_FREEABLE))
 
 /* define: isenabled_testerrortimer
  * Implements <test_errortimer_t.isenabled_testerrortimer>. */

@@ -26,26 +26,20 @@
 #ifndef CKERN_PLATFORM_TASK_THREAD_HEADER
 #define CKERN_PLATFORM_TASK_THREAD_HEADER
 
-#include "C-kern/api/memory/memblock.h"
-
 // forward
 struct slist_node_t ;
 
 /* typedef: struct thread_t
  * Export <thread_t>. */
-typedef struct thread_t                thread_t ;
+typedef struct thread_t                   thread_t ;
 
-/* typedef: thread_task_f
+/* typedef: thread_f
  * Defines function type executed by <thread_t>. */
-typedef int                         (* thread_task_f) (void * task_arg) ;
-
-/* typedef: thread_stack_t
- * Make <thread_stack_t> an alias for <memblock_t>. */
-typedef memblock_t                     thread_stack_t ;
+typedef int                            (* thread_f) (void * main_arg) ;
 
 /* variable: gt_thread
  * Points to own <thread_t> object (current thread self). */
-extern __thread  thread_t              gt_thread ;
+extern __thread  thread_t                 gt_thread ;
 
 
 // section: Functions
@@ -70,46 +64,35 @@ int unittest_platform_task_thread(void) ;
  *
  * Use <lock_thread> and <unlock_thread> for that matter. */
 struct thread_t {
-   /* variable: lock
-    * Protects access to fields of <thread_t>.
-    * Use it before you read fields which are updated by another thread.
-    * TODO: remove variable lock, and types waitlist_t and threadpool_t
-    * Replace these ideas with asnycio (event) and task management
-    * Maybe some monitor for transactions and security&user context is
-    * required to support stateless management of server components.
-    * If this monitor supports more than one thread than this monitor
-    * has to be thread safe but not a thread for itself. */
-   sys_mutex_t       lock ;
    /* variable: wlistnext
     * Points to next thread which waits on the same condition in <waitlist_t>.
     * TODO: remove variable wlistnext (see <lock> for explanation) */
-   struct slist_node_t  * wlistnext ;
-   /* variable: task_arg
-    * Contains parameter to executed <task_f> function. */
-   void              * task_arg ;
-   /* variable: task_f
-    * Contains function executed after thread has been created. */
-   thread_task_f     task_f ;
-   /* variable: sys_thread
-    * Contains system specific ID of thread. It has type <sys_thread_t>. */
-   sys_thread_t      sys_thread ;
+   struct
+   slist_node_t *    wlistnext ;
+   /* variable: main_task
+    * Function executed after thread has been created. */
+   thread_f          main_task ;
+   /* variable: main_arg
+    * Parameter of executed <main_task> function. */
+   void *            main_arg ;
    /* variable: returncode
-    * Contains the value <task> returns.
-    * This value is only valid after <task> has returned.
-    * This value reflects the value of the first thread which did not return 0.
-    * This value is 0 if all threads returned 0. */
+    * Contains the return value of <main_task>.
+    * This value is only valid after <main_task> has returned. */
    int               returncode ;
+   /* variable: sys_thread
+    * Contains system specific ID of thread. */
+   sys_thread_t      sys_thread ;
    /* variable: stackframe
-    * Contains the mapped memory used as stack. */
-   thread_stack_t    stackframe ;
-   /* variable: nr_threads
-    * Contains the number of threads in this group.
-    * All threads share the same task function and the same argument at the beginning.
-    * Use <groupnext> to iterate over the whole group. */
-   uint32_t          nr_threads ;
-   /* variable: groupnext
-    * Points to next thread in group of throuds. */
-   thread_t          * groupnext ;
+    * Contains start address of the whole stack frame.
+    * The stack fram contains a signal stck and a separate thread stack.
+    * Both are surrounded by pages which have no access protection. */
+   uint8_t *         stackframe ;
+   /* variable: continuecontext
+    * Contains thread machine context before <main_task> is called.
+    * This context could be is used in any aborthandler.
+    * The aborthandler should call <abort_thread> which sets returncode to value ENOTRECOVERABLE
+    * and calls setcontext (see: man 2 setcontext) with <continuecontext> as argument. */
+   ucontext_t        continuecontext ;
 } ;
 
 // group: initonce
@@ -128,30 +111,18 @@ int freeonce_thread(void) ;
 
 /* function: new_thread
  * Creates and starts a new system thread.
+ * On success the parameter threadobj points to the new thread object.
  * The thread has to do some internal initialization after running the first time
  * and before thread_main is called.
  * If the internal preparation goes wrong <maincontext_t.abort_maincontext> is called.
  * It is unspecified if thread_main is called before new_thread returns.
  * On Linux new_thread returns before the newly created thread is scheduled. */
-int new_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * start_arg) ;
-
-/* function: newgroup_thread
- * Creates and starts nr_of_threads new system threads.
- * See also <new_thread>.
- * If not that many threads could be created as specified in nr_of_threads
- * already created threads silently exit themselves without any error being logged.
- * This preserves transactional all or nothing semantics. */
-int newgroup_thread(/*out*/thread_t ** threadobj, thread_task_f thread_main, void * start_arg, uint32_t nr_of_threads) ;
+int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_arg) ;
 
 /* define: newgeneric_thread
- * Same as <newgroup_thread> except that it accepts functions with generic argument type.
+ * Same as <new_thread> except that it accepts functions with generic argument type.
  * The function argument must be of size sizeof(void*). */
-#define newgeneric_thread(threadobj, thread_main, start_arg, nr_of_threads)                           \
-   ( __extension__ ({                                                                                 \
-         int (*_thread_main) (typeof(start_arg)) = (thread_main) ;                                    \
-         static_assert(sizeof(start_arg) == sizeof(void*), "same as void*") ;                         \
-         newgroup_thread(threadobj, (thread_task_f)_thread_main, (void*)start_arg, nr_of_threads) ;   \
-   }))
+int newgeneric_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_arg) ;
 
 /* function: delete_thread
  * Calls <join_thread> (if not already called) and deletes resources.
@@ -170,36 +141,34 @@ thread_t * self_thread(void) ;
  * 0 is returned in case the thread has not already been joined. */
 int returncode_thread(const thread_t * threadobj) ;
 
-/* function: task_thread
- * Reads <thread_t.task_f> field of <thread_t> object. */
-thread_task_f task_thread(const thread_t * threadobj) ;
+/* function: maintask_thread
+ * Returns <thread_t.main_task>.
+ * This value is set to thread_main given as parameter in <new_thread>. */
+thread_f maintask_thread(const thread_t * threadobj) ;
 
-/* function: taskarg_thread
- * Reads <thread_t.task_arg> field of <thread_t> object. */
-void * taskarg_thread(const thread_t * threadobj) ;
+/* function: mainarg_thread
+ * Reads <thread_t.main_arg> field of <thread_t> object.
+ * This value is set to main_arg given as parameter in <new_thread>. */
+void * mainarg_thread(const thread_t * threadobj) ;
 
-// group: change lock
+/* function: ismain_thread
+ * Returns true if the calling thread is the main thread. */
+bool ismain_thread(void) ;
 
-/* function: lock_thread
- * Locks thread object before fields can be accessed.
- *
- * Attention:
- * Never forget to lock / unlock a thread object before you access
- * the fields which can be changed by other threads. This ensures
- * that you read a consistent state and that on some architectures
- * proper read and write barriers are executed. */
-void lock_thread(thread_t * threadobj) ;
-
-/* function: unlock_thread
- * Unlocks thread object after access to fields is finished. */
-void unlock_thread(thread_t * threadobj) ;
-
-// group: change
+// group: synchronize
 
 /* function: join_thread
  * The function suspends execution of the caller until threadobj terminates.
- * If the thread has already been joined this function returns immediately. */
+ * If the thread has already been joined this function returns immediately.
+ * The error EDEADLK is returned if you want to join <self_thread>.
+ * The error ESRCH is returned if the thread has exited already (if threadobj is not updated properly). */
 int join_thread(thread_t * threadobj) ;
+
+// group: change-run-state
+
+/* function: settask_thread
+ * Changes values returned by <maintask_thread> and <mainarg_thread>. */
+void settask_thread(thread_t * thread, thread_f main, void * main_arg) ;
 
 /* function: suspend_thread
  * The calling thread will sleep until <resume_thread> is called.
@@ -209,8 +178,8 @@ int join_thread(thread_t * threadobj) ;
  * Internally sigwaitinfo wirh signal SIGINT is used to sleep.
  *
  * Attention !:
- * It is possible that signals are received from outside this process therefore make sure
- * with checking of <task> or <wlistnext> or with some other mechanism that returning
+ * It is possible that signals are received which are generated from outside this process
+ * therefore make sure with some other mechanism that returning
  * from <suspend_thread> emanates from a corresponding call to <resume_thread>. */
 void suspend_thread(void) ;
 
@@ -230,50 +199,117 @@ void resume_thread(thread_t * threadobj) ;
  * Makes calling thread to sleep msec milli-seconds. */
 void sleepms_thread(uint32_t msec) ;
 
+/* function: yield_thread
+ * Schedules another thread on this Processor. */
+void yield_thread(void) ;
+
+/* function: exit_thread
+ * Ends the calling thread and sets retcode as its return code.
+ * If the caller is the main thread the value EPROTO is returned and
+ * nothing is done. The main thread must calle <free_maincontext> and exit(retcode).
+ * No cleanup handlers are executed. */
+int exit_thread(int retcode) ;
+
+// group: abort
+
+/* function: yield_thread
+ * Aborts the calling thread.
+ * This functions sets returncode (see <returncode_thread>) to value ENOTRECOVERABLE
+ * and continues execution at the place which was marked with <setcontinue_thread> previously.
+ * No cleanup handlers are executed. */
+void abort_thread(void) ;
+
+/* function: setcontinue_thread
+ * Stores the current execution context and returns 0 on success.
+ * Parameter is_abort is set to false if <setcontinue_thread> is called
+ * to store the execution context where execution should continue after
+ * <abort_thread> has been called.
+ * Parameter is_abort is set to true if <setcontinue_thread> returns as
+ * a reaction to a previous call to <abort_thread>.
+ * For any started thread <setcontinue_thread> is called before thread_main
+ * (parameter in <new_thread>) is called. The main thread which calls <init_maincontext>
+ * must call <setcontinue_thread> explicitly. */
+int setcontinue_thread(bool * is_abort) ;
+
+
 
 // section: inline implementation
 
-/* define: task_thread
- * Implements <thread_t.task_thread>. */
-#define task_thread(threadobj)         ((threadobj)->task_f)
+/* define: ismain_thread
+ * Implements <thread_t.ismain_thread>. */
+#define ismain_thread()                   (gt_thread.stackframe == 0)
 
-/* define: taskarg_thread
- * Implements <thread_t.taskarg_thread>. */
-#define taskarg_thread(threadobj)      ((threadobj)->task_arg)
-
-/* define: lock_thread
- * Implements <thread_t.lock_thread>.
- * Do not forget to include C-kern/api/platform/sync/mutex.h before using <lock_thread>. */
-#define lock_thread(threadobj)         slock_mutex(&(threadobj)->lock)
-
-/* define: new_thread
- * Implements <thread_t.new_thread>.
- * > newgroup_thread(threadobj, thread_main, start_arg, 1) */
-#define new_thread(threadobj, thread_main, start_arg) \
-      newgeneric_thread(threadobj, thread_main, start_arg, 1)
+/* define: newgeneric_thread
+ * Implements <thread_t.newgeneric_thread>. */
+#define newgeneric_thread(threadobj, thread_main, main_arg)       \
+         ( __extension__ ({                                       \
+            int (*_thread_main) (typeof(main_arg)) ;              \
+            _thread_main = (thread_main) ;                        \
+            static_assert( sizeof(main_arg) == sizeof(void*),     \
+                           "same as void*") ;                     \
+            new_thread( threadobj, (thread_f)_thread_main,        \
+                        (void*)main_arg) ;                        \
+         }))
 
 /* define: returncode_thread
  * Implements <thread_t.returncode_thread>.
  * > (threadobj)->returncode */
-#define returncode_thread(threadobj)   ((threadobj)->returncode)
+#define returncode_thread(threadobj)      ((threadobj)->returncode)
 
 /* define: self_thread
  * Implements <thread_t.self_thread>. */
-#define self_thread()                  (&gt_thread)
+#define self_thread()                     (&gt_thread)
 
-/* define: unlock_thread
- * Implements <thread_t.unlock_thread>.
- * Do not forget to include "C-kern/api/platform/sync/mutex.h" before using <unlock_thread>. */
-#define unlock_thread(threadobj)       sunlock_mutex(&(threadobj)->lock)
+/* define: maintask_thread
+ * Implements <thread_t.maintask_thread>. */
+#define maintask_thread(threadobj)        ((threadobj)->main_task)
+
+/* define: mainarg_thread
+ * Implements <thread_t.mainarg_thread>. */
+#define mainarg_thread(threadobj)         ((threadobj)->main_arg)
+
+/* define: setcontinue_thread
+ * Implements <thread_t.setcontinue_thread>. */
+#define setcontinue_thread(is_abort)         \
+         ( __extension__ ({                  \
+            gt_thread.returncode = 0 ;       \
+            int _err = getcontext(           \
+               &gt_thread.continuecontext) ; \
+            if (_err) {                      \
+               _err = errno ;                \
+               TRACESYSERR_LOG(              \
+                     "getcontext", _err) ;   \
+            }                                \
+            if (gt_thread.returncode) {      \
+               *(is_abort) = true ;          \
+            } else {                         \
+               *(is_abort) = false ;         \
+            }                                \
+            _err ;                           \
+         }))
+
+/* define: settask_thread
+ * Implements <thread_t.settask_thread>. */
+#define settask_thread(thread, _main, _main_arg)   \
+         ( __extension__ ({                        \
+            typeof(thread) _thread = (thread) ;    \
+            _thread->main_task = (_main) ;         \
+            (void) (                               \
+            _thread->main_arg  = (_main_arg)) ;    \
+         }))
+
+/* define: yield_thread
+ * Implements <thread_t.yield_thread>. */
+#define yield_thread()                    (pthread_yield())
 
 #define THREAD 1
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: initonce_thread
  * Implement <thread_t.initonce_thread> as noop if !((KONFIG_SUBSYS)&THREAD) */
-#define initonce_thread()              (0)
+#define initonce_thread()                 (0)
 /* define: freeonce_thread
  * Implement <thread_t.freeonce_thread> as noop if !((KONFIG_SUBSYS)&THREAD) */
-#define freeonce_thread()              (0)
+#define freeonce_thread()                 (0)
 #endif
 #undef THREAD
 

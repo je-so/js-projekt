@@ -66,7 +66,7 @@ rtsignal_t maxnr_rtsignal(void) ;
 // group: change
 
 /* function: send_rtsignal
- * Sends realtime signal to any thread.
+ * Sends realtime signal to any thread in the process.
  * If more than one thread waits (<wait_rtsignal>) for the signal
  * the order of delivery is unspecified.
  *

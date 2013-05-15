@@ -41,7 +41,6 @@
       <File Name="../../C-kern/api/platform/locale.h"/>
       <File Name="../../C-kern/api/platform/malloc.h"/>
       <VirtualDirectory Name="task">
-        <File Name="../../C-kern/api/platform/task/threadpool.h"/>
         <File Name="../../C-kern/api/platform/task/thread.h"/>
         <File Name="../../C-kern/api/platform/task/process.h"/>
       </VirtualDirectory>
@@ -339,7 +338,6 @@
         <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
-        <File Name="../../C-kern/platform/Linux/task/threadpool.c"/>
         <File Name="../../C-kern/platform/Linux/task/process.c"/>
         <File Name="../../C-kern/platform/Linux/task/thread.c"/>
       </VirtualDirectory>
