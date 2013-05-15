@@ -121,6 +121,7 @@ int delete_signalconfig(signalconfig_t ** sigconfig) ;
 int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t * sigconfig2) ;
 
 
+
 // section: inline implementation
 
 // group: KONFIG_SUBSYS
@@ -129,13 +130,15 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
 #if (!((KONFIG_SUBSYS)&THREAD))
 /* define: initonce_signalconfig
  * Implement init as a no op if !((KONFIG_SUBSYS)&THREAD) */
-#define initonce_signalconfig()        (0)
+#define initonce_signalconfig()           (0)
 /* define: freeonce_signalconfig
  * Implement free as a no op if !((KONFIG_SUBSYS)&THREAD) */
-#define freeonce_signalconfig()        (0)
+#define freeonce_signalconfig()           (0)
 #endif
 #undef THREAD
 
-#define maxnr_rtsignal()               ((rtsignal_t)15)
+/* define: maxnr_rtsignal
+ * Implements <rtsignal_t.maxnr_rtsignal>. */
+#define maxnr_rtsignal()                  ((rtsignal_t)15)
 
 #endif

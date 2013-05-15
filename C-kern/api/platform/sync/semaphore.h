@@ -28,7 +28,7 @@
 
 /* typedef: semaphore_t typedef
  * Export <semaphore_t>. */
-typedef struct semaphore_t       semaphore_t ;
+typedef struct semaphore_t                semaphore_t ;
 
 
 // section: Functions
@@ -38,7 +38,7 @@ typedef struct semaphore_t       semaphore_t ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_sync_semaphore
  * Tests system semaphore functionality. */
-extern int unittest_platform_sync_semaphore(void) ;
+int unittest_platform_sync_semaphore(void) ;
 #endif
 
 
@@ -54,19 +54,19 @@ struct semaphore_t {
 
 /* define: semaphore_INIT_FREEABLE
  * Static initializer. */
-#define semaphore_INIT_FREEABLE  { sys_semaphore_INIT_FREEABLE }
+#define semaphore_INIT_FREEABLE           { sys_semaphore_INIT_FREEABLE }
 
 /* function: init_semaphore
  * Initializes a semaphore. The internal signal counter is set to init_signal_count.
  * The next init_signal_count calls to <wait_semaphore> therefore succeed without
  * waiting. */
-extern int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count) ;
+int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count) ;
 
 /* function: free_semaphore
  * Wakes up any waiting threads and frees the associated resources.
  * Make sure that no other thread which is not already waiting on the semaphore
  * accesses it after <free_semaphore> has been called. */
-extern int free_semaphore(semaphore_t * semaobj) ;
+int free_semaphore(semaphore_t * semaobj) ;
 
 // group: change
 
@@ -79,13 +79,13 @@ extern int free_semaphore(semaphore_t * semaobj) ;
  * that many calls to <wait_semaphore> has been done so that adding signal_count
  * to the counter does no more produce an overflow.
  * On Linux a 64bit counter is used internally. */
-extern int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count) ;
+int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count) ;
 
 /* function: wait_semaphore
  * Waits until a signal is received.
  * This functions waits until the internal counter becomes greater zero.
  * The signal counter is decremented by one and the function returns with success (0). */
-extern int wait_semaphore(semaphore_t * semaobj) ;
+int wait_semaphore(semaphore_t * semaobj) ;
 
 
 #endif

@@ -116,7 +116,7 @@ struct thread_t {
 
 /* function: initonce_thread
  * Calculates some internal offsets, called from <init_maincontext>.
- * It must be called after the <valuecache_t> is fully operational
+ * It must be called after <valuecache_t> is fully operational
  * The reason is that function <pagesize_vm> needs <valuecache_t>. */
 int initonce_thread(void) ;
 

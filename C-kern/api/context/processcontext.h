@@ -61,12 +61,19 @@ struct processcontext_t {
    /* variable: sysuser
     * Context for <sysuser_t> module. */
    sysusercontext_t           sysuser ;
-   /* variable: errcontext
+   /* variable: error
     * Data for <errorcontext_t> module. */
    struct {
       uint16_t *  stroffset ;
       uint8_t  *  strdata ;
    }                          error ;
+   /* variable: staticmem
+    * Describes static memory block and how much is in use. */
+   struct {
+      uint8_t *   addr ;
+      uint16_t    size ;
+      uint16_t    used ;
+   }                          staticmem ;
    /* variable: initcount
     * Counts the number of successfull initialized services/subsystems.
     * This number is can be higher than 1 cause there are subsystems which
@@ -78,7 +85,7 @@ struct processcontext_t {
 
 /* define: processcontext_INIT_FREEABLE
  * Static initializer. */
-#define processcontext_INIT_FREEABLE      { 0, sysusercontext_INIT_FREEABLE, { 0, 0 }, 0 }
+#define processcontext_INIT_FREEABLE      { 0, sysusercontext_INIT_FREEABLE, { 0, 0 }, { 0, 0, 0 }, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context
@@ -91,5 +98,31 @@ int init_processcontext(/*out*/processcontext_t * pcontext) ;
  * This function is called from <free_maincontext> and you should never need to call it. */
 int free_processcontext(processcontext_t * pcontext) ;
 
+// group: static-memory
+
+/* function: allocstatic_processcontext
+ * Allocates size bytes of memory and returns the start address.
+ * Used by modules during execution of their initonce_ functions.
+ * This memory lives as long <processcontext_t> lives.
+ * Must be called in reverse order of calls to <allocstatic_processcontext>. */
+void * allocstatic_processcontext(processcontext_t * pcontext, uint8_t size) ;
+
+/* function: freestatic_processcontext
+ * Frees size bytes of last allocated memory.
+ * Must be called in reverse order of calls to <allocstatic_processcontext>. */
+void freestatic_processcontext(processcontext_t * pcontext, uint8_t size) ;
+
+/* function: sizestatic_processcontext
+ * Returns size in bytes of allocated static memory. */
+uint16_t sizestatic_processcontext(const processcontext_t * pcontext) ;
+
+
+
+// section: inline implementation
+
+/* define: sizestatic_processcontext
+ * Implements <processcontext_t.sizestatic_processcontext>. */
+#define sizestatic_processcontext(pcontext)  \
+         ((uint16_t)(pcontext)->staticmem.used)
 
 #endif

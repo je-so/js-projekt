@@ -525,6 +525,10 @@ int free_pagecacheimpl(pagecache_impl_t * pgcache)
 
    err2 = free_blockarray(&pgcache->blockarray, &pagecache) ;
    if (err2) err = err2 ;
+   if (  0 != sizestatic_pagecacheimpl(pgcache)
+         || 0 != sizeallocated_pagecacheimpl(pgcache)) {
+      err = ENOTEMPTY ;
+   }
 #ifdef KONFIG_UNITTEST
    err2 = process_testerrortimer(&s_pagecacheblock_errtimer) ;
    if (err2) err = err2 ;
@@ -970,8 +974,6 @@ static int test_initfree(void)
       TEST(0 != pgcache.freeblocklist[i].last) ;
    }
    pgcache.staticpagelist.last = (void*)1 ;
-   pgcache.sizeallocated    = 1 ;
-   pgcache.sizestatic       = 1 ;
    TEST(0 == free_pagecacheimpl(&pgcache)) ;
    TEST(1 == isfree_pagecacheimpl(&pgcache)) ;
    TEST(0 == free_pagecacheimpl(&pgcache)) ;
@@ -985,6 +987,18 @@ static int test_initfree(void)
    init_testerrortimer(&s_pagecacheblock_errtimer, 2, ENOMEM) ;
    memset(&pgcache, 255, sizeof(pgcache)) ;
    TEST(ENOMEM == init_pagecacheimpl(&pgcache)) ;
+   TEST(1 == isfree_pagecacheimpl(&pgcache)) ;
+
+   // TEST free_pagecacheimpl: ENOTEMPTY
+   TEST(0 == init_pagecacheimpl(&pgcache)) ;
+   TEST(0 == allocblock_pagecacheimpl(&pgcache, pagesize_16384, &block)) ;
+   pgcache.sizestatic = 1 ;
+   TEST(ENOTEMPTY == free_pagecacheimpl(&pgcache)) ;
+   TEST(1 == isfree_pagecacheimpl(&pgcache)) ;
+   TEST(0 == init_pagecacheimpl(&pgcache)) ;
+   TEST(0 == allocblock_pagecacheimpl(&pgcache, pagesize_16384, &block)) ;
+   pgcache.sizeallocated = 1 ;
+   TEST(ENOTEMPTY == free_pagecacheimpl(&pgcache)) ;
    TEST(1 == isfree_pagecacheimpl(&pgcache)) ;
 
    // TEST free_pagecacheimpl: ENOMEM
@@ -1285,14 +1299,14 @@ static int test_alloc(void)
       TEST(0 == free_pagecacheblock(block)) ;
       pgcache.blocklist.last             = 0 ;
       pgcache.freeblocklist[pgsize].last = 0 ;
-      pgcache.sizeallocated              = 0 ;
+      pgcache.sizeallocated              = oldsize ;
    }
 
    // TEST allocpage_pagecacheimpl
    TEST(EINVAL == allocpage_pagecacheimpl(&pgcache, (pagesize_e)-1, &page)) ;
    TEST(EINVAL == allocpage_pagecacheimpl(&pgcache, pagesize_NROFPAGESIZE, &page)) ;
-   TEST(0 == pgcache.blocklist.last) ;
-   TEST(0 == pgcache.sizeallocated) ;
+   TEST(pgcache.blocklist.last == 0) ;
+   TEST(pgcache.sizeallocated  == oldsize) ;
 
    // TEST releasepage_pagecacheimpl
    for (pagesize_e pgsize = 0; pgsize < pagesize_NROFPAGESIZE; ++pgsize) {
@@ -1309,17 +1323,17 @@ static int test_alloc(void)
          TEST(block == first_freeblocklist(genericcast_dlist(&pgcache.freeblocklist[pgsize]))) ;
       }
       TEST(block != firstblock) ;
-      TEST(pgcache.sizeallocated == block->pageblock.size + block->pagesize)
+      TEST(pgcache.sizeallocated == oldsize + block->pageblock.size + block->pagesize)
       TEST(0 == releasepage_pagecacheimpl(&pgcache, &page)) ;
       TEST(0 == page.addr) ;
       TEST(0 == page.size) ;
-      TEST(pgcache.sizeallocated == block->pageblock.size)
+      TEST(pgcache.sizeallocated == oldsize + block->pageblock.size)
       TEST(pgcache.sizestatic    == 0) ;
       TEST(block->usedpagecount  == 0) ;
       for (size_t offset = 0; offset < block->pageblock.size; offset += block->pagesize) {
          page.addr = firstblock->pageblock.addr + offset ;
          page.size = firstblock->pagesize ;
-         TEST(pgcache.sizeallocated     == block->pageblock.size-offset)
+         TEST(pgcache.sizeallocated     == oldsize + block->pageblock.size-offset)
          TEST(pgcache.sizestatic        == 0) ;
          TEST(firstblock->usedpagecount == (block->pageblock.size-offset)/block->pagesize) ;
          TEST(block == last_blocklist(genericcast_dlist(&pgcache.blocklist))) ;
@@ -1338,7 +1352,7 @@ static int test_alloc(void)
          // isfree_memblock(&page) ==> second call does nothing !
          TEST(0 == releasepage_pagecacheimpl(&pgcache, &page)) ;
       }
-      TEST(pgcache.sizeallocated == 0) ;
+      TEST(pgcache.sizeallocated == oldsize) ;
       // firstblock deleted !
       TEST(block == last_blocklist(genericcast_dlist(&pgcache.blocklist))) ;
       TEST(block == last_freeblocklist(genericcast_dlist(&pgcache.freeblocklist[pgsize]))) ;
@@ -1376,6 +1390,7 @@ static int test_alloc(void)
    TEST(0 != block) ;
    TEST(0 == freeblock_pagecacheimpl(&pgcache, block)) ;
    TEST(EINVAL == releasepage_pagecacheimpl(&pgcache, &page)) ;
+   pgcache.sizeallocated -= 4096 ;
    TEST(0 == free_pagecacheimpl(&pgcache)) ;
 
    // TEST allocstatic_pagecacheimpl: 1 byte -> 128 bytes

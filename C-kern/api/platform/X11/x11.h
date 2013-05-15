@@ -76,7 +76,7 @@ int dispatchevent_X11(struct x11display_t * x11disp) ;
 
 // section: inline implementation
 
-// group: KONFIG_USERINTERFACE
+// group: X11_t
 
 #define X11 1
 #if !((KONFIG_USERINTERFACE)&X11)

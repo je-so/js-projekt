@@ -89,9 +89,9 @@ struct maincontext_t {
 #endif
 #undef THREAD
    maincontext_e     type ;
-   const char        * progname ;
+   const char *      progname ;
    int               argc ;
-   const char        ** argv ;
+   const char **     argv ;
 } ;
 
 // group: lifetime
@@ -193,6 +193,7 @@ struct syncrun_t *         syncrun_maincontext(void) ;
  * Returns <valuecache_t> holding precomputed values.
  * Every value is cached as a single copy for the whole process. */
 struct valuecache_t *      valuecache_maincontext(void) ;
+
 
 
 // section: inline implementation

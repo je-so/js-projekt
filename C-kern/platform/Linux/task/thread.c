@@ -355,7 +355,7 @@ int initonce_thread()
    int err ;
    pthread_attr_t    thread_attr ;
    sys_thread_t      sys_thread        = sys_thread_INIT_FREEABLE ;
-   thread_stack_t  stackframe        = memblock_INIT_FREEABLE ;
+   thread_stack_t    stackframe        = memblock_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
 
    // init main thread_t
@@ -1759,6 +1759,21 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_initonce(void)
+{
+   // TEST initonce_thread
+   TEST(0 == initonce_thread()) ;
+   TEST(0 != s_offset_thread) ;
+
+   // TEST freeonce_thread: (does nothing)
+   TEST(0 == freeonce_thread()) ;
+   TEST(0 != s_offset_thread) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 int unittest_platform_task_thread()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -1778,6 +1793,7 @@ int unittest_platform_task_thread()
    if (test_thread_suspendresume())    goto ONABORT ;
    if (test_thread_lockunlock())       goto ONABORT ;
    if (test_thread_sleep())            goto ONABORT ;
+   if (test_initonce())                goto ONABORT ;
 
    // TEST mapping has not changed
    TEST(0 == same_resourceusage(&usage)) ;

@@ -29,7 +29,7 @@
 
 /* typedef: struct valuecache_t
  * Exports <valuecache_t>. */
-typedef struct valuecache_t            valuecache_t ;
+typedef struct valuecache_t               valuecache_t ;
 
 
 // section: Functions
@@ -70,7 +70,6 @@ int freeonce_valuecache(valuecache_t ** valuecache) ;
 
 /* define: valuecache_INIT_FREEABLE
  * Static initializer. */
-#define valuecache_INIT_FREEABLE \
-         { 0, 0 }
+#define valuecache_INIT_FREEABLE          { 0, 0 }
 
 #endif

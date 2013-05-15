@@ -127,10 +127,10 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
       goto ONABORT ;
    }
 
-   VALIDATE_INPARAM_TEST(     maincontext_STATIC  <  context_type
+   VALIDATE_INPARAM_TEST(  maincontext_STATIC  <  context_type
                            && maincontext_DEFAULT >= context_type, ONABORT, ) ;
 
-   VALIDATE_INPARAM_TEST(      argc >= 0
+   VALIDATE_INPARAM_TEST(  argc >= 0
                            && (argc == 0 || argv != 0), ONABORT, ) ;
 
    ONERROR_testerrortimer(&s_error_init, ONABORT) ;
@@ -166,7 +166,7 @@ ONABORT:
 void abort_maincontext(int err)
 {
    // TODO: add abort handler registration ...
-   // TODO: add unit test for checking that resources are freed
+   //       add unit test for checking that resources are freed
    TRACEERR_LOG(ABORT_FATAL,err) ;
    FLUSHBUFFER_LOG() ;
    abort() ;
@@ -479,17 +479,6 @@ int unittest_context_maincontext()
       if (test_initerror())  goto ONABORT ;
 
       TEST(0 == init_resourceusage(&usage)) ;
-      {  // TODO: remove in case malloc is no more in use (init_resourceusage)
-         resourceusage_t   usage2[10] ;
-         for (unsigned i = 0; i < lengthof(usage2); ++i) {
-            TEST(0 == init_resourceusage(&usage2[i])) ;
-         }
-         for (unsigned i = 0; i < lengthof(usage2); ++i) {
-            TEST(0 == free_resourceusage(&usage2[i])) ;
-         }
-         TEST(0 == free_resourceusage(&usage)) ;
-         TEST(0 == init_resourceusage(&usage)) ;
-      }
 
       if (test_querymacros())    goto ONABORT ;
       if (test_initmain())       goto ONABORT ;
@@ -504,6 +493,7 @@ int unittest_context_maincontext()
       }
    }
 
+   // TODO: remove line
    // make printed system error messages language (English) neutral
    resetmsg_locale() ;
 

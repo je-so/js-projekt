@@ -135,7 +135,9 @@ int init_pagecacheimpl(/*out*/pagecache_impl_t * pgcache) ;
  * All allocated memory pages are returned to the operating system.
  * Make sure that every component has called <releasepage_pagecacheimpl>
  * before this function is called. Or that allocated pages are never
- * used after calling this function. */
+ * used after calling this function.
+ * In not all memory has been freed the error ENOTEMPTY is returned but
+ * memory is freed nevertheless. */
 int free_pagecacheimpl(pagecache_impl_t * pgcache) ;
 
 // group: query

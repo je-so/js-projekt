@@ -54,10 +54,9 @@ int initonce_valuecache(/*out*/valuecache_t ** valuecache)
 
    VALIDATE_INPARAM_TEST(0 == *valuecache, ONABORT,) ;
 
-   new_valuecache = malloc(sizeof(valuecache_t)) ;
+   new_valuecache = allocstatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
    if (!new_valuecache) {
       err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(sizeof(valuecache_t)) ;
       goto ONABORT ;
    }
 
@@ -68,7 +67,9 @@ int initonce_valuecache(/*out*/valuecache_t ** valuecache)
 
    return 0 ;
 ONABORT:
-   free(new_valuecache) ;
+   if (new_valuecache) {
+      freestatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
+   }
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -76,14 +77,14 @@ ONABORT:
 int freeonce_valuecache(valuecache_t ** valuecache)
 {
    int err ;
-   valuecache_t * freeobj = *valuecache ;
+   valuecache_t * delobj = *valuecache ;
 
-   if (freeobj) {
+   if (delobj) {
       *valuecache = 0 ;
 
-      err = free_valuecache(freeobj) ;
+      err = free_valuecache(delobj) ;
 
-      free(freeobj) ;
+      freestatic_processcontext(&process_maincontext(), sizeof(valuecache_t)) ;
 
       if (err) goto ONABORT ;
    }
@@ -132,46 +133,56 @@ static int test_initonce(void)
    valuecache_t   valuecache = valuecache_INIT_FREEABLE ;
    valuecache_t * cache      = 0 ;
    valuecache_t * cache2     = 0 ;
-   valuecache_t * old        = valuecache_maincontext() ;
+   size_t         oldsize ;
 
-   // TEST initonce, double freeonce
+   // prepare
+   oldsize = sizestatic_processcontext(&process_maincontext()) ;
+
+   // TEST initonce_valuecache
    TEST(0 == initonce_valuecache(&cache)) ;
    TEST(0 != cache) ;
    TEST(cache->pagesize_vm == sys_pagesize_vm()) ;
    TEST(cache->pagesize_vm == 1u << cache->log2pagesize_vm) ;
-   TEST(0 == freeonce_valuecache(&cache)) ;
-   TEST(0 == cache) ;
-   TEST(0 == freeonce_valuecache(&cache)) ;
-   TEST(0 == cache) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + sizeof(valuecache_t)) ;
 
-   // TEST EINVAL init
+   // TEST freeonce_valuecache
+   TEST(0 == freeonce_valuecache(&cache)) ;
+   TEST(0 == cache) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+   TEST(0 == freeonce_valuecache(&cache)) ;
+   TEST(0 == cache) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
+
+   // TEST initonce_valuecache: EINVAL
    cache = &valuecache ;
    TEST(EINVAL == initonce_valuecache(&cache)) ;
-   TEST(&valuecache == cache) ;
+   TEST(cache  == &valuecache) ;
    cache = 0 ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
 
-   // TEST always new object
+   // TEST initonce_valuecache, freeonce_valuecache: 2 objects
    TEST(0 == initonce_valuecache(&cache)) ;
-   TEST(0 == initonce_valuecache(&cache2)) ;
    TEST(0 != cache) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + sizeof(valuecache_t)) ;
+   TEST(0 == initonce_valuecache(&cache2)) ;
    TEST(0 != cache2) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + 2*sizeof(valuecache_t)) ;
    TEST(cache != cache2) ;
-   TEST(0 == freeonce_valuecache(&cache)) ;
-   TEST(0 == freeonce_valuecache(&cache2)) ;
-   TEST(0 == cache) ;
-   TEST(0 == cache2) ;
 
-   // TEST valuecache_maincontext()
-   TEST(old) ;
-   process_maincontext().valuecache = 0 ;
-   TEST(valuecache_maincontext() == 0) ;
-   process_maincontext().valuecache = old ;
-   TEST(valuecache_maincontext() == old) ;
+   // TEST initonce_valuecache: ENOMEM
+   valuecache_t * dummy = 0 ;
+   TEST(ENOMEM == initonce_valuecache(&dummy)) ;
+
+   // TEST freeonce_valuecache: 2 objects
+   TEST(0 == freeonce_valuecache(&cache)) ;
+   TEST(0 == cache) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize + sizeof(valuecache_t)) ;
+   TEST(0 == freeonce_valuecache(&cache2)) ;
+   TEST(0 == cache2) ;
+   TEST(sizestatic_processcontext(&process_maincontext()) == oldsize) ;
 
    return 0 ;
 ONABORT:
-   process_maincontext().valuecache = old ;
-   old->pagesize_vm = sys_pagesize_vm() ;
    if (  cache
          && cache != &valuecache) {
       freeonce_valuecache(&cache) ;
@@ -181,42 +192,34 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_functions(void)
+static int test_queryvalues(void)
 {
-   valuecache_t * vc = valuecache_maincontext() ;
-   valuecache_t savevc = *vc ;
+   valuecache_t * vc    = valuecache_maincontext() ;
+   valuecache_t   oldvc = *vc ;
 
    // TEST log2pagesize_vm
-   {
-      uint8_t old = vc->log2pagesize_vm ;
-      TEST(old != 0) ;
-      TEST(log2pagesize_vm() == old) ;
-      TEST(pagesize_vm() == 1u << log2pagesize_vm()) ;
-      vc->log2pagesize_vm = 0 ;
-      TEST(log2pagesize_vm() == 0) ;
-      vc->log2pagesize_vm = 7 ;
-      TEST(log2pagesize_vm() == 7) ;
-      vc->log2pagesize_vm = old ;
-      TEST(pagesize_vm() == 1u << log2pagesize_vm()) ;
-   }
+   TEST(log2pagesize_vm() == oldvc.log2pagesize_vm) ;
+   TEST(pagesize_vm()     == 1u << log2pagesize_vm()) ;
+   vc->log2pagesize_vm = 0 ;
+   TEST(log2pagesize_vm() == 0) ;
+   vc->log2pagesize_vm = 7 ;
+   TEST(log2pagesize_vm() == 7) ;
+   vc->log2pagesize_vm = oldvc.log2pagesize_vm ;
+   TEST(pagesize_vm()     == 1u << log2pagesize_vm()) ;
 
    // TEST pagesize_vm
-   {
-      uint32_t old = vc->pagesize_vm ;
-      TEST(old != 0) ;
-      TEST(pagesize_vm() == old) ;
-      TEST(pagesize_vm() == sys_pagesize_vm()) ;
-      vc->pagesize_vm = 0 ;
-      TEST(pagesize_vm() == 0) ;
-      vc->pagesize_vm = 512 ;
-      TEST(pagesize_vm() == 512) ;
-      vc->pagesize_vm = old ;
-      TEST(pagesize_vm() == sys_pagesize_vm()) ;
-   }
+   TEST(pagesize_vm() == oldvc.pagesize_vm) ;
+   TEST(pagesize_vm() == sys_pagesize_vm()) ;
+   vc->pagesize_vm = 0 ;
+   TEST(pagesize_vm() == 0) ;
+   vc->pagesize_vm = 512 ;
+   TEST(pagesize_vm() == 512) ;
+   vc->pagesize_vm = oldvc.pagesize_vm ;
+   TEST(pagesize_vm() == sys_pagesize_vm()) ;
 
    return 0 ;
 ONABORT:
-   *vc = savevc ;
+   *vc = oldvc ;
    return EINVAL ;
 }
 
@@ -229,7 +232,7 @@ int unittest_cache_valuecache()
 
    if (test_initfree())    goto ONABORT ;
    if (test_initonce())    goto ONABORT ;
-   if (test_functions())   goto ONABORT ;
+   if (test_queryvalues()) goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
