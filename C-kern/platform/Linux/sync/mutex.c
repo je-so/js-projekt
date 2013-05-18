@@ -25,11 +25,13 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/sync/mutex.h"
-#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/platform/task/thread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/memory/vm.h"
+#include "C-kern/api/platform/task/process.h"
 #endif
 
 
@@ -47,6 +49,9 @@ int init_mutex(/*out*/mutex_t * mutex)
    isAttr = true ;
 
    err = pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_ERRORCHECK ) ;
+   if (err) goto ONABORT ;
+
+   err = pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED) ;
    if (err) goto ONABORT ;
 
    err = pthread_mutex_init(&sys_mutex, &attr) ;
@@ -114,7 +119,7 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_mutex_moveable(void)
+static int test_moveable(void)
 {
    mutex_t mutex1 = mutex_INIT_DEFAULT ;
    mutex_t mutex2 = mutex_INIT_DEFAULT ;
@@ -209,7 +214,7 @@ static void sigalarm(int sig)
    setcontext(&s_thread_usercontext) ;
 }
 
-static int test_mutex_staticinit(void)
+static int test_staticinit(void)
 {
    mutex_t     mutex     = mutex_INIT_DEFAULT ;
    thread_t    * thread1 = 0 ;
@@ -322,7 +327,7 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_mutex_errorcheck(void)
+static int test_errorcheck(void)
 {
    mutex_t     mutex     = mutex_INIT_DEFAULT ;
    thread_t    * thread1 = 0 ;
@@ -419,7 +424,7 @@ static void sigabort(int sig)
    setcontext(&s_thread_usercontext) ;
 }
 
-static int test_mutex_slock(void)
+static int test_slock(void)
 {
    mutex_t           mutex     = mutex_INIT_DEFAULT ;
    thread_t          * thread1 = 0 ;
@@ -578,7 +583,7 @@ static int thread_lockmutex(mutex_t * mutex)
    return err ;
 }
 
-static int test_mutex_interrupt(void)
+static int test_interrupt(void)
 {
    mutex_t           mutex     = mutex_INIT_DEFAULT ;
    thread_t          * thread1 = 0 ;
@@ -635,6 +640,71 @@ ONABORT:
    return EINVAL ;
 }
 
+typedef struct processparam_t    processparam_t ;
+
+struct processparam_t {
+   mutex_t              mutex   ;
+   volatile uint64_t    counter ;
+} ;
+
+static int process_counter(processparam_t * param)
+{
+   int err ;
+
+   for (unsigned i = 0; i < 1000000; ++i) {
+      err = lock_mutex(&param->mutex) ;
+      if (err) return err ;
+      ++ param->counter ;
+      err = unlock_mutex(&param->mutex) ;
+      if (err) return err ;
+   }
+
+   return 0 ;
+}
+
+
+static int test_interprocess(void)
+{
+   processparam_t *  param      = 0 ;
+   process_t         process[2] = { process_INIT_FREEABLE, process_INIT_FREEABLE } ;
+   vmpage_t          shrdmem    = vmpage_INIT_FREEABLE ;
+
+   // prepare
+   TEST(0 == init2_vmpage(&shrdmem, 1, accessmode_RDWR_SHARED)) ;
+   param = (processparam_t*) shrdmem.addr ;
+   TEST(0 == init_mutex(&param->mutex)) ;
+   param->counter = 0 ;
+
+   // TEST interprocess mutex
+   for (unsigned i = 0; i < lengthof(process); ++i) {
+      TEST(0 == initgeneric_process(&process[i], &process_counter, param, 0)) ;
+   }
+   for (unsigned i = 0; i < lengthof(process); ++i) {
+      process_result_t result ;
+      TEST(0 == wait_process(&process[i], &result)) ;
+      TEST(0 == result.returncode) ;
+      TEST(process_state_TERMINATED == result.state) ;
+   }
+   TEST(param->counter = lengthof(process)*1000000) ;
+
+   // unprepare
+   for (unsigned i = 0; i < lengthof(process); ++i) {
+      TEST(0 == free_process(&process[i])) ;
+   }
+   TEST(0 == free_mutex(&param->mutex)) ;
+   param = 0 ;
+   TEST(0 == free_vmpage(&shrdmem)) ;
+
+   return 0 ;
+ONABORT:
+   for (unsigned i = 0; i < lengthof(process); ++i) {
+      free_process(&process[i]) ;
+   }
+   if (param) free_mutex(&param->mutex) ;
+   free_vmpage(&shrdmem) ;
+   return EINVAL ;
+}
+
 int unittest_platform_sync_mutex()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -643,11 +713,12 @@ int unittest_platform_sync_mutex()
       // store current mapping
       TEST(0 == init_resourceusage(&usage)) ;
 
-      if (test_mutex_moveable())    goto ONABORT ;
-      if (test_mutex_staticinit())  goto ONABORT ;
-      if (test_mutex_errorcheck())  goto ONABORT ;
-      if (test_mutex_slock())       goto ONABORT ;
-      if (test_mutex_interrupt())   goto ONABORT ;
+      if (test_moveable())          goto ONABORT ;
+      if (test_staticinit())        goto ONABORT ;
+      if (test_errorcheck())        goto ONABORT ;
+      if (test_slock())             goto ONABORT ;
+      if (test_interrupt())         goto ONABORT ;
+      if (test_interprocess())      goto ONABORT ;
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;

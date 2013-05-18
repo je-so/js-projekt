@@ -1,24 +1,24 @@
-C-kern/platform/Linux/sync/mutex.c:82: free_mutex(): error: 16: Function aborted
-C-kern/platform/Linux/sync/mutex.c:95: lock_mutex(): error: 22: Function aborted
-C-kern/platform/Linux/sync/mutex.c:108: unlock_mutex(): error: 22: Function aborted
-C-kern/platform/Linux/sync/mutex.c:95: lock_mutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/mutex.c:82: free_mutex(): error: 16: Function aborted
-C-kern/platform/Linux/sync/mutex.c:108: unlock_mutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/mutex.c:108: unlock_mutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/mutex.c:95: lock_mutex(): error: 22: Function aborted
-C-kern/platform/Linux/sync/mutex.c:108: unlock_mutex(): error: 22: Function aborted
-C-kern/platform/Linux/sync/mutex.c:95: lock_mutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/mutex.c:472: test_mutex_slock(): error: 22: Assertion '!lock_mutex(&mutex)' failed.
+C-kern/platform/Linux/sync/mutex.c:87: free_mutex(): error: 16: Function aborted
+C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 22: Function aborted
+C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 22: Function aborted
+C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
+C-kern/platform/Linux/sync/mutex.c:87: free_mutex(): error: 16: Function aborted
+C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 1: Function aborted
+C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 1: Function aborted
+C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 22: Function aborted
+C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 22: Function aborted
+C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
+C-kern/platform/Linux/sync/mutex.c:477: test_slock(): error: 22: Assertion '!lock_mutex(&mutex)' failed.
 C-kern/context/maincontext.c:199: abort_maincontext(): error: 22: Abort process with fatal error
-C-kern/platform/Linux/sync/mutex.c:108: unlock_mutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/mutex.c:488: test_mutex_slock(): error: 22: Assertion '!unlock_mutex(&mutex)' failed.
+C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 1: Function aborted
+C-kern/platform/Linux/sync/mutex.c:493: test_slock(): error: 22: Assertion '!unlock_mutex(&mutex)' failed.
 C-kern/context/maincontext.c:199: abort_maincontext(): error: 22: Abort process with fatal error
-C-kern/platform/Linux/sync/mutex.c:108: unlock_mutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/mutex.c:507: test_mutex_slock(): error: 22: Assertion '!unlock_mutex(&mutex)' failed.
+C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 1: Function aborted
+C-kern/platform/Linux/sync/mutex.c:512: test_slock(): error: 22: Assertion '!unlock_mutex(&mutex)' failed.
 C-kern/context/maincontext.c:199: abort_maincontext(): error: 22: Abort process with fatal error
-C-kern/platform/Linux/sync/mutex.c:95: lock_mutex(): error: 22: Function aborted
-C-kern/platform/Linux/sync/mutex.c:518: test_mutex_slock(): error: 22: Assertion '!lock_mutex(&mutex)' failed.
+C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 22: Function aborted
+C-kern/platform/Linux/sync/mutex.c:523: test_slock(): error: 22: Assertion '!lock_mutex(&mutex)' failed.
 C-kern/context/maincontext.c:199: abort_maincontext(): error: 22: Abort process with fatal error
-C-kern/platform/Linux/sync/mutex.c:108: unlock_mutex(): error: 22: Function aborted
-C-kern/platform/Linux/sync/mutex.c:526: test_mutex_slock(): error: 22: Assertion '!unlock_mutex(&mutex)' failed.
+C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 22: Function aborted
+C-kern/platform/Linux/sync/mutex.c:531: test_slock(): error: 22: Assertion '!unlock_mutex(&mutex)' failed.
 C-kern/context/maincontext.c:199: abort_maincontext(): error: 22: Abort process with fatal error

@@ -28,7 +28,7 @@
 
 /* typedef: struct mutex_t
  * Exports <mutex_t> into global namespace. */
-typedef sys_mutex_t                 mutex_t ;
+typedef sys_mutex_t                       mutex_t ;
 
 
 // section: Functions
@@ -42,13 +42,13 @@ int unittest_platform_sync_mutex(void) ;
 #endif
 
 
-// struct: mutex_t
-// Implements a mutual exclusion lock.
-// This thread safe object is used to protect a critical section
-// of code against simultaneous execution by several threads.
-// Use <lock_mutex> before entering a critical section of code
-// and use <unlock_mutex> just before you leave it.
-// This mutex can only be used in the same process.
+/* struct: mutex_t
+ * Implements a mutual exclusion lock.
+ * This thread safe object is used to protect a critical section
+ * of code against simultaneous execution by several threads.
+ * Use <lock_mutex> before entering a critical section of code
+ * and use <unlock_mutex> just before you leave it.
+ * This mutex can also be used between different processes. */
 
 // group: lifetime
 
@@ -60,8 +60,9 @@ int unittest_platform_sync_mutex(void) ;
  * 2. Locking it more than once without first unlocking it => DEADLOCK (waits indefinitely).
  * 3. Unlocking a mutex locked by a different thread works. It is the same as if the thread which holds the lock calls unlock.
  * 4. Unlocking an already unlocked mutex is unspecified. So never do it.
- * TODO: !!! Implement user threads and user threads compatible mutex which has *SPECIFIED* behaviour !!! */
-#define mutex_INIT_DEFAULT          sys_mutex_INIT_DEFAULT
+ * 5. Works only within a single process as inter thread mutex.
+ */
+#define mutex_INIT_DEFAULT                sys_mutex_INIT_DEFAULT
 
 /* function: init_mutex
  * Initializer for a mutex with error checking.

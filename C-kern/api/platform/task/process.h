@@ -28,11 +28,11 @@
 
 /* typedef: struct process_t
  * Make <process_t> an alias of <sys_process_t>. */
-typedef sys_process_t                  process_t ;
+typedef sys_process_t                     process_t ;
 
 /* typedef: process_task_f
  * Defines function type executed by <process_t>. */
-typedef int                         (* process_task_f) (void * task_arg) ;
+typedef int                            (* process_task_f) (void * task_arg) ;
 
 /* typedef: struct process_result_t
  * Export <process_result_t> into global namespace. */
@@ -147,7 +147,7 @@ void redirecterr_processstdfd(process_stdfd_t * stdfd, sys_file_t error_file) ;
 
 /* define: process_INIT_FREEABLE
  * Static initializer. */
-#define process_INIT_FREEABLE             { sys_process_INIT_FREEABLE }
+#define process_INIT_FREEABLE             sys_process_INIT_FREEABLE
 
 /* function: init_process
  * Creates child process which executes a function.
