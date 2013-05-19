@@ -1,6 +1,7 @@
 /* title: Waitlist
 
-   Allows threads to wait for a certain condition.
+   Allows threads of a single process to wait for a certain condition.
+
    If the condition is true a call to <trywakeup_waitlist>
    wakes up the first thread in the  waiting list.
    Before it is woken up its task arguments are set to the
@@ -30,12 +31,12 @@
 #ifndef CKERN_PLATFORM_SYNC_WAITLIST_HEADER
 #define CKERN_PLATFORM_SYNC_WAITLIST_HEADER
 
+// forward
+struct slist_node_t ;
+
 /* typedef: waitlist_t typedef
  * Exports <waitlist_t>. */
 typedef struct waitlist_t                 waitlist_t ;
-
-// forward
-struct slist_node_t ;
 
 
 // section: Functions
@@ -50,7 +51,7 @@ int unittest_platform_sync_waitlist(void) ;
 
 
 /* struct: waitlist_t
- * Implements facility where threads can wait for a certain condition.
+ * Allows threads of a single process to wait for a certain condition.
  * Similar to <semaphore_t>. The difference is that a thread's
  * »command« parameter is set to a specific value. Therefore a woken up
  * thread knows what to do next.
@@ -63,16 +64,17 @@ struct waitlist_t {
    /* variable: nr_waiting
     * The number of threads waiting. */
    size_t                  nr_waiting ;
-   /* variable: lock
-    * Mutex to protect this object from concurrent access. */
-   sys_mutex_t             lock ;
+   /* variable: lockflag
+    * Lock flag used to protect access to data members.
+    * Set and cleared with atomic operations. */
+   uint8_t                 lockflag ;
 } ;
 
 // group: lifetime
 
 /* define: waitlist_INIT_FREEABLE
  * Static initializer. After initialization it is safe to call <free_waitlist>. */
-#define waitlist_INIT_FREEABLE            { 0, 0, mutex_INIT_DEFAULT }
+#define waitlist_INIT_FREEABLE            { 0, 0, 0 }
 
 /* function: init_waitlist
  * Inits a waiting list. The waiting is protexted by a mutex. */
@@ -116,10 +118,9 @@ int wait_waitlist(waitlist_t * wlist) ;
 /* function: trywakeup_waitlist
  * Tries to wake up the first waiting thread.
  * If the list is empty EAGAIN is returned and no error is logged.
- * If the list is not empty the argument <thread_t.task> of the first waiting thread is set
- * to *task_main* and *main_arg*. Thie first thread is removed from the list.
- * It is then resumed. See also <resume_thread>. */
-int trywakeup_waitlist(waitlist_t * wlist, int (*task_main)(void * main_arg), void * main_arg) ;
+ * If the list is not empty the first waiting thread gets its main_task and main_arg
+ * set. Thie first thread is removed from the list and then resumed. */
+int trywakeup_waitlist(waitlist_t * wlist, int (*main_task)(void * main_arg), void * main_arg) ;
 
 
 #endif

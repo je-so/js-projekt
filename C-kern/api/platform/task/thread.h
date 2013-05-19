@@ -2,6 +2,9 @@
 
    Encapsulates os specific threading model.
 
+   Includes:
+   If you call <lockflag_thread> or <unlockflag_thread> you need to include <AtomicOps> first.
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -64,11 +67,16 @@ int unittest_platform_task_thread(void) ;
  *
  * Use <lock_thread> and <unlock_thread> for that matter. */
 struct thread_t {
-   /* variable: wlistnext
-    * Points to next thread which waits on the same condition in <waitlist_t>.
-    * TODO: remove variable wlistnext (see <lock> for explanation) */
+   /* variable: nextwait
+    * Points to next thread which waits on the same <thrmutex_t> or <waitlist_t>.
+    * This ensures that waiting does not need to allocate list nodes and therefore never
+    * generate error ENOMEM. */
    struct
-   slist_node_t *    wlistnext ;
+   slist_node_t *    nextwait ;
+   /* variable: lockflag ;
+    * Lock flag used to protect access to data members.
+    * Set and cleared with atomic operations. */
+   uint8_t           lockflag ;
    /* variable: main_task
     * Function executed after thread has been created. */
    thread_f          main_task ;
@@ -155,6 +163,23 @@ void * mainarg_thread(const thread_t * threadobj) ;
  * Returns true if the calling thread is the main thread. */
 bool ismain_thread(void) ;
 
+// group: update
+
+/* function: lockflag_thread
+ * Wait until thread->lockflag (<lockflag>) is cleared and set it atomically.
+ * Includes an acuire memory barrier (see <AtomicOps>).  */
+void lockflag_thread(thread_t * thread) ;
+
+/* function: unlockflag_thread
+ * Clear thread->lockflag (<lockflag>). The function assumes that the flag
+ * was previously set by a call to <lockflag_thread>.
+ * Include a release memory barrier (see <AtomicOps>). */
+void unlockflag_thread(thread_t * thread) ;
+
+/* function: settask_thread
+ * Changes values returned by <maintask_thread> and <mainarg_thread>. */
+void settask_thread(thread_t * thread, thread_f main, void * main_arg) ;
+
 // group: synchronize
 
 /* function: join_thread
@@ -165,10 +190,6 @@ bool ismain_thread(void) ;
 int join_thread(thread_t * threadobj) ;
 
 // group: change-run-state
-
-/* function: settask_thread
- * Changes values returned by <maintask_thread> and <mainarg_thread>. */
-void settask_thread(thread_t * thread, thread_f main, void * main_arg) ;
 
 /* function: suspend_thread
  * The calling thread will sleep until <resume_thread> is called.
@@ -248,6 +269,16 @@ int setcontinue_thread(bool * is_abort) ;
  * Implements <thread_t.ismain_thread>. */
 #define ismain_thread()                   (gt_thread.stackframe == 0)
 
+/* define: lockflag_thread
+ * Implements <thread_t.lockflag_thread>. */
+#define lockflag_thread(thread)                                   \
+         do {                                                     \
+            thread_t * const _thread = (thread) ;                 \
+            while (0 != atomicset_int(&_thread->lockflag)) {      \
+               yield_thread() ;                                   \
+            }                                                     \
+         } while (0)                                              \
+
 /* define: newgeneric_thread
  * Implements <thread_t.newgeneric_thread>. */
 #define newgeneric_thread(threadobj, thread_main, main_arg)       \
@@ -260,6 +291,14 @@ int setcontinue_thread(bool * is_abort) ;
                         (void*)main_arg) ;                        \
          }))
 
+/* define: maintask_thread
+ * Implements <thread_t.maintask_thread>. */
+#define maintask_thread(threadobj)        ((threadobj)->main_task)
+
+/* define: mainarg_thread
+ * Implements <thread_t.mainarg_thread>. */
+#define mainarg_thread(threadobj)         ((threadobj)->main_arg)
+
 /* define: returncode_thread
  * Implements <thread_t.returncode_thread>.
  * > (threadobj)->returncode */
@@ -268,14 +307,6 @@ int setcontinue_thread(bool * is_abort) ;
 /* define: self_thread
  * Implements <thread_t.self_thread>. */
 #define self_thread()                     (&gt_thread)
-
-/* define: maintask_thread
- * Implements <thread_t.maintask_thread>. */
-#define maintask_thread(threadobj)        ((threadobj)->main_task)
-
-/* define: mainarg_thread
- * Implements <thread_t.mainarg_thread>. */
-#define mainarg_thread(threadobj)         ((threadobj)->main_arg)
 
 /* define: setcontinue_thread
  * Implements <thread_t.setcontinue_thread>. */
@@ -306,6 +337,10 @@ int setcontinue_thread(bool * is_abort) ;
             (void) (                               \
             _thread->main_arg  = (_main_arg)) ;    \
          }))
+
+/* define: unlockflag_thread
+ * Implements <thread_t.unlockflag_thread>. */
+#define unlockflag_thread(thread)         (atomicclear_int(&(thread)->lockflag))
 
 /* define: yield_thread
  * Implements <thread_t.yield_thread>. */

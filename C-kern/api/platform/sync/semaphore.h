@@ -1,6 +1,9 @@
 /* title: Semaphore
+
    Offers interface for accessing semaphores.
-   Semaphores are used to signal events between different <thread_t>.
+   Semaphores are used to signal events between different <thread_t> or <process_t>.
+   If a process executes another program the semaphore is closed.
+   To prevent this an inherit function would be need and a way to transfer the id and init from id function.
 
    about: Copyright
    This program is free software.
@@ -68,7 +71,7 @@ int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count) ;
  * accesses it after <free_semaphore> has been called. */
 int free_semaphore(semaphore_t * semaobj) ;
 
-// group: change
+// group: synchronize
 
 /* function: signal_semaphore
  * Wakes up signal_count waiters. Or the next signal_count calls to <wait_semaphore>

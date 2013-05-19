@@ -119,28 +119,6 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_moveable(void)
-{
-   mutex_t mutex1 = mutex_INIT_DEFAULT ;
-   mutex_t mutex2 = mutex_INIT_DEFAULT ;
-
-   // TEST static init => same content (trivially true)
-   TEST(0 == memcmp(&mutex1, &mutex2, sizeof(mutex_t))) ;
-
-   // TEST init => same content
-   TEST(0 == init_mutex(&mutex1)) ;
-   TEST(0 == init_mutex(&mutex2)) ;
-   TEST(0 == memcmp(&mutex1, &mutex2, sizeof(mutex_t))) ;
-   TEST(0 == free_mutex(&mutex1)) ;
-   TEST(0 == free_mutex(&mutex2)) ;
-
-   return 0 ;
-ONABORT:
-   free_mutex(&mutex1) ;
-   free_mutex(&mutex2) ;
-   return EINVAL ;
-}
-
 static ucontext_t    s_thread_usercontext ;
 static volatile int  s_shared_count = 0 ;
 static volatile int  s_shared_wrong = 0 ;
@@ -713,7 +691,6 @@ int unittest_platform_sync_mutex()
       // store current mapping
       TEST(0 == init_resourceusage(&usage)) ;
 
-      if (test_moveable())          goto ONABORT ;
       if (test_staticinit())        goto ONABORT ;
       if (test_errorcheck())        goto ONABORT ;
       if (test_slock())             goto ONABORT ;

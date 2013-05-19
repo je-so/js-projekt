@@ -51,8 +51,6 @@ struct intargs_t {
 
 static int thread_readwrite(intargs_t * intargs)
 {
-   uint64_t old = 0 ;
-
    for (uint32_t i = 1; i; i <<= 1) {
       for (;;) {
          uint32_t val = atomicread_int(&intargs->u32) ;
@@ -60,8 +58,7 @@ static int thread_readwrite(intargs_t * intargs)
          assert((i >> 1) == val) ;
          yield_thread() ;
       }
-      assert(old == atomicwrite_int(&intargs->u64, ((uint64_t)i << 32))) ;
-      old = ((uint64_t)i << 32) ;
+      atomicwrite_int(&intargs->u64, ((uint64_t)i << 32)) ;
    }
 
    return 0 ;
@@ -96,14 +93,17 @@ static int test_readwrite(void)
    TEST(0 == atomicread_int(&intargs.u32)) ;
    TEST(0 == atomicread_int(&intargs.u64)) ;
    TEST(0 == atomicread_int(&intargs.uptr)) ;
-   for (uint32_t i = 1, old = 0; i; old = i, i <<= 1) {
-      TEST(old == atomicwrite_int(&intargs.u32, i)) ;
+   for (uint32_t i = 1; i; i <<= 1) {
+      atomicwrite_int(&intargs.u32, i) ;
+      TEST(i == intargs.u32) ;
    }
-   for (uint64_t i = 1, old = 0; i; old = i, i <<= 1) {
-      TEST(old == atomicwrite_int(&intargs.u64, i)) ;
+   for (uint64_t i = 1; i; i <<= 1) {
+      atomicwrite_int(&intargs.u64, i) ;
+      TEST(i == intargs.u64) ;
    }
-   for (uintptr_t i = 1, old = 0; i; old = i, i <<= 1) {
-      TEST(old == atomicwrite_int(&intargs.uptr, i)) ;
+   for (uintptr_t i = 1; i; i <<= 1) {
+      atomicwrite_int(&intargs.uptr, i) ;
+      TEST(i == intargs.uptr) ;
    }
 
    // TEST atomicread_int, atomicwrite_int: multi thread
@@ -112,7 +112,7 @@ static int test_readwrite(void)
    intargs.uptr = 0 ;
    TEST(0 == newgeneric_thread(&threads[0], &thread_readwrite, &intargs)) ;
    for (uint32_t i = 1, old = 0; i; old = i, i <<= 1) {
-      TEST(old == atomicwrite_int(&intargs.u32, i)) ;
+      atomicwrite_int(&intargs.u32, i) ;
       for (;;) {
          uint64_t val = atomicread_int(&intargs.u64) ;
          if (val == (uint64_t)i << 32) break ;
@@ -137,6 +137,9 @@ enum intop_e {
    intop_sub32,
    intop_sub64,
    intop_subptr,
+   intop_swap32,
+   intop_swap64,
+   intop_swapptr,
    intop_NROFINTOPS
 } ;
 
@@ -144,7 +147,7 @@ typedef enum intop_e    intop_e ;
 
 static int thread_addsub(intargs_t * intargs)
 {
-   for (unsigned i = 0; i < 100000; ++i) {
+   for (unsigned i = 0, o = 0; i < 100000; ++i) {
       switch (intargs->intop) {
       case intop_add32:
          atomicadd_int(&intargs->u32, 1) ;
@@ -164,15 +167,27 @@ static int thread_addsub(intargs_t * intargs)
       case intop_subptr:
          atomicsub_int(&intargs->uptr, 1) ;
          break ;
+      case intop_swap32:
+         o = (unsigned) atomicswap_int(&intargs->u32, o, i+1) ;
+         i = o?o-1:0 ;
+         break ;
+      case intop_swap64:
+         o = (unsigned) atomicswap_int(&intargs->u64, o, i+1) ;
+         i = o?o-1:0 ;
+         break ;
+      case intop_swapptr:
+         o = (unsigned) atomicswap_int(&intargs->uptr, o, i+1) ;
+         i = o?o-1:0 ;
+         break ;
       }
    }
 
    return 0 ;
 }
 
-static int test_addsub(void)
+static int test_addsubswap(void)
 {
-   thread_t *  threads[8] = { 0 } ;
+   thread_t *  threads[4] = { 0 } ;
    intargs_t   intargs ;
 
    // TEST atomicadd_int: single thread
@@ -180,18 +195,18 @@ static int test_addsub(void)
    intargs.u64 = 0 ;
    intargs.uptr = 0 ;
    for (uint32_t i = 1; i; i <<= 1) {
-      uint32_t a = (i-1) ;
-      TEST(a == atomicadd_int(&intargs.u32, i)) ;
+      uint32_t o = (i-1) ;
+      TEST(o == atomicadd_int(&intargs.u32, i)) ;
    }
    TEST(UINT32_MAX == atomicread_int(&intargs.u32)) ;
    for (uint64_t i = 1; i; i <<= 1) {
-      uint64_t a = (i-1) ;
-      TEST(a == atomicadd_int(&intargs.u64, i)) ;
+      uint64_t o = (i-1) ;
+      TEST(o == atomicadd_int(&intargs.u64, i)) ;
    }
    TEST(UINT64_MAX == atomicread_int(&intargs.u64)) ;
    for (uintptr_t i = 1; i; i <<= 1) {
-      uintptr_t a = (i-1) ;
-      TEST(a == atomicadd_int(&intargs.uptr, i)) ;
+      uintptr_t o = (i-1) ;
+      TEST(o == atomicadd_int(&intargs.uptr, i)) ;
    }
    TEST(UINTPTR_MAX == atomicread_int(&intargs.uptr)) ;
 
@@ -200,27 +215,47 @@ static int test_addsub(void)
    intargs.u64 = UINT64_MAX ;
    intargs.uptr = UINTPTR_MAX ;
    for (uint32_t i = 1; i; i <<= 1) {
-      uint32_t a = UINT32_MAX - (i-1) ;
-      TEST(a == atomicsub_int(&intargs.u32, i)) ;
+      uint32_t o = UINT32_MAX - (i-1) ;
+      TEST(o == atomicsub_int(&intargs.u32, i)) ;
    }
    TEST(0 == atomicread_int(&intargs.u32)) ;
    for (uint64_t i = 1; i; i <<= 1) {
-      uint64_t a = UINT64_MAX - (i-1) ;
-      TEST(a == atomicsub_int(&intargs.u64, i)) ;
+      uint64_t o = UINT64_MAX - (i-1) ;
+      TEST(o == atomicsub_int(&intargs.u64, i)) ;
    }
    TEST(0 == atomicread_int(&intargs.u64)) ;
    for (uintptr_t i = 1; i; i <<= 1) {
-      uintptr_t a = UINTPTR_MAX - (i-1) ;
-      TEST(a == atomicsub_int(&intargs.uptr, i)) ;
+      uintptr_t o = UINTPTR_MAX - (i-1) ;
+      TEST(o == atomicsub_int(&intargs.uptr, i)) ;
    }
    TEST(0 == atomicread_int(&intargs.uptr)) ;
 
-   // TEST atomicadd_int, atomicsub_int: multi thread
+   // TEST atomicswap_int: single thread
+   intargs.u32 = 0 ;
+   intargs.u64 = 0 ;
+   intargs.uptr = 0 ;
+   for (uint32_t i = 1, o = 0; i; o = i, i <<= 1) {
+      TEST(o == atomicswap_int(&intargs.u32, o, i)) ;
+      TEST(i == atomicswap_int(&intargs.u32, i, i)) ;
+   }
+   TEST(((uint32_t)1<<31) == atomicread_int(&intargs.u32)) ;
+   for (uint64_t i = 1, o = 0; i; o = i, i <<= 1) {
+      TEST(o == atomicswap_int(&intargs.u64, o, i)) ;
+      TEST(i == atomicswap_int(&intargs.u64, i, i)) ;
+   }
+   TEST(((uint64_t)1<<63) == atomicread_int(&intargs.u64)) ;
+   for (uintptr_t i = 1, o = 0; i; o = i, i <<= 1) {
+      TEST(o == atomicswap_int(&intargs.uptr, o, i)) ;
+      TEST(i == atomicswap_int(&intargs.uptr, i, i)) ;
+   }
+   TEST(((uintptr_t)1<<(bitsof(uintptr_t)-1)) == atomicread_int(&intargs.uptr)) ;
+
+   // TEST atomicadd_int, atomicsub_int, atomicswap_int: multi thread
    intargs.u32 = 0 ;
    intargs.u64 = 0 ;
    intargs.uptr = 0 ;
    for (intop_e intop = 0; intop < intop_NROFINTOPS; ++intop) {
-      intargs.intop = intop ;
+      intargs.intop  = intop ;
       for (unsigned i = 0; i < lengthof(threads); i += 1) {
          TEST(0 == newgeneric_thread(&threads[i], &thread_addsub, &intargs)) ;
       }
@@ -246,6 +281,15 @@ static int test_addsub(void)
       case intop_subptr:
          TEST(0 == atomicread_int(&intargs.uptr)) ;
          break ;
+      case intop_swap32:
+         TEST(100000 == atomicread_int(&intargs.u32)) ;
+         break ;
+      case intop_swap64:
+         TEST(100000 == atomicread_int(&intargs.u64)) ;
+         break ;
+      case intop_swapptr:
+         TEST(100000 == atomicread_int(&intargs.uptr)) ;
+         break ;
       case intop_NROFINTOPS:
          break ;
       }
@@ -269,11 +313,11 @@ struct flagarg_t {
 
 static volatile int s_flag_dummy = 0 ;
 
-static int thread_flag(flagarg_t * arg)
+static int thread_setclear(flagarg_t * arg)
 {
    for (uint32_t i = 0; i < 10000; ++i) {
       for (unsigned w = 0; ; ++w) {
-         if (0 == setflag_int(arg->flag)) break ;
+         if (0 == atomicset_int(arg->flag)) break ;
          if (w == 10) {
             w = 0 ;
             yield_thread() ;
@@ -283,46 +327,46 @@ static int thread_flag(flagarg_t * arg)
       s_flag_dummy += 1000 ;
       s_flag_dummy /= 31 ;
       *arg->value = val + 1 ;
-      clearflag_int(arg->flag) ;
+      atomicclear_int(arg->flag) ;
    }
 
    return 0 ;
 }
 
-static int test_flag(void)
+static int test_setclear(void)
 {
    thread_t *  threads[8] = { 0 } ;
    flagarg_t   arg[8] ;
    uint8_t     flag ;
    uint8_t     oldflag ;
 
-   // TEST setflag_int: single thread
+   // TEST atomicset_int: single thread
    flag = 0 ;
-   TEST(0 == setflag_int(&flag)) ;
+   TEST(0 == atomicset_int(&flag)) ;
    TEST(0 != flag) ;
    oldflag = flag ;
    for (unsigned i = 0; i < 10; ++i) {
-      TEST(oldflag == setflag_int(&flag)) ;
+      TEST(oldflag == atomicset_int(&flag)) ;
       TEST(oldflag == flag) ;
    }
 
-   // TEST clearflag_int: single thread
+   // TEST atomicclear_int: single thread
    TEST(0 != oldflag) ;
    for (unsigned i = 0; i < 10; ++i) {
-      clearflag_int(&flag) ;
+      atomicclear_int(&flag) ;
       TEST(0 == flag) ;
-      clearflag_int(&flag) ;
+      atomicclear_int(&flag) ;
       TEST(0 == flag) ;
       flag = oldflag ;
    }
 
-   // TEST setflag_int, clearflag: multi thread
+   // TEST atomicset_int, atomicclear_int: multi thread
    uint32_t value = 0 ;
    flag = 0 ;
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
       arg[i].flag  = &flag ;
       arg[i].value = &value ;
-      TEST(0 == newgeneric_thread(&threads[i], &thread_flag, &arg[i])) ;
+      TEST(0 == newgeneric_thread(&threads[i], &thread_setclear, &arg[i])) ;
    }
    for (unsigned i = 0; i < lengthof(threads); i += 1) {
       TEST(0 == delete_thread(&threads[i])) ;
@@ -345,8 +389,8 @@ int unittest_math_int_atomic()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_readwrite())      goto ONABORT ;
-   if (test_addsub())         goto ONABORT ;
-   if (test_flag())           goto ONABORT ;
+   if (test_addsubswap())     goto ONABORT ;
+   if (test_setclear())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

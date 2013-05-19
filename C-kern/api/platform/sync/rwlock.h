@@ -1,6 +1,6 @@
 /* title: ReadWriteLock
 
-   Implements a simple many readers and single writer lock.
+   Implements a simple many readers and single writer lock for threads of a single process.
 
    about: Copyright
    This program is free software.
@@ -26,7 +26,8 @@
 #ifndef CKERN_PLATFORM_SYNC_RWLOCK_HEADER
 #define CKERN_PLATFORM_SYNC_RWLOCK_HEADER
 
-#include "C-kern/api/platform/sync/mutex.h"
+// forward
+struct slist_node_t ;
 
 /* typedef: struct rwlock_t
  * Export <rwlock_t> into global namespace. */
@@ -45,69 +46,76 @@ int unittest_platform_sync_rwlock(void) ;
 
 
 /* struct: rwlock_t
- * Protect a data structure.
+ * Protect a data structure from access of threads of a single process.
  * Either a single writer is allowed to enter the protected area
  * or one or more readers are allowed to enter.
  * As long as no writer tries to acquire this lock no reader has to wait.
  * If a writer tries to acquire this type of lock it has to wait until
- * all readers has released the lock (<suspend_thread>).
- * The last reader which calls <unlockreader_rwlock> resumes the waiting writer (<resume_thread>).
- * During this time all other parties (reader or writer) have to wait for <entrylock>
+ * all readers have released the lock. A writer inserts itself in waiting list <writers>.
+ * If at least a single writer waits all calls to <lockreader_rwlock> inserts the reader
+ * into the the <readers> waiting list.
+ *
+ * The last reader which calls <unlockreader_rwlock> resumes a waiting writer.
+ *
+ * During this time all other parties (reader or writer) have to wait
  * until all readers and the single writer have released the lock.
  *
+ * A call <unlockwriter_rwlock> wakes up first any waiting reader.
+ *
+ * So a writer releasing the lock wakes up all readers. The last reader releasing the lock
+ * wakes up the first waiting writer.
+ *
  * Implementation Notes:
- * The implementation uses two mutex_t namely entrylock and exitlock.
- * The entrylock must be acquired by every reader or writer
- * before it is allowed to enter the protected region.
- * If a writer calls <lockwriter_rwlock> it acquires the entrylock and
- * it holds it until it leaves the protected region.
+ * The implementation an atomic <lockflag>.
+ * Every call to <lockreader_rwlock>, <lockwriter_rwlock>, <unlockreader_rwlock> and <unlockwriter_rwlock>
+ * acquires this lock. At the end they release the lock.
  *
- * It acquires also the exitlock sets <writer> to itself and checks <nrofreader>.
- * It releases <exitlock> and suspends itself if <nrofreader> was != 0.
- * If a reader calls <lockreader_rwlock> it acquires <entrylock> adds 1 to nrofreader
- * and releases it immediately. A reader can only return from <lockreader_rwlock>
- * if <entrylock> is not hold by a writer. This ensures exclusive access to the rwlock.
+ * If during operation of <unlockreader_rwlock> or <unlockwriter_rwlock> a writer or reader is woken up
+ * the woken up thread acquires <lockflag> and releases it. This ensures that any data written by
+ * the caller to <unlockwriter_rwlock> and any data written within the functions <unlockreader_rwlock>
+ * or <unlockwriter_rwlock> are known to the woken up thread.
  *
- * If a reader leaves the protected region it acquires <exitlock>,
- * decreases <nrofreader> and resumes a writer if <nrofreader> == 0.
- * Then it releases <exitlock>.
- *
- * If a writer has been resumed it acquires <exitlock>
- * checks that there is no reader and then it returns from <lockwriter_rwlock>.
- * If there are readers it suspends itself again. This is necessary cause
- * suspend and resume are implemented with signals and it is possible that a
- * resume occurs from a spurious signal received from outside of the process
- * and therefore the writer has to check the condition again. */
+ */
 struct rwlock_t {
-   /* variable: entrylock
-    * A mutex protecting the data structure with an exclusive lock.
-    * All readers aquire and release this lock before enter.
-    * All writers acquire and hold this before enter. */
-   mutex_t           entrylock ;
-   /* variable: exitlock
-    * A mutex protecting the data structure with an exclusive lock.
-    * All readers aquire and release this lock before enter.
-    * All writers acquire and hold this before enter. */
-   mutex_t           exitlock ;
+   /* variable: readers
+    * Points to last entry in list of waiting readers.
+    * Threads which can not lock rwlock for reading are appended to the end of the list. */
+   struct {
+      struct slist_node_t *   last ;
+   }                       readers ;
+   /* variable: writers
+    * Points to last entry in list of waiting writers.
+    * Threads which can not lock rwlock for writing are appended to the end of the list. */
+   struct {
+      struct slist_node_t *   last ;
+   }                       writers ;
+   /* variable: writer
+    * The thread which holds <entrylock>. If <nrofreader> is greater 0
+    * it is in suspended state. */
+   struct thread_t *       writer  ;
    /* variable: nrofreader
     * The number of readers currently reading the protected data structure.
     * If this value is no reader has acquired this lock. */
-   uint32_t          nrofreader ;
-   /* variable: writer
-    * The thread which holds <xlock>. If <nrofreader> is greater 0
-    * it is in suspended state. */
-   struct thread_t * writer  ;
+   uint32_t                nrofreader ;
+   /* variable: lockflag
+    * Lock flag used to protect access to data members.
+    * Set and cleared with atomic operations. */
+   uint8_t                 lockflag ;
 } ;
 
 // group: lifetime
 
 /* define: rwlock_INIT_FREEABLE
  * Static initializer. */
-#define rwlock_INIT_FREEABLE              { mutex_INIT_DEFAULT, mutex_INIT_DEFAULT, 0, 0 }
+#define rwlock_INIT_FREEABLE              { { 0 } , { 0 }, 0, 0, 0 }
+
+/* define: rwlock_INIT
+ * Static initializer. */
+#define rwlock_INIT                       { { 0 } , { 0 }, 0, 0, 0 }
 
 /* function: init_rwlock
- * Initializes internal mutex and clears memebers. */
-int init_rwlock(/*out*/rwlock_t * rwlock) ;
+ * Initializes data members. The same as assigning <rwlock_INIT>. */
+void init_rwlock(/*out*/rwlock_t * rwlock) ;
 
 /* function: free_rwlock
  * Frees mutex. Make sure that no readers nor writers are
@@ -126,7 +134,7 @@ uint32_t nrofreader_rwlock(rwlock_t * rwlock) ;
  * Returns true if there is a single writer holding the lock. */
 bool iswriter_rwlock(rwlock_t * rwlock) ;
 
-// group: update
+// group: synchronize
 
 /* function: lockreader_rwlock
  * Acquire <entrylock>, increment <nrofreader> and release <entrylock>.
@@ -162,7 +170,7 @@ int unlockreader_rwlock(rwlock_t * rwlock) ;
  * EPERM is returned and <writer> is not changed. */
 int unlockwriter_rwlock(rwlock_t * rwlock) ;
 
-// group: safe-update
+// group: safe-synchronize
 
 /* function: slockreader_rwlock
  * Asserts that <lockreader_rwlock> has no error. */
@@ -183,6 +191,11 @@ void sunlockwriter_rwlock(rwlock_t * rwlock) ;
 
 
 // section: inline implementation
+
+/* define: init_rwlock
+ * Implements <rwlock_t.init_rwlock>. */
+#define init_rwlock(rwlock)   \
+         ((void)(*(rwlock) = (rwlock_t) rwlock_INIT))
 
 /* define: slockreader_rwlock
  * Implements <rwlock_t.slockreader_rwlock>. */

@@ -117,7 +117,7 @@ struct process_stdfd_t {
 
 /* define: process_stdfd_INIT_INHERIT
  * Static initializer lets new process inherit standard io channels. */
-#define process_stdfd_INIT_INHERIT        { file_STDIN, file_STDOUT, file_STDERR }
+#define process_stdfd_INIT_INHERIT        { STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO }
 
 // group: update
 

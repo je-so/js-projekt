@@ -33,6 +33,11 @@
 #include "C-kern/api/platform/task/thread.h"
 #endif
 
+
+// section: semaphore_t
+
+// group: lifetime
+
 int init_semaphore(/*out*/semaphore_t * semaobj, uint16_t init_signal_count)
 {
    int err ;
@@ -88,6 +93,8 @@ ONABORT:
    TRACEABORTFREE_LOG(err) ;
    return err ;
 }
+
+// group: synchronize
 
 int signal_semaphore(semaphore_t * semaobj, uint32_t signal_count)
 {

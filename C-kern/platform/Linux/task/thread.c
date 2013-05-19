@@ -27,6 +27,7 @@
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/writer/log/logmain.h"
+#include "C-kern/api/math/int/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/vm.h"
@@ -165,7 +166,7 @@ __thread  threadcontext_t  gt_threadcontext = threadcontext_INIT_STATIC ;
 /* variable: gt_thread
  * Refers for every thread to corresponding <thread_t> object.
  * Is is located on the thread stack so no heap memory is allocated. */
-__thread  thread_t         gt_thread        = { 0, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, { .uc_link = 0 } } ;
+__thread  thread_t         gt_thread        = { 0, 0, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, { .uc_link = 0 } } ;
 
 /* variable: s_offset_thread
  * Contains the calculated offset from start of stack thread to <gt_thread>. */
@@ -214,6 +215,7 @@ static void * main_thread(thread_startargument_t * startarg)
       TRACESYSERR_LOG("sigaltstack", err) ;
       goto ONABORT ;
    }
+   startarg = 0 ;
 
    if (0 != getcontext(&gt_thread.continuecontext)) {
       err = errno ;
@@ -654,9 +656,9 @@ ONABORT:
    return EINVAL ;
 }
 
-static volatile int s_returncode_running = 0 ;
-static volatile int s_returncode_signal  = 0 ;
-static volatile sys_thread_t s_returncode_threadid = 0 ;
+static unsigned      s_thread_runcount = 0 ;
+static unsigned      s_thread_signal   = 0 ;
+static sys_thread_t  s_thread_id       = 0 ;
 
 static int thread_donothing(void * dummy)
 {
@@ -666,13 +668,13 @@ static int thread_donothing(void * dummy)
 
 static int thread_returncode(intptr_t retcode)
 {
-   s_returncode_threadid = pthread_self() ;
-   s_returncode_running  = 1 ;
-   while (s_returncode_running && !s_returncode_signal) {
+   s_thread_id = pthread_self() ;
+   atomicadd_int(&s_thread_runcount, 1) ;
+   while (0 == atomicread_int(&s_thread_signal)) {
       pthread_yield() ;
    }
-   s_returncode_running = 0 ;
-   s_returncode_signal  = 0 ;
+   s_thread_signal = 0 ;
+   atomicsub_int(&s_thread_runcount, 1) ;
    return (int) retcode ;
 }
 
@@ -683,7 +685,8 @@ static int test_initfree(void)
    // TEST new_thread
    TEST(0 == new_thread(&thread, &thread_donothing, (void*)3)) ;
    TEST(thread) ;
-   TEST(thread->wlistnext  == 0) ;
+   TEST(thread->nextwait   == 0) ;
+   TEST(thread->lockflag   == 0) ;
    TEST(thread->main_task  == &thread_donothing) ;
    TEST(thread->main_arg   == (void*)3) ;
    TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
@@ -699,7 +702,8 @@ static int test_initfree(void)
    // TEST newgeneric_thread: thread is run
    TEST(0 == newgeneric_thread(&thread, &thread_returncode, 14)) ;
    TEST(thread) ;
-   TEST(thread->wlistnext  == 0) ;
+   TEST(thread->nextwait   == 0) ;
+   TEST(thread->lockflag   == 0) ;
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)14) ;
    TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
@@ -708,19 +712,18 @@ static int test_initfree(void)
    uint8_t *    stackframe = thread->stackframe ;
    sys_thread_t T          = thread->sys_thread ;
    // test thread is running
-   for (unsigned i = 0; !s_returncode_running && i < 10000000; ++i) {
+   while (0 == atomicread_int(&s_thread_runcount)) {
       yield_thread() ;
    }
-   TEST(s_returncode_running) ;
-   TEST(s_returncode_threadid == T) ;
+   TEST(s_thread_id        == T) ;
    TEST(thread) ;
-   TEST(thread->wlistnext  == 0) ;
+   TEST(thread->nextwait   == 0) ;
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)14) ;
    TEST(thread->sys_thread == T) ;
    TEST(thread->returncode == 0) ;
    TEST(thread->stackframe == stackframe) ;
-   s_returncode_running = 0 ;
+   atomicwrite_int(&s_thread_signal, 1) ;
    TEST(0 == delete_thread(&thread)) ;
    TEST(0 == thread) ;
    TEST(0 == delete_thread(&thread)) ;
@@ -729,17 +732,17 @@ static int test_initfree(void)
    // TEST delete_thread: join_thread called from delete_thread
    TEST(0 == newgeneric_thread(&thread, &thread_returncode, 11)) ;
    TEST(thread) ;
-   TEST(thread->wlistnext  == 0) ;
+   TEST(thread->nextwait   == 0) ;
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)11) ;
    TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 0) ;
    TEST(thread->stackframe != 0) ;
    T = thread->sys_thread ;
-   s_returncode_signal = 1 ;
+   atomicwrite_int(&s_thread_signal, 1) ;
    TEST(0 == delete_thread(&thread)) ;
-   TEST(0 == s_returncode_signal) ; // => delete has waited until thread has run
-   TEST(T == s_returncode_threadid) ;
+   TEST(0 == atomicread_int(&s_thread_signal)) ; // => delete has waited until thread has run
+   TEST(T == s_thread_id) ;
 
    // TEST new_thread: ERROR
    for (int i = 1; i; ++i) {
@@ -754,14 +757,12 @@ static int test_initfree(void)
       TEST(i == err) ;
    }
    free_testerrortimer(&s_thread_errtimer) ;
-   s_returncode_signal  = 1 ;
-   s_returncode_running = 0 ;
+   atomicwrite_int(&s_thread_signal, 1) ;
    TEST(0 == delete_thread(&thread)) ;
 
    return 0 ;
 ONABORT:
-   s_returncode_signal  = 1 ;
-   s_returncode_running = 0 ;
+   atomicwrite_int(&s_thread_signal, 1) ;
    delete_thread(&thread) ;
    return EINVAL ;
 }
@@ -813,10 +814,10 @@ static int test_join(void)
 
    // TEST join_thread
    TEST(0 == newgeneric_thread(&thread, &thread_returncode, 12)) ;
-   s_returncode_signal = 1 ;
+   atomicwrite_int(&s_thread_signal, 1) ;
    TEST(0 == join_thread(thread)) ;
-   s_returncode_signal = 0 ;  // returned
-   TEST(thread->wlistnext  == 0) ;
+   TEST(0 == atomicread_int(&s_thread_signal)) ;
+   TEST(thread->nextwait   == 0) ;
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)12) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
@@ -825,7 +826,7 @@ static int test_join(void)
 
    // TEST join_thread: calling on already joined thread
    TEST(0 == join_thread(thread)) ;
-   TEST(thread->wlistnext  == 0) ;
+   TEST(thread->nextwait   == 0) ;
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)12) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
@@ -838,17 +839,17 @@ static int test_join(void)
       const intptr_t arg = 1111 * i ;
       TEST(0 == newgeneric_thread(&thread, thread_returncode, arg)) ;
       TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
-      s_returncode_signal = 1 ;
+      atomicwrite_int(&s_thread_signal, 1) ;
       TEST(0 == join_thread(thread)) ;
-      TEST(0 == s_returncode_signal) ;
-      TEST(thread->wlistnext  == 0) ;
+      TEST(0 == atomicread_int(&s_thread_signal)) ;
+      TEST(thread->nextwait   == 0) ;
       TEST(thread->main_task  == (thread_f)&thread_returncode) ;
       TEST(thread->main_arg   == (void*)arg) ;
       TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
       TEST(thread->returncode == arg) ;
       TEST(thread->stackframe != 0) ;
       TEST(0 == join_thread(thread)) ;
-      TEST(thread->wlistnext  == 0) ;
+      TEST(thread->nextwait   == 0) ;
       TEST(thread->main_task  == (thread_f)&thread_returncode) ;
       TEST(thread->main_arg   == (void*)arg) ;
       TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
@@ -864,7 +865,7 @@ static int test_join(void)
    // TEST join_thread: ESRCH
    TEST(0 == newgeneric_thread(&thread, &thread_returncode, 0)) ;
    thread_t copied_thread = *thread ;
-   s_returncode_signal = 1 ;
+   atomicwrite_int(&s_thread_signal, 1) ;
    TEST(0 == join_thread(thread)) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 0) ;
@@ -873,8 +874,7 @@ static int test_join(void)
 
    return 0 ;
 ONABORT:
-   s_returncode_signal  = 1 ;
-   s_returncode_running = 0 ;
+   atomicwrite_int(&s_thread_signal, 1) ;
    delete_thread(&thread) ;
    return EINVAL ;
 }
@@ -1066,6 +1066,8 @@ static int test_stackoverflow(void)
    bool              isAction   = false ;
 
    // prepare
+   gt_thread.main_task  = 0 ;
+   gt_thread.main_arg   = 0 ;
    sigemptyset(&newact.sa_mask) ;
    sigaddset(&newact.sa_mask, SIGSEGV) ;
    TEST(0 == sigprocmask(SIG_UNBLOCK, &newact.sa_mask, &oldprocmask)) ;
@@ -1644,24 +1646,24 @@ ONABORT:
 
 // == test_yield ==
 
-static volatile uint32_t s_countyield_counter   = 0 ;
-static volatile uint32_t s_countnoyield_counter = 0 ;
-static volatile int      s_countyield_exit      = 0 ;
+static uint32_t s_countyield_counter   = 0 ;
+static uint32_t s_countnoyield_counter = 0 ;
+static int      s_countyield_exit      = 0 ;
 
 static int thread_countyield(void * dummy)
 {
    (void) dummy ;
 
-   s_countyield_counter = 0 ;
+   atomicwrite_int(&s_countyield_counter, 0) ;
 
    while (  s_countyield_counter < 10000000
-            && !s_countyield_exit) {
+            && ! atomicread_int(&s_countyield_exit)) {
       yield_thread() ;
-      ++ s_countyield_counter ;
+      atomicadd_int(&s_countyield_counter, 1) ;
    }
 
-   if (! s_countyield_exit) {
-      s_countyield_counter = 0 ;
+   if (! atomicread_int(&s_countyield_exit)) {
+      atomicwrite_int(&s_countyield_counter, 0) ;
    }
 
    return 0 ;
@@ -1671,16 +1673,16 @@ static int thread_countnoyield(void * dummy)
 {
    (void) dummy ;
 
-   s_countnoyield_counter = 0 ;
+   atomicwrite_int(&s_countnoyield_counter, 0) ;
 
    while (  s_countnoyield_counter < 10000000
-            && !s_countyield_exit) {
+            && ! atomicread_int(&s_countyield_exit)) {
       // give other thread a chance to run
       if (s_countnoyield_counter < 3) yield_thread() ;
-      ++ s_countnoyield_counter ;
+      atomicadd_int(&s_countnoyield_counter , 1) ;
    }
 
-   s_countnoyield_counter = 0 ;
+   atomicwrite_int(&s_countnoyield_counter, 0) ;
 
    return 0 ;
 }
@@ -1695,12 +1697,12 @@ static int test_yield(void)
    TEST(0 == new_thread(&thread_yield, &thread_countyield, 0)) ;
    TEST(0 == new_thread(&thread_noyield, &thread_countnoyield, 0)) ;
    TEST(0 == join_thread(thread_noyield)) ;
-   s_countyield_exit = 1 ;
+   atomicwrite_int(&s_countyield_exit, 1) ;
    TEST(0 == join_thread(thread_yield)) ;
    // no yield ready
-   TEST(0 == s_countnoyield_counter) ;
+   TEST(0 == atomicread_int(&s_countnoyield_counter)) ;
    // yield not ready
-   TEST(0 != s_countyield_counter) ;
+   TEST(0 != atomicread_int(&s_countyield_counter)) ;
    TEST(s_countyield_counter < 1000000) ;
    TEST(0 == delete_thread(&thread_noyield)) ;
    TEST(0 == delete_thread(&thread_yield)) ;
@@ -1750,6 +1752,67 @@ ONABORT:
    return EINVAL ;
 }
 
+static int thread_lockflag(int * runcount)
+{
+   while (0 == atomicread_int(&self_thread()->lockflag)) {
+      yield_thread() ;
+   }
+   atomicadd_int(runcount, 1) ;
+   lockflag_thread(self_thread()) ;
+   atomicsub_int(runcount, 1) ;
+   return 0 ;
+}
+
+static int test_update(void)
+{
+   thread_t    thread   = { .lockflag = 0 } ;
+   thread_t *  thread2  = 0 ;
+   int         runcount = 0 ;
+
+   // TEST settask_thread
+   settask_thread(&thread, &thread_donothing, (void*)10) ;
+   TEST(thread.main_task == &thread_donothing) ;
+   TEST(thread.main_arg  == (void*)10) ;
+   settask_thread(&thread, 0, 0) ;
+   TEST(thread.main_task == 0) ;
+   TEST(thread.main_arg  == 0) ;
+
+   // TEST lockflag_thread
+   lockflag_thread(&thread) ;
+   TEST(0 != thread.lockflag) ;
+
+   // TEST unlockflag_thread
+   unlockflag_thread(&thread) ;
+   TEST(0 == thread.lockflag) ;
+
+   // TEST lockflag_thread: waits
+   TEST(0 == newgeneric_thread(&thread2, thread_lockflag, &runcount)) ;
+   TEST(0 == thread2->lockflag) ;
+   lockflag_thread(thread2) ;
+   TEST(0 != thread2->lockflag) ;
+   while (0 == atomicread_int(&runcount)) {
+      yield_thread() ;
+   }
+   // waits until unlock
+   for (int i = 0; i < 5; ++i) {
+      yield_thread() ;
+      TEST(1 == atomicread_int(&runcount)) ;
+   }
+   unlockflag_thread(thread2) ;
+   TEST(0 == join_thread(thread2)) ;
+
+   // TEST unlockflag_thread: works from another thread
+   TEST(0 != atomicread_int(&thread2->lockflag)) ;
+   unlockflag_thread(thread2) ;
+   TEST(0 == thread2->lockflag) ;
+   TEST(0 == delete_thread(&thread2)) ;
+
+   return 0 ;
+ONABORT:
+   delete_thread(&thread2) ;
+   return EINVAL ;
+}
+
 static int test_initonce(void)
 {
    size_t S = s_offset_thread ;
@@ -1758,7 +1821,7 @@ static int test_initonce(void)
    TEST(S != 0) ;
 
    // TEST self_thread() called initonce
-   TEST(self_thread()->wlistnext  == 0) ;
+   TEST(self_thread()->nextwait   == 0) ;
    TEST(self_thread()->main_arg   == 0) ;
    TEST(self_thread()->main_task  == 0) ;
    TEST(self_thread()->returncode == 0) ;
@@ -1801,6 +1864,7 @@ int unittest_platform_task_thread()
    if (test_sleep())                   goto ONABORT ;
    if (test_yield())                   goto ONABORT ;
    if (test_exit())                    goto ONABORT ;
+   if (test_update())                  goto ONABORT ;
    if (test_initonce())                goto ONABORT ;
 
    // TEST mapping has not changed

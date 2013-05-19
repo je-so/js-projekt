@@ -1,19 +1,11 @@
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 22: Function aborted
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 22: Function aborted
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:117: lockreader_rwlock(): error: 35: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:117: lockreader_rwlock(): error: 75: Function aborted
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:171: unlockreader_rwlock(): error: 35: Function aborted
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:147: lockwriter_rwlock(): error: 35: Function aborted
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:147: lockwriter_rwlock(): error: 35: Function aborted
-C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:186: unlockwriter_rwlock(): error: 1: Function aborted
-C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/mutex.c:113: unlock_mutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/mutex.c:100: lock_mutex(): error: 35: Function aborted
+C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
+C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
+C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
+C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
+C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
+C-kern/platform/Linux/sync/rwlock.c:199: lockreader_rwlock(): error: 35: Function aborted
+C-kern/platform/Linux/sync/rwlock.c:199: lockreader_rwlock(): error: 75: Function aborted
+C-kern/platform/Linux/sync/rwlock.c:226: lockwriter_rwlock(): error: 35: Function aborted
+C-kern/platform/Linux/sync/rwlock.c:258: unlockreader_rwlock(): error: 1: Function aborted
+C-kern/platform/Linux/sync/rwlock.c:287: unlockwriter_rwlock(): error: 1: Function aborted
+C-kern/platform/Linux/sync/rwlock.c:287: unlockwriter_rwlock(): error: 1: Function aborted

@@ -50,6 +50,7 @@
         <File Name="../../C-kern/api/platform/sync/signal.h"/>
         <File Name="../../C-kern/api/platform/sync/waitlist.h"/>
         <File Name="../../C-kern/api/platform/sync/rwlock.h"/>
+        <File Name="../../C-kern/api/platform/sync/thrmutex.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/sysuser.h"/>
       <VirtualDirectory Name="X11">
@@ -349,6 +350,7 @@
         <File Name="../../C-kern/platform/Linux/sync/waitlist.c"/>
         <File Name="../../C-kern/platform/Linux/sync/signal.c"/>
         <File Name="../../C-kern/platform/Linux/sync/rwlock.c"/>
+        <File Name="../../C-kern/platform/Linux/sync/thrmutex.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">

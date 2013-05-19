@@ -243,8 +243,8 @@ void insertafter_slist(slist_t * list, struct slist_node_t * prev_node, struct s
 
 /* function: removefirst_slist
  * Removes the first element from list.
- * If list contains no elements EINVAL is returned. In case of success removed_node points
- * to the removed first element. Ownership of removed_node is transfered back to caller. */
+ * If list contains no elements EINVAL is returned. If list contains elements removed_node points
+ * to the removed first elementa and 0 is returned. Ownership of removed_node is transfered back to caller. */
 int removefirst_slist(slist_t * list, struct slist_node_t ** removed_node) ;
 
 /* function: removeafter_slist
