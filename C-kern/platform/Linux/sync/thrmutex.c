@@ -40,8 +40,8 @@
 
 // group: helper
 
-/* define: slist_IMPLEMENT_thrmutexlist
- * Uses macro <slist_IMPLEMENT> to generate an adapted interface of <slist_t>. */
+/* define: INTERFACE_thrmutexlist
+ * Use macro <slist_IMPLEMENT> to generate an adapted interface of <slist_t> to <thread_t>. */
 slist_IMPLEMENT(_thrmutexlist, thread_t, nextwait)
 
 // group: lifetime

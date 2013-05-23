@@ -98,7 +98,7 @@ bool isobject_pagecache(const pagecache_t * pgcache) ;
 
 /* function: allocpage_pagecache
  * Calls pgcache->iimpl->allocpage with pgcache->object as first parameter. See <pagecache_it.allocpage>. */
-int allocpage_pagecache(const pagecache_t pgcache, pagesize_e pgsize, /*out*/struct memblock_t * page) ;
+int allocpage_pagecache(const pagecache_t pgcache, uint8_t pgsize, /*out*/struct memblock_t * page) ;
 
 /* function: releasepage_pagecache
  * Calls pgcache->iimpl->releasepage with pgcache->object as first parameter. See <pagecache_it.releasepage>. */
@@ -130,8 +130,8 @@ int emptycache_pagecache(const pagecache_t pgcache) ;
 struct pagecache_it {
    /* function: allocpage
     * Allocates a single memory page of size pgsize.
-    * The page is aligned to its own size. */
-   int    (*allocpage)     (pagecache_t * pgcache, pagesize_e pgsize, /*out*/struct memblock_t * page) ;
+    * The page is aligned to its own size. pgsize must be a value from <pagesize_e>. */
+   int    (*allocpage)     (pagecache_t * pgcache, uint8_t pgsize, /*out*/struct memblock_t * page) ;
    /* function: releasepage
     * Releases a single memory page. It is kept in the cache and only returned to
     * the operating system if a big chunk of memory is not in use.
@@ -343,13 +343,13 @@ void pagecache_it_DECLARE(TYPENAME declared_it, TYPENAME pagecache_t) ;
 #define pagecache_it_DECLARE(declared_it, pagecache_t)      \
    typedef struct declared_it       declared_it ;           \
    struct declared_it {                                     \
-      int    (*allocpage)     (pagecache_t * pgcache, pagesize_e pgsize, /*out*/struct memblock_t * page) ;    \
+      int    (*allocpage)     (pagecache_t * pgcache, uint8_t pgsize, /*out*/struct memblock_t * page) ;       \
       int    (*releasepage)   (pagecache_t * pgcache, struct memblock_t * page) ;                              \
       size_t (*sizeallocated) (const pagecache_t * pgcache) ;                                                  \
       int    (*allocstatic)   (pagecache_t * pgcache, size_t bytesize, /*out*/struct memblock_t * memblock) ;  \
       int    (*freestatic)    (pagecache_t * pgcache, struct memblock_t * memblock) ;                          \
       size_t (*sizestatic)    (const pagecache_t * pgcache) ;                                                  \
-      int    (*emptycache) (pagecache_t * pgcache) ;                                                        \
+      int    (*emptycache)    (pagecache_t * pgcache) ;                                                        \
    } ;
 
 /* define: pagesizeinbytes_pagecacheit

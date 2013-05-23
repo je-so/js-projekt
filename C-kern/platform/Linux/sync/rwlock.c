@@ -41,8 +41,8 @@
 
 // group: helper
 
-/* define: slist_IMPLEMENT_rwlocklist
- * Uses macro <slist_IMPLEMENT> to generate an adapted interface of <slist_t>. */
+/* define: INTERFACE_rwlocklist
+ * Use macro <slist_IMPLEMENT> to generate an adapted interface of <slist_t> to <thread_t>. */
 slist_IMPLEMENT(_rwlocklist, thread_t, nextwait)
 
 // group: lifetime

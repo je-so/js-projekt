@@ -28,8 +28,9 @@
 #define CKERN_CONTEXT_PROCESSCONTEXT_HEADER
 
 // forward
-struct valuecache_t ;
+struct pagecache_blockmap_t ;
 struct sysuser_t ;
+struct valuecache_t ;
 
 /* typedef: struct processcontext_t
  * Export <processcontext_t>. */
@@ -66,6 +67,10 @@ struct processcontext_t {
       uint16_t *  stroffset ;
       uint8_t  *  strdata ;
    }                          error ;
+   /* variable: error
+    * Shared <pagecache_blockmap_t> used in <pagecache_impl_t>. */
+   struct
+   pagecache_blockmap_t *     blockmap ;
    /* variable: initcount
     * Counts the number of successfull initialized services/subsystems.
     * This number is can be higher than 1 cause there are subsystems which
@@ -78,13 +83,13 @@ struct processcontext_t {
 /* define: processcontext_STATICSIZE
  * Defines the number of bytes needed from <processcontext_t>.
  * Static memory is allocated in <init_processcontext>. */
-#define processcontext_STATICSIZE         (sizeof(sysuser_t) + sizeof(valuecache_t))
+#define processcontext_STATICSIZE         (sizeof(sysuser_t) + sizeof(valuecache_t) + sizeof(pagecache_blockmap_t))
 
 // group: lifetime
 
 /* define: processcontext_INIT_STATIC
  * Static initializer. */
-#define processcontext_INIT_STATIC        { 0, 0, errorcontext_INIT_STATIC, 0 }
+#define processcontext_INIT_STATIC        { 0, 0, errorcontext_INIT_STATIC, 0, 0 }
 
 /* function: init_processcontext
  * Initializes the current process context. There is exactly one process context

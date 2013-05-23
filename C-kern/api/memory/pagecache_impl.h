@@ -35,16 +35,26 @@
 #ifndef CKERN_MEMORY_PAGECACHEIMPL_HEADER
 #define CKERN_MEMORY_PAGECACHEIMPL_HEADER
 
-#include "C-kern/api/ds/inmem/blockarray.h"
-#include "C-kern/api/memory/pagecache.h"
-
 // forward
 struct memblock_t ;
 struct dlist_node_t ;
+struct pagecache_t ;
+struct pagecache_blockarray_t ;
 
 /* typedef: struct pagecache_impl_t
  * Export <pagecache_impl_t> into global namespace. */
 typedef struct pagecache_impl_t           pagecache_impl_t ;
+
+/* typedef: struct pagecache_block_t
+ * Export opaque type <pagecache_block_t> into global namespace.
+ * This type stores information about a large block of memory of at least 1MB. */
+typedef struct pagecache_block_t          pagecache_block_t ;
+
+/* typedef: struct pagecache_blockmap_t
+ * Export type <pagecache_blockmap_t> into global namespace.
+ * It serves as hashtable for a set of <pagecache_block_t>.
+ * The hashtable is shared between all <pagecache_impl_t>. */
+typedef struct pagecache_blockmap_t       pagecache_blockmap_t ;
 
 
 // section: Functions
@@ -71,10 +81,6 @@ int unittest_memory_pagecacheimpl(void) ;
  *       Blocks with pages with short lifetime can be reclaimed faster.
  */
 struct pagecache_impl_t {
-   /* variable: blockarray
-    * Array of <pagecache_block_t>. This array serves as hash map which maps
-    * any page address to the description of the memory block the page is contained. */
-   blockarray_t            blockarray ;
    /* variable: blocklist
     * A list of <pagecache_block_t>.
     * This list contains all allocated blocks and serves to free all allocated blocks.
@@ -90,7 +96,7 @@ struct pagecache_impl_t {
     * This my be changed for example by using the the "buddy memory allocation" technique. */
    struct {
       struct dlist_node_t *   last ;
-   }                       freeblocklist[pagesize_NROFPAGESIZE] ;
+   }                       freeblocklist[6] ;
    /* variable: staticpagelist
     * A list of static memory blocks.
     * Functions <allocstatic_pagecacheimpl> and <freestatic_pagecacheimpl> could change this list. */
@@ -113,18 +119,18 @@ struct pagecache_impl_t {
 /* function: initthread_pagecacheimpl
  * Calls <init_pagecacheimpl> and adds interface <pagecache_it> to object.
  * This function is called from <init_threadcontext>. */
-int initthread_pagecacheimpl(/*out*/pagecache_t * pagecache) ;
+int initthread_pagecacheimpl(/*out*/struct pagecache_t * pagecache) ;
 
 /* function: freethread_pagecacheimpl
  * Calls <free_pagecacheimpl> with for object pointer in <pagecache_t>.
  * This function is called from <free_threadcontext>. */
-int freethread_pagecacheimpl(pagecache_t * pagecache) ;
+int freethread_pagecacheimpl(struct pagecache_t * pagecache) ;
 
 // group: lifetime
 
 /* define: pagecache_impl_INIT_FREEABLE
  * Static initializer. */
-#define pagecache_impl_INIT_FREEABLE      { blockarray_INIT_FREEABLE, { 0 }, { { 0 } }, { 0 }, 0, 0 }
+#define pagecache_impl_INIT_FREEABLE      { { 0 }, { { 0 } }, { 0 }, 0, 0 }
 
 /* function: init_pagecacheimpl
  * Preallocates at least 1MB of memory and initializes pgcache. */
@@ -160,7 +166,7 @@ bool isfree_pagecacheimpl(const pagecache_impl_t * pgcache) ;
 /* function: allocpage_pagecacheimpl
  * Allocates a single memory page of size pgsize.
  * The page is aligned to its own size. */
-int allocpage_pagecacheimpl(pagecache_impl_t * pgcache, pagesize_e pgsize, /*out*/struct memblock_t * page) ;
+int allocpage_pagecacheimpl(pagecache_impl_t * pgcache, uint8_t pgsize, /*out*/struct memblock_t * page) ;
 
 /* function: releasepage_pagecacheimpl
  * Releases a single memory page. It is kept in the cache and only returned to
@@ -192,6 +198,39 @@ int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * mem
 /* function: emptycache_pagecacheimpl
  * Releases all unused memory blocks back to the operating system. */
 int emptycache_pagecacheimpl(pagecache_impl_t * pgcache) ;
+
+
+/* struct: pagecache_blockmap_t
+ * TODO: */
+struct pagecache_blockmap_t {
+   uint8_t *   array_addr ;
+   size_t      array_size ;
+   size_t      array_len ;
+   size_t      indexmask ;
+} ;
+
+// group: config
+
+/* define: pagecache_blockmap_ARRAYSIZE
+ * Static configuration of number of bytes used for the hash table.
+ * The number of supported <pagecache_block_t> is fixed cause only
+ * one entry per hash bucket is supported with no overflow handling.
+ * pagecache_blockmap_t is considered to be implemented in hardware. */
+#define pagecache_blockmap_ARRAYSIZE      (2*1024*1024)
+
+// group: lifetime
+
+/* define: pagecache_blockmap_INIT_FREEABLE
+ * Static initializer. */
+#define pagecache_blockmap_INIT_FREEABLE  { 0, 0, 0, 0 }
+
+/* function: init_pagecacheblockmap
+ * TODO: */
+int init_pagecacheblockmap(pagecache_blockmap_t * blockmap) ;
+
+/* function: free_pagecacheblockmap
+ * TODO: */
+int free_pagecacheblockmap(pagecache_blockmap_t * blockmap) ;
 
 
 #endif

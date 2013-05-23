@@ -144,12 +144,12 @@ struct blockarray_t {
 /* function: init_blockarray
  * Initializes barray to use blocks of memory of size pagesize (see <pagesize_e>).
  * Also one datablock is preallocated for elements beginning from index 0. */
-int init_blockarray(/*out*/blockarray_t * barray, uint8_t pagesize, uint16_t elementsize, const struct pagecache_t * pagecache) ;
+int init_blockarray(/*out*/blockarray_t * barray, uint8_t pagesize, uint16_t elementsize) ;
 
 /* function: free_blockarray
  * Frees all memory blocks. All elements become invalid
  * so make sure that all references to them have been cleared. */
-int free_blockarray(blockarray_t * barray, const struct pagecache_t * pagecache) ;
+int free_blockarray(blockarray_t * barray) ;
 
 // group: query
 
@@ -168,14 +168,20 @@ void * at_blockarray(blockarray_t * barray, size_t arrayindex) ;
 // group: update
 
 /* function: assign_blockarray
- * Assigns memory to an element at position arrayindex and returns its address.
+ * Assigns memory to an element at position arrayindex and returns its address in elemaddr.
  * The memory address is aligned to the size of the element. The memory is allocated
- * with help of pagecache (see <pagecache_t>). If pagecache is set to <pagecache_INIT_FREEABLE>
- * the function works like <at_blockarray>.
- * 0 is returned in case of an error.
- * If pagecache was set errcode is set to value ENOMEM (or EINVAL if something internal went wrong).
- * If pagecache was cleared errcode is set to value ENODATA. */
-void * assign_blockarray(blockarray_t * barray, size_t arrayindex, const struct pagecache_t * pagecache, /*err*/int * errcode/*0 ==> no error is returned*/) ;
+ * with help of <pagecache_maincontext> (see <pagecache_t>).
+ * If is_allocate is set to false the function works like <at_blockarray>.
+ * Possible errors are ENOMEM or EINVAL if something went wrong internally. */
+int assign_blockarray(blockarray_t * barray, size_t arrayindex, /*out*/void ** elemaddr) ;
+
+// group: internal
+
+/* function: assign2_blockarray
+ * Implements <at_blockarray> and <assign_blockarray>.
+ * If is_allocate is set to false the function works like <at_blockarray>
+ * else it works like <assign_blockarray>. */
+int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocate, /*out*/void ** elemaddr) ;
 
 // NOT IMPLEMENTED
 // Deallocates all memory blocks outside of slice [lowerindex, upperindex]
@@ -200,8 +206,20 @@ void blockarray_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t) ;
 
 /* define: at_blockarray
  * Implements <blockarray_t.at_blockarray>. */
-#define at_blockarray(barray, arrayindex) \
-         (assign_blockarray((barray), (arrayindex), &(pagecache_t)pagecache_INIT_FREEABLE, 0))
+#define at_blockarray(barray, arrayindex)    \
+         ( __extension__ ({                  \
+            void * elemaddr = 0 ;            \
+            assign2_blockarray(              \
+                  (barray), (arrayindex),    \
+                  false, &elemaddr) ;        \
+            elemaddr ;                       \
+         }))
+
+/* define: assign_blockarray
+ * Implements <blockarray_t.assign_blockarray>. */
+#define assign_blockarray(barray, arrayindex, elemaddr)  \
+         (assign2_blockarray(barray, arrayindex, true, elemaddr))
+
 
 /* define: blockarray_IMPLEMENT
  * Implements <blockarray_t.blockarray_IMPLEMENT>. */
@@ -209,18 +227,18 @@ void blockarray_IMPLEMENT(IDNAME _fsuffix, TYPENAME object_t) ;
          static inline int init##_fsuffix(/*out*/blockarray_t * barray, pagesize_e pagesize) __attribute__ ((always_inline)) ; \
          static inline int free##_fsuffix(blockarray_t * barray) __attribute__ ((always_inline)) ; \
          static inline object_t * at##_fsuffix(blockarray_t * barray, size_t arrayindex) __attribute__ ((always_inline)) ; \
-         static inline object_t * assign##_fsuffix(blockarray_t * barray, size_t arrayindex, int * errcode) __attribute__ ((always_inline)) ; \
+         static inline int assign##_fsuffix(blockarray_t * barray, size_t arrayindex, /*out*/object_t ** elemaddr) __attribute__ ((always_inline)) ; \
          static inline int init##_fsuffix(/*out*/blockarray_t * barray, pagesize_e pagesize) { \
-            return init_blockarray(barray, pagesize, sizeof(object_t), genericcast_iobj(&pagecache_maincontext(), pagecache)) ; \
+            return init_blockarray(barray, pagesize, sizeof(object_t)) ; \
          } \
          static inline int free##_fsuffix(blockarray_t * barray) { \
-            return free_blockarray(barray, genericcast_iobj(&pagecache_maincontext(), pagecache)) ; \
+            return free_blockarray(barray) ; \
          } \
          static inline object_t * at##_fsuffix(blockarray_t * barray, size_t arrayindex) { \
             return (object_t*)at_blockarray(barray, arrayindex) ; \
          } \
-         static inline object_t * assign##_fsuffix(blockarray_t * barray, size_t arrayindex, int * errcode) { \
-            return (object_t*)assign_blockarray(barray, arrayindex, genericcast_iobj(&pagecache_maincontext(), pagecache), errcode) ; \
+         static inline int assign##_fsuffix(blockarray_t * barray, size_t arrayindex, /*out*/object_t ** elemaddr) { \
+            return assign_blockarray(barray, arrayindex, (void**)elemaddr) ; \
          }
 
 

@@ -39,7 +39,7 @@
 
 #ifdef KONFIG_UNITTEST
 
-static int allocpage1_dummy(pagecache_t * pgcache, pagesize_e pgsize, /*out*/struct memblock_t * page)
+static int allocpage1_dummy(pagecache_t * pgcache, uint8_t pgsize, /*out*/struct memblock_t * page)
 {
    (void)pgcache ;
    (void)pgsize ;
@@ -178,7 +178,7 @@ struct pagecachex_t {
    memblock_t *   memblock ;
 } ;
 
-static int allocpage2_dummy(struct pagecachex_t * pgcache, pagesize_e pgsize, /*out*/struct memblock_t * page)
+static int allocpage2_dummy(struct pagecachex_t * pgcache, uint8_t pgsize, /*out*/struct memblock_t * page)
 {
    ++ pgcache->is_allocpage ;
    pgcache->pgsize = pgsize ;

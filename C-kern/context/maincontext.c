@@ -27,6 +27,7 @@
 #include "C-kern/api/maincontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/platform/sync/mutex.h"
@@ -372,6 +373,9 @@ ONABORT:
 
 static int test_querymacros(void)
 {
+   // TEST blockmap_maincontext
+   TEST(&process_maincontext().blockmap   == &blockmap_maincontext()) ;
+
    // TEST error_maincontext
    TEST(&process_maincontext().error      == &error_maincontext()) ;
 
