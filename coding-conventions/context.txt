@@ -17,9 +17,9 @@ C-kern/api/maincontext.hcause only one thread calls this service. This means tha
 service in threadcontext_t must be duplicated for every running thread.
 
 about: Accessing Context
-The process context (<processcontext_t>) can be accessed with <maincontext_t.process_maincontext>.
+The process context (<processcontext_t>) can be accessed with <maincontext_t.pcontext_maincontext>.
 The returned process context is the same for every thread.
-The thread context (<threadcontext_t>) can be accessed with <maincontext_t.thread_maincontext>.
+The thread context (<threadcontext_t>) can be accessed with <maincontext_t.tcontext_maincontext>.
 Every thread has its own thread context.
 
 about: Main Thread

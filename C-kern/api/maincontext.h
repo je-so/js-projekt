@@ -83,11 +83,6 @@ int unittest_context_maincontext(void) ;
  * */
 struct maincontext_t {
    processcontext_t  pcontext ;
-#define KONFIG_thread 1
-#if (!((KONFIG_SUBSYS)&KONFIG_thread))
-   threadcontext_t   tcontext ;
-#endif
-#undef KONFIG_thread
    maincontext_e     type ;
    const char *      progname ;
    int               argc ;
@@ -142,13 +137,13 @@ void assertfail_maincontext(const char * condition, const char * file, int line,
 
 // group: query
 
-/* function: process_maincontext
+/* function: pcontext_maincontext
  * Returns <processcontext_t> of the current process. */
-/*ref*/processcontext_t    process_maincontext(void) ;
+/*ref*/processcontext_t    pcontext_maincontext(void) ;
 
-/* function: thread_maincontext
+/* function: tcontext_maincontext
  * Returns <threadcontext_t> of the current thread. */
-/*ref*/threadcontext_t     thread_maincontext(void) ;
+threadcontext_t *          tcontext_maincontext(void) ;
 
 /* function: type_maincontext
  * Returns type <context_e> of current <maincontext_t>. */
@@ -228,34 +223,34 @@ uint16_t sizestatic_maincontext(void) ;
 
 /* define: blockmap_maincontext
  * Implementation of <maincontext_t.blockmap_maincontext>. */
-#define blockmap_maincontext()            (process_maincontext().blockmap)
+#define blockmap_maincontext()            (pcontext_maincontext().blockmap)
 
 /* define: error_maincontext
  * Implementation of <maincontext_t.error_maincontext>. */
-#define error_maincontext()               (process_maincontext().error)
+#define error_maincontext()               (pcontext_maincontext().error)
 
 /* define: log_maincontext
  * Inline implementation of <maincontext_t.log_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define log_maincontext()                 (thread_maincontext().log)
+#define log_maincontext()                 (tcontext_maincontext()->log)
 
 /* define: mm_maincontext
  * Inline implementation of <maincontext_t.mm_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define mm_maincontext()                  (thread_maincontext().mm)
+#define mm_maincontext()                  (tcontext_maincontext()->mm)
 
 /* define: objectcache_maincontext
  * Inline implementation of <maincontext_t.objectcache_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define objectcache_maincontext()         (thread_maincontext().objectcache)
+#define objectcache_maincontext()         (tcontext_maincontext()->objectcache)
 
 /* define: pagecache_maincontext
  * Implements <maincontext_t.pagecache_maincontext>. */
-#define pagecache_maincontext()           (thread_maincontext().pagecache)
+#define pagecache_maincontext()           (tcontext_maincontext()->pagecache)
 
-/* define: process_maincontext
- * Inline implementation of <maincontext_t.process_maincontext>. */
-#define process_maincontext()             (g_maincontext.pcontext)
+/* define: pcontext_maincontext
+ * Inline implementation of <maincontext_t.pcontext_maincontext>. */
+#define pcontext_maincontext()            (g_maincontext.pcontext)
 
 /* define: progname_maincontext
  * Inline implementation of <maincontext_t.progname_maincontext>. */
@@ -267,32 +262,23 @@ uint16_t sizestatic_maincontext(void) ;
 
 /* define: syncrun_maincontext
  * Inline implementation of <maincontext_t.syncrun_maincontext>. */
-#define syncrun_maincontext()             (thread_maincontext().syncrun)
+#define syncrun_maincontext()             (tcontext_maincontext()->syncrun)
 
 /* define: sysuser_maincontext
  * Inline implementation of <maincontext_t.sysuser_maincontext>. */
-#define sysuser_maincontext()             (process_maincontext().sysuser)
+#define sysuser_maincontext()             (pcontext_maincontext().sysuser)
 
-
-#define KONFIG_thread 1
-#if (!((KONFIG_SUBSYS)&KONFIG_thread))
-/* define: thread_maincontext
- * Inline implementation of <maincontext_t.thread_maincontext>.
- * If <KONFIG_SUBSYS> contains *KONFIG_thread* then <sys_context_thread> is called
- * else a static variable in <g_maincontext> is returned. */
-#define thread_maincontext()           (g_maincontext.tcontext)
-#else
-#define thread_maincontext()           sys_context_thread()
-#endif
-#undef KONFIG_thread
+/* define: tcontext_maincontext
+ * Inline implementation of <maincontext_t.tcontext_maincontext>. */
+#define tcontext_maincontext()            (sys_context_threadtls())
 
 /* define: type_maincontext
  * Inline implementation of <maincontext_t.type_maincontext>. */
-#define type_maincontext()             (g_maincontext.type)
+#define type_maincontext()                (g_maincontext.type)
 
 /* define: valuecache_maincontext
  * Inline implementation of <maincontext_t.valuecache_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define valuecache_maincontext()       (process_maincontext().valuecache)
+#define valuecache_maincontext()          (pcontext_maincontext().valuecache)
 
 #endif

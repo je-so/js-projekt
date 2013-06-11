@@ -16,7 +16,6 @@
 "signalconfig",      "initonce",  "",             "C-kern/api/platform/sync/signal.h"
 "valuecache",        "object",    "valuecache",   "C-kern/api/cache/valuecache.h"
 "sysuser",           "object",    "sysuser",      "C-kern/api/platform/sysuser.h"
-# modules thread and pagecacheblockmap need valuecache cause of their use of virtual memory !
+# module pagecacheblockmap needs valuecache cause of their use of virtual memory !
 "pagecacheblockmap", "object",    "blockmap",     "C-kern/api/memory/pagecache_impl.h"
-"thread",            "initonce",  "",             "C-kern/api/platform/task/thread.h"
 "X11",               "initonce",  "",             "C-kern/api/platform/X11/x11.h"

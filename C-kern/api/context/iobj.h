@@ -161,8 +161,12 @@ void iobj_DECLARE(TYPENAME declared_t, IDNAME typenameprefix) ;
 
 /* define: free_iobj
  * Implements <iobj_t.free_iobj>. */
-#define free_iobj(iobj) \
-         ((void)(*(iobj) = (typeof(*(iobj))) iobj_INIT_FREEABLE))
+#define free_iobj(iobj)                            \
+         do {                                      \
+            typeof(iobj) _obj = (iobj) ;           \
+            _obj->object = 0 ;                     \
+            _obj->iimpl  = 0 ;                     \
+         } while (0)
 
 /* define: genericcast_iobj
  * Implements <iobj_t.genericcast_iobj>. */
@@ -182,13 +186,22 @@ void iobj_DECLARE(TYPENAME declared_t, IDNAME typenameprefix) ;
 
 /* define: init_iobj
  * Implements <iobj_t.init_iobj>. */
-#define init_iobj(iobj, object, iimpl) \
-         ((void)(*(iobj) = (typeof(*(iobj))) iobj_INIT(object, iimpl)))
+#define init_iobj(iobj, _object, _iimpl)           \
+         do {                                      \
+            typeof(iobj) _obj = (iobj) ;           \
+            _obj->object = (_object) ;             \
+            _obj->iimpl  = (_iimpl) ;              \
+         } while (0)
 
 /* define: initcopy_iobj
  * Implements <iobj_t.initcopy_iobj>. */
-#define initcopy_iobj(destiobj, srciobj)   \
-         ((void)(*(destiobj) = (typeof(*(destiobj))) iobj_INIT((srciobj)->object, (srciobj)->iimpl)))
+#define initcopy_iobj(destiobj, srciobj)           \
+         do {                                      \
+            typeof(srciobj)  _src  = (srciobj) ;   \
+            typeof(destiobj) _dest = (destiobj) ;  \
+            _dest->object = _src->object ;         \
+            _dest->iimpl  = _src->iimpl ;          \
+         } while (0)
 
 /* define: iobj_DECLARE
  * Implements <iobj_t.iobj_DECLARE>. */

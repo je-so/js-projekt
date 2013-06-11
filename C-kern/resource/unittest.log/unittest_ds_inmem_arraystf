@@ -8,9 +8,9 @@ C-kern/ds/inmem/arraystf.c:238: find_arraystf(): error: 22: Function aborted
 C-kern/ds/inmem/arraystf.c:619: insert_arraystf(): error: 17: Function aborted
 C-kern/ds/inmem/arraystf.c:601: remove_arraystf(): error: 3: Function aborted
 C-kern/ds/inmem/arraystf.c:353: delete_arraystf(): error: 12345: Freeing a resource returned an error
-C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 24 bytes of memory
-C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:676: mresize_testmm(): error: Could not allocate 24 bytes of memory
+C-kern/test/testmm.c:678: mresize_testmm(): error: 12: Function aborted
 C-kern/ds/inmem/arraystf.c:525: tryinsert_arraystf(): error: 12: Function aborted
-C-kern/test/testmm.c:675: mresize_testmm(): error: Could not allocate 24 bytes of memory
-C-kern/test/testmm.c:677: mresize_testmm(): error: 12: Function aborted
+C-kern/test/testmm.c:676: mresize_testmm(): error: Could not allocate 24 bytes of memory
+C-kern/test/testmm.c:678: mresize_testmm(): error: 12: Function aborted
 C-kern/ds/inmem/arraystf.c:525: tryinsert_arraystf(): error: 12: Function aborted

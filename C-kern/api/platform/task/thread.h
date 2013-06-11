@@ -40,10 +40,6 @@ typedef struct thread_t                   thread_t ;
  * Defines function type executed by <thread_t>. */
 typedef int                            (* thread_f) (void * main_arg) ;
 
-/* variable: gt_thread
- * Points to own <thread_t> object (current thread self). */
-extern __thread  thread_t                 gt_thread ;
-
 
 // section: Functions
 
@@ -102,24 +98,17 @@ struct thread_t {
    ucontext_t        continuecontext ;
 } ;
 
-// group: initonce
-
-/* function: initonce_thread
- * Calculates some internal offsets, called from <init_maincontext>.
- * It must be called after <valuecache_t> is fully operational
- * The reason is that function <pagesize_vm> needs <valuecache_t>. */
-int initonce_thread(void) ;
-
-/* function: freeonce_thread
- * Does nothing. Called from <free_maincontext>. */
-int freeonce_thread(void) ;
-
 // group: lifetime
 
-/* define: thread_INIT_STATIC
+/* define: thread_INIT_FREEABLE
  * Static initializer.
  * Used to initialize thread in <thread_tls_t>. */
-#define thread_INIT_STATIC                { 0, 0, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, { .uc_link = 0 } }
+#define thread_INIT_FREEABLE              { 0, 0, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, { .uc_link = 0 } }
+
+/* function: initstartup_thread
+ * Initializes main thread. Called from <startup_platform>.
+ * Returns EINVAL if thread is not the main thread. */
+int initstartup_thread(/*out*/thread_t * thread) ;
 
 /* function: new_thread
  * Creates and starts a new system thread.
@@ -144,7 +133,7 @@ int delete_thread(thread_t ** threadobj) ;
 // group: query
 
 /* function: self_thread
- * Returns a pointer to the own thread object. */
+ * Returns a pointer to own <thread_t>. */
 thread_t * self_thread(void) ;
 
 /* function: returncode_thread
@@ -165,7 +154,7 @@ void * mainarg_thread(const thread_t * threadobj) ;
 
 /* function: ismain_thread
  * Returns true if the calling thread is the main thread. */
-bool ismain_thread(void) ;
+bool ismain_thread(const thread_t * thread) ;
 
 // group: update
 
@@ -183,6 +172,10 @@ void unlockflag_thread(thread_t * thread) ;
 /* function: settask_thread
  * Changes values returned by <maintask_thread> and <mainarg_thread>. */
 void settask_thread(thread_t * thread, thread_f main, void * main_arg) ;
+
+/* function: setreturncode_thread
+ * Changes value returned by <returncode_thread>. */
+void setreturncode_thread(thread_t * thread, int retcode) ;
 
 // group: synchronize
 
@@ -271,7 +264,13 @@ int setcontinue_thread(bool * is_abort) ;
 
 /* define: ismain_thread
  * Implements <thread_t.ismain_thread>. */
-#define ismain_thread()                   (gt_thread.tls_addr == 0)
+#define ismain_thread(thread)             \
+         ( __extension__ ({               \
+            volatile const                \
+            thread_t * _thr ;             \
+            _thr = (thread) ;             \
+            (0 == _thr->tls_addr) ;       \
+         }))
 
 /* define: lockflag_thread
  * Implements <thread_t.lockflag_thread>. */
@@ -297,50 +296,81 @@ int setcontinue_thread(bool * is_abort) ;
 
 /* define: maintask_thread
  * Implements <thread_t.maintask_thread>. */
-#define maintask_thread(threadobj)        ((threadobj)->main_task)
+#define maintask_thread(threadobj)        \
+         ( __extension__ ({               \
+            volatile const                \
+            thread_t * _thr ;             \
+            _thr = (threadobj) ;          \
+            _thr->main_task ;             \
+         }))
 
 /* define: mainarg_thread
  * Implements <thread_t.mainarg_thread>. */
-#define mainarg_thread(threadobj)         ((threadobj)->main_arg)
+#define mainarg_thread(threadobj)         \
+         ( __extension__ ({               \
+            volatile const                \
+            thread_t * _thr ;             \
+            _thr = (threadobj) ;          \
+            _thr->main_arg ;              \
+         }))
 
 /* define: returncode_thread
  * Implements <thread_t.returncode_thread>.
  * > (threadobj)->returncode */
-#define returncode_thread(threadobj)      ((threadobj)->returncode)
+#define returncode_thread(threadobj)      \
+         ( __extension__ ({               \
+            volatile const                \
+            thread_t * _thr ;             \
+            _thr = (threadobj) ;          \
+            _thr->returncode ;            \
+         }))
 
 /* define: self_thread
  * Implements <thread_t.self_thread>. */
-#define self_thread()                     (&gt_thread)
+#define self_thread()                     ((thread_t*)(&sys_context_threadtls()[1]))
 
 /* define: setcontinue_thread
  * Implements <thread_t.setcontinue_thread>. */
-#define setcontinue_thread(is_abort)         \
-         ( __extension__ ({                  \
-            gt_thread.returncode = 0 ;       \
-            int _err = getcontext(           \
-               &gt_thread.continuecontext) ; \
-            if (_err) {                      \
-               _err = errno ;                \
-               TRACESYSERR_LOG(              \
-                     "getcontext", _err) ;   \
-            }                                \
-            if (gt_thread.returncode) {      \
-               *(is_abort) = true ;          \
-            } else {                         \
-               *(is_abort) = false ;         \
-            }                                \
-            _err ;                           \
+#define setcontinue_thread(is_abort)      \
+         ( __extension__ ({               \
+            thread_t * _self ;            \
+            _self = self_thread() ;       \
+            setreturncode_thread(         \
+               _self, 0) ;                \
+            int _err = getcontext(        \
+               &_self->continuecontext) ; \
+            if (_err) {                   \
+               _err = errno ;             \
+               TRACESYSERR_LOG(           \
+                  "getcontext", _err) ;   \
+            }                             \
+            if (returncode_thread(        \
+                  _self)) {               \
+               *(is_abort) = true ;       \
+            } else {                      \
+               *(is_abort) = false ;      \
+            }                             \
+            _err ;                        \
          }))
 
 /* define: settask_thread
  * Implements <thread_t.settask_thread>. */
 #define settask_thread(thread, _main, _main_arg)   \
-         ( __extension__ ({                        \
-            typeof(thread) _thread = (thread) ;    \
-            _thread->main_task = (_main) ;         \
-            (void) (                               \
-            _thread->main_arg  = (_main_arg)) ;    \
-         }))
+         do {                                      \
+            volatile typeof(*(thread)) * _thr ;    \
+            _thr = (thread) ;                      \
+            _thr->main_task = (_main) ;            \
+            _thr->main_arg  = (_main_arg) ;        \
+         } while(0)
+
+/* define: setreturncode_thread
+ * Implements <thread_t.setreturncode_thread>. */
+#define setreturncode_thread(thread, retcode)      \
+         do {                                      \
+            volatile typeof(*(thread)) * _thr ;    \
+            _thr = (thread) ;                      \
+            _thr->returncode = (retcode) ;         \
+         } while(0)
 
 /* define: unlockflag_thread
  * Implements <thread_t.unlockflag_thread>. */
@@ -349,16 +379,5 @@ int setcontinue_thread(bool * is_abort) ;
 /* define: yield_thread
  * Implements <thread_t.yield_thread>. */
 #define yield_thread()                    (pthread_yield())
-
-#define KONFIG_thread 1
-#if (!((KONFIG_SUBSYS)&KONFIG_thread))
-/* define: initonce_thread
- * Implement <thread_t.initonce_thread> as noop if !((KONFIG_SUBSYS)&KONFIG_thread) */
-#define initonce_thread()                 (0)
-/* define: freeonce_thread
- * Implement <thread_t.freeonce_thread> as noop if !((KONFIG_SUBSYS)&KONFIG_thread) */
-#define freeonce_thread()                 (0)
-#endif
-#undef KONFIG_thread
 
 #endif

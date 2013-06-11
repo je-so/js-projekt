@@ -720,9 +720,9 @@ static int thread_receivesignal(uintptr_t rtsignr)
 {
    int err ;
    assert(rtsignr) ;
-   assert(self_thread()->main_arg) ;
+   assert(mainarg_thread(self_thread())) ;
    err = wait_rtsignal((rtsignal_t)rtsignr, 1) ;
-   self_thread()->main_arg = 0 ;
+   settask_thread(self_thread(), 0, 0) ;
    assert(0 == send_rtsignal(0)) ;
    return err ;
 }
@@ -732,7 +732,7 @@ static int test_rtsignal(void)
    sigset_t          oldmask ;
    sigset_t          signalmask ;
    thread_t *        group[3]  = { 0, 0, 0 } ;
-   thread_t          * thread  = 0 ;
+   thread_t *        thread    = 0 ;
    bool              isoldmask = false ;
    struct timespec   ts        = { 0, 0 } ;
 
@@ -785,11 +785,12 @@ static int test_rtsignal(void)
 
    // TEST send_rtsignal (order unspecified)
    for (uintptr_t i = 1; i <= maxnr_rtsignal(); ++i) {
+      TEST(EAGAIN == trywait_rtsignal((rtsignal_t)i)) ;
       for (unsigned t = 0; t < lengthof(group); ++t) {
          TEST(0 == newgeneric_thread(&group[t], thread_receivesignal, i)) ;
       }
       for (unsigned t = 0; t < lengthof(group); ++t) {
-         TEST(i == (uintptr_t)group[t]->main_arg) ;
+         TEST(i == (uintptr_t) mainarg_thread(group[t])) ;
       }
       for (unsigned t = 1; t <= lengthof(group); ++t) {
          // wake up one thread
@@ -797,7 +798,7 @@ static int test_rtsignal(void)
          // wait until woken up
          TEST(0 == wait_rtsignal(0, 1)) ;
          for (unsigned t2 = 0; t2 < lengthof(group); ++t2) {
-            if (group[t2] && 0 == group[t2]->main_arg) {
+            if (group[t2] && 0 == mainarg_thread(group[t2])) {
                TEST(0 == delete_thread(&group[t2])) ;
                break ;
             }

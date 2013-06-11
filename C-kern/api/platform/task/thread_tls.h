@@ -77,6 +77,7 @@ int free_threadtls(thread_tls_t * tls) ;
 
 /* function: initstartup_threadtls
  * Same as <init_threadtls> but calls no other functions of C-kern system.
+ * Called from <startup_platform>.
  * Especially no logging is done and no calls to <pagesize_vm> and <initaligned_vmpage> are made. */
 int initstartup_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * threadstack, /*out*/struct memblock_t * signalstack) ;
 
@@ -89,7 +90,7 @@ int freestartup_threadtls(thread_tls_t * tls) ;
 
 /* function: current_threadtls
  * Returns <thread_tls_t> of the current thread.
- * The pointer must point to a local variable on the current stack.
+ * The parameter local_var must point to a local variable on the current stack.
  * The function <sys_context_thread> is identical with context_threadtls(&current_threadtls(&err)).
  * If you change this function change sys_context_thread (and self_thread) also. */
 thread_tls_t current_threadtls(void * local_var) ;
@@ -179,6 +180,6 @@ thread_tls_t * genericcast_threadtls(void * obj, IDNAME nameprefix) ;
 
 /* define: size_threadtls
  * Implements <thread_tls_t.size_threadtls>. */
-#define size_threadtls()                  (65536)
+#define size_threadtls()                  (sys_size_threadtls())
 
 #endif

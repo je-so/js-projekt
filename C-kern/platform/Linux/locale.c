@@ -181,41 +181,42 @@ ONABORT:
 
 static int test_initerror(void)
 {
-   char * old_lcall = getenv("LC_ALL") ? strdup(getenv("LC_ALL")) : 0 ;
+   char old_lcall[100] = { 0 } ;
+
+   if (getenv("LC_ALL")) {
+      strncpy(old_lcall, getenv("LC_ALL"), sizeof(old_lcall)-1) ;
+   }
 
    // TEST setlocale error (consumes memory !)
    TEST(0 == setenv("LC_ALL", "XXX@unknown", 1)) ;
    TEST(EINVAL == initonce_locale()) ;
-   if (old_lcall) {
+   if (old_lcall[0]) {
       TEST(0 == setenv("LC_ALL", old_lcall, 0)) ;
    } else {
       TEST(0 == unsetenv("LC_ALL")) ;
    }
-
-   free(old_lcall) ;
-   old_lcall = 0 ;
 
    return 0 ;
 ONABORT:
-   if (old_lcall) {
-      TEST(0 == setenv("LC_ALL", old_lcall, 0)) ;
+   if (old_lcall[0]) {
+      setenv("LC_ALL", old_lcall, 0) ;
    } else {
-      TEST(0 == unsetenv("LC_ALL")) ;
+      unsetenv("LC_ALL") ;
    }
-   free(old_lcall) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 static int test_initlocale(void)
 {
-   char * lname     = 0 ;
+   char lname[100] = { 0 } ;
 
-   // TEST init, double free
+   // TEST initonce_locale
    TEST(0 == initonce_locale()) ;
    TEST(current_locale()) ;
-   lname = strdup(current_locale() ? current_locale() : "") ;
-   TEST(lname) ;
+   strncpy(lname, current_locale() ? current_locale() : "", sizeof(lname)-1) ;
    TEST(0 != strcmp("C", lname)) ;
+
+   // TEST freeonce_locale
    TEST(0 == freeonce_locale()) ;
    TEST(0 == strcmp("C", current_locale())) ;
    TEST(0 == freeonce_locale()) ;
@@ -227,20 +228,17 @@ static int test_initlocale(void)
    TEST(0 == strcmp(lname, current_locale())) ;
    TEST(0 == freeonce_locale()) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   free(lname) ;
-   lname = 0 ;
 
    return 0 ;
 ONABORT:
-   free(lname) ;
-   return 1 ;
+   return EINVAL ;
 }
 
 int unittest_platform_locale()
 {
-   resourceusage_t    usage         = resourceusage_INIT_FREEABLE ;
-   char             * old_locale    = 0 ;
-   char             * old_msglocale = 0 ;
+   resourceusage_t usage              = resourceusage_INIT_FREEABLE ;
+   char            old_locale[100]    = { 0 } ;
+   char            old_msglocale[100] = { 0 } ;
 
    // changes malloced memory
    if (test_initerror())   goto ONABORT ;
@@ -248,10 +246,8 @@ int unittest_platform_locale()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   old_locale    = strdup(current_locale()) ;
-   TEST(old_locale) ;
-   old_msglocale = strdup(currentmsg_locale()) ;
-   TEST(old_msglocale) ;
+   strncpy(old_locale, current_locale(), sizeof(old_locale)-1) ;
+   strncpy(old_msglocale, currentmsg_locale(), sizeof(old_msglocale)-1) ;
 
    if (test_initerror())   goto ONABORT ;
    if (test_initlocale())  goto ONABORT ;
@@ -262,10 +258,6 @@ int unittest_platform_locale()
    if (0 == strcmp("C", old_msglocale)) {
       TEST(0 == resetmsg_locale()) ;
    }
-   free(old_locale) ;
-   free(old_msglocale) ;
-   old_locale    = 0 ;
-   old_msglocale = 0 ;
 
    // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;
@@ -274,8 +266,6 @@ int unittest_platform_locale()
    return 0 ;
 ONABORT:
    (void) free_resourceusage(&usage) ;
-   free(old_locale) ;
-   free(old_msglocale) ;
    return EINVAL ;
 }
 

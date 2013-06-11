@@ -212,7 +212,7 @@ static int test_iobuffer(void)
    memblock_t *         iobuffer  = 0 ;
    int                  pipefd[2] = { -1, -1 } ;
    process_result_t     result ;
-   char                 buffer[512] ;
+   char                 buffer[1024] ;
 
    // TEST lock / unlock
    TEST(0 == init_objectcacheimpl(&cache)) ;

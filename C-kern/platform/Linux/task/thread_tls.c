@@ -49,7 +49,7 @@ struct thread_vars_t {
 
 /* define: thread_vars_INIT_STATIC
  * Static initializer. Used to initialize all variables of thread locval storage. */
-#define thread_vars_INIT_STATIC           {  threadcontext_INIT_STATIC, thread_INIT_STATIC }
+#define thread_vars_INIT_STATIC           {  threadcontext_INIT_STATIC, thread_INIT_FREEABLE }
 
 
 // section: thread_tls_t
@@ -77,7 +77,8 @@ static inline size_t sizesignalstack_threadtls(const size_t pagesize)
  * The returned value is a multiple of pagesize. */
 static inline size_t sizestack_threadtls(const size_t pagesize)
 {
-   return (2*PTHREAD_STACK_MIN + pagesize - 1) & (~(pagesize-1)) ;
+   static_assert(256*1024 < size_threadtls(), "sys_size_threadtls/size_threadtls is big enough") ;
+   return (256*1024 + pagesize - 1) & (~(pagesize-1)) ;
 }
 
 /* function: sizevars_threadtls
@@ -486,7 +487,7 @@ static int test_query(void)
 
    // TEST current_threadtls
    TEST(current_threadtls(&tls).addr == (uint8_t*) (((uintptr_t)&tls) - ((uintptr_t)&tls) % size_threadtls())) ;
-   for (size_t i = 0; i < 10000*size_threadtls(); i += size_threadtls()) {
+   for (size_t i = 0; i < 1000*size_threadtls(); i += size_threadtls()) {
       TEST((uint8_t*)i == current_threadtls(i).addr) ;
       TEST((uint8_t*)i == current_threadtls(i+1).addr) ;
       TEST((uint8_t*)i == current_threadtls(i+size_threadtls()-1).addr) ;
@@ -512,8 +513,16 @@ static int test_query(void)
       TEST((threadcontext_t*)i == context_threadtls(&tls2)) ;
    }
 
-   // TEST sys_context_thread
-   // TODO: TEST sys_context_thread: same as context_threadtls
+   // TEST sys_context_threadtls
+   TEST(sys_context_threadtls() == context_threadtls(&current_threadtls(&tls))) ;
+
+   // TEST sys_context2_threadtls
+   TEST(sys_context2_threadtls(&tls) == context_threadtls(&current_threadtls(&tls))) ;
+   for (size_t i = 0; i < 1000*size_threadtls(); i += size_threadtls()) {
+      TEST((threadcontext_t*)i == sys_context2_threadtls(i)) ;
+      TEST((threadcontext_t*)i == sys_context2_threadtls(i+1)) ;
+      TEST((threadcontext_t*)i == sys_context2_threadtls(i+size_threadtls()-1)) ;
+   }
 
    return 0 ;
 ONABORT:

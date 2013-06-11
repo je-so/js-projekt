@@ -25,7 +25,7 @@ for i in $files; do
    info2=""
    for((fi=0;fi<${#function_calls[*]};fi=fi+1)) do
       call=`echo "${function_calls[$fi]}" | sed -e 's/[ ]*TRACESYSERR_LOG[ ]*(\([ ]*"[^"]*"\|[^")]*\)*)[ ]*;//' -`
-      call=`echo "$call" | sed -e "s/[ ]*TEST(\(.*\))/\1/" -`
+      call=`echo "$call" | sed -e "s/[ ]*TEST(\(.*\)/\1/" -`
       call=`echo "$call" | sed -e "s/^[0-9<=>! ]*(\(.*\))/\1/" -`
       call=`echo "$call" | sed -e "s/[^(]*([^,]*,[^,)]*O_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
       call=`echo "$call" | sed -e "s/[^(]*eventfd[ ]*([^,]*,[^,)]*EFD_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`

@@ -59,6 +59,11 @@ struct threadcontext_t {
 
 // group: lifetime
 
+/* define: threadcontext_INIT_FREEABLE
+ * Static initializer for <threadcontext_t>. */
+#define threadcontext_INIT_FREEABLE   \
+         { iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0 }
+
 /* define: threadcontext_INIT_STATIC
  * Static initializer for <threadcontext_t>.
  * These initializer ensures that in function main the global log service is available
@@ -79,5 +84,10 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext) ;
  * This function is called from <free_maincontext>. */
 int free_threadcontext(threadcontext_t * tcontext) ;
 
+// group: change
+
+/* function: setmm_threadcontext
+ * Overwrites old mm_t of threadcontext_t with new_mm. */
+void setmm_threadcontext(threadcontext_t * tcontext, struct mm_t * new_mm) ;
 
 #endif

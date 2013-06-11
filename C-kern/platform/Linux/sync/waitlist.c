@@ -114,9 +114,9 @@ int wait_waitlist(waitlist_t * wlist)
    for (;;) {
       suspend_thread() ;
 
-      lockflag_thread(self_thread()) ;
+      lockflag_thread(self) ;
       bool isWakeup = (0 == self->nextwait) ;
-      unlockflag_thread(self_thread()) ;
+      unlockflag_thread(self) ;
 
       if (isWakeup) break ;
       // spurious resume
@@ -367,8 +367,8 @@ static int test_synchronize(void)
    TEST(0 == trywakeup_waitlist(&wlist, (thread_f)1, (void*)2)) ;
    TEST(0 == trysuspend_thread()) ;                   // resumed
    TEST(0 == self_thread()->nextwait) ;               // removed from list
-   TEST(1 == (uintptr_t)self_thread()->main_task) ;   // settask called
-   TEST(2 == (uintptr_t)self_thread()->main_arg) ;    // settask called
+   TEST(1 == (uintptr_t) maintask_thread(self_thread())) ;   // settask called
+   TEST(2 == (uintptr_t) mainarg_thread(self_thread())) ;    // settask called
    TEST(0 == wlist.last) ;       // removed from list
    TEST(0 == wlist.nr_waiting) ; // nr_waiting changed
    TEST(0 == wlist.lockflag) ;
@@ -398,8 +398,8 @@ static int test_synchronize(void)
    TEST(0 == atomicread_int(&s_thread_runcount)) ;
    TEST(0 == trysuspend_thread()) ;                   // resumed
    TEST(0 == self_thread()->nextwait) ;               // resumed
-   TEST(3 == (uintptr_t)self_thread()->main_task) ;   // set
-   TEST(4 == (uintptr_t)self_thread()->main_arg) ;    // set
+   TEST(3 == (uintptr_t) maintask_thread(self_thread())) ;   // settask called
+   TEST(4 == (uintptr_t) mainarg_thread(self_thread())) ;    // settask called
    TEST(0 == wlist.last) ;
    TEST(0 == wlist.nr_waiting) ;
    TEST(0 == wlist.lockflag) ;
@@ -429,8 +429,8 @@ static int test_synchronize(void)
    TEST(0 == atomicread_int(&s_thread_runcount)) ;
    TEST(0 == trysuspend_thread()) ;                   // resumed
    TEST(0 == self_thread()->nextwait) ;               // resumed
-   TEST(3 == (uintptr_t)self_thread()->main_task) ;   // set
-   TEST(4 == (uintptr_t)self_thread()->main_arg) ;    // set
+   TEST(3 == (uintptr_t) maintask_thread(self_thread())) ;   // settask called
+   TEST(4 == (uintptr_t) mainarg_thread(self_thread())) ;    // settask called
    TEST(0 == wlist.last) ;
    TEST(0 == wlist.nr_waiting) ;
    TEST(0 == wlist.lockflag) ;
@@ -448,8 +448,8 @@ static int test_synchronize(void)
    TEST(lengthof(threads) == atomicread_int(&s_thread_runcount)) ;
    for (unsigned i = 0; i < lengthof(threads); ++i) {
       TEST(0 == trywakeup_waitlist(&wlist, (thread_f)i, (void*)i)) ;
-      TEST(i == (uintptr_t)threads[i]->main_task) ;
-      TEST(i == (uintptr_t)threads[i]->main_arg) ;
+      TEST(i == (uintptr_t) maintask_thread(threads[i])) ;
+      TEST(i == (uintptr_t) mainarg_thread(threads[i])) ;
       TEST(0 == join_thread(threads[i])) ;
       TEST(0 == returncode_thread(threads[i])) ;
       TEST(0 == delete_thread(&threads[i])) ;
@@ -472,8 +472,8 @@ static int test_synchronize(void)
    TEST(0 == wlist.lockflag) ;
    // check that all threads have been resumed
    for (unsigned i = 0; i < lengthof(threads); ++i) {
-      TEST(0 == threads[i]->main_task) ;     // cleared in free_waitlist
-      TEST(0 == threads[i]->main_arg) ;      // cleared in free_waitlist
+      TEST(0 == (uintptr_t) maintask_thread(threads[i])) ;   // cleared in free_waitlist
+      TEST(0 == (uintptr_t) mainarg_thread(threads[i])) ;    // cleared in free_waitlist
       TEST(0 == threads[i]->nextwait) ;
       TEST(0 == delete_thread(&threads[i])) ;
    }

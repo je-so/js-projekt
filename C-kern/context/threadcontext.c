@@ -30,6 +30,7 @@
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
+#include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/test/errortimer.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initthread")
 #include "C-kern/api/memory/pagecache_impl.h"
@@ -336,6 +337,13 @@ ONABORT:
    return err ;
 }
 
+// group: change
+
+void setmm_threadcontext(threadcontext_t * tcontext, mm_t * new_mm)
+{
+   initcopy_iobj(&tcontext->mm, new_mm) ;
+}
+
 
 // group: test
 
@@ -486,11 +494,24 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   threadcontext_t   tcontext   = threadcontext_INIT_STATIC ;
+   threadcontext_t   tcontext   = threadcontext_INIT_FREEABLE ;
    const size_t      nrsvc      = 5 ;
    size_t            sizestatic ;
 
+   // TEST threadcontext_INIT_FREEABLE
+   TEST(0 == tcontext.pagecache.object) ;
+   TEST(0 == tcontext.pagecache.iimpl) ;
+   TEST(0 == tcontext.mm.object) ;
+   TEST(0 == tcontext.mm.iimpl) ;
+   TEST(0 == tcontext.syncrun) ;
+   TEST(0 == tcontext.objectcache.object) ;
+   TEST(0 == tcontext.objectcache.iimpl) ;
+   TEST(0 == (logmain_t*)tcontext.log.object) ;
+   TEST(0 == tcontext.log.iimpl) ;
+   TEST(0 == tcontext.initcount) ;
+
    // TEST threadcontext_INIT_STATIC
+   tcontext = (threadcontext_t) threadcontext_INIT_STATIC ;
    TEST(0 == tcontext.pagecache.object) ;
    TEST(0 == tcontext.pagecache.iimpl) ;
    TEST(0 == tcontext.mm.object) ;
@@ -576,6 +597,23 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_change(void)
+{
+   threadcontext_t tcontext = threadcontext_INIT_FREEABLE ;
+
+   // TEST setmm_threadcontext
+   setmm_threadcontext(&tcontext, &(mm_t) iobj_INIT((void*)1, (void*)2)) ;
+   TEST(tcontext.mm.object == (mm_t*)1) ;
+   TEST(tcontext.mm.iimpl  == (mm_it*)2) ;
+   setmm_threadcontext(&tcontext, &(mm_t) iobj_INIT(0, 0)) ;
+   TEST(tcontext.mm.object == 0) ;
+   TEST(tcontext.mm.iimpl  == 0) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 int unittest_context_threadcontext()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -585,6 +623,7 @@ int unittest_context_threadcontext()
    if (test_iobjhelper())  goto ONABORT ;
    if (test_objhelper())   goto ONABORT ;
    if (test_initfree())    goto ONABORT ;
+   if (test_change())      goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

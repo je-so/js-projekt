@@ -281,6 +281,8 @@ int unittest_memory_mm_mmimpl()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
+   if (test_allocate())    goto ONABORT ;
+
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())    goto ONABORT ;

@@ -38,6 +38,7 @@
 #include "C-kern/api/test/testmm.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/task/thread.h"
+#include "C-kern/api/platform/task/thread_tls.h"
 #endif
 
 
@@ -66,11 +67,6 @@
  * Reserve space for the global main context. */
 maincontext_t              g_maincontext  = {
    processcontext_INIT_STATIC,
-#define KONFIG_thread 1
-#if ((KONFIG_SUBSYS&KONFIG_thread) == 0)
-   threadcontext_INIT_STATIC,
-#endif
-#undef KONFIG_thread
    maincontext_STATIC,
    0,
    0,
@@ -123,7 +119,7 @@ int free_maincontext(void)
    int is_initialized = (maincontext_STATIC != type_maincontext()) ;
 
    if (is_initialized) {
-      err = free_threadcontext(&thread_maincontext()) ;
+      err = free_threadcontext(tcontext_maincontext()) ;
 
       err2 = free_processcontext(&g_maincontext.pcontext) ;
       if (err2) err = err2 ;
@@ -177,7 +173,7 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
 
-   err = init_threadcontext(&thread_maincontext()) ;
+   err = init_threadcontext(tcontext_maincontext()) ;
    if (err) goto ONABORT ;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
@@ -267,14 +263,14 @@ static int test_initmain(void)
 
    // TEST static type
    TEST(0 == type_maincontext()) ;
-   TEST(0 == process_maincontext().initcount) ;
-   TEST(0 == process_maincontext().valuecache) ;
-   TEST(0 == process_maincontext().sysuser) ;
-   TEST(0 == thread_maincontext().initcount) ;
-   TEST(&g_logmain == (logmain_t*)thread_maincontext().log.object) ;
-   TEST(&g_logmain_interface == thread_maincontext().log.iimpl) ;
-   TEST(0 == thread_maincontext().objectcache.object) ;
-   TEST(0 == thread_maincontext().objectcache.iimpl) ;
+   TEST(0 == pcontext_maincontext().initcount) ;
+   TEST(0 == pcontext_maincontext().valuecache) ;
+   TEST(0 == pcontext_maincontext().sysuser) ;
+   TEST(0 == tcontext_maincontext()->initcount) ;
+   TEST(&g_logmain == (logmain_t*)tcontext_maincontext()->log.object) ;
+   TEST(&g_logmain_interface == tcontext_maincontext()->log.iimpl) ;
+   TEST(0 == tcontext_maincontext()->objectcache.object) ;
+   TEST(0 == tcontext_maincontext()->objectcache.iimpl) ;
 
    // TEST EINVAL
    TEST(0      == maincontext_STATIC) ;
@@ -290,16 +286,16 @@ static int test_initmain(void)
    TEST(2       == g_maincontext.argc) ;
    TEST(argv    == g_maincontext.argv) ;
    TEST(argv[0] == progname_maincontext()) ;
-   TEST(0 != process_maincontext().valuecache) ;
-   TEST(0 != process_maincontext().sysuser) ;
-   TEST(0 != thread_maincontext().initcount) ;
-   TEST(0 != thread_maincontext().log.object) ;
-   TEST(0 != thread_maincontext().log.iimpl) ;
-   TEST(0 != thread_maincontext().objectcache.object) ;
-   TEST(0 != thread_maincontext().objectcache.iimpl) ;
+   TEST(0 != pcontext_maincontext().valuecache) ;
+   TEST(0 != pcontext_maincontext().sysuser) ;
+   TEST(0 != tcontext_maincontext()->initcount) ;
+   TEST(0 != tcontext_maincontext()->log.object) ;
+   TEST(0 != tcontext_maincontext()->log.iimpl) ;
+   TEST(0 != tcontext_maincontext()->objectcache.object) ;
+   TEST(0 != tcontext_maincontext()->objectcache.iimpl) ;
    TEST(0 != strcmp("C", current_locale())) ;
-   TEST(thread_maincontext().log.object != (struct log_t*)&g_logmain) ;
-   TEST(thread_maincontext().log.iimpl  != &g_logmain_interface) ;
+   TEST(tcontext_maincontext()->log.object != (struct log_t*)&g_logmain) ;
+   TEST(tcontext_maincontext()->log.iimpl  != &g_logmain_interface) ;
 
    // TEST free_maincontext
    TEST(0 == free_maincontext()) ;
@@ -307,27 +303,27 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.argc) ;
    TEST(0 == g_maincontext.argv) ;
    TEST(0 == progname_maincontext()) ;
-   TEST(0 == process_maincontext().valuecache) ;
-   TEST(0 == process_maincontext().sysuser) ;
+   TEST(0 == pcontext_maincontext().valuecache) ;
+   TEST(0 == pcontext_maincontext().sysuser) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(thread_maincontext().initcount  == 0) ;
-   TEST(thread_maincontext().log.object == (struct log_t*)&g_logmain) ;
-   TEST(thread_maincontext().log.iimpl  == &g_logmain_interface) ;
-   TEST(thread_maincontext().objectcache.object == 0) ;
-   TEST(thread_maincontext().objectcache.iimpl  == 0) ;
+   TEST(tcontext_maincontext()->initcount  == 0) ;
+   TEST(tcontext_maincontext()->log.object == (struct log_t*)&g_logmain) ;
+   TEST(tcontext_maincontext()->log.iimpl  == &g_logmain_interface) ;
+   TEST(tcontext_maincontext()->objectcache.object == 0) ;
+   TEST(tcontext_maincontext()->objectcache.iimpl  == 0) ;
    TEST(0 == free_maincontext()) ;
    TEST(0 == type_maincontext()) ;
    TEST(0 == g_maincontext.argc) ;
    TEST(0 == g_maincontext.argv) ;
    TEST(0 == progname_maincontext()) ;
-   TEST(0 == process_maincontext().valuecache) ;
-   TEST(0 == process_maincontext().sysuser) ;
+   TEST(0 == pcontext_maincontext().valuecache) ;
+   TEST(0 == pcontext_maincontext().sysuser) ;
    TEST(0 == strcmp("C", current_locale())) ;
-   TEST(thread_maincontext().initcount  == 0) ;
-   TEST(thread_maincontext().log.object == (struct log_t*)&g_logmain) ;
-   TEST(thread_maincontext().log.iimpl  == &g_logmain_interface) ;
-   TEST(thread_maincontext().objectcache.object == 0) ;
-   TEST(thread_maincontext().objectcache.iimpl  == 0) ;
+   TEST(tcontext_maincontext()->initcount  == 0) ;
+   TEST(tcontext_maincontext()->log.object == (struct log_t*)&g_logmain) ;
+   TEST(tcontext_maincontext()->log.iimpl  == &g_logmain_interface) ;
+   TEST(tcontext_maincontext()->objectcache.object == 0) ;
+   TEST(tcontext_maincontext()->objectcache.iimpl  == 0) ;
 
    // TEST free_maincontext: ENOTEMPTY
    g_maincontext.type = maincontext_DEFAULT ;
@@ -338,14 +334,14 @@ static int test_initmain(void)
 
    // TEST static type has not changed
    TEST(0 == type_maincontext()) ;
-   TEST(0 == process_maincontext().initcount) ;
-   TEST(0 == process_maincontext().valuecache) ;
-   TEST(0 == process_maincontext().sysuser) ;
-   TEST(0 == thread_maincontext().initcount) ;
-   TEST(thread_maincontext().log.object == (struct log_t*)&g_logmain) ;
-   TEST(thread_maincontext().log.iimpl  == &g_logmain_interface) ;
-   TEST(0 == thread_maincontext().objectcache.object) ;
-   TEST(0 == thread_maincontext().objectcache.iimpl) ;
+   TEST(0 == pcontext_maincontext().initcount) ;
+   TEST(0 == pcontext_maincontext().valuecache) ;
+   TEST(0 == pcontext_maincontext().sysuser) ;
+   TEST(0 == tcontext_maincontext()->initcount) ;
+   TEST(tcontext_maincontext()->log.object == (struct log_t*)&g_logmain) ;
+   TEST(tcontext_maincontext()->log.iimpl  == &g_logmain_interface) ;
+   TEST(0 == tcontext_maincontext()->objectcache.object) ;
+   TEST(0 == tcontext_maincontext()->objectcache.iimpl) ;
 
    FLUSHBUFFER_LOG() ;
    char buffer[4096] = { 0 };
@@ -373,42 +369,39 @@ ONABORT:
 static int test_querymacros(void)
 {
    // TEST blockmap_maincontext
-   TEST(&process_maincontext().blockmap   == &blockmap_maincontext()) ;
+   TEST(&pcontext_maincontext().blockmap     == &blockmap_maincontext()) ;
 
    // TEST error_maincontext
-   TEST(&process_maincontext().error      == &error_maincontext()) ;
+   TEST(&pcontext_maincontext().error        == &error_maincontext()) ;
 
    // TEST log_maincontext
-   TEST(&thread_maincontext().log         == &log_maincontext()) ;
+   TEST(&tcontext_maincontext()->log         == &log_maincontext()) ;
 
    // TEST log_maincontext
-   TEST(&thread_maincontext().objectcache == &objectcache_maincontext()) ;
+   TEST(&tcontext_maincontext()->objectcache == &objectcache_maincontext()) ;
 
    // TEST pagecache_maincontext
-   TEST(&thread_maincontext().pagecache   == &pagecache_maincontext()) ;
+   TEST(&tcontext_maincontext()->pagecache   == &pagecache_maincontext()) ;
 
-   // TEST process_maincontext
-   TEST(&g_maincontext.pcontext           == &process_maincontext()) ;
+   // TEST pcontext_maincontext
+   TEST(&g_maincontext.pcontext              == &pcontext_maincontext()) ;
 
    // TEST sysuser_maincontext
-   TEST(&process_maincontext().sysuser    == &sysuser_maincontext()) ;
+   TEST(&pcontext_maincontext().sysuser      == &sysuser_maincontext()) ;
 
    // TEST syncrun_maincontext
-   TEST(&thread_maincontext().syncrun     == &syncrun_maincontext()) ;
+   TEST(&tcontext_maincontext()->syncrun     == &syncrun_maincontext()) ;
 
-#define KONFIG_thread 1
-#if (!((KONFIG_SUBSYS)&KONFIG_thread))
-   TEST(&g_maincontext.tcontext           == &thread_maincontext()) ;
-#else
-   TEST(&gt_threadcontext                 == &thread_maincontext()) ;
-#endif
-#undef KONFIG_thread
+   thread_tls_t tls ;
+   tls = current_threadtls(&tls) ;
+
+   TEST(context_threadtls(&tls)              == tcontext_maincontext()) ;
 
    // TEST type_maincontext
-   TEST(&g_maincontext.type               == &type_maincontext()) ;
+   TEST(&g_maincontext.type                  == &type_maincontext()) ;
 
    // TEST valuecache_maincontext
-   TEST(&process_maincontext().valuecache == &valuecache_maincontext()) ;
+   TEST(&pcontext_maincontext().valuecache   == &valuecache_maincontext()) ;
 
    return 0 ;
 ONABORT:
@@ -437,13 +430,13 @@ static int test_initerror(void)
    for (int i = 1; i <= 3; ++i) {
       init_testerrortimer(&s_maincontext_errtimer, (unsigned)i, EINVAL+i) ;
       TEST(EINVAL+i == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
-      TEST(0 == process_maincontext().initcount) ;
+      TEST(0 == pcontext_maincontext().initcount) ;
       TEST(maincontext_STATIC == type_maincontext()) ;
-      TEST(0 == thread_maincontext().initcount) ;
-      TEST(thread_maincontext().log.object == (struct log_t*)&g_logmain) ;
-      TEST(thread_maincontext().log.iimpl  == &g_logmain_interface) ;
-      TEST(0 == thread_maincontext().objectcache.object) ;
-      TEST(0 == thread_maincontext().objectcache.iimpl) ;
+      TEST(0 == tcontext_maincontext()->initcount) ;
+      TEST(tcontext_maincontext()->log.object == (struct log_t*)&g_logmain) ;
+      TEST(tcontext_maincontext()->log.iimpl  == &g_logmain_interface) ;
+      TEST(0 == tcontext_maincontext()->objectcache.object) ;
+      TEST(0 == tcontext_maincontext()->objectcache.iimpl) ;
    }
 
    FLUSHBUFFER_LOG() ;
@@ -451,7 +444,7 @@ static int test_initerror(void)
    TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
    TEST(0 == init_maincontext(old_context.type ? old_context.type : maincontext_DEFAULT, old_context.argc, old_context.argv )) ;
-   TEST(0 != process_maincontext().initcount) ;
+   TEST(0 != pcontext_maincontext().initcount) ;
 
    TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
    TEST(0 == free_file(&fd_stderr)) ;

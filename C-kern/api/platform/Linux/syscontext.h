@@ -28,27 +28,50 @@
 // forward
 struct threadcontext_t ;
 
-/* variable: gt_threadcontext
- * Refers for every thread to corresponding <threadcontext_t> object.
- * Is is located on the thread stack so no heap memory is allocated.
- * This variable is defined in <Thread Linux>. */
-extern __thread struct threadcontext_t    gt_threadcontext ;
 
+// struct: thread_tls_t
+struct thread_tls_t ;
 
-// struct: thread_t
-
-/* function: sys_context_thread
+/* function: sys_context_threadtls
  * Returns the <threadcontext_t> of the current thread.
- * This function is called from all other <threadcontext_t> returning functions. */
-/*ref*/ struct threadcontext_t  sys_context_thread(void) ;
+ * This function is called from all other functions using <threadcontext_t>. */
+struct threadcontext_t * sys_context_threadtls(void) ;
 
+/* function: sys_context2_threadtls
+ * Returns the <threadcontext_t> of the current thread.
+ * The parameter local_var must point to a local variable on the current stack.
+ * This function is called from <sys_context_threadtls>. */
+struct threadcontext_t * sys_context2_threadtls(void * local_var) ;
+
+/* function: sys_size_threadtls
+ * Returns the size in bytes of the thread local storage.
+ * This size is reserved for every created thread and the main thread.
+ * The size includes the stack and the signal stack size. */
+size_t sys_size_threadtls(void) ;
 
 
 // section: inline implementation
 
-/* define: sys_context_thread
- * Implements <thread_t.sys_context_thread>. */
-#define sys_context_thread()              (gt_threadcontext)
+/* define: sys_context_threadtls
+ * Implements <thread_tls_t.sys_context_threadtls>. */
+#define sys_context_threadtls()           \
+         ( __extension__ ({               \
+            int _addr ;                   \
+            sys_context2_threadtls(       \
+               &_addr) ;                  \
+         }))
 
+/* define: sys_context2_threadtls
+ * Implements <thread_tls_t.sys_context2_threadtls>. */
+#define sys_context2_threadtls(local_var) \
+         (threadcontext_t*) (             \
+            (uintptr_t)(local_var)        \
+            & ~(uintptr_t)                \
+               (sys_size_threadtls()-1)   \
+         )
+
+/* define: sys_size_threadtls
+ * Implements <thread_tls_t.sys_size_threadtls>. */
+#define sys_size_threadtls()              (512*1024)
 
 #endif

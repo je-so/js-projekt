@@ -1,5 +1,5 @@
-C-kern/platform/Linux/task/thread_tls.c:156: init_threadtls(): error: 12: Function aborted
-C-kern/platform/Linux/task/thread_tls.c:156: init_threadtls(): error: 12: Function aborted
-C-kern/platform/Linux/task/thread_tls.c:156: init_threadtls(): error: 12: Function aborted
-C-kern/platform/Linux/task/thread_tls.c:156: init_threadtls(): error: 12: Function aborted
-C-kern/platform/Linux/task/thread_tls.c:177: free_threadtls(): error: 22: Freeing a resource returned an error
+C-kern/platform/Linux/task/thread_tls.c:157: init_threadtls(): error: 12: Function aborted
+C-kern/platform/Linux/task/thread_tls.c:157: init_threadtls(): error: 12: Function aborted
+C-kern/platform/Linux/task/thread_tls.c:157: init_threadtls(): error: 12: Function aborted
+C-kern/platform/Linux/task/thread_tls.c:157: init_threadtls(): error: 12: Function aborted
+C-kern/platform/Linux/task/thread_tls.c:178: free_threadtls(): error: 22: Freeing a resource returned an error

@@ -441,9 +441,10 @@ testmm_t * mmcontext_testmm(void)
 int switchon_testmm()
 {
    int  err ;
-   mm_t testmm = mm_INIT_FREEABLE ;
+   mm_t              testmm   = mm_INIT_FREEABLE ;
+   threadcontext_t * tcontext = tcontext_maincontext() ;
 
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
+   if (genericcast_mmit(&s_testmm_interface, testmm_t) != tcontext->mm.iimpl) {
       memblock_t  previous_mm = memblock_INIT_FREEABLE ;
 
       err = initasmm_testmm(&testmm) ;
@@ -452,8 +453,8 @@ int switchon_testmm()
       err = mresize_mm(testmm, sizeof(mm_t), &previous_mm) ;
       if (err) goto ONABORT ;
 
-      initcopy_iobj((mm_t*)previous_mm.addr, &mm_maincontext()) ;
-      initcopy_iobj(&mm_maincontext(), &testmm) ;
+      initcopy_iobj((mm_t*)previous_mm.addr, &tcontext->mm) ;
+      setmm_threadcontext(tcontext, &testmm) ;
    }
 
    return 0 ;

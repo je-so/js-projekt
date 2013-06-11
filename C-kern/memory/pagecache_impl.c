@@ -210,7 +210,7 @@ static inline pagecache_block_t * at_pagecacheblockmap(pagecache_blockmap_t * bl
    blockentry = (pagecache_block_t *) (blockmap->array_addr + sizeof(pagecache_block_t) * idx) ;
 
    if (  idx >= blockmap->array_len
-         || &thread_maincontext() != (threadcontext_t*)atomicread_int((uintptr_t*)&blockentry->threadcontext)) {
+         || tcontext_maincontext() != (threadcontext_t*)atomicread_int((uintptr_t*)&blockentry->threadcontext)) {
       goto ONABORT ;
    }
 
@@ -230,7 +230,7 @@ static inline int assign_pagecacheblockmap(pagecache_blockmap_t * blockmap, cons
    blockentry = (pagecache_block_t *) (blockmap->array_addr + sizeof(pagecache_block_t) * idx) ;
 
    if (  idx >= blockmap->array_len
-         || 0 != atomicswap_int((uintptr_t*)&blockentry->threadcontext, 0, (uintptr_t)&thread_maincontext())) {
+         || 0 != atomicswap_int((uintptr_t*)&blockentry->threadcontext, 0, (uintptr_t)tcontext_maincontext())) {
       err = ENOMEM ;
       goto ONABORT ;
    }
@@ -820,7 +820,7 @@ static int test_blockmap(void)
       pagecache_block_t * block = (pagecache_block_t *) (blockmap.array_addr + sizeof(pagecache_block_t) * i) ;
       TEST(0 == at_pagecacheblockmap(&blockmap, i)) ;
       TEST(0 == block->threadcontext) ;
-      block->threadcontext = &thread_maincontext() ;  // allocation marker
+      block->threadcontext = tcontext_maincontext() ;  // allocation marker
       TEST(block == at_pagecacheblockmap(&blockmap, i)) ;
       TEST(block == at_pagecacheblockmap(&blockmap, i + (blockmap.indexmask+1))) ;
    }
@@ -836,12 +836,12 @@ static int test_blockmap(void)
       pagecache_block_t *  block2 = 0 ;
       TEST(0 == block->threadcontext) ;
       TEST(0 == assign_pagecacheblockmap(&blockmap, i, &block2)) ;
-      TEST(block->threadcontext == &thread_maincontext()) ;    // allocation marker set
+      TEST(block->threadcontext == tcontext_maincontext()) ;    // allocation marker set
       TEST(block == block2) ;
       clear_pagecacheblockmap(&blockmap, block) ;
       TEST(0 == block->threadcontext) ;
       TEST(0 == assign_pagecacheblockmap(&blockmap, i + (blockmap.indexmask+1), &block2)) ;
-      TEST(block->threadcontext == &thread_maincontext()) ;    // allocation marker set
+      TEST(block->threadcontext == tcontext_maincontext()) ;    // allocation marker set
       TEST(block == block2) ;
       TEST(ENOMEM == assign_pagecacheblockmap(&blockmap, i, 0/*not used*/)) ; // already marked
    }
@@ -877,7 +877,7 @@ static int test_block(void)
       TEST(0 == new_pagecacheblock(&block[i], i, &blockmap)) ;
       TEST(1 == ismapped_vm(&block[i]->pageblock, accessmode_RDWR_PRIVATE)) ;
       TEST(0 != block[i]) ;
-      TEST(block[i]->threadcontext == &thread_maincontext()) ;
+      TEST(block[i]->threadcontext == tcontext_maincontext()) ;
       TEST(0 == ((uintptr_t)block[i]->pageblock.addr % pagecache_block_BLOCKSIZE)) ;
       TEST(0 == block[i]->pageblock.size - pagecache_block_BLOCKSIZE) ;
       TEST(0 != block[i]->freepagelist.last) ;

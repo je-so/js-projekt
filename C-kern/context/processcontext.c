@@ -35,7 +35,6 @@
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/memory/pagecache_impl.h"
-#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/X11/x11.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
@@ -136,12 +135,6 @@ static int inithelper3_processcontext(processcontext_t * pcontext)
 static int inithelper7_processcontext(processcontext_t * pcontext)
 {
    (void) pcontext ;
-   return initonce_thread() ;
-}
-
-static int inithelper8_processcontext(processcontext_t * pcontext)
-{
-   (void) pcontext ;
    return initonce_X11() ;
 }
 // TEXTDB:END
@@ -191,12 +184,6 @@ static int freehelper3_processcontext(processcontext_t * pcontext)
 }
 
 static int freehelper7_processcontext(processcontext_t * pcontext)
-{
-   (void) pcontext ;
-   return freeonce_thread() ;
-}
-
-static int freehelper8_processcontext(processcontext_t * pcontext)
 {
    (void) pcontext ;
    return freeonce_X11() ;
@@ -266,11 +253,6 @@ int init_processcontext(/*out*/processcontext_t * pcontext)
    err = inithelper7_processcontext(pcontext) ;
    if (err) goto ONABORT ;
    ++ pcontext->initcount ;
-
-   ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
-   err = inithelper8_processcontext(pcontext) ;
-   if (err) goto ONABORT ;
-   ++ pcontext->initcount ;
 // TEXTDB:END
 
    ONERROR_testerrortimer(&s_processcontext_errtimer, ONABORT) ;
@@ -293,9 +275,6 @@ int free_processcontext(processcontext_t * pcontext)
    default: assert(false && "initcount out of bounds")  ;
             break ;
 // TEXTDB:SELECT(\n"   case "row-id":  err2 = freehelper"row-id"_processcontext(pcontext) ;"\n"            if (err2) err = err2 ;")FROM("C-kern/resource/config/initprocess")DESCENDING
-
-   case 8:  err2 = freehelper8_processcontext(pcontext) ;
-            if (err2) err = err2 ;
 
    case 7:  err2 = freehelper7_processcontext(pcontext) ;
             if (err2) err = err2 ;
@@ -339,7 +318,7 @@ ONABORT:
 static int test_initfree(void)
 {
    processcontext_t  pcontext = processcontext_INIT_STATIC ;
-   const uint16_t    I        = 8 ;
+   const uint16_t    I        = 7 ;
 
    // TEST processcontext_INIT_STATIC
    TEST(0 == pcontext.valuecache) ;
