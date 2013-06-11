@@ -159,85 +159,88 @@ stringstream_t * genericcast_stringstream(void * strstream) ;
 /* define: findbyte_stringstream
  * Implements <stringstream_t.findbyte_stringstream>. */
 #define findbyte_stringstream(strstream, byte)                       \
-   ( __extension__({                                                 \
-      typeof(strstream) _strstream = (strstream) ;                   \
-      memchr(next_stringstream(_strstream), (uint8_t)(byte),         \
-             size_stringstream(_strstream)) ;                        \
-   }))
+         ( __extension__({                                           \
+            typeof(strstream) _strstream = (strstream) ;             \
+            memchr(next_stringstream(_strstream), (uint8_t)(byte),   \
+                   size_stringstream(_strstream)) ;                  \
+         }))
 
 /* define: free_stringstream
  * Implements <stringstream_t.free_stringstream>. */
-#define free_stringstream(strstream)               ((void)(*(strstream) = (stringstream_t) stringstream_INIT_FREEABLE))
+#define free_stringstream(strstream)   \
+         ((void)(*(strstream) = (stringstream_t) stringstream_INIT_FREEABLE))
 
 /* define: genericcast_stringstream
  * Implements <stringstream_t.genericcast_stringstream>. */
 #define genericcast_stringstream(strstream)                          \
-   ( __extension__({                                                 \
-      typeof(strstream) _obj = (strstream) ;                         \
-      static_assert(                                                 \
-         ((uint8_t*)&_obj->end) - ((uint8_t*)&_obj->next)            \
-         == offsetof(stringstream_t, end)                            \
-         && sizeof(_obj->next) == sizeof(void*)                      \
-         && sizeof(_obj->end) == sizeof(void*),                      \
-         "member next and member end in that order") ;               \
-      if (0) {                                                       \
-         volatile uint8_t _err1 ;                                    \
-         volatile uint8_t _err2 ;                                    \
-         _err1 = _obj->next[0] ;                                     \
-         _err2 = _obj->end[0] ;                                      \
-         (void) (_err1 + _err2) ;                                    \
-      }                                                              \
-      (stringstream_t*)(&_obj->next) ;                               \
-   }))
+         ( __extension__({                                           \
+            typeof(strstream) _obj = (strstream) ;                   \
+            static_assert(                                           \
+               ((uint8_t*)&_obj->end) - ((uint8_t*)&_obj->next)      \
+               == offsetof(stringstream_t, end)                      \
+               && sizeof(_obj->next) == sizeof(void*)                \
+               && sizeof(_obj->end) == sizeof(void*),                \
+               "member next and member end in that order") ;         \
+            if (0) {                                                 \
+               volatile uint8_t _b1 ;                                \
+               volatile uint8_t _b2 ;                                \
+               _b1 = _obj->next[0] ;                                 \
+               _b2 = _obj->end[0] ;                                  \
+               (void) (_b1 + _b2) ;                                  \
+            }                                                        \
+            (stringstream_t*)(&_obj->next) ;                         \
+         }))
 
 /* define: isnext_stringstream
  * Implements <stringstream_t.isnext_stringstream>. */
 #define isnext_stringstream(strstream)                               \
-   ( __extension__({                                                 \
-      typeof(strstream) _strstream = (strstream) ;                   \
-      (_strstream->next < _strstream->end) ;                         \
-   }))
+         ( __extension__({                                           \
+            typeof(strstream) _strstream = (strstream) ;             \
+            (_strstream->next < _strstream->end) ;                   \
+         }))
 
 /* define: nextbyte_stringstream
  * Implements <stringstream_t.nextbyte_stringstream>. */
 #define nextbyte_stringstream(strstream)                             \
-      (*((strstream)->next ++))                                      \
+         (*((strstream)->next ++))                                   \
 
 /* define: skipbyte_stringstream
  * Implements <stringstream_t.skipbyte_stringstream>. */
 #define skipbyte_stringstream(strstream)                             \
-   do {                                                              \
-      ++ (strstream)->next ;                                         \
-   } while(0)
+         do {                                                        \
+            ++ (strstream)->next ;                                   \
+         } while(0)
 
 /* define: skipbytes_stringstream
  * Implements <stringstream_t.skipbytes_stringstream>. */
 #define skipbytes_stringstream(strstream, size)                      \
-   do {                                                              \
-      (strstream)->next += (size) ;                                  \
-   } while(0)
+         do {                                                        \
+            (strstream)->next += (size) ;                            \
+         } while(0)
 
 /* define: tryskipbytes_stringstream
  * Implements <stringstream_t.tryskipbytes_stringstream>. */
 #define tryskipbytes_stringstream(strstream, size)                   \
-   ( __extension__ ({                                                \
-      typeof(strstream) _strstream = (strstream) ;                   \
-      size_t _size = (size) ;                                        \
-      int    _err  = (size_t) (_strstream->end                       \
-                               - _strstream->next)                   \
-                     < _size ;                                       \
-      if (!_err) {                                                   \
-         (_strstream)->next += _size ;                               \
-      }                                                              \
-      (_err ? EINVAL : 0) ;                                          \
-   }))
+         ( __extension__ ({                                          \
+            typeof(strstream) _strstream = (strstream) ;             \
+            size_t _size = (size) ;                                  \
+            int    _err  = (size_t) (_strstream->end                 \
+                                     - _strstream->next)             \
+                           < _size ;                                 \
+            if (!_err) {                                             \
+               (_strstream)->next += _size ;                         \
+            }                                                        \
+            (_err ? EINVAL : 0) ;                                    \
+         }))
 
 /* define: size_stringstream
  * Implements <stringstream_t.size_stringstream>. */
-#define size_stringstream(strstream)               ((size_t)((strstream)->end - (strstream)->next))
+#define size_stringstream(strstream)   \
+         ((size_t)((strstream)->end - (strstream)->next))
 
 /* define: next_stringstream
  * Implements <stringstream_t.next_stringstream>. */
-#define next_stringstream(strstream)               ((strstream)->next)
+#define next_stringstream(strstream)   \
+         ((strstream)->next)
 
 #endif

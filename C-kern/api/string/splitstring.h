@@ -121,7 +121,7 @@ void setsize_splitstring(splitstring_t * spstr, uint8_t stridx, size_t stringsiz
 
 /* function: free_splitstring
  * Implements <splitstring_t.free_splitstring>. */
-#define free_splitstring(spstr)                 \
+#define free_splitstring(spstr)           \
          ((void)(*(spstr) = (splitstring_t) splitstring_INIT_FREEABLE))
 
 /* function: addr_splitstring
@@ -136,7 +136,7 @@ void setsize_splitstring(splitstring_t * spstr, uint8_t stridx, size_t stringsiz
 
 /* function: nrofparts_splitstring
  * Implements <splitstring_t.nrofparts_splitstring>. */
-#define nrofparts_splitstring(spstr)          \
+#define nrofparts_splitstring(spstr)      \
          ((uint8_t)((spstr)->nrofparts))
 
 /* function: setnrofparts_splitstring

@@ -89,25 +89,17 @@ unsigned makepowerof2_int(unsigned i) ;
             /* long long maximum support */                             \
             static_assert( sizeof(i) <= sizeof(long long), ) ;          \
             _int _i = (i) ;                                             \
-            if (     !ispowerof2_int(_i)                                \
+            if (  !ispowerof2_int(_i)                                   \
                   && _i < (_int) (_i << 1) ) {                          \
                _i = (_int) (_i << 1) ;                                  \
-               if (  sizeof(unsigned) == 4                              \
-                  && sizeof(unsigned) >= sizeof(i)) {                   \
-                  static_assert( 4 == sizeof(unsigned), ) ;             \
-                  _i = (_int)((1u << (31*(4 == sizeof(unsigned))))      \
-                               >> __builtin_clzl((unsigned)_i)) ;       \
-               } else if (    sizeof(long) == 8                         \
-                         &&   sizeof(long) >= sizeof(i)) {              \
-                  _i = (_int)((1ul << (63*(8 == sizeof(long))))         \
+               if (sizeof(unsigned) >= sizeof(i)) {                     \
+                  _i = (_int)((1u << (bitsof(unsigned)-1))              \
+                               >> __builtin_clz((unsigned)_i)) ;        \
+               } else if (sizeof(long) >= sizeof(i)) {                  \
+                  _i = (_int)((1ul << (bitsof(unsigned long)-1))        \
                                >> __builtin_clzl((unsigned long)_i)) ;  \
-               } else if (sizeof(long long) == 8) {                     \
-                  static_assert( 8 <= sizeof(long long), ) ;            \
-                  _i = (_int)((1ull << (63*(8 == sizeof(long long))))   \
-                               >> __builtin_clzll(_i)) ;                \
-               } else if (sizeof(long long) == 16) {                    \
-                  static_assert( 16 >= sizeof(long long), ) ;           \
-                  _i = (_int)((1ull << (127*(16 == sizeof(long long)))) \
+               } else {                                                 \
+                  _i = (_int)((1ull << (bitsof(unsigned long long)-1))  \
                                >> __builtin_clzll(_i)) ;                \
                }                                                        \
             }                                                           \

@@ -6,6 +6,8 @@
 
    Do not forget to include <FileReader> before calling some of the functions.
 
+   // TODO: change interface of utf8scanner_t / make it support characters split between buffers
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -31,7 +33,6 @@
 #define CKERN_LANG_UTF8SCANNER_HEADER
 
 #include "C-kern/api/string/splitstring.h"
-#include "C-kern/api/string/utf8.h"
 
 // forward
 struct filereader_t ;
@@ -70,10 +71,10 @@ int unittest_lang_utf8scanner(void) ;
 struct utf8scanner_t {
    /* variable: next
     * Points to the next byte returned from <nextbyte_utf8scanner>. */
-   const uint8_t     * next ;
+   const uint8_t *   next ;
    /* variable: end
     * As long as <next> is lower than <end> there are more bytes to read. */
-   const uint8_t     * end ;
+   const uint8_t *   end ;
    /* variable: scanned_token
     * Stores the begin and length of a string of a recognized token.
     * The token string can be scattered across two buffers. */

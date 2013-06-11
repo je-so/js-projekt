@@ -30,9 +30,9 @@
 #if !defined(KONFIG_MEMALIGN) || (KONFIG_MEMALIGN < 1) || (KONFIG_MEMALIGN > 32) || ((KONFIG_MEMALIGN-1)&KONFIG_MEMALIGN)
 #define de 1
 #if (KONFIG_LANG==de)
-#   error Setze KONFIG_MEMALIGN auf einen Wert aus [1,4,8,16,32]
+#   error Setze KONFIG_MEMALIGN auf einen Wert aus [2,4,8,16,32]
 #else
-#   error Choose KONFIG_MEMALIGN from the set of supported values [1,4,8,16,32]
+#   error Choose KONFIG_MEMALIGN from the set of supported values [2,4,8,16,32]
 #endif
 #undef de
 #endif

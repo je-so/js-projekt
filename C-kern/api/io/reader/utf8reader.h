@@ -3,6 +3,9 @@
    This reader decodes UTF-8 multibyte text content into a <char32_t> character
    and maintains additional information about the current line number and column.
 
+   This reader is unsafe in that it do not check for incorrect encoding
+   in same cases (skip for example).
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -226,19 +229,19 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
 /* define: nextchar_utf8reader
  * Implements <utf8reader_t.nextchar_utf8reader>. */
 #define nextchar_utf8reader(utfread, nxtchar)            \
-   ( __extension__ ({                                    \
+         ( __extension__ ({                              \
             typeof(utfread) _rd1 = (utfread) ;           \
-            int _err = nextutf8_stringstream(            \
+            int _err2 = nextutf8_stringstream(           \
                   genericcast_stringstream(_rd1),        \
                   (nxtchar)) ;                           \
-            if (0 == _err) {                             \
+            if (0 == _err2) {                            \
                incrcolumn_textpos(&_rd1->pos) ;          \
                if ('\n' == *(nxtchar)) {                 \
                   incrline_textpos(&_rd1->pos) ;         \
                }                                         \
             }                                            \
-            _err ;                                       \
-   }))
+            _err2 ;                                      \
+         }))
 
 /* define: column_utf8reader
  * Implements <utf8reader_t.column_utf8reader>. */
@@ -330,7 +333,8 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
                   ++ _rd1->next ;                        \
                } else {                                  \
                   uint8_t _sz ;                          \
-                  _sz = sizechar_utf8(firstbyte) ;       \
+                  _sz = sizefromfirstbyte_utf8(          \
+                                      firstbyte) ;       \
                   if (_sz > (_rd1->end - _rd1->next)) {  \
                      _err = EILSEQ ;                     \
                   } else {                               \
