@@ -34,6 +34,7 @@
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/sync/semaphore.h"
 #include "C-kern/api/platform/sync/signal.h"
+#include "C-kern/api/platform/task/thread_tls.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -50,110 +51,9 @@ struct thread_startargument_t {
    thread_t *     self ;
    thread_f       main_task ;
    void *         main_arg ;
-   uint8_t *      stackframe ;
+   uint8_t *      tls_addr ;
    stack_t        signalstack ;
 } ;
-
-
-// section: stackframe_t
-
-/* function: sizesignalstack_stackframe
- * Returns the minimum number of pages of the signal stack.
- * The signal stack is used in case of a signal or
- * exceptions which throw a signal. If for example the
- * the thread stack overflows SIGSEGV signal is thrown.
- * To handle this case the system must have an extra signal stack
- * cause signal handling needs stack space. */
-static inline unsigned sizesignalstack_stackframe(void)
-{
-   const size_t page_size = pagesize_vm() ;
-   return (MINSIGSTKSZ + page_size - 1) & (~(page_size-1)) ;
-}
-
-/* function: sizestack_stackframe
- * Returns the minimum number of pages of the thread stack. */
-static inline unsigned sizestack_stackframe(void)
-{
-   const size_t page_size = pagesize_vm() ;
-   return (PTHREAD_STACK_MIN + page_size - 1) & (~(page_size-1)) ;
-}
-
-/* function: size_stackframe
- * Returns the size of a stack frame for one thread.
- * The last tail protection page is not included. */
-static inline size_t size_stackframe(void)
-{
-   return (3u << log2pagesize_vm()) + sizesignalstack_stackframe() + sizestack_stackframe() ;
-}
-
-static memblock_t signalstack_stackframe(const vmpage_t * stackframe)
-{
-   const size_t page_size = pagesize_vm() ;
-
-   memblock_t stack = memblock_INIT(
-                        sizesignalstack_stackframe(),
-                        stackframe->addr + page_size
-                     ) ;
-
-   return stack ;
-}
-
-static memblock_t stack_stackframe(const vmpage_t * stackframe)
-{
-   const size_t page_size = pagesize_vm() ;
-
-   memblock_t stack = memblock_INIT(
-                        sizestack_stackframe(),
-                        stackframe->addr + 2 * page_size + sizesignalstack_stackframe()
-                     ) ;
-
-   return stack ;
-}
-
-static int free_stackframe(vmpage_t * stackframe)
-{
-   int err ;
-
-   err = free_vmpage(stackframe) ;
-   if (err) goto ONABORT ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-static int init_stackframe(vmpage_t * stackframe)
-{
-   int err ;
-
-   err = init2_vmpage(stackframe, size_stackframe() >> log2pagesize_vm(), accessmode_NONE) ;
-   if (err) goto ONABORT ;
-
-   /* Frame layout:
-    *      size        : protection
-    * ----------------------------------
-    * | [page_size]    : NONE       |
-    * | [signalstack]  : READ,WRITE |
-    * | [page_size]    : NONE       |
-    * | [threadstack]  : READ,WRITE |
-    * | [page_size]    : NONE       |
-    * */
-
-   memblock_t signalstack = signalstack_stackframe(stackframe) ;
-   err = protect_vmpage(genericcast_vmpage(&signalstack,), accessmode_RDWR) ;
-   if (err) goto ONABORT ;
-
-   memblock_t stack = stack_stackframe(stackframe) ;
-   err = protect_vmpage(genericcast_vmpage(&stack,), accessmode_RDWR) ;
-   if (err) goto ONABORT ;
-
-   return 0 ;
-ONABORT:
-   (void) free_vmpage(stackframe) ;
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
 
 
 // section: thread_t
@@ -166,7 +66,7 @@ __thread  threadcontext_t  gt_threadcontext = threadcontext_INIT_STATIC ;
 /* variable: gt_thread
  * Refers for every thread to corresponding <thread_t> object.
  * Is is located on the thread stack so no heap memory is allocated. */
-__thread  thread_t         gt_thread        = { 0, 0, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, { .uc_link = 0 } } ;
+__thread  thread_t         gt_thread        = thread_INIT_STATIC ;
 
 /* variable: s_offset_thread
  * Contains the calculated offset from start of stack thread to <gt_thread>. */
@@ -194,7 +94,7 @@ static void * main_thread(thread_startargument_t * startarg)
    gt_thread.main_task  = startarg->main_task ;
    gt_thread.main_arg   = startarg->main_arg ;
    gt_thread.sys_thread = pthread_self() ;
-   gt_thread.stackframe = startarg->stackframe ;
+   gt_thread.tls_addr   = startarg->tls_addr ;
 
    err = init_threadcontext(&gt_threadcontext) ;
    if (err) {
@@ -223,7 +123,7 @@ static void * main_thread(thread_startargument_t * startarg)
       goto ONABORT ;
    }
 
-   if (  0 == gt_thread.returncode
+   if (  0 == gt_thread.returncode  // abort_thread sets returncode to ENOTRECOVERABLE
          && gt_thread.main_task) {
       gt_thread.returncode = gt_thread.main_task(gt_thread.main_arg) ;
    }
@@ -252,6 +152,7 @@ static void * calculateoffset_thread(memblock_t * start_arg)
 
 // group: initonce
 
+// TODO: remove initonce_thread
 int initonce_thread()
 {
    /* calculate position of &gt_thread
@@ -259,16 +160,17 @@ int initonce_thread()
    int err ;
    pthread_attr_t    thread_attr ;
    sys_thread_t      sys_thread        = sys_thread_INIT_FREEABLE ;
-   vmpage_t          stackframe        = memblock_INIT_FREEABLE ;
+   thread_tls_t      tls               = thread_tls_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
 
    // init main thread_t
    gt_thread.sys_thread = pthread_self() ;
 
-   err = init_stackframe(&stackframe) ;
+   err = init_threadtls(&tls) ;
    if (err) goto ONABORT ;
 
-   memblock_t stack = stack_stackframe(&stackframe) ;
+   memblock_t stack ;
+   threadstack_threadtls(&tls, &stack) ;
 
    err = pthread_attr_init(&thread_attr) ;
    if (err) {
@@ -304,7 +206,7 @@ int initonce_thread()
       goto ONABORT ;
    }
 
-   err = free_stackframe(&stackframe) ;
+   err = free_threadtls(&tls) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -315,11 +217,12 @@ ONABORT:
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr) ;
    }
-   (void) free_stackframe(&stackframe) ;
+   (void) free_threadtls(&tls) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
 
+// TODO: remove freeonce_thread
 int freeonce_thread()
 {
    return 0 ;
@@ -336,11 +239,9 @@ int delete_thread(thread_t ** threadobj)
    if (delobj) {
       *threadobj = 0 ;
 
-      vmpage_t  stackframe  = vmpage_INIT(size_stackframe(), delobj->stackframe) ;
-
       err = join_thread(delobj) ;
 
-      err2 = free_stackframe(&stackframe) ;
+      err2 = free_threadtls(genericcast_threadtls(delobj, tls_)) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -358,15 +259,17 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    int err2 = 0 ;
    pthread_attr_t    thread_attr ;
    thread_t *        thread            = 0 ;
-   vmpage_t          stackframe        = vmpage_INIT_FREEABLE ;
+   thread_tls_t      tls               = thread_tls_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
 
    ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;
-   err = init_stackframe(&stackframe) ;
+   err = init_threadtls(&tls) ;
    if (err) goto ONABORT ;
 
-   memblock_t signalstack = signalstack_stackframe(&stackframe) ;
-   memblock_t stack       = stack_stackframe(&stackframe) ;
+   memblock_t signalstack ;
+   memblock_t stack       ;
+   signalstack_threadtls(&tls, &signalstack) ;
+   threadstack_threadtls(&tls, &stack) ;
 
    thread = (thread_t*) (stack.addr + s_offset_thread) ;
 
@@ -375,7 +278,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    startarg->self        = thread ;
    startarg->main_task   = thread_main ;
    startarg->main_arg    = main_arg ;
-   startarg->stackframe  = stackframe.addr ;
+   startarg->tls_addr    = tls.addr ;
    startarg->signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size } ;
 
    ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;
@@ -406,7 +309,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
 
    thread->main_task  = thread_main ;
    thread->main_arg   = main_arg ;
-   thread->stackframe = stackframe.addr ;
+   thread->tls_addr   = tls.addr ;
    thread->sys_thread = sys_thread ;
 
    err2 = pthread_attr_destroy(&thread_attr) ;
@@ -426,7 +329,7 @@ ONABORT:
    if (isThreadAttrValid) {
       (void) pthread_attr_destroy(&thread_attr) ;
    }
-   (void) free_stackframe(&stackframe) ;
+   (void) free_threadtls(&tls) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -588,74 +491,6 @@ void abort_thread(void)
 
 #ifdef KONFIG_UNITTEST
 
-static int test_stackframe(void)
-{
-   vmpage_t stackframe = vmpage_INIT_FREEABLE ;
-
-   // TEST sizesignalstack_stackframe
-   TEST(MINSIGSTKSZ <= sizesignalstack_stackframe()) ;
-   TEST(sizesignalstack_stackframe() % pagesize_vm() == 0) ;
-
-   // TEST sizestack_stackframe
-   TEST(PTHREAD_STACK_MIN <= sizestack_stackframe()) ;
-   TEST(sizestack_stackframe() % pagesize_vm() == 0) ;
-
-   // TEST size_framestack
-   TEST(size_stackframe() == pagesize_vm()*3 + sizestack_stackframe() + sizesignalstack_stackframe()) ;
-   TEST(size_stackframe() % pagesize_vm() == 0) ;
-
-   // TEST signalstack_stackframe
-   for (unsigned i = 0; i < 100; ++i) {
-      stackframe.addr = (uint8_t*) (pagesize_vm() * i) ;
-      stackframe.size = 0 ; // not used
-      memblock_t signalstack = signalstack_stackframe(&stackframe) ;
-      TEST(signalstack.addr == stackframe.addr + pagesize_vm()) ;
-      TEST(signalstack.size == sizesignalstack_stackframe()) ;
-   }
-
-   // TEST stack_stackframe
-   for (unsigned i = 0; i < 100; ++i) {
-      stackframe.addr = (uint8_t*) (pagesize_vm() * i) ;
-      stackframe.size = 0 ; // not used
-      memblock_t stack = stack_stackframe(&stackframe) ;
-      TEST(stack.addr == stackframe.addr + 2*pagesize_vm() + sizesignalstack_stackframe()) ;
-      TEST(stack.size == sizestack_stackframe()) ;
-   }
-
-   // TEST init_stackframe
-   TEST(0 == init_stackframe(&stackframe)) ;
-   TEST(stackframe.addr != 0) ;
-   TEST(stackframe.size == size_stackframe()) ;
-   {
-      vmpage_t header  = vmpage_INIT(pagesize_vm(), stackframe.addr) ;
-      TEST(ismapped_vm(&header, accessmode_PRIVATE)) ;
-      vmpage_t header2 = vmpage_INIT(pagesize_vm(), stackframe.addr + pagesize_vm() + sizesignalstack_stackframe()) ;
-      TEST(ismapped_vm(&header2, accessmode_PRIVATE)) ;
-      vmpage_t tail = vmpage_INIT(pagesize_vm(), stackframe.addr + stackframe.size - pagesize_vm()) ;
-      TEST(ismapped_vm(&tail, accessmode_PRIVATE)) ;
-      memblock_t signalstack = signalstack_stackframe(&stackframe) ;
-      memblock_t stack       = stack_stackframe(&stackframe) ;
-      TEST(ismapped_vm(genericcast_vmpage(&signalstack,), accessmode_PRIVATE|accessmode_RDWR)) ;
-      TEST(ismapped_vm(genericcast_vmpage(&stack,), accessmode_PRIVATE|accessmode_RDWR)) ;
-   }
-
-   // TEST free_stackframe
-   vmpage_t old = stackframe ;
-   TEST(0 == free_stackframe(&stackframe)) ;
-   TEST(0 == stackframe.addr) ;
-   TEST(0 == stackframe.size) ;
-   TEST(1 == isunmapped_vm(&old)) ;
-   TEST(0 == free_stackframe(&stackframe)) ;
-   TEST(0 == stackframe.addr) ;
-   TEST(0 == stackframe.size) ;
-   TEST(1 == isunmapped_vm(&old)) ;
-
-   return 0 ;
-ONABORT:
-   free_stackframe(&stackframe) ;
-   return EINVAL ;
-}
-
 static unsigned      s_thread_runcount = 0 ;
 static unsigned      s_thread_signal   = 0 ;
 static sys_thread_t  s_thread_id       = 0 ;
@@ -682,6 +517,16 @@ static int test_initfree(void)
 {
    thread_t * thread = 0 ;
 
+   // TEST thread_INIT_STATIC
+   thread_t sthread = thread_INIT_STATIC ;
+   TEST(sthread.nextwait   == 0) ;
+   TEST(sthread.lockflag   == 0) ;
+   TEST(sthread.main_task  == 0) ;
+   TEST(sthread.main_arg   == 0) ;
+   TEST(sthread.returncode == 0) ;
+   TEST(sthread.sys_thread == sys_thread_INIT_FREEABLE) ;
+   TEST(sthread.tls_addr   == 0) ;
+
    // TEST new_thread
    TEST(0 == new_thread(&thread, &thread_donothing, (void*)3)) ;
    TEST(thread) ;
@@ -689,9 +534,9 @@ static int test_initfree(void)
    TEST(thread->lockflag   == 0) ;
    TEST(thread->main_task  == &thread_donothing) ;
    TEST(thread->main_arg   == (void*)3) ;
-   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 0) ;
-   TEST(thread->stackframe != 0) ;
+   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
+   TEST(thread->tls_addr   != 0) ;
 
    // TEST delete_thread
    TEST(0 == delete_thread(&thread)) ;
@@ -706,10 +551,10 @@ static int test_initfree(void)
    TEST(thread->lockflag   == 0) ;
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)14) ;
-   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 0) ;
-   TEST(thread->stackframe != 0) ;
-   uint8_t *    stackframe = thread->stackframe ;
+   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
+   TEST(thread->tls_addr   != 0) ;
+   uint8_t *    tls_addr   = thread->tls_addr ;
    sys_thread_t T          = thread->sys_thread ;
    // test thread is running
    while (0 == atomicread_int(&s_thread_runcount)) {
@@ -720,9 +565,9 @@ static int test_initfree(void)
    TEST(thread->nextwait   == 0) ;
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)14) ;
-   TEST(thread->sys_thread == T) ;
    TEST(thread->returncode == 0) ;
-   TEST(thread->stackframe == stackframe) ;
+   TEST(thread->sys_thread == T) ;
+   TEST(thread->tls_addr   == tls_addr  ) ;
    atomicwrite_int(&s_thread_signal, 1) ;
    TEST(0 == delete_thread(&thread)) ;
    TEST(0 == thread) ;
@@ -735,9 +580,9 @@ static int test_initfree(void)
    TEST(thread->nextwait   == 0) ;
    TEST(thread->main_task  == (thread_f)&thread_returncode) ;
    TEST(thread->main_arg   == (void*)11) ;
-   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 0) ;
-   TEST(thread->stackframe != 0) ;
+   TEST(thread->sys_thread != sys_thread_INIT_FREEABLE) ;
+   TEST(thread->tls_addr   != 0) ;
    T = thread->sys_thread ;
    atomicwrite_int(&s_thread_signal, 1) ;
    TEST(0 == delete_thread(&thread)) ;
@@ -771,9 +616,6 @@ static int test_query(void)
 {
    thread_t    thread ;
 
-   // TEST sys_context_thread
-   TEST(&sys_context_thread() == &gt_threadcontext) ;
-
    // TEST self_thread
    TEST(self_thread() == &gt_thread) ;
 
@@ -796,11 +638,11 @@ static int test_query(void)
    }
 
    // TEST ismain_thread
-   TEST(0 == gt_thread.stackframe)
+   TEST(0 == gt_thread.tls_addr)
    TEST(1 == ismain_thread()) ;
-   gt_thread.stackframe = (uint8_t*)1 ;
+   gt_thread.tls_addr = (uint8_t*)1 ;
    TEST(0 == ismain_thread()) ;
-   gt_thread.stackframe = (uint8_t*)0 ;
+   gt_thread.tls_addr = (uint8_t*)0 ;
    TEST(1 == ismain_thread()) ;
 
    return 0 ;
@@ -822,7 +664,7 @@ static int test_join(void)
    TEST(thread->main_arg   == (void*)12) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 12) ;
-   TEST(thread->stackframe != 0) ;
+   TEST(thread->tls_addr   != 0) ;
 
    // TEST join_thread: calling on already joined thread
    TEST(0 == join_thread(thread)) ;
@@ -831,7 +673,7 @@ static int test_join(void)
    TEST(thread->main_arg   == (void*)12) ;
    TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
    TEST(thread->returncode == 12) ;
-   TEST(thread->stackframe != 0) ;
+   TEST(thread->tls_addr   != 0) ;
    TEST(0 == delete_thread(&thread)) ;
 
    // TEST join_thread: different returncode
@@ -847,14 +689,14 @@ static int test_join(void)
       TEST(thread->main_arg   == (void*)arg) ;
       TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
       TEST(thread->returncode == arg) ;
-      TEST(thread->stackframe != 0) ;
+      TEST(thread->tls_addr   != 0) ;
       TEST(0 == join_thread(thread)) ;
       TEST(thread->nextwait   == 0) ;
       TEST(thread->main_task  == (thread_f)&thread_returncode) ;
       TEST(thread->main_arg   == (void*)arg) ;
       TEST(thread->sys_thread == sys_thread_INIT_FREEABLE) ;
       TEST(thread->returncode == arg) ;
-      TEST(thread->stackframe != 0) ;
+      TEST(thread->tls_addr   != 0) ;
       TEST(0 == delete_thread(&thread)) ;
    }
 
@@ -900,8 +742,7 @@ static void sigusr1handler(int sig)
 static int thread_sigaltstack(intptr_t dummy)
 {
    (void) dummy ;
-   vmpage_t stackframe = vmpage_INIT(size_stackframe(), self_thread()->stackframe) ;
-   s_sigaltstack_signalstack = signalstack_stackframe(&stackframe) ;
+   signalstack_threadtls(genericcast_threadtls(self_thread(), tls_), &s_sigaltstack_signalstack) ;
    s_sigaltstack_threadid    = pthread_self() ;
    s_sigaltstack_returncode  = EINVAL ;
    TEST(0 == pthread_kill(pthread_self(), SIGUSR1)) ;
@@ -1282,10 +1123,8 @@ static int test_manythreads(void)
    // TEST newgeneric_thread: every thread has its own stackframe + self_thread
    for (unsigned i = 0; i < lengthof(startarg.isValid); ++i) {
       TEST(0 == newgeneric_thread(&startarg.thread[i], thread_isvalidstack, &startarg)) ;
-
-      vmpage_t     stackframe = vmpage_INIT(size_stackframe(), startarg.thread[i]->stackframe) ;
-      startarg.signalstack[i] = signalstack_stackframe(&stackframe) ;
-      startarg.threadstack[i] = stack_stackframe(&stackframe) ;
+      signalstack_threadtls(genericcast_threadtls(startarg.thread[i], tls_), &startarg.signalstack[i]) ;
+      threadstack_threadtls(genericcast_threadtls(startarg.thread[i], tls_), &startarg.threadstack[i]) ;
    }
    // startarg initialized
    startarg.isvalid = true ;
@@ -1820,13 +1659,13 @@ static int test_initonce(void)
    // TEST initonce_thread: already called
    TEST(S != 0) ;
 
-   // TEST self_thread() called initonce
+   // TEST initonce_thread: set main thread
    TEST(self_thread()->nextwait   == 0) ;
    TEST(self_thread()->main_arg   == 0) ;
    TEST(self_thread()->main_task  == 0) ;
    TEST(self_thread()->returncode == 0) ;
    TEST(self_thread()->sys_thread == pthread_self()) ;
-   TEST(self_thread()->stackframe == 0) ;
+   TEST(self_thread()->tls_addr   == 0) ;
 
    // TEST initonce_thread
    TEST(0 == initonce_thread()) ;
@@ -1847,10 +1686,10 @@ int unittest_platform_task_thread()
 
    if (test_exit())                    goto ONABORT ;
 
-   // store current mapping
+   EMPTYCACHE_PAGECACHE() ;
+
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_stackframe())              goto ONABORT ;
    if (test_initfree())                goto ONABORT ;
    if (test_query())                   goto ONABORT ;
    if (test_join())                    goto ONABORT ;
@@ -1867,7 +1706,8 @@ int unittest_platform_task_thread()
    if (test_update())                  goto ONABORT ;
    if (test_initonce())                goto ONABORT ;
 
-   // TEST mapping has not changed
+   EMPTYCACHE_PAGECACHE() ;
+
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 

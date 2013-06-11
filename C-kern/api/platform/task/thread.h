@@ -90,11 +90,10 @@ struct thread_t {
    /* variable: sys_thread
     * Contains system specific ID of thread. */
    sys_thread_t      sys_thread ;
-   /* variable: stackframe
-    * Contains start address of the whole stack frame.
-    * The stack fram contains a signal stck and a separate thread stack.
-    * Both are surrounded by pages which have no access protection. */
-   uint8_t *         stackframe ;
+   /* variable: tls_addr
+    * Contains start address of thread local storage.
+    * See <thread_tls>. */
+   uint8_t *         tls_addr ;
    /* variable: continuecontext
     * Contains thread machine context before <main_task> is called.
     * This context could be is used in any aborthandler.
@@ -116,6 +115,11 @@ int initonce_thread(void) ;
 int freeonce_thread(void) ;
 
 // group: lifetime
+
+/* define: thread_INIT_STATIC
+ * Static initializer.
+ * Used to initialize thread in <thread_tls_t>. */
+#define thread_INIT_STATIC                { 0, 0, 0, 0, 0, sys_thread_INIT_FREEABLE, 0, { .uc_link = 0 } }
 
 /* function: new_thread
  * Creates and starts a new system thread.
@@ -267,7 +271,7 @@ int setcontinue_thread(bool * is_abort) ;
 
 /* define: ismain_thread
  * Implements <thread_t.ismain_thread>. */
-#define ismain_thread()                   (gt_thread.stackframe == 0)
+#define ismain_thread()                   (gt_thread.tls_addr == 0)
 
 /* define: lockflag_thread
  * Implements <thread_t.lockflag_thread>. */

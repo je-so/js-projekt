@@ -368,6 +368,7 @@ int run_unittest(void)
       // task unittest
       RUN(unittest_platform_task_process) ;
       RUN(unittest_platform_task_thread) ;
+      RUN(unittest_platform_task_thread_tls) ;
       // other
       RUN(unittest_platform_locale) ;
       RUN(unittest_platform_malloc) ;

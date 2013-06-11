@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.11  09:16:29
+GenerationDate  := 2013.Jun.11  09:25:19
 GeneratedBy     := je-so
 
 ## Debug
@@ -92,6 +92,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!sync!thrmutex.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!process.c.o \
  $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o \
@@ -194,6 +195,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!sync!thrmutex.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!process.c.o \
  $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o \
@@ -335,6 +337,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Linu
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c
@@ -635,6 +640,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!time!systimer.c.o: C-kern/platform/Li
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!time!sysclock.c.o: C-kern/platform/Linux/time/sysclock.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!task!thread.c.o: C-kern/platform/Linux/task/thread.c

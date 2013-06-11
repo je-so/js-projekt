@@ -51,12 +51,12 @@ struct memblock_t {
    /* variable: addr
     * Points to start (lowest) address of memory.
     * The value (0) indicates an invalid memory block (freed state). */
-   uint8_t  * addr ;
+   uint8_t *   addr ;
    /* variable: size
     * Size of memory in bytes <addr> points to.
     * The valid memory region is
     * > addr[ 0 .. size - 1 ] */
-   size_t   size ;
+   size_t      size ;
 } ;
 
 // group: lifetime
@@ -166,35 +166,31 @@ memblock_t * genericcast_memblock(void * obj, IDNAME nameprefix) ;
 
 /* define: genericcast_memblock
  * Implements <memblock_t.genericcast_memblock>. */
-#define genericcast_memblock(obj, nameprefix)            \
-   ( __extension__ ({                                    \
-      typeof(obj) _obj = (obj) ;                         \
-      static_assert(                                     \
-         sizeof(_obj->nameprefix##addr)                  \
-         == sizeof(((memblock_t*)0)->addr)               \
-         && 0 == offsetof(memblock_t, addr),             \
-         "addr member is compatible") ;                  \
-      static_assert(                                     \
-         sizeof(_obj->nameprefix##size)                  \
-         == sizeof(((memblock_t*)0)->size)               \
-         && offsetof(memblock_t, size)                   \
-            == ((uintptr_t)&_obj->nameprefix##size)      \
-               -((uintptr_t)&_obj->nameprefix##addr),    \
-         "size member is compatible") ;                  \
-      if (0) {                                           \
-         volatile uint8_t _err ;                         \
-         volatile size_t _size ;                         \
-         _size = _obj->nameprefix##size ;                \
-         _err  = _obj->nameprefix##addr[_size] ;         \
-         (void) _err ;                                   \
-      }                                                  \
-      (memblock_t *)(&_obj->nameprefix##addr) ;          \
-   }))
+#define genericcast_memblock(obj, nameprefix)               \
+         ( __extension__ ({                                 \
+            typeof(obj) _obj = (obj) ;                      \
+            static_assert(                                  \
+               sizeof(_obj->nameprefix##addr)               \
+               == sizeof(((memblock_t*)0)->addr)            \
+               && offsetof(memblock_t, addr)                \
+                  == 0                                      \
+               && (typeof(_obj->nameprefix##addr))10        \
+                  == (uint8_t*)10                           \
+               && sizeof(_obj->nameprefix##size)            \
+                  == sizeof(((memblock_t*)0)->size)         \
+               && offsetof(memblock_t, size)                \
+                  == ((uintptr_t)&_obj->nameprefix##size)   \
+                     -((uintptr_t)&_obj->nameprefix##addr)  \
+               && (typeof(_obj->nameprefix##size)*)10       \
+                  == (size_t*)10,                           \
+               "obj is compatible") ;                       \
+            (memblock_t *)(&_obj->nameprefix##addr) ;       \
+         }))
 
 /* define: growleft_memblock
  * Implements <memblock_t.growleft_memblock>. */
 #define growleft_memblock(mblock, addr_decrement)        \
-      ( __extension__ ({ int _err ;                      \
+         ( __extension__ ({ int _err ;                   \
             typeof(mblock) _mblock = (mblock) ;          \
             size_t _decr = (addr_decrement) ;            \
             if ((uintptr_t)_mblock->addr < _decr) {      \
@@ -205,12 +201,12 @@ memblock_t * genericcast_memblock(void * obj, IDNAME nameprefix) ;
                _err = 0 ;                                \
             }                                            \
             _err ;                                       \
-      }))
+         }))
 
 /* define: growright_memblock
  * Implements <memblock_t.growright_memblock>. */
 #define growright_memblock(mblock, size_increment)       \
-      ( __extension__ ({ int _err ;                      \
+         ( __extension__ ({ int _err ;                   \
             typeof(mblock) _mblock = (mblock) ;          \
             size_t _size = _mblock->size                 \
                          + (size_increment) ;            \
@@ -223,7 +219,7 @@ memblock_t * genericcast_memblock(void * obj, IDNAME nameprefix) ;
                _err = 0 ;                                \
             }                                            \
             _err ;                                       \
-      }))
+         }))
 
 /* define: isfree_memblock
  * Implements <memblock_t.isfree_memblock>. */
