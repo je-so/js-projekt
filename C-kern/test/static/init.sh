@@ -6,11 +6,9 @@
 # ************************************************
 # environment variables:
 # verbose: if set to != "" => $info is printed
-files=" "`grep -rl '\(^\|[^0-9a-zA-Z]\)\(accept4\?\|creat\|epoll_create1\?\|eventfd\|open\|openat\|pipe2\?\|signalfd\|socket\)[ \t]*(' C-kern/ | sed -e '/.*\.txt$/d' -e '/.*\/[^.]*$/d' -`
-files=`find C-kern/ -name *.[ch] | xargs -n 1 grep -l "^[^# ]*[a-zA-Z][ \t]*\(init\|new\)[a-z0-9A-Z_]*([^/]" C-kern/`
+files=`find C-kern/ -name *.[ch] | xargs -n 1 grep -l "^\(int\|void\)*[ \t]\+\(init\|new\)[a-z0-9A-Z_]*([^/]"`
 # array of files which are creating file descriptors
 ok=( C-kern/main/tools/genmake.c
-     xC-kern/main/tools/resource_textcompiler.c
    )
 for((i=0;i<${#ok[*]};i=i+1)) do
    files="${files/"${ok[$i]}"/}" # remove files which are ok from $files
@@ -19,7 +17,7 @@ info=""
 for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
-   function_calls=( `grep -n '^[^# ]*[a-zA-Z][ \t]*\(init\|new\)[a-z0-9A-Z_]*([^/]' ${i}` )
+   function_calls=( `grep -n '^\(int\|void\)[ \t]\+\(init\|new\)[a-z0-9A-Z_]*([^/]' ${i}` )
    IFS=$IFS_old
    info2=""
    for((fi=0;fi<${#function_calls[*]};fi=fi+1)) do

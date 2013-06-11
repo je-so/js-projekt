@@ -231,7 +231,7 @@ struct pagecache_blockmap_t {
 
 /* function: init_pagecacheblockmap
  * Allocates a shared hash table of size <pagecache_blockmap_INIT_FREEABLE>. */
-int init_pagecacheblockmap(pagecache_blockmap_t * blockmap) ;
+int init_pagecacheblockmap(/*out*/pagecache_blockmap_t * blockmap) ;
 
 /* function: free_pagecacheblockmap
  * Frees allocated hash table. Make sure that no <pagecache_block_t> is in use. */

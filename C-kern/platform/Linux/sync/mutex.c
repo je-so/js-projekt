@@ -663,7 +663,7 @@ static int test_interprocess(void)
       TEST(0 == result.returncode) ;
       TEST(process_state_TERMINATED == result.state) ;
    }
-   TEST(param->counter = lengthof(process)*1000000) ;
+   TEST(param->counter == lengthof(process)*1000000) ;
 
    // unprepare
    for (unsigned i = 0; i < lengthof(process); ++i) {

@@ -104,25 +104,6 @@ struct sysuser_t {
    sysuser_id_t   privilegeduser ;
 } ;
 
-// group: static configuration
-
-/* define: sysuser_SYS_SERVICE_NAME
- * The name of service used during authentication. The module registers itself to the
- * underlying authentication service provider with this name.
- * The current value uses the same name as the "passwd" service.
- * This value can be overwritten in C-kern/resource/config/modulevalues. */
-#define sysuser_SYS_SERVICE_NAME          "passwd"
-
-/* define: sysuser_UNITTEST_USERNAME
- * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>.
- * This value can be overwritten in C-k   ern/resource/config/modulevalues. */
-#define sysuser_UNITTEST_USERNAME         "guest"
-
-/* define: sysuser_UNITTEST_PASSWORD
- * Used in <unittest_platform_sysuser> to test <switchtoprivilege_sysuser>.
- * This value can be overwritten in C-kern/resource/config/modulevalues. */
-#define sysuser_UNITTEST_PASSWORD         "GUEST"
-
 // group: lifetime
 
 /* define: sysuser_INIT_FREEABLE

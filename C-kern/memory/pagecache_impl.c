@@ -82,14 +82,16 @@ static inline size_t alignedsize_staticpage(void)
  *
  * (Unchecked) Precondition:
  * o page.size > sizeof(staticpage_t) */
-static staticpage_t * init_staticpage(memblock_t * page)
+static inline void init_staticpage(staticpage_t ** staticpage, memblock_t * page)
 {
-   staticpage_t * staticpage  = (staticpage_t*) page->addr ;
-   const size_t   alignedsize = alignedsize_staticpage() ;
+   staticpage_t * newstaticpage = (staticpage_t*) page->addr ;
+   const size_t   alignedsize   = alignedsize_staticpage() ;
 
-   staticpage->memblock = (memblock_t) memblock_INIT(page->size - alignedsize, page->addr + alignedsize) ;
+   newstaticpage->memblock = (memblock_t) memblock_INIT(page->size - alignedsize, page->addr + alignedsize) ;
 
-   return staticpage ;
+   *staticpage = newstaticpage ;
+
+   return ;
 }
 
 // group: query
@@ -161,7 +163,7 @@ struct pagecache_block_t {
 
 // group: lifetime
 
-int init_pagecacheblockmap(pagecache_blockmap_t * blockmap)
+int init_pagecacheblockmap(/*out*/pagecache_blockmap_t * blockmap)
 {
    int err ;
    const size_t   array_size = pagecache_blockmap_ARRAYSIZE >= pagesize_vm() ? pagecache_blockmap_ARRAYSIZE : pagesize_vm() ;
@@ -702,7 +704,7 @@ int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out
       memblock_t page ;
       err = allocpage_pagecacheimpl(pgcache, pagesize_4096, &page) ;
       if (err) goto ONABORT ;
-      staticpage = init_staticpage(&page) ;
+      init_staticpage(&staticpage, &page) ;
       insertlast_staticpagelist(genericcast_dlist(&pgcache->staticpagelist), staticpage) ;
    }
 
