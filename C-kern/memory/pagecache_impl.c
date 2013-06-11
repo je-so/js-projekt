@@ -142,13 +142,14 @@ struct pagecache_block_t {
     * Used to store <pagecache_block_t> in a free list if this block contains free pages. */
    dlist_node_t   next_freeblock ;
    /* variable: freepagelist
-    * List of free pages. If this list is empty this block <next_freeblock> is not in use. */
+    * List of free pages. If this list is empty <next_freeblock> is not in use. */
    dlist_t        freepagelist ;
    /* variable: pagesize
     * Size of a single page stored in freepagelist. */
    size_t         pagesize ;
    /* variable: usedpagecount
-    * Counts the number of allocated pages in use. */
+    * Counts the number of allocated pages in use.
+    * If this value is 0 the whole block could be freed. */
    uint16_t       usedpagecount ;
    /* variable: freelistidx
     * Index into <pagecache_impl_t.freeblocklist>. */

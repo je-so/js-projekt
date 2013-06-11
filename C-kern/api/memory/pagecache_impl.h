@@ -39,7 +39,6 @@
 struct memblock_t ;
 struct dlist_node_t ;
 struct pagecache_t ;
-struct pagecache_blockarray_t ;
 
 /* typedef: struct pagecache_impl_t
  * Export <pagecache_impl_t> into global namespace. */
@@ -201,7 +200,13 @@ int emptycache_pagecacheimpl(pagecache_impl_t * pgcache) ;
 
 
 /* struct: pagecache_blockmap_t
- * TODO: */
+ * A simple shared hash map which maps an index <pagecache_block_t>.
+ * The array size (table size) is static which allows for efficient access
+ * without <rwlock_t> or any other type of locks.
+ * Atomic operations to read and write <pagecache_block_t.threadcontext> ensure
+ * that an entry is used by only one thread.
+ *
+ * Use <pagecache_blockmap_ARRAYSIZE> to configure the static size of the array. */
 struct pagecache_blockmap_t {
    uint8_t *   array_addr ;
    size_t      array_size ;
@@ -225,11 +230,11 @@ struct pagecache_blockmap_t {
 #define pagecache_blockmap_INIT_FREEABLE  { 0, 0, 0, 0 }
 
 /* function: init_pagecacheblockmap
- * TODO: */
+ * Allocates a shared hash table of size <pagecache_blockmap_INIT_FREEABLE>. */
 int init_pagecacheblockmap(pagecache_blockmap_t * blockmap) ;
 
 /* function: free_pagecacheblockmap
- * TODO: */
+ * Frees allocated hash table. Make sure that no <pagecache_block_t> is in use. */
 int free_pagecacheblockmap(pagecache_blockmap_t * blockmap) ;
 
 
