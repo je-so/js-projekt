@@ -42,13 +42,13 @@
 
 // group: Unknown Compiler
 #else
-#define de 1
-#if (KONFIG_LANG==de)
+#define KONFIG_de 1
+#if (KONFIG_LANG==KONFIG_de)
 #error "nicht unterstützter Compiler unter Linux"
 #else
 #error "unsupported Compiler on Linux"
 #endif
-#undef de
+#undef KONFIG_de
 #endif
 
 // group: Include Files
@@ -93,11 +93,11 @@
 #include <ucontext.h>
 #include <unistd.h>
 #include <wchar.h>
-#define SYSUSER 1
-#if ((KONFIG_SUBSYS)&SYSUSER)
+#define KONFIG_sysuser 1
+#if ((KONFIG_SUBSYS)&KONFIG_sysuser)
 #include <security/pam_appl.h>   // -lpam
 #endif
-#undef SYSUSER
+#undef KONFIG_sysuser
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <sys/ioctl.h>

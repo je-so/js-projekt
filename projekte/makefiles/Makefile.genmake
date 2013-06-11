@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/genmake.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mai.10  19:19:39
+GenerationDate  := 2013.Jun.11  09:39:37
 GeneratedBy     := je-so
 
 ## Debug
@@ -16,7 +16,7 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Debug        := -g 
-Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=none
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=KONFIG_none
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     :=
 Libpath_Debug       :=
@@ -34,7 +34,7 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
 LFlags_Release        := -O2 
-Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=none
+Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=KONFIG_none
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     :=
 Libpath_Release       :=

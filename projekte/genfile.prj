@@ -6,5 +6,4 @@ include        projekte/subsys/context-mini
 Src           += C-kern/main/tools/genfile.c
 Src           += C-kern/string/cstring.c
 Includes       = .
-Defines        = KONFIG_SUBSYS=none
-
+Defines        = KONFIG_SUBSYS=KONFIG_none

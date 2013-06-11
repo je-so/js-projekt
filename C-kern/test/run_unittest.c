@@ -375,11 +375,11 @@ int run_unittest(void)
       RUN(unittest_platform_sysuser) ;
       RUN(unittest_platform_vm) ;
       // user interface subsystem
-#define HTML5  1
-#define X11    2
-#if ((KONFIG_USERINTERFACE)&HTML5)
+#define KONFIG_html5  1
+#define KONFIG_x11    2
+#if ((KONFIG_USERINTERFACE)&KONFIG_html5)
 #endif
-#if ((KONFIG_USERINTERFACE)&X11)
+#if ((KONFIG_USERINTERFACE)&KONFIG_x11)
       RUN(unittest_platform_X11) ;
       RUN(unittest_platform_X11_x11attribute) ;
       RUN(unittest_platform_X11_x11display) ;
@@ -389,8 +389,8 @@ int run_unittest(void)
       // RUN(unittest_platform_X11_glxwindow) ;      // TODO: remove comment
       // RUN(unittest_platform_X11_x11videomode) ;   // TODO: remove comment
 #endif
-#undef HTML5
-#undef X11
+#undef KONFIG_html5
+#undef KONFIG_x11
 //}
 
       CLEARBUFFER_LOG() ;

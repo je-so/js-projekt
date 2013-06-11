@@ -126,16 +126,16 @@ int compare_signalconfig(const signalconfig_t * sigconfig1, const signalconfig_t
 
 // group: KONFIG_SUBSYS
 
-#define THREAD 1
-#if (!((KONFIG_SUBSYS)&THREAD))
+#define KONFIG_thread 1
+#if (!((KONFIG_SUBSYS)&KONFIG_thread))
 /* define: initonce_signalconfig
- * Implement init as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement init as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define initonce_signalconfig()           (0)
 /* define: freeonce_signalconfig
- * Implement free as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement free as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define freeonce_signalconfig()           (0)
 #endif
-#undef THREAD
+#undef KONFIG_thread
 
 /* define: maxnr_rtsignal
  * Implements <rtsignal_t.maxnr_rtsignal>. */

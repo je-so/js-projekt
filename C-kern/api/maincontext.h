@@ -83,11 +83,11 @@ int unittest_context_maincontext(void) ;
  * */
 struct maincontext_t {
    processcontext_t  pcontext ;
-#define THREAD 1
-#if (!((KONFIG_SUBSYS)&THREAD))
+#define KONFIG_thread 1
+#if (!((KONFIG_SUBSYS)&KONFIG_thread))
    threadcontext_t   tcontext ;
 #endif
-#undef THREAD
+#undef KONFIG_thread
    maincontext_e     type ;
    const char *      progname ;
    int               argc ;
@@ -129,7 +129,7 @@ int free_maincontext(void) ;
 /* function: abort_maincontext
  * Exits the whole process in a controlled manner.
  * Tries to free as many external resources as possible and
- * aborts all transactions. Before exit a TRACEERR_LOG(ABORT_FATAL(err)) is done. */
+ * aborts all transactions. Before exit TRACEERR_LOG(ABORT_FATAL(err)) is done. */
 void abort_maincontext(int err) ;
 
 /* function: assertfail_maincontext
@@ -273,17 +273,17 @@ uint16_t sizestatic_maincontext(void) ;
 #define sysuser_maincontext()             (process_maincontext().sysuser)
 
 
-#define THREAD 1
-#if (!((KONFIG_SUBSYS)&THREAD))
+#define KONFIG_thread 1
+#if (!((KONFIG_SUBSYS)&KONFIG_thread))
 /* define: thread_maincontext
  * Inline implementation of <maincontext_t.thread_maincontext>.
- * If <KONFIG_SUBSYS> contains *THREAD* then <sys_context_thread> is called
+ * If <KONFIG_SUBSYS> contains *KONFIG_thread* then <sys_context_thread> is called
  * else a static variable in <g_maincontext> is returned. */
 #define thread_maincontext()           (g_maincontext.tcontext)
 #else
 #define thread_maincontext()           sys_context_thread()
 #endif
-#undef THREAD
+#undef KONFIG_thread
 
 /* define: type_maincontext
  * Inline implementation of <maincontext_t.type_maincontext>. */

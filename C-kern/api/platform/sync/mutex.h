@@ -121,21 +121,21 @@ void sunlock_mutex(mutex_t * mutex) ;
 
 // group: KONFIG_SUBSYS
 
-#define THREAD 1
-#if (!((KONFIG_SUBSYS)&THREAD))
+#define KONFIG_thread 1
+#if (!((KONFIG_SUBSYS)&KONFIG_thread))
 /* define: init_mutex
- * Implement <mutex_t.init_mutex> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <mutex_t.init_mutex> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define init_mutex(mutex)     (0)
 /* define: free_mutex
- * Implement <mutex_t.free_mutex> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <mutex_t.free_mutex> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define free_mutex(mutex)     (0)
 /* define: lock_mutex
- * Implement <mutex_t.lock_mutex> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <mutex_t.lock_mutex> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define lock_mutex(mutex)     (0)
 /* define: unlock_mutex
- * Implement <mutex_t.unlock_mutex> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <mutex_t.unlock_mutex> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define unlock_mutex(mutex)   (0)
 #endif
-#undef THREAD
+#undef KONFIG_thread
 
 #endif

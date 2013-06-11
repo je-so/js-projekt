@@ -7,5 +7,5 @@ Src           += C-kern/main/tools/generrtab.c
 Src           += C-kern/io/filesystem/fileutil.c
 Src           += C-kern/memory/wbuffer.c
 Includes       = .
-Defines        = KONFIG_SUBSYS=none
+Defines        = KONFIG_SUBSYS=KONFIG_none
 

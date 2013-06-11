@@ -350,15 +350,15 @@ int setcontinue_thread(bool * is_abort) ;
  * Implements <thread_t.yield_thread>. */
 #define yield_thread()                    (pthread_yield())
 
-#define THREAD 1
-#if (!((KONFIG_SUBSYS)&THREAD))
+#define KONFIG_thread 1
+#if (!((KONFIG_SUBSYS)&KONFIG_thread))
 /* define: initonce_thread
- * Implement <thread_t.initonce_thread> as noop if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <thread_t.initonce_thread> as noop if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define initonce_thread()                 (0)
 /* define: freeonce_thread
- * Implement <thread_t.freeonce_thread> as noop if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <thread_t.freeonce_thread> as noop if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define freeonce_thread()                 (0)
 #endif
-#undef THREAD
+#undef KONFIG_thread
 
 #endif

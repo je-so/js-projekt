@@ -28,32 +28,32 @@
 /* about: KONFIG_MEMALIGN Test
  * Test that <KONFIG_MEMALIGN> is set to a valid value out of [1,4,8,16,32]. */
 #if !defined(KONFIG_MEMALIGN) || (KONFIG_MEMALIGN < 1) || (KONFIG_MEMALIGN > 32) || ((KONFIG_MEMALIGN-1)&KONFIG_MEMALIGN)
-#define de 1
-#if (KONFIG_LANG==de)
+#define KONFIG_de 1
+#if (KONFIG_LANG==KONFIG_de)
 #   error Setze KONFIG_MEMALIGN auf einen Wert aus [2,4,8,16,32]
 #else
 #   error Choose KONFIG_MEMALIGN from the set of supported values [2,4,8,16,32]
 #endif
-#undef de
+#undef KONFIG_de
 #endif
 
 /* about: KONFIG_USERINTERFACE Test
- * Test that <KONFIG_USERINTERFACE> is set to a valid value out of [none,HTML5,X11]. */
-#define none  1
-#define HTML5 2
-#define X11   4
-#if ((KONFIG_USERINTERFACE)!=none) && ((KONFIG_USERINTERFACE)!=HTML5) && \
-    ((KONFIG_USERINTERFACE)!=X11)  && ((KONFIG_USERINTERFACE)!=(HTML5|X11))
-#define de 1
-#if (KONFIG_LANG==de)
-#   error Setze KONFIG_USERINTERFACE auf einen Wert aus [none,HTML5,X11]
+ * Test that <KONFIG_USERINTERFACE> is set to a valid value out of [KONFIG_none,KONFIG_html5,KONFIG_x11]. */
+#define KONFIG_none  1
+#define KONFIG_html5 2
+#define KONFIG_x11   4
+#if (KONFIG_USERINTERFACE!=KONFIG_none) && (KONFIG_USERINTERFACE!=KONFIG_html5) && \
+    (KONFIG_USERINTERFACE!=KONFIG_x11)  && (KONFIG_USERINTERFACE!=(KONFIG_html5|KONFIG_x11))
+#define KONFIG_de 1
+#if (KONFIG_LANG==KONFIG_de)
+#   error Setze KONFIG_USERINTERFACE auf einen Wert aus [KONFIG_none,KONFIG_html5,KONFIG_x11]
 #else
-#   error Choose KONFIG_USERINTERFACE from set of supported values [none,HTML5,X11]
+#   error Choose KONFIG_USERINTERFACE from set of supported values [KONFIG_none,KONFIG_html5,KONFIG_x11]
 #endif
-#undef de
+#undef KONFIG_de
 #endif
-#undef none
-#undef HTML5
-#undef X11
+#undef KONFIG_none
+#undef KONFIG_html5
+#undef KONFIG_x11
 
 #endif

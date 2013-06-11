@@ -20,7 +20,7 @@ Src           += C-kern/test/*.c
 Includes       = .
 # No X11
 Libs           = m pthread rt pam
-Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(HTML5)"
+Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_html5)"
 # With X11 (uncomment include projekte/subsys/X11)
 #Libs           = m pthread rt pam X11 Xrandr Xrender Xext GL
-#Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(HTML5|X11)"
+#Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_html5|KONFIG_x11)"

@@ -44,9 +44,9 @@
  * Choose default language for compiletime/runtime text output.
  *
  * Supported language codes:
- * 'de' - German
- * 'en' - English */
-#define KONFIG_LANG                    en
+ * KONFIG_de - German
+ * KONFIG_en - English */
+#define KONFIG_LANG                    KONFIG_en
 /*define: KONFIG_MEMALIGN
  * Alignment of allocated memory.
  * Every allocated memory address must be aligned with this value.
@@ -57,19 +57,19 @@
  * The value is used as include path for system specific settings.
  *
  * Supported values:
- * Linux - The only supported operating system during design stage. */
-#define KONFIG_OS                      Linux
+ * KONFIG_linux - The only supported operating system during design stage. */
+#define KONFIG_OS                      KONFIG_linux
 #if !defined(KONFIG_SUBSYS)
 /* define: KONFIG_SUBSYS
  * Defines which subsystems should be included.
  * You can choose more than one subsystem, seperate them by operator '|'.
  *
  * Supported values are:
- * THREAD  -  for thread support
- * SYSUSER -  for supporting system user and authentication
- * none    -  for a minimal system.
+ * KONFIG_thread  -  for thread support
+ * KONFIG_sysuser -  for supporting system user and authentication
+ * KONFIG_none    -  for a minimal system.
  */
-#define KONFIG_SUBSYS                  (THREAD|SYSUSER)
+#define KONFIG_SUBSYS                  (KONFIG_thread|KONFIG_sysuser)
 #endif
 #if 0
 /* define: KONFIG_UNITTEST
@@ -83,11 +83,11 @@
  * You can choose more than one user interface subsystem, seperate them by operator '|'.
  *
  * Supported values are:
- * none  - no graphics support. This is the default value if you do not provide a value.
- * HTML5 - Supports http connection to a browser and HTML views which communicate with help
- *         of Javascript and XMLHttpRequest(.upload).
- * X11   - X11 window system + OpenGL graphics (currently no development, not supported yet). */
-#define KONFIG_USERINTERFACE           none
+ * KONFIG_none  - no graphics support. This is the default value if you do not provide a value.
+ * KONFIG_html5 - Supports http connection to a browser and HTML views which communicate with help
+ *                of Javascript and XMLHttpRequest(.upload).
+ * KONFIG_x11   - X11 window system + OpenGL graphics (currently no development, not supported yet). */
+#define KONFIG_USERINTERFACE           KONFIG_none
 #endif
 //}
 
@@ -113,10 +113,12 @@
 // <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for.
 
 //{
+#define KONFIG_linux Linux
 #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
 #include STR(C-kern/api/platform/KONFIG_OS/systypes.h)
 #include STR(C-kern/api/platform/KONFIG_OS/sysoptimize.h)
 #include STR(C-kern/api/platform/KONFIG_OS/syscontext.h)
+#undef KONFIG_linux
 //}
 
 // group: 4. Standard environment

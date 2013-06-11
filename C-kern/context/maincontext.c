@@ -66,11 +66,11 @@
  * Reserve space for the global main context. */
 maincontext_t              g_maincontext  = {
    processcontext_INIT_STATIC,
-#define THREAD 1
-#if (!((KONFIG_SUBSYS)&THREAD))
+#define KONFIG_thread 1
+#if (!((KONFIG_SUBSYS)&KONFIG_thread))
    threadcontext_INIT_STATIC,
 #endif
-#undef THREAD
+#undef KONFIG_thread
    maincontext_STATIC,
    0,
    0,
@@ -397,12 +397,13 @@ static int test_querymacros(void)
    // TEST syncrun_maincontext
    TEST(&thread_maincontext().syncrun     == &syncrun_maincontext()) ;
 
-#define THREAD 1
-#if (!((KONFIG_SUBSYS)&THREAD))
+#define KONFIG_thread 1
+#if (!((KONFIG_SUBSYS)&KONFIG_thread))
    TEST(&g_maincontext.tcontext           == &thread_maincontext()) ;
 #else
    TEST(&gt_threadcontext                 == &thread_maincontext()) ;
 #endif
+#undef KONFIG_thread
 
    // TEST type_maincontext
    TEST(&g_maincontext.type               == &type_maincontext()) ;

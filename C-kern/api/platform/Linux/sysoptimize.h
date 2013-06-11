@@ -49,13 +49,13 @@
 // group: Unknown Compiler
 #else
 
-#define de 1
-#if (KONFIG_LANG==de)
+#define KONFIG_de 1
+#if (KONFIG_LANG==KONFIG_de)
 #error "nicht unterstützter Compiler unter Linux"
 #else
 #error "unsupported Compiler on Linux"
 #endif
-#undef de
+#undef KONFIG_de
 
 #endif   // end compiler selection
 

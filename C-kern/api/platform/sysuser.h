@@ -248,16 +248,16 @@ const char * name_sysuserinfo(sysuser_info_t * usrinfo) ;
  * Implement <sysuser_t.privileged_sysuser>. */
 #define privileged_sysuser(sysusr)        ((sysusr)->privilegeduser)
 
-#define SYSUSER 1
-#if (!((KONFIG_SUBSYS)&SYSUSER))
+#define KONFIG_sysuser 1
+#if (!((KONFIG_SUBSYS)&KONFIG_sysuser))
 /* define: init_sysuser
- * Implement <sysuser_t.init_sysuser> as noop if !((KONFIG_SUBSYS)&SYSUSER) */
+ * Implement <sysuser_t.init_sysuser> as noop if !((KONFIG_SUBSYS)&KONFIG_sysuser) */
 #define init_sysuser(sysuser)             ((*(sysuser)) = (sysuser_t) sysuser_INIT_FREEABLE, 0)
 /* define: free_sysuser
- * Implement <sysuser_t.free_sysuser> as noop if !((KONFIG_SUBSYS)&SYSUSER) */
+ * Implement <sysuser_t.free_sysuser> as noop if !((KONFIG_SUBSYS)&KONFIG_sysuser) */
 #define free_sysuser(sysuser)             ((*(sysuser)) = (sysuser_t) sysuser_INIT_FREEABLE, 0)
 #endif
-#undef SYSUSER
+#undef KONFIG_sysuser
 
 // group: sysuser_info_t
 

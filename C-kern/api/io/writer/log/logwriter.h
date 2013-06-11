@@ -131,22 +131,22 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
 
 /* about: Thread
  * In case of only 1 thread use static <logmain_t> instead of <logwriter_t>.
- * The following code tests for submodule THREAD and replaces
+ * The following code tests for subsystem KONFIG_thread and replaces
  * <freethread_logwriter> and <initthread_logwriter> with (0) in
- * case THREAD submodule is not configured. */
+ * case subsystem KONFIG_thread is not configured. */
 
-#define THREAD 1
-#if (!((KONFIG_SUBSYS)&THREAD))
+#define KONFIG_thread 1
+#if (!((KONFIG_SUBSYS)&KONFIG_thread))
 /* define: interfacethread_logwriter
- * Implement <logwriter_t.interfacethread_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <logwriter_t.interfacethread_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define interfacethread_logwriter()       (0)
 /* define: init_logwriter
- * Implement <logwriter_t.init_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <logwriter_t.init_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define init_logwriter(log)               (0)
 /* define: free_logwriter
- * Implement <logwriter_t.free_logwriter> as a no op if !((KONFIG_SUBSYS)&THREAD) */
+ * Implement <logwriter_t.free_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
 #define free_logwriter(log)               (0)
 #endif
-#undef THREAD
+#undef KONFIG_thread
 
 #endif

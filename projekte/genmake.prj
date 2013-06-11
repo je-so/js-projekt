@@ -6,4 +6,4 @@ include        projekte/subsys/context-mini
 Src           += C-kern/main/tools/genmake.c
 Src           += C-kern/ds/inmem/exthash.c C-kern/ds/inmem/redblacktree.c
 Includes       = .
-Defines        = KONFIG_SUBSYS=none
+Defines        = KONFIG_SUBSYS=KONFIG_none

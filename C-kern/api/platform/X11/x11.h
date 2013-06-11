@@ -78,15 +78,15 @@ int dispatchevent_X11(struct x11display_t * x11disp) ;
 
 // group: X11_t
 
-#define X11 1
-#if !((KONFIG_USERINTERFACE)&X11)
+#define KONFIG_x11 1
+#if !((KONFIG_USERINTERFACE)&KONFIG_x11)
 /* define: initonce_X11
- * Implement init as a no op if (KONFIG_USERINTERFACE!=X11). */
+ * Implement init as a no op if (KONFIG_USERINTERFACE!=KONFIG_x11). */
 #define initonce_X11()  (0)
 /* define: freeonce_X11
- * Implement free as a no op if (KONFIG_USERINTERFACE!=X11). */
+ * Implement free as a no op if (KONFIG_USERINTERFACE!=KONFIG_x11). */
 #define freeonce_X11()  (0)
 #endif
-#undef X11
+#undef KONFIG_x11
 
 #endif
