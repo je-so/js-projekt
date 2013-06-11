@@ -4,7 +4,7 @@
 # ****************************************************
 # * "projekte/codelite/*.project"                    *
 # * 1. They contain only file references which exist *
-# * "projekte/codelite/testunit.project"             *
+# * "projekte/codelite/unittest.project"             *
 # * 2. It contains all files from $sourcedir         *
 # ****************************************************
 # environment variables:
@@ -37,7 +37,7 @@ for project in ${projectdir}*.project; do
 done
 
 # CHECK 2.
-project="${projectdir}testunit.project"   # name of project file
+project="${projectdir}unittest.project"   # name of project file
 sourcedir="C-kern/"                       # path of source directory
 sourcedir_offset="../../C-kern/"          # path offset from project to sourcedir
 files=`find ${sourcedir} -name *.[ch]`

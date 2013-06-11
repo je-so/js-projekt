@@ -95,8 +95,8 @@ about: Make Command
   The main makefile ('Makefile') calls for every subproject the corresponding
   makefile in 'projekte/makefiles/'.
 
-  To run all unit tests execute bin/testunit (release version)
-  or bin/testunit_Debug.
+  To run all unit tests execute bin/unittest (release version)
+  or bin/unittest_Debug.
 
 about: System Configuration
 
@@ -122,7 +122,7 @@ about: Make Targets
   html     - Generate documentation from source code with naturaldoc.
              You can view it by opening html/index.html in a browser.
   genmake  - Build genmake binaries: »bin/genmake« and »bin/genmake_Debug«.
-  testunit - Build test binaries »bin/testunit« and »bin/testunit_Debug« which run all unit tests of all
+  unittest - Build test binaries »bin/unittest« and »bin/unittest_Debug« which run all unit tests of all
              devloped modules.
   textdb   - Build text database tool binaries: »bin/textdb[_Debug]«
   textrescompiler  - Build resource compiler binaries: »bin/textrescompiler[_Debug]«

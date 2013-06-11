@@ -12,7 +12,7 @@ PROJECTS= pp-generrtab \
           testchildprocess_ \
           textres2compiler_ \
           textdb_           \
-          testunit_
+          unittest_
 
 # list of targets
 .PHONY: all clean distclean makefiles html
@@ -76,7 +76,7 @@ pp-textres2: textres2compiler_Release
 
 textdb textdb_Release textdb_Debug: pp-textres2
 
-testunit testunit_Release testunit_Debug: pp-textres2 pp-textdb testchildprocess_Release
+unittest unittest_Release unittest_Debug: pp-textres2 pp-textdb testchildprocess_Release
 
 $(subst _,,$(PROJECTS)) \
 $(patsubst %,%_clean,$(subst _,,$(PROJECTS))) \
