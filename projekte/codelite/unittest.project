@@ -35,8 +35,8 @@
       <VirtualDirectory Name="Linux">
         <File Name="../../C-kern/api/platform/Linux/syskonfig.h"/>
         <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
-        <File Name="../../C-kern/api/platform/Linux/sysoptimize.h"/>
         <File Name="../../C-kern/api/platform/Linux/systypes.h"/>
+        <File Name="../../C-kern/api/platform/Linux/sysstartup.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/locale.h"/>
       <File Name="../../C-kern/api/platform/malloc.h"/>
@@ -65,6 +65,7 @@
         <File Name="../../C-kern/api/platform/X11/x11videomode.h"/>
         <File Name="../../C-kern/api/platform/X11/x11window.h"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/api/platform/startup.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="math">
       <VirtualDirectory Name="int">
@@ -354,6 +355,7 @@
         <File Name="../../C-kern/platform/Linux/sync/rwlock.c"/>
         <File Name="../../C-kern/platform/Linux/sync/thrmutex.c"/>
       </VirtualDirectory>
+      <File Name="../../C-kern/platform/Linux/startup.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="shared">
       <VirtualDirectory Name="X11">

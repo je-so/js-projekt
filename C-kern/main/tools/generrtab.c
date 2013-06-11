@@ -29,6 +29,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/platform/locale.h"
+#include "C-kern/api/platform/startup.h"
 
 
 typedef struct strtable_t     strtable_t ;
@@ -147,7 +148,7 @@ ONABORT:
    return err ;
 }
 
-int main(int argc, const char * argv[])
+static int main_thread(int argc, const char * argv[])
 {
    int err ;
    static strtable_t errtable[2] ;
@@ -224,4 +225,13 @@ ONABORT:
    free_wbuffer(&filecontent) ;
    free_maincontext() ;
    return 1 ;
+}
+
+int main(int argc, const char * argv[])
+{
+   int err ;
+
+   err = startup_platform(argc, argv, &main_thread) ;
+
+   return err ;
 }

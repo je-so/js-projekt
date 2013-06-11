@@ -101,6 +101,7 @@ struct maincontext_t {
 
 /* function: init_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
+ * The main thread must be initialized with <startup_platform> before calling this function.
  * EALREADY is returned if it is called more than once.
  * The only service which works without calling this function is logging.
  *

@@ -33,6 +33,7 @@
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/inmem/exthash.h"
+#include "C-kern/api/platform/startup.h"
 #include "C-kern/api/string/string.h"
 #include <assert.h>
 #include <glob.h>
@@ -1626,7 +1627,7 @@ ONABORT:
    return err ;
 }
 
-int main(int argc, const char * argv[])
+static int main_thread(int argc, const char * argv[])
 {
    int err ;
    int isPrintHelp = 0 ;
@@ -1815,4 +1816,13 @@ PRINT_USAGE:
    }
 
    return 1 ;
+}
+
+int main(int argc, const char * argv[])
+{
+   int err ;
+
+   err = startup_platform(argc, argv, &main_thread) ;
+
+   return err ;
 }

@@ -487,11 +487,11 @@ int initaligned_vmpage(/*out*/vmpage_t * vmpage, size_t powerof2_size_in_bytes)
 
    // align vmpage to boundary of powerof2_size_in_bytes
 
-   if (0 != ((uintptr_t)vmpage->addr % powerof2_size_in_bytes)) {
+   if (0 != ((uintptr_t)vmpage->addr & (uintptr_t)(powerof2_size_in_bytes-1))) {
       err = movexpand_vmpage(vmpage, powerof2_size_in_bytes >> log2pagesize_vm()) ;
       if (err) goto ONABORT ;
 
-      uintptr_t offset = (uintptr_t)vmpage->addr % powerof2_size_in_bytes ;
+      uintptr_t offset = (uintptr_t)vmpage->addr & (uintptr_t)(powerof2_size_in_bytes-1) ;
       size_t    hdsize = offset ? powerof2_size_in_bytes - offset : 0 ;
 
       vmpage_t header  = vmpage_INIT(hdsize, vmpage->addr) ;

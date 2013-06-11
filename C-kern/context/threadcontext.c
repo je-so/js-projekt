@@ -262,7 +262,7 @@ int free_threadcontext(threadcontext_t * tcontext)
    int err2 ;
    threadcontext_t statictcontext = threadcontext_INIT_STATIC ;
 
-   uint16_t  initcount = tcontext->initcount ;
+   size_t    initcount = tcontext->initcount ;
    tcontext->initcount = 0 ;
 
    switch (initcount) {
@@ -487,7 +487,7 @@ ONABORT:
 static int test_initfree(void)
 {
    threadcontext_t   tcontext   = threadcontext_INIT_STATIC ;
-   const int         nrsvc      = 5 ;
+   const size_t      nrsvc      = 5 ;
    size_t            sizestatic ;
 
    // TEST threadcontext_INIT_STATIC
@@ -544,8 +544,8 @@ static int test_initfree(void)
    TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
 
    // TEST init_threadcontext: ERROR
-   for(int i = 1; i; ++i) {
-      init_testerrortimer(&s_threadcontext_errtimer, (unsigned)i, i) ;
+   for(unsigned i = 1; i; ++i) {
+      init_testerrortimer(&s_threadcontext_errtimer, i, (int)i) ;
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
       int err = init_threadcontext(&tcontext) ;
       if (err == 0) {
@@ -553,7 +553,7 @@ static int test_initfree(void)
          TEST(i > nrsvc) ;
          break ;
       }
-      TEST(i == err) ;
+      TEST(i == (unsigned)err) ;
       TEST(0 == tcontext.pagecache.object) ;
       TEST(0 == tcontext.pagecache.iimpl) ;
       TEST(0 == tcontext.mm.object) ;

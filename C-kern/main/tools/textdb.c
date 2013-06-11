@@ -38,6 +38,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/platform/startup.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 
@@ -1527,7 +1528,7 @@ ONABORT:
    return 1 ;
 }
 
-int main(int argc, const char * argv[])
+static int main_thread(int argc, const char * argv[])
 {
    int err ;
    mmfile_t input_file = mmfile_INIT_FREEABLE ;
@@ -1641,4 +1642,13 @@ ONABORT:
    free_maincontext() ;
    free_depfilenamewritten() ;
    return 1 ;
+}
+
+int main(int argc, const char * argv[])
+{
+   int err ;
+
+   err = startup_platform(argc, argv, &main_thread) ;
+
+   return err ;
 }

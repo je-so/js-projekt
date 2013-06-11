@@ -1,6 +1,9 @@
 /* title: ThreadLocalStorage
 
-   TODO: describe module interface
+   Supports storage (variables and stack space)
+   for every creatd thread and the main thread.
+   The main thread is initialized with <initstartup_threadtls>
+   all other with <init_threadtls>.
 
    about: Copyright
    This program is free software.
@@ -28,6 +31,7 @@
 
 // forward
 struct memblock_t ;
+struct thread_t ;
 struct threadcontext_t ;
 
 /* typedef: struct thread_tls_t
@@ -71,20 +75,36 @@ int init_threadtls(/*out*/thread_tls_t * tls) ;
  * Changes protection of memory to normal and frees it. */
 int free_threadtls(thread_tls_t * tls) ;
 
+/* function: initstartup_threadtls
+ * Same as <init_threadtls> but calls no other functions of C-kern system.
+ * Especially no logging is done and no calls to <pagesize_vm> and <initaligned_vmpage> are made. */
+int initstartup_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * threadstack, /*out*/struct memblock_t * signalstack) ;
+
+/* function: freestartup_threadtls
+ * Same as <free_threadtls> but calls no other functions of C-kern system.
+ * Especially no logging is done and no calls to <pagesize_vm> and <free_vmpage> are made. */
+int freestartup_threadtls(thread_tls_t * tls) ;
+
 // group: query
 
-/* function: context_threadtls
- * Returns <threadcontext_t> of the current thread.
- * This function is identical with <sys_context_thread>.
- * If you change this function change also sys_context_thread. */
-struct threadcontext_t * context_threadtls(void) ;
+/* function: current_threadtls
+ * Returns <thread_tls_t> of the current thread.
+ * The pointer must point to a local variable on the current stack.
+ * The function <sys_context_thread> is identical with context_threadtls(&current_threadtls(&err)).
+ * If you change this function change sys_context_thread (and self_thread) also. */
+thread_tls_t current_threadtls(void * local_var) ;
 
-/* function: context2_threadtls
- * Returns <threadcontext_t> from any address on the stack.
- * This function is called from <context_threadtls>.
- * The returned <threadcontext_t> corresponds to the thread on which
- * stack stackaddr is located. */
-struct threadcontext_t * context2_threadtls(uintptr_t stackaddr) ;
+/* function: context_threadtls
+ * Returns pointer to <threadcontext_t> stored in thread local storage.
+ * The function <sys_context_thread> is identical with context_threadtls(&current_threadtls()).
+ * If you change this function change sys_context_thread also. */
+struct threadcontext_t * context_threadtls(const thread_tls_t * tls) ;
+
+/* function: thread_threadtls
+ * Returns pointer to <thread_t> stored in thread local storage.
+ * The function <self_thread> is identical with thread_threadtls(&current_threadtls()).
+ * If you change this function change self_thread also. */
+struct thread_t * thread_threadtls(const thread_tls_t * tls) ;
 
 /* function: size_threadtls
  * Returns the size of the allocated memory block. */
@@ -97,12 +117,12 @@ size_t size_threadtls(void) ;
  * For example if the thread stack overflows SIGSEGV signal is thrown.
  * To handle this case the system must have an extra signal stack
  * cause signal handling needs stack space. */
-void signalstack_threadtls(const thread_tls_t * tls,/*out*/struct memblock_t * stackmem) ;
+void signalstack_threadtls(const thread_tls_t * tls, /*out*/struct memblock_t * stackmem) ;
 
 /* function: threadstack_threadtls
  * Returns in stackmem the thread stack from tls.
  * If tls is in a freed state stackmem is set to <memblock_INIT_FREEABLE>. */
-void threadstack_threadtls(const thread_tls_t * tls,/*out*/struct memblock_t * stackmem) ;
+void threadstack_threadtls(const thread_tls_t * tls, /*out*/struct memblock_t * stackmem) ;
 
 // group: generic
 
@@ -113,30 +133,26 @@ void threadstack_threadtls(const thread_tls_t * tls,/*out*/struct memblock_t * s
 thread_tls_t * genericcast_threadtls(void * obj, IDNAME nameprefix) ;
 
 
+
 // section: inline implementation
 
-/* define: size_threadtls
- * Implements <thread_tls_t.size_threadtls>. */
-#define size_threadtls()                  (65536)
-
 /* define: context_threadtls
  * Implements <thread_tls_t.context_threadtls>. */
-#define context_threadtls()                  \
-         ( __extension__ ({                  \
-            int _addr_of_stack ;             \
-            context2_threadtls((uintptr_t)   \
-                        &_addr_of_stack) ;   \
-         }))
+#define context_threadtls(tls)            \
+         ((threadcontext_t*) (            \
+               (tls)->addr                \
+         ))
 
-/* define: context_threadtls
- * Implements <thread_tls_t.context_threadtls>. */
-#define context2_threadtls(stackaddr)        \
-         ( __extension__ ({                  \
-            (threadcontext_t*) (             \
-               (stackaddr)                   \
-               & ~(uintptr_t)                \
-                  (size_threadtls()-1)) ;    \
-         }))
+/* define: current_threadtls
+ * Implements <thread_tls_t.current_threadtls>. */
+#define current_threadtls(local_var)      \
+         (thread_tls_t) {                 \
+            (uint8_t*) (                  \
+               (uintptr_t)(local_var)     \
+               & ~(uintptr_t)             \
+                  (size_threadtls()-1)    \
+            )                             \
+         }
 
 /* define: genericcast_threadtls
  * Implements <thread_tls_t.genericcast_threadtls>. */
@@ -152,5 +168,17 @@ thread_tls_t * genericcast_threadtls(void * obj, IDNAME nameprefix) ;
                "obj is compatible") ;                    \
             (thread_tls_t *)(&_obj->nameprefix##addr) ;  \
          }))
+
+/* define: thread_threadtls
+ * Implements <thread_tls_t.thread_threadtls>. */
+#define thread_threadtls(tls)             \
+         ((thread_t*) (                   \
+            (tls)->addr                   \
+            + sizeof(threadcontext_t)     \
+         ))
+
+/* define: size_threadtls
+ * Implements <thread_tls_t.size_threadtls>. */
+#define size_threadtls()                  (65536)
 
 #endif

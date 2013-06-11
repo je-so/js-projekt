@@ -1,25 +1,25 @@
 C-kern/context/threadcontext.c:300: init_threadcontext(): error: 71: Operation allowed only in state (maincontext_STATIC != type_maincontext())
 C-kern/context/threadcontext.c:335: init_threadcontext(): error: 71: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 23: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 24: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 25: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 26: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 114: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 23: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 24: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 25: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 114: Function aborted
 C-kern/context/maincontext.c:161: init_maincontext(): error: 22: Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
-C-kern/context/maincontext.c:192: init_maincontext(): error: 22: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 22: Function aborted
 C-kern/context/maincontext.c:161: init_maincontext(): error: 22: Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
-C-kern/context/maincontext.c:192: init_maincontext(): error: 22: Function aborted
-C-kern/context/maincontext.c:164: init_maincontext(): error: 22: Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
-C-kern/context/maincontext.c:192: init_maincontext(): error: 22: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 22: Function aborted
+C-kern/context/maincontext.c:164: init_maincontext(): error: 22: Function input violates condition (argc == 0 || (argc > 0 && argv != 0))
+C-kern/context/maincontext.c:190: init_maincontext(): error: 22: Function aborted
+C-kern/context/maincontext.c:164: init_maincontext(): error: 22: Function input violates condition (argc == 0 || (argc > 0 && argv != 0))
+C-kern/context/maincontext.c:190: init_maincontext(): error: 22: Function aborted
 C-kern/context/maincontext.c:146: free_maincontext(): error: 39: Freeing a resource returned an error
 C-kern/context/threadcontext.c:300: init_threadcontext(): error: 71: Operation allowed only in state (maincontext_STATIC != type_maincontext())
 C-kern/context/threadcontext.c:335: init_threadcontext(): error: 71: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 23: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 24: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 25: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 26: Function aborted
-C-kern/context/maincontext.c:192: init_maincontext(): error: 114: Function aborted
-C-kern/context/maincontext.c:223: allocstatic_maincontext(): error: Could not allocate 1 bytes of memory
-C-kern/context/maincontext.c:234: allocstatic_maincontext(): error: 12: Function aborted
-C-kern/context/maincontext.c:242: freestatic_maincontext(): error: 22: Function input violates condition (g_maincontext.size_staticmem >= size)
-C-kern/context/maincontext.c:248: freestatic_maincontext(): error: 22: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 23: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 24: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 25: Function aborted
+C-kern/context/maincontext.c:190: init_maincontext(): error: 114: Function aborted
+C-kern/context/maincontext.c:221: allocstatic_maincontext(): error: Could not allocate 1 bytes of memory
+C-kern/context/maincontext.c:232: allocstatic_maincontext(): error: 12: Function aborted
+C-kern/context/maincontext.c:240: freestatic_maincontext(): error: 22: Function input violates condition (g_maincontext.size_staticmem >= size)
+C-kern/context/maincontext.c:246: freestatic_maincontext(): error: 22: Function aborted

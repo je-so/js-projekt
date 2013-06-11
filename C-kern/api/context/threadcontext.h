@@ -54,7 +54,7 @@ struct threadcontext_t {
    struct syncrun_t *         syncrun ;
    iobj_DECLARE(,objectcache) objectcache ;
    iobj_DECLARE(,log)         log ;
-   uint16_t                   initcount ;
+   size_t                     initcount ;
 } ;
 
 // group: lifetime

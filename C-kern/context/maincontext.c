@@ -67,7 +67,7 @@
 maincontext_t              g_maincontext  = {
    processcontext_INIT_STATIC,
 #define KONFIG_thread 1
-#if (!((KONFIG_SUBSYS)&KONFIG_thread))
+#if ((KONFIG_SUBSYS&KONFIG_thread) == 0)
    threadcontext_INIT_STATIC,
 #endif
 #undef KONFIG_thread
@@ -102,7 +102,7 @@ static void initprogname_maincontext(struct maincontext_t * maincontext)
 
       for (unsigned i = 0; progname[i];) {
          if (  '/' == progname[i]
-            && progname[i+1]) {
+               && progname[i+1]) {
             progname = &progname[i+1] ;
             i = 0 ;
          } else {
@@ -160,8 +160,8 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
    VALIDATE_INPARAM_TEST(  maincontext_STATIC  <  context_type
                            && maincontext_DEFAULT >= context_type, ONABORT, ) ;
 
-   VALIDATE_INPARAM_TEST(  argc >= 0
-                           && (argc == 0 || argv != 0), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(  argc == 0
+                           || (argc > 0 && argv != 0), ONABORT, ) ;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
 
@@ -173,14 +173,12 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
    g_maincontext.argc     = argc ;
    g_maincontext.argv     = argv ;
 
+   initprogname_maincontext(&g_maincontext) ;
+
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
 
    err = init_threadcontext(&thread_maincontext()) ;
    if (err) goto ONABORT ;
-
-   ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
-
-   initprogname_maincontext(&g_maincontext) ;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
 
@@ -283,6 +281,7 @@ static int test_initmain(void)
    TEST(EINVAL == init_maincontext(maincontext_STATIC, 0, 0)) ;
    TEST(EINVAL == init_maincontext(3, 0, 0)) ;
    TEST(EINVAL == init_maincontext(maincontext_DEFAULT, -1, 0)) ;
+   TEST(EINVAL == init_maincontext(maincontext_DEFAULT, 1, 0)) ;
 
    // TEST init_maincontext: maincontext_DEFAULT
    const char * argv[2] = { "1", "2" } ;
@@ -435,7 +434,7 @@ static int test_initerror(void)
    TEST(EPROTO == init_threadcontext(&tcontext)) ;
 
    // TEST error in init_maincontext in different places (called from initmain)
-   for (int i = 1; i <= 4; ++i) {
+   for (int i = 1; i <= 3; ++i) {
       init_testerrortimer(&s_maincontext_errtimer, (unsigned)i, EINVAL+i) ;
       TEST(EINVAL+i == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
       TEST(0 == process_maincontext().initcount) ;

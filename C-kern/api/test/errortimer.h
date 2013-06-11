@@ -146,7 +146,7 @@ void SETONERROR_testerrortimer(test_errortimer_t * errtimer, /*err*/int * err) ;
  * Implements <test_errortimer_t.SETONERROR_testerrortimer>. */
 #define SETONERROR_testerrortimer(errtimer, err)         \
          do {                                            \
-            int * _eret = (err) ;                        \
+            typeof(err) _eret = (err) ;                  \
             int   _err2 ;                                \
             _err2 = process_testerrortimer(errtimer) ;   \
             if (_err2) *_eret = _err2 ;                  \

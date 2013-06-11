@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.11  09:39:37
+GenerationDate  := 2013.Jun.11  13:32:52
 GeneratedBy     := je-so
 
 ## Debug
@@ -75,8 +75,10 @@ $(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Re
 
 Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
  $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
@@ -107,8 +109,10 @@ Objects_Debug := \
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
  $(ObjectDir_Release)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
@@ -146,10 +150,16 @@ $(Target_Release): $(Objects_Release)
 $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/startup.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
@@ -236,10 +246,16 @@ $(ObjectDir_Debug)/C-kern!string!utf8.c.o: C-kern/string/utf8.c
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/startup.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c

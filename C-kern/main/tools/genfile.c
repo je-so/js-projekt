@@ -30,7 +30,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/string/cstring.h"
-
+#include "C-kern/api/platform/startup.h"
 
 static const char * s_programname ;
 static const char * s_filetitle ;
@@ -379,7 +379,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int main(int argc, const char * argv[])
+static int main_thread(int argc, const char * argv[])
 {
    int err ;
 
@@ -410,4 +410,13 @@ PRINT_USAGE:
 ONABORT:
    free_maincontext() ;
    return 1 ;
+}
+
+int main(int argc, const char * argv[])
+{
+   int err ;
+
+   err = startup_platform(argc, argv, &main_thread) ;
+
+   return err ;
 }

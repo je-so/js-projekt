@@ -202,7 +202,7 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
    extern int FCT (void) ;    \
    run_singletest(#FCT, &FCT, &total_count, &err_count)
 
-int run_unittest(void)
+int run_unittest(int argc, const char ** argv)
 {
    unsigned    err_count   = 0 ;
    unsigned    total_count = 0 ;
@@ -222,7 +222,7 @@ int run_unittest(void)
    for (unsigned type_nr = 0; type_nr < lengthof(test_context_type); ++type_nr) {
 
       // init
-      if (init_maincontext(test_context_type[type_nr], 0, 0)) {
+      if (init_maincontext(test_context_type[type_nr], argc, argv)) {
          CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
          CPRINTF_LOG(TEST, "%s\n", "Abort reason: init_maincontext failed") ;
          goto ONABORT ;
@@ -372,6 +372,7 @@ int run_unittest(void)
       // other
       RUN(unittest_platform_locale) ;
       RUN(unittest_platform_malloc) ;
+      RUN(unittest_platform_startup) ;
       RUN(unittest_platform_sysuser) ;
       RUN(unittest_platform_vm) ;
       // user interface subsystem

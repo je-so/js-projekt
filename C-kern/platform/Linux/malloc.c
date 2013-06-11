@@ -48,8 +48,8 @@ int prepare_malloc()
    s_isprepared_malloc = true ;
 
    // force some overhead
-   void * dummy = malloc((size_t)-1) ;
-   assert(! dummy) ;
+   void * dummy = malloc(10*1024*1024) ;
+   free(dummy) ;
 
    err = trimmemory_malloc() ;
    if (err) goto ONABORT ;
