@@ -1,0 +1,7 @@
+# Project description of Genmake
+# Genmake is used to generate Makefiles from project descriptions
+include        projekte/module.gcc
+Src           += C-kern/main/test/testmodule_main.c
+Src           += C-kern/main/test/helper/testmodule_helper1.c
+Includes       = .
+Defines        = KONFIG_SUBSYS=KONFIG_none

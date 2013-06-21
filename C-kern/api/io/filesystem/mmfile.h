@@ -52,6 +52,8 @@ int unittest_io_mmfile(void) ;
  * Memory mapped files must always be readable cause the memory must be
  * initialized before it can be accessed. Even if you only want to write to it.
  *
+ * If you want to open an executable file use always accessmode <accessmode_RDEX_SHARED>.
+ *
  * TODO: Recovery:
  * In case a read error occurs a SIGBUS is thrown under Linux.
  * Register special recovery handler for mmfiles => abort + read error !
@@ -198,21 +200,16 @@ mmfile_t * genericcast_mmfile(void * obj, IDNAME nameprefix, TYPEQUALIFIER quali
                sizeof(_obj->nameprefix##addr)                     \
                == sizeof(((mmfile_t*)0)->addr)                    \
                && 0 == offsetof(mmfile_t, addr),                  \
-               "addr member is compatible") ;                     \
-            static_assert(                                        \
-               sizeof(_obj->nameprefix##size)                     \
-               == sizeof(((mmfile_t*)0)->size)                    \
+               && (typeof(_obj->nameprefix##addr)*)0              \
+                  == (uint8_t**)0                                 \
+               && sizeof(_obj->nameprefix##size)                  \
+                  == sizeof(((mmfile_t*)0)->size)                 \
                && offsetof(mmfile_t, size)                        \
                   == ((uintptr_t)&_obj->nameprefix##size)         \
-                     -((uintptr_t)&_obj->nameprefix##addr),       \
-               "size member is compatible") ;                     \
-            if (0) {                                              \
-               volatile uint8_t _err ;                            \
-               volatile size_t _size ;                            \
-               _size = _obj->nameprefix##size ;                   \
-               _err  = _obj->nameprefix##addr[_size] ;            \
-               (void) _err ;                                      \
-            }                                                     \
+                     -((uintptr_t)&_obj->nameprefix##addr)        \
+               && (typeof(_obj->nameprefix##size)*)0              \
+                  == (size_t**)0                                  \
+               "structure is compatible") ;                       \
             (qualifier mmfile_t *)(&_obj->nameprefix##addr) ;     \
          }))
 

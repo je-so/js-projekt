@@ -54,14 +54,14 @@ typedef struct directory_t             directory_t ;
  * ftSocket          - A unix system socket.
  * * */
 enum filetype_e {
-   ftUnknown
-   ,ftBlockDevice
-   ,ftCharacterDevice
-   ,ftDirectory
-   ,ftNamedPipe
-   ,ftSymbolicLink
-   ,ftRegularFile
-   ,ftSocket
+   ftUnknown,
+   ftBlockDevice,
+   ftCharacterDevice,
+   ftDirectory,
+   ftNamedPipe,
+   ftSymbolicLink,
+   ftRegularFile,
+   ftSocket
 } ;
 
 typedef enum filetype_e    filetype_e ;

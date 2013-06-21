@@ -40,7 +40,7 @@ struct directory_t ;
 
 // group: helper
 
-static inline DIR * DIR_sysdir(const directory_t * dir)
+static inline DIR * asDIR_directory(const directory_t * dir)
 {
    return (DIR*) CONST_CAST(directory_t, dir) ;
 }
@@ -198,7 +198,7 @@ int delete_directory(directory_t ** dir)
    if (delobj) {
       *dir = 0 ;
 
-      err = closedir(DIR_sysdir(delobj)) ;
+      err = closedir(asDIR_directory(delobj)) ;
       if (err) {
          err = errno ;
          TRACESYSERR_LOG("closedir", err) ;
@@ -219,7 +219,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
    struct dirent  * result           = 0 ;
 
    errno = 0 ;
-   result = readdir( DIR_sysdir(dir) ) ;
+   result = readdir(asDIR_directory(dir)) ;
    if (!result && errno) {
       err = errno ;
       TRACESYSERR_LOG("readdir",err) ;
@@ -268,7 +268,7 @@ int gofirst_directory(directory_t * dir)
 
    VALIDATE_INPARAM_TEST(dir, ONABORT, ) ;
 
-   rewinddir(DIR_sysdir(dir)) ;
+   rewinddir(asDIR_directory(dir)) ;
    return 0 ;
 ONABORT:
    TRACEABORT_LOG(err) ;

@@ -57,7 +57,8 @@ enum accessmode_e {
    accessmode_PRIVATE     = 8,
    accessmode_SHARED      = 16,
    accessmode_RDWR_PRIVATE = (accessmode_RDWR|accessmode_PRIVATE),
-   accessmode_RDWR_SHARED  = (accessmode_RDWR|accessmode_SHARED)
+   accessmode_RDWR_SHARED  = (accessmode_RDWR|accessmode_SHARED),
+   accessmode_RDEX_SHARED  = (accessmode_READ|accessmode_EXEC|accessmode_SHARED)
 } ;
 
 typedef enum accessmode_e              accessmode_e ;

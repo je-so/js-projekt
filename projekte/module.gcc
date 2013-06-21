@@ -1,0 +1,6 @@
+# Include this to use GCC to build a C-kern module
+include       projekte/shared.gcc
+LFlags       += -nostartfiles
+Linker       += ; projekte/tools/build_module_from_sharedlib.sh $(out)
+Target        = bin/mod/$(projectname)_$(mode).so
+Target_Release= bin/mod/$(projectname).so

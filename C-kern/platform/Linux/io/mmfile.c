@@ -47,18 +47,23 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_file_t fd, off
 
    VALIDATE_INPARAM_TEST(0 <= file_offset && 0 == (file_offset % pagesize), ONABORT, PRINTUINT64_LOG(file_offset)) ;
 
-   VALIDATE_INPARAM_TEST(  mode == accessmode_READ
-                           || mode == accessmode_RDWR_PRIVATE
-                           || mode == accessmode_RDWR_SHARED, ONABORT, PRINTINT_LOG(mode)) ;
+   VALIDATE_INPARAM_TEST(  (accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE))
+                           && 0 != (mode & accessmode_READ)
+                           && (  0 == (mode & accessmode_EXEC)
+                                 || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED)))
+                           && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)),
+                           ONABORT, PRINTINT_LOG(mode)) ;
 
    accessmode_e fdmode = accessmode_file(fd) ;
 
    VALIDATE_INPARAM_TEST(  0 != (fdmode & accessmode_READ)
-                           && (mode == accessmode_READ
-                              || 0 != (fdmode & accessmode_WRITE)), ONABORT, PRINTINT_LOG(fdmode)) ;
+                           && (0 != (fdmode & accessmode_WRITE)
+                               || 0 == (mode & accessmode_WRITE)),
+                           ONABORT, PRINTINT_LOG(fdmode)) ;
 
    if (size) {
-      const int protection = (mode & accessmode_WRITE)   ? (PROT_READ|PROT_WRITE) : PROT_READ ;
+      const int protection = ((mode & accessmode_WRITE) ? (PROT_READ|PROT_WRITE) : PROT_READ)
+                           | ((mode & accessmode_EXEC)  ? (PROT_EXEC) : 0) ;
       const int flags      = (addr ? MAP_FIXED : 0) | ((mode & accessmode_PRIVATE) ? MAP_PRIVATE : MAP_SHARED) ;
       mem_start = mmap(addr, size, protection, flags, fd, file_offset) ;
       if (MAP_FAILED == mem_start) {
@@ -153,11 +158,19 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    err = init2_mmfile(mfile, 0, fd, file_offset, size, mode) ;
    if (err) goto ONABORT ;
 
-   (void) free_file(&fd) ;
+   if (fd != -1) {
+      err = close(fd) ;
+      fd  = -1 ;
+      if (err) {
+         err = errno ;
+         TRACESYSERR_LOG("close", err) ;
+         goto ONABORT ;
+      }
+   }
 
    return 0 ;
 ONABORT:
-   free_file(&fd) ;
+   if (fd != -1) close(fd) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -314,11 +327,13 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(0 == mfile.addr) ;
    TEST(0 == mfile.size) ;
 
-   // TEST init, double free
+   // TEST init_mmfile
    TEST(0 == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_READ, tempdir)) ;
    TEST(mfile.addr             != 0) ;
    TEST(mfile.size             == 256) ;
    TEST(pagesize               == alignedsize_mmfile(&mfile)) ;
+
+   // TEST free_mmfile
    TEST(0 == free_mmfile(&mfile)) ;
    TEST(mfile.addr             ==  0) ;
    TEST(alignedsize_mmfile(&mfile) == 0) ;
@@ -357,6 +372,15 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
       }
       TEST(0 == free_mmfile(&mfile)) ;
    }
+
+   // TEST init_mmfile: executeable
+   TEST(0 == init_mmfile(&mfile, "mmfile", 0, 512, accessmode_READ|accessmode_SHARED|accessmode_EXEC, tempdir)) ;
+   TEST(size_mmfile(&mfile)       == 256 ) ;
+   TEST(alignedsize_mmfile(&mfile) == pagesize) ;
+   for (unsigned i = 0; i < 256; ++i) {
+      TEST(addr_mmfile(&mfile)[i] == (uint8_t)i) ;
+   }
+   TEST(0 == free_mmfile(&mfile)) ;
 
    // TEST init_mmfile: read only / shared
    TEST(0 == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_READ, tempdir)) ;
@@ -508,20 +532,28 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    split[0] = (mmfile_t) mmfile_INIT_FREEABLE ;
    TEST(0 == free_mmfile(&mfile)) ;
 
-   // TEST init_mmfile, initfd_mmfile: EINVAL
+   // prepare
    fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
-   // accessmode_e
-   TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_RDWR_PRIVATE+accessmode_EXEC, tempdir)) ;
-   TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 0, accessmode_RDWR_PRIVATE+accessmode_SHARED)) ;
-   // offset not page aligned
+
+   // init_mmfile, initfd_mmfile: wrong accessmode_e
+   TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_WRITE/*needs always read*/, tempdir)) ;
+   TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_EXEC|accessmode_READ|accessmode_PRIVATE/*needs always SHARED*/, tempdir)) ;
+   TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_RDWR_PRIVATE+2*accessmode_SHARED/*unknown 2*accessmode_SHARED*/, tempdir)) ;
+   TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 0, accessmode_RDWR_PRIVATE+accessmode_SHARED/*SHARED + RPIVATE*/)) ;
+
+   // TEST init_mmfile, initfd_mmfile: offset not page aligned
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 1, 0, accessmode_RDWR_PRIVATE, tempdir)) ;
    TEST(EINVAL == initfd_mmfile(&mfile, fd, 1, 0, accessmode_RDWR_PRIVATE)) ;
-   // file must always be opened with write access
+
+   // TEST initfd_mmfile: file must always be opened with write access
    TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_PRIVATE)) ;
    TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_SHARED)) ;
-   // file must always be opened with read access
+
+   // unprepare
    TEST(0 == free_file(&fd)) ;
+
+   // // TEST init_mmfile, initfd_mmfile: file must always be opened with read access
    fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 1, accessmode_READ)) ;

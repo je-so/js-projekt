@@ -10,7 +10,7 @@ warnings_on   = -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrit
 warnings_on  += -Wformat-nonliteral -Wformat-y2k
 shobj_flags   = -fPIC 
 CFlags        = -MMD -std=gnu1x $(warnings_on) $(shobj_flags)
-LFlags        = -shared $(shobj_flags)
+LFlags        = -shared -Wl,-Bsymbolic $(shobj_flags)
 CFlags_Debug  = -g $(cflags)
 LFlags_Debug  = -g $(lflags)
 CFlags_Release= -O2 $(cflags)
@@ -18,5 +18,5 @@ LFlags_Release= -O2 $(lflags)
 Libs          =
 Libpath       =
 Objectdir     = bin/$(mode)/$(projectname)
-Target        = bin/lib$(projectname)_$(mode).so
-Target_Release= bin/lib$(projectname).so
+Target        = bin/lib/lib$(projectname)_$(mode).so
+Target_Release= bin/lib/lib$(projectname).so

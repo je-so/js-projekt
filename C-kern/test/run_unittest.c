@@ -238,6 +238,7 @@ int run_unittest(int argc, const char ** argv)
       RUN(unittest_context_errorcontext) ;
       RUN(unittest_context_iobj) ;
       RUN(unittest_context_maincontext) ;
+      RUN(unittest_context_module) ;
       RUN(unittest_context_processcontext) ;
       RUN(unittest_context_threadcontext) ;
 //}

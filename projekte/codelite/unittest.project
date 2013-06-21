@@ -115,6 +115,7 @@
       <File Name="../../C-kern/api/context/errorcontext.h"/>
       <File Name="../../C-kern/api/context/iobj.h"/>
       <File Name="../../C-kern/api/context/stdtypes.h"/>
+      <File Name="../../C-kern/api/context/module.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -216,6 +217,7 @@
     <File Name="../../C-kern/context/maincontext.c"/>
     <File Name="../../C-kern/context/errorcontext.c"/>
     <File Name="../../C-kern/context/iobj.c"/>
+    <File Name="../../C-kern/context/module.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>
@@ -242,6 +244,11 @@
       <File Name="../../C-kern/main/test/speedtest_main.c"/>
       <File Name="../../C-kern/main/test/testchildprocess_main.c"/>
       <File Name="../../C-kern/main/test/unittest_main.c"/>
+      <File Name="../../C-kern/main/test/testmodule_main.c"/>
+      <VirtualDirectory Name="helper">
+        <File Name="../../C-kern/main/test/helper/testmodule_helper1.c"/>
+        <File Name="../../C-kern/main/test/helper/testmodule_helper1.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="tools">
       <File Name="../../C-kern/main/tools/genmake.c"/>

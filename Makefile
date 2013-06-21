@@ -10,6 +10,7 @@ PROJECTS= pp-generrtab \
           genmake_    \
           genfile_    \
           testchildprocess_ \
+          testmodule_ \
           textres2compiler_ \
           textdb_           \
           unittest_
@@ -65,7 +66,7 @@ html:
 
 makefiles: $(patsubst %,$(MAKEFILES_PREFIX)%,$(subst _,,$(PROJECTS)))
 
-$(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/sharedobject.gcc projekte/subsys/context-mini | genmake_Release
+$(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/shared.gcc projekte/subsys/context-mini | genmake_Release
 	@bin/genmake $< > "$(@)"
 
 pp-generrtab: generrtab_Release
