@@ -31,4 +31,11 @@ if ! [[ "$beginning" =~ ([0-9a-fA-F]+ <main_module>:) ]]; then
    exit 1
 fi
 
-objcopy -O binary --only-section=.text ${filename_so} `dirname ${filename_so}`/`basename ${filename_so} .so`
+objcopy -O binary --only-section=.rodata ${filename_so} ${filename_so%.so}
+data=`< ${filename_so%.so}`
+rm ${filename_so%.so}
+if [ "$data" != "" ]; then
+   echo "$filename_so has read only data section"
+   exit 1
+fi
+objcopy -O binary --only-section=.text ${filename_so} ${filename_so%.so}
