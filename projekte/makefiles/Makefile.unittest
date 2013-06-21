@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.11  13:34:24
+GenerationDate  := 2013.Jun.21  18:07:54
 GeneratedBy     := je-so
 
 ## Debug
@@ -99,6 +99,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!test!unittest_main.c.o \
  $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Debug)/C-kern!context!module.c.o \
  $(ObjectDir_Debug)/C-kern!context!iobj.c.o \
  $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o \
@@ -203,6 +204,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!test!unittest_main.c.o \
  $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
  $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Release)/C-kern!context!module.c.o \
  $(ObjectDir_Release)/C-kern!context!iobj.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!errorcontext.c.o \
@@ -360,6 +362,9 @@ $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_i
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!module.c.o: C-kern/context/module.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!context!iobj.c.o: C-kern/context/iobj.c
@@ -666,6 +671,9 @@ $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!module.c.o: C-kern/context/module.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!context!iobj.c.o: C-kern/context/iobj.c

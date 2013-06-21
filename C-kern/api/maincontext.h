@@ -73,8 +73,12 @@ int unittest_context_maincontext(void) ;
 
 /* struct: maincontext_t
  * Defines the main top level context of the whole process.
- * It contains a single copy of <processcontext_t> and in case
- * the thread subsystem is not needed also a copy of <threadcontext_t>.
+ *
+ * It extends the functionality of <processcontext_t> and combines it with <threadcontext_t>.
+ *
+ * It contains a single copy of <processcontext_t> and initializes
+ * <threadcontext_t> of the caller (main thread of the process).
+ *
  * Allows access to process & thread specific top level context.
  *
  * TODO: implement SIGTERM support for shutting down the system in an ordered way
@@ -137,9 +141,13 @@ void assertfail_maincontext(const char * condition, const char * file, int line,
 
 // group: query
 
+/* function: self_maincontext
+ * Returns <maincontext_t> of the current process. */
+maincontext_t *            self_maincontext(void) ;
+
 /* function: pcontext_maincontext
  * Returns <processcontext_t> of the current process. */
-/*ref*/processcontext_t    pcontext_maincontext(void) ;
+processcontext_t *         pcontext_maincontext(void) ;
 
 /* function: tcontext_maincontext
  * Returns <threadcontext_t> of the current thread. */
@@ -223,11 +231,11 @@ uint16_t sizestatic_maincontext(void) ;
 
 /* define: blockmap_maincontext
  * Implementation of <maincontext_t.blockmap_maincontext>. */
-#define blockmap_maincontext()            (pcontext_maincontext().blockmap)
+#define blockmap_maincontext()            (pcontext_maincontext()->blockmap)
 
 /* define: error_maincontext
  * Implementation of <maincontext_t.error_maincontext>. */
-#define error_maincontext()               (pcontext_maincontext().error)
+#define error_maincontext()               (pcontext_maincontext()->error)
 
 /* define: log_maincontext
  * Inline implementation of <maincontext_t.log_maincontext>.
@@ -250,15 +258,19 @@ uint16_t sizestatic_maincontext(void) ;
 
 /* define: pcontext_maincontext
  * Inline implementation of <maincontext_t.pcontext_maincontext>. */
-#define pcontext_maincontext()            (g_maincontext.pcontext)
+#define pcontext_maincontext()            (tcontext_maincontext()->pcontext)
 
 /* define: progname_maincontext
  * Inline implementation of <maincontext_t.progname_maincontext>. */
-#define progname_maincontext()            (g_maincontext.progname)
+#define progname_maincontext()            (self_maincontext()->progname)
+
+/* define: self_maincontext
+ * Inline implementation of <maincontext_t.self_maincontext>. */
+#define self_maincontext()                ((maincontext_t*)pcontext_maincontext())
 
 /* define: sizestatic_maincontext
  * Inline implementation of <maincontext_t.sizestatic_maincontext>. */
-#define sizestatic_maincontext()          ((uint16_t)g_maincontext.size_staticmem)
+#define sizestatic_maincontext()          (self_maincontext()->size_staticmem)
 
 /* define: syncrun_maincontext
  * Inline implementation of <maincontext_t.syncrun_maincontext>. */
@@ -266,7 +278,7 @@ uint16_t sizestatic_maincontext(void) ;
 
 /* define: sysuser_maincontext
  * Inline implementation of <maincontext_t.sysuser_maincontext>. */
-#define sysuser_maincontext()             (pcontext_maincontext().sysuser)
+#define sysuser_maincontext()             (pcontext_maincontext()->sysuser)
 
 /* define: tcontext_maincontext
  * Inline implementation of <maincontext_t.tcontext_maincontext>. */
@@ -274,11 +286,11 @@ uint16_t sizestatic_maincontext(void) ;
 
 /* define: type_maincontext
  * Inline implementation of <maincontext_t.type_maincontext>. */
-#define type_maincontext()                (g_maincontext.type)
+#define type_maincontext()                (self_maincontext()->type)
 
 /* define: valuecache_maincontext
  * Inline implementation of <maincontext_t.valuecache_maincontext>.
  * Uses a global thread-local storage variable to implement the functionality. */
-#define valuecache_maincontext()          (pcontext_maincontext().valuecache)
+#define valuecache_maincontext()          (pcontext_maincontext()->valuecache)
 
 #endif

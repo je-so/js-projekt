@@ -102,5 +102,10 @@ int init_processcontext(/*out*/processcontext_t * pcontext) ;
  * This function is called from <free_maincontext> and you should never need to call it. */
 int free_processcontext(processcontext_t * pcontext) ;
 
+// group: query
+
+/* function: isstatic_processcontext
+ * Returns true if pcontext equals <processcontext_INIT_STATIC>. */
+bool isstatic_processcontext(const processcontext_t * pcontext) ;
 
 #endif

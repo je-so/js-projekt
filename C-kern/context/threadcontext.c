@@ -284,6 +284,8 @@ int free_threadcontext(threadcontext_t * tcontext)
    case 0:     break ;
    }
 
+   tcontext->pcontext = statictcontext.pcontext ;
+
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -292,11 +294,12 @@ ONABORT:
    return err ;
 }
 
-int init_threadcontext(/*out*/threadcontext_t * tcontext)
+int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pcontext)
 {
    int err ;
 
    *tcontext = (threadcontext_t) threadcontext_INIT_STATIC ;
+   tcontext->pcontext = pcontext ;
 
    VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONABORT, ) ;
 
@@ -335,6 +338,19 @@ ONABORT:
    (void) free_threadcontext(tcontext) ;
    TRACEABORT_LOG(err) ;
    return err ;
+}
+
+// group: query
+
+bool isstatic_threadcontext(const threadcontext_t * tcontext)
+{
+   return   &g_maincontext.pcontext == tcontext->pcontext
+            && 0 == tcontext->pagecache.object   && 0 == tcontext->pagecache.iimpl
+            && 0 == tcontext->mm.object          && 0 == tcontext->mm.iimpl
+            && 0 == tcontext->syncrun
+            && 0 == tcontext->objectcache.object && 0 == tcontext->objectcache.iimpl
+            && (struct log_t*)&g_logmain == tcontext->log.object && &g_logmain_interface == tcontext->log.iimpl
+            && 0 == tcontext->initcount ;
 }
 
 // group: change
@@ -494,11 +510,16 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   threadcontext_t   tcontext   = threadcontext_INIT_FREEABLE ;
-   const size_t      nrsvc      = 5 ;
-   size_t            sizestatic ;
+   threadcontext_t      tcontext = threadcontext_INIT_FREEABLE ;
+   processcontext_t *   p        = pcontext_maincontext() ;
+   const size_t         nrsvc    = 5 ;
+   size_t               sizestatic ;
+
+   // prepare
+   TEST(p != 0) ;
 
    // TEST threadcontext_INIT_FREEABLE
+   TEST(0 == tcontext.pcontext) ;
    TEST(0 == tcontext.pagecache.object) ;
    TEST(0 == tcontext.pagecache.iimpl) ;
    TEST(0 == tcontext.mm.object) ;
@@ -512,20 +533,12 @@ static int test_initfree(void)
 
    // TEST threadcontext_INIT_STATIC
    tcontext = (threadcontext_t) threadcontext_INIT_STATIC ;
-   TEST(0 == tcontext.pagecache.object) ;
-   TEST(0 == tcontext.pagecache.iimpl) ;
-   TEST(0 == tcontext.mm.object) ;
-   TEST(0 == tcontext.mm.iimpl) ;
-   TEST(0 == tcontext.syncrun) ;
-   TEST(0 == tcontext.objectcache.object) ;
-   TEST(0 == tcontext.objectcache.iimpl) ;
-   TEST(&g_logmain           == (logmain_t*)tcontext.log.object) ;
-   TEST(&g_logmain_interface == tcontext.log.iimpl) ;
-   TEST(0 == tcontext.initcount) ;
+   TEST(1 == isstatic_threadcontext(&tcontext)) ;
 
-   // TEST init_threadcontext, free_threadcontext
+   // TEST init_threadcontext
    sizestatic = SIZESTATIC_PAGECACHE() ;
-   TEST(0 == init_threadcontext(&tcontext)) ;
+   TEST(0 == init_threadcontext(&tcontext, p)) ;
+   TEST(p == tcontext.pcontext) ;
    TEST(0 != tcontext.pagecache.object) ;
    TEST(0 != tcontext.pagecache.iimpl) ;
    TEST(0 != tcontext.mm.object) ;
@@ -539,52 +552,27 @@ static int test_initfree(void)
    TEST(&g_logmain_interface != tcontext.log.iimpl) ;
    TEST(nrsvc == tcontext.initcount) ;
    TEST(SIZESTATIC_PAGECACHE() > sizestatic) ;
+
+   // TEST free_threadcontext
    TEST(0 == free_threadcontext(&tcontext)) ;
-   TEST(0 == tcontext.pagecache.object) ;
-   TEST(0 == tcontext.pagecache.iimpl) ;
-   TEST(0 == tcontext.mm.object) ;
-   TEST(0 == tcontext.mm.iimpl) ;
-   TEST(0 == tcontext.syncrun) ;
-   TEST(0 == tcontext.objectcache.object) ;
-   TEST(0 == tcontext.objectcache.iimpl) ;
-   TEST(tcontext.log.object == (struct log_t*)&g_logmain) ;
-   TEST(tcontext.log.iimpl  == &g_logmain_interface) ;
-   TEST(0 == tcontext.initcount) ;
+   TEST(1 == isstatic_threadcontext(&tcontext)) ;
    TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
    TEST(0 == free_threadcontext(&tcontext)) ;
-   TEST(0 == tcontext.pagecache.object) ;
-   TEST(0 == tcontext.pagecache.iimpl) ;
-   TEST(0 == tcontext.mm.object) ;
-   TEST(0 == tcontext.mm.iimpl) ;
-   TEST(0 == tcontext.syncrun) ;
-   TEST(0 == tcontext.objectcache.object) ;
-   TEST(0 == tcontext.objectcache.iimpl) ;
-   TEST(&g_logmain           == (logmain_t*)tcontext.log.object) ;
-   TEST(&g_logmain_interface == tcontext.log.iimpl) ;
-   TEST(0 == tcontext.initcount) ;
+   TEST(1 == isstatic_threadcontext(&tcontext)) ;
    TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
 
    // TEST init_threadcontext: ERROR
    for(unsigned i = 1; i; ++i) {
       init_testerrortimer(&s_threadcontext_errtimer, i, (int)i) ;
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
-      int err = init_threadcontext(&tcontext) ;
+      int err = init_threadcontext(&tcontext, p) ;
       if (err == 0) {
          TEST(0 == free_threadcontext(&tcontext)) ;
          TEST(i > nrsvc) ;
          break ;
       }
       TEST(i == (unsigned)err) ;
-      TEST(0 == tcontext.pagecache.object) ;
-      TEST(0 == tcontext.pagecache.iimpl) ;
-      TEST(0 == tcontext.mm.object) ;
-      TEST(0 == tcontext.mm.iimpl) ;
-      TEST(0 == tcontext.syncrun) ;
-      TEST(0 == tcontext.objectcache.object) ;
-      TEST(0 == tcontext.objectcache.iimpl) ;
-      TEST(&g_logmain           == (logmain_t*)tcontext.log.object) ;
-      TEST(&g_logmain_interface == tcontext.log.iimpl) ;
-      TEST(0 == tcontext.initcount) ;
+      TEST(1 == isstatic_threadcontext(&tcontext)) ;
       TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
    }
 
@@ -594,6 +582,49 @@ static int test_initfree(void)
    return 0 ;
 ONABORT:
    s_threadcontext_errtimer = (test_errortimer_t) test_errortimer_INIT_FREEABLE ;
+   return EINVAL ;
+}
+
+static int test_query(void)
+{
+   threadcontext_t tcontext = threadcontext_INIT_STATIC ;
+
+   // TEST isstatic_threadcontext
+   TEST(1 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.pcontext = 0 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.pcontext = &g_maincontext.pcontext ;
+   tcontext.pagecache.object = (void*)1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.pagecache.object = 0 ;
+   tcontext.pagecache.iimpl = (void*)1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.pagecache.iimpl = 0 ;
+   tcontext.mm.object = (void*)1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.mm.object = 0 ;
+   tcontext.mm.iimpl = (void*)1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.mm.iimpl = 0 ;
+   tcontext.syncrun = (void*)1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.syncrun = 0 ;
+   tcontext.objectcache.object = (void*)1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.objectcache.object = 0 ;
+   tcontext.objectcache.iimpl = (void*)1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.objectcache.iimpl = 0 ;
+   tcontext.log.object = 0 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.log.object = (struct log_t*)&g_logmain;
+   tcontext.log.iimpl = 0 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.log.iimpl = &g_logmain_interface ;
+   TEST(1 == isstatic_threadcontext(&tcontext)) ;
+
+   return 0 ;
+ONABORT:
    return EINVAL ;
 }
 
@@ -623,6 +654,7 @@ int unittest_context_threadcontext()
    if (test_iobjhelper())  goto ONABORT ;
    if (test_objhelper())   goto ONABORT ;
    if (test_initfree())    goto ONABORT ;
+   if (test_query())       goto ONABORT ;
    if (test_change())      goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;

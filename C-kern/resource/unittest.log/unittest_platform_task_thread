@@ -1,10 +1,10 @@
-C-kern/platform/Linux/task/thread.c:366: exit_thread(): error: 71: Operation allowed only in state (! ismain_thread(thread))
-C-kern/platform/Linux/task/thread.c:379: exit_thread(): error: 71: Function aborted
-C-kern/platform/Linux/task/thread.c:235: new_thread(): error: 1: Function aborted
-C-kern/platform/Linux/task/thread.c:235: new_thread(): error: 2: Function aborted
-C-kern/platform/Linux/task/thread.c:235: new_thread(): error: 3: Function aborted
-C-kern/platform/Linux/task/thread.c:235: new_thread(): error: 4: Function aborted
-C-kern/platform/Linux/task/thread.c:255: join_thread(): error: 35: Function aborted
-C-kern/platform/Linux/task/thread.c:255: join_thread(): error: 3: Function aborted
-C-kern/platform/Linux/task/thread.c:366: exit_thread(): error: 71: Operation allowed only in state (! ismain_thread(thread))
-C-kern/platform/Linux/task/thread.c:379: exit_thread(): error: 71: Function aborted
+C-kern/platform/Linux/task/thread.c:368: exit_thread(): error: 71: Operation allowed only in state (! ismain_thread(thread))
+C-kern/platform/Linux/task/thread.c:381: exit_thread(): error: 71: Function aborted
+C-kern/platform/Linux/task/thread.c:237: new_thread(): error: 1: Function aborted
+C-kern/platform/Linux/task/thread.c:237: new_thread(): error: 2: Function aborted
+C-kern/platform/Linux/task/thread.c:237: new_thread(): error: 3: Function aborted
+C-kern/platform/Linux/task/thread.c:237: new_thread(): error: 4: Function aborted
+C-kern/platform/Linux/task/thread.c:257: join_thread(): error: 35: Function aborted
+C-kern/platform/Linux/task/thread.c:257: join_thread(): error: 3: Function aborted
+C-kern/platform/Linux/task/thread.c:368: exit_thread(): error: 71: Operation allowed only in state (! ismain_thread(thread))
+C-kern/platform/Linux/task/thread.c:381: exit_thread(): error: 71: Function aborted

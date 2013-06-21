@@ -6,7 +6,7 @@ ProjectModes    := Release
 ProjectFile     := projekte/pp-textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Mai.15  18:04:50
+GenerationDate  := 2013.Jun.21  18:07:54
 GeneratedBy     := je-so
 
 ## Release
@@ -47,6 +47,7 @@ $(sort $(ObjectDir_Release) $(TargetDir_Release)):
 	@mkdir -p "$@"
 
 Objects_Release := \
+ $(ObjectDir_Release)/C-kern!context!module.c.o \
  $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
@@ -55,6 +56,9 @@ Objects_Release := \
 
 $(Target_Release): $(Objects_Release)
 	@$(LD_Release)
+
+$(ObjectDir_Release)/C-kern!context!module.c.o: C-kern/context/module.c
+	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
 	@$(CC_Release)

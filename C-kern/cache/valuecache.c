@@ -86,32 +86,16 @@ ONABORT:
 
 static int test_queryvalues(void)
 {
-   valuecache_t * vc    = valuecache_maincontext() ;
-   valuecache_t   oldvc = *vc ;
+   valuecache_t * vc = valuecache_maincontext() ;
 
    // TEST log2pagesize_vm
-   TEST(log2pagesize_vm() == oldvc.log2pagesize_vm) ;
-   TEST(pagesize_vm()     == 1u << log2pagesize_vm()) ;
-   vc->log2pagesize_vm = 0 ;
-   TEST(log2pagesize_vm() == 0) ;
-   vc->log2pagesize_vm = 7 ;
-   TEST(log2pagesize_vm() == 7) ;
-   vc->log2pagesize_vm = oldvc.log2pagesize_vm ;
-   TEST(pagesize_vm()     == 1u << log2pagesize_vm()) ;
+   TEST(&log2pagesize_vm() == &vc->log2pagesize_vm)
 
    // TEST pagesize_vm
-   TEST(pagesize_vm() == oldvc.pagesize_vm) ;
-   TEST(pagesize_vm() == sys_pagesize_vm()) ;
-   vc->pagesize_vm = 0 ;
-   TEST(pagesize_vm() == 0) ;
-   vc->pagesize_vm = 512 ;
-   TEST(pagesize_vm() == 512) ;
-   vc->pagesize_vm = oldvc.pagesize_vm ;
-   TEST(pagesize_vm() == sys_pagesize_vm()) ;
+   TEST(&pagesize_vm() == &vc->pagesize_vm) ;
 
    return 0 ;
 ONABORT:
-   *vc = oldvc ;
    return EINVAL ;
 }
 

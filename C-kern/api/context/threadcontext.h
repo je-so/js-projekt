@@ -29,6 +29,9 @@
 #ifndef CKERN_CONTEXT_THREADCONTEXT_HEADER
 #define CKERN_CONTEXT_THREADCONTEXT_HEADER
 
+// forward
+struct processcontext_t ;
+
 /* typedef: struct threadcontext_t
  * Export <threadcontext_t>. */
 typedef struct threadcontext_t            threadcontext_t ;
@@ -49,6 +52,7 @@ int unittest_context_threadcontext(void) ;
  * Stores services useable exclusively from one thread.
  * */
 struct threadcontext_t {
+   struct processcontext_t *  pcontext ;
    iobj_DECLARE(,pagecache)   pagecache ;
    iobj_DECLARE(,mm)          mm ;
    struct syncrun_t *         syncrun ;
@@ -62,7 +66,7 @@ struct threadcontext_t {
 /* define: threadcontext_INIT_FREEABLE
  * Static initializer for <threadcontext_t>. */
 #define threadcontext_INIT_FREEABLE   \
-         { iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0 }
+         { 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0 }
 
 /* define: threadcontext_INIT_STATIC
  * Static initializer for <threadcontext_t>.
@@ -70,19 +74,25 @@ struct threadcontext_t {
  * even without calling <init_maincontext> first.
  */
 #define threadcontext_INIT_STATIC   \
-         { iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, { (struct log_t*)&g_logmain, &g_logmain_interface }, 0 }
+         { &g_maincontext.pcontext, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, { (struct log_t*)&g_logmain, &g_logmain_interface }, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.
  * Services do *not* need to be multi thread safe cause a new one is created for every new thread.
  * If a service shares information between threads then it must be programmed in a thread safe manner.
  * This function is called from <init_maincontext>. */
-int init_threadcontext(/*out*/threadcontext_t * tcontext) ;
+int init_threadcontext(/*out*/threadcontext_t * tcontext, struct processcontext_t * pcontext) ;
 
 /* function: free_threadcontext
  * Frees all resources bound to this object.
  * This function is called from <free_maincontext>. */
 int free_threadcontext(threadcontext_t * tcontext) ;
+
+// group: query
+
+/* function: isstatic_threadcontext
+ * Returns true if tcontext == <threadcontext_INIT_STATIC>. */
+bool isstatic_threadcontext(const threadcontext_t * tcontext) ;
 
 // group: change
 

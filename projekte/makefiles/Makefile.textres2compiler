@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.11  13:32:52
+GenerationDate  := 2013.Jun.21  18:07:54
 GeneratedBy     := je-so
 
 ## Debug

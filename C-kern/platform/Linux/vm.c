@@ -654,16 +654,20 @@ ONABORT:
 
 static int test_functions(void)
 {
+   valuecache_t * vc = valuecache_maincontext() ;
+
    // TEST sys_pagesize_vm
    TEST(sys_pagesize_vm() >= 256) ;
    TEST(ispowerof2_int(sys_pagesize_vm())) ;
 
    // TEST pagesize_vm
-   TEST(sys_pagesize_vm() == pagesize_vm()) ;
+   TEST(pagesize_vm()  == sys_pagesize_vm()) ;
+   TEST(&pagesize_vm() == &vc->pagesize_vm) ;
 
    // TEST log2pagesize_vm
-   TEST(log2pagesize_vm() != 0) ;
-   TEST(sys_pagesize_vm() == 1u << log2pagesize_vm()) ;
+   TEST(log2pagesize_vm()  != 0) ;
+   TEST(&log2pagesize_vm() == &vc->log2pagesize_vm) ;
+   TEST(sys_pagesize_vm()  == 1u << log2pagesize_vm()) ;
 
    // TEST ismapped_vm, isunmapped_vm
    uint8_t * addr = mmap(0, 3*pagesize_vm(), PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANONYMOUS, -1, 0) ;

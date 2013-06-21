@@ -1,5 +1,7 @@
 /* title: LinuxSystemContext
-   Defines system specific accessor function for context of the current thread.
+
+   Defines <sys_context_threadtls> which calculates a pointer to <threadcontext_t>.
+   The address of the pointer is determined relative to the address of the current stack address.
 
    about: Copyright
    This program is free software.
@@ -33,12 +35,13 @@ struct threadcontext_t ;
 struct thread_tls_t ;
 
 /* function: sys_context_threadtls
- * Returns the <threadcontext_t> of the current thread.
- * This function is called from all other functions using <threadcontext_t>. */
+ * Returns <threadcontext_t> of the current thread.
+ * This function is called from all other functions using <threadcontext_t>.
+ * The returned pointer is caluclated relative to the address of the current stack. */
 struct threadcontext_t * sys_context_threadtls(void) ;
 
 /* function: sys_context2_threadtls
- * Returns the <threadcontext_t> of the current thread.
+ * Returns <threadcontext_t> of the current thread.
  * The parameter local_var must point to a local variable on the current stack.
  * This function is called from <sys_context_threadtls>. */
 struct threadcontext_t * sys_context2_threadtls(void * local_var) ;

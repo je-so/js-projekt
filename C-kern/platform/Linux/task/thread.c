@@ -48,8 +48,9 @@ typedef struct thread_startargument_t  thread_startargument_t ;
  * The function <main_thread> then calls the main task of the thread which
  * is stored in <thread_t.main>. */
 struct thread_startargument_t {
-   thread_t *     self ;
-   stack_t        signalstack ;
+   thread_t *           self ;
+   processcontext_t *   pcontext ;
+   stack_t              signalstack ;
 } ;
 
 
@@ -80,7 +81,7 @@ static void * main_thread(thread_startargument_t * startarg)
 
    thread->sys_thread = pthread_self() ;
 
-   err = init_threadcontext(sys_context_threadtls()) ;
+   err = init_threadcontext(tcontext_maincontext(), startarg->pcontext) ;
    if (err) {
       TRACECALLERR_LOG("init_threadcontext", err) ;
       goto ONABORT ;
@@ -184,6 +185,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    thread_startargument_t * startarg   = (thread_startargument_t*) signalstack.addr ;
 
    startarg->self        = thread ;
+   startarg->pcontext    = pcontext_maincontext() ;
    startarg->signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size } ;
 
    ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;

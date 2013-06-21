@@ -310,6 +310,17 @@ ONABORT:
    return err ;
 }
 
+// group: query
+
+bool isstatic_processcontext(const processcontext_t * pcontext)
+{
+   return   0 == pcontext->valuecache
+            && 0 == pcontext->sysuser
+            && g_errorcontext_stroffset == pcontext->error.stroffset && g_errorcontext_strdata == pcontext->error.strdata
+            && 0 == pcontext->blockmap
+            && 0 == pcontext->initcount ;
+}
+
 
 // group: test
 
@@ -403,6 +414,37 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_query(void)
+{
+   processcontext_t  pcontext = processcontext_INIT_STATIC ;
+
+   // TEST isstatic_processcontext
+   TEST(1 == isstatic_processcontext(&pcontext)) ;
+   pcontext.valuecache = (void*)1 ;
+   TEST(0 == isstatic_processcontext(&pcontext)) ;
+   pcontext.valuecache = 0 ;
+   pcontext.sysuser = (void*)1 ;
+   TEST(0 == isstatic_processcontext(&pcontext)) ;
+   pcontext.sysuser = 0 ;
+   pcontext.error.stroffset = 0 ;
+   TEST(0 == isstatic_processcontext(&pcontext)) ;
+   pcontext.error.stroffset = g_errorcontext_stroffset ;
+   pcontext.error.strdata = 0 ;
+   TEST(0 == isstatic_processcontext(&pcontext)) ;
+   pcontext.error.strdata = g_errorcontext_strdata ;
+   pcontext.blockmap = (void*)1 ;
+   TEST(0 == isstatic_processcontext(&pcontext)) ;
+   pcontext.blockmap = 0 ;
+   pcontext.initcount = 1 ;
+   TEST(0 == isstatic_processcontext(&pcontext)) ;
+   pcontext.initcount = 0 ;
+   TEST(1 == isstatic_processcontext(&pcontext)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 int unittest_context_processcontext()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
@@ -413,6 +455,7 @@ int unittest_context_processcontext()
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())    goto ONABORT ;
+   if (test_query())       goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
