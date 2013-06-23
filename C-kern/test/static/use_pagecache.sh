@@ -14,7 +14,10 @@ ok=( C-kern/api/memory/vm.h
      C-kern/platform/Linux/vm.c
      C-kern/api/cache/objectcache_impl.h
      C-kern/api/memory/pagecache_impl.h
+     C-kern/memory/hwcache.c
      C-kern/memory/pagecache_impl.c
+     C-kern/test/resourceusage.c
+     C-kern/test/testmm.c
      C-kern/test/speed/run_speedcmp_linuxsplice.c
    )
 for((i=0;i<${#ok[*]};i=i+1)) do

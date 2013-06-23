@@ -1,18 +1,18 @@
 [Thread 1]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Freeing a resource returned an error
+Error 22 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Freeing a resource returned an error
+Error 22 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Freeing a resource returned an error
+Error 22 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Freeing a resource returned an error
+Error 22 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Freeing a resource returned an error
+Error 22 - Function aborted - one or more resources could not be freed
 [Thread 1]
 insert_syncwlist() C-kern/task/syncwlist.c:205
 Error 12 - Function aborted

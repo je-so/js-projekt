@@ -34,6 +34,7 @@
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/test/errortimer.h"
 #endif
@@ -1343,12 +1344,16 @@ int unittest_ds_inmem_splaytree()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
+   EMPTYCACHE_PAGECACHE() ;
+
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initfree())       goto ONABORT ;
    if (test_insertremove())   goto ONABORT ;
    if (test_iterator())       goto ONABORT ;
    if (test_generic())        goto ONABORT ;
+
+   EMPTYCACHE_PAGECACHE() ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

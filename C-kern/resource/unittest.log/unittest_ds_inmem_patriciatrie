@@ -1,6 +1,6 @@
 [Thread 1]
 removenodes_patriciatrie() C-kern/ds/inmem/patriciatrie.c:458
-Error 2 - Freeing a resource returned an error
+Error 2 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_patriciatrie() C-kern/ds/inmem/patriciatrie.c:54
 Error 2 - Function aborted

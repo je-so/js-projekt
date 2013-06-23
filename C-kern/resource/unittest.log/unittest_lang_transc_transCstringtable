@@ -48,4 +48,4 @@ initfirst_transcstringtableiterator() C-kern/lang/transC/transCstringtable.c:118
 Error 22 - Function input violates condition (strtable->first && strid)
 [Thread 1]
 initfirst_transcstringtableiterator() C-kern/lang/transC/transCstringtable.c:131
-Error 22 - Freeing a resource returned an error
+Error 22 - Function aborted - one or more resources could not be freed

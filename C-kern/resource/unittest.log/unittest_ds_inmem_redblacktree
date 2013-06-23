@@ -1,6 +1,6 @@
 [Thread 1]
 removenodes_redblacktree() C-kern/ds/inmem/redblacktree.c:708
-Error 8 - Freeing a resource returned an error
+Error 8 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_redblacktree() C-kern/ds/inmem/redblacktree.c:205
 Error 8 - Function aborted

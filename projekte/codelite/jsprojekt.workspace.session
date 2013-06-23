@@ -5,84 +5,56 @@
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="FileName"/>
-      <int Value="381" Name="FirstVisibleLine"/>
-      <int Value="384" Name="CurrentLine"/>
+      <int Value="241" Name="FirstVisibleLine"/>
+      <int Value="239" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/context/module.h" Name="FileName"/>
-      <int Value="48" Name="FirstVisibleLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/ds/inmem/binarystack.h" Name="FileName"/>
+      <int Value="51" Name="FirstVisibleLine"/>
+      <int Value="49" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/binarystack.c" Name="FileName"/>
+      <int Value="464" Name="FirstVisibleLine"/>
+      <int Value="462" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/test/errortimer.h" Name="FileName"/>
+      <int Value="115" Name="FirstVisibleLine"/>
+      <int Value="146" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/resource/errlog.text" Name="FileName"/>
+      <int Value="95" Name="FirstVisibleLine"/>
       <int Value="93" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/platform/task/thread_tls.h" Name="FileName"/>
-      <int Value="81" Name="FirstVisibleLine"/>
-      <int Value="82" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/lang/transC/transCstringtable.c" Name="FileName"/>
+      <int Value="539" Name="FirstVisibleLine"/>
+      <int Value="540" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/platform/task/thread.h" Name="FileName"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/lang/transC/transCstringtable.h" Name="FileName"/>
       <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="0" Name="CurrentLine"/>
+      <int Value="5" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/iochannel.c" Name="FileName"/>
-      <int Value="257" Name="FirstVisibleLine"/>
-      <int Value="255" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/context/threadcontext.c" Name="FileName"/>
-      <int Value="396" Name="FirstVisibleLine"/>
-      <int Value="400" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/task/process.c" Name="FileName"/>
-      <int Value="1298" Name="FirstVisibleLine"/>
-      <int Value="1310" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/main/tools/genfile.c" Name="FileName"/>
-      <int Value="375" Name="FirstVisibleLine"/>
-      <int Value="390" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/io/writer/log/logwriter.c" Name="FileName"/>
-      <int Value="28" Name="FirstVisibleLine"/>
-      <int Value="26" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/io/writer/log/logwriter.h" Name="FileName"/>
-      <int Value="103" Name="FirstVisibleLine"/>
-      <int Value="140" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/memory/pagecache_impl.c" Name="FileName"/>
+      <int Value="1353" Name="FirstVisibleLine"/>
+      <int Value="1372" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
-    <long Value="4" Name="Count"/>
+    <long Value="3" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
-      <wxString Value="/jsprojekt/JS/C-kern/lang/transC/transCscanner.c" Name="file"/>
-      <int Value="101" Name="lineno"/>
-      <wxString Value="" Name="function_name"/>
-      <wxString Value="" Name="memory_address"/>
-      <int Value="1" Name="bp_type"/>
-      <int Value="0" Name="watchpoint_type"/>
-      <wxString Value="" Name="watchpt_data"/>
-      <CData Name="commandlist"/>
-      <bool Value="0" Name="regex"/>
-      <bool Value="0" Name="is_temp"/>
-      <bool Value="1" Name="is_enabled"/>
-      <int Value="0" Name="ignore_number"/>
-      <wxString Value="" Name="conditions"/>
-      <int Value="0" Name="origin"/>
-    </SerializedObject>
-    <SerializedObject Name="Breakpoint1">
       <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/iopoll.c" Name="file"/>
       <int Value="552" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
@@ -96,9 +68,9 @@
       <bool Value="1" Name="is_enabled"/>
       <int Value="0" Name="ignore_number"/>
       <wxString Value="" Name="conditions"/>
-      <int Value="0" Name="origin"/>
+      <int Value="1" Name="origin"/>
     </SerializedObject>
-    <SerializedObject Name="Breakpoint2">
+    <SerializedObject Name="Breakpoint1">
       <wxString Value="/jsprojekt/JS/C-kern/string/utf8.c" Name="file"/>
       <int Value="584" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
@@ -112,11 +84,11 @@
       <bool Value="1" Name="is_enabled"/>
       <int Value="0" Name="ignore_number"/>
       <wxString Value="" Name="conditions"/>
-      <int Value="0" Name="origin"/>
+      <int Value="1" Name="origin"/>
     </SerializedObject>
-    <SerializedObject Name="Breakpoint3">
+    <SerializedObject Name="Breakpoint2">
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
-      <int Value="241" Name="lineno"/>
+      <int Value="243" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>

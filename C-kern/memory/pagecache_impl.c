@@ -663,7 +663,12 @@ int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * pa
          goto ONABORT ;
       }
 
-      err = releasepage_pagecacheblock(block, (freepage_t*)page->addr) ;
+      freepage_t * freepage = (freepage_t*) page->addr ;
+
+      // support page located on freepage
+      *page = (memblock_t) memblock_INIT_FREEABLE ;
+
+      err = releasepage_pagecacheblock(block, freepage) ;
       if (err) goto ONABORT ;
 
       pgcache->sizeallocated -= block->pagesize ;
@@ -680,8 +685,6 @@ int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * pa
             if (err) goto ONABORT ;
          }
       }
-
-      *page = (memblock_t) memblock_INIT_FREEABLE ;
    }
 
    return 0 ;
@@ -1366,10 +1369,22 @@ static int test_alloc(void)
    }
    TEST(0 == free_pagecacheimpl(&pgcache)) ;
 
+   // TEST releasepage_pagecacheimpl: free memblock_t located on allocated page
+   TEST(0 == init_pagecacheimpl(&pgcache)) ;
+   TEST(0 == allocpage_pagecacheimpl(&pgcache, pagesize_1MB, &page)) ;
+   memblock_t * onpage = (memblock_t*) page.addr ;
+   *onpage = page ;
+   TEST(0 == allocpage_pagecacheimpl(&pgcache, pagesize_1MB, &page)) ;
+   TEST(0 == releasepage_pagecacheimpl(&pgcache, &page)) ;     // generate entry in free list
+   TEST(0 == isunmapped_vm(&(vmpage_t)vmpage_INIT(1024*1024,(uint8_t*)onpage))) ;
+   TEST(0 == releasepage_pagecacheimpl(&pgcache, onpage)) ;    // now free whole block with page located on it
+   TEST(1 == isunmapped_vm(&(vmpage_t)vmpage_INIT(1024*1024,(uint8_t*)onpage))) ;
+   TEST(0 == free_pagecacheimpl(&pgcache)) ;
+
    // TEST releasepage_pagecacheimpl: EALREADY
    TEST(0 == init_pagecacheimpl(&pgcache)) ;
    TEST(0 == allocpage_pagecacheimpl(&pgcache, pagesize_4096, &page)) ;
-   memblock_t  page2 = page ;
+   memblock_t page2 = page ;
    TEST(0 == releasepage_pagecacheimpl(&pgcache, &page)) ;
    TEST(EALREADY == releasepage_pagecacheimpl(&pgcache, &page2)) ;
    TEST(0 == free_pagecacheimpl(&pgcache)) ;

@@ -25,7 +25,7 @@ remove_arraystf() C-kern/ds/inmem/arraystf.c:601
 Error 3 - Function aborted
 [Thread 1]
 delete_arraystf() C-kern/ds/inmem/arraystf.c:353
-Error 12345 - Freeing a resource returned an error
+Error 12345 - Function aborted - one or more resources could not be freed
 [Thread 1]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 24 bytes of memory

@@ -197,9 +197,8 @@ typedef struct memblock_t              iteratedtype_transcstringtable ;
 int insertstring_transcstringtable(transCstringtable_t * strtable, /*out*/void ** strid, /*out*/uint8_t ** addr, uint8_t size) ;
 
 /* function: appendstring_transcstringtable
- * Grows last inserted string strid by size bytes. The start address of the appended memory is returned in addr.
- * It is possible that the new memory block is not stored in the same memory page therefore the string data
- * is split of one ore multiple memory pages. */
+ * Increases last inserted string by size bytes. The start address of the appended memory is returned in addr.
+ * It is possible that the string data is split over multiple memory pages and therefore non contiguous. */
 int appendstring_transcstringtable(transCstringtable_t * strtable, /*out*/uint8_t ** addr, uint8_t size) ;
 
 /* function: shrinkstring_transcstringtable

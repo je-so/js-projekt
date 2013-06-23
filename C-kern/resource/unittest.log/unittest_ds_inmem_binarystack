@@ -1,18 +1,42 @@
 [Thread 1]
-init_binarystack() C-kern/ds/inmem/binarystack.c:202
+init_binarystack() C-kern/ds/inmem/binarystack.c:196
+Error 7 - Function aborted
+[Thread 1]
+init_binarystack() C-kern/ds/inmem/binarystack.c:196
 Error 12 - Function aborted
 [Thread 1]
-free_binarystack() C-kern/ds/inmem/binarystack.c:238
-Error 12 - Freeing a resource returned an error
+free_binarystack() C-kern/ds/inmem/binarystack.c:226
+Error 12 - Function aborted - one or more resources could not be freed
 [Thread 1]
-push2_binarystack() C-kern/ds/inmem/binarystack.c:279
+free_binarystack() C-kern/ds/inmem/binarystack.c:226
+Error 12 - Function aborted - one or more resources could not be freed
+[Thread 1]
+free_binarystack() C-kern/ds/inmem/binarystack.c:226
+Error 12 - Function aborted - one or more resources could not be freed
+[Thread 1]
+free_binarystack() C-kern/ds/inmem/binarystack.c:226
+Error 12 - Function aborted - one or more resources could not be freed
+[Thread 1]
+free_binarystack() C-kern/ds/inmem/binarystack.c:226
+Error 12 - Function aborted - one or more resources could not be freed
+[Thread 1]
+free_binarystack() C-kern/ds/inmem/binarystack.c:226
+Error 12 - Function aborted - one or more resources could not be freed
+[Thread 1]
+free_binarystack() C-kern/ds/inmem/binarystack.c:226
+Error 12 - Function aborted - one or more resources could not be freed
+[Thread 1]
+free_binarystack() C-kern/ds/inmem/binarystack.c:226
+Error 12 - Function aborted - one or more resources could not be freed
+[Thread 1]
+push2_binarystack() C-kern/ds/inmem/binarystack.c:267
+Error 7 - Function aborted
+[Thread 1]
+push2_binarystack() C-kern/ds/inmem/binarystack.c:267
 Error 12 - Function aborted
 [Thread 1]
-pop2_binarystack() C-kern/ds/inmem/binarystack.c:332
-Error 12 - Function aborted
-[Thread 1]
-pop2_binarystack() C-kern/ds/inmem/binarystack.c:332
+pop2_binarystack() C-kern/ds/inmem/binarystack.c:317
 Error 22 - Function aborted
 [Thread 1]
-pop2_binarystack() C-kern/ds/inmem/binarystack.c:332
-Error 22 - Function aborted
+pop2_binarystack() C-kern/ds/inmem/binarystack.c:317
+Error 12 - Function aborted

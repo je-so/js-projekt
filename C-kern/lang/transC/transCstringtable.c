@@ -29,7 +29,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/inmem/slist.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/vm.h"
+#include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/string/stringstream.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
@@ -43,14 +43,14 @@
  * The header of a memory page is stored within the page itself at offset 0. */
 struct transCstringtable_page_t {
    slist_node_t *       next ;
-   vmpage_t             vmblock ;
+   memblock_t           memblock ;
 } ;
 
 // group: variables
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_transCstringtablepage_error
- * Simulates <init_vmpage> error in <new_transCstringtablepage>. */
+ * Simulates error in <new_transCstringtablepage>. */
 static test_errortimer_t      s_transCstringtablepage_error = test_errortimer_INIT_FREEABLE ;
 #endif
 
@@ -61,18 +61,18 @@ static test_errortimer_t      s_transCstringtablepage_error = test_errortimer_IN
 int new_transCstringtablepage(/*out*/transCstringtable_page_t ** page)
 {
    int err ;
-   vmpage_t                   vmblock ;
+   memblock_t                 memblock ;
    transCstringtable_page_t * newpage ;
 
    static_assert(sizeof(transCstringtable_page_t) <= 128, "pagesize_vm() >= 256") ;
 
    ONERROR_testerrortimer(&s_transCstringtablepage_error, ONABORT) ;
-   err = init_vmpage(&vmblock, 1) ;
+   err = ALLOC_PAGECACHE(pagesize_4096, &memblock) ;
    if (err) goto ONABORT ;
 
-   newpage = (transCstringtable_page_t *) vmblock.addr ;
-   newpage->next    = 0 ;
-   newpage->vmblock = vmblock ;
+   newpage = (transCstringtable_page_t *) memblock.addr ;
+   newpage->next     = 0 ;
+   newpage->memblock = memblock ;
 
    *page = newpage ;
 
@@ -94,7 +94,7 @@ int delete_transCstringtablepage(transCstringtable_page_t ** page)
 
       delpage->next  = 0 ;
 
-      err = free_vmpage(&delpage->vmblock) ;
+      err = RELEASE_PAGECACHE(&delpage->memblock) ;
       if (err) goto ONABORT ;
    }
 
@@ -112,11 +112,11 @@ ONABORT:
 int initfirst_transcstringtableiterator(/*out*/transCstringtable_iterator_t * iter, transCstringtable_t * strtable, void * strid)
 {
    int err ;
-   const size_t                     pgsize = pagesize_vm() ;
-   const transCstringtable_page_t * page   = (const transCstringtable_page_t*) ((uintptr_t)strid - (uintptr_t)strid % pgsize) ;
+   const size_t                     pgsize = 4096 ;
+   const transCstringtable_page_t * page   = (const transCstringtable_page_t*) ((uintptr_t)strid & ~(uintptr_t)(pgsize-1)) ;
 
    VALIDATE_INPARAM_TEST(strtable->first && strid, ONABORT, ) ;
-   VALIDATE_INPARAM_TEST(page->next && page == (void*)page->vmblock.addr && page->vmblock.size == pgsize, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(page->next && (const uint8_t*)page == page->memblock.addr && page->memblock.size == pgsize, ONABORT, ) ;
 
    transCstringtable_entry_t * entry   = strid ;
    uint16_t                    strsize = strsize_transCstringtableentry(entry) ;
@@ -166,7 +166,7 @@ int init_transcstringtable(/*out*/transCstringtable_t * strtable)
    if (err) goto ONABORT ;
 
    strtable->next  = (uint8_t*) &page[1] ;
-   strtable->end   = page->vmblock.addr + page->vmblock.size ;
+   strtable->end   = page->memblock.addr + page->memblock.size ;
    strtable->first = 0 ;
    strtable->prev  = &strtable->first ;
    genericcast_slist(&strtable->pagelist) ;
@@ -223,7 +223,7 @@ int insertstring_transcstringtable(transCstringtable_t * strtable, /*out*/void *
       err = new_transCstringtablepage(&page) ;
       if (err) goto ONABORT ;
       strtable->next  = (uint8_t*) &page[1] ;
-      strtable->end   = page->vmblock.addr + page->vmblock.size ;
+      strtable->end   = page->memblock.addr + page->memblock.size ;
       insertlast_pagelist(genericcast_slist(&strtable->pagelist), page) ;
    }
 
@@ -350,7 +350,8 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   transCstringtable_t strtable = transCstringtable_INIT_FREEABLE ;
+   transCstringtable_t  strtable = transCstringtable_INIT_FREEABLE ;
+   const size_t         pgsize   = 4096 ;
 
    // TEST transCstringtable_INIT_FREEABLE
    TEST(strtable.next  == 0) ;
@@ -363,13 +364,13 @@ static int test_initfree(void)
    TEST(0 == init_transcstringtable(&strtable)) ;
    transCstringtable_page_t * page = (transCstringtable_page_t*)strtable.pagelist.last ;
    TEST(strtable.next  == (uint8_t*)&page[1]) ;
-   TEST(strtable.end   == pagesize_vm() + (uint8_t*)strtable.pagelist.last) ;
+   TEST(strtable.end   == pgsize + (uint8_t*)strtable.pagelist.last) ;
    TEST(strtable.first == 0) ;
    TEST(strtable.prev  == &strtable.first) ;
    TEST(strtable.pagelist.last != 0) ;
    TEST(page->next  == strtable.pagelist.last) ;
-   TEST(page->vmblock.addr == (void*)strtable.pagelist.last) ;
-   TEST(page->vmblock.size == pagesize_vm()) ;
+   TEST(page->memblock.addr == (void*)strtable.pagelist.last) ;
+   TEST(page->memblock.size == pgsize) ;
    TEST(0 == free_transcstringtable(&strtable)) ;
    TEST(strtable.next  == 0) ;
    TEST(strtable.end   == 0) ;
@@ -422,10 +423,11 @@ static uint8_t * alignaddr(uint8_t * addr)
 
 static int test_update(void)
 {
-   transCstringtable_t         strtable = transCstringtable_INIT_FREEABLE ;
-   uint8_t *                   addr ;
-   transCstringtable_entry_t * entry ;
-   transCstringtable_page_t *  page ;
+   transCstringtable_t           strtable = transCstringtable_INIT_FREEABLE ;
+   const size_t                  pgsize   = 4096 ;
+   uint8_t *                     addr ;
+   transCstringtable_entry_t *   entry ;
+   transCstringtable_page_t *    page ;
 
    TEST(0 == init_transcstringtable(&strtable)) ;
    page = (transCstringtable_page_t*)strtable.pagelist.last ;
@@ -526,8 +528,8 @@ static int test_update(void)
    TEST(0 == entry) ;
    TEST(0 == free_transcstringtable(&strtable)) ;
 
-   // TEST appendstring_transcstringtable: multiple pages
-   TEST(strsizemax_transCstringtableentry() >= pagesize_vm()) ;
+   // TEST appendstring_transcstringtable: span multiple pages
+   TEST(strsizemax_transCstringtableentry() >= pgsize) ;
    TEST(0 == init_transcstringtable(&strtable)) ;
    for (size_t nrpage = 0; nrpage < 16; ++nrpage) {
       entry = 0 ;

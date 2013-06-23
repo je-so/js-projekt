@@ -69,7 +69,7 @@ mfree_testmm() C-kern/test/testmm.c:724
 Error 71 - Function aborted
 [Thread 1]
 delete_bigint() C-kern/math/int/bigint.c:1184
-Error 71 - Freeing a resource returned an error
+Error 71 - Function aborted - one or more resources could not be freed
 [Thread 1]
 multsplit_biginthelper() C-kern/math/int/bigint.c:685
 Error 71 - Function aborted

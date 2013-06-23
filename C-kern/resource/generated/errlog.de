@@ -43,7 +43,7 @@ int FUNCTION_ABORT_ERRLOG(log_channel_e channel)
 
 int FUNCTION_ABORT_FREE_ERRLOG(log_channel_e channel)
 {
-   PRINTF("Freigabe einer Ressource schlug fehl\n") ;
+   PRINTF("Funktion abgebrochen - Freigabe von Ressourcen schlug fehl\n") ;
    return 0;
 }
 

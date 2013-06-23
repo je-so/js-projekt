@@ -27,4 +27,4 @@ queryresult_process() C-kern/platform/Linux/task/process.c:252
 Error 10 - Function aborted
 [Thread 1]
 free_process() C-kern/platform/Linux/task/process.c:464
-Error 10 - Freeing a resource returned an error
+Error 10 - Function aborted - one or more resources could not be freed

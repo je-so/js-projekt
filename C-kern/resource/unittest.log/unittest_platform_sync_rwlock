@@ -1,18 +1,18 @@
 [Thread 1]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
-Error 16 - Freeing a resource returned an error
+Error 16 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
-Error 16 - Freeing a resource returned an error
+Error 16 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
-Error 16 - Freeing a resource returned an error
+Error 16 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
-Error 16 - Freeing a resource returned an error
+Error 16 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
-Error 16 - Freeing a resource returned an error
+Error 16 - Function aborted - one or more resources could not be freed
 [Thread 1]
 lockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:199
 Error 35 - Function aborted

@@ -24,49 +24,49 @@ init_blockarray() C-kern/ds/inmem/blockarray.c:152
 Error 22 - Function aborted
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
-Error 14 - Freeing a resource returned an error
+Error 14 - Function aborted - one or more resources could not be freed
 [Thread 1]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:342
 Error 12 - Function aborted

@@ -1,6 +1,6 @@
 [Thread 1]
 free_dlist() C-kern/ds/inmem/dlist.c:74
-Error 12 - Freeing a resource returned an error
+Error 12 - Function aborted - one or more resources could not be freed
 [Thread 1]
 remove_dlist() C-kern/ds/inmem/dlist.c:181
 Error 22 - Function input violates condition (!isempty_dlist(list) && node->next)
@@ -27,7 +27,7 @@ removelast_dlist() C-kern/ds/inmem/dlist.c:173
 Error 22 - Function aborted
 [Thread 1]
 free_dlist() C-kern/ds/inmem/dlist.c:74
-Error 38 - Freeing a resource returned an error
+Error 38 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_dlist() C-kern/ds/inmem/dlist.c:74
-Error 22 - Freeing a resource returned an error
+Error 22 - Function aborted - one or more resources could not be freed

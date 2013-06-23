@@ -27,7 +27,7 @@
 
 /* typedef: struct binarystack_t
  * Export <binarystack_t> into global namespace. */
-typedef struct binarystack_t           binarystack_t ;
+typedef struct binarystack_t              binarystack_t ;
 
 
 // section: Functions
@@ -63,31 +63,25 @@ int unittest_ds_inmem_binarystack(void) ;
  * If you push an object of size X the address of the next pushed object is aligned to size X.
  * So if you need to align memory to number X make sure that every push operation pushes only objects
  * with sizes which are multiples of X. The first pushed object is page aligned (see <pagesize_vm>).
- *
- * TODO: replace <init_vmpage>, <free_vmpage> with cached vmpage implementation.
  * */
 struct binarystack_t {
    /* variable: freeblocksize
-    * The number of free bytes in the memory block <blockstart> points to. */
+    * The number of free bytes of memory block <blockstart> points to. */
    uint32_t    freeblocksize ;
    /* variable: blocksize
-    * Size of allocated memory block. */
+    * Size in bytes of allocated memory block <blockstart> points to. */
    uint32_t    blocksize ;
    /* variable: blockstart
-    * Start Address of latest allocated memory block.
+    * Start address of latest allocated memory block.
     * The size of this block is stored in <blocksize>. */
-   uint8_t     * blockstart ;
-   /* variable: blockcache
-    * Address of freed memory block else NULL.
-    * Before the block is returned to the virtual memory subsystem it is cached in this value. */
-   void        * blockcache ;
+   uint8_t *   blockstart ;
 } ;
 
 // group: lifetime
 
 /* define: binarystack_INIT_FREEABLE
  * Static initializer. */
-#define binarystack_INIT_FREEABLE      { 0, 0, 0, 0 }
+#define binarystack_INIT_FREEABLE         { 0, 0, 0 }
 
 /* function: init_binarystack
  * Initializes stack object and reserves at least preallocate_size bytes. */
@@ -136,15 +130,15 @@ int pop_binarystack(binarystack_t * stack, size_t size) ;
 /* function: push_binarystack
  * Allocates memory for new object and returns pointer to its start address.
  * The returned address is the lowest address of the allocated memory space.
- * This function is implemented as a generic macro and the size
- * of the newly pushed object is calculated as
+ * This function is implemented as generic macro and the size of the newly
+ * pushed object is calculated as
  * > size = sizeof(**lastpushed) ;
  *
  * If not enough preallocated memory is available a call to <push2_binarystack> is made
- * which allocates memory. In case of an error ENOMEM is returned.
+ * which allocates a new block of memory. In case of an error ENOMEM is returned.
  *
  * The memory is managed as a list of allocated blocks so the address of already
- * pushed objects never changes.
+ * pushed objects never change.
  *
  * Parameter:
  * stack      - binary stack object.
@@ -166,9 +160,11 @@ int push_binarystack(binarystack_t * stack, /*out*/void ** lastpushed) ;
 int pop2_binarystack(binarystack_t * stack, size_t size) ;
 
 /* function: push2_binarystack
- * Same functionality as <push_binarystack>.
- * This function is called from <push_binarystack> in case one new memory must be allocated. */
+ * Does same as <push_binarystack> but allocates a new block if necessary.
+ * This function is called from <push_binarystack> in case a new memory must be allocated.
+ * Do not call this function - always use <push_binarystack>. */
 int push2_binarystack(binarystack_t * stack, uint32_t size, /*out*/uint8_t ** lastpushed) ;
+
 
 
 // section: inline implementation

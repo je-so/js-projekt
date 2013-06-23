@@ -43,7 +43,7 @@ int FUNCTION_ABORT_ERRLOG(log_channel_e channel)
 
 int FUNCTION_ABORT_FREE_ERRLOG(log_channel_e channel)
 {
-   PRINTF("Freeing a resource returned an error\n") ;
+   PRINTF("Function aborted - one or more resources could not be freed\n") ;
    return 0;
 }
 

@@ -1,6 +1,6 @@
 [Thread 1]
 free_slist() C-kern/ds/inmem/slist.c:71
-Error 12 - Freeing a resource returned an error
+Error 12 - Function aborted - one or more resources could not be freed
 [Thread 1]
 removeafter_slist() C-kern/ds/inmem/slist.c:135
 Error 22 - Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
@@ -21,7 +21,7 @@ removeafter_slist() C-kern/ds/inmem/slist.c:153
 Error 22 - Function aborted
 [Thread 1]
 free_slist() C-kern/ds/inmem/slist.c:71
-Error 38 - Freeing a resource returned an error
+Error 38 - Function aborted - one or more resources could not be freed
 [Thread 1]
 free_slist() C-kern/ds/inmem/slist.c:71
-Error 22 - Freeing a resource returned an error
+Error 22 - Function aborted - one or more resources could not be freed

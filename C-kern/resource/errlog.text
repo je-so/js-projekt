@@ -94,8 +94,8 @@ de: "Funktion abgebrochen\n"
 en: "Function aborted\n"
 
 FUNCTION_ABORT_FREE()
-de: "Freigabe einer Ressource schlug fehl\n"
-en: "Freeing a resource returned an error\n"
+de: "Funktion abgebrochen - Freigabe von Ressourcen schlug fehl\n"
+en: "Function aborted - one or more resources could not be freed\n"
 
 FUNCTION_ERROR(const char * funcname, const char * errstr)
 de: "Funktionsaufruf '"funcname"' meldet Fehler '"errstr"'\n"
