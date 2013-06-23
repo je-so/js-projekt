@@ -256,8 +256,8 @@ static int test_iobuffer(void)
    TEST(0 == free_objectcacheimpl(&cache)) ;
 
    TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
-   process_stdfd_t stdfd = process_stdfd_INIT_DEVNULL ;
-   redirecterr_processstdfd(&stdfd, pipefd[1]) ;
+   process_stdio_t stdfd = process_stdio_INIT_DEVNULL ;
+   redirecterr_processstdio(&stdfd, pipefd[1]) ;
 
    // TEST assertion lockiobuffer_objectcacheimpl
    TEST(0 == init_objectcacheimpl(&cache)) ;

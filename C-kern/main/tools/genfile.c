@@ -28,6 +28,8 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/accessmode.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/platform/startup.h"

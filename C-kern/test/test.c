@@ -26,26 +26,26 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/iochannel.h"
 
 
 void logfailed_test(const char * filename, unsigned line_number)
 {
    char           number[10] ;
    struct iovec   iov[4] = {
-       { (void*) (uintptr_t) filename, strlen(filename) }
-      ,{ (void*) (uintptr_t) ":", 1 }
-      ,{ number, (unsigned) snprintf(number, sizeof(number), "%u", line_number) }
-      ,{ (void*) (uintptr_t) ": FAILED TEST\n", 14 }
+      { (void*) (uintptr_t) filename, strlen(filename) },
+      { (void*) (uintptr_t) ":", 1 },
+      { number, (unsigned) snprintf(number, sizeof(number), "%u", line_number) },
+      { (void*) (uintptr_t) ": FAILED TEST\n", 14 },
    } ;
 
-   ssize_t written = writev(file_STDOUT, iov, lengthof(iov)) ;
+   ssize_t written = writev(iochannel_STDOUT, iov, lengthof(iov)) ;
    (void) written ;
 }
 
 void logworking_test()
 {
-   (void) write_file(file_STDOUT, 3, "OK\n", 0) ;
+   (void) write_iochannel(iochannel_STDOUT, 3, "OK\n", 0) ;
 }
 
 void logrun_test(const char * testname)
@@ -56,7 +56,7 @@ void logrun_test(const char * testname)
       ,{ (void*) (uintptr_t) ": ", 2 }
    } ;
 
-   ssize_t written = writev(file_STDOUT, iov, lengthof(iov)) ;
+   ssize_t written = writev(iochannel_STDOUT, iov, lengthof(iov)) ;
    (void) written ;
 }
 
@@ -66,52 +66,52 @@ void logrun_test(const char * testname)
 
 static int test_helper(void)
 {
-   int      fd[2]     = { file_INIT_FREEABLE, file_INIT_FREEABLE } ;
-   int      oldstdout = file_INIT_FREEABLE;
+   int      fd[2]     = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE } ;
+   int      oldstdout = iochannel_INIT_FREEABLE;
    uint8_t  buffer[100] ;
    size_t   bytes_read ;
 
    // prepare
    TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK)) ;
-   oldstdout = dup(file_STDOUT) ;
+   oldstdout = dup(iochannel_STDOUT) ;
    TEST(0 < oldstdout) ;
-   TEST(file_STDOUT == dup2(fd[1], file_STDOUT)) ;
+   TEST(iochannel_STDOUT == dup2(fd[1], iochannel_STDOUT)) ;
 
    // TEST logfailed_test
    logfailed_test("123", 45) ;
-   TEST(0 == read_file(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
    TEST(20 == bytes_read) ;
    TEST(0 == strncmp((const char*)buffer, "123:45: FAILED TEST\n", bytes_read)) ;
 
    // TEST logworking_test
    logworking_test() ;
-   TEST(0 == read_file(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
    TEST(3 == bytes_read) ;
    TEST(0 == strncmp((const char*)buffer, "OK\n", bytes_read)) ;
 
    // TEST logrun_test
    logrun_test("test-name") ;
-   TEST(0 == read_file(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
    TEST(15 == bytes_read) ;
    TEST(0 == strncmp((const char*)buffer, "RUN test-name: ", bytes_read)) ;
 
    // unprepare
-   TEST(file_STDOUT == dup2(oldstdout, file_STDOUT)) ;
-   TEST(0 == free_file(&oldstdout)) ;
-   TEST(0 == free_file(&fd[0])) ;
-   TEST(0 == free_file(&fd[1])) ;
+   TEST(iochannel_STDOUT == dup2(oldstdout, iochannel_STDOUT)) ;
+   TEST(0 == free_iochannel(&oldstdout)) ;
+   TEST(0 == free_iochannel(&fd[0])) ;
+   TEST(0 == free_iochannel(&fd[1])) ;
 
    return 0 ;
 ONABORT:
-   if (!isfree_file(oldstdout)) {
-      dup2(oldstdout, file_STDOUT) ;
+   if (!isfree_iochannel(oldstdout)) {
+      dup2(oldstdout, iochannel_STDOUT) ;
    }
    memset(buffer, 0, sizeof(buffer)) ;
-   read_file(fd[0], sizeof(buffer)-1, buffer, 0) ;
-   write_file(file_STDOUT, strlen((char*)buffer), buffer, 0) ;
-   free_file(&oldstdout) ;
-   free_file(&fd[0]) ;
-   free_file(&fd[1]) ;
+   read_iochannel(fd[0], sizeof(buffer)-1, buffer, 0) ;
+   write_iochannel(iochannel_STDOUT, strlen((char*)buffer), buffer, 0) ;
+   free_iochannel(&oldstdout) ;
+   free_iochannel(&fd[0]) ;
+   free_iochannel(&fd[1]) ;
    return EINVAL ;
 }
 

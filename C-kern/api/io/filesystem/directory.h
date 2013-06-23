@@ -124,9 +124,10 @@ int delete_directory(directory_t ** dir) ;
  * ENOENT    - file_path does not refer to an existing file system entry. */
 int checkpath_directory(const directory_t * dir/*0 => current working directory*/, const char * const file_path) ;
 
-/* function: fd_directory
- * Returns the file descriptor of the opened directory. */
-sys_file_t fd_directory(const directory_t * dir) ;
+/* function: io_directory
+ * Returns <iochannel_t> (file descriptor) of the opened directory.
+ * Do not free it after usage else dir can not be accessed any more. */
+sys_iochannel_t io_directory(const directory_t * dir) ;
 
 /* function: filesize_directory
  * Returns the filesize of a file with path »file_path«.
@@ -181,9 +182,9 @@ int removefile_directory(directory_t * dir/*0 => current working directory*/, co
 
 // section: inline implementation
 
-/* define: fd_directory
- * Implements <directory_t.fd_directory>. */
-#define fd_directory(dir)              (dirfd((DIR*)CONST_CAST(directory_t, dir)))
+/* define: io_directory
+ * Implements <directory_t.io_directory>. */
+#define io_directory(dir)              (dirfd((DIR*)CONST_CAST(directory_t, dir)))
 
 
 #endif

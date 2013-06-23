@@ -95,7 +95,7 @@ static int initsinglebuffer_filereader(/*out*/filereader_mmfile_t mmfile[2], fil
 {
    int err ;
 
-   err = initfd_mmfile(genericcast_mmfile(&mmfile[0],,), fd, 0, bufsize, accessmode_READ) ;
+   err = initfromio_mmfile(genericcast_mmfile(&mmfile[0],,), fd, 0, bufsize, accessmode_READ) ;
    if (err) return err ;
 
    return 0 ;
@@ -318,7 +318,7 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == frd.nrfreebuffer) ;
    TEST(0 == frd.fileoffset) ;
    TEST(0 == frd.filesize) ;
-   TEST(sys_file_INIT_FREEABLE == frd.file) ;
+   TEST(sys_iochannel_INIT_FREEABLE == frd.file) ;
    for (unsigned i = 0; i < lengthof(frd.mmfile); ++i) {
       mmfile_t mfile = mmfile_INIT_FREEABLE ;
       TEST(0 == frd.mmfile[i].addr) ;  // same as mmfile_INIT_FREEABLE

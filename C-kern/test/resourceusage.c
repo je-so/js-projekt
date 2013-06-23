@@ -27,7 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache.h"
 #include "C-kern/api/memory/vm.h"
@@ -54,7 +54,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    vm_mappedregions_t * mappedregions = 0 ;
    signalconfig_t     * signalconfig  = 0 ;
 
-   err = nropen_file(&fds) ;
+   err = nropen_iochannel(&fds) ;
    if (err) goto ONABORT ;
 
    pagecache_usage       = sizeallocated_pagecache(pagecache_maincontext()) ;
@@ -283,7 +283,7 @@ static int test_query(void)
    TEST(EAGAIN == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
    TEST(usage.file_usage + 1 == usage2.file_usage) ;
-   TEST(0 == free_file(&fd)) ;
+   TEST(0 == free_iochannel(&fd)) ;
    TEST(0 == free_resourceusage(&usage2)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -353,7 +353,7 @@ static int test_query(void)
    return 0 ;
 ONABORT:
    free(memblock) ;
-   free_file(&fd) ;
+   free_iochannel(&fd) ;
    (void) free_vmpage(&vmblock) ;
    (void) free_resourceusage(&usage) ;
    if (isoldsigmask) (void) sigprocmask(SIG_SETMASK, &oldsigmask, 0) ;

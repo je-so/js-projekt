@@ -27,6 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/context/module.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/memory/memblock.h"

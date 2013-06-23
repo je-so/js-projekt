@@ -32,17 +32,17 @@
 struct ipaddr_t ;
 
 /* typedef: ipsocket_t
- * Defines <ipsocket_t> as alias for <sys_file_t>.
+ * Defines <ipsocket_t> as alias for <sys_iochannel_t>.
  * A socket is the abstraction of a network connection.
  * It is considered as the communication end point of one side.
  * Connected sockets can be considered like files except that
  * written data is transported to another communication endpoint.
  * */
-typedef sys_file_t                     ipsocket_t ;
+typedef sys_iochannel_t                   ipsocket_t ;
 
 /* typedef: struct ipsocket_async_t
  * Exports <ipsocket_async_t> to asynchronously establish a connection. */
-typedef struct ipsocket_async_t        ipsocket_async_t ;
+typedef struct ipsocket_async_t           ipsocket_async_t ;
 
 
 // section: Functions
@@ -62,7 +62,7 @@ int unittest_io_ipsocket(void) ;
 
 /* define: ipsocket_INIT_FREEABLE
  * Static initializer for <ipsocket_t>. Makes calling of <free_ipsocket> safe. */
-#define ipsocket_INIT_FREEABLE         sys_file_INIT_FREEABLE
+#define ipsocket_INIT_FREEABLE            sys_iochannel_INIT_FREEABLE
 
 /* function: init_ipsocket
  * Creates a new unconnected UDP network communication endpoint.
@@ -120,9 +120,9 @@ int free_ipsocket(/*out*/ipsocket_t * ipsock) ;
 
 // group: query
 
-/* function: fd_ipsocket
- * Returns the file descriptor <sys_file_t> of the socket. */
-sys_file_t fd_ipsocket(const ipsocket_t * ipsock) ;
+/* function: io_ipsocket
+ * Returns the file descriptor <sys_iochannel_t> of the socket. */
+sys_iochannel_t io_ipsocket(const ipsocket_t * ipsock) ;
 
 /* function: isconnected_ipsocket
  * Returns if the socket is connected to a peer.
@@ -156,7 +156,7 @@ int localaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * localaddr) ;
  * Returns remote ip address of peer in remoteaddr.
  * The parameter remoteaddr must have been allocated with <new_ipaddr> before this function is called.
  * Returns *EAFNOSUPPORT* in case ipversion of remoteaddr is not the same as of ipsock. */
- int remoteaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * remoteaddr) ;
+int remoteaddr_ipsocket(const ipsocket_t * ipsock, struct ipaddr_t * remoteaddr) ;
 
 // group: buffer management
 
@@ -306,8 +306,8 @@ int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec/*0 =>
 
 // section: inline implementation
 
-/* define: fd_ipsocket
- * Implements <ipsocket_t.fd_ipsocket>. */
-#define fd_ipsocket(ipsock)            (*(ipsock))
+/* define: io_ipsocket
+ * Implements <ipsocket_t.io_ipsocket>. */
+#define io_ipsocket(ipsock)            (*(ipsock))
 
 #endif

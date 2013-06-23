@@ -30,6 +30,7 @@
 #ifndef CKERN_IO_READER_UTF8READER_HEADER
 #define CKERN_IO_READER_UTF8READER_HEADER
 
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/string/textpos.h"
 #include "C-kern/api/string/utf8.h"

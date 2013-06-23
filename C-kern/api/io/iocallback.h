@@ -40,7 +40,7 @@ typedef struct iocallback_t            iocallback_t ;
  *              See <ioevent_e> for a list of all possible set bits and their meaning.
  * fd         - The file descriptior for which all ioevents have occurred.
  */
-typedef void                        (* iocallback_f) (void * iohandler, sys_file_t fd, uint8_t ioevents) ;
+typedef void                        (* iocallback_f) (void * iohandler, sys_iochannel_t fd, uint8_t ioevents) ;
 
 
 // section: Functions
@@ -86,7 +86,7 @@ bool isinit_iocallback(const iocallback_t * iocb) ;
 
 /* function: call_iocallback
  * Calls <iocallback_t.iimpl> with <iocallback_t.object> as its first parameter. */
-void call_iocallback(const iocallback_t * iocb, sys_file_t fd, uint8_t ioevents) ;
+void call_iocallback(const iocallback_t * iocb, sys_iochannel_t fd, uint8_t ioevents) ;
 
 // group: generic
 
@@ -110,37 +110,44 @@ iocallback_t * genericcast_iocallback(void * iocb, TYPENAME iohandler_t) ;
  *                  Also the type of the first parameter of <iocallback_f> is set to (iohandler_t*).
  * */
 #define iocallback_DECLARE(declared_t, iohandler_t)         \
-   typedef struct declared_t           declared_t ;         \
-   struct declared_t {                                      \
-      iohandler_t    * object ;                             \
-      void          (* iimpl) (iohandler_t * iohandler, sys_file_t fd, uint8_t ioevents) ; \
-   }
+         typedef struct declared_t           declared_t ;   \
+         struct declared_t {                                \
+            iohandler_t    * object ;                       \
+            void          (* iimpl) (                       \
+                              iohandler_t *     iohandler,  \
+                              sys_iochannel_t   fd,         \
+                              uint8_t           ioevents) ; \
+         }
 
 
 // section: inline implementation
 
 /* define: genericcast_iocallback
  * Implements <iocallback_t.genericcast_iocallback>. */
-#define genericcast_iocallback(iocb, iohandler_t)                          \
-   ( __extension__ ({                                                      \
-      static_assert(                                                       \
-         offsetof(iocallback_t, object)                                    \
-         == offsetof(typeof(*(iocb)), object)                              \
-         && offsetof(iocallback_t, iimpl)                                  \
-            == offsetof(typeof(*(iocb)), iimpl),                           \
-         "ensure same structure") ;                                        \
-      if (0) {                                                             \
-         (iocb)->iimpl((iohandler_t*)0, (sys_file_t)0, (uint8_t)0) ;       \
-      }                                                                    \
-      (iocallback_t*) (iocb) ;                                             \
-   }))
+#define genericcast_iocallback(iocb, iohandler_t)           \
+         ( __extension__ ({                                 \
+            static_assert(                                  \
+               offsetof(iocallback_t, object)               \
+               == offsetof(typeof(*(iocb)), object)         \
+               && (typeof((iocb)->object)*)0                \
+                  == (iohandler_t**)0                       \
+               && offsetof(iocallback_t, iimpl)             \
+                  == offsetof(typeof(*(iocb)), iimpl)       \
+               && (typeof((iocb)->iimpl)*)0                 \
+                  == (void(**)(iohandler_t*,                \
+                        sys_iochannel_t, uint8_t))0,        \
+               "ensure same structure") ;                   \
+            (iocallback_t*) (iocb) ;                        \
+         }))
 
 /* define: call_iocallback
  * Implements <iocallback_t.call_iocallback>. */
-#define call_iocallback(iocb, fd, ioevents)              ((iocb)->iimpl((iocb)->object, (fd), (ioevents)))
+#define call_iocallback(iocb, fd, ioevents)  \
+         ((iocb)->iimpl((iocb)->object, (fd), (ioevents)))
 
 /* define: isinit_iocallback
  * Implements <iocallback_t.isinit_iocallback>. */
-#define isinit_iocallback(iocb)                          (0 != (iocb)->iimpl)
+#define isinit_iocallback(iocb)  \
+         (0 != (iocb)->iimpl)
 
 #endif

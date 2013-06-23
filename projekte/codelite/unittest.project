@@ -36,7 +36,7 @@
         <File Name="../../C-kern/api/platform/Linux/syskonfig.h"/>
         <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
         <File Name="../../C-kern/api/platform/Linux/systypes.h"/>
-        <File Name="../../C-kern/api/platform/Linux/sysstartup.h"/>
+        <File Name="../../C-kern/api/platform/Linux/sysoptimize.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/locale.h"/>
       <File Name="../../C-kern/api/platform/malloc.h"/>
@@ -184,6 +184,7 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/iocallback.h"/>
       <File Name="../../C-kern/api/io/iopoll.h"/>
+      <File Name="../../C-kern/api/io/iochannel.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="time">
       <File Name="../../C-kern/api/time/timevalue.h"/>
@@ -344,6 +345,7 @@
         <File Name="../../C-kern/platform/Linux/io/ipaddr.c"/>
         <File Name="../../C-kern/platform/Linux/io/ipsocket.c"/>
         <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
+        <File Name="../../C-kern/platform/Linux/io/iochannel.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/Linux/task/process.c"/>

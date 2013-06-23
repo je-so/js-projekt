@@ -27,6 +27,8 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/accessmode.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/wbuffer.h"
 #ifdef KONFIG_UNITTEST

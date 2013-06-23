@@ -27,6 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/startup.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/platform/task/thread_tls.h"
@@ -271,8 +272,8 @@ static int test_startup(void)
    // TEST startup_platform: abort
    {
       process_result_t  result ;
-      process_stdfd_t   stdfd = process_stdfd_INIT_DEVNULL ;
-      redirecterr_processstdfd(&stdfd, pfd[1]) ;
+      process_stdio_t   stdfd = process_stdio_INIT_DEVNULL ;
+      redirecterr_processstdio(&stdfd, pfd[1]) ;
       TEST(0 == init_process(&process, &child_startupabort, 0, &stdfd)) ;
       TEST(0 == wait_process(&process, &result)) ;
       TEST(process_state_ABORTED == result.state) ;

@@ -26,7 +26,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/platform/sync/semaphore.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -65,7 +65,7 @@ int free_semaphore(semaphore_t * semaobj)
    int err = 0 ;
    int err2 ;
 
-   if (!isfree_file(semaobj->sys_sema)) {
+   if (!isfree_iochannel(semaobj->sys_sema)) {
       // wake up any waiters
       int flags = fcntl(semaobj->sys_sema, F_GETFL) ;
       flags |= O_NONBLOCK ;
@@ -82,7 +82,7 @@ int free_semaphore(semaphore_t * semaobj)
          }
       }
       // free resource
-      err2 = free_file(&semaobj->sys_sema) ;
+      err2 = free_iochannel(&semaobj->sys_sema) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -349,12 +349,12 @@ static int test_overflow(void)
    size = read(sema, &value, sizeof(value)) ;
    TEST(sizeof(uint64_t) == size) ;
    TEST(0x0fffffffffffffff == value) ;
-   TEST(0 == free_file(&sema)) ;
+   TEST(0 == free_iochannel(&sema)) ;
    sema = sys_semaphore_INIT_FREEABLE ;
 
    return 0 ;
 ONABORT:
-   free_file(&sema) ;
+   free_iochannel(&sema) ;
    return EINVAL ;
 }
 

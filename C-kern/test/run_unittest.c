@@ -30,6 +30,8 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/accessmode.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
@@ -47,7 +49,7 @@
 static void generate_logresource(const char * test_name)
 {
    int   err = EINVAL ;
-   int   fd  = sys_file_INIT_FREEABLE ;
+   int   fd  = sys_iochannel_INIT_FREEABLE ;
    char  resource_path[sizeof(GENERATED_LOGRESOURCE_DIR) + strlen(test_name)] ;
 
    strcpy(resource_path, GENERATED_LOGRESOURCE_DIR) ;
@@ -71,14 +73,14 @@ static void generate_logresource(const char * test_name)
       }
    }
 
-   free_file(&fd) ;
+   free_iochannel(&fd) ;
    return ;
 ONABORT:
    if (err != EEXIST) {
       CPRINTF_LOG(TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
       CPRINTF_LOG(TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
    }
-   free_file(&fd) ;
+   free_iochannel(&fd) ;
    return ;
 }
 
@@ -122,7 +124,7 @@ static int check_logresource(const char * test_name)
       if (logfile2 >= 0) {
          ssize_t byteswritten = write(logfile2, logbuffer, logbuffer_size) ;
          (void) byteswritten ;
-         free_file(&logfile2) ;
+         free_iochannel(&logfile2) ;
       }
       CPRINTF_LOG(TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
       err = EINVAL ;
@@ -346,6 +348,7 @@ int run_unittest(int argc, const char ** argv)
       RUN(unittest_io_ipaddr) ;
       RUN(unittest_io_ipsocket) ;
       // generic
+      RUN(unittest_io_iochannel) ;
       RUN(unittest_io_iocallback) ;
       RUN(unittest_io_url) ;
       RUN(unittest_io_iopoll) ;

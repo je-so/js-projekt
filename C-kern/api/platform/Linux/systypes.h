@@ -33,9 +33,9 @@
 
 /* about: Public System Types
  *
- * sys_file_t                  - Type holding system specific description of a file.
- *                               It is also used for network connections (sockets).
- * sys_file_INIT_FREEABLE      - Static initializer for <sys_file_t>. It marks the file descriptor as invalid.
+ * sys_iochannel_t             - Type holding system specific description of a file descriptor.
+ *                               Which is used for files and network connections (sockets).
+ * sys_iochannel_INIT_FREEABLE - Static initializer for <sys_iochannel_t>. It marks the file descriptor as invalid.
  * sys_mutex_t                 - Type holding system specific description of a mutex (lock).
  * sys_mutex_INIT_DEFAULT      - Static initializer for a mutex useable by threads of the same process.
  * sys_process_t               - Type represents a system process.
@@ -52,13 +52,25 @@
  * */
 
 
-/* define: sys_file_t
- * Chooses Posix file descriptor type. */
-#define sys_file_t                     int
+/* define: sys_iochannel_t
+ * Choose Posix file descriptor type. */
+#define sys_iochannel_t                int
 
-/* define: sys_file_INIT_FREEABLE
- * Static initializer for <sys_file_t>. */
-#define sys_file_INIT_FREEABLE         (-1)
+/* define: sys_iochannel_STDIN
+ * Choose Posix STDIN file descriptor number. */
+#define sys_iochannel_STDIN            STDIN_FILENO
+
+/* define: sys_iochannel_STDOUT
+ * Choose Posix STDOUT file descriptor number. */
+#define sys_iochannel_STDOUT           STDOUT_FILENO
+
+/* define: sys_iochannel_STDERR
+ * Choose Posix STDERR file descriptor number. */
+#define sys_iochannel_STDERR           STDERR_FILENO
+
+/* define: sys_iochannel_t
+ * Choose Posix file descriptor type. */
+#define sys_iochannel_INIT_FREEABLE    (-1)
 
 /* define: sys_mutex_t
  * Chooses Posix mutex type. Needs pthread support. */

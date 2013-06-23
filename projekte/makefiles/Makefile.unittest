@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.21  18:07:54
+GenerationDate  := 2013.Jun.23  08:33:32
 GeneratedBy     := je-so
 
 ## Debug
@@ -82,6 +82,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipsocket.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
@@ -187,6 +188,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipsocket.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
@@ -311,6 +313,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/io
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
@@ -620,6 +625,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!ipaddr.c.o: C-kern/platform/Linux/
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!iopoll.c.o: C-kern/platform/Linux/io/iopoll.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c

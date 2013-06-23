@@ -24,11 +24,11 @@
 
 /* typedef: struct ioevent_t
  * Exports <ioevent_t>. */
-typedef struct ioevent_t               ioevent_t ;
+typedef struct ioevent_t                  ioevent_t ;
 
 /* typedef: union ioevent_id_t
  * Exports <ioevent_id_t>. */
-typedef union ioevent_id_t             ioevent_id_t ;
+typedef union ioevent_id_t                ioevent_id_t ;
 
 /* enums: ioevent_e
  * Defines list of IO events. Every events is represented a single bit value
@@ -51,17 +51,17 @@ typedef union ioevent_id_t             ioevent_id_t ;
  *                  read the data before closing your side of the connection.
  * */
 enum ioevent_e {
-    ioevent_EMPTY    = 0
-   ,ioevent_READ     = 1
-   ,ioevent_WRITE    = 2
-   ,ioevent_ERROR    = 4
-   ,ioevent_CLOSE    = 8
+   ioevent_EMPTY    = 0,
+   ioevent_READ     = 1,
+   ioevent_WRITE    = 2,
+   ioevent_ERROR    = 4,
+   ioevent_CLOSE    = 8,
 
    // contains all allowed bits set (only used in implementation)
-   ,ioevent_MASK     = (ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)
+   ioevent_MASK     = (ioevent_READ|ioevent_WRITE|ioevent_ERROR|ioevent_CLOSE)
 } ;
 
-typedef enum ioevent_e                 ioevent_e ;
+typedef enum ioevent_e                    ioevent_e ;
 
 
 /* struct: ioevent_id_t
@@ -98,7 +98,7 @@ struct ioevent_t {
    uint32_t       ioevents ;
    /* variable: eventid
     * Every event has an associated id. It is set by the caller
-    * which registers an object, i.e. a <sys_filet>, with an associated <ioevent_id_t>. */
+    * which registers an object, i.e. a <sys_iochannel_t>, with an associated <ioevent_id_t>. */
    ioevent_id_t   eventid ;
 } ;
 

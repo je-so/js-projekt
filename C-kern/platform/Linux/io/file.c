@@ -24,9 +24,11 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/err.h"
-#include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/iochannel.h"
+#include "C-kern/api/io/filesystem/directory.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/memory/memblock.h"
@@ -41,77 +43,13 @@
 
 // group: functions
 
-/* function: nropen_file
- * Uses Linux specific "/proc/self/fd" interface. */
-int nropen_file(/*out*/size_t * number_open_fd)
-{
-   int err ;
-   int fd = -1 ;
-   DIR * procself = 0 ;
-
-   fd = open("/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
-   if (-1 == fd) {
-      err = errno ;
-      TRACESYSERR_LOG("open(/proc/self/fd)", err) ;
-      goto ONABORT ;
-   }
-
-   procself = fdopendir(fd) ;
-   if (!procself) {
-      err = errno ;
-      TRACESYSERR_LOG("fdopendir", err) ;
-      goto ONABORT ;
-   }
-   fd = -1 ;
-
-   size_t         open_fds = (size_t)0 ;
-   struct dirent  * name ;
-   for (;;) {
-      ++ open_fds ;
-      errno = 0 ;
-      name  = readdir(procself) ;
-      if (!name) {
-         if (errno) {
-            err = errno ;
-            goto ONABORT ;
-         }
-         break ;
-      }
-   }
-
-   err = closedir(procself) ;
-   procself = 0 ;
-   if (err) {
-      err = errno ;
-      TRACESYSERR_LOG("closedir", err) ;
-      goto ONABORT ;
-   }
-
-   /* adapt open_fds for
-      1. counts one too high
-      2. counts "."
-      3. counts ".."
-      4. counts fd opened in init_directorystream
-   */
-   *number_open_fd = open_fds >= 4 ? open_fds-4 : 0 ;
-
-   return 0 ;
-ONABORT:
-   (void) free_file(&fd) ;
-   if (procself) {
-      closedir(procself) ;
-   }
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
 int remove_file(const char * filepath, struct directory_t * relative_to)
 {
    int err ;
    int unlinkatfd = AT_FDCWD ;
 
    if (relative_to) {
-      unlinkatfd = fd_directory(relative_to) ;
+      unlinkatfd = io_directory(relative_to) ;
    }
 
    err = unlinkat(unlinkatfd, filepath, 0) ;
@@ -141,7 +79,7 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
    VALIDATE_INPARAM_TEST(0 == (iomode & ~((unsigned)accessmode_RDWR)), ONABORT, ) ;
 
    if (relative_to) {
-      openatfd = fd_directory(relative_to) ;
+      openatfd = io_directory(relative_to) ;
    }
 
    static_assert( (O_RDONLY+1) == accessmode_READ, "simple conversion") ;
@@ -171,7 +109,7 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
    int openatfd = AT_FDCWD ;
 
    if (relative_to) {
-      openatfd = fd_directory(relative_to) ;
+      openatfd = io_directory(relative_to) ;
    }
 
    fd = openat(openatfd, filepath, O_WRONLY|O_APPEND|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
@@ -198,7 +136,7 @@ int initcreate_file(/*out*/file_t * fileobj, const char* filepath, const struct 
    int openatfd = AT_FDCWD ;
 
    if (relative_to) {
-      openatfd = fd_directory(relative_to) ;
+      openatfd = io_directory(relative_to) ;
    }
 
    fd = openat(openatfd, filepath, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
@@ -300,78 +238,7 @@ ONABORT:
    return err ;
 }
 
-// group: io
-
-int read_file(file_t fileobj, size_t buffer_size, /*out*/void * buffer/*[buffer_size]*/, size_t * bytes_read)
-{
-   int err ;
-   ssize_t bytes ;
-   size_t  total_read = 0 ;
-
-   do {
-      do {
-         bytes = read(fileobj, (uint8_t*)buffer + total_read, buffer_size - total_read) ;
-      } while (-1 == bytes && EINTR == errno) ;
-
-      if (-1 == bytes) {
-         if (total_read) break ;
-         err = errno ;
-         // non blocking io ?
-         if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
-         TRACESYSERR_LOG("read", err) ;
-         PRINTINT_LOG(fileobj) ;
-         PRINTSIZE_LOG(buffer_size) ;
-         goto ONABORT ;
-      }
-
-      total_read += (size_t) bytes ;
-      assert(total_read <= buffer_size) ;
-   } while (/*not closed*/bytes && total_read < buffer_size) ;
-
-   if (bytes_read) {
-      *bytes_read = total_read ;
-   }
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
-
-int write_file(file_t fileobj, size_t buffer_size, const void * buffer/*[buffer_size]*/, size_t * bytes_written)
-{
-   int err ;
-   ssize_t bytes ;
-   size_t  total_written = 0 ;
-
-   while (total_written < buffer_size) {
-      /* buffer_size > 0 */
-      do {
-         bytes = write(fileobj, (const uint8_t*)buffer + total_written, buffer_size - total_written) ;
-      } while (-1 == bytes && EINTR == errno) ;
-      if (-1 == bytes) {
-         if (total_written) break ;
-         err = errno ;
-         // non blocking io ?
-         if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
-         TRACESYSERR_LOG("write", err) ;
-         PRINTINT_LOG(fileobj) ;
-         PRINTSIZE_LOG(buffer_size) ;
-         goto ONABORT ;
-      }
-      total_written += (size_t) bytes ;
-      assert(bytes && total_written <= buffer_size) ;
-   }
-
-   if (bytes_written) {
-      *bytes_written = total_written ;
-   }
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_LOG(err) ;
-   return err ;
-}
+// group: I/O
 
 int advisereadahead_file(file_t fileobj, off_t offset, off_t length)
 {
@@ -455,50 +322,6 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
-static int test_nropen(void)
-{
-   size_t  openfd ;
-   size_t  openfd2 ;
-   int     fds[128] ;
-
-   // prepare
-   for (unsigned i = 0; i < lengthof(fds); ++i) {
-      fds[i] = file_INIT_FREEABLE ;
-   }
-
-   // TEST nropen_file: std file descriptors are open
-   openfd = 0 ;
-   TEST(0 == nropen_file(&openfd)) ;
-   TEST(3 <= openfd) ;
-
-   // TEST nropen_file: increment
-   for (unsigned i = 0; i < lengthof(fds); ++i) {
-      fds[i] = open("/dev/null", O_RDONLY|O_CLOEXEC) ;
-      TEST(0 < fds[i]) ;
-      openfd2 = 0 ;
-      TEST(0 == nropen_file(&openfd2)) ;
-      ++ openfd ;
-      TEST(openfd == openfd2) ;
-   }
-
-   // TEST nropen_file: decrement
-   for (unsigned i = 0; i < lengthof(fds); ++i) {
-      TEST(0 == free_file(&fds[i])) ;
-      TEST(fds[i] == file_INIT_FREEABLE) ;
-      openfd2 = 0 ;
-      TEST(0 == nropen_file(&openfd2)) ;
-      -- openfd ;
-      TEST(openfd == openfd2) ;
-   }
-
-   return 0 ;
-ONABORT:
-   for (unsigned i = 0; i < lengthof(fds); ++i) {
-      free_file(&fds[i]) ;
-   }
-   return EINVAL ;
-}
-
 static int test_remove(directory_t * tempdir)
 {
    file_t   file = file_INIT_FREEABLE ;
@@ -556,7 +379,7 @@ static int test_query(directory_t * tempdir)
    TEST(1 == isopen_file(file_STDERR)) ;
 
    // TEST accessmode_file: accessmode_READ
-   fd = openat(fd_directory(tempdir), "testfile", O_RDONLY|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "testfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    fd2 = dup(fd) ;
    TEST(fd2 > 0) ;
@@ -568,7 +391,7 @@ static int test_query(directory_t * tempdir)
    TEST(fd2 == file_INIT_FREEABLE) ;
 
    // TEST accessmode_file: accessmode_WRITE
-   fd = openat(fd_directory(tempdir), "testfile", O_WRONLY|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "testfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    fd2 = dup(fd) ;
    TEST(fd2 > 0) ;
@@ -580,7 +403,7 @@ static int test_query(directory_t * tempdir)
    TEST(fd2 == file_INIT_FREEABLE) ;
 
    // TEST accessmode_file: accessmode_RDWR
-   fd = openat(fd_directory(tempdir), "testfile", O_RDWR|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "testfile", O_RDWR|O_CLOEXEC) ;
    fd2 = fd ;
    TEST(fd > 0) ;
    TEST(accessmode_RDWR == accessmode_file(fd)) ;
@@ -657,21 +480,21 @@ static int test_initfree(directory_t * tempdir)
    accessmode_e modes[3] = {  accessmode_READ,  accessmode_WRITE, accessmode_RDWR } ;
    TEST(0 == makefile_directory(tempdir, "init1", 1999)) ;
    TEST(0 == checkpath_directory(tempdir, "init1")) ;
-   TEST(0 == nropen_file(&nropenfd)) ;
+   TEST(0 == nropen_iochannel(&nropenfd)) ;
    for (unsigned i = 0; i < lengthof(modes); ++i) {
       TEST(0 == init_file(&file, "init1", modes[i], tempdir)) ;
       TEST(modes[i] == accessmode_file(file)) ;
       TEST(!isfree_file(file)) ;
-      TEST(0 == nropen_file(&nropenfd2)) ;
+      TEST(0 == nropen_iochannel(&nropenfd2)) ;
       TEST(nropenfd+1 == nropenfd2) ;
       TEST(0 == free_file(&file)) ;
       TEST(file == file_INIT_FREEABLE) ;
       TEST(isfree_file(file)) ;
-      TEST(0 == nropen_file(&nropenfd2)) ;
+      TEST(0 == nropen_iochannel(&nropenfd2)) ;
       TEST(nropenfd == nropenfd2) ;
       TEST(0 == free_file(&file)) ;
       TEST(file == file_INIT_FREEABLE) ;
-      TEST(0 == nropen_file(&nropenfd2)) ;
+      TEST(0 == nropen_iochannel(&nropenfd2)) ;
       TEST(nropenfd == nropenfd2) ;
    }
    TEST(0 == removefile_directory(tempdir, "init1")) ;
@@ -681,16 +504,16 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == initcreate_file(&file, "init2", tempdir)) ;
    TEST(accessmode_RDWR == accessmode_file(file)) ;
    TEST(!isfree_file(file)) ;
-   TEST(0 == nropen_file(&nropenfd2)) ;
+   TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd+1 == nropenfd2) ;
    TEST(0 == checkpath_directory(tempdir, "init2")) ;
    TEST(0 == free_file(&file)) ;
    TEST(file == file_INIT_FREEABLE) ;
-   TEST(0 == nropen_file(&nropenfd2)) ;
+   TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == free_file(&file)) ;
    TEST(file == file_INIT_FREEABLE) ;
-   TEST(0 == nropen_file(&nropenfd2)) ;
+   TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == removefile_directory(tempdir, "init2")) ;
 
@@ -699,16 +522,16 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == initappend_file(&file, "init3", tempdir)) ;
    TEST(accessmode_WRITE == accessmode_file(file)) ;
    TEST(!isfree_file(file)) ;
-   TEST(0 == nropen_file(&nropenfd2)) ;
+   TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd+1 == nropenfd2) ;
    TEST(0 == checkpath_directory(tempdir, "init3")) ;
    TEST(0 == free_file(&file)) ;
    TEST(file == file_INIT_FREEABLE) ;
-   TEST(0 == nropen_file(&nropenfd2)) ;
+   TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == free_file(&file)) ;
    TEST(file == file_INIT_FREEABLE) ;
-   TEST(0 == nropen_file(&nropenfd2)) ;
+   TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd == nropenfd2) ;
    TEST(0 == removefile_directory(tempdir, "init3")) ;
 
@@ -880,7 +703,7 @@ static int thread_reader(thread_arg_t * startarg)
    uint8_t byte = 0 ;
    resume_thread(startarg->caller) ;
    err = read_file(startarg->fd, 1, &byte, &bytes_read) ;
-   return (err != 0) || (bytes_read != 1) || (byte != 200) ;
+   return err ? err : (bytes_read != 1) || (byte != 200) ;
 }
 
 static int thread_writer(thread_arg_t * startarg)
@@ -890,7 +713,7 @@ static int thread_writer(thread_arg_t * startarg)
    uint8_t byte = 200 ;
    resume_thread(startarg->caller) ;
    err = write_file(startarg->fd, 1, &byte, &bytes_written) ;
-   return (err != 0) || (bytes_written != 1)  ;
+   return err ? err : (bytes_written != 1)  ;
 }
 
 static int thread_writer2(thread_arg_t * startarg)
@@ -936,7 +759,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == makefile_directory(tempdir, "readwrite1", sizeof(buffer))) ;
 
    // TEST write_file: blocking write
-   fd = openat(fd_directory(tempdir), "readwrite1", O_WRONLY|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "readwrite1", O_WRONLY|O_CLOEXEC) ;
    TEST(0 < fd) ;
    for (unsigned i = 0; i < 10000; ++i) {
       byte = (uint8_t) i ;
@@ -947,7 +770,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == free_file(&fd)) ;
 
    // TEST read_file: blocking read
-   fd = openat(fd_directory(tempdir), "readwrite1", O_RDONLY|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "readwrite1", O_RDONLY|O_CLOEXEC) ;
    TEST(0 < fd) ;
    for (unsigned i = 0; i < 10000-1; ++i) {
       byte = (uint8_t) (1+i) ;
@@ -1009,16 +832,10 @@ static int test_readwrite(directory_t * tempdir)
    sleepms_thread(100) ;
    s_siguser_count  = 0 ;
    s_siguser_thread = 0 ;
-   for (int i = 0; i < 50; ++i) {
-      pthread_kill(thread->sys_thread, SIGUSR1) ;
-      sleepms_thread(5) ;
-   }
-   byte = 200 ;
-   TEST(0 == write_file(pipefd[1], 1, &byte, &bytes_written)) ;
-   TEST(1 == bytes_written) ;
+   pthread_kill(thread->sys_thread, SIGUSR1) ;
    TEST(0 == join_thread(thread)) ;
-   TEST(0 == returncode_thread(thread)) ;
-   TEST(50 == s_siguser_count) ;
+   TEST(EINTR == returncode_thread(thread)) ;
+   TEST(1 == s_siguser_count) ;
    TEST(thread == s_siguser_thread) ;
    TEST(0 == delete_thread(&thread)) ;
 
@@ -1033,22 +850,10 @@ static int test_readwrite(directory_t * tempdir)
    sleepms_thread(100) ;
    s_siguser_count  = 0 ;
    s_siguser_thread = 0 ;
-   for (int i = 0; i < 50; ++i) {
-      pthread_kill(thread->sys_thread, SIGUSR1) ;
-      sleepms_thread(5) ;
-   }
-   for (size_t i = 0; i < pipe_buffersize; ++i) {
-      byte = 1 ;
-      TEST(0 == read_file(pipefd[0], 1, &byte, &bytes_read)) ;
-      TEST(1 == bytes_read) ;
-      TEST(0 == byte) ;
-   }
-   TEST(0 == read_file(pipefd[0], 1, &byte, &bytes_read)) ;
-   TEST(1 == bytes_read) ;
-   TEST(200 == byte) ;
+   pthread_kill(thread->sys_thread, SIGUSR1) ;
    TEST(0 == join_thread(thread)) ;
-   TEST(0 == returncode_thread(thread)) ;
-   TEST(50 == s_siguser_count) ;
+   TEST(EINTR == returncode_thread(thread)) ;
+   TEST(1 == s_siguser_count) ;
    TEST(thread == s_siguser_thread) ;
    TEST(0 == delete_thread(&thread)) ;
 
@@ -1362,7 +1167,7 @@ int unittest_io_file()
 
    {
       size_t nrfdopen ;
-      TEST(0 == nropen_file(&nrfdopen)) ;
+      TEST(0 == nropen_iochannel(&nrfdopen)) ;
       while (nrfdopen < 8) {
          TEST(0 == new_directory(&dummydir[open_count], "", 0)) ;
          ++ open_count ;
@@ -1370,7 +1175,6 @@ int unittest_io_file()
       }
    }
 
-   if (test_nropen())            goto ONABORT ;
    if (test_remove(tempdir))     goto ONABORT ;
    if (test_query(tempdir))      goto ONABORT ;
    if (test_initfree(tempdir))   goto ONABORT ;

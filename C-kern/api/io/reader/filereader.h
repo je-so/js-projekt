@@ -79,7 +79,7 @@ struct filereader_t {
    off_t       filesize ;
    /* variable: file
     * The file from which is read. */
-   sys_file_t  file ;
+   sys_iochannel_t  file ;
    /* variable: mmfile
     * The buffered input of the file. */
    struct {
@@ -100,7 +100,7 @@ struct filereader_t {
 
 /* define: filereader_INIT_FREEABLE
  * Static initializer. */
-#define filereader_INIT_FREEABLE       { 0, 0, 0, 0, 0, 0, sys_file_INIT_FREEABLE, { {0, 0}, {0, 0} } }
+#define filereader_INIT_FREEABLE       { 0, 0, 0, 0, 0, 0, sys_iochannel_INIT_FREEABLE, { {0, 0}, {0, 0} } }
 
 /* function: initsb_filereader
  * Opens file for reading into a single buffer.

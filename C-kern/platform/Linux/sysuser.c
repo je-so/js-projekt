@@ -31,7 +31,7 @@
 #include "C-kern/api/platform/sysuser.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/platform/task/process.h"
 #endif
 
@@ -669,7 +669,7 @@ int unittest_platform_sysuser()
    resourceusage_t      usage    = resourceusage_INIT_FREEABLE ;
    int                  logfd[2] = { -1, -1 } ;
    process_t            child    = process_INIT_FREEABLE ;
-   process_stdfd_t      stdfd    = process_stdfd_INIT_INHERIT ;
+   process_stdio_t      stdfd    = process_stdio_INIT_INHERIT ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
@@ -688,8 +688,8 @@ int unittest_platform_sysuser()
    if (logsize > 0) {
       PRINTF_LOG("%s", logbuffer) ;
    }
-   TEST(0 == free_file(&logfd[0])) ;
-   TEST(0 == free_file(&logfd[1])) ;
+   TEST(0 == free_iochannel(&logfd[0])) ;
+   TEST(0 == free_iochannel(&logfd[1])) ;
    TEST(0 == free_process(&child)) ;
 
    TEST(0 == same_resourceusage(&usage)) ;
@@ -698,8 +698,8 @@ int unittest_platform_sysuser()
    return 0 ;
 ONABORT:
    (void) free_process(&child) ;
-   (void) free_file(&logfd[0]) ;
-   (void) free_file(&logfd[1]) ;
+   (void) free_iochannel(&logfd[0]) ;
+   (void) free_iochannel(&logfd[1]) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

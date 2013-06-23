@@ -29,7 +29,7 @@
 #include "C-kern/api/platform/task/thread.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/platform/task/process.h"
 #endif
@@ -524,18 +524,18 @@ static int test_slock(void)
    }
 
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
-   TEST(0 == free_file(&oldstderr)) ;
-   TEST(0 == free_file(&pipefd[0])) ;
-   TEST(0 == free_file(&pipefd[1])) ;
+   TEST(0 == free_iochannel(&oldstderr)) ;
+   TEST(0 == free_iochannel(&pipefd[0])) ;
+   TEST(0 == free_iochannel(&pipefd[1])) ;
 
    return 0 ;
 ONABORT:
    if (-1 != oldstderr) {
       dup2(oldstderr, STDERR_FILENO) ;
    }
-   free_file(&oldstderr) ;
-   free_file(&pipefd[0]) ;
-   free_file(&pipefd[1]) ;
+   free_iochannel(&oldstderr) ;
+   free_iochannel(&pipefd[0]) ;
+   free_iochannel(&pipefd[1]) ;
    if (isoldprocmask)   (void) sigprocmask(SIG_SETMASK, &oldprocmask, 0) ;
    if (isoldact)        (void) sigaction(SIGABRT, &oldact, 0) ;
    free_mutex(&mutex) ;

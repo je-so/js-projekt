@@ -26,6 +26,7 @@
 #ifndef CKERN_IO_READER_CSVFILEREADER_HEADER
 #define CKERN_IO_READER_CSVFILEREADER_HEADER
 
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
 
 // forward

@@ -112,6 +112,7 @@ struct vmpage_t {
 
 /* function: init_vmpage
  * New memory is mapped into the virtual address space of the calling process.
+ * TODO: change size_in_pages into size_in_bytes
  * The new memory has size == size_in_pages * <pagesize_vm>.
  * It is read and writeable and not shared between processes.
  * But a child process can access its content after a fork (COPY_ON_WRITE semantics). */

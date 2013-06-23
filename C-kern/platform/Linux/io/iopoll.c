@@ -25,10 +25,10 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/err.h"
-#include "C-kern/api/io/ioevent.h"
 #include "C-kern/api/io/iopoll.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/iochannel.h"
+#include "C-kern/api/io/ioevent.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/time/timevalue.h"
@@ -104,7 +104,7 @@ int free_iopoll(iopoll_t * iopoll)
 {
    int err ;
 
-   err = free_file(&iopoll->sys_poll) ;
+   err = free_iochannel(&iopoll->sys_poll) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -154,7 +154,7 @@ ONABORT:
 
 /* function: registerfd_iopoll
  * Adds file descriptor to Linux epoll object. */
-int registerfd_iopoll(iopoll_t * iopoll, sys_file_t fd, const struct ioevent_t * for_event)
+int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * for_event)
 {
    int err ;
 
@@ -179,8 +179,8 @@ ONABORT:
 }
 
 /* function: updatefd_iopoll
- * Updates event mask/value of <sys_file_t> registered at Linux epoll object. */
-int updatefd_iopoll(iopoll_t * iopoll, sys_file_t fd, const struct ioevent_t * updated_event)
+ * Updates event mask/value of <sys_iochannel_t> registered at Linux epoll object. */
+int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * updated_event)
 {
    int err ;
 
@@ -205,8 +205,8 @@ ONABORT:
 }
 
 /* function: updatefd_iopoll
- * Unregisteres <sys_file_t> at Linux epoll object. */
-int unregisterfd_iopoll(iopoll_t * iopoll, sys_file_t fd)
+ * Unregisteres <sys_iochannel_t> at Linux epoll object. */
+int unregisterfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd)
 {
    int err ;
    struct epoll_event dummy ;
@@ -260,24 +260,24 @@ static int test_initfree(void)
    iopoll_t  iopoll = iopoll_INIT_FREEABLE ;
 
    // TEST iopoll_INIT_FREEABLE
-   TEST(iopoll.sys_poll == sys_file_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == sys_iochannel_INIT_FREEABLE) ;
 
    // TEST init_iopoll, free_iopoll
    TEST(0 == init_iopoll(&iopoll)) ;
    TEST(iopoll.sys_poll > 0) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == sys_file_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == iochannel_INIT_FREEABLE) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == sys_file_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == iochannel_INIT_FREEABLE) ;
 
    // TEST free_iopoll: removes regisestered fds
    TEST(0 == init_iopoll(&iopoll)) ;
    TEST(iopoll.sys_poll > 0) ;
-   TEST(0 == registerfd_iopoll(&iopoll, file_STDIN, &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 1))) ;
-   TEST(0 == registerfd_iopoll(&iopoll, file_STDOUT, &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 2))) ;
-   TEST(0 == registerfd_iopoll(&iopoll, file_STDERR, &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 3))) ;
+   TEST(0 == registerfd_iopoll(&iopoll, iochannel_STDIN, &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 1))) ;
+   TEST(0 == registerfd_iopoll(&iopoll, iochannel_STDOUT, &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 2))) ;
+   TEST(0 == registerfd_iopoll(&iopoll, iochannel_STDERR, &(ioevent_t)ioevent_INIT_VAL64(ioevent_WRITE, 3))) ;
    TEST(0 == free_iopoll(&iopoll)) ;
-   TEST(iopoll.sys_poll == sys_file_INIT_FREEABLE) ;
+   TEST(iopoll.sys_poll == sys_iochannel_INIT_FREEABLE) ;
 
    return 0 ;
 ONABORT:
@@ -350,10 +350,10 @@ static int test_registerfd(void)
    TEST(EINVAL == updatefd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_MASK+1, 0))) ;
    TEST(EINVAL == updatefd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_MASK+1, 0))) ;
 
-   // TEST EEXIST: sys_file_t registered twice
+   // TEST EEXIST: sys_iochannel_t registered twice
    TEST(EEXIST == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 0))) ;
 
-   // TEST ENOENT: sys_file_t not registered
+   // TEST ENOENT: sys_iochannel_t not registered
    TEST(ENOENT == updatefd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL64(ioevent_READ, 0))) ;
    TEST(ENOENT == unregisterfd_iopoll(&iopoll, fd[0][1])) ;
 
@@ -378,16 +378,16 @@ static int test_registerfd(void)
    // unprepare
    TEST(0 == free_iopoll(&iopoll)) ;
    for (unsigned i = 0; i < lengthof(fd); ++i) {
-      TEST(0 == free_file(fd[i])) ;
-      TEST(0 == free_file(fd[i]+1)) ;
+      TEST(0 == free_iochannel(fd[i])) ;
+      TEST(0 == free_iochannel(fd[i]+1)) ;
    }
 
    return 0 ;
 ONABORT:
    free_iopoll(&iopoll) ;
    for (unsigned i = 0; i < lengthof(fd); ++i) {
-      free_file(fd[i]) ;
-      free_file(fd[i]+1) ;
+      free_iochannel(fd[i]) ;
+      free_iochannel(fd[i]+1) ;
    }
    return EINVAL ;
 }
@@ -490,7 +490,7 @@ static int test_waitevents(void)
 
    // TEST wait_iopoll: ioevent_READ+ioevent_CLOSE / no ioevent_WRITE after close
    for (unsigned i = 0; i < lengthof(fd); ++ i) {
-      TEST(0 == free_file(&fd[i][1])) ;
+      TEST(0 == free_iochannel(&fd[i][1])) ;
    }
    TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(nr_events == lengthof(fd)) ;
@@ -514,13 +514,13 @@ static int test_waitevents(void)
    // TEST wait_iopoll: close removes files except if another fd refers to the same system file object
    fd[0][1] = dup(fd[0][0]) ;
    for (unsigned i = 0; i < lengthof(fd); ++ i) {
-      TEST(0 == free_file(&fd[i][0])) ;
+      TEST(0 == free_iochannel(&fd[i][0])) ;
    }
    TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_CLOSE) ;
    TEST(ioevents[0].eventid.val32 == 0) ;
-   TEST(0 == free_file(&fd[0][1])) ;
+   TEST(0 == free_iochannel(&fd[0][1])) ;
    TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(0 == nr_events) ;
 
@@ -528,7 +528,7 @@ static int test_waitevents(void)
    TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][0], &(ioevent_t)ioevent_INIT_VAL32(ioevent_READ, 10))) ;
    TEST(1 == write(fd[0][1], "1", 1)) ;
-   TEST(0 == free_file(&fd[0][1])) ;
+   TEST(0 == free_iochannel(&fd[0][1])) ;
    TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == (ioevent_READ|ioevent_CLOSE)) ;
@@ -538,7 +538,7 @@ static int test_waitevents(void)
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_CLOSE) ;
    TEST(ioevents[0].eventid.val32 == 11) ;
-   TEST(0 == free_file(&fd[0][0])) ;
+   TEST(0 == free_iochannel(&fd[0][0])) ;
 
    // TEST wait_iopoll: registered with ioevent_EMPTY returns also ioevent_ERROR
    TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
@@ -547,13 +547,13 @@ static int test_waitevents(void)
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_WRITE) ;
    TEST(ioevents[0].eventid.val32 == 10) ;
-   TEST(0 == free_file(&fd[0][0])) ;
+   TEST(0 == free_iochannel(&fd[0][0])) ;
    TEST(0 == updatefd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_EMPTY, 11))) ;
    TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == ioevent_ERROR) ;
    TEST(ioevents[0].eventid.val32 == 11) ;
-   TEST(0 == free_file(&fd[0][1])) ;
+   TEST(0 == free_iochannel(&fd[0][1])) ;
 
    // TEST wait_iopoll: shutdown on unix sockets closed connection is signaled with ioevent_READ
    TEST(0 == socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0, fd[0])) ;
@@ -578,22 +578,22 @@ static int test_waitevents(void)
    TEST(0 == read(fd[0][1], buffer, 1)/*connection closed by peer*/) ;
 
    // TEST wait_iopoll: unix sockets closed => ioevent_CLOSE
-   TEST(0 == free_file(&fd[0][0])) ;
+   TEST(0 == free_iochannel(&fd[0][0])) ;
    TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == (ioevent_WRITE|ioevent_READ|ioevent_CLOSE/*signals peer closed connection*/)) ;
    TEST(ioevents[0].eventid.val32 == 1) ;
-   TEST(0 == free_file(&fd[0][1])) ;
+   TEST(0 == free_iochannel(&fd[0][1])) ;
 
    // TEST wait_iopoll: reading side of unix pipe closed => ioevent_ERROR on writing side
    TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
    TEST(0 == registerfd_iopoll(&iopoll, fd[0][1], &(ioevent_t)ioevent_INIT_VAL32(ioevent_WRITE, 1))) ;
-   TEST(0 == free_file(&fd[0][0])) ;
+   TEST(0 == free_iochannel(&fd[0][0])) ;
    TEST(0 == wait_iopoll(&iopoll, &nr_events, lengthof(ioevents), ioevents, 0)) ;
    TEST(1 == nr_events) ;
    TEST(ioevents[0].ioevents      == (ioevent_WRITE|ioevent_ERROR/*signals peer closed connection*/)) ;
    TEST(ioevents[0].eventid.val32 == 1) ;
-   TEST(0 == free_file(&fd[0][1])) ;
+   TEST(0 == free_iochannel(&fd[0][1])) ;
 
    // TEST wait_iopoll: waits ~ 40 milli seconds for events
    TEST(0 == pipe2(fd[0], O_CLOEXEC|O_NONBLOCK)) ;
@@ -625,34 +625,34 @@ static int test_waitevents(void)
    // unprepare
    TEST(0 == free_iopoll(&iopoll)) ;
    for (unsigned i = 0; i < lengthof(fd); ++i) {
-      free_file(fd[i]) ;
-      free_file(fd[i]+1) ;
+      free_iochannel(fd[i]) ;
+      free_iochannel(fd[i]+1) ;
    }
 
    return 0 ;
 ONABORT:
    free_iopoll(&iopoll) ;
    for (unsigned i = 0; i < lengthof(fd); ++i) {
-      free_file(fd[i]) ;
-      free_file(fd[i]+1) ;
+      free_iochannel(fd[i]) ;
+      free_iochannel(fd[i]+1) ;
    }
    return EINVAL ;
 }
 
 int unittest_io_iopoll()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage      = resourceusage_INIT_FREEABLE ;
+   unsigned          open_count = 0 ;
+   int               dummyfd[8] ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
    // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
-   unsigned open_count = 0 ;
-   int      dummyfd[8] ;
    {
       size_t nrfdopen ;
-      TEST(0 == nropen_file(&nrfdopen)) ;
+      TEST(0 == nropen_iochannel(&nrfdopen)) ;
       for (; nrfdopen < 8; ++ nrfdopen) {
-         dummyfd[open_count ++] = dup(file_STDIN) ;
+         dummyfd[open_count ++] = dup(iochannel_STDIN) ;
       }
    }
 
@@ -662,7 +662,7 @@ int unittest_io_iopoll()
    if (test_waitevents())     goto ONABORT ;
 
    while (open_count) {
-      TEST(0 == free_file(&dummyfd[--open_count])) ;
+      TEST(0 == free_iochannel(&dummyfd[--open_count])) ;
    }
 
    TEST(0 == same_resourceusage(&usage)) ;

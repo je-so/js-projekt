@@ -25,6 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/platform/malloc.h"
 #include <malloc.h>

@@ -25,7 +25,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/time/systimer.h"
 #include "C-kern/api/time/timevalue.h"
 #ifdef KONFIG_UNITTEST
@@ -104,7 +104,7 @@ int free_systimer(systimer_t * timer)
 {
    int err ;
 
-   err = free_file(timer) ;
+   err = free_iochannel(timer) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -271,54 +271,58 @@ static int test_initfree(void)
    // TEST static init
    TEST(-1 == systimer) ;
 
-   // TEST init, double free
-   TEST(0 == nropen_file(&openfds[0])) ;
+   // TEST init_systimer
+   TEST(0 == nropen_iochannel(&openfds[0])) ;
    TEST(0 == init_systimer(&systimer, sysclock_MONOTONIC)) ;
    TEST(0 < systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]+1) ;
+
+   // TEST free_systimer
    TEST(0 == free_systimer(&systimer)) ;
-   TEST(-1 == systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(systimer == -1) ;
+   TEST(systimer == iochannel_INIT_FREEABLE) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
    TEST(0 == free_systimer(&systimer)) ;
-   TEST(-1 == systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(systimer == -1) ;
+   TEST(systimer == iochannel_INIT_FREEABLE) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
 
-   // TEST free a started timer
-   TEST(0 == nropen_file(&openfds[0])) ;
+   // TEST free_systimer: free started timer
+   TEST(0 == nropen_iochannel(&openfds[0])) ;
    TEST(0 == init_systimer(&systimer, sysclock_REAL)) ;
    TEST(0 < systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]+1) ;
    TEST(0 == start_systimer(systimer, &(timevalue_t){ .seconds =1 })) ;
    TEST(0 == free_systimer(&systimer)) ;
    TEST(-1 == systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
    TEST(0 == free_systimer(&systimer)) ;
    TEST(-1 == systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
 
-   // TEST free a started interval timer
-   TEST(0 == nropen_file(&openfds[0])) ;
+   // TEST free_systimer: free a started interval timer
+   TEST(0 == nropen_iochannel(&openfds[0])) ;
    TEST(0 == init_systimer(&systimer, sysclock_MONOTONIC)) ;
    TEST(0 < systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]+1) ;
    TEST(0 == startinterval_systimer(systimer, &(timevalue_t){ .seconds =1 })) ;
    TEST(0 == free_systimer(&systimer)) ;
    TEST(-1 == systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
    TEST(0 == free_systimer(&systimer)) ;
    TEST(-1 == systimer) ;
-   TEST(0 == nropen_file(&openfds[1])) ;
+   TEST(0 == nropen_iochannel(&openfds[1])) ;
    TEST(openfds[1] == openfds[0]) ;
 
-   // TEST start
+   // TEST start_systimer
    TEST(0 == init_systimer(&systimer, sysclock_MONOTONIC)) ;
    TEST(0 < systimer) ;
    TEST(0 == start_systimer(systimer, &(timevalue_t){ .nanosec = 100000 })) ;

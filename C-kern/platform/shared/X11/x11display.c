@@ -316,7 +316,7 @@ ONABORT:
 
 // group: query
 
-sys_file_t fd_x11display(const x11display_t * x11disp)
+sys_iochannel_t io_x11display(const x11display_t * x11disp)
 {
    return ConnectionNumber(x11disp->sys_display) ;
 }
@@ -437,7 +437,7 @@ static int test_initfree(void)
    TEST(x11disp.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
    TEST(x11disp.atoms._NET_FRAME_EXTENTS == XInternAtom(x11disp.sys_display, "_NET_FRAME_EXTENTS", False)) ;
    TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
-   TEST(0  < fd_x11display(&x11disp)) ;
+   TEST(0  < io_x11display(&x11disp)) ;
    TEST(0 == free_x11display(&x11disp)) ;
    TEST(0 == x11disp.sys_display) ;
    TEST(0 == free_x11display(&x11disp)) ;
@@ -451,7 +451,7 @@ static int test_initfree(void)
    TEST(x11disp.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
    TEST(x11disp.atoms._NET_FRAME_EXTENTS == XInternAtom(x11disp.sys_display, "_NET_FRAME_EXTENTS", False)) ;
    TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
-   TEST(0  < fd_x11display(&x11disp)) ;
+   TEST(0  < io_x11display(&x11disp)) ;
    TEST(0 == init_x11display(&x11disp2, ":0.0")) ;  // creates new connection
    TEST(x11disp2.idmap       == 0) ;
    TEST(x11disp2.sys_display != 0) ;
@@ -460,8 +460,8 @@ static int test_initfree(void)
    TEST(x11disp2.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
    TEST(x11disp2.atoms._NET_FRAME_EXTENTS == XInternAtom(x11disp.sys_display, "_NET_FRAME_EXTENTS", False)) ;
    TEST(x11disp2.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
-   TEST(fd_x11display(&x11disp2) >  0) ;
-   TEST(fd_x11display(&x11disp2) != fd_x11display(&x11disp)) ;
+   TEST(io_x11display(&x11disp2) >  0) ;
+   TEST(io_x11display(&x11disp2) != io_x11display(&x11disp)) ;
    TEST(0 == free_x11display(&x11disp2)) ;
    TEST(0 == x11disp2.idmap) ;
    TEST(0 == x11disp2.sys_display) ;
@@ -499,13 +499,13 @@ static int test_initfree(void)
    TEST(WIFEXITED(childstatus)) ;
    TEST(0 == WEXITSTATUS(childstatus)) ;
 
-   // TEST fd_x11display
+   // TEST io_x11display
    TEST(0 == init_x11display(&x11disp, ":0.0")) ;
-   TEST(0  < fd_x11display(&x11disp)) ;
-   int fd = fd_x11display(&x11disp) ;
+   TEST(0  < io_x11display(&x11disp)) ;
+   int fd = io_x11display(&x11disp) ;
    TEST(0 == free_x11display(&x11disp)) ;
    TEST(0 == init_x11display(&x11disp, ":0.0")) ;
-   TEST(fd == fd_x11display(&x11disp)) ;
+   TEST(fd == io_x11display(&x11disp)) ;
    TEST(0 == free_x11display(&x11disp)) ;
 
    // TEST errorstring_x11display: last char is set to 0

@@ -24,13 +24,16 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/err.h"
-#include "C-kern/api/io/filesystem/directory.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/iochannel.h"
+#include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
+#include "C-kern/api/io/accessmode.h"
+#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/string/cstring.h"
 #endif
 
@@ -39,7 +42,7 @@
 
 // group: lifetime
 
-static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_file_t fd, off_t file_offset, size_t size, accessmode_e mode)
+static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_iochannel_t fd, off_t file_offset, size_t size, accessmode_e mode)
 {
    int err ;
    const size_t    pagesize  = pagesize_vm() ;
@@ -54,7 +57,7 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_file_t fd, off
                            && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)),
                            ONABORT, PRINTINT_LOG(mode)) ;
 
-   accessmode_e fdmode = accessmode_file(fd) ;
+   accessmode_e fdmode = accessmode_iochannel(fd) ;
 
    VALIDATE_INPARAM_TEST(  0 != (fdmode & accessmode_READ)
                            && (0 != (fdmode & accessmode_WRITE)
@@ -92,7 +95,7 @@ ONABORT:
    return err ;
 }
 
-int initfd_mmfile(/*out*/mmfile_t * mfile, sys_file_t fd, off_t file_offset, size_t size, accessmode_e mode)
+int initfromio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, size_t size, accessmode_e mode)
 {
    int err ;
 
@@ -113,7 +116,7 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    int             openatfd  = AT_FDCWD ;
 
    if (relative_to) {
-      openatfd = fd_directory(relative_to) ;
+      openatfd = io_directory(relative_to) ;
    }
 
    fd = openat(openatfd, file_path, ((mode&accessmode_WRITE) ? O_RDWR : O_RDONLY) | O_CLOEXEC) ;
@@ -224,7 +227,7 @@ ONABORT:
 
 // group: change
 
-int seek_mmfile(mmfile_t * mfile, sys_file_t fd, off_t file_offset, accessmode_e mode)
+int seek_mmfile(mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, accessmode_e mode)
 {
    int err ;
 
@@ -306,22 +309,22 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    struct sigaction  oldact ;
 
    // prepare
-   fd = openat(fd_directory(tempdir), "mmfile", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
+   fd = openat(io_directory(tempdir), "mmfile", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    TEST(0 <= fd) ;
    TEST(0 == ftruncate(fd, 256)) ;
    for (unsigned i = 0; i < 256; ++i) {
       buffer[i] = (uint8_t)i ;
    }
    TEST(256 == write(fd, buffer, 256)) ;
-   TEST(0 == free_file(&fd)) ;
-   fd = openat(fd_directory(tempdir), "mmsplit", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
+   TEST(0 == free_iochannel(&fd)) ;
+   fd = openat(io_directory(tempdir), "mmsplit", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    TEST(0 <= fd) ;
    TEST(0 == ftruncate(fd, 2*pagesize+sizeof(uint32_t))) ;
    TEST(0 == (pagesize % sizeof(uint32_t))) ;
    for (uint32_t i = 0; i < 2*pagesize+sizeof(uint32_t); i += sizeof(uint32_t)) {
       TEST(sizeof(uint32_t) == write(fd, &i, sizeof(uint32_t))) ;
    }
-   TEST(0 == free_file(&fd)) ;
+   TEST(0 == free_iochannel(&fd)) ;
 
    // TEST mmfile_INIT_FREEABLE
    TEST(0 == mfile.addr) ;
@@ -404,11 +407,11 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    }
    TEST(1 == is_exception) ;
    // write different content
-   fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    memset(buffer, '3', 256 ) ;
    TEST(256 == write(fd, buffer, 256)) ;
-   TEST(0   == free_file(&fd)) ;
+   TEST(0   == free_iochannel(&fd)) ;
    // test change is shared
    for (unsigned i = 0; i < 256; ++i) {
       TEST(addr_mmfile(&mfile)[i] == '3') ;
@@ -427,10 +430,10 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
       addr_mmfile(&mfile)[i] = (uint8_t)i ;
    }
    // test change is shared
-   fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
-   TEST(0   == free_file(&fd)) ;
+   TEST(0   == free_iochannel(&fd)) ;
    for (unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ;
    }
@@ -451,10 +454,10 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
       TEST(addr_mmfile(&mfile)[i] == '1') ;
    }
    // test change is *not* shared
-   fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
    TEST(256 == read(fd, buffer, 256)) ;
-   TEST(0   == free_file(&fd)) ;
+   TEST(0   == free_iochannel(&fd)) ;
    for (unsigned i = 0; i < 256; ++i) {
       TEST(buffer[i] == (uint8_t)i) ; // old content
    }
@@ -533,31 +536,31 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    TEST(0 == free_mmfile(&mfile)) ;
 
    // prepare
-   fd = openat(fd_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
+   fd = openat(io_directory(tempdir), "mmfile", O_RDONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
 
-   // init_mmfile, initfd_mmfile: wrong accessmode_e
+   // init_mmfile, initfromio_mmfile: wrong accessmode_e
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_WRITE/*needs always read*/, tempdir)) ;
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_EXEC|accessmode_READ|accessmode_PRIVATE/*needs always SHARED*/, tempdir)) ;
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_RDWR_PRIVATE+2*accessmode_SHARED/*unknown 2*accessmode_SHARED*/, tempdir)) ;
-   TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 0, accessmode_RDWR_PRIVATE+accessmode_SHARED/*SHARED + RPIVATE*/)) ;
+   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 0, 0, accessmode_RDWR_PRIVATE+accessmode_SHARED/*SHARED + RPIVATE*/)) ;
 
-   // TEST init_mmfile, initfd_mmfile: offset not page aligned
+   // TEST init_mmfile, initfromio_mmfile: offset not page aligned
    TEST(EINVAL == init_mmfile(&mfile, "mmfile", 1, 0, accessmode_RDWR_PRIVATE, tempdir)) ;
-   TEST(EINVAL == initfd_mmfile(&mfile, fd, 1, 0, accessmode_RDWR_PRIVATE)) ;
+   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 1, 0, accessmode_RDWR_PRIVATE)) ;
 
-   // TEST initfd_mmfile: file must always be opened with write access
-   TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_PRIVATE)) ;
-   TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_SHARED)) ;
+   // TEST initfromio_mmfile: file must always be opened with write access
+   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_PRIVATE)) ;
+   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 0, 1, accessmode_RDWR_SHARED)) ;
 
    // unprepare
-   TEST(0 == free_file(&fd)) ;
+   TEST(0 == free_iochannel(&fd)) ;
 
-   // // TEST init_mmfile, initfd_mmfile: file must always be opened with read access
-   fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
+   // // TEST init_mmfile, initfromio_mmfile: file must always be opened with read access
+   fd = openat(io_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
    TEST(fd > 0) ;
-   TEST(EINVAL == initfd_mmfile(&mfile, fd, 0, 1, accessmode_READ)) ;
-   TEST(0 == free_file(&fd)) ;
+   TEST(EINVAL == initfromio_mmfile(&mfile, fd, 0, 1, accessmode_READ)) ;
+   TEST(0 == free_iochannel(&fd)) ;
 
    // initsplit_mmfile: EINVAL
    TEST(0 == init_mmfile(&mfile, "mmsplit", 0, 0, accessmode_READ, tempdir)) ;
@@ -575,10 +578,10 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
 
    // TEST init_mmfile: ENOMEM
    if (sizeof(size_t) == sizeof(uint32_t)) {
-      fd = openat(fd_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
+      fd = openat(io_directory(tempdir), "mmfile", O_WRONLY|O_CLOEXEC) ;
       TEST(fd > 0) ;
       TEST(0 == ftruncate(fd, (size_t)-1)) ; // 4 GB
-      TEST(0 == free_file(&fd)) ;
+      TEST(0 == free_iochannel(&fd)) ;
       // mmap is never called
       TEST(ENOMEM == init_mmfile(&mfile, "mmfile", 0, 0, accessmode_RDWR_PRIVATE, tempdir)) ;
       // mmap returns ENOMEM (size == 0)
@@ -596,7 +599,7 @@ static int test_initfree(directory_t * tempdir, const char * tmppath)
    return 0 ;
 ONABORT:
    if (isOldact) sigaction(SIGSEGV, &oldact, 0) ;
-   free_file(&fd) ;
+   free_iochannel(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) free_mmfile(&split[0]) ;
    (void) free_mmfile(&split[1]) ;
@@ -611,10 +614,10 @@ static int test_fileoffset(directory_t * tempdir)
    int      fd       = -1 ;
 
    // create content
-   fd = openat(fd_directory(tempdir), "mmfile", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
+   fd = openat(io_directory(tempdir), "mmfile", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    TEST(0 <= fd) ;
    TEST(0 == fallocate(fd, 0, 0, 10*pagesize)) ;
-   TEST(0 == free_file(&fd)) ;
+   TEST(0 == free_iochannel(&fd)) ;
 
    // TEST init_mmfile: offset is correctly calculated
    for (int i = 0; i < 10; ++i) {
@@ -642,7 +645,7 @@ static int test_fileoffset(directory_t * tempdir)
 
    return 0 ;
 ONABORT:
-   (void) free_file(&fd) ;
+   (void) free_iochannel(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) removefile_directory(tempdir, "mmfile") ;
    return EINVAL ;
@@ -662,8 +665,8 @@ static int test_seek(directory_t * tempdir)
    // create content
    TEST(0 == initcreate_file(&fd, "mmfile", tempdir)) ;
    TEST(0 == allocate_file(fd, nrpages*pagesize + 1/*test access beyond filelength*/)) ;
-   TEST(0 == initfd_mmfile(&mfile, fd, 0, nrpages*pagesize + 1, accessmode_RDWR_SHARED)) ;
-   TEST(0 == free_file(&fd)) ;
+   TEST(0 == initfromio_mmfile(&mfile, fd, 0, nrpages*pagesize + 1, accessmode_RDWR_SHARED)) ;
+   TEST(0 == free_iochannel(&fd)) ;
    for (unsigned i = 0; i < nrpages; ++i) {
       memset(addr_mmfile(&mfile)+i*pagesize, (int)i, pagesize) ;
    }
@@ -698,7 +701,7 @@ static int test_seek(directory_t * tempdir)
    }
 
    // TEST seek_mmfile: access out of bounds (1 byte of page in use)
-   TEST(0 == initfd_mmfile(&mfile, fd, 0, pagesize, accessmode_READ)) ;
+   TEST(0 == initfromio_mmfile(&mfile, fd, 0, pagesize, accessmode_READ)) ;
    TEST(0 == seek_mmfile(&mfile, fd, nrpages*pagesize, accessmode_READ)) ;
    TEST(99 == addr_mmfile(&mfile)[0]) ;
    TEST(0  == addr_mmfile(&mfile)[1]) ;
@@ -723,11 +726,11 @@ static int test_seek(directory_t * tempdir)
    }
    TEST(1 == is_exception) ;
    TEST(0 == free_mmfile(&mfile)) ;
-   TEST(0 == free_file(&fd)) ;
+   TEST(0 == free_iochannel(&fd)) ;
 
    // TEST seek_mmfile: EINVAL
    TEST(0 == init_file(&fd, "mmfile", accessmode_READ, tempdir)) ;
-   TEST(0 == initfd_mmfile(&mfile, fd, 0, 0, accessmode_READ)) ;
+   TEST(0 == initfromio_mmfile(&mfile, fd, 0, 0, accessmode_READ)) ;
    // write on read only file
    TEST(EINVAL == seek_mmfile(&mfile, fd, 0, accessmode_RDWR_SHARED)) ;
    TEST(EINVAL == seek_mmfile(&mfile, fd, 0, accessmode_RDWR_PRIVATE)) ;
@@ -739,11 +742,11 @@ static int test_seek(directory_t * tempdir)
    // bad file descriptor
    TEST(EINVAL == seek_mmfile(&mfile, file_INIT_FREEABLE, 0, accessmode_READ)) ;
    // file has no read access
-   TEST(0 == free_file(&fd)) ;
+   TEST(0 == free_iochannel(&fd)) ;
    TEST(0 == initappend_file(&fd, "mmfile", tempdir)) ;
    TEST(EINVAL == seek_mmfile(&mfile, fd, 0, accessmode_READ)) ;
    TEST(0 == free_mmfile(&mfile)) ;
-   TEST(0 == free_file(&fd)) ;
+   TEST(0 == free_iochannel(&fd)) ;
 
    // unprepare
    isoldact = 0 ;
@@ -753,7 +756,7 @@ static int test_seek(directory_t * tempdir)
    return 0 ;
 ONABORT:
    if (isoldact) sigaction(SIGBUS, &oldact, 0) ;
-   (void) free_file(&fd) ;
+   (void) free_iochannel(&fd) ;
    (void) free_mmfile(&mfile) ;
    (void) free_mmfile(&split[0]) ;
    (void) free_mmfile(&split[1]) ;

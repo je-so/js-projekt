@@ -1,6 +1,6 @@
 /* title: IOPoll
 
-   Facility to manage a set of <sys_file_t> and
+   Facility to manage a set of <sys_iochannel_t> and
    to wait and query for IO events of type <ioevent_t>.
 
    about: Copyright
@@ -32,7 +32,7 @@ struct ioevent_t ;
 
 /* typedef: struct iopoll_t
  * Export <iopoll_t> into global namespace. */
-typedef struct iopoll_t                iopoll_t ;
+typedef struct iopoll_t                   iopoll_t ;
 
 
 // section: Functions
@@ -47,7 +47,7 @@ int unittest_io_iopoll(void) ;
 
 
 /* struct: iopoll_t
- * Event manager which stores <sys_file_t> and returns associated <ioevent_t>.
+ * Event manager which stores <sys_iochannel_t> and returns associated <ioevent_t>.
  * It monitors registered file descriptors for one or more <ioevent_e>s.
  * The occurred events can be queried for with help of <wait_iopoll>.
  * A file descriptor can be registered with a call to <registerfd_iopoll>.
@@ -57,14 +57,14 @@ struct iopoll_t {
    // group: variables
    /* variable: sys_poll
     * Handle to the underlying system event queue. */
-   sys_file_t   sys_poll ;
+   sys_iochannel_t   sys_poll ;
 } ;
 
 // group: lifetime
 
 /* define: iopoll_INIT_FREEABLE
  * Static initializer. */
-#define iopoll_INIT_FREEABLE           { sys_file_INIT_FREEABLE }
+#define iopoll_INIT_FREEABLE              { sys_iochannel_INIT_FREEABLE }
 
 /* function: init_iopoll
  * Creates system specific event queue to query for io events (<ioevent_t>). */
@@ -96,7 +96,7 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
 // group: change
 
 /* function: registerfd_iopoll
- * Registers <sys_file_t> *fd* and monitors it for <ioevent_t.ioevents>.
+ * Registers <sys_iochannel_t> *fd* and monitors it for <ioevent_t.ioevents>.
  * The parameter for_event gives the event mask for which the file descriptor is monitored
  * and the id which is returned to be used by the caller to differentiate between the
  * different file descriptors.
@@ -110,16 +110,16 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
  *
  * ioevent_ERROR  - Be always prepared to handle error conditions like network failures or closed pipes.
  * ioevent_CLOSE  - Be always prepared that the other side closes the connection. */
-int registerfd_iopoll(iopoll_t * iopoll, sys_file_t fd, const struct ioevent_t * for_event) ;
+int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * for_event) ;
 
 /* function: updatefd_iopoll
  * Changes <ioevent_t> for an already registered file descriptor. See also <registerfd_iopoll>.
- * In case <sys_file_t> *fd* was not registered before the error ENOENT is returned. */
-int updatefd_iopoll(iopoll_t * iopoll, sys_file_t fd, const struct ioevent_t * updated_event) ;
+ * In case <sys_iochannel_t> *fd* was not registered before the error ENOENT is returned. */
+int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_t * updated_event) ;
 
 /* function: unregisterfd_iopoll
- * Unregisters <sys_file_t> *fd*.
+ * Unregisters <sys_iochannel_t> *fd*.
  * <wait_iopoll> no more reports any event for an unregistered descriptor. */
-int unregisterfd_iopoll(iopoll_t * iopoll, sys_file_t fd) ;
+int unregisterfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd) ;
 
 #endif

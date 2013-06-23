@@ -28,6 +28,7 @@
 #include "C-kern/api/ds/typeadapt/typeadapt_impl.h"
 #include "C-kern/api/ds/inmem/arraystf.h"
 #include "C-kern/api/ds/inmem/slist.h"
+#include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/mmfile.h"

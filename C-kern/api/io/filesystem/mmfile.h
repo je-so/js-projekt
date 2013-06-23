@@ -2,6 +2,9 @@
    Maps a file into virtual memory. This allows accessing the content of
    a file as simple as an array.
 
+   Includes:
+   You need to include "C-kern/api/io/accessmode.h" (<IO-Accessmode>) before this file.
+
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -25,8 +28,6 @@
 */
 #ifndef CKERN_IO_FILESYSTEM_MEMORYMAPPEDFILE_HEADER
 #define CKERN_IO_FILESYSTEM_MEMORYMAPPEDFILE_HEADER
-
-#include "C-kern/api/io/accessmode.h"
 
 // forward declaration
 struct directory_t ;
@@ -106,8 +107,8 @@ struct mmfile_t {
  * */
 int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offset, size_t size, accessmode_e mode, const struct directory_t * relative_to /*0=>current_working_directory*/) ;
 
-/* function: initfd_mmfile
- * Maps a file referenced by <sys_file_t> into memory.
+/* function: initfromio_mmfile
+ * Maps a file referenced by <sys_iochannel_t> into memory.
  * The function does the same as <init_mmfile> except it does not open a file but takes a file descriptor to the already opened file.
  * The file must always be opened with read access and also write access in case mode contains <accessmode_WRITE>.
  *
@@ -116,7 +117,7 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
  * is undefinded. The operating system creates a bus error exception in cases where a whole memory page has no backing file object.
  * If the size is set to 0 no mapping is done at all and <mmfile_t> is initialized with a 0 (<memblock_INIT_FREEABLE>).
  * */
-int initfd_mmfile(/*out*/mmfile_t * mfile, sys_file_t fd, off_t file_offset, size_t size, accessmode_e mode) ;
+int initfromio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, size_t size, accessmode_e mode) ;
 
 /* function: initsplit_mmfile
  * Split a memory mapping into two. After return destheadmfile maps the first headsize bytes. headsize must be a multiple of <pagesize_vm>.
@@ -161,15 +162,15 @@ size_t  alignedsize_mmfile(const mmfile_t * mfile) ;
 
 /* function: seek_mmfile
  * Use it to change offset of the underlying file mapped into memory.
- * The file_offset must be a multiple of <pagesize_vm> -- see also <initfd_mmfile>.
+ * The file_offset must be a multiple of <pagesize_vm> -- see also <initfromio_mmfile>.
  *
  * Attention:
  * If size_file(fd) - file_offset (see <file_t.size_file>) is smaller than
  * the value returned by <size_mmfile> accessing outside the memory address range can result
- * in a SIGBUS (see <initfd_mmfile>). The solution is to handle the size on a higher level
+ * in a SIGBUS (see <initfromio_mmfile>). The solution is to handle the size on a higher level
  * after a change of the file offset.
  * */
-int seek_mmfile(mmfile_t * mfile, sys_file_t fd, off_t file_offset, accessmode_e mode) ;
+int seek_mmfile(mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, accessmode_e mode) ;
 
 // group: generic
 

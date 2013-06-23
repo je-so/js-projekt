@@ -24,9 +24,10 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/err.h"
-#include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/ip/ipsocket.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/iochannel.h"
+// #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/ip/ipaddr.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -38,7 +39,7 @@ int free_ipsocket(ipsocket_t * ipsock)
 {
    int err ;
 
-   err = free_file(ipsock) ;
+   err = free_iochannel(ipsock) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -102,7 +103,7 @@ ONABORT_LOG:
    }
    (void) free_cstring(&name) ;
 ONABORT:
-   free_file(&fd) ;
+   free_iochannel(&fd) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -195,10 +196,11 @@ ONABORT:
 int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, struct ipaddr_t * remoteaddr/*0 => ignored*/)
 {
    int err ;
-   struct sockaddr_storage saddr ;
-   socklen_t               len        = sizeof(saddr) ;
-   int                     new_socket = -1 ;
-   int                     fd         = *listensock ;
+   struct
+   sockaddr_storage  saddr ;
+   socklen_t         len        = sizeof(saddr) ;
+   int               new_socket = -1 ;
+   int               fd         = *listensock ;
 
    if (  remoteaddr
       && version_ipaddr(remoteaddr) != version_ipsocket(listensock)) {
@@ -224,7 +226,7 @@ int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock
    *ipsock = new_socket ;
    return 0 ;
 ONABORT:
-   free_file(&new_socket) ;
+   free_iochannel(&new_socket) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -780,7 +782,7 @@ int convert_ipsocketasync(ipsocket_async_t * ipsockasync, /*out*/ipsocket_t * ip
       return ipsockasync->err ;
    }
 
-   fd = fd_ipsocket(&ipsockasync->ipsock) ;
+   fd = io_ipsocket(&ipsockasync->ipsock) ;
 
    err = fcntl(fd, F_GETFL) ;
    if (-1 != err) {
@@ -813,7 +815,7 @@ int success_ipsocketasync(ipsocket_async_t * ipsockasync)
       return ipsockasync->err ;
    }
 
-   fd      = fd_ipsocket(&ipsockasync->ipsock) ;
+   fd      = io_ipsocket(&ipsockasync->ipsock) ;
    pollfds = (struct pollfd) { .fd = fd, .events = POLLOUT } ;
 
    err = poll(&pollfds, 1, 0) ;
@@ -857,7 +859,7 @@ int waitms_ipsocketasync(ipsocket_async_t * ipsockasync, uint32_t millisec)
       return 0 ; // already completed
    }
 
-   fd      = fd_ipsocket(&ipsockasync->ipsock) ;
+   fd      = io_ipsocket(&ipsockasync->ipsock) ;
    pollfds = (struct pollfd)   { .fd = fd, .events = POLLOUT } ;
    ts      = (struct timespec) { .tv_sec = (long) (millisec / 1000), .tv_nsec = 1000000 * (long) (millisec%1000) } ;
 
@@ -1499,7 +1501,11 @@ int test_udpIO(void)
 
       for (uint16_t i = 0; i < lengthof(ipsockSV); ++i) {
          for (uint16_t ci = 0; ci < lengthof(ipsockCL); ++ci) {
-            TEST(0 == bytestoread_ipsocket(&ipsockSV[i], &size)) ;
+            for (unsigned w = 0; w < 100; ++w) {
+               TEST(0 == bytestoread_ipsocket(&ipsockSV[i], &size)) ;
+               if (buffer_size == size) break ;
+               yield_thread() ;
+            }
             TEST(buffer_size == size) ;
             TEST(0 == readfrom_ipsocket(&ipsockSV[i], ipaddr, buffer_size, buffer, &size)) ;
             TEST(buffer_size == size) ;
@@ -1678,14 +1684,12 @@ int unittest_io_ipsocket()
 
       // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
       {
-         size_t     nrfdopen ;
+         size_t     nropen ;
          ipaddr_t   * ipaddr = 0 ;
-         TEST(0 == nropen_file(&nrfdopen)) ;
+         TEST(0 == nropen_iochannel(&nropen)) ;
          TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
-         while (nrfdopen < 8) {
-            TEST(0 == init_ipsocket(&ipsock[open_count], ipaddr)) ;
-            ++ open_count ;
-            ++ nrfdopen ;
+         for (; nropen < 8; ++nropen) {
+            TEST(0 == init_ipsocket(&ipsock[open_count ++], ipaddr)) ;
          }
          TEST(0 == delete_ipaddr(&ipaddr)) ;
       }

@@ -25,8 +25,9 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/err.h"
 #include "C-kern/api/io/reader/csvfilereader.h"
+#include "C-kern/api/err.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/string.h"

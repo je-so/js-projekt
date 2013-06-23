@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textdb.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.21  18:07:54
+GenerationDate  := 2013.Jun.23  08:29:39
 GeneratedBy     := je-so
 
 ## Debug
@@ -77,7 +77,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
  $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
@@ -102,7 +102,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
  $(ObjectDir_Release)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
@@ -138,7 +138,7 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/star
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
@@ -207,7 +207,7 @@ $(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/st
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c

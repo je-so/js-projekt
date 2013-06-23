@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.21  18:07:54
+GenerationDate  := 2013.Jun.23  08:22:48
 GeneratedBy     := je-so
 
 ## Debug
@@ -77,7 +77,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
  $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
@@ -101,6 +101,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!textresource_compiler.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
@@ -111,7 +112,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
- $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
  $(ObjectDir_Release)/C-kern!context!errorcontext.c.o \
  $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
@@ -135,6 +136,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!ds!typeadapt!typeadapt_impl.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!textresource_compiler.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
@@ -156,7 +158,7 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/star
 $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
@@ -228,6 +230,9 @@ $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.
 $(ObjectDir_Debug)/C-kern!main!tools!textresource_compiler.c.o: C-kern/main/tools/textresource_compiler.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c
 	@$(CC_Debug)
 
@@ -252,7 +257,7 @@ $(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/st
 $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
@@ -322,6 +327,9 @@ $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reade
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!tools!textresource_compiler.c.o: C-kern/main/tools/textresource_compiler.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o: C-kern/platform/Linux/io/file.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io/mmfile.c

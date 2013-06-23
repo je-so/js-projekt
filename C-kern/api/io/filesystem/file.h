@@ -1,12 +1,16 @@
 /* title: File
 
    Offers an interface to handle system files.
-   A file is described as system specific file descriptor <sys_file_t>
+   A file is described as system specific file descriptor <sys_iochannel_t>
    which is renamed into <file_t>.
 
    A file descriptor is an id that identifies an input/output channel
    like files, network connections or other system specific devices.
    Therefore I/O operations on <file_t> can be used also on other I/O objects.
+
+   Includes:
+   You need to include "C-kern/api/io/accessmode.h" (<IO-Accessmode>)
+   and "C-kern/api/io/iochannel.h" (<IOChannel>) before htis file.
 
    about: Copyright
    This program is free software.
@@ -32,17 +36,15 @@
 #ifndef CKERN_IO_FILESYSTEM_FILE_HEADER
 #define CKERN_IO_FILESYSTEM_FILE_HEADER
 
-#include "C-kern/api/io/accessmode.h"
-
 // forward
 struct directory_t ;
 
 /* typedef: file_t
- * Export <file_t>, alias for <sys_file_t>.
+ * Export <file_t>, alias for <sys_iochannel_t>.
  * Describes a persistent binary object with a name.
  * Describes an opened file for doing reading and/or writing.
  * The file is located in a system specific filesystem. */
-typedef sys_file_t                     file_t ;
+typedef sys_iochannel_t                   file_t ;
 
 /* enums: file_e
  * Standard files which are usually open at process start by convention.
@@ -52,24 +54,17 @@ typedef sys_file_t                     file_t ;
  * file_STDERR - The file descriptor value of the standard error (output) channel.
  * */
 enum file_e {
-   file_STDIN  = STDIN_FILENO,
-   file_STDOUT = STDOUT_FILENO,
-   file_STDERR = STDERR_FILENO
+   file_STDIN  = sys_iochannel_STDIN,
+   file_STDOUT = sys_iochannel_STDOUT,
+   file_STDERR = sys_iochannel_STDERR
 } ;
 
-typedef enum file_e                    file_e ;
+typedef enum file_e                       file_e ;
 
 
 // section: Functions
 
-// group: query
-
-/* function: nropen_file
- * Returns number of opened file descriptors.
- * You can use this function at the beginning and end
- * of any transaction to check if an I/O object (file, network socket...)
- * was not closed properly. */
-int nropen_file(/*out*/size_t * number_open_fd) ;
+// group: update
 
 /* function: remove_file
  * Removes created file from filesystem. */
@@ -90,7 +85,7 @@ int unittest_io_file(void) ;
 
 /* define: file_INIT_FREEABLE
  * Static initializer. */
-#define file_INIT_FREEABLE             sys_file_INIT_FREEABLE
+#define file_INIT_FREEABLE                sys_iochannel_INIT_FREEABLE
 
 /* function: init_file
  * Opens a file identified by its path and name.
@@ -129,6 +124,10 @@ int free_file(file_t * fileobj) ;
  * Returns <accessmode_NONE> in case of an error. */
 accessmode_e accessmode_file(const file_t fileobj) ;
 
+/* function: io_file
+ * Returns <iochannel_t> for a file. Do not free the returned value. */
+sys_iochannel_t io_file(const file_t fileobj) ;
+
 /* function: isfree_file
  * Returns true if the file was opened with <init_file>.
  * Returns false if file is in a freed (closed) state and after <free_file>
@@ -149,25 +148,17 @@ bool isopen_file(const file_t fileobj) ;
  * Returns the size in bytes of the file. */
 int size_file(const file_t fileobj, /*out*/off_t * file_size) ;
 
-// group: io
+// group: I/O
 
 /* function: read_file
- * Reads binary data from a file.
- * Returns buffer_size bytes in buffer. If an error occurrs or
- * end of input is reached less then buffer_size bytes are returned.
- * Less then buffer_size bytes could be returned also if *fileobj* is configured
- * to operate in non blocking mode.
- * Check value *bytes_read* to determine how many bytes were read.
- * Returns 0 and the value 0 in bytes_read if end of input (end of file) is reached.
- * Returns EAGAIN in case io is in non blocking mode and no bytes could be read. */
-int read_file(file_t fileobj, size_t buffer_size, /*out*/void * buffer/*[buffer_size]*/, size_t * bytes_read) ;
+ * Reads size bytes from file referenced by fileobj into buffer.
+ * See <read_iochannel>. */
+int read_file(file_t fileobj, size_t size, /*out*/void * buffer/*[size]*/, size_t * bytes_read) ;
 
 /* function: write_file
- * Writes binary data to a file.
- * Returns EAGAIN in case io is in non blocking mode and no bytes could be written
- * (due to no more system buffer space).
- * Returns EPIPE if the receiver has closed its connection or closes it during a blocking write. */
-int write_file(file_t fileobj, size_t buffer_size, const void * buffer/*[buffer_size]*/, size_t * bytes_written) ;
+ * Writes size bytes from buffer to file referenced by fileobj.
+ * See <write_iochannel>. */
+int write_file(file_t fileobj, size_t size, const void * buffer/*[size]*/, size_t * bytes_written) ;
 
 /* function: advisereadahead_file
  * Expects data to be accessed sequentially and in the near future.
@@ -207,9 +198,13 @@ int allocate_file(file_t fileobj, off_t file_size) ;
  * Implements <file_t.initmove_file>. */
 static inline void initmove_file(file_t * restrict destfile, file_t * restrict sourcefile)
 {
-   *destfile = *sourcefile ;
+   *destfile   = *sourcefile ;
    *sourcefile = file_INIT_FREEABLE ;
 }
+
+/* define: io_file
+ * Implements <file_t.io_file>. */
+#define io_file(fileobj)                  (fileobj)
 
 /* function: isfree_file
  * Implements <file_t.isfree_file>.
@@ -218,5 +213,15 @@ static inline bool isfree_file(file_t fileobj)
 {
    return file_INIT_FREEABLE == fileobj ;
 }
+
+/* function: read_file
+ * Implements <file_t.read_file>. */
+#define read_file(fileobj, size, buffer, bytes_read)  \
+         (read_iochannel(fileobj, size, buffer, bytes_read))
+
+/* function: write_file
+ * Implements <file_t.write_file>. */
+#define write_file(fileobj, size, buffer, bytes_written) \
+         (write_iochannel(fileobj, size, buffer, bytes_written))
 
 #endif

@@ -47,24 +47,27 @@
  *                        Most devices do not support <accessmode_PRIVATE>.
  * accessmode_RDWR_PRIVATE - Combination of <accessmode_RDWR> and <accessmode_PRIVATE>.
  * accessmode_RDWR_SHARED  - Combination of <accessmode_RDWR> and <accessmode_SHARED>.
+ * accessmode_NEXTFREE_BITPOS - Next free bit position useful in a subtype of <accessmode_e>.
  * */
 enum accessmode_e {
    accessmode_NONE        = 0,
    accessmode_READ        = 1,
    accessmode_WRITE       = 2,
-   accessmode_RDWR        = /*3*/ (accessmode_READ|accessmode_WRITE),
    accessmode_EXEC        = 4,
    accessmode_PRIVATE     = 8,
-   accessmode_SHARED      = 16,
-   accessmode_RDWR_PRIVATE = (accessmode_RDWR|accessmode_PRIVATE),
-   accessmode_RDWR_SHARED  = (accessmode_RDWR|accessmode_SHARED),
-   accessmode_RDEX_SHARED  = (accessmode_READ|accessmode_EXEC|accessmode_SHARED)
+   accessmode_SHARED      = 16
 } ;
 
-typedef enum accessmode_e              accessmode_e ;
+typedef enum accessmode_e                 accessmode_e ;
 
-/* define: accessmode_NEXTFREE_BITPOS
- * Next free bit position useful in a subtype of <accessmode_e>. */
-#define accessmode_NEXTFREE_BITPOS     (2*accessmode_SHARED)
+#define accessmode_RDWR                   (accessmode_READ|accessmode_WRITE)
+
+#define accessmode_RDWR_PRIVATE           (accessmode_RDWR|accessmode_PRIVATE)
+
+#define accessmode_RDWR_SHARED            (accessmode_RDWR|accessmode_SHARED)
+
+#define accessmode_RDEX_SHARED            (accessmode_READ|accessmode_EXEC|accessmode_SHARED)
+
+#define accessmode_NEXTFREE_BITPOS        (2*accessmode_SHARED)
 
 #endif

@@ -22,7 +22,8 @@
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/accessmode.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/platform/task/process.h"
 
 enum testcase_e {
@@ -40,7 +41,7 @@ static void testcase_writeopenfd(void)
 {
    int err ;
    size_t nrfiles ;
-   err = nropen_file(&nrfiles) ;
+   err = nropen_iochannel(&nrfiles) ;
    if (!err) {
       dprintf(STDERR_FILENO, "%d", (int)nrfiles) ;
    }

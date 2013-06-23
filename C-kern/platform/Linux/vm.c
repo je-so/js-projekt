@@ -27,7 +27,7 @@
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/objectcache_macros.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
@@ -284,7 +284,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
       }
    }
 
-   err = free_file(&fd) ;
+   err = free_iochannel(&fd) ;
    if (err) goto ONABORT ;
 
    UNLOCKIOBUFFER_OBJECTCACHE(&iobuffer) ;
@@ -307,7 +307,7 @@ ONABORT:
       (void) FREE_MM(&mem) ;
    }
    UNLOCKIOBUFFER_OBJECTCACHE(&iobuffer) ;
-   free_file(&fd) ;
+   free_iochannel(&fd) ;
    TRACEABORT_LOG(err) ;
    return err ;
 }

@@ -25,7 +25,8 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/directory.h"
-#include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/io/accessmode.h"
+#include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
@@ -55,7 +56,7 @@ int checkpath_directory(const directory_t * dir, const char * const file_path)
    VALIDATE_INPARAM_TEST(0 != file_path, ONABORT, ) ;
 
    if (dir) {
-      err = fstatat(fd_directory(dir), file_path, &sbuf, 0) ;
+      err = fstatat(io_directory(dir), file_path, &sbuf, 0) ;
    } else {
       err = stat(file_path, &sbuf) ;
    }
@@ -76,7 +77,7 @@ int filesize_directory(const directory_t * relative_to, const char * file_path, 
 
    if (relative_to)
    {
-      statatfd = fd_directory(relative_to) ;
+      statatfd = io_directory(relative_to) ;
    }
 
    err = fstatat( statatfd, file_path, &stat_result, 0 ) ;
@@ -96,19 +97,19 @@ ONABORT:
 int new_directory(/*out*/directory_t ** dir, const char * dir_path, const directory_t * relative_to)
 {
    int err ;
-   int             fdd    = -1 ;
-   int           openatfd = AT_FDCWD ;
-   DIR           * sysdir = 0 ;
-   char          * cwd    = 0 ;
-   const bool      is_absolute  = ('/' == dir_path[0]) ;
-   const char    * path         = dir_path[0] ? dir_path : "." ;
+   int            fdd      = -1 ;
+   int            openatfd = AT_FDCWD ;
+   DIR *          sysdir   = 0 ;
+   char *         cwd      = 0 ;
+   const bool     is_absolute = ('/' == dir_path[0]) ;
+   const char *   path        = dir_path[0] ? dir_path : "." ;
 
    if (     relative_to
          && !is_absolute) {
-      openatfd = fd_directory(relative_to) ;
+      openatfd = io_directory(relative_to) ;
    }
 
-   fdd = openat( openatfd, path, O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
+   fdd = openat(openatfd, path, O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
    if (-1 == fdd) {
       err = errno ;
       TRACESYSERR_LOG("openat", err) ;
@@ -123,13 +124,13 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
       PRINTCSTR_LOG(path) ;
       goto ONABORT ;
    }
-   fdd = -1 ; // is used internally
+   fdd = iochannel_INIT_FREEABLE ; // is used internally
 
    *(DIR**)dir = sysdir ;
 
    return 0 ;
 ONABORT:
-   free_file(&fdd) ;
+   free_iochannel(&fdd) ;
    if (sysdir) {
       (void) closedir(sysdir) ;
    }
@@ -240,7 +241,7 @@ int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype
          case DT_LNK:   *ftype = ftSymbolicLink ;     break ;
          case DT_UNKNOWN:
          default:
-                       if (0 == fstatat( fd_directory(dir), result->d_name, &statbuf, AT_SYMLINK_NOFOLLOW)) {
+                       if (0 == fstatat(io_directory(dir), result->d_name, &statbuf, AT_SYMLINK_NOFOLLOW)) {
                            if (S_ISBLK(statbuf.st_mode))       { *ftype = ftBlockDevice ; }
                            else if (S_ISCHR(statbuf.st_mode))  { *ftype = ftCharacterDevice ; }
                            else if (S_ISDIR(statbuf.st_mode))  { *ftype = ftDirectory ; }
@@ -282,7 +283,7 @@ int makedirectory_directory(directory_t * dir, const char * directory_path)
    int mkdiratfd = AT_FDCWD ;
 
    if (dir) {
-      mkdiratfd = fd_directory(dir) ;
+      mkdiratfd = io_directory(dir) ;
    }
 
    err = mkdirat(mkdiratfd, directory_path, 0700) ;
@@ -307,7 +308,7 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
    int openatfd = AT_FDCWD ;
 
    if (dir) {
-      openatfd = fd_directory(dir) ;
+      openatfd = io_directory(dir) ;
    }
 
    fd = openat(openatfd, file_path, O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
@@ -328,12 +329,12 @@ int makefile_directory(directory_t * dir, const char * file_path, off_t file_len
       goto ONABORT ;
    }
 
-   free_file(&fd) ;
+   free_iochannel(&fd) ;
 
    return 0 ;
 ONABORT:
-   if (-1 != fd) {
-      free_file(&fd) ;
+   if (! isfree_iochannel(fd)) {
+      free_iochannel(&fd) ;
       unlinkat(openatfd, file_path, 0) ;
    }
    TRACEABORT_LOG(err) ;
@@ -346,7 +347,7 @@ int removedirectory_directory(directory_t * dir, const char * directory_path)
    int unlinkatfd = AT_FDCWD ;
 
    if (dir) {
-      unlinkatfd = fd_directory(dir) ;
+      unlinkatfd = io_directory(dir) ;
    }
 
    err = unlinkat(unlinkatfd, directory_path, AT_REMOVEDIR) ;
@@ -370,7 +371,7 @@ int removefile_directory(directory_t * dir, const char * file_path)
    int unlinkatfd = AT_FDCWD ;
 
    if (dir) {
-      unlinkatfd = fd_directory(dir) ;
+      unlinkatfd = io_directory(dir) ;
    }
 
    err = unlinkat(unlinkatfd, file_path, 0) ;
@@ -549,18 +550,18 @@ static int test_initfree(void)
    globfree(&fndfiles) ;
 
    // TEST init relative, double free
-   TEST(0 == mkdirat(fd_directory(temp_dir), "reldir.123", 0777)) ;
+   TEST(0 == mkdirat(io_directory(temp_dir), "reldir.123", 0777)) ;
    TEST(0 == new_directory(&dir, "reldir.123", temp_dir)) ;
    TEST(0 != dir) ;
    TEST(0 == delete_directory(&dir)) ;
    TEST(!dir) ;
    TEST(0 == delete_directory(&dir)) ;
    TEST(!dir) ;
-   TEST(0 == unlinkat(fd_directory(temp_dir), "reldir.123", AT_REMOVEDIR)) ;
+   TEST(0 == unlinkat(io_directory(temp_dir), "reldir.123", AT_REMOVEDIR)) ;
 
    // TEST init current working dir + relative_to
    TEST(0 == new_directory(&dir, "", temp_dir)) ;
-   TEST(0 == fchdir(fd_directory(temp_dir))) ;
+   TEST(0 == fchdir(io_directory(temp_dir))) ;
    TEST(0 == glob("*", GLOB_PERIOD|GLOB_NOSORT, 0, &fndfiles)) ;
    TEST(0 == fchdir(fd_oldwd)) ;
    for (nr_files = 0; 0 == next_directory(dir, &fname, 0); ++nr_files) {
@@ -678,7 +679,7 @@ static int test_initfree(void)
 
    TEST(0 == delete_directory(&temp_dir)) ;
    TEST(0 == free_cstring(&tmppath)) ;
-   TEST(0 == free_file(&fd_oldwd)) ;
+   TEST(0 == free_iochannel(&fd_oldwd)) ;
 
    return 0 ;
 ONABORT:
@@ -686,7 +687,7 @@ ONABORT:
    (void) delete_directory(&temp_dir) ;
    (void) delete_directory(&dir) ;
    free_cstring(&tmppath) ;
-   free_file(&fd_oldwd) ;
+   free_iochannel(&fd_oldwd) ;
    return EINVAL ;
 }
 
@@ -735,10 +736,10 @@ static int test_filesize(void)
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
       TEST(0 == makefile_directory(tempdir, filename, 0)) ;
-      int fd = openat(fd_directory(tempdir), filename, O_RDWR|O_CLOEXEC) ;
+      int fd = openat(io_directory(tempdir), filename, O_RDWR|O_CLOEXEC) ;
       TEST(fd > 0) ;
       int written = (int) write(fd, filename, (size_t) i) ;
-      free_file(&fd) ;
+      free_iochannel(&fd) ;
       TEST(i == written) ;
    }
 
@@ -752,7 +753,7 @@ static int test_filesize(void)
    }
 
    // TEST filesize workdir == 0
-   TEST(0 == fchdir(fd_directory(tempdir))) ;
+   TEST(0 == fchdir(io_directory(tempdir))) ;
    for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
@@ -760,7 +761,7 @@ static int test_filesize(void)
       TEST(0 == filesize_directory( 0, filename, &file_size)) ;
       TEST(i == file_size) ;
    }
-   TEST(0 == fchdir(fd_directory(workdir))) ;
+   TEST(0 == fchdir(io_directory(workdir))) ;
 
    // unprepare
    for (int i = 0; i < 100; ++i) {
@@ -777,7 +778,7 @@ static int test_filesize(void)
    return 0 ;
 ONABORT:
    if (workdir) {
-      assert(0 == fchdir(fd_directory(workdir))) ;
+      assert(0 == fchdir(io_directory(workdir))) ;
    }
    free_cstring(&tmppath) ;
    delete_directory(&workdir) ;
@@ -799,11 +800,9 @@ int unittest_io_directory()
    // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
    {
       size_t nrfdopen ;
-      TEST(0 == nropen_file(&nrfdopen)) ;
-      while (nrfdopen < 8) {
-         TEST(0 == new_directory(&dummydir[open_count], "", 0)) ;
-         ++ open_count ;
-         ++ nrfdopen ;
+      TEST(0 == nropen_iochannel(&nrfdopen)) ;
+      for (;nrfdopen < 8; ++ nrfdopen) {
+         TEST(0 == new_directory(&dummydir[open_count ++], "", 0)) ;
       }
    }
 
