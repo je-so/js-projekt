@@ -50,7 +50,7 @@ objectcache_impl_it  s_objectcacheimpl_interface = {
 
 // group: initthread
 
-objectcache_it * interfacethread_objectcacheimpl(void)
+objectcache_it * interface_objectcacheimpl(void)
 {
    return genericcast_objectcacheit(&s_objectcacheimpl_interface, objectcache_impl_t) ;
 }
@@ -177,8 +177,8 @@ static int test_initthread(void)
    TEST(s_objectcacheimpl_interface.lock_iobuffer   == &lockiobuffer_objectcacheimpl) ;
    TEST(s_objectcacheimpl_interface.unlock_iobuffer == &unlockiobuffer_objectcacheimpl) ;
 
-   // TEST interfacethread_objectcacheimpl
-   TEST(interfacethread_objectcacheimpl() == (objectcache_it*)&s_objectcacheimpl_interface) ;
+   // TEST interface_objectcacheimpl
+   TEST(interface_objectcacheimpl() == (objectcache_it*)&s_objectcacheimpl_interface) ;
 
    return 0 ;
 ONABORT:

@@ -61,7 +61,7 @@ logwriter_it      s_logwriter_interface = {
 
 // group: initthread
 
-struct log_it * interfacethread_logwriter(void)
+struct log_it * interface_logwriter(void)
 {
    return genericcast_logit(&s_logwriter_interface, logwriter_t) ;
 }
@@ -434,8 +434,8 @@ static int test_initthread(void)
    TEST(s_logwriter_interface.clearbuffer == &clearbuffer_logwriter) ;
    TEST(s_logwriter_interface.getbuffer   == &getbuffer_logwriter) ;
 
-   // TEST interfacethread_logwriter
-   TEST(interfacethread_logwriter() == genericcast_logit(&s_logwriter_interface, logwriter_t)) ;
+   // TEST interface_logwriter
+   TEST(interface_logwriter() == genericcast_logit(&s_logwriter_interface, logwriter_t)) ;
 
    return 0 ;
 ONABORT:

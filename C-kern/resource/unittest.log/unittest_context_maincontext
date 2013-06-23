@@ -1,8 +1,8 @@
 [Thread 0]
-init_threadcontext() C-kern/context/threadcontext.c:315
+init_threadcontext() C-kern/context/threadcontext.c:319
 Error 71 - Operation allowed only in state (maincontext_STATIC != type_maincontext())
 [Thread 0]
-init_threadcontext() C-kern/context/threadcontext.c:358
+init_threadcontext() C-kern/context/threadcontext.c:362
 Error 71 - Function aborted
 [Thread 0]
 init_maincontext() C-kern/context/maincontext.c:190
@@ -44,10 +44,10 @@ Error 22 - Function aborted
 free_maincontext() C-kern/context/maincontext.c:146
 Error 39 - Freeing a resource returned an error
 [Thread 0]
-init_threadcontext() C-kern/context/threadcontext.c:315
+init_threadcontext() C-kern/context/threadcontext.c:319
 Error 71 - Operation allowed only in state (maincontext_STATIC != type_maincontext())
 [Thread 0]
-init_threadcontext() C-kern/context/threadcontext.c:358
+init_threadcontext() C-kern/context/threadcontext.c:362
 Error 71 - Function aborted
 [Thread 0]
 init_maincontext() C-kern/context/maincontext.c:190

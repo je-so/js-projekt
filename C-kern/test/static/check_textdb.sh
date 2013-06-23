@@ -13,7 +13,7 @@ info=""
 
 # test all *.h files
 files=`find C-kern/ -name "*.[h]" -exec grep -l "\(init\|free\)\(once\|thread\)_[a-zA-Z0-9_]*[ \t]*(" {} \;`
-files="$files `find C-kern/ -name "*.[h]" -exec grep -l "interfacethread_[a-zA-Z0-9_]*[ \t]*(" {} \;`"
+files="$files `find C-kern/ -name "*.[h]" -exec grep -l "interface_[a-zA-Z0-9_]*[ \t]*(" {} \;`"
 space="                               "
 
 temp_process_db=`mktemp`
@@ -27,7 +27,7 @@ for i in $files; do
    IFS=$'\n'
    init_process_calls=( `grep "initonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    init_thread_calls=( `grep "initthread_[a-zA-Z0-9_]*[ \t]*(" $i` )
-   interface_thread=( `grep "interfacethread_[a-zA-Z0-9_]*[ \t]*(" $i` )
+   interface_thread=( `grep "interface_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_process_calls=( `grep "freeonce_[a-zA-Z0-9_]*[ \t]*(" $i` )
    free_thread_calls=( `grep "freethread_[a-zA-Z0-9_]*[ \t]*(" $i` )
    IFS=$IFS_old
@@ -65,10 +65,10 @@ for i in $files; do
          let "testnr=testnr-1"
       fi
    done
-   # filter input interfacethread_
+   # filter input interface_
    for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
       result="${interface_thread[$testnr]}"
-      if [ "${result/define interfacethread_*(*)/}" != "$result" ]; then
+      if [ "${result/define interface_*(*)/}" != "$result" ]; then
          interface_thread[$testnr]="${interface_thread[${#interface_thread[*]}-1]}"
          unset interface_thread[${#interface_thread[*]}-1]
          let "testnr=testnr-1"
@@ -121,7 +121,7 @@ for i in $files; do
    done
    for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
       result=${interface_thread[$testnt]}
-      if [ "${result#struct *_it \* interfacethread_*(void) ;}" != "" ]; then
+      if [ "${result#struct *_it \* interface_*(void) ;}" != "" ]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done
@@ -202,7 +202,7 @@ for i in $files; do
    done
    for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
       result=${interface_thread[$testnt]}
-      result=${result#*interfacethread_}
+      result=${result#*interface_}
       name1=${result%%(*}
       parameter=`grep "int init_${name1}(" $i`
       if [ "$parameter" == "" ]; then

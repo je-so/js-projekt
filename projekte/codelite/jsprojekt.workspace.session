@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="0" Name="m_selectedTab"/>
+  <int Value="5" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="FileName"/>
       <int Value="381" Name="FirstVisibleLine"/>
-      <int Value="396" Name="CurrentLine"/>
+      <int Value="384" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
@@ -17,14 +17,8 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/platform/task/thread_tls.h" Name="FileName"/>
-      <int Value="84" Name="FirstVisibleLine"/>
+      <int Value="81" Name="FirstVisibleLine"/>
       <int Value="82" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/task/thread_tls.c" Name="FileName"/>
-      <int Value="240" Name="FirstVisibleLine"/>
-      <int Value="238" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
@@ -35,20 +29,38 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/iochannel.c" Name="FileName"/>
-      <int Value="254" Name="FirstVisibleLine"/>
+      <int Value="257" Name="FirstVisibleLine"/>
       <int Value="255" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/context/threadcontext.c" Name="FileName"/>
-      <int Value="646" Name="FirstVisibleLine"/>
-      <int Value="644" Name="CurrentLine"/>
+      <int Value="396" Name="FirstVisibleLine"/>
+      <int Value="400" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/task/process.c" Name="FileName"/>
       <int Value="1298" Name="FirstVisibleLine"/>
-      <int Value="1326" Name="CurrentLine"/>
+      <int Value="1310" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/main/tools/genfile.c" Name="FileName"/>
+      <int Value="375" Name="FirstVisibleLine"/>
+      <int Value="390" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/io/writer/log/logwriter.c" Name="FileName"/>
+      <int Value="28" Name="FirstVisibleLine"/>
+      <int Value="26" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/io/writer/log/logwriter.h" Name="FileName"/>
+      <int Value="103" Name="FirstVisibleLine"/>
+      <int Value="140" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>

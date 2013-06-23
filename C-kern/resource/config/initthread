@@ -9,7 +9,7 @@
 # Possible values:
 # "initthread" - Calls initthread_module(parameter) / freethread_module(parameter)
 # "interface"  - Calls init_module(&parameter->object) / free_module(&parameter->object)
-#                and sets parameter->iimpl to values returned from interfacethread_module().
+#                and sets parameter->iimpl to values returned from interface_module().
 #                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE
 # "object"     - Calls init_module(parameter) / free_module(parameter)
 #                The memory is allocated and freed with ALLOCSTATIC_PAGECACHE / FREESTATIC_PAGECACHE

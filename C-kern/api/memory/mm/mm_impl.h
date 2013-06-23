@@ -53,10 +53,10 @@ struct mm_impl_t {
 
 // group: initthread
 
-/* function: interfacethread_mmimpl
+/* function: interface_mmimpl
  * This function is called from <init_threadcontext>.
  * Used to initialize interface of <mm_t>. */
-struct mm_it * interfacethread_mmimpl(void) ;
+struct mm_it * interface_mmimpl(void) ;
 
 // group: lifetime
 

@@ -64,10 +64,10 @@ struct objectcache_impl_t {
 
 // group: initthread
 
-/* function: interfacethread_objectcacheimpl
+/* function: interface_objectcacheimpl
  * This function is called from <init_threadcontext>.
  * Used to initialize interface of <objectcache_t>. */
-struct objectcache_it * interfacethread_objectcacheimpl(void) ;
+struct objectcache_it * interface_objectcacheimpl(void) ;
 
 // group: lifetime
 

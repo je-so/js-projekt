@@ -70,10 +70,10 @@ struct logwriter_t
 
 // group: initthread
 
-/* function: interfacethread_logwriter
+/* function: interface_logwriter
  * This function is called from <init_threadcontext>.
  * Used to initialize interface of <log_t>. */
-struct log_it * interfacethread_logwriter(void) ;
+struct log_it * interface_logwriter(void) ;
 
 // group: lifetime
 
@@ -137,15 +137,15 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
 
 #define KONFIG_thread 1
 #if (!((KONFIG_SUBSYS)&KONFIG_thread))
-/* define: interfacethread_logwriter
- * Implement <logwriter_t.interfacethread_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
-#define interfacethread_logwriter()       (0)
+/* define: interface_logwriter
+ * Implement <logwriter_t.interface_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread). */
+#define interface_logwriter()             (0)
 /* define: init_logwriter
- * Implement <logwriter_t.init_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
-#define init_logwriter(log)               (0)
+ * Implement <logwriter_t.init_logwriter> as not implemented if !((KONFIG_SUBSYS)&KONFIG_thread). */
+#define init_logwriter(log)               (ENOSYS)
 /* define: free_logwriter
- * Implement <logwriter_t.free_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
-#define free_logwriter(log)               (0)
+ * Implement <logwriter_t.free_logwriter> as not implemented if !((KONFIG_SUBSYS)&KONFIG_thread) */
+#define free_logwriter(log)               (ENOSYS)
 #endif
 #undef KONFIG_thread
 

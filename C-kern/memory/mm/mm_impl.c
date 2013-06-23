@@ -55,7 +55,7 @@ static mm_impl_it    s_mmimpl_interface = mm_it_INIT(
 
 // group: initthread
 
-mm_it * interfacethread_mmimpl(void)
+mm_it * interface_mmimpl(void)
 {
    return genericcast_mmit(&s_mmimpl_interface, mm_impl_t) ;
 }
@@ -173,8 +173,8 @@ static int test_initthread(void)
    TEST(s_mmimpl_interface.mfree   == &mfree_mmimpl) ;
    TEST(s_mmimpl_interface.sizeallocated == &sizeallocated_mmimpl) ;
 
-   // TEST interfacethread_mmimpl
-   TEST(interfacethread_mmimpl() == genericcast_mmit(&s_mmimpl_interface, mm_impl_t)) ;
+   // TEST interface_mmimpl
+   TEST(interface_mmimpl() == genericcast_mmit(&s_mmimpl_interface, mm_impl_t)) ;
 
    return 0 ;
 ONABORT:

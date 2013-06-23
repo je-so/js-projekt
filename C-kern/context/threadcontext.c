@@ -65,12 +65,16 @@ static size_t              s_threadcontext_nextid = 0 ;
 /* define: INITIOBJ
  * Initializes iobj. Calls ALLOCSTATIC_PAGECACHE to allocate memory.
  * This memory is initialized with call to init_##module() and the address
- * is assigned to iobj.object. The return value of interfacethread_##module()
+ * is assigned to iobj.object. The return value of interface_##module()
  * is assigned to iobj.iimpl. */
 #define INITIOBJ(module, objtype_t, iobj)                   \
          int err ;                                          \
          memblock_t memobject = memblock_INIT_FREEABLE ;    \
                                                             \
+         if (! interface_##module()) {                      \
+            /* keep static object */                        \
+            return 0 ;                                      \
+         }                                                  \
          ONERROR_testerrortimer(                            \
                &s_threadcontext_errtimer, ONABORT) ;        \
          err = ALLOCSTATIC_PAGECACHE(                       \
@@ -86,7 +90,7 @@ static size_t              s_threadcontext_nextid = 0 ;
          if (err) goto ONABORT ;                            \
                                                             \
          init_iobj(&(iobj),                                 \
-               (void*)newobj, interfacethread_##module()) ; \
+               (void*)newobj, interface_##module()) ;       \
                                                             \
          return 0 ;                                         \
       ONABORT:                                              \
@@ -96,7 +100,7 @@ static size_t              s_threadcontext_nextid = 0 ;
 /* define: FREEIOBJ
  * Frees iobj. Calls FREESTATIC_PAGECACHE to free memory as last operation.
  * Calls free_##module() to free the object iobj.object.
- * The return value of interfacethread_##module() is checked against iobj.iimpl.
+ * The return value of interface_##module() is checked against iobj.iimpl.
  * iobj is cleared. Calling it twice has no effect. */
 #define FREEIOBJ(module, objtype_t, iobj, staticiobj)       \
          int err ;                                          \
@@ -104,7 +108,7 @@ static size_t              s_threadcontext_nextid = 0 ;
          objtype_t * delobj = (objtype_t*) (iobj).object ;  \
                                                             \
          if ((iobj).object != (staticiobj).object) {        \
-            assert(  interfacethread_##module()             \
+            assert(  interface_##module()                   \
                      == (iobj).iimpl) ;                     \
                                                             \
             (iobj) = (staticiobj) ;                         \
@@ -407,7 +411,7 @@ static int free_testmoduleimpl(struct testmodule_impl_t * object)
    return 0 ;
 }
 
-static struct testmodule_it * interfacethread_testmoduleimpl(void)
+static struct testmodule_it * interface_testmoduleimpl(void)
 {
    return (struct testmodule_it*) 33 ;
 }
@@ -421,6 +425,20 @@ static int call_freeiobj(struct testmodule_t * testiobj)
 {
    struct testmodule_t staticiobj = { (void*)1, (void*)2 } ;
    FREEIOBJ(testmoduleimpl, struct testmodule_impl_t, *testiobj, staticiobj)
+}
+
+#define init_testmoduleimpl2(testiobj)    (ENOSYS) /* not called */
+#define free_testmoduleimpl2(testiobj)    (ENOSYS) /* not called */
+#define interface_testmoduleimpl2()       (0)      /* INITIOBJ now checks for value 0 */
+
+static int call_initiobj2(struct testmodule_t * testiobj)
+{
+   INITIOBJ(testmoduleimpl2, struct testmodule_impl_t, *testiobj)
+}
+
+static int call_freeiobj2(struct testmodule_t * testiobj)
+{
+   FREEIOBJ(testmoduleimpl2, struct testmodule_impl_t, *testiobj, *testiobj)
 }
 
 static int test_iobjhelper(void)
@@ -454,6 +472,18 @@ static int test_iobjhelper(void)
    TEST(testiobj.object == (void*)1) ;
    TEST(testiobj.iimpl  == (void*)2) ;
    TEST(0               == s_test_testmodule) ;
+   TEST(SIZESTATIC_PAGECACHE() == stsize) ;
+
+   // TEST INITIOBJ: keep static object (interface_testmoduleimpl2 returns 0)
+   TEST(testiobj.object == (void*)1) ;
+   TEST(testiobj.iimpl  == (void*)2) ;
+   TEST(0 == call_initiobj2(&testiobj)) ;
+   TEST(testiobj.object == (void*)1) ;
+   TEST(testiobj.iimpl  == (void*)2) ;
+   TEST(SIZESTATIC_PAGECACHE() == stsize) ;
+   TEST(0 == call_freeiobj2(&testiobj)) ;
+   TEST(testiobj.object == (void*)1) ;
+   TEST(testiobj.iimpl  == (void*)2) ;
    TEST(SIZESTATIC_PAGECACHE() == stsize) ;
 
    // TEST INITIOBJ: ENOMEM
