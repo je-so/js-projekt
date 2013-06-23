@@ -101,8 +101,8 @@ int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * membloc
 
    if (  (ssize_t)newsize < 0
       || !(newaddr = realloc(memblock->addr, newsize))) {
-      TRACEOUTOFMEM_LOG(newsize) ;
       err = ENOMEM ;
+      TRACEOUTOFMEM_LOG(newsize, err) ;
       goto ONABORT ;
    }
 

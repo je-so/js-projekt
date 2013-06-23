@@ -58,14 +58,13 @@ static int dynamicimpl_reserve_wbuffer(wbuffer_t * wbuf, size_t reserve_size)
 
    if (reserved < reserve_size) {
 
-      size_t   new_size   = (memblock.size + reserved >= reserve_size)
+      size_t   new_size   = (memblock.size >= (reserve_size - reserved))
                           ? (2 * memblock.size)
-                          : (memblock.size - reserved + reserve_size) ;
+                          : (memblock.size + (reserve_size - reserved)) ;
 
       if (new_size <= memblock.size) {
          err = ENOMEM ;
-         new_size = (size_t) -1 ;
-         TRACEOUTOFMEM_LOG(new_size) ;
+         TRACEOUTOFMEM_LOG(reserve_size, err) ;
          goto ONABORT ;
       }
 

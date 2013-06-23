@@ -1,9 +1,27 @@
-C-kern/string/base64encode_string.c:166: base64decode_string(): error: 22: Function input violates condition (0 == (str->size % 4))
-C-kern/string/base64encode_string.c:229: base64decode_string(): error: 22: Function aborted
-C-kern/string/base64encode_string.c:166: base64decode_string(): error: 22: Function input violates condition (0 == (str->size % 4))
-C-kern/string/base64encode_string.c:229: base64decode_string(): error: 22: Function aborted
-C-kern/string/base64encode_string.c:166: base64decode_string(): error: 22: Function input violates condition (0 == (str->size % 4))
-C-kern/string/base64encode_string.c:229: base64decode_string(): error: 22: Function aborted
-C-kern/string/base64encode_string.c:229: base64decode_string(): error: 22: Function aborted
-C-kern/string/base64encode_string.c:229: base64decode_string(): error: 22: Function aborted
-C-kern/string/base64encode_string.c:229: base64decode_string(): error: 22: Function aborted
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:166
+Error 22 - Function input violates condition (0 == (str->size % 4))
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:229
+Error 22 - Function aborted
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:166
+Error 22 - Function input violates condition (0 == (str->size % 4))
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:229
+Error 22 - Function aborted
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:166
+Error 22 - Function input violates condition (0 == (str->size % 4))
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:229
+Error 22 - Function aborted
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:229
+Error 22 - Function aborted
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:229
+Error 22 - Function aborted
+[Thread 1]
+base64decode_string() C-kern/string/base64encode_string.c:229
+Error 22 - Function aborted

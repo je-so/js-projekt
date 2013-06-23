@@ -1,9 +1,27 @@
-C-kern/ds/inmem/slist.c:71: free_slist(): error: 12: Freeing a resource returned an error
-C-kern/ds/inmem/slist.c:135: removeafter_slist(): error: 22: Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
-C-kern/ds/inmem/slist.c:153: removeafter_slist(): error: 22: Function aborted
-C-kern/ds/inmem/slist.c:111: removefirst_slist(): error: 22: Function input violates condition (! isempty_slist(list))
-C-kern/ds/inmem/slist.c:127: removefirst_slist(): error: 22: Function aborted
-C-kern/ds/inmem/slist.c:135: removeafter_slist(): error: 22: Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
-C-kern/ds/inmem/slist.c:153: removeafter_slist(): error: 22: Function aborted
-C-kern/ds/inmem/slist.c:71: free_slist(): error: 38: Freeing a resource returned an error
-C-kern/ds/inmem/slist.c:71: free_slist(): error: 22: Freeing a resource returned an error
+[Thread 1]
+free_slist() C-kern/ds/inmem/slist.c:71
+Error 12 - Freeing a resource returned an error
+[Thread 1]
+removeafter_slist() C-kern/ds/inmem/slist.c:135
+Error 22 - Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
+[Thread 1]
+removeafter_slist() C-kern/ds/inmem/slist.c:153
+Error 22 - Function aborted
+[Thread 1]
+removefirst_slist() C-kern/ds/inmem/slist.c:111
+Error 22 - Function input violates condition (! isempty_slist(list))
+[Thread 1]
+removefirst_slist() C-kern/ds/inmem/slist.c:127
+Error 22 - Function aborted
+[Thread 1]
+removeafter_slist() C-kern/ds/inmem/slist.c:135
+Error 22 - Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
+[Thread 1]
+removeafter_slist() C-kern/ds/inmem/slist.c:153
+Error 22 - Function aborted
+[Thread 1]
+free_slist() C-kern/ds/inmem/slist.c:71
+Error 38 - Freeing a resource returned an error
+[Thread 1]
+free_slist() C-kern/ds/inmem/slist.c:71
+Error 22 - Freeing a resource returned an error

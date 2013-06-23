@@ -1,3 +1,9 @@
-C-kern/math/hash/sha1.c:266: calculate_sha1hash(): error: 75: Function aborted
-C-kern/math/hash/sha1.c:266: calculate_sha1hash(): error: 75: Function aborted
-C-kern/math/hash/sha1.c:266: calculate_sha1hash(): error: 75: Function aborted
+[Thread 1]
+calculate_sha1hash() C-kern/math/hash/sha1.c:266
+Error 75 - Function aborted
+[Thread 1]
+calculate_sha1hash() C-kern/math/hash/sha1.c:266
+Error 75 - Function aborted
+[Thread 1]
+calculate_sha1hash() C-kern/math/hash/sha1.c:266
+Error 75 - Function aborted

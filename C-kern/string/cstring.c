@@ -135,8 +135,8 @@ ONABORT:
    {                                                           \
       size_t allocate_size = cstr->size + 1 + append_size ;    \
       if (allocate_size < append_size) {                       \
-         TRACEOUTOFMEM_LOG(SIZE_MAX) ;                         \
          err = ENOMEM ;                                        \
+         TRACEOUTOFMEM_LOG(SIZE_MAX, err) ;                    \
          goto ONABORT ;                                        \
       }                                                        \
                                                                \
@@ -181,8 +181,8 @@ int printfappend_cstring(cstring_t * cstr, const char * format, ...)
          va_end(args) ;
 
          if (append_size_ < 0) {
-            TRACEOUTOFMEM_LOG(SIZE_MAX) ;
             err = ENOMEM ;
+            TRACEOUTOFMEM_LOG(SIZE_MAX, err) ;
             goto ONABORT ;
          }
 

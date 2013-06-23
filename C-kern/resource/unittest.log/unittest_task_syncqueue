@@ -1,6 +1,18 @@
-C-kern/ds/inmem/queue.c:306: insertlast_queue(): error: 22: Function input violates condition (nodesize <= 512)
-C-kern/ds/inmem/queue.c:322: insertlast_queue(): error: 22: Function aborted
-C-kern/ds/inmem/queue.c:306: insertlast_queue(): error: 22: Function input violates condition (nodesize <= 512)
-C-kern/ds/inmem/queue.c:322: insertlast_queue(): error: 22: Function aborted
-C-kern/ds/inmem/queue.c:370: removelast_queue(): error: 61: Function aborted
-C-kern/ds/inmem/queue.c:346: removefirst_queue(): error: 61: Function aborted
+[Thread 1]
+insertlast_queue() C-kern/ds/inmem/queue.c:306
+Error 22 - Function input violates condition (nodesize <= 512)
+[Thread 1]
+insertlast_queue() C-kern/ds/inmem/queue.c:322
+Error 22 - Function aborted
+[Thread 1]
+insertlast_queue() C-kern/ds/inmem/queue.c:306
+Error 22 - Function input violates condition (nodesize <= 512)
+[Thread 1]
+insertlast_queue() C-kern/ds/inmem/queue.c:322
+Error 22 - Function aborted
+[Thread 1]
+removelast_queue() C-kern/ds/inmem/queue.c:370
+Error 61 - Function aborted
+[Thread 1]
+removefirst_queue() C-kern/ds/inmem/queue.c:346
+Error 61 - Function aborted

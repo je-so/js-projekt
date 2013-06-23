@@ -1,11 +1,33 @@
-C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
-C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
-C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
-C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
-C-kern/platform/Linux/sync/rwlock.c:68: free_rwlock(): error: 16: Freeing a resource returned an error
-C-kern/platform/Linux/sync/rwlock.c:199: lockreader_rwlock(): error: 35: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:199: lockreader_rwlock(): error: 75: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:226: lockwriter_rwlock(): error: 35: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:258: unlockreader_rwlock(): error: 1: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:287: unlockwriter_rwlock(): error: 1: Function aborted
-C-kern/platform/Linux/sync/rwlock.c:287: unlockwriter_rwlock(): error: 1: Function aborted
+[Thread 1]
+free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
+Error 16 - Freeing a resource returned an error
+[Thread 1]
+free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
+Error 16 - Freeing a resource returned an error
+[Thread 1]
+free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
+Error 16 - Freeing a resource returned an error
+[Thread 1]
+free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
+Error 16 - Freeing a resource returned an error
+[Thread 1]
+free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
+Error 16 - Freeing a resource returned an error
+[Thread 1]
+lockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:199
+Error 35 - Function aborted
+[Thread 1]
+lockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:199
+Error 75 - Function aborted
+[Thread 1]
+lockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:226
+Error 35 - Function aborted
+[Thread 1]
+unlockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:258
+Error 1 - Function aborted
+[Thread 1]
+unlockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:287
+Error 1 - Function aborted
+[Thread 1]
+unlockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:287
+Error 1 - Function aborted

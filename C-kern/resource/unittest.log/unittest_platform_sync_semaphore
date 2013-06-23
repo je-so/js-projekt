@@ -1,9 +1,21 @@
-C-kern/platform/Linux/sync/semaphore.c:129: wait_semaphore(): error: 11: System call 'read' returned error 'Resource temporarily unavailable'
+[Thread 1]
+wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:129
+Error 11 - System call 'read' returned error 'Resource temporarily unavailable'
 semaobj->sys_sema=3
-C-kern/platform/Linux/sync/semaphore.c:138: wait_semaphore(): error: 11: Function aborted
-C-kern/platform/Linux/sync/semaphore.c:129: wait_semaphore(): error: 11: System call 'read' returned error 'Resource temporarily unavailable'
+[Thread 1]
+wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:138
+Error 11 - Function aborted
+[Thread 1]
+wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:129
+Error 11 - System call 'read' returned error 'Resource temporarily unavailable'
 semaobj->sys_sema=3
-C-kern/platform/Linux/sync/semaphore.c:138: wait_semaphore(): error: 11: Function aborted
-C-kern/platform/Linux/sync/semaphore.c:129: wait_semaphore(): error: 11: System call 'read' returned error 'Resource temporarily unavailable'
+[Thread 1]
+wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:138
+Error 11 - Function aborted
+[Thread 1]
+wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:129
+Error 11 - System call 'read' returned error 'Resource temporarily unavailable'
 semaobj->sys_sema=3
-C-kern/platform/Linux/sync/semaphore.c:138: wait_semaphore(): error: 11: Function aborted
+[Thread 1]
+wait_semaphore() C-kern/platform/Linux/sync/semaphore.c:138
+Error 11 - Function aborted

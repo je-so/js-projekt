@@ -1,12 +1,36 @@
-C-kern/string/convertwchar.c:73: skip_convertwchar(): error: 61: Function aborted
-C-kern/string/convertwchar.c:73: skip_convertwchar(): error: 61: Function aborted
-C-kern/string/convertwchar.c:104: peek_convertwchar(): error: 84: Function aborted
-C-kern/string/convertwchar.c:73: skip_convertwchar(): error: 84: Function aborted
-C-kern/string/convertwchar.c:104: peek_convertwchar(): error: 84: Function aborted
-C-kern/string/convertwchar.c:73: skip_convertwchar(): error: 84: Function aborted
-C-kern/string/convertwchar.c:73: skip_convertwchar(): error: 61: Function aborted
-C-kern/string/convertwchar.c:73: skip_convertwchar(): error: 61: Function aborted
-C-kern/string/convertwchar.c:104: peek_convertwchar(): error: 84: Function aborted
-C-kern/string/convertwchar.c:73: skip_convertwchar(): error: 84: Function aborted
-C-kern/string/convertwchar.c:104: peek_convertwchar(): error: 84: Function aborted
-C-kern/string/convertwchar.c:73: skip_convertwchar(): error: 84: Function aborted
+[Thread 1]
+skip_convertwchar() C-kern/string/convertwchar.c:73
+Error 61 - Function aborted
+[Thread 1]
+skip_convertwchar() C-kern/string/convertwchar.c:73
+Error 61 - Function aborted
+[Thread 1]
+peek_convertwchar() C-kern/string/convertwchar.c:104
+Error 84 - Function aborted
+[Thread 1]
+skip_convertwchar() C-kern/string/convertwchar.c:73
+Error 84 - Function aborted
+[Thread 1]
+peek_convertwchar() C-kern/string/convertwchar.c:104
+Error 84 - Function aborted
+[Thread 1]
+skip_convertwchar() C-kern/string/convertwchar.c:73
+Error 84 - Function aborted
+[Thread 1]
+skip_convertwchar() C-kern/string/convertwchar.c:73
+Error 61 - Function aborted
+[Thread 1]
+skip_convertwchar() C-kern/string/convertwchar.c:73
+Error 61 - Function aborted
+[Thread 1]
+peek_convertwchar() C-kern/string/convertwchar.c:104
+Error 84 - Function aborted
+[Thread 1]
+skip_convertwchar() C-kern/string/convertwchar.c:73
+Error 84 - Function aborted
+[Thread 1]
+peek_convertwchar() C-kern/string/convertwchar.c:104
+Error 84 - Function aborted
+[Thread 1]
+skip_convertwchar() C-kern/string/convertwchar.c:73
+Error 84 - Function aborted

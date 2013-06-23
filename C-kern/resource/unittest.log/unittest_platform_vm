@@ -1,21 +1,63 @@
-C-kern/platform/Linux/vm.c:452: init2_vmpage(): error: 22: Function input violates condition (size_in_pages > 0)
-C-kern/platform/Linux/vm.c:472: init2_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:453: init2_vmpage(): error: 22: Function input violates condition ((SIZE_MAX >> log2pagesize_vm()) > size_in_pages)
-C-kern/platform/Linux/vm.c:472: init2_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:452: init2_vmpage(): error: 22: Function input violates condition (size_in_pages > 0)
-C-kern/platform/Linux/vm.c:472: init2_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:453: init2_vmpage(): error: 22: Function input violates condition ((SIZE_MAX >> log2pagesize_vm()) > size_in_pages)
-C-kern/platform/Linux/vm.c:472: init2_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:451: init2_vmpage(): error: 22: Function input violates condition (0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)))
-C-kern/platform/Linux/vm.c:472: init2_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:482: initaligned_vmpage(): error: 22: Function input violates condition (powerof2_size_in_bytes >= pagesize_vm())
-C-kern/platform/Linux/vm.c:512: initaligned_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:483: initaligned_vmpage(): error: 22: Function input violates condition (ispowerof2_int(powerof2_size_in_bytes))
-C-kern/platform/Linux/vm.c:512: initaligned_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:588: tryexpand_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:648: shrink_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:453: init2_vmpage(): error: 22: Function input violates condition ((SIZE_MAX >> log2pagesize_vm()) > size_in_pages)
-C-kern/platform/Linux/vm.c:472: init2_vmpage(): error: 22: Function aborted
-C-kern/platform/Linux/vm.c:617: movexpand_vmpage(): error: 12: Function aborted
-C-kern/platform/Linux/vm.c:608: movexpand_vmpage(): error: Could not allocate 4294926336 bytes of memory
-C-kern/platform/Linux/vm.c:617: movexpand_vmpage(): error: 12: Function aborted
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:452
+Error 22 - Function input violates condition (size_in_pages > 0)
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:472
+Error 22 - Function aborted
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:453
+Error 22 - Function input violates condition ((SIZE_MAX >> log2pagesize_vm()) > size_in_pages)
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:472
+Error 22 - Function aborted
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:452
+Error 22 - Function input violates condition (size_in_pages > 0)
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:472
+Error 22 - Function aborted
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:453
+Error 22 - Function input violates condition ((SIZE_MAX >> log2pagesize_vm()) > size_in_pages)
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:472
+Error 22 - Function aborted
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:451
+Error 22 - Function input violates condition (0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)))
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:472
+Error 22 - Function aborted
+[Thread 1]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:482
+Error 22 - Function input violates condition (powerof2_size_in_bytes >= pagesize_vm())
+[Thread 1]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:512
+Error 22 - Function aborted
+[Thread 1]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:483
+Error 22 - Function input violates condition (ispowerof2_int(powerof2_size_in_bytes))
+[Thread 1]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:512
+Error 22 - Function aborted
+[Thread 1]
+tryexpand_vmpage() C-kern/platform/Linux/vm.c:588
+Error 22 - Function aborted
+[Thread 1]
+shrink_vmpage() C-kern/platform/Linux/vm.c:648
+Error 22 - Function aborted
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:453
+Error 22 - Function input violates condition ((SIZE_MAX >> log2pagesize_vm()) > size_in_pages)
+[Thread 1]
+init2_vmpage() C-kern/platform/Linux/vm.c:472
+Error 22 - Function aborted
+[Thread 1]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:617
+Error 12 - Function aborted
+[Thread 1]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:608
+Error 12 - Could not allocate 4294926336 bytes of memory
+[Thread 1]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:617
+Error 12 - Function aborted

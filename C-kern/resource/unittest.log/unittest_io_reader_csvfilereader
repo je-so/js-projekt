@@ -1,34 +1,86 @@
-C-kern/io/reader/csvfilereader.c:350: colvalue_csvfilereader(): error: 22: Function input violates condition (column < csvfile->nrcolumns)
+[Thread 1]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:350
+Error 22 - Function input violates condition (column < csvfile->nrcolumns)
 column=4
 csvfile->nrcolumns=4
-C-kern/io/reader/csvfilereader.c:358: colvalue_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:350: colvalue_csvfilereader(): error: 22: Function input violates condition (column < csvfile->nrcolumns)
+[Thread 1]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:358
+Error 22 - Function aborted
+[Thread 1]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:350
+Error 22 - Function input violates condition (column < csvfile->nrcolumns)
 column=4294967295
 csvfile->nrcolumns=4
-C-kern/io/reader/csvfilereader.c:358: colvalue_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:351: colvalue_csvfilereader(): error: 22: Function input violates condition (row < csvfile->nrrows)
+[Thread 1]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:358
+Error 22 - Function aborted
+[Thread 1]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:351
+Error 22 - Function input violates condition (row < csvfile->nrrows)
 row=3
 csvfile->nrrows=3
-C-kern/io/reader/csvfilereader.c:358: colvalue_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:351: colvalue_csvfilereader(): error: 22: Function input violates condition (row < csvfile->nrrows)
+[Thread 1]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:358
+Error 22 - Function aborted
+[Thread 1]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:351
+Error 22 - Function input violates condition (row < csvfile->nrrows)
 row=4294967295
 csvfile->nrrows=3
-C-kern/io/reader/csvfilereader.c:358: colvalue_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:107: parsechar_csvfilereaderparsestate(): error: Expect character ',' in line: 1, column: 12
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:169: parsenrcolumns_csvfilereaderparsestate(): error: Expect character '"' in line: 1, column: 12
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:169: parsenrcolumns_csvfilereaderparsestate(): error: Expect character '"' in line: 1, column: 12
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:107: parsechar_csvfilereaderparsestate(): error: Expect character '"' in line: 1, column: 14
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:241: parsedata_csvfilereader(): error: Expect '(newline)' in line: 2, column: 12
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:255: parsedata_csvfilereader(): error: Expect character ',' in line: 2, column: 5
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:266: parsedata_csvfilereader(): error: Expect character '"' in line: 2, column: 6
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:107: parsechar_csvfilereaderparsestate(): error: Expect character '"' in line: 2, column: 10
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
-C-kern/io/reader/csvfilereader.c:107: parsechar_csvfilereaderparsestate(): error: Expect character '"' in line: 1, column: 3
-C-kern/io/reader/csvfilereader.c:316: init_csvfilereader(): error: 22: Function aborted
+[Thread 1]
+colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:358
+Error 22 - Function aborted
+[Thread 1]
+parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:107
+Error 22 - Expect character ',' in line: 1, column: 12
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted
+[Thread 1]
+parsenrcolumns_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:170
+Error 22 - Expect character '"' in line: 1, column: 12
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted
+[Thread 1]
+parsenrcolumns_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:170
+Error 22 - Expect character '"' in line: 1, column: 12
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted
+[Thread 1]
+parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:107
+Error 22 - Expect character '"' in line: 1, column: 14
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted
+[Thread 1]
+parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:242
+Error 22 - Expect '(newline)' in line: 2, column: 12
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted
+[Thread 1]
+parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:256
+Error 22 - Expect character ',' in line: 2, column: 5
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted
+[Thread 1]
+parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:267
+Error 22 - Expect character '"' in line: 2, column: 6
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted
+[Thread 1]
+parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:107
+Error 22 - Expect character '"' in line: 2, column: 10
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted
+[Thread 1]
+parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:107
+Error 22 - Expect character '"' in line: 1, column: 3
+[Thread 1]
+init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
+Error 22 - Function aborted

@@ -147,7 +147,7 @@ int newparts_url(/*out*/url_t ** url, url_scheme_e scheme, url_parts_t * parts, 
    newurl = malloc(objsize) ;
    if (!newurl) {
       err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(objsize) ;
+      TRACEOUTOFMEM_LOG(objsize, err) ;
       goto ONABORT ;
    }
 

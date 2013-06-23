@@ -143,8 +143,8 @@ void flushbuffer_logwriter(logwriter_t * lgwrt)
    do {
       ssize_t bytes ;
       do {
-         bytes = write( STDERR_FILENO, lgwrt->buffer.addr + bytes_written, lgwrt->logsize - bytes_written) ;
-      } while( bytes < 0 && errno == EINTR ) ;
+         bytes = write(STDERR_FILENO, lgwrt->buffer.addr + bytes_written, lgwrt->logsize - bytes_written) ;
+      } while (bytes < 0 && errno == EINTR) ;
       if (bytes <= 0) {
          // TODO: add some special log code that always works and which indicates error state in logging
          assert(errno != EAGAIN /*should be blocking i/o*/) ;
@@ -160,7 +160,7 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args)
 {
    size_t buffer_size = lgwrt->buffer.size - lgwrt->logsize ;
 
-   if (buffer_size < 1 + log_PRINTF_MAXSIZE ) {
+   if (buffer_size <= log_PRINTF_MAXSIZE) {  // log_PRINTF_MAXSIZE bytes for message + \0 byte
       flushbuffer_logwriter(lgwrt) ;
       buffer_size = lgwrt->buffer.size ;
    }
@@ -172,7 +172,7 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args)
       lgwrt->logsize += (unsigned)append_size ;
    } else {
       lgwrt->logsize += buffer_size ;
-      TRACEERR_LOG(LOG_ENTRY_TRUNCATED, append_size, (int)buffer_size-1) ;
+      TRACEERR_LOG(LOG_ENTRY_TRUNCATED, E2BIG, append_size, (int)buffer_size-1) ;
    }
 }
 

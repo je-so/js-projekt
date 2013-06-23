@@ -1,3 +1,9 @@
-C-kern/platform/shared/X11/x11videomode.c:167: initcurrent_x11videomode(): error: 38: Function aborted
-C-kern/platform/shared/X11/x11videomode.c:222: set_x11videomode(): error: 38: Function aborted
-C-kern/platform/shared/X11/x11videomode.c:167: initcurrent_x11videomode(): error: 38: Function aborted
+[Thread 1]
+initcurrent_x11videomode() C-kern/platform/shared/X11/x11videomode.c:167
+Error 38 - Function aborted
+[Thread 1]
+set_x11videomode() C-kern/platform/shared/X11/x11videomode.c:222
+Error 38 - Function aborted
+[Thread 1]
+initcurrent_x11videomode() C-kern/platform/shared/X11/x11videomode.c:167
+Error 38 - Function aborted

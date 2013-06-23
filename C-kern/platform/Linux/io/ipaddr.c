@@ -179,8 +179,8 @@ int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * nume
 
    new_addr = (ipaddr_t*) malloc(size) ;
    if (!new_addr) {
-      TRACEOUTOFMEM_LOG(size) ;
       err = ENOMEM ;
+      TRACEOUTOFMEM_LOG(size, err) ;
       goto ONABORT ;
    }
 
@@ -272,8 +272,8 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
 
    new_addr = (ipaddr_t*) malloc(size) ;
    if (!new_addr) {
-      TRACEOUTOFMEM_LOG(size) ;
       err = ENOMEM ;
+      TRACEOUTOFMEM_LOG(size, err) ;
       goto ONABORT ;
    }
 
@@ -587,8 +587,8 @@ int newdnsquery_ipaddrlist(/*out*/ipaddr_list_t ** addrlist, const char * hostna
 
    new_addrlist = (ipaddr_list_t*) malloc(sizeof(ipaddr_list_t)) ;
    if (!new_addrlist) {
-      TRACEOUTOFMEM_LOG(sizeof(ipaddr_list_t)) ;
       err = ENOMEM ;
+      TRACEOUTOFMEM_LOG(sizeof(ipaddr_list_t), err) ;
       goto ONABORT ;
    }
 

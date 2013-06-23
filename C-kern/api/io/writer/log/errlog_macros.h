@@ -48,7 +48,7 @@
  *
  * Example:
  * > int i ; PRINTF_LOG("%d", i) */
-#define PRINTF_LOG(...)                CPRINTF_LOG(ERR, __VA_ARGS__)
+#define PRINTF_LOG(...)                   CPRINTF_LOG(ERR, __VA_ARGS__)
 
 /* define: TRACEABORT_LOG
  * Logs the abortion of a function and the its corresponding error code.
@@ -57,13 +57,13 @@
  * called and use
  * > TRACEABORT_LOG(return_error_code)
  * to signal this fact. */
-#define TRACEABORT_LOG(err)            TRACEERR_LOG(FUNCTION_ABORT,err)
+#define TRACEABORT_LOG(err)               TRACEERR_NOARG_LOG(FUNCTION_ABORT, err)
 
 /* define: TRACEABORTFREE_LOG
  * Logs that an error occurred during free_XXX or delete_XXX.
  * This means that not all resources could have been freed
  * only as many as possible. */
-#define TRACEABORTFREE_LOG(err)        TRACEERR_LOG(FUNCTION_ABORT_FREE,err)
+#define TRACEABORTFREE_LOG(err)           TRACEERR_NOARG_LOG(FUNCTION_ABORT_FREE, err)
 
 /* define: TRACECALLERR_LOG
  * Logs errorlog text resource TRACEERR_LOG_FUNCTION_ERROR.
@@ -71,19 +71,31 @@
  * which does not do logging on its own.
  *
  * TODO: Support own error IDs */
-#define TRACECALLERR_LOG(fct_name,err) TRACEERR_LOG(FUNCTION_ERROR, fct_name, err, (const char*)str_errorcontext(error_maincontext(), err))
+#define TRACECALLERR_LOG(fct_name,err)    TRACEERR_LOG(FUNCTION_ERROR, err, fct_name, (const char*)str_errorcontext(error_maincontext(), err))
 
 /* define: TRACEERR_LOG
- * Logs an errorlog text resource with arguments.
+ * Logs an errorlog text resource with error number err.
+ * Any additional arguments are listed after err.
  * Use <TRACEERR_LOG> to log any language specific text with additional parameter values. */
-#define TRACEERR_LOG(TEXTID,...)       do {  ERROR_LOCATION_ERRLOG(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
-                                             TEXTID ## _ERRLOG(log_channel_ERR, __VA_ARGS__ ) ;                          \
-                                       }  while(0)
-/* define: TRACEERR_NOARG_LOG
- * Logs an errorlog text resource without any arguments. */
-#define TRACEERR_NOARG_LOG(TEXTID)     do {  ERROR_LOCATION_ERRLOG(log_channel_ERR, __FILE__, __LINE__, __FUNCTION__) ;  \
-                                             TEXTID ## _ERRLOG(log_channel_ERR) ;                                        \
-                                       }  while(0)
+#define TRACEERR_LOG(TEXTID,err,...)                              \
+         do {                                                     \
+            ERROR_LOCATION_ERRLOG( log_channel_ERR,               \
+                  tcontext_maincontext()->thread_id,              \
+                  __FUNCTION__, __FILE__, __LINE__, err) ;        \
+            TEXTID ## _ERRLOG(log_channel_ERR, __VA_ARGS__) ;     \
+         }  while(0)
+
+/* define: TRACEERR_LOG
+ * Logs an errorlog text resource with error number err.
+ * There are no additional arguments.
+ * Use <TRACEERR_LOG> to log any language specific text with no parameter values. */
+#define TRACEERR_NOARG_LOG(TEXTID, err)                           \
+         do {                                                     \
+            ERROR_LOCATION_ERRLOG( log_channel_ERR,               \
+                  tcontext_maincontext()->thread_id,              \
+                  __FUNCTION__, __FILE__, __LINE__, err) ;        \
+            TEXTID ## _ERRLOG(log_channel_ERR) ;                  \
+         }  while(0)
 
 /* define: TRACEOUTOFMEM_LOG
  * Logs "out of memory" reason for function abort.
@@ -91,13 +103,14 @@
  * with an error code
  * > TRACEOUTOFMEM_LOG(size_of_memory_in_bytes)
  * should be called before <TRACEABORT_LOG> to document the event leading to an abort. */
-#define TRACEOUTOFMEM_LOG(size)        TRACEERR_LOG(MEMORY_OUT_OF,size)
+#define TRACEOUTOFMEM_LOG(size, err)      TRACEERR_LOG(MEMORY_OUT_OF, err, size)
 
 /* define: TRACESYSERR_LOG
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
-#define TRACESYSERR_LOG(sys_fctname,sys_errno)  TRACEERR_LOG(FUNCTION_SYSERR, sys_fctname, sys_errno, (const char*)str_errorcontext(error_maincontext(), sys_errno))
+#define TRACESYSERR_LOG(sys_fctname, err)  \
+         TRACEERR_LOG(FUNCTION_SYSERR, err, sys_fctname, (const char*)str_errorcontext(error_maincontext(), err))
 
 // group: log-variables
 
@@ -115,13 +128,14 @@
  * This code logs "names[0]=Jo\n" and "names[1]=Jane\n".
  * > const char * names[] = { "Jo", "Jane" } ;
  * > for(int i = 0; i < 2; ++i) { PRINTARRAYFIELD_LOG(s,names,i) ; } */
-#define PRINTARRAYFIELD_LOG(format, arrname, index)   CPRINTARRAYFIELD_LOG(ERR, format, arrname, index)
+#define PRINTARRAYFIELD_LOG(format, arrname, index)   \
+         CPRINTARRAYFIELD_LOG(ERR, format, arrname, index)
 
 /* define: PRINTCSTR_LOG
  * Log "name=value" of string variable.
  * Example:
  * > const char * name = "Jo" ; PRINTCSTR_LOG(name) ; */
-#define PRINTCSTR_LOG(varname)                  CPRINTCSTR_LOG(ERR, varname)
+#define PRINTCSTR_LOG(varname)            CPRINTCSTR_LOG(ERR, varname)
 
 /* define: PRINTINT_LOG
  * Log "name=value" of int variable.

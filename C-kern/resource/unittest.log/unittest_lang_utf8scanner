@@ -1,1 +1,3 @@
-C-kern/lang/utf8scanner.c:126: readbuffer_utf8scanner(): error: 105: Function aborted
+[Thread 1]
+readbuffer_utf8scanner() C-kern/lang/utf8scanner.c:126
+Error 105 - Function aborted

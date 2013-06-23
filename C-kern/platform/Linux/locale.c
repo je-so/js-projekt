@@ -47,8 +47,7 @@ const char * current_locale()
 
    if (!lname) {
       err = EINVAL ;
-      TRACESYSERR_LOG("setlocale",err) ;
-      PRINTCSTR_LOG("LC_ALL=0") ;
+      TRACESYSERR_LOG("setlocale", err) ;
       goto ONABORT ;
    }
 
@@ -65,8 +64,7 @@ const char * currentmsg_locale()
 
    if (!lname) {
       err = EINVAL ;
-      TRACESYSERR_LOG("setlocale",err) ;
-      PRINTCSTR_LOG("LC_MESSAGES=0") ;
+      TRACESYSERR_LOG("setlocale", err) ;
       goto ONABORT ;
    }
 
@@ -97,7 +95,7 @@ int setdefault_locale()
 
    if (!setlocale(LC_ALL, "")) {
       err = EINVAL ;
-      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE) ;
+      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE, err) ;
       PRINTCSTR_LOG(getenv("LC_ALL")) ;
       goto ONABORT ;
    }
@@ -117,9 +115,9 @@ int reset_locale()
    int err ;
 
    if (!setlocale(LC_ALL, "C")) {
-      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE) ;
-      PRINTCSTR_LOG("LC_ALL=C") ;
       err = EINVAL ;
+      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE, err) ;
+      PRINTCSTR_LOG("LC_ALL=C") ;
       goto ONABORT ;
    }
 
@@ -134,9 +132,9 @@ int resetmsg_locale()
    int err ;
 
    if (!setlocale(LC_MESSAGES, "C")) {
-      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE) ;
-      PRINTCSTR_LOG("LC_MESSAGES=C") ;
       err = EINVAL ;
+      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE, err) ;
+      PRINTCSTR_LOG("LC_MESSAGES=C") ;
       goto ONABORT ;
    }
 

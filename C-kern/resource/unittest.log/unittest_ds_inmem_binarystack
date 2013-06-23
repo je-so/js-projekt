@@ -1,6 +1,18 @@
-C-kern/ds/inmem/binarystack.c:202: init_binarystack(): error: 12: Function aborted
-C-kern/ds/inmem/binarystack.c:238: free_binarystack(): error: 12: Freeing a resource returned an error
-C-kern/ds/inmem/binarystack.c:279: push2_binarystack(): error: 12: Function aborted
-C-kern/ds/inmem/binarystack.c:332: pop2_binarystack(): error: 12: Function aborted
-C-kern/ds/inmem/binarystack.c:332: pop2_binarystack(): error: 22: Function aborted
-C-kern/ds/inmem/binarystack.c:332: pop2_binarystack(): error: 22: Function aborted
+[Thread 1]
+init_binarystack() C-kern/ds/inmem/binarystack.c:202
+Error 12 - Function aborted
+[Thread 1]
+free_binarystack() C-kern/ds/inmem/binarystack.c:238
+Error 12 - Freeing a resource returned an error
+[Thread 1]
+push2_binarystack() C-kern/ds/inmem/binarystack.c:279
+Error 12 - Function aborted
+[Thread 1]
+pop2_binarystack() C-kern/ds/inmem/binarystack.c:332
+Error 12 - Function aborted
+[Thread 1]
+pop2_binarystack() C-kern/ds/inmem/binarystack.c:332
+Error 22 - Function aborted
+[Thread 1]
+pop2_binarystack() C-kern/ds/inmem/binarystack.c:332
+Error 22 - Function aborted

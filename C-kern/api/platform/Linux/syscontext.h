@@ -28,6 +28,7 @@
 #define CKERN_PLATFORM_LINUX_SYSCONTEXT_HEADER
 
 // forward
+struct thread_t ;
 struct threadcontext_t ;
 
 
@@ -51,6 +52,11 @@ struct threadcontext_t * sys_context2_threadtls(void * local_var) ;
  * This size is reserved for every created thread and the main thread.
  * The size includes the stack and the signal stack size. */
 size_t sys_size_threadtls(void) ;
+
+/* function: sys_thread_threadtls
+ * Returns current <thread_t> object.
+ * Calls <sys_context_threadtls> and adds a constant offset. */
+struct thread_t * sys_thread_threadtls(void) ;
 
 
 // section: inline implementation
@@ -76,5 +82,9 @@ size_t sys_size_threadtls(void) ;
 /* define: sys_size_threadtls
  * Implements <thread_tls_t.sys_size_threadtls>. */
 #define sys_size_threadtls()              (512*1024)
+
+/* define: sys_thread_threadtls
+ * Implements <thread_tls_t.sys_thread_threadtls>. */
+#define sys_thread_threadtls()            ((thread_t*)(&sys_context_threadtls()[1]))
 
 #endif

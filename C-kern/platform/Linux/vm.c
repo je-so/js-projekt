@@ -138,8 +138,8 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
       const ssize_t read_size = read(fd, buffer + buffer_offset, buffer_maxsize - buffer_offset) ;
       if (!read_size) {
          if (buffer_offset) {
-            TRACEERR_LOG(FILE_FORMAT_MISSING_ENDOFLINE,PROC_SELF_MAPS) ;
             err = EINVAL ;
+            TRACEERR_LOG(FILE_FORMAT_MISSING_ENDOFLINE, err, PROC_SELF_MAPS) ;
             goto ONABORT ;
          }
          break ; // reached end of file
@@ -234,8 +234,8 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
                   &isReadable, &isWriteable, &isExecutable, &isShared,
                   &file_offset, &major, &minor, &inode) ;
          if (scanned_items != 10) {
-            TRACEERR_LOG(FILE_FORMAT_WRONG,PROC_SELF_MAPS) ;
             err = EINVAL ;
+            TRACEERR_LOG(FILE_FORMAT_WRONG, err, PROC_SELF_MAPS) ;
             goto ONABORT ;
          }
 
@@ -605,7 +605,7 @@ int movexpand_vmpage(vmpage_t * vmpage, size_t increment_in_pages)
    new_addr = mremap(vmpage->addr, vmpage->size, newsize_in_bytes, MREMAP_MAYMOVE) ;
    if (MAP_FAILED == new_addr) {
       err = errno ;
-      TRACEOUTOFMEM_LOG(newsize_in_bytes) ;
+      TRACEOUTOFMEM_LOG(newsize_in_bytes, err) ;
       goto ONABORT ;
    }
 

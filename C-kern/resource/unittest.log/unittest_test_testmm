@@ -1,6 +1,18 @@
-C-kern/test/testmm.c:197: new_testmmpage(): error: 12: Function aborted
-C-kern/test/testmm.c:678: mresize_testmm(): error: 71: Function aborted
-C-kern/test/testmm.c:724: mfree_testmm(): error: 1: Function aborted
-C-kern/test/testmm.c:676: mresize_testmm(): error: Could not allocate 80 bytes of memory
-C-kern/test/testmm.c:678: mresize_testmm(): error: 12: Function aborted
-C-kern/test/testmm.c:724: mfree_testmm(): error: 22: Function aborted
+[Thread 1]
+new_testmmpage() C-kern/test/testmm.c:197
+Error 12 - Function aborted
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:678
+Error 71 - Function aborted
+[Thread 1]
+mfree_testmm() C-kern/test/testmm.c:724
+Error 1 - Function aborted
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:676
+Error 12 - Could not allocate 80 bytes of memory
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:678
+Error 12 - Function aborted
+[Thread 1]
+mfree_testmm() C-kern/test/testmm.c:724
+Error 22 - Function aborted

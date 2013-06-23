@@ -149,37 +149,37 @@ int same_resourceusage(const resourceusage_t * usage)
    err = EAGAIN ;
 
    if (usage2.file_usage != usage->file_usage) {
-      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
 
    if ((usage2.mmtrans_usage - usage->mmtrans_correction) != usage->mmtrans_usage) {
-      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
 
    if ((usage2.malloc_usage - usage->malloc_correction) != usage->malloc_usage) {
-      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
 
    if ((usage2.pagecache_usage - usage->pagecache_correction) != usage->pagecache_usage) {
-      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
 
    if (usage2.pagecache_staticusage != usage->pagecache_staticusage) {
-      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
 
    if (compare_vmmappedregions(usage2.virtualmemory_usage, usage->virtualmemory_usage)) {
-      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
 
    if (compare_signalconfig(usage2.signalconfig, usage->signalconfig)) {
-      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT) ;
+      TRACEERR_NOARG_LOG(RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
 

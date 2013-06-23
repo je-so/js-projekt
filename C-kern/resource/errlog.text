@@ -67,18 +67,18 @@
 </outconfig>
 
 # // TODO: rename into ERROR_FATAL
-ABORT_FATAL(int err)
-de: ""err": Programmabbruch wegen fatalem Fehler\n"
-en: ""err": Abort process with fatal error\n"
+ABORT_FATAL()
+de: "Programmabbruch wegen fatalem Fehler\n"
+en: "Abort process with fatal error\n"
 
 # // TODO: rename into ERROR_ASSERT_FAILED
-ABORT_ASSERT_FAILED(int err, const char * wrong_condition)
-de: ""err": Assertion '"wrong_condition"' fehlgeschlagen.\n"
-en: ""err": Assertion '"wrong_condition"' failed.\n"
+ABORT_ASSERT_FAILED(const char * wrong_condition)
+de: "Assertion '"wrong_condition"' fehlgeschlagen.\n"
+en: "Assertion '"wrong_condition"' failed.\n"
 
-ERROR_LOCATION(const char * filename, int linenr, const char * funcname)
-de: ""filename":"linenr": "funcname"(): Fehler: "
-en: ""filename":"linenr": "funcname"(): error: "
+ERROR_LOCATION(size_t thread_id, const char * funcname, const char * filename, int linenr, int err)
+de: "[Thread "thread_id"]\n"funcname"() "filename":"linenr"\nFehler "err" - "
+en: "[Thread "thread_id"]\n"funcname"() "filename":"linenr"\nError "err" - "
 
 # // TODO: replace it with PARSEERROR_EXPECTNEWLINE
 FILE_FORMAT_MISSING_ENDOFLINE(const char * filename)
@@ -89,21 +89,21 @@ FILE_FORMAT_WRONG(const char * filename)
 de: "Datei '"filename"' besitzt unbekanntes Format\n"
 en: "File '"filename"' has unknown format\n"
 
-FUNCTION_ABORT(int err)
-de: ""err": Funktion abgebrochen\n"
-en: ""err": Function aborted\n"
+FUNCTION_ABORT()
+de: "Funktion abgebrochen\n"
+en: "Function aborted\n"
 
-FUNCTION_ABORT_FREE(int err)
-de: ""err": Freigabe einer Ressource schlug fehl\n"
-en: ""err": Freeing a resource returned an error\n"
+FUNCTION_ABORT_FREE()
+de: "Freigabe einer Ressource schlug fehl\n"
+en: "Freeing a resource returned an error\n"
 
-FUNCTION_ERROR(const char * funcname, int err, const char * errstr)
-de: ""err": Funktionsaufruf '"funcname"' meldet Fehler '"errstr"'\n"
-en: ""err": Function call '"funcname"' returned error '"errstr"'\n"
+FUNCTION_ERROR(const char * funcname, const char * errstr)
+de: "Funktionsaufruf '"funcname"' meldet Fehler '"errstr"'\n"
+en: "Function call '"funcname"' returned error '"errstr"'\n"
 
-FUNCTION_SYSERR(const char * funcname, int sys_errno, const char * sys_errstr)
-de: ""sys_errno": Systemaufruf '"funcname"' meldet Fehler '"sys_errstr"'\n"
-en: ""sys_errno": System call '"funcname"' returned error '"sys_errstr"'\n"
+FUNCTION_SYSERR(const char * funcname, const char * errstr)
+de: "Systemaufruf '"funcname"' meldet Fehler '"errstr"'\n"
+en: "System call '"funcname"' returned error '"errstr"'\n"
 
 FUNCTION_WRONG_RETURNVALUE(const char * funcname, const char * wrong_value)
 de: "Funktion '"funcname"' liefert falschen Rückgabewert ("wrong_value")\n"
@@ -135,21 +135,21 @@ RESOURCE_USAGE_DIFFERENT()
 de: "Ungleiche Anzahl benutzter Ressourcen\n"
 en: "The number of used resources is different\n"
 
-TEST_INPARAM_FALSE(int err, const char * violated_condition)
-de: ""err": Eingabewert verletzt Bedingung ("violated_condition")\n"
-en: ""err": Function input violates condition ("violated_condition")\n"
+TEST_INPARAM_FALSE(const char * violated_condition)
+de: "Eingabewert verletzt Bedingung ("violated_condition")\n"
+en: "Function input violates condition ("violated_condition")\n"
 
-TEST_INVARIANT_FALSE(int err, const char * violated_condition)
-de: ""err": Interne Zustandsvariablen verletzen Bedingung ("violated_condition")\n"
-en: ""err": Internal state variables violate condition ("violated_condition")\n"
+TEST_INVARIANT_FALSE(const char * violated_condition)
+de: "Interne Zustandsvariablen verletzen Bedingung ("violated_condition")\n"
+en: "Internal state variables violate condition ("violated_condition")\n"
 
-TEST_OUTPARAM_FALSE(int err, const char * violated_condition)
-de: ""err": Ausgabewert verletzt Bedingung ("violated_condition")\n"
-en: ""err": Function output violates condition ("violated_condition")\n"
+TEST_OUTPARAM_FALSE(const char * violated_condition)
+de: "Ausgabewert verletzt Bedingung ("violated_condition")\n"
+en: "Function output violates condition ("violated_condition")\n"
 
-TEST_STATE_FALSE(int err, const char * violated_condition)
-de: ""err": Operation nur erlaubt im Zustand ("violated_condition")\n"
-en: ""err": Operation allowed only in state ("violated_condition")\n"
+TEST_STATE_FALSE(const char * violated_condition)
+de: "Operation nur erlaubt im Zustand ("violated_condition")\n"
+en: "Operation allowed only in state ("violated_condition")\n"
 
 X11_DISPLAY_NOT_SET()
 de: "Name des X11 Display-Servers nicht bekannt\n"

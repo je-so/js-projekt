@@ -524,6 +524,9 @@ static int test_query(void)
       TEST((threadcontext_t*)i == sys_context2_threadtls(i+size_threadtls()-1)) ;
    }
 
+   // TEST sys_thread_threadtls
+   TEST(sys_thread_threadtls() == thread_threadtls(&current_threadtls(&tls))) ;
+
    return 0 ;
 ONABORT:
    free_threadtls(&tls) ;

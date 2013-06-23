@@ -32,6 +32,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/mm/mm.h"
+#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/test/errortimer.h"
 // TEXTDB:SELECT('#include "'header-name'"')FROM("C-kern/resource/config/initthread")
 #include "C-kern/api/memory/pagecache_impl.h"
@@ -289,7 +290,7 @@ int free_threadcontext(threadcontext_t * tcontext)
    case 0:     break ;
    }
 
-   if (! tcontext->thread_id) {
+   if (1 == tcontext->thread_id) {
       // end main thread => reset s_threadcontext_nextid
       s_threadcontext_nextid = 0 ;
    }
@@ -310,9 +311,15 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
    int err ;
 
    *tcontext = (threadcontext_t) threadcontext_INIT_STATIC ;
+
+   VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONABORT_NOFREE, ) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT_NOFREE) ;
+
    tcontext->pcontext = pcontext ;
 
-   VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONABORT, ) ;
+   do {
+      tcontext->thread_id = 1 + atomicadd_int(&s_threadcontext_nextid, 1) ;
+   } while (tcontext->thread_id <= 1 && !ismain_thread(self_thread())) ;  // if wrapped around ? => repeat
 
 // TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;"\n"   err = inithelper"row-id"_threadcontext(tcontext) ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/config/initthread)
 
@@ -342,15 +349,12 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
    ++tcontext->initcount ;
 // TEXTDB:END
 
-   do {
-      tcontext->thread_id = atomicadd_int(&s_threadcontext_nextid, 1) ;
-   } while (! tcontext->thread_id) ;  // if wrapped around ? => repeat
-
    ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
 
    return 0 ;
 ONABORT:
    (void) free_threadcontext(tcontext) ;
+ONABORT_NOFREE:
    TRACEABORT_LOG(err) ;
    return err ;
 }
@@ -524,9 +528,21 @@ ONABORT:
    return EINVAL ;
 }
 
+static int thread_testwraparound(void * dummy)
+{
+   (void) dummy ;
+
+   TEST(2 == tcontext_maincontext()->thread_id) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 static int test_initfree(void)
 {
    threadcontext_t      tcontext = threadcontext_INIT_FREEABLE ;
+   thread_t *           thread   = 0 ;
    processcontext_t *   p        = pcontext_maincontext() ;
    const size_t         nrsvc    = 5 ;
    size_t               sizestatic ;
@@ -579,38 +595,54 @@ static int test_initfree(void)
    TEST(1 == isstatic_threadcontext(&tcontext)) ;
    TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
 
-   // TEST init_threadcontext: thread_id wrap around
-   s_threadcontext_nextid = 0 ;
+   // TEST init_threadcontext: s_threadcontext_nextid incremented
+   for (unsigned i = 0; i < 10; ++i) {
+      size_t s = 1 + s_threadcontext_nextid ;
+      TEST(0 == init_threadcontext(&tcontext, p)) ;
+      TEST(s == tcontext.thread_id) ;
+      TEST(s == s_threadcontext_nextid) ;
+      TEST(0 == free_threadcontext(&tcontext)) ;
+      TEST(0 == tcontext.thread_id) ;
+   }
+
+   // TEST init_threadcontext: main thread => no wrap around
+   s_threadcontext_nextid = SIZE_MAX ;
    TEST(0 == init_threadcontext(&tcontext, p)) ;
-   TEST(1 == tcontext.thread_id) ;
-   TEST(2 == s_threadcontext_nextid) ;
-   TEST(0 == free_threadcontext(&tcontext)) ;
    TEST(0 == tcontext.thread_id) ;
-   TEST(0 == init_threadcontext(&tcontext, p)) ;
-   TEST(2 == tcontext.thread_id) ;
-   TEST(3 == s_threadcontext_nextid) ;
+   TEST(0 == s_threadcontext_nextid) ;
    TEST(0 == free_threadcontext(&tcontext)) ;
-   TEST(0 == tcontext.thread_id) ;
+
+   // TEST init_threadcontext: thread => wrap around to value 2
+   s_threadcontext_nextid = SIZE_MAX ;
+   TEST(0 == new_thread(&thread, thread_testwraparound, (void*)0)) ;
+   TEST(0 == join_thread(thread)) ;
+   TEST(0 == returncode_thread(thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
 
    // TEST free_threadcontext: reset s_threadcontext_nextid in case of main thread
+   s_threadcontext_nextid = 3 ;
    TEST(0 == init_threadcontext(&tcontext, p)) ;
-   TEST(3 == tcontext.thread_id) ;
+   TEST(4 == tcontext.thread_id) ;
    TEST(4 == s_threadcontext_nextid) ;
-   tcontext.thread_id = 0 ; // simulate main thread
+   tcontext.thread_id = 1 ; // simulate main thread
    TEST(0 == free_threadcontext(&tcontext)) ;
    TEST(0 == tcontext.thread_id) ;
    TEST(0 == s_threadcontext_nextid) ; // reset
 
    // TEST init_threadcontext: ERROR
+   s_threadcontext_nextid = 0 ;
    for(unsigned i = 1; i; ++i) {
       init_testerrortimer(&s_threadcontext_errtimer, i, (int)i) ;
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
       int err = init_threadcontext(&tcontext, p) ;
       if (err == 0) {
+         TEST(1 == s_threadcontext_nextid) ;
          TEST(0 == free_threadcontext(&tcontext)) ;
+         TEST(0 == s_threadcontext_nextid) ;    // reset
          TEST(i > nrsvc) ;
          break ;
       }
+      TEST(0 == s_threadcontext_nextid) ; // not changed
       TEST(i == (unsigned)err) ;
       TEST(1 == isstatic_threadcontext(&tcontext)) ;
       TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
@@ -622,6 +654,7 @@ static int test_initfree(void)
    return 0 ;
 ONABORT:
    s_threadcontext_errtimer = (test_errortimer_t) test_errortimer_INIT_FREEABLE ;
+   delete_thread(&thread) ;
    return EINVAL ;
 }
 

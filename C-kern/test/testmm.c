@@ -673,7 +673,7 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
    return 0 ;
 ONABORT:
    if (ENOMEM == err) {
-      TRACEOUTOFMEM_LOG(newsize) ;
+      TRACEOUTOFMEM_LOG(newsize, err) ;
    }
    TRACEABORT_LOG(err) ;
    return err ;

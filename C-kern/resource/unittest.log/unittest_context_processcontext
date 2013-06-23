@@ -1,14 +1,42 @@
-C-kern/context/processcontext.c:263: init_processcontext(): error: 1: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 2: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 3: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 4: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 5: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 6: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 7: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 8: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 9: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 10: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 11: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 12: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 13: Function aborted
-C-kern/context/processcontext.c:263: init_processcontext(): error: 14: Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 1 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 2 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 3 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 4 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 5 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 6 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 7 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 8 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 9 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 10 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 11 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 12 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 13 - Function aborted
+[Thread 1]
+init_processcontext() C-kern/context/processcontext.c:263
+Error 14 - Function aborted

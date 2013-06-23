@@ -1,6 +1,18 @@
-C-kern/platform/Linux/sync/thrmutex.c:68: free_thrmutex(): error: 16: Freeing a resource returned an error
-C-kern/platform/Linux/sync/thrmutex.c:68: free_thrmutex(): error: 16: Freeing a resource returned an error
-C-kern/platform/Linux/sync/thrmutex.c:68: free_thrmutex(): error: 16: Freeing a resource returned an error
-C-kern/platform/Linux/sync/thrmutex.c:152: lock_thrmutex(): error: 35: Function aborted
-C-kern/platform/Linux/sync/thrmutex.c:183: unlock_thrmutex(): error: 1: Function aborted
-C-kern/platform/Linux/sync/thrmutex.c:183: unlock_thrmutex(): error: 1: Function aborted
+[Thread 1]
+free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:68
+Error 16 - Freeing a resource returned an error
+[Thread 1]
+free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:68
+Error 16 - Freeing a resource returned an error
+[Thread 1]
+free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:68
+Error 16 - Freeing a resource returned an error
+[Thread 1]
+lock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:152
+Error 35 - Function aborted
+[Thread 1]
+unlock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:183
+Error 1 - Function aborted
+[Thread 1]
+unlock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:183
+Error 1 - Function aborted

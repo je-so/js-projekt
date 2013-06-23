@@ -195,7 +195,7 @@ void abort_maincontext(int err)
 {
    // TODO: add abort handler registration ...
    //       add unit test for checking that resources are freed
-   TRACEERR_LOG(ABORT_FATAL,err) ;
+   TRACEERR_NOARG_LOG(ABORT_FATAL, err) ;
    FLUSHBUFFER_LOG() ;
    abort() ;
 }
@@ -206,8 +206,8 @@ void assertfail_maincontext(
    int          line,
    const char * funcname)
 {
-   ERROR_LOCATION_ERRLOG(log_channel_ERR, file, line, funcname) ;
-   ABORT_ASSERT_FAILED_ERRLOG(log_channel_ERR, EINVAL, condition) ;
+   ERROR_LOCATION_ERRLOG(log_channel_ERR, tcontext_maincontext()->thread_id, funcname, file, line, EINVAL) ;
+   ABORT_ASSERT_FAILED_ERRLOG(log_channel_ERR, condition) ;
    abort_maincontext(EINVAL) ;
 }
 
@@ -218,8 +218,8 @@ void * allocstatic_maincontext(uint8_t size)
    int err ;
 
    if (sizeof(s_maincontext_staticmem) - g_maincontext.size_staticmem < size) {
-      TRACEOUTOFMEM_LOG(size) ;
       err = ENOMEM ;
+      TRACEOUTOFMEM_LOG(size, err) ;
       goto ONABORT ;
    }
 

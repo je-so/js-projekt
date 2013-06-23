@@ -1,71 +1,213 @@
-C-kern/math/float/decimal.c:1461: new_decimal(): error: 22: Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
-C-kern/math/float/decimal.c:1473: new_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:1461: new_decimal(): error: 22: Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
-C-kern/math/float/decimal.c:1473: new_decimal(): error: 22: Function aborted
-C-kern/test/testmm.c:676: mresize_testmm(): error: Could not allocate 8 bytes of memory
-C-kern/test/testmm.c:678: mresize_testmm(): error: 12: Function aborted
-C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 12: Function aborted
-C-kern/math/float/decimal.c:1473: new_decimal(): error: 12: Function aborted
-C-kern/test/testmm.c:724: mfree_testmm(): error: 12: Function aborted
-C-kern/math/float/decimal.c:1494: delete_decimal(): error: 12: Freeing a resource returned an error
-C-kern/test/testmm.c:676: mresize_testmm(): error: Could not allocate 12 bytes of memory
-C-kern/test/testmm.c:678: mresize_testmm(): error: 12: Function aborted
-C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 12: Function aborted
-C-kern/math/float/decimal.c:1794: setfromint32_decimal(): error: 12: Function aborted
-C-kern/test/testmm.c:676: mresize_testmm(): error: Could not allocate 16 bytes of memory
-C-kern/test/testmm.c:678: mresize_testmm(): error: 12: Function aborted
-C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 12: Function aborted
-C-kern/math/float/decimal.c:1833: setfromint64_decimal(): error: 12: Function aborted
-C-kern/math/float/decimal.c:1794: setfromint32_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:1794: setfromint32_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:1833: setfromint64_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:1833: setfromint64_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:1848: setfromfloat_decimal(): error: 22: Function input violates condition (isfinite(value))
-C-kern/math/float/decimal.c:2061: setfromfloat_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:1848: setfromfloat_decimal(): error: 22: Function input violates condition (isfinite(value))
-C-kern/math/float/decimal.c:2061: setfromfloat_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:1848: setfromfloat_decimal(): error: 22: Function input violates condition (isfinite(value))
-C-kern/math/float/decimal.c:2061: setfromfloat_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2216: setfromchar_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:609: add_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2238: add_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:787: sub_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2257: sub_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:609: add_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2238: add_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:787: sub_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2257: sub_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:428: allocate_decimalhelper(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2307: mult_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2307: mult_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2307: mult_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2388: divi32_decimal(): error: 22: Function input violates condition (divisor != 0 && divisor <= DIGITSBASE)
-C-kern/math/float/decimal.c:2419: divi32_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2388: divi32_decimal(): error: 22: Function input violates condition (divisor != 0 && divisor <= DIGITSBASE)
-C-kern/math/float/decimal.c:2419: divi32_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2419: divi32_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2419: divi32_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2379: div_decimal(): error: 22: Function aborted
-C-kern/math/float/decimal.c:2379: div_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2379: div_decimal(): error: 75: Function aborted
-C-kern/math/float/decimal.c:2379: div_decimal(): error: 75: Function aborted
+[Thread 1]
+new_decimal() C-kern/math/float/decimal.c:1461
+Error 22 - Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
+[Thread 1]
+new_decimal() C-kern/math/float/decimal.c:1473
+Error 22 - Function aborted
+[Thread 1]
+new_decimal() C-kern/math/float/decimal.c:1461
+Error 22 - Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
+[Thread 1]
+new_decimal() C-kern/math/float/decimal.c:1473
+Error 22 - Function aborted
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:676
+Error 12 - Could not allocate 8 bytes of memory
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:678
+Error 12 - Function aborted
+[Thread 1]
+allocate_decimalhelper() C-kern/math/float/decimal.c:428
+Error 12 - Function aborted
+[Thread 1]
+new_decimal() C-kern/math/float/decimal.c:1473
+Error 12 - Function aborted
+[Thread 1]
+mfree_testmm() C-kern/test/testmm.c:724
+Error 12 - Function aborted
+[Thread 1]
+delete_decimal() C-kern/math/float/decimal.c:1494
+Error 12 - Freeing a resource returned an error
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:676
+Error 12 - Could not allocate 12 bytes of memory
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:678
+Error 12 - Function aborted
+[Thread 1]
+allocate_decimalhelper() C-kern/math/float/decimal.c:428
+Error 12 - Function aborted
+[Thread 1]
+setfromint32_decimal() C-kern/math/float/decimal.c:1794
+Error 12 - Function aborted
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:676
+Error 12 - Could not allocate 16 bytes of memory
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:678
+Error 12 - Function aborted
+[Thread 1]
+allocate_decimalhelper() C-kern/math/float/decimal.c:428
+Error 12 - Function aborted
+[Thread 1]
+setfromint64_decimal() C-kern/math/float/decimal.c:1833
+Error 12 - Function aborted
+[Thread 1]
+setfromint32_decimal() C-kern/math/float/decimal.c:1794
+Error 75 - Function aborted
+[Thread 1]
+setfromint32_decimal() C-kern/math/float/decimal.c:1794
+Error 75 - Function aborted
+[Thread 1]
+setfromint64_decimal() C-kern/math/float/decimal.c:1833
+Error 75 - Function aborted
+[Thread 1]
+setfromint64_decimal() C-kern/math/float/decimal.c:1833
+Error 75 - Function aborted
+[Thread 1]
+setfromfloat_decimal() C-kern/math/float/decimal.c:1848
+Error 22 - Function input violates condition (isfinite(value))
+[Thread 1]
+setfromfloat_decimal() C-kern/math/float/decimal.c:2061
+Error 22 - Function aborted
+[Thread 1]
+setfromfloat_decimal() C-kern/math/float/decimal.c:1848
+Error 22 - Function input violates condition (isfinite(value))
+[Thread 1]
+setfromfloat_decimal() C-kern/math/float/decimal.c:2061
+Error 22 - Function aborted
+[Thread 1]
+setfromfloat_decimal() C-kern/math/float/decimal.c:1848
+Error 22 - Function input violates condition (isfinite(value))
+[Thread 1]
+setfromfloat_decimal() C-kern/math/float/decimal.c:2061
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 22 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 75 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 75 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 75 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 75 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 75 - Function aborted
+[Thread 1]
+setfromchar_decimal() C-kern/math/float/decimal.c:2216
+Error 75 - Function aborted
+[Thread 1]
+allocate_decimalhelper() C-kern/math/float/decimal.c:428
+Error 75 - Function aborted
+[Thread 1]
+add_decimalhelper() C-kern/math/float/decimal.c:609
+Error 75 - Function aborted
+[Thread 1]
+add_decimal() C-kern/math/float/decimal.c:2238
+Error 75 - Function aborted
+[Thread 1]
+allocate_decimalhelper() C-kern/math/float/decimal.c:428
+Error 75 - Function aborted
+[Thread 1]
+sub_decimalhelper() C-kern/math/float/decimal.c:787
+Error 75 - Function aborted
+[Thread 1]
+sub_decimal() C-kern/math/float/decimal.c:2257
+Error 75 - Function aborted
+[Thread 1]
+allocate_decimalhelper() C-kern/math/float/decimal.c:428
+Error 75 - Function aborted
+[Thread 1]
+add_decimalhelper() C-kern/math/float/decimal.c:609
+Error 75 - Function aborted
+[Thread 1]
+add_decimal() C-kern/math/float/decimal.c:2238
+Error 75 - Function aborted
+[Thread 1]
+allocate_decimalhelper() C-kern/math/float/decimal.c:428
+Error 75 - Function aborted
+[Thread 1]
+sub_decimalhelper() C-kern/math/float/decimal.c:787
+Error 75 - Function aborted
+[Thread 1]
+sub_decimal() C-kern/math/float/decimal.c:2257
+Error 75 - Function aborted
+[Thread 1]
+allocate_decimalhelper() C-kern/math/float/decimal.c:428
+Error 75 - Function aborted
+[Thread 1]
+mult_decimal() C-kern/math/float/decimal.c:2307
+Error 75 - Function aborted
+[Thread 1]
+mult_decimal() C-kern/math/float/decimal.c:2307
+Error 75 - Function aborted
+[Thread 1]
+mult_decimal() C-kern/math/float/decimal.c:2307
+Error 75 - Function aborted
+[Thread 1]
+divi32_decimal() C-kern/math/float/decimal.c:2388
+Error 22 - Function input violates condition (divisor != 0 && divisor <= DIGITSBASE)
+[Thread 1]
+divi32_decimal() C-kern/math/float/decimal.c:2419
+Error 22 - Function aborted
+[Thread 1]
+divi32_decimal() C-kern/math/float/decimal.c:2388
+Error 22 - Function input violates condition (divisor != 0 && divisor <= DIGITSBASE)
+[Thread 1]
+divi32_decimal() C-kern/math/float/decimal.c:2419
+Error 22 - Function aborted
+[Thread 1]
+divi32_decimal() C-kern/math/float/decimal.c:2419
+Error 75 - Function aborted
+[Thread 1]
+divi32_decimal() C-kern/math/float/decimal.c:2419
+Error 75 - Function aborted
+[Thread 1]
+div_decimal() C-kern/math/float/decimal.c:2379
+Error 22 - Function aborted
+[Thread 1]
+div_decimal() C-kern/math/float/decimal.c:2379
+Error 75 - Function aborted
+[Thread 1]
+div_decimal() C-kern/math/float/decimal.c:2379
+Error 75 - Function aborted
+[Thread 1]
+div_decimal() C-kern/math/float/decimal.c:2379
+Error 75 - Function aborted

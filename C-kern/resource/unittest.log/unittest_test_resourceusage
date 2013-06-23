@@ -1,12 +1,36 @@
-C-kern/test/resourceusage.c:152: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
-C-kern/test/resourceusage.c:162: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
-C-kern/test/resourceusage.c:167: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
-C-kern/test/resourceusage.c:172: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
-C-kern/test/resourceusage.c:177: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
-C-kern/test/resourceusage.c:182: same_resourceusage(): error: The number of used resources is different
-C-kern/test/resourceusage.c:192: same_resourceusage(): error: 11: Function aborted
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:152
+Error 11 - The number of used resources is different
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:192
+Error 11 - Function aborted
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:162
+Error 11 - The number of used resources is different
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:192
+Error 11 - Function aborted
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:167
+Error 11 - The number of used resources is different
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:192
+Error 11 - Function aborted
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:172
+Error 11 - The number of used resources is different
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:192
+Error 11 - Function aborted
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:177
+Error 11 - The number of used resources is different
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:192
+Error 11 - Function aborted
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:182
+Error 11 - The number of used resources is different
+[Thread 1]
+same_resourceusage() C-kern/test/resourceusage.c:192
+Error 11 - Function aborted

@@ -72,8 +72,8 @@ struct threadcontext_t {
    iobj_DECLARE(,log)         log ;
    /* variable: thread_id
     * Identification number which is incremented every time a thread is created.
-    * The main thread has id 0. If SIZE_MAX is reached the value is wrapped around
-    * to number 1 which may be no more unique. */
+    * The main thread has id 1. If SIZE_MAX is reached the value is wrapped around
+    * to number 2 which may be no more unique. */
    size_t                     thread_id ;
    /* variable: initcount
     * Number of correct initialized objects. */

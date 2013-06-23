@@ -1113,7 +1113,7 @@ static int test_statequery(void)
       TEST(0 == process) ;
    }
 
-   // TEST state query returns latest state
+   // TEST state_process: returns latest state
    TEST(0 == initgeneric_process(&process, &childprocess_statechange, pipefd[1], 0)) ;
    {
       // wait until child has started
@@ -1122,7 +1122,7 @@ static int test_statequery(void)
       TEST(0 == strcmp(buffer, "sleep\n")) ;
    }
    sleepms_thread(10) ;
-   // TEST process_state_STOPPED
+   // -- process_state_STOPPED
    TEST(0 == state_process(&process, &process_state)) ;
    TEST(process_state_STOPPED == process_state) ;
    process_state = process_state_RUNNABLE ;
@@ -1135,7 +1135,7 @@ static int test_statequery(void)
       TEST(0 <= read(pipefd[0], buffer, sizeof(buffer)-1)) ;
       TEST(0 == strcmp(buffer, "run\n")) ;
    }
-   // TEST process_state_RUNNABLE
+   // -- process_state_RUNNABLE
    TEST(0 == state_process(&process, &process_state)) ;
    TEST(process_state_RUNNABLE == process_state) ;
    process_state = process_state_STOPPED ;
@@ -1143,7 +1143,7 @@ static int test_statequery(void)
    TEST(process_state_RUNNABLE == process_state) ;
    TEST(0 == kill(process, SIGKILL)) ;
    sleepms_thread(10) ;
-   // TEST process_state_ABORTED
+   // -- process_state_ABORTED
    TEST(0 == state_process(&process, &process_state)) ;
    TEST(process_state_ABORTED == process_state) ;
    process_state = process_state_STOPPED ;
@@ -1194,7 +1194,7 @@ static int test_exec(void)
       TEST(0 == free_process(&process)) ;
    }
 
-   // TEST open file descriptors (case2)
+   // TEST initexec_process: open file descriptors (case2)
    for (int i = 1; i <= 3; ++i) {
       stdfd = (process_stdio_t) process_stdio_INIT_DEVNULL ;
       redirecterr_processstdio(&stdfd, fd[1]) ;
@@ -1207,7 +1207,7 @@ static int test_exec(void)
       TEST(0 == free_process(&process)) ;
       MEMSET0(&readbuffer) ;
       TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
-      TEST(1 == strlen(readbuffer)) ;
+      TEST(2 >= strlen(readbuffer)) ;
       // either 3 or more files (X11+GLX opens some fds which are inherited)
       TEST(3 <= atoi(readbuffer)) ;
    }
@@ -1322,7 +1322,7 @@ int unittest_platform_task_process()
    char * buffer = 0 ;
    size_t size   = 0 ;
    GETBUFFER_LOG(&buffer, &size) ;
-   char buffer2[1000] = { 0 } ;
+   char buffer2[2000] = { 0 } ;
    assert(size < sizeof(buffer2)) ;
    size = 0 ;
    while (strstr(buffer, "\npid=")) {

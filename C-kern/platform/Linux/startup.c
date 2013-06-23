@@ -69,7 +69,7 @@ static void callmain_platform(void)
    bool is_abort ;
    if (  setcontinue_thread(&is_abort)
          || is_abort) {
-      #define ERRSTR1 "startup_platform() at "
+      #define ERRSTR1 "startup_platform() "
       #define ERRSTR2 ":" STR(__LINE__) "\naborted\n"
       ssize_t written = write(STDERR_FILENO, ERRSTR1, sizeof(ERRSTR1)-1)
                       + write(STDERR_FILENO, __FILE__, strlen(__FILE__))
@@ -165,7 +165,7 @@ ONABORT:
    err2 = freestartup_threadtls(&tls) ;
    if (err2 && !err) err = errno ;
    if (err) {
-      #define ERRSTR1 "startup_platform() at "
+      #define ERRSTR1 "startup_platform() "
       #define ERRSTR2 ":%.4u\nError %.4u\n"
       char errstr2[sizeof(ERRSTR2)] ;
       snprintf(errstr2, sizeof(errstr2), ERRSTR2, (linenr&0x1FFF), (err&0x1FFF)) ;
@@ -260,7 +260,7 @@ static int test_startup(void)
       uint8_t  buffer[80] ;
       ssize_t  len = 0 ;
       len = read(pfd[0], buffer, sizeof(buffer)) ;
-      TEST(70 == len) ;
+      TEST(67 == len) ;
       buffer[len] = 0 ;
       PRINTF_LOG("%s", buffer) ;
    }
@@ -280,7 +280,7 @@ static int test_startup(void)
       uint8_t  buffer[80] ;
       ssize_t  len = 0 ;
       len = read(pfd[0], buffer, sizeof(buffer)) ;
-      TEST(65 == len) ;
+      TEST(62 == len) ;
       buffer[len] = 0 ;
       PRINTF_LOG("%s", buffer) ;
    }

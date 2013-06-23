@@ -1,15 +1,41 @@
-C-kern/ds/inmem/arraysf.c:115: new_arraysf(): error: 22: Function input violates condition (toplevelsize <= 0x00800000)
+[Thread 1]
+new_arraysf() C-kern/ds/inmem/arraysf.c:115
+Error 22 - Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
-C-kern/ds/inmem/arraysf.c:131: new_arraysf(): error: 22: Function aborted
-C-kern/ds/inmem/arraysf.c:116: new_arraysf(): error: 22: Function input violates condition (posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize))
+[Thread 1]
+new_arraysf() C-kern/ds/inmem/arraysf.c:131
+Error 22 - Function aborted
+[Thread 1]
+new_arraysf() C-kern/ds/inmem/arraysf.c:116
+Error 22 - Function input violates condition (posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize))
 posshift=25
-C-kern/ds/inmem/arraysf.c:131: new_arraysf(): error: 22: Function aborted
-C-kern/ds/inmem/arraysf.c:459: insert_arraysf(): error: 17: Function aborted
-C-kern/ds/inmem/arraysf.c:441: remove_arraysf(): error: 3: Function aborted
-C-kern/ds/inmem/arraysf.c:214: delete_arraysf(): error: 12345: Freeing a resource returned an error
-C-kern/test/testmm.c:676: mresize_testmm(): error: Could not allocate 20 bytes of memory
-C-kern/test/testmm.c:678: mresize_testmm(): error: 12: Function aborted
-C-kern/ds/inmem/arraysf.c:366: tryinsert_arraysf(): error: 12: Function aborted
-C-kern/test/testmm.c:676: mresize_testmm(): error: Could not allocate 20 bytes of memory
-C-kern/test/testmm.c:678: mresize_testmm(): error: 12: Function aborted
-C-kern/ds/inmem/arraysf.c:366: tryinsert_arraysf(): error: 12: Function aborted
+[Thread 1]
+new_arraysf() C-kern/ds/inmem/arraysf.c:131
+Error 22 - Function aborted
+[Thread 1]
+insert_arraysf() C-kern/ds/inmem/arraysf.c:459
+Error 17 - Function aborted
+[Thread 1]
+remove_arraysf() C-kern/ds/inmem/arraysf.c:441
+Error 3 - Function aborted
+[Thread 1]
+delete_arraysf() C-kern/ds/inmem/arraysf.c:214
+Error 12345 - Freeing a resource returned an error
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:676
+Error 12 - Could not allocate 20 bytes of memory
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:678
+Error 12 - Function aborted
+[Thread 1]
+tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:366
+Error 12 - Function aborted
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:676
+Error 12 - Could not allocate 20 bytes of memory
+[Thread 1]
+mresize_testmm() C-kern/test/testmm.c:678
+Error 12 - Function aborted
+[Thread 1]
+tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:366
+Error 12 - Function aborted

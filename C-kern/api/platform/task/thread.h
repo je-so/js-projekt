@@ -327,7 +327,7 @@ int setcontinue_thread(bool * is_abort) ;
 
 /* define: self_thread
  * Implements <thread_t.self_thread>. */
-#define self_thread()                     ((thread_t*)(&sys_context_threadtls()[1]))
+#define self_thread()                     (sys_thread_threadtls())
 
 /* define: setcontinue_thread
  * Implements <thread_t.setcontinue_thread>. */

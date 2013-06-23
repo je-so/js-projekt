@@ -104,7 +104,7 @@ static int parsechar_csvfilereaderparsestate(csvfilereader_parsestate_t * state,
 {
    if (state->offset >= state->length || state->data[state->offset] != chr) {
       const char str[2] = { (char)chr, 0 } ;
-      TRACEERR_LOG(PARSEERROR_EXPECTCHAR, state->linenr, colnr_csvfilereaderparsestate(state), str) ;
+      TRACEERR_LOG(PARSEERROR_EXPECTCHAR, EINVAL, state->linenr, colnr_csvfilereaderparsestate(state), str) ;
       return EINVAL ;
    }
    ++ state->offset ;
@@ -166,8 +166,8 @@ static int parsenrcolumns_csvfilereaderparsestate(csvfilereader_parsestate_t * s
          if (state2.offset >= state2.length || state->linenr != state2.linenr) {
             state2.startofline = state->startofline ;
             state2.offset      = erroffset ;
-            TRACEERR_LOG(PARSEERROR_EXPECTCHAR, state->linenr, colnr_csvfilereaderparsestate(&state2), "\"") ;
             err = EINVAL ;
+            TRACEERR_LOG(PARSEERROR_EXPECTCHAR, err, state->linenr, colnr_csvfilereaderparsestate(&state2), "\"") ;
             goto ONABORT ;
          }
       }
@@ -238,8 +238,8 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
          if (err) goto ONABORT ;
       }
       if (oldlinenr == state->linenr) {
-         TRACEERR_LOG(PARSEERROR_EXPECTNEWLINE, state->linenr, colnr_csvfilereaderparsestate(state)) ;
          err = EINVAL ;
+         TRACEERR_LOG(PARSEERROR_EXPECTNEWLINE, err, state->linenr, colnr_csvfilereaderparsestate(state)) ;
          goto ONABORT ;
       }
       size_t startofline = state->startofline ;
@@ -252,8 +252,8 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
          if (oldlinenr != state->linenr) {
             state->startofline = startofline ;
             state->offset      = erroffset ;
-            TRACEERR_LOG(PARSEERROR_EXPECTCHAR, oldlinenr, colnr_csvfilereaderparsestate(state), ",") ;
             err = EINVAL ;
+            TRACEERR_LOG(PARSEERROR_EXPECTCHAR, err, oldlinenr, colnr_csvfilereaderparsestate(state), ",") ;
             goto ONABORT ;
          }
          err = parsechar_csvfilereaderparsestate(state, (uint8_t)',') ;
@@ -263,8 +263,8 @@ static int parsedata_csvfilereader(csvfilereader_t * csvfile, csvfilereader_pars
          if (oldlinenr != state->linenr) {
             state->startofline = startofline ;
             state->offset      = erroffset ;
-            TRACEERR_LOG(PARSEERROR_EXPECTCHAR, oldlinenr, colnr_csvfilereaderparsestate(state), "\"") ;
             err = EINVAL ;
+            TRACEERR_LOG(PARSEERROR_EXPECTCHAR, err, oldlinenr, colnr_csvfilereaderparsestate(state), "\"") ;
             goto ONABORT ;
          }
          err = parsedatafield_csvfilereaderparsestate(state, &csvfile->tablevalues[tableindex ++]) ;
