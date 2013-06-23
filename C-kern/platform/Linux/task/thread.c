@@ -69,15 +69,15 @@ static test_errortimer_t   s_thread_errtimer = test_errortimer_INIT_FREEABLE ;
 /* function: main_thread
  * The start function of the thread.
  * This is the same for all threads.
- * It initializes signalstack the <threadcontext_t> variable
- * and calls the user supplied main function. */
+ * It initializes signalstack, <threadcontext_t>, and
+ * calls the user supplied main function. */
 static void * main_thread(thread_startargument_t * startarg)
 {
    int err ;
 
    thread_t * thread = self_thread() ;
 
-   assert(startarg->self == self_thread()) ;
+   assert(startarg->self == thread) ;
 
    thread->sys_thread = pthread_self() ;
 
@@ -1518,7 +1518,7 @@ int unittest_platform_task_thread()
 
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
+   free_resourceusage(&usage) ;
    return EINVAL ;
 }
 #endif

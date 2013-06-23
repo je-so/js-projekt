@@ -52,12 +52,31 @@ int unittest_context_threadcontext(void) ;
  * Stores services useable exclusively from one thread.
  * */
 struct threadcontext_t {
+   /* variable: pcontext
+    * Points to shared <processcontext_t>. */
    struct processcontext_t *  pcontext ;
+   /* variable: pagecache
+    * Thread local virtual memory page manager. */
    iobj_DECLARE(,pagecache)   pagecache ;
+   /* variable: mm
+    * Thread local memory manager. */
    iobj_DECLARE(,mm)          mm ;
+   /* variable: syncrun
+    * Thread local syncronous task support. */
    struct syncrun_t *         syncrun ;
+   /* variable: objectcache
+    * Thread local erorr object cache. */
    iobj_DECLARE(,objectcache) objectcache ;
+   /* variable: log
+    * Thread local erorr log. */
    iobj_DECLARE(,log)         log ;
+   /* variable: thread_id
+    * Identification number which is incremented every time a thread is created.
+    * The main thread has id 0. If SIZE_MAX is reached the value is wrapped around
+    * to number 1 which may be no more unique. */
+   size_t                     thread_id ;
+   /* variable: initcount
+    * Number of correct initialized objects. */
    size_t                     initcount ;
 } ;
 
@@ -66,7 +85,7 @@ struct threadcontext_t {
 /* define: threadcontext_INIT_FREEABLE
  * Static initializer for <threadcontext_t>. */
 #define threadcontext_INIT_FREEABLE   \
-         { 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0 }
+         { 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, 0 }
 
 /* define: threadcontext_INIT_STATIC
  * Static initializer for <threadcontext_t>.
@@ -74,7 +93,7 @@ struct threadcontext_t {
  * even without calling <init_maincontext> first.
  */
 #define threadcontext_INIT_STATIC   \
-         { &g_maincontext.pcontext, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, { (struct log_t*)&g_logmain, &g_logmain_interface }, 0 }
+         { &g_maincontext.pcontext, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, { (struct log_t*)&g_logmain, &g_logmain_interface }, 0, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.

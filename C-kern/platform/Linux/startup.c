@@ -91,7 +91,6 @@ int startup_platform(int argc, const char ** argv, mainthread_f main_thread)
 {
    volatile int err ;
    volatile int linenr ;
-   int err2 ;
    int               retcode = 0 ;
    volatile int      is_exit = 0 ;
    init_argument_t   initarg = { argc, argv } ;
@@ -158,7 +157,7 @@ ONABORT:
    if (!err) linenr = __LINE__ ;
    SETONERROR_testerrortimer(&s_platform_errtimer, &err) ;
    altstack = (stack_t) { .ss_flags = SS_DISABLE } ;
-   err2 = sigaltstack(&altstack, 0) ;
+   int err2 = sigaltstack(&altstack, 0) ;
    if (err2 && !err) err = errno ;
 
    if (!err) linenr = __LINE__ ;

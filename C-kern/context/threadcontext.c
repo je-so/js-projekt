@@ -28,6 +28,7 @@
 #include "C-kern/api/context/threadcontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/writer/log/logmain.h"
+#include "C-kern/api/math/int/atomic.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/mm/mm.h"
@@ -53,6 +54,10 @@
  * Simulates an error in <init_threadcontext>. */
 static test_errortimer_t   s_threadcontext_errtimer = test_errortimer_INIT_FREEABLE ;
 #endif
+
+/* variable: s_threadcontext_nextid
+ * The next id which is assigned to <threadcontext_t.thread_id>. */
+static size_t              s_threadcontext_nextid = 0 ;
 
 // group: helper
 
@@ -284,7 +289,13 @@ int free_threadcontext(threadcontext_t * tcontext)
    case 0:     break ;
    }
 
-   tcontext->pcontext = statictcontext.pcontext ;
+   if (! tcontext->thread_id) {
+      // end main thread => reset s_threadcontext_nextid
+      s_threadcontext_nextid = 0 ;
+   }
+
+   tcontext->pcontext  = statictcontext.pcontext ;
+   tcontext->thread_id = statictcontext.thread_id ;
 
    if (err) goto ONABORT ;
 
@@ -331,6 +342,10 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
    ++tcontext->initcount ;
 // TEXTDB:END
 
+   do {
+      tcontext->thread_id = atomicadd_int(&s_threadcontext_nextid, 1) ;
+   } while (! tcontext->thread_id) ;  // if wrapped around ? => repeat
+
    ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
 
    return 0 ;
@@ -350,6 +365,7 @@ bool isstatic_threadcontext(const threadcontext_t * tcontext)
             && 0 == tcontext->syncrun
             && 0 == tcontext->objectcache.object && 0 == tcontext->objectcache.iimpl
             && (struct log_t*)&g_logmain == tcontext->log.object && &g_logmain_interface == tcontext->log.iimpl
+            && 0 == tcontext->thread_id
             && 0 == tcontext->initcount ;
 }
 
@@ -529,6 +545,7 @@ static int test_initfree(void)
    TEST(0 == tcontext.objectcache.iimpl) ;
    TEST(0 == (logmain_t*)tcontext.log.object) ;
    TEST(0 == tcontext.log.iimpl) ;
+   TEST(0 == tcontext.thread_id) ;
    TEST(0 == tcontext.initcount) ;
 
    // TEST threadcontext_INIT_STATIC
@@ -550,6 +567,7 @@ static int test_initfree(void)
    TEST(0 != tcontext.log.iimpl) ;
    TEST(&g_logmain           != (logmain_t*)tcontext.log.object) ;
    TEST(&g_logmain_interface != tcontext.log.iimpl) ;
+   TEST(0 != tcontext.thread_id) ;
    TEST(nrsvc == tcontext.initcount) ;
    TEST(SIZESTATIC_PAGECACHE() > sizestatic) ;
 
@@ -560,6 +578,28 @@ static int test_initfree(void)
    TEST(0 == free_threadcontext(&tcontext)) ;
    TEST(1 == isstatic_threadcontext(&tcontext)) ;
    TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+
+   // TEST init_threadcontext: thread_id wrap around
+   s_threadcontext_nextid = 0 ;
+   TEST(0 == init_threadcontext(&tcontext, p)) ;
+   TEST(1 == tcontext.thread_id) ;
+   TEST(2 == s_threadcontext_nextid) ;
+   TEST(0 == free_threadcontext(&tcontext)) ;
+   TEST(0 == tcontext.thread_id) ;
+   TEST(0 == init_threadcontext(&tcontext, p)) ;
+   TEST(2 == tcontext.thread_id) ;
+   TEST(3 == s_threadcontext_nextid) ;
+   TEST(0 == free_threadcontext(&tcontext)) ;
+   TEST(0 == tcontext.thread_id) ;
+
+   // TEST free_threadcontext: reset s_threadcontext_nextid in case of main thread
+   TEST(0 == init_threadcontext(&tcontext, p)) ;
+   TEST(3 == tcontext.thread_id) ;
+   TEST(4 == s_threadcontext_nextid) ;
+   tcontext.thread_id = 0 ; // simulate main thread
+   TEST(0 == free_threadcontext(&tcontext)) ;
+   TEST(0 == tcontext.thread_id) ;
+   TEST(0 == s_threadcontext_nextid) ; // reset
 
    // TEST init_threadcontext: ERROR
    for(unsigned i = 1; i; ++i) {
@@ -621,6 +661,12 @@ static int test_query(void)
    tcontext.log.iimpl = 0 ;
    TEST(0 == isstatic_threadcontext(&tcontext)) ;
    tcontext.log.iimpl = &g_logmain_interface ;
+   tcontext.thread_id = 1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.thread_id = 0 ;
+   tcontext.initcount = 1 ;
+   TEST(0 == isstatic_threadcontext(&tcontext)) ;
+   tcontext.initcount = 0 ;
    TEST(1 == isstatic_threadcontext(&tcontext)) ;
 
    return 0 ;
@@ -647,6 +693,7 @@ ONABORT:
 
 int unittest_context_threadcontext()
 {
+   size_t            oldid = s_threadcontext_nextid ;
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
    TEST(0 == init_resourceusage(&usage)) ;
@@ -660,8 +707,10 @@ int unittest_context_threadcontext()
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
+   s_threadcontext_nextid = oldid ;
    return 0 ;
 ONABORT:
+   s_threadcontext_nextid = oldid ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }

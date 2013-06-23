@@ -68,7 +68,9 @@ struct thread_tls_t {
  * Allocates a memory block big enoug to hold all thread local storage data.
  * The access rights of parts of the memory block is changed to protect
  * the stack from overflowing.
- * The allocated memory block is aligned to its own size. */
+ * The allocated memory block is aligned to its own size.
+ * The thread local variables (<threadcontext_t> and <thread_t>) are initialized
+ * with their INIT_STATIC resp. INIT_FREEABLE values. */
 int init_threadtls(/*out*/thread_tls_t * tls) ;
 
 /* function: free_threadtls
