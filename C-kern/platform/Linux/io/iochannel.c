@@ -803,8 +803,6 @@ int unittest_io_iochannel()
    directory_t *     tempdir    = 0 ;
    iochannel_t       ioc[20] ;
 
-   EMPTYCACHE_PAGECACHE() ;
-
    TEST(0 == init_resourceusage(&usage)) ;
 
    TEST(0 == newtemp_directory(&tempdir, "iochanneltest", 0)) ;
@@ -829,8 +827,6 @@ int unittest_io_iochannel()
    }
 
    TEST(0 == delete_directory(&tempdir)) ;
-
-   EMPTYCACHE_PAGECACHE() ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

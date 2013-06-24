@@ -29,7 +29,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/pagecache.h"
+#include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/memory/mm/mm.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
@@ -53,6 +53,8 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    memblock_t           memmapreg     = memblock_INIT_FREEABLE ;
    vm_mappedregions_t * mappedregions = 0 ;
    signalconfig_t     * signalconfig  = 0 ;
+
+   EMPTYCACHE_PAGECACHE() ;
 
    err = nropen_iochannel(&fds) ;
    if (err) goto ONABORT ;

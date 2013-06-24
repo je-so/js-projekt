@@ -1699,8 +1699,6 @@ int unittest_ds_inmem_arraystf()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
-   EMPTYCACHE_PAGECACHE() ;
-
    for (int i = 0; i < 2; ++i) {
       TEST(0 == init_resourceusage(&usage)) ;
 
@@ -1711,8 +1709,6 @@ int unittest_ds_inmem_arraystf()
       if (test_iterator())       goto ONABORT ;
       if (test_zerokey())        goto ONABORT ;
       if (test_generic())        goto ONABORT ;
-
-      EMPTYCACHE_PAGECACHE() ;
 
       if (0 == same_resourceusage(&usage)) break ;
 
