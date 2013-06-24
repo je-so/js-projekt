@@ -164,8 +164,9 @@ static int new_testmmpage(testmm_page_t ** mmpage, size_t minblocksize, testmm_p
    const size_t   headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
    const size_t   trailersize = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->trailer)) ;
    const size_t   blocksize = (minblocksize + headersize + trailersize) < 1024 * 1024 ? 1024 * 1024 : (minblocksize + headersize + trailersize) ;
-   const size_t   nrpages   = ((blocksize - 1) + pagesize_vm()) / pagesize_vm() ;
-   const size_t   nrpages2  = 2 + ((sizeof(testmm_page_t) - 1 + pagesize_vm()) / pagesize_vm()) ;
+   const size_t   pgsize    = pagesize_vm() ;
+   const size_t   datasize  = (blocksize + (pgsize-1)) & ~(pgsize-1) ;
+   const size_t   extrasize = 2 * pgsize + ((sizeof(testmm_page_t) + (pgsize-1)) & ~(pgsize-1)) ;
    vmpage_t       vmblock   = vmpage_INIT_FREEABLE ;
    testmm_page_t* new_mmpage ;
 
@@ -174,12 +175,11 @@ static int new_testmmpage(testmm_page_t ** mmpage, size_t minblocksize, testmm_p
       goto ONABORT ;
    }
 
-   err = init_vmpage(&vmblock, nrpages + nrpages2) ;
+   err = init_vmpage(&vmblock, datasize + extrasize) ;
    if (err) goto ONABORT ;
 
    new_mmpage = (testmm_page_t*) vmblock.addr ;
    new_mmpage->vmblock   = vmblock ;
-   const size_t datasize = nrpages * pagesize_vm() ;
    new_mmpage->datablock = (memblock_t) memblock_INIT(datasize, vmblock.addr + vmblock.size - pagesize_vm() - datasize) ;
    new_mmpage->freeblock = new_mmpage->datablock ;
    new_mmpage->next      = next ;

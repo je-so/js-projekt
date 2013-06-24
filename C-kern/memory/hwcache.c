@@ -56,14 +56,14 @@ ONABORT:
 static int test_prefetch(void)
 {
    vmpage_t       memblock = vmpage_INIT_FREEABLE ;
-   const uint32_t nrpages  = (256*1024*1024) / pagesize_vm() ;
+   const uint32_t blksize  = (256*1024*1024) ;
    int64_t        time_noprefetch = INT64_MAX ;
    int64_t        time_prefetch   = INT64_MAX ;
    timevalue_t    starttm, endtm ;
    uint64_t       sum, sum2 = 0 ;
 
    // prepare
-   TEST(0 == init_vmpage(&memblock, nrpages)) ;
+   TEST(0 == init_vmpage(&memblock, blksize)) ;
    memset(memblock.addr, 0x03, memblock.size) ;
    uint32_t * const endmem = (uint32_t*) (memblock.addr + memblock.size) ;
 

@@ -324,7 +324,7 @@ static int test_query(void)
 
    // TEST same_resourceusage: EAGAIN cause of virtual memory
    TEST(0 == init_resourceusage(&usage)) ;
-   TEST(0 == init_vmpage(&vmblock,1)) ;
+   TEST(0 == init_vmpage(&vmblock, pagesize_vm())) ;
    TEST(EAGAIN == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
    TEST(0 == free_vmpage(&vmblock)) ;

@@ -30,19 +30,19 @@
 
 /* typedef: struct vmpage_t
  * Exports <vmpage_t> into global namespace. */
-typedef struct vmpage_t                vmpage_t ;
+typedef struct vmpage_t                   vmpage_t ;
 
 /* typedef: struct vm_region_t
  * Exports <vm_region_t>, describes a single virtual memory region. */
-typedef struct vm_region_t             vm_region_t ;
+typedef struct vm_region_t                vm_region_t ;
 
 /* typedef: struct vm_mappedregions_t
  * Exports <vm_mappedregions_t>, description of all mapped memory. */
-typedef struct vm_mappedregions_t      vm_mappedregions_t ;
+typedef struct vm_mappedregions_t         vm_mappedregions_t ;
 
 /* typedef: struct vm_regionsarray_t
  * Internal type used by <vm_mappedregions_t>. */
-typedef struct vm_regionsarray_t       vm_regionsarray_t ;
+typedef struct vm_regionsarray_t          vm_regionsarray_t ;
 
 
 // section: Functions
@@ -88,13 +88,13 @@ int unittest_platform_vm(void) ;
 struct vmpage_t {
    /* variable: addr
     * Points to start (lowest) address of memory. */
-   uint8_t  * addr ;
+   uint8_t *   addr ;
    /* variable: size
     * Size of memory in bytes <addr> points to.
     * A value of 0 indicates a free memory page.
     * The valid memory region is
     * > addr[ 0 .. size - 1 ] */
-   size_t   size ;
+   size_t      size ;
 } ;
 
 // group: lifetime
@@ -102,29 +102,29 @@ struct vmpage_t {
 /* define: vmpage_INIT_FREEABLE
  * Static initializer. Sets object of type <vmpage_t> to NULL.
  * Unmapping (<free_vmpage>) such a NULL <vmpage_t> is safe. */
-#define vmpage_INIT_FREEABLE           vmpage_INIT(0, 0)
+#define vmpage_INIT_FREEABLE              vmpage_INIT(0, 0)
 
 /* define: vmpage_INIT
  * Static initializer.
  * Precondition:
  * o Make sure that size is a multiple of <pagesize_vm>. */
-#define vmpage_INIT(size, addr)        { addr, size }
+#define vmpage_INIT(size, addr)           { addr, size }
 
 /* function: init_vmpage
- * New memory is mapped into the virtual address space of the calling process.
- * TODO: change size_in_pages into size_in_bytes
- * The new memory has size == size_in_pages * <pagesize_vm>.
- * It is read and writeable and not shared between processes.
- * But a child process can access its content after a fork (COPY_ON_WRITE semantics). */
-int init_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_pages) ;
+ * Map memory into the virtual address space of the calling process.
+ * The memory size is size_in_bytes rounded up to next multiple of <pagesize_vm>.
+ * It is read and writeable. All the changed content is private to the current processes.
+ * A child process can access its content after a fork but see no changes
+ * the parent process also see no changes (COPY_ON_WRITE semantics). */
+int init_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_bytes) ;
 
 /* function: init_vmpage
- * New memory is mapped into the virtual address space of the calling process.
- * The new memory has size == size_in_pages * <pagesize_vm>.
+ * Map memory into the virtual address space of the calling process.
+ * The memory size is size_in_bytes rounded up to next multiple of <pagesize_vm>.
  * It is accessible as stated in paramter *access_mode*.
  * A child process can access its content after a fork and a change is shared with the parent process
  * if <accessmode_SHARED> was specified. */
-int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_pages, const accessmode_e access_mode) ;
+int init2_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_bytes, const accessmode_e access_mode) ;
 
 /* function: initaligned_vmpage
  * Map new memory into the virtual address space of the calling process.
@@ -145,7 +145,7 @@ int free_vmpage(vmpage_t * vmpage) ;
 // group: query
 
 /* function: isfree_vmpage
- * Returns true if <vmpage_t.size> is 0. */
+ * Returns true if vmpage equals <vmpage_INIT_FREEABLE>. */
 bool isfree_vmpage(vmpage_t * vmpage) ;
 
 // group: change
@@ -158,29 +158,33 @@ int protect_vmpage(vmpage_t * vmpage, const accessmode_e access_mode) ;
 
 /* function: tryexpand_vmpage
  * Tries to grow the upper bound of an already mapped address range.
+ * The new memory size is size_in_bytes rounded up to next multiple of <pagesize_vm>.
+ * If size_in_bytes is lower than vmpage->size EINVAL is returned and nothing is changed.
  * The start address of virtual memory block is not changed.
  * Returns 0 on success else ENOMEM or another system specific error code.
  * In case of success the new address range is
- * > [old:vmpage->addr .. old:vmpage->addr + old:vmpage->size + increment_in_pages * <pagesize_vm>).
+ * >    [ old:vmpage->addr .. old:vmpage->addr + (size_in_bytes rounded up to multiple of pagesize_vm()))
  * If the memory could not be expanded no error logging is done. */
-int tryexpand_vmpage(vmpage_t * vmpage, size_t increment_in_pages) ;
+int tryexpand_vmpage(vmpage_t * vmpage, size_t size_in_bytes) ;
 
 /* function: movexpand_vmpage
  * Grows an already mapped virtual memory block.
+ * The new memory size is size_in_bytes rounded up to next multiple of <pagesize_vm>.
+ * If size_in_bytes is lower than vmpage->size EINVAL is returned and nothing is changed.
  * If the block can not be expanded (see <tryexpand_vmpage>) it is relocated
- * to a new virtual address with sufficient space.
+ * to a new virtual address with sufficient address space.
  * In case of success the new address range is
- * >    [ old:vmpage->addr .. old:vmpage->addr + old:vmpage->size + increment_in_pages * <pagesize_vm>)
- * > or [ NEW_ADDR .. NEW_ADDR + old:vmpage->size + increment_in_pages * <pagesize_vm>). */
-int movexpand_vmpage(vmpage_t * vmpage, size_t increment_in_pages) ;
+ * >    [ old:vmpage->addr .. old:vmpage->addr + (size_in_bytes rounded up to multiple of pagesize_vm()))
+ * > or [ NEW_ADDR .. NEW_ADDR + (size_in_bytes rounded up to multiple of pagesize_vm())). */
+int movexpand_vmpage(vmpage_t * vmpage, size_t size_in_bytes) ;
 
 /* function: shrink_vmpage
- * Shrinks an already mapped virtual memory block (start addr keeps same).
- * If decrement_in_pages * pagesize_vm() if greater or equal to vmpage->size
- * EINVAL is returned and nothing is changed.
+ * Shrinks the size of an already mapped virtual memory block. The start address keeps same.
+ * The new memory size is size_in_bytes rounded up to next multiple of <pagesize_vm>.
+ * If size_in_bytes is greater than vmpage->size EINVAL is returned and nothing is changed.
  * In case of success the new address range is
- * > [vmpage->addr .. vmpage->addr + vmpage->size - decrement_in_pages * <pagesize_vm>). */
-int shrink_vmpage(vmpage_t * vmpage, size_t decrement_in_pages) ;
+ * > [vmpage->addr .. vmpage->addr + (size_in_bytes rounded up to multiple of pagesize_vm())). */
+int shrink_vmpage(vmpage_t * vmpage, size_t size_in_bytes) ;
 
 // generic
 
@@ -330,13 +334,13 @@ const vm_region_t * next_vmmappedregions(vm_mappedregions_t * iterator) ;
 
 /* define: init_vmpage
  * Implements <vmpage_t.init_vmpage>. */
-#define init_vmpage(vmpage, size_in_pages) \
-         (init2_vmpage((vmpage), (size_in_pages), accessmode_RDWR|accessmode_PRIVATE))
+#define init_vmpage(vmpage, size_in_bytes) \
+         (init2_vmpage((vmpage), (size_in_bytes), accessmode_RDWR|accessmode_PRIVATE))
 
 /* define: isfree_vmpage
  * Implements <vmpage_t.isfree_vmpage>>. */
 #define isfree_vmpage(vmpage)  \
-         (0 == (vmpage)->size)
+         (0 == (vmpage)->addr && 0 == (vmpage)->size)
 
 /* define: log2pagesize_vm
  * Uses cached value from <valuecache_maincontext>. */

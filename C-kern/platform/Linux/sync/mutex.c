@@ -648,7 +648,7 @@ static int test_interprocess(void)
    vmpage_t          shrdmem    = vmpage_INIT_FREEABLE ;
 
    // prepare
-   TEST(0 == init2_vmpage(&shrdmem, 1, accessmode_RDWR_SHARED)) ;
+   TEST(0 == init2_vmpage(&shrdmem, pagesize_vm(), accessmode_RDWR_SHARED)) ;
    param = (processparam_t*) shrdmem.addr ;
    TEST(0 == init_mutex(&param->mutex)) ;
    param->counter = 0 ;

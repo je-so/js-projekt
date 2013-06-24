@@ -166,9 +166,8 @@ struct pagecache_block_t {
 int init_pagecacheblockmap(/*out*/pagecache_blockmap_t * blockmap)
 {
    int err ;
-   const size_t   array_size = pagecache_blockmap_ARRAYSIZE >= pagesize_vm() ? pagecache_blockmap_ARRAYSIZE : pagesize_vm() ;
 
-   err = init_vmpage(genericcast_vmpage(blockmap, array_), array_size / pagesize_vm()) ;
+   err = init_vmpage(genericcast_vmpage(blockmap, array_), pagecache_blockmap_ARRAYSIZE) ;
    if (err) goto ONABORT ;
 
    memset(blockmap->array_addr, 0, blockmap->array_size) ;
