@@ -154,7 +154,7 @@ int init_threadtls(/*out*/thread_tls_t * tls)
    return 0 ;
 ONABORT:
    free_vmpage(&mempage) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -175,7 +175,7 @@ int free_threadtls(thread_tls_t * tls)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 

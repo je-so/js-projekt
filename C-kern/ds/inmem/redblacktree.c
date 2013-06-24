@@ -186,7 +186,7 @@ int invariant_redblacktree(redblacktree_t * tree)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(EINVAL) ;
+   TRACEABORT_ERRLOG(EINVAL) ;
    return EINVAL ;
 }
 
@@ -202,7 +202,7 @@ int free_redblacktree(redblacktree_t * tree)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -579,7 +579,7 @@ int insert_redblacktree(redblacktree_t * tree, redblacktree_node_t * new_node)
 
    return  0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -705,7 +705,7 @@ int removenodes_redblacktree(redblacktree_t * tree)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 

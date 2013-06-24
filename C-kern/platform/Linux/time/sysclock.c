@@ -83,8 +83,8 @@ int resolution_sysclock(sysclock_e clock_type, /*out*/timevalue_t * resolution)
 
    if (clock_getres(clockid, &tspec)) {
       err = errno ;
-      TRACESYSERR_LOG("clock_getres", err) ;
-      PRINTINT_LOG(clock_type) ;
+      TRACESYSCALL_ERRLOG("clock_getres", err) ;
+      PRINTINT_ERRLOG(clock_type) ;
       goto ONABORT ;
    }
 
@@ -92,7 +92,7 @@ int resolution_sysclock(sysclock_e clock_type, /*out*/timevalue_t * resolution)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -104,8 +104,8 @@ int time_sysclock(sysclock_e clock_type, /*out*/timevalue_t * clock_time)
 
    if (clock_gettime(clockid, &tspec)) {
       err = errno ;
-      TRACESYSERR_LOG("clock_gettime", err) ;
-      PRINTINT_LOG(clock_type) ;
+      TRACESYSCALL_ERRLOG("clock_gettime", err) ;
+      PRINTINT_ERRLOG(clock_type) ;
       goto ONABORT ;
    }
 
@@ -113,7 +113,7 @@ int time_sysclock(sysclock_e clock_type, /*out*/timevalue_t * clock_time)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -130,14 +130,14 @@ int sleep_sysclock(sysclock_e clock_type, const timevalue_t * relative_time)
    while (clock_nanosleep(clockid, 0, &tspec, &tspec)) {
       err = errno ;
       if (EINTR == err) continue ;
-      TRACESYSERR_LOG("clock_gettime", err) ;
-      PRINTINT_LOG(clock_type) ;
+      TRACESYSCALL_ERRLOG("clock_gettime", err) ;
+      PRINTINT_ERRLOG(clock_type) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -150,14 +150,14 @@ int sleepms_sysclock(sysclock_e clock_type, uint32_t millisec)
    while (clock_nanosleep(clockid, 0, &tspec, &tspec)) {
       err = errno ;
       if (EINTR == err) continue ;
-      TRACESYSERR_LOG("clock_gettime", err) ;
-      PRINTINT_LOG(clock_type) ;
+      TRACESYSCALL_ERRLOG("clock_gettime", err) ;
+      PRINTINT_ERRLOG(clock_type) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

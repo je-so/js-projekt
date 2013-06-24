@@ -48,7 +48,7 @@ int init_stringstream(/*out*/stringstream_t * strstream, const uint8_t * startad
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -65,7 +65,7 @@ int initfromstring_string(/*out*/stringstream_t * strstream, const struct string
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

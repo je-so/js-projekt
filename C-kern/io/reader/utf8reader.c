@@ -55,7 +55,7 @@ int init_utf8reader(/*out*/utf8reader_t * utfread, const char * filepath, const 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -73,7 +73,7 @@ int free_utf8reader(utf8reader_t * utfread)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 

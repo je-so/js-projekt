@@ -295,7 +295,7 @@ ONABORT:
    if (0 != (flags & x11window_OwnColormap)) {
       XFreeColormap(x11disp->sys_display, colormap) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -322,7 +322,7 @@ int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, 
    return 0 ;
 ONABORT:
    free_x11window(x11win) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -350,7 +350,7 @@ int free_x11window(x11window_t * x11win)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -385,7 +385,7 @@ int freebasetype_x11window(x11window_t * x11win)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -397,7 +397,7 @@ x11screen_t screen_x11window(const x11window_t * x11win)
    uint16_t          nrscreen ;
 
    if (!XGetWindowAttributes(x11win->display->sys_display, x11win->sys_window, &winattr)) {
-      TRACESYSERR_LOG("XGetWindowAttributes", EINVAL) ;
+      TRACESYSCALL_ERRLOG("XGetWindowAttributes", EINVAL) ;
       nrscreen = 0 ;
    } else {
       nrscreen = (uint16_t)XScreenNumberOfScreen(winattr.screen) ;
@@ -432,7 +432,7 @@ int title_x11window(const x11window_t * x11win, /*ret*/struct cstring_t * title)
 ONABORT:
    if (textprop.value)  XFree(textprop.value) ;
    if (textlist)        XFreeStringList(textlist) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -459,7 +459,7 @@ int geometry_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -501,7 +501,7 @@ int frame_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out
    return 0 ;
 ONABORT:
    if (data) XFree(data) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -517,7 +517,7 @@ int show_x11window(x11window_t * x11win)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -531,7 +531,7 @@ int hide_x11window(x11window_t * x11win)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -551,7 +551,7 @@ int sendcloserequest_x11window(x11window_t * x11win)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -566,7 +566,7 @@ int sendredraw_x11window(x11window_t * x11win)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -588,7 +588,7 @@ int settitle_x11window(const x11window_t * x11win, /*ret*/const char * title)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -605,7 +605,7 @@ int setopacity_x11window(x11window_t * x11win, double opacity)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -619,7 +619,7 @@ int setpos_x11window(x11window_t * x11win, int32_t screen_x, int32_t screen_y)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -633,7 +633,7 @@ int resize_x11window(x11window_t * x11win, uint32_t width, uint32_t height)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -654,7 +654,7 @@ int swapbuffer_x11window(x11window_t * x11win)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

@@ -71,7 +71,7 @@ int init_objectcacheimpl(/*out*/objectcache_impl_t * cache)
    return 0 ;
 ONABORT:
    (void) RELEASE_PAGECACHE(&iobuffer) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -85,7 +85,7 @@ int free_objectcacheimpl(objectcache_impl_t * cache)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -101,7 +101,7 @@ static int lockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, /*out
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -116,7 +116,7 @@ static int unlockiobuffer2_objectcacheimpl(objectcache_impl_t * objectcache, mem
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -269,7 +269,7 @@ static int test_iobuffer(void)
    MEMSET0(&buffer) ;
    ssize_t read_bytes = read(pipefd[0], buffer, sizeof(buffer)-1) ;
    TEST(read_bytes > 50) ;
-   PRINTF_LOG("%s", buffer) ;
+   PRINTF_ERRLOG("%s", buffer) ;
 
    // TEST assertion unlockiobuffer_objectcacheimpl
    TEST(0 == init_objectcacheimpl(&cache)) ;
@@ -281,7 +281,7 @@ static int test_iobuffer(void)
    MEMSET0(&buffer) ;
    read_bytes = read(pipefd[0], buffer, sizeof(buffer)-1) ;
    TEST(read_bytes > 50) ;
-   PRINTF_LOG("%s", buffer) ;
+   PRINTF_ERRLOG("%s", buffer) ;
 
    TEST(0 == free_file(&pipefd[0])) ;
    TEST(0 == free_file(&pipefd[1])) ;

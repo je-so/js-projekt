@@ -73,7 +73,7 @@ log_it         g_logmain_interface  = {
 
 static void printf_logmain(void * lgwrt, log_channel_e channel, const char * format, ... )
 {
-   uint8_t  buffer[log_PRINTF_MAXSIZE+1] = { 0 } ;
+   uint8_t  buffer[log_config_MAXSIZE+1] = { 0 } ;
    va_list  args ;
    (void) lgwrt ;
    va_start(args, format) ;
@@ -119,8 +119,8 @@ static int test_globalvar(void)
    int         pipefd[2] = { -1, -1 } ;
    int         oldstderr = -1 ;
    int         oldstdout = -1 ;
-   char        readbuffer[log_PRINTF_MAXSIZE+1] ;
-   char        maxstring[log_PRINTF_MAXSIZE] ;
+   char        readbuffer[log_config_MAXSIZE+1] ;
+   char        maxstring[log_config_MAXSIZE] ;
 
    // prepare
    memset(maxstring, '$', sizeof(maxstring)) ;

@@ -150,7 +150,7 @@ int base64encode_string(const string_t * str, /*ret*/wbuffer_t * result)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -226,7 +226,7 @@ int base64decode_string(const string_t * str, /*ret*/wbuffer_t * result)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

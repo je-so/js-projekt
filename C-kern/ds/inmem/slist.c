@@ -68,7 +68,7 @@ int free_slist(slist_t * list, uint16_t nodeoffset, struct typeadapt_t * typeadp
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -124,7 +124,7 @@ int removefirst_slist(slist_t * list, struct slist_node_t ** removed_node)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -150,7 +150,7 @@ int removeafter_slist(slist_t * list, struct slist_node_t * prev_node, struct sl
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

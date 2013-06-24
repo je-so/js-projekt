@@ -51,7 +51,7 @@ int free_syncqueue(syncqueue_t * syncqueue)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -94,7 +94,7 @@ int compact2_syncqueue(syncqueue_t * syncqueue, uint16_t elemsize, struct dlist_
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

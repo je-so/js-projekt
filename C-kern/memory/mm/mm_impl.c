@@ -102,7 +102,7 @@ int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * membloc
    if (  (ssize_t)newsize < 0
       || !(newaddr = realloc(memblock->addr, newsize))) {
       err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(newsize, err) ;
+      TRACEOUTOFMEM_ERRLOG(newsize, err) ;
       goto ONABORT ;
    }
 
@@ -111,7 +111,7 @@ int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * membloc
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -133,7 +133,7 @@ int mfree_mmimpl(mm_impl_t * mman, struct memblock_t * memblock)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

@@ -269,7 +269,7 @@ int free_queue(queue_t * queue)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -295,7 +295,7 @@ int insertfirst_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesiz
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -319,7 +319,7 @@ int insertlast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t nodesize
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -343,7 +343,7 @@ int removefirst_queue(queue_t * queue, uint16_t nodesize)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -367,7 +367,7 @@ int removelast_queue(queue_t * queue, uint16_t nodesize)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -408,7 +408,7 @@ int resizelast_queue(queue_t * queue, /*out*/void ** nodeaddr, uint16_t oldsize,
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

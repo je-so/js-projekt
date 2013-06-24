@@ -121,8 +121,9 @@ void printf_logwriter(logwriter_t * lgwrt, enum log_channel_e channel, const cha
 
 /* function: vprintf_logwriter
  * Function used internally to implement <printf_logwriter>.
- * Do not use this function directly except from within a subtype. */
+ * This function is meant to be used from within a subtype. */
 void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
+
 
 
 // section: inline implementation
@@ -131,12 +132,13 @@ void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
 
 /* about: Thread
  * In case of only 1 thread use static <logmain_t> instead of <logwriter_t>.
- * The following code tests for subsystem KONFIG_thread and replaces
- * <freethread_logwriter> and <initthread_logwriter> with (0) in
- * case subsystem KONFIG_thread is not configured. */
+ * The following code tests for subsystem KONFIG_thread and replaces <interface_logwriter>
+ * with (0) and <freethread_logwriter> and <initthread_logwriter> with (ENOSYS) in
+ * case subsystem KONFIG_thread is not configured.
+ * */
 
 #define KONFIG_thread 1
-#if (!((KONFIG_SUBSYS)&KONFIG_thread))
+#if ((KONFIG_SUBSYS&KONFIG_thread) == 0)
 /* define: interface_logwriter
  * Implement <logwriter_t.interface_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread). */
 #define interface_logwriter()             (0)

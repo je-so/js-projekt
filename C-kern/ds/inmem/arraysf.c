@@ -112,8 +112,8 @@ int new_arraysf(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshi
    toplevelsize += (0 == toplevelsize) ;
    toplevelsize = makepowerof2_int(toplevelsize) ;
 
-   VALIDATE_INPARAM_TEST(toplevelsize <= 0x00800000, ONABORT, PRINTUINT32_LOG(toplevelsize)) ;
-   VALIDATE_INPARAM_TEST(posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize), ONABORT, PRINTUINT32_LOG(posshift)) ;
+   VALIDATE_INPARAM_TEST(toplevelsize <= 0x00800000, ONABORT, PRINTUINT32_ERRLOG(toplevelsize)) ;
+   VALIDATE_INPARAM_TEST(posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize), ONABORT, PRINTUINT32_ERRLOG(posshift)) ;
 
    const size_t objsize = objectsize_arraysf(toplevelsize) ;
 
@@ -128,7 +128,7 @@ int new_arraysf(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshi
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -211,7 +211,7 @@ int delete_arraysf(arraysf_t ** array, struct typeadapt_member_t * nodeadp)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -363,7 +363,7 @@ ONABORT:
    if (copied_node) {
       (void) calldelete_typeadaptmember(nodeadp, &copied_node) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -425,7 +425,7 @@ int tryremove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -438,7 +438,7 @@ int remove_arraysf(arraysf_t * array, size_t pos, /*out*/struct arraysf_node_t *
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -456,7 +456,7 @@ int insert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out*/struc
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -494,7 +494,7 @@ int initfirst_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * arra
    return 0 ;
 ONABORT:
    FREE_MM(&objectmem) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -518,7 +518,7 @@ int free_arraysfiterator(arraysf_iterator_t * iter)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -590,7 +590,7 @@ ONABORT:
    // move iterator to end of container
    iter->ri = nrelemroot ;
    pop_binarystack(iter->stack, size_binarystack(iter->stack)) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return false ;
 }
 

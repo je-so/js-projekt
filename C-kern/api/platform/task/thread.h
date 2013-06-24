@@ -341,7 +341,7 @@ int setcontinue_thread(bool * is_abort) ;
                &_self->continuecontext) ; \
             if (_err) {                   \
                _err = errno ;             \
-               TRACESYSERR_LOG(           \
+               TRACESYSCALL_ERRLOG(       \
                   "getcontext", _err) ;   \
             }                             \
             if (returncode_thread(        \

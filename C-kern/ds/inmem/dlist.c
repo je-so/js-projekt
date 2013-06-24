@@ -71,7 +71,7 @@ int free_dlist(dlist_t *list, uint16_t nodeoffset, struct typeadapt_t * typeadp)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -151,7 +151,7 @@ int removefirst_dlist(dlist_t * list, dlist_node_t ** removed_node)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -170,7 +170,7 @@ int removelast_dlist(dlist_t * list, dlist_node_t ** removed_node)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -186,7 +186,7 @@ int remove_dlist(dlist_t * list, dlist_node_t * node)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

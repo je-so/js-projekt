@@ -176,7 +176,7 @@ int init_pagecacheblockmap(/*out*/pagecache_blockmap_t * blockmap)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -195,7 +195,7 @@ int free_pagecacheblockmap(pagecache_blockmap_t * blockmap)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -338,7 +338,7 @@ static int new_pagecacheblock(
    return 0 ;
 ONABORT:
    free_vmpage(&pageblock) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -361,7 +361,7 @@ static int free_pagecacheblock(pagecache_block_t * block, pagecache_blockmap_t *
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -443,7 +443,7 @@ int initthread_pagecacheimpl(/*out*/pagecache_t * pagecache)
    return 0 ;
 ONABORT:
    free_pagecacheimpl(&temppagecache) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -470,7 +470,7 @@ int freethread_pagecacheimpl(pagecache_t * pagecache)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -553,7 +553,7 @@ int init_pagecacheimpl(/*out*/pagecache_impl_t * pgcache)
    return 0 ;
 ONABORT:
    free_pagecacheimpl(pgcache) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -584,7 +584,7 @@ int free_pagecacheimpl(pagecache_impl_t * pgcache)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -645,7 +645,7 @@ int allocpage_pagecacheimpl(pagecache_impl_t * pgcache, uint8_t pgsize, /*out*/s
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -688,7 +688,7 @@ int releasepage_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * pa
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -719,7 +719,7 @@ int allocstatic_pagecacheimpl(pagecache_impl_t * pgcache, size_t bytesize, /*out
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -753,7 +753,7 @@ int freestatic_pagecacheimpl(pagecache_impl_t * pgcache, struct memblock_t * mem
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -774,7 +774,7 @@ int emptycache_pagecacheimpl(pagecache_impl_t * pgcache)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

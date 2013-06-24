@@ -55,15 +55,15 @@ int remove_file(const char * filepath, struct directory_t * relative_to)
    err = unlinkat(unlinkatfd, filepath, 0) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("unlinkat(unlinkatfd, filepath)", err) ;
-      PRINTINT_LOG(unlinkatfd) ;
-      PRINTCSTR_LOG(filepath) ;
+      TRACESYSCALL_ERRLOG("unlinkat(unlinkatfd, filepath)", err) ;
+      PRINTINT_ERRLOG(unlinkatfd) ;
+      PRINTCSTR_ERRLOG(filepath) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -89,8 +89,8 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
    fd = openat(openatfd, filepath, ((int)iomode - 1)|O_CLOEXEC ) ;
    if (-1 == fd) {
       err = errno ;
-      TRACESYSERR_LOG("openat", err) ;
-      PRINTCSTR_LOG(filepath) ;
+      TRACESYSCALL_ERRLOG("openat", err) ;
+      PRINTCSTR_ERRLOG(filepath) ;
       goto ONABORT ;
    }
 
@@ -98,7 +98,7 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -115,9 +115,9 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
    fd = openat(openatfd, filepath, O_WRONLY|O_APPEND|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    if (-1 == fd) {
       err = errno ;
-      TRACESYSERR_LOG("openat", err) ;
-      PRINTINT_LOG(openatfd) ;
-      PRINTCSTR_LOG(filepath) ;
+      TRACESYSCALL_ERRLOG("openat", err) ;
+      PRINTINT_ERRLOG(openatfd) ;
+      PRINTCSTR_ERRLOG(filepath) ;
       goto ONABORT ;
    }
 
@@ -125,7 +125,7 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -142,9 +142,9 @@ int initcreate_file(/*out*/file_t * fileobj, const char* filepath, const struct 
    fd = openat(openatfd, filepath, O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR ) ;
    if (-1 == fd) {
       err = errno ;
-      TRACESYSERR_LOG("openat", err) ;
-      PRINTINT_LOG(openatfd) ;
-      PRINTCSTR_LOG(filepath) ;
+      TRACESYSCALL_ERRLOG("openat", err) ;
+      PRINTINT_ERRLOG(openatfd) ;
+      PRINTCSTR_ERRLOG(filepath) ;
       goto ONABORT ;
    }
 
@@ -152,7 +152,7 @@ int initcreate_file(/*out*/file_t * fileobj, const char* filepath, const struct 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -167,8 +167,8 @@ int free_file(file_t * fileobj)
       err = close(close_fd) ;
       if (err) {
          err = errno ;
-         TRACESYSERR_LOG("close", err) ;
-         PRINTINT_LOG(close_fd) ;
+         TRACESYSCALL_ERRLOG("close", err) ;
+         PRINTINT_ERRLOG(close_fd) ;
       }
 
       if (err) goto ONABORT ;
@@ -176,7 +176,7 @@ int free_file(file_t * fileobj)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -190,8 +190,8 @@ accessmode_e accessmode_file(const file_t fileobj)
    flags = fcntl(fileobj, F_GETFL) ;
    if (-1 == flags) {
       err = errno ;
-      TRACESYSERR_LOG("fcntl", err) ;
-      PRINTINT_LOG(fileobj) ;
+      TRACESYSCALL_ERRLOG("fcntl", err) ;
+      PRINTINT_ERRLOG(fileobj) ;
       goto ONABORT ;
    }
 
@@ -202,7 +202,7 @@ accessmode_e accessmode_file(const file_t fileobj)
 
    return (accessmode_e) (1 + (flags & O_ACCMODE)) ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return accessmode_NONE ;
 }
 
@@ -225,8 +225,8 @@ int size_file(const file_t fileobj, /*out*/off_t * file_size)
    err = fstat(fileobj, &stat_result) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("fstat", err) ;
-      PRINTINT_LOG(fileobj) ;
+      TRACESYSCALL_ERRLOG("fstat", err) ;
+      PRINTINT_ERRLOG(fileobj) ;
       goto ONABORT ;
    }
 
@@ -234,7 +234,7 @@ int size_file(const file_t fileobj, /*out*/off_t * file_size)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -246,16 +246,16 @@ int advisereadahead_file(file_t fileobj, off_t offset, off_t length)
 
    err = posix_fadvise(fileobj, offset, length, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED) ;
    if (err) {
-      TRACESYSERR_LOG("posix_fadvise", err) ;
-      PRINTINT_LOG(fileobj) ;
-      PRINTINT64_LOG(offset) ;
-      PRINTINT64_LOG(length) ;
+      TRACESYSCALL_ERRLOG("posix_fadvise", err) ;
+      PRINTINT_ERRLOG(fileobj) ;
+      PRINTINT64_ERRLOG(offset) ;
+      PRINTINT64_ERRLOG(length) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -265,16 +265,16 @@ int advisedontneed_file(file_t fileobj, off_t offset, off_t length)
 
    err = posix_fadvise(fileobj, offset, length, POSIX_FADV_DONTNEED) ;
    if (err) {
-      TRACESYSERR_LOG("posix_fadvise", err) ;
-      PRINTINT_LOG(fileobj) ;
-      PRINTINT64_LOG(offset) ;
-      PRINTINT64_LOG(length) ;
+      TRACESYSCALL_ERRLOG("posix_fadvise", err) ;
+      PRINTINT_ERRLOG(fileobj) ;
+      PRINTINT64_ERRLOG(offset) ;
+      PRINTINT64_ERRLOG(length) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -288,14 +288,14 @@ int truncate_file(file_t fileobj, off_t file_size)
    err = ftruncate(fileobj, file_size) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("ftruncate", err) ;
-      PRINTINT_LOG(fileobj) ;
+      TRACESYSCALL_ERRLOG("ftruncate", err) ;
+      PRINTINT_ERRLOG(fileobj) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -306,14 +306,14 @@ int allocate_file(file_t fileobj, off_t file_size)
    err = fallocate(fileobj, 0/*adapt file size*/, 0, file_size) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("fallocate", err) ;
-      PRINTINT_LOG(fileobj) ;
+      TRACESYSCALL_ERRLOG("fallocate", err) ;
+      PRINTINT_ERRLOG(fileobj) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

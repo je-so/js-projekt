@@ -224,7 +224,7 @@ static int construct_strings_frompath(const char * filepath, cstring_t * headert
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -259,7 +259,7 @@ static int construct_strings_fromtypename(const char * typenamestr, cstring_t * 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -323,7 +323,7 @@ static int substitute_variable(file_t outfile, variable_e varindex)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -359,7 +359,7 @@ static int generate_file(const char * filetemplate, const char * filepath)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    (void) free_file(&outfile) ;
    return err ;
 }

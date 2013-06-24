@@ -75,7 +75,7 @@ int init_module(/*out*/module_t * mod, const char * modulename)
 ONABORT:
    free_mmfile(&mmfile) ;
    delete_directory(&dir) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -88,7 +88,7 @@ int free_module(module_t * mod)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 

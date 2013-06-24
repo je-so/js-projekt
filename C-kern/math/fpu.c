@@ -48,7 +48,7 @@ int enable_fpuexcept(fpu_except_e exception_flags)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -63,7 +63,7 @@ int disable_fpuexcept(fpu_except_e exception_flags)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -81,7 +81,7 @@ int signal_fpuexcept(fpu_except_e exception_flags)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -96,7 +96,7 @@ int clear_fpuexcept(fpu_except_e exception_flags)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

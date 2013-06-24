@@ -184,7 +184,7 @@ int init_exthash(/*out*/exthash_t * htable, size_t initial_size, size_t max_size
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -210,7 +210,7 @@ int free_exthash(exthash_t * htable)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -283,7 +283,7 @@ int find_exthash(exthash_t * htable, const void * key, /*out*/exthash_node_t ** 
    return 0 ;
 ONABORT:
    if (err != ESRCH) {
-      TRACEABORT_LOG(err) ;
+      TRACEABORT_ERRLOG(err) ;
    }
    return err ;
 }
@@ -313,7 +313,7 @@ static int doubletablesize_exthash(exthash_t * htable)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -370,7 +370,7 @@ static int unsharebucket_exthash(exthash_t * htable, size_t tabidx)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -406,7 +406,7 @@ int insert_exthash(exthash_t * htable, exthash_node_t * new_node)
    return 0 ;
 ONABORT:
    if (err != EEXIST) {
-      TRACEABORT_LOG(err) ;
+      TRACEABORT_ERRLOG(err) ;
    }
    return err ;
 }
@@ -428,7 +428,7 @@ int remove_exthash(exthash_t * htable, exthash_node_t * node)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -455,7 +455,7 @@ int removenodes_exthash(exthash_t * htable)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -479,7 +479,7 @@ int invariant_exthash(const exthash_t * htable)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

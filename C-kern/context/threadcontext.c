@@ -306,7 +306,7 @@ int free_threadcontext(threadcontext_t * tcontext)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -359,7 +359,7 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
 ONABORT:
    (void) free_threadcontext(tcontext) ;
 ONABORT_NOFREE:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

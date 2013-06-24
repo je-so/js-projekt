@@ -5,21 +5,20 @@
  *
  */
 
-int ABORT_FATAL_ERRLOG(log_channel_e channel) ;
-int ABORT_ASSERT_FAILED_ERRLOG(log_channel_e channel, const char * wrong_condition) ;
+int ASSERT_FAILED_ERRLOG(log_channel_e channel, const char * wrong_condition) ;
 int ERROR_LOCATION_ERRLOG(log_channel_e channel, size_t thread_id, const char * funcname, const char * filename, int linenr, int err) ;
 int FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(log_channel_e channel, const char * filename) ;
 int FILE_FORMAT_WRONG_ERRLOG(log_channel_e channel, const char * filename) ;
 int FUNCTION_ABORT_ERRLOG(log_channel_e channel) ;
 int FUNCTION_ABORT_FREE_ERRLOG(log_channel_e channel) ;
-int FUNCTION_ERROR_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr) ;
-int FUNCTION_SYSERR_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr) ;
+int FUNCTION_CALL_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr) ;
+int FUNCTION_SYSCALL_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr) ;
 int FUNCTION_WRONG_RETURNVALUE_ERRLOG(log_channel_e channel, const char * funcname, const char * wrong_value) ;
 int LOCALE_SETLOCALE_ERRLOG(log_channel_e channel) ;
-int LOG_ENTRY_TRUNCATED_ERRLOG(log_channel_e channel, int before_size, int after_size) ;
 int MEMORY_OUT_OF_ERRLOG(log_channel_e channel, size_t size) ;
 int PARSEERROR_EXPECTCHAR_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr, const char * chr) ;
 int PARSEERROR_EXPECTNEWLINE_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr) ;
+int PROGRAM_ABORT_ERRLOG(log_channel_e channel) ;
 int RESOURCE_USAGE_DIFFERENT_ERRLOG(log_channel_e channel) ;
 int TEST_INPARAM_FALSE_ERRLOG(log_channel_e channel, const char * violated_condition) ;
 int TEST_INVARIANT_FALSE_ERRLOG(log_channel_e channel, const char * violated_condition) ;

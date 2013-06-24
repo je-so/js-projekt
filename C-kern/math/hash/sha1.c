@@ -263,7 +263,7 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

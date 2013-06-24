@@ -164,7 +164,7 @@ int free_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -202,7 +202,7 @@ int insert_syncwlist(syncwlist_t * wlist, syncqueue_t * queue, /*out*/syncevent_
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -240,7 +240,7 @@ ONABORT:
    // it may be possible to introduce concepts which allow to overcome certain classes of internal errors
    // at least it is possible to restart the process and if that fails to reboot the hardware
    // but there might be something better !
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -267,7 +267,7 @@ int removeempty_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -290,7 +290,7 @@ int transferfirst_syncwlist(syncwlist_t * towlist, syncwlist_t * fromwlist)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -315,7 +315,7 @@ int transferall_syncwlist(syncwlist_t * towlist, syncwlist_t * fromwlist)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

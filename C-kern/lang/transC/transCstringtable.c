@@ -78,7 +78,7 @@ int new_transCstringtablepage(/*out*/transCstringtable_page_t ** page)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -100,7 +100,7 @@ int delete_transCstringtablepage(transCstringtable_page_t ** page)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -128,7 +128,7 @@ int initfirst_transcstringtableiterator(/*out*/transCstringtable_iterator_t * it
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -174,7 +174,7 @@ int init_transcstringtable(/*out*/transCstringtable_t * strtable)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -206,7 +206,7 @@ int free_transcstringtable(transCstringtable_t * strtable)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -240,7 +240,7 @@ int insertstring_transcstringtable(transCstringtable_t * strtable, /*out*/void *
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -259,7 +259,7 @@ int shrinkstring_transcstringtable(transCstringtable_t * strtable, uint8_t * end
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -288,7 +288,7 @@ int appendstring_transcstringtable(transCstringtable_t * strtable, /*out*/uint8_
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

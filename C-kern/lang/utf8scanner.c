@@ -72,7 +72,7 @@ int free_utf8scanner(utf8scanner_t * scan, filereader_t * frd)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -123,7 +123,7 @@ int readbuffer_utf8scanner(utf8scanner_t * scan, filereader_t * frd)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

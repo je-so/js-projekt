@@ -139,7 +139,7 @@ int init_filereader(/*out*/filereader_t * frd, const char * filepath, const stru
    return 0 ;
 ONABORT:
    (void) free_filereader(frd) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -167,7 +167,7 @@ int initsb_filereader(/*out*/filereader_t * frd, const char * filepath, const st
    return 0 ;
 ONABORT:
    (void) free_filereader(frd) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -194,7 +194,7 @@ int free_filereader(filereader_t * frd)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -249,7 +249,7 @@ static int readnextblock_filereader(filereader_t * frd, int nextindex)
    return 0 ;
 ONABORT:
    frd->ioerror = err ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -285,7 +285,7 @@ int acquirenext_filereader(filereader_t * frd, /*out*/struct stringstream_t * bu
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

@@ -48,21 +48,21 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_iochannel_t fd
    const size_t    pagesize  = pagesize_vm() ;
    void          * mem_start = 0 ;
 
-   VALIDATE_INPARAM_TEST(0 <= file_offset && 0 == (file_offset % pagesize), ONABORT, PRINTUINT64_LOG(file_offset)) ;
+   VALIDATE_INPARAM_TEST(0 <= file_offset && 0 == (file_offset % pagesize), ONABORT, PRINTUINT64_ERRLOG(file_offset)) ;
 
    VALIDATE_INPARAM_TEST(  (accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE))
                            && 0 != (mode & accessmode_READ)
                            && (  0 == (mode & accessmode_EXEC)
                                  || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED)))
                            && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)),
-                           ONABORT, PRINTINT_LOG(mode)) ;
+                           ONABORT, PRINTINT_ERRLOG(mode)) ;
 
    accessmode_e fdmode = accessmode_iochannel(fd) ;
 
    VALIDATE_INPARAM_TEST(  0 != (fdmode & accessmode_READ)
                            && (0 != (fdmode & accessmode_WRITE)
                                || 0 == (mode & accessmode_WRITE)),
-                           ONABORT, PRINTINT_LOG(fdmode)) ;
+                           ONABORT, PRINTINT_ERRLOG(fdmode)) ;
 
    if (size) {
       const int protection = ((mode & accessmode_WRITE) ? (PROT_READ|PROT_WRITE) : PROT_READ)
@@ -71,14 +71,14 @@ static int init2_mmfile(/*out*/mmfile_t * mfile, void * addr, sys_iochannel_t fd
       mem_start = mmap(addr, size, protection, flags, fd, file_offset) ;
       if (MAP_FAILED == mem_start) {
          err = errno ;
-         TRACESYSERR_LOG("mmap", err) ;
+         TRACESYSCALL_ERRLOG("mmap", err) ;
          goto ONABORT ;
       }
 
       err = madvise(mem_start, size, MADV_SEQUENTIAL) ;
       if (err) {
          err = errno ;
-         TRACESYSERR_LOG("madvise", err) ;
+         TRACESYSCALL_ERRLOG("madvise", err) ;
          goto ONABORT ;
       }
    }
@@ -91,7 +91,7 @@ ONABORT:
    if (mem_start && MAP_FAILED != mem_start) {
       (void) munmap(mem_start, size) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -104,7 +104,7 @@ int initfromio_mmfile(/*out*/mmfile_t * mfile, sys_iochannel_t fd, off_t file_of
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -122,8 +122,8 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    fd = openat(openatfd, file_path, ((mode&accessmode_WRITE) ? O_RDWR : O_RDONLY) | O_CLOEXEC) ;
    if (-1 == fd) {
       err = errno ;
-      TRACESYSERR_LOG("openat", err) ;
-      PRINTCSTR_LOG(file_path) ;
+      TRACESYSCALL_ERRLOG("openat", err) ;
+      PRINTCSTR_ERRLOG(file_path) ;
       goto ONABORT ;
    }
 
@@ -131,7 +131,7 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    err = fstat(fd, &file_info) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("fstat", err) ;
+      TRACESYSCALL_ERRLOG("fstat", err) ;
       goto ONABORT ;
    }
 
@@ -166,7 +166,7 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
       fd  = -1 ;
       if (err) {
          err = errno ;
-         TRACESYSERR_LOG("close", err) ;
+         TRACESYSCALL_ERRLOG("close", err) ;
          goto ONABORT ;
       }
    }
@@ -174,7 +174,7 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    return 0 ;
 ONABORT:
    if (fd != -1) close(fd) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -183,7 +183,7 @@ int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttail
    int err ;
    const size_t pagesize = pagesize_vm() ;
 
-   VALIDATE_INPARAM_TEST(0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize), ONABORT, PRINTSIZE_LOG(headsize); PRINTSIZE_LOG(size_mmfile(sourcemfile))) ;
+   VALIDATE_INPARAM_TEST(0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize), ONABORT, PRINTSIZE_ERRLOG(headsize); PRINTSIZE_ERRLOG(size_mmfile(sourcemfile))) ;
 
    destheadmfile->addr = sourcemfile->addr ;
    desttailmfile->addr = sourcemfile->addr + headsize ;
@@ -196,7 +196,7 @@ int initsplit_mmfile(/*out*/mmfile_t * destheadmfile, /*out*/mmfile_t * desttail
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -209,9 +209,9 @@ int free_mmfile(mmfile_t * mfile)
       err = munmap( mfile->addr, mfile->size ) ;
       if (err) {
          err = errno ;
-         TRACESYSERR_LOG("munmap", err) ;
-         PRINTPTR_LOG(mfile->addr) ;
-         PRINTSIZE_LOG(mfile->size) ;
+         TRACESYSCALL_ERRLOG("munmap", err) ;
+         PRINTPTR_ERRLOG(mfile->addr) ;
+         PRINTSIZE_ERRLOG(mfile->size) ;
       }
       mfile->addr = 0 ;
       mfile->size = 0 ;
@@ -221,7 +221,7 @@ int free_mmfile(mmfile_t * mfile)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -236,7 +236,7 @@ int seek_mmfile(mmfile_t * mfile, sys_iochannel_t fd, off_t file_offset, accessm
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

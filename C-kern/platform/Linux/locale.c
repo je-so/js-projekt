@@ -47,13 +47,13 @@ const char * current_locale()
 
    if (!lname) {
       err = EINVAL ;
-      TRACESYSERR_LOG("setlocale", err) ;
+      TRACESYSCALL_ERRLOG("setlocale", err) ;
       goto ONABORT ;
    }
 
    return lname ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return 0 ;
 }
 
@@ -64,13 +64,13 @@ const char * currentmsg_locale()
 
    if (!lname) {
       err = EINVAL ;
-      TRACESYSERR_LOG("setlocale", err) ;
+      TRACESYSCALL_ERRLOG("setlocale", err) ;
       goto ONABORT ;
    }
 
    return lname ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return 0 ;
 }
 
@@ -95,14 +95,14 @@ int setdefault_locale()
 
    if (!setlocale(LC_ALL, "")) {
       err = EINVAL ;
-      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE, err) ;
-      PRINTCSTR_LOG(getenv("LC_ALL")) ;
+      TRACE_NOARG_ERRLOG(LOCALE_SETLOCALE, err) ;
+      PRINTCSTR_ERRLOG(getenv("LC_ALL")) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -116,14 +116,14 @@ int reset_locale()
 
    if (!setlocale(LC_ALL, "C")) {
       err = EINVAL ;
-      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE, err) ;
-      PRINTCSTR_LOG("LC_ALL=C") ;
+      TRACE_NOARG_ERRLOG(LOCALE_SETLOCALE, err) ;
+      PRINTCSTR_ERRLOG("LC_ALL=C") ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -133,14 +133,14 @@ int resetmsg_locale()
 
    if (!setlocale(LC_MESSAGES, "C")) {
       err = EINVAL ;
-      TRACEERR_NOARG_LOG(LOCALE_SETLOCALE, err) ;
-      PRINTCSTR_LOG("LC_MESSAGES=C") ;
+      TRACE_NOARG_ERRLOG(LOCALE_SETLOCALE, err) ;
+      PRINTCSTR_ERRLOG("LC_MESSAGES=C") ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -155,7 +155,7 @@ int initonce_locale()
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -168,7 +168,7 @@ int freeonce_locale()
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

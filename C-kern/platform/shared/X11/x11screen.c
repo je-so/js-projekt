@@ -68,7 +68,7 @@ int init_x11screen(/*out*/x11screen_t * x11screen, x11display_t * display, uint1
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

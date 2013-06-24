@@ -316,7 +316,7 @@ static int freeobj_textresourcecondition(textresource_condition_adapt_t * typead
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -406,7 +406,7 @@ static int freeobj_textresourcelangref(textresource_langref_adapt_t * typeadp, t
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -528,7 +528,7 @@ static int freeobj_textresourcetext(textresource_text_adapt_t * typeadt, textres
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -544,7 +544,7 @@ static int copyfromref_textresourcetext(textresource_text_t * text, textresource
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -619,7 +619,7 @@ static int free_textresource(textresource_t * textres)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -670,7 +670,7 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
    return 0 ;
 ONABORT:
    free_textresource(textres) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -1870,7 +1870,7 @@ static int free_textresourcereader(textresource_reader_t * reader)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -1934,7 +1934,7 @@ static int free_textresourcewriter(textresource_writer_t * writer)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -2154,7 +2154,7 @@ static int writeCsource_textresourcewriter(textresource_writer_t * writer, textr
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -2223,7 +2223,7 @@ static int writeCconfig_textresourcewriter(textresource_writer_t * writer)
    return 0 ;
 ONABORT:
    free_cstring(&filename) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

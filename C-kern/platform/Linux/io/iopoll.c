@@ -86,7 +86,7 @@ int init_iopoll(/*out*/iopoll_t * iopoll)
 
    if (-1 == efd) {
       err = errno ;
-      TRACESYSERR_LOG("epoll_create1", err) ;
+      TRACESYSCALL_ERRLOG("epoll_create1", err) ;
       goto ONABORT ;
    }
 
@@ -94,7 +94,7 @@ int init_iopoll(/*out*/iopoll_t * iopoll)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -109,7 +109,7 @@ int free_iopoll(iopoll_t * iopoll)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -120,7 +120,7 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
    int err ;
    int resultsize ;
 
-   VALIDATE_INPARAM_TEST(0 < queuesize && queuesize < INT_MAX, ONABORT, PRINTUINT32_LOG(queuesize) ) ;
+   VALIDATE_INPARAM_TEST(0 < queuesize && queuesize < INT_MAX, ONABORT, PRINTUINT32_ERRLOG(queuesize) ) ;
 
    static_assert( sizeof(int) > sizeof(timeout_ms), "(int)timeout_ms is never -1")
    static_assert( sizeof(ioevent_t) == sizeof(struct epoll_event)
@@ -133,8 +133,8 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
    resultsize = epoll_wait(iopoll->sys_poll, (struct epoll_event*)eventqueue, (int)queuesize, timeout_ms) ;
    if (resultsize < 0) {
       err = errno ;
-      TRACESYSERR_LOG("epoll_wait", err) ;
-      PRINTINT_LOG(iopoll->sys_poll) ;
+      TRACESYSCALL_ERRLOG("epoll_wait", err) ;
+      PRINTINT_ERRLOG(iopoll->sys_poll) ;
       goto ONABORT ;
    }
 
@@ -146,7 +146,7 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -158,7 +158,7 @@ int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioeven
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 == (for_event->ioevents & ~(uint32_t)ioevent_MASK), ONABORT, PRINTUINT32_LOG(for_event->ioevents)) ;
+   VALIDATE_INPARAM_TEST(0 == (for_event->ioevents & ~(uint32_t)ioevent_MASK), ONABORT, PRINTUINT32_ERRLOG(for_event->ioevents)) ;
 
    struct epoll_event epevent ;
    convert2epollevent_iopoll(&epevent, for_event) ;
@@ -166,15 +166,15 @@ int registerfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioeven
    err = epoll_ctl(iopoll->sys_poll, EPOLL_CTL_ADD, fd, &epevent) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("epoll_ctl(EPOLL_CTL_ADD)", err) ;
-      PRINTINT_LOG(iopoll->sys_poll) ;
-      PRINTINT_LOG(fd) ;
+      TRACESYSCALL_ERRLOG("epoll_ctl(EPOLL_CTL_ADD)", err) ;
+      PRINTINT_ERRLOG(iopoll->sys_poll) ;
+      PRINTINT_ERRLOG(fd) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -184,7 +184,7 @@ int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 == (updated_event->ioevents & ~(uint32_t)ioevent_MASK), ONABORT, PRINTUINT32_LOG(updated_event->ioevents)) ;
+   VALIDATE_INPARAM_TEST(0 == (updated_event->ioevents & ~(uint32_t)ioevent_MASK), ONABORT, PRINTUINT32_ERRLOG(updated_event->ioevents)) ;
 
    struct epoll_event epevent ;
    convert2epollevent_iopoll(&epevent, updated_event) ;
@@ -192,15 +192,15 @@ int updatefd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd, const struct ioevent_
    err = epoll_ctl(iopoll->sys_poll, EPOLL_CTL_MOD, fd, &epevent) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("epoll_ctl(EPOLL_CTL_MOD)", err) ;
-      PRINTINT_LOG(iopoll->sys_poll) ;
-      PRINTINT_LOG(fd) ;
+      TRACESYSCALL_ERRLOG("epoll_ctl(EPOLL_CTL_MOD)", err) ;
+      PRINTINT_ERRLOG(iopoll->sys_poll) ;
+      PRINTINT_ERRLOG(fd) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -214,15 +214,15 @@ int unregisterfd_iopoll(iopoll_t * iopoll, sys_iochannel_t fd)
    err = epoll_ctl(iopoll->sys_poll, EPOLL_CTL_DEL, fd, &dummy) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("epoll_ctl(EPOLL_CTL_DEL)", err) ;
-      PRINTINT_LOG(iopoll->sys_poll) ;
-      PRINTINT_LOG(fd) ;
+      TRACESYSCALL_ERRLOG("epoll_ctl(EPOLL_CTL_DEL)", err) ;
+      PRINTINT_ERRLOG(iopoll->sys_poll) ;
+      PRINTINT_ERRLOG(fd) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

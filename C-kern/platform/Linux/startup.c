@@ -262,7 +262,7 @@ static int test_startup(void)
       len = read(pfd[0], buffer, sizeof(buffer)) ;
       TEST(67 == len) ;
       buffer[len] = 0 ;
-      PRINTF_LOG("%s", buffer) ;
+      PRINTF_ERRLOG("%s", buffer) ;
    }
 
    TEST(-1 != dup2(fd, STDERR_FILENO)) ;
@@ -282,7 +282,7 @@ static int test_startup(void)
       len = read(pfd[0], buffer, sizeof(buffer)) ;
       TEST(62 == len) ;
       buffer[len] = 0 ;
-      PRINTF_LOG("%s", buffer) ;
+      PRINTF_ERRLOG("%s", buffer) ;
    }
 
    TEST(0 == free_file(&pfd[0])) ;

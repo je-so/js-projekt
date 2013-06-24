@@ -82,7 +82,7 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
    return 0 ;
 ONABORT:
    (void) free_file(&file) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -115,7 +115,7 @@ ONABORT:
       (void) remove_file(filepath, relative_to) ;
       (void) free_file(&file) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

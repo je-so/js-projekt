@@ -54,7 +54,7 @@ int initonce_X11()
    if (!s_X11_init) {
       if (! XInitThreads()) {
          err = ENOSYS ;
-         TRACESYSERR_LOG("XInitThreads", err) ;
+         TRACESYSCALL_ERRLOG("XInitThreads", err) ;
          goto ONABORT ;
       }
       s_X11_init = true ;
@@ -196,7 +196,7 @@ int dispatchevent_X11(x11display_t * x11disp)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

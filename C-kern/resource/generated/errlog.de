@@ -5,13 +5,7 @@
  *
  */
 
-int ABORT_FATAL_ERRLOG(log_channel_e channel)
-{
-   PRINTF("Programmabbruch wegen fatalem Fehler\n") ;
-   return 0;
-}
-
-int ABORT_ASSERT_FAILED_ERRLOG(log_channel_e channel, const char * wrong_condition)
+int ASSERT_FAILED_ERRLOG(log_channel_e channel, const char * wrong_condition)
 {
    PRINTF("Assertion '%s' fehlgeschlagen.\n", wrong_condition) ;
    return 0;
@@ -37,23 +31,23 @@ int FILE_FORMAT_WRONG_ERRLOG(log_channel_e channel, const char * filename)
 
 int FUNCTION_ABORT_ERRLOG(log_channel_e channel)
 {
-   PRINTF("Funktion abgebrochen\n") ;
+   PRINTF("Funktion beendet\n") ;
    return 0;
 }
 
 int FUNCTION_ABORT_FREE_ERRLOG(log_channel_e channel)
 {
-   PRINTF("Funktion abgebrochen - Freigabe von Ressourcen schlug fehl\n") ;
+   PRINTF("Funktion beendet - Freigabe von Ressourcen schlug fehl\n") ;
    return 0;
 }
 
-int FUNCTION_ERROR_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr)
+int FUNCTION_CALL_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr)
 {
    PRINTF("Funktionsaufruf '%s' meldet Fehler '%s'\n", funcname, errstr) ;
    return 0;
 }
 
-int FUNCTION_SYSERR_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr)
+int FUNCTION_SYSCALL_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr)
 {
    PRINTF("Systemaufruf '%s' meldet Fehler '%s'\n", funcname, errstr) ;
    return 0;
@@ -68,12 +62,6 @@ int FUNCTION_WRONG_RETURNVALUE_ERRLOG(log_channel_e channel, const char * funcna
 int LOCALE_SETLOCALE_ERRLOG(log_channel_e channel)
 {
    PRINTF("Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n") ;
-   return 0;
-}
-
-int LOG_ENTRY_TRUNCATED_ERRLOG(log_channel_e channel, int before_size, int after_size)
-{
-   PRINTF("Logeintrag gekürzt von %d auf %d Bytes\n", before_size, after_size) ;
    return 0;
 }
 
@@ -92,6 +80,12 @@ int PARSEERROR_EXPECTCHAR_ERRLOG(log_channel_e channel, size_t linenr, size_t co
 int PARSEERROR_EXPECTNEWLINE_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr)
 {
    PRINTF("Erwarte '(Zeilenende)' in Zeile: %zu, Spalte: %zu\n", linenr, colnr) ;
+   return 0;
+}
+
+int PROGRAM_ABORT_ERRLOG(log_channel_e channel)
+{
+   PRINTF("Programmabbruch wegen fatalem Fehler\n") ;
    return 0;
 }
 

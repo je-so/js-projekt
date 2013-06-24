@@ -53,8 +53,8 @@ int initcopy_iochannel(/*out*/iochannel_t * ioc, iochannel_t from_ioc)
 
    if (fd < 0) {
       err = errno ;
-      TRACESYSERR_LOG("fcntl", err) ;
-      PRINTINT_LOG(from_ioc) ;
+      TRACESYSCALL_ERRLOG("fcntl", err) ;
+      PRINTINT_ERRLOG(from_ioc) ;
       goto ONABORT ;
    }
 
@@ -62,7 +62,7 @@ int initcopy_iochannel(/*out*/iochannel_t * ioc, iochannel_t from_ioc)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -77,15 +77,15 @@ int free_iochannel(iochannel_t * ioc)
       err = close(close_ioc) ;
       if (err) {
          err = errno ;
-         TRACESYSERR_LOG("close", err) ;
-         PRINTINT_LOG(close_ioc) ;
+         TRACESYSCALL_ERRLOG("close", err) ;
+         PRINTINT_ERRLOG(close_ioc) ;
          goto ONABORT ;
       }
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -102,14 +102,14 @@ int nropen_iochannel(/*out*/size_t * number_open)
    fd = open("/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
    if (-1 == fd) {
       err = errno ;
-      TRACESYSERR_LOG("open(/proc/self/fd)", err) ;
+      TRACESYSCALL_ERRLOG("open(/proc/self/fd)", err) ;
       goto ONABORT ;
    }
 
    procself = fdopendir(fd) ;
    if (!procself) {
       err = errno ;
-      TRACESYSERR_LOG("fdopendir", err) ;
+      TRACESYSCALL_ERRLOG("fdopendir", err) ;
       goto ONABORT ;
    }
    fd = iochannel_INIT_FREEABLE ;
@@ -133,7 +133,7 @@ int nropen_iochannel(/*out*/size_t * number_open)
    procself = 0 ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("closedir", err) ;
+      TRACESYSCALL_ERRLOG("closedir", err) ;
       goto ONABORT ;
    }
 
@@ -151,7 +151,7 @@ ONABORT:
    if (procself) {
       closedir(procself) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -163,8 +163,8 @@ uint8_t accessmode_iochannel(const iochannel_t ioc)
    flags = fcntl(ioc, F_GETFL) ;
    if (-1 == flags) {
       err = errno ;
-      TRACESYSERR_LOG("fcntl", err) ;
-      PRINTINT_LOG(ioc) ;
+      TRACESYSCALL_ERRLOG("fcntl", err) ;
+      PRINTINT_ERRLOG(ioc) ;
       goto ONABORT ;
    }
 
@@ -175,7 +175,7 @@ uint8_t accessmode_iochannel(const iochannel_t ioc)
 
    return (uint8_t) (1 + (flags & O_ACCMODE)) ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return accessmode_NONE ;
 }
 
@@ -194,9 +194,9 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/,
       if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
       // or interrupted ?
       if (EINTR == err) return err ;
-      TRACESYSERR_LOG("read", err) ;
-      PRINTINT_LOG(ioc) ;
-      PRINTSIZE_LOG(size) ;
+      TRACESYSCALL_ERRLOG("read", err) ;
+      PRINTINT_ERRLOG(ioc) ;
+      PRINTSIZE_ERRLOG(size) ;
       goto ONABORT ;
    }
 
@@ -206,7 +206,7 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/,
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -225,9 +225,9 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
       if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
       // or interrupted ?
       if (EINTR == err || EPIPE == err) return err ;
-      TRACESYSERR_LOG("write", err) ;
-      PRINTINT_LOG(ioc) ;
-      PRINTSIZE_LOG(size) ;
+      TRACESYSCALL_ERRLOG("write", err) ;
+      PRINTINT_ERRLOG(ioc) ;
+      PRINTSIZE_ERRLOG(size) ;
       goto ONABORT ;
    }
 
@@ -237,7 +237,7 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

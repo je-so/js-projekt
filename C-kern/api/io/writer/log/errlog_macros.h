@@ -1,8 +1,9 @@
 /* title: ErrlogMacros
+
    Defines error logging macros.
 
    - Includes text resource file which contains errorlog messages and
-     defines <TRACEERR_LOG> to log them.
+     defines <TRACE_ERRLOG> to log them.
    - All logging macros log to the error channel.
 
    about: Copyright
@@ -38,7 +39,7 @@
 
 // group: log-text
 
-/* define: PRINTF_LOG
+/* define: PRINTF_ERRLOG
  * Logs a generic printf type format string as error.
  *
  * Parameter:
@@ -47,74 +48,89 @@
  *              parameter.
  *
  * Example:
- * > int i ; PRINTF_LOG("%d", i) */
-#define PRINTF_LOG(...)                   CPRINTF_LOG(ERR, __VA_ARGS__)
+ * > int i ; PRINTF_ERRLOG("%d", i) */
+#define PRINTF_ERRLOG(...)                PRINTF_LOG(log_channel_ERR, __VA_ARGS__)
 
-/* define: TRACEABORT_LOG
+/* define: TRACELOCATION_ERRLOG
+ * Logs the location of the error.
+ * This macro is used from other macros. */
+#define TRACELOCATION_ERRLOG(funcname, filename, linenr, err)     \
+         do {                                                     \
+            ERROR_LOCATION_ERRLOG( log_channel_ERR,               \
+                  tcontext_maincontext()->thread_id,              \
+                  (funcname), (filename), (linenr), (err)) ;      \
+         } while(0)
+
+/* define: TRACEABORT_ERRLOG
  * Logs the abortion of a function and the its corresponding error code.
  * If a function encounters an error from which it cannot recover
  * it should roll back the system to its previous state before it was
  * called and use
- * > TRACEABORT_LOG(return_error_code)
+ * > TRACEABORT_ERRLOG(return_error_code)
  * to signal this fact. */
-#define TRACEABORT_LOG(err)               TRACEERR_NOARG_LOG(FUNCTION_ABORT, err)
+#define TRACEABORT_ERRLOG(err)            TRACE_NOARG_ERRLOG(FUNCTION_ABORT, err)
 
-/* define: TRACEABORTFREE_LOG
+/* define: TRACEABORTFREE_ERRLOG
  * Logs that an error occurred during free_XXX or delete_XXX.
  * This means that not all resources could have been freed
  * only as many as possible. */
-#define TRACEABORTFREE_LOG(err)           TRACEERR_NOARG_LOG(FUNCTION_ABORT_FREE, err)
+#define TRACEABORTFREE_ERRLOG(err)        TRACE_NOARG_ERRLOG(FUNCTION_ABORT_FREE, err)
 
-/* define: TRACECALLERR_LOG
- * Logs errorlog text resource TRACEERR_LOG_FUNCTION_ERROR.
- * Use this function to log an error in the function which calls a user library function
- * which does not do logging on its own.
+/* define: TRACECALL_ERRLOG
+ * Logs reason of failure and name of called app function.
+ * Use this function to log an error in a function which calls a library
+ * function which does no logging on its own.
  *
  * TODO: Support own error IDs */
-#define TRACECALLERR_LOG(fct_name,err)    TRACEERR_LOG(FUNCTION_ERROR, err, fct_name, (const char*)str_errorcontext(error_maincontext(), err))
+#define TRACECALL_ERRLOG(fct_name, err)   TRACE_ERRLOG(FUNCTION_CALL, err, fct_name, (const char*)str_errorcontext(error_maincontext(), err))
 
-/* define: TRACEERR_LOG
- * Logs an errorlog text resource with error number err.
- * Any additional arguments are listed after err.
- * Use <TRACEERR_LOG> to log any language specific text with additional parameter values. */
-#define TRACEERR_LOG(TEXTID,err,...)                              \
-         do {                                                     \
-            ERROR_LOCATION_ERRLOG( log_channel_ERR,               \
-                  tcontext_maincontext()->thread_id,              \
-                  __FUNCTION__, __FILE__, __LINE__, err) ;        \
-            TEXTID ## _ERRLOG(log_channel_ERR, __VA_ARGS__) ;     \
-         }  while(0)
-
-/* define: TRACEERR_LOG
- * Logs an errorlog text resource with error number err.
- * There are no additional arguments.
- * Use <TRACEERR_LOG> to log any language specific text with no parameter values. */
-#define TRACEERR_NOARG_LOG(TEXTID, err)                           \
-         do {                                                     \
-            ERROR_LOCATION_ERRLOG( log_channel_ERR,               \
-                  tcontext_maincontext()->thread_id,              \
-                  __FUNCTION__, __FILE__, __LINE__, err) ;        \
-            TEXTID ## _ERRLOG(log_channel_ERR) ;                  \
-         }  while(0)
-
-/* define: TRACEOUTOFMEM_LOG
+/* define: TRACEOUTOFMEM_ERRLOG
  * Logs "out of memory" reason for function abort.
  * If a function could not allocate memory of size bytes and therefore aborts
  * with an error code
- * > TRACEOUTOFMEM_LOG(size_of_memory_in_bytes)
- * should be called before <TRACEABORT_LOG> to document the event leading to an abort. */
-#define TRACEOUTOFMEM_LOG(size, err)      TRACEERR_LOG(MEMORY_OUT_OF, err, size)
+ * > TRACEOUTOFMEM_ERRLOG(size_of_memory_in_bytes)
+ * should be called before <TRACEABORT_ERRLOG> to document the event leading to an abort. */
+#define TRACEOUTOFMEM_ERRLOG(size, err)   TRACE_ERRLOG(MEMORY_OUT_OF, err, size)
 
-/* define: TRACESYSERR_LOG
+/* define: TRACESYSCALL_ERRLOG
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
-#define TRACESYSERR_LOG(sys_fctname, err)  \
-         TRACEERR_LOG(FUNCTION_SYSERR, err, sys_fctname, (const char*)str_errorcontext(error_maincontext(), err))
+#define TRACESYSCALL_ERRLOG(sys_fctname, err)  \
+         TRACE_ERRLOG(FUNCTION_SYSCALL, err, sys_fctname, (const char*)str_errorcontext(error_maincontext(), err))
+
+/* define: TRACE_ERRLOG
+ * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
+ * Any additional arguments are listed after err.
+ * Use <TRACE_ERRLOG> to log any language specific text with additional parameter values. */
+#define TRACE_ERRLOG(TEXTID, err, ...)    TRACE2_ERRLOG(TEXTID, __FUNCTION__, __FILE__, __LINE__, err, __VA_ARGS__) ;
+
+/* define: TRACE2_ERRLOG
+ * Same as <TRACE_ERRLOG> except that expects parameter describing error location.
+ * The error location is given in parameters funcname, filename and linenr
+ * which describe the name of the function, the path of the file and
+ * line number in the file. */
+#define TRACE2_ERRLOG(TEXTID, funcname, filename, linenr, err, ...)  \
+         do {                                                     \
+            TRACELOCATION_ERRLOG(   funcname,                     \
+                                    filename, linenr, err) ;      \
+            TEXTID ## _ERRLOG(log_channel_ERR, __VA_ARGS__) ;     \
+         }  while(0)
+
+/* define: TRACE_NOARG_ERRLOG
+ * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
+ * There are no additional arguments.
+ * Use <TRACE_NOARG_ERRLOG> to log any language specific text with no parameter values. */
+#define TRACE_NOARG_ERRLOG(TEXTID, err)                           \
+         do {                                                     \
+            TRACELOCATION_ERRLOG(   __FUNCTION__,                 \
+                                    __FILE__, __LINE__, err) ;    \
+            TEXTID ## _ERRLOG(log_channel_ERR) ;                  \
+         }  while(0)
 
 // group: log-variables
 
-/* define: PRINTARRAYFIELD_LOG
+/* define: PRINTARRAYFIELD_ERRLOG
  * Log value of variable stored in array at offset i.
  * The logged text is "array[i]=value".
  *
@@ -127,68 +143,68 @@
  * Example:
  * This code logs "names[0]=Jo\n" and "names[1]=Jane\n".
  * > const char * names[] = { "Jo", "Jane" } ;
- * > for(int i = 0; i < 2; ++i) { PRINTARRAYFIELD_LOG(s,names,i) ; } */
-#define PRINTARRAYFIELD_LOG(format, arrname, index)   \
-         CPRINTARRAYFIELD_LOG(ERR, format, arrname, index)
+ * > for(int i = 0; i < 2; ++i) { PRINTARRAYFIELD_ERRLOG("s", names, i) ; } */
+#define PRINTARRAYFIELD_ERRLOG(format, arrname, index)   \
+         PRINTARRAYFIELD_LOG(log_channel_ERR, format, arrname, index)
 
-/* define: PRINTCSTR_LOG
+/* define: PRINTCSTR_ERRLOG
  * Log "name=value" of string variable.
  * Example:
- * > const char * name = "Jo" ; PRINTCSTR_LOG(name) ; */
-#define PRINTCSTR_LOG(varname)            CPRINTCSTR_LOG(ERR, varname)
+ * > const char * name = "Jo" ; PRINTCSTR_ERRLOG(name) ; */
+#define PRINTCSTR_ERRLOG(varname)         PRINTCSTR_LOG(log_channel_ERR, varname)
 
-/* define: PRINTINT_LOG
+/* define: PRINTINT_ERRLOG
  * Log "name=value" of int variable.
  * Example:
- * > const int max = 100 ; PRINTINT_LOG(max) ; */
-#define PRINTINT_LOG(varname)                   CPRINTINT_LOG(ERR, varname)
+ * > const int max = 100 ; PRINTINT_ERRLOG(max) ; */
+#define PRINTINT_ERRLOG(varname)          PRINTINT_LOG(log_channel_ERR, varname)
 
-/* define: PRINTINT64_LOG
+/* define: PRINTINT64_ERRLOG
  * Log "name=value" of int variable.
  * Example:
- * > const int64_t min = 100 ; PRINTINT64_LOG(min) ; */
-#define PRINTINT64_LOG(varname)                 CPRINTINT64_LOG(ERR, varname)
+ * > const int64_t min = 100 ; PRINTINT64_ERRLOG(min) ; */
+#define PRINTINT64_ERRLOG(varname)        PRINTINT64_LOG(log_channel_ERR, varname)
 
-/* define: PRINTSIZE_LOG
+/* define: PRINTSIZE_ERRLOG
  * Log "name=value" of size_t variable.
  * Example:
- * > const size_t maxsize = 100 ; PRINTSIZE_LOG(maxsize) ; */
-#define PRINTSIZE_LOG(varname)                  CPRINTSIZE_LOG(ERR, varname)
+ * > const size_t maxsize = 100 ; PRINTSIZE_ERRLOG(maxsize) ; */
+#define PRINTSIZE_ERRLOG(varname)         PRINTSIZE_LOG(log_channel_ERR, varname)
 
-/* define: PRINTUINT8_LOG
+/* define: PRINTUINT8_ERRLOG
  * Log "name=value" of uint8_t variable.
  * Example:
- * > const uint8_t limit = 255 ; PRINTUINT8_LOG(limit) ; */
-#define PRINTUINT8_LOG(varname)                 CPRINTUINT8_LOG(ERR, varname)
+ * > const uint8_t limit = 255 ; PRINTUINT8_ERRLOG(limit) ; */
+#define PRINTUINT8_ERRLOG(varname)        PRINTUINT8_LOG(log_channel_ERR, varname)
 
-/* define: PRINTUINT16_LOG
+/* define: PRINTUINT16_ERRLOG
  * Log "name=value" of uint16_t variable.
  * Example:
- * > const uint16_t limit = 65535 ; PRINTUINT16_LOG(limit) ; */
-#define PRINTUINT16_LOG(varname)                CPRINTUINT16_LOG(ERR, varname)
+ * > const uint16_t limit = 65535 ; PRINTUINT16_ERRLOG(limit) ; */
+#define PRINTUINT16_ERRLOG(varname)       PRINTUINT16_LOG(log_channel_ERR, varname)
 
-/* define: PRINTUINT32_LOG
+/* define: PRINTUINT32_ERRLOG
  * Log "name=value" of uint32_t variable.
  * Example:
- * > const uint32_t max = 100 ; PRINTUINT32_LOG(max) ; */
-#define PRINTUINT32_LOG(varname)                CPRINTUINT32_LOG(ERR, varname)
+ * > const uint32_t max = 100 ; PRINTUINT32_ERRLOG(max) ; */
+#define PRINTUINT32_ERRLOG(varname)       PRINTUINT32_LOG(log_channel_ERR, varname)
 
-/* define: PRINTUINT64_LOG
+/* define: PRINTUINT64_ERRLOG
  * Log "name=value" of uint64_t variable.
  * Example:
- * > const uint64_t max = 100 ; PRINTUINT64_LOG(max) ; */
-#define PRINTUINT64_LOG(varname)                CPRINTUINT64_LOG(ERR, varname)
+ * > const uint64_t max = 100 ; PRINTUINT64_ERRLOG(max) ; */
+#define PRINTUINT64_ERRLOG(varname)       PRINTUINT64_LOG(log_channel_ERR, varname)
 
-/* define: PRINTPTR_LOG
+/* define: PRINTPTR_ERRLOG
  * Log "name=value" of pointer variable.
  * Example:
- * > const void * ptr = &g_variable ; PRINTPTR_LOG(ptr) ; */
-#define PRINTPTR_LOG(varname)                   CPRINTPTR_LOG(ERR, varname)
+ * > const void * ptr = &g_variable ; PRINTPTR_ERRLOG(ptr) ; */
+#define PRINTPTR_ERRLOG(varname)          PRINTPTR_LOG(log_channel_ERR, varname)
 
-/* define: PRINTDOUBLE_LOG
+/* define: PRINTDOUBLE_ERRLOG
  * Log "name=value" of double or float variable.
  * Example:
- * > const double d = 1.234 ; PRINTDOUBLE_LOG(d) ; */
-#define PRINTDOUBLE_LOG(varname)                CPRINTDOUBLE_LOG(ERR, varname)
+ * > const double d = 1.234 ; PRINTDOUBLE_ERRLOG(d) ; */
+#define PRINTDOUBLE_ERRLOG(varname)       PRINTDOUBLE_LOG(log_channel_ERR, varname)
 
 #endif

@@ -66,13 +66,7 @@
    <languages>de, en</languages>
 </outconfig>
 
-# // TODO: rename into ERROR_FATAL
-ABORT_FATAL()
-de: "Programmabbruch wegen fatalem Fehler\n"
-en: "Abort process with fatal error\n"
-
-# // TODO: rename into ERROR_ASSERT_FAILED
-ABORT_ASSERT_FAILED(const char * wrong_condition)
+ASSERT_FAILED(const char * wrong_condition)
 de: "Assertion '"wrong_condition"' fehlgeschlagen.\n"
 en: "Assertion '"wrong_condition"' failed.\n"
 
@@ -90,18 +84,18 @@ de: "Datei '"filename"' besitzt unbekanntes Format\n"
 en: "File '"filename"' has unknown format\n"
 
 FUNCTION_ABORT()
-de: "Funktion abgebrochen\n"
+de: "Funktion beendet\n"
 en: "Function aborted\n"
 
 FUNCTION_ABORT_FREE()
-de: "Funktion abgebrochen - Freigabe von Ressourcen schlug fehl\n"
+de: "Funktion beendet - Freigabe von Ressourcen schlug fehl\n"
 en: "Function aborted - one or more resources could not be freed\n"
 
-FUNCTION_ERROR(const char * funcname, const char * errstr)
+FUNCTION_CALL(const char * funcname, const char * errstr)
 de: "Funktionsaufruf '"funcname"' meldet Fehler '"errstr"'\n"
 en: "Function call '"funcname"' returned error '"errstr"'\n"
 
-FUNCTION_SYSERR(const char * funcname, const char * errstr)
+FUNCTION_SYSCALL(const char * funcname, const char * errstr)
 de: "Systemaufruf '"funcname"' meldet Fehler '"errstr"'\n"
 en: "System call '"funcname"' returned error '"errstr"'\n"
 
@@ -115,10 +109,6 @@ de: "Kann die Lokalisierung mit setlocale nicht setzen\n"
 en: "Cannot change the current locale with setlocale\n"
     "Remedy: Please set environment variable LC_ALL to a supported value by the system\n"
 
-LOG_ENTRY_TRUNCATED(int before_size, int after_size)
-de: "Logeintrag gekürzt von "before_size" auf "after_size" Bytes\n"
-en: "Log entry truncated from "before_size" to "after_size" bytes\n"
-
 MEMORY_OUT_OF(size_t size)
 de: "Keine "size" Bytes Speicher mehr frei\n"
 en: "Could not allocate "size" bytes of memory\n"
@@ -130,6 +120,10 @@ en: "Expect character '"chr"' in line: "linenr", column: "colnr"\n"
 PARSEERROR_EXPECTNEWLINE(size_t linenr, size_t colnr)
 de: "Erwarte '(Zeilenende)' in Zeile: "linenr", Spalte: "colnr"\n"
 en: "Expect '(newline)' in line: "linenr", column: "colnr"\n"
+
+PROGRAM_ABORT()
+de: "Programmabbruch wegen fatalem Fehler\n"
+en: "Abort process with fatal error\n"
 
 RESOURCE_USAGE_DIFFERENT()
 de: "Ungleiche Anzahl benutzter Ressourcen\n"

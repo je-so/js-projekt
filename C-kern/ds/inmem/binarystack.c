@@ -193,7 +193,7 @@ int init_binarystack(/*out*/binarystack_t * stack, uint32_t preallocate_size)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -223,7 +223,7 @@ int free_binarystack(binarystack_t * stack)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 
 }
@@ -264,7 +264,7 @@ int push2_binarystack(binarystack_t * stack, uint32_t size, /*out*/uint8_t ** la
 
    return 0;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -314,7 +314,7 @@ int pop2_binarystack(binarystack_t * stack, size_t size)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

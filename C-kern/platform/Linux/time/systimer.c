@@ -87,8 +87,8 @@ int init_systimer(/*out*/systimer_t* timer, sysclock_e clock_type)
    fd = timerfd_create(clockid, TFD_NONBLOCK|TFD_CLOEXEC) ;
    if (-1 == fd) {
       err = errno ;
-      TRACESYSERR_LOG("timerfd_create", err) ;
-      PRINTINT_LOG(clock_type) ;
+      TRACESYSCALL_ERRLOG("timerfd_create", err) ;
+      PRINTINT_ERRLOG(clock_type) ;
       goto ONABORT ;
    } else {
       *timer = fd ;
@@ -96,7 +96,7 @@ int init_systimer(/*out*/systimer_t* timer, sysclock_e clock_type)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -109,7 +109,7 @@ int free_systimer(systimer_t * timer)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -127,14 +127,14 @@ int start_systimer(systimer_t timer, timevalue_t * relative_time)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      TRACESYSERR_LOG("timerfd_settime", err) ;
-      PRINTINT_LOG(timer) ;
+      TRACESYSCALL_ERRLOG("timerfd_settime", err) ;
+      PRINTINT_ERRLOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -152,14 +152,14 @@ int startinterval_systimer(systimer_t timer, timevalue_t * interval_time)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      TRACESYSERR_LOG("timerfd_settime", err) ;
-      PRINTINT_LOG(timer) ;
+      TRACESYSCALL_ERRLOG("timerfd_settime", err) ;
+      PRINTINT_ERRLOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -173,14 +173,14 @@ int stop_systimer(systimer_t timer)
 
    if (timerfd_settime(timer, 0, &new_timeout, /*old timeout*/0)) {
       err = errno ;
-      TRACESYSERR_LOG("timerfd_settime", err) ;
-      PRINTINT_LOG(timer) ;
+      TRACESYSCALL_ERRLOG("timerfd_settime", err) ;
+      PRINTINT_ERRLOG(timer) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -199,8 +199,8 @@ int wait_systimer(systimer_t timer)
 
    if (-1 == err) {
       err = errno ;
-      TRACESYSERR_LOG("poll", err) ;
-      PRINTINT_LOG(timer) ;
+      TRACESYSCALL_ERRLOG("poll", err) ;
+      PRINTINT_ERRLOG(timer) ;
       goto ONABORT ;
    } else if (1 != err) {
       // !! timer already expired !!
@@ -210,7 +210,7 @@ int wait_systimer(systimer_t timer)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -221,8 +221,8 @@ int remainingtime_systimer(systimer_t timer, timevalue_t * remaining_time)
 
    if (timerfd_gettime(timer, &next_timeout)) {
       err = errno ;
-      TRACESYSERR_LOG("timerfd_gettime", err) ;
-      PRINTINT_LOG(timer) ;
+      TRACESYSCALL_ERRLOG("timerfd_gettime", err) ;
+      PRINTINT_ERRLOG(timer) ;
       goto ONABORT ;
    } else {
       timespec2timevalue_systimer(remaining_time, &next_timeout.it_value) ;
@@ -230,7 +230,7 @@ int remainingtime_systimer(systimer_t timer, timevalue_t * remaining_time)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -243,8 +243,8 @@ int expirationcount_systimer(systimer_t timer, /*out*/uint64_t * expiration_coun
    if (sizeof(uint64_t) != read(timer, expiration_count, sizeof(uint64_t))) {
       if (errno != EAGAIN) {
          err = errno ;
-         TRACESYSERR_LOG("read", err) ;
-         PRINTINT_LOG(timer) ;
+         TRACESYSCALL_ERRLOG("read", err) ;
+         PRINTINT_ERRLOG(timer) ;
          goto ONABORT ;
       }
       *expiration_count = 0 ;
@@ -252,7 +252,7 @@ int expirationcount_systimer(systimer_t timer, /*out*/uint64_t * expiration_coun
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

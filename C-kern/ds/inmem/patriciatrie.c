@@ -51,7 +51,7 @@ int free_patriciatrie(patriciatrie_t * tree)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -196,7 +196,7 @@ int find_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t sea
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -289,7 +289,7 @@ int insert_patriciatrie(patriciatrie_t * tree, patriciatrie_node_t * newnode)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -399,7 +399,7 @@ int remove_patriciatrie(patriciatrie_t * tree, size_t keylength, const uint8_t s
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -455,7 +455,7 @@ int removenodes_patriciatrie(patriciatrie_t * tree)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 

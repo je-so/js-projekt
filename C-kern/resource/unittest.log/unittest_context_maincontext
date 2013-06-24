@@ -62,14 +62,14 @@ Error 25 - Function aborted
 init_maincontext() C-kern/context/maincontext.c:190
 Error 114 - Function aborted
 [Thread 1]
-allocstatic_maincontext() C-kern/context/maincontext.c:222
+allocstatic_maincontext() C-kern/context/maincontext.c:221
 Error 12 - Could not allocate 1 bytes of memory
 [Thread 1]
-allocstatic_maincontext() C-kern/context/maincontext.c:232
+allocstatic_maincontext() C-kern/context/maincontext.c:231
 Error 12 - Function aborted
 [Thread 1]
-freestatic_maincontext() C-kern/context/maincontext.c:240
+freestatic_maincontext() C-kern/context/maincontext.c:239
 Error 22 - Function input violates condition (g_maincontext.size_staticmem >= size)
 [Thread 1]
-freestatic_maincontext() C-kern/context/maincontext.c:246
+freestatic_maincontext() C-kern/context/maincontext.c:245
 Error 22 - Function aborted

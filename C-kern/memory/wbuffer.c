@@ -64,7 +64,7 @@ static int dynamicimpl_reserve_wbuffer(wbuffer_t * wbuf, size_t reserve_size)
 
       if (new_size <= memblock.size) {
          err = ENOMEM ;
-         TRACEOUTOFMEM_LOG(reserve_size, err) ;
+         TRACEOUTOFMEM_ERRLOG(reserve_size, err) ;
          goto ONABORT ;
       }
 
@@ -78,7 +78,7 @@ static int dynamicimpl_reserve_wbuffer(wbuffer_t * wbuf, size_t reserve_size)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -87,7 +87,7 @@ static int staticimpl_reserve_wbuffer(wbuffer_t * wbuf, size_t reserve_size)
    int err = ENOMEM ;
    (void) wbuf ;
    (void) reserve_size ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -103,7 +103,7 @@ static int dynamicimpl_free_wbuffer(wbuffer_t * wbuf)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -162,7 +162,7 @@ int init_wbuffer(/*out*/wbuffer_t * wbuf, size_t preallocate_size)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

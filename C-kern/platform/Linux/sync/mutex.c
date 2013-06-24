@@ -71,7 +71,7 @@ ONABORT:
       pthread_mutexattr_destroy(&attr) ;
    }
    pthread_mutex_destroy(&sys_mutex) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -84,7 +84,7 @@ int free_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -97,7 +97,7 @@ int lock_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -110,7 +110,7 @@ int unlock_mutex(mutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -520,7 +520,7 @@ static int test_slock(void)
       ssize_t bytes = read(pipefd[0], buffer, sizeof(buffer)) ;
       TEST(bytes > 0) ;
       TEST(bytes < (int)sizeof(buffer)) ;
-      CPRINTF_LOG(ERR, "%s", buffer) ;
+      PRINTF_ERRLOG("%s", buffer) ;
    }
 
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;

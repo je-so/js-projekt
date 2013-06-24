@@ -75,7 +75,7 @@ ONABORT:
    if (screen_config) {
       XRRFreeScreenConfigInfo(screen_config) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -164,7 +164,7 @@ ONABORT:
    if (screen_config) {
       XRRFreeScreenConfigInfo(screen_config) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -219,7 +219,7 @@ ONABORT:
    if (screen_config) {
       XRRFreeScreenConfigInfo(screen_config) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

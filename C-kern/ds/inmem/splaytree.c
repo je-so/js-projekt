@@ -147,7 +147,7 @@ int invariant_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * t
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    (void) free_binarystack(&parents) ;
    return err ;
 }
@@ -161,7 +161,7 @@ int free_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t * typead
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -425,7 +425,7 @@ int insert_splaytree(splaytree_t * tree, splaytree_node_t * new_node, uint16_t n
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -476,7 +476,7 @@ int remove_splaytree(splaytree_t * tree, splaytree_node_t * node, uint16_t nodeo
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -526,7 +526,7 @@ int removenodes_splaytree(splaytree_t * tree, uint16_t nodeoffset, typeadapt_t *
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -549,7 +549,7 @@ int find_splaytree(splaytree_t * tree, const void * key, /*out*/splaytree_node_t
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

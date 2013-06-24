@@ -136,14 +136,14 @@ static int new_addrinfo(struct addrinfo ** addrinfo_list, const char * name_or_n
    if (err) {
       *addrinfo_list = 0 ;
       err = convert_eai_errorcodes(err) ;
-      TRACESYSERR_LOG("getaddrinfo", err) ;
-      PRINTCSTR_LOG(name_or_numeric) ;
+      TRACESYSCALL_ERRLOG("getaddrinfo", err) ;
+      PRINTCSTR_ERRLOG(name_or_numeric) ;
       goto ONABORT ;
    }
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -180,7 +180,7 @@ int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * nume
    new_addr = (ipaddr_t*) malloc(size) ;
    if (!new_addr) {
       err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(size, err) ;
+      TRACEOUTOFMEM_ERRLOG(size, err) ;
       goto ONABORT ;
    }
 
@@ -205,7 +205,7 @@ int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * nume
    return 0 ;
 ONABORT:
    delete_ipaddr(&new_addr) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -243,7 +243,7 @@ int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const cha
    return 0 ;
 ONABORT:
    delete_addrinfo(&addrinfo_list) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -273,7 +273,7 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
    new_addr = (ipaddr_t*) malloc(size) ;
    if (!new_addr) {
       err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(size, err) ;
+      TRACEOUTOFMEM_ERRLOG(size, err) ;
       goto ONABORT ;
    }
 
@@ -285,7 +285,7 @@ int newaddr_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, uint16_t sock
    return 0 ;
 ONABORT:
    delete_ipaddr(&new_addr) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -311,7 +311,7 @@ int newcopy_ipaddr(/*out*/ipaddr_t ** dest, const ipaddr_t * source)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -419,7 +419,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    return 0 ;
 ONABORT:
    clear_cstring(dns_name) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -449,7 +449,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
    return 0 ;
 ONABORT:
    clear_cstring(dns_name) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -479,7 +479,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
    return 0 ;
 ONABORT:
    clear_cstring(numeric_name) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -500,7 +500,7 @@ int copy_ipaddr(ipaddr_t * dest, const ipaddr_t * source)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -516,7 +516,7 @@ int setprotocol_ipaddr(ipaddr_t * addr, ipprotocol_e protocol)
    addr->protocol = protocol ;
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -530,7 +530,7 @@ int setport_ipaddr(ipaddr_t * addr, ipport_t port)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -556,7 +556,7 @@ int setaddr_ipaddr(ipaddr_t * addr, ipprotocol_e protocol, uint16_t sock_addr_le
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -588,7 +588,7 @@ int newdnsquery_ipaddrlist(/*out*/ipaddr_list_t ** addrlist, const char * hostna
    new_addrlist = (ipaddr_list_t*) malloc(sizeof(ipaddr_list_t)) ;
    if (!new_addrlist) {
       err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(sizeof(ipaddr_list_t), err) ;
+      TRACEOUTOFMEM_ERRLOG(sizeof(ipaddr_list_t), err) ;
       goto ONABORT ;
    }
 
@@ -603,7 +603,7 @@ int newdnsquery_ipaddrlist(/*out*/ipaddr_list_t ** addrlist, const char * hostna
    return 0 ;
 ONABORT:
    free(new_addrlist) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -665,7 +665,7 @@ int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotoco
    struct addrinfo   addrinfo_filter ;
    struct addrinfo * addrinfo_list ;
 
-   VALIDATE_INPARAM_TEST(ipprotocol_TCP == protocol || ipprotocol_UDP == protocol, ONABORT, PRINTINT_LOG(protocol)) ;
+   VALIDATE_INPARAM_TEST(ipprotocol_TCP == protocol || ipprotocol_UDP == protocol, ONABORT, PRINTINT_ERRLOG(protocol)) ;
 
    memset( &addrinfo_filter, 0, sizeof(addrinfo_filter)) ;
    addrinfo_filter.ai_family   = AF_INET ;
@@ -697,7 +697,7 @@ int initnamed_ipport(/*out*/ipport_t * port, const char * servicename, ipprotoco
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -732,7 +732,7 @@ ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol,
 
    return (ipaddr_t*) addr ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return 0 ;
 }
 

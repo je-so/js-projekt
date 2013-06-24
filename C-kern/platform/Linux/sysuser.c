@@ -102,7 +102,7 @@ int init_sysuser(/*out*/sysuser_t * sysusr)
    err = setresuid(uid, uid, euid) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("setresuid", err) ;
+      TRACESYSCALL_ERRLOG("setresuid", err) ;
       goto ONABORT ;
    }
 
@@ -112,7 +112,7 @@ int init_sysuser(/*out*/sysuser_t * sysusr)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -124,7 +124,7 @@ int free_sysuser(sysuser_t * sysusr)
       err = setresuid(sysusr->realuser, sysusr->privilegeduser, sysusr->privilegeduser) ;
       if (err) {
          err = errno ;
-         TRACESYSERR_LOG("setresuid", err) ;
+         TRACESYSCALL_ERRLOG("setresuid", err) ;
          goto ONABORT ;
       }
 
@@ -133,7 +133,7 @@ int free_sysuser(sysuser_t * sysusr)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -156,7 +156,7 @@ int switchtoprivilege_sysuser(sysuser_t * sysusr)
       err = setresuid(sysusr->privilegeduser, sysusr->privilegeduser, sysusr->realuser) ;
       if (err) {
          err = errno ;
-         TRACESYSERR_LOG("setresuid", err) ;
+         TRACESYSCALL_ERRLOG("setresuid", err) ;
          goto ONABORT ;
       }
 
@@ -165,7 +165,7 @@ int switchtoprivilege_sysuser(sysuser_t * sysusr)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -177,7 +177,7 @@ int switchtoreal_sysuser(sysuser_t * sysusr)
       err = setresuid(sysusr->realuser, sysusr->realuser, sysusr->privilegeduser) ;
       if (err) {
          err = errno ;
-         TRACESYSERR_LOG("setresuid", err) ;
+         TRACESYSCALL_ERRLOG("setresuid", err) ;
          goto ONABORT ;
       }
 
@@ -186,7 +186,7 @@ int switchtoreal_sysuser(sysuser_t * sysusr)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -201,7 +201,7 @@ int setusers_sysuser(sysuser_t * sysusr, sysuser_id_t realuser, sysuser_id_t pri
    err = setresuid(realuser, realuser, privilegeduser) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("setresuid", err) ;
+      TRACESYSCALL_ERRLOG("setresuid", err) ;
       goto ONABORT ;
    }
 
@@ -211,7 +211,7 @@ int setusers_sysuser(sysuser_t * sysusr, sysuser_id_t realuser, sysuser_id_t pri
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -319,7 +319,7 @@ ONABORT:
    if (pamhandle) {
       (void) pam_end(pamhandle, 0) ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -344,7 +344,7 @@ int new_sysuserinfo(/*out*/sysuser_info_t ** usrinfo, sysuser_id_t uid)
 
    err = getpwuid_r(uid, &info, straddr, strsize, &result) ;
    if (err) {
-      TRACESYSERR_LOG("getpwuid_r", err) ;
+      TRACESYSCALL_ERRLOG("getpwuid_r", err) ;
       goto ONABORT ;
    }
 
@@ -362,7 +362,7 @@ int new_sysuserinfo(/*out*/sysuser_info_t ** usrinfo, sysuser_id_t uid)
 ONABORT:
    FREE_MM(&mblock) ;
    if (ENOENT != err) {
-      TRACEABORT_LOG(err) ;
+      TRACEABORT_ERRLOG(err) ;
    }
    return err ;
 }
@@ -383,7 +383,7 @@ int delete_sysuserinfo(sysuser_info_t ** usrinfo)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -614,11 +614,11 @@ static int test_authenticate(bool iswarn)
          TEST(0 == switchtoreal_sysuser(sysuser_maincontext()))
       }
       if (err && iswarn) {
-         CPRINTF_LOG(TEST, "\n*** Need user account name=%s password=%s ***\n", username, password) ;
+         PRINTF_LOG(log_channel_TEST, "\n*** Need user account name=%s password=%s ***\n", username, password) ;
       }
       TEST(0 == err) ;
    } else if (iswarn) {
-      CPRINTF_LOG(TEST, "** Need root or guest setuid ** ") ;
+      PRINTF_LOG(log_channel_TEST, "** Need root or guest setuid ** ") ;
    }
    TEST(0 == delete_sysuserinfo(&usrinfo[0])) ;
    TEST(0 == delete_sysuserinfo(&usrinfo[1])) ;
@@ -686,7 +686,7 @@ int unittest_platform_sysuser()
    int  logsize ;
    logsize = read(logfd[0], logbuffer, sizeof(logbuffer)-1) ;
    if (logsize > 0) {
-      PRINTF_LOG("%s", logbuffer) ;
+      PRINTF_ERRLOG("%s", logbuffer) ;
    }
    TEST(0 == free_iochannel(&logfd[0])) ;
    TEST(0 == free_iochannel(&logfd[1])) ;

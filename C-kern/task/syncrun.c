@@ -315,7 +315,7 @@ int free_syncrun(syncrun_t * srun)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -367,7 +367,7 @@ void setstateexit_syncrun(syncrun_t * srun)
    return ;
 ONABORT:
    srun->running.state = syncrun_state_ABORT ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
 }
 
 void setstatewait_syncrun(syncrun_t * srun, struct syncevent_t * event, void * continuelabel)
@@ -386,7 +386,7 @@ void setstatewait_syncrun(syncrun_t * srun, struct syncevent_t * event, void * c
    return ;
 ONABORT:
    srun->running.state = syncrun_state_ABORT ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
 }
 
 void setstatewaitlist_syncrun(syncrun_t * srun, struct syncwlist_t * wlist, void * continuelabel)
@@ -411,7 +411,7 @@ void setstatewaitlist_syncrun(syncrun_t * srun, struct syncwlist_t * wlist, void
    return ;
 ONABORT:
    srun->running.state = syncrun_state_ABORT ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
 }
 
 // group: thread-lifetime
@@ -431,7 +431,7 @@ int startthread_syncrun(syncrun_t * srun, syncrun_f mainfct, void * initarg)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -453,7 +453,7 @@ int startthread2_syncrun(syncrun_t * srun, syncrun_f mainfct, uint8_t initargsiz
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -485,7 +485,7 @@ int signalevent_syncrun(syncrun_t * srun, struct syncevent_t * syncevent)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -504,7 +504,7 @@ int signalfirst_syncrun(syncrun_t * srun, struct syncwlist_t * syncwlist)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -523,7 +523,7 @@ int signalall_syncrun(syncrun_t * srun, struct syncwlist_t * syncwlist)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -645,7 +645,7 @@ static int execwaiting_syncrun(syncrun_t * srun, syncwait_t * waiting, int retco
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -711,7 +711,7 @@ static int execinitqueue_syncrun(syncrun_t * srun)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -756,7 +756,7 @@ static int execrunqueue_syncrun(syncrun_t * srun)
    return 0 ;
 ONABORT:
    (void) compact_syncqueue(&srun->queues[syncrun_qid_RUN], runqueue_entry_t, &freelist, &initmove_runqueueentry) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -804,7 +804,7 @@ static int execrun2queue_syncrun(syncrun_t * srun)
    return 0 ;
 ONABORT:
    (void) compact_syncqueue(&srun->queues[syncrun_qid_RUN2], run2queue_entry_t, &freelist, &initmove_run2queueentry) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -847,7 +847,7 @@ static int execabort_syncrun(syncrun_t * srun, enum syncrun_qid_e qid, uint16_t 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -948,7 +948,7 @@ ONABORT:
    free_syncqueue(&copyqueue) ;
    free_syncwlist(&copylist, &srun->queues[syncrun_qid_WLIST]) ;
    preparerun_syncrun(srun, 0) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -988,7 +988,7 @@ int abortall_syncrun(syncrun_t * srun)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

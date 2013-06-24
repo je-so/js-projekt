@@ -611,7 +611,7 @@ int free_suffixtree(suffixtree_t * tree)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -665,7 +665,7 @@ static int replacechild_suffixtree(suffixtree_t * tree, suffixtree_node_t * pare
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(EINVAL) ;
+   TRACEABORT_ERRLOG(EINVAL) ;
    return EINVAL ;
 }
 
@@ -706,7 +706,7 @@ static int splitnode_suffixtree(suffixtree_t * tree, suffixtree_pos_t * pos)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -840,7 +840,7 @@ static int addchar_suffixtree(suffixtree_t * tree, suffixtree_addstate_t * state
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -878,7 +878,7 @@ int build_suffixtree(suffixtree_t * tree, size_t length, const uint8_t input_str
    return 0 ;
 ONABORT:
    clear_suffixtree(tree) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -923,7 +923,7 @@ int clear_suffixtree(suffixtree_t * tree)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -970,7 +970,7 @@ int dump_suffixtree(suffixtree_t * tree, cstring_t * cstr)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -1135,7 +1135,7 @@ int matchall_suffixtree(
    return 0 ;
 ONABORT:
    (void) free_iterlist(&posstack, genericcast_typeadapt(&typeadapt, suffixtreeiterator_adapter_t, suffixtree_iterator_t, void*)) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -1451,7 +1451,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1283,1322,1416,1443,2310,2605,2718,3159,3241,3362,3435,3564,3635,3749,4032,4119,4233,4350,4435,4548,4713,4792,4868,4946,5022,44153,44431,45254,45437,60054,60178,60291,60346} ;
+   size_t         compare_pos[] = {1283,1322,1416,1443,2310,2605,2718,3159,3241,3362,3435,3564,3635,3749,4032,4119,4233,4350,4435,4548,4713,4792,4868,4946,5022,44174,44452,45275,45458,60078,60202,60315,60370} ;
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

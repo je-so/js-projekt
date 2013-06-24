@@ -143,7 +143,7 @@ int free_maincontext(void)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -187,7 +187,7 @@ ONABORT:
    if (!is_already_initialized) {
       free_maincontext() ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -195,7 +195,7 @@ void abort_maincontext(int err)
 {
    // TODO: add abort handler registration ...
    //       add unit test for checking that resources are freed
-   TRACEERR_NOARG_LOG(ABORT_FATAL, err) ;
+   TRACE_NOARG_ERRLOG(PROGRAM_ABORT, err) ;
    FLUSHBUFFER_LOG() ;
    abort() ;
 }
@@ -206,8 +206,7 @@ void assertfail_maincontext(
    int          line,
    const char * funcname)
 {
-   ERROR_LOCATION_ERRLOG(log_channel_ERR, tcontext_maincontext()->thread_id, funcname, file, line, EINVAL) ;
-   ABORT_ASSERT_FAILED_ERRLOG(log_channel_ERR, condition) ;
+   TRACE2_ERRLOG(ASSERT_FAILED, funcname, file, line, EINVAL, condition) ;
    abort_maincontext(EINVAL) ;
 }
 
@@ -219,7 +218,7 @@ void * allocstatic_maincontext(uint8_t size)
 
    if (sizeof(s_maincontext_staticmem) - g_maincontext.size_staticmem < size) {
       err = ENOMEM ;
-      TRACEOUTOFMEM_LOG(size, err) ;
+      TRACEOUTOFMEM_ERRLOG(size, err) ;
       goto ONABORT ;
    }
 
@@ -229,7 +228,7 @@ void * allocstatic_maincontext(uint8_t size)
 
    return &s_maincontext_staticmem[offset] ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return 0 ;
 }
 
@@ -243,7 +242,7 @@ int freestatic_maincontext(uint8_t size)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -353,7 +352,7 @@ static int test_initmain(void)
 
    if (maincontext_STATIC != old_context.type) {
       init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
-      CPRINTF_LOG(ERR, "%s", buffer) ;
+      PRINTF_ERRLOG("%s", buffer) ;
    }
 
    return 0 ;
@@ -460,7 +459,7 @@ static int test_initerror(void)
    TEST(0 == free_iochannel(&fdpipe[0])) ;
    TEST(0 == free_iochannel(&fdpipe[1])) ;
 
-   CPRINTF_LOG(ERR, "%s", buffer) ;
+   PRINTF_ERRLOG("%s", buffer) ;
 
    // TEST EALREADY
    TEST(EALREADY == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
@@ -525,7 +524,7 @@ static int test_progname(void)
 
    if (maincontext_STATIC != old_context.type) {
       init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
-      CPRINTF_LOG(ERR, "%s", buffer) ;
+      PRINTF_ERRLOG("%s", buffer) ;
    }
 
    return 0 ;

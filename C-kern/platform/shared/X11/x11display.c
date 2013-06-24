@@ -258,7 +258,7 @@ int free_x11display(x11display_t * x11disp)
       x11disp->sys_display = 0 ;
       if (err2) {
          err = ECOMM ;
-         TRACESYSERR_LOG("XCloseDisplay", err) ;
+         TRACESYSCALL_ERRLOG("XCloseDisplay", err) ;
       }
    }
 
@@ -266,7 +266,7 @@ int free_x11display(x11display_t * x11disp)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -279,7 +279,7 @@ int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_n
       display_server_name = getenv("DISPLAY") ;
       if (!display_server_name) {
          err = EINVAL ;
-         TRACEERR_NOARG_LOG(X11_DISPLAY_NOT_SET, err) ;
+         TRACE_NOARG_ERRLOG(X11_DISPLAY_NOT_SET, err) ;
          goto ONABORT ;
       }
    }
@@ -290,7 +290,7 @@ int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_n
    newdisp.sys_display = XOpenDisplay(display_server_name) ;
    if (!newdisp.sys_display) {
       err = ECONNREFUSED ;
-      TRACEERR_LOG(X11_NO_CONNECTION, err, display_server_name) ;
+      TRACE_ERRLOG(X11_NO_CONNECTION, err, display_server_name) ;
       goto ONABORT ;
    }
 
@@ -310,7 +310,7 @@ int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_n
    return 0 ;
 ONABORT:
    free_x11display(&newdisp) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -328,15 +328,15 @@ void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char 
 
    if (!buffer_size) {
       err = EINVAL ;
-      PRINTUINT8_LOG(buffer_size) ;
+      PRINTUINT8_ERRLOG(buffer_size) ;
       goto ONABORT ;
    }
 
    x11_err = XGetErrorText(x11disp->sys_display, x11_errcode, buffer, buffer_size) ;
    if (x11_err) {
       err = EINVAL ;
-      TRACESYSERR_LOG("XGetErrorText", err) ;
-      PRINTINT_LOG(x11_err) ;
+      TRACESYSCALL_ERRLOG("XGetErrorText", err) ;
+      PRINTINT_ERRLOG(x11_err) ;
       goto ONABORT ;
    }
 
@@ -347,7 +347,7 @@ ONABORT:
       snprintf(buffer, buffer_size, "%d", x11_errcode) ;
       buffer[buffer_size-1] = 0 ;
    }
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return ;
 }
 
@@ -365,7 +365,7 @@ int findobject_x11display(x11display_t * x11disp, /*out*/void ** object, uintptr
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -393,7 +393,7 @@ int insertobject_x11display(x11display_t * x11disp, void * object, uintptr_t obj
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -406,7 +406,7 @@ int removeobject_x11display(x11display_t * x11disp, uintptr_t objectid)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

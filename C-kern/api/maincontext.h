@@ -129,7 +129,8 @@ int free_maincontext(void) ;
 /* function: abort_maincontext
  * Exits the whole process in a controlled manner.
  * Tries to free as many external resources as possible and
- * aborts all transactions. Before exit TRACEERR_LOG(ABORT_FATAL(err)) is done. */
+ * aborts all transactions. i
+ * Before exit TRACE_NOARG_ERRLOG(PROGRAM_ABORT, err) is called. */
 void abort_maincontext(int err) ;
 
 /* function: assertfail_maincontext

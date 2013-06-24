@@ -149,7 +149,7 @@ int init_blockarray(/*out*/blockarray_t * barray, uint8_t pagesize, uint16_t ele
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -207,7 +207,7 @@ int free_blockarray(blockarray_t * barray)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -339,7 +339,7 @@ ONNODATA:
    *elemaddr = 0 ;
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

@@ -65,7 +65,7 @@ int free_thrmutex(thrmutex_t * mutex)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -149,7 +149,7 @@ int lock_thrmutex(thrmutex_t * mutex)
    return 0 ;
 ONABORT:
    unlockflag_thrmutex(mutex) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -180,7 +180,7 @@ int unlock_thrmutex(thrmutex_t * mutex)
    return 0 ;
 ONABORT:
    unlockflag_thrmutex(mutex) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

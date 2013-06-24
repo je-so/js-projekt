@@ -65,7 +65,7 @@ int free_rwlock(rwlock_t * rwlock)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
@@ -196,7 +196,7 @@ int lockreader_rwlock(rwlock_t * rwlock)
    return 0 ;
 ONABORT:
    unlockflag_rwlock(rwlock) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -223,7 +223,7 @@ int lockwriter_rwlock(rwlock_t * rwlock)
    return 0 ;
 ONABORT:
    unlockflag_rwlock(rwlock) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -255,7 +255,7 @@ int unlockreader_rwlock(rwlock_t * rwlock)
    return 0 ;
 ONABORT:
    unlockflag_rwlock(rwlock) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -284,7 +284,7 @@ int unlockwriter_rwlock(rwlock_t * rwlock)
    return 0 ;
 ONABORT:
    unlockflag_rwlock(rwlock) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

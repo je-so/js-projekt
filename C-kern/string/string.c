@@ -47,7 +47,7 @@ int initfl_string(/*out*/string_t * str, const uint8_t * first, const uint8_t * 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -62,7 +62,7 @@ int initse_string(/*out*/string_t * str, const uint8_t * start, const uint8_t * 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -78,7 +78,7 @@ int initsubstr_string(/*out*/string_t * str, const string_t * restrict fromstr, 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -125,7 +125,7 @@ int substr_string(string_t * str, size_t start_offset, size_t size)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -140,7 +140,7 @@ int shrinkleft_string(string_t * str, size_t nr_bytes_removed_from_string_start)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -154,7 +154,7 @@ int shrinkright_string(string_t * str, size_t nr_bytes_removed_from_string_end)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

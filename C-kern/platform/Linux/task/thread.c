@@ -83,13 +83,13 @@ static void * main_thread(thread_startargument_t * startarg)
 
    err = init_threadcontext(tcontext_maincontext(), startarg->pcontext) ;
    if (err) {
-      TRACECALLERR_LOG("init_threadcontext", err) ;
+      TRACECALL_ERRLOG("init_threadcontext", err) ;
       goto ONABORT ;
    }
 
    if (sys_thread_INIT_FREEABLE == pthread_self()) {
       err = EINVAL ;
-      TRACEERR_LOG(FUNCTION_WRONG_RETURNVALUE, err, "pthread_self", STR(sys_thread_INIT_FREEABLE)) ;
+      TRACE_ERRLOG(FUNCTION_WRONG_RETURNVALUE, err, "pthread_self", STR(sys_thread_INIT_FREEABLE)) ;
       goto ONABORT ;
    }
 
@@ -97,14 +97,14 @@ static void * main_thread(thread_startargument_t * startarg)
    err = sigaltstack(&startarg->signalstack, (stack_t*)0) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("sigaltstack", err) ;
+      TRACESYSCALL_ERRLOG("sigaltstack", err) ;
       goto ONABORT ;
    }
    startarg = 0 ;
 
    if (0 != getcontext(&thread->continuecontext)) {
       err = errno ;
-      TRACESYSERR_LOG("getcontext", err) ;
+      TRACESYSCALL_ERRLOG("getcontext", err) ;
       goto ONABORT ;
    }
 
@@ -117,7 +117,7 @@ static void * main_thread(thread_startargument_t * startarg)
 
    err = free_threadcontext(sys_context_threadtls()) ;
    if (err) {
-      TRACECALLERR_LOG("free_threadcontext",err) ;
+      TRACECALL_ERRLOG("free_threadcontext",err) ;
       goto ONABORT ;
    }
 
@@ -155,7 +155,7 @@ int delete_thread(thread_t ** threadobj)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -191,7 +191,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;
    err = pthread_attr_init(&thread_attr) ;
    if (err) {
-      TRACESYSERR_LOG("pthread_attr_init",err) ;
+      TRACESYSCALL_ERRLOG("pthread_attr_init",err) ;
       goto ONABORT ;
    }
    isThreadAttrValid = true ;
@@ -199,9 +199,9 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;
    err = pthread_attr_setstack(&thread_attr, stack.addr, stack.size) ;
    if (err) {
-      TRACESYSERR_LOG("pthread_attr_setstack",err) ;
-      PRINTPTR_LOG(stack.addr) ;
-      PRINTSIZE_LOG(stack.size) ;
+      TRACESYSCALL_ERRLOG("pthread_attr_setstack",err) ;
+      PRINTPTR_ERRLOG(stack.addr) ;
+      PRINTSIZE_ERRLOG(stack.size) ;
       goto ONABORT ;
    }
 
@@ -210,7 +210,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    static_assert( (void* (*) (typeof(startarg)))0 == (typeof(&main_thread))0, "main_thread has argument of type startarg") ;
    err = pthread_create(&sys_thread, &thread_attr, (void*(*)(void*))&main_thread, startarg) ;
    if (err) {
-      TRACESYSERR_LOG("pthread_create",err) ;
+      TRACESYSCALL_ERRLOG("pthread_create",err) ;
       goto ONABORT ;
    }
 
@@ -219,7 +219,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    err2 = pthread_attr_destroy(&thread_attr) ;
    isThreadAttrValid = false ;
    if (err2) {
-      TRACESYSERR_LOG("pthread_attr_destroy",err) ;
+      TRACESYSCALL_ERRLOG("pthread_attr_destroy",err) ;
       goto ONABORT ;
    }
 
@@ -234,7 +234,7 @@ ONABORT:
       (void) pthread_attr_destroy(&thread_attr) ;
    }
    (void) free_threadtls(&tls) ;
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -254,7 +254,7 @@ int join_thread(thread_t * threadobj)
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -268,14 +268,14 @@ void suspend_thread()
    err = sigemptyset(&signalmask) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("sigemptyset", err) ;
+      TRACESYSCALL_ERRLOG("sigemptyset", err) ;
       goto ONABORT ;
    }
 
    err = sigaddset(&signalmask, SIGINT) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("sigaddset", err) ;
+      TRACESYSCALL_ERRLOG("sigaddset", err) ;
       goto ONABORT ;
    }
 
@@ -285,7 +285,7 @@ void suspend_thread()
 
    if (-1 == err) {
       err = errno ;
-      TRACESYSERR_LOG("sigwaitinfo", err) ;
+      TRACESYSCALL_ERRLOG("sigwaitinfo", err) ;
       goto ONABORT ;
    }
 
@@ -302,14 +302,14 @@ int trysuspend_thread(void)
    err = sigemptyset(&signalmask) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("sigemptyset", err) ;
+      TRACESYSCALL_ERRLOG("sigemptyset", err) ;
       goto ONABORT ;
    }
 
    err = sigaddset(&signalmask, SIGINT) ;
    if (err) {
       err = errno ;
-      TRACESYSERR_LOG("sigaddset", err) ;
+      TRACESYSCALL_ERRLOG("sigaddset", err) ;
       goto ONABORT ;
    }
 
@@ -330,7 +330,7 @@ void resume_thread(thread_t * threadobj)
 
    err = pthread_kill(threadobj->sys_thread, SIGINT) ;
    if (err) {
-      TRACESYSERR_LOG("pthread_kill", err) ;
+      TRACESYSCALL_ERRLOG("pthread_kill", err) ;
       goto ONABORT ;
    }
 
@@ -349,14 +349,14 @@ void sleepms_thread(uint32_t msec)
    if (-1 == err) {
       err = errno ;
       if (err != EINTR) {
-         TRACESYSERR_LOG("nanosleep", err) ;
+         TRACESYSCALL_ERRLOG("nanosleep", err) ;
          goto ONABORT ;
       }
    }
 
    return ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return ;
 }
 
@@ -371,14 +371,14 @@ int exit_thread(int retcode)
 
    err = free_threadcontext(sys_context_threadtls()) ;
    if (err) {
-      TRACECALLERR_LOG("free_threadcontext",err) ;
+      TRACECALL_ERRLOG("free_threadcontext",err) ;
       abort_maincontext(err) ;
    }
 
    pthread_exit(0) ;
 
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 

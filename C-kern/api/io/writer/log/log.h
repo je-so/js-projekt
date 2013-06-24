@@ -34,34 +34,43 @@ typedef struct log_t                      log_t ;
  * See <log_it_DECLARE> for a description of the functional interface. */
 typedef struct log_it                     log_it ;
 
-/* enums: log_constants_e
+/* enums: log_config_e
  * Used to configure system wide restrictions.
  *
- * log_PRINTF_MAXSIZE - The maximum byte size of one log entry written with <log_it.printf>.
+ * log_config_MAXSIZE - The maximum size in bytes of one log entry written with <log_it.printf>.
  *
  * */
-enum log_constants_e {
-   log_PRINTF_MAXSIZE = 511
+enum log_config_e {
+   log_config_MAXSIZE = 511
 } ;
 
-typedef enum log_constants_e           log_constants_e ;
+typedef enum log_config_e                 log_config_e ;
 
 /* enums: log_channel_e
  * Used to switch between log channels.
  *
- * log_channel_ERR  - Normal error log channel which is represented by interface <log_it>.
- * log_channel_TEST - Test log output which is implemented as a call to standard
- *                    printf library function which writes to STDOUT.
+ * log_channel_ERR  - Uses error channel for log output.
+ *                    The warning channel is printed to STDERR if not configured otherwise.
+ * log_channel_WARN - Uses warning channel for log output.
+ *                    The warning channel is printed to STDERR if not configured otherwise.
+ * log_channel_TEST - Uses test channel for log output.
+ *                    The test channel is printed to STDOUT if not configured otherwise.
+ * log_channel_NROFCHANNEL - Use this value to determine the number of different channels
+ *                           numbered from 0 up to (log_channel_NROFCHANNEL-1).
  * */
 enum log_channel_e {
-    log_channel_ERR
-   ,log_channel_TEST
+   log_channel_TEST,
+   log_channel_WARN,
+   log_channel_ERR
 } ;
 
-typedef enum log_channel_e       log_channel_e ;
+#define log_channel_NROFCHANNEL           (log_channel_ERR + 1)
+
+typedef enum log_channel_e                log_channel_e ;
+
 
 /* struct: log_t
- * Uses <iobj_DECLARE> to declare interfaceable object. */
+ * Uses <iobj_DECLARE> to declare object supporting interface <log_it>. */
 iobj_DECLARE(log_t, log) ;
 
 

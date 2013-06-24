@@ -207,7 +207,7 @@ int init_glxwindow(/*out*/glxwindow_t * glxwin, struct x11screen_t * x11screen, 
 
    return 0 ;
 ONABORT:
-   TRACEABORT_LOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
@@ -229,7 +229,7 @@ int free_glxwindow(glxwindow_t * glxwin)
 
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_LOG(err) ;
+   TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
 
