@@ -312,7 +312,7 @@ int initexec_process(/*out*/process_t * process, const char * filename, const ch
       TRACESYSCALL_ERRLOG("execvp(filename, arguments)", err) ;
       PRINTCSTR_ERRLOG(filename) ;
       for (size_t i = 0; arguments[i]; ++i) {
-         PRINTARRAYFIELD_ERRLOG("s",arguments,i) ;
+         PRINTARRAYFIELD_ERRLOG("s", arguments, i) ;
       }
       goto ONABORT ;
    }

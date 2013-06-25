@@ -1,12 +1,12 @@
-[Thread 1]
+[1: 1371660259.481053s]
 init_stringstream() C-kern/string/stringstream.c:44
 Error 22 - Function input violates condition (startaddr <= endaddr)
-[Thread 1]
+[1: 1371660259.481056s]
 init_stringstream() C-kern/string/stringstream.c:51
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.481061s]
 initfromstring_string() C-kern/string/stringstream.c:61
 Error 22 - Function input violates condition (addr_string(str) <= end)
-[Thread 1]
+[1: 1371660259.481063s]
 initfromstring_string() C-kern/string/stringstream.c:68
 Error 22 - Function aborted

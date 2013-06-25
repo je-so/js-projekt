@@ -1,22 +1,22 @@
-[Thread 1]
+[1: 1371660269.232850s]
 setdefault_locale() C-kern/platform/Linux/locale.c:98
 Error 22 - Cannot change the current locale with setlocale
 Remedy: Please set environment variable LC_ALL to a supported value by the system
 getenv("LC_ALL")=XXX@unknown
-[Thread 1]
+[1: 1371660269.232856s]
 setdefault_locale() C-kern/platform/Linux/locale.c:105
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660269.232858s]
 initonce_locale() C-kern/platform/Linux/locale.c:158
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660269.233532s]
 setdefault_locale() C-kern/platform/Linux/locale.c:98
 Error 22 - Cannot change the current locale with setlocale
 Remedy: Please set environment variable LC_ALL to a supported value by the system
 getenv("LC_ALL")=XXX@unknown
-[Thread 1]
+[1: 1371660269.233536s]
 setdefault_locale() C-kern/platform/Linux/locale.c:105
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660269.233538s]
 initonce_locale() C-kern/platform/Linux/locale.c:158
 Error 22 - Function aborted

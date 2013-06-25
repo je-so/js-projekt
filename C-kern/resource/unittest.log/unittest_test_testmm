@@ -1,18 +1,18 @@
-[Thread 1]
+[1: 1371660259.732964s]
 new_testmmpage() C-kern/test/testmm.c:197
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660260.272928s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 71 - Function aborted
-[Thread 1]
+[1: 1371660260.272940s]
 mfree_testmm() C-kern/test/testmm.c:724
 Error 1 - Function aborted
-[Thread 1]
+[1: 1371660260.272943s]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 80 bytes of memory
-[Thread 1]
+[1: 1371660260.272945s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660260.272947s]
 mfree_testmm() C-kern/test/testmm.c:724
 Error 22 - Function aborted

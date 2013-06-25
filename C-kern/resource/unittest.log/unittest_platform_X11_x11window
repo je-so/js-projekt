@@ -1,9 +1,9 @@
-[Thread 1]
+[1: 1371660278.947455s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660279.48297s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660279.168986s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
 Error 3 - Function aborted

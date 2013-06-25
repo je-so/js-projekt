@@ -1,200 +1,200 @@
-[Thread 1]
+[1: 1371660260.424513s]
 accessmode_file() C-kern/platform/Linux/io/file.c:193
 Error 9 - System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=8
-[Thread 1]
+[1: 1371660260.424522s]
 accessmode_file() C-kern/platform/Linux/io/file.c:205
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660260.424524s]
 accessmode_file() C-kern/platform/Linux/io/file.c:193
 Error 9 - System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=8
-[Thread 1]
+[1: 1371660260.424527s]
 accessmode_file() C-kern/platform/Linux/io/file.c:205
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660260.424529s]
 accessmode_file() C-kern/platform/Linux/io/file.c:193
 Error 9 - System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=-1
-[Thread 1]
+[1: 1371660260.424532s]
 accessmode_file() C-kern/platform/Linux/io/file.c:205
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660260.424534s]
 accessmode_file() C-kern/platform/Linux/io/file.c:193
 Error 9 - System call 'fcntl' returned error 'Bad file descriptor'
 fileobj=-1
-[Thread 1]
+[1: 1371660260.424536s]
 accessmode_file() C-kern/platform/Linux/io/file.c:205
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660260.426139s]
 size_file() C-kern/platform/Linux/io/file.c:228
 Error 9 - System call 'fstat' returned error 'Bad file descriptor'
 fileobj=-1
-[Thread 1]
+[1: 1371660260.426143s]
 size_file() C-kern/platform/Linux/io/file.c:237
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660260.426457s]
 initcreate_file() C-kern/platform/Linux/io/file.c:145
 Error 17 - System call 'openat' returned error 'File exists'
 openatfd=3
 filepath=init1
-[Thread 1]
+[1: 1371660260.426461s]
 initcreate_file() C-kern/platform/Linux/io/file.c:155
 Error 17 - Function aborted
-[Thread 1]
+[1: 1371660260.426483s]
 init_file() C-kern/platform/Linux/io/file.c:79
 Error 22 - Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-[Thread 1]
+[1: 1371660260.426487s]
 init_file() C-kern/platform/Linux/io/file.c:101
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660260.426489s]
 init_file() C-kern/platform/Linux/io/file.c:79
 Error 22 - Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-[Thread 1]
+[1: 1371660260.426491s]
 init_file() C-kern/platform/Linux/io/file.c:101
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660260.426492s]
 init_file() C-kern/platform/Linux/io/file.c:79
 Error 22 - Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
-[Thread 1]
+[1: 1371660260.426494s]
 init_file() C-kern/platform/Linux/io/file.c:101
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660260.426538s]
 initcreate_file() C-kern/platform/Linux/io/file.c:145
 Error 17 - System call 'openat' returned error 'File exists'
 openatfd=3
 filepath=testcreate
-[Thread 1]
+[1: 1371660260.426542s]
 initcreate_file() C-kern/platform/Linux/io/file.c:155
 Error 17 - Function aborted
-[Thread 1]
+[1: 1371660261.155728s]
 truncate_file() C-kern/platform/Linux/io/file.c:291
 Error 22 - System call 'ftruncate' returned error 'Invalid argument'
 fileobj=9
-[Thread 1]
+[1: 1371660261.155742s]
 truncate_file() C-kern/platform/Linux/io/file.c:298
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660261.155747s]
 truncate_file() C-kern/platform/Linux/io/file.c:291
 Error 22 - System call 'ftruncate' returned error 'Invalid argument'
 fileobj=10
-[Thread 1]
+[1: 1371660261.155750s]
 truncate_file() C-kern/platform/Linux/io/file.c:298
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660261.155754s]
 truncate_file() C-kern/platform/Linux/io/file.c:291
 Error 22 - System call 'ftruncate' returned error 'Invalid argument'
 fileobj=10
-[Thread 1]
+[1: 1371660261.155757s]
 truncate_file() C-kern/platform/Linux/io/file.c:298
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660261.155759s]
 allocate_file() C-kern/platform/Linux/io/file.c:309
 Error 22 - System call 'fallocate' returned error 'Invalid argument'
 fileobj=10
-[Thread 1]
+[1: 1371660261.155761s]
 allocate_file() C-kern/platform/Linux/io/file.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660261.155764s]
 allocate_file() C-kern/platform/Linux/io/file.c:309
 Error 29 - System call 'fallocate' returned error 'Illegal seek'
 fileobj=9
-[Thread 1]
+[1: 1371660261.155767s]
 allocate_file() C-kern/platform/Linux/io/file.c:316
 Error 29 - Function aborted
-[Thread 1]
+[1: 1371660261.155770s]
 allocate_file() C-kern/platform/Linux/io/file.c:309
 Error 9 - System call 'fallocate' returned error 'Bad file descriptor'
 fileobj=10
-[Thread 1]
+[1: 1371660261.155772s]
 allocate_file() C-kern/platform/Linux/io/file.c:316
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660261.155775s]
 truncate_file() C-kern/platform/Linux/io/file.c:291
 Error 9 - System call 'ftruncate' returned error 'Bad file descriptor'
 fileobj=10
-[Thread 1]
+[1: 1371660261.155777s]
 truncate_file() C-kern/platform/Linux/io/file.c:298
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660261.155779s]
 allocate_file() C-kern/platform/Linux/io/file.c:309
 Error 9 - System call 'fallocate' returned error 'Bad file descriptor'
 fileobj=10
-[Thread 1]
+[1: 1371660261.155782s]
 allocate_file() C-kern/platform/Linux/io/file.c:316
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660261.155784s]
 truncate_file() C-kern/platform/Linux/io/file.c:291
 Error 9 - System call 'ftruncate' returned error 'Bad file descriptor'
 fileobj=-1
-[Thread 1]
+[1: 1371660261.155786s]
 truncate_file() C-kern/platform/Linux/io/file.c:298
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660261.155788s]
 allocate_file() C-kern/platform/Linux/io/file.c:309
 Error 9 - System call 'fallocate' returned error 'Bad file descriptor'
 fileobj=-1
-[Thread 1]
+[1: 1371660261.155790s]
 allocate_file() C-kern/platform/Linux/io/file.c:316
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660261.562512s]
 allocate_file() C-kern/platform/Linux/io/file.c:309
 Error 28 - System call 'fallocate' returned error 'No space left on device'
 fileobj=10
-[Thread 1]
+[1: 1371660261.562528s]
 allocate_file() C-kern/platform/Linux/io/file.c:316
 Error 28 - Function aborted
-[Thread 1]
+[1: 1371660262.112075s]
 advisereadahead_file() C-kern/platform/Linux/io/file.c:249
 Error 22 - System call 'posix_fadvise' returned error 'Invalid argument'
 fileobj=8
 offset=0
 length=-1
-[Thread 1]
+[1: 1371660262.112091s]
 advisereadahead_file() C-kern/platform/Linux/io/file.c:258
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.112095s]
 advisereadahead_file() C-kern/platform/Linux/io/file.c:249
 Error 9 - System call 'posix_fadvise' returned error 'Bad file descriptor'
 fileobj=8
 offset=0
 length=0
-[Thread 1]
+[1: 1371660262.112099s]
 advisereadahead_file() C-kern/platform/Linux/io/file.c:258
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660262.112101s]
 advisereadahead_file() C-kern/platform/Linux/io/file.c:249
 Error 9 - System call 'posix_fadvise' returned error 'Bad file descriptor'
 fileobj=-1
 offset=0
 length=0
-[Thread 1]
+[1: 1371660262.112104s]
 advisereadahead_file() C-kern/platform/Linux/io/file.c:258
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660262.112108s]
 advisedontneed_file() C-kern/platform/Linux/io/file.c:268
 Error 22 - System call 'posix_fadvise' returned error 'Invalid argument'
 fileobj=8
 offset=0
 length=-1
-[Thread 1]
+[1: 1371660262.112112s]
 advisedontneed_file() C-kern/platform/Linux/io/file.c:277
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.115399s]
 advisedontneed_file() C-kern/platform/Linux/io/file.c:268
 Error 9 - System call 'posix_fadvise' returned error 'Bad file descriptor'
 fileobj=8
 offset=0
 length=0
-[Thread 1]
+[1: 1371660262.115407s]
 advisedontneed_file() C-kern/platform/Linux/io/file.c:277
 Error 9 - Function aborted
-[Thread 1]
+[1: 1371660262.115409s]
 advisedontneed_file() C-kern/platform/Linux/io/file.c:268
 Error 9 - System call 'posix_fadvise' returned error 'Bad file descriptor'
 fileobj=-1
 offset=0
 length=0
-[Thread 1]
+[1: 1371660262.115412s]
 advisedontneed_file() C-kern/platform/Linux/io/file.c:277
 Error 9 - Function aborted

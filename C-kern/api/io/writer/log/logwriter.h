@@ -26,12 +26,16 @@
 #ifndef CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 #define CKERN_IO_WRITER_LOG_LOGWRITER_HEADER
 
-#include "C-kern/api/io/writer/log/log.h"
-
+// forward
+struct log_it ;
 
 /* typedef: logwriter_t typedef
  * Exports <logwriter_t>. */
 typedef struct logwriter_t                logwriter_t ;
+
+/* typedef: logwriter_t typedef
+ * Exports <logwriter_chan_t>. */
+typedef struct logwriter_chan_t           logwriter_chan_t ;
 
 
 // section: Functions
@@ -46,26 +50,27 @@ int unittest_io_writer_log_logwriter(void) ;
 
 
 /* struct: logwriter_t
- * A logwriter writes error messages to STDERR and test messages to STDOUT.
- * Internally it uses a buffer to preformat the message before it is written
- * to any file descriptor. It is possible to switch into buffered mode in which
- * messages are buffered until the buffer is full and only then the buffer is
- * written to any any configured file descriptor.
- * This object is *not thread safe*. */
-struct logwriter_t
-{
-   /* variable: buffer
-    * Holds memory address and size of internal buffer.
-    * If buffering mode is off this buffer can hold only one entry.
-    * If buffering mode is one this buffer can hold several log entries. */
-   struct {
-      uint8_t *   addr ;
-      size_t      size ;
-   }              buffer ;
-   /* variable: logsize
-    * Stores the size in bytes of the buffered log entries.
-    * If the buffer is empty this entry is 0. */
-   size_t         logsize ;
+ * A logwriter writes the console channel messages to STDOUT any other channels to STDERR.
+ * Before anything is written out the messages are stored in an internal buffer.
+ * If less then log_config_MAXSIZE plus "terminating \0 byte" bytes are free the buffer
+ * is written out (flushed) before any new mesage is appended. If messages should be appended
+ * the buffer is not written out until the last message was appended. In this case messages
+ * are truncated if they are bigger than log_config_MAXSIZE.
+ *
+ * Threads:
+ * In case of KONFIG_SUBSYS does not contain KONFIG_thread static <logmain_t> is used instead of <logwriter_t>.
+ * */
+struct logwriter_t {
+   /* variable: addr
+    * Address of allocated buffer. */
+   uint8_t  *           addr ;
+   /* variable: size
+    * Size in bytes of allocated buffer. */
+   size_t               size ;
+   /* variable: chan
+    * Array of <logwriter_chan_t>.
+    * A <log_channel_e> number is mapped to a <logwriter_chan_t> with help of this array. */
+   logwriter_chan_t *   chan[4] ;
 } ;
 
 // group: initthread
@@ -79,16 +84,7 @@ struct log_it * interface_logwriter(void) ;
 
 /* define: logwriter_INIT_FREEABLE
  * Static initializer. */
-#define logwriter_INIT_FREEABLE           {  { 0, 0 }, 0 }
-
-/* define: logwriter_INIT_TEMP
- * Static initializer. Do not free an object initialized in such a manner.
- *
- * Parameter:
- * size - Size of a temporary or static buffer.
- * addr - Start address of the buffer. */
-#define logwriter_INIT_TEMP(size, addr)   \
-         {  { (addr), (size) }, 0 }
+#define logwriter_INIT_FREEABLE           { 0, 0, { 0, 0, 0, 0 } }
 
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.
@@ -100,6 +96,7 @@ int init_logwriter(/*out*/logwriter_t * lgwrt) ;
  * Frees resources and frees memory of log object.
  * In case the function is called more than it does nothing. */
 int free_logwriter(logwriter_t * lgwrt) ;
+
 
 // group: query
 
@@ -126,16 +123,35 @@ void flushbuffer_logwriter(logwriter_t * lgwrt) ;
 /* function: printf_logwriter
  * Writes new log entry to in internal buffer.
  * If the entry is bigger than <log_config_MAXSIZE> it may be truncated if internal buffer size is lower. */
-void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
+void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const char * format, ...) __attribute__ ((__format__ (__printf__, 4, 5))) ;
 
 /* function: vprintf_logwriter
  * Same as <printf_logwriter> except that variadic arguments are replaced by args.
  * Function used internally to implement <printf_logwriter>. */
-void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, const char * format, va_list args) ;
+void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const char * format, va_list args) ;
 
 
 
 // section: inline implementation
 
+// group: KONFIG_thread
+
+#define KONFIG_thread 1
+#if ((KONFIG_SUBSYS&KONFIG_thread) == 0)
+
+/* define: interface_logwriter
+ * Implement <logwriter_t.interface_logwriter> if there is no thread subsystem. */
+#define interface_logwriter()             (0)
+
+/* define: init_logwriter
+ * Implement <logwriter_t.init_logwriter> if there is no thread subsystem. */
+#define init_logwriter(log)               (ENOSYS)
+
+/* define: free_logwriter
+ * Implement <logwriter_t.free_logwriter> if there is no thread subsystem. */
+#define free_logwriter(log)               (ENOSYS)
+
+#endif
+#undef KONFIG_thread
 
 #endif

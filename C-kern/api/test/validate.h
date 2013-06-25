@@ -37,13 +37,14 @@
  * _ONERROR_LABEL    - The label to jump to if condition is wrong.
  * _LOG_VALUE        - The log command to log the value of the wrong parameter.
  * */
-#define VALIDATE_INPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
-   if (!(_CONDITION)) {                                     \
-      err = EINVAL ;                                        \
-      TRACE_ERRLOG(TEST_INPARAM_FALSE, err, #_CONDITION) ;  \
-      _LOG_VALUE ;                                          \
-      goto _ONERROR_LABEL ;                                 \
-   }
+#define VALIDATE_INPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE)  \
+         if (!(_CONDITION)) {                                        \
+            err = EINVAL ;                                           \
+            TRACE_ERRLOG(  log_flags_NONE, TEST_INPARAM_FALSE,       \
+                           err, #_CONDITION) ;                       \
+            _LOG_VALUE ;                                             \
+            goto _ONERROR_LABEL ;                                    \
+         }
 
 /* define: VALIDATE_OUTPARAM_TEST
  * Validates values returned as return stmt or as out param.
@@ -51,17 +52,18 @@
  * EINVAL and execution continues at the given label *_ONERROR_LABEL*.
  *
  * Parameter:
- * _CONDITION        - The condition to check for. Example: (isopen_file(&file))
+ * _CONDITION        - The condition to check for. Example: (isvalid_file(&file))
  * _ONERROR_LABEL    - The label to jump to if condition is wrong.
  * _LOG_VALUE        - The log command to log the value of the wrong parameter.
  * */
 #define VALIDATE_OUTPARAM_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
-   if (!(_CONDITION)) {                                     \
-      err = EINVAL ;                                        \
-      TRACE_ERRLOG(TEST_OUTPARAM_FALSE, err, #_CONDITION) ; \
-      _LOG_VALUE ;                                          \
-      goto _ONERROR_LABEL ;                                 \
-   }
+         if (!(_CONDITION)) {                                        \
+            err = EINVAL ;                                           \
+            TRACE_ERRLOG(  log_flags_NONE, TEST_OUTPARAM_FALSE,      \
+                           err, #_CONDITION) ;                       \
+            _LOG_VALUE ;                                             \
+            goto _ONERROR_LABEL ;                                    \
+         }
 
 /* define: VALIDATE_INVARIANT_TEST
  * Validates that internal object state is valid.
@@ -79,13 +81,14 @@
  * _ONERROR_LABEL    - The label to jump to if condition is wrong.
  * _LOG_VALUE        - The log command to log the value of the wrong parameter.
  * */
-#define VALIDATE_INVARIANT_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
-   if (!(_CONDITION)) {                                     \
-      err = EINVAL ;                                        \
-      TRACE_ERRLOG(TEST_INVARIANT_FALSE, err, #_CONDITION); \
-      _LOG_VALUE ;                                          \
-      goto _ONERROR_LABEL ;                                 \
-   }
+#define VALIDATE_INVARIANT_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE)   \
+         if (!(_CONDITION)) {                                     \
+            err = EINVAL ;                                        \
+            TRACE_ERRLOG(  log_flags_NONE, TEST_INVARIANT_FALSE,  \
+                           err, #_CONDITION);                     \
+            _LOG_VALUE ;                                          \
+            goto _ONERROR_LABEL ;                                 \
+         }
 
 /* define: VALIDATE_STATE_TEST
  * Validates that the object state is valid.
@@ -97,16 +100,17 @@
  * is only allowed on files being in an open state.
  *
  * Parameter:
- * _CONDITION        - The condition to check for. Example: (isopen_file(&file))
+ * _CONDITION        - The condition to check for. Example: (isvalid_file(&file))
  * _ONERROR_LABEL    - The label to jump to if condition is wrong.
  * _LOG_VALUE        - The log command to log the value of the wrong parameter.
  * */
 #define VALIDATE_STATE_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE) \
-   if (!(_CONDITION)) {                                  \
-      err = EPROTO ;                                     \
-      TRACE_ERRLOG(TEST_STATE_FALSE, err, #_CONDITION) ; \
-      _LOG_VALUE ;                                       \
-      goto _ONERROR_LABEL ;                              \
-   }
+         if (!(_CONDITION)) {                                  \
+            err = EPROTO ;                                     \
+            TRACE_ERRLOG(  log_flags_NONE, TEST_STATE_FALSE,   \
+                           err, #_CONDITION) ;                 \
+            _LOG_VALUE ;                                       \
+            goto _ONERROR_LABEL ;                              \
+         }
 
 #endif

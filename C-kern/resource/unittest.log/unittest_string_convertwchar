@@ -1,36 +1,36 @@
-[Thread 1]
+[1: 1371660259.475180s]
 skip_convertwchar() C-kern/string/convertwchar.c:73
 Error 61 - Function aborted
-[Thread 1]
+[1: 1371660259.475187s]
 skip_convertwchar() C-kern/string/convertwchar.c:73
 Error 61 - Function aborted
-[Thread 1]
+[1: 1371660259.475192s]
 peek_convertwchar() C-kern/string/convertwchar.c:104
 Error 84 - Function aborted
-[Thread 1]
+[1: 1371660259.475194s]
 skip_convertwchar() C-kern/string/convertwchar.c:73
 Error 84 - Function aborted
-[Thread 1]
+[1: 1371660259.475197s]
 peek_convertwchar() C-kern/string/convertwchar.c:104
 Error 84 - Function aborted
-[Thread 1]
+[1: 1371660259.475199s]
 skip_convertwchar() C-kern/string/convertwchar.c:73
 Error 84 - Function aborted
-[Thread 1]
+[1: 1371660259.475689s]
 skip_convertwchar() C-kern/string/convertwchar.c:73
 Error 61 - Function aborted
-[Thread 1]
+[1: 1371660259.475694s]
 skip_convertwchar() C-kern/string/convertwchar.c:73
 Error 61 - Function aborted
-[Thread 1]
+[1: 1371660259.475698s]
 peek_convertwchar() C-kern/string/convertwchar.c:104
 Error 84 - Function aborted
-[Thread 1]
+[1: 1371660259.475700s]
 skip_convertwchar() C-kern/string/convertwchar.c:73
 Error 84 - Function aborted
-[Thread 1]
+[1: 1371660259.475702s]
 peek_convertwchar() C-kern/string/convertwchar.c:104
 Error 84 - Function aborted
-[Thread 1]
+[1: 1371660259.475704s]
 skip_convertwchar() C-kern/string/convertwchar.c:73
 Error 84 - Function aborted

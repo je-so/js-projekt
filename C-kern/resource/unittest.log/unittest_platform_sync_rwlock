@@ -1,33 +1,33 @@
-[Thread 1]
+[1: 1371660264.955497s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
 Error 16 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660264.955502s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
 Error 16 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660264.955505s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
 Error 16 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660264.955507s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
 Error 16 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660264.955509s]
 free_rwlock() C-kern/platform/Linux/sync/rwlock.c:68
 Error 16 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660264.955552s]
 lockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:199
 Error 35 - Function aborted
-[Thread 1]
+[1: 1371660264.955557s]
 lockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:199
 Error 75 - Function aborted
-[Thread 1]
+[1: 1371660264.980748s]
 lockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:226
 Error 35 - Function aborted
-[Thread 1]
+[1: 1371660265.7426s]
 unlockreader_rwlock() C-kern/platform/Linux/sync/rwlock.c:258
 Error 1 - Function aborted
-[Thread 1]
+[1: 1371660265.18109s]
 unlockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:287
 Error 1 - Function aborted
-[Thread 1]
+[1: 1371660265.18120s]
 unlockwriter_rwlock() C-kern/platform/Linux/sync/rwlock.c:287
 Error 1 - Function aborted

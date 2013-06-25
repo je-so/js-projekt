@@ -1,12 +1,12 @@
-[Thread 1]
+[1: 1371660256.302594s]
 removenodes_redblacktree() C-kern/ds/inmem/redblacktree.c:708
 Error 8 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660256.302598s]
 free_redblacktree() C-kern/ds/inmem/redblacktree.c:205
 Error 8 - Function aborted
-[Thread 1]
+[1: 1371660256.302902s]
 insert_redblacktree() C-kern/ds/inmem/redblacktree.c:532
 Error 22 - Function input violates condition (EVENADDRESS(new_node))
-[Thread 1]
+[1: 1371660256.302906s]
 insert_redblacktree() C-kern/ds/inmem/redblacktree.c:582
 Error 22 - Function aborted

@@ -1,9 +1,9 @@
-[Thread 1]
+[1: 1371660287.444149s]
 initcurrent_x11videomode() C-kern/platform/shared/X11/x11videomode.c:167
 Error 38 - Function aborted
-[Thread 1]
+[1: 1371660288.445692s]
 set_x11videomode() C-kern/platform/shared/X11/x11videomode.c:222
 Error 38 - Function aborted
-[Thread 1]
+[1: 1371660288.864805s]
 initcurrent_x11videomode() C-kern/platform/shared/X11/x11videomode.c:167
 Error 38 - Function aborted

@@ -1,21 +1,21 @@
-[Thread 1]
+[1: 1371660262.149798s]
 initcreate_file() C-kern/platform/Linux/io/file.c:145
 Error 17 - System call 'openat' returned error 'File exists'
 openatfd=3
 filepath=save
-[Thread 1]
+[1: 1371660262.149811s]
 initcreate_file() C-kern/platform/Linux/io/file.c:155
 Error 17 - Function aborted
-[Thread 1]
+[1: 1371660262.149814s]
 save_file() C-kern/io/filesystem/fileutil.c:118
 Error 17 - Function aborted
-[Thread 1]
+[1: 1371660262.150185s]
 init_file() C-kern/platform/Linux/io/file.c:92
 Error 2 - System call 'openat' returned error 'No such file or directory'
 filepath=save
-[Thread 1]
+[1: 1371660262.150188s]
 init_file() C-kern/platform/Linux/io/file.c:101
 Error 2 - Function aborted
-[Thread 1]
+[1: 1371660262.150190s]
 load_file() C-kern/io/filesystem/fileutil.c:85
 Error 2 - Function aborted

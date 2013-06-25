@@ -59,18 +59,20 @@
  *
  * Parameter:
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
+ * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
  * FORMAT     - The format string as in the standard library function printf.
  * ...        - Additional value parameters of the correct type as determined by the <FORMAT>
  *              parameter.
  *
  * Example:
  * > int i ; PRINTF_LOG(log_channel_ERR, "%d", i) */
-#define PRINTF_LOG(LOGCHANNEL, ... )         \
-   do {                                      \
-         log_maincontext().iimpl->printf(    \
+#define PRINTF_LOG(LOGCHANNEL, FLAGS, ... )  \
+         do {                                \
+            log_maincontext().iimpl->printf( \
                log_maincontext().object,     \
-               LOGCHANNEL, __VA_ARGS__ ) ;   \
-   } while(0)
+               LOGCHANNEL, FLAGS,            \
+               __VA_ARGS__ ) ;               \
+         } while(0)
 
 // group: log-variables
 
@@ -90,7 +92,7 @@
  * > const size_t memsize = 1024 ;
  * > PRINTVAR_LOG(log_channel_ERR, PRIuSIZE, memsize, ) ; */
 #define PRINTVAR_LOG(LOGCHANNEL, format, varname, cast) \
-         PRINTF_LOG(LOGCHANNEL, #varname "=%" format "\n", cast (varname))
+         PRINTF_LOG(LOGCHANNEL, log_flags_NONE, #varname "=%" format "\n", cast (varname))
 
 /* define: PRINTARRAYFIELD_LOG
  * Log value of variable stored in array at offset i.
@@ -108,7 +110,7 @@
  * > const char * names[] = { "Jo", "Jane" } ;
  * > for(int i = 0; i < 2; ++i) { PRINTARRAYFIELD_LOG(log_channel_ERR, s,names,i) ; } */
 #define PRINTARRAYFIELD_LOG(LOGCHANNEL, format, arrname, index)  \
-         PRINTF_LOG(LOGCHANNEL, #arrname "[%d]=%" format "\n", i, (arrname)[i])
+         PRINTF_LOG(LOGCHANNEL, log_flags_NONE, #arrname "[%d]=%" format "\n", i, (arrname)[i])
 
 /* define: PRINTCSTR_LOG
  * Log "name=value" of string variable.

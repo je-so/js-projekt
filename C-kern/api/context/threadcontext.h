@@ -115,6 +115,11 @@ bool isstatic_threadcontext(const threadcontext_t * tcontext) ;
 
 // group: change
 
+/* function: resetthreadid_threadcontext
+ * Resets the the thread id. The next created thread will be assigned the id 2.
+ * Call this function only in test situations. */
+void resetthreadid_threadcontext(void) ;
+
 /* function: setmm_threadcontext
  * Overwrites old mm_t of threadcontext_t with new_mm. */
 void setmm_threadcontext(threadcontext_t * tcontext, struct mm_t * new_mm) ;

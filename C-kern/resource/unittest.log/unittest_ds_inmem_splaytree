@@ -1,6 +1,6 @@
-[Thread 1]
+[1: 1371660256.405462s]
 removenodes_splaytree() C-kern/ds/inmem/splaytree.c:529
 Error 24 - Function aborted
-[Thread 1]
+[1: 1371660256.405468s]
 free_splaytree() C-kern/ds/inmem/splaytree.c:164
 Error 24 - Function aborted

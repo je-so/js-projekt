@@ -44,6 +44,10 @@ void logworking_test(void) ;
  * Prints "RUN %s: ". */
 void logrun_test(const char * testname) ;
 
+/* function: logformat_test
+ * Prints format string. */
+void logformat_test(const char * format, ...) __attribute__ ((__format__ (__printf__, 1, 2))) ;
+
 // group: macros
 
 /* define: TEST

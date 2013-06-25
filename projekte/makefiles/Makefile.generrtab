@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/generrtab.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.25  08:18:08
+GenerationDate  := 2013.Jun.25  09:26:21
 GeneratedBy     := je-so
 
 ## Debug
@@ -95,7 +95,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!generrtab.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
@@ -123,7 +123,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!generrtab.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
@@ -198,7 +198,7 @@ $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+$(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!main!tools!generrtab.c.o: C-kern/main/tools/generrtab.c
@@ -276,7 +276,7 @@ $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+$(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!tools!generrtab.c.o: C-kern/main/tools/generrtab.c

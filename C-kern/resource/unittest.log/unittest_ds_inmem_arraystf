@@ -1,46 +1,46 @@
-[Thread 1]
+[1: 1371660254.603464s]
 initdiff_arraystfkeyval() C-kern/ds/inmem/arraystf.c:130
 Error 22 - Function input violates condition (size1 != size2)
-[Thread 1]
+[1: 1371660254.603469s]
 initdiff_arraystfkeyval() C-kern/ds/inmem/arraystf.c:140
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660254.773071s]
 new_arraystf() C-kern/ds/inmem/arraystf.c:252
 Error 22 - Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
-[Thread 1]
+[1: 1371660254.773083s]
 new_arraystf() C-kern/ds/inmem/arraystf.c:267
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660254.773086s]
 find_arraystf() C-kern/ds/inmem/arraystf.c:170
 Error 22 - Function input violates condition (keynode->size < SIZE_MAX)
-[Thread 1]
+[1: 1371660254.773088s]
 find_arraystf() C-kern/ds/inmem/arraystf.c:238
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660254.773091s]
 insert_arraystf() C-kern/ds/inmem/arraystf.c:619
 Error 17 - Function aborted
-[Thread 1]
+[1: 1371660254.773093s]
 remove_arraystf() C-kern/ds/inmem/arraystf.c:601
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660254.775045s]
 delete_arraystf() C-kern/ds/inmem/arraystf.c:353
 Error 12345 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660254.799413s]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 24 bytes of memory
-[Thread 1]
+[1: 1371660254.799424s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660254.799427s]
 tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:525
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660254.799430s]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 24 bytes of memory
-[Thread 1]
+[1: 1371660254.799432s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660254.799434s]
 tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:525
 Error 12 - Function aborted

@@ -1,72 +1,72 @@
-[Thread 1]
+[1: 1371660264.76770s]
 free_mutex() C-kern/platform/Linux/sync/mutex.c:87
 Error 16 - Function aborted
-[Thread 1]
+[1: 1371660264.80290s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:100
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660264.80297s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:113
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660264.561587s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:100
 Error 35 - Function aborted
-[Thread 1]
+[1: 1371660264.562611s]
 free_mutex() C-kern/platform/Linux/sync/mutex.c:87
 Error 16 - Function aborted
-[Thread 1]
+[1: 1371660264.564449s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:113
 Error 1 - Function aborted
-[Thread 1]
+[1: 1371660264.564806s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:113
 Error 1 - Function aborted
-[Thread 1]
+[1: 1371660264.564809s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:100
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660264.564812s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:113
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660264.610808s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:100
 Error 35 - Function aborted
-[Thread 1]
+[1: 1371660264.610818s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:455
 Error 22 - Assertion '!lock_mutex(&mutex)' failed.
-[Thread 1]
+[1: 1371660264.610821s]
 abort_maincontext() C-kern/context/maincontext.c:198
 Error 22 - Abort process with fatal error
-[Thread 1]
+[1: 1371660264.611754s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:113
 Error 1 - Function aborted
-[Thread 1]
+[1: 1371660264.611829s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:471
 Error 22 - Assertion '!unlock_mutex(&mutex)' failed.
-[Thread 1]
+[1: 1371660264.611831s]
 abort_maincontext() C-kern/context/maincontext.c:198
 Error 22 - Abort process with fatal error
-[Thread 1]
+[1: 1371660264.612028s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:113
 Error 1 - Function aborted
-[Thread 1]
+[1: 1371660264.612031s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:490
 Error 22 - Assertion '!unlock_mutex(&mutex)' failed.
-[Thread 1]
+[1: 1371660264.612033s]
 abort_maincontext() C-kern/context/maincontext.c:198
 Error 22 - Abort process with fatal error
-[Thread 1]
+[1: 1371660264.612040s]
 lock_mutex() C-kern/platform/Linux/sync/mutex.c:100
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660264.612042s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:501
 Error 22 - Assertion '!lock_mutex(&mutex)' failed.
-[Thread 1]
+[1: 1371660264.612044s]
 abort_maincontext() C-kern/context/maincontext.c:198
 Error 22 - Abort process with fatal error
-[Thread 1]
+[1: 1371660264.612049s]
 unlock_mutex() C-kern/platform/Linux/sync/mutex.c:113
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660264.612051s]
 test_slock() C-kern/platform/Linux/sync/mutex.c:509
 Error 22 - Assertion '!unlock_mutex(&mutex)' failed.
-[Thread 1]
+[1: 1371660264.612053s]
 abort_maincontext() C-kern/context/maincontext.c:198
 Error 22 - Abort process with fatal error

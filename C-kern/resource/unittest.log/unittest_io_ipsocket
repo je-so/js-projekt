@@ -1,180 +1,180 @@
-[Thread 1]
+[1: 1371660262.341497s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:364
 Error 107 - System call 'getpeername' returned error 'Transport endpoint is not connected'
 fd=8
-[Thread 1]
+[1: 1371660262.341508s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:376
 Error 107 - Function aborted
-[Thread 1]
+[1: 1371660262.341541s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:364
 Error 107 - System call 'getpeername' returned error 'Transport endpoint is not connected'
 fd=8
-[Thread 1]
+[1: 1371660262.341547s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:376
 Error 107 - Function aborted
-[Thread 1]
+[1: 1371660262.341577s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:364
 Error 107 - System call 'getpeername' returned error 'Transport endpoint is not connected'
 fd=8
-[Thread 1]
+[1: 1371660262.341582s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:376
 Error 107 - Function aborted
-[Thread 1]
+[1: 1371660262.341621s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:364
 Error 107 - System call 'getpeername' returned error 'Transport endpoint is not connected'
 fd=8
-[Thread 1]
+[1: 1371660262.341627s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:376
 Error 107 - Function aborted
-[Thread 1]
+[1: 1371660262.341657s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:364
 Error 107 - System call 'getpeername' returned error 'Transport endpoint is not connected'
 fd=8
-[Thread 1]
+[1: 1371660262.341662s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:376
 Error 107 - Function aborted
-[Thread 1]
+[1: 1371660262.341696s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:364
 Error 107 - System call 'getpeername' returned error 'Transport endpoint is not connected'
 fd=8
-[Thread 1]
+[1: 1371660262.341702s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:376
 Error 107 - Function aborted
-[Thread 1]
+[1: 1371660262.341727s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:364
 Error 107 - System call 'getpeername' returned error 'Transport endpoint is not connected'
 fd=8
-[Thread 1]
+[1: 1371660262.341733s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:376
 Error 107 - Function aborted
-[Thread 1]
+[1: 1371660262.341772s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:364
 Error 107 - System call 'getpeername' returned error 'Transport endpoint is not connected'
 fd=8
-[Thread 1]
+[1: 1371660262.341777s]
 remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:376
 Error 107 - Function aborted
-[Thread 1]
+[1: 1371660262.341789s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:115
 Error 22 - Function input violates condition (isvalid_ipaddr(localaddr))
-[Thread 1]
+[1: 1371660262.341798s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:127
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.341802s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:115
 Error 22 - Function input violates condition (isvalid_ipaddr(localaddr))
-[Thread 1]
+[1: 1371660262.341806s]
 init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:127
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.342304s]
 initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:141
 Error 22 - Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
-[Thread 1]
+[1: 1371660262.342311s]
 initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:163
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.342386s]
 initwaitconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:214
 Error 22 - System call 'accept4' returned error 'Invalid argument'
 fd=9
-[Thread 1]
+[1: 1371660262.342394s]
 initwaitconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:230
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.342437s]
 initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:154
 Error 97 - System call 'connect' returned error 'Address family not supported by protocol'
 fd=8
-[Thread 1]
+[1: 1371660262.342450s]
 initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:163
 Error 97 - Function aborted
-[Thread 1]
+[1: 1371660262.342465s]
 initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:182
 Error 95 - System call 'listen' returned error 'Operation not supported'
 fd=8
 max_outstanding_connections=1
-[Thread 1]
+[1: 1371660262.342475s]
 initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:192
 Error 95 - Function aborted
-[Thread 1]
+[1: 1371660262.342492s]
 initwaitconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:214
 Error 95 - System call 'accept4' returned error 'Operation not supported'
 fd=8
-[Thread 1]
+[1: 1371660262.342498s]
 initwaitconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:230
 Error 95 - Function aborted
-[Thread 1]
+[1: 1371660262.488133s]
 read_ipsocket() C-kern/platform/Linux/io/ipsocket.c:503
 Error 11 - System call 'recv' returned error 'Resource temporarily unavailable'
 fd=9
 maxdata_len=1
-[Thread 1]
+[1: 1371660262.488155s]
 read_ipsocket() C-kern/platform/Linux/io/ipsocket.c:514
 Error 11 - Function aborted
-[Thread 1]
+[1: 1371660262.752317s]
 readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:564
 Error 11 - System call 'recv' returned error 'Resource temporarily unavailable'
 fd=9
 maxdata_len=1
-[Thread 1]
+[1: 1371660262.752337s]
 readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:596
 Error 11 - Function aborted
-[Thread 1]
+[1: 1371660262.782788s]
 readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:564
 Error 11 - System call 'recv' returned error 'Resource temporarily unavailable'
 fd=10
 maxdata_len=1
-[Thread 1]
+[1: 1371660262.782798s]
 readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:596
 Error 11 - Function aborted
-[Thread 1]
+[1: 1371660262.803225s]
 writeoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:613
 Error 95 - System call 'send' returned error 'Operation not supported'
 fd=9
-[Thread 1]
+[1: 1371660262.803235s]
 writeoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:620
 Error 95 - Function aborted
-[Thread 1]
+[1: 1371660262.803243s]
 readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:555
 Error 95 - System call 'ioctl(SIOCATMARK)' returned error 'Operation not supported'
 fd=8
-[Thread 1]
+[1: 1371660262.803249s]
 readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:596
 Error 95 - Function aborted
-[Thread 1]
+[1: 1371660262.803258s]
 read_ipsocket() C-kern/platform/Linux/io/ipsocket.c:503
 Error 11 - System call 'recv' returned error 'Resource temporarily unavailable'
 fd=8
 maxdata_len=1
-[Thread 1]
+[1: 1371660262.803264s]
 read_ipsocket() C-kern/platform/Linux/io/ipsocket.c:514
 Error 11 - Function aborted
-[Thread 1]
+[1: 1371660262.804383s]
 writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:704
 Error 97 - Function aborted
-[Thread 1]
+[1: 1371660262.804390s]
 readfrom_ipsocket() C-kern/platform/Linux/io/ipsocket.c:667
 Error 97 - Function aborted
-[Thread 1]
+[1: 1371660262.804395s]
 writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:704
 Error 93 - Function aborted
-[Thread 1]
+[1: 1371660262.805311s]
 writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:704
 Error 97 - Function aborted
-[Thread 1]
+[1: 1371660262.805317s]
 readfrom_ipsocket() C-kern/platform/Linux/io/ipsocket.c:667
 Error 97 - Function aborted
-[Thread 1]
+[1: 1371660262.805322s]
 writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:704
 Error 93 - Function aborted
-[Thread 1]
+[1: 1371660262.805914s]
 initconnect_ipsocketasync() C-kern/platform/Linux/io/ipsocket.c:736
 Error 22 - Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
-[Thread 1]
+[1: 1371660262.805921s]
 initconnect_ipsocketasync() C-kern/platform/Linux/io/ipsocket.c:772
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.805937s]
 initconnect_ipsocketasync() C-kern/platform/Linux/io/ipsocket.c:761
 Error 97 - System call 'connect' returned error 'Address family not supported by protocol'
 fd=9
-[Thread 1]
+[1: 1371660262.805946s]
 initconnect_ipsocketasync() C-kern/platform/Linux/io/ipsocket.c:772
 Error 97 - Function aborted

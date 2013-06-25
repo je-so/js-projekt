@@ -1,41 +1,41 @@
-[Thread 1]
+[1: 1371660254.585976s]
 new_arraysf() C-kern/ds/inmem/arraysf.c:115
 Error 22 - Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
-[Thread 1]
+[1: 1371660254.585989s]
 new_arraysf() C-kern/ds/inmem/arraysf.c:131
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660254.585991s]
 new_arraysf() C-kern/ds/inmem/arraysf.c:116
 Error 22 - Function input violates condition (posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize))
 posshift=25
-[Thread 1]
+[1: 1371660254.585994s]
 new_arraysf() C-kern/ds/inmem/arraysf.c:131
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660254.585997s]
 insert_arraysf() C-kern/ds/inmem/arraysf.c:459
 Error 17 - Function aborted
-[Thread 1]
+[1: 1371660254.585999s]
 remove_arraysf() C-kern/ds/inmem/arraysf.c:441
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660254.593926s]
 delete_arraysf() C-kern/ds/inmem/arraysf.c:214
 Error 12345 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660254.601539s]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 20 bytes of memory
-[Thread 1]
+[1: 1371660254.601548s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660254.601550s]
 tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:366
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660254.601553s]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 20 bytes of memory
-[Thread 1]
+[1: 1371660254.601555s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660254.601557s]
 tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:366
 Error 12 - Function aborted

@@ -1,42 +1,42 @@
-[Thread 1]
+[1: 1371660259.445029s]
 staticimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:90
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.445045s]
 staticimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:90
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.445056s]
 staticimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:90
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.460602s]
 new_testmmpage() C-kern/test/testmm.c:197
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.460615s]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 2147483647 bytes of memory
-[Thread 1]
+[1: 1371660259.460618s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.460620s]
 dynamicimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:81
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.460625s]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 2 bytes of memory
-[Thread 1]
+[1: 1371660259.460627s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.460629s]
 dynamicimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:81
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.460637s]
 new_testmmpage() C-kern/test/testmm.c:197
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.460639s]
 mresize_testmm() C-kern/test/testmm.c:676
 Error 12 - Could not allocate 2147483647 bytes of memory
-[Thread 1]
+[1: 1371660259.460641s]
 mresize_testmm() C-kern/test/testmm.c:678
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.460643s]
 dynamicimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:81
 Error 12 - Function aborted

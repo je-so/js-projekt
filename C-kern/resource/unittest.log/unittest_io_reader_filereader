@@ -1,38 +1,38 @@
-[Thread 1]
+[1: 1371660262.915908s]
 init_file() C-kern/platform/Linux/io/file.c:92
 Error 2 - System call 'openat' returned error 'No such file or directory'
 filepath=X
-[Thread 1]
+[1: 1371660262.915913s]
 init_file() C-kern/platform/Linux/io/file.c:101
 Error 2 - Function aborted
-[Thread 1]
+[1: 1371660262.915916s]
 init_filereader() C-kern/io/reader/filereader.c:142
 Error 2 - Function aborted
-[Thread 1]
+[1: 1371660262.915920s]
 init_file() C-kern/platform/Linux/io/file.c:92
 Error 2 - System call 'openat' returned error 'No such file or directory'
 filepath=X
-[Thread 1]
+[1: 1371660262.915922s]
 init_file() C-kern/platform/Linux/io/file.c:101
 Error 2 - Function aborted
-[Thread 1]
+[1: 1371660262.915924s]
 initsb_filereader() C-kern/io/reader/filereader.c:170
 Error 2 - Function aborted
-[Thread 1]
+[1: 1371660263.467244s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:74
 Error 12 - System call 'mmap' returned error 'Cannot allocate memory'
-[Thread 1]
+[1: 1371660263.467259s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:94
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660263.467261s]
 initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:107
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660263.467273s]
 initsb_filereader() C-kern/io/reader/filereader.c:170
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660263.589582s]
 acquirenext_filereader() C-kern/io/reader/filereader.c:288
 Error 105 - Function aborted
-[Thread 1]
+[1: 1371660263.589668s]
 acquirenext_filereader() C-kern/io/reader/filereader.c:288
 Error 105 - Function aborted

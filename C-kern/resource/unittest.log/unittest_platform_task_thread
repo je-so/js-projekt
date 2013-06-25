@@ -1,30 +1,30 @@
-[Thread 1]
-exit_thread() C-kern/platform/Linux/task/thread.c:368
+[1: 1371660268.413492s]
+exit_thread() C-kern/platform/Linux/task/thread.c:369
 Error 71 - Operation allowed only in state (! ismain_thread(thread))
-[Thread 1]
-exit_thread() C-kern/platform/Linux/task/thread.c:381
+[1: 1371660268.413515s]
+exit_thread() C-kern/platform/Linux/task/thread.c:382
 Error 71 - Function aborted
-[Thread 1]
-new_thread() C-kern/platform/Linux/task/thread.c:237
+[1: 1371660268.422678s]
+new_thread() C-kern/platform/Linux/task/thread.c:238
 Error 1 - Function aborted
-[Thread 1]
-new_thread() C-kern/platform/Linux/task/thread.c:237
+[1: 1371660268.422756s]
+new_thread() C-kern/platform/Linux/task/thread.c:238
 Error 2 - Function aborted
-[Thread 1]
-new_thread() C-kern/platform/Linux/task/thread.c:237
+[1: 1371660268.422795s]
+new_thread() C-kern/platform/Linux/task/thread.c:238
 Error 3 - Function aborted
-[Thread 1]
-new_thread() C-kern/platform/Linux/task/thread.c:237
+[1: 1371660268.422832s]
+new_thread() C-kern/platform/Linux/task/thread.c:238
 Error 4 - Function aborted
-[Thread 1]
-join_thread() C-kern/platform/Linux/task/thread.c:257
+[1: 1371660268.449298s]
+join_thread() C-kern/platform/Linux/task/thread.c:258
 Error 35 - Function aborted
-[Thread 1]
-join_thread() C-kern/platform/Linux/task/thread.c:257
+[1: 1371660268.450614s]
+join_thread() C-kern/platform/Linux/task/thread.c:258
 Error 3 - Function aborted
-[Thread 1]
-exit_thread() C-kern/platform/Linux/task/thread.c:368
+[1: 1371660269.221680s]
+exit_thread() C-kern/platform/Linux/task/thread.c:369
 Error 71 - Operation allowed only in state (! ismain_thread(thread))
-[Thread 1]
-exit_thread() C-kern/platform/Linux/task/thread.c:381
+[1: 1371660269.221693s]
+exit_thread() C-kern/platform/Linux/task/thread.c:382
 Error 71 - Function aborted

@@ -60,6 +60,15 @@ void logrun_test(const char * testname)
    (void) written ;
 }
 
+void logformat_test(const char * format, ...)
+{
+   va_list args ;
+   va_start(args, format) ;
+   int bytes = vdprintf(iochannel_STDOUT, format, args) ;
+   (void) bytes ;
+   va_end(args) ;
+}
+
 
 
 #ifdef KONFIG_UNITTEST
@@ -94,6 +103,12 @@ static int test_helper(void)
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
    TEST(15 == bytes_read) ;
    TEST(0 == strncmp((const char*)buffer, "RUN test-name: ", bytes_read)) ;
+
+   // TEST logformat_test
+   logformat_test("Hello %d,%d\n", 1, 2) ;
+   TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read)) ;
+   TEST(10 == bytes_read) ;
+   TEST(0 == strncmp((const char*)buffer, "Hello 1,2\n", bytes_read)) ;
 
    // unprepare
    TEST(iochannel_STDOUT == dup2(oldstdout, iochannel_STDOUT)) ;

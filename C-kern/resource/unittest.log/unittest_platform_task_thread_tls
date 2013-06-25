@@ -1,15 +1,15 @@
-[Thread 1]
+[1: 1371660269.228101s]
 init_threadtls() C-kern/platform/Linux/task/thread_tls.c:157
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660269.228110s]
 init_threadtls() C-kern/platform/Linux/task/thread_tls.c:157
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660269.228118s]
 init_threadtls() C-kern/platform/Linux/task/thread_tls.c:157
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660269.228127s]
 init_threadtls() C-kern/platform/Linux/task/thread_tls.c:157
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660269.228151s]
 free_threadtls() C-kern/platform/Linux/task/thread_tls.c:178
 Error 22 - Function aborted - one or more resources could not be freed

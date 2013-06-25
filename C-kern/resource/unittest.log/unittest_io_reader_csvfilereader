@@ -1,86 +1,86 @@
-[Thread 1]
+[1: 1371660262.905370s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:350
 Error 22 - Function input violates condition (column < csvfile->nrcolumns)
 column=4
 csvfile->nrcolumns=4
-[Thread 1]
+[1: 1371660262.905381s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:358
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.905388s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:350
 Error 22 - Function input violates condition (column < csvfile->nrcolumns)
 column=4294967295
 csvfile->nrcolumns=4
-[Thread 1]
+[1: 1371660262.905394s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:358
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.905401s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:351
 Error 22 - Function input violates condition (row < csvfile->nrrows)
 row=3
 csvfile->nrrows=3
-[Thread 1]
+[1: 1371660262.905407s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:358
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.905410s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:351
 Error 22 - Function input violates condition (row < csvfile->nrrows)
 row=4294967295
 csvfile->nrrows=3
-[Thread 1]
+[1: 1371660262.905415s]
 colvalue_csvfilereader() C-kern/io/reader/csvfilereader.c:358
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.905746s]
 parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:107
 Error 22 - Expect character ',' in line: 1, column: 12
-[Thread 1]
+[1: 1371660262.905765s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.905875s]
 parsenrcolumns_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:170
 Error 22 - Expect character '"' in line: 1, column: 12
-[Thread 1]
+[1: 1371660262.905887s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.905998s]
 parsenrcolumns_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:170
 Error 22 - Expect character '"' in line: 1, column: 12
-[Thread 1]
+[1: 1371660262.906010s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.906125s]
 parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:107
 Error 22 - Expect character '"' in line: 1, column: 14
-[Thread 1]
+[1: 1371660262.906137s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.906259s]
 parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:242
 Error 22 - Expect '(newline)' in line: 2, column: 12
-[Thread 1]
+[1: 1371660262.906276s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.906387s]
 parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:256
 Error 22 - Expect character ',' in line: 2, column: 5
-[Thread 1]
+[1: 1371660262.906399s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.906510s]
 parsedata_csvfilereader() C-kern/io/reader/csvfilereader.c:267
 Error 22 - Expect character '"' in line: 2, column: 6
-[Thread 1]
+[1: 1371660262.906523s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.906636s]
 parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:107
 Error 22 - Expect character '"' in line: 2, column: 10
-[Thread 1]
+[1: 1371660262.906649s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660262.906757s]
 parsechar_csvfilereaderparsestate() C-kern/io/reader/csvfilereader.c:107
 Error 22 - Expect character '"' in line: 1, column: 3
-[Thread 1]
+[1: 1371660262.906769s]
 init_csvfilereader() C-kern/io/reader/csvfilereader.c:316
 Error 22 - Function aborted

@@ -1,40 +1,40 @@
-[Thread 1]
+[1: 1371660265.836050s]
 send_rtsignal() C-kern/platform/Linux/sync/signal.c:432
 Error 22 - Function input violates condition (nr <= maxnr_rtsignal())
 nr=16
-[Thread 1]
+[1: 1371660265.836068s]
 send_rtsignal() C-kern/platform/Linux/sync/signal.c:443
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660265.836074s]
 trywait_rtsignal() C-kern/platform/Linux/sync/signal.c:493
 Error 22 - Function input violates condition (nr <= maxnr_rtsignal())
 nr=16
-[Thread 1]
+[1: 1371660265.836079s]
 trywait_rtsignal() C-kern/platform/Linux/sync/signal.c:525
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660265.836083s]
 wait_rtsignal() C-kern/platform/Linux/sync/signal.c:452
 Error 22 - Function input violates condition (nr <= maxnr_rtsignal())
 nr=16
-[Thread 1]
+[1: 1371660265.836087s]
 wait_rtsignal() C-kern/platform/Linux/sync/signal.c:483
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660265.836090s]
 wait_rtsignal() C-kern/platform/Linux/sync/signal.c:452
 Error 22 - Function input violates condition (nr <= maxnr_rtsignal())
 nr=255
-[Thread 1]
+[1: 1371660265.836094s]
 wait_rtsignal() C-kern/platform/Linux/sync/signal.c:483
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660265.857788s]
 send_rtsignal() C-kern/platform/Linux/sync/signal.c:437
 Error 11 - System call 'sigqueue' returned error 'Resource temporarily unavailable'
-[Thread 1]
+[1: 1371660265.857797s]
 send_rtsignal() C-kern/platform/Linux/sync/signal.c:443
 Error 11 - Function aborted
-[Thread 1]
+[1: 1371660265.857800s]
 send_rtsignal() C-kern/platform/Linux/sync/signal.c:437
 Error 11 - System call 'sigqueue' returned error 'Resource temporarily unavailable'
-[Thread 1]
+[1: 1371660265.857803s]
 send_rtsignal() C-kern/platform/Linux/sync/signal.c:443
 Error 11 - Function aborted

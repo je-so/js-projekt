@@ -1,0 +1,6 @@
+[1: 1371793636.950740s]
+init_logbuffer() C-kern/io/writer/log/logbuffer.c:45
+Error 22 - Function input violates condition (buffer_size > log_config_MAXSIZE)
+[1: 1371793636.950746s]
+init_logbuffer() C-kern/io/writer/log/logbuffer.c:55
+Error 22 - Function aborted

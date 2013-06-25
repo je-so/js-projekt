@@ -378,6 +378,11 @@ bool isstatic_threadcontext(const threadcontext_t * tcontext)
 
 // group: change
 
+void resetthreadid_threadcontext()
+{
+   atomicwrite_int(&s_threadcontext_nextid, 0) ;
+}
+
 void setmm_threadcontext(threadcontext_t * tcontext, mm_t * new_mm)
 {
    initcopy_iobj(&tcontext->mm, new_mm) ;
@@ -739,6 +744,12 @@ ONABORT:
 static int test_change(void)
 {
    threadcontext_t tcontext = threadcontext_INIT_FREEABLE ;
+
+   // TEST resetthreadid_threadcontext
+   s_threadcontext_nextid = 10 ;
+   TEST(0 != s_threadcontext_nextid) ;
+   resetthreadid_threadcontext() ;
+   TEST(0 == s_threadcontext_nextid) ;
 
    // TEST setmm_threadcontext
    setmm_threadcontext(&tcontext, &(mm_t) iobj_INIT((void*)1, (void*)2)) ;

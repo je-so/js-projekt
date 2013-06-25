@@ -179,6 +179,13 @@ ONABORT:
    return accessmode_NONE ;
 }
 
+bool isvalid_iochannel(const iochannel_t ioc)
+{
+   int err ;
+   err = fcntl(ioc, F_GETFD) ;
+   return (-1 != err) ;
+}
+
 // group: I/O
 
 int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/, /*out*/size_t * bytes_read)
@@ -355,6 +362,21 @@ static int test_query(directory_t * tempdir)
       TEST(0 == isfree_iochannel(testioc[i])) ;
    }
    TEST(1 == isfree_iochannel(ioc)) ;
+
+   // TEST isvalid_iochannel
+   TEST(0 == isvalid_iochannel(file_INIT_FREEABLE)) ;
+   TEST(0 == isvalid_iochannel(100)) ;
+   TEST(0 == isvalid_iochannel(INT_MAX)) ;
+   TEST(1 == isvalid_iochannel(file_STDIN)) ;
+   TEST(1 == isvalid_iochannel(file_STDOUT)) ;
+   TEST(1 == isvalid_iochannel(file_STDERR)) ;
+   TEST(0 == pipe2(pipeioc, O_CLOEXEC)) ;
+   for (unsigned i = 0; i < 2; ++i) {
+      ioc = pipeioc[i] ;
+      TEST(1 == isvalid_iochannel(pipeioc[i])) ;
+      TEST(0 == free_iochannel(&pipeioc[i])) ;
+      TEST(0 == isvalid_iochannel(ioc)) ;
+   }
 
    // TEST accessmode_iochannel: predefined channels
    TEST(accessmode_NONE  == accessmode_iochannel(iochannel_INIT_FREEABLE)) ;

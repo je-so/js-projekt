@@ -195,7 +195,7 @@ void abort_maincontext(int err)
 {
    // TODO: add abort handler registration ...
    //       add unit test for checking that resources are freed
-   TRACE_NOARG_ERRLOG(PROGRAM_ABORT, err) ;
+   TRACE_NOARG_ERRLOG(log_flags_END, PROGRAM_ABORT, err) ;
    FLUSHBUFFER_LOG() ;
    abort() ;
 }
@@ -206,7 +206,7 @@ void assertfail_maincontext(
    int          line,
    const char * funcname)
 {
-   TRACE2_ERRLOG(ASSERT_FAILED, funcname, file, line, EINVAL, condition) ;
+   TRACE2_ERRLOG(log_flags_END, ASSERT_FAILED, funcname, file, line, EINVAL, condition) ;
    abort_maincontext(EINVAL) ;
 }
 
@@ -262,6 +262,7 @@ static int test_initmain(void)
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
+   FLUSHBUFFER_LOG() ;
    TEST(0 == free_maincontext()) ;
 
    // TEST static type
@@ -429,7 +430,7 @@ static int test_initerror(void)
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
-
+   FLUSHBUFFER_LOG() ;
    TEST(0 == free_maincontext()) ;
    TEST(maincontext_STATIC == type_maincontext()) ;
 
@@ -496,7 +497,7 @@ static int test_progname(void)
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC|O_NONBLOCK)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
-
+   FLUSHBUFFER_LOG() ;
    TEST(0 == free_maincontext()) ;
 
     // TEST progname_maincontext

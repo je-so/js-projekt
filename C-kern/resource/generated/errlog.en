@@ -5,127 +5,127 @@
  *
  */
 
-int ASSERT_FAILED_ERRLOG(log_channel_e channel, const char * wrong_condition)
+int ASSERT_FAILED_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * wrong_condition)
 {
    PRINTF("Assertion '%s' failed.\n", wrong_condition) ;
    return 0;
 }
 
-int ERROR_LOCATION_ERRLOG(log_channel_e channel, size_t thread_id, const char * funcname, const char * filename, int linenr, int err)
+int ERROR_LOCATION_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * filename, int linenr, int err)
 {
-   PRINTF("[Thread %zu]\n%s() %s:%d\nError %d - ", thread_id, funcname, filename, linenr, err) ;
+   PRINTF("%s() %s:%d\nError %d - ", funcname, filename, linenr, err) ;
    return 0;
 }
 
-int FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(log_channel_e channel, const char * filename)
+int FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * filename)
 {
    PRINTF("'%s' contains no newline\n", filename) ;
    return 0;
 }
 
-int FILE_FORMAT_WRONG_ERRLOG(log_channel_e channel, const char * filename)
+int FILE_FORMAT_WRONG_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * filename)
 {
    PRINTF("File '%s' has unknown format\n", filename) ;
    return 0;
 }
 
-int FUNCTION_ABORT_ERRLOG(log_channel_e channel)
+int FUNCTION_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags)
 {
    PRINTF("Function aborted\n") ;
    return 0;
 }
 
-int FUNCTION_ABORT_FREE_ERRLOG(log_channel_e channel)
+int FUNCTION_ABORT_FREE_ERRLOG(uint8_t log_channel, uint8_t log_flags)
 {
    PRINTF("Function aborted - one or more resources could not be freed\n") ;
    return 0;
 }
 
-int FUNCTION_CALL_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr)
+int FUNCTION_CALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * errstr)
 {
    PRINTF("Function call '%s' returned error '%s'\n", funcname, errstr) ;
    return 0;
 }
 
-int FUNCTION_SYSCALL_ERRLOG(log_channel_e channel, const char * funcname, const char * errstr)
+int FUNCTION_SYSCALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * errstr)
 {
    PRINTF("System call '%s' returned error '%s'\n", funcname, errstr) ;
    return 0;
 }
 
-int FUNCTION_WRONG_RETURNVALUE_ERRLOG(log_channel_e channel, const char * funcname, const char * wrong_value)
+int FUNCTION_WRONG_RETURNVALUE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * wrong_value)
 {
    PRINTF("Function '%s' returned wrong value (%s)\n", funcname, wrong_value) ;
    return 0;
 }
 
-int LOCALE_SETLOCALE_ERRLOG(log_channel_e channel)
+int LOCALE_SETLOCALE_ERRLOG(uint8_t log_channel, uint8_t log_flags)
 {
    PRINTF("Cannot change the current locale with setlocale\nRemedy: Please set environment variable LC_ALL to a supported value by the system\n") ;
    return 0;
 }
 
-int MEMORY_OUT_OF_ERRLOG(log_channel_e channel, size_t size)
+int MEMORY_OUT_OF_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t size)
 {
    PRINTF("Could not allocate %zu bytes of memory\n", size) ;
    return 0;
 }
 
-int PARSEERROR_EXPECTCHAR_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr, const char * chr)
+int PARSEERROR_EXPECTCHAR_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t linenr, size_t colnr, const char * chr)
 {
    PRINTF("Expect character '%s' in line: %zu, column: %zu\n", chr, linenr, colnr) ;
    return 0;
 }
 
-int PARSEERROR_EXPECTNEWLINE_ERRLOG(log_channel_e channel, size_t linenr, size_t colnr)
+int PARSEERROR_EXPECTNEWLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t linenr, size_t colnr)
 {
    PRINTF("Expect '(newline)' in line: %zu, column: %zu\n", linenr, colnr) ;
    return 0;
 }
 
-int PROGRAM_ABORT_ERRLOG(log_channel_e channel)
+int PROGRAM_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags)
 {
    PRINTF("Abort process with fatal error\n") ;
    return 0;
 }
 
-int RESOURCE_USAGE_DIFFERENT_ERRLOG(log_channel_e channel)
+int RESOURCE_USAGE_DIFFERENT_ERRLOG(uint8_t log_channel, uint8_t log_flags)
 {
    PRINTF("The number of used resources is different\n") ;
    return 0;
 }
 
-int TEST_INPARAM_FALSE_ERRLOG(log_channel_e channel, const char * violated_condition)
+int TEST_INPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition)
 {
    PRINTF("Function input violates condition (%s)\n", violated_condition) ;
    return 0;
 }
 
-int TEST_INVARIANT_FALSE_ERRLOG(log_channel_e channel, const char * violated_condition)
+int TEST_INVARIANT_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition)
 {
    PRINTF("Internal state variables violate condition (%s)\n", violated_condition) ;
    return 0;
 }
 
-int TEST_OUTPARAM_FALSE_ERRLOG(log_channel_e channel, const char * violated_condition)
+int TEST_OUTPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition)
 {
    PRINTF("Function output violates condition (%s)\n", violated_condition) ;
    return 0;
 }
 
-int TEST_STATE_FALSE_ERRLOG(log_channel_e channel, const char * violated_condition)
+int TEST_STATE_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition)
 {
    PRINTF("Operation allowed only in state (%s)\n", violated_condition) ;
    return 0;
 }
 
-int X11_DISPLAY_NOT_SET_ERRLOG(log_channel_e channel)
+int X11_DISPLAY_NOT_SET_ERRLOG(uint8_t log_channel, uint8_t log_flags)
 {
    PRINTF("Default name of X11 display servers unknown\nPlease set environment variable »DISPLAY«\n") ;
    return 0;
 }
 
-int X11_NO_CONNECTION_ERRLOG(log_channel_e channel, const char * display_server_name)
+int X11_NO_CONNECTION_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * display_server_name)
 {
    PRINTF("Can not connect to X11 display server '%s'\n", display_server_name) ;
    return 0;

@@ -103,7 +103,7 @@ static int test_prefetch(void)
    }
 
    if (time_noprefetch <= time_prefetch) {
-      PRINTF_LOG(log_channel_CONSOLE, "** prefetch is not faster ** ") ;
+      logformat_test("** prefetch is not faster ** ") ;
    }
 
    // unprepare

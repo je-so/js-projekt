@@ -206,9 +206,9 @@ ONABORT:
    return accessmode_NONE ;
 }
 
-/* function: isopen_file
+/* function: isvalid_file
  * Uses fcntl to query file descriptor flags (FD_CLOEXEC). */
-bool isopen_file(file_t fileobj)
+bool isvalid_file(file_t fileobj)
 {
    int err ;
 
@@ -371,12 +371,12 @@ static int test_query(directory_t * tempdir)
    fd = file_STDERR ;
    TEST(0 == isfree_file(fd)) ;
 
-   // TEST isopen_file
-   TEST(0 == isopen_file(file_INIT_FREEABLE)) ;
-   TEST(0 == isopen_file(100)) ;
-   TEST(1 == isopen_file(file_STDIN)) ;
-   TEST(1 == isopen_file(file_STDOUT)) ;
-   TEST(1 == isopen_file(file_STDERR)) ;
+   // TEST isvalid_file
+   TEST(0 == isvalid_file(file_INIT_FREEABLE)) ;
+   TEST(0 == isvalid_file(100)) ;
+   TEST(1 == isvalid_file(file_STDIN)) ;
+   TEST(1 == isvalid_file(file_STDOUT)) ;
+   TEST(1 == isvalid_file(file_STDERR)) ;
 
    // TEST accessmode_file: accessmode_READ
    fd = openat(io_directory(tempdir), "testfile", O_RDONLY|O_CLOEXEC) ;

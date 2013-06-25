@@ -49,7 +49,7 @@
  *
  * Example:
  * > int i ; PRINTF_ERRLOG("%d", i) */
-#define PRINTF_ERRLOG(...)                PRINTF_LOG(log_channel_ERR, __VA_ARGS__)
+#define PRINTF_ERRLOG(...)                PRINTF_LOG(log_channel_ERR, log_flags_NONE, __VA_ARGS__)
 
 /* define: TRACELOCATION_ERRLOG
  * Logs the location of the error.
@@ -57,7 +57,7 @@
 #define TRACELOCATION_ERRLOG(funcname, filename, linenr, err)     \
          do {                                                     \
             ERROR_LOCATION_ERRLOG( log_channel_ERR,               \
-                  tcontext_maincontext()->thread_id,              \
+                  (log_flags_START|log_flags_TIMESTAMP),          \
                   (funcname), (filename), (linenr), (err)) ;      \
          } while(0)
 
@@ -68,13 +68,13 @@
  * called and use
  * > TRACEABORT_ERRLOG(return_error_code)
  * to signal this fact. */
-#define TRACEABORT_ERRLOG(err)            TRACE_NOARG_ERRLOG(FUNCTION_ABORT, err)
+#define TRACEABORT_ERRLOG(err)            TRACE_NOARG_ERRLOG(log_flags_END, FUNCTION_ABORT, err)
 
 /* define: TRACEABORTFREE_ERRLOG
  * Logs that an error occurred during free_XXX or delete_XXX.
  * This means that not all resources could have been freed
  * only as many as possible. */
-#define TRACEABORTFREE_ERRLOG(err)        TRACE_NOARG_ERRLOG(FUNCTION_ABORT_FREE, err)
+#define TRACEABORTFREE_ERRLOG(err)        TRACE_NOARG_ERRLOG(log_flags_END, FUNCTION_ABORT_FREE, err)
 
 /* define: TRACECALL_ERRLOG
  * Logs reason of failure and name of called app function.
@@ -82,7 +82,8 @@
  * function which does no logging on its own.
  *
  * TODO: Support own error IDs */
-#define TRACECALL_ERRLOG(fct_name, err)   TRACE_ERRLOG(FUNCTION_CALL, err, fct_name, (const char*)str_errorcontext(error_maincontext(), err))
+#define TRACECALL_ERRLOG(fct_name, err)   \
+         TRACE_ERRLOG(log_flags_END, FUNCTION_CALL, err, fct_name, (const char*)str_errorcontext(error_maincontext(), err))
 
 /* define: TRACEOUTOFMEM_ERRLOG
  * Logs "out of memory" reason for function abort.
@@ -90,42 +91,53 @@
  * with an error code
  * > TRACEOUTOFMEM_ERRLOG(size_of_memory_in_bytes)
  * should be called before <TRACEABORT_ERRLOG> to document the event leading to an abort. */
-#define TRACEOUTOFMEM_ERRLOG(size, err)   TRACE_ERRLOG(MEMORY_OUT_OF, err, size)
+#define TRACEOUTOFMEM_ERRLOG(size, err)   \
+         TRACE_ERRLOG(log_flags_END, MEMORY_OUT_OF, err, size)
 
 /* define: TRACESYSCALL_ERRLOG
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
 #define TRACESYSCALL_ERRLOG(sys_fctname, err)  \
-         TRACE_ERRLOG(FUNCTION_SYSCALL, err, sys_fctname, (const char*)str_errorcontext(error_maincontext(), err))
+         TRACE_ERRLOG(log_flags_END, FUNCTION_SYSCALL, err, sys_fctname, (const char*)str_errorcontext(error_maincontext(), err))
 
 /* define: TRACE_ERRLOG
  * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
+ * Parameter FLAGS carries additional flags to control the logging process - see <log_flags_e>.
  * Any additional arguments are listed after err.
  * Use <TRACE_ERRLOG> to log any language specific text with additional parameter values. */
-#define TRACE_ERRLOG(TEXTID, err, ...)    TRACE2_ERRLOG(TEXTID, __FUNCTION__, __FILE__, __LINE__, err, __VA_ARGS__) ;
+#define TRACE_ERRLOG(FLAGS, TEXTID, err, ...)   \
+         TRACE2_ERRLOG(FLAGS, TEXTID, __FUNCTION__, __FILE__, __LINE__, err, __VA_ARGS__)
 
 /* define: TRACE2_ERRLOG
- * Same as <TRACE_ERRLOG> except that expects parameter describing error location.
- * The error location is given in parameters funcname, filename and linenr
- * which describe the name of the function, the path of the file and
- * line number in the file. */
-#define TRACE2_ERRLOG(TEXTID, funcname, filename, linenr, err, ...)  \
+ * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
+ *
+ * Parameter:
+ * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
+ * TEXTID     - Error text ID from C-kern/resource/errlog.text.
+ * funcname   - Name of function - used to describe error position.
+ * filename   - Name of source file - used to describe error position.
+ * linenr     - Number of current source line - used to describe error position.
+ * err        - Error number.
+ * ...        - The following parameter are used to parameterize TEXTID. */
+#define TRACE2_ERRLOG(FLAGS, TEXTID, funcname, filename, linenr, err, ...)  \
          do {                                                     \
             TRACELOCATION_ERRLOG(   funcname,                     \
                                     filename, linenr, err) ;      \
-            TEXTID ## _ERRLOG(log_channel_ERR, __VA_ARGS__) ;     \
+            TEXTID ## _ERRLOG(   log_channel_ERR,                 \
+                                 FLAGS, __VA_ARGS__) ;            \
          }  while(0)
 
 /* define: TRACE_NOARG_ERRLOG
  * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
+ * Parameter FLAGS carries additional flags to control the logging process - see <log_flags_e>.
  * There are no additional arguments.
  * Use <TRACE_NOARG_ERRLOG> to log any language specific text with no parameter values. */
-#define TRACE_NOARG_ERRLOG(TEXTID, err)                           \
+#define TRACE_NOARG_ERRLOG(FLAGS, TEXTID, err)   \
          do {                                                     \
             TRACELOCATION_ERRLOG(   __FUNCTION__,                 \
                                     __FILE__, __LINE__, err) ;    \
-            TEXTID ## _ERRLOG(log_channel_ERR) ;                  \
+            TEXTID ## _ERRLOG(log_channel_ERR, FLAGS) ;           \
          }  while(0)
 
 // group: log-variables

@@ -1,6 +1,6 @@
-[Thread 1]
+[1: 1371660271.645808s]
 authenticate_sysuser() C-kern/platform/Linux/sysuser.c:322
 Error 13 - Function aborted
-[Thread 1]
+[1: 1371660273.440576s]
 authenticate_sysuser() C-kern/platform/Linux/sysuser.c:322
 Error 13 - Function aborted

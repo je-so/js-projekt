@@ -180,6 +180,7 @@
           <File Name="../../C-kern/api/io/writer/log/logmain.h"/>
           <File Name="../../C-kern/api/io/writer/log/logwriter.h"/>
           <File Name="../../C-kern/api/io/writer/log/log.h"/>
+          <File Name="../../C-kern/api/io/writer/log/logbuffer.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/iocallback.h"/>
@@ -232,6 +233,7 @@
       <VirtualDirectory Name="log">
         <File Name="../../C-kern/io/writer/log/logmain.c"/>
         <File Name="../../C-kern/io/writer/log/logwriter.c"/>
+        <File Name="../../C-kern/io/writer/log/logbuffer.c"/>
       </VirtualDirectory>
       <File Name="../../C-kern/io/writer/errlog.c"/>
     </VirtualDirectory>

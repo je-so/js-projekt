@@ -68,7 +68,7 @@ static void generate_logresource(const char * test_name)
    if (logbuffer_size) {
       int logsize = write(fd, logbuffer, logbuffer_size) ;
       if (logbuffer_size != (unsigned)logsize) {
-         PRINTF_LOG(log_channel_CONSOLE, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
+         logformat_test("logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
          goto ONABORT ;
       }
    }
@@ -77,8 +77,8 @@ static void generate_logresource(const char * test_name)
    return ;
 ONABORT:
    if (err != EEXIST) {
-      PRINTF_LOG(log_channel_CONSOLE, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-      PRINTF_LOG(log_channel_CONSOLE, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
+      logformat_test("%s: %s:\n", __FILE__, __FUNCTION__) ;
+      logformat_test("ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
    }
    free_iochannel(&fd) ;
    return ;
@@ -112,23 +112,43 @@ static int check_logresource(const char * test_name)
    size_t logbuffer_size ;
    GETBUFFER_LOG(&logbuffer, &logbuffer_size) ;
 
-   if (logbuffer_size != logfile_size) {
-      PRINTF_LOG(log_channel_CONSOLE, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
-      err = EINVAL ;
-      goto ONABORT ;
-   }
+   char * logfile_buffer = (char*) addr_mmfile(&logfile) ;
 
-   char * stored_content = (char*) addr_mmfile(&logfile) ;
-   if (logbuffer_size && memcmp(stored_content, logbuffer, logbuffer_size)) {
-      int      logfile2 = open("/tmp/logbuffer", O_RDWR|O_EXCL|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
-      if (logfile2 >= 0) {
-         ssize_t byteswritten = write(logfile2, logbuffer, logbuffer_size) ;
-         (void) byteswritten ;
-         free_iochannel(&logfile2) ;
+   for (size_t i1 = 0, i2 = 0; i1 < logbuffer_size || i2 < logfile_size; ++i1, ++i2) {
+      if (  i1 >= logbuffer_size
+            || i2 >= logfile_size
+            || logbuffer[i1] != logfile_buffer[i2]) {
+         int logfile2 = open("/tmp/logbuffer", O_RDWR|O_TRUNC|O_CREAT|O_CLOEXEC, S_IRUSR|S_IWUSR) ;
+         if (logfile2 >= 0) {
+            ssize_t byteswritten = write(logfile2, logbuffer, logbuffer_size) ;
+            (void) byteswritten ;
+            free_iochannel(&logfile2) ;
+         }
+         logformat_test("Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
+         err = EINVAL ;
+         goto ONABORT ;
       }
-      PRINTF_LOG(log_channel_CONSOLE, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
-      err = EINVAL ;
-      goto ONABORT ;
+      if (logbuffer[i1] == '[') {
+         size_t i3 = i1 ;
+         while (i3 < logbuffer_size && logbuffer[i3] != ' ') {
+            ++i3 ;
+         }
+         size_t len = i3-i1+1 ;
+         if (  i3 < logbuffer_size
+               && len <= (logfile_size-i2)
+               && 0 == memcmp(logbuffer+i1, logfile_buffer+i2, len)) {
+            i3 = i1 ;
+            while (i3 < logbuffer_size && logbuffer[i3] != '\n') {
+               ++i3 ;
+            }
+            if (i3 < logbuffer_size) i1 = i3 ;
+            i3 = i2 ;
+            while (i3 < logfile_size && logfile_buffer[i3] != '\n') {
+               ++i3 ;
+            }
+            if (i3 < logfile_size) i2 = i3 ;
+         }
+      }
    }
 
    err = free_mmfile(&logfile) ;
@@ -136,8 +156,8 @@ static int check_logresource(const char * test_name)
 
    return 0 ;
 ONABORT:
-   PRINTF_LOG(log_channel_CONSOLE, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-   PRINTF_LOG(log_channel_CONSOLE, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
+   logformat_test("%s: %s:\n", __FILE__, __FUNCTION__) ;
+   logformat_test("ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
    free_mmfile(&logfile) ;
    return err ;
 }
@@ -167,8 +187,8 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
 
    err = switchon_testmm() ;
    if (err) {
-      PRINTF_LOG(log_channel_CONSOLE, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
-      PRINTF_LOG(log_channel_CONSOLE, "switchon_testmm FAILED\n") ;
+      logformat_test("\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
+      logformat_test("switchon_testmm FAILED\n") ;
    } else {
       err = unittest() ;
       if (err) {
@@ -187,9 +207,11 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
    }
 
    if (switchoff_testmm()) {
-      PRINTF_LOG(log_channel_CONSOLE, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
-      PRINTF_LOG(log_channel_CONSOLE, "switchoff_testmm FAILED\n") ;
+      logformat_test("\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
+      logformat_test("switchoff_testmm FAILED\n") ;
    }
+
+   resetthreadid_threadcontext() ;
 
    if (err)
       ++ (*err_count) ;
@@ -217,7 +239,7 @@ int run_unittest(int argc, const char ** argv)
    ++ total_count ;
    if (unittest_context_maincontext()) {
       ++ err_count ;
-      PRINTF_LOG(log_channel_CONSOLE, "unittest_context FAILED\n") ;
+      logformat_test("unittest_context FAILED\n") ;
       goto ONABORT ;
    }
 
@@ -225,8 +247,8 @@ int run_unittest(int argc, const char ** argv)
 
       // init
       if (init_maincontext(test_context_type[type_nr], argc, argv)) {
-         PRINTF_LOG(log_channel_CONSOLE, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-         PRINTF_LOG(log_channel_CONSOLE, "%s\n", "Abort reason: init_maincontext failed") ;
+         logformat_test("%s: %s:\n", __FILE__, __FUNCTION__) ;
+         logformat_test("%s\n", "Abort reason: init_maincontext failed") ;
          goto ONABORT ;
       }
 
@@ -357,6 +379,7 @@ int run_unittest(int argc, const char ** argv)
       RUN(unittest_io_reader_filereader) ;
       RUN(unittest_io_reader_utf8reader) ;
       // writer
+      RUN(unittest_io_writer_log_logbuffer) ;
       RUN(unittest_io_writer_log_logwriter) ;
       RUN(unittest_io_writer_log_logmain) ;
 //}
@@ -401,8 +424,8 @@ int run_unittest(int argc, const char ** argv)
       CLEARBUFFER_LOG() ;
 
       if (free_maincontext()) {
-         PRINTF_LOG(log_channel_CONSOLE, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-         PRINTF_LOG(log_channel_CONSOLE, "%s\n", "Abort reason: free_maincontext failed") ;
+         logformat_test("%s: %s:\n", __FILE__, __FUNCTION__) ;
+         logformat_test("%s\n", "Abort reason: free_maincontext failed") ;
          goto ONABORT ;
       }
 
@@ -411,11 +434,11 @@ int run_unittest(int argc, const char ** argv)
 ONABORT:
 
    if (!err_count) {
-      PRINTF_LOG(log_channel_CONSOLE, "\nALL UNITTEST(%d): OK\n", total_count) ;
+      logformat_test("\nALL UNITTEST(%d): OK\n", total_count) ;
    } else if (err_count == total_count) {
-      PRINTF_LOG(log_channel_CONSOLE, "\nALL UNITTEST(%d): FAILED\n", total_count) ;
+      logformat_test("\nALL UNITTEST(%d): FAILED\n", total_count) ;
    } else {
-      PRINTF_LOG(log_channel_CONSOLE, "\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
+      logformat_test("\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
    }
 
    return err_count > 0 ;

@@ -1,24 +1,24 @@
-[Thread 1]
+[1: 1371660278.816354s]
 removeobject_x11display() C-kern/platform/shared/X11/x11display.c:409
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660278.816362s]
 removeobject_x11display() C-kern/platform/shared/X11/x11display.c:409
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660278.816365s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660278.816367s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660278.816369s]
 removeobject_x11display() C-kern/platform/shared/X11/x11display.c:409
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660278.816371s]
 removeobject_x11display() C-kern/platform/shared/X11/x11display.c:409
 Error 3 - Function aborted
-[Thread 1]
+[1: 1371660278.816373s]
 insertobject_x11display() C-kern/platform/shared/X11/x11display.c:396
 Error 17 - Function aborted
-[Thread 1]
+[1: 1371660278.816375s]
 insertobject_x11display() C-kern/platform/shared/X11/x11display.c:396
 Error 17 - Function aborted

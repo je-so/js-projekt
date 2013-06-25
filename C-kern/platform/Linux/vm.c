@@ -139,7 +139,7 @@ static int read_buffer(int fd, const size_t buffer_maxsize, uint8_t buffer[buffe
       if (!read_size) {
          if (buffer_offset) {
             err = EINVAL ;
-            TRACE_ERRLOG(FILE_FORMAT_MISSING_ENDOFLINE, err, PROC_SELF_MAPS) ;
+            TRACE_ERRLOG(log_flags_NONE, FILE_FORMAT_MISSING_ENDOFLINE, err, PROC_SELF_MAPS) ;
             goto ONABORT ;
          }
          break ; // reached end of file
@@ -235,7 +235,7 @@ int init_vmmappedregions(/*out*/vm_mappedregions_t * mappedregions)
                   &file_offset, &major, &minor, &inode) ;
          if (scanned_items != 10) {
             err = EINVAL ;
-            TRACE_ERRLOG(FILE_FORMAT_WRONG, err, PROC_SELF_MAPS) ;
+            TRACE_ERRLOG(log_flags_NONE, FILE_FORMAT_WRONG, err, PROC_SELF_MAPS) ;
             goto ONABORT ;
          }
 

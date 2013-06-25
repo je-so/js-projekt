@@ -1,6 +1,6 @@
-[Thread 1]
+[1: 1371660278.880457s]
 init_x11screen() C-kern/platform/shared/X11/x11screen.c:64
 Error 22 - Function input violates condition (nrscreen < nrofscreens_x11display(display))
-[Thread 1]
+[1: 1371660278.880466s]
 init_x11screen() C-kern/platform/shared/X11/x11screen.c:71
 Error 22 - Function aborted

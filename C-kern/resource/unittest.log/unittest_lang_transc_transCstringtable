@@ -1,51 +1,51 @@
-[Thread 1]
+[1: 1371660256.621072s]
 new_transCstringtablepage() C-kern/lang/transC/transCstringtable.c:81
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660256.621076s]
 init_transcstringtable() C-kern/lang/transC/transCstringtable.c:177
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660256.621079s]
 new_transCstringtablepage() C-kern/lang/transC/transCstringtable.c:81
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660256.621081s]
 insertstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:243
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660256.621083s]
 new_transCstringtablepage() C-kern/lang/transC/transCstringtable.c:81
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660256.621085s]
 insertstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:243
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660256.621087s]
 appendstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:291
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660256.621089s]
 appendstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:271
 Error 22 - Function input violates condition (strtable->prev != &strtable->first)
-[Thread 1]
+[1: 1371660256.621091s]
 appendstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:291
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660256.621093s]
 shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:254
 Error 22 - Function input violates condition (strtable->prev != &strtable->first)
-[Thread 1]
+[1: 1371660256.621095s]
 shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:262
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660256.621097s]
 shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:255
 Error 22 - Function input violates condition (newsize <= size)
-[Thread 1]
+[1: 1371660256.621099s]
 shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:262
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660256.621101s]
 shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:255
 Error 22 - Function input violates condition (newsize <= size)
-[Thread 1]
+[1: 1371660256.621103s]
 shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:262
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660256.621204s]
 initfirst_transcstringtableiterator() C-kern/lang/transC/transCstringtable.c:118
 Error 22 - Function input violates condition (strtable->first && strid)
-[Thread 1]
+[1: 1371660256.621207s]
 initfirst_transcstringtableiterator() C-kern/lang/transC/transCstringtable.c:131
 Error 22 - Function aborted - one or more resources could not be freed

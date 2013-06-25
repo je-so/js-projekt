@@ -1,12 +1,12 @@
-[Thread 1]
+[1: 1371660259.476740s]
 printfappend_cstring() C-kern/string/cstring.c:197
 Error 12 - Could not allocate 4294967295 bytes of memory
-[Thread 1]
+[1: 1371660259.476744s]
 printfappend_cstring() C-kern/string/cstring.c:203
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660259.476748s]
 append_cstring() C-kern/string/cstring.c:155
 Error 12 - Could not allocate 4294967295 bytes of memory
-[Thread 1]
+[1: 1371660259.476750s]
 append_cstring() C-kern/string/cstring.c:163
 Error 12 - Function aborted

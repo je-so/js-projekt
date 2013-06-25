@@ -1,60 +1,60 @@
-[Thread 1]
+[1: 1371660259.473912s]
 initsubstr_string() C-kern/string/string.c:74
 Error 22 - Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-[Thread 1]
+[1: 1371660259.473921s]
 initsubstr_string() C-kern/string/string.c:81
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.473923s]
 initsubstr_string() C-kern/string/string.c:74
 Error 22 - Function input violates condition (start_offset <= size_string(fromstr) && size <= maxsize)
-[Thread 1]
+[1: 1371660259.473926s]
 initsubstr_string() C-kern/string/string.c:81
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.473929s]
 initfl_string() C-kern/string/string.c:43
 Error 22 - Function input violates condition ((uintptr_t)last+1 > (uintptr_t)last)
-[Thread 1]
+[1: 1371660259.473931s]
 initfl_string() C-kern/string/string.c:50
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.473933s]
 initse_string() C-kern/string/string.c:58
 Error 22 - Function input violates condition ((uintptr_t)end >= (uintptr_t)start)
-[Thread 1]
+[1: 1371660259.473935s]
 initse_string() C-kern/string/string.c:65
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.474489s]
 substr_string() C-kern/string/string.c:121
 Error 22 - Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[Thread 1]
+[1: 1371660259.474491s]
 substr_string() C-kern/string/string.c:128
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.474493s]
 substr_string() C-kern/string/string.c:121
 Error 22 - Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[Thread 1]
+[1: 1371660259.474495s]
 substr_string() C-kern/string/string.c:128
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.474497s]
 substr_string() C-kern/string/string.c:121
 Error 22 - Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[Thread 1]
+[1: 1371660259.474499s]
 substr_string() C-kern/string/string.c:128
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.474501s]
 substr_string() C-kern/string/string.c:121
 Error 22 - Function input violates condition (start_offset <= size_string(str) && size <= maxsize)
-[Thread 1]
+[1: 1371660259.474502s]
 substr_string() C-kern/string/string.c:128
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.474506s]
 shrinkleft_string() C-kern/string/string.c:136
 Error 22 - Function input violates condition (nr_bytes_removed_from_string_start <= size_string(str))
-[Thread 1]
+[1: 1371660259.474508s]
 shrinkleft_string() C-kern/string/string.c:143
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660259.474512s]
 shrinkright_string() C-kern/string/string.c:151
 Error 22 - Function input violates condition (nr_bytes_removed_from_string_end <= size_string(str))
-[Thread 1]
+[1: 1371660259.474514s]
 shrinkright_string() C-kern/string/string.c:157
 Error 22 - Function aborted

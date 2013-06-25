@@ -95,7 +95,7 @@ int setdefault_locale()
 
    if (!setlocale(LC_ALL, "")) {
       err = EINVAL ;
-      TRACE_NOARG_ERRLOG(LOCALE_SETLOCALE, err) ;
+      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE, err) ;
       PRINTCSTR_ERRLOG(getenv("LC_ALL")) ;
       goto ONABORT ;
    }
@@ -116,7 +116,7 @@ int reset_locale()
 
    if (!setlocale(LC_ALL, "C")) {
       err = EINVAL ;
-      TRACE_NOARG_ERRLOG(LOCALE_SETLOCALE, err) ;
+      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE, err) ;
       PRINTCSTR_ERRLOG("LC_ALL=C") ;
       goto ONABORT ;
    }
@@ -133,7 +133,7 @@ int resetmsg_locale()
 
    if (!setlocale(LC_MESSAGES, "C")) {
       err = EINVAL ;
-      TRACE_NOARG_ERRLOG(LOCALE_SETLOCALE, err) ;
+      TRACE_NOARG_ERRLOG(log_flags_NONE, LOCALE_SETLOCALE, err) ;
       PRINTCSTR_ERRLOG("LC_MESSAGES=C") ;
       goto ONABORT ;
    }

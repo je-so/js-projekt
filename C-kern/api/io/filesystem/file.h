@@ -134,15 +134,13 @@ sys_iochannel_t io_file(const file_t fileobj) ;
  * has been called. */
 static inline bool isfree_file(const file_t fileobj) ;
 
-/* function: isopen_file
- * Returns *true* if the underlying system file object is open.
- * If it is open then it <isfree_file> returns false.
- * <isopen_file> checks that the value in fd refers to an open descriptor
- * and makes a call to the operating system.
- * It is therefore more costly than <isfree_file>.
- * It is possible that a former valid file descriptor is no more open
- * if a copied value of it was closed. */
-bool isopen_file(const file_t fileobj) ;
+/* function: isvalid_file
+ * Returns *true* if fileobj is valid.
+ * A return value of true implies <isfree_file> returns false.
+ * <isvalid_file> checks that fileobj refers to a valid file
+ * which is known to the operating system.
+ * It is therefore more costly than <isfree_file>. */
+bool isvalid_file(const file_t fileobj) ;
 
 /* function: size_file
  * Returns the size in bytes of the file. */

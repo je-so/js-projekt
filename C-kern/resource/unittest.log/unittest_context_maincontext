@@ -1,75 +1,75 @@
-[Thread 0]
+[0: 1371729241.870395s]
 init_threadcontext() C-kern/context/threadcontext.c:320
 Error 71 - Operation allowed only in state (maincontext_STATIC != type_maincontext())
-[Thread 0]
+[0: 1371729241.870404s]
 init_threadcontext() C-kern/context/threadcontext.c:361
 Error 71 - Function aborted
-[Thread 0]
+[0: 1371729241.870409s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 23 - Function aborted
-[Thread 0]
+[0: 1371729241.872972s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 24 - Function aborted
-[Thread 0]
+[0: 1371729241.876506s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 25 - Function aborted
-[Thread 1]
+[1: 1371729241.879883s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 114 - Function aborted
-[Thread 0]
+[0: 1371729241.880856s]
 init_maincontext() C-kern/context/maincontext.c:161
 Error 22 - Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
-[Thread 0]
+[0: 1371729241.880863s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 22 - Function aborted
-[Thread 0]
+[0: 1371729241.880867s]
 init_maincontext() C-kern/context/maincontext.c:161
 Error 22 - Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
-[Thread 0]
+[0: 1371729241.880871s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 22 - Function aborted
-[Thread 0]
+[0: 1371729241.880874s]
 init_maincontext() C-kern/context/maincontext.c:164
 Error 22 - Function input violates condition (argc == 0 || (argc > 0 && argv != 0))
-[Thread 0]
+[0: 1371729241.880877s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 22 - Function aborted
-[Thread 0]
+[0: 1371729241.880881s]
 init_maincontext() C-kern/context/maincontext.c:164
 Error 22 - Function input violates condition (argc == 0 || (argc > 0 && argv != 0))
-[Thread 0]
+[0: 1371729241.880884s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 22 - Function aborted
-[Thread 0]
+[0: 1371729241.884918s]
 free_maincontext() C-kern/context/maincontext.c:146
 Error 39 - Function aborted - one or more resources could not be freed
-[Thread 0]
+[0: 1371729241.889057s]
 init_threadcontext() C-kern/context/threadcontext.c:320
 Error 71 - Operation allowed only in state (maincontext_STATIC != type_maincontext())
-[Thread 0]
+[0: 1371729241.889069s]
 init_threadcontext() C-kern/context/threadcontext.c:361
 Error 71 - Function aborted
-[Thread 0]
+[0: 1371729241.889073s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 23 - Function aborted
-[Thread 0]
+[0: 1371729241.891830s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 24 - Function aborted
-[Thread 0]
+[0: 1371729241.895971s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 25 - Function aborted
-[Thread 1]
+[1: 1371729241.899325s]
 init_maincontext() C-kern/context/maincontext.c:190
 Error 114 - Function aborted
-[Thread 1]
+[1: 1371729241.913917s]
 allocstatic_maincontext() C-kern/context/maincontext.c:221
 Error 12 - Could not allocate 1 bytes of memory
-[Thread 1]
+[1: 1371729241.913924s]
 allocstatic_maincontext() C-kern/context/maincontext.c:231
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371729241.913926s]
 freestatic_maincontext() C-kern/context/maincontext.c:239
 Error 22 - Function input violates condition (g_maincontext.size_staticmem >= size)
-[Thread 1]
+[1: 1371729241.913929s]
 freestatic_maincontext() C-kern/context/maincontext.c:245
 Error 22 - Function aborted

@@ -89,7 +89,7 @@ static void * main_thread(thread_startargument_t * startarg)
 
    if (sys_thread_INIT_FREEABLE == pthread_self()) {
       err = EINVAL ;
-      TRACE_ERRLOG(FUNCTION_WRONG_RETURNVALUE, err, "pthread_self", STR(sys_thread_INIT_FREEABLE)) ;
+      TRACE_ERRLOG(log_flags_NONE, FUNCTION_WRONG_RETURNVALUE, err, "pthread_self", STR(sys_thread_INIT_FREEABLE)) ;
       goto ONABORT ;
    }
 
@@ -123,6 +123,7 @@ static void * main_thread(thread_startargument_t * startarg)
 
    return (void*)0 ;
 ONABORT:
+   TRACEABORT_ERRLOG(err) ;
    abort_maincontext(err) ;
    return (void*)err ;
 }

@@ -1,78 +1,78 @@
-[Thread 1]
+[1: 1371660255.217903s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:130
 Error 22 - Function input violates condition (pagesize < pagesize_NROFPAGESIZE)
-[Thread 1]
+[1: 1371660255.217915s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:152
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660255.217918s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:130
 Error 22 - Function input violates condition (pagesize < pagesize_NROFPAGESIZE)
-[Thread 1]
+[1: 1371660255.217920s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:152
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660255.217922s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:131
 Error 22 - Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
-[Thread 1]
+[1: 1371660255.217924s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:152
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660255.217926s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:131
 Error 22 - Function input violates condition (0 < elementsize && elementsize <= blocksize_in_bytes)
-[Thread 1]
+[1: 1371660255.217928s]
 init_blockarray() C-kern/ds/inmem/blockarray.c:152
 Error 22 - Function aborted
-[Thread 1]
+[1: 1371660255.367195s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367222s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367238s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367254s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367270s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367286s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367302s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367319s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367335s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367351s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367367s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367383s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367399s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367416s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.367432s]
 free_blockarray() C-kern/ds/inmem/blockarray.c:210
 Error 14 - Function aborted - one or more resources could not be freed
-[Thread 1]
+[1: 1371660255.806307s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:342
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660255.806317s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:342
 Error 12 - Function aborted
-[Thread 1]
+[1: 1371660255.806319s]
 assign2_blockarray() C-kern/ds/inmem/blockarray.c:342
 Error 12 - Function aborted

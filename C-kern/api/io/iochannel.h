@@ -105,6 +105,14 @@ int free_iochannel(iochannel_t * ioc) ;
  * Returns true if ioc equals <iochannel_INIT_FREEABLE>. */
 static inline bool isfree_iochannel(const iochannel_t ioc) ;
 
+/* function: isvalid_iochannel
+ * Returns *true* if ioc is initialized and valid.
+ * A return value of true implies <isfree_iochannel> returns false.
+ * It checks that ioc refers to a valid iochannel
+ * which is known to the operating system.
+ * It is therefore more costly than <isfree_iochannel>. */
+bool isvalid_iochannel(const iochannel_t ioc) ;
+
 /* function: accessmode_iochannel
  * Returns <accessmode_e> for an io channel.
  * Returns <accessmode_READ>, <accessmode_WRITE> or the combination <accessmode_RDWR>.

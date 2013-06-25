@@ -279,7 +279,7 @@ int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_n
       display_server_name = getenv("DISPLAY") ;
       if (!display_server_name) {
          err = EINVAL ;
-         TRACE_NOARG_ERRLOG(X11_DISPLAY_NOT_SET, err) ;
+         TRACE_NOARG_ERRLOG(log_flags_NONE, X11_DISPLAY_NOT_SET, err) ;
          goto ONABORT ;
       }
    }
@@ -290,7 +290,7 @@ int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_n
    newdisp.sys_display = XOpenDisplay(display_server_name) ;
    if (!newdisp.sys_display) {
       err = ECONNREFUSED ;
-      TRACE_ERRLOG(X11_NO_CONNECTION, err, display_server_name) ;
+      TRACE_ERRLOG(log_flags_NONE, X11_NO_CONNECTION, err, display_server_name) ;
       goto ONABORT ;
    }
 
