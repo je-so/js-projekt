@@ -36,6 +36,7 @@
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
+#include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/string/cstring.h"
 #endif
 
@@ -171,6 +172,36 @@ void flushbuffer_logwriter(logwriter_t * lgwrt)
 {
    write_logwriter(STDERR_FILENO, lgwrt->logsize, lgwrt->buffer.addr) ;
    clearbuffer_logwriter(lgwrt) ;
+}
+
+/* function: addtimestamp_logwriter
+ * Prints "[thread_id: timestamp]\n" to buffer of size buffer_size.
+ * Returns the number written bytes excluding the terminating \0 byte.
+ *
+ * (unchecked) Preconditions:
+ * o buffer_size > 0
+ * */
+static size_t addtimestamp_logwriter(size_t buffer_size, uint8_t buffer[buffer_size])
+{
+   struct timeval tv ;
+   if (-1 == gettimeofday(&tv, 0)) {
+      tv.tv_sec  = 0 ;
+      tv.tv_usec = 0 ;
+   }
+   static_assert(sizeof(tv.tv_sec)  <= sizeof(uint64_t), "conversion works") ;
+   static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works") ;
+
+   int bytes = snprintf((char*)buffer, buffer_size, "[%"PRIuSIZE": %"PRIu64".%"PRIu32"s]\n", threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec) ;
+
+   if (bytes < 0) {
+      buffer[0] = 0 ;
+      return 0 ;
+   } else if ((size_t)bytes >= buffer_size) {
+      // data has been truncated
+      return buffer_size - 1 ;
+   }
+
+   return (size_t) bytes ;
 }
 
 void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, const char * format, va_list args)
@@ -406,9 +437,64 @@ ONABORT:
    return EINVAL ;
 }
 
+static int compare_timestamp(size_t buffer_size, uint8_t buffer_addr[buffer_size], size_t threadid)
+{
+   char buffer[100] ;
+   snprintf(buffer, sizeof(buffer), "[%d: ", (int)threadid) ;
+   size_t len    = strlen(buffer) ;
+   size_t offset = 0 ;
+   TEST(buffer_size >= offset + len) ;
+   TEST(0 == memcmp(buffer, buffer_addr + offset, len)) ;
+   offset += len ;
+   uint64_t sec ;
+   TEST(1 == sscanf((char*)(buffer_addr + offset), "%"SCNu64, &sec)) ;
+   snprintf(buffer, sizeof(buffer), "%"PRIu64, sec) ;
+   len = strlen(buffer) ;
+   TEST(buffer_size >= offset + len) ;
+   TEST(0 == memcmp(buffer, buffer_addr + offset, len)) ;
+   offset += len ;
+   TEST(buffer_size >= offset + len) ;
+   TEST(0 == memcmp(".", buffer_addr + offset, 1)) ;
+   offset += 1 ;
+   uint32_t usec ;
+   TEST(1 == sscanf((char*)(buffer_addr + offset), "%"SCNu32, &usec)) ;
+   snprintf(buffer, sizeof(buffer), "%"PRIu32"s]\n", usec) ;
+   len = strlen(buffer) ;
+   TEST(buffer_size >= offset + len) ;
+   TEST(0 == memcmp(buffer, buffer_addr + offset, len)) ;
+   offset += len ;
+   TEST(offset == buffer_size) ;
+
+   struct timeval tv ;
+   TEST(0 == gettimeofday(&tv, 0)) ;
+   TEST((uint64_t)tv.tv_sec >= sec) ;
+   TEST((uint64_t)tv.tv_sec <= sec + 1) ;
+   TEST(usec < 1000000) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int thread_addtimestamp(void * dummy)
+{
+   (void) dummy ;
+   uint8_t  buffer[100] ;
+   size_t   buffer_size ;
+
+   buffer_size = addtimestamp_logwriter(sizeof(buffer), buffer) ;
+   TEST(0 == compare_timestamp(buffer_size, buffer, threadid_maincontext())) ;
+
+   return 0 ;
+ONABORT:
+   CLEARBUFFER_LOG() ;
+   return EINVAL ;
+}
+
 static int test_printf(void)
 {
    logwriter_t    lgwrt     = logwriter_INIT_FREEABLE ;
+   thread_t *     thread    = 0 ;
    int            pipefd[2] = { -1, -1 } ;
    int            oldstdout = -1 ;
 
@@ -419,7 +505,18 @@ static int test_printf(void)
    TEST(0 < oldstdout) ;
    TEST(STDOUT_FILENO == dup2(pipefd[1], STDOUT_FILENO)) ;
 
-   // TEST printf_logwriter (log_channel_ERR)
+   // TEST addtimestamp_logwriter
+   size_t buffer_size = addtimestamp_logwriter(lgwrt.buffer.size, lgwrt.buffer.addr) ;
+   TEST(0 == compare_timestamp(buffer_size, lgwrt.buffer.addr, threadid_maincontext())) ;
+   clearbuffer_logwriter(&lgwrt) ;
+
+   // TEST addtimestamp_logwriter: other thread
+   TEST(0 == new_thread(&thread, thread_addtimestamp, (void*)0)) ;
+   TEST(0 == join_thread(thread)) ;
+   TEST(0 == returncode_thread(thread)) ;
+   TEST(0 == delete_thread(&thread)) ;
+
+   // TEST printf_logwriter: log_channel_ERR
    printf_logwriter(&lgwrt, log_channel_ERR, "%s", "TESTSTRT\n" ) ;
    printf_logwriter(&lgwrt, log_channel_ERR, "%s", "TESTENDE\n" ) ;
    TEST(18 == lgwrt.logsize) ;
@@ -507,10 +604,12 @@ static int test_printf(void)
 
    return 0 ;
 ONABORT:
+   delete_thread(&thread) ;
    if (-1 != oldstdout) dup2(oldstdout, STDOUT_FILENO) ;
    free_iochannel(&oldstdout) ;
    free_iochannel(&pipefd[0]) ;
    free_iochannel(&pipefd[1]) ;
+   clearbuffer_logwriter(&lgwrt) ;
    free_logwriter(&lgwrt) ;
    return EINVAL ;
 }

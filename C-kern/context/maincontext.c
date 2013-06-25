@@ -405,6 +405,9 @@ static int test_querymacros(void)
    // TEST tcontext_maincontext
    TEST(tcontext_maincontext()     == context_threadtls(&tls)) ;
 
+   // TEST threadid_maincontext
+   TEST(&threadid_maincontext()    == &context_threadtls(&tls)->thread_id) ;
+
    // TEST type_maincontext
    TEST(&type_maincontext()        == &g_maincontext.type) ;
 

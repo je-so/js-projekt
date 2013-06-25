@@ -164,6 +164,10 @@ maincontext_e              type_maincontext(void) ;
  * without any leading path. */
 const char *               progname_maincontext(void) ;
 
+/* function: threadid_maincontext
+ * Returns the thread id of the calling thread. */
+size_t threadid_maincontext(void) ;
+
 // group: query-service
 
 /* function: blockmap_maincontext
@@ -284,6 +288,10 @@ uint16_t sizestatic_maincontext(void) ;
 /* define: tcontext_maincontext
  * Inline implementation of <maincontext_t.tcontext_maincontext>. */
 #define tcontext_maincontext()            (sys_context_threadtls())
+
+/* define: threadid_maincontext
+ * Inline implementation of <maincontext_t.threadid_maincontext>. */
+#define threadid_maincontext()            (tcontext_maincontext()->thread_id)
 
 /* define: type_maincontext
  * Inline implementation of <maincontext_t.type_maincontext>. */
