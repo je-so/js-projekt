@@ -28,19 +28,8 @@
 // forward
 struct log_it ;
 
-/* typedef: struct logmain_t
- * Export <logmain_t>. Main logging service which works after main is entered. */
-typedef struct logmain_t               logmain_t ;
-
-/* variable: g_logmain
- * Used to support basic logging in main thread.
- * Before anything is initialized.
- * Supports also safe logging after freeing the log resource in <free_maincontext>.
- * This logservice is thread safe. */
-extern struct logmain_t                g_logmain ;
-
 /* variable: g_logmain_interface
- * Adapted interface (see <log_it>) to access <g_logmain>. */
+ * Adapted interface (see <log_it>) to static log service. */
 extern struct log_it                   g_logmain_interface ;
 
 
@@ -50,7 +39,7 @@ extern struct log_it                   g_logmain_interface ;
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_io_writer_log_logmain
- * Tests global variable <g_logmain> and interface <g_logmain_interface>. */
+ * Tests static log service <g_logmain_interface>. */
 int unittest_io_writer_log_logmain(void) ;
 #endif
 

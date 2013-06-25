@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/textres2compiler.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jun.23  08:22:48
+GenerationDate  := 2013.Jun.25  08:18:08
 GeneratedBy     := je-so
 
 ## Debug
@@ -95,6 +95,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!slist.c.o \
@@ -130,6 +131,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!task!syncwlist.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!slist.c.o \
@@ -210,6 +212,9 @@ $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c
@@ -309,6 +314,9 @@ $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!ds!inmem!arraystf.c.o: C-kern/ds/inmem/arraystf.c

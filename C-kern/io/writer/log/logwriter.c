@@ -72,6 +72,8 @@ struct log_it * interface_logwriter(void)
  * Reserves some memory pages for internal buffer. */
 static int allocatebuffer_logwriter(/*out*/memblock_t * buffer)
 {
+   static_assert(16384 <= INT_MAX, "size_t of buffer will be used in vnsprintf and returned as int") ;
+   static_assert(16384 >  2*log_config_MAXSIZE, "buffer can hold at least 2 entries") ;
    return ALLOC_PAGECACHE(pagesize_16384, buffer) ;
 }
 
@@ -136,48 +138,74 @@ void clearbuffer_logwriter(logwriter_t * lgwrt)
    lgwrt->buffer.addr[0] = 0 ;
 }
 
-void flushbuffer_logwriter(logwriter_t * lgwrt)
+static void write_logwriter(int fd, size_t buffer_size, uint8_t buffer[buffer_size])
 {
    size_t bytes_written = 0 ;
 
    // TODO: add syncthread which does logging in background !
    //       first add global io queue where I/Os could be registered
+   //       create new buffer and transfer full buffer to I/O queue
 
-   do {
+   while (bytes_written < buffer_size) {
       ssize_t bytes ;
       do {
-         bytes = write(STDERR_FILENO, lgwrt->buffer.addr + bytes_written, lgwrt->logsize - bytes_written) ;
+         bytes = write(fd, buffer + bytes_written, buffer_size - bytes_written) ;
       } while (bytes < 0 && errno == EINTR) ;
-      if (bytes <= 0) {
-         // TODO: add some special log code that always works and which indicates error state in logging
-         assert(errno != EAGAIN /*should be blocking i/o*/) ;
-         break ;
-      }
-      bytes_written += (size_t) bytes ;
-   } while (bytes_written < lgwrt->logsize) ;
 
+      if (bytes == 0) {
+         // TODO: add code which indicates log channel has been closed
+         break ;  // ignore closed
+      } else if (bytes < 0) {
+         if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            // TODO: add code that indicates error state in logging
+            break ;  // ignore error
+         }
+         /* should be blocking i/o */
+      } else {
+         bytes_written += (size_t) bytes;
+      }
+   }
+}
+
+void flushbuffer_logwriter(logwriter_t * lgwrt)
+{
+   write_logwriter(STDERR_FILENO, lgwrt->logsize, lgwrt->buffer.addr) ;
    clearbuffer_logwriter(lgwrt) ;
 }
 
-void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args)
+void vprintf_logwriter(logwriter_t * lgwrt, log_channel_e channel, const char * format, va_list args)
 {
    size_t buffer_size = lgwrt->buffer.size - lgwrt->logsize ;
 
-   if (buffer_size <= log_config_MAXSIZE) {  // log_config_MAXSIZE bytes for message + \0 byte
+   if (buffer_size <= log_config_MAXSIZE) {
+      // ensure log_config_MAXSIZE bytes for message + \0 byte
       flushbuffer_logwriter(lgwrt) ;
+      // flushbuffer_logwriter calls clearbuffer_logwriter => lgwrt->logsize == 0
       buffer_size = lgwrt->buffer.size ;
    }
 
-   int append_size = vsnprintf( (char*) (lgwrt->logsize + lgwrt->buffer.addr), buffer_size, format, args) ;
+   uint8_t * buffer = lgwrt->buffer.addr + lgwrt->logsize ;
 
-   if ((unsigned)append_size < buffer_size) {
-      // no truncate
-      lgwrt->logsize += (unsigned)append_size ;
-   } else {
-      lgwrt->logsize += buffer_size - 1 ;
-      static_assert(log_config_MAXSIZE > 4, "") ;
-      lgwrt->buffer.addr[lgwrt->logsize-4] = ' ' ;
-      memset(lgwrt->buffer.addr+lgwrt->logsize-3, '.', 3) ;
+   int bytes = vsnprintf((char*)buffer, buffer_size, format, args) ;
+
+   if (bytes > 0) {
+      size_t append_size = (size_t)bytes ;
+
+      if (append_size >= buffer_size) {
+         // data has been truncated => mark it with " ..."
+         append_size = buffer_size-1 ;
+         static_assert(log_config_MAXSIZE > 4, "") ;
+         memcpy(buffer + append_size-4, " ...", 4) ;
+      }
+
+      if (log_channel_TEST == channel) {
+         write_logwriter(STDOUT_FILENO, append_size, buffer) ;
+         buffer[0] = 0 ;
+
+      } else {
+         // keep in buffer
+         lgwrt->logsize += append_size ;
+      }
    }
 }
 
@@ -185,28 +213,12 @@ void printf_logwriter(logwriter_t * lgwrt, log_channel_e channel, const char * f
 {
    va_list args ;
    va_start(args, format) ;
-   if (log_channel_TEST == channel) {
-      uint8_t buffer[log_config_MAXSIZE+1] ;
-      int bytes = vsnprintf((char*)buffer, sizeof(buffer), format, args) ;
-      if (bytes > 0) {
-         unsigned ubytes ;
-         if ((unsigned)bytes >= sizeof(buffer)) {
-            ubytes = sizeof(buffer)-1 ;
-            buffer[sizeof(buffer)-5] = ' ' ;
-            memset(buffer+sizeof(buffer)-4, '.', 3) ;
-         } else {
-            ubytes = (unsigned)bytes ;
-         }
-         write_iochannel(iochannel_STDOUT, ubytes, buffer, 0) ;
-      }
-   } else {
-      vprintf_logwriter(lgwrt, format, args) ;
-   }
+   vprintf_logwriter(lgwrt, channel, format, args) ;
    va_end(args) ;
 }
 
 
-// section: test
+// group: test
 
 #ifdef KONFIG_UNITTEST
 
@@ -218,6 +230,12 @@ static int test_initfree(void)
    TEST(0 == lgwrt.buffer.addr) ;
    TEST(0 == lgwrt.buffer.size) ;
    TEST(0 == lgwrt.logsize) ;
+
+   // TEST logwriter_INIT_TEMP
+   logwriter_t lgwrt2 = logwriter_INIT_TEMP(100, (uint8_t*)29) ;
+   TEST(lgwrt2.buffer.addr == (uint8_t*)29) ;
+   TEST(lgwrt2.buffer.size == 100) ;
+   TEST(lgwrt2.logsize     == 0) ;
 
    // TEST init, double free
    lgwrt.logsize = 1 ;
@@ -456,6 +474,8 @@ static int test_printf(void)
       char strtoobig[log_config_MAXSIZE+2] ;
       memset(strtoobig, '1', sizeof(strtoobig)-1) ;
       strtoobig[sizeof(strtoobig)-1] = 0 ;
+      lgwrt.logsize = lgwrt.buffer.size - log_config_MAXSIZE -1 ;
+
       if (channel == log_channel_TEST) {
          printf_logwriter(&lgwrt, log_channel_TEST, "%s", strtoobig) ;
          TEST(log_config_MAXSIZE == (unsigned)read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
@@ -463,16 +483,16 @@ static int test_printf(void)
          TEST(0 == memcmp(testbuffer + log_config_MAXSIZE-4, " ...", 4)) ;
 
       } else {    // log_channel_ERR ...
-         lgwrt.logsize = lgwrt.buffer.size - log_config_MAXSIZE -1 ;
          printf_logwriter(&lgwrt, log_channel_ERR, "%s", strtoobig) ;
          TEST(lgwrt.logsize == lgwrt.buffer.size - 1) ;
          TEST(0 == memcmp(lgwrt.buffer.addr + lgwrt.buffer.size - log_config_MAXSIZE -1, strtoobig, log_config_MAXSIZE-4)) ;
          TEST(0 == memcmp(lgwrt.buffer.addr + lgwrt.buffer.size - 5, " ...", 4)) ;
          TEST(0 == lgwrt.buffer.addr[lgwrt.buffer.size-1]) ;
-         clearbuffer_logwriter(&lgwrt) ;
       }
    }
+
    // unprepare
+   clearbuffer_logwriter(&lgwrt) ;
    TEST(0 == free_logwriter(&lgwrt)) ;
    dup2(oldstdout, STDOUT_FILENO) ;
    free_iochannel(&oldstdout) ;

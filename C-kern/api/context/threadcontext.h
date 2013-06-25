@@ -93,7 +93,7 @@ struct threadcontext_t {
  * even without calling <init_maincontext> first.
  */
 #define threadcontext_INIT_STATIC   \
-         { &g_maincontext.pcontext, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, { (struct log_t*)&g_logmain, &g_logmain_interface }, 0, 0 }
+         { &g_maincontext.pcontext, iobj_INIT_FREEABLE, iobj_INIT_FREEABLE, 0, iobj_INIT_FREEABLE, { 0, &g_logmain_interface }, 0, 0 }
 
 /* function: init_threadcontext
  * Creates all top level services which are bound to a single thread.

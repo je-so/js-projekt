@@ -187,34 +187,34 @@ static size_t              s_threadcontext_nextid = 0 ;
  * o Generated freehelper functions to free objects with calls free_module.
  * */
 
-// TEXTDB:SELECT("static inline int freehelper"row-id"_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)"\n"{"\n"   FREEOBJECT("module", "objtype", tcontext->"parameter", statictcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="object")
-static inline int freehelper3_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
+// TEXTDB:SELECT("static int freehelper"row-id"_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)"\n"{"\n"   FREEOBJECT("module", "objtype", tcontext->"parameter", statictcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="object")
+static int freehelper3_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
 {
    FREEOBJECT(syncrun, syncrun_t, tcontext->syncrun, statictcontext->syncrun) ;
 }
 
 // TEXTDB:END
 
-// TEXTDB:SELECT("static inline int freehelper"row-id"_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)"\n"{"\n"   FREEIOBJ("module", "objtype", tcontext->"parameter", statictcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface")
-static inline int freehelper2_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
+// TEXTDB:SELECT("static int freehelper"row-id"_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)"\n"{"\n"   FREEIOBJ("module", "objtype", tcontext->"parameter", statictcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface")
+static int freehelper2_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
 {
    FREEIOBJ(mmimpl, mm_impl_t, tcontext->mm, statictcontext->mm) ;
 }
 
-static inline int freehelper4_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
+static int freehelper4_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
 {
    FREEIOBJ(objectcacheimpl, objectcache_impl_t, tcontext->objectcache, statictcontext->objectcache) ;
 }
 
-static inline int freehelper5_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
+static int freehelper5_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
 {
    FREEIOBJ(logwriter, logwriter_t, tcontext->log, statictcontext->log) ;
 }
 
 // TEXTDB:END
 
-// TEXTDB:SELECT("static inline int freehelper"row-id"_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)"\n"{"\n"   (void) tcontext;"\n"   (void) statictcontext;"\n"   return freethread_"module"("(if (parameter!="") "genericcast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter")) ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
-static inline int freehelper1_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
+// TEXTDB:SELECT("static int freehelper"row-id"_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)"\n"{"\n"   (void) tcontext;"\n"   (void) statictcontext;"\n"   return freethread_"module"("(if (parameter!="") "genericcast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter")) ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
+static int freehelper1_threadcontext(threadcontext_t * tcontext, threadcontext_t * statictcontext)
 {
    (void) tcontext;
    (void) statictcontext;
@@ -229,34 +229,34 @@ static inline int freehelper1_threadcontext(threadcontext_t * tcontext, threadco
  * o Generated inithelper functions to init objects with calls init_module.
  * */
 
-// TEXTDB:SELECT("static inline int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   INITOBJECT("module", "objtype", tcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="object")
-static inline int inithelper3_threadcontext(threadcontext_t * tcontext)
+// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   INITOBJECT("module", "objtype", tcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="object")
+static int inithelper3_threadcontext(threadcontext_t * tcontext)
 {
    INITOBJECT(syncrun, syncrun_t, tcontext->syncrun) ;
 }
 
 // TEXTDB:END
 
-// TEXTDB:SELECT("static inline int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   INITIOBJ("module", "objtype", tcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface")
-static inline int inithelper2_threadcontext(threadcontext_t * tcontext)
+// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   INITIOBJ("module", "objtype", tcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface")
+static int inithelper2_threadcontext(threadcontext_t * tcontext)
 {
    INITIOBJ(mmimpl, mm_impl_t, tcontext->mm) ;
 }
 
-static inline int inithelper4_threadcontext(threadcontext_t * tcontext)
+static int inithelper4_threadcontext(threadcontext_t * tcontext)
 {
    INITIOBJ(objectcacheimpl, objectcache_impl_t, tcontext->objectcache) ;
 }
 
-static inline int inithelper5_threadcontext(threadcontext_t * tcontext)
+static int inithelper5_threadcontext(threadcontext_t * tcontext)
 {
    INITIOBJ(logwriter, logwriter_t, tcontext->log) ;
 }
 
 // TEXTDB:END
 
-// TEXTDB:SELECT("static inline int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   (void) tcontext;"\n"   return initthread_"module"("(if (parameter!="") "genericcast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter")) ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
-static inline int inithelper1_threadcontext(threadcontext_t * tcontext)
+// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   (void) tcontext;"\n"   return initthread_"module"("(if (parameter!="") "genericcast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter")) ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
+static int inithelper1_threadcontext(threadcontext_t * tcontext)
 {
    (void) tcontext;
    return initthread_pagecacheimpl(genericcast_iobj(&tcontext->pagecache, pagecache)) ;
@@ -314,12 +314,11 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
 {
    int err ;
 
-   *tcontext = (threadcontext_t) threadcontext_INIT_STATIC ;
+   *(volatile threadcontext_t *)tcontext = (threadcontext_t) threadcontext_INIT_STATIC ;
+   ((volatile threadcontext_t *)tcontext)->pcontext = pcontext ;
 
    VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONABORT_NOFREE, ) ;
    ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT_NOFREE) ;
-
-   tcontext->pcontext = pcontext ;
 
    do {
       tcontext->thread_id = 1 + atomicadd_int(&s_threadcontext_nextid, 1) ;
@@ -372,7 +371,7 @@ bool isstatic_threadcontext(const threadcontext_t * tcontext)
             && 0 == tcontext->mm.object          && 0 == tcontext->mm.iimpl
             && 0 == tcontext->syncrun
             && 0 == tcontext->objectcache.object && 0 == tcontext->objectcache.iimpl
-            && (struct log_t*)&g_logmain == tcontext->log.object && &g_logmain_interface == tcontext->log.iimpl
+            && 0 == tcontext->log.object && &g_logmain_interface == tcontext->log.iimpl
             && 0 == tcontext->thread_id
             && 0 == tcontext->initcount ;
 }
@@ -589,7 +588,7 @@ static int test_initfree(void)
    TEST(0 == tcontext.syncrun) ;
    TEST(0 == tcontext.objectcache.object) ;
    TEST(0 == tcontext.objectcache.iimpl) ;
-   TEST(0 == (logmain_t*)tcontext.log.object) ;
+   TEST(0 == tcontext.log.object) ;
    TEST(0 == tcontext.log.iimpl) ;
    TEST(0 == tcontext.thread_id) ;
    TEST(0 == tcontext.initcount) ;
@@ -611,7 +610,7 @@ static int test_initfree(void)
    TEST(0 != tcontext.objectcache.iimpl) ;
    TEST(0 != tcontext.log.object) ;
    TEST(0 != tcontext.log.iimpl) ;
-   TEST(&g_logmain           != (logmain_t*)tcontext.log.object) ;
+   TEST(0 != tcontext.log.object) ;
    TEST(&g_logmain_interface != tcontext.log.iimpl) ;
    TEST(0 != tcontext.thread_id) ;
    TEST(nrsvc == tcontext.initcount) ;
@@ -718,9 +717,9 @@ static int test_query(void)
    tcontext.objectcache.iimpl = (void*)1 ;
    TEST(0 == isstatic_threadcontext(&tcontext)) ;
    tcontext.objectcache.iimpl = 0 ;
-   tcontext.log.object = 0 ;
+   tcontext.log.object = (struct log_t*)1 ;
    TEST(0 == isstatic_threadcontext(&tcontext)) ;
-   tcontext.log.object = (struct log_t*)&g_logmain;
+   tcontext.log.object = 0 ;
    tcontext.log.iimpl = 0 ;
    TEST(0 == isstatic_threadcontext(&tcontext)) ;
    tcontext.log.iimpl = &g_logmain_interface ;

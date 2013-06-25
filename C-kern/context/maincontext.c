@@ -303,7 +303,7 @@ static int test_initmain(void)
    TEST(0 != tcontext_maincontext()->objectcache.object) ;
    TEST(0 != tcontext_maincontext()->objectcache.iimpl) ;
    TEST(0 != strcmp("C", current_locale())) ;
-   TEST(tcontext_maincontext()->log.object != (struct log_t*)&g_logmain) ;
+   TEST(tcontext_maincontext()->log.object != 0) ;
    TEST(tcontext_maincontext()->log.iimpl  != &g_logmain_interface) ;
 
    // TEST free_maincontext
@@ -441,7 +441,7 @@ static int test_initerror(void)
       TEST(0 == pcontext_maincontext()->initcount) ;
       TEST(maincontext_STATIC == type_maincontext()) ;
       TEST(0 == tcontext_maincontext()->initcount) ;
-      TEST(tcontext_maincontext()->log.object == (struct log_t*)&g_logmain) ;
+      TEST(tcontext_maincontext()->log.object == 0) ;
       TEST(tcontext_maincontext()->log.iimpl  == &g_logmain_interface) ;
       TEST(0 == tcontext_maincontext()->objectcache.object) ;
       TEST(0 == tcontext_maincontext()->objectcache.iimpl) ;

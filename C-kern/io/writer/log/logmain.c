@@ -30,20 +30,16 @@
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/writer/log/logmain.h"
+#include "C-kern/api/io/writer/log/logwriter.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
 
 /* struct: logmain_t
- * Object to describe data of main log writer.
- * This object is currently not used.
- * The implementation of <g_logmain_interface> uses C-Library functions
- * to write the log to standard error channel.
- */
-struct logmain_t {
-   int dummy ;
-} ;
+ * No object necessary.
+ * All calls are delegated to a temporary <logwriter_t> object. */
+struct logmain_t ;
 
 // group: forward
 
@@ -53,12 +49,6 @@ static void clearbuffer_logmain(void * log) ;
 static void getbuffer_logmain(void * log, /*out*/char ** buffer, /*out*/size_t * size) ;
 
 // group: variables
-
-/* variable: g_logmain
- * Is used to support a safe standard log configuration.
- * Used to write log output before any other init function was called. */
-
-logmain_t      g_logmain            = { 0 } ;
 
 /* variable: g_logmain_interface
  * Contains single instance of interface <log_it>. */
@@ -73,19 +63,13 @@ log_it         g_logmain_interface  = {
 
 static void printf_logmain(void * lgwrt, log_channel_e channel, const char * format, ... )
 {
+   (void) lgwrt ;
    uint8_t  buffer[log_config_MAXSIZE+1] = { 0 } ;
    va_list  args ;
-   (void) lgwrt ;
    va_start(args, format) ;
-   int bytes = vsnprintf((char*)buffer, sizeof(buffer), format, args) ;
-   if (bytes > 0) {
-      unsigned ubytes = ((unsigned)bytes >= sizeof(buffer)) ? sizeof(buffer) -1 : (unsigned) bytes ;
-      if (log_channel_TEST == channel) {
-         write_file(file_STDOUT, ubytes, buffer, 0) ;
-      } else {
-         write_file(file_STDERR, ubytes, buffer, 0) ;
-      }
-   }
+   logwriter_t temp = logwriter_INIT_TEMP(sizeof(buffer), buffer) ;
+   vprintf_logwriter(&temp, channel, format, args) ;
+   flushbuffer_logwriter(&temp) ;
    va_end(args) ;
 }
 
@@ -113,74 +97,86 @@ static void getbuffer_logmain(void * lgwrt, /*out*/char ** buffer, /*out*/size_t
 
 static int test_globalvar(void)
 {
-   logmain_t   * lgwrt   = &g_logmain ;
-   char        * buffer  = 0 ;
-   size_t      size      = 0 ;
+   // TEST g_logmain_interface
+   TEST(g_logmain_interface.printf      == &printf_logmain) ;
+   TEST(g_logmain_interface.flushbuffer == &flushbuffer_logmain) ;
+   TEST(g_logmain_interface.clearbuffer == &clearbuffer_logmain) ;
+   TEST(g_logmain_interface.getbuffer   == &getbuffer_logmain) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_query(void)
+{
+   // TEST getbuffer_logmain
+   char *   buffer  = (char*)1 ;
+   size_t   size    = 1 ;
+   getbuffer_logmain(0, &buffer, &size) ;
+   TEST(0 == buffer) ;
+   TEST(0 == size) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_update(void)
+{
    int         pipefd[2] = { -1, -1 } ;
    int         oldstderr = -1 ;
    int         oldstdout = -1 ;
    char        readbuffer[log_config_MAXSIZE+1] ;
-   char        maxstring[log_config_MAXSIZE] ;
+   char        maxstring[log_config_MAXSIZE+1] ;
 
    // prepare
-   memset(maxstring, '$', sizeof(maxstring)) ;
+   memset(maxstring, '$', sizeof(maxstring)-1) ;
+   maxstring[sizeof(maxstring)-1] = 0 ;
    TEST(0 == pipe2(pipefd,O_CLOEXEC|O_NONBLOCK)) ;
    oldstderr = dup(STDERR_FILENO) ;
    TEST(0 < oldstderr) ;
    oldstdout = dup(STDOUT_FILENO) ;
    TEST(0 < oldstdout) ;
 
-   // TEST interface
-   TEST(g_logmain_interface.printf      == &printf_logmain) ;
-   TEST(g_logmain_interface.flushbuffer == &flushbuffer_logmain) ;
-   TEST(g_logmain_interface.clearbuffer == &clearbuffer_logmain) ;
-   TEST(g_logmain_interface.getbuffer   == &getbuffer_logmain) ;
+   // TEST clearbuffer_logmain: does nothing
+   clearbuffer_logmain(0) ;
 
-   // TEST getbuffer_logmain
-   buffer = (char*) 1;
-   size   = 1 ;
-   getbuffer_logmain(lgwrt, &buffer, &size) ;
-   TEST(0 == buffer) ;
-   TEST(0 == size) ;
-
-   // TEST clearbuffer_logmain does nothing
-   TEST(0 == lgwrt->dummy) ;
-   clearbuffer_logmain(lgwrt) ;
-   TEST(0 == lgwrt->dummy) ;
-
-   // TEST flushbuffer_logmain does nothing
+   // TEST flushbuffer_logmain: does nothing
    TEST(STDERR_FILENO == dup2(pipefd[1], STDERR_FILENO)) ;
-   flushbuffer_logmain(lgwrt) ;
+   flushbuffer_logmain(0) ;
    {
       char buffer2[9] = { 0 } ;
       TEST(-1 == read(pipefd[0], buffer2, sizeof(buffer2))) ;
       TEST(EAGAIN == errno) ;
    }
 
-   // TEST printf_logmain (log_channel_ERR)
-   printf_logmain(lgwrt, log_channel_ERR, "1%c%s%d", '2', "3", 4) ;
+   // TEST printf_logmain: log_channel_ERR
+   printf_logmain(0, log_channel_ERR, "1%c%s%d", '2', "3", 4) ;
    TEST(4 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
    TEST(0 == strncmp("1234", readbuffer, 4)) ;
-   printf_logmain(lgwrt, log_channel_ERR, "%s;%d", maxstring, 1) ;
-   TEST(sizeof(maxstring) == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
-   TEST(0 == memcmp(readbuffer, maxstring, sizeof(maxstring))) ;
+   printf_logmain(0, log_channel_ERR, "%s;%d", maxstring, 1) ;
+   TEST(log_config_MAXSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(0 == memcmp(readbuffer, maxstring, log_config_MAXSIZE-4)) ;
+   TEST(0 == memcmp(readbuffer+log_config_MAXSIZE-4, " ...", 4)) ;
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
 
-   // TEST printf_logmain (log_channel_TEST)
+   // TEST printf_logmain: log_channel_TEST
    TEST(STDOUT_FILENO == dup2(pipefd[1], STDOUT_FILENO)) ;
-   printf_logmain(lgwrt, log_channel_TEST, "1%c%s%d", '2', "3", 4) ;
+   printf_logmain(0, log_channel_TEST, "1%c%s%d", '2', "3", 4) ;
    TEST(4 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
    TEST(0 == strncmp("1234", readbuffer, 4)) ;
-   printf_logmain(lgwrt, log_channel_TEST, "%s;%d", maxstring, 1) ;
-   TEST(sizeof(maxstring) == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
-   TEST(0 == memcmp(readbuffer, maxstring, sizeof(maxstring))) ;
+   printf_logmain(0, log_channel_TEST, "%s;%d", maxstring, 1) ;
+   TEST(log_config_MAXSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(0 == memcmp(readbuffer, maxstring, log_config_MAXSIZE-4)) ;
+   TEST(0 == memcmp(readbuffer+log_config_MAXSIZE-4, " ...", 4)) ;
    TEST(STDOUT_FILENO == dup2(oldstdout, STDOUT_FILENO)) ;
 
    // unprepare
-   TEST(0 == free_file(&pipefd[0])) ;
-   TEST(0 == free_file(&pipefd[1])) ;
-   TEST(0 == free_file(&oldstderr)) ;
-   TEST(0 == free_file(&oldstdout)) ;
+   TEST(0 == free_iochannel(&pipefd[0])) ;
+   TEST(0 == free_iochannel(&pipefd[1])) ;
+   TEST(0 == free_iochannel(&oldstderr)) ;
+   TEST(0 == free_iochannel(&oldstdout)) ;
 
    return 0 ;
 ONABORT:
@@ -190,10 +186,10 @@ ONABORT:
    if (-1 != oldstdout) {
       dup2(oldstdout, STDOUT_FILENO) ;
    }
-   free_file(&oldstderr) ;
-   free_file(&oldstdout) ;
-   free_file(&pipefd[0]) ;
-   free_file(&pipefd[1]) ;
+   free_iochannel(&oldstderr) ;
+   free_iochannel(&oldstdout) ;
+   free_iochannel(&pipefd[0]) ;
+   free_iochannel(&pipefd[1]) ;
    return EINVAL ;
 }
 
@@ -204,7 +200,9 @@ int unittest_io_writer_log_logmain()
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_globalvar())      goto ONABORT ;
+   if (test_globalvar())   goto ONABORT ;
+   if (test_query())       goto ONABORT ;
+   if (test_update())      goto ONABORT ;
 
    // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;

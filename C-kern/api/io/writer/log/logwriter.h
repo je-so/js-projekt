@@ -81,6 +81,15 @@ struct log_it * interface_logwriter(void) ;
  * Static initializer. */
 #define logwriter_INIT_FREEABLE           {  { 0, 0 }, 0 }
 
+/* define: logwriter_INIT_TEMP
+ * Static initializer. Do not free an object initialized in such a manner.
+ *
+ * Parameter:
+ * size - Size of a temporary or static buffer.
+ * addr - Start address of the buffer. */
+#define logwriter_INIT_TEMP(size, addr)   \
+         {  { (addr), (size) }, 0 }
+
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.
  * The default configuration is to write the log to standard error.
@@ -122,33 +131,11 @@ void printf_logwriter(logwriter_t * lgwrt, enum log_channel_e channel, const cha
 /* function: vprintf_logwriter
  * Function used internally to implement <printf_logwriter>.
  * This function is meant to be used from within a subtype. */
-void vprintf_logwriter(logwriter_t * lgwrt, const char * format, va_list args) ;
+void vprintf_logwriter(logwriter_t * lgwrt, enum log_channel_e channel, const char * format, va_list args) ;
 
 
 
 // section: inline implementation
 
-// group: KONFIG_SUBSYS
-
-/* about: Thread
- * In case of only 1 thread use static <logmain_t> instead of <logwriter_t>.
- * The following code tests for subsystem KONFIG_thread and replaces <interface_logwriter>
- * with (0) and <freethread_logwriter> and <initthread_logwriter> with (ENOSYS) in
- * case subsystem KONFIG_thread is not configured.
- * */
-
-#define KONFIG_thread 1
-#if ((KONFIG_SUBSYS&KONFIG_thread) == 0)
-/* define: interface_logwriter
- * Implement <logwriter_t.interface_logwriter> as a no op if !((KONFIG_SUBSYS)&KONFIG_thread). */
-#define interface_logwriter()             (0)
-/* define: init_logwriter
- * Implement <logwriter_t.init_logwriter> as not implemented if !((KONFIG_SUBSYS)&KONFIG_thread). */
-#define init_logwriter(log)               (ENOSYS)
-/* define: free_logwriter
- * Implement <logwriter_t.free_logwriter> as not implemented if !((KONFIG_SUBSYS)&KONFIG_thread) */
-#define free_logwriter(log)               (ENOSYS)
-#endif
-#undef KONFIG_thread
 
 #endif

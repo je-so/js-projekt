@@ -142,7 +142,7 @@ int startup_platform(int argc, const char ** argv, mainthread_f main_thread)
    thread_t * thread = thread_threadtls(&tls) ;
    settask_thread(thread, (thread_f)main_thread, &initarg) ;
 #define KONFIG_thread 1
-#if ((KONFIG_SUBSYS&KONFIG_thread) == KONFIG_thread)
+#if ((KONFIG_SUBSYS&KONFIG_thread) == 1)
    initstartup_thread(thread) ;
 #endif
 #undef KONFIG_thread
