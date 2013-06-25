@@ -68,7 +68,7 @@ static void generate_logresource(const char * test_name)
    if (logbuffer_size) {
       int logsize = write(fd, logbuffer, logbuffer_size) ;
       if (logbuffer_size != (unsigned)logsize) {
-         PRINTF_LOG(log_channel_TEST, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
+         PRINTF_LOG(log_channel_CONSOLE, "logbuffer_size = %d, logsize = %d\n", logbuffer_size, logsize) ;
          goto ONABORT ;
       }
    }
@@ -77,8 +77,8 @@ static void generate_logresource(const char * test_name)
    return ;
 ONABORT:
    if (err != EEXIST) {
-      PRINTF_LOG(log_channel_TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-      PRINTF_LOG(log_channel_TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
+      PRINTF_LOG(log_channel_CONSOLE, "%s: %s:\n", __FILE__, __FUNCTION__) ;
+      PRINTF_LOG(log_channel_CONSOLE, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
    }
    free_iochannel(&fd) ;
    return ;
@@ -113,7 +113,7 @@ static int check_logresource(const char * test_name)
    GETBUFFER_LOG(&logbuffer, &logbuffer_size) ;
 
    if (logbuffer_size != logfile_size) {
-      PRINTF_LOG(log_channel_TEST, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
+      PRINTF_LOG(log_channel_CONSOLE, "logbuffer_size = %d, logfile_size = %d\n", (int)logbuffer_size, (int)logfile_size) ;
       err = EINVAL ;
       goto ONABORT ;
    }
@@ -126,7 +126,7 @@ static int check_logresource(const char * test_name)
          (void) byteswritten ;
          free_iochannel(&logfile2) ;
       }
-      PRINTF_LOG(log_channel_TEST, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
+      PRINTF_LOG(log_channel_CONSOLE, "Content of logbuffer differs:\nWritten to '/tmp/logbuffer'\n") ;
       err = EINVAL ;
       goto ONABORT ;
    }
@@ -136,8 +136,8 @@ static int check_logresource(const char * test_name)
 
    return 0 ;
 ONABORT:
-   PRINTF_LOG(log_channel_TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-   PRINTF_LOG(log_channel_TEST, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
+   PRINTF_LOG(log_channel_CONSOLE, "%s: %s:\n", __FILE__, __FUNCTION__) ;
+   PRINTF_LOG(log_channel_CONSOLE, "ERROR(%d:%s): '" GENERATED_LOGRESOURCE_DIR "%s'\n", err, str_errorcontext(error_maincontext(),err), test_name) ;
    free_mmfile(&logfile) ;
    return err ;
 }
@@ -167,8 +167,8 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
 
    err = switchon_testmm() ;
    if (err) {
-      PRINTF_LOG(log_channel_TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
-      PRINTF_LOG(log_channel_TEST, "switchon_testmm FAILED\n") ;
+      PRINTF_LOG(log_channel_CONSOLE, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
+      PRINTF_LOG(log_channel_CONSOLE, "switchon_testmm FAILED\n") ;
    } else {
       err = unittest() ;
       if (err) {
@@ -187,8 +187,8 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
    }
 
    if (switchoff_testmm()) {
-      PRINTF_LOG(log_channel_TEST, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
-      PRINTF_LOG(log_channel_TEST, "switchoff_testmm FAILED\n") ;
+      PRINTF_LOG(log_channel_CONSOLE, "\n%s:%d: %s: ", __FILE__, __LINE__, __FUNCTION__) ;
+      PRINTF_LOG(log_channel_CONSOLE, "switchoff_testmm FAILED\n") ;
    }
 
    if (err)
@@ -217,7 +217,7 @@ int run_unittest(int argc, const char ** argv)
    ++ total_count ;
    if (unittest_context_maincontext()) {
       ++ err_count ;
-      PRINTF_LOG(log_channel_TEST, "unittest_context FAILED\n") ;
+      PRINTF_LOG(log_channel_CONSOLE, "unittest_context FAILED\n") ;
       goto ONABORT ;
    }
 
@@ -225,8 +225,8 @@ int run_unittest(int argc, const char ** argv)
 
       // init
       if (init_maincontext(test_context_type[type_nr], argc, argv)) {
-         PRINTF_LOG(log_channel_TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-         PRINTF_LOG(log_channel_TEST, "%s\n", "Abort reason: init_maincontext failed") ;
+         PRINTF_LOG(log_channel_CONSOLE, "%s: %s:\n", __FILE__, __FUNCTION__) ;
+         PRINTF_LOG(log_channel_CONSOLE, "%s\n", "Abort reason: init_maincontext failed") ;
          goto ONABORT ;
       }
 
@@ -401,8 +401,8 @@ int run_unittest(int argc, const char ** argv)
       CLEARBUFFER_LOG() ;
 
       if (free_maincontext()) {
-         PRINTF_LOG(log_channel_TEST, "%s: %s:\n", __FILE__, __FUNCTION__) ;
-         PRINTF_LOG(log_channel_TEST, "%s\n", "Abort reason: free_maincontext failed") ;
+         PRINTF_LOG(log_channel_CONSOLE, "%s: %s:\n", __FILE__, __FUNCTION__) ;
+         PRINTF_LOG(log_channel_CONSOLE, "%s\n", "Abort reason: free_maincontext failed") ;
          goto ONABORT ;
       }
 
@@ -411,11 +411,11 @@ int run_unittest(int argc, const char ** argv)
 ONABORT:
 
    if (!err_count) {
-      PRINTF_LOG(log_channel_TEST, "\nALL UNITTEST(%d): OK\n", total_count) ;
+      PRINTF_LOG(log_channel_CONSOLE, "\nALL UNITTEST(%d): OK\n", total_count) ;
    } else if (err_count == total_count) {
-      PRINTF_LOG(log_channel_TEST, "\nALL UNITTEST(%d): FAILED\n", total_count) ;
+      PRINTF_LOG(log_channel_CONSOLE, "\nALL UNITTEST(%d): FAILED\n", total_count) ;
    } else {
-      PRINTF_LOG(log_channel_TEST, "\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
+      PRINTF_LOG(log_channel_CONSOLE, "\n%d UNITTEST: OK\n%d UNITTEST: FAILED\n", total_count-err_count, err_count) ;
    }
 
    return err_count > 0 ;

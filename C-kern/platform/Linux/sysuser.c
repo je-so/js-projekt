@@ -614,11 +614,11 @@ static int test_authenticate(bool iswarn)
          TEST(0 == switchtoreal_sysuser(sysuser_maincontext()))
       }
       if (err && iswarn) {
-         PRINTF_LOG(log_channel_TEST, "\n*** Need user account name=%s password=%s ***\n", username, password) ;
+         PRINTF_LOG(log_channel_CONSOLE, "\n*** Need user account name=%s password=%s ***\n", username, password) ;
       }
       TEST(0 == err) ;
    } else if (iswarn) {
-      PRINTF_LOG(log_channel_TEST, "** Need root or guest setuid ** ") ;
+      PRINTF_LOG(log_channel_CONSOLE, "** Need root or guest setuid ** ") ;
    }
    TEST(0 == delete_sysuserinfo(&usrinfo[0])) ;
    TEST(0 == delete_sysuserinfo(&usrinfo[1])) ;

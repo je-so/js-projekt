@@ -104,7 +104,7 @@ int free_logwriter(logwriter_t * lgwrt) ;
 // group: query
 
 /* function: getbuffer_logwriter
- * Returns content of log buffer as C-string and its length in bytes.
+ * Returns content of log buffer as C-string and its size in bytes.
  * The string has a trailing NULL byte, i.e. buffer[size] == 0.
  * The address of the buffer is valid as long as no call <free_logwriter> is made.
  * The content changes if the buffer is flushed or cleared and new log entries are written.
@@ -124,14 +124,14 @@ void clearbuffer_logwriter(logwriter_t * lgwrt) ;
 void flushbuffer_logwriter(logwriter_t * lgwrt) ;
 
 /* function: printf_logwriter
- * Writes new log entry to file descriptor (STDERR) or in internal buffer.
- * The output is only written in case logging is switched on (see <setonoff_logwriter>). */
-void printf_logwriter(logwriter_t * lgwrt, enum log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
+ * Writes new log entry to in internal buffer.
+ * If the entry is bigger than <log_config_MAXSIZE> it may be truncated if internal buffer size is lower. */
+void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
 
 /* function: vprintf_logwriter
- * Function used internally to implement <printf_logwriter>.
- * This function is meant to be used from within a subtype. */
-void vprintf_logwriter(logwriter_t * lgwrt, enum log_channel_e channel, const char * format, va_list args) ;
+ * Same as <printf_logwriter> except that variadic arguments are replaced by args.
+ * Function used internally to implement <printf_logwriter>. */
+void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, const char * format, va_list args) ;
 
 
 

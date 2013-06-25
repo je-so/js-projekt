@@ -173,7 +173,7 @@ void flushbuffer_logwriter(logwriter_t * lgwrt)
    clearbuffer_logwriter(lgwrt) ;
 }
 
-void vprintf_logwriter(logwriter_t * lgwrt, log_channel_e channel, const char * format, va_list args)
+void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, const char * format, va_list args)
 {
    size_t buffer_size = lgwrt->buffer.size - lgwrt->logsize ;
 
@@ -198,7 +198,7 @@ void vprintf_logwriter(logwriter_t * lgwrt, log_channel_e channel, const char * 
          memcpy(buffer + append_size-4, " ...", 4) ;
       }
 
-      if (log_channel_TEST == channel) {
+      if (log_channel_CONSOLE == channel) {
          write_logwriter(STDOUT_FILENO, append_size, buffer) ;
          buffer[0] = 0 ;
 
@@ -209,7 +209,7 @@ void vprintf_logwriter(logwriter_t * lgwrt, log_channel_e channel, const char * 
    }
 }
 
-void printf_logwriter(logwriter_t * lgwrt, log_channel_e channel, const char * format, ...)
+void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, const char * format, ...)
 {
    va_list args ;
    va_start(args, format) ;
@@ -435,14 +435,16 @@ static int test_printf(void)
    }
    clearbuffer_logwriter(&lgwrt) ;
 
-   // TEST printf_logwriter (log_channel_TEST)
+   // TEST printf_logwriter: log_channel_CONSOLE
    char testbuffer[log_config_MAXSIZE+2] ;
-   printf_logwriter(&lgwrt, log_channel_TEST, "%s", "SIMPLESTRING1\n" ) ;
-   printf_logwriter(&lgwrt, log_channel_TEST, "%s", "SIMPLESTRING2\n" ) ;
+   printf_logwriter(&lgwrt, log_channel_CONSOLE, "%s", "SIMPLESTRING1\n" ) ;
+   printf_logwriter(&lgwrt, log_channel_CONSOLE, "%s", "SIMPLESTRING2\n" ) ;
+   TEST(0 == lgwrt.logsize) ;
+   TEST(0 == lgwrt.buffer.addr[0]) ;
    TEST(28 == read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
    TEST(0 == strncmp(testbuffer, "SIMPLESTRING1\nSIMPLESTRING2\n", 28)) ;
    for(size_t i = 0; i < 510; ++i) {
-      printf_logwriter(&lgwrt, log_channel_TEST, "%c", (char)(i&127)) ;
+      printf_logwriter(&lgwrt, log_channel_CONSOLE, "%c", (char)(i&127)) ;
       TEST(1 == read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
       TEST((i&127) == (uint8_t)testbuffer[0]) ;
    }
@@ -460,14 +462,16 @@ static int test_printf(void)
       printf_logwriter(&lgwrt, channel, "%zu;", (size_t)65536) ;
       printf_logwriter(&lgwrt, channel, "%g;", 2e100) ;
       printf_logwriter(&lgwrt, channel, "%.0f;", (double)1234567) ;
+      const char * result = "%str%-1;1;-256;256;-65536;65536;-65536;65536;2e+100;1234567;" ;
+      if (channel == log_channel_CONSOLE) {
+         TEST(strlen(result)   == (unsigned)read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
+         TEST(0 == strncmp(testbuffer, result, strlen(result))) ;
+      } else {
+         TEST(strlen(result) == lgwrt.logsize) ;
+         TEST(0 == strncmp((char*)lgwrt.buffer.addr, result, strlen(result))) ;
+         clearbuffer_logwriter(&lgwrt) ;
+      }
    }
-   const char * result = "%str%-1;1;-256;256;-65536;65536;-65536;65536;2e+100;1234567;" ;
-   TEST(2*strlen(result) == lgwrt.logsize) ;
-   TEST(strlen(result)   == (unsigned)read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
-   TEST(0 == strncmp((char*)lgwrt.buffer.addr, result, strlen(result))) ;
-   TEST(0 == strncmp((char*)lgwrt.buffer.addr + strlen(result), result, strlen(result))) ;
-   TEST(0 == strncmp(testbuffer, result, strlen(result))) ;
-   clearbuffer_logwriter(&lgwrt) ;
 
    // TEST printf_logwriter: buffer overflow ; adds " ..." at end
    for(log_channel_e channel = 0; channel < log_channel_NROFCHANNEL; ++channel) {
@@ -475,15 +479,17 @@ static int test_printf(void)
       memset(strtoobig, '1', sizeof(strtoobig)-1) ;
       strtoobig[sizeof(strtoobig)-1] = 0 ;
       lgwrt.logsize = lgwrt.buffer.size - log_config_MAXSIZE -1 ;
+      lgwrt.buffer.addr[lgwrt.logsize] = 0 ;
+      printf_logwriter(&lgwrt, channel, "%s", strtoobig) ;
 
-      if (channel == log_channel_TEST) {
-         printf_logwriter(&lgwrt, log_channel_TEST, "%s", strtoobig) ;
+      if (channel == log_channel_CONSOLE) {
+         TEST(lgwrt.logsize == lgwrt.buffer.size - log_config_MAXSIZE -1) ;
+         TEST(lgwrt.buffer.addr[lgwrt.logsize] == 0) ;
          TEST(log_config_MAXSIZE == (unsigned)read(pipefd[0], testbuffer, sizeof(testbuffer))) ;
          TEST(0 == memcmp(testbuffer, strtoobig, log_config_MAXSIZE-4)) ;
          TEST(0 == memcmp(testbuffer + log_config_MAXSIZE-4, " ...", 4)) ;
 
-      } else {    // log_channel_ERR ...
-         printf_logwriter(&lgwrt, log_channel_ERR, "%s", strtoobig) ;
+      } else {    // log_channel_TEST ... log_channel_ERR
          TEST(lgwrt.logsize == lgwrt.buffer.size - 1) ;
          TEST(0 == memcmp(lgwrt.buffer.addr + lgwrt.buffer.size - log_config_MAXSIZE -1, strtoobig, log_config_MAXSIZE-4)) ;
          TEST(0 == memcmp(lgwrt.buffer.addr + lgwrt.buffer.size - 5, " ...", 4)) ;

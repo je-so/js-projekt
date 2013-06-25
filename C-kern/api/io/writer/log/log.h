@@ -49,16 +49,23 @@ typedef enum log_config_e                 log_config_e ;
 /* enums: log_channel_e
  * Used to switch between log channels.
  *
- * log_channel_ERR  - Uses error channel for log output.
- *                    The warning channel is printed to STDERR if not configured otherwise.
- * log_channel_WARN - Uses warning channel for log output.
- *                    The warning channel is printed to STDERR if not configured otherwise.
- * log_channel_TEST - Uses test channel for log output.
- *                    The test channel is printed to STDOUT if not configured otherwise.
+ * log_channel_CONSOLE - Uses STDOUT channel for log output.
+ *                       This channel is used for user messages.
+ * log_channel_TEST    - Uses test channel for log output.
+ *                       The test channel is used for additional TEST output in the running production system.
+ *                       This channel is written to STDERR if not configured otherwise.
+ * log_channel_WARN    - Uses warning channel for log output.
+ *                       The warning channel is used to warn of non critical conditions.
+ *                       This channel is written to STDERR if not configured otherwise.
+ * log_channel_ERR     - Uses error channel for log output.
+ *                       The error channel is used to log system error which should not occur
+ *                       and which are not critical to the running process.
+ *                       This channel is written to STDERR if not configured otherwise.
  * log_channel_NROFCHANNEL - Use this value to determine the number of different channels
  *                           numbered from 0 up to (log_channel_NROFCHANNEL-1).
  * */
 enum log_channel_e {
+   log_channel_CONSOLE,
    log_channel_TEST,
    log_channel_WARN,
    log_channel_ERR
@@ -78,15 +85,25 @@ iobj_DECLARE(log_t, log) ;
  * The function table which describes the log service. */
 struct log_it {
    /* variable: printf
+    * Writes a new log entry to in internal buffer.
+    * Parameter channel must be set to a value from <log_channel_e>.
+    * If the entry is bigger than <log_config_MAXSIZE> it may be truncated if internal buffer size is lower.
     * See <logwriter_t.printf_logwriter> for an implementation. */
-   void  (*printf)      (void * log, log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
+   void  (*printf)      (void * log, uint8_t channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
    /* variable: flushbuffer
+    * Writes content of buffer to configured file descriptor and clears log buffer.
+    * This call is ignored if buffer is empty or log is not configured to be in buffered mode.
     * See <logwriter_t.flushbuffer_logwriter> for an implementation. */
    void  (*flushbuffer) (void * log) ;
    /* variable: clearbuffer
+    * Clears log buffer (sets length of logbuffer to 0).
+    * This call is ignored if the log is not configured to be in buffered mode.
     * See <logwriter_t.clearbuffer_logwriter> for an implementation. */
    void  (*clearbuffer) (void * log) ;
    /* variable: getbuffer
+    * Returns content of log buffer as C-string and its size in bytes.
+    * The returned values are valid as long as no other function is called on log.
+    * The string has a trailing NULL byte, i.e. buffer[size] == 0.
     * See <logwriter_t.getbuffer_logwriter> for an implementation. */
    void  (*getbuffer)   (void * log, /*out*/char ** buffer, /*out*/size_t * size) ;
 } ;
@@ -122,23 +139,19 @@ void log_it_DECLARE(TYPENAME declared_it, TYPENAME log_t) ;
 #define genericcast_logit(logif, log_t)                  \
    ( __extension__ ({                                    \
       static_assert(                                     \
-         offsetof(typeof(*(logif)), printf)              \
-         == offsetof(log_it, printf)                     \
-         && offsetof(typeof(*(logif)), flushbuffer)      \
-            == offsetof(log_it, flushbuffer)             \
-         && offsetof(typeof(*(logif)), clearbuffer)      \
-            == offsetof(log_it, clearbuffer)             \
-         && offsetof(typeof(*(logif)), getbuffer)        \
-            == offsetof(log_it, getbuffer),              \
+         &((typeof(logif))0)->printf                     \
+         == (void(**)(log_t*,uint8_t,const char*,...))   \
+               &((log_it*)0)->printf                     \
+         && &((typeof(logif))0)->flushbuffer             \
+            == (void(**)(log_t*))                        \
+                  &((log_it*)0)->flushbuffer             \
+         && &((typeof(logif))0)->clearbuffer             \
+            == (void(**)(log_t*))                        \
+                  &((log_it*)0)->clearbuffer             \
+         && &((typeof(logif))0)->getbuffer               \
+            == (void(**)(log_t*,char**,size_t*))         \
+                  &((log_it*)0)->getbuffer,              \
          "ensure same structure") ;                      \
-      if (0) {                                           \
-         (logif)->printf(  (log_t*)0, log_channel_ERR,   \
-                           "%d%s", 1, "") ;              \
-         (logif)->flushbuffer((log_t*)0) ;               \
-         (logif)->clearbuffer((log_t*)0) ;               \
-         (logif)->getbuffer(  (log_t*)0, (char**)0,      \
-                              (size_t*)0) ;              \
-      }                                                  \
       (log_it*) (logif) ;                                \
    }))
 
@@ -148,7 +161,7 @@ void log_it_DECLARE(TYPENAME declared_it, TYPENAME log_t) ;
 #define log_it_DECLARE(declared_it, log_t)      \
    typedef struct declared_it    declared_it ;  \
    struct declared_it {                         \
-      void  (*printf)      (log_t * log, log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ; \
+      void  (*printf)      (log_t * log, uint8_t channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ; \
       void  (*flushbuffer) (log_t * log) ;                                                \
       void  (*clearbuffer) (log_t * log) ;                                                \
       void  (*getbuffer)   (log_t * log, /*out*/char ** buffer, /*out*/size_t * size) ;   \

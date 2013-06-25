@@ -43,7 +43,7 @@ struct logmain_t ;
 
 // group: forward
 
-static void printf_logmain(void * log, log_channel_e channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
+static void printf_logmain(void * log, uint8_t channel, const char * format, ... ) __attribute__ ((__format__ (__printf__, 3, 4))) ;
 static void flushbuffer_logmain(void * log) ;
 static void clearbuffer_logmain(void * log) ;
 static void getbuffer_logmain(void * log, /*out*/char ** buffer, /*out*/size_t * size) ;
@@ -61,7 +61,7 @@ log_it         g_logmain_interface  = {
 
 // group: interface-implementation
 
-static void printf_logmain(void * lgwrt, log_channel_e channel, const char * format, ... )
+static void printf_logmain(void * lgwrt, uint8_t channel, const char * format, ... )
 {
    (void) lgwrt ;
    uint8_t  buffer[log_config_MAXSIZE+1] = { 0 } ;
@@ -161,12 +161,12 @@ static int test_update(void)
    TEST(0 == memcmp(readbuffer+log_config_MAXSIZE-4, " ...", 4)) ;
    TEST(STDERR_FILENO == dup2(oldstderr, STDERR_FILENO)) ;
 
-   // TEST printf_logmain: log_channel_TEST
+   // TEST printf_logmain: log_channel_CONSOLE
    TEST(STDOUT_FILENO == dup2(pipefd[1], STDOUT_FILENO)) ;
-   printf_logmain(0, log_channel_TEST, "1%c%s%d", '2', "3", 4) ;
+   printf_logmain(0, log_channel_CONSOLE, "1%c%s%d", '2', "3", 4) ;
    TEST(4 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
    TEST(0 == strncmp("1234", readbuffer, 4)) ;
-   printf_logmain(0, log_channel_TEST, "%s;%d", maxstring, 1) ;
+   printf_logmain(0, log_channel_CONSOLE, "%s;%d", maxstring, 1) ;
    TEST(log_config_MAXSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
    TEST(0 == memcmp(readbuffer, maxstring, log_config_MAXSIZE-4)) ;
    TEST(0 == memcmp(readbuffer+log_config_MAXSIZE-4, " ...", 4)) ;
