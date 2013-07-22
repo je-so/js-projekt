@@ -29,6 +29,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/reader/filereader.h"
 #include "C-kern/api/string/stringstream.h"
+#include "C-kern/api/string/utf8.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -54,26 +55,18 @@ int init_utf8scanner(/*out*/utf8scanner_t * scan)
 
 int free_utf8scanner(utf8scanner_t * scan, filereader_t * frd)
 {
-   int err = 0, err2 ;
-
-   if (scan->end) {
+   if (nrofparts_splitstring(&scan->scanned_token)) {
       // buffer is acquired
-      err = release_filereader(frd) ;
       if (2 == nrofparts_splitstring(&scan->scanned_token)) {
          // release second also
-         err2 = release_filereader(frd) ;
-         if (err2) err = err2 ;
+         release_filereader(frd) ;
       }
+      release_filereader(frd) ;
    }
 
    *scan = (utf8scanner_t) utf8scanner_INIT_FREEABLE ;
 
-   if (err) goto ONABORT ;
-
    return 0 ;
-ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
-   return err ;
 }
 
 // group: query
@@ -85,7 +78,104 @@ bool isfree_utf8scanner(const utf8scanner_t * scan)
             && isfree_splitstring(&scan->scanned_token) ;
 }
 
+const splitstring_t * scannedtoken_utf8scanner(utf8scanner_t * scan)
+{
+   uint8_t stridx = nrofparts_splitstring(&scan->scanned_token) ;
+
+   if (stridx) {
+      /* token is valid */
+      -- stridx ;
+      const uint8_t * straddr = addr_splitstring(&scan->scanned_token, stridx) ;
+      setsize_splitstring(&scan->scanned_token, stridx, (size_t) (scan->next - straddr)) ;
+   }
+
+   return (const splitstring_t *) &scan->scanned_token ;
+}
+
 // group: read
+
+int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*/char32_t * uchar)
+{
+   int err ;
+
+   size_t size = sizeunread_utf8scanner(scan) ;
+   if (! size) {
+      err = readbuffer_utf8scanner(scan, frd) ;
+      if (err) goto ONABORT ;
+      size = sizeunread_utf8scanner(scan) ;
+      // size > 0 is guaranteed
+   }
+
+   uint8_t chrsize = decodechar_utf8(size, scan->next, uchar) ;
+   scan->next += chrsize ;
+
+   if (!chrsize) {
+      uint8_t expectsize = sizefromfirstbyte_utf8(*scan->next) ;
+      // a value of 0 indicates EILSEQ / a value <= size indicates also EILSEQ
+      if (expectsize <= size) {
+         scan->next += expectsize ;
+         scan->next += (expectsize==0) ;
+         err = EILSEQ ;
+         goto ONABORT ;
+      }
+      size_t nrmissing = (expectsize - size) ;
+      uint8_t mbsbuf[sizemax_utf8()] ;
+      memcpy(mbsbuf, scan->next, size) ;
+      scan->next = scan->end ;   // consume buffer
+      err = readbuffer_utf8scanner(scan, frd) ;
+      if (err) {
+         if (err == ENODATA) err = EILSEQ ;
+         goto ONABORT ;
+      }
+
+      size_t size2 = sizeunread_utf8scanner(scan) ;
+      if (size2 < nrmissing) {
+         scan->next += size2 ;
+         err = EILSEQ ;
+         goto ONABORT ;
+      }
+
+      memcpy(mbsbuf+size, scan->next, nrmissing) ;
+      scan->next += nrmissing ;
+      chrsize = decodechar_utf8(expectsize, mbsbuf, uchar) ;
+      if (!chrsize) {
+         err = EILSEQ ;
+         goto ONABORT ;
+      }
+   }
+
+   return 0 ;
+ONABORT:
+   if (  err != ENODATA       // readbuffer
+         && err != ENOBUFS    // readbuffer
+         && err != ioerror_filereader(frd)   // readbuffer
+         && err != EILSEQ) {
+      TRACEABORT_ERRLOG(err) ;
+   }
+   return err ;
+}
+
+// group: buffer I/O
+
+int cleartoken_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd)
+{
+   if (2 == nrofparts_splitstring(&scan->scanned_token)) {
+      release_filereader(frd) ;
+   }
+
+   if (scan->next == scan->end) {
+      // end of buffer (empty token)
+      release_filereader(frd) ;
+      setnrofparts_splitstring(&scan->scanned_token, 0) ;
+
+   } else {
+      // token starts at byte which will be read next
+      setnrofparts_splitstring(&scan->scanned_token, 1) ;
+      setstring_splitstring(&scan->scanned_token, 0, 0, scan->next) ;
+   }
+
+   return 0 ;
+}
 
 int readbuffer_utf8scanner(utf8scanner_t * scan, filereader_t * frd)
 {
@@ -94,32 +184,72 @@ int readbuffer_utf8scanner(utf8scanner_t * scan, filereader_t * frd)
    if (scan->next < scan->end)   return 0 ;        // buffer not empty
    if (iseof_filereader(frd))    return ENODATA ;  // no more data
    if (ioerror_filereader(frd))  return ioerror_filereader(frd) ; // do not log ioerror twice
-
-   if (0 == nrofparts_splitstring(&scan->scanned_token)) {
-      if (scan->next) {
-         scan->next = 0 ;
-         scan->end  = 0 ;   // mark buffer as released
-         err = release_filereader(frd) ;
-         if (err) goto ONABORT ;
-      }
-
-   } else if (1 == nrofparts_splitstring(&scan->scanned_token)) {
-      size_t strsize = (size_t) (scan->end - addr_splitstring(&scan->scanned_token, 0)) ;
-      setsize_splitstring(&scan->scanned_token, 0, strsize) ;
-
-   } else {
-      // splitstring only supports two buffers
-      err = ENOBUFS ;
-      goto ONABORT ;
-   }
-
-   err = acquirenext_filereader(frd, genericcast_stringstream(scan)) ;
-   if (err) goto ONABORT ;
+   if (2 == nrofparts_splitstring(&scan->scanned_token)) return ENOBUFS ;  // splitstring only supports two buffers
 
    if (nrofparts_splitstring(&scan->scanned_token)) {
-      setnrofparts_splitstring(&scan->scanned_token, 2) ;
-      setpart_splitstring(&scan->scanned_token, 1, 0, scan->next) ;
+      // set length of token first part (split over buffers)
+      size_t strsize = (size_t) (scan->end - addr_splitstring(&scan->scanned_token, 0)) ;
+      setsize_splitstring(&scan->scanned_token, 0, strsize) ;
    }
+
+   err = readnext_filereader(frd, genericcast_stringstream(scan)) ;
+   if (err) goto ONABORT ;
+
+   uint8_t stridx = nrofparts_splitstring(&scan->scanned_token) ;
+   setnrofparts_splitstring(&scan->scanned_token, (uint8_t) (stridx+1)) ;
+   setstring_splitstring(&scan->scanned_token, stridx, 0, scan->next) ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
+}
+
+int unread_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, uint8_t nrofchars)
+{
+   int err ;
+   if (!nrofchars) return 0 ;
+
+   // calc length of token
+   (void) scannedtoken_utf8scanner(scan) ;
+
+   uint8_t  firstbyte ;
+   uint8_t  charsleft = nrofchars ;
+   bool     isRelease = false ;
+   uint8_t  stridx    = nrofparts_splitstring(&scan->scanned_token) ;
+   if (!stridx) {
+      err = EINVAL ;
+      goto ONABORT ;
+   }
+   -- stridx ;
+
+   size_t   size      = size_splitstring(&scan->scanned_token, stridx) ;
+
+   do {
+      do {
+         if (!size) {
+            if (!stridx) {
+               err = EINVAL ;
+               goto ONABORT ;
+            }
+            isRelease = true ;
+            -- stridx ;
+            size = size_splitstring(&scan->scanned_token, stridx) ;
+         }
+         -- size ;
+         firstbyte = addr_splitstring(&scan->scanned_token, stridx)[size] ;
+      } while (! isfirstbyte_utf8(firstbyte)) ;
+   } while (--charsleft) ;
+
+   if (isRelease) {
+      // nrofparts_splitstring == 2 and stridx = 0
+      unread_filereader(frd) ;
+      scan->end = addr_splitstring(&scan->scanned_token, stridx) + size_splitstring(&scan->scanned_token, stridx) ;
+   }
+
+   scan->next = addr_splitstring(&scan->scanned_token, stridx) + size ;
+   setsize_splitstring(&scan->scanned_token, stridx, size) ;
+   setnrofparts_splitstring(&scan->scanned_token, (uint8_t)(stridx+1)) ;
 
    return 0 ;
 ONABORT:
@@ -134,9 +264,9 @@ ONABORT:
 
 static int test_initfree(directory_t * tempdir)
 {
-   utf8scanner_t scan     = utf8scanner_INIT_FREEABLE ;
+   utf8scanner_t  scan    = utf8scanner_INIT_FREEABLE ;
    filereader_t   freader = filereader_INIT_FREEABLE ;
-   const size_t   B       = buffersize_filereader() ;
+   const size_t   B       = sizebuffer_filereader() ;
 
    // prepare
    TEST(0 == makefile_directory(tempdir, "init", 2*B)) ;
@@ -146,8 +276,8 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == scan.end) ;
    TEST(1 == isfree_splitstring(&scan.scanned_token)) ;
 
-   // TEST init_utf8scanner, free_utf8scanner: two buffers acuired and released
-   memset(&scan, 266 ,sizeof(scan)) ;
+   // TEST init_utf8scanner, free_utf8scanner: two buffers acquired and released
+   memset(&scan, 255, sizeof(scan)) ;
    TEST(0 == init_filereader(&freader, "init", tempdir)) ;
    TEST(0 == init_utf8scanner(&scan)) ;
    TEST(0 == scan.next) ;
@@ -155,14 +285,12 @@ static int test_initfree(directory_t * tempdir)
    TEST(1 == isfree_splitstring(&scan.scanned_token)) ;
    uint8_t oldfree = freader.nrfreebuffer ;
    TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+1) ;
-   scan.next = scan.end ;
-   setnrofparts_splitstring(&scan.scanned_token, 1/*simulate token points to buffer*/) ;
+   scan.next = scan.end ; // empty buffer
    TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+2) ;                    // two buffers acquired
-   TEST(2 == nrofparts_splitstring(&scan.scanned_token)) ; // two buffers acquired
+   TEST(2 == nrofparts_splitstring(&scan.scanned_token)) ;
+   TEST(oldfree == freader.nrfreebuffer+2) ; // two buffers acquired
    TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer/*both buffers are released*/) ;
+   TEST(oldfree == freader.nrfreebuffer) ;   // both buffers released
    TEST(0 == scan.next) ;
    TEST(0 == scan.end) ;
    TEST(1 == isfree_splitstring(&scan.scanned_token)) ;
@@ -173,33 +301,29 @@ static int test_initfree(directory_t * tempdir)
    TEST(1 == isfree_splitstring(&scan.scanned_token)) ;
    TEST(0 == free_filereader(&freader)) ;
 
-   // TEST free_utf8scanner: no buffer released if scan.next == 0 (that means all buffer already relased or never acquired)
-   TEST(0 == init_filereader(&freader, "init", tempdir)) ;
-   TEST(0 == init_utf8scanner(&scan)) ;
-   oldfree = freader.nrfreebuffer ;
-   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+1) ;
-   scan.next = scan.end = 0 ;
-   TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+1/*nothing released*/) ;
-   scan.next = scan.end = (const void*)1 ;
-   TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer/*released!*/) ;
-   TEST(0 == free_filereader(&freader)) ;
-
    // TEST free_utf8scanner: releases only one buffer if nrofparts_splitstring() == 1
    TEST(0 == init_filereader(&freader, "init", tempdir)) ;
    TEST(0 == init_utf8scanner(&scan)) ;
    oldfree = freader.nrfreebuffer ;
    TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == freader.nrfreebuffer+1) ;
-   scan.next = scan.end ;
-   setnrofparts_splitstring(&scan.scanned_token, 1/*simulate token points to buffer*/) ;
+   scan.next = scan.end ;  // empty buffer
    TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
    TEST(oldfree == freader.nrfreebuffer+2) ;
-   setnrofparts_splitstring(&scan.scanned_token, 1/*simulate only one buffer acquired*/) ;
+   setnrofparts_splitstring(&scan.scanned_token, 1) ; // simulate only one buffer acquired
    TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+1/*only one buffer released*/) ;
+   TEST(oldfree == freader.nrfreebuffer+1) ;          // only one buffer released
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST free_utf8scanner: releases no buffer if nrofparts_splitstring() == 0
+   TEST(0 == init_filereader(&freader, "init", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   oldfree = freader.nrfreebuffer ;
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   TEST(oldfree == freader.nrfreebuffer+1) ;
+   setnrofparts_splitstring(&scan.scanned_token, 0) ; // simulate no buffer acquired
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(oldfree == freader.nrfreebuffer+1) ;          // no buffer released
    TEST(0 == free_filereader(&freader)) ;
 
    // unprepare
@@ -217,13 +341,17 @@ static int test_query(void)
    utf8scanner_t scan = utf8scanner_INIT_FREEABLE ;
 
    // TEST isfree_utf8scanner
-   TEST(isfree_utf8scanner(&scan)) ;
-   for (size_t i = 0; i < sizeof(scan); ++i) {
-      memset(i + (uint8_t*)&scan, 1, 1) ;
-      TEST(! isfree_utf8scanner(&scan)) ;
-      memset(i + (uint8_t*)&scan, 0, 1) ;
-      TEST(isfree_utf8scanner(&scan)) ;
-   }
+   TEST(1 == isfree_utf8scanner(&scan)) ;
+   scan.next = (const uint8_t*)1 ;
+   TEST(0 == isfree_utf8scanner(&scan)) ;
+   scan.next = 0 ;
+   scan.end = (const uint8_t*)1 ;
+   TEST(0 == isfree_utf8scanner(&scan)) ;
+   scan.end = 0 ;
+   scan.scanned_token.nrofparts = 1 ;
+   TEST(0 == isfree_utf8scanner(&scan)) ;
+   scan.scanned_token.nrofparts = 0 ;
+   TEST(1 == isfree_utf8scanner(&scan)) ;
 
    // TEST isnext_utf8scanner
    scan.end = scan.next + 1 ;
@@ -233,13 +361,288 @@ static int test_query(void)
    scan.end = scan.next = 0 ;
    TEST(0 == isnext_utf8scanner(&scan)) ;
 
-   // TEST scannedtoken_utf8scanner
-   TEST(scannedtoken_utf8scanner(&scan)   == &scan.scanned_token) ;
-   utf8scanner_t * nullptr = 0 ;
-   TEST(scannedtoken_utf8scanner(nullptr) == (void*)offsetof(utf8scanner_t, scanned_token)) ;
+   // TEST sizeunread_utf8scanner
+   scan.end = scan.next + 1 ;
+   TEST(1 == sizeunread_utf8scanner(&scan)) ;
+   scan.end = scan.next + (size_t)-1 ;
+   TEST((size_t)-1 == sizeunread_utf8scanner(&scan)) ;
+   scan.next = scan.end - 1 ;
+   TEST(1 == sizeunread_utf8scanner(&scan)) ;
+   scan.end = scan.next = 0 ;
+   TEST(0 == sizeunread_utf8scanner(&scan)) ;
+
+   // TEST scannedtoken_utf8scanner: empty token (nothing is changed)
+   TEST(scannedtoken_utf8scanner(&scan) == &scan.scanned_token) ;
+   TEST(1 == isfree_splitstring(&scan.scanned_token)) ;
+
+   // TEST scannedtoken_utf8scanner: set token
+   for (uint8_t i = 1; i <= 2; ++i) {
+      scan.next = 200 + i + (uint8_t*)&scan ;
+      scan.end  = 400 + (uint8_t*)&scan ;
+      setstring_splitstring(&scan.scanned_token, 0, 100u+i, (uint8_t*)&scan) ;
+      setstring_splitstring(&scan.scanned_token, 1, 100u+i, (uint8_t*)&scan) ;
+      setnrofparts_splitstring(&scan.scanned_token, i) ;
+      TEST(scannedtoken_utf8scanner(&scan) == &scan.scanned_token) ;
+      TEST(i == nrofparts_splitstring(&scan.scanned_token)) ;
+      TEST((uint8_t*)&scan == addr_splitstring(&scan.scanned_token, 0)) ;
+      TEST((uint8_t*)&scan == addr_splitstring(&scan.scanned_token, 1)) ;
+      TEST(200u+i == size_splitstring(&scan.scanned_token, i-1)) ;
+      TEST(100u+i == size_splitstring(&scan.scanned_token, (i == 1))) ;
+   }
 
    return 0 ;
 ONABORT:
+   return EINVAL ;
+}
+
+static int test_bufferio(directory_t * tempdir)
+{
+   utf8scanner_t  scan    = utf8scanner_INIT_FREEABLE ;
+   filereader_t   freader = filereader_INIT_FREEABLE ;
+   const size_t   BUFSZ   = 4*sizebuffer_filereader() + 29 ;
+   memblock_t     mem     = memblock_INIT_FREEABLE ;
+
+   // prepare
+   TEST(0 == RESIZE_MM(BUFSZ, &mem)) ;
+   for (size_t i = 0; i < BUFSZ; ++i) {
+      addr_memblock(&mem)[i] = (uint8_t)(29*i) ;
+   }
+   TEST(0 == save_file("bufferio", BUFSZ, addr_memblock(&mem), tempdir)) ;
+
+   // TEST readbuffer_utf8scanner: acquire buffer only if buffer empty
+   TEST(0 == init_filereader(&freader, "bufferio", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   TEST(0 == scan.next) ;
+   TEST(0 == scan.end) ;
+   uint8_t oldfree = freader.nrfreebuffer ;
+   // simulate not empty
+   scan.end = scan.next + 1 ;
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   // no buffer acquired
+   TEST(0 == scan.next) ;
+   TEST(scan.end == scan.next + 1) ;
+   TEST(oldfree == freader.nrfreebuffer) ;
+   scan.end = 0 ;
+
+   // TEST readbuffer_utf8scanner: IO error prevents reading
+   for (int i = 0; i < 10; ++i) {
+      setioerror_filereader(&freader, EIO + i) ;
+      TEST(EIO+i == readbuffer_utf8scanner(&scan, &freader)) ;
+      TEST(0 == scan.next) ;
+      TEST(0 == scan.end) ;
+      TEST(oldfree == freader.nrfreebuffer) ;
+   }
+   setioerror_filereader(&freader, 0) ;
+
+   // TEST readbuffer_utf8scanner: read buffer and compare content
+   for (size_t i = 0; i != BUFSZ; ) {
+      TEST(0 == iseof_filereader(&freader)) ;
+      setstring_splitstring(&scan.scanned_token, 0, (size_t)1, (const uint8_t*)0) ;
+      TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+      // acquired one buffer
+      TEST(oldfree == freader.nrfreebuffer + 1) ;
+      // token adapted
+      TEST(1 == nrofparts_splitstring(&scan.scanned_token)) ;
+      TEST(scan.next == addr_splitstring(&scan.scanned_token, 0)) ;
+      TEST(0 == size_splitstring(&scan.scanned_token, 0)) ;
+      // buffer valid
+      TEST(0 != scan.next) ;
+      TEST(scan.end > scan.next) ;
+      for (const uint8_t * addr = scan.next; addr < scan.end; ++addr, ++i) {
+         TEST((uint8_t)(29*i) == addr[0]) ;
+      }
+      // simulate cleartoken !
+      setnrofparts_splitstring(&scan.scanned_token, 0) ;
+      release_filereader(&freader) ;
+      TEST(oldfree == freader.nrfreebuffer) ;
+      // simulate empty buffer
+      scan.next = scan.end ;
+   }
+
+   // TEST readbuffer_utf8scanner: ENODATA
+   TEST(1 == iseof_filereader(&freader)) ;
+   for (int i = 0; i < 10; ++i) {
+      TEST(ENODATA == readbuffer_utf8scanner(&scan, &freader)) ;
+   }
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST readbuffer_utf8scanner: token spans 2 unreleased buffers at max
+   TEST(0 == init_filereader(&freader, "bufferio", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   const uint8_t * addr[4] = { 0, 0, 0, 0 } ;
+   size_t bufsize = 0 ;
+   for (uint8_t i = 1; i <= 2; ++i) {
+      TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+      TEST(i == nrofparts_splitstring(&scan.scanned_token)) ;
+      TEST(scan.next == addr_splitstring(&scan.scanned_token, i-1)) ;
+      TEST(0 == size_splitstring(&scan.scanned_token, i-1)) ;
+      if (addr[0]) {
+         TEST(addr[0] == addr_splitstring(&scan.scanned_token, 0)) ;
+         TEST(bufsize == size_splitstring(&scan.scanned_token, 0)) ;
+      }
+      addr[i-1] = scan.next ;
+      bufsize   = (size_t) (scan.end - scan.next) ;
+      // simulate empty buffer
+      scan.next = scan.end ;
+   }
+
+   // TEST readbuffer_utf8scanner: ENOBUFS
+   TEST(2 == nrofparts_splitstring(&scan.scanned_token)) ;
+   TEST(ENOBUFS == readbuffer_utf8scanner(&scan, &freader)) ;
+   TEST(addr[0] == addr_splitstring(&scan.scanned_token, 0)) ;
+   TEST(bufsize == size_splitstring(&scan.scanned_token, 0)) ;
+   TEST(addr[1] == addr_splitstring(&scan.scanned_token, 1)) ;
+   TEST(0       == size_splitstring(&scan.scanned_token, 1)) ;
+   TEST(addr[1] + bufsize == scan.next) ;
+   TEST(addr[1] + bufsize == scan.end) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST cleartoken_utf8scanner
+   TEST(0 == init_filereader(&freader, "bufferio", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   // empty buffer
+   setnrofparts_splitstring(&scan.scanned_token, 1) ;
+   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+   TEST(0 == nrofparts_splitstring(&scan.scanned_token)) ;
+   // token with 1 part
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   TEST(1 == nrofparts_splitstring(&scan.scanned_token)) ;
+   while (scan.next < scan.end) {
+      setsize_splitstring(&scan.scanned_token, 0, 1) ;
+      TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+      TEST(1 == nrofparts_splitstring(&scan.scanned_token)) ;
+      TEST(scan.next == addr_splitstring(&scan.scanned_token, 0)) ;
+      TEST(0 == size_splitstring(&scan.scanned_token, 0)) ;
+      ++ scan.next ;
+   }
+   // token with 1 part (empty buffer)
+   oldfree = freader.nrfreebuffer ;
+   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+   TEST(0 == nrofparts_splitstring(&scan.scanned_token)) ;
+   TEST(oldfree + 1 == freader.nrfreebuffer) ;  // released buffer
+   // token with 2 part
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   scan.next = scan.end ; // empty buffer
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   TEST(2 == nrofparts_splitstring(&scan.scanned_token)) ;
+   ++ scan.next ;
+   oldfree = freader.nrfreebuffer ;
+   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+   TEST(oldfree + 1 == freader.nrfreebuffer) ;  // cleartoken released unused buffer
+   TEST(1 == nrofparts_splitstring(&scan.scanned_token)) ;
+   TEST(scan.next == addr_splitstring(&scan.scanned_token, 0)) ;
+   TEST(0 == size_splitstring(&scan.scanned_token, 0)) ;
+   // token with 2 part (empty buffer)
+   scan.next = scan.end ; // simulate empty buffer
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   TEST(2 == nrofparts_splitstring(&scan.scanned_token)) ;
+   scan.next = scan.end ; // simulate empty buffer
+   oldfree = freader.nrfreebuffer ;
+   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+   TEST(oldfree + 2 == freader.nrfreebuffer) ;  // cleartoken released two unused buffers
+   TEST(0 == nrofparts_splitstring(&scan.scanned_token)) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST unread_utf8scanner
+   const char * testmbs[sizemax_utf8()] = { "1", "\u07ff", "\uffff", "\U0010FFFF" } ;
+   for (unsigned mbslen = 1; mbslen <= sizemax_utf8(); ++ mbslen) {
+      TEST(mbslen == strlen(testmbs[mbslen-1])) ;
+      size_t start_offset = sizebuffer_filereader()/2 - 128 * mbslen + 1 ;
+      size_t end_offset   = start_offset ;
+      for (unsigned i = 0; i < 255; ++ i, end_offset += mbslen) {
+         memcpy(addr_memblock(&mem) + end_offset, testmbs[mbslen-1], mbslen) ;
+      }
+      TEST(0 == removefile_directory(tempdir, "bufferio")) ;
+      TEST(0 == save_file("bufferio", BUFSZ, addr_memblock(&mem), tempdir)) ;
+      for (unsigned i = 0; i < 256; ++i) {
+         if (i < 110) i += 17 ;
+         if (i > 129 && i < 255-33) i += 33 ;
+         TEST(0 == init_filereader(&freader, "bufferio", tempdir)) ;
+         TEST(0 == init_utf8scanner(&scan)) ;
+         TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+         addr[0] = scan.next ;
+         addr[1] = scan.end ;
+         scan.next = scan.end ;
+         TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+         addr[2] = scan.next ;
+         addr[3] = scan.end ;
+         scan.next += end_offset - sizebuffer_filereader()/2 ;
+         oldfree = freader.nrfreebuffer ;
+         // unread last i characters
+         TEST(0 == unread_utf8scanner(&scan, &freader, (uint8_t)i)) ;
+         TEST(addr[0] == addr_splitstring(scannedtoken_utf8scanner(&scan), 0)) ;
+         if (i <= (127+(mbslen==1))) {
+            // second part was big enough
+            TEST(2 == nrofparts_splitstring(scannedtoken_utf8scanner(&scan))) ;
+            TEST(oldfree == freader.nrfreebuffer) ; // no buffer unread
+            TEST(addr[1] == addr[0] + size_splitstring(scannedtoken_utf8scanner(&scan), 0)) ;
+            TEST(addr[2] == addr_splitstring(scannedtoken_utf8scanner(&scan), 1)) ;
+            TEST((128-i)*mbslen+1-mbslen == size_splitstring(scannedtoken_utf8scanner(&scan), 1)) ;
+         } else {
+            // second part was fully unread
+            TEST(1 == nrofparts_splitstring(scannedtoken_utf8scanner(&scan))) ;
+            TEST(oldfree == freader.nrfreebuffer - 1) ;  // buffer unread
+            TEST(sizebuffer_filereader()/2-(i-128u)*mbslen-mbslen+1 == size_splitstring(scannedtoken_utf8scanner(&scan), 0)) ;
+            // now readbuffer returns unread buffer
+            scan.next = scan.end ;
+            TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+            TEST(addr[2] == scan.next) ;
+            TEST(addr[3] == scan.end) ;
+         }
+         TEST(0 == free_utf8scanner(&scan, &freader)) ;
+         TEST(0 == free_filereader(&freader)) ;
+      }
+   }
+
+   // TEST unread_utf8scanner: EINVAL
+   for (unsigned mbslen = 1; mbslen <= sizemax_utf8(); ++ mbslen) {
+      TEST(mbslen == strlen(testmbs[mbslen-1])) ;
+      size_t start_offset = sizebuffer_filereader()/2 - 128 * mbslen + 1 ;
+      size_t end_offset   = start_offset ;
+      for (unsigned i = 0; i < 254; ++ i, end_offset += mbslen) {
+         memcpy(addr_memblock(&mem) + end_offset, testmbs[mbslen-1], mbslen) ;
+      }
+      TEST(0 == removefile_directory(tempdir, "bufferio")) ;
+      TEST(0 == save_file("bufferio", BUFSZ, addr_memblock(&mem), tempdir)) ;
+      TEST(0 == init_filereader(&freader, "bufferio", tempdir)) ;
+      TEST(0 == init_utf8scanner(&scan)) ;
+      TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+      addr[0] = scan.next ;
+      addr[1] = scan.end ;
+      scan.next = scan.end ;
+      TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+      setstring_splitstring(&scan.scanned_token, 0, sizebuffer_filereader()/2 - start_offset, addr[0] + start_offset) ;
+      addr[2] = scan.next ;
+      addr[3] = scan.end ;
+      oldfree = freader.nrfreebuffer ;
+      scan.next += end_offset - sizebuffer_filereader()/2 ;
+      // error
+      TEST(EINVAL == unread_utf8scanner(&scan, &freader, 255)) ;
+      // nothing changed in scan !
+      TEST(scan.next == addr[2] + end_offset - sizebuffer_filereader()/2) ;
+      TEST(scan.end  == addr[3]) ;
+      TEST(2 == nrofparts_splitstring(scannedtoken_utf8scanner(&scan))) ;
+      TEST(oldfree == freader.nrfreebuffer) ; // no buffer unread
+      TEST(addr[0] == addr_splitstring(scannedtoken_utf8scanner(&scan), 0) - start_offset) ;
+      TEST(addr[1] == addr_splitstring(scannedtoken_utf8scanner(&scan), 0) + size_splitstring(scannedtoken_utf8scanner(&scan), 0)) ;
+      TEST(addr[2] == addr_splitstring(scannedtoken_utf8scanner(&scan), 1)) ;
+      TEST(126*mbslen+1 == size_splitstring(scannedtoken_utf8scanner(&scan), 1)) ;
+      TEST(0 == free_utf8scanner(&scan, &freader)) ;
+      TEST(0 == free_filereader(&freader)) ;
+   }
+
+   // unprepare
+   TEST(0 == removefile_directory(tempdir, "bufferio")) ;
+   FREE_MM(&mem) ;
+
+   return 0 ;
+ONABORT:
+   (void) free_filereader(&freader) ;
+   (void) removefile_directory(tempdir, "bufferio") ;
+   FREE_MM(&mem) ;
    return EINVAL ;
 }
 
@@ -248,243 +651,218 @@ static int test_read(directory_t * tempdir)
    utf8scanner_t  scan    = utf8scanner_INIT_FREEABLE ;
    memblock_t     mem     = memblock_INIT_FREEABLE ;
    filereader_t   freader = filereader_INIT_FREEABLE ;
-   const size_t   MS      = 2*buffersize_filereader()+123;
-   stringstream_t buffer ;
-   const uint8_t  * addr ;
+   const size_t   BUFSZ   = 3*sizebuffer_filereader() + 123 ;
+   char32_t       uchar ;
 
    // prepare
-   TEST(0 == RESIZE_MM(MS, &mem)) ;
-   for (size_t i = 0; i < MS; ++i) {
-      addr_memblock(&mem)[i] = (uint8_t)(29*i) ;
+   TEST(0 == RESIZE_MM(BUFSZ, &mem)) ;
+   for (size_t i = 0; i < BUFSZ; ++i) {
+      addr_memblock(&mem)[i] = (uint8_t)(31*i) ;
    }
-   TEST(0 == save_file("read", MS, addr_memblock(&mem), tempdir)) ;
-   FREE_MM(&mem) ;
+   TEST(0 == save_file("read", BUFSZ, addr_memblock(&mem), tempdir)) ;
 
-   // TEST cleartoken_utf8scanner
-   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
-   TEST(0 == init_utf8scanner(&scan)) ;
-   uint8_t oldfree = freader.nrfreebuffer ;
-   TEST(0 == acquirenext_filereader(&freader, &buffer)) ;
-   addr = (const uint8_t*) "1234" ;
-   scan.next = addr + 1 ;
-   scan.end  = addr + 4 ;
-   setaddr_splitstring(&scan.scanned_token, 0, addr) ;
-   setsize_splitstring(&scan.scanned_token, 0, 1) ;
-   setnrofparts_splitstring(&scan.scanned_token, 0) ;
-   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == 1 + freader.nrfreebuffer) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 1) ;
-   setnrofparts_splitstring(&scan.scanned_token, 1) ;
-   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == 1 + freader.nrfreebuffer) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 1) ;
-
-   // TEST cleartoken_utf8scanner: frees buffer in case two are acquired
-   setnrofparts_splitstring(&scan.scanned_token, 2) ;
-   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer/*freed, no buffer loaded cause buffer not empty*/) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 1) ;
-   TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(0 == free_filereader(&freader)) ;
-
-   // TEST settokenstart_utf8scanner
-   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
-   TEST(0 == init_utf8scanner(&scan)) ;
-   oldfree = freader.nrfreebuffer ;
-   TEST(0 == acquirenext_filereader(&freader, &buffer)) ;
-   addr = (const uint8_t*) "1234" ;
-   scan.next = addr + 1 ;
-   scan.end  = addr + 4 ;
-   setaddr_splitstring(&scan.scanned_token, 0, 0) ;
-   setsize_splitstring(&scan.scanned_token, 0, 12) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
-   TEST(0 == settokenstart_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == 1 + freader.nrfreebuffer/*freed, no buffer loaded cause buffer not empty*/) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 1) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 0) ;
-   setnrofparts_splitstring(&scan.scanned_token, 1) ;
-   TEST(0 == settokenstart_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == 1 + freader.nrfreebuffer) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 1) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 0) ;
-
-   // TEST settokenstart_utf8scanner: frees buffer in case two are acquired
-   setnrofparts_splitstring(&scan.scanned_token, 2) ;
-   setsize_splitstring(&scan.scanned_token, 0, 12) ;
-   scan.next = addr + 2 ;
-   TEST(0 == settokenstart_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer/*freed, no buffer loaded cause buffer not empty*/) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 1) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr + 1) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == 0) ;
-   TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(0 == free_filereader(&freader)) ;
-
-   // TEST settokenend_utf8scanner
-   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
-   TEST(0 == init_utf8scanner(&scan)) ;
-   TEST(0 == acquirenext_filereader(&freader, &buffer)) ;
-   addr      = buffer.next ;
-   scan.next = buffer.next + 1 ;
-   scan.end  = buffer.end ;
-   TEST(0 == settokenstart_utf8scanner(&scan, &freader))
-   scan.next = addr + (scan.end - addr) / 4 ;
-   // nrofparts_splitstring == 1
-   settokenend_utf8scanner(&scan) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 1) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0)   == addr) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0)   == (size_t)(scan.end - addr) / 4) ;
-   setpart_splitstring(&scan.scanned_token, 1, 0, scan.next-5) ;
-   setnrofparts_splitstring(&scan.scanned_token, 2) ;
-   // nrofparts_splitstring == 2
-   settokenend_utf8scanner(&scan) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 2) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0)   == addr) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0)   == (size_t)(scan.end - addr) / 4) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 1)   == scan.next-5) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 1)   == 5) ;
-   TEST(scan.next == addr + (scan.end - addr) / 4) ;
-   // nrofparts_splitstring == 0 ==> does nothing
-   setnrofparts_splitstring(&scan.scanned_token, 0) ;
-   settokenend_utf8scanner(&scan) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 0) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0)   == addr) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0)   == (size_t)(scan.end - addr) / 4) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 1)   == scan.next-5) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 1)   == 5) ;
-   TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(0 == free_filereader(&freader)) ;
-
-   // TEST nextbyte_utf8scanner, peekbyte_utf8scanner, skipbyte_utf8scanner
+   // TEST nextbyte_utf8scanner, peekbyte_utf8scanner, skipbytes_utf8scanner
    TEST(0 == init_filereader(&freader, "read", tempdir)) ;
    TEST(0 == init_utf8scanner(&scan)) ;
    TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   for (size_t i = 0; scan.next < scan.end; ++i) {
+   for (size_t i = 0, unread = sizeunread_utf8scanner(&scan); i < unread; ++i) {
       const uint8_t * next = scan.next ;
-      TEST(peekbyte_utf8scanner(&scan) == (uint8_t)(29*i)) ;
+      TEST(peekbyte_utf8scanner(&scan, i) == (uint8_t)(31*i)) ;
       TEST(scan.next == next) ;
-      TEST(nextbyte_utf8scanner(&scan) == (uint8_t)(29*i)) ;
-      TEST(scan.next == next+1) ;
+      skipbytes_utf8scanner(&scan, i) ;
+      TEST(scan.next == next+i) ;
+      TEST(nextbyte_utf8scanner(&scan) == (uint8_t)(31*i)) ;
+      TEST(scan.next == next+i+1) ;
       scan.next = next ;
-      skipbyte_utf8scanner(&scan) ;
-      TEST(scan.next == next+1) ;
    }
 
-   // TEST nextbyte_utf8scanner, peekbyte_utf8scanner, skipbyte_utf8scanner: does not check for end of buffer
+   // TEST nextbyte_utf8scanner, peekbyte_utf8scanner, skipbytes_utf8scanner: does not check for end of buffer
    scan.next = -- scan.end ;
-   TEST(peekbyte_utf8scanner(&scan) == *scan.end) ;
+   TEST(peekbyte_utf8scanner(&scan, 0) == *scan.end) ;
    TEST(scan.next == scan.end) ;
    TEST(nextbyte_utf8scanner(&scan) == *scan.end) ;
    TEST(scan.next == (++ scan.end)) ;
    scan.next = -- scan.end ;
-   skipbyte_utf8scanner(&scan) ;
+   skipbytes_utf8scanner(&scan, 1) ;
    TEST(scan.next == (++ scan.end)) ;
    TEST(0 == free_utf8scanner(&scan, &freader)) ;
    TEST(0 == free_filereader(&freader)) ;
 
-   // TEST readbuffer_utf8scanner
+   // TEST peekbyte_utf8scanner, skipbytes_utf8scanner: read whole file
    TEST(0 == init_filereader(&freader, "read", tempdir)) ;
    TEST(0 == init_utf8scanner(&scan)) ;
-   TEST(0 == scan.next) ;
-   TEST(0 == scan.end) ;
-   oldfree = freader.nrfreebuffer ;
-   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+1/*loads buffer*/) ;
-   TEST(0 != scan.next) ;
-   TEST(scan.end == scan.next + buffersize_filereader()/2) ;
-   // does nothing if buffer not empty
-   addr = scan.next ;
-   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+1/*loads buffer*/) ;
-   TEST(scan.next == addr) ;
-   TEST(scan.end  == addr + buffersize_filereader()/2) ;
-   // does nothing if ioerror
-   addr = scan.next ;
-   scan.next = scan.end ;
-   freader.ioerror = EIO ;
-   TEST(EIO == readbuffer_utf8scanner(&scan, &freader)) ;
-   freader.ioerror = 0 ;
-   // loads next if buffer empty
-   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+1/*old buffer released*/) ;
-   TEST(scan.next == addr + buffersize_filereader()/2/*second buffer comes after first (implemented in filereader)*/) ;
-   TEST(scan.end  == addr + buffersize_filereader()) ;
-   // loads next if buffer empty and does not free old if beginscan_utf8scanner called
-   setaddr_splitstring(&scan.scanned_token, 0, scan.next+1) ;
-   setsize_splitstring(&scan.scanned_token, 0, 0) ;
-   setaddr_splitstring(&scan.scanned_token, 1, 0) ;
-   setsize_splitstring(&scan.scanned_token, 1, 1) ;
-   setnrofparts_splitstring(&scan.scanned_token, 1/*simulates beginscan_utf8scanner*/) ;
-   scan.next = scan.end ;
-   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+2/*old buffer not released*/) ;
-   TEST(scan.next == addr /*third buffer is the first again (implemented in filereader)*/) ;
-   TEST(scan.end  == addr + buffersize_filereader()/2) ;
-   // size of first string of scanned_token is set and addr and size of second string of scanned_token
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 0) == addr+buffersize_filereader()/2+1) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 0) == buffersize_filereader()/2-1) ;
-   TEST(addr_splitstring(scannedtoken_utf8scanner(&scan), 1) == scan.next) ;
-   TEST(size_splitstring(scannedtoken_utf8scanner(&scan), 1) == 0) ;
-   TEST(nrofparts_splitstring(scannedtoken_utf8scanner(&scan)) == 2) ;
-   TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(0 == free_filereader(&freader)) ;
-
-   // TEST readbuffer_utf8scanner: release_filereader is not called after initialization
-   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
-   TEST(0 == init_utf8scanner(&scan)) ;
-   oldfree = freader.nrfreebuffer ;
-   stringstream_t dummy ;
-   TEST(0 == acquirenext_filereader(&freader, &dummy)) ;
-   TEST(oldfree == freader.nrfreebuffer+1/*loads buffer*/) ;
-   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+2/*loads buffer without releasing the first time*/) ;
-   TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(0 == free_filereader(&freader)) ;
-
-   // readbuffer_utf8scanner: ENOBUFS (utf8scanner(splitstring) supports only 2 buffers)
-   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
-   TEST(0 == init_utf8scanner(&scan)) ;
-   oldfree = freader.nrfreebuffer ;
-   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   scan.next = scan.end ;  // simulate all bytes read from buffer
-   setnrofparts_splitstring(&scan.scanned_token, 1/*simulates token points to buffer*/) ;
-   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(oldfree == freader.nrfreebuffer+2/*loads 2 buffer*/) ;
-   scan.next = scan.end ;  // simulate all bytes read from buffer
-   TEST(2 == nrofparts_splitstring(scannedtoken_utf8scanner(&scan))) ;
-   TEST(ENOBUFS == readbuffer_utf8scanner(&scan, &freader)) ;
-   TEST(0 == free_utf8scanner(&scan, &freader)) ;
-   TEST(0 == free_filereader(&freader)) ;
-
-
-   // TEST readbuffer_utf8scanner, nextbyte_utf8scanner, peekbyte_utf8scanner: read whole file
-   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
-   TEST(0 == init_utf8scanner(&scan)) ;
-   for (size_t i = 0, b = 0; i < MS; ) {
+   for (size_t i = 0, b = 0; i < BUFSZ; ) {
       TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
-      for (; isnext_utf8scanner(&scan); ++i) {
-         TEST(peekbyte_utf8scanner(&scan) == (uint8_t)(29*i)) ;
-         TEST(nextbyte_utf8scanner(&scan) == (uint8_t)(29*i)) ;
+      for (size_t off = 0, unread = sizeunread_utf8scanner(&scan); off < unread; ++off, ++i) {
+         TEST(peekbyte_utf8scanner(&scan, off) == (uint8_t)(31*i)) ;
       }
-      b += i == MS ? 123 : buffersize_filereader()/2 ;
+      skipbytes_utf8scanner(&scan, sizeunread_utf8scanner(&scan)) ;
+      TEST(1 == nrofparts_splitstring(scannedtoken_utf8scanner(&scan))) ;
+      TEST((i-b) == size_splitstring(scannedtoken_utf8scanner(&scan), 0)) ;
+      cleartoken_utf8scanner(&scan, &freader) ;
+      b += i == BUFSZ ? 123 : sizebuffer_filereader()/2 ;
       TEST(i == b) ;
    }
-
-   // TEST readbuffer_utf8scanner: ENODATA
+   TEST(1 == iseof_filereader(&freader)) ;
    TEST(ENODATA == readbuffer_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST peekbyte_utf8scanner, nextbyte_utf8scanner: read whole file
+   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   for (size_t i = 0, b = 0; i < BUFSZ; ) {
+      TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+      for (; isnext_utf8scanner(&scan); ++i) {
+         TEST(peekbyte_utf8scanner(&scan, 0) == (uint8_t)(31*i)) ;
+         TEST(nextbyte_utf8scanner(&scan) == (uint8_t)(31*i)) ;
+      }
+      TEST(1 == nrofparts_splitstring(scannedtoken_utf8scanner(&scan))) ;
+      TEST((i-b) == size_splitstring(scannedtoken_utf8scanner(&scan), 0)) ;
+      cleartoken_utf8scanner(&scan, &freader) ;
+      b += i == BUFSZ ? 123 : sizebuffer_filereader()/2 ;
+      TEST(i == b) ;
+   }
+   TEST(1 == iseof_filereader(&freader)) ;
+   TEST(ENODATA == readbuffer_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST nextchar_utf8scanner
+   for (size_t mbslen = 1; mbslen <= sizemax_utf8(); ++mbslen) {
+      memset(addr_memblock(&mem), 0, 7) ;
+      size_t offset = 7 ;
+      for (size_t i = 0; offset < BUFSZ-sizemax_utf8(); ++i, offset += mbslen) {
+         char32_t chr = 0 ;
+         switch (mbslen) {
+         case 1:  chr = (i & 0x7f) ;      break ;
+         case 2:  chr = ((0x80 + i) & 0x7ff) ; if (chr < 0x80) chr += 0x80 ; break ;
+         case 3:  chr = (0x800 + i) ;     break ;
+         case 4:  chr = (0x10000 + i) ;   break ;
+         }
+         uint8_t chrlen = encodechar_utf8(sizemax_utf8(), addr_memblock(&mem)+offset, chr) ;
+         TEST(chrlen == mbslen) ;
+      }
+      memset(addr_memblock(&mem)+offset, 0, BUFSZ-offset) ;
+      TEST(0 == removefile_directory(tempdir, "read")) ;
+      TEST(0 == save_file("read", BUFSZ, addr_memblock(&mem), tempdir)) ;
+      // decode all characters
+      TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+      TEST(0 == init_utf8scanner(&scan)) ;
+      size_t end_offset = offset ;
+      for (offset = 0; offset < 7; ++offset) {
+         uchar = 1 ;
+         TEST(0 == nextchar_utf8scanner(&scan, &freader, &uchar))
+         TEST(0 == uchar) ;
+         TEST(sizeunread_utf8scanner(&scan) == sizebuffer_filereader()/2-offset-1) ;
+      }
+      for (size_t i = 0; offset < end_offset; ++i, offset += mbslen) {
+         char32_t chr = 0 ;
+         size_t   unread = sizeunread_utf8scanner(&scan) ;
+         if (unread < mbslen) {
+            unread += (offset + sizebuffer_filereader()/2 > end_offset)
+                    ? 123
+                    : sizebuffer_filereader()/2 ;
+         }
+         unread -= mbslen ;
+         uchar = 0 ;
+         TEST(0 == nextchar_utf8scanner(&scan, &freader, &uchar))
+         cleartoken_utf8scanner(&scan, &freader) ;
+         switch (mbslen) {
+         case 1:  chr = (i & 0x7f) ;      break ;
+         case 2:  chr = ((0x80 + i) & 0x7ff) ; if (chr < 0x80) chr += 0x80 ; break ;
+         case 3:  chr = (0x800 + i) ;     break ;
+         case 4:  chr = (0x10000 + i) ;   break ;
+         }
+         TEST(unread == sizeunread_utf8scanner(&scan)) ;
+         TEST(chr == uchar) ;
+      }
+      TEST(sizeunread_utf8scanner(&scan) == BUFSZ-end_offset) ;
+      // decode 0 characters
+      for (; offset < BUFSZ; ++offset) {
+         TEST(0 == nextchar_utf8scanner(&scan, &freader, &uchar))
+         TEST(0 == uchar) ;
+         TEST(sizeunread_utf8scanner(&scan) == BUFSZ-offset-1) ;
+      }
+      TEST(0 == sizeunread_utf8scanner(&scan)) ;
+      // ENODATA
+      TEST(ENODATA == nextchar_utf8scanner(&scan, &freader, &uchar)) ;
+      TEST(0 == free_utf8scanner(&scan, &freader)) ;
+      TEST(0 == free_filereader(&freader)) ;
+   }
+
+   // TEST nextchar_utf8scanner: ENOBUFS
+   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   scan.next = scan.end ; // empty buffer
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   scan.next = scan.end ; // empty buffer
+   TEST(ENOBUFS == nextchar_utf8scanner(&scan, &freader, &uchar)) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST nextchar_utf8scanner: EILSEQ
+   for (unsigned i = 0; i <= 10; ++i) {
+      addr_memblock(&mem)[i] = (uint8_t) (0xf5 + i) ;  // illegal first byte (must be skipped)
+   }
+   addr_memblock(&mem)[11] = (uint8_t) 240 ;    // binary constants allowed in C11
+   addr_memblock(&mem)[12] = (uint8_t) __extension__ 0b10111111 ;
+   addr_memblock(&mem)[13] = (uint8_t) __extension__ 0b10111111 ;
+   addr_memblock(&mem)[14] = (uint8_t) 0 ; // illegal follow byte (whole sequence skipped)
+   addr_memblock(&mem)[sizebuffer_filereader()/2-1] = (uint8_t) __extension__ 0b11011111 ;
+   addr_memblock(&mem)[sizebuffer_filereader()/2]   = (uint8_t) 0 ; // illegal
+   addr_memblock(&mem)[sizebuffer_filereader()-1]   = 240 ;
+   addr_memblock(&mem)[sizebuffer_filereader()]     = (uint8_t) __extension__ 0b10111111 ; // not enough data
+   TEST(0 == removefile_directory(tempdir, "read")) ;
+   TEST(0 == save_file("read", sizebuffer_filereader()+1, addr_memblock(&mem), tempdir)) ;
+   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   for (unsigned i = 0; i <= 10; ++i) {
+      TEST(EILSEQ == nextchar_utf8scanner(&scan, &freader, &uchar)) ;
+      TEST(sizebuffer_filereader()/2-1-i == sizeunread_utf8scanner(&scan)) ;
+   }
+   TEST(EILSEQ == nextchar_utf8scanner(&scan, &freader, &uchar)) ;
+   // skipped
+   TEST(sizebuffer_filereader()/2-15 == sizeunread_utf8scanner(&scan)) ;
+   scan.next = scan.end -1 ;
+   TEST(1 == sizeunread_utf8scanner(&scan)) ;
+   TEST(EILSEQ == nextchar_utf8scanner(&scan, &freader, &uchar)) ;
+   // skipped
+   TEST(sizebuffer_filereader()/2-1 == sizeunread_utf8scanner(&scan)) ;
+   scan.next = scan.end -1 ;
+   TEST(1 == sizeunread_utf8scanner(&scan)) ;
+   cleartoken_utf8scanner(&scan, &freader) ;
+   // not enough data at end of file (but next buffer contains at least a byte)
+   TEST(EILSEQ == nextchar_utf8scanner(&scan, &freader, &uchar)) ;
+   // skipped
+   TEST(1 == iseof_filereader(&freader)) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST nextchar_utf8scanner: EILSEQ (read next buffer returns ENODATA)
+   addr_memblock(&mem)[2*sizebuffer_filereader()-1] = 240 ;
+   TEST(0 == removefile_directory(tempdir, "read")) ;
+   TEST(0 == save_file("read", 2*sizebuffer_filereader(), addr_memblock(&mem), tempdir)) ;
+   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   for (unsigned i = 0; i < 4; ++i) {
+      scan.next = scan.end ;
+      TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+      cleartoken_utf8scanner(&scan, &freader) ;
+   }
+   scan.next = scan.end -1 ;
+   TEST(1 == sizeunread_utf8scanner(&scan)) ;
+   // not enough data at end of file (next buffer contains no data (ENODATA))
+   TEST(EILSEQ == nextchar_utf8scanner(&scan, &freader, &uchar)) ;
+   // skipped
+   TEST(1 == iseof_filereader(&freader)) ;
    TEST(0 == free_utf8scanner(&scan, &freader)) ;
    TEST(0 == free_filereader(&freader)) ;
 
    // unprepare
    TEST(0 == removefile_directory(tempdir, "read")) ;
+   FREE_MM(&mem) ;
 
    return 0 ;
 ONABORT:
@@ -506,6 +884,7 @@ int unittest_lang_utf8scanner()
 
    if (test_initfree(tempdir))   goto ONABORT ;
    if (test_query())             goto ONABORT ;
+   if (test_bufferio(tempdir))   goto ONABORT ;
    if (test_read(tempdir))       goto ONABORT ;
 
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;

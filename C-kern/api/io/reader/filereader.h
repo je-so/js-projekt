@@ -51,24 +51,24 @@ int unittest_io_reader_filereader(void) ;
 /* struct: filereader_t
  * Reads file data into internal memory buffers.
  * At least two buffers are supported. If one buffer is in use the other could be filled with new data from the file.
- * The function <acquirenext_filereader> returns a buffer containing the next read data.
- * Use <release_filereader> if you do not longer need it. For every called <acquirenext_filereader>
- * you need to call <release_filereader>. Always the oldest acquired buffer is released. */
+ * The function <readnext_filereader> returns a buffer containing the next read data.
+ * Use <release_filereader> if you do not longer need it. For every called <readnext_filereader>
+ * you need to call <release_filereader>. Always the oldest read buffer is released. */
 struct filereader_t {
    /* variable: ioerror
     * Safes status of last read access to <file>.
     * In case <ioerror> != 0 no more call is made to the underlying file. */
    int         ioerror ;
    /* variable: unreadsize
-    * The size of buffered data for which <acquirenext_filereader> is not called. */
+    * The size of buffered data for which <readnext_filereader> is not called. */
    size_t      unreadsize ;
    /* variable: nextindex
     * Index into <mmfile>.
     * It is the index of the buffer which must be returned
-    * during the next call to <acquirenext_filereader>. */
+    * during the next call to <readnext_filereader>. */
    uint8_t     nextindex ;
    /* variable: nrfreebuffer
-    * Number of released or unacquired buffers.
+    * Number of released or unread buffers.
     * This value can range from 0 to 2. */
    uint8_t     nrfreebuffer ;
    /* variable: fileoffset
@@ -83,7 +83,7 @@ struct filereader_t {
    /* variable: mmfile
     * The buffered input of the file. */
    struct {
-      uint8_t  * addr ;
+      uint8_t* addr ;
       size_t   size ;
    }           mmfile[2] ;
 } ;
@@ -102,10 +102,10 @@ struct filereader_t {
  * Static initializer. */
 #define filereader_INIT_FREEABLE       { 0, 0, 0, 0, 0, 0, sys_iochannel_INIT_FREEABLE, { {0, 0}, {0, 0} } }
 
-/* function: initsb_filereader
+/* function: initsingle_filereader
  * Opens file for reading into a single buffer.
  * Works only on files < 2GB on 32 bit systems. */
-int initsb_filereader(/*out*/filereader_t * frd, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
+int initsingle_filereader(/*out*/filereader_t * frd, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
 /* function: init_filereader
  * Opens file for reading into a double buffer.
@@ -118,21 +118,21 @@ int free_filereader(filereader_t * frd) ;
 
 // group: query
 
-/* function: buffersize_filereader
+/* function: sizebuffer_filereader
  * Returns the buffer size in bytes. See also <filereader_t.filereader_SYS_BUFFER_SIZE>.
- * The size is aligned to value (2 * pagesize_vm()). Therefore every buffer in a double buffer configuration
- * is aligned to pagesize_vm(). */
-size_t buffersize_filereader(void) ;
+ * The size is aligned to value (2 * pagesize_vm()). Therefore the two buffers of the double buffer
+ * configuration are aligned to pagesize_vm(). */
+size_t sizebuffer_filereader(void) ;
 
 /* function: ioerror_filereader
  * Returns the I/0 error (>0) or 0 if no error occurred.
- * If an error occurred every call to <acquirenext_filereader>
+ * If an error occurred every call to <readnext_filereader>
  * returns this error code (EIO, ENOMEM, ...). */
 int ioerror_filereader(const filereader_t * frd) ;
 
 /* function: iseof_filereader
  * Returns true if end of file is reached.
- * If there is no more data to read <acquirenext_filereader> will also return ENODATA. */
+ * If there is no more data to read <readnext_filereader> will also return ENODATA. */
 bool iseof_filereader(const filereader_t * frd) ;
 
 /* function: isfree_filereader
@@ -141,27 +141,43 @@ bool isfree_filereader(const filereader_t * frd) ;
 
 /* function: isnext_filereader
  * Returns true if there is a free buffer available.
- * Therefore <acquirenext_filereader> will not return ENOBUFS or ENODATA. */
+ * Therefore <readnext_filereader> will not return ENOBUFS or ENODATA. */
 bool isnext_filereader(const filereader_t * frd) ;
+
+// group: setter
+
+/* function: setioerror_filereader
+ * Sets ioerror of frd. After an error occurred (or is simulated by another component)
+ * the function <readnext_filereader> returns this error.
+ * Call free and init on frd again to clear the error or call this function with ioerr set to 0. */
+void setioerror_filereader(filereader_t * frd, int ioerr) ;
 
 // group: read
 
-/* function: acquirenext_filereader
- * Returns the buffer containing the next block of input data.
- * The current implementation supports only two acquired buffers.
- * Use <release_filereader> to release the oldest buffer.
+/* function: readnext_filereader
+ * Returns buffer containing the next block of input data.
+ * If you do not longer need it use <release_filereader> to release
+ * the oldest buffer. The current implementation supports only
+ * two unreleased buffers.
  *
  * Returns:
- * 0       - New buffer acquired.
+ * 0       - Read new buffer.
  * ENODATA - All data read.
  * ENOBUFS - No more buffer available. Call <release_filereader> first before calling this function.
  * EIO     - Input/Output error (ENOMEM or other error codes are also possible). */
-int acquirenext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffer) ;
+int readnext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffer) ;
 
 /* function: release_filereader
- * Releases the oldest acquired buffer.
- * If no buffer is acquired calling release does nothing and returns no error. */
-int release_filereader(filereader_t * frd) ;
+ * Releases the oldest read buffer.
+ * If no buffer was read this function does nothing. */
+void release_filereader(filereader_t * frd) ;
+
+/* function: unread_filereader
+ * The last buffer returned by <readnext_filereader> is marked as unread.
+ * The next call to <readnext_filereader> returns the same buffer.
+ * If no buffer was read this function does nothing. */
+void unread_filereader(filereader_t * frd) ;
+
 
 
 // section: inline implementation
@@ -191,5 +207,9 @@ int release_filereader(filereader_t * frd) ;
             (_f->unreadsize != 0) ;    \
          }))
 
+/* define: setioerror_filereader
+ * Implements <filereader_t.setioerror_filereader>. */
+#define setioerror_filereader(frd, ioerr) \
+         ((void)((frd)->ioerror = (ioerr)))
 
 #endif

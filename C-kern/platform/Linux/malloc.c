@@ -41,7 +41,7 @@ static bool s_isprepared_malloc = false ;
 /* function: prepare_malloc
  * Calls functions to force allocating of system memory.
  * No own malloc version is initialized:
- * see <allocatedsize_malloc> for a why. */
+ * See <allocatedsize_malloc> for why. */
 int prepare_malloc()
 {
    int err ;
@@ -77,7 +77,7 @@ int trimmemory_malloc()
  * about memory usage so implementing a thin wrapper
  * for malloc is not necessary.
  * This function may be missing on some platforms.
- * Currently it is only working on Linux platforms.
+ * Currently it is only tested on Linux platforms.
  *
  * What malloc_stats does:
  * The GNU C lib function malloc_stats writes textual information
@@ -91,7 +91,7 @@ int trimmemory_malloc()
  * > max mmap regions =          0
  * > max mmap bytes   =          0
  *
- * How is it implementated:
+ * How it is implemented:
  * This function redirects standard error file descriptor
  * to an internal pipe and reads the content of the pipe
  * into a buffer.
@@ -198,7 +198,7 @@ ONABORT:
       free_file(&fd) ;
    }
    TRACEABORT_ERRLOG(err) ;
-   return 0 ;
+   return err ;
 }
 
 
@@ -207,14 +207,16 @@ ONABORT:
 static int test_allocatedsize(void)
 {
    size_t   allocated ;
-   void   * memblocks[256] = { 0 } ;
+   void *   memblocks[256] = { 0 } ;
+   int      fd[4096] ;
+   unsigned fdcount = 0 ;
 
-   // TEST  allocated > 0
+   // TEST allocatedsize_malloc: allocated > 0
    allocated = 0 ;
    TEST(0 == allocatedsize_malloc(&allocated)) ;
    TEST(1 <= allocated) ;
 
-   // TEST increment
+   // TEST allocatedsize_malloc: increment
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       memblocks[i] = malloc(16) ;
       TEST(0 != memblocks[i]) ;
@@ -225,7 +227,7 @@ static int test_allocatedsize(void)
       allocated = allocated2 ;
    }
 
-   // TEST decrement
+   // TEST allocatedsize_malloc: decrement
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       free(memblocks[i]) ;
       memblocks[i] = 0 ;
@@ -236,8 +238,25 @@ static int test_allocatedsize(void)
       allocated = allocated2 ;
    }
 
+   // TEST allocatedsize_malloc: EMFILE
+   for (; fdcount < lengthof(fd); ++fdcount) {
+      fd[fdcount] = dup(STDOUT_FILENO) ;
+      if (fd[fdcount] == -1) break ;
+   }
+   allocated = 1 ;
+   TEST(EMFILE == allocatedsize_malloc(&allocated)) ;
+   TEST(1 == allocated) ;
+   while (fdcount > 0) {
+      -- fdcount ;
+      TEST(0 == close(fd[fdcount])) ;
+   }
+
    return 0 ;
 ONABORT:
+   while (fdcount > 0) {
+      -- fdcount ;
+      close(fd[fdcount]) ;
+   }
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       if (memblocks[i]) {
          free(memblocks[i]) ;

@@ -37,11 +37,11 @@
 
 bool isfree_splitstring(const splitstring_t * spstr)
 {
-   return   0 == spstr->nrofparts
-            && 0 == spstr->stringpart[0].addr
+   return   0 == spstr->stringpart[0].addr
             && 0 == spstr->stringpart[0].size
             && 0 == spstr->stringpart[1].addr
-            && 0 == spstr->stringpart[1].size ;
+            && 0 == spstr->stringpart[1].size
+            && 0 == spstr->nrofparts ;
 }
 
 
@@ -54,20 +54,20 @@ static int test_initfree(void)
    splitstring_t spstr = splitstring_INIT_FREEABLE ;
 
    // TEST splitstring_INIT_FREEABLE
-   TEST(0 == spstr.nrofparts) ;
    TEST(0 == spstr.stringpart[0].addr) ;
    TEST(0 == spstr.stringpart[0].size) ;
    TEST(0 == spstr.stringpart[1].addr) ;
    TEST(0 == spstr.stringpart[1].size) ;
+   TEST(0 == spstr.nrofparts) ;
 
    // TEST free_splitstring
    memset(&spstr, 255, sizeof(spstr)) ;
    free_splitstring(&spstr) ;
-   TEST(spstr.nrofparts          == 0) ;
    TEST(spstr.stringpart[0].addr == 0) ;
    TEST(spstr.stringpart[0].size == 0) ;
    TEST(spstr.stringpart[1].addr == 0) ;
    TEST(spstr.stringpart[1].size == 0) ;
+   TEST(spstr.nrofparts          == 0) ;
 
    return 0 ;
 ONABORT:
@@ -80,12 +80,22 @@ static int test_query(void)
 
    // TEST isfree_splitstring
    TEST(1 == isfree_splitstring(&spstr)) ;
-   for (size_t i = 0; i < sizeof(spstr); ++i) {
-      memset(i + (uint8_t*)&spstr, 1, 1) ;
-      TEST(0 == isfree_splitstring(&spstr)) ;
-      memset(i + (uint8_t*)&spstr, 0, 1) ;
-      TEST(1 == isfree_splitstring(&spstr)) ;
-   }
+   spstr.stringpart[0].addr = (uint8_t*)1 ;
+   TEST(0 == isfree_splitstring(&spstr)) ;
+   spstr.stringpart[0].addr = 0 ;
+   spstr.stringpart[0].size = 1 ;
+   TEST(0 == isfree_splitstring(&spstr)) ;
+   spstr.stringpart[0].size = 0 ;
+   spstr.stringpart[1].addr = (uint8_t*)1 ;
+   TEST(0 == isfree_splitstring(&spstr)) ;
+   spstr.stringpart[1].addr = 0 ;
+   spstr.stringpart[1].size = 1 ;
+   TEST(0 == isfree_splitstring(&spstr)) ;
+   spstr.stringpart[1].size = 0 ;
+   spstr.nrofparts = 1 ;
+   TEST(0 == isfree_splitstring(&spstr)) ;
+   spstr.nrofparts = 0 ;
+   TEST(1 == isfree_splitstring(&spstr)) ;
 
    // TEST nrofparts_splitstring
    for (uint8_t i = 15; i <= 15; --i) {
@@ -132,20 +142,10 @@ static int test_update(void)
       TEST(nrofparts_splitstring(&spstr) == i) ;
    }
 
-   // TEST setaddr_splitstring
+   // TEST setstring_splitstring
    for (size_t i = 15; i <= 15; --i) {
-      setaddr_splitstring(&spstr, 0, (const uint8_t*)i) ;
-      setaddr_splitstring(&spstr, 1, (const uint8_t*)(2*i)) ;
-      TEST(addr_splitstring(&spstr, 0) == (const uint8_t*)i) ;
-      TEST(addr_splitstring(&spstr, 1) == (const uint8_t*)(2*i)) ;
-      TEST(size_splitstring(&spstr, 0) == 0) ;
-      TEST(size_splitstring(&spstr, 1) == 0) ;
-   }
-
-   // TEST setpart_splitstring
-   for (size_t i = 15; i <= 15; --i) {
-      setpart_splitstring(&spstr, 0, 3*i+1, (const uint8_t*)i) ;
-      setpart_splitstring(&spstr, 1, 3*i+2, (const uint8_t*)(2*i)) ;
+      setstring_splitstring(&spstr, 0, 3*i+1, (const uint8_t*)i) ;
+      setstring_splitstring(&spstr, 1, 3*i+2, (const uint8_t*)(2*i)) ;
       TEST(addr_splitstring(&spstr, 0) == (const uint8_t*)i) ;
       TEST(addr_splitstring(&spstr, 1) == (const uint8_t*)(2*i)) ;
       TEST(size_splitstring(&spstr, 0) == 3*i+1) ;

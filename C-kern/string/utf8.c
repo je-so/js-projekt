@@ -56,7 +56,7 @@ uint8_t g_utf8_bytesperchar[256] = {
    4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  /*240..244*/ /*245..247 too big*/ /*248..250, 252..253, 254..255 error*/
 } ;
 
-uint8_t decodechar_utf8(size_t strsize, const uint8_t strstart[strsize], char32_t * _uchar)
+uint8_t decodechar_utf8(size_t strsize, const uint8_t strstart[strsize], /*out*/char32_t * _uchar)
 {
    const uint8_t *   next = strstart ;
    char32_t          uchar ;
@@ -520,6 +520,13 @@ static int test_utf8(void)
       TEST(isOK == islegal_utf8((uint8_t)i)) ;
    }
 
+   // TEST isfirstbyte_utf8
+   for (unsigned i = 0; i < 256; ++i) {
+      /* values between [128 .. 191] indicate an error */
+      bool isOK = (i < 128 || 192 <= i) ;
+      TEST(isOK == isfirstbyte_utf8((uint8_t)i)) ;
+   }
+
    // TEST length_utf8
    const char * teststrings[] = { "\U0010FFFF\U00010000", "\u0800\u0999\uFFFF", "\u00A0\u00A1\u07FE\u07FF", "\x01\x02""abcde\x07e\x7f", "\U0010FFFF\uF999\u06FEY" } ;
    size_t       testlength[]  = { 2,                      3,                    4,                          9,                          4 } ;
@@ -920,6 +927,65 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_speed(void)
+{
+   systimer_t  timer = systimer_INIT_FREEABLE ;
+   uint64_t    microsec ;
+   uint64_t    result[2]  = { UINT64_MAX, UINT64_MAX } ;
+   union {
+      uint32_t initval ;
+      uint8_t  buffer[1024]  ;
+   }           data       = { .buffer = "\U0010FFFF" } ;
+
+   // prepare
+   TEST(0 == init_systimer(&timer, sysclock_MONOTONIC)) ;
+
+   for (size_t i = 1; i < sizeof(data.buffer)/4; ++i) {
+      *(uint32_t*)(&data.buffer[4*i]) = data.initval ;
+   }
+
+   for (unsigned testrepeat = 0 ; testrepeat < 5; ++testrepeat) {
+      TEST(0 == startinterval_systimer(timer, &(timevalue_t) { .nanosec = 1000 } )) ;
+      for (unsigned decoderepeat = 0 ; decoderepeat < 5; ++decoderepeat) {
+         for (unsigned nrchars = 0 ; nrchars < sizeof(data.buffer)/4; ++nrchars) {
+            char32_t uchar = 0 ;
+            TEST(4 == decodechar_utf8(4, data.buffer + 4 * nrchars, &uchar)) ;
+            TEST(uchar == 0x10FFFF) ;
+         }
+      }
+      TEST(0 == expirationcount_systimer(timer, &microsec)) ;
+      TEST(0 == stop_systimer(timer)) ;
+      if (result[0] > microsec) result[0] = microsec ;
+   }
+
+   for (unsigned testrepeat = 0 ; testrepeat < 5; ++testrepeat) {
+      TEST(0 == startinterval_systimer(timer, &(timevalue_t) { .nanosec = 1000 } )) ;
+      for (unsigned decoderepeat = 0 ; decoderepeat < 5; ++decoderepeat) {
+         stringstream_t strstream = stringstream_INIT(data.buffer, data.buffer + sizeof(data.buffer)) ;
+         for (unsigned nrchars = 0 ; nrchars < sizeof(data.buffer)/4; ++nrchars) {
+            char32_t uchar = 0 ;
+            TEST(0 == nextutf8_stringstream(&strstream, &uchar)) ;
+            TEST(uchar == 0x10FFFF) ;
+         }
+         TEST(strstream.next == strstream.end) ;
+      }
+      TEST(0 == expirationcount_systimer(timer, &microsec)) ;
+      TEST(0 == stop_systimer(timer)) ;
+      if (result[1] > microsec) result[1] = microsec ;
+   }
+
+   if (result[1] <= result[0]) {
+      logformat_test("** decode_utf8 is not faster ** ") ;
+   }
+
+   TEST(0 == free_systimer(&timer)) ;
+
+   return 0 ;
+ONABORT:
+   free_systimer(&timer) ;
+   return EINVAL ;
+}
+
 int unittest_string_utf8()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -929,6 +995,7 @@ int unittest_string_utf8()
    if (test_utf8())           goto ONABORT ;
    if (test_readstrstream())  goto ONABORT ;
    if (test_findstrstream())  goto ONABORT ;
+   if (test_speed())          goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

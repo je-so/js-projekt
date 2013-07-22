@@ -75,11 +75,17 @@ uint8_t sizemax_utf8(void) ;
  * Returns true if the first byte of an utf8 byte sequence is legal. */
 bool islegal_utf8(const uint8_t firstbyte) ;
 
+/* function: isfirstbyte_utf8
+ * Returns true if this byte is encoded as first byte (start) of an utf-8 character sequence.
+ * This function assumes correct encoding and does not check for legal encodings
+ * like <islegal_utf8>. */
+bool isfirstbyte_utf8(const uint8_t firstbyte) ;
+
 /* function: sizefromfirstbyte_utf8
  * Returns the number of bytes of an utf8 encoded character.
  * The number of bytes is calculated from firstbyte - the first byte of the encoded character.
  * The returned values are in the range 0..4. A return value between 1 and 4 is OK.
- * A value of 0 indicates that an the character's first byte is not encoded correctly. */
+ * A value of 0 indicates that the character's first byte is not encoded correctly. */
 uint8_t sizefromfirstbyte_utf8(const uint8_t firstbyte) ;
 
 /* function: sizefromchar_utf8
@@ -136,7 +142,7 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
  * >    ...add uchar to decoded string...
  * >    str += len ;
  * > } */
-uint8_t decodechar_utf8(size_t strsize, const uint8_t strstart[strsize], char32_t * uchar) ;
+uint8_t decodechar_utf8(size_t strsize, const uint8_t strstart[strsize], /*out*/char32_t * uchar) ;
 
 /* function: encodechar_utf8
  * Encodes uchar into UTF-8 enocoded string of size strsize starting at strstart.
@@ -216,6 +222,10 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
 /* function: charmax_utf8
  * Implements <utf8.charmax_utf8>. */
 #define charmax_utf8()                    ((char32_t)0x10ffff)
+
+/* function: isfirstbyte_utf8
+ * Implements <utf8.isfirstbyte_utf8>. */
+#define isfirstbyte_utf8(firstbyte)       (0x80 != ((firstbyte)&0xc0))
 
 /* function: islegal_utf8
  * Implements <utf8.islegal_utf8>. */

@@ -4,10 +4,6 @@
    into separate strings. The file is read with help of <filereader_t>.
    The common parts of every text scanner is implemented in this type.
 
-   Do not forget to include <FileReader> before calling some of the functions.
-
-   // TODO: change interface of utf8scanner_t / make it support characters split between buffers
-
    about: Copyright
    This program is free software.
    You can redistribute it and/or modify
@@ -54,20 +50,22 @@ int unittest_lang_utf8scanner(void) ;
 
 
 /* struct: utf8scanner_t
- * Handles the buffers returned from <filereader_t> and initializes a token of type <splitstring_t>.
+ * Handles the data buffers returned from <filereader_t> and initializes a token of type <splitstring_t>.
  *
  * Protocol:
- * The protocol of utf8scanner is to call <nextbyte_utf8scanner> until the beginning of a token is found.
- * Then call <settokenstart_utf8scanner> to remember the address of the last read byte as token start.
- * Call then one or more times <nextbyte_utf8scanner>, <isnext_utf8scanner>, <peekbyte_utf8scanner>
- * and then <settokenend_utf8scanner> after a valid token (lexeme, string or word) has been recognized.
+ * The token begins with the first read byte or character and can span two buffers.
+ * Call <nextbyte_utf8scanner> and <nextchar_utf8scanner> to read the buffer content
+ * until you have found a valid token. Call <unread_utf8scanner> if you want to remove one or
+ * more of the last characters added to the token. A call to <scannedtoken_utf8scanner> returns
+ * the scanned token. If the token is processed call <cleartoken_utf8scanner> to clear the token
+ * and free any unsed buffers. Clearing a token sets the starting point of the new token.
  *
- * The function pair <settokenstart_utf8scanner> and <settokenend_utf8scanner> initilaizes the internal token
- * of type <splitstring_t> to the correct values. Use <scannedtoken_utf8scanner> to get a pointer to the
- * initialized string.
+ * Use <filereader_t> which is given as parameter to determine if a read error has occurred.
  *
- * If <isnext_utf8scanner> returns false during scanning call <readbuffer_utf8scanner> to acquire a new
- * buffer from <filereader_t>. If ENODATA is returned then the whole file is read. */
+ * If the buffer is empty use <readbuffer_utf8scanner> to read the next buffer of the input data.
+ * The function <nextchar_utf8scanner> calls <readbuffer_utf8scanner> automatically if the buffer is empty.
+ *
+ * */
 struct utf8scanner_t {
    /* variable: next
     * Points to the next byte returned from <nextbyte_utf8scanner>. */
@@ -88,11 +86,11 @@ struct utf8scanner_t {
 #define utf8scanner_INIT_FREEABLE         { 0, 0, splitstring_INIT_FREEABLE }
 
 /* function: init_utf8scanner
- * Sets all data members to 0. */
+ * Sets all data members to 0. No data is read. */
 int init_utf8scanner(/*out*/utf8scanner_t * scan) ;
 
 /* function: free_utf8scanner
- * Sets all data members to 0 and releases any acquired buffers. */
+ * Sets all data members to 0 and releases any acquired buffers from frd. */
 int free_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd) ;
 
 // group: query
@@ -103,144 +101,125 @@ bool isfree_utf8scanner(const utf8scanner_t * scan) ;
 
 /* function: isnext_utf8scanner
  * Returns *true* if the buffer contains at least one more byte.
- * If the return value is *false* then you need to call <readbuffer_utf8scanner>
- * which acquires the next buffer from <filereader_t>. If <readbuffer_utf8scanner>
- * returned 0 (OK) then the next call to <isnext_utf8scanner> returns true. */
+ * In case false is returned do not call <nextbyte_utf8scanner> or any other function
+ * which accesses the buffer. Instead call <readbuffer_utf8scanner> which acquires the next
+ * buffer from <filereader_t>. */
 bool isnext_utf8scanner(const utf8scanner_t * scan) ;
+
+/* function: sizeunread_utf8scanner
+ * The number of bytes which are not read from the current buffer.
+ * If this function returns 0 then <isnext_utf8scanner> returns false.
+ * Call <readbuffer_utf8scanner> in this case. */
+size_t sizeunread_utf8scanner(const utf8scanner_t * scan) ;
 
 /* function: scannedtoken_utf8scanner
  * Returns the address to an internally stored <splitstring_t>.
- * The content of the returned string is only valid after calling <endscan_utf8scanner>
- * with no error. The returned string is valid as long as no other function is called
- * except query functions. */
-const splitstring_t * scannedtoken_utf8scanner(const utf8scanner_t * scan) ;
+ * Before the token string is returned the current reading position in the stream
+ * is used to calculate the length of the token.
+ * The returned string is valid as long as no other function is called except query functions.
+ * If you call reading functions you need to call <scannedtoken_utf8scanner> again to adapt
+ * the token string to the new length. To clear the token string call <cleartoken_utf8scanner>. */
+const splitstring_t * scannedtoken_utf8scanner(utf8scanner_t * scan) ;
 
 // group: read
 
-/* function: cleartoken_utf8scanner
- * Marks the internal buffers as unused.
- * If you only want to scan data without keeping fully read buffers in memory
- * call this function. If you call <readbuffer_utf8scanner> after <isnext_utf8scanner> returned
- * false the read buffer is released and a new one is acquired. */
-int cleartoken_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd) ;
-
-/* function: settokenstart_utf8scanner
- * Before a new string is scanned call this function.
- * The address of the last read byte is stored as start
- * address of the string. */
-int settokenstart_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd) ;
-
-/* function: settokenend_utf8scanner
- * Computes the string length of the scanned token and stores it.
- * The length is computed from the difference of the start address of the string and address of the current read position.
- * After calling this function the string returned from <scannedtoken_utf8scanner> is valid.
- * If <settokenstart_utf8scanner> was not called before this function computes an undefined value. */
-void settokenend_utf8scanner(utf8scanner_t * scan) ;
-
 /* function: nextbyte_utf8scanner
- * Reads the next byte from the buffer.
+ * Reads the next byte from the buffer and increments the reading position.
  * Call this function only if <isnext_utf8scanner> returned true else the behaviour is undefined. */
 uint8_t nextbyte_utf8scanner(utf8scanner_t * scan) ;
 
 /* function: peekbyte_utf8scanner
- * Returns the next byte of the buffer without incrementing the read pointer.
- * Call this function only if <isnext_utf8scanner> returned true else the behaviour is undefined. */
-uint8_t peekbyte_utf8scanner(utf8scanner_t * scan) ;
+ * Returns any byte from the buffer without changing the read pointer.
+ * The parameter offset must be smaller than <sizeunread_utf8scanner> else the behaviour is undefined. */
+uint8_t peekbyte_utf8scanner(utf8scanner_t * scan, size_t offset) ;
+
+/* function: skipbytes_utf8scanner
+ * Increments the read pointer by nrbytes without reading the bytes.
+ *
+ * (Unchecked) Preconditions:
+ * o Make sure nrbytes <= <sizeunread_utf8scanner> else the behaviour is undefined.
+ * o Skip only whole characters (if an utf-8 character is encoded in 4 bytes
+ *   then skip the whole 4 bytes).
+ * o Always check that all skipped characters are encoded correctly.
+ *   Else later functions could  generate undefined behaviour (security breaks in case of characters encoded not correctly and being
+ *   therefore not filtered). */
+void skipbytes_utf8scanner(utf8scanner_t * scan, size_t nrbytes) ;
+
+/* function: nextchar_utf8scanner
+ * Decodes the next utf8 character and increments the reading position.
+ * This function differs from other reading function in that it calls <readbuffer_utf8scanner>
+ * if the buffer is empty. It also handles the case where a multibyte character sequence is split
+ * across two buffers.
+ * Returns error EILSEQ in case of an illegal characater sequence. The sequence is skipped.
+ * For any other returned error values see <readbuffer_utf8scanner>. */
+int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*/char32_t * uchar) ;
+
+// group: buffer I/O
+
+/* function: cleartoken_utf8scanner
+ * Clears the current token string.
+ * All buffers are released which are no longer referenced by the cleared token. */
+int cleartoken_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd) ;
 
 /* function: readbuffer_utf8scanner
  * Acquires the next buffer from <filereader_t> if <isnext_utf8scanner> returns false.
  *
  * Returns:
- * 0        - If <isnext_utf8scanner> returned false before this call then <acquirenext_filereader> was called
+ * 0        - If <isnext_utf8scanner> returned false before this call then <readnext_filereader> was called
  *            and the read pointer points to the new buffer content. If <isnext_utf8scanner> returned true
- *            before this call nothing is done.
- * EIO      - If <ioerror_filereader> returns a value != 0 this value is returned or <acquirenext_filereader>
- *            returned an error.
- * ENODATA  - There is no more data. Also <iseof_filereader> returns true. */
+ *            before this call nothing was done.
+ * EIO ...  - The same error as returned from <ioerror_filereader> (see also <readnext_filereader>).
+ * ENODATA  - There is no more data. Also <iseof_filereader> returns true.
+ * ENOBUFS  - The scanned token spans already two buffers and no more than 2 buffers per token are supported.
+ *            In other words: the token is too long. */
 int readbuffer_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd) ;
 
-/* function: skipbyte_utf8scanner
- * Increments the read pointer by one without reading the byte.
- * Call this function only if <isnext_utf8scanner> returned true else the behaviour is undefined. */
-void skipbyte_utf8scanner(utf8scanner_t * scan) ;
+/* function: unread_utf8scanner
+ * Decrements the reading position until the last nrofchars characters are unread.
+ * For the last nrofchars characters their size in bytes is summed up into
+ * the value nrofbytes and the reading position is decremented by nrofbytes.
+ * This works only if the token (returned from <scannedtoken_utf8scanner>) contains at
+ * least nrofbytes bytes. In case the token is shorter EINVAL is returned and nothing is done.
+ * After successful return the scanned token's length is decremented by nrofbytes which corresponds to
+ * nrofchars characters. */
+int unread_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, uint8_t nrofchars) ;
+
 
 
 // section: inline implementation
 
-/* function: cleartoken_utf8scanner
- * Implements <utf8scanner_t.cleartoken_utf8scanner>. */
-#define cleartoken_utf8scanner(scan, frd)                               \
-         ( __extension__ ({                                             \
-            int _err = 0 ;                                              \
-            typeof(scan) _scan = (scan) ;                               \
-            if (2 == nrofparts_splitstring(&_scan->scanned_token)) {    \
-               _err = release_filereader(frd) ;                         \
-            }                                                           \
-            setnrofparts_splitstring(&_scan->scanned_token, 0) ;        \
-            _err ;                                                      \
-         }))
-
 /* function: isnext_utf8scanner
  * Implements <utf8scanner_t.isnext_utf8scanner>. */
-#define isnext_utf8scanner(scan)                \
-         ( __extension__ ({                     \
-            const utf8scanner_t * _s = (scan) ; \
-            (_s->next < _s->end) ;              \
+#define isnext_utf8scanner(scan)          \
+         ( __extension__ ({               \
+            const utf8scanner_t * _s ;    \
+            _s = (scan) ;                 \
+            (_s->next < _s->end) ;        \
          }))
 
 /* function: nextbyte_utf8scanner
  * Implements <utf8scanner_t.nextbyte_utf8scanner>. */
-#define nextbyte_utf8scanner(scan)              \
+#define nextbyte_utf8scanner(scan)        \
          (*(scan)->next++)
 
 /* function: peekbyte_utf8scanner
  * Implements <utf8scanner_t.peekbyte_utf8scanner>. */
-#define peekbyte_utf8scanner(scan)              \
-         (*(scan)->next)
+#define peekbyte_utf8scanner(scan, offset) \
+         ((scan)->next[(offset)])
 
-/* function: scannedtoken_utf8scanner
- * Implements <utf8scanner_t.scannedtoken_utf8scanner>. */
-#define scannedtoken_utf8scanner(scan)          \
-         ((const splitstring_t *)(&(scan)->scanned_token))
+/* function: skipbytes_utf8scanner
+ * Implements <utf8scanner_t.skipbytes_utf8scanner>. */
+#define skipbytes_utf8scanner(scan, nrbytes) \
+         ((void)((scan)->next += (nrbytes)))
 
-/* function: settokenend_utf8scanner
- * Implements <utf8scanner_t.settokenend_utf8scanner>. */
-#define settokenend_utf8scanner(scan)                                \
-         do {                                                        \
-            typeof(scan) _scan = (scan) ;                            \
-            if (nrofparts_splitstring(&_scan->scanned_token)) {      \
-               /* settokenstart_utf8scanner was called before */     \
-               /* set type and size of token */                      \
-               unsigned  _stridx ;                                   \
-               const uint8_t * _straddr ;                            \
-               _stridx = nrofparts_splitstring(                      \
-                           &_scan->scanned_token) ;                  \
-               _straddr = addr_splitstring(&_scan->scanned_token,    \
-                           _stridx - 1) ;                            \
-               setsize_splitstring( &_scan->scanned_token,           \
-                           _stridx - 1,                              \
-                           (size_t) (_scan->next - _straddr)) ;      \
-            }                                                        \
-         } while (0)
-
-/* function: settokenstart_utf8scanner
- * Implements <utf8scanner_t.settokenstart_utf8scanner>. */
-#define settokenstart_utf8scanner(scan, frd)                            \
-         ( __extension__ ({                                             \
-            int _err = 0 ;                                              \
-            typeof(scan) _scan = (scan) ;                               \
-            if (2 == nrofparts_splitstring(&_scan->scanned_token)) {    \
-               _err = release_filereader(frd) ;                         \
-            }                                                           \
-            setnrofparts_splitstring(&_scan->scanned_token, 1) ;        \
-            setpart_splitstring( &_scan->scanned_token,                 \
-                                 0, 0, _scan->next-1) ;                 \
-            _err ;                                                      \
+/* function: sizeunread_utf8scanner
+ * Implements <utf8scanner_t.sizeunread_utf8scanner>. */
+#define sizeunread_utf8scanner(scan)      \
+         ( __extension__ ({               \
+            const utf8scanner_t * _s ;    \
+            _s = (scan) ;                 \
+            (size_t) ( _s->end            \
+                  - _s->next) ;           \
          }))
-
-/* function: skipbyte_utf8scanner
- * Implements <utf8scanner_t.skipbyte_utf8scanner>. */
-#define skipbyte_utf8scanner(scan)              \
-         ((void)((scan)->next++))
 
 #endif

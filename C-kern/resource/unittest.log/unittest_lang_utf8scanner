@@ -1,3 +1,12 @@
-[1: 1371660253.881120s]
-readbuffer_utf8scanner() C-kern/lang/utf8scanner.c:126
-Error 105 - Function aborted
+[1: 1373380251.966821s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:256
+Error 22 - Function aborted
+[1: 1373380251.966963s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:256
+Error 22 - Function aborted
+[1: 1373380251.967096s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:256
+Error 22 - Function aborted
+[1: 1373380251.967231s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:256
+Error 22 - Function aborted

@@ -61,11 +61,11 @@ typedef typeof(((filereader_t*)0)->mmfile[0])      filereader_mmfile_t ;
 static inline void initvariables_filereader(filereader_t * frd)
 {
    frd->ioerror      = 0 ;
-   // unreadsize set or cleared in init_filereader or initsb_filereader
+   // unreadsize set or cleared in init_filereader or initsingle_filereader
    frd->nextindex    = 0 ;
    frd->nrfreebuffer = 2 ;
-   // fileoffset set or cleared in init_filereader or initsb_filereader
-   // filesize set in initfile_filreader and cleared in ONABORT handler of init_filereader or initsb_filereader
+   // fileoffset set or cleared in init_filereader or initsingle_filereader
+   // filesize set in initfile_filreader and cleared in ONABORT handler of init_filereader or initsingle_filereader
    frd->file      = (file_t) file_INIT_FREEABLE ;
    frd->mmfile[0] = (filereader_mmfile_t) mmfile_INIT_FREEABLE ;
    frd->mmfile[1] = (filereader_mmfile_t) mmfile_INIT_FREEABLE ;
@@ -117,7 +117,7 @@ static int initdoublebuffer_filereader(/*out*/filereader_mmfile_t mmfile[2], fil
 int init_filereader(/*out*/filereader_t * frd, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/)
 {
    int err ;
-   size_t bufsize = buffersize_filereader() ;
+   size_t bufsize = sizebuffer_filereader() ;
 
    initvariables_filereader(frd) ;
 
@@ -129,6 +129,7 @@ int init_filereader(/*out*/filereader_t * frd, const char * filepath, const stru
       if (err) goto ONABORT ;
       frd->unreadsize = (size_t) frd->filesize ;
       frd->fileoffset = frd->filesize ;
+
    } else {
       err = initdoublebuffer_filereader(frd->mmfile, frd->file, bufsize) ;
       if (err) goto ONABORT ;
@@ -143,7 +144,7 @@ ONABORT:
    return err ;
 }
 
-int initsb_filereader(/*out*/filereader_t * frd, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/)
+int initsingle_filereader(/*out*/filereader_t * frd, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/)
 {
    int err ;
 
@@ -200,13 +201,15 @@ ONABORT:
 
 // group: query
 
-/* function: buffersize_filereader
+/* function: sizebuffer_filereader
  * TODO: 1. read configuration value at runtime !
  * */
-size_t buffersize_filereader(void)
+size_t sizebuffer_filereader(void)
 {
-   size_t sizeremain = filereader_SYS_BUFFER_SIZE % (2*pagesize_vm()) ;
-   return filereader_SYS_BUFFER_SIZE + (sizeremain ? 2*pagesize_vm() : 0) - sizeremain ;
+   static_assert( 0 == ((filereader_SYS_BUFFER_SIZE-1) & filereader_SYS_BUFFER_SIZE), "is power of 2") ;
+   size_t minsize = 2*pagesize_vm() ;  // pagesize_vm() is power of 2
+   size_t    size = filereader_SYS_BUFFER_SIZE >= minsize ? filereader_SYS_BUFFER_SIZE : minsize ;
+   return size ;
 }
 
 bool isfree_filereader(const filereader_t * frd)
@@ -237,7 +240,7 @@ static int readnextblock_filereader(filereader_t * frd, int nextindex)
    if (err) goto ONABORT ;
 
    off_t  unreadsize = frd->filesize - frd->fileoffset ;
-   size_t buffersize = size_mmfile(genericcast_mmfile(&frd->mmfile[nextindex],,)) ;
+   size_t buffersize = frd->mmfile[nextindex].size ;
 
    if (unreadsize < buffersize) {
       buffersize = (size_t) unreadsize ;
@@ -253,7 +256,7 @@ ONABORT:
    return err ;
 }
 
-int acquirenext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffer)
+int readnext_filereader(filereader_t * frd, /*out*/struct stringstream_t * buffer)
 {
    int err ;
 
@@ -269,8 +272,8 @@ int acquirenext_filereader(filereader_t * frd, /*out*/struct stringstream_t * bu
       goto ONABORT ;
    }
 
-   size_t    buffersize = size_mmfile(genericcast_mmfile(&frd->mmfile[frd->nextindex],,)) ;
-   uint8_t * bufferaddr = addr_mmfile(genericcast_mmfile(&frd->mmfile[frd->nextindex],,)) ;
+   size_t    buffersize = frd->mmfile[frd->nextindex].size ;
+   uint8_t * bufferaddr = frd->mmfile[frd->nextindex].addr ;
 
    if (frd->unreadsize < buffersize) {
       buffersize = frd->unreadsize ;
@@ -289,17 +292,35 @@ ONABORT:
    return err ;
 }
 
-int release_filereader(filereader_t * frd)
+void release_filereader(filereader_t * frd)
 {
    if (frd->nrfreebuffer < 2) {
       // ignore error, error is logged in readnextblock_filereader
-      // and signaled to user by next call to acquirenext_filereader
+      // and signaled to user by next call to readnext_filereader
       (void) readnextblock_filereader(frd, frd->nrfreebuffer ? ! frd->nextindex : frd->nextindex) ;
       ++ frd->nrfreebuffer ;
    }
-
-   return 0 ;
 }
+
+void unread_filereader(filereader_t * frd)
+{
+   if (frd->nrfreebuffer < 2) {
+      frd->nextindex = ! frd->nextindex ;
+      ++ frd->nrfreebuffer ;
+      if (  frd->fileoffset == frd->filesize
+            && 0 == frd->unreadsize) {
+         // last buffer unread
+         if (frd->mmfile[frd->nextindex].size >= frd->filesize) {
+            frd->unreadsize +=  (size_t)frd->filesize ;
+         } else {
+            frd->unreadsize += ((size_t)frd->filesize & (frd->mmfile[frd->nextindex].size-1)) ;
+         }
+      } else {
+         frd->unreadsize += frd->mmfile[frd->nextindex].size ;
+      }
+   }
+}
+
 
 
 // group: test
@@ -309,7 +330,7 @@ int release_filereader(filereader_t * frd)
 static int test_initfree(directory_t * tempdir)
 {
    filereader_t frd = filereader_INIT_FREEABLE ;
-   const size_t B   = buffersize_filereader() ;
+   const size_t B   = sizebuffer_filereader() ;
 
    // TEST filereader_INIT_FREEABLE
    TEST(0 == frd.ioerror) ;
@@ -327,7 +348,6 @@ static int test_initfree(directory_t * tempdir)
       TEST(0 == mfile.size) ;
    }
 
-
    // TEST genericcast_mmfile: filereader_t.mmfile compatible with mmfile_t
    TEST((mmfile_t*)&frd.mmfile[0].addr == genericcast_mmfile(&frd.mmfile[0],,)) ;
    TEST((mmfile_t*)&frd.mmfile[1].addr == genericcast_mmfile(&frd.mmfile[1],,)) ;
@@ -337,11 +357,11 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == makefile_directory(tempdir, "single", B)) ;
    TEST(0 == makefile_directory(tempdir, "double", 2*B)) ;
 
-   // TEST init_filereader, initsb_filereader, free_filereader: single buffer
+   // TEST init_filereader, initsingle_filereader, free_filereader: single buffer
    for (unsigned ti = 1; ti <= 2; ++ti) {
       switch (ti) {
       case 1:  TEST(0 == init_filereader(&frd, "single", tempdir)) ; break ;
-      case 2:  TEST(0 == initsb_filereader(&frd, "double", tempdir)) ; break ;
+      case 2:  TEST(0 == initsingle_filereader(&frd, "double", tempdir)) ; break ;
       default: goto ONABORT ;
       }
       TEST(addr_mmfile(genericcast_mmfile(&frd.mmfile[0],,)) != 0) ;
@@ -379,16 +399,16 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == free_filereader(&frd)) ;
    TEST(1 == isfree_filereader(&frd)) ;
 
-   // TEST init_filereader, initsb_filereader: ERROR
+   // TEST init_filereader, initsingle_filereader: ERROR
    memset(&frd, 1, sizeof(frd)) ;
    TEST(0 == isfree_filereader(&frd)) ;
    TEST(ENOENT == init_filereader(&frd, "X", tempdir)) ;
    TEST(1 == isfree_filereader(&frd)) ;
    memset(&frd, 1, sizeof(frd)) ;
-   TEST(ENOENT == initsb_filereader(&frd, "X", tempdir)) ;
+   TEST(ENOENT == initsingle_filereader(&frd, "X", tempdir)) ;
    TEST(1 == isfree_filereader(&frd)) ;
    memset(&frd, 1, sizeof(frd)) ;
-   TEST(ENOMEM == initsb_filereader(&frd, "big", tempdir)) ;
+   TEST(ENOMEM == initsingle_filereader(&frd, "big", tempdir)) ;
    TEST(1 == isfree_filereader(&frd)) ;
 
    // unprepare
@@ -408,10 +428,11 @@ static int test_query(void)
 {
    filereader_t frd = filereader_INIT_FREEABLE ;
 
-   // TEST buffersize_filereader
-   TEST(buffersize_filereader() >= (2*pagesize_vm())) ;
-   TEST(buffersize_filereader() >= filereader_SYS_BUFFER_SIZE) ;
-   TEST(buffersize_filereader() % (2*pagesize_vm()) == 0) ;
+   // TEST sizebuffer_filereader
+   TEST(sizebuffer_filereader() >= (2*pagesize_vm())) ;
+   TEST(sizebuffer_filereader() >= filereader_SYS_BUFFER_SIZE) ;
+   // power of 2
+   TEST(0 == (sizebuffer_filereader() & (sizebuffer_filereader()-1))) ;
 
    // TEST ioerror_filereader
    for (int i = 15; i >= 0; --i) {
@@ -463,11 +484,27 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_read(directory_t * tempdir)
+static int test_setter(void)
 {
    filereader_t frd = filereader_INIT_FREEABLE ;
-   const size_t B   = buffersize_filereader() ;
-   memblock_t   mem = memblock_INIT_FREEABLE ;
+
+   // TEST setioerror_filereader
+   for (int i = 15; i >= 0; --i) {
+      setioerror_filereader(&frd, i) ;
+      TEST(i == frd.ioerror) ;
+   }
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
+static int test_read(directory_t * tempdir)
+{
+   filereader_t   frd = filereader_INIT_FREEABLE ;
+   const size_t   B   = sizebuffer_filereader() ;
+   memblock_t     mem = memblock_INIT_FREEABLE ;
+   stringstream_t buffer = stringstream_INIT_FREEABLE ;
 
    // prepare
    TEST(0 == RESIZE_MM(2*B+1, &mem)) ;
@@ -477,26 +514,24 @@ static int test_read(directory_t * tempdir)
    TEST(0 == save_file("single", B, addr_memblock(&mem), tempdir)) ;
    TEST(0 == save_file("double", 2*B+1, addr_memblock(&mem), tempdir)) ;
 
-   // TEST acquirenext_filereader, release_filereader: single buffer
+   // TEST readnext_filereader, release_filereader: single buffer
    for (int ti = 1; ti <= 3; ++ti) {
       switch (ti) {
       case 1:  TEST(0 == init_filereader(&frd, "single", tempdir)) ; break ;
-      case 2:  TEST(0 == initsb_filereader(&frd, "single", tempdir)) ; break ;
-      case 3:  TEST(0 == initsb_filereader(&frd, "double", tempdir)) ; break ;
+      case 2:  TEST(0 == initsingle_filereader(&frd, "single", tempdir)) ; break ;
+      case 3:  TEST(0 == initsingle_filereader(&frd, "double", tempdir)) ; break ;
       default: goto ONABORT ;
       }
 
-      stringstream_t buffer = stringstream_INIT_FREEABLE ;
-
       // release_filereader: changes nothing if frd.nrfreebuffer == 2
-      TEST(0 == release_filereader(&frd)) ;
+      release_filereader(&frd) ;
       TEST(0 == iseof_filereader(&frd)) ;
       TEST(frd.unreadsize   == frd.mmfile[0].size) ;
       TEST(frd.nextindex    == 0) ;
       TEST(frd.nrfreebuffer == 2) ;
 
-      // acquirenext_filereader: reads one buffer
-      TEST(0 == acquirenext_filereader(&frd, &buffer)) ;
+      // readnext_filereader: reads one buffer
+      TEST(0 == readnext_filereader(&frd, &buffer)) ;
       TEST(1 == iseof_filereader(&frd)) ; // only 1 block
       TEST(frd.unreadsize   == 0) ; // all read
       TEST(frd.nextindex    == 1) ; // nextindex incremented
@@ -510,36 +545,34 @@ static int test_read(directory_t * tempdir)
          TEST(byte == (uint8_t)(13*i)) ;
       }
 
-      // acquirenext_filereader: ENODATA
-      TEST(ENODATA == acquirenext_filereader(&frd, &buffer)) ;
+      // readnext_filereader: ENODATA
+      TEST(ENODATA == readnext_filereader(&frd, &buffer)) ;
 
       // release_filereader: releases single buffer
-      TEST(0 == release_filereader(&frd)) ;
+      release_filereader(&frd) ;
       TEST(1 == iseof_filereader(&frd)) ;
       TEST(frd.unreadsize   == 0) ;
       TEST(frd.nextindex    == 1) ;
       TEST(frd.nrfreebuffer == 2) ;
 
-      // acquirenext_filereader: ENODATA
-      TEST(ENODATA == acquirenext_filereader(&frd, &buffer)) ;
+      // readnext_filereader: ENODATA
+      TEST(ENODATA == readnext_filereader(&frd, &buffer)) ;
 
       TEST(0 == free_filereader(&frd)) ;
    }
 
-   // TEST acquirenext_filereader, release_filereader: double buffer
+   // TEST readnext_filereader, release_filereader: double buffer
    TEST(0 == init_filereader(&frd, "double", tempdir)) ;
    for (size_t i = 0, offset = 0 ; i < 3; ++i) {
       // release_filereader: changes nothing if frd.nrfreebuffer == 2
-      TEST(0 == release_filereader(&frd)) ;
+      release_filereader(&frd) ;
       TEST(0 == iseof_filereader(&frd)) ;
       TEST(frd.unreadsize   == (i != 2 ? B : 1)) ;
       TEST(frd.nextindex    == 0) ;
       TEST(frd.nrfreebuffer == 2) ;
 
-      stringstream_t buffer = stringstream_INIT_FREEABLE ;
-
-      // acquirenext_filereader: reads one buffer
-      TEST(0 == acquirenext_filereader(&frd, &buffer)) ;
+      // readnext_filereader: reads one buffer
+      TEST(0 == readnext_filereader(&frd, &buffer)) ;
       if (i != 2) {
          TEST(0 == iseof_filereader(&frd)) ;
          TEST(frd.unreadsize == B/2) ; // read half of buffered data
@@ -558,8 +591,8 @@ static int test_read(directory_t * tempdir)
       }
 
       if (i != 2) {
-         // acquirenext_filereader: reads first buffer
-         TEST(0 == acquirenext_filereader(&frd, &buffer)) ;
+         // readnext_filereader: reads first buffer
+         TEST(0 == readnext_filereader(&frd, &buffer)) ;
          TEST(0 == iseof_filereader(&frd)) ;
          TEST(frd.unreadsize   == 0) ;       // all read
          TEST(frd.nextindex    == 0) ;       // nextindex incremented
@@ -574,13 +607,13 @@ static int test_read(directory_t * tempdir)
          }
       }
 
-      // acquirenext_filereader: reads second buffer
+      // readnext_filereader: reads second buffer
       buffer = (stringstream_t) stringstream_INIT_FREEABLE ;
       if (i != 2) {
-         TEST(ENOBUFS == acquirenext_filereader(&frd, &buffer)) ;
+         TEST(ENOBUFS == readnext_filereader(&frd, &buffer)) ;
          TEST(0 == iseof_filereader(&frd)) ;
       } else {
-         TEST(ENODATA == acquirenext_filereader(&frd, &buffer)) ;
+         TEST(ENODATA == readnext_filereader(&frd, &buffer)) ;
          TEST(1 == iseof_filereader(&frd)) ;
       }
       TEST(frd.unreadsize   == 0) ;                // nothing changed
@@ -590,19 +623,133 @@ static int test_read(directory_t * tempdir)
       TEST(buffer.end  == 0) ;                     // nothing changed
 
       // release_filereader: preload first buffer
-      TEST(0 == release_filereader(&frd)) ;
+      release_filereader(&frd) ;
       TEST((i == 2) == iseof_filereader(&frd)) ;
       TEST(frd.unreadsize   == (i == 2 ? 0 : i == 1 ? 1 : B/2)) ; // read data into released buffer
       TEST(frd.nextindex    == (i != 2 ? 0 : 1)) ;
       TEST(frd.nrfreebuffer == (i != 2 ? 1 : 2)) ;       // released 1 buffer
 
       // release_filereader: preload second buffer
-      TEST(0 == release_filereader(&frd)) ;
+      release_filereader(&frd) ;
       TEST((i == 2) == iseof_filereader(&frd)) ;
       TEST(frd.unreadsize   == (i == 2 ? 0 : i == 1 ? 1 : B)) ;   // read data into released buffer
       TEST(frd.nextindex    == (i != 2 ? 0 : 1)) ;
       TEST(frd.nrfreebuffer == 2) ;       // released 2  buffers
    }
+   TEST(0 == free_filereader(&frd)) ;
+
+   // TEST readnext_filereader: ioerror is returned
+   TEST(0 == init_filereader(&frd, "double", tempdir)) ;
+   TEST(0 == readnext_filereader(&frd, &buffer)) ;
+   for (int i = 1; i < 15; ++i) {
+      setioerror_filereader(&frd, i) ;
+      TEST(i == readnext_filereader(&frd, &buffer)) ;
+   }
+   TEST(0 == free_filereader(&frd)) ;
+
+   // TEST unread_filereader: single buffer case
+   for (int ti = 1; ti <= 2; ++ti) {
+      switch (ti) {
+      case 1:  TEST(0 == initsingle_filereader(&frd, "single", tempdir)) ; break ;
+      case 2:  TEST(0 == initsingle_filereader(&frd, "double", tempdir)) ; break ;
+      default: goto ONABORT ;
+      }
+      // call ignored if frd.nrfreebuffer == 2
+      unread_filereader(&frd) ;
+      TEST(frd.filesize == frd.unreadsize) ;
+      TEST(0 == frd.nextindex) ;
+      TEST(2 == frd.nrfreebuffer) ;
+      TEST(0 == readnext_filereader(&frd, &buffer)) ;
+      stringstream_t buffer2 = buffer ;
+      TEST(0 == frd.unreadsize) ;
+      TEST(1 == frd.nextindex) ;
+      TEST(1 == frd.nrfreebuffer) ;
+      // unread buffer
+      unread_filereader(&frd) ;
+      TEST(frd.filesize == frd.unreadsize) ;
+      TEST(0 == frd.nextindex) ;
+      TEST(2 == frd.nrfreebuffer) ;
+      // next call to readnext_filereader returns same buffer
+      TEST(0 == readnext_filereader(&frd, &buffer)) ;
+      TEST(0 == frd.unreadsize) ;
+      TEST(1 == frd.nextindex) ;
+      TEST(1 == frd.nrfreebuffer) ;
+      TEST(buffer.next == buffer2.next) ;
+      TEST(buffer.end  == buffer2.end) ;
+      TEST(0 == free_filereader(&frd)) ;
+   }
+
+   // TEST unread_filereader: double buffer case
+   TEST(0 == init_filereader(&frd, "double", tempdir)) ;
+   for (size_t i = 0; i < 5; ++i) {
+      size_t I = i % 2 ;
+      size_t U = (i < 3 ? B : i == 3 ? B/2 + 1 : 1) ;
+      size_t U1 = (U > B/2 ? U - B/2 : 0) ;
+
+      // unread_filereader: changes nothing if frd.nrfreebuffer == 2
+      TEST(0 == iseof_filereader(&frd)) ;
+      TEST(U == frd.unreadsize) ;
+      TEST(I == frd.nextindex) ;
+      TEST(2 == frd.nrfreebuffer) ;
+      unread_filereader(&frd) ;
+      TEST(0 == iseof_filereader(&frd)) ;
+      TEST(U == frd.unreadsize) ;
+      TEST(I == frd.nextindex) ;
+      TEST(2 == frd.nrfreebuffer) ;
+
+      // readnext_filereader: reads one buffer
+      TEST(0 == readnext_filereader(&frd, &buffer)) ;
+      TEST(U1 == frd.unreadsize) ;
+      TEST(!I == frd.nextindex) ;
+      TEST(1 == frd.nrfreebuffer) ;
+
+      if (U1) {
+         // readnext_filereader: reads second buffer
+         stringstream_t buffer2 = stringstream_INIT_FREEABLE ;
+         TEST(0 == readnext_filereader(&frd, &buffer2)) ;
+         TEST(I == frd.nextindex) ;
+         TEST(0 == frd.nrfreebuffer) ;
+         // unread_filereader: unreads second buffer
+         unread_filereader(&frd) ;
+         TEST(U1 == frd.unreadsize) ;
+         TEST(!I == frd.nextindex) ;
+         TEST(1 == frd.nrfreebuffer) ;
+         // readnext_filereader returns the same second buffer
+         stringstream_t buffer3 = stringstream_INIT_FREEABLE ;
+         TEST(0 == readnext_filereader(&frd, &buffer3)) ;
+         TEST(I == frd.nextindex) ;
+         TEST(0 == frd.nrfreebuffer) ;
+         TEST(buffer3.next == buffer2.next) ;
+         TEST(buffer3.end  == buffer2.end) ;
+         // unread_filereader: unreads second buffer
+         unread_filereader(&frd) ;
+         TEST(U1 == frd.unreadsize) ;
+         TEST(!I == frd.nextindex) ;
+         TEST(1 == frd.nrfreebuffer) ;
+      }
+
+      // unread_filereader: unreads last read buffer
+      unread_filereader(&frd) ;
+      TEST(0 == iseof_filereader(&frd)) ;
+      TEST(U == frd.unreadsize) ;
+      TEST(I == frd.nextindex) ;
+      TEST(2 == frd.nrfreebuffer) ;
+
+      // readnext_filereader: reads same buffer
+      stringstream_t buffer2 = stringstream_INIT_FREEABLE ;
+      TEST(0 == readnext_filereader(&frd, &buffer2)) ;
+      TEST(U1 == frd.unreadsize) ;
+      TEST(!I == frd.nextindex) ;
+      TEST(1 == frd.nrfreebuffer) ;
+      TEST(buffer.next == buffer2.next) ;
+      TEST(buffer.end  == buffer2.end) ;
+
+      release_filereader(&frd) ;
+   }
+   TEST(1 == iseof_filereader(&frd)) ;
+   TEST(0 == frd.unreadsize) ;
+   TEST(1 == frd.nextindex) ;
+   TEST(2 == frd.nrfreebuffer) ;
    TEST(0 == free_filereader(&frd)) ;
 
    // unprepare
@@ -630,6 +777,7 @@ int unittest_io_reader_filereader()
 
    if (test_initfree(tempdir))   goto ONABORT ;
    if (test_query())             goto ONABORT ;
+   if (test_setter())            goto ONABORT ;
    if (test_read(tempdir))       goto ONABORT ;
 
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
