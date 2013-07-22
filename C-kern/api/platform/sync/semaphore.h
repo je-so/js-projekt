@@ -29,7 +29,7 @@
 #ifndef CKERN_PLATFORM_SYNC_SEMAPHORE_HEADER
 #define CKERN_PLATFORM_SYNC_SEMAPHORE_HEADER
 
-/* typedef: semaphore_t typedef
+/* typedef: struct semaphore_t
  * Export <semaphore_t>. */
 typedef struct semaphore_t                semaphore_t ;
 

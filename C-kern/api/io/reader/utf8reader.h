@@ -75,7 +75,7 @@ struct utf8reader_t {
  * make a copy of any parsed identifier instead it can store references to the buffer. */
 int init_utf8reader(/*out*/utf8reader_t * utfread, const char * filepath, const struct directory_t * relative_to/*0 => current working dir*/) ;
 
-/* function: init_utf8reader
+/* function: free_utf8reader
  * Sets all internal members to 0. There is no need to free any resources. */
 int free_utf8reader(utf8reader_t * utfread) ;
 
@@ -123,7 +123,7 @@ size_t unreadsize_utf8reader(utf8reader_t * utfread) ;
 
 // group: read
 
-/* function: nextchar_utf8reader
+/* function: nextbyte_utf8reader
  * Reads next byte and increments column by one.
  * The value is returned in nextbyte.
  *
@@ -363,8 +363,8 @@ int matchbytes_utf8reader(utf8reader_t * utfread, size_t colnr, size_t nrbytes, 
    } while(0)
 
 
-/* define: unread_utf8reader
- * Implements <utf8reader_t.unread_utf8reader>. */
+/* define: textpos_utf8reader
+ * Implements <utf8reader_t.textpos_utf8reader>. */
 #define textpos_utf8reader(utfread)                      \
             (&(utfread)->pos)
 

@@ -167,7 +167,7 @@ int cmpmagnitude_decimal(const decimal_t * ldec, const decimal_t * rdec) ;
  * This is an implementation detail you should not be concerned about. */
 uint8_t digitsperint_decimal(void) ;
 
-/* function: digitsperint_decimal
+/* function: exponent_decimal
  * Returns the decimal exponent of the number.
  * The returned value is in the range [-<expmax_decimal>..+<expmax_decimal>]. */
 int32_t exponent_decimal(const decimal_t * dec) ;
@@ -245,7 +245,7 @@ int setfromint32_decimal(decimal_t *restrict* dec, int32_t value, int32_t decima
  * See <decimal_t> for a description of the error codes. */
 int setfromint64_decimal(decimal_t *restrict* dec, int64_t value, int32_t decimal_exponent) ;
 
-/* function: setfromint64_decimal
+/* function: setfromfloat_decimal
  * Sets decimal to floating point *value*.
  * See <decimal_t> for a description of the error codes. */
 int setfromfloat_decimal(decimal_t *restrict* dec, float value) ;

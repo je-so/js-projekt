@@ -316,7 +316,7 @@ int divmod_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, 
  * See <bigint_t> for a discussion of the *result* parameter. */
 int divmodui32_bigint(bigint_t *restrict* divresult, bigint_t *restrict* modresult, const bigint_t * lbig, const uint32_t divisor) ;
 
-/* function: div_bigint
+/* function: divui32_bigint
  * Divides lbig by divisor of type uint32_t.
  * See <bigint_t> for a discussion of the *result* parameter. */
 int divui32_bigint(bigint_t *restrict* result, const bigint_t * lbig, const uint32_t divisor) ;

@@ -64,7 +64,7 @@ struct testmm_t {
 
 // group: context
 
-/* function: mmcontext_testmm
+/* function: isinstalled_testmm
  * Returns true if test memory manager is installed. */
 bool isinstalled_testmm(void) ;
 

@@ -92,26 +92,29 @@ static inline void compiletime_assert(void)
 }
 
 /* function: initprogname_maincontext
- * Sets <maincontext_t.progname> to (strrchr(argv[0], "/")+1). */
-static void initprogname_maincontext(struct maincontext_t * maincontext)
+ * Sets <maincontext_t.progname> to (strrchr(argv0, "/")+1). */
+static void initprogname_maincontext(struct maincontext_t * maincontext, const char * argv0)
 {
-   const char * progname = "???" ;
+   if (argv0) {
+      size_t offset = 0 ;
+      size_t len    = strlen(argv0) ;
 
-   if (maincontext->argc) {
-      progname = maincontext->argv[0] ;
+      if (len > 16) {
+         offset = len - 16 ;
+      }
 
-      for (unsigned i = 0; progname[i];) {
-         if (  '/' == progname[i]
-               && progname[i+1]) {
-            progname = &progname[i+1] ;
-            i = 0 ;
-         } else {
-            ++ i;
+      for (size_t i = offset; argv0[i]; ++i) {
+         if (  '/' == argv0[i]
+               && 0 != argv0[i+1]) {
+            offset = i + 1 ;
          }
       }
-   }
 
-   maincontext->progname = progname ;
+      maincontext->progname = argv0 + offset ;
+
+   } else {
+      maincontext->progname = "???" ;
+   }
 }
 
 // group: lifetime
@@ -160,8 +163,7 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
    VALIDATE_INPARAM_TEST(  maincontext_STATIC  <  context_type
                            && maincontext_DEFAULT >= context_type, ONABORT, ) ;
 
-   VALIDATE_INPARAM_TEST(  argc == 0
-                           || (argc > 0 && argv != 0), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(argc >= 0 && (argc == 0 || argv != 0), ONABORT, ) ;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
 
@@ -173,7 +175,7 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
    g_maincontext.argc     = argc ;
    g_maincontext.argv     = argv ;
 
-   initprogname_maincontext(&g_maincontext) ;
+   initprogname_maincontext(&g_maincontext, argv ? argv[0] : 0) ;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
 
@@ -501,7 +503,7 @@ static int test_progname(void)
    TEST(0 == free_maincontext()) ;
 
     // TEST progname_maincontext
-   const char * argv[3] = { "/p1/yxz1", "/p2/yxz2/", "p3/p4/yxz3" } ;
+   const char * argv[4] = { "/p1/yxz1", "/p2/yxz2/", "p3/p4/yxz3", "123456789a1234567" } ;
 
    for (unsigned i = 0; i< lengthof(argv); ++i) {
       TEST(0 == init_maincontext(maincontext_DEFAULT, 1, &argv[i])) ;
@@ -511,6 +513,8 @@ static int test_progname(void)
       case 0:  TEST(&argv[0][4] == progname_maincontext()) ; break ;
       case 1:  TEST(&argv[1][4] == progname_maincontext()) ; break ;
       case 2:  TEST(&argv[2][6] == progname_maincontext()) ; break ;
+      // only up to 16 characters
+      case 3:  TEST(&argv[3][1] == progname_maincontext()) ; break ;
       }
       TEST(0 == free_maincontext()) ;
    }

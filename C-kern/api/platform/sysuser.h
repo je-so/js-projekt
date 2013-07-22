@@ -62,6 +62,7 @@ int unittest_platform_sysuser(void) ;
 
 /* struct: sysuser_id_t
  * This type is an alias of <sys_userid_t>. */
+typedef sys_userid_t                      sysuser_id_t ;
 
 // group: lifetime
 

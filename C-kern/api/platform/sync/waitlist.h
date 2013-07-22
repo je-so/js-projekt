@@ -34,7 +34,7 @@
 // forward
 struct slist_node_t ;
 
-/* typedef: waitlist_t typedef
+/* typedef: struct waitlist_t
  * Exports <waitlist_t>. */
 typedef struct waitlist_t                 waitlist_t ;
 

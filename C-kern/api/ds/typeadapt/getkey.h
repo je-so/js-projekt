@@ -69,7 +69,7 @@ struct typeadapt_binarykey_t {
  * Static initializer. */
 #define typeadapt_binarykey_INIT_FREEABLE          typeadapt_binarykey_INIT(0, (const uint8_t*)0)
 
-/* define: typeadapt_binarykey_INIT_FREEABLE
+/* define: typeadapt_binarykey_INIT
  * Inits <typeadapt_binarykey_t> with size in bytes in start (lowest) memory address. */
 #define typeadapt_binarykey_INIT(size, addr)       { addr, size }
 

@@ -142,6 +142,7 @@ void redirecterr_processstdio(process_stdio_t * stdfd, sys_iochannel_t error_fil
 
 /* struct: process_t
  * Represents system specific process. */
+typedef sys_process_t                     process_t ;
 
 // group: lifetime
 
@@ -199,7 +200,7 @@ int free_process(process_t * process) ;
  *                   The last character is always a '\0' byte.
  *                   Points to character buffer of size namebuffer_size.
  * name_size       - Is set to the size of the name including the trailing \0 byte.
- *                   If this pointer is not NULL nothing is returned. */
+ *                   If this pointer is NULL nothing is returned. */
 int name_process(size_t namebuffer_size, /*out*/char name[namebuffer_size], /*out*/size_t * name_size) ;
 
 /* function: state_process

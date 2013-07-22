@@ -200,7 +200,7 @@ int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, 
  * Any unknown <x11attribute_t.name> is ignored. Uses XCreateWindow for its implementation. */
 int initbasetype_x11window(/*out*/x11window_t * x11win, const struct x11window_it * eventhandler, struct x11display_t * x11disp, uint32_t parent_sys_window, /*Visual*/void * visual, int depth, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/) ;
 
-/* function: initmove_x11window
+/* function: initmove_glxwindow
  * Must be called if address of <x11window_t> changes.
  * A simple memcpy from source to destination does not work.
  * *Not implemented*. */
@@ -220,7 +220,7 @@ int freebasetype_x11window(x11window_t * x11win) ;
 
 // group: query
 
-/* function: backbuffer_x11window
+/* function: isbackbuffer_x11window
  * Returns true if the window has a backbuffer (is double buffered). */
 bool isbackbuffer_x11window(const x11window_t * x11win) ;
 

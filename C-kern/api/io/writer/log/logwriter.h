@@ -29,11 +29,11 @@
 // forward
 struct log_it ;
 
-/* typedef: logwriter_t typedef
+/* typedef: struct logwriter_t
  * Exports <logwriter_t>. */
 typedef struct logwriter_t                logwriter_t ;
 
-/* typedef: logwriter_t typedef
+/* typedef: struct logwriter_chan_t
  * Exports <logwriter_chan_t>. */
 typedef struct logwriter_chan_t           logwriter_chan_t ;
 
@@ -52,10 +52,10 @@ int unittest_io_writer_log_logwriter(void) ;
 /* struct: logwriter_t
  * A logwriter writes the console channel messages to STDOUT any other channels to STDERR.
  * Before anything is written out the messages are stored in an internal buffer.
- * If less then log_config_MAXSIZE plus "terminating \0 byte" bytes are free the buffer
+ * If less then log_config_MINSIZE plus "terminating \0 byte" bytes are free the buffer
  * is written out (flushed) before any new mesage is appended. If messages should be appended
  * the buffer is not written out until the last message was appended. In this case messages
- * are truncated if they are bigger than log_config_MAXSIZE.
+ * are truncated if they are bigger than log_config_MINSIZE.
  *
  * Threads:
  * In case of KONFIG_SUBSYS does not contain KONFIG_thread static <logmain_t> is used instead of <logwriter_t>.
@@ -97,7 +97,6 @@ int init_logwriter(/*out*/logwriter_t * lgwrt) ;
  * In case the function is called more than it does nothing. */
 int free_logwriter(logwriter_t * lgwrt) ;
 
-
 // group: query
 
 /* function: getbuffer_logwriter
@@ -122,7 +121,7 @@ void flushbuffer_logwriter(logwriter_t * lgwrt) ;
 
 /* function: printf_logwriter
  * Writes new log entry to in internal buffer.
- * If the entry is bigger than <log_config_MAXSIZE> it may be truncated if internal buffer size is lower. */
+ * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower. */
 void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const char * format, ...) __attribute__ ((__format__ (__printf__, 4, 5))) ;
 
 /* function: vprintf_logwriter

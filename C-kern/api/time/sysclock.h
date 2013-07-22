@@ -58,8 +58,9 @@ int unittest_time_sysclock(void) ;
 #endif
 
 
-/* struct: sysclock
+/* struct: sysclock_t
  * Interface to hardware system clock. */
+struct sysclock_t ;
 
 // group: query
 

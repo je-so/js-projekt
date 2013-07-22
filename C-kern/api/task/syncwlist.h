@@ -203,7 +203,7 @@ int insert_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue, /*out*/str
  * to a removed <syncevent_t>. */
 int remove_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue, /*out*/struct syncevent_t * removedevent) ;
 
-/* function: remove_syncwlist
+/* function: removeempty_syncwlist
  * Removes the last node if its <syncevent_t> has not waiting thread. */
 int removeempty_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue) ;
 

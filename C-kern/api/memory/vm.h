@@ -118,7 +118,7 @@ struct vmpage_t {
  * the parent process also see no changes (COPY_ON_WRITE semantics). */
 int init_vmpage(/*out*/vmpage_t * vmpage, size_t size_in_bytes) ;
 
-/* function: init_vmpage
+/* function: init2_vmpage
  * Map memory into the virtual address space of the calling process.
  * The memory size is size_in_bytes rounded up to next multiple of <pagesize_vm>.
  * It is accessible as stated in paramter *access_mode*.
@@ -275,7 +275,7 @@ int free_vmmappedregions(vm_mappedregions_t * mappedregions) ;
  * Returns the total number of contained <vm_region_t>. */
 size_t size_vmmappedregions(const vm_mappedregions_t * mappedregions) ;
 
-/* function: compare_vmregion
+/* function: compare_vmmappedregions
  * Returns 0 if all regions stored in left and right container compare equal. */
 int compare_vmmappedregions(const vm_mappedregions_t * left, const vm_mappedregions_t * right) ;
 

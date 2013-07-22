@@ -69,7 +69,7 @@ struct crc32_t {
 
 // group: lifetime
 
-/* define: crc32_INIT_FREEABLE
+/* define: crc32_INIT
  * Static initializer. */
 #define crc32_INIT                     { (uint32_t)-1 }
 

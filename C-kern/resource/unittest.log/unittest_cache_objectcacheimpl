@@ -1,36 +1,36 @@
-[1: 1371660253.988181s]
+[1: 1372175259.703421s]
 lockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:98
 Error 22 - Function input violates condition (0 == *iobuffer)
-[1: 1371660253.988186s]
+[1: 1372175259.703426s]
 lockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:104
 Error 22 - Function aborted
-[1: 1371660253.988189s]
+[1: 1372175259.703428s]
 unlockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:113
 Error 22 - Function input violates condition (genericcast_memblock(&objectcache->iobuffer,) == *iobuffer)
-[1: 1371660253.988191s]
+[1: 1372175259.703431s]
 unlockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:119
 Error 22 - Function aborted
-[1: 1371660253.988733s]
+[1: 1372175259.703969s]
 lockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:98
 Error 22 - Function input violates condition (0 == *iobuffer)
-[1: 1371660253.988792s]
+[1: 1372175259.704024s]
 lockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:104
 Error 22 - Function aborted
-[1: 1371660253.988801s]
+[1: 1372175259.704032s]
 lockiobuffer_objectcacheimpl() C-kern/cache/objectcache_impl.c:129
 Error 22 - Assertion '!err && "lockiobuffer2_objectcacheimpl"' failed.
-[1: 1371660253.988806s]
-abort_maincontext() C-kern/context/maincontext.c:198
+[1: 1372175259.704038s]
+abort_maincontext() C-kern/context/maincontext.c:200
 Error 22 - Abort process with fatal error
-[1: 1371660254.112321s]
+[1: 1372175259.835031s]
 unlockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:113
 Error 22 - Function input violates condition (genericcast_memblock(&objectcache->iobuffer,) == *iobuffer)
-[1: 1371660254.112377s]
+[1: 1372175259.835065s]
 unlockiobuffer2_objectcacheimpl() C-kern/cache/objectcache_impl.c:119
 Error 22 - Function aborted
-[1: 1371660254.112389s]
+[1: 1372175259.835069s]
 unlockiobuffer_objectcacheimpl() C-kern/cache/objectcache_impl.c:138
 Error 22 - Assertion '!err && "unlockiobuffer2_objectcacheimpl"' failed.
-[1: 1371660254.112395s]
-abort_maincontext() C-kern/context/maincontext.c:198
+[1: 1372175259.835072s]
+abort_maincontext() C-kern/context/maincontext.c:200
 Error 22 - Abort process with fatal error

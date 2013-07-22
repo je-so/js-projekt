@@ -54,6 +54,7 @@ int unittest_math_int_atomic(void) ;
  * Offers some atomic operations on integers.
  * If a processor does not support atomic ops then
  * this implementation relys one the compiler to emulate them. */
+struct int_t ;
 
 // group: atomicops
 

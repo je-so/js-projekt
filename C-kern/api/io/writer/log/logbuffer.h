@@ -47,7 +47,7 @@ int unittest_io_writer_log_logbuffer(void) ;
 /* struct: logbuffer_t
  * A logbuffer_t writes error messages to a buffer.
  * If a new messages is always appended and it is truncated if there is no more space in the buffer.
- * If new messages should not be appended and less then log_config_MAXSIZE plus "terminating \0 byte" bytes are free
+ * If new messages should not be appended and less then log_config_MINSIZE plus "terminating \0 byte" bytes are free
  * the buffer is written to a configured <iochannel_t> before the new message is written into the buffer.
  * */
 struct logbuffer_t {
@@ -96,7 +96,7 @@ int free_logbuffer(logbuffer_t * logbuf) ;
 
 /* function: sizefree_logbuffer
  * Returns free size usable by the next written entry.
- * Call <write_logbuffer> if this value is less than log_config_MAXSIZE+"terminating \0 byte". */
+ * Call <write_logbuffer> if this value is less than log_config_MINSIZE+"terminating \0 byte". */
 uint32_t sizefree_logbuffer(const logbuffer_t * logbuf) ;
 
 /* function: io_logbuffer

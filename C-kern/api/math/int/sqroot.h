@@ -51,12 +51,12 @@ int unittest_math_int_sqroot(void) ;
  * */
 unsigned sqroot_int(unsigned number) ;
 
-/* function: sqroot_int
+/* function: sqroot_int32
  * Returns the square root from an unsigned 32 bit integer.
  * This function is called from <sqroot_int>. */
 uint16_t sqroot_int32(uint32_t number) ;
 
-/* function: sqroot_int
+/* function: sqroot_int64
  * Returns the square root from an unsigned 64 bit integer.
  * This function is called from <sqroot_int>. */
 uint32_t sqroot_int64(uint64_t number) ;

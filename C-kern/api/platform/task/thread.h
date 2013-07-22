@@ -239,7 +239,7 @@ int exit_thread(int retcode) ;
 
 // group: abort
 
-/* function: yield_thread
+/* function: abort_thread
  * Aborts the calling thread.
  * This functions sets returncode (see <returncode_thread>) to value ENOTRECOVERABLE
  * and continues execution at the place which was marked with <setcontinue_thread> previously.

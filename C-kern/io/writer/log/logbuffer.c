@@ -42,7 +42,7 @@ int init_logbuffer(/*out*/logbuffer_t * logbuf, uint32_t buffer_size, uint8_t bu
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(buffer_size > log_config_MAXSIZE, ONABORT,) ;
+   VALIDATE_INPARAM_TEST(buffer_size > log_config_MINSIZE, ONABORT,) ;
 
    logbuf->addr = buffer_addr ;
    logbuf->size = buffer_size ;
@@ -137,7 +137,7 @@ void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args)
       if (append_size >= buffer_size) {
          // data has been truncated => mark it with " ..."
          append_size = buffer_size-1 ;
-         static_assert(log_config_MAXSIZE > 4, "") ;
+         static_assert(log_config_MINSIZE > 4, "") ;
          memcpy(buffer + append_size-4, " ...", 4) ;
       }
 
@@ -180,9 +180,9 @@ static int test_initfree(void)
 
    // TEST init_logbuffer
    buffer[0] = 1 ;
-   TEST(0 == init_logbuffer(&logbuf, log_config_MAXSIZE+1, buffer, iochannel_STDOUT)) ;
+   TEST(0 == init_logbuffer(&logbuf, log_config_MINSIZE+1, buffer, iochannel_STDOUT)) ;
    TEST(logbuf.addr    == buffer) ;
-   TEST(logbuf.size    == log_config_MAXSIZE+1) ;
+   TEST(logbuf.size    == log_config_MINSIZE+1) ;
    TEST(logbuf.logsize == 0) ;
    TEST(logbuf.io      == iochannel_STDOUT) ;
    TEST(buffer[0]      == 0) ;
@@ -217,7 +217,7 @@ static int test_initfree(void)
    }
 
    // TEST init_logbuffer: EINVAL
-   TEST(EINVAL == init_logbuffer(&logbuf, log_config_MAXSIZE/*too small*/, buffer, iochannel_STDOUT)) ;
+   TEST(EINVAL == init_logbuffer(&logbuf, log_config_MINSIZE/*too small*/, buffer, iochannel_STDOUT)) ;
    TEST(0 == logbuf.addr) ;
    TEST(0 == logbuf.size) ;
    TEST(0 == logbuf.logsize) ;
@@ -358,7 +358,7 @@ static int test_update(void)
    logbuf.logsize = logbuf.size - 10 ;
    logbuf.addr[logbuf.logsize] = 0 ;
    addtimestamp_logbuffer(&logbuf) ;
-   TEST(logbuf.logsize = logbuf.size - 1)
+   TEST(logbuf.logsize == logbuf.size - 1)
    TEST(0 == memcmp(logbuf.addr + logbuf.size - 10, "[", 1)) ;
    TEST(0 == memcmp(logbuf.addr + logbuf.size - 5, " ...", 5)) ;
 
@@ -395,7 +395,7 @@ static int test_update(void)
    logbuf.logsize = logbuf.size - sizeof(strtoobig) ;
    logbuf.addr[logbuf.logsize] = 0 ;
    printf_logbuffer(&logbuf, "%.100s", strtoobig) ;
-   TEST(logbuf.logsize = logbuf.size - 1)
+   TEST(logbuf.logsize == logbuf.size - 1)
    TEST(0 == memcmp(logbuf.addr + logbuf.size - sizeof(strtoobig), strtoobig, sizeof(strtoobig)-5)) ;
    TEST(0 == memcmp(logbuf.addr + logbuf.size - 5, " ...", 5)) ;
 

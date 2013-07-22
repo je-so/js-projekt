@@ -170,7 +170,7 @@ struct pagecache_it {
 #define pagecache_it_INIT_FREEABLE  \
          { 0, 0, 0, 0, 0, 0, 0 }
 
-/* define: pagecache_it_INIT_FREEABLE
+/* define: pagecache_it_INIT
  * Static initializer. Set all function pointers to the provided values.
  *
  * Parameters:

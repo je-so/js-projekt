@@ -65,7 +65,7 @@ struct x11drawable_t {
 #define x11drawable_INIT_FREEABLE \
          { 0, 0, 0 }
 
-/* define: x11drawable_INIT_FREEABLE
+/* define: x11drawable_INIT
  * Static initializer. See <x11drawable_t> for the description of the parameter. */
 #define x11drawable_INIT(display, sys_drawable, sys_colormap) \
             { display, sys_drawable, sys_colormap }

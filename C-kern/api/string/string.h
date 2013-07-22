@@ -104,7 +104,7 @@ struct string_t {
  * string  - Address of first character. */
 static inline void init_string(/*out*/string_t * str, size_t size, const uint8_t string[size]) ;
 
-/* function: initsubstr_string
+/* function: initcopy_string
  * Copies content of srcstr to str. The two string objects are not allowed to overlap.
  * Only references are copied. The characters in memory are not copied. */
 static inline void initcopy_string(/*out*/string_t * str, const string_t * restrict srcstr) ;
@@ -202,7 +202,7 @@ int substr_string(string_t * str, size_t start_offset, size_t size) ;
  * If the precondition fails EINVAL is returned. */
 int shrinkleft_string(string_t * str, size_t nr_bytes_removed_from_string_start) ;
 
-/* function: keeplast_string
+/* function: shrinkright_string
  * Shrinks size of string by decrementing its size.
  * The parameter nr_bytes_removed_from_string_end must be smaller or equal to <size_string>(str).
  * If the precondition fails EINVAL is returned.

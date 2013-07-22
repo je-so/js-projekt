@@ -49,6 +49,7 @@ int unittest_platform_sync_mutex(void) ;
  * Use <lock_mutex> before entering a critical section of code
  * and use <unlock_mutex> just before you leave it.
  * This mutex can also be used between different processes. */
+typedef sys_mutex_t                       mutex_t ;
 
 // group: lifetime
 

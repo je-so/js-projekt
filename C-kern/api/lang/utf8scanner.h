@@ -180,8 +180,8 @@ void skipbyte_utf8scanner(utf8scanner_t * scan) ;
             _err ;                                                      \
          }))
 
-/* function: nextbyte_utf8scanner
- * Implements <utf8scanner_t.nextbyte_utf8scanner>. */
+/* function: isnext_utf8scanner
+ * Implements <utf8scanner_t.isnext_utf8scanner>. */
 #define isnext_utf8scanner(scan)                \
          ( __extension__ ({                     \
             const utf8scanner_t * _s = (scan) ; \

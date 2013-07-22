@@ -192,7 +192,7 @@ int allocate_file(file_t fileobj, off_t file_size) ;
 
 // group: file_t
 
-/* function: isfree_file
+/* function: initmove_file
  * Implements <file_t.initmove_file>. */
 static inline void initmove_file(file_t * restrict destfile, file_t * restrict sourcefile)
 {

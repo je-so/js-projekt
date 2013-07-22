@@ -73,7 +73,7 @@ struct errorcontext_t {
  * has the same structure as <errorcontext_t>. */
 int initonce_errorcontext(/*out*/errorcontext_t * error) ;
 
-/* function: freeonce_locale
+/* function: freeonce_errorcontext
  * Called from <free_maincontext>.
  * The parameter errcontext supports any generic object type which
  * has the same structure as <errorcontext_t>.
@@ -87,7 +87,7 @@ int freeonce_errorcontext(errorcontext_t * error) ;
  * Static initializer. */
 #define errorcontext_INIT_FREEABLE        { 0, 0 }
 
-/* define: errorcontext_INIT_FREEABLE
+/* define: errorcontext_INIT_STATIC
  * Static initializer used in <processcontext_INIT_STATIC>. */
 #define errorcontext_INIT_STATIC          { g_errorcontext_stroffset, g_errorcontext_strdata }
 
@@ -133,8 +133,8 @@ errorcontext_t * genericcast_errorcontext(void * object) ;
 #define freeonce_errorcontext(error) \
          (0)
 
-/* define: freeonce_errorcontext
- * Implements <errorcontext_t.freeonce_errorcontext>. */
+/* define: genericcast_errorcontext
+ * Implements <errorcontext_t.genericcast_errorcontext>. */
 #define genericcast_errorcontext(object)                       \
          ( __extension__ ({                                    \
             typeof(object) _obj = (object) ;                   \

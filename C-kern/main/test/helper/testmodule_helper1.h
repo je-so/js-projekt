@@ -26,8 +26,8 @@
 #ifndef CKERN_MAIN_TEST_HELPER_TESTMODULE_HELPER1_HEADER
 #define CKERN_MAIN_TEST_HELPER_TESTMODULE_HELPER1_HEADER
 
-/* typedef: struct testmodule_helper1_t
- * Export <testmodule_helper1_t> into global namespace. */
+/* typedef: struct testmodule_functable_t
+ * Export <testmodule_functable_t> into global namespace. */
 typedef struct testmodule_functable_t     testmodule_functable_t ;
 
 

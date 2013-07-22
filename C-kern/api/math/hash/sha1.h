@@ -79,7 +79,7 @@ struct sha1_hash_t {
 
 // group: lifetime
 
-/* function: sha1_hash_INIT
+/* function: init_sha1hash
  * Inits internal fields to start values. */
 void init_sha1hash(/*out*/sha1_hash_t * sha1) ;
 
@@ -94,7 +94,7 @@ int calculate_sha1hash(sha1_hash_t * sha1, size_t buffer_size, const uint8_t buf
 
 // group: query
 
-/* function: gethash_sha1hash
+/* function: value_sha1hash
  * Udpates internal fields the last time and returns hash value.
  * Calling this function more than once always returns the same value.
  * The returned pointer is valid as long as you do not call any other function

@@ -147,7 +147,7 @@ int tryskipbytes_stringstream(stringstream_t * strstream, size_t size) ;
 
 // group: generic
 
-/* function: genericcast_stringstreamstream
+/* function: genericcast_stringstream
  * Converts pointer to strstream of any type to pointer to <stringstream_t>.
  * The conversion checks that *strstream* contains the members next and
  * end in that order. */

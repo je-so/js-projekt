@@ -65,7 +65,7 @@ static void printf_logmain(void * lgwrt, uint8_t channel, uint8_t flags, const c
 {
    (void) lgwrt ;
    (void) channel ;
-   uint8_t  buffer[log_config_MAXSIZE+1] = { 0 } ;
+   uint8_t  buffer[log_config_MINSIZE+1] = { 0 } ;
    va_list  args ;
    va_start(args, format) ;
    logbuffer_t temp = logbuffer_INIT(
@@ -133,8 +133,8 @@ static int test_update(void)
 {
    int         pipefd[2] = { -1, -1 } ;
    int         oldstderr = -1 ;
-   char        readbuffer[log_config_MAXSIZE+1] ;
-   char        maxstring[log_config_MAXSIZE+1] ;
+   char        readbuffer[log_config_MINSIZE+1] ;
+   char        maxstring[log_config_MINSIZE+1] ;
 
    // prepare
    memset(maxstring, '$', sizeof(maxstring)-1) ;
@@ -161,9 +161,9 @@ static int test_update(void)
       TEST(4 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
       TEST(0 == strncmp("1234", readbuffer, 4)) ;
       printf_logmain(0, i, log_flags_NONE, "%s;%d", maxstring, 1) ;
-      TEST(log_config_MAXSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
-      TEST(0 == memcmp(readbuffer, maxstring, log_config_MAXSIZE-4)) ;
-      TEST(0 == memcmp(readbuffer+log_config_MAXSIZE-4, " ...", 4)) ;
+      TEST(log_config_MINSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+      TEST(0 == memcmp(readbuffer, maxstring, log_config_MINSIZE-4)) ;
+      TEST(0 == memcmp(readbuffer+log_config_MINSIZE-4, " ...", 4)) ;
    }
 
    // unprepare

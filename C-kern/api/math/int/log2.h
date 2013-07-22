@@ -31,13 +31,15 @@
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_math_int_power2
+/* function: unittest_math_int_log2
  * Tests <log2_int>. */
 int unittest_math_int_log2(void) ;
 #endif
 
 
-// struct: int_t
+/* struct: int_t
+ * Extends functionality of generic integer. */
+struct int_t ;
 
 // group: compute
 

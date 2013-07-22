@@ -102,7 +102,7 @@ struct mm_it {
  * Static initializer. Set all fields to 0. */
 #define mm_it_INIT_FREEABLE            { 0, 0, 0 }
 
-/* define: mm_it_INIT_FREEABLE
+/* define: mm_it_INIT
  * Static initializer. Set all function pointers to the provided values.
  *
  * Parameters:

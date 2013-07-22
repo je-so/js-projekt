@@ -37,11 +37,12 @@ typedef struct log_it                     log_it ;
 /* enums: log_config_e
  * Used to configure system wide restrictions.
  *
- * log_config_MAXSIZE - The maximum size in bytes of one log entry written with <log_it.printf>.
+ * log_config_MINSIZE - The minimum size in bytes of one log entry before it is possibly truncated.
+ *                      If the buffer is bigger it is not truncated.
  *
  * */
 enum log_config_e {
-   log_config_MAXSIZE = 512
+   log_config_MINSIZE = 512
 } ;
 
 typedef enum log_config_e                 log_config_e ;
@@ -58,6 +59,7 @@ typedef enum log_config_e                 log_config_e ;
  *                       This flag implicitly ends the previous log entry if not done explicitly.
  *                       Every log output is now appended to a memory buffer and truncated if necessary
  *                       until another call sets the flag <log_flags_END>.
+ *                       This flag implicitly ends the previous log entry if not done explicitly.
  * log_flags_END       - Indicates that this is the last (or only) part of the log entry.
  *                       It is not allowed to interleave <log_flags_START> and <log_flags_END> on different channels.
  *                       The parameter channel (see <log_channel_e>) must have the same value as the value
@@ -119,7 +121,7 @@ struct log_it {
    /* variable: printf
     * Writes a new log entry to in internal buffer.
     * Parameter channel must be set to a value from <log_channel_e>.
-    * If the entry is bigger than <log_config_MAXSIZE> it may be truncated if internal buffer size is lower.
+    * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower.
     * See <logwriter_t.printf_logwriter> for an implementation. */
    void  (*printf)      (void * log, uint8_t channel, uint8_t flags, const char * format, ... ) __attribute__ ((__format__ (__printf__, 4, 5))) ;
    /* variable: flushbuffer

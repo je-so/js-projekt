@@ -52,6 +52,7 @@ int unittest_time_systimer(void) ;
 
 /* struct: systimer_t
  * Implements system timer to measure periods of time. */
+typedef sys_iochannel_t                   systimer_t ;
 
 // group: lifetime
 

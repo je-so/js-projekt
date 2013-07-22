@@ -33,7 +33,7 @@
 #endif
 
 
-// section: sysclock
+// section: sysclock_t
 
 // group: helper
 

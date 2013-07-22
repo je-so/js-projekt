@@ -274,7 +274,7 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
             _err ;                                 \
          }))
 
-/* function: nextutf8_stringstream
+/* function: peekutf8_stringstream
  * Implements <stringstream_t.peekutf8_stringstream>. */
 #define peekutf8_stringstream(strstream, uchar)    \
          (  __extension__ ({                       \

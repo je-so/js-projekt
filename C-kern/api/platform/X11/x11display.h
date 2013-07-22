@@ -168,7 +168,7 @@ sys_iochannel_t io_x11display(const x11display_t * x11disp) ;
  * In case of an internal error the number of x11_errcode is returned. */
 void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char * buffer, uint8_t buffer_size) ;
 
-/* function: errorstring_x11display
+/* function: isextxrandr_x11display
  * Returns true if xrandr extension is supported. */
 bool isextxrandr_x11display(const x11display_t * x11disp) ;
 

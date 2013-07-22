@@ -30,9 +30,9 @@ struct signalconfig_t ;
 struct vm_mappedregions_t ;
 
 
-/* typedef: resourceusage_t typedef
+/* typedef: struct resourceusage_t
  * Exports <resourceusage_t>. */
-typedef struct resourceusage_t      resourceusage_t ;
+typedef struct resourceusage_t            resourceusage_t ;
 
 
 // section: Functions
@@ -89,17 +89,17 @@ struct resourceusage_t {
 
 /* function: init_resourceusage
  * Stores the number of resources currently in use. */
-extern int init_resourceusage(/*out*/resourceusage_t * usage) ;
+int init_resourceusage(/*out*/resourceusage_t * usage) ;
 
-/* function: init_resourceusage
+/* function: free_resourceusage
  * Frees any memory which may be used to store the usage information. */
-extern int free_resourceusage(resourceusage_t * usage) ;
+int free_resourceusage(resourceusage_t * usage) ;
 
 // group: query
 
 /* function: same_resourceusage
  * Returns 0 if the numbers of resources equals the numbers stored in usage.
  * If more or less resources are in use the error EAGAIN is returned. */
-extern int same_resourceusage(const resourceusage_t * usage) ;
+int same_resourceusage(const resourceusage_t * usage) ;
 
 #endif

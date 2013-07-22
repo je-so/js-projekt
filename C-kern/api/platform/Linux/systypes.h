@@ -68,7 +68,7 @@
  * Choose Posix STDERR file descriptor number. */
 #define sys_iochannel_STDERR           STDERR_FILENO
 
-/* define: sys_iochannel_t
+/* define: sys_iochannel_INIT_FREEABLE
  * Choose Posix file descriptor type. */
 #define sys_iochannel_INIT_FREEABLE    (-1)
 

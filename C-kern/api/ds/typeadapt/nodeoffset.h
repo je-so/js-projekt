@@ -57,6 +57,7 @@ int unittest_ds_typeadapt_nodeoffset(void) ;
  * stores nodes (list nodes, tree nodes ...). The offset is always positive cause every object
  * laid out in memory extends from lower address numbers to higher ones. The start address of an object
  * is always its lowest address number. */
+typedef uint16_t           typeadapt_nodeoffset_t ;
 
 // group: lifetime
 

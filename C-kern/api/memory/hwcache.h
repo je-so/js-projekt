@@ -44,6 +44,7 @@ int unittest_memory_hwcache(void) ;
 
 /* struct: hwcache_t
  * Implicit type allows to access a hardware object. */
+struct hwcache_t ;
 
 // group: query
 

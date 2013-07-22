@@ -151,7 +151,7 @@ int new_url(/*out*/url_t ** url, const char * encodedstr) ;
  * See also <new_url>. */
 int new2_url(/*out*/url_t ** url, url_scheme_e scheme, const char * encodedstr) ;
 
-/* function: new_url
+/* function: newparts_url
  * Fills in url components from substrings describing components.
  * If parameter *are_parts_encoded* is set to true the substrings are considered
  * encoded and are therefore decoded before out parameter *url* is constructed. */

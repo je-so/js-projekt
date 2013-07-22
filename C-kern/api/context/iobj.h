@@ -34,8 +34,8 @@
  * Export <iobj_t> into global namespace. */
 typedef struct iobj_t                     iobj_t ;
 
-/* typedef: struct iobj_t
- * Define opaque type <iobj_it> which is only
+/* typedef: struct iobj_it
+ * Define generic type <iobj_it> which is only
  * used in the declaration of <iobj_t>. */
 typedef struct iobj_it                    iobj_it ;
 
@@ -128,7 +128,7 @@ struct iobj_t {
  * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
 void init_iobj(/*out*/iobj_t * iobj, void * object, void * iimpl) ;
 
-/* function: init_iobj
+/* function: initcopy_iobj
  * Generic initialization. Same as assigning <iobj_INIT>(srciobj->object, srciobj->iimpl).
  * Can be used for any declared interfaceable object (see <iobj_DECLARE>). */
 void initcopy_iobj(/*out*/iobj_t * destiobj, const iobj_t * srciobj) ;
@@ -140,7 +140,7 @@ void free_iobj(iobj_t * iobj) ;
 
 // group: generic
 
-/* function: iobj_DECLARE
+/* function: genericcast_iobj
  * Casts pointer to an interfaceable object to its standard type name.
  * The standard type name is the prefix "typenameprefix" with the suffix "_t".
  * The first parameter is the pointer to a compatible type and the second is the same
