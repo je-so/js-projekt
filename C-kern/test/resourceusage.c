@@ -52,7 +52,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    size_t               allocated_endinit ;
    memblock_t           memmapreg     = memblock_INIT_FREEABLE ;
    vm_mappedregions_t * mappedregions = 0 ;
-   signalconfig_t     * signalconfig  = 0 ;
+   signalstate_t *      signalstate   = 0 ;
 
    EMPTYCACHE_PAGECACHE() ;
 
@@ -73,7 +73,7 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    mappedregions  = (vm_mappedregions_t*) memmapreg.addr ;
    *mappedregions = (vm_mappedregions_t) vm_mappedregions_INIT_FREEABLE ;
 
-   err = new_signalconfig(&signalconfig) ;
+   err = new_signalstate(&signalstate) ;
    if (err) goto ONABORT ;
 
    err = init_vmmappedregions(mappedregions) ;
@@ -92,14 +92,14 @@ int init_resourceusage(/*out*/resourceusage_t * usage)
    usage->pagecache_usage      = pagecache_usage ;
    usage->pagecache_correction = pagecache_endinit - pagecache_usage ;
    usage->pagecache_staticusage= pagecache_staticusage ;
-   usage->signalconfig         = signalconfig ;
+   usage->signalstate          = signalstate ;
    usage->virtualmemory_usage  = mappedregions ;
 
    return 0 ;
 ONABORT:
    if (mappedregions) (void) free_vmmappedregions(mappedregions) ;
    FREE_MM(&memmapreg) ;
-   delete_signalconfig(&signalconfig) ;
+   delete_signalstate(&signalstate) ;
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
@@ -120,7 +120,7 @@ int free_resourceusage(resourceusage_t * usage)
 
    if (usage->virtualmemory_usage) {
 
-      err = delete_signalconfig(&usage->signalconfig) ;
+      err = delete_signalstate(&usage->signalstate) ;
 
       err2 = free_vmmappedregions(usage->virtualmemory_usage) ;
       if (err2) err = err2 ;
@@ -180,7 +180,7 @@ int same_resourceusage(const resourceusage_t * usage)
       goto ONABORT ;
    }
 
-   if (compare_signalconfig(usage2.signalconfig, usage->signalconfig)) {
+   if (compare_signalstate(usage2.signalstate, usage->signalstate)) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
@@ -213,7 +213,7 @@ static int test_initfree(void)
    TEST(0 == usage.pagecache_usage) ;
    TEST(0 == usage.pagecache_correction) ;
    TEST(0 == usage.pagecache_staticusage) ;
-   TEST(0 == usage.signalconfig) ;
+   TEST(0 == usage.signalstate) ;
    TEST(0 == usage.virtualmemory_usage) ;
 
    // TEST init_resourceusage, free_resourceusage
@@ -226,7 +226,7 @@ static int test_initfree(void)
    TEST(0 != usage.pagecache_usage) ;
    TEST(0 == usage.pagecache_correction) ; // change to != 0 if testmm uses pagecache !!
    TEST(0 != usage.pagecache_staticusage) ;
-   TEST(0 != usage.signalconfig) ;
+   TEST(0 != usage.signalstate) ;
    TEST(0 != usage.virtualmemory_usage) ;
    TEST(20000 > usage.malloc_correction) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -238,7 +238,7 @@ static int test_initfree(void)
    TEST(0 == usage.pagecache_usage) ;
    TEST(0 == usage.pagecache_correction) ;
    TEST(0 == usage.pagecache_staticusage) ;
-   TEST(0 == usage.signalconfig) ;
+   TEST(0 == usage.signalstate) ;
    TEST(0 == usage.virtualmemory_usage) ;
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == usage.file_usage) ;
@@ -249,7 +249,7 @@ static int test_initfree(void)
    TEST(0 == usage.pagecache_usage) ;
    TEST(0 == usage.pagecache_correction) ;
    TEST(0 == usage.pagecache_staticusage) ;
-   TEST(0 == usage.signalconfig) ;
+   TEST(0 == usage.signalstate) ;
    TEST(0 == usage.virtualmemory_usage) ;
 
    return 0 ;

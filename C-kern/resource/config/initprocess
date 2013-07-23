@@ -13,7 +13,7 @@
 "module",            "inittype",  "parameter",    "header-name"
 "errorcontext",      "initonce",  "error",        "C-kern/api/context/errorcontext.h"
 "locale",            "initonce",  "",             "C-kern/api/platform/locale.h"
-"signalconfig",      "initonce",  "",             "C-kern/api/platform/sync/signal.h"
+"signalhandler",     "initonce",  "",             "C-kern/api/platform/sync/signal.h"
 "valuecache",        "object",    "valuecache",   "C-kern/api/cache/valuecache.h"
 "sysuser",           "object",    "sysuser",      "C-kern/api/platform/sysuser.h"
 # module pagecacheblockmap needs valuecache cause of their use of virtual memory !

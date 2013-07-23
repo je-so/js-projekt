@@ -108,7 +108,7 @@ static inline bool isfree_iochannel(const iochannel_t ioc) ;
 /* function: isvalid_iochannel
  * Returns *true* if ioc is initialized and valid.
  * A return value of true implies <isfree_iochannel> returns false.
- * It checks that ioc refers to a valid iochannel
+ * The function checks that ioc refers to a valid iochannel
  * which is known to the operating system.
  * It is therefore more costly than <isfree_iochannel>. */
 bool isvalid_iochannel(const iochannel_t ioc) ;
@@ -131,7 +131,6 @@ uint8_t accessmode_iochannel(const iochannel_t ioc) ;
  * Returns:
  * 0      - Read data and bytes_read contains the number of read bytes.
  *          If bytes_read is 0 end of input (end of file) is reached.
- * EINTR  - An interrupt was received during a blocking I/O. No error log is written.
  * EAGAIN - Data stream operates in non blocking mode and no bytes could be read. No error log is written.
  * EBADF  - ioc is closed, has an invalid value or is not open for reading. */
 int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/, /*out*/size_t * bytes_read) ;
@@ -146,7 +145,6 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/,
  *
  * Returns:
  * 0      - The first *bytes_written data bytes from buffer are written.
- * EINTR  - An interrupt was received during a blocking I/O. No error log is written.
  * EAGAIN - Data stream operates in non blocking mode and no bytes could be written. No error log is written.
  * EPIPE  - Receiver has closed its connection or closed it during a blocking write. No error log is written.
  * EBADF  - ioc is closed, has an invalid value or is not open for writing.

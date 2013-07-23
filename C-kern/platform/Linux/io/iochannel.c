@@ -36,6 +36,7 @@
 #include "C-kern/api/io/ip/ipsocket.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
+#include "C-kern/api/platform/sync/signal.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
 
@@ -193,18 +194,22 @@ int read_iochannel(iochannel_t ioc, size_t size, /*out*/void * buffer/*[size]*/,
    int err ;
    ssize_t bytes ;
 
-   bytes = read(ioc, buffer, size) ;
+   for (;;) {
+      bytes = read(ioc, buffer, size) ;
 
-   if (-1 == bytes) {
-      err = errno ;
-      // non blocking io ?
-      if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
-      // or interrupted ?
-      if (EINTR == err) return err ;
-      TRACESYSCALL_ERRLOG("read", err) ;
-      PRINTINT_ERRLOG(ioc) ;
-      PRINTSIZE_ERRLOG(size) ;
-      goto ONABORT ;
+      if (-1 == bytes) {
+         err = errno ;
+         // non blocking io ?
+         if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
+         // or interrupted ?
+         if (EINTR == err) continue ;
+         TRACESYSCALL_ERRLOG("read", err) ;
+         PRINTINT_ERRLOG(ioc) ;
+         PRINTSIZE_ERRLOG(size) ;
+         goto ONABORT ;
+      }
+
+      break ;
    }
 
    if (bytes_read) {
@@ -224,18 +229,23 @@ int write_iochannel(iochannel_t ioc, size_t size, const void * buffer/*[size]*/,
 
    VALIDATE_INPARAM_TEST(size <= SSIZE_MAX, ONABORT, ) ;
 
-   bytes = write(ioc, buffer, size) ;
+   for (;;) {
+      bytes = write(ioc, buffer, size) ;
 
-   if (-1 == bytes) {
-      err = errno ;
-      // non blocking io ?
-      if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
-      // or interrupted ?
-      if (EINTR == err || EPIPE == err) return err ;
-      TRACESYSCALL_ERRLOG("write", err) ;
-      PRINTINT_ERRLOG(ioc) ;
-      PRINTSIZE_ERRLOG(size) ;
-      goto ONABORT ;
+      if (-1 == bytes) {
+         err = errno ;
+         // non blocking io ?
+         if (EAGAIN == err || EWOULDBLOCK == err) return EAGAIN ;
+         if (EPIPE == err) return err ;
+         // or interrupted ?
+         if (EINTR == err) continue ;
+         TRACESYSCALL_ERRLOG("write", err) ;
+         PRINTINT_ERRLOG(ioc) ;
+         PRINTSIZE_ERRLOG(size) ;
+         goto ONABORT ;
+      }
+
+      break ;
    }
 
    if (bytes_written) {
@@ -447,12 +457,10 @@ ONABORT:
    return EINVAL ;
 }
 
-static volatile unsigned s_sigusr1_count = 0 ;
-
 static void sigusr1_handler(int signr)
 {
    assert(signr == SIGUSR1) ;
-   ++ s_sigusr1_count ;
+   send_signalrt(0, 0) ;
 }
 
 static volatile size_t s_thread_count     = 0 ;
@@ -514,7 +522,7 @@ static int thread_readerror(threadarg_t * arg)
 {
    s_thread_isrunning = true ;
 
-   int err = read_iochannel(arg->ioc, arg->size, arg->buffer, 0) ;
+   int err = read_iochannel(arg->ioc, 1, arg->buffer, 0) ;
    ++ s_thread_count ;
 
    s_thread_isrunning = false ;
@@ -529,7 +537,7 @@ static int thread_writeerror(threadarg_t * arg)
    ++ s_thread_count ;
 
    if (0 == err) {
-      err = write_iochannel(arg->ioc, arg->size, arg->buffer, 0) ;
+      err = write_iochannel(arg->ioc, 1, arg->buffer, 0) ;
       ++ s_thread_count ;
    }
 
@@ -583,7 +591,7 @@ static int test_readwrite(directory_t * tempdir)
       TEST(0 == free_iochannel(&pipeioc[0])) ;
       TEST(0 == free_iochannel(&pipeioc[1])) ;
    }
-   TEST(buffersize <= 1024*1204) ;   // thread_readerror, thread_writeerror uses twice the buffersize
+   TEST(buffersize <= 1024*1204) ;
 
    // TEST read_iochannel: blocking I/O
    TEST(0 == pipe2(pipeioc, O_CLOEXEC)) ;
@@ -694,42 +702,46 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == free_iochannel(&pipeioc[0])) ;
    TEST(0 == free_iochannel(&pipeioc[1])) ;
 
-   // TEST read_iochannel: interrupt (EINTR)
+   // TEST read_iochannel: no EINTR !!
    TEST(0 == pipe2(pipeioc, O_CLOEXEC)) ;
-   s_sigusr1_count = 0 ;
-   s_thread_count  = 0 ;
+   s_thread_count = 0 ;
    threadarg = (threadarg_t) { pipeioc[0], buffer[1].addr, buffersize } ;
    TEST(0 == newgeneric_thread(&thread, &thread_readerror, &threadarg)) ;
    while (!s_thread_isrunning) {
       yield_thread() ;
    }
+   while (0 == trywait_signalrt(0, 0)) ;
+   pthread_kill(thread->sys_thread, SIGUSR1) ;
+   TEST(0 == wait_signalrt(0, 0)) ; // wait for SIGUSR1 processed
    TEST(0 == s_thread_count) ;
    TEST(1 == s_thread_isrunning) ;
-   pthread_kill(thread->sys_thread, SIGUSR1) ;
+   TEST(1 == write(pipeioc[1], buffer[0].addr, 1)) ;
    TEST(0 == join_thread(thread)) ;
-   TEST(1 == s_sigusr1_count) ;
    TEST(1 == s_thread_count) ;
    TEST(0 == s_thread_isrunning) ;
-   TEST(EINTR == returncode_thread(thread)) ;
+   TEST(0 == returncode_thread(thread)) ;
    TEST(0 == delete_thread(&thread)) ;
    TEST(0 == free_iochannel(&pipeioc[0])) ;
    TEST(0 == free_iochannel(&pipeioc[1])) ;
 
-   // TEST write_iochannel: interrupt
+   // TEST write_iochannel: no EINTR !
    TEST(0 == pipe2(pipeioc, O_CLOEXEC)) ;
-   s_sigusr1_count = 0 ;
-   s_thread_count  = 0 ;
+   s_thread_count = 0 ;
    threadarg = (threadarg_t) { pipeioc[1], buffer[1].addr, buffersize } ;
    TEST(0 == newgeneric_thread(&thread, &thread_writeerror, &threadarg)) ;
    while (!s_thread_isrunning || !s_thread_count) {
       yield_thread() ;
    }
+   while (0 == trywait_signalrt(0, 0)) ;
    pthread_kill(thread->sys_thread, SIGUSR1) ;
+   TEST(0 == wait_signalrt(0, 0)) ; // wait for SIGUSR1 processed
+   TEST(1 == s_thread_count) ;
+   TEST(1 == s_thread_isrunning) ;
+   TEST(buffersize == (size_t)read(pipeioc[0], buffer[0].addr, buffersize)) ;
    TEST(0 == join_thread(thread)) ;
-   TEST(1 == s_sigusr1_count) ;
    TEST(2 == s_thread_count) ;
    TEST(0 == s_thread_isrunning) ;
-   TEST(EINTR == returncode_thread(thread)) ;
+   TEST(0 == returncode_thread(thread)) ;
    TEST(0 == delete_thread(&thread)) ;
    TEST(0 == free_iochannel(&pipeioc[0])) ;
    TEST(0 == free_iochannel(&pipeioc[1])) ;

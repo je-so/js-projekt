@@ -25,8 +25,8 @@
 #ifndef CKERN_TEST_RESOURCEUSAGE_HEADER
 #define CKERN_TEST_RESOURCEUSAGE_HEADER
 
-// forward references
-struct signalconfig_t ;
+// forward
+struct signalstate_t ;
 struct vm_mappedregions_t ;
 
 
@@ -73,12 +73,12 @@ struct resourceusage_t {
    /* variable: pagecache_staticusage
     * Size of static memory allocated in <pagecache_t>. */
    size_t                        pagecache_staticusage ;
-   /* variable: signalconfig
-    * Stores configuration of signal subsystem. */
-   struct signalconfig_t       * signalconfig ;
+   /* variable: signalstate
+    * Stores configuration state of signal subsystem. */
+   struct signalstate_t *        signalstate ;
    /* variable: virtualmemory_usage
     * Layout of virtual memory. */
-   struct vm_mappedregions_t   * virtualmemory_usage ;
+   struct vm_mappedregions_t *   virtualmemory_usage ;
 } ;
 
 // group: lifetime

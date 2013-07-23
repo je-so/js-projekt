@@ -1183,10 +1183,10 @@ ONABORT:
 static int thread_suspend(intptr_t signr)
 {
    int err ;
-   err = send_rtsignal((rtsignal_t)signr) ;
+   err = send_signalrt((signalrt_t)signr, 0) ;
    if (!err) {
       suspend_thread() ;
-      err = send_rtsignal((rtsignal_t)(signr+1)) ;
+      err = send_signalrt((signalrt_t)(signr+1), 0) ;
    }
    return err ;
 }
@@ -1200,7 +1200,7 @@ static int thread_resume(thread_t * receiver)
 static int thread_waitsuspend(intptr_t signr)
 {
    int err ;
-   err = wait_rtsignal((rtsignal_t)signr, 1) ;
+   err = wait_signalrt((signalrt_t)signr, 0) ;
    if (!err) {
       suspend_thread() ;
    }
@@ -1227,45 +1227,45 @@ static int test_suspendresume(void)
    }
 
    // TEST suspend_thread: thread suspends
-   TEST(EAGAIN == trywait_rtsignal(0)) ;
-   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(EAGAIN == trywait_signalrt(0, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(1, 0)) ;
    TEST(0 == newgeneric_thread(&thread1, thread_suspend, 0)) ;
-   TEST(0 == wait_rtsignal(0, 1)) ;
-   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(0 == wait_signalrt(0, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(1, 0)) ;
    // now suspended
 
    // TEST resume_thread: main thread resumes suspended thread
    resume_thread(thread1) ;
    TEST(0 == join_thread(thread1)) ;
    TEST(0 == returncode_thread(thread1)) ;
-   TEST(0 == trywait_rtsignal(1)) ;
+   TEST(0 == trywait_signalrt(1, 0)) ;
    TEST(0 == delete_thread(&thread1)) ;
 
    // TEST resume_thread: other threads resume suspended thread
-   TEST(EAGAIN == trywait_rtsignal(0)) ;
-   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(EAGAIN == trywait_signalrt(0, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(1, 0)) ;
    TEST(0 == newgeneric_thread(&thread1, &thread_suspend, 0)) ;
-   TEST(0 == wait_rtsignal(0, 1)) ;
-   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(0 == wait_signalrt(0, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(1, 0)) ;
    TEST(0 == newgeneric_thread(&thread2, &thread_resume, thread1)) ;
    TEST(0 == join_thread(thread2)) ;
    TEST(0 == join_thread(thread1)) ;
    TEST(0 == returncode_thread(thread1)) ;
    TEST(0 == returncode_thread(thread2)) ;
-   TEST(0 == trywait_rtsignal(1)) ;
+   TEST(0 == trywait_signalrt(1, 0)) ;
    TEST(0 == delete_thread(&thread1)) ;
    TEST(0 == delete_thread(&thread2)) ;
 
    // TEST resume_thread: main thread resumes threads before they called suspend_thread
    //                     test that resume_thread is preserved !
-   TEST(EAGAIN == trywait_rtsignal(0)) ;
-   TEST(EAGAIN == trywait_rtsignal(1)) ;
+   TEST(EAGAIN == trywait_signalrt(0, 0)) ;
+   TEST(EAGAIN == trywait_signalrt(1, 0)) ;
    TEST(0 == newgeneric_thread(&thread1, thread_waitsuspend, 0)) ;
    TEST(0 == newgeneric_thread(&thread2, thread_waitsuspend, 0)) ;
    resume_thread(thread1) ;
    resume_thread(thread2) ;
-   TEST(0 == send_rtsignal(0)) ; // start threads
-   TEST(0 == send_rtsignal(0)) ;
+   TEST(0 == send_signalrt(0, 0)) ; // start threads
+   TEST(0 == send_signalrt(0, 0)) ;
    TEST(0 == join_thread(thread1)) ;
    TEST(0 == join_thread(thread2)) ;
    TEST(0 == returncode_thread(thread1)) ;

@@ -28,7 +28,7 @@
 #ifndef CKERN_DS_TYPEADAPT_GETHASH_HEADER
 #define CKERN_DS_TYPEADAPT_GETHASH_HEADER
 
-// forward:
+// forward
 struct typeadapt_t ;
 struct typeadapt_object_t ;
 

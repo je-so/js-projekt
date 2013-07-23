@@ -41,7 +41,7 @@
  * All calls are delegated to a temporary <logwriter_t> object. */
 struct logmain_t ;
 
-// group: forward
+// forward
 
 static void printf_logmain(void * log, uint8_t channel, uint8_t flags, const char * format, ... ) __attribute__ ((__format__ (__printf__, 4, 5))) ;
 static void flushbuffer_logmain(void * log) ;

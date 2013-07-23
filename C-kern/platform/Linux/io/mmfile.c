@@ -161,15 +161,8 @@ int init_mmfile(/*out*/mmfile_t * mfile, const char * file_path, off_t file_offs
    err = init2_mmfile(mfile, 0, fd, file_offset, size, mode) ;
    if (err) goto ONABORT ;
 
-   if (fd != -1) {
-      err = close(fd) ;
-      fd  = -1 ;
-      if (err) {
-         err = errno ;
-         TRACESYSCALL_ERRLOG("close", err) ;
-         goto ONABORT ;
-      }
-   }
+   // do not check for error (should always work)
+   (void) close(fd) ;
 
    return 0 ;
 ONABORT:
@@ -206,7 +199,7 @@ int free_mmfile(mmfile_t * mfile)
 
    if (0 != mfile->size) {
 
-      err = munmap( mfile->addr, mfile->size ) ;
+      err = munmap(mfile->addr, mfile->size) ;
       if (err) {
          err = errno ;
          TRACESYSCALL_ERRLOG("munmap", err) ;

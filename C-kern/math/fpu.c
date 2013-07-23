@@ -379,7 +379,7 @@ ONABORT:
 
 static int thread_testenabled(fpu_except_e * flag)
 {
-   if (         0 == wait_rtsignal(4, 1)
+   if (         0 == wait_signalrt(4, 0)
          && *flag == getenabled_fpuexcept()
          && (fpu_except_MASK_ALL & ~*flag) == getsignaled_fpuexcept(fpu_except_MASK_ALL)) {
       disable_fpuexcept(*flag) ;
@@ -408,23 +408,23 @@ static int test_fpuexcept_thread(void)
    TEST(0 == disable_fpuexcept(fpu_except_MASK_ALL)) ;
 
    // TEST thread inherits fpu settings and does not change settings in main thread
-   TEST(EAGAIN == trywait_rtsignal(4)) ;
+   TEST(EAGAIN == trywait_signalrt(4, 0)) ;
    for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
       TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
       TEST(0 == enable_fpuexcept(exceptflags[i])) ;
       TEST(0 == signal_fpuexcept(fpu_except_MASK_ALL & ~exceptflags[i])) ;
       TEST(0 == newgeneric_thread(&thread1, &thread_testenabled, &exceptflags[i])) ;
-      TEST(0 == send_rtsignal(4)) ;
+      TEST(0 == send_signalrt(4, 0)) ;
       TEST(0 == join_thread(thread1)) ;
       TEST(0 == returncode_thread(thread1)) ;
       TEST(0 == delete_thread(&thread1)) ;
       TEST(exceptflags[i] == getenabled_fpuexcept()) ;
       TEST(0 == disable_fpuexcept(exceptflags[i])) ;
    }
-   TEST(EAGAIN == trywait_rtsignal(4)) ;
+   TEST(EAGAIN == trywait_signalrt(4, 0)) ;
 
    // TEST changes in main thread are also local
-   TEST(EAGAIN == trywait_rtsignal(4)) ;
+   TEST(EAGAIN == trywait_signalrt(4, 0)) ;
    for (unsigned i = 0; i < lengthof(exceptflags); ++i) {
       TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
       TEST(0 == enable_fpuexcept(exceptflags[i])) ;
@@ -433,13 +433,13 @@ static int test_fpuexcept_thread(void)
       TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;
       if (exceptflags[i])  { TEST(0 == disable_fpuexcept(exceptflags[i])) ; }
       else                 { TEST(0 == enable_fpuexcept(fpu_except_INVALID)) ; }
-      TEST(0 == send_rtsignal(4)) ;
+      TEST(0 == send_signalrt(4, 0)) ;
       TEST(0 == join_thread(thread1)) ;
       TEST(0 == returncode_thread(thread1)) ;
       TEST(0 == delete_thread(&thread1)) ;
       TEST(0 == disable_fpuexcept(fpu_except_INVALID)) ;
    }
-   TEST(EAGAIN == trywait_rtsignal(4)) ;
+   TEST(EAGAIN == trywait_signalrt(4, 0)) ;
 
    // unprepare
    TEST(0 == clear_fpuexcept(fpu_except_MASK_ALL)) ;

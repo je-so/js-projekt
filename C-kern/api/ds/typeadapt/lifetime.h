@@ -28,7 +28,7 @@
 #ifndef CKERN_DS_TYPEADAPT_LIFETIME_HEADER
 #define CKERN_DS_TYPEADAPT_LIFETIME_HEADER
 
-// forward:
+// forward
 struct typeadapt_t ;
 struct typeadapt_object_t ;
 

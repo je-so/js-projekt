@@ -129,7 +129,7 @@ static int inithelper2_processcontext(processcontext_t * pcontext)
 static int inithelper3_processcontext(processcontext_t * pcontext)
 {
    (void) pcontext ;
-   return initonce_signalconfig() ;
+   return initonce_signalhandler() ;
 }
 
 static int inithelper7_processcontext(processcontext_t * pcontext)
@@ -180,7 +180,7 @@ static int freehelper2_processcontext(processcontext_t * pcontext)
 static int freehelper3_processcontext(processcontext_t * pcontext)
 {
    (void) pcontext ;
-   return freeonce_signalconfig() ;
+   return freeonce_signalhandler() ;
 }
 
 static int freehelper7_processcontext(processcontext_t * pcontext)

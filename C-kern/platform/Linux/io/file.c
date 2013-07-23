@@ -814,7 +814,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(bytes_written == bytes_read /*has not changed*/) ;
    TEST(0 == FREE_MM(&buffer)) ;
 
-   // TEST read_file: read with interrupts
+   // TEST read_file: interrupt ignored
    TEST(0 == free_file(&pipefd[0])) ;
    TEST(0 == free_file(&pipefd[1])) ;
    TEST(0 == pipe2(pipefd, O_CLOEXEC)) ;
@@ -833,13 +833,15 @@ static int test_readwrite(directory_t * tempdir)
    s_siguser_count  = 0 ;
    s_siguser_thread = 0 ;
    pthread_kill(thread->sys_thread, SIGUSR1) ;
+   byte = 200 ;
+   TEST(1 == write(pipefd[1], &byte, 1)) ;
    TEST(0 == join_thread(thread)) ;
-   TEST(EINTR == returncode_thread(thread)) ;
-   TEST(1 == s_siguser_count) ;
-   TEST(thread == s_siguser_thread) ;
+   TEST(0 == returncode_thread(thread)) ;
+   TEST(s_siguser_count  == 1) ;
+   TEST(s_siguser_thread == thread) ;
    TEST(0 == delete_thread(&thread)) ;
 
-   // TEST write with interrupts
+   // TEST write_file: interrupt ignored
    for (size_t i = 0; i < pipe_buffersize; ++i) {
       byte = 0 ;
       TEST(0 == write_file(pipefd[1], 1, &byte, 0)) ;
@@ -847,14 +849,17 @@ static int test_readwrite(directory_t * tempdir)
    startarg.fd = pipefd[1] ;
    TEST(0 == newgeneric_thread(&thread, thread_writer, &startarg)) ;
    suspend_thread() ;
-   sleepms_thread(100) ;
+   sleepms_thread(50) ;
    s_siguser_count  = 0 ;
    s_siguser_thread = 0 ;
    pthread_kill(thread->sys_thread, SIGUSR1) ;
+   for (size_t i = 0; i < pipe_buffersize; ++i) {
+      TEST(0 == read_file(pipefd[0], 1, &byte, 0)) ;
+   }
    TEST(0 == join_thread(thread)) ;
-   TEST(EINTR == returncode_thread(thread)) ;
-   TEST(1 == s_siguser_count) ;
-   TEST(thread == s_siguser_thread) ;
+   TEST(0 == returncode_thread(thread)) ;
+   TEST(s_siguser_count  == 1) ;
+   TEST(s_siguser_thread == thread) ;
    TEST(0 == delete_thread(&thread)) ;
 
    // TEST write_file: EPIPE, write with receiving end closed during write

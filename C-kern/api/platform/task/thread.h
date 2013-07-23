@@ -92,7 +92,7 @@ struct thread_t {
    uint8_t *         tls_addr ;
    /* variable: continuecontext
     * Contains thread machine context before <main_task> is called.
-    * This context could be is used in any aborthandler.
+    * This context could be used in any aborthandler.
     * The aborthandler should call <abort_thread> which sets returncode to value ENOTRECOVERABLE
     * and calls setcontext (see: man 2 setcontext) with <continuecontext> as argument. */
    ucontext_t        continuecontext ;
@@ -248,13 +248,13 @@ void abort_thread(void) ;
 
 /* function: setcontinue_thread
  * Stores the current execution context and returns 0 on success.
- * Parameter is_abort is set to false if <setcontinue_thread> is called
- * to store the execution context where execution should continue after
- * <abort_thread> has been called.
+ * Parameter is_abort is set to false if <setcontinue_thread> stored
+ * the execution context where execution should continue if
+ * <abort_thread> will be called.
  * Parameter is_abort is set to true if <setcontinue_thread> returns as
- * a reaction to a previous call to <abort_thread>.
+ * a reaction to a call to <abort_thread>.
  * For any started thread <setcontinue_thread> is called before thread_main
- * (parameter in <new_thread>) is called. The main thread which calls <init_maincontext>
+ * (parameter in <new_thread>) will be called. The main thread which calls <init_maincontext>
  * must call <setcontinue_thread> explicitly. */
 int setcontinue_thread(bool * is_abort) ;
 

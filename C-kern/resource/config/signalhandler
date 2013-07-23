@@ -1,0 +1,14 @@
+# TEXT.DB (1.0)
+# documentation:
+# List of signals which are used in the system by different modules.
+# The signal mask and handlers are initialized once during init_maincontext()
+# The supported actions are
+# block   - Blocks signal number
+# block2  - Blocks signal range startnr,endnr
+# ignore  - Ignores signal number
+# unblock - Unblocks signal number (default action is executed)
+# set     - Unblocks signal and sets handler as signal handler
+"signal",            "action",   "handler",          "header",                    "description"
+"SIGINT",            "block",    "",                 "",                          "used to suspend and resume a single thread"
+"SIGPIPE",           "ignore",   "",                 "",                          "ensures that calls to write return EPIPE"
+"SIGRTMIN,SIGRTMAX", "block2",   "",                 "",                          "SIGRTMIN ... SIGRTMAX are blocked and used in send_signalrt"
