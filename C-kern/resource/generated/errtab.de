@@ -257,7 +257,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0xff] = 4826 /*same as 0x85*/
 } ;
 
-uint8_t g_errorcontext_strdata[4840] = {
+uint8_t g_errorcontext_strdata[4845] = {
    "Erfolg\0"
    "Die Operation ist nicht erlaubt\0"
    "Datei oder Verzeichnis nicht gefunden\0"
@@ -391,5 +391,5 @@ uint8_t g_errorcontext_strdata[4840] = {
    "Der Eigentümer-Prozess wurde beendet\0"
    "Der Status ist nicht wiederherstellbar\0"
    "Die Operation ist nicht möglich wegen RF-kill\0"
-   "Unknown error\0"
+   "Unbekannter Fehler\0"
 } ;

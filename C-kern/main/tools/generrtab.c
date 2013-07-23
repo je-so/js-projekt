@@ -65,7 +65,12 @@ static size_t errnomax_errtable(void)
 
 static const char * strerror2(size_t errnr)
 {
-   return errnr <= errnomax_errtable() ? strerror((int)errnr) : "Unknown error" ;
+   static char s_unknownerr[100] = { 0 } ;
+   if (errnr <= errnomax_errtable()) return strerror((int)errnr) ;
+   strncpy(s_unknownerr, strerror((int)errnomax_errtable()+1), sizeof(s_unknownerr)-1u) ;
+   char * eos = strrchr(s_unknownerr, ' ') ;
+   if (eos) *eos = 0 ;
+   return s_unknownerr ;
 }
 
 static int writestring_errtable(file_t file, const char * string)

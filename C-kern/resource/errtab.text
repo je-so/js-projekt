@@ -442,7 +442,7 @@ en: "State not recoverable"
 de: "Die Operation ist nicht möglich wegen RF-kill"
 en: "Operation not possible due to RF-kill"
 0x85
-de: "Unknown error"
+de: "Unbekannter Fehler"
 en: "Unknown error"
 0x86 -> 0x85
 0x87 -> 0x85
