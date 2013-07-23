@@ -148,7 +148,28 @@ int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*
 ONABORT:
    if (  err != ENODATA       // readbuffer
          && err != ENOBUFS    // readbuffer
-         && err != ioerror_filereader(frd)   // readbuffer
+         && err != EILSEQ) {
+      TRACEABORT_ERRLOG(err) ;
+   }
+   return err ;
+}
+
+int skipuntilafter_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, char32_t uchar)
+{
+   int err ;
+   char32_t nextchar ;
+
+   VALIDATE_INPARAM_TEST(uchar <= maxchar_utf8(), ONABORT, ) ;
+
+   do {
+      err = nextchar_utf8scanner(scan, frd, &nextchar) ;
+      if (err) goto ONABORT ;
+   } while (nextchar != uchar) ;
+
+   return 0 ;
+ONABORT:
+   if (  err != ENODATA       // readbuffer
+         && err != ENOBUFS    // readbuffer
          && err != EILSEQ) {
       TRACEABORT_ERRLOG(err) ;
    }
@@ -733,14 +754,14 @@ static int test_read(directory_t * tempdir)
       memset(addr_memblock(&mem), 0, 7) ;
       size_t offset = 7 ;
       for (size_t i = 0; offset < BUFSZ-sizemax_utf8(); ++i, offset += mbslen) {
-         char32_t chr = 0 ;
          switch (mbslen) {
-         case 1:  chr = (i & 0x7f) ;      break ;
-         case 2:  chr = ((0x80 + i) & 0x7ff) ; if (chr < 0x80) chr += 0x80 ; break ;
-         case 3:  chr = (0x800 + i) ;     break ;
-         case 4:  chr = (0x10000 + i) ;   break ;
+         case 1:  uchar = (i & 0x7f) ;      break ;
+         case 2:  uchar = 0x80 + i % (0x800-0x80) ; break ;
+         case 3:  uchar = (0x800 + i) ;     break ;
+         case 4:  uchar = (0x10000 + i) ;   break ;
+         default: TEST(0) ; break ;
          }
-         uint8_t chrlen = encodechar_utf8(sizemax_utf8(), addr_memblock(&mem)+offset, chr) ;
+         uint8_t chrlen = encodechar_utf8(sizemax_utf8(), addr_memblock(&mem)+offset, uchar) ;
          TEST(chrlen == mbslen) ;
       }
       memset(addr_memblock(&mem)+offset, 0, BUFSZ-offset) ;
@@ -770,7 +791,7 @@ static int test_read(directory_t * tempdir)
          cleartoken_utf8scanner(&scan, &freader) ;
          switch (mbslen) {
          case 1:  chr = (i & 0x7f) ;      break ;
-         case 2:  chr = ((0x80 + i) & 0x7ff) ; if (chr < 0x80) chr += 0x80 ; break ;
+         case 2:  chr = 0x80 + i % (0x800-0x80) ; break ;
          case 3:  chr = (0x800 + i) ;     break ;
          case 4:  chr = (0x10000 + i) ;   break ;
          }
@@ -803,6 +824,7 @@ static int test_read(directory_t * tempdir)
    TEST(0 == free_filereader(&freader)) ;
 
    // TEST nextchar_utf8scanner: EILSEQ
+   memset(addr_memblock(&mem), 0, sizebuffer_filereader()+1) ;
    for (unsigned i = 0; i <= 10; ++i) {
       addr_memblock(&mem)[i] = (uint8_t) (0xf5 + i) ;  // illegal first byte (must be skipped)
    }
@@ -841,6 +863,7 @@ static int test_read(directory_t * tempdir)
    TEST(0 == free_filereader(&freader)) ;
 
    // TEST nextchar_utf8scanner: EILSEQ (read next buffer returns ENODATA)
+   memset(addr_memblock(&mem), 0, 2*sizebuffer_filereader()-1) ;
    addr_memblock(&mem)[2*sizebuffer_filereader()-1] = 240 ;
    TEST(0 == removefile_directory(tempdir, "read")) ;
    TEST(0 == save_file("read", 2*sizebuffer_filereader(), addr_memblock(&mem), tempdir)) ;
@@ -857,6 +880,126 @@ static int test_read(directory_t * tempdir)
    TEST(EILSEQ == nextchar_utf8scanner(&scan, &freader, &uchar)) ;
    // skipped
    TEST(1 == iseof_filereader(&freader)) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST skipuntilafter_utf8scanner
+   for (size_t mbslen = 1; mbslen <= sizemax_utf8(); ++mbslen) {
+      memset(addr_memblock(&mem), 0, 3) ;
+      size_t offset = 3 ;
+      for (size_t i = 0; offset <= BUFSZ-mbslen; ++i, offset += mbslen) {
+         switch (mbslen) {
+         case 1:  uchar = i & 0x7f ;      break ;
+         case 2:  uchar = 0x80 + i % (0x800-0x80) ; break ;
+         case 3:  uchar = 0x800 + i ;     break ;
+         case 4:  uchar = 0x10000 + i ;   break ;
+         default: TEST(0) ; break ;
+         }
+         uint8_t chrlen = encodechar_utf8(mbslen, addr_memblock(&mem)+offset, uchar) ;
+         TEST(chrlen == mbslen) ;
+      }
+      memset(addr_memblock(&mem)+offset, 0, BUFSZ-offset) ;
+      TEST(0 == removefile_directory(tempdir, "read")) ;
+      TEST(0 == save_file("read", BUFSZ, addr_memblock(&mem), tempdir)) ;
+      TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+      TEST(0 == init_utf8scanner(&scan)) ;
+      size_t B = sizebuffer_filereader()/2 ;
+      // skip 0 bytes at beginning
+      for (offset = 1; offset <= 3; ++offset) {
+         TEST(0 == skipuntilafter_utf8scanner(&scan, &freader, 0)) ;
+         TEST(B-offset == sizeunread_utf8scanner(&scan)) ;
+      }
+      for (size_t i = 0, step = 1; true; i += step, offset += step*mbslen, step = 1 + step % 5) {
+         switch (mbslen) {
+         case 1:  uchar = i & 0x7f ;      break ;
+         case 2:  uchar = 0x80 + i % (0x800-0x80) ; break ;
+         case 3:  uchar = 0x800 + i ;     break ;
+         case 4:  uchar = 0x10000 + i ;   break ;
+         }
+         if (offset > BUFSZ-mbslen) break ;
+         TEST(0 == skipuntilafter_utf8scanner(&scan, &freader, uchar)) ;
+         ++ i ;
+         switch (mbslen) {
+         case 1:  uchar = i & 0x7f ;      break ;
+         case 2:  uchar = 0x80 + i % (0x800-0x80) ; break ;
+         case 3:  uchar = 0x800 + i ;     break ;
+         case 4:  uchar = 0x10000 + i ;   break ;
+         }
+         -- i ;
+         char32_t uchar2 = 0 ;
+         TEST(0 == nextchar_utf8scanner(&scan, &freader, &uchar2)) ;
+         TEST(uchar2 == uchar) ;
+         TEST(0 == unread_utf8scanner(&scan, &freader, 1)) ;
+         TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+      }
+      // ENODATA
+      TEST(ENODATA == skipuntilafter_utf8scanner(&scan, &freader, uchar)) ;
+      TEST(0 == free_utf8scanner(&scan, &freader)) ;
+      TEST(0 == free_filereader(&freader)) ;
+   }
+
+   // TEST skipuntilafter_utf8scanner: EINVAL
+   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   TEST(EINVAL == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8()+1)) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST skipuntilafter_utf8scanner: ENOBUFS
+   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   scan.next = scan.end ; // empty buffer
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   scan.next = scan.end ; // empty buffer
+   TEST(ENOBUFS == skipuntilafter_utf8scanner(&scan, &freader, 0)) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST skipuntilafter_utf8scanner: EILSEQ
+   size_t B = sizebuffer_filereader()/2 ;
+   memset(addr_memblock(&mem), 0, BUFSZ) ;
+   TEST(2 == encodechar_utf8(2, addr_memblock(&mem)+B-1, 0x80)) ;
+   addr_memblock(&mem)[B] = 0 ;
+   TEST(3 == encodechar_utf8(3, addr_memblock(&mem)+2*B-2, 0x800)) ;
+   addr_memblock(&mem)[2*B] = 0 ;
+   TEST(4 == encodechar_utf8(4, addr_memblock(&mem)+3*B-3, 0x10000)) ;
+   addr_memblock(&mem)[3*B] = 0 ;
+   TEST(4 == encodechar_utf8(4, addr_memblock(&mem)+3*B+1, 0x10000)) ;
+   addr_memblock(&mem)[3*B+4] = 0 ;
+   addr_memblock(&mem)[4*B-1] = addr_memblock(&mem)[B-1] ;   // ENODATA => EILSEQ
+   TEST(0 == removefile_directory(tempdir, "read")) ;
+   TEST(0 == save_file("read", 4*B, addr_memblock(&mem), tempdir)) ;
+   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   TEST(EILSEQ == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8())) ;
+   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+   TEST(EILSEQ == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8())) ;
+   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+   TEST(EILSEQ == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8())) ;
+   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+   TEST(EILSEQ == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8())) ;
+   TEST(EILSEQ == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8())) ;
+   TEST(iseof_filereader(&freader)) ;
+   TEST(ENODATA == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8())) ;
+   TEST(0 == free_utf8scanner(&scan, &freader)) ;
+   TEST(0 == free_filereader(&freader)) ;
+
+   // TEST skipuntilafter_utf8scanner: EILSEQ (last buffer contains only 1 byte)
+   memset(addr_memblock(&mem), 0, 2*B+1) ;
+   TEST(4 == encodechar_utf8(4, addr_memblock(&mem)+2*B-1, 0x10000)) ;
+   TEST(0 == removefile_directory(tempdir, "read")) ;
+   TEST(0 == save_file("read", 2*B+1, addr_memblock(&mem), tempdir)) ;
+   TEST(0 == init_filereader(&freader, "read", tempdir)) ;
+   TEST(0 == init_utf8scanner(&scan)) ;
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   scan.next = scan.end ; // empty buffer
+   TEST(0 == readbuffer_utf8scanner(&scan, &freader)) ;
+   TEST(0 == cleartoken_utf8scanner(&scan, &freader)) ;
+   scan.next = scan.end - 1 ;
+   TEST(EILSEQ == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8())) ;
+   TEST(iseof_filereader(&freader)) ;
+   TEST(ENODATA == skipuntilafter_utf8scanner(&scan, &freader, maxchar_utf8())) ;
    TEST(0 == free_utf8scanner(&scan, &freader)) ;
    TEST(0 == free_filereader(&freader)) ;
 

@@ -61,11 +61,11 @@ int unittest_string_utf8(void) ;
 
 // group: query
 
-/* function: charmax_utf8
+/* function: maxchar_utf8
  * Returns the maximum code point which can be encoded into utf-8.
  * The minumum unicode code point is 0.
  * The returned value is 0x10FFFF. */
-char32_t charmax_utf8(void) ;
+char32_t maxchar_utf8(void) ;
 
 /* function: sizemax_utf8
  * Returns the maximum number of bytes of an utf-8 encoded character can use. */
@@ -147,7 +147,7 @@ uint8_t decodechar_utf8(size_t strsize, const uint8_t strstart[strsize], /*out*/
 /* function: encodechar_utf8
  * Encodes uchar into UTF-8 enocoded string of size strsize starting at strstart.
  * The number of written bytes are returned. The maximum return value is <sizemax_utf8>.
- * A return value of 0 indicates an error. Either uchar is greater then <charmax_utf8>
+ * A return value of 0 indicates an error. Either uchar is greater then <maxchar_utf8>
  * or strsize is not big enough. */
 uint8_t encodechar_utf8(size_t strsize, /*out*/uint8_t strstart[strsize], char32_t uchar) ;
 
@@ -210,7 +210,7 @@ void skipillegalutf8_strstream(struct stringstream_t * strstream) ;
  * Searches for unicode character in utf8 encoded stringstream.
  * The returned value points to the start addr of the multibyte sequence
  * in the unread buffer. A return value of 0 inidcates that *strstream* does not contain the multibyte sequence
- * or that uchar is bigger than <charmax_utf8> and therefore invalid. */
+ * or that uchar is bigger than <maxchar_utf8> and therefore invalid. */
 const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, char32_t uchar) ;
 
 
@@ -219,9 +219,9 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
 
 // group: utf8_t
 
-/* function: charmax_utf8
- * Implements <utf8.charmax_utf8>. */
-#define charmax_utf8()                    ((char32_t)0x10ffff)
+/* function: maxchar_utf8
+ * Implements <utf8.maxchar_utf8>. */
+#define maxchar_utf8()                    ((char32_t)0x10ffff)
 
 /* function: isfirstbyte_utf8
  * Implements <utf8.isfirstbyte_utf8>. */

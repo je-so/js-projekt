@@ -154,6 +154,12 @@ void skipbytes_utf8scanner(utf8scanner_t * scan, size_t nrbytes) ;
  * For any other returned error values see <readbuffer_utf8scanner>. */
 int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*/char32_t * uchar) ;
 
+/* function: skipuntilafter_utf8scanner
+ * Skips characters until the last skipped character was uchar.
+ * Returns EILSEQ in case of an illegal character sequence and ENODATA or ENOBUFS if uchar is not found.
+ * ENOBUFS means the scanned token is too long. */
+int skipuntilafter_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, char32_t uchar) ;
+
 // group: buffer I/O
 
 /* function: cleartoken_utf8scanner

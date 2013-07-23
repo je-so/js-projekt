@@ -470,8 +470,8 @@ static int test_utf8(void)
       (const uint8_t *) "\x7f"
    } ;
 
-   // TEST charmax_utf8
-   TEST(0x10ffff == charmax_utf8()) ;
+   // TEST maxchar_utf8
+   TEST(0x10ffff == maxchar_utf8()) ;
 
    // TEST sizemax_utf8
    TEST(4 == sizemax_utf8()) ;
@@ -683,7 +683,7 @@ static int test_readstrstream(void)
    uint32_t       uchar2      = 0 ;
 
    // TEST nextutf8_stringstream, peekutf8_stringstream, skiputf8_stringstream: all characters
-   for (char32_t i = 0; i < charmax_utf8(); ++i) {
+   for (char32_t i = 0; i < maxchar_utf8(); ++i) {
       uint8_t buffer[sizemax_utf8()] ;
       uint8_t len = encodechar_utf8(sizemax_utf8(), buffer, i) ;
       TEST(0 == init_stringstream(&strstream, buffer, buffer+sizemax_utf8())) ;
