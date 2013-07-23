@@ -117,9 +117,9 @@ static int test_query(void)
       TEST(lengthof(g_errorcontext_strdata) == g_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]+strlen(errstr)+1) ;
    }
 
-   // TEST str_errorcontext: 0 <= errno <= 255
-   // g_errorcontext_stroffset has 256 entries so str_errorcontext can use (uint8_t) to mask index
-   TEST(256 == lengthof(g_errorcontext_stroffset)) ;
+   // TEST str_errorcontext: 0 <= errno < 512
+   // g_errorcontext_stroffset has 256(syserror) + 256(extended error) entries so str_errorcontext can use (uint8_t) to mask index
+   TEST(512 == lengthof(g_errorcontext_stroffset)) ;
    // g_errorcontext_strdata: last byte is '\0' byte
    TEST(0 == g_errorcontext_strdata[lengthof(g_errorcontext_strdata)-1]) ;
    TEST(0 != g_errorcontext_strdata[lengthof(g_errorcontext_strdata)-2]) ;

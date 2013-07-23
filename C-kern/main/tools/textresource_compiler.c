@@ -2275,10 +2275,13 @@ static int writeCtable_textresourcewriter(textresource_writer_t * writer, textre
 
       dprintf(writer->outfile, "   [%.*s] = ", (int)text->name.size, text->name.addr) ;
 
-      if (text->textref)
-         dprintf(writer->outfile, "%zu /*same as %.*s*/", text->textref->tableoffset, (int)text->textref->name.size, text->textref->name.addr) ;
-      else
+      if (text->textref) {
+         textresource_text_t * text2 = text->textref ;
+         while (text2->textref) text2 = text2->textref ;
+         dprintf(writer->outfile, "%zu /*same as %.*s*/", text2->tableoffset, (int)text->textref->name.size, text->textref->name.addr) ;
+      } else {
          dprintf(writer->outfile, "%zu", text->tableoffset) ;
+      }
 
       isPrev = true ;
    }
