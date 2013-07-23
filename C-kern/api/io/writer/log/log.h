@@ -80,11 +80,12 @@ typedef enum log_flags_e                  log_flags_e ;
 /* enums: log_channel_e
  * Used to switch between log channels.
  *
- * log_channel_CONSOLE - Uses STDERR channel for log output.
+ * log_channel_USERERR - Uses STDERR channel for log output.
  *                       This channel is used for user error messages.
- *                       The logged content is written immedaitely to the
- *                       console. Other channels buffer until the buffer
- *                       is full.
+ *                       The logged content is written immediately to STDERR
+ *                       without buffering. In case of a daemon process the
+ *                       channel should be redirected to log_channel_ERR and/or
+ *                       an additional entry into log_channel_ERR should be written.
  * log_channel_TEST    - Uses test channel for log output.
  *                       The test channel is used for additional TEST output in the running production system.
  *                       This channel is written to STDERR if not configured otherwise.
@@ -99,7 +100,7 @@ typedef enum log_flags_e                  log_flags_e ;
  *                           numbered from 0 up to (log_channel_NROFCHANNEL-1).
  * */
 enum log_channel_e {
-   log_channel_CONSOLE,
+   log_channel_USERERR,
    log_channel_TEST,
    log_channel_WARN,
    log_channel_ERR

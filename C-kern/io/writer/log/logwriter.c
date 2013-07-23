@@ -129,7 +129,7 @@ int init_logwriter(/*out*/logwriter_t * lgwrt)
    if (err) goto ONABORT ;
 
    // static configuration uses two buffers
-   static_assert(0 == log_channel_CONSOLE, "first is CONSOLE") ;
+   static_assert(0 == log_channel_USERERR, "first is CONSOLE") ;
    lgwrt->chan[0]  = 0 + (logwriter_chan_t*) lgwrt->addr ;  // STDERR + flush is default
    lgwrt->chan[1]  = 1 + (logwriter_chan_t*) lgwrt->addr ;  // STDERR + buffer is default
    for (unsigned i = 2; i < lengthof(lgwrt->chan); ++i) {
@@ -169,7 +169,7 @@ void getbuffer_logwriter(logwriter_t * lgwrt, /*out*/char ** buffer, /*out*/size
 {
    // TODO: add parameter log_channel_e
    //       do same with clearbuffer_logwriter and flushbuffer_logwriter
-   //       at this time all channels except log_channel_CONSOLE log into one buffer !
+   //       at this time all channels except log_channel_USERERR log into one buffer !
    getbuffer_logbuffer(&lgwrt->chan[log_channel_ERR]->logbuf, (uint8_t**)buffer, size) ;
 }
 
@@ -211,7 +211,7 @@ void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, cons
 
    vprintf_logbuffer(&chan->logbuf, format, args) ;
 
-   if (  log_channel_CONSOLE == channel
+   if (  log_channel_USERERR == channel
          && ! chan->isappend) {
       // flush immediately
       flush_logwriterchan(chan) ;
