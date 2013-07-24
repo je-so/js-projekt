@@ -140,9 +140,7 @@ uint8_t peekbyte_utf8scanner(utf8scanner_t * scan, size_t offset) ;
  * o Make sure nrbytes <= <sizeunread_utf8scanner> else the behaviour is undefined.
  * o Skip only whole characters (if an utf-8 character is encoded in 4 bytes
  *   then skip the whole 4 bytes).
- * o Always check that all skipped characters are encoded correctly.
- *   Else later functions could  generate undefined behaviour (security breaks in case of characters encoded not correctly and being
- *   therefore not filtered). */
+ * o The function assumes utf8 encodings are correct. */
 void skipbytes_utf8scanner(utf8scanner_t * scan, size_t nrbytes) ;
 
 /* function: nextchar_utf8scanner
@@ -150,21 +148,25 @@ void skipbytes_utf8scanner(utf8scanner_t * scan, size_t nrbytes) ;
  * This function differs from other reading function in that it calls <readbuffer_utf8scanner>
  * if the buffer is empty. It also handles the case where a multibyte character sequence is split
  * across two buffers.
- * Returns error EILSEQ in case of an illegal characater sequence. The sequence is skipped.
- * For any other returned error values see <readbuffer_utf8scanner>. */
+ * The function assumes that the data contains only valid utf8 encoded characters.
+ * But illegal encoded first bytes of multibyte sequences return error EILSEQ and the byte is skipped.
+ * Incomplete sequences at the end of the file are also recognized and EILSEQ is returned. An incomplete
+ * sequence is also skipped - the next call returns ENODATA.
+ * For any other returned error value see <readbuffer_utf8scanner>. */
 int nextchar_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, /*out*/char32_t * uchar) ;
 
 /* function: skipuntilafter_utf8scanner
- * Skips characters until the last skipped character was uchar.
- * Returns EILSEQ in case of an illegal character sequence and ENODATA or ENOBUFS if uchar is not found.
- * ENOBUFS means the scanned token is too long. */
+ * Skips characters until the last skipped character equals uchar.
+ * Returns ENODATA or ENOBUFS if uchar is not found. ENOBUFS means the scanned token is too long.
+ * The function assumes that the data contains only valid utf8 character encodings. */
 int skipuntilafter_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd, char32_t uchar) ;
 
 // group: buffer I/O
 
 /* function: cleartoken_utf8scanner
  * Clears the current token string.
- * All buffers are released which are no longer referenced by the cleared token. */
+ * All buffers are released which are no longer referenced by the cleared token.
+ * The new token starts with the next read character. */
 int cleartoken_utf8scanner(utf8scanner_t * scan, struct filereader_t * frd) ;
 
 /* function: readbuffer_utf8scanner

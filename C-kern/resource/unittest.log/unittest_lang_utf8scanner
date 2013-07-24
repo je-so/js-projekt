@@ -1,12 +1,57 @@
-[1: 1373380251.966821s]
-unread_utf8scanner() C-kern/lang/utf8scanner.c:256
+[1: 1374470034.195411s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:314
 Error 22 - Function aborted
-[1: 1373380251.966963s]
-unread_utf8scanner() C-kern/lang/utf8scanner.c:256
+[1: 1374470034.195547s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:314
 Error 22 - Function aborted
-[1: 1373380251.967096s]
-unread_utf8scanner() C-kern/lang/utf8scanner.c:256
+[1: 1374470034.195681s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:314
 Error 22 - Function aborted
-[1: 1373380251.967231s]
-unread_utf8scanner() C-kern/lang/utf8scanner.c:256
+[1: 1374470034.195814s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:314
+Error 22 - Function aborted
+[1: 1374470034.206117s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206121s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206123s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206125s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206127s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206129s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206131s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206133s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206135s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206137s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206139s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206151s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.206231s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+Error 84 - Function aborted
+[1: 1374470034.216145s]
+skipuntilafter_utf8scanner() C-kern/lang/utf8scanner.c:158
+Error 22 - Function input violates condition (utf8len != 0)
+[1: 1374470034.216150s]
+skipuntilafter_utf8scanner() C-kern/lang/utf8scanner.c:209
 Error 22 - Function aborted

@@ -41,8 +41,12 @@
 #ifndef CKERN_STRING_UTF8_HEADER
 #define CKERN_STRING_UTF8_HEADER
 
+/* typedef: struct utf8validator_t
+ * Export <utf8validator_t> into global namespace. */
+typedef struct utf8validator_t            utf8validator_t ;
+
 /* variable: g_utf8_bytesperchar
- * Returns the number of bytes from the first byte of an utf8 char. */
+ * Stores the length in bytes of an encoded utf8 character indexed by the first encoded byte. */
 extern uint8_t g_utf8_bytesperchar[256] ;
 
 
@@ -57,48 +61,48 @@ int unittest_string_utf8(void) ;
 #endif
 
 
+
 // struct: utf8
 
 // group: query
 
 /* function: maxchar_utf8
- * Returns the maximum code point which can be encoded into utf-8.
- * The minumum unicode code point is 0.
- * The returned value is 0x10FFFF. */
+ * Returns the maximum character value (unicode code point) which can be encoded into utf-8.
+ * The minumum unicode code point is 0. The returned value is 0x10FFFF. */
 char32_t maxchar_utf8(void) ;
 
-/* function: sizemax_utf8
- * Returns the maximum number of bytes of an utf-8 encoded character can use. */
-uint8_t sizemax_utf8(void) ;
+/* function: maxsize_utf8
+ * Returns the maximum size in bytes of an utf-8 encoded multibyte sequence. */
+uint8_t maxsize_utf8(void) ;
 
-/* function: islegal_utf8
- * Returns true if the first byte of an utf8 byte sequence is legal. */
-bool islegal_utf8(const uint8_t firstbyte) ;
+/* function: isvalidfirstbyte_utf8
+ * Returns true if the byte is a legal first byte of an utf8 encoded multibyte sequence. */
+bool isvalidfirstbyte_utf8(const uint8_t firstbyte) ;
 
 /* function: isfirstbyte_utf8
- * Returns true if this byte is encoded as first byte (start) of an utf-8 character sequence.
- * This function assumes correct encoding and does not check for legal encodings
- * like <islegal_utf8>. */
+ * Returns true if this byte is a possible first (start) byte of an utf-8 encoded multibyte sequence.
+ * This function assumes correct encoding therefore it is possible that <isfirstbyte_utf8>
+ * returns true and <isvalidfirstbyte_utf8> returns false. */
 bool isfirstbyte_utf8(const uint8_t firstbyte) ;
 
 /* function: sizefromfirstbyte_utf8
- * Returns the number of bytes of an utf8 encoded character.
- * The number of bytes is calculated from firstbyte - the first byte of the encoded character.
- * The returned values are in the range 0..4. A return value between 1 and 4 is OK.
- * A value of 0 indicates that the character's first byte is not encoded correctly. */
+ * Returns the size in bytes of a correct encoded mb-sequence by means of the value of its first byte.
+ * The number of bytes is calculated from firstbyte - the first byte of the encoded byte sequence.
+ * The returned values are in the range 0..4 (0..<maxsize_utf8>).
+ * A return value between 1 and 4 describes a valid first byte.
+ * A value of 0 indicates that firstbyte is not a valid first byte of an utf8 encoded byte sequence. */
 uint8_t sizefromfirstbyte_utf8(const uint8_t firstbyte) ;
 
-/* function: sizefromchar_utf8
- * Returns the number of bytes of an utf8 encoded character.
- * The number of bytes is calculated from firstbyte - the first byte of the encoded character.
- * The returned values are in the range 0..4. A return value between 1 and 4 is OK.
- * A value of 0 indicates that an the character's first byte is not encoded correctly. */
-uint8_t sizefromchar_utf8(char32_t uchar) ;
+/* function: sizechar_utf8
+ * Returns the size in bytes of uchar as encoded mb-sequence.
+ * The returned values are in the range 1..<maxchar_utf8>.
+ * If uchar is bigger than <maxchar_utf8> no error is reported and the function returns <maxsize_utf8>. */
+uint8_t sizechar_utf8(char32_t uchar) ;
 
 /* function: length_utf8
  * Returns number of UTF-8 characters encoded in string buffer.
  * The first byte of a multibyte sequence determines its size.
- * This function assumes that encodings are correct and does not check
+ * This function assumes that utf8 encodings are correct and does not check
  * the encoding of bytes following the first.
  * Illegal encoded start bytes are not counted but skipped.
  * The last multibyte sequence is counted as one character even if
@@ -115,49 +119,91 @@ size_t length_utf8(const uint8_t * strstart, const uint8_t * strend) ;
 
 /* function: decodechar_utf8
  * Decodes utf-8 encoded bytes beginning from strstart and returns character in uchar.
- * strsize describes the size of the buffer in bytes.
+ * The string must be big enough but needs never larger as <maxsize_utf8>.
+ * Use <sizefromfirstbyte_utf8> to determine the size if strstart contains less then <maxsize_utf8> bytes.
+ *
  * The number of decoded bytes is returned.
  *
- * Error Indicator:
- * A return value of 0 indicates either an encoding error (EILSEQ)
- * or that the utf-8 enocded character need more bytes than strsize.
- * Nothing is done in both cases.
+ * A return value of 0 indicates an invalid first byte of the multibyte sequence (EILSEQ).
+ * The function assumes that all other bytes except the first are encoded correctly.
+ * Use <utf8validator_t> to make sure that a string contains only a valid encoded utf8 string.
  *
  * Example:
  *
  * > uint8_t * str    = &strbuffer[0] ;
  * > uint8_t * strend = strbuffer + sizeof(strbuffer) ;
  * > while (str < strend) {
- * >    char32_t uchar ;
- * >    uint8_t  len = decodechar_utf8(strend-str, str, &uchar) ;
- * >    if (len == 0) {
+ * >    if (strend-str < maxsize_utf8()) {
  * >       if (sizefromfirstbyte_utf8(str[0]) > (strend-str)) {
  * >          ...not enough data for last character...
  * >          break ;
- * >       } else {
- * >          TRACECALL_ERRLOG("decodechar_utf8", EILSEQ) ;
- * >          ...move str forward until no decode error then continue...
  * >       }
  * >    }
- * >    ...add uchar to decoded string...
+ * >    char32_t uchar ;
+ * >    uint8_t  len = decodechar_utf8(str, &uchar) ;
  * >    str += len ;
+ * >    ... do something with uchar ...
  * > } */
-uint8_t decodechar_utf8(size_t strsize, const uint8_t strstart[strsize], /*out*/char32_t * uchar) ;
+uint8_t decodechar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/], /*out*/char32_t * uchar) ;
 
 /* function: encodechar_utf8
  * Encodes uchar into UTF-8 enocoded string of size strsize starting at strstart.
- * The number of written bytes are returned. The maximum return value is <sizemax_utf8>.
+ * The number of written bytes are returned. The maximum return value is <maxsize_utf8>.
  * A return value of 0 indicates an error. Either uchar is greater then <maxchar_utf8>
  * or strsize is not big enough. */
 uint8_t encodechar_utf8(size_t strsize, /*out*/uint8_t strstart[strsize], char32_t uchar) ;
 
 /* function: skipchar_utf8
  * Skips the next utf-8 encoded character.
- * The encoding is checked for correctness.
- * The number of skipped bytes is returned. The maximum return value is <sizemax_utf8>.
- * A return value of 0 indicates an error. If sizefromfirstbyte_utf8(strstart[0]) > strsize then strsize is too small
- * else the next character is not encoded correctly (EILSEQ). */
-uint8_t skipchar_utf8(size_t strsize, const uint8_t strstart[strsize]) ;
+ * The encoded byte sequence is *not* checked for correctness.
+ * The number of skipped bytes is returned. The maximum return value is <maxsize_utf8>.
+ * A return value of 0 indicates an error, i.e. the first byte of the multibyte sequence is invalid (EILSEQ). */
+uint8_t skipchar_utf8(const uint8_t strstart[/*maxsize_utf8() or big enough*/]) ;
+
+
+/* struct: utf8validator_t
+ * Allows to validate a blocked stream of bytes.
+ * If a multibyte sequence crosses a two data blocks
+ * the first part of it is stored internally as prefix
+ * data for the next block. */
+struct utf8validator_t {
+   uint8_t  size_of_prefix ;
+   uint8_t  prefix[4/*maxsize_utf8()*/] ;
+} ;
+
+// group: lifetime
+
+/* define: utf8validator_INIT
+ * Static initializer. */
+#define utf8validator_INIT                { 0, { 0, 0, 0, 0} }
+
+/* function: init_utf8validator
+ * Same as assigning <utf8validator_INIT>. */
+void init_utf8validator(/*out*/utf8validator_t * utf8validator) ;
+
+/* function: free_utf8validator
+ * Clear data members and checks that there is no internal prefix stored.
+ *
+ * Returns:
+ * 0      - All multi-byte character sequences fit into last buffer.
+ * EILSEQ - Last multi-byte character sequence was incomplete. Need more data. */
+int free_utf8validator(utf8validator_t * utf8validator) ;
+
+// group: query
+
+/* function: sizeprefix_utf8validator
+ * Returns a value != 0 if the last multibyte sequence was not fully contained in the last validated buffer. */
+uint8_t sizeprefix_utf8validator(const utf8validator_t * utf8validator) ;
+
+// group: validate
+
+/* function: validate_utf8validator
+ * Validates a data block of length size in bytes.
+ * If the last multibyte sequence is not fully contained in the data block but a valid prefix it is stored internally as prefix.
+ * If this function is called another time the internal prefix is prepended to the data block.
+ * If an error occurs EILSEQ is returned the parameter offset is set to the offset of the byte which is not encoded correctly. */
+int validate_utf8validator(utf8validator_t * utf8validator, size_t size, const uint8_t data[size], /*err*/size_t * erroffset) ;
+
 
 
 // struct: stringstream_t
@@ -175,17 +221,17 @@ struct stringstream_t ;
  * ENODATA   - strstream is empty.
  * ENOTEMPTY - The string is not empty but another character could not be decoded cause there
  *             are not enough bytes left in the string.
- * EILSEQ    - The next character is encoded in a wrong way. strstream is not changed.
+ * EILSEQ    - The next multibyte sequence is not encoded in a correct way. strstream is not changed.
  *             Use <skipillegalutf8_strstream> to skip all illegal bytes. */
 int nextutf8_stringstream(struct stringstream_t * strstream, /*out*/char32_t * uchar) ;
 
 /* function: peekutf8_stringstream
- * Same as <nextutf8_stringstream> except character is not marked as unread.
- * Calling this function more than once returns always the same result. */
+ * Same as <nextutf8_stringstream> except the strstream is not changed.
+ * Calling this function more than once returns always the same value in uchar. */
 int peekutf8_stringstream(const struct stringstream_t * strstream, /*out*/char32_t * uchar) ;
 
 /* function: skiputf8_stringstream
- * Skips next unread utf-8 character from strstream.
+ * Skips next utf-8 encoded character from strstream.
  * The next pointer of strstream is incremented with the size of the next character.
  *
  * Returns:
@@ -193,15 +239,12 @@ int peekutf8_stringstream(const struct stringstream_t * strstream, /*out*/char32
  * ENODATA   - strstream is empty.
  * ENOTEMPTY - The string is not empty but another character could not be decoded cause there
  *             are not enough bytes left in the string.
- * EILSEQ    - The next character is encoded in a wrong way. strstream is not changed.
+ * EILSEQ    - The next multibyte sequence is not encoded in a correct way. strstream is not changed.
  *             Use <skipillegalutf8_strstream> to skip all illegal bytes. */
 int skiputf8_stringstream(struct stringstream_t * strstream) ;
 
 /* function: skipillegalutf8_strstream
- * Skips bytes until begin of the next valid utf-8 encoding or end of stream.
- * If the last utf-8 can not be fully decoded (ENOTEMPTY) this function returns and
- * does not remove it from the buffer. This ensures that character encodings
- * split over two buffers can be handled correctly. */
+ * Skips bytes until end of stream or the begin of a valid utf-8 encoding is found. */
 void skipillegalutf8_strstream(struct stringstream_t * strstream) ;
 
 // group: find-utf8
@@ -227,21 +270,21 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
  * Implements <utf8.isfirstbyte_utf8>. */
 #define isfirstbyte_utf8(firstbyte)       (0x80 != ((firstbyte)&0xc0))
 
-/* function: islegal_utf8
- * Implements <utf8.islegal_utf8>. */
-#define islegal_utf8(firstbyte)           (sizefromfirstbyte_utf8(firstbyte) != 0)
+/* function: isvalidfirstbyte_utf8
+ * Implements <utf8.isvalidfirstbyte_utf8>. */
+#define isvalidfirstbyte_utf8(firstbyte)  (sizefromfirstbyte_utf8(firstbyte) != 0)
 
-/* function: sizemax_utf8
- * Implements <utf8.sizemax_utf8>. */
-#define sizemax_utf8()                    ((uint8_t)4)
+/* function: maxsize_utf8
+ * Implements <utf8.maxsize_utf8>. */
+#define maxsize_utf8()                    ((uint8_t)4)
 
 /* function: sizefromfirstbyte_utf8
  * Implements <utf8.sizefromfirstbyte_utf8>. */
 #define sizefromfirstbyte_utf8(firstbyte) (g_utf8_bytesperchar[(uint8_t)(firstbyte)])
 
-/* function: sizefromchar_utf8
- * Implements <utf8.sizefromchar_utf8>. */
-#define sizefromchar_utf8(uchar)    \
+/* function: sizechar_utf8
+ * Implements <utf8.sizechar_utf8>. */
+#define sizechar_utf8(uchar)        \
          ( __extension__ ({         \
             char32_t _ch = (uchar); \
             (1 + (_ch > 0x7f)       \
@@ -249,42 +292,39 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
                + (_ch > 0xffff)) ;  \
          }))
 
-// group: stringstream_t
+/* function: skipchar_utf8
+ * Implements <utf8.skipchar_utf8>. */
+#define skipchar_utf8(strstart)           (sizefromfirstbyte_utf8(*(strstart)))
 
-/* function: nextutf8_stringstream
- * Implements <stringstream_t.nextutf8_stringstream>. */
-#define nextutf8_stringstream(strstream, uchar)    \
-         ( __extension__ ({                        \
-            stringstream_t * _str = (strstream) ;  \
-            size_t   _strsize = size_stringstream( \
-                                       _str) ;     \
-            uint8_t  _len     = decodechar_utf8(   \
-                                 _strsize,         \
-                                 _str->next,       \
-                                 (uchar)) ;        \
-                                                   \
-            _str->next += _len ;                   \
-                                                   \
-            int _err = 0 ;                         \
-            if (!_len) {                           \
-               if (!_strsize) {                    \
-                  /* all data decoded */           \
-                  _err = ENODATA ;                 \
-               } else if ( _strsize <              \
-                        sizefromfirstbyte_utf8(    \
-                                 _str->next[0])) { \
-                  /* not enough data */            \
-                  _err = ENOTEMPTY ;               \
-               } else {                            \
-                  /* wrong encoding */             \
-                  _err = EILSEQ ;                  \
-               }                                   \
-            }                                      \
-                                                   \
-            _err ;                                 \
+// group: utf8validator_t
+
+/* define: init_utf8validator
+ * Implements <utf8validator_t.init_utf8validator>. */
+#define init_utf8validator(utf8validator) \
+         ((void)(*(utf8validator) = (utf8validator_t) utf8validator_INIT))
+
+/* define: free_utf8validator
+ * Implements <utf8validator_t.free_utf8validator>. */
+#define free_utf8validator(utf8validator) \
+         ( __extension__ ({               \
+            int _err ;                    \
+            utf8validator_t * _v ;        \
+            _v = (utf8validator) ;        \
+            _err = _v->size_of_prefix     \
+                 ? EILSEQ                 \
+                 : 0 ;                    \
+            _v->size_of_prefix = 0 ;      \
+            _err ;                        \
          }))
 
-/* function: peekutf8_stringstream
+/* define: sizeprefix_utf8validator
+ * Implements <utf8validator_t.sizeprefix_utf8validator>. */
+#define sizeprefix_utf8validator(utf8validator) \
+         ((utf8validator)->size_of_prefix)
+
+// group: stringstream_t
+
+/* define: peekutf8_stringstream
  * Implements <stringstream_t.peekutf8_stringstream>. */
 #define peekutf8_stringstream(strstream, uchar)    \
          (  __extension__ ({                       \
@@ -297,36 +337,15 @@ const uint8_t * findutf8_stringstream(const struct stringstream_t * strstream, c
                      _strstr->end), uchar) ;       \
          }))
 
-/* function: skiputf8_stringstream
+/* define: skiputf8_stringstream
  * Implements <stringstream_t.skiputf8_stringstream>. */
 #define skiputf8_stringstream(strstream)           \
          ( __extension__ ({                        \
-            stringstream_t * _str = (strstream) ;  \
-            size_t   _strsize = size_stringstream( \
-                                       _str) ;     \
-            uint8_t  _len     = skipchar_utf8(     \
-                                 _strsize,         \
-                                 _str->next) ;     \
-                                                   \
-            _str->next += _len ;                   \
-                                                   \
-            int _err = 0 ;                         \
-            if (!_len) {                           \
-               if (!_strsize) {                    \
-                  /* all data decoded */           \
-                  _err = ENODATA ;                 \
-               } else if ( _strsize <              \
-                        sizefromfirstbyte_utf8(    \
-                                 _str->next[0])) { \
-                  /* not enough data */            \
-                  _err = ENOTEMPTY ;               \
-               } else {                            \
-                  /* wrong encoding */             \
-                  _err = EILSEQ ;                  \
-               }                                   \
-            }                                      \
-                                                   \
-            _err ;                                 \
+            char32_t _uchar ;                      \
+            nextutf8_stringstream(                 \
+               (strstream),                        \
+               &_uchar                             \
+            ) ;                                    \
          }))
 
 
