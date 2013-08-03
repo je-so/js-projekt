@@ -42,7 +42,7 @@
  *    which is never freed.
  * 2. Free all allocated but unused memory.
  *    Same as <trimmemory_malloc>. */
-extern int prepare_malloc(void) ;
+int prepare_malloc(void) ;
 
 // group: query
 
@@ -57,7 +57,7 @@ extern int prepare_malloc(void) ;
  * At the end of your test call it a second time
  * and compare the result with the value received from the first call
  * to make sure no system memory is wasted. */
-extern int allocatedsize_malloc(size_t * number_of_allocated_bytes) ;
+int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes) ;
 
 /* function: trimmemory_malloc
  * Frees preallocated memory which is not in use.
@@ -70,14 +70,14 @@ extern int allocatedsize_malloc(size_t * number_of_allocated_bytes) ;
  * will be mapped into the heap address space.
  * The call to <trimmemory_malloc> unmaps them and
  * makes therefore the layouts comparable. */
-extern int trimmemory_malloc(void) ;
+int trimmemory_malloc(void) ;
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_malloc
  * Unittest for query usage of malloc resources. */
-extern int unittest_platform_malloc(void) ;
+int unittest_platform_malloc(void) ;
 #endif
 
 

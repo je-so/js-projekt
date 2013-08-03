@@ -3,6 +3,9 @@
 include        projekte/binary.gcc
 # include        projekte/subsys/X11
 include        projekte/subsys/Linux
+# Generate smybol.map
+Linker        += ; projekte/tools/generate_symbol_map.sh $(out)
+# Source files
 Src           += C-kern/main/test/unittest_main.c
 # Src           += C-kern/main/test/speedtest_main.c
 Src           += C-kern/cache/*.c

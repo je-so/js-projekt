@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Jul.22  17:29:24
+GenerationDate  := 2013.Aug.03  18:19:47
 GeneratedBy     := je-so
 
 ## Debug
@@ -25,7 +25,7 @@ TargetDir_Debug     := bin
 Target_Debug        := bin/unittest_Debug
 Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
 CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
-LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
+LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug) ; projekte/tools/generate_symbol_map.sh '$@'
 
 ## Release
 DefineFlag_Release    := -D
@@ -43,7 +43,7 @@ TargetDir_Release     := bin
 Target_Release        := bin/unittest
 Libs_Release          := $(Libpath_Release) $(Libraries_Release)
 CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
-LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
+LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release) ; projekte/tools/generate_symbol_map.sh '$@'
 
 ##
 ## Targets
@@ -141,14 +141,15 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
- $(ObjectDir_Debug)/C-kern!math!int!reverse.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sqroot.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!byteorder.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log10.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!log2.c.o \
+ $(ObjectDir_Debug)/C-kern!math!int!bitorder.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!atomic.c.o \
  $(ObjectDir_Debug)/C-kern!math!fpu.c.o \
  $(ObjectDir_Debug)/C-kern!math!float!decimal.c.o \
@@ -248,14 +249,15 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
- $(ObjectDir_Release)/C-kern!math!int!reverse.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sqroot.c.o \
  $(ObjectDir_Release)/C-kern!math!int!power2.c.o \
  $(ObjectDir_Release)/C-kern!math!int!bigint.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!byteorder.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log10.c.o \
  $(ObjectDir_Release)/C-kern!math!int!abs.c.o \
  $(ObjectDir_Release)/C-kern!math!int!log2.c.o \
+ $(ObjectDir_Release)/C-kern!math!int!bitorder.c.o \
  $(ObjectDir_Release)/C-kern!math!int!atomic.c.o \
  $(ObjectDir_Release)/C-kern!math!fpu.c.o \
  $(ObjectDir_Release)/C-kern!math!float!decimal.c.o \
@@ -494,9 +496,6 @@ $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
 $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o: C-kern/math/hash/crc32.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!math!int!reverse.c.o: C-kern/math/int/reverse.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
 	@$(CC_Debug)
 
@@ -509,6 +508,9 @@ $(ObjectDir_Debug)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 $(ObjectDir_Debug)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!math!int!byteorder.c.o: C-kern/math/int/byteorder.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
 	@$(CC_Debug)
 
@@ -516,6 +518,9 @@ $(ObjectDir_Debug)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!math!int!bitorder.c.o: C-kern/math/int/bitorder.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!int!atomic.c.o: C-kern/math/int/atomic.c
@@ -809,9 +814,6 @@ $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
 $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o: C-kern/math/hash/crc32.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!math!int!reverse.c.o: C-kern/math/int/reverse.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!math!int!sign.c.o: C-kern/math/int/sign.c
 	@$(CC_Release)
 
@@ -824,6 +826,9 @@ $(ObjectDir_Release)/C-kern!math!int!power2.c.o: C-kern/math/int/power2.c
 $(ObjectDir_Release)/C-kern!math!int!bigint.c.o: C-kern/math/int/bigint.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!math!int!byteorder.c.o: C-kern/math/int/byteorder.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!math!int!log10.c.o: C-kern/math/int/log10.c
 	@$(CC_Release)
 
@@ -831,6 +836,9 @@ $(ObjectDir_Release)/C-kern!math!int!abs.c.o: C-kern/math/int/abs.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!log2.c.o: C-kern/math/int/log2.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!math!int!bitorder.c.o: C-kern/math/int/bitorder.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!int!atomic.c.o: C-kern/math/int/atomic.c
