@@ -62,6 +62,9 @@ static inline void compiletime_tests_standardtypes(void)
    static_assert( ((uint64_t)-1) > 0,  "must be unsigned") ;
    static_assert( ((uintptr_t)-1) > 0, "must be unsigned") ;
    static_assert( ((intptr_t)-1) < 0,  "must be signed") ;
+   // uintfct_t
+   static_assert( ((uintfct_t)-1) > 0,  "must be unsigned") ;
+   static_assert( sizeof(uintfct_t) == sizeof(fct_t), "can hold a function pointer") ;
    // off_t
    static_assert( sizeof(off_t) == sizeof(int64_t), "need 64bit file-system support");
    static_assert( sizeof(off_t) >= sizeof(size_t), "memory is not bigger than max filesize") ;

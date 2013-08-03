@@ -51,44 +51,63 @@
  * printf specifiers:
  * They are prefixed with the correct length modifier ( 'l', 'll' )
  *
- * PRId8   - "d" for int8_t integer types
- * PRId16  - "d" for int16_t integer types
- * PRId32  - "d" for int32_t integer types
- * PRId64  - "d" for int64_t integer types
- * PRIu8   - "u" for uint8_t unsigned integer types
- * PRIu16  - "u" for uint16_t unsigned integer types
- * PRIu32  - "u" for uint32_t unsigned integer types
- * PRIu64  - "u" for uint64_t unsigned integer types
- * PRIuPTR - "u" for uintptr_t unsigned integer types
- * PRIuSIZE - "u" for size_t unsigned integer types
+ * PRId8   - used to print type int8_t
+ * PRId16  - used to print type int16_t
+ * PRId32  - used to print type int32_t
+ * PRId64  - used to print type int64_t
+ * PRIu8   - used to print type uint8_t
+ * PRIu16  - used to print type uint16_t
+ * PRIu32  - used to print type uint32_t
+ * PRIu64  - used to print type uint64_t
+ * PRIuPTR - used to print type uintptr_t
+ * PRIxFCT - used to print type uintfct_t
+ * PRIuSIZE - used to print type size_t
  *
  * scanf specifiers:
  * They are prefixed with the correct length modifier ( 'hh', 'h', 'l', 'll' )
  *
- * SCNd8   - "d" for int8_t integer types
- * SCNd16  - "d" for int16_t integer types
- * SCNd32  - "d" for int32_t integer types
- * SCNd64  - "d" for int64_t integer types
- * SCNu8   - "u" for uint8_t unsigned integer types
- * SCNu16  - "u" for uint16_t unsigned integer types
- * SCNu32  - "u" for uint32_t unsigned integer types
- * SCNu64  - "u" for uint64_t unsigned integer types
- * SCNuPTR - "u" for uintptr_t unsigned integer types
+ * SCNd8   - used to scan type int8_t
+ * SCNd16  - used to scan type int16_t
+ * SCNd32  - used to scan type int32_t
+ * SCNd64  - used to scan type int64_t
+ * SCNu8   - used to scan type uint8_t
+ * SCNu16  - used to scan type uint16_t
+ * SCNu32  - used to scan type uint32_t
+ * SCNu64  - used to scan type uint64_t
+ * SCNuPTR - used to scan type uintptr_t
  * */
 
 /* define: PRIuSIZE
- * printf unsigned int format specifier 'zu' for *size_t*. */
+ * printf unsigned int format specifier 'zu' for type *size_t*. */
 #define PRIuSIZE                          "zu"
 
+/* define: PRIxFCT
+ * printf hexadecimal format specifier for type *uintfct_t*. */
+#define PRIxFCT                           PRIxPTR
+
 /* define: SCNuSIZE
- * scanf unsigned int format specifier 'zu' for *size_t*. */
+ * scanf unsigned int format specifier 'zu' for type *size_t*. */
 #define SCNuSIZE                          "zu"
+
+// group: function
+
+/* typedef: fct_t
+ * Generic function pointer type. Every other function pointer can be casted
+ * to this type and back without loss of information. */
+typedef void                           (* fct_t) (void) ;
 
 // group: integer
 
 /* typedef: ramsize_t
  * Ramsize could be bigger than size_t to match 32 bit machines with more than 4GTB of ram. */
 typedef uint64_t                          ramsize_t ;
+
+/* typedef: uintfct_t
+ * An integer type big enough to hold a pointer to a function.
+ * Type uintptr_t and uintfct_t could differ in size.
+ * But in POSIX pointer to symbols (man dlsym) are considered to fit in type (void*)
+ * therefore in most environments sizeof(uintfct_t) == sizeof(uintptr_t).*/
+typedef uintptr_t                         uintfct_t ;
 
 // group: limits
 
