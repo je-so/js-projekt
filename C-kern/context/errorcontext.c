@@ -105,8 +105,8 @@ static int test_query(void)
    TEST(0 == init_errorcontext(&errcontext)) ;
 
    // TEST maxsyserrnum_errorcontext
-   TEST(0   <  maxsyserrnum_errorcontext()) ;
-   TEST(255 >= maxsyserrnum_errorcontext()) ;
+   TEST(0   < maxsyserrnum_errorcontext()) ;
+   TEST(255 > maxsyserrnum_errorcontext()) ;
    for (size_t i = maxsyserrnum_errorcontext()+1; i <= 255; ++i) {
       char buffer[50] ;
       snprintf(buffer, sizeof(buffer), "Unknown error %d", (int)i) ;
@@ -117,12 +117,14 @@ static int test_query(void)
       TEST(lengthof(g_errorcontext_strdata) == g_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]+strlen(errstr)+1) ;
    }
 
-   // TEST str_errorcontext: 0 <= errno < 512
-   // g_errorcontext_stroffset has 256(syserror) + 256(extended error) entries so str_errorcontext can use (uint8_t) to mask index
+   // TEST g_errorcontext_stroffset: 256(syserror) + 256(extended error)
    TEST(512 == lengthof(g_errorcontext_stroffset)) ;
-   // g_errorcontext_strdata: last byte is '\0' byte
+
+   // TEST g_errorcontext_strdata: last byte is '\0' byte
    TEST(0 == g_errorcontext_strdata[lengthof(g_errorcontext_strdata)-1]) ;
    TEST(0 != g_errorcontext_strdata[lengthof(g_errorcontext_strdata)-2]) ;
+
+   // TEST str_errorcontext: 0 <= errno <= 255
    for (size_t i = 0; i <= 255; ++i) {
       const char * errstr = (const char*) (g_errorcontext_strdata + g_errorcontext_stroffset[i]) ;
       TEST(lengthof(g_errorcontext_strdata) > g_errorcontext_stroffset[i]) ;
@@ -135,8 +137,8 @@ static int test_query(void)
       TEST((const uint8_t*)errstr == str_errorcontext(errcontext, i)) ;
    }
 
-   // TEST str_errorcontext: 255 <= errno <= SIZE_MAX
-   for (size_t i = 255; true; i *= 2, ++i) {
+   // TEST str_errorcontext: 256 <= errno <= SIZE_MAX
+   for (size_t i = 256; true; i = (i < 511) ? i : 2*i, ++i) {
       const uint8_t * errstr = g_errorcontext_strdata + g_errorcontext_stroffset[255] ;
       TEST(errstr == str_errorcontext(errcontext, i)) ;
       if (i == SIZE_MAX) break ;

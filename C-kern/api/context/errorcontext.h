@@ -176,8 +176,7 @@ errorcontext_t * genericcast_errorcontext(void * object) ;
             unsigned _errnum = (unsigned) (errnum) ;           \
             (errcontext).strdata                               \
                + (errcontext).stroffset[                       \
-                     (uint8_t)(_errnum)                        \
-                     | (_errnum >= 255 ? 255 : 0)] ;           \
+                     (_errnum > 511 ? 511 : _errnum)] ;        \
          }))
 
 #endif

@@ -30,6 +30,9 @@
 #ifndef CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 #define CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 
+// forward
+struct logbuffer_t ;
+
 #include "C-kern/api/io/writer/log/log_macros.h"
 #include "C-kern/resource/generated/errlog.h"
 
@@ -130,8 +133,16 @@
             log_header_t _header =              \
                log_header_INIT(funcname,        \
                   filename, linenr, err) ;      \
-            TEXTID ## _ERRLOG(log_channel_ERR,  \
-               FLAGS, &_header, __VA_ARGS__) ;  \
+            if (0) {                            \
+            /* test for correct parameter */    \
+            TEXTID ## _ERRLOG(                  \
+               (struct logbuffer_t*)0,          \
+               __VA_ARGS__) ;                   \
+            }                                   \
+            PRINTTEXT_LOG(log_channel_ERR,      \
+               FLAGS, &_header,                 \
+               & v ## TEXTID ## _ERRLOG,        \
+               __VA_ARGS__) ;                   \
          }  while(0)
 
 /* define: TRACE_NOARG_ERRLOG
@@ -144,8 +155,14 @@
             log_header_t _header =              \
                log_header_INIT(__FUNCTION__,    \
                   __FILE__, __LINE__, err) ;    \
-            TEXTID ## _ERRLOG(log_channel_ERR,  \
-                           FLAGS, &_header) ;   \
+            if (0) {                            \
+            /* test for correct parameter */    \
+            TEXTID ## _ERRLOG(                  \
+               (struct logbuffer_t*)0) ;        \
+            }                                   \
+            PRINTTEXT_LOG(log_channel_ERR,      \
+               FLAGS, &_header,                 \
+               & v ## TEXTID ## _ERRLOG) ;      \
          }  while(0)
 
 // group: log-variables

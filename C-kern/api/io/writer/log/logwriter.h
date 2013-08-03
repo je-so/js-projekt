@@ -29,6 +29,8 @@
 // forward
 struct log_it ;
 struct log_header_t ;
+struct logbuffer_t ;
+typedef void (*log_text_f) (struct logbuffer_t * logbuffer, va_list vargs) ;
 
 /* typedef: struct logwriter_t
  * Exports <logwriter_t>. */
@@ -121,9 +123,14 @@ void clearbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel) ;
 void flushbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel) ;
 
 /* function: printf_logwriter
- * Writes new log entry to in internal buffer.
+ * Writes new log entry to internal buffer.
  * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower. */
 void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, ...) __attribute__ ((__format__ (__printf__, 5, 6))) ;
+
+/* function: printtext_logwriter
+ * Writes a text resource to internal buffer.
+ * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower. */
+void printtext_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, ...) ;
 
 /* function: vprintf_logwriter
  * Same as <printf_logwriter> except that variadic arguments are replaced by args.

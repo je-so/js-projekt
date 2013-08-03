@@ -25,6 +25,9 @@
 #ifndef CKERN_IO_WRITER_LOG_LOG_HEADER
 #define CKERN_IO_WRITER_LOG_LOG_HEADER
 
+// forward
+struct logbuffer_t ;
+
 /* typedef: struct log_t
  * Export <log_t>. Interfaceable log object. */
 typedef struct log_t                      log_t ;
@@ -37,6 +40,11 @@ typedef struct log_it                     log_it ;
 /* typedef: struct log_header_t
  * Export <log_header_t>. */
 typedef struct log_header_t               log_header_t ;
+
+/* typedef: log_text_f
+ * Export function which writes a text resource. */
+typedef void                           (* log_text_f) (struct logbuffer_t * logbuffer, va_list vargs) ;
+
 
 /* enums: log_config_e
  * Used to configure system wide restrictions.
@@ -127,6 +135,10 @@ struct log_it {
     * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower.
     * See <logwriter_t.printf_logwriter> for an implementation. */
    void  (*printf)      (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6))) ;
+   /* variable: printtext
+    * Writes text resource as new log entry to in internal buffer.
+    * See <printf> for a description of the parameter. The variable parameter list must match the resource. */
+   void  (*printtext)   (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, log_text_f textf, ... ) ;
    /* variable: flushbuffer
     * Writes content of buffer to configured file descriptor and clears log buffer.
     * This call is ignored if buffer is empty or log is not configured to be in buffered mode.
@@ -185,6 +197,7 @@ struct log_header_t {
          { funcname, filename, linenr, err }
 
 
+
 // section: inline implementation
 
 /* define: genericcast_logit
@@ -197,6 +210,11 @@ struct log_header_t {
                      const log_header_t*,             \
                      const char*,...))                \
                      &((log_it*)0)->printf            \
+               && &((typeof(logif))0)->printtext      \
+               == (void(**)(log_t*,uint8_t,uint8_t,   \
+                     const log_header_t*,             \
+                     log_text_f,...))                 \
+                     &((log_it*)0)->printtext         \
                && &((typeof(logif))0)->flushbuffer    \
                   == (void(**)(log_t*,uint8_t))       \
                         &((log_it*)0)->flushbuffer    \
@@ -220,6 +238,8 @@ struct log_header_t {
       void  (*printf)      (log_t * log, uint8_t channel, uint8_t flags,                  \
                             const log_header_t * header, const char * format, ... )       \
                             __attribute__ ((__format__ (__printf__, 5, 6))) ;             \
+      void  (*printtext)   (log_t * log, uint8_t channel, uint8_t flags,                  \
+                            const log_header_t * header, log_text_f textf, ... ) ;        \
       void  (*flushbuffer) (log_t * log, uint8_t channel) ;                               \
       void  (*clearbuffer) (log_t * log, uint8_t channel) ;                               \
       void  (*getbuffer)   (log_t * log, uint8_t channel,                                 \

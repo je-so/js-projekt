@@ -151,9 +151,8 @@ void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * hea
    static_assert(sizeof(tv.tv_sec)  <= sizeof(uint64_t), "conversion works") ;
    static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works") ;
 
-   printf_logbuffer(logbuf, "[%"PRIuSIZE": %"PRIu64".%06"PRIu32"s]\n%s() %s:%d\n", threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr) ;
-   // TODO: printheader_logbuffer: read string from table
-   printf_logbuffer(logbuf, "Error %d - %s\n", header->err, (const char*)str_errorcontext(error_maincontext(), header->err)) ;
+   LOGENTRY_HEADER_ERRLOG(logbuf, threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr) ;
+   LOGENTRY_HEADER_ERROR_ERRLOG(logbuf, header->err, (const char*)str_errorcontext(error_maincontext(), header->err)) ;
 }
 
 

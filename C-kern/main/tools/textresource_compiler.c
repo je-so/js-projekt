@@ -41,29 +41,29 @@
 #include "C-kern/api/string/stringstream.h"
 
 
-typedef struct outconfig_t             outconfig_t ;
+typedef struct outconfig_t                outconfig_t ;
 
-typedef struct textresource_t          textresource_t ;
+typedef struct textresource_t             textresource_t ;
 
-typedef struct textresource_reader_t   textresource_reader_t ;
+typedef struct textresource_reader_t      textresource_reader_t ;
 
-typedef struct textresource_writer_t   textresource_writer_t ;
+typedef struct textresource_writer_t      textresource_writer_t ;
 
-typedef struct textresource_text_t     textresource_text_t ;
+typedef struct textresource_text_t        textresource_text_t ;
 
-typedef struct textresource_parameter_t      textresource_parameter_t ;
+typedef struct textresource_parameter_t   textresource_parameter_t ;
 
-typedef struct textresource_langref_t        textresource_langref_t ;
+typedef struct textresource_langref_t     textresource_langref_t ;
 
-typedef struct textresource_condition_t      textresource_condition_t ;
+typedef struct textresource_condition_t   textresource_condition_t ;
 
-typedef struct textresource_textatom_t       textresource_textatom_t ;
+typedef struct textresource_textatom_t    textresource_textatom_t ;
 
-typedef struct textresource_paramtype_t      textresource_paramtype_t ;
+typedef struct textresource_paramtype_t   textresource_paramtype_t ;
 
-typedef struct textresource_language_t       textresource_language_t ;
+typedef struct textresource_language_t    textresource_language_t ;
 
-typedef struct xmlattribute_t                xmlattribute_t ;
+typedef struct xmlattribute_t             xmlattribute_t ;
 
 enum xmltag_openclose_e {
    xmltag_OPEN,
@@ -218,7 +218,10 @@ struct textresource_textatom_t {
       string_t                string ;
       struct {
          textresource_parameter_t   * ref ;
+         // maxlen of a string
          int                        maxlen ;
+         // (minimum) field width padded with zero
+         int                        width0 ;
       }                       param ;
    } ;
 } ;
@@ -234,7 +237,7 @@ static typeadapt_impl_t    g_textatom_adapter     = typeadapt_impl_INIT(sizeof(t
 
 /* define: textresource_textatom_INIT
  * Static initializer. Initializes <textresource_textatom_t> as type textresource_textatom_PARAMETER. */
-#define textresource_textatom_INIT_PARAM(parameter)               { 0, textresource_textatom_PARAMETER, { .param = { parameter, 0 } } }
+#define textresource_textatom_INIT_PARAM(parameter)               { 0, textresource_textatom_PARAMETER, { .param = { parameter, 0, 0 } } }
 
 
 slist_IMPLEMENT(_textatomlist, textresource_textatom_t, next)
@@ -646,8 +649,10 @@ static int init_textresource(/*out*/textresource_t * textres, const char * read_
          ,textresource_paramtype_INIT("long",     typemodifier_PLAIN, "ld")
          ,textresource_paramtype_INIT("float",    typemodifier_PLAIN, "g")
          ,textresource_paramtype_INIT("double",   typemodifier_PLAIN, "g")
-         ,textresource_paramtype_INIT("_PRINTF_", typemodifier_RESERVED, "")
-         ,textresource_paramtype_INIT("_err_", typemodifier_RESERVED, "")
+         ,textresource_paramtype_INIT("PRINTF", typemodifier_RESERVED, "")
+         ,textresource_paramtype_INIT("va_list", typemodifier_RESERVED, "")
+         ,textresource_paramtype_INIT("vargs", typemodifier_RESERVED, "")
+         ,textresource_paramtype_INIT("_err", typemodifier_RESERVED, "")
    } ;
 
    *textres = (textresource_t) textresource_INIT_FREEABLE ;
@@ -1022,7 +1027,13 @@ static int match_formatdescription(textresource_reader_t * reader, textresource_
       if (err) goto ONABORT ;
 
       if (  6 == formatid.size
-            && 0 == strncmp((const char*)formatid.addr, "maxlen", 6)) {
+            && 0 == strncmp((const char*)formatid.addr, "width0", 6)) {
+         err = match_string(reader, "=") ;
+         if (err) goto ONABORT ;
+         err = match_unsigned(reader, &param->param.width0) ;
+         if (err) goto ONABORT ;
+      } else if ( 6 == formatid.size
+                  && 0 == strncmp((const char*)formatid.addr, "maxlen", 6)) {
          err = match_string(reader, "=") ;
          if (err) goto ONABORT ;
          err = match_unsigned(reader, &param->param.maxlen) ;
@@ -1961,11 +1972,29 @@ ONABORT:
 
 // group: write
 
+static int writeCvfctdeclaration_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
+{
+   typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C ;
+
+   dprintf(writer->outfile, "void v%.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
+                                                 (int)text->name.size, text->name.addr,
+                                                 (int)progC->namesuffix.size, progC->namesuffix.addr
+                                                ) ;
+
+   if (progC->firstparam.size) {
+      dprintf(writer->outfile, "%.*s, ", (int)progC->firstparam.size, progC->firstparam.addr) ;
+   }
+
+   dprintf(writer->outfile, "va_list vargs)") ;
+
+   return 0 ;
+}
+
 static int writeCfctdeclaration_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text)
 {
    typeof(((outconfig_t*)0)->C) * progC = &writer->txtres->outconfig.C ;
 
-   dprintf(writer->outfile, "int %.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
+   dprintf(writer->outfile, "void %.*s%.*s%.*s(", (int)progC->nameprefix.size, progC->nameprefix.addr,
                                                  (int)text->name.size, text->name.addr,
                                                  (int)progC->namesuffix.size, progC->namesuffix.addr
                                                 ) ;
@@ -2011,6 +2040,12 @@ static int writeCheader_textresourcewriter(textresource_writer_t * writer)
       dprintf(writer->outfile, " ;\n") ;
    }
 
+   foreach (_textlist, text, &writer->txtres->textlist) {
+      err = writeCvfctdeclaration_textresourcewriter(writer, text) ;
+      if (err) goto ONABORT ;
+      dprintf(writer->outfile, " ;\n") ;
+   }
+
    return 0 ;
 ONABORT:
    return err ;
@@ -2042,7 +2077,10 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist
       } else if (textresource_textatom_PARAMETER == textatom->type) {
          textresource_parameter_t * param = textatom->param.ref ;
          if (!(param->typemod & typemodifier_POINTER)) {
-            bytes = dprintf(writer->outfile, "%%%s", param->type->format) ;
+            if (textatom->param.width0)
+               bytes = dprintf(writer->outfile, "%%0%d%s", textatom->param.width0, param->type->format) ;
+            else
+               bytes = dprintf(writer->outfile, "%%%s", param->type->format) ;
             if (bytes < 0) goto ONABORT ;
          } else {
             bytes = dprintf(writer->outfile, "%%%s%s", (textatom->param.maxlen ? ".*" : ""), param->type->ptrformat) ;
@@ -2086,15 +2124,6 @@ ONABORT:
 
 static int writeCfunction_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text, textresource_language_t * lang)
 {
-   int err ;
-
-   dprintf(writer->outfile, "\n") ;
-
-   err = writeCfctdeclaration_textresourcewriter(writer, text) ;
-   if (err) goto ONABORT ;
-
-   dprintf(writer->outfile, "\n{\n") ;
-
    textresource_langref_t * langref = 0 ;
 
    foreach(_langreflist, langref2, &text->langlist) {
@@ -2131,7 +2160,34 @@ static int writeCfunction_textresourcewriter(textresource_writer_t * writer, tex
       }
    }
 
-   dprintf(writer->outfile, "   return 0;\n}\n") ;
+   return 0 ;
+}
+
+static int writeCvfunction_textresourcewriter(textresource_writer_t * writer, textresource_text_t * text, textresource_language_t * lang)
+{
+   int err ;
+
+   // extract parameter from vargs
+   bool isparam = false ;
+   foreach (_paramlist, param, &text->paramlist) {
+      dprintf(writer->outfile, "   %s%.*s %s%.*s",  (param->typemod & typemodifier_CONST) ? "const " : "",
+                                             (int)param->type->name.size, param->type->name.addr,
+                                             (param->typemod & typemodifier_POINTER) ? "* " : "",
+                                             (int)param->name.size, param->name.addr) ;
+      dprintf(writer->outfile, " = va_arg(vargs, %s%.*s%s) ;\n",  (param->typemod & typemodifier_CONST) ? "const " : "",
+                                             (int)param->type->name.size, param->type->name.addr,
+                                             (param->typemod & typemodifier_POINTER) ? "*" : "") ;
+      isparam = true ;
+   }
+
+   if (! isparam) {
+      dprintf(writer->outfile, "   (void) vargs ;\n") ;
+   }
+
+   dprintf(writer->outfile, "\n") ;
+
+   err = writeCfunction_textresourcewriter(writer, text, lang) ;
+   if (err) goto ONABORT ;
 
    return 0 ;
 ONABORT:
@@ -2147,8 +2203,25 @@ static int writeCsource_textresourcewriter(textresource_writer_t * writer, textr
 
    foreach (_textlist, text, &writer->txtres->textlist) {
 
+      dprintf(writer->outfile, "\n") ;
+      err = writeCfctdeclaration_textresourcewriter(writer, text) ;
+      if (err) goto ONABORT ;
+      dprintf(writer->outfile, "\n{\n") ;
       err = writeCfunction_textresourcewriter(writer, text, lang) ;
       if (err) goto ONABORT ;
+      dprintf(writer->outfile, "}\n") ;
+
+   }
+
+   foreach (_textlist, text, &writer->txtres->textlist) {
+
+      dprintf(writer->outfile, "\n") ;
+      err = writeCvfctdeclaration_textresourcewriter(writer, text) ;
+      if (err) goto ONABORT ;
+      dprintf(writer->outfile, "\n{\n") ;
+      err = writeCvfunction_textresourcewriter(writer, text, lang) ;
+      if (err) goto ONABORT ;
+      dprintf(writer->outfile, "}\n") ;
 
    }
 

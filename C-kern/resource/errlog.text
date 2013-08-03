@@ -62,13 +62,21 @@
    <namesuffix value=_ERRLOG/>
    <generate   header="C-kern/resource/generated/errlog.h" source="C-kern/resource/generated/errlog"/>
    <printf     value=PRINTF/>
-   <firstparam value="uint8_t log_channel, uint8_t log_flags, struct log_header_t * header"/>
+   <firstparam value="struct logbuffer_t * logbuffer"/>
    <languages>de, en</languages>
 </outconfig>
 
 ASSERT_FAILED(const char * wrong_condition)
 de: "Assertion '"wrong_condition"' fehlgeschlagen.\n"
 en: "Assertion '"wrong_condition"' failed.\n"
+
+LOGENTRY_HEADER(size_t threadid, uint64_t sec, uint32_t usec, const char * funcname, const char * filename, int linenr)
+de: "["threadid": "sec"."usec[width0=6]"s]\n"funcname"() "filename":"linenr"\n"
+en: "["threadid": "sec"."usec[width0=6]"s]\n"funcname"() "filename":"linenr"\n"
+
+LOGENTRY_HEADER_ERROR(int err, const char * errdescription)
+de: "Fehler "err" - "errdescription"\n"
+en: "Error "err" - "errdescription"\n"
 
 # // TODO: replace it with PARSEERROR_EXPECTNEWLINE
 FILE_FORMAT_MISSING_ENDOFLINE(const char * filename)
