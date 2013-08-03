@@ -77,6 +77,16 @@ uint32_t sys_pagesize_vm()
    return (uint32_t)ps ;
 }
 
+ramsize_t sizephysram_vm()
+{
+   return (ramsize_t)sysconf(_SC_PHYS_PAGES) * pagesize_vm() ;
+}
+
+ramsize_t sizeavailableram_vm()
+{
+   return (ramsize_t)sysconf(_SC_AVPHYS_PAGES) * pagesize_vm() ;
+}
+
 bool ismapped_vm(const vmpage_t * vmpage, accessmode_e protection)
 {
    int err ;
@@ -670,6 +680,16 @@ static int test_functions(void)
    TEST(log2pagesize_vm()  != 0) ;
    TEST(&log2pagesize_vm() == &vc->log2pagesize_vm) ;
    TEST(sys_pagesize_vm()  == 1u << log2pagesize_vm()) ;
+
+   // TEST sizephysram_vm
+   ramsize_t physsize = sizephysram_vm() ;
+   TEST(sizephysram_vm() >= pagesize_vm()) ;
+   TEST(0 == (sizephysram_vm() % pagesize_vm())) ;
+   TEST(physsize == sizephysram_vm()) ;
+
+   // TEST sizeavailableram_vm
+   TEST(sizeavailableram_vm() < sizephysram_vm()) ;
+   TEST(0 == (sizeavailableram_vm() % pagesize_vm())) ;
 
    // TEST ismapped_vm, isunmapped_vm
    uint8_t * addr = mmap(0, 3*pagesize_vm(), PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANONYMOUS, -1, 0) ;

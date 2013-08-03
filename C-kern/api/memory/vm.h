@@ -58,6 +58,14 @@ uint8_t  log2pagesize_vm(void) ;
  * This function returns a cached value >= 256. */
 uint32_t pagesize_vm(void) ;
 
+/* function: sizephysram_vm
+ * Returns size of all physical memory in bytes. */
+ramsize_t sizephysram_vm(void) ;
+
+/* function: sizeavailableram_vm
+ * Returns size of available physical memory in bytes  */
+ramsize_t sizeavailableram_vm(void) ;
+
 /* function: sys_pagesize_vm
  * Returns the virtual memory page size supported by the underlying system.
  * This functions always calls the underlying system function.

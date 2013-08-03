@@ -25,7 +25,8 @@
 #ifndef CKERN_TEST_COMPILETIME_STANDARDTYPES_HEADER
 #define CKERN_TEST_COMPILETIME_STANDARDTYPES_HEADER
 
-static inline void compiletime_tests_standardtypes(void) {
+static inline void compiletime_tests_standardtypes(void)
+{
 
    /* about: sizeof(char) Test
     * Asserts that sizeof(char) is 1 byte.
@@ -35,9 +36,10 @@ static inline void compiletime_tests_standardtypes(void) {
     * Or in calculations where a string ius allocated after the
     * a structure:
     * > size_t memsize = sizeof(type_t) + strlen(string) + 1 */
-   static_assert( sizeof(char) == 1, "wrong size") ;
+   static_assert( sizeof(char) == 1, "calculations depends on char == 8bit") ;
+   static_assert( CHAR_BIT     == 8, "calculations depends on char == 8bit") ;
 
-   /* about: sizeof(intXX_t) Test
+   /* about: int_t Test
     * Asserts that all integer standard types
     * have the correct size and signedness. */
    static_assert( sizeof(int8_t) == 1,   "wrong size") ;
@@ -60,21 +62,24 @@ static inline void compiletime_tests_standardtypes(void) {
    static_assert( ((uint64_t)-1) > 0,  "must be unsigned") ;
    static_assert( ((uintptr_t)-1) > 0, "must be unsigned") ;
    static_assert( ((intptr_t)-1) < 0,  "must be signed") ;
-
-   /* about: size_t Test
-    * Test size_t is unsigned. */
-   static_assert( ((size_t)-1) > 0, "must be unsigned") ;
-   /* about: ssize_t Test
-    * Test ssize_t is signed and same size as size_t. */
-   static_assert( ((ssize_t)-1) < 0, "must be signed") ;
-   static_assert( sizeof(ssize_t) == sizeof(size_t), "ssize_t is same type as size_t but signed") ;
-
-   /* about: FileIO-64bit Test
-    * Test that file I/O operations support 64 bit file size.
-    * Uses standard type off_t for the check. */
+   // off_t
    static_assert( sizeof(off_t) == sizeof(int64_t), "need 64bit file-system support");
    static_assert( sizeof(off_t) >= sizeof(size_t), "memory is not bigger than max filesize") ;
    static_assert( ((off_t)-1) < 0, "off_t must be signed") ;
+   static_assert( (ramsize_t)-1 > 0,  "must be unsigned") ;
+   // ramsize_t
+   static_assert( sizeof(ramsize_t) >= sizeof(size_t),   "must be >= size_t") ;
+   static_assert( sizeof(ramsize_t) >= sizeof(uint64_t), "must support more than 4GB of ram") ;
+   // size_t
+   static_assert( ((size_t)-1) > 0, "must be unsigned") ;
+   // ssize_t
+   static_assert( ((ssize_t)-1) < 0, "must be signed") ;
+   static_assert( sizeof(ssize_t) == sizeof(size_t), "ssize_t is same type as size_t but signed") ;
+
+   /* about: limit Test
+    * Asserts that all application defined limits (<OFF_MAX>)
+    * of the standard types have the correct value. */
+   static_assert( OFF_MAX == INT64_MAX, "OFF_MAX has correct value") ;
 
 }
 #endif

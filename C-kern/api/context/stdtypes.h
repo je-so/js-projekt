@@ -84,6 +84,12 @@
  * scanf unsigned int format specifier 'zu' for *size_t*. */
 #define SCNuSIZE                          "zu"
 
+// group: integer
+
+/* typedef: ramsize_t
+ * Ramsize could be bigger than size_t to match 32 bit machines with more than 4GTB of ram. */
+typedef uint64_t                          ramsize_t ;
+
 // group: limits
 
 /* define: OFF_MAX
@@ -110,6 +116,6 @@
  * (Will be removed if upcoming C11 is supported by compiler)
  *
  * */
-#define char32_t                          uint32_t
+typedef uint32_t                          char32_t ;
 
 #endif

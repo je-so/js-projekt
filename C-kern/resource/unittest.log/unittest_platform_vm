@@ -1,84 +1,84 @@
-[1: 1371660273.848684s]
-init2_vmpage() C-kern/platform/Linux/vm.c:453
+[1: 1374673958.394686s]
+init2_vmpage() C-kern/platform/Linux/vm.c:463
 Error 22 - Function input violates condition (size_in_bytes > 0)
-[1: 1371660273.848692s]
-init2_vmpage() C-kern/platform/Linux/vm.c:473
+[1: 1374673958.394694s]
+init2_vmpage() C-kern/platform/Linux/vm.c:483
 Error 22 - Function aborted
-[1: 1371660273.848698s]
-init2_vmpage() C-kern/platform/Linux/vm.c:454
+[1: 1374673958.394697s]
+init2_vmpage() C-kern/platform/Linux/vm.c:464
 Error 22 - Function input violates condition (aligned_size >= size_in_bytes)
-[1: 1371660273.848700s]
-init2_vmpage() C-kern/platform/Linux/vm.c:473
+[1: 1374673958.394699s]
+init2_vmpage() C-kern/platform/Linux/vm.c:483
 Error 22 - Function aborted
-[1: 1371660273.848702s]
-init2_vmpage() C-kern/platform/Linux/vm.c:453
+[1: 1374673958.394701s]
+init2_vmpage() C-kern/platform/Linux/vm.c:463
 Error 22 - Function input violates condition (size_in_bytes > 0)
-[1: 1371660273.848704s]
-init2_vmpage() C-kern/platform/Linux/vm.c:473
+[1: 1374673958.394703s]
+init2_vmpage() C-kern/platform/Linux/vm.c:483
 Error 22 - Function aborted
-[1: 1371660273.848706s]
-init2_vmpage() C-kern/platform/Linux/vm.c:454
+[1: 1374673958.394705s]
+init2_vmpage() C-kern/platform/Linux/vm.c:464
 Error 22 - Function input violates condition (aligned_size >= size_in_bytes)
-[1: 1371660273.848708s]
-init2_vmpage() C-kern/platform/Linux/vm.c:473
+[1: 1374673958.394707s]
+init2_vmpage() C-kern/platform/Linux/vm.c:483
 Error 22 - Function aborted
-[1: 1371660273.848710s]
-init2_vmpage() C-kern/platform/Linux/vm.c:452
+[1: 1374673958.394709s]
+init2_vmpage() C-kern/platform/Linux/vm.c:462
 Error 22 - Function input violates condition (0 == (access_mode & ~((unsigned)accessmode_RDWR_PRIVATE|accessmode_EXEC|accessmode_SHARED)))
-[1: 1371660273.848712s]
-init2_vmpage() C-kern/platform/Linux/vm.c:473
+[1: 1374673958.394711s]
+init2_vmpage() C-kern/platform/Linux/vm.c:483
 Error 22 - Function aborted
-[1: 1371660273.864511s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:483
+[1: 1374673958.410255s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:493
 Error 22 - Function input violates condition (powerof2_size_in_bytes >= pagesize_vm())
-[1: 1371660273.864514s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:514
+[1: 1374673958.410259s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:524
 Error 22 - Function aborted
-[1: 1371660273.864516s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:484
+[1: 1374673958.410261s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:494
 Error 22 - Function input violates condition (ispowerof2_int(powerof2_size_in_bytes))
-[1: 1371660273.864518s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:514
+[1: 1374673958.410263s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:524
 Error 22 - Function aborted
-[1: 1371660273.864520s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:485
+[1: 1374673958.410265s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:495
 Error 22 - Function input violates condition (2*powerof2_size_in_bytes > powerof2_size_in_bytes)
-[1: 1371660273.864522s]
-initaligned_vmpage() C-kern/platform/Linux/vm.c:514
+[1: 1374673958.410267s]
+initaligned_vmpage() C-kern/platform/Linux/vm.c:524
 Error 22 - Function aborted
-[1: 1371660273.946104s]
-shrink_vmpage() C-kern/platform/Linux/vm.c:627
+[1: 1374673958.490507s]
+shrink_vmpage() C-kern/platform/Linux/vm.c:637
 Error 22 - Function input violates condition (size_in_bytes <= vmpage->size)
-[1: 1371660273.946107s]
-shrink_vmpage() C-kern/platform/Linux/vm.c:650
+[1: 1374673958.490510s]
+shrink_vmpage() C-kern/platform/Linux/vm.c:660
 Error 22 - Function aborted
-[1: 1371660273.958090s]
-tryexpand_vmpage() C-kern/platform/Linux/vm.c:570
+[1: 1374673958.502234s]
+tryexpand_vmpage() C-kern/platform/Linux/vm.c:580
 Error 22 - Function input violates condition (size_in_bytes >= vmpage->size)
-[1: 1371660273.958093s]
-tryexpand_vmpage() C-kern/platform/Linux/vm.c:590
+[1: 1374673958.502237s]
+tryexpand_vmpage() C-kern/platform/Linux/vm.c:600
 Error 22 - Function aborted
-[1: 1371660273.958095s]
-tryexpand_vmpage() C-kern/platform/Linux/vm.c:575
+[1: 1374673958.502239s]
+tryexpand_vmpage() C-kern/platform/Linux/vm.c:585
 Error 22 - Function input violates condition (aligned_size >= size_in_bytes)
-[1: 1371660273.958096s]
-tryexpand_vmpage() C-kern/platform/Linux/vm.c:590
+[1: 1374673958.502241s]
+tryexpand_vmpage() C-kern/platform/Linux/vm.c:600
 Error 22 - Function aborted
-[1: 1371660274.338576s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:598
+[1: 1374673958.877889s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:608
 Error 22 - Function input violates condition (size_in_bytes >= vmpage->size)
-[1: 1371660274.338579s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:619
+[1: 1374673958.877892s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:629
 Error 22 - Function aborted
-[1: 1371660274.338582s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:603
+[1: 1374673958.877897s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:613
 Error 22 - Function input violates condition (aligned_size >= size_in_bytes)
-[1: 1371660274.338584s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:619
+[1: 1374673958.877899s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:629
 Error 22 - Function aborted
-[1: 1371660274.338586s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:609
+[1: 1374673958.877901s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:619
 Error 12 - Could not allocate 4294963200 bytes of memory
-[1: 1371660274.338589s]
-movexpand_vmpage() C-kern/platform/Linux/vm.c:619
+[1: 1374673958.877904s]
+movexpand_vmpage() C-kern/platform/Linux/vm.c:629
 Error 12 - Function aborted

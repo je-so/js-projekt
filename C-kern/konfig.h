@@ -95,11 +95,9 @@
 //
 // Includes:
 // * <Standard-Macros>
-// * <Standard-Types>
 
 //{
 #include "C-kern/api/context/stdmacros.h"
-#include "C-kern/api/context/stdtypes.h"
 //}
 
 // group: 3. System Specific Definitions
@@ -125,10 +123,12 @@
 // Includes all C-kern(el) headers which define the standard runtime and compiletime environment.
 //
 // Includes:
-// * <MainContext>.
+// * <Standard-Types>
 // * <InterfaceableObject> Standard type used to access objects independently from their implementation
+// * <MainContext>.
 
 //{
+#include "C-kern/api/context/stdtypes.h"
 #include "C-kern/api/context/iobj.h"
 #include "C-kern/api/maincontext.h"
 //}
