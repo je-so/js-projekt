@@ -7,7 +7,7 @@
 # *******************************************************
 # environment variables:
 # verbose: if set to != "" => $info is printed
-filter='\(assert\|TEST\)([^),]*[^=!><]=[^=]'
+filter="\(assert\|TEST\)(\([^),]\|'[^']*'\)*[^=!><']=[^=]"
 files=`grep -rl "$filter" C-kern/ | sed -e '/^.*\.sh/d'`
 if [ "${files}" = "" ]; then
    exit 0

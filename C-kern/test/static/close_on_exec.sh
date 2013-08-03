@@ -30,6 +30,7 @@ for i in $files; do
       call=`echo "$call" | sed -e "s/[^(]*([^,]*,[^,)]*O_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
       call=`echo "$call" | sed -e "s/[^(]*eventfd[ ]*([^,]*,[^,)]*EFD_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
       call=`echo "$call" | sed -e "s/[^(]*openat[ ]*(\([^,]*,\)\{2\}[^,]*O_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
+      call=`echo "$call" | sed -e "s/[^(]*signalfd[ ]*(\([^,]*,\)\{2\}[^,]*SFD_CLOEXEC[^)]*))*[ ]*[;)]\?[ ]*{\?//" -`
       call=`echo "$call" | sed -e "s/[^(]*epoll_create1[ ]*([ ]*EPOLL_CLOEXEC[ ]*))*[ ]*[;)]\?[ ]*{\?//" -`
       if [ "`echo "$call" | sed -e 's/[ ]*//g' -`" != "" ]; then info2="$info2       ${function_calls[$fi]}\n"; fi
    done

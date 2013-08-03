@@ -1,6 +1,6 @@
-/* title: Intop-Reverse impl
+/* title: Intop-Bitorder impl
 
-   Implements <Intop-Reverse>.
+   Implements <Intop-Bitorder>.
 
    about: Copyright
    This program is free software.
@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/math/int/reverse.h
-    Header file <Intop-Reverse>.
+   file: C-kern/api/math/int/bitorder.h
+    Header file <Intop-Bitorder>.
 
-   file: C-kern/math/int/reverse.c
-    Implementation file <Intop-Reverse impl>.
+   file: C-kern/math/int/bitorder.c
+    Implementation file <Intop-Bitorder impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/math/int/reverse.h"
+#include "C-kern/api/math/int/bitorder.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -39,17 +39,17 @@
 
 static int test_reverse(void)
 {
-   // TEST reverse_int: 0, MAX
-   TEST(0 == reverse_int((uint8_t)0)) ;
-   TEST(0 == reverse_int((uint16_t)0)) ;
-   TEST(0 == reverse_int((uint32_t)0)) ;
-   TEST(0 == reverse_int((uint64_t)0)) ;
-   TEST(UINT8_MAX  == reverse_int((uint8_t)-1)) ;
-   TEST(UINT16_MAX == reverse_int((uint16_t)-1)) ;
-   TEST(UINT32_MAX == reverse_int((uint32_t)-1)) ;
-   TEST(UINT64_MAX == reverse_int((uint64_t)-1)) ;
+   // TEST reversebits_int: 0, MAX
+   TEST(0 == reversebits_int((uint8_t)0)) ;
+   TEST(0 == reversebits_int((uint16_t)0)) ;
+   TEST(0 == reversebits_int((uint32_t)0)) ;
+   TEST(0 == reversebits_int((uint64_t)0)) ;
+   TEST(UINT8_MAX  == reversebits_int((uint8_t)-1)) ;
+   TEST(UINT16_MAX == reversebits_int((uint16_t)-1)) ;
+   TEST(UINT32_MAX == reversebits_int((uint32_t)-1)) ;
+   TEST(UINT64_MAX == reversebits_int((uint64_t)-1)) ;
 
-   // TEST reverse_int: uint8_t
+   // TEST reversebits_int: uint8_t
    for (unsigned i1 = 0; i1 <= 8; ++i1) {
       uint32_t  val1 = i1 ? (uint32_t)1 << (i1-1) : 0 ;
       uint32_t rval1 = i1 ? (uint32_t)0x80 >> (i1-1) : 0 ;
@@ -64,14 +64,14 @@ static int test_reverse(void)
                uint32_t rval4 = i4 ? (uint32_t)0x80 >> (i4-1) : 0 ;
                uint32_t  val  = val1 | val2 | val3 | val4 ;
                uint32_t rval  = rval1 | rval2 | rval3 | rval4 ;
-               uint8_t rev = reverse_int((uint8_t)val) ;
+               uint8_t rev = reversebits_int((uint8_t)val) ;
                TEST(rval == rev) ;
             }
          }
       }
    }
 
-   // TEST reverse_int: uint16_t
+   // TEST reversebits_int: uint16_t
    for (unsigned i1 = 0; i1 <= 16; ++i1) {
       uint32_t  val1 = i1 ? (uint32_t)1 << (i1-1) : 0 ;
       uint32_t rval1 = i1 ? (uint32_t)0x8000 >> (i1-1) : 0 ;
@@ -86,14 +86,14 @@ static int test_reverse(void)
                uint32_t rval4 = i4 ? (uint32_t)0x8000 >> (i4-1) : 0 ;
                uint32_t  val  = val1 | val2 | val3 | val4 ;
                uint32_t rval  = rval1 | rval2 | rval3 | rval4 ;
-               uint16_t rev = reverse_int((uint16_t)val) ;
+               uint16_t rev = reversebits_int((uint16_t)val) ;
                TEST(rval == rev) ;
             }
          }
       }
    }
 
-   // TEST reverse_int: uint32_t
+   // TEST reversebits_int: uint32_t
    for (unsigned i1 = 0; i1 <= 32; ++i1) {
       uint32_t  val1 = i1 ? (uint32_t)1 << (i1-1) : 0 ;
       uint32_t rval1 = i1 ? (uint32_t)0x80000000 >> (i1-1) : 0 ;
@@ -105,13 +105,13 @@ static int test_reverse(void)
             uint32_t rval3 = i3 ? (uint32_t)0x80000000 >> (i3-1) : 0 ;
             uint32_t  val  = val1 | val2 | val3 ;
             uint32_t rval  = rval1 | rval2 | rval3 ;
-            uint32_t rev = reverse_int((uint32_t)val) ;
+            uint32_t rev = reversebits_int((uint32_t)val) ;
             TEST(rval == rev) ;
          }
       }
    }
 
-   // TEST reverse_int: uint64_t
+   // TEST reversebits_int: uint64_t
    for (unsigned i1 = 0; i1 <= 64; ++i1) {
       uint64_t  val1 = i1 ? (uint64_t)1 << (i1-1) : 0 ;
       uint64_t rval1 = i1 ? (uint64_t)0x8000000000000000 >> (i1-1) : 0 ;
@@ -123,7 +123,7 @@ static int test_reverse(void)
             uint64_t rval3 = i3 ? (uint64_t)0x8000000000000000 >> (i3-1) : 0 ;
             uint64_t  val  = val1 | val2 | val3 ;
             uint64_t rval  = rval1 | rval2 | rval3 ;
-            uint64_t rev = reverse_int((uint64_t)val) ;
+            uint64_t rev = reversebits_int((uint64_t)val) ;
             TEST(rval == rev) ;
          }
       }
@@ -134,7 +134,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_math_int_reverse()
+int unittest_math_int_bitorder()
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 

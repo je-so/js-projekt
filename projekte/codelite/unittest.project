@@ -76,8 +76,9 @@
         <File Name="../../C-kern/api/math/int/sign.h"/>
         <File Name="../../C-kern/api/math/int/bigint.h"/>
         <File Name="../../C-kern/api/math/int/sqroot.h"/>
-        <File Name="../../C-kern/api/math/int/reverse.h"/>
         <File Name="../../C-kern/api/math/int/atomic.h"/>
+        <File Name="../../C-kern/api/math/int/byteorder.h"/>
+        <File Name="../../C-kern/api/math/int/bitorder.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="hash">
         <File Name="../../C-kern/api/math/hash/sha1.h"/>
@@ -321,8 +322,8 @@
     <VirtualDirectory Name="config">
       <File Name="../../C-kern/resource/config/initprocess"/>
       <File Name="../../C-kern/resource/config/initthread"/>
-      <File Name="../../C-kern/resource/config/signalconfig"/>
       <File Name="../../C-kern/resource/config/modulevalues"/>
+      <File Name="../../C-kern/resource/config/signalhandler"/>
     </VirtualDirectory>
     <VirtualDirectory Name="generated">
       <File Name="../../C-kern/resource/generated/errlog.h"/>
@@ -390,8 +391,9 @@
       <File Name="../../C-kern/math/int/sign.c"/>
       <File Name="../../C-kern/math/int/bigint.c"/>
       <File Name="../../C-kern/math/int/sqroot.c"/>
-      <File Name="../../C-kern/math/int/reverse.c"/>
       <File Name="../../C-kern/math/int/atomic.c"/>
+      <File Name="../../C-kern/math/int/byteorder.c"/>
+      <File Name="../../C-kern/math/int/bitorder.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="hash">
       <File Name="../../C-kern/math/hash/sha1.c"/>

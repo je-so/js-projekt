@@ -309,10 +309,11 @@ int run_unittest(int argc, const char ** argv)
       RUN(unittest_math_int_abs) ;
       RUN(unittest_math_int_atomic) ;
       RUN(unittest_math_int_biginteger) ;
+      RUN(unittest_math_int_bitorder) ;
+      RUN(unittest_math_int_byteorder) ;
       RUN(unittest_math_int_log10) ;
       RUN(unittest_math_int_log2) ;
       RUN(unittest_math_int_power2) ;
-      RUN(unittest_math_int_reverse) ;
       RUN(unittest_math_int_sign) ;
       RUN(unittest_math_int_sqroot) ;
 //}

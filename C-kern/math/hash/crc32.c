@@ -29,7 +29,7 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
-#include "C-kern/api/math/int/reverse.h"
+#include "C-kern/api/math/int/bitorder.h"
 #endif
 
 
@@ -154,7 +154,7 @@ static int test_checktable(void)
 {
    // POLY == 0x104C11DB7, top bit is not stored cause it is not stored in the result of the subtraction
 
-   const uint32_t divisor = reverse_int((uint32_t)0x04C11DB7) ;
+   const uint32_t divisor = reversebits_int((uint32_t)0x04C11DB7) ;
 
    for (unsigned databyte = 0; databyte <= 255; ++databyte) {
       uint32_t dividend = databyte ;

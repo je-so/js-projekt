@@ -1,4 +1,5 @@
-/* title: Intop-Reverse
+/* title: Intop-Bitorder
+
    Reverses the bits of an integer.
    This means for a integer type of 32-bit:
    bit0 and bit31 are swapped, bit1 and bit30 are swapped ...
@@ -18,11 +19,11 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/math/int/reverse.h
-    Header file <Intop-Reverse>.
+   file: C-kern/api/math/int/bitorder.h
+    Header file <Intop-Bitorder>.
 
-   file: C-kern/math/int/reverse.c
-    Implementation file <Intop-Reverse impl>.
+   file: C-kern/math/int/bitorder.c
+    Implementation file <Intop-Bitorder impl>.
 */
 #ifndef CKERN_MATH_INT_REVERSE_HEADER
 #define CKERN_MATH_INT_REVERSE_HEADER
@@ -33,29 +34,30 @@
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_math_int_reverse
- * Test function <int_t.reverse_int>. */
-int unittest_math_int_reverse(void) ;
+/* function: unittest_math_int_bitorder
+ * Test function <int_t.reversebits_int>. */
+int unittest_math_int_bitorder(void) ;
 #endif
 
 
 // struct: int_t
 
-// group: compute
+// group: bit-operations
 
-/* function: reverse_int
+/* function: reversebits_int
  * Reverses the bits of an integer.
  * Every set bit of the value i is shifted to position (bitsof(i)-1-bi)
  * where bi is the bit index of the set bit beginning with 0.
  * 0x80 is reversed to 0x01. 0x4010 is reversed into 0x0802.*/
-unsigned reverse_int(unsigned i) ;
+unsigned reversebits_int(unsigned i) ;
+
 
 
 // section: inline implementation
 
-/* define: reverse_int
- * Implements <int_t.reverse_int>. */
-#define reverse_int(i)                                \
+/* define: reversebits_int
+ * Implements <int_t.reversebits_int>. */
+#define reversebits_int(i)                            \
          ( __extension__ ({                           \
             /* unsigned */                            \
             static_assert(((typeof(i))-1) > 0, ) ;    \
