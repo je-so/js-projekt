@@ -28,6 +28,7 @@
 
 // forward
 struct log_it ;
+struct log_header_t ;
 
 /* typedef: struct logwriter_t
  * Exports <logwriter_t>. */
@@ -105,29 +106,29 @@ int free_logwriter(logwriter_t * lgwrt) ;
  * The address of the buffer is valid as long as no call <free_logwriter> is made.
  * The content changes if the buffer is flushed or cleared and new log entries are written.
  * Do not free the returned buffer. It points to an internal buffer used by the implementation. */
-void getbuffer_logwriter(logwriter_t * lgwrt, /*out*/char ** buffer, /*out*/size_t * size) ;
+void getbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
 
 // group: change
 
 /* function: clearbuffer_logwriter
  * Clears log buffer (sets length of logbuffer to 0).
  * This call is ignored if the log is not configured to be in buffered mode. */
-void clearbuffer_logwriter(logwriter_t * lgwrt) ;
+void clearbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel) ;
 
 /* function: flushbuffer_logwriter
  * Writes content of buffer to STDERR or configured file descriptor and clears log buffer.
  * This call is ignored if the log is not configured to be in buffered mode. */
-void flushbuffer_logwriter(logwriter_t * lgwrt) ;
+void flushbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel) ;
 
 /* function: printf_logwriter
  * Writes new log entry to in internal buffer.
  * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower. */
-void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const char * format, ...) __attribute__ ((__format__ (__printf__, 4, 5))) ;
+void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, ...) __attribute__ ((__format__ (__printf__, 5, 6))) ;
 
 /* function: vprintf_logwriter
  * Same as <printf_logwriter> except that variadic arguments are replaced by args.
  * Function used internally to implement <printf_logwriter>. */
-void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const char * format, va_list args) ;
+void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, va_list args) ;
 
 
 

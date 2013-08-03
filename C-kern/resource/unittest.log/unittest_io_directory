@@ -1,61 +1,77 @@
-[1: 1371660260.415273s]
+[1: 1374953322.610790s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:326
-Error 22 - System call 'ftruncate(file_path, file_length)' returned error 'Invalid argument'
+Error 22 - Invalid argument
+System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=18446744073709551615
-[1: 1371660260.415309s]
+[1: 1374953322.610826s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:340
-Error 22 - Function aborted
-[1: 1371660260.415326s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953322.610844s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:326
-Error 27 - System call 'ftruncate(file_path, file_length)' returned error 'File too large'
+Error 27 - File too large
+System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=9223372036854775807
-[1: 1371660260.415343s]
+[1: 1374953322.610862s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:340
-Error 27 - Function aborted
-[1: 1371660260.415350s]
+Error 27 - File too large
+Function aborted
+[1: 1374953322.610868s]
 new_directory() C-kern/platform/Linux/io/directory.c:115
-Error 2 - System call 'openat' returned error 'No such file or directory'
+Error 2 - No such file or directory
+System call 'openat' failed
 path=.....
-[1: 1371660260.415353s]
+[1: 1374953322.610871s]
 new_directory() C-kern/platform/Linux/io/directory.c:138
-Error 2 - Function aborted
-[1: 1371660260.415359s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953322.610877s]
 new_directory() C-kern/platform/Linux/io/directory.c:115
-Error 20 - System call 'openat' returned error 'Not a directory'
+Error 20 - Not a directory
+System call 'openat' failed
 path=/tmp/test1.123456/file_000000
-[1: 1371660260.415362s]
+[1: 1374953322.610879s]
 new_directory() C-kern/platform/Linux/io/directory.c:138
-Error 20 - Function aborted
-[1: 1371660260.415370s]
+Error 20 - Not a directory
+Function aborted
+[1: 1374953322.610887s]
 makedirectory_directory() C-kern/platform/Linux/io/directory.c:292
-Error 13 - System call 'mkdirat(mkdiratfd, directory_path, 0700)' returned error 'Permission denied'
+Error 13 - Permission denied
+System call 'mkdirat(mkdiratfd, directory_path, 0700)' failed
 mkdiratfd=10
 directory_path=XXXXXXXX.test
-[1: 1371660260.415374s]
+[1: 1374953322.610891s]
 makedirectory_directory() C-kern/platform/Linux/io/directory.c:300
-Error 13 - Function aborted
-[1: 1371660260.415379s]
+Error 13 - Permission denied
+Function aborted
+[1: 1374953322.610896s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:317
-Error 13 - System call 'openat(openatfd, file_path)' returned error 'Permission denied'
+Error 13 - Permission denied
+System call 'openat(openatfd, file_path)' failed
 openatfd=10
 file_path=XXXXXXXX.test
-[1: 1371660260.415382s]
+[1: 1374953322.610899s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:340
-Error 13 - Function aborted
-[1: 1371660260.415389s]
+Error 13 - Permission denied
+Function aborted
+[1: 1374953322.610906s]
 removedirectory_directory() C-kern/platform/Linux/io/directory.c:356
-Error 39 - System call 'unlinkat(unlinkatfd, directory_path)' returned error 'Directory not empty'
+Error 39 - Directory not empty
+System call 'unlinkat(unlinkatfd, directory_path)' failed
 unlinkatfd=10
 directory_path=..
-[1: 1371660260.415392s]
+[1: 1374953322.610909s]
 removedirectory_directory() C-kern/platform/Linux/io/directory.c:364
-Error 39 - Function aborted
-[1: 1371660260.418350s]
+Error 39 - Directory not empty
+Function aborted
+[1: 1374953322.613854s]
 new_directory() C-kern/platform/Linux/io/directory.c:115
-Error 2 - System call 'openat' returned error 'No such file or directory'
+Error 2 - No such file or directory
+System call 'openat' failed
 path=/tmp/test1.123456
-[1: 1371660260.418354s]
+[1: 1374953322.613859s]
 new_directory() C-kern/platform/Linux/io/directory.c:138
-Error 2 - Function aborted
+Error 2 - No such file or directory
+Function aborted

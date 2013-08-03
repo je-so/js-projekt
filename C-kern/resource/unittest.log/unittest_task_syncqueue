@@ -1,18 +1,24 @@
-[1: 1371660259.710207s]
+[1: 1374953321.880386s]
 insertlast_queue() C-kern/ds/inmem/queue.c:306
-Error 22 - Function input violates condition (nodesize <= 512)
-[1: 1371660259.710211s]
+Error 22 - Invalid argument
+Function input violates condition (nodesize <= 512)
+[1: 1374953321.880391s]
 insertlast_queue() C-kern/ds/inmem/queue.c:322
-Error 22 - Function aborted
-[1: 1371660259.710561s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.880717s]
 insertlast_queue() C-kern/ds/inmem/queue.c:306
-Error 22 - Function input violates condition (nodesize <= 512)
-[1: 1371660259.710563s]
+Error 22 - Invalid argument
+Function input violates condition (nodesize <= 512)
+[1: 1374953321.880720s]
 insertlast_queue() C-kern/ds/inmem/queue.c:322
-Error 22 - Function aborted
-[1: 1371660259.710964s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.881095s]
 removelast_queue() C-kern/ds/inmem/queue.c:370
-Error 61 - Function aborted
-[1: 1371660259.711892s]
+Error 61 - No data available
+Function aborted
+[1: 1374953321.881836s]
 removefirst_queue() C-kern/ds/inmem/queue.c:346
-Error 61 - Function aborted
+Error 61 - No data available
+Function aborted

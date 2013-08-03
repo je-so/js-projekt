@@ -1,18 +1,24 @@
-[1: 1371660265.873487s]
+[1: 1374953327.766890s]
 free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:68
-Error 16 - Function aborted - one or more resources could not be freed
-[1: 1371660265.873492s]
+Error 16 - Device or resource busy
+Function aborted - one or more resources could not be freed
+[1: 1374953327.766894s]
 free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:68
-Error 16 - Function aborted - one or more resources could not be freed
-[1: 1371660265.873494s]
+Error 16 - Device or resource busy
+Function aborted - one or more resources could not be freed
+[1: 1374953327.766897s]
 free_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:68
-Error 16 - Function aborted - one or more resources could not be freed
-[1: 1371660265.873498s]
+Error 16 - Device or resource busy
+Function aborted - one or more resources could not be freed
+[1: 1374953327.766901s]
 lock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:152
-Error 35 - Function aborted
-[1: 1371660265.888562s]
+Error 35 - Resource deadlock avoided
+Function aborted
+[1: 1374953327.785914s]
 unlock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:183
-Error 1 - Function aborted
-[1: 1371660265.889625s]
+Error 1 - Operation not permitted
+Function aborted
+[1: 1374953327.787013s]
 unlock_thrmutex() C-kern/platform/Linux/sync/thrmutex.c:183
-Error 1 - Function aborted
+Error 1 - Operation not permitted
+Function aborted

@@ -1707,7 +1707,7 @@ int unittest_io_ipsocket()
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;
-      CLEARBUFFER_LOG() ;
+      CLEARBUFFER_ERRLOG() ;
    }
 
    TEST(0 == same_resourceusage(&usage)) ;

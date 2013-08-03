@@ -1,24 +1,32 @@
-[1: 1371660260.319001s]
+[1: 1374953322.511352s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:125
-Error 22 - Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-[1: 1371660260.319024s]
+Error 22 - Invalid argument
+Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
+[1: 1374953322.511391s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:140
-Error 22 - Function aborted
-[1: 1371660260.319029s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953322.511396s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:125
-Error 22 - Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-[1: 1371660260.319034s]
+Error 22 - Invalid argument
+Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
+[1: 1374953322.511402s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:140
-Error 22 - Function aborted
-[1: 1371660260.319038s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953322.511406s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:124
-Error 22 - Function input violates condition (isvalid_timevalue(relative_time))
-[1: 1371660260.319041s]
+Error 22 - Invalid argument
+Function input violates condition (isvalid_timevalue(relative_time))
+[1: 1374953322.511410s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:140
-Error 22 - Function aborted
-[1: 1371660260.319045s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953322.511413s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:124
-Error 22 - Function input violates condition (isvalid_timevalue(relative_time))
-[1: 1371660260.319048s]
+Error 22 - Invalid argument
+Function input violates condition (isvalid_timevalue(relative_time))
+[1: 1374953322.511417s]
 sleep_sysclock() C-kern/platform/Linux/time/sysclock.c:140
-Error 22 - Function aborted
+Error 22 - Invalid argument
+Function aborted

@@ -1,42 +1,56 @@
-[1: 1371660254.803890s]
+[1: 1374953316.864654s]
 init_binarystack() C-kern/ds/inmem/binarystack.c:196
-Error 7 - Function aborted
-[1: 1371660254.803895s]
+Error 7 - Argument list too long
+Function aborted
+[1: 1374953316.864661s]
 init_binarystack() C-kern/ds/inmem/binarystack.c:196
-Error 12 - Function aborted
-[1: 1371660254.803901s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953316.864666s]
 free_binarystack() C-kern/ds/inmem/binarystack.c:226
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.803906s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.864671s]
 free_binarystack() C-kern/ds/inmem/binarystack.c:226
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.803912s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.864676s]
 free_binarystack() C-kern/ds/inmem/binarystack.c:226
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.803916s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.864680s]
 free_binarystack() C-kern/ds/inmem/binarystack.c:226
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.803921s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.864685s]
 free_binarystack() C-kern/ds/inmem/binarystack.c:226
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.803925s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.864689s]
 free_binarystack() C-kern/ds/inmem/binarystack.c:226
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.803929s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.864694s]
 free_binarystack() C-kern/ds/inmem/binarystack.c:226
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.803934s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.864698s]
 free_binarystack() C-kern/ds/inmem/binarystack.c:226
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.812560s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.873224s]
 push2_binarystack() C-kern/ds/inmem/binarystack.c:267
-Error 7 - Function aborted
-[1: 1371660254.812566s]
+Error 7 - Argument list too long
+Function aborted
+[1: 1374953316.873236s]
 push2_binarystack() C-kern/ds/inmem/binarystack.c:267
-Error 12 - Function aborted
-[1: 1371660254.812611s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953316.873288s]
 pop2_binarystack() C-kern/ds/inmem/binarystack.c:317
-Error 22 - Function aborted
-[1: 1371660254.812618s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953316.873296s]
 pop2_binarystack() C-kern/ds/inmem/binarystack.c:317
-Error 12 - Function aborted
+Error 12 - Cannot allocate memory
+Function aborted

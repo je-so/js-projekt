@@ -1,53 +1,67 @@
-[1: 1374035845.710011s]
+[1: 1374953324.872120s]
 accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:167
-Error 9 - System call 'fcntl' returned error 'Bad file descriptor'
+Error 9 - Bad file descriptor
+System call 'fcntl' failed
 ioc=-1
-[1: 1374035845.710020s]
+[1: 1374953324.872131s]
 accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:179
-Error 9 - Function aborted
-[1: 1374035845.710027s]
+Error 9 - Bad file descriptor
+Function aborted
+[1: 1374953324.872138s]
 accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:167
-Error 9 - System call 'fcntl' returned error 'Bad file descriptor'
+Error 9 - Bad file descriptor
+System call 'fcntl' failed
 ioc=20
-[1: 1374035845.710030s]
+[1: 1374953324.872141s]
 accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:179
-Error 9 - Function aborted
-[1: 1374035845.710033s]
+Error 9 - Bad file descriptor
+Function aborted
+[1: 1374953324.872144s]
 accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:167
-Error 9 - System call 'fcntl' returned error 'Bad file descriptor'
+Error 9 - Bad file descriptor
+System call 'fcntl' failed
 ioc=21
-[1: 1374035845.710036s]
+[1: 1374953324.872147s]
 accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:179
-Error 9 - Function aborted
-[1: 1374035845.716442s]
+Error 9 - Bad file descriptor
+Function aborted
+[1: 1374953324.879451s]
 read_iochannel() C-kern/platform/Linux/io/iochannel.c:206
-Error 9 - System call 'read' returned error 'Bad file descriptor'
+Error 9 - Bad file descriptor
+System call 'read' failed
 ioc=21
 size=65536
-[1: 1374035845.716454s]
+[1: 1374953324.879465s]
 read_iochannel() C-kern/platform/Linux/io/iochannel.c:221
-Error 9 - Function aborted
-[1: 1374035845.716458s]
+Error 9 - Bad file descriptor
+Function aborted
+[1: 1374953324.879468s]
 write_iochannel() C-kern/platform/Linux/io/iochannel.c:242
-Error 9 - System call 'write' returned error 'Bad file descriptor'
+Error 9 - Bad file descriptor
+System call 'write' failed
 ioc=20
 size=65536
-[1: 1374035845.716461s]
+[1: 1374953324.879471s]
 write_iochannel() C-kern/platform/Linux/io/iochannel.c:257
-Error 9 - Function aborted
-[1: 1374035845.716463s]
+Error 9 - Bad file descriptor
+Function aborted
+[1: 1374953324.879473s]
 read_iochannel() C-kern/platform/Linux/io/iochannel.c:206
-Error 9 - System call 'read' returned error 'Bad file descriptor'
+Error 9 - Bad file descriptor
+System call 'read' failed
 ioc=-1
 size=65536
-[1: 1374035845.716466s]
+[1: 1374953324.879476s]
 read_iochannel() C-kern/platform/Linux/io/iochannel.c:221
-Error 9 - Function aborted
-[1: 1374035845.716468s]
+Error 9 - Bad file descriptor
+Function aborted
+[1: 1374953324.879478s]
 write_iochannel() C-kern/platform/Linux/io/iochannel.c:242
-Error 9 - System call 'write' returned error 'Bad file descriptor'
+Error 9 - Bad file descriptor
+System call 'write' failed
 ioc=-1
 size=65536
-[1: 1374035845.716471s]
+[1: 1374953324.879481s]
 write_iochannel() C-kern/platform/Linux/io/iochannel.c:257
-Error 9 - Function aborted
+Error 9 - Bad file descriptor
+Function aborted

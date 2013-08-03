@@ -1,22 +1,28 @@
-[1: 1371660269.232850s]
+[1: 1374953331.238759s]
 setdefault_locale() C-kern/platform/Linux/locale.c:98
-Error 22 - Cannot change the current locale with setlocale
+Error 22 - Invalid argument
+Cannot change the current locale with setlocale
 Remedy: Please set environment variable LC_ALL to a supported value by the system
 getenv("LC_ALL")=XXX@unknown
-[1: 1371660269.232856s]
+[1: 1374953331.238766s]
 setdefault_locale() C-kern/platform/Linux/locale.c:105
-Error 22 - Function aborted
-[1: 1371660269.232858s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953331.238768s]
 initonce_locale() C-kern/platform/Linux/locale.c:158
-Error 22 - Function aborted
-[1: 1371660269.233532s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953331.239385s]
 setdefault_locale() C-kern/platform/Linux/locale.c:98
-Error 22 - Cannot change the current locale with setlocale
+Error 22 - Invalid argument
+Cannot change the current locale with setlocale
 Remedy: Please set environment variable LC_ALL to a supported value by the system
 getenv("LC_ALL")=XXX@unknown
-[1: 1371660269.233536s]
+[1: 1374953331.239388s]
 setdefault_locale() C-kern/platform/Linux/locale.c:105
-Error 22 - Function aborted
-[1: 1371660269.233538s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953331.239391s]
 initonce_locale() C-kern/platform/Linux/locale.c:158
-Error 22 - Function aborted
+Error 22 - Invalid argument
+Function aborted

@@ -43,10 +43,10 @@ struct logmain_t ;
 
 // forward
 
-static void printf_logmain(void * log, uint8_t channel, uint8_t flags, const char * format, ... ) __attribute__ ((__format__ (__printf__, 4, 5))) ;
-static void flushbuffer_logmain(void * log) ;
-static void clearbuffer_logmain(void * log) ;
-static void getbuffer_logmain(void * log, /*out*/char ** buffer, /*out*/size_t * size) ;
+static void printf_logmain(void * logmain, uint8_t channel, uint8_t flags, const log_header_t * logheader, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6))) ;
+static void flushbuffer_logmain(void * logmain, uint8_t channel) ;
+static void clearbuffer_logmain(void * logmain, uint8_t channel) ;
+static void getbuffer_logmain(void * logmain, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
 
 // group: variables
 
@@ -61,38 +61,42 @@ log_it         g_logmain_interface  = {
 
 // group: interface-implementation
 
-static void printf_logmain(void * lgwrt, uint8_t channel, uint8_t flags, const char * format, ... )
+static void printf_logmain(void * logmain, uint8_t channel, uint8_t flags, const log_header_t * logheader, const char * format, ... )
 {
-   (void) lgwrt ;
+   (void) logmain ;
    (void) channel ;
-   uint8_t  buffer[log_config_MINSIZE+1] = { 0 } ;
-   va_list  args ;
+   (void) flags ;
+   uint8_t buffer[log_config_MINSIZE+1] = { 0 } ;
+   va_list args ;
    va_start(args, format) ;
    logbuffer_t temp = logbuffer_INIT(
                         sizeof(buffer), buffer,
                         iochannel_STDERR
                       ) ;
-   if (0 != (flags & log_flags_TIMESTAMP)) {
-      addtimestamp_logbuffer(&temp) ;
+   if (logheader) {
+      printheader_logbuffer(&temp, logheader) ;
    }
    vprintf_logbuffer(&temp, format, args) ;
    write_logbuffer(&temp) ;
    va_end(args) ;
 }
 
-static void flushbuffer_logmain(void * lgwrt)
+static void flushbuffer_logmain(void * logmain, uint8_t channel)
 {
-   (void) lgwrt ;
+   (void) logmain ;
+   (void) channel ;
 }
 
-static void clearbuffer_logmain(void * lgwrt)
+static void clearbuffer_logmain(void * logmain, uint8_t channel)
 {
-   (void) lgwrt ;
+   (void) logmain ;
+   (void) channel ;
 }
 
-static void getbuffer_logmain(void * lgwrt, /*out*/char ** buffer, /*out*/size_t * size)
+static void getbuffer_logmain(void * logmain, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size)
 {
-   (void) lgwrt ;
+   (void) logmain ;
+   (void) channel ;
    *buffer = 0 ;
    *size   = 0 ;
 }
@@ -120,7 +124,10 @@ static int test_query(void)
    // TEST getbuffer_logmain
    char *   buffer  = (char*)1 ;
    size_t   size    = 1 ;
-   getbuffer_logmain(0, &buffer, &size) ;
+   getbuffer_logmain(0, log_channel_ERR, &buffer, &size) ;
+   TEST(0 == buffer) ;
+   TEST(0 == size) ;
+   getbuffer_logmain(0, log_channel_NROFCHANNEL/*not used*/, &buffer, &size) ;
    TEST(0 == buffer) ;
    TEST(0 == size) ;
 
@@ -145,10 +152,10 @@ static int test_update(void)
    TEST(STDERR_FILENO == dup2(pipefd[1], STDERR_FILENO)) ;
 
    // TEST clearbuffer_logmain: does nothing
-   clearbuffer_logmain(0) ;
+   clearbuffer_logmain(0, log_channel_ERR) ;
 
    // TEST flushbuffer_logmain: does nothing
-   flushbuffer_logmain(0) ;
+   flushbuffer_logmain(0, log_channel_ERR) ;
    {
       char buffer2[9] = { 0 } ;
       TEST(-1 == read(pipefd[0], buffer2, sizeof(buffer2))) ;
@@ -157,13 +164,24 @@ static int test_update(void)
 
    // TEST printf_logmain: all channels flushed immediately
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      printf_logmain(0, i, log_flags_NONE, "1%c%s%d", '2', "3", 4) ;
+      printf_logmain(0, i, log_flags_NONE, 0, "1%c%s%d", '2', "3", 4) ;
       TEST(4 == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
       TEST(0 == strncmp("1234", readbuffer, 4)) ;
-      printf_logmain(0, i, log_flags_NONE, "%s;%d", maxstring, 1) ;
+      printf_logmain(0, i, log_flags_NONE, 0, "%s;%d", maxstring, 1) ;
       TEST(log_config_MINSIZE == read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
       TEST(0 == memcmp(readbuffer, maxstring, log_config_MINSIZE-4)) ;
       TEST(0 == memcmp(readbuffer+log_config_MINSIZE-4, " ...", 4)) ;
+   }
+
+   // TEST printf_logmain: header
+   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      log_header_t header = log_header_INIT("func", "file", 10, EPERM) ;
+      printf_logmain(0, i, log_flags_NONE, &header, "%s", "xxx") ;
+      memset(readbuffer, 0, sizeof(readbuffer)) ;
+      TEST(76 <= read(pipefd[0], readbuffer, sizeof(readbuffer))) ;
+      TEST(0 == strncmp("[1: ", readbuffer, 4)) ;
+      TEST(0 != strchr((char*)readbuffer, ']')) ;
+      TEST(0 == strcmp("]\nfunc() file:10\nError 1 - Operation not permitted\nxxx", strchr((char*)readbuffer, ']'))) ;
    }
 
    // unprepare

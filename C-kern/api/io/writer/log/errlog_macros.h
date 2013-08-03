@@ -30,12 +30,27 @@
 #ifndef CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 #define CKERN_IO_WRITER_LOG_ERRLOG_MACROS_HEADER
 
-#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/io/writer/log/log_macros.h"
 #include "C-kern/resource/generated/errlog.h"
 
 
 // section: Functions
+
+// group: query
+
+/* define: GETBUFFER_ERRLOG
+ * See <GETBUFFER_LOG>. */
+#define GETBUFFER_ERRLOG(buffer, size)    GETBUFFER_LOG(log_channel_ERR, buffer, size)
+
+// group: change
+
+/* define: CLEARBUFFER_ERRLOG
+ * See <CLEARBUFFER_LOG>. */
+#define CLEARBUFFER_ERRLOG()              CLEARBUFFER_LOG(log_channel_ERR)
+
+/* define: FLUSHBUFFER_LOG
+ * See <FLUSHBUFFER_LOG>. */
+#define FLUSHBUFFER_ERRLOG()              FLUSHBUFFER_LOG(log_channel_ERR)
 
 // group: log-text
 
@@ -49,17 +64,7 @@
  *
  * Example:
  * > int i ; PRINTF_ERRLOG("%d", i) */
-#define PRINTF_ERRLOG(...)                PRINTF_LOG(log_channel_ERR, log_flags_NONE, __VA_ARGS__)
-
-/* define: TRACELOCATION_ERRLOG
- * Logs the location of the error.
- * This macro is used from other macros. */
-#define TRACELOCATION_ERRLOG(funcname, filename, linenr, err)     \
-         do {                                                     \
-            ERROR_LOCATION_ERRLOG( log_channel_ERR,               \
-                  (log_flags_START|log_flags_TIMESTAMP),          \
-                  (funcname), (filename), (linenr), (err)) ;      \
-         } while(0)
+#define PRINTF_ERRLOG(...)                PRINTF_LOG(log_channel_ERR, log_flags_NONE, 0, __VA_ARGS__)
 
 /* define: TRACEABORT_ERRLOG
  * Logs the abortion of a function and the its corresponding error code.
@@ -83,7 +88,7 @@
  *
  * TODO: Support own error IDs */
 #define TRACECALL_ERRLOG(fct_name, err)   \
-         TRACE_ERRLOG(log_flags_END, FUNCTION_CALL, err, fct_name, (const char*)str_errorcontext(error_maincontext(), err))
+         TRACE_ERRLOG(log_flags_START, FUNCTION_CALL, err, fct_name)
 
 /* define: TRACEOUTOFMEM_ERRLOG
  * Logs "out of memory" reason for function abort.
@@ -92,14 +97,14 @@
  * > TRACEOUTOFMEM_ERRLOG(size_of_memory_in_bytes)
  * should be called before <TRACEABORT_ERRLOG> to document the event leading to an abort. */
 #define TRACEOUTOFMEM_ERRLOG(size, err)   \
-         TRACE_ERRLOG(log_flags_END, MEMORY_OUT_OF, err, size)
+         TRACE_ERRLOG(log_flags_START, MEMORY_OUT_OF, err, size)
 
 /* define: TRACESYSCALL_ERRLOG
  * Logs reason of failure and name of called system function.
  * In POSIX compatible systems sys_errno should be set to
  * the C error variable: errno. */
 #define TRACESYSCALL_ERRLOG(sys_fctname, err)  \
-         TRACE_ERRLOG(log_flags_END, FUNCTION_SYSCALL, err, sys_fctname, (const char*)str_errorcontext(error_maincontext(), err))
+         TRACE_ERRLOG(log_flags_START, FUNCTION_SYSCALL, err, sys_fctname)
 
 /* define: TRACE_ERRLOG
  * Logs an TEXTID from C-kern/resource/errlog.text and error number err.
@@ -121,11 +126,12 @@
  * err        - Error number.
  * ...        - The following parameter are used to parameterize TEXTID. */
 #define TRACE2_ERRLOG(FLAGS, TEXTID, funcname, filename, linenr, err, ...)  \
-         do {                                                     \
-            TRACELOCATION_ERRLOG(   funcname,                     \
-                                    filename, linenr, err) ;      \
-            TEXTID ## _ERRLOG(   log_channel_ERR,                 \
-                                 FLAGS, __VA_ARGS__) ;            \
+         do {                                   \
+            log_header_t _header =              \
+               log_header_INIT(funcname,        \
+                  filename, linenr, err) ;      \
+            TEXTID ## _ERRLOG(log_channel_ERR,  \
+               FLAGS, &_header, __VA_ARGS__) ;  \
          }  while(0)
 
 /* define: TRACE_NOARG_ERRLOG
@@ -133,11 +139,13 @@
  * Parameter FLAGS carries additional flags to control the logging process - see <log_flags_e>.
  * There are no additional arguments.
  * Use <TRACE_NOARG_ERRLOG> to log any language specific text with no parameter values. */
-#define TRACE_NOARG_ERRLOG(FLAGS, TEXTID, err)   \
-         do {                                                     \
-            TRACELOCATION_ERRLOG(   __FUNCTION__,                 \
-                                    __FILE__, __LINE__, err) ;    \
-            TEXTID ## _ERRLOG(log_channel_ERR, FLAGS) ;           \
+#define TRACE_NOARG_ERRLOG(FLAGS, TEXTID, err)  \
+         do {                                   \
+            log_header_t _header =              \
+               log_header_INIT(__FUNCTION__,    \
+                  __FILE__, __LINE__, err) ;    \
+            TEXTID ## _ERRLOG(log_channel_ERR,  \
+                           FLAGS, &_header) ;   \
          }  while(0)
 
 // group: log-variables

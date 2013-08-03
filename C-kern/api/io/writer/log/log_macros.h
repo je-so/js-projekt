@@ -37,20 +37,20 @@
  * buffer - Contains pointer to C string after return. Must have type (char**).
  *          The string is terminated with a 0 byte.
  * size   - Contains size of of C string after return. The does does not include the 0 byte. */
-#define GETBUFFER_LOG(/*out char ** */buffer, /*out size_t * */size) \
-         log_maincontext().iimpl->getbuffer(log_maincontext().object, buffer, size)
+#define GETBUFFER_LOG(LOGCHANNEL, /*out char ** */buffer, /*out size_t * */size) \
+         log_maincontext().iimpl->getbuffer(log_maincontext().object, LOGCHANNEL, buffer, size)
 
 // group: change
 
 /* define: CLEARBUFFER_LOG
  * Clears log buffer (sets length of logbuffer to 0). See also <clearbuffer_logwriter>. */
-#define CLEARBUFFER_LOG()  \
-         log_maincontext().iimpl->clearbuffer(log_maincontext().object)
+#define CLEARBUFFER_LOG(LOGCHANNEL)  \
+         log_maincontext().iimpl->clearbuffer(log_maincontext().object, LOGCHANNEL)
 
 /* define: FLUSHBUFFER_LOG
  * Writes content of internal buffer and then clears it. See also <flushbuffer_logwriter>. */
-#define FLUSHBUFFER_LOG()  \
-         log_maincontext().iimpl->flushbuffer(log_maincontext().object)
+#define FLUSHBUFFER_LOG(LOGCHANNEL)  \
+         log_maincontext().iimpl->flushbuffer(log_maincontext().object, LOGCHANNEL)
 
 // group: log-text
 
@@ -60,17 +60,18 @@
  * Parameter:
  * LOGCHANNEL - The name of the channel where the log is written to. See <log_channel_e>.
  * FLAGS      - Additional flags to control the logging process. See <log_flags_e>.
+ * HEADER     - The pointer to a struct of type <log_header_t>. Could be set to 0 if no header should be printed.
  * FORMAT     - The format string as in the standard library function printf.
  * ...        - Additional value parameters of the correct type as determined by the <FORMAT>
  *              parameter.
  *
  * Example:
- * > int i ; PRINTF_LOG(log_channel_ERR, "%d", i) */
-#define PRINTF_LOG(LOGCHANNEL, FLAGS, ... )  \
+ * > int i ; PRINTF_LOG(log_channel_ERR, log_flags_NONE, 0, "%d", i) */
+#define PRINTF_LOG(LOGCHANNEL, FLAGS, HEADER, ... )  \
          do {                                \
             log_maincontext().iimpl->printf( \
                log_maincontext().object,     \
-               LOGCHANNEL, FLAGS,            \
+               LOGCHANNEL, FLAGS, HEADER,    \
                __VA_ARGS__ ) ;               \
          } while(0)
 
@@ -92,7 +93,7 @@
  * > const size_t memsize = 1024 ;
  * > PRINTVAR_LOG(log_channel_ERR, PRIuSIZE, memsize, ) ; */
 #define PRINTVAR_LOG(LOGCHANNEL, format, varname, cast) \
-         PRINTF_LOG(LOGCHANNEL, log_flags_NONE, #varname "=%" format "\n", cast (varname))
+         PRINTF_LOG(LOGCHANNEL, log_flags_NONE, 0, #varname "=%" format "\n", cast (varname))
 
 /* define: PRINTARRAYFIELD_LOG
  * Log value of variable stored in array at offset i.
@@ -110,7 +111,7 @@
  * > const char * names[] = { "Jo", "Jane" } ;
  * > for(int i = 0; i < 2; ++i) { PRINTARRAYFIELD_LOG(log_channel_ERR, s,names,i) ; } */
 #define PRINTARRAYFIELD_LOG(LOGCHANNEL, format, arrname, index)  \
-         PRINTF_LOG(LOGCHANNEL, log_flags_NONE, #arrname "[%d]=%" format "\n", i, (arrname)[i])
+         PRINTF_LOG(LOGCHANNEL, log_flags_NONE, 0, #arrname "[%d]=%" format "\n", i, (arrname)[i])
 
 /* define: PRINTCSTR_LOG
  * Log "name=value" of string variable.

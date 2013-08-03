@@ -667,7 +667,7 @@ static int test_initfree(void)
    // adapt LOG
    char * logbuffer ;
    size_t logbuffer_size ;
-   GETBUFFER_LOG( &logbuffer, &logbuffer_size ) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbuffer_size) ;
    if (logbuffer_size) {
       char * found = logbuffer ;
       while ( (found=strstr( found, str_cstring(&tmppath) )) ) {
@@ -793,7 +793,7 @@ int unittest_io_directory()
    directory_t     * dummydir[8] ;
 
    if (test_initfree())          goto ONABORT ;
-   CLEARBUFFER_LOG() ;
+   CLEARBUFFER_ERRLOG() ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 

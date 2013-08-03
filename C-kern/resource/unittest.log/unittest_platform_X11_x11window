@@ -1,9 +1,12 @@
-[1: 1371660278.947455s]
+[1: 1374953423.577054s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
-Error 3 - Function aborted
-[1: 1371660279.48297s]
+Error 3 - No such process
+Function aborted
+[1: 1374953423.678200s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
-Error 3 - Function aborted
-[1: 1371660279.168986s]
+Error 3 - No such process
+Function aborted
+[1: 1374953423.799089s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
-Error 3 - Function aborted
+Error 3 - No such process
+Function aborted

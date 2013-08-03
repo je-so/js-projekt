@@ -1,27 +1,36 @@
-[1: 1371660256.404043s]
+[1: 1374953318.438317s]
 free_slist() C-kern/ds/inmem/slist.c:71
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660256.404072s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953318.438351s]
 removeafter_slist() C-kern/ds/inmem/slist.c:135
-Error 22 - Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
-[1: 1371660256.404075s]
+Error 22 - Invalid argument
+Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
+[1: 1374953318.438354s]
 removeafter_slist() C-kern/ds/inmem/slist.c:153
-Error 22 - Function aborted
-[1: 1371660256.404077s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953318.438357s]
 removefirst_slist() C-kern/ds/inmem/slist.c:111
-Error 22 - Function input violates condition (! isempty_slist(list))
-[1: 1371660256.404079s]
+Error 22 - Invalid argument
+Function input violates condition (! isempty_slist(list))
+[1: 1374953318.438359s]
 removefirst_slist() C-kern/ds/inmem/slist.c:127
-Error 22 - Function aborted
-[1: 1371660256.404081s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953318.438361s]
 removeafter_slist() C-kern/ds/inmem/slist.c:135
-Error 22 - Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
-[1: 1371660256.404083s]
+Error 22 - Invalid argument
+Function input violates condition (0 != prev_node->next && ! isempty_slist(list))
+[1: 1374953318.438363s]
 removeafter_slist() C-kern/ds/inmem/slist.c:153
-Error 22 - Function aborted
-[1: 1371660256.404091s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953318.438375s]
 free_slist() C-kern/ds/inmem/slist.c:71
-Error 38 - Function aborted - one or more resources could not be freed
-[1: 1371660256.404094s]
+Error 38 - Function not implemented
+Function aborted - one or more resources could not be freed
+[1: 1374953318.438379s]
 free_slist() C-kern/ds/inmem/slist.c:71
-Error 22 - Function aborted - one or more resources could not be freed
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed

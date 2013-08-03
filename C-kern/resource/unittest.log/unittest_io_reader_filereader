@@ -1,38 +1,50 @@
-[1: 1373292066.324341s]
+[1: 1374953324.960580s]
 init_file() C-kern/platform/Linux/io/file.c:92
-Error 2 - System call 'openat' returned error 'No such file or directory'
+Error 2 - No such file or directory
+System call 'openat' failed
 filepath=X
-[1: 1373292066.324349s]
+[1: 1374953324.960587s]
 init_file() C-kern/platform/Linux/io/file.c:101
-Error 2 - Function aborted
-[1: 1373292066.324352s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.960590s]
 init_filereader() C-kern/io/reader/filereader.c:143
-Error 2 - Function aborted
-[1: 1373292066.324356s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.960594s]
 init_file() C-kern/platform/Linux/io/file.c:92
-Error 2 - System call 'openat' returned error 'No such file or directory'
+Error 2 - No such file or directory
+System call 'openat' failed
 filepath=X
-[1: 1373292066.324359s]
+[1: 1374953324.960597s]
 init_file() C-kern/platform/Linux/io/file.c:101
-Error 2 - Function aborted
-[1: 1373292066.324361s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.960599s]
 initsingle_filereader() C-kern/io/reader/filereader.c:171
-Error 2 - Function aborted
-[1: 1373292066.731336s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953325.455046s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:74
-Error 12 - System call 'mmap' returned error 'Cannot allocate memory'
-[1: 1373292066.731350s]
+Error 12 - Cannot allocate memory
+System call 'mmap' failed
+[1: 1374953325.455059s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:94
-Error 12 - Function aborted
-[1: 1373292066.731353s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953325.455062s]
 initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:107
-Error 12 - Function aborted
-[1: 1373292066.731365s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953325.455076s]
 initsingle_filereader() C-kern/io/reader/filereader.c:171
-Error 12 - Function aborted
-[1: 1373292066.816426s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953325.566736s]
 readnext_filereader() C-kern/io/reader/filereader.c:291
-Error 105 - Function aborted
-[1: 1373292066.816580s]
+Error 105 - No buffer space available
+Function aborted
+[1: 1374953325.566828s]
 readnext_filereader() C-kern/io/reader/filereader.c:291
-Error 105 - Function aborted
+Error 105 - No buffer space available
+Function aborted

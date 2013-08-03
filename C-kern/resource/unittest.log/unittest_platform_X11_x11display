@@ -1,24 +1,32 @@
-[1: 1371660278.816354s]
+[1: 1374953336.680958s]
 removeobject_x11display() C-kern/platform/shared/X11/x11display.c:409
-Error 3 - Function aborted
-[1: 1371660278.816362s]
+Error 3 - No such process
+Function aborted
+[1: 1374953336.680965s]
 removeobject_x11display() C-kern/platform/shared/X11/x11display.c:409
-Error 3 - Function aborted
-[1: 1371660278.816365s]
+Error 3 - No such process
+Function aborted
+[1: 1374953336.680968s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
-Error 3 - Function aborted
-[1: 1371660278.816367s]
+Error 3 - No such process
+Function aborted
+[1: 1374953336.680970s]
 findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
-Error 3 - Function aborted
-[1: 1371660278.816369s]
+Error 3 - No such process
+Function aborted
+[1: 1374953336.680972s]
 removeobject_x11display() C-kern/platform/shared/X11/x11display.c:409
-Error 3 - Function aborted
-[1: 1371660278.816371s]
+Error 3 - No such process
+Function aborted
+[1: 1374953336.680974s]
 removeobject_x11display() C-kern/platform/shared/X11/x11display.c:409
-Error 3 - Function aborted
-[1: 1371660278.816373s]
+Error 3 - No such process
+Function aborted
+[1: 1374953336.680976s]
 insertobject_x11display() C-kern/platform/shared/X11/x11display.c:396
-Error 17 - Function aborted
-[1: 1371660278.816375s]
+Error 17 - File exists
+Function aborted
+[1: 1374953336.680978s]
 insertobject_x11display() C-kern/platform/shared/X11/x11display.c:396
-Error 17 - Function aborted
+Error 17 - File exists
+Function aborted

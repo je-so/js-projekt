@@ -187,7 +187,7 @@ ONABORT:
 
 static int child_lockassert(objectcache_impl_t * cache)
 {
-   CLEARBUFFER_LOG() ;
+   CLEARBUFFER_ERRLOG() ;
    if (cache) {
       memblock_t * iobuffer = (memblock_t*) 1 ;
       lockiobuffer_objectcacheimpl(cache, &iobuffer) ;
@@ -197,7 +197,7 @@ static int child_lockassert(objectcache_impl_t * cache)
 
 static int child_unlockassert(objectcache_impl_t * cache)
 {
-   CLEARBUFFER_LOG() ;
+   CLEARBUFFER_ERRLOG() ;
    if (cache) {
       memblock_t * iobuffer = (memblock_t*) 1 ;
       unlockiobuffer_objectcacheimpl(cache, &iobuffer) ;

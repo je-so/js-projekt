@@ -1,18 +1,24 @@
-[1: 1371660259.732964s]
+[1: 1374953321.902293s]
 new_testmmpage() C-kern/test/testmm.c:197
-Error 12 - Function aborted
-[1: 1371660260.272928s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953322.465334s]
 mresize_testmm() C-kern/test/testmm.c:678
-Error 71 - Function aborted
-[1: 1371660260.272940s]
+Error 71 - Protocol error
+Function aborted
+[1: 1374953322.465347s]
 mfree_testmm() C-kern/test/testmm.c:724
-Error 1 - Function aborted
-[1: 1371660260.272943s]
+Error 1 - Operation not permitted
+Function aborted
+[1: 1374953322.465350s]
 mresize_testmm() C-kern/test/testmm.c:676
-Error 12 - Could not allocate 80 bytes of memory
-[1: 1371660260.272945s]
+Error 12 - Cannot allocate memory
+Could not allocate 80 bytes of memory
+[1: 1374953322.465353s]
 mresize_testmm() C-kern/test/testmm.c:678
-Error 12 - Function aborted
-[1: 1371660260.272947s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953322.465356s]
 mfree_testmm() C-kern/test/testmm.c:724
-Error 22 - Function aborted
+Error 22 - Invalid argument
+Function aborted

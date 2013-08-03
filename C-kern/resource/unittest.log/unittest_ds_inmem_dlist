@@ -1,33 +1,44 @@
-[1: 1371660254.813880s]
+[1: 1374953316.874673s]
 free_dlist() C-kern/ds/inmem/dlist.c:74
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660254.814933s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953316.875748s]
 remove_dlist() C-kern/ds/inmem/dlist.c:181
-Error 22 - Function input violates condition (!isempty_dlist(list) && node->next)
-[1: 1371660254.814936s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list) && node->next)
+[1: 1374953316.875752s]
 remove_dlist() C-kern/ds/inmem/dlist.c:189
-Error 22 - Function aborted
-[1: 1371660254.814938s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953316.875754s]
 remove_dlist() C-kern/ds/inmem/dlist.c:181
-Error 22 - Function input violates condition (!isempty_dlist(list) && node->next)
-[1: 1371660254.814940s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list) && node->next)
+[1: 1374953316.875756s]
 remove_dlist() C-kern/ds/inmem/dlist.c:189
-Error 22 - Function aborted
-[1: 1371660254.814942s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953316.875758s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:144
-Error 22 - Function input violates condition (!isempty_dlist(list))
-[1: 1371660254.814943s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list))
+[1: 1374953316.875760s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:154
-Error 22 - Function aborted
-[1: 1371660254.814945s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953316.875762s]
 removelast_dlist() C-kern/ds/inmem/dlist.c:162
-Error 22 - Function input violates condition (!isempty_dlist(list))
-[1: 1371660254.814947s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list))
+[1: 1374953316.875764s]
 removelast_dlist() C-kern/ds/inmem/dlist.c:173
-Error 22 - Function aborted
-[1: 1371660254.815065s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953316.875865s]
 free_dlist() C-kern/ds/inmem/dlist.c:74
-Error 38 - Function aborted - one or more resources could not be freed
-[1: 1371660254.815074s]
+Error 38 - Function not implemented
+Function aborted - one or more resources could not be freed
+[1: 1374953316.875875s]
 free_dlist() C-kern/ds/inmem/dlist.c:74
-Error 22 - Function aborted - one or more resources could not be freed
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed

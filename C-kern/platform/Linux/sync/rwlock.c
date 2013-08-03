@@ -388,7 +388,7 @@ static int thread_lockreader(rwlock_t * rwlock)
    atomicadd_int(&s_thread_runcount, 1) ;
    int err = lockreader_rwlock(rwlock) ;
    atomicsub_int(&s_thread_runcount, 1) ;
-   if (err) CLEARBUFFER_LOG() ;
+   if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
@@ -397,7 +397,7 @@ static int thread_unlockreader(rwlock_t * rwlock)
    atomicadd_int(&s_thread_runcount, 1) ;
    int err = unlockreader_rwlock(rwlock) ;
    atomicsub_int(&s_thread_runcount, 1) ;
-   if (err) CLEARBUFFER_LOG() ;
+   if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
@@ -406,7 +406,7 @@ static int thread_lockwriter(rwlock_t * rwlock)
    atomicadd_int(&s_thread_runcount, 1) ;
    int err = lockwriter_rwlock(rwlock) ;
    atomicsub_int(&s_thread_runcount, 1) ;
-   if (err) CLEARBUFFER_LOG() ;
+   if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
@@ -415,7 +415,7 @@ static int thread_unlockwriter(rwlock_t * rwlock)
    atomicadd_int(&s_thread_runcount, 1) ;
    int err = unlockwriter_rwlock(rwlock) ;
    atomicsub_int(&s_thread_runcount, 1) ;
-   if (err) CLEARBUFFER_LOG() ;
+   if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 

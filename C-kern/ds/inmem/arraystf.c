@@ -1304,28 +1304,28 @@ static int test_error(void)
    nodes[0] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[0].key), .key = { 0 } } ;
    TEST(0 == tryinsert_arraystf(array, &nodes[0].node, &inserted_node, 0)) ;
    nodes[1] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[1].key), .key = { 0 } } ;
-   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize1) ;
    TEST(EEXIST == tryinsert_arraystf(array, &nodes[1].node, &existing_node, 0)) ;  // no log
-   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
    TEST(&nodes[0].node == existing_node) ;
    existing_node = 0 ;
    TEST(EEXIST == insert_arraystf(array, &nodes[1].node, &existing_node, 0)) ;     // log
-   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    TEST(0 == existing_node) ;
 
    // TEST ESRCH
    arraystf_findresult_t found ;
    nodes[1] = (testnode_t) { .node = arraystf_node_INIT(1, nodes[1].key), .key = { 1 } } ;
-   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize1) ;
    TEST(0     == at_arraystf(array, 1, nodes[1].key)) ;           // no log
    TEST(ESRCH == find_arraystf(array, &nodes[1].node, &found)) ;  // no log
    TEST(ESRCH == tryremove_arraystf(array, 1, nodes[1].key, 0)) ; // no log
-   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
    TEST(ESRCH == remove_arraystf(array, 1, nodes[1].key, 0)) ;    // log
-   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    nodes[0].freecount = 0 ;
    TEST(0 == tryremove_arraystf(array, 1, nodes[0].key, &removed_node)) ;
@@ -1712,7 +1712,7 @@ int unittest_ds_inmem_arraystf()
 
       if (0 == same_resourceusage(&usage)) break ;
 
-      CLEARBUFFER_LOG() ;
+      CLEARBUFFER_ERRLOG() ;
       TEST(0 == free_resourceusage(&usage)) ;
    }
 

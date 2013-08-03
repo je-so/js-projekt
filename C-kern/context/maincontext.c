@@ -27,6 +27,7 @@
 #include "C-kern/api/maincontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/valuecache.h"
+#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/platform/sysuser.h"
@@ -198,7 +199,7 @@ void abort_maincontext(int err)
    // TODO: add abort handler registration ...
    //       add unit test for checking that resources are freed
    TRACE_NOARG_ERRLOG(log_flags_END, PROGRAM_ABORT, err) ;
-   FLUSHBUFFER_LOG() ;
+   FLUSHBUFFER_ERRLOG() ;
    abort() ;
 }
 
@@ -264,7 +265,7 @@ static int test_initmain(void)
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
-   FLUSHBUFFER_LOG() ;
+   FLUSHBUFFER_ERRLOG() ;
    TEST(0 == free_maincontext()) ;
 
    // TEST static type
@@ -344,7 +345,7 @@ static int test_initmain(void)
    TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
 
    // unprepare
-   FLUSHBUFFER_LOG() ;
+   FLUSHBUFFER_ERRLOG() ;
    char buffer[4096] = { 0 };
    TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
@@ -432,7 +433,7 @@ static int test_initerror(void)
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
-   FLUSHBUFFER_LOG() ;
+   FLUSHBUFFER_ERRLOG() ;
    TEST(0 == free_maincontext()) ;
    TEST(maincontext_STATIC == type_maincontext()) ;
 
@@ -453,7 +454,7 @@ static int test_initerror(void)
       TEST(0 == tcontext_maincontext()->objectcache.iimpl) ;
    }
 
-   FLUSHBUFFER_LOG() ;
+   FLUSHBUFFER_ERRLOG() ;
    char buffer[4096] = { 0 };
    TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
@@ -471,14 +472,14 @@ static int test_initerror(void)
    TEST(EALREADY == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
 
    if (maincontext_STATIC == old_context.type) {
-      CLEARBUFFER_LOG() ;
+      CLEARBUFFER_ERRLOG() ;
       free_maincontext() ;
    }
 
    return 0 ;
 ONABORT:
    if (maincontext_STATIC == old_context.type) {
-      CLEARBUFFER_LOG() ;
+      CLEARBUFFER_ERRLOG() ;
       free_maincontext() ;
    }
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
@@ -499,7 +500,7 @@ static int test_progname(void)
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC|O_NONBLOCK)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
-   FLUSHBUFFER_LOG() ;
+   FLUSHBUFFER_ERRLOG() ;
    TEST(0 == free_maincontext()) ;
 
     // TEST progname_maincontext
@@ -520,7 +521,7 @@ static int test_progname(void)
    }
 
    // unprepare
-   FLUSHBUFFER_LOG() ;
+   FLUSHBUFFER_ERRLOG() ;
    char buffer[4096] = { 0 };
    ssize_t bytes = read(fdpipe[0], buffer, sizeof(buffer)) ;
    TEST(0 < bytes || (errno == EAGAIN && -1 == bytes)) ;

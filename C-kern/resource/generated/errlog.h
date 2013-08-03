@@ -5,24 +5,23 @@
  *
  */
 
-int ASSERT_FAILED_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * wrong_condition) ;
-int ERROR_LOCATION_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * filename, int linenr, int err) ;
-int FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * filename) ;
-int FILE_FORMAT_WRONG_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * filename) ;
-int FUNCTION_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags) ;
-int FUNCTION_ABORT_FREE_ERRLOG(uint8_t log_channel, uint8_t log_flags) ;
-int FUNCTION_CALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * errstr) ;
-int FUNCTION_SYSCALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * errstr) ;
-int FUNCTION_WRONG_RETURNVALUE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * wrong_value) ;
-int LOCALE_SETLOCALE_ERRLOG(uint8_t log_channel, uint8_t log_flags) ;
-int MEMORY_OUT_OF_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t size) ;
-int PARSEERROR_EXPECTCHAR_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t linenr, size_t colnr, const char * chr) ;
-int PARSEERROR_EXPECTNEWLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t linenr, size_t colnr) ;
-int PROGRAM_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags) ;
-int RESOURCE_USAGE_DIFFERENT_ERRLOG(uint8_t log_channel, uint8_t log_flags) ;
-int TEST_INPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition) ;
-int TEST_INVARIANT_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition) ;
-int TEST_OUTPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition) ;
-int TEST_STATE_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition) ;
-int X11_DISPLAY_NOT_SET_ERRLOG(uint8_t log_channel, uint8_t log_flags) ;
-int X11_NO_CONNECTION_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * display_server_name) ;
+int ASSERT_FAILED_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * wrong_condition) ;
+int FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * filename) ;
+int FILE_FORMAT_WRONG_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * filename) ;
+int FUNCTION_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header) ;
+int FUNCTION_ABORT_FREE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header) ;
+int FUNCTION_CALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * funcname) ;
+int FUNCTION_SYSCALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * funcname) ;
+int FUNCTION_WRONG_RETURNVALUE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * funcname, const char * wrong_value) ;
+int LOCALE_SETLOCALE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header) ;
+int MEMORY_OUT_OF_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, size_t size) ;
+int PARSEERROR_EXPECTCHAR_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, size_t linenr, size_t colnr, const char * chr) ;
+int PARSEERROR_EXPECTNEWLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, size_t linenr, size_t colnr) ;
+int PROGRAM_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header) ;
+int RESOURCE_USAGE_DIFFERENT_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header) ;
+int TEST_INPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * violated_condition) ;
+int TEST_INVARIANT_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * violated_condition) ;
+int TEST_OUTPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * violated_condition) ;
+int TEST_STATE_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * violated_condition) ;
+int X11_DISPLAY_NOT_SET_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header) ;
+int X11_NO_CONNECTION_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * display_server_name) ;

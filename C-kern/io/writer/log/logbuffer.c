@@ -27,6 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/writer/log/logbuffer.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/io/iochannel.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -111,19 +112,6 @@ int write_logbuffer(logbuffer_t * logbuf)
    return 0 ;
 }
 
-void addtimestamp_logbuffer(logbuffer_t * logbuf)
-{
-   struct timeval tv ;
-   if (-1 == gettimeofday(&tv, 0)) {
-      tv.tv_sec  = 0 ;
-      tv.tv_usec = 0 ;
-   }
-   static_assert(sizeof(tv.tv_sec)  <= sizeof(uint64_t), "conversion works") ;
-   static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works") ;
-
-   printf_logbuffer(logbuf, "[%"PRIuSIZE": %"PRIu64".%06"PRIu32"s]\n", threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec) ;
-}
-
 void vprintf_logbuffer(logbuffer_t * logbuf, const char * format, va_list args)
 {
    uint32_t    buffer_size = sizefree_logbuffer(logbuf) ;
@@ -151,6 +139,21 @@ void printf_logbuffer(logbuffer_t * logbuf, const char * format, ...)
    va_start(args, format) ;
    vprintf_logbuffer(logbuf, format, args) ;
    va_end(args) ;
+}
+
+void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * header)
+{
+   struct timeval tv ;
+   if (-1 == gettimeofday(&tv, 0)) {
+      tv.tv_sec  = 0 ;
+      tv.tv_usec = 0 ;
+   }
+   static_assert(sizeof(tv.tv_sec)  <= sizeof(uint64_t), "conversion works") ;
+   static_assert(sizeof(tv.tv_usec) <= sizeof(uint32_t), "conversion works") ;
+
+   printf_logbuffer(logbuf, "[%"PRIuSIZE": %"PRIu64".%06"PRIu32"s]\n%s() %s:%d\n", threadid_maincontext(), (uint64_t)tv.tv_sec, (uint32_t)tv.tv_usec, header->funcname, header->filename, header->linenr) ;
+   // TODO: printheader_logbuffer: read string from table
+   printf_logbuffer(logbuf, "Error %d - %s\n", header->err, (const char*)str_errorcontext(error_maincontext(), header->err)) ;
 }
 
 
@@ -266,9 +269,9 @@ ONABORT:
    return EINVAL ;
 }
 
-static int compare_timestamp(size_t buffer_size, uint8_t buffer_addr[buffer_size])
+static int compare_header(size_t buffer_size, uint8_t buffer_addr[buffer_size], const char * funcname, const char * filename, int linenr, int err)
 {
-   char     buffer[100] ;
+   char     buffer[200] ;
    int      nr1 ;
    uint64_t nr2 ;
    uint32_t nr3 ;
@@ -280,7 +283,7 @@ static int compare_timestamp(size_t buffer_size, uint8_t buffer_addr[buffer_size
    TEST((uint64_t)tv.tv_sec <= nr2 + 1) ;
    TEST(nr3 < 1000000) ;
 
-   snprintf(buffer, sizeof(buffer), "[%d: %"SCNu64".%06"SCNu32"s]\n", nr1, nr2, nr3) ;
+   snprintf(buffer, sizeof(buffer), "[%d: %"PRIu64".%06"PRIu32"s]\n%s() %s:%d\nError %d - %s\n", nr1, nr2, nr3, funcname, filename, linenr, err, (const char*)str_errorcontext(error_maincontext(), err)) ;
    TEST(strlen(buffer) == buffer_size) ;
    TEST(0 == memcmp(buffer, buffer_addr, strlen(buffer))) ;
 
@@ -289,15 +292,16 @@ ONABORT:
    return EINVAL ;
 }
 
-static int thread_addtimestamp(logbuffer_t * logbuf)
+static int thread_printheader(logbuffer_t * logbuf)
 {
    logbuf->logsize = 0 ;
-   addtimestamp_logbuffer(logbuf) ;
-   TEST(0 == compare_timestamp(logbuf->logsize, logbuf->addr)) ;
+   log_header_t header = log_header_INIT("thread_printheader", __FILE__, 100, ENOMEM) ;
+   printheader_logbuffer(logbuf, &header) ;
+   TEST(0 == compare_header(logbuf->logsize, logbuf->addr, "thread_printheader", __FILE__, 100, ENOMEM)) ;
 
    return 0 ;
 ONABORT:
-   CLEARBUFFER_LOG() ;
+   CLEARBUFFER_ERRLOG() ;
    return EINVAL ;
 }
 
@@ -340,24 +344,25 @@ static int test_update(void)
       TEST(buffer[i] == readbuffer[i]) ;
    }
 
-   // TEST addtimestamp_logbuffer
+   // TEST printheader_logbuffer
    logbuf.logsize = 0 ;
-   addtimestamp_logbuffer(&logbuf) ;
-   TEST(0 == compare_timestamp(logbuf.logsize, logbuf.addr)) ;
+   log_header_t header = log_header_INIT("test_update", "file", 123456, EINVAL) ;
+   printheader_logbuffer(&logbuf, &header) ;
+   TEST(0 == compare_header(logbuf.logsize, logbuf.addr, "test_update", "file", 123456, EINVAL)) ;
    for (uint32_t len = logbuf.logsize, i = 1; i < 10; ++i) {
-      addtimestamp_logbuffer(&logbuf) ;
+      printheader_logbuffer(&logbuf, &header) ;
       TEST((i+1)*len == logbuf.logsize) ;
-      TEST(0 == compare_timestamp(len, logbuf.addr + i*len)) ;
+      TEST(0 == compare_header(len, logbuf.addr + i*len, "test_update", "file", 123456, EINVAL)) ;
    }
-   TEST(0 == newgeneric_thread(&thread, thread_addtimestamp, &logbuf)) ;
+   TEST(0 == newgeneric_thread(&thread, &thread_printheader, &logbuf)) ;
    TEST(0 == join_thread(thread)) ;
    TEST(0 == returncode_thread(thread)) ;
    TEST(0 == delete_thread(&thread)) ;
 
-   // TEST addtimestamp_logbuffer: adds " ..." at end in case of truncated message
+   // TEST printheader_logbuffer: adds " ..." at end in case of truncated message
    logbuf.logsize = logbuf.size - 10 ;
    logbuf.addr[logbuf.logsize] = 0 ;
-   addtimestamp_logbuffer(&logbuf) ;
+   printheader_logbuffer(&logbuf, &header) ;
    TEST(logbuf.logsize == logbuf.size - 1)
    TEST(0 == memcmp(logbuf.addr + logbuf.size - 10, "[", 1)) ;
    TEST(0 == memcmp(logbuf.addr + logbuf.size - 5, " ...", 5)) ;

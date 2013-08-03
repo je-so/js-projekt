@@ -1,75 +1,100 @@
-[0: 1372175259.599296s]
-init_threadcontext() C-kern/context/threadcontext.c:320
-Error 71 - Operation allowed only in state (maincontext_STATIC != type_maincontext())
-[0: 1372175259.599304s]
-init_threadcontext() C-kern/context/threadcontext.c:361
-Error 71 - Function aborted
-[0: 1372175259.599309s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 23 - Function aborted
-[0: 1372175259.601951s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 24 - Function aborted
-[0: 1372175259.605500s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 25 - Function aborted
-[1: 1372175259.608702s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 114 - Function aborted
-[0: 1372175259.609999s]
-init_maincontext() C-kern/context/maincontext.c:164
-Error 22 - Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
-[0: 1372175259.610007s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 22 - Function aborted
-[0: 1372175259.610012s]
-init_maincontext() C-kern/context/maincontext.c:164
-Error 22 - Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
-[0: 1372175259.610015s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 22 - Function aborted
-[0: 1372175259.610019s]
-init_maincontext() C-kern/context/maincontext.c:166
-Error 22 - Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
-[0: 1372175259.610022s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 22 - Function aborted
-[0: 1372175259.610025s]
-init_maincontext() C-kern/context/maincontext.c:166
-Error 22 - Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
-[0: 1372175259.610029s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 22 - Function aborted
-[0: 1372175259.614290s]
-free_maincontext() C-kern/context/maincontext.c:149
-Error 39 - Function aborted - one or more resources could not be freed
-[0: 1372175259.618329s]
-init_threadcontext() C-kern/context/threadcontext.c:320
-Error 71 - Operation allowed only in state (maincontext_STATIC != type_maincontext())
-[0: 1372175259.618340s]
-init_threadcontext() C-kern/context/threadcontext.c:361
-Error 71 - Function aborted
-[0: 1372175259.618344s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 23 - Function aborted
-[0: 1372175259.621554s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 24 - Function aborted
-[0: 1372175259.625547s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 25 - Function aborted
-[1: 1372175259.628936s]
-init_maincontext() C-kern/context/maincontext.c:192
-Error 114 - Function aborted
-[1: 1372175259.647597s]
-allocstatic_maincontext() C-kern/context/maincontext.c:223
-Error 12 - Could not allocate 1 bytes of memory
-[1: 1372175259.647605s]
-allocstatic_maincontext() C-kern/context/maincontext.c:233
-Error 12 - Function aborted
-[1: 1372175259.647608s]
-freestatic_maincontext() C-kern/context/maincontext.c:241
-Error 22 - Function input violates condition (g_maincontext.size_staticmem >= size)
-[1: 1372175259.647613s]
-freestatic_maincontext() C-kern/context/maincontext.c:247
-Error 22 - Function aborted
+[0: 1374994287.433211s]
+init_threadcontext() C-kern/context/threadcontext.c:324
+Error 71 - Protocol error
+Operation allowed only in state (maincontext_STATIC != type_maincontext())
+[0: 1374994287.433234s]
+init_threadcontext() C-kern/context/threadcontext.c:365
+Error 71 - Protocol error
+Function aborted
+[0: 1374994287.433238s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 23 - Too many open files in system
+Function aborted
+[0: 1374994287.435904s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 24 - Too many open files
+Function aborted
+[0: 1374994287.439900s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 25 - Inappropriate ioctl for device
+Function aborted
+[1: 1374994287.443770s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 114 - Operation already in progress
+Function aborted
+[0: 1374994287.445025s]
+init_maincontext() C-kern/context/maincontext.c:165
+Error 22 - Invalid argument
+Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
+[0: 1374994287.445032s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 22 - Invalid argument
+Function aborted
+[0: 1374994287.445037s]
+init_maincontext() C-kern/context/maincontext.c:165
+Error 22 - Invalid argument
+Function input violates condition (maincontext_STATIC < context_type && maincontext_DEFAULT >= context_type)
+[0: 1374994287.445040s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 22 - Invalid argument
+Function aborted
+[0: 1374994287.445043s]
+init_maincontext() C-kern/context/maincontext.c:167
+Error 22 - Invalid argument
+Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
+[0: 1374994287.445046s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 22 - Invalid argument
+Function aborted
+[0: 1374994287.445049s]
+init_maincontext() C-kern/context/maincontext.c:167
+Error 22 - Invalid argument
+Function input violates condition (argc >= 0 && (argc == 0 || argv != 0))
+[0: 1374994287.445052s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 22 - Invalid argument
+Function aborted
+[0: 1374994287.449166s]
+free_maincontext() C-kern/context/maincontext.c:150
+Error 39 - Directory not empty
+Function aborted - one or more resources could not be freed
+[0: 1374994287.453076s]
+init_threadcontext() C-kern/context/threadcontext.c:324
+Error 71 - Protocol error
+Operation allowed only in state (maincontext_STATIC != type_maincontext())
+[0: 1374994287.453087s]
+init_threadcontext() C-kern/context/threadcontext.c:365
+Error 71 - Protocol error
+Function aborted
+[0: 1374994287.453090s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 23 - Too many open files in system
+Function aborted
+[0: 1374994287.455644s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 24 - Too many open files
+Function aborted
+[0: 1374994287.459447s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 25 - Inappropriate ioctl for device
+Function aborted
+[1: 1374994287.462602s]
+init_maincontext() C-kern/context/maincontext.c:193
+Error 114 - Operation already in progress
+Function aborted
+[1: 1374994287.480130s]
+allocstatic_maincontext() C-kern/context/maincontext.c:224
+Error 12 - Cannot allocate memory
+Could not allocate 1 bytes of memory
+[1: 1374994287.480137s]
+allocstatic_maincontext() C-kern/context/maincontext.c:234
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374994287.480140s]
+freestatic_maincontext() C-kern/context/maincontext.c:242
+Error 22 - Invalid argument
+Function input violates condition (g_maincontext.size_staticmem >= size)
+[1: 1374994287.480143s]
+freestatic_maincontext() C-kern/context/maincontext.c:248
+Error 22 - Invalid argument
+Function aborted

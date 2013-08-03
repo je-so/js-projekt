@@ -1,42 +1,56 @@
-[1: 1371660259.445029s]
+[1: 1374953321.551991s]
 staticimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:90
-Error 12 - Function aborted
-[1: 1371660259.445045s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.552007s]
 staticimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:90
-Error 12 - Function aborted
-[1: 1371660259.445056s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.552018s]
 staticimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:90
-Error 12 - Function aborted
-[1: 1371660259.460602s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.565078s]
 new_testmmpage() C-kern/test/testmm.c:197
-Error 12 - Function aborted
-[1: 1371660259.460615s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.565093s]
 mresize_testmm() C-kern/test/testmm.c:676
-Error 12 - Could not allocate 2147483647 bytes of memory
-[1: 1371660259.460618s]
+Error 12 - Cannot allocate memory
+Could not allocate 2147483647 bytes of memory
+[1: 1374953321.565095s]
 mresize_testmm() C-kern/test/testmm.c:678
-Error 12 - Function aborted
-[1: 1371660259.460620s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.565098s]
 dynamicimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:81
-Error 12 - Function aborted
-[1: 1371660259.460625s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.565102s]
 mresize_testmm() C-kern/test/testmm.c:676
-Error 12 - Could not allocate 2 bytes of memory
-[1: 1371660259.460627s]
+Error 12 - Cannot allocate memory
+Could not allocate 2 bytes of memory
+[1: 1374953321.565104s]
 mresize_testmm() C-kern/test/testmm.c:678
-Error 12 - Function aborted
-[1: 1371660259.460629s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.565106s]
 dynamicimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:81
-Error 12 - Function aborted
-[1: 1371660259.460637s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.565114s]
 new_testmmpage() C-kern/test/testmm.c:197
-Error 12 - Function aborted
-[1: 1371660259.460639s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.565117s]
 mresize_testmm() C-kern/test/testmm.c:676
-Error 12 - Could not allocate 2147483647 bytes of memory
-[1: 1371660259.460641s]
+Error 12 - Cannot allocate memory
+Could not allocate 2147483647 bytes of memory
+[1: 1374953321.565119s]
 mresize_testmm() C-kern/test/testmm.c:678
-Error 12 - Function aborted
-[1: 1371660259.460643s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.565121s]
 dynamicimpl_reserve_wbuffer() C-kern/memory/wbuffer.c:81
-Error 12 - Function aborted
+Error 12 - Cannot allocate memory
+Function aborted

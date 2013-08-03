@@ -656,7 +656,7 @@ static int exectest_childprocess(void * logfd)
    // transfer log file
    char *   logbuffer ;
    size_t   logsize ;
-   GETBUFFER_LOG(&logbuffer, &logsize) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
    TEST((size_t)write((int)logfd, logbuffer, logsize) == logsize) ;
 
    return 0 ;

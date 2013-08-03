@@ -225,7 +225,7 @@ static int thread_waitonwlist(waitlist_t * wlist)
    atomicadd_int(&s_thread_runcount, 1) ;
    int err = wait_waitlist(wlist) ;
    atomicsub_int(&s_thread_runcount, 1) ;
-   if (err) CLEARBUFFER_LOG() ;
+   if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
@@ -234,7 +234,7 @@ static int thread_callwakeup(waitlist_t * wlist)
    atomicadd_int(&s_thread_runcount, 1) ;
    int err = trywakeup_waitlist(wlist, (thread_f)3, (void*)4) ;
    atomicsub_int(&s_thread_runcount , 1) ;
-   if (err) CLEARBUFFER_LOG() ;
+   if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 

@@ -1,21 +1,28 @@
-[1: 1371660254.821223s]
+[1: 1374953316.881951s]
 init_exthash() C-kern/ds/inmem/exthash.c:168
-Error 22 - Function input violates condition (initial_size <= max_size && max_size < ((size_t)-1)/sizeof(void*))
-[1: 1371660254.821231s]
+Error 22 - Invalid argument
+Function input violates condition (initial_size <= max_size && max_size < ((size_t)-1)/sizeof(void*))
+[1: 1374953316.881965s]
 init_exthash() C-kern/ds/inmem/exthash.c:187
-Error 22 - Function aborted
-[1: 1371660254.821234s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953316.881968s]
 init_exthash() C-kern/ds/inmem/exthash.c:168
-Error 22 - Function input violates condition (initial_size <= max_size && max_size < ((size_t)-1)/sizeof(void*))
-[1: 1371660254.821236s]
+Error 22 - Invalid argument
+Function input violates condition (initial_size <= max_size && max_size < ((size_t)-1)/sizeof(void*))
+[1: 1374953316.881970s]
 init_exthash() C-kern/ds/inmem/exthash.c:187
-Error 22 - Function aborted
-[1: 1371660255.193467s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953317.253086s]
 removenodes_redblacktree() C-kern/ds/inmem/redblacktree.c:708
-Error 22 - Function aborted - one or more resources could not be freed
-[1: 1371660255.193480s]
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed
+[1: 1374953317.253108s]
 free_redblacktree() C-kern/ds/inmem/redblacktree.c:205
-Error 22 - Function aborted
-[1: 1371660255.193648s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953317.253307s]
 removenodes_exthash() C-kern/ds/inmem/exthash.c:458
-Error 22 - Function aborted - one or more resources could not be freed
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed

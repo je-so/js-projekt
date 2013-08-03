@@ -291,7 +291,7 @@ static int thread_calllock(thrmutex_t * mutex)
    atomicadd_int(&s_thread_runcount, 1) ;
    int err = lock_thrmutex(mutex) ;
    atomicsub_int(&s_thread_runcount, 1) ;
-   if (err) CLEARBUFFER_LOG() ;
+   if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 
@@ -300,7 +300,7 @@ static int thread_callunlock(thrmutex_t * mutex)
    atomicadd_int(&s_thread_runcount, 1) ;
    int err = unlock_thrmutex(mutex) ;
    atomicsub_int(&s_thread_runcount, 1) ;
-   if (err) CLEARBUFFER_LOG() ;
+   if (err) CLEARBUFFER_ERRLOG() ;
    return err ;
 }
 

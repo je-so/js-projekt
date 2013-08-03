@@ -273,6 +273,10 @@ int free_threadcontext(threadcontext_t * tcontext)
    int err2 ;
    threadcontext_t statictcontext = threadcontext_INIT_STATIC ;
 
+   // TODO: add flush caches (log + database caches) to free_threadcontext
+   //       another (better?) option is to add flush caches to end of a single
+   //       transaction (or end of group transaction)
+
    size_t    initcount = tcontext->initcount ;
    tcontext->initcount = 0 ;
 

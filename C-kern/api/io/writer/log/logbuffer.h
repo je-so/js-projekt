@@ -28,6 +28,9 @@
 #ifndef CKERN_IO_WRITER_LOG_LOGBUFFER_HEADER
 #define CKERN_IO_WRITER_LOG_LOGBUFFER_HEADER
 
+// forward
+struct log_header_t ;
+
 /* typedef: struct logbuffer_t
  * Export <logbuffer_t> into global namespace. */
 typedef struct logbuffer_t                logbuffer_t ;
@@ -118,15 +121,16 @@ void clear_logbuffer(logbuffer_t * logbuf) ;
  * If an error occurs no logging is done only the error code is returned. */
 int write_logbuffer(logbuffer_t * logbuf) ;
 
-/* function: addtimestamp_logbuffer
- * Appends "[thread_id: timestamp]\n" to log buffer. */
-void addtimestamp_logbuffer(logbuffer_t * logbuf) ;
-
 /* function: printf_logbuffer
  * Writes new log entry to log buffer.
  * If the written content is bigger than <sizefree_logbuffer> it is truncated.
  * A truncated message is indicated by " ..." as last characters in the buffer. */
 void printf_logbuffer(logbuffer_t * logbuf, const char * format, ...) __attribute__ ((__format__ (__printf__, 2, 3))) ;
+
+/* function: printheader_logbuffer
+ * Appends header to log buffer.
+ * The header looks like "[thread_id: timestamp] funcname() filename:linenr\nError NR - Description". */
+void printheader_logbuffer(logbuffer_t * logbuf, const struct log_header_t * header) ;
 
 /* function: vprintf_logbuffer
  * Same as <printf_logbuffer>. The argument after format must be of type va_list

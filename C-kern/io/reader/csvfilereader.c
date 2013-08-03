@@ -555,7 +555,7 @@ static int test_reading(void)
       memset(&csvfile, 255, sizeof(csvfile)) ;
       char     * logbuffer ;
       size_t   logstart ;
-      GETBUFFER_LOG(&logbuffer, &logstart) ;
+      GETBUFFER_ERRLOG(&logbuffer, &logstart) ;
       TEST(EINVAL == init_csvfilereader(&csvfile, str_cstring(&filepath))) ;
       TEST(0 == memcmp(&mmempty, &csvfile.file, sizeof(mmempty))) ;
       TEST(0 == nrcolumns_csvfilereader(&csvfile)) ;
@@ -565,7 +565,7 @@ static int test_reading(void)
       TEST(0 == removefile_directory(tmpdir, "error")) ;
       // compare correct column number in error log
       size_t logend ;
-      GETBUFFER_LOG(&logbuffer, &logend) ;
+      GETBUFFER_ERRLOG(&logbuffer, &logend) ;
       TEST(0 != strstr(logbuffer + logstart, "column: ")) ;
       unsigned colnr ;
       sscanf(strstr(logbuffer + logstart, "column: ")+8, "%u", &colnr) ;

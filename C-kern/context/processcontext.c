@@ -450,7 +450,7 @@ int unittest_context_processcontext()
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
    if (test_initfree())    goto ONABORT ;
-   CLEARBUFFER_LOG() ;
+   CLEARBUFFER_ERRLOG() ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 

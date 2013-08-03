@@ -5,127 +5,121 @@
  *
  */
 
-int ASSERT_FAILED_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * wrong_condition)
+int ASSERT_FAILED_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * wrong_condition)
 {
    PRINTF("Assertion '%s' fehlgeschlagen.\n", wrong_condition) ;
    return 0;
 }
 
-int ERROR_LOCATION_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * filename, int linenr, int err)
-{
-   PRINTF("%s() %s:%d\nFehler %d - ", funcname, filename, linenr, err) ;
-   return 0;
-}
-
-int FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * filename)
+int FILE_FORMAT_MISSING_ENDOFLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * filename)
 {
    PRINTF("'%s' enthält kein Zeilenendezeichen\n", filename) ;
    return 0;
 }
 
-int FILE_FORMAT_WRONG_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * filename)
+int FILE_FORMAT_WRONG_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * filename)
 {
    PRINTF("Datei '%s' besitzt unbekanntes Format\n", filename) ;
    return 0;
 }
 
-int FUNCTION_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags)
+int FUNCTION_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header)
 {
    PRINTF("Funktion beendet\n") ;
    return 0;
 }
 
-int FUNCTION_ABORT_FREE_ERRLOG(uint8_t log_channel, uint8_t log_flags)
+int FUNCTION_ABORT_FREE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header)
 {
    PRINTF("Funktion beendet - Freigabe von Ressourcen schlug fehl\n") ;
    return 0;
 }
 
-int FUNCTION_CALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * errstr)
+int FUNCTION_CALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * funcname)
 {
-   PRINTF("Funktionsaufruf '%s' meldet Fehler '%s'\n", funcname, errstr) ;
+   PRINTF("Funktionsaufruf '%s' fehlgeschlagen\n", funcname) ;
    return 0;
 }
 
-int FUNCTION_SYSCALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * errstr)
+int FUNCTION_SYSCALL_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * funcname)
 {
-   PRINTF("Systemaufruf '%s' meldet Fehler '%s'\n", funcname, errstr) ;
+   PRINTF("Systemaufruf '%s' fehlgeschlagen\n", funcname) ;
    return 0;
 }
 
-int FUNCTION_WRONG_RETURNVALUE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * funcname, const char * wrong_value)
+int FUNCTION_WRONG_RETURNVALUE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * funcname, const char * wrong_value)
 {
    PRINTF("Funktion '%s' liefert falschen Rückgabewert (%s)\n", funcname, wrong_value) ;
    return 0;
 }
 
-int LOCALE_SETLOCALE_ERRLOG(uint8_t log_channel, uint8_t log_flags)
+int LOCALE_SETLOCALE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header)
 {
    PRINTF("Kann die Lokalisierung mit setlocale nicht setzen\nAbhilfe: Bitte die Umgebungsvariable LC_ALL auf einen vom System unterstützten Wert setzen\n") ;
    return 0;
 }
 
-int MEMORY_OUT_OF_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t size)
+int MEMORY_OUT_OF_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, size_t size)
 {
    PRINTF("Keine %zu Bytes Speicher mehr frei\n", size) ;
    return 0;
 }
 
-int PARSEERROR_EXPECTCHAR_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t linenr, size_t colnr, const char * chr)
+int PARSEERROR_EXPECTCHAR_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, size_t linenr, size_t colnr, const char * chr)
 {
    PRINTF("Erwarte Zeichen '%s' in Zeile: %zu, Spalte: %zu\n", chr, linenr, colnr) ;
    return 0;
 }
 
-int PARSEERROR_EXPECTNEWLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, size_t linenr, size_t colnr)
+int PARSEERROR_EXPECTNEWLINE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, size_t linenr, size_t colnr)
 {
    PRINTF("Erwarte '(Zeilenende)' in Zeile: %zu, Spalte: %zu\n", linenr, colnr) ;
    return 0;
 }
 
-int PROGRAM_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags)
+int PROGRAM_ABORT_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header)
 {
    PRINTF("Programmabbruch wegen fatalem Fehler\n") ;
    return 0;
 }
 
-int RESOURCE_USAGE_DIFFERENT_ERRLOG(uint8_t log_channel, uint8_t log_flags)
+int RESOURCE_USAGE_DIFFERENT_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header)
 {
    PRINTF("Ungleiche Anzahl benutzter Ressourcen\n") ;
    return 0;
 }
 
-int TEST_INPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition)
+int TEST_INPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * violated_condition)
 {
    PRINTF("Eingabewert verletzt Bedingung (%s)\n", violated_condition) ;
    return 0;
 }
 
-int TEST_INVARIANT_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition)
+int TEST_INVARIANT_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * violated_condition)
 {
    PRINTF("Interne Zustandsvariablen verletzen Bedingung (%s)\n", violated_condition) ;
    return 0;
 }
 
-int TEST_OUTPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition)
+int TEST_OUTPARAM_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * violated_condition)
 {
    PRINTF("Ausgabewert verletzt Bedingung (%s)\n", violated_condition) ;
    return 0;
 }
 
-int TEST_STATE_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * violated_condition)
+int TEST_STATE_FALSE_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * violated_condition)
 {
    PRINTF("Operation nur erlaubt im Zustand (%s)\n", violated_condition) ;
    return 0;
 }
 
-int X11_DISPLAY_NOT_SET_ERRLOG(uint8_t log_channel, uint8_t log_flags)
+int X11_DISPLAY_NOT_SET_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header)
 {
    PRINTF("Name des X11 Display-Servers nicht bekannt\nBitte die Umgebungsvariable »DISPLAY« setzen\n") ;
    return 0;
 }
 
-int X11_NO_CONNECTION_ERRLOG(uint8_t log_channel, uint8_t log_flags, const char * display_server_name)
+int X11_NO_CONNECTION_ERRLOG(uint8_t log_channel, uint8_t log_flags, struct log_header_t * header, const char * display_server_name)
 {
    PRINTF("Keine Verbindung zu X11 Display-Server '%s'\n", display_server_name) ;
    return 0;

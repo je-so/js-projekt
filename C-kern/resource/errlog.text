@@ -62,17 +62,13 @@
    <namesuffix value=_ERRLOG/>
    <generate   header="C-kern/resource/generated/errlog.h" source="C-kern/resource/generated/errlog"/>
    <printf     value=PRINTF/>
-   <firstparam value="uint8_t log_channel, uint8_t log_flags"/>
+   <firstparam value="uint8_t log_channel, uint8_t log_flags, struct log_header_t * header"/>
    <languages>de, en</languages>
 </outconfig>
 
 ASSERT_FAILED(const char * wrong_condition)
 de: "Assertion '"wrong_condition"' fehlgeschlagen.\n"
 en: "Assertion '"wrong_condition"' failed.\n"
-
-ERROR_LOCATION(const char * funcname, const char * filename, int linenr, int err)
-de: ""funcname"() "filename":"linenr"\nFehler "err" - "
-en: ""funcname"() "filename":"linenr"\nError "err" - "
 
 # // TODO: replace it with PARSEERROR_EXPECTNEWLINE
 FILE_FORMAT_MISSING_ENDOFLINE(const char * filename)
@@ -91,13 +87,13 @@ FUNCTION_ABORT_FREE()
 de: "Funktion beendet - Freigabe von Ressourcen schlug fehl\n"
 en: "Function aborted - one or more resources could not be freed\n"
 
-FUNCTION_CALL(const char * funcname, const char * errstr)
-de: "Funktionsaufruf '"funcname"' meldet Fehler '"errstr"'\n"
-en: "Function call '"funcname"' returned error '"errstr"'\n"
+FUNCTION_CALL(const char * funcname)
+de: "Funktionsaufruf '"funcname"' fehlgeschlagen\n"
+en: "Function call '"funcname"' failed\n"
 
-FUNCTION_SYSCALL(const char * funcname, const char * errstr)
-de: "Systemaufruf '"funcname"' meldet Fehler '"errstr"'\n"
-en: "System call '"funcname"' returned error '"errstr"'\n"
+FUNCTION_SYSCALL(const char * funcname)
+de: "Systemaufruf '"funcname"' fehlgeschlagen\n"
+en: "System call '"funcname"' failed\n"
 
 FUNCTION_WRONG_RETURNVALUE(const char * funcname, const char * wrong_value)
 de: "Funktion '"funcname"' liefert falschen Rückgabewert ("wrong_value")\n"

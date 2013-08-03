@@ -516,7 +516,7 @@ static int test_slock(void)
 
    {
       char buffer[4096] = {0} ;
-      FLUSHBUFFER_LOG() ;
+      FLUSHBUFFER_ERRLOG() ;
       ssize_t bytes = read(pipefd[0], buffer, sizeof(buffer)) ;
       TEST(bytes > 0) ;
       TEST(bytes < (int)sizeof(buffer)) ;
@@ -699,7 +699,7 @@ int unittest_platform_sync_mutex()
 
       if (0 == same_resourceusage(&usage)) break ;
       TEST(0 == free_resourceusage(&usage)) ;
-      CLEARBUFFER_LOG() ;
+      CLEARBUFFER_ERRLOG() ;
    }
 
    TEST(0 == same_resourceusage(&usage)) ;

@@ -1,30 +1,40 @@
-[1: 1371660259.715070s]
+[1: 1374953321.884863s]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Function aborted - one or more resources could not be freed
-[1: 1371660259.715084s]
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed
+[1: 1374953321.884875s]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Function aborted - one or more resources could not be freed
-[1: 1371660259.715095s]
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed
+[1: 1374953321.884885s]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Function aborted - one or more resources could not be freed
-[1: 1371660259.715105s]
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed
+[1: 1374953321.884895s]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Function aborted - one or more resources could not be freed
-[1: 1371660259.715115s]
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed
+[1: 1374953321.884905s]
 free_syncwlist() C-kern/task/syncwlist.c:167
-Error 22 - Function aborted - one or more resources could not be freed
-[1: 1371660259.715221s]
+Error 22 - Invalid argument
+Function aborted - one or more resources could not be freed
+[1: 1374953321.884998s]
 insert_syncwlist() C-kern/task/syncwlist.c:205
-Error 12 - Function aborted
-[1: 1371660259.715234s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.885011s]
 remove_syncwlist() C-kern/task/syncwlist.c:243
-Error 22 - Function aborted
-[1: 1371660259.715237s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.885013s]
 remove_syncwlist() C-kern/task/syncwlist.c:243
-Error 22 - Function aborted
-[1: 1371660259.715255s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.885026s]
 removeempty_syncwlist() C-kern/task/syncwlist.c:270
-Error 22 - Function aborted
-[1: 1371660259.715257s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.885029s]
 removeempty_syncwlist() C-kern/task/syncwlist.c:270
-Error 22 - Function aborted
+Error 22 - Invalid argument
+Function aborted

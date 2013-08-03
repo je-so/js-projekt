@@ -1321,7 +1321,7 @@ int unittest_platform_task_process()
    // adapt LOG buffer ("pid=1234" replaces with "pid=?")
    char * buffer = 0 ;
    size_t size   = 0 ;
-   GETBUFFER_LOG(&buffer, &size) ;
+   GETBUFFER_ERRLOG(&buffer, &size) ;
    char buffer2[2000] = { 0 } ;
    assert(size < sizeof(buffer2)) ;
    size = 0 ;
@@ -1335,7 +1335,7 @@ int unittest_platform_task_process()
    }
    strcpy( &buffer2[size], buffer) ;
 
-   CLEARBUFFER_LOG() ;
+   CLEARBUFFER_ERRLOG() ;
    PRINTF_ERRLOG("%s", buffer2) ;
 
    return 0 ;

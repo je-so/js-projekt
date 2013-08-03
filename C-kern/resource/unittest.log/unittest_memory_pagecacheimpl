@@ -1,168 +1,224 @@
-[1: 1371660259.275181s]
+[1: 1374953321.374220s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.275201s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.374240s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.276102s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.375092s]
 free_pagecacheblock() C-kern/memory/pagecache_impl.c:364
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660259.280678s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953321.379799s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:144
-Error 22 - Function input violates condition (!isempty_dlist(list))
-[1: 1371660259.280689s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list))
+[1: 1374953321.379811s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:154
-Error 22 - Function aborted
-[1: 1371660259.280691s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.379814s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:144
-Error 22 - Function input violates condition (!isempty_dlist(list))
-[1: 1371660259.280694s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list))
+[1: 1374953321.379816s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:154
-Error 22 - Function aborted
-[1: 1371660259.280695s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.379818s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:144
-Error 22 - Function input violates condition (!isempty_dlist(list))
-[1: 1371660259.280697s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list))
+[1: 1374953321.379820s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:154
-Error 22 - Function aborted
-[1: 1371660259.280699s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.379822s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:144
-Error 22 - Function input violates condition (!isempty_dlist(list))
-[1: 1371660259.280701s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list))
+[1: 1374953321.379824s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:154
-Error 22 - Function aborted
-[1: 1371660259.280702s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.379825s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:144
-Error 22 - Function input violates condition (!isempty_dlist(list))
-[1: 1371660259.280704s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list))
+[1: 1374953321.379827s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:154
-Error 22 - Function aborted
-[1: 1371660259.280706s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.379829s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:144
-Error 22 - Function input violates condition (!isempty_dlist(list))
-[1: 1371660259.280708s]
+Error 22 - Invalid argument
+Function input violates condition (!isempty_dlist(list))
+[1: 1374953321.379831s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:154
-Error 22 - Function aborted
-[1: 1371660259.286534s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.386421s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.286545s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.386442s]
 init_pagecacheimpl() C-kern/memory/pagecache_impl.c:556
-Error 12 - Function aborted
-[1: 1371660259.286550s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.386447s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.286552s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.386449s]
 init_pagecacheimpl() C-kern/memory/pagecache_impl.c:556
-Error 12 - Function aborted
-[1: 1371660259.287405s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.387484s]
 free_pagecacheimpl() C-kern/memory/pagecache_impl.c:587
-Error 39 - Function aborted - one or more resources could not be freed
-[1: 1371660259.288302s]
+Error 39 - Directory not empty
+Function aborted - one or more resources could not be freed
+[1: 1374953321.388431s]
 free_pagecacheimpl() C-kern/memory/pagecache_impl.c:587
-Error 39 - Function aborted - one or more resources could not be freed
-[1: 1371660259.288935s]
+Error 39 - Directory not empty
+Function aborted - one or more resources could not be freed
+[1: 1374953321.389058s]
 free_pagecacheblock() C-kern/memory/pagecache_impl.c:364
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660259.288939s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953321.389065s]
 free_pagecacheimpl() C-kern/memory/pagecache_impl.c:587
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660259.289598s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953321.389672s]
 free_pagecacheimpl() C-kern/memory/pagecache_impl.c:587
-Error 12 - Function aborted - one or more resources could not be freed
-[1: 1371660259.349132s]
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1374953321.454856s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.349146s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.454873s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.349148s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.454875s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.349150s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.454877s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.349152s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.454879s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.349154s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.454881s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.389174s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.492517s]
 allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:623
-Error 22 - Function input violates condition (pgsize < pagesize_NROFPAGESIZE)
-[1: 1371660259.389186s]
+Error 22 - Invalid argument
+Function input violates condition (pgsize < pagesize_NROFPAGESIZE)
+[1: 1374953321.492541s]
 allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:648
-Error 22 - Function aborted
-[1: 1371660259.389188s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.492544s]
 allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:623
-Error 22 - Function input violates condition (pgsize < pagesize_NROFPAGESIZE)
-[1: 1371660259.389190s]
+Error 22 - Invalid argument
+Function input violates condition (pgsize < pagesize_NROFPAGESIZE)
+[1: 1374953321.492546s]
 allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:648
-Error 22 - Function aborted
-[1: 1371660259.397595s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.501661s]
 releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:691
-Error 114 - Function aborted
-[1: 1371660259.398278s]
+Error 114 - Operation already in progress
+Function aborted
+[1: 1374953321.502266s]
 releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:691
-Error 22 - Function aborted
-[1: 1371660259.398283s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.502274s]
 releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:691
-Error 22 - Function aborted
-[1: 1371660259.398285s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.502276s]
 releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:691
-Error 22 - Function aborted
-[1: 1371660259.398382s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.502368s]
 releasepage_pagecacheimpl() C-kern/memory/pagecache_impl.c:691
-Error 22 - Function aborted
-[1: 1371660259.398954s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.502879s]
 allocstatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:701
-Error 22 - Function input violates condition (0 < alignedsize && alignedsize <= 128)
-[1: 1371660259.398958s]
+Error 22 - Invalid argument
+Function input violates condition (0 < alignedsize && alignedsize <= 128)
+[1: 1374953321.502884s]
 allocstatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:722
-Error 22 - Function aborted
-[1: 1371660259.398959s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.502886s]
 allocstatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:701
-Error 22 - Function input violates condition (0 < alignedsize && alignedsize <= 128)
-[1: 1371660259.398961s]
+Error 22 - Invalid argument
+Function input violates condition (0 < alignedsize && alignedsize <= 128)
+[1: 1374953321.502888s]
 allocstatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:722
-Error 22 - Function aborted
-[1: 1371660259.399360s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.503256s]
 new_pagecacheblock() C-kern/memory/pagecache_impl.c:341
-Error 12 - Function aborted
-[1: 1371660259.399362s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.503258s]
 allocpage_pagecacheimpl() C-kern/memory/pagecache_impl.c:648
-Error 12 - Function aborted
-[1: 1371660259.399364s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.503260s]
 allocstatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:722
-Error 12 - Function aborted
-[1: 1371660259.399366s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953321.503262s]
 freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:737
-Error 22 - Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-[1: 1371660259.399368s]
+Error 22 - Invalid argument
+Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+[1: 1374953321.503265s]
 freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:756
-Error 22 - Function aborted
-[1: 1371660259.399370s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.503267s]
 freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:737
-Error 22 - Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-[1: 1371660259.399372s]
+Error 22 - Invalid argument
+Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+[1: 1374953321.503269s]
 freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:756
-Error 22 - Function aborted
-[1: 1371660259.399374s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.503271s]
 freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:737
-Error 22 - Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-[1: 1371660259.399376s]
+Error 22 - Invalid argument
+Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+[1: 1374953321.503273s]
 freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:756
-Error 22 - Function aborted
-[1: 1371660259.399378s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.503275s]
 freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:737
-Error 22 - Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
-[1: 1371660259.399380s]
+Error 22 - Invalid argument
+Function input violates condition (staticpage && memblock->addr < staticpage->memblock.addr && memblock->addr + alignedsize == staticpage->memblock.addr && memblock->addr >= startaddr_staticpage(staticpage))
+[1: 1374953321.503277s]
 freestatic_pagecacheimpl() C-kern/memory/pagecache_impl.c:756
-Error 22 - Function aborted
-[1: 1371660259.438310s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953321.545072s]
 initthread_pagecacheimpl() C-kern/memory/pagecache_impl.c:428
-Error 22 - Function input violates condition (0 == pagecache->object)
-[1: 1371660259.438327s]
+Error 22 - Invalid argument
+Function input violates condition (0 == pagecache->object)
+[1: 1374953321.545089s]
 initthread_pagecacheimpl() C-kern/memory/pagecache_impl.c:446
-Error 22 - Function aborted
+Error 22 - Invalid argument
+Function aborted

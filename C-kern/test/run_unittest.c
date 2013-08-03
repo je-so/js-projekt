@@ -30,6 +30,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/test.h"
+#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/directory.h"
@@ -63,7 +64,7 @@ static void generate_logresource(const char * test_name)
 
    char   * logbuffer ;
    size_t logbuffer_size ;
-   GETBUFFER_LOG(&logbuffer, &logbuffer_size) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbuffer_size) ;
 
    if (logbuffer_size) {
       int logsize = write(fd, logbuffer, logbuffer_size) ;
@@ -88,7 +89,7 @@ ONABORT:
  * Compares saved log with content of log buffer.
  * The log *test_name* is read from directory "C-kern/resource/unittest.log/"
  * and compared with the content of the log buffer.
- * The content of the log buffer is queried with <GETBUFFER_LOG>. */
+ * The content of the log buffer is queried with <GETBUFFER_ERRLOG>. */
 static int check_logresource(const char * test_name)
 {
    int   err ;
@@ -110,7 +111,7 @@ static int check_logresource(const char * test_name)
 
    char * logbuffer ;
    size_t logbuffer_size ;
-   GETBUFFER_LOG(&logbuffer, &logbuffer_size) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbuffer_size) ;
 
    char * logfile_buffer = (char*) addr_mmfile(&logfile) ;
 
@@ -183,7 +184,7 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
    int err ;
 
    logrun_test(test_name) ;
-   CLEARBUFFER_LOG() ;
+   CLEARBUFFER_ERRLOG() ;
 
    err = switchon_testmm() ;
    if (err) {
@@ -196,7 +197,7 @@ static void run_singletest(const char * test_name, int (*unittest) (void), unsig
          if (0 == initappend_file(&error_log, "error.log", 0)) {
             char     * buffer ;
             size_t   size ;
-            GETBUFFER_LOG(&buffer, &size) ;
+            GETBUFFER_ERRLOG(&buffer, &size) ;
             write_file(error_log, size, buffer, 0) ;
             free_file(&error_log) ;
          }
@@ -422,7 +423,7 @@ int run_unittest(int argc, const char ** argv)
 #undef KONFIG_x11
 //}
 
-      CLEARBUFFER_LOG() ;
+      CLEARBUFFER_ERRLOG() ;
 
       if (free_maincontext()) {
          logformat_test("%s: %s:\n", __FILE__, __FUNCTION__) ;

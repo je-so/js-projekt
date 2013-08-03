@@ -722,7 +722,7 @@ static int thread_writer2(thread_arg_t * startarg)
    uint8_t buffer[2] = { 1, 2 } ;
    resume_thread(startarg->caller) ;
    err = write_file(startarg->fd, sizeof(buffer), buffer, 0) ;
-   CLEARBUFFER_LOG() ;
+   CLEARBUFFER_ERRLOG() ;
    return (err != EPIPE) ;
 }
 
@@ -1192,7 +1192,7 @@ int unittest_io_file()
    // adapt LOG
    char * logbuffer ;
    size_t logbuffer_size ;
-   GETBUFFER_LOG( &logbuffer, &logbuffer_size ) ;
+   GETBUFFER_ERRLOG( &logbuffer, &logbuffer_size ) ;
    if (logbuffer_size) {
       char * found = logbuffer ;
       while ( (found = strstr( found, str_cstring(&tmppath))) ) {

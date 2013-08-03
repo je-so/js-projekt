@@ -34,6 +34,10 @@ typedef struct log_t                      log_t ;
  * See <log_it_DECLARE> for a description of the functional interface. */
 typedef struct log_it                     log_it ;
 
+/* typedef: struct log_header_t
+ * Export <log_header_t>. */
+typedef struct log_header_t               log_header_t ;
+
 /* enums: log_config_e
  * Used to configure system wide restrictions.
  *
@@ -65,14 +69,11 @@ typedef enum log_config_e                 log_config_e ;
  *                       The parameter channel (see <log_channel_e>) must have the same value as the value
  *                       given in the previous call whose flag contained <log_flags_START>.
  *                       The reason is that different channels may log to the same physical log file.
- * log_flags_TIMESTAMP - Add "[thread_id: timestamp]\n" in front of the log message.
- *
  * */
 enum log_flags_e {
    log_flags_NONE      = 0,
    log_flags_START     = 1,
-   log_flags_END       = 2,
-   log_flags_TIMESTAMP = 4
+   log_flags_END       = 2
 } ;
 
 typedef enum log_flags_e                  log_flags_e ;
@@ -122,25 +123,26 @@ struct log_it {
    /* variable: printf
     * Writes a new log entry to in internal buffer.
     * Parameter channel must be set to a value from <log_channel_e>.
+    * If header is not 0 a header is written which contains "[thread id, timestamp]\nfuncname() file:linenr\n, Error NR - DESCRIPTION\n".
     * If the entry is bigger than <log_config_MINSIZE> it may be truncated if internal buffer size is lower.
     * See <logwriter_t.printf_logwriter> for an implementation. */
-   void  (*printf)      (void * log, uint8_t channel, uint8_t flags, const char * format, ... ) __attribute__ ((__format__ (__printf__, 4, 5))) ;
+   void  (*printf)      (void * log, uint8_t channel, uint8_t flags, const log_header_t * header, const char * format, ... ) __attribute__ ((__format__ (__printf__, 5, 6))) ;
    /* variable: flushbuffer
     * Writes content of buffer to configured file descriptor and clears log buffer.
     * This call is ignored if buffer is empty or log is not configured to be in buffered mode.
     * See <logwriter_t.flushbuffer_logwriter> for an implementation. */
-   void  (*flushbuffer) (void * log) ;
+   void  (*flushbuffer) (void * log, uint8_t channel) ;
    /* variable: clearbuffer
     * Clears log buffer (sets length of logbuffer to 0).
     * This call is ignored if the log is not configured to be in buffered mode.
     * See <logwriter_t.clearbuffer_logwriter> for an implementation. */
-   void  (*clearbuffer) (void * log) ;
+   void  (*clearbuffer) (void * log, uint8_t channel) ;
    /* variable: getbuffer
     * Returns content of log buffer as C-string and its size in bytes.
     * The returned values are valid as long as no other function is called on log.
     * The string has a trailing NULL byte, i.e. buffer[size] == 0.
     * See <logwriter_t.getbuffer_logwriter> for an implementation. */
-   void  (*getbuffer)   (void * log, /*out*/char ** buffer, /*out*/size_t * size) ;
+   void  (*getbuffer)   (void * log, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
 } ;
 
 // group: generic
@@ -166,6 +168,22 @@ log_it * genericcast_logit(void * logif, TYPENAME log_t) ;
 void log_it_DECLARE(TYPENAME declared_it, TYPENAME log_t) ;
 
 
+/* struct: log_header_t
+ * Contains information for a log header.
+ * It describes the function name, file name and line number
+ * of the log statement. */
+struct log_header_t {
+   const char *   funcname ;
+   const char *   filename ;
+   int            linenr ;
+   int            err ;
+} ;
+
+// group: lifetime
+
+#define log_header_INIT(funcname, filename, linenr, err) \
+         { funcname, filename, linenr, err }
+
 
 // section: inline implementation
 
@@ -176,16 +194,17 @@ void log_it_DECLARE(TYPENAME declared_it, TYPENAME log_t) ;
             static_assert(                            \
                &((typeof(logif))0)->printf            \
                == (void(**)(log_t*,uint8_t,uint8_t,   \
+                     const log_header_t*,             \
                      const char*,...))                \
                      &((log_it*)0)->printf            \
                && &((typeof(logif))0)->flushbuffer    \
-                  == (void(**)(log_t*))               \
+                  == (void(**)(log_t*,uint8_t))       \
                         &((log_it*)0)->flushbuffer    \
                && &((typeof(logif))0)->clearbuffer    \
-                  == (void(**)(log_t*))               \
+                  == (void(**)(log_t*,uint8_t))       \
                         &((log_it*)0)->clearbuffer    \
                && &((typeof(logif))0)->getbuffer      \
-                  == (void(**)(log_t*,                \
+                  == (void(**)(log_t*,uint8_t,        \
                         char**,size_t*))              \
                         &((log_it*)0)->getbuffer,     \
                "ensure same structure") ;             \
@@ -195,13 +214,16 @@ void log_it_DECLARE(TYPENAME declared_it, TYPENAME log_t) ;
 
 /* define: log_it_DECLARE
  * Implements <log_it.log_it_DECLARE>. */
-#define log_it_DECLARE(declared_it, log_t)      \
-   typedef struct declared_it    declared_it ;  \
-   struct declared_it {                         \
-      void  (*printf)      (log_t * log, uint8_t channel, uint8_t flags, const char * format, ... ) __attribute__ ((__format__ (__printf__, 4, 5))) ; \
-      void  (*flushbuffer) (log_t * log) ;                                                \
-      void  (*clearbuffer) (log_t * log) ;                                                \
-      void  (*getbuffer)   (log_t * log, /*out*/char ** buffer, /*out*/size_t * size) ;   \
+#define log_it_DECLARE(declared_it, log_t)   \
+   typedef struct declared_it    declared_it ;                                            \
+   struct declared_it {                                                                   \
+      void  (*printf)      (log_t * log, uint8_t channel, uint8_t flags,                  \
+                            const log_header_t * header, const char * format, ... )       \
+                            __attribute__ ((__format__ (__printf__, 5, 6))) ;             \
+      void  (*flushbuffer) (log_t * log, uint8_t channel) ;                               \
+      void  (*clearbuffer) (log_t * log, uint8_t channel) ;                               \
+      void  (*getbuffer)   (log_t * log, uint8_t channel,                                 \
+                            /*out*/char ** buffer, /*out*/size_t * size) ;                \
    } ;
 
 #endif

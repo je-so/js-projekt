@@ -1078,27 +1078,27 @@ static int test_error(void)
    nodes[1] = (testnode_t) { .node = arraysf_node_INIT(0) } ;
    TEST(0 == insert_arraysf(array, &nodes[0].node, &inserted_node, 0)) ;
    TEST(&nodes[0].node == inserted_node) ;
-   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize1) ;
    TEST(EEXIST == tryinsert_arraysf(array, &nodes[1].node, &existing_node, 0)) ;  // no log
-   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
    TEST(&nodes[0].node == existing_node) ;
    inserted_node = 0 ;
    TEST(EEXIST == insert_arraysf(array, &nodes[1].node, &inserted_node, 0)) ;     // log
-   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    TEST(0 == inserted_node) ;
 
    // TEST ESRCH
-   GETBUFFER_LOG(&logbuffer, &logbufsize1) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize1) ;
    arraysf_findresult_t found ;
    TEST(0 == at_arraysf(array, 1)) ;                              // no log
    TEST(ESRCH == find_arraysf(array, 1, &found)) ;                // no log
    TEST(ESRCH == tryremove_arraysf(array, 1, &removed_node)) ;    // no log
-   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 == logbufsize2) ;
    TEST(ESRCH == remove_arraysf(array, 1, &removed_node)) ;       // log
-   GETBUFFER_LOG(&logbuffer, &logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
    TEST(logbufsize1 < logbufsize2) ;
    nodes[0].freecount = 0 ;
    TEST(0 == tryremove_arraysf(array, 0, &removed_node)) ;

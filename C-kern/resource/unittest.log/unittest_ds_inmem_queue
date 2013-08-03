@@ -1,63 +1,84 @@
-[1: 1371660256.300016s]
+[1: 1374953318.333959s]
 insertfirst_queue() C-kern/ds/inmem/queue.c:298
-Error 12 - Function aborted
-[1: 1371660256.300021s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953318.333965s]
 insertlast_queue() C-kern/ds/inmem/queue.c:322
-Error 12 - Function aborted
-[1: 1371660256.300023s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953318.333968s]
 insertfirst_queue() C-kern/ds/inmem/queue.c:282
-Error 22 - Function input violates condition (nodesize <= 512)
-[1: 1371660256.300026s]
+Error 22 - Invalid argument
+Function input violates condition (nodesize <= 512)
+[1: 1374953318.333970s]
 insertfirst_queue() C-kern/ds/inmem/queue.c:298
-Error 22 - Function aborted
-[1: 1371660256.300027s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953318.333972s]
 insertfirst_queue() C-kern/ds/inmem/queue.c:282
-Error 22 - Function input violates condition (nodesize <= 512)
-[1: 1371660256.300029s]
+Error 22 - Invalid argument
+Function input violates condition (nodesize <= 512)
+[1: 1374953318.333974s]
 insertfirst_queue() C-kern/ds/inmem/queue.c:298
-Error 22 - Function aborted
-[1: 1371660256.300031s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953318.333976s]
 insertlast_queue() C-kern/ds/inmem/queue.c:306
-Error 22 - Function input violates condition (nodesize <= 512)
-[1: 1371660256.300033s]
+Error 22 - Invalid argument
+Function input violates condition (nodesize <= 512)
+[1: 1374953318.333978s]
 insertlast_queue() C-kern/ds/inmem/queue.c:322
-Error 22 - Function aborted
-[1: 1371660256.300035s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953318.333980s]
 insertlast_queue() C-kern/ds/inmem/queue.c:306
-Error 22 - Function input violates condition (nodesize <= 512)
-[1: 1371660256.300036s]
+Error 22 - Invalid argument
+Function input violates condition (nodesize <= 512)
+[1: 1374953318.333982s]
 insertlast_queue() C-kern/ds/inmem/queue.c:322
-Error 22 - Function aborted
-[1: 1371660256.300039s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953318.333984s]
 removefirst_queue() C-kern/ds/inmem/queue.c:346
-Error 61 - Function aborted
-[1: 1371660256.300041s]
+Error 61 - No data available
+Function aborted
+[1: 1374953318.333986s]
 removelast_queue() C-kern/ds/inmem/queue.c:370
-Error 61 - Function aborted
-[1: 1371660256.300043s]
+Error 61 - No data available
+Function aborted
+[1: 1374953318.333989s]
 resizelast_queue() C-kern/ds/inmem/queue.c:411
-Error 61 - Function aborted
-[1: 1371660256.300387s]
+Error 61 - No data available
+Function aborted
+[1: 1374953318.334351s]
 removefirst_queue() C-kern/ds/inmem/queue.c:346
-Error 75 - Function aborted
-[1: 1371660256.300389s]
+Error 75 - Value too large for defined data type
+Function aborted
+[1: 1374953318.334353s]
 removelast_queue() C-kern/ds/inmem/queue.c:370
-Error 75 - Function aborted
-[1: 1371660256.300391s]
+Error 75 - Value too large for defined data type
+Function aborted
+[1: 1374953318.334355s]
 resizelast_queue() C-kern/ds/inmem/queue.c:411
-Error 75 - Function aborted
-[1: 1371660256.300393s]
+Error 75 - Value too large for defined data type
+Function aborted
+[1: 1374953318.334357s]
 resizelast_queue() C-kern/ds/inmem/queue.c:379
-Error 22 - Function input violates condition (newsize <= 512)
-[1: 1371660256.300395s]
+Error 22 - Invalid argument
+Function input violates condition (newsize <= 512)
+[1: 1374953318.334360s]
 resizelast_queue() C-kern/ds/inmem/queue.c:411
-Error 22 - Function aborted
-[1: 1371660256.300397s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953318.334362s]
 removefirst_queue() C-kern/ds/inmem/queue.c:346
-Error 12 - Function aborted
-[1: 1371660256.300399s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953318.334364s]
 removelast_queue() C-kern/ds/inmem/queue.c:370
-Error 12 - Function aborted
-[1: 1371660256.301501s]
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1374953318.335430s]
 resizelast_queue() C-kern/ds/inmem/queue.c:411
-Error 12 - Function aborted
+Error 12 - Cannot allocate memory
+Function aborted

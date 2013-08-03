@@ -1,207 +1,268 @@
-[1: 1371660262.177251s]
+[1: 1374953324.251236s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:700
-Error 93 - Function aborted
-[1: 1371660262.192750s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.263537s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:700
-Error 93 - Function aborted
-[1: 1371660262.194168s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.264945s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:700
-Error 2 - Function aborted
-[1: 1371660262.291637s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.365787s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 93 - System call 'getaddrinfo' returned error 'Protocol not supported'
+Error 93 - Protocol not supported
+System call 'getaddrinfo' failed
 name_or_numeric=127.0.0.1
-[1: 1371660262.291648s]
+[1: 1374953324.365796s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 93 - Function aborted
-[1: 1371660262.291653s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.365799s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 93 - Function aborted
-[1: 1371660262.291661s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.365804s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 99 - System call 'getaddrinfo' returned error 'Cannot assign requested address'
+Error 99 - Cannot assign requested address
+System call 'getaddrinfo' failed
 name_or_numeric=127.0.0.1
-[1: 1371660262.291667s]
+[1: 1374953324.365806s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 99 - Function aborted
-[1: 1371660262.291671s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.365808s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 99 - Function aborted
-[1: 1371660262.291678s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.365812s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 99 - System call 'getaddrinfo' returned error 'Cannot assign requested address'
+Error 99 - Cannot assign requested address
+System call 'getaddrinfo' failed
 name_or_numeric=::1
-[1: 1371660262.291683s]
+[1: 1374953324.365817s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 99 - Function aborted
-[1: 1371660262.291686s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.365819s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 99 - Function aborted
-[1: 1371660262.291691s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.365822s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 97 - System call 'getaddrinfo' returned error 'Address family not supported by protocol'
+Error 97 - Address family not supported by protocol
+System call 'getaddrinfo' failed
 name_or_numeric=127.0.0.1
-[1: 1371660262.291696s]
+[1: 1374953324.365824s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 97 - Function aborted
-[1: 1371660262.291699s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.365826s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 97 - Function aborted
-[1: 1371660262.291704s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.365829s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 97 - System call 'getaddrinfo' returned error 'Address family not supported by protocol'
+Error 97 - Address family not supported by protocol
+System call 'getaddrinfo' failed
 name_or_numeric=127.0.0.1
-[1: 1371660262.291709s]
+[1: 1374953324.365831s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 97 - Function aborted
-[1: 1371660262.291712s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.365833s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 97 - Function aborted
-[1: 1371660262.291749s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.365859s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 2 - System call 'getaddrinfo' returned error 'No such file or directory'
+Error 2 - No such file or directory
+System call 'getaddrinfo' failed
 name_or_numeric=192.68.2.1.2
-[1: 1371660262.291755s]
+[1: 1374953324.365862s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 2 - Function aborted
-[1: 1371660262.291758s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.365865s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 2 - Function aborted
-[1: 1371660262.309969s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.366122s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 61 - System call 'getaddrinfo' returned error 'No data available'
+Error 61 - No data available
+System call 'getaddrinfo' failed
 name_or_numeric=www.ein-label-das-zu-lange-ist-und-einen-fehler-ausloesen-sollte-123456789.de
-[1: 1371660262.309987s]
+[1: 1374953324.366127s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 61 - Function aborted
-[1: 1371660262.309993s]
+Error 61 - No data available
+Function aborted
+[1: 1374953324.366129s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 61 - Function aborted
-[1: 1371660262.317759s]
+Error 61 - No data available
+Function aborted
+[1: 1374953324.371090s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:700
-Error 93 - Function aborted
-[1: 1371660262.330163s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.383620s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:700
-Error 93 - Function aborted
-[1: 1371660262.331583s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.385051s]
 initnamed_ipport() C-kern/platform/Linux/io/ipaddr.c:700
-Error 2 - Function aborted
-[1: 1371660262.333239s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.386495s]
 truncate_cstring() C-kern/string/cstring.c:231
-Error 22 - Function input violates condition (new_size <= cstr->size)
+Error 22 - Invalid argument
+Function input violates condition (new_size <= cstr->size)
 cstr->size=32
 new_size=39
-[1: 1371660262.333250s]
+[1: 1374953324.386501s]
 truncate_cstring() C-kern/string/cstring.c:240
-Error 22 - Function aborted
-[1: 1371660262.333363s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953324.386560s]
 truncate_cstring() C-kern/string/cstring.c:231
-Error 22 - Function input violates condition (new_size <= cstr->size)
+Error 22 - Invalid argument
+Function input violates condition (new_size <= cstr->size)
 cstr->size=32
 new_size=39
-[1: 1371660262.333369s]
+[1: 1374953324.386563s]
 truncate_cstring() C-kern/string/cstring.c:240
-Error 22 - Function aborted
-[1: 1371660262.333381s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953324.386568s]
 truncate_cstring() C-kern/string/cstring.c:231
-Error 22 - Function input violates condition (new_size <= cstr->size)
+Error 22 - Invalid argument
+Function input violates condition (new_size <= cstr->size)
 cstr->size=32
 new_size=39
-[1: 1371660262.333390s]
+[1: 1374953324.386571s]
 truncate_cstring() C-kern/string/cstring.c:240
-Error 22 - Function aborted
-[1: 1371660262.333398s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953324.386575s]
 truncate_cstring() C-kern/string/cstring.c:231
-Error 22 - Function input violates condition (new_size <= cstr->size)
+Error 22 - Invalid argument
+Function input violates condition (new_size <= cstr->size)
 cstr->size=32
 new_size=39
-[1: 1371660262.333403s]
+[1: 1374953324.386577s]
 truncate_cstring() C-kern/string/cstring.c:240
-Error 22 - Function aborted
-[1: 1371660262.333418s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953324.386585s]
 truncate_cstring() C-kern/string/cstring.c:231
-Error 22 - Function input violates condition (new_size <= cstr->size)
+Error 22 - Invalid argument
+Function input violates condition (new_size <= cstr->size)
 cstr->size=32
 new_size=39
-[1: 1371660262.333423s]
+[1: 1374953324.386588s]
 truncate_cstring() C-kern/string/cstring.c:240
-Error 22 - Function aborted
-[1: 1371660262.333427s]
+Error 22 - Invalid argument
+Function aborted
+[1: 1374953324.386590s]
 new_ipaddr() C-kern/platform/Linux/io/ipaddr.c:208
-Error 97 - Function aborted
-[1: 1371660262.333431s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.386592s]
 new_ipaddr() C-kern/platform/Linux/io/ipaddr.c:208
-Error 93 - Function aborted
-[1: 1371660262.333435s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.386595s]
 new_ipaddr() C-kern/platform/Linux/io/ipaddr.c:208
-Error 99 - Function aborted
-[1: 1371660262.338307s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.391819s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 93 - System call 'getaddrinfo' returned error 'Protocol not supported'
+Error 93 - Protocol not supported
+System call 'getaddrinfo' failed
 name_or_numeric=127.0.0.1
-[1: 1371660262.338316s]
+[1: 1374953324.391830s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 93 - Function aborted
-[1: 1371660262.338321s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.391836s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 93 - Function aborted
-[1: 1371660262.338328s]
+Error 93 - Protocol not supported
+Function aborted
+[1: 1374953324.391844s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 99 - System call 'getaddrinfo' returned error 'Cannot assign requested address'
+Error 99 - Cannot assign requested address
+System call 'getaddrinfo' failed
 name_or_numeric=127.0.0.1
-[1: 1371660262.338333s]
+[1: 1374953324.391850s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 99 - Function aborted
-[1: 1371660262.338337s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.391854s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 99 - Function aborted
-[1: 1371660262.338343s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.391860s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 99 - System call 'getaddrinfo' returned error 'Cannot assign requested address'
+Error 99 - Cannot assign requested address
+System call 'getaddrinfo' failed
 name_or_numeric=::1
-[1: 1371660262.338348s]
+[1: 1374953324.391865s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 99 - Function aborted
-[1: 1371660262.338351s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.391869s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 99 - Function aborted
-[1: 1371660262.338356s]
+Error 99 - Cannot assign requested address
+Function aborted
+[1: 1374953324.391874s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 97 - System call 'getaddrinfo' returned error 'Address family not supported by protocol'
+Error 97 - Address family not supported by protocol
+System call 'getaddrinfo' failed
 name_or_numeric=127.0.0.1
-[1: 1371660262.338361s]
+[1: 1374953324.391879s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 97 - Function aborted
-[1: 1371660262.338364s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.391883s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 97 - Function aborted
-[1: 1371660262.338369s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.391888s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 97 - System call 'getaddrinfo' returned error 'Address family not supported by protocol'
+Error 97 - Address family not supported by protocol
+System call 'getaddrinfo' failed
 name_or_numeric=127.0.0.1
-[1: 1371660262.338374s]
+[1: 1374953324.391893s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 97 - Function aborted
-[1: 1371660262.338377s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.391897s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 97 - Function aborted
-[1: 1371660262.338393s]
+Error 97 - Address family not supported by protocol
+Function aborted
+[1: 1374953324.391917s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 2 - System call 'getaddrinfo' returned error 'No such file or directory'
+Error 2 - No such file or directory
+System call 'getaddrinfo' failed
 name_or_numeric=192.68.2.1.2
-[1: 1371660262.338399s]
+[1: 1374953324.391922s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 2 - Function aborted
-[1: 1371660262.338402s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.391926s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 2 - Function aborted
-[1: 1371660262.338490s]
+Error 2 - No such file or directory
+Function aborted
+[1: 1374953324.392016s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:139
-Error 61 - System call 'getaddrinfo' returned error 'No data available'
+Error 61 - No data available
+System call 'getaddrinfo' failed
 name_or_numeric=www.ein-label-das-zu-lange-ist-und-einen-fehler-ausloesen-sollte-123456789.de
-[1: 1371660262.338502s]
+[1: 1374953324.392023s]
 new_addrinfo() C-kern/platform/Linux/io/ipaddr.c:146
-Error 61 - Function aborted
-[1: 1371660262.338506s]
+Error 61 - No data available
+Function aborted
+[1: 1374953324.392027s]
 newdnsquery_ipaddrlist() C-kern/platform/Linux/io/ipaddr.c:606
-Error 61 - Function aborted
+Error 61 - No data available
+Function aborted
