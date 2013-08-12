@@ -93,28 +93,21 @@ static inline void compiletime_assert(void)
 }
 
 /* function: initprogname_maincontext
- * Sets <maincontext_t.progname> to (strrchr(argv0, "/")+1). */
-static void initprogname_maincontext(struct maincontext_t * maincontext, const char * argv0)
+ * Sets *progname to (strrchr(argv0, "/")+1). */
+static void initprogname_maincontext(const char ** progname, const char * argv0)
 {
-   if (argv0) {
-      size_t offset = 0 ;
-      size_t len    = strlen(argv0) ;
+   const char * last = strrchr(argv0, '/') ;
 
-      if (len > 16) {
-         offset = len - 16 ;
-      }
+   if (last)
+      ++ last ;
+   else
+      last = argv0 ;
 
-      for (size_t i = offset; argv0[i]; ++i) {
-         if (  '/' == argv0[i]
-               && 0 != argv0[i+1]) {
-            offset = i + 1 ;
-         }
-      }
-
-      maincontext->progname = argv0 + offset ;
-
+   const size_t len = strlen(last) ;
+   if (len > 16) {
+      *progname = last + len - 16;
    } else {
-      maincontext->progname = "???" ;
+      *progname = last ;
    }
 }
 
@@ -166,17 +159,23 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
 
    VALIDATE_INPARAM_TEST(argc >= 0 && (argc == 0 || argv != 0), ONABORT, ) ;
 
+   // startup_platform has been called !!
+   VALIDATE_INPARAM_TEST(  self_maincontext() == &g_maincontext, ONABORT, ) ;
+
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
+
+   g_maincontext.type     = context_type ;
+   g_maincontext.progname = "" ;
+   g_maincontext.argc     = argc ;
+   g_maincontext.argv     = argv ;
+
+   if (argc) {
+      initprogname_maincontext(&g_maincontext.progname, argv[0]) ;
+   }
 
    err = init_processcontext(&g_maincontext.pcontext) ;
    if (err) goto ONABORT ;
 
-   g_maincontext.type     = context_type ;
-   g_maincontext.progname = 0 ;
-   g_maincontext.argc     = argc ;
-   g_maincontext.argv     = argv ;
-
-   initprogname_maincontext(&g_maincontext, argv ? argv[0] : 0) ;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
 
@@ -512,7 +511,7 @@ static int test_progname(void)
       TEST(&argv[i] == g_maincontext.argv) ;
       switch(i) {
       case 0:  TEST(&argv[0][4] == progname_maincontext()) ; break ;
-      case 1:  TEST(&argv[1][4] == progname_maincontext()) ; break ;
+      case 1:  TEST(&argv[1][9] == progname_maincontext()) ; break ;
       case 2:  TEST(&argv[2][6] == progname_maincontext()) ; break ;
       // only up to 16 characters
       case 3:  TEST(&argv[3][1] == progname_maincontext()) ; break ;

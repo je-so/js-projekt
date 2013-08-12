@@ -1,54 +1,42 @@
-[1: 1375300301.340929s]
+[1: 1375541631.373740s]
 new_arraysf() C-kern/ds/inmem/arraysf.c:115
 Error 22 - Invalid argument
 Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
-[1: 1375300301.340943s]
-new_arraysf() C-kern/ds/inmem/arraysf.c:131
-Error 22 - Invalid argument
 Function aborted
-[1: 1375300301.340945s]
+[1: 1375541631.373765s]
 new_arraysf() C-kern/ds/inmem/arraysf.c:116
 Error 22 - Invalid argument
 Function input violates condition (posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize))
 posshift=25
-[1: 1375300301.340948s]
-new_arraysf() C-kern/ds/inmem/arraysf.c:131
-Error 22 - Invalid argument
 Function aborted
-[1: 1375300301.340951s]
+[1: 1375541631.373769s]
 insert_arraysf() C-kern/ds/inmem/arraysf.c:459
 Error 17 - File exists
 Function aborted
-[1: 1375300301.340953s]
+[1: 1375541631.373773s]
 remove_arraysf() C-kern/ds/inmem/arraysf.c:441
 Error 3 - No such process
 Function aborted
-[1: 1375300301.348327s]
+[1: 1375541631.382313s]
 delete_arraysf() C-kern/ds/inmem/arraysf.c:214
 Error 12345 - Unknown error
 Function aborted - one or more resources could not be freed
-[1: 1375300301.355925s]
+[1: 1375541631.390048s]
 mresize_testmm() C-kern/test/testmm.c:677
 Error 12 - Cannot allocate memory
 Could not allocate 20 bytes of memory
-[1: 1375300301.355937s]
-mresize_testmm() C-kern/test/testmm.c:679
-Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375300301.355939s]
+[1: 1375541631.390059s]
 tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:366
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375300301.355941s]
+[1: 1375541631.390061s]
 mresize_testmm() C-kern/test/testmm.c:677
 Error 12 - Cannot allocate memory
 Could not allocate 20 bytes of memory
-[1: 1375300301.355944s]
-mresize_testmm() C-kern/test/testmm.c:679
-Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375300301.355946s]
+[1: 1375541631.390064s]
 tryinsert_arraysf() C-kern/ds/inmem/arraysf.c:366
 Error 12 - Cannot allocate memory
 Function aborted

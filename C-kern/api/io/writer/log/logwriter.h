@@ -41,6 +41,7 @@ typedef struct logwriter_t                logwriter_t ;
 typedef struct logwriter_chan_t           logwriter_chan_t ;
 
 
+
 // section: Functions
 
 // group: test
@@ -72,8 +73,8 @@ struct logwriter_t {
    size_t               size ;
    /* variable: chan
     * Array of <logwriter_chan_t>.
-    * A <log_channel_e> number is mapped to a <logwriter_chan_t> with help of this array. */
-   logwriter_chan_t *   chan[4] ;
+    * A <log_channel_e> is mapped to a <logwriter_chan_t> with help of this array. */
+   logwriter_chan_t *   chan ;
 } ;
 
 // group: initthread
@@ -87,7 +88,7 @@ struct log_it * interface_logwriter(void) ;
 
 /* define: logwriter_INIT_FREEABLE
  * Static initializer. */
-#define logwriter_INIT_FREEABLE           { 0, 0, { 0, 0, 0, 0 } }
+#define logwriter_INIT_FREEABLE           { 0, 0, 0 }
 
 /* function: init_logwriter
  * Allocates memory for the structure and initializes all variables to default values.
@@ -108,7 +109,17 @@ int free_logwriter(logwriter_t * lgwrt) ;
  * The address of the buffer is valid as long as no call <free_logwriter> is made.
  * The content changes if the buffer is flushed or cleared and new log entries are written.
  * Do not free the returned buffer. It points to an internal buffer used by the implementation. */
-void getbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
+void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
+
+/* function: setstate_logwriter
+ * Returns set <log_state_e> of <log_channel_e> channel. */
+uint8_t getstate_logwriter(const logwriter_t * log, uint8_t channel) ;
+
+// group: config
+
+/* function: setstate_logwriter
+ * Change <log_state_e> of <log_channel_e> channel to logstate. */
+void setstate_logwriter(logwriter_t * log, uint8_t channel, uint8_t logstate) ;
 
 // group: change
 

@@ -62,27 +62,33 @@ typedef enum log_config_e                 log_config_e ;
 /* enums: log_flags_e
  * Used to configure system wide restrictions.
  *
- * log_flags_NONE      - Indicates that the log entry is appended to the previous one but more will come.
- *                       It is not allows to interleave <log_flags_START> and <log_flags_END> on different channels.
- *                       The parameter channel (see <log_channel_e>) must have the same value as the value
- *                       given in the previous call whose flag contained <log_flags_START>.
- *                       The reason is that different channels may log to the same physical log file.
+ * log_flags_NONE      - Indicates that the log entry does not change append or not append state.
+ *                       If the last call to print contained <log_flags_START> the new entry is appended.
+ *                       If the last call to print contained <log_flags_END> the new entry is not appended.
  * log_flags_START     - Indicates that this is the beginning of a new log entry.
  *                       This flag implicitly ends the previous log entry if not done explicitly.
- *                       Every log output is now appended to a memory buffer and truncated if necessary
- *                       until another call sets the flag <log_flags_END>.
- *                       This flag implicitly ends the previous log entry if not done explicitly.
- * log_flags_END       - Indicates that this is the last (or only) part of the log entry.
- *                       It is not allowed to interleave <log_flags_START> and <log_flags_END> on different channels.
- *                       The parameter channel (see <log_channel_e>) must have the same value as the value
- *                       given in the previous call whose flag contained <log_flags_START>.
- *                       The reason is that different channels may log to the same physical log file.
+ *                       The log entry is therefore not appended to a previous one.
+ *                       Every following log output is now appended to a memory buffer and truncated if necessary
+ *                       until another call to print is done with flag set to <log_flags_END> or <log_flags_START>.
+ * log_flags_END       - Indicates that this is the last part of a log entry.
+ *                       You can set <log_flags_START> and <log_flags_END> at the same time to indicate
+ *                       that the printed log entry should not be appended to a previous one and the following
+ *                       entries should not be appended to this one.
+ * log_flags_OPTIONALHEADER - A given <log_header_t> is only written before the log entry if the pointer to the function name
+ *                            in <log_header_t> differs from the pointer given in the previous call.
+ *                            The flag <log_flags_END> sets the remembered pointer to the function name to 0.
+ *                            Set this flag on the last part of the log entry if another header could be written in the same function
+ *                            with flag <log_flags_START>.
+ *                            Both log macros <TRACEABORT_ERRLOG> and <TRACEABORTFREE_ERRLOG> set this flag. They do not know
+ *                            if another call to <TRACESYSCALL_ERRLOG> already printed a header.
  * */
 enum log_flags_e {
    log_flags_NONE      = 0,
    log_flags_START     = 1,
-   log_flags_END       = 2
+   log_flags_END       = 2,
+   log_flags_OPTIONALHEADER = 4
 } ;
+
 
 typedef enum log_flags_e                  log_flags_e ;
 
@@ -119,6 +125,30 @@ enum log_channel_e {
 
 typedef enum log_channel_e                log_channel_e ;
 
+/* enums: log_state_e
+ * Used to configure the state of a <log_channel_e>.
+ *
+ * log_state_IGNORED    - Ignore any writing to this channel.
+ * log_state_BUFFERED   - Normal operation mode. All log entries are buffered until the buffer is full and then the buffer is written
+ *                        all at once.
+ * log_state_UNBUFFERED - Every log entry is constructed in a buffer and if the last part of the entry is added to it the log entry is
+ *                        written out as a whole.
+ * log_state_IMMEDIATE  - Every part of a log entry is written immediately without waiting for the last part end.
+ *
+ * log_state_NROFSTATE  - Use this value to determine the number of different states
+ *                        numbered from 0 up to (log_state_NROFSTATE-1).
+ * */
+enum log_state_e {
+   log_state_IGNORED    = 0,
+   log_state_BUFFERED   = 1,
+   log_state_UNBUFFERED = 2,
+   log_state_IMMEDIATE  = 3,
+} ;
+
+#define log_state_NROFSTATE               (log_state_IMMEDIATE + 1)
+
+typedef enum log_state_e                  log_state_e ;
+
 
 /* struct: log_t
  * Uses <iobj_DECLARE> to declare object supporting interface <log_it>. */
@@ -149,12 +179,22 @@ struct log_it {
     * This call is ignored if the log is not configured to be in buffered mode.
     * See <logwriter_t.clearbuffer_logwriter> for an implementation. */
    void  (*clearbuffer) (void * log, uint8_t channel) ;
+   // -- query --
    /* variable: getbuffer
     * Returns content of log buffer as C-string and its size in bytes.
     * The returned values are valid as long as no other function is called on log.
     * The string has a trailing NULL byte, i.e. buffer[size] == 0.
     * See <logwriter_t.getbuffer_logwriter> for an implementation. */
-   void  (*getbuffer)   (void * log, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
+   void  (*getbuffer)   (const void * log, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
+   /* variable: getstate
+    * Returns configured <log_state_e> for a specific <log_channel_e> channel.
+    * You can switch <log_state_e> by calling <setstate>. */
+   uint8_t (*getstate)  (const void * log, uint8_t channel) ;
+   // -- configuration --
+   /* variable: setstate
+    * Sets <log_state_e> logstate for a specific <log_channel_e> channel.
+    * You can query the current <log_state_e> by calling <getstate>. */
+   void  (*setstate)    (void * log, uint8_t channel, uint8_t logstate) ;
 } ;
 
 // group: generic
@@ -222,9 +262,17 @@ struct log_header_t {
                   == (void(**)(log_t*,uint8_t))       \
                         &((log_it*)0)->clearbuffer    \
                && &((typeof(logif))0)->getbuffer      \
-                  == (void(**)(log_t*,uint8_t,        \
+                  == (void(**)(const log_t*,uint8_t,  \
                         char**,size_t*))              \
-                        &((log_it*)0)->getbuffer,     \
+                        &((log_it*)0)->getbuffer      \
+               && &((typeof(logif))0)->getstate       \
+                  == (uint8_t(**)(const log_t*,       \
+                                  uint8_t))           \
+                        &((log_it*)0)->getstate       \
+               && &((typeof(logif))0)->setstate       \
+                  == (void(**)(log_t*,uint8_t,        \
+                        uint8_t))                     \
+                        &((log_it*)0)->setstate,      \
                "ensure same structure") ;             \
             (log_it*) (logif) ;                       \
          }))
@@ -242,8 +290,10 @@ struct log_header_t {
                             const log_header_t * header, log_text_f textf, ... ) ;        \
       void  (*flushbuffer) (log_t * log, uint8_t channel) ;                               \
       void  (*clearbuffer) (log_t * log, uint8_t channel) ;                               \
-      void  (*getbuffer)   (log_t * log, uint8_t channel,                                 \
+      void  (*getbuffer)   (const log_t * log, uint8_t channel,                           \
                             /*out*/char ** buffer, /*out*/size_t * size) ;                \
+      uint8_t (*getstate)  (const log_t * log, uint8_t channel) ;                         \
+      void    (*setstate)  (log_t * log, uint8_t channel, uint8_t logstate) ;             \
    } ;
 
 #endif

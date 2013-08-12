@@ -47,7 +47,9 @@ static void printf_logmain(void * logmain, uint8_t channel, uint8_t flags, const
 static void printtext_logmain(void * logmain, uint8_t channel, uint8_t flags, const log_header_t * logheader, log_text_f textf, ... ) ;
 static void flushbuffer_logmain(void * logmain, uint8_t channel) ;
 static void clearbuffer_logmain(void * logmain, uint8_t channel) ;
-static void getbuffer_logmain(void * logmain, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
+static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
+static uint8_t getstate_logmain(const void * logmain, uint8_t channel) ;
+static void setstate_logmain(void * logmain, uint8_t channel, uint8_t state) ;
 
 // group: variables
 
@@ -59,6 +61,8 @@ log_it         g_logmain_interface  = {
                      &flushbuffer_logmain,
                      &clearbuffer_logmain,
                      &getbuffer_logmain,
+                     &getstate_logmain,
+                     &setstate_logmain
                } ;
 
 // group: interface-implementation
@@ -115,12 +119,26 @@ static void clearbuffer_logmain(void * logmain, uint8_t channel)
    (void) channel ;
 }
 
-static void getbuffer_logmain(void * logmain, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size)
+static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size)
 {
    (void) logmain ;
    (void) channel ;
    *buffer = 0 ;
    *size   = 0 ;
+}
+
+static uint8_t getstate_logmain(const void * logmain, uint8_t channel)
+{
+   (void) logmain ;
+   (void) channel ;
+   return log_state_IMMEDIATE ;
+}
+
+static void setstate_logmain(void * logmain, uint8_t channel, uint8_t state)
+{
+   (void) logmain ;
+   (void) channel ;
+   (void) state ;
 }
 
 
@@ -152,6 +170,10 @@ static int test_query(void)
    getbuffer_logmain(0, log_channel_NROFCHANNEL/*not used*/, &buffer, &size) ;
    TEST(0 == buffer) ;
    TEST(0 == size) ;
+
+   // TEST getstate_logmain
+   TEST(log_state_IMMEDIATE == getstate_logmain(0, 0/*not used*/)) ;
+   TEST(log_state_IMMEDIATE == getstate_logmain(0, log_channel_NROFCHANNEL/*not used*/)) ;
 
    return 0 ;
 ONABORT:
@@ -237,6 +259,12 @@ static int test_update(void)
       off += strlen(result) ;
       TEST(0 == memcmp(off, maxstring, log_config_MINSIZE-4-(size_t)(off-readbuffer))) ;
       TEST(0 == memcmp(readbuffer+log_config_MINSIZE-4, " ...", 4)) ;
+   }
+
+   // TEST setstate_logmain
+   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      setstate_logmain(0, i, log_state_BUFFERED) ;   // ignored
+      TEST(log_state_IMMEDIATE == getstate_logmain(0, i)) ;
    }
 
    // unprepare

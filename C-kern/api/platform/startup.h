@@ -38,7 +38,7 @@ typedef int                            (* mainthread_f) (int argc, const char **
 /* function: startup_platform
  * Initialize system context and calls main_thread.
  * If the system context could be initialized and the main_thread was called
- * the return value is the value returned by main_thread. If an error occurs during
+ * the return value is the value returned from main_thread. If an error occurs during
  * initialization only an error code (value > 0) is returned, main_thread is not called.
  *
  * You have to call this function before calling <init_maincontext>.

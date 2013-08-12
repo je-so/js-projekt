@@ -1,279 +1,213 @@
-[1: 1375344291.682974s]
+[1: 1375541638.865340s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:59
 Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=2
-[1: 1375344291.682980s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.682983s]
+[1: 1375541638.865348s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.682987s]
+[1: 1375541638.865353s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:59
 Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=13
-[1: 1375344291.682990s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.682993s]
+[1: 1375541638.865357s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.682997s]
+[1: 1375541638.865361s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:59
 Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=43
-[1: 1375344291.683000s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683002s]
+[1: 1375541638.865365s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683004s]
+[1: 1375541638.865367s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:59
 Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=27
-[1: 1375344291.683007s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683009s]
+[1: 1375541638.865369s]
 initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:108
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683012s]
+[1: 1375541638.865373s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:52
 Error 22 - Invalid argument
 Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=1
-[1: 1375344291.683015s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683018s]
+[1: 1375541638.865376s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683019s]
+[1: 1375541638.865378s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:52
 Error 22 - Invalid argument
 Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=1
-[1: 1375344291.683022s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683024s]
+[1: 1375541638.865381s]
 initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:108
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683026s]
+[1: 1375541638.865383s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
 Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
-[1: 1375344291.683029s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683030s]
+[1: 1375541638.865386s]
 initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:108
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683033s]
+[1: 1375541638.865388s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
 Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
-[1: 1375344291.683035s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683037s]
+[1: 1375541638.865390s]
 initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:108
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683041s]
+[1: 1375541638.865395s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
 Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=2
-[1: 1375344291.683044s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683046s]
+[1: 1375541638.865398s]
 initfromio_mmfile() C-kern/platform/Linux/io/mmfile.c:108
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683052s]
+[1: 1375541638.865404s]
 initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:180
 Error 22 - Invalid argument
 Function input violates condition (0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize))
 headsize=0
 ((sourcemfile)->size)=8196
-[1: 1375344291.683055s]
-initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:193
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683057s]
+[1: 1375541638.865407s]
 initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:180
 Error 22 - Invalid argument
 Function input violates condition (0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize))
 headsize=4095
 ((sourcemfile)->size)=8196
-[1: 1375344291.683060s]
-initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:193
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683062s]
+[1: 1375541638.865411s]
 initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:180
 Error 22 - Invalid argument
 Function input violates condition (0 < headsize && headsize < size_mmfile(sourcemfile) && 0 == (headsize % pagesize))
 headsize=12288
 ((sourcemfile)->size)=8196
-[1: 1375344291.683065s]
-initsplit_mmfile() C-kern/platform/Linux/io/mmfile.c:193
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.683071s]
+[1: 1375541638.865418s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Error 61 - No data available
 Function aborted
-[1: 1375344291.683088s]
+[1: 1375541638.865436s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375344291.683093s]
+[1: 1375541638.865441s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:75
 Error 12 - Cannot allocate memory
 System call 'mmap' failed
-[1: 1375344291.683095s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375344291.683097s]
+[1: 1375541638.865444s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375344291.683102s]
+[1: 1375541638.865448s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:75
 Error 12 - Cannot allocate memory
 System call 'mmap' failed
-[1: 1375344291.683104s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375344291.683106s]
+[1: 1375541638.865451s]
 init_mmfile() C-kern/platform/Linux/io/mmfile.c:171
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375344291.684808s]
+[1: 1375541638.867027s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
 Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
-[1: 1375344291.684813s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684815s]
+[1: 1375541638.867033s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:233
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684818s]
+[1: 1375541638.867035s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
 Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=1
-[1: 1375344291.684820s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684822s]
+[1: 1375541638.867038s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:233
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684824s]
+[1: 1375541638.867040s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:59
 Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=15
-[1: 1375344291.684827s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684828s]
+[1: 1375541638.867043s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:233
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684830s]
+[1: 1375541638.867045s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:59
 Error 22 - Invalid argument
 Function input violates condition ((accessmode_SHARED|accessmode_PRIVATE) != (mode & (accessmode_SHARED|accessmode_PRIVATE)) && 0 != (mode & accessmode_READ) && ( 0 == (mode & accessmode_EXEC) || (mode == (accessmode_READ|accessmode_EXEC|accessmode_SHARED))) && 0 == (mode & ~(accessmode_e)(accessmode_RDWR|accessmode_EXEC|accessmode_PRIVATE|accessmode_SHARED)))
 mode=27
-[1: 1375344291.684833s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684835s]
+[1: 1375541638.867048s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:233
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684837s]
+[1: 1375541638.867050s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:52
 Error 22 - Invalid argument
 Function input violates condition (0 <= file_offset && 0 == (file_offset % pagesize))
 file_offset=4095
-[1: 1375344291.684840s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684841s]
+[1: 1375541638.867053s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:233
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684844s]
+[1: 1375541638.867055s]
 accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:167
 Error 9 - Bad file descriptor
 System call 'fcntl' failed
 ioc=-1
-[1: 1375344291.684847s]
-accessmode_iochannel() C-kern/platform/Linux/io/iochannel.c:179
-Error 9 - Bad file descriptor
 Function aborted
-[1: 1375344291.684849s]
+[1: 1375541638.867058s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
 Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=0
-[1: 1375344291.684851s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684853s]
+[1: 1375541638.867061s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:233
 Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684858s]
+[1: 1375541638.867066s]
 init2_mmfile() C-kern/platform/Linux/io/mmfile.c:66
 Error 22 - Invalid argument
 Function input violates condition (0 != (fdmode & accessmode_READ) && (0 != (fdmode & accessmode_WRITE) || 0 == (mode & accessmode_WRITE)))
 fdmode=2
-[1: 1375344291.684860s]
-init2_mmfile() C-kern/platform/Linux/io/mmfile.c:95
-Error 22 - Invalid argument
 Function aborted
-[1: 1375344291.684862s]
+[1: 1375541638.867069s]
 seek_mmfile() C-kern/platform/Linux/io/mmfile.c:233
 Error 22 - Invalid argument
 Function aborted

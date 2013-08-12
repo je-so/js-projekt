@@ -1,72 +1,48 @@
-[1: 1374953322.539464s]
+[1: 1375541637.056129s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:146
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)interval_time->seconds < timespec_MAXSECONDS())
-[1: 1374953322.539490s]
-startinterval_systimer() C-kern/platform/Linux/time/systimer.c:162
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.539495s]
+[1: 1375541637.056150s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:121
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-[1: 1374953322.539500s]
-start_systimer() C-kern/platform/Linux/time/systimer.c:137
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.539504s]
+[1: 1375541637.056153s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:146
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)interval_time->seconds < timespec_MAXSECONDS())
-[1: 1374953322.539508s]
-startinterval_systimer() C-kern/platform/Linux/time/systimer.c:162
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.539512s]
+[1: 1375541637.056156s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:121
 Error 22 - Invalid argument
 Function input violates condition ((uint64_t)relative_time->seconds < timespec_MAXSECONDS())
-[1: 1374953322.539516s]
-start_systimer() C-kern/platform/Linux/time/systimer.c:137
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.539519s]
+[1: 1375541637.056158s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:145
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(interval_time))
-[1: 1374953322.539523s]
-startinterval_systimer() C-kern/platform/Linux/time/systimer.c:162
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.539527s]
+[1: 1375541637.056161s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:120
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(relative_time))
-[1: 1374953322.539531s]
-start_systimer() C-kern/platform/Linux/time/systimer.c:137
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.539534s]
+[1: 1375541637.056163s]
 startinterval_systimer() C-kern/platform/Linux/time/systimer.c:145
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(interval_time))
-[1: 1374953322.539538s]
-startinterval_systimer() C-kern/platform/Linux/time/systimer.c:162
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.539542s]
+[1: 1375541637.056165s]
 start_systimer() C-kern/platform/Linux/time/systimer.c:120
 Error 22 - Invalid argument
 Function input violates condition (isvalid_timevalue(relative_time))
-[1: 1374953322.539545s]
-start_systimer() C-kern/platform/Linux/time/systimer.c:137
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.540757s]
+[1: 1375541637.057365s]
 wait_systimer() C-kern/platform/Linux/time/systimer.c:213
 Error 62 - Timer expired
 Function aborted
-[1: 1374953322.541871s]
+[1: 1375541637.058463s]
 wait_systimer() C-kern/platform/Linux/time/systimer.c:213
 Error 62 - Timer expired
 Function aborted

@@ -1,48 +1,30 @@
-[1: 1374953321.890688s]
+[1: 1375541636.451738s]
 same_resourceusage() C-kern/test/resourceusage.c:154
 Error 11 - Resource temporarily unavailable
 The number of used resources is different
-[1: 1374953321.890692s]
-same_resourceusage() C-kern/test/resourceusage.c:194
-Error 11 - Resource temporarily unavailable
 Function aborted
-[1: 1374953321.892510s]
+[1: 1375541636.453555s]
 same_resourceusage() C-kern/test/resourceusage.c:164
 Error 11 - Resource temporarily unavailable
 The number of used resources is different
-[1: 1374953321.892513s]
-same_resourceusage() C-kern/test/resourceusage.c:194
-Error 11 - Resource temporarily unavailable
 Function aborted
-[1: 1374953321.894290s]
+[1: 1375541636.455369s]
 same_resourceusage() C-kern/test/resourceusage.c:169
 Error 11 - Resource temporarily unavailable
 The number of used resources is different
-[1: 1374953321.894293s]
-same_resourceusage() C-kern/test/resourceusage.c:194
-Error 11 - Resource temporarily unavailable
 Function aborted
-[1: 1374953321.895628s]
+[1: 1375541636.456703s]
 same_resourceusage() C-kern/test/resourceusage.c:174
 Error 11 - Resource temporarily unavailable
 The number of used resources is different
-[1: 1374953321.895631s]
-same_resourceusage() C-kern/test/resourceusage.c:194
-Error 11 - Resource temporarily unavailable
 Function aborted
-[1: 1374953321.896978s]
+[1: 1375541636.458061s]
 same_resourceusage() C-kern/test/resourceusage.c:179
 Error 11 - Resource temporarily unavailable
 The number of used resources is different
-[1: 1374953321.896981s]
-same_resourceusage() C-kern/test/resourceusage.c:194
-Error 11 - Resource temporarily unavailable
 Function aborted
-[1: 1374953321.898816s]
+[1: 1375541636.459832s]
 same_resourceusage() C-kern/test/resourceusage.c:184
 Error 11 - Resource temporarily unavailable
 The number of used resources is different
-[1: 1374953321.898819s]
-same_resourceusage() C-kern/test/resourceusage.c:194
-Error 11 - Resource temporarily unavailable
 Function aborted

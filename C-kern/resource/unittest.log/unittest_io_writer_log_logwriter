@@ -1,16 +1,10 @@
-[1: 1375098911.775366s]
-vprintf_logwriter() C-kern/io/writer/log/logwriter.c:252
+[1: 1375541630.408887s]
+vprintf_logwriter() C-kern/io/writer/log/logwriter.c:287
 Error 22 - Invalid argument
-Function input violates condition (channel < lengthof(lgwrt->chan))
-[1: 1375098911.775369s]
-vprintf_logwriter() C-kern/io/writer/log/logwriter.c:264
-Error 22 - Invalid argument
+Function input violates condition (channel < log_channel_NROFCHANNEL)
 Function aborted
-[1: 1375098915.916844s]
-printtext_logwriter() C-kern/io/writer/log/logwriter.c:280
+[1: 1375541630.409082s]
+printtext_logwriter() C-kern/io/writer/log/logwriter.c:312
 Error 22 - Invalid argument
-Function input violates condition (channel < lengthof(lgwrt->chan))
-[1: 1375098915.916854s]
-printtext_logwriter() C-kern/io/writer/log/logwriter.c:295
-Error 22 - Invalid argument
+Function input violates condition (channel < log_channel_NROFCHANNEL)
 Function aborted

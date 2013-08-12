@@ -1,44 +1,32 @@
-[1: 1374953316.874673s]
+[1: 1375541631.609098s]
 free_dlist() C-kern/ds/inmem/dlist.c:74
 Error 12 - Cannot allocate memory
 Function aborted - one or more resources could not be freed
-[1: 1374953316.875748s]
+[1: 1375541631.610174s]
 remove_dlist() C-kern/ds/inmem/dlist.c:181
 Error 22 - Invalid argument
 Function input violates condition (!isempty_dlist(list) && node->next)
-[1: 1374953316.875752s]
-remove_dlist() C-kern/ds/inmem/dlist.c:189
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953316.875754s]
+[1: 1375541631.610178s]
 remove_dlist() C-kern/ds/inmem/dlist.c:181
 Error 22 - Invalid argument
 Function input violates condition (!isempty_dlist(list) && node->next)
-[1: 1374953316.875756s]
-remove_dlist() C-kern/ds/inmem/dlist.c:189
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953316.875758s]
+[1: 1375541631.610181s]
 removefirst_dlist() C-kern/ds/inmem/dlist.c:144
 Error 22 - Invalid argument
 Function input violates condition (!isempty_dlist(list))
-[1: 1374953316.875760s]
-removefirst_dlist() C-kern/ds/inmem/dlist.c:154
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953316.875762s]
+[1: 1375541631.610183s]
 removelast_dlist() C-kern/ds/inmem/dlist.c:162
 Error 22 - Invalid argument
 Function input violates condition (!isempty_dlist(list))
-[1: 1374953316.875764s]
-removelast_dlist() C-kern/ds/inmem/dlist.c:173
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953316.875865s]
+[1: 1375541631.610290s]
 free_dlist() C-kern/ds/inmem/dlist.c:74
 Error 38 - Function not implemented
 Function aborted - one or more resources could not be freed
-[1: 1374953316.875875s]
+[1: 1375541631.610299s]
 free_dlist() C-kern/ds/inmem/dlist.c:74
 Error 22 - Invalid argument
 Function aborted - one or more resources could not be freed

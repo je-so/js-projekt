@@ -1,48 +1,42 @@
-[1: 1375343013.281828s]
+[1: 1375541636.129158s]
 alloc_cstring_wbuffer() C-kern/memory/wbuffer.c:77
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375343013.281842s]
+[1: 1375541636.129172s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375343013.281860s]
+[1: 1375541636.129193s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375343013.281866s]
+[1: 1375541636.129200s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:111
 Error 12 - Cannot allocate memory
 Could not allocate 4294967295 bytes of memory
-[1: 1375343013.281869s]
+Function aborted
+[1: 1375541636.129203s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375343013.281871s]
-alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
-Error 12 - Cannot allocate memory
-Function aborted
-[1: 1375343013.281886s]
+[1: 1375541636.129208s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:111
 Error 12 - Cannot allocate memory
 Could not allocate 4294967279 bytes of memory
-[1: 1375343013.281888s]
-alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
-Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375343013.281890s]
+[1: 1375541636.129210s]
 appendcopy_wbuffer() C-kern/memory/wbuffer.c:203
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375343013.281892s]
+[1: 1375541636.129213s]
 alloc_memblock_wbuffer() C-kern/memory/wbuffer.c:123
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375343013.281894s]
+[1: 1375541636.129215s]
 appendcopy_wbuffer() C-kern/memory/wbuffer.c:203
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375343013.281899s]
+[1: 1375541636.129220s]
 appendcopy_wbuffer() C-kern/memory/wbuffer.c:203
 Error 12 - Cannot allocate memory
 Function aborted

@@ -73,7 +73,7 @@ static inline size_t sizesignalstack_threadtls(const size_t pagesize)
 }
 
 /* function: sizestack_threadtls
- * Returns the minimum size of the thread stack.
+ * Returns the default size of the thread stack.
  * The returned value is a multiple of pagesize. */
 static inline size_t sizestack_threadtls(const size_t pagesize)
 {
@@ -116,8 +116,8 @@ int init_threadtls(/*out*/thread_tls_t * tls)
     *     :  protection page (1 page)
     *     :  signal stack    (1? page)
     *     :  protection page (1 page)
-    *     :  thread stack (4? pages)
-    *     :  protection page (1 page)
+    *     :  thread stack    (256K)
+    *     :  protection page (X pages)
     * high:
     */
 

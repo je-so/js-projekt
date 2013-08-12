@@ -1,40 +1,34 @@
-[1: 1374953330.366010s]
+[1: 1375541644.840027s]
 exit_thread() C-kern/platform/Linux/task/thread.c:369
 Error 71 - Protocol error
 Operation allowed only in state (! ismain_thread(thread))
-[1: 1374953330.366023s]
-exit_thread() C-kern/platform/Linux/task/thread.c:382
-Error 71 - Protocol error
 Function aborted
-[1: 1374953330.370524s]
+[1: 1375541644.856642s]
 new_thread() C-kern/platform/Linux/task/thread.c:238
 Error 1 - Operation not permitted
 Function aborted
-[1: 1374953330.370560s]
+[1: 1375541644.856673s]
 new_thread() C-kern/platform/Linux/task/thread.c:238
 Error 2 - No such file or directory
 Function aborted
-[1: 1374953330.370584s]
+[1: 1375541644.856695s]
 new_thread() C-kern/platform/Linux/task/thread.c:238
 Error 3 - No such process
 Function aborted
-[1: 1374953330.370608s]
+[1: 1375541644.856719s]
 new_thread() C-kern/platform/Linux/task/thread.c:238
 Error 4 - Interrupted system call
 Function aborted
-[1: 1374953330.386703s]
+[1: 1375541644.871034s]
 join_thread() C-kern/platform/Linux/task/thread.c:258
 Error 35 - Resource deadlock avoided
 Function aborted
-[1: 1374953330.387958s]
+[1: 1375541644.872791s]
 join_thread() C-kern/platform/Linux/task/thread.c:258
 Error 3 - No such process
 Function aborted
-[1: 1374953331.226821s]
+[1: 1375541645.689916s]
 exit_thread() C-kern/platform/Linux/task/thread.c:369
 Error 71 - Protocol error
 Operation allowed only in state (! ismain_thread(thread))
-[1: 1374953331.226835s]
-exit_thread() C-kern/platform/Linux/task/thread.c:382
-Error 71 - Protocol error
 Function aborted

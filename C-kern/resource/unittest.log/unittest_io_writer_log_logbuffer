@@ -1,8 +1,5 @@
-[1: 1374953315.692200s]
+[1: 1375541640.157617s]
 init_logbuffer() C-kern/io/writer/log/logbuffer.c:46
 Error 22 - Invalid argument
 Function input violates condition (buffer_size > log_config_MINSIZE)
-[1: 1374953315.692204s]
-init_logbuffer() C-kern/io/writer/log/logbuffer.c:56
-Error 22 - Invalid argument
 Function aborted

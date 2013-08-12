@@ -975,7 +975,7 @@ static int test_allocate(void)
    // prepare
    TEST(0 == init_testmm(&testmm)) ;
 
-   // TEST alloc, realloc, free in FIFO order
+   // TEST mresize_testmm: alloc, realloc in FIFO order
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       // allocate blocksize/2 and then resize to blocksize
       memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
@@ -995,6 +995,8 @@ static int test_allocate(void)
          TEST(memblocks[i].addr == testmm.mmpage->datablock.addr + headersize) ;
       }
    }
+
+   // TEST mfree_testmm, mresize_testmm: free in FIFO order
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       testmm_page_t  * oldpage = testmm.mmpage ;
       if (i % 2) {

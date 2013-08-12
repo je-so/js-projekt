@@ -43,10 +43,13 @@
 
 
 /* struct: logwriter_chan_t
- * Extends <logbuffer_t> with an isappend state.
- * If isappend is true the next write to the buffer will be appended. */
+ * Extends <logbuffer_t> with isappend mode and <log_state_e>.
+ * If isappend is true the next write to the buffer will be appended
+ * even if the buffer is full. */
 struct logwriter_chan_t {
    logbuffer_t logbuf ;
+   const char* funcname ;
+   log_state_e logstate ;
    bool        isappend ;
 } ;
 
@@ -59,8 +62,8 @@ struct logwriter_chan_t {
  * size - Size of a temporary or static buffer.
  * addr - Start address of the buffer.
  * io   - <iochannel_t> the buffer is written to. */
-#define logwriter_chan_INIT(size, addr, io)  \
-         { logbuffer_INIT(size, addr, io), false }
+#define logwriter_chan_INIT(size, addr, io, logstate)  \
+         { logbuffer_INIT(size, addr, io), 0, logstate, false }
 
 // group: update
 
@@ -91,7 +94,9 @@ logwriter_it      s_logwriter_interface = {
                         &printtext_logwriter,
                         &flushbuffer_logwriter,
                         &clearbuffer_logwriter,
-                        &getbuffer_logwriter
+                        &getbuffer_logwriter,
+                        &getstate_logwriter,
+                        &setstate_logwriter
                   } ;
 
 // group: initthread
@@ -125,23 +130,21 @@ int init_logwriter(/*out*/logwriter_t * lgwrt)
 {
    int err ;
 
-   static_assert(lengthof(lgwrt->chan) == log_channel_NROFCHANNEL, "every channel is mapped") ;
-
    err = allocatebuffer_logwriter(genericcast_memblock(lgwrt, )) ;
    if (err) goto ONABORT ;
+   lgwrt->chan = (logwriter_chan_t*) lgwrt->addr ;
 
-   // static configuration uses two buffers
-   static_assert(0 == log_channel_USERERR, "first is CONSOLE") ;
-   lgwrt->chan[0]  = 0 + (logwriter_chan_t*) lgwrt->addr ;  // STDERR + flush is default
-   lgwrt->chan[1]  = 1 + (logwriter_chan_t*) lgwrt->addr ;  // STDERR + buffer is default
-   for (unsigned i = 2; i < lengthof(lgwrt->chan); ++i) {
-      lgwrt->chan[i] = 1 + (logwriter_chan_t*) lgwrt->addr ;
+   const size_t arraysize = log_channel_NROFCHANNEL * sizeof(logwriter_chan_t) ;
+   const size_t othersize = 2*log_config_MINSIZE ;
+   const size_t errsize   = lgwrt->size - arraysize - (log_channel_NROFCHANNEL-1) * othersize ;
+
+   size_t offset = arraysize ;
+   for (uint8_t channel = 0; channel < log_channel_NROFCHANNEL; ++channel) {
+      size_t      logsize  = (channel == log_channel_ERR     ? errsize           : othersize) ;
+      log_state_e logstate = (channel == log_channel_USERERR ? log_state_IGNORED : log_state_BUFFERED) ;
+      lgwrt->chan[channel] = (logwriter_chan_t) logwriter_chan_INIT(logsize, lgwrt->addr + offset, iochannel_STDERR, logstate) ;
+      offset += logsize ;
    }
-
-   const size_t logoffset  = 2 * sizeof(logwriter_chan_t) ;
-   const size_t logoffset2 = logoffset + 2*log_config_MINSIZE ;
-   *lgwrt->chan[0] = (logwriter_chan_t) logwriter_chan_INIT(logoffset2 - logoffset, lgwrt->addr + logoffset, iochannel_STDERR) ;
-   *lgwrt->chan[1] = (logwriter_chan_t) logwriter_chan_INIT(lgwrt->size - logoffset2, lgwrt->addr + logoffset2, iochannel_STDERR) ;
 
    return 0 ;
 ONABORT:
@@ -155,7 +158,7 @@ int free_logwriter(logwriter_t * lgwrt)
 
    err = freebuffer_logwriter(genericcast_memblock(lgwrt,)) ;
 
-   memset(lgwrt->chan, 0, sizeof(lgwrt->chan)) ;
+   lgwrt->chan = 0 ;
 
    if (err) goto ONABORT ;
 
@@ -167,13 +170,13 @@ ONABORT:
 
 // group: query
 
-void getbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size)
+void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(channel < lengthof(lgwrt->chan), ONABORT,) ;
+   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;
 
-   logwriter_chan_t * chan = lgwrt->chan[channel] ;
+   logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
    getbuffer_logbuffer(&chan->logbuf, (uint8_t**)buffer, size) ;
 
@@ -183,15 +186,37 @@ ONABORT:
    return ;
 }
 
+uint8_t getstate_logwriter(const logwriter_t * lgwrt, uint8_t channel)
+{
+   if (channel < log_channel_NROFCHANNEL) {
+      logwriter_chan_t * chan = &lgwrt->chan[channel] ;
+      return chan->logstate ;
+   }
+
+   return log_state_IGNORED ;
+}
+
+// group: config
+
+void setstate_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t logstate)
+{
+   if (channel < log_channel_NROFCHANNEL) {
+      logwriter_chan_t * chan = &lgwrt->chan[channel] ;
+      chan->funcname = 0 ;
+      chan->logstate = logstate ;
+      chan->isappend = false ;
+   }
+}
+
 // group: change
 
 void clearbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(channel < lengthof(lgwrt->chan), ONABORT,) ;
+   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;
 
-   logwriter_chan_t * chan = lgwrt->chan[channel] ;
+   logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
    clear_logbuffer(&chan->logbuf) ;
 
@@ -205,9 +230,9 @@ void flushbuffer_logwriter(logwriter_t * lgwrt, uint8_t channel)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(channel < lengthof(lgwrt->chan), ONABORT,) ;
+   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;
 
-   logwriter_chan_t * chan = lgwrt->chan[channel] ;
+   logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
    flush_logwriterchan(chan) ;
 
@@ -217,28 +242,37 @@ ONABORT:
    return ;
 }
 
-static void beginwrite_logwriter(logwriter_chan_t * chan, uint8_t flags, const struct log_header_t * header)
+#define beginwrite_logwriter(          \
+            /*logwriter_t* */lgwrt,    \
+            /*log_channel_e*/channel,  \
+            /*log_flags_e*/flags,      \
+            /*log_header_t* */header,  \
+            /*out*/chan)               \
+         VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;       \
+         chan = &lgwrt->chan[channel] ;                                             \
+         if (chan->logstate == log_state_IGNORED) return ;                          \
+         if (  sizefree_logbuffer(&chan->logbuf) <= log_config_MINSIZE              \
+               && (  !chan->isappend                                                \
+                     || 0 != (flags&log_flags_START)/*implicit END*/)) {            \
+            flush_logwriterchan(chan) ;                                             \
+         }                                                                          \
+         if (  header                                                               \
+               && (  0 == (flags&log_flags_OPTIONALHEADER)                          \
+                     || (chan->funcname != header->funcname))) {                    \
+            printheader_logbuffer(&chan->logbuf, header) ;                          \
+            chan->funcname = header->funcname ;                                     \
+         }                                                                          \
+         if (0 != (flags&log_flags_END)) {                                          \
+            chan->funcname = 0 ;                                                    \
+            chan->isappend = false ;                                                \
+         } else if ( 0 != (flags&log_flags_START)                                   \
+                     && chan->logstate != log_state_IMMEDIATE) {                    \
+            chan->isappend = true ;                                                 \
+         }
+
+static inline void endwrite_logwriter(logwriter_chan_t * chan)
 {
-   if (  sizefree_logbuffer(&chan->logbuf) <= log_config_MINSIZE
-         && (  !chan->isappend
-               || 0 != (flags&log_flags_START)/*implicit END*/)) {
-      flush_logwriterchan(chan) ;
-   }
-
-   if (0 != (flags&log_flags_END)) {
-      chan->isappend = false ;
-   } else if (0 != (flags&log_flags_START)) {
-      chan->isappend = true ;
-   }
-
-   if (header) {
-      printheader_logbuffer(&chan->logbuf, header) ;
-   }
-}
-
-static void endwrite_logwriter(logwriter_chan_t * chan, uint8_t channel)
-{
-   if (  log_channel_USERERR == channel
+   if (  chan->logstate != log_state_BUFFERED
          && ! chan->isappend) {
       // flush immediately
       flush_logwriterchan(chan) ;
@@ -248,16 +282,13 @@ static void endwrite_logwriter(logwriter_chan_t * chan, uint8_t channel)
 void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, const char * format, va_list args)
 {
    int err ;
+   logwriter_chan_t * chan ;
 
-   VALIDATE_INPARAM_TEST(channel < lengthof(lgwrt->chan), ONABORT,) ;
-
-   logwriter_chan_t * chan = lgwrt->chan[channel] ;
-
-   beginwrite_logwriter(chan, flags, header) ;
+   beginwrite_logwriter(lgwrt, channel, flags, header, /*out*/chan) ;
 
    vprintf_logbuffer(&chan->logbuf, format, args) ;
 
-   endwrite_logwriter(chan, channel) ;
+   endwrite_logwriter(chan) ;
 
    return ;
 ONABORT:
@@ -276,19 +307,18 @@ void printf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const
 void printtext_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, const struct log_header_t * header, log_text_f textf, ...)
 {
    int err ;
+   logwriter_chan_t * chan ;
 
-   VALIDATE_INPARAM_TEST(channel < lengthof(lgwrt->chan), ONABORT,) ;
+   beginwrite_logwriter(lgwrt, channel, flags, header, /*out*/chan) ;
 
-   logwriter_chan_t * chan = lgwrt->chan[channel] ;
+   if (textf) {
+      va_list args ;
+      va_start(args, textf) ;
+      textf(&chan->logbuf, args) ;
+      va_end(args) ;
+   }
 
-   beginwrite_logwriter(chan, flags, header) ;
-
-   va_list args ;
-   va_start(args, textf) ;
-   textf(&chan->logbuf, args) ;
-   va_end(args) ;
-
-   endwrite_logwriter(chan, channel) ;
+   endwrite_logwriter(chan) ;
 
    return ;
 ONABORT:
@@ -302,18 +332,10 @@ ONABORT:
 
 static bool isfree_logwriter(logwriter_t * lgwrt)
 {
-   if (  lgwrt->addr
-         || lgwrt->size) {
-      return false ;
-   }
-
-   for (unsigned i = 0; i < lengthof(lgwrt->chan); ++i) {
-      if (lgwrt->chan[i]) return false ;
-   }
-
-   return true ;
+   return   0 == lgwrt->addr
+            && 0 == lgwrt->size
+            && 0 == lgwrt->chan ;
 }
-
 
 static int test_initfree(void)
 {
@@ -326,15 +348,15 @@ static int test_initfree(void)
    TEST(0 == init_logwriter(&lgwrt)) ;
    TEST(lgwrt.addr != 0) ;
    TEST(lgwrt.size == 16384) ;
-   TEST(lgwrt.chan[0] == (logwriter_chan_t*)lgwrt.addr) ;
-   for (unsigned i = 0, offset = 2*sizeof(logwriter_chan_t); i < lengthof(lgwrt.chan); ++i) {
-      TEST(lgwrt.chan[i] == (logwriter_chan_t*)(lgwrt.addr + (i!=0)*sizeof(logwriter_chan_t))) ;
-      TEST(lgwrt.chan[i]->logbuf.addr == lgwrt.addr + offset) ;
-      TEST(lgwrt.chan[i]->logbuf.size == (i ? 16384 - 2*sizeof(logwriter_chan_t)-2*log_config_MINSIZE : 2*log_config_MINSIZE)) ;
-      TEST(lgwrt.chan[i]->logbuf.io   == (i ? iochannel_STDERR : iochannel_STDERR)) ;
-      TEST(lgwrt.chan[i]->logbuf.logsize == 0) ;
-      TEST(lgwrt.chan[i]->isappend    == 0) ;
-      if (0 == i) offset += 2*log_config_MINSIZE ;
+   TEST(lgwrt.chan == (logwriter_chan_t*)lgwrt.addr) ;
+   for (unsigned i = 0, offset = log_channel_NROFCHANNEL*sizeof(logwriter_chan_t); i < log_channel_NROFCHANNEL; ++i) {
+      TEST(lgwrt.chan[i].logbuf.addr == lgwrt.addr + offset) ;
+      TEST(lgwrt.chan[i].logbuf.size == (i == log_channel_ERR ? 16384 - log_channel_NROFCHANNEL*sizeof(logwriter_chan_t)-(log_channel_NROFCHANNEL-1)*2*log_config_MINSIZE : 2*log_config_MINSIZE)) ;
+      TEST(lgwrt.chan[i].logbuf.io   == iochannel_STDERR) ;
+      TEST(lgwrt.chan[i].logbuf.logsize == 0) ;
+      TEST(lgwrt.chan[i].logstate    == (i ? log_state_BUFFERED : log_state_IGNORED)) ;
+      TEST(lgwrt.chan[i].isappend    == 0) ;
+      offset += lgwrt.chan[i].logbuf.size ;
    }
 
    // TEST free_logwriter
@@ -360,18 +382,75 @@ static int test_query(void)
 
    // TEST getbuffer_logwriter
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      lgwrt.chan[i]->logbuf.logsize  = 0 ;
-      printf_logbuffer(&lgwrt.chan[i]->logbuf, "12345") ;
+      lgwrt.chan[i].logbuf.logsize  = 0 ;
+      printf_logbuffer(&lgwrt.chan[i].logbuf, "12345") ;
       char  *  logstr  = 0 ;
       size_t   logsize = 0 ;
       getbuffer_logwriter(&lgwrt, i, &logstr, &logsize) ;
-      TEST(logstr  == (char*)lgwrt.chan[i]->logbuf.addr) ;
+      TEST(logstr  == (char*)lgwrt.chan[i].logbuf.addr) ;
       TEST(logsize == 5) ;
-      printf_logbuffer(&lgwrt.chan[i]->logbuf, "%s", "abcdef") ;
+      printf_logbuffer(&lgwrt.chan[i].logbuf, "%s", "abcdef") ;
       getbuffer_logwriter(&lgwrt, i, &logstr, &logsize) ;
-      TEST(logstr  == (char*)lgwrt.chan[i]->logbuf.addr) ;
+      TEST(logstr  == (char*)lgwrt.chan[i].logbuf.addr) ;
       TEST(logsize == 11) ;
       TEST(0 == strcmp(logstr, "12345abcdef")) ;
+   }
+
+   // TEST getstate_logwriter
+   for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+      for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+         lgwrt.chan[i].logstate = (uint8_t) (s + 1) ;
+      }
+      for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+         TEST(s+1u == getstate_logwriter(&lgwrt, i)) ;
+         lgwrt.chan[i].logstate = s ;
+         TEST(s    == getstate_logwriter(&lgwrt, i)) ;
+      }
+   }
+
+   // TEST getstate_logwriter: channelnr out of range
+   TEST(log_state_IGNORED == getstate_logwriter(&lgwrt, log_channel_NROFCHANNEL)) ;
+   TEST(log_state_IGNORED == getstate_logwriter(&lgwrt, (uint8_t)-1)) ;
+
+   // unprepare
+   TEST(0 == free_logwriter(&lgwrt)) ;
+
+   return 0 ;
+ONABORT:
+   free_logwriter(&lgwrt) ;
+   return EINVAL ;
+}
+
+static int test_config(void)
+{
+   logwriter_t lgwrt = logwriter_INIT_FREEABLE ;
+
+   // prepare
+   TEST(0 == init_logwriter(&lgwrt)) ;
+
+   // TEST setstate_logwriter
+   for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+      for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+         lgwrt.chan[i].logstate = (uint8_t) (s + 1) ;
+      }
+      for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+         TEST(lgwrt.chan[i].logstate == s+1u) ;
+         lgwrt.chan[i].funcname = (void*)1 ;
+         lgwrt.chan[i].isappend = true ;
+         setstate_logwriter(&lgwrt, i, s) ;
+         // remembered state cleared
+         TEST(lgwrt.chan[i].funcname == 0) ;
+         TEST(lgwrt.chan[i].logstate == s) ;
+         TEST(lgwrt.chan[i].isappend == false) ;
+      }
+   }
+
+   // TEST setstate_logwriter: channelnr out of range
+   setstate_logwriter(&lgwrt, log_channel_NROFCHANNEL, 0) ;
+   setstate_logwriter(&lgwrt, (uint8_t)-1, 0) ;
+   // check that call was ignored
+   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      TEST(log_state_NROFSTATE-1 == lgwrt.chan[i].logstate) ;
    }
 
    // unprepare
@@ -411,7 +490,7 @@ static void textres_test(logbuffer_t * logbuf, va_list vargs)
    vprintf_logbuffer(logbuf, "%d|%s", vargs) ;
 }
 
-static int test_update(void)
+static int test_write(void)
 {
    logwriter_t    lgwrt      = logwriter_INIT_FREEABLE ;
    int            oldstderr  = -1 ;
@@ -433,26 +512,26 @@ static int test_update(void)
    // TEST clearbuffer_logwriter
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      lgwrt.chan[i]->logbuf.logsize = 99 ;
-      lgwrt.chan[i]->logbuf.addr[0] = 'x' ;
+      lgwrt.chan[i].logbuf.logsize = 99 ;
+      lgwrt.chan[i].logbuf.addr[0] = 'x' ;
       clearbuffer_logwriter(&lgwrt, i) ;
-      TEST(0 == lgwrt.chan[i]->logbuf.logsize) ;
-      TEST(0 == lgwrt.chan[i]->logbuf.addr[0]) ;
+      TEST(0 == lgwrt.chan[i].logbuf.logsize) ;
+      TEST(0 == lgwrt.chan[i].logbuf.addr[0]) ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
    // TEST flushbuffer_logwriter
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      uint32_t S = lgwrt.chan[i]->logbuf.size ;
+      uint32_t S = lgwrt.chan[i].logbuf.size ;
       for (unsigned b = 0; b < S; ++b) {
-         lgwrt.chan[i]->logbuf.addr[b] = (uint8_t) (1+b+i) ;
+         lgwrt.chan[i].logbuf.addr[b] = (uint8_t) (1+b+i) ;
       }
-      lgwrt.chan[i]->logbuf.logsize = S ;
+      lgwrt.chan[i].logbuf.logsize = S ;
       flushbuffer_logwriter(&lgwrt, i) ;
-      TEST(0 == lgwrt.chan[i]->logbuf.addr[0]) ;
-      TEST(S == lgwrt.chan[i]->logbuf.size) ;
-      TEST(0 == lgwrt.chan[i]->logbuf.logsize) ;
+      TEST(0 == lgwrt.chan[i].logbuf.addr[0]) ;
+      TEST(S == lgwrt.chan[i].logbuf.size) ;
+      TEST(0 == lgwrt.chan[i].logbuf.logsize) ;
       // compare flushed content
       TEST(S == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
       for (unsigned b = 0; b < S; ++b) {
@@ -462,70 +541,99 @@ static int test_update(void)
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
-   // TEST printf_logwriter: append + default flush policy
+   // TEST printf_logwriter: append + different states
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      memset(lgwrt.chan[i]->logbuf.addr, 1, 10) ;
-      uint32_t S = lgwrt.chan[i]->logbuf.size ;
-      for (unsigned n = 0; n < 10; ++n) {
-         printf_logwriter(&lgwrt, i, log_flags_NONE, 0, "%d", n) ;
-         if (i == 0) {
-            // default is flush
-            TEST(lgwrt.chan[i]->logbuf.addr[0] == 0) ; // (flush)
-            TEST(lgwrt.chan[i]->logbuf.addr[1] == 0) ; // (print)
-            TEST(lgwrt.chan[i]->logbuf.size    == S) ;
-            TEST(lgwrt.chan[i]->logbuf.logsize == 0) ;
-            TEST(1 == read(pipefd[1][0], mem.addr, mem.size)) ;
-            TEST(mem.addr[0] == ('0'+n)) ;
-         } else {
-            // default is buffer
-            TEST(lgwrt.chan[i]->logbuf.addr[n+1] == 0) ; // set to 0
-            TEST(lgwrt.chan[i]->logbuf.size      == S) ;
-            TEST(lgwrt.chan[i]->logbuf.logsize   == n+1) ;
-            for (unsigned n2 = 0; n2 <= n; ++n2) {
-               TEST(lgwrt.chan[i]->logbuf.addr[n2] == ('0'+n2)) ;
+      const uint32_t S = lgwrt.chan[i].logbuf.size ;
+      for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+         setstate_logwriter(&lgwrt, i, s) ;
+         memset(lgwrt.chan[i].logbuf.addr, 1, 10) ;
+         for (unsigned n = 0; n < 10; ++n) {
+            printf_logwriter(&lgwrt, i, log_flags_NONE, 0, "%d", n) ;
+            switch ((log_state_e)s) {
+            case log_state_IGNORED:
+               TEST(lgwrt.chan[i].logbuf.addr[0] == 1) ; // ignored
+               TEST(lgwrt.chan[i].logbuf.size    == S) ;
+               TEST(lgwrt.chan[i].logbuf.logsize == 0) ;
+               break ;
+            case log_state_BUFFERED:
+               TEST(lgwrt.chan[i].logbuf.addr[n+1] == 0) ; // set to 0
+               TEST(lgwrt.chan[i].logbuf.size      == S) ;
+               TEST(lgwrt.chan[i].logbuf.logsize   == n+1) ;
+               for (unsigned n2 = 0; n2 <= n; ++n2) {
+                  TEST(lgwrt.chan[i].logbuf.addr[n2] == ('0'+n2)) ;
+               }
+               break ;
+            case log_state_UNBUFFERED:
+            case log_state_IMMEDIATE:
+               TEST(lgwrt.chan[i].logbuf.addr[0] == 0) ; // (flush)
+               TEST(lgwrt.chan[i].logbuf.addr[1] == 0) ; // (print)
+               TEST(lgwrt.chan[i].logbuf.size    == S) ;
+               TEST(lgwrt.chan[i].logbuf.logsize == 0) ;
+               TEST(1 == read(pipefd[1][0], mem.addr, mem.size)) ;
+               TEST(mem.addr[0] == ('0'+n)) ;
             }
          }
+         lgwrt.chan[i].logbuf.logsize = 0 ;
       }
-      lgwrt.chan[i]->logbuf.logsize = 0 ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
    // TEST printf_logwriter: flush before print if buffer size <= log_config_MINSIZE
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      uint32_t S = lgwrt.chan[i]->logbuf.size ;
+      const uint32_t S = lgwrt.chan[i].logbuf.size ;
       TEST(S > log_config_MINSIZE) ;
-      memset(lgwrt.chan[i]->logbuf.addr, '0', S) ;
-      lgwrt.chan[i]->logbuf.logsize = S - log_config_MINSIZE ;
-      printf_logwriter(&lgwrt, i, log_flags_NONE, 0, "X") ;
-      TEST(lgwrt.chan[i]->logbuf.addr[0] == (i != 0 ? 'X' : 0)) ;   // (flushed before ; printed; CONSOLE => + flush)
-      TEST(lgwrt.chan[i]->logbuf.addr[1] == 0) ;
-      TEST(lgwrt.chan[i]->logbuf.size    == S) ;
-      TEST(lgwrt.chan[i]->logbuf.logsize == (i != 0 ? 1 : 0)) ;
-      TEST(S-log_config_MINSIZE+(i==0) == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
-      for (unsigned off = 0; off < S-log_config_MINSIZE; ++off) {
-         TEST(mem.addr[off] == '0') ;
+      for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+         setstate_logwriter(&lgwrt, i, s) ;
+         memset(lgwrt.chan[i].logbuf.addr, '0', S) ;
+         lgwrt.chan[i].logbuf.logsize = S - log_config_MINSIZE ;
+         printf_logwriter(&lgwrt, i, log_flags_NONE, 0, "X") ;
+         if (s == log_state_IGNORED) {
+            TEST(lgwrt.chan[i].logbuf.size    == S) ;
+            TEST(lgwrt.chan[i].logbuf.logsize == S-log_config_MINSIZE) ;
+            for (size_t off = 0; off < S; ++off) {
+               TEST('0' == lgwrt.chan[i].logbuf.addr[0]) ;
+            }
+         } else {
+            // flushed before
+            TEST(lgwrt.chan[i].logbuf.addr[0] == (s == log_state_BUFFERED ? 'X' : 0/*flushed after*/)) ;
+            TEST(lgwrt.chan[i].logbuf.addr[1] == 0) ;
+            TEST(lgwrt.chan[i].logbuf.size    == S) ;
+            TEST(lgwrt.chan[i].logbuf.logsize == (s == log_state_BUFFERED ? 1 : 0)) ;
+            unsigned read_size = (unsigned) read(pipefd[1][0], mem.addr, mem.size) ;
+            TEST(read_size == S-log_config_MINSIZE+(s != log_state_BUFFERED)) ;
+            for (unsigned off = 0; off < S-log_config_MINSIZE; ++off) {
+               TEST(mem.addr[off] == '0') ;
+            }
+            TEST(s == log_state_BUFFERED || 'X' == mem.addr[S-log_config_MINSIZE]) ;
+         }
       }
-      TEST(i != 0 || mem.addr[S-log_config_MINSIZE] == 'X') ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
    // TEST printf_logwriter: isappend => no flush but truncate is indicated with " ..." at end
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      uint32_t S = lgwrt.chan[i]->logbuf.size ;
+      uint32_t S = lgwrt.chan[i].logbuf.size ;
       TEST(S > 5) ;
-      memset(lgwrt.chan[i]->logbuf.addr, '0', S) ;
-      lgwrt.chan[i]->logbuf.logsize = S - 5 ;
-      lgwrt.chan[i]->isappend       = true ;
-      printf_logwriter(&lgwrt, i, log_flags_NONE, 0, "XXXXX") ;
-      TEST(lgwrt.chan[i]->logbuf.size    == S) ;
-      TEST(lgwrt.chan[i]->logbuf.logsize == S-1) ;
-      for (unsigned off = 0; off < S-5; ++off) {
-         TEST(lgwrt.chan[i]->logbuf.addr[off] == '0') ;
+      for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+         setstate_logwriter(&lgwrt, i, s) ;
+         memset(lgwrt.chan[i].logbuf.addr, '0', S) ;
+         lgwrt.chan[i].logbuf.logsize = S - 5 ;
+         lgwrt.chan[i].isappend       = true ;
+         printf_logwriter(&lgwrt, i, log_flags_NONE, 0, "XXXXX") ;
+         TEST(lgwrt.chan[i].logbuf.size    == S) ;
+         if (s == log_state_IGNORED) {
+            TEST(lgwrt.chan[i].logbuf.logsize == S-5) ;
+         } else {
+            TEST(lgwrt.chan[i].logbuf.logsize == S-1) ;
+            TEST(0 == memcmp(lgwrt.chan[i].logbuf.addr+S-5, " ...", 5)) ;
+         }
+         for (unsigned off = 0; off < S-5; ++off) {
+            TEST(lgwrt.chan[i].logbuf.addr[off] == '0') ;
+         }
       }
-      TEST(0 == memcmp(lgwrt.chan[i]->logbuf.addr+S-5, " ...", 5)) ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
@@ -533,19 +641,35 @@ static int test_update(void)
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
       for (int isappend = 0; isappend <= 1; ++isappend) {
-         uint32_t S = lgwrt.chan[i]->logbuf.size ;
+         uint32_t S = lgwrt.chan[i].logbuf.size ;
          TEST(S > log_config_MINSIZE) ;
-         memset(lgwrt.chan[i]->logbuf.addr, '1', S) ;
-         lgwrt.chan[i]->logbuf.logsize = S - log_config_MINSIZE ;
-         lgwrt.chan[i]->isappend       = isappend ;
-         printf_logwriter(&lgwrt, i, log_flags_START, 0, "12345") ;
-         TEST(lgwrt.chan[i]->logbuf.size    == S) ;
-         TEST(lgwrt.chan[i]->logbuf.logsize == 5) ;
-         TEST(lgwrt.chan[i]->isappend       == true) ;
-         TEST(0 == memcmp(lgwrt.chan[i]->logbuf.addr, "12345", 6)) ;
-         TEST(S-log_config_MINSIZE == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
-         for (unsigned off = 0; off < S-log_config_MINSIZE; ++off) {
-            TEST(mem.addr[off] == '1') ;
+         for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+            setstate_logwriter(&lgwrt, i, s) ;
+            memset(lgwrt.chan[i].logbuf.addr, '1', S) ;
+            lgwrt.chan[i].logbuf.logsize = S - log_config_MINSIZE ;
+            lgwrt.chan[i].isappend       = isappend ;
+            printf_logwriter(&lgwrt, i, log_flags_START, 0, "12345") ;
+            TEST(lgwrt.chan[i].logbuf.size    == S) ;
+            if (s == log_state_IGNORED) {
+               TEST(lgwrt.chan[i].logbuf.logsize == S - log_config_MINSIZE) ;
+               TEST(lgwrt.chan[i].isappend       == isappend) ;
+            } else {
+               // isappend is only set if state != log_state_IMMEDIATE
+               TEST(lgwrt.chan[i].isappend       == ((s != log_state_IMMEDIATE) || isappend/*don't changed if already set*/)) ;
+               TEST(lgwrt.chan[i].logbuf.logsize == (lgwrt.chan[i].isappend ? 5 : 0)) ;
+               if (lgwrt.chan[i].logbuf.logsize) {
+                  TEST(0 == memcmp(lgwrt.chan[i].logbuf.addr, "12345", 6)) ;
+                  TEST(S-log_config_MINSIZE   == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
+               } else {
+                  TEST(S-log_config_MINSIZE+5 == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
+               }
+               for (unsigned off = 0; off < S-log_config_MINSIZE; ++off) {
+                  TEST(mem.addr[off] == '1') ;
+               }
+               for (unsigned off = 0; off < 5-lgwrt.chan[i].logbuf.logsize; ++off) {
+                  TEST(mem.addr[off+S-log_config_MINSIZE] == "12345"[off]) ;
+               }
+            }
          }
       }
    }
@@ -554,49 +678,67 @@ static int test_update(void)
    // TEST printf_logwriter: log_flags_END (logs message and truncates if necessary and then switches isappend off)
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      uint32_t S = lgwrt.chan[i]->logbuf.size ;
+      uint32_t S = lgwrt.chan[i].logbuf.size ;
       TEST(S > 10) ;
-      memset(lgwrt.chan[i]->logbuf.addr, '0', S) ;
-      lgwrt.chan[i]->logbuf.logsize = S - 10 ;
-      lgwrt.chan[i]->isappend       = true ;
-      printf_logwriter(&lgwrt, i, log_flags_END, 0, "0123456789X") ;
-      TEST(lgwrt.chan[i]->logbuf.size    == S) ;
-      TEST(lgwrt.chan[i]->logbuf.logsize == (i == 0 ? 0 : S-1)) ;
-      TEST(lgwrt.chan[i]->isappend       == false) ;
-      if (i) { // in buffer
-         memcpy(mem.addr, lgwrt.chan[i]->logbuf.addr, S) ;
-      } else { // flushed
-         TEST(S-1 == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
-         mem.addr[S-1] = 0 ;
+      for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+         setstate_logwriter(&lgwrt, i, s) ;
+         memset(lgwrt.chan[i].logbuf.addr, '0', S) ;
+         lgwrt.chan[i].logbuf.logsize = S - 10 ;
+         lgwrt.chan[i].funcname       = (void*) 1 ;
+         lgwrt.chan[i].isappend       = true ;
+         printf_logwriter(&lgwrt, i, log_flags_END, 0, "0123456789X") ;
+         if (s == log_state_IGNORED) {
+            TEST(lgwrt.chan[i].logbuf.logsize == S - 10) ;
+            TEST(lgwrt.chan[i].funcname       != 0) ;
+            TEST(lgwrt.chan[i].isappend       == true) ;
+         } else {
+            TEST(lgwrt.chan[i].logbuf.size    == S) ;
+            TEST(lgwrt.chan[i].logbuf.logsize == (s != log_state_BUFFERED ? 0 : S-1)) ;
+            TEST(lgwrt.chan[i].funcname       == 0/*cleared*/) ;
+            TEST(lgwrt.chan[i].isappend       == false) ;
+            if (lgwrt.chan[i].logbuf.logsize) { // in buffer
+               TEST(S-1 == (unsigned)write(pipefd[1][1], lgwrt.chan[i].logbuf.addr, S-1)) ;
+            }
+            TEST(S-1 == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
+            mem.addr[S-1] = 0 ;
+            for (unsigned off = 0; off < S-10; ++off) {
+               TEST(mem.addr[off] == '0') ;
+            }
+            TEST(0 == memcmp(mem.addr+S-10, "01234 ...", 10)) ;
+         }
       }
-      for (unsigned off = 0; off < S-10; ++off) {
-         TEST(mem.addr[off] == '0') ;
-      }
-      TEST(0 == memcmp(mem.addr+S-10, "01234 ...", 10)) ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
    // TEST printf_logwriter: log_flags_START + log_flags_END
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      const uint32_t S = lgwrt.chan[i].logbuf.size ;
+      TEST(S > log_config_MINSIZE) ;
       for (int isappend = 0; isappend <= 1; ++isappend) {
-         uint32_t S = lgwrt.chan[i]->logbuf.size ;
-         TEST(S > log_config_MINSIZE) ;
-         memset(lgwrt.chan[i]->logbuf.addr, '1', S) ;
-         lgwrt.chan[i]->logbuf.logsize = S - log_config_MINSIZE ;
-         lgwrt.chan[i]->isappend       = isappend ;
-         printf_logwriter(&lgwrt, i, log_flags_START|log_flags_END, 0, "12345") ;
-         TEST(lgwrt.chan[i]->logbuf.size    == S) ;
-         TEST(lgwrt.chan[i]->logbuf.logsize == (i == 0 ? 0 : 5)) ;
-         TEST(lgwrt.chan[i]->isappend       == false) ;
-         if (i) {
-            TEST(5 == write(pipefd[1][1], "12345", 5)) ;
+         for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+            setstate_logwriter(&lgwrt, i, s) ;
+            memset(lgwrt.chan[i].logbuf.addr, '1', S) ;
+            lgwrt.chan[i].logbuf.logsize = S - log_config_MINSIZE ;
+            lgwrt.chan[i].isappend       = isappend ;
+            printf_logwriter(&lgwrt, i, log_flags_START|log_flags_END, 0, "12345") ;
+            TEST(lgwrt.chan[i].logbuf.size    == S) ;
+            if (s == log_state_IGNORED) {
+               TEST(lgwrt.chan[i].logbuf.logsize == S - log_config_MINSIZE) ;
+               TEST(lgwrt.chan[i].isappend       == isappend) ;
+            } else {
+               TEST(lgwrt.chan[i].logbuf.logsize == (s != log_state_BUFFERED ? 0 : 5)) ;
+               TEST(lgwrt.chan[i].isappend       == false) ;
+               if (lgwrt.chan[i].logbuf.logsize) {
+                  TEST(5 == write(pipefd[1][1], "12345", 5)) ;
+               }
+               TEST(S-log_config_MINSIZE+5 == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
+               for (unsigned off = 0; off < S-log_config_MINSIZE; ++off) {
+                  TEST(mem.addr[off] == '1') ;
+               }
+               TEST(0 == memcmp(mem.addr+S-log_config_MINSIZE, "12345", 5)) ;
+            }
          }
-         TEST(S-log_config_MINSIZE+5 == (unsigned)read(pipefd[1][0], mem.addr, mem.size)) ;
-         for (unsigned off = 0; off < S-log_config_MINSIZE; ++off) {
-            TEST(mem.addr[off] == '1') ;
-         }
-         TEST(0 == memcmp(mem.addr+S-log_config_MINSIZE, "12345", 5)) ;
       }
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
@@ -604,29 +746,69 @@ static int test_update(void)
    // TEST printf_logwriter: header
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      uint32_t S = lgwrt.chan[i]->logbuf.size ;
+      uint32_t S = lgwrt.chan[i].logbuf.size ;
       TEST(S > log_config_MINSIZE) ;
-      memset(lgwrt.chan[i]->logbuf.addr, '0', S) ;
-      memset(mem.addr, 'x', log_config_MINSIZE) ;
-      mem.addr[log_config_MINSIZE] = 0 ;
-      lgwrt.chan[i]->logbuf.logsize = S - log_config_MINSIZE - 1 ;
-      log_header_t header = log_header_INIT("__func__", "__file__", 9945+i, i) ;
-      printf_logwriter(&lgwrt, i, log_flags_START, &header, "%s", (char*)mem.addr) ;
-      TEST(lgwrt.chan[i]->logbuf.size    == S) ;
-      TEST(lgwrt.chan[i]->logbuf.logsize == S-1) ;
-      TEST(lgwrt.chan[i]->isappend       == true) ;
-      for (unsigned off = 0; off < S-log_config_MINSIZE-1; ++off) {
-         TEST(lgwrt.chan[i]->logbuf.addr[off] == '0') ;
+      for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+         setstate_logwriter(&lgwrt, i, s) ;
+         memset(lgwrt.chan[i].logbuf.addr, '0', S) ;
+         memset(mem.addr, 'x', log_config_MINSIZE) ;
+         mem.addr[log_config_MINSIZE] = 0 ;
+         lgwrt.chan[i].logbuf.logsize = S - log_config_MINSIZE ;
+         lgwrt.chan[i].funcname       = 0 ;
+         lgwrt.chan[i].isappend       = true ;
+         log_header_t header = log_header_INIT("__func__", "__file__", 9945+i, i) ;
+         printf_logwriter(&lgwrt, i, log_flags_NONE, &header, "%s", (char*)mem.addr) ;
+         TEST(lgwrt.chan[i].logbuf.size    == S) ;
+         TEST(lgwrt.chan[i].isappend       == true) ;
+         for (unsigned off = 0; off < S-log_config_MINSIZE; ++off) {
+            TEST(lgwrt.chan[i].logbuf.addr[off] == '0') ;
+         }
+         if (s == log_state_IGNORED) {
+            TEST(lgwrt.chan[i].logbuf.logsize == S - log_config_MINSIZE) ;
+            TEST(lgwrt.chan[i].funcname       == 0) ;
+         } else {
+            TEST(lgwrt.chan[i].logbuf.logsize == S-1) ;
+            TEST(lgwrt.chan[i].funcname       == header.funcname) ;
+            char * start = (char*)lgwrt.chan[i].logbuf.addr+S-log_config_MINSIZE ;
+            char * eol   = strchr(start, '\n') ? strchr(strchr(start, '\n')+1, '\n') ? strchr(strchr(strchr(start, '\n')+1, '\n')+1, '\n')+1 : 0 : 0 ;
+            size_t L     = (size_t) (eol - (char*)lgwrt.chan[i].logbuf.addr) ;
+            TEST(0 != eol) ;
+            TEST(0 == compare_header((size_t)(eol - start), (uint8_t*)start, "__func__", "__file__", 9945+i, i)) ;
+            for (size_t off = L; off < S-5; ++off) {
+               TEST(lgwrt.chan[i].logbuf.addr[off] == 'x') ;
+            }
+            TEST(0 == strcmp((char*)lgwrt.chan[i].logbuf.addr+S-5, " ...")) ;
+         }
       }
-      char * start = (char*)lgwrt.chan[i]->logbuf.addr+S-log_config_MINSIZE-1 ;
-      char * eol   = strchr(start, '\n') ? strchr(strchr(start, '\n')+1, '\n') ? strchr(strchr(strchr(start, '\n')+1, '\n')+1, '\n')+1 : 0 : 0 ;
-      size_t L     = (size_t) (eol - (char*)lgwrt.chan[i]->logbuf.addr) ;
-      TEST(0 != eol) ;
-      TEST(0 == compare_header((size_t)(eol - start), (uint8_t*)start, "__func__", "__file__", 9945+i, i)) ;
-      for (size_t off = L; off < S-5; ++off) {
-         TEST(lgwrt.chan[i]->logbuf.addr[off] == 'x') ;
+   }
+   TEST(0 == free_logwriter(&lgwrt)) ;
+
+   // TEST printf_logwriter: optional header
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      uint32_t S = lgwrt.chan[i].logbuf.size ;
+      for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+         setstate_logwriter(&lgwrt, i, s) ;
+         lgwrt.chan[i].logbuf.logsize = 0 ;
+         lgwrt.chan[i].funcname       = 0 ;
+         lgwrt.chan[i].isappend       = true ;
+         log_header_t header = log_header_INIT("__func__", "__file__", i, 1+i) ;
+         printf_logwriter(&lgwrt, i, log_flags_OPTIONALHEADER, &header, " ") ;
+         if (s == log_state_IGNORED) {
+            TEST(lgwrt.chan[i].logbuf.logsize == 0) ;
+            TEST(lgwrt.chan[i].funcname       == 0) ;
+         } else {
+            // header written cause funcname == 0
+            TEST(lgwrt.chan[i].logbuf.logsize > 10) ;
+            TEST(lgwrt.chan[i].funcname       == header.funcname) ;
+            size_t logsize = lgwrt.chan[i].logbuf.logsize ;
+            printf_logwriter(&lgwrt, i, log_flags_OPTIONALHEADER, &header, " ") ;
+            TEST(lgwrt.chan[i].logbuf.logsize == logsize/*header not written*/ + (logsize != 0)/*single space*/) ;
+            TEST(lgwrt.chan[i].logbuf.size    == S) ;
+            TEST(lgwrt.chan[i].funcname       == header.funcname) ;
+            TEST(lgwrt.chan[i].isappend       == true) ;
+         }
       }
-      TEST(0 == strcmp((char*)lgwrt.chan[i]->logbuf.addr+S-5, " ...")) ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
@@ -634,38 +816,76 @@ static int test_update(void)
    TEST(0 == init_logwriter(&lgwrt)) ;
    printf_logwriter(&lgwrt, log_channel_NROFCHANNEL, log_flags_NONE, 0, "123") ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      TEST(lgwrt.chan[i]->logbuf.logsize == 0) ;
+      TEST(lgwrt.chan[i].logbuf.logsize == 0) ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
-   // TEST printtext_logwriter: test content
+   // TEST printtext_logwriter: header + text resource + truncated message
    TEST(0 == init_logwriter(&lgwrt)) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      uint32_t S = lgwrt.chan[i]->logbuf.size ;
+      uint32_t S = lgwrt.chan[i].logbuf.size ;
       TEST(S > log_config_MINSIZE) ;
-      memset(lgwrt.chan[i]->logbuf.addr, '0', S) ;
-      memset(mem.addr, 'x', log_config_MINSIZE) ;
-      mem.addr[log_config_MINSIZE] = 0 ;
-      lgwrt.chan[i]->logbuf.logsize = S - log_config_MINSIZE - 1 ;
-      log_header_t header = log_header_INIT("func", "file", 100+i, 1+i) ;
-      printtext_logwriter(&lgwrt, i, log_flags_START, &header, textres_test, 3, (char*)mem.addr) ;
-      TEST(lgwrt.chan[i]->logbuf.size    == S) ;
-      TEST(lgwrt.chan[i]->logbuf.logsize == S-1) ;
-      TEST(lgwrt.chan[i]->isappend       == true) ;
-      for (unsigned off = 0; off < S-log_config_MINSIZE-1; ++off) {
-         TEST(lgwrt.chan[i]->logbuf.addr[off] == '0') ;
+      for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+         setstate_logwriter(&lgwrt, i, s) ;
+         memset(lgwrt.chan[i].logbuf.addr, '0', S) ;
+         memset(mem.addr, 'x', log_config_MINSIZE) ;
+         mem.addr[log_config_MINSIZE] = 0 ;
+         lgwrt.chan[i].logbuf.logsize = S - log_config_MINSIZE ;
+         lgwrt.chan[i].isappend       = true ;
+         log_header_t header = log_header_INIT("func", "file", 100+i, 1+i) ;
+         printtext_logwriter(&lgwrt, i, log_flags_NONE, &header, textres_test, 3, (char*)mem.addr) ;
+         TEST(lgwrt.chan[i].logbuf.size    == S) ;
+         TEST(lgwrt.chan[i].isappend       == true) ;
+         for (unsigned off = 0; off < S-log_config_MINSIZE; ++off) {
+            TEST(lgwrt.chan[i].logbuf.addr[off] == '0') ;
+         }
+         if (s == log_state_IGNORED) {
+            TEST(lgwrt.chan[i].logbuf.logsize == S - log_config_MINSIZE) ;
+         } else {
+            TEST(lgwrt.chan[i].logbuf.logsize == S-1) ;
+            char * start = (char*)lgwrt.chan[i].logbuf.addr+S-log_config_MINSIZE ;
+            char * eol   = strchr(start, '\n') ? strchr(strchr(start, '\n')+1, '\n') ? strchr(strchr(strchr(start, '\n')+1, '\n')+1, '\n')+1 : 0 : 0 ;
+            size_t L     = (size_t) (eol - (char*)lgwrt.chan[i].logbuf.addr) ;
+            TEST(0 != eol) ;
+            TEST(0 == compare_header((size_t)(eol - start), (uint8_t*)start, "func", "file", 100+i, 1+i)) ;
+            TEST(lgwrt.chan[i].logbuf.addr[L]   == '3') ;
+            TEST(lgwrt.chan[i].logbuf.addr[L+1] == '|') ;
+            for (size_t off = L+2; off < S-5; ++off) {
+               TEST(lgwrt.chan[i].logbuf.addr[off] == 'x') ;
+            }
+            TEST(0 == strcmp((char*)lgwrt.chan[i].logbuf.addr+S-5, " ...")) ;
+         }
       }
-      char * start = (char*)lgwrt.chan[i]->logbuf.addr+S-log_config_MINSIZE-1 ;
-      char * eol   = strchr(start, '\n') ? strchr(strchr(start, '\n')+1, '\n') ? strchr(strchr(strchr(start, '\n')+1, '\n')+1, '\n')+1 : 0 : 0 ;
-      size_t L     = (size_t) (eol - (char*)lgwrt.chan[i]->logbuf.addr) ;
-      TEST(0 != eol) ;
-      TEST(0 == compare_header((size_t)(eol - start), (uint8_t*)start, "func", "file", 100+i, 1+i)) ;
-      TEST(lgwrt.chan[i]->logbuf.addr[L]   == '3') ;
-      TEST(lgwrt.chan[i]->logbuf.addr[L+1] == '|') ;
-      for (size_t off = L+2; off < S-5; ++off) {
-         TEST(lgwrt.chan[i]->logbuf.addr[off] == 'x') ;
+   }
+   TEST(0 == free_logwriter(&lgwrt)) ;
+
+   // TEST printtext_logwriter: null textresource and optional header
+   TEST(0 == init_logwriter(&lgwrt)) ;
+   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      uint32_t S = lgwrt.chan[i].logbuf.size ;
+      for (uint8_t s = 0; s < log_state_NROFSTATE; ++s) {
+         setstate_logwriter(&lgwrt, i, s) ;
+         lgwrt.chan[i].logbuf.logsize = 0 ;
+         lgwrt.chan[i].funcname       = 0 ;
+         lgwrt.chan[i].isappend       = true ;
+         log_header_t header = log_header_INIT("__func__", "__file__", i, 1+i) ;
+         printtext_logwriter(&lgwrt, i, log_flags_OPTIONALHEADER, &header, 0/*null textresource ignored (only header written)*/) ;
+         if (s == log_state_IGNORED) {
+            TEST(lgwrt.chan[i].logbuf.logsize == 0) ;
+         } else {
+            // header written cause funcname == 0
+            TEST(lgwrt.chan[i].logbuf.logsize > 10) ;
+            TEST(lgwrt.chan[i].logbuf.size    == S) ;
+            TEST(lgwrt.chan[i].funcname       == header.funcname) ;
+            TEST(lgwrt.chan[i].isappend       == true) ;
+            size_t logsize = lgwrt.chan[i].logbuf.logsize ;
+            printtext_logwriter(&lgwrt, i, log_flags_OPTIONALHEADER, &header, 0/*null textresource ignored*/) ;
+            TEST(lgwrt.chan[i].logbuf.logsize == logsize/*header not written*/) ;
+            TEST(lgwrt.chan[i].logbuf.size    == S) ;
+            TEST(lgwrt.chan[i].funcname       == header.funcname) ;
+            TEST(lgwrt.chan[i].isappend       == true) ;
+         }
       }
-      TEST(0 == strcmp((char*)lgwrt.chan[i]->logbuf.addr+S-5, " ...")) ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
@@ -673,7 +893,7 @@ static int test_update(void)
    TEST(0 == init_logwriter(&lgwrt)) ;
    printtext_logwriter(&lgwrt, log_channel_NROFCHANNEL, log_flags_NONE, 0, textres_test) ;
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
-      TEST(lgwrt.chan[i]->logbuf.logsize == 0) ;
+      TEST(lgwrt.chan[i].logbuf.logsize == 0) ;
    }
    TEST(0 == free_logwriter(&lgwrt)) ;
 
@@ -694,10 +914,12 @@ static int test_update(void)
 ONABORT:
    if (oldstdout > 0) dup2(oldstdout, STDOUT_FILENO) ;
    if (oldstderr > 0) dup2(oldstderr, STDERR_FILENO) ;
-   int bytes ;
+   int bytes = 0 ;
    while (0 < (bytes = read(pipefd[0][0], mem.addr, mem.size))) {
-      printf("%*s", bytes, mem.addr) ;
+      printf("%.*s", bytes > 100 ? 100 : bytes, mem.addr) ;
+      if (bytes > 100) break ;
    }
+   printf("\n") ;
    free_iochannel(&oldstdout) ;
    free_iochannel(&oldstderr) ;
    for (unsigned i = 0; i < 4; ++i) {
@@ -735,7 +957,8 @@ int unittest_io_writer_log_logwriter()
 
    if (test_initfree())       goto ONABORT ;
    if (test_query())          goto ONABORT ;
-   if (test_update())         goto ONABORT ;
+   if (test_config())         goto ONABORT ;
+   if (test_write())          goto ONABORT ;
    if (test_initthread())     goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;

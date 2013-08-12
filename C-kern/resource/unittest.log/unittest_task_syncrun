@@ -1,340 +1,253 @@
-[1: 1374953321.756385s]
+[1: 1375541636.309061s]
 setstateexit_syncrun() C-kern/task/syncrun.c:363
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756392s]
-setstateexit_syncrun() C-kern/task/syncrun.c:370
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756395s]
+[1: 1375541636.309067s]
 setstateexit_syncrun() C-kern/task/syncrun.c:363
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756397s]
-setstateexit_syncrun() C-kern/task/syncrun.c:370
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756399s]
+[1: 1375541636.309070s]
 setstateexit_syncrun() C-kern/task/syncrun.c:363
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756401s]
-setstateexit_syncrun() C-kern/task/syncrun.c:370
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756403s]
+[1: 1375541636.309072s]
 setstateexit_syncrun() C-kern/task/syncrun.c:363
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756405s]
-setstateexit_syncrun() C-kern/task/syncrun.c:370
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756413s]
+[1: 1375541636.309083s]
 setstatewait_syncrun() C-kern/task/syncrun.c:378
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756415s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756417s]
+[1: 1375541636.309085s]
 setstatewait_syncrun() C-kern/task/syncrun.c:378
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756419s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756421s]
+[1: 1375541636.309088s]
 setstatewait_syncrun() C-kern/task/syncrun.c:378
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756423s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756425s]
+[1: 1375541636.309090s]
 setstatewait_syncrun() C-kern/task/syncrun.c:378
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756427s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756429s]
+[1: 1375541636.309092s]
 setstatewait_syncrun() C-kern/task/syncrun.c:377
 Error 22 - Invalid argument
 Function input violates condition (event && false == iswaiting_syncevent(event))
-[1: 1374953321.756432s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.756434s]
+[1: 1375541636.309095s]
 setstatewait_syncrun() C-kern/task/syncrun.c:377
 Error 22 - Invalid argument
 Function input violates condition (event && false == iswaiting_syncevent(event))
-[1: 1374953321.756436s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.756453s]
+[1: 1375541636.309111s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:398
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756456s]
-setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756458s]
+[1: 1375541636.309114s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:398
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756460s]
-setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756462s]
+[1: 1375541636.309116s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:398
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756464s]
-setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756466s]
+[1: 1375541636.309118s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:398
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.756468s]
-setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.756470s]
+[1: 1375541636.309121s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:397
 Error 22 - Invalid argument
 Function input violates condition (queue == 0 || queue == &srun->queues[syncrun_qid_WLIST])
-[1: 1374953321.756472s]
-setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.756474s]
+[1: 1375541636.309124s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.763249s]
+[1: 1375541636.314773s]
 setstateexit_syncrun() C-kern/task/syncrun.c:363
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.763264s]
-setstateexit_syncrun() C-kern/task/syncrun.c:370
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.763267s]
+[1: 1375541636.314787s]
 setstateexit_syncrun() C-kern/task/syncrun.c:363
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.763270s]
-setstateexit_syncrun() C-kern/task/syncrun.c:370
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.763272s]
+[1: 1375541636.314790s]
 setstateexit_syncrun() C-kern/task/syncrun.c:363
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.763274s]
-setstateexit_syncrun() C-kern/task/syncrun.c:370
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.763276s]
+[1: 1375541636.314793s]
 setstateexit_syncrun() C-kern/task/syncrun.c:363
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.763278s]
-setstateexit_syncrun() C-kern/task/syncrun.c:370
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.763282s]
+[1: 1375541636.314796s]
 setstatewait_syncrun() C-kern/task/syncrun.c:377
 Error 22 - Invalid argument
 Function input violates condition (event && false == iswaiting_syncevent(event))
-[1: 1374953321.763285s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.763288s]
+[1: 1375541636.314799s]
 setstatewait_syncrun() C-kern/task/syncrun.c:378
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.763290s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.763292s]
+[1: 1375541636.314802s]
 setstatewait_syncrun() C-kern/task/syncrun.c:377
 Error 22 - Invalid argument
 Function input violates condition (event && false == iswaiting_syncevent(event))
-[1: 1374953321.763294s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.763296s]
+[1: 1375541636.314804s]
 setstatewait_syncrun() C-kern/task/syncrun.c:377
 Error 22 - Invalid argument
 Function input violates condition (event && false == iswaiting_syncevent(event))
-[1: 1374953321.763298s]
-setstatewait_syncrun() C-kern/task/syncrun.c:389
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.763311s]
+[1: 1375541636.314810s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:397
 Error 22 - Invalid argument
 Function input violates condition (queue == 0 || queue == &srun->queues[syncrun_qid_WLIST])
-[1: 1374953321.763313s]
-setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.763316s]
+[1: 1375541636.314812s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:398
 Error 71 - Protocol error
 Operation allowed only in state (srun->running.state == syncrun_state_CONTINUE)
-[1: 1374953321.763318s]
-setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
-Error 71 - Protocol error
 Function aborted
-[1: 1374953321.763323s]
+[1: 1375541636.314816s]
 signalevent_syncrun() C-kern/task/syncrun.c:473
 Error 22 - Invalid argument
 Function input violates condition (queue == &srun->queues[syncrun_qid_WAIT] || queue == &srun->queues[syncrun_qid_WAIT2])
-[1: 1374953321.763325s]
-signalevent_syncrun() C-kern/task/syncrun.c:488
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.763327s]
+[1: 1375541636.314821s]
 signalevent_syncrun() C-kern/task/syncrun.c:475
 Error 22 - Invalid argument
 Function input violates condition (syncevent == event_syncwait(syncwait))
-[1: 1374953321.763329s]
-signalevent_syncrun() C-kern/task/syncrun.c:488
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.763331s]
+[1: 1375541636.314824s]
 signalevent_syncrun() C-kern/task/syncrun.c:488
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.763336s]
+[1: 1375541636.314828s]
 signalfirst_syncrun() C-kern/task/syncrun.c:500
 Error 22 - Invalid argument
 Function input violates condition (queue == &srun->queues[syncrun_qid_WLIST])
-[1: 1374953321.763338s]
-signalfirst_syncrun() C-kern/task/syncrun.c:507
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.763350s]
+[1: 1375541636.314843s]
 signalall_syncrun() C-kern/task/syncrun.c:519
 Error 22 - Invalid argument
 Function input violates condition (queue == &srun->queues[syncrun_qid_WLIST])
-[1: 1374953321.763352s]
-signalall_syncrun() C-kern/task/syncrun.c:526
-Error 22 - Invalid argument
 Function aborted
-[1: 1374953321.763365s]
+[1: 1375541636.314855s]
 runall_syncrun() C-kern/task/syncrun.c:951
 Error 115 - Operation now in progress
 Function aborted
-[1: 1374953321.876346s]
+[1: 1375541636.437420s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876350s]
+[1: 1375541636.437426s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876352s]
+[1: 1375541636.437429s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876354s]
+[1: 1375541636.437431s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876356s]
+[1: 1375541636.437433s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876359s]
+[1: 1375541636.437435s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876361s]
+[1: 1375541636.437437s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876363s]
+[1: 1375541636.437439s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876385s]
+[1: 1375541636.437462s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876387s]
+[1: 1375541636.437465s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876389s]
+[1: 1375541636.437467s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876391s]
+[1: 1375541636.437469s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876393s]
+[1: 1375541636.437471s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876395s]
+[1: 1375541636.437473s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876397s]
+[1: 1375541636.437475s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876399s]
+[1: 1375541636.437477s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876423s]
+[1: 1375541636.437502s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876430s]
+[1: 1375541636.437507s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876432s]
+[1: 1375541636.437509s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876434s]
+[1: 1375541636.437511s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876437s]
+[1: 1375541636.437513s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876439s]
+[1: 1375541636.437515s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876442s]
+[1: 1375541636.437517s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953321.876444s]
+[1: 1375541636.437524s]
 setstatewaitlist_syncrun() C-kern/task/syncrun.c:414
 Error 12 - Cannot allocate memory
 Function aborted

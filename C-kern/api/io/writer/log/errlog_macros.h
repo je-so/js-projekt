@@ -76,13 +76,13 @@ struct logbuffer_t ;
  * called and use
  * > TRACEABORT_ERRLOG(return_error_code)
  * to signal this fact. */
-#define TRACEABORT_ERRLOG(err)            TRACE_NOARG_ERRLOG(log_flags_END, FUNCTION_ABORT, err)
+#define TRACEABORT_ERRLOG(err)            TRACE_NOARG_ERRLOG(log_flags_END|log_flags_OPTIONALHEADER, FUNCTION_ABORT, err)
 
 /* define: TRACEABORTFREE_ERRLOG
  * Logs that an error occurred during free_XXX or delete_XXX.
  * This means that not all resources could have been freed
  * only as many as possible. */
-#define TRACEABORTFREE_ERRLOG(err)        TRACE_NOARG_ERRLOG(log_flags_END, FUNCTION_ABORT_FREE, err)
+#define TRACEABORTFREE_ERRLOG(err)        TRACE_NOARG_ERRLOG(log_flags_END|log_flags_OPTIONALHEADER, FUNCTION_ABORT_FREE, err)
 
 /* define: TRACECALL_ERRLOG
  * Logs reason of failure and name of called app function.
