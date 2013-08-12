@@ -55,14 +55,31 @@
 #    FILES_DELETED(unsigned nr_of_deleted_files)
 #    en: "I have deleted " ((nr_of_deleted_files==0) "no" (nr_of_deleted_files==1) "one" else nr_of_deleted_files)
 #        ((nr_of_deleted_files==1) " file\n" else " files\n")
+# 7. Function parameters
+#    The <outconfig type=C> output supports special function parameters.
+#    They can be defined with
+#    <outconfig type=C>
+#     ...  <fctparam name="FCT1" value="get_value1(err)" format="%s"/> ...
+#     ...  <fctparam name="get_str" value="get_str(err)" format="%s"/> ...
+#    </outconfig>
+#    You can use them to get an error description for example
+#     ...  <fctparam name="ERRSTR" value="get_string_from_error_nr(errnr)" format="%s"/> ... </outconfig>
+#     ...
+#    ERROR(int errnr)
+#    de: "Fehler nr: " errnr " - " ERRSTR
+#    en: "Error nr: " errnr " - " ERRSTR
+#    They can be referenced with their name as a parameter in a text resource.
+#    In the written output they are replaced by their value attribute. The format attribute
+#    describes their type as a printf format string.
 
-<textresource version='3'>
+<textresource version='4'>
 
 <outconfig type=C>
    <namesuffix value=_ERRLOG/>
    <generate   header="C-kern/resource/generated/errlog.h" source="C-kern/resource/generated/errlog"/>
    <printf     value=PRINTF/>
    <firstparam value="struct logbuffer_t * logbuffer"/>
+   <fctparam name="ERRSTR" value="(const char*)str_errorcontext(error_maincontext(), err)" format="%s"/>
    <languages>de, en</languages>
 </outconfig>
 
@@ -86,6 +103,24 @@ en: "'"filename"' contains no newline\n"
 FILE_FORMAT_WRONG(const char * filename)
 de: "Datei '"filename"' besitzt unbekanntes Format\n"
 en: "File '"filename"' has unknown format\n"
+
+FILE_NAME(const char * workdir, const char * filename)
+de: "Dateiname '"workdir filename"'\n"
+en: "File name '"workdir filename"'\n"
+
+# user error
+FILE_CREATE(int err, const char * workdir, const char * filename)
+de: "Kann Datei '"workdir filename"' nicht anlegen - "ERRSTR"\n"
+en: "Can not create file '"workdir filename"' - "ERRSTR"\n"
+
+# user error
+FILE_OPEN(int err, const char * workdir, const char * filename)
+de: "Kann Datei '"workdir filename"' nicht öffnen - "ERRSTR"\n"
+en: "Can not open file '"workdir filename"' - "ERRSTR"\n"
+
+FILE_REMOVE(int err, const char * workdir, const char * filename)
+de: "Kann Datei '"workdir filename"' nicht löschen - "ERRSTR"\n"
+en: "Can not remove file '"workdir filename"' - "ERRSTR"\n"
 
 FUNCTION_ABORT()
 de: "Funktion beendet\n"

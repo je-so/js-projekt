@@ -48,7 +48,7 @@ static test_errortimer_t   s_filepathstatic_errtimer = test_errortimer_INIT_FREE
 
 // group: lifetime
 
-void init_filepathstatic(/*out*/filepath_static_t * fpath, struct directory_t * workdir, const char * filename)
+void init_filepathstatic(/*out*/filepath_static_t * fpath, const struct directory_t * workdir, const char * filename)
 {
    int err ;
 

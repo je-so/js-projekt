@@ -168,6 +168,14 @@ static void prepare_test(void)
    // check for fpu errors
    enable_fpuexcept(fpu_except_MASK_ERR) ;
 
+   if (type_maincontext() != maincontext_DEFAULT) {
+      // this makes created threads compatible with expected behaviour
+      log_t * ilog = genericcast_log(&log_maincontext()) ;
+      ilog->iimpl->setstate(ilog->object, log_channel_USERERR, log_state_IGNORED) ;
+      ilog->iimpl->setstate(ilog->object, log_channel_ERR,     log_state_BUFFERED) ;
+      g_maincontext.type = maincontext_DEFAULT ;
+   }
+
    // preallocate some memory
    // TODO: remove line if own memory subsystem instead of malloc
    resourceusage_t   usage[200]  = { resourceusage_INIT_FREEABLE } ;
@@ -233,7 +241,7 @@ int run_unittest(int argc, const char ** argv)
    unsigned    total_count = 0 ;
    const maincontext_e test_context_type[2] = {
       maincontext_DEFAULT,
-      maincontext_DEFAULT
+      maincontext_CONSOLE
    } ;
 
    // before init

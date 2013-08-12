@@ -33,7 +33,7 @@
 #        EINVAL2 -> EINVAL
 #
 
-<textresource version='3'>
+<textresource version='4'>
 
 <outconfig type=C-table>
    <tablename strdata="uint8_t g_errorcontext_strdata" stroffset="uint16_t g_errorcontext_stroffset"/>

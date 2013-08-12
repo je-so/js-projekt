@@ -68,7 +68,7 @@ struct filepath_static_t {
  * the resulting path is the empty string.
  *
  * You do not need to free fpath cause no extra memory is allocated. */
-void init_filepathstatic(/*out*/filepath_static_t * fpath, struct directory_t * workdir, const char * filename) ;
+void init_filepathstatic(/*out*/filepath_static_t * fpath, const struct directory_t * workdir, const char * filename) ;
 
 // group: query
 

@@ -53,6 +53,8 @@ typedef struct textresource_text_t        textresource_text_t ;
 
 typedef struct textresource_parameter_t   textresource_parameter_t ;
 
+typedef struct outconfig_fctparam_t       outconfig_fctparam_t ;
+
 typedef struct textresource_langref_t     textresource_langref_t ;
 
 typedef struct textresource_condition_t   textresource_condition_t ;
@@ -84,7 +86,8 @@ typedef enum typemodifier_e            typemodifier_e ;
 
 enum textresource_textatom_e {
    textresource_textatom_STRING,
-   textresource_textatom_PARAMETER
+   textresource_textatom_PARAMETER,
+   textresource_textatom_FCTPARAM
 } ;
 
 typedef enum textresource_textatom_e   textresource_textatom_e ;
@@ -94,7 +97,7 @@ typedef enum textresource_textatom_e   textresource_textatom_e ;
 
 // group: constants
 
-#define VERSION   "v3"
+#define VERSION   "v4"
 
 // group: log
 
@@ -142,10 +145,48 @@ struct xmlattribute_t {
 #define xmlattribute_INIT(name)        { (name), string_INIT_FREEABLE }
 
 
+/* struct: outconfig_fctparam_t
+ * Holds function parameter for <outconfig_C>.
+ * A function parameter is describes as
+ * > <fctparam name="ERRSTR" value="(const char*)str_errorcontext(error_maincontext(), err)" format="%s"/>
+ * where name is stgring it referenced with in a text resource description. The value is used as function call
+ * to get the parameter value. And format is the printf format description used to log the value.
+ * */
+struct outconfig_fctparam_t {
+   arraystf_node_t            name ;
+   string_t                   value ;
+   string_t                   format ;
+} ;
+
+arraystf_IMPLEMENT(_arrayfctparam, outconfig_fctparam_t, name)
+
+static typeadapt_impl_t    g_fctparam_adapter     = typeadapt_impl_INIT(sizeof(outconfig_fctparam_t)) ;
+static typeadapt_member_t  g_fctparam_nodeadapter = typeadapt_member_INIT((typeadapt_t*)&g_fctparam_adapter, offsetof(outconfig_fctparam_t, name)) ;
+
+// group: lifetime
+
+/* define: outconfig_fctparam_INIT
+ * Initializes outconfig_fctparam_t with a name, value and format.
+ * All 3 parameters must be of type string_t. */
+#define outconfig_fctparam_INIT(name, value, format) \
+         { arraystf_node_INIT(name.size, name.addr), value, format }
+
+
+/* enums: outconfig_e
+ * Types of different outputs the text resource compiler supports. */
+enum outconfig_e {
+   outconfig_NONE,
+   outconfig_C,
+   outconfig_CTABLE
+} ;
+
+typedef enum outconfig_e   outconfig_e ;
+
+
 /* struct: outconfig_t
  * Contains control information how the generated output is to be formatted. */
 struct outconfig_t {
-   string_t    type ;
+   outconfig_e       type ;
    union {
       struct {
          string_t    cfilename;
@@ -154,6 +195,7 @@ struct outconfig_t {
          string_t    nameprefix ;
          string_t    namesuffix ;
          string_t    printf ;
+         arraystf_t* fctparam ;
       } C ;
       struct {
          string_t    cfilename ;
@@ -163,7 +205,43 @@ struct outconfig_t {
    } ;
 } ;
 
-#define outconfig_INIT_FREEABLE        { string_INIT_FREEABLE, { .C = { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE } } }
+#define outconfig_INIT_FREEABLE        { outconfig_NONE, { .C = { string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, string_INIT_FREEABLE, (arraystf_t*)0 } } }
+
+int init_outconfig(/*out*/outconfig_t * outconfig, outconfig_e type)
+{
+   int err ;
+
+   *outconfig = (outconfig_t) outconfig_INIT_FREEABLE ;
+
+   if (type == outconfig_C) {
+      err = new_arrayfctparam(&outconfig->C.fctparam, 16) ;
+      if (err) goto ONABORT ;
+   }
+
+   outconfig->type = type ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
+}
+
+int free_outconfig(outconfig_t * outconfig)
+{
+   int err ;
+
+   if (outconfig->type == outconfig_C) {
+      err = delete_arrayfctparam(&outconfig->C.fctparam, &g_fctparam_nodeadapter) ;
+      if (err) goto ONABORT ;
+   }
+
+   *outconfig = (outconfig_t) outconfig_INIT_FREEABLE ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORTFREE_ERRLOG(err) ;
+   return err ;
+}
 
 
 /* struct: textresource_language_t
@@ -217,12 +295,15 @@ struct textresource_textatom_t {
    union {
       string_t                string ;
       struct {
-         textresource_parameter_t   * ref ;
+         textresource_parameter_t * ref ;
          // maxlen of a string
          int                        maxlen ;
          // (minimum) field width padded with zero
          int                        width0 ;
       }                       param ;
+      struct {
+         outconfig_fctparam_t *     ref ;
+      }                       fctparam ;
    } ;
 } ;
 
@@ -239,6 +320,9 @@ static typeadapt_impl_t    g_textatom_adapter     = typeadapt_impl_INIT(sizeof(t
  * Static initializer. Initializes <textresource_textatom_t> as type textresource_textatom_PARAMETER. */
 #define textresource_textatom_INIT_PARAM(parameter)               { 0, textresource_textatom_PARAMETER, { .param = { parameter, 0, 0 } } }
 
+/* define: textresource_textatom_INIT_FCTPARAM
+ * Static initializer. Initializes <textresource_textatom_t> as type textresource_textatom_FCTPARAM. */
+#define textresource_textatom_INIT_FCTPARAM(fctparam)             { 0, textresource_textatom_FCTPARAM,  { .fctparam = { fctparam } } }
 
 slist_IMPLEMENT(_textatomlist, textresource_textatom_t, next)
 
@@ -610,13 +694,16 @@ static int free_textresource(textresource_t * textres)
    err = delete_arrayptype(&textres->paramtypes, 0) ;
 
    err2 = free_textlist(&textres->textlist, 0 /*freed in delete_arraytname*/) ;
-   if (err) err = err2 ;
+   if (err2) err = err2 ;
 
    err2 = delete_arraytname(&textres->textnames, &g_textrestext_nodeadapter) ;
-   if (err) err = err2 ;
+   if (err2) err = err2 ;
 
    err2 = free_languagelist(&textres->languages, (typeadapt_t*)&g_textreslang_adapter) ;
-   if (err) err = err2 ;
+   if (err2) err = err2 ;
+
+   err2 = free_outconfig(&textres->outconfig) ;
+   if (err2) err = err2 ;
 
    if (err) goto ONABORT ;
 
@@ -1214,28 +1301,38 @@ static int parse_textatomline(textresource_reader_t * reader, textresource_text_
          err = match_identifier(reader, &paramname) ;
          if (err) goto ONABORT ;
 
-         textresource_parameter_t * param = at_arrayparam(text->params, paramname.size, paramname.addr) ;
+         outconfig_fctparam_t * fctparam = 0 ;
 
-         if (!param) {
-            report_parseerror(reader, "Unknown parameter '%.*s'", (int)paramname.size, paramname.addr) ;
-            err = EINVAL ;
-            goto ONABORT ;
-         }
+         if (  outconfig_C == reader->txtres.outconfig.type
+               && (fctparam = at_arrayfctparam(reader->txtres.outconfig.C.fctparam, paramname.size, paramname.addr))) {
+            textresource_textatom_t  textatom = textresource_textatom_INIT_FCTPARAM(fctparam) ;
+            err = addtextatom_textresourcecondition(condition, &textatom) ;
+            if (err) goto ONABORT ;
 
-         while (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
-               && (' '  == ch || '\t' == ch)) {
-               skipascii_utf8reader(&reader->txtpos) ;
-         }
+         } else {
+            textresource_parameter_t * param = at_arrayparam(text->params, paramname.size, paramname.addr) ;
 
-         textresource_textatom_t  textparam = textresource_textatom_INIT_PARAM(param) ;
+            if (!param) {
+               report_parseerror(reader, "Unknown parameter '%.*s'", (int)paramname.size, paramname.addr) ;
+               err = EINVAL ;
+               goto ONABORT ;
+            }
 
-         if ('[' == ch) {
-            err = match_formatdescription(reader, &textparam) ;
+            while (  0 == peekascii_utf8reader(&reader->txtpos, &ch)
+                  && (' '  == ch || '\t' == ch)) {
+                  skipascii_utf8reader(&reader->txtpos) ;
+            }
+
+            textresource_textatom_t  textatom = textresource_textatom_INIT_PARAM(param) ;
+
+            if ('[' == ch) {
+               err = match_formatdescription(reader, &textatom) ;
+               if (err) goto ONABORT ;
+            }
+
+            err = addtextatom_textresourcecondition(condition, &textatom) ;
             if (err) goto ONABORT ;
          }
-
-         err = addtextatom_textresourcecondition(condition, &textparam) ;
-         if (err) goto ONABORT ;
       }
    }
 
@@ -1401,7 +1498,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
       err = skip_spaceandcomment(reader) ;
       if (err) return err ;
 
-      if (  reader->txtres.outconfig.type.size == 7 /*outconfig C-table*/
+      if (  outconfig_CTABLE == reader->txtres.outconfig.type
             && 0 == peekascii_utf8reader(&reader->txtpos, &ch)
             && '-' == ch) {
          err = match_string(reader, "->") ;
@@ -1419,7 +1516,7 @@ static int parse_textdefinitions_textresourcereader(textresource_reader_t * read
          if (err) return err ;
 
       } else {
-         if (reader->txtres.outconfig.type.size != 7 /*outconfig C*/) {
+         if (outconfig_C == reader->txtres.outconfig.type) {
             err = parse_parameterlist(reader, textcopy) ;
             if (err) return err ;
          }
@@ -1595,12 +1692,12 @@ static int parse_xmlattributes_textresourcereader(textresource_reader_t * reader
 }
 
 /* function: parse_version_textresourcereader
- * Skips comments until "<textresource version='3'>" is found.
+ * Skips comments until "<textresource version='4'>" is found.
  * The whole header tag is consumed. */
 static int parse_version_textresourcereader(textresource_reader_t * reader)
 {
    int err ;
-   const char *         expectversion = "3" ;
+   const char *         expectversion = "4" ;
    xmltag_openclose_e   opclose       = xmltag_OPEN ;
    xmlattribute_t       version       = xmlattribute_INIT("version") ;
 
@@ -1660,10 +1757,11 @@ ONABORT:
 static int parse_outconfigC_utf8reader(textresource_reader_t * reader)
 {
    int err ;
-   xmltag_openclose_e   closetag   = xmltag_CLOSE ;
-   xmlattribute_t       value      = xmlattribute_INIT("value") ;
-   xmlattribute_t       genattr[2] = { xmlattribute_INIT("header"), xmlattribute_INIT("source") } ;
-   xmlattribute_t       firstattr[2] = { xmlattribute_INIT("value"), xmlattribute_INIT("header") } ;
+   xmltag_openclose_e   closetag     = xmltag_CLOSE ;
+   xmlattribute_t       value        = xmlattribute_INIT("value") ;
+   xmlattribute_t       genattr[2]   = { xmlattribute_INIT("header"), xmlattribute_INIT("source") } ;
+   xmlattribute_t       firstattr[1] = { xmlattribute_INIT("value") } ;
+   xmlattribute_t       fctpmattr[3] = { xmlattribute_INIT("name"), xmlattribute_INIT("value"), xmlattribute_INIT("format") } ;
 
    for (uint8_t ch;;) {
       err = skip_spaceandcomment(reader) ;
@@ -1675,12 +1773,33 @@ static int parse_outconfigC_utf8reader(textresource_reader_t * reader)
       if (0 != peekascii_utf8reader(&reader->txtpos, &ch)) break ;
 
       switch (ch) {
-      case 'f':   err = match_stringandspace(reader, "firstparam") ;
-                  if (err) goto ONABORT ;
-                  err = parse_xmlattributes_textresourcereader(reader, lengthof(firstattr), firstattr, &closetag) ;
-                  if (err) goto ONABORT ;
-                  static_assert(lengthof(firstattr) == 2, "assume one value") ;
-                  reader->txtres.outconfig.C.firstparam = firstattr[0].value ;
+      case 'f':   if (  0 == peekasciiatoffset_utf8reader(&reader->txtpos, 1, &ch)
+                        && 'c' == ch) {
+                     err = match_stringandspace(reader, "fctparam") ;
+                     if (err) goto ONABORT ;
+                     err = parse_xmlattributes_textresourcereader(reader, lengthof(fctpmattr), fctpmattr, &closetag) ;
+                     if (err) goto ONABORT ;
+                     static_assert(lengthof(fctpmattr) == 3, "assume 3 value") ;
+                     outconfig_fctparam_t fctparam = outconfig_fctparam_INIT(
+                                                      fctpmattr[0].value/*name*/,
+                                                      fctpmattr[1].value/*value*/,
+                                                      fctpmattr[2].value/*format*/
+                                                   ) ;
+                     err = insert_arrayfctparam(reader->txtres.outconfig.C.fctparam, &fctparam, 0, &g_fctparam_nodeadapter) ;
+                     if (err) {
+                        if (EEXIST == err) {
+                           report_parseerror(reader, "fctparam name '%.*s' is not unique", (int)fctpmattr[0].value.size, (const char*)fctpmattr[0].value.addr) ;
+                        }
+                        goto ONABORT ;
+                     }
+                  } else {
+                     err = match_stringandspace(reader, "firstparam") ;
+                     if (err) goto ONABORT ;
+                     err = parse_xmlattributes_textresourcereader(reader, lengthof(firstattr), firstattr, &closetag) ;
+                     if (err) goto ONABORT ;
+                     static_assert(lengthof(firstattr) == 1, "assume one value") ;
+                     reader->txtres.outconfig.C.firstparam = firstattr[0].value ;
+                  }
                   break ;
       case 'g':   err = match_stringandspace(reader, "generate") ;
                   if (err) goto ONABORT ;
@@ -1791,23 +1910,22 @@ static int parse_header_textresourcereader(textresource_reader_t * reader)
    err = parse_xmlattributes_textresourcereader(reader, 1, &typeattr, &opclose) ;
    if (err) goto ONABORT ;
 
-   if (  (  1 != typeattr.value.size
-            || 0 != memcmp("C", typeattr.value.addr, typeattr.value.size))
-         && (  7 != typeattr.value.size
-               || 0 != memcmp("C-table", typeattr.value.addr, typeattr.value.size))) {
+   if (  1 == typeattr.value.size
+         && 0 == memcmp("C", typeattr.value.addr, typeattr.value.size)) {
+      err = init_outconfig(&reader->txtres.outconfig, outconfig_C) ;
+      if (err) goto ONABORT ;
+      err = parse_outconfigC_utf8reader(reader) ;
+      if (err) goto ONABORT ;
+   } else if ( 7 == typeattr.value.size
+               && 0 == memcmp("C-table", typeattr.value.addr, typeattr.value.size)) {
+      err = init_outconfig(&reader->txtres.outconfig, outconfig_CTABLE) ;
+      if (err) goto ONABORT ;
+      err = parse_outconfigCtable_utf8reader(reader) ;
+      if (err) goto ONABORT ;
+   } else {
       report_parseerror(reader, "Only output configurations 'C' and 'C-table' are supported at the moment") ;
       err = EINVAL ;
       goto ONABORT ;
-   }
-
-   reader->txtres.outconfig.type = typeattr.value ;
-
-   if (1 == typeattr.value.size) {
-      err = parse_outconfigC_utf8reader(reader) ;
-      if (err) goto ONABORT ;
-   } else {
-      err = parse_outconfigCtable_utf8reader(reader) ;
-      if (err) goto ONABORT ;
    }
 
    err = match_string(reader, "/outconfig>") ;
@@ -1951,15 +2069,20 @@ ONABORT:
 
 static int init_textresourcewriter(textresource_writer_t * writer, textresource_t * txtres)
 {
-   int err ;
+   int err = EINVAL ;
 
    *writer = (textresource_writer_t) textresource_writer_INIT_FREEABLE ;
    writer->txtres = txtres ;
 
-   if (1 == size_string(&txtres->outconfig.type)) {
+   switch (txtres->outconfig.type) {
+   case outconfig_NONE:
+      break ;
+   case outconfig_C:
       err = writeCconfig_textresourcewriter(writer) ;
-   } else {
+      break ;
+   case outconfig_CTABLE:
       err = writeCtableconfig_textresourcewriter(writer) ;
+      break ;
    }
 
    if (err) goto ONABORT ;
@@ -2086,6 +2209,12 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist
             bytes = dprintf(writer->outfile, "%%%s%s", (textatom->param.maxlen ? ".*" : ""), param->type->ptrformat) ;
             if (bytes < 0) goto ONABORT ;
          }
+
+      } else if (textresource_textatom_FCTPARAM == textatom->type) {
+         outconfig_fctparam_t * fctparam = textatom->fctparam.ref ;
+         bytes = dprintf(writer->outfile, "%.*s", (int)fctparam->format.size, (const char*)fctparam->format.addr) ;
+         if (bytes < 0) goto ONABORT ;
+
       } else {
          assert(0) ;
       }
@@ -2110,6 +2239,11 @@ static int writeCprintf_textresourcewriter(textresource_writer_t * writer, slist
                bytes = dprintf(writer->outfile, ", %.*s", (int)param->name.size, param->name.addr) ;
             if (bytes < 0) goto ONABORT ;
          }
+
+      } else if (textresource_textatom_FCTPARAM == textatom->type) {
+         outconfig_fctparam_t * fctparam = textatom->fctparam.ref ;
+         bytes = dprintf(writer->outfile, ", %.*s", (int)fctparam->value.size, (const char*)fctparam->value.addr) ;
+         if (bytes < 0) goto ONABORT ;
       }
 
    }
@@ -2440,7 +2574,7 @@ static int main_thread(int argc, const char * argv[])
    textresource_writer_t   writer = textresource_writer_INIT_FREEABLE ;
    const char              * infile ;
 
-   err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
+   err = init_maincontext(maincontext_CONSOLE, argc, argv) ;
    if (err) goto ONABORT ;
 
    if (argc != 2) {

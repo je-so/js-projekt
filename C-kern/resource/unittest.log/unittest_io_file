@@ -1,170 +1,168 @@
-[1: 1375541637.141529s]
-accessmode_file() C-kern/platform/Linux/io/file.c:194
+[1: 1376318526.995689s]
+accessmode_file() C-kern/platform/Linux/io/file.c:204
 Error 9 - Bad file descriptor
 System call 'fcntl' failed
 fileobj=8
 Function aborted
-[1: 1375541637.141536s]
-accessmode_file() C-kern/platform/Linux/io/file.c:194
+[1: 1376318526.995696s]
+accessmode_file() C-kern/platform/Linux/io/file.c:204
 Error 9 - Bad file descriptor
 System call 'fcntl' failed
 fileobj=8
 Function aborted
-[1: 1375541637.141540s]
-accessmode_file() C-kern/platform/Linux/io/file.c:194
+[1: 1376318526.995699s]
+accessmode_file() C-kern/platform/Linux/io/file.c:204
 Error 9 - Bad file descriptor
 System call 'fcntl' failed
 fileobj=-1
 Function aborted
-[1: 1375541637.141542s]
-accessmode_file() C-kern/platform/Linux/io/file.c:194
+[1: 1376318526.995702s]
+accessmode_file() C-kern/platform/Linux/io/file.c:204
 Error 9 - Bad file descriptor
 System call 'fcntl' failed
 fileobj=-1
 Function aborted
-[1: 1375541637.143056s]
-size_file() C-kern/platform/Linux/io/file.c:229
+[1: 1376318526.997210s]
+size_file() C-kern/platform/Linux/io/file.c:239
 Error 9 - Bad file descriptor
 System call 'fstat' failed
 fileobj=-1
 Function aborted
-[1: 1375541637.143373s]
-initcreate_file() C-kern/platform/Linux/io/file.c:146
+[1: 1376318526.997514s]
+initcreate_file() C-kern/platform/Linux/io/file.c:154
 Error 17 - File exists
 System call 'openat' failed
-openatfd=3
-filepath=init1
+File name '/tmp/iofiletest.123456/init1'
 Function aborted
-[1: 1375541637.143397s]
-init_file() C-kern/platform/Linux/io/file.c:80
+[1: 1376318526.997601s]
+init_file() C-kern/platform/Linux/io/file.c:83
 Error 22 - Invalid argument
 Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
 Function aborted
-[1: 1375541637.143401s]
-init_file() C-kern/platform/Linux/io/file.c:80
+[1: 1376318526.997606s]
+init_file() C-kern/platform/Linux/io/file.c:83
 Error 22 - Invalid argument
 Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
 Function aborted
-[1: 1375541637.143404s]
-init_file() C-kern/platform/Linux/io/file.c:80
+[1: 1376318526.997609s]
+init_file() C-kern/platform/Linux/io/file.c:83
 Error 22 - Invalid argument
 Function input violates condition (0 == (iomode & ~((unsigned)accessmode_RDWR)))
 Function aborted
-[1: 1375541637.143448s]
-initcreate_file() C-kern/platform/Linux/io/file.c:146
+[1: 1376318526.997649s]
+initcreate_file() C-kern/platform/Linux/io/file.c:154
 Error 17 - File exists
 System call 'openat' failed
-openatfd=3
-filepath=testcreate
+File name '/tmp/iofiletest.123456/testcreate'
 Function aborted
-[1: 1375541637.889668s]
-truncate_file() C-kern/platform/Linux/io/file.c:292
+[1: 1376318527.731693s]
+truncate_file() C-kern/platform/Linux/io/file.c:302
 Error 22 - Invalid argument
 System call 'ftruncate' failed
 fileobj=9
 Function aborted
-[1: 1375541637.889690s]
-truncate_file() C-kern/platform/Linux/io/file.c:292
+[1: 1376318527.731710s]
+truncate_file() C-kern/platform/Linux/io/file.c:302
 Error 22 - Invalid argument
 System call 'ftruncate' failed
 fileobj=10
 Function aborted
-[1: 1375541637.889697s]
-truncate_file() C-kern/platform/Linux/io/file.c:292
+[1: 1376318527.731717s]
+truncate_file() C-kern/platform/Linux/io/file.c:302
 Error 22 - Invalid argument
 System call 'ftruncate' failed
 fileobj=10
 Function aborted
-[1: 1375541637.889700s]
-allocate_file() C-kern/platform/Linux/io/file.c:310
+[1: 1376318527.731720s]
+allocate_file() C-kern/platform/Linux/io/file.c:320
 Error 22 - Invalid argument
 System call 'fallocate' failed
 fileobj=10
 Function aborted
-[1: 1375541637.889704s]
-allocate_file() C-kern/platform/Linux/io/file.c:310
+[1: 1376318527.731724s]
+allocate_file() C-kern/platform/Linux/io/file.c:320
 Error 29 - Illegal seek
 System call 'fallocate' failed
 fileobj=9
 Function aborted
-[1: 1375541637.889709s]
-allocate_file() C-kern/platform/Linux/io/file.c:310
+[1: 1376318527.731728s]
+allocate_file() C-kern/platform/Linux/io/file.c:320
 Error 9 - Bad file descriptor
 System call 'fallocate' failed
 fileobj=10
 Function aborted
-[1: 1375541637.889713s]
-truncate_file() C-kern/platform/Linux/io/file.c:292
+[1: 1376318527.731732s]
+truncate_file() C-kern/platform/Linux/io/file.c:302
 Error 9 - Bad file descriptor
 System call 'ftruncate' failed
 fileobj=10
 Function aborted
-[1: 1375541637.889715s]
-allocate_file() C-kern/platform/Linux/io/file.c:310
+[1: 1376318527.731735s]
+allocate_file() C-kern/platform/Linux/io/file.c:320
 Error 9 - Bad file descriptor
 System call 'fallocate' failed
 fileobj=10
 Function aborted
-[1: 1375541637.889718s]
-truncate_file() C-kern/platform/Linux/io/file.c:292
+[1: 1376318527.731738s]
+truncate_file() C-kern/platform/Linux/io/file.c:302
 Error 9 - Bad file descriptor
 System call 'ftruncate' failed
 fileobj=-1
 Function aborted
-[1: 1375541637.889721s]
-allocate_file() C-kern/platform/Linux/io/file.c:310
+[1: 1376318527.731740s]
+allocate_file() C-kern/platform/Linux/io/file.c:320
 Error 9 - Bad file descriptor
 System call 'fallocate' failed
 fileobj=-1
 Function aborted
-[1: 1375541638.282069s]
-allocate_file() C-kern/platform/Linux/io/file.c:310
+[1: 1376318528.147486s]
+allocate_file() C-kern/platform/Linux/io/file.c:320
 Error 28 - No space left on device
 System call 'fallocate' failed
 fileobj=10
 Function aborted
-[1: 1375541638.787405s]
-advisereadahead_file() C-kern/platform/Linux/io/file.c:250
+[1: 1376318528.706144s]
+advisereadahead_file() C-kern/platform/Linux/io/file.c:260
 Error 22 - Invalid argument
 System call 'posix_fadvise' failed
 fileobj=8
 offset=0
 length=-1
 Function aborted
-[1: 1375541638.787430s]
-advisereadahead_file() C-kern/platform/Linux/io/file.c:250
+[1: 1376318528.706158s]
+advisereadahead_file() C-kern/platform/Linux/io/file.c:260
 Error 9 - Bad file descriptor
 System call 'posix_fadvise' failed
 fileobj=8
 offset=0
 length=0
 Function aborted
-[1: 1375541638.787434s]
-advisereadahead_file() C-kern/platform/Linux/io/file.c:250
+[1: 1376318528.706163s]
+advisereadahead_file() C-kern/platform/Linux/io/file.c:260
 Error 9 - Bad file descriptor
 System call 'posix_fadvise' failed
 fileobj=-1
 offset=0
 length=0
 Function aborted
-[1: 1375541638.787440s]
-advisedontneed_file() C-kern/platform/Linux/io/file.c:269
+[1: 1376318528.706168s]
+advisedontneed_file() C-kern/platform/Linux/io/file.c:279
 Error 22 - Invalid argument
 System call 'posix_fadvise' failed
 fileobj=8
 offset=0
 length=-1
 Function aborted
-[1: 1375541638.799124s]
-advisedontneed_file() C-kern/platform/Linux/io/file.c:269
+[1: 1376318528.709248s]
+advisedontneed_file() C-kern/platform/Linux/io/file.c:279
 Error 9 - Bad file descriptor
 System call 'posix_fadvise' failed
 fileobj=8
 offset=0
 length=0
 Function aborted
-[1: 1375541638.799144s]
-advisedontneed_file() C-kern/platform/Linux/io/file.c:269
+[1: 1376318528.709262s]
+advisedontneed_file() C-kern/platform/Linux/io/file.c:279
 Error 9 - Bad file descriptor
 System call 'posix_fadvise' failed
 fileobj=-1

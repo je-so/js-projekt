@@ -99,8 +99,8 @@ struct threadcontext_t {
  * Creates all top level services which are bound to a single thread.
  * Services do *not* need to be multi thread safe cause a new one is created for every new thread.
  * If a service shares information between threads then it must be programmed in a thread safe manner.
- * This function is called from <init_maincontext>. */
-int init_threadcontext(/*out*/threadcontext_t * tcontext, struct processcontext_t * pcontext) ;
+ * This function is called from <init_maincontext>. The parameter context_type is of type <maincontext_e>. */
+int init_threadcontext(/*out*/threadcontext_t * tcontext, struct processcontext_t * pcontext, uint8_t context_type) ;
 
 /* function: free_threadcontext
  * Frees all resources bound to this object.

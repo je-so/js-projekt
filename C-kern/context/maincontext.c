@@ -155,7 +155,7 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
    }
 
    VALIDATE_INPARAM_TEST(  maincontext_STATIC  <  context_type
-                           && maincontext_DEFAULT >= context_type, ONABORT, ) ;
+                           && maincontext_CONSOLE >= context_type, ONABORT, ) ;
 
    VALIDATE_INPARAM_TEST(argc >= 0 && (argc == 0 || argv != 0), ONABORT, ) ;
 
@@ -179,7 +179,7 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
 
-   err = init_threadcontext(tcontext_maincontext(), &g_maincontext.pcontext) ;
+   err = init_threadcontext(tcontext_maincontext(), &g_maincontext.pcontext, context_type) ;
    if (err) goto ONABORT ;
 
    ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
@@ -290,46 +290,61 @@ static int test_initmain(void)
    TEST(0 == g_maincontext.size_staticmem) ;
    TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
 
-   // TEST init_maincontext: maincontext_DEFAULT
-   const char * argv[2] = { "1", "2" } ;
-   TEST(0 == init_maincontext(maincontext_DEFAULT, 2, argv)) ;
-   TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
-   TEST(1 == g_maincontext.type) ;
-   TEST(2 == g_maincontext.argc) ;
-   TEST(argv    == g_maincontext.argv) ;
-   TEST(argv[0] == g_maincontext.progname) ;
-   TEST(0 != g_maincontext.pcontext.valuecache) ;
-   TEST(0 != g_maincontext.pcontext.sysuser) ;
-   TEST(0 != tcontext_maincontext()->initcount) ;
-   TEST(0 != tcontext_maincontext()->log.object) ;
-   TEST(0 != tcontext_maincontext()->log.iimpl) ;
-   TEST(0 != tcontext_maincontext()->objectcache.object) ;
-   TEST(0 != tcontext_maincontext()->objectcache.iimpl) ;
-   TEST(0 != strcmp("C", current_locale())) ;
-   TEST(tcontext_maincontext()->log.object != 0) ;
-   TEST(tcontext_maincontext()->log.iimpl  != &g_logmain_interface) ;
+   maincontext_e mainmode[] = { maincontext_DEFAULT, maincontext_CONSOLE } ;
+   for (unsigned i = 0 ; i < lengthof(mainmode); ++i) {
+      // TEST init_maincontext: maincontext_DEFAULT, maincontext_CONSOLE
+      const char * argv[2] = { "1", "2" } ;
+      TEST(0 == init_maincontext(mainmode[i], 2, argv)) ;
+      TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
+      TEST(g_maincontext.type == mainmode[i]) ;
+      TEST(g_maincontext.argc == 2) ;
+      TEST(g_maincontext.argv == argv) ;
+      TEST(g_maincontext.progname == argv[0]) ;
+      TEST(0 != g_maincontext.pcontext.valuecache) ;
+      TEST(0 != g_maincontext.pcontext.sysuser) ;
+      TEST(0 != tcontext_maincontext()->initcount) ;
+      TEST(0 != tcontext_maincontext()->log.object) ;
+      TEST(0 != tcontext_maincontext()->log.iimpl) ;
+      TEST(0 != tcontext_maincontext()->objectcache.object) ;
+      TEST(0 != tcontext_maincontext()->objectcache.iimpl) ;
+      TEST(0 != strcmp("C", current_locale())) ;
+      TEST(tcontext_maincontext()->log.object != 0) ;
+      TEST(tcontext_maincontext()->log.iimpl  != &g_logmain_interface) ;
+      switch (mainmode[i]) {
+      case maincontext_STATIC:
+         break ;
+      case maincontext_DEFAULT:
+         TEST(log_state_IGNORED  == GETSTATE_LOG(log_channel_USERERR)) ;
+         TEST(log_state_BUFFERED == GETSTATE_LOG(log_channel_ERR)) ;
+         break ;
+      case maincontext_CONSOLE:
+         TEST(log_state_UNBUFFERED == GETSTATE_LOG(log_channel_USERERR)) ;
+         TEST(log_state_IGNORED    == GETSTATE_LOG(log_channel_ERR)) ;
+         break ;
+      }
 
-   // TEST free_maincontext
-   TEST(0 == free_maincontext()) ;
-   TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
-   TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
-   TEST(0 == g_maincontext.type) ;
-   TEST(0 == g_maincontext.progname) ;
-   TEST(0 == g_maincontext.argc) ;
-   TEST(0 == g_maincontext.argv) ;
-   TEST(0 == g_maincontext.size_staticmem) ;
-   TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
-   TEST(0 == strcmp("C", current_locale())) ;
-   TEST(0 == free_maincontext()) ;
-   TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
-   TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
-   TEST(0 == g_maincontext.type) ;
-   TEST(0 == g_maincontext.progname) ;
-   TEST(0 == g_maincontext.argc) ;
-   TEST(0 == g_maincontext.argv) ;
-   TEST(0 == g_maincontext.size_staticmem) ;
-   TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
-   TEST(0 == strcmp("C", current_locale())) ;
+      // TEST free_maincontext
+      TEST(0 == free_maincontext()) ;
+      TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
+      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
+      TEST(0 == g_maincontext.type) ;
+      TEST(0 == g_maincontext.progname) ;
+      TEST(0 == g_maincontext.argc) ;
+      TEST(0 == g_maincontext.argv) ;
+      TEST(0 == g_maincontext.size_staticmem) ;
+      TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
+      TEST(0 == strcmp("C", current_locale())) ;
+      TEST(0 == free_maincontext()) ;
+      TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
+      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
+      TEST(0 == g_maincontext.type) ;
+      TEST(0 == g_maincontext.progname) ;
+      TEST(0 == g_maincontext.argc) ;
+      TEST(0 == g_maincontext.argv) ;
+      TEST(0 == g_maincontext.size_staticmem) ;
+      TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
+      TEST(0 == strcmp("C", current_locale())) ;
+   }
 
    // TEST free_maincontext: ENOTEMPTY
    g_maincontext.type = maincontext_DEFAULT ;
@@ -436,11 +451,7 @@ static int test_initerror(void)
    TEST(0 == free_maincontext()) ;
    TEST(maincontext_STATIC == type_maincontext()) ;
 
-   // TEST EPROTO (call init_maincontext first)
-   threadcontext_t tcontext ;
-   TEST(EPROTO == init_threadcontext(&tcontext, &g_maincontext.pcontext)) ;
-
-   // TEST error in init_maincontext in different places (called from initmain)
+   // TEST init_maincontext: error in in different places
    for (int i = 1; i <= 3; ++i) {
       init_testerrortimer(&s_maincontext_errtimer, (unsigned)i, EINVAL+i) ;
       TEST(EINVAL+i == init_maincontext(maincontext_DEFAULT, 0, 0)) ;

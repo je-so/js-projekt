@@ -29,6 +29,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/io/filesystem/filepath.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/memory/memblock.h"
@@ -57,8 +58,10 @@ int remove_file(const char * filepath, struct directory_t * relative_to)
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("unlinkat(unlinkatfd, filepath)", err) ;
-      PRINTINT_ERRLOG(unlinkatfd) ;
-      PRINTCSTR_ERRLOG(filepath) ;
+      filepath_static_t fpath ;
+      init_filepathstatic(&fpath, relative_to, filepath) ;
+      PRINTTEXT_ERRLOG(FILE_NAME, STRPARAM_filepathstatic(&fpath)) ;
+      PRINTTEXT_USER_ERRLOG(FILE_REMOVE, err, STRPARAM_filepathstatic(&fpath)) ;
       goto ONABORT ;
    }
 
@@ -91,7 +94,10 @@ int init_file(/*out*/file_t * fileobj, const char* filepath, accessmode_e iomode
    if (-1 == fd) {
       err = errno ;
       TRACESYSCALL_ERRLOG("openat", err) ;
-      PRINTCSTR_ERRLOG(filepath) ;
+      filepath_static_t fpath ;
+      init_filepathstatic(&fpath, relative_to, filepath) ;
+      PRINTTEXT_ERRLOG(FILE_NAME, STRPARAM_filepathstatic(&fpath)) ;
+      PRINTTEXT_USER_ERRLOG(FILE_OPEN, err, STRPARAM_filepathstatic(&fpath)) ;
       goto ONABORT ;
    }
 
@@ -117,8 +123,10 @@ int initappend_file(/*out*/file_t * fileobj, const char* filepath, const struct 
    if (-1 == fd) {
       err = errno ;
       TRACESYSCALL_ERRLOG("openat", err) ;
-      PRINTINT_ERRLOG(openatfd) ;
-      PRINTCSTR_ERRLOG(filepath) ;
+      filepath_static_t fpath ;
+      init_filepathstatic(&fpath, relative_to, filepath) ;
+      PRINTTEXT_ERRLOG(FILE_NAME, STRPARAM_filepathstatic(&fpath)) ;
+      PRINTTEXT_USER_ERRLOG(FILE_OPEN, err, STRPARAM_filepathstatic(&fpath)) ;
       goto ONABORT ;
    }
 
@@ -144,8 +152,10 @@ int initcreate_file(/*out*/file_t * fileobj, const char* filepath, const struct 
    if (-1 == fd) {
       err = errno ;
       TRACESYSCALL_ERRLOG("openat", err) ;
-      PRINTINT_ERRLOG(openatfd) ;
-      PRINTCSTR_ERRLOG(filepath) ;
+      filepath_static_t fpath ;
+      init_filepathstatic(&fpath, relative_to, filepath) ;
+      PRINTTEXT_ERRLOG(FILE_NAME, STRPARAM_filepathstatic(&fpath)) ;
+      PRINTTEXT_USER_ERRLOG(FILE_CREATE, err, STRPARAM_filepathstatic(&fpath)) ;
       goto ONABORT ;
    }
 

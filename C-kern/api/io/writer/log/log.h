@@ -154,6 +154,13 @@ typedef enum log_state_e                  log_state_e ;
  * Uses <iobj_DECLARE> to declare object supporting interface <log_it>. */
 iobj_DECLARE(log_t, log) ;
 
+// group: generic
+
+/* function: genericcast_log
+ * Casts parameter iobj to pointer to <log_t>.
+ * iobj must be a pointer to an anonymous interfaceable log object. */
+log_t * genericcast_log(void * iobj) ;
+
 
 /* struct: log_it
  * The function table which describes the log service. */
@@ -239,6 +246,15 @@ struct log_header_t {
 
 
 // section: inline implementation
+
+// group: log_t
+
+/* define: genericcast_log
+ * Implements <log_t.genericcast_log>. */
+#define genericcast_log(iobj) \
+         genericcast_iobj(iobj, log)
+
+// group: log_it
 
 /* define: genericcast_logit
  * Implements <log_it.genericcast_logit>. */

@@ -4,7 +4,10 @@ include        projekte/binary.gcc
 include        projekte/subsys/Linux-mini
 include        projekte/subsys/context-mini
 Src           += C-kern/main/tools/genfile.c
+Src           += C-kern/memory/wbuffer.c
 Src           += C-kern/string/cstring.c
+Src           += C-kern/platform/Linux/io/directory.c
 Src           += C-kern/platform/Linux/io/file.c
+Src           += C-kern/platform/Linux/io/filepath.c
 Includes       = .
 Defines        = KONFIG_SUBSYS=KONFIG_none

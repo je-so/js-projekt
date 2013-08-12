@@ -37,18 +37,24 @@ typedef struct maincontext_t              maincontext_t ;
 
 /* enums: maincontext_e
  * Used to switch between different implementations.
+ * Services in <threadcontext_t> can not be shared between threads.
+ * Services in <processcontext_t> are shared between threads.
  *
  * maincontext_STATIC -  An implementation which is configured by a static initializer.
  *                       Only the log service is supported.
  *                       This configuration is default at program startup and can not be
  *                       set with a call to <init_maincontext>.
- * maincontext_DEFAULT - Default single threading implementation.
- *                       Services in <threadcontext_t> can not be shared between threads.
+ * maincontext_DEFAULT - Default single or multi threading implementation.
+ *                       All content logged to channel <log_channel_USERERR> is ignored.
+ * maincontext_CONSOLE - Default single pr multi threading implementation for commandline tools.
+ *                       All content logged to channel <log_channel_USERERR> is immediately written (<log_state_UNBUFFERED>).
+ *                       All content logged to channel <log_channel_ERR> is ignored.
  *
  * */
 enum maincontext_e {
    maincontext_STATIC  = 0,
-   maincontext_DEFAULT = 1
+   maincontext_DEFAULT = 1,
+   maincontext_CONSOLE = 2,
 } ;
 
 typedef enum maincontext_e                maincontext_e ;

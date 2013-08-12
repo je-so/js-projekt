@@ -385,7 +385,7 @@ static int main_thread(int argc, const char * argv[])
 {
    int err ;
 
-   err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
+   err = init_maincontext(maincontext_CONSOLE, argc, argv) ;
    if (err) goto ONABORT ;
 
    err = process_arguments(argc, argv) ;

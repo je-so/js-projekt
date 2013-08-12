@@ -152,24 +152,5 @@ void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, cons
 
 // section: inline implementation
 
-// group: KONFIG_thread
-
-#define KONFIG_thread 1
-#if ((KONFIG_SUBSYS&KONFIG_thread) == 0)
-
-/* define: interface_logwriter
- * Implement <logwriter_t.interface_logwriter> if there is no thread subsystem. */
-#define interface_logwriter()             (0)
-
-/* define: init_logwriter
- * Implement <logwriter_t.init_logwriter> if there is no thread subsystem. */
-#define init_logwriter(log)               (ENOSYS)
-
-/* define: free_logwriter
- * Implement <logwriter_t.free_logwriter> if there is no thread subsystem. */
-#define free_logwriter(log)               (ENOSYS)
-
-#endif
-#undef KONFIG_thread
 
 #endif

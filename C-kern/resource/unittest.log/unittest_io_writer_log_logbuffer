@@ -1,4 +1,4 @@
-[1: 1375541640.157617s]
+[1: 1375615085.717261s]
 init_logbuffer() C-kern/io/writer/log/logbuffer.c:46
 Error 22 - Invalid argument
 Function input violates condition (buffer_size > log_config_MINSIZE)

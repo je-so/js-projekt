@@ -7,6 +7,7 @@ Src           += C-kern/ds/inmem/arraystf.c C-kern/ds/inmem/binarystack.c C-kern
 Src           += C-kern/io/reader/utf8reader.c
 Src           += C-kern/main/tools/textresource_compiler.c
 Src           += C-kern/platform/Linux/io/file.c
+Src           += C-kern/platform/Linux/io/filepath.c
 Src           += C-kern/platform/Linux/io/mmfile.c
 Src           += C-kern/platform/Linux/io/directory.c
 Src           += C-kern/memory/wbuffer.c

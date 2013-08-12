@@ -193,6 +193,15 @@ int unittest_io_fileutil()
 
    if (test_loadsave(tempdir))   goto ONABORT ;
 
+   /* adapt log */
+   size_t   logsize ;
+   char *   logbuffer ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
+   while (strstr(logbuffer, "/iofiletest.")) {
+      logbuffer = 12 + strstr(logbuffer, "/iofiletest.") ;
+      memcpy(logbuffer, "XXXXXX", 6) ;
+   }
+
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;

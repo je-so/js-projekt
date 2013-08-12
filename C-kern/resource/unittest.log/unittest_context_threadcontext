@@ -1,60 +1,69 @@
-[1: 1375541630.733718s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.860190s]
+init_threadcontext() C-kern/context/threadcontext.c:353
+Error 71 - Protocol error
+Operation allowed only in state (maincontext_STATIC != type_maincontext())
+Function aborted
+[1: 1375620957.860856s]
+init_threadcontext() C-kern/context/threadcontext.c:397
+Error 22 - Invalid argument
+Function aborted
+[1: 1375620957.860863s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 1 - Operation not permitted
 Function aborted
-[1: 1375541630.733737s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.860866s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 2 - No such file or directory
 Function aborted
-[1: 1375541630.734373s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.861498s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 3 - No such process
 Function aborted
-[1: 1375541630.735006s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.862225s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 4 - Interrupted system call
 Function aborted
-[1: 1375541630.735603s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.862869s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 5 - Input/output error
 Function aborted
-[1: 1375541630.736224s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.863516s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 6 - No such device or address
 Function aborted
-[1: 1375541630.736819s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.864175s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 7 - Argument list too long
 Function aborted
-[1: 1375541630.737441s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.864810s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 8 - Exec format error
 Function aborted
-[1: 1375541630.738479s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.865429s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 9 - Bad file descriptor
 Function aborted
-[1: 1375541630.739126s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.866172s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 10 - No child processes
 Function aborted
-[1: 1375541630.739771s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.866806s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 11 - Resource temporarily unavailable
 Function aborted
-[1: 1375541630.740400s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.867431s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375541630.741070s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.868055s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 13 - Permission denied
 Function aborted
-[1: 1375541630.741704s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.868710s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 14 - Bad address
 Function aborted
-[1: 1375541630.742377s]
-init_threadcontext() C-kern/context/threadcontext.c:365
+[1: 1375620957.869322s]
+init_threadcontext() C-kern/context/threadcontext.c:397
 Error 15 - Block device required
 Function aborted

@@ -81,7 +81,7 @@ static void * main_thread(thread_startargument_t * startarg)
 
    thread->sys_thread = pthread_self() ;
 
-   err = init_threadcontext(tcontext_maincontext(), startarg->pcontext) ;
+   err = init_threadcontext(tcontext_maincontext(), startarg->pcontext, type_maincontext()) ;
    if (err) {
       TRACECALL_ERRLOG("init_threadcontext", err) ;
       goto ONABORT ;

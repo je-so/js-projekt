@@ -264,6 +264,33 @@ static int inithelper1_threadcontext(threadcontext_t * tcontext)
 
 // TEXTDB:END
 
+// group: configruation
+
+/* function: config_threadcontext
+ * Adapts tcontext to chosen <maincontext_e> type. */
+static int config_threadcontext(threadcontext_t * tcontext, maincontext_e context_type)
+{
+   log_t * ilog ;
+
+   switch (context_type) {
+   case maincontext_STATIC:
+      return 0 ;
+   case maincontext_DEFAULT:
+      return 0;
+   case maincontext_CONSOLE:
+      ilog = genericcast_log(&tcontext->log) ;
+      ilog->iimpl->setstate(ilog->object, log_channel_USERERR, log_state_UNBUFFERED) ;
+      ilog->iimpl->setstate(ilog->object, log_channel_ERR, log_state_IGNORED) ;
+      return 0 ;
+   }
+
+   return EINVAL ;
+}
+
+void flushlog_threadcontext(threadcontext_t * tcontext)
+{
+   tcontext->log.iimpl->flushbuffer(tcontext->log.object, log_channel_ERR) ;
+}
 
 // group: lifetime
 
@@ -275,7 +302,9 @@ int free_threadcontext(threadcontext_t * tcontext)
 
    // TODO: add flush caches (log + database caches) to free_threadcontext
    //       another (better?) option is to add flush caches to end of a single
-   //       transaction (or end of group transaction)
+   //       transaction (or end of group transaction) and commit the default transaction
+
+   flushlog_threadcontext(tcontext) ;
 
    size_t    initcount = tcontext->initcount ;
    tcontext->initcount = 0 ;
@@ -314,7 +343,7 @@ ONABORT:
    return err ;
 }
 
-int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pcontext)
+int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pcontext, uint8_t context_type)
 {
    int err ;
 
@@ -355,6 +384,9 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 // TEXTDB:END
+
+   err = config_threadcontext(tcontext, context_type) ;
+   if (err) goto ONABORT ;
 
    ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
 
@@ -607,36 +639,51 @@ static int test_initfree(void)
    TEST(1 == isstatic_threadcontext(&tcontext)) ;
 
    // TEST init_threadcontext
-   sizestatic = SIZESTATIC_PAGECACHE() ;
-   TEST(0 == init_threadcontext(&tcontext, p)) ;
-   TEST(p == tcontext.pcontext) ;
-   TEST(0 != tcontext.pagecache.object) ;
-   TEST(0 != tcontext.pagecache.iimpl) ;
-   TEST(0 != tcontext.mm.object) ;
-   TEST(0 != tcontext.mm.iimpl) ;
-   TEST(0 != tcontext.syncrun) ;
-   TEST(0 != tcontext.objectcache.object) ;
-   TEST(0 != tcontext.objectcache.iimpl) ;
-   TEST(0 != tcontext.log.object) ;
-   TEST(0 != tcontext.log.iimpl) ;
-   TEST(0 != tcontext.log.object) ;
-   TEST(&g_logmain_interface != tcontext.log.iimpl) ;
-   TEST(0 != tcontext.thread_id) ;
-   TEST(nrsvc == tcontext.initcount) ;
-   TEST(SIZESTATIC_PAGECACHE() > sizestatic) ;
+   maincontext_e contexttype[] = { maincontext_DEFAULT, maincontext_CONSOLE } ;
+   for (unsigned i = 0; i < lengthof(contexttype); ++i) {
+      sizestatic = SIZESTATIC_PAGECACHE() ;
+      TEST(0 == init_threadcontext(&tcontext, p, contexttype[i])) ;
+      TEST(p == tcontext.pcontext) ;
+      TEST(0 != tcontext.pagecache.object) ;
+      TEST(0 != tcontext.pagecache.iimpl) ;
+      TEST(0 != tcontext.mm.object) ;
+      TEST(0 != tcontext.mm.iimpl) ;
+      TEST(0 != tcontext.syncrun) ;
+      TEST(0 != tcontext.objectcache.object) ;
+      TEST(0 != tcontext.objectcache.iimpl) ;
+      TEST(0 != tcontext.log.object) ;
+      TEST(0 != tcontext.log.iimpl) ;
+      TEST(0 != tcontext.log.object) ;
+      TEST(&g_logmain_interface != tcontext.log.iimpl) ;
+      TEST(0 != tcontext.thread_id) ;
+      TEST(nrsvc == tcontext.initcount) ;
+      TEST(SIZESTATIC_PAGECACHE() > sizestatic) ;
+      switch (contexttype[i]) {
+      case maincontext_STATIC:
+         break ;
+      case maincontext_DEFAULT:
+         TEST(log_state_IGNORED  == tcontext.log.iimpl->getstate(tcontext.log.object, log_channel_USERERR)) ;
+         TEST(log_state_BUFFERED == tcontext.log.iimpl->getstate(tcontext.log.object, log_channel_ERR)) ;
+         break ;
+      case maincontext_CONSOLE:
+         TEST(log_state_UNBUFFERED == tcontext.log.iimpl->getstate(tcontext.log.object, log_channel_USERERR)) ;
+         TEST(log_state_IGNORED    == tcontext.log.iimpl->getstate(tcontext.log.object, log_channel_ERR)) ;
+         break ;
+      }
 
-   // TEST free_threadcontext
-   TEST(0 == free_threadcontext(&tcontext)) ;
-   TEST(1 == isstatic_threadcontext(&tcontext)) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
-   TEST(0 == free_threadcontext(&tcontext)) ;
-   TEST(1 == isstatic_threadcontext(&tcontext)) ;
-   TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+      // TEST free_threadcontext
+      TEST(0 == free_threadcontext(&tcontext)) ;
+      TEST(1 == isstatic_threadcontext(&tcontext)) ;
+      TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+      TEST(0 == free_threadcontext(&tcontext)) ;
+      TEST(1 == isstatic_threadcontext(&tcontext)) ;
+      TEST(SIZESTATIC_PAGECACHE() == sizestatic) ;
+   }
 
    // TEST init_threadcontext: s_threadcontext_nextid incremented
    for (unsigned i = 0; i < 10; ++i) {
       size_t s = 1 + s_threadcontext_nextid ;
-      TEST(0 == init_threadcontext(&tcontext, p)) ;
+      TEST(0 == init_threadcontext(&tcontext, p, maincontext_DEFAULT)) ;
       TEST(s == tcontext.thread_id) ;
       TEST(s == s_threadcontext_nextid) ;
       TEST(0 == free_threadcontext(&tcontext)) ;
@@ -645,7 +692,7 @@ static int test_initfree(void)
 
    // TEST init_threadcontext: main thread => no wrap around
    s_threadcontext_nextid = SIZE_MAX ;
-   TEST(0 == init_threadcontext(&tcontext, p)) ;
+   TEST(0 == init_threadcontext(&tcontext, p, maincontext_DEFAULT)) ;
    TEST(0 == tcontext.thread_id) ;
    TEST(0 == s_threadcontext_nextid) ;
    TEST(0 == free_threadcontext(&tcontext)) ;
@@ -659,7 +706,7 @@ static int test_initfree(void)
 
    // TEST free_threadcontext: reset s_threadcontext_nextid in case of main thread
    s_threadcontext_nextid = 3 ;
-   TEST(0 == init_threadcontext(&tcontext, p)) ;
+   TEST(0 == init_threadcontext(&tcontext, p, maincontext_DEFAULT)) ;
    TEST(4 == tcontext.thread_id) ;
    TEST(4 == s_threadcontext_nextid) ;
    tcontext.thread_id = 1 ; // simulate main thread
@@ -667,12 +714,21 @@ static int test_initfree(void)
    TEST(0 == tcontext.thread_id) ;
    TEST(0 == s_threadcontext_nextid) ; // reset
 
+   // TEST init_threadcontext: EPROTO
+   maincontext_e oldtype = type_maincontext() ;
+   g_maincontext.type = maincontext_STATIC ;
+   TEST(EPROTO == init_threadcontext(&tcontext, p, maincontext_DEFAULT)) ;
+   g_maincontext.type = oldtype ;
+
+   // TEST init_threadcontext: EINVAL
+   TEST(EINVAL == init_threadcontext(&tcontext, p, maincontext_CONSOLE+1)) ;
+
    // TEST init_threadcontext: ERROR
    s_threadcontext_nextid = 0 ;
    for(unsigned i = 1; i; ++i) {
       init_testerrortimer(&s_threadcontext_errtimer, i, (int)i) ;
       memset(&tcontext, 0xff, sizeof(tcontext)) ;
-      int err = init_threadcontext(&tcontext, p) ;
+      int err = init_threadcontext(&tcontext, p, maincontext_DEFAULT) ;
       if (err == 0) {
          TEST(1 == s_threadcontext_nextid) ;
          TEST(0 == free_threadcontext(&tcontext)) ;

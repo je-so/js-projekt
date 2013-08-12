@@ -242,33 +242,38 @@ ONABORT:
    return ;
 }
 
-#define beginwrite_logwriter(          \
+#define GETCHANNEL_logwriter(          \
             /*logwriter_t* */lgwrt,    \
             /*log_channel_e*/channel,  \
-            /*log_flags_e*/flags,      \
-            /*log_header_t* */header,  \
             /*out*/chan)               \
          VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;       \
          chan = &lgwrt->chan[channel] ;                                             \
-         if (chan->logstate == log_state_IGNORED) return ;                          \
-         if (  sizefree_logbuffer(&chan->logbuf) <= log_config_MINSIZE              \
-               && (  !chan->isappend                                                \
-                     || 0 != (flags&log_flags_START)/*implicit END*/)) {            \
-            flush_logwriterchan(chan) ;                                             \
-         }                                                                          \
-         if (  header                                                               \
-               && (  0 == (flags&log_flags_OPTIONALHEADER)                          \
-                     || (chan->funcname != header->funcname))) {                    \
-            printheader_logbuffer(&chan->logbuf, header) ;                          \
-            chan->funcname = header->funcname ;                                     \
-         }                                                                          \
-         if (0 != (flags&log_flags_END)) {                                          \
-            chan->funcname = 0 ;                                                    \
-            chan->isappend = false ;                                                \
-         } else if ( 0 != (flags&log_flags_START)                                   \
-                     && chan->logstate != log_state_IMMEDIATE) {                    \
-            chan->isappend = true ;                                                 \
-         }
+         if (chan->logstate == log_state_IGNORED) return ;
+
+static inline void beginwrite_logwriter(
+   logwriter_chan_t *   chan,
+   uint8_t              flags,
+   const log_header_t * header)
+{
+   if (  sizefree_logbuffer(&chan->logbuf) <= log_config_MINSIZE
+         && (  !chan->isappend
+               || 0 != (flags&log_flags_START)/*implicit END*/)) {
+      flush_logwriterchan(chan) ;
+   }
+   if (  header
+         && (  0 == (flags&log_flags_OPTIONALHEADER)
+               || (chan->funcname != header->funcname))) {
+      printheader_logbuffer(&chan->logbuf, header) ;
+      chan->funcname = header->funcname ;
+   }
+   if (0 != (flags&log_flags_END)) {
+      chan->funcname = 0 ;
+      chan->isappend = false ;
+   } else if ( 0 != (flags&log_flags_START)
+               && chan->logstate != log_state_IMMEDIATE) {
+      chan->isappend = true ;
+   }
+}
 
 static inline void endwrite_logwriter(logwriter_chan_t * chan)
 {
@@ -284,7 +289,8 @@ void vprintf_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, cons
    int err ;
    logwriter_chan_t * chan ;
 
-   beginwrite_logwriter(lgwrt, channel, flags, header, /*out*/chan) ;
+   GETCHANNEL_logwriter(lgwrt, channel, /*out*/chan) ;
+   beginwrite_logwriter(chan, flags, header) ;
 
    vprintf_logbuffer(&chan->logbuf, format, args) ;
 
@@ -309,7 +315,8 @@ void printtext_logwriter(logwriter_t * lgwrt, uint8_t channel, uint8_t flags, co
    int err ;
    logwriter_chan_t * chan ;
 
-   beginwrite_logwriter(lgwrt, channel, flags, header, /*out*/chan) ;
+   GETCHANNEL_logwriter(lgwrt, channel, /*out*/chan) ;
+   beginwrite_logwriter(chan, flags, header) ;
 
    if (textf) {
       va_list args ;
@@ -949,6 +956,83 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_logmacros(void)
+{
+   logwriter_t *  lgwrt = (logwriter_t*) log_maincontext().object ;
+   int            oldfd = -1 ;
+   int            pipefd[2] = { -1, -1 } ;
+
+   // prepare
+   TEST(interface_logwriter() == log_maincontext().iimpl) ;
+   TEST(0 == pipe2(pipefd, O_CLOEXEC|O_NONBLOCK)) ;
+   oldfd = dup(lgwrt->chan[log_channel_ERR].logbuf.io) ;
+   TEST(0 < oldfd) ;
+   TEST(lgwrt->chan[log_channel_ERR].logbuf.io == dup2(pipefd[1], lgwrt->chan[log_channel_ERR].logbuf.io)) ;
+
+   // TEST GETBUFFER_LOG
+   size_t   size   = (size_t)-1 ;
+   char *   buffer = 0 ;
+   GETBUFFER_LOG(log_channel_ERR, &buffer, &size) ;
+   TEST(buffer == (char*)lgwrt->chan[log_channel_ERR].logbuf.addr) ;
+   TEST(size   == lgwrt->chan[log_channel_ERR].logbuf.logsize) ;
+
+   // TEST GETSTATE_LOG
+   log_state_e oldstate = lgwrt->chan[log_channel_ERR].logstate ;
+   lgwrt->chan[log_channel_ERR].logstate = log_state_IGNORED ;
+   TEST(GETSTATE_LOG(log_channel_ERR) == log_state_IGNORED) ;
+   lgwrt->chan[log_channel_ERR].logstate = log_state_IMMEDIATE ;
+   TEST(GETSTATE_LOG(log_channel_ERR) == log_state_IMMEDIATE) ;
+   lgwrt->chan[log_channel_ERR].logstate = oldstate ;
+   TEST(GETSTATE_LOG(log_channel_ERR) == oldstate) ;
+
+   // TEST CLEARBUFFER_LOG
+   logwriter_chan_t oldchan = lgwrt->chan[log_channel_ERR] ;
+   uint8_t          oldchr  = lgwrt->chan[log_channel_ERR].logbuf.addr[0] ;
+   CLEARBUFFER_LOG(log_channel_ERR) ;
+   GETBUFFER_LOG(log_channel_ERR, &buffer, &size) ;
+   TEST(0 == size) ;
+   lgwrt->chan[log_channel_ERR] = oldchan ;
+   lgwrt->chan[log_channel_ERR].logbuf.addr[0] = oldchr ;
+
+   // TEST FLUSHBUFFER_LOG
+   lgwrt->chan[log_channel_ERR].logbuf.addr[0] = 'X' ;
+   lgwrt->chan[log_channel_ERR].logbuf.logsize = 1 ;
+   FLUSHBUFFER_LOG(log_channel_ERR) ;
+   GETBUFFER_LOG(log_channel_ERR, &buffer, &size) ;
+   TEST(0 == size) ;
+   lgwrt->chan[log_channel_ERR] = oldchan ;
+   lgwrt->chan[log_channel_ERR].logbuf.addr[0] = oldchr ;
+   char chars[2] = { 0 } ;
+   TEST(1   == read(pipefd[0], chars, 2)) ;
+   TEST('X' == chars[0]) ;
+
+   // TEST SETSTATE_LOG
+   oldstate = lgwrt->chan[log_channel_ERR].logstate ;
+   SETSTATE_LOG(log_channel_ERR, log_state_IGNORED) ;
+   TEST(GETSTATE_LOG(log_channel_ERR) == log_state_IGNORED) ;
+   SETSTATE_LOG(log_channel_ERR, log_state_IMMEDIATE) ;
+   TEST(GETSTATE_LOG(log_channel_ERR) == log_state_IMMEDIATE) ;
+   SETSTATE_LOG(log_channel_ERR, oldstate) ;
+   TEST(GETSTATE_LOG(log_channel_ERR) == oldstate) ;
+
+   // TEST == group: log-text ==
+   // already tested with written log output
+
+   // unprepare
+   TEST(lgwrt->chan[log_channel_ERR].logbuf.io == dup2(oldfd, lgwrt->chan[log_channel_ERR].logbuf.io)) ;
+   TEST(0 == close(pipefd[0])) ;
+   TEST(0 == close(pipefd[1])) ;
+   TEST(0 == close(oldfd)) ;
+
+   return 0 ;
+ONABORT:
+   if (oldfd >= 0) dup2(oldfd, lgwrt->chan[log_channel_ERR].logbuf.io) ;
+   close(pipefd[0]) ;
+   close(pipefd[1]) ;
+   close(oldfd) ;
+   return EINVAL ;
+}
+
 int unittest_io_writer_log_logwriter()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
@@ -960,6 +1044,7 @@ int unittest_io_writer_log_logwriter()
    if (test_config())         goto ONABORT ;
    if (test_write())          goto ONABORT ;
    if (test_initthread())     goto ONABORT ;
+   if (test_logmacros())      goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

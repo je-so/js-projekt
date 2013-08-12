@@ -69,6 +69,30 @@ struct logbuffer_t ;
  * > int i ; PRINTF_ERRLOG("%d", i) */
 #define PRINTF_ERRLOG(...)                PRINTF_LOG(log_channel_ERR, log_flags_NONE, 0, __VA_ARGS__)
 
+/* define: PRINTTEXT_ERRLOG
+ * Logs an TEXTID from C-kern/resource/errlog.text.
+ * The parameters after TEXTID must match the parameters of the resource TEXTID. */
+#define PRINTTEXT_ERRLOG(TEXTID, ...)  \
+         do {                          \
+            PRINTTEXT_LOG(             \
+               log_channel_ERR,        \
+               log_flags_NONE,         \
+               0, TEXTID ## _ERRLOG,   \
+               __VA_ARGS__) ;          \
+         }  while(0)
+
+/* define: PRINTTEXT_USER_ERRLOG
+ * Logs an TEXTID from C-kern/resource/errlog.text to <log_channel_USERERR>.
+ * The parameters after TEXTID must match the parameters of the resource TEXTID. */
+#define PRINTTEXT_USER_ERRLOG(TEXTID, ...)   \
+         do {                          \
+            PRINTTEXT_LOG(             \
+               log_channel_USERERR,    \
+               log_flags_NONE,         \
+               0, TEXTID ## _ERRLOG,   \
+               __VA_ARGS__) ;          \
+         }  while(0)
+
 /* define: TRACEABORT_ERRLOG
  * Logs the abortion of a function and the its corresponding error code.
  * If a function encounters an error from which it cannot recover
@@ -133,15 +157,9 @@ struct logbuffer_t ;
             log_header_t _header =              \
                log_header_INIT(funcname,        \
                   filename, linenr, err) ;      \
-            if (0) {                            \
-            /* test for correct parameter */    \
-            TEXTID ## _ERRLOG(                  \
-               (struct logbuffer_t*)0,          \
-               __VA_ARGS__) ;                   \
-            }                                   \
             PRINTTEXT_LOG(log_channel_ERR,      \
                FLAGS, &_header,                 \
-               & v ## TEXTID ## _ERRLOG,        \
+               TEXTID ## _ERRLOG,               \
                __VA_ARGS__) ;                   \
          }  while(0)
 
@@ -155,14 +173,9 @@ struct logbuffer_t ;
             log_header_t _header =              \
                log_header_INIT(__FUNCTION__,    \
                   __FILE__, __LINE__, err) ;    \
-            if (0) {                            \
-            /* test for correct parameter */    \
-            TEXTID ## _ERRLOG(                  \
-               (struct logbuffer_t*)0) ;        \
-            }                                   \
-            PRINTTEXT_LOG(log_channel_ERR,      \
-               FLAGS, &_header,                 \
-               & v ## TEXTID ## _ERRLOG) ;      \
+            PRINTTEXT_NOARG_LOG(                \
+               log_channel_ERR, FLAGS,          \
+               &_header, TEXTID ## _ERRLOG) ;   \
          }  while(0)
 
 // group: log-variables

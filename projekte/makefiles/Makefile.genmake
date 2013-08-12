@@ -96,6 +96,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!main!tools!genmake.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!exthash.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!redblacktree.c.o
@@ -123,6 +124,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!main!tools!genmake.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!exthash.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!redblacktree.c.o
@@ -199,6 +201,9 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmai
 $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!main!tools!genmake.c.o: C-kern/main/tools/genmake.c
 	@$(CC_Debug)
 
@@ -272,6 +277,9 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logm
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!main!tools!genmake.c.o: C-kern/main/tools/genmake.c
