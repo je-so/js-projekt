@@ -367,6 +367,7 @@ int run_unittest(int argc, const char ** argv)
       // filesystem
       RUN(unittest_io_directory) ;
       RUN(unittest_io_file) ;
+      RUN(unittest_io_filepath) ;
       RUN(unittest_io_fileutil) ;
       RUN(unittest_io_mmfile) ;
       // IP

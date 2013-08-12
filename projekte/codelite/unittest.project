@@ -162,6 +162,7 @@
         <File Name="../../C-kern/api/io/filesystem/mmfile.h"/>
         <File Name="../../C-kern/api/io/filesystem/file.h"/>
         <File Name="../../C-kern/api/io/filesystem/fileutil.h"/>
+        <File Name="../../C-kern/api/io/filesystem/filepath.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/io/accessmode.h"/>
       <VirtualDirectory Name="ip">
@@ -350,6 +351,7 @@
         <File Name="../../C-kern/platform/Linux/io/ipsocket.c"/>
         <File Name="../../C-kern/platform/Linux/io/iopoll.c"/>
         <File Name="../../C-kern/platform/Linux/io/iochannel.c"/>
+        <File Name="../../C-kern/platform/Linux/io/filepath.c"/>
       </VirtualDirectory>
       <VirtualDirectory Name="task">
         <File Name="../../C-kern/platform/Linux/task/process.c"/>
