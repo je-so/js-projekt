@@ -36,6 +36,7 @@
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/string/cstring.h"
 #endif
 
@@ -367,15 +368,16 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   csvfilereader_t  csvfile = csvfilereader_INIT_FREEABLE ;
-   mmfile_t         mmempty = mmfile_INIT_FREEABLE ;
-   directory_t      * tmpdir = 0 ;
+   csvfilereader_t  csvfile  = csvfilereader_INIT_FREEABLE ;
+   mmfile_t         mmempty  = mmfile_INIT_FREEABLE ;
+   directory_t    * tmpdir   = 0 ;
    cstring_t        tmppath  = cstring_INIT ;
    cstring_t        filepath = cstring_INIT ;
    file_t           file     = file_INIT_FREEABLE ;
 
    // prepare
-   TEST(0 == newtemp_directory(&tmpdir, "test_initfree", &tmppath)) ;
+   TEST(0 == newtemp_directory(&tmpdir, "test_initfree")) ;
+   TEST(0 == path_directory(tmpdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
    TEST(0 == makefile_directory(tmpdir, "single", 0)) ;
    TEST(0 == init_file(&file, "single", accessmode_WRITE, tmpdir)) ;
    TEST(0 == write_file(file, strlen("\"1\""), "\"1\"", 0)) ;
@@ -486,7 +488,7 @@ ONABORT:
 static int test_reading(void)
 {
    csvfilereader_t   csvfile  = csvfilereader_INIT_FREEABLE ;
-   directory_t       * tmpdir = 0 ;
+   directory_t     * tmpdir   = 0 ;
    mmfile_t          mmempty  = mmfile_INIT_FREEABLE ;
    cstring_t         tmppath  = cstring_INIT ;
    cstring_t         filepath = cstring_INIT ;
@@ -515,7 +517,8 @@ static int test_reading(void)
                      } ;
 
    // prepare
-   TEST(0 == newtemp_directory(&tmpdir, "test_reading", &tmppath)) ;
+   TEST(0 == newtemp_directory(&tmpdir, "test_reading")) ;
+   TEST(0 == path_directory(tmpdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
    // TEST init_csvfilereader: read filesize = 0
    TEST(0 == makefile_directory(tmpdir, "zero", 0)) ;

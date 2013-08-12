@@ -37,6 +37,7 @@
 #include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/string/cstring.h"
 #endif
 
@@ -767,13 +768,14 @@ ONABORT:
 
 int unittest_io_reader_filereader()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
    directory_t     * tempdir = 0 ;
    cstring_t         tmppath = cstring_INIT ;
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "filereader", &tmppath)) ;
+   TEST(0 == newtemp_directory(&tempdir, "filereader")) ;
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
    if (test_initfree(tempdir))   goto ONABORT ;
    if (test_query())             goto ONABORT ;

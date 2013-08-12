@@ -164,24 +164,18 @@ void mm_it_DECLARE(TYPENAME declared_it, TYPENAME memorymanager_t) ;
 #define genericcast_mmit(mminterface, memorymanager_t)         \
    ( __extension__ ({                                          \
       static_assert(                                           \
-         offsetof(typeof(*(mminterface)), mresize)             \
-         == offsetof(mm_it, mresize)                           \
-         && offsetof(typeof(*(mminterface)), mfree)            \
-            == offsetof(mm_it, mfree)                          \
-         && offsetof(typeof(*(mminterface)), sizeallocated)    \
-            == offsetof(mm_it, sizeallocated),                 \
+         &((typeof(mminterface))0)->mresize                    \
+         == (int (**) (memorymanager_t*,                       \
+                       size_t, struct memblock_t*))            \
+            &((mm_it*)0)->mresize                              \
+         && &((typeof(mminterface))0)->mfree                   \
+            == (int (**) (memorymanager_t*,                    \
+                          struct memblock_t*))                 \
+            &((mm_it*)0)->mfree                                \
+         && &((typeof(mminterface))0)->sizeallocated           \
+            == (size_t (**) (memorymanager_t*))                \
+            &((mm_it*)0)->sizeallocated,                       \
          "ensure same structure") ;                            \
-      if (0) {                                                 \
-         int _err = (mminterface)->mresize(                    \
-                     (memorymanager_t*)0, (size_t)-1,          \
-                     (struct memblock_t*)0) ;                  \
-         _err += (mminterface)->mfree(                         \
-                     (memorymanager_t*)0,                      \
-                     (struct memblock_t*)0) ;                  \
-         size_t _err2 = (mminterface)->sizeallocated(          \
-                     (memorymanager_t*)0) ;                    \
-         (void) (_err2 + (size_t)_err) ;                       \
-      }                                                        \
       (mm_it*) (mminterface) ;                                 \
    }))
 

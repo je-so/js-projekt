@@ -7,6 +7,7 @@ Src           += C-kern/main/tools/generrtab.c
 Src           += C-kern/platform/Linux/io/file.c
 Src           += C-kern/io/filesystem/fileutil.c
 Src           += C-kern/memory/wbuffer.c
+Src           += C-kern/string/cstring.c
 Includes       = .
 Defines        = KONFIG_SUBSYS=KONFIG_none
 

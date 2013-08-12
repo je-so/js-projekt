@@ -30,6 +30,7 @@
 #include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/wbuffer.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/startup.h"
 
@@ -160,9 +161,10 @@ static int main_thread(int argc, const char * argv[])
    int err ;
    static strtable_t errtable[2] ;
    const char *      filename ;
-   wbuffer_t         filecontent = wbuffer_INIT_DYNAMIC ;
+   memblock_t        filedata    = memblock_INIT_FREEABLE ;
+   wbuffer_t         filecontent = wbuffer_INIT_MEMBLOCK(&filedata) ;
+   size_t            filesize ;
    char              langid[10] ;
-   memblock_t        filedata ;
    file_t            file = file_INIT_FREEABLE ;
 
    err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
@@ -175,10 +177,9 @@ static int main_thread(int argc, const char * argv[])
    // load old file content
    err = load_file(filename, &filecontent, 0) ;
    if (err) goto ONABORT ;
-   err = firstmemblock_wbuffer(&filecontent, &filedata) ;
-   if (err) goto ONABORT ;
-   uint8_t endbyte = filedata.addr[filedata.size-1] ;
-   filedata.addr[filedata.size-1] = 0 ;
+   filesize = size_wbuffer(&filecontent) ;
+   uint8_t endbyte = filedata.addr[filesize-1] ;
+   filedata.addr[filesize-1] = 0 ;
 
    // get current language id
    strncpy(langid, current_locale(), sizeof(langid)) ;
@@ -202,9 +203,9 @@ static int main_thread(int argc, const char * argv[])
    if (!err) err = write_table(file, langid, errtable) ;
 
    char * tail = head ? strstr(head+1, "### END ###\n") : 0 ;
-   filedata.addr[filedata.size-1] = endbyte ;
+   filedata.addr[filesize-1] = endbyte ;
    if (tail) {
-      size_t tailsize = filedata.size - (size_t)((uint8_t*)tail + 12 - filedata.addr) ;
+      size_t tailsize = filesize - (size_t)((uint8_t*)tail + 12 - filedata.addr) ;
       memcpy(tail, tail + 12, tailsize) ;
       tail[tailsize] = 0 ;
       if (!err) err = writestring_errtable(file, tail) ;
@@ -216,7 +217,7 @@ static int main_thread(int argc, const char * argv[])
       goto ONABORT ;
    }
 
-   (void) free_wbuffer(&filecontent) ;
+   (void) FREE_MM(&filedata) ;
 
    err = free_maincontext() ;
    if (err) goto ONABORT ;
@@ -229,9 +230,9 @@ PRINT_USAGE:
    dprintf(STDERR_FILENO, "\nUsage:\n %s <file>\n", progname_maincontext()) ;
 ONABORT:
    free_file(&file) ;
-   free_wbuffer(&filecontent) ;
+   (void) FREE_MM(&filedata) ;
    free_maincontext() ;
-   return 1 ;
+   return err ;
 }
 
 int main(int argc, const char * argv[])

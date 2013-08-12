@@ -80,6 +80,11 @@
  * Static initializer for <sys_mutex_t>. */
 #define sys_mutex_INIT_DEFAULT         PTHREAD_MUTEX_INITIALIZER
 
+/* define: sys_path_MAXSIZE
+ * The maximum size in bytes of a file system path.
+ * The size includes the trailing '\0' byte. */
+#define sys_path_MAXSIZE               PATH_MAX
+
 /* define: sys_process_t
  * Chooses Posix process id. */
 #define sys_process_t                  pid_t

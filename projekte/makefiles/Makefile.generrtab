@@ -99,7 +99,8 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!main!tools!generrtab.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
- $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o
+ $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!string!cstring.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
@@ -127,7 +128,8 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!main!tools!generrtab.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
- $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o
+ $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!string!cstring.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -213,6 +215,9 @@ $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileu
 $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
 $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
 	@$(CC_Release)
 
@@ -289,6 +294,9 @@ $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fil
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

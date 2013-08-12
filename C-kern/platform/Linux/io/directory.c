@@ -25,10 +25,12 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/filesystem/directory.h"
+#include "C-kern/api/err.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/iochannel.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/string/cstring.h"
-#include "C-kern/api/err.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include <glob.h>
 #include "C-kern/api/test.h"
@@ -39,6 +41,14 @@
  * Alias for POSIX specific DIR structure. */
 struct directory_t ;
 
+// group: variables
+
+#ifdef KONFIG_UNITTEST
+/* variable: s_directory_errtimer
+ * Simulates an error in <path_directory>. */
+static test_errortimer_t   s_directory_errtimer = test_errortimer_INIT_FREEABLE ;
+#endif
+
 // group: helper
 
 static inline DIR * asDIR_directory(const directory_t * dir)
@@ -46,14 +56,14 @@ static inline DIR * asDIR_directory(const directory_t * dir)
    return (DIR*) CONST_CAST(directory_t, dir) ;
 }
 
-// group: implementation
+// group: query
 
 int checkpath_directory(const directory_t * dir, const char * const file_path)
 {
    int err ;
    struct stat sbuf ;
 
-   VALIDATE_INPARAM_TEST(0 != file_path, ONABORT, ) ;
+   if (0 == file_path) return EINVAL ;
 
    if (dir) {
       err = fstatat(io_directory(dir), file_path, &sbuf, 0) ;
@@ -64,9 +74,6 @@ int checkpath_directory(const directory_t * dir, const char * const file_path)
    if (err) return errno ;
 
    return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
 }
 
 int filesize_directory(const directory_t * relative_to, const char * file_path, /*out*/off_t * file_size)
@@ -93,6 +100,116 @@ ONABORT:
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
+
+int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
+{
+   int err ;
+   int         dfd    = io_directory(dir) ;
+   int         dfd2   = -1 ;
+   DIR *       sysdir = 0 ;
+   struct stat filestat ;
+   size_t      rpath_offset = sys_path_MAXSIZE-1 ; // append 0 byte
+   uint8_t     rpath[sys_path_MAXSIZE] ;
+
+   rpath[sys_path_MAXSIZE-1] = 0 ;
+
+   ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+   err = stat("/", &filestat) ;
+   if (err) {
+      err = errno ;
+      TRACESYSCALL_ERRLOG("stat('/',...)", err) ;
+      goto ONABORT ;
+   }
+
+   const ino_t  rootinode = filestat.st_ino ;
+
+   for (;;) {
+      ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+      err = fstat(dfd, &filestat) ;
+      if (err) {
+         err = errno ;
+         TRACESYSCALL_ERRLOG("fstat", err) ;
+         goto ONABORT ;
+      }
+      if (rootinode == filestat.st_ino) {
+         break ;  // root directory ==> DONE
+      }
+      dfd2 = openat(dfd, "..", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) ;
+      if (-1 == dfd2) {
+         err = errno ;
+         TRACESYSCALL_ERRLOG("openat('..')", err) ;
+         goto ONABORT ;
+      }
+      if (sysdir && closedir(sysdir)) {
+         sysdir = 0 ;   // (sysdir == 0) ==> dfd2 closed
+         err = errno ;
+         TRACESYSCALL_ERRLOG("closedir", err) ;
+         goto ONABORT ;
+      }
+      #ifdef KONFIG_UNITTEST
+      sysdir = 0 ;
+      ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+      #endif
+      sysdir = fdopendir(dfd2) ;
+      if (!sysdir) {
+         // (sysdir == 0) ==> dfd2 closed
+         err = errno ;
+         TRACESYSCALL_ERRLOG("fdopendir", err) ;
+         goto ONABORT ;
+      }
+      dfd = dfd2 ;
+      for (;;) {
+         ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+         errno  = 0 ;
+         struct dirent * direntry = readdir(sysdir) ;
+         if (!direntry) {
+            if (errno) {
+               err = errno ;
+               TRACESYSCALL_ERRLOG("readdir", err) ;
+               goto ONABORT ;
+            }
+            err = ENOENT ;
+            goto ONABORT ;
+         }
+         if (filestat.st_ino == direntry->d_ino) {
+            size_t namesize = strlen(direntry->d_name) ;
+            if (rpath_offset < namesize + 1) {
+               err = ENAMETOOLONG ;
+               goto ONABORT ;
+            }
+            rpath_offset -= namesize ;
+            memcpy(rpath + rpath_offset, direntry->d_name, namesize) ;
+            rpath[--rpath_offset] = '/' ;
+            break ;
+         }
+      }
+   }
+
+   // copy rpath into path
+   ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+   size_t path_size = sys_path_MAXSIZE - rpath_offset ;
+   clear_wbuffer(path) ;
+   if (1 == path_size) {
+      rpath[--rpath_offset] = '/' ;
+      ++ path_size ;
+   }
+   err = appendcopy_wbuffer(path, path_size, rpath + rpath_offset) ;
+   if (err) goto ONABORT ;
+
+   if (sysdir) (void) closedir(sysdir) ;
+
+   return 0 ;
+ONABORT:
+   if (sysdir) {
+      closedir(sysdir) ;
+   } else if (-1 != dfd2) {
+      close(dfd2) ;
+   }
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
+}
+
+// group: lifetime
 
 int new_directory(/*out*/directory_t ** dir, const char * dir_path, const directory_t * relative_to)
 {
@@ -139,32 +256,29 @@ ONABORT:
    return err ;
 }
 
-int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, cstring_t * dir_path)
+int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix)
 {
    int err ;
-   directory_t * newdir = 0 ;
-   char *      mkdpath  = 0 ;
-   size_t      dir_len  = strlen(P_tmpdir) ;
-   size_t      name_len = name_prefix ? strlen(name_prefix) : 0 ;
-   size_t      tmpsize  = dir_len + name_len + 1 + 7 + 1 ;
-   cstring_t   buffer   = cstring_INIT ;
-   cstring_t * tmppath  = dir_path ? dir_path : &buffer ;
+   directory_t *  newdir   = 0 ;
+   char *         mkdpath  = 0 ;
+   size_t         dir_len  = strlen(P_tmpdir) ;
+   size_t         name_len = name_prefix ? strlen(name_prefix) : 0 ;
+   size_t         tmpsize  = dir_len + name_len + 1 + 7 + 1 ;
+   cstring_t      tmppath  = cstring_INIT ;
 
-   err = allocate_cstring(tmppath, tmpsize) ;
-   if (err) goto ONABORT ;
-
-   clear_cstring(tmppath) ;
-
-   err = append_cstring(tmppath, dir_len, P_tmpdir) ;
-   if (err) goto ONABORT ;
-   err = append_cstring(tmppath, 1, "/") ;
-   if (err) goto ONABORT ;
-   err = append_cstring(tmppath, name_len, name_prefix) ;
-   if (err) goto ONABORT ;
-   err = append_cstring(tmppath, 7, ".XXXXXX") ;
+   err = allocate_cstring(&tmppath, tmpsize) ;
    if (err) goto ONABORT ;
 
-   mkdpath = mkdtemp(str_cstring(tmppath)) ;
+   err = append_cstring(&tmppath, dir_len, P_tmpdir) ;
+   if (err) goto ONABORT ;
+   err = append_cstring(&tmppath, 1, "/") ;
+   if (err) goto ONABORT ;
+   err = append_cstring(&tmppath, name_len, name_prefix) ;
+   if (err) goto ONABORT ;
+   err = append_cstring(&tmppath, 7, ".XXXXXX") ;
+   if (err) goto ONABORT ;
+
+   mkdpath = mkdtemp(str_cstring(&tmppath)) ;
    if (!mkdpath) {
       err = errno ;
       TRACESYSCALL_ERRLOG("mkdtemp",err) ;
@@ -174,7 +288,7 @@ int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, cstri
    err = new_directory(&newdir, mkdpath, NULL) ;
    if (err) goto ONABORT ;
 
-   err = free_cstring(&buffer) ;
+   err = free_cstring(&tmppath) ;
    if (err) goto ONABORT ;
 
    *dir = newdir ;
@@ -184,8 +298,7 @@ ONABORT:
    if (mkdpath) {
       rmdir(mkdpath) ;
    }
-   clear_cstring(tmppath) ;
-   free_cstring(&buffer) ;
+   free_cstring(&tmppath) ;
    delete_directory(&newdir) ;
    TRACEABORT_ERRLOG(err) ;
    return err ;
@@ -213,6 +326,8 @@ ONABORT:
    TRACEABORTFREE_ERRLOG(err) ;
    return err ;
 }
+
+// group: read
 
 int next_directory(directory_t * dir, /*out*/const char ** name, /*out*/filetype_e * ftype)
 {
@@ -276,6 +391,7 @@ ONABORT:
    return err ;
 }
 
+// group: write
 
 int makedirectory_directory(directory_t * dir, const char * directory_path)
 {
@@ -494,9 +610,10 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   directory_t  * temp_dir = 0 ;
-   directory_t  * dir      = 0 ;
-   cstring_t      tmppath  = cstring_INIT ;
+   directory_t  * temp_dir  = 0 ;
+   directory_t  * dir       = 0 ;
+   cstring_t      tmppath   = cstring_INIT ;
+   wbuffer_t      tmppathwb = wbuffer_INIT_CSTRING(&tmppath) ;
    const char *   fname ;
    size_t         nr_files ;
    glob_t         fndfiles ;
@@ -540,9 +657,10 @@ static int test_initfree(void)
    TEST(!dir) ;
 
    // TEST newtemp
-   TEST(0 == newtemp_directory(&temp_dir, "test1", &tmppath)) ;
+   TEST(0 == newtemp_directory(&temp_dir, "test1")) ;
    TEST(0 != temp_dir) ;
-   TEST(17 == size_cstring(&tmppath)) ;
+   TEST(0 == path_directory(temp_dir, &tmppathwb)) ;
+   TEST(17 == size_wbuffer(&tmppathwb)-1/*null byte*/) ;
    TEST(0 == strncmp(str_cstring(&tmppath), "/tmp/test1.", 11)) ;
    TEST(0 == glob(str_cstring(&tmppath), GLOB_NOSORT, 0, &fndfiles)) ;
    TEST(1 == fndfiles.gl_pathc) ;
@@ -724,14 +842,14 @@ ONABORT:
 
 static int test_filesize(void)
 {
-   directory_t * workdir = 0 ;
-   directory_t * tempdir = 0 ;
-   cstring_t     tmppath = cstring_INIT ;
-
-   TEST(0 == new_directory(&workdir, "", 0)) ;
-   TEST(0 == newtemp_directory(&tempdir, "tempdir", &tmppath)) ;
+   directory_t * workdir   = 0 ;
+   directory_t * tempdir   = 0 ;
+   cstring_t     tmppath   = cstring_INIT ;
+   wbuffer_t     tmppathwb = wbuffer_INIT_CSTRING(&tmppath) ;
 
    // prepare
+   TEST(0 == new_directory(&workdir, "", 0)) ;
+   TEST(0 == newtemp_directory(&tempdir, "tempdir")) ;
    for (int i = 0; i < 100; ++i) {
       char filename[100] ;
       sprintf( filename, "file_%06d", i) ;
@@ -769,6 +887,7 @@ static int test_filesize(void)
       sprintf( filename, "file_%06d", i) ;
       TEST(0 == removefile_directory(tempdir, filename)) ;
    }
+   TEST(0 == path_directory(tempdir, &tmppathwb)) ;
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
 
    TEST(0 == free_cstring(&tmppath)) ;
@@ -786,11 +905,91 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_query_path(void)
+{
+   directory_t * tempdir = 0 ;
+   directory_t * dir     = 0 ;
+   char          buffer[sys_path_MAXSIZE] ;
+   wbuffer_t     pathwb  = wbuffer_INIT_STATIC(sizeof(buffer), (uint8_t*)buffer) ;
+   cstring_t     path    = cstring_INIT ;
+   cstring_t     parent  = cstring_INIT ;
+
+   // prepare
+   TEST(0 == newtemp_directory(&tempdir, "qp")) ;
+
+   // TEST path_directory: /
+   TEST(0 == new_directory(&dir, "/", 0)) ;
+   TEST(0 == path_directory(dir, &pathwb)) ;
+   TEST(2 == size_wbuffer(&pathwb)) ;
+   TEST(0 == strcmp(buffer, "/")) ;
+   TEST(0 == delete_directory(&dir)) ;
+
+   // TEST path_directory: temp directory
+   TEST(0 == path_directory(tempdir, &pathwb)) ;
+   TEST(8 <  size_wbuffer(&pathwb)-1/*null byte*/) ;
+   TEST(0 == strncmp(buffer, "/tmp/qp.", 8)) ;
+   TEST(0 == new_directory(&dir, "..", tempdir)) ;
+   TEST(0 == path_directory(dir, &pathwb)) ;
+   TEST(5 == size_wbuffer(&pathwb)) ;
+   TEST(0 == strcmp(buffer, "/tmp")) ;
+   TEST(0 == delete_directory(&dir)) ;
+
+   // TEST path_directory: follow chain
+   const char * testname[] = {
+      "__test__", "abc---^^__.ddd.d", "query", "gnavsoq5789vmdkwdzenv", "asvuhwenwef8236235nj",
+      "1", "2", "3", "4", "9", "_usr", "lib", "opt", "simple", ".vvv", "-", "--", ".d.d",
+      "xx_____________________________XX%%$''"
+   } ;
+   char temppath[20] = { 0 } ;
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_STATIC(sizeof(temppath)-1, (uint8_t*)temppath))) ;
+   strcat(temppath, "/") ;
+   for (unsigned i = 0; i < lengthof(testname); ++i) {
+      if (size_cstring(&parent)) {
+         TEST(0 == append_cstring(&parent, 1, "/")) ;
+      }
+      TEST(0 == append_cstring(&parent, strlen(testname[i]), testname[i])) ;
+      size_t S = size_cstring(&parent) + strlen(temppath) ;
+      TEST(0 == makedirectory_directory(tempdir, str_cstring(&parent))) ;
+      TEST(0 == new_directory(&dir, str_cstring(&parent), tempdir)) ;
+      TEST(0 == path_directory(dir, &pathwb)) ;
+      TEST(S == size_wbuffer(&pathwb)-1) ;
+      TEST(0 == strncmp(buffer, temppath, strlen(temppath))) ;
+      TEST(0 == strcmp(buffer + strlen(temppath), str_cstring(&parent))) ;
+      TEST(0 == delete_directory(&dir)) ;
+   }
+
+   // TEST path_directory: ERROR
+   TEST(0 == makedirectory_directory(tempdir, "1")) ;
+   TEST(0 == makedirectory_directory(tempdir, "2")) ;
+   TEST(0 == new_directory(&dir, "2", tempdir)) ;
+   TEST(0 == resize_cstring(&path, 2)) ;
+   for (unsigned i = 1; i < 20; ++i) {
+      init_testerrortimer(&s_directory_errtimer, i, 1000) ;
+      int err = path_directory(dir, &pathwb) ;
+      TEST(1000 == err) ;
+      TEST(2 == size_cstring(&path)) ;
+   }
+
+   // unprepare
+   TEST(0 == delete_directory(&dir)) ;
+   TEST(0 == delete_directory(&tempdir)) ;
+   TEST(0 == free_cstring(&path)) ;
+   TEST(0 == free_cstring(&parent)) ;
+
+   return 0 ;
+ONABORT:
+   free_cstring(&path) ;
+   free_cstring(&parent) ;
+   delete_directory(&tempdir) ;
+   delete_directory(&dir) ;
+   return EINVAL ;
+}
+
 int unittest_io_directory()
 {
    resourceusage_t   usage      = resourceusage_INIT_FREEABLE ;
    unsigned          open_count = 0 ;
-   directory_t     * dummydir[8] ;
+   iochannel_t       dummyfile[8] ;
 
    if (test_initfree())          goto ONABORT ;
    CLEARBUFFER_ERRLOG() ;
@@ -801,8 +1000,8 @@ int unittest_io_directory()
    {
       size_t nrfdopen ;
       TEST(0 == nropen_iochannel(&nrfdopen)) ;
-      for (;nrfdopen < 8; ++ nrfdopen) {
-         TEST(0 == new_directory(&dummydir[open_count ++], "", 0)) ;
+      for (;nrfdopen < 8; ++ nrfdopen, ++ open_count) {
+         TEST(0 == initcopy_iochannel(&dummyfile[open_count], STDOUT_FILENO)) ;
       }
    }
 
@@ -810,9 +1009,10 @@ int unittest_io_directory()
    if (test_initfree())          goto ONABORT ;
    if (test_workingdir())        goto ONABORT ;
    if (test_filesize())          goto ONABORT ;
+   if (test_query_path())        goto ONABORT ;
 
    while (open_count) {
-      TEST(0 == delete_directory(&dummydir[--open_count])) ;
+      TEST(0 == free_iochannel(&dummyfile[--open_count])) ;
    }
 
    TEST(0 == same_resourceusage(&usage)) ;
@@ -821,7 +1021,7 @@ int unittest_io_directory()
    return 0 ;
 ONABORT:
    while (open_count) {
-      TEST(0 == delete_directory(&dummydir[--open_count])) ;
+      free_iochannel(&dummyfile[--open_count]) ;
    }
    (void) free_resourceusage(&usage) ;
    return EINVAL ;

@@ -105,6 +105,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!string!cstring.c.o \
  $(ObjectDir_Debug)/C-kern!string!string.c.o \
  $(ObjectDir_Debug)/C-kern!string!utf8.c.o
@@ -141,6 +142,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!file.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o \
  $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o \
+ $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!string!cstring.c.o \
  $(ObjectDir_Release)/C-kern!string!string.c.o \
  $(ObjectDir_Release)/C-kern!string!utf8.c.o
@@ -244,6 +246,9 @@ $(ObjectDir_Debug)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/io
 $(ObjectDir_Debug)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
 	@$(CC_Debug)
 
@@ -344,6 +349,9 @@ $(ObjectDir_Release)/C-kern!platform!Linux!io!mmfile.c.o: C-kern/platform/Linux/
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!io!directory.c.o: C-kern/platform/Linux/io/directory.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!wbuffer.c.o: C-kern/memory/wbuffer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c

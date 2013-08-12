@@ -34,6 +34,7 @@
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/fileutil.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/string/cstring.h"
 #endif
 
@@ -495,7 +496,8 @@ int unittest_io_reader_utf8reader()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "utf8reader", &tmppath)) ;
+   TEST(0 == newtemp_directory(&tempdir, "utf8reader")) ;
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
    if (test_initfree(tempdir))   goto ONABORT ;
    if (test_query())             goto ONABORT ;

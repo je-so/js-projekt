@@ -32,6 +32,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/string/cstring.h"
 #endif
 
 
@@ -326,13 +327,14 @@ int encode_url(const url_t * url, /*ret*/wbuffer_t * encoded_url_string)
       buffer_offset = url->parts[i] ;
    }
 
+   clear_wbuffer(encoded_url_string) ;
    err = appendbytes_wbuffer(encoded_url_string, result_size, &start_result) ;
    if (err) goto ONABORT ;
 
    // encode & copy parts to result
-   memcpy( start_result, "http://", sizeof("http://")-1) ;
-   uint8_t  * result = start_result + sizeof("http://")-1 ;
-   bool     isuser   = false ;
+   memcpy(start_result, "http://", sizeof("http://")-1) ;
+   uint8_t* result = start_result + sizeof("http://")-1 ;
+   bool     isuser = false ;
    buffer_offset = 0 ;
    for (unsigned i = 0; i < lengthof(url->parts); ++i) {
       size_t size = (size_t) (url->parts[i] - buffer_offset) ;
@@ -383,11 +385,11 @@ ONABORT:
 static int test_url_initfree(void)
 {
    url_t      * url  = 0 ;
-   wbuffer_t    str  = wbuffer_INIT_DYNAMIC ;
-   memblock_t   data ;
+   cstring_t    str  = cstring_INIT ;
+   wbuffer_t    wbuf = wbuffer_INIT_CSTRING(&str) ;
    const char * test ;
 
-   // TEST init, double free
+   // TEST new_url, delete_url
    TEST(0 == new_url(&url, "http://127.0.0.1/")) ;
    TEST(0 != url) ;
    TEST(0 == delete_url(&url)) ;
@@ -395,7 +397,7 @@ static int test_url_initfree(void)
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST full url
+   // TEST new_url: full url
    test = "http://user1:passwd2@server3.de:123/d1/d2?x=a#frag9" ;
    TEST(0 == new_url(&url, test)) ;
    TEST(0 != url) ;
@@ -413,16 +415,14 @@ static int test_url_initfree(void)
    TEST(0 == strcmp((const char*)path_url(url), "d1/d2")) ;
    TEST(0 == strcmp((const char*)query_url(url), "x=a")) ;
    TEST(0 == strcmp((const char*)fragment_url(url), "frag9")) ;
-   TEST(0 == encode_url(url, &str)) ;
+   TEST(0 == encode_url(url, &wbuf)) ;
    test = "http://user1:passwd2@server3.de:123/d1/d2?x%3Da#frag9" ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test) == size_memblock(&data)) ;
-   TEST(0 == strncmp(test, (char*)addr_memblock(&data), size_memblock(&data))) ;
-   clear_wbuffer(&str);
+   TEST(strlen(test) == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp(test, str_cstring(&str), size_wbuffer(&wbuf))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST null or empty
+   // TEST new_url: null or empty
    test = "http://" ;
    TEST(0 == new_url(&url, test)) ;
    TEST(0 != url) ;
@@ -434,15 +434,13 @@ static int test_url_initfree(void)
    TEST(0 == path_url(url)) ;
    TEST(0 == query_url(url)) ;
    TEST(0 == fragment_url(url)) ;
-   TEST(0 == encode_url(url, &str)) ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test) == size_memblock(&data)) ;
-   TEST(0 == strncmp(test, (char*)addr_memblock(&data), size_memblock(&data))) ;
-   clear_wbuffer(&str);
+   TEST(0 == encode_url(url, &wbuf)) ;
+   TEST(strlen(test) == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp(test, str_cstring(&str), size_wbuffer(&wbuf))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST '/' marks begin of path
+   // TEST new_url: '/' marks begin of path
    test = "http://www.test.de:80/user1@/d1/?a_c#fragX" ;
    TEST(0 == new_url(&url, test)) ;
    TEST(0 != url) ;
@@ -458,16 +456,14 @@ static int test_url_initfree(void)
    TEST(0 == strcmp((const char*)path_url(url), "user1@/d1/")) ;
    TEST(0 == strcmp((const char*)query_url(url), "a_c")) ;
    TEST(0 == strcmp((const char*)fragment_url(url), "fragX")) ;
-   TEST(0 == encode_url(url, &str)) ;
+   TEST(0 == encode_url(url, &wbuf)) ;
    test = "http://www.test.de:80/user1%40/d1/?a_c#fragX" ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test) == size_memblock(&data)) ;
-   TEST(0 == strncmp(test, (char*)addr_memblock(&data), size_memblock(&data))) ;
-   clear_wbuffer(&str);
+   TEST(strlen(test) == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp(test, str_cstring(&str), size_wbuffer(&wbuf))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST encoded parts
+   // TEST new_url: encoded parts
    test = "http://%00%11%22%33%44%55%66%77%88%99xX:99/%Aa%Bb%Cc%Dd%Ee%FfyY/?Query/#/%aA%bB%cC%dD%eE%fFzZ" ;
    TEST(0 == new_url(&url, test)) ;
    TEST(0 != url) ;
@@ -484,16 +480,14 @@ static int test_url_initfree(void)
    TEST(0 == strcmp((const char*)path_url(url), "\xaa\xbb\xcc\xdd\xee\xffyY/")) ;
    TEST(0 == strcmp((const char*)query_url(url), "Query/")) ;
    TEST(0 == strcmp((const char*)fragment_url(url), "/\xaa\xbb\xcc\xdd\xee\xffzZ")) ;
-   TEST(0 == encode_url(url, &str)) ;
+   TEST(0 == encode_url(url, &wbuf)) ;
    test = "http://%00%11%223DUfw%88%99xX:99/%AA%BB%CC%DD%EE%FFyY/?Query%2F#%2F%AA%BB%CC%DD%EE%FFzZ" ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test) == size_memblock(&data)) ;
-   TEST(0 == strncmp(test, (char*)addr_memblock(&data), size_memblock(&data))) ;
-   clear_wbuffer(&str);
+   TEST(strlen(test) == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp(test, str_cstring(&str), size_wbuffer(&wbuf))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST new2
+   // TEST new2_url
    test = "usr:pass@a%88%99b:44/%AA%BB%FF?_1#_2" ;
    TEST(0 == new2_url(&url, url_scheme_HTTP, test)) ;
    TEST(0 != url) ;
@@ -509,16 +503,14 @@ static int test_url_initfree(void)
    TEST(0 == strcmp((const char*)path_url(url), "\xaa\xbb\xff")) ;
    TEST(0 == strcmp((const char*)query_url(url), "_1")) ;
    TEST(0 == strcmp((const char*)fragment_url(url), "_2")) ;
-   TEST(0 == encode_url(url, &str)) ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test)+7 == size_memblock(&data)) ;
-   TEST(0 == strncmp("http://", (char*)addr_memblock(&data), 7)) ;
-   TEST(0 == strncmp(test, 7+(char*)addr_memblock(&data), strlen(test))) ;
-   clear_wbuffer(&str);
+   TEST(0 == encode_url(url, &wbuf)) ;
+   TEST(strlen(test)+7 == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp("http://", str_cstring(&str), 7)) ;
+   TEST(0 == strncmp(test, 7+str_cstring(&str), strlen(test))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST new2 path only
+   // TEST new2_url: path only
    test = "/path%88%99x" ;
    TEST(0 == new2_url(&url, url_scheme_HTTP, test)) ;
    TEST(0 != url) ;
@@ -531,16 +523,14 @@ static int test_url_initfree(void)
    TEST(0 == fragment_url(url)) ;
    TEST(0 == strcmp((const char*)hostname_url(url), "")) ;
    TEST(0 == strcmp((const char*)path_url(url), "path\x88\x99x")) ;
-   TEST(0 == encode_url(url, &str)) ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test)+7 == size_memblock(&data)) ;
-   TEST(0 == strncmp("http://", (char*)addr_memblock(&data), 7)) ;
-   TEST(0 == strncmp(test, 7+(char*)addr_memblock(&data), strlen(test))) ;
-   clear_wbuffer(&str);
+   TEST(0 == encode_url(url, &wbuf)) ;
+   TEST(strlen(test)+7 == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp("http://", str_cstring(&str), 7)) ;
+   TEST(0 == strncmp(test, 7+str_cstring(&str), strlen(test))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST new2 port + path only
+   // TEST new2_url: port + path only
    test = ":33/path%88%99%" ;
    TEST(0 == new2_url(&url, url_scheme_HTTP, test)) ;
    TEST(0 != url) ;
@@ -554,17 +544,15 @@ static int test_url_initfree(void)
    TEST(0 == strcmp((const char*)hostname_url(url), "")) ;
    TEST(0 == strcmp((const char*)port_url(url), "33")) ;
    TEST(0 == strcmp((const char*)path_url(url), "path\x88\x99%")) ;
-   TEST(0 == encode_url(url, &str)) ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test)+9 == size_memblock(&data)) ;
-   TEST(0 == strncmp("http://", (char*)addr_memblock(&data), 7)) ;
-   TEST(0 == strncmp(test, 7+(char*)addr_memblock(&data), strlen(test))) ;
-   TEST(0 == strncmp("25", 7+strlen(test)+(char*)addr_memblock(&data), 2)) ;
-   clear_wbuffer(&str);
+   TEST(0 == encode_url(url, &wbuf)) ;
+   TEST(strlen(test)+9 == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp("http://", str_cstring(&str), 7)) ;
+   TEST(0 == strncmp(test, 7+str_cstring(&str), strlen(test))) ;
+   TEST(0 == strncmp("25", 7+strlen(test)+str_cstring(&str), 2)) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST new2 username & path only
+   // TEST new2_url: username & path only
    test = "user%FF@/path%88%9" ;
    TEST(0 == new2_url(&url, url_scheme_HTTP, test)) ;
    TEST(0 != url) ;
@@ -578,17 +566,15 @@ static int test_url_initfree(void)
    TEST(0 == strcmp((const char*)user_url(url), "user\xff")) ;
    TEST(0 == strcmp((const char*)hostname_url(url), "")) ;
    TEST(0 == strcmp((const char*)path_url(url), "path\x88%9")) ;
-   TEST(0 == encode_url(url, &str)) ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test)+9 == size_memblock(&data)) ;
-   TEST(0 == strncmp("http://", (char*)addr_memblock(&data), 7)) ;
-   TEST(0 == strncmp(test, 7+(char*)addr_memblock(&data), strlen(test)-2)) ;
-   TEST(0 == strncmp("%259", 5+strlen(test)+(char*)addr_memblock(&data), 4)) ;
-   clear_wbuffer(&str);
+   TEST(0 == encode_url(url, &wbuf)) ;
+   TEST(strlen(test)+9 == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp("http://", str_cstring(&str), 7)) ;
+   TEST(0 == strncmp(test, 7+str_cstring(&str), strlen(test)-2)) ;
+   TEST(0 == strncmp("%259", 5+strlen(test)+str_cstring(&str), 4)) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST newparts not encoded
+   // TEST newparts_url: not encoded
    test = "us:pw@serv.xx@/@:/?@/#?/#:" ;
    url_parts_t parts = {
       string_INIT(2, (const uint8_t*)&test[0]), string_INIT(2, (const uint8_t*)&test[3]), string_INIT(8, (const uint8_t*)&test[6]), string_INIT_FREEABLE,
@@ -609,16 +595,14 @@ static int test_url_initfree(void)
    TEST(0 == strcmp((const char*)path_url(url), "@:/")) ;
    TEST(0 == strcmp((const char*)query_url(url), "@/")) ;
    TEST(0 == strcmp((const char*)fragment_url(url), "?/#:")) ;
-   TEST(0 == encode_url(url, &str)) ;
+   TEST(0 == encode_url(url, &wbuf)) ;
    test = "http://us:pw@serv.xx%40/%40%3A/?%40%2F#%3F%2F%23%3A" ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test) == size_memblock(&data)) ;
-   TEST(0 == strncmp(test, (char*)addr_memblock(&data), strlen(test))) ;
-   clear_wbuffer(&str);
+   TEST(strlen(test) == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp(test, str_cstring(&str), strlen(test))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   // TEST newparts user + undefined hostname
+   // TEST newparts_url: user + undefined hostname
    test = "http://12:3@/path?q#f" ;
    memcpy( parts, (url_parts_t) {
       { (const uint8_t*)&test[7], 2 },  { (const uint8_t*)&test[10], 1 }, { 0, 0}, {0, 0},
@@ -638,20 +622,19 @@ static int test_url_initfree(void)
    TEST(0 == strcmp((const char*)path_url(url), "path")) ;
    TEST(0 == strcmp((const char*)query_url(url), "q")) ;
    TEST(0 == strcmp((const char*)fragment_url(url), "f")) ;
-   TEST(0 == encode_url(url, &str)) ;
-   TEST(0 == firstmemblock_wbuffer(&str, &data)) ;
-   TEST(strlen(test) == size_memblock(&data)) ;
-   TEST(0 == strncmp(test, (char*)addr_memblock(&data), strlen(test))) ;
-   clear_wbuffer(&str);
+   TEST(0 == encode_url(url, &wbuf)) ;
+   TEST(strlen(test) == size_wbuffer(&wbuf)) ;
+   TEST(0 == strncmp(test, str_cstring(&str), strlen(test))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
 
-   TEST(0 == free_wbuffer(&str)) ;
+   // unprepare
+   TEST(0 == free_cstring(&str)) ;
 
    return 0 ;
 ONABORT:
    delete_url(&url) ;
-   free_wbuffer(&str) ;
+   free_cstring(&str) ;
    return EINVAL ;
 }
 

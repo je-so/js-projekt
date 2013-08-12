@@ -1,61 +1,61 @@
-[1: 1374953316.660961s]
+[1: 1375300301.358240s]
 initdiff_arraystfkeyval() C-kern/ds/inmem/arraystf.c:130
 Error 22 - Invalid argument
 Function input violates condition (size1 != size2)
-[1: 1374953316.660966s]
+[1: 1375300301.358246s]
 initdiff_arraystfkeyval() C-kern/ds/inmem/arraystf.c:140
 Error 22 - Invalid argument
 Function aborted
-[1: 1374953316.834705s]
+[1: 1375300301.534619s]
 new_arraystf() C-kern/ds/inmem/arraystf.c:252
 Error 22 - Invalid argument
 Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
-[1: 1374953316.834719s]
+[1: 1375300301.534633s]
 new_arraystf() C-kern/ds/inmem/arraystf.c:267
 Error 22 - Invalid argument
 Function aborted
-[1: 1374953316.834721s]
+[1: 1375300301.534636s]
 find_arraystf() C-kern/ds/inmem/arraystf.c:170
 Error 22 - Invalid argument
 Function input violates condition (keynode->size < SIZE_MAX)
-[1: 1374953316.834723s]
+[1: 1375300301.534638s]
 find_arraystf() C-kern/ds/inmem/arraystf.c:238
 Error 22 - Invalid argument
 Function aborted
-[1: 1374953316.834726s]
+[1: 1375300301.534641s]
 insert_arraystf() C-kern/ds/inmem/arraystf.c:619
 Error 17 - File exists
 Function aborted
-[1: 1374953316.834729s]
+[1: 1375300301.534643s]
 remove_arraystf() C-kern/ds/inmem/arraystf.c:601
 Error 3 - No such process
 Function aborted
-[1: 1374953316.836670s]
+[1: 1375300301.536562s]
 delete_arraystf() C-kern/ds/inmem/arraystf.c:353
 Error 12345 - Unknown error
 Function aborted - one or more resources could not be freed
-[1: 1374953316.860174s]
-mresize_testmm() C-kern/test/testmm.c:676
+[1: 1375300301.559948s]
+mresize_testmm() C-kern/test/testmm.c:677
 Error 12 - Cannot allocate memory
 Could not allocate 24 bytes of memory
-[1: 1374953316.860185s]
-mresize_testmm() C-kern/test/testmm.c:678
+[1: 1375300301.559958s]
+mresize_testmm() C-kern/test/testmm.c:679
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953316.860187s]
+[1: 1375300301.559961s]
 tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:525
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953316.860190s]
-mresize_testmm() C-kern/test/testmm.c:676
+[1: 1375300301.559964s]
+mresize_testmm() C-kern/test/testmm.c:677
 Error 12 - Cannot allocate memory
 Could not allocate 24 bytes of memory
-[1: 1374953316.860193s]
-mresize_testmm() C-kern/test/testmm.c:678
+[1: 1375300301.559966s]
+mresize_testmm() C-kern/test/testmm.c:679
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1374953316.860194s]
+[1: 1375300301.559968s]
 tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:525
 Error 12 - Cannot allocate memory
 Function aborted

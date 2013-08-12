@@ -322,6 +322,7 @@ int run_unittest(int argc, const char ** argv)
 //{ memory unittest
       RUN(unittest_memory_hwcache) ;
       RUN(unittest_memory_memblock) ;
+      RUN(unittest_memory_memstream) ;
       RUN(unittest_memory_pagecache) ;
       RUN(unittest_memory_pagecacheimpl) ;
       RUN(unittest_memory_pagecache_macros) ;

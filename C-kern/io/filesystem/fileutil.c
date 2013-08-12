@@ -48,8 +48,8 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
    int err ;
    off_t    loadsize ;
    size_t   readsize ;
-   uint8_t  * buffer ;
-   file_t   file = file_INIT_FREEABLE ;
+   uint8_t* buffer = 0 ;
+   file_t   file   = file_INIT_FREEABLE ;
 
    err = init_file(&file, filepath, accessmode_READ, relative_to) ;
    if (err) goto ONABORT ;
@@ -62,7 +62,7 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
       goto ONABORT ;
    }
 
-   err = reserve_wbuffer(result, (size_t)loadsize, &buffer) ;
+   err = appendbytes_wbuffer(result, (size_t)loadsize, &buffer) ;
    if (err) goto ONABORT ;
 
    err = read_file(file, (size_t)loadsize, buffer, &readsize) ;
@@ -76,11 +76,9 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
    err = free_file(&file) ;
    if (err) goto ONABORT ;
 
-   err = appendbytes_wbuffer(result, (size_t)loadsize, &buffer) ;
-   if (err) goto ONABORT ;
-
    return 0 ;
 ONABORT:
+   if (buffer) clear_wbuffer(result) ;
    (void) free_file(&file) ;
    TRACEABORT_ERRLOG(err) ;
    return err ;
@@ -127,11 +125,11 @@ ONABORT:
 static int test_loadsave(directory_t * tempdir)
 {
    file_t      file = file_INIT_FREEABLE ;
+   cstring_t   cstr = cstring_INIT ;
    wbuffer_t   wbuf = wbuffer_INIT_FREEABLE ;
    const char  * testcontent[] = { "12345", "afigaihoingaspgmsagpj---}n\n", "\u0fffäöäüö" } ;
    off_t       filesize ;
    memblock_t  datablock = memblock_INIT_FREEABLE ;
-   memblock_t  loadblock = memblock_INIT_FREEABLE ;
 
    // TEST save_file, load_file: small files
    for (unsigned ti = 0; ti < lengthof(testcontent); ++ti) {
@@ -157,15 +155,14 @@ static int test_loadsave(directory_t * tempdir)
       addr_memblock(&datablock)[i] = (uint8_t)(11*i) ;
    }
    TEST(0 == save_file("save", size_memblock(&datablock), addr_memblock(&datablock), tempdir)) ;
-   wbuf = (wbuffer_t) wbuffer_INIT_DYNAMIC ;
+   wbuf = (wbuffer_t) wbuffer_INIT_CSTRING(&cstr) ;
    TEST(0 == load_file("save", &wbuf, tempdir)) ;
-   TEST(0 == firstmemblock_wbuffer(&wbuf, &loadblock)) ;
-   TEST(size_memblock(&loadblock) == size_memblock(&datablock)) ;
+   TEST(size_cstring(&cstr) == size_memblock(&datablock)) ;
    for (size_t i = 0; i < size_memblock(&datablock); ++i) {
-      TEST(addr_memblock(&datablock)[i] == addr_memblock(&loadblock)[i]) ;
+      TEST(addr_memblock(&datablock)[i] == (uint8_t) str_cstring(&cstr)[i]) ;
    }
    TEST(0 == FREE_MM(&datablock)) ;
-   TEST(0 == free_wbuffer(&wbuf)) ;
+   TEST(0 == free_cstring(&cstr)) ;
 
    // TEST save_file: EEXIST
    TEST(EEXIST == save_file("save", 1, "", tempdir)) ;
@@ -176,7 +173,7 @@ static int test_loadsave(directory_t * tempdir)
 
    return 0 ;
 ONABORT:
-   free_wbuffer(&wbuf) ;
+   free_cstring(&cstr) ;
    free_file(&file) ;
    FREE_MM(&datablock) ;
    remove_file("save", tempdir) ;
@@ -191,7 +188,8 @@ int unittest_io_fileutil()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "iofiletest", &tmppath)) ;
+   TEST(0 == newtemp_directory(&tempdir, "iofiletest")) ;
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
    if (test_loadsave(tempdir))   goto ONABORT ;
 

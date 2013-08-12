@@ -52,16 +52,20 @@ static inline void compiletime_tests_standardtypes(void)
    static_assert( sizeof(uint64_t) == 8, "wrong size") ;
    static_assert( sizeof(uintptr_t) == sizeof(void*), "must be size of a pointer") ;
    static_assert( sizeof(intptr_t) == sizeof(void*), "must be size of a pointer") ;
-   static_assert( ((int8_t)-1) == -1,  "must be signed") ;
+   static_assert( ((int8_t)-1) < 0,  "must be signed") ;
+   static_assert( ((uint8_t)-1) > 0, "must be unsigned") ;
    static_assert( ((uint8_t)-1) == 255, "must be unsigned") ;
    static_assert( ((int16_t)-1) < 0,   "must be signed") ;
    static_assert( ((uint16_t)-1) > 0,  "must be unsigned") ;
+   static_assert( ((uint16_t)-1) == 65535,  "must be unsigned") ;
    static_assert( ((int32_t)-1) < 0,   "must be signed") ;
    static_assert( ((uint32_t)-1) > 0,  "must be unsigned") ;
+   static_assert( ((uint32_t)-1) == 4294967295,  "must be unsigned") ;
    static_assert( ((int64_t)-1) < 0,   "must be signed") ;
    static_assert( ((uint64_t)-1) > 0,  "must be unsigned") ;
-   static_assert( ((uintptr_t)-1) > 0, "must be unsigned") ;
+   static_assert( ((uint64_t)-1) == 0xffffffffffffffff,  "must be unsigned") ;
    static_assert( ((intptr_t)-1) < 0,  "must be signed") ;
+   static_assert( ((uintptr_t)-1) > 0, "must be unsigned") ;
    // uintfct_t
    static_assert( ((uintfct_t)-1) > 0,  "must be unsigned") ;
    static_assert( sizeof(uintfct_t) == sizeof(fct_t), "can hold a function pointer") ;

@@ -34,6 +34,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/task/thread.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/string/cstring.h"
 #include <sys/statvfs.h>
 #endif
@@ -1168,7 +1169,8 @@ int unittest_io_file()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "iofiletest", &tmppath)) ;
+   TEST(0 == newtemp_directory(&tempdir, "iofiletest")) ;
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
    {
       size_t nrfdopen ;

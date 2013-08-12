@@ -839,7 +839,7 @@ int unittest_io_iochannel()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "iochanneltest", 0)) ;
+   TEST(0 == newtemp_directory(&tempdir, "iochanneltest")) ;
 
    {
       size_t nrfdopen ;

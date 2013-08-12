@@ -1,77 +1,153 @@
-[1: 1374953322.610790s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:326
+[1: 1375344008.759050s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:442
 Error 22 - Invalid argument
 System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=18446744073709551615
-[1: 1374953322.610826s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:340
+[1: 1375344008.759084s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:456
 Error 22 - Invalid argument
 Function aborted
-[1: 1374953322.610844s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:326
+[1: 1375344008.759101s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:442
 Error 27 - File too large
 System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=9223372036854775807
-[1: 1374953322.610862s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:340
+[1: 1375344008.759118s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:456
 Error 27 - File too large
 Function aborted
-[1: 1374953322.610868s]
-new_directory() C-kern/platform/Linux/io/directory.c:115
+[1: 1375344008.759124s]
+new_directory() C-kern/platform/Linux/io/directory.c:232
 Error 2 - No such file or directory
 System call 'openat' failed
 path=.....
-[1: 1374953322.610871s]
-new_directory() C-kern/platform/Linux/io/directory.c:138
+[1: 1375344008.759127s]
+new_directory() C-kern/platform/Linux/io/directory.c:255
 Error 2 - No such file or directory
 Function aborted
-[1: 1374953322.610877s]
-new_directory() C-kern/platform/Linux/io/directory.c:115
+[1: 1375344008.759133s]
+new_directory() C-kern/platform/Linux/io/directory.c:232
 Error 20 - Not a directory
 System call 'openat' failed
 path=/tmp/test1.123456/file_000000
-[1: 1374953322.610879s]
-new_directory() C-kern/platform/Linux/io/directory.c:138
+[1: 1375344008.759135s]
+new_directory() C-kern/platform/Linux/io/directory.c:255
 Error 20 - Not a directory
 Function aborted
-[1: 1374953322.610887s]
-makedirectory_directory() C-kern/platform/Linux/io/directory.c:292
+[1: 1375344008.759143s]
+makedirectory_directory() C-kern/platform/Linux/io/directory.c:408
 Error 13 - Permission denied
 System call 'mkdirat(mkdiratfd, directory_path, 0700)' failed
 mkdiratfd=10
 directory_path=XXXXXXXX.test
-[1: 1374953322.610891s]
-makedirectory_directory() C-kern/platform/Linux/io/directory.c:300
+[1: 1375344008.759146s]
+makedirectory_directory() C-kern/platform/Linux/io/directory.c:416
 Error 13 - Permission denied
 Function aborted
-[1: 1374953322.610896s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:317
+[1: 1375344008.759150s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:433
 Error 13 - Permission denied
 System call 'openat(openatfd, file_path)' failed
 openatfd=10
 file_path=XXXXXXXX.test
-[1: 1374953322.610899s]
-makefile_directory() C-kern/platform/Linux/io/directory.c:340
+[1: 1375344008.759153s]
+makefile_directory() C-kern/platform/Linux/io/directory.c:456
 Error 13 - Permission denied
 Function aborted
-[1: 1374953322.610906s]
-removedirectory_directory() C-kern/platform/Linux/io/directory.c:356
+[1: 1375344008.759160s]
+removedirectory_directory() C-kern/platform/Linux/io/directory.c:472
 Error 39 - Directory not empty
 System call 'unlinkat(unlinkatfd, directory_path)' failed
 unlinkatfd=10
 directory_path=..
-[1: 1374953322.610909s]
-removedirectory_directory() C-kern/platform/Linux/io/directory.c:364
+[1: 1375344008.759163s]
+removedirectory_directory() C-kern/platform/Linux/io/directory.c:480
 Error 39 - Directory not empty
 Function aborted
-[1: 1374953322.613854s]
-new_directory() C-kern/platform/Linux/io/directory.c:115
+[1: 1375344008.762253s]
+new_directory() C-kern/platform/Linux/io/directory.c:232
 Error 2 - No such file or directory
 System call 'openat' failed
 path=/tmp/test1.123456
-[1: 1374953322.613859s]
-new_directory() C-kern/platform/Linux/io/directory.c:138
+[1: 1375344008.762260s]
+new_directory() C-kern/platform/Linux/io/directory.c:255
 Error 2 - No such file or directory
+Function aborted
+[1: 1375344008.769147s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769156s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769162s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769168s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769187s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769196s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769206s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769215s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769224s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769236s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769249s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769286s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769324s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769360s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769397s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769433s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769470s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769507s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
+Function aborted
+[1: 1375344008.769544s]
+path_directory() C-kern/platform/Linux/io/directory.c:208
+Error 1000 - Unknown error
 Function aborted

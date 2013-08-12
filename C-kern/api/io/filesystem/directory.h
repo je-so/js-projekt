@@ -28,6 +28,7 @@
 
 // forward
 struct cstring_t ;
+struct wbuffer_t ;
 
 /* typedef: struct directory_t
  * Export opaque <directory_t> to read/write a directory in the file system.
@@ -105,7 +106,7 @@ int new_directory(/*out*/directory_t ** dir, const char * dir_path, const direct
  * The name of the directory is prefixed with *name_prefix* and it is created in the temporary system directory.
  * The name of the created directory is returned in parameter *dir_path*.
  * Set this parameter to 0 if you do not need the name. */
-int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix, struct cstring_t * dir_path) ;
+int newtemp_directory(/*out*/directory_t ** dir, const char * name_prefix) ;
 
 /* function: delete_directory
  * Closes open directory stream. Frees allocated memory. Calling free twice is safe. Calling it without a preceding init results in undefined behaviour. */
@@ -135,6 +136,13 @@ sys_iochannel_t io_directory(const directory_t * dir) ;
  * relative to the current working directory.
  * If *file_path* is absolute the value of *dir* does not matter. */
 int filesize_directory(const directory_t * dir/*0 => current working directory*/, const char * file_path, /*out*/off_t * file_size) ;
+
+/* function: path_directory
+ * Returns absolute real path of directory dir in path.
+ * If dir was initializated with a path containing symlinks the returned path
+ * will differ from the one used during initialization. A trailing '\0' is appended
+ * at the end of the returned string. The returned path contains at least '/' as first character. */
+int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path) ;
 
 // group: read
 

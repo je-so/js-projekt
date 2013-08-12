@@ -1,76 +1,76 @@
-[1: 1374953315.871010s]
-unread_utf8scanner() C-kern/lang/utf8scanner.c:314
+[1: 1375343311.011421s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:315
 Error 22 - Invalid argument
 Function aborted
-[1: 1374953315.871146s]
-unread_utf8scanner() C-kern/lang/utf8scanner.c:314
+[1: 1375343311.011573s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:315
 Error 22 - Invalid argument
 Function aborted
-[1: 1374953315.871273s]
-unread_utf8scanner() C-kern/lang/utf8scanner.c:314
+[1: 1375343311.011699s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:315
 Error 22 - Invalid argument
 Function aborted
-[1: 1374953315.871397s]
-unread_utf8scanner() C-kern/lang/utf8scanner.c:314
+[1: 1375343311.011822s]
+unread_utf8scanner() C-kern/lang/utf8scanner.c:315
 Error 22 - Invalid argument
 Function aborted
-[1: 1374953315.877061s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017604s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877066s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017610s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877068s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017612s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877070s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017614s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877072s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017616s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877074s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017617s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877076s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017619s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877078s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017622s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877080s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017623s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877082s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017625s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877084s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017627s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877095s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017638s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.877174s]
-nextchar_utf8scanner() C-kern/lang/utf8scanner.c:145
+[1: 1375343311.017714s]
+nextchar_utf8scanner() C-kern/lang/utf8scanner.c:146
 Error 84 - Invalid or incomplete multibyte or wide character
 Function aborted
-[1: 1374953315.883666s]
-skipuntilafter_utf8scanner() C-kern/lang/utf8scanner.c:158
+[1: 1375343311.024337s]
+skipuntilafter_utf8scanner() C-kern/lang/utf8scanner.c:159
 Error 22 - Invalid argument
 Function input violates condition (utf8len != 0)
-[1: 1374953315.883670s]
-skipuntilafter_utf8scanner() C-kern/lang/utf8scanner.c:209
+[1: 1375343311.024342s]
+skipuntilafter_utf8scanner() C-kern/lang/utf8scanner.c:210
 Error 22 - Invalid argument
 Function aborted

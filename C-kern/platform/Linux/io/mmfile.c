@@ -34,6 +34,7 @@
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/string/cstring.h"
 #endif
 
@@ -793,7 +794,8 @@ int unittest_io_mmfile()
 
    // store current mapping
    TEST(0 == init_resourceusage(&usage)) ;
-   TEST(0 == newtemp_directory(&tempdir, "mmfile", &tmppath)) ;
+   TEST(0 == newtemp_directory(&tempdir, "mmfile")) ;
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
    tmpstr = str_cstring(&tmppath) ;
 
    if (test_query())                      goto ONABORT ;

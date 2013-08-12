@@ -6,6 +6,7 @@ include        projekte/subsys/context-mini
 Src           += C-kern/main/test/testchildprocess_main.c
 Src           += C-kern/platform/Linux/task/process.c
 Src           += C-kern/platform/Linux/io/directory.c
+Src           += C-kern/memory/wbuffer.c
 Src           += C-kern/string/cstring.c
 Includes       = .
 Defines        = KONFIG_SUBSYS=KONFIG_none

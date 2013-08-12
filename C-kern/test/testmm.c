@@ -318,8 +318,9 @@ static int resizeblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct
       return ENOMEM ;
    }
 
-   if (     alignsize > block->header.alignsize
-         && mmpage->freeblock.size < (alignsize - block->header.alignsize))  {
+   if (  alignsize < newsize
+         || (  alignsize > block->header.alignsize
+               && mmpage->freeblock.size < (alignsize - block->header.alignsize)))  {
       return ENOMEM ;
    }
 
@@ -831,6 +832,14 @@ static int test_testmmpage(void)
       }
       oldblock = memblock ;
    }
+   TEST(0 == delete_testmmpage(&mmpage)) ;
+
+   // TEST: resizeblock_testmmpage
+   TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
+   TEST(0 == newblock_testmmpage(mmpage, 1024, &memblock)) ;
+   TEST(0 == alignsize_testmmblock(SIZE_MAX)) ;
+   TEST(ENOMEM == resizeblock_testmmpage(mmpage, SIZE_MAX, &memblock)) ;
+   TEST(ENOMEM == resizeblock_testmmpage(mmpage, SIZE_MAX/2, &memblock)) ;
    TEST(0 == delete_testmmpage(&mmpage)) ;
 
    // TEST freeblock_testmmpage

@@ -27,144 +27,183 @@
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/memstream.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/string/cstring.h"
+#include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/ds/foreach.h"
-#include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/test/testmm.h"
 #endif
 
 
 // section: wbuffer_t
 
-// group: memory allocation strategy
+// group: variables
 
-#define inline_size_wbuffer(wbuf)               \
-         ((size_t) (wbuf->next - (uint8_t*)wbuf->addr))
+#ifdef KONFIG_UNITTEST
+/* variable: s_wbuffer_errtimer
+ * Simulates an error in <reserve_memblock_wbuffer> and <reserve_cstring_wbuffer>. */
+static test_errortimer_t   s_wbuffer_errtimer = test_errortimer_INIT_FREEABLE ;
+#endif
 
-#define inline_allocatedsize_wbuffer(wbuf)      \
-         ((size_t)(wbuf->end - (uint8_t*)wbuf->addr))
+// group: interface implementation
 
-#define inline_reservedsize_wbuffer(wbuf)       \
-         ((size_t)(wbuf->end - wbuf->next))
-
-static int dynamicimpl_reserve_wbuffer(wbuffer_t * wbuf, size_t reserve_size)
+/* function: alloc_cstring_wbuffer
+ * Resizes <cstring_t> if necessary and returns additional memory in memstr. */
+static int alloc_cstring_wbuffer(void * impl, size_t new_size, /*ret*/memstream_t * memstr)
 {
    int err ;
-   memblock_t memblock  = (memblock_t) memblock_INIT(inline_allocatedsize_wbuffer(wbuf), wbuf->addr) ;
-   size_t     used_size = inline_size_wbuffer(wbuf) ;
-   size_t     reserved  = inline_reservedsize_wbuffer(wbuf) ;
+   cstring_t * cstr = impl ;
 
-   if (reserved < reserve_size) {
+   size_t used    = (size_t) (memstr->next - (uint8_t*)str_cstring(cstr)) ;
+   size_t strsize = used + new_size ;
 
-      size_t   new_size   = (memblock.size >= (reserve_size - reserved))
-                          ? (2 * memblock.size)
-                          : (memblock.size + (reserve_size - reserved)) ;
-
-      if (new_size <= memblock.size) {
-         err = ENOMEM ;
-         TRACEOUTOFMEM_ERRLOG(reserve_size, err) ;
-         goto ONABORT ;
-      }
-
-      err = RESIZE_MM(new_size, &memblock) ;
-      if (err) goto ONABORT ;
-
-      wbuf->next = addr_memblock(&memblock) + used_size ;
-      wbuf->end  = addr_memblock(&memblock) + size_memblock(&memblock) ;
-      wbuf->addr = addr_memblock(&memblock) ;
+   if (strsize <= used) {
+      err = ENOMEM ;
+      TRACEOUTOFMEM_ERRLOG(new_size, err) ;
+      goto ONABORT ;
    }
 
-   return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
-}
-
-static int staticimpl_reserve_wbuffer(wbuffer_t * wbuf, size_t reserve_size)
-{
-   int err = ENOMEM ;
-   (void) wbuf ;
-   (void) reserve_size ;
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
-}
-
-static int dynamicimpl_free_wbuffer(wbuffer_t * wbuf)
-{
-   int err ;
-   memblock_t memblock = (memblock_t) memblock_INIT(inline_allocatedsize_wbuffer(wbuf), wbuf->addr) ;
-
-   err = FREE_MM(&memblock) ;
-   memset(wbuf, 0, sizeof(*wbuf)) ;
-
+   ONERROR_testerrortimer(&s_wbuffer_errtimer, ONABORT) ;
+   err = resize_cstring(cstr, strsize) ;
    if (err) goto ONABORT ;
 
+   *memstr = (memstream_t) memstream_INIT((uint8_t*)str_cstring(cstr) + used, (uint8_t*)str_cstring(cstr) + allocatedsize_cstring(cstr)) ;
+
    return 0 ;
 ONABORT:
-   TRACEABORTFREE_ERRLOG(err) ;
+   TRACEABORT_ERRLOG(err) ;
    return err ;
 }
 
-static int staticimpl_free_wbuffer(wbuffer_t * wbuf)
+/* function: clear_cstring_wbuffer
+ * Sets memstr to whole allocated buffer of impl (<cstring_t>). */
+static void clear_cstring_wbuffer(void * impl, /*ret*/memstream_t * memstr)
 {
-   memset(wbuf, 0, sizeof(*wbuf)) ;
+   cstring_t * cstr = impl ;
+   *memstr = (memstream_t) memstream_INIT((uint8_t*)str_cstring(cstr), (uint8_t*)str_cstring(cstr)+allocatedsize_cstring(cstr)) ;
+}
+
+/* function: size_cstring_wbuffer
+ * Returns size in use of impl (<cstring_t>). */
+static size_t size_cstring_wbuffer(void * impl, const memstream_t * memstr)
+{
+   cstring_t * cstr = impl ;
+   return (size_t) (memstr->next - (uint8_t*)str_cstring(cstr)) ;
+}
+
+/* function: alloc_memblock_wbuffer
+ * Resizes <memblock_t> if necessary and returns additional memory in memstr. */
+static int alloc_memblock_wbuffer(void * impl, size_t new_size, /*ret*/memstream_t * memstr)
+{
+   int err ;
+   memblock_t * mb = impl ;
+
+   size_t   used    = (size_t) (memstr->next - mb->addr) ;
+   size_t   memsize = mb->size >= new_size
+                    ? 2 * mb->size
+                    : mb->size + new_size ;
+
+   if (memsize <= mb->size) {
+      err = ENOMEM ;
+      TRACEOUTOFMEM_ERRLOG(new_size, err) ;
+      goto ONABORT ;
+   }
+
+   ONERROR_testerrortimer(&s_wbuffer_errtimer, ONABORT) ;
+   err = RESIZE_MM(memsize, mb) ;
+   if (err) goto ONABORT ;
+
+   *memstr = (memstream_t) memstream_INIT(addr_memblock(mb) + used, addr_memblock(mb) + size_memblock(mb)) ;
+
    return 0 ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
 }
 
-static void impl_clear_wbuffer(wbuffer_t * wbuf)
+/* function: clear_memblock_wbuffer
+ * Sets memstr to whole allocated buffer of impl (<memblock_t>). */
+static void clear_memblock_wbuffer(void * impl, /*ret*/memstream_t * memstr)
 {
-   wbuf->next = wbuf->addr ;
+   memblock_t * mb = impl ;
+   *memstr = (memstream_t) memstream_INIT(addr_memblock(mb), addr_memblock(mb) + size_memblock(mb)) ;
 }
 
-static size_t impl_size_wbuffer(const wbuffer_t * wbuf)
+/* function: size_memblock_wbuffer
+ * Returns number of appended bytes of impl (<memblock_t>). */
+static size_t size_memblock_wbuffer(void * impl, const memstream_t * memstr)
 {
-   return inline_size_wbuffer(wbuf) ;
+   memblock_t * mb = impl ;
+   return (size_t) (memstr->next - mb->addr) ;
 }
 
-static bool impl_iterate_wbuffer(const wbuffer_t * wbuf, void ** next, /*out*/memblock_t * memblock)
+/* function: alloc_static_wbuffer
+ * Returns always ENOMEM. */
+static int alloc_static_wbuffer(void * impl, size_t new_size, /*ret*/memstream_t * memstr)
 {
-   if (*next) return false ;
+   (void) impl ;
+   (void) new_size ;
+   (void) memstr ;
+   return ENOMEM ;
+}
 
-   size_t size = inline_size_wbuffer(wbuf) ;
+/* function: clear_static_wbuffer
+ * Sets wbuf->next to start of static buffer. */
+static void clear_static_wbuffer(void * impl, /*ret*/memstream_t * memstr)
+{
+   memstr->next = impl ;
+}
 
-   if (!size) return false ;
-
-   *next     = (void*)1 ;
-   *memblock = (memblock_t) memblock_INIT(size, wbuf->addr) ;
-
-   return true ;
+/* function: size_static_wbuffer
+ * Returns number of appended bytes. */
+static size_t size_static_wbuffer(void * impl, const memstream_t * memstr)
+{
+   return (size_t) (memstr->next - (uint8_t*)impl) ;
 }
 
 // group: variables
 
-wbuffer_it  g_wbuffer_dynamic = { &dynamicimpl_reserve_wbuffer, &impl_size_wbuffer, &impl_iterate_wbuffer, &dynamicimpl_free_wbuffer, &impl_clear_wbuffer } ;
+wbuffer_it  g_wbuffer_cstring  = { &alloc_cstring_wbuffer, &clear_cstring_wbuffer, &size_cstring_wbuffer } ;
 
-wbuffer_it  g_wbuffer_static  = { &staticimpl_reserve_wbuffer, &impl_size_wbuffer,  &impl_iterate_wbuffer, &staticimpl_free_wbuffer, &impl_clear_wbuffer } ;
+wbuffer_it  g_wbuffer_memblock = { &alloc_memblock_wbuffer, &clear_memblock_wbuffer, &size_memblock_wbuffer  } ;
 
-// group: lifetime
+wbuffer_it  g_wbuffer_static   = { &alloc_static_wbuffer, &clear_static_wbuffer, &size_static_wbuffer  } ;
 
-int init_wbuffer(/*out*/wbuffer_t * wbuf, size_t preallocate_size)
+// group: change
+
+int appendcopy_wbuffer(wbuffer_t * wbuf, size_t buffer_size, const uint8_t * buffer)
 {
    int err ;
-   memblock_t memblock = memblock_INIT_FREEABLE ;
+   const size_t reserved = sizereserved_wbuffer(wbuf) ;
 
-   if (preallocate_size) {
-      err = RESIZE_MM(preallocate_size, &memblock) ;
-      if (err) goto ONABORT ;
+   if (reserved >= buffer_size) {
+      memcpy(wbuf->next, buffer, buffer_size) ;
+      wbuf->next += buffer_size ;
+
+   } else {
+      memcpy(wbuf->next, buffer, reserved) ;
+      wbuf->next += reserved ;
+
+      const size_t missing = buffer_size - reserved ;
+      err = wbuf->iimpl->alloc(wbuf->impl, missing, (memstream_t*)wbuf) ;
+      if (err) {
+         wbuf->next -= reserved ;   // remove partially copied content
+         goto ONABORT ;
+      }
+
+      memcpy(wbuf->next, buffer + reserved, missing) ;
+      wbuf->next += missing ;
    }
-
-   wbuf->next  = addr_memblock(&memblock) ;
-   wbuf->end   = addr_memblock(&memblock) + size_memblock(&memblock) ;
-   wbuf->addr  = addr_memblock(&memblock) ;
-   wbuf->iimpl = &g_wbuffer_dynamic ;
 
    return 0 ;
 ONABORT:
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
+
 
 
 // group: test
@@ -173,19 +212,20 @@ ONABORT:
 
 static int test_variables(void)
 {
-   // TEST g_wbuffer_dynamic
-   TEST(g_wbuffer_dynamic.reserve == &dynamicimpl_reserve_wbuffer) ;
-   TEST(g_wbuffer_dynamic.size    == &impl_size_wbuffer) ;
-   TEST(g_wbuffer_dynamic.iterate == &impl_iterate_wbuffer) ;
-   TEST(g_wbuffer_dynamic.free    == &dynamicimpl_free_wbuffer) ;
-   TEST(g_wbuffer_dynamic.clear   == &impl_clear_wbuffer) ;
+   // TEST g_wbuffer_cstring
+   TEST(g_wbuffer_cstring.alloc == &alloc_cstring_wbuffer) ;
+   TEST(g_wbuffer_cstring.clear == &clear_cstring_wbuffer) ;
+   TEST(g_wbuffer_cstring.size  == &size_cstring_wbuffer) ;
+
+   // TEST g_wbuffer_memblock
+   TEST(g_wbuffer_memblock.alloc == &alloc_memblock_wbuffer) ;
+   TEST(g_wbuffer_memblock.clear == &clear_memblock_wbuffer) ;
+   TEST(g_wbuffer_memblock.size  == &size_memblock_wbuffer) ;
 
    // TEST g_wbuffer_static
-   TEST(g_wbuffer_static.reserve == &staticimpl_reserve_wbuffer) ;
-   TEST(g_wbuffer_static.size    == &impl_size_wbuffer) ;
-   TEST(g_wbuffer_static.iterate == &impl_iterate_wbuffer) ;
-   TEST(g_wbuffer_static.free    == &staticimpl_free_wbuffer) ;
-   TEST(g_wbuffer_static.clear   == &impl_clear_wbuffer) ;
+   TEST(g_wbuffer_static.alloc == &alloc_static_wbuffer) ;
+   TEST(g_wbuffer_static.clear == &clear_static_wbuffer) ;
+   TEST(g_wbuffer_static.size  == &size_static_wbuffer) ;
 
    return 0 ;
 ONABORT:
@@ -195,101 +235,236 @@ ONABORT:
 static int test_initfree(void)
 {
    uint8_t     buffer[1000] = { 0 } ;
-   wbuffer_t   wbuf  = wbuffer_INIT_FREEABLE ;
-   wbuffer_t   wfree = wbuffer_INIT_FREEABLE ;
+   cstring_t   cstr     = cstring_INIT ;
+   memblock_t  memblock = memblock_INIT_FREEABLE ;
+   wbuffer_t   wbuf     = wbuffer_INIT_FREEABLE ;
+
+   // TEST wbuffer_t is subtype of memstream_t
+   TEST((memstream_t*)&wbuf == genericcast_memstream(&wbuf,)) ;
 
    // TEST wbuffer_INIT_FREEABLE
    TEST(0 == wbuf.next) ;
    TEST(0 == wbuf.end) ;
-   TEST(0 == wbuf.addr) ;
+   TEST(0 == wbuf.impl) ;
    TEST(0 == wbuf.iimpl) ;
 
-   // TEST wbuffer_INIT_STATIC, free_wbuffer
+   // TEST wbuffer_INIT_CSTRING
+   wbuf = (wbuffer_t) wbuffer_INIT_CSTRING(&cstr) ;
+   TEST(wbuf.next == 0) ;
+   TEST(wbuf.end  == 0) ;
+   TEST(wbuf.impl == &cstr) ;
+   TEST(wbuf.iimpl == &g_wbuffer_cstring) ;
+   TEST(0 == resize_cstring(&cstr, 1000)) ;
+   wbuf = (wbuffer_t) wbuffer_INIT_CSTRING(&cstr) ;
+   TEST(wbuf.next == (uint8_t*)str_cstring(&cstr)) ;
+   TEST(wbuf.end  == wbuf.next + allocatedsize_cstring(&cstr)) ;
+   TEST(wbuf.impl == &cstr) ;
+   TEST(wbuf.iimpl == &g_wbuffer_cstring) ;
+
+   // TEST wbuffer_INIT_MEMBLOCK
+   wbuf = (wbuffer_t) wbuffer_INIT_MEMBLOCK(&memblock) ;
+   TEST(wbuf.next == 0) ;
+   TEST(wbuf.end  == 0) ;
+   TEST(wbuf.impl == &memblock) ;
+   TEST(wbuf.iimpl == &g_wbuffer_memblock) ;
+   TEST(0 == RESIZE_MM(1000, &memblock)) ;
+   wbuf = (wbuffer_t) wbuffer_INIT_MEMBLOCK(&memblock) ;
+   TEST(wbuf.next == addr_memblock(&memblock)) ;
+   TEST(wbuf.end  == wbuf.next + size_memblock(&memblock)) ;
+   TEST(wbuf.impl == &memblock) ;
+   TEST(wbuf.iimpl == &g_wbuffer_memblock) ;
+
+   // TEST wbuffer_INIT_STATIC
    for (unsigned b = 0 ; b <= sizeof(buffer); ++b) {
-      memset(buffer, (int)b, sizeof(buffer)) ;
       wbuf = (wbuffer_t) wbuffer_INIT_STATIC(b, buffer) ;
       TEST(wbuf.next == buffer) ;
       TEST(wbuf.end  == buffer + b) ;
-      TEST(wbuf.addr == buffer) ;
+      TEST(wbuf.impl == buffer) ;
       TEST(wbuf.iimpl == &g_wbuffer_static) ;
-      TEST(0 == free_wbuffer(&wbuf)) ;
-      TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
-      TEST(0 == free_wbuffer(&wbuf)) ;
-      TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
-      for (unsigned i = 0; i < sizeof(buffer); ++i) {
-         TEST((uint8_t)b == buffer[i]) ;
-      }
    }
 
-   // TEST wbuffer_INIT_DYNAMIC, free_wbuffer
-   wbuf = (wbuffer_t) wbuffer_INIT_DYNAMIC ;
-   TEST(wbuf.next == 0) ;
-   TEST(wbuf.end  == 0) ;
-   TEST(wbuf.addr == 0) ;
-   TEST(wbuf.iimpl == &g_wbuffer_dynamic) ;
-   TEST(0 == free_wbuffer(&wbuf)) ;
-   TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
-   TEST(0 == free_wbuffer(&wbuf)) ;
-   TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
+   // TEST wbuffer_INIT_OTHER
+   wbuf = (wbuffer_t) wbuffer_INIT_OTHER(sizeof(buffer), buffer, (void*)88, (void*)99) ;
+   TEST(wbuf.next == buffer) ;
+   TEST(wbuf.end  == buffer + sizeof(buffer)) ;
+   TEST(wbuf.impl == (void*)88) ;
+   TEST(wbuf.iimpl == (void*)99) ;
 
-   // TEST init_wbuffer, free_wbuffer
-   for (unsigned b = 0 ; b <= sizeof(buffer); ++b) {
-      TEST(0 == init_wbuffer(&wbuf, b)) ;
-      TEST(wbuf.next == (uint8_t*)wbuf.addr) ;
-      TEST(wbuf.end  == (uint8_t*)wbuf.addr + b) ;
-      if (b) {
-         TEST(wbuf.addr != 0) ;
-      } else {
-         TEST(wbuf.addr == 0) ;
-      }
-      TEST(wbuf.iimpl == &g_wbuffer_dynamic) ;
-      TEST(0 == free_wbuffer(&wbuf)) ;
-      TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
-      TEST(0 == free_wbuffer(&wbuf)) ;
-      TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
-   }
+   // unprepare
+   TEST(0 == free_cstring(&cstr)) ;
+   TEST(0 == FREE_MM(&memblock)) ;
 
    return 0 ;
 ONABORT:
+   free_cstring(&cstr) ;
+   FREE_MM(&memblock) ;
    return EINVAL ;
 }
 
-static int test_wbufferiterator(void)
+static int test_cstring_adapter(void)
 {
-   wbuffer_iterator_t iter = wbuffer_iterator_INIT_FREEABLE ;
-   wbuffer_t          wbuf = wbuffer_INIT_STATIC(1000, (uint8_t*)1) ;
-   memblock_t         data ;
+   cstring_t cstr = cstring_INIT ;
+   wbuffer_t wbuf = wbuffer_INIT_CSTRING(&cstr) ;
 
-   // TEST wbuffer_iterator_INIT_FREEABLE
-   TEST(iter.next == 0) ;
-   TEST(iter.wbuf == 0) ;
+   // TEST size_cstring_wbuffer: empty cstr
+   TEST(0 == str_cstring(&cstr)) ;
+   for (unsigned i = 100; i <= 100; --i) {
+      wbuf.next = (void*)i ;
+      TEST(i == size_cstring_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,))) ;
+   }
 
-   // TEST init_wbufferiterator
-   memset(&iter, 1, sizeof(iter)) ;
-   TEST(0 == initfirst_wbufferiterator(&iter, &wbuf)) ;
-   TEST(iter.next == 0) ;
-   TEST(iter.wbuf == &wbuf) ;
+   // TEST clear_cstring_wbuffer: empty cstr
+   wbuf.next = (void*)1 ;
+   wbuf.end  = (void*)2 ;
+   clear_cstring_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,)) ;
+   TEST(0 == wbuf.next) ;
+   TEST(0 == wbuf.end) ;
 
-   // TEST free_wbufferiterator
-   iter.next = (void*) 1 ;
-   iter.wbuf = &wbuf ;
-   TEST(0 == free_wbufferiterator(&iter)) ;
-   TEST(iter.next == 0) ;
-   TEST(iter.wbuf == &wbuf) ;
+   // TEST alloc_cstring_wbuffer: empty cstr
+   TEST(0 == alloc_cstring_wbuffer(wbuf.impl, 100, genericcast_memstream(&wbuf,))) ;
+   TEST(100 == size_cstring(&cstr)) ;
+   TEST(100 <= allocatedsize_cstring(&cstr)) ;
+   TEST(wbuf.next == (uint8_t*)str_cstring(&cstr)) ;
+   TEST(wbuf.end  == (uint8_t*)str_cstring(&cstr) + allocatedsize_cstring(&cstr)) ;
 
-   // TEST next_wbufferiterator
-   wbuf.next = wbuf.end ;
-   TEST(0 == initfirst_wbufferiterator(&iter, &wbuf)) ;
-   TEST(true == next_wbufferiterator(&iter, &data)) ;
-   TEST(data.addr == (void*)1) ;
-   TEST(data.size == 1000) ;
-   TEST(false == next_wbufferiterator(&iter, &data)) ;
-   TEST(false == next_wbufferiterator(&iter, &data)) ;
+   // TEST size_cstring_wbuffer
+   for (unsigned i = 100; i <= 100; --i) {
+      wbuf.next = (uint8_t*)str_cstring(&cstr) + i ;
+      TEST(i == size_cstring_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,))) ;
+   }
 
-   // TEST next_wbufferiterator: empty wbuffer_t
-   wbuf.next = wbuf.addr ;
-   TEST(0 == initfirst_wbufferiterator(&iter, &wbuf)) ;
-   TEST(false == next_wbufferiterator(&iter, &data)) ;
+   // TEST clear_cstring_wbuffer
+   wbuf.next = (uint8_t*)str_cstring(&cstr) + 10 ;
+   wbuf.end  = (uint8_t*)str_cstring(&cstr) + 20 ;
+   clear_cstring_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,)) ;
+   TEST(wbuf.next == (uint8_t*)str_cstring(&cstr)) ;
+   TEST(wbuf.end  == (uint8_t*)str_cstring(&cstr) + allocatedsize_cstring(&cstr)) ;
+
+   // TEST alloc_cstring_wbuffer: cleared wbuffer
+   TEST(0 == alloc_cstring_wbuffer(wbuf.impl, 200, genericcast_memstream(&wbuf,))) ;
+   TEST(200 == size_cstring(&cstr)) ;
+   TEST(200 <= allocatedsize_cstring(&cstr)) ;
+   TEST(wbuf.next == (uint8_t*)str_cstring(&cstr)) ;
+   TEST(wbuf.end  == (uint8_t*)str_cstring(&cstr) + allocatedsize_cstring(&cstr)) ;
+
+   // TEST alloc_cstring_wbuffer: non empty wbuffer
+   wbuf.next += 122 ;
+   TEST(0 == alloc_cstring_wbuffer(wbuf.impl, 300, genericcast_memstream(&wbuf,))) ;
+   TEST(422 == size_cstring(&cstr)) ;
+   TEST(422 <= allocatedsize_cstring(&cstr)) ;
+   TEST(wbuf.next == (uint8_t*)str_cstring(&cstr) + 122) ;
+   TEST(wbuf.end  == (uint8_t*)str_cstring(&cstr) + allocatedsize_cstring(&cstr)) ;
+
+   // TEST alloc_cstring_wbuffer: ENOMEM
+   char *   oldstr  = str_cstring(&cstr) ;
+   size_t   oldsize = allocatedsize_cstring(&cstr) ;
+   init_testerrortimer(&s_wbuffer_errtimer, 1, ENOMEM) ;
+   TEST(ENOMEM == alloc_cstring_wbuffer(wbuf.impl, 400, genericcast_memstream(&wbuf,))) ;
+   TEST(oldstr == str_cstring(&cstr)) ;
+   TEST(422    == size_cstring(&cstr)) ;
+   TEST(oldsize <= allocatedsize_cstring(&cstr)) ;
+   TEST(wbuf.next == (uint8_t*)str_cstring(&cstr) + 122) ;
+   TEST(wbuf.end  == (uint8_t*)str_cstring(&cstr) + allocatedsize_cstring(&cstr)) ;
+
+   // uprepare
+   TEST(0 == free_cstring(&cstr)) ;
+
+   return 0 ;
+ONABORT:
+   free_cstring(&cstr) ;
+   return EINVAL ;
+}
+
+static int test_memblock_adapter(void)
+{
+   memblock_t  mb   = memblock_INIT_FREEABLE ;
+   wbuffer_t   wbuf = wbuffer_INIT_MEMBLOCK(&mb) ;
+
+   // TEST size_memblock_wbuffer: empty memblock
+   TEST(0 == addr_memblock(&mb)) ;
+   for (unsigned i = 100; i <= 100; --i) {
+      wbuf.next = (void*)i ;
+      TEST(i == size_memblock_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,))) ;
+   }
+
+   // TEST clear_memblock_wbuffer: empty memblock
+   wbuf.next = (void*)1 ;
+   wbuf.end  = (void*)2 ;
+   clear_memblock_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,)) ;
+   TEST(0 == wbuf.next) ;
+   TEST(0 == wbuf.end) ;
+
+   // TEST alloc_memblock_wbuffer: empty memblock
+   TEST(0 == alloc_memblock_wbuffer(wbuf.impl, 100, genericcast_memstream(&wbuf,))) ;
+   TEST(100 <= size_memblock(&mb)) ;
+   TEST(wbuf.next == addr_memblock(&mb)) ;
+   TEST(wbuf.end  == addr_memblock(&mb) + size_memblock(&mb)) ;
+
+   // TEST size_memblock_wbuffer
+   for (unsigned i = 100; i <= 100; --i) {
+      wbuf.next = addr_memblock(&mb) + i ;
+      TEST(i == size_memblock_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,))) ;
+   }
+
+   // TEST clear_memblock_wbuffer
+   wbuf.next = addr_memblock(&mb) + 10 ;
+   wbuf.end  = addr_memblock(&mb) + 20 ;
+   clear_memblock_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,)) ;
+   TEST(wbuf.next == addr_memblock(&mb)) ;
+   TEST(wbuf.end  == addr_memblock(&mb) + size_memblock(&mb)) ;
+
+   // TEST alloc_memblock_wbuffer: cleared wbuffer
+   TEST(0 == alloc_memblock_wbuffer(wbuf.impl, 200, genericcast_memstream(&wbuf,))) ;
+   TEST(300 <= size_memblock(&mb)) ;
+   TEST(wbuf.next == addr_memblock(&mb)) ;
+   TEST(wbuf.end  == addr_memblock(&mb) + size_memblock(&mb)) ;
+
+   // TEST alloc_memblock_wbuffer: non empty wbuffer
+   wbuf.next += 122 ;
+   TEST(0 == alloc_memblock_wbuffer(wbuf.impl, 1, genericcast_memstream(&wbuf,))) ;
+   TEST(600 <= size_memblock(&mb)) ;   // doubled in size (used/reserved is not taken into count)
+   TEST(wbuf.next == addr_memblock(&mb) + 122) ;
+   TEST(wbuf.end  == addr_memblock(&mb) + size_memblock(&mb)) ;
+
+   // TEST alloc_memblock_wbuffer: ENOMEM
+   uint8_t *   oldaddr = addr_memblock(&mb) ;
+   size_t      oldsize = size_memblock(&mb) ;
+   init_testerrortimer(&s_wbuffer_errtimer, 1, ENOMEM) ;
+   TEST(ENOMEM == alloc_memblock_wbuffer(wbuf.impl, 1, genericcast_memstream(&wbuf,))) ;
+   TEST(oldaddr == addr_memblock(&mb)) ;
+   TEST(oldsize == size_memblock(&mb)) ;
+   TEST(wbuf.next == addr_memblock(&mb) + 122) ;
+   TEST(wbuf.end  == addr_memblock(&mb) + size_memblock(&mb)) ;
+
+   // uprepare
+   TEST(0 == FREE_MM(&mb)) ;
+
+   return 0 ;
+ONABORT:
+   FREE_MM(&mb) ;
+   return EINVAL ;
+}
+
+static int test_static_adapter(void)
+{
+   uint8_t     buf[100] ;
+   wbuffer_t   wbuf = wbuffer_INIT_STATIC(sizeof(buf), buf) ;
+
+   // TEST size_static_wbuffer: empty memblock
+   for (unsigned i = 100; i <= 100; --i) {
+      wbuf.next = buf + i ;
+      TEST(i == size_static_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,))) ;
+   }
+
+   // TEST clear_static_wbuffer: empty memblock
+   wbuf.next = (void*)1 ;
+   wbuf.end  = (void*)2 ;
+   clear_static_wbuffer(wbuf.impl, genericcast_memstream(&wbuf,)) ;
+   TEST(wbuf.next == buf) ;         // reset
+   TEST(wbuf.end  == (void*)2) ;    // not changed
+
+   // TEST alloc_static_wbuffer
+   TEST(ENOMEM == alloc_static_wbuffer(wbuf.impl, 1, genericcast_memstream(&wbuf,))) ;
 
    return 0 ;
 ONABORT:
@@ -298,646 +473,432 @@ ONABORT:
 
 static int test_query(void)
 {
-   uint8_t     buffer[1000] = { 0 } ;
-   wbuffer_t   wbuf  = wbuffer_INIT_FREEABLE ;
-   memblock_t  data ;
+   uint8_t     buffer[256] = { 0 } ;
+   cstring_t   cstr     = cstring_INIT ;
+   memblock_t  memblock = memblock_INIT_FREEABLE ;
+   wbuffer_t   wbuf     = wbuffer_INIT_FREEABLE ;
 
-   // TEST isreserved_wbuffer
-   TEST(false == isreserved_wbuffer(&wbuf)) ;
-   for (unsigned t = 0; t < 2; ++t) {
-      if (!t) wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-      else    wbuf = (wbuffer_t) wbuffer_INIT_DYNAMIC ;
-      for (unsigned i = 0; i < 16; ++i) {
-         wbuf.next = (void*)(i + 1) ;
-         wbuf.end  = (void*)i ;
-         TEST(false == isreserved_wbuffer(&wbuf)) ;
-         wbuf.end = (void*)(i+2) ;
-         TEST(true == isreserved_wbuffer(&wbuf)) ;
-         wbuf.end = (void*)(i+1000) ;
-         TEST(true == isreserved_wbuffer(&wbuf)) ;
-         wbuf.next = wbuf.end ;
-         TEST(false == isreserved_wbuffer(&wbuf)) ;
+   // TEST sizereserved_wbuffer: depends only wbuf.next and wbuf.end
+   for (unsigned t = 0; t < 3; ++t) {
+      switch (t)
+      {
+      case 0:  wbuf = (wbuffer_t) wbuffer_INIT_CSTRING(&cstr) ;   break ;
+      case 1:  wbuf = (wbuffer_t) wbuffer_INIT_MEMBLOCK(&memblock) ; break ;
+      default: wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;  break ;
       }
-   }
-
-   // TEST reservedsize_wbuffer
-   for (unsigned t = 0; t < 2; ++t) {
-      if (!t) wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-      else    wbuf = (wbuffer_t) wbuffer_INIT_DYNAMIC ;
       for (unsigned i = 0; i < 16; ++i) {
          wbuf.next = (void*)(i + 1) ;
          wbuf.end  = (void*)i ;
-         TEST((size_t)-1 == reservedsize_wbuffer(&wbuf)) ;
+         TEST((size_t)-1 == sizereserved_wbuffer(&wbuf)) ;
          wbuf.end = (void*)(i+2) ;
-         TEST(1 == reservedsize_wbuffer(&wbuf)) ;
+         TEST(1 == sizereserved_wbuffer(&wbuf)) ;
          wbuf.end = (void*)(5*i+2) ;
-         TEST(4*i+1 == reservedsize_wbuffer(&wbuf)) ;
+         TEST(4*i+1 == sizereserved_wbuffer(&wbuf)) ;
          wbuf.next = wbuf.end ;
-         TEST(0 == reservedsize_wbuffer(&wbuf)) ;
+         TEST(0 == sizereserved_wbuffer(&wbuf)) ;
       }
    }
 
    // TEST size_wbuffer
-   for (unsigned t = 0; t < 2; ++t) {
-      if (!t) wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-      else    wbuf = (wbuffer_t) wbuffer_INIT_DYNAMIC ;
-      for (unsigned i = 0; i < 16; ++i) {
-         wbuf.next = (void*)i ;
-         wbuf.addr = (void*)(i + 1);
-         TEST((size_t)-1 == size_wbuffer(&wbuf)) ;
-         wbuf.next = (void*)(i+2) ;
-         TEST(1 == size_wbuffer(&wbuf)) ;
-         wbuf.next = (void*)(5*i+2) ;
-         TEST(4*i+1 == size_wbuffer(&wbuf)) ;
-         wbuf.next = wbuf.addr ;
-         TEST(0 == size_wbuffer(&wbuf)) ;
+   for (unsigned t = 0; t < 3; ++t) {
+      switch (t)
+      {
+      case 0:  wbuf = (wbuffer_t) wbuffer_INIT_CSTRING(&cstr) ;   break ;
+      case 1:  wbuf = (wbuffer_t) wbuffer_INIT_MEMBLOCK(&memblock) ; break ;
+      default: wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;  break ;
+      }
+      TEST(0 == size_wbuffer(&wbuf)) ;
+      if (t < 2) {
+         TEST(0 == wbuf.iimpl->alloc(wbuf.impl, 256, genericcast_memstream(&wbuf,))) ;
+      }
+      uint8_t * start = wbuf.next ;
+      for (size_t i = 0; i < 256; ++i) {
+         wbuf.next = start - i ;
+         TEST(-i == size_wbuffer(&wbuf)) ;
+         wbuf.next = start + i ;
+         TEST(i == size_wbuffer(&wbuf)) ;
       }
    }
 
-   // TEST firstmemblock_wbuffer
-   for (unsigned t = 0; t < 2; ++t) {
-      if (!t) wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-      else    wbuf = (wbuffer_t) wbuffer_INIT_DYNAMIC ;
-      for (unsigned i = 0; i < 16; ++i) {
-         wbuf.next = (void*)i ;
-         wbuf.addr = (void*)(i + 1) ;
-         TEST(0 == firstmemblock_wbuffer(&wbuf, &data)) ;
-         TEST(data.addr == (void*)(i + 1)) ;
-         TEST(data.size == (size_t)-1) ;
-         wbuf.next = (void*)(i+2) ;
-         TEST(0 == firstmemblock_wbuffer(&wbuf, &data)) ;
-         TEST(data.addr == (void*)(i + 1)) ;
-         TEST(data.size == 1) ;
-         wbuf.next = (void*)(5*i+2) ;
-         TEST(0 == firstmemblock_wbuffer(&wbuf, &data)) ;
-         TEST(data.addr == (void*)(i + 1)) ;
-         TEST(data.size == 4*i+1) ;
-         wbuf.next = wbuf.addr ;
-         TEST(ENODATA == firstmemblock_wbuffer(&wbuf, &data)) ;
-         TEST(data.addr == (void*)(i + 1)) ; // not changed
-         TEST(data.size == 4*i+1) ;          // not changed
-      }
-   }
-
-   // TEST foreach
-   for (unsigned t = 0; t < 2; ++t) {
-      if (!t) wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-      else    wbuf = (wbuffer_t) wbuffer_INIT_DYNAMIC ;
-      for (unsigned i = 0; i < 16; ++i) {
-         unsigned count = 0 ;
-         wbuf.next = (void*)i ;
-         wbuf.addr = (void*)(i + 1) ;
-         foreach (_wbuffer, memblock, &wbuf) {
-            ++ count ;
-            TEST(memblock.addr == (void*)(i + 1)) ;
-            TEST(memblock.size == (size_t)-1) ;
-         }
-         TEST(count == 1) ;
-         wbuf.next = (void*)(i+2) ;
-         foreach (_wbuffer, memblock, &wbuf) {
-            ++ count ;
-            TEST(memblock.addr == (void*)(i + 1)) ;
-            TEST(memblock.size == 1) ;
-         }
-         TEST(count == 2) ;
-         wbuf.next = (void*)(5*i+2) ;
-         foreach (_wbuffer, memblock, &wbuf) {
-            ++ count ;
-            TEST(memblock.addr == (void*)(i + 1)) ;
-            TEST(memblock.size == 4*i+1) ;
-         }
-         TEST(count == 3) ;
-         wbuf.next = wbuf.addr ;
-         foreach (_wbuffer, memblock, &wbuf) {
-            ++ count ;
-            (void) memblock ;
-         }
-         TEST(count == 3) ;
-      }
-   }
+   // unprepare
+   TEST(0 == free_cstring(&cstr)) ;
+   TEST(0 == FREE_MM(&memblock)) ;
 
    return 0 ;
 ONABORT:
+   free_cstring(&cstr) ;
+   FREE_MM(&memblock) ;
    return EINVAL ;
 }
 
-static int test_change_static(void)
+static int test_update(void)
 {
-   uint8_t     buffer[1000] = { 0 } ;
-   wbuffer_t   wbuf  = wbuffer_INIT_FREEABLE ;
-   memblock_t  data ;
+   memblock_t  mblock = memblock_INIT_FREEABLE ;
+   wbuffer_t   wbuf   = wbuffer_INIT_MEMBLOCK(&mblock) ;
+   uint8_t *   b ;
+
+   // TEST appendbyte_wbuffer: no reserved bytes
+   TEST(0 == appendbyte_wbuffer(&wbuf, '0')) ;
+   TEST(0 != addr_memblock(&mblock)) ;
+   TEST(1 <= size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock) + 1) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   TEST('0' == addr_memblock(&mblock)[0]) ;
 
    // TEST appendbyte_wbuffer
-   wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-   for (unsigned b = 0 ; b < sizeof(buffer); ++b) {
-      TEST(0 == appendbyte_wbuffer(&wbuf, (uint8_t)b)) ;
-      TEST(wbuf.next == buffer+b+1) ;
-      TEST(wbuf.end  == buffer+sizeof(buffer)) ;
-      TEST(wbuf.addr == buffer) ;
+   for (unsigned c = 0, size = size_memblock(&mblock); c <= 30; ++c) {
+      if (sizereserved_wbuffer(&wbuf) == 0) size *= 2 ;
+      TEST(0 == appendbyte_wbuffer(&wbuf, (uint8_t)(c+'A'))) ;
+      TEST((c+'A') == addr_memblock(&mblock)[1+c]) ;
+      TEST(size      == size_memblock(&mblock)) ;
+      TEST(wbuf.next == addr_memblock(&mblock) + 2 + c) ;
+      TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
    }
-   TEST(ENOMEM == appendbyte_wbuffer(&wbuf, 'z')) ;
-   TEST(wbuf.next == buffer+sizeof(buffer)) ;
-   TEST(wbuf.end  == buffer+sizeof(buffer)) ;
-   TEST(wbuf.addr == buffer) ;
-   for (unsigned b = 0 ; b < sizeof(buffer); ++b) {
-      TEST((uint8_t)b == buffer[b]) ;
+   TEST('0' == addr_memblock(&mblock)[0]) ;
+   for (unsigned c = 0; c <= 30; ++c) {
+      TEST('A'+c == addr_memblock(&mblock)[1+c]) ;
    }
 
-   // TEST appendbytes_wbuffer
-   for (unsigned b = 0 ; b <= sizeof(buffer); ++b) {
-      wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-      TEST(0 == appendbytes_wbuffer(&wbuf, b, &data.addr)) ;
-      TEST(data.addr == buffer) ;
-      TEST(wbuf.next == buffer+b) ;
-      TEST(wbuf.end  == buffer+sizeof(buffer)) ;
-      TEST(wbuf.addr == buffer) ;
-      TEST(0 == appendbytes_wbuffer(&wbuf, sizeof(buffer)-b, &data.addr)) ;
-      TEST(data.addr == buffer+b) ;
-      TEST(wbuf.next == buffer+sizeof(buffer)) ;
-      TEST(wbuf.end  == buffer+sizeof(buffer)) ;
-      TEST(wbuf.addr == buffer) ;
-   }
-   TEST(ENOMEM == appendbytes_wbuffer(&wbuf, 1, &data.addr)) ;
-   for (unsigned b = 0 ; b < sizeof(buffer); ++b) {
-      TEST((uint8_t)b == buffer[b]) ;
-   }
-
-   // TEST reserve_wbuffer
-   for (unsigned b = 0 ; b <= sizeof(buffer); ++b) {
-      wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-      TEST(0 == reserve_wbuffer(&wbuf, b, &data.addr)) ;
-      TEST(data.addr == buffer) ;
-      TEST(wbuf.next == buffer) ;
-      TEST(wbuf.end  == buffer+sizeof(buffer)) ;
-      TEST(wbuf.addr == buffer) ;
-      wbuf.next = buffer + b ;
-      TEST(0 == reserve_wbuffer(&wbuf, sizeof(buffer)-b, &data.addr)) ;
-      TEST(data.addr == buffer+b) ;
-      TEST(wbuf.next == buffer+b) ;
-      TEST(wbuf.end  == buffer+sizeof(buffer)) ;
-      TEST(wbuf.addr == buffer) ;
-   }
-   TEST(ENOMEM == reserve_wbuffer(&wbuf, 1, &data.addr)) ;
-   for (unsigned b = 0 ; b < sizeof(buffer); ++b) {
-      TEST((uint8_t)b == buffer[b]) ;
-   }
+   // TEST appendbyte_wbuffer: ENOMEM
+   init_testerrortimer(&s_wbuffer_errtimer, 1, ENOMEM) ;
+   wbuf.next = wbuf.end - 1 ;
+   wbuf.end[-1] = 0 ;
+   TEST(0 == appendbyte_wbuffer(&wbuf, 1)) ;
+   TEST(1 == wbuf.end[-1]) ;
+   memblock_t old = mblock ;
+   TEST(ENOMEM == appendbyte_wbuffer(&wbuf, 1)) ;
+   TEST(old.addr  == addr_memblock(&mblock)) ;
+   TEST(old.size  == size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
 
    // TEST clear_wbuffer
-   for (unsigned b = 0 ; b <= sizeof(buffer); ++b) {
-      wbuf = (wbuffer_t) wbuffer_INIT_STATIC(sizeof(buffer), buffer) ;
-      TEST(0 == appendbytes_wbuffer(&wbuf, b, &data.addr)) ;
-      clear_wbuffer(&wbuf) ;
-      TEST(wbuf.next == buffer) ;
-      TEST(wbuf.end  == buffer+sizeof(buffer)) ;
-      TEST(wbuf.addr == buffer) ;
-   }
-   for (unsigned b = 0 ; b < sizeof(buffer); ++b) {
-      TEST((uint8_t)b == buffer[b]) ;
-   }
+   old = mblock ;
+   clear_wbuffer(&wbuf) ;
+   TEST(old.addr  == addr_memblock(&mblock)) ;
+   TEST(old.size  == size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock)) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
 
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
+   // TEST appendbytes_wbuffer: 0 bytes, wbuf.next != 0
+   old = mblock ;
+   TEST(0 == appendbytes_wbuffer(&wbuf, 0, &b)) ;
+   TEST(old.addr  == addr_memblock(&mblock)) ;
+   TEST(old.size  == size_memblock(&mblock)) ;
+   TEST(b == addr_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock)) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
 
-static int test_change_dynamic(void)
-{
-   wbuffer_t   wbuf   = wbuffer_INIT_FREEABLE ;
-   wbuffer_t   wfree  = wbuffer_INIT_FREEABLE ;
-   memblock_t  mblock = memblock_INIT_FREEABLE ;
-   uint8_t     * buffer ;
+   // TEST appendbytes_wbuffer: 0 bytes, wbuf.next == 0
+   TEST(0 == FREE_MM(&mblock)) ;
+   wbuf = (wbuffer_t) wbuffer_INIT_MEMBLOCK(&mblock) ;
+   TEST(0 == appendbytes_wbuffer(&wbuf, 0, &b)) ;
+   TEST(0 == addr_memblock(&mblock)) ;
+   TEST(0 == size_memblock(&mblock)) ;
+   TEST(0 == b) ;
+   TEST(0 == wbuf.next) ;
+   TEST(0 == wbuf.end) ;
 
-   // TEST reserve_wbuffer: memory block grows the same as argument
-   for (unsigned b = 0; b < 256; ++b) {
-      TEST(0 == init_wbuffer(&wbuf, 0)) ;
-      TEST(wbuf.next == 0) ;
-      TEST(wbuf.end  == 0) ;
-      TEST(wbuf.addr == 0) ;
-      TEST(0 == reserve_wbuffer(&wbuf, b, &buffer)) ;
-      TEST(b == 0 || buffer != 0) ;
-      TEST(wbuf.next == buffer) ;
-      TEST(wbuf.end  == buffer+b) ;
-      TEST(wbuf.addr == buffer) ;
-      TEST(0 == reserve_wbuffer(&wbuf, 2*b+1, &buffer)) ;
-      TEST(buffer != 0) ;
-      TEST(wbuf.next == buffer) ;
-      TEST(wbuf.end  == buffer+2*b+1) ;
-      TEST(wbuf.addr == buffer) ;
-      TEST(0 == free_wbuffer(&wbuf)) ;
-      TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
-   }
+   // TEST appendbytes_wbuffer: no reserved bytes
+   TEST(0 == appendbytes_wbuffer(&wbuf, 1, &b)) ;
+   TEST(b == addr_memblock(&mblock)) ;
+   TEST(0 != addr_memblock(&mblock)) ;
+   TEST(1 <= size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock) + 1) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   *b = 0 ;
 
-   // TEST reserve_wbuffer: memory block doubles in size
-   TEST(0 == init_wbuffer(&wbuf, 1)) ;
-   for (uint32_t b = 1; b < 2048*2048; b *= 2) {
-      TEST(wbuf.next == wbuf.addr) ;
-      TEST(wbuf.end  == wbuf.next+b) ;
-      TEST(wbuf.addr != 0) ;
-      memset(wbuf.addr, (uint8_t)b, b) ;
-      TEST(b == reservedsize_wbuffer(&wbuf)) ;
-      TEST(0 == reserve_wbuffer(&wbuf, b+1, &buffer)) ;
-      TEST(buffer != 0) ;
-      TEST(wbuf.next == buffer) ;
-      TEST(wbuf.end  == buffer+2*b) ;
-      TEST(wbuf.addr == buffer) ;
-      for (uint32_t i = 0; i < b; ++i) {
-         TEST((uint8_t)b == wbuf.next[i]) ;
+   // TEST appendbytes_wbuffer: doubles in size
+   for (size_t i = 1, size = 1, offset = 1; i <= 16; ++i) {
+      old = mblock ;
+      bool isresize = (i > sizereserved_wbuffer(&wbuf)) ;
+      TEST(0 == appendbytes_wbuffer(&wbuf, i, &b)) ;
+      if (isresize) {
+         size *= 2 ;
+         TEST(size      == size_memblock(&mblock)) ;
+      } else {
+         TEST(old.addr  == addr_memblock(&mblock)) ;
+         TEST(old.size  == size_memblock(&mblock)) ;
       }
-   }
-   TEST(0 == free_wbuffer(&wbuf)) ;
-   TEST(0 == memcmp(&wbuf, &wfree, sizeof(wbuf))) ;
-
-   // TEST reserve_wbuffer: ENOMEM
-   TEST(0 == init_wbuffer(&wbuf, 1000)) ;
-   TEST(ENOMEM == reserve_wbuffer(&wbuf, SIZE_MAX/2, &buffer)) ;
-   TEST(0 == free_wbuffer(&wbuf)) ;
-
-   // TEST appendbyte_wbuffer
-   TEST(0 == init_wbuffer(&wbuf, 0)) ;
-   for (uint8_t c = 'A', size = 1; c <= 'Z'; ++c) {
-      TEST((c-'A')   == wbuf.next - (uint8_t*)wbuf.addr) ;
-      TEST(0 == appendbyte_wbuffer(&wbuf, c)) ;
-      TEST((1+c-'A') == wbuf.next - (uint8_t*)wbuf.addr) ;
-      TEST(size == wbuf.end - (uint8_t*)wbuf.addr) ;
-      if (wbuf.next == wbuf.end) size = (uint8_t)(size * 2) ;
-   }
-   for (unsigned c = 'A'; c <= 'Z'; ++c) {
-      TEST(c == ((uint8_t*)wbuf.addr)[c-'A']) ;
-   }
-   TEST(0 == free_wbuffer(&wbuf)) ;
-
-   // TEST appendbyte_wbuffer
-   TEST(0 == init_wbuffer(&wbuf, 1)) ;
-   test_errortimer_t errtimer ;
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
-   buffer = wbuf.addr ;
-   TEST(buffer != 0) ;
-   TEST(0 == appendbyte_wbuffer(&wbuf, 1)) ;
-   TEST(ENOMEM == appendbyte_wbuffer(&wbuf, 1)) ;
-   TEST(wbuf.next == 1 + buffer) ;
-   TEST(wbuf.end  == 1 + buffer) ;
-   TEST(wbuf.addr == buffer) ;
-   TEST(0 == free_wbuffer(&wbuf)) ;
-
-   // TEST appendbytes_wbuffer: 0 bytes, wbuf.addr != 0
-   TEST(0 == init_wbuffer(&wbuf, 1)) ;
-   TEST(0 == appendbytes_wbuffer(&wbuf, 0, &buffer)) ;
-   TEST(buffer != 0) ;
-   TEST(wbuf.next == buffer) ;
-   TEST(wbuf.end  == buffer+1) ;
-   TEST(wbuf.addr == buffer) ;
-   TEST(0 == free_wbuffer(&wbuf)) ;
-
-   // TEST appendbytes_wbuffer: 0 bytes, wbuf.addr == 0
-   TEST(0 == init_wbuffer(&wbuf, 0)) ;
-   TEST(0 == appendbytes_wbuffer(&wbuf, 0, &buffer)) ;
-   TEST(buffer == 0) ;
-   TEST(wbuf.next == buffer) ;
-   TEST(wbuf.end  == buffer) ;
-   TEST(wbuf.addr == buffer) ;
-
-   // TEST appendbytes_wbuffer
-   for (size_t i = 1, size = 1, offset = 0; i <= 16; ++i) {
-      if (i == 2) size = 3 ;
-      else if (i > 1 && (size_t)(wbuf.end - wbuf.next) < i) size *= 2 ;
-      TEST(0 == appendbytes_wbuffer(&wbuf, i, &buffer)) ;
-      TEST(buffer    == offset + (uint8_t*)wbuf.addr) ;
+      TEST(b         == offset + addr_memblock(&mblock)) ;
       offset += i ;
-      TEST(wbuf.next == offset + (uint8_t*)wbuf.addr) ;
-      TEST(wbuf.end  == size + (uint8_t*)wbuf.addr) ;
-      TEST(wbuf.addr != 0) ;
-      memset(buffer, (int)i, i) ;
+      TEST(wbuf.next == offset + addr_memblock(&mblock)) ;
+      TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+      memset(b, (int)i, i) ;
    }
-   for (size_t i = 1, offset = 0; i <= 16; ++i) {
+   TEST(0 == addr_memblock(&mblock)[0]) ;
+   for (size_t i = 1, offset = 1; i <= 16; offset += i, ++i) {
       for (size_t c = offset; c < offset+i; ++c) {
-         TEST(i == ((uint8_t*)wbuf.addr)[c]) ;
+         TEST(i == addr_memblock(&mblock)[c]) ;
       }
-      offset += i ;
    }
-   TEST(0 == free_wbuffer(&wbuf)) ;
-
-   // TEST appendbytes_wbuffer: returns same buffer pointer as reserve_wbuffer
-   TEST(0 == init_wbuffer(&wbuf, 0)) ;
-   for (size_t i = 1, size = 1, offset = 0; i <= 16; ++i) {
-      if (i == 2) size = 3 ;
-      else if (i > 1 && (size_t)(wbuf.end - wbuf.next) < i) size *= 2 ;
-      TEST(0 == reserve_wbuffer(&wbuf, i, &buffer)) ;
-      TEST(buffer    == offset + (uint8_t*)wbuf.addr) ;
-      TEST(wbuf.next == offset + (uint8_t*)wbuf.addr) ;
-      TEST(wbuf.end  == size + (uint8_t*)wbuf.addr) ;
-      TEST(wbuf.addr != 0) ;
-      TEST(0 == appendbytes_wbuffer(&wbuf, i, &buffer)) ;
-      TEST(buffer    == offset + (uint8_t*)wbuf.addr) ;
-      offset += i ;
-      TEST(wbuf.next == offset + (uint8_t*)wbuf.addr) ;
-      TEST(wbuf.end  == size + (uint8_t*)wbuf.addr) ;
-      TEST(wbuf.addr != 0) ;
-      memset(buffer, (int)i, i) ;
-   }
-   for (size_t i = 1, offset = 0; i <= 16; ++i) {
-      for (size_t c = offset; c < offset+i; ++c) {
-         TEST(i == ((uint8_t*)wbuf.addr)[c]) ;
-      }
-      offset += i ;
-   }
-   TEST(0 == free_wbuffer(&wbuf)) ;
 
    // TEST appendbytes_wbuffer: ENOMEM
-   TEST(0 == init_wbuffer(&wbuf, 1000)) ;
-   TEST(ENOMEM == appendbytes_wbuffer(&wbuf, SIZE_MAX/2, &buffer)) ;
-   TEST(0 == free_wbuffer(&wbuf)) ;
+   old = mblock ;
+   b = 0 ;
+   TEST(ENOMEM == appendbytes_wbuffer(&wbuf, SIZE_MAX, &b)) ;
+   TEST(0 == b) ;
+   init_testerrortimer(&s_wbuffer_errtimer, 1, ENOMEM) ;
+   TEST(ENOMEM == appendbytes_wbuffer(&wbuf, sizereserved_wbuffer(&wbuf)+1, &b)) ;
+   TEST(0 == b) ;
+   TEST(old.addr == addr_memblock(&mblock)) ;
+   TEST(old.size == size_memblock(&mblock)) ;
 
-   // TEST clear_wbuffer
-   TEST(0 == init_wbuffer(&wbuf, 0)) ;
-   for (size_t i = 1; i <= 1024; i *= 2) {
-      TEST(0 == appendbytes_wbuffer(&wbuf, i, &buffer)) ;
-      TEST(wbuf.next == buffer + i) ;
-      TEST(wbuf.end  == buffer + i) ;
-      TEST(wbuf.addr == buffer)
-      memset(buffer, (uint8_t)i, i) ;
-      clear_wbuffer(&wbuf) ;
-      TEST(wbuf.next == buffer) ;
-      TEST(wbuf.end  == buffer + i) ;
-      TEST(wbuf.addr == buffer)
-      for (unsigned c = 0; c < i; c++) {
-         TEST((uint8_t)i == buffer[c]) ;
-      }
+   // TEST appendcopy_wbuffer: empty block
+   uint8_t buffer[256] ;
+   for (unsigned i = 0; i < 256; ++i) {
+      buffer[i] = (uint8_t)i ;
    }
-   TEST(0 == free_wbuffer(&wbuf)) ;
+   TEST(0 == FREE_MM(&mblock)) ;
+   wbuf = (wbuffer_t) wbuffer_INIT_MEMBLOCK(&mblock) ;
+   TEST(0 == appendcopy_wbuffer(&wbuf, 1, buffer)) ;
+   TEST(0 != addr_memblock(&mblock)) ;
+   TEST(1 <= size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock) + 1) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   TEST(0 == addr_memblock(&mblock)[0]) ;
+
+   // TEST appendcopy_wbuffer: append to non empty block
+   TEST(0 == appendcopy_wbuffer(&wbuf, 15, buffer)) ;
+   TEST(16 <= size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock) + 16) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   TEST(0 == memcmp(buffer, addr_memblock(&mblock)+1, 15)) ;
+
+   // TEST appendcopy_wbuffer: copy all at once
+   old = mblock ;
+   clear_wbuffer(&wbuf) ;
+   TEST(0 == appendcopy_wbuffer(&wbuf, size_memblock(&mblock), buffer)) ;
+   TEST(old.addr == addr_memblock(&mblock)) ;
+   TEST(old.size == size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   TEST(0 == memcmp(buffer, addr_memblock(&mblock), size_memblock(&mblock))) ;
+
+   // TEST appendcopy_wbuffer: copy first half, alloc, copy second half
+   clear_wbuffer(&wbuf) ;
+   TEST(0 == appendcopy_wbuffer(&wbuf, 32, buffer+3)) ;
+   TEST(32 <= size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock) + 32) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   TEST(0 == memcmp(buffer+3, addr_memblock(&mblock), 32)) ;
+
+   // TEST appendcopy_wbuffer: ENOMEM
+   old = mblock ;
+   clear_wbuffer(&wbuf) ;
+   TEST(0 == appendcopy_wbuffer(&wbuf, 16, buffer)) ;
+   TEST(ENOMEM == appendcopy_wbuffer(&wbuf, SIZE_MAX, buffer)) ;
+   init_testerrortimer(&s_wbuffer_errtimer, 1, ENOMEM) ;
+   TEST(ENOMEM == appendcopy_wbuffer(&wbuf, sizereserved_wbuffer(&wbuf)+1, buffer)) ;
+   TEST(old.addr == addr_memblock(&mblock)) ;
+   TEST(old.size == size_memblock(&mblock)) ;
+   TEST(wbuf.next == addr_memblock(&mblock) + 16) ;
+   TEST(wbuf.end  == addr_memblock(&mblock) + size_memblock(&mblock)) ;
+   TEST(0 == memcmp(buffer, addr_memblock(&mblock), 16)) ;
+
+   // unprepare
+   TEST(0 == FREE_MM(&mblock)) ;
 
    return 0 ;
 ONABORT:
    FREE_MM(&mblock) ;
-   free_wbuffer(&wbuf) ;
    return EINVAL ;
 }
 
-typedef struct subtype_memblock_t   subtype_memblock_t ;
+typedef struct mblock2_t   mblock2_t ;
 
-struct subtype_memblock_t {
-   uint8_t  * addr ;
-   size_t   size ;
-   size_t   used ;
-   subtype_memblock_t * next ;
+struct mblock2_t {
+   uint8_t  *  addr ;
+   size_t      size ;
+   size_t      used ;
+   mblock2_t * next ;
 } ;
 
-static int s_count_subtypereserve = 0 ;
-static int s_count_subtypesize    = 0 ;
-static int s_count_subtypeiterate = 0 ;
-static int s_count_subtypefree    = 0 ;
-static int s_count_subtypeclear   = 0 ;
+static unsigned s_other_alloc = 0 ;
+static unsigned s_other_size  = 0 ;
+static unsigned s_other_clear = 0 ;
 
-static int subtype_reserve(wbuffer_t * wbuf, size_t reserve_size)
+static int alloc_other_test(void * impl, size_t new_size, /*ret*/struct memstream_t * memstr)
 {
-   ++ s_count_subtypereserve ;
+   ++ s_other_alloc ;
 
-   if (reservedsize_wbuffer(wbuf) >= reserve_size) {
-      return 0 ;
+   mblock2_t * current = impl ;
+
+   while (current->addr + current->size != memstr->end) {
+      current = current->next ;
+      if (current == impl) {
+         return EINVAL ;
+      }
    }
 
-   subtype_memblock_t * next = ((subtype_memblock_t*) wbuf->addr) ;
-   next->used = (size_t) (wbuf->next - next->addr) ;
-
-   next = next->next ;
+   mblock2_t * next = current->next ;
    if (  next->used
-         || next->size < reserve_size) {
+         || next->size < new_size) {
       return ENOMEM ;
    }
 
-   wbuf->next = next->addr ;
-   wbuf->end  = next->addr + next->size ;
-   wbuf->addr = next ;
+   current->used = (size_t) (memstr->next - current->addr) ;
+
+   memstr->next = next->addr ;
+   memstr->end  = next->addr + next->size ;
 
    return 0 ;
 }
 
-static size_t subtype_size(const wbuffer_t * wbuf)
+static size_t size_other_test(void * impl, const struct memstream_t * memstr)
 {
-   ++ s_count_subtypesize ;
+   ++ s_other_size ;
 
-   size_t             size    = 0 ;
-   subtype_memblock_t * first = ((subtype_memblock_t*) wbuf->addr) ;
-   subtype_memblock_t * next  = first->next ;
+   mblock2_t * current = impl ;
+
+   while (current->addr + current->size != memstr->end) {
+      current = current->next ;
+      if (current == impl) {
+         return EINVAL ;
+      }
+   }
+
+   size_t size = (size_t) (memstr->next - current->addr) ;
+   mblock2_t * first = current ;
+   mblock2_t * next  = first->next ;
 
    while (next != first) {
       size += next->used ;
       next = next->next ;
    }
 
-   size += (size_t) (wbuf->next - first->addr) ;
-
    return size ;
 }
 
-static bool subtype_iterate(const wbuffer_t * wbuf, void ** next, /*out*/struct memblock_t * memblock)
+static void clear_other_test(void * impl, /*ret*/struct memstream_t * memstr)
 {
-   subtype_memblock_t * next2 = (subtype_memblock_t*) *next ;
-   subtype_memblock_t * first = (subtype_memblock_t*) wbuf->addr ;
+   ++ s_other_clear ;
 
-   first->used = (size_t) (wbuf->next - first->addr) ;
+   mblock2_t * first = impl ;
+   mblock2_t * next  = first ;
 
-   ++ s_count_subtypeiterate ;
+   do {
+      next->used = 0 ;
+      next = next->next ;
+   } while (next != first) ;
 
-   if (!next2) {
-      next2 = first->next ;
-
-      while (!next2->used) {
-         if (next2 == first) return false ; /*empty*/
-         next2 = next2->next ;
-      }
-
-   } else if (next2 == first->next || !next2->used) {
-      return false ;
-   }
-
-   *next = next2->next ;
-   *memblock = (memblock_t) memblock_INIT(next2->used, next2->addr) ;
-
-   return true ;
+   memstr->next = first->addr ;
+   memstr->end  = first->addr + first->size ;
 }
 
-static int subtype_free(wbuffer_t * wbuf)
+static int test_other_impl(void)
 {
-   ++ s_count_subtypefree ;
-
-   clear_wbuffer(wbuf) ;
-
-   memset(wbuf, 0, sizeof(*wbuf)) ;
-   return 0 ;
-}
-
-static void subtype_clear(wbuffer_t * wbuf)
-{
-   ++ s_count_subtypeclear ;
-
-   subtype_memblock_t * first = ((subtype_memblock_t*) wbuf->addr) ;
-   subtype_memblock_t * next  = first ;
-
-   if (first) {
-      do {
-         next->used = 0 ;
-         next = next->next ;
-      } while (next != first) ;
-
-      wbuf->next = first->addr ;
-      wbuf->end  = first->addr + first->size ;
-   }
-}
-
-static int test_implstrategy(void)
-{
-   wbuffer_t   wbuf   = wbuffer_INIT_FREEABLE ;
-   wbuffer_t   wfree  = wbuffer_INIT_FREEABLE ;
-   wbuffer_it  sub_it = { &subtype_reserve, &subtype_size, &subtype_iterate, &subtype_free, &subtype_clear };
+   wbuffer_t   wbuf       = wbuffer_INIT_FREEABLE ;
+   wbuffer_it  other_it   = { &alloc_other_test, &clear_other_test, &size_other_test };
    uint8_t     buffer[64] = { 0 } ;
-   memblock_t  data ;
-   // smemblocks builds a list of 4 blocks of 16 byte of memory
-   subtype_memblock_t smemblocks[4] = {
-      { &buffer[ 0], 16, 0, &smemblocks[1] },
-      { &buffer[16], 16, 0, &smemblocks[2] },
-      { &buffer[32], 16, 0, &smemblocks[3] },
-      { &buffer[48], 16, 0, &smemblocks[0] },
+   // mb2array builds a list of 4 blocks of 16 byte of memory
+   mblock2_t mb2array[4] = {
+      { &buffer[ 0], 16, 0, &mb2array[1] },
+      { &buffer[16], 16, 0, &mb2array[2] },
+      { &buffer[32], 16, 0, &mb2array[3] },
+      { &buffer[48], 16, 0, &mb2array[0] },
    } ;
 
-   // TEST wbuffer_INIT_IMPL, free_wbuffer
-   wbuf = (wbuffer_t) wbuffer_INIT_IMPL(smemblocks[0].size, smemblocks[0].addr, &smemblocks[0], &sub_it) ;
+   // TEST wbuffer_INIT_OTHER
+   wbuf = (wbuffer_t) wbuffer_INIT_OTHER(mb2array[0].size, mb2array[0].addr, &mb2array[0], &other_it) ;
    TEST(wbuf.next == buffer) ;
    TEST(wbuf.end  == buffer+16) ;
-   TEST(wbuf.addr == &smemblocks[0]) ;
-   TEST(wbuf.iimpl == &sub_it) ;
-   s_count_subtypefree = 0 ;
-   free_wbuffer(&wbuf) ;
-   TEST(1 == s_count_subtypefree) ;
-   TEST(0 == memcmp(&wbuf, &wfree, sizeof(wfree))) ;
-   free_wbuffer(&wbuf) ;
-   TEST(1 == s_count_subtypefree) ;
-   wbuf.iimpl = &sub_it ;
-   free_wbuffer(&wbuf) ;
-   TEST(2 == s_count_subtypefree) ;
-   TEST(0 == memcmp(&wbuf, &wfree, sizeof(wfree))) ;
+   TEST(wbuf.impl == &mb2array[0]) ;
+   TEST(wbuf.iimpl == &other_it) ;
 
    // == query ==
 
-   wbuf = (wbuffer_t) wbuffer_INIT_IMPL(smemblocks[0].size, smemblocks[0].addr, &smemblocks[0], &sub_it) ;
-
-   // TEST isreserved_wbuffer
+    // TEST sizereserved_wbuffer
    wbuf.next = wbuf.end ;
-   TEST(false == isreserved_wbuffer(&wbuf)) ;
+   TEST(0 == sizereserved_wbuffer(&wbuf)) ;
    wbuf.next = buffer ;
-   TEST(true == isreserved_wbuffer(&wbuf)) ;
-
-   // TEST reservedsize_wbuffer
-   wbuf.next = wbuf.end ;
-   TEST(0 == reservedsize_wbuffer(&wbuf)) ;
-   wbuf.next = buffer ;
-   TEST(16 == reservedsize_wbuffer(&wbuf)) ;
+   TEST(16 == sizereserved_wbuffer(&wbuf)) ;
 
    // TEST size_wbuffer
+   s_other_size = 0 ;
    wbuf.next = wbuf.end ;
    TEST(16 == size_wbuffer(&wbuf)) ;
+   TEST(1 == s_other_size) ;
    wbuf.next = buffer ;
    TEST(0 == size_wbuffer(&wbuf)) ;
-   for (unsigned i = 0; i < lengthof(smemblocks); ++i) {
-      smemblocks[i].used = (1 + i) ;
+   TEST(2 == s_other_size) ;
+   for (unsigned i = 0; i < lengthof(mb2array); ++i) {
+      mb2array[i].used = (1 + i) ;
    }
-   TEST(2+3+4 == size_wbuffer(&wbuf)) ; /* first block uses wbuf.next - smemblocks[0].addr */
-   for (unsigned i = 0; i < lengthof(smemblocks); ++i) {
-      smemblocks[i].used = 0 ;
-   }
-
-   // TEST firstmemblock_wbuffer
-   wbuf.next = &buffer[5] ;
-   TEST(0 == firstmemblock_wbuffer(&wbuf, &data)) ;
-   TEST(data.addr == buffer) ;
-   TEST(data.size == 5) ;
-   smemblocks[3].used = 4 ;
-   TEST(0 == firstmemblock_wbuffer(&wbuf, &data)) ;
-   TEST(data.addr == &buffer[48]) ;
-   TEST(data.size == 4) ;
-   smemblocks[3].used = 0 ;
-   wbuf.next = buffer ;
-
-   // TEST foreach
-   wbuf.next = &buffer[4] ;
-   for (unsigned i = 0; i < lengthof(smemblocks); ++i) {
-      smemblocks[i].used = 4-i ;
-   }
-   for (unsigned i = 1; i == 1; i = 0) {
-      foreach (_wbuffer, memblock, &wbuf) {
-         TEST(memblock.addr == &buffer[(i%4)*16]) ;
-         TEST(memblock.size == 4-(i%4)) ;
-         ++ i ;
-      }
-      TEST(i == 5) ;
-      i = 1 ;
-      wbuf.next = buffer ;
-      foreach (_wbuffer, memblock, &wbuf) {
-         TEST(memblock.addr == &buffer[(i%4)*16]) ;
-         TEST(memblock.size == 4-(i%4)) ;
-         ++ i ;
-      }
-      TEST(i == 4) ;
-   }
-   for (unsigned i = 0; i < lengthof(smemblocks); ++i) {
-      smemblocks[i].used = 0 ;
+   TEST(2+3+4 == size_wbuffer(&wbuf)) ; /* first block uses wbuf.next - mb2array[0].addr */
+   TEST(3 == s_other_size) ;
+   for (unsigned i = 0; i < lengthof(mb2array); ++i) {
+      mb2array[i].used = 0 ;
    }
 
    // == change ==
 
    // TEST appendbyte_wbuffer
-   s_count_subtypereserve = 0 ;
+   s_other_alloc = 0 ;
    for (uint8_t b = 0; b < sizeof(buffer); ++b) {
       TEST(0 == appendbyte_wbuffer(&wbuf, b)) ;
    }
-   TEST(s_count_subtypereserve == lengthof(smemblocks)-1) ;
-   TEST(size_wbuffer(&wbuf)    == sizeof(buffer)) ;
-   TEST(ENOMEM == appendbyte_wbuffer(&wbuf, 0)) ;
+   TEST(s_other_alloc  == lengthof(mb2array)-1) ;
+   TEST(sizeof(buffer) == size_wbuffer(&wbuf)) ;
    TEST(wbuf.next == wbuf.end) ;
    TEST(wbuf.end  == &buffer[lengthof(buffer)]) ;
-   TEST(wbuf.addr == &smemblocks[3]) ;
-   for (unsigned i = 0; i < lengthof(smemblocks); ++i) {
-      TEST(16 == smemblocks[i].used) ;
+   TEST(ENOMEM == appendbyte_wbuffer(&wbuf, 0)) ;
+   TEST(0 == mb2array[lengthof(mb2array)-1].used) ;
+   for (unsigned i = 0; i < lengthof(mb2array)-1; ++i) {
+      TEST(16 == mb2array[i].used) ;
+   }
+   for (uint8_t b = 0; b < sizeof(buffer); ++b) {
+      TEST(b == buffer[b]) ;
    }
 
    // TEST clear_wbuffer
    clear_wbuffer(&wbuf) ;
-   TEST(wbuf.next == smemblocks[3].addr) ;
-   TEST(wbuf.end  == &buffer[lengthof(buffer)]) ;
-   TEST(wbuf.addr == &smemblocks[3]) ;
-   for (unsigned i = 0; i < lengthof(smemblocks); ++i) {
-      TEST(0 == smemblocks[i].used) ;
+   TEST(wbuf.next == mb2array[0].addr) ;
+   TEST(wbuf.end  == mb2array[0].addr + mb2array[0].size) ;
+   TEST(0 == size_wbuffer(&wbuf)) ;
+   for (unsigned i = 0; i < lengthof(mb2array); ++i) {
+      TEST(0 == mb2array[i].used) ;
    }
-
-   // TEST reserve_wbuffer
-   wbuf = (wbuffer_t) wbuffer_INIT_IMPL(smemblocks[0].size, smemblocks[0].addr, &smemblocks[0], &sub_it) ;
-   for (unsigned i = 0; i <= 16; ++i) {
-      TEST(0 == reserve_wbuffer(&wbuf, i, &data.addr)) ;
-      TEST(data.addr == buffer) ;
-      TEST(wbuf.next == buffer) ;
-      TEST(wbuf.end  == buffer+16) ;
-      TEST(wbuf.addr == &smemblocks[0]) ;
-   }
-
-   // TEST reserve_wbuffer: ENOMEM
-   TEST(ENOMEM == reserve_wbuffer(&wbuf, 17, &data.addr))
-   smemblocks[1].used = 1 ;
-   wbuf.next = wbuf.end ;
-   TEST(ENOMEM == reserve_wbuffer(&wbuf, 1, &data.addr))
-   smemblocks[1].used = 0 ;
-   wbuf.next = buffer ;
 
    // TEST appendbytes_wbuffer
-   s_count_subtypereserve = 0 ;
-   for (unsigned i = 0; i < lengthof(smemblocks); ++i) {
-      TEST(0 == appendbytes_wbuffer(&wbuf, 16, &data.addr)) ;
-      TEST(data.addr == &buffer[i*16]) ;
+   s_other_alloc = 0 ;
+   for (unsigned i = 0; i < lengthof(mb2array); ++i) {
+      uint8_t * b = 0 ;
+      TEST(0 == appendbytes_wbuffer(&wbuf, 16, &b)) ;
+      TEST(b == &buffer[i*16]) ;
    }
-   TEST(s_count_subtypereserve == lengthof(smemblocks)-1) ;
+   TEST(sizeof(buffer) == size_wbuffer(&wbuf)) ;
+   TEST(s_other_alloc  == lengthof(mb2array)-1) ;
 
-   // TEST appendbytes_wbuffer
-   TEST(ENOMEM == appendbytes_wbuffer(&wbuf, 1, &data.addr)) ;
-   TEST(s_count_subtypereserve == lengthof(smemblocks)) ;
+   // TEST appendbytes_wbuffer: ENOMEM
+   TEST(ENOMEM == appendbytes_wbuffer(&wbuf, 1, (uint8_t**)0)) ;
+   TEST(s_other_alloc == lengthof(mb2array)) ;
+
+   // TEST appendcopy_wbuffer
+   clear_wbuffer(&wbuf) ;
+   s_other_alloc = 0 ;
+   uint8_t buffer2[sizeof(buffer)] ;
+   memset(buffer, 0, sizeof(buffer)) ;
+   for (unsigned i = 0; i < sizeof(buffer2); ++i) {
+      buffer2[i] = (uint8_t)i ;
+   }
+   static_assert(sizeof(buffer) == 64 && lengthof(mb2array) == 4, "16 bytes per block") ;
+   TEST(0 == appendcopy_wbuffer(&wbuf, 32, buffer2)) ;
+   TEST(1 == s_other_alloc) ;
+   TEST(32 == size_wbuffer(&wbuf)) ;
+   for (unsigned i = 2; i < lengthof(mb2array); ++i) {
+      TEST(0 == appendcopy_wbuffer(&wbuf, 16, buffer2+i*16)) ;
+      TEST(i == s_other_alloc) ;
+      TEST((i+1)*16 == size_wbuffer(&wbuf)) ;
+   }
+   for (unsigned i = 0; i < sizeof(buffer2); ++i) {
+      buffer2[i] = (uint8_t)i ;
+   }
+
+   // TEST appendcopy_wbuffer: ENOMEM
+   s_other_alloc = 0 ;
+   TEST(ENOMEM == appendcopy_wbuffer(&wbuf, 1, (uint8_t*)0)) ;
+   TEST(1 == s_other_alloc) ;
 
    return 0 ;
 ONABORT:
@@ -952,11 +913,12 @@ int unittest_memory_wbuffer()
 
    if (test_variables())         goto ONABORT ;
    if (test_initfree())          goto ONABORT ;
-   if (test_wbufferiterator())   goto ONABORT ;
+   if (test_cstring_adapter())   goto ONABORT ;
+   if (test_memblock_adapter())  goto ONABORT ;
+   if (test_static_adapter())    goto ONABORT ;
    if (test_query())             goto ONABORT ;
-   if (test_change_static())     goto ONABORT ;
-   if (test_change_dynamic())    goto ONABORT ;
-   if (test_implstrategy())      goto ONABORT ;
+   if (test_update())            goto ONABORT ;
+   if (test_other_impl())        goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

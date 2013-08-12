@@ -65,7 +65,7 @@ struct cstring_t
     *
     * Invariant:
     * ((0 == <chars>) && (0 == allocated_size)) || ((0 != chars) && (0 != allocated_size)) */
-   uint8_t  * chars ;
+   uint8_t* chars ;
 } ;
 
 // group: lifetime
@@ -112,7 +112,7 @@ size_t size_cstring(const cstring_t * cstr) ;
 
 /* function: allocatedsize_cstring
  * Returns the allocated buffer size in bytes.
- * To access the buffer the start address of the buffer use <str_cstring>. */
+ * To access the start address of the buffer use <str_cstring>. */
 size_t allocatedsize_cstring(const cstring_t * cstr) ;
 
 // group: change
@@ -170,7 +170,7 @@ int truncate_cstring(cstring_t * cstr, size_t new_size) ;
 /* define: initmove_cstring
  * Implements <cstring_t.initmove_cstring>. */
 #define initmove_cstring(dest, source)    \
-      do {  *(dest) = *(source) ; *(source) = (cstring_t) cstring_INIT_FREEABLE ; } while(0)
+         do {  *(dest) = *(source) ; *(source) = (cstring_t) cstring_INIT_FREEABLE ; } while(0)
 
 /* define: allocatedsize_cstring
  * Implements <cstring_t.allocatedsize>. */

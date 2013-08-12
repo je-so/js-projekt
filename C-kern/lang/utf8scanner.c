@@ -35,6 +35,7 @@
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/cstring.h"
 #endif
@@ -1059,7 +1060,8 @@ int unittest_lang_utf8scanner()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   TEST(0 == newtemp_directory(&tempdir, "utf8scanner", &tmppath)) ;
+   TEST(0 == newtemp_directory(&tempdir, "utf8scanner")) ;
+   TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
    if (test_initfree(tempdir))   goto ONABORT ;
    if (test_query())             goto ONABORT ;
