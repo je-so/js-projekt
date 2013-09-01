@@ -1,53 +1,53 @@
 [1: 1375541633.339840s]
-new_transCstringtablepage() C-kern/lang/transC/transCstringtable.c:81
+new_transCstringtablepage() C-kern/clang/transC/transCstringtable.c:81
 Error 12 - Cannot allocate memory
 Function aborted
 [1: 1375541633.339846s]
-init_transcstringtable() C-kern/lang/transC/transCstringtable.c:177
+init_transcstringtable() C-kern/clang/transC/transCstringtable.c:177
 Error 12 - Cannot allocate memory
 Function aborted
 [1: 1375541633.339849s]
-new_transCstringtablepage() C-kern/lang/transC/transCstringtable.c:81
+new_transCstringtablepage() C-kern/clang/transC/transCstringtable.c:81
 Error 12 - Cannot allocate memory
 Function aborted
 [1: 1375541633.339851s]
-insertstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:243
+insertstring_transcstringtable() C-kern/clang/transC/transCstringtable.c:243
 Error 12 - Cannot allocate memory
 Function aborted
 [1: 1375541633.339854s]
-new_transCstringtablepage() C-kern/lang/transC/transCstringtable.c:81
+new_transCstringtablepage() C-kern/clang/transC/transCstringtable.c:81
 Error 12 - Cannot allocate memory
 Function aborted
 [1: 1375541633.339856s]
-insertstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:243
+insertstring_transcstringtable() C-kern/clang/transC/transCstringtable.c:243
 Error 12 - Cannot allocate memory
 Function aborted
 [1: 1375541633.339858s]
-appendstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:291
+appendstring_transcstringtable() C-kern/clang/transC/transCstringtable.c:291
 Error 12 - Cannot allocate memory
 Function aborted
 [1: 1375541633.339860s]
-appendstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:271
+appendstring_transcstringtable() C-kern/clang/transC/transCstringtable.c:271
 Error 22 - Invalid argument
 Function input violates condition (strtable->prev != &strtable->first)
 Function aborted
 [1: 1375541633.339863s]
-shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:254
+shrinkstring_transcstringtable() C-kern/clang/transC/transCstringtable.c:254
 Error 22 - Invalid argument
 Function input violates condition (strtable->prev != &strtable->first)
 Function aborted
 [1: 1375541633.339866s]
-shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:255
+shrinkstring_transcstringtable() C-kern/clang/transC/transCstringtable.c:255
 Error 22 - Invalid argument
 Function input violates condition (newsize <= size)
 Function aborted
 [1: 1375541633.339868s]
-shrinkstring_transcstringtable() C-kern/lang/transC/transCstringtable.c:255
+shrinkstring_transcstringtable() C-kern/clang/transC/transCstringtable.c:255
 Error 22 - Invalid argument
 Function input violates condition (newsize <= size)
 Function aborted
 [1: 1375541633.339965s]
-initfirst_transcstringtableiterator() C-kern/lang/transC/transCstringtable.c:118
+initfirst_transcstringtableiterator() C-kern/clang/transC/transCstringtable.c:118
 Error 22 - Invalid argument
 Function input violates condition (strtable->first && strid)
 Function aborted - one or more resources could not be freed

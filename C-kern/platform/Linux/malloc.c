@@ -93,13 +93,11 @@ int trimmemory_malloc()
  *
  * How it is implemented:
  * This function redirects standard error file descriptor
- * to an internal pipe and reads the content of the pipe
- * into a buffer.
- * The it scans backwards until the third last line is
+ * to a pipe and reads the content of the pipe into a buffer.
+ * It scans backwards until the third last line is
  * reached ("in use bytes") and then returns the converted
- * the number at the end of the line as result.
- * */
-int allocatedsize_malloc(size_t * number_of_allocated_bytes)
+ * the number at the end of the line as result. */
+int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes)
 {
    int err ;
    int fd     = -1 ;
@@ -110,7 +108,7 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
       if (err) goto ONABORT ;
    }
 
-   if (pipe2(pfd, O_CLOEXEC)) {
+   if (pipe2(pfd, O_CLOEXEC|O_NONBLOCK)) {
       err = errno ;
       TRACESYSCALL_ERRLOG("pipe2", err) ;
       goto ONABORT ;
@@ -131,28 +129,29 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
 
    malloc_stats() ;
 
-   uint8_t  buffer[256] ;
+   uint8_t  buffer[256/*must be even*/] ;
    ssize_t  len    = 0 ;
 
-   len = read(pfd[0], buffer, 128) ;
+   len = read(pfd[0], buffer, sizeof(buffer)) ;
    if (len < 0) {
       err = errno ;
       TRACESYSCALL_ERRLOG("read", err) ;
       goto ONABORT ;
    }
 
-   while (128 == len) {
-      len = read(pfd[0], &buffer[128], 128) ;
+   while (sizeof(buffer) == len) {
+      memcpy(buffer, &buffer[sizeof(buffer)/2], sizeof(buffer)/2) ;
+      len = read(pfd[0], &buffer[sizeof(buffer)/2], sizeof(buffer)/2) ;
       if (len < 0) {
          err = errno ;
+         if (err == EWOULDBLOCK || err == EAGAIN) {
+            len = sizeof(buffer)/2 ;
+            break ;
+         }
          TRACESYSCALL_ERRLOG("read", err) ;
          goto ONABORT ;
       }
-      if (len < 128) {  // read end of input
-         len += 128 ;
-         break ;
-      }
-      memcpy(buffer, &buffer[128], 128) ;
+      len += (int)sizeof(buffer)/2 ;
    }
 
    // remove last two lines
@@ -171,7 +170,7 @@ int allocatedsize_malloc(size_t * number_of_allocated_bytes)
    if (  len > 0
          && buffer[len] >= '0'
          && buffer[len] <= '9'  ) {
-      sscanf((char*)&buffer[len], "%" SCNuSIZE, &used_bytes ) ;
+      sscanf((char*)&buffer[len], "%" SCNuSIZE, &used_bytes) ;
    }
 
    if (-1 == dup2(fd, STDERR_FILENO)) {

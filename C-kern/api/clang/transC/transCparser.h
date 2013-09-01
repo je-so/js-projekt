@@ -18,14 +18,14 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/lang/transC/transCparser.h
+   file: C-kern/api/clang/transC/transCparser.h
     Header file <TransC-Parser>.
 
-   file: C-kern/lang/transC/transCparser.c
+   file: C-kern/clang/transC/transCparser.c
     Implementation file <TransC-Parser impl>.
 */
-#ifndef CKERN_LANG_TRANSC_TRANSCPARSER_HEADER
-#define CKERN_LANG_TRANSC_TRANSCPARSER_HEADER
+#ifndef CKERN_CLANG_TRANSC_TRANSCPARSER_HEADER
+#define CKERN_CLANG_TRANSC_TRANSCPARSER_HEADER
 
 /* typedef: struct transCparser_t
  * Export <transCparser_t> into global namespace. */

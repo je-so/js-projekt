@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Aug.12  16:06:34
+GenerationDate  := 2013.Sep.01  10:26:57
 GeneratedBy     := je-so
 
 ## Debug
@@ -136,10 +136,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Debug)/C-kern!lang!utf8scanner.c.o \
- $(ObjectDir_Debug)/C-kern!lang!transC!transCstringtable.c.o \
- $(ObjectDir_Debug)/C-kern!lang!transC!transCtoken.c.o \
- $(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o \
+ $(ObjectDir_Debug)/C-kern!clang!utf8scanner.c.o \
+ $(ObjectDir_Debug)/C-kern!clang!transC!transCstringtable.c.o \
+ $(ObjectDir_Debug)/C-kern!clang!transC!transCtoken.c.o \
+ $(ObjectDir_Debug)/C-kern!clang!transC!transCparser.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
@@ -246,10 +246,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Release)/C-kern!lang!utf8scanner.c.o \
- $(ObjectDir_Release)/C-kern!lang!transC!transCstringtable.c.o \
- $(ObjectDir_Release)/C-kern!lang!transC!transCtoken.c.o \
- $(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o \
+ $(ObjectDir_Release)/C-kern!clang!utf8scanner.c.o \
+ $(ObjectDir_Release)/C-kern!clang!transC!transCstringtable.c.o \
+ $(ObjectDir_Release)/C-kern!clang!transC!transCtoken.c.o \
+ $(ObjectDir_Release)/C-kern!clang!transC!transCparser.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
@@ -485,16 +485,16 @@ $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!lang!utf8scanner.c.o: C-kern/lang/utf8scanner.c
+$(ObjectDir_Debug)/C-kern!clang!utf8scanner.c.o: C-kern/clang/utf8scanner.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!lang!transC!transCstringtable.c.o: C-kern/lang/transC/transCstringtable.c
+$(ObjectDir_Debug)/C-kern!clang!transC!transCstringtable.c.o: C-kern/clang/transC/transCstringtable.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!lang!transC!transCtoken.c.o: C-kern/lang/transC/transCtoken.c
+$(ObjectDir_Debug)/C-kern!clang!transC!transCtoken.c.o: C-kern/clang/transC/transCtoken.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/transCparser.c
+$(ObjectDir_Debug)/C-kern!clang!transC!transCparser.c.o: C-kern/clang/transC/transCparser.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
@@ -809,16 +809,16 @@ $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereade
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!lang!utf8scanner.c.o: C-kern/lang/utf8scanner.c
+$(ObjectDir_Release)/C-kern!clang!utf8scanner.c.o: C-kern/clang/utf8scanner.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!lang!transC!transCstringtable.c.o: C-kern/lang/transC/transCstringtable.c
+$(ObjectDir_Release)/C-kern!clang!transC!transCstringtable.c.o: C-kern/clang/transC/transCstringtable.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!lang!transC!transCtoken.c.o: C-kern/lang/transC/transCtoken.c
+$(ObjectDir_Release)/C-kern!clang!transC!transCtoken.c.o: C-kern/clang/transC/transCtoken.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!lang!transC!transCparser.c.o: C-kern/lang/transC/transCparser.c
+$(ObjectDir_Release)/C-kern!clang!transC!transCparser.c.o: C-kern/clang/transC/transCparser.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c

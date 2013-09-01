@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/lang/transC/transCtoken.h
+   file: C-kern/api/clang/transC/transCtoken.h
     Header file <TransC-Token>.
 
-   file: C-kern/lang/transC/transCtoken.c
+   file: C-kern/clang/transC/transCtoken.c
     Implementation file <TransC-Token impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/lang/transC/transCtoken.h"
+#include "C-kern/api/clang/transC/transCtoken.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

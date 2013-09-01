@@ -54,20 +54,28 @@ Group: Api  {
    Group: Cache  {
 
       File: Objectcache  (api/cache/objectcache_impl.h)
-      File: Objectcache-Interface  (api/cache/objectcache_it.h)
       File: Objectcache-Macros  (api/cache/objectcache_macros.h)
       File: Objectcache-Object  (api/cache/objectcache.h)
       File: Valuecache  (api/cache/valuecache.h)
       }  # Group: Cache
 
+   Group: Clang  {
+
+      File: TransC-Parser  (api/clang/transC/transCparser.h)
+      File: TransC-StringTable  (api/clang/transC/transCstringtable.h)
+      File: TransC-Token  (api/clang/transC/transCtoken.h)
+      File: UTF8-Scanner  (api/clang/utf8scanner.h)
+      }  # Group: Clang
+
    Group: Context  {
 
       File: ErrorContext  (api/context/errorcontext.h)
+      File: InterfaceableObject  (api/context/iobj.h)
+      File: Module  (api/context/module.h)
       File: ProcessContext  (api/context/processcontext.h)
       File: Standard-Macros  (api/context/stdmacros.h)
-      File: SystemUserContext  (api/context/sysusercontext.h)
+      File: Standard-Types  (api/context/stdtypes.h)
       File: ThreadContext  (api/context/threadcontext.h)
-      File: Unicode  (api/context/unicode.h)
       }  # Group: Context
 
    Group: Ds  {
@@ -120,6 +128,7 @@ Group: Api  {
          File: Directory  (api/io/filesystem/directory.h)
          File: File  (api/io/filesystem/file.h)
          File: File-Util  (api/io/filesystem/fileutil.h)
+         File: Filesystem-Path  (api/io/filesystem/filepath.h)
          File: Memory-Mapped-File  (api/io/filesystem/mmfile.h)
          }  # Group: Filesystem
 
@@ -139,8 +148,8 @@ Group: Api  {
       Group: Writer  {
 
          File: ErrlogMacros  (api/io/writer/log/errlog_macros.h)
-         File: Log-Interface  (api/io/writer/log/log_it.h)
          File: Log-Object  (api/io/writer/log/log.h)
+         File: LogBuffer  (api/io/writer/log/logbuffer.h)
          File: LogMacros  (api/io/writer/log/log_macros.h)
          File: LogMain  (api/io/writer/log/logmain.h)
          File: LogWriter  (api/io/writer/log/logwriter.h)
@@ -148,6 +157,7 @@ Group: Api  {
 
       File: IO-Accessmode  (api/io/accessmode.h)
       File: IOCallback  (api/io/iocallback.h)
+      File: IOChannel  (api/io/iochannel.h)
       File: IOEvent  (api/io/ioevent.h)
       File: IOPoll  (api/io/iopoll.h)
       File: URL  (api/io/url.h)
@@ -169,12 +179,14 @@ Group: Api  {
 
       Group: Int  {
 
+         File: AtomicOps  (api/math/int/atomic.h)
          File: BigInteger  (api/math/int/bigint.h)
          File: Intop-Abs  (api/math/int/abs.h)
+         File: Intop-Bitorder  (api/math/int/bitorder.h)
+         File: Intop-Byteorder  (api/math/int/byteorder.h)
          File: Intop-Log10  (api/math/int/log10.h)
          File: Intop-Log2  (api/math/int/log2.h)
          File: Intop-Power2  (api/math/int/power2.h)
-         File: Intop-Reverse  (api/math/int/reverse.h)
          File: Intop-Sign  (api/math/int/sign.h)
          File: Intop-SquareRoot  (api/math/int/sqroot.h)
          }  # Group: Int
@@ -185,15 +197,15 @@ Group: Api  {
 
       Group: Mm  {
 
-         File: MemoryManager-Interface  (api/memory/mm/mm_it.h)
+         File: DefaultMemoryManager  (api/memory/mm/mm_impl.h)
          File: MemoryManager-Object  (api/memory/mm/mm.h)
          File: MemoryManagerMacros  (api/memory/mm/mm_macros.h)
-         File: TransientMemoryManager  (api/memory/mm/mmtransient.h)
          }  # Group: Mm
 
       File: HWCache  (api/memory/hwcache.h)
       File: MemoryBlock  (api/memory/memblock.h)
       File: MemoryPageCache  (api/memory/pagecache_impl.h)
+      File: MemoryStream  (api/memory/memstream.h)
       File: PageCache-Object  (api/memory/pagecache.h)
       File: PageCacheMacros  (api/memory/pagecache_macros.h)
       File: VirtualMemory  (api/memory/vm.h)
@@ -212,8 +224,10 @@ Group: Api  {
 
       Group: Sync  {
 
+         File: InterThreadMutex  (api/platform/sync/thrmutex.h)
          File: Mutex  (api/platform/sync/mutex.h)
          File: PosixSignals  (api/platform/sync/signal.h)
+         File: ReadWriteLock  (api/platform/sync/rwlock.h)
          File: Semaphore  (api/platform/sync/semaphore.h)
          File: Waitlist  (api/platform/sync/waitlist.h)
          }  # Group: Sync
@@ -222,7 +236,7 @@ Group: Api  {
 
          File: Process  (api/platform/task/process.h)
          File: Thread  (api/platform/task/thread.h)
-         File: Threadpool  (api/platform/task/threadpool.h)
+         File: ThreadLocalStorage  (api/platform/task/thread_tls.h)
          }  # Group: Task
 
       Group: X11  {
@@ -240,6 +254,7 @@ Group: Api  {
 
       File: Locale-support  (api/platform/locale.h)
       File: Malloc  (api/platform/malloc.h)
+      File: PlatformStartup  (api/platform/startup.h)
       File: SystemUser  (api/platform/sysuser.h)
       }  # Group: Platform
 
@@ -276,14 +291,6 @@ Group: Api  {
       File: TimeValue  (api/time/timevalue.h)
       }  # Group: Time
 
-   Group: Lang  {
-
-      File: TransC-Parser  (api/lang/transC/transCparser.h)
-      File: TransC-StringTable  (api/lang/transC/transCstringtable.h)
-      File: TransC-Token  (api/lang/transC/transCtoken.h)
-      File: UTF8-Scanner  (api/lang/utf8scanner.h)
-      }  # Group: Lang
-
    Group: Task  {
 
       File: SyncQueue  (api/task/syncqueue.h)
@@ -306,11 +313,21 @@ Group: Implementation  {
       File: Valuecache impl  (cache/valuecache.c)
       }  # Group: Cache
 
+   Group: Clang  {
+
+      File: TransC-StringTable impl  (clang/transC/transCstringtable.c)
+      File: TransC-Token impl  (clang/transC/transCtoken.c)
+      File: TransC-Parser impl  (clang/transC/transCparser.c)
+      File: UTF8-Scanner impl  (clang/utf8scanner.c)
+      }  # Group: Clang
+
    Group: Context  {
 
       File: Context-Oriented-Programming  (context/COP.txt)
       File: ErrorContext impl  (context/errorcontext.c)
+      File: InterfaceableObject impl  (context/iobj.c)
       File: MainContext impl  (context/maincontext.c)
+      File: Module impl  (context/module.c)
       File: ProcessContext impl  (context/processcontext.c)
       File: ThreadContext impl  (context/threadcontext.c)
       }  # Group: Context
@@ -358,6 +375,7 @@ Group: Implementation  {
 
       Group: Writer  {
 
+         File: LogBuffer impl  (io/writer/log/logbuffer.c)
          File: LogMain impl  (io/writer/log/logmain.c)
          File: LogWriter impl  (io/writer/log/logwriter.c)
          }  # Group: Writer
@@ -368,20 +386,15 @@ Group: Implementation  {
       File: URL impl  (io/url.c)
       }  # Group: Io
 
-   Group: Lang  {
-
-      File: TransC-Parser impl  (lang/transC/transCparser.c)
-      File: TransC-StringTable impl  (lang/transC/transCstringtable.c)
-      File: TransC-Token impl  (lang/transC/transCtoken.c)
-      File: UTF8-Scanner impl  (lang/utf8scanner.c)
-      }  # Group: Lang
-
    Group: Main  {
 
       Group: Test  {
 
          File: Speedtest  (main/test/speedtest_main.c)
          File: Testchildprocess  (main/test/testchildprocess_main.c)
+         File: TestModule  (main/test/testmodule_main.c)
+         File: TestModuleHelper1  (main/test/helper/testmodule_helper1.h)
+         File: TestModuleHelper1 impl  (main/test/helper/testmodule_helper1.c)
          File: Unittest-Main  (main/test/unittest_main.c)
          }  # Group: Test
 
@@ -419,20 +432,23 @@ Group: Implementation  {
          File: Intop-Log10 impl  (math/int/log10.c)
          File: Intop-Sign impl  (math/int/sign.c)
          File: Intop-SquareRoot impl  (math/int/sqroot.c)
-         File: Intop-Reverse impl  (math/int/reverse.c)
+         File: AtomicOps impl  (math/int/atomic.c)
+         File: Intop-Bitorder impl  (math/int/bitorder.c)
+         File: Intop-Byteorder impl  (math/int/byteorder.c)
          }  # Group: Int
 
       }  # Group: Math
 
    Group: Memory  {
 
+      File: DefaultMemoryManager impl  (memory/mm/mm_impl.c)
       File: HWCache impl  (memory/hwcache.c)
       File: MemoryBlock impl  (memory/memblock.c)
-      File: MemoryManager-Interface impl  (memory/mm/mm_it.c)
+      File: MemoryManager-Object impl  (memory/mm/mm.c)
       File: MemoryPageCache impl  (memory/pagecache_impl.c)
+      File: MemoryStream impl  (memory/memstream.c)
       File: PageCache-Object impl  (memory/pagecache.c)
       File: PageCacheMacros impl  (memory/pagecache_macros.c)
-      File: TransientMemoryManager impl  (memory/mm/mmtransient.c)
       File: WriteBuffer impl  (memory/wbuffer.c)
       }  # Group: Memory
 
@@ -444,8 +460,10 @@ Group: Implementation  {
 
             File: Directory Linux  (platform/Linux/io/directory.c)
             File: File Linux  (platform/Linux/io/file.c)
+            File: Filesystem-Path impl  (platform/Linux/io/filepath.c)
             File: Internetprotocol-Address Linux  (platform/Linux/io/ipaddr.c)
             File: Internetprotocol-Sockets Linux  (platform/Linux/io/ipsocket.c)
+            File: IOChannel impl  (platform/Linux/io/iochannel.c)
             File: IOPoll Linuximpl  (platform/Linux/io/iopoll.c)
             File: Memory-Mapped-File Linux  (platform/Linux/io/mmfile.c)
             }  # Group: Io
@@ -454,7 +472,7 @@ Group: Implementation  {
 
             File: Process Linuximpl  (platform/Linux/task/process.c)
             File: Thread Linux  (platform/Linux/task/thread.c)
-            File: Threadpool impl  (platform/Linux/task/threadpool.c)
+            File: ThreadLocalStorage impl  (platform/Linux/task/thread_tls.c)
             }  # Group: Task
 
          Group: Time  {
@@ -465,12 +483,20 @@ Group: Implementation  {
 
          File: Locale-support Linux  (platform/Linux/locale.c)
          File: Malloc impl  (platform/Linux/malloc.c)
-         File: Mutex Linuximpl  (platform/Linux/mutex.c)
-         File: PosixSignals Linux  (platform/Linux/signal.c)
-         File: Semaphore Linux  (platform/Linux/semaphore.c)
+         File: PlatformStartup Linuximpl  (platform/Linux/startup.c)
+
+         Group: Sync  {
+
+            File: InterThreadMutex impl  (platform/Linux/sync/thrmutex.c)
+            File: Mutex Linuximpl  (platform/Linux/sync/mutex.c)
+            File: PosixSignals Linuximpl  (platform/Linux/sync/signal.c)
+            File: ReadWriteLock Linuximpl  (platform/Linux/sync/rwlock.c)
+            File: Semaphore Linuximpl  (platform/Linux/sync/semaphore.c)
+            File: Waitlist Linuximpl  (platform/Linux/sync/waitlist.c)
+            }  # Group: Sync
+
          File: SystemUser Linuximpl  (platform/Linux/sysuser.c)
          File: VirtualMemory Linux  (platform/Linux/vm.c)
-         File: Waitlist Linux  (platform/Linux/waitlist.c)
          }  # Group: Linux
 
       Group: X11  {

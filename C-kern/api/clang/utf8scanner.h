@@ -19,14 +19,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/lang/utf8scanner.h
+   file: C-kern/api/clang/utf8scanner.h
     Header file <UTF8-Scanner>.
 
-   file: C-kern/lang/utf8scanner.c
+   file: C-kern/clang/utf8scanner.c
     Implementation file <UTF8-Scanner impl>.
 */
-#ifndef CKERN_LANG_UTF8SCANNER_HEADER
-#define CKERN_LANG_UTF8SCANNER_HEADER
+#ifndef CKERN_CLANG_UTF8SCANNER_HEADER
+#define CKERN_CLANG_UTF8SCANNER_HEADER
 
 #include "C-kern/api/string/splitstring.h"
 

@@ -21,14 +21,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/lang/transC/transCstringtable.h
+   file: C-kern/api/clang/transC/transCstringtable.h
     Header file <TransC-StringTable>.
 
-   file: C-kern/lang/transC/transCstringtable.c
+   file: C-kern/clang/transC/transCstringtable.c
     Implementation file <TransC-StringTable impl>.
 */
-#ifndef CKERN_LANG_TRANSC_TRANSCSTRINGTABLE_HEADER
-#define CKERN_LANG_TRANSC_TRANSCSTRINGTABLE_HEADER
+#ifndef CKERN_CLANG_TRANSC_TRANSCSTRINGTABLE_HEADER
+#define CKERN_CLANG_TRANSC_TRANSCSTRINGTABLE_HEADER
 
 // forward
 struct memblock_t ;

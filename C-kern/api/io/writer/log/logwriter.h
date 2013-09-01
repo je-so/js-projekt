@@ -111,8 +111,8 @@ int free_logwriter(logwriter_t * lgwrt) ;
  * Do not free the returned buffer. It points to an internal buffer used by the implementation. */
 void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
 
-/* function: setstate_logwriter
- * Returns set <log_state_e> of <log_channel_e> channel. */
+/* function: getstate_logwriter
+ * Returns current <log_state_e> of channel (<log_channel_e>). */
 uint8_t getstate_logwriter(const logwriter_t * log, uint8_t channel) ;
 
 // group: config

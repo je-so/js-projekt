@@ -17,14 +17,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/lang/transC/transCtoken.h
+   file: C-kern/api/clang/transC/transCtoken.h
     Header file <TransC-Token>.
 
-   file: C-kern/lang/transC/transCtoken.c
+   file: C-kern/clang/transC/transCtoken.c
     Implementation file <TransC-Token impl>.
 */
-#ifndef CKERN_LANG_TRANSC_TRANSCTOKEN_HEADER
-#define CKERN_LANG_TRANSC_TRANSCTOKEN_HEADER
+#ifndef CKERN_CLANG_TRANSC_TRANSCTOKEN_HEADER
+#define CKERN_CLANG_TRANSC_TRANSCTOKEN_HEADER
 
 /* typedef: struct transCtoken_t
  * Export <transCtoken_t> into global namespace. */

@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/lang/transC/transCstringtable.h
+   file: C-kern/api/clang/transC/transCstringtable.h
     Header file <TransC-StringTable>.
 
-   file: C-kern/lang/transC/transCstringtable.c
+   file: C-kern/clang/transC/transCstringtable.c
     Implementation file <TransC-StringTable impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/lang/transC/transCstringtable.h"
+#include "C-kern/api/clang/transC/transCstringtable.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/ds/inmem/slist.h"
 #include "C-kern/api/memory/memblock.h"

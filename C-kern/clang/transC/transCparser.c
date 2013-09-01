@@ -17,15 +17,15 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/lang/transC/transCparser.h
+   file: C-kern/api/clang/transC/transCparser.h
     Header file <TransC-Parser>.
 
-   file: C-kern/lang/transC/transCparser.c
+   file: C-kern/clang/transC/transCparser.c
     Implementation file <TransC-Parser impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/lang/transC/transCparser.h"
+#include "C-kern/api/clang/transC/transCparser.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
