@@ -470,6 +470,9 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logb
 $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o: C-kern/io/reader/utf8scanner.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c
 	@$(CC_Debug)
 
@@ -783,6 +786,9 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/lo
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o: C-kern/io/reader/utf8scanner.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o: C-kern/io/reader/csvfilereader.c

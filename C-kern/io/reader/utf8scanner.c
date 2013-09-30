@@ -17,15 +17,15 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/clang/utf8scanner.h
+   file: C-kern/api/io/reader/utf8scanner.h
     Header file <UTF8-Scanner>.
 
-   file: C-kern/clang/utf8scanner.c
+   file: C-kern/io/reader/utf8scanner.c
     Implementation file <UTF8-Scanner impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/clang/utf8scanner.h"
+#include "C-kern/api/io/reader/utf8scanner.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/reader/filereader.h"
 #include "C-kern/api/string/stringstream.h"
@@ -1052,7 +1052,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_lang_utf8scanner()
+int unittest_io_reader_utf8scanner()
 {
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
    directory_t     * tempdir = 0 ;

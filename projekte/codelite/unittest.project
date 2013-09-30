@@ -175,6 +175,7 @@
         <File Name="../../C-kern/api/io/reader/utf8reader.h"/>
         <File Name="../../C-kern/api/io/reader/csvfilereader.h"/>
         <File Name="../../C-kern/api/io/reader/filereader.h"/>
+        <File Name="../../C-kern/api/io/reader/utf8scanner.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="writer">
         <VirtualDirectory Name="log">
@@ -196,12 +197,7 @@
       <File Name="../../C-kern/api/time/systimer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="clang">
-      <VirtualDirectory Name="transC">
-        <File Name="../../C-kern/api/clang/transC/transCparser.h"/>
-        <File Name="../../C-kern/api/clang/transC/transCtoken.h"/>
-        <File Name="../../C-kern/api/clang/transC/transCstringtable.h"/>
-      </VirtualDirectory>
-      <File Name="../../C-kern/api/clang/utf8scanner.h"/>
+      <VirtualDirectory Name="transC"/>
     </VirtualDirectory>
     <VirtualDirectory Name="task">
       <File Name="../../C-kern/api/task/syncthread.h"/>
@@ -231,6 +227,7 @@
       <File Name="../../C-kern/io/reader/reader.txt"/>
       <File Name="../../C-kern/io/reader/csvfilereader.c"/>
       <File Name="../../C-kern/io/reader/filereader.c"/>
+      <File Name="../../C-kern/io/reader/utf8scanner.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="writer">
       <VirtualDirectory Name="log">
@@ -408,12 +405,7 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="clang">
-    <VirtualDirectory Name="transC">
-      <File Name="../../C-kern/clang/transC/transCparser.c"/>
-      <File Name="../../C-kern/clang/transC/transCtoken.c"/>
-      <File Name="../../C-kern/clang/transC/transCstringtable.c"/>
-    </VirtualDirectory>
-    <File Name="../../C-kern/clang/utf8scanner.c"/>
+    <VirtualDirectory Name="transC"/>
   </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>

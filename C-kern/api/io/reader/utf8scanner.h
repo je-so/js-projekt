@@ -19,14 +19,14 @@
    Author:
    (C) 2013 Jörg Seebohn
 
-   file: C-kern/api/clang/utf8scanner.h
+   file: C-kern/api/io/reader/utf8scanner.h
     Header file <UTF8-Scanner>.
 
-   file: C-kern/clang/utf8scanner.c
+   file: C-kern/io/reader/utf8scanner.c
     Implementation file <UTF8-Scanner impl>.
 */
-#ifndef CKERN_CLANG_UTF8SCANNER_HEADER
-#define CKERN_CLANG_UTF8SCANNER_HEADER
+#ifndef CKERN_IO_READER_UTF8SCANNER_HEADER
+#define CKERN_IO_READER_UTF8SCANNER_HEADER
 
 #include "C-kern/api/string/splitstring.h"
 
@@ -43,9 +43,9 @@ typedef struct utf8scanner_t              utf8scanner_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_lang_utf8scanner
+/* function: unittest_io_reader_utf8scanner
  * Test <utf8scanner_t> functionality. */
-int unittest_lang_utf8scanner(void) ;
+int unittest_io_reader_utf8scanner(void) ;
 #endif
 
 

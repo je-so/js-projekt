@@ -304,7 +304,6 @@ int run_unittest(int argc, const char ** argv)
 //}
 
 //{ c(omputer) lang(uage) unittest
-      RUN(unittest_lang_utf8scanner) ;
 //}
 
 //{ math unittest
@@ -387,6 +386,7 @@ int run_unittest(int argc, const char ** argv)
       RUN(unittest_io_reader_csvfilereader) ;
       RUN(unittest_io_reader_filereader) ;
       RUN(unittest_io_reader_utf8reader) ;
+      RUN(unittest_io_reader_utf8scanner) ;
       // writer
       RUN(unittest_io_writer_log_logbuffer) ;
       RUN(unittest_io_writer_log_logwriter) ;
