@@ -132,6 +132,9 @@ static int new_addrinfo(struct addrinfo ** addrinfo_list, const char * name_or_n
 
    snprintf(portstr, sizeof(portstr), "%u", port) ;
 
+   // TODO: add support for asynchronous getaddrinfo_a
+   //       add new try_asynclist with multiple address queries at once !
+   //       wait ready or error for all and report answers
    err = getaddrinfo(name_or_numeric, portstr, &filter, /*result*/addrinfo_list) ;
    if (err) {
       *addrinfo_list = 0 ;
@@ -230,8 +233,8 @@ int newdnsquery_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const cha
    err = new_addrinfo(&addrinfo_list, hostname, AI_IDN|AI_IDN_ALLOW_UNASSIGNED, protocol, port, version) ;
    if (err) goto ONABORT ;
 
-   if (addrinfo_list->ai_addrlen >= 256) {
-      err = EINVAL ;
+   if (addrinfo_list->ai_addrlen >= (uint16_t)-1) {
+      err = EAFNOSUPPORT ;
       goto ONABORT ;
    }
 

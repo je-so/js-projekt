@@ -95,14 +95,14 @@ int initconnect_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * rem
 /* function: initlisten_ipsocket
  * Creates a TCP server socket for accepting connections from peers (clients).
  * The parameter *max_outstanding_connections* sets the number of connections which are established
- * automatically from the underlying operating system without calling <initwaitconnect_ipsocket>.
- * To establish a new connections call <initwaitconnect_ipsocket>.
+ * automatically from the underlying operating system without calling <initaccept_ipsocket>.
+ * To establish a new connections call <initaccept_ipsocket>.
  *
  * Returns *EOPNOTSUPP* if localaddr uses a protocol other than TCP. */
 int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * localaddr, uint16_t max_outstanding_connections) ;
 
-/* function: initwaitconnect_ipsocket
- * Waits for an incoming connection request from a a peer (client).
+/* function: initaccept_ipsocket
+ * Waits for an incoming connection request from a peer (client).
  * The parameter listensock must point to an <ipsocket_t> created with <initlisten_ipsocket>.
  * On successfull return the newly established connection is stored in ipsock.
  * The remote peer network address is returned in remoteaddr (if set != 0).
@@ -112,7 +112,7 @@ int initlisten_ipsocket(/*out*/ipsocket_t * ipsock, const struct ipaddr_t * loca
  * EINVAL       - Parameter listensock is of type <ipprotocol_TCP> but not a listen socket.
  * EOPNOTSUPP   - Parameter listensock is not of type <ipprotocol_TCP> and does not support this operation.
  * EAFNOSUPPORT - Parameter remoteaddr does not have same IP version than listensock. */
-int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, struct ipaddr_t * remoteaddr/*0 => ignored*/) ;
+int initaccept_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, struct ipaddr_t * remoteaddr/*0 => ignored*/) ;
 
 /* function: free_ipsocket
  * Closes communication channel and frees system resources. */
@@ -132,7 +132,7 @@ bool isconnected_ipsocket(const ipsocket_t * ipsock) ;
 /* function: islisten_ipsocket
  * Returns true if the socket listens for incoming connections.
  * With this socket type you can wait for incoming connection requests from peers.
- * Use <initwaitconnect_ipsocket> to query for neyl established connections.
+ * Use <initaccept_ipsocket> to query for neyl established connections.
  * In case of an error *false* is returned. */
 bool islisten_ipsocket(const ipsocket_t * ipsock) ;
 

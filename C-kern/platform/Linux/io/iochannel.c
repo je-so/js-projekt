@@ -775,7 +775,7 @@ static int test_readwrite(directory_t * tempdir)
    TEST(0 == localaddr_ipsocket(&ssock, (ipaddr_t*)&ipaddr)) ;
    TEST(0 == initconnect_ipsocket(&csock, (const ipaddr_t*)&ipaddr, (const ipaddr_t*)&ipaddr2))
    ipsocket_t lsock = ssock ;
-   TEST(0 == initwaitconnect_ipsocket(&ssock, &lsock, 0)) ;
+   TEST(0 == initaccept_ipsocket(&ssock, &lsock, 0)) ;
    TEST(0 == free_ipsocket(&lsock)) ;
    for (size_t nrbuffer = 0, wvalue = 0, rvalue = 0; nrbuffer < 8; ++nrbuffer) {
       for (size_t i = 0; i < buffersize; ++i, wvalue += 61) {

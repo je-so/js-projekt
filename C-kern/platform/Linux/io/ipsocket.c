@@ -68,6 +68,13 @@ int initsocket_helper(/*out*/ipsocket_t * ipsock, const ipaddr_t * localaddr)
       goto ONABORT_LOG ;
    }
 
+   struct linger l = { .l_onoff = 0, .l_linger = 0 } ;
+   if (setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof(l))) {
+      err = errno ;
+      TRACESYSCALL_ERRLOG("setsockopt(SO_LINGER)", err) ;
+      goto ONABORT_LOG ;
+   }
+
    const int on = 1 ;
    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) {
       err = errno ;
@@ -193,7 +200,7 @@ ONABORT:
    return err ;
 }
 
-int initwaitconnect_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, struct ipaddr_t * remoteaddr/*0 => ignored*/)
+int initaccept_ipsocket(/*out*/ipsocket_t * ipsock, ipsocket_t * listensock, struct ipaddr_t * remoteaddr/*0 => ignored*/)
 {
    int err ;
    struct
@@ -984,7 +991,7 @@ static int test_connect(void)
       TEST(0 == localaddr_ipsocket(&ipsockLT, ipaddr2)) ;
       TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, islocal ? ipaddr : 0)) ;
       TEST(1 == isconnected_ipsocket(&ipsockCL)) ;
-      TEST(0 == initwaitconnect_ipsocket(&ipsockSV, &ipsockLT, ipaddr)) ;
+      TEST(0 == initaccept_ipsocket(&ipsockSV, &ipsockLT, ipaddr)) ;
       TEST(0 == localaddr_ipsocket(&ipsockCL, ipaddr2)) ;
       TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
       TEST(0 == strcmp(str_cstring(&name), "127.0.0.1")) ;
@@ -1034,7 +1041,7 @@ static int test_connect(void)
    TEST(EINVAL == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
    TEST(0 == localaddr_ipsocket(&ipsockLT, ipaddr2)) ;
    TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
-   TEST(EINVAL == initwaitconnect_ipsocket(&ipsockSV, &ipsockCL, ipaddr)) ;
+   TEST(EINVAL == initaccept_ipsocket(&ipsockSV, &ipsockCL, ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
    TEST(0 == free_ipsocket(&ipsockLT)) ;
@@ -1051,7 +1058,7 @@ static int test_connect(void)
    TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
    TEST(EOPNOTSUPP == initlisten_ipsocket(&ipsockLT, ipaddr, 1)) ;
    TEST(0 == init_ipsocket(&ipsockLT, ipaddr)) ;
-   TEST(EOPNOTSUPP == initwaitconnect_ipsocket(&ipsockSV, &ipsockLT, ipaddr)) ;
+   TEST(EOPNOTSUPP == initaccept_ipsocket(&ipsockSV, &ipsockLT, ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == free_ipsocket(&ipsockLT)) ;
 
@@ -1094,7 +1101,7 @@ static int test_buffersize(void)
       TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
-      TEST(0 == initwaitconnect_ipsocket(&ipsockSV, &ipsockLT, 0)) ;
+      TEST(0 == initaccept_ipsocket(&ipsockSV, &ipsockLT, 0)) ;
       {
          // TEST setqueuesize_ipsocket( 0 ) does not change value
          size_t rsize = 0 ;
@@ -1368,7 +1375,7 @@ static int test_outofbandData(void)
    TEST(0 == initconnect_ipsocket(&ipsockCL, ipaddr2, ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
-   TEST(0 == initwaitconnect_ipsocket(&ipsockSV, &ipsockLT, 0)) ;
+   TEST(0 == initaccept_ipsocket(&ipsockSV, &ipsockLT, 0)) ;
 
    TEST(0 == test_helper_oob(&ipsockSV, &ipsockCL, buffer_size, buffer)) ;
    TEST(0 == test_helper_oob(&ipsockCL, &ipsockSV, buffer_size, buffer)) ;
@@ -1602,7 +1609,7 @@ static int test_async(void)
       TEST(0 == convert_ipsocketasync(&ipasync, &ipsock1)) ;
       TEST(-1 == ipasync.ipsock) ;
       TEST(0 == ipasync.err) ;
-      TEST(0 == initwaitconnect_ipsocket(&ipsock2, &iplisten, 0)) ;
+      TEST(0 == initaccept_ipsocket(&ipsock2, &iplisten, 0)) ;
       TEST(0 == write_ipsocket(&ipsock1, sizeof(buffer), buffer, &size)) ;
       TEST(sizeof(buffer) == size) ;
       TEST(0 == read_ipsocket(&ipsock2, sizeof(buffer), buffer, &size)) ;
