@@ -303,11 +303,8 @@ int run_unittest(int argc, const char ** argv)
       RUN(unittest_ds_typeadapt_nodeoffset) ;
 //}
 
-//{ lang(uage) unittest
+//{ c(omputer) lang(uage) unittest
       RUN(unittest_lang_utf8scanner) ;
-      RUN(unittest_lang_transc_transCtoken) ;
-      RUN(unittest_lang_transc_transCstringtable) ;
-      RUN(unittest_lang_transc_transCparser) ;
 //}
 
 //{ math unittest
