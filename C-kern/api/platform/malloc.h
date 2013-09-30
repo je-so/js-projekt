@@ -44,6 +44,21 @@
  *    Same as <trimmemory_malloc>. */
 int prepare_malloc(void) ;
 
+// group: manage
+
+/* function: trimmemory_malloc
+ * Frees preallocated memory which is not in use.
+ * Therefore unused heap memory pages are unmapped from virtual memory.
+ * This function is useful if you want to compare
+ * the layout of all virtual mapped memory pages at the beginning of
+ * the test with the layout at the end of the test.
+ * If a lot of memory is allocated and freed during the execution
+ * of your test it is possible that additional system pages
+ * will be mapped into the heap address space.
+ * The call to <trimmemory_malloc> unmaps them and
+ * makes therefore the layouts comparable. */
+int trimmemory_malloc(void) ;
+
 // group: query
 
 /* function: allocatedsize_malloc
@@ -59,18 +74,12 @@ int prepare_malloc(void) ;
  * to make sure no system memory is wasted. */
 int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes) ;
 
-/* function: trimmemory_malloc
- * Frees preallocated memory which is not in use.
- * Therefore unused heap memory pages are unmapped from virtual memory.
- * This function is useful if you want to compare
- * the layout of all virtual mapped memory pages at the beginning of
- * the test with the layout at the end of the test.
- * If a lot of memory is allocated and freed during the execution
- * of your test it is possible that additional system pages
- * will be mapped into the heap address space.
- * The call to <trimmemory_malloc> unmaps them and
- * makes therefore the layouts comparable. */
-int trimmemory_malloc(void) ;
+/* function: sizeusable_malloc
+ * Returns number of usable bytes in the allocated memory block addr.
+ * The parameter addr must the value returned by a call to malloc.
+ * The returned value is equal or greater than parameter size in malloc(size).
+ * The value 0 is returned in case addr is 0. */
+size_t sizeusable_malloc(void * addr) ;
 
 // group: test
 
@@ -79,6 +88,14 @@ int trimmemory_malloc(void) ;
  * Unittest for query usage of malloc resources. */
 int unittest_platform_malloc(void) ;
 #endif
+
+
+
+// section: inline implementation
+
+/* define: sizeusable_malloc
+ * Implements <sizeusable_malloc>. */
+#define sizeusable_malloc(addr)           (malloc_usable_size(addr))
 
 
 #endif

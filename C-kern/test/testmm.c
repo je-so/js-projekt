@@ -78,15 +78,15 @@ struct testmm_block_t {
  * > (~(memalign-1)) == ~ (0b001000 - 1) == ~ (0b000111) == 0b111000 */
 static inline size_t alignsize_testmmblock(size_t bytesize)
 {
-   const size_t memalign = ((KONFIG_MEMALIGN > sizeof(void*)) ? KONFIG_MEMALIGN : sizeof(void*)) ;
-   static_assert(0 == (memalign & (memalign-1)), "memalign must be power of two") ;
-   return (bytesize + (memalign-1)) & (~(memalign-1)) ;
+   const size_t mmalign = ((KONFIG_MEMALIGN > sizeof(void*)) ? KONFIG_MEMALIGN : sizeof(void*)) ;
+   static_assert(0 == (mmalign & (mmalign-1)), "mmalign must be power of two") ;
+   return (bytesize + (mmalign-1)) & (~(mmalign-1)) ;
 }
 
 static void init_testmmblock(
-    testmm_block_t   * block
-   ,size_t           datasize
-   ,size_t           alignsize)
+    testmm_block_t * block,
+    size_t           datasize,
+    size_t           alignsize)
 {
    const size_t headersize  =  alignsize_testmmblock(sizeof(block->header)) ;
    const size_t trailersize =  alignsize_testmmblock(sizeof(block->trailer)) ;

@@ -28,15 +28,20 @@
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/platform/malloc.h"
-#include <malloc.h>
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #endif
 
 
+// section: malloc
+
+// group: variables
+
 /* variable: s_isprepared_malloc
  * Remembers if <prepare_malloc> was called already. */
 static bool s_isprepared_malloc = false ;
+
+// group: init
 
 /* function: prepare_malloc
  * Calls functions to force allocating of system memory.
@@ -61,6 +66,8 @@ ONABORT:
    return err ;
 }
 
+// group: manage
+
 /* function: trimmemory_malloc
  * Uses GNU malloc_trim extension.
  * This function may be missing on some platforms.
@@ -70,6 +77,8 @@ int trimmemory_malloc()
    malloc_trim(0) ;
    return 0 ;
 }
+
+// group: query
 
 /* function: allocatedsize_malloc impl
  * Uses GNU malloc_stats extension.
@@ -202,6 +211,8 @@ ONABORT:
 }
 
 
+// group: test
+
 #ifdef KONFIG_UNITTEST
 
 static int test_allocatedsize(void)
@@ -265,13 +276,58 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_usablesize(void)
+{
+   void *   addr[1024] = { 0 } ;
+
+   // TEST sizeusable_malloc: return 0 in case addr == 0
+   TEST(0 == sizeusable_malloc(0)) ;
+
+   // TEST sizeusable_malloc: small blocks ; return >= size
+   for (unsigned i = 0; i < lengthof(addr); ++i) {
+      addr[i] = malloc(1+i) ;
+      TEST(0 != addr[i]) ;
+   }
+   for (unsigned i = 0; i < lengthof(addr); ++i) {
+      TEST(1+i <= sizeusable_malloc(addr[i])) ;
+   }
+   for (unsigned i = 0; i < lengthof(addr); ++i) {
+      free(addr[i]) ;
+      addr[i] = 0 ;
+   }
+
+   // TEST sizeusable_malloc: big blocks ; return >= size
+   for (unsigned i = 0; i < lengthof(addr); ++i) {
+      addr[0] = malloc(65536*(1+i)) ;
+      TEST(0 != addr[0]) ;
+      TEST(16384*(1+i) <= sizeusable_malloc(addr[0])) ;
+      free(addr[0]) ;
+      addr[0] = 0 ;
+   }
+
+   return 0 ;
+ONABORT:
+   for (unsigned i = 0; i < lengthof(addr); ++i) {
+      if (addr[i]) free(addr[i]) ;
+      addr[i] = 0 ;
+   }
+   return EINVAL ;
+}
+
 int unittest_platform_malloc()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
+   for (int i = 0; i < 3; ++i) {
+      if (test_allocatedsize())  goto ONABORT ;
+      if (test_usablesize())     goto ONABORT ;
+   }
+   CLEARBUFFER_ERRLOG() ;
+
    TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_allocatedsize())  goto ONABORT ;
+   if (test_usablesize())     goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

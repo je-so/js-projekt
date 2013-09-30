@@ -1,6 +1,7 @@
 /* title: DefaultMemoryManager
 
-   Offers interface for allocating & freeing blocks of memory.
+   Default implementation of <mm_it>.
+   // TODO: rename into mm_default
 
    about: Copyright
    This program is free software.
