@@ -1,5 +1,8 @@
 #!/bin/bash
 declare -x verbose  # either "" or "1"
+NOCOLOR=$(tput sgr0)
+GREEN=$(tput setaf 2; tput bold)
+RED=$(tput setaf 1)
 test_subdir="${0%${0##*/}}static"
 if [ "$1" == "-v" ]; then verbose="1" ; else verbose="" ; fi
 test_ok=0
@@ -11,10 +14,10 @@ space="                       "
 for test in $test_subdir/*.sh ; do
    echo "Exec '$test'"
    if $test ; then
-      test_result="${test_result}${test}:${space:0:20-${#test}}:-)\n"
+      test_result="${test_result}${test}:${space:0:20-${#test}}${GREEN}OK${NOCOLOR}\n"
       test_ok=$((test_ok+1))
    else
-      test_result="${test_result}${test}:${space:0:20-${#test}}!X!\n"
+      test_result="${test_result}${test}:${space:0:20-${#test}}${RED}XX${NOCOLOR}\n"
       test_false=$((test_false+1))
    fi
 done
