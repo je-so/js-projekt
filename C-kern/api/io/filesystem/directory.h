@@ -27,7 +27,6 @@
 #define CKERN_IO_FILESYSTEM_DIRECTORY_HEADER
 
 // forward
-struct cstring_t ;
 struct wbuffer_t ;
 
 /* typedef: struct directory_t

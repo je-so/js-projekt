@@ -2057,8 +2057,8 @@ static int test_sign(void)
       TEST(+1 == sign_bigint(big)) ;
       TEST(+(int16_t)i == big->sign_and_used_digits) ;
       setnegative_bigint(big) ;
-      TEST(1 == isnegative_bigint(big)) ;
       TEST((int16_t)-i == big->sign_and_used_digits) ;
+      TEST(1 == isnegative_bigint(big)) ;
       negate_bigint(big) ;
       TEST(+1 == sign_bigint(big)) ;
       TEST(+(int16_t)i == big->sign_and_used_digits) ;

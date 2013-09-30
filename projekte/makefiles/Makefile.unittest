@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Sep.30  11:26:20
+GenerationDate  := 2013.Sep.30  11:36:58
 GeneratedBy     := je-so
 
 ## Debug
@@ -14,7 +14,7 @@ DefineFlag_Debug    := -D
 IncludeFlag_Debug   := -I
 LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
-CFlags_Debug        := -g -fstack-protector-all -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+CFlags_Debug        := -g -fstack-protector-all -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Debug        := -g 
 Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_USERINTERFACE="(KONFIG_html5)"
 Includes_Debug      := $(IncludeFlag_Debug).
@@ -32,7 +32,7 @@ DefineFlag_Release    := -D
 IncludeFlag_Release   := -I
 LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
-CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k
+CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Release        := -O2 
 Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_USERINTERFACE="(KONFIG_html5)"
 Includes_Release      := $(IncludeFlag_Release).
@@ -133,10 +133,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Debug)/C-kern!clang!utf8scanner.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
@@ -240,10 +240,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
- $(ObjectDir_Release)/C-kern!clang!utf8scanner.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
@@ -480,9 +480,6 @@ $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!clang!utf8scanner.c.o: C-kern/clang/utf8scanner.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
@@ -798,9 +795,6 @@ $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereade
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!clang!utf8scanner.c.o: C-kern/clang/utf8scanner.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c

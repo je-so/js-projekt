@@ -2820,7 +2820,7 @@ static int test_initfree(void)
          clear_decimal(dec) ;
          TEST(sign_decimal(dec)     == 0) ;
          TEST(nrdigits_decimal(dec) == 0) ;
-         TEST(exponent_decimal(dec) == 0) ;
+         TEST(dec->exponent         == 0) ;
          // allocation & content of digits not changed
          TEST(dec->size_allocated == sizemax_decimal()) ;
          for (unsigned di = 0; di < dec->size_allocated; ++di) {
@@ -2889,7 +2889,7 @@ static int test_copy(void)
    TEST(0 == copy_decimal(&copy, dec)) ;
    TEST(1 == copy->size_allocated) ;
    TEST(0 == sign_decimal(copy)) ;
-   TEST(0 == exponent_decimal(copy)) ;
+   TEST(0 == copy->exponent) ;
 
    // TEST copy_decimal
    struct {
@@ -3139,9 +3139,9 @@ static int test_setfromfloat(void)
    dec->exponent             = 1 ;
    dec->sign_and_used_digits = 1 ;
    TEST(0 == setfromfloat_decimal(&dec, 0.0f)) ;
-   TEST(sign_decimal(dec)     == 0) ;
-   TEST(size_decimal(dec)     == 0) ;
-   TEST(exponent_decimal(dec) == 0) ;
+   TEST(0 == sign_decimal(dec)) ;
+   TEST(0 == size_decimal(dec)) ;
+   TEST(0 == dec->exponent) ;
 
    // TEST setfromfloat_decimal: fraction != 0 && integral != 0
    uint32_t testvalues1[] = { 0x00ffffff, 0x00fffff9, 0x00800001, 0x1f3, 0x3f5, 0x707, 0x70001, 0x80001 } ;
@@ -3188,8 +3188,8 @@ static int test_setfromfloat(void)
       for (unsigned nrshift = 0; fexp < fmaxexp; ++ nrshift, ++ fexp, fvalue = (fexp <= fmaxexp ? fvalue * 2 : fvalue)) {
          for (int s =-1; s <= +1; s += 2) {
             TEST(0 == setfromfloat_decimal(&dec, (float)s * fvalue)) ;
-            TEST(sign_decimal(dec)     == s) ;
-            TEST(exponent_decimal(dec) == 0) ;
+            TEST(s == sign_decimal(dec)) ;
+            TEST(0 == dec->exponent) ;
             // convert decimal to integer
             setfromuint32_bigint(big[0], 0) ;
             for (unsigned i = size_decimal(dec); i > 0 ; --i) {
@@ -3675,7 +3675,7 @@ static int test_mult(void)
          negate_decimal(dec[0]) ;
          negate_decimal(dec[2]) ;
       }
-      if (0 == exponent_decimal(dec[0])) {
+      if (0 == dec[0]->exponent) {
          // generate trailing zero by adding 1 to first number
          setpositive_decimal(dec[0]) ;
          setpositive_decimal(dec[1]) ;
@@ -3783,7 +3783,7 @@ static int test_div(void)
       TEST(0 == cmp_decimal(dec[3], dec[0])) ;
 
       // TEST divi32_decimal: trailing zero by adding 1 to first number
-      if (0 == exponent_decimal(dec[0])) {
+      if (0 == dec[0]->exponent) {
          TEST(0 == setfromint32_decimal(&dec[4], 1, 0)) ;
          TEST(0 == add_decimal(&dec[3], dec[0], dec[4])) ;
          TEST(0 == copy_decimal(&dec[0], dec[3])) ;   // dec[0] = dec[0] +1
@@ -3795,7 +3795,7 @@ static int test_div(void)
    // TEST divi32_decimal: result_size is silently corrected
    TEST(0 == setfromint32_decimal(&dec[0], 1, 0)) ;
    TEST(0 == divi32_decimal(&dec[1], dec[0], 1, 0)) ;
-   TEST(0 == exponent_decimal(dec[1])) ;
+   TEST(0 == dec[1]->exponent) ;
    TEST(1 == size_decimal(dec[1])) ;
    TEST(0 == setfromint32_decimal(&dec[0], 1, 0)) ;
    TEST(0 == divi32_decimal(&dec[1], dec[0], 2, 2*sizemax_decimal()/*result_size>sizemax_decimal()*/)) ;

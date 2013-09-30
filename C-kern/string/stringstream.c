@@ -41,7 +41,7 @@ int init_stringstream(/*out*/stringstream_t * strstream, const uint8_t * startad
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(startaddr <= endaddr, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST((uintptr_t)startaddr <= (uintptr_t)endaddr, ONABORT, ) ;
 
    strstream->next = startaddr ;
    strstream->end  = endaddr ;

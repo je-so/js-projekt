@@ -196,7 +196,8 @@ stringstream_t * genericcast_stringstream(void * strstream) ;
 #define isnext_stringstream(strstream)                               \
          ( __extension__({                                           \
             typeof(strstream) _strstream = (strstream) ;             \
-            (_strstream->next < _strstream->end) ;                   \
+            ((uintptr_t)_strstream->next                             \
+               < (uintptr_t)_strstream->end) ;                       \
          }))
 
 /* define: nextbyte_stringstream

@@ -191,19 +191,29 @@ uint8_t encodechar_utf8(size_t strsize, /*out*/uint8_t strstart[strsize], char32
 size_t length_utf8(const uint8_t * strstart, const uint8_t * strend)
 {
    size_t len = 0 ;
-   const uint8_t * next = strstart ;
-   const uint8_t * end  = ((strend + maxsize_utf8()) > strend) ? strend : (strend-maxsize_utf8()) ;
 
-   while (next < end) {
-      const unsigned sizechr = sizefromfirstbyte_utf8(*next) ;
-      next += sizechr + (0 == sizechr) ;
-      len  += (0 != sizechr) ;
-   }
+   if (strstart < strend) {
+      const uint8_t * next = strstart ;
+      const uint8_t * end  = strend - maxsize_utf8() ;
 
-   while (next < strend && strstart <= next) {
-      const unsigned sizechr = sizefromfirstbyte_utf8(*next) ;
-      next += sizechr + (0 == sizechr) ;
-      len  += (0 != sizechr) ;
+      size_t bytelen = (size_t) (strend - strstart) ;
+      if (bytelen >= maxsize_utf8()) {
+         do {
+            const unsigned sizechr = sizefromfirstbyte_utf8(*next) ;
+            next += sizechr + (0 == sizechr) ;
+            len  += (0 != sizechr) ;
+         } while (next <= end) ;
+      }
+
+      while (next < strend) {
+         const unsigned sizechr = sizefromfirstbyte_utf8(*next) ;
+         if ((size_t)(strend-next) < sizechr) {
+            next = strend ;
+         } else {
+            next += sizechr + (0 == sizechr) ;
+         }
+         len += (0 != sizechr) ;
+      }
    }
 
    return len ;

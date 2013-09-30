@@ -130,28 +130,29 @@ int allocatedsize_malloc(/*out*/size_t * number_of_allocated_bytes)
    malloc_stats() ;
 
    uint8_t  buffer[256/*must be even*/] ;
-   ssize_t  len    = 0 ;
 
-   len = read(pfd[0], buffer, sizeof(buffer)) ;
-   if (len < 0) {
+   ssize_t slen = read(pfd[0], buffer, sizeof(buffer)) ;
+   if (slen < 0) {
       err = errno ;
       TRACESYSCALL_ERRLOG("read", err) ;
       goto ONABORT ;
    }
 
+   size_t len = (size_t)slen ;
+
    while (sizeof(buffer) == len) {
+      len = sizeof(buffer)/2 ;
       memcpy(buffer, &buffer[sizeof(buffer)/2], sizeof(buffer)/2) ;
-      len = read(pfd[0], &buffer[sizeof(buffer)/2], sizeof(buffer)/2) ;
-      if (len < 0) {
+      slen = read(pfd[0], &buffer[sizeof(buffer)/2], sizeof(buffer)/2) ;
+      if (slen < 0) {
          err = errno ;
          if (err == EWOULDBLOCK || err == EAGAIN) {
-            len = sizeof(buffer)/2 ;
             break ;
          }
          TRACESYSCALL_ERRLOG("read", err) ;
          goto ONABORT ;
       }
-      len += (int)sizeof(buffer)/2 ;
+      len += (size_t) slen ;
    }
 
    // remove last two lines

@@ -1185,9 +1185,11 @@ static int test_geometry(testwindow_t * testwin, testwindow_t * testwin_noframe)
    // TEST setpos_x11window, frame_x11window, geometry_x11window, pos_x11window, size_x11window
    for (int i = 0; i < 3; ++i) {
       WAITFOR(x11win->display, 1, false) ;
-      TEST(0 == setpos_x11window(x11win, 150 + 10*i, 200 + 5*i)) ;
+      int posx = 150 + 10*i ;
+      int posy = 200 + 5*i ;
+      TEST(0 == setpos_x11window(x11win, posx, posy)) ;
       ((testwindow_t*)x11win)->repos = 0 ;
-      WAITFOR(x11win->display, 10, ((testwindow_t*)x11win)->x >= 150+10*i && ((testwindow_t*)x11win)->x <= 180+10*i) ;
+      WAITFOR(x11win->display, 10, ((testwindow_t*)x11win)->x >= posx && ((testwindow_t*)x11win)->x <= posx+30) ;
       WAITFOR(x11win->display, 10, ((testwindow_t*)x11win)->repos) ;
       TEST(((testwindow_t*)x11win)->repos) ;
       if (0 == ti) {
@@ -1198,8 +1200,8 @@ static int test_geometry(testwindow_t * testwin, testwindow_t * testwin_noframe)
       } else {
          TEST(0 == geometry_x11window(x11win, &x, &y, &w, &h)) ;
       }
-      TEST(x == 150 + 10*i) ;
-      TEST(y == 200 + 5*i) ;
+      TEST(x == posx) ;
+      TEST(y == posy) ;
       TEST(w == 200) ;
       TEST(h == 100) ;
       TEST(0 == pos_x11window(x11win, &x, &y)) ;
@@ -1207,8 +1209,8 @@ static int test_geometry(testwindow_t * testwin, testwindow_t * testwin_noframe)
       TEST(((testwindow_t*)x11win)->y      == y) ;
       TEST(((testwindow_t*)x11win)->width  == w) ;
       TEST(((testwindow_t*)x11win)->height == h) ;
-      TEST(x >= 150 + 10*i) ;
-      TEST(y >= 200 + 5*i) ;
+      TEST(x >= posx) ;
+      TEST(y >= posy) ;
       if (ti) {
          TEST(x == 150 + 10*i) ;
          TEST(y == 200 + 5*i) ;
