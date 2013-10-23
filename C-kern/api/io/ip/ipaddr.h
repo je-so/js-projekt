@@ -33,15 +33,15 @@ typedef uint16_t                          ipport_t ;
 
 /* typedef: struct ipaddr_t
  * Export <ipaddr_t>. */
-typedef struct ipaddr_t                ipaddr_t ;
+typedef struct ipaddr_t                   ipaddr_t ;
 
 /* typedef: struct ipaddr_list_t
  * Export <ipaddr_list_t>. */
-typedef struct ipaddr_list_t           ipaddr_list_t ;
+typedef struct ipaddr_list_t              ipaddr_list_t ;
 
 /* typedef: struct ipaddr_storage_t
  * Export <ipaddr_storage_t> to allow static allocation of an <ipaddr_t>. */
-typedef struct ipaddr_storage_t        ipaddr_storage_t ;
+typedef struct ipaddr_storage_t           ipaddr_storage_t ;
 
 /* enums: ipversion_e
  * Selects the version of the ip address.
@@ -61,7 +61,7 @@ enum ipversion_e {
    ipversion_6   = AF_INET6
 } ;
 
-typedef enum ipversion_e               ipversion_e ;
+typedef enum ipversion_e                  ipversion_e ;
 
 /* enums: ipprotocol_e
  * Currently supported internet protocols.
@@ -75,12 +75,12 @@ typedef enum ipversion_e               ipversion_e ;
  *                  This value is assigned the system specific value IPPROTO_UDP.
  * */
 enum ipprotocol_e {
-    ipprotocol_ANY = 0
-   ,ipprotocol_TCP = IPPROTO_TCP
-   ,ipprotocol_UDP = IPPROTO_UDP
+   ipprotocol_ANY = 0,
+   ipprotocol_TCP = IPPROTO_TCP,
+   ipprotocol_UDP = IPPROTO_UDP
 } ;
 
-typedef enum ipprotocol_e              ipprotocol_e ;
+typedef enum ipprotocol_e                 ipprotocol_e ;
 
 
 // section: Functions
@@ -112,7 +112,7 @@ int unittest_io_ipaddr(void) ;
  * If you assign <ipport_ANY> to your own port number
  * the system chooses the next free port number > 0 for you
  * if you create an <ipsocket_t>. */
-#define ipport_ANY                     0
+#define ipport_ANY                        0
 
 /* function: initnamed_ipport
  * Returns the tcp and udp port numbers of a named IP service.
@@ -261,6 +261,13 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name) ;
  * */
 int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name) ;
 
+// group: log
+
+/* function: logurl_ipaddr
+ * Writes "varname: [tcp|udp]://[ip]:[port]" to logchannel.
+ * Parameter logchannel is of type <log_channel_e>. */
+void logurl_ipaddr(const ipaddr_t * addr, const char * varname, uint8_t logchannel) ;
+
 // group: change
 
 /* function: copy_ipaddr
@@ -315,8 +322,9 @@ ipaddr_t * initany_ipaddrstorage(ipaddr_storage_t * addr, ipprotocol_e protocol,
 
 
 
-// struct: ipaddr_list_t
-// Stores list of <ipaddr_t>. Allows to iterate over every entry.
+/* struct: ipaddr_list_t
+ * Stores list of <ipaddr_t>. Allows to iterate over every entry. */
+struct ipaddr_list_t ;
 
 // group: lifetime
 

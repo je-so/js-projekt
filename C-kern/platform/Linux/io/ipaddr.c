@@ -66,7 +66,6 @@ static inline void compiletime_tests(void)
    static_assert( sizeof(struct sockaddr_in) <  sizeof(struct sockaddr_in6), ) ;
    static_assert( sys_socketaddr_MAXSIZE <= 256, ) ;
    static_assert( sizeof(ipaddr_storage_t) == sizeof(ipaddr_t) + sys_socketaddr_MAXSIZE, ) ;
-
 }
 
 static int convert_eai_errorcodes(int err)
@@ -158,7 +157,7 @@ static void delete_addrinfo(struct addrinfo ** addrinfo_list)
    }
 }
 
-// group: implementation
+// group: lifetime
 
 int new_ipaddr(/*out*/ipaddr_t ** addr, ipprotocol_e protocol, const char * numeric_addr, ipport_t port, ipversion_e version)
 {
@@ -331,6 +330,8 @@ int delete_ipaddr(ipaddr_t ** addr)
    return 0 ;
 }
 
+// group: query
+
 int compare_ipaddr(const ipaddr_t * left, const ipaddr_t * right)
 {
    if (left && right) {
@@ -418,7 +419,7 @@ int dnsname_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
       break ;
    }
 
-   truncate_cstring(dns_name, strlen(str_cstring(dns_name))) ;
+   resize_cstring(dns_name, strlen(str_cstring(dns_name))) ;
    return 0 ;
 ONABORT:
    clear_cstring(dns_name) ;
@@ -448,7 +449,7 @@ int dnsnameace_ipaddr(const ipaddr_t * addr, cstring_t * dns_name)
       break ;
    }
 
-   truncate_cstring(dns_name, strlen(str_cstring(dns_name))) ;
+   resize_cstring(dns_name, strlen(str_cstring(dns_name))) ;
    return 0 ;
 ONABORT:
    clear_cstring(dns_name) ;
@@ -460,7 +461,7 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
 {
    int err ;
 
-   err = resize_cstring(numeric_name, 32) ;
+   err = resize_cstring(numeric_name, 64) ;
    if (err) goto ONABORT ;
 
    for (;;) {
@@ -478,13 +479,35 @@ int numericname_ipaddr(const ipaddr_t * addr, cstring_t * numeric_name)
       break ;
    }
 
-   truncate_cstring(numeric_name, strlen(str_cstring(numeric_name))) ;
+   resize_cstring(numeric_name, strlen(str_cstring(numeric_name))) ;
    return 0 ;
 ONABORT:
    clear_cstring(numeric_name) ;
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
+
+// group: log
+
+void logurl_ipaddr(const ipaddr_t * addr, const char * varname, uint8_t logchannel)
+{
+   if (!isvalid_ipaddr(addr)) return ;
+
+   char           ipname[256] ;
+   const char *   protocolname = addr->protocol == IPPROTO_TCP ? "tcp" : addr->protocol == IPPROTO_UDP ? "udp" : "ip" ;
+
+   if (getnameinfo(addr->addr, addr->addrlen, ipname, sizeof(ipname), 0, 0, NI_NUMERICHOST)) {
+      ipname[0] = '?' ;
+      ipname[1] = 0 ;
+   }
+
+   PRINTF_LOG( logchannel, log_flags_NONE, 0, "%s%s%s://%s:%d\n",
+               varname ? varname : "",
+               varname ? ": " : "",
+               protocolname, ipname, port_ipaddr(addr)) ;
+}
+
+// group: change
 
 int copy_ipaddr(ipaddr_t * dest, const ipaddr_t * source)
 {
@@ -751,6 +774,7 @@ static int test_ipport(void)
 {
    ipport_t tcp_port = ipport_ANY ;
    ipport_t udp_port = ipport_ANY ;
+
    static struct {
       const char * name ;
       uint16_t     tcp_port ;
@@ -766,7 +790,7 @@ static int test_ipport(void)
          { "telnet", 23, 0 },
    } ;
 
-   // TEST static init
+   // TEST ipport_ANY
    TEST(0 == tcp_port) ;
    TEST(0 == udp_port) ;
 
@@ -803,7 +827,7 @@ static int test_ipaddr(void)
    ipaddr_t       *  ipaddr2  = 0 ;
    ipaddr_list_t  *  addrlist = 0 ;
 
-   // TEST init, double free
+   // TEST new_ipaddr, delete_ipaddr
    TEST(0 == new_ipaddr(&ipaddr, ipprotocol_TCP, "1.2.3.4", 1, ipversion_4 )) ;
    TEST(ipaddr) ;
    TEST(port_ipaddr(ipaddr)    == 1) ;
@@ -812,12 +836,13 @@ static int test_ipaddr(void)
    TEST(ipaddr->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "1.2.3.4")) ;
+   TEST(7 == size_cstring(&name)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == ipaddr) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == ipaddr) ;
 
-   // TEST newdnsquery
+   // TEST newdnsquery_ipaddr
    TEST(0 == newdnsquery_ipaddr(&ipaddr, ipprotocol_TCP, "www.heise.de", 50, ipversion_4 )) ;
    TEST(0 == newdnsquery_ipaddr(&ipaddr2, ipprotocol_UDP, "::23", 50, ipversion_6 )) ;
    TEST(ipaddr) ;
@@ -827,21 +852,24 @@ static int test_ipaddr(void)
    TEST(ipaddr->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "193.99.144.85")) ;
+   TEST(13== size_cstring(&name)) ;
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "www.heise.de")) ;
+   TEST(12== size_cstring(&name)) ;
    TEST(ipaddr2) ;
    TEST(port_ipaddr(ipaddr2)    == 50) ;
    TEST(protocol_ipaddr(ipaddr2)== ipprotocol_UDP) ;
    TEST(version_ipaddr(ipaddr2) == ipversion_6) ;
    TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in6)) ;
    TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "::23")) ;
+   TEST(0 == strcmp(str_cstring(&name), "::23")) ;
+   TEST(4 == size_cstring(&name)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == ipaddr) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
    TEST(0 == ipaddr2) ;
 
-   // TEST newany
+   // TEST newany_ipaddr
    TEST(0 == newany_ipaddr(&ipaddr, ipprotocol_UDP, 2, ipversion_4 )) ;
    TEST(0 == newany_ipaddr(&ipaddr2, ipprotocol_UDP, 2, ipversion_6 )) ;
    TEST(ipaddr) ;
@@ -850,20 +878,22 @@ static int test_ipaddr(void)
    TEST(version_ipaddr(ipaddr) == ipversion_4) ;
    TEST(ipaddr->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "0.0.0.0")) ;
+   TEST(0 == strcmp(str_cstring(&name), "0.0.0.0")) ;
+   TEST(7 == size_cstring(&name)) ;
    TEST(ipaddr2) ;
    TEST(port_ipaddr(ipaddr2)    == 2) ;
    TEST(protocol_ipaddr(ipaddr2)== ipprotocol_UDP) ;
    TEST(version_ipaddr(ipaddr2) == ipversion_6) ;
    TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in6)) ;
    TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "::")) ;
+   TEST(0 == strcmp(str_cstring(&name), "::")) ;
+   TEST(2 == size_cstring(&name)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == ipaddr) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
    TEST(0 == ipaddr2) ;
 
-   // TEST newloopback
+   // TEST newloopback_ipaddr
    TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 1002, ipversion_4 )) ;
    TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_TCP, 1002, ipversion_6 )) ;
    TEST(ipaddr) ;
@@ -873,6 +903,7 @@ static int test_ipaddr(void)
    TEST(ipaddr->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "127.0.0.1")) ;
+   TEST(9 == size_cstring(&name)) ;
    TEST(ipaddr2) ;
    TEST(port_ipaddr(ipaddr2)    == 1002) ;
    TEST(protocol_ipaddr(ipaddr2)== ipprotocol_TCP) ;
@@ -880,6 +911,7 @@ static int test_ipaddr(void)
    TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in6)) ;
    TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "::1")) ;
+   TEST(3 == size_cstring(&name)) ;
    TEST(0 == delete_ipaddr(&ipaddr)) ;
    TEST(0 == ipaddr) ;
    TEST(0 == delete_ipaddr(&ipaddr2)) ;
@@ -901,7 +933,9 @@ static int test_ipaddr(void)
       { ipprotocol_TCP, "1234:5678:abcd:ef00:ef00:abcd:cccc:aa55", 964, ipversion_6 },
    } ;
    for (unsigned i = 0; i < lengthof(testdata); ++i) {
-      TEST(0 == new_ipaddr(&ipaddr, testdata[i].protocol, testdata[i].addr, testdata[i].port, testdata[i].version )) ;
+
+      // TEST new_ipaddr
+      TEST(0 == new_ipaddr(&ipaddr, testdata[i].protocol, testdata[i].addr, testdata[i].port, testdata[i].version)) ;
       TEST(ipaddr) ;
       TEST(port_ipaddr(ipaddr)    == testdata[i].port) ;
       TEST(version_ipaddr(ipaddr) == testdata[i].version) ;
@@ -909,31 +943,47 @@ static int test_ipaddr(void)
       TEST(ipaddr->addrlen  == ((testdata[i].version == ipversion_4) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6))) ;
       TEST(ipaddr->addr     == (struct sockaddr*) &ipaddr[1]) ;
       TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-      TEST(0 == strcasecmp( str_cstring(&name), testdata[i].addr)) ;
-      TEST(0 == newaddr_ipaddr( &ipaddr2, testdata[i].protocol, ipaddr->addrlen, ipaddr->addr)) ;
+      TEST(0 == strcasecmp(str_cstring(&name), testdata[i].addr)) ;
+      TEST(strlen(testdata[i].addr) == size_cstring(&name)) ;
+
+      // TEST compare_ipaddr
+      TEST(0 == newaddr_ipaddr(&ipaddr2, testdata[i].protocol, ipaddr->addrlen, ipaddr->addr)) ;
       TEST(ipaddr2) ;
       TEST(0 == compare_ipaddr(ipaddr2, ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
-      TEST(0 == newcopy_ipaddr( &ipaddr2, ipaddr)) ;
+
+      // TEST newcopy_ipaddr
+      TEST(0 == newcopy_ipaddr(&ipaddr2, ipaddr)) ;
       TEST(ipaddr2) ;
       TEST(0 == compare_ipaddr(ipaddr2, ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
-      TEST(!ipaddr2) ;
-      TEST(0 == newdnsquery_ipaddrlist(&addrlist, testdata[i].addr, testdata[i].protocol, testdata[i].port, testdata[i].version)) ;
-      const ipaddr_t * next = next_ipaddrlist(addrlist) ;
-      TEST(next) ;
-      TEST(0 == compare_ipaddr(next, ipaddr)) ;
-      TEST(0 == next_ipaddrlist(addrlist)) ;
-      TEST(0 == delete_ipaddrlist(&addrlist)) ;
-      TEST(0 == addrlist) ;
+
+      // TEST logurl_ipaddr
+      char *   buffer ;
+      size_t   buflen ;
+      GETBUFFER_ERRLOG(&buffer, &buflen) ;
+      logurl_ipaddr(ipaddr, "IP", log_channel_ERR) ;
+      size_t   buflen2 ;
+      GETBUFFER_ERRLOG(&buffer, &buflen2) ;
+      TEST(0 == strncmp("IP: ", buffer+buflen, 4)) ;
+      if (testdata[i].protocol == ipprotocol_TCP) {
+         TEST(0 == strncmp("tcp://", buffer+buflen+4, 6)) ;
+      } else {
+         TEST(0 == strncmp("udp://", buffer+buflen+4, 6)) ;
+      }
+      size_t addrlen = strlen(testdata[i].addr) ;
+      TEST(0 == strncmp(testdata[i].addr, buffer+buflen+10, addrlen)) ;
+      char port[20] ;
+      snprintf(port, sizeof(port), ":%d\n", testdata[i].port) ;
+      TEST(0 == strncmp(port, buffer+buflen+10+addrlen, strlen(port))) ;
+      TEST(buflen2 == buflen+10+addrlen+strlen(port)) ;
       TEST(0 == delete_ipaddr(&ipaddr)) ;
-      TEST(!ipaddr) ;
    }
 
    for (unsigned i = 0; i < lengthof(testdata); ++i) {
       TEST(0 == new_ipaddr(&ipaddr, testdata[i].protocol, testdata[i].addr, testdata[i].port, testdata[i].version )) ;
 
-      // TEST copy
+      // TEST copy_ipaddr
       if (ipprotocol_UDP == testdata[i].protocol) {
          TEST(0 == newany_ipaddr(&ipaddr2, ipprotocol_TCP, (ipport_t)(testdata[i].port+1), testdata[i].version)) ;
       } else {
@@ -946,10 +996,11 @@ static int test_ipaddr(void)
       TEST(port_ipaddr(ipaddr2)    == testdata[i].port) ;
       TEST(version_ipaddr(ipaddr2) == testdata[i].version) ;
       TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
-      TEST(0 == strcasecmp( str_cstring(&name), testdata[i].addr)) ;
+      TEST(0 == strcasecmp(str_cstring(&name), testdata[i].addr)) ;
+      TEST(strlen(testdata[i].addr) == size_cstring(&name)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
 
-      // TEST setaddr
+      // TEST setaddr_ipaddr
       if (ipprotocol_UDP == testdata[i].protocol) {
          TEST(0 == newany_ipaddr(&ipaddr2, ipprotocol_TCP, (ipport_t)(testdata[i].port+1), testdata[i].version)) ;
       } else {
@@ -962,10 +1013,11 @@ static int test_ipaddr(void)
       TEST(port_ipaddr(ipaddr2)    == testdata[i].port) ;
       TEST(version_ipaddr(ipaddr2) == testdata[i].version) ;
       TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
-      TEST(0 == strcasecmp( str_cstring(&name), testdata[i].addr)) ;
+      TEST(0 == strcasecmp(str_cstring(&name), testdata[i].addr)) ;
+      TEST(strlen(testdata[i].addr) == size_cstring(&name)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
 
-      // TEST setprotocol
+      // TEST setprotocol_ipaddr
       TEST(0 == setprotocol_ipaddr(ipaddr, ipprotocol_UDP)) ;
       TEST(ipprotocol_UDP == protocol_ipaddr(ipaddr)) ;
       TEST(0 == setprotocol_ipaddr(ipaddr, ipprotocol_TCP)) ;
@@ -975,9 +1027,10 @@ static int test_ipaddr(void)
       TEST(port_ipaddr(ipaddr)    == testdata[i].port) ;
       TEST(version_ipaddr(ipaddr) == testdata[i].version) ;
       TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-      TEST(0 == strcasecmp( str_cstring(&name), testdata[i].addr)) ;
+      TEST(0 == strcasecmp(str_cstring(&name), testdata[i].addr)) ;
+      TEST(strlen(testdata[i].addr) == size_cstring(&name)) ;
 
-      // TEST setport
+      // TEST setport_ipaddr
       for (unsigned p = 0; p < 65536; p += 250) {
          TEST(0 == setport_ipaddr(ipaddr, (uint16_t)p)) ;
          TEST(port_ipaddr(ipaddr)    == (uint16_t)p) ;
@@ -987,19 +1040,20 @@ static int test_ipaddr(void)
       TEST(port_ipaddr(ipaddr)    == testdata[i].port) ;
       TEST(version_ipaddr(ipaddr) == testdata[i].version) ;
       TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-      TEST(0 == strcasecmp( str_cstring(&name), testdata[i].addr)) ;
+      TEST(0 == strcasecmp(str_cstring(&name), testdata[i].addr)) ;
+      TEST(strlen(testdata[i].addr) == size_cstring(&name)) ;
       TEST(0 == delete_ipaddr(&ipaddr)) ;
    }
 
-   // TEST EAFNOSUPPORT (family must be either AF_INET or AF_INET6)
+   // TEST new_ipaddr: EAFNOSUPPORT (family must be either AF_INET or AF_INET6)
    TEST(EAFNOSUPPORT == new_ipaddr(&ipaddr, ipprotocol_TCP, "1.2.3.4", 1, (ipversion_e)AF_APPLETALK)) ;
    TEST(!ipaddr) ;
 
-   // TEST EPROTONOSUPPORT (protocol must be either TCP or UDP)
+   // TEST new_ipaddr: EPROTONOSUPPORT (protocol must be either TCP or UDP)
    TEST(EPROTONOSUPPORT == new_ipaddr(&ipaddr, (ipprotocol_e)IPPROTO_ICMP, "1.2.3.4", 1, ipversion_4)) ;
    TEST(!ipaddr) ;
 
-   // TEST EADDRNOTAVAIL (address literal must match family)
+   // TEST new_ipaddr: EADDRNOTAVAIL (address literal must match family)
    TEST(EADDRNOTAVAIL == new_ipaddr(&ipaddr, ipprotocol_UDP, "::1", 1, ipversion_4)) ;
    TEST(!ipaddr) ;
 
@@ -1046,7 +1100,8 @@ static int test_ipaddrlist(void)
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_UDP) ;
    TEST(version_ipaddr(ipaddr)  == ipversion_6) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "::1")) ;
+   TEST(0 == strcmp(str_cstring(&name), "::1")) ;
+   TEST(3 == size_cstring(&name)) ;
    TEST(0 == next_ipaddrlist(addrlist)) ;
    TEST(addrlist->first == first) ;
    TEST(addrlist->next  == 0) ;
@@ -1073,6 +1128,7 @@ static int test_ipaddrlist(void)
    TEST(ipprotocol_TCP == protocol_ipaddr(ipaddr)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "127.0.0.1")) ;
+   TEST(9 == size_cstring(&name)) ;
    ipaddr = next_ipaddrlist(addrlist) ;
    TEST(0 != ipaddr) ;
    TEST(addrlist->first == first) ;
@@ -1083,6 +1139,7 @@ static int test_ipaddrlist(void)
    TEST(ipaddr->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "127.0.0.1")) ;
+   TEST(9 == size_cstring(&name)) ;
    TEST(0 == next_ipaddrlist(addrlist)) ; // IPPROTO_IP skipped
    TEST(addrlist->first == first) ;
    TEST(addrlist->next  == 0) ;
@@ -1107,11 +1164,13 @@ static int test_ipaddrlist(void)
       if (ipversion_4 == version_ipaddr(ipaddr)) {
          TEST(ipaddr->addrlen == sizeof(struct sockaddr_in)) ;
          TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-         TEST(0 == strcmp( str_cstring(&name), "127.0.0.1")) ;
+         TEST(0 == strcmp(str_cstring(&name), "127.0.0.1")) ;
+         TEST(9 == size_cstring(&name)) ;
       } else {
          TEST(ipaddr->addrlen == sizeof(struct sockaddr_in6)) ;
          TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-         TEST(0 == strcmp( str_cstring(&name), "::1")) ;
+         TEST(0 == strcmp(str_cstring(&name), "::1")) ;
+         TEST(3 == size_cstring(&name)) ;
       }
       switch(i) {
       case 0:
@@ -1151,9 +1210,11 @@ static int test_ipaddrlist(void)
    TEST(protocol_ipaddr(ipaddr) == ipprotocol_UDP) ;
    TEST(port_ipaddr(ipaddr)     == 0) ;
    TEST(0 == numericname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "193.99.144.85")) ;
+   TEST(0 == strcmp(str_cstring(&name), "193.99.144.85")) ;
+   TEST(13== size_cstring(&name)) ;
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "www.heise.de")) ;
+   TEST(0 == strcmp(str_cstring(&name), "www.heise.de")) ;
+   TEST(12== size_cstring(&name)) ;
    TEST(0 == next_ipaddrlist(addrlist)) ;
    TEST(0 == delete_ipaddrlist(&addrlist)) ;
    TEST(0 == addrlist) ;
@@ -1168,6 +1229,7 @@ static int test_ipaddrlist(void)
    TEST(port_ipaddr(ipaddr)     == 3) ;
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "www.wörterbuch.de")) ;
+   TEST(strlen("www.wörterbuch.de") == size_cstring(&name)) ;
    TEST(0 == newcopy_ipaddr(&copiedaddr, ipaddr)) ;
    TEST(copiedaddr) ;
    TEST(0 == next_ipaddrlist(addrlist)) ;
@@ -1189,8 +1251,10 @@ static int test_ipaddrlist(void)
    TEST(0 == copiedaddr) ;
    TEST(0 == dnsname_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "www.wörterbuch.de")) ;
+   TEST(strlen("www.wörterbuch.de") == size_cstring(&name)) ;
    TEST(0 == dnsnameace_ipaddr(ipaddr, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "www.xn--wrterbuch-07a.de")) ;
+   TEST(strlen("www.xn--wrterbuch-07a.de") == size_cstring(&name)) ;
    TEST(0 == next_ipaddrlist(addrlist)) ;
    TEST(0 == delete_ipaddrlist(&addrlist)) ;
    TEST(0 == addrlist) ;
@@ -1249,10 +1313,12 @@ static int test_ipaddrstorage(void)
          TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
          if (ipversion_4 == vers[versi]) {
             TEST(ipaddr2->addrlen     == sizeof(struct sockaddr_in)) ;
-            TEST(0 == strcmp( str_cstring(&name), "0.0.0.0")) ;
+            TEST(0 == strcmp(str_cstring(&name), "0.0.0.0")) ;
+            TEST(7 == size_cstring(&name)) ;
          } else {
             TEST(ipaddr2->addrlen     == sizeof(struct sockaddr_in6)) ;
             TEST(0 == strcmp( str_cstring(&name), "::")) ;
+            TEST(2 == size_cstring(&name)) ;
          }
       }
    }
@@ -1275,6 +1341,7 @@ static int test_ipaddrstorage(void)
    TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in)) ;
    TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
    TEST(0 == strcmp( str_cstring(&name), "1.2.3.4")) ;
+   TEST(7 == size_cstring(&name)) ;
 
    // TEST initconvert ipversion_6
    ipaddr2 = initany_ipaddrstorage(&ipaddr_st, ipprotocol_UDP, 50, ipversion_6) ;
@@ -1293,8 +1360,10 @@ static int test_ipaddrstorage(void)
    TEST(version_ipaddr(ipaddr2) == ipversion_6) ;
    TEST(ipaddr2->addrlen        == sizeof(struct sockaddr_in6)) ;
    TEST(0 == numericname_ipaddr(ipaddr2, &name)) ;
-   TEST(0 == strcmp( str_cstring(&name), "::23")) ;
+   TEST(0 == strcmp(str_cstring(&name), "::23")) ;
+   TEST(4 == size_cstring(&name)) ;
 
+   // unprepare
    TEST(0 == free_cstring(&name)) ;
 
    return 0 ;
