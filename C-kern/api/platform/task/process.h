@@ -161,12 +161,6 @@ int init_process(/*out*/process_t * process, process_task_f child_main, void * s
  * The argument must have same size as sizeof(void*). */
 int initgeneric_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_stdio_t * stdfd) ;
 
-/* function: initdaemon_process
- * Creates deamonized child process which executes a function.
- * The directory of the started daemon is set to root "/" and umsak is set to 007 - which prevents created fiels to be accessed from others
- * except owner or group. */
-int initdaemon_process(/*out*/process_t * process, process_task_f child_main, void * start_arg, process_stdio_t * stdfd/*0 => /dev/null*/) ;
-
 /* function: initexec_process
  * Executes another program with same environment.
  * The parameter "filename" specifies the path to an executeable binary.
@@ -213,6 +207,15 @@ int state_process(process_t * process, /*out*/process_state_e * current_state) ;
 
 // group: change
 
+/* function: daemonize_process
+ * Prepares this process to be a daemon process.
+ * The working directory is set to '/', umask is set to S_IRWXO, the process becomes
+ * the session leader and all 3 stdio channels are redirected to /dev/null.
+ * This call works only if there are no other running threads besides the calling thread.
+ * The reason is that after return only the calling thread is running and all other
+ * threads have no chance to free their resources. After return the process id has been changed. */
+int daemonize_process(process_stdio_t  * stdfd/*0 => /dev/null*/) ;
+
 /* function: wait_process
  * Waits until process has terminated.
  * If the process changes into stopped state it will be continued until it terminates.
@@ -255,4 +258,3 @@ int wait_process(process_t * process, /*out*/process_result_t * result) ;
          }))
 
 #endif
-

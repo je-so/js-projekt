@@ -406,40 +406,6 @@ ONABORT:
    return err ;
 }
 
-int initdaemon_process(/*out*/process_t * process,
-                       process_task_f     child_main,
-                       void             * start_arg,
-                       process_stdio_t  * stdfd/*0 => /dev/null*/)
-{
-   int err ;
-   pid_t pid = 0 ;
-
-   err = fork_process(&pid) ;
-   if (err) goto ONABORT ;
-
-   if (0 == pid) {
-      // NEW CHILD DAEMON PROCESS
-      err = preparechild_process(stdfd) ;
-      if (setsid() == (pid_t)-1) {
-         err = errno ;
-      }
-      umask(S_IROTH|S_IWOTH|S_IXOTH) ;
-      if (0 != chdir("/")) {
-         err = errno ;
-      }
-      assert(!err) ;
-      int returncode = (child_main ? child_main(start_arg) : 0) ;
-      exit(returncode) ;
-   }
-
-   *process = pid ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
-}
-
 int free_process(process_t * process)
 {
    int err ;
@@ -518,6 +484,34 @@ ONABORT:
 }
 
 // group: change
+
+int daemonize_process(process_stdio_t  * stdfd/*0 => /dev/null*/)
+{
+   int err ;
+   pid_t pid = 0 ;
+
+   err = fork_process(&pid) ;
+   if (err) goto ONABORT ;
+
+   if (0 != pid) {
+      // calling process
+      exit(0) ;
+   }
+
+   // CHILD DAEMON PROCESS
+   umask(S_IROTH|S_IWOTH|S_IXOTH) ;
+   err = preparechild_process(stdfd) ;
+   if (  (pid_t)-1 == setsid()
+         || 0 != chdir("/")) {
+      err = errno ;
+      goto ONABORT ;
+   }
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
+}
 
 int wait_process(process_t * process, /*out*/process_result_t * result)
 {
@@ -603,31 +597,6 @@ static int childprocess_statechange(int fd)
    for (;;) {
       sleepms_thread(1000) ;
    }
-   return 0 ;
-}
-
-static int childprocess_daemon(void * dummy)
-{
-   char buffer[20];
-   char dir[10] = { 0 } ;
-
-   (void) dummy ;
-
-   if (  5 != read(STDIN_FILENO, buffer, 5)
-         || 5 != write(STDOUT_FILENO, buffer, 5)) {
-      return EINVAL ;
-   }
-
-   if (0 == getcwd(dir, sizeof(dir))) {
-      return EINVAL ;
-   }
-
-   snprintf(buffer, sizeof(buffer), "%d:%s", getsid(0), dir) ;
-
-   if ((int)strlen(buffer)+1 != write(STDERR_FILENO, buffer, strlen(buffer)+1)) {
-      return EINVAL ;
-   }
-
    return 0 ;
 }
 
@@ -1236,66 +1205,91 @@ ONABORT:
    return EINVAL ;
 }
 
+static int daemonprocess_return(void * dummy)
+{
+   (void) dummy ;
+   (void) daemonize_process(0) ;
+   return -1 ;
+}
+
+static int daemonprocess_redirect(process_stdio_t * stdfd)
+{
+   char buffer[20];
+   char dir[10] = { 0 } ;
+
+   pid_t oldsid = getsid(0) ;
+
+   int err = daemonize_process(stdfd) ;
+   if (err) return err ;
+
+   if (  getpid()  != getsid(0)
+         || oldsid == getsid(0)) {
+      return EINVAL ;
+   }
+
+   if (  5 != read(STDIN_FILENO, buffer, 5)
+         || 5 != write(STDOUT_FILENO, buffer, 5)) {
+      return EINVAL ;
+   }
+
+   if (0 == getcwd(dir, sizeof(dir))) {
+      return EINVAL ;
+   }
+
+   snprintf(buffer, sizeof(buffer), "%s", dir) ;
+
+   if ((int)strlen(buffer)+1 != write(STDERR_FILENO, buffer, strlen(buffer)+1)) {
+      return EINVAL ;
+   }
+
+   if (3 != write(STDERR_FILENO, "OK", 3)) return EINVAL ;
+
+   return 0 ;
+}
+
 static int test_daemon(void)
 {
    process_t            process = process_INIT_FREEABLE ;
    process_result_t     process_result ;
    process_stdio_t      stdfd   = process_stdio_INIT_DEVNULL ;
    int                  fd[2]   = { -1, -1 } ;
-   struct timespec      ts      = { 0, 0 } ;
    char                 readbuffer[20] ;
-   sigset_t             oldsignalmask ;
-   sigset_t             signalmask ;
-   bool                 isoldsignalmask = false ;
 
    // prepare
    TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK)) ;
-   TEST(0 == sigemptyset(&signalmask)) ;
-   TEST(0 == sigaddset(&signalmask, SIGUSR1)) ;
-   TEST(0 == sigprocmask(SIG_BLOCK, &signalmask, &oldsignalmask)) ;
-   isoldsignalmask = true ;
 
-   // TEST initdaemon_process: return value
-   for (int i = 255; i >= 0; i -= 50) {
-      // TEST wait_process
-      TEST(0 == initdaemon_process(&process, (process_task_f)&childprocess_return, (void*)i, 0)) ;
-      TEST(0 == wait_process(&process, &process_result)) ;
-      TEST(process_result.state      == process_state_TERMINATED) ;
-      TEST(process_result.returncode == i) ;
-      TEST(0 == free_process(&process)) ;
-   }
+   // TEST daemonize_process: return always 0 cause daemonize_process creates new child with fork
+   TEST(0 == init_process(&process, &daemonprocess_return, 0, 0)) ;
+   TEST(0 == wait_process(&process, &process_result)) ;
+   TEST(process_result.state      == process_state_TERMINATED) ;
+   TEST(process_result.returncode == 0) ;
+   TEST(0 == free_process(&process)) ;
 
-   // TEST initdaemon_process: stdfd return ssid
+   // TEST daemonize_process: redirect stdfd
    stdfd = (process_stdio_t) process_stdio_INIT_DEVNULL ;
    redirectin_processstdio(&stdfd, fd[0]) ;
    redirectout_processstdio(&stdfd, fd[1]) ;
    redirecterr_processstdio(&stdfd, fd[1]) ;
    TEST(5 == write(fd[1], "12345", 5)) ;
-   TEST(0 == initdaemon_process(&process, &childprocess_daemon, (void*)0, &stdfd)) ;
+   TEST(0 == initgeneric_process(&process, &daemonprocess_redirect, &stdfd, 0)) ;
    TEST(0 == wait_process(&process, &process_result)) ;
    TEST(process_result.state      == process_state_TERMINATED) ;
    TEST(process_result.returncode == 0) ;
    TEST(5 == read(fd[0], readbuffer, 5)) ;
    TEST(0 == strncmp(readbuffer, "12345", 5)) ;
-   TEST(0 < read(fd[0], readbuffer, sizeof(readbuffer))) ;
-   TEST(atoi(readbuffer) == process) ;
-   TEST(0 != strchr(readbuffer, ':')) ;
-   TEST(0 == strcmp(strchr(readbuffer, ':')+1, "/")) ;
+   TEST(5 == read(fd[0], readbuffer, sizeof(readbuffer))) ;
+   TEST(0 == strcmp(readbuffer, "/")) ;
+   TEST(0 == strcmp(readbuffer+2, "OK")) ;
    TEST(0 == free_process(&process)) ;
 
    // unprepare
    TEST(0 == free_iochannel(&fd[0])) ;
    TEST(0 == free_iochannel(&fd[1])) ;
-   while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
-   isoldsignalmask = false ;
-   TEST(0 == sigprocmask(SIG_SETMASK, &oldsignalmask, 0)) ;
 
    return 0 ;
 ONABORT:
    free_iochannel(&fd[0]) ;
    free_iochannel(&fd[1]) ;
-   while (SIGUSR1 == sigtimedwait(&signalmask, 0, &ts)) ;
-   if (isoldsignalmask) sigprocmask(SIG_SETMASK, &oldsignalmask, 0) ;
    (void) free_process(&process) ;
    return EINVAL ;
 }
