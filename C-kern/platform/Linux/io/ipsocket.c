@@ -27,7 +27,6 @@
 #include "C-kern/api/io/ip/ipsocket.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/io/iochannel.h"
-// #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/ip/ipaddr.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
@@ -75,14 +74,8 @@ int initsocket_helper(/*out*/ipsocket_t * ipsock, const ipaddr_t * localaddr)
       goto ONABORT_LOG ;
    }
 
-   const int on = 1 ;
-   if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) {
-      err = errno ;
-      TRACESYSCALL_ERRLOG("setsockopt(SO_REUSEADDR)", err) ;
-      goto ONABORT_LOG ;
-   }
-
    if (ipprotocol_TCP == protocol_ipaddr(localaddr)) {
+      const int on = 1 ;
       if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, &on, sizeof(on))) {
          err = errno ;
          TRACESYSCALL_ERRLOG("setsockopt(SO_OOBINLINE)", err) ;
@@ -893,7 +886,7 @@ static int test_initfree(void)
    ipaddr_t   * ipaddr  = 0 ;
    ipaddr_t   * ipaddr2 = 0 ;
    ipsocket_t   ipsock  = ipsocket_INIT_FREEABLE ;
-   cstring_t    name    = cstring_INIT ;
+   ipsocket_t   ipsock2 = ipsocket_INIT_FREEABLE ;
 
    // TEST static init
    TEST(-1 == ipsock) ;
@@ -959,17 +952,52 @@ static int test_initfree(void)
       TEST(ipsocket_INIT_FREEABLE == ipsock) ;
    }
 
-   // TEST EINVAL (ipaddr_t != 0 && ipaddr_t->addr != 0 && ipaddr_t->addrlen != 0
+   // TEST init_ipsocket: EINVAL (ipaddr_t != 0)
    TEST(EINVAL == init_ipsocket(&ipsock, 0)) ;
-   TEST(EINVAL == init_ipsocket(&ipsock, &(ipaddr_t){ .protocol = ipprotocol_TCP, .addrlen = 0 })) ;
 
-   TEST(0 == free_cstring(&name)) ;
+   // TEST init_ipsocket: EINVAL (ipaddr_t->addr != 0 && ipaddr_t->addrlen != 0)
+   TEST(EINVAL == init_ipsocket(&ipsock, &(ipaddr_t){ .protocol = ipprotocol_UDP, .addrlen = 0 })) ;
+
+   // TEST init_ipsocket: EPROTONOSUPPORT (ipprotocol_TCP not supported)
+   TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 20009, ipversion_4)) ;
+   TEST(EPROTONOSUPPORT == init_ipsocket(&ipsock, ipaddr)) ;
+   TEST(0 == delete_ipaddr(&ipaddr)) ;
+
+   static_assert( ipversion_4 < ipversion_6, "" ) ;
+   for (ipversion_e version = ipversion_4; version <= ipversion_6; version = (ipversion_e) (version + (ipversion_6-ipversion_4)) ) {
+
+      // TEST init_ipsocket: ipprotocol_UDP / EADDRINUSE (two sockets bind to same port)
+      TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 20009, version)) ;
+      TEST(0 == init_ipsocket(&ipsock, ipaddr)) ;
+      TEST(EADDRINUSE == init_ipsocket(&ipsock2, ipaddr)) ;
+      TEST(0 == free_ipsocket(&ipsock)) ;
+      TEST(0 == delete_ipaddr(&ipaddr)) ;
+
+      // TEST initconnect_ipsocket: ipprotocol_TCP / EADDRINUSE (two sockets bind to same port)
+      TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 20009, version)) ;
+      TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_TCP, 20019, version)) ;
+      TEST(0 == initlisten_ipsocket(&ipsock, ipaddr, 1)) ;
+      TEST(0 == initconnect_ipsocket(&ipsock2, ipaddr, ipaddr2)) ;
+      TEST(0 == free_ipsocket(&ipsock)) ;
+      TEST(EADDRINUSE == initconnect_ipsocket(&ipsock, ipaddr, ipaddr2)) ;
+      TEST(0 == free_ipsocket(&ipsock2)) ;
+      TEST(0 == delete_ipaddr(&ipaddr)) ;
+      TEST(0 == delete_ipaddr(&ipaddr2)) ;
+
+      // TEST initlisten_ipsocket: ipprotocol_TCP / EADDRINUSE (two sockets bind to same port)
+      TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 20009, version)) ;
+      TEST(0 == initlisten_ipsocket(&ipsock, ipaddr, 1)) ;
+      TEST(EADDRINUSE == initlisten_ipsocket(&ipsock2, ipaddr, 1)) ;
+      TEST(0 == free_ipsocket(&ipsock)) ;
+      TEST(0 == delete_ipaddr(&ipaddr)) ;
+   }
 
    return 0 ;
 ONABORT:
-   (void) free_cstring(&name) ;
    (void) delete_ipaddr(&ipaddr) ;
+   (void) delete_ipaddr(&ipaddr2) ;
    (void) free_ipsocket(&ipsock) ;
+   (void) free_ipsocket(&ipsock2) ;
    return EINVAL ;
 }
 

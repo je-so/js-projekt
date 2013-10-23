@@ -29,7 +29,7 @@
 
 /* typedef: struct ipport_t
  * Export <ipport_t> into global namespace. */
-typedef uint16_t                       ipport_t ;
+typedef uint16_t                          ipport_t ;
 
 /* typedef: struct ipaddr_t
  * Export <ipaddr_t>. */
@@ -56,9 +56,9 @@ typedef struct ipaddr_storage_t        ipaddr_storage_t ;
  *                 This value is assigned the system specific value AF_INET6.
  * */
 enum ipversion_e {
-    ipversion_ANY = AF_UNSPEC
-   ,ipversion_4   = AF_INET
-   ,ipversion_6   = AF_INET6
+   ipversion_ANY = AF_UNSPEC,
+   ipversion_4   = AF_INET,
+   ipversion_6   = AF_INET6
 } ;
 
 typedef enum ipversion_e               ipversion_e ;
