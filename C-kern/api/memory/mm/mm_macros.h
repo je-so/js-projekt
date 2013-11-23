@@ -27,6 +27,12 @@
 
 // section: Functions
 
+// group: query
+
+/* define: SIZEALLOCATED_MM
+ * REturns number of allocated bytes. See also <sizeallocated_mmimpl>. */
+#define  SIZEALLOCATED_MM()            sizeallocated_mm(mm_maincontext())
+
 // group: allocate
 
 /* define: RESIZE_MM

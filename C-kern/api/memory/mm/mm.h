@@ -77,7 +77,7 @@ int mfree_mm(mm_t mm, struct memblock_t * memblock) ;
 
 /* function: sizeallocated_mm
  * Calls mm->iimpl->sizeallocated with mm->object as first parameter. See <mm_it.sizeallocated>. */
-int sizeallocated_mm(mm_t mm) ;
+size_t sizeallocated_mm(mm_t mm) ;
 
 
 /* struct: mm_it
