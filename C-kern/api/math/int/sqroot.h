@@ -79,4 +79,3 @@ uint32_t sqroot_int64(uint64_t number) ;
    }))
 
 #endif
-

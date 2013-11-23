@@ -8,7 +8,7 @@ LFlagLib      = -l
 LFlagLibpath  = -L
 warnings_on   = -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes
 warnings_on  += -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
-shobj_flags   = -fPIC 
+shobj_flags   = -fPIC
 CFlags        = -MMD -std=gnu1x $(warnings_on) $(shobj_flags)
 LFlags        = -shared -Wl,-Bsymbolic $(shobj_flags)
 CFlags_Debug  = -g $(cflags)

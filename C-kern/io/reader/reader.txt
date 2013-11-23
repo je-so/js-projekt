@@ -42,7 +42,3 @@ This kind of reader can also transform characters from one encoding into another
 >                     │ currrent context │
 >                     ╰──────────────────╯
 >
-
-
-
-

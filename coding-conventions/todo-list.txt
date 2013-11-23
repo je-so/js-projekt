@@ -1,5 +1,5 @@
 If you need to remember several planning steps
-put a simple todo list in your current module 
+put a simple todo list in your current module
 under development.
 
 /* TODO: LIST (☐ planned; ⟳ in work; ✓ done)

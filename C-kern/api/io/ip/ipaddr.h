@@ -361,4 +361,3 @@ const ipaddr_t * next_ipaddrlist(ipaddr_list_t * addrlist) ;
 
 
 #endif
-

@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ "$#" != "1" ]; then 
+if [ "$#" != "1" ]; then
    echo "Usage: `basename $0` <filename_shared_library>"
    echo "  Set environment variable debug != ''"
    echo "  to print additional info in case of error"

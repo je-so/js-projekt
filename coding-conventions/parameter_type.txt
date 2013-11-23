@@ -61,7 +61,3 @@ about: Extended Error Description
 > regexpression_t   * regex = 0 ;
 > err = new_regexpression( &regex, &syntax_err, ".*:[0-9]*: .*") ;
 > if (err) { /* check syntax_err for extended error information about syntax error */ ... }
-
-
-
-

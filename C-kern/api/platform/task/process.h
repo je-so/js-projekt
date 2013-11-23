@@ -210,10 +210,10 @@ int state_process(process_t * process, /*out*/process_state_e * current_state) ;
 /* function: daemonize_process
  * Prepares this process to be a daemon process.
  * The working directory is set to '/', umask is set to S_IRWXO, the process becomes
- * the session leader and all 3 stdio channels are redirected to /dev/null.
+ * the sessino leader and all 3 stdio channels are redirected to /dev/null.
  * This call works only if there are no other running threads besides the calling thread.
  * The reason is that after return only the calling thread is running and all other
- * threads have no chance to free their resources. After return the process id has been changed. */
+ * threads have no chance to free their resources. */
 int daemonize_process(process_stdio_t  * stdfd/*0 => /dev/null*/) ;
 
 /* function: wait_process

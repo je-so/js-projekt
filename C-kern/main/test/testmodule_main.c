@@ -42,4 +42,3 @@ int main_module(/*out*/testmodule_functable_t * functable, threadcontext_t * tco
 ONABORT:
    return err ;
 }
-

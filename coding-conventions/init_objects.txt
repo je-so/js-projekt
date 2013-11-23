@@ -61,4 +61,3 @@ Example 4:
 > free_resource(&resource) ;
 > free_waitlist(&waitlist) ;
 > return err ;
-

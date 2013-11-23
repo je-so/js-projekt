@@ -67,7 +67,3 @@ struct log_ot {
    log_it * iimpl ;
 } ;
 (end code)
-
-
-
-
