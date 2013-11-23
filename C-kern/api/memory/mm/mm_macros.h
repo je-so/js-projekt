@@ -35,6 +35,10 @@
 
 // group: allocate
 
+/* define: ALLOC_MM
+ * Allocates a new memory block. See also <malloc_mmimpl>. */
+#define  ALLOC_MM(size, mblock)        malloc_mm(mm_maincontext(), size, mblock)
+
 /* define: RESIZE_MM
  * Resizes memory block. See also <mresize_mmimpl>. */
 #define  RESIZE_MM(newsize, mblock)    mresize_mm(mm_maincontext(), newsize, mblock)

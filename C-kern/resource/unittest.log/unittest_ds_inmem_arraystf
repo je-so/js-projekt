@@ -1,46 +1,46 @@
-[1: 1375541631.392032s]
+[1: 1383415450.960681s]
 initdiff_arraystfkeyval() C-kern/ds/inmem/arraystf.c:130
 Error 22 - Invalid argument
 Function input violates condition (size1 != size2)
 Function aborted
-[1: 1375541631.568326s]
+[1: 1383415451.130798s]
 new_arraystf() C-kern/ds/inmem/arraystf.c:252
 Error 22 - Invalid argument
 Function input violates condition (toplevelsize <= 0x00800000)
 toplevelsize=16777216
 Function aborted
-[1: 1375541631.568348s]
+[1: 1383415451.130813s]
 find_arraystf() C-kern/ds/inmem/arraystf.c:170
 Error 22 - Invalid argument
 Function input violates condition (keynode->size < SIZE_MAX)
 Function aborted
-[1: 1375541631.568352s]
+[1: 1383415451.130817s]
 insert_arraystf() C-kern/ds/inmem/arraystf.c:619
 Error 17 - File exists
 Function aborted
-[1: 1375541631.568355s]
+[1: 1383415451.130820s]
 remove_arraystf() C-kern/ds/inmem/arraystf.c:601
 Error 3 - No such process
 Function aborted
-[1: 1375541631.570476s]
+[1: 1383415451.132752s]
 delete_arraystf() C-kern/ds/inmem/arraystf.c:353
 Error 12345 - Unknown error
 Function aborted - one or more resources could not be freed
-[1: 1375541631.594322s]
-mresize_testmm() C-kern/test/testmm.c:677
+[1: 1383415451.156326s]
+mresize_testmm() C-kern/test/testmm.c:683
 Error 12 - Cannot allocate memory
 Could not allocate 24 bytes of memory
 Function aborted
-[1: 1375541631.594334s]
+[1: 1383415451.156337s]
 tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:525
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1375541631.594337s]
-mresize_testmm() C-kern/test/testmm.c:677
+[1: 1383415451.156340s]
+mresize_testmm() C-kern/test/testmm.c:683
 Error 12 - Cannot allocate memory
 Could not allocate 24 bytes of memory
 Function aborted
-[1: 1375541631.594339s]
+[1: 1383415451.156343s]
 tryinsert_arraystf() C-kern/ds/inmem/arraystf.c:525
 Error 12 - Cannot allocate memory
 Function aborted

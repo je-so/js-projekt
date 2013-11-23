@@ -49,7 +49,7 @@ int unittest_memory_mm_mmimpl(void) ;
 /* struct: mm_impl_t
  * Default memory manager for allocating/freeing blocks of memory. */
 struct mm_impl_t {
-   int todo__implement_without_malloc__ ;
+   size_t size_allocated ;
 } ;
 
 // group: initthread
@@ -84,22 +84,32 @@ size_t sizeallocated_mmimpl(mm_impl_t * mman) ;
 
 // group: allocate
 
+/* function: malloc_mmimpl
+ * Allocates new memory block.
+ *
+ * On successful return the field <memblock_t.size> can be set to a larger value than
+ * provided in size to allow the memory manager for some internal optimization.
+ * To free a memory block it is enough to call <mfree_mmimpl> with the returned memblock.
+ * It is allowed to set <memblock_t.size> to the same value as provided in argument size.
+ *
+ * */
+int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memblock) ;
+
 /* function: mresize_mmimpl
  * Allocates new memory or resizes already allocated memory.
  * Allocation is a special case in that it is a resize operation
  * with the size and addr of parameter <memblock_t> set to 0.
  *
- * Before calling this function function make sure that memblock is either
+ * Before calling this function make sure that memblock is either
  * set to <memblock_INIT_FREEABLE> or to a value returned by a previous call
- * of this function.
+ * to <malloc_mmimpl> or this function.
  *
  * On successful return the field <memblock_t.size> can be set to a larger value than
  * provided in newsize to allow the memory manager for some internal optimization.
+ * To free a memory block it is enough to call <mfree_mmimpl> with the returned memblock.
+ * It is allowed to set <memblock_t.size> to the same value as provided in argument newsize.
  *
- * To free a memory block it is enough to call <mfree_mmimpl> with its size field
- * set to the same value as newsize has had in the last call to <mresize_mmimpl>
- * or to the value returned by this call. The address field in memblock is not allowed
- * to be set to any other value. */
+ */
 int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * memblock) ;
 
 /* function: mfree_mmimpl

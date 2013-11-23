@@ -36,6 +36,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/iochannel.h"
+#include "C-kern/api/memory/mm/mm_impl.h"
 #include "C-kern/api/test/testmm.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/task/thread.h"
@@ -257,15 +258,14 @@ static int test_initmain(void)
 {
    int               fd_stderr   = -1 ;
    int               fdpipe[2]   = { -1, -1 } ;
-   maincontext_t     old_context = g_maincontext ;
 
    // prepare
+   if (maincontext_STATIC != g_maincontext.type) return EINVAL ;
    fd_stderr = dup(STDERR_FILENO) ;
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
    FLUSHBUFFER_ERRLOG() ;
-   TEST(0 == free_maincontext()) ;
 
    // TEST static type
    TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
@@ -368,11 +368,6 @@ static int test_initmain(void)
    TEST(0 == free_iochannel(&fdpipe[0])) ;
    TEST(0 == free_iochannel(&fdpipe[1])) ;
 
-   if (maincontext_STATIC != old_context.type) {
-      init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
-      PRINTF_ERRLOG("%s", buffer) ;
-   }
-
    return 0 ;
 ONABORT:
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
@@ -441,15 +436,14 @@ static int test_initerror(void)
 {
    int               fd_stderr   = -1 ;
    int               fdpipe[2]   = { -1, -1 } ;
-   maincontext_t     old_context = g_maincontext ;
 
+   // prepare
+   if (maincontext_STATIC != g_maincontext.type) return EINVAL ;
    fd_stderr = dup(STDERR_FILENO) ;
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
    FLUSHBUFFER_ERRLOG() ;
-   TEST(0 == free_maincontext()) ;
-   TEST(maincontext_STATIC == type_maincontext()) ;
 
    // TEST init_maincontext: error in in different places
    for (int i = 1; i <= 3; ++i) {
@@ -468,7 +462,7 @@ static int test_initerror(void)
    char buffer[4096] = { 0 };
    TEST(0 < read(fdpipe[0], buffer, sizeof(buffer))) ;
 
-   TEST(0 == init_maincontext(old_context.type ? old_context.type : maincontext_DEFAULT, old_context.argc, old_context.argv )) ;
+   TEST(0 == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
    TEST(0 != pcontext_maincontext()->initcount) ;
 
    TEST(STDERR_FILENO == dup2(fd_stderr, STDERR_FILENO)) ;
@@ -480,18 +474,13 @@ static int test_initerror(void)
 
    // TEST EALREADY
    TEST(EALREADY == init_maincontext(maincontext_DEFAULT, 0, 0)) ;
-
-   if (maincontext_STATIC == old_context.type) {
-      CLEARBUFFER_ERRLOG() ;
-      free_maincontext() ;
-   }
+   CLEARBUFFER_ERRLOG() ;
+   TEST(0 == free_maincontext()) ;
 
    return 0 ;
 ONABORT:
-   if (maincontext_STATIC == old_context.type) {
-      CLEARBUFFER_ERRLOG() ;
-      free_maincontext() ;
-   }
+   CLEARBUFFER_ERRLOG() ;
+   free_maincontext() ;
    if (0 < fd_stderr) dup2(fd_stderr, STDERR_FILENO) ;
    free_iochannel(&fd_stderr) ;
    free_iochannel(&fdpipe[0]);
@@ -503,20 +492,19 @@ static int test_progname(void)
 {
    int               fd_stderr   = -1 ;
    int               fdpipe[2]   = { -1, -1 } ;
-   maincontext_t     old_context = g_maincontext ;
 
    // prepare
+   if (maincontext_STATIC != g_maincontext.type) return EINVAL ;
    fd_stderr = dup(STDERR_FILENO) ;
    TEST(0 < fd_stderr) ;
    TEST(0 == pipe2(fdpipe,O_CLOEXEC|O_NONBLOCK)) ;
    TEST(STDERR_FILENO == dup2(fdpipe[1], STDERR_FILENO)) ;
    FLUSHBUFFER_ERRLOG() ;
-   TEST(0 == free_maincontext()) ;
 
     // TEST progname_maincontext
    const char * argv[4] = { "/p1/yxz1", "/p2/yxz2/", "p3/p4/yxz3", "123456789a1234567" } ;
 
-   for (unsigned i = 0; i< lengthof(argv); ++i) {
+   for (unsigned i = 0; i < lengthof(argv); ++i) {
       TEST(0 == init_maincontext(maincontext_DEFAULT, 1, &argv[i])) ;
       TEST(1 == g_maincontext.argc) ;
       TEST(&argv[i] == g_maincontext.argv) ;
@@ -540,11 +528,6 @@ static int test_progname(void)
    TEST(0 == free_iochannel(&fd_stderr)) ;
    TEST(0 == free_iochannel(&fdpipe[0])) ;
    TEST(0 == free_iochannel(&fdpipe[1])) ;
-
-   if (maincontext_STATIC != old_context.type) {
-      init_maincontext(old_context.type, old_context.argc, old_context.argv) ;
-      PRINTF_ERRLOG("%s", buffer) ;
-   }
 
    return 0 ;
 ONABORT:
@@ -624,14 +607,9 @@ int unittest_context_maincontext()
          switchoff_testmm() ;
       }
 
-      if (test_initerror())  goto ONABORT ;
-
       TEST(0 == init_resourceusage(&usage)) ;
 
       if (test_querymacros())    goto ONABORT ;
-      if (test_initmain())       goto ONABORT ;
-      if (test_initerror())      goto ONABORT ;
-      if (test_progname())       goto ONABORT ;
       if (test_staticmem())      goto ONABORT ;
 
       TEST(0 == same_resourceusage(&usage)) ;

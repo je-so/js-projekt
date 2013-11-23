@@ -376,9 +376,10 @@ ONABORT:
 /* variable: s_testmm_interface
  * Contains single instance of interface <testmm_it>. */
 static testmm_it     s_testmm_interface = mm_it_INIT(
-                         &mresize_testmm
-                        ,&mfree_testmm
-                        ,&sizeallocated_testmm
+                        &malloc_testmm,
+                        &mresize_testmm,
+                        &mfree_testmm,
+                        &sizeallocated_testmm
                      ) ;
 
 // group: helper
@@ -410,24 +411,6 @@ static testmm_page_t * findpage_testmm(testmm_t * mman, uint8_t * blockaddr)
    return mmpage ;
 }
 
-static int mallocate_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock)
-{
-   int err ;
-
-   err = newblock_testmmpage(mman->mmpage, newsize, memblock) ;
-
-   if (err) {
-      if (ENOMEM != err) return err ;
-
-      err = addpage_testmm(mman, newsize) ;
-      if (err) return err ;
-
-      err = newblock_testmmpage(mman->mmpage, newsize, memblock) ;
-   }
-
-   return err ;
-}
-
 // group: context
 
 testmm_t * mmcontext_testmm(void)
@@ -446,12 +429,12 @@ int switchon_testmm()
    threadcontext_t * tcontext = tcontext_maincontext() ;
 
    if (genericcast_mmit(&s_testmm_interface, testmm_t) != tcontext->mm.iimpl) {
-      memblock_t  previous_mm = memblock_INIT_FREEABLE ;
+      memblock_t  previous_mm ;
 
       err = initasmm_testmm(&testmm) ;
       if (err) goto ONABORT ;
 
-      err = mresize_mm(testmm, sizeof(mm_t), &previous_mm) ;
+      err = malloc_mm(testmm, sizeof(mm_t), &previous_mm) ;
       if (err) goto ONABORT ;
 
       initcopy_iobj((mm_t*)previous_mm.addr, &tcontext->mm) ;
@@ -553,14 +536,14 @@ ONABORT:
 int initasmm_testmm(/*out*/mm_t * testmm)
 {
    int err ;
+   memblock_t     memblock ;
    testmm_t       testmmobj = testmm_INIT_FREEABLE ;
-   memblock_t     memblock  = memblock_INIT_FREEABLE ;
    const size_t   objsize   = sizeof(testmm_t) ;
 
    err = init_testmm(&testmmobj) ;
    if (err) goto ONABORT ;
 
-   err = mresize_testmm(&testmmobj, objsize, &memblock) ;
+   err = malloc_testmm(&testmmobj, objsize, &memblock) ;
    if (err) goto ONABORT ;
 
    memcpy(memblock.addr, &testmmobj, objsize) ;
@@ -618,6 +601,28 @@ void setfreeerr_testmm(testmm_t * mman, struct test_errortimer_t * errtimer)
 
 // group: allocate
 
+int malloc_testmm(testmm_t * mman, size_t size, /*out*/struct memblock_t * memblock)
+{
+   int err ;
+
+   err = newblock_testmmpage(mman->mmpage, size, memblock) ;
+
+   if (err) {
+      if (ENOMEM != err) return err ;
+
+      err = addpage_testmm(mman, size) ;
+      if (err) return err ;
+
+      err = newblock_testmmpage(mman->mmpage, size, memblock) ;
+   }
+
+   if (!err) {
+      mman->sizeallocated += memblock->size ;
+   }
+
+   return err ;
+}
+
 int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock)
 {
    int err ;
@@ -635,7 +640,7 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
    }
 
    if (isfree_memblock(memblock)) {
-      err = mallocate_testmm(mman, newsize, memblock) ;
+      err = malloc_testmm(mman, newsize, memblock) ;
       if (err) goto ONABORT ;
    } else {
       testmm_page_t * mmpage = findpage_testmm(mman, memblock->addr) ;
@@ -647,12 +652,15 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
       size_t freesize = memblock->size ;
 
       err = resizeblock_testmmpage(mmpage, newsize, memblock) ;
-      if (err) {
+      if (!err) {
+         mman->sizeallocated += memblock->size ;
+
+      } else {
          if (ENOMEM != err) goto ONABORT ;
 
          memblock_t newmemblock ;
 
-         err = mallocate_testmm(mman, newsize, &newmemblock) ;
+         err = malloc_testmm(mman, newsize, &newmemblock) ;
          if (err) goto ONABORT ;
 
          // copy content
@@ -668,8 +676,6 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
 
       mman->sizeallocated -= freesize ;
    }
-
-   mman->sizeallocated += newsize ;
 
    return 0 ;
 ONABORT:
@@ -1016,10 +1022,10 @@ static int test_allocate(void)
    }
    TEST(0 == sizeallocated_testmm(&testmm)) ;
 
-   // TEST alloc, realloc, free in LIFO order
+   // TEST malloc_testmm, mfree_testmm: LIFO order
+   memset(memblocks, 255, sizeof(memblocks)) ;
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
-      memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == mresize_testmm(&testmm, blocksize, &memblocks[i])) ;
+      TEST(0 == malloc_testmm(&testmm, blocksize, &memblocks[i])) ;
       TEST((i+1) * blocksize == sizeallocated_testmm(&testmm))
    }
    for (unsigned i = lengthof(memblocks); (i--) > 0; ) {
@@ -1052,7 +1058,7 @@ static int test_allocate(void)
    TEST(0 == testmm.mmpage->next) ;
    TEST(1 == ispagefree_testmmpage(testmm.mmpage)) ;
 
-   // TEST alloc, realloc, free in random order
+   // TEST malloc_testmm, mresize_testmm, mfree_testmm: random order
    srandom(10000) ;
    for (unsigned i = 0; i < lengthof(memblocks); ++i) {
       memblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
@@ -1061,7 +1067,7 @@ static int test_allocate(void)
       unsigned i = (unsigned)random() % lengthof(memblocks) ;
       if (isfree_memblock(&memblocks[i])) {
          datasize += blocksize/2 ;
-         TEST(0 == mresize_testmm(&testmm, blocksize/2, &memblocks[i])) ;
+         TEST(0 == malloc_testmm(&testmm, blocksize/2, &memblocks[i])) ;
          TEST(0 != memblocks[i].addr) ;
          TEST(blocksize/2 == memblocks[i].size) ;
       } else if (blocksize == memblocks[i].size) {

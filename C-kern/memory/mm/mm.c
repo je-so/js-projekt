@@ -36,6 +36,14 @@
 
 #ifdef KONFIG_UNITTEST
 
+static int malloc_dummy(struct mm_t * mman, size_t size, /*out*/struct memblock_t * memblock)
+{
+   (void) mman ;
+   (void) size ;
+   (void) memblock ;
+   return 0 ;
+}
+
 static int mresize_dummy(struct mm_t * mman, size_t newsize, struct memblock_t * memblock)
 {
    (void) mman ;
@@ -79,7 +87,8 @@ static int test_initfree(void)
    TEST(0 == mminterface.sizeallocated) ;
 
    // TEST mm_it_INIT
-   mminterface = (mm_it) mm_it_INIT(&mresize_dummy, &mfree_dummy, &sizeallocated_dummy) ;
+   mminterface = (mm_it) mm_it_INIT(&malloc_dummy, &mresize_dummy, &mfree_dummy, &sizeallocated_dummy) ;
+   TEST(mminterface.malloc        == &malloc_dummy) ;
    TEST(mminterface.mresize       == &mresize_dummy) ;
    TEST(mminterface.mfree         == &mfree_dummy) ;
    TEST(mminterface.sizeallocated == &sizeallocated_dummy) ;
@@ -89,7 +98,7 @@ ONABORT:
    return EINVAL ;
 }
 
-typedef struct mmx_t    mmx_t ;
+typedef struct mmx_t mmx_t ;
 
 struct mmx_t {
    mmx_t *        mm ;
@@ -99,12 +108,21 @@ struct mmx_t {
    uint8_t        opid ;
 } ;
 
+static int malloc_mmx(struct mmx_t * mm, size_t size, /*out*/struct memblock_t * memblock)
+{
+   mm->mm       = mm ;
+   mm->newsize  = size ;
+   mm->memblock = memblock ;
+   mm->opid     = 1 ;
+   return 0 ;
+}
+
 static int mresize_mmx(struct mmx_t * mm, size_t newsize, struct memblock_t * memblock)
 {
    mm->mm       = mm ;
    mm->newsize  = newsize ;
    mm->memblock = memblock ;
-   mm->opid     = 1 ;
+   mm->opid     = 2 ;
    return 0 ;
 }
 
@@ -112,14 +130,14 @@ static int mfree_mmx(struct mmx_t * mm, struct memblock_t * memblock)
 {
    mm->mm       = mm ;
    mm->memblock = memblock ;
-   mm->opid     = 2 ;
+   mm->opid     = 3 ;
    return 0 ;
 }
 
 size_t sizeallocated_mmx(struct mmx_t * mm)
 {
    mm->mm   = mm ;
-   mm->opid = 3 ;
+   mm->opid = 4 ;
    return 0 ;
 }
 
@@ -138,7 +156,8 @@ static int test_generic(void)
    TEST(0 == mmxif.sizeallocated) ;
 
    // TEST mm_it_INIT
-   mmxif = (mmx_it) mm_it_INIT(&mresize_mmx, &mfree_mmx, &sizeallocated_mmx) ;
+   mmxif = (mmx_it) mm_it_INIT(&malloc_mmx, &mresize_mmx, &mfree_mmx, &sizeallocated_mmx) ;
+   TEST(mmxif.malloc        == &malloc_mmx) ;
    TEST(mmxif.mresize       == &mresize_mmx) ;
    TEST(mmxif.mfree         == &mfree_mmx) ;
    TEST(mmxif.sizeallocated == &sizeallocated_mmx) ;
@@ -155,24 +174,31 @@ ONABORT:
  * Test call functions of <mm_t>. */
 static int test_call(void)
 {
-   mmx_it mmxif = mm_it_INIT(&mresize_mmx, &mfree_mmx, &sizeallocated_mmx) ;
+   mmx_it mmxif = mm_it_INIT(&malloc_mmx, &mresize_mmx, &mfree_mmx, &sizeallocated_mmx) ;
    mmx_t  mmx   = { 0, 0, 0, 0 } ;
    mm_t   mm    = mm_INIT((mm_t*)&mmx, genericcast_mmit(&mmxif, struct mmx_t)) ;
 
-   // TEST mresize_mm
-   TEST(0 == mresize_mm(mm, 1000, (struct memblock_t*)10001)) ;
+   // TEST malloc_mm
+   TEST(0 == malloc_mm(mm, 1000, (struct memblock_t*)10001)) ;
    TEST(mmx.mm       == &mmx) ;
    TEST(mmx.newsize  == 1000) ;
    TEST(mmx.memblock == (struct memblock_t*)10001) ;
    TEST(mmx.opid     == 1) ;
 
-   // TEST mfree_mm
-   memset(&mmx, 0, sizeof(mmx)) ;
-   TEST(0 == mfree_mm(mm, (struct memblock_t*)10002)) ;
+   // TEST mresize_mm
+   TEST(0 == mresize_mm(mm, 2000, (struct memblock_t*)10002)) ;
    TEST(mmx.mm       == &mmx) ;
-   TEST(mmx.newsize  == 0) ;
+   TEST(mmx.newsize  == 2000) ;
    TEST(mmx.memblock == (struct memblock_t*)10002) ;
    TEST(mmx.opid     == 2) ;
+
+   // TEST mfree_mm
+   memset(&mmx, 0, sizeof(mmx)) ;
+   TEST(0 == mfree_mm(mm, (struct memblock_t*)10003)) ;
+   TEST(mmx.mm       == &mmx) ;
+   TEST(mmx.newsize  == 0) ;
+   TEST(mmx.memblock == (struct memblock_t*)10003) ;
+   TEST(mmx.opid     == 3) ;
 
    // TEST sizeallocated_mm
    memset(&mmx, 0, sizeof(mmx)) ;
@@ -180,7 +206,7 @@ static int test_call(void)
    TEST(mmx.mm       == &mmx) ;
    TEST(mmx.newsize  == 0) ;
    TEST(mmx.memblock == 0) ;
-   TEST(mmx.opid     == 3) ;
+   TEST(mmx.opid     == 4) ;
 
    return 0 ;
 ONABORT:

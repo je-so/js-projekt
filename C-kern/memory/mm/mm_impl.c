@@ -45,6 +45,7 @@ mm_it_DECLARE(mm_impl_it, mm_impl_t)
 /* variable: s_mmimpl_interface
  * Contains single instance of interface <mm_impl_it>. */
 static mm_impl_it    s_mmimpl_interface = mm_it_INIT(
+                           &malloc_mmimpl,
                            &mresize_mmimpl,
                            &mfree_mmimpl,
                            &sizeallocated_mmimpl
@@ -64,13 +65,13 @@ mm_it * interface_mmimpl(void)
 
 int init_mmimpl(/*out*/mm_impl_t * mman)
 {
-   mman->todo__implement_without_malloc__ = 0 ;
+   mman->size_allocated = 0 ;
    return 0 ;
 }
 
 int free_mmimpl(mm_impl_t * mman)
 {
-   mman->todo__implement_without_malloc__ = 0 ;
+   mman->size_allocated = 0 ;
    return 0 ;
 }
 
@@ -78,36 +79,66 @@ int free_mmimpl(mm_impl_t * mman)
 
 size_t sizeallocated_mmimpl(mm_impl_t * mman)
 {
-   // TODO: implement sizeallocated_mmimpl
-   (void) mman ;
-   return 0 ;
+   // TODO: implement without allocatedsize_malloc (remove malloc module from subsys/context-mini !)
+   return mman->size_allocated ;
 }
 
 // group: allocate
 
+int malloc_mmimpl(mm_impl_t * mman, size_t size, /*out*/struct memblock_t * memblock)
+{
+   (void) mman ;
+   int err ;
+   void * addr ;
+
+   // TODO: implement malloc_mmimpl without malloc
+
+   if (  (ssize_t)size < 0
+      || !(addr = malloc(size))) {
+      err = ENOMEM ;
+      TRACEOUTOFMEM_ERRLOG(size, err) ;
+      goto ONABORT ;
+   }
+
+   memblock->addr = addr ;
+   memblock->size = sizeusable_malloc(addr) ;
+
+   mman->size_allocated += memblock->size ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
+}
+
 int mresize_mmimpl(mm_impl_t * mman, size_t newsize, struct memblock_t * memblock)
 {
+   (void) mman ;
    int err ;
-   void * newaddr ;
+   void * addr ;
 
    // TODO: implement mresize_mmimpl without realloc
 
-   (void) mman ;
    if (0 == newsize) {
       return mfree_mmimpl(mman, memblock) ;
    }
 
    VALIDATE_INPARAM_TEST(isfree_memblock(memblock) || isvalid_memblock(memblock), ONABORT, ) ;
 
+   mman->size_allocated -= sizeusable_malloc(memblock->addr) ;
+
    if (  (ssize_t)newsize < 0
-      || !(newaddr = realloc(memblock->addr, newsize))) {
+      || !(addr = realloc(memblock->addr, newsize))) {
+      mman->size_allocated += sizeusable_malloc(memblock->addr) ;
       err = ENOMEM ;
       TRACEOUTOFMEM_ERRLOG(newsize, err) ;
       goto ONABORT ;
    }
 
-   memblock->addr = newaddr ;
-   memblock->size = newsize ;
+   memblock->addr = addr ;
+   memblock->size = sizeusable_malloc(addr) ;
+
+   mman->size_allocated += memblock->size ;
 
    return 0 ;
 ONABORT:
@@ -123,6 +154,8 @@ int mfree_mmimpl(mm_impl_t * mman, struct memblock_t * memblock)
    if (memblock->addr) {
 
       VALIDATE_INPARAM_TEST(isvalid_memblock(memblock), ONABORT, ) ;
+
+      mman->size_allocated -= sizeusable_malloc(memblock->addr) ;
 
       // TODO: implement mfree_mmimpl without free
 
@@ -147,19 +180,17 @@ static int test_initfree(void)
    mm_impl_t mman = mmimpl_INIT_FREEABLE ;
 
    // TEST mmimpl_INIT_FREEABLE
-   TEST(0 == mman.todo__implement_without_malloc__) ;
+   TEST(0 == mman.size_allocated) ;
 
    // TEST init_mmimpl
-   memset(&mman, 255, sizeof(mman)) ;
    TEST(0 == init_mmimpl(&mman)) ;
-   TEST(0 == mman.todo__implement_without_malloc__) ;
+   TEST(0 == mman.size_allocated) ;
 
    // TEST free_mmimpl
-   mman.todo__implement_without_malloc__ = 1 ;
    TEST(0 == free_mmimpl(&mman)) ;
-   TEST(0 == mman.todo__implement_without_malloc__) ;
+   TEST(0 == mman.size_allocated) ;
    TEST(0 == free_mmimpl(&mman)) ;
-   TEST(0 == mman.todo__implement_without_malloc__) ;
+   TEST(0 == mman.size_allocated) ;
 
    return 0 ;
 ONABORT:
@@ -181,59 +212,83 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_query(void)
+{
+   mm_impl_t mman = mmimpl_INIT_FREEABLE ;
+
+   // TEST sizeallocated_mmimpl: 0
+   TEST(0 == init_mmimpl(&mman)) ;
+   TEST(0 == sizeallocated_mmimpl(&mman)) ;
+   TEST(0 == free_mmimpl(&mman)) ;
+   TEST(0 == sizeallocated_mmimpl(&mman)) ;
+
+   // TEST sizeallocated_mmimpl
+   mman.size_allocated = 1000 ;
+   TEST(1000 == sizeallocated_mmimpl(&mman)) ;
+   mman.size_allocated = 2000 ;
+   TEST(2000 == sizeallocated_mmimpl(&mman)) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 static int test_allocate(void)
 {
    mm_impl_t      mman = mmimpl_INIT_FREEABLE ;
-   size_t         number_of_allocated_bytes ;
-   size_t         number_of_allocated_bytes2 ;
+   size_t         size = 0 ;
    memblock_t     mblocks[100] ;
 
    // prepare
    TEST(0 == init_mmimpl(&mman)) ;
-   TEST(0 == allocatedsize_malloc(&number_of_allocated_bytes)) ;
 
-   // TEST mresize_mmimpl empty block, sizeallocated_mmimpl
+   // TEST malloc_mmimpl
+   memset(mblocks, 255 ,sizeof(mblocks)) ;
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
+      TEST(0 == malloc_mmimpl(&mman, 16 * (1 + i), &mblocks[i])) ;
+      TEST(mblocks[i].addr != 0) ;
+      TEST(mblocks[i].size >= 16 * (1 + i)) ;
+      size += mblocks[i].size ;
+      TEST(size == sizeallocated_mmimpl(&mman)) ;
+   }
+
+   // TEST mfree_mmimpl
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
+      size -= mblocks[i].size ;
+      TEST(0 == mfree_mmimpl(&mman, &mblocks[i])) ;
+      TEST(0 == mblocks[i].addr) ;
+      TEST(0 == mblocks[i].size) ;
+      TEST(size == sizeallocated_mmimpl(&mman)) ;
+   }
+
+   // TEST mresize_mmimpl: empty block,
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
       TEST(0 == mresize_mmimpl(&mman, 16 * (1 + i), &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].size >= 16 * (1 + i)) ;
-
-      TEST(0 == allocatedsize_malloc(&number_of_allocated_bytes2)) ;
-      TEST(number_of_allocated_bytes + mblocks[i].size <= number_of_allocated_bytes2) ;
-      number_of_allocated_bytes = number_of_allocated_bytes2 ;
-
-      TEST(0 == sizeallocated_mmimpl(&mman)) ;
+      size += mblocks[i].size ;
+      TEST(size == sizeallocated_mmimpl(&mman)) ;
    }
 
-   // TEST mresize_mmimpl allocated block, sizeallocated_mmimpl
+   // TEST mresize_mmimpl: allocated block
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
-      void * oldaddr = mblocks[i].addr ;
+      size -= mblocks[i].size ;
       TEST(0 == mresize_mmimpl(&mman, 2000, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
-      TEST(mblocks[i].addr != oldaddr) ;
       TEST(mblocks[i].size >= 2000) ;
-
-      TEST(0 == allocatedsize_malloc(&number_of_allocated_bytes2)) ;
-      TEST(number_of_allocated_bytes + 2000 - 24 * (1+i) <= number_of_allocated_bytes2) ;
-      number_of_allocated_bytes = number_of_allocated_bytes2 ;
-
-      TEST(0 == sizeallocated_mmimpl(&mman)) ;
+      size += mblocks[i].size ;
+      TEST(size == sizeallocated_mmimpl(&mman)) ;
    }
 
-   // TEST mfree_mmimpl, sizeallocated_mmimpl
+   // TEST mfree_mmimpl
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
+      size -= mblocks[i].size ;
       TEST(0 == mfree_mmimpl(&mman, &mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
-      TEST(0 == mblocks[i].addr) ;
-
-      TEST(0 == allocatedsize_malloc(&number_of_allocated_bytes2)) ;
-      TEST(number_of_allocated_bytes >= 2000 + number_of_allocated_bytes2) ;
-      number_of_allocated_bytes = number_of_allocated_bytes2 ;
-
-      TEST(0 == sizeallocated_mmimpl(&mman)) ;
+      TEST(0 == mblocks[i].size) ;
+      TEST(size == sizeallocated_mmimpl(&mman)) ;
    }
-
 
    // unprepare
    TEST(0 == free_mmimpl(&mman)) ;
@@ -247,29 +302,64 @@ ONABORT:
 static int test_mm_macros(void)
 {
    memblock_t  mblocks[2] ;
+   size_t      size = SIZEALLOCATED_MM() ;
 
-   // TEST mresize empty block
+   // TEST ALLOC_MM
+   memset(mblocks, 255 ,sizeof(mblocks)) ;
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
+      TEST(0 == ALLOC_MM(32 + 32 * i, &mblocks[i])) ;
+      TEST(mblocks[i].addr != 0) ;
+      TEST(mblocks[i].size >= 32 + 32 * i) ;
+      size += mblocks[i].size ;
+      TEST(size == SIZEALLOCATED_MM()) ;
+   }
+
+   // TEST FREE_MM
+   for (unsigned i = 0; i < lengthof(mblocks); ++i) {
+      size -= mblocks[i].size ;
+      TEST(0 == FREE_MM(&mblocks[i])) ;
+      TEST(0 == mblocks[i].addr) ;
+      TEST(0 == mblocks[i].size) ;
+      TEST(size == SIZEALLOCATED_MM()) ;
+      TEST(0 == FREE_MM(&mblocks[i])) ;
+      TEST(0 == mblocks[i].addr) ;
+      TEST(0 == mblocks[i].size) ;
+      TEST(size == SIZEALLOCATED_MM()) ;
+   }
+
+   // TEST RESIZE_MM, SIZEALLOCATED_MM: empty block
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       mblocks[i] = (memblock_t) memblock_INIT_FREEABLE ;
       TEST(0 == RESIZE_MM(32 + 32 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].size >= 32 + 32 * i) ;
+      size += mblocks[i].size ;
+      TEST(size == SIZEALLOCATED_MM()) ;
    }
 
-   // TEST mresize allocated block
+   // TEST RESIZE_MM, SIZEALLOCATED_MM: resize allocated block
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       void * oldaddr = mblocks[i].addr ;
+      size -= mblocks[i].size ;
       TEST(0 == RESIZE_MM(256 + 256 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].addr != oldaddr) ;
       TEST(mblocks[i].size >= 256 + 256 * i) ;
+      size += mblocks[i].size ;
+      TEST(size == SIZEALLOCATED_MM()) ;
    }
 
-   // TEST mfree
+   // TEST FREE_MM, SIZEALLOCATED_MM
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
+      size -= mblocks[i].size ;
       TEST(0 == FREE_MM(&mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
+      TEST(0 == mblocks[i].size) ;
+      TEST(size == SIZEALLOCATED_MM()) ;
+      TEST(0 == FREE_MM(&mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
+      TEST(0 == mblocks[i].size) ;
+      TEST(size == SIZEALLOCATED_MM()) ;
    }
 
    return 0 ;
@@ -287,6 +377,7 @@ int unittest_memory_mm_mmimpl()
 
    if (test_initfree())    goto ONABORT ;
    if (test_initthread())  goto ONABORT ;
+   if (test_query())       goto ONABORT ;
    if (test_allocate())    goto ONABORT ;
    if (test_mm_macros())   goto ONABORT ;
 

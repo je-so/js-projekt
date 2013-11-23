@@ -67,6 +67,10 @@ iobj_DECLARE(mm_t, mm) ;
 
 // group: call
 
+/* function: malloc_mm
+ * Calls mm->iimpl->malloc with mm->object as first parameter. See <mm_it.malloc>. */
+int malloc_mm(mm_t mm, size_t size, /*out*/struct memblock_t * memblock) ;
+
 /* function: mresize_mm
  * Calls mm->iimpl->mresize with mm->object as first parameter. See <mm_it.mresize>. */
 int mresize_mm(mm_t mm, size_t newsize, struct memblock_t * memblock) ;
@@ -85,6 +89,9 @@ size_t sizeallocated_mm(mm_t mm) ;
  * If you change the interface of <mm_it> to do not forget to adapt
  * <mm_it_DECLARE> to the same signature. */
 struct mm_it {
+   /* function: malloc
+    * See <mm_impl_t.malloc_mmimpl> for an implementation. */
+   int (* malloc)  (struct mm_t * mman, size_t size, /*out*/struct memblock_t * memblock) ;
    /* function: mresize
     * See <mm_impl_t.mresize_mmimpl> for an implementation. */
    int (* mresize) (struct mm_t * mman, size_t newsize, struct memblock_t * memblock) ;
@@ -100,17 +107,18 @@ struct mm_it {
 
 /* define: mm_it_INIT_FREEABLE
  * Static initializer. Set all fields to 0. */
-#define mm_it_INIT_FREEABLE            { 0, 0, 0 }
+#define mm_it_INIT_FREEABLE            { 0, 0, 0, 0 }
 
 /* define: mm_it_INIT
  * Static initializer. Set all function pointers to the provided values.
  *
  * Parameters:
+ * malloc_f        - Function pointer to allocate a new memory block. See <mm_it.malloc>.
  * mresize_f       - Function pointer to allocate and resize memory. See <mm_it.mresize>.
  * mfree_f         - Function pointer to free memory blocks. See <mm_it.mfree>.
  * sizeallocated_f - Function pointer to query the size of all allocated memory nlocks. See <mm_it.sizeallocated>. */
-#define mm_it_INIT(mresize_f, mfree_f, sizeallocated_f) \
-            { (mresize_f), (mfree_f), (sizeallocated_f) }
+#define mm_it_INIT(malloc_f, mresize_f, mfree_f, sizeallocated_f) \
+            { (malloc_f), (mresize_f), (mfree_f), (sizeallocated_f) }
 
 // group: generic
 
@@ -142,6 +150,11 @@ void mm_it_DECLARE(TYPENAME declared_it, TYPENAME memorymanager_t) ;
 
 // group: mm_t
 
+/* define: malloc_mm
+ * Implements <mm_t.malloc_mm>. */
+#define malloc_mm(mm, size, /*out*/memblock) \
+         ((mm).iimpl->malloc((mm).object, (size), (memblock)))
+
 /* define: mresize_mm
  * Implements <mm_t.mresize_mm>. */
 #define mresize_mm(mm, newsize, memblock) \
@@ -164,8 +177,12 @@ void mm_it_DECLARE(TYPENAME declared_it, TYPENAME memorymanager_t) ;
 #define genericcast_mmit(mminterface, memorymanager_t)         \
    ( __extension__ ({                                          \
       static_assert(                                           \
-         &((typeof(mminterface))0)->mresize                    \
+         &((typeof(mminterface))0)->malloc                     \
          == (int (**) (memorymanager_t*,                       \
+                       size_t, struct memblock_t*))            \
+            &((mm_it*)0)->malloc                               \
+         && &((typeof(mminterface))0)->mresize                 \
+            == (int (**) (memorymanager_t*,                    \
                        size_t, struct memblock_t*))            \
             &((mm_it*)0)->mresize                              \
          && &((typeof(mminterface))0)->mfree                   \
@@ -185,6 +202,7 @@ void mm_it_DECLARE(TYPENAME declared_it, TYPENAME memorymanager_t) ;
 #define mm_it_DECLARE(declared_it, memorymanager_t)   \
    typedef struct declared_it       declared_it ;     \
    struct declared_it {                               \
+      int    (* malloc)  (memorymanager_t * mman, size_t size, /*out*/struct memblock_t * memblock) ;  \
       int    (* mresize) (memorymanager_t * mman, size_t newsize, struct memblock_t * memblock) ;  \
       int    (* mfree)   (memorymanager_t * mman, struct memblock_t * memblock) ;                  \
       size_t (* sizeallocated) (memorymanager_t * mman) ;                                          \

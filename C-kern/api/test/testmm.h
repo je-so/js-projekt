@@ -119,8 +119,13 @@ size_t sizeallocated_testmm(testmm_t * mman) ;
 
 // group: allocate
 
+/* function: malloc_testmm
+ * Allocates a new memory block.
+ * Test implementation replacement of <malloc_mmimpl>. */
+int malloc_testmm(testmm_t * mman, size_t size, /*out*/struct memblock_t * memblock) ;
+
 /* function: mresize_testmm
- * Allocates new memory or resizes already allocated memory.
+ * Allocates new or resizes already allocated memory block.
  * Test implementation replacement of <mresize_mmimpl>. */
 int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock) ;
 
