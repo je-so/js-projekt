@@ -28,13 +28,12 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/memstream.h"
-#include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/test/errortimer.h"
+#include "C-kern/api/test/mm/mm_test.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/ds/foreach.h"
-#include "C-kern/api/test/testmm.h"
 #endif
 
 
@@ -112,8 +111,7 @@ static int alloc_memblock_wbuffer(void * impl, size_t new_size, /*ret*/memstream
       goto ONABORT ;
    }
 
-   ONERROR_testerrortimer(&s_wbuffer_errtimer, ONABORT) ;
-   err = RESIZE_MM(memsize, mb) ;
+   err = RESIZE_MM_TEST(&s_wbuffer_errtimer, memsize, mb) ;
    if (err) goto ONABORT ;
 
    *memstr = (memstream_t) memstream_INIT(addr_memblock(mb) + used, addr_memblock(mb) + size_memblock(mb)) ;

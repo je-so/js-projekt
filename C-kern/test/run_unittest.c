@@ -39,7 +39,7 @@
 #include "C-kern/api/math/fpu.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/test/resourceusage.h"
-#include "C-kern/api/test/testmm.h"
+#include "C-kern/api/test/mm/testmm.h"
 #include "C-kern/api/test/run/unittest.h"
 
 
@@ -359,7 +359,8 @@ int run_unittest(int argc, const char ** argv)
       RUN(unittest_test_errortimer) ;
       RUN(unittest_test_resourceusage) ;
       RUN(unittest_test_test) ;
-      RUN(unittest_test_testmm) ;
+      RUN(unittest_test_mm_mm_test) ;
+      RUN(unittest_test_mm_testmm) ;
 //}
 
 //{ time unittest

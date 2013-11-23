@@ -16,15 +16,15 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/test/testmm.h
+   file: C-kern/api/test/mm/testmm.h
     Header file <Test-MemoryManager>.
 
-   file: C-kern/test/testmm.c
+   file: C-kern/test/mm/testmm.c
     Implementation file <Test-MemoryManager impl>.
 */
 
 #include "C-kern/konfig.h"
-#include "C-kern/api/test/testmm.h"
+#include "C-kern/api/test/mm/testmm.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/vm.h"
@@ -1213,7 +1213,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_test_testmm()
+int unittest_test_mm_testmm()
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 

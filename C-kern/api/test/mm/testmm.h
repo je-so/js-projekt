@@ -19,14 +19,14 @@
    Author:
    (C) 2012 Jörg Seebohn
 
-   file: C-kern/api/test/testmm.h
+   file: C-kern/api/test/mm/testmm.h
     Header file <Test-MemoryManager>.
 
-   file: C-kern/test/testmm.c
+   file: C-kern/test/mm/testmm.c
     Implementation file <Test-MemoryManager impl>.
 */
-#ifndef CKERN_TEST_TESTMM_HEADER
-#define CKERN_TEST_TESTMM_HEADER
+#ifndef CKERN_TEST_MM_TESTMM_HEADER
+#define CKERN_TEST_MM_TESTMM_HEADER
 
 // forward
 struct memblock_t ;
@@ -44,9 +44,9 @@ typedef struct testmm_t                   testmm_t ;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_test_testmm
+/* function: unittest_test_mm_testmm
  * Test <testmm_t> - memory manager for tests. */
-int unittest_test_testmm(void) ;
+int unittest_test_mm_testmm(void) ;
 #endif
 
 

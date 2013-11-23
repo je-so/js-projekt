@@ -32,12 +32,11 @@
 #include "C-kern/api/math/int/log10.h"
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/test/mm/mm_test.h"
 #include "C-kern/api/string/cstring.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/test/testmm.h"
 #endif
 
 /* typedef: struct decimal_frombigint_t
@@ -121,9 +120,16 @@ struct decimal_divstate_t {
    const uint32_t * const rdigits ;
 } ;
 
+
 // section: decimal_t
 
 // group: variables
+
+#ifdef KONFIG_UNITTEST
+/* variable: s_decimal_errtimer
+ * Simulates an error in different functions. */
+static test_errortimer_t   s_decimal_errtimer = test_errortimer_INIT_FREEABLE ;
+#endif
 
 static const bigint_fixed_DECLARE(1)   s_decimal_10raised9   = bigint_fixed_INIT(1, 0, 0x3b9aca00) ;
 static const bigint_fixed_DECLARE(2)   s_decimal_10raised18  = bigint_fixed_INIT(2, 0, 0xa7640000, 0xde0b6b3) ;
@@ -415,7 +421,7 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)olddec) ;
 
    // TODO: implement resize in memory manager which does not preserve content
-   err = RESIZE_MM(newobjsize, &mblock) ;
+   err = RESIZE_MM_TEST(&s_decimal_errtimer, newobjsize, &mblock) ;
    if (err) goto ONABORT ;
 
    decimal_t     * newdec = (decimal_t*) mblock.addr ;
@@ -1485,7 +1491,7 @@ int delete_decimal(decimal_t ** dec)
 
       memblock_t  mblock = memblock_INIT(objectsize_decimal(del_dec->size_allocated), (uint8_t*) del_dec) ;
 
-      err = FREE_MM(&mblock) ;
+      err = FREE_MM_TEST(&s_decimal_errtimer, &mblock) ;
       if (err) goto ONABORT ;
    }
 
@@ -2735,20 +2741,17 @@ static int test_initfree(void)
       TEST(0 == dec) ;
    }
 
-   // TEST init: EINVAL
+   // TEST new_decimal: EINVAL
    TEST(EINVAL == new_decimal(&dec,0)) ;
    TEST(EINVAL == new_decimal(&dec,nrdigitsmax_decimal()+1)) ;
 
-   // TEST init: ENOMEM
-   test_errortimer_t errtimer ;
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
+   // TEST new_decimal: ENOMEM
+   init_testerrortimer(&s_decimal_errtimer, 1, ENOMEM) ;
    TEST(ENOMEM == new_decimal(&dec, 1)) ;
 
-   // TEST free: ENOMEM
+   // TEST delete_decimal: ENOMEM
    TEST(0 == new_decimal(&dec, 1)) ;
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setfreeerr_testmm(mmcontext_testmm(), &errtimer) ;
+   init_testerrortimer(&s_decimal_errtimer, 1, ENOMEM) ;
    TEST(ENOMEM == delete_decimal(&dec)) ;
    TEST(0 == dec) ;
 
@@ -3079,17 +3082,14 @@ static int test_setfromint(void)
    }
 
    // TEST setfromint32_decimal: ENOMEM
-   test_errortimer_t errtimer ;
    TEST(0 == new_decimal(&dec, 1)) ;
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
+   init_testerrortimer(&s_decimal_errtimer, 1, ENOMEM) ;
    TEST(ENOMEM == setfromint32_decimal(&dec, DIGITSBASE, 0)) ;
    TEST(0 == delete_decimal(&dec)) ;
 
    // TEST setfromint64_decimal: ENOMEM
    TEST(0 == new_decimal(&dec, 2)) ;
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
+   init_testerrortimer(&s_decimal_errtimer, 1, ENOMEM) ;
    TEST(ENOMEM == setfromint64_decimal(&dec, (uint64_t)DIGITSBASE*DIGITSBASE, 0)) ;
    TEST(0 == delete_decimal(&dec)) ;
 

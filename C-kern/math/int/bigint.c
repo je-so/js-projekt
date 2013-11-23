@@ -30,12 +30,11 @@
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/test/mm/mm_test.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/math/fpu.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/test/testmm.h"
 #endif
 
 
@@ -59,6 +58,14 @@ struct bigint_divstate_t {
 
 
 // section: bigint_t
+
+// group: variables
+
+#ifdef KONFIG_UNITTEST
+/* variable: s_bigint_errtimer
+ * Simulates an error in different functions. */
+static test_errortimer_t   s_bigint_errtimer = test_errortimer_INIT_FREEABLE ;
+#endif
 
 // group: helper
 
@@ -109,7 +116,7 @@ static int allocate_bigint(bigint_t *restrict* big, uint32_t allocate_digits)
    uint32_t newobjsize = objectsize_bigint((uint16_t)allocate_digits) ;
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)oldbig) ;
 
-   err = RESIZE_MM(newobjsize, &mblock) ;
+   err = RESIZE_MM_TEST(&s_bigint_errtimer, newobjsize, &mblock) ;
    if (err) goto ONABORT ;
 
    bigint_t       * newbig      = (bigint_t*) mblock.addr ;
@@ -1175,7 +1182,7 @@ int delete_bigint(bigint_t ** big)
 
       memblock_t  mblock = memblock_INIT(objectsize_bigint(del_big->allocated_digits), (uint8_t*) del_big) ;
 
-      err = FREE_MM(&mblock) ;
+      err = FREE_MM_TEST(&s_bigint_errtimer, &mblock) ;
       if (err) goto ONABORT ;
    }
 
@@ -2935,7 +2942,7 @@ ONABORT:
 
 static int test_mult(void)
 {
-   bigint_t    * big[4] = { 0 } ;
+   bigint_t * big[4] = { 0 } ;
 
    // prepare
    for (unsigned i = 0; i < lengthof(big); ++i) {
@@ -3206,12 +3213,11 @@ static int test_mult(void)
    big[2]->sign_and_used_digits = 300 ;
    big[1]->digits[299] = 1 ;
    big[2]->digits[299] = 2 ;
-   test_errortimer_t errtimer ;
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
+   // test error in RESIZE_MM
+   init_testerrortimer(&s_bigint_errtimer, 1, ENOMEM) ;
    TEST(ENOMEM == mult_bigint(&big[3], big[2], big[1])) ;
-   init_testerrortimer(&errtimer, 1, EPROTO) ;
-   setfreeerr_testmm(mmcontext_testmm(), &errtimer) ;
+   // test error in FREE_MM
+   init_testerrortimer(&s_bigint_errtimer, 8, EPROTO) ;
    TEST(EPROTO == mult_bigint(&big[3], big[2], big[1])) ;
 
    // unprepare
@@ -3732,11 +3738,9 @@ static int test_shift(void)
    TEST(1 == big->digits[0]) ;
    TEST(0 == delete_bigint(&big)) ;
 
-   // TEST shiftleft_bigint ENOMEM
+   // TEST shiftleft_bigint: ENOMEM
    TEST(0 == new_bigint(&big, 100)) ;
-   test_errortimer_t errtimer ;
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
+   init_testerrortimer(&s_bigint_errtimer, 1, ENOMEM) ;
    for (unsigned i = 0; i < 100; ++i) {
       big->digits[i] = 0x12345678 ;
    }
@@ -3844,10 +3848,9 @@ static int test_shift(void)
    }
    TEST(0 == delete_bigint(&big)) ;
 
-   // TEST shiftright_bigint ENOMEM
+   // TEST shiftright_bigint: ENOMEM
    TEST(0 == new_bigint(&big, 100)) ;
-   init_testerrortimer(&errtimer, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &errtimer) ;
+   init_testerrortimer(&s_bigint_errtimer, 1, ENOMEM) ;
    for (unsigned i = 0; i < 100; ++i) {
       big->digits[i] = 0x12345678 ;
    }

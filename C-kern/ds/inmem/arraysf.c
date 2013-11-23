@@ -32,16 +32,23 @@
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/math/int/power2.h"
 #include "C-kern/api/memory/memblock.h"
-#include "C-kern/api/memory/mm/mm_macros.h"
+#include "C-kern/api/test/mm/mm_test.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/test/errortimer.h"
-#include "C-kern/api/test/testmm.h"
 #endif
 
 
 // section: arraysf_t
+
+// group: variables
+
+#ifdef KONFIG_UNITTEST
+/* variable: s_arraysf_errtimer
+ * Simulates an error in different functions. */
+static test_errortimer_t   s_arraysf_errtimer = test_errortimer_INIT_FREEABLE ;
+#endif
 
 // group: helper
 
@@ -107,17 +114,17 @@ static int find_arraysf(const arraysf_t * array, size_t pos, /*err;out*/arraysf_
 int new_arraysf(/*out*/arraysf_t ** array, uint32_t toplevelsize, uint8_t posshift)
 {
    int err ;
-   memblock_t new_obj = memblock_INIT_FREEABLE ;
+   memblock_t new_obj ;
 
    toplevelsize += (0 == toplevelsize) ;
-   toplevelsize = makepowerof2_int(toplevelsize) ;
+   toplevelsize  = makepowerof2_int(toplevelsize) ;
 
    VALIDATE_INPARAM_TEST(toplevelsize <= 0x00800000, ONABORT, PRINTUINT32_ERRLOG(toplevelsize)) ;
    VALIDATE_INPARAM_TEST(posshift <= bitsof(size_t) - log2_int(toplevelsize < 2 ? 2 : toplevelsize), ONABORT, PRINTUINT32_ERRLOG(posshift)) ;
 
    const size_t objsize = objectsize_arraysf(toplevelsize) ;
 
-   err = RESIZE_MM(objsize, &new_obj) ;
+   err = ALLOC_MM(objsize, &new_obj) ;
    if (err) goto ONABORT ;
 
    memset(new_obj.addr, 0, objsize) ;
@@ -265,8 +272,8 @@ int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err
 
          unsigned shift = log2_int(posdiff) & ~0x01u ;
 
-         memblock_t mblock = memblock_INIT_FREEABLE ;
-         err = RESIZE_MM(sizeof(arraysf_mwaybranch_t), &mblock) ;
+         memblock_t mblock ;
+         err = ALLOC_MM_TEST(&s_arraysf_errtimer, sizeof(arraysf_mwaybranch_t), &mblock) ;
          if (err) goto ONABORT ;
 
          arraysf_mwaybranch_t * new_branch = (arraysf_mwaybranch_t *) mblock.addr ;
@@ -337,8 +344,8 @@ int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err
       branch = branch_arraysfunode(child) ;
    }
 
-   memblock_t mblock = memblock_INIT_FREEABLE ;
-   err = RESIZE_MM(sizeof(arraysf_mwaybranch_t), &mblock) ;
+   memblock_t mblock ;
+   err = ALLOC_MM(sizeof(arraysf_mwaybranch_t), &mblock) ;
    if (err) goto ONABORT ;
 
    arraysf_mwaybranch_t * new_branch = (arraysf_mwaybranch_t*) mblock.addr ;
@@ -479,10 +486,10 @@ int initfirst_arraysfiterator(/*out*/arraysf_iterator_t * iter, arraysf_t * arra
 
    (void) array ;
 
-   err = RESIZE_MM(objectsize, &objectmem) ;
+   err = ALLOC_MM(objectsize, &objectmem) ;
    if (err) goto ONABORT ;
 
-   stack  = (binarystack_t *) objectmem.addr ;
+   stack = (binarystack_t *) objectmem.addr ;
 
    err = init_binarystack(stack, (/*max depth*/4 * sizeof(size_t)) * /*objectsize*/sizeof(arraysf_pos_t) ) ;
    if (err) goto ONABORT ;
@@ -1227,17 +1234,16 @@ arraysf_IMPLEMENT(_t2arraysf, testnode_t, pos2)
 
 static int test_generic(void)
 {
-   const size_t      nrnodes   = 300 ;
-   memblock_t        memblock  = memblock_INIT_FREEABLE ;
-   arraysf_t  *      array     = 0 ;
-   arraysf_t  *      array2    = 0 ;
-   testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
-   typeadapt_member_t nodeadp1 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
-   typeadapt_member_t nodeadp2 = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,pos2)) ;
-   test_errortimer_t memerror ;
-   testnode_t *      nodes ;
-   testnode_t *      inserted_node ;
-   size_t            nextpos ;
+   const size_t       nrnodes   = 300 ;
+   memblock_t         memblock  = memblock_INIT_FREEABLE ;
+   arraysf_t          * array   = 0 ;
+   arraysf_t          * array2  = 0 ;
+   testnode_adapt_t   typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
+   typeadapt_member_t nodeadp1  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
+   typeadapt_member_t nodeadp2  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,pos2)) ;
+   testnode_t         * nodes ;
+   testnode_t         * inserted_node ;
+   size_t             nextpos ;
 
    // prepare
    static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max") ;
@@ -1253,15 +1259,13 @@ static int test_generic(void)
 
    // TEST tryinsert_arraysf: ENOMEM => inserted_node is set to 0
    nodes[1] = (testnode_t)  { .node = arraysf_node_INIT(1), .pos2 = (100000u + 1) } ;
-   init_testerrortimer(&memerror, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &memerror) ;
+   init_testerrortimer(&s_arraysf_errtimer, 1, ENOMEM) ;
    inserted_node = &nodes[1] ;
    TEST(ENOMEM == tryinsert_tarraysf(array, &nodes[1], &inserted_node, &nodeadp1)) ;
    TEST(0 == inserted_node) ;
    TEST(1 == nodes[1].copycount) ;
    TEST(1 == nodes[1].freecount) ;
-   init_testerrortimer(&memerror, 1, ENOMEM) ;
-   setresizeerr_testmm(mmcontext_testmm(), &memerror) ;
+   init_testerrortimer(&s_arraysf_errtimer, 1, ENOMEM) ;
    inserted_node = &nodes[1] ;
    TEST(ENOMEM == tryinsert_t2arraysf(array2, &nodes[1], &inserted_node, &nodeadp2)) ;
    TEST(0 == inserted_node) ;

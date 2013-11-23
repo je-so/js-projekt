@@ -37,7 +37,7 @@
 #include "C-kern/api/test.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/memory/mm/mm_impl.h"
-#include "C-kern/api/test/testmm.h"
+#include "C-kern/api/test/mm/testmm.h"
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/task/thread_tls.h"

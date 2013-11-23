@@ -1,179 +1,160 @@
-[1: 1383415476.565479s]
-allocate_bigint() C-kern/math/int/bigint.c:124
+[1: 1383485099.123966s]
+allocate_bigint() C-kern/math/int/bigint.c:131
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.565491s]
-new_bigint() C-kern/math/int/bigint.c:1143
+[1: 1383485099.123973s]
+new_bigint() C-kern/math/int/bigint.c:1150
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.568405s]
-setfromdouble_bigint() C-kern/math/int/bigint.c:1382
+[1: 1383485099.126850s]
+setfromdouble_bigint() C-kern/math/int/bigint.c:1389
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
 Function aborted
-[1: 1383415476.568409s]
-setfromdouble_bigint() C-kern/math/int/bigint.c:1382
+[1: 1383485099.126854s]
+setfromdouble_bigint() C-kern/math/int/bigint.c:1389
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
 Function aborted
-[1: 1383415476.568414s]
-setbigfirst_bigint() C-kern/math/int/bigint.c:1447
+[1: 1383485099.126858s]
+setbigfirst_bigint() C-kern/math/int/bigint.c:1454
 Error 22 - Invalid argument
 Function input violates condition (sign != 0)
 Function aborted
-[1: 1383415476.568416s]
-setbigfirst_bigint() C-kern/math/int/bigint.c:1492
+[1: 1383485099.126861s]
+setbigfirst_bigint() C-kern/math/int/bigint.c:1499
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.568422s]
-setlittlefirst_bigint() C-kern/math/int/bigint.c:1500
+[1: 1383485099.126869s]
+setlittlefirst_bigint() C-kern/math/int/bigint.c:1507
 Error 22 - Invalid argument
 Function input violates condition (sign != 0)
 Function aborted
-[1: 1383415476.568425s]
-setlittlefirst_bigint() C-kern/math/int/bigint.c:1542
+[1: 1383485099.126871s]
+setlittlefirst_bigint() C-kern/math/int/bigint.c:1549
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.673686s]
-allocate_bigint() C-kern/math/int/bigint.c:124
+[1: 1383485099.232022s]
+allocate_bigint() C-kern/math/int/bigint.c:131
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.673692s]
-multui32_bigint() C-kern/math/int/bigint.c:1800
+[1: 1383485099.232029s]
+multui32_bigint() C-kern/math/int/bigint.c:1807
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.673695s]
-allocate_bigint() C-kern/math/int/bigint.c:124
+[1: 1383485099.232032s]
+allocate_bigint() C-kern/math/int/bigint.c:131
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.673697s]
-mult_bigint() C-kern/math/int/bigint.c:1853
+[1: 1383485099.232034s]
+mult_bigint() C-kern/math/int/bigint.c:1860
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.673699s]
-mult_bigint() C-kern/math/int/bigint.c:1853
+[1: 1383485099.232036s]
+mult_bigint() C-kern/math/int/bigint.c:1860
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.673701s]
-mresize_testmm() C-kern/test/testmm.c:683
-Error 12 - Cannot allocate memory
-Could not allocate 1208 bytes of memory
-Function aborted
-[1: 1383415476.673705s]
-allocate_bigint() C-kern/math/int/bigint.c:124
+[1: 1383485099.232038s]
+allocate_bigint() C-kern/math/int/bigint.c:131
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1383415476.673707s]
-multsplit_biginthelper() C-kern/math/int/bigint.c:685
+[1: 1383485099.232040s]
+multsplit_biginthelper() C-kern/math/int/bigint.c:692
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1383415476.673708s]
-mult_bigint() C-kern/math/int/bigint.c:1853
+[1: 1383485099.232042s]
+mult_bigint() C-kern/math/int/bigint.c:1860
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1383415476.673736s]
-mfree_testmm() C-kern/test/testmm.c:731
-Error 71 - Protocol error
-Function aborted
-[1: 1383415476.673740s]
-delete_bigint() C-kern/math/int/bigint.c:1184
+[1: 1383485099.232069s]
+delete_bigint() C-kern/math/int/bigint.c:1191
 Error 71 - Protocol error
 Function aborted - one or more resources could not be freed
-[1: 1383415476.673742s]
-multsplit_biginthelper() C-kern/math/int/bigint.c:685
+[1: 1383485099.232072s]
+multsplit_biginthelper() C-kern/math/int/bigint.c:692
 Error 71 - Protocol error
 Function aborted
-[1: 1383415476.673744s]
-multsplit_biginthelper() C-kern/math/int/bigint.c:685
+[1: 1383485099.232074s]
+multsplit_biginthelper() C-kern/math/int/bigint.c:692
 Error 71 - Protocol error
 Function aborted
-[1: 1383415476.673746s]
-multsplit_biginthelper() C-kern/math/int/bigint.c:685
+[1: 1383485099.232076s]
+multsplit_biginthelper() C-kern/math/int/bigint.c:692
 Error 71 - Protocol error
 Function aborted
-[1: 1383415476.673748s]
-mult_bigint() C-kern/math/int/bigint.c:1853
+[1: 1383485099.232078s]
+mult_bigint() C-kern/math/int/bigint.c:1860
 Error 71 - Protocol error
 Function aborted
-[1: 1383415476.673768s]
-divmodui32_bigint() C-kern/math/int/bigint.c:1866
+[1: 1383485099.232099s]
+divmodui32_bigint() C-kern/math/int/bigint.c:1873
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
 Function aborted
-[1: 1383415476.673771s]
-divmodui32_bigint() C-kern/math/int/bigint.c:1866
+[1: 1383485099.232102s]
+divmodui32_bigint() C-kern/math/int/bigint.c:1873
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
 Function aborted
-[1: 1383415476.673774s]
-divmod_bigint() C-kern/math/int/bigint.c:1917
+[1: 1383485099.232105s]
+divmod_bigint() C-kern/math/int/bigint.c:1924
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
 Function aborted
-[1: 1383415476.673776s]
-divmod_bigint() C-kern/math/int/bigint.c:1917
+[1: 1383485099.232107s]
+divmod_bigint() C-kern/math/int/bigint.c:1924
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
 Function aborted
-[1: 1383415476.673778s]
-divmodui32_bigint() C-kern/math/int/bigint.c:1866
+[1: 1383485099.232109s]
+divmodui32_bigint() C-kern/math/int/bigint.c:1873
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
 Function aborted
-[1: 1383415476.673780s]
-divmodui32_bigint() C-kern/math/int/bigint.c:1866
+[1: 1383485099.232111s]
+divmodui32_bigint() C-kern/math/int/bigint.c:1873
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
 Function aborted
-[1: 1383415476.673782s]
-divmod_bigint() C-kern/math/int/bigint.c:1917
+[1: 1383485099.232113s]
+divmod_bigint() C-kern/math/int/bigint.c:1924
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
 Function aborted
-[1: 1383415476.673785s]
-divmod_bigint() C-kern/math/int/bigint.c:1917
+[1: 1383485099.232115s]
+divmod_bigint() C-kern/math/int/bigint.c:1924
 Error 22 - Invalid argument
 Function input violates condition (is_divisor_not_zero)
 Function aborted
-[1: 1383415476.675852s]
-shiftleft_bigint() C-kern/math/int/bigint.c:1639
+[1: 1383485099.234172s]
+shiftleft_bigint() C-kern/math/int/bigint.c:1646
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.675855s]
-shiftleft_bigint() C-kern/math/int/bigint.c:1639
+[1: 1383485099.234174s]
+shiftleft_bigint() C-kern/math/int/bigint.c:1646
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1383415476.675857s]
-mresize_testmm() C-kern/test/testmm.c:683
-Error 12 - Cannot allocate memory
-Could not allocate 412 bytes of memory
-Function aborted
-[1: 1383415476.675860s]
-allocate_bigint() C-kern/math/int/bigint.c:124
+[1: 1383485099.234177s]
+allocate_bigint() C-kern/math/int/bigint.c:131
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1383415476.675862s]
-shiftleft_bigint() C-kern/math/int/bigint.c:1639
+[1: 1383485099.234179s]
+shiftleft_bigint() C-kern/math/int/bigint.c:1646
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1383415476.676342s]
-mresize_testmm() C-kern/test/testmm.c:683
-Error 12 - Cannot allocate memory
-Could not allocate 412 bytes of memory
-Function aborted
-[1: 1383415476.676345s]
-allocate_bigint() C-kern/math/int/bigint.c:124
+[1: 1383485099.234646s]
+allocate_bigint() C-kern/math/int/bigint.c:131
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1383415476.676347s]
-shiftright_bigint() C-kern/math/int/bigint.c:1712
+[1: 1383485099.234648s]
+shiftright_bigint() C-kern/math/int/bigint.c:1719
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1383415476.676353s]
-allocate_bigint() C-kern/math/int/bigint.c:124
+[1: 1383485099.234660s]
+allocate_bigint() C-kern/math/int/bigint.c:131
 Error 22 - Invalid argument
 Function aborted
-[1: 1383415476.676355s]
-multui32_bigint() C-kern/math/int/bigint.c:1800
+[1: 1383485099.234662s]
+multui32_bigint() C-kern/math/int/bigint.c:1807
 Error 22 - Invalid argument
 Function aborted

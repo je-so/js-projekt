@@ -19,7 +19,7 @@ Src           += C-kern/math/hash/*.c C-kern/math/int/*.c C-kern/math/*.c C-kern
 Src           += C-kern/memory/*.c C-kern/memory/mm/*.c
 Src           += C-kern/string/*.c
 Src           += C-kern/task/*.c
-Src           += C-kern/test/*.c
+Src           += C-kern/test/*.c C-kern/test/mm/*.c
 Includes       = .
 # No X11
 Libs           = m pthread rt pam
