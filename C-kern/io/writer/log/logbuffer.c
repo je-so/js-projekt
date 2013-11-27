@@ -27,7 +27,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/writer/log/logbuffer.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/io/iochannel.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test.h"

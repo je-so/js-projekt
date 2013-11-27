@@ -114,7 +114,6 @@ static int test_query(void)
       const char * errstr = (const char*) (g_errorcontext_strdata + g_errorcontext_stroffset[i]) ;
       TEST(0 == strcmp("Unknown error", errstr)) ;
       TEST(g_errorcontext_stroffset[i]      == g_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]) ;
-      TEST(lengthof(g_errorcontext_strdata) == g_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]+strlen(errstr)+1) ;
    }
 
    // TEST g_errorcontext_stroffset: 256(syserror) + 256(extended error)
@@ -138,7 +137,12 @@ static int test_query(void)
    }
 
    // TEST str_errorcontext: 256 <= errno <= SIZE_MAX
-   for (size_t i = 256; true; i = (i < 511) ? i : 2*i, ++i) {
+   for (size_t i = 256; i < 257; ++i) {
+      const uint8_t * errstr = g_errorcontext_strdata + g_errorcontext_stroffset[255] ;
+      // valid content
+      TEST(errstr != str_errorcontext(errcontext, i)) ;
+   }
+   for (size_t i = 257; true; i = (i < 511) ? i : 2*i, ++i) {
       const uint8_t * errstr = g_errorcontext_strdata + g_errorcontext_stroffset[255] ;
       TEST(errstr == str_errorcontext(errcontext, i)) ;
       if (i == SIZE_MAX) break ;

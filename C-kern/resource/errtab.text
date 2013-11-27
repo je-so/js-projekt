@@ -576,7 +576,9 @@ en: "Unknown error"
 ## Application Error Codes
 ##
 
-0x100 -> 0xff
+EINVARIANT
+de: "Interne Invariante verletzt - (Softwarefehler oder korrupter Speicher)"
+en: "Internal invariant violated - (software bug or corrupt memory)"
 0x101 -> 0xff
 0x102 -> 0xff
 0x103 -> 0xff

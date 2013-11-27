@@ -27,7 +27,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/io/writer/log/logwriter.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/writer/log/logbuffer.h"
 #include "C-kern/api/memory/memblock.h"

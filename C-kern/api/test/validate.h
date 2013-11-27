@@ -66,9 +66,9 @@
          }
 
 /* define: VALIDATE_INVARIANT_TEST
- * Validates that internal object state is valid.
- * In case of condition is wrong the error variable *err* is set to
- * EINVAL and execution continues at the given label *_ONERROR_LABEL*.
+ * Validates that internal invariant object state is valid.
+ * In case of wrong _CONDITION the error variable *err* is set to
+ * EINVARIANT and execution continues at *_ONERROR_LABEL*.
  *
  * This test ensures that internal data structures are valid and not corrupted.
  * For example a binary tree data structure defines the invariant condition
@@ -83,7 +83,7 @@
  * */
 #define VALIDATE_INVARIANT_TEST(_CONDITION,_ONERROR_LABEL,_LOG_VALUE)   \
          if (!(_CONDITION)) {                                     \
-            err = EINVAL ;                                        \
+            err = EINVARIANT ;                                    \
             TRACE_ERRLOG(  log_flags_START, TEST_INVARIANT_FALSE, \
                            err, #_CONDITION);                     \
             _LOG_VALUE ;                                          \
@@ -92,12 +92,12 @@
 
 /* define: VALIDATE_STATE_TEST
  * Validates that the object state is valid.
- * In case of condition is wrong the error variable *err* is set to
- * EPROTO and execution continues at the given label *_ONERROR_LABEL*.
+ * In case of wrong _CONDITION the error variable *err* is set to
+ * EPROTO and execution continues at label *_ONERROR_LABEL*.
  *
  * For any external visible state this test ensures that a component
  * is in a state in which an operation can by executed. For example reading
- * is only allowed on files being in an open state.
+ * is only allowed on files being opened for reading.
  *
  * Parameter:
  * _CONDITION        - The condition to check for. Example: (isvalid_file(&file))

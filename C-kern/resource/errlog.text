@@ -33,7 +33,8 @@
 #    4.3 Formatting parameters
 #        To use only the first XX bytes of a string parameter use <paramname>[maxlen=XX] to reference the parameter
 #        where XX is a decimal number from (1 .. 99). The value 0 is ignored. No value means the whole string.
-#        For other parameter types than string no formatting options are supported.
+#        To print a number with at least X digits padded left with 0 use <paramnamw>[width0=X].
+#
 # 5. Textresource Content
 #    The content of a textresource is described in a language specific way.
 #    5.1 First comes the language designator, e.g "de:" or "en:".

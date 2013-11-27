@@ -27,7 +27,6 @@
 #include "C-kern/api/maincontext.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/cache/valuecache.h"
-#include "C-kern/api/context/errorcontext.h"
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/platform/sysuser.h"
