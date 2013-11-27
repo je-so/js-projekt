@@ -1,8 +1,10 @@
 /bin
 /html
-/TODO.d/test
+TODO.d/test
 projekte/naturaldocs/Data/
+projekte/codelite/.codelite/jsprojekt.tags
+projekte/codelite/.codelite/refactoring.db
+projekte/codelite/.codelite/sftp-workspace-settings.conf
 projekte/codelite/cscope.out
 projekte/codelite/cscope_file.list
-projekte/codelite/jsprojekt.tags
 projekte/codelite/tags

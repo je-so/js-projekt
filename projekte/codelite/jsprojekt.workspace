@@ -9,9 +9,9 @@
   </Environment>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Project Name="unittest" ConfigName="Debug"/>
       <Project Name="textrescompiler" ConfigName="Debug"/>
       <Project Name="textdb" ConfigName="Debug"/>
-      <Project Name="unittest" ConfigName="Debug"/>
       <Project Name="genmake" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="no">

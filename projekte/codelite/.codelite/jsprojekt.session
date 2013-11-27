@@ -1,80 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="10" Name="m_selectedTab"/>
+  <int Value="1" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="FileName"/>
-      <int Value="257" Name="FirstVisibleLine"/>
-      <int Value="275" Name="CurrentLine"/>
+      <int Value="269" Name="FirstVisibleLine"/>
+      <int Value="270" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/file.c" Name="FileName"/>
-      <int Value="49" Name="FirstVisibleLine"/>
-      <int Value="47" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/trie.c" Name="FileName"/>
+      <int Value="667" Name="FirstVisibleLine"/>
+      <int Value="546" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/io/writer/log/log.h" Name="FileName"/>
-      <int Value="110" Name="FirstVisibleLine"/>
-      <int Value="125" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/memory/mm/mm.c" Name="FileName"/>
+      <int Value="174" Name="FirstVisibleLine"/>
+      <int Value="172" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/ipsocket.c" Name="FileName"/>
-      <int Value="76" Name="FirstVisibleLine"/>
-      <int Value="101" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/memory/mm/mm_impl.c" Name="FileName"/>
+      <int Value="349" Name="FirstVisibleLine"/>
+      <int Value="368" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/io/ip/ipsocket.h" Name="FileName"/>
-      <int Value="29" Name="FirstVisibleLine"/>
-      <int Value="27" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/platform/malloc.h" Name="FileName"/>
-      <int Value="54" Name="FirstVisibleLine"/>
-      <int Value="91" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/memory/mm/mm_impl.h" Name="FileName"/>
+      <int Value="77" Name="FirstVisibleLine"/>
+      <int Value="75" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/memory/mm/mm.h" Name="FileName"/>
-      <int Value="147" Name="FirstVisibleLine"/>
-      <int Value="181" Name="CurrentLine"/>
+      <int Value="57" Name="FirstVisibleLine"/>
+      <int Value="55" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/test/testmm.c" Name="FileName"/>
-      <int Value="27" Name="FirstVisibleLine"/>
-      <int Value="25" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/test/mm/testmm.c" Name="FileName"/>
+      <int Value="1202" Name="FirstVisibleLine"/>
+      <int Value="1205" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/test/testmm.h" Name="FileName"/>
-      <int Value="29" Name="FirstVisibleLine"/>
-      <int Value="27" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/test/mm/mm_test.c" Name="FileName"/>
+      <int Value="115" Name="FirstVisibleLine"/>
+      <int Value="113" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/io/ip/ipaddr.h" Name="FileName"/>
-      <int Value="221" Name="FirstVisibleLine"/>
-      <int Value="231" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/ipaddr.c" Name="FileName"/>
-      <int Value="510" Name="FirstVisibleLine"/>
-      <int Value="522" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/test/mm/mm_test.h" Name="FileName"/>
+      <int Value="6" Name="FirstVisibleLine"/>
+      <int Value="7" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
     <long Value="2" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/ipaddr.c" Name="file"/>
-      <int Value="945" Name="lineno"/>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/arraystf.c" Name="file"/>
+      <int Value="1554" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>
@@ -90,7 +78,7 @@
     </SerializedObject>
     <SerializedObject Name="Breakpoint1">
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
-      <int Value="276" Name="lineno"/>
+      <int Value="271" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>
