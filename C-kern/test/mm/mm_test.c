@@ -1,6 +1,6 @@
-/* title: MemoryMacros impl
+/* title: TestMemoryMacros impl
 
-   Implements <MemoryMacros>.
+   Implements <TestMemoryMacros>.
 
    about: Copyright
    This program is free software.
@@ -18,10 +18,10 @@
    (C) 2013 Jörg Seebohn
 
    file: C-kern/api/test/mm/mm_test.h
-    Header file <MemoryMacros>.
+    Header file <TestMemoryMacros>.
 
    file: C-kern/test/mm/mm_test.c
-    Implementation file <MemoryMacros impl>.
+    Implementation file <TestMemoryMacros impl>.
 */
 
 #include "C-kern/konfig.h"
@@ -47,43 +47,43 @@ static int test_mm_macros(void)
    test_errortimer_t errtimer ;
    size_t            size = SIZEALLOCATED_MM() ;
 
-   // TEST ALLOC_MM_TEST
+   // TEST ALLOC_TEST
    memset(mblocks, 255 ,sizeof(mblocks)) ;
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       init_testerrortimer(&errtimer, 2, ENOMEM) ;
-      TEST(0 == ALLOC_MM_TEST(&errtimer, 32 + 32 * i, &mblocks[i])) ;
+      TEST(0 == ALLOC_TEST(&errtimer, 32 + 32 * i, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].size >= 32 + 32 * i) ;
       size += mblocks[i].size ;
       TEST(size == SIZEALLOCATED_MM()) ;
       memblock_t dummy = mblocks[i] ;
-      TEST(ENOMEM == ALLOC_MM_TEST(&errtimer, 32 + 32 * i, &dummy)) ;
+      TEST(ENOMEM == ALLOC_TEST(&errtimer, 32 + 32 * i, &dummy)) ;
       TEST(dummy.addr == mblocks[i].addr) ;
       TEST(dummy.size == mblocks[i].size) ;
       TEST(size == SIZEALLOCATED_MM()) ;
    }
 
-   // TEST RESIZE_MM_TEST
+   // TEST RESIZE_TEST
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       init_testerrortimer(&errtimer, 2, ENOMEM) ;
       size -= mblocks[i].size ;
-      TEST(0 == RESIZE_MM_TEST(&errtimer, 1024, &mblocks[i])) ;
+      TEST(0 == RESIZE_TEST(&errtimer, 1024, &mblocks[i])) ;
       TEST(mblocks[i].addr != 0) ;
       TEST(mblocks[i].size >= 1024) ;
       size += mblocks[i].size ;
       TEST(size == SIZEALLOCATED_MM()) ;
       memblock_t dummy = mblocks[i] ;
-      TEST(ENOMEM == RESIZE_MM_TEST(&errtimer, 3000, &dummy)) ;
+      TEST(ENOMEM == RESIZE_TEST(&errtimer, 3000, &dummy)) ;
       TEST(dummy.addr == mblocks[i].addr) ;
       TEST(dummy.size == mblocks[i].size) ;
       TEST(size == SIZEALLOCATED_MM()) ;
    }
 
-   // TEST FREE_MM_TEST
+   // TEST FREE_TEST
    for (unsigned i = 0; i < lengthof(mblocks); ++i) {
       init_testerrortimer(&errtimer, 1, ENOMEM) ;
       size -= mblocks[i].size ;
-      TEST(ENOMEM == FREE_MM_TEST(&errtimer, &mblocks[i])) ;
+      TEST(ENOMEM == FREE_TEST(&errtimer, &mblocks[i])) ;
       TEST(0 == mblocks[i].addr) ;
       TEST(0 == mblocks[i].size) ;
       TEST(size == SIZEALLOCATED_MM()) ;
@@ -94,9 +94,9 @@ ONABORT:
    return EINVAL ;
 }
 
-#undef ALLOC_MM_TEST
-#undef RESIZE_MM_TEST
-#undef FREE_MM_TEST
+#undef ALLOC_TEST
+#undef RESIZE_TEST
+#undef FREE_TEST
 #undef CKERN_TEST_MM_MM_TEST_HEADER
 #undef KONFIG_UNITTEST
 
@@ -111,26 +111,26 @@ static int test_mm_macros_release(void)
    // prepare
    init_testerrortimer(&errtimer, 1, ENOMEM) ;
 
-   // TEST ALLOC_MM_TEST
-   TEST(0 == ALLOC_MM_TEST(&errtimer, 64, &mblock)) ;
+   // TEST ALLOC_TEST
+   TEST(0 == ALLOC_TEST(&errtimer, 64, &mblock)) ;
    TEST(0 != mblock.addr) ;
    TEST(64 <= mblock.size) ;
    size += mblock.size ;
    TEST(size == SIZEALLOCATED_MM()) ;
    TEST(1 == errtimer.timercount) ;
 
-   // TEST RESIZE_MM_TEST
+   // TEST RESIZE_TEST
    size -= mblock.size ;
-   TEST(0 == RESIZE_MM_TEST(&errtimer, 1024, &mblock)) ;
+   TEST(0 == RESIZE_TEST(&errtimer, 1024, &mblock)) ;
    TEST(0 != mblock.addr) ;
    TEST(1024 <= mblock.size) ;
    size += mblock.size ;
    TEST(size == SIZEALLOCATED_MM()) ;
    TEST(1 == errtimer.timercount) ;
 
-   // TEST FREE_MM_TEST
+   // TEST FREE_TEST
    size -= mblock.size ;
-   TEST(0 == FREE_MM_TEST(&errtimer, &mblock)) ;
+   TEST(0 == FREE_TEST(&errtimer, &mblock)) ;
    TEST(0 == mblock.addr) ;
    TEST(0 == mblock.size) ;
    TEST(size == SIZEALLOCATED_MM()) ;

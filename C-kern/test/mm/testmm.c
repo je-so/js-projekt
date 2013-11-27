@@ -36,11 +36,11 @@
 
 /* typedef: struct testmm_block_t
  * Shortcut for <testmm_block_t>. */
-typedef struct testmm_block_t          testmm_block_t ;
+typedef struct testmm_block_t testmm_block_t ;
 
 /* typedef: struct testmm_page_t
  * Shortcut for <testmm_page_t>. */
-typedef struct testmm_page_t           testmm_page_t ;
+typedef struct testmm_page_t testmm_page_t ;
 
 
 /* struct: testmm_it
@@ -495,8 +495,6 @@ int init_testmm(/*out*/testmm_t * mman)
 
    mman->mmpage        = mmpage ;
    mman->sizeallocated = 0 ;
-   mman->simulateResizeError = 0 ;
-   mman->simulateFreeError   = 0 ;
 
    return 0 ;
 ONABORT:
@@ -521,8 +519,6 @@ int free_testmm(testmm_t * mman)
       }
 
       mman->sizeallocated = 0 ;
-      mman->simulateResizeError = 0 ;
-      mman->simulateFreeError   = 0 ;
 
       if (err) goto ONABORT ;
    }
@@ -587,18 +583,6 @@ size_t sizeallocated_testmm(testmm_t * mman)
    return mman->sizeallocated ;
 }
 
-// group: simulation
-
-void setresizeerr_testmm(testmm_t * mman, struct test_errortimer_t * errtimer)
-{
-   mman->simulateResizeError = errtimer ;
-}
-
-void setfreeerr_testmm(testmm_t * mman, struct test_errortimer_t * errtimer)
-{
-   mman->simulateFreeError = errtimer ;
-}
-
 // group: allocate
 
 int malloc_testmm(testmm_t * mman, size_t size, /*out*/struct memblock_t * memblock)
@@ -629,14 +613,6 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
 
    if (0 == newsize) {
       return mfree_testmm(mman, memblock) ;
-   }
-
-   if (mman->simulateResizeError) {
-      err = process_testerrortimer(mman->simulateResizeError) ;
-      if (err) {
-         mman->simulateResizeError = 0 ;
-         goto ONABORT ;
-      }
    }
 
    if (isfree_memblock(memblock)) {
@@ -716,14 +692,6 @@ int mfree_testmm(testmm_t  * mman, struct memblock_t * memblock)
          }
       }
 
-   }
-
-   if (mman->simulateFreeError) {
-      err = process_testerrortimer(mman->simulateFreeError) ;
-      if (err) {
-         mman->simulateFreeError = 0 ;
-         goto ONABORT ;
-      }
    }
 
    return 0 ;
@@ -915,27 +883,17 @@ static int test_initfree(void)
    // TEST static init
    TEST(0 == testmm.mmpage) ;
    TEST(0 == testmm.sizeallocated) ;
-   TEST(0 == testmm.simulateResizeError) ;
-   TEST(0 == testmm.simulateFreeError) ;
 
    // TEST init, double free
    testmm.sizeallocated = 1 ;
-   testmm.simulateResizeError = (void*) 1 ;
-   testmm.simulateFreeError   = (void*) 1 ;
    TEST(0 == init_testmm(&testmm)) ;
    TEST(0 != testmm.mmpage) ;
    TEST(0 == testmm.sizeallocated) ;
-   TEST(0 == testmm.simulateResizeError) ;
-   TEST(0 == testmm.simulateFreeError) ;
    TEST(0 == mresize_testmm(&testmm, 1, &memblock)) ;
    TEST(1 == testmm.sizeallocated) ;
-   testmm.simulateResizeError = (void*) 1 ;
-   testmm.simulateFreeError   = (void*) 1 ;
    TEST(0 == free_testmm(&testmm)) ;
    TEST(0 == testmm.mmpage) ;
    TEST(0 == testmm.sizeallocated) ;
-   TEST(0 == testmm.simulateResizeError) ;
-   TEST(0 == testmm.simulateFreeError) ;
    TEST(0 == free_testmm(&testmm)) ;
    TEST(0 == testmm.mmpage) ;
    TEST(0 == testmm.sizeallocated) ;
@@ -1127,54 +1085,6 @@ static int test_allocate(void)
    TEST(0 == sizeallocated_testmm(&testmm)) ;
    TEST(0 == testmm.mmpage->next) ;
    TEST(1 == ispagefree_testmmpage(testmm.mmpage)) ;
-
-   // TEST setresizeerr_testmm, setfreeeerr_testmm
-   test_errortimer_t errtimer1 ;
-   test_errortimer_t errtimer2 ;
-   init_testerrortimer(&errtimer1, 2, EPROTO) ;
-   init_testerrortimer(&errtimer2, 5, EPERM) ;
-   TEST(0 == testmm.simulateResizeError)
-   setresizeerr_testmm(&testmm, &errtimer1) ;
-   TEST(&errtimer1 == testmm.simulateResizeError)
-   TEST(0 == testmm.simulateFreeError)
-   setfreeerr_testmm(&testmm, &errtimer2) ;
-   TEST(&errtimer2 == testmm.simulateFreeError)
-   static_assert(lengthof(memblocks) > 2, "") ;
-   memblocks[0] = (memblock_t) memblock_INIT_FREEABLE ;
-   TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[0])) ;
-   memblocks[1] = (memblock_t) memblock_INIT_FREEABLE ;
-   TEST(EPROTO == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[1])) ;
-   TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[1])) ;
-   for (unsigned i = 0; i < 2; ++i) {
-      TEST(0 == mfree_testmm(&testmm, &memblocks[0])) ;
-      TEST(0 == mfree_testmm(&testmm, &memblocks[1])) ;
-   }
-   TEST(EPERM == mfree_testmm(&testmm, &memblocks[0])) ;
-   TEST(0 == mfree_testmm(&testmm, &memblocks[1])) ;
-
-   // TEST setresizeerr_testmm, setfreeeerr_testmm: after firing pointer to timer are cleared
-   init_testerrortimer(&errtimer1, 1, ENOMEM) ;
-   init_testerrortimer(&errtimer2, 1, EINVAL) ;
-   TEST(0 == testmm.simulateResizeError) ;
-   setresizeerr_testmm(&testmm, &errtimer1) ;
-   TEST(&errtimer1 == testmm.simulateResizeError) ;
-   TEST(ENOMEM == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[0])) ;
-   TEST(0 == testmm.simulateResizeError) ;
-   TEST(0 == testmm.simulateFreeError)
-   setfreeerr_testmm(&testmm, &errtimer2) ;
-   TEST(&errtimer2 == testmm.simulateFreeError)
-   TEST(EINVAL == mfree_testmm(&testmm, &memblocks[0])) ;
-   TEST(0 == testmm.simulateFreeError)
-
-   // TEST setresizeerr_testmm, setfreeeerr_testmm: value 0 disarms error timer
-   init_testerrortimer(&errtimer1, 1, ENOMEM) ;
-   init_testerrortimer(&errtimer2, 1, EINVAL) ;
-   setresizeerr_testmm(&testmm, &errtimer1) ;
-   setfreeerr_testmm(&testmm, &errtimer2) ;
-   setresizeerr_testmm(&testmm, 0) ;
-   setfreeerr_testmm(&testmm, 0) ;
-   TEST(0 == mresize_testmm(&testmm, sizeof(unsigned)*20, &memblocks[0])) ;
-   TEST(0 == mfree_testmm(&testmm, &memblocks[0])) ;
 
    // unprepare
    TEST(0 == free_testmm(&testmm)) ;

@@ -1,4 +1,4 @@
-/* title: MemoryMacros
+/* title: TestMemoryMacros
 
    Wrap memory manager macros into TEST macros which
    produce an error value with help of <test_errortimer_t>.
@@ -23,10 +23,10 @@
    (C) 2013 Jörg Seebohn
 
    file: C-kern/api/test/mm/mm_test.h
-    Header file <MemoryMacros>.
+    Header file <TestMemoryMacros>.
 
    file: C-kern/test/mm/mm_test.c
-    Implementation file <MemoryMacros impl>.
+    Implementation file <TestMemoryMacros impl>.
 */
 #ifndef CKERN_TEST_MM_MM_TEST_HEADER
 #define CKERN_TEST_MM_MM_TEST_HEADER
@@ -40,30 +40,30 @@
 
 #ifdef KONFIG_UNITTEST
 
-/* define: ALLOC_MM_TEST
+/* define: ALLOC_TEST
  * Allocates a new memory block with error. See also <malloc_mmimpl>.
  * errtimer is of type <test_errortimer_t>. */
-#define ALLOC_MM_TEST(errtimer, size, mblock) \
+#define ALLOC_TEST(errtimer, size, mblock) \
          ( __extension__ ({                           \
-            err = process_testerrortimer(errtimer) ;  \
-            if (! err) err = ALLOC_MM(size, mblock) ; \
+            err = process_testerrortimer(errtimer);   \
+            if (! err) err = ALLOC_MM(size, mblock);  \
             err ;                                     \
          }))
 
-/* define: RESIZE_MM_TEST
+/* define: RESIZE_TEST
  * Resizes memory block with error. See also <mresize_mmimpl>.
  * errtimer is of type <test_errortimer_t>. */
-#define RESIZE_MM_TEST(errtimer, newsize, mblock)     \
+#define RESIZE_TEST(errtimer, newsize, mblock) \
          ( __extension__ ({                           \
-            err = process_testerrortimer(errtimer) ;  \
-            if (! err) err = RESIZE_MM(newsize, mblock) ; \
+            err = process_testerrortimer(errtimer);   \
+            if (! err) err = RESIZE_MM(newsize, mblock);  \
             err ;                                     \
          }))
 
-/* define: FREE_MM_TEST
+/* define: FREE_TEST
  * Frees memory block with error. See also <mfree_mmimpl>.
  * errtimer is of type <test_errortimer_t>. */
-#define FREE_MM_TEST(errtimer, mblock) \
+#define FREE_TEST(errtimer, mblock) \
          ( __extension__ ({            \
             err = FREE_MM(mblock) ;    \
             if (! err) err = process_testerrortimer(errtimer) ;  \
@@ -80,13 +80,13 @@ int unittest_test_mm_mm_test(void) ;
 
 // no unit test ==> delegate to memory manage macros
 
-#define ALLOC_MM_TEST(errtimer, size, mblock) \
-         ALLOC_MM(size, mblock) \
+#define ALLOC_TEST(errtimer, size, mblock) \
+         ALLOC_MM(size, mblock)
 
-#define RESIZE_MM_TEST(errtimer, newsize, mblock) \
+#define RESIZE_TEST(errtimer, newsize, mblock) \
          RESIZE_MM(newsize, mblock)
 
-#define FREE_MM_TEST(errtimer, mblock) \
+#define FREE_TEST(errtimer, mblock) \
          FREE_MM(mblock)
 
 #endif

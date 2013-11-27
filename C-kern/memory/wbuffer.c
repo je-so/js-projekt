@@ -111,7 +111,7 @@ static int alloc_memblock_wbuffer(void * impl, size_t new_size, /*ret*/memstream
       goto ONABORT ;
    }
 
-   err = RESIZE_MM_TEST(&s_wbuffer_errtimer, memsize, mb) ;
+   err = RESIZE_TEST(&s_wbuffer_errtimer, memsize, mb) ;
    if (err) goto ONABORT ;
 
    *memstr = (memstream_t) memstream_INIT(addr_memblock(mb) + used, addr_memblock(mb) + size_memblock(mb)) ;

@@ -58,8 +58,6 @@ int unittest_test_mm_testmm(void) ;
 struct testmm_t {
    struct testmm_page_t       * mmpage ;
    size_t                     sizeallocated ;
-   struct test_errortimer_t   * simulateResizeError ;
-   struct test_errortimer_t   * simulateFreeError ;
 } ;
 
 // group: context
@@ -88,7 +86,7 @@ int switchoff_testmm(void) ;
 
 /* define: testmm_INIT_FREEABLE
  * Static initializer. */
-#define testmm_INIT_FREEABLE              { 0, 0, 0, 0 }
+#define testmm_INIT_FREEABLE              { 0, 0 }
 
 /* function: init_testmm
  * Initializes a new test memory manager. */
@@ -96,7 +94,7 @@ int init_testmm(/*out*/testmm_t * mman) ;
 
 /* function: free_testmm
  * Frees all memory managed by this manager.
- * Beofre freeing it make sure that every object allocated on
+ * Before freeing it make sure that every object allocated on
  * this memory heap is no more reachable or already freed. */
 int free_testmm(testmm_t * mman) ;
 
@@ -134,23 +132,6 @@ int mresize_testmm(testmm_t * mman, size_t newsize, struct memblock_t * memblock
  * Test implementation replacement of <mfree_mmimpl>. */
 int mfree_testmm(testmm_t  * mman, struct memblock_t * memblock) ;
 
-// group: simulation
-
-/* function: setresizeerr_testmm
- * Sets an error timer for <mresize_testmm>.
- * If *errtimer* is initialized with a timout of X > 0 the Xth call to
- * <mresize_testmm> returns the error value of <process_testerrortimer>.
- * Only a reference is stored so do not delete *errtimer* until it has fired.
- * After the timer has fired the reference is set to 0. */
-void setresizeerr_testmm(testmm_t * mman, struct test_errortimer_t * errtimer) ;
-
-/* function: setfreeerr_testmm
- * Sets an error timer for <mfree_testmm>.
- * If *errtimer* is initialized with a timout of X > 0 the Xth call to
- * <mfree_testmm> returns the error value of <process_testerrortimer>.
- * Only a reference is stored so do not delete *errtimer* until it has fired.
- * After the timer has fired the reference is set to 0. */
-void setfreeerr_testmm(testmm_t * mman, struct test_errortimer_t * errtimer) ;
 
 
 // section: inline implementation

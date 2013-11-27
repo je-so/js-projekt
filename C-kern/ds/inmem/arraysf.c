@@ -273,7 +273,7 @@ int tryinsert_arraysf(arraysf_t * array, struct arraysf_node_t * node, /*out;err
          unsigned shift = log2_int(posdiff) & ~0x01u ;
 
          memblock_t mblock ;
-         err = ALLOC_MM_TEST(&s_arraysf_errtimer, sizeof(arraysf_mwaybranch_t), &mblock) ;
+         err = ALLOC_TEST(&s_arraysf_errtimer, sizeof(arraysf_mwaybranch_t), &mblock) ;
          if (err) goto ONABORT ;
 
          arraysf_mwaybranch_t * new_branch = (arraysf_mwaybranch_t *) mblock.addr ;

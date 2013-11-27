@@ -416,7 +416,7 @@ int tryinsert_arraystf(arraystf_t * array, struct arraystf_node_t * node, /*out;
    // prefix matches (add new branch layer after found.parent)
 
          memblock_t mblock ;
-         err = ALLOC_MM_TEST(&s_arraystf_errtimer, sizeof(arraystf_mwaybranch_t), &mblock) ;
+         err = ALLOC_TEST(&s_arraystf_errtimer, sizeof(arraystf_mwaybranch_t), &mblock) ;
          if (err) goto ONABORT ;
 
          arraystf_mwaybranch_t * new_branch = (arraystf_mwaybranch_t *) mblock.addr ;

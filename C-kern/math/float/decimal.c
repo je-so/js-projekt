@@ -421,7 +421,7 @@ static int allocate_decimalhelper(decimal_t *restrict* dec, uint32_t size_alloca
    memblock_t  mblock  = memblock_INIT(oldobjsize, (uint8_t*)olddec) ;
 
    // TODO: implement resize in memory manager which does not preserve content
-   err = RESIZE_MM_TEST(&s_decimal_errtimer, newobjsize, &mblock) ;
+   err = RESIZE_TEST(&s_decimal_errtimer, newobjsize, &mblock) ;
    if (err) goto ONABORT ;
 
    decimal_t     * newdec = (decimal_t*) mblock.addr ;
@@ -1491,7 +1491,7 @@ int delete_decimal(decimal_t ** dec)
 
       memblock_t  mblock = memblock_INIT(objectsize_decimal(del_dec->size_allocated), (uint8_t*) del_dec) ;
 
-      err = FREE_MM_TEST(&s_decimal_errtimer, &mblock) ;
+      err = FREE_TEST(&s_decimal_errtimer, &mblock) ;
       if (err) goto ONABORT ;
    }
 
