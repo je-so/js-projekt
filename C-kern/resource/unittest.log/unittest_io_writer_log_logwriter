@@ -1,10 +1,20 @@
-[1: 1384372319.720014s]
-vprintf_logwriter() C-kern/io/writer/log/logwriter.c:291
+[1: 1384697265.600956s]
+compare_logwriter() C-kern/io/writer/log/logwriter.c:203
 Error 22 - Invalid argument
 Function input violates condition (channel < log_channel_NROFCHANNEL)
 Function aborted
-[1: 1384372319.720213s]
-printtext_logwriter() C-kern/io/writer/log/logwriter.c:317
+[1: 1384697265.600963s]
+compare_logwriter() C-kern/io/writer/log/logwriter.c:203
+Error 22 - Invalid argument
+Function input violates condition (channel < log_channel_NROFCHANNEL)
+Function aborted
+[1: 1384697265.603043s]
+vprintf_logwriter() C-kern/io/writer/log/logwriter.c:306
+Error 22 - Invalid argument
+Function input violates condition (channel < log_channel_NROFCHANNEL)
+Function aborted
+[1: 1384697265.603612s]
+printtext_logwriter() C-kern/io/writer/log/logwriter.c:332
 Error 22 - Invalid argument
 Function input violates condition (channel < log_channel_NROFCHANNEL)
 Function aborted

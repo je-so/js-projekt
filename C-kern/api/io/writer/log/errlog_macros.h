@@ -45,6 +45,10 @@ struct logbuffer_t ;
  * See <GETBUFFER_LOG>. */
 #define GETBUFFER_ERRLOG(buffer, size)    GETBUFFER_LOG(log_channel_ERR, buffer, size)
 
+/* define: COMPARE_ERRLOG
+ * See <COMPARE_LOG>. */
+#define COMPARE_ERRLOG(size, logbuffer)   COMPARE_LOG(log_channel_ERR, size, logbuffer)
+
 // group: change
 
 /* define: CLEARBUFFER_ERRLOG

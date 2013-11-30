@@ -41,6 +41,18 @@
 #define GETBUFFER_LOG(LOGCHANNEL, /*out char ** */buffer, /*out size_t * */size) \
          log_maincontext().iimpl->getbuffer(log_maincontext().object, LOGCHANNEL, buffer, size)
 
+/* define: COMPARE_LOG
+ * Compare logbuffer[size] to buffered log entries.
+ * Returns 0 if they are equal (timestamps are ignored during comparison).
+ * See also <compare_logwriter>.
+ *
+ * Parameter:
+ * LOGCHANNEL - The number of the log channel - see <log_channel_e>.
+ * logsize    - Contains size of logbuffer.
+ * buffer     - Contains pointer to the logbuffer in memory which is compared to the internal buffer. */
+#define COMPARE_LOG(LOGCHANNEL, /*size_t*/size, /*const char[size]*/logbuffer) \
+         log_maincontext().iimpl->compare(log_maincontext().object, LOGCHANNEL, size, logbuffer)
+
 /* define: GETSTATE_LOG
  * Returns <log_state_e> for LOGCHANNEL.
  *

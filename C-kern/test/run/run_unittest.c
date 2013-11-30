@@ -50,39 +50,6 @@
 
 #define GENERATED_LOGRESOURCE_DIR   "C-kern/resource/unittest.log"
 
-static int compare_log(size_t logsize1, const uint8_t logbuffer1[logsize1],
-                       size_t logsize2, const uint8_t logbuffer2[logsize2])
-{
-   if (logsize1 != logsize2) return EINVAL;
-
-   for (size_t i = 0; i < logsize1; ++i) {
-      if (  logbuffer1[i] != logbuffer2[i]) {
-         return EINVAL;
-      }
-      if (  logbuffer1[i] == '['
-            && (i == 0 || logbuffer1[i-1] == '\n')) {
-         size_t len = 0;
-         while (i+len < logsize1 && logbuffer1[i+len] != ' ') {
-            ++len;
-         }
-         ++ len;
-         if (  (i+len) >= logsize1
-               && 0 != memcmp(logbuffer1+i, logbuffer2+i, len)) {
-            return EINVAL;
-         }
-         i += len;
-         while (i < logsize1 && logbuffer1[i] != '\n' && logbuffer2[i] != '\n') {
-            ++i;
-         }
-         if (  i < logsize1 && logbuffer1[i] != logbuffer2[i]) {
-            return EINVAL;
-         }
-      }
-   }
-
-   return 0;
-}
-
 static void prepare_test(void)
 {
    // check for fpu errors
@@ -153,9 +120,8 @@ int run_unittest(int argc, const char ** argv)
       maincontext_DEFAULT,
       maincontext_CONSOLE
    };
-   const unittest_adapter_t adapter = { .comparelog = &compare_log };
 
-   initsingleton_unittest(&adapter, GENERATED_LOGRESOURCE_DIR);
+   initsingleton_unittest(GENERATED_LOGRESOURCE_DIR);
 
    // before init
    logrun_unittest("unittest_context_maincontext");

@@ -110,6 +110,13 @@ sys_iochannel_t io_logbuffer(const logbuffer_t * logbuf) ;
  * Returns the start address of the memory buffer and size of written log. */
 void getbuffer_logbuffer(const logbuffer_t * logbuf, /*out*/uint8_t ** addr, /*out*/size_t * logsize) ;
 
+/* function: compare_logbuffer
+ * Returns 0 if logbuffer compares equal to content in logbuf.
+ * The compare equal the logsize must much and all written texts.
+ * The timestamps are not compared so they are allowed to differ.
+ * The value EINVAL is returned in case the comparison is not equal. */
+int compare_logbuffer(const logbuffer_t * logbuf, size_t logsize, const uint8_t logbuffer[logsize]) ;
+
 // group: update
 
 /* function: clear_logbuffer

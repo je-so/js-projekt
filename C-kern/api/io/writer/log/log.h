@@ -197,6 +197,10 @@ struct log_it {
     * Returns configured <log_state_e> for a specific <log_channel_e> channel.
     * You can switch <log_state_e> by calling <setstate>. */
    uint8_t (*getstate)  (const void * log, uint8_t channel);
+   /* variable: comapre
+    * Returns 0 if logbuffer compares equal to content in log for a specific <log_channel_e> channel.
+    * The return value EINVAL indicates not equal. The comparison should ignore timestamps. */
+   int     (*compare)   (const void * log, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
    // -- configuration --
    /* variable: setstate
     * Sets <log_state_e> logstate for a specific <log_channel_e> channel.
@@ -285,6 +289,10 @@ struct log_header_t {
                   == (uint8_t(**)(const log_t*,       \
                                   uint8_t))           \
                         &((log_it*)0)->getstate       \
+               && &((typeof(logif))0)->compare        \
+                  == (int(**)(const log_t*, uint8_t,  \
+                              size_t,const uint8_t*)) \
+                        &((log_it*)0)->compare        \
                && &((typeof(logif))0)->setstate       \
                   == (void(**)(log_t*,uint8_t,        \
                         uint8_t))                     \
@@ -297,19 +305,21 @@ struct log_header_t {
 /* define: log_it_DECLARE
  * Implements <log_it.log_it_DECLARE>. */
 #define log_it_DECLARE(declared_it, log_t)   \
-   typedef struct declared_it    declared_it;                                             \
-   struct declared_it {                                                                   \
-      void  (*printf)      (log_t * log, uint8_t channel, uint8_t flags,                  \
-                            const log_header_t * header, const char * format, ... )       \
-                            __attribute__ ((__format__ (__printf__, 5, 6)));              \
-      void  (*printtext)   (log_t * log, uint8_t channel, uint8_t flags,                  \
-                            const log_header_t * header, log_text_f textf, ... );         \
-      void  (*flushbuffer) (log_t * log, uint8_t channel);                                \
-      void  (*clearbuffer) (log_t * log, uint8_t channel);                                \
-      void  (*getbuffer)   (const log_t * log, uint8_t channel,                           \
-                            /*out*/uint8_t ** buffer, /*out*/size_t * size);              \
-      uint8_t (*getstate)  (const log_t * log, uint8_t channel);                          \
-      void    (*setstate)  (log_t * log, uint8_t channel, uint8_t logstate);              \
+   typedef struct declared_it    declared_it;                                          \
+   struct declared_it {                                                                \
+      void  (*printf)      (log_t * log, uint8_t channel, uint8_t flags,               \
+                            const log_header_t * header, const char * format, ... )    \
+                            __attribute__ ((__format__ (__printf__, 5, 6)));           \
+      void  (*printtext)   (log_t * log, uint8_t channel, uint8_t flags,               \
+                            const log_header_t * header, log_text_f textf, ... );      \
+      void  (*flushbuffer) (log_t * log, uint8_t channel);                             \
+      void  (*clearbuffer) (log_t * log, uint8_t channel);                             \
+      void  (*getbuffer)   (const log_t * log, uint8_t channel,                        \
+                            /*out*/uint8_t ** buffer, /*out*/size_t * size);           \
+      uint8_t (*getstate)  (const log_t * log, uint8_t channel);                       \
+      int     (*compare)   (const log_t * log, uint8_t channel, size_t logsize,        \
+                            const uint8_t logbuffer[logsize]);                         \
+      void    (*setstate)  (log_t * log, uint8_t channel, uint8_t logstate);           \
    };
 
 #endif

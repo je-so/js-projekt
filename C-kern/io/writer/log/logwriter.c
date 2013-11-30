@@ -95,6 +95,7 @@ logwriter_it      s_logwriter_interface = {
                         &clearbuffer_logwriter,
                         &getbuffer_logwriter,
                         &getstate_logwriter,
+                        &compare_logwriter,
                         &setstate_logwriter
                   } ;
 
@@ -177,7 +178,7 @@ void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/uint
 
    logwriter_chan_t * chan = &lgwrt->chan[channel] ;
 
-   getbuffer_logbuffer(&chan->logbuf, (uint8_t**)buffer, size) ;
+   getbuffer_logbuffer(&chan->logbuf, buffer, size) ;
 
    return ;
 ONABORT:
@@ -193,6 +194,20 @@ uint8_t getstate_logwriter(const logwriter_t * lgwrt, uint8_t channel)
    }
 
    return log_state_IGNORED ;
+}
+
+int compare_logwriter(const logwriter_t * lgwrt, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize])
+{
+   int err ;
+
+   VALIDATE_INPARAM_TEST(channel < log_channel_NROFCHANNEL, ONABORT,) ;
+
+   logwriter_chan_t * chan = &lgwrt->chan[channel] ;
+
+   return compare_logbuffer(&chan->logbuf, logsize, logbuffer) ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err;
 }
 
 // group: config
@@ -418,13 +433,27 @@ static int test_query(void)
    TEST(log_state_IGNORED == getstate_logwriter(&lgwrt, log_channel_NROFCHANNEL)) ;
    TEST(log_state_IGNORED == getstate_logwriter(&lgwrt, (uint8_t)-1)) ;
 
-   // unprepare
-   TEST(0 == free_logwriter(&lgwrt)) ;
+   // TEST compare_logwriter
+   for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
+      clear_logbuffer(&lgwrt.chan[i].logbuf);
+      printf_logbuffer(&lgwrt.chan[i].logbuf, "[1: XXX]\ntest\n");
+      TEST(0 == compare_logwriter(&lgwrt, i, 14, (const uint8_t*)"[1: XXX]\ntest\n"));
+      TEST(0 == compare_logwriter(&lgwrt, i, 14, (const uint8_t*)"[1: YYY]\ntest\n"));
+      TEST(EINVAL == compare_logwriter(&lgwrt, i, 13, (const uint8_t*)"[1: XXX]\ntest\n"));
+      TEST(EINVAL == compare_logwriter(&lgwrt, i, 14, (const uint8_t*)"[1: XXX]\ntesT\n"));
+   }
 
-   return 0 ;
+   // TEST compare_logwriter: channelnr out of range
+   TEST(EINVAL == compare_logwriter(&lgwrt, log_channel_NROFCHANNEL, 14, (const uint8_t*)"[1: XXX]\ntest\n"));
+   TEST(EINVAL == compare_logwriter(&lgwrt, (uint8_t)-1, 14, (const uint8_t*)"[1: XXX]\ntest\n"));
+
+   // unprepare
+   TEST(0 == free_logwriter(&lgwrt));
+
+   return 0;
 ONABORT:
-   free_logwriter(&lgwrt) ;
-   return EINVAL ;
+   free_logwriter(&lgwrt);
+   return EINVAL;
 }
 
 static int test_config(void)
@@ -974,6 +1003,10 @@ static int test_logmacros(void)
    GETBUFFER_LOG(log_channel_ERR, &logbuffer, &logsize) ;
    TEST(logbuffer == lgwrt->chan[log_channel_ERR].logbuf.addr) ;
    TEST(logsize   == lgwrt->chan[log_channel_ERR].logbuf.logsize) ;
+
+   // TEST COMPARE_LOG
+   TEST(0 == COMPARE_LOG(log_channel_ERR, lgwrt->chan[log_channel_ERR].logbuf.logsize, lgwrt->chan[log_channel_ERR].logbuf.addr));
+   TEST(EINVAL == COMPARE_LOG(log_channel_ERR, lgwrt->chan[log_channel_ERR].logbuf.logsize+1, lgwrt->chan[log_channel_ERR].logbuf.addr));
 
    // TEST GETSTATE_LOG
    log_state_e oldstate = lgwrt->chan[log_channel_ERR].logstate ;

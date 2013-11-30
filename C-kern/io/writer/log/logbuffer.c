@@ -78,6 +78,40 @@ ONABORT:
    return err ;
 }
 
+// group: query
+
+int compare_logbuffer(const logbuffer_t * logbuf, size_t logsize, const uint8_t logbuffer[logsize])
+{
+   if (logsize != logbuf->logsize) return EINVAL;
+
+   for (size_t i = 0; i < logsize; ++i) {
+      if (  logbuf->addr[i] != logbuffer[i]) {
+         return EINVAL;
+      }
+      if (  logbuf->addr[i] == '['
+            && (i == 0 || logbuf->addr[i-1] == '\n')) {
+         size_t len = 0;
+         while (i+len < logsize && logbuf->addr[i+len] != ' ') {
+            ++len;
+         }
+         ++ len;
+         if (  (i+len) >= logsize
+               || 0 != memcmp(logbuf->addr+i, logbuffer+i, len)) {
+            return EINVAL;
+         }
+         i += len;
+         while (i < logsize && logbuf->addr[i] != ']' && logbuffer[i] != ']') {
+            ++i;
+         }
+         if (  i >= logsize || logbuf->addr[i] != logbuffer[i]) {
+            return EINVAL;
+         }
+      }
+   }
+
+   return 0;
+}
+
 // group: update
 
 int write_logbuffer(logbuffer_t * logbuf)
@@ -261,6 +295,41 @@ static int test_query(void)
    TEST(0 == sizefree_logbuffer(&logbuf)) ;
    logbuf.size += 100000 ;
    TEST(100000 == sizefree_logbuffer(&logbuf)) ;
+
+   // TEST compare_logbuffer: compare equal (no timestamp)
+   uint8_t buffer[256];
+   logbuf.addr = buffer;
+   logbuf.size = sizeof(buffer);
+   logbuf.logsize = 10;
+   memcpy(buffer, "xyz123,;._", 10);
+   TEST(0 == compare_logbuffer(&logbuf, 10, (const uint8_t*)"xyz123,;._"));
+
+   // TEST compare_logbuffer: compare unequal (no timestamp)
+   TEST(EINVAL == compare_logbuffer(&logbuf,  9, (const uint8_t*)"xyz123,;._"));
+   TEST(EINVAL == compare_logbuffer(&logbuf, 10, (const uint8_t*)"xyz123,;.?"));
+
+   // TEST compare_logbuffer: skip timestamp
+   const char * testlog1[] = { "[NOT-IGNORED: 99IGNORED99]\ntext", "same text\n[1: 99IGNORED99]\ntext" };
+   const char * testlog2[] = { "[NOT-IGNORED: XXXXXXXXXXX]\ntext", "same text\n[1: XXXXXXXXXXX]\ntext" };
+   for (unsigned i = 0; i < lengthof(testlog1);  ++i) {
+      logbuf.logsize = strlen(testlog1[i]);
+      memcpy(buffer, testlog1[i], logbuf.logsize);
+      TEST(0 == compare_logbuffer(&logbuf, strlen(testlog2[i]), (const uint8_t*)testlog2[i]));
+   }
+
+   // TEST compare_logbuffer: compare unequal (with timestamp)
+   /* 1: no space
+    * 2: not equal until space
+    * 3: ignored part no same length
+    * 4: no closing ']'
+    * 5: [ does not start at beginning of line */
+   const char * testlog3[] = { "[...]\n", "[... ]\n", "[1: IGN]\n", "[1: IGN\n", "x[1: X]\n" };
+   const char * testlog4[] = { "[...]\n", "[..? ]\n", "[1: XX] \n", "[1: IGN\n", "x[1: Y]\n" };
+   for (unsigned i = 0; i < lengthof(testlog3);  ++i) {
+      logbuf.logsize = strlen(testlog3[i]);
+      memcpy(buffer, testlog3[i], logbuf.logsize);
+      TEST(EINVAL == compare_logbuffer(&logbuf, strlen(testlog4[i]), (const uint8_t*)testlog4[i]));
+   }
 
    return 0 ;
 ONABORT:

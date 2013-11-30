@@ -30,10 +30,6 @@
 // TODO: remove include resourceusage.h
 #include "C-kern/api/test/resourceusage.h"
 
-/* typedef: struct unittest_adapter_t
- * Export <unittest_adapter_t> into global namespace. */
-typedef struct unittest_adapter_t unittest_adapter_t;
-
 
 // section: Functions
 
@@ -44,16 +40,6 @@ typedef struct unittest_adapter_t unittest_adapter_t;
  * Unittest for <TEST> macro and log functions. */
 int unittest_test_unittest(void);
 #endif
-
-/* struct: unittest_adapter_t
- * Define adapter interface which allows <execsingle_unittest>
- * to adapt to different execution environments. */
-struct unittest_adapter_t {
-   /* function: comparelog
-    * Return 0 in case both logs are equal else error code. */
-   int  (*comparelog)(size_t logsize1, const uint8_t logbuffer1[logsize1],
-                      size_t logsize2, const uint8_t logbuffer2[logsize2]);
-};
 
 
 // struct: unittest_t
@@ -70,7 +56,7 @@ struct unittest_t;
  *
  * All test results (logs) are written to STDOUT.
  */
-int initsingleton_unittest(const unittest_adapter_t * adapter, const char * log_files_directory);
+int initsingleton_unittest(const char * log_files_directory);
 
 /* function: freesingleton_unittest
  * Frees any resources allocated with the single object of type <unittest_t>. */

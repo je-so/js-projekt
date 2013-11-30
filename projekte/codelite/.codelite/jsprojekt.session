@@ -5,49 +5,55 @@
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="100" Name="FirstVisibleLine"/>
+      <int Value="89" Name="FirstVisibleLine"/>
       <int Value="104" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/test/unittest.h" Name="FileName"/>
-      <int Value="65" Name="FirstVisibleLine"/>
-      <int Value="106" Name="CurrentLine"/>
+      <int Value="30" Name="FirstVisibleLine"/>
+      <int Value="58" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/unittest.c" Name="FileName"/>
-      <int Value="590" Name="FirstVisibleLine"/>
-      <int Value="589" Name="CurrentLine"/>
+      <int Value="476" Name="FirstVisibleLine"/>
+      <int Value="493" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/memory/mm/mm.h" Name="FileName"/>
-      <int Value="57" Name="FirstVisibleLine"/>
-      <int Value="55" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/io/writer/log/logbuffer.c" Name="FileName"/>
+      <int Value="283" Name="FirstVisibleLine"/>
+      <int Value="269" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/test/mm/testmm.c" Name="FileName"/>
-      <int Value="1202" Name="FirstVisibleLine"/>
-      <int Value="1205" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/test/mm/mm_test.c" Name="FileName"/>
-      <int Value="112" Name="FirstVisibleLine"/>
-      <int Value="113" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/io/writer/log/logbuffer.h" Name="FileName"/>
+      <int Value="107" Name="FirstVisibleLine"/>
+      <int Value="134" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/io/writer/log/log.h" Name="FileName"/>
-      <int Value="106" Name="FirstVisibleLine"/>
-      <int Value="113" Name="CurrentLine"/>
+      <int Value="272" Name="FirstVisibleLine"/>
+      <int Value="292" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/io/writer/log/logwriter.c" Name="FileName"/>
+      <int Value="991" Name="FirstVisibleLine"/>
+      <int Value="1008" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/io/writer/log/log_macros.h" Name="FileName"/>
+      <int Value="21" Name="FirstVisibleLine"/>
+      <int Value="51" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
-    <long Value="2" Name="Count"/>
+    <long Value="3" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
       <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/arraystf.c" Name="file"/>
       <int Value="1554" Name="lineno"/>
@@ -65,6 +71,22 @@
       <int Value="0" Name="origin"/>
     </SerializedObject>
     <SerializedObject Name="Breakpoint1">
+      <wxString Value="/jsprojekt/JS/C-kern/io/writer/log/logbuffer.c" Name="file"/>
+      <int Value="503" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+    <SerializedObject Name="Breakpoint2">
       <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
       <int Value="271" Name="lineno"/>
       <wxString Value="" Name="function_name"/>

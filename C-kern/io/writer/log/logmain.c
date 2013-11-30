@@ -49,6 +49,7 @@ static void flushbuffer_logmain(void * logmain, uint8_t channel) ;
 static void clearbuffer_logmain(void * logmain, uint8_t channel) ;
 static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size) ;
 static uint8_t getstate_logmain(const void * logmain, uint8_t channel) ;
+static int compare_logmain(const void * logmain, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);
 static void setstate_logmain(void * logmain, uint8_t channel, uint8_t state) ;
 
 // group: variables
@@ -62,6 +63,7 @@ log_it         g_logmain_interface  = {
                      &clearbuffer_logmain,
                      &getbuffer_logmain,
                      &getstate_logmain,
+                     &compare_logmain,
                      &setstate_logmain
                } ;
 
@@ -134,6 +136,14 @@ static uint8_t getstate_logmain(const void * logmain, uint8_t channel)
    return log_state_IMMEDIATE ;
 }
 
+static int compare_logmain(const void * logmain, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize])
+{
+   (void) logmain ;
+   (void) channel ;
+   (void) logbuffer ;
+   return logsize ? EINVAL : 0;
+}
+
 static void setstate_logmain(void * logmain, uint8_t channel, uint8_t state)
 {
    (void) logmain ;
@@ -174,6 +184,10 @@ static int test_query(void)
    // TEST getstate_logmain
    TEST(log_state_IMMEDIATE == getstate_logmain(0, 0/*not used*/));
    TEST(log_state_IMMEDIATE == getstate_logmain(0, log_channel_NROFCHANNEL/*not used*/));
+
+   // TEST compare_logmain
+   TEST(0 == compare_logmain(0, 0, 0/*logsize == 0*/, 0));
+   TEST(EINVAL == compare_logmain(0, 0, 1/*logsize > 0*/, 0));
 
    return 0;
 ONABORT:

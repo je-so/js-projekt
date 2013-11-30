@@ -43,8 +43,6 @@ typedef struct unittest_t unittest_t;
  * Holds <mutex_t> to make it thread-safe. */
 struct unittest_t {
    mutex_t     mutex;
-   const unittest_adapter_t
-              *adapter;
    const char *log_files_directory;
    size_t      okcount;
    size_t      errcount;
@@ -60,13 +58,12 @@ static unittest_t    s_unittest_singleton;
 
 // group: lifetime
 
-int initsingleton_unittest(const unittest_adapter_t * adapter, const char * log_files_directory)
+int initsingleton_unittest(const char * log_files_directory)
 {
    int err;
 
    err = init_mutex(&s_unittest_singleton.mutex);
    if (err) goto ONABORT;
-   s_unittest_singleton.adapter             = adapter;
    s_unittest_singleton.log_files_directory = log_files_directory;
    s_unittest_singleton.okcount             = 0;
    s_unittest_singleton.errcount            = 0;
@@ -84,7 +81,6 @@ int freesingleton_unittest(void)
 
    err = free_mutex(&s_unittest_singleton.mutex);
    if (err) goto ONABORT;
-   s_unittest_singleton.adapter             = 0;
    s_unittest_singleton.log_files_directory = 0;
    s_unittest_singleton.okcount             = 0;
    s_unittest_singleton.errcount            = 0;
@@ -205,7 +201,7 @@ ONABORT:
 static int comparelogfile_unittest(const char * testname)
 {
    int err;
-   directory_t  * dir             = 0;
+   directory_t   *dir             = 0;
    memblock_t     logfile_content = memblock_INIT_FREEABLE;
    wbuffer_t      wbuffer         = wbuffer_INIT_MEMBLOCK(&logfile_content);
 
@@ -215,12 +211,7 @@ static int comparelogfile_unittest(const char * testname)
    err = load_file(testname, &wbuffer, dir);
    if (err) goto ONABORT;
 
-   uint8_t *logbuffer;
-   size_t   logsize;
-   GETBUFFER_ERRLOG(&logbuffer, &logsize);
-
-   err = s_unittest_singleton.adapter->comparelog(logsize, logbuffer,
-            size_wbuffer(&wbuffer), logfile_content.addr);
+   err = COMPARE_ERRLOG(size_wbuffer(&wbuffer), logfile_content.addr);
    if (err) goto ONABORT;
 
    err = FREE_MM(&logfile_content);
@@ -266,7 +257,6 @@ int execsingle_unittest(const char * testname, int (*test_f)(void))
 static int test_initfree(void)
 {
    unittest_t           old;
-   unittest_adapter_t   adapter;
 
    // prepare
    memcpy(&old, &s_unittest_singleton, sizeof(old));
@@ -278,8 +268,7 @@ static int test_initfree(void)
    s_unittest_singleton.errcount = 1;
    s_unittest_singleton.isResult = true;
    const char * dirname = "-test-/";
-   TEST(0 == initsingleton_unittest(&adapter, dirname));
-   TEST(&adapter== s_unittest_singleton.adapter);
+   TEST(0 == initsingleton_unittest(dirname));
    TEST(dirname == s_unittest_singleton.log_files_directory);
    TEST(0 == s_unittest_singleton.okcount);
    TEST(0 == s_unittest_singleton.errcount);
@@ -290,7 +279,6 @@ static int test_initfree(void)
    s_unittest_singleton.errcount = 1;
    s_unittest_singleton.isResult = true;
    TEST(0 == freesingleton_unittest());
-   TEST(0 == s_unittest_singleton.adapter);
    TEST(0 == s_unittest_singleton.log_files_directory);
    TEST(0 == s_unittest_singleton.okcount);
    TEST(0 == s_unittest_singleton.errcount);
@@ -502,16 +490,6 @@ static int dummy_unittest_fail2(void)
    return EINVAL;
 }
 
-static int compare_log_error(size_t logsize1, const uint8_t logbuffer1[logsize1],
-                             size_t logsize2, const uint8_t logbuffer2[logsize2])
-{
-   (void)logsize1;
-   (void)logbuffer1;
-   (void)logsize2;
-   (void)logbuffer2;
-   return ENOBUFS;
-}
-
 static int test_exec(void)
 {
    int         fd[2]     = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
@@ -520,7 +498,6 @@ static int test_exec(void)
    uint8_t     buffer[100];
    wbuffer_t   wbuffer   = wbuffer_INIT_STATIC(sizeof(buffer), buffer);
    size_t      bytes_read;
-   unittest_adapter_t erradapter = { &compare_log_error };
 
    // prepare
    memcpy(&old, &s_unittest_singleton, sizeof(old));
@@ -545,14 +522,14 @@ static int test_exec(void)
    TEST(0 == load_file("dummy_unittest_ok", &wbuffer, 0));
    TEST(6 == size_wbuffer(&wbuffer));
    TEST(0 == memcmp(buffer, "ERRLOG", 6));
-   TEST(0 == removefile_directory(0, "dummy_unittest_ok"));
    clear_wbuffer(&wbuffer);
 
    // TEST execsingle_unittest: test OK but compare_log returns error
-   s_unittest_singleton.adapter  = &erradapter;
+   TEST(0 == removefile_directory(0, "dummy_unittest_ok"));
+   TEST(0 == save_file("dummy_unittest_ok", 6, "ERRLOX", 0));
    s_unittest_singleton.log_files_directory = ".";
    s_unittest_singleton.isResult = 0;
-   TEST(ENOBUFS == execsingle_unittest("dummy_unittest_ok", &dummy_unittest_ok));
+   TEST(EINVAL == execsingle_unittest("dummy_unittest_ok", &dummy_unittest_ok));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(70 == bytes_read);
    TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nFAILED to compare './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
@@ -560,11 +537,7 @@ static int test_exec(void)
    TEST(3 == s_unittest_singleton.errcount);
    TEST(1 == s_unittest_singleton.isResult);
    TEST(0 == trypath_directory(0, "dummy_unittest_ok"));
-   TEST(0 == load_file("dummy_unittest_ok", &wbuffer, 0));
-   TEST(6 == size_wbuffer(&wbuffer));
-   TEST(0 == memcmp(buffer, "ERRLOG", 6));
    TEST(0 == removefile_directory(0, "dummy_unittest_ok"));
-   clear_wbuffer(&wbuffer);
 
    // TEST execsingle_unittest: test returns ERROR (ENOMEM)
    TEST(ENOMEM == execsingle_unittest("dummy_unittest_fail", &dummy_unittest_fail1));
