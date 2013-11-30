@@ -36,7 +36,7 @@
 #include "C-kern/api/platform/malloc.h"
 #include "C-kern/api/platform/sync/signal.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 int init_resourceusage(/*out*/resourceusage_t * usage)

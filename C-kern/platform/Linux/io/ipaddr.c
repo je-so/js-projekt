@@ -28,7 +28,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/sign.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 
@@ -959,24 +959,24 @@ static int test_ipaddr(void)
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
 
       // TEST logurl_ipaddr
-      char *   buffer ;
-      size_t   buflen ;
-      GETBUFFER_ERRLOG(&buffer, &buflen) ;
+      uint8_t *logbuffer ;
+      size_t   logsize ;
+      GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
       logurl_ipaddr(ipaddr, "IP", log_channel_ERR) ;
-      size_t   buflen2 ;
-      GETBUFFER_ERRLOG(&buffer, &buflen2) ;
-      TEST(0 == strncmp("IP: ", buffer+buflen, 4)) ;
+      size_t   logsize2 ;
+      GETBUFFER_ERRLOG(&logbuffer, &logsize2) ;
+      TEST(0 == strncmp("IP: ", (char*)logbuffer+logsize, 4)) ;
       if (testdata[i].protocol == ipprotocol_TCP) {
-         TEST(0 == strncmp("tcp://", buffer+buflen+4, 6)) ;
+         TEST(0 == strncmp("tcp://", (char*)logbuffer+logsize+4, 6)) ;
       } else {
-         TEST(0 == strncmp("udp://", buffer+buflen+4, 6)) ;
+         TEST(0 == strncmp("udp://", (char*)logbuffer+logsize+4, 6)) ;
       }
       size_t addrlen = strlen(testdata[i].addr) ;
-      TEST(0 == strncmp(testdata[i].addr, buffer+buflen+10, addrlen)) ;
+      TEST(0 == strncmp(testdata[i].addr, (char*)logbuffer+logsize+10, addrlen)) ;
       char port[20] ;
       snprintf(port, sizeof(port), ":%d\n", testdata[i].port) ;
-      TEST(0 == strncmp(port, buffer+buflen+10+addrlen, strlen(port))) ;
-      TEST(buflen2 == buflen+10+addrlen+strlen(port)) ;
+      TEST(0 == strncmp(port, (char*)logbuffer+logsize+10+addrlen, strlen(port))) ;
+      TEST(logsize2 == logsize+10+addrlen+strlen(port)) ;
       TEST(0 == delete_ipaddr(&ipaddr)) ;
    }
 

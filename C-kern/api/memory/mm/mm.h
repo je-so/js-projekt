@@ -174,39 +174,39 @@ void mm_it_DECLARE(TYPENAME declared_it, TYPENAME memorymanager_t) ;
 
 /* define: genericcast_mmit
  * Implements <mm_it.genericcast_mmit>. */
-#define genericcast_mmit(mminterface, memorymanager_t)         \
-   ( __extension__ ({                                          \
-      static_assert(                                           \
-         &((typeof(mminterface))0)->malloc                     \
-         == (int (**) (memorymanager_t*,                       \
-                       size_t, struct memblock_t*))            \
-            &((mm_it*)0)->malloc                               \
-         && &((typeof(mminterface))0)->mresize                 \
-            == (int (**) (memorymanager_t*,                    \
-                       size_t, struct memblock_t*))            \
-            &((mm_it*)0)->mresize                              \
-         && &((typeof(mminterface))0)->mfree                   \
-            == (int (**) (memorymanager_t*,                    \
-                          struct memblock_t*))                 \
-            &((mm_it*)0)->mfree                                \
-         && &((typeof(mminterface))0)->sizeallocated           \
-            == (size_t (**) (memorymanager_t*))                \
-            &((mm_it*)0)->sizeallocated,                       \
-         "ensure same structure") ;                            \
-      (mm_it*) (mminterface) ;                                 \
-   }))
+#define genericcast_mmit(mminterface, memorymanager_t) \
+         ( __extension__ ({                                 \
+            static_assert(                                  \
+               &((typeof(mminterface))0)->malloc            \
+               == (int (**) (memorymanager_t*,              \
+                             size_t, struct memblock_t*))   \
+                  &((mm_it*)0)->malloc                      \
+               && &((typeof(mminterface))0)->mresize        \
+                  == (int (**) (memorymanager_t*,           \
+                             size_t, struct memblock_t*))   \
+                  &((mm_it*)0)->mresize                     \
+               && &((typeof(mminterface))0)->mfree          \
+                  == (int (**) (memorymanager_t*,           \
+                                struct memblock_t*))        \
+                  &((mm_it*)0)->mfree                       \
+               && &((typeof(mminterface))0)->sizeallocated  \
+                  == (size_t (**) (memorymanager_t*))       \
+                  &((mm_it*)0)->sizeallocated,              \
+               "ensure same structure") ;                   \
+            (mm_it*) (mminterface) ;                        \
+         }))
 
 
 /* define: mm_it_DECLARE
  * Implements <mm_it.mm_it_DECLARE>. */
 #define mm_it_DECLARE(declared_it, memorymanager_t)   \
-   typedef struct declared_it       declared_it ;     \
-   struct declared_it {                               \
-      int    (* malloc)  (memorymanager_t * mman, size_t size, /*out*/struct memblock_t * memblock) ;  \
-      int    (* mresize) (memorymanager_t * mman, size_t newsize, struct memblock_t * memblock) ;  \
-      int    (* mfree)   (memorymanager_t * mman, struct memblock_t * memblock) ;                  \
-      size_t (* sizeallocated) (memorymanager_t * mman) ;                                          \
-   } ;
+         typedef struct declared_it       declared_it ;     \
+         struct declared_it {                               \
+            int    (* malloc)  (memorymanager_t * mman, size_t size, /*out*/struct memblock_t * memblock) ;  \
+            int    (* mresize) (memorymanager_t * mman, size_t newsize, struct memblock_t * memblock) ;  \
+            int    (* mfree)   (memorymanager_t * mman, struct memblock_t * memblock) ;                  \
+            size_t (* sizeallocated) (memorymanager_t * mman) ;                                          \
+         } ;
 
 
 #endif

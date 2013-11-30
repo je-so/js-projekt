@@ -27,7 +27,7 @@
 // *** DO COMPILETIME tests (include is enough) ***
 #include "C-kern/api/test/compiletime.h"
 // *** ***
-#include "C-kern/api/test/run/unittest.h"
+#include "C-kern/api/test/run/run_unittest.h"
 
 int main(int argc, const char* argv[])
 {

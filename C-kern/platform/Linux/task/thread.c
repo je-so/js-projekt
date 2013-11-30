@@ -37,7 +37,7 @@
 #include "C-kern/api/platform/task/thread_tls.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 

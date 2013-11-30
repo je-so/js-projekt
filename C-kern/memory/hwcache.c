@@ -28,7 +28,7 @@
 #include "C-kern/api/memory/hwcache.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/time/sysclock.h"
 #include "C-kern/api/time/timevalue.h"
@@ -103,7 +103,7 @@ static int test_prefetch(void)
    }
 
    if (time_noprefetch <= time_prefetch) {
-      logformat_test("** prefetch is not faster ** ") ;
+      logf_unittest("** prefetch is not faster ** ") ;
    }
 
    // unprepare

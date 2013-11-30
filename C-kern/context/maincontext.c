@@ -33,7 +33,7 @@
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/memory/mm/mm_impl.h"
 #include "C-kern/api/test/mm/testmm.h"

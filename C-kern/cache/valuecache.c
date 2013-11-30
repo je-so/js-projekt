@@ -29,7 +29,7 @@
 #include "C-kern/api/math/int/log2.h"
 #include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 

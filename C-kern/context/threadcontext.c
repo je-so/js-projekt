@@ -42,7 +42,7 @@
 #include "C-kern/api/io/writer/log/logwriter.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 

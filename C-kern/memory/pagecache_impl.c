@@ -36,7 +36,7 @@
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 /* typedef: struct freepage_t

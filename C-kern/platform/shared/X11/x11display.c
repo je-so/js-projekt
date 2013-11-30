@@ -33,7 +33,7 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/X11/x11.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 #include "C-kern/api/platform/X11/x11syskonfig.h"
 

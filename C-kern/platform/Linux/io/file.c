@@ -31,7 +31,7 @@
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/filepath.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/task/thread.h"
@@ -346,9 +346,9 @@ static int test_remove(directory_t * tempdir)
       TEST(0 == filesize_directory(tempdir, "remove", &filesize)) ;
       TEST(filesize == datasize) ;
       // now remove
-      TEST(0 == checkpath_directory(tempdir, "remove")) ;
+      TEST(0 == trypath_directory(tempdir, "remove")) ;
       TEST(0 == remove_file("remove", tempdir)) ;
-      TEST(ENOENT == checkpath_directory(tempdir, "remove")) ;
+      TEST(ENOENT == trypath_directory(tempdir, "remove")) ;
    }
 
    return 0 ;
@@ -490,7 +490,7 @@ static int test_initfree(directory_t * tempdir)
    // TEST init_file, free_file
    accessmode_e modes[3] = {  accessmode_READ,  accessmode_WRITE, accessmode_RDWR } ;
    TEST(0 == makefile_directory(tempdir, "init1", 1999)) ;
-   TEST(0 == checkpath_directory(tempdir, "init1")) ;
+   TEST(0 == trypath_directory(tempdir, "init1")) ;
    TEST(0 == nropen_iochannel(&nropenfd)) ;
    for (unsigned i = 0; i < lengthof(modes); ++i) {
       TEST(0 == init_file(&file, "init1", modes[i], tempdir)) ;
@@ -511,13 +511,13 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "init1")) ;
 
    // TEST initcreate_file, free_file
-   TEST(ENOENT == checkpath_directory(tempdir, "init2")) ;
+   TEST(ENOENT == trypath_directory(tempdir, "init2")) ;
    TEST(0 == initcreate_file(&file, "init2", tempdir)) ;
    TEST(accessmode_RDWR == accessmode_file(file)) ;
    TEST(!isfree_file(file)) ;
    TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd+1 == nropenfd2) ;
-   TEST(0 == checkpath_directory(tempdir, "init2")) ;
+   TEST(0 == trypath_directory(tempdir, "init2")) ;
    TEST(0 == free_file(&file)) ;
    TEST(file == file_INIT_FREEABLE) ;
    TEST(0 == nropen_iochannel(&nropenfd2)) ;
@@ -529,13 +529,13 @@ static int test_initfree(directory_t * tempdir)
    TEST(0 == removefile_directory(tempdir, "init2")) ;
 
    // TEST initappend_file, free_file
-   TEST(ENOENT == checkpath_directory(tempdir, "init3")) ;
+   TEST(ENOENT == trypath_directory(tempdir, "init3")) ;
    TEST(0 == initappend_file(&file, "init3", tempdir)) ;
    TEST(accessmode_WRITE == accessmode_file(file)) ;
    TEST(!isfree_file(file)) ;
    TEST(0 == nropen_iochannel(&nropenfd2)) ;
    TEST(nropenfd+1 == nropenfd2) ;
-   TEST(0 == checkpath_directory(tempdir, "init3")) ;
+   TEST(0 == trypath_directory(tempdir, "init3")) ;
    TEST(0 == free_file(&file)) ;
    TEST(file == file_INIT_FREEABLE) ;
    TEST(0 == nropen_iochannel(&nropenfd2)) ;
@@ -620,7 +620,7 @@ static int test_create(directory_t * tempdir)
    }
 
    // TEST initcreate_file: file does not exist
-   TEST(ENOENT == checkpath_directory(tempdir, "testcreate")) ;
+   TEST(ENOENT == trypath_directory(tempdir, "testcreate")) ;
    TEST(0 == initcreate_file(&file, "testcreate", tempdir)) ;
    TEST(0 == filesize_directory(tempdir, "testcreate", &size)) ;
    TEST(0 == size) ;
@@ -633,7 +633,7 @@ static int test_create(directory_t * tempdir)
    if (compare_file_content(tempdir, "testcreate", 1)) goto ONABORT ;
 
    // TEST initcreate_file: EEXIST
-   TEST(0 == checkpath_directory(tempdir, "testcreate")) ;
+   TEST(0 == trypath_directory(tempdir, "testcreate")) ;
    TEST(EEXIST == initcreate_file(&file, "testcreate", tempdir)) ;
    TEST(0 == filesize_directory(tempdir, "testcreate", &size)) ;
    TEST(256 == size) ;
@@ -663,7 +663,7 @@ static int test_append(directory_t * tempdir)
    }
 
    // TEST initappend_file: file does not exist
-   TEST(ENOENT == checkpath_directory(tempdir, "testappend")) ;
+   TEST(ENOENT == trypath_directory(tempdir, "testappend")) ;
    TEST(0 == initappend_file(&file, "testappend", tempdir)) ;
    TEST(0 == filesize_directory(tempdir, "testappend", &size)) ;
    TEST(0 == size) ;
@@ -676,7 +676,7 @@ static int test_append(directory_t * tempdir)
    if (compare_file_content(tempdir, "testappend", 1)) goto ONABORT ;
 
    // TEST initappend_file: file already exists
-   TEST(0 == checkpath_directory(tempdir, "testappend")) ;
+   TEST(0 == trypath_directory(tempdir, "testappend")) ;
    TEST(0 == initappend_file(&file, "testappend", tempdir)) ;
    TEST(0 == filesize_directory(tempdir, "testappend", &size)) ;
    TEST(256 == size) ;
@@ -943,7 +943,7 @@ static int test_allocate(directory_t * tempdir)
    }
 
    // TEST truncate_file: shrink file
-   TEST(ENOENT == checkpath_directory(tempdir, "testallocate")) ;
+   TEST(ENOENT == trypath_directory(tempdir, "testallocate")) ;
    TEST(0 == initcreate_file(&file, "testallocate", tempdir)) ;
    TEST(0 == filesize_directory(tempdir, "testallocate", &size)) ;
    TEST(0 == size) ;
@@ -1202,12 +1202,12 @@ int unittest_io_file()
    if (test_advise(tempdir))     goto ONABORT ;
 
    // adapt LOG
-   char * logbuffer ;
-   size_t logbuffer_size ;
-   GETBUFFER_ERRLOG( &logbuffer, &logbuffer_size ) ;
-   if (logbuffer_size) {
-      char * found = logbuffer ;
-      while ( (found = strstr( found, str_cstring(&tmppath))) ) {
+   uint8_t *logbuffer ;
+   size_t   logsize ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   if (logsize) {
+      char * found = (char*)logbuffer ;
+      while ( (found = strstr(found, str_cstring(&tmppath))) ) {
          if (!strchr(found, '.')) break ;
          memcpy( strchr(found, '.')+1, "123456", 6 ) ;
          found += size_cstring(&tmppath) ;

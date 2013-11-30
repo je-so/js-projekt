@@ -113,16 +113,17 @@ int delete_directory(directory_t ** dir) ;
 
 // group: query
 
-/* function: checkpath_directory
+/* function: trypath_directory
  * Checks that file_path refers to an existing file or directory.
- * *file_path* is considered relative to dir. If dir is NULL then it is considered
- * relative to the current working directory.
+ * *file_path* is considered relative to dir or to the current
+ * working directory if dir is null.
  * If *file_path* is absolute the value of *dir* does not matter.
  *
  * Returns:
  * 0         - file_path refers to an existing file or directory.
- * ENOENT    - file_path does not refer to an existing file system entry. */
-int checkpath_directory(const directory_t * dir/*0 => current working directory*/, const char * const file_path) ;
+ * ENOENT    - file_path does not refer to an existing file system entry.
+ *             No error log entry is written. */
+int trypath_directory(const directory_t * dir/*0 => current working directory*/, const char * const file_path) ;
 
 /* function: io_directory
  * Returns <iochannel_t> (file descriptor) of the opened directory.

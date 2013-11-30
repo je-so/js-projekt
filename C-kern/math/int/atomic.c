@@ -28,7 +28,7 @@
 #include "C-kern/api/math/int/atomic.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
 

@@ -29,7 +29,7 @@
 #include "C-kern/api/platform/X11/x11window.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
 #include "C-kern/api/platform/X11/x11syskonfig.h"

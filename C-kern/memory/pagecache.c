@@ -28,7 +28,7 @@
 #include "C-kern/api/memory/pagecache.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 

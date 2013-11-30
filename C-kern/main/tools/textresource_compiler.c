@@ -2386,7 +2386,7 @@ static int writeCconfig_textresourcewriter(textresource_writer_t * writer)
       err = printfappend_cstring(&filename, ".%.*s", (int)lang->name.size, (const char*)lang->name.addr) ;
       if (err) goto ONABORT ;
 
-      if (0 == checkpath_directory(0, str_cstring(&filename))) {
+      if (0 == trypath_directory(0, str_cstring(&filename))) {
          (void) removefile_directory(0, str_cstring(&filename)) ;
       }
 
@@ -2411,7 +2411,7 @@ static int writeCconfig_textresourcewriter(textresource_writer_t * writer)
    err = initfromstring_cstring(&filename, &progC->hfilename) ;
    if (err) goto ONABORT ;
 
-   if (0 == checkpath_directory(0, str_cstring(&filename))) {
+   if (0 == trypath_directory(0, str_cstring(&filename))) {
       (void) removefile_directory(0, str_cstring(&filename)) ;
    }
 
@@ -2540,7 +2540,7 @@ static int writeCtableconfig_textresourcewriter(textresource_writer_t * writer)
       err = printfappend_cstring(&filename, ".%.*s", (int)lang->name.size, (const char*)lang->name.addr) ;
       if (err) goto ONABORT ;
 
-      if (0 == checkpath_directory(0, str_cstring(&filename))) {
+      if (0 == trypath_directory(0, str_cstring(&filename))) {
          (void) removefile_directory(0, str_cstring(&filename)) ;
       }
 

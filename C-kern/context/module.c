@@ -32,7 +32,7 @@
 #include "C-kern/api/io/filesystem/mmfile.h"
 #include "C-kern/api/memory/memblock.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/main/test/helper/testmodule_helper1.h"
 #endif

@@ -32,7 +32,7 @@
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/ds/foreach.h"
 #endif
 

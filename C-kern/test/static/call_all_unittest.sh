@@ -8,6 +8,7 @@
 # environment variables:
 # verbose: if set to != "" => $info is printed
 error=0
+run_unittest= C-kern/test/run/run_unittest.c
 # test all *.h files
 files=`find C-kern/ -name "*.[ch]" -exec grep -l "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" {} \;`
 info=""
@@ -64,10 +65,10 @@ for i in $files; do
       result=${result## \* >*}
       if [ "$result" = "" ]; then continue ; fi
       name="`echo $result | sed 's/.*unittest_\(.*\)(.*/\\1/' -`"
-      result=`grep "RUN(unittest_${name})" C-kern/test/run_unittest.c`
+      result=`grep "RUN(unittest_${name})" ${run_unittest}
       if [ "$result" = "" ]; then
          error=1
-         info="$info  file: <${i}> unittest_${name} is not called from 'C-kern/test/run_unittest.c'\n"
+         info="$info  file: <${i}> unittest_${name} is not called from '${run_unittest}'\n"
       fi
    done
 

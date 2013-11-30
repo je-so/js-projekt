@@ -34,7 +34,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/test/mm/mm_test.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/test/errortimer.h"
 #endif
@@ -1062,13 +1062,13 @@ static int test_error(void)
    arraysf_t *       array2    = 0 ;
    testnode_adapt_t  typeadapt = { typeadapt_INIT_LIFETIME(&copynode_testnodeadapt, &freenode_testnodeadapt), test_errortimer_INIT_FREEABLE } ;
    typeadapt_member_t nodeadp  = typeadapt_member_INIT(genericcast_typeadapt(&typeadapt,testnode_adapt_t,testnode_t,void*), offsetof(testnode_t,node)) ;
-   testnode_t     *  nodes ;
-   arraysf_node_t *  removed_node  = 0 ;
-   arraysf_node_t *  inserted_node = 0 ;
-   arraysf_node_t *  existing_node = 0 ;
-   char           *  logbuffer ;
-   size_t            logbufsize1 ;
-   size_t            logbufsize2 ;
+   testnode_t      * nodes ;
+   arraysf_node_t  * removed_node  = 0 ;
+   arraysf_node_t  * inserted_node = 0 ;
+   arraysf_node_t  * existing_node = 0 ;
+   uint8_t         * logbuffer ;
+   size_t            logsize1;
+   size_t            logsize2;
 
    // prepare
    static_assert(nrnodes*sizeof(testnode_t) <= 1024*1024, "pagesize_1MB is max") ;
@@ -1085,28 +1085,28 @@ static int test_error(void)
    nodes[1] = (testnode_t) { .node = arraysf_node_INIT(0) } ;
    TEST(0 == insert_arraysf(array, &nodes[0].node, &inserted_node, 0)) ;
    TEST(&nodes[0].node == inserted_node) ;
-   GETBUFFER_ERRLOG(&logbuffer, &logbufsize1) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1) ;
    TEST(EEXIST == tryinsert_arraysf(array, &nodes[1].node, &existing_node, 0)) ;  // no log
-   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
-   TEST(logbufsize1 == logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2) ;
+   TEST(logsize1 == logsize2) ;
    TEST(&nodes[0].node == existing_node) ;
    inserted_node = 0 ;
    TEST(EEXIST == insert_arraysf(array, &nodes[1].node, &inserted_node, 0)) ;     // log
-   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
-   TEST(logbufsize1 < logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2) ;
+   TEST(logsize1 < logsize2) ;
    TEST(0 == inserted_node) ;
 
    // TEST ESRCH
-   GETBUFFER_ERRLOG(&logbuffer, &logbufsize1) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize1) ;
    arraysf_findresult_t found ;
    TEST(0 == at_arraysf(array, 1)) ;                              // no log
    TEST(ESRCH == find_arraysf(array, 1, &found)) ;                // no log
    TEST(ESRCH == tryremove_arraysf(array, 1, &removed_node)) ;    // no log
-   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
-   TEST(logbufsize1 == logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2) ;
+   TEST(logsize1 == logsize2) ;
    TEST(ESRCH == remove_arraysf(array, 1, &removed_node)) ;       // log
-   GETBUFFER_ERRLOG(&logbuffer, &logbufsize2) ;
-   TEST(logbufsize1 < logbufsize2) ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize2) ;
+   TEST(logsize1 < logsize2) ;
    nodes[0].freecount = 0 ;
    TEST(0 == tryremove_arraysf(array, 0, &removed_node)) ;
    TEST(removed_node == &nodes[0].node) ;

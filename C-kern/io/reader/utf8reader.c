@@ -30,7 +30,7 @@
 #include "C-kern/api/string/stringstream.h"
 #include "C-kern/api/math/int/log2.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/io/filesystem/fileutil.h"

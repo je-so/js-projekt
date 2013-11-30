@@ -29,7 +29,7 @@
 #include "C-kern/api/task/syncwait.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 

@@ -30,7 +30,7 @@
 #include "C-kern/api/ds/inmem/dlist.h"
 #include "C-kern/api/ds/inmem/queue.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/ds/foreach.h"
 #endif
 

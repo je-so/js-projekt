@@ -32,7 +32,7 @@
 #include "C-kern/api/io/writer/log/logmain.h"
 #include "C-kern/api/io/writer/log/logbuffer.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 
@@ -47,7 +47,7 @@ static void printf_logmain(void * logmain, uint8_t channel, uint8_t flags, const
 static void printtext_logmain(void * logmain, uint8_t channel, uint8_t flags, const log_header_t * logheader, log_text_f textf, ... ) ;
 static void flushbuffer_logmain(void * logmain, uint8_t channel) ;
 static void clearbuffer_logmain(void * logmain, uint8_t channel) ;
-static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
+static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size) ;
 static uint8_t getstate_logmain(const void * logmain, uint8_t channel) ;
 static void setstate_logmain(void * logmain, uint8_t channel, uint8_t state) ;
 
@@ -119,7 +119,7 @@ static void clearbuffer_logmain(void * logmain, uint8_t channel)
    (void) channel ;
 }
 
-static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size)
+static void getbuffer_logmain(const void * logmain, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size)
 {
    (void) logmain ;
    (void) channel ;
@@ -162,27 +162,27 @@ ONABORT:
 static int test_query(void)
 {
    // TEST getbuffer_logmain
-   char *   buffer  = (char*)1 ;
-   size_t   size    = 1 ;
-   getbuffer_logmain(0, log_channel_ERR, &buffer, &size) ;
-   TEST(0 == buffer) ;
-   TEST(0 == size) ;
-   getbuffer_logmain(0, log_channel_NROFCHANNEL/*not used*/, &buffer, &size) ;
-   TEST(0 == buffer) ;
-   TEST(0 == size) ;
+   uint8_t *logbuffer = (uint8_t*)1;
+   size_t   logsize   = 1;
+   getbuffer_logmain(0, log_channel_ERR, &logbuffer, &logsize);
+   TEST(0 == logbuffer);
+   TEST(0 == logsize);
+   getbuffer_logmain(0, log_channel_NROFCHANNEL/*not used*/, &logbuffer, &logsize);
+   TEST(0 == logbuffer);
+   TEST(0 == logsize);
 
    // TEST getstate_logmain
-   TEST(log_state_IMMEDIATE == getstate_logmain(0, 0/*not used*/)) ;
-   TEST(log_state_IMMEDIATE == getstate_logmain(0, log_channel_NROFCHANNEL/*not used*/)) ;
+   TEST(log_state_IMMEDIATE == getstate_logmain(0, 0/*not used*/));
+   TEST(log_state_IMMEDIATE == getstate_logmain(0, log_channel_NROFCHANNEL/*not used*/));
 
-   return 0 ;
+   return 0;
 ONABORT:
-   return EINVAL ;
+   return EINVAL;
 }
 
 static void text_resource_test(logbuffer_t * logbuf, va_list vargs)
 {
-   vprintf_logbuffer(logbuf, "2%c%s%d", vargs) ;
+   vprintf_logbuffer(logbuf, "2%c%s%d", vargs);
 }
 
 static int test_update(void)

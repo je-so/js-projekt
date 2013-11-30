@@ -33,7 +33,7 @@
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 typedef struct thread_vars_t              thread_vars_t ;

@@ -28,7 +28,7 @@
 #include "C-kern/api/math/hash/crc32.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/math/int/bitorder.h"
 #endif
 

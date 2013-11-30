@@ -31,7 +31,7 @@
 #include "C-kern/api/string/stringstream.h"
 #include "C-kern/api/string/utf8.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/memory/memblock.h"

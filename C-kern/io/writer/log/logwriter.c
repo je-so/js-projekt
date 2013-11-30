@@ -32,7 +32,7 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
@@ -169,7 +169,7 @@ ONABORT:
 
 // group: query
 
-void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size)
+void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size)
 {
    int err ;
 
@@ -390,16 +390,16 @@ static int test_query(void)
    for (uint8_t i = 0; i < log_channel_NROFCHANNEL; ++i) {
       lgwrt.chan[i].logbuf.logsize  = 0 ;
       printf_logbuffer(&lgwrt.chan[i].logbuf, "12345") ;
-      char  *  logstr  = 0 ;
-      size_t   logsize = 0 ;
-      getbuffer_logwriter(&lgwrt, i, &logstr, &logsize) ;
-      TEST(logstr  == (char*)lgwrt.chan[i].logbuf.addr) ;
-      TEST(logsize == 5) ;
+      uint8_t *logbuffer = 0 ;
+      size_t   logsize   = 0 ;
+      getbuffer_logwriter(&lgwrt, i, &logbuffer, &logsize) ;
+      TEST(logbuffer == lgwrt.chan[i].logbuf.addr) ;
+      TEST(logsize   == 5) ;
       printf_logbuffer(&lgwrt.chan[i].logbuf, "%s", "abcdef") ;
-      getbuffer_logwriter(&lgwrt, i, &logstr, &logsize) ;
-      TEST(logstr  == (char*)lgwrt.chan[i].logbuf.addr) ;
-      TEST(logsize == 11) ;
-      TEST(0 == strcmp(logstr, "12345abcdef")) ;
+      getbuffer_logwriter(&lgwrt, i, &logbuffer, &logsize) ;
+      TEST(logbuffer == lgwrt.chan[i].logbuf.addr) ;
+      TEST(logsize   == 11) ;
+      TEST(0 == strcmp((char*)logbuffer, "12345abcdef")) ;
    }
 
    // TEST getstate_logwriter
@@ -969,11 +969,11 @@ static int test_logmacros(void)
    TEST(lgwrt->chan[log_channel_ERR].logbuf.io == dup2(pipefd[1], lgwrt->chan[log_channel_ERR].logbuf.io)) ;
 
    // TEST GETBUFFER_LOG
-   size_t   size   = (size_t)-1 ;
-   char *   buffer = 0 ;
-   GETBUFFER_LOG(log_channel_ERR, &buffer, &size) ;
-   TEST(buffer == (char*)lgwrt->chan[log_channel_ERR].logbuf.addr) ;
-   TEST(size   == lgwrt->chan[log_channel_ERR].logbuf.logsize) ;
+   uint8_t *logbuffer = 0 ;
+   size_t   logsize   = (size_t)-1 ;
+   GETBUFFER_LOG(log_channel_ERR, &logbuffer, &logsize) ;
+   TEST(logbuffer == lgwrt->chan[log_channel_ERR].logbuf.addr) ;
+   TEST(logsize   == lgwrt->chan[log_channel_ERR].logbuf.logsize) ;
 
    // TEST GETSTATE_LOG
    log_state_e oldstate = lgwrt->chan[log_channel_ERR].logstate ;
@@ -988,8 +988,8 @@ static int test_logmacros(void)
    logwriter_chan_t oldchan = lgwrt->chan[log_channel_ERR] ;
    uint8_t          oldchr  = lgwrt->chan[log_channel_ERR].logbuf.addr[0] ;
    CLEARBUFFER_LOG(log_channel_ERR) ;
-   GETBUFFER_LOG(log_channel_ERR, &buffer, &size) ;
-   TEST(0 == size) ;
+   GETBUFFER_LOG(log_channel_ERR, &logbuffer, &logsize) ;
+   TEST(0 == logsize) ;
    lgwrt->chan[log_channel_ERR] = oldchan ;
    lgwrt->chan[log_channel_ERR].logbuf.addr[0] = oldchr ;
 
@@ -997,8 +997,8 @@ static int test_logmacros(void)
    lgwrt->chan[log_channel_ERR].logbuf.addr[0] = 'X' ;
    lgwrt->chan[log_channel_ERR].logbuf.logsize = 1 ;
    FLUSHBUFFER_LOG(log_channel_ERR) ;
-   GETBUFFER_LOG(log_channel_ERR, &buffer, &size) ;
-   TEST(0 == size) ;
+   GETBUFFER_LOG(log_channel_ERR, &logbuffer, &logsize) ;
+   TEST(0 == logsize) ;
    lgwrt->chan[log_channel_ERR] = oldchan ;
    lgwrt->chan[log_channel_ERR].logbuf.addr[0] = oldchr ;
    char chars[2] = { 0 } ;

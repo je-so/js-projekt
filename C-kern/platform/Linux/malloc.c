@@ -28,7 +28,7 @@
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/platform/malloc.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 

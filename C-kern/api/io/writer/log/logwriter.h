@@ -109,7 +109,7 @@ int free_logwriter(logwriter_t * lgwrt) ;
  * The address of the buffer is valid as long as no call <free_logwriter> is made.
  * The content changes if the buffer is flushed or cleared and new log entries are written.
  * Do not free the returned buffer. It points to an internal buffer used by the implementation. */
-void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/char ** buffer, /*out*/size_t * size) ;
+void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/uint8_t ** buffer, /*out*/size_t * size) ;
 
 /* function: getstate_logwriter
  * Returns current <log_state_e> of channel (<log_channel_e>). */

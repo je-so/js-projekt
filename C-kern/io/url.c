@@ -30,7 +30,7 @@
 #include "C-kern/api/string/string.h"
 #include "C-kern/api/string/urlencode_string.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/string/cstring.h"
 #endif

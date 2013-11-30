@@ -30,7 +30,7 @@
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/ioevent.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/time/timevalue.h"
 #include "C-kern/api/time/sysclock.h"
 #endif

@@ -30,7 +30,7 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 static inline void compiletime_tests(void)

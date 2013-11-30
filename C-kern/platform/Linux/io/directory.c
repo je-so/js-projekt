@@ -33,7 +33,7 @@
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include <glob.h>
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 
@@ -58,36 +58,32 @@ static inline DIR * asDIR_directory(const directory_t * dir)
 
 // group: query
 
-int checkpath_directory(const directory_t * dir, const char * const file_path)
-{
-   int err ;
-   struct stat sbuf ;
-
-   if (0 == file_path) return EINVAL ;
-
-   if (dir) {
-      err = fstatat(io_directory(dir), file_path, &sbuf, 0) ;
-   } else {
-      err = stat(file_path, &sbuf) ;
-   }
-
-   if (err) return errno ;
-
-   return 0 ;
-}
-
-int filesize_directory(const directory_t * relative_to, const char * file_path, /*out*/off_t * file_size)
+int trypath_directory(const directory_t * dir, const char * const file_path)
 {
    int err ;
    int statatfd = AT_FDCWD;
    struct stat stat_result ;
 
-   if (relative_to)
-   {
-      statatfd = io_directory(relative_to) ;
+   if (dir) {
+      statatfd = io_directory(dir) ;
    }
 
-   err = fstatat( statatfd, file_path, &stat_result, 0 ) ;
+   err = fstatat(statatfd, file_path, &stat_result, 0) ;
+
+   return err ? errno : 0 ;
+}
+
+int filesize_directory(const directory_t * dir, const char * file_path, /*out*/off_t * file_size)
+{
+   int err ;
+   int statatfd = AT_FDCWD;
+   struct stat stat_result ;
+
+   if (dir) {
+      statatfd = io_directory(dir) ;
+   }
+
+   err = fstatat(statatfd, file_path, &stat_result, 0 ) ;
    if (err) {
       err = errno ;
       TRACESYSCALL_ERRLOG("fstatat", err) ;
@@ -513,51 +509,33 @@ static int test_checkpath(void)
 {
    directory_t * basedir = 0 ;
 
-   // TEST files exist in working dir
-   do {
-      TEST(0 == checkpath_directory(basedir, "." )) ;
-      TEST(0 == checkpath_directory(basedir, ".." )) ;
-      TEST(0 == checkpath_directory(basedir, "bin/" )) ;
-      TEST(0 == checkpath_directory(basedir, "LICENSE" )) ;
-      TEST(0 == checkpath_directory(basedir, "README" )) ;
-      if (basedir) {
-         TEST(0 == delete_directory(&basedir)) ;
-         TEST(0 == basedir) ;
-      } else {
-         TEST(0 == new_directory(&basedir, ".", 0)) ;
-         TEST(0 != basedir) ;
-      }
-   } while( basedir ) ;
+   for (int i = 0; i < 2; ++i) {
 
-   // TEST absolute files exist
-   do {
-      TEST(0 == checkpath_directory(basedir, "/" )) ;
-      TEST(0 == checkpath_directory(basedir, "/home" )) ;
-      TEST(0 == checkpath_directory(basedir, "/usr" )) ;
-      TEST(0 == checkpath_directory(basedir, "/../../")) ;
-      if (basedir) {
-         TEST(0 == delete_directory(&basedir)) ;
-         TEST(0 == basedir) ;
-      } else {
+      if (i == 1) {
          TEST(0 == new_directory(&basedir, ".", 0)) ;
-         TEST(0 != basedir) ;
       }
-   } while( basedir ) ;
 
-   // TEST error
-   do {
-      TEST(ENOENT == checkpath_directory(basedir, "123456" )) ;
-      TEST(ENOENT == checkpath_directory(basedir, "home.XXX" )) ;
-      TEST(ENOENT == checkpath_directory(basedir, "usr.XXX" )) ;
-      TEST(ENOENT == checkpath_directory(basedir, "./123456.XXX")) ;
-      if (basedir) {
-         TEST(0 == delete_directory(&basedir)) ;
-         TEST(0 == basedir) ;
-      } else {
-         TEST(0 == new_directory(&basedir, "/", 0)) ;
-         TEST(0 != basedir) ;
-      }
-   } while( basedir ) ;
+      // TEST trypath_directory: files exist in working dir
+      TEST(0 == trypath_directory(basedir, "." )) ;
+      TEST(0 == trypath_directory(basedir, ".." )) ;
+      TEST(0 == trypath_directory(basedir, "bin/" )) ;
+      TEST(0 == trypath_directory(basedir, "LICENSE" )) ;
+      TEST(0 == trypath_directory(basedir, "README" )) ;
+
+      // TEST trypath_directory: absolute files exist
+      TEST(0 == trypath_directory(basedir, "/" )) ;
+      TEST(0 == trypath_directory(basedir, "/home" )) ;
+      TEST(0 == trypath_directory(basedir, "/usr" )) ;
+      TEST(0 == trypath_directory(basedir, "/../../")) ;
+
+      // TEST trypath_directory: ENOENT
+      TEST(ENOENT == trypath_directory(basedir, "123456.XXX" )) ;
+
+      // TEST trypath_directory: EFAULT
+      TEST(EFAULT == trypath_directory(basedir, 0)) ;
+   }
+
+   TEST(0 == delete_directory(&basedir)) ;
 
    return 0 ;
 ONABORT:
@@ -724,11 +702,11 @@ static int test_initfree(void)
 
    // TEST EINVAL
    TEST(EINVAL == makefile_directory(temp_dir, "123", -1)) ;
-   TEST(ENOENT == checkpath_directory(temp_dir, "123")) ;
+   TEST(ENOENT == trypath_directory(temp_dir, "123")) ;
 
    // TEST EFBIG
    TEST(EFBIG == makefile_directory(temp_dir, "123", 0x7fffffffffffffff)) ;
-   TEST(ENOENT == checkpath_directory(temp_dir, "123")) ;
+   TEST(ENOENT == trypath_directory(temp_dir, "123")) ;
 
    // TEST ENOENT
    TEST(ENOENT == new_directory(&dir, ".....", NULL)) ;
@@ -783,15 +761,15 @@ static int test_initfree(void)
    TEST(ENOENT == new_directory(&dir, str_cstring(&tmppath), 0)) ;
 
    // adapt LOG
-   char * logbuffer ;
-   size_t logbuffer_size ;
-   GETBUFFER_ERRLOG(&logbuffer, &logbuffer_size) ;
-   if (logbuffer_size) {
-      char * found = logbuffer ;
-      while ( (found=strstr( found, str_cstring(&tmppath) )) ) {
-         if (!strchr(found, '.')) break ;
-         memcpy( strchr(found, '.')+1, "123456", 6 ) ;
-         found += size_cstring(&tmppath) ;
+   uint8_t *logbuffer;
+   size_t   logsize;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   if (logsize) {
+      char * found = (char*)logbuffer;
+      while ( (found = strstr(found, str_cstring(&tmppath))) ) {
+         if (!strchr(found, '.')) break;
+         memcpy(strchr(found, '.')+1, "123456", 6);
+         found += size_cstring(&tmppath);
       }
    }
 

@@ -35,7 +35,7 @@ extern int unittest_platform_X11_glxwindow(void) ;
 Source file:
 
 The implementation file must include the test macro TEST defined in
-file »C-kern/api/test.h«.
+file »C-kern/api/test/unittest.h«.
 
 It awaits one parameter
 which simply is the condition to test for
@@ -47,7 +47,7 @@ The unit test returns 0 in case of success or an error code (> 0).
 // section with #include "*.h"
 
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 // ... module implementation ...

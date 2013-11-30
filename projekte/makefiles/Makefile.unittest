@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Nov.23  08:29:42
+GenerationDate  := 2013.Nov.30  07:36:08
 GeneratedBy     := je-so
 
 ## Debug
@@ -176,10 +176,10 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!task!syncwait.c.o \
  $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Debug)/C-kern!test!errortimer.c.o \
- $(ObjectDir_Debug)/C-kern!test!test.c.o \
- $(ObjectDir_Debug)/C-kern!test!run_unittest.c.o \
+ $(ObjectDir_Debug)/C-kern!test!unittest.c.o \
  $(ObjectDir_Debug)/C-kern!test!mm!mm_test.c.o \
- $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o
+ $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o \
+ $(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o
 
 Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o \
@@ -284,10 +284,10 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!task!syncwait.c.o \
  $(ObjectDir_Release)/C-kern!test!resourceusage.c.o \
  $(ObjectDir_Release)/C-kern!test!errortimer.c.o \
- $(ObjectDir_Release)/C-kern!test!test.c.o \
- $(ObjectDir_Release)/C-kern!test!run_unittest.c.o \
+ $(ObjectDir_Release)/C-kern!test!unittest.c.o \
  $(ObjectDir_Release)/C-kern!test!mm!mm_test.c.o \
- $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o
+ $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o \
+ $(ObjectDir_Release)/C-kern!test!run!run_unittest.c.o
 
 $(Target_Debug): $(Objects_Debug)
 	@$(LD_Debug)
@@ -601,16 +601,16 @@ $(ObjectDir_Debug)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 $(ObjectDir_Debug)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!test!test.c.o: C-kern/test/test.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
+$(ObjectDir_Debug)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!mm!mm_test.c.o: C-kern/test/mm/mm_test.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittest.c
 	@$(CC_Debug)
 
 $(ObjectDir_Release)/C-kern!platform!Linux!sysuser.c.o: C-kern/platform/Linux/sysuser.c
@@ -919,16 +919,16 @@ $(ObjectDir_Release)/C-kern!test!resourceusage.c.o: C-kern/test/resourceusage.c
 $(ObjectDir_Release)/C-kern!test!errortimer.c.o: C-kern/test/errortimer.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!test!test.c.o: C-kern/test/test.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!test!run_unittest.c.o: C-kern/test/run_unittest.c
+$(ObjectDir_Release)/C-kern!test!unittest.c.o: C-kern/test/unittest.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!mm!mm_test.c.o: C-kern/test/mm/mm_test.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!test!mm!testmm.c.o: C-kern/test/mm/testmm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!test!run!run_unittest.c.o: C-kern/test/run/run_unittest.c
 	@$(CC_Release)
 
 -include $(Objects_Debug:.o=.d)

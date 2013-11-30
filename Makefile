@@ -65,7 +65,7 @@ html:
 	   if [ ! -L "$$i/C-kern" ]; then ln -s "$$target" "$$i/C-kern" ; fi ; \
 	done
 
-test:	unittest_Release
+test:	unittest testmodule
 	bin/unittest
 
 $(MAKEFILES_PREFIX)%: projekte/%.prj projekte/binary.gcc projekte/shared.gcc projekte/subsys/context-mini | genmake_Release

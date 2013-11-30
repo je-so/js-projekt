@@ -28,7 +28,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/memory/mm/mm.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 

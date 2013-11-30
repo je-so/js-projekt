@@ -28,7 +28,7 @@
 #include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/inmem/patriciatrie.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"

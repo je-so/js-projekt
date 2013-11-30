@@ -38,7 +38,7 @@
 #include "C-kern/api/platform/X11/x11.h"
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 

@@ -35,7 +35,7 @@
 #include "C-kern/api/string/string.h"
 #include "C-kern/api/test/mm/mm_test.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/errortimer.h"
 #include "C-kern/api/memory/pagecache_macros.h"
 #endif
@@ -1291,7 +1291,7 @@ static int test_error(void)
    arraystf_node_t * removed_node  = 0 ;
    arraystf_node_t * inserted_node = 0 ;
    arraystf_node_t * existing_node = 0 ;
-   char            * logbuffer ;
+   uint8_t         * logbuffer ;
    size_t            logbufsize1 ;
    size_t            logbufsize2 ;
 

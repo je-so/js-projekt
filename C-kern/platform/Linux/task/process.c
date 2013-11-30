@@ -29,7 +29,7 @@
 // #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/iochannel.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
 
@@ -1313,21 +1313,20 @@ int unittest_platform_task_process()
    TEST(0 == free_resourceusage(&usage)) ;
 
    // adapt LOG buffer ("pid=1234" replaces with "pid=?")
-   char * buffer = 0 ;
-   size_t size   = 0 ;
-   GETBUFFER_ERRLOG(&buffer, &size) ;
+   uint8_t *logbuffer = 0 ;
+   size_t   logsize   = 0 ;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
    char buffer2[2000] = { 0 } ;
-   assert(size < sizeof(buffer2)) ;
-   size = 0 ;
-   while (strstr(buffer, "\npid=")) {
-      memcpy( &buffer2[size], buffer, (size_t) (strstr(buffer, "\npid=") - buffer)) ;
-      size += (size_t) (strstr(buffer, "\npid=") - buffer) ;
-      strcpy( &buffer2[size], "\npid=?") ;
-      size += strlen("\npid=?") ;
-      buffer = 1 + strstr(buffer, "\npid=") ;
-      buffer = strstr(buffer, "\n") ;
+   TEST(logsize < sizeof(buffer2)) ;
+   logsize = 0 ;
+   while (strstr((char*)logbuffer, "\npid=")) {
+      memcpy(&buffer2[logsize], logbuffer, (size_t) (strstr((char*)logbuffer, "\npid=") - (char*)logbuffer)) ;
+      logsize += (size_t) (strstr((char*)logbuffer, "\npid=") - (char*)logbuffer) ;
+      strcpy(&buffer2[logsize], "\npid=?") ;
+      logsize  += strlen("\npid=?") ;
+      logbuffer = (uint8_t*)strstr(strstr((char*)logbuffer, "\npid=")+1, "\n");
    }
-   strcpy( &buffer2[size], buffer) ;
+   strcpy(&buffer2[logsize], (char*)logbuffer) ;
 
    CLEARBUFFER_ERRLOG() ;
    PRINTF_ERRLOG("%s", buffer2) ;

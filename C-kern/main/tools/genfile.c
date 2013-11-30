@@ -145,7 +145,7 @@ static const char * s_templatesource =
 #include \"@HEADERPATH\"\n\
 #include \"C-kern/api/err.h\"\n\
 #ifdef KONFIG_UNITTEST\n\
-#include \"C-kern/api/test.h\"\n\
+#include \"C-kern/api/test/unittest.h\"\n\
 #endif\n\n\n\
 // section: @TYPENAME\n\n\
 // group: lifetime\n\n\n\

@@ -33,7 +33,7 @@
 #include "C-kern/api/memory/vm.h"
 #include "C-kern/api/string/stringstream.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/filesystem/fileutil.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
@@ -783,13 +783,13 @@ int unittest_io_reader_filereader()
    if (test_read(tempdir))       goto ONABORT ;
 
    /* adapt log */
-   size_t   logsize ;
-   char *   logbuffer ;
-   GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
-   while (strstr(logbuffer, "/filereader.")) {
-      logbuffer = 12 + strstr(logbuffer, "/filereader.") ;
+   uint8_t *logbuffer;
+   size_t   logsize;
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   while (strstr((char*)logbuffer, "/filereader.")) {
+      logbuffer = (uint8_t*)strstr((char*)logbuffer, "/filereader.")+12;
       if (logbuffer[6] == '/') {
-         memcpy(logbuffer, "XXXXXX", 6) ;
+         memcpy(logbuffer, "XXXXXX", 6);
       }
    }
 

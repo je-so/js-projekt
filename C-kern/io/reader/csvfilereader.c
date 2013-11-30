@@ -33,7 +33,7 @@
 #include "C-kern/api/string/string.h"
 #include "C-kern/api/string/utf8.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/wbuffer.h"
@@ -556,7 +556,7 @@ static int test_reading(void)
       clear_cstring(&filepath) ;
       TEST(0 == printfappend_cstring(&filepath, "%s/error", str_cstring(&tmppath))) ;
       memset(&csvfile, 255, sizeof(csvfile)) ;
-      char     * logbuffer ;
+      uint8_t *logbuffer ;
       size_t   logstart ;
       GETBUFFER_ERRLOG(&logbuffer, &logstart) ;
       TEST(EINVAL == init_csvfilereader(&csvfile, str_cstring(&filepath))) ;
@@ -569,9 +569,9 @@ static int test_reading(void)
       // compare correct column number in error log
       size_t logend ;
       GETBUFFER_ERRLOG(&logbuffer, &logend) ;
-      TEST(0 != strstr(logbuffer + logstart, "column: ")) ;
+      TEST(0 != strstr((char*)logbuffer + logstart, "column: ")) ;
       unsigned colnr ;
-      sscanf(strstr(logbuffer + logstart, "column: ")+8, "%u", &colnr) ;
+      sscanf(strstr((char*)logbuffer + logstart, "column: ")+8, "%u", &colnr) ;
       TEST(errcol[i] == colnr) ;
    }
 

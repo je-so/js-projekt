@@ -30,7 +30,7 @@
 #include "C-kern/api/string/string.h"
 #include "C-kern/api/string/stringstream.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/time/systimer.h"
 #include "C-kern/api/time/timevalue.h"
 #endif
@@ -1343,7 +1343,7 @@ static int test_speed(void)
    }
 
    if (result[1] <= result[0]) {
-      logformat_test("** decode_utf8 is not faster ** ") ;
+      logf_unittest("** decode_utf8 is not faster ** ") ;
    }
 
    TEST(0 == free_systimer(&timer)) ;

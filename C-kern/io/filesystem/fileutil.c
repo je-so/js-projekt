@@ -32,7 +32,7 @@
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/wbuffer.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
@@ -127,25 +127,25 @@ static int test_loadsave(directory_t * tempdir)
    file_t      file = file_INIT_FREEABLE ;
    cstring_t   cstr = cstring_INIT ;
    wbuffer_t   wbuf = wbuffer_INIT_FREEABLE ;
-   const char  * testcontent[] = { "12345", "afigaihoingaspgmsagpj---}n\n", "\u0fffäöäüö" } ;
+   const char  * testcontent[] = { "", "12345", "afigaihoingaspgmsagpj---}n\n", "\u0fffäöäüö" } ;
    off_t       filesize ;
    memblock_t  datablock = memblock_INIT_FREEABLE ;
 
    // TEST save_file, load_file: small files
    for (unsigned ti = 0; ti < lengthof(testcontent); ++ti) {
-      // save
+      // save_file
       const size_t datasize = strlen(testcontent[ti]) ;
       TEST(0 == save_file("save", datasize, testcontent[ti], tempdir)) ;
-      TEST(0 == checkpath_directory(tempdir, "save")) ;
+      TEST(0 == trypath_directory(tempdir, "save")) ;
       TEST(0 == filesize_directory(tempdir, "save", &filesize)) ;
       TEST(filesize == datasize) ;
-      // load
-      uint8_t buffer[datasize] ;
+      // load_file
+      uint8_t buffer[1+datasize] ;
       memset(buffer, 0, datasize) ;
       wbuf = (wbuffer_t) wbuffer_INIT_STATIC(datasize, buffer) ;
       TEST(0 == load_file("save", &wbuf, tempdir)) ;
       TEST(0 == strncmp(testcontent[ti], (char*)buffer, datasize)) ;
-      // remove
+      // remove_file
       TEST(0 == remove_file("save", tempdir)) ;
    }
 
@@ -194,11 +194,11 @@ int unittest_io_fileutil()
    if (test_loadsave(tempdir))   goto ONABORT ;
 
    /* adapt log */
+   uint8_t *logbuffer ;
    size_t   logsize ;
-   char *   logbuffer ;
    GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
-   while (strstr(logbuffer, "/iofiletest.")) {
-      logbuffer = 12 + strstr(logbuffer, "/iofiletest.") ;
+   while (strstr((char*)logbuffer, "/iofiletest.")) {
+      logbuffer = (uint8_t*)strstr((char*)logbuffer, "/iofiletest.")+12;
       memcpy(logbuffer, "XXXXXX", 6) ;
    }
 

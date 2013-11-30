@@ -35,7 +35,7 @@
 // TEXTDB:SELECT('#include "'header'"')FROM("C-kern/resource/config/signalhandler")WHERE(action=='set')
 // TEXTDB:END
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #endif
 
 /* typedef: struct signalhandler_t

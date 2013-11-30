@@ -31,7 +31,7 @@
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/string/cstring.h"
 #endif
 

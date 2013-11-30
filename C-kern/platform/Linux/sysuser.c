@@ -30,7 +30,7 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/sysuser.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/platform/task/process.h"
 #endif
@@ -614,11 +614,11 @@ static int test_authenticate(bool iswarn)
          TEST(0 == switchtoreal_sysuser(sysuser_maincontext()))
       }
       if (err && iswarn) {
-         logformat_test("\n*** Need user account name=%s password=%s ***\n", username, password) ;
+         logf_unittest("\n*** Need user account name=%s password=%s ***\n", username, password) ;
       }
       TEST(0 == err) ;
    } else if (iswarn) {
-      logformat_test("** Need root or guest setuid ** ") ;
+      logf_unittest("** Need root or guest setuid ** ") ;
    }
    TEST(0 == delete_sysuserinfo(&usrinfo[0])) ;
    TEST(0 == delete_sysuserinfo(&usrinfo[1])) ;
@@ -654,7 +654,7 @@ static int exectest_childprocess(void * logfd)
    TEST(0 == free_resourceusage(&usage)) ;
 
    // transfer log file
-   char *   logbuffer ;
+   uint8_t *logbuffer ;
    size_t   logsize ;
    GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
    TEST((size_t)write((int)logfd, logbuffer, logsize) == logsize) ;

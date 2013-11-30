@@ -27,7 +27,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/sqroot.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/time/systimer.h"
 #include "C-kern/api/time/timevalue.h"
 #endif

@@ -32,7 +32,7 @@
 #include "C-kern/api/memory/pagecache_macros.h"
 #include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/platform/task/process.h"
 #endif

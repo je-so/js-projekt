@@ -31,7 +31,7 @@
 #include "C-kern/api/io/filesystem/directory.h"
 #include "C-kern/api/memory/vm.h"
 #ifdef KONFIG_UNITTEST
-#include "C-kern/api/test.h"
+#include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/memory/wbuffer.h"

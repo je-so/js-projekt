@@ -6,7 +6,6 @@
     <File Name="../../C-kern/konfig.h"/>
     <File Name="../../C-kern/README.txt"/>
     <File Name="../../C-kern/api/maincontext.h"/>
-    <File Name="../../C-kern/api/test.h"/>
     <VirtualDirectory Name="test">
       <VirtualDirectory Name="mm">
         <File Name="../../C-kern/api/test/mm/mm_test.h"/>
@@ -14,13 +13,14 @@
       </VirtualDirectory>
       <VirtualDirectory Name="run">
         <File Name="../../C-kern/api/test/run/speedtest.h"/>
-        <File Name="../../C-kern/api/test/run/unittest.h"/>
+        <File Name="../../C-kern/api/test/run/run_unittest.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/test/assert.h"/>
       <File Name="../../C-kern/api/test/compiletime.h"/>
       <File Name="../../C-kern/api/test/errortimer.h"/>
       <File Name="../../C-kern/api/test/resourceusage.h"/>
       <File Name="../../C-kern/api/test/validate.h"/>
+      <File Name="../../C-kern/api/test/unittest.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="string">
       <File Name="../../C-kern/api/string/string.h"/>
@@ -285,17 +285,17 @@
     </VirtualDirectory>
     <VirtualDirectory Name="mm">
       <File Name="../../C-kern/test/mm/mm_test.c"/>
-    <File Name="../../C-kern/test/mm/testmm.c"/>
+      <File Name="../../C-kern/test/mm/testmm.c"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="speed">
-      <File Name="../../C-kern/test/speed/run_speedcmp_linuxsplice.c"/>
-      <File Name="../../C-kern/test/speed/run_speedcmp_madvise.c"/>
+    <VirtualDirectory Name="run">
+      <File Name="../../C-kern/test/run/run_linuxsplice_speedtest.c"/>
+      <File Name="../../C-kern/test/run/run_madvise_speedtest.c"/>
+      <File Name="../../C-kern/test/run/run_unittest.c"/>
     </VirtualDirectory>
     <File Name="../../C-kern/test/errortimer.c"/>
     <File Name="../../C-kern/test/resourceusage.c"/>
     <File Name="../../C-kern/test/run_statictest.sh"/>
-    <File Name="../../C-kern/test/run_unittest.c"/>
-    <File Name="../../C-kern/test/test.c"/>
+    <File Name="../../C-kern/test/unittest.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="string">
     <File Name="../../C-kern/string/string.c"/>
