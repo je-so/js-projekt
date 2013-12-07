@@ -232,11 +232,10 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_platform_locale()
+static int childprocess_unittest(void)
 {
-   resourceusage_t usage              = resourceusage_INIT_FREEABLE ;
-   char            old_locale[100]    = { 0 } ;
-   char            old_msglocale[100] = { 0 } ;
+   resourceusage_t usage           = resourceusage_INIT_FREEABLE ;
+   char            old_locale[100] = { 0 } ;
 
    // changes malloced memory
    if (test_initerror())   goto ONABORT ;
@@ -245,7 +244,6 @@ int unittest_platform_locale()
    TEST(0 == init_resourceusage(&usage)) ;
 
    strncpy(old_locale, current_locale(), sizeof(old_locale)-1) ;
-   strncpy(old_msglocale, currentmsg_locale(), sizeof(old_msglocale)-1) ;
 
    if (test_initerror())   goto ONABORT ;
    if (test_initlocale())  goto ONABORT ;
@@ -253,11 +251,7 @@ int unittest_platform_locale()
    if (0 != strcmp("C", old_locale)) {
       TEST(0 == setdefault_locale()) ;
    }
-   if (0 == strcmp("C", old_msglocale)) {
-      TEST(0 == resetmsg_locale()) ;
-   }
 
-   // TEST resource usage has not changed
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
@@ -266,5 +260,17 @@ ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
+
+int unittest_platform_locale()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return 0;
+ONABORT:
+   return EINVAL;
+}
+
 
 #endif

@@ -122,6 +122,6 @@ void resetthreadid_threadcontext(void) ;
 
 /* function: setmm_threadcontext
  * Overwrites old mm_t of threadcontext_t with new_mm. */
-void setmm_threadcontext(threadcontext_t * tcontext, struct mm_t * new_mm) ;
+void setmm_threadcontext(threadcontext_t * tcontext, const struct mm_t * new_mm) ;
 
 #endif

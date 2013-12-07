@@ -1,235 +1,235 @@
-[1: 1385192174.330129s]
+[1: 1386419140.113477s]
 new_decimal() C-kern/math/float/decimal.c:1467
 Error 22 - Invalid argument
 Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
 Function aborted
-[1: 1385192174.330139s]
+[1: 1386419140.113494s]
 new_decimal() C-kern/math/float/decimal.c:1467
 Error 22 - Invalid argument
 Function input violates condition (nrdigits && nrdigits <= nrdigitsmax_decimal())
 Function aborted
-[1: 1385192174.330142s]
+[1: 1386419140.113497s]
 allocate_decimalhelper() C-kern/math/float/decimal.c:434
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1385192174.330145s]
+[1: 1386419140.113500s]
 new_decimal() C-kern/math/float/decimal.c:1479
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1385192174.330147s]
+[1: 1386419140.113502s]
 delete_decimal() C-kern/math/float/decimal.c:1500
 Error 12 - Cannot allocate memory
 Function aborted - one or more resources could not be freed
-[1: 1385192174.330556s]
+[1: 1386419140.113939s]
 allocate_decimalhelper() C-kern/math/float/decimal.c:434
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1385192174.330558s]
+[1: 1386419140.113946s]
 setfromint32_decimal() C-kern/math/float/decimal.c:1800
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1385192174.330561s]
+[1: 1386419140.113949s]
 allocate_decimalhelper() C-kern/math/float/decimal.c:434
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1385192174.330563s]
+[1: 1386419140.113951s]
 setfromint64_decimal() C-kern/math/float/decimal.c:1839
 Error 12 - Cannot allocate memory
 Function aborted
-[1: 1385192174.330565s]
+[1: 1386419140.113953s]
 setfromint32_decimal() C-kern/math/float/decimal.c:1800
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.330567s]
+[1: 1386419140.113955s]
 setfromint32_decimal() C-kern/math/float/decimal.c:1800
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.330570s]
+[1: 1386419140.113958s]
 setfromint64_decimal() C-kern/math/float/decimal.c:1839
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.330572s]
+[1: 1386419140.113960s]
 setfromint64_decimal() C-kern/math/float/decimal.c:1839
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.359802s]
+[1: 1386419140.144207s]
 setfromfloat_decimal() C-kern/math/float/decimal.c:1854
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
 Function aborted
-[1: 1385192174.359806s]
+[1: 1386419140.144217s]
 setfromfloat_decimal() C-kern/math/float/decimal.c:1854
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
 Function aborted
-[1: 1385192174.359809s]
+[1: 1386419140.144219s]
 setfromfloat_decimal() C-kern/math/float/decimal.c:1854
 Error 22 - Invalid argument
 Function input violates condition (isfinite(value))
 Function aborted
-[1: 1385192174.359856s]
+[1: 1386419140.144272s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359859s]
+[1: 1386419140.144275s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359861s]
+[1: 1386419140.144277s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359863s]
+[1: 1386419140.144279s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359865s]
+[1: 1386419140.144281s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359867s]
+[1: 1386419140.144283s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359869s]
+[1: 1386419140.144285s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359871s]
+[1: 1386419140.144287s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359873s]
+[1: 1386419140.144289s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359875s]
+[1: 1386419140.144291s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359877s]
+[1: 1386419140.144293s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.359879s]
+[1: 1386419140.144295s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.359881s]
+[1: 1386419140.144298s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.359883s]
+[1: 1386419140.144300s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.359886s]
+[1: 1386419140.144302s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.359890s]
+[1: 1386419140.144307s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.359895s]
+[1: 1386419140.144311s]
 setfromchar_decimal() C-kern/math/float/decimal.c:2222
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360015s]
+[1: 1386419140.144440s]
 allocate_decimalhelper() C-kern/math/float/decimal.c:434
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360017s]
+[1: 1386419140.144443s]
 add_decimalhelper() C-kern/math/float/decimal.c:615
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360019s]
+[1: 1386419140.144445s]
 add_decimal() C-kern/math/float/decimal.c:2244
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360025s]
+[1: 1386419140.144450s]
 allocate_decimalhelper() C-kern/math/float/decimal.c:434
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360027s]
+[1: 1386419140.144452s]
 sub_decimalhelper() C-kern/math/float/decimal.c:793
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360028s]
+[1: 1386419140.144454s]
 sub_decimal() C-kern/math/float/decimal.c:2263
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360031s]
+[1: 1386419140.144456s]
 allocate_decimalhelper() C-kern/math/float/decimal.c:434
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360032s]
+[1: 1386419140.144458s]
 add_decimalhelper() C-kern/math/float/decimal.c:615
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360034s]
+[1: 1386419140.144460s]
 add_decimal() C-kern/math/float/decimal.c:2244
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360036s]
+[1: 1386419140.144462s]
 allocate_decimalhelper() C-kern/math/float/decimal.c:434
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360038s]
+[1: 1386419140.144463s]
 sub_decimalhelper() C-kern/math/float/decimal.c:793
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.360040s]
+[1: 1386419140.144465s]
 sub_decimal() C-kern/math/float/decimal.c:2263
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418714s]
+[1: 1386419140.205387s]
 allocate_decimalhelper() C-kern/math/float/decimal.c:434
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418716s]
+[1: 1386419140.205398s]
 mult_decimal() C-kern/math/float/decimal.c:2313
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418719s]
+[1: 1386419140.205402s]
 mult_decimal() C-kern/math/float/decimal.c:2313
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418721s]
+[1: 1386419140.205404s]
 mult_decimal() C-kern/math/float/decimal.c:2313
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418738s]
+[1: 1386419140.205427s]
 divi32_decimal() C-kern/math/float/decimal.c:2394
 Error 22 - Invalid argument
 Function input violates condition (divisor != 0 && divisor <= DIGITSBASE)
 Function aborted
-[1: 1385192174.418741s]
+[1: 1386419140.205431s]
 divi32_decimal() C-kern/math/float/decimal.c:2394
 Error 22 - Invalid argument
 Function input violates condition (divisor != 0 && divisor <= DIGITSBASE)
 Function aborted
-[1: 1385192174.418747s]
+[1: 1386419140.205433s]
 divi32_decimal() C-kern/math/float/decimal.c:2425
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418749s]
+[1: 1386419140.205435s]
 divi32_decimal() C-kern/math/float/decimal.c:2425
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418873s]
+[1: 1386419140.205548s]
 div_decimal() C-kern/math/float/decimal.c:2385
 Error 22 - Invalid argument
 Function aborted
-[1: 1385192174.418875s]
+[1: 1386419140.205550s]
 div_decimal() C-kern/math/float/decimal.c:2385
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418877s]
+[1: 1386419140.205552s]
 div_decimal() C-kern/math/float/decimal.c:2385
 Error 75 - Value too large for defined data type
 Function aborted
-[1: 1385192174.418879s]
+[1: 1386419140.205554s]
 div_decimal() C-kern/math/float/decimal.c:2385
 Error 75 - Value too large for defined data type
 Function aborted

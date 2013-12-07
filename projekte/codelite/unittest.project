@@ -121,6 +121,7 @@
       <File Name="../../C-kern/api/context/iobj.h"/>
       <File Name="../../C-kern/api/context/stdtypes.h"/>
       <File Name="../../C-kern/api/context/module.h"/>
+      <File Name="../../C-kern/api/context/errornr.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="ds">
       <VirtualDirectory Name="inmem">
@@ -222,6 +223,7 @@
     <File Name="../../C-kern/context/errorcontext.c"/>
     <File Name="../../C-kern/context/iobj.c"/>
     <File Name="../../C-kern/context/module.c"/>
+    <File Name="../../C-kern/context/errornr.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="io">
     <File Name="../../C-kern/io/url.c"/>

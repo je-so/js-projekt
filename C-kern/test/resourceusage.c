@@ -148,7 +148,7 @@ int same_resourceusage(const resourceusage_t * usage)
    err = init_resourceusage(&usage2) ;
    if (err) goto ONABORT ;
 
-   err = EAGAIN ;
+   err = ELEAK ;
 
    if (usage2.file_usage != usage->file_usage) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
@@ -278,11 +278,11 @@ static int test_query(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST same_resourceusage: EAGAIN cause of open file
+   // TEST same_resourceusage: ELEAK cause of open file
    TEST(0 == init_resourceusage(&usage)) ;
    fd = dup(STDERR_FILENO) ;
    TEST(fd > 0) ;
-   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(ELEAK == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
    TEST(usage.file_usage + 1 == usage2.file_usage) ;
    TEST(0 == free_iochannel(&fd)) ;
@@ -290,13 +290,13 @@ static int test_query(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST same_resourceusage: EAGAIN cause of memory
+   // TEST same_resourceusage: ELEAK cause of memory
    TEST(0 == init_resourceusage(&usage)) ;
    size_t allocated[2] ;
    TEST(0 == allocatedsize_malloc(&allocated[0])) ;
    memblock = malloc(16) ;
    TEST(0 == allocatedsize_malloc(&allocated[1])) ;
-   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(ELEAK == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
    free(memblock) ;
    memblock = 0 ;
@@ -305,27 +305,27 @@ static int test_query(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST same_resourceusage: EAGAIN cause of pagecache
+   // TEST same_resourceusage: ELEAK cause of pagecache
    TEST(0 == init_resourceusage(&usage)) ;
    memblock_t page = memblock_INIT_FREEABLE ;
    TEST(0 == allocpage_pagecache(pagecache_maincontext(), pagesize_4096, &page)) ;
-   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(ELEAK == same_resourceusage(&usage)) ;
    TEST(0 == releasepage_pagecache(pagecache_maincontext(), &page)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST same_resourceusage: EAGAIN cause of static memory
+   // TEST same_resourceusage: ELEAK cause of static memory
    TEST(0 == init_resourceusage(&usage)) ;
    TEST(0 == allocstatic_pagecache(pagecache_maincontext(), 128, &page)) ;
-   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(ELEAK == same_resourceusage(&usage)) ;
    TEST(0 == freestatic_pagecache(pagecache_maincontext(), &page)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST same_resourceusage: EAGAIN cause of virtual memory
+   // TEST same_resourceusage: ELEAK cause of virtual memory
    TEST(0 == init_resourceusage(&usage)) ;
    TEST(0 == init_vmpage(&vmblock, pagesize_vm())) ;
-   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(ELEAK == same_resourceusage(&usage)) ;
    TEST(0 == init_resourceusage(&usage2)) ;
    TEST(0 == free_vmpage(&vmblock)) ;
    TEST(usage.file_usage   == usage2.file_usage) ;
@@ -334,7 +334,7 @@ static int test_query(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // TEST same_resourceusage: EAGAIN cause of changed signals
+   // TEST same_resourceusage: ELEAK cause of changed signals
    sigset_t sigmask ;
    sigemptyset(&sigmask) ;
    sigaddset(&sigmask, SIGABRT) ;
@@ -343,7 +343,7 @@ static int test_query(void)
    TEST(0 == sigprocmask(SIG_UNBLOCK, &sigmask, 0)) ;
    TEST(0 == init_resourceusage(&usage)) ;
    TEST(0 == sigprocmask(SIG_BLOCK, &sigmask, 0)) ;
-   TEST(EAGAIN == same_resourceusage(&usage)) ;
+   TEST(ELEAK == same_resourceusage(&usage)) ;
    TEST(0 == sigprocmask(SIG_UNBLOCK, &sigmask, 0)) ;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

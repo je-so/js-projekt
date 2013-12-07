@@ -85,7 +85,7 @@ bool isequal_x11screen(const x11screen_t * lx11screen, const x11screen_t * rx11s
 
 #ifdef KONFIG_UNITTEST
 
-static int test_ext_x11disp(x11display_t * x11disp)
+static int test_x11disp_extension(x11display_t * x11disp)
 {
    uint16_t nrofscreens ;
 
@@ -163,7 +163,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_platform_X11_x11screen()
+static int childprocess_unittest(void)
 {
    resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
    x11display_t      x11disp = x11display_INIT_FREEABLE ;
@@ -172,7 +172,7 @@ int unittest_platform_X11_x11screen()
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_ext_x11disp(&x11disp))  goto ONABORT ;
+   if (test_x11disp_extension(&x11disp))  goto ONABORT ;
    if (test_initfree(&x11disp))     goto ONABORT ;
    if (test_query())                goto ONABORT ;
 
@@ -186,6 +186,17 @@ ONABORT:
    (void) free_x11display(&x11disp) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
+}
+
+int unittest_platform_X11_x11screen()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return err;
+ONABORT:
+   return EINVAL;
 }
 
 #endif

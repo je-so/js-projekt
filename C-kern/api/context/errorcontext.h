@@ -28,32 +28,17 @@
 
 /* typedef: struct errorcontext_t
  * Export <errorcontext_t> into global namespace. */
-typedef struct errorcontext_t             errorcontext_t ;
+typedef struct errorcontext_t errorcontext_t ;
 
 /* variable: g_errorcontext_stroffset
  * Used in <processcontext_INIT_STATIC> to initialize static <processcontext_t>. */
-extern uint16_t                           g_errorcontext_stroffset[] ;
+extern uint16_t   g_errorcontext_stroffset[] ;
 
 /* variable: g_errorcontext_strdata
  * Used in <processcontext_INIT_STATIC> to initialize static <processcontext_t>. */
-extern uint8_t                            g_errorcontext_strdata[] ;
+extern uint8_t    g_errorcontext_strdata[] ;
 
 
-/* enums: ckern_api_error_e
- * Application specifix error codes.
- *
- * EINVARIANT - Invariant violated. This means for example corrupt memory, a software bug.
- *
- * */
-enum ckern_api_error_e {
-   ckern_api_error_FIRSTERRORCODE = 256,
-#define EINVARIANT   ckern_api_error_INVARIANT
-   ckern_api_error_INVARIANT      = ckern_api_error_FIRSTERRORCODE,
-
-   ckern_api_error_NEXTERRORCODE
-} ;
-
-typedef enum ckern_api_error_e            ckern_api_error_e ;
 
 // section: Functions
 

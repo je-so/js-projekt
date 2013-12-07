@@ -29,6 +29,7 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/platform/task/process.h"
 #endif
 
 
@@ -97,6 +98,24 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_query_strerror(void * dummy)
+{
+   (void)dummy;
+
+   setlocale(LC_MESSAGES, "C") ;
+
+   // TEST maxsyserrnum_errorcontext: compares to strerror
+   for (size_t i = maxsyserrnum_errorcontext()+1; i <= 255; ++i) {
+      char buffer[50] ;
+      snprintf(buffer, sizeof(buffer), "Unknown error %d", (int)i) ;
+      TEST(0 == strcmp(strerror((int)i), buffer)) ;
+   }
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 static int test_query(void)
 {
    errorcontext_t errcontext = errorcontext_INIT_FREEABLE ;
@@ -104,17 +123,22 @@ static int test_query(void)
    // prepare
    TEST(0 == init_errorcontext(&errcontext)) ;
 
-   // TEST maxsyserrnum_errorcontext
+   // TEST maxsyserrnum_errorcontext: start of unknown error
    TEST(0   < maxsyserrnum_errorcontext()) ;
    TEST(255 > maxsyserrnum_errorcontext()) ;
    for (size_t i = maxsyserrnum_errorcontext()+1; i <= 255; ++i) {
-      char buffer[50] ;
-      snprintf(buffer, sizeof(buffer), "Unknown error %d", (int)i) ;
-      TEST(0 == strcmp(strerror((int)i), buffer)) ;
       const char * errstr = (const char*) (g_errorcontext_strdata + g_errorcontext_stroffset[i]) ;
       TEST(0 == strcmp("Unknown error", errstr)) ;
-      TEST(g_errorcontext_stroffset[i]      == g_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]) ;
+      TEST(g_errorcontext_stroffset[i] == g_errorcontext_stroffset[1+maxsyserrnum_errorcontext()]) ;
    }
+
+   // TEST maxsyserrnum_errorcontext: compare with strerror
+   process_t child;
+   process_result_t child_result;
+   TEST(0 == init_process(&child, &test_query_strerror, 0, 0));
+   TEST(0 == wait_process(&child, &child_result));
+   TEST(0 == free_process(&child));
+   TEST(0 == child_result.returncode);
 
    // TEST g_errorcontext_stroffset: 256(syserror) + 256(extended error)
    TEST(512 == lengthof(g_errorcontext_stroffset)) ;
@@ -129,20 +153,48 @@ static int test_query(void)
       TEST(lengthof(g_errorcontext_strdata) > g_errorcontext_stroffset[i]) ;
       TEST(lengthof(g_errorcontext_strdata) > g_errorcontext_stroffset[i] + strlen(errstr)) ;
       if (i <= maxsyserrnum_errorcontext()) {
-         TEST(0 == strcmp(errstr, strerror((int)i))) ;
+         TEST(0 != strcmp(errstr, "Unknown error")) ;
+         switch (i) {
+         case 0:
+            TEST(0 == strcmp(errstr, "Success")) ;
+            break;
+         case EPERM:
+            TEST(0 == strcmp(errstr, "Operation not permitted")) ;
+            break;
+         case ENOENT:
+            TEST(0 == strcmp(errstr, "No such file or directory")) ;
+            break;
+         case EBADR:
+            TEST(0 == strcmp(errstr, "Invalid request descriptor")) ;
+            break;
+         case EREMCHG:
+            TEST(0 == strcmp(errstr, "Remote address changed")) ;
+            break;
+         case EAFNOSUPPORT:
+            TEST(0 == strcmp(errstr, "Address family not supported by protocol")) ;
+            break;
+         case ETIMEDOUT:
+            TEST(0 == strcmp(errstr, "Connection timed out")) ;
+            break;
+         case EOWNERDEAD:
+            TEST(0 == strcmp(errstr, "Owner died")) ;
+            break;
+         }
       } else {
          TEST(0 == strcmp(errstr, "Unknown error")) ;
       }
       TEST((const uint8_t*)errstr == str_errorcontext(errcontext, i)) ;
    }
 
-   // TEST str_errorcontext: 256 <= errno <= SIZE_MAX
-   for (size_t i = 256; i < 257; ++i) {
+   // TEST str_errorcontext: 256 <= errno <= 257
+   for (size_t i = 256; i <= 257; ++i) {
       const uint8_t * errstr = g_errorcontext_strdata + g_errorcontext_stroffset[255] ;
       // valid content
       TEST(errstr != str_errorcontext(errcontext, i)) ;
    }
-   for (size_t i = 257; true; i = (i < 511) ? i : 2*i, ++i) {
+
+   // TEST str_errorcontext: 258 <= errno <= SIZE_MAX
+   for (size_t i = 258; true; i = (i < 511) ? i : 2*i, ++i) {
       const uint8_t * errstr = g_errorcontext_strdata + g_errorcontext_stroffset[255] ;
       TEST(errstr == str_errorcontext(errcontext, i)) ;
       if (i == SIZE_MAX) break ;
@@ -208,30 +260,13 @@ ONABORT:
 
 int unittest_context_errorcontext()
 {
-   resourceusage_t   usage     = resourceusage_INIT_FREEABLE ;
-   char              msglocale[100] = { 0 } ;
-
-   // switch system error messages returned from strerror to english
-   const char * prevlocale = setlocale(LC_MESSAGES, "C") ;
-   if (prevlocale) strncpy(msglocale, prevlocale, sizeof(msglocale)) ;
-
-   if (test_query())          goto ONABORT ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_initfree())       goto ONABORT ;
    if (test_query())          goto ONABORT ;
    if (test_generic())        goto ONABORT ;
    if (test_initonce())       goto ONABORT ;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
-   setlocale(LC_MESSAGES, msglocale) ;
-
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

@@ -140,6 +140,7 @@ int run_unittest(int argc, const char ** argv)
 
 //{ context unittest
       RUN(unittest_context_errorcontext);
+      RUN(unittest_context_errornr);
       RUN(unittest_context_iobj);
       RUN(unittest_context_maincontext);
       RUN(unittest_context_module);

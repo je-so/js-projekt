@@ -483,7 +483,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_io_writer_log_logbuffer()
+static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
@@ -502,6 +502,17 @@ int unittest_io_writer_log_logbuffer()
 ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
+}
+
+int unittest_io_writer_log_logbuffer()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return err;
+ONABORT:
+   return EINVAL;
 }
 
 #endif

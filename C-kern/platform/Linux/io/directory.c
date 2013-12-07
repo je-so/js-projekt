@@ -966,7 +966,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_io_directory()
+static int childprocess_unittest(void)
 {
    resourceusage_t   usage      = resourceusage_INIT_FREEABLE ;
    unsigned          open_count = 0 ;
@@ -1007,4 +1007,16 @@ ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
+
+int unittest_io_directory()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return err;
+ONABORT:
+   return EINVAL;
+}
+
 #endif

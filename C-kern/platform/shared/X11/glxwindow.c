@@ -803,7 +803,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_platform_X11_glxwindow()
+static int childprocess_unittest(void)
 {
    x11display_t      x11disp   = x11display_INIT_FREEABLE ;
    x11screen_t       x11screen = x11screen_INIT_FREEABLE ;
@@ -848,6 +848,17 @@ ONABORT:
    (void) free_x11display(&x11disp) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
+}
+
+int unittest_platform_X11_glxwindow()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return err;
+ONABORT:
+   return EINVAL;
 }
 
 #endif

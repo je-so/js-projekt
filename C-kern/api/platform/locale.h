@@ -67,11 +67,13 @@ const char * currentmsg_locale(void) ;
 int setdefault_locale(void) ;
 
 /* function: reset_locale
- * Sets the locale a C program uses after it has started. */
+ * Sets the locale of all subsystems to default.
+ * The default is the "C" locale (English) a C program uses after it has been started. */
 int reset_locale(void) ;
 
 /* function: resetmsg_locale
- * Sets the system messages locale a C program uses after it has started. */
+ * Sets the locale of system messages subsystem to default.
+ * The default is the "C" locale (English) a C program uses after it has been started. */
 int resetmsg_locale(void) ;
 
 // group: test

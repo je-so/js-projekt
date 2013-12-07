@@ -1,227 +1,227 @@
-[1: 1382555988.271928s]
-remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:357
+[1: 1386419146.017897s]
+remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:359
 Error 107 - Transport endpoint is not connected
 System call 'getpeername' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.271945s]
-remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:357
+[1: 1386419146.017937s]
+remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:359
 Error 107 - Transport endpoint is not connected
 System call 'getpeername' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.271958s]
-remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:357
+[1: 1386419146.017964s]
+remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:359
 Error 107 - Transport endpoint is not connected
 System call 'getpeername' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.271972s]
-remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:357
+[1: 1386419146.018000s]
+remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:359
 Error 107 - Transport endpoint is not connected
 System call 'getpeername' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.271990s]
-remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:357
+[1: 1386419146.018034s]
+remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:359
 Error 107 - Transport endpoint is not connected
 System call 'getpeername' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.272009s]
-remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:357
+[1: 1386419146.018069s]
+remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:359
 Error 107 - Transport endpoint is not connected
 System call 'getpeername' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.272024s]
-remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:357
+[1: 1386419146.018095s]
+remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:359
 Error 107 - Transport endpoint is not connected
 System call 'getpeername' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.272041s]
-remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:357
+[1: 1386419146.018131s]
+remoteaddr_ipsocket() C-kern/platform/Linux/io/ipsocket.c:359
 Error 107 - Transport endpoint is not connected
 System call 'getpeername' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.272046s]
-init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:108
+[1: 1386419146.018142s]
+init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:110
 Error 22 - Invalid argument
 Function input violates condition (isvalid_ipaddr(localaddr))
 Function aborted
-[1: 1382555988.272052s]
-init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:108
+[1: 1386419146.018148s]
+init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:110
 Error 22 - Invalid argument
 Function input violates condition (isvalid_ipaddr(localaddr))
 Function aborted
-[1: 1382555988.272055s]
-init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:120
+[1: 1386419146.018154s]
+init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:122
 Error 93 - Protocol not supported
 Function aborted
-[1: 1382555988.272063s]
-initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:88
+[1: 1386419146.018170s]
+initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:90
 Error 98 - Address already in use
 System call 'bind' failed
 local: udp://127.0.0.1:20009
 Function aborted
-[1: 1382555988.272071s]
-init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:120
+[1: 1386419146.018193s]
+init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:122
 Error 98 - Address already in use
 Function aborted
-[1: 1382555988.272172s]
-initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:88
+[1: 1386419146.018381s]
+initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:90
 Error 98 - Address already in use
 System call 'bind' failed
 local: tcp://127.0.0.1:20019
 Function aborted
-[1: 1382555988.272179s]
-initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:156
+[1: 1386419146.018397s]
+initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:158
 Error 98 - Address already in use
 Function aborted
-[1: 1382555988.272193s]
-initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:88
+[1: 1386419146.018431s]
+initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:90
 Error 98 - Address already in use
 System call 'bind' failed
 local: tcp://127.0.0.1:20009
 Function aborted
-[1: 1382555988.272200s]
-initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:185
+[1: 1386419146.018443s]
+initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:187
 Error 98 - Address already in use
 Function aborted
-[1: 1382555988.272215s]
-initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:88
+[1: 1386419146.018466s]
+initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:90
 Error 98 - Address already in use
 System call 'bind' failed
 local: udp://::1:20009
 Function aborted
-[1: 1382555988.272221s]
-init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:120
+[1: 1386419146.018479s]
+init_ipsocket() C-kern/platform/Linux/io/ipsocket.c:122
 Error 98 - Address already in use
 Function aborted
-[1: 1382555988.272286s]
-initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:88
+[1: 1386419146.018597s]
+initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:90
 Error 98 - Address already in use
 System call 'bind' failed
 local: tcp://::1:20019
 Function aborted
-[1: 1382555988.272293s]
-initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:156
+[1: 1386419146.018611s]
+initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:158
 Error 98 - Address already in use
 Function aborted
-[1: 1382555988.272311s]
-initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:88
+[1: 1386419146.018638s]
+initsocket_helper() C-kern/platform/Linux/io/ipsocket.c:90
 Error 98 - Address already in use
 System call 'bind' failed
 local: tcp://::1:20009
 Function aborted
-[1: 1382555988.272317s]
-initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:185
+[1: 1386419146.018650s]
+initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:187
 Error 98 - Address already in use
 Function aborted
-[1: 1382555988.272535s]
-initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:134
+[1: 1386419146.019098s]
+initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:136
 Error 22 - Invalid argument
 Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
 Function aborted
-[1: 1382555988.272572s]
-initaccept_ipsocket() C-kern/platform/Linux/io/ipsocket.c:207
+[1: 1386419146.019173s]
+initaccept_ipsocket() C-kern/platform/Linux/io/ipsocket.c:209
 Error 22 - Invalid argument
 System call 'accept4' failed
-fd=9
+fd=4
 Function aborted
-[1: 1382555988.272592s]
-initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:147
+[1: 1386419146.019214s]
+initconnect_ipsocket() C-kern/platform/Linux/io/ipsocket.c:149
 Error 97 - Address family not supported by protocol
 System call 'connect' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.272604s]
-initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:175
+[1: 1386419146.019233s]
+initlisten_ipsocket() C-kern/platform/Linux/io/ipsocket.c:177
 Error 95 - Operation not supported
 System call 'listen' failed
-fd=8
+fd=3
 max_outstanding_connections=1
 Function aborted
-[1: 1382555988.272618s]
-initaccept_ipsocket() C-kern/platform/Linux/io/ipsocket.c:207
+[1: 1386419146.019257s]
+initaccept_ipsocket() C-kern/platform/Linux/io/ipsocket.c:209
 Error 95 - Operation not supported
 System call 'accept4' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.418716s]
-read_ipsocket() C-kern/platform/Linux/io/ipsocket.c:496
+[1: 1386419146.164205s]
+read_ipsocket() C-kern/platform/Linux/io/ipsocket.c:498
 Error 11 - Resource temporarily unavailable
 System call 'recv' failed
-fd=9
+fd=4
 maxdata_len=1
 Function aborted
-[1: 1382555988.682294s]
-readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:557
+[1: 1386419146.432351s]
+readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:559
 Error 11 - Resource temporarily unavailable
 System call 'recv' failed
-fd=9
+fd=4
 maxdata_len=1
 Function aborted
-[1: 1382555988.712667s]
-readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:557
+[1: 1386419146.462938s]
+readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:559
 Error 11 - Resource temporarily unavailable
 System call 'recv' failed
-fd=10
+fd=5
 maxdata_len=1
 Function aborted
-[1: 1382555988.732994s]
-writeoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:606
+[1: 1386419146.483380s]
+writeoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:608
 Error 95 - Operation not supported
 System call 'send' failed
-fd=9
+fd=4
 Function aborted
-[1: 1382555988.733006s]
-readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:548
+[1: 1386419146.483396s]
+readoob_ipsocket() C-kern/platform/Linux/io/ipsocket.c:550
 Error 95 - Operation not supported
 System call 'ioctl(SIOCATMARK)' failed
-fd=8
+fd=3
 Function aborted
-[1: 1382555988.733016s]
-read_ipsocket() C-kern/platform/Linux/io/ipsocket.c:496
+[1: 1386419146.483402s]
+read_ipsocket() C-kern/platform/Linux/io/ipsocket.c:498
 Error 11 - Resource temporarily unavailable
 System call 'recv' failed
-fd=8
+fd=3
 maxdata_len=1
 Function aborted
-[1: 1382555988.734064s]
-writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:697
+[1: 1386419146.483929s]
+writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:699
 Error 97 - Address family not supported by protocol
 Function aborted
-[1: 1382555988.734071s]
-readfrom_ipsocket() C-kern/platform/Linux/io/ipsocket.c:660
+[1: 1386419146.483933s]
+readfrom_ipsocket() C-kern/platform/Linux/io/ipsocket.c:662
 Error 97 - Address family not supported by protocol
 Function aborted
-[1: 1382555988.734076s]
-writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:697
+[1: 1386419146.483936s]
+writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:699
 Error 93 - Protocol not supported
 Function aborted
-[1: 1382555988.734970s]
-writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:697
+[1: 1386419146.484372s]
+writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:699
 Error 97 - Address family not supported by protocol
 Function aborted
-[1: 1382555988.734976s]
-readfrom_ipsocket() C-kern/platform/Linux/io/ipsocket.c:660
+[1: 1386419146.484376s]
+readfrom_ipsocket() C-kern/platform/Linux/io/ipsocket.c:662
 Error 97 - Address family not supported by protocol
 Function aborted
-[1: 1382555988.734982s]
-writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:697
+[1: 1386419146.484378s]
+writeto_ipsocket() C-kern/platform/Linux/io/ipsocket.c:699
 Error 93 - Protocol not supported
 Function aborted
-[1: 1382555988.735565s]
-initconnect_ipsocketasync() C-kern/platform/Linux/io/ipsocket.c:729
+[1: 1386419146.484695s]
+initconnect_ipsocketasync() C-kern/platform/Linux/io/ipsocket.c:731
 Error 22 - Invalid argument
 Function input violates condition (protocol_ipaddr(localaddr) == protocol_ipaddr(remoteaddr))
 Function aborted
-[1: 1382555988.735585s]
-initconnect_ipsocketasync() C-kern/platform/Linux/io/ipsocket.c:754
+[1: 1386419146.484706s]
+initconnect_ipsocketasync() C-kern/platform/Linux/io/ipsocket.c:756
 Error 97 - Address family not supported by protocol
 System call 'connect' failed
-fd=9
+fd=4
 Function aborted

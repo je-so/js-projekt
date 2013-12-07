@@ -1,129 +1,129 @@
-[1: 1384891237.997755s]
+[1: 1384962619.075405s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:436
 Error 22 - Invalid argument
 System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=18446744073709551615
 Function aborted
-[1: 1384891237.997799s]
+[1: 1384962619.075450s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:436
 Error 27 - File too large
 System call 'ftruncate(file_path, file_length)' failed
 file_path=123
 file_length=9223372036854775807
 Function aborted
-[1: 1384891237.997820s]
+[1: 1384962619.075473s]
 new_directory() C-kern/platform/Linux/io/directory.c:226
 Error 2 - No such file or directory
 System call 'openat' failed
 path=.....
 Function aborted
-[1: 1384891237.997826s]
+[1: 1384962619.075480s]
 new_directory() C-kern/platform/Linux/io/directory.c:226
 Error 20 - Not a directory
 System call 'openat' failed
 path=/tmp/test1.123456/file_000000
 Function aborted
-[1: 1384891237.997834s]
+[1: 1384962619.075487s]
 makedirectory_directory() C-kern/platform/Linux/io/directory.c:402
 Error 13 - Permission denied
 System call 'mkdirat(mkdiratfd, directory_path, 0700)' failed
 mkdiratfd=10
 directory_path=XXXXXXXX.test
 Function aborted
-[1: 1384891237.997840s]
+[1: 1384962619.075494s]
 makefile_directory() C-kern/platform/Linux/io/directory.c:427
 Error 13 - Permission denied
 System call 'openat(openatfd, file_path)' failed
 openatfd=10
 file_path=XXXXXXXX.test
 Function aborted
-[1: 1384891237.997848s]
+[1: 1384962619.075502s]
 removedirectory_directory() C-kern/platform/Linux/io/directory.c:466
 Error 39 - Directory not empty
 System call 'unlinkat(unlinkatfd, directory_path)' failed
 unlinkatfd=10
 directory_path=..
 Function aborted
-[1: 1384891238.000897s]
+[1: 1384962619.078686s]
 new_directory() C-kern/platform/Linux/io/directory.c:226
 Error 2 - No such file or directory
 System call 'openat' failed
 path=/tmp/test1.123456
 Function aborted
-[1: 1384891238.008269s]
+[1: 1384962619.086317s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008278s]
+[1: 1384962619.086328s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008285s]
+[1: 1384962619.086334s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008292s]
+[1: 1384962619.086340s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008302s]
+[1: 1384962619.086350s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008311s]
+[1: 1384962619.086359s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008322s]
+[1: 1384962619.086368s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008331s]
+[1: 1384962619.086377s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008345s]
+[1: 1384962619.086388s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008358s]
+[1: 1384962619.086400s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008371s]
+[1: 1384962619.086412s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008398s]
+[1: 1384962619.086446s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008431s]
+[1: 1384962619.086480s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008461s]
+[1: 1384962619.086515s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008491s]
+[1: 1384962619.086549s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008521s]
+[1: 1384962619.086583s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008551s]
+[1: 1384962619.086616s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008581s]
+[1: 1384962619.086650s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted
-[1: 1384891238.008618s]
+[1: 1384962619.086684s]
 path_directory() C-kern/platform/Linux/io/directory.c:202
 Error 1000 - Unknown error
 Function aborted

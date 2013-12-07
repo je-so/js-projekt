@@ -422,23 +422,83 @@ testmm_t * mmcontext_testmm(void)
    return (testmm_t*) mm_maincontext().object ;
 }
 
+static int getpreviousmm_testmm(const testmm_t * mman, /*out*/memblock_t * previous_mm)
+{
+   int err;
+   testmm_page_t *mmpage = mman->mmpage;
+
+   while (mmpage->next) {
+      mmpage = mmpage->next;
+   }
+
+   err = getblock_testmmpage(mmpage, 1, previous_mm);
+   if (err) return err;
+
+   if (sizeof(mm_t) != previous_mm->size) return EINVAL;
+
+   return 0;
+}
+
+/* function: installold_testmm
+ * Installs the previous mm_t if the current mm is of type <testmm_t>.
+ * The mm of type <testmm_t> is returnd in testmm. */
+static int installold_testmm(/*out*/mm_t * testmm)
+{
+   int err;
+   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) return EINVAL;
+
+   memblock_t previous_mm;
+
+   err = getpreviousmm_testmm((testmm_t*)mm_maincontext().object, &previous_mm);
+   if (err) return err;
+
+   // save current into testmm
+   initcopy_iobj(testmm, &mm_maincontext());
+   // install old mm
+   threadcontext_t * tcontext = tcontext_maincontext();
+   setmm_threadcontext(tcontext, (mm_t*)previous_mm.addr);
+
+   return 0;
+}
+
+/* function: installnew_testmm
+ * Installs mm_t which must be of type <testmm_t>.
+ * The previous mm is stored in the first allocated block of testmm. */
+static int installnew_testmm(const mm_t * testmm)
+{
+   int err;
+   if (genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) return EINVAL;
+
+   memblock_t previous_mm;
+
+   err = getpreviousmm_testmm((testmm_t*)testmm->object, &previous_mm);
+   if (err) return err;
+
+   // save old
+   initcopy_iobj((mm_t*)previous_mm.addr, &mm_maincontext());
+   // install new
+   threadcontext_t * tcontext = tcontext_maincontext();
+   setmm_threadcontext(tcontext, testmm);
+
+   return 0;
+}
+
 int switchon_testmm()
 {
-   int  err ;
-   mm_t              testmm   = mm_INIT_FREEABLE ;
-   threadcontext_t * tcontext = tcontext_maincontext() ;
+   int  err;
+   mm_t testmm = mm_INIT_FREEABLE;
 
-   if (genericcast_mmit(&s_testmm_interface, testmm_t) != tcontext->mm.iimpl) {
-      memblock_t  previous_mm ;
+   if (genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) {
+      memblock_t  previous_mm;
 
-      err = initasmm_testmm(&testmm) ;
-      if (err) goto ONABORT ;
+      err = initasmm_testmm(&testmm);
+      if (err) goto ONABORT;
 
-      err = malloc_mm(testmm, sizeof(mm_t), &previous_mm) ;
-      if (err) goto ONABORT ;
+      err = malloc_mm(testmm, sizeof(mm_t), &previous_mm);
+      if (err) goto ONABORT;
 
-      initcopy_iobj((mm_t*)previous_mm.addr, &tcontext->mm) ;
-      setmm_threadcontext(tcontext, &testmm) ;
+      err = installnew_testmm(&testmm);
+      if (err) goto ONABORT;
    }
 
    return 0 ;
@@ -450,31 +510,17 @@ ONABORT:
 
 int switchoff_testmm()
 {
-   int err ;
+   int err;
 
    if (genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) {
-      testmm_t *        testmm      = (testmm_t*)mm_maincontext().object ;
-      memblock_t        previous_mm = memblock_INIT_FREEABLE ;
-      testmm_page_t *   mmpage      = testmm->mmpage ;
 
-      while (mmpage->next) {
-         mmpage = mmpage->next ;
-      }
+      mm_t testmm;
 
-      err = getblock_testmmpage(mmpage, 1, &previous_mm) ;
-      if (err) goto ONABORT ;
+      err = installold_testmm(&testmm);
+      if (err) goto ONABORT;
 
-      if (sizeof(mm_t) != previous_mm.size) {
-         err = EINVAL ;
-         goto ONABORT ;
-      }
-
-      mm_t mmobj ;
-      initcopy_iobj(&mmobj, &mm_maincontext()) ;
-      initcopy_iobj(&mm_maincontext(), (mm_t*)previous_mm.addr) ;
-
-      err = freeasmm_testmm(&mmobj) ;
-      if (err) goto ONABORT ;
+      err = freeasmm_testmm(&testmm);
+      if (err) goto ONABORT;
    }
 
    return 0 ;
@@ -1095,19 +1141,27 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_context(void)
+static int test_context(void * dummy)
 {
-   mm_t oldmm ;
-   initcopy_iobj(&oldmm, &mm_maincontext()) ;
+   (void)dummy;
+   const bool istestmm = isinstalled_testmm() ;
+   mm_t testmm;
+   mm_t oldmm;
 
-   // TEST double call switchon_testmm
+   // prepare
+   if (istestmm) {
+      TEST(0 == installold_testmm(&testmm));
+   }
+   initcopy_iobj(&oldmm, &mm_maincontext());
+
+   // TEST switchon_testmm: double call
    TEST(genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) ;
    TEST(0 == switchon_testmm()) ;
    TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
    TEST(0 == switchon_testmm()) ;
    TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
 
-   // TEST double call switchoff_testmm
+   // TEST switchoff_testmm: double call
    TEST(genericcast_mmit(&s_testmm_interface, testmm_t) == mm_maincontext().iimpl) ;
    TEST(0 == switchoff_testmm()) ;
    TEST(genericcast_mmit(&s_testmm_interface, testmm_t) != mm_maincontext().iimpl) ;
@@ -1116,40 +1170,30 @@ static int test_context(void)
    TEST(0 == switchoff_testmm()) ;
    TEST(oldmm.object == mm_maincontext().object) ;
    TEST(oldmm.iimpl  == mm_maincontext().iimpl) ;
+
+   // unprepare
+   if (istestmm) {
+      TEST(0 == installnew_testmm(&testmm));
+   }
 
    return 0 ;
 ONABORT:
-   switchoff_testmm() ;
+   switchoff_testmm();
+   if (istestmm) {
+      installnew_testmm(&testmm) ;
+   }
    return EINVAL ;
 }
 
 int unittest_test_mm_testmm()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
-
-   const bool istestmm = isinstalled_testmm() ;
-
-   if (istestmm) {
-      switchoff_testmm() ;
-   }
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_testmmpage())  goto ONABORT ;
    if (test_initfree())    goto ONABORT ;
    if (test_allocate())    goto ONABORT ;
-   if (test_context())     goto ONABORT ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
-   if (istestmm) {
-      switchon_testmm() ;
-   }
+   if (test_context(0))     goto ONABORT ;
 
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

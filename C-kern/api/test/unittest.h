@@ -69,9 +69,10 @@ int freesingleton_unittest(void);
 void logf_unittest(const char * format, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 
 /* function: logfailed_unittest
- * Logs "TEST failed at <filename>:<line_number>\n".
- * This is a thread-safe function -- all other are not ! */
-void logfailed_unittest(const char * filename, unsigned line_number);
+ * Logs "<filename>:<line_number>: <msg>\n".
+ * This is a thread-safe function -- all other are not !
+ * If msg is set to 0 the msg is set to its default value "TEST FAILED". */
+void logfailed_unittest(const char * filename, unsigned line_number, const char * msg);
 
 /* function: logresult_unittest
  * Logs "OK\n" or "FAILED\n". */
@@ -91,6 +92,16 @@ void logsummary_unittest(void);
  * Runs a single unit test.
  * A return value of 0 indicates success, a return value != 0 indicates the test failed. */
 int execsingle_unittest(const char * testname, int (*test_f)(void));
+
+/* function: execasprocess_unittest
+ * Forks a child process which runs the test function.
+ * The parameter retcode is set to the value returned by test_f.
+ * If test_t exits abnormally with a signal retcode is set to EINTR.
+ * Also the content of the buffered errorlog is transfered via pipe
+ * at the end of test_f to the calling process and printed to its errorlog.
+ *
+ * Use this function only within the execution of a unittest. */
+int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
 
 // group: macros
 
@@ -117,9 +128,9 @@ int execsingle_unittest(const char * testname, int (*test_f)(void));
  * > }
  * */
 #define TEST(CONDITION)  \
-         if ( !(CONDITION) ) {                      \
-            logfailed_unittest(__FILE__, __LINE__); \
-            goto ONABORT;                           \
+         if ( !(CONDITION) ) {                           \
+            logfailed_unittest(__FILE__, __LINE__, 0);   \
+            goto ONABORT;                                \
          }
 
 

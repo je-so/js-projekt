@@ -579,7 +579,9 @@ en: "Unknown error"
 EINVARIANT
 de: "Interne Invariante verletzt - (Softwarefehler oder korrupter Speicher)"
 en: "Internal invariant violated - (software bug or corrupt memory)"
-0x101 -> 0xff
+ELEAK
+de: "Ressource(n) verloren"
+en: "Resource(s) leaked"
 0x102 -> 0xff
 0x103 -> 0xff
 0x104 -> 0xff

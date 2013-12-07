@@ -290,6 +290,26 @@ static int test_allocate(void)
       TEST(size == sizeallocated_mmimpl(&mman)) ;
    }
 
+   // TEST malloc_mmimpl: ENOMEM
+   TEST(ENOMEM == malloc_mmimpl(&mman, ((size_t)-1), &mblocks[0]));
+
+   // TEST mresize_mmimpl: EINVAL
+   mblocks[0] = (memblock_t)memblock_INIT_FREEABLE;
+   mblocks[0].addr = (void*)1;
+   TEST(EINVAL == mresize_mmimpl(&mman, 10, &mblocks[0]));
+   mblocks[0] = (memblock_t)memblock_INIT_FREEABLE;
+   mblocks[0].size = 1;
+   TEST(EINVAL == mresize_mmimpl(&mman, 10, &mblocks[0]));
+
+   // TEST mresize_mmimpl: ENOMEM
+   mblocks[0] = (memblock_t)memblock_INIT_FREEABLE;
+   TEST(ENOMEM == mresize_mmimpl(&mman, ((size_t)-1), &mblocks[0]));
+
+   // TEST mfree_mmimpl: EINVAL
+   mblocks[0] = (memblock_t)memblock_INIT_FREEABLE;
+   mblocks[0].addr = (void*)1;
+   TEST(EINVAL == mfree_mmimpl(&mman, &mblocks[0]));
+
    // unprepare
    TEST(0 == free_mmimpl(&mman)) ;
 
@@ -367,7 +387,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_memory_mm_mmimpl()
+static int childprocess_unittest(void)
 {
    resourceusage_t usage = resourceusage_INIT_FREEABLE ;
 
@@ -388,6 +408,17 @@ int unittest_memory_mm_mmimpl()
 ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
+}
+
+int unittest_memory_mm_mmimpl()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return 0;
+ONABORT:
+   return EINVAL;
 }
 
 #endif

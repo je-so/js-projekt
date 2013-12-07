@@ -1,20 +1,20 @@
-[1: 1386414819.657518s]
+[1: 1386419145.501764s]
 initcreate_file() C-kern/platform/Linux/io/file.c:154
 Error 17 - File exists
 System call 'openat' failed
 File name '/tmp/iofiletest.XXXXXX/save'
 Function aborted
-[1: 1386414819.657605s]
+[1: 1386419145.501854s]
 save_file() C-kern/io/filesystem/fileutil.c:117
 Error 17 - File exists
 Function aborted
-[1: 1386414819.657979s]
+[1: 1386419145.502223s]
 init_file() C-kern/platform/Linux/io/file.c:96
 Error 2 - No such file or directory
 System call 'openat' failed
 File name '/tmp/iofiletest.XXXXXX/save'
 Function aborted
-[1: 1386414819.658022s]
+[1: 1386419145.502268s]
 load_file() C-kern/io/filesystem/fileutil.c:84
 Error 2 - No such file or directory
 Function aborted

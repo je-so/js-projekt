@@ -1549,7 +1549,7 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_ds_inmem_suffixtree()
+static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
@@ -1569,6 +1569,17 @@ int unittest_ds_inmem_suffixtree()
 ONABORT:
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
+}
+
+int unittest_ds_inmem_suffixtree()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return err;
+ONABORT:
+   return EINVAL;
 }
 
 #endif

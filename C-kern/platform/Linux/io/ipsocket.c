@@ -29,6 +29,8 @@
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/ip/ipaddr.h"
 #ifdef KONFIG_UNITTEST
+#include "C-kern/api/memory/memblock.h"
+#include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
@@ -1099,20 +1101,21 @@ ONABORT:
 static int test_buffersize(void)
 {
    ipaddr_t  * ipaddr   = 0 ;
-   ipaddr_t  * ipaddr2  = 0 ;
-   ipsocket_t  ipsockCL = ipsocket_INIT_FREEABLE ;
-   ipsocket_t  ipsockLT = ipsocket_INIT_FREEABLE ;
-   ipsocket_t  ipsockSV = ipsocket_INIT_FREEABLE ;
-   void      * buffer   = 0 ;
-   size_t      unsend_bytes ;
-   size_t      unread_bytes ;
+   ipaddr_t  * ipaddr2  = 0;
+   ipsocket_t  ipsockCL = ipsocket_INIT_FREEABLE;
+   ipsocket_t  ipsockLT = ipsocket_INIT_FREEABLE;
+   ipsocket_t  ipsockSV = ipsocket_INIT_FREEABLE;
+   memblock_t  buffer   = memblock_INIT_FREEABLE;
+   size_t      unsend_bytes;
+   size_t      unread_bytes;
 
+   // prepare
+   TEST(0 == ALLOC_MM(3 * 65536u, &buffer));
 
    for (unsigned i = 0; i < 3; ++i) {
-      const unsigned  buffer_size  = 65536u * (i+1) ;
-      const unsigned  sockbuf_size = 3 * buffer_size / 4 ;
-      buffer = malloc(buffer_size) ;
-      TEST(buffer) ;
+      const unsigned  buffer_size  = 65536u * (i+1);
+      const unsigned  sockbuf_size = 3 * buffer_size / 4;
+      TEST(buffer.size >= buffer_size);
 
          // connect TCP
       TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_TCP, 0, ipversion_4)) ;
@@ -1163,7 +1166,7 @@ static int test_buffersize(void)
 
       // TEST write transfers less than buffer_size cause of size of write queue
       {
-         TEST(0 == write_ipsocket(&ipsockSV, buffer_size, buffer, &size)) ;
+         TEST(0 == write_ipsocket(&ipsockSV, buffer_size, buffer.addr, &size)) ;
          TEST(0 < size && size < buffer_size) ;
          size_t writecount = size ;
          for (int si = 0; si < 100; ++si) {
@@ -1172,7 +1175,7 @@ static int test_buffersize(void)
             sleepms_thread(1) ;
          }
          // second write transfers all (cause send queue is empty)
-         TEST(0 == write_ipsocket(&ipsockSV, buffer_size-writecount, writecount + (uint8_t*)buffer, &size)) ;
+         TEST(0 == write_ipsocket(&ipsockSV, buffer_size-writecount, writecount + buffer.addr, &size)) ;
          TEST(size == buffer_size - writecount) ;
       }
 
@@ -1180,18 +1183,18 @@ static int test_buffersize(void)
       {
          TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes)) ;
          TEST(0 <  unread_bytes) ;
-         TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
-         TEST(0 <  unsend_bytes) ;
-         TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
-         TEST(unread_bytes == size) ;
-         size_t readcount = size ;
-         TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
-         TEST(0 <  unread_bytes) ;
-         TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
+         TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes));
+         TEST(0 <  unsend_bytes);
+         TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size));
+         TEST(unread_bytes == size);
+         size_t readcount = size;
+         TEST(0 == bytestoread_ipsocket(&ipsockCL, &unread_bytes));
+         TEST(0 <  unread_bytes);
+         TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size));
          TEST(unread_bytes == size) ;
          readcount += size ;  // 2nd
          for (int si = 0; si < 100; ++si) {
-            TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
+            TEST(0 == bytestowrite_ipsocket(&ipsockSV, &unsend_bytes)) ;
             if (! unsend_bytes) break ;
             sleepms_thread(1) ;
          }
@@ -1201,7 +1204,7 @@ static int test_buffersize(void)
          // check 3rd read transfers all data
          TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
          if (unread_bytes) {
-            TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
+            TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size)) ;
             TEST(unread_bytes == size) ;
             readcount += size ;
          }
@@ -1213,21 +1216,19 @@ static int test_buffersize(void)
 
       // TEST read on empty queue does not block
       if (0 == i) {
-         TEST(EAGAIN == read_ipsocket(&ipsockCL, 1, buffer, &size)) ;
+         TEST(EAGAIN == read_ipsocket(&ipsockCL, 1, buffer.addr, &size)) ;
       }
 
       TEST(0 == free_ipsocket(&ipsockCL)) ;
       TEST(0 == free_ipsocket(&ipsockLT)) ;
       TEST(0 == free_ipsocket(&ipsockSV)) ;
-      free(buffer) ;
-      buffer = 0 ;
    }
 
    for (unsigned i = 1; i < 3; ++i) {
       const unsigned   buffer_size = i * 16384u ;
-      buffer = malloc(buffer_size) ;
-      TEST(buffer) ;
-      memset( buffer, 0, buffer_size ) ;
+      TEST(buffer.size >= buffer_size);
+      memset(buffer.addr, 0, buffer_size);
+
          // connect UDP
       TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
       TEST(0 == newloopback_ipaddr(&ipaddr2, ipprotocol_UDP, (uint16_t)(10000+i), ipversion_4)) ;
@@ -1237,34 +1238,34 @@ static int test_buffersize(void)
       TEST(0 == delete_ipaddr(&ipaddr)) ;
       TEST(0 == delete_ipaddr(&ipaddr2)) ;
       // TEST setqueuesize_ipsocket(buffer_size,buffer_size)
-      TEST(0 == setqueuesize_ipsocket( &ipsockCL, buffer_size, buffer_size)) ;
-      TEST(0 == setqueuesize_ipsocket( &ipsockSV, buffer_size, buffer_size)) ;
+      TEST(0 == setqueuesize_ipsocket(&ipsockCL, buffer_size, buffer_size));
+      TEST(0 == setqueuesize_ipsocket(&ipsockSV, buffer_size, buffer_size));
       size_t rwsize[2] = { 0 } ;
-      TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1])) ;
+      TEST(0 == queuesize_ipsocket(&ipsockCL, &rwsize[0], &rwsize[1]));
       TEST(rwsize[0] == buffer_size) ;
       TEST(rwsize[1] == buffer_size) ;
-      TEST(0 == queuesize_ipsocket( &ipsockCL, &rwsize[0], &rwsize[1])) ;
+      TEST(0 == queuesize_ipsocket(&ipsockCL, &rwsize[0], &rwsize[1]));
       TEST(rwsize[0] == buffer_size) ;
       TEST(rwsize[1] == buffer_size) ;
 
       // TEST bytestoread_ipsocket, bytestowrite_ipsocket on connected socket without data read/written
-      TEST(0 == bytestoread_ipsocket( &ipsockCL, &rwsize[0])) ;
+      TEST(0 == bytestoread_ipsocket(&ipsockCL, &rwsize[0])) ;
       TEST(0 == rwsize[0]) ;
-      TEST(0 == bytestoread_ipsocket( &ipsockSV, &rwsize[0])) ;
+      TEST(0 == bytestoread_ipsocket(&ipsockSV, &rwsize[0])) ;
       TEST(0 == rwsize[0]) ;
-      TEST(0 == bytestowrite_ipsocket( &ipsockCL, &rwsize[1])) ;
+      TEST(0 == bytestowrite_ipsocket(&ipsockCL, &rwsize[1])) ;
       TEST(0 == rwsize[1]) ;
-      TEST(0 == bytestowrite_ipsocket( &ipsockCL, &rwsize[1])) ;
+      TEST(0 == bytestowrite_ipsocket(&ipsockCL, &rwsize[1])) ;
       TEST(0 == rwsize[1]) ;
 
       // TEST datagram equal t0 buffer_size will be discarded on receiver side (buffer stores also control info)
       size_t size ;
-      TEST(0 == write_ipsocket(&ipsockSV, buffer_size/4, (uint8_t*)buffer, &size)) ;
+      TEST(0 == write_ipsocket(&ipsockSV, buffer_size/4, buffer.addr, &size)) ;
       TEST(buffer_size/4 == size) ;
-      TEST(0 == write_ipsocket(&ipsockSV, buffer_size/4, (uint8_t*)buffer, &size)) ;
+      TEST(0 == write_ipsocket(&ipsockSV, buffer_size/4, buffer.addr, &size)) ;
       TEST(buffer_size/4 == size) ;
          // third datagram will be discarded on receiver side
-      TEST(0 == write_ipsocket(&ipsockSV, buffer_size, (uint8_t*)buffer, &size)) ;
+      TEST(0 == write_ipsocket(&ipsockSV, buffer_size, buffer.addr, &size)) ;
       TEST(buffer_size == size) ;
       sleepms_thread(1) ;
       TEST(0 == bytestowrite_ipsocket( &ipsockSV, &unsend_bytes)) ;
@@ -1273,12 +1274,12 @@ static int test_buffersize(void)
       TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
       TEST(buffer_size/4 == unread_bytes) ;
          // read first
-      TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
+      TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size)) ;
       TEST(buffer_size/4 == size) ;
          // read second
       TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
       TEST(buffer_size/4 == unread_bytes) ;
-      TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer, &size)) ;
+      TEST(0 == read_ipsocket(&ipsockCL, unread_bytes, buffer.addr, &size)) ;
       TEST(buffer_size/4 == size) ;
          // third was -- silently -- discarded
       TEST(0 == bytestoread_ipsocket( &ipsockCL, &unread_bytes)) ;
@@ -1288,23 +1289,24 @@ static int test_buffersize(void)
 
       // TEST read on empty queue does not block
       if (0 == i)  {
-         TEST(EAGAIN == read_ipsocket(&ipsockCL, 1, buffer, &size)) ;
+         TEST(EAGAIN == read_ipsocket(&ipsockCL, 1, buffer.addr, &size)) ;
       }
 
       TEST(0 == free_ipsocket(&ipsockCL)) ;
       TEST(0 == free_ipsocket(&ipsockSV)) ;
-      free(buffer) ;
-      buffer = 0 ;
    }
 
-   return 0 ;
+   // unprepare
+   TEST(0 == FREE_MM(&buffer));
+
+   return 0;
 ONABORT:
-   free(buffer) ;
-   (void) delete_ipaddr(&ipaddr) ;
-   (void) free_ipsocket(&ipsockCL) ;
-   (void) free_ipsocket(&ipsockLT) ;
-   (void) free_ipsocket(&ipsockSV) ;
-   return EINVAL ;
+   (void) FREE_MM(&buffer);
+   (void) delete_ipaddr(&ipaddr);
+   (void) free_ipsocket(&ipsockCL);
+   (void) free_ipsocket(&ipsockLT);
+   (void) free_ipsocket(&ipsockSV);
+   return EINVAL;
 }
 
 static int test_helper_oob(ipsocket_t * ipsockSV, ipsocket_t * ipsockCL, const size_t buffer_size, uint8_t * buffer)
@@ -1703,50 +1705,15 @@ ONABORT:
 
 int unittest_io_ipsocket()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
-   unsigned        open_count = 0 ;
-   ipsocket_t      ipsock[8] ;
-
-   for (int i = 0; i < 2; ++i) {
-      TEST(0 == init_resourceusage(&usage)) ;
-
-      // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
-      {
-         size_t     nropen ;
-         ipaddr_t   * ipaddr = 0 ;
-         TEST(0 == nropen_iochannel(&nropen)) ;
-         TEST(0 == newloopback_ipaddr(&ipaddr, ipprotocol_UDP, 0, ipversion_4)) ;
-         for (; nropen < 8; ++nropen) {
-            TEST(0 == init_ipsocket(&ipsock[open_count ++], ipaddr)) ;
-         }
-         TEST(0 == delete_ipaddr(&ipaddr)) ;
-      }
-
-      if (test_initfree())       goto ONABORT ;
-      if (test_connect())        goto ONABORT ;
-      if (test_buffersize())     goto ONABORT ;
-      if (test_outofbandData())  goto ONABORT ;
-      if (test_udpIO())          goto ONABORT ;
-      if (test_async())          goto ONABORT ;
-
-      while (open_count) {
-         TEST(0 == free_ipsocket(&ipsock[--open_count])) ;
-      }
-
-      if (0 == same_resourceusage(&usage)) break ;
-      TEST(0 == free_resourceusage(&usage)) ;
-      CLEARBUFFER_ERRLOG() ;
-   }
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_connect())        goto ONABORT ;
+   if (test_buffersize())     goto ONABORT ;
+   if (test_outofbandData())  goto ONABORT ;
+   if (test_udpIO())          goto ONABORT ;
+   if (test_async())          goto ONABORT ;
 
    return 0 ;
 ONABORT:
-   while (open_count) {
-      free_ipsocket(&ipsock[--open_count]) ;
-   }
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

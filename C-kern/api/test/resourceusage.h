@@ -99,7 +99,7 @@ int free_resourceusage(resourceusage_t * usage) ;
 
 /* function: same_resourceusage
  * Returns 0 if the numbers of resources equals the numbers stored in usage.
- * If more or less resources are in use the error EAGAIN is returned. */
+ * If more or less resources are in use the error ELEAK is returned. */
 int same_resourceusage(const resourceusage_t * usage) ;
 
 #endif

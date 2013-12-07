@@ -589,7 +589,6 @@ ONABORT:
 
 int unittest_context_maincontext()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
 
    if (maincontext_STATIC == type_maincontext()) {
 
@@ -600,28 +599,13 @@ int unittest_context_maincontext()
 
    } else {
 
-      const bool istestmm = isinstalled_testmm() ;
-
-      if (istestmm) {
-         switchoff_testmm() ;
-      }
-
-      TEST(0 == init_resourceusage(&usage)) ;
-
       if (test_querymacros())    goto ONABORT ;
       if (test_staticmem())      goto ONABORT ;
 
-      TEST(0 == same_resourceusage(&usage)) ;
-      TEST(0 == free_resourceusage(&usage)) ;
-
-      if (istestmm) {
-         switchon_testmm() ;
-      }
    }
 
    return 0 ;
 ONABORT:
-   TEST(0 == free_resourceusage(&usage)) ;
    return EINVAL ;
 }
 

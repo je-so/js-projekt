@@ -160,7 +160,7 @@ static int test_initfree(void)\n\
 ONABORT:\n\
    return EINVAL ;\n\
 }\n\n\
-int @UNITTESTNAME()\n\
+static int childprocess_unittest(void)\n\
 {\n\
    resourceusage_t   usage = resourceusage_INIT_FREEABLE ;\n\n\
    TEST(0 == init_resourceusage(&usage)) ;\n\n\
@@ -170,6 +170,19 @@ int @UNITTESTNAME()\n\
    return 0 ;\n\
 ONABORT:\n\
    (void) free_resourceusage(&usage) ;\n\
+   return EINVAL ;\n\
+}\n\
+int @UNITTESTNAME()\n\
+{\n\
+   // select between (1)\n\
+   // and also #include \"C-kern/api/test/resourceusage.h\"\n\
+   int err; \n\n\
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));\n\n\
+   return err;\n\
+   // select between (2)\n\
+   if (test_initfree())       goto ONABORT ;\n\n\
+   return 0 ;\n\
+ONABORT:\n\
    return EINVAL ;\n\
 }\n\n\
 #endif\n" ;

@@ -33,6 +33,7 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/X11/x11.h"
 #ifdef KONFIG_UNITTEST
+#include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/test/unittest.h"
 #endif
 #include "C-kern/api/platform/X11/x11syskonfig.h"
@@ -177,6 +178,14 @@ static int deleteall_x11displayobjectid(x11display_objectid_t ** root)
 
 // section: x11display_t
 
+// group: variables
+
+#ifdef KONFIG_UNITTEST
+/* variable: s_x11display_is_skip_extension
+ * If set to true <initextensions_x11display> is not executed. */
+static bool s_x11display_is_skip_extension = false;
+#endif
+
 // group: extension support
 
 /* function: initextensions_x11display
@@ -189,6 +198,12 @@ static int initextensions_x11display(x11display_t * x11disp)
    int   minor ;
    int   dummy ;
    Bool  isSupported ;
+
+#ifdef KONFIG_UNITTEST
+   if (s_x11display_is_skip_extension) {
+      return 0;
+   }
+#endif
 
    isSupported = XQueryExtension(x11disp->sys_display, "GLX", &dummy, &x11disp->opengl.eventbase, &x11disp->opengl.errorbase) ;
    if (isSupported) {
@@ -418,7 +433,7 @@ ONABORT:
 static int test_initfree(void)
 {
    x11display_t  x11disp  = x11display_INIT_FREEABLE ;
-   x11display_t  x11disp2 = x11display_INIT_FREEABLE ;
+   x11display_t  x11disp4 = x11display_INIT_FREEABLE ;
    pid_t         child    = 1 ;
 
    // TEST x11display_INIT_FREEABLE
@@ -452,61 +467,99 @@ static int test_initfree(void)
    TEST(x11disp.atoms._NET_FRAME_EXTENTS == XInternAtom(x11disp.sys_display, "_NET_FRAME_EXTENTS", False)) ;
    TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
    TEST(0  < io_x11display(&x11disp)) ;
-   TEST(0 == init_x11display(&x11disp2, ":0.0")) ;  // creates new connection
-   TEST(x11disp2.idmap       == 0) ;
-   TEST(x11disp2.sys_display != 0) ;
-   TEST(x11disp2.sys_display != x11disp.sys_display) ;
-   TEST(x11disp2.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
-   TEST(x11disp2.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
-   TEST(x11disp2.atoms._NET_FRAME_EXTENTS == XInternAtom(x11disp.sys_display, "_NET_FRAME_EXTENTS", False)) ;
-   TEST(x11disp2.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
-   TEST(io_x11display(&x11disp2) >  0) ;
-   TEST(io_x11display(&x11disp2) != io_x11display(&x11disp)) ;
-   TEST(0 == free_x11display(&x11disp2)) ;
-   TEST(0 == x11disp2.idmap) ;
-   TEST(0 == x11disp2.sys_display) ;
+   TEST(0 == init_x11display(&x11disp4, ":0.0")) ;  // creates new connection
+   TEST(x11disp4.idmap       == 0) ;
+   TEST(x11disp4.sys_display != 0) ;
+   TEST(x11disp4.sys_display != x11disp.sys_display) ;
+   TEST(x11disp4.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
+   TEST(x11disp4.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
+   TEST(x11disp4.atoms._NET_FRAME_EXTENTS == XInternAtom(x11disp.sys_display, "_NET_FRAME_EXTENTS", False)) ;
+   TEST(x11disp4.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
+   TEST(io_x11display(&x11disp4) >  0) ;
+   TEST(io_x11display(&x11disp4) != io_x11display(&x11disp)) ;
+   TEST(0 == free_x11display(&x11disp4)) ;
+   TEST(0 == x11disp4.idmap) ;
+   TEST(0 == x11disp4.sys_display) ;
    TEST(0 == free_x11display(&x11disp)) ;
    TEST(0 == x11disp.idmap) ;
    TEST(0 == x11disp.sys_display) ;
 
-   child = fork() ;
-   if (0 == child) {
-      // execute this test in child to make changing environment safe
-      // XOpenDisplay has memory leak in case server does not exist
+   return 0 ;
+ONABORT:
+   if (!child) exit(1) ;
+   (void) free_x11display(&x11disp) ;
+   (void) free_x11display(&x11disp4) ;
+   return EINVAL ;
+}
 
-      // TEST init_x11display: ECONNREFUSED
-      TEST(ECONNREFUSED == init_x11display(&x11disp, ":9999.0")) ;
-      TEST(0 == x11disp.sys_display) ;
+/* function: childprocess_environment
+ * Execute this test in child to make changing environment safe.
+ * XOpenDisplay has memory leak in case server does not exist. */
+static int childprocess_environment(void * dummy)
+{
+   (void) dummy;
+   x11display_t   x11disp = x11display_INIT_FREEABLE;
 
-      // TEST init_x11display: getenv("DISPLAY")
-      if (!getenv("DISPLAY")) {
-         TEST(0 == setenv("DISPLAY", ":0", 1)) ;
-      }
-      TEST(0 == init_x11display(&x11disp, 0 /*use value of getenv("DISPLAY")*/)) ;
-      TEST(0 == free_x11display(&x11disp)) ;
+   // TEST init_x11display: ECONNREFUSED
+   TEST(ECONNREFUSED == init_x11display(&x11disp, ":9999.0")) ;
+   TEST(0 == x11disp.sys_display) ;
 
-      // TEST init_x11display: EINVAL DISPLAY not set
-      TEST(0 == unsetenv("DISPLAY")) ;
-      TEST(0 == getenv("DISPLAY")) ;
-      TEST(EINVAL == init_x11display(&x11disp, 0/*use value of getenv("DISPLAY") => EINVAL*/)) ;
-      TEST(0 == x11disp.sys_display) ;
-
-      exit(0) ;
+   // TEST init_x11display: getenv("DISPLAY")
+   if (!getenv("DISPLAY")) {
+      TEST(0 == setenv("DISPLAY", ":0", 1)) ;
    }
+   TEST(0 == init_x11display(&x11disp, 0 /*use value of getenv("DISPLAY")*/)) ;
+   TEST(0 == free_x11display(&x11disp)) ;
 
-   int childstatus ;
-   TEST(child == wait(&childstatus)) ;
-   TEST(WIFEXITED(childstatus)) ;
-   TEST(0 == WEXITSTATUS(childstatus)) ;
+   // TEST init_x11display: EINVAL / DISPLAY not set
+   TEST(0 == unsetenv("DISPLAY")) ;
+   TEST(0 == getenv("DISPLAY")) ;
+   TEST(EINVAL == init_x11display(&x11disp, 0/*use value of getenv("DISPLAY") => EINVAL*/)) ;
+   TEST(0 == x11disp.sys_display) ;
+
+   return 0 ;
+ONABORT:
+   TEST(0 == free_x11display(&x11disp)) ;
+   return EINVAL ;
+}
+
+static int test_initfree_env(void)
+{
+   process_t         child = process_INIT_FREEABLE;
+   process_result_t  result;
+
+   TEST(0 == init_process(&child, &childprocess_environment, 0, &(process_stdio_t)process_stdio_INIT_INHERIT));
+   TEST(0 == wait_process(&child, &result));
+   TEST(0 == free_process(&child));
+   TEST(process_state_TERMINATED == result.state);
+   TEST(0 == result.returncode);
+
+   return 0 ;
+ONABORT:
+   TEST(0 == free_process(&child));
+   return EINVAL ;
+}
+
+static int test_query(void)
+{
+   x11display_t x11disp;
+
+   // TEST isextxrandr_x11display
+   x11disp.xrandr.isSupported = true ;
+   TEST(true  == isextxrandr_x11display(&x11disp)) ;
+   x11disp.xrandr.isSupported = false ;
+   TEST(false == isextxrandr_x11display(&x11disp)) ;
 
    // TEST io_x11display
-   TEST(0 == init_x11display(&x11disp, ":0.0")) ;
-   TEST(0  < io_x11display(&x11disp)) ;
-   int fd = io_x11display(&x11disp) ;
-   TEST(0 == free_x11display(&x11disp)) ;
-   TEST(0 == init_x11display(&x11disp, ":0.0")) ;
-   TEST(fd == io_x11display(&x11disp)) ;
-   TEST(0 == free_x11display(&x11disp)) ;
+   TEST(0 == init_x11display(&x11disp, ":0.0"));
+   TEST(0  < io_x11display(&x11disp));
+   int fd = io_x11display(&x11disp);
+   TEST(0 == free_x11display(&x11disp));
+
+   // TEST io_x11display: same fd
+   TEST(0 == init_x11display(&x11disp, ":0.0"));
+   TEST(fd == io_x11display(&x11disp));
+   TEST(0 == free_x11display(&x11disp));
 
    // TEST errorstring_x11display: last char is set to 0
    char errstr[100] ;
@@ -527,17 +580,8 @@ static int test_initfree(void)
    TEST(0 == memcmp(errstr, errstr2 + errlen, sizeof(errstr2)-errlen)) ;
    TEST(0 == free_x11display(&x11disp)) ;
 
-   // TEST isextxrandr_x11display
-   x11disp.xrandr.isSupported = true ;
-   TEST(true  == isextxrandr_x11display(&x11disp)) ;
-   x11disp.xrandr.isSupported = false ;
-   TEST(false == isextxrandr_x11display(&x11disp)) ;
-
    return 0 ;
 ONABORT:
-   if (!child) exit(1) ;
-   (void) free_x11display(&x11disp) ;
-   (void) free_x11display(&x11disp2) ;
    return EINVAL ;
 }
 
@@ -632,21 +676,36 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_platform_X11_x11display()
+static int childprocess_unittest(void)
 {
    x11display_t      x11disp1 = x11display_INIT_FREEABLE ;
    x11display_t      x11disp2 = x11display_INIT_FREEABLE ;
    resourceusage_t   usage    = resourceusage_INIT_FREEABLE ;
 
-   // in GLX extension there is resource leak of approx 24 bytes per init_x11display ? => skip malloc comparison
-   // remove glXQueryVersion and no resource leak
-   if (test_initfree()) goto ONABORT ;
+   // XQueryExtension keeps file descriptors and memory
+   // without it no resource leak !
+   TEST(0 == init_resourceusage(&usage)) ;
+   s_x11display_is_skip_extension = true;
+   TEST(0 == init_x11display(&x11disp1, ":0")) ;
+   TEST(0 == free_x11display(&x11disp1)) ;
+   s_x11display_is_skip_extension = false;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
+
+   TEST(0 == init_resourceusage(&usage)) ;
+   if (test_initfree_env())     goto ONABORT ;
+   TEST(0 == same_resourceusage(&usage)) ;
+   TEST(0 == free_resourceusage(&usage)) ;
 
    TEST(0 == init_x11display(&x11disp1, ":0")) ;
    TEST(0 == init_x11display(&x11disp2, ":0")) ;
+   char errstr[100];
+   errorstring_x11display(&x11disp1, 1, errstr, sizeof(errstr));
 
    TEST(0 == init_resourceusage(&usage)) ;
 
+   if (test_initfree())                         goto ONABORT ;
+   if (test_query())                            goto ONABORT ;
    if (test_extensions(&x11disp1))              goto ONABORT ;
    if (test_id_manager(&x11disp1, &x11disp2))   goto ONABORT ;
 
@@ -656,12 +715,25 @@ int unittest_platform_X11_x11display()
    TEST(0 == free_x11display(&x11disp1)) ;
    TEST(0 == free_x11display(&x11disp2)) ;
 
+
    return 0 ;
 ONABORT:
-   (void) free_x11display(&x11disp1) ;
-   (void) free_x11display(&x11disp2) ;
-   (void) free_resourceusage(&usage) ;
+   s_x11display_is_skip_extension = false;
+   (void) free_x11display(&x11disp1);
+   (void) free_x11display(&x11disp2);
+   (void) free_resourceusage(&usage);
    return EINVAL ;
+}
+
+int unittest_platform_X11_x11display()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return err;
+ONABORT:
+   return EINVAL;
 }
 
 #endif

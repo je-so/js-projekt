@@ -1,0 +1,50 @@
+[1: 1385149354.071658s]
+malloc_mmimpl() C-kern/memory/mm/mm_impl.c:99
+Error 12 - Cannot allocate memory
+Could not allocate 4294967295 bytes of memory
+Function aborted
+[1: 1385149354.071713s]
+mresize_mmimpl() C-kern/memory/mm/mm_impl.c:126
+Error 22 - Invalid argument
+Function input violates condition (isfree_memblock(memblock) || isvalid_memblock(memblock))
+Function aborted
+[1: 1385149354.071717s]
+mresize_mmimpl() C-kern/memory/mm/mm_impl.c:126
+Error 22 - Invalid argument
+Function input violates condition (isfree_memblock(memblock) || isvalid_memblock(memblock))
+Function aborted
+[1: 1385149354.071720s]
+mresize_mmimpl() C-kern/memory/mm/mm_impl.c:134
+Error 12 - Cannot allocate memory
+Could not allocate 4294967295 bytes of memory
+Function aborted
+[1: 1385149354.071722s]
+mfree_mmimpl() C-kern/memory/mm/mm_impl.c:156
+Error 22 - Invalid argument
+Function input violates condition (isvalid_memblock(memblock))
+Function aborted
+[1: 1385149354.072580s]
+malloc_mmimpl() C-kern/memory/mm/mm_impl.c:99
+Error 12 - Cannot allocate memory
+Could not allocate 4294967295 bytes of memory
+Function aborted
+[1: 1385149354.072584s]
+mresize_mmimpl() C-kern/memory/mm/mm_impl.c:126
+Error 22 - Invalid argument
+Function input violates condition (isfree_memblock(memblock) || isvalid_memblock(memblock))
+Function aborted
+[1: 1385149354.072587s]
+mresize_mmimpl() C-kern/memory/mm/mm_impl.c:126
+Error 22 - Invalid argument
+Function input violates condition (isfree_memblock(memblock) || isvalid_memblock(memblock))
+Function aborted
+[1: 1385149354.072590s]
+mresize_mmimpl() C-kern/memory/mm/mm_impl.c:134
+Error 12 - Cannot allocate memory
+Could not allocate 4294967295 bytes of memory
+Function aborted
+[1: 1385149354.072592s]
+mfree_mmimpl() C-kern/memory/mm/mm_impl.c:156
+Error 22 - Invalid argument
+Function input violates condition (isvalid_memblock(memblock))
+Function aborted

@@ -256,7 +256,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0xfe] = 3120 /*same as 0x85*/,
    [0xff] = 3120 /*same as 0x85*/,
    [EINVARIANT] = 3134,
-   [0x101] = 3120 /*same as 0xff*/,
+   [ELEAK] = 3197,
    [0x102] = 3120 /*same as 0xff*/,
    [0x103] = 3120 /*same as 0xff*/,
    [0x104] = 3120 /*same as 0xff*/,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 3120 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[3197] = {
+uint8_t g_errorcontext_strdata[3216] = {
    "Success\0"
    "Operation not permitted\0"
    "No such file or directory\0"
@@ -649,4 +649,5 @@ uint8_t g_errorcontext_strdata[3197] = {
    "Operation not possible due to RF-kill\0"
    "Unknown error\0"
    "Internal invariant violated - (software bug or corrupt memory)\0"
+   "Resource(s) leaked\0"
 } ;

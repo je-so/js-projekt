@@ -419,7 +419,7 @@ void resetthreadid_threadcontext()
    atomicwrite_int(&s_threadcontext_nextid, 0) ;
 }
 
-void setmm_threadcontext(threadcontext_t * tcontext, mm_t * new_mm)
+void setmm_threadcontext(threadcontext_t * tcontext, const mm_t * new_mm)
 {
    initcopy_iobj(&tcontext->mm, new_mm) ;
 }

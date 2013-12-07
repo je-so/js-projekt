@@ -1,12 +1,24 @@
-[1: 1374953423.577054s]
-findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
+[1: 1385183290.152580s]
+findobject_x11display() C-kern/platform/shared/X11/x11display.c:383
 Error 3 - No such process
 Function aborted
-[1: 1374953423.678200s]
-findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
+[1: 1385183290.255937s]
+findobject_x11display() C-kern/platform/shared/X11/x11display.c:383
 Error 3 - No such process
 Function aborted
-[1: 1374953423.799089s]
-findobject_x11display() C-kern/platform/shared/X11/x11display.c:368
+[1: 1385183290.376735s]
+findobject_x11display() C-kern/platform/shared/X11/x11display.c:383
+Error 3 - No such process
+Function aborted
+[1: 1385183293.576128s]
+findobject_x11display() C-kern/platform/shared/X11/x11display.c:383
+Error 3 - No such process
+Function aborted
+[1: 1385183293.676838s]
+findobject_x11display() C-kern/platform/shared/X11/x11display.c:383
+Error 3 - No such process
+Function aborted
+[1: 1385183293.797599s]
+findobject_x11display() C-kern/platform/shared/X11/x11display.c:383
 Error 3 - No such process
 Function aborted

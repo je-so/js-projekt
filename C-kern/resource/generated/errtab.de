@@ -256,7 +256,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0xfe] = 4826 /*same as 0x85*/,
    [0xff] = 4826 /*same as 0x85*/,
    [EINVARIANT] = 4845,
-   [0x101] = 4826 /*same as 0xff*/,
+   [ELEAK] = 4916,
    [0x102] = 4826 /*same as 0xff*/,
    [0x103] = 4826 /*same as 0xff*/,
    [0x104] = 4826 /*same as 0xff*/,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 4826 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[4916] = {
+uint8_t g_errorcontext_strdata[4938] = {
    "Erfolg\0"
    "Die Operation ist nicht erlaubt\0"
    "Datei oder Verzeichnis nicht gefunden\0"
@@ -649,4 +649,5 @@ uint8_t g_errorcontext_strdata[4916] = {
    "Die Operation ist nicht möglich wegen RF-kill\0"
    "Unbekannter Fehler\0"
    "Interne Invariante verletzt - (Softwarefehler oder korrupter Speicher)\0"
+   "Ressource(n) verloren\0"
 } ;

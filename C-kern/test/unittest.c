@@ -34,6 +34,7 @@
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/sync/mutex.h"
+#include "C-kern/api/platform/task/process.h"
 
 typedef struct unittest_t unittest_t;
 
@@ -127,14 +128,13 @@ void logresult_unittest(bool isFailed)
    sunlock_mutex(&s_unittest_singleton.mutex);
 }
 
-void logfailed_unittest(const char * filename, unsigned line_number)
+void logfailed_unittest(const char * filename, unsigned line_number, const char * msg)
 {
    char           number[11];
-   struct iovec   iov[4] = {
-      { (void*) (uintptr_t) "TEST failed at ", 15 },
+   struct iovec   iov[3] = {
       { (void*) (uintptr_t) filename, strlen(filename) },
-      { (void*) (uintptr_t) ":", 1 },
-      { number, (unsigned) snprintf(number, sizeof(number), "%u\n", line_number) },
+      { number, (unsigned) snprintf(number, sizeof(number), ":%u: ", line_number) },
+      { (void*) (uintptr_t) (msg ? msg : "TEST FAILED\n"), msg ? strlen(msg) : 12 },
    };
 
    logresult_unittest(true);
@@ -191,7 +191,8 @@ static int writelogfile_unittest(const char * testname)
    return 0;
 ONABORT:
    logresult_unittest(true);
-   logf_unittest("TEST failed to write '%s/%s'\n", s_unittest_singleton.log_files_directory, testname);
+   logfailed_unittest(__FILE__, __LINE__, "FAILED to write errlog file\n");
+   logf_unittest("at '%s/%s'\n", s_unittest_singleton.log_files_directory, testname);
    delete_directory(&dir);
    return err;
 }
@@ -223,7 +224,8 @@ static int comparelogfile_unittest(const char * testname)
    return 0;
 ONABORT:
    logresult_unittest(true);
-   logf_unittest("TEST failed to compare '%s/%s'\n", s_unittest_singleton.log_files_directory, testname);
+   logfailed_unittest(__FILE__, __LINE__, "FAILED to compare errlog file\n");
+   logf_unittest("with '%s/%s'\n", s_unittest_singleton.log_files_directory, testname);
    delete_directory(&dir);
    FREE_MM(&logfile_content);
    return err;
@@ -234,17 +236,118 @@ ONABORT:
 int execsingle_unittest(const char * testname, int (*test_f)(void))
 {
    int err;
-
-   CLEARBUFFER_ERRLOG();
+   bool  isResourceError = true;
+   resourceusage_t usage = resourceusage_INIT_FREEABLE;
 
    logrun_unittest(testname);
-   {
-      err = test_f();
-      if (!err) err = writelogfile_unittest(testname);
-      if (!err) err = comparelogfile_unittest(testname);
+
+   // repeat several times in case of no error in test but resource leak
+   for (unsigned testrepeat = 3; testrepeat; --testrepeat) {
+      err = init_resourceusage(&usage);
+      isResourceError = (err != 0);
+      if (! err) {
+         CLEARBUFFER_ERRLOG();
+         err = test_f();
+         if (!err) err = writelogfile_unittest(testname);
+         if (!err) err = comparelogfile_unittest(testname);
+         if (!err) err = same_resourceusage(&usage);
+         int err2 = free_resourceusage(&usage);
+         if (!err) {
+            err = err2;
+            isResourceError = (err != 0);
+         }
+      }
+      if (err != ELEAK) break;
    }
+
    logresult_unittest(err != 0);
 
+   if (err) {
+      if (err == ELEAK /*same_resourceusage failed*/) {
+         logfailed_unittest(__FILE__, __LINE__, "FAILED to free all resources\n");
+      } else if (isResourceError) {
+         logfailed_unittest(__FILE__, __LINE__, "FAILED to determine resource usage\n");
+      }
+   }
+
+   return err;
+}
+
+typedef struct childprocess_t childprocess_t;
+
+struct childprocess_t {
+   int   pipefd;
+   int (*test_f)(void);
+};
+
+static int childprocess_unittest(childprocess_t * param)
+{
+   int err = param->test_f();
+
+   uint8_t *buffer;
+   size_t   size = 0;
+   size_t   written;
+   GETBUFFER_ERRLOG(&buffer, &size);
+
+   if (write_iochannel(param->pipefd, size, buffer, &written) || written != size) {
+      err = EIO;
+   }
+
+   return err;
+}
+
+int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode)
+{
+   int err;
+   process_t         child = process_INIT_FREEABLE;
+   process_result_t  result;
+   childprocess_t    param;
+   int               fd[2] = { -1, -1 };
+
+   if (pipe2(fd, O_NONBLOCK|O_CLOEXEC)) {
+      err = errno;
+      TRACESYSCALL_ERRLOG("pipe2", err);
+      goto ONABORT;
+   }
+
+   param.pipefd = fd[1];
+   param.test_f = test_f;
+
+   err = init_process(&child, (int(*)(void*))&childprocess_unittest, &param, &(process_stdio_t)process_stdio_INIT_INHERIT);
+   if (err) goto ONABORT;
+   err = wait_process(&child, &result);
+   if (err) goto ONABORT;
+   err = free_process(&child);
+   if (err) goto ONABORT;
+
+   if (process_state_TERMINATED != result.state) {
+      result.returncode = EINTR;
+   }
+
+   for (;;) {
+      uint8_t  buffer[256];
+      size_t   size;
+      err = read_iochannel(fd[0], sizeof(buffer)-1, buffer, &size);
+      if (err) {
+         if (err == EAGAIN) break;
+         goto ONABORT;
+      }
+      buffer[size] = 0;
+      PRINTF_ERRLOG("%s", (char*)buffer);
+   }
+
+   err = free_iochannel(&fd[0]);
+   if (err) goto ONABORT;
+   err = free_iochannel(&fd[1]);
+   if (err) goto ONABORT;
+
+   *retcode = result.returncode;
+
+   return 0;
+ONABORT:
+   (void) free_iochannel(&fd[0]);
+   (void) free_iochannel(&fd[1]);
+   (void) free_process(&child);
    return err;
 }
 
@@ -349,11 +452,17 @@ static int test_report(void)
    TEST(1 == s_unittest_singleton.isResult);
    TEST(EAGAIN == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
 
-   // TEST logfailed_unittest
-   logfailed_unittest("file", 45);
+   // TEST logfailed_unittest: default msg
+   logfailed_unittest("file", 45, 0);
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
-   TEST(23 == bytes_read);
-   TEST(0  == strncmp((const char*)buffer, "TEST failed at file:45\n", bytes_read));
+   TEST(21 == bytes_read);
+   TEST(0  == strncmp((const char*)buffer, "file:45: TEST FAILED\n", bytes_read));
+
+   // TEST logfailed_unittest: other msg
+   logfailed_unittest("FILE", 33, "OTHER MSG\n");
+   TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
+   TEST(19 == bytes_read);
+   TEST(0  == strncmp((const char*)buffer, "FILE:33: OTHER MSG\n", bytes_read));
 
    // TEST logrun_unittest
    s_unittest_singleton.isResult = true;
@@ -486,8 +595,14 @@ static int dummy_unittest_fail1(void)
 static int dummy_unittest_fail2(void)
 {
    PRINTF_ERRLOG("ERRLOG");
-   logfailed_unittest("_file_", 1234);
+   logfailed_unittest("_file_", 1234, 0);
    return EINVAL;
+}
+
+static int dummy_unittest_abort(void)
+{
+   abort();
+   return 0;
 }
 
 static int test_exec(void)
@@ -495,7 +610,7 @@ static int test_exec(void)
    int         fd[2]     = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
    int         oldstdout = iochannel_INIT_FREEABLE;
    unittest_t  old;
-   uint8_t     buffer[100];
+   uint8_t     buffer[200];
    wbuffer_t   wbuffer   = wbuffer_INIT_STATIC(sizeof(buffer), buffer);
    size_t      bytes_read;
 
@@ -531,8 +646,8 @@ static int test_exec(void)
    s_unittest_singleton.isResult = 0;
    TEST(EINVAL == execsingle_unittest("dummy_unittest_ok", &dummy_unittest_ok));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
-   TEST(75 == bytes_read);
-   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nTEST failed to compare './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
+   TEST(115 == bytes_read);
+   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:227: FAILED to compare errlog file\nwith './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
    TEST(3 == s_unittest_singleton.okcount);
    TEST(3 == s_unittest_singleton.errcount);
    TEST(1 == s_unittest_singleton.isResult);
@@ -552,12 +667,52 @@ static int test_exec(void)
    // TEST execsingle_unittest: test returns ERROR (EINVAL) and calls logfailed_unittest
    TEST(EINVAL == execsingle_unittest("dummy_unittest_fail", &dummy_unittest_fail2));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
-   TEST(59 == bytes_read);
-   TEST(0 == strncmp("RUN dummy_unittest_fail: FAILED\nTEST failed at _file_:1234\n", (const char*)buffer, bytes_read));
+   TEST(57 == bytes_read);
+   TEST(0 == strncmp("RUN dummy_unittest_fail: FAILED\n_file_:1234: TEST FAILED\n", (const char*)buffer, bytes_read));
    TEST(3 == s_unittest_singleton.okcount);
    TEST(5 == s_unittest_singleton.errcount);
    TEST(1 == s_unittest_singleton.isResult);
    TEST(ENOENT == trypath_directory(0, "dummy_unittest_fail"));
+
+   // TEST execasprocess_unittest: return code 0
+   int      retcode = 1;
+   uint8_t *logbuffer;
+   size_t   logsize;
+   CLEARBUFFER_ERRLOG();
+   TEST(0 == execasprocess_unittest(&dummy_unittest_ok, &retcode));
+   TEST(0 == retcode);
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   TEST(6 == logsize);
+   TEST(0 == memcmp(logbuffer, "ERRLOG", 6));
+
+   // TEST execasprocess_unittest: return code ENOMEM
+   CLEARBUFFER_ERRLOG();
+   TEST(0 == execasprocess_unittest(&dummy_unittest_fail1, &retcode));
+   TEST(ENOMEM == retcode);
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   TEST(6 == logsize);
+   TEST(0 == memcmp(logbuffer, "ERRLOG", 6));
+
+   // TEST execasprocess_unittest: stdout is inherited
+   CLEARBUFFER_ERRLOG();
+   TEST(0 == execasprocess_unittest(&dummy_unittest_fail2, &retcode));
+   TEST(EINVAL == retcode);
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   TEST(6 == logsize);
+   TEST(0 == memcmp(logbuffer, "ERRLOG", 6));
+   PRINTF_ERRLOG("\n");
+   TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
+   TEST(25 == bytes_read);
+   TEST(0 == strncmp("_file_:1234: TEST FAILED\n", (const char*)buffer, bytes_read));
+
+   // TEST execasprocess_unittest: EINTR
+   TEST(0 == execasprocess_unittest(&dummy_unittest_abort, &retcode));
+   TEST(EINTR == retcode);
+   // no log written or something to stdout
+   GETBUFFER_ERRLOG(&logbuffer, &logsize);
+   TEST(7 == logsize);
+   TEST(0 == memcmp(logbuffer, "ERRLOG\n", 7));
+   TEST(EAGAIN == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
 
    // unprepare
    memcpy(&s_unittest_singleton, &old, sizeof(old));
@@ -568,6 +723,7 @@ static int test_exec(void)
 
    return 0;
 ONABORT:
+   removefile_directory(0, "dummy_unittest_ok");
    memcpy(&s_unittest_singleton, &old, sizeof(old));
    if (!isfree_iochannel(oldstdout)) {
       dup2(oldstdout, iochannel_STDOUT);
