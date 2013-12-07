@@ -299,9 +299,10 @@ int delete_url(url_t ** url)
 int encode_url(const url_t * url, /*ret*/wbuffer_t * encoded_url_string)
 {
    int err ;
-   size_t      sizeencoding[lengthof(url->parts)] = { 0 } ;
-   uint8_t     * start_result = 0 ;
-   size_t      result_size    = sizeof("http://")-1 ;
+   size_t   sizeencoding[lengthof(url->parts)] = { 0 } ;
+   uint8_t *start_result = 0 ;
+   size_t   oldsize      = size_wbuffer(encoded_url_string);
+   size_t   result_size  = sizeof("http://")-1 ;
 
    // sizeof("http://") includes trailing \0 byte
    switch(url->scheme) {
@@ -327,13 +328,12 @@ int encode_url(const url_t * url, /*ret*/wbuffer_t * encoded_url_string)
       buffer_offset = url->parts[i] ;
    }
 
-   clear_wbuffer(encoded_url_string) ;
    err = appendbytes_wbuffer(encoded_url_string, result_size, &start_result) ;
    if (err) goto ONABORT ;
 
    // encode & copy parts to result
    memcpy(start_result, "http://", sizeof("http://")-1) ;
-   uint8_t* result = start_result + sizeof("http://")-1 ;
+   uint8_t *result = start_result + sizeof("http://")-1 ;
    bool     isuser = false ;
    buffer_offset = 0 ;
    for (unsigned i = 0; i < lengthof(url->parts); ++i) {
@@ -372,7 +372,7 @@ int encode_url(const url_t * url, /*ret*/wbuffer_t * encoded_url_string)
 
    return 0 ;
 ONABORT:
-   clear_wbuffer(encoded_url_string) ;
+   shrink_wbuffer(encoded_url_string, oldsize);
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
@@ -421,6 +421,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp(test, str_cstring(&str), size_wbuffer(&wbuf))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST new_url: null or empty
    test = "http://" ;
@@ -439,6 +440,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp(test, str_cstring(&str), size_wbuffer(&wbuf))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST new_url: '/' marks begin of path
    test = "http://www.test.de:80/user1@/d1/?a_c#fragX" ;
@@ -462,6 +464,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp(test, str_cstring(&str), size_wbuffer(&wbuf))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST new_url: encoded parts
    test = "http://%00%11%22%33%44%55%66%77%88%99xX:99/%Aa%Bb%Cc%Dd%Ee%FfyY/?Query/#/%aA%bB%cC%dD%eE%fFzZ" ;
@@ -486,6 +489,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp(test, str_cstring(&str), size_wbuffer(&wbuf))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST new2_url
    test = "usr:pass@a%88%99b:44/%AA%BB%FF?_1#_2" ;
@@ -509,6 +513,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp(test, 7+str_cstring(&str), strlen(test))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST new2_url: path only
    test = "/path%88%99x" ;
@@ -529,6 +534,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp(test, 7+str_cstring(&str), strlen(test))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST new2_url: port + path only
    test = ":33/path%88%99%" ;
@@ -551,6 +557,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp("25", 7+strlen(test)+str_cstring(&str), 2)) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST new2_url: username & path only
    test = "user%FF@/path%88%9" ;
@@ -573,6 +580,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp("%259", 5+strlen(test)+str_cstring(&str), 4)) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST newparts_url: not encoded
    test = "us:pw@serv.xx@/@:/?@/#?/#:" ;
@@ -601,6 +609,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp(test, str_cstring(&str), strlen(test))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // TEST newparts_url: user + undefined hostname
    test = "http://12:3@/path?q#f" ;
@@ -627,6 +636,7 @@ static int test_url_initfree(void)
    TEST(0 == strncmp(test, str_cstring(&str), strlen(test))) ;
    TEST(0 == delete_url(&url)) ;
    TEST(0 == url) ;
+   clear_wbuffer(&wbuf);
 
    // unprepare
    TEST(0 == free_cstring(&str)) ;

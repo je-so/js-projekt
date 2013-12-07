@@ -112,10 +112,9 @@ size_t sizeurldecode_string(const string_t * str)
 int urlencode_string(const string_t * str, uint8_t except_char, uint8_t changeto_char, /*ret*/wbuffer_t * result)
 {
    int err ;
-   uint8_t        * encodedchar ;
-   const uint8_t  * next = str->addr ;
-
-   clear_wbuffer(result) ;
+   uint8_t       *encodedchar ;
+   const uint8_t *next    = str->addr ;
+   size_t         oldsize = size_wbuffer(result);
 
    for(size_t count = str->size; count; ++next, --count) {
       const uint8_t c = *next ;
@@ -146,7 +145,7 @@ int urlencode_string(const string_t * str, uint8_t except_char, uint8_t changeto
 
    return 0 ;
 ONABORT:
-   clear_wbuffer(result) ;
+   shrink_wbuffer(result, oldsize) ;
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
@@ -154,10 +153,9 @@ ONABORT:
 int urldecode_string(const string_t * str, uint8_t changefrom_char, uint8_t changeinto_char, /*ret*/wbuffer_t * result)
 {
    int err ;
-   const uint8_t  * next = str->addr ;
-   size_t         count  = str->size ;
-
-   clear_wbuffer(result) ;
+   const uint8_t *next    = str->addr ;
+   size_t         count   = str->size ;
+   size_t         oldsize = size_wbuffer(result);
 
    for( ; count; ++ next, --count) {
       if (  ('%' == next[0])
@@ -190,9 +188,9 @@ int urldecode_string(const string_t * str, uint8_t changefrom_char, uint8_t chan
 
    return 0 ;
 ONABORT:
-   clear_wbuffer(result) ;
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
+   shrink_wbuffer(result, oldsize);
+   TRACEABORT_ERRLOG(err);
+   return err;
 }
 
 
@@ -212,6 +210,7 @@ static int test_urlencode(void)
    TEST(0 == urlencode_string(&(string_t)string_INIT(strlen((const char*)test),test), 0, 0, &result)) ;
    TEST(52 == size_wbuffer(&result)) ;
    TEST(0 == strncmp((const char*)test, (char*)addr_memblock(&data), 52)) ;
+   clear_wbuffer(&result);
 
    // TEST urlencode_string: numerical chars are not encoded
    test = (const uint8_t*)"0123456789" ;
@@ -219,6 +218,7 @@ static int test_urlencode(void)
    TEST(0 == urlencode_string(&(string_t)string_INIT(strlen((const char*)test),test), 0, 0, &result)) ;
    TEST(10 == size_wbuffer(&result)) ;
    TEST(0 == strncmp((const char*)test, (char*)addr_memblock(&data), 10)) ;
+   clear_wbuffer(&result);
 
    // TEST urlencode_string: special chars are not encoded
    test = (const uint8_t*)"-_.*" ;
@@ -226,6 +226,7 @@ static int test_urlencode(void)
    TEST(0 == urlencode_string(&(string_t)string_INIT(strlen((const char*)test),test), 0, 0, &result)) ;
    TEST(4 == size_wbuffer(&result)) ;
    TEST(0 == strncmp((const char*)test, (char*)addr_memblock(&data), strlen((const char*)test))) ;
+   clear_wbuffer(&result);
 
    // TEST urlencode_string: except_char, changeto_char
    test = (const uint8_t*)"&=$-_.+!*'(),/@" ;
@@ -236,10 +237,12 @@ static int test_urlencode(void)
    TEST(0 == strncmp((const char*)test, (char*)addr_memblock(&data), strlen((const char*)test))) ;
    test = (const uint8_t*)"&=$-_.+!*'(),/@" ;
    TEST(35 == sizeurlencode_string(&(string_t)string_INIT(strlen((const char*)test),test), '@')) ;
+   clear_wbuffer(&result);
    TEST(0 == urlencode_string(&(string_t)string_INIT(strlen((const char*)test),test), '@', '+', &result)) ;
    TEST(35 == size_wbuffer(&result)) ;
    test = (const uint8_t*)"%26%3D%24-_.%2B%21*%27%28%29%2C%2F+" ;
    TEST(0 == strncmp((const char*)test, (char*)addr_memblock(&data), strlen((const char*)test))) ;
+   clear_wbuffer(&result);
 
    // TEST urlencode_string: all other characters
    test =   (const uint8_t*)"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -259,11 +262,13 @@ static int test_urlencode(void)
          sprintf((char*)c, "%%%c%c", (i/16) > 9 ? (i/16)+'A'-10 : (i/16)+'0', (i%16) > 9 ? (i%16)+'A'-10 : (i%16)+'0') ;
          TEST(0 == strncmp((const char*)c, (char*)addr_memblock(&data), 3)) ;
          TEST(1 == sizeurlencode_string(&(string_t)string_INIT(1,c), c[0])) ;
+         clear_wbuffer(&result);
          TEST(0 == urlencode_string(&(string_t)string_INIT(1,c), c[0], (uint8_t)(i+5), &result)) ;
          TEST(1 == size_wbuffer(&result)) ;
          c[0] = (uint8_t)(i+5) ;
          TEST(0 == strncmp((const char*)c, (char*)addr_memblock(&data), 1)) ;
       }
+      clear_wbuffer(&result);
    }
 
    // unprepare
@@ -279,14 +284,15 @@ static int test_urldecode(void)
 {
    memblock_t     data   = memblock_INIT_FREEABLE ;
    wbuffer_t      result = wbuffer_INIT_MEMBLOCK(&data) ;
-   const uint8_t  * test ;
+   const uint8_t *test ;
 
    // TEST urldecode_string: empty decode
    TEST(0 == appendbyte_wbuffer(&result, 1)) ;
-   TEST(0 <  size_wbuffer(&result)) ;
+   TEST(1 == size_wbuffer(&result)) ;
    TEST(0 == sizeurldecode_string(&(string_t)string_INIT(0, (const uint8_t*)""))) ;
    TEST(0 == urldecode_string(&(string_t)string_INIT(0, (const uint8_t*)""), 0, 0, &result)) ;
-   TEST(0 == size_wbuffer(&result)) ;
+   TEST(1 == size_wbuffer(&result));
+   clear_wbuffer(&result);
 
    // TEST urldecode_string: every possible value
    for(unsigned i = 0; i < 256; ++i) {
@@ -301,6 +307,7 @@ static int test_urldecode(void)
       TEST((uint8_t)(1+i) == addr_memblock(&data)[6]) ;
       TEST((uint8_t)i == addr_memblock(&data)[7]) ;
       TEST((uint8_t)i == addr_memblock(&data)[8]) ;
+      clear_wbuffer(&result);
    }
 
    // TEST urldecode_string: invalid encoded are not decoded
@@ -309,6 +316,7 @@ static int test_urldecode(void)
    TEST(0 == urldecode_string(&(string_t)string_INIT(strlen((const char*)test),test), 0, 0, &result)) ;
    TEST(strlen((const char*)test) == size_wbuffer(&result)) ;
    TEST(0 == strncmp((const char*)test, (char*)addr_memblock(&data), size_wbuffer(&result))) ;
+   clear_wbuffer(&result);
 
    // TEST urldecode_string: end of string is considered
    test = (const uint8_t*)"123%99" ;
@@ -317,6 +325,7 @@ static int test_urldecode(void)
       TEST(0 == urldecode_string(&(string_t)string_INIT(i,test), 0, 0, &result)) ;
       TEST(i == size_wbuffer(&result)) ;
       TEST(0 == strncmp((const char*)test, (char*)addr_memblock(&data), i)) ;
+      clear_wbuffer(&result);
    }
 
    // TEST urldecode_string: octets are not changed except if changefrom_char is set
@@ -328,10 +337,12 @@ static int test_urldecode(void)
          TEST(0 == urldecode_string(&(string_t)string_INIT(1+i,buffer), 0, 0, &result)) ;
          TEST(1+i == size_wbuffer(&result)) ;
          TEST(0 == memcmp(buffer, addr_memblock(&data), 1+i)) ;
+         clear_wbuffer(&result);
          TEST(0 == urldecode_string(&(string_t)string_INIT(1+i,buffer), (uint8_t)i, '@', &result)) ;
          TEST(1+i == size_wbuffer(&result)) ;
          TEST(0 == memcmp(buffer, addr_memblock(&data), i)) ;
          TEST('@' == addr_memblock(&data)[i]) ;
+         clear_wbuffer(&result);
       }
    }
 

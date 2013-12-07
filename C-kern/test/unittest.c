@@ -191,7 +191,7 @@ static int writelogfile_unittest(const char * testname)
    return 0;
 ONABORT:
    logresult_unittest(true);
-   logf_unittest("FAILED to write '%s/%s'\n", s_unittest_singleton.log_files_directory, testname);
+   logf_unittest("TEST failed to write '%s/%s'\n", s_unittest_singleton.log_files_directory, testname);
    delete_directory(&dir);
    return err;
 }
@@ -223,7 +223,7 @@ static int comparelogfile_unittest(const char * testname)
    return 0;
 ONABORT:
    logresult_unittest(true);
-   logf_unittest("FAILED to compare '%s/%s'\n", s_unittest_singleton.log_files_directory, testname);
+   logf_unittest("TEST failed to compare '%s/%s'\n", s_unittest_singleton.log_files_directory, testname);
    delete_directory(&dir);
    FREE_MM(&logfile_content);
    return err;
@@ -531,8 +531,8 @@ static int test_exec(void)
    s_unittest_singleton.isResult = 0;
    TEST(EINVAL == execsingle_unittest("dummy_unittest_ok", &dummy_unittest_ok));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
-   TEST(70 == bytes_read);
-   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nFAILED to compare './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
+   TEST(75 == bytes_read);
+   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nTEST failed to compare './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
    TEST(3 == s_unittest_singleton.okcount);
    TEST(3 == s_unittest_singleton.errcount);
    TEST(1 == s_unittest_singleton.isResult);

@@ -55,23 +55,24 @@ void init_filepathstatic(/*out*/filepath_static_t * fpath, const struct director
    if (  workdir
          && (  !filename
                || filename[0] != '/')) {
-      wbuffer_t path = wbuffer_INIT_STATIC(sizeof(fpath->workdir)-1, (uint8_t*)fpath->workdir) ;
+      wbuffer_t path = wbuffer_INIT_STATIC(sizeof(fpath->workdir)-2, (uint8_t*)fpath->workdir) ;
       err = path_directory(workdir, &path) ;
       SETONERROR_testerrortimer(&s_filepathstatic_errtimer, &err) ;
       if (err) {
          memcpy(fpath->workdir, "???ERR/", sizeof("???ERR/")/*include trailing \0*/) ;
       } else {
-         size_t size = size_wbuffer(&path) ;
-         if (fpath->workdir[size-2] != '/') {
-            fpath->workdir[size-1] = '/' ;
-            fpath->workdir[size] = 0 ;
+         size_t size = size_wbuffer(&path);
+         if (fpath->workdir[size-1] != '/') {
+            fpath->workdir[size] = '/';
+            ++size;
          }
+         fpath->workdir[size] = 0;
       }
    } else {
-      fpath->workdir[0] = 0 ;
+      fpath->workdir[0] = 0;
    }
 
-   fpath->filename = filename ? filename : "" ;
+   fpath->filename = filename ? filename : "";
 }
 
 
@@ -91,7 +92,6 @@ static int test_filepathstatic(void)
    // prepare
    TEST(0 == new_directory(&workdir, "", 0)) ;
    TEST(0 == path_directory(workdir, &workpathwb)) ;
-   TEST(0 == resize_cstring(&workpath, size_wbuffer(&workpathwb)-1/*remove trailing \0*/))
 
    // TEST init_filepathstatic: workdir == 0 && filename == 0
    memset(&fpath, 255, sizeof(fpath)) ;
@@ -112,7 +112,7 @@ static int test_filepathstatic(void)
    init_filepathstatic(&fpath, workdir, 0) ;
    TEST('/' == fpath.workdir[size_cstring(&workpath)]) ;
    TEST(0 == fpath.workdir[size_cstring(&workpath)+1]) ;
-   TEST(0 == strncmp(fpath.workdir, str_cstring(&workpath), size_cstring(&workpath))) ;
+   TEST(0 == memcmp(fpath.workdir, str_cstring(&workpath), size_cstring(&workpath))) ;
    TEST(0 != fpath.filename) ;
    TEST(0 == fpath.filename[0]) ;
 
@@ -122,7 +122,7 @@ static int test_filepathstatic(void)
    init_filepathstatic(&fpath, workdir, F) ;
    TEST('/' == fpath.workdir[size_cstring(&workpath)]) ;
    TEST(0 == fpath.workdir[size_cstring(&workpath)+1]) ;
-   TEST(0 == strncmp(fpath.workdir, str_cstring(&workpath), size_cstring(&workpath))) ;
+   TEST(0 == memcmp(fpath.workdir, str_cstring(&workpath), size_cstring(&workpath))) ;
    TEST(F == fpath.filename) ;
 
    // TEST init_filepathstatic: absolute filename (filename[0] == '/')

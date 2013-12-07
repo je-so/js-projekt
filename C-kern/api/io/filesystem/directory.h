@@ -140,8 +140,11 @@ int filesize_directory(const directory_t * dir/*0 => current working directory*/
 /* function: path_directory
  * Returns absolute real path of directory dir in path.
  * If dir was initializated with a path containing symlinks the returned path
- * will differ from the one used during initialization. A trailing '\0' is appended
- * at the end of the returned string. The returned path contains at least '/' as first character. */
+ * will differ from the one used during initialization.
+ * The returned path contains at least '/' as first character.
+ * A trailing '\0' is *not* appended at the end of the returned string.
+ * If <wbuffer_t> wraps a <cstring_t> a '\0' byte is added automatically else
+ * do not forget to add your own if you use C string functions. */
 int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path) ;
 
 // group: read

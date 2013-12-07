@@ -48,8 +48,8 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
    int err ;
    off_t    loadsize ;
    size_t   readsize ;
-   uint8_t* buffer = 0 ;
-   file_t   file   = file_INIT_FREEABLE ;
+   size_t   oldsize = size_wbuffer(result);
+   file_t   file    = file_INIT_FREEABLE ;
 
    err = init_file(&file, filepath, accessmode_READ, relative_to) ;
    if (err) goto ONABORT ;
@@ -62,6 +62,7 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
       goto ONABORT ;
    }
 
+   uint8_t* buffer;
    err = appendbytes_wbuffer(result, (size_t)loadsize, &buffer) ;
    if (err) goto ONABORT ;
 
@@ -78,7 +79,7 @@ int load_file(const char * filepath, /*ret*/struct wbuffer_t * result, struct di
 
    return 0 ;
 ONABORT:
-   if (buffer) clear_wbuffer(result) ;
+   shrink_wbuffer(result, oldsize) ;
    (void) free_file(&file) ;
    TRACEABORT_ERRLOG(err) ;
    return err ;
@@ -162,14 +163,21 @@ static int test_loadsave(directory_t * tempdir)
       TEST(addr_memblock(&datablock)[i] == (uint8_t) str_cstring(&cstr)[i]) ;
    }
    TEST(0 == FREE_MM(&datablock)) ;
-   TEST(0 == free_cstring(&cstr)) ;
 
    // TEST save_file: EEXIST
    TEST(EEXIST == save_file("save", 1, "", tempdir)) ;
    TEST(0 == remove_file("save", tempdir)) ;
 
    // TEST load_file: ENOENT
-   TEST(ENOENT == load_file("save", 0, tempdir)) ;
+   size_t oldsize = size_cstring(&cstr);
+   TEST(oldsize == size_wbuffer(&wbuf));
+   TEST(0 < oldsize);
+   TEST(ENOENT == load_file("save", &wbuf, tempdir)) ;
+   TEST(oldsize == size_cstring(&cstr));
+   TEST(oldsize == size_wbuffer(&wbuf));
+
+   // unprepare
+   TEST(0 == free_cstring(&cstr)) ;
 
    return 0 ;
 ONABORT:

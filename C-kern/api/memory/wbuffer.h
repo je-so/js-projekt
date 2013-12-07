@@ -79,12 +79,14 @@ struct wbuffer_it {
     * This function serves two purposes. First it marks the last allocated block used and
     * remembers that all bytes from [memstr->next...memstr->end-1] are not used.
     * Second it allocates a new block of at least new_size bytes in returns it in memstr. */
-   int      (* alloc)   (void * impl, size_t new_size, /*ret*/struct memstream_t * memstr) ;
-   /* variable: clear
-    * Mark all memory blocks as unused and set memstr to point to the first allocated memory block.
+   int      (* alloc)   (void * impl, size_t new_size, /*inout*/struct memstream_t * memstr) ;
+   /* variable: shrink
+    * Free all memory beyond the first new_size bytes. Return in memstr the start address of the free memory
+    * after the first used new_size bytes.
     * Unused memory blocks could be freed or kept in cache.
-    * Parameter memstr is set to the unused part of the last allocated memory block before this function is called. */
-   void     (* clear)   (void * impl, /*ret*/struct memstream_t * memstr) ;
+    * Parameter memstr is set to the unused part of the last allocated memory block before this function is called.
+    * The function should return EINVAL in case new_size is bigger than the return value of <size>. */
+   int      (* shrink)  (void * impl, size_t new_size, /*inout*/struct memstream_t * memstr) ;
    /* variable: size
     * Returns number of used bytes.
     * Parameter memstr contains the unused part of the last allocated memory block. */
@@ -188,10 +190,16 @@ size_t size_wbuffer(const wbuffer_t * wbuf) ;
 
 /* function: clear_wbuffer
  * Removes all appended content from wbuffer.
- * The memory is not necessarily freed but it is marked as free.
- * Use this function if an error has occurred but the out parameter of type <wbuffer_t>
- * has been partially filled with content. */
+ * The memory is not necessarily freed but it is marked as free. */
 void clear_wbuffer(wbuffer_t * wbuf) ;
+
+/* function: shrink_wbuffer
+ * Removes the last size_wbuffer(wbuf)-newsize bytes from wbuf.
+ * The memory is not necessarily freed but it is marked as free.
+ * Use this function if an error has occurred but the return parameter of type <wbuffer_t>
+ * has been partially filled with content.
+ * The error EINVAL is returned and nothing is done in case newsize is bigger than size_wbuffer(wbuf). */
+int shrink_wbuffer(wbuffer_t * wbuf, size_t newsize) ;
 
 /* function: appendbytes_wbuffer
  * Appends buffer_size bytes of unitilaized memory to wbuf.
@@ -233,17 +241,17 @@ int appendcopy_wbuffer(wbuffer_t * wbuf, size_t buffer_size, const uint8_t * buf
  * Implements <wbuffer_t.appendbytes_wbuffer>. */
 #define appendbytes_wbuffer(wbuf, buffer_size, buffer)   \
          ( __extension__ ({                              \
-            int         _err = 0 ;                       \
-            wbuffer_t * _wb = (wbuf) ;                   \
-            size_t      _bs = (buffer_size) ;            \
+            int         _err = 0;                        \
+            wbuffer_t * _wb = (wbuf);                    \
+            size_t      _bs = (buffer_size);             \
             if (  _bs <= sizereserved_wbuffer(_wb)       \
                   || (0 == (_err = _wb->iimpl->          \
                         alloc(_wb->impl, _bs,            \
                         (struct memstream_t*)_wb)))) {   \
-               *(buffer)  = _wb->next ;                  \
-               _wb->next += _bs ;                        \
+               *(buffer)  = _wb->next;                   \
+               _wb->next += _bs;                         \
             }                                            \
-            _err ;                                       \
+            _err;                                        \
          }))
 
 /* define: clear_wbuffer
@@ -251,9 +259,18 @@ int appendcopy_wbuffer(wbuffer_t * wbuf, size_t buffer_size, const uint8_t * buf
 #define clear_wbuffer(wbuf)                              \
          do {                                            \
             wbuffer_t * _wb = (wbuf) ;                   \
-            _wb->iimpl->clear(_wb->impl,                 \
-                        (struct memstream_t*)_wb) ;      \
+            _wb->iimpl->shrink(_wb->impl, 0,             \
+                        (struct memstream_t*)_wb);       \
          } while (0)
+
+/* define: shrink_wbuffer
+ * Implements <wbuffer_t.shrink_wbuffer>. */
+#define shrink_wbuffer(wbuf, newsize)                    \
+         ( __extension__ ({                              \
+            wbuffer_t * _wb = (wbuf) ;                   \
+            _wb->iimpl->shrink(_wb->impl, (newsize),     \
+                        (struct memstream_t*)_wb);       \
+         }))
 
 /* define: sizereserved_wbuffer
  * Implements <wbuffer_t.sizereserved_wbuffer>. */
