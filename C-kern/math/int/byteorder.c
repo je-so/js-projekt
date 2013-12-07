@@ -197,18 +197,10 @@ ONABORT:
 
 int unittest_math_int_byteorder()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_byteoperations())    goto ONABORT ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

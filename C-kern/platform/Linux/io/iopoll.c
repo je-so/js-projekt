@@ -641,36 +641,13 @@ ONABORT:
 
 int unittest_io_iopoll()
 {
-   resourceusage_t   usage      = resourceusage_INIT_FREEABLE ;
-   unsigned          open_count = 0 ;
-   int               dummyfd[8] ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
-   // increment open files to 8 to make logged fd number always the same (support debug && X11 GLX which opens files)
-   {
-      size_t nrfdopen ;
-      TEST(0 == nropen_iochannel(&nrfdopen)) ;
-      for (; nrfdopen < 8; ++ nrfdopen) {
-         dummyfd[open_count ++] = dup(iochannel_STDIN) ;
-      }
-   }
-
    if (test_ioevent())        goto ONABORT ;
    if (test_initfree())       goto ONABORT ;
    if (test_registerfd())     goto ONABORT ;
    if (test_waitevents())     goto ONABORT ;
 
-   while (open_count) {
-      TEST(0 == free_iochannel(&dummyfd[--open_count])) ;
-   }
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

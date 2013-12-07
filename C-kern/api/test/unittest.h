@@ -27,9 +27,6 @@
 #ifndef CKERN_API_TEST_UNITTEST_HEADER
 #define CKERN_API_TEST_UNITTEST_HEADER
 
-// TODO: remove include resourceusage.h
-#include "C-kern/api/test/resourceusage.h"
-
 
 // section: Functions
 

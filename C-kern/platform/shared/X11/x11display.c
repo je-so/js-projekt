@@ -34,6 +34,7 @@
 #include "C-kern/api/platform/X11/x11.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/platform/task/process.h"
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #endif
 #include "C-kern/api/platform/X11/x11syskonfig.h"

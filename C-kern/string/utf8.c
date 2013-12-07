@@ -1356,22 +1356,14 @@ ONABORT:
 
 int unittest_string_utf8()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_utf8())           goto ONABORT ;
    if (test_utf8validator())  goto ONABORT ;
    if (test_readstrstream())  goto ONABORT ;
    if (test_findstrstream())  goto ONABORT ;
    if (test_speed())          goto ONABORT ;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 #endif

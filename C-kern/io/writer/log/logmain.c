@@ -300,25 +300,12 @@ ONABORT:
 
 int unittest_io_writer_log_logmain()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
-
-   if (test_query())       goto ONABORT ;
-   if (test_update())      goto ONABORT ;
-
-   // store current mapping
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_globalvar())   goto ONABORT ;
    if (test_query())       goto ONABORT ;
    if (test_update())      goto ONABORT ;
 
-   // TEST resource usage has not changed
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

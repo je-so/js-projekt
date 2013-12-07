@@ -1327,10 +1327,6 @@ ONABORT:
 
 int unittest_ds_inmem_queue()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_queuepage())      goto ONABORT ;
    if (test_initfree())       goto ONABORT ;
    if (test_query())          goto ONABORT ;
@@ -1338,12 +1334,8 @@ int unittest_ds_inmem_queue()
    if (test_update())         goto ONABORT ;
    if (test_generic())        goto ONABORT ;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

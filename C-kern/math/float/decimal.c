@@ -4131,10 +4131,6 @@ ONABORT:
 
 int unittest_math_float_decimal()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_decimaltables())  goto ONABORT ;
    if (test_helper())         goto ONABORT ;
    if (test_initfree())       goto ONABORT ;
@@ -4150,12 +4146,8 @@ int unittest_math_float_decimal()
    if (test_tocstring())      goto ONABORT ;
    if (test_example1())       goto ONABORT ;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

@@ -233,29 +233,24 @@ ONABORT:
 
 int unittest_platform_X11()
 {
-   Display           * disp = 0 ;
-   resourceusage_t   usage  = resourceusage_INIT_FREEABLE ;
+   Display * disp = 0;
 
    // prepare
-   disp = XOpenDisplay(0) ;
-   TEST(disp) ;
+   disp = XOpenDisplay(0);
+   TEST(disp);
 
-   TEST(0 == init_resourceusage(&usage)) ;
 
    if (test_initonce())    goto ONABORT ;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    // restore
-   XCloseDisplay(disp) ;
+   XCloseDisplay(disp);
 
-   return 0 ;
+   return 0;
 ONABORT:
    if (disp) {
-      XCloseDisplay(disp) ;
+      XCloseDisplay(disp);
    }
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

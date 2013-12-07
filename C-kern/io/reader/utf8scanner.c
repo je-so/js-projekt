@@ -1054,12 +1054,10 @@ ONABORT:
 
 int unittest_io_reader_utf8scanner()
 {
-   resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
-   directory_t     * tempdir = 0 ;
-   cstring_t         tmppath = cstring_INIT ;
+   directory_t *tempdir = 0 ;
+   cstring_t   tmppath  = cstring_INIT ;
 
-   TEST(0 == init_resourceusage(&usage)) ;
-
+   // prepare
    TEST(0 == newtemp_directory(&tempdir, "utf8scanner")) ;
    TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
@@ -1068,18 +1066,15 @@ int unittest_io_reader_utf8scanner()
    if (test_bufferio(tempdir))   goto ONABORT ;
    if (test_read(tempdir))       goto ONABORT ;
 
+   // unprepare
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ONABORT:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

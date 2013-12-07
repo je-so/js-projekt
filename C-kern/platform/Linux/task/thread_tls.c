@@ -558,21 +558,13 @@ ONABORT:
 
 int unittest_platform_task_thread_tls()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_initfree())    goto ONABORT ;
    if (test_startup())     goto ONABORT ;
    if (test_query())       goto ONABORT ;
    if (test_generic())     goto ONABORT ;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

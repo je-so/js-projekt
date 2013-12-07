@@ -308,9 +308,9 @@ ONABORT:
 
 static int test_initfree(void)
 {
-   const int   N         = 20 ;  // next free file descriptor number
-   iochannel_t ioc       = iochannel_INIT_FREEABLE ;
-   iochannel_t pipeioc[] = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE } ;
+   const int   N         = 4;  // next free file descriptor number
+   iochannel_t ioc       = iochannel_INIT_FREEABLE;
+   iochannel_t pipeioc[] = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
 
    // TEST iochannel_INIT_FREEABLE
    TEST(-1 == sys_iochannel_INIT_FREEABLE) ;
@@ -832,47 +832,21 @@ ONABORT:
 
 int unittest_io_iochannel()
 {
-   resourceusage_t   usage      = resourceusage_INIT_FREEABLE ;
-   unsigned          open_count = 0 ;
-   directory_t *     tempdir    = 0 ;
-   iochannel_t       ioc[20] ;
+   directory_t *tempdir = 0;
 
-   TEST(0 == init_resourceusage(&usage)) ;
+   TEST(0 == newtemp_directory(&tempdir, "iochanneltest"));
 
-   TEST(0 == newtemp_directory(&tempdir, "iochanneltest")) ;
+   if (test_nropen())            goto ONABORT;
+   if (test_initfree())          goto ONABORT;
+   if (test_query(tempdir))      goto ONABORT;
+   if (test_readwrite(tempdir))  goto ONABORT;
 
-   {
-      size_t nrfdopen ;
-      TEST(0 == nropen_iochannel(&nrfdopen)) ;
-      while (nrfdopen < lengthof(ioc)) {
-         TEST(0 == initcopy_iochannel(&ioc[open_count], iochannel_STDOUT)) ;
-         ++ open_count ;
-         ++ nrfdopen ;
-      }
-   }
+   TEST(0 == delete_directory(&tempdir));
 
-   if (test_nropen())            goto ONABORT ;
-   if (test_initfree())          goto ONABORT ;
-   if (test_query(tempdir))      goto ONABORT ;
-   if (test_readwrite(tempdir))  goto ONABORT ;
-
-   while (open_count) {
-      TEST(0 == free_iochannel(&ioc[--open_count])) ;
-   }
-
-   TEST(0 == delete_directory(&tempdir)) ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
-   return 0 ;
+   return 0;
 ONABORT:
-   while (open_count) {
-      (void) free_iochannel(&ioc[--open_count]) ;
-   }
-   delete_directory(&tempdir) ;
-   (void) free_resourceusage(&usage) ;
-   return EINVAL ;
+   delete_directory(&tempdir);
+   return EINVAL;
 }
 
 #endif

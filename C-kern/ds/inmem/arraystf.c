@@ -1701,31 +1701,16 @@ ONABORT:
 
 int unittest_ds_inmem_arraystf()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
-
-   for (int i = 0; i < 2; ++i) {
-      TEST(0 == init_resourceusage(&usage)) ;
-
-      if (test_arraystfnode())   goto ONABORT ;
-      if (test_arraystfkeyval()) goto ONABORT ;
-      if (test_initfree())       goto ONABORT ;
-      if (test_error())          goto ONABORT ;
-      if (test_iterator())       goto ONABORT ;
-      if (test_zerokey())        goto ONABORT ;
-      if (test_generic())        goto ONABORT ;
-
-      if (0 == same_resourceusage(&usage)) break ;
-
-      CLEARBUFFER_ERRLOG() ;
-      TEST(0 == free_resourceusage(&usage)) ;
-   }
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
+   if (test_arraystfnode())   goto ONABORT ;
+   if (test_arraystfkeyval()) goto ONABORT ;
+   if (test_initfree())       goto ONABORT ;
+   if (test_error())          goto ONABORT ;
+   if (test_iterator())       goto ONABORT ;
+   if (test_zerokey())        goto ONABORT ;
+   if (test_generic())        goto ONABORT ;
 
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

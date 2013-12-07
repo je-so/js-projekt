@@ -34,6 +34,7 @@
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/string/string.h"
 #ifdef KONFIG_UNITTEST
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
@@ -1451,7 +1452,7 @@ static int test_matchfile(void)
    /* > grep -ob suffixtree_iterator_t C-kern/ds/inmem/suffixtree.c |
     * > while read ; do echo -n "${REPLY%%:*}," ; x=${REPLY%suffixtree_iterator_t*}; x=${x#*:} ;
     * > if [ "${x/suffixtree_iterator_t/}" != "$x" ]; then i=$((${REPLY%%:*}+${#x})); echo -n "$i,"; fi; done ; echo */
-   size_t         compare_pos[] = {1292,1331,1425,1452,2319,2614,2727,3168,3250,3371,3444,3573,3644,3758,4041,4128,4242,4359,4444,4557,4722,4801,4877,4955,5031,44183,44461,45284,45467,60087,60211,60324,60379} ;
+   size_t         compare_pos[] = {1335,1374,1468,1495,2362,2657,2770,3211,3293,3414,3487,3616,3687,3801,4084,4171,4285,4402,4487,4600,4765,4844,4920,4998,5074,44226,44504,45327,45510,60130,60254,60367,60422} ;
    const uint8_t  * matched_pos[1+lengthof(compare_pos)] ;
    size_t         matched_count ;
    const uint8_t  * teststring ;

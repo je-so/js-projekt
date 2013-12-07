@@ -35,10 +35,9 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/platform/task/process.h"
+#include "C-kern/api/test/resourceusage.h"
 
 typedef struct unittest_t unittest_t;
-
-// TODO: add test of resource usage before and after test is run (remove include resourceusage.h)
 
 /* struct: unittest_t
  * Holds <mutex_t> to make it thread-safe. */
@@ -647,7 +646,7 @@ static int test_exec(void)
    TEST(EINVAL == execsingle_unittest("dummy_unittest_ok", &dummy_unittest_ok));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(115 == bytes_read);
-   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:227: FAILED to compare errlog file\nwith './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:226: FAILED to compare errlog file\nwith './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
    TEST(3 == s_unittest_singleton.okcount);
    TEST(3 == s_unittest_singleton.errcount);
    TEST(1 == s_unittest_singleton.isResult);
@@ -739,11 +738,8 @@ ONABORT:
 
 int unittest_test_unittest()
 {
-   resourceusage_t   usage       = resourceusage_INIT_FREEABLE;
-   size_t            oldokcount  = s_unittest_singleton.okcount;
-   size_t            olderrcount = s_unittest_singleton.errcount;
-
-   TEST(0 == init_resourceusage(&usage));
+   size_t   oldokcount  = s_unittest_singleton.okcount;
+   size_t   olderrcount = s_unittest_singleton.errcount;
 
    if (test_initfree())    goto ONABORT;
    if (test_report())      goto ONABORT;
@@ -753,12 +749,8 @@ int unittest_test_unittest()
    TEST(oldokcount  == s_unittest_singleton.okcount);
    TEST(olderrcount == s_unittest_singleton.errcount);
 
-   TEST(0 == same_resourceusage(&usage));
-   TEST(0 == free_resourceusage(&usage));
-
    return 0;
 ONABORT:
-   (void) free_resourceusage(&usage);
    return EINVAL;
 }
 

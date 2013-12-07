@@ -302,26 +302,19 @@ ONABORT:
 
 int unittest_platform_startup()
 {
-   resourceusage_t   usage    = resourceusage_INIT_FREEABLE ;
-   bool              isold    = false ;
-   stack_t           oldstack ;
+   bool     isold = false;
+   stack_t  oldstack;
 
-   TEST(0 == sigaltstack(0, &oldstack)) ;
-   isold = true ;
+   TEST(0 == sigaltstack(0, &oldstack));
+   isold = true;
 
-   TEST(0 == init_resourceusage(&usage)) ;
+   if (test_startup())     goto ONABORT;
 
-   if (test_startup())     goto ONABORT ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
-   TEST(0 == sigaltstack(&oldstack, 0)) ;
+   TEST(0 == sigaltstack(&oldstack, 0));
 
    return 0 ;
 ONABORT:
-   if (isold) sigaltstack(&oldstack, 0) ;
-   (void) free_resourceusage(&usage) ;
+   if (isold) sigaltstack(&oldstack, 0);
    return EINVAL ;
 }
 

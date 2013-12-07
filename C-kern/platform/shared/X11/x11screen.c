@@ -29,6 +29,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/platform/X11/x11display.h"
 #ifdef KONFIG_UNITTEST
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #endif
 #include "C-kern/api/platform/X11/x11syskonfig.h"

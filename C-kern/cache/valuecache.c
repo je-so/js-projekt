@@ -102,15 +102,8 @@ ONABORT:
 
 int unittest_cache_valuecache()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_initfree())    goto ONABORT ;
    if (test_queryvalues()) goto ONABORT ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ONABORT:

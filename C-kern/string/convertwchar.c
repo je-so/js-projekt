@@ -28,6 +28,7 @@
 #include "C-kern/api/platform/locale.h"
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #endif
 

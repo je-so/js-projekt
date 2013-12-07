@@ -190,12 +190,10 @@ ONABORT:
 
 int unittest_io_fileutil()
 {
-   resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
-   cstring_t         tmppath = cstring_INIT ;
-   directory_t     * tempdir = 0 ;
+   cstring_t   tmppath  = cstring_INIT ;
+   directory_t *tempdir = 0 ;
 
-   TEST(0 == init_resourceusage(&usage)) ;
-
+   // prepare
    TEST(0 == newtemp_directory(&tempdir, "iofiletest")) ;
    TEST(0 == path_directory(tempdir, &(wbuffer_t)wbuffer_INIT_CSTRING(&tmppath))) ;
 
@@ -210,18 +208,15 @@ int unittest_io_fileutil()
       memcpy(logbuffer, "XXXXXX", 6) ;
    }
 
+   // unprepare
    TEST(0 == removedirectory_directory(0, str_cstring(&tmppath))) ;
    TEST(0 == free_cstring(&tmppath)) ;
    TEST(0 == delete_directory(&tempdir)) ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
 
    return 0 ;
 ONABORT:
    (void) free_cstring(&tmppath) ;
    (void) delete_directory(&tempdir) ;
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

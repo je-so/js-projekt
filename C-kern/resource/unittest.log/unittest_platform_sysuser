@@ -1,8 +1,8 @@
-[1: 1375541648.041669s]
-authenticate_sysuser() C-kern/platform/Linux/sysuser.c:322
+[1: 1385288281.144068s]
+authenticate_sysuser() C-kern/platform/Linux/sysuser.c:323
 Error 13 - Permission denied
 Function aborted
-[1: 1375541650.630642s]
-authenticate_sysuser() C-kern/platform/Linux/sysuser.c:322
+[1: 1385288283.692018s]
+authenticate_sysuser() C-kern/platform/Linux/sysuser.c:323
 Error 13 - Permission denied
-Function abort
+Function aborted

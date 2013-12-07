@@ -826,10 +826,7 @@ ONABORT:
 
 int unittest_context_threadcontext()
 {
-   size_t            oldid = s_threadcontext_nextid ;
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
+   size_t   oldid = s_threadcontext_nextid;
 
    if (test_iobjhelper())  goto ONABORT ;
    if (test_objhelper())   goto ONABORT ;
@@ -837,14 +834,10 @@ int unittest_context_threadcontext()
    if (test_query())       goto ONABORT ;
    if (test_change())      goto ONABORT ;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    s_threadcontext_nextid = oldid ;
    return 0 ;
 ONABORT:
    s_threadcontext_nextid = oldid ;
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

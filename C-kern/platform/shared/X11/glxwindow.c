@@ -34,6 +34,7 @@
 #include "C-kern/api/platform/X11/x11screen.h"
 #include "C-kern/api/platform/X11/x11window.h"
 #ifdef KONFIG_UNITTEST
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/string/cstring.h"

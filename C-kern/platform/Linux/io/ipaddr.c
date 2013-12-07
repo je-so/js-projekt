@@ -28,6 +28,7 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/math/int/sign.h"
 #ifdef KONFIG_UNITTEST
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #endif
 

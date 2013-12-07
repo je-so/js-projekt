@@ -33,6 +33,7 @@
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include <glob.h>
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #endif
 

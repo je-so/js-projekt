@@ -30,6 +30,7 @@
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/sysuser.h"
 #ifdef KONFIG_UNITTEST
+#include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/platform/task/process.h"
@@ -635,7 +636,7 @@ ONABORT:
    return EINVAL ;
 }
 
-static int exectest_childprocess(void * logfd)
+static int childprocess_unittest(void)
 {
    resourceusage_t   usage    = resourceusage_INIT_FREEABLE ;
 
@@ -653,12 +654,6 @@ static int exectest_childprocess(void * logfd)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
-   // transfer log file
-   uint8_t *logbuffer ;
-   size_t   logsize ;
-   GETBUFFER_ERRLOG(&logbuffer, &logsize) ;
-   TEST((size_t)write((int)logfd, logbuffer, logsize) == logsize) ;
-
    return 0 ;
 ONABORT:
    return EINVAL ;
@@ -666,42 +661,13 @@ ONABORT:
 
 int unittest_platform_sysuser()
 {
-   resourceusage_t      usage    = resourceusage_INIT_FREEABLE ;
-   int                  logfd[2] = { -1, -1 } ;
-   process_t            child    = process_INIT_FREEABLE ;
-   process_stdio_t      stdfd    = process_stdio_INIT_INHERIT ;
+   int err;
 
-   TEST(0 == init_resourceusage(&usage)) ;
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
 
-   TEST(0 == pipe2(logfd, O_CLOEXEC)) ;
-   // run unittest in child process to protect main process from loading additional shared libs !
-   TEST(0 == init_process(&child, &exectest_childprocess, (void*)logfd[1], &stdfd)) ;
-   process_result_t result ;
-   TEST(0 == wait_process(&child, &result)) ;
-   TEST(result.returncode == 0) ;
-   TEST(result.state      == process_state_TERMINATED) ;
-
-   // read log file from child
-   char logbuffer[256] = {0} ;
-   int  logsize ;
-   logsize = read(logfd[0], logbuffer, sizeof(logbuffer)-1) ;
-   if (logsize > 0) {
-      PRINTF_ERRLOG("%s", logbuffer) ;
-   }
-   TEST(0 == free_iochannel(&logfd[0])) ;
-   TEST(0 == free_iochannel(&logfd[1])) ;
-   TEST(0 == free_process(&child)) ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
-   return 0 ;
+   return err;
 ONABORT:
-   (void) free_process(&child) ;
-   (void) free_iochannel(&logfd[0]) ;
-   (void) free_iochannel(&logfd[1]) ;
-   (void) free_resourceusage(&usage) ;
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

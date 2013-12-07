@@ -1296,10 +1296,6 @@ ONABORT:
 
 int unittest_platform_task_process()
 {
-   resourceusage_t   usage   = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_redirect())       goto ONABORT ;
    if (test_redirect2())      goto ONABORT ;
    if (test_initfree())       goto ONABORT ;
@@ -1308,9 +1304,6 @@ int unittest_platform_task_process()
    if (test_statequery())     goto ONABORT ;
    if (test_exec())           goto ONABORT ;
    if (test_daemon())         goto ONABORT ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
 
    // adapt LOG buffer ("pid=1234" replaces with "pid=?")
    uint8_t *logbuffer = 0 ;
@@ -1333,7 +1326,6 @@ int unittest_platform_task_process()
 
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

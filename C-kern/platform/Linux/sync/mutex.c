@@ -685,29 +685,14 @@ ONABORT:
 
 int unittest_platform_sync_mutex()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
-
-   for (int i = 0; i < 2; ++i) {
-      // store current mapping
-      TEST(0 == init_resourceusage(&usage)) ;
-
-      if (test_staticinit())        goto ONABORT ;
-      if (test_errorcheck())        goto ONABORT ;
-      if (test_slock())             goto ONABORT ;
-      if (test_interrupt())         goto ONABORT ;
-      if (test_interprocess())      goto ONABORT ;
-
-      if (0 == same_resourceusage(&usage)) break ;
-      TEST(0 == free_resourceusage(&usage)) ;
-      CLEARBUFFER_ERRLOG() ;
-   }
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
+   if (test_staticinit())        goto ONABORT ;
+   if (test_errorcheck())        goto ONABORT ;
+   if (test_slock())             goto ONABORT ;
+   if (test_interrupt())         goto ONABORT ;
+   if (test_interprocess())      goto ONABORT ;
 
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 #endif

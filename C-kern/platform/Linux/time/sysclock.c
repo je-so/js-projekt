@@ -322,20 +322,12 @@ ONABORT:
 
 int unittest_time_sysclock()
 {
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;
-
-   TEST(0 == init_resourceusage(&usage)) ;
-
    if (test_timevalue())   goto ONABORT ;
    if (test_clockquery())  goto ONABORT ;
    if (test_clockwait())   goto ONABORT ;
 
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
-
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

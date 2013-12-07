@@ -1292,29 +1292,15 @@ ONABORT:
 
 int unittest_platform_sync_signal()
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
-
-   for (int i = 0; i < 2; ++i) {
-      TEST(0 == init_resourceusage(&usage)) ;
-
-      if (test_signalstate())             goto ONABORT ;
-      if (test_signalhandler_helper())    goto ONABORT ;
-      if (test_signalhandler_initonce())  goto ONABORT ;
-      if (test_signalhandler())           goto ONABORT ;
-      if (test_signalrt())                goto ONABORT ;
-      if (test_signalwait())              goto ONABORT ;
-
-      if (0 == same_resourceusage(&usage)) break ;
-      TEST(0 == free_resourceusage(&usage)) ;
-      CLEARBUFFER_ERRLOG() ;
-   }
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
+   if (test_signalstate())             goto ONABORT ;
+   if (test_signalhandler_helper())    goto ONABORT ;
+   if (test_signalhandler_initonce())  goto ONABORT ;
+   if (test_signalhandler())           goto ONABORT ;
+   if (test_signalrt())                goto ONABORT ;
+   if (test_signalwait())              goto ONABORT ;
 
    return 0 ;
 ONABORT:
-   (void) free_resourceusage(&usage) ;
    return EINVAL ;
 }
 

@@ -1,124 +1,124 @@
-[1: 1375541639.434807s]
+[1: 1385288272.463456s]
 registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:161
 Error 22 - Invalid argument
 Function input violates condition (0 == (for_event->ioevents & ~(uint32_t)ioevent_MASK))
 for_event->ioevents=4294967280
 Function aborted
-[1: 1375541639.434818s]
+[1: 1385288272.463466s]
 updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:187
 Error 22 - Invalid argument
 Function input violates condition (0 == (updated_event->ioevents & ~(uint32_t)ioevent_MASK))
 updated_event->ioevents=16
 Function aborted
-[1: 1375541639.434822s]
+[1: 1385288272.463470s]
 updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:187
 Error 22 - Invalid argument
 Function input violates condition (0 == (updated_event->ioevents & ~(uint32_t)ioevent_MASK))
 updated_event->ioevents=16
 Function aborted
-[1: 1375541639.434825s]
+[1: 1385288272.463473s]
 registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:169
 Error 17 - File exists
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
-iopoll->sys_poll=48
-fd=8
+iopoll->sys_poll=43
+fd=3
 Function aborted
-[1: 1375541639.434829s]
+[1: 1385288272.463477s]
 updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:195
 Error 2 - No such file or directory
 System call 'epoll_ctl(EPOLL_CTL_MOD)' failed
-iopoll->sys_poll=48
-fd=9
+iopoll->sys_poll=43
+fd=4
 Function aborted
-[1: 1375541639.434833s]
+[1: 1385288272.463481s]
 unregisterfd_iopoll() C-kern/platform/Linux/io/iopoll.c:217
 Error 2 - No such file or directory
 System call 'epoll_ctl(EPOLL_CTL_DEL)' failed
-iopoll->sys_poll=48
-fd=9
+iopoll->sys_poll=43
+fd=4
 Function aborted
-[1: 1375541639.434836s]
+[1: 1385288272.463484s]
 registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:169
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
-iopoll->sys_poll=48
+iopoll->sys_poll=43
 fd=-1
 Function aborted
-[1: 1375541639.434840s]
+[1: 1385288272.463488s]
 updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:195
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_MOD)' failed
-iopoll->sys_poll=48
+iopoll->sys_poll=43
 fd=-1
 Function aborted
-[1: 1375541639.434843s]
+[1: 1385288272.463491s]
 unregisterfd_iopoll() C-kern/platform/Linux/io/iopoll.c:217
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_DEL)' failed
-iopoll->sys_poll=48
+iopoll->sys_poll=43
 fd=-1
 Function aborted
-[1: 1375541639.434847s]
+[1: 1385288272.463496s]
 registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:169
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
-iopoll->sys_poll=48
-fd=8
+iopoll->sys_poll=43
+fd=3
 Function aborted
-[1: 1375541639.434851s]
+[1: 1385288272.463499s]
 updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:195
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_MOD)' failed
-iopoll->sys_poll=48
-fd=8
+iopoll->sys_poll=43
+fd=3
 Function aborted
-[1: 1375541639.434854s]
+[1: 1385288272.463502s]
 unregisterfd_iopoll() C-kern/platform/Linux/io/iopoll.c:217
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_DEL)' failed
-iopoll->sys_poll=48
-fd=8
+iopoll->sys_poll=43
+fd=3
 Function aborted
-[1: 1375541639.434858s]
+[1: 1385288272.463507s]
 registerfd_iopoll() C-kern/platform/Linux/io/iopoll.c:169
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_ADD)' failed
 iopoll->sys_poll=-1
-fd=10
+fd=5
 Function aborted
-[1: 1375541639.434861s]
+[1: 1385288272.463510s]
 updatefd_iopoll() C-kern/platform/Linux/io/iopoll.c:195
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_MOD)' failed
 iopoll->sys_poll=-1
-fd=10
+fd=5
 Function aborted
-[1: 1375541639.434865s]
+[1: 1385288272.463513s]
 unregisterfd_iopoll() C-kern/platform/Linux/io/iopoll.c:217
 Error 9 - Bad file descriptor
 System call 'epoll_ctl(EPOLL_CTL_DEL)' failed
 iopoll->sys_poll=-1
-fd=10
+fd=5
 Function aborted
-[1: 1375541639.486042s]
+[1: 1385288272.514609s]
 wait_iopoll() C-kern/platform/Linux/io/iopoll.c:123
 Error 22 - Invalid argument
 Function input violates condition (0 < queuesize && queuesize < INT_MAX)
 queuesize=0
 Function aborted
-[1: 1375541639.486065s]
+[1: 1385288272.514631s]
 wait_iopoll() C-kern/platform/Linux/io/iopoll.c:123
 Error 22 - Invalid argument
 Function input violates condition (0 < queuesize && queuesize < INT_MAX)
 queuesize=2147483647
 Function aborted
-[1: 1375541639.486075s]
+[1: 1385288272.514642s]
 wait_iopoll() C-kern/platform/Linux/io/iopoll.c:136
 Error 22 - Invalid argument
 System call 'epoll_wait' failed
-iopoll->sys_poll=8
+iopoll->sys_poll=3
 Function aborted
-[1: 1375541639.486099s]
+[1: 1385288272.514663s]
 wait_iopoll() C-kern/platform/Linux/io/iopoll.c:136
 Error 9 - Bad file descriptor
 System call 'epoll_wait' failed
