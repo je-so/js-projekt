@@ -41,11 +41,7 @@
  * Paramters:
  *  C - Condition which must hold true
  *  S - human readable explanation (ignored) */
-#define static_assert(C,S)                                     \
-   {                                                           \
-      int CONCAT(_extern_static_assert,__LINE__)[(C)?1:-1] ;   \
-      (void)CONCAT(_extern_static_assert,__LINE__) ;           \
-   }
-
+#define static_assert(C,S) \
+         ((void)(sizeof(char[(C)?1:-1])))
 
 #endif

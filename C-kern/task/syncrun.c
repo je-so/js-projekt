@@ -303,7 +303,7 @@ int free_syncrun(syncrun_t * srun)
 
    err = clearevents_syncrun(srun) ;
 
-   static_assert(offsetof(syncrun_t, queues) == 0, "first member")
+   static_assert(offsetof(syncrun_t, queues) == 0, "first member");
    for (unsigned i = 0; i < lengthof(srun->queues); ++i) {
       int err2 = free_syncqueue(&srun->queues[i]) ;
       if (err2) err = err2 ;

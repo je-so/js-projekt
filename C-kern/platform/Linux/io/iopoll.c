@@ -120,15 +120,15 @@ int wait_iopoll(iopoll_t * iopoll, /*out*/uint32_t * nr_events, uint32_t queuesi
    int err ;
    int resultsize ;
 
-   VALIDATE_INPARAM_TEST(0 < queuesize && queuesize < INT_MAX, ONABORT, PRINTUINT32_ERRLOG(queuesize) ) ;
+   VALIDATE_INPARAM_TEST(0 < queuesize && queuesize < INT_MAX, ONABORT, PRINTUINT32_ERRLOG(queuesize) );
 
-   static_assert( sizeof(int) > sizeof(timeout_ms), "(int)timeout_ms is never -1")
+   static_assert( sizeof(int) > sizeof(timeout_ms), "(int)timeout_ms is never -1");
    static_assert( sizeof(ioevent_t) == sizeof(struct epoll_event)
                   && sizeof(((ioevent_t*)0)->ioevents) == sizeof(((struct epoll_event*)0)->events)
                   && offsetof(ioevent_t, ioevents) == offsetof(struct epoll_event, events)
                   && sizeof(((ioevent_t*)0)->eventid) == sizeof(((struct epoll_event*)0)->data)
                   && offsetof(ioevent_t, eventid) == offsetof(struct epoll_event, data),
-                  "struct epoll_event compatible with ioevent_t") ;
+                  "struct epoll_event compatible with ioevent_t");
 
    resultsize = epoll_wait(iopoll->sys_poll, (struct epoll_event*)eventqueue, (int)queuesize, timeout_ms) ;
    if (resultsize < 0) {

@@ -175,9 +175,6 @@ int run_unittest(int argc, const char ** argv)
       RUN(unittest_ds_typeadapt_nodeoffset);
 //}
 
-//{ c(omputer) lang(uage) unittest
-//}
-
 //{ math unittest
       RUN(unittest_math_fpu);
       RUN(unittest_math_float_decimal);

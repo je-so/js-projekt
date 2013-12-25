@@ -977,9 +977,9 @@ static int test_initfree(void)
    nodes = (testnode_t *) memblock.addr ;
 
    // TEST arraystf_node_EMBED
-   static_assert(sizeof(nodes->node) == sizeof(nodes->node2), "arraystf_node_EMBED creates same structure")
-   static_assert(offsetof(typeof(nodes->node),addr) == offsetof(typeof(nodes->node2),addr), "arraystf_node_EMBED creates same structure")
-   static_assert(offsetof(typeof(nodes->node),size) == offsetof(typeof(nodes->node2),size), "arraystf_node_EMBED creates same structure")
+   static_assert(sizeof(nodes->node) == sizeof(nodes->node2), "arraystf_node_EMBED creates same structure");
+   static_assert(offsetof(typeof(nodes->node),addr) == offsetof(typeof(nodes->node2),addr), "arraystf_node_EMBED creates same structure");
+   static_assert(offsetof(typeof(nodes->node),size) == offsetof(typeof(nodes->node2),size), "arraystf_node_EMBED creates same structure");
 
    // TEST new_arraystf, delete_arraystf
    for (unsigned topsize = 0, expectsize=1, expectshift=24; topsize <= 512; ++topsize) {

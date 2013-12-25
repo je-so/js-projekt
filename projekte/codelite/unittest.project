@@ -200,9 +200,6 @@
       <File Name="../../C-kern/api/time/sysclock.h"/>
       <File Name="../../C-kern/api/time/systimer.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="clang">
-      <VirtualDirectory Name="transC"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="task">
       <File Name="../../C-kern/api/task/syncthread.h"/>
       <File Name="../../C-kern/api/task/syncrun.h"/>
@@ -210,6 +207,7 @@
       <File Name="../../C-kern/api/task/syncwlist.h"/>
       <File Name="../../C-kern/api/task/syncqueue.h"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="source"/>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/valuecache.c"/>
@@ -412,9 +410,6 @@
       <File Name="../../C-kern/math/float/decimal.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
-  <VirtualDirectory Name="clang">
-    <VirtualDirectory Name="transC"/>
-  </VirtualDirectory>
   <VirtualDirectory Name="memory">
     <File Name="../../C-kern/memory/memblock.c"/>
     <File Name="../../C-kern/memory/wbuffer.c"/>
@@ -546,4 +541,5 @@
     <File Name="../../C-kern/task/syncwlist.c"/>
     <File Name="../../C-kern/task/syncqueue.c"/>
   </VirtualDirectory>
+  <VirtualDirectory Name="source"/>
 </CodeLite_Project>
