@@ -103,8 +103,11 @@ void logf_unittest(const char * format, ...)
       va_start(args, format);
       bytes = (unsigned) vsnprintf(buffer, sizeof(buffer), format, args);
       va_end(args);
+      if (bytes >= sizeof(buffer)) {
+         bytes = sizeof(buffer)-1;
+      }
    }
-   ssize_t written = write(iochannel_STDOUT, buffer, bytes >= sizeof(buffer) ? sizeof(buffer)-1 : bytes);
+   ssize_t written = write(iochannel_STDOUT, buffer, bytes);
    (void) written;
 }
 
@@ -139,6 +142,26 @@ void logfailed_unittest(const char * filename, unsigned line_number, const char 
    logresult_unittest(true);
 
    ssize_t written = writev(iochannel_STDOUT, iov, lengthof(iov));
+   (void) written;
+}
+
+void logfailedunexpected_unittest(const char * filename, unsigned line_number, const char * format, ...)
+{
+   char     buffer[256];
+   unsigned bytes;
+   {
+      va_list args;
+      va_start(args, format);
+      bytes = (unsigned) vsnprintf(buffer, sizeof(buffer), format, args);
+      va_end(args);
+      if (bytes >= sizeof(buffer)) {
+         bytes = sizeof(buffer)-1;
+      }
+      buffer[bytes++] = '\n';
+   }
+
+   logfailed_unittest(filename, line_number, "UNEXPECTED VALUE ");
+   ssize_t written = write(iochannel_STDOUT, buffer, bytes);
    (void) written;
 }
 
@@ -401,7 +424,7 @@ static int test_report(void)
    int         fd[2]       = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
    int         oldstdout   = iochannel_INIT_FREEABLE;
    unittest_t  old;
-   uint8_t     buffer[100];
+   uint8_t     buffer[512];
    size_t      bytes_read;
 
    // prepare
@@ -416,6 +439,15 @@ static int test_report(void)
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(10 == bytes_read);
    TEST(0 == strncmp((const char*)buffer, "Hello 1,2\n", bytes_read));
+
+   // TEST logf_unittest: only 255 characters are print at max
+   uint8_t teststr[257];
+   memset(teststr, 'A', sizeof(teststr)-1);
+   teststr[sizeof(teststr)-1] = 0;
+   logf_unittest("%s", teststr);
+   TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
+   TEST(255 == bytes_read);
+   TEST(0 == memcmp(buffer, teststr, bytes_read));
 
    // TEST logresult_unittest: logresult_unittest(0)
    s_unittest_singleton.okcount  = 2;
@@ -462,6 +494,22 @@ static int test_report(void)
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(19 == bytes_read);
    TEST(0  == strncmp((const char*)buffer, "FILE:33: OTHER MSG\n", bytes_read));
+
+   // TEST logfailedunexpected_unittest
+   logfailedunexpected_unittest("FILE", 35, "%" PRIu32, (uint32_t)-1);
+   TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
+   TEST(37 == bytes_read);
+   TEST(0  == memcmp(buffer, "FILE:35: UNEXPECTED VALUE 4294967295\n", bytes_read));
+
+   // TEST logfailedunexpected_unittest: only 255 chars are printed at max as value
+   memset(teststr, 'A', sizeof(teststr)-1);
+   teststr[sizeof(teststr)-1] = 0;
+   logfailedunexpected_unittest("FILE", 35, "%s", teststr);
+   TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
+   TEST(26+255+1 == bytes_read);
+   TEST(0  == memcmp(buffer, "FILE:35: UNEXPECTED VALUE ", 26));
+   TEST(0  == memcmp(buffer+26, teststr, 255));
+   TEST(0  == memcmp(buffer+26+255, "\n", 1));
 
    // TEST logrun_unittest
    s_unittest_singleton.isResult = true;
@@ -646,7 +694,7 @@ static int test_exec(void)
    TEST(EINVAL == execsingle_unittest("dummy_unittest_ok", &dummy_unittest_ok));
    TEST(0 == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(115 == bytes_read);
-   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:226: FAILED to compare errlog file\nwith './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
+   TEST(0 == strncmp("RUN dummy_unittest_ok: FAILED\nC-kern/test/unittest.c:249: FAILED to compare errlog file\nwith './dummy_unittest_ok'\n", (const char*)buffer, bytes_read));
    TEST(3 == s_unittest_singleton.okcount);
    TEST(3 == s_unittest_singleton.errcount);
    TEST(1 == s_unittest_singleton.isResult);
@@ -736,6 +784,88 @@ ONABORT:
    return EINVAL;
 }
 
+static void call_test_macro(void)
+{
+   int bytes;
+   TEST(1);
+   bytes = write(STDOUT_FILENO, "X", 1);
+   (void) bytes;
+   TEST(0);
+   bytes = write(STDOUT_FILENO, "Y", 1);
+   (void) bytes;
+   return;
+ONABORT:
+   bytes = write(STDOUT_FILENO, "Z", 1);
+   (void) bytes;
+   return;
+}
+
+static void call_testp_macro(void)
+{
+   int bytes;
+   TESTP("d", 1 ==, 1);
+   bytes = write(STDOUT_FILENO, "X", 1);
+   (void) bytes;
+   TESTP(PRIu64, 0 ==, (uint64_t)1);
+   bytes = write(STDOUT_FILENO, "Y", 1);
+   (void) bytes;
+   return;
+ONABORT:
+   bytes = write(STDOUT_FILENO, "Z", 1);
+   (void) bytes;
+   return;
+}
+
+static int test_macros(void)
+{
+   int         fd[2]     = { iochannel_INIT_FREEABLE, iochannel_INIT_FREEABLE };
+   int         oldstdout = iochannel_INIT_FREEABLE;
+   unittest_t  old;
+   uint8_t     buffer[200];
+   size_t      bytes_read;
+
+   // prepare
+   memcpy(&old, &s_unittest_singleton, sizeof(old));
+   TEST(0 == pipe2(fd, O_CLOEXEC|O_NONBLOCK));
+   oldstdout = dup(iochannel_STDOUT);
+   TEST(0 < oldstdout);
+   TEST(iochannel_STDOUT == dup2(fd[1], iochannel_STDOUT));
+
+   // TEST TEST
+   call_test_macro();
+   TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
+   TEST(49 == bytes_read);
+   TEST(0  == memcmp(buffer, "XFAILED\nC-kern/test/unittest.c:793: TEST FAILED\nZ", bytes_read));
+
+   // TEST TESTP
+   call_testp_macro();
+   TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
+   TEST(49 == bytes_read);
+   TEST(0  == memcmp(buffer, "XC-kern/test/unittest.c:809: UNEXPECTED VALUE 1\nZ", bytes_read));
+
+   // unprepare
+   memcpy(&s_unittest_singleton, &old, sizeof(old));
+   TEST(iochannel_STDOUT == dup2(oldstdout, iochannel_STDOUT));
+   TEST(0 == free_iochannel(&oldstdout));
+   TEST(0 == free_iochannel(&fd[0]));
+   TEST(0 == free_iochannel(&fd[1]));
+
+   return 0;
+ONABORT:
+   removefile_directory(0, "dummy_unittest_ok");
+   memcpy(&s_unittest_singleton, &old, sizeof(old));
+   if (!isfree_iochannel(oldstdout)) {
+      dup2(oldstdout, iochannel_STDOUT);
+   }
+   memset(buffer, 0, sizeof(buffer));
+   read_iochannel(fd[0], sizeof(buffer)-1, buffer, 0);
+   write_iochannel(iochannel_STDOUT, strlen((char*)buffer), buffer, 0);
+   free_iochannel(&oldstdout);
+   free_iochannel(&fd[0]);
+   free_iochannel(&fd[1]);
+   return EINVAL;
+}
+
 int unittest_test_unittest()
 {
    size_t   oldokcount  = s_unittest_singleton.okcount;
@@ -745,6 +875,7 @@ int unittest_test_unittest()
    if (test_report())      goto ONABORT;
    if (test_logfile())     goto ONABORT;
    if (test_exec())        goto ONABORT;
+   if (test_macros())      goto ONABORT;
 
    TEST(oldokcount  == s_unittest_singleton.okcount);
    TEST(olderrcount == s_unittest_singleton.errcount);

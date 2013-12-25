@@ -67,12 +67,19 @@ void logf_unittest(const char * format, ...) __attribute__ ((__format__ (__print
 
 /* function: logfailed_unittest
  * Logs "<filename>:<line_number>: <msg>\n".
- * This is a thread-safe function -- all other are not !
- * If msg is set to 0 the msg is set to its default value "TEST FAILED". */
+ * If msg is set to 0 the msg is set to its default value "TEST FAILED".
+ * This is a thread-safe function! */
 void logfailed_unittest(const char * filename, unsigned line_number, const char * msg);
 
+/* function: logfailedunexpected_unittest
+ * Logs "<filename>:<line_number>: UNEXPECTED VALUE <value>\n".
+ * The format of the value is expected in format. The value is expected as last argument.
+ * This is a thread-safe function! */
+void logfailedunexpected_unittest(const char * filename, unsigned line_number, const char * format, ...) __attribute__ ((__format__ (__printf__, 3, 4)));
+
 /* function: logresult_unittest
- * Logs "OK\n" or "FAILED\n". */
+ * Logs "OK\n" or "FAILED\n".
+ * This is a thread-safe function! */
 void logresult_unittest(bool isFailed);
 
 /* function: logrun_unittest
@@ -103,8 +110,8 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
 // group: macros
 
 /* define: TEST
- * Tests CONDITION and jumps to label ONABORT in case of error.
- * If CONDITION fails an error is printed and computation continues
+ * Tests CONDITION and jumps to label ONABORT in case of false.
+ * If CONDITION is false an error is printed and computation continues
  * at the label ONABORT.
  *
  * Parameters:
@@ -130,5 +137,38 @@ int execasprocess_unittest(int (*test_f)(void), /*out*/int * retcode);
             goto ONABORT;                                \
          }
 
+/* define: TESTP
+ * Tests (CMP FCTCALL) jumps to label ONABORT in case of false.
+ * If (CMP FCTCALL) is false an error is printed and the value retured
+ * by the function call and computation continues at label ONABORT.
+ *
+ * Parameters:
+ * PRIx    - printf format type string of the value returned by the function.
+ * CMP     - Condition which is tested as (CMP FCTCALL) to be true.
+ * FCTCALL - Call to function whose result is also stored in a temporary variable.
+ *
+ * Usage:
+ * The following demonstrates how this macro is used:
+ *
+ * > int unittest_module()
+ * > {
+ * >    type_t type = type_INIT_FREEABLE;
+ * >    TESTP(d,0 ==,init_type(&type));
+ * >    TESTP(d,0 ==,free_type(&type));
+ * >    return 0; // success
+ * > ONABORT:
+ * >    free_type(&type);
+ * >    return EINVAL; // any error code
+ * > }
+ * */
+#define TESTP(PRIx, CMP, FCTCALL)  \
+         {  typeof(FCTCALL) _r = FCTCALL;    \
+            if ( !(CMP _r) ) {               \
+               logfailedunexpected_unittest( \
+               __FILE__, __LINE__,           \
+               "%" PRIx, _r);                \
+               goto ONABORT;                 \
+            }                                \
+         }
 
 #endif
