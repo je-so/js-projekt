@@ -29,6 +29,7 @@
 #include "C-kern/api/cache/valuecache.h"
 #include "C-kern/api/memory/pagecache_impl.h"
 #include "C-kern/api/io/writer/log/logmain.h"
+#include "C-kern/api/platform/startup.h"
 #include "C-kern/api/platform/sysuser.h"
 #include "C-kern/api/platform/sync/mutex.h"
 #include "C-kern/api/test/errortimer.h"
@@ -111,6 +112,20 @@ static void initprogname_maincontext(const char ** progname, const char * argv0)
    }
 }
 
+static int startup_maincontext(void * user)
+{
+   maincontext_startparam_t * startparam = user;
+
+   int err = init_maincontext(startparam->context_type, startparam->argc, startparam->argv);
+   if (err) return err;
+
+   int thread_err = startparam->main_thread(&g_maincontext);
+
+   err = free_maincontext();
+
+   return thread_err ? thread_err : err;
+}
+
 // group: lifetime
 
 int free_maincontext(void)
@@ -141,6 +156,22 @@ int free_maincontext(void)
    return 0 ;
 ONABORT:
    TRACEABORTFREE_ERRLOG(err) ;
+   return err ;
+}
+
+int initstart_maincontext(maincontext_startparam_t * startparam)
+{
+   int err ;
+   int is_already_initialized = (maincontext_STATIC != g_maincontext.type) ;
+
+   if (is_already_initialized) {
+      err = EALREADY ;
+      goto ONABORT ;
+   }
+
+   err = startup_platform(&startup_maincontext, startparam);
+
+ONABORT:
    return err ;
 }
 
@@ -253,10 +284,65 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
+static int test_querymacros(void)
+{
+   // TEST blockmap_maincontext
+   TEST(&blockmap_maincontext()    == &pcontext_maincontext()->blockmap) ;
+
+   // TEST error_maincontext
+   TEST(&error_maincontext()       == &pcontext_maincontext()->error) ;
+
+   // TEST log_maincontext
+   TEST(&log_maincontext()         == &tcontext_maincontext()->log) ;
+
+   // TEST log_maincontext
+   TEST(&objectcache_maincontext() == &tcontext_maincontext()->objectcache) ;
+
+   // TEST pagecache_maincontext
+   TEST(&pagecache_maincontext()   == &tcontext_maincontext()->pagecache) ;
+
+   // TEST pcontext_maincontext
+   TEST(pcontext_maincontext()     == &g_maincontext.pcontext) ;
+
+   // TEST progname_maincontext
+   TEST(&progname_maincontext()    == &g_maincontext.progname) ;
+
+   // TEST self_maincontext
+   TEST(self_maincontext()         == &g_maincontext) ;
+
+   // TEST sizestatic_maincontext
+   TEST(&sizestatic_maincontext()  == &g_maincontext.size_staticmem) ;
+
+   // TEST sysuser_maincontext
+   TEST(&sysuser_maincontext()     == &pcontext_maincontext()->sysuser) ;
+
+   // TEST syncrun_maincontext
+   TEST(&syncrun_maincontext()     == &tcontext_maincontext()->syncrun) ;
+
+   thread_tls_t tls ;
+   tls = current_threadtls(&tls) ;
+
+   // TEST tcontext_maincontext
+   TEST(tcontext_maincontext()     == context_threadtls(&tls)) ;
+
+   // TEST threadid_maincontext
+   TEST(&threadid_maincontext()    == &context_threadtls(&tls)->thread_id) ;
+
+   // TEST type_maincontext
+   TEST(&type_maincontext()        == &g_maincontext.type) ;
+
+   // TEST valuecache_maincontext
+   TEST(&valuecache_maincontext()  == &pcontext_maincontext()->valuecache) ;
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 static int test_initmain(void)
 {
-   int               fd_stderr   = -1 ;
-   int               fdpipe[2]   = { -1, -1 } ;
+   int fd_stderr = -1 ;
+   int fdpipe[2] = { -1, -1 } ;
 
    // prepare
    if (maincontext_STATIC != g_maincontext.type) return EINVAL ;
@@ -376,65 +462,10 @@ ONABORT:
    return EINVAL ;
 }
 
-static int test_querymacros(void)
-{
-   // TEST blockmap_maincontext
-   TEST(&blockmap_maincontext()    == &pcontext_maincontext()->blockmap) ;
-
-   // TEST error_maincontext
-   TEST(&error_maincontext()       == &pcontext_maincontext()->error) ;
-
-   // TEST log_maincontext
-   TEST(&log_maincontext()         == &tcontext_maincontext()->log) ;
-
-   // TEST log_maincontext
-   TEST(&objectcache_maincontext() == &tcontext_maincontext()->objectcache) ;
-
-   // TEST pagecache_maincontext
-   TEST(&pagecache_maincontext()   == &tcontext_maincontext()->pagecache) ;
-
-   // TEST pcontext_maincontext
-   TEST(pcontext_maincontext()     == &g_maincontext.pcontext) ;
-
-   // TEST progname_maincontext
-   TEST(&progname_maincontext()    == &g_maincontext.progname) ;
-
-   // TEST self_maincontext
-   TEST(self_maincontext()         == &g_maincontext) ;
-
-   // TEST sizestatic_maincontext
-   TEST(&sizestatic_maincontext()  == &g_maincontext.size_staticmem) ;
-
-   // TEST sysuser_maincontext
-   TEST(&sysuser_maincontext()     == &pcontext_maincontext()->sysuser) ;
-
-   // TEST syncrun_maincontext
-   TEST(&syncrun_maincontext()     == &tcontext_maincontext()->syncrun) ;
-
-   thread_tls_t tls ;
-   tls = current_threadtls(&tls) ;
-
-   // TEST tcontext_maincontext
-   TEST(tcontext_maincontext()     == context_threadtls(&tls)) ;
-
-   // TEST threadid_maincontext
-   TEST(&threadid_maincontext()    == &context_threadtls(&tls)->thread_id) ;
-
-   // TEST type_maincontext
-   TEST(&type_maincontext()        == &g_maincontext.type) ;
-
-   // TEST valuecache_maincontext
-   TEST(&valuecache_maincontext()  == &pcontext_maincontext()->valuecache) ;
-
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
-
 static int test_initerror(void)
 {
-   int               fd_stderr   = -1 ;
-   int               fdpipe[2]   = { -1, -1 } ;
+   int fd_stderr = -1 ;
+   int fdpipe[2] = { -1, -1 } ;
 
    // prepare
    if (maincontext_STATIC != g_maincontext.type) return EINVAL ;
@@ -487,10 +518,62 @@ ONABORT:
    return EINVAL ;
 }
 
+maincontext_startparam_t s_startparam;
+
+static int test_initstart_checkparam1(maincontext_t * maincontext)
+{
+   if (s_startparam.main_thread != &test_initstart_checkparam1) return EINVAL;
+   s_startparam.main_thread = 0;
+
+   if (maincontext != &g_maincontext) return EINVAL;
+   if (maincontext->type != s_startparam.context_type) return EINVAL;
+   if (maincontext->argc != s_startparam.argc) return EINVAL;
+   if (maincontext->argv != s_startparam.argv) return EINVAL;
+   if (0 != strcmp(maincontext->argv[0], "1")) return EINVAL;
+   if (0 != strcmp(maincontext->argv[1], "2")) return EINVAL;
+
+   return 0;
+}
+
+static int test_initstart(void)
+{
+   const char* argv[2] = { "1", "2" };
+
+   // prepare
+   if (maincontext_STATIC != g_maincontext.type) return EINVAL ;
+
+   // TEST initstart_maincontext
+   maincontext_e mainmode[] = { maincontext_DEFAULT, maincontext_CONSOLE } ;
+   for (int i = 0 ; i < (int)lengthof(mainmode); ++i) {
+      // test correct function called
+      s_startparam = (maincontext_startparam_t) { mainmode[i], 1+i, argv, &test_initstart_checkparam1 };
+      TEST(0 == initstart_maincontext(&s_startparam));
+      TEST(0 == s_startparam.main_thread);
+      TEST(1+i == s_startparam.argc);
+      TEST(argv == s_startparam.argv);
+
+      // test free_maincontext called
+      TEST(pcontext_maincontext() == &g_maincontext.pcontext) ;
+      TEST(1 == isstatic_processcontext(&g_maincontext.pcontext)) ;
+      TEST(1 == isstatic_threadcontext(tcontext_maincontext())) ;
+      TEST(0 == g_maincontext.type) ;
+      TEST(0 == g_maincontext.progname) ;
+      TEST(0 == g_maincontext.argc) ;
+      TEST(0 == g_maincontext.argv) ;
+      TEST(0 == g_maincontext.size_staticmem) ;
+   }
+
+   // unprepare
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 static int test_progname(void)
 {
-   int               fd_stderr   = -1 ;
-   int               fdpipe[2]   = { -1, -1 } ;
+   int fd_stderr = -1 ;
+   int fdpipe[2] = { -1, -1 } ;
 
    // prepare
    if (maincontext_STATIC != g_maincontext.type) return EINVAL ;
@@ -595,13 +678,13 @@ int unittest_context_maincontext()
       if (test_querymacros())    goto ONABORT ;
       if (test_initmain())       goto ONABORT ;
       if (test_initerror())      goto ONABORT ;
+      if (test_initstart())      goto ONABORT ;
       if (test_progname())       goto ONABORT ;
 
    } else {
 
       if (test_querymacros())    goto ONABORT ;
       if (test_staticmem())      goto ONABORT ;
-
    }
 
    return 0 ;

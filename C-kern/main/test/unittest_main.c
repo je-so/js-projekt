@@ -23,15 +23,16 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/startup.h"
-#include "C-kern/api/test/assert.h"
 // *** DO COMPILETIME tests (include is enough) ***
+#include "C-kern/api/test/assert.h"
 #include "C-kern/api/test/compiletime.h"
 // *** ***
 #include "C-kern/api/test/run/run_unittest.h"
 
 int main(int argc, const char* argv[])
 {
-   int err ;
-   err = startup_platform(argc, argv, &run_unittest) ;
-   return err ;
+   (void) argc;
+   int err;
+   err = startup_platform(run_unittest, argv);
+   return err;
 }

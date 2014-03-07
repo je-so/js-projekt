@@ -1,10 +1,10 @@
-[1: 1385529232.570733s]
-allocstatic_maincontext() C-kern/context/maincontext.c:223
+[1: 1394210377.374237s]
+allocstatic_maincontext() C-kern/context/maincontext.c:254
 Error 12 - Cannot allocate memory
 Could not allocate 1 bytes of memory
 Function aborted
-[1: 1385529232.570741s]
-freestatic_maincontext() C-kern/context/maincontext.c:241
+[1: 1394210377.374244s]
+freestatic_maincontext() C-kern/context/maincontext.c:272
 Error 22 - Invalid argument
 Function input violates condition (g_maincontext.size_staticmem >= size)
 Function aborted

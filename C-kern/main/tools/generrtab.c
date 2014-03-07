@@ -32,7 +32,6 @@
 #include "C-kern/api/memory/wbuffer.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/locale.h"
-#include "C-kern/api/platform/startup.h"
 
 
 typedef struct strtable_t     strtable_t ;
@@ -156,9 +155,9 @@ ONABORT:
    return err ;
 }
 
-static int main_thread(int argc, const char * argv[])
+static int main_thread(maincontext_t * maincontext)
 {
-   int err ;
+   int err = 1;
    static strtable_t errtable[2] ;
    const char *      filename ;
    memblock_t        filedata    = memblock_INIT_FREEABLE ;
@@ -167,12 +166,9 @@ static int main_thread(int argc, const char * argv[])
    char              langid[10] ;
    file_t            file = file_INIT_FREEABLE ;
 
-   err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
-   if (err) goto ONABORT ;
+   if (maincontext->argc != 2) goto PRINT_USAGE ;
 
-   if (argc != 2) goto PRINT_USAGE ;
-
-   filename = argv[1] ;
+   filename = maincontext->argv[1] ;
 
    // load old file content
    err = load_file(filename, &filecontent, 0) ;
@@ -219,9 +215,6 @@ static int main_thread(int argc, const char * argv[])
 
    (void) FREE_MM(&filedata) ;
 
-   err = free_maincontext() ;
-   if (err) goto ONABORT ;
-
    return 0 ;
 PRINT_USAGE:
    dprintf(STDERR_FILENO, "Generrtab version 0.1 - Copyright (c) 2013 Joerg Seebohn\n" ) ;
@@ -231,7 +224,6 @@ PRINT_USAGE:
 ONABORT:
    free_file(&file) ;
    (void) FREE_MM(&filedata) ;
-   free_maincontext() ;
    return err ;
 }
 
@@ -239,7 +231,8 @@ int main(int argc, const char * argv[])
 {
    int err ;
 
-   err = startup_platform(argc, argv, &main_thread) ;
+   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_DEFAULT, argc, argv, &main_thread);
+   err = initstart_maincontext(&startparam);
 
    return err ;
 }

@@ -1,55 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="0" Name="m_selectedTab"/>
+  <int Value="7" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="164" Name="FirstVisibleLine"/>
-      <int Value="184" Name="CurrentLine"/>
+      <int Value="111" Name="FirstVisibleLine"/>
+      <int Value="109" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/main/test/unittest_main.c" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="25" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/test/unittest.h" Name="FileName"/>
-      <int Value="87" Name="FirstVisibleLine"/>
-      <int Value="132" Name="CurrentLine"/>
+      <int Value="57" Name="FirstVisibleLine"/>
+      <int Value="55" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/test/unittest.c" Name="FileName"/>
-      <int Value="243" Name="FirstVisibleLine"/>
-      <int Value="244" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/io/writer/log/log.h" Name="FileName"/>
-      <int Value="278" Name="FirstVisibleLine"/>
+      <int Value="281" Name="FirstVisibleLine"/>
       <int Value="292" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/context/errorcontext.h" Name="FileName"/>
-      <int Value="136" Name="FirstVisibleLine"/>
+      <int Value="139" Name="FirstVisibleLine"/>
       <int Value="168" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/context/errornr.h" Name="FileName"/>
-      <int Value="12" Name="FirstVisibleLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/api/maincontext.h" Name="FileName"/>
+      <int Value="93" Name="FirstVisibleLine"/>
+      <int Value="91" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/platform/startup.h" Name="FileName"/>
+      <int Value="15" Name="FirstVisibleLine"/>
       <int Value="30" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/malloc.c" Name="FileName"/>
-      <int Value="25" Name="FirstVisibleLine"/>
-      <int Value="26" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/context/maincontext.c" Name="FileName"/>
+      <int Value="508" Name="FirstVisibleLine"/>
+      <int Value="522" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/io/ipsocket.c" Name="FileName"/>
-      <int Value="1673" Name="FirstVisibleLine"/>
-      <int Value="1707" Name="CurrentLine"/>
+      <wxString Value="/jsprojekt/JS/C-kern/platform/Linux/startup.c" Name="FileName"/>
+      <int Value="69" Name="FirstVisibleLine"/>
+      <int Value="87" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">

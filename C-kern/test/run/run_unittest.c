@@ -114,7 +114,7 @@ static void run_singletest(const char * testname, int (*test_f) (void))
          extern int FCT (void);  \
          run_singletest(#FCT, &FCT)
 
-int run_unittest(int argc, const char ** argv)
+int run_unittest(void * argv)
 {
    const maincontext_e test_context_type[2] = {
       maincontext_DEFAULT,
@@ -130,7 +130,7 @@ int run_unittest(int argc, const char ** argv)
    for (unsigned type_nr = 0; type_nr < lengthof(test_context_type); ++type_nr) {
 
       // init
-      if (init_maincontext(test_context_type[type_nr], argc, argv)) {
+      if (init_maincontext(test_context_type[type_nr], 0, argv)) {
          logf_unittest("\n%s:%d: ", __FILE__, __LINE__);
          logf_unittest("init_maincontext FAILED\n");
          goto ONABORT;

@@ -34,11 +34,11 @@ struct slist_node_t ;
 
 /* typedef: struct thread_t
  * Export <thread_t>. */
-typedef struct thread_t                   thread_t ;
+typedef struct thread_t thread_t;
 
 /* typedef: thread_f
  * Defines function type executed by <thread_t>. */
-typedef int                            (* thread_f) (void * main_arg) ;
+typedef int (* thread_f) (void * main_arg);
 
 
 // section: Functions

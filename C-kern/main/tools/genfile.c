@@ -32,7 +32,6 @@
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/string/cstring.h"
-#include "C-kern/api/platform/startup.h"
 
 static const char * s_programname ;
 static const char * s_filetitle ;
@@ -394,14 +393,11 @@ ONABORT:
    return EINVAL ;
 }
 
-static int main_thread(int argc, const char * argv[])
+static int main_thread(maincontext_t * maincontext)
 {
    int err ;
 
-   err = init_maincontext(maincontext_CONSOLE, argc, argv) ;
-   if (err) goto ONABORT ;
-
-   err = process_arguments(argc, argv) ;
+   err = process_arguments(maincontext->argc, maincontext->argv) ;
    if (err) goto PRINT_USAGE ;
 
    err = construct_strings_frompath(s_headerpath, &s_headertag, &s_unittestname) ;
@@ -416,14 +412,12 @@ static int main_thread(int argc, const char * argv[])
    err = generate_file(s_templatesource, s_sourcepath) ;
    if (err) goto ONABORT ;
 
-   free_maincontext() ;
    return 0 ;
 PRINT_USAGE:
    dprintf(STDERR_FILENO, "Genfile version 0.1 - Copyright (c) 2012 Joerg Seebohn\n" ) ;
    dprintf(STDERR_FILENO, "\nDescription:\n Generates a simple header and source\n file skeleton for use in this project.\n" ) ;
    dprintf(STDERR_FILENO, "\nUsage:\n %s <filetitle> <typename> <headerfilename> <sourcefilename>\n", s_programname) ;
 ONABORT:
-   free_maincontext() ;
    return 1 ;
 }
 
@@ -431,7 +425,8 @@ int main(int argc, const char * argv[])
 {
    int err ;
 
-   err = startup_platform(argc, argv, &main_thread) ;
+   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_CONSOLE, argc, argv, &main_thread);
+   err = initstart_maincontext(&startparam);
 
    return err ;
 }

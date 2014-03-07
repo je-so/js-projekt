@@ -35,7 +35,6 @@
 #include "C-kern/api/io/reader/utf8reader.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
-#include "C-kern/api/platform/startup.h"
 #include "C-kern/api/string/cstring.h"
 #include "C-kern/api/string/string.h"
 #include "C-kern/api/string/stringstream.h"
@@ -2567,20 +2566,17 @@ ONABORT:
 }
 
 
-static int main_thread(int argc, const char * argv[])
+static int main_thread(maincontext_t * maincontext)
 {
    int err ;
    textresource_reader_t   reader = textresource_reader_INIT_FREEABLE ;
    textresource_writer_t   writer = textresource_writer_INIT_FREEABLE ;
    const char              * infile ;
 
-   err = init_maincontext(maincontext_CONSOLE, argc, argv) ;
-   if (err) goto ONABORT ;
-
-   if (argc != 2) {
+   if (maincontext->argc != 2) {
       goto PRINT_USAGE ;
    }
-   infile = argv[1] ;
+   infile = maincontext->argv[1] ;
 
    err = init_textresourcereader(&reader, infile) ;
    if (err) goto ONABORT ;
@@ -2591,7 +2587,6 @@ static int main_thread(int argc, const char * argv[])
 ONABORT:
    free_textresourcewriter(&writer) ;
    free_textresourcereader(&reader) ;
-   free_maincontext() ;
    return err ;
 PRINT_USAGE:
    print_version() ;
@@ -2604,7 +2599,8 @@ int main(int argc, const char * argv[])
 {
    int err ;
 
-   err = startup_platform(argc, argv, &main_thread) ;
+   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_CONSOLE, argc, argv, &main_thread);
+   err = initstart_maincontext(&startparam);
 
    return err ;
 }

@@ -38,7 +38,6 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/platform/startup.h"
 #include "C-kern/api/io/accessmode.h"
 #include "C-kern/api/io/iochannel.h"
 #include "C-kern/api/io/filesystem/mmfile.h"
@@ -1529,16 +1528,13 @@ ONABORT:
    return 1 ;
 }
 
-static int main_thread(int argc, const char * argv[])
+static int main_thread(maincontext_t * maincontext)
 {
    int err ;
    mmfile_t input_file = mmfile_INIT_FREEABLE ;
    int      exclflag   = O_EXCL ;
 
-   err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
-   if (err) goto ONABORT ;
-
-   err = process_arguments(argc, argv) ;
+   err = process_arguments(maincontext->argc, maincontext->argv) ;
    if (err) goto PRINT_USAGE ;
 
    if (g_foverwrite) exclflag = O_TRUNC ;
@@ -1618,7 +1614,6 @@ static int main_thread(int argc, const char * argv[])
    g_depfilename = 0 ;
 
    free_mmfile(&input_file) ;
-   free_maincontext() ;
    free_depfilenamewritten() ;
    return 0 ;
 PRINT_USAGE:
@@ -1640,7 +1635,6 @@ ONABORT:
       free(g_depfilename) ;
    }
    free_mmfile(&input_file) ;
-   free_maincontext() ;
    free_depfilenamewritten() ;
    return 1 ;
 }
@@ -1649,7 +1643,8 @@ int main(int argc, const char * argv[])
 {
    int err ;
 
-   err = startup_platform(argc, argv, &main_thread) ;
+   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_DEFAULT, argc, argv, &main_thread);
+   err = initstart_maincontext(&startparam);
 
    return err ;
 }

@@ -698,6 +698,8 @@ static int childprocess_unittest(void)
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
+   if (test_initfree())    goto ONABORT ;
+
    TEST(0 == init_x11display(&x11disp1, ":0")) ;
    TEST(0 == init_x11display(&x11disp2, ":0")) ;
    char errstr[100];
@@ -705,7 +707,6 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_initfree())                         goto ONABORT ;
    if (test_query())                            goto ONABORT ;
    if (test_extensions(&x11disp1))              goto ONABORT ;
    if (test_id_manager(&x11disp1, &x11disp2))   goto ONABORT ;
@@ -715,7 +716,6 @@ static int childprocess_unittest(void)
 
    TEST(0 == free_x11display(&x11disp1)) ;
    TEST(0 == free_x11display(&x11disp2)) ;
-
 
    return 0 ;
 ONABORT:

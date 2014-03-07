@@ -33,7 +33,16 @@
 
 /* typedef: struct maincontext_t
  * Export <maincontext_t>. */
-typedef struct maincontext_t              maincontext_t ;
+typedef struct maincontext_t  maincontext_t;
+
+/* typedef: struct maincontext_startparam_t
+ * Export <maincontext_startparam_t>. */
+typedef struct maincontext_startparam_t  maincontext_startparam_t;
+
+/* typedef: maincontext_thread_f
+ * Define <maincontext_thread_f> as signature of start function for main thread. */
+typedef int (* maincontext_thread_f) (maincontext_t * maincontext);
+
 
 /* enums: maincontext_e
  * Used to switch between different implementations.
@@ -46,7 +55,7 @@ typedef struct maincontext_t              maincontext_t ;
  *                       set with a call to <init_maincontext>.
  * maincontext_DEFAULT - Default single or multi threading implementation.
  *                       All content logged to channel <log_channel_USERERR> is ignored.
- * maincontext_CONSOLE - Default single pr multi threading implementation for commandline tools.
+ * maincontext_CONSOLE - Default single or multi threading implementation for commandline tools.
  *                       All content logged to channel <log_channel_USERERR> is immediately written (<log_state_UNBUFFERED>).
  *                       All content logged to channel <log_channel_ERR> is ignored.
  *
@@ -55,15 +64,15 @@ enum maincontext_e {
    maincontext_STATIC  = 0,
    maincontext_DEFAULT = 1,
    maincontext_CONSOLE = 2,
-} ;
+};
 
-typedef enum maincontext_e                maincontext_e ;
+typedef enum maincontext_e    maincontext_e;
 
 /* variable: g_maincontext
  * Global variable which describes the main context for the current process.
  * The variable is located in process global storage.
  * So every thread references the same <maincontext_t>. */
-extern struct maincontext_t               g_maincontext ;
+extern struct maincontext_t   g_maincontext;
 
 
 // section: Functions
@@ -73,8 +82,23 @@ extern struct maincontext_t               g_maincontext ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_context_maincontext
  * Test initialization process succeeds and global variables are set correctly. */
-int unittest_context_maincontext(void) ;
+int unittest_context_maincontext(void);
 #endif
+
+
+/* struct: maincontext_startparam_t
+ * Start parameters used in <initstart_maincontext>. */
+struct maincontext_startparam_t {
+   maincontext_e  context_type;
+   int            argc;
+   const char **  argv;
+   maincontext_thread_f main_thread;
+};
+
+/* define: maincontext_startparam_INIT
+ * Static initializer. */
+#define maincontext_startparam_INIT(context_type, argc, argv, main_thread) \
+         { context_type, argc, argv, main_thread }
 
 
 /* struct: maincontext_t
@@ -92,17 +116,23 @@ int unittest_context_maincontext(void) ;
  *
  * */
 struct maincontext_t {
-   processcontext_t  pcontext ;
-   maincontext_e     type ;
-   const char *      progname ;
-   int               argc ;
-   const char **     argv ;
+   processcontext_t  pcontext;
+   maincontext_e     type;
+   const char *      progname;
+   int               argc;
+   const char **     argv;
    /* variable: size_staticmem
     * Size in bytes of how much of the static memory is allocated. */
-   uint16_t          size_staticmem ;
-} ;
+   uint16_t          size_staticmem;
+};
 
 // group: lifetime
+
+/* function: initstart_maincontext
+ * Calls <startup_platform>, <init_maincontext> and runs main_thread.
+ * This is a convenience function so you do not have to remember the startup
+ * sequence pattern. */
+int initstart_maincontext(maincontext_startparam_t * startparam);
 
 /* function: init_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
@@ -116,7 +146,7 @@ struct maincontext_t {
  * "C-kern/resource/config/initprocess" and "C-kern/resource/config/initthread".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
-int init_maincontext(maincontext_e context_type, int argc, const char ** argv) ;
+int init_maincontext(maincontext_e context_type, int argc, const char ** argv);
 
 /* function: free_maincontext
  * Frees global context. Must be called as last function from the main
@@ -130,91 +160,91 @@ int init_maincontext(maincontext_e context_type, int argc, const char ** argv) ;
  * "C-kern/resource/config/initthread" and "C-kern/resource/config/initprocess".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
-int free_maincontext(void) ;
+int free_maincontext(void);
 
 /* function: abort_maincontext
  * Exits the whole process in a controlled manner.
  * Tries to free as many external resources as possible and
  * aborts all transactions. i
  * Before exit TRACE_NOARG_ERRLOG(PROGRAM_ABORT, err) is called. */
-void abort_maincontext(int err) ;
+void abort_maincontext(int err);
 
 /* function: assertfail_maincontext
  * Exits the whole process in a controlled manner.
  * writes »Assertion failed« to log and calls <abort_maincontext>.
  *
  * Do not call <assertfail_maincontext> directly use the <assert> macro instead. */
-void assertfail_maincontext(const char * condition, const char * file, int line, const char * funcname) ;
+void assertfail_maincontext(const char * condition, const char * file, int line, const char * funcname);
 
 // group: query
 
 /* function: self_maincontext
  * Returns <maincontext_t> of the current process. */
-maincontext_t *            self_maincontext(void) ;
+maincontext_t *            self_maincontext(void);
 
 /* function: pcontext_maincontext
  * Returns <processcontext_t> of the current process. */
-processcontext_t *         pcontext_maincontext(void) ;
+processcontext_t *         pcontext_maincontext(void);
 
 /* function: tcontext_maincontext
  * Returns <threadcontext_t> of the current thread. */
-threadcontext_t *          tcontext_maincontext(void) ;
+threadcontext_t *          tcontext_maincontext(void);
 
 /* function: type_maincontext
  * Returns type <context_e> of current <maincontext_t>. */
-maincontext_e              type_maincontext(void) ;
+maincontext_e              type_maincontext(void);
 
 /* function: progname_maincontext
  * Returns the program name of the running process.
  * The returned value is the argv[0] delivered as parameter in <initmain_maincontext>
  * without any leading path. */
-const char *               progname_maincontext(void) ;
+const char *               progname_maincontext(void);
 
 /* function: threadid_maincontext
  * Returns the thread id of the calling thread. */
-size_t threadid_maincontext(void) ;
+size_t threadid_maincontext(void);
 
 // group: query-service
 
 /* function: blockmap_maincontext
  * Returns shared blockmap used by <pagecache_impl_t> (see <pagecache_blockmap_t >). */
-struct pagecache_blockmap_t * blockmap_maincontext(void) ;
+struct pagecache_blockmap_t * blockmap_maincontext(void);
 
 /* function: error_maincontext
  * Returns error string table (see <errorcontext_t>). */
-/*ref*/typeof(((processcontext_t*)0)->error) error_maincontext(void) ;
+/*ref*/typeof(((processcontext_t*)0)->error) error_maincontext(void);
 
 /* function: log_maincontext
  * Returns log service <log_t> (see <logwriter_t>).
  * This function can only be implemented as a macro. C99 does not support
  * references. */
-/*ref*/iobj_DECLARE(,log)  log_maincontext(void) ;
+/*ref*/iobj_DECLARE(,log)  log_maincontext(void);
 
 /* function: mm_maincontext
  * Returns interfaceable object <mm_t> for access of memory manager. */
-/*ref*/iobj_DECLARE(,mm)   mm_maincontext(void) ;
+/*ref*/iobj_DECLARE(,mm)   mm_maincontext(void);
 
 /* function: objectcache_maincontext
  * Returns interfaceable object <objectcache_t> for access of cached singleton objects. */
-/*ref*/iobj_DECLARE(,objectcache) objectcache_maincontext(void) ;
+/*ref*/iobj_DECLARE(,objectcache) objectcache_maincontext(void);
 
 /* function: pagecache_maincontext
  * Returns object interface <pagecache_t> to access functionality of <pagecache_impl_t>. */
-/*ref*/iobj_DECLARE(,pagecache) pagecache_maincontext(void) ;
+/*ref*/iobj_DECLARE(,pagecache) pagecache_maincontext(void);
 
 /* function: syncrun_maincontext
  * Returns <syncrun_t> of current <maincontext_t>. It is used to store and run
  * all <syncthread_t> of the current thread. */
-struct syncrun_t *         syncrun_maincontext(void) ;
+struct syncrun_t *         syncrun_maincontext(void);
 
 /* function: sysuser_maincontext
  * Returns <sysusercontext_t> of current <maincontext_t>. It is used in implementation of module <SystemUser>. */
-/*ref*/struct sysuser_t *  sysuser_maincontext(void) ;
+/*ref*/struct sysuser_t *  sysuser_maincontext(void);
 
 /* function: valuecache_maincontext
  * Returns <valuecache_t> holding precomputed values.
  * Every value is cached as a single copy for the whole process. */
-struct valuecache_t *      valuecache_maincontext(void) ;
+struct valuecache_t *      valuecache_maincontext(void);
 
 // group: static-memory
 
@@ -223,18 +253,18 @@ struct valuecache_t *      valuecache_maincontext(void) ;
  * Used by modules during execution of their initonce_ functions.
  * This memory lives as long <maincontext_t> lives.
  * Must be called in reverse order of calls to <allocstatic_maincontext>. */
-void * allocstatic_maincontext(uint8_t size) ;
+void * allocstatic_maincontext(uint8_t size);
 
 /* function: freestatic_maincontext
  * Frees size bytes of last allocated memory.
  * Must be called in reverse order of calls to <allocstatic_maincontext>.
  * It is possible to free x calls to <allocstatic_maincontext> with one
  * call to <freestatic_maincontext> where all sizes are summed up. */
-int freestatic_maincontext(uint8_t size) ;
+int freestatic_maincontext(uint8_t size);
 
 /* function: sizestatic_maincontext
  * Returns size in bytes of allocated static memory. */
-uint16_t sizestatic_maincontext(void) ;
+uint16_t sizestatic_maincontext(void);
 
 
 

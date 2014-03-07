@@ -33,7 +33,6 @@
 #include "C-kern/api/ds/foreach.h"
 #include "C-kern/api/ds/typeadapt.h"
 #include "C-kern/api/ds/inmem/exthash.h"
-#include "C-kern/api/platform/startup.h"
 #include "C-kern/api/string/string.h"
 #include <assert.h>
 #include <glob.h>
@@ -1627,39 +1626,36 @@ ONABORT:
    return err ;
 }
 
-static int main_thread(int argc, const char * argv[])
+static int main_thread(maincontext_t * maincontext)
 {
-   int err ;
+   int err = 0;
    int isPrintHelp = 0 ;
 
-   g_programname = argv[0] ;
+   g_programname = maincontext->argv[0] ;
 
-   if (argc < 2) {
+   if (maincontext->argc < 2) {
       goto PRINT_USAGE ;
    }
 
-   if (0 == strcmp(argv[1], "-h")) {
+   if (0 == strcmp(maincontext->argv[1], "-h")) {
       isPrintHelp = 1 ;
       goto PRINT_USAGE ;
    }
 
    const char * makefilename  = 0 ;
    int currentArgIndex = 1 ;
-   if (0 == strcmp(argv[currentArgIndex], "-o")) {
-      if (argc < 3) goto PRINT_USAGE ;
-      makefilename     = argv[currentArgIndex+1] ;
+   if (0 == strcmp(maincontext->argv[currentArgIndex], "-o")) {
+      if (maincontext->argc < 3) goto PRINT_USAGE ;
+      makefilename     = maincontext->argv[currentArgIndex+1] ;
       currentArgIndex += 2 ;
    }
 
-   err = init_maincontext(maincontext_DEFAULT, argc, argv) ;
-   if (err) goto ONABORT ;
+   int isDirectory = (maincontext->argc > currentArgIndex+1) ;
 
-   int isDirectory = (argc > currentArgIndex+1) ;
-
-   for (; !err && currentArgIndex < argc; ++currentArgIndex) {
+   for (; !err && currentArgIndex < maincontext->argc; ++currentArgIndex) {
       genmakeproject_t * genmake = 0 ;
 
-      if (new_genmakeproject(&genmake, argv[currentArgIndex])) {
+      if (new_genmakeproject(&genmake, maincontext->argv[currentArgIndex])) {
          err = 1 ;
       } else if (read_projectfile(genmake)) {
          err = 1 ;
@@ -1672,9 +1668,6 @@ static int main_thread(int argc, const char * argv[])
       free_genmakeproject(&genmake) ;
    }
 
-   if (err) goto ONABORT ;
-
-   err = free_maincontext() ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -1822,7 +1815,8 @@ int main(int argc, const char * argv[])
 {
    int err ;
 
-   err = startup_platform(argc, argv, &main_thread) ;
+   maincontext_startparam_t startparam = maincontext_startparam_INIT(maincontext_CONSOLE, argc, argv, &main_thread);
+   err = initstart_maincontext(&startparam);
 
    return err ;
 }

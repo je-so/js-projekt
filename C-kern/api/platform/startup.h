@@ -28,7 +28,7 @@
 
 /* typedef: mainthread_f
  * Signature of main thread is the same as function main. */
-typedef int                            (* mainthread_f) (int argc, const char ** argv) ;
+typedef int (* mainthread_f) (void * user);
 
 
 // section: Functions
@@ -45,14 +45,14 @@ typedef int                            (* mainthread_f) (int argc, const char **
  *
  * This function is implemented in a system specific way.
  * */
-int startup_platform(int argc, const char ** argv, mainthread_f main_thread) ;
+int startup_platform(mainthread_f main_thread, void * user);
 
 // group: test
 
 #ifdef KONFIG_UNITTEST
 /* function: unittest_platform_startup
  * Test <startup_system> functionality. */
-int unittest_platform_startup(void) ;
+int unittest_platform_startup(void);
 #endif
 
 
