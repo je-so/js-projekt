@@ -49,31 +49,10 @@
 
 static inline void compiletime_assert(void)
 {
-   static_assert(sizeof(((glxwindow_t*)0)->sys_window) == sizeof(Window),
-                 "external visible handle has same size as internal X11 Window handle") ;
-   static_assert(sizeof(((glxwindow_t*)0)->sys_colormap) == sizeof(Colormap),
-                 "external visible handle has same size as internal X11 Window handle") ;
-   static_assert(sizeof(x11drawable_t) == sizeof(((glxwindow_t*)0)->display) + sizeof(((glxwindow_t*)0)->sys_window) + sizeof(((glxwindow_t*)0)->sys_colormap)
-                 && sizeof(((x11drawable_t*)0)->display) == sizeof(((glxwindow_t*)0)->display)
-                 && offsetof(x11drawable_t, display) == offsetof(glxwindow_t, display)
-                 && sizeof(((x11drawable_t*)0)->sys_drawable) == sizeof(((glxwindow_t*)0)->sys_window)
-                 && offsetof(x11drawable_t, sys_drawable) == offsetof(glxwindow_t, sys_window)
-                 && sizeof(((x11drawable_t*)0)->sys_colormap) == sizeof(((glxwindow_t*)0)->sys_colormap)
-                 && offsetof(x11drawable_t, sys_colormap) == offsetof(glxwindow_t, sys_colormap),
-                 "glxwindow_t can be cast to x11drawable_t") ;
-   static_assert(sizeof(((x11window_t*)0)->display) == sizeof(((glxwindow_t*)0)->display)
-                 && offsetof(x11window_t, display) == offsetof(glxwindow_t, display)
-                 && sizeof(((x11window_t*)0)->sys_window) == sizeof(((glxwindow_t*)0)->sys_window)
-                 && offsetof(x11window_t, sys_window) == offsetof(glxwindow_t, sys_window)
-                 && sizeof(((x11window_t*)0)->sys_colormap) == sizeof(((glxwindow_t*)0)->sys_colormap)
-                 && offsetof(x11window_t, sys_colormap) == offsetof(glxwindow_t, sys_colormap)
-                 && sizeof(((x11window_t*)0)->iimpl) == sizeof(((glxwindow_t*)0)->iimpl)
-                 && offsetof(x11window_t, iimpl) == offsetof(glxwindow_t, iimpl)
-                 && sizeof(((x11window_t*)0)->state) == sizeof(((glxwindow_t*)0)->state)
-                 && offsetof(x11window_t, state) == offsetof(glxwindow_t, state)
-                 && sizeof(((x11window_t*)0)->flags) == sizeof(((glxwindow_t*)0)->flags)
-                 && offsetof(x11window_t, flags) == offsetof(glxwindow_t, flags),
-                 "glxwindow_t can be cast to x11window_t (sys_backbuffer is missing but never used except in <backbuffer_x11window>)") ;
+   static_assert( ((x11drawable_t*)0) == genericcast_x11drawable((glxwindow_t*)0),
+                  "glxwindow_t can be cast to x11drawable_t");
+   static_assert( ((x11window_t*)0) == genericcast_x11window((glxwindow_t*)0),
+                  "glxwindow_t can be cast to x11window_t");
 }
 
 static int matchfbconfig_glxwindow(const x11screen_t * x11screen, /*out*/GLXFBConfig * matching_fbconfig, uint8_t nrofattributes, const x11attribute_t * configuration/*[nrofattributes]*/)
@@ -203,7 +182,7 @@ int init_glxwindow(/*out*/glxwindow_t * glxwin, struct x11screen_t * x11screen, 
    err = matchvisual_glxwindow(x11screen, &visual, &depth, nrofattributes, configuration) ;
    if (err) goto ONABORT ;
 
-   err = initbasetype_x11window((x11window_t*)glxwin, eventhandler, x11screen->display, RootWindow(x11screen->display->sys_display, x11screen->nrscreen), visual, depth, nrofattributes, configuration) ;
+   err = initsys_x11window((x11window_t*)glxwin, eventhandler, x11screen->display, RootWindow(x11screen->display->sys_display, x11screen->nrscreen), visual, depth, nrofattributes, configuration) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -222,7 +201,7 @@ int free_glxwindow(glxwindow_t * glxwin)
 
       // add other free calls here
 
-      err2 = freebasetype_x11window((x11window_t*)glxwin) ;
+      err2 = free_x11window((x11window_t*)glxwin) ;
       if (err2) err = err2 ;
 
       if (err) goto ONABORT ;
@@ -242,57 +221,45 @@ ONABORT:
 typedef struct testwindow_t         testwindow_t ;
 
 struct testwindow_t {
-   glxwindow_t glxwin ;
-   int closerequest ;
-   int destroy ;
-   int redraw ;
-   int repos ;
-   int resize ;
-   int showhide ;
-   int32_t  x ;
-   int32_t  y ;
-   uint32_t width ;
-   uint32_t height ;
+   glxwindow_t glxwin;
+   int onclose;
+   int ondestroy;
+   int onredraw;
+   int onreshape;
+   int onvisible;
+   uint32_t width;
+   uint32_t height;
 } ;
 
-#define testwindow_INIT_FREEABLE    { glxwindow_INIT_FREEABLE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+#define testwindow_INIT_FREEABLE    { glxwindow_INIT_FREEABLE, 0, 0, 0, 0, 0, 0, 0 }
 
 x11window_it_DECLARE(testwindow_it, testwindow_t) ;
 
-static void handlecloserequest_testwindow(testwindow_t * testwin)
+static void onclose_testwindow(testwindow_t * testwin)
 {
-   ++ testwin->closerequest ;
+   ++ testwin->onclose ;
 }
 
-static void handledestroy_testwindow(testwindow_t * testwin)
+static void ondestroy_testwindow(testwindow_t * testwin)
 {
-   ++ testwin->destroy ;
+   ++ testwin->ondestroy;
 }
 
-static void handleredraw_testwindow(testwindow_t * testwin)
+static void onredraw_testwindow(testwindow_t * testwin)
 {
-   ++ testwin->redraw ;
+   ++ testwin->onredraw;
 }
 
-static void handlerepos_testwindow(testwindow_t * testwin, int32_t x, int32_t y, uint32_t width, uint32_t height)
+static void onreshape_testwindow(testwindow_t * testwin, uint32_t width, uint32_t height)
 {
-   ++ testwin->repos ;
-   testwin->x      = x ;
-   testwin->y      = y ;
-   testwin->width  = width ;
-   testwin->height = height ;
+   ++ testwin->onreshape;
+   testwin->width  = width;
+   testwin->height = height;
 }
 
-static void handleresize_testwindow(testwindow_t * testwin, uint32_t width, uint32_t height)
+static void onvisible_testwindow(testwindow_t * testwin)
 {
-   ++ testwin->resize ;
-   testwin->width  = width ;
-   testwin->height = height ;
-}
-
-static void handleshowhide_testwindow(testwindow_t * testwin)
-{
-   ++ testwin->showhide ;
+   ++ testwin->onvisible ;
 }
 
 #define WAITFOR(x11disp, loop_count, CONDITION)                   \
@@ -317,10 +284,10 @@ static void draw_background(glxwindow_t * glxwin, rgbacolor_t * color, uint8_t n
    if (0 == matchfbconfig_glxwindow(&x11screen, &fbconfig, nrofattributes, configuration)) {
       glXWaitX() ;
       glxcontext = glXCreateNewContext(display, fbconfig, GLX_RGBA_TYPE, 0, 1) ;
-      glXMakeCurrent(display, glxwin->sys_window, glxcontext) ;
+      glXMakeCurrent(display, glxwin->sys_drawable, glxcontext) ;
       glClearColor((*color)[0],(*color)[1], (*color)[2], (*color)[3]) ;
       glClear(GL_COLOR_BUFFER_BIT) ;
-      glXSwapBuffers(display, glxwin->sys_window) ;
+      glXSwapBuffers(display, glxwin->sys_drawable) ;
       glXMakeCurrent(display, 0, 0) ;
       glXDestroyContext(display, glxcontext) ;
       glXWaitGL() ;
@@ -345,7 +312,7 @@ static int test_initfree(x11screen_t * x11screen)
 
    // TEST glxwindow_INIT_FREEABLE
    TEST(glxwin->display      == 0) ;
-   TEST(glxwin->sys_window   == 0) ;
+   TEST(glxwin->sys_drawable == 0) ;
    TEST(glxwin->sys_colormap == 0) ;
    TEST(glxwin->iimpl        == 0) ;
    TEST(glxwin->state        == 0) ;
@@ -354,18 +321,18 @@ static int test_initfree(x11screen_t * x11screen)
    // TEST init_glxwindow, free_glxwindow
    TEST(0 == init_glxwindow(glxwin, x11screen, 0, lengthof(config), config)) ;
    TEST(glxwin->display      == x11disp) ;
-   TEST(glxwin->sys_window   != 0) ;
+   TEST(glxwin->sys_drawable != 0) ;
    TEST(glxwin->sys_colormap != 0) ;
    TEST(glxwin->iimpl        == 0) ;
    TEST(glxwin->flags        == (x11window_OwnColormap|x11window_OwnWindow)) ;
    TEST(glxwin->state        == x11window_Hidden) ;
-   syswin = glxwin->sys_window ;
+   syswin = glxwin->sys_drawable;
    object = 0 ;
    TEST(0 == findobject_x11display(x11disp, &object, syswin)) ;
    TEST(glxwin == object) ;
    TEST(0 == free_glxwindow(glxwin)) ;
    TEST(glxwin->display      == 0) ;
-   TEST(glxwin->sys_window   == 0) ;
+   TEST(glxwin->sys_drawable == 0) ;
    TEST(glxwin->sys_colormap == 0) ;
    TEST(glxwin->iimpl        == 0) ;
    TEST(glxwin->flags        == 0) ;
@@ -373,7 +340,7 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(ESRCH == findobject_x11display(x11disp, &object, syswin)) ;
    TEST(0 == free_glxwindow(glxwin)) ;
    TEST(glxwin->display      == 0) ;
-   TEST(glxwin->sys_window   == 0) ;
+   TEST(glxwin->sys_drawable == 0) ;
    TEST(glxwin->sys_colormap == 0) ;
    TEST(glxwin->iimpl        == 0) ;
    TEST(glxwin->flags        == 0) ;
@@ -382,21 +349,21 @@ static int test_initfree(x11screen_t * x11screen)
    // TEST free_glxwindow: XDestroyWindow called from outside free_glxwindow
    TEST(0 == init_glxwindow(glxwin, x11screen, genericcast_x11windowit(&iimpl, testwindow_t), lengthof(config), config)) ;
    TEST(glxwin->display      == x11disp) ;
-   TEST(glxwin->sys_window   != 0) ;
+   TEST(glxwin->sys_drawable != 0) ;
    TEST(glxwin->sys_colormap != 0) ;
    TEST(glxwin->iimpl        == genericcast_x11windowit(&iimpl, testwindow_t)) ;
    TEST(glxwin->flags        == (x11window_OwnColormap|x11window_OwnWindow)) ;
    TEST(glxwin->state        == x11window_Hidden) ;
    // destroy on behalf of user
-   XDestroyWindow(x11disp->sys_display, glxwin->sys_window) ;
-   syswin = glxwin->sys_window ;
+   XDestroyWindow(x11disp->sys_display, glxwin->sys_drawable) ;
+   syswin = glxwin->sys_drawable ;
    TEST(0 == findobject_x11display(x11disp, &object, syswin)) ;
    TEST(glxwin == object) ;
-   testwin.destroy = 0 ;
+   testwin.ondestroy = 0 ;
    WAITFOR(x11disp, 10, glxwin->state == x11window_Destroyed) ;
-   TEST(testwin.destroy      == 1) ;
+   TEST(testwin.ondestroy    == 1) ;
    TEST(glxwin->display      == x11disp) ;
-   TEST(glxwin->sys_window   == 0) ;
+   TEST(glxwin->sys_drawable == 0) ;
    TEST(glxwin->sys_colormap != 0) ;
    TEST(glxwin->iimpl        == genericcast_x11windowit(&iimpl, testwindow_t)) ;
    TEST(glxwin->flags        == (x11window_OwnColormap)) ;
@@ -404,36 +371,36 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(ESRCH == findobject_x11display(x11disp, &object, syswin)) ;
    TEST(0 == free_glxwindow(glxwin)) ;
    TEST(glxwin->display      == 0) ;
-   TEST(glxwin->sys_window   == 0) ;
+   TEST(glxwin->sys_drawable == 0) ;
    TEST(glxwin->sys_colormap == 0) ;
    TEST(glxwin->iimpl        == 0) ;
    TEST(glxwin->flags        == 0) ;
    TEST(glxwin->state        == 0) ;
 
-   // TEST sendcloserequest_glxwindow
+   // TEST sendclose_glxwindow
    TEST(0 == init_glxwindow(glxwin, x11screen, genericcast_x11windowit(&iimpl, testwindow_t), lengthof(config), config)) ;
    TEST(glxwin->display      == x11disp) ;
-   TEST(glxwin->sys_window   != 0) ;
+   TEST(glxwin->sys_drawable != 0) ;
    TEST(glxwin->sys_colormap != 0) ;
    TEST(glxwin->iimpl        == genericcast_x11windowit(&iimpl, testwindow_t)) ;
    TEST(glxwin->flags        == (x11window_OwnColormap|x11window_OwnWindow)) ;
    TEST(glxwin->state        == x11window_Hidden) ;
-   TEST(0 == sendcloserequest_glxwindow(glxwin)) ;
-   testwin.closerequest = 0 ;
-   WAITFOR(x11disp, 10, testwin.closerequest) ;
-   TEST(testwin.closerequest == 1) ;
+   TEST(0 == sendclose_glxwindow(glxwin)) ;
+   testwin.onclose = 0 ;
+   WAITFOR(x11disp, 10, testwin.onclose) ;
+   TEST(testwin.onclose == 1) ;
    TEST(glxwin->display      == x11disp) ;
-   TEST(glxwin->sys_window   != 0) ;
+   TEST(glxwin->sys_drawable != 0) ;
    TEST(glxwin->sys_colormap != 0) ;
    TEST(glxwin->iimpl        == genericcast_x11windowit(&iimpl, testwindow_t)) ;
    TEST(glxwin->flags        == (x11window_OwnColormap|x11window_OwnWindow)) ;
    TEST(glxwin->state        == x11window_Hidden) ;
-   syswin = glxwin->sys_window ;
+   syswin = glxwin->sys_drawable ;
    TEST(0 == findobject_x11display(x11disp, &object, syswin)) ;
    TEST(glxwin == object) ;
    TEST(0 == free_glxwindow(glxwin)) ;
    TEST(glxwin->display      == 0) ;
-   TEST(glxwin->sys_window   == 0) ;
+   TEST(glxwin->sys_drawable == 0) ;
    TEST(glxwin->sys_colormap == 0) ;
    TEST(glxwin->iimpl        == 0) ;
    TEST(glxwin->flags        == 0) ;
@@ -582,12 +549,12 @@ static int test_change(testwindow_t * testwin)
    TEST(h == 200) ;
 
    // TEST sendredraw_glxwindow
-   testwin->redraw = 0 ;
-   WAITFOR(x11disp, 2, testwin->redraw != 0) ;
-   testwin->redraw = 0 ;
+   testwin->onredraw = 0 ;
+   WAITFOR(x11disp, 2, testwin->onredraw != 0) ;
+   testwin->onredraw = 0 ;
    TEST(0 == sendredraw_glxwindow(glxwin)) ;
-   WAITFOR(x11disp, 2, testwin->redraw > 0) ;
-   TEST(testwin->redraw > 0) ;
+   WAITFOR(x11disp, 2, testwin->onredraw > 0) ;
+   TEST(testwin->onredraw > 0) ;
 
    // TEST settitle_glxwindow
    TEST(0 == settitle_glxwindow(glxwin, "test: glxwindow_t")) ;
@@ -614,10 +581,10 @@ static int compare_color(glxwindow_t * glxwin, bool isRoot, uint32_t w, uint32_t
       Window root = RootWindow(glxwin->display->sys_display, screen_glxwindow(glxwin).nrscreen) ;
       Window windummy ;
       int32_t x2, y2 ;
-      XTranslateCoordinates(glxwin->display->sys_display, glxwin->sys_window, root, 0, 0, &x2, &y2, &windummy) ;
+      XTranslateCoordinates(glxwin->display->sys_display, glxwin->sys_drawable, root, 0, 0, &x2, &y2, &windummy) ;
       ximg = XGetImage(glxwin->display->sys_display, root, x2, y2, w, h, (unsigned long)-1, ZPixmap) ;
    } else {
-      ximg = XGetImage(glxwin->display->sys_display, glxwin->sys_window, 0, 0, w, h, (unsigned long)-1, ZPixmap) ;
+      ximg = XGetImage(glxwin->display->sys_display, glxwin->sys_drawable, 0, 0, w, h, (unsigned long)-1, ZPixmap) ;
    }
    for (pixels = 0, y = 0; y < h; ++y) {
       for (x = 0; x < w ; ++x) {

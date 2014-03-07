@@ -94,8 +94,8 @@ int dispatchevent_X11(x11display_t * x11disp)
          if (  event.message_type       == x11disp->atoms.WM_PROTOCOLS
                && (Atom)event.data.l[0] == x11disp->atoms.WM_DELETE_WINDOW
                && 0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            if (x11win->iimpl && x11win->iimpl->closerequest) {
-               x11win->iimpl->closerequest(x11win) ;
+            if (x11win->iimpl && x11win->iimpl->onclose) {
+               x11win->iimpl->onclose(x11win) ;
             }
          }
          #undef event
@@ -107,13 +107,13 @@ int dispatchevent_X11(x11display_t * x11disp)
          // filter event
          if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
             // <free_x11window> was not called before this message
-            x11win->sys_window = 0 ;
-            x11win->state      = x11window_Destroyed ;
-            x11win->flags      = (uint8_t) (x11win->flags & ~x11window_OwnWindow) ;
+            x11win->sys_drawable = 0 ;
+            x11win->state        = x11window_Destroyed ;
+            x11win->flags        = (uint8_t) (x11win->flags & ~x11window_OwnWindow) ;
             (void) removeobject_x11display(x11disp, event.window) ;
 
-            if (x11win->iimpl && x11win->iimpl->destroy) {
-               x11win->iimpl->destroy(x11win) ;
+            if (x11win->iimpl && x11win->iimpl->ondestroy) {
+               x11win->iimpl->ondestroy(x11win) ;
             }
          }
          #undef event
@@ -124,15 +124,8 @@ int dispatchevent_X11(x11display_t * x11disp)
 
          // filter event
          if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            if (x11win->iimpl) {
-               if (event.above != 0 && x11win->iimpl->repos) {
-                  if (event.override_redirect && !event.send_event) {
-                     x11win->iimpl->resize(x11win, (uint32_t)event.width, (uint32_t)event.height) ;
-                  }
-                  x11win->iimpl->repos(x11win, event.x, event.y, (uint32_t)event.width, (uint32_t)event.height) ;
-               } else if (event.above == 0 && x11win->iimpl->resize) {
-                  x11win->iimpl->resize(x11win, (uint32_t)event.width, (uint32_t)event.height) ;
-               }
+            if (x11win->iimpl && x11win->iimpl->onreshape) {
+               x11win->iimpl->onreshape(x11win, (uint32_t)event.width, (uint32_t)event.height) ;
             }
          }
          #undef event
@@ -144,8 +137,8 @@ int dispatchevent_X11(x11display_t * x11disp)
          // filter event
          if (  0 == event.count/*last expose*/
                && 0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            if (x11win->iimpl && x11win->iimpl->redraw) {
-               x11win->iimpl->redraw(x11win) ;
+            if (x11win->iimpl && x11win->iimpl->onredraw) {
+               x11win->iimpl->onredraw(x11win) ;
             }
          }
          #undef event
@@ -158,8 +151,8 @@ int dispatchevent_X11(x11display_t * x11disp)
          if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
             x11win->state = x11window_Shown ;
 
-            if (x11win->iimpl && x11win->iimpl->showhide) {
-               x11win->iimpl->showhide(x11win) ;
+            if (x11win->iimpl && x11win->iimpl->onvisible) {
+               x11win->iimpl->onvisible(x11win) ;
             }
          }
          #undef event
@@ -172,8 +165,8 @@ int dispatchevent_X11(x11display_t * x11disp)
          if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
             x11win->state = x11window_Hidden ;
 
-            if (x11win->iimpl && x11win->iimpl->showhide) {
-               x11win->iimpl->showhide(x11win) ;
+            if (x11win->iimpl && x11win->iimpl->onvisible) {
+               x11win->iimpl->onvisible(x11win) ;
             }
          }
          #undef event

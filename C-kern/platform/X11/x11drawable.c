@@ -36,7 +36,16 @@
 
 // section: x11drawable_t
 
-// group: lifetime
+// group: helper
+
+static inline void compiletime_assert(void)
+{
+   static_assert(sizeof(((x11drawable_t*)0)->sys_drawable) == sizeof(Window),
+                 "external visible handle has same size as internal X11 Window handle");
+   static_assert(sizeof(((x11drawable_t*)0)->sys_colormap) == sizeof(Colormap),
+                 "external visible handle has same size as internal X11 Colormap handle");
+}
+
 
 
 // group: test
@@ -45,31 +54,44 @@
 
 static int test_initfree(void)
 {
-   x11drawable_t x11draw = x11drawable_INIT_FREEABLE ;
+   x11drawable_t x11draw = x11drawable_INIT_FREEABLE;
 
    // TEST x11drawable_INIT_FREEABLE
-   TEST(x11draw.display      == 0) ;
-   TEST(x11draw.sys_drawable == 0) ;
-   TEST(x11draw.sys_colormap == 0) ;
+   TEST(x11draw.display      == 0);
+   TEST(x11draw.sys_drawable == 0);
+   TEST(x11draw.sys_colormap == 0);
 
    // TEST x11drawable_INIT
-   x11draw = (x11drawable_t) x11drawable_INIT((x11display_t*)1, 2, 3) ;
-   TEST(x11draw.display      == (x11display_t*)1) ;
-   TEST(x11draw.sys_drawable == 2) ;
-   TEST(x11draw.sys_colormap == 3) ;
+   x11draw = (x11drawable_t) x11drawable_INIT((x11display_t*)1, 2, 3);
+   TEST(x11draw.display      == (x11display_t*)1);
+   TEST(x11draw.sys_drawable == 2);
+   TEST(x11draw.sys_colormap == 3);
 
-   return 0 ;
+   return 0;
 ONABORT:
-   return EINVAL ;
+   return EINVAL;
+}
+
+static int test_query(void)
+{
+   x11drawable_t x11draw = x11drawable_INIT_FREEABLE;
+
+   // TEST genericcast_x11drawable
+   TEST(&x11draw == genericcast_x11drawable(&x11draw));
+
+   return 0;
+ONABORT:
+   return EINVAL;
 }
 
 int unittest_platform_X11_x11drawable()
 {
-   if (test_initfree())       goto ONABORT ;
+   if (test_initfree())    goto ONABORT;
+   if (test_query())       goto ONABORT;
 
-   return 0 ;
+   return 0;
 ONABORT:
-   return EINVAL ;
+   return EINVAL;
 }
 
 #endif

@@ -67,6 +67,7 @@
         <File Name="../../C-kern/api/platform/X11/x11syskonfig.h"/>
         <File Name="../../C-kern/api/platform/X11/x11videomode.h"/>
         <File Name="../../C-kern/api/platform/X11/x11window.h"/>
+        <File Name="../../C-kern/api/platform/X11/x11dblbuffer.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/startup.h"/>
     </VirtualDirectory>
@@ -384,6 +385,7 @@
       <File Name="../../C-kern/platform/X11/x11screen.c"/>
       <File Name="../../C-kern/platform/X11/x11videomode.c"/>
       <File Name="../../C-kern/platform/X11/x11window.c"/>
+      <File Name="../../C-kern/platform/X11/x11dblbuffer.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="math">

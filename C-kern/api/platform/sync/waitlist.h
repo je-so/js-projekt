@@ -3,7 +3,7 @@
    Allows threads of a single process to wait for a certain condition.
 
    If the condition is true a call to <trywakeup_waitlist>
-   wakes up the first thread in the  waiting list.
+   wakes up the first thread in the waiting list.
    Before it is woken up its task arguments are set to the
    values given as arguments in the function <trywakeup_waitlist>.
 

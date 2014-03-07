@@ -48,14 +48,14 @@ int unittest_platform_X11_x11drawable(void) ;
 struct x11drawable_t {
    /* variable: display
     * Reference to <x11display_t>. Every call to X library needs this parameter. */
-   struct x11display_t  * display ;
+   struct x11display_t* display;
    /* variable: sys_drawable
     * X window ID. The ID describes a drawable either of type window, backbuffer or pixmap. */
-   uint32_t             sys_drawable ;
+   uint32_t             sys_drawable;
    /* variable: sys_colormap
-    * X window ID. The ID describes a colormap which is associated with the window.
-    * A colormap is used to map the window pixel depth to the screen pixel depth. */
-   uint32_t             sys_colormap ;
+    * X window ID. The ID describes a colormap which is associated with the drawable.
+    * A colormap is used to map the drawable pixel depth to the screen pixel depth. */
+   uint32_t             sys_colormap;
 } ;
 
 // group: lifetime
@@ -68,9 +68,14 @@ struct x11drawable_t {
 /* define: x11drawable_INIT
  * Static initializer. See <x11drawable_t> for the description of the parameter. */
 #define x11drawable_INIT(display, sys_drawable, sys_colormap) \
-            { display, sys_drawable, sys_colormap }
+         { display, sys_drawable, sys_colormap }
 
 // group: query
+
+/* function: genericcast_x11drawable
+ * Casts drawable into pointer to <x11drawable_t> if that is possible.
+ * The first fields of drawable must match the data fields in <x11drawable_t>. */
+x11drawable_t* genericcast_x11drawable(void * drawable);
 
 // group: draw-lines
 
@@ -79,9 +84,27 @@ struct x11drawable_t {
 // group: draw-text
 
 
+
 // section: inline implementation
 
 // group: x11drawable_t
+
+/* define: genericcast_x11drawable
+ * Implements <x11drawable_t.genericcast_x11drawable>. */
+#define genericcast_x11drawable(drawable) \
+         ( __extension__ ({                                                \
+               static_assert(sizeof(x11drawable_t) <= sizeof(*(drawable))  \
+                  && sizeof(((x11drawable_t*)0)->display) == sizeof((drawable)->display)           \
+                  && offsetof(x11drawable_t, display) == offsetof(typeof(*(drawable)), display)    \
+                  && sizeof(((x11drawable_t*)0)->sys_drawable) == sizeof((drawable)->sys_drawable) \
+                  && offsetof(x11drawable_t, sys_drawable) == offsetof(typeof(*(drawable)), sys_drawable)   \
+                  && sizeof(((x11drawable_t*)0)->sys_colormap) == sizeof((drawable)->sys_colormap)          \
+                  && offsetof(x11drawable_t, sys_colormap) == offsetof(typeof(*(drawable)), sys_colormap),  \
+                  "ensure compatible structure" \
+            );                                  \
+            (x11drawable_t*) (drawable);        \
+         }))
+
 
 
 #endif

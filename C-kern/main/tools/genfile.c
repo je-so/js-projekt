@@ -33,15 +33,15 @@
 #include "C-kern/api/io/filesystem/file.h"
 #include "C-kern/api/string/cstring.h"
 
-static const char * s_programname ;
-static const char * s_filetitle ;
-static const char * s_typename ;
-static const char * s_headerpath ;
-static const char * s_sourcepath ;
-static cstring_t    s_fctsuffix    = cstring_INIT ;
-static cstring_t    s_headertag    = cstring_INIT ;
-static cstring_t    s_typename2    = cstring_INIT ;
-static cstring_t    s_unittestname = cstring_INIT ;
+static const char * s_programname;
+static const char * s_filetitle;
+static const char * s_typename;
+static const char * s_headerpath;
+static const char * s_sourcepath;
+static cstring_t    s_fctsuffix    = cstring_INIT;
+static cstring_t    s_headertag    = cstring_INIT;
+static cstring_t    s_typename2    = cstring_INIT;
+static cstring_t    s_unittestname = cstring_INIT;
 
 
 enum variable_e {
@@ -53,9 +53,9 @@ enum variable_e {
       variable_TYPENAME2,
       variable_TYPENAME,
       variable_UNITTESTNAME
-} ;
+};
 
-typedef enum variable_e                variable_e ;
+typedef enum variable_e                variable_e;
 
 static const char * s_templateheader =
 "/* title: @TITLE\n\n\
@@ -81,19 +81,19 @@ static const char * s_templateheader =
 #define CKERN_@HEADERTAG_HEADER\n\n\
 /* typedef: struct @TYPENAME\n\
  * Export <@TYPENAME> into global namespace. */\n\
-typedef struct @TYPENAME         @TYPENAME ;\n\n\n\
+typedef struct @TYPENAME         @TYPENAME;\n\n\n\
 // section: Functions\n\n\
 // group: test\n\n\
 #ifdef KONFIG_UNITTEST\n\
 /* function: @UNITTESTNAME\n\
  * Test <@TYPENAME> functionality. */\n\
-int @UNITTESTNAME(void) ;\n\
+int @UNITTESTNAME(void);\n\
 #endif\n\n\n\
 /* struct: @TYPENAME\n\
  * TO""DO: describe type */\n\
 struct @TYPENAME {\n\
-   int dummy ; // TO""DO: remove line\n\
-} ;\n\n\
+   int dummy; // TO""DO: remove line\n\
+};\n\n\
 // group: lifetime\n\
 \n\
 /* define: @TYPENAME2_INIT_FREEABLE\n\
@@ -102,11 +102,11 @@ struct @TYPENAME {\n\
 \n\
 /* function: init_@FCTSUFFIX\n\
  * TO""DO: Describe Initializes object. */\n\
-int init_@FCTSUFFIX(/*out*/@TYPENAME * obj) ;\n\
+int init_@FCTSUFFIX(/*out*/@TYPENAME * obj);\n\
 \n\
 /* function: free_@FCTSUFFIX\n\
  * TO""DO: Describe Frees all associated resources. */\n\
-int free_@FCTSUFFIX(@TYPENAME * obj) ;\n\
+int free_@FCTSUFFIX(@TYPENAME * obj);\n\
 \n\
 // group: query\n\
 \n\
@@ -116,9 +116,9 @@ int free_@FCTSUFFIX(@TYPENAME * obj) ;\n\
 \n\
 /* define: init_@FCTSUFFIX\n\
  * Implements <@TYPENAME.init_@FCTSUFFIX>. */\n\
-#define init_@FCTSUFFIX(obj) ;\n\
+#define init_@FCTSUFFIX(obj);\n\
 \n\n\
-#endif\n" ;
+#endif\n";
 
 static const char * s_templatesource =
 "/* title: @TITLE impl\n\n\
@@ -152,24 +152,24 @@ static const char * s_templatesource =
 #ifdef KONFIG_UNITTEST\n\n\
 static int test_initfree(void)\n\
 {\n\
-   @TYPENAME obj = @TYPENAME2_INIT_FREEABLE ;\n\n\
+   @TYPENAME obj = @TYPENAME2_INIT_FREEABLE;\n\n\
    // TEST @TYPENAME2_INIT_FREEABLE\n\
-   TEST(0 == obj.dummy) ;\n\n\
-   return 0 ;\n\
+   TEST(0 == obj.dummy);\n\n\
+   return 0;\n\
 ONABORT:\n\
-   return EINVAL ;\n\
+   return EINVAL;\n\
 }\n\n\
 static int childprocess_unittest(void)\n\
 {\n\
-   resourceusage_t   usage = resourceusage_INIT_FREEABLE ;\n\n\
-   TEST(0 == init_resourceusage(&usage)) ;\n\n\
-   if (test_initfree())       goto ONABORT ;\n\n\
-   TEST(0 == same_resourceusage(&usage)) ;\n\
-   TEST(0 == free_resourceusage(&usage)) ;\n\n\
-   return 0 ;\n\
+   resourceusage_t   usage = resourceusage_INIT_FREEABLE;\n\n\
+   TEST(0 == init_resourceusage(&usage));\n\n\
+   if (test_initfree())       goto ONABORT;\n\n\
+   TEST(0 == same_resourceusage(&usage));\n\
+   TEST(0 == free_resourceusage(&usage));\n\n\
+   return 0;\n\
 ONABORT:\n\
-   (void) free_resourceusage(&usage) ;\n\
-   return EINVAL ;\n\
+   (void) free_resourceusage(&usage);\n\
+   return EINVAL;\n\
 }\n\
 int @UNITTESTNAME()\n\
 {\n\
@@ -179,20 +179,20 @@ int @UNITTESTNAME()\n\
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));\n\n\
    return err;\n\
    // select between (2)\n\
-   if (test_initfree())       goto ONABORT ;\n\n\
-   return 0 ;\n\
+   if (test_initfree())       goto ONABORT;\n\n\
+   return 0;\n\
 ONABORT:\n\
-   return EINVAL ;\n\
+   return EINVAL;\n\
 }\n\n\
-#endif\n" ;
+#endif\n";
 
 static int construct_strings_frompath(const char * filepath, cstring_t * headertag, cstring_t * unittestname)
 {
-   int err ;
+   int err;
 
    // remove path prefix
 
-   const char * removeprefix[] = { "C-kern", "api", "/", "home" } ;
+   const char * removeprefix[] = { "C-kern", "api", "/", "home" };
    for (unsigned i = 0; i < lengthof(removeprefix); ) {
       size_t prefixlen = strlen(removeprefix[i]) ;
       if (0 == strncmp(filepath, removeprefix[i], prefixlen)) {

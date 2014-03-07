@@ -82,7 +82,7 @@ static inline size_t sizestack_threadtls(const size_t pagesize)
 }
 
 /* function: sizevars_threadtls
- * Returns the size all local thread variables on the stack.
+ * Returns the size of all local thread variables on the stack.
  * The returned value is a multiple of pagesize. */
 static inline size_t sizevars_threadtls(const size_t pagesize)
 {

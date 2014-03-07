@@ -291,6 +291,7 @@ int run_unittest(void * argv)
       RUN(unittest_platform_X11_x11screen);
       RUN(unittest_platform_X11_x11drawable);
       // RUN(unittest_platform_X11_x11window);      // TODO: remove comment
+      // RUN(unittest_platform_X11_x11dblbuffer);   // TODO: remove comment
       // RUN(unittest_platform_X11_x11videomode);   // TODO: remove comment
 #if ((KONFIG_USERINTERFACE)&KONFIG_opengl)
       // RUN(unittest_platform_X11_glxwindow);      // TODO: remove comment

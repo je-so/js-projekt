@@ -58,10 +58,10 @@ int unittest_platform_X11_glxwindow(void) ;
 struct glxwindow_t {
    /* variable: display
     * Reference to <x11display_t>. Every call to X library needs this parameter. */
-   struct x11display_t* display ;
-   /* variable: sys_window
+   struct x11display_t* display;
+   /* variable: sys_drawable
     * X window ID. The ID describes a drawable of type window. */
-   uint32_t             sys_window ;
+   uint32_t             sys_drawable;
    /* variable: sys_colormap
     * X window ID. The ID describes a colormap which is associated with the window.
     * A colormap is used to map the window pixel depth to the screen pixel depth. */
@@ -150,9 +150,9 @@ int resize_glxwindow(glxwindow_t * glxwin, uint32_t width, uint32_t height) ;
  * See <x11window_t.sendredraw_x11window>. */
 int sendredraw_glxwindow(glxwindow_t * glxwin) ;
 
-/* function: sendcloserequest_glxwindow
- * See <x11window_t.sendcloserequest_x11window>. */
-int sendcloserequest_glxwindow(glxwindow_t * glxwin) ;
+/* function: sendclose_glxwindow
+ * See <x11window_t.sendclose_x11window>. */
+int sendclose_glxwindow(glxwindow_t * glxwin) ;
 
 /* function: settitle_glxwindow
  * See <x11window_t.settitle_x11window>. */
@@ -202,10 +202,10 @@ int setopacity_glxwindow(glxwindow_t * glxwin, double opacity) ;
 #define screen_glxwindow(glxwin) \
          (screen_x11window(genericcast_x11window(glxwin)))
 
-/* define: sendcloserequest_glxwindow
- * Implements <glxwindow_t.sendcloserequest_glxwindow>. */
-#define sendcloserequest_glxwindow(glxwin) \
-         (sendcloserequest_x11window(genericcast_x11window(glxwin)))
+/* define: sendclose_glxwindow
+ * Implements <glxwindow_t.sendclose_glxwindow>. */
+#define sendclose_glxwindow(glxwin) \
+         (sendclose_x11window(genericcast_x11window(glxwin)))
 
 /* define: sendredraw_glxwindow
  * Implements <glxwindow_t.sendredraw_glxwindow>. */
