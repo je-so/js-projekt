@@ -20,7 +20,7 @@
    file: C-kern/api/platform/X11/x11window.h
     Header file <X11-Window>.
 
-   file: C-kern/platform/shared/X11/x11window.c
+   file: C-kern/platform/X11/x11window.c
     Implementation file <X11-Window impl>.
 */
 

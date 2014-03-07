@@ -19,7 +19,7 @@
    file: C-kern/api/platform/X11/x11display.h
     Header file of <X11-Display>.
 
-   file: C-kern/platform/shared/X11/x11display.c
+   file: C-kern/platform/X11/x11display.c
     Implementation file of <X11-Display impl>.
 */
 

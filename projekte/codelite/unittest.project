@@ -375,17 +375,15 @@
       </VirtualDirectory>
       <File Name="../../C-kern/platform/Linux/startup.c"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="shared">
-      <VirtualDirectory Name="X11">
-        <File Name="../../C-kern/platform/shared/X11/glxwindow.c"/>
-        <File Name="../../C-kern/platform/shared/X11/x11.c"/>
-        <File Name="../../C-kern/platform/shared/X11/x11attribute.c"/>
-        <File Name="../../C-kern/platform/shared/X11/x11display.c"/>
-        <File Name="../../C-kern/platform/shared/X11/x11drawable.c"/>
-        <File Name="../../C-kern/platform/shared/X11/x11screen.c"/>
-        <File Name="../../C-kern/platform/shared/X11/x11videomode.c"/>
-        <File Name="../../C-kern/platform/shared/X11/x11window.c"/>
-      </VirtualDirectory>
+    <VirtualDirectory Name="X11">
+      <File Name="../../C-kern/platform/X11/glxwindow.c"/>
+      <File Name="../../C-kern/platform/X11/x11.c"/>
+      <File Name="../../C-kern/platform/X11/x11attribute.c"/>
+      <File Name="../../C-kern/platform/X11/x11display.c"/>
+      <File Name="../../C-kern/platform/X11/x11drawable.c"/>
+      <File Name="../../C-kern/platform/X11/x11screen.c"/>
+      <File Name="../../C-kern/platform/X11/x11videomode.c"/>
+      <File Name="../../C-kern/platform/X11/x11window.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="math">

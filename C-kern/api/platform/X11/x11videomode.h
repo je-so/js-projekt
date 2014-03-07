@@ -20,7 +20,7 @@
    file: C-kern/api/platform/X11/x11videomode.h
     Header file <X11-Videomode>.
 
-   file: C-kern/platform/shared/X11/x11videomode.c
+   file: C-kern/platform/X11/x11videomode.c
     Implementation file <X11-Videomode impl>.
 */
 #ifndef CKERN_PLATFORM_X11_X11VIDEOMODE_HEADER

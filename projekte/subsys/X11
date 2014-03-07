@@ -1,2 +1,2 @@
-# X11 + OpenGL binding subsystem
-Src += C-kern/platform/shared/X11/*.c
+# X11 subsystem
+Src += C-kern/platform/X11/x11*.c

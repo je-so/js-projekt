@@ -1,7 +1,8 @@
 # Project description of C-System-Layer development environment
 # C-kern includes all system layers written in C99
 include        projekte/binary.gcc
-# include        projekte/subsys/X11
+#include        projekte/subsys/X11
+#include        projekte/subsys/X11-opengl
 include        projekte/subsys/Linux
 # Generate symbol.map
 Linker        += ; projekte/tools/generate_symbol_map.sh $(out)
@@ -11,9 +12,8 @@ Src           += C-kern/main/test/unittest_main.c
 Src           += C-kern/cache/*.c
 Src           += C-kern/context/*.c
 Src           += C-kern/ds/*.c C-kern/ds/inmem/*.c C-kern/ds/typeadapt/*.c
-Src           += C-kern/io/*.c C-kern/io/filesystem/*.c
+Src           += C-kern/io/*.c C-kern/io/filesystem/*.c C-kern/io/reader/*.c
 Src           += C-kern/io/writer/*.c C-kern/io/writer/log/*.c
-Src           += C-kern/io/reader/*.c
 # Src           += C-kern/clang/*.c
 Src           += C-kern/math/hash/*.c C-kern/math/int/*.c C-kern/math/*.c C-kern/math/float/*.c
 Src           += C-kern/memory/*.c C-kern/memory/mm/*.c
@@ -23,7 +23,7 @@ Src           += C-kern/test/*.c C-kern/test/mm/*.c C-kern/test/run/*.c
 Includes       = .
 # No X11
 Libs           = m pthread rt pam
-Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_html5)"
-# With X11 (uncomment include projekte/subsys/X11)
+Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_none)"
+# With X11 (uncomment include projekte/subsys/X11 + X11-opengl)
 #Libs           = m pthread rt pam X11 Xrandr Xrender Xext GL
-#Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_html5|KONFIG_x11)"
+#Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_x11|KONFIG_opengl)"

@@ -24,7 +24,7 @@
    file: C-kern/api/platform/X11/x11display.h
     Header file of <X11-Display>.
 
-   file: C-kern/platform/shared/X11/x11display.c
+   file: C-kern/platform/X11/x11display.c
     Implementation file of <X11-Display impl>.
 */
 #ifndef CKERN_PLATFORM_X11_X11DISPLAY_HEADER
@@ -98,21 +98,21 @@ struct x11display_t {
          uint32_t                _NET_WM_WINDOW_OPACITY ;
    }                             atoms ;
    /* variable: opengl
-    * Check isSupported if OpenGL is supported.
+    * Check isSupported whether OpenGL is supported.
     * The name of the X11 extension which offers an OpenGL binding is "GLX". */
    x11display_extension_t        opengl ;
    /* variable: xdbe
-    * Check isSupported if »Double Buffer extension« is supported.
+    * Check isSupported whether »Double Buffer extension« is supported.
     * The attribute <x11attribute_DOUBLEBUFFER> and function <backbuffer_x11window>
     * work only if this extension is implemented by the X11 server. */
    x11display_extension_t        xdbe ;
    /* variable: xrandr
-    * Check isSupported if »X Resize, Rotate and Reflection extension« is supported.
+    * Check isSupported whether »X Resize, Rotate and Reflection extension« is supported.
     * The types <x11videomode_iterator_t> and <x11videomode_t>
     * work only if this extension is implemented by the X11 server. */
    x11display_extension_t        xrandr ;
    /* variable: xrender
-    * Check isSupported if »X Rendering Extension « is supported.
+    * Check isSupported whether »X Rendering Extension « is supported.
     * Transparent toplevel windows (as a whole) and alpha blending
     * of single pixels drawn into the window with the underlying
     * window background work only if this extension is implemented

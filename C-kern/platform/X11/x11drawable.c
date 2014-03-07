@@ -20,7 +20,7 @@
    file: C-kern/api/platform/X11/x11drawable.h
     Header file <X11-Drawable>.
 
-   file: C-kern/platform/shared/X11/x11drawable.c
+   file: C-kern/platform/X11/x11drawable.c
     Implementation file <X11-Drawable impl>.
 */
 

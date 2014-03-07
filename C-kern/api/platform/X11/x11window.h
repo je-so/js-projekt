@@ -22,7 +22,7 @@
    file: C-kern/api/platform/X11/x11window.h
     Header file <X11-Window>.
 
-   file: C-kern/platform/shared/X11/x11window.c
+   file: C-kern/platform/X11/x11window.c
     Implementation file <X11-Window impl>.
 */
 #ifndef CKERN_PLATFORM_X11_X11WINDOW_HEADER
@@ -172,12 +172,12 @@ struct x11window_t {
    /* variable: flags
     * Additional flags inidicating ownership of system objects. See <x11window_flags_e>. */
    uint8_t              flags ;
-// up to here the window is considered as base type for subtypes ;
+// up to here x11window_t is considered as base type for subtypes ;
 // used in initbasetype_x11window and freebasetype_x11window
 // x11window_t is the base type but contains also double buffer support which should be moved into x11dbwindow_t
    /* variable: sys_backbuffer
-    * X window ID. The ID describes a backbuffer which is associated with the window.
-    * Thie backbuffer is only allocated if <x11attribute_DOUBLEBUFFER> is supplied in the configuration.
+    * X window ID. The ID describes a backbuffer which is associated with this window.
+    * The backbuffer is only allocated if <x11attribute_DOUBLEBUFFER> is supplied in the configuration.
     * If the window is not configured with a back buffer <sys_backbuffer> contains the same value as <sys_window>. */
    uint32_t             sys_backbuffer ;
 } ;
@@ -198,7 +198,8 @@ int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, 
  * Use this call from a subtype.
  * This parameter visual points to Visual (X11 type) and depth specifies the windows depth.
  * Any unknown <x11attribute_t.name> is ignored. Uses XCreateWindow for its implementation. */
-int initbasetype_x11window(/*out*/x11window_t * x11win, const struct x11window_it * eventhandler, struct x11display_t * x11disp, uint32_t parent_sys_window, /*Visual*/void * visual, int depth, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/) ;
+int initbasetype_x11window(/*out*/x11window_t * x11win, const struct x11window_it * eventhandler, struct x11display_t * x11disp, uint32_t parent_sys_window,
+                           /*Visual*/void * visual, int depth, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/) ;
 
 /* function: initmove_glxwindow
  * Must be called if address of <x11window_t> changes.

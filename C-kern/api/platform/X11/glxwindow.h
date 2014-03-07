@@ -22,7 +22,7 @@
    file: C-kern/api/platform/X11/glxwindow.h
     Header file of <X11-OpenGL-Window>.
 
-   file: C-kern/platform/shared/X11/glxwindow.c
+   file: C-kern/platform/X11/glxwindow.c
     Implementation file of <X11-OpenGL-Window impl>.
 */
 #ifndef CKERN_PLATFORM_X11_OPENGL_WINDOW_HEADER
@@ -84,7 +84,7 @@ struct glxwindow_t {
 #define glxwindow_INIT_FREEABLE           { 0, 0, 0, 0, 0, 0 }
 
 /* function: init_glxwindow
- * Initializes glxwin and creates a hidden on window on x11screen.
+ * Initializes glxwin as a hidden window on x11screen.
  * The configuration is read from the array configuration[nrofattributes].
  * To handle any events set eventhandler to a valid value != 0.
  * Call <show_glxwindow> to make the window visible to the user. */

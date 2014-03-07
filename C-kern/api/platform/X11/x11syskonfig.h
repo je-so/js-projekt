@@ -39,7 +39,13 @@
 
 // group: OpenGL
 
+#define KONFIG_opengl 1
+#if ((KONFIG_USERINTERFACE)&KONFIG_opengl)
+
 #include <GL/gl.h>
 #include <GL/glx.h>
+
+#endif
+#undef KONFIG_opengl
 
 #endif

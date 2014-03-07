@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Mär.07  17:35:14
+GenerationDate  := 2014.Mär.07  17:48:08
 GeneratedBy     := je-so
 
 ## Debug
@@ -16,7 +16,7 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -fstack-protector-all -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Debug        := -g 
-Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_USERINTERFACE="(KONFIG_html5)"
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_UNITTEST $(DefineFlag_Debug)KONFIG_USERINTERFACE="(KONFIG_none)"
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)pthread $(LibraryFlag_Debug)rt $(LibraryFlag_Debug)pam
 Libpath_Debug       :=
@@ -34,7 +34,7 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Release        := -O2 
-Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_USERINTERFACE="(KONFIG_html5)"
+Defines_Release       := $(DefineFlag_Release)KONFIG_UNITTEST $(DefineFlag_Release)KONFIG_USERINTERFACE="(KONFIG_none)"
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)pthread $(LibraryFlag_Release)rt $(LibraryFlag_Release)pam
 Libpath_Release       :=
@@ -130,14 +130,14 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!url.c.o \
  $(ObjectDir_Debug)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
- $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Debug)/C-kern!math!hash!crc32.c.o \
  $(ObjectDir_Debug)/C-kern!math!int!sign.c.o \
@@ -239,14 +239,14 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!url.c.o \
  $(ObjectDir_Release)/C-kern!io!iocallback.c.o \
  $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
- $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!csvfilereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o \
  $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o \
  $(ObjectDir_Release)/C-kern!math!hash!crc32.c.o \
  $(ObjectDir_Release)/C-kern!math!int!sign.c.o \
@@ -465,18 +465,6 @@ $(ObjectDir_Debug)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
 $(ObjectDir_Debug)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
-	@$(CC_Debug)
-
 $(ObjectDir_Debug)/C-kern!io!reader!utf8scanner.c.o: C-kern/io/reader/utf8scanner.c
 	@$(CC_Debug)
 
@@ -487,6 +475,18 @@ $(ObjectDir_Debug)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereader.
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c
@@ -786,18 +786,6 @@ $(ObjectDir_Release)/C-kern!io!iocallback.c.o: C-kern/io/iocallback.c
 $(ObjectDir_Release)/C-kern!io!filesystem!fileutil.c.o: C-kern/io/filesystem/fileutil.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
-	@$(CC_Release)
-
 $(ObjectDir_Release)/C-kern!io!reader!utf8scanner.c.o: C-kern/io/reader/utf8scanner.c
 	@$(CC_Release)
 
@@ -808,6 +796,18 @@ $(ObjectDir_Release)/C-kern!io!reader!filereader.c.o: C-kern/io/reader/filereade
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!reader!utf8reader.c.o: C-kern/io/reader/utf8reader.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!math!hash!sha1.c.o: C-kern/math/hash/sha1.c

@@ -20,7 +20,7 @@
    file: C-kern/api/platform/X11/glxwindow.h
     Header file of <X11-OpenGL-Window>.
 
-   file: C-kern/platform/shared/X11/glxwindow.c
+   file: C-kern/platform/X11/glxwindow.c
     Implementation file <X11-OpenGL-Window impl>.
 */
 

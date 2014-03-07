@@ -1,0 +1,2 @@
+# OpenGL binding for X11 subsystem
+Src += C-kern/platform/X11/glx*.c

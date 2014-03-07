@@ -19,7 +19,7 @@
    file: C-kern/api/platform/X11/x11.h
     Header file of <X11-Subsystem>.
 
-   file: C-kern/platform/shared/X11/x11.c
+   file: C-kern/platform/X11/x11.c
     Implementation file <X11-Subsystem impl>.
 */
 

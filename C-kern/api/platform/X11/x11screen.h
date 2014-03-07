@@ -20,7 +20,7 @@
    file: C-kern/api/platform/X11/x11screen.h
     Header file <X11-Screen>.
 
-   file: C-kern/platform/shared/X11/x11screen.c
+   file: C-kern/platform/X11/x11screen.c
     Implementation file <X11-Screen impl>.
 */
 #ifndef CKERN_PLATFORM_X11_X11SCREEN_HEADER

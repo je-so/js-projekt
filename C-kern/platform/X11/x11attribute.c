@@ -20,7 +20,7 @@
    file: C-kern/api/platform/X11/x11attribute.h
     Header file <X11-Attribute>.
 
-   file: C-kern/platform/shared/X11/x11attribute.c
+   file: C-kern/platform/X11/x11attribute.c
     Implementation file <X11-Attribute impl>.
 */
 

@@ -84,8 +84,7 @@
  *
  * Supported values are:
  * KONFIG_none  - no graphics support. This is the default value if you do not provide a value.
- * KONFIG_html5 - Supports http connection to a browser and HTML views which communicate with help
- *                of Javascript and XMLHttpRequest(.upload).
+ * KONFIG_opengl - Supports OpenGL graphics in combination with KONFIG_x11 for example
  * KONFIG_x11   - X11 window system + OpenGL graphics (currently no development, not supported yet). */
 #define KONFIG_USERINTERFACE           KONFIG_none
 #endif
