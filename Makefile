@@ -12,7 +12,8 @@ PROJECTS= pp-generrtab \
           testchildprocess_ \
           testmodule_ \
           textres2compiler_ \
-          textdb_           \
+          textdb_     \
+          demo_       \
           unittest_
 
 # list of targets

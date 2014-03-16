@@ -73,6 +73,9 @@ int freeonce_X11(void) ;
  * nothing else is done except for consuming one event. */
 int dispatchevent_X11(struct x11display_t * x11disp) ;
 
+/* function: nextevent_X11
+ * Waits until there is one event in the queue and calls <dispatchevent_X11>. */
+int nextevent_X11(struct x11display_t * x11disp) ;
 
 // section: inline implementation
 

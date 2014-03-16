@@ -101,16 +101,16 @@ struct x11window_it {
     * a memory leak. Calling <free_x11window> in response to an <onclose> event does not trigger a <ondestroy> callback. */
    void (* ondestroy)      (x11window_t * x11win);
    /* variable: onredraw
-    * The event handler is called if the window was (partially) obscured and the obscured content has to be onredrawn. */
+    * The event handler is called if the window was (partially) obscured and the obscured content has to be redrawn. */
    void (* onredraw)       (x11window_t * x11win);
    /* variable: onreshape
     * The event handler is called whenever the geometry of the window changes.
     * The x and y coordinates can be queried for with a call to <pos_x11window>. */
    void (* onreshape)      (x11window_t * x11win, uint32_t width, uint32_t height);
    /* variable: onvisible
-    * The event handler is called if the window changes state from <x11window_state_SHOWN> to <x11window_state_HIDDEN> or vice versa.
-    * Use <x11window_t.state_x11window> to get the current state. */
-   void (* onvisible)      (x11window_t * x11win);
+    * The event handler is called if the window changes state from <x11window_state_SHOWN>
+    * to <x11window_state_HIDDEN> or vice versa.*/
+   void (* onvisible)      (x11window_t * x11win, x11window_state_e state);
 } ;
 
 // group: generic
@@ -347,7 +347,7 @@ int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, struct
             (iimpl)->ondestroy((subwindow_t*)0);                                             \
             (iimpl)->onredraw((subwindow_t*)0);                                              \
             (iimpl)->onreshape((subwindow_t*)0, (uint32_t)0, (uint32_t)0);                   \
-            (iimpl)->onvisible((subwindow_t*)0);                                             \
+            (iimpl)->onvisible((subwindow_t*)0, (x11window_state_e)0);                       \
          }                                                                                   \
          (x11window_it*) (iimpl);                                                            \
       }))
@@ -361,7 +361,7 @@ int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, struct
             void (* ondestroy)   (subwindow_t * x11win);    \
             void (* onredraw)    (subwindow_t * x11win);    \
             void (* onreshape)   (subwindow_t * x11win, uint32_t width, uint32_t height); \
-            void (* onvisible)   (subwindow_t * x11win);    \
+            void (* onvisible)   (subwindow_t * x11win, x11window_state_e state);         \
          }
 
 // group: x11window_t

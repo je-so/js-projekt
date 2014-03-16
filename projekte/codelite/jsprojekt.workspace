@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <CodeLite_Workspace Name="jsprojekt" Database="./jsprojekt.tags">
+  <Project Name="demo" Path="demo.project"/>
   <Project Name="genmake" Path="genmake.project" Active="No"/>
   <Project Name="unittest" Path="unittest.project" Active="Yes"/>
   <Project Name="textdb" Path="textdb.project" Active="No"/>
@@ -13,12 +14,14 @@
       <Project Name="textrescompiler" ConfigName="Debug"/>
       <Project Name="textdb" ConfigName="Debug"/>
       <Project Name="genmake" ConfigName="Debug"/>
+      <Project Name="demo" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="no">
+    <WorkspaceConfiguration Name="Release" Selected="yes">
       <Project Name="textrescompiler" ConfigName="Release"/>
       <Project Name="textdb" ConfigName="Release"/>
       <Project Name="unittest" ConfigName="Release"/>
       <Project Name="genmake" ConfigName="Release"/>
+      <Project Name="demo" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

@@ -152,7 +152,7 @@ int dispatchevent_X11(x11display_t * x11disp)
             x11win->state = x11window_state_SHOWN ;
 
             if (x11win->iimpl && x11win->iimpl->onvisible) {
-               x11win->iimpl->onvisible(x11win) ;
+               x11win->iimpl->onvisible(x11win, x11win->state) ;
             }
          }
          #undef event
@@ -166,7 +166,7 @@ int dispatchevent_X11(x11display_t * x11disp)
             x11win->state = x11window_state_HIDDEN ;
 
             if (x11win->iimpl && x11win->iimpl->onvisible) {
-               x11win->iimpl->onvisible(x11win) ;
+               x11win->iimpl->onvisible(x11win, x11win->state) ;
             }
          }
          #undef event
@@ -193,7 +193,15 @@ ONABORT:
    return err ;
 }
 
+int nextevent_X11(struct x11display_t * x11disp)
+{
+   XEvent xevent;
+   XPeekEvent(x11disp->sys_display, &xevent);
+   return dispatchevent_X11(x11disp);
+}
 
+
+// section: Functions
 // group: test
 
 #ifdef KONFIG_UNITTEST

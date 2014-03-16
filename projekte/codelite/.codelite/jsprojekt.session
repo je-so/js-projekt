@@ -1,63 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="0" Name="m_selectedTab"/>
+  <int Value="1" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="133" Name="FirstVisibleLine"/>
-      <int Value="147" Name="CurrentLine"/>
+      <int Value="131" Name="FirstVisibleLine"/>
+      <int Value="129" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/demo/opengl/setup_opengles_demo.c" Name="FileName"/>
+      <int Value="134" Name="FirstVisibleLine"/>
+      <int Value="151" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/graphic/surfaceconfig.h" Name="FileName"/>
-      <int Value="141" Name="FirstVisibleLine"/>
-      <int Value="139" Name="CurrentLine"/>
+      <int Value="27" Name="FirstVisibleLine"/>
+      <int Value="28" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/platform/OpenGL/EGL/egldisplay.h" Name="FileName"/>
       <int Value="36" Name="FirstVisibleLine"/>
-      <int Value="72" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/platform/OpenGL/EGL/eglconfig.h" Name="FileName"/>
-      <int Value="47" Name="FirstVisibleLine"/>
-      <int Value="45" Name="CurrentLine"/>
+      <int Value="73" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/platform/OpenGL/EGL/eglwindow.h" Name="FileName"/>
-      <int Value="52" Name="FirstVisibleLine"/>
-      <int Value="69" Name="CurrentLine"/>
+      <int Value="26" Name="FirstVisibleLine"/>
+      <int Value="27" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/platform/OpenGL/EGL/eglwindow.c" Name="FileName"/>
-      <int Value="335" Name="FirstVisibleLine"/>
-      <int Value="355" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/X11/x11window.c" Name="FileName"/>
-      <int Value="1387" Name="FirstVisibleLine"/>
-      <int Value="1388" Name="CurrentLine"/>
+      <int Value="283" Name="FirstVisibleLine"/>
+      <int Value="284" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
-    <long Value="4" Name="Count"/>
+    <long Value="3" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
-      <wxString Value="/jsprojekt/JS/C-kern/memory/mm/mm_impl.c" Name="file"/>
-      <int Value="437" Name="lineno"/>
+      <wxString Value="/jsprojekt/JS/C-kern/ds/inmem/arraystf.c" Name="file"/>
+      <int Value="1554" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>
@@ -72,8 +65,8 @@
       <int Value="0" Name="origin"/>
     </SerializedObject>
     <SerializedObject Name="Breakpoint1">
-      <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
-      <int Value="147" Name="lineno"/>
+      <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
+      <int Value="271" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>
@@ -88,24 +81,8 @@
       <int Value="0" Name="origin"/>
     </SerializedObject>
     <SerializedObject Name="Breakpoint2">
-      <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
-      <int Value="148" Name="lineno"/>
-      <wxString Value="" Name="function_name"/>
-      <wxString Value="" Name="memory_address"/>
-      <int Value="1" Name="bp_type"/>
-      <int Value="0" Name="watchpoint_type"/>
-      <wxString Value="" Name="watchpt_data"/>
-      <CData Name="commandlist"/>
-      <bool Value="0" Name="regex"/>
-      <bool Value="0" Name="is_temp"/>
-      <bool Value="1" Name="is_enabled"/>
-      <int Value="0" Name="ignore_number"/>
-      <wxString Value="" Name="conditions"/>
-      <int Value="0" Name="origin"/>
-    </SerializedObject>
-    <SerializedObject Name="Breakpoint3">
-      <wxString Value="/jsprojekt/JS/C-kern/test/run_unittest.c" Name="file"/>
-      <int Value="271" Name="lineno"/>
+      <wxString Value="/jsprojekt/JS/C-kern/test/unittest.c" Name="file"/>
+      <int Value="617" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>

@@ -1,0 +1,408 @@
+##
+## ! Genmake generated Makefile !
+##
+ProjectName     := demo
+ProjectModes    := Debug Release
+ProjectFile     := projekte/demo.prj
+ProjectLinks    := 
+
+GenerationDate  := 2014.Mär.16  16:21:12
+GeneratedBy     := je-so
+
+## Debug
+DefineFlag_Debug    := -D
+IncludeFlag_Debug   := -I
+LibraryFlag_Debug   := -l
+LibPathFlag_Debug   := -L
+CFlags_Debug        := -g -fstack-protector-all -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
+LFlags_Debug        := -g 
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=KONFIG_none $(DefineFlag_Debug)KONFIG_USERINTERFACE="(KONFIG_x11|KONFIG_opengl_egl)"
+Includes_Debug      := $(IncludeFlag_Debug).
+Libraries_Debug     := $(LibraryFlag_Debug)m $(LibraryFlag_Debug)X11 $(LibraryFlag_Debug)Xrandr $(LibraryFlag_Debug)Xrender $(LibraryFlag_Debug)Xext $(LibraryFlag_Debug)GL $(LibraryFlag_Debug)EGL $(LibraryFlag_Debug)GLESv2
+Libpath_Debug       :=
+ObjectDir_Debug     := bin/Debug/demo
+TargetDir_Debug     := bin
+Target_Debug        := bin/demo_Debug
+Libs_Debug          := $(Libpath_Debug) $(Libraries_Debug)
+CC_Debug            = gcc $(Defines_Debug) $(Includes_Debug) $(CFlags_Debug) -c -o '$@' '$<'
+LD_Debug            = gcc $(LFlags_Debug) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Debug)
+
+## Release
+DefineFlag_Release    := -D
+IncludeFlag_Release   := -I
+LibraryFlag_Release   := -l
+LibPathFlag_Release   := -L
+CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
+LFlags_Release        := -O2 
+Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=KONFIG_none $(DefineFlag_Release)KONFIG_USERINTERFACE="(KONFIG_x11|KONFIG_opengl_egl)"
+Includes_Release      := $(IncludeFlag_Release).
+Libraries_Release     := $(LibraryFlag_Release)m $(LibraryFlag_Release)X11 $(LibraryFlag_Release)Xrandr $(LibraryFlag_Release)Xrender $(LibraryFlag_Release)Xext $(LibraryFlag_Release)GL $(LibraryFlag_Release)EGL $(LibraryFlag_Release)GLESv2
+Libpath_Release       :=
+ObjectDir_Release     := bin/Release/demo
+TargetDir_Release     := bin
+Target_Release        := bin/demo
+Libs_Release          := $(Libpath_Release) $(Libraries_Release)
+CC_Release            = gcc $(Defines_Release) $(Includes_Release) $(CFlags_Release) -c -o '$@' '$<'
+LD_Release            = gcc $(LFlags_Release) -o '$@' $(foreach obj,$^,'$(obj)') $(Libs_Release)
+
+##
+## Targets
+##
+all:   Debug Release
+clean: clean_Debug clean_Release
+init:  init_Debug init_Release
+init_Debug: $(ObjectDir_Debug) $(TargetDir_Debug)
+init_Release: $(ObjectDir_Release) $(TargetDir_Release)
+
+Debug: init_Debug $(Target_Debug)
+
+Release: init_Release $(Target_Release)
+
+clean_Debug:
+	@rm -f "$(ObjectDir_Debug)/"*.[od]
+	@rm -f "$(Target_Debug)"
+	@if [ -d "$(ObjectDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Debug)"; fi
+	@if [ -d "$(TargetDir_Debug)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Debug)"; fi
+
+clean_Release:
+	@rm -f "$(ObjectDir_Release)/"*.[od]
+	@rm -f "$(Target_Release)"
+	@if [ -d "$(ObjectDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(ObjectDir_Release)"; fi
+	@if [ -d "$(TargetDir_Release)" ]; then rmdir -p --ignore-fail-on-non-empty "$(TargetDir_Release)"; fi
+
+$(sort $(ObjectDir_Debug) $(TargetDir_Debug) $(ObjectDir_Release) $(TargetDir_Release)):
+	@mkdir -p "$@"
+
+Objects_Debug := \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o \
+ $(ObjectDir_Debug)/C-kern!context!errorcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o \
+ $(ObjectDir_Debug)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncqueue.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncrun.c.o \
+ $(ObjectDir_Debug)/C-kern!task!syncwlist.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egl.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egldisplay.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglwindow.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglconfig.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!X11!x11display.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!X11!x11.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!X11!x11dblbuffer.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!X11!x11window.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!X11!x11drawable.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!X11!x11videomode.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!X11!x11attribute.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!X11!x11screen.c.o \
+ $(ObjectDir_Debug)/demo!opengl!setup_opengles_demo.c.o \
+ $(ObjectDir_Debug)/demo!opengl!main.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
+ $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o \
+ $(ObjectDir_Debug)/C-kern!string!cstring.c.o
+
+Objects_Release := \
+ $(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o \
+ $(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o \
+ $(ObjectDir_Release)/C-kern!context!errorcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!maincontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!processcontext.c.o \
+ $(ObjectDir_Release)/C-kern!context!threadcontext.c.o \
+ $(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o \
+ $(ObjectDir_Release)/C-kern!cache!valuecache.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o \
+ $(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o \
+ $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncqueue.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncrun.c.o \
+ $(ObjectDir_Release)/C-kern!task!syncwlist.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!errlog.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egl.c.o \
+ $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egldisplay.c.o \
+ $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglwindow.c.o \
+ $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglconfig.c.o \
+ $(ObjectDir_Release)/C-kern!platform!X11!x11display.c.o \
+ $(ObjectDir_Release)/C-kern!platform!X11!x11.c.o \
+ $(ObjectDir_Release)/C-kern!platform!X11!x11dblbuffer.c.o \
+ $(ObjectDir_Release)/C-kern!platform!X11!x11window.c.o \
+ $(ObjectDir_Release)/C-kern!platform!X11!x11drawable.c.o \
+ $(ObjectDir_Release)/C-kern!platform!X11!x11videomode.c.o \
+ $(ObjectDir_Release)/C-kern!platform!X11!x11attribute.c.o \
+ $(ObjectDir_Release)/C-kern!platform!X11!x11screen.c.o \
+ $(ObjectDir_Release)/demo!opengl!setup_opengles_demo.c.o \
+ $(ObjectDir_Release)/demo!opengl!main.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
+ $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o \
+ $(ObjectDir_Release)/C-kern!string!cstring.c.o
+
+$(Target_Debug): $(Objects_Debug)
+	@$(LD_Debug)
+
+$(Target_Release): $(Objects_Release)
+	@$(LD_Release)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/startup.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncqueue.c.o: C-kern/task/syncqueue.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncrun.c.o: C-kern/task/syncrun.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!task!syncwlist.c.o: C-kern/task/syncwlist.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egl.c.o: C-kern/platform/OpenGL/EGL/egl.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egldisplay.c.o: C-kern/platform/OpenGL/EGL/egldisplay.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglwindow.c.o: C-kern/platform/OpenGL/EGL/eglwindow.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglconfig.c.o: C-kern/platform/OpenGL/EGL/eglconfig.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!X11!x11display.c.o: C-kern/platform/X11/x11display.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!X11!x11.c.o: C-kern/platform/X11/x11.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!X11!x11dblbuffer.c.o: C-kern/platform/X11/x11dblbuffer.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!X11!x11window.c.o: C-kern/platform/X11/x11window.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!X11!x11drawable.c.o: C-kern/platform/X11/x11drawable.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!X11!x11videomode.c.o: C-kern/platform/X11/x11videomode.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!X11!x11attribute.c.o: C-kern/platform/X11/x11attribute.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!X11!x11screen.c.o: C-kern/platform/X11/x11screen.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/demo!opengl!setup_opengles_demo.c.o: demo/opengl/setup_opengles_demo.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/demo!opengl!main.c.o: demo/opengl/main.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o: C-kern/ds/inmem/splaytree.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Debug)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!locale.c.o: C-kern/platform/Linux/locale.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!startup.c.o: C-kern/platform/Linux/startup.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!vm.c.o: C-kern/platform/Linux/vm.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!io!iochannel.c.o: C-kern/platform/Linux/io/iochannel.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!Linux!task!thread_tls.c.o: C-kern/platform/Linux/task/thread_tls.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!errorcontext.c.o: C-kern/context/errorcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!maincontext.c.o: C-kern/context/maincontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!processcontext.c.o: C-kern/context/processcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!context!threadcontext.c.o: C-kern/context/threadcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!objectcache_impl.c.o: C-kern/cache/objectcache_impl.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!cache!valuecache.c.o: C-kern/cache/valuecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!blockarray.c.o: C-kern/ds/inmem/blockarray.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!dlist.c.o: C-kern/ds/inmem/dlist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!queue.c.o: C-kern/ds/inmem/queue.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!pagecache_impl.c.o: C-kern/memory/pagecache_impl.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o: C-kern/memory/mm/mm_impl.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncqueue.c.o: C-kern/task/syncqueue.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncrun.c.o: C-kern/task/syncrun.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!task!syncwlist.c.o: C-kern/task/syncwlist.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!errlog.c.o: C-kern/io/writer/errlog.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o: C-kern/io/writer/log/logmain.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egl.c.o: C-kern/platform/OpenGL/EGL/egl.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egldisplay.c.o: C-kern/platform/OpenGL/EGL/egldisplay.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglwindow.c.o: C-kern/platform/OpenGL/EGL/eglwindow.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglconfig.c.o: C-kern/platform/OpenGL/EGL/eglconfig.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!X11!x11display.c.o: C-kern/platform/X11/x11display.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!X11!x11.c.o: C-kern/platform/X11/x11.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!X11!x11dblbuffer.c.o: C-kern/platform/X11/x11dblbuffer.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!X11!x11window.c.o: C-kern/platform/X11/x11window.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!X11!x11drawable.c.o: C-kern/platform/X11/x11drawable.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!X11!x11videomode.c.o: C-kern/platform/X11/x11videomode.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!X11!x11attribute.c.o: C-kern/platform/X11/x11attribute.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!X11!x11screen.c.o: C-kern/platform/X11/x11screen.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/demo!opengl!setup_opengles_demo.c.o: demo/opengl/setup_opengles_demo.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/demo!opengl!main.c.o: demo/opengl/main.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o: C-kern/ds/inmem/binarystack.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o: C-kern/ds/inmem/splaytree.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!string!cstring.c.o: C-kern/string/cstring.c
+	@$(CC_Release)
+
+-include $(Objects_Debug:.o=.d)
+
+-include $(Objects_Release:.o=.d)
