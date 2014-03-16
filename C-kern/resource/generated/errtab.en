@@ -255,11 +255,11 @@ uint16_t g_errorcontext_stroffset[] = {
    [0xfd] = 3120 /*same as 0x85*/,
    [0xfe] = 3120 /*same as 0x85*/,
    [0xff] = 3120 /*same as 0x85*/,
-   [EINVARIANT] = 3134,
-   [ELEAK] = 3197,
-   [0x102] = 3120 /*same as 0xff*/,
-   [0x103] = 3120 /*same as 0xff*/,
-   [0x104] = 3120 /*same as 0xff*/,
+   [ESTATE] = 3134,
+   [EINVARIANT] = 3171,
+   [ERESET] = 3234,
+   [EALLOC] = 3285,
+   [ELEAK] = 3326,
    [0x105] = 3120 /*same as 0xff*/,
    [0x106] = 3120 /*same as 0xff*/,
    [0x107] = 3120 /*same as 0xff*/,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 3120 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[3216] = {
+uint8_t g_errorcontext_strdata[3345] = {
    "Success\0"
    "Operation not permitted\0"
    "No such file or directory\0"
@@ -648,6 +648,9 @@ uint8_t g_errorcontext_strdata[3216] = {
    "State not recoverable\0"
    "Operation not possible due to RF-kill\0"
    "Unknown error\0"
+   "Function not available in this state\0"
    "Internal invariant violated - (software bug or corrupt memory)\0"
+   "Lost context state cause of power management event\0"
+   "Failed to allocate one or more resources\0"
    "Resource(s) leaked\0"
 } ;

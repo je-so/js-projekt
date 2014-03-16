@@ -57,8 +57,8 @@
  * The value is used as include path for system specific settings.
  *
  * Supported values:
- * KONFIG_linux - The only supported operating system during design stage. */
-#define KONFIG_OS                      KONFIG_linux
+ * Linux - The only supported operating system during design stage. */
+#define KONFIG_OS                      Linux
 #if !defined(KONFIG_SUBSYS)
 /* define: KONFIG_SUBSYS
  * Defines which subsystems should be included.
@@ -84,8 +84,9 @@
  *
  * Supported values are:
  * KONFIG_none  - no graphics support. This is the default value if you do not provide a value.
- * KONFIG_opengl - Supports OpenGL graphics in combination with KONFIG_x11 for example
- * KONFIG_x11   - X11 window system + OpenGL graphics (currently no development, not supported yet). */
+ * KONFIG_x11   - X11 window system (+ OpenGL graphics).
+ * KONFIG_opengl_egl - Supports OpenGL binding to native windowing system.
+ * KONFIG_opengl_glx - Supports OpenGL binding to X11 windowing system. */
 #define KONFIG_USERINTERFACE           KONFIG_none
 #endif
 //}
@@ -110,12 +111,10 @@
 // <KONFIG_OS> is replaced by the name of the configured operating system this project is compiled for.
 
 //{
-#define KONFIG_linux Linux
 #include STR(C-kern/api/platform/KONFIG_OS/syskonfig.h)
 #include STR(C-kern/api/platform/KONFIG_OS/systypes.h)
 #include STR(C-kern/api/platform/KONFIG_OS/sysoptimize.h)
 #include STR(C-kern/api/platform/KONFIG_OS/syscontext.h)
-#undef KONFIG_linux
 //}
 
 // group: 4. Standard environment

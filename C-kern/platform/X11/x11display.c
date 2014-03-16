@@ -37,7 +37,12 @@
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #endif
-#include "C-kern/api/platform/X11/x11syskonfig.h"
+#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
+#define KONFIG_opengl_glx 1
+#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
+#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysglx.h)
+#endif
+#undef KONFIG_opengl_glx
 
 
 typedef struct x11display_objectid_adapt_t   x11display_objectid_adapt_t ;
@@ -119,7 +124,7 @@ static int find_x11displayobjectid(x11display_objectid_t ** root, uintptr_t obje
    return err ;
 }
 
-static int new_x11displayobjectid(x11display_objectid_t ** root, uintptr_t objectid, void * value_object)
+static int insert_x11displayobjectid(x11display_objectid_t ** root, uintptr_t objectid, void * value_object)
 {
    int err ;
    x11display_objectid_adapt_t typeadp = typeadapt_INIT_CMP(&impl_cmpkeyobj_objectidadapt, &impl_cmpobj_objectidadapt) ;
@@ -183,17 +188,17 @@ static int deleteall_x11displayobjectid(x11display_objectid_t ** root)
 
 #ifdef KONFIG_UNITTEST
 /* variable: s_x11display_is_skip_extension
- * If set to true <initextensions_x11display> is not executed. */
+ * If set to true <queryextensions_x11display> is not executed. */
 static bool s_x11display_is_skip_extension = false;
 #endif
 
 // group: extension support
 
-/* function: initextensions_x11display
+/* function: queryextensions_x11display
  * Initializes extension variables of <x11display_t>.
  * It is expected that memory of all extension variables is set to zero
  * before you call this function. */
-static int initextensions_x11display(x11display_t * x11disp)
+static int queryextensions_x11display(x11display_t * x11disp)
 {
    int   major ;
    int   minor ;
@@ -206,6 +211,8 @@ static int initextensions_x11display(x11display_t * x11disp)
    }
 #endif
 
+#define KONFIG_opengl_glx 1
+#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
    isSupported = XQueryExtension(x11disp->sys_display, "GLX", &dummy, &x11disp->opengl.eventbase, &x11disp->opengl.errorbase) ;
    if (isSupported) {
       // glX implementation uses functionality supported only by version 1.3 or higher
@@ -218,6 +225,8 @@ static int initextensions_x11display(x11display_t * x11disp)
          x11disp->opengl.version_minor = (uint16_t) minor ;
       }
    }
+#endif
+#undef KONFIG_opengl_glx
 
    isSupported = XQueryExtension(x11disp->sys_display, "DOUBLE-BUFFER", &dummy, &x11disp->xdbe.eventbase, &x11disp->xdbe.errorbase) ;
    if (isSupported) {
@@ -318,7 +327,7 @@ int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_n
    SETATOM(_NET_WM_WINDOW_OPACITY) ;
 #undef  SETATOM
 
-   err = initextensions_x11display(&newdisp) ;
+   err = queryextensions_x11display(&newdisp) ;
    if (err) goto ONABORT ;
 
    *x11disp = newdisp ;
@@ -404,7 +413,7 @@ int insertobject_x11display(x11display_t * x11disp, void * object, uintptr_t obj
 {
    int err ;
 
-   err = new_x11displayobjectid(&x11disp->idmap, objectid, object) ;
+   err = insert_x11displayobjectid(&x11disp->idmap, objectid, object) ;
    if (err) goto ONABORT ;
 
    return 0 ;

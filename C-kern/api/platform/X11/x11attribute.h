@@ -49,9 +49,9 @@ typedef union x11attribute_value_t           x11attribute_value_t ;
  *                                If the window has a frame the window manager allows to resize the window.
  *                                But it can never be resized beyond this size.
  * x11attribute_WINOPACITY      - Attribute sets an uint32_t value which determines the opacity of the whole window
- *                                including the fram drawn by the window manager.
+ *                                including any window frame drawn by the window manager.
  *                                See also <x11attribute_INIT_WINOPACITY>.
- * x11attribute_ALPHAOPACITY    - Attribute sets a flag which makes lets the background of the window shine through.
+ * x11attribute_ALPHAOPACITY    - Attribute sets a flag which makes the background of the window shine through.
  *                                The alpha value of a pixel determines its opacity.
  *                                See also <x11attribute_INIT_ALPHAOPACITY>.
  *                                In 2d mode (X11) this is the same as setting <x11attribute_ALPHABITS> to a value != 0.

@@ -39,7 +39,7 @@ struct x11window_it ;
 /* typedef: struct glxwindow_t
  * Shortcut for <glxwindow_t>.
  * Holds X11 window supporting an OpenGL context. */
-typedef struct glxwindow_t                glxwindow_t ;
+typedef struct glxwindow_t glxwindow_t ;
 
 
 // section: Functions
@@ -81,7 +81,7 @@ struct glxwindow_t {
 
 /* define: glxwindow_INIT_FREEABLE
  * Static initializer: makes calling of <free_glxwindow> safe. */
-#define glxwindow_INIT_FREEABLE           { 0, 0, 0, 0, 0, 0 }
+#define glxwindow_INIT_FREEABLE  { 0, 0, 0, 0, 0, 0 }
 
 /* function: init_glxwindow
  * Initializes glxwin as a hidden window on x11screen.

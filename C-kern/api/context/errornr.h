@@ -33,16 +33,22 @@
  * ELEAK      - Resource leak. This means for example memory not freed, file descriptors not closed and so on.
  * */
 enum errornr_e {
-   errornr_FIRSTERRORCODE = 256,
-   errornr_INVARIANT      = errornr_FIRSTERRORCODE,
-   errornr_LEAK,
+   errornr_FIRSTERRORCODE  = 256,
+   errornr_STATE           = errornr_FIRSTERRORCODE,
+   errornr_STATE_INVARIANT,
+   errornr_STATE_RESET,
+   errornr_RESOURCE_ALLOCATE,
+   errornr_RESOURCE_LEAK,
    errornr_NEXTERRORCODE
 } ;
 
 typedef enum errornr_e  errornr_e;
 
-#define EINVARIANT   errornr_INVARIANT
-#define ELEAK        errornr_LEAK
+#define ESTATE       errornr_STATE
+#define EINVARIANT   errornr_STATE_INVARIANT
+#define ERESET       errornr_STATE_RESET
+#define EALLOC       errornr_RESOURCE_ALLOCATE
+#define ELEAK        errornr_RESOURCE_LEAK
 
 
 // section: Functions

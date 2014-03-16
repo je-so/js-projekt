@@ -38,7 +38,7 @@
 #include "C-kern/api/platform/X11/x11attribute.h"
 #include "C-kern/api/platform/X11/x11screen.h"
 #endif
-#include "C-kern/api/platform/X11/x11syskonfig.h"
+#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
 
 
 // section: x11dblbuffer_t

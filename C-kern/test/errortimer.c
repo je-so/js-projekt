@@ -67,12 +67,24 @@ static int test_query(void)
 
    // TEST isenabled_testerrortimer
    TEST(0 == isenabled_testerrortimer(&errtimer)) ;
-   init_testerrortimer(&errtimer, 1, 0) ;
-   TEST(1 == isenabled_testerrortimer(&errtimer)) ;
-   init_testerrortimer(&errtimer, UINT32_MAX, 0) ;
-   TEST(1 == isenabled_testerrortimer(&errtimer)) ;
-   init_testerrortimer(&errtimer, 0, 20) ;
-   TEST(0 == isenabled_testerrortimer(&errtimer)) ;
+   for (int err = 0; err < 2; ++err) {
+      init_testerrortimer(&errtimer, 0, err) ;
+      TEST(0 == isenabled_testerrortimer(&errtimer)) ;
+      init_testerrortimer(&errtimer, 1, err) ;
+      TEST(1 == isenabled_testerrortimer(&errtimer)) ;
+      init_testerrortimer(&errtimer, UINT32_MAX, err) ;
+      TEST(1 == isenabled_testerrortimer(&errtimer)) ;
+   }
+
+   // TEST errcode_testerrortimer
+   free_testerrortimer(&errtimer);
+   TEST(0 == errcode_testerrortimer(&errtimer)) ;
+   for (int i = 0; i < 10; ++i) {
+      init_testerrortimer(&errtimer, 0, i);
+      TEST(i == errcode_testerrortimer(&errtimer)) ;
+      init_testerrortimer(&errtimer, 1, i);
+      TEST(i == errcode_testerrortimer(&errtimer)) ;
+   }
 
    return 0 ;
 ONABORT:
@@ -83,6 +95,7 @@ ONABORT:
 static int test_update(void)
 {
    test_errortimer_t  errtimer = test_errortimer_INIT_FREEABLE ;
+   int err;
 
    // TEST process_testerrortimer
    init_testerrortimer(&errtimer, 11, -2) ;
@@ -101,8 +114,23 @@ static int test_update(void)
    TEST(0  == (int)errtimer.timercount) ;
    TEST(-2 == errtimer.errcode) ;
 
+   // TEST IFERROR_testerrortimer
+   err = 0 ;
+   init_testerrortimer(&errtimer, 2, 11) ;
+   for (int i = 1; i >= 0; --i) {
+      TEST(0 == err);
+      IFERROR_testerrortimer(&errtimer, { err = errcode_testerrortimer(&errtimer); });
+   }
+   TEST(11 == err);
+
+   // TEST IFERROR_testerrortimer: code_block contains ,
+   err = 0 ;
+   init_testerrortimer(&errtimer, 1, 12) ;
+   IFERROR_testerrortimer(&errtimer, { err = 1, err = 2; });
+   TEST(2 == err);
+
    // TEST ONERROR_testerrortimer
-   int err = 0 ;
+   err = 0 ;
    init_testerrortimer(&errtimer, 2, 3) ;
    ONERROR_testerrortimer(&errtimer, ONABORT) ;
    TEST(0 == err) ;
@@ -120,6 +148,16 @@ XXX2:
    TEST(10== err) ;
    TEST(0 == errtimer.timercount) ;
    TEST(3 == errtimer.errcode) ;
+
+   // TEST PROCESS_testerrortimer
+   init_testerrortimer(&errtimer, 2, 5) ;
+   TEST(0 == PROCESS_testerrortimer(&errtimer));
+   TEST(1 == errtimer.timercount);
+   TEST(5 == PROCESS_testerrortimer(&errtimer));
+   TEST(0 == errtimer.timercount);
+   TEST(0 == PROCESS_testerrortimer(&errtimer));
+   TEST(0 == errtimer.timercount);
+   TEST(5 == errtimer.errcode);
 
    // TEST SETONERROR_testerrortimer
    err = 0 ;

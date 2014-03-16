@@ -32,7 +32,7 @@
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
-#include "C-kern/api/platform/X11/x11syskonfig.h"
+#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
 
 
 // section: X11_t
@@ -43,7 +43,7 @@
  * Remembers if initialization was done. It is used in
  * <initonce_X11> which is called before any other X11
  * function is called and which inits the X11-library to make it thread safe. */
-static bool    s_X11_init = false ;
+static bool s_X11_init = false ;
 
 // group: init
 

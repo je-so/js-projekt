@@ -1,0 +1,2 @@
+# graphic: Graphics Interface Facade to Native Graphics Interface
+Src += C-kern/graphic/*.c

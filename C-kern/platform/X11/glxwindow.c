@@ -39,7 +39,8 @@
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/string/cstring.h"
 #endif
-#include "C-kern/api/platform/X11/x11syskonfig.h"
+#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
+#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysglx.h)
 
 
 

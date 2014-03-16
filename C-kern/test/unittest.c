@@ -490,24 +490,24 @@ static int test_report(void)
    TEST(0  == strncmp((const char*)buffer, "file:45: TEST FAILED\n", bytes_read));
 
    // TEST logfailed_unittest: other msg
-   logfailed_unittest("FILE", 33, "OTHER MSG\n");
+   logfailed_unittest("File", 33, "OTHER MSG\n");
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(19 == bytes_read);
-   TEST(0  == strncmp((const char*)buffer, "FILE:33: OTHER MSG\n", bytes_read));
+   TEST(0  == strncmp((const char*)buffer, "File:33: OTHER MSG\n", bytes_read));
 
    // TEST logfailedunexpected_unittest
-   logfailedunexpected_unittest("FILE", 35, "%" PRIu32, (uint32_t)-1);
+   logfailedunexpected_unittest("File", 35, "%" PRIu32, (uint32_t)-1);
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(37 == bytes_read);
-   TEST(0  == memcmp(buffer, "FILE:35: UNEXPECTED VALUE 4294967295\n", bytes_read));
+   TEST(0  == memcmp(buffer, "File:35: UNEXPECTED VALUE 4294967295\n", bytes_read));
 
    // TEST logfailedunexpected_unittest: only 255 chars are printed at max as value
    memset(teststr, 'A', sizeof(teststr)-1);
    teststr[sizeof(teststr)-1] = 0;
-   logfailedunexpected_unittest("FILE", 35, "%s", teststr);
+   logfailedunexpected_unittest("File", 35, "%s", teststr);
    TEST(0  == read_iochannel(fd[0], sizeof(buffer), buffer, &bytes_read));
    TEST(26+255+1 == bytes_read);
-   TEST(0  == memcmp(buffer, "FILE:35: UNEXPECTED VALUE ", 26));
+   TEST(0  == memcmp(buffer, "File:35: UNEXPECTED VALUE ", 26));
    TEST(0  == memcmp(buffer+26, teststr, 255));
    TEST(0  == memcmp(buffer+26+255, "\n", 1));
 
@@ -740,7 +740,7 @@ static int test_exec(void)
    TEST(6 == logsize);
    TEST(0 == memcmp(logbuffer, "ERRLOG", 6));
 
-   // TEST execasprocess_unittest: stdout is inherited
+   // TEST execasprocess_unittest: std-out is inherited
    CLEARBUFFER_ERRLOG();
    TEST(0 == execasprocess_unittest(&dummy_unittest_fail2, &retcode));
    TEST(EINVAL == retcode);
@@ -755,7 +755,7 @@ static int test_exec(void)
    // TEST execasprocess_unittest: EINTR
    TEST(0 == execasprocess_unittest(&dummy_unittest_abort, &retcode));
    TEST(EINTR == retcode);
-   // no log written or something to stdout
+   // no log written or something to std-out
    GETBUFFER_ERRLOG(&logbuffer, &logsize);
    TEST(7 == logsize);
    TEST(0 == memcmp(logbuffer, "ERRLOG\n", 7));

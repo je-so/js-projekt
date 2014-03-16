@@ -119,7 +119,7 @@ static int convert_eai_errorcodes(int err)
    return err ;
 }
 
-static int new_addrinfo(struct addrinfo ** addrinfo_list, const char * name_or_numeric, int flags, ipprotocol_e protocol, ipport_t port, ipversion_e version)
+static int new_addrinfo(/*out*/struct addrinfo ** addrinfo_list, const char * name_or_numeric, int flags, ipprotocol_e protocol, ipport_t port, ipversion_e version)
 {
    int err ;
    struct addrinfo   filter ;

@@ -8,7 +8,7 @@
 # environment variables:
 # verbose: if set to != "" => $info is printed
 error=0
-run_unittest= C-kern/test/run/run_unittest.c
+run_unittest="C-kern/test/run/run_unittest.c"
 # test all *.h files
 files=`find C-kern/ -name "*.[ch]" -exec grep -l "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" {} \;`
 info=""
@@ -23,55 +23,51 @@ for((i=0;i<${#ok[*]};i=i+1)) do
 done
 files=`echo $files | sed -e '/^[ ]*$/d' -`
 for i in $files; do
-   result_size=`grep "^[a-z ]*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | wc -l`
-   if [ "$result_size" = "0" ]; then continue ; fi
-
-   # test for correct interface
-   if [ "${i##*.c}" = "" ]; then
-      # .c file
-      if [ "$result_size" != "1" ]; then
-         error=1
-         info="$info  file: <${i}> implements more than one unittest\n"
-      fi
-      for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
-         result=`grep "^[a-z ]*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
-         if [ "${result#*assert( 0 == unittest_*()*)*;}" = "" ]; then
+   IFS_old=$IFS
+   IFS=$'\n'
+   results=(`grep "^[a-z ]*unittest_[a-zA-Z0-9_]*[ \t]*(" $i`)
+   IFS=$IFS_old
+   for((testnr=0; testnr < ${#results[*]}; testnr=testnr+1)) do
+      result=${results[$testnr]}
+      # test for correct interface
+      if [ "${i##*.c}" = "" ]; then
+         # .c file
+         if [ "$testnr" != "0" ]; then
+            error=1
+            info="$info  file: <${i}> implements more than one unittest\n"
             continue
          fi
-         if [ "${result#   if (unittest_context())}" != "${result}" ]; then
-            continue ;
+         if [[ "$result" =~ ([ ]*assert\(.*==[ ]*unittest_.*\(\)) ]]; then
+            continue
+         fi
+         if [[ "$result" =~ ([ ]*if \(unittest_.*\(\)) ]]; then
+            continue
          fi
          if [ "${result#int unittest_*()}" != "" ]; then
             error=1
             info="$info  file: <${i}> has wrong unittest definition '$result'\n"
+            continue
          fi
-      done
-   else
-      # .h file
-      for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
-         result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
-         result=${result#extern }
-         result=${result## \* >*}
-         if [ "${result#int unittest_*(void) ;}" != "" ]; then
+      else
+         # .h file
+         if [[ "$result" =~ (^[ ]*\\\*) ]]; then
+            continue
+         fi
+         if [[ ! "$result" =~ (^$|^(extern )?int unittest_.*\(void\)[ ]?;$) ]]; then
             error=1
             info="$info  file: <${i}> has wrong unittest definition '$result'\n"
+            continue
          fi
-      done
-   fi
-
-   # test that unittest is called
-   for((testnr=1;testnr <= $result_size; testnr=testnr+1)) do
-      result=`grep "^.*unittest_[a-zA-Z0-9_]*[ \t]*(" $i | tail -n +${testnr} | head -n 1`
-      result=${result## \* >*}
-      if [ "$result" = "" ]; then continue ; fi
-      name="`echo $result | sed 's/.*unittest_\(.*\)(.*/\\1/' -`"
-      result=`grep "RUN(unittest_${name})" ${run_unittest}
+      fi
+      # test that unittest is called
+      name=${result#*unittest_}
+      name=${name%(*)*}
+      result=`grep "RUN(unittest_${name})" ${run_unittest}`
       if [ "$result" = "" ]; then
          error=1
          info="$info  file: <${i}> unittest_${name} is not called from '${run_unittest}'\n"
       fi
    done
-
 done
 
 if [ "$error" != "0" ]; then

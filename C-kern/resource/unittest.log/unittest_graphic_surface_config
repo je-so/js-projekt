@@ -1,0 +1,60 @@
+[1: 1394526425.588660s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 0 - Success
+Function aborted
+[1: 1394526425.588757s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 0 - Success
+Function aborted
+[1: 1394526425.588912s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 0 - Success
+Function aborted
+[1: 1394526425.589033s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 0 - Success
+Function aborted
+[1: 1394526425.589182s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 0 - Success
+Function aborted
+[1: 1394526425.589278s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 0 - Success
+Function aborted
+[1: 1394526425.589287s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 22 - Invalid argument
+Function aborted
+[1: 1394526425.589289s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 22 - Invalid argument
+Function aborted
+[1: 1394526425.589294s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 22 - Invalid argument
+Function aborted
+[1: 1394526425.589296s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 22 - Invalid argument
+Function aborted
+[1: 1394526425.589299s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 7 - Argument list too long
+Function aborted
+[1: 1394526425.589301s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 7 - Argument list too long
+Function aborted
+[1: 1394526425.589311s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 3 - No such process
+Function aborted
+[1: 1394526425.589318s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 3 - No such process
+Function aborted
+[1: 1394526425.589468s]
+initfromegl_surfaceconfig() C-kern/graphic/surface_config.c:72
+Error 0 - Success
+Function aborted

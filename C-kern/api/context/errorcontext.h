@@ -28,15 +28,15 @@
 
 /* typedef: struct errorcontext_t
  * Export <errorcontext_t> into global namespace. */
-typedef struct errorcontext_t errorcontext_t ;
+typedef struct errorcontext_t errorcontext_t;
 
 /* variable: g_errorcontext_stroffset
  * Used in <processcontext_INIT_STATIC> to initialize static <processcontext_t>. */
-extern uint16_t   g_errorcontext_stroffset[] ;
+extern uint16_t   g_errorcontext_stroffset[];
 
 /* variable: g_errorcontext_strdata
  * Used in <processcontext_INIT_STATIC> to initialize static <processcontext_t>. */
-extern uint8_t    g_errorcontext_strdata[] ;
+extern uint8_t    g_errorcontext_strdata[];
 
 
 
@@ -47,7 +47,7 @@ extern uint8_t    g_errorcontext_strdata[] ;
 #ifdef KONFIG_UNITTEST
 /* function: unittest_context_errorcontext
  * Test <errorcontext_t> functionality. */
-int unittest_context_errorcontext(void) ;
+int unittest_context_errorcontext(void);
 #endif
 
 

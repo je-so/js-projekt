@@ -112,46 +112,46 @@ static test_errortimer_t   s_processcontext_errtimer = test_errortimer_INIT_FREE
  * o Generated inithelper functions to init objects with calls init_module.
  * */
 
-// TEXTDB:SELECT(\n"static int inithelper"row-id"_processcontext(processcontext_t * pcontext)"\n"{"\n"   (void) pcontext ;"\n"   return initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="initonce")
+// TEXTDB:SELECT(\n"static int inithelper"row-id"_processcontext(/*out*/processcontext_t * pcontext)"\n"{"\n"   (void) pcontext ;"\n"   return initonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="initonce")
 
-static int inithelper1_processcontext(processcontext_t * pcontext)
+static int inithelper1_processcontext(/*out*/processcontext_t * pcontext)
 {
    (void) pcontext ;
    return initonce_errorcontext(&pcontext->error) ;
 }
 
-static int inithelper2_processcontext(processcontext_t * pcontext)
+static int inithelper2_processcontext(/*out*/processcontext_t * pcontext)
 {
    (void) pcontext ;
    return initonce_locale() ;
 }
 
-static int inithelper3_processcontext(processcontext_t * pcontext)
+static int inithelper3_processcontext(/*out*/processcontext_t * pcontext)
 {
    (void) pcontext ;
    return initonce_signalhandler() ;
 }
 
-static int inithelper7_processcontext(processcontext_t * pcontext)
+static int inithelper7_processcontext(/*out*/processcontext_t * pcontext)
 {
    (void) pcontext ;
    return initonce_X11() ;
 }
 // TEXTDB:END
 
-// TEXTDB:SELECT(\n"static int inithelper"row-id"_processcontext(processcontext_t * pcontext)"\n"{"\n"   INITOBJECT("module", typeof(*pcontext->"parameter"), pcontext->"parameter")"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="object")
+// TEXTDB:SELECT(\n"static int inithelper"row-id"_processcontext(/*out*/processcontext_t * pcontext)"\n"{"\n"   INITOBJECT("module", typeof(*pcontext->"parameter"), pcontext->"parameter")"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="object")
 
-static int inithelper4_processcontext(processcontext_t * pcontext)
+static int inithelper4_processcontext(/*out*/processcontext_t * pcontext)
 {
    INITOBJECT(valuecache, typeof(*pcontext->valuecache), pcontext->valuecache)
 }
 
-static int inithelper5_processcontext(processcontext_t * pcontext)
+static int inithelper5_processcontext(/*out*/processcontext_t * pcontext)
 {
    INITOBJECT(sysuser, typeof(*pcontext->sysuser), pcontext->sysuser)
 }
 
-static int inithelper6_processcontext(processcontext_t * pcontext)
+static int inithelper6_processcontext(/*out*/processcontext_t * pcontext)
 {
    INITOBJECT(pagecacheblockmap, typeof(*pcontext->blockmap), pcontext->blockmap)
 }
@@ -163,27 +163,27 @@ static int inithelper6_processcontext(processcontext_t * pcontext)
  * o Generated freehelper functions to free objects with calls free_module.
  * */
 
-// TEXTDB:SELECT(\n"static int freehelper"row-id"_processcontext(processcontext_t * pcontext)"\n"{"\n"   (void) pcontext ;"\n"   return freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="initonce")
+// TEXTDB:SELECT(\n"static int freehelper"row-id"_processcontext(/*out*/processcontext_t * pcontext)"\n"{"\n"   (void) pcontext ;"\n"   return freeonce_"module"("(if (parameter!="") "&pcontext->" else "")parameter") ;"\n"}")FROM("C-kern/resource/config/initprocess")WHERE(inittype=="initonce")
 
-static int freehelper1_processcontext(processcontext_t * pcontext)
+static int freehelper1_processcontext(/*out*/processcontext_t * pcontext)
 {
    (void) pcontext ;
    return freeonce_errorcontext(&pcontext->error) ;
 }
 
-static int freehelper2_processcontext(processcontext_t * pcontext)
+static int freehelper2_processcontext(/*out*/processcontext_t * pcontext)
 {
    (void) pcontext ;
    return freeonce_locale() ;
 }
 
-static int freehelper3_processcontext(processcontext_t * pcontext)
+static int freehelper3_processcontext(/*out*/processcontext_t * pcontext)
 {
    (void) pcontext ;
    return freeonce_signalhandler() ;
 }
 
-static int freehelper7_processcontext(processcontext_t * pcontext)
+static int freehelper7_processcontext(/*out*/processcontext_t * pcontext)
 {
    (void) pcontext ;
    return freeonce_X11() ;

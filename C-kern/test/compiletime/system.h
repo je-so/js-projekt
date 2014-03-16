@@ -26,7 +26,7 @@
 #define CKERN_TEST_COMPILETIME_SYSTEM_HEADER
 
 #define  KONFIG_de    1
-#define  KONFIG_linux 1
+#define  Linux        1
 
 /* about: Test architecture size
  * Only 32 Bits supported */
@@ -44,11 +44,11 @@
 
 static inline void compiletime_tests_system(void)
 {
-#if (KONFIG_OS == KONFIG_linux)
+#if (KONFIG_OS == Linux)
    static_assert( sizeof(((struct stat*)0)->st_size) == sizeof(int64_t), "No 64bit file-system support" );
-#elif (KONFIG_OS != KONFIG_linux) && (KONFIG_LANG==KONFIG_de)
+#elif (KONFIG_OS != Linux) && (KONFIG_LANG==KONFIG_de)
 #  error Baue Test für 64 bit Files
-#elif (KONFIG_OS != KONFIG_linux)
+#elif (KONFIG_OS != Linux)
 #  error Implement test for 64 bit filesize support
 #endif
 }
@@ -56,18 +56,18 @@ static inline void compiletime_tests_system(void)
 /* about: Treadsafe Test
  * Test (in os specific manner) system library is thread safe. */
 
-#if    (KONFIG_OS == KONFIG_linux) && !defined(__USE_REENTRANT) && (KONFIG_LANG==KONFIG_de)
+#if    (KONFIG_OS == Linux) && !defined(__USE_REENTRANT) && (KONFIG_LANG==KONFIG_de)
 #  error Compiler unterstützt keine Threads
-#elsif (KONFIG_OS == KONFIG_linux) && !defined(__USE_REENTRANT)
+#elsif (KONFIG_OS == Linux) && !defined(__USE_REENTRANT)
 #  error Compiler supports no threads
-#elsif (KONFIG_OS != KONFIG_linux) && (KONFIG_LANG==KONFIG_de)
+#elsif (KONFIG_OS != Linux) && (KONFIG_LANG==KONFIG_de)
 #  error Baue Test für Threadsicherheit
-#elsif (KONFIG_OS != KONFIG_linux)
+#elsif (KONFIG_OS != Linux)
 #  error Implement test for thread safety of libraries
 #endif
 
 
-#undef KONFIG_linux
 #undef KONFIG_de
+#undef Linux
 
 #endif

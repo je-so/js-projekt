@@ -1,6 +1,6 @@
 /* title: X11SystemKonfig
 
-   Contains X11 windows and OpenGL specific include files.
+   Contains X11 windows specific include files.
 
    about: Copyright
    This program is free software.
@@ -15,37 +15,27 @@
    GNU General Public License for more details.
 
    Author:
-   (C) 2013 Jörg Seebohn
+   (C) 2014 Jörg Seebohn
 
-   file: C-kern/api/platform/X11/x11syskonfig.h
+   file: C-kern/api/platform/Linux/graphic/sysx11.h
     Header file <X11SystemKonfig>.
 */
-#ifndef CKERN_PLATFORM_X11_X11SYSKONFIG_HEADER
-#define CKERN_PLATFORM_X11_X11SYSKONFIG_HEADER
+#ifndef CKERN_PLATFORM_LINUX_GRAPHIC_SYSX11_HEADER
+#define CKERN_PLATFORM_LINUX_GRAPHIC_SYSX11_HEADER
 
-// section: X11-System-Configuration
+// section: X11-Window-System-Configuration
 
-// group: X11
+// group: Default-Includes
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 
-// group: X11-Extensions
+// group: Extension-Includes
 
 #include <X11/extensions/Xdbe.h>
 #include <X11/extensions/Xrandr.h>
 #include <X11/extensions/Xrender.h>
 
-// group: OpenGL
-
-#define KONFIG_opengl 1
-#if ((KONFIG_USERINTERFACE)&KONFIG_opengl)
-
-#include <GL/gl.h>
-#include <GL/glx.h>
-
-#endif
-#undef KONFIG_opengl
 
 #endif

@@ -1,0 +1,2 @@
+# EGL: OpenGL Binding to Native Windowing subsystem
+Src += C-kern/platform/OpenGL/EGL/*.c

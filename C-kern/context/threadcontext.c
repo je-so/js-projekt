@@ -229,34 +229,34 @@ static int freehelper1_threadcontext(threadcontext_t * tcontext, threadcontext_t
  * o Generated inithelper functions to init objects with calls init_module.
  * */
 
-// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   INITOBJECT("module", "objtype", tcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="object")
-static int inithelper3_threadcontext(threadcontext_t * tcontext)
+// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(/*out*/threadcontext_t * tcontext)"\n"{"\n"   INITOBJECT("module", "objtype", tcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="object")
+static int inithelper3_threadcontext(/*out*/threadcontext_t * tcontext)
 {
    INITOBJECT(syncrun, syncrun_t, tcontext->syncrun) ;
 }
 
 // TEXTDB:END
 
-// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   INITIOBJ("module", "objtype", tcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface")
-static int inithelper2_threadcontext(threadcontext_t * tcontext)
+// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(/*out*/threadcontext_t * tcontext)"\n"{"\n"   INITIOBJ("module", "objtype", tcontext->"parameter") ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="interface")
+static int inithelper2_threadcontext(/*out*/threadcontext_t * tcontext)
 {
    INITIOBJ(mmimpl, mm_impl_t, tcontext->mm) ;
 }
 
-static int inithelper4_threadcontext(threadcontext_t * tcontext)
+static int inithelper4_threadcontext(/*out*/threadcontext_t * tcontext)
 {
    INITIOBJ(objectcacheimpl, objectcache_impl_t, tcontext->objectcache) ;
 }
 
-static int inithelper5_threadcontext(threadcontext_t * tcontext)
+static int inithelper5_threadcontext(/*out*/threadcontext_t * tcontext)
 {
    INITIOBJ(logwriter, logwriter_t, tcontext->log) ;
 }
 
 // TEXTDB:END
 
-// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(threadcontext_t * tcontext)"\n"{"\n"   (void) tcontext;"\n"   return initthread_"module"("(if (parameter!="") "genericcast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter")) ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
-static int inithelper1_threadcontext(threadcontext_t * tcontext)
+// TEXTDB:SELECT("static int inithelper"row-id"_threadcontext(/*out*/threadcontext_t * tcontext)"\n"{"\n"   (void) tcontext;"\n"   return initthread_"module"("(if (parameter!="") "genericcast_iobj(&tcontext->" else "(")parameter(if (parameter!="") ", " else "")parameter")) ;"\n"}"\n)FROM(C-kern/resource/config/initthread)WHERE(inittype=="initthread")
+static int inithelper1_threadcontext(/*out*/threadcontext_t * tcontext)
 {
    (void) tcontext;
    return initthread_pagecacheimpl(genericcast_iobj(&tcontext->pagecache, pagecache)) ;
@@ -439,7 +439,7 @@ iobj_DECLARE(testmodule_t, testmodule) ;
 
 static struct testmodule_impl_t *  s_test_testmodule = 0 ;
 
-static int init_testmoduleimpl(struct testmodule_impl_t * object)
+static int init_testmoduleimpl(/*out*/struct testmodule_impl_t * object)
 {
    s_test_testmodule = object ;
    return 0 ;

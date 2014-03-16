@@ -19,6 +19,7 @@ ok=( C-kern/api/memory/vm.h
      C-kern/test/resourceusage.c
      C-kern/test/mm/testmm.c
      C-kern/test/run/run_speedcmp_linuxsplice.c
+     C-kern/test/run/run_linuxsplice_speedtest.c
    )
 for((i=0;i<${#ok[*]};i=i+1)) do
    files="${files/"${ok[$i]}"/}" # remove files which are ok from $files

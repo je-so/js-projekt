@@ -255,11 +255,11 @@ uint16_t g_errorcontext_stroffset[] = {
    [0xfd] = 4826 /*same as 0x85*/,
    [0xfe] = 4826 /*same as 0x85*/,
    [0xff] = 4826 /*same as 0x85*/,
-   [EINVARIANT] = 4845,
-   [ELEAK] = 4916,
-   [0x102] = 4826 /*same as 0xff*/,
-   [0x103] = 4826 /*same as 0xff*/,
-   [0x104] = 4826 /*same as 0xff*/,
+   [ESTATE] = 4845,
+   [EINVARIANT] = 4882,
+   [ERESET] = 4953,
+   [EALLOC] = 4984,
+   [ELEAK] = 5007,
    [0x105] = 4826 /*same as 0xff*/,
    [0x106] = 4826 /*same as 0xff*/,
    [0x107] = 4826 /*same as 0xff*/,
@@ -513,7 +513,7 @@ uint16_t g_errorcontext_stroffset[] = {
    [0x1ff] = 4826 /*same as 0xff*/
 } ;
 
-uint8_t g_errorcontext_strdata[4938] = {
+uint8_t g_errorcontext_strdata[5029] = {
    "Erfolg\0"
    "Die Operation ist nicht erlaubt\0"
    "Datei oder Verzeichnis nicht gefunden\0"
@@ -648,6 +648,9 @@ uint8_t g_errorcontext_strdata[4938] = {
    "Der Status ist nicht wiederherstellbar\0"
    "Die Operation ist nicht möglich wegen RF-kill\0"
    "Unbekannter Fehler\0"
+   "Funktion in Zustand nicht verfügbar\0"
    "Interne Invariante verletzt - (Softwarefehler oder korrupter Speicher)\0"
+   "Kontextzustand wurde gelöscht\0"
+   "Nicht genug Ressourcen\0"
    "Ressource(n) verloren\0"
 } ;

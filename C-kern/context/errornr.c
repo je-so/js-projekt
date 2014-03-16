@@ -38,22 +38,24 @@
 
 #ifdef KONFIG_UNITTEST
 
-static int test_errornr(void)
+static inline void test_errornr(void)
 {
    static_assert(256 == errornr_FIRSTERRORCODE, "");
-   static_assert(256 == errornr_INVARIANT, "");
-   static_assert(257 == errornr_LEAK, "");
-   static_assert(258 == errornr_NEXTERRORCODE, "");
-
-   return 0 ;
+   static_assert(256 == errornr_STATE, "");
+   static_assert(257 == errornr_STATE_INVARIANT, "");
+   static_assert(258 == errornr_STATE_RESET, "");
+   static_assert(259 == errornr_RESOURCE_ALLOCATE, "");
+   static_assert(260 == errornr_RESOURCE_LEAK, "");
+   static_assert(261 == errornr_NEXTERRORCODE, "");
 }
 
-static int test_defines(void)
+static inline void test_defines(void)
 {
-   static_assert(EINVARIANT == errornr_INVARIANT, "");
-   static_assert(ELEAK      == errornr_LEAK, "");
-
-   return 0 ;
+   static_assert(ESTATE     == errornr_STATE, "");
+   static_assert(EINVARIANT == errornr_STATE_INVARIANT, "");
+   static_assert(ERESET     == errornr_STATE_RESET, "");
+   static_assert(EALLOC     == errornr_RESOURCE_ALLOCATE, "");
+   static_assert(ELEAK      == errornr_RESOURCE_LEAK, "");
 }
 
 static int test_errorstr(void)
@@ -61,7 +63,10 @@ static int test_errorstr(void)
 
 #define CHECK(ERR,STR) TEST(0 == memcmp(str_errorcontext(error_maincontext(), ERR), STR, strlen(STR)+1))
 
+   CHECK(ESTATE,     "Function not available in this state");
    CHECK(EINVARIANT, "Internal invariant violated - (software bug or corrupt memory)");
+   CHECK(ERESET,     "Lost context state cause of power management event");
+   CHECK(EALLOC,     "Failed to allocate one or more resources");
    CHECK(ELEAK,      "Resource(s) leaked");
 
 #undef CHECK
@@ -73,8 +78,6 @@ ONABORT:
 
 int unittest_context_errornr()
 {
-   if (test_errornr())     goto ONABORT ;
-   if (test_defines())     goto ONABORT ;
    if (test_errorstr())    goto ONABORT ;
 
    return 0 ;

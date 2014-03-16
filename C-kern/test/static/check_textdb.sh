@@ -121,7 +121,7 @@ for i in $files; do
    done
    for((testnr=0;testnr < ${#interface_thread[*]}; testnr=testnr+1)) do
       result=${interface_thread[$testnt]}
-      if [ "${result#struct *_it \* interface_*(void) ;}" != "" ]; then
+      if [[ ! "$result" =~ (^struct .*_it \* interface_.*\(void\)[ ]?;) ]]; then
          info="$info  file: <${i}> wrong definition '$result'\n"
       fi
    done

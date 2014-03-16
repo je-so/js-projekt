@@ -1,0 +1,24 @@
+[1: 1394526409.938081s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 22 - Invalid argument
+Function aborted
+[1: 1394526409.938093s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 22 - Invalid argument
+Function aborted
+[1: 1394526409.938096s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 22 - Invalid argument
+Function aborted
+[1: 1394526409.938098s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 22 - Invalid argument
+Function aborted
+[1: 1394526409.938101s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 7 - Argument list too long
+Function aborted
+[1: 1394526409.938126s]
+init_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:144
+Error 3 - No such process
+Function aborted

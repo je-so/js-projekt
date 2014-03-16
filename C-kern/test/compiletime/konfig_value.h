@@ -39,22 +39,24 @@
 
 /* about: KONFIG_USERINTERFACE Test
  * Test that <KONFIG_USERINTERFACE> is set to a valid value. */
-#define KONFIG_none   1
-#define KONFIG_opengl 2
-#define KONFIG_x11    4
+#define KONFIG_none       1
+#define KONFIG_opengl_egl 2
+#define KONFIG_opengl_glx 2
+#define KONFIG_x11        4
 #if (KONFIG_USERINTERFACE!=KONFIG_none) && \
     (KONFIG_USERINTERFACE!=KONFIG_x11) && \
-    (KONFIG_USERINTERFACE!=(KONFIG_opengl|KONFIG_x11))
+    (KONFIG_USERINTERFACE!=(KONFIG_opengl_egl|KONFIG_opengl_glx|KONFIG_x11))
 #define KONFIG_de 1
 #if (KONFIG_LANG==KONFIG_de)
-#   error Setze KONFIG_USERINTERFACE auf einen Wert aus [KONFIG_none,KONFIG_x11,KONFIG_opengl|KONFIG_x11]
+#   error Setze KONFIG_USERINTERFACE auf einen Wert aus [KONFIG_none,KONFIG_x11,KONFIG_opengl_XXX|KONFIG_x11]
 #else
-#   error Choose KONFIG_USERINTERFACE from set of supported values [KONFIG_none,KONFIG_x11,KONFIG_opengl|KONFIG_x11]
+#   error Choose KONFIG_USERINTERFACE from set of supported values [KONFIG_none,KONFIG_x11,KONFIG_opengl_XXX|KONFIG_x11]
 #endif
 #undef KONFIG_de
 #endif
 #undef KONFIG_none
-#undef KONFIG_opengl
+#undef KONFIG_opengl_egl
+#undef KONFIG_opengl_glx
 #undef KONFIG_x11
 
 #endif

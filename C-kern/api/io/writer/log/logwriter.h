@@ -115,7 +115,7 @@ void getbuffer_logwriter(const logwriter_t * lgwrt, uint8_t channel, /*out*/uint
  * Returns current <log_state_e> of channel (<log_channel_e>). */
 uint8_t getstate_logwriter(const logwriter_t * lgwrt, uint8_t channel);
 
-/* function: compare_logbuffer
+/* function: compare_logwriter
  * Returns 0 if logbuffer compares equal to channel content of lgwrt.
  * The call is delegated to <compare_logbuffer>. */
 int compare_logwriter(const logwriter_t * lgwrt, uint8_t channel, size_t logsize, const uint8_t logbuffer[logsize]);

@@ -114,7 +114,7 @@ static void initprogname_maincontext(const char ** progname, const char * argv0)
 
 static int startup_maincontext(void * user)
 {
-   maincontext_startparam_t * startparam = user;
+   const maincontext_startparam_t * startparam = user;
 
    int err = init_maincontext(startparam->context_type, startparam->argc, startparam->argv);
    if (err) return err;
@@ -159,7 +159,7 @@ ONABORT:
    return err ;
 }
 
-int initstart_maincontext(maincontext_startparam_t * startparam)
+int initstart_maincontext(const maincontext_startparam_t * startparam)
 {
    int err ;
    int is_already_initialized = (maincontext_STATIC != g_maincontext.type) ;
@@ -169,13 +169,13 @@ int initstart_maincontext(maincontext_startparam_t * startparam)
       goto ONABORT ;
    }
 
-   err = startup_platform(&startup_maincontext, startparam);
+   err = startup_platform(&startup_maincontext, CONST_CAST(maincontext_startparam_t,startparam));
 
 ONABORT:
    return err ;
 }
 
-int init_maincontext(maincontext_e context_type, int argc, const char ** argv)
+int init_maincontext(const maincontext_e context_type, int argc, const char ** argv)
 {
    int err ;
    int is_already_initialized = (maincontext_STATIC != g_maincontext.type) ;

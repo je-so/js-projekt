@@ -208,7 +208,7 @@ struct testelem_t {
 static size_t s_testelem_initcount = 0 ;
 static size_t s_testelem_initmovecount = 0 ;
 
-static void init_testelem(testelem_t * testelem, size_t id)
+static void init_testelem(/*out*/testelem_t * testelem, size_t id)
 {
    ++ s_testelem_initcount ;
    testelem->buddy = 0 ;
@@ -216,7 +216,7 @@ static void init_testelem(testelem_t * testelem, size_t id)
    testelem->buddy_id = 0 ;
 }
 
-static void initmove_testelem(testelem_t * dest, testelem_t * src)
+static void initmove_testelem(/*out*/testelem_t * dest, testelem_t * src)
 {
    ++ s_testelem_initmovecount ;
    // check src is connected

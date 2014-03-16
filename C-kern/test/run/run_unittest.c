@@ -282,8 +282,9 @@ int run_unittest(void * argv)
       RUN(unittest_platform_sysuser);
       RUN(unittest_platform_vm);
       // user interface subsystem
-#define KONFIG_opengl 1
-#define KONFIG_x11    2
+#define KONFIG_opengl_egl 1
+#define KONFIG_opengl_glx 2
+#define KONFIG_x11        4
 #if ((KONFIG_USERINTERFACE)&KONFIG_x11)
       RUN(unittest_platform_X11);
       RUN(unittest_platform_X11_x11attribute);
@@ -293,13 +294,24 @@ int run_unittest(void * argv)
       // RUN(unittest_platform_X11_x11window);      // TODO: remove comment
       // RUN(unittest_platform_X11_x11dblbuffer);   // TODO: remove comment
       // RUN(unittest_platform_X11_x11videomode);   // TODO: remove comment
-#if ((KONFIG_USERINTERFACE)&KONFIG_opengl)
-      // RUN(unittest_platform_X11_glxwindow);      // TODO: remove comment
 #endif
+#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+      RUN(unittest_platform_opengl_egl_egl);
+      RUN(unittest_platform_opengl_egl_eglconfig);
+      RUN(unittest_platform_opengl_egl_egldisplay);
 #endif
-#undef KONFIG_opengl
+#undef KONFIG_opengl_egl
+#undef KONFIG_opengl_glx
 #undef KONFIG_x11
 //}
+
+#define KONFIG_none       1
+#if ! ((KONFIG_USERINTERFACE)&KONFIG_none)
+//{ graphic unittest
+      RUN(unittest_graphic_surfaceconfig);
+//}
+#endif
+#undef KONFIG_none
 
       CLEARBUFFER_ERRLOG();
 

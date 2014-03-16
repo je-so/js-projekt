@@ -2066,7 +2066,7 @@ ONABORT:
    return err ;
 }
 
-static int init_textresourcewriter(textresource_writer_t * writer, textresource_t * txtres)
+static int init_textresourcewriter(/*out*/textresource_writer_t * writer, textresource_t * txtres)
 {
    int err = EINVAL ;
 

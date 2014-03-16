@@ -576,15 +576,21 @@ en: "Unknown error"
 ## Application Error Codes
 ##
 
+ESTATE
+de: "Funktion in Zustand nicht verfügbar"
+en: "Function not available in this state"
 EINVARIANT
 de: "Interne Invariante verletzt - (Softwarefehler oder korrupter Speicher)"
 en: "Internal invariant violated - (software bug or corrupt memory)"
+ERESET
+de: "Kontextzustand wurde gelöscht"
+en: "Lost context state cause of power management event"
+EALLOC
+de: "Nicht genug Ressourcen"
+en: "Failed to allocate one or more resources"
 ELEAK
 de: "Ressource(n) verloren"
 en: "Resource(s) leaked"
-0x102 -> 0xff
-0x103 -> 0xff
-0x104 -> 0xff
 0x105 -> 0xff
 0x106 -> 0xff
 0x107 -> 0xff

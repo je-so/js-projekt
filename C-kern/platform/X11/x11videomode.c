@@ -35,7 +35,7 @@
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #endif
-#include "C-kern/api/platform/X11/x11syskonfig.h"
+#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
 
 
 // section: x11videomode_iterator_t

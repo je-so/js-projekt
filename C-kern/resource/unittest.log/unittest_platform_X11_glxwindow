@@ -1,16 +1,16 @@
-[1: 1394046178.348443s]
-findobject_x11display() C-kern/platform/X11/x11display.c:384
+[1: 1394387060.920508s]
+findobject_x11display() C-kern/platform/X11/x11display.c:393
 Error 3 - No such process
 Function aborted
-[1: 1394046178.349974s]
-findobject_x11display() C-kern/platform/X11/x11display.c:384
+[1: 1394387060.941060s]
+findobject_x11display() C-kern/platform/X11/x11display.c:393
 Error 3 - No such process
 Function aborted
-[1: 1394046178.370458s]
-findobject_x11display() C-kern/platform/X11/x11display.c:384
+[1: 1394387060.961653s]
+findobject_x11display() C-kern/platform/X11/x11display.c:393
 Error 3 - No such process
 Function aborted
-[1: 1394046179.047525s]
-init_glxwindow() C-kern/platform/X11/glxwindow.c:190
+[1: 1394387061.677773s]
+init_glxwindow() C-kern/platform/X11/glxwindow.c:191
 Error 3 - No such process
 Function aborted

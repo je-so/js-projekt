@@ -6,7 +6,7 @@
 # ************************************************
 # environment variables:
 # verbose: if set to != "" => $info is printed
-files=`find C-kern/ -name *.[ch] | xargs -n 1 grep -l "^\(int\|void\)*[ \t]\+\(init\|new\)[a-z0-9A-Z_]*([^/]"`
+files=`find C-kern/ -name *.[ch] | xargs -n 1 grep -l "^\(static \)\?\(int\|void\)[ \t]\+\(init\|new\)[a-z0-9A-Z_]*("`
 # array of files which are creating file descriptors
 ok=( C-kern/main/tools/genmake.c
    )
@@ -17,21 +17,14 @@ info=""
 for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
-   function_calls=( `grep -n '^\(int\|void\)[ \t]\+\(init\|new\)[a-z0-9A-Z_]*([^/]' ${i}` )
+   function_calls=( `grep '^\(static \)\?\(int\|void\)[ \t]\+\(init\|new\)[a-z0-9A-Z_]*(' ${i}` )
    IFS=$IFS_old
    info2=""
    for((fi=0;fi<${#function_calls[*]};fi=fi+1)) do
       call="${function_calls[$fi]}"
-      call="${call#*:}"
-      call="${call#int }"
-      if [ "${call#init_maincontext}" != "$call" ]; then continue ; fi
-      call="${call#void }"
-      call="${call#*(}"
-      call="${call% ;}"
-      call="${call%)}"
-      if [ "$call" != 'void' ]\
-         && [ "$call" != '' ]\
-         && [ "${call:0:7}" != '/*out*/' ]; then info2="$info2       ${function_calls[$fi]}\n"; fi
+      if [[ ! "$call" =~ (^(static )?(int|void)[ ]+(init|new)[a-z0-9A-Z_]*\(($|(void)?\)|/\*out\*/|const )) ]]; then
+         info2="$info2       ${function_calls[$fi]}\n";
+      fi
    done
    if [ "$info2" != "" ]; then
       info="$info  file: <${i}> declares \n$info2"

@@ -593,7 +593,7 @@ static int delete_expression(expression_t ** expr)
    return err ;
 }
 
-static int new_expression(expression_t ** expr, expression_type_e type)
+static int new_expression(/*out*/expression_t ** expr, expression_type_e type)
 {
    expression_t * new_expr ;
 

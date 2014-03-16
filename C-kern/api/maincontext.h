@@ -132,7 +132,7 @@ struct maincontext_t {
  * Calls <startup_platform>, <init_maincontext> and runs main_thread.
  * This is a convenience function so you do not have to remember the startup
  * sequence pattern. */
-int initstart_maincontext(maincontext_startparam_t * startparam);
+int initstart_maincontext(const maincontext_startparam_t * startparam);
 
 /* function: init_maincontext
  * Initializes global program context. Must be called as first function from the main thread.
@@ -146,7 +146,7 @@ int initstart_maincontext(maincontext_startparam_t * startparam);
  * "C-kern/resource/config/initprocess" and "C-kern/resource/config/initthread".
  * This init database files are checked against the whole project with "C-kern/test/static/check_textdb.sh".
  * So that no entry is forgotten. */
-int init_maincontext(maincontext_e context_type, int argc, const char ** argv);
+int init_maincontext(const maincontext_e context_type, int argc, const char ** argv);
 
 /* function: free_maincontext
  * Frees global context. Must be called as last function from the main

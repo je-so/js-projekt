@@ -40,6 +40,11 @@
         <File Name="../../C-kern/api/platform/Linux/syscontext.h"/>
         <File Name="../../C-kern/api/platform/Linux/systypes.h"/>
         <File Name="../../C-kern/api/platform/Linux/sysoptimize.h"/>
+        <VirtualDirectory Name="graphic">
+          <File Name="../../C-kern/api/platform/Linux/graphic/sysegl.h"/>
+          <File Name="../../C-kern/api/platform/Linux/graphic/sysglx.h"/>
+          <File Name="../../C-kern/api/platform/Linux/graphic/sysx11.h"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/locale.h"/>
       <File Name="../../C-kern/api/platform/malloc.h"/>
@@ -64,12 +69,18 @@
         <File Name="../../C-kern/api/platform/X11/x11display.h"/>
         <File Name="../../C-kern/api/platform/X11/x11drawable.h"/>
         <File Name="../../C-kern/api/platform/X11/x11screen.h"/>
-        <File Name="../../C-kern/api/platform/X11/x11syskonfig.h"/>
         <File Name="../../C-kern/api/platform/X11/x11videomode.h"/>
         <File Name="../../C-kern/api/platform/X11/x11window.h"/>
         <File Name="../../C-kern/api/platform/X11/x11dblbuffer.h"/>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/startup.h"/>
+      <VirtualDirectory Name="OpenGL">
+        <VirtualDirectory Name="EGL">
+          <File Name="../../C-kern/api/platform/OpenGL/EGL/egl.h"/>
+          <File Name="../../C-kern/api/platform/OpenGL/EGL/egldisplay.h"/>
+          <File Name="../../C-kern/api/platform/OpenGL/EGL/eglconfig.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="math">
       <VirtualDirectory Name="int">
@@ -209,6 +220,9 @@
       <File Name="../../C-kern/api/task/syncqueue.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="source"/>
+    <VirtualDirectory Name="graphic">
+      <File Name="../../C-kern/api/graphic/surface_config.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
     <File Name="../../C-kern/cache/valuecache.c"/>
@@ -387,6 +401,13 @@
       <File Name="../../C-kern/platform/X11/x11window.c"/>
       <File Name="../../C-kern/platform/X11/x11dblbuffer.c"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="OpenGL">
+      <VirtualDirectory Name="EGL">
+        <File Name="../../C-kern/platform/OpenGL/EGL/egl.c"/>
+        <File Name="../../C-kern/platform/OpenGL/EGL/egldisplay.c"/>
+        <File Name="../../C-kern/platform/OpenGL/EGL/eglconfig.c"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="math">
     <VirtualDirectory Name="int">
@@ -542,4 +563,7 @@
     <File Name="../../C-kern/task/syncqueue.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="source"/>
+  <VirtualDirectory Name="graphic">
+    <File Name="../../C-kern/graphic/surface_config.c"/>
+  </VirtualDirectory>
 </CodeLite_Project>

@@ -158,7 +158,7 @@ struct testmm_page_t {
 
 // group: lifetime
 
-static int new_testmmpage(testmm_page_t ** mmpage, size_t minblocksize, testmm_page_t * next)
+static int new_testmmpage(/*out*/testmm_page_t ** mmpage, size_t minblocksize, testmm_page_t * next)
 {
    int err ;
    const size_t   headersize  = alignsize_testmmblock(sizeof(((testmm_block_t*)0)->header)) ;
@@ -280,7 +280,7 @@ ONABORT:
    return err ;
 }
 
-static int newblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
+static int allocblock_testmmpage(testmm_page_t * mmpage, size_t newsize, struct memblock_t * memblock)
 {
    int err ;
    testmm_block_t * block ;
@@ -635,7 +635,7 @@ int malloc_testmm(testmm_t * mman, size_t size, /*out*/struct memblock_t * membl
 {
    int err ;
 
-   err = newblock_testmmpage(mman->mmpage, size, memblock) ;
+   err = allocblock_testmmpage(mman->mmpage, size, memblock) ;
 
    if (err) {
       if (ENOMEM != err) return err ;
@@ -643,7 +643,7 @@ int malloc_testmm(testmm_t * mman, size_t size, /*out*/struct memblock_t * membl
       err = addpage_testmm(mman, size) ;
       if (err) return err ;
 
-      err = newblock_testmmpage(mman->mmpage, size, memblock) ;
+      err = allocblock_testmmpage(mman->mmpage, size, memblock) ;
    }
 
    if (!err) {
@@ -810,15 +810,15 @@ static int test_testmmpage(void)
    TEST(ENOMEM == new_testmmpage(&mmpage, 16*1024*1024, 0)) ;
    TEST(0 == mmpage) ;
 
-   // TEST newblock_testmmpage
+   // TEST allocblock_testmmpage
    TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    memblock_t nextfree = mmpage->freeblock ;
    for (unsigned i = 1; i <= 1000; ++i) {
       const size_t   alignsize = alignsize_testmmblock(i) ;
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0      == newblock_testmmpage(mmpage, i, &memblock)) ;
+      TEST(0      == allocblock_testmmpage(mmpage, i, &memblock)) ;
       TEST(true   == isblockvalid_testmmpage(mmpage, &memblock)) ;
-      TEST(ENOMEM == newblock_testmmpage(mmpage, nextfree.size+1-headersize-trailersize, &memblock)) ;
+      TEST(ENOMEM == allocblock_testmmpage(mmpage, nextfree.size+1-headersize-trailersize, &memblock)) ;
       nextfree.addr += headersize ;
       TEST(memblock.addr == nextfree.addr) ;
       TEST(memblock.size == i) ;
@@ -837,7 +837,7 @@ static int test_testmmpage(void)
       const size_t   alignsize = alignsize_testmmblock(i+1) ;
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == newblock_testmmpage(mmpage, i, &memblock)) ;
+      TEST(0 == allocblock_testmmpage(mmpage, i, &memblock)) ;
       TEST(0 == resizeblock_testmmpage(mmpage, i+1, &memblock)) ;
       TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
       nextfree.addr += headersize ;
@@ -856,7 +856,7 @@ static int test_testmmpage(void)
 
    // TEST: resizeblock_testmmpage
    TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
-   TEST(0 == newblock_testmmpage(mmpage, 1024, &memblock)) ;
+   TEST(0 == allocblock_testmmpage(mmpage, 1024, &memblock)) ;
    TEST(0 == alignsize_testmmblock(SIZE_MAX)) ;
    TEST(ENOMEM == resizeblock_testmmpage(mmpage, SIZE_MAX, &memblock)) ;
    TEST(ENOMEM == resizeblock_testmmpage(mmpage, SIZE_MAX/2, &memblock)) ;
@@ -869,7 +869,7 @@ static int test_testmmpage(void)
    for (unsigned i = 1; i <= 1000; ++i) {
       const size_t   alignsize = alignsize_testmmblock(i+1) ;
       memblock = (memblock_t) memblock_INIT_FREEABLE ;
-      TEST(0 == newblock_testmmpage(mmpage, i, &memblock)) ;
+      TEST(0 == allocblock_testmmpage(mmpage, i, &memblock)) ;
       TEST(0 == resizeblock_testmmpage(mmpage, i+1, &memblock)) ;
       TEST(1 == isblockvalid_testmmpage(mmpage, &memblock)) ;
       nextfree.addr += headersize ;
@@ -897,7 +897,7 @@ static int test_testmmpage(void)
    // TEST isblockvalid_testmmpage
    TEST(0 == new_testmmpage(&mmpage, 0, 0)) ;
    nextfree = mmpage->freeblock ;
-   TEST(0 == newblock_testmmpage(mmpage, 1000000, &memblock)) ;
+   TEST(0 == allocblock_testmmpage(mmpage, 1000000, &memblock)) ;
    mmpage->datablock.addr += 1 ;
    TEST(0 == isblockvalid_testmmpage(mmpage, &memblock)) ;
    mmpage->datablock.addr -= 1 ;
