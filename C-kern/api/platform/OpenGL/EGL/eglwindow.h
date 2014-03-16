@@ -63,7 +63,7 @@ typedef struct native_window_t * eglwindow_t;
  * Static initializer. */
 #define eglwindow_INIT_FREEABLE  0
 
-/* function: init_eglwindow
+/* function: initx11_eglwindow
  * Initializes eglwin with x11win.
  * Returns EINVAL if any parameter is not initialized or invalid
  * or EALLOC if the egl specific part of the window could not be initialized.

@@ -20,7 +20,7 @@ for i in $files; do
    IFS_old=$IFS
    IFS=$'\n'
    function_calls=( `grep '\(^\|[^0-9a-zA-Z]\)\(creat\|epoll_create1\?\|eventfd\|open\|openat\|pipe2\?\|signalfd\)[ \t]*(' ${i}` )
-   function_calls2=( `grep '\(^\|[^0-9a-zA-Z]\)\(socket\|accept4\?\)[ \t]*(' ${i}` )
+   function_calls2=( `grep '\(^\|[^0-9a-zA-Z>]\|[^-]>\)\(socket\|accept4\?\)[ \t]*(' ${i}` )
    IFS=$IFS_old
    info2=""
    for((fi=0;fi<${#function_calls[*]};fi=fi+1)) do

@@ -12,8 +12,8 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/demo/opengl/setup_opengles_demo.c" Name="FileName"/>
-      <int Value="134" Name="FirstVisibleLine"/>
-      <int Value="151" Name="CurrentLine"/>
+      <int Value="153" Name="FirstVisibleLine"/>
+      <int Value="164" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>

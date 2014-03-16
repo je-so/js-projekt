@@ -33,7 +33,7 @@
 #include "C-kern/api/platform/X11/x11screen.h"
 #include "C-kern/api/platform/X11/x11window.h"
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
-#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysgl.h)
+#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysgles2.h)
 
 #define TEST(CONDITION) \
          if (!(CONDITION)) { \
@@ -99,7 +99,7 @@ static void onredraw_demowindow(x11window_t * x11win)
    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
    glDisableVertexAttribArray(0);
    glDisableVertexAttribArray(1);
-   eglSwapBuffers(s_egldisplay, (void*)s_eglwindow);
+   eglSwapBuffers(s_egldisplay, s_eglwindow);
 }
 
 static void onreshape_demowindow(x11window_t * x11win, uint32_t width, uint32_t height)

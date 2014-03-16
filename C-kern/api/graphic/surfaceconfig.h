@@ -119,7 +119,7 @@ typedef enum surfaceconfig_value_e surfaceconfig_value_e;
 // group: test
 
 #ifdef KONFIG_UNITTEST
-/* function: unittest_graphic_surface_config
+/* function: unittest_graphic_surfaceconfig
  * Test <surfaceconfig_t> functionality. */
 int unittest_graphic_surfaceconfig(void);
 #endif
