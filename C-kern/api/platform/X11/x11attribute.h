@@ -162,7 +162,7 @@ struct x11attribute_t {
 
 /* define: x11attribute_INIT_WINFRAME
  * Requests window manager to draw a frame around the window.
- * The window allows the window to be resized, minimized maximized and closed by the user. */
+ * The frame allows the window to be resized, minimized maximized and closed by the user. */
 #define x11attribute_INIT_WINFRAME \
          { x11attribute_WINFRAME, { .isOn = true } }
 
@@ -189,7 +189,7 @@ struct x11attribute_t {
 /* define: x11attribute_INIT_WINOPACITY
  * Sets the overall windows opacity. The blending function is the same as in <x11attribute_INIT_ALPHAOPACITY>
  * but no alpha channel is needed. All pixel values including the window manager frame get their alpha value from
- * the value set in this attribute. Use a value of UINT32_MAX for fully opaque and a value of 0 for fully transparent. */
+ * the value set in this attribute. Use UINT32_MAX for a fully opaque window and 0 for fully transparent one. */
 #define x11attribute_INIT_WINOPACITY(opacity_u32) \
          { x11attribute_WINOPACITY, { .u32 = opacity_u32 } }
 

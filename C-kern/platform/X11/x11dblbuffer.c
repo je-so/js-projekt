@@ -182,8 +182,8 @@ static int test_draw(x11window_t * x11win)
    TEST(gc) ;
    TEST(0 == setpos_x11window(x11win, 100, 100)) ;
    TEST(0 == show_x11window(x11win)) ;
-   WAITFOR(x11win->display, 10, x11win->state == x11window_Shown) ;
-   TEST(x11win->state == x11window_Shown) ;
+   WAITFOR(x11win->display, 10, x11win->state == x11window_state_SHOWN) ;
+   TEST(x11win->state == x11window_state_SHOWN) ;
 
    // TEST window foreground green
    TEST(1 == XFillRectangle(x11win->display->sys_display, x11win->sys_drawable, gc, 0, 0, 200, 100)) ;

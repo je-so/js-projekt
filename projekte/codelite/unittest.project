@@ -44,6 +44,7 @@
           <File Name="../../C-kern/api/platform/Linux/graphic/sysegl.h"/>
           <File Name="../../C-kern/api/platform/Linux/graphic/sysglx.h"/>
           <File Name="../../C-kern/api/platform/Linux/graphic/sysx11.h"/>
+          <File Name="../../C-kern/api/platform/Linux/graphic/sysgl.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/locale.h"/>
@@ -63,7 +64,6 @@
       </VirtualDirectory>
       <File Name="../../C-kern/api/platform/sysuser.h"/>
       <VirtualDirectory Name="X11">
-        <File Name="../../C-kern/api/platform/X11/glxwindow.h"/>
         <File Name="../../C-kern/api/platform/X11/x11.h"/>
         <File Name="../../C-kern/api/platform/X11/x11attribute.h"/>
         <File Name="../../C-kern/api/platform/X11/x11display.h"/>
@@ -79,6 +79,7 @@
           <File Name="../../C-kern/api/platform/OpenGL/EGL/egl.h"/>
           <File Name="../../C-kern/api/platform/OpenGL/EGL/egldisplay.h"/>
           <File Name="../../C-kern/api/platform/OpenGL/EGL/eglconfig.h"/>
+          <File Name="../../C-kern/api/platform/OpenGL/EGL/eglwindow.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -221,7 +222,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="source"/>
     <VirtualDirectory Name="graphic">
-      <File Name="../../C-kern/api/graphic/surface_config.h"/>
+      <File Name="../../C-kern/api/graphic/surfaceconfig.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
@@ -391,7 +392,6 @@
       <File Name="../../C-kern/platform/Linux/startup.c"/>
     </VirtualDirectory>
     <VirtualDirectory Name="X11">
-      <File Name="../../C-kern/platform/X11/glxwindow.c"/>
       <File Name="../../C-kern/platform/X11/x11.c"/>
       <File Name="../../C-kern/platform/X11/x11attribute.c"/>
       <File Name="../../C-kern/platform/X11/x11display.c"/>
@@ -406,6 +406,7 @@
         <File Name="../../C-kern/platform/OpenGL/EGL/egl.c"/>
         <File Name="../../C-kern/platform/OpenGL/EGL/egldisplay.c"/>
         <File Name="../../C-kern/platform/OpenGL/EGL/eglconfig.c"/>
+        <File Name="../../C-kern/platform/OpenGL/EGL/eglwindow.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
@@ -564,6 +565,6 @@
   </VirtualDirectory>
   <VirtualDirectory Name="source"/>
   <VirtualDirectory Name="graphic">
-    <File Name="../../C-kern/graphic/surface_config.c"/>
+    <File Name="../../C-kern/graphic/surfaceconfig.c"/>
   </VirtualDirectory>
 </CodeLite_Project>

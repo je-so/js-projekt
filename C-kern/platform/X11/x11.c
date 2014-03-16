@@ -108,8 +108,8 @@ int dispatchevent_X11(x11display_t * x11disp)
          if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
             // <free_x11window> was not called before this message
             x11win->sys_drawable = 0 ;
-            x11win->state        = x11window_Destroyed ;
-            x11win->flags        = (uint8_t) (x11win->flags & ~x11window_OwnWindow) ;
+            x11win->state        = x11window_state_DESTROYED ;
+            x11win->flags        = (uint8_t) (x11win->flags & ~x11window_flags_OWNWINDOW) ;
             (void) removeobject_x11display(x11disp, event.window) ;
 
             if (x11win->iimpl && x11win->iimpl->ondestroy) {
@@ -149,7 +149,7 @@ int dispatchevent_X11(x11display_t * x11disp)
 
          // filter event
          if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            x11win->state = x11window_Shown ;
+            x11win->state = x11window_state_SHOWN ;
 
             if (x11win->iimpl && x11win->iimpl->onvisible) {
                x11win->iimpl->onvisible(x11win) ;
@@ -163,7 +163,7 @@ int dispatchevent_X11(x11display_t * x11disp)
 
          // filter event
          if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            x11win->state = x11window_Hidden ;
+            x11win->state = x11window_state_HIDDEN ;
 
             if (x11win->iimpl && x11win->iimpl->onvisible) {
                x11win->iimpl->onvisible(x11win) ;

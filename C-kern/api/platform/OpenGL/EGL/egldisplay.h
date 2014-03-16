@@ -28,12 +28,15 @@
 #define CKERN_PLATFORM_OPENGL_EGL_EGLDISPLAY_HEADER
 
 // forward
-struct surface_config_t;
 struct x11display_t;
+
+/* typedef: struct native_display_t
+ * Export <native_display_t> into global namespace. */
+typedef struct native_display_t  native_display_t;
 
 /* typedef: struct egldisplay_t
  * Export <egldisplay_t> into global namespace. */
-typedef void * egldisplay_t;
+typedef struct native_display_t * egldisplay_t;
 
 
 // section: Functions
@@ -49,7 +52,7 @@ int unittest_platform_opengl_egl_egldisplay(void);
 
 /* struct: egldisplay_t
  * Wraps the native display type in an EGL specific way. */
-typedef void * egldisplay_t;
+typedef struct native_display_t * egldisplay_t;
 
 // group: lifetime
 
@@ -66,7 +69,8 @@ int initdefault_egldisplay(/*out*/egldisplay_t * egldisp);
 /* function: initx11_egldisplay
  * Initializes egldisp with x11disp.
  * Returns EINVAL if x11disp is not initialized or invalid
- * or EALLOC if the egl specific part could not be initialized. */
+ * or EALLOC if the egl specific part could not be initialized.
+ * Do not free x11disp as long as egldisp is not freed. */
 int initx11_egldisplay(/*out*/egldisplay_t * egldisp, struct x11display_t * x11disp);
 
 /* function: free_egldisplay

@@ -27,11 +27,12 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/graphic/surface_config.h"
+#include "C-kern/api/graphic/surfaceconfig.h"
 #include "C-kern/api/platform/OpenGL/EGL/egldisplay.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/platform/X11/x11display.h"
 #endif
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
 
@@ -40,59 +41,63 @@
 
 // group: variables
 
-static int convertIntoEGL_eglconfig(int attribute, int value, /*out*/int tuple[2])
+static inline int convertIntoEGL_eglconfig(int attribute, int32_t value, /*out*/EGLint tuple[2])
 {
    switch (attribute) {
-   case surface_config_TYPE:
+   case surfaceconfig_TYPE:
       if ( (value
-            & ~(surface_configvalue_TYPE_WINDOW_BIT|surface_configvalue_TYPE_PBUFFER_BIT|surface_configvalue_TYPE_PIXMAP_BIT))) {
+            & ~(surfaceconfig_value_TYPE_WINDOW_BIT|surfaceconfig_value_TYPE_PBUFFER_BIT|surfaceconfig_value_TYPE_PIXMAP_BIT))) {
          return EINVAL;
       }
       tuple[0] = EGL_SURFACE_TYPE;
-      static_assert( EGL_PBUFFER_BIT   == surface_configvalue_TYPE_PBUFFER_BIT
-                     && EGL_PIXMAP_BIT == surface_configvalue_TYPE_PIXMAP_BIT
-                     && EGL_WINDOW_BIT == surface_configvalue_TYPE_WINDOW_BIT, "no conversion needed");
+      static_assert( EGL_PBUFFER_BIT   == surfaceconfig_value_TYPE_PBUFFER_BIT
+                     && EGL_PIXMAP_BIT == surfaceconfig_value_TYPE_PIXMAP_BIT
+                     && EGL_WINDOW_BIT == surfaceconfig_value_TYPE_WINDOW_BIT, "no conversion needed");
       tuple[1] = value;
       break;
-   case surface_config_TRANSPARENT_ALPHA:
+   case surfaceconfig_TRANSPARENT_ALPHA:
       tuple[0] = EGL_ALPHA_SIZE;
       tuple[1] = (value != 0);
       break;
-   case surface_config_BITS_RED:
+   case surfaceconfig_BITS_BUFFER:
+      tuple[0] = EGL_BUFFER_SIZE;
+      tuple[1] = value;
+      break;
+   case surfaceconfig_BITS_RED:
       tuple[0] = EGL_RED_SIZE;
       tuple[1] = value;
       break;
-   case surface_config_BITS_GREEN:
+   case surfaceconfig_BITS_GREEN:
       tuple[0] = EGL_GREEN_SIZE;
       tuple[1] = value;
       break;
-   case surface_config_BITS_BLUE:
+   case surfaceconfig_BITS_BLUE:
       tuple[0] = EGL_BLUE_SIZE;
       tuple[1] = value;
       break;
-   case surface_config_BITS_ALPHA:
+   case surfaceconfig_BITS_ALPHA:
       tuple[0] = EGL_ALPHA_SIZE;
       tuple[1] = value;
       break;
-   case surface_config_BITS_DEPTH:
+   case surfaceconfig_BITS_DEPTH:
       tuple[0] = EGL_DEPTH_SIZE;
       tuple[1] = value;
       break;
-   case surface_config_BITS_STENCIL:
+   case surfaceconfig_BITS_STENCIL:
       tuple[0] = EGL_STENCIL_SIZE;
       tuple[1] = value;
       break;
-   case surface_config_CONFORMANT:
+   case surfaceconfig_CONFORMANT:
       if ( (value
-            & ~(surface_configvalue_CONFORMANT_ES1_BIT|surface_configvalue_CONFORMANT_ES2_BIT
-                |surface_configvalue_CONFORMANT_OPENGL_BIT|surface_configvalue_CONFORMANT_OPENVG_BIT))) {
+            & ~(surfaceconfig_value_CONFORMANT_ES1_BIT|surfaceconfig_value_CONFORMANT_ES2_BIT
+                |surfaceconfig_value_CONFORMANT_OPENGL_BIT|surfaceconfig_value_CONFORMANT_OPENVG_BIT))) {
          return EINVAL;
       }
       tuple[0] = EGL_CONFORMANT;
-      static_assert( EGL_OPENGL_ES_BIT     == surface_configvalue_CONFORMANT_ES1_BIT
-                     && EGL_OPENVG_BIT     == surface_configvalue_CONFORMANT_OPENVG_BIT
-                     && EGL_OPENGL_ES2_BIT == surface_configvalue_CONFORMANT_ES2_BIT
-                     && EGL_OPENGL_BIT     == surface_configvalue_CONFORMANT_OPENGL_BIT, "no conversion needed");
+      static_assert( EGL_OPENGL_ES_BIT     == surfaceconfig_value_CONFORMANT_ES1_BIT
+                     && EGL_OPENVG_BIT     == surfaceconfig_value_CONFORMANT_OPENVG_BIT
+                     && EGL_OPENGL_ES2_BIT == surfaceconfig_value_CONFORMANT_ES2_BIT
+                     && EGL_OPENGL_BIT     == surfaceconfig_value_CONFORMANT_OPENGL_BIT, "no conversion needed");
       tuple[1] = value;
       break;
    default:
@@ -102,29 +107,37 @@ static int convertIntoEGL_eglconfig(int attribute, int value, /*out*/int tuple[2
    return 0;
 }
 
-// group: lifetime
-
-int init_eglconfig(/*out*/eglconfig_t * eglconf, void * egldisp, const int config_attributes[])
+static int convertAttributesIntoEGL_eglconfig(/*out*/EGLint (*egl_attrib_list)[2*surfaceconfig_NROFCONFIGS], const int32_t config_attributes[])
 {
    int err;
-   EGLint   egl_attrib_list[20];
    unsigned idx;
 
-   for (idx = 0; config_attributes[idx] != surface_config_NONE; idx += 2) {
-      if (idx >= lengthof(egl_attrib_list)-2) {
-         err = E2BIG;
-         goto ONABORT;
+   for (idx = 0; config_attributes[idx] != surfaceconfig_NONE; idx += 2) {
+      if (idx >= lengthof(*egl_attrib_list)-2) {
+         return E2BIG;
       }
 
-      err = convertIntoEGL_eglconfig(config_attributes[idx], config_attributes[idx+1], &egl_attrib_list[idx]);
-      if (err) goto ONABORT;
+      err = convertIntoEGL_eglconfig(config_attributes[idx], config_attributes[idx+1], &(*egl_attrib_list)[idx]);
+      if (err) return err;
    }
 
-   egl_attrib_list[idx] = EGL_NONE;
+   (*egl_attrib_list)[idx] = EGL_NONE;
+   return 0;
+}
 
-   EGLConfig   eglconfig;
+// group: lifetime
+
+int init_eglconfig(/*out*/eglconfig_t * eglconf, native_display_t * egldisp, const int32_t config_attributes[])
+{
+   int err;
+   EGLint   egl_attrib_list[2*surfaceconfig_NROFCONFIGS];
+
+   err = convertAttributesIntoEGL_eglconfig(&egl_attrib_list, config_attributes);
+   if (err) goto ONABORT;
+
    EGLint      num_config;
-   EGLBoolean  isOK = eglChooseConfig( egldisp,
+   EGLConfig   eglconfig;
+   EGLBoolean  isOK = eglChooseConfig( (void*)egldisp,
                                        egl_attrib_list, &eglconfig, 1, &num_config);
 
    if (!isOK) {
@@ -133,8 +146,7 @@ int init_eglconfig(/*out*/eglconfig_t * eglconf, void * egldisp, const int confi
    }
 
    if (!num_config) {
-      err = ESRCH;
-      goto ONABORT;
+      return ESRCH;
    }
 
    *eglconf = eglconfig;
@@ -145,12 +157,56 @@ ONABORT:
    return err;
 }
 
+int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct native_display_t * egldisp, const int32_t config_attributes[], eglconfig_filter_f filter, void * user)
+{
+   int err;
+   EGLint   egl_attrib_list[2*surfaceconfig_NROFCONFIGS];
+
+   err = convertAttributesIntoEGL_eglconfig(&egl_attrib_list, config_attributes);
+   if (err) goto ONABORT;
+
+   // TODO: implement tempstack_memory_allocator
+   //       allocate memory from tempstack instead of real stack
+
+   EGLint      num_config;
+   EGLConfig   eglconfig[256];
+   EGLBoolean  isOK = eglChooseConfig( (void*)egldisp,
+                                       egl_attrib_list, eglconfig, lengthof(eglconfig), &num_config);
+
+   if (!isOK) {
+      err = EINVAL;
+      goto ONABORT;
+   }
+
+   EGLint i;
+   for (i = 0; i < num_config; ++i) {
+      EGLint visualid;
+      isOK = eglGetConfigAttrib( egldisp,
+                                 eglconfig[i], EGL_NATIVE_VISUAL_ID, &visualid);
+      if (filter(eglconfig[i], egldisp, visualid, user)) break;
+   }
+
+   if (i == num_config) {
+      return ESRCH;
+   }
+
+   *eglconf = eglconfig[i];
+
+   // free possible memory (in case of tempstack)
+
+   return 0;
+ONABORT:
+   TRACEABORT_ERRLOG(err);
+   // free possible memory (in case of tempstack)
+   return err;
+}
+
 
 // group: group
 
-int value_eglconfig(eglconfig_t eglconf, void * egldisp, const int attribute, /*out*/int * value)
+int value_eglconfig(eglconfig_t eglconf, native_display_t * egldisp, const int32_t attribute, /*out*/int32_t * value)
 {
-   int eglattrib[2];
+   EGLint eglattrib[2];
    int err;
 
    err = convertIntoEGL_eglconfig(attribute, 1, eglattrib);
@@ -163,11 +219,27 @@ int value_eglconfig(eglconfig_t eglconf, void * egldisp, const int attribute, /*
       goto ONABORT;
    }
 
-   if (surface_config_TYPE == attribute) {
+   if (surfaceconfig_TYPE == attribute) {
       // bits corresponds see convertIntoEGL_eglconfig
-      *value &= ( surface_configvalue_TYPE_PBUFFER_BIT
-                  | surface_configvalue_TYPE_PIXMAP_BIT
-                  | surface_configvalue_TYPE_WINDOW_BIT);
+      *value &= ( surfaceconfig_value_TYPE_PBUFFER_BIT
+                  | surfaceconfig_value_TYPE_PIXMAP_BIT
+                  | surfaceconfig_value_TYPE_WINDOW_BIT);
+   }
+
+   return 0;
+ONABORT:
+   TRACEABORT_ERRLOG(err);
+   return err;
+}
+
+int visualid_eglconfig(eglconfig_t eglconf, struct native_display_t * egldisp, /*out*/int32_t * visualid)
+{
+   int err;
+   EGLBoolean isOK = eglGetConfigAttrib(  (void*)egldisp,
+                                          eglconf, EGL_NATIVE_VISUAL_ID, visualid);
+   if (!isOK) {
+      err = EINVAL;
+      goto ONABORT;
    }
 
    return 0;
@@ -181,65 +253,114 @@ ONABORT:
 
 #ifdef KONFIG_UNITTEST
 
+static egldisplay_t  s_filter_display;
+static int32_t       s_filter_visualid;
+static void *        s_filter_user;
+static int           s_filter_total_count;
+static int           s_filter_valid_count;
+
+static bool filter_test_count(eglconfig_t eglconf, struct native_display_t * egldisp, int32_t visualid, void * user)
+{
+   int32_t visualid2 = -1;
+   s_filter_valid_count += (
+         eglconf != 0
+         && s_filter_display == egldisp
+         && (0 == visualid_eglconfig(eglconf, egldisp, &visualid2))
+         && visualid         == visualid2
+         && s_filter_user    == user);
+   s_filter_total_count += 1;
+   return false;
+}
+
+static bool filter_test_select(eglconfig_t eglconf, struct native_display_t * egldisp, int32_t visualid, void * user)
+{
+   (void) eglconf;
+   (void) egldisp;
+   s_filter_visualid = visualid;
+   return (--*(int*)user) == 0;
+}
+
+static bool filter_test_attribon(eglconfig_t eglconf, struct native_display_t * egldisp, int32_t visualid, void * user)
+{
+   (void) visualid;
+   int attrvalue = 0;
+   s_filter_valid_count += (
+         0 == value_eglconfig(eglconf, egldisp, *(int*)user, &attrvalue)
+         && attrvalue > 0);
+   s_filter_total_count += 1;
+   return false;
+}
+
+static bool filter_test_attriboff(eglconfig_t eglconf, struct native_display_t * egldisp, int32_t visualid, void * user)
+{
+   (void) visualid;
+   int attrvalue = -1;
+   s_filter_valid_count += (
+         0 == value_eglconfig(eglconf, egldisp, *(int*)user, &attrvalue)
+         && attrvalue == 0);
+   s_filter_total_count += 1;
+   return false;
+}
+
 static int test_initfree(egldisplay_t egldisp)
 {
    eglconfig_t eglconf = eglconfig_INIT_FREEABLE;
-   int attrlist[21];
+   int32_t     attrlist[2*surfaceconfig_NROFCONFIGS+1];
 
    // TEST eglconfig_INIT_FREEABLE
    TEST(0 == eglconf);
 
    // TEST init_eglconfig: EINVAL (egldisplay_t not initialized)
-   TEST(EINVAL == init_eglconfig(&eglconf, egldisplay_INIT_FREEABLE, (int[]) { surface_config_BITS_RED, 1, surface_config_NONE}));
+   TEST(EINVAL == init_eglconfig(&eglconf, egldisplay_INIT_FREEABLE, (int[]) { surfaceconfig_BITS_RED, 1, surfaceconfig_NONE}));
    TEST(0 == eglconf);
 
    // TEST init_eglconfig: EINVAL (values in config_attributes wrong)
-   const int errattr1[][3] = {
-      { surface_config_NROFCONFIGS/*!*/, 1, surface_config_NONE },
-      { surface_config_TYPE, 0x0f/*!*/, surface_config_NONE },
-      { surface_config_CONFORMANT, 0x1f/*!*/, surface_config_NONE }
+   const int32_t errattr1[][3] = {
+      { surfaceconfig_NROFCONFIGS/*!*/, 1, surfaceconfig_NONE },
+      { surfaceconfig_TYPE, 0x0f/*!*/, surfaceconfig_NONE },
+      { surfaceconfig_CONFORMANT, 0x1f/*!*/, surfaceconfig_NONE }
    };
    for (unsigned i = 0; i < lengthof(errattr1); ++i) {
       TEST(EINVAL == init_eglconfig(&eglconf, egldisp, errattr1[i]));
    }
 
    // TEST init_eglconfig: E2BIG (config_attributes list too long)
-   memset(attrlist, surface_config_NONE, sizeof(attrlist));
+   memset(attrlist, surfaceconfig_NONE, sizeof(attrlist));
    for (int i = 0; i < (int)lengthof(attrlist)-2; i += 2) {
-      attrlist[i]   = 1 + (i % (surface_config_NROFCONFIGS-1));
+      attrlist[i]   = 1 + (i % (surfaceconfig_NROFCONFIGS-1));
       attrlist[i+1] = 1;
    }
    TEST(E2BIG == init_eglconfig(&eglconf, egldisp, attrlist));
    TEST(0 == eglconf);
 
    // TEST init_eglconfig: ESRCH (no 1024 bit buffer size)
-   attrlist[0] = surface_config_BITS_BLUE;
+   attrlist[0] = surfaceconfig_BITS_BLUE;
    attrlist[1] = 1024;
-   attrlist[2] = surface_config_NONE;
+   attrlist[2] = surfaceconfig_NONE;
    TEST(ESRCH == init_eglconfig(&eglconf, egldisp, attrlist));
    TEST(0 == eglconf);
 
-   // TEST init_eglconfig: all surface_config_XXX supported
-   for (int i = 1; i < surface_config_NROFCONFIGS; ++i) {
-      int value = 1;
+   // TEST init_eglconfig: all surfaceconfig_XXX supported
+   for (int i = 1; i < surfaceconfig_NROFCONFIGS; ++i) {
+      int32_t value = 1;
       switch (i) {
-      case surface_config_TYPE:
-         value = surface_configvalue_TYPE_WINDOW_BIT
-               | surface_configvalue_TYPE_PBUFFER_BIT
-               | surface_configvalue_TYPE_PIXMAP_BIT;
+      case surfaceconfig_TYPE:
+         value = surfaceconfig_value_TYPE_WINDOW_BIT
+               | surfaceconfig_value_TYPE_PBUFFER_BIT
+               | surfaceconfig_value_TYPE_PIXMAP_BIT;
          break;
-      case surface_config_CONFORMANT:
-         value = surface_configvalue_CONFORMANT_ES1_BIT
-               | surface_configvalue_CONFORMANT_ES2_BIT
-               | surface_configvalue_CONFORMANT_OPENGL_BIT
-               | surface_configvalue_CONFORMANT_OPENVG_BIT;
+      case surfaceconfig_CONFORMANT:
+         value = surfaceconfig_value_CONFORMANT_ES1_BIT
+               | surfaceconfig_value_CONFORMANT_ES2_BIT
+               | surfaceconfig_value_CONFORMANT_OPENGL_BIT
+               | surfaceconfig_value_CONFORMANT_OPENVG_BIT;
          break;
       }
       attrlist[2*i-2] = i;
       attrlist[2*i-1] = value;
    }
-   static_assert(2*surface_config_NROFCONFIGS-2 < lengthof(attrlist), "enough space for all attributes");
-   attrlist[2*surface_config_NROFCONFIGS-2] = surface_config_NONE;
+   static_assert(2*surfaceconfig_NROFCONFIGS-2 < lengthof(attrlist), "enough space for all attributes");
+   attrlist[2*surfaceconfig_NROFCONFIGS-2] = surfaceconfig_NONE;
    TEST(0 == init_eglconfig(&eglconf, egldisp, attrlist));
    TEST(0 != eglconf);
    TEST(0 == free_eglconfig(&eglconf));
@@ -247,49 +368,124 @@ static int test_initfree(egldisplay_t egldisp)
 
    // TEST init_eglconfig, value_eglconfig: returned config supports the number of queried bits or more
    int onoff[] = {
-      surface_config_BITS_ALPHA, surface_config_BITS_DEPTH, surface_config_BITS_STENCIL
+      surfaceconfig_BITS_ALPHA, surfaceconfig_BITS_DEPTH, surfaceconfig_BITS_STENCIL
    };
    for (unsigned i = 0; i < lengthof(onoff); ++i) {
       for (int isOn = 0; isOn <= 1; ++isOn) {
          attrlist[0] = onoff[i];
          attrlist[1] = isOn;
-         attrlist[2] = surface_config_NONE;
+         attrlist[2] = surfaceconfig_NONE;
          TEST(0 == init_eglconfig(&eglconf, egldisp, attrlist));
-         int attrval = -1;
+         int32_t attrval = -1;
          TEST(0 == value_eglconfig(eglconf, egldisp, onoff[i], &attrval));
          TEST(isOn == (0 < attrval));
          TEST(0 == free_eglconfig(&eglconf));
       }
    }
 
-   // TEST init_eglconfig, value_eglconfig: surface_config_CONFORMANT
-   static_assert(surface_configvalue_CONFORMANT_ES1_BIT == 1 && surface_configvalue_CONFORMANT_OPENGL_BIT == 8, "used in for");
-   for (int bit = surface_configvalue_CONFORMANT_ES1_BIT; bit <= surface_configvalue_CONFORMANT_OPENGL_BIT; bit *= 2) {
-      attrlist[0] = surface_config_CONFORMANT;
+   // TEST init_eglconfig, value_eglconfig: surfaceconfig_CONFORMANT
+   static_assert(surfaceconfig_value_CONFORMANT_ES1_BIT == 1 && surfaceconfig_value_CONFORMANT_OPENGL_BIT == 8, "used in for");
+   for (int bit = surfaceconfig_value_CONFORMANT_ES1_BIT; bit <= surfaceconfig_value_CONFORMANT_OPENGL_BIT; bit *= 2) {
+      attrlist[0] = surfaceconfig_CONFORMANT;
       attrlist[1] = bit;
-      attrlist[2] = surface_config_NONE;
+      attrlist[2] = surfaceconfig_NONE;
       TEST(0 == init_eglconfig(&eglconf, egldisp, attrlist));
-      int attrval = 0;
-      TEST(0 == value_eglconfig(eglconf, egldisp, surface_config_CONFORMANT, &attrval));
+      int32_t attrval = 0;
+      TEST(0 == value_eglconfig(eglconf, egldisp, surfaceconfig_CONFORMANT, &attrval));
       TEST(0 != (bit & attrval));
       TEST(0 == free_eglconfig(&eglconf));
    }
 
-   // TEST init_eglconfig, value_eglconfig: surface_config_TYPE
-   static_assert(surface_configvalue_TYPE_PBUFFER_BIT == 1 && surface_configvalue_TYPE_WINDOW_BIT == 4, "used in for");
-   for (int bit = surface_configvalue_TYPE_PBUFFER_BIT; bit <= surface_configvalue_TYPE_WINDOW_BIT; bit *= 2) {
-      attrlist[0] = surface_config_TYPE;
+   // TEST init_eglconfig, value_eglconfig: surfaceconfig_TYPE
+   static_assert(surfaceconfig_value_TYPE_PBUFFER_BIT == 1 && surfaceconfig_value_TYPE_WINDOW_BIT == 4, "used in for");
+   for (int bit = surfaceconfig_value_TYPE_PBUFFER_BIT; bit <= surfaceconfig_value_TYPE_WINDOW_BIT; bit *= 2) {
+      attrlist[0] = surfaceconfig_TYPE;
       attrlist[1] = bit;
-      attrlist[2] = surface_config_NONE;
+      attrlist[2] = surfaceconfig_NONE;
       TEST(0 == init_eglconfig(&eglconf, egldisp, attrlist));
-      int attrval = 0;
-      TEST(0 == value_eglconfig(eglconf, egldisp, surface_config_TYPE, &attrval));
+      int32_t attrval = 0;
+      TEST(0 == value_eglconfig(eglconf, egldisp, surfaceconfig_TYPE, &attrval));
       TEST(0 != (bit & attrval));
       TEST(0 == free_eglconfig(&eglconf));
    }
-
    TEST(0 == free_eglconfig(&eglconf));
    TEST(0 == eglconf);
+
+   // TEST initfiltered_eglconfig: filter is called for all entries
+   EGLint num_config = 0;
+   TEST(EGL_TRUE == eglChooseConfig( (void*)egldisp, (EGLint[]){EGL_NONE}, 0, 0, &num_config));
+   TEST(num_config > 1);
+   attrlist[0] = surfaceconfig_NONE;
+   s_filter_display = egldisp;
+   s_filter_user    = &num_config;
+   s_filter_total_count = 0;
+   s_filter_valid_count = 0;
+   TEST(ESRCH == initfiltered_eglconfig(&eglconf, egldisp, attrlist, &filter_test_count, &num_config));
+   TEST(s_filter_valid_count == s_filter_total_count);
+   TEST(s_filter_valid_count == num_config);
+   TEST(0 == eglconf);
+
+   // TEST initfiltered_eglconfig: use visualid for which filter signals true
+   for (int i = s_filter_total_count; i > 0; --i) {
+      int select_count = i; // use ith id
+      attrlist[0] = surfaceconfig_NONE;
+      TEST(0 == initfiltered_eglconfig(&eglconf, egldisp, attrlist, &filter_test_select, &select_count));
+      TEST(0 != eglconf);
+      TEST(0 == select_count);
+      int32_t visualid = -1;
+      TEST(0 == visualid_eglconfig(eglconf, egldisp, &visualid));
+      TEST(s_filter_visualid == visualid);
+      TEST(0 == free_eglconfig(&eglconf));
+      TEST(0 == eglconf);
+   }
+
+   // TEST initfiltered_eglconfig: only valid configurations (attribute on and off)
+   for (unsigned i = 0; i < lengthof(onoff); ++i) {
+      for (int isOn = 0; isOn <= 1; ++isOn) {
+         attrlist[0] = onoff[i];
+         attrlist[1] = isOn;
+         attrlist[2] = surfaceconfig_NONE;
+         s_filter_total_count = 0;
+         s_filter_valid_count = 0;
+         TEST(ESRCH == initfiltered_eglconfig(&eglconf, egldisp, attrlist,
+                                       isOn ? &filter_test_attribon : &filter_test_attriboff, &onoff[i]));
+         TEST(s_filter_valid_count >= 1);
+         if (isOn) {
+            TEST(s_filter_valid_count == s_filter_total_count);
+         } else {
+            TEST(s_filter_valid_count <  s_filter_total_count);
+         }
+         TEST(0 == free_eglconfig(&eglconf));
+      }
+   }
+
+   return 0;
+ONABORT:
+   free_eglconfig(&eglconf);
+   return EINVAL;
+}
+
+static int test_query(egldisplay_t egldisp)
+{
+   eglconfig_t eglconf = eglconfig_INIT_FREEABLE;
+   int32_t     attrlist[10];
+
+   // TEST visualid_eglconfig
+   for (int i = 8; i <= 32; i += 8) {
+      attrlist[0] = surfaceconfig_BITS_BUFFER;
+      attrlist[1] = i;
+      attrlist[2] = surfaceconfig_TYPE;
+      attrlist[3] = surfaceconfig_value_TYPE_WINDOW_BIT;
+      attrlist[4] = surfaceconfig_NONE;
+      TEST(0 == init_eglconfig(&eglconf, egldisp, attrlist));
+      int32_t attrvalue = 0;
+      TEST(0 == value_eglconfig(eglconf, egldisp, surfaceconfig_BITS_BUFFER, &attrvalue));
+      TEST(attrvalue >= i);
+      int32_t visualid = -1;
+      TEST(0 == visualid_eglconfig(eglconf, egldisp, &visualid));
+      TEST(0 < visualid);
+      TEST(0 == free_eglconfig(&eglconf));
+   }
 
    return 0;
 ONABORT:
@@ -306,7 +502,8 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage));
 
-   if (test_initfree(egldisp))  goto ONABORT;
+   if (test_initfree(egldisp))   goto ONABORT;
+   if (test_query(egldisp))      goto ONABORT;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));

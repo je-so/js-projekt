@@ -186,15 +186,15 @@ static int test_query(void)
       TEST((const uint8_t*)errstr == str_errorcontext(errcontext, i)) ;
    }
 
-   // TEST str_errorcontext: 256 <= errno <= 257
-   for (size_t i = 256; i <= 257; ++i) {
+   // TEST str_errorcontext: 256 <= errno <= 260
+   for (size_t i = 256; i <= 260; ++i) {
       const uint8_t * errstr = g_errorcontext_strdata + g_errorcontext_stroffset[255] ;
       // valid content
       TEST(errstr != str_errorcontext(errcontext, i)) ;
    }
 
-   // TEST str_errorcontext: 258 <= errno <= SIZE_MAX
-   for (size_t i = 258; true; i = (i < 511) ? i : 2*i, ++i) {
+   // TEST str_errorcontext: 261 <= errno <= SIZE_MAX
+   for (size_t i = 261; true; i = (i < 511) ? i : 2*i, ++i) {
       const uint8_t * errstr = g_errorcontext_strdata + g_errorcontext_stroffset[255] ;
       TEST(errstr == str_errorcontext(errcontext, i)) ;
       if (i == SIZE_MAX) break ;

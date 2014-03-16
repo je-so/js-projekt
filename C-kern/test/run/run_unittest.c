@@ -299,6 +299,7 @@ int run_unittest(void * argv)
       RUN(unittest_platform_opengl_egl_egl);
       RUN(unittest_platform_opengl_egl_eglconfig);
       RUN(unittest_platform_opengl_egl_egldisplay);
+      RUN(unittest_platform_opengl_egl_eglwindow);
 #endif
 #undef KONFIG_opengl_egl
 #undef KONFIG_opengl_glx

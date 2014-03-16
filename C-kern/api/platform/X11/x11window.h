@@ -34,6 +34,7 @@ struct x11attribute_t ;
 struct x11display_t ;
 struct x11drawable_t ;
 struct x11screen_t ;
+struct surfaceconfig_filter_t;
 
 /* typedef: struct x11window_t
  * Export <x11window_t> into global namespace. */
@@ -43,19 +44,20 @@ typedef struct x11window_t             x11window_t ;
  * Export <x11window_it> into global namespace. */
 typedef struct x11window_it            x11window_it ;
 
+
 /* enums: x11window_state_e
  * State of a <x11window_t> object.
  *
- * x11window_Destroyed  - The window is destroyed. This state is set if you call <free_x11window> or after
+ * x11window_state_DESTROYED  - The window is destroyed. This state is set if you call <free_x11window> or after
  *                       some other process destroyed the window (for example xkill) and the destroy event is
  *                       handled in the internal dispatch loop.
- * x11window_Hidden     - The window is created but not shown to the user (iconic or minimized state).
- * x11window_Shown      - The window is created and shown to the user but may be only partially visible
+ * x11window_state_HIDDEN     - The window is created but not shown to the user (iconic or minimized state).
+ * x11window_state_SHOWN      - The window is created and shown to the user but may be only partially visible
  *                       or obscured by another window. */
 enum x11window_state_e {
-   x11window_Destroyed = 0,
-   x11window_Hidden,
-   x11window_Shown,
+   x11window_state_DESTROYED = 0,
+   x11window_state_HIDDEN,
+   x11window_state_SHOWN,
 } ;
 
 typedef enum x11window_state_e         x11window_state_e ;
@@ -63,12 +65,12 @@ typedef enum x11window_state_e         x11window_state_e ;
 /* enums: x11window_flags_e
  * Additional flags of an object of type <x11window_t> or its subtype.
  *
- * x11window_OwnWindow     - The window is owned by this object. Freeing this object also frees the system window.
- * x11window_OwnColormap   - The colormap is owned by this object. Freeing this object also frees the system colormap.
+ * x11window_flags_OWNWINDOW   - The window is owned by this object. Freeing this object also frees the system window.
+ * x11window_flags_OWNCOLORMAP - The colormap is owned by this object. Freeing this object also frees the system colormap.
  * */
 enum x11window_flags_e {
-   x11window_OwnWindow     = 1,
-   x11window_OwnColormap   = 2,
+   x11window_flags_OWNWINDOW   = 1,
+   x11window_flags_OWNCOLORMAP = 2,
 } ;
 
 typedef enum x11window_flags_e         x11window_flags_e ;
@@ -93,7 +95,7 @@ struct x11window_it {
    void (* onclose)        (x11window_t * x11win);
    /* variable: ondestroy
     * The event handler is called if the window was destroyed by another process.
-    * The <x11window_t.state> is set to <x11window_Destroyed> before this callback is called.
+    * The <x11window_t.state> is set to <x11window_state_DESTROYED> before this callback is called.
     * You must call <free_x11window> - any other function which uses <x11window_t.sys_drawable> as parameter
     * would cause an Xlib error which would cause the process to abort. Not calling <free_x11window> results in
     * a memory leak. Calling <free_x11window> in response to an <onclose> event does not trigger a <ondestroy> callback. */
@@ -106,7 +108,7 @@ struct x11window_it {
     * The x and y coordinates can be queried for with a call to <pos_x11window>. */
    void (* onreshape)      (x11window_t * x11win, uint32_t width, uint32_t height);
    /* variable: onvisible
-    * The event handler is called if the window changes state from <x11window_Shown> to <x11window_Hidden> or vice versa.
+    * The event handler is called if the window changes state from <x11window_state_SHOWN> to <x11window_state_HIDDEN> or vice versa.
     * Use <x11window_t.state_x11window> to get the current state. */
    void (* onvisible)      (x11window_t * x11win);
 } ;
@@ -176,16 +178,20 @@ struct x11window_t {
 
 /* function: init_x11window
  * Create a new window on x11screen and assign it to x11win.
- * After successful return <state_x11window> returns <x11window_Hidden>.
+ * After successful return <state_x11window> returns <x11window_state_HIDDEN>.
  * Call <show_x11window> to show the window to the user. */
 int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/) ;
 
-/* function: initsys_x11window
- * Use this call from a subtype.
- * This parameter visual points to Visual (X11 type) and depth specifies the windows depth.
- * Any unknown <x11attribute_t.name> is ignored. Uses XCreateWindow for its implementation. */
-int initsys_x11window(/*out*/x11window_t * x11win, const struct x11window_it * eventhandler, struct x11display_t * x11disp, uint32_t parent_sys_drawable,
-                           /*Visual*/void * visual, int depth, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/);
+/* function: initvid_x11window
+ * Create a new window on x11screen and assign it to x11win.
+ * Same as <init_x11window> except that the visual type of
+ * the window is not determined by <x11attribute_t> stored in
+ * configuration but with parameter config_visualid.
+ * This parameter describes the ID of the X11 visual.
+ * The visual of a window determines its capabilities like nr of bits
+ * per color channel, double buffering and also OpenGL related stuff.
+ * */
+int initvid_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler,/*(X11) VisualID*/uint32_t config_visualid, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/);
 
 /* function: initmove_glxwindow
  * Must be called if address of <x11window_t> changes.
@@ -207,12 +213,12 @@ struct x11screen_t screen_x11window(const x11window_t * x11win) ;
 
 /* function: flags_x11window
  * Returns flags which indicate ownership state of the window as seen by the user. See <x11window_state_e>.
- * After calling <init_x11window> the state is set to <x11window_Hidden>. Call * */
+ * After calling <init_x11window> the state is set to <x11window_state_HIDDEN>. Call * */
 x11window_flags_e flags_x11window(const x11window_t * x11win) ;
 
 /* function: state_x11window
  * Returns the state of the window as seen by the user. See <x11window_state_e>.
- * After calling <init_x11window> the state is set to <x11window_Hidden>. */
+ * After calling <init_x11window> the state is set to <x11window_state_HIDDEN>. */
 x11window_state_e state_x11window(const x11window_t * x11win) ;
 
 /* function: title_x11window
@@ -242,12 +248,12 @@ int frame_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out
 
 /* function: show_x11window
  * Makes window visible to the user. In X11 speak it is mapped.
- * After receiveing the notification from the X server the window state is set to <x11window_Shown>. */
+ * After receiveing the notification from the X server the window state is set to <x11window_state_SHOWN>. */
 int show_x11window(x11window_t * x11win) ;
 
 /* function: hide_x11window
  * In X11 terms unmaps a window: makes it invisible to the user.
- * After receiveing the notification from the X server the window state is set to <x11window_Hidden>. */
+ * After receiveing the notification from the X server the window state is set to <x11window_state_HIDDEN>. */
 int hide_x11window(x11window_t * x11win) ;
 
 /* function: setpos_x11window
@@ -304,6 +310,21 @@ int swapbuffer_x11window(x11window_t * x11win);
  * Casts a pointer to object into a pointer to <x11window_t>.
  * All fields of object must be compatible with x11window_t and at the same offset. */
 x11window_t * genericcast_x11window(void * object) ;
+
+// group: helper
+
+/* function: configfilter_x11window
+ * Returns a <surfaceconfig_filter_f> which helps to filter for a specific window visual.
+ * The content of the array config_attributes must be the same as it will be used in
+ * <initfiltered_surfaceconfig>. The returned filter is never null.
+ * Either it returns always true and selects the first matching surface configuration
+ * or in <surfaceconfig_TRANSPARENT_ALPHA> is switched on returns only true
+ * for a configuration which supports this feature under X11.
+ * The first supplied value of <surfaceconfig_TRANSPARENT_ALPHA> in config_attributes
+ * is used. Do not define attributes more than once else the returned filter could
+ * be the wrong one. If more than surfaceconfig_NROFCONFIGS attributes are defined in
+ * config_attributes error E2BIG is returned. */
+int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, struct x11display_t * x11disp, const int32_t config_attributes[]);
 
 
 // section: inline implementation

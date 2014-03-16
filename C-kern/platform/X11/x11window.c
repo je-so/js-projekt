@@ -27,6 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/X11/x11window.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/graphic/surfaceconfig.h"
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/X11/x11attribute.h"
 #include "C-kern/api/platform/X11/x11display.h"
@@ -62,9 +63,8 @@ static void setwinopacity_x11window(x11display_t * x11disp, Window win, uint32_t
 }
 
 static int matchvisual_x11window(
+      /*out*/VisualID*              visualid,
       x11screen_t *                 x11screen,
-      /*out*/Visual **              x11_visual,
-      /*out*/int *                  x11_depth,
       uint8_t                       nrofattributes,
       const struct x11attribute_t * configuration/*[nrofattributes]*/)
 {
@@ -120,6 +120,8 @@ static int matchvisual_x11window(
          if (  (int32_t)rgbbits <= vinfo[i].bits_per_rgb
                && 3 * vinfo[i].bits_per_rgb + (int32_t)alphabits <= vinfo[i].depth) {
             if (alphabits) {  // check alpha
+               // alphaMask gives the number of bits (always beginning from 1)
+               // alpha gives the shift to the left
                XRenderPictFormat * format = XRenderFindVisualFormat(x11screen->display->sys_display, vinfo[i].visual) ;
                if (!format || format->direct.alphaMask < (((int32_t)1 << alphabits)-1)) continue ;
             }
@@ -132,9 +134,8 @@ static int matchvisual_x11window(
                }
                if (dbi >= vinfodb[0].count) continue ;
             }
-            isMatch = true ;
-            *x11_visual = vinfo[i].visual ;
-            *x11_depth  = vinfo[i].depth ;
+            isMatch   = true ;
+            *visualid = vinfo[i].visualid ;
             break;
          }
       }
@@ -151,145 +152,150 @@ ONABORT:
 
 // group: lifetime
 
-/* function: initsys_x11window
- * In case visual == CopyFromParent the function expects depth == CopyFromParent also. */
-int initsys_x11window(
+/* function: initvid_x11window
+ * Called from <x11window_t.init_x11window>. */
+int initvid_x11window(
       /*out*/x11window_t *          x11win,
+      struct x11screen_t *          x11screen,
       const struct x11window_it *   eventhandler,
-      x11display_t *                x11disp,
-      uint32_t                      parent_sys_drawable,
-      /*Visual*/void *              visual,
-      int                           depth,
+      /*(X11) VisualID*/uint32_t    config_visualid,
       uint8_t                       nrofattributes,
       const struct x11attribute_t * configuration/*[nrofattributes]*/)
 {
-   int err ;
-   Window      win ;
-   Colormap    colormap ;
-   uint8_t     flags      = 0 ;
-   uint8_t     isFrame    = false ;
-   uint32_t    opacity    = UINT32_MAX ;
-   const char* title      = 0 ;
-   XWMHints    wm_hints   = { .flags = StateHint, .initial_state = NormalState /*or WithdrawnState or IconicState*/ } ;
+   int err;
+   Window      win;
+   Colormap    colormap;
+   uint8_t     flags      = 0;
+   uint8_t     isFrame    = false;
+   uint32_t    opacity    = UINT32_MAX;
+   const char* title      = 0;
+   XWMHints    wm_hints   = { .flags = StateHint, .initial_state = NormalState /*or WithdrawnState or IconicState*/ };
    XSizeHints  size_hints = { .flags = PBaseSize|PWinGravity,
                               .x = 0, .y = 0,
                               .base_width  = 100, .base_height = 100,
                               .win_gravity = NorthWestGravity
-                           } ;
-   XColor      colwhite   = { .red = (unsigned short)-1, .green = (unsigned short)-1, .blue = (unsigned short)-1, .flags = DoRed|DoGreen|DoBlue } ;
+                           };
+   XColor      colwhite   = { .red = (unsigned short)-1, .green = (unsigned short)-1, .blue = (unsigned short)-1, .flags = DoRed|DoGreen|DoBlue };
+   Display*    display    = x11screen->display->sys_display;
+   Window      parent_win = RootWindow(display, x11screen->nrscreen);
+   Visual *    visual;
+   int         depth;
 
+   // convert visualid into visual/depth
+   {
+      int            vinfo_length;
+      XVisualInfo    vinfo_pattern = { .visualid = (VisualID)config_visualid, .screen = x11screen->nrscreen };
+      XVisualInfo *  vinfo         = XGetVisualInfo(x11screen->display->sys_display, VisualIDMask|VisualScreenMask, &vinfo_pattern, &vinfo_length);
 
-   static_assert(sizeof(parent_sys_drawable) == sizeof(Window), "same type") ;
+      if (!vinfo){
+         err = EINVAL;
+         goto ONABORT;
+      }
 
+      visual = vinfo->visual;
+      depth  = vinfo->depth;
+
+      XFree(vinfo);
+   }
+
+   // process x11 window specific attributes
    for (uint16_t i = 0; i < nrofattributes; ++i) {
       switch (configuration[i].name) {
       case x11attribute_WINTITLE:
-         title = configuration[i].value.str ;
-         break ;
+         title = configuration[i].value.str;
+         break;
       case x11attribute_WINFRAME:
-         isFrame = configuration[i].value.isOn ;
-         break ;
+         isFrame = configuration[i].value.isOn;
+         break;
       case x11attribute_WINPOS:
-         size_hints.flags |= PPosition ;
-         size_hints.x = configuration[i].value.x ;
-         size_hints.y = configuration[i].value.y ;
-         break ;
+         size_hints.flags |= PPosition;
+         size_hints.x = configuration[i].value.x;
+         size_hints.y = configuration[i].value.y;
+         break;
       case x11attribute_WINSIZE:
-         size_hints.base_width  = configuration[i].value.width ;
-         size_hints.base_height = configuration[i].value.height ;
-         break ;
+         size_hints.base_width  = configuration[i].value.width;
+         size_hints.base_height = configuration[i].value.height;
+         break;
       case x11attribute_WINMINSIZE:
-         size_hints.flags |= PMinSize ;
-         size_hints.min_width  = configuration[i].value.width ;
-         size_hints.min_height = configuration[i].value.height ;
-         break ;
+         size_hints.flags |= PMinSize;
+         size_hints.min_width  = configuration[i].value.width;
+         size_hints.min_height = configuration[i].value.height;
+         break;
       case x11attribute_WINMAXSIZE:
-         size_hints.flags |= PMaxSize ;
-         size_hints.max_width  = configuration[i].value.width ;
-         size_hints.max_height = configuration[i].value.height ;
-         break ;
+         size_hints.flags |= PMaxSize;
+         size_hints.max_width  = configuration[i].value.width;
+         size_hints.max_height = configuration[i].value.height;
+         break;
       case x11attribute_WINOPACITY:
-         opacity = configuration[i].value.u32 ;
-         break ;
+         opacity = configuration[i].value.u32;
+         break;
       }
    }
 
-   if (visual == CopyFromParent) {
-      XWindowAttributes winattr ;
-      const bool isOK = XGetWindowAttributes(x11disp->sys_display, parent_sys_drawable, &winattr) ;
-      if (!isOK) {
-         err = EINVAL ;
-         goto ONABORT ;
-      }
-      colormap = winattr.colormap ;
-   } else {
-      flags    = x11window_OwnColormap ;
-      colormap = XCreateColormap(x11disp->sys_display, parent_sys_drawable, visual, AllocNone) ;
-      XAllocColor(x11disp->sys_display, colormap, &colwhite) ;
-   }
+   // allocate colormap
+   flags = x11window_flags_OWNCOLORMAP;
+   colormap = XCreateColormap(display, parent_win, visual, AllocNone);
+   XAllocColor(display, colormap, &colwhite);
 
+   // create window
    {
-      XSetWindowAttributes attr ;
-      attr.background_pixmap = None ;
-      attr.event_mask        = ExposureMask | KeyPressMask | StructureNotifyMask ;
-      attr.override_redirect = ! isFrame ;
-      attr.colormap          = colormap ;
-      attr.border_pixel      = colwhite.pixel ; // this ensures that non standard visuals do not generate protocol error
+      XSetWindowAttributes attr;
+      attr.background_pixmap = None;
+      attr.event_mask        = ExposureMask | KeyPressMask | StructureNotifyMask;
+      attr.override_redirect = ! isFrame;
+      attr.colormap          = colormap;
+      attr.border_pixel      = colwhite.pixel; // this ensures that non standard visuals do not generate protocol error
 
-      win = XCreateWindow( x11disp->sys_display, parent_sys_drawable, size_hints.x, size_hints.y,
+      win = XCreateWindow( display, parent_win, size_hints.x, size_hints.y,
                            (uint32_t)size_hints.base_width, (uint32_t)size_hints.base_height, 0, depth, InputOutput, visual,
                            CWBackPixmap | CWEventMask | CWOverrideRedirect | (flags ? (CWColormap|CWBorderPixel): 0),
-                           &attr ) ;
-      flags |= x11window_OwnWindow ;
+                           &attr );
+      flags |= x11window_flags_OWNWINDOW;
    }
 
    // set opacity (if less than 100%)
-   setwinopacity_x11window(x11disp, win, opacity) ;
+   setwinopacity_x11window(x11screen->display, win, opacity);
    // set size and title
-   Xutf8SetWMProperties(x11disp->sys_display, win, title ? title : "", 0, 0, 0, &size_hints, &wm_hints, 0) ;
+   Xutf8SetWMProperties(display, win, title ? title : "", 0, 0, 0, &size_hints, &wm_hints, 0);
    // closing a window only sends a request no actual destroying takes place
-   Atom wm_delete_window = x11disp->atoms.WM_DELETE_WINDOW ;
-   XSetWMProtocols(x11disp->sys_display, win, &wm_delete_window, 1) ;
+   Atom wm_delete_window = x11screen->display->atoms.WM_DELETE_WINDOW;
+   XSetWMProtocols(display, win, &wm_delete_window, 1);
 
-   err = insertobject_x11display(x11disp, x11win, win) ;
-   if (err) goto ONABORT ;
+   err = insertobject_x11display(x11screen->display, x11win, win);
+   if (err) goto ONABORT;
 
-   x11win->display      = x11disp ;
-   x11win->sys_drawable = win ;
-   x11win->sys_colormap = colormap ;
-   x11win->iimpl        = eventhandler ;
-   x11win->state        = x11window_Hidden ;
-   x11win->flags        = flags ;
+   x11win->display      = x11screen->display;
+   x11win->sys_drawable = win;
+   x11win->sys_colormap = colormap;
+   x11win->iimpl        = eventhandler;
+   x11win->state        = x11window_state_HIDDEN;
+   x11win->flags        = flags;
 
-   return 0 ;
+   return 0;
 ONABORT:
-   if (0 != (flags & x11window_OwnWindow)) {
-      XDestroyWindow(x11disp->sys_display, win) ;
+   if (0 != (flags & x11window_flags_OWNWINDOW)) {
+      XDestroyWindow(display, win);
    }
-   if (0 != (flags & x11window_OwnColormap)) {
-      XFreeColormap(x11disp->sys_display, colormap) ;
+   if (0 != (flags & x11window_flags_OWNCOLORMAP)) {
+      XFreeColormap(display, colormap);
    }
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
+   TRACEABORT_ERRLOG(err);
+   return err;
 }
 
 int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/)
 {
    int err ;
-   Visual * visual = XDefaultVisual(x11screen->display->sys_display, x11screen->nrscreen) ;
-   int      depth  = XDefaultDepth(x11screen->display->sys_display, x11screen->nrscreen) ;
+   VisualID visualid;
 
-   *x11win = (x11window_t) x11window_INIT_FREEABLE ;
-
-   err = matchvisual_x11window(x11screen, &visual, &depth, nrofattributes, configuration) ;
+   err = matchvisual_x11window(&visualid, x11screen, nrofattributes, configuration) ;
    if (err) goto ONABORT ;
 
-   err = initsys_x11window(x11win, eventhandler, x11screen->display, RootWindow(x11screen->display->sys_display, x11screen->nrscreen), visual, depth, nrofattributes, configuration) ;
+   err = initvid_x11window(x11win, x11screen, eventhandler, visualid, nrofattributes, configuration) ;
    if (err) goto ONABORT ;
 
    return 0 ;
 ONABORT:
-   free_x11window(x11win) ;
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
@@ -302,11 +308,11 @@ int free_x11window(x11window_t * x11win)
    if (x11disp) {
       err = 0 ;
 
-      if (0 != (x11win->flags & x11window_OwnColormap)) {
+      if (0 != (x11win->flags & x11window_flags_OWNCOLORMAP)) {
          XFreeColormap(x11disp->sys_display, x11win->sys_colormap) ;
       }
 
-      if (0 != (x11win->flags & x11window_OwnWindow)) {
+      if (0 != (x11win->flags & x11window_flags_OWNWINDOW)) {
 
          err = removeobject_x11display(x11disp, x11win->sys_drawable) ;
 
@@ -317,7 +323,7 @@ int free_x11window(x11window_t * x11win)
       x11win->sys_drawable = 0 ;
       x11win->sys_colormap = 0 ;
       x11win->iimpl        = 0 ;
-      x11win->state        = x11window_Destroyed ;
+      x11win->state        = x11window_state_DESTROYED ;
       x11win->flags        = 0 ;
 
       if (err) goto ONABORT ;
@@ -353,7 +359,7 @@ int title_x11window(const x11window_t * x11win, /*ret*/struct cstring_t * title)
    char **        textlist  = 0 ;
    int            textcount = 0 ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    if (  0 == XGetWMName(x11win->display->sys_display, x11win->sys_drawable, &textprop)
          || Success != Xutf8TextPropertyToTextList(x11win->display->sys_display, &textprop, &textlist, &textcount)) {
@@ -384,7 +390,7 @@ int geometry_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*
    uint32_t udummy ;
    int32_t  idummy ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
 
    if (! XGetGeometry(x11win->display->sys_display, x11win->sys_drawable, &root, &idummy, &idummy,
@@ -410,7 +416,7 @@ int frame_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out
    uint32_t    w, h ;
    uint32_t *  data = 0 ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    err = geometry_x11window(x11win, &x, &y, &w, &h) ;
    if (err) goto ONABORT ;
@@ -451,7 +457,7 @@ int show_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    XMapRaised(x11win->display->sys_display, x11win->sys_drawable) ;
 
@@ -465,7 +471,7 @@ int hide_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    XUnmapWindow(x11win->display->sys_display, x11win->sys_drawable) ;
 
@@ -479,7 +485,7 @@ int sendclose_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    XEvent xevent ;
    xevent.xclient.type    = ClientMessage ;
@@ -499,7 +505,7 @@ int sendredraw_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    // the background is set to none => only Expose events are generated, background is not cleared !
    XClearArea(x11win->display->sys_display, x11win->sys_drawable, 0, 0, 0, 0, True) ;
@@ -516,7 +522,7 @@ int settitle_x11window(const x11window_t * x11win, /*ret*/const char * title)
    XTextProperty textprop ;
    char  *       textlist = CONST_CAST(char, title) ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    if (Success != Xutf8TextListToTextProperty(x11win->display->sys_display, &textlist, 1, XUTF8StringStyle, &textprop)) {
       err = EINVAL ;
@@ -536,7 +542,7 @@ int setopacity_x11window(x11window_t * x11win, double opacity)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
    VALIDATE_INPARAM_TEST(0 <=opacity && opacity <= 1, ONABORT, ) ;
 
    uint32_t cardinal_opacity = (uint32_t) (opacity * UINT32_MAX) ;
@@ -553,7 +559,7 @@ int setpos_x11window(x11window_t * x11win, int32_t screen_x, int32_t screen_y)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    XMoveWindow(x11win->display->sys_display, x11win->sys_drawable, screen_x, screen_y) ;
 
@@ -567,7 +573,7 @@ int resize_x11window(x11window_t * x11win, uint32_t width, uint32_t height)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    XResizeWindow(x11win->display->sys_display, x11win->sys_drawable, width, height) ;
 
@@ -581,7 +587,7 @@ int swapbuffer_x11window(x11window_t * x11win)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(x11win->state != x11window_Destroyed, ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(x11win->state != x11window_state_DESTROYED, ONABORT, ) ;
 
    XdbeSwapInfo swapInfo ;
    swapInfo.swap_window = x11win->sys_drawable ;
@@ -598,6 +604,60 @@ ONABORT:
    return err ;
 }
 
+// group: helper
+
+static bool matchfirstfilter_x11window(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+{
+   (void) surfconf;
+   (void) display;
+   (void) visualid;
+   (void) user;
+   return true;
+}
+
+static bool matchtransparentalphafilter_x11window(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+{
+   (void) surfconf;
+   (void) display;
+   (void) user;
+
+   x11display_t * x11disp = user;
+   bool           isMatch = false;
+   int            vinfo_length;
+   XVisualInfo    vinfo_pattern = { .visualid = (uint32_t)visualid };
+   XVisualInfo *  vinfo = XGetVisualInfo(x11disp->sys_display, VisualIDMask, &vinfo_pattern, &vinfo_length);
+
+   if (vinfo) {
+      XRenderPictFormat * format = XRenderFindVisualFormat(x11disp->sys_display, vinfo->visual);
+      isMatch = (format && format->direct.alphaMask > 0);
+      XFree(vinfo) ;
+   }
+
+   return isMatch;
+}
+
+int configfilter_x11window(/*out*/surfaceconfig_filter_t * filter, struct x11display_t * x11disp, const int32_t config_attributes[])
+{
+   for (unsigned i = 0; config_attributes[i] != surfaceconfig_NONE; i += 2) {
+      if (i >= 2*surfaceconfig_NROFCONFIGS) {
+         return E2BIG;
+      }
+
+      if (config_attributes[i] == surfaceconfig_TRANSPARENT_ALPHA) {
+         if (config_attributes[i+1] != 0) {
+            *filter = (surfaceconfig_filter_t) surfaceconfig_filter_INIT(&matchtransparentalphafilter_x11window, x11disp);
+            return 0;
+         }
+         break;
+      }
+   }
+
+   *filter = (surfaceconfig_filter_t) surfaceconfig_filter_INIT(&matchfirstfilter_x11window, x11disp);
+   return 0;
+}
+
+
+// section: Functions
 
 // group: test
 
@@ -614,11 +674,12 @@ struct testwindow_t {
    int onredraw;
    int onreshape;
    int onvisible;
+   x11window_state_e state;
    uint32_t width;
    uint32_t height;
 } ;
 
-#define testwindow_INIT_FREEABLE    { x11window_INIT_FREEABLE, 0, 0, 0, 0, 0, 0, 0 }
+#define testwindow_INIT_FREEABLE    { x11window_INIT_FREEABLE, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 x11window_it_DECLARE(testwindow_it, testwindow_t) ;
 
@@ -634,7 +695,7 @@ static void ondestroy_testwindow(testwindow_t * testwin)
 
 static void onredraw_testwindow(testwindow_t * testwin)
 {
-   ++ testwin->onredraw ;
+   ++ testwin->onredraw;
 }
 
 static void onreshape_testwindow(testwindow_t * testwin, uint32_t width, uint32_t height)
@@ -644,9 +705,10 @@ static void onreshape_testwindow(testwindow_t * testwin, uint32_t width, uint32_
    testwin->height = height;
 }
 
-static void onvisible_testwindow(testwindow_t * testwin)
+static void onvisible_testwindow(testwindow_t * testwin, x11window_state_e state)
 {
-   ++ testwin->onvisible ;
+   testwin->state = state;
+   ++ testwin->onvisible;
 }
 
 static int test_interface(void)
@@ -706,8 +768,8 @@ static int test_interface(void)
 
    // TEST onvisible_testwindow
    for (int i = 0; i < 10; ++i) {
-      TEST(testwin.onvisible == i) ;
-      iimpl.onvisible(&testwin) ;
+      TEST(testwin.onvisible == i);
+      iimpl.onvisible(&testwin, 0);
    }
    TEST(testwin.onvisible == 10) ;
 
@@ -735,7 +797,7 @@ static int test_initfree(x11screen_t * x11screen)
    uint32_t       syswin ;
    void         * object ;
 
-   static_assert(x11window_Destroyed == 0, "x11window_INIT_FREEABLE and free_x11window sets x11window_t.state to x11window_Destroyed") ;
+   static_assert(x11window_state_DESTROYED == 0, "x11window_INIT_FREEABLE and free_x11window sets x11window_t.state to x11window_state_DESTROYED") ;
 
    // TEST x11window_INIT_FREEABLE
    TEST(x11win->display      == 0) ;
@@ -751,8 +813,8 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(x11win->sys_drawable != 0) ;
    TEST(x11win->sys_colormap != 0) ;
    TEST(x11win->iimpl        == 0) ;
-   TEST(x11win->state        == x11window_Hidden) ;
-   TEST(x11win->flags        == (x11window_OwnWindow|x11window_OwnColormap)) ;
+   TEST(x11win->state        == x11window_state_HIDDEN) ;
+   TEST(x11win->flags        == (x11window_flags_OWNWINDOW|x11window_flags_OWNCOLORMAP)) ;
    syswin = x11win->sys_drawable;
    object = 0 ;
    TEST(0 == findobject_x11display(x11disp, &object, syswin)) ;
@@ -782,8 +844,8 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(x11win->sys_drawable != 0) ;
    TEST(x11win->sys_colormap != 0) ;
    TEST(x11win->iimpl        == genericcast_x11windowit(&iimpl, testwindow_t)) ;
-   TEST(x11win->state        == x11window_Hidden) ;
-   TEST(x11win->flags        == (x11window_OwnWindow|x11window_OwnColormap)) ;
+   TEST(x11win->state        == x11window_state_HIDDEN) ;
+   TEST(x11win->flags        == (x11window_flags_OWNWINDOW|x11window_flags_OWNCOLORMAP)) ;
    syswin = x11win->sys_drawable;
    object = 0 ;
    TEST(0 == findobject_x11display(x11disp, &object, syswin)) ;
@@ -805,22 +867,22 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(x11win->sys_drawable != 0) ;
    TEST(x11win->sys_colormap != 0) ;
    TEST(x11win->iimpl        == genericcast_x11windowit(&iimpl, testwindow_t)) ;
-   TEST(x11win->state        == x11window_Hidden) ;
-   TEST(x11win->flags        == (x11window_OwnWindow|x11window_OwnColormap)) ;
+   TEST(x11win->state        == x11window_state_HIDDEN) ;
+   TEST(x11win->flags        == (x11window_flags_OWNWINDOW|x11window_flags_OWNCOLORMAP)) ;
    syswin = x11win->sys_drawable;
    object = 0 ;
    TEST(0 != XDestroyWindow(x11disp->sys_display, x11win->sys_drawable)) ;
    TEST(0 == findobject_x11display(x11disp, &object, syswin)) ;
    TEST(x11win == object) ;
    testwin.ondestroy = 0 ;
-   WAITFOR(x11disp, 5, x11win->state == x11window_Destroyed) ;
+   WAITFOR(x11disp, 5, x11win->state == x11window_state_DESTROYED) ;
    TEST(testwin.ondestroy    == 1) ;
    TEST(x11win->display      == x11disp) ;
    TEST(x11win->sys_drawable == 0) ;
    TEST(x11win->sys_colormap != 0) ;
    TEST(x11win->iimpl        == genericcast_x11windowit(&iimpl, testwindow_t)) ;
-   TEST(x11win->state        == x11window_Destroyed) ;
-   TEST(x11win->flags        == (x11window_OwnColormap)) ;
+   TEST(x11win->state        == x11window_state_DESTROYED) ;
+   TEST(x11win->flags        == (x11window_flags_OWNCOLORMAP)) ;
    // removed from id -> object map
    TEST(ESRCH == findobject_x11display(x11disp, &object, syswin)) ;
    TEST(0 == free_x11window(x11win)) ;
@@ -836,21 +898,21 @@ ONABORT:
    return EINVAL ;
 }
 
-static int compare_visual(x11screen_t * x11screen, Visual * visual, int depth, int minrgbbits, int minalphabits, bool isDouble)
+static int compare_visual(x11screen_t * x11screen, uint32_t visualid, int minrgbbits, int minalphabits, bool isDouble)
 {
-   XVisualInfo             vinfo_pattern = { .visualid = visual->visualid, .class = TrueColor, .screen = x11screen->nrscreen } ;
+   XVisualInfo             vinfo_pattern = { .visualid = visualid, .screen = x11screen->nrscreen };
    int                     vinfo_length  = 0 ;
-   XVisualInfo *           vinfo         = XGetVisualInfo(x11screen->display->sys_display, VisualIDMask|VisualClassMask|VisualScreenMask, &vinfo_pattern, &vinfo_length) ;
+   XVisualInfo *           vinfo         = XGetVisualInfo(x11screen->display->sys_display, VisualIDMask|VisualScreenMask, &vinfo_pattern, &vinfo_length);
    XdbeScreenVisualInfo *  vinfodb       = 0 ;
 
    if (isDouble) {
       int nrscreen = 1 ;
-      Drawable screens  = RootWindow(x11screen->display->sys_display, x11screen->nrscreen) ;
+      Drawable screens = RootWindow(x11screen->display->sys_display, x11screen->nrscreen) ;
       vinfodb = XdbeGetVisualInfo(x11screen->display->sys_display, &screens, &nrscreen) ;
       TEST(vinfodb) ;
       int i ;
       for (i = 0; i < vinfodb[0].count; ++i) {
-         if (vinfodb[0].visinfo[i].visual == visual->visualid) {
+         if (vinfodb[0].visinfo[i].visual == (VisualID)visualid) {
             break ;
          }
       }
@@ -859,11 +921,11 @@ static int compare_visual(x11screen_t * x11screen, Visual * visual, int depth, i
 
    TEST(vinfo != 0) ;
    TEST(vinfo_length == 1) ;
-   TEST(vinfo->visual       == visual) ;
+   TEST(vinfo->visualid     == (VisualID)visualid) ;
    TEST(vinfo->bits_per_rgb >= minrgbbits) ;
-   TEST(vinfo->depth        == depth) ;
+
    if (minalphabits) {
-      XRenderPictFormat * format = XRenderFindVisualFormat(x11screen->display->sys_display, visual) ;
+      XRenderPictFormat * format = XRenderFindVisualFormat(x11screen->display->sys_display, vinfo->visual) ;
       TEST(format) ;
       int alphabits = 0 ;
       int alphamask = format->direct.alphaMask ;
@@ -891,34 +953,33 @@ static int test_query(x11screen_t * x11screen, testwindow_t * testwin, testwindo
    x11window_t *  x11win2 = &testwin_noframe->x11win ;
    cstring_t      title   = cstring_INIT ;
    x11window_t    dummy   = x11window_INIT_FREEABLE ;
-   Visual *       visual ;
-   int            depth ;
+   VisualID       visualid ;
 
    // TEST matchvisual_x11window
    {
       x11attribute_t attr[] = { x11attribute_INIT_ALPHAOPACITY } ;
-      TEST(0 == matchvisual_x11window(x11screen, &visual, &depth, 1, attr)) ;
-      TEST(0 == compare_visual(x11screen, visual, depth, 0, 1, 0)) ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      TEST(0 == compare_visual(x11screen, visualid, 0, 1, 0)) ;
    }  {
       x11attribute_t attr[] = { x11attribute_INIT_ALPHABITS(8) } ;
-      TEST(0 == matchvisual_x11window(x11screen, &visual, &depth, 1, attr)) ;
-      TEST(0 == compare_visual(x11screen, visual, depth, 0, 8, 0)) ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      TEST(0 == compare_visual(x11screen, visualid, 0, 8, 0)) ;
    }  {
       x11attribute_t attr[] = { x11attribute_INIT_REDBITS(8) } ;
-      TEST(0 == matchvisual_x11window(x11screen, &visual, &depth, 1, attr)) ;
-      TEST(0 == compare_visual(x11screen, visual, depth, 8, 0, 0)) ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      TEST(0 == compare_visual(x11screen, visualid, 8, 0, 0)) ;
    }  {
       x11attribute_t attr[] = { x11attribute_INIT_GREENBITS(8) } ;
-      TEST(0 == matchvisual_x11window(x11screen, &visual, &depth, 1, attr)) ;
-      TEST(0 == compare_visual(x11screen, visual, depth, 8, 0, 0)) ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      TEST(0 == compare_visual(x11screen, visualid, 8, 0, 0)) ;
    }  {
       x11attribute_t attr[] = { x11attribute_INIT_BLUEBITS(8) } ;
-      TEST(0 == matchvisual_x11window(x11screen, &visual, &depth, 1, attr)) ;
-      TEST(0 == compare_visual(x11screen, visual, depth, 8, 0, 0)) ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      TEST(0 == compare_visual(x11screen, visualid, 8, 0, 0)) ;
    }  {
       x11attribute_t attr[] = { x11attribute_INIT_DOUBLEBUFFER } ;
-      TEST(0 == matchvisual_x11window(x11screen, &visual, &depth, 1, attr)) ;
-      TEST(0 == compare_visual(x11screen, visual, depth, 0, 0, 1)) ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      TEST(0 == compare_visual(x11screen, visualid, 0, 0, 1)) ;
    }
 
    // TEST flags_x11window
@@ -1009,19 +1070,25 @@ static int test_showhide(testwindow_t * testwin)
 
    // precondition
    TEST(0 == show_x11window(x11win)) ;
-   WAITFOR(x11win->display, 20, state_x11window(x11win) == x11window_Shown) ;
-   TEST(state_x11window(x11win) == x11window_Shown) ;
+   WAITFOR(x11win->display, 20, state_x11window(x11win) == x11window_state_SHOWN) ;
+   TEST(state_x11window(x11win) == x11window_state_SHOWN) ;
 
    // TEST hide_x11window
+   testwin->onvisible = 0;
    TEST(0 == hide_x11window(x11win)) ;
-   WAITFOR(x11win->display, 20, state_x11window(x11win) == x11window_Hidden) ;
-   TEST(state_x11window(x11win) == x11window_Hidden) ;
+   WAITFOR(x11win->display, 20, state_x11window(x11win) == x11window_state_HIDDEN) ;
+   TEST(state_x11window(x11win) == x11window_state_HIDDEN) ;
+   TEST(testwin->onvisible >  0);
+   TEST(testwin->state     == x11window_state_HIDDEN);
 
    // TEST show_x11window
-   TEST(state_x11window(x11win) == x11window_Hidden) ;
+   testwin->onvisible = 0;
+   TEST(state_x11window(x11win) == x11window_state_HIDDEN) ;
    TEST(0 == show_x11window(x11win)) ;
-   WAITFOR(x11win->display, 20, state_x11window(x11win) == x11window_Shown) ;
-   TEST(state_x11window(x11win) == x11window_Shown) ;
+   WAITFOR(x11win->display, 20, state_x11window(x11win) == x11window_state_SHOWN) ;
+   TEST(state_x11window(x11win) == x11window_state_SHOWN) ;
+   TEST(testwin->onvisible >  0);
+   TEST(testwin->state     == x11window_state_SHOWN);
 
    return 0 ;
 ONABORT:
@@ -1052,7 +1119,7 @@ static int test_update(testwindow_t * testwin)
 
    // TEST sendredraw_x11window
    TEST(0 == show_x11window(x11win)) ;
-   WAITFOR(x11win->display, 3, state_x11window(x11win) == x11window_Shown) ;
+   WAITFOR(x11win->display, 3, state_x11window(x11win) == x11window_state_SHOWN) ;
    WAITFOR(x11win->display, 3, testwin->onredraw != 0) ;
    TEST(0 == sendredraw_x11window(x11win)) ;
    testwin->onredraw = 0 ;
@@ -1081,8 +1148,8 @@ static int test_geometry(testwindow_t * testwin, testwindow_t * testwin_noframe)
 
    // prepare
    TEST(0 == show_x11window(x11win));
-   WAITFOR(x11win->display, 20, x11win->state == x11window_Shown);
-   TEST(x11win->state == x11window_Shown);
+   WAITFOR(x11win->display, 20, x11win->state == x11window_state_SHOWN);
+   TEST(x11win->state == x11window_state_SHOWN);
 
    // TEST setpos_x11window, frame_x11window, geometry_x11window, pos_x11window, size_x11window
    for (int i = 0; i < 3; ++i) {
@@ -1180,7 +1247,7 @@ static int test_config(x11screen_t * x11screen)
       x11attribute_t config[] = { x11attribute_INIT_RGBA(8, 8, 8, 0) } ;
       TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
       TEST(1 == XGetWindowAttributes(x11screen->display->sys_display, x11win.sys_drawable, &winattr)) ;
-      TEST(0 == compare_visual(x11screen, winattr.visual, winattr.depth, 8, 0, 0)) ;
+      TEST(0 == compare_visual(x11screen, winattr.visual->visualid, 8, 0, 0)) ;
       TEST(0 == free_x11window(&x11win)) ;
    }
 
@@ -1201,7 +1268,7 @@ static int test_config(x11screen_t * x11screen)
       x11attribute_t config[] = { x11attribute_INIT_ALPHAOPACITY } ;
       TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
       TEST(1 == XGetWindowAttributes(x11screen->display->sys_display, x11win.sys_drawable, &winattr)) ;
-      TEST(0 == compare_visual(x11screen, winattr.visual, winattr.depth, 0, 1, 0)) ;
+      TEST(0 == compare_visual(x11screen, winattr.visual->visualid, 0, 1, 0)) ;
       TEST(0 == free_x11window(&x11win)) ;
    }
 
@@ -1210,8 +1277,8 @@ static int test_config(x11screen_t * x11screen)
       x11attribute_t config[] = { x11attribute_INIT_WINFRAME, x11attribute_INIT_WINTITLE("1TEXT2"), x11attribute_INIT_WINPOS(100, 110), x11attribute_INIT_WINSIZE(150, 185) } ;
       TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
       TEST(0 == show_x11window(&x11win)) ;
-      WAITFOR(x11win.display, 10, x11win.state == x11window_Shown) ;
-      TEST(x11win.state == x11window_Shown) ;
+      WAITFOR(x11win.display, 10, x11win.state == x11window_state_SHOWN) ;
+      TEST(x11win.state == x11window_state_SHOWN) ;
       TEST(1 == XGetWindowAttributes(x11screen->display->sys_display, x11win.sys_drawable, &winattr)) ;
       TEST(0 == frame_x11window(&x11win, &winattr.x, &winattr.y, 0, 0)) ;
       TEST(winattr.x      == 100) ;
@@ -1229,8 +1296,8 @@ static int test_config(x11screen_t * x11screen)
       x11attribute_t config[] = { x11attribute_INIT_WINFRAME, x11attribute_INIT_WINMINSIZE(190, 191), x11attribute_INIT_WINSIZE(200, 201), x11attribute_INIT_WINMAXSIZE(210, 211) } ;
       TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
       TEST(0 == show_x11window(&x11win)) ;
-      WAITFOR(x11win.display, 20, x11win.state == x11window_Shown) ;
-      TEST(x11win.state == x11window_Shown) ;
+      WAITFOR(x11win.display, 20, x11win.state == x11window_state_SHOWN) ;
+      TEST(x11win.state == x11window_state_SHOWN) ;
       TEST(1 == XGetWindowAttributes(x11screen->display->sys_display, x11win.sys_drawable, &winattr)) ;
       TEST(winattr.width  == 200) ;
       TEST(winattr.height == 201) ;
@@ -1317,8 +1384,8 @@ static int test_opacity(testwindow_t * testwin1, testwindow_t * testwin2)
    TEST(gc2) ;
    TEST(0 == show_x11window(x11win1)) ;
    TEST(0 == hide_x11window(x11win2)) ;
-   WAITFOR(x11win1->display, 10, x11win1->state == x11window_Shown) ;
-   WAITFOR(x11win2->display, 10, x11win2->state == x11window_Hidden) ;
+   WAITFOR(x11win1->display, 10, x11win1->state == x11window_state_SHOWN) ;
+   WAITFOR(x11win2->display, 10, x11win2->state == x11window_state_HIDDEN) ;
    int32_t x, y ;
    TEST(0 == pos_x11window(x11win1, &x, &y)) ;
    TEST(0 == setpos_x11window(x11win2, x, y)) ;
@@ -1330,7 +1397,7 @@ static int test_opacity(testwindow_t * testwin1, testwindow_t * testwin2)
    TEST(0 == compare_color(x11win1, false, 200, 100, 1, 0, 0)) ;
    // draw overlay window blue
    TEST(0 == show_x11window(x11win2)) ;
-   WAITFOR(x11win2->display, 10, x11win2->state == x11window_Shown) ;
+   WAITFOR(x11win2->display, 10, x11win2->state == x11window_state_SHOWN) ;
    TEST(1 == XFillRectangle(x11win2->display->sys_display, x11win2->sys_drawable, gc2, 0, 0, 200, 100)) ;
    WAITFOR(x11win2->display, 1, false) ;
    TEST(0 == compare_color(x11win2, false, 200, 100, 0, 0, 1)) ;
@@ -1391,6 +1458,60 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_configfilter(x11display_t * x11disp)
+{
+   // prepare
+   int            vinfo_length;
+   XVisualInfo    vinfo_pattern;
+   XVisualInfo *  vinfo          = XGetVisualInfo(x11disp->sys_display, VisualNoMask, &vinfo_pattern, &vinfo_length);
+   surfaceconfig_filter_t filter = surfaceconfig_filter_INIT_FREEABLE;
+   int            config_attributes[2*surfaceconfig_NROFCONFIGS+1];
+
+   // TEST configfilter_x11window: E2BIG
+   for (unsigned i = 0; i < lengthof(config_attributes)-1; i += 2) {
+      config_attributes[i]   = surfaceconfig_BITS_RED;
+      config_attributes[i+1] = 1;
+   }
+   TEST(E2BIG == configfilter_x11window(&filter, x11disp, config_attributes));
+   TEST(0 == filter.user);
+   TEST(0 == filter.accept);
+
+   // TEST configfilter_x11window: TRANSPARENT_ALPHA == 0
+   config_attributes[4] = surfaceconfig_TRANSPARENT_ALPHA;
+   config_attributes[5] = 0;
+   TEST(0 == configfilter_x11window(&filter, x11disp, config_attributes));
+   TEST(filter.user   == x11disp);
+   TEST(filter.accept == &matchfirstfilter_x11window);
+
+   // TEST configfilter_x11window: TRANSPARENT_ALPHA == 0
+   config_attributes[4] = surfaceconfig_TRANSPARENT_ALPHA;
+   config_attributes[5] = 1;
+   TEST(0 == configfilter_x11window(&filter, x11disp, config_attributes));
+   TEST(filter.user   == x11disp);
+   TEST(filter.accept == &matchtransparentalphafilter_x11window);
+
+   // TEST matchfirstfilter_x11window, matchtransparentalphafilter_x11window
+   for (int i = 0; i < vinfo_length; ++i) {
+      TEST(true == matchfirstfilter_x11window(0, 0, (int32_t) vinfo[i].visualid, 0));
+   }
+
+   // TEST matchtransparentalphafilter_x11window
+   for (int i = 0; i < vinfo_length; ++i) {
+      XRenderPictFormat * format = XRenderFindVisualFormat(x11disp->sys_display, vinfo[i].visual);
+      TEST(0 != format);
+      bool isMatch = (format->direct.alphaMask > 0);
+      TEST(isMatch == matchtransparentalphafilter_x11window(0, 0, (int32_t) vinfo[i].visualid, x11disp));
+   }
+
+   // unprepare
+   XFree(vinfo);
+
+   return 0 ;
+ONABORT:
+   if (vinfo) XFree(vinfo);
+   return EINVAL ;
+}
+
 static int childprocess_unittest(void)
 {
    x11display_t      x11disp   = x11display_INIT_FREEABLE ;
@@ -1432,6 +1553,7 @@ static int childprocess_unittest(void)
    if (test_geometry(&x11win,&x11win2))      goto ONABORT ;
    if (test_config(&x11screen))              goto ONABORT ;
    if (test_opacity(&x11win, &x11win2))      goto ONABORT ;
+   if (test_configfilter(&x11disp))          goto ONABORT ;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
@@ -1457,6 +1579,7 @@ int unittest_platform_X11_x11window()
    int err;
 
    TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
    return err;
 ONABORT:
    return EINVAL;
