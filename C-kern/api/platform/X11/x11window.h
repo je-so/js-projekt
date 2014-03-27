@@ -322,7 +322,7 @@ x11window_t * genericcast_x11window(void * object) ;
  * for a configuration which supports this feature under X11.
  * The first supplied value of <surfaceconfig_TRANSPARENT_ALPHA> in config_attributes
  * is used. Do not define attributes more than once else the returned filter could
- * be the wrong one. If more than surfaceconfig_NROFCONFIGS attributes are defined in
+ * be the wrong one. If more than surfaceconfig_NROFELEMENTS attributes are defined in
  * config_attributes error E2BIG is returned. */
 int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, struct x11display_t * x11disp, const int32_t config_attributes[]);
 

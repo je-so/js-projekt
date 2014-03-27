@@ -107,7 +107,7 @@ static inline int convertIntoEGL_eglconfig(int attribute, int32_t value, /*out*/
    return 0;
 }
 
-static int convertAttributesIntoEGL_eglconfig(/*out*/EGLint (*egl_attrib_list)[2*surfaceconfig_NROFCONFIGS], const int32_t config_attributes[])
+static int convertAttributesIntoEGL_eglconfig(/*out*/EGLint (*egl_attrib_list)[2*surfaceconfig_NROFELEMENTS], const int32_t config_attributes[])
 {
    int err;
    unsigned idx;
@@ -130,7 +130,7 @@ static int convertAttributesIntoEGL_eglconfig(/*out*/EGLint (*egl_attrib_list)[2
 int init_eglconfig(/*out*/eglconfig_t * eglconf, native_display_t * egldisp, const int32_t config_attributes[])
 {
    int err;
-   EGLint   egl_attrib_list[2*surfaceconfig_NROFCONFIGS];
+   EGLint   egl_attrib_list[2*surfaceconfig_NROFELEMENTS];
 
    err = convertAttributesIntoEGL_eglconfig(&egl_attrib_list, config_attributes);
    if (err) goto ONABORT;
@@ -160,7 +160,7 @@ ONABORT:
 int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct native_display_t * egldisp, const int32_t config_attributes[], eglconfig_filter_f filter, void * user)
 {
    int err;
-   EGLint   egl_attrib_list[2*surfaceconfig_NROFCONFIGS];
+   EGLint   egl_attrib_list[2*surfaceconfig_NROFELEMENTS];
 
    err = convertAttributesIntoEGL_eglconfig(&egl_attrib_list, config_attributes);
    if (err) goto ONABORT;
@@ -305,7 +305,7 @@ static bool filter_test_attriboff(eglconfig_t eglconf, struct native_display_t *
 static int test_initfree(egldisplay_t egldisp)
 {
    eglconfig_t eglconf = eglconfig_INIT_FREEABLE;
-   int32_t     attrlist[2*surfaceconfig_NROFCONFIGS+1];
+   int32_t     attrlist[2*surfaceconfig_NROFELEMENTS+1];
 
    // TEST eglconfig_INIT_FREEABLE
    TEST(0 == eglconf);
@@ -316,7 +316,7 @@ static int test_initfree(egldisplay_t egldisp)
 
    // TEST init_eglconfig: EINVAL (values in config_attributes wrong)
    const int32_t errattr1[][3] = {
-      { surfaceconfig_NROFCONFIGS/*!*/, 1, surfaceconfig_NONE },
+      { surfaceconfig_NROFELEMENTS/*!*/, 1, surfaceconfig_NONE },
       { surfaceconfig_TYPE, 0x0f/*!*/, surfaceconfig_NONE },
       { surfaceconfig_CONFORMANT, 0x1f/*!*/, surfaceconfig_NONE }
    };
@@ -327,7 +327,7 @@ static int test_initfree(egldisplay_t egldisp)
    // TEST init_eglconfig: E2BIG (config_attributes list too long)
    memset(attrlist, surfaceconfig_NONE, sizeof(attrlist));
    for (int i = 0; i < (int)lengthof(attrlist)-2; i += 2) {
-      attrlist[i]   = 1 + (i % (surfaceconfig_NROFCONFIGS-1));
+      attrlist[i]   = 1 + (i % (surfaceconfig_NROFELEMENTS-1));
       attrlist[i+1] = 1;
    }
    TEST(E2BIG == init_eglconfig(&eglconf, egldisp, attrlist));
@@ -341,7 +341,7 @@ static int test_initfree(egldisplay_t egldisp)
    TEST(0 == eglconf);
 
    // TEST init_eglconfig: all surfaceconfig_XXX supported
-   for (int i = 1; i < surfaceconfig_NROFCONFIGS; ++i) {
+   for (int i = 1; i < surfaceconfig_NROFELEMENTS; ++i) {
       int32_t value = 1;
       switch (i) {
       case surfaceconfig_TYPE:
@@ -359,8 +359,8 @@ static int test_initfree(egldisplay_t egldisp)
       attrlist[2*i-2] = i;
       attrlist[2*i-1] = value;
    }
-   static_assert(2*surfaceconfig_NROFCONFIGS-2 < lengthof(attrlist), "enough space for all attributes");
-   attrlist[2*surfaceconfig_NROFCONFIGS-2] = surfaceconfig_NONE;
+   static_assert(2*surfaceconfig_NROFELEMENTS-2 < lengthof(attrlist), "enough space for all attributes");
+   attrlist[2*surfaceconfig_NROFELEMENTS-2] = surfaceconfig_NONE;
    TEST(0 == init_eglconfig(&eglconf, egldisp, attrlist));
    TEST(0 != eglconf);
    TEST(0 == free_eglconfig(&eglconf));

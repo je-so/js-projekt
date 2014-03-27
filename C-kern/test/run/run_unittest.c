@@ -310,6 +310,7 @@ int run_unittest(void * argv)
 #if ! ((KONFIG_USERINTERFACE)&KONFIG_none)
 //{ graphic unittest
       RUN(unittest_graphic_surfaceconfig);
+      RUN(unittest_graphic_windowconfig);
 //}
 #endif
 #undef KONFIG_none

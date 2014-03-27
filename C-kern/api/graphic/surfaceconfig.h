@@ -69,7 +69,7 @@ typedef struct surfaceconfig_filter_t surfaceconfig_filter_t;
  *                             Supported values are any combination of bits ored together from
  *                             <surfaceconfig_value_CONFORMANT_ES1_BIT>, <surfaceconfig_value_CONFORMANT_ES2_BIT>,
  *                             <surfaceconfig_value_CONFORMANT_OPENGL_BIT>, <surfaceconfig_value_CONFORMANT_OPENVG_BIT>.
- * surfaceconfig_NROFCONFIGS - Its value is the number of all valid configuration options excluding <surfaceconfig_NROFCONFIGS>.
+ * surfaceconfig_NROFELEMENTS - Its value is the number of all valid configuration options excluding <surfaceconfig_NROFELEMENTS>.
  *
  * */
 enum surfaceconfig_e {
@@ -84,7 +84,7 @@ enum surfaceconfig_e {
    surfaceconfig_BITS_DEPTH,
    surfaceconfig_BITS_STENCIL,
    surfaceconfig_CONFORMANT,
-   surfaceconfig_NROFCONFIGS
+   surfaceconfig_NROFELEMENTS
 };
 
 typedef enum surfaceconfig_e surfaceconfig_e;

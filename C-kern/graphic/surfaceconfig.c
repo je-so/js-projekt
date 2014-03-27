@@ -83,7 +83,7 @@ static inline void compiletimetest_config_enums(void)
    static_assert(8 == surfaceconfig_BITS_DEPTH, "number of bits of depth channel");
    static_assert(9 == surfaceconfig_BITS_STENCIL, "number of bits of stencil channel");
    static_assert(10 == surfaceconfig_CONFORMANT, "type of supported conformant API");
-   static_assert(11 == surfaceconfig_NROFCONFIGS, "number of all configuration values including surfaceconfig_NONE");
+   static_assert(11 == surfaceconfig_NROFELEMENTS, "number of all configuration values including surfaceconfig_NONE");
 
    static_assert(1 == surfaceconfig_value_TYPE_PBUFFER_BIT, "surface type value");
    static_assert(2 == surfaceconfig_value_TYPE_PIXMAP_BIT, "surface type value");
@@ -191,7 +191,7 @@ static int test_initfree2(native_display_t * display)
    surfaceconfig_t  config   = surfaceconfig_INIT_FREEABLE;
    int config_attributes[10];
    int config_attriberr1[]   = { surfaceconfig_TYPE, -1, surfaceconfig_NONE };
-   int config_attriberr2[2*surfaceconfig_NROFCONFIGS+1];
+   int config_attriberr2[2*surfaceconfig_NROFELEMENTS+1];
    int config_attriberr3[]   = { surfaceconfig_BITS_RED, 1024, surfaceconfig_NONE };
 
    // prepare

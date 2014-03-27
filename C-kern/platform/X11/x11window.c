@@ -639,7 +639,7 @@ static bool matchtransparentalphafilter_x11window(surfaceconfig_t * surfconf, st
 int configfilter_x11window(/*out*/surfaceconfig_filter_t * filter, struct x11display_t * x11disp, const int32_t config_attributes[])
 {
    for (unsigned i = 0; config_attributes[i] != surfaceconfig_NONE; i += 2) {
-      if (i >= 2*surfaceconfig_NROFCONFIGS) {
+      if (i >= 2*surfaceconfig_NROFELEMENTS) {
          return E2BIG;
       }
 
@@ -1465,7 +1465,7 @@ static int test_configfilter(x11display_t * x11disp)
    XVisualInfo    vinfo_pattern;
    XVisualInfo *  vinfo          = XGetVisualInfo(x11disp->sys_display, VisualNoMask, &vinfo_pattern, &vinfo_length);
    surfaceconfig_filter_t filter = surfaceconfig_filter_INIT_FREEABLE;
-   int            config_attributes[2*surfaceconfig_NROFCONFIGS+1];
+   int            config_attributes[2*surfaceconfig_NROFELEMENTS+1];
 
    // TEST configfilter_x11window: E2BIG
    for (unsigned i = 0; i < lengthof(config_attributes)-1; i += 2) {

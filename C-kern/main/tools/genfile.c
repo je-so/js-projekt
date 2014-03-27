@@ -148,6 +148,7 @@ static const char * s_templatesource =
 #endif\n\n\n\
 // section: @TYPENAME\n\n\
 // group: lifetime\n\n\n\
+// section: Functions\n\n\
 // group: test\n\n\
 #ifdef KONFIG_UNITTEST\n\n\
 static int test_initfree(void)\n\
