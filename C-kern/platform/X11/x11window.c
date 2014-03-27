@@ -28,6 +28,7 @@
 #include "C-kern/api/platform/X11/x11window.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/graphic/surfaceconfig.h"
+#include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/X11/x11attribute.h"
 #include "C-kern/api/platform/X11/x11display.h"
@@ -63,35 +64,46 @@ static void setwinopacity_x11window(x11display_t * x11disp, Window win, uint32_t
 }
 
 static int matchvisual_x11window(
-      /*out*/VisualID*              visualid,
-      x11screen_t *                 x11screen,
-      uint8_t                       nrofattributes,
-      const struct x11attribute_t * configuration/*[nrofattributes]*/)
+      /*out*/VisualID *    visualid,
+      x11screen_t   *      x11screen,
+      const int32_t *      surfconf_attrib)
 {
-   uint32_t rgbbits   = 0 ;
-   uint32_t alphabits = 0 ;
-   bool     isDouble  = false ;
-   bool     isOpacity = false ;
+   int32_t  rgbbits   = 0;
+   int32_t  alphabits = 0;
+   int32_t  buffbits  = 0;
+   bool     isOpacity = false;
 
-   for (uint16_t i = 0; i < nrofattributes; ++i) {
-      switch (configuration[i].name) {
-      case x11attribute_DOUBLEBUFFER:
-         isDouble = configuration[i].value.isOn ;
-         break ;
-      case x11attribute_REDBITS:
-      case x11attribute_GREENBITS:
-      case x11attribute_BLUEBITS:
-         if (configuration[i].value.u32 > rgbbits) {
-            rgbbits = configuration[i].value.u32  ;
-            if (rgbbits >= 32) goto ONABORT ;
+   for (unsigned i = 0; surfconf_attrib[i] != surfaceconfig_NONE; i += 2) {
+      if (i >= 2*surfaceconfig_NROFELEMENTS) {
+         return E2BIG;
+      }
+      switch ((surfaceconfig_e)surfconf_attrib[i]) {
+      default:
+         return EINVAL;
+      case surfaceconfig_NONE:
+      case surfaceconfig_CONFORMANT:
+      case surfaceconfig_TYPE:
+      case surfaceconfig_BITS_DEPTH:
+      case surfaceconfig_BITS_STENCIL:
+         // ignore
+         break;
+      case surfaceconfig_BITS_BUFFER:
+         if (surfconf_attrib[i+1] > buffbits) {
+            buffbits = surfconf_attrib[i+1];
+         }
+         break;
+      case surfaceconfig_BITS_RED:
+      case surfaceconfig_BITS_GREEN:
+      case surfaceconfig_BITS_BLUE:
+         if (surfconf_attrib[i+1] > rgbbits) {
+            rgbbits = surfconf_attrib[i+1];
          }
          break ;
-      case x11attribute_ALPHABITS:
-         alphabits = configuration[i].value.u32 ;
-         if (alphabits >= 32) goto ONABORT ;
+      case surfaceconfig_BITS_ALPHA:
+         alphabits = surfconf_attrib[i+1];
          break ;
-      case x11attribute_ALPHAOPACITY:
-         isOpacity = configuration[i].value.isOn ;
+      case surfaceconfig_TRANSPARENT_ALPHA:
+         isOpacity = (surfconf_attrib[i+1] != 0);
          break ;
       }
    }
@@ -103,36 +115,20 @@ static int matchvisual_x11window(
    XVisualInfo    vinfo_pattern = { .class = TrueColor, .screen = x11screen->nrscreen } ;
    int            vinfo_length  = 0 ;
    XVisualInfo *  vinfo         = XGetVisualInfo(x11screen->display->sys_display, VisualClassMask|VisualScreenMask, &vinfo_pattern, &vinfo_length) ;
-   XdbeScreenVisualInfo * vinfodb = 0 ;
-
-   if (isDouble) {
-      int      nrscreen = 1 ;
-      Drawable screens  = RootWindow(x11screen->display->sys_display, x11screen->nrscreen) ;
-      vinfodb = XdbeGetVisualInfo(x11screen->display->sys_display, &screens, &nrscreen) ;
-   }
 
    bool isMatch = false ;
 
    if (  vinfo
-         && (!isDouble  || vinfodb)
          && (!alphabits || x11screen->display->xrender.isSupported)) {
       for (int i = 0; i < vinfo_length; ++i) {
-         if (  (int32_t)rgbbits <= vinfo[i].bits_per_rgb
-               && 3 * vinfo[i].bits_per_rgb + (int32_t)alphabits <= vinfo[i].depth) {
+         if (  rgbbits <= vinfo[i].bits_per_rgb
+               && 3 * vinfo[i].bits_per_rgb + alphabits <= vinfo[i].depth
+               && buffbits <= vinfo[i].depth) {
             if (alphabits) {  // check alpha
                // alphaMask gives the number of bits (always beginning from 1)
                // alpha gives the shift to the left
                XRenderPictFormat * format = XRenderFindVisualFormat(x11screen->display->sys_display, vinfo[i].visual) ;
                if (!format || format->direct.alphaMask < (((int32_t)1 << alphabits)-1)) continue ;
-            }
-            if (isDouble) {   // check double buffer
-               int dbi ;
-               for (dbi = 0; dbi < vinfodb[0].count; ++dbi) {
-                  if (vinfodb[0].visinfo[dbi].visual == vinfo[i].visualid) {
-                     break ;
-                  }
-               }
-               if (dbi >= vinfodb[0].count) continue ;
             }
             isMatch   = true ;
             *visualid = vinfo[i].visualid ;
@@ -141,7 +137,6 @@ static int matchvisual_x11window(
       }
    }
 
-   if (vinfodb)   XdbeFreeVisualInfo(vinfodb) ;
    if (vinfo)     XFree(vinfo) ;
    if (! isMatch) goto ONABORT ;
 
@@ -152,6 +147,7 @@ ONABORT:
 
 // group: lifetime
 
+
 /* function: initvid_x11window
  * Called from <x11window_t.init_x11window>. */
 int initvid_x11window(
@@ -159,15 +155,15 @@ int initvid_x11window(
       struct x11screen_t *          x11screen,
       const struct x11window_it *   eventhandler,
       /*(X11) VisualID*/uint32_t    config_visualid,
-      uint8_t                       nrofattributes,
-      const struct x11attribute_t * configuration/*[nrofattributes]*/)
+      const struct windowconfig_t*  winconf_attrib
+      )
 {
    int err;
    Window      win;
    Colormap    colormap;
    uint8_t     flags      = 0;
    uint8_t     isFrame    = false;
-   uint32_t    opacity    = UINT32_MAX;
+   uint8_t     opacity    = 255;
    const char* title      = 0;
    XWMHints    wm_hints   = { .flags = StateHint, .initial_state = NormalState /*or WithdrawnState or IconicState*/ };
    XSizeHints  size_hints = { .flags = PBaseSize|PWinGravity,
@@ -199,36 +195,42 @@ int initvid_x11window(
    }
 
    // process x11 window specific attributes
-   for (uint16_t i = 0; i < nrofattributes; ++i) {
-      switch (configuration[i].name) {
-      case x11attribute_WINTITLE:
-         title = configuration[i].value.str;
-         break;
-      case x11attribute_WINFRAME:
-         isFrame = configuration[i].value.isOn;
-         break;
-      case x11attribute_WINPOS:
-         size_hints.flags |= PPosition;
-         size_hints.x = configuration[i].value.x;
-         size_hints.y = configuration[i].value.y;
-         break;
-      case x11attribute_WINSIZE:
-         size_hints.base_width  = configuration[i].value.width;
-         size_hints.base_height = configuration[i].value.height;
-         break;
-      case x11attribute_WINMINSIZE:
-         size_hints.flags |= PMinSize;
-         size_hints.min_width  = configuration[i].value.width;
-         size_hints.min_height = configuration[i].value.height;
-         break;
-      case x11attribute_WINMAXSIZE:
-         size_hints.flags |= PMaxSize;
-         size_hints.max_width  = configuration[i].value.width;
-         size_hints.max_height = configuration[i].value.height;
-         break;
-      case x11attribute_WINOPACITY:
-         opacity = configuration[i].value.u32;
-         break;
+   if (winconf_attrib) {
+      uint_fast8_t i = 0;
+      for (windowconfig_e type; windowconfig_NONE != (type = readtype_windowconfig(winconf_attrib, &i)); ) {
+         if (i > 3*windowconfig_NROFELEMENTS) {
+            err = E2BIG;
+            goto ONABORT;
+         }
+         switch (type) {
+         default:
+            err= EINVAL;
+            goto ONABORT;
+         case windowconfig_FRAME:
+            isFrame = true;
+            break;
+         case windowconfig_MAXSIZE:
+            size_hints.flags |= PMaxSize;
+            readmaxsize_windowconfig(winconf_attrib, &i, &size_hints.max_width, &size_hints.max_height);
+            break;
+         case windowconfig_MINSIZE:
+            size_hints.flags |= PMinSize;
+            readminsize_windowconfig(winconf_attrib, &i, &size_hints.min_width, &size_hints.min_height);
+            break;
+         case windowconfig_POS:
+            size_hints.flags |= PPosition;
+            readpos_windowconfig(winconf_attrib, &i, &size_hints.x, &size_hints.y);
+            break;
+         case windowconfig_SIZE:
+            readsize_windowconfig(winconf_attrib, &i, &size_hints.base_width, &size_hints.base_height);
+            break;
+         case windowconfig_TITLE:
+            title = readtitle_windowconfig(winconf_attrib, &i);
+            break;
+         case windowconfig_TRANSPARENCY:
+            opacity = readtransparency_windowconfig(winconf_attrib, &i);
+            break;
+         }
       }
    }
 
@@ -254,7 +256,7 @@ int initvid_x11window(
    }
 
    // set opacity (if less than 100%)
-   setwinopacity_x11window(x11screen->display, win, opacity);
+   setwinopacity_x11window(x11screen->display, win, opacity*(uint32_t)0x01010101);
    // set size and title
    Xutf8SetWMProperties(display, win, title ? title : "", 0, 0, 0, &size_hints, &wm_hints, 0);
    // closing a window only sends a request no actual destroying takes place
@@ -283,16 +285,39 @@ ONABORT:
    return err;
 }
 
-int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/)
+int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, const int32_t * surfconf_attrib, const struct windowconfig_t * winconf_attrib)
 {
    int err ;
    VisualID visualid;
 
-   err = matchvisual_x11window(&visualid, x11screen, nrofattributes, configuration) ;
+   visualid = XVisualIDFromVisual(DefaultVisual(x11screen->display->sys_display, x11screen->nrscreen));
+
+   if (surfconf_attrib) {
+      err = matchvisual_x11window(&visualid, x11screen, surfconf_attrib) ;
+      if (err) goto ONABORT ;
+   }
+
+   err = initvid_x11window(x11win, x11screen, eventhandler, visualid, winconf_attrib) ;
    if (err) goto ONABORT ;
 
-   err = initvid_x11window(x11win, x11screen, eventhandler, visualid, nrofattributes, configuration) ;
-   if (err) goto ONABORT ;
+   return 0 ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
+}
+
+
+int initmove_x11window(/*out*/x11window_t * dest_x11win, x11window_t * src_x11win)
+{
+   int err;
+
+   err = replaceobject_x11display(src_x11win->display, dest_x11win, src_x11win->sys_drawable);
+   if (err) goto ONABORT;
+
+   static_assert( sizeof(*dest_x11win) == sizeof(*src_x11win)
+                  && sizeof(*src_x11win) == sizeof(x11window_t), "make memmove/memset safe");
+   memmove(dest_x11win, src_x11win, sizeof(x11window_t));
+   memset(src_x11win, 0, sizeof(x11window_t));
 
    return 0 ;
 ONABORT:
@@ -837,30 +862,6 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(x11win->flags        == 0) ;
    WAITFOR(x11disp, 5, false) ;
 
-   // TEST init_x11window, free_x11window: x11attribute_INIT_DOUBLEBUFFER
-   x11attribute_t config[] = { x11attribute_INIT_DOUBLEBUFFER } ;
-   TEST(0 == init_x11window(x11win, x11screen, genericcast_x11windowit(&iimpl, testwindow_t), 1, config)) ;
-   TEST(x11win->display      == x11disp) ;
-   TEST(x11win->sys_drawable != 0) ;
-   TEST(x11win->sys_colormap != 0) ;
-   TEST(x11win->iimpl        == genericcast_x11windowit(&iimpl, testwindow_t)) ;
-   TEST(x11win->state        == x11window_state_HIDDEN) ;
-   TEST(x11win->flags        == (x11window_flags_OWNWINDOW|x11window_flags_OWNCOLORMAP)) ;
-   syswin = x11win->sys_drawable;
-   object = 0 ;
-   TEST(0 == findobject_x11display(x11disp, &object, syswin)) ;
-   TEST(x11win == object) ;
-   TEST(0 == free_x11window(x11win)) ;
-   // object does no longer exist and also window handle is removed
-   TEST(ESRCH == findobject_x11display(x11disp, &object, syswin)) ;
-   TEST(x11win->display      == 0) ;
-   TEST(x11win->sys_drawable == 0) ;
-   TEST(x11win->sys_colormap == 0) ;
-   TEST(x11win->iimpl        == 0) ;
-   TEST(x11win->state        == 0) ;
-   TEST(x11win->flags        == 0) ;
-   WAITFOR(x11disp, 5, false) ;
-
    // TEST free_x11window: XDestroyWindow called outside free_x11window (or another process for example)
    TEST(0 == init_x11window(x11win, x11screen, genericcast_x11windowit(&iimpl, testwindow_t), 0, 0)) ;
    TEST(x11win->display      == x11disp) ;
@@ -891,6 +892,29 @@ static int test_initfree(x11screen_t * x11screen)
    TEST(x11win->sys_colormap == 0) ;
    TEST(x11win->state        == 0) ;
    TEST(x11win->flags        == 0) ;
+
+   // TEST initmove_x11window
+   x11window_t x11win2 = x11window_INIT_FREEABLE;
+   x11window_t x11win3 = x11window_INIT_FREEABLE;
+   TEST(0 == init_x11window(&x11win3, x11screen, 0, 0, 0));
+   memcpy(&x11win2, &x11win3, sizeof(x11win2));
+   TEST(0 == initmove_x11window(x11win, &x11win3));
+   TEST(x11win3.display      == 0) ;
+   TEST(x11win3.sys_drawable == 0) ;
+   TEST(x11win3.sys_colormap == 0) ;
+   TEST(x11win3.iimpl        == 0) ;
+   TEST(x11win3.state        == 0) ;
+   TEST(x11win3.flags        == 0) ;
+   object = 0;
+   TEST(0 == findobject_x11display(x11disp, &object, x11win2.sys_drawable)) ;
+   TEST(x11win == object) ;
+   TEST(x11win->display      == x11win2.display);
+   TEST(x11win->sys_drawable == x11win2.sys_drawable);
+   TEST(x11win->sys_colormap == x11win2.sys_colormap);
+   TEST(x11win->iimpl        == x11win2.iimpl);
+   TEST(x11win->state        == x11win2.state);
+   TEST(x11win->flags        == x11win2.flags);
+   TEST(0 == free_x11window(x11win)) ;
 
    return 0 ;
 ONABORT:
@@ -957,29 +981,29 @@ static int test_query(x11screen_t * x11screen, testwindow_t * testwin, testwindo
 
    // TEST matchvisual_x11window
    {
-      x11attribute_t attr[] = { x11attribute_INIT_ALPHAOPACITY } ;
-      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      int32_t attr[] = { surfaceconfig_TRANSPARENT_ALPHA, 1, surfaceconfig_NONE } ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, attr)) ;
       TEST(0 == compare_visual(x11screen, visualid, 0, 1, 0)) ;
    }  {
-      x11attribute_t attr[] = { x11attribute_INIT_ALPHABITS(8) } ;
-      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      int32_t attr[] = { surfaceconfig_BITS_ALPHA, 8, surfaceconfig_NONE } ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, attr)) ;
       TEST(0 == compare_visual(x11screen, visualid, 0, 8, 0)) ;
    }  {
-      x11attribute_t attr[] = { x11attribute_INIT_REDBITS(8) } ;
-      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      int32_t attr[] = { surfaceconfig_BITS_RED, 8,  surfaceconfig_NONE } ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, attr)) ;
       TEST(0 == compare_visual(x11screen, visualid, 8, 0, 0)) ;
    }  {
-      x11attribute_t attr[] = { x11attribute_INIT_GREENBITS(8) } ;
-      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      int32_t attr[] = { surfaceconfig_BITS_GREEN, 8,  surfaceconfig_NONE } ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, attr)) ;
       TEST(0 == compare_visual(x11screen, visualid, 8, 0, 0)) ;
    }  {
-      x11attribute_t attr[] = { x11attribute_INIT_BLUEBITS(8) } ;
-      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
+      int32_t attr[] = { surfaceconfig_BITS_BLUE, 8, surfaceconfig_NONE } ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, attr)) ;
       TEST(0 == compare_visual(x11screen, visualid, 8, 0, 0)) ;
    }  {
-      x11attribute_t attr[] = { x11attribute_INIT_DOUBLEBUFFER } ;
-      TEST(0 == matchvisual_x11window(&visualid, x11screen, 1, attr)) ;
-      TEST(0 == compare_visual(x11screen, visualid, 0, 0, 1)) ;
+      int32_t attr[] = { surfaceconfig_BITS_BUFFER, 24,  surfaceconfig_NONE } ;
+      TEST(0 == matchvisual_x11window(&visualid, x11screen, attr)) ;
+      TEST(0 == compare_visual(x11screen, visualid, 8, 0, 0)) ;
    }
 
    // TEST flags_x11window
@@ -1242,19 +1266,19 @@ static int test_config(x11screen_t * x11screen)
    x11window_t x11win = x11window_INIT_FREEABLE ;
    XWindowAttributes winattr ;
 
-   // TEST init_x11window: x11attribute_INIT_RGBA
+   // TEST init_x11window: surfaceconfig_BITS_BUFFER
    {
-      x11attribute_t config[] = { x11attribute_INIT_RGBA(8, 8, 8, 0) } ;
-      TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
+      int32_t config[] = { surfaceconfig_BITS_BUFFER, 24,  surfaceconfig_NONE } ;
+      TEST(0 == init_x11window(&x11win, x11screen, 0, config, 0)) ;
       TEST(1 == XGetWindowAttributes(x11screen->display->sys_display, x11win.sys_drawable, &winattr)) ;
       TEST(0 == compare_visual(x11screen, winattr.visual->visualid, 8, 0, 0)) ;
       TEST(0 == free_x11window(&x11win)) ;
    }
 
-   // TEST init_x11window: x11attribute_INIT_WINPOS, x11attribute_INIT_WINSIZE
+   // TEST init_x11window: windowconfig_INIT_POS, windowconfig_INIT_SIZE
    {
-      x11attribute_t config[] = { x11attribute_INIT_WINPOS(300, 340),  x11attribute_INIT_WINSIZE(123, 145)} ;
-      TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
+      windowconfig_t config[] = { windowconfig_INIT_POS(300, 340), windowconfig_INIT_SIZE(123, 145), windowconfig_INIT_NONE };
+      TEST(0 == init_x11window(&x11win, x11screen, 0, 0, config)) ;
       TEST(1 == XGetWindowAttributes(x11screen->display->sys_display, x11win.sys_drawable, &winattr)) ;
       TEST(winattr.x      == 300) ;
       TEST(winattr.y      == 340) ;
@@ -1263,19 +1287,20 @@ static int test_config(x11screen_t * x11screen)
       TEST(0 == free_x11window(&x11win)) ;
    }
 
-   // TEST init_x11window: x11attribute_INIT_ALPHAOPACITY
+   // TEST init_x11window: surfaceconfig_TRANSPARENT_ALPHA
    {
-      x11attribute_t config[] = { x11attribute_INIT_ALPHAOPACITY } ;
-      TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
+      int32_t config[] = { surfaceconfig_TRANSPARENT_ALPHA, 1,  surfaceconfig_NONE } ;
+      TEST(0 == init_x11window(&x11win, x11screen, 0, config, 0)) ;
       TEST(1 == XGetWindowAttributes(x11screen->display->sys_display, x11win.sys_drawable, &winattr)) ;
       TEST(0 == compare_visual(x11screen, winattr.visual->visualid, 0, 1, 0)) ;
       TEST(0 == free_x11window(&x11win)) ;
    }
 
-   // TEST init_x11window: x11attribute_INIT_WINFRAME, x11attribute_INIT_WINTITLE
+   // TEST init_x11window: windowconfig_INIT_FRAME, windowconfig_INIT_TITLE
    {
-      x11attribute_t config[] = { x11attribute_INIT_WINFRAME, x11attribute_INIT_WINTITLE("1TEXT2"), x11attribute_INIT_WINPOS(100, 110), x11attribute_INIT_WINSIZE(150, 185) } ;
-      TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
+      windowconfig_t config[] = { windowconfig_INIT_FRAME, windowconfig_INIT_TITLE("1TEXT2"),
+                                 windowconfig_INIT_POS(100, 110), windowconfig_INIT_SIZE(150, 185), windowconfig_INIT_NONE };
+      TEST(0 == init_x11window(&x11win, x11screen, 0, 0, config)) ;
       TEST(0 == show_x11window(&x11win)) ;
       WAITFOR(x11win.display, 10, x11win.state == x11window_state_SHOWN) ;
       TEST(x11win.state == x11window_state_SHOWN) ;
@@ -1291,10 +1316,11 @@ static int test_config(x11screen_t * x11screen)
       TEST(0 == free_x11window(&x11win)) ;
    }
 
-   // TEST init_x11window: x11attribute_INIT_WINMINSIZE, x11attribute_INIT_WINMAXSIZE
+   // TEST init_x11window: windowconfig_INIT_MINSIZE, windowconfig_INIT_MAXSIZE
    {
-      x11attribute_t config[] = { x11attribute_INIT_WINFRAME, x11attribute_INIT_WINMINSIZE(190, 191), x11attribute_INIT_WINSIZE(200, 201), x11attribute_INIT_WINMAXSIZE(210, 211) } ;
-      TEST(0 == init_x11window(&x11win, x11screen, 0, lengthof(config), config)) ;
+      windowconfig_t config[] = { windowconfig_INIT_FRAME, windowconfig_INIT_MINSIZE(190, 191),
+                                 windowconfig_INIT_MAXSIZE(210, 211), windowconfig_INIT_SIZE(200, 201), windowconfig_INIT_NONE };
+      TEST(0 == init_x11window(&x11win, x11screen, 0, 0, config)) ;
       TEST(0 == show_x11window(&x11win)) ;
       WAITFOR(x11win.display, 20, x11win.state == x11window_state_SHOWN) ;
       TEST(x11win.state == x11window_state_SHOWN) ;
@@ -1519,22 +1545,25 @@ static int childprocess_unittest(void)
    testwindow_t      x11win2   = testwindow_INIT_FREEABLE ;
    testwindow_it     iimpl     = x11window_it_INIT(_testwindow) ;
    x11screen_t       x11screen = x11screen_INIT_FREEABLE ;
-   x11attribute_t    config[]  = {  x11attribute_INIT_WINFRAME,
-                                    x11attribute_INIT_WINTITLE(WINDOW_TITLE),
-                                    x11attribute_INIT_WINSIZE(200, 100)
-                                 } ;
-   x11attribute_t    config2[] = {  x11attribute_INIT_WINSIZE(200, 100),
-                                    x11attribute_INIT_ALPHAOPACITY
-                                 } ;
+   int32_t           surfconf[] = { surfaceconfig_BITS_RED, 8, surfaceconfig_NONE };
+   windowconfig_t    config[]  = {  windowconfig_INIT_FRAME,
+                                    windowconfig_INIT_TITLE(WINDOW_TITLE),
+                                    windowconfig_INIT_SIZE(200, 100),
+                                    windowconfig_INIT_NONE
+                                 };
+   int32_t           surfconf2[] = { surfaceconfig_BITS_RED, 8, surfaceconfig_TRANSPARENT_ALPHA, 1, surfaceconfig_NONE };
+   windowconfig_t    config2[] = {  windowconfig_INIT_SIZE(200, 100),
+                                    windowconfig_INIT_NONE
+                                 };
    resourceusage_t   usage     = resourceusage_INIT_FREEABLE ;
 
    // prepare
    TEST(0 == init_x11display(&x11disp, 0)) ;
    x11screen = defaultscreen_x11display(&x11disp) ;
    // with frame
-   TEST(0 == init_x11window(&x11win.x11win, &x11screen, genericcast_x11windowit(&iimpl, testwindow_t), lengthof(config), config)) ;
+   TEST(0 == init_x11window(&x11win.x11win, &x11screen, genericcast_x11windowit(&iimpl, testwindow_t), surfconf, config)) ;
    // without frame
-   TEST(0 == init_x11window(&x11win2.x11win, &x11screen, genericcast_x11windowit(&iimpl, testwindow_t), lengthof(config2), config2)) ;
+   TEST(0 == init_x11window(&x11win2.x11win, &x11screen, genericcast_x11windowit(&iimpl, testwindow_t), surfconf2, config2)) ;
 
    if (test_initfree(&x11screen))            goto ONABORT ;
    if (test_query(&x11screen, &x11win,

@@ -36,6 +36,7 @@
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/graphic/surfaceconfig.h"
+#include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/X11/x11attribute.h"
@@ -148,10 +149,11 @@ static int init_native(/*out*/native_types_t * native)
    surfaceconfig_filter_t  filter;
    surfaceconfig_t         surfconf = surfaceconfig_INIT_FREEABLE;
 
-   x11attribute_t winattr[] = {
-      x11attribute_INIT_WINTITLE("egl-test-window"),
-      x11attribute_INIT_WINSIZE(100, 100),
-      x11attribute_INIT_WINPOS(50, 100)
+   windowconfig_t winattr[] = {
+      windowconfig_INIT_TITLE("egl-test-window"),
+      windowconfig_INIT_SIZE(100, 100),
+      windowconfig_INIT_POS(50, 100),
+      windowconfig_INIT_NONE
    };
 
    TEST(0 == init_x11display(&native->osdisplay, 0));
@@ -163,7 +165,7 @@ static int init_native(/*out*/native_types_t * native)
       TEST(0 == initfiltered_surfaceconfig(&surfconf, native->egldisplay, native->config_attr[i], &filter));
       int32_t visualid;
       TEST(0 == visualid_eglconfig(surfconf.config, native->egldisplay, &visualid));
-      TEST(0 == initvid_x11window(&native->oswindow[i], &x11screen, 0, (uint32_t)visualid, lengthof(winattr), winattr));
+      TEST(0 == initvid_x11window(&native->oswindow[i], &x11screen, 0, (uint32_t)visualid, winattr));
       native->eglconfig[i] = surfconf.config;
    }
 

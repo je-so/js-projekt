@@ -60,12 +60,12 @@ static int test_initfree(void)
       case 0:  TEST(winconf[i].i32 == windowconfig_FRAME);  break;
       // TEST windowconfig_INIT_MINSIZE
       case 1:  TEST(winconf[i].i32 == windowconfig_MINSIZE); break;
-      case 2:  TEST(winconf[i].u32 == 1);                   break;
-      case 3:  TEST(winconf[i].u32 == 2);                   break;
+      case 2:  TEST(winconf[i].u16 == 1);                   break;
+      case 3:  TEST(winconf[i].u16 == 2);                   break;
       // TEST windowconfig_INIT_MAXSIZE
       case 4:  TEST(winconf[i].i32 == windowconfig_MAXSIZE); break;
-      case 5:  TEST(winconf[i].u32 == 3);                   break;
-      case 6:  TEST(winconf[i].u32 == 4);                   break;
+      case 5:  TEST(winconf[i].u16 == 3);                   break;
+      case 6:  TEST(winconf[i].u16 == 4);                   break;
       // TEST windowconfig_INIT_POS
       case 7:  TEST(winconf[i].i32 == windowconfig_POS);    break;
       case 8:  TEST(winconf[i].i32 == 123);                 break;
@@ -75,8 +75,8 @@ static int test_initfree(void)
       case 12: TEST(winconf[i].i32 == -456);                break;
       // TEST windowconfig_INIT_SIZE
       case 13: TEST(winconf[i].i32 == windowconfig_SIZE);   break;
-      case 14: TEST(winconf[i].u32 == 234);                 break;
-      case 15: TEST(winconf[i].u32 == 567);                 break;
+      case 14: TEST(winconf[i].u16 == 234);                 break;
+      case 15: TEST(winconf[i].u16 == 567);                 break;
       // TEST windowconfig_INIT_TITLE
       case 16: TEST(winconf[i].i32 == windowconfig_TITLE);  break;
       case 17: TEST(winconf[i].str == title);               break;

@@ -33,6 +33,7 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/X11/x11attribute.h"
@@ -58,18 +59,38 @@ static inline void compiletime_assert(void)
 int init_x11dblbuffer(/*out*/x11dblbuffer_t * dblbuf, struct x11window_t * x11win)
 {
    int err;
-   XdbeBackBuffer backbuffer;
+   XWindowAttributes winattr;
+   XdbeBackBuffer    backbuffer = XdbeBadBuffer;
+   int               nrscreen = 1;
+   Drawable          screens  = x11win->sys_drawable;
+   XdbeScreenVisualInfo * vinfodb = 0;
 
-   if (  !x11win->display ||
-         XdbeBadBuffer == (backbuffer = XdbeAllocateBackBufferName(x11win->display->sys_display, x11win->sys_drawable, XdbeUndefined))) {
+   if (  ! x11win->display
+         || 0 == (vinfodb = XdbeGetVisualInfo(x11win->display->sys_display, &screens, &nrscreen))
+         || 0 == XGetWindowAttributes(x11win->display->sys_display, x11win->sys_drawable, &winattr)) {
       err = EINVAL;
       goto ONABORT;
    }
+
+   for (int dbi = 0; dbi < vinfodb[0].count; ++dbi) {
+      if (vinfodb[0].visinfo[dbi].visual == XVisualIDFromVisual(winattr.visual)) {
+         backbuffer = XdbeAllocateBackBufferName(x11win->display->sys_display, x11win->sys_drawable, XdbeUndefined);
+         break;
+      }
+   }
+
+   if (XdbeBadBuffer == backbuffer) {
+      err = EINVAL;
+      goto ONABORT;
+   }
+
+   XdbeFreeVisualInfo(vinfodb);
 
    *dblbuf = (x11dblbuffer_t) x11drawable_INIT(x11win->display, backbuffer, x11win->sys_colormap);
 
    return 0 ;
 ONABORT:
+   if (vinfodb) XdbeFreeVisualInfo(vinfodb) ;
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
@@ -221,21 +242,21 @@ static int childprocess_unittest(void)
    x11window_t       x11win    = x11window_INIT_FREEABLE ;
    x11window_t       x11win2   = x11window_INIT_FREEABLE ;
    x11screen_t       x11screen = x11screen_INIT_FREEABLE ;
-   x11attribute_t    config[]  = {  x11attribute_INIT_WINFRAME,
-                                    x11attribute_INIT_WINTITLE("Double Buffer"),
-                                    x11attribute_INIT_DOUBLEBUFFER,
-                                    x11attribute_INIT_WINSIZE(200, 100)
+   windowconfig_t    config[]  = {  windowconfig_INIT_FRAME,
+                                    windowconfig_INIT_TITLE("Double Buffer"),
+                                    windowconfig_INIT_SIZE(200, 100),
+                                    windowconfig_INIT_NONE
                                  } ;
-   x11attribute_t    config2[] = {  x11attribute_INIT_DOUBLEBUFFER,
-                                    x11attribute_INIT_WINSIZE(200, 100)
+   windowconfig_t    config2[] = {  windowconfig_INIT_SIZE(200, 100),
+                                    windowconfig_INIT_NONE
                                  } ;
    resourceusage_t   usage     = resourceusage_INIT_FREEABLE ;
 
    // prepare
    TEST(0 == init_x11display(&x11disp, 0)) ;
    x11screen = defaultscreen_x11display(&x11disp) ;
-   TEST(0 == init_x11window(&x11win, &x11screen, 0, lengthof(config), config)) ;
-   TEST(0 == init_x11window(&x11win2, &x11screen, 0, lengthof(config2), config2)) ;
+   TEST(0 == init_x11window(&x11win, &x11screen, 0, 0, config)) ;
+   TEST(0 == init_x11window(&x11win2, &x11screen, 0, 0, config2)) ;
 
    if (test_initfree(&x11win))   goto ONABORT ;
    if (test_draw(&x11win))       goto ONABORT ;

@@ -24,6 +24,7 @@
 
 #include "C-kern/konfig.h"
 #include "C-kern/api/graphic/surfaceconfig.h"
+#include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
 #include "C-kern/api/platform/OpenGL/EGL/egldisplay.h"
 #include "C-kern/api/platform/OpenGL/EGL/eglwindow.h"
@@ -194,11 +195,12 @@ int setup_opengles_demo(maincontext_t * maincontext)
       surfaceconfig_CONFORMANT, surfaceconfig_value_CONFORMANT_ES2_BIT,
       surfaceconfig_NONE
    };
-   x11attribute_t winattr[] = {
-      x11attribute_INIT_WINFRAME,
-      x11attribute_INIT_WINTITLE("setup_opengles_demo"),
-      x11attribute_INIT_WINSIZE(400, 400),
-      x11attribute_INIT_WINPOS(100, 100)
+   windowconfig_t winattr[] = {
+      windowconfig_INIT_FRAME,
+      windowconfig_INIT_TITLE("setup_opengles_demo"),
+      windowconfig_INIT_SIZE(400, 400),
+      windowconfig_INIT_POS(100, 100),
+      windowconfig_INIT_NONE
    };
    x11window_it   eventhandler = x11window_it_INIT(_demowindow);
 
@@ -209,7 +211,7 @@ int setup_opengles_demo(maincontext_t * maincontext)
 
    TEST(0 == init_eglconfig(&eglconf, egldisp, conf_attribs));
    TEST(0 == visualid_eglconfig(eglconf, egldisp, &visualid));
-   TEST(0 == initvid_x11window(&x11win, &x11screen, &eventhandler, (uint32_t)visualid, lengthof(winattr), winattr));
+   TEST(0 == initvid_x11window(&x11win, &x11screen, &eventhandler, (uint32_t)visualid, winattr));
    TEST(0 == initx11_eglwindow(&eglwin, egldisp, eglconf, &x11win));
    s_eglwindow = (void*)eglwin;
 

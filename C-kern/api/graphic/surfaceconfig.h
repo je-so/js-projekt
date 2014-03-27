@@ -51,9 +51,19 @@ typedef struct surfaceconfig_filter_t surfaceconfig_filter_t;
  *                             Supported values are any combination of bits ored together from
  *                             <surfaceconfig_value_TYPE_WINDOW_BIT>, ... .
  * surfaceconfig_TRANSPARENT_ALPHA - A value != 0 sets a flag which makes the background of a window surface shine through.
+ *                             Default value is 0.
  *                             The alpha value of a pixel determines its opacity.
  *                             Use this to overlay a window surface to another window surface.
  *                             This attribute must be supplied during creation of a window to enable alpha transparency.
+ *                             An alpha value of 1 means the pixel is fully opaque.
+ *                             An alpha value of 0 means the pixel is fully transparent so the background
+ *                             of a window is visible with 100%.
+ *                             If the alpha channel has 8 bits then the value 255 corresponds to 1 and the value 128 to 0.5.
+ *                             Blending function on X11:
+ *                             The blending function assumes that every pixel's color value is premultiplied by alpha.
+ *                             Screen-Pixel-RGB = Window-Pixel-RGB + (1 - Window-Pixel-Alpha) * Background-Pixel-RGB
+ *                             Before drawing you need to change the color of the pixels to:
+ *                             Window-Pixel-RGB = Window-Pixel-RGB * Window-Pixel-Alpha
  * surfaceconfig_BITS_BUFFER - The minimum number of bits per pixel for all color channels together including alpha.
  * surfaceconfig_BITS_RED    - The minimum number of bits per pixel which determine the red color.
  *                             The number of red bits the color buffer supports, e.g. 8 on current hardware.
@@ -69,7 +79,7 @@ typedef struct surfaceconfig_filter_t surfaceconfig_filter_t;
  *                             Supported values are any combination of bits ored together from
  *                             <surfaceconfig_value_CONFORMANT_ES1_BIT>, <surfaceconfig_value_CONFORMANT_ES2_BIT>,
  *                             <surfaceconfig_value_CONFORMANT_OPENGL_BIT>, <surfaceconfig_value_CONFORMANT_OPENVG_BIT>.
- * surfaceconfig_NROFELEMENTS - Its value is the number of all valid configuration options excluding <surfaceconfig_NROFELEMENTS>.
+ * surfaceconfig_NROFELEMENTS - Gives the number of all valid configuration options excluding <surfaceconfig_NROFELEMENTS>.
  *
  * */
 enum surfaceconfig_e {
@@ -164,7 +174,8 @@ struct surfaceconfig_t {
 
 /* function: init_surfaceconfig
  * Matches a specific surface configuration for an EGL display.
- * See <chooseconfig_egldisplay>. */
+ * See <chooseconfig_egldisplay>.
+ * The display parameter must be valid as long as surfconf is valid. */
 int init_surfaceconfig(/*out*/surfaceconfig_t * surfconf, struct native_display_t * display, const int32_t config_attributes[]);
 
 /* function: initfiltered_surfaceconfig

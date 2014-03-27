@@ -33,7 +33,7 @@ typedef struct windowconfig_t windowconfig_t;
 /* enum: windowconfig_e
  * windowconfig_NONE   - Marks end of attribute list.
  * windowconfig_FRAME  - Sets window frame border flag to true. Default value is false.
- *                       No additional value is encoded except for a type.
+ *                       No additional attribute value is encoded.
  * windowconfig_MAXSIZE - Sets the maximum window size. Default value is unlimited.
  *                       Two additional attribute values are encoded.
  * windowconfig_MINSIZE - Sets the minimum window size. Default value is the same as the size attribute.
@@ -48,6 +48,8 @@ typedef struct windowconfig_t windowconfig_t;
  * windowconfig_TRANSPARENCY - Sets a transparency value for the whole window.
  *                             Value 255: Window is fully opaque. Value 0: Window is fully transparent.
  *                             DEfault value is 255.
+ * windowconfig_NROFELEMENTS - Gives the number of all valid configuration options excluding <windowconfig_NROFELEMENTS>.
+ *
  * */
 enum windowconfig_e {
       windowconfig_NONE,
@@ -58,6 +60,7 @@ enum windowconfig_e {
       windowconfig_SIZE,
       windowconfig_TITLE,
       windowconfig_TRANSPARENCY,
+      windowconfig_NROFELEMENTS,
 };
 
 typedef enum windowconfig_e windowconfig_e;
@@ -79,7 +82,8 @@ int unittest_graphic_windowconfig(void);
 struct windowconfig_t {
    int32_t        i32;
    uint32_t       u32;
-   uint32_t       u8;
+   uint8_t        u8;
+   uint16_t       u16;
    const char *   str;
 };
 
@@ -98,12 +102,12 @@ struct windowconfig_t {
 /* define: windowconfig_INIT_MAXSIZE
  * Static initializer to set maximum possible size (width, height) of window. */
 #define windowconfig_INIT_MAXSIZE(maxwidth, maxheight) \
-         { .i32 = windowconfig_MAXSIZE }, { .u32 = maxwidth }, { .u32 = maxheight }
+         { .i32 = windowconfig_MAXSIZE }, { .u16 = maxwidth }, { .u16 = maxheight }
 
 /* define: windowconfig_INIT_MINSIZE
  * Static initializer to set minimum possible size (width, height) of window. */
 #define windowconfig_INIT_MINSIZE(minwidth, minheight) \
-         { .i32 = windowconfig_MINSIZE }, { .u32 = minwidth }, { .u32 = minheight }
+         { .i32 = windowconfig_MINSIZE }, { .u16 = minwidth }, { .u16 = minheight }
 
 /* define: windowconfig_INIT_POS
  * Static initializer to set initial position (x,y) of window. */
@@ -113,7 +117,7 @@ struct windowconfig_t {
 /* define: windowconfig_INIT_SIZE
  * Static initializer to set initial size (width, height) of window. */
 #define windowconfig_INIT_SIZE(width, height) \
-         { .i32 = windowconfig_SIZE }, { .u32 = width }, { .u32 = height }
+         { .i32 = windowconfig_SIZE }, { .u16 = width }, { .u16 = height }
 
 /* define: windowconfig_INIT_TITLE
  * Static initializer to set initial size of window. */
@@ -196,8 +200,8 @@ uint8_t readtransparency_windowconfig(const windowconfig_t * winconf, uint_fast8
  * Implements <windowconfig_t.readsize_windowconfig>. */
 #define readsize_windowconfig(winconf, attrindex, width, height) \
          {                                                     \
-            *(width)  = winconf[(*(attrindex))++].u32;         \
-            *(height) = winconf[(*(attrindex))++].u32;         \
+            *(width)  = winconf[(*(attrindex))++].u16;         \
+            *(height) = winconf[(*(attrindex))++].u16;         \
          }
 
 /* define: readtitle_windowconfig

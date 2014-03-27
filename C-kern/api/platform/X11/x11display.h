@@ -97,20 +97,20 @@ struct x11display_t {
          uint32_t                _NET_FRAME_EXTENTS ;
          uint32_t                _NET_WM_WINDOW_OPACITY ;
    }                             atoms ;
-   /* variable: opengl
-    * Check isSupported whether OpenGL is supported.
+   /* variable: glx
+    * Check isSupported whether glx is supported.
     * The name of the X11 extension which offers an OpenGL binding is "GLX". */
-   x11display_extension_t        opengl ;
+   x11display_extension_t        glx;
    /* variable: xdbe
     * Check isSupported whether »Double Buffer extension« is supported.
     * The attribute <x11attribute_DOUBLEBUFFER> and function <backbuffer_x11window>
     * work only if this extension is implemented by the X11 server. */
-   x11display_extension_t        xdbe ;
+   x11display_extension_t        xdbe;
    /* variable: xrandr
     * Check isSupported whether »X Resize, Rotate and Reflection extension« is supported.
     * The types <x11videomode_iterator_t> and <x11videomode_t>
     * work only if this extension is implemented by the X11 server. */
-   x11display_extension_t        xrandr ;
+   x11display_extension_t        xrandr;
    /* variable: xrender
     * Check isSupported whether »X Rendering Extension « is supported.
     * Transparent toplevel windows (as a whole) and alpha blending
@@ -121,7 +121,7 @@ struct x11display_t {
     * See:
     * <settransparency_glxwindow> and <GLX_ATTRIB_TRANSPARENT>
     * */
-   x11display_extension_t        xrender ;
+   x11display_extension_t        xrender;
 } ;
 
 // group: lifetime
@@ -169,13 +169,15 @@ sys_iochannel_t io_x11display(const x11display_t * x11disp) ;
 void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char * buffer, uint8_t buffer_size) ;
 
 /* function: isextxrandr_x11display
- * Returns true if xrandr extension is supported. */
+ * Returns true if xrandr extension is supported.
+ * This extension supports querying and setting different video modes
+ * (screen resolutions) - see <x11videomode_t>. */
 bool isextxrandr_x11display(const x11display_t * x11disp) ;
 
 // group: ID-manager
 
 /* function: findobject_x11display
- * Maps an object id to its associated object pointer.
+ * Maps an objectid to its associated object pointer.
  * Returns ESRCH if no object exists.
  * On success the returned object contains either a pointer to a valid object or the special
  * value 0 (*NULL*).
@@ -198,12 +200,16 @@ int findobject_x11display(x11display_t * x11disp, /*out*/void ** object, uintptr
 int tryfindobject_x11display(x11display_t * x11disp, /*out*/void ** object/*could be NULL*/, uintptr_t objectid) ;
 
 /* function: insertobject_x11display
- * Registers an object under its corresponding id. */
+ * Registers an object under an objectid. */
 int insertobject_x11display(x11display_t * x11disp, void * object, uintptr_t objectid) ;
 
 /* function: removeobject_x11display
- * Removes the id and its associated pointer from the registration. */
+ * Removes objectid and its associated pointer from the registration. */
 int removeobject_x11display(x11display_t * x11disp, uintptr_t objectid) ;
+
+/* function: replaceobject_x11display
+ * Replaces the object for an already registered objectid. */
+int replaceobject_x11display(x11display_t * x11disp, void * object, uintptr_t objectid) ;
 
 
 // section: inline implementation

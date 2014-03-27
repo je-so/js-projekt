@@ -194,7 +194,7 @@ struct x11attribute_t {
          { x11attribute_WINOPACITY, { .u32 = opacity_u32 } }
 
 /* define: x11attribute_INIT_ALPHAOPACITY
- * Makes content of window transparent determined.
+ * Makes content of window transparent determined by alpha channel of pixel.
  * An X11 RGBA visual (X Render Extension) is chosen which interprets the alpha
  * value of a pixel as blending factor with the underlying background.
  * An alpha value of 1 means the pixel is fully opaque. An alpha value of 0
@@ -202,7 +202,7 @@ struct x11attribute_t {
  * If the alpha channel has 8 bits then the value 255 corresponds to 1 and the value 128 to 0.5.
  *
  * Blending function:
- * The blending function assumes that all pixels color values in the window are premultiplied by alpha.
+ * The blending function assumes that every pixel's color value is premultiplied by alpha.
  * > Screen-Pixel-RGB = Window-Pixel-RGB + (1 - Window-Pixel-Alpha) * Background-Pixel-RGB
  * Before drawing change the color of your draw content to the value
  * > Window-Pixel-RGB = Window-Pixel-RGB * Window-Pixel-Alpha */

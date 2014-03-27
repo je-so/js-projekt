@@ -30,11 +30,12 @@
 
 // forward
 struct cstring_t ;
-struct x11attribute_t ;
+struct x11attribute_t ; // TODO: remove all
 struct x11display_t ;
 struct x11drawable_t ;
 struct x11screen_t ;
 struct surfaceconfig_filter_t;
+struct windowconfig_t;
 
 /* typedef: struct x11window_t
  * Export <x11window_t> into global namespace. */
@@ -60,20 +61,20 @@ enum x11window_state_e {
    x11window_state_SHOWN,
 } ;
 
-typedef enum x11window_state_e         x11window_state_e ;
+typedef enum x11window_state_e x11window_state_e;
 
 /* enums: x11window_flags_e
- * Additional flags of an object of type <x11window_t> or its subtype.
+ * Additional state flags inidicating ownership of system resources.
  *
- * x11window_flags_OWNWINDOW   - The window is owned by this object. Freeing this object also frees the system window.
- * x11window_flags_OWNCOLORMAP - The colormap is owned by this object. Freeing this object also frees the system colormap.
+ * x11window_flags_OWNWINDOW   - The system window is owned by this object. Freeing this object also frees the system handle.
+ * x11window_flags_OWNCOLORMAP - The system colormap is owned by this object. Freeing this object also frees the system handle.
  * */
 enum x11window_flags_e {
    x11window_flags_OWNWINDOW   = 1,
    x11window_flags_OWNCOLORMAP = 2,
 } ;
 
-typedef enum x11window_flags_e         x11window_flags_e ;
+typedef enum x11window_flags_e x11window_flags_e;
 
 
 // section: Functions
@@ -139,7 +140,7 @@ const x11window_it * genericcast_x11windowit(const void * iimpl, TYPENAME subwin
  * Parameter:
  * declared_it - The name of the structure which is declared as the interface.
  *               The name should have the suffix "_it".
- * subwindow_t - The window subtype for which implements the callback functions. */
+ * subwindow_t - The window subtype for which declared_it implements the callback functions. */
 void x11window_it_DECLARE(TYPENAME declared_it, TYPENAME subwindow_t) ;
 
 
@@ -177,27 +178,28 @@ struct x11window_t {
 #define x11window_INIT_FREEABLE        { 0, 0, 0, 0, 0, 0 }
 
 /* function: init_x11window
- * Create a new window on x11screen and assign it to x11win.
+ * Create a native X11 window on x11screen and assign it to x11win.
  * After successful return <state_x11window> returns <x11window_state_HIDDEN>.
- * Call <show_x11window> to show the window to the user. */
-int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/) ;
+ * Call <show_x11window> to show the window to the user.
+ * Do not use this function to initialize an X11 window with OpenGL specific attributes.
+ * Use <initvid_x11window> instead and determine the visualid with <visualid_surfaceconfig> -
+ * see <surfaceconfig_t>. */
+int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, const int32_t * surfconf_attrib, const struct windowconfig_t * winconf_attrib);
 
 /* function: initvid_x11window
- * Create a new window on x11screen and assign it to x11win.
- * Same as <init_x11window> except that the visual type of
- * the window is not determined by <x11attribute_t> stored in
- * configuration but with parameter config_visualid.
- * This parameter describes the ID of the X11 visual.
+ * Create a native X11 window on x11screen and assign it to x11win.
+ * Same as <init_x11window> except that the visual type of the window
+ * is not determined by a list of <surfaceconfig_e> attributes but
+ * with parameter config_visualid which holds the ID of the X11 visual.
  * The visual of a window determines its capabilities like nr of bits
- * per color channel, double buffering and also OpenGL related stuff.
- * */
-int initvid_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler,/*(X11) VisualID*/uint32_t config_visualid, uint8_t nrofattributes, const struct x11attribute_t * configuration/*[nrofattributes]*/);
+ * per color channel, double buffering and other OpenGL related stuff. */
+int initvid_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler,/*(X11) VisualID*/uint32_t config_visualid, const struct windowconfig_t * winconf_attrib);
 
-/* function: initmove_glxwindow
+/* function: initmove_x11window
  * Must be called if address of <x11window_t> changes.
  * A simple memcpy from source to destination does not work.
  * *Not implemented*. */
-int initmove_glxwindow(/*out*/x11window_t * dest_x11win, x11window_t * src_x11win) ;
+int initmove_x11window(/*out*/x11window_t * dest_x11win, x11window_t * src_x11win) ;
 
 /* function: free_x11window
  * Frees all associated resources in case <w11window_t.flags>  inidcates ownership.
@@ -212,8 +214,8 @@ int free_x11window(x11window_t * x11win) ;
 struct x11screen_t screen_x11window(const x11window_t * x11win) ;
 
 /* function: flags_x11window
- * Returns flags which indicate ownership state of the window as seen by the user. See <x11window_state_e>.
- * After calling <init_x11window> the state is set to <x11window_state_HIDDEN>. Call * */
+ * Returns flags which indicate ownership state of system resources.
+ * See <x11window_flags_e>. */
 x11window_flags_e flags_x11window(const x11window_t * x11win) ;
 
 /* function: state_x11window

@@ -213,16 +213,16 @@ static int queryextensions_x11display(x11display_t * x11disp)
 
 #define KONFIG_opengl_glx 1
 #if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
-   isSupported = XQueryExtension(x11disp->sys_display, "GLX", &dummy, &x11disp->opengl.eventbase, &x11disp->opengl.errorbase) ;
+   isSupported = XQueryExtension(x11disp->sys_display, "GLX", &dummy, &x11disp->glx.eventbase, &x11disp->glx.errorbase) ;
    if (isSupported) {
       // glX implementation uses functionality supported only by version 1.3 or higher
       isSupported = glXQueryVersion(x11disp->sys_display, &major, &minor) ;
       if (  isSupported
             && major == 1
             && minor >= 3) {
-         x11disp->opengl.isSupported   = true ;
-         x11disp->opengl.version_major = (uint16_t) major ;
-         x11disp->opengl.version_minor = (uint16_t) minor ;
+         x11disp->glx.isSupported      = true;
+         x11disp->glx.version_major    = (uint16_t) major;
+         x11disp->glx.version_minor = (uint16_t) minor;
       }
    }
 #endif
@@ -435,6 +435,22 @@ ONABORT:
    return err ;
 }
 
+int replaceobject_x11display(x11display_t * x11disp, void * object, uintptr_t objectid)
+{
+   int err ;
+   x11display_objectid_t * found_node;
+
+   err = find_x11displayobjectid(&x11disp->idmap, objectid, &found_node) ;
+   if (err) goto ONABORT ;
+
+   found_node->object = object;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
+}
+
 
 // group: test
 
@@ -597,10 +613,17 @@ ONABORT:
 
 static int test_extensions(x11display_t * x11disp)
 {
-   // TEST opengl available / version
-   TEST(x11disp->opengl.isSupported) ;
-   TEST(1 == x11disp->opengl.version_major) ;
-   TEST(3 <= x11disp->opengl.version_minor) ;
+   // TEST glx available / version
+#define KONFIG_opengl_glx 1
+#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
+   TEST(1 == x11disp->glx.isSupported) ;
+   TEST(1 == x11disp->glx.version_major) ;
+   TEST(3 <= x11disp->glx.version_minor) ;
+#else
+   TEST(0 == x11disp->glx.isSupported) ;
+   TEST(0 == x11disp->glx.version_major) ;
+   TEST(0 == x11disp->glx.version_minor) ;
+#endif
 
    // TEST xrandr available / version
    TEST(x11disp->xdbe.isSupported) ;
@@ -641,6 +664,16 @@ static int test_id_manager(x11display_t * x11disp1, x11display_t * x11disp2)
       TEST(object2 == (void*) (2000 + i)) ;
    }
 
+   // TEST replaceobject_x11display
+   for (uint32_t i = 100; i < 200; ++i) {
+      TEST(0 == replaceobject_x11display(x11disp1, (void*) (1001 + i), i)) ;
+      TEST(0 == replaceobject_x11display(x11disp2, (void*) (2001 + i), i)) ;
+      TEST(0 == findobject_x11display(x11disp1, &object1, i)) ;
+      TEST(0 == findobject_x11display(x11disp2, &object2, i)) ;
+      TEST(object1 == (void*) (1001 + i)) ;
+      TEST(object2 == (void*) (2001 + i)) ;
+   }
+
    // TEST removeobject_x11display
    for (uint32_t i = 100; i < 200; ++i) {
       TEST(0 != x11disp1->idmap) ;
@@ -660,6 +693,8 @@ static int test_id_manager(x11display_t * x11disp1, x11display_t * x11disp2)
    TEST(ESRCH == findobject_x11display(x11disp2, &object2, 99)) ;
    TEST(ESRCH == removeobject_x11display(x11disp1, 98)) ;
    TEST(ESRCH == removeobject_x11display(x11disp2, 99)) ;
+   TEST(ESRCH == replaceobject_x11display(x11disp1, 0, 98)) ;
+   TEST(ESRCH == replaceobject_x11display(x11disp2, 0, 99)) ;
 
    // TEST EEXIST
    TEST(EEXIST == insertobject_x11display(x11disp1, (void*) 1000, 99)) ;
