@@ -2,6 +2,7 @@
 include        projekte/binary.gcc
 include        projekte/subsys/Linux-mini
 include        projekte/subsys/context-mini
+include        projekte/subsys/graphic
 include        projekte/subsys/OpenGL-EGL
 include        projekte/subsys/X11
 Src           += demo/opengl/*.c

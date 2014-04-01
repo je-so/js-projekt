@@ -30,13 +30,15 @@
 // forward
 struct x11display_t;
 
-/* typedef: struct native_display_t
- * Export <native_display_t> into global namespace. */
-typedef struct native_display_t  native_display_t;
+/* typedef: opengl_display_t
+ * Type which tags the native implementation of an OpenGL capable display.
+ * In the case of EGL this type wraps a native OS display into an EGL specific
+ * type. */
+typedef struct opengl_display_t  opengl_display_t;
 
 /* typedef: struct egldisplay_t
  * Export <egldisplay_t> into global namespace. */
-typedef struct native_display_t * egldisplay_t;
+typedef struct opengl_display_t * egldisplay_t;
 
 
 // section: Functions
@@ -52,7 +54,7 @@ int unittest_platform_opengl_egl_egldisplay(void);
 
 /* struct: egldisplay_t
  * Wraps the native display type in an EGL specific way. */
-typedef struct native_display_t * egldisplay_t;
+typedef struct opengl_display_t * egldisplay_t;
 
 // group: lifetime
 

@@ -631,7 +631,7 @@ ONABORT:
 
 // group: helper
 
-static bool matchfirstfilter_x11window(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+static bool matchfirstfilter_x11window(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
 {
    (void) surfconf;
    (void) display;
@@ -640,7 +640,7 @@ static bool matchfirstfilter_x11window(surfaceconfig_t * surfconf, struct native
    return true;
 }
 
-static bool matchtransparentalphafilter_x11window(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+static bool matchtransparentalphafilter_x11window(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
 {
    (void) surfconf;
    (void) display;
@@ -1491,7 +1491,7 @@ static int test_configfilter(x11display_t * x11disp)
    XVisualInfo    vinfo_pattern;
    XVisualInfo *  vinfo          = XGetVisualInfo(x11disp->sys_display, VisualNoMask, &vinfo_pattern, &vinfo_length);
    surfaceconfig_filter_t filter = surfaceconfig_filter_INIT_FREEABLE;
-   int            config_attributes[2*surfaceconfig_NROFELEMENTS+1];
+   int            config_attributes[2*surfaceconfig_NROFELEMENTS+2];
 
    // TEST configfilter_x11window: E2BIG
    for (unsigned i = 0; i < lengthof(config_attributes)-1; i += 2) {
@@ -1503,15 +1503,17 @@ static int test_configfilter(x11display_t * x11disp)
    TEST(0 == filter.accept);
 
    // TEST configfilter_x11window: TRANSPARENT_ALPHA == 0
-   config_attributes[4] = surfaceconfig_TRANSPARENT_ALPHA;
-   config_attributes[5] = 0;
+   config_attributes[0] = surfaceconfig_TRANSPARENT_ALPHA;
+   config_attributes[1] = 0;
+   config_attributes[2] = surfaceconfig_NONE;
    TEST(0 == configfilter_x11window(&filter, x11disp, config_attributes));
    TEST(filter.user   == x11disp);
    TEST(filter.accept == &matchfirstfilter_x11window);
 
    // TEST configfilter_x11window: TRANSPARENT_ALPHA == 0
-   config_attributes[4] = surfaceconfig_TRANSPARENT_ALPHA;
-   config_attributes[5] = 1;
+   config_attributes[0] = surfaceconfig_TRANSPARENT_ALPHA;
+   config_attributes[1] = 1;
+   config_attributes[2] = surfaceconfig_NONE;
    TEST(0 == configfilter_x11window(&filter, x11disp, config_attributes));
    TEST(filter.user   == x11disp);
    TEST(filter.accept == &matchtransparentalphafilter_x11window);

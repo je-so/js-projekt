@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/demo.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Mär.16  16:21:12
+GenerationDate  := 2014.Apr.01  14:38:29
 GeneratedBy     := je-so
 
 ## Debug
@@ -97,6 +97,9 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!graphic!windowconfig.c.o \
+ $(ObjectDir_Debug)/C-kern!graphic!display.c.o \
+ $(ObjectDir_Debug)/C-kern!graphic!surfaceconfig.c.o \
  $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egl.c.o \
  $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egldisplay.c.o \
  $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglwindow.c.o \
@@ -139,6 +142,9 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!graphic!windowconfig.c.o \
+ $(ObjectDir_Release)/C-kern!graphic!display.c.o \
+ $(ObjectDir_Release)/C-kern!graphic!surfaceconfig.c.o \
  $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egl.c.o \
  $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egldisplay.c.o \
  $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglwindow.c.o \
@@ -230,6 +236,15 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logb
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!graphic!windowconfig.c.o: C-kern/graphic/windowconfig.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!graphic!display.c.o: C-kern/graphic/display.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!graphic!surfaceconfig.c.o: C-kern/graphic/surfaceconfig.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egl.c.o: C-kern/platform/OpenGL/EGL/egl.c
@@ -350,6 +365,15 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/lo
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!graphic!windowconfig.c.o: C-kern/graphic/windowconfig.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!graphic!display.c.o: C-kern/graphic/display.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!graphic!surfaceconfig.c.o: C-kern/graphic/surfaceconfig.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egl.c.o: C-kern/platform/OpenGL/EGL/egl.c

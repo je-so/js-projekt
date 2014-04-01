@@ -30,8 +30,8 @@
 #define CKERN_GRAPHIC_SURFACE_CONFIG_HEADER
 
 // forward
-struct native_surfconfig_t;
-struct native_display_t;
+struct opengl_config_t;
+struct opengl_display_t;
 
 /* typedef: struct surfaceconfig_t
  * Export <surfaceconfig_t> into global namespace. */
@@ -142,7 +142,7 @@ int unittest_graphic_surfaceconfig(void);
  * If no visualid passes the constructor <initfiltered_surfaceconfig> returns ESRCH. */
 struct surfaceconfig_filter_t {
    void  * user;
-   bool (* accept) (surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user);
+   bool (* accept) (surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user);
 };
 
 /* define: surfaceconfig_filter_INIT
@@ -157,7 +157,7 @@ struct surfaceconfig_filter_t {
 /* struct: surfaceconfig_t
  * Contains a specific surface configuration. */
 struct surfaceconfig_t {
-   struct native_surfconfig_t * config;
+   struct opengl_config_t * config;
 };
 
 // group: lifetime
@@ -176,14 +176,14 @@ struct surfaceconfig_t {
  * Matches a specific surface configuration for an EGL display.
  * See <chooseconfig_egldisplay>.
  * The display parameter must be valid as long as surfconf is valid. */
-int init_surfaceconfig(/*out*/surfaceconfig_t * surfconf, struct native_display_t * display, const int32_t config_attributes[]);
+int init_surfaceconfig(/*out*/surfaceconfig_t * surfconf, struct opengl_display_t * display, const int32_t config_attributes[]);
 
 /* function: initfiltered_surfaceconfig
  * Same as <init_surfaceconfig> except that more than one possible configuration is considered.
  * The provided filter is repeatedly called for every possible configuration as long as it returns false.
  * The first configuration which passes the filter is used.
  * Parameter user is passed as user data into the filter function. */
-int initfiltered_surfaceconfig(/*out*/surfaceconfig_t * surfconf, struct native_display_t * display, const int32_t config_attributes[], surfaceconfig_filter_t * filter);
+int initfiltered_surfaceconfig(/*out*/surfaceconfig_t * surfconf, struct opengl_display_t * display, const int32_t config_attributes[], surfaceconfig_filter_t * filter);
 
 /* function: free_surfaceconfig
  * Frees any memory associated with a configuration. */
@@ -195,13 +195,13 @@ int free_surfaceconfig(surfaceconfig_t * surfconf);
  * Returns the value of attribute stored in surfconf.
  * Set attribute to a value from <surfaceconfig_e> and display must be set to the same display
  * given in the init function. */
-int value_surfaceconfig(const surfaceconfig_t * surfconf, struct native_display_t * display, int32_t attribute, /*out*/int32_t * value);
+int value_surfaceconfig(const surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t attribute, /*out*/int32_t * value);
 
 /* function: visualid_surfaceconfig
  * Returns the native visualid of the configuration.
  * Use this id to create a native window with the correct
  * surface graphic attributes. */
-int visualid_surfaceconfig(const surfaceconfig_t * surfconf, struct native_display_t * display, /*out*/int32_t * visualid);
+int visualid_surfaceconfig(const surfaceconfig_t * surfconf, struct opengl_display_t * display, /*out*/int32_t * visualid);
 
 
 // section: inline implementation

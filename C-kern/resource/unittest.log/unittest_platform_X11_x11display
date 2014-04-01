@@ -1,40 +1,40 @@
-[1: 1395169182.428530s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:434
+[1: 1395304221.341232s]
+removeobject_x11display() C-kern/platform/X11/x11display.c:448
 Error 3 - No such process
 Function aborted
-[1: 1395169182.428565s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:434
+[1: 1395304221.341261s]
+removeobject_x11display() C-kern/platform/X11/x11display.c:448
 Error 3 - No such process
 Function aborted
-[1: 1395169182.428570s]
-findobject_x11display() C-kern/platform/X11/x11display.c:393
+[1: 1395304221.341267s]
+findobject_x11display() C-kern/platform/X11/x11display.c:407
 Error 3 - No such process
 Function aborted
-[1: 1395169182.428575s]
-findobject_x11display() C-kern/platform/X11/x11display.c:393
+[1: 1395304221.341272s]
+findobject_x11display() C-kern/platform/X11/x11display.c:407
 Error 3 - No such process
 Function aborted
-[1: 1395169182.428579s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:434
+[1: 1395304221.341277s]
+removeobject_x11display() C-kern/platform/X11/x11display.c:448
 Error 3 - No such process
 Function aborted
-[1: 1395169182.428589s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:434
+[1: 1395304221.341281s]
+removeobject_x11display() C-kern/platform/X11/x11display.c:448
 Error 3 - No such process
 Function aborted
-[1: 1395169182.428592s]
-replaceobject_x11display() C-kern/platform/X11/x11display.c:450
+[1: 1395304221.341285s]
+replaceobject_x11display() C-kern/platform/X11/x11display.c:464
 Error 3 - No such process
 Function aborted
-[1: 1395169182.428596s]
-replaceobject_x11display() C-kern/platform/X11/x11display.c:450
+[1: 1395304221.341290s]
+replaceobject_x11display() C-kern/platform/X11/x11display.c:464
 Error 3 - No such process
 Function aborted
-[1: 1395169182.428607s]
-insertobject_x11display() C-kern/platform/X11/x11display.c:421
+[1: 1395304221.341304s]
+insertobject_x11display() C-kern/platform/X11/x11display.c:435
 Error 17 - File exists
 Function aborted
-[1: 1395169182.428611s]
-insertobject_x11display() C-kern/platform/X11/x11display.c:421
+[1: 1395304221.341310s]
+insertobject_x11display() C-kern/platform/X11/x11display.c:435
 Error 17 - File exists
 Function aborted

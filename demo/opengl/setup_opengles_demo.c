@@ -23,14 +23,12 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/graphic/display.h"
 #include "C-kern/api/graphic/surfaceconfig.h"
 #include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
-#include "C-kern/api/platform/OpenGL/EGL/egldisplay.h"
 #include "C-kern/api/platform/OpenGL/EGL/eglwindow.h"
 #include "C-kern/api/platform/X11/x11.h"
-#include "C-kern/api/platform/X11/x11attribute.h"
-#include "C-kern/api/platform/X11/x11display.h"
 #include "C-kern/api/platform/X11/x11screen.h"
 #include "C-kern/api/platform/X11/x11window.h"
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
@@ -181,10 +179,9 @@ ONABORT:
 int setup_opengles_demo(maincontext_t * maincontext)
 {
    (void) maincontext;
-   x11display_t   x11disp;
+   display_t      disp;
    x11screen_t    x11screen;
    x11window_t    x11win;
-   egldisplay_t   egldisp;
    eglwindow_t    eglwin;
    eglconfig_t    eglconf;
    EGLContext     eglcontext;
@@ -204,34 +201,32 @@ int setup_opengles_demo(maincontext_t * maincontext)
    };
    x11window_it   eventhandler = x11window_it_INIT(_demowindow);
 
-   TEST(0 == init_x11display(&x11disp, 0));
-   x11screen = defaultscreen_x11display(&x11disp);
-   TEST(0 == initx11_egldisplay(&egldisp, &x11disp));
-   s_egldisplay = (void*)egldisp;
+   TEST(0 == initdefault_display(&disp));
+   x11screen = defaultscreen_x11display(os_display(&disp));
+   s_egldisplay = (void*)gl_display(&disp);
 
-   TEST(0 == init_eglconfig(&eglconf, egldisp, conf_attribs));
-   TEST(0 == visualid_eglconfig(eglconf, egldisp, &visualid));
+   TEST(0 == init_eglconfig(&eglconf, gl_display(&disp), conf_attribs));
+   TEST(0 == visualid_eglconfig(eglconf, gl_display(&disp), &visualid));
    TEST(0 == initvid_x11window(&x11win, &x11screen, &eventhandler, (uint32_t)visualid, winattr));
-   TEST(0 == initx11_eglwindow(&eglwin, egldisp, eglconf, &x11win));
+   TEST(0 == initx11_eglwindow(&eglwin, gl_display(&disp), eglconf, &x11win));
    s_eglwindow = (void*)eglwin;
 
-   eglcontext = eglCreateContext(egldisp, eglconf, EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
+   eglcontext = eglCreateContext(gl_display(&disp), eglconf, EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
    TEST(EGL_NO_CONTEXT != eglcontext);
-   TEST(EGL_TRUE == eglMakeCurrent(egldisp, (void*)eglwin, (void*)eglwin, eglcontext));
+   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), (void*)eglwin, (void*)eglwin, eglcontext));
 
    TEST(0 == create_opengl_program());
 
    TEST(0 == show_x11window(&x11win));
    while (!s_isClosed) {
-      TEST(0 == nextevent_X11(&x11disp));
+      TEST(0 == nextevent_X11(os_display(&disp)));
    }
 
-   TEST(EGL_TRUE == eglMakeCurrent(egldisp, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
-   TEST(EGL_TRUE == eglDestroyContext(egldisp, eglcontext));
-   TEST(0 == free_eglwindow(&eglwin, egldisp));
+   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
+   TEST(EGL_TRUE == eglDestroyContext(gl_display(&disp), eglcontext));
+   TEST(0 == free_eglwindow(&eglwin, gl_display(&disp)));
    TEST(0 == free_x11window(&x11win));
-   TEST(0 == free_egldisplay(&egldisp));
-   TEST(0 == free_x11display(&x11disp));
+   TEST(0 == free_display(&disp));
 
    return 0;
 ONABORT:

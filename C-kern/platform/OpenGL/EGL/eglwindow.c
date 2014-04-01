@@ -158,7 +158,7 @@ static int init_native(/*out*/native_types_t * native)
 
    TEST(0 == init_x11display(&native->osdisplay, 0));
    TEST(0 == initx11_egldisplay(&native->egldisplay, &native->osdisplay));
-   TEST(0 == init_x11screen(&x11screen, &native->osdisplay, defaultnrscreen_x11display(&native->osdisplay)));
+   TEST(0 == init_x11screen(&x11screen, &native->osdisplay, defaultscreennr_x11display(&native->osdisplay)));
 
    for (unsigned i = 0; i < lengthof(native->oswindow); ++i) {
       TEST(0 == configfilter_x11window(&filter, &native->osdisplay, native->config_attr[i]));

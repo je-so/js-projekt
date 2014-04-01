@@ -28,22 +28,22 @@
 #define CKERN_PLATFORM_OPENGL_EGL_EGLCONFIG_HEADER
 
 // forward
-struct native_display_t;
+struct opengl_display_t;
 
-/* typedef: struct native_surfconfig_t
- * Export <native_surfconfig_t > into global namespace. */
-typedef struct native_surfconfig_t * native_surfconfig_t ;
+/* typedef: struct opengl_config_t
+ * Export <opengl_config_t > into global namespace. */
+typedef struct opengl_config_t * opengl_config_t ;
 
 /* typedef: struct eglconfig_t
  * Export <eglconfig_t> into global namespace. */
-typedef struct native_surfconfig_t * eglconfig_t;
+typedef struct opengl_config_t * eglconfig_t;
 
 /* typedef: eglconfig_filter_f
  * Declares filter to select between different possible configuration.
  * The filter function must return true if it accepts the visual ID
  * given in parameter visualid else false.
  * If no visualid passes the filter <initfiltered_eglconfig> returns ESRCH. */
-typedef bool (* eglconfig_filter_f) (eglconfig_t eglconf, struct native_display_t * egldisp, int32_t visualid, void * user);
+typedef bool (* eglconfig_filter_f) (eglconfig_t eglconf, struct opengl_display_t * egldisp, int32_t visualid, void * user);
 
 
 // section: Functions
@@ -59,7 +59,7 @@ int unittest_platform_opengl_egl_eglconfig(void);
 
 /* struct: eglconfig_t
  * Contains an EGL frame buffer configuration. */
-typedef struct native_surfconfig_t * eglconfig_t;
+typedef struct opengl_config_t * eglconfig_t;
 
 // group: lifetime
 
@@ -79,14 +79,14 @@ typedef struct native_surfconfig_t * eglconfig_t;
  *          is invalid for the corresponding <surfaceconfig_e> attribute id.
  * ESRCH  - No configuration matches the supplied attribues.
  * */
-int init_eglconfig(/*out*/eglconfig_t * eglconf, struct native_display_t * egldisp, const int32_t config_attributes[]);
+int init_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const int32_t config_attributes[]);
 
 /* function: initfiltered_eglconfig
  * Same as <init_eglconfig> except that more than one possible configuration is considered.
  * The provided filter is repeatedly called for every possible configuration as long as it returns false.
  * The first configuration which passes the filter is used.
  * Parameter user is passed as user data into the filter function. */
-int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct native_display_t * egldisp, const int32_t config_attributes[], eglconfig_filter_f filter, void * user);
+int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const int32_t config_attributes[], eglconfig_filter_f filter, void * user);
 
 /* function: free_eglconfig
  * Frees any associated resources.
@@ -99,13 +99,13 @@ int free_eglconfig(eglconfig_t * eglconf);
  * Returns the value of attribute.
  * The parameter egldisp must be of type <egldisplay_t> and parameter attribute must be a value from <surfaceconfig_e>.
  * On error EINVAL is returned else 0. */
-int value_eglconfig(eglconfig_t eglconf, struct native_display_t * egldisp, const int32_t attribute, /*out*/int32_t * value);
+int value_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp, const int32_t attribute, /*out*/int32_t * value);
 
 /* function: visualid_eglconfig
  * Returns the native visualid of the configuration.
  * Use this id to create a native window with the correct
  * surface graphic attributes. */
-int visualid_eglconfig(eglconfig_t eglconf, struct native_display_t * egldisp, /*out*/int32_t * visualid);
+int visualid_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp, /*out*/int32_t * visualid);
 
 // section: inline implementation
 

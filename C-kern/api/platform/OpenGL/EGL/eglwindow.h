@@ -29,17 +29,19 @@
 #define CKERN_PLATFORM_OPENGL_EGL_EGLWINDOW_HEADER
 
 // forward
-struct native_surfconfig_t;
-struct native_display_t;
+struct opengl_config_t;
+struct opengl_display_t;
 struct x11window_t;
 
-/* typedef: struct native_window_t
- * Export <native_window_t> into global namespace. */
-typedef struct native_window_t native_window_t;
+/* typedef: opengl_window_t
+ * Type which tags the native implementation of an OpenGL capable window.
+ * In the case of EGL this type wraps a native OS window into an EGL specific
+ * type. */
+typedef struct opengl_window_t opengl_window_t;
 
 /* typedef: struct eglwindow_t
  * Export <eglwindow_t> into global namespace. */
-typedef struct native_window_t * eglwindow_t;
+typedef struct opengl_window_t * eglwindow_t;
 
 
 // section: Functions
@@ -55,7 +57,7 @@ int unittest_platform_opengl_egl_eglwindow(void);
 
 /* struct: eglwindow_t
  * Wraps a native window into an EGL specific type. */
-typedef struct native_window_t * eglwindow_t;
+typedef struct opengl_window_t * eglwindow_t;
 
 // group: lifetime
 
@@ -69,12 +71,12 @@ typedef struct native_window_t * eglwindow_t;
  * or EALLOC if the egl specific part of the window could not be initialized.
  * Parameter display must be a valid egldisplay_t and parameter eglconf a valid eglconfig_t.
  * Do not free x11win as long as eglwin is not freed. */
-int initx11_eglwindow(/*out*/eglwindow_t * eglwin, struct native_display_t * egldisp, struct native_surfconfig_t * eglconf, struct x11window_t * x11win);
+int initx11_eglwindow(/*out*/eglwindow_t * eglwin, struct opengl_display_t * egldisp, struct opengl_config_t * eglconf, struct x11window_t * x11win);
 
 /* function: free_eglwindow
  * Frees resources allocated by eglwin window surface.
  * Parameter display must point to a valid egl display. */
-int free_eglwindow(eglwindow_t * eglwin, struct native_display_t * display);
+int free_eglwindow(eglwindow_t * eglwin, struct opengl_display_t * display);
 
 // group: query
 

@@ -225,6 +225,7 @@
     <VirtualDirectory Name="graphic">
       <File Name="../../C-kern/api/graphic/surfaceconfig.h"/>
       <File Name="../../C-kern/api/graphic/windowconfig.h"/>
+      <File Name="../../C-kern/api/graphic/display.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
@@ -569,5 +570,6 @@
   <VirtualDirectory Name="graphic">
     <File Name="../../C-kern/graphic/surfaceconfig.c"/>
     <File Name="../../C-kern/graphic/windowconfig.c"/>
+    <File Name="../../C-kern/graphic/display.c"/>
   </VirtualDirectory>
 </CodeLite_Project>

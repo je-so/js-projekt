@@ -49,7 +49,7 @@ x11screen_t defaultscreen_x11display(struct x11display_t * x11disp)
    return (x11screen_t) x11screen_INIT(x11disp, (uint16_t)DefaultScreen(x11disp->sys_display)) ;
 }
 
-uint16_t defaultnrscreen_x11display(const struct x11display_t * x11disp)
+uint16_t defaultscreennr_x11display(const struct x11display_t * x11disp)
 {
    return (uint16_t) DefaultScreen(x11disp->sys_display) ;
 }
@@ -98,10 +98,10 @@ static int test_x11disp_extension(x11display_t * x11disp)
    // TEST defaultscreen_x11display
    x11screen_t x11screen = defaultscreen_x11display(x11disp) ;
    TEST(x11screen.display  == x11disp) ;
-   TEST(x11screen.nrscreen == defaultnrscreen_x11display(x11disp)) ;
+   TEST(x11screen.nrscreen == defaultscreennr_x11display(x11disp)) ;
 
-   // TEST defaultnrscreen_x11display
-   TEST(0 == defaultnrscreen_x11display(x11disp)) ;
+   // TEST defaultscreennr_x11display
+   TEST(0 == defaultscreennr_x11display(x11disp)) ;
 
    return 0 ;
 ONABORT:

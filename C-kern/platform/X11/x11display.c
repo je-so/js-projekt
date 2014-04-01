@@ -184,14 +184,6 @@ static int deleteall_x11displayobjectid(x11display_objectid_t ** root)
 
 // section: x11display_t
 
-// group: variables
-
-#ifdef KONFIG_UNITTEST
-/* variable: s_x11display_is_skip_extension
- * If set to true <queryextensions_x11display> is not executed. */
-static bool s_x11display_is_skip_extension = false;
-#endif
-
 // group: extension support
 
 /* function: queryextensions_x11display
@@ -205,12 +197,6 @@ static int queryextensions_x11display(x11display_t * x11disp)
    int   dummy ;
    Bool  isSupported ;
 
-#ifdef KONFIG_UNITTEST
-   if (s_x11display_is_skip_extension) {
-      return 0;
-   }
-#endif
-
 #define KONFIG_opengl_glx 1
 #if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
    isSupported = XQueryExtension(x11disp->sys_display, "GLX", &dummy, &x11disp->glx.eventbase, &x11disp->glx.errorbase) ;
@@ -220,8 +206,8 @@ static int queryextensions_x11display(x11display_t * x11disp)
       if (  isSupported
             && major == 1
             && minor >= 3) {
-         x11disp->glx.isSupported      = true;
-         x11disp->glx.version_major    = (uint16_t) major;
+         x11disp->glx.isSupported   = true;
+         x11disp->glx.version_major = (uint16_t) major;
          x11disp->glx.version_minor = (uint16_t) minor;
       }
    }
@@ -295,7 +281,7 @@ ONABORT:
    return err ;
 }
 
-int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_name)
+static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * display_server_name, bool isInitExtension)
 {
    int  err ;
    x11display_t newdisp = x11display_INIT_FREEABLE ;
@@ -327,17 +313,45 @@ int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_n
    SETATOM(_NET_WM_WINDOW_OPACITY) ;
 #undef  SETATOM
 
-   err = queryextensions_x11display(&newdisp) ;
-   if (err) goto ONABORT ;
+   if (isInitExtension) {
+      err = queryextensions_x11display(&newdisp) ;
+      if (err) goto ONABORT ;
+   }
 
    *x11disp = newdisp ;
 
    return 0 ;
 ONABORT:
    free_x11display(&newdisp) ;
+   return err ;
+}
+
+int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_name)
+{
+   int  err ;
+
+   err = initprivate_x11display(x11disp, display_server_name, true);
+   if (err) goto ONABORT ;
+
+   return 0 ;
+ONABORT:
    TRACEABORT_ERRLOG(err) ;
    return err ;
 }
+
+int init2_x11display(/*out*/x11display_t * x11disp, const char * display_server_name, bool isInitExtension)
+{
+   int  err ;
+
+   err = initprivate_x11display(x11disp, display_server_name, isInitExtension);
+   if (err) goto ONABORT ;
+
+   return 0 ;
+ONABORT:
+   TRACEABORT_ERRLOG(err) ;
+   return err ;
+}
+
 
 // group: query
 
@@ -470,6 +484,22 @@ static int test_initfree(void)
    TEST(x11disp.atoms._NET_FRAME_EXTENTS == 0) ;
    TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == 0) ;
 
+   // TEST init2_x11display, free_x11display
+   for (int isExtension = 0; isExtension <= 1; ++isExtension) {
+      TEST(0 == init2_x11display(&x11disp, ":0.0", (isExtension != 0))) ;
+      TEST(x11disp.idmap       == 0) ;
+      TEST(x11disp.sys_display != 0) ;
+      TEST(x11disp.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
+      TEST(x11disp.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
+      TEST(x11disp.atoms._NET_FRAME_EXTENTS == XInternAtom(x11disp.sys_display, "_NET_FRAME_EXTENTS", False)) ;
+      TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
+      TEST(0  < io_x11display(&x11disp)) ;
+      TEST(0 == free_x11display(&x11disp)) ;
+      TEST(0 == x11disp.sys_display) ;
+      TEST(0 == free_x11display(&x11disp)) ;
+      TEST(0 == x11disp.sys_display) ;
+   }
+
    // TEST init_x11display, free_x11display
    TEST(0 == init_x11display(&x11disp, ":0.0")) ;
    TEST(x11disp.idmap       == 0) ;
@@ -576,11 +606,21 @@ static int test_query(void)
    x11disp.xrandr.isSupported = false ;
    TEST(false == isextxrandr_x11display(&x11disp)) ;
 
+   // TEST isfree_x11display
+   memset(&x11disp, 255, sizeof(x11disp));
+   TEST(0 == isfree_x11display(&x11disp));
+   x11disp.idmap = 0;
+   TEST(0 == isfree_x11display(&x11disp));
+   x11disp.sys_display = 0;
+   TEST(1 == isfree_x11display(&x11disp));
+
    // TEST io_x11display
    TEST(0 == init_x11display(&x11disp, ":0.0"));
+   TEST(0 == isfree_x11display(&x11disp));
    TEST(0  < io_x11display(&x11disp));
    int fd = io_x11display(&x11disp);
    TEST(0 == free_x11display(&x11disp));
+   TEST(1 == isfree_x11display(&x11disp));
 
    // TEST io_x11display: same fd
    TEST(0 == init_x11display(&x11disp, ":0.0"));
@@ -613,6 +653,11 @@ ONABORT:
 
 static int test_extensions(x11display_t * x11disp)
 {
+   x11display_t x11disp_noext = x11display_INIT_FREEABLE;
+
+   // prepare
+   TEST(0 == init2_x11display(&x11disp_noext, ":0", false));
+
    // TEST glx available / version
 #define KONFIG_opengl_glx 1
 #if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
@@ -624,21 +669,31 @@ static int test_extensions(x11display_t * x11disp)
    TEST(0 == x11disp->glx.version_major) ;
    TEST(0 == x11disp->glx.version_minor) ;
 #endif
+   TEST(0 == x11disp_noext.glx.isSupported) ;
+   TEST(0 == x11disp_noext.glx.version_major) ;
+   TEST(0 == x11disp_noext.glx.version_minor) ;
 
    // TEST xrandr available / version
-   TEST(x11disp->xdbe.isSupported) ;
+   TEST(1 == x11disp->xdbe.isSupported) ;
    TEST(1 <= x11disp->xdbe.version_major) ;
+   TEST(0 == x11disp_noext.xdbe.isSupported) ;
 
    // TEST xrandr available / version
-   TEST(x11disp->xrandr.isSupported) ;
+   TEST(1 == x11disp->xrandr.isSupported) ;
    TEST(1 <= x11disp->xrandr.version_major) ;
+   TEST(0 == x11disp_noext.xrandr.isSupported) ;
 
    // TEST xcomposite available / version
-   TEST(x11disp->xrender.isSupported) ;
+   TEST(1 == x11disp->xrender.isSupported) ;
    TEST(1 <= x11disp->xrender.version_major || x11disp->xrender.version_minor > 2) ;
+   TEST(0 == x11disp_noext.xrender.isSupported) ;
+
+   // unprepare
+   TEST(0 == free_x11display(&x11disp_noext));
 
    return 0 ;
 ONABORT:
+   free_x11display(&x11disp_noext);
    return EINVAL ;
 }
 
@@ -730,10 +785,8 @@ static int childprocess_unittest(void)
    // XQueryExtension keeps file descriptors and memory
    // without it no resource leak !
    TEST(0 == init_resourceusage(&usage)) ;
-   s_x11display_is_skip_extension = true;
-   TEST(0 == init_x11display(&x11disp1, ":0")) ;
+   TEST(0 == init2_x11display(&x11disp1, ":0", false)) ;
    TEST(0 == free_x11display(&x11disp1)) ;
-   s_x11display_is_skip_extension = false;
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;
 
@@ -763,7 +816,6 @@ static int childprocess_unittest(void)
 
    return 0 ;
 ONABORT:
-   s_x11display_is_skip_extension = false;
    (void) free_x11display(&x11disp1);
    (void) free_x11display(&x11disp2);
    (void) free_resourceusage(&usage);

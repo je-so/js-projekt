@@ -1,30 +1,100 @@
-[1: 1394963241.744121s]
-same_resourceusage() C-kern/test/resourceusage.c:154
+[1: 1396355421.873165s]
+same_resourceusage() C-kern/test/resourceusage.c:147
 Error 260 - Resource(s) leaked
 The number of used resources is different
 Function aborted
-[1: 1394963241.745268s]
-same_resourceusage() C-kern/test/resourceusage.c:164
+[1: 1396355421.874286s]
+same_resourceusage() C-kern/test/resourceusage.c:157
 Error 260 - Resource(s) leaked
 The number of used resources is different
 Function aborted
-[1: 1394963241.746403s]
-same_resourceusage() C-kern/test/resourceusage.c:169
+[1: 1396355421.875397s]
+same_resourceusage() C-kern/test/resourceusage.c:162
 Error 260 - Resource(s) leaked
 The number of used resources is different
 Function aborted
-[1: 1394963241.747181s]
-same_resourceusage() C-kern/test/resourceusage.c:174
+[1: 1396355421.876228s]
+same_resourceusage() C-kern/test/resourceusage.c:167
 Error 260 - Resource(s) leaked
 The number of used resources is different
 Function aborted
-[1: 1394963241.747961s]
-same_resourceusage() C-kern/test/resourceusage.c:179
+[1: 1396355421.877000s]
+same_resourceusage() C-kern/test/resourceusage.c:172
 Error 260 - Resource(s) leaked
 The number of used resources is different
 Function aborted
-[1: 1394963241.748965s]
-same_resourceusage() C-kern/test/resourceusage.c:184
+[1: 1396355421.878043s]
+same_resourceusage() C-kern/test/resourceusage.c:177
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.878841s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.879093s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.880129s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.880383s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.881455s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.881714s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.882851s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.883129s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.884251s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.884518s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.885657s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.885937s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.887088s]
+same_resourceusage() C-kern/test/resourceusage.c:157
+Error 260 - Resource(s) leaked
+The number of used resources is different
+Function aborted
+[1: 1396355421.887360s]
+same_resourceusage() C-kern/test/resourceusage.c:157
 Error 260 - Resource(s) leaked
 The number of used resources is different
 Function aborted

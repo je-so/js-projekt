@@ -42,14 +42,14 @@
 #define KONFIG_opengl_egl 1
 #if ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
 
-static bool eglconfig_filter(eglconfig_t eglconf, struct native_display_t * egldisp, int32_t visualid, void * user)
+static bool eglconfig_filter(eglconfig_t eglconf, struct opengl_display_t * egldisp, int32_t visualid, void * user)
 {
    surfaceconfig_filter_t* filter   = user;
    surfaceconfig_t         surfconf = surfaceconfig_INIT(eglconf);
    return filter->accept(&surfconf, egldisp, visualid, filter->user);
 }
 
-int initfiltered_surfaceconfig(/*out*/surfaceconfig_t * surfconf, struct native_display_t * display, const int32_t config_attributes[], surfaceconfig_filter_t * filter)
+int initfiltered_surfaceconfig(/*out*/surfaceconfig_t * surfconf, struct opengl_display_t * display, const int32_t config_attributes[], surfaceconfig_filter_t * filter)
 {
    int err;
    err = initfiltered_eglconfig(&(surfconf)->config, display, config_attributes, &eglconfig_filter, filter);
@@ -94,7 +94,7 @@ static inline void compiletimetest_config_enums(void)
    static_assert(8 == surfaceconfig_value_CONFORMANT_OPENGL_BIT, "drawing api support");
 }
 
-static bool dummy_filter(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+static bool dummy_filter(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
 {
    (void) surfconf;
    (void) display;
@@ -137,13 +137,13 @@ ONABORT:
    return EINVAL;
 }
 
-static native_display_t* s_filter_display;
+static opengl_display_t* s_filter_display;
 static int32_t       s_filter_visualid;
 static void *        s_filter_user;
 static int           s_filter_total_count;
 static int           s_filter_valid_count;
 
-static bool filter_count(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+static bool filter_count(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
 {
    int32_t visualid2 = -1;
    s_filter_valid_count += (
@@ -156,7 +156,7 @@ static bool filter_count(surfaceconfig_t * surfconf, struct native_display_t * d
    return false;
 }
 
-static bool filter_select(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+static bool filter_select(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
 {
    (void) surfconf;
    (void) display;
@@ -164,7 +164,7 @@ static bool filter_select(surfaceconfig_t * surfconf, struct native_display_t * 
    return (--*(int*)user) == 0;
 }
 
-static bool filter_attribon(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+static bool filter_attribon(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
 {
    (void) visualid;
    int attrvalue = 0;
@@ -175,7 +175,7 @@ static bool filter_attribon(surfaceconfig_t * surfconf, struct native_display_t 
    return false;
 }
 
-static bool filter_attriboff(surfaceconfig_t * surfconf, struct native_display_t * display, int32_t visualid, void * user)
+static bool filter_attriboff(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
 {
    (void) visualid;
    int attrvalue = -1;
@@ -186,7 +186,7 @@ static bool filter_attriboff(surfaceconfig_t * surfconf, struct native_display_t
    return false;
 }
 
-static int test_initfree2(native_display_t * display)
+static int test_initfree2(opengl_display_t * display)
 {
    surfaceconfig_t  config   = surfaceconfig_INIT_FREEABLE;
    int config_attributes[10];
@@ -285,7 +285,7 @@ ONABORT:
    return EINVAL;
 }
 
-static int test_query(native_display_t * display)
+static int test_query(opengl_display_t * display)
 {
    surfaceconfig_t   config = surfaceconfig_INIT_FREEABLE;
    int               attrlist[10];
@@ -355,7 +355,7 @@ ONABORT:
 static int childprocess_unittest(void)
 {
    resourceusage_t    usage   = resourceusage_INIT_FREEABLE;
-   native_display_t * display = 0;
+   opengl_display_t * display = 0;
 
    TEST(0 == INITDEFAULT_DISPLAY(&display));
 

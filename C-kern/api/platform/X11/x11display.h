@@ -145,6 +145,10 @@ struct x11display_t {
  * Every thread must have its own connection to a X11 graphics display. */
 int init_x11display(/*out*/x11display_t * x11disp, const char * display_server_name) ;
 
+/* function: init2_x11display
+ * Same as <init_x11display> but allows to not initialize any X11 extension. */
+int init2_x11display(/*out*/x11display_t * x11disp, const char * display_server_name, bool isInitExtension);
+
 /* function: free_x11display
  * Closes display connection and frees all resources. */
 int free_x11display(x11display_t * x11disp) ;
@@ -173,6 +177,10 @@ void errorstring_x11display(const x11display_t * x11disp, int x11_errcode, char 
  * This extension supports querying and setting different video modes
  * (screen resolutions) - see <x11videomode_t>. */
 bool isextxrandr_x11display(const x11display_t * x11disp) ;
+
+/* function: isfree_x11display
+ * Returns true if x11disp is set to <x11display_INIT_FREEABLE>. */
+static inline bool isfree_x11display(const x11display_t * x11disp);
 
 // group: ID-manager
 
@@ -220,5 +228,12 @@ int replaceobject_x11display(x11display_t * x11disp, void * object, uintptr_t ob
  * Implements <x11display_t.isextxrandr_x11display>. */
 #define isextxrandr_x11display(x11disp)      \
          ((x11disp)->xrandr.isSupported)
+
+/* define: isfree_x11display
+ * Implements <x11display_t.isfree_x11display>. */
+static inline bool isfree_x11display(const x11display_t * x11disp)
+{
+   return 0 == x11disp->idmap && 0 == x11disp->sys_display;
+}
 
 #endif

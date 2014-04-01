@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="0" Name="m_selectedTab"/>
+  <int Value="5" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="111" Name="FirstVisibleLine"/>
-      <int Value="126" Name="CurrentLine"/>
+      <int Value="148" Name="FirstVisibleLine"/>
+      <int Value="162" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/graphic/surfaceconfig.h" Name="FileName"/>
-      <int Value="56" Name="FirstVisibleLine"/>
-      <int Value="54" Name="CurrentLine"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="14" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -25,23 +25,23 @@
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/X11/x11window.c" Name="FileName"/>
-      <int Value="1566" Name="FirstVisibleLine"/>
-      <int Value="1607" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/api/platform/X11/x11window.h" Name="FileName"/>
-      <int Value="188" Name="FirstVisibleLine"/>
-      <int Value="186" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/platform/X11/x11display.h" Name="FileName"/>
-      <int Value="117" Name="FirstVisibleLine"/>
-      <int Value="115" Name="CurrentLine"/>
+      <int Value="179" Name="FirstVisibleLine"/>
+      <int Value="177" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/api/graphic/display.h" Name="FileName"/>
+      <int Value="53" Name="FirstVisibleLine"/>
+      <int Value="97" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/C-kern/graphic/display.c" Name="FileName"/>
+      <int Value="65" Name="FirstVisibleLine"/>
+      <int Value="77" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -66,7 +66,7 @@
     </SerializedObject>
     <SerializedObject Name="Breakpoint1">
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="file"/>
-      <int Value="149" Name="lineno"/>
+      <int Value="150" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>
