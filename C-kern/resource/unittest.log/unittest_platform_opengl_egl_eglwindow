@@ -1,21 +1,21 @@
-[1: 1395167095.469095s]
-initx11_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:79
+[1: 1395342396.243212s]
+initx11_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:78
 Error 22 - Invalid argument
 Function aborted
-[1: 1395167095.469116s]
-initx11_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:79
+[1: 1395342396.243238s]
+initx11_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:78
 Error 22 - Invalid argument
 Function aborted
-[1: 1395167095.469122s]
-initx11_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:65
+[1: 1395342396.243243s]
+initx11_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:64
 Error 22 - Invalid argument
 Function input violates condition (x11win->sys_drawable != 0)
 Function aborted
-[1: 1395167095.469562s]
-initx11_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:79
+[1: 1395342396.243690s]
+initx11_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:78
 Error 22 - Invalid argument
 Function aborted
-[1: 1395167095.470577s]
-free_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:103
+[1: 1395342396.244735s]
+free_eglwindow() C-kern/platform/OpenGL/EGL/eglwindow.c:102
 Error 22 - Invalid argument
 Function aborted - one or more resources could not be freed

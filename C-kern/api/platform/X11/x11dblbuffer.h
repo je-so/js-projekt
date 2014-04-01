@@ -69,8 +69,7 @@ struct x11dblbuffer_t {
          { 0, 0, 0 }
 
 /* function: init_x11dblbuffer
- * Tries to allocate a double buffer associated with window.
- * The attribute <x11attribute_DOUBLEBUFFER> must have been supplied in the window configuration. */
+ * Tries to allocate a double buffer associated with window. */
 int init_x11dblbuffer(/*out*/x11dblbuffer_t * dblbuf, struct x11window_t * x11win);
 
 /* function: free_x11dblbuffer

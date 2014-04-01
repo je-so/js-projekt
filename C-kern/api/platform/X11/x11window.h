@@ -30,7 +30,6 @@
 
 // forward
 struct cstring_t ;
-struct x11attribute_t ; // TODO: remove all
 struct x11display_t ;
 struct x11drawable_t ;
 struct x11screen_t ;
@@ -147,8 +146,8 @@ void x11window_it_DECLARE(TYPENAME declared_it, TYPENAME subwindow_t) ;
 /* struct: x11window_t
  * Displays a window (rectangular area) on a screen.
  * The window can have a frame and title bar which is draw and managed by the window manager.
- * Add <x11attribute_INIT_WINFRAME> to your configuration list before calling <init_x11window>
- * to add a frame and title bar. Use <x11attribute_INIT_WINTITLE> to name the title bar. */
+ * Use <windowconfig_INIT_FRAME> in your configuration list before calling <init_x11window>
+ * to add a frame and title bar. Use <windowconfig_INIT_TITLE> to name the title bar. */
 struct x11window_t {
    /* variable: display
     * Reference to <x11display_t>. Every call to X library needs this parameter. */
@@ -287,10 +286,10 @@ int settitle_x11window(const x11window_t * x11win, const char * title) ;
  * An opacity value of 1 draws the window opaque.
  * A value of 0 makes it totally translucent.
  * If opacity is set to a value outside of [0..1] EINVAL is returned.
- * The opacity is different from <x11attribute_ALPHAOPACITY>.
+ * The opacity is different from <surfaceconfig_TRANSPARENT_ALPHA>.
  * A value of 0 makes the window invisible.
  *
- * Wheras an alpha value of 0 in case of <x11attribute_ALPHAOPACITY>
+ * Wheras an alpha value of 0 in case of <surfaceconfig_TRANSPARENT_ALPHA>
  * does contribute by adding it to the background value.
  *
  * Blending Function:

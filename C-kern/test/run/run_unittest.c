@@ -287,7 +287,6 @@ int run_unittest(void * argv)
 #define KONFIG_x11        4
 #if ((KONFIG_USERINTERFACE)&KONFIG_x11)
       RUN(unittest_platform_X11);
-      RUN(unittest_platform_X11_x11attribute);
       RUN(unittest_platform_X11_x11display);
       RUN(unittest_platform_X11_x11screen);
       RUN(unittest_platform_X11_x11drawable);

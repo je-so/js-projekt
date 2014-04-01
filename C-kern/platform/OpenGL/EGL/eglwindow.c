@@ -39,7 +39,6 @@
 #include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/task/thread.h"
 #include "C-kern/api/platform/X11/x11.h"
-#include "C-kern/api/platform/X11/x11attribute.h"
 #include "C-kern/api/platform/X11/x11display.h"
 #include "C-kern/api/platform/X11/x11screen.h"
 #endif

@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/demo.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Apr.01  14:38:29
+GenerationDate  := 2014.Apr.01  14:49:47
 GeneratedBy     := je-so
 
 ## Debug
@@ -110,7 +110,6 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!X11!x11window.c.o \
  $(ObjectDir_Debug)/C-kern!platform!X11!x11drawable.c.o \
  $(ObjectDir_Debug)/C-kern!platform!X11!x11videomode.c.o \
- $(ObjectDir_Debug)/C-kern!platform!X11!x11attribute.c.o \
  $(ObjectDir_Debug)/C-kern!platform!X11!x11screen.c.o \
  $(ObjectDir_Debug)/demo!opengl!setup_opengles_demo.c.o \
  $(ObjectDir_Debug)/demo!opengl!main.c.o \
@@ -155,7 +154,6 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!X11!x11window.c.o \
  $(ObjectDir_Release)/C-kern!platform!X11!x11drawable.c.o \
  $(ObjectDir_Release)/C-kern!platform!X11!x11videomode.c.o \
- $(ObjectDir_Release)/C-kern!platform!X11!x11attribute.c.o \
  $(ObjectDir_Release)/C-kern!platform!X11!x11screen.c.o \
  $(ObjectDir_Release)/demo!opengl!setup_opengles_demo.c.o \
  $(ObjectDir_Release)/demo!opengl!main.c.o \
@@ -275,9 +273,6 @@ $(ObjectDir_Debug)/C-kern!platform!X11!x11drawable.c.o: C-kern/platform/X11/x11d
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!X11!x11videomode.c.o: C-kern/platform/X11/x11videomode.c
-	@$(CC_Debug)
-
-$(ObjectDir_Debug)/C-kern!platform!X11!x11attribute.c.o: C-kern/platform/X11/x11attribute.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!X11!x11screen.c.o: C-kern/platform/X11/x11screen.c
@@ -404,9 +399,6 @@ $(ObjectDir_Release)/C-kern!platform!X11!x11drawable.c.o: C-kern/platform/X11/x1
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!X11!x11videomode.c.o: C-kern/platform/X11/x11videomode.c
-	@$(CC_Release)
-
-$(ObjectDir_Release)/C-kern!platform!X11!x11attribute.c.o: C-kern/platform/X11/x11attribute.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!X11!x11screen.c.o: C-kern/platform/X11/x11screen.c

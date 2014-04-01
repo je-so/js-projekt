@@ -30,7 +30,6 @@
 #include "C-kern/api/graphic/surfaceconfig.h"
 #include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/X11/x11.h"
-#include "C-kern/api/platform/X11/x11attribute.h"
 #include "C-kern/api/platform/X11/x11display.h"
 #include "C-kern/api/platform/X11/x11drawable.h"
 #include "C-kern/api/platform/X11/x11screen.h"
@@ -1416,7 +1415,7 @@ static int test_opacity(testwindow_t * testwin1, testwindow_t * testwin2)
    TEST(0 == pos_x11window(x11win1, &x, &y)) ;
    TEST(0 == setpos_x11window(x11win2, x, y)) ;
 
-   // TEST x11attribute_ALPHAOPACITY
+   // TEST surfaceconfig_TRANSPARENT_ALPHA
    // draw background window red
    TEST(1 == XFillRectangle(x11win1->display->sys_display, x11win1->sys_drawable, gc1, 0, 0, 200, 100)) ;
    WAITFOR(x11win1->display, 1, false) ;

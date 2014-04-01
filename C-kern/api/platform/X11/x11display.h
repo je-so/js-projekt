@@ -103,8 +103,7 @@ struct x11display_t {
    x11display_extension_t        glx;
    /* variable: xdbe
     * Check isSupported whether »Double Buffer extension« is supported.
-    * The attribute <x11attribute_DOUBLEBUFFER> and function <backbuffer_x11window>
-    * work only if this extension is implemented by the X11 server. */
+    * <x11dblbuffer_t> works only if this extension is supported. */
    x11display_extension_t        xdbe;
    /* variable: xrandr
     * Check isSupported whether »X Resize, Rotate and Reflection extension« is supported.
