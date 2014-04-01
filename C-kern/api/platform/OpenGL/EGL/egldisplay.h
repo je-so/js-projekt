@@ -1,7 +1,8 @@
 /* title: EGL-Display
 
    Implements the binding of a native os-specific graphics display
-   to OpenGL ES (and OpenGL).
+   to OpenGL / OpenGLES. The implementation uses the EGL API which
+   adapts OpenGL to the native windowing system.
 
    about: Copyright
    This program is free software.
@@ -31,9 +32,7 @@
 struct x11display_t;
 
 /* typedef: opengl_display_t
- * Type which tags the native implementation of an OpenGL capable display.
- * In the case of EGL this type wraps a native OS display into an EGL specific
- * type. */
+ * Type which tags the native implementation of an OpenGL capable display. */
 typedef struct opengl_display_t  opengl_display_t;
 
 /* typedef: struct egldisplay_t
@@ -53,7 +52,8 @@ int unittest_platform_opengl_egl_egldisplay(void);
 
 
 /* struct: egldisplay_t
- * Wraps the native display type in an EGL specific way. */
+ * Wrapper of a native display type.
+ * Adds additional information used by OpenGL / EGL. */
 typedef struct opengl_display_t * egldisplay_t;
 
 // group: lifetime

@@ -35,7 +35,7 @@ struct x11display_t ;
 struct x11drawable_t ;
 struct x11screen_t ;
 // graphic
-struct surfaceconfig_filter_t;
+struct gconfig_filter_t;
 struct windowconfig_t;
 
 /* typedef: struct x11window_t
@@ -184,14 +184,14 @@ struct x11window_t {
  * After successful return <state_x11window> returns <x11window_state_HIDDEN>.
  * Call <show_x11window> to show the window to the user.
  * Do not use this function to initialize an X11 window with OpenGL specific attributes.
- * Use <initvid_x11window> instead and determine the visualid with <visualid_surfaceconfig> -
- * see <surfaceconfig_t>. */
-int init_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, uint32_t screennr, const struct x11window_evh_t * eventhandler, const int32_t * surfconf_attrib, const struct windowconfig_t * winconf_attrib);
+ * Use <initvid_x11window> instead and determine the visualid with <visualid_gconfig> -
+ * see <gconfig_t>. */
+int init_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, uint32_t screennr, const struct x11window_evh_t * eventhandler, const int32_t * gconf_attrib, const struct windowconfig_t * winconf_attrib);
 
 /* function: initvid_x11window
  * Create a native X11 window on x11screen and assign it to x11win.
  * Same as <init_x11window> except that the visual type of the window
- * is not determined by a list of <surfaceconfig_e> attributes but
+ * is not determined by a list of <gconfig_e> attributes but
  * with parameter config_visualid which holds the ID of the X11 visual.
  * The visual of a window determines its capabilities like nr of bits
  * per color channel, double buffering and other OpenGL related stuff. */
@@ -296,10 +296,10 @@ int settitle_x11window(const x11window_t * x11win, const char * title) ;
  * An opacity value of 1 draws the window opaque.
  * A value of 0 makes it totally translucent.
  * If opacity is set to a value outside of [0..1] EINVAL is returned.
- * The opacity is different from <surfaceconfig_TRANSPARENT_ALPHA>.
+ * The opacity is different from <gconfig_TRANSPARENT_ALPHA>.
  * A value of 0 makes the window invisible.
  *
- * Wheras an alpha value of 0 in case of <surfaceconfig_TRANSPARENT_ALPHA>
+ * Wheras an alpha value of 0 in case of <gconfig_TRANSPARENT_ALPHA>
  * does contribute by adding it to the background value.
  *
  * Blending Function:
@@ -325,17 +325,17 @@ x11window_t * genericcast_x11window(void * object) ;
 // group: helper
 
 /* function: configfilter_x11window
- * Returns a <surfaceconfig_filter_f> which helps to filter for a specific window visual.
+ * Returns a <gconfig_filter_f> which helps to filter for a specific window visual.
  * The content of the array config_attributes must be the same as it will be used in
- * <initfiltered_surfaceconfig>. The returned filter is never null and
+ * <initfiltered_gconfig>. The returned filter is never null and
  * either it returns always true and selects the first matching surface configuration
- * or in case of <surfaceconfig_TRANSPARENT_ALPHA> switched on it returns only true
+ * or in case of <gconfig_TRANSPARENT_ALPHA> switched on it returns only true
  * for a configuration which supports this feature under X11.
- * The first supplied value of <surfaceconfig_TRANSPARENT_ALPHA> in config_attributes
+ * The first supplied value of <gconfig_TRANSPARENT_ALPHA> in config_attributes
  * is used. Do not define attributes more than once else the returned filter could
- * be the wrong one. If more than surfaceconfig_NROFELEMENTS attributes are defined in
+ * be the wrong one. If more than gconfig_NROFELEMENTS attributes are defined in
  * config_attributes error E2BIG is returned. */
-int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, const int32_t config_attributes[]);
+int configfilter_x11window(/*out*/struct gconfig_filter_t * filter, const int32_t config_attributes[]);
 
 
 // section: inline implementation

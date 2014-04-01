@@ -32,16 +32,14 @@
 
 // forward
 struct display_t;
-struct surfaceconfig_t;
+struct gconfig_t;
 struct windowconfig_t;
 
 #ifdef KONFIG_USERINTERFACE_X11
 #include "C-kern/api/platform/X11/x11window.h"
 #endif
 
-#ifdef KONFIG_USERINTERFACE_EGL
-#include "C-kern/api/platform/OpenGL/EGL/eglwindow.h"
-#endif
+#include "C-kern/api/graphic/surface.h"
 
 /* typedef: struct window_t
  * Export <window_t> into global namespace. */
@@ -129,26 +127,28 @@ void window_evh_DECLARE(TYPENAME declared_evh_t, TYPENAME subwindow_t);
 /* struct: window_t
  * Wraps a native window and its OpenGL specific wrapper (if needed). */
 struct window_t {
-#if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
+#if defined(KONFIG_USERINTERFACE_X11)
    x11window_t oswindow;
-   eglwindow_t glwindow;
 #else
    #error "window_t not implemented for definition of KONFIG_USERINTERFACE"
 #endif
+   surface_EMBED;
 };
 
 // group: lifetime
 
+#if defined(KONFIG_USERINTERFACE_X11)
 /* define: window_INIT_FREEABLE
  * Static initializer. */
-#if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
 #define window_INIT_FREEABLE \
-         { x11window_INIT_FREEABLE, eglwindow_INIT_FREEABLE }
+         { x11window_INIT_FREEABLE, surface_INIT_FREEABLE_EMBEDDED }
 #endif
 
 /* function: init_window
- * Creates a new native window and its OpenGL extension/wrapper type. */
-int init_window(/*out*/window_t * win, struct display_t * disp, uint32_t screennr, const struct window_evh_t * eventhandler, struct surfaceconfig_t * surfconf, struct windowconfig_t * winattr);
+ * Creates a new native window and its OpenGL extension/wrapper type.
+ * A copy of the pointer disp is stored internally so do not free <display_t> disp
+ * until win has been freed. */
+int init_window(/*out*/window_t * win, struct display_t * disp, uint32_t screennr, const struct window_evh_t * eventhandler, struct gconfig_t * gconf, struct windowconfig_t * winattr);
 
 /* function: free_window
  * Frees win and its associated resources like native windows.
@@ -160,7 +160,7 @@ int free_window(window_t * win);
 
 /* function: gl_window
  * Returns a pointer to a native opengl window. */
-struct opengl_window_t * gl_window(const window_t * win);
+struct opengl_surface_t * gl_window(const window_t * win);
 
 /* function: os_window
  * Returns a pointer to a native window.
@@ -235,7 +235,7 @@ int sendredraw_window(window_t * win);
 /* define: gl_window
  * Implements <window_t.gl_window>. */
 #define gl_window(win) \
-         ((win)->glwindow)
+         gl_surface(win)
 
 /* define: os_window
  * Implements <window_t.os_window>. */

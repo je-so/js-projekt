@@ -98,7 +98,8 @@ struct @TYPENAME {\n\
 \n\
 /* define: @TYPENAME2_INIT_FREEABLE\n\
  * Static initializer. */\n\
-#define @TYPENAME2_INIT_FREEABLE      { 0 }\n\
+#define @TYPENAME2_INIT_FREEABLE \\\n\
+         { 0 }\n\
 \n\
 /* function: init_@FCTSUFFIX\n\
  * TO""DO: Describe Initializes object. */\n\

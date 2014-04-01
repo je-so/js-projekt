@@ -33,15 +33,9 @@ struct opengl_config_t;
 struct opengl_display_t;
 struct x11window_t;
 
-/* typedef: opengl_window_t
- * Type which tags the native implementation of an OpenGL capable window.
- * In the case of EGL this type wraps a native OS window into an EGL specific
- * type. */
-typedef struct opengl_window_t opengl_window_t;
-
 /* typedef: struct eglwindow_t
  * Export <eglwindow_t> into global namespace. */
-typedef struct opengl_window_t * eglwindow_t;
+typedef struct opengl_surface_t * eglwindow_t;
 
 
 // section: Functions
@@ -57,7 +51,7 @@ int unittest_platform_opengl_egl_eglwindow(void);
 
 /* struct: eglwindow_t
  * Wraps a native window into an EGL specific type. */
-typedef struct opengl_window_t * eglwindow_t;
+typedef struct opengl_surface_t * eglwindow_t;
 
 // group: lifetime
 

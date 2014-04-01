@@ -1,0 +1,12 @@
+[1: 1396290049.569518s]
+init_eglcontext() C-kern/platform/OpenGL/EGL/eglcontext.c:89
+Error 22 - Invalid argument
+Function aborted
+[1: 1396290049.569544s]
+init_gcontext() C-kern/graphic/gcontext.c:64
+Error 22 - Invalid argument
+Function aborted
+[1: 1396290049.572893s]
+free_gcontext() C-kern/graphic/gcontext.c:85
+Error 7 - Argument list too long
+Function aborted - one or more resources could not be freed

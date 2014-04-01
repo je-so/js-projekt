@@ -27,6 +27,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/OpenGL/EGL/egldisplay.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/platform/OpenGL/EGL/egl.h"
 #include "C-kern/api/platform/X11/x11display.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
@@ -106,17 +107,15 @@ int free_egldisplay(egldisplay_t * egldisp)
 
    if (*egldisp) {
       EGLBoolean isTerminate = eglTerminate(*egldisp);
-      if (PROCESS_testerrortimer(&s_egldisplay_errtimer)) {
-         isTerminate = EGL_FALSE;
-      }
 
-      // there is no eglFreeDisplay
       *egldisp = 0;
 
       if (EGL_FALSE == isTerminate) {
-         err = EINVAL;
+         err = aserrcode_egl(eglGetError());
          goto ONABORT;
       }
+
+      ONERROR_testerrortimer(&s_egldisplay_errtimer, &err, ONABORT);
    }
 
    return 0;
@@ -157,8 +156,8 @@ static int test_initfree(void)
    TEST(olddisplay == egldisp);
 
    // TEST free_egldisplay: error
-   init_testerrortimer(&s_egldisplay_errtimer, 1, EINVAL);
-   TEST(EINVAL == free_egldisplay(&egldisp));
+   init_testerrortimer(&s_egldisplay_errtimer, 1, ENODATA);
+   TEST(ENODATA == free_egldisplay(&egldisp));
    TEST(0 == egldisp);
 
    // TEST initdefault_egldisplay: error

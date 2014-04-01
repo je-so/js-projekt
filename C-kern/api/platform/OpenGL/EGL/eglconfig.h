@@ -68,15 +68,17 @@ typedef struct opengl_config_t * eglconfig_t;
 #define eglconfig_INIT_FREEABLE  0
 
 /* function: init_eglconfig
- * Returns a surface (frame buffer) configuration which matches the given attributes.
- * The parameters stored in config_attributes must be tupels of type (<surfaceconfig_e> value, int value)
- * followed by the termination value <surfaceconfig_NONE>.
+ * Returns a configuration which matches the given attributes.
+ * The configuration determines the type of frame buffer supported by
+ * surfaces or OpenGL contexts.
+ * The parameters stored in config_attributes must be tupels of type (<gconfig_e> value, int value)
+ * followed by the termination value <gconfig_NONE>.
  *
  * Returns:
  * 0      - Success, eglconf is valid.
  * E2BIG  - Attributes list in config_attributes is too long, eglconf is not changed.
- * EINVAL - Either egldisp is invalid, an invalid <surfaceconfig_e> is supplied or the supplied integer value
- *          is invalid for the corresponding <surfaceconfig_e> attribute id.
+ * EINVAL - Either egldisp is invalid, an invalid <gconfig_e> is supplied or the supplied integer value
+ *          is invalid for the corresponding <gconfig_e> attribute id.
  * ESRCH  - No configuration matches the supplied attribues.
  * */
 int init_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const int32_t config_attributes[]);
@@ -88,6 +90,12 @@ int init_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldi
  * Parameter user is passed as user data into the filter function. */
 int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const int32_t config_attributes[], eglconfig_filter_f filter, void * user);
 
+/* function: initfromconfigid_eglconfig
+ * Returns a configuration with ID id.
+ * Use this function to create a copy of a configuration assigned to a
+ * surface (window, pbuffer) or a context. */
+int initfromconfigid_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t * egldisp, const uint32_t id);
+
 /* function: free_eglconfig
  * Frees any associated resources.
  * Currently this is a no-op. */
@@ -97,15 +105,27 @@ int free_eglconfig(eglconfig_t * eglconf);
 
 /* function: value_eglconfig
  * Returns the value of attribute.
- * The parameter egldisp must be of type <egldisplay_t> and parameter attribute must be a value from <surfaceconfig_e>.
+ * The parameter egldisp must be of type <egldisplay_t> and parameter attribute must be a value from <gconfig_e>.
  * On error EINVAL is returned else 0. */
 int value_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp, const int32_t attribute, /*out*/int32_t * value);
 
-/* function: visualid_eglconfig
+/* function: visualconfigid_eglconfig
  * Returns the native visualid of the configuration.
  * Use this id to create a native window with the correct
  * surface graphic attributes. */
-int visualid_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp, /*out*/int32_t * visualid);
+int visualconfigid_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp, /*out*/int32_t * visualid);
+
+/* function: configid_eglconfig
+ * Returns the ID of configuration eglconf in id.
+ * You can use id to create an exact copy of eglconf. */
+int configid_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp, /*out*/uint32_t * id);
+
+/* function: maxpbuffer_eglconfig
+ * Returns the maximum size of an off-screen pixel buffer.
+ * The values are returned in maxwidth(in pixels), maxheight(in pixels) and maxpixels(width*height).
+ * If one of the out parameter is set to NULL no value is returned. */
+int maxpbuffer_eglconfig(eglconfig_t eglconf, struct opengl_display_t * egldisp, /*out*/uint32_t * maxwidth, /*out*/uint32_t * maxheight, /*out*/uint32_t * maxpixels);
+
 
 // section: inline implementation
 

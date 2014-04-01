@@ -29,6 +29,12 @@
 #include "C-kern/api/err.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
+#include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/graphic/gconfig.h"
+#include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
+#include "C-kern/api/platform/OpenGL/EGL/eglcontext.h"
+#include "C-kern/api/platform/OpenGL/EGL/egldisplay.h"
+#include "C-kern/api/platform/OpenGL/EGL/eglpbuffer.h"
 #endif
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
 
@@ -52,7 +58,8 @@ int aserrcode_egl(int eglerr)
    case EGL_BAD_ALLOC:        return EALLOC; // EGL failed to allocate resources for the requested operation.
    case EGL_BAD_ATTRIBUTE:    return EINVAL; // An unrecognized attribute or attribute value was passed in the attribute list.
    case EGL_BAD_CONTEXT:      return EINVAL; // An EGLContext argument does not name a valid EGL rendering context.
-   case EGL_BAD_CONFIG:       return EINVAL; // An EGLConfig argument does not name a valid EGL frame buffer configuration.
+   case EGL_BAD_CONFIG:       return EINVAL; // An EGLConfig argument does not name a valid EGL frame buffer configuration
+                                             // or does not support the current rendering API.
    case EGL_BAD_CURRENT_SURFACE:return ENODEV; // The current surface of the calling thread is a window, pixel buffer or pixmap that is no longer valid.
    case EGL_BAD_DISPLAY:      return EINVAL; // An EGLDisplay argument does not name a valid EGL display connection.
    case EGL_BAD_SURFACE:      return EINVAL; // An EGLSurface argument does not name a valid surface (window, pixel buffer or pixmap) configured for GL rendering.
@@ -66,20 +73,26 @@ int aserrcode_egl(int eglerr)
    return EINVAL;    // invalid value in eglerr
 }
 
-
 // group: test
 
 #ifdef KONFIG_UNITTEST
 
 static int test_query(void)
 {
-
    // TEST eglerr_egl
    TEST(0 == eglTerminate(0));
    TEST(EGL_BAD_DISPLAY == eglerr_egl());
+   // value was reset
    TEST(EGL_SUCCESS == eglerr_egl());
    TEST(EGL_SUCCESS == eglerr_egl());
 
+   return 0;
+ONABORT:
+   return EINVAL;
+}
+
+static int test_query2(void)
+{
    // TEST aserrcode_egl
    TEST(0 == aserrcode_egl(EGL_SUCCESS));
    TEST(ESTATE == aserrcode_egl(EGL_NOT_INITIALIZED));
@@ -109,11 +122,32 @@ ONABORT:
    return EINVAL;
 }
 
-int unittest_platform_opengl_egl_egl()
+static int childprocess_unittest(void)
 {
+   resourceusage_t   usage = resourceusage_INIT_FREEABLE;
+
    if (test_query())    goto ONABORT;
 
+   TEST(0 == init_resourceusage(&usage));
+
+   if (test_query2())                  goto ONABORT;
+
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
+
    return 0;
+ONABORT:
+   (void) free_resourceusage(&usage);
+   return EINVAL;
+}
+
+int unittest_platform_opengl_egl_egl()
+{
+   int err;
+
+   TEST(0 == execasprocess_unittest(&childprocess_unittest, &err));
+
+   return err;
 ONABORT:
    return EINVAL;
 }

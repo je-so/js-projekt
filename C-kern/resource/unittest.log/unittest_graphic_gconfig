@@ -1,0 +1,72 @@
+[1: 1396203367.181828s]
+initfiltered_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:200
+Error 22 - Invalid argument
+Function aborted
+[1: 1396203367.181848s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 22 - Invalid argument
+Function aborted
+[1: 1396203367.181854s]
+init_gconfig() C-kern/graphic/gconfig.c:64
+Error 22 - Invalid argument
+Function aborted
+[1: 1396203367.181859s]
+initfiltered_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:200
+Error 22 - Invalid argument
+Function aborted
+[1: 1396203367.181864s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 22 - Invalid argument
+Function aborted
+[1: 1396203367.181868s]
+init_gconfig() C-kern/graphic/gconfig.c:64
+Error 22 - Invalid argument
+Function aborted
+[1: 1396203367.181872s]
+initfiltered_eglconfig() C-kern/platform/OpenGL/EGL/eglconfig.c:200
+Error 7 - Argument list too long
+Function aborted
+[1: 1396203367.181877s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 7 - Argument list too long
+Function aborted
+[1: 1396203367.181888s]
+init_gconfig() C-kern/graphic/gconfig.c:64
+Error 7 - Argument list too long
+Function aborted
+[1: 1396203367.181920s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 3 - No such process
+Function aborted
+[1: 1396203367.181924s]
+init_gconfig() C-kern/graphic/gconfig.c:64
+Error 3 - No such process
+Function aborted
+[1: 1396203367.182708s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 3 - No such process
+Function aborted
+[1: 1396203367.207569s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 3 - No such process
+Function aborted
+[1: 1396203367.207693s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 3 - No such process
+Function aborted
+[1: 1396203367.207943s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 3 - No such process
+Function aborted
+[1: 1396203367.208130s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 3 - No such process
+Function aborted
+[1: 1396203367.208370s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 3 - No such process
+Function aborted
+[1: 1396203367.208489s]
+initfiltered_gconfig() C-kern/graphic/gconfig.c:103
+Error 3 - No such process
+Function aborted

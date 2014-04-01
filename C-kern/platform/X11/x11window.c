@@ -28,7 +28,7 @@
 #include "C-kern/api/platform/X11/x11window.h"
 #include "C-kern/api/err.h"
 #include "C-kern/api/graphic/display.h"
-#include "C-kern/api/graphic/surfaceconfig.h"
+#include "C-kern/api/graphic/gconfig.h"
 #include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/X11/x11display.h"
@@ -66,44 +66,44 @@ static int matchvisual_x11window(
       /*out*/VisualID *    visualid,
       x11display_t   *     x11disp,
       uint32_t             screennr,
-      const int32_t *      surfconf_attrib)
+      const int32_t *      gconf_attrib)
 {
    int32_t  rgbbits   = 0;
    int32_t  alphabits = 0;
    int32_t  buffbits  = 0;
    bool     isOpacity = false;
 
-   for (unsigned i = 0; surfconf_attrib[i] != surfaceconfig_NONE; i += 2) {
-      if (i >= 2*surfaceconfig_NROFELEMENTS) {
+   for (unsigned i = 0; gconf_attrib[i] != gconfig_NONE; i += 2) {
+      if (i >= 2*gconfig_NROFELEMENTS) {
          return E2BIG;
       }
-      switch ((surfaceconfig_e)surfconf_attrib[i]) {
+      switch ((gconfig_e)gconf_attrib[i]) {
       default:
          return EINVAL;
-      case surfaceconfig_NONE:
-      case surfaceconfig_CONFORMANT:
-      case surfaceconfig_TYPE:
-      case surfaceconfig_BITS_DEPTH:
-      case surfaceconfig_BITS_STENCIL:
+      case gconfig_NONE:
+      case gconfig_CONFORMANT:
+      case gconfig_TYPE:
+      case gconfig_BITS_DEPTH:
+      case gconfig_BITS_STENCIL:
          // ignore
          break;
-      case surfaceconfig_BITS_BUFFER:
-         if (surfconf_attrib[i+1] > buffbits) {
-            buffbits = surfconf_attrib[i+1];
+      case gconfig_BITS_BUFFER:
+         if (gconf_attrib[i+1] > buffbits) {
+            buffbits = gconf_attrib[i+1];
          }
          break;
-      case surfaceconfig_BITS_RED:
-      case surfaceconfig_BITS_GREEN:
-      case surfaceconfig_BITS_BLUE:
-         if (surfconf_attrib[i+1] > rgbbits) {
-            rgbbits = surfconf_attrib[i+1];
+      case gconfig_BITS_RED:
+      case gconfig_BITS_GREEN:
+      case gconfig_BITS_BLUE:
+         if (gconf_attrib[i+1] > rgbbits) {
+            rgbbits = gconf_attrib[i+1];
          }
          break ;
-      case surfaceconfig_BITS_ALPHA:
-         alphabits = surfconf_attrib[i+1];
+      case gconfig_BITS_ALPHA:
+         alphabits = gconf_attrib[i+1];
          break ;
-      case surfaceconfig_TRANSPARENT_ALPHA:
-         isOpacity = (surfconf_attrib[i+1] != 0);
+      case gconfig_TRANSPARENT_ALPHA:
+         isOpacity = (gconf_attrib[i+1] != 0);
          break ;
       }
    }
@@ -290,7 +290,7 @@ ONABORT:
    return err;
 }
 
-int init_x11window(/*out*/x11window_t * x11win, x11display_t * x11disp, uint32_t screennr, const struct x11window_evh_t * eventhandler, const int32_t * surfconf_attrib, const struct windowconfig_t * winconf_attrib)
+int init_x11window(/*out*/x11window_t * x11win, x11display_t * x11disp, uint32_t screennr, const struct x11window_evh_t * eventhandler, const int32_t * gconf_attrib, const struct windowconfig_t * winconf_attrib)
 {
    int err ;
    uint32_t maxnr = (uint32_t) ScreenCount(x11disp->sys_display);
@@ -300,8 +300,8 @@ int init_x11window(/*out*/x11window_t * x11win, x11display_t * x11disp, uint32_t
 
    visualid = XVisualIDFromVisual(DefaultVisual(x11disp->sys_display, screennr));
 
-   if (surfconf_attrib) {
-      err = matchvisual_x11window(&visualid, x11disp, screennr, surfconf_attrib) ;
+   if (gconf_attrib) {
+      err = matchvisual_x11window(&visualid, x11disp, screennr, gconf_attrib) ;
       if (err) goto ONABORT ;
    }
 
@@ -639,18 +639,18 @@ ONABORT:
 
 // group: helper
 
-static bool matchfirstfilter_x11window(surfaceconfig_t * surfconf, struct display_t * display, int32_t visualid, void * user)
+static bool matchfirstfilter_x11window(gconfig_t * gconf, struct display_t * display, int32_t visualid, void * user)
 {
-   (void) surfconf;
+   (void) gconf;
    (void) display;
    (void) visualid;
    (void) user;
    return true;
 }
 
-static bool matchtransparentalphafilter_x11window(surfaceconfig_t * surfconf, struct display_t * display, int32_t visualid, void * user)
+static bool matchtransparentalphafilter_x11window(gconfig_t * gconf, struct display_t * display, int32_t visualid, void * user)
 {
-   (void) surfconf;
+   (void) gconf;
    (void) display;
    (void) user;
 
@@ -669,23 +669,23 @@ static bool matchtransparentalphafilter_x11window(surfaceconfig_t * surfconf, st
    return isMatch;
 }
 
-int configfilter_x11window(/*out*/surfaceconfig_filter_t * filter, const int32_t config_attributes[])
+int configfilter_x11window(/*out*/gconfig_filter_t * filter, const int32_t config_attributes[])
 {
-   for (unsigned i = 0; config_attributes[i] != surfaceconfig_NONE; i += 2) {
-      if (i >= 2*surfaceconfig_NROFELEMENTS) {
+   for (unsigned i = 0; config_attributes[i] != gconfig_NONE; i += 2) {
+      if (i >= 2*gconfig_NROFELEMENTS) {
          return E2BIG;
       }
 
-      if (config_attributes[i] == surfaceconfig_TRANSPARENT_ALPHA) {
+      if (config_attributes[i] == gconfig_TRANSPARENT_ALPHA) {
          if (config_attributes[i+1] != 0) {
-            *filter = (surfaceconfig_filter_t) surfaceconfig_filter_INIT(&matchtransparentalphafilter_x11window, 0);
+            *filter = (gconfig_filter_t) gconfig_filter_INIT(&matchtransparentalphafilter_x11window, 0);
             return 0;
          }
          break;
       }
    }
 
-   *filter = (surfaceconfig_filter_t) surfaceconfig_filter_INIT(&matchfirstfilter_x11window, 0);
+   *filter = (gconfig_filter_t) gconfig_filter_INIT(&matchfirstfilter_x11window, 0);
    return 0;
 }
 
@@ -990,27 +990,27 @@ static int test_query(x11display_t * x11disp, testwindow_t * testwin, testwindow
 
    // TEST matchvisual_x11window
    {
-      int32_t attr[] = { surfaceconfig_TRANSPARENT_ALPHA, 1, surfaceconfig_NONE } ;
+      int32_t attr[] = { gconfig_TRANSPARENT_ALPHA, 1, gconfig_NONE } ;
       TEST(0 == matchvisual_x11window(&visualid, x11disp, snr, attr)) ;
       TEST(0 == compare_visual(x11disp, snr, visualid, 0, 1, 0)) ;
    }  {
-      int32_t attr[] = { surfaceconfig_BITS_ALPHA, 8, surfaceconfig_NONE } ;
+      int32_t attr[] = { gconfig_BITS_ALPHA, 8, gconfig_NONE } ;
       TEST(0 == matchvisual_x11window(&visualid, x11disp, snr, attr)) ;
       TEST(0 == compare_visual(x11disp, snr, visualid, 0, 8, 0)) ;
    }  {
-      int32_t attr[] = { surfaceconfig_BITS_RED, 8,  surfaceconfig_NONE } ;
+      int32_t attr[] = { gconfig_BITS_RED, 8,  gconfig_NONE } ;
       TEST(0 == matchvisual_x11window(&visualid, x11disp, snr, attr)) ;
       TEST(0 == compare_visual(x11disp, snr, visualid, 8, 0, 0)) ;
    }  {
-      int32_t attr[] = { surfaceconfig_BITS_GREEN, 8,  surfaceconfig_NONE } ;
+      int32_t attr[] = { gconfig_BITS_GREEN, 8,  gconfig_NONE } ;
       TEST(0 == matchvisual_x11window(&visualid, x11disp, snr, attr)) ;
       TEST(0 == compare_visual(x11disp, snr, visualid, 8, 0, 0)) ;
    }  {
-      int32_t attr[] = { surfaceconfig_BITS_BLUE, 8, surfaceconfig_NONE } ;
+      int32_t attr[] = { gconfig_BITS_BLUE, 8, gconfig_NONE } ;
       TEST(0 == matchvisual_x11window(&visualid, x11disp, snr, attr)) ;
       TEST(0 == compare_visual(x11disp, snr, visualid, 8, 0, 0)) ;
    }  {
-      int32_t attr[] = { surfaceconfig_BITS_BUFFER, 24,  surfaceconfig_NONE } ;
+      int32_t attr[] = { gconfig_BITS_BUFFER, 24,  gconfig_NONE } ;
       TEST(0 == matchvisual_x11window(&visualid, x11disp, snr, attr)) ;
       TEST(0 == compare_visual(x11disp, snr, visualid, 8, 0, 0)) ;
    }
@@ -1293,9 +1293,9 @@ static int test_config(x11display_t * x11disp)
    uint32_t    snr    = defaultscreennr_x11display(x11disp);
    XWindowAttributes winattr ;
 
-   // TEST init_x11window: surfaceconfig_BITS_BUFFER
+   // TEST init_x11window: gconfig_BITS_BUFFER
    {
-      int32_t config[] = { surfaceconfig_BITS_BUFFER, 24,  surfaceconfig_NONE } ;
+      int32_t config[] = { gconfig_BITS_BUFFER, 24,  gconfig_NONE } ;
       TEST(0 == init_x11window(&x11win, x11disp, snr, 0, config, 0)) ;
       TEST(1 == XGetWindowAttributes(x11disp->sys_display, x11win.sys_drawable, &winattr)) ;
       TEST(0 == compare_visual(x11disp, snr, winattr.visual->visualid, 8, 0, 0)) ;
@@ -1314,9 +1314,9 @@ static int test_config(x11display_t * x11disp)
       TEST(0 == free_x11window(&x11win)) ;
    }
 
-   // TEST init_x11window: surfaceconfig_TRANSPARENT_ALPHA
+   // TEST init_x11window: gconfig_TRANSPARENT_ALPHA
    {
-      int32_t config[] = { surfaceconfig_TRANSPARENT_ALPHA, 1,  surfaceconfig_NONE } ;
+      int32_t config[] = { gconfig_TRANSPARENT_ALPHA, 1,  gconfig_NONE } ;
       TEST(0 == init_x11window(&x11win, x11disp, snr, 0, config, 0)) ;
       TEST(1 == XGetWindowAttributes(x11disp->sys_display, x11win.sys_drawable, &winattr)) ;
       TEST(0 == compare_visual(x11disp, snr, winattr.visual->visualid, 0, 1, 0)) ;
@@ -1443,7 +1443,7 @@ static int test_opacity(testwindow_t * testwin1, testwindow_t * testwin2)
    TEST(0 == pos_x11window(x11win1, &x, &y)) ;
    TEST(0 == setpos_x11window(x11win2, x, y)) ;
 
-   // TEST surfaceconfig_TRANSPARENT_ALPHA
+   // TEST gconfig_TRANSPARENT_ALPHA
    // draw background window red
    TEST(1 == XFillRectangle(x11win1->display->sys_display, x11win1->sys_drawable, gc1, 0, 0, 200, 100)) ;
    WAITFOR(x11win1->display, 1, false) ;
@@ -1516,13 +1516,13 @@ static int test_configfilter(x11display_t * x11disp)
    // prepare
    int            vinfo_length;
    XVisualInfo    vinfo_pattern;
-   XVisualInfo *  vinfo          = XGetVisualInfo(x11disp->sys_display, VisualNoMask, &vinfo_pattern, &vinfo_length);
-   surfaceconfig_filter_t filter = surfaceconfig_filter_INIT_FREEABLE;
-   int            config_attributes[2*surfaceconfig_NROFELEMENTS+2];
+   XVisualInfo *  vinfo    = XGetVisualInfo(x11disp->sys_display, VisualNoMask, &vinfo_pattern, &vinfo_length);
+   gconfig_filter_t filter = gconfig_filter_INIT_FREEABLE;
+   int            config_attributes[2*gconfig_NROFELEMENTS+2];
 
    // TEST configfilter_x11window: E2BIG
    for (unsigned i = 0; i < lengthof(config_attributes)-1; i += 2) {
-      config_attributes[i]   = surfaceconfig_BITS_RED;
+      config_attributes[i]   = gconfig_BITS_RED;
       config_attributes[i+1] = 1;
    }
    TEST(E2BIG == configfilter_x11window(&filter, config_attributes));
@@ -1530,17 +1530,17 @@ static int test_configfilter(x11display_t * x11disp)
    TEST(0 == filter.accept);
 
    // TEST configfilter_x11window: TRANSPARENT_ALPHA == 0
-   config_attributes[0] = surfaceconfig_TRANSPARENT_ALPHA;
+   config_attributes[0] = gconfig_TRANSPARENT_ALPHA;
    config_attributes[1] = 0;
-   config_attributes[2] = surfaceconfig_NONE;
+   config_attributes[2] = gconfig_NONE;
    TEST(0 == configfilter_x11window(&filter, config_attributes));
    TEST(filter.user   == 0);
    TEST(filter.accept == &matchfirstfilter_x11window);
 
    // TEST configfilter_x11window: TRANSPARENT_ALPHA == 0
-   config_attributes[0] = surfaceconfig_TRANSPARENT_ALPHA;
+   config_attributes[0] = gconfig_TRANSPARENT_ALPHA;
    config_attributes[1] = 1;
-   config_attributes[2] = surfaceconfig_NONE;
+   config_attributes[2] = gconfig_NONE;
    TEST(0 == configfilter_x11window(&filter, config_attributes));
    TEST(filter.user   == 0);
    TEST(filter.accept == &matchtransparentalphafilter_x11window);
@@ -1575,13 +1575,13 @@ static int childprocess_unittest(void)
    testwindow_t      x11win    = testwindow_INIT_FREEABLE ;
    testwindow_t      x11win2   = testwindow_INIT_FREEABLE ;
    testwindow_evh_t  evhimpl   = x11window_evh_INIT(_testwindow) ;
-   int32_t           surfconf[] = { surfaceconfig_BITS_RED, 8, surfaceconfig_NONE };
+   int32_t           gconf[]   = { gconfig_BITS_RED, 8, gconfig_NONE };
    windowconfig_t    config[]  = {  windowconfig_INIT_FRAME,
                                     windowconfig_INIT_TITLE(WINDOW_TITLE),
                                     windowconfig_INIT_SIZE(200, 100),
                                     windowconfig_INIT_NONE
                                  };
-   int32_t           surfconf2[] = { surfaceconfig_BITS_RED, 8, surfaceconfig_TRANSPARENT_ALPHA, 1, surfaceconfig_NONE };
+   int32_t           gconf2[]  = { gconfig_BITS_RED, 8, gconfig_TRANSPARENT_ALPHA, 1, gconfig_NONE };
    windowconfig_t    config2[] = {  windowconfig_INIT_SIZE(200, 100),
                                     windowconfig_INIT_NONE
                                  };
@@ -1591,9 +1591,9 @@ static int childprocess_unittest(void)
    TEST(0 == init_x11display(&x11disp, 0)) ;
    snr = defaultscreennr_x11display(&x11disp) ;
    // with frame
-   TEST(0 == init_x11window(&x11win.x11win, &x11disp, snr, genericcast_x11windowevh(&evhimpl, testwindow_t), surfconf, config)) ;
+   TEST(0 == init_x11window(&x11win.x11win, &x11disp, snr, genericcast_x11windowevh(&evhimpl, testwindow_t), gconf, config)) ;
    // without frame
-   TEST(0 == init_x11window(&x11win2.x11win, &x11disp, snr, genericcast_x11windowevh(&evhimpl, testwindow_t), surfconf2, config2)) ;
+   TEST(0 == init_x11window(&x11win2.x11win, &x11disp, snr, genericcast_x11windowevh(&evhimpl, testwindow_t), gconf2, config2)) ;
 
    if (test_initfree(&x11disp))           goto ONABORT ;
    if (test_query(&x11disp, &x11win,

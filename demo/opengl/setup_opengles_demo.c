@@ -25,7 +25,7 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/test/assert.h"
 #include "C-kern/api/graphic/display.h"
-#include "C-kern/api/graphic/surfaceconfig.h"
+#include "C-kern/api/graphic/gconfig.h"
 #include "C-kern/api/graphic/window.h"
 #include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/X11/x11.h"
@@ -184,13 +184,13 @@ int setup_opengles_demo(maincontext_t * maincontext)
    display_t         disp;
    uint32_t          snr;
    demowindow_t      win = { .super = window_INIT_FREEABLE, .isClosed = false };
-   surfaceconfig_t   surfconf;
+   gconfig_t         gconf;
    EGLContext        eglcontext;
    int32_t           conf_attribs[] = {
-      surfaceconfig_BITS_BUFFER, 32,
-      surfaceconfig_BITS_DEPTH, 4,
-      surfaceconfig_CONFORMANT, surfaceconfig_value_CONFORMANT_ES2_BIT,
-      surfaceconfig_NONE
+      gconfig_BITS_BUFFER, 32,
+      gconfig_BITS_DEPTH, 4,
+      gconfig_CONFORMANT, gconfig_value_CONFORMANT_ES2_BIT,
+      gconfig_NONE
    };
    windowconfig_t winattr[] = {
       windowconfig_INIT_FRAME,
@@ -204,10 +204,10 @@ int setup_opengles_demo(maincontext_t * maincontext)
    TEST(0 == initdefault_display(&disp));
    snr = defaultscreennr_display(&disp);
 
-   TEST(0 == init_surfaceconfig(&surfconf, &disp, conf_attribs));
-   TEST(0 == init_window(&win.super, &disp, snr, genericcast_windowevh(&eventhandler, demowindow_t), &surfconf, winattr));
+   TEST(0 == init_gconfig(&gconf, &disp, conf_attribs));
+   TEST(0 == init_window(&win.super, &disp, snr, genericcast_windowevh(&eventhandler, demowindow_t), &gconf, winattr));
 
-   eglcontext = eglCreateContext(gl_display(&disp), surfconf.config, EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
+   eglcontext = eglCreateContext(gl_display(&disp), gl_gconfig(&gconf), EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
    TEST(EGL_NO_CONTEXT != eglcontext);
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), (void*)gl_window(&win.super), (void*)gl_window(&win.super), eglcontext));
 

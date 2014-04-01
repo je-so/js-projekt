@@ -80,6 +80,8 @@
           <File Name="../../C-kern/api/platform/OpenGL/EGL/egldisplay.h"/>
           <File Name="../../C-kern/api/platform/OpenGL/EGL/eglconfig.h"/>
           <File Name="../../C-kern/api/platform/OpenGL/EGL/eglwindow.h"/>
+          <File Name="../../C-kern/api/platform/OpenGL/EGL/eglpbuffer.h"/>
+          <File Name="../../C-kern/api/platform/OpenGL/EGL/eglcontext.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -222,10 +224,13 @@
     </VirtualDirectory>
     <VirtualDirectory Name="source"/>
     <VirtualDirectory Name="graphic">
-      <File Name="../../C-kern/api/graphic/surfaceconfig.h"/>
+      <File Name="../../C-kern/api/graphic/gconfig.h"/>
       <File Name="../../C-kern/api/graphic/windowconfig.h"/>
       <File Name="../../C-kern/api/graphic/display.h"/>
       <File Name="../../C-kern/api/graphic/window.h"/>
+      <File Name="../../C-kern/api/graphic/gcontext.h"/>
+      <File Name="../../C-kern/api/graphic/surface.h"/>
+      <File Name="../../C-kern/api/graphic/pixelbuffer.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">
@@ -409,6 +414,8 @@
         <File Name="../../C-kern/platform/OpenGL/EGL/egldisplay.c"/>
         <File Name="../../C-kern/platform/OpenGL/EGL/eglconfig.c"/>
         <File Name="../../C-kern/platform/OpenGL/EGL/eglwindow.c"/>
+        <File Name="../../C-kern/platform/OpenGL/EGL/eglpbuffer.c"/>
+        <File Name="../../C-kern/platform/OpenGL/EGL/eglcontext.c"/>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
@@ -567,9 +574,12 @@
   </VirtualDirectory>
   <VirtualDirectory Name="source"/>
   <VirtualDirectory Name="graphic">
-    <File Name="../../C-kern/graphic/surfaceconfig.c"/>
+    <File Name="../../C-kern/graphic/gconfig.c"/>
     <File Name="../../C-kern/graphic/windowconfig.c"/>
     <File Name="../../C-kern/graphic/display.c"/>
     <File Name="../../C-kern/graphic/window.c"/>
+    <File Name="../../C-kern/graphic/gcontext.c"/>
+    <File Name="../../C-kern/graphic/surface.c"/>
+    <File Name="../../C-kern/graphic/pixelbuffer.c"/>
   </VirtualDirectory>
 </CodeLite_Project>

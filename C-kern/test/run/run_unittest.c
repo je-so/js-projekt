@@ -294,7 +294,9 @@ int run_unittest(void * argv)
 #if defined(KONFIG_USERINTERFACE_EGL)
       RUN(unittest_platform_opengl_egl_egl);
       RUN(unittest_platform_opengl_egl_eglconfig);
+      RUN(unittest_platform_opengl_egl_eglcontext);
       RUN(unittest_platform_opengl_egl_egldisplay);
+      RUN(unittest_platform_opengl_egl_eglpbuffer);
       RUN(unittest_platform_opengl_egl_eglwindow);
 #endif
 //}
@@ -302,7 +304,10 @@ int run_unittest(void * argv)
 #if !defined(KONFIG_USERINTERFACE_NONE)
 //{ graphic unittest
       RUN(unittest_graphic_display);
-      RUN(unittest_graphic_surfaceconfig);
+      RUN(unittest_graphic_gconfig);
+      RUN(unittest_graphic_gcontext);
+      RUN(unittest_graphic_pixelbuffer);
+      RUN(unittest_graphic_surface);
       RUN(unittest_graphic_windowconfig);
       RUN(unittest_graphic_window);
 //}
