@@ -32,17 +32,16 @@
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
 #include "C-kern/api/platform/X11/x11.h"
+#include "C-kern/api/platform/X11/x11screen.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/platform/task/process.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/test/unittest.h"
 #endif
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
-#define KONFIG_opengl_glx 1
-#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
+#if defined(KONFIG_USERINTERFACE_GLX)
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysglx.h)
 #endif
-#undef KONFIG_opengl_glx
 
 
 typedef struct x11display_objectid_adapt_t   x11display_objectid_adapt_t ;
@@ -197,8 +196,7 @@ static int queryextensions_x11display(x11display_t * x11disp)
    int   dummy ;
    Bool  isSupported ;
 
-#define KONFIG_opengl_glx 1
-#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
+#if defined(KONFIG_USERINTERFACE_GLX)
    isSupported = XQueryExtension(x11disp->sys_display, "GLX", &dummy, &x11disp->glx.eventbase, &x11disp->glx.errorbase) ;
    if (isSupported) {
       // glX implementation uses functionality supported only by version 1.3 or higher
@@ -212,7 +210,6 @@ static int queryextensions_x11display(x11display_t * x11disp)
       }
    }
 #endif
-#undef KONFIG_opengl_glx
 
    isSupported = XQueryExtension(x11disp->sys_display, "DOUBLE-BUFFER", &dummy, &x11disp->xdbe.eventbase, &x11disp->xdbe.errorbase) ;
    if (isSupported) {
@@ -352,7 +349,6 @@ ONABORT:
    return err ;
 }
 
-
 // group: query
 
 sys_iochannel_t io_x11display(const x11display_t * x11disp)
@@ -388,6 +384,23 @@ ONABORT:
    }
    TRACEABORT_ERRLOG(err) ;
    return ;
+}
+
+// group: screen
+
+x11screen_t defaultscreen_x11display(x11display_t * x11disp)
+{
+   return (x11screen_t) x11screen_INIT(x11disp, DefaultScreen(x11disp->sys_display));
+}
+
+int32_t defaultscreennr_x11display(const x11display_t * x11disp)
+{
+   return DefaultScreen(x11disp->sys_display);
+}
+
+int32_t nrofscreens_x11display(const x11display_t * x11disp)
+{
+   return ScreenCount(x11disp->sys_display);
 }
 
 // ID-manager
@@ -651,6 +664,33 @@ ONABORT:
    return EINVAL ;
 }
 
+static int test_screen(x11display_t * x11disp, x11display_t * x11disp2)
+{
+   x11display_t * disp[2] = { x11disp, x11disp2 };
+
+   for (unsigned i = 0; i < lengthof(disp); ++i) {
+      const int32_t N = nrofscreens_x11display(disp[i]);
+      const int32_t D = defaultscreennr_x11display(disp[i]);
+
+      // TEST defaultscreen_x11display
+      x11screen_t x11screen = defaultscreen_x11display(disp[i]);
+      TEST(x11screen.display  == disp[i]);
+      TEST(x11screen.nrscreen == D);
+
+      // TEST defaultscreennr_x11display
+      TEST(N >  defaultscreennr_x11display(disp[i]));
+      TEST(D == defaultscreennr_x11display(disp[i]));
+
+      // TEST nrofscreens_x11display
+      TEST(N == nrofscreens_x11display(disp[i]));
+      TEST(1 <= nrofscreens_x11display(disp[i]));
+   }
+
+   return 0 ;
+ONABORT:
+   return EINVAL ;
+}
+
 static int test_extensions(x11display_t * x11disp)
 {
    x11display_t x11disp_noext = x11display_INIT_FREEABLE;
@@ -659,8 +699,7 @@ static int test_extensions(x11display_t * x11disp)
    TEST(0 == init2_x11display(&x11disp_noext, ":0", false));
 
    // TEST glx available / version
-#define KONFIG_opengl_glx 1
-#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_glx)
+#if defined(KONFIG_USERINTERFACE_GLX)
    TEST(1 == x11disp->glx.isSupported) ;
    TEST(1 == x11disp->glx.version_major) ;
    TEST(3 <= x11disp->glx.version_minor) ;
@@ -804,9 +843,10 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_query())                            goto ONABORT ;
-   if (test_extensions(&x11disp1))              goto ONABORT ;
-   if (test_id_manager(&x11disp1, &x11disp2))   goto ONABORT ;
+   if (test_query())                            goto ONABORT;
+   if (test_screen(&x11disp1, &x11disp2))       goto ONABORT;
+   if (test_extensions(&x11disp1))              goto ONABORT;
+   if (test_id_manager(&x11disp1, &x11disp2))   goto ONABORT;
 
    TEST(0 == same_resourceusage(&usage)) ;
    TEST(0 == free_resourceusage(&usage)) ;

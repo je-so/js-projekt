@@ -170,7 +170,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    thread_tls_t      tls               = thread_tls_INIT_FREEABLE ;
    bool              isThreadAttrValid = false ;
 
-   ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
    err = init_threadtls(&tls) ;
    if (err) goto ONABORT ;
 
@@ -190,7 +190,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    startarg->pcontext    = pcontext_maincontext() ;
    startarg->signalstack = (stack_t) { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size } ;
 
-   ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
    err = pthread_attr_init(&thread_attr) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_attr_init",err) ;
@@ -198,7 +198,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    }
    isThreadAttrValid = true ;
 
-   ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
    err = pthread_attr_setstack(&thread_attr, stack.addr, stack.size) ;
    if (err) {
       TRACESYSCALL_ERRLOG("pthread_attr_setstack",err) ;
@@ -208,7 +208,7 @@ int new_thread(/*out*/thread_t ** threadobj, thread_f thread_main, void * main_a
    }
 
    sys_thread_t sys_thread ;
-   ONERROR_testerrortimer(&s_thread_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_thread_errtimer, &err, ONABORT);
    static_assert( (void* (*) (typeof(startarg)))0 == (typeof(&main_thread))0, "main_thread has argument of type startarg") ;
    err = pthread_create(&sys_thread, &thread_attr, (void*(*)(void*))&main_thread, startarg) ;
    if (err) {

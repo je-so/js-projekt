@@ -288,7 +288,7 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
       if (depth > barray->depth) {
          // allocate new root at correct depth level
          if (!is_allocate) goto ONNODATA ;
-         ONERROR_testerrortimer(&s_blockarray_errtimer, ONABORT) ;
+         ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONABORT);
          err = adaptdepth_blockarray(barray, depth) ;
          if (err) goto ONABORT ;
       }
@@ -308,7 +308,7 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
          if (! child) {
             // allocate new ptrblock_t
             if (!is_allocate) goto ONNODATA ;
-            ONERROR_testerrortimer(&s_blockarray_errtimer, ONABORT) ;
+            ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONABORT);
             err = new_ptrblock(&child, barray->pagesize) ;
             if (err) goto ONABORT ;
             ptrblock->childs[childindex] = child ;
@@ -321,7 +321,7 @@ int assign2_blockarray(blockarray_t * barray, size_t arrayindex, bool is_allocat
       if (! ptrblock->childs[childindex]) {
          // allocate new datablock_t
          if (!is_allocate) goto ONNODATA ;
-         ONERROR_testerrortimer(&s_blockarray_errtimer, ONABORT) ;
+         ONERROR_testerrortimer(&s_blockarray_errtimer, &err, ONABORT);
          err = new_datablock((datablock_t**)&ptrblock->childs[childindex], barray->pagesize) ;
          if (err) goto ONABORT ;
       }

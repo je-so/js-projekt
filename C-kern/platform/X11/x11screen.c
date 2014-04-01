@@ -35,34 +35,15 @@
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysx11.h)
 
 
-// section: x11display_t
-
-// group: query
-
-uint16_t nrofscreens_x11display(const struct x11display_t * x11disp)
-{
-   return (uint16_t) ScreenCount(x11disp->sys_display) ;
-}
-
-x11screen_t defaultscreen_x11display(struct x11display_t * x11disp)
-{
-   return (x11screen_t) x11screen_INIT(x11disp, (uint16_t)DefaultScreen(x11disp->sys_display)) ;
-}
-
-uint16_t defaultscreennr_x11display(const struct x11display_t * x11disp)
-{
-   return (uint16_t) DefaultScreen(x11disp->sys_display) ;
-}
-
 // section: x11screen_t
 
 // group: lifetime
 
-int init_x11screen(/*out*/x11screen_t * x11screen, x11display_t * display, uint16_t nrscreen)
+int init_x11screen(/*out*/x11screen_t * x11screen, x11display_t * display, int32_t nrscreen)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(nrscreen < nrofscreens_x11display(display), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(0 <= nrscreen && nrscreen < nrofscreens_x11display(display), ONABORT, ) ;
 
    x11screen->display  = display ;
    x11screen->nrscreen = nrscreen ;
@@ -86,28 +67,6 @@ bool isequal_x11screen(const x11screen_t * lx11screen, const x11screen_t * rx11s
 
 #ifdef KONFIG_UNITTEST
 
-static int test_x11disp_extension(x11display_t * x11disp)
-{
-   uint16_t nrofscreens ;
-
-   // TEST nrofscreens_x11display
-   nrofscreens = nrofscreens_x11display(x11disp) ;
-   TEST(nrofscreens > 0) ;
-   TEST(nrofscreens < 5/*could be more*/) ;
-
-   // TEST defaultscreen_x11display
-   x11screen_t x11screen = defaultscreen_x11display(x11disp) ;
-   TEST(x11screen.display  == x11disp) ;
-   TEST(x11screen.nrscreen == defaultscreennr_x11display(x11disp)) ;
-
-   // TEST defaultscreennr_x11display
-   TEST(0 == defaultscreennr_x11display(x11disp)) ;
-
-   return 0 ;
-ONABORT:
-   return EINVAL ;
-}
-
 static int test_initfree(x11display_t * x11disp)
 {
    x11screen_t x11screen = x11screen_INIT_FREEABLE ;
@@ -124,6 +83,7 @@ static int test_initfree(x11display_t * x11disp)
 
    // TEST init_x11screen: EINVAL
    TEST(EINVAL == init_x11screen(&x11screen, x11disp, nrofscreens_x11display(x11disp))) ;
+   TEST(EINVAL == init_x11screen(&x11screen, x11disp, -1)) ;
 
    return 0 ;
 ONABORT:
@@ -173,7 +133,6 @@ static int childprocess_unittest(void)
 
    TEST(0 == init_resourceusage(&usage)) ;
 
-   if (test_x11disp_extension(&x11disp))  goto ONABORT ;
    if (test_initfree(&x11disp))     goto ONABORT ;
    if (test_query())                goto ONABORT ;
 

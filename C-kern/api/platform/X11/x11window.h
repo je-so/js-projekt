@@ -30,9 +30,11 @@
 
 // forward
 struct cstring_t ;
+// x11
 struct x11display_t ;
 struct x11drawable_t ;
 struct x11screen_t ;
+// graphic
 struct surfaceconfig_filter_t;
 struct windowconfig_t;
 
@@ -183,7 +185,7 @@ struct x11window_t {
  * Do not use this function to initialize an X11 window with OpenGL specific attributes.
  * Use <initvid_x11window> instead and determine the visualid with <visualid_surfaceconfig> -
  * see <surfaceconfig_t>. */
-int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler, const int32_t * surfconf_attrib, const struct windowconfig_t * winconf_attrib);
+int init_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, int32_t screennr, const struct x11window_it * eventhandler, const int32_t * surfconf_attrib, const struct windowconfig_t * winconf_attrib);
 
 /* function: initvid_x11window
  * Create a native X11 window on x11screen and assign it to x11win.
@@ -192,7 +194,7 @@ int init_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, 
  * with parameter config_visualid which holds the ID of the X11 visual.
  * The visual of a window determines its capabilities like nr of bits
  * per color channel, double buffering and other OpenGL related stuff. */
-int initvid_x11window(/*out*/x11window_t * x11win, struct x11screen_t * x11screen, const struct x11window_it * eventhandler,/*(X11) VisualID*/uint32_t config_visualid, const struct windowconfig_t * winconf_attrib);
+int initvid_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, int32_t screennr, const struct x11window_it * eventhandler,/*(X11) VisualID*/uint32_t config_visualid, const struct windowconfig_t * winconf_attrib);
 
 /* function: initmove_x11window
  * Must be called if address of <x11window_t> changes.
@@ -209,8 +211,8 @@ int free_x11window(x11window_t * x11win) ;
 // group: query
 
 /* function: screen_x11window
- * Returns the screen the window is located on. */
-struct x11screen_t screen_x11window(const x11window_t * x11win) ;
+ * Returns the screen number the window is located on. */
+int32_t screen_x11window(const x11window_t * x11win) ;
 
 /* function: flags_x11window
  * Returns flags which indicate ownership state of system resources.
@@ -244,6 +246,10 @@ int geometry_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*
  * This is the geometry of window including the window manager frame in screen coordinates.
  * The value (screen_x == 0, screen_y == 0) denotes the top left corner of the screen. */
 int frame_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out*/int32_t * screen_y, /*out*/uint32_t * width, /*out*/uint32_t * height) ;
+
+/* function: isfree_x11window
+ * Returns true if x11win is set to <x11window_INIT_FREEABLE>. */
+static inline bool isfree_x11window(const x11window_t * x11win);
 
 // group: update
 
@@ -317,15 +323,15 @@ x11window_t * genericcast_x11window(void * object) ;
 /* function: configfilter_x11window
  * Returns a <surfaceconfig_filter_f> which helps to filter for a specific window visual.
  * The content of the array config_attributes must be the same as it will be used in
- * <initfiltered_surfaceconfig>. The returned filter is never null.
- * Either it returns always true and selects the first matching surface configuration
- * or in <surfaceconfig_TRANSPARENT_ALPHA> is switched on returns only true
+ * <initfiltered_surfaceconfig>. The returned filter is never null and
+ * either it returns always true and selects the first matching surface configuration
+ * or in case of <surfaceconfig_TRANSPARENT_ALPHA> switched on it returns only true
  * for a configuration which supports this feature under X11.
  * The first supplied value of <surfaceconfig_TRANSPARENT_ALPHA> in config_attributes
  * is used. Do not define attributes more than once else the returned filter could
  * be the wrong one. If more than surfaceconfig_NROFELEMENTS attributes are defined in
  * config_attributes error E2BIG is returned. */
-int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, struct x11display_t * x11disp, const int32_t config_attributes[]);
+int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, const int32_t config_attributes[]);
 
 
 // section: inline implementation
@@ -371,6 +377,13 @@ int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, struct
  * Implements <x11window_t.flags_x11window>. */
 #define flags_x11window(x11win) \
          ((x11window_flags_e)(x11win)->flags)
+
+/* define: isfree_x11window
+ * Implements <x11window_t.isfree_x11window>. */
+static inline bool isfree_x11window(const x11window_t * x11win)
+{
+   return 0 == x11win->display && 0 == x11win->sys_drawable;
+}
 
 /* define: pos_x11window
  * Implements <x11window_t.pos_x11window>. */

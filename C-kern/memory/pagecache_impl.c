@@ -310,11 +310,11 @@ static int new_pagecacheblock(
                   && pagesize_1MB + 1u == pagesize_NROFPAGESIZE,
                   "pagecache_block_BLOCKSIZE supports the largest value of pagesize_e") ;
 
-   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONABORT);
    err = initpageblock_pagecacheblock(&pageblock, pagecache_block_BLOCKSIZE) ;
    if (err) goto ONABORT ;
 
-   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_pagecacheblock_errtimer, &err, ONABORT);
    err = assign_pagecacheblockmap(blockmap, arrayindex_pagecacheblock(pageblock.addr), &newblock) ;
    if (err) goto ONABORT ;
 

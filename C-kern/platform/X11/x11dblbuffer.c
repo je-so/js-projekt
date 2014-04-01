@@ -238,9 +238,9 @@ ONABORT:
 static int childprocess_unittest(void)
 {
    x11display_t      x11disp   = x11display_INIT_FREEABLE ;
+   int32_t           snr       = 0;
    x11window_t       x11win    = x11window_INIT_FREEABLE ;
    x11window_t       x11win2   = x11window_INIT_FREEABLE ;
-   x11screen_t       x11screen = x11screen_INIT_FREEABLE ;
    windowconfig_t    config[]  = {  windowconfig_INIT_FRAME,
                                     windowconfig_INIT_TITLE("Double Buffer"),
                                     windowconfig_INIT_SIZE(200, 100),
@@ -253,9 +253,9 @@ static int childprocess_unittest(void)
 
    // prepare
    TEST(0 == init_x11display(&x11disp, 0)) ;
-   x11screen = defaultscreen_x11display(&x11disp) ;
-   TEST(0 == init_x11window(&x11win, &x11screen, 0, 0, config)) ;
-   TEST(0 == init_x11window(&x11win2, &x11screen, 0, 0, config2)) ;
+   snr = defaultscreennr_x11display(&x11disp);
+   TEST(0 == init_x11window(&x11win, &x11disp, snr, 0, 0, config)) ;
+   TEST(0 == init_x11window(&x11win2, &x11disp, snr, 0, 0, config2)) ;
 
    if (test_initfree(&x11win))   goto ONABORT ;
    if (test_draw(&x11win))       goto ONABORT ;

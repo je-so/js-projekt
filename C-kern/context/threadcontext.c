@@ -76,7 +76,7 @@ static size_t              s_threadcontext_nextid = 0 ;
             return 0 ;                                      \
          }                                                  \
          ONERROR_testerrortimer(                            \
-               &s_threadcontext_errtimer, ONABORT) ;        \
+               &s_threadcontext_errtimer, &err, ONABORT);   \
          err = ALLOCSTATIC_PAGECACHE(                       \
                   sizeof(objtype_t), &memobject) ;          \
          if (err) goto ONABORT ;                            \
@@ -85,7 +85,7 @@ static size_t              s_threadcontext_nextid = 0 ;
          newobj = (objtype_t*) memobject.addr ;             \
                                                             \
          ONERROR_testerrortimer(                            \
-               &s_threadcontext_errtimer, ONABORT) ;        \
+               &s_threadcontext_errtimer, &err, ONABORT);   \
          err = init_##module(newobj) ;                      \
          if (err) goto ONABORT ;                            \
                                                             \
@@ -132,19 +132,19 @@ static size_t              s_threadcontext_nextid = 0 ;
  * is assigned to object. */
 #define INITOBJECT(module, objtype_t, object)               \
          int err ;                                          \
-         memblock_t memobject = memblock_INIT_FREEABLE ;    \
+         memblock_t memobject = memblock_INIT_FREEABLE;     \
                                                             \
          ONERROR_testerrortimer(                            \
-               &s_threadcontext_errtimer, ONABORT) ;        \
+               &s_threadcontext_errtimer, &err, ONABORT);   \
          err = ALLOCSTATIC_PAGECACHE(                       \
-                  sizeof(objtype_t), &memobject) ;          \
+                  sizeof(objtype_t), &memobject);           \
          if (err) goto ONABORT ;                            \
                                                             \
          objtype_t * newobj ;                               \
-         newobj = (objtype_t*) memobject.addr ;             \
+         newobj = (objtype_t*) memobject.addr;              \
                                                             \
          ONERROR_testerrortimer(                            \
-               &s_threadcontext_errtimer, ONABORT) ;        \
+               &s_threadcontext_errtimer, &err, ONABORT);   \
          err = init_##module(newobj) ;                      \
          if (err) goto ONABORT ;                            \
                                                             \
@@ -351,35 +351,35 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
    ((volatile threadcontext_t *)tcontext)->pcontext = pcontext ;
 
    VALIDATE_STATE_TEST(maincontext_STATIC != type_maincontext(), ONABORT_NOFREE, ) ;
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT_NOFREE) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONABORT_NOFREE);
 
    do {
       tcontext->thread_id = 1 + atomicadd_int(&s_threadcontext_nextid, 1) ;
    } while (tcontext->thread_id <= 1 && !ismain_thread(self_thread())) ;  // if wrapped around ? => repeat
 
-// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;"\n"   err = inithelper"row-id"_threadcontext(tcontext) ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/config/initthread)
+// TEXTDB:SELECT(\n"   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONABORT) ;"\n"   err = inithelper"row-id"_threadcontext(tcontext) ;"\n"   if (err) goto ONABORT ;"\n"   ++tcontext->initcount ;")FROM(C-kern/resource/config/initthread)
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONABORT) ;
    err = inithelper1_threadcontext(tcontext) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONABORT) ;
    err = inithelper2_threadcontext(tcontext) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONABORT) ;
    err = inithelper3_threadcontext(tcontext) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONABORT) ;
    err = inithelper4_threadcontext(tcontext) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONABORT) ;
    err = inithelper5_threadcontext(tcontext) ;
    if (err) goto ONABORT ;
    ++tcontext->initcount ;
@@ -388,7 +388,7 @@ int init_threadcontext(/*out*/threadcontext_t * tcontext, processcontext_t * pco
    err = config_threadcontext(tcontext, context_type) ;
    if (err) goto ONABORT ;
 
-   ONERROR_testerrortimer(&s_threadcontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadcontext_errtimer, &err, ONABORT);
 
    return 0 ;
 ONABORT:

@@ -31,6 +31,7 @@
 #define CKERN_PLATFORM_X11_X11DISPLAY_HEADER
 
 // forward
+struct x11screen_t;
 struct x11display_objectid_t ;
 
 /* typedef: struct x11display_t
@@ -180,6 +181,21 @@ bool isextxrandr_x11display(const x11display_t * x11disp) ;
 /* function: isfree_x11display
  * Returns true if x11disp is set to <x11display_INIT_FREEABLE>. */
 static inline bool isfree_x11display(const x11display_t * x11disp);
+
+// group: screen
+
+/* function: defaultscreen_x11display
+ * Returns the default screen of x11disp. */
+struct x11screen_t defaultscreen_x11display(x11display_t * x11disp);
+
+/* function: defaultscreennr_x11display
+ * Returns the default screen number of x11disp. */
+int32_t defaultscreennr_x11display(const x11display_t * x11disp);
+
+/* function: nrofscreens_x11display
+ * Returns the number of all screens attached to x11disp.
+ * The first screen has the number 0 and the last <nrofscreens_x11display>-1. */
+int32_t nrofscreens_x11display(const x11display_t * x11disp);
 
 // group: ID-manager
 

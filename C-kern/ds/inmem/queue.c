@@ -61,7 +61,7 @@ static int new_queuepage(/*out*/queue_page_t ** qpage, queue_t * queue)
    int err ;
    memblock_t page ;
 
-   ONERROR_testerrortimer(&s_queuepage_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_queuepage_errtimer, &err, ONABORT);
    static_assert(pagesizeinbytes_queue() == 4096u, "pagesizeinbytes_queue() matches pagesize_4096") ;
    err = ALLOC_PAGECACHE(pagesize_4096, &page) ;
    if (err) goto ONABORT ;
@@ -97,7 +97,7 @@ static int delete_queuepage(queue_page_t ** qpage)
       err = RELEASE_PAGECACHE(&page) ;
 
       if (err) goto ONABORT ;
-      ONERROR_testerrortimer(&s_queuepage_errtimer, ONABORT) ;
+      ONERROR_testerrortimer(&s_queuepage_errtimer, &err, ONABORT);
    }
 
    return 0 ;

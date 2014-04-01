@@ -62,7 +62,7 @@ int unittest_io_writer_log_logwriter(void);
  * are truncated if they are bigger than log_config_MINSIZE.
  *
  * Threads:
- * In case of KONFIG_SUBSYS does not contain KONFIG_thread static <logmain_t> is used instead of <logwriter_t>.
+ * In case of KONFIG_SUBSYS_THREAD is not defined static <logmain_t> is used instead of <logwriter_t>.
  * */
 struct logwriter_t {
    /* variable: addr

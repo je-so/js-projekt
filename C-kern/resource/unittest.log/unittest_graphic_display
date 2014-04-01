@@ -1,0 +1,48 @@
+[1: 1395585655.831858s]
+initdefault_display() C-kern/graphic/display.c:124
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1395585655.838606s]
+initdefault_display() C-kern/graphic/display.c:124
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1395585655.856483s]
+free_display() C-kern/graphic/display.c:144
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1395585655.865813s]
+free_display() C-kern/graphic/display.c:144
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1395585655.878253s]
+initdefault_display() C-kern/graphic/display.c:124
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1395585655.879368s]
+initdefault_display() C-kern/graphic/display.c:124
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1395585655.885346s]
+free_display() C-kern/graphic/display.c:144
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1395585655.888904s]
+free_display() C-kern/graphic/display.c:144
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1395585655.894190s]
+initdefault_display() C-kern/graphic/display.c:124
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1395585655.895998s]
+initdefault_display() C-kern/graphic/display.c:124
+Error 12 - Cannot allocate memory
+Function aborted
+[1: 1395585655.901565s]
+free_display() C-kern/graphic/display.c:144
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed
+[1: 1395585655.904308s]
+free_display() C-kern/graphic/display.c:144
+Error 12 - Cannot allocate memory
+Function aborted - one or more resources could not be freed

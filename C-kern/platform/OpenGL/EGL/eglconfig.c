@@ -183,7 +183,7 @@ int initfiltered_eglconfig(/*out*/eglconfig_t * eglconf, struct opengl_display_t
       EGLint visualid;
       isOK = eglGetConfigAttrib( egldisp,
                                  eglconfig[i], EGL_NATIVE_VISUAL_ID, &visualid);
-      if (filter(eglconfig[i], egldisp, visualid, user)) break;
+      if (filter(eglconfig[i], visualid, user)) break;
    }
 
    if (i == num_config) {
@@ -259,44 +259,42 @@ static void *        s_filter_user;
 static int           s_filter_total_count;
 static int           s_filter_valid_count;
 
-static bool filter_test_count(eglconfig_t eglconf, struct opengl_display_t * egldisp, int32_t visualid, void * user)
+static bool filter_test_count(eglconfig_t eglconf, int32_t visualid, void * user)
 {
    int32_t visualid2 = -1;
    s_filter_valid_count += (
          eglconf != 0
-         && s_filter_display == egldisp
-         && (0 == visualid_eglconfig(eglconf, egldisp, &visualid2))
+         && (0 == visualid_eglconfig(eglconf, s_filter_display, &visualid2))
          && visualid         == visualid2
          && s_filter_user    == user);
    s_filter_total_count += 1;
    return false;
 }
 
-static bool filter_test_select(eglconfig_t eglconf, struct opengl_display_t * egldisp, int32_t visualid, void * user)
+static bool filter_test_select(eglconfig_t eglconf, int32_t visualid, void * user)
 {
    (void) eglconf;
-   (void) egldisp;
    s_filter_visualid = visualid;
    return (--*(int*)user) == 0;
 }
 
-static bool filter_test_attribon(eglconfig_t eglconf, struct opengl_display_t * egldisp, int32_t visualid, void * user)
+static bool filter_test_attribon(eglconfig_t eglconf, int32_t visualid, void * user)
 {
    (void) visualid;
    int attrvalue = 0;
    s_filter_valid_count += (
-         0 == value_eglconfig(eglconf, egldisp, *(int*)user, &attrvalue)
+         0 == value_eglconfig(eglconf, s_filter_display, *(int*)user, &attrvalue)
          && attrvalue > 0);
    s_filter_total_count += 1;
    return false;
 }
 
-static bool filter_test_attriboff(eglconfig_t eglconf, struct opengl_display_t * egldisp, int32_t visualid, void * user)
+static bool filter_test_attriboff(eglconfig_t eglconf, int32_t visualid, void * user)
 {
    (void) visualid;
    int attrvalue = -1;
    s_filter_valid_count += (
-         0 == value_eglconfig(eglconf, egldisp, *(int*)user, &attrvalue)
+         0 == value_eglconfig(eglconf, s_filter_display, *(int*)user, &attrvalue)
          && attrvalue == 0);
    s_filter_total_count += 1;
    return false;
@@ -447,6 +445,7 @@ static int test_initfree(egldisplay_t egldisp)
          attrlist[2] = surfaceconfig_NONE;
          s_filter_total_count = 0;
          s_filter_valid_count = 0;
+         s_filter_display     = egldisp;
          TEST(ESRCH == initfiltered_eglconfig(&eglconf, egldisp, attrlist,
                                        isOn ? &filter_test_attribon : &filter_test_attriboff, &onoff[i]));
          TEST(s_filter_valid_count >= 1);

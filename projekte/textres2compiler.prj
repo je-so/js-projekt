@@ -13,4 +13,4 @@ Src           += C-kern/platform/Linux/io/directory.c
 Src           += C-kern/memory/wbuffer.c
 Src           += C-kern/string/cstring.c C-kern/string/string.c C-kern/string/utf8.c
 Includes       = .
-Defines        = KONFIG_SUBSYS=KONFIG_none
+Defines        = KONFIG_SUBSYS=NONE

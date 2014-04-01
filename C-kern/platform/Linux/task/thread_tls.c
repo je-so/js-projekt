@@ -106,7 +106,7 @@ int init_threadtls(/*out*/thread_tls_t * tls)
 
    VALIDATE_STATE_TEST(size <= size_threadtls(), ONABORT, ) ;
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
 
    err = initaligned_vmpage(&mempage, size_threadtls()) ;
    if (err) goto ONABORT ;
@@ -122,21 +122,21 @@ int init_threadtls(/*out*/thread_tls_t * tls)
     */
 
    {
-      ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
       vmpage_t protpage = vmpage_INIT(pagesize, mempage.addr + sizevars) ;
       err = protect_vmpage(&protpage, accessmode_PRIVATE) ;
       if (err) goto ONABORT ;
    }
 
    {
-      ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
       vmpage_t protpage = vmpage_INIT(pagesize, mempage.addr + sizevars + sizesigst + pagesize) ;
       err = protect_vmpage(&protpage, accessmode_PRIVATE) ;
       if (err) goto ONABORT ;
    }
 
    {
-      ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
       size_t   offset   = sizevars + sizesigst + sizestack + 2*pagesize ;
       vmpage_t protpage = vmpage_INIT(size_threadtls() - offset, mempage.addr + offset) ;
       err = protect_vmpage(&protpage, accessmode_PRIVATE) ;
@@ -170,7 +170,7 @@ int free_threadtls(thread_tls_t * tls)
 
       if (err) goto ONABORT ;
 
-      ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
    }
 
    return 0 ;
@@ -189,7 +189,7 @@ int initstartup_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * 
    size_t   size      = 2*size_threadtls() - pagesize ;
    void *   addr      = MAP_FAILED ;
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
    addr = mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) ;
    if (addr == MAP_FAILED) {
       err = errno ;
@@ -198,7 +198,7 @@ int initstartup_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * 
 
    uint8_t * aligned_addr = (uint8_t*) (((uintptr_t)addr + size_threadtls()-1) & ~(uintptr_t)(size_threadtls()-1)) ;
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
    if ((uint8_t*)addr < aligned_addr) {
       if (munmap(addr, (size_t)(aligned_addr - (uint8_t*)addr))) {
          err = errno ;
@@ -208,7 +208,7 @@ int initstartup_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * 
       addr  = aligned_addr ;
    }
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
    if (size > size_threadtls()) {
       if (munmap((uint8_t*)addr + size_threadtls(), size - size_threadtls())) {
          err = errno ;
@@ -217,19 +217,19 @@ int initstartup_threadtls(/*out*/thread_tls_t * tls, /*out*/struct memblock_t * 
       size = size_threadtls() ;
    }
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
    if (mprotect((uint8_t*)addr + sizevars, pagesize, PROT_NONE)) {
       err = errno ;
       goto ONABORT ;
    }
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
    if (mprotect((uint8_t*)addr + sizevars + sizesigst + pagesize, pagesize, PROT_NONE)) {
       err = errno ;
       goto ONABORT ;
    }
 
-   ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
    size_t offset = sizevars + sizesigst + sizestack + 2*pagesize ;
    if (mprotect((uint8_t*)addr + offset, size_threadtls() - offset, PROT_NONE)) {
       err = errno ;
@@ -262,7 +262,7 @@ int freestartup_threadtls(thread_tls_t * tls)
 
       if (err) goto ONABORT ;
 
-      ONERROR_testerrortimer(&s_threadtls_errtimer, ONABORT) ;
+      ONERROR_testerrortimer(&s_threadtls_errtimer, &err, ONABORT) ;
    }
 
    return 0 ;

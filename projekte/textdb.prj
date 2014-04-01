@@ -6,4 +6,4 @@ include        projekte/subsys/context-mini
 Src           += C-kern/main/tools/textdb.c
 Src           += C-kern/platform/Linux/io/mmfile.c
 Includes       = .
-Defines        = KONFIG_SUBSYS=KONFIG_none
+Defines        = KONFIG_SUBSYS=NONE

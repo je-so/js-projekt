@@ -91,12 +91,12 @@ int startup_platform(mainthread_f main_thread, void * user)
    ucontext_t        context_mainthread;
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
    err = initstartup_threadtls(&tls, &threadstack, &signalstack);
    if (err) goto ONABORT;
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
    stack_t altstack = { .ss_sp = signalstack.addr, .ss_flags = 0, .ss_size = signalstack.size };
    if (sigaltstack(&altstack, 0)) {
       err = errno;
@@ -104,7 +104,7 @@ int startup_platform(mainthread_f main_thread, void * user)
    }
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
    if (getcontext(&context_caller)) {
       err = errno;
       goto ONABORT;
@@ -119,7 +119,7 @@ int startup_platform(mainthread_f main_thread, void * user)
    is_exit = 1;
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
    if (getcontext(&context_mainthread)) {
       err = errno;
       goto ONABORT;
@@ -131,14 +131,12 @@ int startup_platform(mainthread_f main_thread, void * user)
 
    thread_t * thread = thread_threadtls(&tls);
    settask_thread(thread, main_thread, user);
-#define KONFIG_thread 1
-#if ((KONFIG_SUBSYS&KONFIG_thread) == 1)
+#if defined(KONFIG_SUBSYS_THREAD)
    initstartup_thread(thread);
 #endif
-#undef KONFIG_thread
 
    linenr = __LINE__;
-   ONERROR_testerrortimer(&s_platform_errtimer, ONABORT);
+   ONERROR_testerrortimer(&s_platform_errtimer, &err, ONABORT);
    // start callmain_platform and returns to first getcontext then if (is_exit) {} is executed
    setcontext(&context_mainthread);
    err = errno;

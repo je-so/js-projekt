@@ -193,7 +193,7 @@ int init_maincontext(const maincontext_e context_type, int argc, const char ** a
    // startup_platform has been called !!
    VALIDATE_INPARAM_TEST(  self_maincontext() == &g_maincontext, ONABORT, ) ;
 
-   ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONABORT) ;
 
    g_maincontext.type     = context_type ;
    g_maincontext.progname = "" ;
@@ -208,12 +208,12 @@ int init_maincontext(const maincontext_e context_type, int argc, const char ** a
    if (err) goto ONABORT ;
 
 
-   ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONABORT) ;
 
    err = init_threadcontext(tcontext_maincontext(), &g_maincontext.pcontext, context_type) ;
    if (err) goto ONABORT ;
 
-   ONERROR_testerrortimer(&s_maincontext_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_maincontext_errtimer, &err, ONABORT) ;
 
    return 0 ;
 ONABORT:

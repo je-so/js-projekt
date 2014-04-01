@@ -1,5 +1,10 @@
-[1: 1385288284.919433s]
-init_x11screen() C-kern/platform/X11/x11screen.c:65
+[1: 1395599048.450798s]
+init_x11screen() C-kern/platform/X11/x11screen.c:46
 Error 22 - Invalid argument
-Function input violates condition (nrscreen < nrofscreens_x11display(display))
+Function input violates condition (0 <= nrscreen && nrscreen < nrofscreens_x11display(display))
+Function aborted
+[1: 1395599048.450815s]
+init_x11screen() C-kern/platform/X11/x11screen.c:46
+Error 22 - Invalid argument
+Function input violates condition (0 <= nrscreen && nrscreen < nrofscreens_x11display(display))
 Function aborted

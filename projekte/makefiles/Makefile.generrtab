@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/generrtab.prj
 ProjectLinks    := 
 
-GenerationDate  := 2013.Nov.23  08:16:23
+GenerationDate  := 2014.Apr.01  14:59:24
 GeneratedBy     := je-so
 
 ## Debug
@@ -16,7 +16,7 @@ LibraryFlag_Debug   := -l
 LibPathFlag_Debug   := -L
 CFlags_Debug        := -g -fstack-protector-all -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Debug        := -g 
-Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=KONFIG_none
+Defines_Debug       := $(DefineFlag_Debug)KONFIG_SUBSYS=NONE
 Includes_Debug      := $(IncludeFlag_Debug).
 Libraries_Debug     :=
 Libpath_Debug       :=
@@ -34,7 +34,7 @@ LibraryFlag_Release   := -l
 LibPathFlag_Release   := -L
 CFlags_Release        := -O2 -fno-stack-protector -MMD -std=gnu1x -pedantic -Wall -Wextra -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -Wstrict-prototypes -Wformat-nonliteral -Wformat-y2k -Wstrict-overflow=5
 LFlags_Release        := -O2 
-Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=KONFIG_none
+Defines_Release       := $(DefineFlag_Release)KONFIG_SUBSYS=NONE
 Includes_Release      := $(IncludeFlag_Release).
 Libraries_Release     :=
 Libpath_Release       :=

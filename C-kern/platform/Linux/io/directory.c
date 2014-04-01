@@ -108,7 +108,7 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
    size_t      rpath_offset = sys_path_MAXSIZE;
    uint8_t     rpath[sys_path_MAXSIZE];
 
-   ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
    err = stat("/", &filestat) ;
    if (err) {
       err = errno ;
@@ -119,7 +119,7 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
    const ino_t  rootinode = filestat.st_ino ;
 
    for (;;) {
-      ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+      ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
       err = fstat(dfd, &filestat) ;
       if (err) {
          err = errno ;
@@ -143,7 +143,7 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
       }
       #ifdef KONFIG_UNITTEST
       sysdir = 0 ;
-      ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+      ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
       #endif
       sysdir = fdopendir(dfd2) ;
       if (!sysdir) {
@@ -154,7 +154,7 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
       }
       dfd = dfd2 ;
       for (;;) {
-         ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+         ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
          errno  = 0 ;
          struct dirent * direntry = readdir(sysdir) ;
          if (!direntry) {
@@ -181,7 +181,7 @@ int path_directory(const directory_t * dir, /*ret*/struct wbuffer_t * path)
    }
 
    // copy rpath into path
-   ONERROR_testerrortimer(&s_directory_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_directory_errtimer, &err, ONABORT);
    size_t path_size = sys_path_MAXSIZE - rpath_offset ;
    if (0 == path_size) {
       err = appendbyte_wbuffer(path, '/') ;

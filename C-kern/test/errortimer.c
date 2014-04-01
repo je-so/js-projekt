@@ -114,35 +114,20 @@ static int test_update(void)
    TEST(0  == (int)errtimer.timercount) ;
    TEST(-2 == errtimer.errcode) ;
 
-   // TEST IFERROR_testerrortimer
-   err = 0 ;
-   init_testerrortimer(&errtimer, 2, 11) ;
-   for (int i = 1; i >= 0; --i) {
-      TEST(0 == err);
-      IFERROR_testerrortimer(&errtimer, { err = errcode_testerrortimer(&errtimer); });
-   }
-   TEST(11 == err);
-
-   // TEST IFERROR_testerrortimer: code_block contains ,
-   err = 0 ;
-   init_testerrortimer(&errtimer, 1, 12) ;
-   IFERROR_testerrortimer(&errtimer, { err = 1, err = 2; });
-   TEST(2 == err);
-
    // TEST ONERROR_testerrortimer
    err = 0 ;
    init_testerrortimer(&errtimer, 2, 3) ;
-   ONERROR_testerrortimer(&errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&errtimer, &err, ONABORT) ;
    TEST(0 == err) ;
    TEST(1 == errtimer.timercount) ;
    TEST(3 == errtimer.errcode) ;
-   ONERROR_testerrortimer(&errtimer, XXX) ;  // sets err and jumps to XXX
+   ONERROR_testerrortimer(&errtimer, &err, XXX) ;  // sets err and jumps to XXX
    err = 10 ;
 XXX:
    TEST(3 == err) ;
    TEST(0 == errtimer.timercount) ;
    TEST(3 == errtimer.errcode) ;
-   ONERROR_testerrortimer(&errtimer, XXX2) ;  // does nothing
+   ONERROR_testerrortimer(&errtimer, &err, XXX2) ;  // does nothing
    err = 10 ;
 XXX2:
    TEST(10== err) ;

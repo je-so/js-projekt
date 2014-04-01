@@ -28,7 +28,7 @@
 
 /* typedef: struct x11screen_t
  * Export <x11screen_t> into global namespace. */
-typedef struct x11screen_t             x11screen_t;
+typedef struct x11screen_t x11screen_t;
 
 
 // section: Functions
@@ -42,31 +42,12 @@ int unittest_platform_X11_x11screen(void);
 #endif
 
 
-/* struct: x11display_t
- * Extend interface with query for screen. */
-struct x11display_t;
-
-// group: query
-
-/* function: nrofscreens_x11display
- * Returns the number of all screens attached to x11disp.
- * The first screen has the number 0 and the last <nrofscreens_x11display>-1. */
-uint16_t nrofscreens_x11display(const struct x11display_t * x11disp);
-
-/* function: defaultscreen_x11display
- * Returns the default screen of x11disp. */
-x11screen_t defaultscreen_x11display(struct x11display_t * x11disp);
-
-/* function: defaultscreennr_x11display
- * Returns the default screen number of x11disp. */
-uint16_t defaultscreennr_x11display(const struct x11display_t * x11disp);
-
 /* struct: x11screen_t
  * Associates a <x11display_t> with a screen number.
  * A display normally corresponds to a graphics card and the screen to an attached monitor. */
 struct x11screen_t {
-   struct x11display_t  * display;
-   uint16_t             nrscreen;
+   struct x11display_t* display;
+   int32_t              nrscreen;
 };
 
 // group: lifetime
@@ -85,7 +66,7 @@ struct x11screen_t {
  * Initializes x11screen_t with reference to <x11display_t> and screen number.
  * If nrscreen >= <nrofscreens_x11display>(display) then error EINVAL is returned.
  * Do not free the display as long as <x11screen_t> is not freed. */
-int init_x11screen(/*out*/x11screen_t * x11screen, struct x11display_t * display, uint16_t nrscreen);
+int init_x11screen(/*out*/x11screen_t * x11screen, struct x11display_t * display, int32_t nrscreen);
 
 // group: query
 
@@ -95,7 +76,7 @@ struct x11display_t * display_x11screen(const x11screen_t * x11screen);
 
 /* function: number_x11screen
  * Returns the number of the screen of <x11display_t>. */
-uint16_t number_x11screen(const x11screen_t * x11screen);
+int32_t number_x11screen(const x11screen_t * x11screen);
 
 /* function: isequal_x11screen
  * Returns true if the two objects refer to the same screen. */

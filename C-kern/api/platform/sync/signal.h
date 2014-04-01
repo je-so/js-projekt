@@ -224,16 +224,14 @@ int compare_signalstate(const signalstate_t * sigstate1, const signalstate_t * s
 
 // group: signalhandler_t
 
-#define KONFIG_thread 1
-#if (!((KONFIG_SUBSYS)&KONFIG_thread))
+#if !defined(KONFIG_SUBSYS_THREAD)
 /* define: initonce_signalhandler
- * Implement init as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
+ * Implement init as a no op if !defined(KONFIG_SUBSYS_THREAD) */
 #define initonce_signalhandler()          (0)
 /* define: freeonce_signalhandler
- * Implement free as a no op if !((KONFIG_SUBSYS)&KONFIG_thread) */
+ * Implement free as a no op if !defined(KONFIG_SUBSYS_THREAD) */
 #define freeonce_signalhandler()          (0)
 #endif
-#undef KONFIG_thread
 
 // group: signalwait_t
 

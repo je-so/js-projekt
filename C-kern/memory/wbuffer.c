@@ -65,7 +65,7 @@ static int alloc_cstring_wbuffer(void * impl, size_t new_size, /*inout*/memstrea
       goto ONABORT ;
    }
 
-   ONERROR_testerrortimer(&s_wbuffer_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_wbuffer_errtimer, &err, ONABORT);
    err = resize_cstring(cstr, strsize) ;
    if (err) goto ONABORT ;
 

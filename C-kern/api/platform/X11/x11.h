@@ -81,15 +81,13 @@ int nextevent_X11(struct x11display_t * x11disp) ;
 
 // group: X11_t
 
-#define KONFIG_x11 1
-#if !((KONFIG_USERINTERFACE)&KONFIG_x11)
+#if !defined(KONFIG_USERINTERFACE_X11)
 /* define: initonce_X11
- * Implement init as a no op if (KONFIG_USERINTERFACE!=KONFIG_x11). */
+ * Implement init as a no op if defined KONFIG_USERINTERFACE_X11. */
 #define initonce_X11()  (0)
 /* define: freeonce_X11
- * Implement free as a no op if (KONFIG_USERINTERFACE!=KONFIG_x11). */
+ * Implement free as a no op if defined KONFIG_USERINTERFACE_X11. */
 #define freeonce_X11()  (0)
 #endif
-#undef KONFIG_x11
 
 #endif

@@ -27,17 +27,11 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/graphic/display.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/platform/X11/x11screen.h"
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
 #endif
-
-#define KONFIG_opengl_egl 1
-#define KONFIG_opengl_glx 2
-#define KONFIG_x11        4
-
 
 // section: display_t
 
@@ -45,7 +39,7 @@
 #ifdef KONFIG_UNITTEST
 /* variable: s_display_errtimer
  * Allows to introduce artificial errors. */
-static test_errortimer_t   s_display_errtimer = test_errortimer_INIT_FREEABLE ;
+static test_errortimer_t   s_display_errtimer = test_errortimer_INIT_FREEABLE;
 /* variable: s_display_noext
  * Allows to introduce an X11 display withou extensions. */
 static bool                s_display_noext = false;
@@ -55,7 +49,7 @@ static bool                s_display_noext = false;
 
 // group: helper-macros
 
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11) && ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+#if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
 
 /* define: OSDISPLAY_DEFAULTNAME
  * Defines default display name to connect with the default screen. */
@@ -99,11 +93,13 @@ static int init_display(/*out*/display_t * disp, void * display_name)
    int err;
    int isinit = 0;
 
+   ONERROR_testerrortimer(&s_display_errtimer, &err, ONABORT);
+
    err = INIT_OSDISPLAY(disp, display_name);
    if (err) goto ONABORT;
    ++ isinit;
 
-   ONERROR_testerrortimer(&s_display_errtimer, ONABORT);
+   ONERROR_testerrortimer(&s_display_errtimer, &err, ONABORT);
 
    err = INIT_OPENGL(disp);
    if (err) goto ONABORT;
@@ -136,7 +132,9 @@ int free_display(display_t * disp)
 
    if (!ISFREE_OSDISPLAY(&disp->osdisplay)) {
       err  = FREE_OPENGL(disp);
+      SETONERROR_testerrortimer(&s_display_errtimer, &err);
       err2 = FREE_OSDISPLAY(disp);
+      SETONERROR_testerrortimer(&s_display_errtimer, &err2);
       if (err2) err = err2;
       if (err) goto ONABORT;
    }
@@ -147,16 +145,16 @@ ONABORT:
    return err;
 }
 
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11) && ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+#if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
 
 uint32_t nrofscreens_display(const display_t * disp)
 {
-   return nrofscreens_x11display(&disp->osdisplay);
+   return (uint32_t) nrofscreens_x11display(&disp->osdisplay);
 }
 
 uint32_t defaultscreennr_display(const display_t * disp)
 {
-   return defaultscreennr_x11display(&disp->osdisplay);
+   return (uint32_t) defaultscreennr_x11display(&disp->osdisplay);
 }
 
 #endif
@@ -167,7 +165,7 @@ uint32_t defaultscreennr_display(const display_t * disp)
 
 #ifdef KONFIG_UNITTEST
 
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11) && ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+#if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
 
 static bool isfree_helper(const display_t * disp)
 {
@@ -178,7 +176,7 @@ static bool isfree_helper(const display_t * disp)
 static void acceptleak_helper(resourceusage_t * usage)
 {
    // EGL display has resource leak of 16 bytes
-   acceptmallocleak_resourceusage(usage, 16 * 2);
+   acceptmallocleak_resourceusage(usage, 16 * 6);
 }
 
 #else
@@ -200,6 +198,27 @@ static int test_initfree(void)
    TEST(0 == free_display(&disp));
    TEST(1 == isfree_helper(&disp));
    TEST(1 == ISFREE_OSDISPLAY(&disp.osdisplay));
+
+   // TEST initdefault_display: error
+   for (unsigned i = 1; i <= 2; ++i) {
+      init_testerrortimer(&s_display_errtimer, i, ENOMEM);
+      TEST(ENOMEM == initdefault_display(&disp));
+      TEST(1 == isfree_helper(&disp));
+      TEST(1 == ISFREE_OSDISPLAY(&disp.osdisplay));
+   }
+   init_testerrortimer(&s_display_errtimer, 3, ENOMEM);
+   TEST(0 == initdefault_display(&disp));
+   init_testerrortimer(&s_display_errtimer, 0, 0);
+   TEST(0 == free_display(&disp));
+
+   // TEST free_display: ERROR
+   for (unsigned i = 1; i <= 2; ++i) {
+      TEST(0 == initdefault_display(&disp));
+      init_testerrortimer(&s_display_errtimer, i, ENOMEM);
+      TEST(ENOMEM == free_display(&disp));
+      TEST(1 == isfree_helper(&disp));
+      TEST(1 == ISFREE_OSDISPLAY(&disp.osdisplay));
+   }
 
    return 0;
 ONABORT:
@@ -285,7 +304,3 @@ ONABORT:
 }
 
 #endif
-
-#undef KONFIG_opengl_egl
-#undef KONFIG_opengl_glx
-#undef KONFIG_x11

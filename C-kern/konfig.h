@@ -62,14 +62,14 @@
 #if !defined(KONFIG_SUBSYS)
 /* define: KONFIG_SUBSYS
  * Defines which subsystems should be included.
- * You can choose more than one subsystem, seperate them by operator '|'.
+ * You can choose more than one subsystem, separate them by operator '|'.
  *
  * Supported values are:
- * KONFIG_thread  -  for thread support
- * KONFIG_sysuser -  for supporting system user and authentication
- * KONFIG_none    -  for a minimal system.
+ * NONE    -  Support a minimal system.
+ * THREAD  -  Support also threads.
+ * SYSUSER -  Support system users and authentication.
  */
-#define KONFIG_SUBSYS                  (KONFIG_thread|KONFIG_sysuser)
+#define KONFIG_SUBSYS                  (THREAD|SYSUSER)
 #endif
 #if 0
 /* define: KONFIG_UNITTEST
@@ -83,12 +83,60 @@
  * You can choose more than one user interface subsystem, seperate them by operator '|'.
  *
  * Supported values are:
- * KONFIG_none  - no graphics support. This is the default value if you do not provide a value.
- * KONFIG_x11   - X11 window system (+ OpenGL graphics).
- * KONFIG_opengl_egl - Supports OpenGL binding to native windowing system.
- * KONFIG_opengl_glx - Supports OpenGL binding to X11 windowing system. */
-#define KONFIG_USERINTERFACE           KONFIG_none
+ * NONE  - No graphics support. This is the default value if you do not provide a value.
+ * EGL   - Supports OpenGL binding to native (X11 and other) windowing system.
+ * GLX   - Supports OpenGL binding to X11 windowing system.
+ * X11   - X11 window system. */
+#define KONFIG_USERINTERFACE NONE
 #endif
+
+#define EGL 1
+#define GLX 2
+#define X11 4
+#define THREAD   8
+#define SYSUSER 16
+
+#if ((KONFIG_SUBSYS)&THREAD)
+/* define: KONFIG_SUBSYS_THREAD
+ * Will be automatically defined if <KONFIG_SUBSYS> contains THREAD. */
+#define KONFIG_SUBSYS_THREAD
+#endif
+#if ((KONFIG_SUBSYS)&SYSUSER)
+/* define: KONFIG_SUBSYS_SYSUSER
+ * Will be automatically defined if <KONFIG_SUBSYS> contains SYSUSER. */
+#define KONFIG_SUBSYS_SYSUSER
+#endif
+#if ((KONFIG_SUBSYS)&(THREAD|SYSUSER))
+/* define: KONFIG_SUBSYS_NONE
+ * Will be automatically defined if <KONFIG_SUBSYS> contains no other valid option. */
+#define KONFIG_SUBSYS_NONE
+#endif
+#if ((KONFIG_USERINTERFACE)&EGL)
+/* define: KONFIG_USERINTERFACE_EGL
+ * Will be automatically defined if <KONFIG_USERINTERFACE> contains EGL. */
+#define KONFIG_USERINTERFACE_EGL
+#endif
+#if ((KONFIG_USERINTERFACE)&GLX)
+/* define: KONFIG_USERINTERFACE_GLX
+ * Will be automatically defined if <KONFIG_USERINTERFACE> contains GLX. */
+#define KONFIG_USERINTERFACE_GLX
+#endif
+#if ((KONFIG_USERINTERFACE)&X11)
+/* define: KONFIG_USERINTERFACE_X11
+ * Will be automatically defined if <KONFIG_USERINTERFACE> contains X11. */
+#define KONFIG_USERINTERFACE_X11
+#endif
+#if !((KONFIG_USERINTERFACE)&(X11|EGL|GLX))
+/* define: KONFIG_USERINTERFACE_NONE
+ * Will be automatically defined if <KONFIG_USERINTERFACE> contains no other valid option. */
+#define KONFIG_USERINTERFACE_NONE
+#endif
+
+#undef EGL
+#undef GLX
+#undef X11
+#undef THREAD
+#undef SYSUSER
 //}
 
 // group: 2. Standard Macros

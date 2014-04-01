@@ -25,9 +25,8 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/graphic/display.h"
 #include "C-kern/api/graphic/surfaceconfig.h"
+#include "C-kern/api/graphic/window.h"
 #include "C-kern/api/graphic/windowconfig.h"
-#include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
-#include "C-kern/api/platform/OpenGL/EGL/eglwindow.h"
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/X11/x11screen.h"
 #include "C-kern/api/platform/X11/x11window.h"
@@ -36,7 +35,7 @@
 
 #define TEST(CONDITION) \
          if (!(CONDITION)) { \
-            printf("ERROR in %s:%d\n", __FILE__, __LINE__); \
+            printf("%s:%d: ERROR\n", __FILE__, __LINE__); \
             goto ONABORT; \
          }
 
@@ -179,14 +178,12 @@ ONABORT:
 int setup_opengles_demo(maincontext_t * maincontext)
 {
    (void) maincontext;
-   display_t      disp;
-   x11screen_t    x11screen;
-   x11window_t    x11win;
-   eglwindow_t    eglwin;
-   eglconfig_t    eglconf;
-   EGLContext     eglcontext;
-   int32_t        visualid;
-   int32_t        conf_attribs[] = {
+   display_t         disp;
+   uint32_t          snr;
+   window_t          win;
+   surfaceconfig_t   surfconf;
+   EGLContext        eglcontext;
+   int32_t           conf_attribs[] = {
       surfaceconfig_BITS_BUFFER, 32,
       surfaceconfig_BITS_DEPTH, 4,
       surfaceconfig_CONFORMANT, surfaceconfig_value_CONFORMANT_ES2_BIT,
@@ -202,30 +199,28 @@ int setup_opengles_demo(maincontext_t * maincontext)
    x11window_it   eventhandler = x11window_it_INIT(_demowindow);
 
    TEST(0 == initdefault_display(&disp));
-   x11screen = defaultscreen_x11display(os_display(&disp));
+   snr = defaultscreennr_display(&disp);
    s_egldisplay = (void*)gl_display(&disp);
 
-   TEST(0 == init_eglconfig(&eglconf, gl_display(&disp), conf_attribs));
-   TEST(0 == visualid_eglconfig(eglconf, gl_display(&disp), &visualid));
-   TEST(0 == initvid_x11window(&x11win, &x11screen, &eventhandler, (uint32_t)visualid, winattr));
-   TEST(0 == initx11_eglwindow(&eglwin, gl_display(&disp), eglconf, &x11win));
-   s_eglwindow = (void*)eglwin;
+   TEST(0 == init_surfaceconfig(&surfconf, &disp, conf_attribs));
+   TEST(0 == init_window(&win, &disp, snr, &surfconf, winattr));
+   os_window(&win)->iimpl = &eventhandler; // TODO: remove when init_window supports eventhandler
+   s_eglwindow = (void*)gl_window(&win);
 
-   eglcontext = eglCreateContext(gl_display(&disp), eglconf, EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
+   eglcontext = eglCreateContext(gl_display(&disp), surfconf.config, EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
    TEST(EGL_NO_CONTEXT != eglcontext);
-   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), (void*)eglwin, (void*)eglwin, eglcontext));
+   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), (void*)gl_window(&win), (void*)gl_window(&win), eglcontext));
 
    TEST(0 == create_opengl_program());
 
-   TEST(0 == show_x11window(&x11win));
+   TEST(0 == show_x11window(os_window(&win)));
    while (!s_isClosed) {
       TEST(0 == nextevent_X11(os_display(&disp)));
    }
 
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
    TEST(EGL_TRUE == eglDestroyContext(gl_display(&disp), eglcontext));
-   TEST(0 == free_eglwindow(&eglwin, gl_display(&disp)));
-   TEST(0 == free_x11window(&x11win));
+   TEST(0 == free_window(&win, &disp));
    TEST(0 == free_display(&disp));
 
    return 0;

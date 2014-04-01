@@ -24,7 +24,7 @@ Src           += C-kern/test/*.c C-kern/test/mm/*.c C-kern/test/run/*.c
 Includes       = .
 # No X11
 Libs           = m pthread rt pam
-Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_none)"
+Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="NONE"
 # With X11 (uncomment include projekte/subsys/X11 + X11-opengl)
 #Libs           = m pthread rt pam X11 Xrandr Xrender Xext GL EGL GLESv2
 #Defines        = KONFIG_UNITTEST KONFIG_USERINTERFACE="(KONFIG_x11|KONFIG_opengl_egl|KONFIG_opengl_glx)"

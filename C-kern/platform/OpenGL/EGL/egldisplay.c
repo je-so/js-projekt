@@ -81,8 +81,7 @@ ONABORT:
    return err;
 }
 
-#define KONFIG_x11        1
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11)
+#if defined(KONFIG_USERINTERFACE_X11)
 int initx11_egldisplay(/*out*/egldisplay_t * egldisp, struct x11display_t * x11disp)
 {
    int err;
@@ -100,7 +99,6 @@ ONABORT:
    return err;
 }
 #endif
-#undef KONFIG_x11
 
 int free_egldisplay(egldisplay_t * egldisp)
 {
@@ -108,7 +106,9 @@ int free_egldisplay(egldisplay_t * egldisp)
 
    if (*egldisp) {
       EGLBoolean isTerminate = eglTerminate(*egldisp);
-      IFERROR_testerrortimer(&s_egldisplay_errtimer, { isTerminate = EGL_FALSE; });
+      if (PROCESS_testerrortimer(&s_egldisplay_errtimer)) {
+         isTerminate = EGL_FALSE;
+      }
 
       // there is no eglFreeDisplay
       *egldisp = 0;
@@ -174,8 +174,7 @@ ONABORT:
    return EINVAL;
 }
 
-#define KONFIG_x11        1
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11)
+#if defined(KONFIG_USERINTERFACE_X11)
 static int test_initfree_x11(x11display_t * x11disp)
 {
    egldisplay_t   egldisp = egldisplay_INIT_FREEABLE;
@@ -232,7 +231,6 @@ static inline int test_initfree_x11(struct x11display_t * x11disp)
          (0)
 
 #endif
-#undef KONFIG_x11
 
 static int childprocess_unittest(void)
 {

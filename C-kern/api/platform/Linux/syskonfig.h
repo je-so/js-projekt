@@ -95,11 +95,9 @@
 #include <ucontext.h>
 #include <unistd.h>
 #include <wchar.h>
-#define KONFIG_sysuser 1
-#if ((KONFIG_SUBSYS)&KONFIG_sysuser)
+#if defined(KONFIG_SUBSYS_SYSUSER)
 #include <security/pam_appl.h>   // -lpam
 #endif
-#undef KONFIG_sysuser
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <sys/ioctl.h>

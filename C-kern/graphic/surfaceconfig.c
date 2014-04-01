@@ -27,7 +27,9 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/graphic/surfaceconfig.h"
 #include "C-kern/api/err.h"
+#include "C-kern/api/graphic/display.h"
 #include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
+#include "C-kern/api/platform/X11/x11window.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
@@ -39,29 +41,59 @@
 
 // group: lifetime
 
-#define KONFIG_opengl_egl 1
-#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+#if defined(KONFIG_USERINTERFACE_EGL)
 
-static bool eglconfig_filter(eglconfig_t eglconf, struct opengl_display_t * egldisp, int32_t visualid, void * user)
-{
-   surfaceconfig_filter_t* filter   = user;
-   surfaceconfig_t         surfconf = surfaceconfig_INIT(eglconf);
-   return filter->accept(&surfconf, egldisp, visualid, filter->user);
-}
-
-int initfiltered_surfaceconfig(/*out*/surfaceconfig_t * surfconf, struct opengl_display_t * display, const int32_t config_attributes[], surfaceconfig_filter_t * filter)
+int init_surfaceconfig(/*out*/surfaceconfig_t * surfconf, display_t * display, const int32_t config_attributes[])
 {
    int err;
-   err = initfiltered_eglconfig(&(surfconf)->config, display, config_attributes, &eglconfig_filter, filter);
+   surfaceconfig_filter_t filter;
+
+#if defined(KONFIG_USERINTERFACE_X11)
+   err = configfilter_x11window(&filter, config_attributes);
+   if (err) goto ONABORT;
+#else
+   #error "Not implemented"
+#endif
+
+   err = initfiltered_surfaceconfig(surfconf, display, config_attributes, &filter);
+   if (err) goto ONABORT;
+
+   return 0;
+ONABORT:
+   TRACEABORT_ERRLOG(err);
+   return err;
+}
+
+struct eglfilter_param_t {
+   display_t              * display;
+   surfaceconfig_filter_t * filter;
+};
+
+static bool eglconfig_filter(eglconfig_t eglconf, int32_t visualid, void * user)
+{
+   struct eglfilter_param_t * param    = user;
+   surfaceconfig_t            surfconf = surfaceconfig_INIT(eglconf);
+   return param->filter->accept(&surfconf, param->display, visualid, param->filter->user);
+}
+
+int initfiltered_surfaceconfig(/*out*/surfaceconfig_t * surfconf, display_t * display, const int32_t config_attributes[], surfaceconfig_filter_t * filter)
+{
+   int err;
+   struct eglfilter_param_t user = { display, filter };
+
+   err = initfiltered_eglconfig(&(surfconf)->config, gl_display(display), config_attributes, &eglconfig_filter, &user);
+   if (err) goto ONABORT;
+
+   return 0;
+ONABORT:
+   TRACEABORT_ERRLOG(err);
    return err;
 }
 
 #else
-
-#error "No implementation defined for surfaceconfig_t"
-
+   #error "No implementation defined"
 #endif
-#undef KONFIG_opengl_egl
+
 
 
 // section: Functions
@@ -94,7 +126,7 @@ static inline void compiletimetest_config_enums(void)
    static_assert(8 == surfaceconfig_value_CONFORMANT_OPENGL_BIT, "drawing api support");
 }
 
-static bool dummy_filter(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
+static bool dummy_filter(surfaceconfig_t * surfconf, struct display_t * display, int32_t visualid, void * user)
 {
    (void) surfconf;
    (void) display;
@@ -121,29 +153,13 @@ ONABORT:
    return EINVAL;
 }
 
-static int test_initfree(void)
-{
-   surfaceconfig_t config = surfaceconfig_INIT_FREEABLE;
-
-   // TEST surfaceconfig_INIT_FREEABLE
-   TEST(0 == config.config);
-
-   // TEST free_surfaceconfig
-   TEST(0 == free_surfaceconfig(&config));
-   TEST(0 == config.config);
-
-   return 0;
-ONABORT:
-   return EINVAL;
-}
-
-static opengl_display_t* s_filter_display;
+static display_t *   s_filter_display;
 static int32_t       s_filter_visualid;
 static void *        s_filter_user;
 static int           s_filter_total_count;
 static int           s_filter_valid_count;
 
-static bool filter_count(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
+static bool filter_count(surfaceconfig_t * surfconf, struct display_t * display, int32_t visualid, void * user)
 {
    int32_t visualid2 = -1;
    s_filter_valid_count += (
@@ -156,7 +172,7 @@ static bool filter_count(surfaceconfig_t * surfconf, struct opengl_display_t * d
    return false;
 }
 
-static bool filter_select(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
+static bool filter_select(surfaceconfig_t * surfconf, struct display_t * display, int32_t visualid, void * user)
 {
    (void) surfconf;
    (void) display;
@@ -164,7 +180,7 @@ static bool filter_select(surfaceconfig_t * surfconf, struct opengl_display_t * 
    return (--*(int*)user) == 0;
 }
 
-static bool filter_attribon(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
+static bool filter_attribon(surfaceconfig_t * surfconf, struct display_t * display, int32_t visualid, void * user)
 {
    (void) visualid;
    int attrvalue = 0;
@@ -175,7 +191,7 @@ static bool filter_attribon(surfaceconfig_t * surfconf, struct opengl_display_t 
    return false;
 }
 
-static bool filter_attriboff(surfaceconfig_t * surfconf, struct opengl_display_t * display, int32_t visualid, void * user)
+static bool filter_attriboff(surfaceconfig_t * surfconf, struct display_t * display, int32_t visualid, void * user)
 {
    (void) visualid;
    int attrvalue = -1;
@@ -186,13 +202,20 @@ static bool filter_attriboff(surfaceconfig_t * surfconf, struct opengl_display_t
    return false;
 }
 
-static int test_initfree2(opengl_display_t * display)
+static int test_initfree(display_t * display)
 {
    surfaceconfig_t  config   = surfaceconfig_INIT_FREEABLE;
    int config_attributes[10];
    int config_attriberr1[]   = { surfaceconfig_TYPE, -1, surfaceconfig_NONE };
    int config_attriberr2[2*surfaceconfig_NROFELEMENTS+1];
    int config_attriberr3[]   = { surfaceconfig_BITS_RED, 1024, surfaceconfig_NONE };
+
+   // TEST surfaceconfig_INIT_FREEABLE
+   TEST(0 == config.config);
+
+   // TEST free_surfaceconfig: initialized with surfaceconfig_INIT_FREEABLE
+   TEST(0 == free_surfaceconfig(&config));
+   TEST(0 == config.config);
 
    // prepare
    config_attributes[0] = surfaceconfig_TYPE;
@@ -205,7 +228,7 @@ static int test_initfree2(opengl_display_t * display)
    }
 
    // TEST init_surfaceconfig: EINVAL (egldisplay_t not initialized)
-   TEST(EINVAL == init_surfaceconfig(&config, egldisplay_INIT_FREEABLE, config_attributes));
+   TEST(EINVAL == init_surfaceconfig(&config, &(display_t) display_INIT_FREEABLE, config_attributes));
    TEST(0 == config.config);
 
    // TEST init_surfaceconfig: EINVAL (value in config_attributes wrong)
@@ -285,7 +308,7 @@ ONABORT:
    return EINVAL;
 }
 
-static int test_query(opengl_display_t * display)
+static int test_query(display_t * display)
 {
    surfaceconfig_t   config = surfaceconfig_INIT_FREEABLE;
    int               attrlist[10];
@@ -319,15 +342,13 @@ static int test_query(opengl_display_t * display)
       TEST(0 <= visualid);
       TEST(oldvisualid != visualid);
       oldvisualid = visualid;
-#define KONFIG_x11        4
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11)
+#if defined(KONFIG_USERINTERFACE_X11)
       if (i) {
          TEST(0 < visualid);
       } else {
          TEST(0 == visualid/*pixmap has no visual only windows; indicated with 0 (None) in X11*/);
       }
 #endif
-#undef KONFIG_x11
       TEST(0 == free_surfaceconfig(&config));
    }
 
@@ -336,35 +357,31 @@ ONABORT:
    return EINVAL;
 }
 
-#define KONFIG_opengl_egl 1
-#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+#if defined(KONFIG_USERINTERFACE_EGL)
 
 #define INITDEFAULT_DISPLAY(display) \
-         initdefault_egldisplay(display)
+         initdefault_display(display)
 
 #define FREE_DISPLAY(display) \
-         free_egldisplay(display)
+         free_display(display)
 
 #else
-
-#error "Port test_initfree2 ... to different os specific interface"
-
+   #error "No implementation defined"
 #endif
-#undef KONFIG_opengl_egl
+
 
 static int childprocess_unittest(void)
 {
-   resourceusage_t    usage   = resourceusage_INIT_FREEABLE;
-   opengl_display_t * display = 0;
+   resourceusage_t   usage   = resourceusage_INIT_FREEABLE;
+   display_t         display = display_INIT_FREEABLE;
 
    TEST(0 == INITDEFAULT_DISPLAY(&display));
 
    TEST(0 == init_resourceusage(&usage));
 
    if (test_configfilter())      goto ONABORT;
-   if (test_initfree())          goto ONABORT;
-   if (test_initfree2(display))  goto ONABORT;
-   if (test_query(display))      goto ONABORT;
+   if (test_initfree(&display))  goto ONABORT;
+   if (test_query(&display))     goto ONABORT;
 
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));

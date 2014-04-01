@@ -152,7 +152,7 @@ int free_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue)
          if (err2) err = err2 ;
          err2 = remove_syncqueue(queue, entry, &initmove_wlistentry) ;
          if (err2) err = err2 ;
-         SETONERROR_testerrortimer(&s_syncwlist_errtimer, &err) ;
+         SETONERROR_testerrortimer(&s_syncwlist_errtimer, &err);
       }
    }
 
@@ -189,7 +189,7 @@ int insert_syncwlist(syncwlist_t * wlist, syncqueue_t * queue, /*out*/syncevent_
    int err ;
    wlistentry_t * entry ;
 
-   ONERROR_testerrortimer(&s_syncwlist_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
    err = insert_syncqueue(queue, &entry) ;
    if (err) goto ONABORT ;
 
@@ -215,7 +215,7 @@ int remove_syncwlist(syncwlist_t * wlist, syncqueue_t * queue, /*out*/syncevent_
    dlist_t        dlist = dlist_INIT_LAST(genericcast_dlistnode(wlist)) ;
    wlistentry_t * entry ;
 
-   ONERROR_testerrortimer(&s_syncwlist_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
    err = removefirst_wlist(&dlist, &entry) ;
    if (err) goto ONABORT ;
 
@@ -223,7 +223,7 @@ int remove_syncwlist(syncwlist_t * wlist, syncqueue_t * queue, /*out*/syncevent_
 
    syncevent_t event = entry->event ;
 
-   ONERROR_testerrortimer(&s_syncwlist_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
    err = remove_syncqueue(queue, entry, &initmove_wlistentry) ;
    if (err) goto ONABORT ;
 
@@ -253,13 +253,13 @@ int removeempty_syncwlist(syncwlist_t * wlist, struct syncqueue_t * queue)
       wlistentry_t * entry = prev_wlist((wlistentry_t*)wlist) ;
 
       if (!iswaiting_syncevent(&entry->event)) {
-         ONERROR_testerrortimer(&s_syncwlist_errtimer, ONABORT) ;
+         ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
          err = remove_wlist(&dlist, entry) ;
          if (err) goto ONABORT ;
 
          -- wlist->nrnodes ;
 
-         ONERROR_testerrortimer(&s_syncwlist_errtimer, ONABORT) ;
+         ONERROR_testerrortimer(&s_syncwlist_errtimer, &err, ONABORT);
          err = remove_syncqueue(queue, entry, &initmove_wlistentry) ;
          if (err) goto ONABORT ;
       }

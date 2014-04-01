@@ -1,7 +1,7 @@
 /* title: Graphic-Display
 
    Wraps the OS specific display initialization for
-   the graphics display into a thin layer to maker
+   the graphics display into a thin layer to make
    other modules OS independent.
 
    Supports OpenGL / GLES for drawing operations.
@@ -30,15 +30,11 @@
 #ifndef CKERN_GRAPHIC_DISPLAY_HEADER
 #define CKERN_GRAPHIC_DISPLAY_HEADER
 
-#define KONFIG_opengl_egl 1
-#define KONFIG_opengl_glx 2
-#define KONFIG_x11        4
-
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11)
+#ifdef KONFIG_USERINTERFACE_X11
 #include "C-kern/api/platform/X11/x11display.h"
 #endif
 
-#if ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+#ifdef KONFIG_USERINTERFACE_EGL
 #include "C-kern/api/platform/OpenGL/EGL/egldisplay.h"
 #endif
 
@@ -62,7 +58,7 @@ int unittest_graphic_display(void);
    Wraps the OS specific graphics display.
    Support OpenGL / GLES. */
 struct display_t {
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11) && ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+#if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
    x11display_t   osdisplay;
    egldisplay_t   gldisplay;
 #else
@@ -74,7 +70,7 @@ struct display_t {
 
 /* define: display_INIT_FREEABLE
  * Static initializer. */
-#if ((KONFIG_USERINTERFACE)&KONFIG_x11) && ((KONFIG_USERINTERFACE)&KONFIG_opengl_egl)
+#if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
 #define display_INIT_FREEABLE \
          { x11display_INIT_FREEABLE, egldisplay_INIT_FREEABLE }
 #endif
@@ -111,11 +107,11 @@ struct opengl_display_t * gl_display(const display_t * disp);
 
 /* function: os_display
  * Returns a pointer to a native display.
- * This functino is implemented as a macro and therefore
- * returns a pointer to the real native type not only void.
+ * This function is implemented as a macro and therefore
+ * returns a pointer to the real native type and not void.
  * It is possible that gl_display returns the same pointer
  * except for the type. In case of EGL as OpenGL adaption layer
- * both displays differ. */
+ * both pointers differ. */
 void * os_display(const display_t * disp);
 
 // group: update
@@ -134,9 +130,5 @@ void * os_display(const display_t * disp);
  * Implements <display_t.os_display>. */
 #define os_display(disp) \
          (&(disp)->osdisplay)
-
-#undef KONFIG_opengl_egl
-#undef KONFIG_opengl_glx
-#undef KONFIG_x11
 
 #endif

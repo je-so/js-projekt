@@ -155,6 +155,9 @@ int same_resourceusage(const resourceusage_t * usage)
 
    if ( (usage2.malloc_usage - usage->malloc_correction - usage->malloc_usage) > usage->malloc_acceptleak) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
+      size_t leaked_malloc_bytes = (usage2.malloc_usage - usage->malloc_correction - usage->malloc_usage)
+                              - usage->malloc_acceptleak;
+      PRINTSIZE_ERRLOG(leaked_malloc_bytes);
       goto ONABORT ;
    }
 

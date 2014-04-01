@@ -132,7 +132,7 @@ static int allocateblock_binarystack(binarystack_t * stack, uint32_t size)
 
    memblock_t  mem ;
 
-   ONERROR_testerrortimer(&s_binarystack_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_binarystack_errtimer, &err, ONABORT);
 
    if (size <= 65536-headersize_blockheader()) {
       err = ALLOC_PAGECACHE(pagesize_65536, &mem) ;
@@ -173,7 +173,7 @@ static inline int freeblock_binarystack(binarystack_t * stack, blockheader_t * b
    err = RELEASE_PAGECACHE(&mem) ;
    if (err) goto ONABORT ;
 
-   ONERROR_testerrortimer(&s_binarystack_errtimer, ONABORT) ;
+   ONERROR_testerrortimer(&s_binarystack_errtimer, &err, ONABORT);
 
    return 0 ;
 ONABORT:

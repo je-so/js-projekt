@@ -43,7 +43,7 @@ typedef struct opengl_config_t * eglconfig_t;
  * The filter function must return true if it accepts the visual ID
  * given in parameter visualid else false.
  * If no visualid passes the filter <initfiltered_eglconfig> returns ESRCH. */
-typedef bool (* eglconfig_filter_f) (eglconfig_t eglconf, struct opengl_display_t * egldisp, int32_t visualid, void * user);
+typedef bool (* eglconfig_filter_f) (eglconfig_t eglconf, int32_t visualid, void * user);
 
 
 // section: Functions
