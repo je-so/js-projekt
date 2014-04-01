@@ -94,18 +94,20 @@ void * objectasmember_typeadaptnodeoffset(const typeadapt_nodeoffset_t nodeoff, 
 
 /* define: memberasobject_typeadaptnodeoffset
  * Implements <typeadapt_nodeoffset_t.memberasobject_typeadaptnodeoffset>. */
-#define memberasobject_typeadaptnodeoffset(nodeoff, node)                 \
-         ( __extension__ ({                                             \
-            uint32_t _off = (nodeoff)  ;                                \
-            (struct typeadapt_object_t*) ((uintptr_t)(node) - _off) ;   \
+#define memberasobject_typeadaptnodeoffset(nodeoff, node)   \
+         ( __extension__ ({                                 \
+            uint32_t _off = (nodeoff);                      \
+            (struct typeadapt_object_t*) (                  \
+                  (uintptr_t)(node) - _off                  \
+            );                                              \
          }))
 
 /* define: objectasmember_typeadaptnodeoffset
  * Implements <typeadapt_nodeoffset_t.objectasmember_typeadaptnodeoffset>. */
-#define objectasmember_typeadaptnodeoffset(nodeoff, object)               \
-         ( __extension__ ({                                             \
-            uint32_t _off = (nodeoff)  ;                                \
-            (void*) ((uintptr_t)(object) + _off) ;                      \
+#define objectasmember_typeadaptnodeoffset(nodeoff, object) \
+         ( __extension__ ({                                 \
+            uint32_t _off = (nodeoff);                      \
+            (void*) ((uintptr_t)(object) + _off);           \
          }))
 
 /* define: init_typeadaptnodeoffset
@@ -115,7 +117,7 @@ void * objectasmember_typeadaptnodeoffset(const typeadapt_nodeoffset_t nodeoff, 
 
 /* define: isequal_typeadaptnodeoffset
  * Implements <typeadapt_nodeoffset_t.isequal_typeadaptnodeoffset>. */
-#define isequal_typeadaptnodeoffset(lnodeoff, rnodeoff)    \
+#define isequal_typeadaptnodeoffset(lnodeoff, rnodeoff)  \
          ( __extension__ ({                              \
             typeadapt_nodeoffset_t _loff = (lnodeoff) ;  \
             typeadapt_nodeoffset_t _roff = (rnodeoff) ;  \

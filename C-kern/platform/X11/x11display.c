@@ -26,8 +26,6 @@
 #include "C-kern/konfig.h"
 #include "C-kern/api/platform/X11/x11display.h"
 #include "C-kern/api/err.h"
-#include "C-kern/api/ds/typeadapt.h"
-#include "C-kern/api/ds/inmem/splaytree.h"
 #include "C-kern/api/math/int/sign.h"
 #include "C-kern/api/memory/memblock.h"
 #include "C-kern/api/memory/mm/mm_macros.h"
@@ -44,140 +42,87 @@
 #endif
 
 
-typedef struct x11display_objectid_adapt_t   x11display_objectid_adapt_t ;
+typedef struct x11windowmap_entry_t x11windowmap_entry_t  ;
+
+typedef struct x11windowmap_t       x11windowmap_t;
 
 
-/* struct: x11display_objectid_t
+/* struct: x11windowmap_entry_t
  * Associates Xlib object id (XID) with object pointer.
  *
  * An <oostore_memindex_t> is included to allow this
  * type of structure to be stored in an index of type tree
  * for faster searching.
  * */
-struct x11display_objectid_t {
-   /* variable: index
-    * Index defined on <id>. */
-   splaytree_node_t  index ;
+struct x11windowmap_entry_t {
    /* variable: id
     * The identification of an object. */
-   uintptr_t         id ;
+   uint32_t             id ;
    /* variable: object
     * The pointer to the identified object. */
-   void              * object ;
+   struct x11window_t * object ;
 } ;
 
 
-/* struct: x11display_objectid_adapt_t
- * Memory adapter to allow <splaytree_t> to store and handle objects of type <x11display_objectid_t>. */
-struct x11display_objectid_adapt_t {
-   typeadapt_EMBED(x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t) ;
-} ;
+/* struct: x11windowmap_t
+ * Stores a set of <x11windowmap_entry_t>.
+ * TODO: This simplified implementation will be replaced by a dynamic index structure. */
+struct x11windowmap_t {
+   x11windowmap_entry_t   entries[16];
+};
 
-static int impl_delete_objectidadapt(x11display_objectid_adapt_t * typeadp, x11display_objectid_t ** tobject)
+static int find_x11windowmap(x11windowmap_t * map, uint32_t objectid, /*out*/x11windowmap_entry_t ** object)
 {
-   int err = 0 ;
-   (void) typeadp ;
-
-   if (*tobject) {
-      memblock_t memblock = memblock_INIT(sizeof(x11display_objectid_t), (uint8_t*)*tobject) ;
-      err = FREE_MM(&memblock) ;
-
-      *tobject = 0 ;
+   if (objectid == 0) {
+      return EINVAL;
    }
 
-   return err ;
-}
-
-static int impl_cmpkeyobj_objectidadapt(x11display_objectid_adapt_t * typeadp, uintptr_t lkey, const x11display_objectid_t * robject)
-{
-   (void) typeadp ;
-   uintptr_t rkey = robject->id ;
-   return (lkey < rkey ? -1 : (lkey > rkey ? +1 : 0)) ;
-}
-
-static int impl_cmpobj_objectidadapt(x11display_objectid_adapt_t * typeadp, const x11display_objectid_t * lobject, const x11display_objectid_t * robject)
-{
-   (void) typeadp ;
-   uintptr_t lkey = lobject->id ;
-   uintptr_t rkey = robject->id ;
-   return (lkey < rkey ? -1 : (lkey > rkey ? +1 : 0)) ;
-}
-
-
-// section: x11display_objectid_t
-
-/* Adapts splaytree_t interface to handle <x11display_objectid_t>.
- * They are compared with help of their id.
- * */
-splaytree_IMPLEMENT(_objidtree, x11display_objectid_t, uintptr_t/*must be of size (void*)*/, index)
-
-static int find_x11displayobjectid(x11display_objectid_t ** root, uintptr_t objectid, /*out*/x11display_objectid_t ** object)
-{
-   int err ;
-   x11display_objectid_adapt_t typeadp = typeadapt_INIT_CMP(&impl_cmpkeyobj_objectidadapt, &impl_cmpobj_objectidadapt) ;
-   splaytree_t                 tree    = splaytree_INIT(&(*root)->index) ;
-
-   err = find_objidtree(&tree, objectid, object, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
-   getinistate_objidtree(&tree, root) ;
-
-   return err ;
-}
-
-static int insert_x11displayobjectid(x11display_objectid_t ** root, uintptr_t objectid, void * value_object)
-{
-   int err ;
-   x11display_objectid_adapt_t typeadp = typeadapt_INIT_CMP(&impl_cmpkeyobj_objectidadapt, &impl_cmpobj_objectidadapt) ;
-   splaytree_t          tree     = splaytree_INIT(&(*root)->index) ;
-   memblock_t           memblock = memblock_INIT_FREEABLE ;
-
-   err = RESIZE_MM(sizeof(x11display_objectid_t), &memblock) ;
-   if (err) return err ;
-
-   x11display_objectid_t * new_object ;
-   new_object         = (x11display_objectid_t*) memblock.addr ;
-   new_object->id     = objectid ;
-   new_object->object = value_object ;
-
-   err = insert_objidtree(&tree, new_object, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
-   getinistate_objidtree(&tree, root) ;
-
-   if (err) {
-      (void) FREE_MM(&memblock) ;
+   for (unsigned i = 0; i < lengthof(map->entries); ++i) {
+      if (map->entries[i].id == objectid) {
+         *object = &map->entries[i];
+         return 0;
+      }
    }
 
-   return err ;
+   return ESRCH;
 }
 
-static int delete_x11displayobjectid(x11display_objectid_t ** root, uintptr_t objectid)
+static int insert_x11windowmap(x11windowmap_t * map, uint32_t objectid, struct x11window_t * object)
 {
-   int err ;
-   x11display_objectid_adapt_t typeadp = typeadapt_INIT_CMP(&impl_cmpkeyobj_objectidadapt, &impl_cmpobj_objectidadapt) ;
-   splaytree_t                 tree    = splaytree_INIT(&(*root)->index) ;
-   x11display_objectid_t       * removed_obj ;
+   unsigned ii = lengthof(map->entries);
 
-   err = find_objidtree(&tree, objectid, &removed_obj, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
-   if (!err) {
-      err = remove_objidtree(&tree, removed_obj, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
-   }
-   getinistate_objidtree(&tree, root) ;
-
-   if (!err) {
-      err = impl_delete_objectidadapt(0, &removed_obj) ;
+   for (unsigned i = 0; i < lengthof(map->entries); ++i) {
+      if (map->entries[i].id == objectid) {
+         return EEXIST;
+      } else if (i < ii && ! map->entries[i].id) {
+         ii = i;
+      }
    }
 
-   return err ;
+   if (ii == lengthof(map->entries)) {
+      return ENOMEM;
+   }
+
+   map->entries[ii].id     = objectid;
+   map->entries[ii].object = object;
+   return 0;
 }
 
-static int deleteall_x11displayobjectid(x11display_objectid_t ** root)
+static int remove_x11windowmap(x11windowmap_t * map, uint32_t objectid)
 {
-   int err ;
-   x11display_objectid_adapt_t typeadp = typeadapt_INIT_LIFETIME(0, &impl_delete_objectidadapt) ;
-   splaytree_t                 tree    = splaytree_INIT(&(*root)->index) ;
+   if (objectid == 0) {
+      return EINVAL;
+   }
 
-   err = free_objidtree(&tree, genericcast_typeadapt(&typeadp, x11display_objectid_adapt_t, x11display_objectid_t, uintptr_t)) ;
-   getinistate_objidtree(&tree, root) ;
+   for (unsigned i = 0; i < lengthof(map->entries); ++i) {
+      if (map->entries[i].id == objectid) {
+         map->entries[i].id     = 0;
+         map->entries[i].object = 0;
+         return 0;
+      }
+   }
 
-   return err ;
+   return ESRCH;
 }
 
 
@@ -253,24 +198,23 @@ static int queryextensions_x11display(x11display_t * x11disp)
 
 int free_x11display(x11display_t * x11disp)
 {
-   int  err = 0 ;
-   int  err2 ;
+   int err;
 
    if (x11disp->idmap) {
-      err2 = deleteall_x11displayobjectid(&x11disp->idmap) ;
-      if (err2) err = err2 ;
-   }
+      memblock_t mblock = memblock_INIT(sizeof(x11windowmap_t), (uint8_t*)x11disp->idmap);
+      err = FREE_MM(&mblock);
 
-   if (x11disp->sys_display) {
-      err2 = XCloseDisplay(x11disp->sys_display) ;
-      x11disp->sys_display = 0 ;
-      if (err2) {
-         err = ECOMM ;
-         TRACESYSCALL_ERRLOG("XCloseDisplay", err) ;
+      if (  x11disp->sys_display
+            && XCloseDisplay(x11disp->sys_display)) {
+         err = ECOMM;
+         TRACESYSCALL_ERRLOG("XCloseDisplay", err);
       }
-   }
 
-   if (err) goto ONABORT ;
+      x11disp->idmap = 0;
+      x11disp->sys_display = 0;
+
+      if (err) goto ONABORT ;
+   }
 
    return 0 ;
 ONABORT:
@@ -281,7 +225,8 @@ ONABORT:
 static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * display_server_name, bool isInitExtension)
 {
    int  err ;
-   x11display_t newdisp = x11display_INIT_FREEABLE ;
+   x11display_t   newdisp = x11display_INIT_FREEABLE;
+   memblock_t     mblock;
 
    if (!display_server_name) {
       display_server_name = getenv("DISPLAY") ;
@@ -294,8 +239,12 @@ static int initprivate_x11display(/*out*/x11display_t * x11disp, const char * di
 
    // create new x11_display
 
-   newdisp.idmap       = 0 ;
-   newdisp.sys_display = XOpenDisplay(display_server_name) ;
+   err = ALLOC_MM(sizeof(x11windowmap_t), &mblock);
+   if (err) goto ONABORT;
+
+   newdisp.idmap       = (x11windowmap_t*) mblock.addr;
+   memset(newdisp.idmap->entries, 0, sizeof(newdisp.idmap->entries));
+   newdisp.sys_display = XOpenDisplay(display_server_name);
    if (!newdisp.sys_display) {
       err = ECONNREFUSED ;
       TRACE_ERRLOG(log_flags_NONE, X11_NO_CONNECTION, err, display_server_name) ;
@@ -390,57 +339,48 @@ ONABORT:
 
 x11screen_t defaultscreen_x11display(x11display_t * x11disp)
 {
-   return (x11screen_t) x11screen_INIT(x11disp, DefaultScreen(x11disp->sys_display));
+   return (x11screen_t) x11screen_INIT(x11disp, (uint32_t) DefaultScreen(x11disp->sys_display));
 }
 
-int32_t defaultscreennr_x11display(const x11display_t * x11disp)
+uint32_t defaultscreennr_x11display(const x11display_t * x11disp)
 {
-   return DefaultScreen(x11disp->sys_display);
+   return (uint32_t) DefaultScreen(x11disp->sys_display);
 }
 
-int32_t nrofscreens_x11display(const x11display_t * x11disp)
+uint32_t nrofscreens_x11display(const x11display_t * x11disp)
 {
-   return ScreenCount(x11disp->sys_display);
+   return (uint32_t) ScreenCount(x11disp->sys_display);
 }
 
 // ID-manager
 
-int findobject_x11display(x11display_t * x11disp, /*out*/void ** object, uintptr_t objectid)
+int tryfindobject_x11display(x11display_t * x11disp, /*out*/struct x11window_t ** object, uint32_t objectid)
 {
    int err ;
-   x11display_objectid_t * found_node ;
+   x11windowmap_entry_t * found_node ;
 
-   err = find_x11displayobjectid(&x11disp->idmap, objectid, &found_node) ;
+   err = find_x11windowmap(x11disp->idmap, objectid, &found_node) ;
    if (err) goto ONABORT ;
 
-   *object = found_node->object ;
-
-   return 0 ;
-ONABORT:
-   TRACEABORT_ERRLOG(err) ;
-   return err ;
-}
-
-int tryfindobject_x11display(x11display_t * x11disp, /*out*/void ** object, uintptr_t objectid)
-{
-   int err ;
-   x11display_objectid_t * found_node ;
-
-   err = find_x11displayobjectid(&x11disp->idmap, objectid, &found_node) ;
-
-   if (  !err
-         && object) {
+   if (object) {
       *object = found_node->object ;
    }
 
+   return 0 ;
+ONABORT:
+   if (err != ESRCH) {
+      TRACEABORT_ERRLOG(err);
+   }
    return err ;
 }
 
-int insertobject_x11display(x11display_t * x11disp, void * object, uintptr_t objectid)
+int insertobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid)
 {
    int err ;
 
-   err = insert_x11displayobjectid(&x11disp->idmap, objectid, object) ;
+   VALIDATE_INPARAM_TEST(object != 0, ONABORT, );
+
+   err = insert_x11windowmap(x11disp->idmap, objectid, object);
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -449,11 +389,11 @@ ONABORT:
    return err ;
 }
 
-int removeobject_x11display(x11display_t * x11disp, uintptr_t objectid)
+int removeobject_x11display(x11display_t * x11disp, uint32_t objectid)
 {
    int err ;
 
-   err = delete_x11displayobjectid(&x11disp->idmap, objectid) ;
+   err = remove_x11windowmap(x11disp->idmap, objectid) ;
    if (err) goto ONABORT ;
 
    return 0 ;
@@ -462,12 +402,12 @@ ONABORT:
    return err ;
 }
 
-int replaceobject_x11display(x11display_t * x11disp, void * object, uintptr_t objectid)
+int replaceobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid)
 {
    int err ;
-   x11display_objectid_t * found_node;
+   x11windowmap_entry_t * found_node;
 
-   err = find_x11displayobjectid(&x11disp->idmap, objectid, &found_node) ;
+   err = find_x11windowmap(x11disp->idmap, objectid, &found_node) ;
    if (err) goto ONABORT ;
 
    found_node->object = object;
@@ -500,7 +440,7 @@ static int test_initfree(void)
    // TEST init2_x11display, free_x11display
    for (int isExtension = 0; isExtension <= 1; ++isExtension) {
       TEST(0 == init2_x11display(&x11disp, ":0.0", (isExtension != 0))) ;
-      TEST(x11disp.idmap       == 0) ;
+      TEST(x11disp.idmap       != 0) ;
       TEST(x11disp.sys_display != 0) ;
       TEST(x11disp.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
       TEST(x11disp.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
@@ -508,14 +448,16 @@ static int test_initfree(void)
       TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
       TEST(0  < io_x11display(&x11disp)) ;
       TEST(0 == free_x11display(&x11disp)) ;
+      TEST(0 == x11disp.idmap) ;
       TEST(0 == x11disp.sys_display) ;
       TEST(0 == free_x11display(&x11disp)) ;
+      TEST(0 == x11disp.idmap) ;
       TEST(0 == x11disp.sys_display) ;
    }
 
    // TEST init_x11display, free_x11display
    TEST(0 == init_x11display(&x11disp, ":0.0")) ;
-   TEST(x11disp.idmap       == 0) ;
+   TEST(x11disp.idmap       != 0) ;
    TEST(x11disp.sys_display != 0) ;
    TEST(x11disp.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
    TEST(x11disp.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
@@ -523,13 +465,15 @@ static int test_initfree(void)
    TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
    TEST(0  < io_x11display(&x11disp)) ;
    TEST(0 == free_x11display(&x11disp)) ;
+   TEST(0 == x11disp.idmap) ;
    TEST(0 == x11disp.sys_display) ;
    TEST(0 == free_x11display(&x11disp)) ;
+   TEST(0 == x11disp.idmap) ;
    TEST(0 == x11disp.sys_display) ;
 
    // TEST init_x11display: 2 different connections
    TEST(0 == init_x11display(&x11disp, ":0.0")) ;
-   TEST(x11disp.idmap       == 0) ;
+   TEST(x11disp.idmap       != 0) ;
    TEST(x11disp.sys_display != 0) ;
    TEST(x11disp.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
    TEST(x11disp.atoms.WM_DELETE_WINDOW   == XInternAtom(x11disp.sys_display, "WM_DELETE_WINDOW", False)) ;
@@ -537,7 +481,7 @@ static int test_initfree(void)
    TEST(x11disp.atoms._NET_WM_WINDOW_OPACITY == XInternAtom(x11disp.sys_display, "_NET_WM_WINDOW_OPACITY", False)) ;
    TEST(0  < io_x11display(&x11disp)) ;
    TEST(0 == init_x11display(&x11disp4, ":0.0")) ;  // creates new connection
-   TEST(x11disp4.idmap       == 0) ;
+   TEST(x11disp4.idmap       != 0) ;
    TEST(x11disp4.sys_display != 0) ;
    TEST(x11disp4.sys_display != x11disp.sys_display) ;
    TEST(x11disp4.atoms.WM_PROTOCOLS       == XInternAtom(x11disp.sys_display, "WM_PROTOCOLS", False)) ;
@@ -669,8 +613,8 @@ static int test_screen(x11display_t * x11disp, x11display_t * x11disp2)
    x11display_t * disp[2] = { x11disp, x11disp2 };
 
    for (unsigned i = 0; i < lengthof(disp); ++i) {
-      const int32_t N = nrofscreens_x11display(disp[i]);
-      const int32_t D = defaultscreennr_x11display(disp[i]);
+      const uint32_t N = nrofscreens_x11display(disp[i]);
+      const uint32_t D = defaultscreennr_x11display(disp[i]);
 
       // TEST defaultscreen_x11display
       x11screen_t x11screen = defaultscreen_x11display(disp[i]);
@@ -738,77 +682,53 @@ ONABORT:
 
 static int test_id_manager(x11display_t * x11disp1, x11display_t * x11disp2)
 {
-   x11display_t   copy    = x11display_INIT_FREEABLE ;
-   void *         object1 = 0 ;
-   void *         object2 = 0 ;
+   struct x11window_t * object1 = 0;
+   struct x11window_t * object2 = 0;
 
    // TEST insertobject_x11display
-   TEST(0 == x11disp1->idmap) ;
-   TEST(0 == x11disp2->idmap) ;
-   for (uint32_t i = 100; i < 200; ++i) {
-      TEST(0 == insertobject_x11display(x11disp1, (void*) (1000 + i), i)) ;
-      TEST(0 == insertobject_x11display(x11disp2, (void*) (2000 + i), i)) ;
+   for (uint32_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
+      TEST(0 == insertobject_x11display(x11disp1, (struct x11window_t*) (1000 + i), i)) ;
+      TEST(0 == insertobject_x11display(x11disp2, (struct x11window_t*) (2000 + i), i)) ;
    }
 
-   // TEST findobject_x11display
-   for (uint32_t i = 100; i < 200; ++i) {
-      TEST(0 == findobject_x11display(x11disp1, &object1, i)) ;
-      TEST(0 == findobject_x11display(x11disp2, &object2, i)) ;
-      TEST(object1 == (void*) (1000 + i)) ;
-      TEST(object2 == (void*) (2000 + i)) ;
+   // TEST tryfindobject_x11display
+   for (uint32_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
+      TEST(0 == tryfindobject_x11display(x11disp1, &object1, i)) ;
+      TEST(0 == tryfindobject_x11display(x11disp2, &object2, i)) ;
+      TEST(object1 == (struct x11window_t*) (1000 + i)) ;
+      TEST(object2 == (struct x11window_t*) (2000 + i)) ;
    }
 
    // TEST replaceobject_x11display
-   for (uint32_t i = 100; i < 200; ++i) {
-      TEST(0 == replaceobject_x11display(x11disp1, (void*) (1001 + i), i)) ;
-      TEST(0 == replaceobject_x11display(x11disp2, (void*) (2001 + i), i)) ;
-      TEST(0 == findobject_x11display(x11disp1, &object1, i)) ;
-      TEST(0 == findobject_x11display(x11disp2, &object2, i)) ;
-      TEST(object1 == (void*) (1001 + i)) ;
-      TEST(object2 == (void*) (2001 + i)) ;
+   for (uint32_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
+      TEST(0 == replaceobject_x11display(x11disp1, (struct x11window_t*) (1001 + i), i)) ;
+      TEST(0 == replaceobject_x11display(x11disp2, (struct x11window_t*) (2001 + i), i)) ;
+      TEST(0 == tryfindobject_x11display(x11disp1, &object1, i)) ;
+      TEST(0 == tryfindobject_x11display(x11disp2, &object2, i)) ;
+      TEST(object1 == (struct x11window_t*) (1001 + i)) ;
+      TEST(object2 == (struct x11window_t*) (2001 + i)) ;
    }
 
    // TEST removeobject_x11display
-   for (uint32_t i = 100; i < 200; ++i) {
-      TEST(0 != x11disp1->idmap) ;
-      TEST(0 != x11disp2->idmap) ;
+   for (uint32_t i = 100; i < 100+lengthof(x11disp1->idmap->entries); ++i) {
       TEST(0 == removeobject_x11display(x11disp1, i)) ;
       TEST(0 == removeobject_x11display(x11disp2, i)) ;
+      TEST(ESRCH == tryfindobject_x11display(x11disp1, &object1, i)) ;
+      TEST(ESRCH == tryfindobject_x11display(x11disp2, &object2, i)) ;
    }
-   TEST(0 == x11disp1->idmap) ;
-   TEST(0 == x11disp2->idmap) ;
 
    // TEST ESRCH
-   TEST(0 == insertobject_x11display(x11disp1, (void*) 1000, 99)) ;
-   TEST(0 == insertobject_x11display(x11disp2, (void*) 2000, 98)) ;
-   TEST(ESRCH == removeobject_x11display(x11disp1, 1000)) ;
-   TEST(ESRCH == removeobject_x11display(x11disp2, 2000)) ;
-   TEST(ESRCH == findobject_x11display(x11disp1, &object1, 98)) ;
-   TEST(ESRCH == findobject_x11display(x11disp2, &object2, 99)) ;
+   TEST(ESRCH == tryfindobject_x11display(x11disp1, &object1, 98)) ;
    TEST(ESRCH == removeobject_x11display(x11disp1, 98)) ;
-   TEST(ESRCH == removeobject_x11display(x11disp2, 99)) ;
    TEST(ESRCH == replaceobject_x11display(x11disp1, 0, 98)) ;
-   TEST(ESRCH == replaceobject_x11display(x11disp2, 0, 99)) ;
+
+   // TEST EINVAL
+   TEST(EINVAL == insertobject_x11display(x11disp1, (struct x11window_t*) 0, 99));
 
    // TEST EEXIST
-   TEST(EEXIST == insertobject_x11display(x11disp1, (void*) 1000, 99)) ;
-   TEST(EEXIST == insertobject_x11display(x11disp2, (void*) 2000, 98)) ;
-
-   // TEST free_x11display: frees x11disp1->idmap
-   for (uint32_t i = 10; i < 20; ++i) {
-      TEST(0 == insertobject_x11display(x11disp1, (void*) (100 + i), i)) ;
-      TEST(0 == insertobject_x11display(x11disp2, (void*) (200 + i), i)) ;
-   }
-   TEST(0 != x11disp1->idmap) ;
-   TEST(0 != x11disp2->idmap) ;
-   copy.idmap = x11disp1->idmap ;
-   x11disp1->idmap = 0 ;
-   TEST(0 == free_x11display(&copy)) ;
-   TEST(0 == copy.idmap) ;
-   copy.idmap = x11disp2->idmap ;
-   x11disp2->idmap = 0 ;
-   TEST(0 == free_x11display(&copy)) ;
-   TEST(0 == copy.idmap) ;
+   TEST(0 == insertobject_x11display(x11disp1, (struct x11window_t*) 1, 99));
+   TEST(EEXIST == insertobject_x11display(x11disp1, (struct x11window_t*) 3, 99));
+   TEST(0 == removeobject_x11display(x11disp1, 99)) ;
 
    return 0 ;
 ONABORT:

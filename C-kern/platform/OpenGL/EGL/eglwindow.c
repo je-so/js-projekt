@@ -159,7 +159,7 @@ static int init_native(/*out*/native_types_t * native)
       TEST(0 == init_surfaceconfig(&surfconf, &native->display, native->config_attr[i]));
       int32_t visualid;
       TEST(0 == visualid_surfaceconfig(&surfconf, &native->display, &visualid));
-      TEST(0 == initvid_x11window(&native->oswindow[i], os_display(&native->display), (int32_t)snr, 0, (uint32_t)visualid, winattr));
+      TEST(0 == initvid_x11window(&native->oswindow[i], os_display(&native->display), snr, 0, (uint32_t)visualid, winattr));
       native->eglconfig[i] = surfconf.config;
    }
 

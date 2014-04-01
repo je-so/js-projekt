@@ -245,7 +245,7 @@ static int test_query(void)
    TEST(0 != gl_display(&disp));
 
    // TEST os_display
-   TEST(0 != os_display(&disp));
+   TEST(&disp == (void*) os_display(&disp));
    TEST(0 == ISFREE_OSDISPLAY(os_display(&disp)));
 
    // TEST gl_display: freed display
@@ -253,8 +253,12 @@ static int test_query(void)
    TEST(0 == gl_display(&disp));
 
    // TEST os_display: freed display
-   TEST(0 != os_display(&disp));
+   TEST(&disp == (void*) os_display(&disp));
    TEST(1 == ISFREE_OSDISPLAY(os_display(&disp)));
+
+   // TEST castfromos_display
+   TEST(0 == castfromos_display(0));
+   TEST(&disp == castfromos_display(os_display(&disp)));
 
    return 0;
 ONABORT:

@@ -114,12 +114,25 @@ struct opengl_display_t * gl_display(const display_t * disp);
  * both pointers differ. */
 void * os_display(const display_t * disp);
 
+/* function: castfromos_display
+ * Casts pointer to osdisplay into pointer to <display_t>. */
+display_t * castfromos_display(const void * osdisplay);
+
 // group: update
 
 
 // section: inline implementation
 
 // group: display_t
+
+/* define: castfromos_display
+ * Implements <display_t.castfromos_display>. */
+#define castfromos_display(from_osdisplay)   \
+         ( __extension__ ({                  \
+            typeof(((display_t*)0)->osdisplay)  \
+               * _from = (from_osdisplay);   \
+            (display_t*) _from;              \
+         }))
 
 /* define: gl_display
  * Implements <display_t.gl_display>. */

@@ -23,6 +23,7 @@
 */
 
 #include "C-kern/konfig.h"
+#include "C-kern/api/test/assert.h"
 #include "C-kern/api/graphic/display.h"
 #include "C-kern/api/graphic/surfaceconfig.h"
 #include "C-kern/api/graphic/window.h"
@@ -33,30 +34,33 @@
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysgles2.h)
 
+typedef struct demowindow_t demowindow_t;
+
 #define TEST(CONDITION) \
          if (!(CONDITION)) { \
             printf("%s:%d: ERROR\n", __FILE__, __LINE__); \
             goto ONABORT; \
          }
 
-static bool          s_isClosed = false;
-static EGLDisplay    s_egldisplay;
-static EGLSurface    s_eglwindow;
+struct demowindow_t {
+   window_t super;
+   bool     isClosed;
+};
 
-static void onclose_demowindow(x11window_t * x11win)
+window_evh_DECLARE(demowindow_evh_t, demowindow_t);
+
+static void onclose_demowindow(demowindow_t * win)
 {
-   (void) x11win;
-   s_isClosed = true;
+   win->isClosed = true;
 }
 
-static void ondestroy_demowindow(x11window_t * x11win)
+static void ondestroy_demowindow(demowindow_t * win)
 {
-   (void) x11win;
+   (void) win;
 }
 
-static void onredraw_demowindow(x11window_t * x11win)
+static void onredraw_demowindow(demowindow_t * win)
 {
-   (void) x11win;
    glClearColor(0, 0, 0, 1);
    glClearDepthf(1);
    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -97,22 +101,22 @@ static void onredraw_demowindow(x11window_t * x11win)
    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
    glDisableVertexAttribArray(0);
    glDisableVertexAttribArray(1);
-   eglSwapBuffers(s_egldisplay, s_eglwindow);
+   eglSwapBuffers(gl_display(display_window(&win->super)), gl_window(&win->super));
 }
 
-static void onreshape_demowindow(x11window_t * x11win, uint32_t width, uint32_t height)
+static void onreshape_demowindow(demowindow_t * win, uint32_t width, uint32_t height)
 {
-   (void) x11win;
+   (void) win;
    glViewport(0, 0, (int)width, (int)height);
 }
 
-static void onvisible_demowindow(x11window_t * x11win, x11window_state_e state)
+static void onvisible_demowindow(demowindow_t * win, bool isVisible)
 {
-   (void) x11win;
-   (void) state;
+   (void) win;
+   (void) isVisible;
 }
 
-static int create_opengl_program(void)
+static int create_opengles_program(void)
 {
    const char * vertex_procedure =
       "attribute mediump vec4 p_pos;\n"   // position parameter
@@ -174,13 +178,12 @@ ONABORT:
    return EINVAL;
 }
 
-
 int setup_opengles_demo(maincontext_t * maincontext)
 {
    (void) maincontext;
    display_t         disp;
    uint32_t          snr;
-   window_t          win;
+   demowindow_t      win = { .super = window_INIT_FREEABLE, .isClosed = false };
    surfaceconfig_t   surfconf;
    EGLContext        eglcontext;
    int32_t           conf_attribs[] = {
@@ -196,31 +199,28 @@ int setup_opengles_demo(maincontext_t * maincontext)
       windowconfig_INIT_POS(100, 100),
       windowconfig_INIT_NONE
    };
-   x11window_it   eventhandler = x11window_it_INIT(_demowindow);
+   demowindow_evh_t   eventhandler = window_evh_INIT(_demowindow);
 
    TEST(0 == initdefault_display(&disp));
    snr = defaultscreennr_display(&disp);
-   s_egldisplay = (void*)gl_display(&disp);
 
    TEST(0 == init_surfaceconfig(&surfconf, &disp, conf_attribs));
-   TEST(0 == init_window(&win, &disp, snr, &surfconf, winattr));
-   os_window(&win)->iimpl = &eventhandler; // TODO: remove when init_window supports eventhandler
-   s_eglwindow = (void*)gl_window(&win);
+   TEST(0 == init_window(&win.super, &disp, snr, genericcast_windowevh(&eventhandler, demowindow_t), &surfconf, winattr));
 
    eglcontext = eglCreateContext(gl_display(&disp), surfconf.config, EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
    TEST(EGL_NO_CONTEXT != eglcontext);
-   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), (void*)gl_window(&win), (void*)gl_window(&win), eglcontext));
+   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), (void*)gl_window(&win.super), (void*)gl_window(&win.super), eglcontext));
 
-   TEST(0 == create_opengl_program());
+   TEST(0 == create_opengles_program());
 
-   TEST(0 == show_x11window(os_window(&win)));
-   while (!s_isClosed) {
+   TEST(0 == show_window(&win.super));
+   while (!win.isClosed) {
       TEST(0 == nextevent_X11(os_display(&disp)));
    }
 
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
    TEST(EGL_TRUE == eglDestroyContext(gl_display(&disp), eglcontext));
-   TEST(0 == free_window(&win, &disp));
+   TEST(0 == free_window(&win.super));
    TEST(0 == free_display(&disp));
 
    return 0;

@@ -40,11 +40,11 @@ struct windowconfig_t;
 
 /* typedef: struct x11window_t
  * Export <x11window_t> into global namespace. */
-typedef struct x11window_t             x11window_t ;
+typedef struct x11window_t x11window_t;
 
-/* typedef: struct x11window_it
- * Export <x11window_it> into global namespace. */
-typedef struct x11window_it            x11window_it ;
+/* typedef: struct x11window_evh_t
+ * Export <x11window_evh_t> into global namespace. */
+typedef struct x11window_evh_t x11window_evh_t;
 
 
 /* enums: x11window_state_e
@@ -89,9 +89,9 @@ int unittest_platform_X11_x11window(void) ;
 #endif
 
 
-/* struct: x11window_it
+/* struct: x11window_evh_t
  * Callback interface for X11 events. */
-struct x11window_it {
+struct x11window_evh_t {
    /* variable: onclose
     * The event handler is called if the user requested to close the window. You can save state information before calling <free_x11window>. */
    void (* onclose)        (x11window_t * x11win);
@@ -100,7 +100,7 @@ struct x11window_it {
     * The <x11window_t.state> is set to <x11window_state_DESTROYED> before this callback is called.
     * You must call <free_x11window> - any other function which uses <x11window_t.sys_drawable> as parameter
     * would cause an Xlib error which would cause the process to abort. Not calling <free_x11window> results in
-    * a memory leak. Calling <free_x11window> in response to an <onclose> event does not trigger a <ondestroy> callback. */
+    * a memory leak. Calling <free_x11window> in response to an <onclose> event does not trigger an <ondestroy> callback. */
    void (* ondestroy)      (x11window_t * x11win);
    /* variable: onredraw
     * The event handler is called if the window was (partially) obscured and the obscured content has to be redrawn. */
@@ -110,16 +110,17 @@ struct x11window_it {
     * The x and y coordinates can be queried for with a call to <pos_x11window>. */
    void (* onreshape)      (x11window_t * x11win, uint32_t width, uint32_t height);
    /* variable: onvisible
-    * The event handler is called if the window changes state from <x11window_state_SHOWN>
-    * to <x11window_state_HIDDEN> or vice versa.*/
-   void (* onvisible)      (x11window_t * x11win, x11window_state_e state);
-} ;
+    * The event handler is called whenever the window changes from hidden to shown state
+    * or vice versa. If isVisible is set the window state is <x11window_state_SHOWN>
+    * else <x11window_state_HIDDEN>. */
+   void (* onvisible)      (x11window_t * x11win, bool isVisible);
+};
 
 // group: generic
 
-/* define: x11window_it_INIT
+/* define: x11window_evh_INIT
  * Static initializer. */
-#define x11window_it_INIT(subwindow_fct_suffix) {  \
+#define x11window_evh_INIT(subwindow_fct_suffix) {  \
             & onclose ## subwindow_fct_suffix,     \
             & ondestroy ## subwindow_fct_suffix,   \
             & onredraw ## subwindow_fct_suffix,    \
@@ -127,22 +128,22 @@ struct x11window_it {
             & onvisible ## subwindow_fct_suffix    \
          }
 
-/* function: genericcast_x11windowit
- * Casts parameter iimpl into pointer to interface <x11window_it>.
- * The parameter iimpl has to be of type pointer to type declared with <x11window_it_DECLARE>.
- * The other parameters must be the same as in <x11window_it_DECLARE> without the first. */
-const x11window_it * genericcast_x11windowit(const void * iimpl, TYPENAME subwindow_t) ;
+/* function: genericcast_x11windowevh
+ * Casts parameter evhimpl into pointer to interface <x11window_evh_t>.
+ * The parameter evhimpl has to be of type pointer to type declared with <x11window_evh_DECLARE>.
+ * The other parameters must be the same as in <x11window_evh_DECLARE> without the first. */
+const x11window_evh_t * genericcast_x11windowevh(const void * evhimpl, TYPENAME subwindow_t) ;
 
-/* function: x11window_it_DECLARE
+/* function: x11window_evh_DECLARE
  * Declares an interface function table for getting notified if window an event has occurred.
- * The declared interface is structural compatible with <x11window_it>.
- * See <x11window_it> for a list of declared functions.
+ * The declared interface is structural compatible with <x11window_evh_t>.
+ * See <x11window_evh_t> for a list of declared functions.
  *
  * Parameter:
- * declared_it - The name of the structure which is declared as the interface.
- *               The name should have the suffix "_it".
- * subwindow_t - The window subtype for which declared_it implements the callback functions. */
-void x11window_it_DECLARE(TYPENAME declared_it, TYPENAME subwindow_t) ;
+ * declared_evh_t - The name of the structure which is declared as the interface.
+ *                  The name should have the suffix "_evh_t".
+ * subwindow_t    - The window subtype for which declared_evh_t implements the callback functions. */
+void x11window_evh_DECLARE(TYPENAME declared_evh_t, TYPENAME subwindow_t);
 
 
 /* struct: x11window_t
@@ -156,14 +157,14 @@ struct x11window_t {
    struct x11display_t* display ;
    /* variable: sys_drawable
     * X window ID. The ID describes a drawable of type window. */
-   uint32_t             sys_drawable ;
+   uint32_t             sys_drawable;
    /* variable: sys_colormap
     * X window ID. The ID describes a colormap which is associated with the window.
     * A colormap is used to map the window pixel depth to the screen pixel depth. */
    uint32_t             sys_colormap ;
-   /* variable: iimpl
-    * Reference to <x11window_it> which handles events. */
-   const x11window_it * iimpl ;
+   /* variable: evhimpl
+    * Reference to <x11window_evh_t> which handles events. */
+   const x11window_evh_t * evhimpl;
    /* variable: state
     * Current state of window (shown, hidden, destroyed). See <x11window_state_e>. */
    uint8_t              state ;
@@ -185,7 +186,7 @@ struct x11window_t {
  * Do not use this function to initialize an X11 window with OpenGL specific attributes.
  * Use <initvid_x11window> instead and determine the visualid with <visualid_surfaceconfig> -
  * see <surfaceconfig_t>. */
-int init_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, int32_t screennr, const struct x11window_it * eventhandler, const int32_t * surfconf_attrib, const struct windowconfig_t * winconf_attrib);
+int init_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, uint32_t screennr, const struct x11window_evh_t * eventhandler, const int32_t * surfconf_attrib, const struct windowconfig_t * winconf_attrib);
 
 /* function: initvid_x11window
  * Create a native X11 window on x11screen and assign it to x11win.
@@ -194,12 +195,11 @@ int init_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, i
  * with parameter config_visualid which holds the ID of the X11 visual.
  * The visual of a window determines its capabilities like nr of bits
  * per color channel, double buffering and other OpenGL related stuff. */
-int initvid_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, int32_t screennr, const struct x11window_it * eventhandler,/*(X11) VisualID*/uint32_t config_visualid, const struct windowconfig_t * winconf_attrib);
+int initvid_x11window(/*out*/x11window_t * x11win, struct x11display_t * x11disp, uint32_t screennr, const struct x11window_evh_t * eventhandler,/*(X11) VisualID*/uint32_t config_visualid, const struct windowconfig_t * winconf_attrib);
 
 /* function: initmove_x11window
  * Must be called if address of <x11window_t> changes.
- * A simple memcpy from source to destination does not work.
- * *Not implemented*. */
+ * A simple memcpy from source to destination does not work. */
 int initmove_x11window(/*out*/x11window_t * dest_x11win, x11window_t * src_x11win) ;
 
 /* function: free_x11window
@@ -210,9 +210,13 @@ int free_x11window(x11window_t * x11win) ;
 
 // group: query
 
+/* function: display_x11window
+ * Returns the display the window is associated with. */
+struct x11display_t * display_x11window(const x11window_t * x11win);
+
 /* function: screen_x11window
  * Returns the screen number the window is located on. */
-int32_t screen_x11window(const x11window_t * x11win) ;
+uint32_t screen_x11window(const x11window_t * x11win) ;
 
 /* function: flags_x11window
  * Returns flags which indicate ownership state of system resources.
@@ -238,7 +242,7 @@ int pos_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out*/
 int size_x11window(const x11window_t * x11win, /*out*/uint32_t * width, /*out*/uint32_t * height) ;
 
 /* function: geometry_x11window
- * This is the geometry of window without the window manager frame in screen coordinates.
+ * This is the geometry of x11win without the window manager frame in screen coordinates.
  * The value (screen_x == 0, screen_y == 0) denotes the top left corner of the screen. */
 int geometry_x11window(const x11window_t * x11win, /*out*/int32_t * screen_x, /*out*/int32_t * screen_y, /*out*/uint32_t * width, /*out*/uint32_t * height) ;
 
@@ -336,42 +340,52 @@ int configfilter_x11window(/*out*/struct surfaceconfig_filter_t * filter, const 
 
 // section: inline implementation
 
-// group: x11window_it
+// group: x11window_evh_t
 
-/* define: genericcast_x11windowit
- * Implements <x11window_it.genericcast_x11windowit>. */
-#define genericcast_x11windowit(iimpl, subwindow_t)   \
-      ( __extension__ ({                                                                     \
-         static_assert(                                                                      \
-            offsetof(typeof(*(iimpl)), onclose)      == offsetof(x11window_it, onclose)      \
-            && offsetof(typeof(*(iimpl)), ondestroy) == offsetof(x11window_it, ondestroy)    \
-            && offsetof(typeof(*(iimpl)), onredraw)  == offsetof(x11window_it, onredraw)     \
-            && offsetof(typeof(*(iimpl)), onreshape) == offsetof(x11window_it, onreshape)    \
-            && offsetof(typeof(*(iimpl)), onvisible)  == offsetof(x11window_it, onvisible),  \
-            "ensure same structure");                                                        \
-         if (0) {                                                                            \
-            (iimpl)->onclose((subwindow_t*)0);                                               \
-            (iimpl)->ondestroy((subwindow_t*)0);                                             \
-            (iimpl)->onredraw((subwindow_t*)0);                                              \
-            (iimpl)->onreshape((subwindow_t*)0, (uint32_t)0, (uint32_t)0);                   \
-            (iimpl)->onvisible((subwindow_t*)0, (x11window_state_e)0);                       \
-         }                                                                                   \
-         (x11window_it*) (iimpl);                                                            \
+/* define: genericcast_x11windowevh
+ * Implements <x11window_evh_t.genericcast_x11windowevh>. */
+#define genericcast_x11windowevh(evhimpl, subwindow_t)   \
+      ( __extension__ ({                                 \
+         static_assert(                                  \
+            offsetof(typeof(*(evhimpl)), onclose)        \
+            == offsetof(x11window_evh_t, onclose)        \
+            && offsetof(typeof(*(evhimpl)), ondestroy)   \
+               == offsetof(x11window_evh_t, ondestroy)   \
+            && offsetof(typeof(*(evhimpl)), onredraw)    \
+               == offsetof(x11window_evh_t, onredraw)    \
+            && offsetof(typeof(*(evhimpl)), onreshape)   \
+               == offsetof(x11window_evh_t, onreshape)   \
+            && offsetof(typeof(*(evhimpl)), onvisible)   \
+               == offsetof(x11window_evh_t, onvisible),  \
+            "ensure same structure");                    \
+         if (0) {                                        \
+            (evhimpl)->onclose((subwindow_t*)0);         \
+            (evhimpl)->ondestroy((subwindow_t*)0);       \
+            (evhimpl)->onredraw((subwindow_t*)0);        \
+            (evhimpl)->onreshape((subwindow_t*)0, (uint32_t)0, (uint32_t)0); \
+            (evhimpl)->onvisible((subwindow_t*)0, (bool)0); \
+         }                                               \
+         (const x11window_evh_t*) (evhimpl);             \
       }))
 
-/* define: x11window_it_DECLARE
- * Implements <x11window_it.x11window_it_DECLARE>. */
-#define x11window_it_DECLARE(declared_it, subwindow_t) \
-         typedef struct declared_it    declared_it ;        \
-         struct declared_it {                               \
+/* define: x11window_evh_DECLARE
+ * Implements <x11window_evh_t.x11window_evh_DECLARE>. */
+#define x11window_evh_DECLARE(declared_evh_t, subwindow_t) \
+         typedef struct declared_evh_t declared_evh_t;      \
+         struct declared_evh_t {                            \
             void (* onclose)     (subwindow_t * x11win);    \
             void (* ondestroy)   (subwindow_t * x11win);    \
             void (* onredraw)    (subwindow_t * x11win);    \
             void (* onreshape)   (subwindow_t * x11win, uint32_t width, uint32_t height); \
-            void (* onvisible)   (subwindow_t * x11win, x11window_state_e state);         \
+            void (* onvisible)   (subwindow_t * x11win, bool isVisible);   \
          }
 
 // group: x11window_t
+
+/* define: display_x11window
+ * Implements <x11window_t.display_x11window>. */
+#define display_x11window(x11win) \
+         ((x11win)->display)
 
 /* define: flags_x11window
  * Implements <x11window_t.flags_x11window>. */
@@ -406,9 +420,9 @@ static inline bool isfree_x11window(const x11window_t * x11win)
          ( __extension__ ({                                                                     \
             static_assert(                                                                      \
                offsetof(typeof(*(object)), display) == offsetof(x11window_t, display)           \
-               && offsetof(typeof(*(object)), sys_drawable) == offsetof(x11window_t, sys_drawable)  \
+               && offsetof(typeof(*(object)), sys_drawable) == offsetof(x11window_t, sys_drawable) \
                && offsetof(typeof(*(object)), sys_colormap) == offsetof(x11window_t, sys_colormap) \
-               && offsetof(typeof(*(object)), iimpl) == offsetof(x11window_t, iimpl)            \
+               && offsetof(typeof(*(object)), evhimpl) == offsetof(x11window_t, evhimpl)        \
                && offsetof(typeof(*(object)), state) == offsetof(x11window_t, state)            \
                && offsetof(typeof(*(object)), flags) == offsetof(x11window_t, flags)            \
                && sizeof((object)->flags) == sizeof(((x11window_t*)0)->flags),                  \

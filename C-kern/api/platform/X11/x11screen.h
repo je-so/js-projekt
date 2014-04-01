@@ -47,26 +47,26 @@ int unittest_platform_X11_x11screen(void);
  * A display normally corresponds to a graphics card and the screen to an attached monitor. */
 struct x11screen_t {
    struct x11display_t* display;
-   int32_t              nrscreen;
+   uint32_t             nrscreen;
 };
 
 // group: lifetime
 
 /* define: x11screen_INIT_FREEABLE
  * Static initializer. */
-#define x11screen_INIT_FREEABLE              \
+#define x11screen_INIT_FREEABLE  \
          { 0, 0 }
 
 /* define: x11screen_INIT
  * Static initializer. */
-#define x11screen_INIT(display, nrscreen)    \
+#define x11screen_INIT(display, nrscreen) \
          { display, nrscreen }
 
 /* function: init_x11screen
  * Initializes x11screen_t with reference to <x11display_t> and screen number.
  * If nrscreen >= <nrofscreens_x11display>(display) then error EINVAL is returned.
  * Do not free the display as long as <x11screen_t> is not freed. */
-int init_x11screen(/*out*/x11screen_t * x11screen, struct x11display_t * display, int32_t nrscreen);
+int init_x11screen(/*out*/x11screen_t * x11screen, struct x11display_t * display, uint32_t nrscreen);
 
 // group: query
 

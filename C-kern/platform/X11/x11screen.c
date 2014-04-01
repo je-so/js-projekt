@@ -39,11 +39,11 @@
 
 // group: lifetime
 
-int init_x11screen(/*out*/x11screen_t * x11screen, x11display_t * display, int32_t nrscreen)
+int init_x11screen(/*out*/x11screen_t * x11screen, x11display_t * display, uint32_t nrscreen)
 {
    int err ;
 
-   VALIDATE_INPARAM_TEST(0 <= nrscreen && nrscreen < nrofscreens_x11display(display), ONABORT, ) ;
+   VALIDATE_INPARAM_TEST(nrscreen < nrofscreens_x11display(display), ONABORT, ) ;
 
    x11screen->display  = display ;
    x11screen->nrscreen = nrscreen ;
@@ -83,7 +83,6 @@ static int test_initfree(x11display_t * x11disp)
 
    // TEST init_x11screen: EINVAL
    TEST(EINVAL == init_x11screen(&x11screen, x11disp, nrofscreens_x11display(x11disp))) ;
-   TEST(EINVAL == init_x11screen(&x11screen, x11disp, -1)) ;
 
    return 0 ;
 ONABORT:

@@ -238,7 +238,7 @@ ONABORT:
 static int childprocess_unittest(void)
 {
    x11display_t      x11disp   = x11display_INIT_FREEABLE ;
-   int32_t           snr       = 0;
+   uint32_t          snr       = 0;
    x11window_t       x11win    = x11window_INIT_FREEABLE ;
    x11window_t       x11win2   = x11window_INIT_FREEABLE ;
    windowconfig_t    config[]  = {  windowconfig_INIT_FRAME,

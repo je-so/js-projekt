@@ -93,9 +93,9 @@ int dispatchevent_X11(x11display_t * x11disp)
          // filter event
          if (  event.message_type       == x11disp->atoms.WM_PROTOCOLS
                && (Atom)event.data.l[0] == x11disp->atoms.WM_DELETE_WINDOW
-               && 0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            if (x11win->iimpl && x11win->iimpl->onclose) {
-               x11win->iimpl->onclose(x11win) ;
+               && 0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
+            if (x11win->evhimpl && x11win->evhimpl->onclose) {
+               x11win->evhimpl->onclose(x11win) ;
             }
          }
          #undef event
@@ -105,15 +105,15 @@ int dispatchevent_X11(x11display_t * x11disp)
          #define event  xevent.xdestroywindow
 
          // filter event
-         if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
+         if (0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
             // <free_x11window> was not called before this message
             x11win->sys_drawable = 0 ;
             x11win->state        = x11window_state_DESTROYED ;
             x11win->flags        = (uint8_t) (x11win->flags & ~x11window_flags_OWNWINDOW) ;
             (void) removeobject_x11display(x11disp, event.window) ;
 
-            if (x11win->iimpl && x11win->iimpl->ondestroy) {
-               x11win->iimpl->ondestroy(x11win) ;
+            if (x11win->evhimpl && x11win->evhimpl->ondestroy) {
+               x11win->evhimpl->ondestroy(x11win) ;
             }
          }
          #undef event
@@ -123,9 +123,9 @@ int dispatchevent_X11(x11display_t * x11disp)
          #define event  xevent.xconfigure
 
          // filter event
-         if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            if (x11win->iimpl && x11win->iimpl->onreshape) {
-               x11win->iimpl->onreshape(x11win, (uint32_t)event.width, (uint32_t)event.height) ;
+         if (0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
+            if (x11win->evhimpl && x11win->evhimpl->onreshape) {
+               x11win->evhimpl->onreshape(x11win, (uint32_t)event.width, (uint32_t)event.height) ;
             }
          }
          #undef event
@@ -136,9 +136,9 @@ int dispatchevent_X11(x11display_t * x11disp)
 
          // filter event
          if (  0 == event.count/*last expose*/
-               && 0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            if (x11win->iimpl && x11win->iimpl->onredraw) {
-               x11win->iimpl->onredraw(x11win) ;
+               && 0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
+            if (x11win->evhimpl && x11win->evhimpl->onredraw) {
+               x11win->evhimpl->onredraw(x11win) ;
             }
          }
          #undef event
@@ -148,11 +148,11 @@ int dispatchevent_X11(x11display_t * x11disp)
          #define event  xevent.xmap
 
          // filter event
-         if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            x11win->state = x11window_state_SHOWN ;
+         if (0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
+            x11win->state = x11window_state_SHOWN;
 
-            if (x11win->iimpl && x11win->iimpl->onvisible) {
-               x11win->iimpl->onvisible(x11win, x11win->state) ;
+            if (x11win->evhimpl && x11win->evhimpl->onvisible) {
+               x11win->evhimpl->onvisible(x11win, true);
             }
          }
          #undef event
@@ -162,11 +162,11 @@ int dispatchevent_X11(x11display_t * x11disp)
          #define event  xevent.xunmap
 
          // filter event
-         if (0 == tryfindobject_x11display(x11disp, (void**)&x11win, event.window)) {
-            x11win->state = x11window_state_HIDDEN ;
+         if (0 == tryfindobject_x11display(x11disp, &x11win, event.window)) {
+            x11win->state = x11window_state_HIDDEN;
 
-            if (x11win->iimpl && x11win->iimpl->onvisible) {
-               x11win->iimpl->onvisible(x11win, x11win->state) ;
+            if (x11win->evhimpl && x11win->evhimpl->onvisible) {
+               x11win->evhimpl->onvisible(x11win, false);
             }
          }
          #undef event

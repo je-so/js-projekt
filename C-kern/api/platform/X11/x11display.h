@@ -32,22 +32,18 @@
 
 // forward
 struct x11screen_t;
-struct x11display_objectid_t ;
+struct x11window_t;
+struct x11windowmap_t;
 
 /* typedef: struct x11display_t
  * Export <x11display_t> into global namespace.
  * Describes connection to X11 display server. */
-typedef struct x11display_t               x11display_t ;
+typedef struct x11display_t   x11display_t ;
 
-/* typedef: struct x11display_extension_t
- * Export <x11display_extension_t> into global namespace.
+/* typedef: struct x11extension_t
+ * Export <x11extension_t> into global namespace.
  * Describes an X11 server extension. */
-typedef struct x11display_extension_t     x11display_extension_t ;
-
-/* typedef: struct x11display_objectid_t
- * Export <x11display_objectid_t> into global namespace.
- * Associates an id with an object pointer. */
-typedef struct x11display_objectid_t      x11display_objectid_t  ;
+typedef struct x11extension_t x11extension_t ;
 
 
 // section: Functions
@@ -61,10 +57,10 @@ int unittest_platform_X11_x11display(void) ;
 #endif
 
 
-/* struct: x11display_extension_t
+/* struct: x11extension_t
  * Stores the version number and the event offsets numbers of an X11 extension.
  * It stores also if the extension is supported. */
-struct x11display_extension_t {
+struct x11extension_t {
    uint16_t    version_major ;
    uint16_t    version_minor ;
    int         errorbase ;
@@ -87,30 +83,30 @@ struct x11display_extension_t {
 struct x11display_t {
    /* variable: idmap
     * Used internally to map an id to an object pointer. */
-   struct x11display_objectid_t  * idmap ;
+   struct x11windowmap_t * idmap;
    /* variable: sys_display
     * The X11 display handle of type »Display*«. The generic »void*« type is used to not pollute the
     * global namespace with X11 type names. */
-   void                          * sys_display ;
+   void               * sys_display;
    struct {
-         uint32_t                WM_PROTOCOLS ;
-         uint32_t                WM_DELETE_WINDOW ;
-         uint32_t                _NET_FRAME_EXTENTS ;
-         uint32_t                _NET_WM_WINDOW_OPACITY ;
-   }                             atoms ;
+         uint32_t    WM_PROTOCOLS;
+         uint32_t    WM_DELETE_WINDOW;
+         uint32_t    _NET_FRAME_EXTENTS;
+         uint32_t    _NET_WM_WINDOW_OPACITY;
+   }                    atoms;
    /* variable: glx
     * Check isSupported whether glx is supported.
     * The name of the X11 extension which offers an OpenGL binding is "GLX". */
-   x11display_extension_t        glx;
+   x11extension_t       glx;
    /* variable: xdbe
     * Check isSupported whether »Double Buffer extension« is supported.
     * <x11dblbuffer_t> works only if this extension is supported. */
-   x11display_extension_t        xdbe;
+   x11extension_t       xdbe;
    /* variable: xrandr
     * Check isSupported whether »X Resize, Rotate and Reflection extension« is supported.
     * The types <x11videomode_iterator_t> and <x11videomode_t>
     * work only if this extension is implemented by the X11 server. */
-   x11display_extension_t        xrandr;
+   x11extension_t       xrandr;
    /* variable: xrender
     * Check isSupported whether »X Rendering Extension « is supported.
     * Transparent toplevel windows (as a whole) and alpha blending
@@ -121,7 +117,7 @@ struct x11display_t {
     * See:
     * <settransparency_glxwindow> and <GLX_ATTRIB_TRANSPARENT>
     * */
-   x11display_extension_t        xrender;
+   x11extension_t       xrender;
 } ;
 
 // group: lifetime
@@ -190,49 +186,35 @@ struct x11screen_t defaultscreen_x11display(x11display_t * x11disp);
 
 /* function: defaultscreennr_x11display
  * Returns the default screen number of x11disp. */
-int32_t defaultscreennr_x11display(const x11display_t * x11disp);
+uint32_t defaultscreennr_x11display(const x11display_t * x11disp);
 
 /* function: nrofscreens_x11display
  * Returns the number of all screens attached to x11disp.
  * The first screen has the number 0 and the last <nrofscreens_x11display>-1. */
-int32_t nrofscreens_x11display(const x11display_t * x11disp);
+uint32_t nrofscreens_x11display(const x11display_t * x11disp);
 
 // group: ID-manager
 
-/* function: findobject_x11display
- * Maps an objectid to its associated object pointer.
- * Returns ESRCH if no object exists.
- * On success the returned object contains either a pointer to a valid object or the special
- * value 0 (*NULL*).
- *
- * Event handlers must take care of 0 cause after destroying an X11 object
- * the Display server generates events which indicates this fact or has already generated
- * other events which are not processed yet.
- *
- * An X11 object is only destroyed after the corresponding free_XXX function,
- * e.g. <free_glxwindow>, has been called. Calling free_XXX registers the value 0
- * for the corresponding objectid and a special DestroyNotify_eventhandler then
- * removes the registration with <removeobject_x11display>. */
-int findobject_x11display(x11display_t * x11disp, /*out*/void ** object, uintptr_t objectid) ;
-
 /* function: tryfindobject_x11display
- * Checks if an object id is registered.
- * Returns ESRCH if this object id does not exists.
- * In case of success and if object is set to a value != NULL a pointer is returned in object.
- * The function is equal to <findobject_x11display> except that no error logging is done. */
-int tryfindobject_x11display(x11display_t * x11disp, /*out*/void ** object/*could be NULL*/, uintptr_t objectid) ;
+ * Maps an objectid to its associated object pointer.
+ * Returns ESRCH if no object is registered with objectid.
+ * On success the returned object contains either a pointer to an object which
+ * could be 0. No error logging is done in case of error ESRCH. */
+int tryfindobject_x11display(x11display_t * x11disp, /*out*/struct x11window_t ** object/*could be NULL*/, uint32_t objectid) ;
 
 /* function: insertobject_x11display
  * Registers an object under an objectid. */
-int insertobject_x11display(x11display_t * x11disp, void * object, uintptr_t objectid) ;
+int insertobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid) ;
 
 /* function: removeobject_x11display
- * Removes objectid and its associated pointer from the registration. */
-int removeobject_x11display(x11display_t * x11disp, uintptr_t objectid) ;
+ * Removes objectid and its associated pointer from the registration.
+ * This function is called from <free_x11window> or from <dispatchevent_X11>
+ * in case a DestroyNotify for a registerd window was received. */
+int removeobject_x11display(x11display_t * x11disp, uint32_t objectid);
 
 /* function: replaceobject_x11display
  * Replaces the object for an already registered objectid. */
-int replaceobject_x11display(x11display_t * x11disp, void * object, uintptr_t objectid) ;
+int replaceobject_x11display(x11display_t * x11disp, struct x11window_t * object, uint32_t objectid) ;
 
 
 // section: inline implementation

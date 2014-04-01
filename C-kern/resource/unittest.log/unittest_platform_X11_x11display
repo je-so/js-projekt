@@ -1,40 +1,17 @@
-[1: 1395585655.783246s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:461
+[1: 1395756878.158018s]
+removeobject_x11display() C-kern/platform/X11/x11display.c:401
 Error 3 - No such process
 Function aborted
-[1: 1395585655.783276s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:461
+[1: 1395756878.158053s]
+replaceobject_x11display() C-kern/platform/X11/x11display.c:417
 Error 3 - No such process
 Function aborted
-[1: 1395585655.783282s]
-findobject_x11display() C-kern/platform/X11/x11display.c:420
-Error 3 - No such process
+[1: 1395756878.158059s]
+insertobject_x11display() C-kern/platform/X11/x11display.c:381
+Error 22 - Invalid argument
+Function input violates condition (object != 0)
 Function aborted
-[1: 1395585655.783287s]
-findobject_x11display() C-kern/platform/X11/x11display.c:420
-Error 3 - No such process
-Function aborted
-[1: 1395585655.783291s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:461
-Error 3 - No such process
-Function aborted
-[1: 1395585655.783295s]
-removeobject_x11display() C-kern/platform/X11/x11display.c:461
-Error 3 - No such process
-Function aborted
-[1: 1395585655.783299s]
-replaceobject_x11display() C-kern/platform/X11/x11display.c:477
-Error 3 - No such process
-Function aborted
-[1: 1395585655.783303s]
-replaceobject_x11display() C-kern/platform/X11/x11display.c:477
-Error 3 - No such process
-Function aborted
-[1: 1395585655.783312s]
-insertobject_x11display() C-kern/platform/X11/x11display.c:448
-Error 17 - File exists
-Function aborted
-[1: 1395585655.783316s]
-insertobject_x11display() C-kern/platform/X11/x11display.c:448
+[1: 1395756878.158070s]
+insertobject_x11display() C-kern/platform/X11/x11display.c:388
 Error 17 - File exists
 Function aborted

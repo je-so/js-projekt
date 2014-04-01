@@ -60,12 +60,12 @@ static test_errortimer_t   s_window_errtimer = test_errortimer_INIT_FREEABLE;
 
 /* define: INIT_OSWINDOW
  * Initializes the native window oswindow in an OS specific way. */
-#define INIT_OSWINDOW(oswindow, disp, screennr, visualid, winattr) \
-         initvid_x11window(oswindow, os_display(disp), (int32_t)screennr, 0, (uint32_t)visualid, winattr)
+#define INIT_OSWINDOW(oswindow, disp, screennr, eventhandler, visualid, winattr) \
+         initvid_x11window(oswindow, os_display(disp), screennr, genericcast_x11windowevh(eventhandler, window_t), (uint32_t)visualid, winattr)
 
 /* define: FREE_OSWINDOW
  * Frees oswindow in an OS specific way. */
-#define FREE_OSWINDOW(oswindow, disp) \
+#define FREE_OSWINDOW(oswindow) \
          free_x11window(oswindow)
 
 /* define: INIT_GLWINDOW
@@ -91,18 +91,27 @@ static test_errortimer_t   s_window_errtimer = test_errortimer_INIT_FREEABLE;
 
 // group: lifetime
 
-int init_window(/*out*/window_t * win, display_t * disp, uint32_t screennr, surfaceconfig_t * surfconf, struct windowconfig_t * winattr)
+int init_window(
+      /*out*/window_t       * win,
+      display_t             * disp,
+      uint32_t                screennr,
+      const
+      struct window_evh_t   * eventhandler,
+      surfaceconfig_t       * surfconf,
+      struct windowconfig_t * winattr)
 {
    int      err;
    int      isinit = 0;
    int32_t  visualid;
+
+   static_assert(win == (void*)&win->oswindow, "window_t is subtype of oswindow type");
 
    ONERROR_testerrortimer(&s_window_errtimer, &err, ONABORT);
 
    err = visualid_surfaceconfig(surfconf, disp, &visualid);
    if (err) goto ONABORT;
 
-   err = INIT_OSWINDOW(&win->oswindow, disp, screennr, visualid, winattr);
+   err = INIT_OSWINDOW(&win->oswindow, disp, screennr, eventhandler, visualid, winattr);
    if (err) goto ONABORT;
    ++ isinit;
 
@@ -114,22 +123,24 @@ int init_window(/*out*/window_t * win, display_t * disp, uint32_t screennr, surf
    return 0;
 ONABORT:
    if (isinit) {
-      FREE_OSWINDOW(&win->oswindow, disp);
+      FREE_OSWINDOW(&win->oswindow);
    }
    return err;
 }
 
-int free_window(window_t * win, display_t * disp)
+int free_window(window_t * win)
 {
    int err;
    int err2;
 
-   if (!ISFREE_OSWINDOW(&win->oswindow)) {
-      err  = FREE_GLWINDOW(win, disp);
+   if (0 != display_window(win)) {
+      err  = FREE_GLWINDOW(win, display_window(win));
       SETONERROR_testerrortimer(&s_window_errtimer, &err);
-      err2 = FREE_OSWINDOW(&win->oswindow, disp);
+
+      err2 = FREE_OSWINDOW(&win->oswindow);
       SETONERROR_testerrortimer(&s_window_errtimer, &err2);
       if (err2) err = err2;
+
       if (err) goto ONABORT;
    }
 
@@ -148,42 +159,45 @@ ONABORT:
 
 #if defined(KONFIG_USERINTERFACE_X11) && defined(KONFIG_USERINTERFACE_EGL)
 
+/* define: WAITFOR
+ * Reads and handles window events until CONDITION is met.
+ * Parameter disp must be of type <display_t>. */
 #define WAITFOR(disp, CONDITION) \
    XFlush(os_display(disp)->sys_display);          \
    for (int _count = 0; _count < 100; ++_count) {  \
       while (XPending(os_display(disp)->sys_display)) {  \
          dispatchevent_X11(os_display(disp));      \
       }                                            \
-      if (CONDITION) break ;                       \
-      sleepms_thread(5) ;                          \
+      if (CONDITION) break;                        \
+      sleepms_thread(5);                           \
    }
 
 static int compare_color(x11window_t * x11win, uint32_t w, uint32_t h, bool isRed, bool isGreen, bool isBlue)
 {
-   XImage * ximg = 0 ;
-   size_t   pixels ;
-   uint32_t x, y ;
+   XImage * ximg = 0;
+   size_t   pixels;
+   uint32_t x, y;
 
-   Window root = RootWindow(x11win->display->sys_display, screen_x11window(x11win)) ;
-   Window windummy ;
-   int32_t x2, y2 ;
-   XTranslateCoordinates(x11win->display->sys_display, x11win->sys_drawable, root, 0, 0, &x2, &y2, &windummy) ;
-   ximg = XGetImage(x11win->display->sys_display, root, x2, y2, w, h, (unsigned long)-1, ZPixmap) ;
+   Window root = RootWindow(x11win->display->sys_display, screen_x11window(x11win));
+   Window windummy;
+   int32_t x2, y2;
+   XTranslateCoordinates(x11win->display->sys_display, x11win->sys_drawable, root, 0, 0, &x2, &y2, &windummy);
+   ximg = XGetImage(x11win->display->sys_display, root, x2, y2, w, h, (unsigned long)-1, ZPixmap);
 
    for (pixels = 0, y = 0; y < h; ++y) {
-      for (x = 0; x < w ; ++x) {
-         unsigned long rgbcolor = XGetPixel(ximg, (int)x, (int)y) ;
+      for (x = 0; x < w; ++x) {
+         unsigned long rgbcolor = XGetPixel(ximg, (int)x, (int)y);
          if (isRed == (0 != (rgbcolor & ximg->red_mask))
              && isGreen == (0 != (rgbcolor & ximg->green_mask))
              && isBlue  == (0 != (rgbcolor & ximg->blue_mask))) {
-            ++ pixels ;
+            ++ pixels;
          }
       }
    }
 
-   XDestroyImage(ximg) ;
+   XDestroyImage(ximg);
 
-   return (pixels > ((uint64_t)x*y/2)) ? 0 : EINVAL ;
+   return (pixels > ((uint64_t)x*y/2)) ? 0 : EINVAL;
 }
 
 static int test_transparentalpha(display_t * disp)
@@ -210,8 +224,8 @@ static int test_transparentalpha(display_t * disp)
    TEST(EGL_NO_CONTEXT != eglcontext);
 
    // TEST init_window: surfaceconfig_TRANSPARENT_ALPHA: draw overlay on top of bottom
-   TEST(0 == init_window(&top, disp, snr, &surfconf, winattr));
-   TEST(0 == init_window(&bottom, disp, snr, &surfconf, winattr));
+   TEST(0 == init_window(&top, disp, snr, 0, &surfconf, winattr));
+   TEST(0 == init_window(&bottom, disp, snr, 0, &surfconf, winattr));
 
    TEST(0 == show_x11window(os_window(&bottom)));
    WAITFOR(disp, os_window(&bottom)->state == x11window_state_SHOWN);
@@ -238,8 +252,8 @@ static int test_transparentalpha(display_t * disp)
 	TEST(EGL_TRUE == eglMakeCurrent(gl_display(disp), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
 	TEST(EGL_TRUE == eglDestroyContext(gl_display(disp), eglcontext));
    TEST(0 == free_surfaceconfig(&surfconf));
-   TEST(0 == free_window(&bottom, disp));
-   TEST(0 == free_window(&top, disp));
+   TEST(0 == free_window(&bottom));
+   TEST(0 == free_window(&top));
    WAITFOR(disp, false);
    eglReleaseThread();
 
@@ -248,8 +262,8 @@ ONABORT:
    eglMakeCurrent(gl_display(disp), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
    if (eglcontext != EGL_NO_CONTEXT) eglDestroyContext(gl_display(disp), eglcontext);
    free_surfaceconfig(&surfconf);
-   free_window(&top, disp);
-   free_window(&bottom, disp);
+   free_window(&top);
+   free_window(&bottom);
    return EINVAL;
 }
 
@@ -263,6 +277,33 @@ static void acceptleak_helper(resourceusage_t * usage)
 {
    // EGL window / X11 window / EGLContext has resource leak
    acceptmallocleak_resourceusage(usage, 500);
+}
+
+static int init_test_window(/*out*/window_t * win, /*out*/EGLContext * eglcontext, display_t * disp, window_evh_t * evhandler)
+{
+   surfaceconfig_t   surfconf   = surfaceconfig_INIT_FREEABLE;
+   int32_t           surfattr[] = {
+                        surfaceconfig_BITS_BUFFER, 32, surfaceconfig_BITS_ALPHA, 1,
+                        surfaceconfig_TYPE, surfaceconfig_value_TYPE_WINDOW_BIT,
+                        surfaceconfig_NONE
+                     };
+   windowconfig_t    winattr[] = {
+                        windowconfig_INIT_POS(50, 100),
+                        windowconfig_INIT_SIZE(100, 100),
+                        windowconfig_INIT_FRAME,
+                        windowconfig_INIT_NONE
+                     };
+
+   TEST(0 == init_surfaceconfig(&surfconf, disp, surfattr));
+   TEST(0 == init_window(win, disp, defaultscreennr_display(disp), evhandler, &surfconf, winattr));
+   *eglcontext = eglCreateContext(gl_display(disp), surfconf.config, EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
+   TEST(EGL_NO_CONTEXT != *eglcontext);
+   TEST(EGL_TRUE == eglMakeCurrent(gl_display(disp), (void*)gl_window(win), (void*)gl_window(win), *eglcontext));
+
+   return 0;
+ONABORT:
+   free_surfaceconfig(&surfconf);
+   return EINVAL;
 }
 
 #else
@@ -293,13 +334,14 @@ static int test_initfree(display_t * disp)
       TEST(0 == init_surfaceconfig(&surfconf, disp, surfattr[i]));
 
       // TEST init_window
-      TEST(0 == init_window(&win, disp, defaultscreennr_display(disp), &surfconf, winattr));
+      TEST(0 == init_window(&win, disp, defaultscreennr_display(disp), 0, &surfconf, winattr));
+      TEST(0 != gl_window(&win));
 
       // TEST free_window
-      TEST(0 == free_window(&win, disp));
+      TEST(0 == free_window(&win));
       TEST(1 == isfree_helper(&win));
       TEST(1 == ISFREE_OSWINDOW(&win.oswindow));
-      TEST(0 == free_window(&win, disp));
+      TEST(0 == free_window(&win));
       TEST(1 == isfree_helper(&win));
       TEST(1 == ISFREE_OSWINDOW(&win.oswindow));
 
@@ -315,24 +357,24 @@ static int test_initfree(display_t * disp)
       winattr2big[i] = (windowconfig_t)windowconfig_INIT_FRAME;
    }
    winattr2big[lengthof(winattr2big)-1] = (windowconfig_t) windowconfig_INIT_NONE;
-   TEST(E2BIG == init_window(&win, disp, defaultscreennr_display(disp), &surfconf, winattr2big));
-   TEST(0 == free_window(&win, disp));
+   TEST(E2BIG == init_window(&win, disp, defaultscreennr_display(disp), 0, &surfconf, winattr2big));
+   TEST(0 == free_window(&win));
    TEST(1 == isfree_helper(&win));
 
    // TEST init_window: ERROR
    for (unsigned i = 1; i <= 2; ++i) {
       init_testerrortimer(&s_window_errtimer, i, ENOMEM);
-      TEST(ENOMEM == init_window(&win, disp, defaultscreennr_display(disp), &surfconf, winattr));
-      TEST(0 == free_window(&win, disp));
+      TEST(ENOMEM == init_window(&win, disp, defaultscreennr_display(disp), 0, &surfconf, winattr));
+      TEST(0 == free_window(&win));
       TEST(1 == isfree_helper(&win));
    }
 
    // TEST free_window: ERROR
    for (unsigned i = 1; i <= 2; ++i) {
-      TEST(0 == init_window(&win, disp, defaultscreennr_display(disp), &surfconf, winattr));
+      TEST(0 == init_window(&win, disp, defaultscreennr_display(disp), 0, &surfconf, winattr));
       init_testerrortimer(&s_window_errtimer, i, ENOMEM);
-      TEST(ENOMEM == free_window(&win, disp));
-      TEST(0 == free_window(&win, disp));
+      TEST(ENOMEM == free_window(&win));
+      TEST(0 == free_window(&win));
       TEST(1 == isfree_helper(&win));
    }
 
@@ -342,7 +384,101 @@ static int test_initfree(display_t * disp)
    return 0;
 ONABORT:
    free_surfaceconfig(&surfconf);
-   free_window(&win, disp);
+   free_window(&win);
+   return EINVAL;
+}
+
+static int test_showhide(window_t * win, display_t * disp)
+{
+   // TEST show_window
+   TEST(0 == isvisible_window(win));
+   TEST(0 == show_window(win));
+   WAITFOR(disp, isvisible_window(win));
+   TEST(1 == isvisible_window(win));
+
+   // TEST hide_window
+   TEST(1 == isvisible_window(win));
+   TEST(0 == hide_window(win));
+   WAITFOR(disp, ! isvisible_window(win));
+   TEST(0 == isvisible_window(win));
+
+   return 0;
+ONABORT:
+   return EINVAL;
+}
+
+static int test_position(window_t * win, display_t * disp)
+{
+   int32_t x;
+   int32_t y;
+   int32_t dx; // stores the offset in case of windowsconfig_FRAME
+   int32_t dy; // stores the offset in case of windowsconfig_FRAME
+
+   // prepare
+   TEST(0 == show_window(win));
+   WAITFOR(disp, isvisible_window(win));
+
+   TEST(0 == pos_window(win, &x, &y));
+   dx = x - 50;
+   dy = y - 100;
+   TEST(0 <= dx && dx <= 10);
+   TEST(0 <= dy && dy <= 30);
+
+   // TEST pos_window
+   TEST(0 == pos_window(win, &x, &y));
+   TEST(50 == x - dx);
+   TEST(100 == y - dy);
+
+   // TEST setpos_window
+   TEST(0 == setpos_window(win, 200, 160));
+   WAITFOR(disp, pos_window(win, &x, &y) == 0 && x == 200 + dx);
+   TEST(0 == pos_window(win, &x, &y));
+   TEST(200 == x - dx);
+   TEST(160 == y - dy);
+   TEST(0 == setpos_window(win, 50, 100));
+   WAITFOR(disp, pos_window(win, &x, &y) == 0 && x == 50 + dx);
+   TEST(0 == pos_window(win, &x, &y));
+   TEST(50 == x - dx);
+   TEST(100 == y - dy);
+
+   return 0;
+ONABORT:
+   return EINVAL;
+}
+
+static int test_resize(window_t * win, display_t * disp)
+{
+   uint32_t w;
+   uint32_t h;
+
+   // prepare
+   TEST(0 == show_window(win));
+   WAITFOR(disp, isvisible_window(win));
+
+   // TEST size_window
+   TEST(0 == size_window(win, &w, &h));
+   TEST(100 == w);
+   TEST(100 == h);
+
+   // TEST resize_window
+   TEST(0 == resize_window(win, 200, 150));
+   WAITFOR(disp, size_window(win, &w, &h) == 0 && w == 200);
+   TEST(0 == size_window(win, &w, &h));
+   TEST(200 == w);
+   TEST(150 == h);
+   TEST(0 == resize_window(win, 100, 100));
+   WAITFOR(disp, size_window(win, &w, &h) == 0 && w == 100);
+   TEST(0 == size_window(win, &w, &h));
+   TEST(100 == w);
+   TEST(100 == h);
+
+   // unprepare
+   TEST(0 == hide_window(win));
+   WAITFOR(disp, ! isvisible_window(win));
+   TEST(0 == isvisible_window(win));
+
+   return 0;
+ONABORT:
    return EINVAL;
 }
 
@@ -350,9 +486,13 @@ static int childprocess_unittest(void)
 {
    resourceusage_t   usage = resourceusage_INIT_FREEABLE;
    display_t         disp  = display_INIT_FREEABLE;
+   window_t          win   = window_INIT_FREEABLE;
+   window_evh_t      evhandler = window_evh_INIT_NULL;
+   EGLContext        eglcontext = EGL_NO_CONTEXT;
 
    // prepare
    TEST(0 == initdefault_display(&disp))
+   TEST(0 == init_test_window(&win, &eglcontext, &disp, &evhandler));
 
    if (test_transparentalpha(&disp))   goto ONABORT;
 
@@ -361,16 +501,28 @@ static int childprocess_unittest(void)
    if (test_initfree(&disp))           goto ONABORT;
 
    acceptleak_helper(&usage);
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
 
+   WAITFOR(&disp, false);
+   TEST(0 == init_resourceusage(&usage));
+
+   if (test_showhide(&win, &disp))     goto ONABORT;
+   if (test_position(&win, &disp))     goto ONABORT;
+   if (test_resize(&win, &disp))       goto ONABORT;
+
+   WAITFOR(&disp, false);
    TEST(0 == same_resourceusage(&usage));
    TEST(0 == free_resourceusage(&usage));
 
    // unprepare
-   TEST(0 == free_display(&disp))
+   TEST(0 == free_window(&win));
+   TEST(0 == free_display(&disp));
 
    return 0;
 ONABORT:
    (void) free_resourceusage(&usage);
+   (void) free_window(&win);
    (void) free_display(&disp);
    return EINVAL;
 }
