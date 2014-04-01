@@ -109,15 +109,6 @@ int free_resourceusage(resourceusage_t * usage)
    int err ;
    int err2 ;
 
-   usage->file_usage        = 0 ;
-   usage->mmtrans_usage     = 0 ;
-   usage->mmtrans_correction= 0 ;
-   usage->malloc_usage      = 0 ;
-   usage->malloc_correction = 0 ;
-   usage->pagecache_usage   = 0 ;
-   usage->pagecache_correction = 0 ;
-   usage->pagecache_staticusage= 0 ;
-
    if (usage->virtualmemory_usage) {
 
       err = delete_signalstate(&usage->signalstate) ;
@@ -130,6 +121,8 @@ int free_resourceusage(resourceusage_t * usage)
 
       err2 = FREE_MM(&mem) ;
       if (err2) err = err2 ;
+
+      memset(usage, 0, sizeof(resourceusage_t));
 
       if (err) goto ONABORT ;
    }
@@ -160,7 +153,7 @@ int same_resourceusage(const resourceusage_t * usage)
       goto ONABORT ;
    }
 
-   if ((usage2.malloc_usage - usage->malloc_correction) != usage->malloc_usage) {
+   if ( (usage2.malloc_usage - usage->malloc_correction - usage->malloc_usage) > usage->malloc_acceptleak) {
       TRACE_NOARG_ERRLOG(log_flags_NONE, RESOURCE_USAGE_DIFFERENT, err) ;
       goto ONABORT ;
    }
@@ -215,6 +208,7 @@ static int test_initfree(void)
    TEST(0 == usage.pagecache_staticusage) ;
    TEST(0 == usage.signalstate) ;
    TEST(0 == usage.virtualmemory_usage) ;
+   TEST(0 == usage.malloc_acceptleak);
 
    // TEST init_resourceusage, free_resourceusage
    TEST(0 == init_resourceusage(&usage)) ;
@@ -229,6 +223,7 @@ static int test_initfree(void)
    TEST(0 != usage.signalstate) ;
    TEST(0 != usage.virtualmemory_usage) ;
    TEST(20000 > usage.malloc_correction) ;
+   usage.malloc_acceptleak = 1;
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == usage.file_usage) ;
    TEST(0 == usage.mmtrans_usage) ;
@@ -240,6 +235,7 @@ static int test_initfree(void)
    TEST(0 == usage.pagecache_staticusage) ;
    TEST(0 == usage.signalstate) ;
    TEST(0 == usage.virtualmemory_usage) ;
+   TEST(0 == usage.malloc_acceptleak) ;
    TEST(0 == free_resourceusage(&usage)) ;
    TEST(0 == usage.file_usage) ;
    TEST(0 == usage.mmtrans_usage) ;
@@ -251,6 +247,7 @@ static int test_initfree(void)
    TEST(0 == usage.pagecache_staticusage) ;
    TEST(0 == usage.signalstate) ;
    TEST(0 == usage.virtualmemory_usage) ;
+   TEST(0 == usage.malloc_acceptleak) ;
 
    return 0 ;
 ONABORT:
@@ -362,22 +359,67 @@ ONABORT:
    return EINVAL ;
 }
 
-int unittest_test_resourceusage()
+static int test_update(void)
 {
-   resourceusage_t usage = resourceusage_INIT_FREEABLE ;
+   resourceusage_t usage    = resourceusage_INIT_FREEABLE ;
+   void *          memblock = 0;
 
-   TEST(0 == init_resourceusage(&usage)) ;
+   // TEST acceptmallocleak_resourceusage: value is remembered in usage.malloc_acceptleak
+   for (uint16_t i = 65535;; i /= 2) {
+      acceptmallocleak_resourceusage(&usage, i);
+      TEST(i == usage.malloc_acceptleak);
+      if (!i) break;
+   }
 
-   if (test_initfree())    goto ONABORT ;
-   if (test_query())       goto ONABORT ;
-
-   TEST(0 == same_resourceusage(&usage)) ;
-   TEST(0 == free_resourceusage(&usage)) ;
+   // TEST acceptmallocleak_resourceusage: same_resourceusage uses value
+   for (unsigned i = 16; i <= 1024; i *= 2) {
+      size_t sizeold;
+      size_t sizenew;
+      TEST(0 == init_resourceusage(&usage));
+      TEST(0 == allocatedsize_malloc(&sizeold));
+      memblock = malloc(i);
+      TEST(0 == allocatedsize_malloc(&sizenew));
+      TEST(sizenew >= sizeold+i);
+      TEST(sizenew <= sizeold+2*i);
+      TEST(ELEAK == same_resourceusage(&usage));
+      // accept leaks with one byte less
+      acceptmallocleak_resourceusage(&usage, (uint16_t)(sizenew-sizeold-1));
+      TEST(ELEAK == same_resourceusage(&usage));
+      // accept leak exactly
+      acceptmallocleak_resourceusage(&usage, (uint16_t)(sizenew-sizeold));
+      TEST(0 == same_resourceusage(&usage)) ;
+      // accept leaks with one byte more
+      acceptmallocleak_resourceusage(&usage, (uint16_t)(sizenew-sizeold+1));
+      TEST(0 == same_resourceusage(&usage)) ;
+      TEST(0 == free_resourceusage(&usage)) ;
+      free(memblock);
+      memblock = 0;
+   }
 
    return 0 ;
 ONABORT:
+   free(memblock) ;
    (void) free_resourceusage(&usage) ;
    return EINVAL ;
+}
+
+int unittest_test_resourceusage()
+{
+   resourceusage_t usage = resourceusage_INIT_FREEABLE;
+
+   TEST(0 == init_resourceusage(&usage));
+
+   if (test_initfree())    goto ONABORT;
+   if (test_query())       goto ONABORT;
+   if (test_update())      goto ONABORT;
+
+   TEST(0 == same_resourceusage(&usage));
+   TEST(0 == free_resourceusage(&usage));
+
+   return 0 ;
+ONABORT:
+   (void) free_resourceusage(&usage);
+   return EINVAL;
 }
 
 #endif
