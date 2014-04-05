@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/demo.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Apr.05  12:40:00
+GenerationDate  := 2014.Apr.05  12:43:43
 GeneratedBy     := je-so
 
 ## Debug
@@ -118,6 +118,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!platform!X11!x11videomode.c.o \
  $(ObjectDir_Debug)/C-kern!platform!X11!x11screen.c.o \
  $(ObjectDir_Debug)/demo!opengl!setup_opengles_demo.c.o \
+ $(ObjectDir_Debug)/demo!opengl!pixel_framebuffer_demo.c.o \
  $(ObjectDir_Debug)/demo!opengl!main.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Debug)/C-kern!ds!inmem!splaytree.c.o \
@@ -168,6 +169,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!platform!X11!x11videomode.c.o \
  $(ObjectDir_Release)/C-kern!platform!X11!x11screen.c.o \
  $(ObjectDir_Release)/demo!opengl!setup_opengles_demo.c.o \
+ $(ObjectDir_Release)/demo!opengl!pixel_framebuffer_demo.c.o \
  $(ObjectDir_Release)/demo!opengl!main.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!binarystack.c.o \
  $(ObjectDir_Release)/C-kern!ds!inmem!splaytree.c.o \
@@ -309,6 +311,9 @@ $(ObjectDir_Debug)/C-kern!platform!X11!x11screen.c.o: C-kern/platform/X11/x11scr
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/demo!opengl!setup_opengles_demo.c.o: demo/opengl/setup_opengles_demo.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/demo!opengl!pixel_framebuffer_demo.c.o: demo/opengl/pixel_framebuffer_demo.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/demo!opengl!main.c.o: demo/opengl/main.c
@@ -453,6 +458,9 @@ $(ObjectDir_Release)/C-kern!platform!X11!x11screen.c.o: C-kern/platform/X11/x11s
 	@$(CC_Release)
 
 $(ObjectDir_Release)/demo!opengl!setup_opengles_demo.c.o: demo/opengl/setup_opengles_demo.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/demo!opengl!pixel_framebuffer_demo.c.o: demo/opengl/pixel_framebuffer_demo.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/demo!opengl!main.c.o: demo/opengl/main.c

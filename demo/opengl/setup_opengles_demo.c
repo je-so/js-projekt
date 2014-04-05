@@ -62,7 +62,7 @@ static void ondestroy_demowindow(demowindow_t * win)
 
 static void onredraw_demowindow(demowindow_t * win)
 {
-   glClearColor(0, 0, 0, 1);
+   glClearColor(0, 0, 0, 0);
    glClearDepthf(1);
    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 

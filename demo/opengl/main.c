@@ -23,9 +23,6 @@
 
 #include "C-kern/konfig.h"
 
-// demo functions
-int setup_opengles_demo(maincontext_t * maincontext);
-
 typedef struct demo_t demo_t;
 
 struct demo_t {
@@ -33,11 +30,15 @@ struct demo_t {
    maincontext_thread_f run;
 };
 
+/////////////////
+// demo functions
+
+int setup_opengles_demo(maincontext_t * maincontext);
+int pixel_framebuffer_demo(maincontext_t * maincontext);
+
 static demo_t s_demos[] = {
-   { "setup_opengles", &setup_opengles_demo }
-   // shows 4 different views of a rotating triangle
-   // { "2d-window-coordinates", 0 },
-   // 3d-window-coordinates (clip coordinates)
+   { "setup_opengles", &setup_opengles_demo },
+   { "pixel_framebuffer", &pixel_framebuffer_demo }
 };
 
 // returns either a valid index into s_demos (return value >= 0) else -1

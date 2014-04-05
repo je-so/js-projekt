@@ -19,6 +19,7 @@
   <VirtualDirectory Name="OpenGL">
     <File Name="../../demo/opengl/main.c"/>
     <File Name="../../demo/opengl/setup_opengles_demo.c"/>
+    <File Name="../../demo/opengl/pixel_framebuffer_demo.c"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
