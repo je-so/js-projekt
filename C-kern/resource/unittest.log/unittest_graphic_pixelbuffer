@@ -1,16 +1,16 @@
-[1: 1396288018.942015s]
-init_pixelbuffer() C-kern/graphic/pixelbuffer.c:79
+[1: 1396696176.333485s]
+init_pixelbuffer() C-kern/graphic/pixelbuffer.c:76
 Error 259 - Failed to allocate one or more resources
 Function aborted
-[1: 1396288018.942037s]
-init_pixelbuffer() C-kern/graphic/pixelbuffer.c:79
+[1: 1396696176.333499s]
+init_pixelbuffer() C-kern/graphic/pixelbuffer.c:76
 Error 259 - Failed to allocate one or more resources
 Function aborted
-[1: 1396288018.942045s]
-init_pixelbuffer() C-kern/graphic/pixelbuffer.c:79
+[1: 1396696176.333503s]
+init_pixelbuffer() C-kern/graphic/pixelbuffer.c:76
 Error 259 - Failed to allocate one or more resources
 Function aborted
-[1: 1396288018.942061s]
-free_pixelbuffer() C-kern/graphic/pixelbuffer.c:101
+[1: 1396696176.333512s]
+free_pixelbuffer() C-kern/graphic/pixelbuffer.c:98
 Error 3 - No such process
 Function aborted - one or more resources could not be freed

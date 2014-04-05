@@ -33,11 +33,11 @@
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/graphic/gconfig.h"
+#include "C-kern/api/graphic/gles2api.h"
 #include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
 #include "C-kern/api/platform/OpenGL/EGL/egldisplay.h"
 #endif
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
-#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysgles2.h)
 
 
 // section: eglpbuffer_t

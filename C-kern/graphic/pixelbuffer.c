@@ -29,16 +29,13 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/graphic/display.h"
 #include "C-kern/api/graphic/gconfig.h"
-#ifdef KONFIG_USERINTERFACE_EGL
-#include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
 #include "C-kern/api/graphic/gcontext.h"
-#endif
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/graphic/gles2api.h"
 #endif
-#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysgles2.h)
 
 
 // section: pixelbuffer_t

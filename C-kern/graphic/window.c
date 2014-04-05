@@ -34,13 +34,13 @@
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
 #include "C-kern/api/graphic/gconfig.h"
+#include "C-kern/api/graphic/gles2api.h"
 #include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/X11/x11.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
 #if defined(KONFIG_USERINTERFACE_EGL)
 #include STR(C-kern/api/platform/KONFIG_OS/graphic/sysegl.h)
-#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysgles2.h)
 #endif
 
 

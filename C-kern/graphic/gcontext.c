@@ -33,10 +33,10 @@
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
 #include "C-kern/api/test/resourceusage.h"
+#include "C-kern/api/graphic/gles2api.h"
 #include "C-kern/api/graphic/pixelbuffer.h"
 #include "C-kern/api/platform/task/thread.h"
 #endif
-#include STR(C-kern/api/platform/KONFIG_OS/graphic/sysgles2.h)
 
 
 // section: gcontext_t

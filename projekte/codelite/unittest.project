@@ -231,6 +231,8 @@
       <File Name="../../C-kern/api/graphic/gcontext.h"/>
       <File Name="../../C-kern/api/graphic/surface.h"/>
       <File Name="../../C-kern/api/graphic/pixelbuffer.h"/>
+      <File Name="../../C-kern/api/graphic/glapi.h"/>
+      <File Name="../../C-kern/api/graphic/gles2api.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="cache">

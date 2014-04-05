@@ -82,7 +82,7 @@ struct surface_t {
  * Returns the native OpenGL surface type tagged with (opengl_surface_t*). */
 struct opengl_surface_t * gl_surface(surface_t * surf);
 
-/* function: gl_surface
+/* function: isfree_surface
  * Returns true if surf->glsurface is set to 0. */
 bool isfree_surface(const surface_t * surf);
 

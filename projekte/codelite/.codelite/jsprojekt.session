@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="8" Name="m_selectedTab"/>
+  <int Value="6" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
@@ -19,7 +19,7 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/graphic/window.c" Name="FileName"/>
-      <int Value="74" Name="FirstVisibleLine"/>
+      <int Value="26" Name="FirstVisibleLine"/>
       <int Value="72" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
@@ -46,23 +46,9 @@
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/jsprojekt/JS/demo/opengl/setup_opengles_demo.c" Name="FileName"/>
-      <int Value="52" Name="FirstVisibleLine"/>
-      <int Value="68" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/demo/opengl/main.c" Name="FileName"/>
-      <int Value="7" Name="FirstVisibleLine"/>
-      <int Value="19" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
       <wxString Value="/jsprojekt/JS/demo/opengl/pixel_framebuffer_demo.c" Name="FileName"/>
       <int Value="300" Name="FirstVisibleLine"/>
-      <int Value="331" Name="CurrentLine"/>
+      <int Value="305" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
