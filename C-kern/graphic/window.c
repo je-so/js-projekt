@@ -29,10 +29,6 @@
 #include "C-kern/api/err.h"
 #include "C-kern/api/graphic/display.h"
 #include "C-kern/api/graphic/gconfig.h"
-#ifdef KONFIG_USERINTERFACE_EGL
-#include "C-kern/api/platform/OpenGL/EGL/eglconfig.h"
-#include "C-kern/api/platform/OpenGL/EGL/eglwindow.h"
-#endif
 #include "C-kern/api/test/errortimer.h"
 #ifdef KONFIG_UNITTEST
 #include "C-kern/api/test/unittest.h"
@@ -230,22 +226,25 @@ static int test_transparentalpha(display_t * disp)
    TEST(0 == init_window(&top, disp, snr, 0, &gconf, winattr));
    TEST(0 == init_window(&bottom, disp, snr, 0, &gconf, winattr));
 
+   // TEST swapbuffer_window: bottom window opaque color
    TEST(0 == show_x11window(os_window(&bottom)));
    WAITFOR(disp, os_window(&bottom)->state == x11window_state_SHOWN);
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(disp), (void*)gl_window(&bottom), (void*)gl_window(&bottom), eglcontext));
    glClearColor(1, 0, 0, 1);
    glClear(GL_COLOR_BUFFER_BIT);
-   eglSwapBuffers(gl_display(disp), (void*)gl_window(&bottom));
+   TEST(0 == swapbuffer_window(&bottom, disp));
    eglWaitGL();
    sleepms_thread(100); // wait for compositor
    // red color
    TEST(0 == compare_color(os_window(&bottom), 100, 100, 1, 0, 0));
+
+   // TEST swapbuffer_window: top window with transparent value
    TEST(0 == show_x11window(os_window(&top)));
    WAITFOR(disp, os_window(&top)->state == x11window_state_SHOWN);
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(disp), (void*)gl_window(&top), (void*)gl_window(&top), eglcontext));
    glClearColor(0, 0, 1, 0); // transparent blue
    glClear(GL_COLOR_BUFFER_BIT);
-   eglSwapBuffers(gl_display(disp), (void*)gl_window(&top));
+   TEST(0 == swapbuffer_window(&top, disp));
    eglWaitGL();
    sleepms_thread(100); // wait for compositor
    // resulting color is the combination of red and blue

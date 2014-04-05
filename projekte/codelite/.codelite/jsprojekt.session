@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace">
-  <int Value="7" Name="m_selectedTab"/>
+  <int Value="2" Name="m_selectedTab"/>
   <wxString Value="/jsprojekt/JS/projekte/codelite/jsprojekt.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/test/run/run_unittest.c" Name="FileName"/>
-      <int Value="125" Name="FirstVisibleLine"/>
+      <int Value="151" Name="FirstVisibleLine"/>
       <int Value="152" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/api/graphic/window.h" Name="FileName"/>
-      <int Value="130" Name="FirstVisibleLine"/>
-      <int Value="128" Name="CurrentLine"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="42" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/jsprojekt/JS/C-kern/graphic/window.c" Name="FileName"/>
-      <int Value="497" Name="FirstVisibleLine"/>
-      <int Value="544" Name="CurrentLine"/>
+      <int Value="21" Name="FirstVisibleLine"/>
+      <int Value="46" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -28,20 +28,6 @@
       <wxString Value="/jsprojekt/JS/C-kern/api/graphic/pixelbuffer.h" Name="FileName"/>
       <int Value="78" Name="FirstVisibleLine"/>
       <int Value="76" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/graphic/pixelbuffer.c" Name="FileName"/>
-      <int Value="235" Name="FirstVisibleLine"/>
-      <int Value="241" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/jsprojekt/JS/C-kern/platform/OpenGL/EGL/eglpbuffer.c" Name="FileName"/>
-      <int Value="341" Name="FirstVisibleLine"/>
-      <int Value="360" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -56,6 +42,13 @@
       <wxString Value="/jsprojekt/JS/C-kern/api/platform/OpenGL/EGL/eglcontext.h" Name="FileName"/>
       <int Value="68" Name="FirstVisibleLine"/>
       <int Value="79" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/jsprojekt/JS/demo/opengl/setup_opengles_demo.c" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="0" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>

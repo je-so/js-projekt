@@ -39,6 +39,10 @@ struct windowconfig_t;
 #include "C-kern/api/platform/X11/x11window.h"
 #endif
 
+#ifdef KONFIG_USERINTERFACE_EGL
+#include "C-kern/api/platform/OpenGL/EGL/eglwindow.h"
+#endif
+
 #include "C-kern/api/graphic/surface.h"
 
 /* typedef: struct window_t
@@ -226,6 +230,13 @@ int sendclose_window(window_t * win);
  * the event is ignored. */
 int sendredraw_window(window_t * win);
 
+// group: OpenGL
+
+/* function: swapbuffer_window
+ * Swaps the content of the fron buffer with the back buffer.
+ * Draw operations go to the back buffer. The front is shown on the screen.
+ * After return the content of the back buffer is undefined. */
+int swapbuffer_window(window_t * win, struct display_t * disp);
 
 
 // section: inline implementation
@@ -292,6 +303,9 @@ int sendredraw_window(window_t * win);
  * Implements <window_t.size_window>. */
 #define size_window(win, width, height) \
          size_x11window(os_window(win), width, height)
+
+#define swapbuffer_window(win, disp) \
+         swapbuffer_eglwindow(gl_window(win), gl_display(disp))
 
 #else
    #error "Not implemented"

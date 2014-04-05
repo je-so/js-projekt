@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/demo.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Apr.01  14:59:24
+GenerationDate  := 2014.Apr.05  12:40:00
 GeneratedBy     := je-so
 
 ## Debug
@@ -97,12 +97,17 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Debug)/C-kern!graphic!surface.c.o \
  $(ObjectDir_Debug)/C-kern!graphic!windowconfig.c.o \
+ $(ObjectDir_Debug)/C-kern!graphic!pixelbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!graphic!display.c.o \
- $(ObjectDir_Debug)/C-kern!graphic!surfaceconfig.c.o \
+ $(ObjectDir_Debug)/C-kern!graphic!gconfig.c.o \
  $(ObjectDir_Debug)/C-kern!graphic!window.c.o \
+ $(ObjectDir_Debug)/C-kern!graphic!gcontext.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglcontext.c.o \
  $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egl.c.o \
  $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egldisplay.c.o \
+ $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglpbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglwindow.c.o \
  $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglconfig.c.o \
  $(ObjectDir_Debug)/C-kern!platform!X11!x11display.c.o \
@@ -142,12 +147,17 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!io!writer!log!logmain.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o \
  $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o \
+ $(ObjectDir_Release)/C-kern!graphic!surface.c.o \
  $(ObjectDir_Release)/C-kern!graphic!windowconfig.c.o \
+ $(ObjectDir_Release)/C-kern!graphic!pixelbuffer.c.o \
  $(ObjectDir_Release)/C-kern!graphic!display.c.o \
- $(ObjectDir_Release)/C-kern!graphic!surfaceconfig.c.o \
+ $(ObjectDir_Release)/C-kern!graphic!gconfig.c.o \
  $(ObjectDir_Release)/C-kern!graphic!window.c.o \
+ $(ObjectDir_Release)/C-kern!graphic!gcontext.c.o \
+ $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglcontext.c.o \
  $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egl.c.o \
  $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egldisplay.c.o \
+ $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglpbuffer.c.o \
  $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglwindow.c.o \
  $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglconfig.c.o \
  $(ObjectDir_Release)/C-kern!platform!X11!x11display.c.o \
@@ -238,22 +248,37 @@ $(ObjectDir_Debug)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/logb
 $(ObjectDir_Debug)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Debug)
 
+$(ObjectDir_Debug)/C-kern!graphic!surface.c.o: C-kern/graphic/surface.c
+	@$(CC_Debug)
+
 $(ObjectDir_Debug)/C-kern!graphic!windowconfig.c.o: C-kern/graphic/windowconfig.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!graphic!pixelbuffer.c.o: C-kern/graphic/pixelbuffer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!graphic!display.c.o: C-kern/graphic/display.c
 	@$(CC_Debug)
 
-$(ObjectDir_Debug)/C-kern!graphic!surfaceconfig.c.o: C-kern/graphic/surfaceconfig.c
+$(ObjectDir_Debug)/C-kern!graphic!gconfig.c.o: C-kern/graphic/gconfig.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!graphic!window.c.o: C-kern/graphic/window.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!graphic!gcontext.c.o: C-kern/graphic/gcontext.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglcontext.c.o: C-kern/platform/OpenGL/EGL/eglcontext.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egl.c.o: C-kern/platform/OpenGL/EGL/egl.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!egldisplay.c.o: C-kern/platform/OpenGL/EGL/egldisplay.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglpbuffer.c.o: C-kern/platform/OpenGL/EGL/eglpbuffer.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!platform!OpenGL!EGL!eglwindow.c.o: C-kern/platform/OpenGL/EGL/eglwindow.c
@@ -367,22 +392,37 @@ $(ObjectDir_Release)/C-kern!io!writer!log!logbuffer.c.o: C-kern/io/writer/log/lo
 $(ObjectDir_Release)/C-kern!io!writer!log!logwriter.c.o: C-kern/io/writer/log/logwriter.c
 	@$(CC_Release)
 
+$(ObjectDir_Release)/C-kern!graphic!surface.c.o: C-kern/graphic/surface.c
+	@$(CC_Release)
+
 $(ObjectDir_Release)/C-kern!graphic!windowconfig.c.o: C-kern/graphic/windowconfig.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!graphic!pixelbuffer.c.o: C-kern/graphic/pixelbuffer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!graphic!display.c.o: C-kern/graphic/display.c
 	@$(CC_Release)
 
-$(ObjectDir_Release)/C-kern!graphic!surfaceconfig.c.o: C-kern/graphic/surfaceconfig.c
+$(ObjectDir_Release)/C-kern!graphic!gconfig.c.o: C-kern/graphic/gconfig.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!graphic!window.c.o: C-kern/graphic/window.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!graphic!gcontext.c.o: C-kern/graphic/gcontext.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglcontext.c.o: C-kern/platform/OpenGL/EGL/eglcontext.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egl.c.o: C-kern/platform/OpenGL/EGL/egl.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!egldisplay.c.o: C-kern/platform/OpenGL/EGL/egldisplay.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglpbuffer.c.o: C-kern/platform/OpenGL/EGL/eglpbuffer.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!platform!OpenGL!EGL!eglwindow.c.o: C-kern/platform/OpenGL/EGL/eglwindow.c

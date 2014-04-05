@@ -26,6 +26,7 @@
 #include "C-kern/api/test/assert.h"
 #include "C-kern/api/graphic/display.h"
 #include "C-kern/api/graphic/gconfig.h"
+#include "C-kern/api/graphic/gcontext.h"
 #include "C-kern/api/graphic/window.h"
 #include "C-kern/api/graphic/windowconfig.h"
 #include "C-kern/api/platform/X11/x11.h"
@@ -101,7 +102,12 @@ static void onredraw_demowindow(demowindow_t * win)
    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
    glDisableVertexAttribArray(0);
    glDisableVertexAttribArray(1);
-   eglSwapBuffers(gl_display(display_window(&win->super)), gl_window(&win->super));
+   TEST(0 == swapbuffer_window(&win->super, display_window(&win->super)));
+
+   return;
+ONABORT:
+   win->isClosed = true;
+   return;
 }
 
 static void onreshape_demowindow(demowindow_t * win, uint32_t width, uint32_t height)
@@ -185,7 +191,7 @@ int setup_opengles_demo(maincontext_t * maincontext)
    uint32_t          snr;
    demowindow_t      win = { .super = window_INIT_FREEABLE, .isClosed = false };
    gconfig_t         gconf;
-   EGLContext        eglcontext;
+   gcontext_t        gcontext;
    int32_t           conf_attribs[] = {
       gconfig_BITS_BUFFER, 32,
       gconfig_BITS_DEPTH, 4,
@@ -206,10 +212,8 @@ int setup_opengles_demo(maincontext_t * maincontext)
 
    TEST(0 == init_gconfig(&gconf, &disp, conf_attribs));
    TEST(0 == init_window(&win.super, &disp, snr, genericcast_windowevh(&eventhandler, demowindow_t), &gconf, winattr));
-
-   eglcontext = eglCreateContext(gl_display(&disp), gl_gconfig(&gconf), EGL_NO_CONTEXT, (EGLint[]){EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE});
-   TEST(EGL_NO_CONTEXT != eglcontext);
-   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), (void*)gl_window(&win.super), (void*)gl_window(&win.super), eglcontext));
+   TEST(0 == init_gcontext(&gcontext, &disp, &gconf, gcontext_api_OPENGLES));
+   TEST(0 == setcurrent_gcontext(&gcontext, &disp, &win.super, &win.super));
 
    TEST(0 == create_opengles_program());
 
@@ -218,8 +222,8 @@ int setup_opengles_demo(maincontext_t * maincontext)
       TEST(0 == nextevent_X11(os_display(&disp)));
    }
 
-   TEST(EGL_TRUE == eglMakeCurrent(gl_display(&disp), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
-   TEST(EGL_TRUE == eglDestroyContext(gl_display(&disp), eglcontext));
+   TEST(0 == releasecurrent_gcontext(&disp));
+   TEST(0 == free_gcontext(&gcontext, &disp));
    TEST(0 == free_window(&win.super));
    TEST(0 == free_display(&disp));
 

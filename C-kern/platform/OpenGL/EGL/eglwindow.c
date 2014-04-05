@@ -103,6 +103,23 @@ ONABORT:
    return err;
 }
 
+// group: update
+
+int swapbuffer_eglwindow(eglwindow_t eglwin, egldisplay_t egldisp)
+{
+   int err;
+
+   if (EGL_FALSE == eglSwapBuffers(egldisp, eglwin)) {
+      err = aserrcode_egl(eglGetError());
+      goto ONABORT;
+   }
+
+   return 0;
+ONABORT:
+   TRACEABORTFREE_ERRLOG(err);
+   return err;
+}
+
 
 // section: Functions
 
@@ -228,7 +245,7 @@ static int test_draw(native_types_t * native)
    eglconfig_t    eglcfg  = native->eglconfig[0];
    eglwindow_t    eglwin  = eglwindow_INIT_FREEABLE;
 
-   // TEST init_eglwindow: draw
+   // prepare
    TEST(0 == INITOS_EGLWINDOW(&eglwin, gl_display(&native->display), eglcfg, oswin));
    TEST(0 == show_x11window(oswin));
    WAITFOR(&native->display, oswin->state == x11window_state_SHOWN);
@@ -236,10 +253,14 @@ static int test_draw(native_types_t * native)
    TEST(EGL_TRUE == eglMakeCurrent(gl_display(&native->display), eglwin, eglwin, native->eglcontext));
    glClearColor(1, 0, 1, 1);
    glClear(GL_COLOR_BUFFER_BIT);
-   eglSwapBuffers(gl_display(&native->display), eglwin);
+
+   // TEST swapbuffer_eglwindow: makes content visible
+   TEST(0 == swapbuffer_eglwindow(eglwin, gl_display(&native->display)));
    eglWaitGL();
    sleepms_thread(300); // wait for compositor
    TEST(0 == compare_color(oswin, 100, 100, 1, 0, 1));
+
+   // unprepare
    TEST(0 == hide_x11window(oswin));
    WAITFOR(&native->display, oswin->state == x11window_state_HIDDEN);
    sleepms_thread(100); // wait for compositor

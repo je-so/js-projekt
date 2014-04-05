@@ -63,18 +63,24 @@ typedef struct opengl_surface_t * eglwindow_t;
  * Initializes eglwin with x11win.
  * Returns EINVAL if any parameter is not initialized or invalid
  * or EALLOC if the egl specific part of the window could not be initialized.
- * Parameter display must be a valid egldisplay_t and parameter eglconf a valid eglconfig_t.
+ * Parameter egldisp must be a valid egldisplay_t and parameter eglconf a valid eglconfig_t.
  * Do not free x11win as long as eglwin is not freed. */
 int initx11_eglwindow(/*out*/eglwindow_t * eglwin, struct opengl_display_t * egldisp, struct opengl_config_t * eglconf, struct x11window_t * x11win);
 
 /* function: free_eglwindow
  * Frees resources allocated by eglwin window surface.
- * Parameter display must point to a valid egl display. */
-int free_eglwindow(eglwindow_t * eglwin, struct opengl_display_t * display);
-
-// group: query
+ * Parameter egldisp must point to a valid egl egldisp. */
+int free_eglwindow(eglwindow_t * eglwin, struct opengl_display_t * egldisp);
 
 // group: update
+
+/* function: swapbuffer_eglwindow
+ * Swaps the content of the back and from buffer.
+ * The front is the one which is shown on the screen.
+ * The back buffer is the offscreen drawing area.
+ * Call this function whenever you are ready with drawing.
+ * After return the content of the back buffer is undefined. */
+int swapbuffer_eglwindow(eglwindow_t eglwin, struct opengl_display_t * egldisp);
 
 
 #endif
