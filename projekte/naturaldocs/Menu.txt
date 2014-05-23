@@ -59,14 +59,6 @@ Group: Api  {
       File: Valuecache  (api/cache/valuecache.h)
       }  # Group: Cache
 
-   Group: Clang  {
-
-      File: TransC-Parser  (api/clang/transC/transCparser.h)
-      File: TransC-StringTable  (api/clang/transC/transCstringtable.h)
-      File: TransC-Token  (api/clang/transC/transCtoken.h)
-      File: UTF8-Scanner  (api/clang/utf8scanner.h)
-      }  # Group: Clang
-
    Group: Context  {
 
       File: ErrorContext  (api/context/errorcontext.h)
@@ -142,6 +134,7 @@ Group: Api  {
 
          File: CSV-Filereader  (api/io/reader/csvfilereader.h)
          File: FileReader  (api/io/reader/filereader.h)
+         File: UTF8-Scanner  (api/io/reader/utf8scanner.h)
          File: UTF8TextReader  (api/io/reader/utf8reader.h)
          }  # Group: Reader
 
@@ -313,14 +306,6 @@ Group: Implementation  {
       File: Valuecache impl  (cache/valuecache.c)
       }  # Group: Cache
 
-   Group: Clang  {
-
-      File: TransC-StringTable impl  (clang/transC/transCstringtable.c)
-      File: TransC-Token impl  (clang/transC/transCtoken.c)
-      File: TransC-Parser impl  (clang/transC/transCparser.c)
-      File: UTF8-Scanner impl  (clang/utf8scanner.c)
-      }  # Group: Clang
-
    Group: Context  {
 
       File: Context-Oriented-Programming  (context/COP.txt)
@@ -370,6 +355,7 @@ Group: Implementation  {
          File: CSV-Filereader impl  (io/reader/csvfilereader.c)
          File: Description-Reader  (io/reader/reader.txt)
          File: FileReader impl  (io/reader/filereader.c)
+         File: UTF8-Scanner impl  (io/reader/utf8scanner.c)
          File: UTF8TextReader impl  (io/reader/utf8reader.c)
          }  # Group: Reader
 

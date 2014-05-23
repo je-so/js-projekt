@@ -121,6 +121,7 @@
       <File Name="../../C-kern/api/memory/pagecache_impl.h"/>
       <File Name="../../C-kern/api/memory/pagecache.h"/>
       <File Name="../../C-kern/api/memory/memstream.h"/>
+      <File Name="../../C-kern/api/memory/ptr.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cache">
       <File Name="../../C-kern/api/cache/valuecache.h"/>
@@ -455,6 +456,7 @@
     <File Name="../../C-kern/memory/pagecache_impl.c"/>
     <File Name="../../C-kern/memory/pagecache.c"/>
     <File Name="../../C-kern/memory/memstream.c"/>
+    <File Name="../../C-kern/memory/ptr.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="ds">
     <VirtualDirectory Name="inmem">

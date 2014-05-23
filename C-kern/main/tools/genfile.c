@@ -81,7 +81,7 @@ static const char * s_templateheader =
 #define CKERN_@HEADERTAG_HEADER\n\n\
 /* typedef: struct @TYPENAME\n\
  * Export <@TYPENAME> into global namespace. */\n\
-typedef struct @TYPENAME         @TYPENAME;\n\n\n\
+typedef struct @TYPENAME @TYPENAME;\n\n\n\
 // section: Functions\n\n\
 // group: test\n\n\
 #ifdef KONFIG_UNITTEST\n\
@@ -172,7 +172,7 @@ static int childprocess_unittest(void)\n\
 ONABORT:\n\
    (void) free_resourceusage(&usage);\n\
    return EINVAL;\n\
-}\n\
+}\n\n\
 int @UNITTESTNAME()\n\
 {\n\
    // select between (1)\n\

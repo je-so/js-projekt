@@ -60,7 +60,7 @@
  * PRIu32  - used to print type uint32_t
  * PRIu64  - used to print type uint64_t
  * PRIuPTR - used to print type uintptr_t
- * PRIxFCT - used to print type uintfct_t
+ * PRIxFCT - used to print type uintptrf_t
  * PRIuSIZE - used to print type size_t
  *
  * scanf specifiers:
@@ -79,42 +79,35 @@
 
 /* define: PRIuSIZE
  * printf unsigned int format specifier 'zu' for type *size_t*. */
-#define PRIuSIZE                          "zu"
+#define PRIuSIZE     "zu"
 
 /* define: PRIxFCT
- * printf hexadecimal format specifier for type *uintfct_t*. */
-#define PRIxFCT                           PRIxPTR
+ * printf hexadecimal format specifier for type *uintptrf_t*. */
+#define PRIxFCT      PRIxPTR
 
 /* define: SCNuSIZE
  * scanf unsigned int format specifier 'zu' for type *size_t*. */
-#define SCNuSIZE                          "zu"
-
-// group: function
-
-/* typedef: fct_t
- * Generic function pointer type. Every other function pointer can be casted
- * to this type and back without loss of information. */
-typedef void                           (* fct_t) (void) ;
+#define SCNuSIZE     "zu"
 
 // group: integer
 
 /* typedef: ramsize_t
  * Ramsize could be bigger than size_t to match 32 bit machines with more than 4GTB of ram. */
-typedef uint64_t                          ramsize_t ;
+typedef uint64_t     ramsize_t;
 
-/* typedef: uintfct_t
+/* typedef: uintptrf_t
  * An integer type big enough to hold a pointer to a function.
- * Type uintptr_t and uintfct_t could differ in size.
+ * Type uintptr_t and uintptrf_t could differ in size.
  * But in POSIX pointer to symbols (man dlsym) are considered to fit in type (void*)
- * therefore in most environments sizeof(uintfct_t) == sizeof(uintptr_t).*/
-typedef uintptr_t                         uintfct_t ;
+ * therefore in most environments sizeof(uintptrf_t) == sizeof(uintptr_t).*/
+typedef uintptr_t    uintptrf_t;
 
 // group: limits
 
 /* define: OFF_MAX
  * Declares the maximum value of type off_t.
  * The size of off_t is checked in file "C-kern/test/compiletime/stdtypes.h"*/
-#define OFF_MAX                           INT64_MAX
+#define OFF_MAX      INT64_MAX
 
 // group: unicode
 
@@ -135,6 +128,6 @@ typedef uintptr_t                         uintfct_t ;
  * (Will be removed if upcoming C11 is supported by compiler)
  *
  * */
-typedef uint32_t                          char32_t ;
+typedef uint32_t     char32_t;
 
 #endif

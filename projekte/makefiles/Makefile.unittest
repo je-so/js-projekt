@@ -6,7 +6,7 @@ ProjectModes    := Debug Release
 ProjectFile     := projekte/unittest.prj
 ProjectLinks    := 
 
-GenerationDate  := 2014.Apr.01  15:02:19
+GenerationDate  := 2014.Mai.23  12:09:08
 GeneratedBy     := je-so
 
 ## Debug
@@ -158,6 +158,7 @@ Objects_Debug := \
  $(ObjectDir_Debug)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o \
+ $(ObjectDir_Debug)/C-kern!memory!ptr.c.o \
  $(ObjectDir_Debug)/C-kern!memory!pagecache_macros.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm.c.o \
  $(ObjectDir_Debug)/C-kern!memory!mm!mm_impl.c.o \
@@ -267,6 +268,7 @@ Objects_Release := \
  $(ObjectDir_Release)/C-kern!memory!wbuffer.c.o \
  $(ObjectDir_Release)/C-kern!memory!hwcache.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache.c.o \
+ $(ObjectDir_Release)/C-kern!memory!ptr.c.o \
  $(ObjectDir_Release)/C-kern!memory!pagecache_macros.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm.c.o \
  $(ObjectDir_Release)/C-kern!memory!mm!mm_impl.c.o \
@@ -547,6 +549,9 @@ $(ObjectDir_Debug)/C-kern!memory!hwcache.c.o: C-kern/memory/hwcache.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
+	@$(CC_Debug)
+
+$(ObjectDir_Debug)/C-kern!memory!ptr.c.o: C-kern/memory/ptr.c
 	@$(CC_Debug)
 
 $(ObjectDir_Debug)/C-kern!memory!pagecache_macros.c.o: C-kern/memory/pagecache_macros.c
@@ -868,6 +873,9 @@ $(ObjectDir_Release)/C-kern!memory!hwcache.c.o: C-kern/memory/hwcache.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!pagecache.c.o: C-kern/memory/pagecache.c
+	@$(CC_Release)
+
+$(ObjectDir_Release)/C-kern!memory!ptr.c.o: C-kern/memory/ptr.c
 	@$(CC_Release)
 
 $(ObjectDir_Release)/C-kern!memory!pagecache_macros.c.o: C-kern/memory/pagecache_macros.c

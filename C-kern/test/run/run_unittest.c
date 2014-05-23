@@ -199,6 +199,7 @@ int run_unittest(void * argv)
       RUN(unittest_memory_pagecache);
       RUN(unittest_memory_pagecacheimpl);
       RUN(unittest_memory_pagecache_macros);
+      RUN(unittest_memory_ptr);
       RUN(unittest_memory_wbuffer);
       RUN(unittest_memory_mm_mm);
       RUN(unittest_memory_mm_mmimpl);
